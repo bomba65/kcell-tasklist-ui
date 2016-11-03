@@ -18,8 +18,7 @@ public class KcellDemoApplicationTest extends ProcessEngineTestCase {
     @Deployment(resources = "kcellDemoProcess.bpmn")
     public void testSimpleProcess() {
         Map<String, Object> variables = new HashMap<String, Object>();
-        variables.put("city", "Berlin");
-        variables.put("country", "Germany");
+        variables.put("city", "CITY_5164");
 
         // Create the user that will be informed on assignment
         User newUser = identityService.newUser("demo");
