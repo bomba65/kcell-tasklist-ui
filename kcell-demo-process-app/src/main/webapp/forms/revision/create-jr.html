@@ -1,0 +1,278 @@
+<style>
+    .my-group .form-control{
+        width:50%;
+    }
+</style>
+<form role="form" class="form-horizontal">
+    <script cam-script type="text/form-script">
+        inject([ '$scope', '$http', function($scope, $http) {
+            var variableManager = camForm.variableManager;
+            var soaComplaintIds = ['XY102394B','XY102395B'];
+            var sites = ['M00067XMEDKORGAU','M00068XMEDKORGAU','M00069XMEDKORGAU'];
+
+            camForm.on('form-loaded', function() {
+                $scope.createDate = new Date();
+                $scope.soaComplaintIdCorrect = false;
+                camForm.variableManager.createVariable({
+    				name: 'validityDate',
+    				type: 'Date',
+    				value: new Date()
+    			});
+            });
+
+            $scope.checkSOAComplaintId = checkSOAComplaintId;
+            $scope.open = open;
+            $scope.checkSite = checkSite;
+            $scope.toggleJr = toggleJr;
+            $scope.jobs = ['a','b','c'];
+
+            function toggleJr(index){
+                if($scope.jrIndex === index){
+                    $scope.jrIndex = undefined;
+                } else {
+                    $scope.jrIndex = index;
+                }
+            }
+
+            function checkSite(){
+                $scope.siteCorrect = false;
+                for(var i=0;i<sites.length;i++){
+                    if(sites[i] === $scope.site){
+                        $scope.sitesCorrect = true;
+                    }
+                }
+            }
+
+            function checkSOAComplaintId(){
+                $scope.soaComplaintIdCorrect = false;
+                for(var i=0;i<soaComplaintIds.length;i++){
+                    if(soaComplaintIds[i] === $scope.soaComplaintId){
+                        $scope.soaComplaintIdCorrect = true;
+                    }
+                }
+            }
+
+            function open($event) {
+                $event.preventDefault();
+                $event.stopPropagation();
+                $scope.dateFieldOpened = true;
+            };
+
+            camForm.on('submit', function(){
+                var validityDate = new Date($scope.validityDate);
+                camForm.variableManager.variableValue('validityDate', validityDate);
+            });
+
+            camForm.on('variables-applied', function() {
+		        var validityDate = camForm.variableManager.variableValue('validityDate');
+		        $scope.validityDate = new Date(validityDate);
+		    });
+        }]);
+
+
+    </script>
+    <h4>Create job request</h4>
+    <div class="form-group">
+        <label class="col-sm-4 control-label">Requested date*</label>
+        <div class="col-sm-8">
+            <div class="form-control">{{createDate | date: 'dd.MM.yyyy'}}</div>
+        </div>
+    </div>
+    <div class="form-group">
+        <label class="col-sm-4 control-label">Validity date*:</label>
+        <div class="col-sm-8">
+            <div class="input-group">
+                <input type="text" ng-model="validityDate" required class="form-control" datepicker-popup="dd.MM.yyyy" is-open="dateFieldOpened" id="validityDate"/>
+                <span class="input-group-btn">
+                    <button type="button" class="btn btn-default" ng-click="open($event)">
+                        <i class="glyphicon glyphicon-calendar"></i>
+                    </button>
+                </span>
+            </div>
+        </div>
+    </div>
+    <div class="form-group">
+        <label class="col-sm-4 control-label">SA&O Complaint Id:</label>
+        <div class="col-sm-8">
+            <div class="input-group">
+                <input type="text" cam-variable-name="soaComplaintId" cam-variable-type="String" class="form-control"
+                       ng-blur="checkSOAComplaintId()"/>
+                <span class="input-group-btn">
+                    <button type="button" class="btn btn-default" ng-click="checkSOAComplaintId()">
+                        <i class="glyphicon glyphicon-search"></i>
+                    </button>
+                </span>
+            </div>
+        </div>
+    </div>
+    <div class="form-group">
+        <label class="col-sm-4 control-label">Site (near end)*:</label>
+        <div class="col-sm-8">
+            <div class="input-group">
+                <input type="text" cam-variable-name="site" cam-variable-type="String" required class="form-control" ng-blur="checkSite()"/>
+                <span class="input-group-btn">
+                    <button type="button" class="btn btn-default" ng-click="checkSite()">
+                        <i class="glyphicon glyphicon-search"></i>
+                    </button>
+                </span>
+            </div>
+        </div>
+    </div>
+    <div class="form-group">
+        <label class="col-sm-4 control-label">Reason*:</label>
+        <div class="col-sm-8">
+            <select class="form-control" cam-variable-name="reason" required cam-variable-type="String">
+                <option value="">select reason</option>
+                <option value="OPERATIONS_WORKS">Operations works</option>
+                <option value="TRANSMISSION_WORKS">Transmission works</option>
+                <option value="INFRASTRUCTURE_WORKS">Infrastructure works</option>
+                <option value="OPTIMIZATION_WORKS">Optimization works</option>
+            </select>
+        </div>
+    </div>
+    <div class="form-group">
+        <label class="col-sm-4 control-label">Contract*:</label>
+        <div class="col-sm-8">
+            <select cam-variable-name="contract" cam-variable-type="String" class="form-control">
+                <option value="ROLLOUT"> Rollout</option>
+                <option value="REVISION"> Revision</option>
+            </select>
+        </div>
+    </div>
+    <div class="form-group">
+        <label class="col-sm-4 control-label">Contractor*:</label>
+        <div class="col-sm-8">
+            <select cam-variable-name="contractor" cam-variable-type="String" class="form-control">
+                <option value="Kcell"> Kcell</option>
+                <option value="LineManagement"> Line Management</option>
+            </select>
+        </div>
+    </div>
+    <div class="form-group">
+        <label class="col-sm-4 control-label">Supplementary files:</label>
+        <div class="col-sm-8">
+            <input type="file" class="form-control" cam-variable-type="File" cam-max-filesize="10000000"
+                   cam-variable-name="SUPPLEMENTARY_FILE"/>
+        </div>
+    </div>
+    <h4>Running job requests for these sites ({{jobs.length}} JRs)</h4>
+    <div class="row">
+        <div class="col-md-12">
+            <div ng-repeat="job in jobs">
+                <a ng-click="toggleJr($index)">JR No. XYZ{{$index}}, Reason: {{reason}}, Created at: {{createDate | date: 'dd.MM.yyyy'}}</a>
+                <div class="well" ng-if="jrIndex === $index">
+                    <div class="row">
+                        <div class="col-md-3">Requested date: {{createDate | date: 'dd.MM.yyyy HH:mm'}}</div>
+                        <div class="col-md-3">Reason: {{reason}}</div>
+                        <div class="col-md-3">Materials required: Yes</div>
+                    </div>
+                    <div class="row">
+                        <div class="col-md-3">Validity date: {{validityDate | date: 'dd.MM.yyyy'}}</div>
+                        <div class="col-md-3">Contract: {{contract}}</div>
+                        <div class="col-md-3">Leasing required: Yes</div>
+                    </div>
+                    <div class="row">
+                        <div class="col-md-3">SA&O Complaint Id: {{soaComplaintId}}</div>
+                        <div class="col-md-3">Contractor: {{contractor}}</div>
+                        <div class="col-md-3">Site (near end): {{site}}</div>
+                    </div>
+                    <div class="row">
+                        <div class="col-md-12">Supplementary files:</div>
+                        <div class="col-md-12"><a href="javascript:void(0)">Broken modem pictur.jpg</a></div>
+                        <div class="col-md-12"><a href="javascript:void(0)">Broken modem pictur.jpg</a></div>
+                    </div>
+                    <div class="row">
+                        <div class="col-md-12">Works:</div>
+                        <div class="col-md-12">
+                            <a href="javascript:void(0)">1. RBS/BTS cell addition (BBS+cabinet), works qty: 1, materials qty: 2 units, on sites: M00067XMEDKORGAU (Near end)</a>
+                        </div>
+                        <div class="col-md-12">
+                            <a href="javascript:void(0)">2. RBS/BTS cell addition (BBS+cabinet), works qty: 1, materials qty: 2 units, on sites: 3 Sites</a>
+                        </div>
+                    </div>
+                    <div class="row">
+                        <div class="col-md-12">Explanation of works: Need to install RU model X2</div>
+                    </div>
+                </div>
+            </div>
+            <div class="col-md-12">
+                <button class="btn btn-sm btn-info">Show more...</button>
+            </div>
+        </div>
+    </div>
+    <h4>Works</h4>
+    <div class="row">
+        <div class="col-md-12">
+            <table>
+                <thead>
+                    <tr>
+                        <th>#</th>
+                        <th>Title</th>
+                        <th>Works Qty</th>
+                        <th>Materials Qty</th>
+                        <th>On sites</th>
+                        <th></th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr>
+                        <td>1.</td>
+                        <td>RBS/BTS cell addition (BBS+cabinet)</td>
+                        <td><input type="number" class="form-control"/></td>
+                        <td>
+                            <div class="input-group my-group">
+                                <input type="number" class="form-control" />
+                                <select class="selectpicker form-control" >
+                                    <option>Unit 1</option>
+                                    <option>Unit 2</option>
+                                </select>
+                            </div>
+                        </td>
+                        <td><input type="text" class="form-control"/></td>
+                        <td><button class="btn btn-sm btn-warning">Edit...</button> </td>
+                    </tr>
+                    <tr>
+                        <td>2.</td>
+                        <td>Hop Related Works X</td>
+                        <td><input type="number" class="form-control"/></td>
+                        <td>
+                            <div class="input-group my-group">
+                                <input type="number" class="form-control" />
+                                <select class="selectpicker form-control" >
+                                    <option>Unit 1</option>
+                                    <option>Unit 2</option>
+                                </select>
+                            </div>
+                        </td>
+                        <td><input type="text" class="form-control"/></td>
+                        <td><button class="btn btn-sm btn-warning">Edit...</button> </td>
+                    </tr>
+                    <tr>
+                        <td>2.</td>
+                        <td>Hop Related Works Y</td>
+                        <td><input type="number" class="form-control"/></td>
+                        <td>
+                            <div class="input-group my-group">
+                                <input type="number" class="form-control" />
+                                <select class="selectpicker form-control" >
+                                    <option>Unit 1</option>
+                                    <option>Unit 2</option>
+                                </select>
+                            </div>
+                        </td>
+                        <td><input type="text" class="form-control"/></td>
+                        <td><button class="btn btn-sm btn-warning">Edit...</button> </td>
+                    </tr>
+                    <tr>
+                        <td colspan="6"><button class="btn btn-sm btn-info">Add work...</button></td>
+                    </tr>
+                </tbody>
+            </table>
+        </div>
+        <div class="row">
+            <div class="col-md-12">
+                <textarea class="form-control"></textarea>
+            </div>
+        </div>
+    </div>
+</form>
