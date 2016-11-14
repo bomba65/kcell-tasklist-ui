@@ -2,29 +2,135 @@
     .my-group .form-control{
         width:50%;
     }
+    .modal-lg.modal-dialog{
+        width: 90%;
+    }
 </style>
 <form role="form" class="form-horizontal">
     <script cam-script type="text/form-script">
         inject([ '$scope', '$http', function($scope, $http) {
             var variableManager = camForm.variableManager;
-            var soaComplaintIds = ['XY102394B','XY102395B'];
-            var sites = ['M00067XMEDKORGAU','M00068XMEDKORGAU','M00069XMEDKORGAU'];
+            $scope.custom = {
+                contract: undefined,
+                contractor: undefined
+            };
+
+            console.log(camForm.variableManager);
+            console.log(camForm);
 
             camForm.on('form-loaded', function() {
                 $scope.createDate = new Date();
                 $scope.soaComplaintIdCorrect = false;
                 camForm.variableManager.createVariable({
-    				name: 'validityDate',
+    				name: 'requestedDate',
     				type: 'Date',
     				value: new Date()
     			});
+                camForm.variableManager.createVariable({
+                    name: 'validityDate',
+                    type: 'Date',
+                    value: new Date()
+                });
+                camForm.variableManager.createVariable({
+    				name: 'contract',
+    				type: 'Integer',
+    				value: undefined
+    			});
+                camForm.variableManager.createVariable({
+    				name: 'contractor',
+    				type: 'Integer',
+    				value: undefined
+    			});
+                camForm.variableManager.createVariable({
+    				name: 'materialsRequired',
+    				type: 'String',
+    				value: 'Yes'
+    			});
+                camForm.variableManager.createVariable({
+    				name: 'leasingRequired',
+    				type: 'String',
+    				value: 'No'
+    			});
+                camForm.variableManager.createVariable({
+    				name: 'works',
+    				type: 'Json',
+    				value: undefined
+    			});
+
+                $http.get('/api/catalogs/services').then(
+                    function(result){
+                        $scope.services = result.data;
+                        $scope.servicesTitle = {};
+                        for(var i=0;i<$scope.services.length;i++){
+                            $scope.servicesTitle[$scope.services[i].id] = $scope.services[i].name;
+                        }
+                    },
+                    function(error){
+                        console.log(error.data);
+                    }
+                );
+
+                $http.get('/api/catalogs/contractors').then(
+                        function(result){
+                            $scope.contractors = result.data;
+                            $scope.contractorTitle = {};
+                            for(var i=0;i<$scope.contractors.length;i++){
+                                $scope.contractorTitle[$scope.contractors[i].id] = $scope.contractors[i].name;
+                            }
+                        },
+                        function(error){
+                            console.log(error.data);
+                        }
+                );
+
+                $http.get('/api/catalogs/reasons').then(
+                        function(result){
+                            $scope.reasons = result.data;
+                            $scope.reasonsTitle = {};
+                            for(var i=0;i<$scope.reasons.length;i++){
+                                $scope.reasonsTitle[$scope.reasons[i].id] = $scope.reasons[i].name;
+                            }
+                        },
+                        function(error){
+                            console.log(error.data);
+                        }
+                );
+
+                $http.get('/api/work/list').then(
+                        function(result){
+                            $scope.works = result.data;
+                            $scope.worksTitle = {};
+                            for(var i=0;i<$scope.works.length;i++){
+                                $scope.worksTitle[$scope.works[i].sapServiceNumber] = $scope.works[i].sapPOServiceName;
+                            }
+                        },
+                        function(error){
+                            console.log(error.data);
+                        }
+                );
+
+                $http.get('/api/catalogs/units').then(
+                        function(result){
+                            $scope.units = result.data;
+                            $scope.unitsTitle = {};
+                            for(var i=0;i<$scope.units.length;i++){
+                                $scope.unitsTitle[$scope.units[i].value] = $scope.units[i].name;
+                            }
+                        },
+                        function(error){
+                            console.log(error.data);
+                        }
+                );
             });
 
-            $scope.checkSOAComplaintId = checkSOAComplaintId;
             $scope.open = open;
-            $scope.checkSite = checkSite;
             $scope.toggleJr = toggleJr;
-            $scope.jobs = ['a','b','c'];
+            $scope.getJobs = getJobs;
+            $scope.addJobWork = addJobWork;
+            $scope.showMoreJobRequests = showMoreJobRequests;
+            $scope.fileSelected = fileSelected;
+            $scope.download = download;
+            $scope.jobWorks = [];
 
             function toggleJr(index){
                 if($scope.jrIndex === index){
@@ -34,33 +140,149 @@
                 }
             }
 
-            function checkSite(){
-                $scope.siteCorrect = false;
-                for(var i=0;i<sites.length;i++){
-                    if(sites[i] === $scope.site){
-                        $scope.sitesCorrect = true;
-                    }
-                }
-            }
-
-            function checkSOAComplaintId(){
-                $scope.soaComplaintIdCorrect = false;
-                for(var i=0;i<soaComplaintIds.length;i++){
-                    if(soaComplaintIds[i] === $scope.soaComplaintId){
-                        $scope.soaComplaintIdCorrect = true;
-                    }
-                }
-            }
-
             function open($event) {
                 $event.preventDefault();
                 $event.stopPropagation();
                 $scope.dateFieldOpened = true;
             };
 
+            function getJobs(page, limit){
+                var query = {
+                    "processDefinitionKey" : "Revision",
+                    "active" : true,
+                    "variables" :
+                        [{
+                            "name": "reason",
+                            "operator": "eq",
+                            "value": $scope.reason
+                        }]
+                };
+                var path  = '/camunda/api/engine/engine/default/process-instance';
+                if(page){
+                    path+='?firstResult='+page+'&maxResults='+limit;
+                    $scope.showMore = false;
+                }
+                $http.post(path,query).then(
+                    function(result){
+                        var jobRequestsCount = 0;
+                        var piIds = [];
+                        for(var i=0;i<result.data.length;i++){
+                            piIds.push(result.data[i].id);
+                        }
+                        var variableQuery = {
+                            processInstanceIdIn: piIds
+                        }
+
+                        //TODO: Map reduce
+                        $http.post('/camunda/api/engine/engine/default/variable-instance?deserializeValues=false', variableQuery).then(
+                            function(variables){
+                                console.log(variables);
+                                $scope.jobRequests = {};
+                                for(var i=0;i<variables.data.length;i++){
+                                    if(!$scope.jobRequests[variables.data[i].processInstanceId]){
+                                        jobRequestsCount++;
+                                        $scope.jobRequests[variables.data[i].processInstanceId] = {};
+                                    }
+                                    if(variables.data[i].name === 'works'){
+                                        $scope.jobRequests[variables.data[i].processInstanceId][variables.data[i].name] = JSON.parse(variables.data[i].value);
+                                    } else if(variables.data[i].name === 'supplementaryFile1' || variables.data[i].name === 'supplementaryFile2' || variables.data[i].name === 'supplementaryFile3' || variables.data[i].name === 'supplementaryFile4' || variables.data[i].name === 'supplementaryFile5'){
+                                        $scope.jobRequests[variables.data[i].processInstanceId][variables.data[i].name] = variables.data[i];
+                                    }
+                                    else {
+                                        $scope.jobRequests[variables.data[i].processInstanceId][variables.data[i].name] = variables.data[i].value;
+                                    }
+
+                                }
+                                $scope.jobRequestsCount = jobRequestsCount;
+                            },
+                            function(error){
+                                console.log(error);
+                            }
+                        );
+                    },
+                    function(error){
+                        console.log(error);
+                    }
+                );
+            }
+
+            function addJobWork(){
+                $scope.jobWorks.push({});
+            }
+
+            function showMoreJobRequests(){
+                $scope.showMore = true;
+                getJobs();
+            }
+
+            function fileSelected(el, index){
+                $scope['supplementaryFileSelected'+index] = (el.value !== '');
+            }
+
+            function download(file){
+                document.getElementById('fileDownloadIframe').src = '/camunda/api/engine/engine/default/variable-instance/'+file.id+'/data';
+            }
+
             camForm.on('submit', function(){
+                console.log($scope.custom.contract);
+                console.log($scope.custom.contractor);
+                console.log($scope.validityDate);
+                console.log($scope.materialsRequired);
+                console.log($scope.leasingRequired);
                 var validityDate = new Date($scope.validityDate);
                 camForm.variableManager.variableValue('validityDate', validityDate);
+                camForm.variableManager.variableValue('contract', parseInt($scope.custom.contract));
+                camForm.variableManager.variableValue('contractor', parseInt($scope.custom.contractor));
+                camForm.variableManager.variableValue('materialsRequired', $scope.materialsRequired);
+                camForm.variableManager.variableValue('leasingRequired', $scope.leasingRequired);
+                camForm.variableManager.variableValue('works', JSON.parse(angular.toJson($scope.jobWorks)));
+                for (var i = 0; i < camForm.fields.length; i++) {
+                    console.log("======================Begin ["+camForm.fields[i].variableName +"]======================")
+                    console.log(camForm.fields[i].element.context);
+                    console.log(camForm.fields[i].element.context.value);
+                    console.log(camForm.fields[i].element);
+                    console.log(camForm.fields[i]);
+                    console.log("=======================End ["+camForm.fields[i].variableName +"]=======================")
+                    if (camForm.fields[i].variableName == 'supplementaryFile1') {
+                        if (camForm.fields[i].element.context.value == '') {
+                            camForm.fields.splice(i, 1);
+                            camForm.variableManager.destroyVariable('supplementaryFile1');
+                        }
+                    }
+                }
+                for (var i = 0; i < camForm.fields.length; i++) {
+                    if (camForm.fields[i].variableName == 'supplementaryFile2') {
+                        if (camForm.fields[i].element.context.value == '') {
+                            camForm.fields.splice(i, 1);
+                            camForm.variableManager.destroyVariable('supplementaryFile2');
+                        }
+                    }
+                }
+                for (var i = 0; i < camForm.fields.length; i++) {
+                    if (camForm.fields[i].variableName == 'supplementaryFile3') {
+                        if (camForm.fields[i].element.context.value == '') {
+                            camForm.fields.splice(i, 1);
+                            camForm.variableManager.destroyVariable('supplementaryFile3');
+                        }
+                    }
+                }
+                for (var i = 0; i < camForm.fields.length; i++) {
+                    if (camForm.fields[i].variableName == 'supplementaryFile4') {
+                        if (camForm.fields[i].element.context.value == '') {
+                            camForm.fields.splice(i, 1);
+                            camForm.variableManager.destroyVariable('supplementaryFile4');
+                        }
+                    }
+                }
+                for (var i = 0; i < camForm.fields.length; i++) {
+                    if (camForm.fields[i].variableName == 'supplementaryFile5') {
+                        if (camForm.fields[i].element.context.value == '') {
+                            camForm.fields.splice(i, 1);
+                            camForm.variableManager.destroyVariable('supplementaryFile5');
+                        }
+                    }
+                }
+
             });
 
             camForm.on('variables-applied', function() {
@@ -121,73 +343,94 @@
     <div class="form-group">
         <label class="col-sm-4 control-label">Reason*:</label>
         <div class="col-sm-8">
-            <select class="form-control" cam-variable-name="reason" required cam-variable-type="String">
+            <select class="form-control" cam-variable-name="reason" required cam-variable-type="String" ng-change="getJobs(1,5)">
                 <option value="">select reason</option>
-                <option value="OPERATIONS_WORKS">Operations works</option>
-                <option value="TRANSMISSION_WORKS">Transmission works</option>
-                <option value="INFRASTRUCTURE_WORKS">Infrastructure works</option>
-                <option value="OPTIMIZATION_WORKS">Optimization works</option>
+                <option value="{{r.id}}" ng-repeat="r in reasons">{{r.name}}</option>
             </select>
         </div>
     </div>
     <div class="form-group">
         <label class="col-sm-4 control-label">Contract*:</label>
         <div class="col-sm-8">
-            <select cam-variable-name="contract" cam-variable-type="String" class="form-control">
-                <option value="ROLLOUT"> Rollout</option>
-                <option value="REVISION"> Revision</option>
-            </select>
+            <label class="radio-inline" ng-repeat="service in services">
+                <input type="radio" name="contract" ng-model="custom.contract" id="contract{{$index}}" value="{{service.id}}"> {{service.name}}
+            </label>
         </div>
     </div>
     <div class="form-group">
         <label class="col-sm-4 control-label">Contractor*:</label>
         <div class="col-sm-8">
-            <select cam-variable-name="contractor" cam-variable-type="String" class="form-control">
-                <option value="Kcell"> Kcell</option>
-                <option value="LineManagement"> Line Management</option>
-            </select>
+            <label class="radio-inline" ng-repeat="c in contractors">
+                <input type="radio" name="contractor" ng-model="custom.contractor" id="contractor{{$index}}" value="{{c.id}}" required> {{c.name}}
+            </label>
+        </div>
+    </div>
+    <div class="form-group">
+        <label class="col-sm-4 control-label">Materials required*:</label>
+        <div class="col-sm-8">
+            <label class="radio-inline">
+                <input type="radio" name="materialsRequired" ng-model="materialsRequired" id="materialsRequired1" value="Yes" required> Yes
+            </label>
+            <label class="radio-inline">
+                <input type="radio" name="materialsRequired" ng-model="materialsRequired" id="materialsRequired2" value="No" required> No
+            </label>
+        </div>
+    </div>
+    <div class="form-group">
+        <label class="col-sm-4 control-label">Leasing required*:</label>
+        <div class="col-sm-8">
+            <label class="radio-inline">
+                <input type="radio" name="leasingRequired" ng-model="leasingRequired" id="leasingRequired1" value="Yes" required> Yes
+            </label>
+            <label class="radio-inline">
+                <input type="radio" name="leasingRequired" ng-model="leasingRequired" id="leasingRequired2" value="No" required> No
+            </label>
         </div>
     </div>
     <div class="form-group">
         <label class="col-sm-4 control-label">Supplementary files:</label>
         <div class="col-sm-8">
-            <input type="file" class="form-control" cam-variable-type="File" cam-max-filesize="10000000"
-                   cam-variable-name="SUPPLEMENTARY_FILE"/>
+            <input type="file" class="form-control" cam-variable-type="File" cam-max-filesize="10000000" cam-variable-name="supplementaryFile1" onchange="angular.element(this).scope().fileSelected(this, 1)"/>
+            <input type="file" class="form-control" cam-variable-type="File" cam-max-filesize="10000000" cam-variable-name="supplementaryFile2" onchange="angular.element(this).scope().fileSelected(this, 2)"/>
+            <input type="file" class="form-control" cam-variable-type="File" cam-max-filesize="10000000" cam-variable-name="supplementaryFile3" onchange="angular.element(this).scope().fileSelected(this, 3)"/>
+            <input type="file" class="form-control" cam-variable-type="File" cam-max-filesize="10000000" cam-variable-name="supplementaryFile4" onchange="angular.element(this).scope().fileSelected(this, 4)"/>
+            <input type="file" class="form-control" cam-variable-type="File" cam-max-filesize="10000000" cam-variable-name="supplementaryFile5" onchange="angular.element(this).scope().fileSelected(this, 5)"/>
         </div>
     </div>
-    <h4>Running job requests for these sites ({{jobs.length}} JRs)</h4>
+    <h4>Running job requests for these sites ({{jobRequestsCount}} JRs)</h4>
     <div class="row">
         <div class="col-md-12">
-            <div ng-repeat="job in jobs">
-                <a ng-click="toggleJr($index)">JR No. XYZ{{$index}}, Reason: {{reason}}, Created at: {{createDate | date: 'dd.MM.yyyy'}}</a>
+            <div ng-repeat="(k,job) in jobRequests">
+                <a ng-click="toggleJr($index)">JR No. XYZ{{$index+1}}, Reason: {{reasonsTitle[job.reason]}}, Created at: {{job.requestedDate | date: 'dd.MM.yyyy'}}</a>
                 <div class="well" ng-if="jrIndex === $index">
                     <div class="row">
-                        <div class="col-md-3">Requested date: {{createDate | date: 'dd.MM.yyyy HH:mm'}}</div>
-                        <div class="col-md-3">Reason: {{reason}}</div>
-                        <div class="col-md-3">Materials required: Yes</div>
+                        <div class="col-md-4">Requested date: {{job.requestedDate | date: 'dd.MM.yyyy HH:mm'}}</div>
+                        <div class="col-md-4">Reason: {{reasonsTitle[job.reason]}}</div>
+                        <div class="col-md-4">Materials required: {{job.materialsRequired}}</div>
                     </div>
                     <div class="row">
-                        <div class="col-md-3">Validity date: {{validityDate | date: 'dd.MM.yyyy'}}</div>
-                        <div class="col-md-3">Contract: {{contract}}</div>
-                        <div class="col-md-3">Leasing required: Yes</div>
+                        <div class="col-md-4">Validity date: {{job.validityDate | date: 'dd.MM.yyyy'}}</div>
+                        <div class="col-md-4">Contract: {{servicesTitle[job.contract]}}</div>
+                        <div class="col-md-4">Leasing required: {{job.leasingRequired}}</div>
                     </div>
                     <div class="row">
-                        <div class="col-md-3">SA&O Complaint Id: {{soaComplaintId}}</div>
-                        <div class="col-md-3">Contractor: {{contractor}}</div>
-                        <div class="col-md-3">Site (near end): {{site}}</div>
+                        <div class="col-md-4">SA&O Complaint Id: {{job.soaComplaintId}}</div>
+                        <div class="col-md-4">Contractor: {{contractorTitle[job.contractor]}}</div>
+                        <div class="col-md-4">Site (near end): {{job.site}}</div>
                     </div>
                     <div class="row">
                         <div class="col-md-12">Supplementary files:</div>
-                        <div class="col-md-12"><a href="javascript:void(0)">Broken modem pictur.jpg</a></div>
-                        <div class="col-md-12"><a href="javascript:void(0)">Broken modem pictur.jpg</a></div>
+                        <iframe id="fileDownloadIframe" style="display:none;"></iframe>
+                        <div class="col-md-12"><a ng-if="job.supplementaryFile1" ng-click="download(job.supplementaryFile1)">{{job.supplementaryFile1.valueInfo.filename}}</a></div>
+                        <div class="col-md-12"><a ng-if="job.supplementaryFile2" ng-click="download(job.supplementaryFile2)">{{job.supplementaryFile2.valueInfo.filename}}</a></div>
+                        <div class="col-md-12"><a ng-if="job.supplementaryFile3" ng-click="download(job.supplementaryFile3)">{{job.supplementaryFile3.valueInfo.filename}}</a></div>
+                        <div class="col-md-12"><a ng-if="job.supplementaryFile4" ng-click="download(job.supplementaryFile4)">{{job.supplementaryFile4.valueInfo.filename}}</a></div>
+                        <div class="col-md-12"><a ng-if="job.supplementaryFile5" ng-click="download(job.supplementaryFile5)">{{job.supplementaryFile5.valueInfo.filename}}</a></div>
                     </div>
                     <div class="row">
                         <div class="col-md-12">Works:</div>
-                        <div class="col-md-12">
-                            <a href="javascript:void(0)">1. RBS/BTS cell addition (BBS+cabinet), works qty: 1, materials qty: 2 units, on sites: M00067XMEDKORGAU (Near end)</a>
-                        </div>
-                        <div class="col-md-12">
-                            <a href="javascript:void(0)">2. RBS/BTS cell addition (BBS+cabinet), works qty: 1, materials qty: 2 units, on sites: 3 Sites</a>
+                        <div class="col-md-12" ng-repeat="work in job.works">
+                            <a href="javascript:void(0)">{{$index+1}}. {{worksTitle[work.sapServiceNumber]}}, works qty: {{work.quantity}}, materials qty: {{work.materialQuantity}} {{unitsTitle[work.unit]}}, on sites: {{work.sites}} (Near end)</a>
                         </div>
                     </div>
                     <div class="row">
@@ -195,8 +438,8 @@
                     </div>
                 </div>
             </div>
-            <div class="col-md-12">
-                <button class="btn btn-sm btn-info">Show more...</button>
+            <div class="col-md-12" ng-if="!showMore">
+                <a ng-click="showMoreJobRequests()" class="btn btn-sm btn-info">Show more...</a>
             </div>
         </div>
     </div>
@@ -215,63 +458,36 @@
                     </tr>
                 </thead>
                 <tbody>
-                    <tr>
-                        <td>1.</td>
-                        <td>RBS/BTS cell addition (BBS+cabinet)</td>
-                        <td><input type="number" class="form-control"/></td>
+                    <tr ng-repeat="jobWork in jobWorks">
+                        <td>{{$index+1}}</td>
+                        <td width="25%">
+                            <select ng-model="jobWork.sapServiceNumber" class="form-control">
+                                <option ng-repeat="work in works" value="{{work.sapServiceNumber}}">{{work.sapPOServiceName}}</option>
+                            </select>
+                        </td>
+                        <td><input type="number" class="form-control" ng-model="jobWork.quantity"/></td>
                         <td>
                             <div class="input-group my-group">
-                                <input type="number" class="form-control" />
-                                <select class="selectpicker form-control" >
-                                    <option>Unit 1</option>
-                                    <option>Unit 2</option>
+                                <input type="number" class="form-control" ng-model="jobWork.materialQuantity" />
+                                <select class="selectpicker form-control" ng-model="jobWork.unit" >
+                                    <option ng-repeat="unit in units" value="{{unit.value}}">{{unit.description}}</option>
                                 </select>
                             </div>
                         </td>
-                        <td><input type="text" class="form-control"/></td>
-                        <td><button class="btn btn-sm btn-warning">Edit...</button> </td>
+                        <td><input type="text" class="form-control" ng-model="jobWork.sites" /></td>
+                        <td><button class="btn btn-sm btn-warning">Edit...</button></td>
                     </tr>
                     <tr>
-                        <td>2.</td>
-                        <td>Hop Related Works X</td>
-                        <td><input type="number" class="form-control"/></td>
-                        <td>
-                            <div class="input-group my-group">
-                                <input type="number" class="form-control" />
-                                <select class="selectpicker form-control" >
-                                    <option>Unit 1</option>
-                                    <option>Unit 2</option>
-                                </select>
-                            </div>
+                        <td colspan="6">
+                            <button class="btn btn-sm btn-info" ng-click="addJobWork()">Add work...</button>
                         </td>
-                        <td><input type="text" class="form-control"/></td>
-                        <td><button class="btn btn-sm btn-warning">Edit...</button> </td>
-                    </tr>
-                    <tr>
-                        <td>2.</td>
-                        <td>Hop Related Works Y</td>
-                        <td><input type="number" class="form-control"/></td>
-                        <td>
-                            <div class="input-group my-group">
-                                <input type="number" class="form-control" />
-                                <select class="selectpicker form-control" >
-                                    <option>Unit 1</option>
-                                    <option>Unit 2</option>
-                                </select>
-                            </div>
-                        </td>
-                        <td><input type="text" class="form-control"/></td>
-                        <td><button class="btn btn-sm btn-warning">Edit...</button> </td>
-                    </tr>
-                    <tr>
-                        <td colspan="6"><button class="btn btn-sm btn-info">Add work...</button></td>
                     </tr>
                 </tbody>
             </table>
         </div>
         <div class="row">
             <div class="col-md-12">
-                <textarea class="form-control"></textarea>
+                <textarea class="form-control" cam-variable-name="explanation" cam-variable-type="String"></textarea>
             </div>
         </div>
     </div>
