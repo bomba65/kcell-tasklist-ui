@@ -15,9 +15,6 @@
                 contractor: undefined
             };
 
-            console.log(camForm.variableManager);
-            console.log(camForm);
-
             camForm.on('form-loaded', function() {
                 $scope.createDate = new Date();
                 $scope.soaComplaintIdCorrect = false;
@@ -57,69 +54,13 @@
     				value: undefined
     			});
 
-                $http.get('/api/catalogs/services').then(
+                $http.get('/api/catalogs').then(
                     function(result){
-                        $scope.services = result.data;
-                        $scope.servicesTitle = {};
-                        for(var i=0;i<$scope.services.length;i++){
-                            $scope.servicesTitle[$scope.services[i].id] = $scope.services[i].name;
-                        }
+                        angular.extend($scope, result.data);
                     },
                     function(error){
                         console.log(error.data);
                     }
-                );
-
-                $http.get('/api/catalogs/contractors').then(
-                        function(result){
-                            $scope.contractors = result.data;
-                            $scope.contractorTitle = {};
-                            for(var i=0;i<$scope.contractors.length;i++){
-                                $scope.contractorTitle[$scope.contractors[i].id] = $scope.contractors[i].name;
-                            }
-                        },
-                        function(error){
-                            console.log(error.data);
-                        }
-                );
-
-                $http.get('/api/catalogs/reasons').then(
-                        function(result){
-                            $scope.reasons = result.data;
-                            $scope.reasonsTitle = {};
-                            for(var i=0;i<$scope.reasons.length;i++){
-                                $scope.reasonsTitle[$scope.reasons[i].id] = $scope.reasons[i].name;
-                            }
-                        },
-                        function(error){
-                            console.log(error.data);
-                        }
-                );
-
-                $http.get('/api/work/list').then(
-                        function(result){
-                            $scope.works = result.data;
-                            $scope.worksTitle = {};
-                            for(var i=0;i<$scope.works.length;i++){
-                                $scope.worksTitle[$scope.works[i].sapServiceNumber] = $scope.works[i].sapPOServiceName;
-                            }
-                        },
-                        function(error){
-                            console.log(error.data);
-                        }
-                );
-
-                $http.get('/api/catalogs/units').then(
-                        function(result){
-                            $scope.units = result.data;
-                            $scope.unitsTitle = {};
-                            for(var i=0;i<$scope.units.length;i++){
-                                $scope.unitsTitle[$scope.units[i].value] = $scope.units[i].name;
-                            }
-                        },
-                        function(error){
-                            console.log(error.data);
-                        }
                 );
             });
 
@@ -173,7 +114,6 @@
                             processInstanceIdIn: piIds
                         }
 
-                        //TODO: Map reduce
                         $http.post('/camunda/api/engine/engine/default/variable-instance?deserializeValues=false', variableQuery).then(
                             function(variables){
                                 console.log(variables);
@@ -224,11 +164,6 @@
             }
 
             camForm.on('submit', function(){
-                console.log($scope.custom.contract);
-                console.log($scope.custom.contractor);
-                console.log($scope.validityDate);
-                console.log($scope.materialsRequired);
-                console.log($scope.leasingRequired);
                 var validityDate = new Date($scope.validityDate);
                 camForm.variableManager.variableValue('validityDate', validityDate);
                 camForm.variableManager.variableValue('contract', parseInt($scope.custom.contract));
@@ -237,12 +172,6 @@
                 camForm.variableManager.variableValue('leasingRequired', $scope.leasingRequired);
                 camForm.variableManager.variableValue('works', JSON.parse(angular.toJson($scope.jobWorks)));
                 for (var i = 0; i < camForm.fields.length; i++) {
-                    console.log("======================Begin ["+camForm.fields[i].variableName +"]======================")
-                    console.log(camForm.fields[i].element.context);
-                    console.log(camForm.fields[i].element.context.value);
-                    console.log(camForm.fields[i].element);
-                    console.log(camForm.fields[i]);
-                    console.log("=======================End ["+camForm.fields[i].variableName +"]=======================")
                     if (camForm.fields[i].variableName == 'supplementaryFile1') {
                         if (camForm.fields[i].element.context.value == '') {
                             camForm.fields.splice(i, 1);
@@ -293,7 +222,7 @@
 
 
     </script>
-    <h4>Create job request</h4>
+    <h4>Create job request {{reasons}}</h4>
     <div class="form-group">
         <label class="col-sm-4 control-label">Requested date*</label>
         <div class="col-sm-8">
@@ -401,21 +330,21 @@
     <div class="row">
         <div class="col-md-12">
             <div ng-repeat="(k,job) in jobRequests">
-                <a ng-click="toggleJr($index)">JR No. XYZ{{$index+1}}, Reason: {{reasonsTitle[job.reason]}}, Created at: {{job.requestedDate | date: 'dd.MM.yyyy'}}</a>
+                <a ng-click="toggleJr($index)">JR No. XYZ{{$index+1}}, Reason: {{catalogs.reasonsTitle[job.reason]}}, Created at: {{job.requestedDate | date: 'dd.MM.yyyy'}}</a>
                 <div class="well" ng-if="jrIndex === $index">
                     <div class="row">
                         <div class="col-md-4">Requested date: {{job.requestedDate | date: 'dd.MM.yyyy HH:mm'}}</div>
-                        <div class="col-md-4">Reason: {{reasonsTitle[job.reason]}}</div>
+                        <div class="col-md-4">Reason: {{catalogs.reasonsTitle[job.reason]}}</div>
                         <div class="col-md-4">Materials required: {{job.materialsRequired}}</div>
                     </div>
                     <div class="row">
                         <div class="col-md-4">Validity date: {{job.validityDate | date: 'dd.MM.yyyy'}}</div>
-                        <div class="col-md-4">Contract: {{servicesTitle[job.contract]}}</div>
+                        <div class="col-md-4">Contract: {{catalogs.servicesTitle[job.contract]}}</div>
                         <div class="col-md-4">Leasing required: {{job.leasingRequired}}</div>
                     </div>
                     <div class="row">
                         <div class="col-md-4">SA&O Complaint Id: {{job.soaComplaintId}}</div>
-                        <div class="col-md-4">Contractor: {{contractorTitle[job.contractor]}}</div>
+                        <div class="col-md-4">Contractor: {{catalogs.contractorTitle[job.contractor]}}</div>
                         <div class="col-md-4">Site (near end): {{job.site}}</div>
                     </div>
                     <div class="row">
@@ -430,7 +359,7 @@
                     <div class="row">
                         <div class="col-md-12">Works:</div>
                         <div class="col-md-12" ng-repeat="work in job.works">
-                            <a href="javascript:void(0)">{{$index+1}}. {{worksTitle[work.sapServiceNumber]}}, works qty: {{work.quantity}}, materials qty: {{work.materialQuantity}} {{unitsTitle[work.unit]}}, on sites: {{work.sites}} (Near end)</a>
+                            <a href="javascript:void(0)">{{$index+1}}. {{catalogs.worksTitle[work.sapServiceNumber]}}, works qty: {{work.quantity}}, materials qty: {{work.materialQuantity}} {{catalogs.unitsTitle[work.unit]}}, on sites: {{work.sites}} (Near end)</a>
                         </div>
                     </div>
                     <div class="row">
