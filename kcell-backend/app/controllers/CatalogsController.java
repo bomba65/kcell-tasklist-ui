@@ -5,6 +5,7 @@ import com.fasterxml.jackson.databind.node.ObjectNode;
 import dtos.core.ContractDto;
 import dtos.core.ContractorDto;
 import dtos.core.ServiceDto;
+import dtos.core.WorkDto;
 import models.core.*;
 import play.db.jpa.JPAApi;
 import play.db.jpa.Transactional;
@@ -63,40 +64,41 @@ public class CatalogsController extends Controller {
         List<Service> services = jpaApi.em().createQuery("select s from Service s order by s.id").getResultList();
         List<ServiceDto> serviceDtos = services.stream().map(ServiceDto::new).collect(Collectors.toList());
 
+        List<Work> works = jpaApi.em().createQuery("select w from Work w order by w.sapPOServiceName").getResultList();
+        List<WorkDto> workDtos = works.stream().map(WorkDto::new).collect(Collectors.toList());
+
         ObjectNode node = Json.newObject();
-        node.put("units", Json.toJson(reasons));
+        node.put("units", Json.toJson(units));
         node.put("reasons", Json.toJson(reasons));
         node.put("contracts", Json.toJson(contractDtos));
         node.put("contractors", Json.toJson(contractorsDtos));
         node.put("services", Json.toJson(serviceDtos));
-        ArrayNode unitsTitle = Json.newArray();
+        node.put("works", Json.toJson(workDtos));
+        ObjectNode unitsTitle = Json.newObject();
         for (Unit unit : units) {
-            ObjectNode obj = Json.newObject();
-            obj.put(unit.getValue(), unit.getDescription());
-            unitsTitle.add(obj);
+            unitsTitle.put(unit.getValue(), unit.getDescription());
         }
-        ArrayNode reasonsTitle = Json.newArray();
+        ObjectNode reasonsTitle = Json.newObject();
         for (Reason reason : reasons) {
-            ObjectNode obj = Json.newObject();
-            obj.put(reason.getId().toString(), reason.getName());
-            reasonsTitle.add(obj);
+            reasonsTitle.put(reason.getId().toString(), reason.getName());
         }
-        ArrayNode servicesTitle = Json.newArray();
+        ObjectNode servicesTitle = Json.newObject();
         for (Service service : services) {
-            ObjectNode obj = Json.newObject();
-            obj.put(service.getId().toString(), service.getName());
-            servicesTitle.add(obj);
+            servicesTitle.put(service.getId().toString(), service.getName());
         }
-        ArrayNode contractorsTitle = Json.newArray();
+        ObjectNode contractorsTitle = Json.newObject();
         for (Contractor contractor : contractors) {
-            ObjectNode obj = Json.newObject();
-            obj.put(contractor.getId().toString(), contractor.getName());
-            contractorsTitle.add(obj);
+            contractorsTitle.put(contractor.getId().toString(), contractor.getName());
+        }
+        ObjectNode worksTitle = Json.newObject();
+        for (Work work : works) {
+            worksTitle.put(work.getSapServiceNumber().toString(), work.getSapPOServiceName());
         }
         node.put("unitsTitle", unitsTitle);
         node.put("reasonsTitle", reasonsTitle);
         node.put("servicesTitle", servicesTitle);
         node.put("contractorsTitle", contractorsTitle);
+        node.put("worksTitle", worksTitle);
         return ok(Json.toJson(node));
     }
 }
