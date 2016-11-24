@@ -67,6 +67,34 @@ public class CatalogsController extends Controller {
         List<Work> works = jpaApi.em().createQuery("select w from Work w order by w.sapPOServiceName").getResultList();
         List<WorkDto> workDtos = works.stream().map(WorkDto::new).collect(Collectors.toList());
 
+        ArrayNode equipments = Json.newArray();
+        ObjectNode equipmentsTitle = Json.newObject();
+        for (int a = (int) 'A'; a < (int) 'Z'; a++) {
+            ObjectNode objectNode = Json.newObject();
+            objectNode.put(((char) a) + "", "Equipment " + ((char) a));
+            equipments.add(objectNode);
+            equipmentsTitle.put(((char) a) + "", "Equipment " + ((char) a));
+        }
+        ArrayNode connectionWorks = Json.newArray();
+        ObjectNode connectionWorksTitle = Json.newObject();
+        for (int a = (int) 'A'; a < (int) 'Z'; a++) {
+            ObjectNode objectNode = Json.newObject();
+            objectNode.put(((char) a) + "", "Work " + ((char) a));
+            connectionWorks.add(objectNode);
+            connectionWorksTitle.put(((char) a) + "", "Work " + ((char) a));
+        }
+        ArrayNode connections = Json.newArray();
+        ObjectNode connectionsTitle = Json.newObject();
+        connectionsTitle.put("1", "E2E...");
+        connectionsTitle.put("2", "Power line...");
+        ObjectNode a = Json.newObject();
+        a.put("1", "E2E...");
+        ObjectNode b = Json.newObject();
+        b.put("2", "Power line...");
+        connections.add(a);
+        connections.add(b);
+
+
         ObjectNode node = Json.newObject();
         node.put("units", Json.toJson(units));
         node.put("reasons", Json.toJson(reasons));
@@ -74,6 +102,8 @@ public class CatalogsController extends Controller {
         node.put("contractors", Json.toJson(contractorsDtos));
         node.put("services", Json.toJson(serviceDtos));
         node.put("works", Json.toJson(workDtos));
+        node.put("connections", Json.toJson(connections));
+        node.put("equipments", Json.toJson(equipments));
         ObjectNode unitsTitle = Json.newObject();
         for (Unit unit : units) {
             unitsTitle.put(unit.getValue(), unit.getDescription());
@@ -99,6 +129,8 @@ public class CatalogsController extends Controller {
         node.put("servicesTitle", servicesTitle);
         node.put("contractorsTitle", contractorsTitle);
         node.put("worksTitle", worksTitle);
+        node.put("equipmentsTitle", equipmentsTitle);
+        node.put("connectionsTitle", connectionsTitle);
         return ok(Json.toJson(node));
     }
 }
