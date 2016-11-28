@@ -69,9 +69,21 @@
             $scope.getJobs = getJobs;
             $scope.addJobWork = addJobWork;
             $scope.showMoreJobRequests = showMoreJobRequests;
+            $scope.showMore = true;
             $scope.fileSelected = fileSelected;
             $scope.download = download;
-            $scope.jobWorks = [];
+            $scope.removeWork = removeWork;
+            $scope.jobWorks = [{}];
+
+            var currentDate = new Date();
+
+            $scope.datepickerOptions = {
+                minDate: currentDate
+            }
+
+            function removeWork(index){
+                $scope.jobWorks.splice(index,1);
+            }
 
             function toggleJr(index){
                 if($scope.jrIndex === index){
@@ -99,9 +111,9 @@
                         }]
                 };
                 var path  = '/camunda/api/engine/engine/default/process-instance';
-                if(page){
-                    path+='?firstResult='+page+'&maxResults='+limit;
+                if(page !== undefined){
                     $scope.showMore = false;
+                    path+='?firstResult='+page+'&maxResults='+limit;
                 }
                 $http.post(path,query).then(
                     function(result){
@@ -226,14 +238,14 @@
     <div class="form-group">
         <label class="col-sm-4 control-label">Requested date*</label>
         <div class="col-sm-2">
-            <div class="form-control">{{createDate | date: 'dd.MM.yyyy'}}</div>
+            <div class="form-control">{{createDate | date: 'dd.MM.yyyy HH:mm'}}</div>
         </div>
     </div>
     <div class="form-group">
         <label class="col-sm-4 control-label">Validity date*:</label>
         <div class="col-sm-2">
             <div class="input-group">
-                <input type="text" ng-model="validityDate" required class="form-control" datepicker-popup="dd.MM.yyyy" is-open="dateFieldOpened" id="validityDate"/>
+                <input type="text" ng-model="validityDate" required class="form-control" datepicker-popup="dd.MM.yyyy" is-open="dateFieldOpened" id="validityDate" min-date="datepickerOptions.minDate" />
                 <span class="input-group-btn">
                     <button type="button" class="btn btn-default" ng-click="open($event)">
                         <i class="glyphicon glyphicon-calendar"></i>
@@ -246,8 +258,7 @@
         <label class="col-sm-4 control-label">SA&O Complaint Id:</label>
         <div class="col-sm-8">
             <div class="input-group">
-                <input type="text" cam-variable-name="soaComplaintId" cam-variable-type="String" class="form-control"
-                       ng-blur="checkSOAComplaintId()"/>
+                <input type="text" cam-variable-name="soaComplaintId" cam-variable-type="String" class="form-control" ng-blur="checkSOAComplaintId()" maxlength="20"/>
                 <span class="input-group-btn">
                     <button type="button" class="btn btn-default" ng-click="checkSOAComplaintId()">
                         <i class="glyphicon glyphicon-search"></i>
@@ -272,7 +283,7 @@
     <div class="form-group">
         <label class="col-sm-4 control-label">Reason*:</label>
         <div class="col-sm-8">
-            <select class="form-control" cam-variable-name="reason" required cam-variable-type="String" ng-change="getJobs(1,5)">
+            <select class="form-control" cam-variable-name="reason" required cam-variable-type="String" ng-change="getJobs(0,5)">
                 <option value="">select reason</option>
                 <option value="{{r.id}}" ng-repeat="r in reasons">{{r.name}}</option>
             </select>
@@ -368,7 +379,7 @@
                 </div>
             </div>
             <div class="col-md-12" ng-if="!showMore">
-                <a ng-click="showMoreJobRequests()" class="btn btn-sm btn-info">Show more...</a>
+                <a ng-click="showMoreJobRequests()" class="btn btn-sm btn-primary"><i class="glyphicon glyphicon-th-list"></i> Show more</a>
             </div>
         </div>
     </div>
@@ -390,25 +401,26 @@
                     <tr ng-repeat="jobWork in jobWorks">
                         <td>{{$index+1}}</td>
                         <td width="25%">
-                            <select ng-model="jobWork.sapServiceNumber" class="form-control">
+                            <select ng-model="jobWork.sapServiceNumber" class="form-control" required>
                                 <option ng-repeat="work in works" value="{{work.sapServiceNumber}}">{{work.sapPOServiceName}}</option>
                             </select>
                         </td>
-                        <td><input type="number" class="form-control" ng-model="jobWork.quantity" min="1"/></td>
+                        <td><input type="number" class="form-control" ng-model="jobWork.quantity" min="1" required/></td>
                         <td>
                             <div class="input-group my-group">
-                                <input type="number" class="form-control" ng-model="jobWork.materialQuantity" min="1"/>
+                                <input type="number" class="form-control" ng-model="jobWork.materialQuantity" min="1" required/>
                                 <select class="selectpicker form-control" ng-model="jobWork.unit" >
-                                    <option ng-repeat="unit in units" value="{{unit.value}}">{{unit.description}}</option>
+                                    <option ng-repeat="unit in units" value="{{unit.value}}" required>{{unit.description}}</option>
                                 </select>
                             </div>
                         </td>
-                        <td><input type="text" class="form-control" ng-model="jobWork.sites" /></td>
-                        <td><button class="btn btn-sm btn-warning">Edit...</button></td>
+                        <td><input type="text" class="form-control" ng-model="jobWork.sites" required /></td>
+                        <td><button class="btn btn-sm btn-warning" ng-if="$index !== 0" ng-click="removeWork($index)"><i class="glyphicon glyphicon-trash"></i> Remove</button></td>
                     </tr>
                     <tr>
-                        <td colspan="6">
-                            <button class="btn btn-sm btn-info" ng-click="addJobWork()">Add work...</button>
+                        <td></td>
+                        <td colspan="5">
+                            <button class="btn btn-sm btn-primary" ng-click="addJobWork()"><i class="glyphicon glyphicon-plus"></i> Add work</button>
                         </td>
                     </tr>
                 </tbody>
@@ -416,7 +428,10 @@
         </div>
         <div class="row">
             <div class="col-md-12">
-                <textarea class="form-control" cam-variable-name="explanation" cam-variable-type="String"></textarea>
+                <h4>Explanation of works</h4>
+            </div>
+            <div class="col-md-12">
+                <textarea class="form-control" cam-variable-name="explanation" cam-variable-type="String" placeholder="Explanation of works..." maxlength="500" rows="4"></textarea>
             </div>
         </div>
     </div>
