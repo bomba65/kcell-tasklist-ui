@@ -49,6 +49,11 @@
                     type: 'Boolean',
                     value: undefined
                 });
+                camForm.variableManager.createVariable({
+                    name: 'sitesWorks',
+                    type: 'Json',
+                    value: undefined
+                });
             });
             camForm.on('variables-fetched', function () {
                 variables.forEach(function (el) {
@@ -57,50 +62,35 @@
             });
 
             camForm.on('submit', function () {
+                camForm.variableManager.variableValue('sitesWorks', JSON.parse(angular.toJson($scope.sitesWorks)));
                 camForm.variableManager.variableValue('taskResult', $scope.taskResult);
-                if ($scope.taskResult === 'attached') {
-                    camForm.variableManager.variableValue('modifyWorks', false);
+                if ($scope.taskResult === 'saveChanges') {
+                    camForm.variableManager.variableValue('fillApplied', true);
                 }
                 else{
-                    camForm.variableManager.variableValue('modifyWorks', true);
+                    camForm.variableManager.variableValue('fillApplied', false);
                 }
             });
 
-            $scope.fileSelected = fileSelected;
-            function fileSelected(el) {
-                $scope['sapPRFile'] = (el.value !== '');
+            $scope.addMoreWork = addMoreWork;
+            function addMoreWork(site){
+                for(var i=0;i<$scope.sitesWorks.length;i++){
+                    if($scope.sitesWorks[i].id === site){
+                        $scope.sitesWorks[i].works.push({id:1});
+                    }
+                }
             }
         }]);
     </script>
     <job-request></job-request>
     <div class="row">
-        <div class="form-group">
-            <label class="col-sm-4 control-label">Kcell Warehouse Materials List:</label>
-            <div class="col-sm-8">
-                <div class="col-md-12"><a ng-if="kcellWarehouseMaterialsList" href="{{kcellWarehouseMaterialsList.contentUrl}}">{{kcellWarehouseMaterialsList.valueInfo.filename}}</a></div>
-            </div>
-        </div>
-        <div class="form-group">
-            <label class="col-sm-4 control-label">Contractor ZIP Warehouse Materials List:</label>
-            <div class="col-sm-8">
-                <div class="col-md-12"><a ng-if="contractorZIPWarehouseMaterialsList" href="{{contractorZIPWarehouseMaterialsList.contentUrl}}">{{contractorZIPWarehouseMaterialsList.valueInfo.filename}}</a></div>
-            </div>
-        </div>
-        <div class="form-group">
-            <label class="col-sm-4 control-label">Attach materials list comments</label>
-            <div class="col-sm-8">
-                <textarea class="form-control" cam-variable-name="sapLeasingCompletionComment" required
-                          cam-variable-type="String"></textarea>
-            </div>
-        </div>
-
         <div class="col-md-12">Resolution:</div>
         <div class="col-md-12">
             <label class="radio-inline">
-                <input type="radio" name="taskResult" ng-model="taskResult" value="attached" required> Materials Attached
+                <input type="radio" name="taskResult" ng-model="taskResult" value="approved" required> Approved
             </label>
             <label class="radio-inline">
-                <input type="radio" name="taskResult" ng-model="taskResult" value="notAvailable" required> Materials not Available
+                <input type="radio" name="taskResult" ng-model="taskResult" value="notApproved" required> Not approved, request corrections
             </label>
         </div>
     </div>

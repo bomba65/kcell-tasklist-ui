@@ -49,39 +49,55 @@
                     type: 'Boolean',
                     value: undefined
                 });
+                camForm.variableManager.createVariable({
+                    name: 'sitesWorks',
+                    type: 'Json',
+                    value: undefined
+                });
             });
             camForm.on('variables-fetched', function () {
                 variables.forEach(function (el) {
                     $scope[el] = camForm.variableManager.variables[el];
+                    console.log(el);
+                    if (el === 'works') {
+                        try {
+                            console.log($scope.works);
+                            $scope.works.originalValue = JSON.parse($scope.works.originalValue);
+                            console.log($scope.works);
+                            $scope.sitesWorks = [];
+                            for (var i = 0; i < $scope.works.originalValue.length; i++) {
+                                var w = {
+                                    id: $scope.works.originalValue[i].sites,
+                                    works : []
+                                };
+                                $scope.sitesWorks.push(w);
+                            }
+                            console.log($scope.sitesWorks);
+                        } catch (e) {
+                            console.log(e);
+                        }
+                    }
                 });
             });
 
             camForm.on('submit', function () {
+                camForm.variableManager.variableValue('sitesWorks', JSON.parse(angular.toJson($scope.sitesWorks)));
                 camForm.variableManager.variableValue('taskResult', $scope.taskResult);
-                if ($scope.taskResult === 'approved') {
-                    camForm.variableManager.variableValue('modifyWorks', false);
-                } else {
-                    camForm.variableManager.variableValue('modifyWorks', true);
-                }
-                for (var i = 0; i < camForm.fields.length; i++) {
-                    if (camForm.fields[i].variableName == 'sapPRFile') {
-                        if (camForm.fields[i].element.context.value == '') {
-                            camForm.fields.splice(i, 1);
-                            camForm.variableManager.destroyVariable('sapPRFile');
-                        }
-                    }
-                }
-                if ($scope.taskResult === 'approved') {
-                    camForm.variableManager.variableValue('modifyWorks', false);
+                if ($scope.taskResult === 'saveChanges') {
+                    camForm.variableManager.variableValue('fillApplied', true);
                 }
                 else{
-                    camForm.variableManager.variableValue('modifyWorks', true);
+                    camForm.variableManager.variableValue('fillApplied', false);
                 }
             });
 
-            $scope.fileSelected = fileSelected;
-            function fileSelected(el) {
-                $scope['sapPRFile'] = (el.value !== '');
+            $scope.addMoreWork = addMoreWork;
+            function addMoreWork(site){
+                for(var i=0;i<$scope.sitesWorks.length;i++){
+                    if($scope.sitesWorks[i].id === site){
+                        $scope.sitesWorks[i].works.push({id:1});
+                    }
+                }
             }
         }]);
     </script>
@@ -96,7 +112,7 @@
         <div class="form-group">
             <label class="col-sm-4 control-label">Contractor ZIP Warehouse Materials List:</label>
             <div class="col-sm-8">
-                <div class="col-md-12"><a ng-if="contractorZIPWarehouseMaterialsLis" href="{{contractorZIPWarehouseMaterialsLis.contentUrl}}">{{contractorZIPWarehouseMaterialsLis.valueInfo.filename}}</a></div>
+                <div class="col-md-12"><a ng-if="contractorZIPWarehouseMaterialsList" href="{{contractorZIPWarehouseMaterialsList.contentUrl}}">{{contractorZIPWarehouseMaterialsList.valueInfo.filename}}</a></div>
             </div>
         </div>
         <div class="form-group">
@@ -106,17 +122,60 @@
                           cam-variable-type="String"></textarea>
             </div>
         </div>
-
+    </div>
+    <div class="row" ng-repeat="site in sitesWorks">
+        <div class="col-md-12">Site No. {{site.id}} Changes ({{site.works.length}})</div>
+        <table class="table table-hover table-bordered table-stripped">
+            <thead>
+                <tr>
+                    <th>Equipment A</th>
+                    <th>Connection</th>
+                    <th>Equipment B</th>
+                    <th></th>
+                    <th></th>
+                </tr>
+            </thead>
+            <tbody>
+                <tr ng-repeat="work in site.works">
+                    <td>
+                        <select class="form-control" ng-model="work.A" required>
+                            <option ng-repeat="e in equipments" value="{{e.id}}">{{e.name}}</option>
+                        </select>
+                    </td>
+                    <td>
+                        <select class="form-control" ng-model="work.connection" required>
+                            <option ng-repeat="c in connections" value="{{c.id}}">{{c.name}}</option>
+                        </select>
+                    </td>
+                    <td>
+                        <select class="form-control" ng-model="work.B" required>
+                            <option ng-repeat="e in equipments" value="{{e.id}}">{{e.name}}</option>
+                        </select>
+                    </td>
+                    <td>
+                        <select class="form-control" ng-model="work.w" required>
+                            <option ng-repeat="c in connectionWorks" value="{{c.id}}">{{c.name}}</option>
+                        </select>
+                    </td>
+                    <td><a class="btn btn-xs btn-warning"><i class="glyphicon glyphicon-pencil"></i> Edit</a></td>
+                </tr>
+                <tr>
+                    <td colspan="5"><a class="btn btn-primary btn-xs" ng-click="addMoreWork(site.id)"><i class="glyphicon glyphicon-plus"></i> Show more...</a></td>
+                </tr>
+            </tbody>
+        </table>
+    </div>
+    <div class="row">
         <div class="col-md-12">Resolution:</div>
         <div class="col-md-12">
             <label class="radio-inline">
-                <input type="radio" name="taskResult" ng-model="taskResult" value="approved" required> Approved
+                <input type="radio" name="taskResult" ng-model="taskResult" value="saveChanges" required> Save changes
             </label>
             <label class="radio-inline">
-                <input type="radio" name="taskResult" ng-model="taskResult" value="modify" required> Modify works
+                <input type="radio" name="taskResult" ng-model="taskResult" value="notAvailable" required> Materials not available
             </label>
             <label class="radio-inline">
-                <input type="radio" name="taskResult" ng-model="taskResult" value="rejected" required> Reject
+                <input type="radio" name="taskResult" ng-model="taskResult" value="CannotPerform" required> Cannot perform works
             </label>
         </div>
     </div>
