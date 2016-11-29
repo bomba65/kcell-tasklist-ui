@@ -73,6 +73,7 @@
             $scope.fileSelected = fileSelected;
             $scope.download = download;
             $scope.removeWork = removeWork;
+            $scope.serviceChanged = serviceChanged;
             $scope.jobWorks = [{}];
 
             var currentDate = new Date();
@@ -173,6 +174,17 @@
 
             function download(file){
                 document.getElementById('fileDownloadIframe').src = '/camunda/api/engine/engine/default/variable-instance/'+file.id+'/data';
+            }
+
+            function serviceChanged(){
+                console.log('changed');
+                $scope.conts = [];
+                for(var i=0;i<$scope.contracts.length;i++){
+                    if($scope.contracts[i].service.id == $scope.custom.contract){
+                        $scope.conts.push($scope.contracts[i].contractor);
+                    }
+                }
+                console.log($scope.conts);
             }
 
             camForm.on('submit', function(){
@@ -293,14 +305,14 @@
         <label class="col-sm-4 control-label">Contract*:</label>
         <div class="col-sm-8">
             <label class="radio-inline" ng-repeat="service in services">
-                <input type="radio" name="contract" ng-model="custom.contract" id="contract{{$index}}" value="{{service.id}}"> {{service.name}}
+                <input type="radio" name="contract" ng-model="custom.contract" id="contract{{$index}}" value="{{service.id}}" ng-change="serviceChanged()"> {{service.name}}
             </label>
         </div>
     </div>
     <div class="form-group">
         <label class="col-sm-4 control-label">Contractor*:</label>
         <div class="col-sm-8">
-            <label class="radio-inline" ng-repeat="c in contractors">
+            <label class="radio-inline" ng-repeat="c in conts">
                 <input type="radio" name="contractor" ng-model="custom.contractor" id="contractor{{$index}}" value="{{c.id}}" required> {{c.name}}
             </label>
         </div>
@@ -431,7 +443,7 @@
                 <h4>Explanation of works</h4>
             </div>
             <div class="col-md-12">
-                <textarea class="form-control" cam-variable-name="explanation" cam-variable-type="String" placeholder="Explanation of works..." maxlength="500" rows="4"></textarea>
+                <textarea class="form-control" cam-variable-name="explanation" cam-variable-type="String" placeholder="Explanation of works..." maxlength="500" rows="4" required></textarea>
             </div>
         </div>
     </div>
