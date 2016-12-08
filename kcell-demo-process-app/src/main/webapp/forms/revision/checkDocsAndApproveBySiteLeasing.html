@@ -21,11 +21,15 @@
                 'supplementaryFile3',
                 'supplementaryFile4',
                 'supplementaryFile5',
+                'explanation',
+                'jobWorks',
+                'sapPRFileXLS',
+                'sapPRNo',
                 'kcellWarehouseMaterialsList',
                 'contractorZIPWarehouseMaterialsList',
-                'explanation',
-                'works'
+                'actOfMaterialsDispatchingFile'
             ];
+            $scope.jobModel = {};
             camForm.on('form-loaded', function () {
                 variables.forEach(function (el) {
                     camForm.variableManager.fetchVariable(el);
@@ -34,64 +38,55 @@
                 $http.get('/api/catalogs').then(
                         function (result) {
                             angular.extend($scope, result.data);
+                            angular.extend($scope.jobModel, result.data);
                         },
                         function (error) {
                             console.log(error.data);
                         }
                 );
                 camForm.variableManager.createVariable({
-                    name: 'taskResult',
+                    name: 'checkDocsAndApproveBySiteLeasingTaskResult',
                     type: 'String',
                     value: ''
-                });
-                camForm.variableManager.createVariable({
-                    name: 'modifyWorks',
-                    type: 'Boolean',
-                    value: undefined
-                });
-                camForm.variableManager.createVariable({
-                    name: 'sitesWorks',
-                    type: 'Json',
-                    value: undefined
                 });
             });
             camForm.on('variables-fetched', function () {
                 variables.forEach(function (el) {
-                    $scope[el] = camForm.variableManager.variables[el];
+                    $scope.jobModel[el] = camForm.variableManager.variables[el];
                 });
             });
 
             camForm.on('submit', function () {
-                camForm.variableManager.variableValue('sitesWorks', JSON.parse(angular.toJson($scope.sitesWorks)));
-                camForm.variableManager.variableValue('taskResult', $scope.taskResult);
-                if ($scope.taskResult === 'saveChanges') {
-                    camForm.variableManager.variableValue('fillApplied', true);
-                }
-                else{
-                    camForm.variableManager.variableValue('fillApplied', false);
-                }
+                camForm.variableManager.variableValue('checkDocsAndApproveBySiteLeasingTaskResult', $scope.checkDocsAndApproveBySiteLeasingTaskResult);
             });
 
-            $scope.addMoreWork = addMoreWork;
-            function addMoreWork(site){
-                for(var i=0;i<$scope.sitesWorks.length;i++){
-                    if($scope.sitesWorks[i].id === site){
-                        $scope.sitesWorks[i].works.push({id:1});
-                    }
-                }
-            }
+            camForm.on('store', function() {
+                camForm.variableManager.variableValue('checkDocsAndApproveBySiteLeasingTaskResult', $scope.checkDocsAndApproveBySiteLeasingTaskResult);
+            });
+
+            camForm.on('variables-restored', function() {
+                $scope.checkDocsAndApproveBySiteLeasingTaskResult = camForm.variableManager.variableValue('checkDocsAndApproveBySiteLeasingTaskResult');
+            });
         }]);
     </script>
-    <job-request></job-request>
+    <job-request job-model="jobModel"></job-request>
     <div class="row">
-        <div class="col-md-12">Resolution:</div>
-        <div class="col-md-12">
-            <label class="radio-inline">
-                <input type="radio" name="taskResult" ng-model="taskResult" value="approved" required> Approved
-            </label>
-            <label class="radio-inline">
-                <input type="radio" name="taskResult" ng-model="taskResult" value="notApproved" required> Not approved, request corrections
-            </label>
+        <div class="form-group">
+            <label class="col-sm-4 control-label"><Re></Re>solution</label>
+            <div class="col-sm-8">
+                <label class="radio-inline">
+                    <input type="radio" name="checkDocsAndApproveBySiteLeasingTaskResult" ng-model="checkDocsAndApproveBySiteLeasingTaskResult" value="approved" required> Approved
+                </label>
+                <label class="radio-inline">
+                    <input type="radio" name="checkDocsAndApproveBySiteLeasingTaskResult" ng-model="checkDocsAndApproveBySiteLeasingTaskResult" value="notApproved" required> Not approved, request corrections
+                </label>
+            </div>
+        </div>
+        <div class="form-group">
+            <label class="col-sm-4 control-label">Comments</label>
+            <div class="col-sm-8">
+                <textarea class="form-control" rows="4" maxlength="500" cam-variable-name="checkDocsAndApproveBySiteLeasingComment" ng-required="checkDocsAndApproveBySiteLeasingTaskResult == 'notApproved'" cam-variable-type="String"></textarea>
+            </div>
         </div>
     </div>
 </form>

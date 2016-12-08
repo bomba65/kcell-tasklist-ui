@@ -22,8 +22,10 @@
                 'supplementaryFile4',
                 'supplementaryFile5',
                 'explanation',
-                'works'
+                'jobWorks'
             ];
+
+            $scope.jobModel = {};
             camForm.on('form-loaded', function () {
                 variables.forEach(function (el) {
                     camForm.variableManager.fetchVariable(el);
@@ -32,56 +34,63 @@
                 $http.get('/api/catalogs').then(
                         function (result) {
                             angular.extend($scope, result.data);
+                            angular.extend($scope.jobModel, result.data);
                         },
                         function (error) {
                             console.log(error.data);
                         }
                 );
                 camForm.variableManager.createVariable({
-                    name: 'taskResult',
+                    name: 'centralGroupHeadApprovalTaskResult',
                     type: 'String',
                     value: ''
                 });
                 camForm.variableManager.createVariable({
-                    name: 'jr_approved',
-                    type: 'Boolean',
+                    name: 'createJRResult',
+                    type: 'String',
                     value: undefined
                 });
             });
             camForm.on('variables-fetched', function () {
                 variables.forEach(function (el) {
-                    $scope[el] = camForm.variableManager.variables[el];
+                    $scope.jobModel[el] = camForm.variableManager.variables[el];
                 });
             });
 
             camForm.on('submit', function () {
-                camForm.variableManager.variableValue('taskResult', $scope.taskResult);
-                if ($scope.taskResult === 'approved') {
-                    camForm.variableManager.variableValue('jr_approved', true);
+                camForm.variableManager.variableValue('centralGroupHeadApprovalTaskResult', $scope.centralGroupHeadApprovalTaskResult);
+                if ($scope.centralGroupHeadApprovalTaskResult === 'approved') {
+                    camForm.variableManager.variableValue('createJRResult', 'approved');
                 } else {
-                    camForm.variableManager.variableValue('jr_approved', false);
+                    camForm.variableManager.variableValue('createJRResult', 'rejected');
                 }
+            });
+
+            camForm.on('store', function() {
+                camForm.variableManager.variableValue('centralGroupHeadApprovalTaskResult', $scope.centralGroupHeadApprovalTaskResult);
+            });
+
+            camForm.on('variables-restored', function() {
+                $scope.centralGroupHeadApprovalTaskResult = camForm.variableManager.variableValue('centralGroupHeadApprovalTaskResult');
             });
         }]);
     </script>
-    <job-request></job-request>
-    <div class="row">
-        <div class="col-md-12">Resolution:</div>
-        <div class="col-md-12">
+    <job-request job-model="jobModel"></job-request>
+    <div class="form-group">
+        <label class="col-sm-4 control-label">Resolution</label>
+        <div class="col-sm-8">
             <label class="radio-inline">
-                <input type="radio" name="taskResult" ng-model="taskResult" value="rejected" required> Reject
+                <input type="radio" ng-model="centralGroupHeadApprovalTaskResult" value="rejected" required> Reject
             </label>
             <label class="radio-inline">
-                <input type="radio" name="taskResult" ng-model="taskResult" value="approved" required> Approve
+                <input type="radio" ng-model="centralGroupHeadApprovalTaskResult" value="approved" required> Approve
             </label>
         </div>
     </div>
-    <div class="row">
-        <div class="col-md-12">
-            <h4>Comments</h4>
-        </div>
-        <div class="col-md-12">
-            <textarea class="form-control" cam-variable-name="centralGroupHeadApprovalComment" cam-variable-type="String" placeholder="Comments..." maxlength="500" rows="4" ng-required="taskResult === 'rejected'"></textarea>
+    <div class="form-group">
+        <label class="col-sm-4 control-label">Comments</label>
+        <div class="col-sm-8">
+            <textarea class="form-control" cam-variable-name="centralGroupHeadApprovalComment" cam-variable-type="String" placeholder="Comments..." maxlength="500" rows="4" ng-required="centralGroupHeadApprovalTaskResult === 'rejected'"></textarea>
         </div>
     </div>
 </form>

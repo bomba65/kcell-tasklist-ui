@@ -1,49 +1,58 @@
 'use strict';
 define('job-request-module', ['angular'], function (angular) {
   var customModule = angular.module('kcell.custom.module', []);
-  customModule.controller('JobRequest', ['$scope', function ($scope) {
-    console.log($scope);
-    $scope.var1 = 'First variable';
-    $scope.var2 = 'Second variable';
-  }]);
   customModule.directive('jobRequest', function () {
     return {
       restrict: 'E',
+      scope: {
+        jobModel: '='
+      },
       template: 
         '<div class="well">'+
           '<div class="row">'+
-              '<div class="col-md-4">Requested date: {{requestedDate.value | date: \'dd.MM.yyyy HH:mm\'}}</div>'+
-              '<div class="col-md-4">Reason: {{reasonsTitle[reason.value]}}</div>'+
-              '<div class="col-md-4">Materials required: {{materialsRequired.value}}</div>'+
+              '<div class="col-md-4"><b>Requested date</b>: {{jobModel.requestedDate.value | date: \'dd.MM.yyyy HH:mm\'}}</div>'+
+              '<div class="col-md-4"><b>Reason</b>: {{jobModel.reasonsTitle[jobModel.reason.value]}}</div>'+
+              '<div class="col-md-4"><b>Materials required</b>: {{jobModel.materialsRequired.value}}</div>'+
           '</div>'+
           '<div class="row">'+
-              '<div class="col-md-4">Validity date: {{validityDate.value | date: \'dd.MM.yyyy\'}}</div>'+
-              '<div class="col-md-4">Contract: {{servicesTitle[contract.value]}}</div>'+
-              '<div class="col-md-4">Leasing required: {{leasingRequired.value}}</div>'+
+              '<div class="col-md-4"><b>Validity date</b>: {{jobModel.validityDate.value | date: \'dd.MM.yyyy\'}}</div>'+
+              '<div class="col-md-4"><b>Contract</b>: {{jobModel.servicesTitle[jobModel.contract.value]}}</div>'+
+              '<div class="col-md-4"><b>Leasing required</b>: {{jobModel.leasingRequired.value}}</div>'+
           '</div>'+
           '<div class="row">'+
-              '<div class="col-md-4">SA&O Complaint Id: {{soaComplaintId.value}}</div>'+
-              '<div class="col-md-4">Contractor: {{contractorsTitle[contractor.value]}}</div>'+
-              '<div class="col-md-4">Site (near end): {{site.value}}</div>'+
+              '<div class="col-md-4"><b>SA&O Complaint Id</b>: {{jobModel.soaComplaintId.value}}</div>'+
+              '<div class="col-md-4"><b>Contractor</b>: {{jobModel.contractorsTitle[jobModel.contractor.value]}}</div>'+
+              '<div class="col-md-4"><b>Site (near end)</b>: {{jobModel.site.value}}</div>'+
           '</div>'+
+          '<br/>'+
           '<div class="row">'+
-              '<div class="col-md-12">Supplementary files:</div>'+
+              '<div class="col-md-12"><b>Supplementary files</b>:</div>'+
               '<iframe id="fileDownloadIframe" style="display:none;"></iframe>'+
-              '<div class="col-md-12"><a ng-if="supplementaryFile1" href="{{supplementaryFile1.contentUrl}}">{{supplementaryFile1.valueInfo.filename}}</a></div>'+
-              '<div class="col-md-12"><a ng-if="supplementaryFile2" href="{{supplementaryFile1.contentUrl}}">{{supplementaryFile2.valueInfo.filename}}</a></div>'+
-              '<div class="col-md-12"><a ng-if="supplementaryFile3" href="{{supplementaryFile1.contentUrl}}">{{supplementaryFile3.valueInfo.filename}}</a></div>'+
-              '<div class="col-md-12"><a ng-if="supplementaryFile4" href="{{supplementaryFile1.contentUrl}}">{{supplementaryFile4.valueInfo.filename}}</a></div>'+
-              '<div class="col-md-12"><a ng-if="supplementaryFile5" href="{{supplementaryFile1.contentUrl}}">{{supplementaryFile5.valueInfo.filename}}</a></div>'+
+              '<div class="col-md-12" ng-if="jobModel.supplementaryFile1.contentUrl">&nbsp;&nbsp;&nbsp;&nbsp;<a href="{{jobModel.supplementaryFile1.contentUrl}}">{{jobModel.supplementaryFile1.valueInfo.filename}}</a></div>'+
+              '<div class="col-md-12" ng-if="jobModel.supplementaryFile2.contentUrl">&nbsp;&nbsp;&nbsp;&nbsp;<a href="{{jobModel.supplementaryFile2.contentUrl}}">{{jobModel.supplementaryFile2.valueInfo.filename}}</a></div>'+
+              '<div class="col-md-12" ng-if="jobModel.supplementaryFile3.contentUrl">&nbsp;&nbsp;&nbsp;&nbsp;<a href="{{jobModel.supplementaryFile3.contentUrl}}">{{jobModel.supplementaryFile3.valueInfo.filename}}</a></div>'+
+              '<div class="col-md-12" ng-if="jobModel.supplementaryFile4.contentUrl">&nbsp;&nbsp;&nbsp;&nbsp;<a href="{{jobModel.supplementaryFile4.contentUrl}}">{{jobModel.supplementaryFile4.valueInfo.filename}}</a></div>'+
+              '<div class="col-md-12" ng-if="jobModel.supplementaryFile5.contentUrl">&nbsp;&nbsp;&nbsp;&nbsp;<a href="{{jobModel.supplementaryFile5.contentUrl}}">{{jobModel.supplementaryFile5.valueInfo.filename}}</a></div>'+
           '</div>'+
+          '<br/>'+
           '<div class="row">'+
-              '<div class="col-md-12">Works:</div>'+
-              '<div class="col-md-12" ng-repeat="work in works">'+
-                  '<a href="javascript:void(0)">{{$index+1}}. {{worksTitle[work.sapServiceNumber]}}, works qty: {{work.quantity}}, materials qty: {{work.materialQuantity}} {{unitsTitle[work.unit]}}, on sites: {{work.sites}} (Near end)</a>'+
+              '<div class="col-md-12"><b>Works</b>:</div>'+
+              '<div class="col-md-12" ng-repeat="work in jobModel.jobWorks.value">'+
+                  '&nbsp;&nbsp;&nbsp;&nbsp;{{$index+1}}. {{jobModel.worksTitle[work.sapServiceNumber]}}, works qty: {{work.quantity}}, materials qty: {{work.materialQuantity}} {{jobModel.unitsTitle[work.unit]}}, on sites: {{work.sites}} (Near end)'+
               '</div>'+
           '</div>'+
+          '<br/>'+
           '<div class="row">'+
-              '<div class="col-md-12">Explanation of works:</div>'+
-              '<div class="col-md-12">{{explanation.value}}</div>'+
+              '<div class="col-md-12"><b>Explanation of works</b>: {{jobModel.explanation.value}}</div>'+
+          '</div>'+
+          '<div class="row" ng-if="jobModel.sapPRNo.value">'+
+              '<div class="col-md-12"><b>SAP Purchase Request No</b>: {{jobModel.sapPRNo.value}} <a href="{{jobModel.sapPRFileXLS.contentUrl}}">(Download PR)</a></div>'+
+          '</div>'+
+          '<div class="row" ng-if="jobModel.kcellWarehouseMaterialsList.contentUrl">'+
+              '<div class="col-md-12"><a href="{{jobModel.kcellWarehouseMaterialsList.contentUrl}}">Kcell Warehouse Materials List (xls)</a></div>'+
+          '</div>'+
+          '<div class="row" ng-if="jobModel.contractorZIPWarehouseMaterialsList.contentUrl">'+
+              '<div class="col-md-12"><a href="{{jobModel.contractorZIPWarehouseMaterialsList.contentUrl}}">Contractor ZIP Warehouse Materials List (xls)</a></div>'+
           '</div>'+
       '</div>'
     };

@@ -21,11 +21,14 @@
                 'supplementaryFile3',
                 'supplementaryFile4',
                 'supplementaryFile5',
-                'kcellWarehouseMaterialsList',
-                'contractorZIPWarehouseMaterialsList',
                 'explanation',
-                'works'
+                'jobWorks',
+                'sapPRFileXLS',
+                'sapPRNo',
+                'kcellWarehouseMaterialsList',
+                'contractorZIPWarehouseMaterialsList'
             ];
+            $scope.jobModel = {};
             camForm.on('form-loaded', function () {
                 variables.forEach(function (el) {
                     camForm.variableManager.fetchVariable(el);
@@ -34,13 +37,14 @@
                 $http.get('/api/catalogs').then(
                         function (result) {
                             angular.extend($scope, result.data);
+                            angular.extend($scope.jobModel, result.data);
                         },
                         function (error) {
                             console.log(error.data);
                         }
                 );
                 camForm.variableManager.createVariable({
-                    name: 'taskResult',
+                    name: 'approveMaterialsListByContractorGroupsHeadTaskResult',
                     type: 'String',
                     value: ''
                 });
@@ -52,31 +56,26 @@
             });
             camForm.on('variables-fetched', function () {
                 variables.forEach(function (el) {
-                    $scope[el] = camForm.variableManager.variables[el];
+                    $scope.jobModel[el] = camForm.variableManager.variables[el];
                 });
             });
 
             camForm.on('submit', function () {
-                camForm.variableManager.variableValue('taskResult', $scope.taskResult);
-                if ($scope.taskResult === 'approved') {
-                    camForm.variableManager.variableValue('modifyWorks', false);
-                } else {
-                    camForm.variableManager.variableValue('modifyWorks', true);
-                }
-                for (var i = 0; i < camForm.fields.length; i++) {
-                    if (camForm.fields[i].variableName == 'sapPRFile') {
-                        if (camForm.fields[i].element.context.value == '') {
-                            camForm.fields.splice(i, 1);
-                            camForm.variableManager.destroyVariable('sapPRFile');
-                        }
-                    }
-                }
-                if ($scope.taskResult === 'approved') {
+                camForm.variableManager.variableValue('approveMaterialsListByContractorGroupsHeadTaskResult', $scope.approveMaterialsListByContractorGroupsHeadTaskResult);
+                if ($scope.approveMaterialsListByContractorGroupsHeadTaskResult === 'approved') {
                     camForm.variableManager.variableValue('modifyWorks', false);
                 }
                 else{
                     camForm.variableManager.variableValue('modifyWorks', true);
                 }
+            });
+
+            camForm.on('store', function() {
+                camForm.variableManager.variableValue('approveMaterialsListByContractorGroupsHeadTaskResult', $scope.approveMaterialsListByContractorGroupsHeadTaskResult);
+            });
+
+            camForm.on('variables-restored', function() {
+                $scope.approveMaterialsListByContractorGroupsHeadTaskResult = camForm.variableManager.variableValue('approveMaterialsListByContractorGroupsHeadTaskResult');
             });
 
             $scope.fileSelected = fileSelected;
@@ -85,39 +84,27 @@
             }
         }]);
     </script>
-    <job-request></job-request>
+    <job-request job-model="jobModel"></job-request>
     <div class="row">
         <div class="form-group">
-            <label class="col-sm-4 control-label">Kcell Warehouse Materials List:</label>
+            <label class="col-sm-4 control-label">Resolution</label>
             <div class="col-sm-8">
-                <div class="col-md-12"><a ng-if="kcellWarehouseMaterialsList" href="{{kcellWarehouseMaterialsList.contentUrl}}">{{kcellWarehouseMaterialsList.valueInfo.filename}}</a></div>
+                <label class="radio-inline">
+                    <input type="radio" name="approveMaterialsListByContractorGroupsHeadTaskResult" ng-model="approveMaterialsListByContractorGroupsHeadTaskResult" value="approved" required> Approved
+                </label>
+                <label class="radio-inline">
+                    <input type="radio" name="approveMaterialsListByContractorGroupsHeadTaskResult" ng-model="approveMaterialsListByContractorGroupsHeadTaskResult" value="modify" required> Modify works
+                </label>
+                <label class="radio-inline">
+                    <input type="radio" name="approveMaterialsListByContractorGroupsHeadTaskResult" ng-model="approveMaterialsListByContractorGroupsHeadTaskResult" value="rejected" required> Reject
+                </label>
             </div>
         </div>
         <div class="form-group">
-            <label class="col-sm-4 control-label">Contractor ZIP Warehouse Materials List:</label>
+            <label class="col-sm-4 control-label">Comments</label>
             <div class="col-sm-8">
-                <div class="col-md-12"><a ng-if="contractorZIPWarehouseMaterialsList" href="{{contractorZIPWarehouseMaterialsList.contentUrl}}">{{contractorZIPWarehouseMaterialsList.valueInfo.filename}}</a></div>
+                <textarea class="form-control" rows="4" maxlength="500" cam-variable-name="approveMaterialsListByContractorGroupsHeadComment" ng-required="approveMaterialsListByContractorGroupsHeadTaskResult == 'modify' || approveMaterialsListByContractorGroupsHeadTaskResult == 'rejected'" cam-variable-type="String"></textarea>
             </div>
-        </div>
-        <div class="form-group">
-            <label class="col-sm-4 control-label">Attach materials list comments</label>
-            <div class="col-sm-8">
-                <textarea class="form-control" cam-variable-name="sapLeasingCompletionComment" required
-                          cam-variable-type="String"></textarea>
-            </div>
-        </div>
-
-        <div class="col-md-12">Resolution:</div>
-        <div class="col-md-12">
-            <label class="radio-inline">
-                <input type="radio" name="taskResult" ng-model="taskResult" value="approved" required> Approved
-            </label>
-            <label class="radio-inline">
-                <input type="radio" name="taskResult" ng-model="taskResult" value="modify" required> Modify works
-            </label>
-            <label class="radio-inline">
-                <input type="radio" name="taskResult" ng-model="taskResult" value="rejected" required> Reject
-            </label>
         </div>
     </div>
 </form>

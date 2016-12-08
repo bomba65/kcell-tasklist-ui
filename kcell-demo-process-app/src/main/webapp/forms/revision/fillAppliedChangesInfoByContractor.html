@@ -21,11 +21,15 @@
                 'supplementaryFile3',
                 'supplementaryFile4',
                 'supplementaryFile5',
+                'explanation',
+                'jobWorks',
+                'sapPRFileXLS',
+                'sapPRNo',
                 'kcellWarehouseMaterialsList',
                 'contractorZIPWarehouseMaterialsList',
-                'explanation',
-                'works'
+                'actOfMaterialsDispatchingFile'
             ];
+            $scope.jobModel = {};
             camForm.on('form-loaded', function () {
                 variables.forEach(function (el) {
                     camForm.variableManager.fetchVariable(el);
@@ -34,13 +38,14 @@
                 $http.get('/api/catalogs').then(
                         function (result) {
                             angular.extend($scope, result.data);
+                            angular.extend($scope.jobModel, result.data);
                         },
                         function (error) {
                             console.log(error.data);
                         }
                 );
                 camForm.variableManager.createVariable({
-                    name: 'taskResult',
+                    name: 'fillAppliedChangesInfoByContractorTaskResult',
                     type: 'String',
                     value: ''
                 });
@@ -54,41 +59,36 @@
                     type: 'Json',
                     value: undefined
                 });
+                camForm.variableManager.createVariable({
+                    name: 'fillApplied',
+                    type: 'String',
+                    value: undefined
+                });
             });
             camForm.on('variables-fetched', function () {
+                console.log('variables-fetched');
                 variables.forEach(function (el) {
-                    $scope[el] = camForm.variableManager.variables[el];
-                    console.log(el);
-                    if (el === 'works') {
-                        try {
-                            console.log($scope.works);
-                            $scope.works.originalValue = JSON.parse($scope.works.originalValue);
-                            console.log($scope.works);
-                            $scope.sitesWorks = [];
-                            for (var i = 0; i < $scope.works.originalValue.length; i++) {
-                                var w = {
-                                    id: $scope.works.originalValue[i].sites,
-                                    works : []
-                                };
-                                $scope.sitesWorks.push(w);
-                            }
-                            console.log($scope.sitesWorks);
-                        } catch (e) {
-                            console.log(e);
-                        }
-                    }
+                    $scope.jobModel[el] = camForm.variableManager.variables[el];
                 });
             });
 
             camForm.on('submit', function () {
+                console.log("start =================")
                 camForm.variableManager.variableValue('sitesWorks', JSON.parse(angular.toJson($scope.sitesWorks)));
-                camForm.variableManager.variableValue('taskResult', $scope.taskResult);
-                if ($scope.taskResult === 'saveChanges') {
-                    camForm.variableManager.variableValue('fillApplied', true);
+                console.log("start 1=================")
+                camForm.variableManager.variableValue('fillAppliedChangesInfoByContractorTaskResult', $scope.fillAppliedChangesInfoByContractorTaskResult);
+                console.log("start2 =================")
+                if ($scope.fillAppliedChangesInfoByContractorTaskResult == 'saveChanges') {
+                    console.log("start3 =================")
+                    camForm.variableManager.variableValue('fillApplied', 'saveChanges');
+                } else if ($scope.fillAppliedChangesInfoByContractorTaskResult == 'cannotPerform') {
+                    console.log("start 4=================")
+                    camForm.variableManager.variableValue('fillApplied', 'cannotPerform');
+                } else if ($scope.fillAppliedChangesInfoByContractorTaskResult == 'notAvailable') {
+                    console.log("start5 =================")
+                    camForm.variableManager.variableValue('fillApplied', 'notAvailable');
                 }
-                else{
-                    camForm.variableManager.variableValue('fillApplied', false);
-                }
+                console.log("end =================")
             });
 
             $scope.addMoreWork = addMoreWork;
@@ -99,23 +99,38 @@
                     }
                 }
             }
+
+            camForm.on('store', function() {
+                console.log('store');
+                camForm.variableManager.variableValue('fillAppliedChangesInfoByContractorTaskResult', $scope.fillAppliedChangesInfoByContractorTaskResult);
+                camForm.variableManager.variableValue('sitesWorks', $scope.sitesWorks);
+            });
+
+            camForm.on('variables-restored', function() {
+                $scope.fillAppliedChangesInfoByContractorTaskResult = camForm.variableManager.variableValue('fillAppliedChangesInfoByContractorTaskResult');
+                $scope.sitesWorks = camForm.variableManager.variableValue('sitesWorks');
+                if($scope.sitesWorks===undefined){
+                    try {
+                        $scope.jobModel.jobWorks.originalValue = JSON.parse($scope.jobModel.jobWorks.originalValue);
+                        console.log($scope.jobModel.jobWorks);
+                        $scope.sitesWorks = [];
+                        for (var i = 0; i < $scope.jobModel.jobWorks.originalValue.length; i++) {
+                            var w = {
+                                id: $scope.jobModel.jobWorks.originalValue[i].sites,
+                                works : []
+                            };
+                            $scope.sitesWorks.push(w);
+                        }
+                    } catch (e) {
+                        console.log(e);
+                    }
+                }
+                console.log("Site works");
+                console.log($scope.sitesWorks);
+            });
         }]);
     </script>
-    <job-request></job-request>
-    <div class="row">
-        <div class="form-group" ng-if="kcellWarehouseMaterialsList.contentUrl">
-            <label class="col-sm-4 control-label">Kcell Warehouse Materials List:</label>
-            <div class="col-sm-8">
-                <div class="col-md-12"><a ng-if="kcellWarehouseMaterialsList" href="{{kcellWarehouseMaterialsList.contentUrl}}">{{kcellWarehouseMaterialsList.valueInfo.filename}}</a></div>
-            </div>
-        </div>
-        <div class="form-group" ng-if="contractorZIPWarehouseMaterialsList.contentUrl">
-            <label class="col-sm-4 control-label">Contractor ZIP Warehouse Materials List:</label>
-            <div class="col-sm-8">
-                <div class="col-md-12"><a ng-if="contractorZIPWarehouseMaterialsList" href="{{contractorZIPWarehouseMaterialsList.contentUrl}}">{{contractorZIPWarehouseMaterialsList.valueInfo.filename}}</a></div>
-            </div>
-        </div>
-    </div>
+    <job-request job-model="jobModel"></job-request>
     <div class="row" ng-repeat="site in sitesWorks">
         <div class="col-md-12">Site No. {{site.id}} Changes ({{site.works.length}})</div>
         <table class="table table-hover table-bordered table-stripped">
@@ -159,24 +174,24 @@
         </table>
     </div>
     <div class="row">
-        <div class="col-md-12">Resolution:</div>
-        <div class="col-md-12">
-            <label class="radio-inline">
-                <input type="radio" name="taskResult" ng-model="taskResult" value="saveChanges" required> Save changes
-            </label>
-            <label class="radio-inline">
-                <input type="radio" name="taskResult" ng-model="taskResult" value="notAvailable" required> Materials not available
-            </label>
-            <label class="radio-inline">
-                <input type="radio" name="taskResult" ng-model="taskResult" value="CannotPerform" required> Cannot perform works
-            </label>
-        </div>
-        <div class="row">
-            <div class="col-md-12">
-                <h4>Comments</h4>
+        <div class="form-group">
+            <label class="col-sm-4 control-label"><Re></Re>solution</label>
+            <div class="col-sm-8">
+                <label class="radio-inline">
+                    <input type="radio" name="fillAppliedChangesInfoByContractorTaskResult" ng-model="fillAppliedChangesInfoByContractorTaskResult" value="saveChanges" required> Save changes
+                </label>
+                <label class="radio-inline">
+                    <input type="radio" name="fillAppliedChangesInfoByContractorTaskResult" ng-model="fillAppliedChangesInfoByContractorTaskResult" value="notAvailable" required> Materials not available
+                </label>
+                <label class="radio-inline">
+                    <input type="radio" name="fillAppliedChangesInfoByContractorTaskResult" ng-model="fillAppliedChangesInfoByContractorTaskResult" value="cannotPerform" required> Cannot perform works
+                </label>
             </div>
-            <div class="col-md-12">
-                <textarea class="form-control" cam-variable-name="fillAppliedChangesByContractorComment" required cam-variable-type="String"></textarea>
+        </div>
+        <div class="form-group">
+            <label class="col-sm-4 control-label">Comments</label>
+            <div class="col-sm-8">
+                <textarea class="form-control" rows="4" maxlength="500" cam-variable-name="fillAppliedChangesByContractorComment" ng-required="fillAppliedChangesInfoByContractorTaskResult == 'notAvailable' || fillAppliedChangesInfoByContractorTaskResult == 'cannotPerform'" cam-variable-type="String"></textarea>
             </div>
         </div>
     </div>
