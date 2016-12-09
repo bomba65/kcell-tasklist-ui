@@ -1,9 +1,10 @@
 var camTasklistConf = {
   customScripts: {
-    ngDeps: ['kcell.custom.module'],
-    deps: ['job-request-module'],
+    ngDeps: ['kcell.custom.module', 'ngAnimate'],
+    deps: ['job-request-module', 'ng-animate'],
     paths: {
-      'job-request-module': '/customScripts/job-request'
+      'job-request-module': '/customScripts/job-request',
+      'ng-animate': '//ajax.googleapis.com/ajax/libs/angularjs/1.2.29/angular-animate'
     }
   },
 

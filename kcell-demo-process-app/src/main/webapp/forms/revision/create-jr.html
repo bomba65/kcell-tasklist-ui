@@ -5,6 +5,26 @@
     .modal-lg.modal-dialog{
         width: 90%;
     }
+
+    .animate-if {
+        background:white;
+        border:1px solid black;
+        padding:10px;
+    }
+
+    .animate-if.ng-enter, .animate-if.ng-leave {
+        transition:all cubic-bezier(0,1,0.5,1) 0.5s;
+    }
+
+    .animate-if.ng-enter,
+    .animate-if.ng-leave.ng-leave-active {
+        height:0;
+    }
+
+    .animate-if.ng-leave,
+    .animate-if.ng-enter.ng-enter-active {
+        height:inherit;
+    }
 </style>
 <form role="form" class="form-horizontal">
     <script cam-script type="text/form-script">
@@ -79,12 +99,16 @@
             $scope.getJobs = getJobs;
             $scope.addJobWork = addJobWork;
             $scope.showMoreJobRequests = showMoreJobRequests;
-            $scope.showMore = true;
+            $scope.refreshJobRequests = refreshJobRequests;
+            $scope.showMore = false;
+            $scope.page = 0;
+            $scope.jobRequestsCount = 0;
             $scope.fileSelected = fileSelected;
             $scope.download = download;
             $scope.removeWork = removeWork;
             $scope.serviceChanged = serviceChanged;
             $scope.jobWorks = [{}];
+            $scope.jobRequests = {};
 
             var currentDate = new Date();
 
@@ -110,7 +134,7 @@
                 $scope.dateFieldOpened = true;
             };
 
-            function getJobs(page, limit){
+            function getJobs(){
                 var query = {
                     "processDefinitionKey" : "Revision",
                     "active" : true,
@@ -121,47 +145,46 @@
                             "value": $scope.reason
                         }]
                 };
-                var path  = '/camunda/api/engine/engine/default/process-instance';
-                if(page !== undefined){
-                    $scope.showMore = false;
-                    path+='?firstResult='+page+'&maxResults='+limit;
-                }
+                var path  = '/camunda/api/engine/engine/default/process-instance?firstResult='+($scope.page*5)+'&maxResults=5';
                 $http.post(path,query).then(
                     function(result){
-                        var jobRequestsCount = 0;
+                        $scope.page = $scope.page + 1;
                         var piIds = [];
+                        if(result.data.length < 5){
+                            $scope.showMore = false;
+                        } else {
+                            $scope.showMore = true;
+                        }
                         for(var i=0;i<result.data.length;i++){
                             piIds.push(result.data[i].id);
                         }
                         var variableQuery = {
                             processInstanceIdIn: piIds
                         }
+                        if(piIds.length > 0){
+                            $http.post('/camunda/api/engine/engine/default/variable-instance?deserializeValues=false', variableQuery).then(
+                                function(variables){
+                                    for(var i=0;i<variables.data.length;i++){
+                                        if(!$scope.jobRequests[variables.data[i].processInstanceId]){
+                                            $scope.jobRequestsCount++;
+                                            $scope.jobRequests[variables.data[i].processInstanceId] = {};
+                                        }
+                                        if(variables.data[i].name === 'jobWorks'){
+                                            $scope.jobRequests[variables.data[i].processInstanceId][variables.data[i].name] = JSON.parse(variables.data[i].value);
+                                        } else if(variables.data[i].name === 'supplementaryFile1' || variables.data[i].name === 'supplementaryFile2' || variables.data[i].name === 'supplementaryFile3' || variables.data[i].name === 'supplementaryFile4' || variables.data[i].name === 'supplementaryFile5'){
+                                            $scope.jobRequests[variables.data[i].processInstanceId][variables.data[i].name] = variables.data[i];
+                                        }
+                                        else {
+                                            $scope.jobRequests[variables.data[i].processInstanceId][variables.data[i].name] = variables.data[i].value;
+                                        }
 
-                        $http.post('/camunda/api/engine/engine/default/variable-instance?deserializeValues=false', variableQuery).then(
-                            function(variables){
-                                console.log(variables);
-                                $scope.jobRequests = {};
-                                for(var i=0;i<variables.data.length;i++){
-                                    if(!$scope.jobRequests[variables.data[i].processInstanceId]){
-                                        jobRequestsCount++;
-                                        $scope.jobRequests[variables.data[i].processInstanceId] = {};
                                     }
-                                    if(variables.data[i].name === 'jobWorks'){
-                                        $scope.jobRequests[variables.data[i].processInstanceId][variables.data[i].name] = JSON.parse(variables.data[i].value);
-                                    } else if(variables.data[i].name === 'supplementaryFile1' || variables.data[i].name === 'supplementaryFile2' || variables.data[i].name === 'supplementaryFile3' || variables.data[i].name === 'supplementaryFile4' || variables.data[i].name === 'supplementaryFile5'){
-                                        $scope.jobRequests[variables.data[i].processInstanceId][variables.data[i].name] = variables.data[i];
-                                    }
-                                    else {
-                                        $scope.jobRequests[variables.data[i].processInstanceId][variables.data[i].name] = variables.data[i].value;
-                                    }
-
+                                },
+                                function(error){
+                                    console.log(error);
                                 }
-                                $scope.jobRequestsCount = jobRequestsCount;
-                            },
-                            function(error){
-                                console.log(error);
-                            }
-                        );
+                            );
+                        }
                     },
                     function(error){
                         console.log(error);
@@ -174,7 +197,13 @@
             }
 
             function showMoreJobRequests(){
-                $scope.showMore = true;
+                getJobs();
+            }
+
+            function refreshJobRequests(){
+                $scope.page = 0;
+                $scope.jobRequestsCount = 0;
+                $scope.jobRequests = {};
                 getJobs();
             }
 
@@ -206,14 +235,6 @@
                 camForm.variableManager.variableValue('leasingRequired', $scope.leasingRequired);
                 camForm.variableManager.variableValue('powerRequired', $scope.powerRequired);
                 camForm.variableManager.variableValue('jobWorks', JSON.parse(angular.toJson($scope.jobWorks)));
-                for (var i = 0; i < camForm.fields.length; i++) {
-                    if (camForm.fields[i].variableName == 'supplementaryFile1') {
-                        if (camForm.fields[i].element.context.value == '') {
-                            camForm.fields.splice(i, 1);
-                            camForm.variableManager.destroyVariable('supplementaryFile1');
-                        }
-                    }
-                }
                 for (var i = 0; i < camForm.fields.length; i++) {
                     if (camForm.fields[i].variableName == 'supplementaryFile2') {
                         if (camForm.fields[i].element.context.value == '') {
@@ -279,7 +300,7 @@
     </div>
     <div class="form-group">
         <label class="col-sm-4 control-label">SA&O Complaint Id:</label>
-        <div class="col-sm-8">
+        <div class="col-sm-6">
             <div class="input-group">
                 <input type="text" cam-variable-name="soaComplaintId" cam-variable-type="String" class="form-control" ng-blur="checkSOAComplaintId()" maxlength="20"/>
                 <span class="input-group-btn">
@@ -292,7 +313,7 @@
     </div>
     <div class="form-group">
         <label class="col-sm-4 control-label">Site (near end)*:</label>
-        <div class="col-sm-8">
+        <div class="col-sm-6">
             <div class="input-group">
                 <input type="text" cam-variable-name="site" cam-variable-type="String" required class="form-control" ng-blur="checkSite()"/>
                 <span class="input-group-btn">
@@ -305,8 +326,8 @@
     </div>
     <div class="form-group">
         <label class="col-sm-4 control-label">Reason*:</label>
-        <div class="col-sm-8">
-            <select class="form-control" cam-variable-name="reason" required cam-variable-type="String" ng-change="getJobs(0,5)">
+        <div class="col-sm-6">
+            <select class="form-control" cam-variable-name="reason" required cam-variable-type="String" ng-change="refreshJobRequests()">
                 <option value="">select reason</option>
                 <option value="{{r.id}}" ng-repeat="r in reasons">{{r.name}}</option>
             </select>
@@ -314,7 +335,7 @@
     </div>
     <div class="form-group">
         <label class="col-sm-4 control-label">Contract*:</label>
-        <div class="col-sm-8">
+        <div class="col-sm-6">
             <label class="radio-inline" ng-repeat="service in services">
                 <input type="radio" name="contract" ng-model="custom.contract" id="contract{{$index}}" value="{{service.id}}" ng-change="serviceChanged()"> {{service.name}}
             </label>
@@ -322,7 +343,7 @@
     </div>
     <div class="form-group">
         <label class="col-sm-4 control-label">Contractor*:</label>
-        <div class="col-sm-8">
+        <div class="col-sm-6">
             <div ng-if="conts.length == 0 || conts == undefined">Please select Contract</div>
             <label class="radio-inline" ng-repeat="c in conts">
                 <input type="radio" name="contractor" ng-model="custom.contractor" id="contractor{{$index}}" value="{{c.id}}" required> {{c.name}}
@@ -331,7 +352,7 @@
     </div>
     <div class="form-group">
         <label class="col-sm-4 control-label">Materials required*:</label>
-        <div class="col-sm-8">
+        <div class="col-sm-6">
             <label class="radio-inline">
                 <input type="radio" name="materialsRequired" ng-model="materialsRequired" id="materialsRequired1" value="Yes" required> Yes
             </label>
@@ -342,7 +363,7 @@
     </div>
     <div class="form-group">
         <label class="col-sm-4 control-label">Leasing required*:</label>
-        <div class="col-sm-8">
+        <div class="col-sm-6">
             <label class="radio-inline">
                 <input type="radio" name="leasingRequired" ng-model="leasingRequired" id="leasingRequired1" value="Yes" required> Yes
             </label>
@@ -353,7 +374,7 @@
     </div>
     <div class="form-group">
         <label class="col-sm-4 control-label">Power engineering required*:</label>
-        <div class="col-sm-8">
+        <div class="col-sm-6">
             <label class="radio-inline">
                 <input type="radio" name="powerRequired" ng-model="powerRequired" id="powerRequired1" value="Yes" required> Yes
             </label>
@@ -364,7 +385,7 @@
     </div>
     <div class="form-group">
         <label class="col-sm-4 control-label">Works belongs to KZT, Beeline, ODS*:</label>
-        <div class="col-sm-8">
+        <div class="col-sm-6">
             <label class="radio-inline">
                 <input type="radio" name="worksBelongsTo" ng-model="worksBelongsTo" id="worksBelongsTo1" value="Yes" required> Yes
             </label>
@@ -374,8 +395,8 @@
         </div>
     </div>
     <div class="form-group">
-        <label class="col-sm-4 control-label">Supplementary files:</label>
-        <div class="col-sm-8">
+        <label class="col-sm-4 control-label">Supplementary files *:</label>
+        <div class="col-sm-6">
             <input type="file" class="form-control" cam-variable-type="File" cam-max-filesize="10000000" cam-variable-name="supplementaryFile1" onchange="angular.element(this).scope().fileSelected(this, 1)"/>
             <input type="file" class="form-control" cam-variable-type="File" cam-max-filesize="10000000" cam-variable-name="supplementaryFile2" onchange="angular.element(this).scope().fileSelected(this, 2)"/>
             <input type="file" class="form-control" cam-variable-type="File" cam-max-filesize="10000000" cam-variable-name="supplementaryFile3" onchange="angular.element(this).scope().fileSelected(this, 3)"/>
@@ -383,12 +404,12 @@
             <input type="file" class="form-control" cam-variable-type="File" cam-max-filesize="10000000" cam-variable-name="supplementaryFile5" onchange="angular.element(this).scope().fileSelected(this, 5)"/>
         </div>
     </div>
-    <h4>Running job requests for these sites ({{jobRequestsCount}} JRs)</h4>
-    <div class="row">
-        <div class="col-md-12">
+    <div class="form-group">
+        <label class="col-sm-4 control-label">Running job requests for these sites ({{jobRequestsCount}} JRs)</label>
+        <div class="col-sm-6">
             <div ng-repeat="(k,job) in jobRequests">
                 <a ng-click="toggleJr($index)">JR No. XYZ{{$index+1}}, Reason: {{catalogs.reasonsTitle[job.reason]}}, Created at: {{job.requestedDate | date: 'dd.MM.yyyy'}}</a>
-                <div class="well" ng-if="jrIndex === $index">
+                <div ng-if="jrIndex === $index" class="animate-if">
                     <div class="row">
                         <div class="col-md-4">Requested date: {{job.requestedDate | date: 'dd.MM.yyyy HH:mm'}}</div>
                         <div class="col-md-4">Reason: {{catalogs.reasonsTitle[job.reason]}}</div>
@@ -424,14 +445,14 @@
                     </div>
                 </div>
             </div>
-            <div class="col-md-12" ng-if="!showMore">
-                <a ng-click="showMoreJobRequests()" class="btn btn-sm btn-primary"><i class="glyphicon glyphicon-th-list"></i> Show more</a>
+            <div class="col-md-12">
+                <button type="button" ng-click="showMoreJobRequests()" class="btn btn-sm btn-primary" ng-disabled="!showMore"><i class="glyphicon glyphicon-th-list"></i> <span ng-if="showMore">Show more</span><span ng-if="!showMore">No more similar job requests</span></span></button>
             </div>
         </div>
     </div>
-    <h4>Works*</h4>
-    <div class="row">
-        <div class="col-md-12">
+    <div class="form-group">
+        <label class="col-sm-4 control-label">Works*</label>
+        <div class="col-sm-6">
             <table>
                 <thead>
                     <tr>
@@ -461,24 +482,22 @@
                             </div>
                         </td>
                         <td><input type="text" class="form-control" ng-model="jobWork.sites" required /></td>
-                        <td><button class="btn btn-sm btn-warning" ng-if="$index !== 0" ng-click="removeWork($index)"><i class="glyphicon glyphicon-trash"></i> Remove</button></td>
+                        <td><button type="button" class="btn btn-sm btn-warning" ng-if="$index !== 0" ng-click="removeWork($index)"><i class="glyphicon glyphicon-trash"></i> Remove</button></td>
                     </tr>
                     <tr>
                         <td></td>
                         <td colspan="5">
-                            <button class="btn btn-sm btn-primary" ng-click="addJobWork()"><i class="glyphicon glyphicon-plus"></i> Add work</button>
+                            <button type="button" class="btn btn-sm btn-primary" ng-click="addJobWork()"><i class="glyphicon glyphicon-plus"></i> Add work</button>
                         </td>
                     </tr>
                 </tbody>
             </table>
         </div>
-        <div class="row">
-            <div class="col-md-12">
-                <h4>Explanation of works*</h4>
-            </div>
-            <div class="col-md-12">
-                <textarea class="form-control" cam-variable-name="explanation" cam-variable-type="String" placeholder="Explanation of works..." maxlength="500" rows="4" required></textarea>
-            </div>
+    </div>
+    <div class="form-group">
+        <label class="col-sm-4 control-label">Explanation of works</label>
+        <div class="col-sm-6">
+            <textarea class="form-control" cam-variable-name="explanation" cam-variable-type="String" placeholder="Explanation of works..." maxlength="500" rows="4" required></textarea>
         </div>
     </div>
 </form>
