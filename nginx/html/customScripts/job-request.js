@@ -54,6 +54,12 @@ define('job-request-module', ['angular'], function (angular) {
           '<div class="row" ng-if="jobModel.contractorZIPWarehouseMaterialsList.contentUrl">'+
               '<div class="col-md-12"><a href="{{jobModel.contractorZIPWarehouseMaterialsList.contentUrl}}">Contractor ZIP Warehouse Materials List (xls)</a></div>'+
           '</div>'+
+          '<div class="row" ng-if="jobModel.sapTransferRequestFile.contentUrl">'+
+              '<div class="col-md-12"><a href="{{jobModel.sapTransferRequestFile.contentUrl}}">SAP transfer Request File (xls)</a></div>'+
+          '</div>'+
+          '<div class="row" ng-if="jobModel.eLicenseResolutionFile.contentUrl">'+
+              '<div class="col-md-12"><a href="{{jobModel.eLicenseResolutionFile.contentUrl}}">E-License resolution file</a></div>'+
+          '</div>'+
       '</div>'
     };
   });
