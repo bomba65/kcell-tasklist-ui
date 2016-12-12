@@ -43,70 +43,151 @@
 <form role="form" class="form-horizontal">
     <script cam-script type="text/form-script">
         inject([ '$scope', '$http', function($scope, $http) {
-            var variableManager = camForm.variableManager;
+            var variablesToCreate = [
+                {
+                    name: 'requestedDate',
+                    type: 'Date',
+                    value: new Date(),
+                    submit: true,
+                    store: false
+                },
+                {
+                    name: 'validityDate',
+                    type: 'Date',
+                    value: new Date(),
+                    store: true
+                }, {
+                    name: 'contract',
+                    type: 'Integer',
+                    submit: true,
+                    store: true
+                }, {
+                    name: 'contractor',
+                    type: 'Integer',
+                    submit: true,
+                    store: true
+                }, {
+                    name: 'materialsRequired',
+                    type: 'String',
+                    submit: true,
+                    store: true
+                }, {
+                    name: 'leasingRequired',
+                    type: 'String',
+                    submit: true,
+                    store: true
+                }, {
+                    name: 'powerRequired',
+                    type: 'String',
+                    submit: true,
+                    store: true
+                }, {
+                    name: 'worksBelongsTo',
+                    type: 'String',
+                    submit: true,
+                    store: true
+                }, {
+                    name: 'jobWorks',
+                    type: 'Json',
+                    submit: true,
+                    store: true
+                }
+            ];
+
+            camForm.on('form-loaded', function () {
+                variablesToCreate.forEach(function (el) {
+                    camForm.variableManager.fetchVariable(el.name);
+                });
+
+                $scope.createDate = new Date();
+                $scope.soaComplaintIdCorrect = false;
+                $http.get('/api/catalogs').then(
+                        function(result){
+                            angular.extend($scope, result.data);
+                            serviceChanged();
+                        },
+                        function(error){
+                            console.log(error.data);
+                        }
+                );
+            });
+
+            camForm.on('variables-fetched', function () {
+
+                console.log('fetched');
+                variablesToCreate.forEach(function (el) {
+                    if (camForm.variableManager.variables[el.name].type === undefined) {
+                        camForm.variableManager.variables[el.name].type = el.type;
+                        if(el.value){
+                            camForm.variableManager.variables[el.name].value = el.value;
+                        }
+                    }
+                    $scope[el.name] = camForm.variableManager.variables[el.name].value;
+                });
+                console.log('end fetched');
+            });
+
+            camForm.on('submit', function () {
+                variablesToCreate.forEach(function (el) {
+                    if (el.submit) {
+                        console.log('el: ' + el.name);
+                        camForm.variableManager.variableValue(el.name, $scope[el.name]);
+                    }
+                });
+                console.log($scope.validityDate);
+                console.log('parsing');
+                var validityDate = new Date($scope.validityDate);
+                console.log('parsed');
+                console.log(validityDate);
+                camForm.variableManager.variableValue('validityDate', validityDate);
+                camForm.variableManager.variableValue('contract', parseInt($scope.custom.contract));
+                camForm.variableManager.variableValue('contractor', parseInt($scope.custom.contractor));
+                camForm.variableManager.variableValue('jobWorks', JSON.parse(angular.toJson($scope.jobWorks)));
+                for (var i = 0; i < camForm.fields.length; i++) {
+                    if (camForm.fields[i].variableName == 'supplementaryFile1') {
+                        if (camForm.fields[i].element.context.value == '') {
+                            camForm.fields.splice(i, 1);
+                            camForm.variableManager.destroyVariable('supplementaryFile1');
+                        }
+                    }
+                }
+                for (var i = 0; i < camForm.fields.length; i++) {
+                    if (camForm.fields[i].variableName == 'supplementaryFile2') {
+                        if (camForm.fields[i].element.context.value == '') {
+                            camForm.fields.splice(i, 1);
+                            camForm.variableManager.destroyVariable('supplementaryFile2');
+                        }
+                    }
+                }
+                for (var i = 0; i < camForm.fields.length; i++) {
+                    if (camForm.fields[i].variableName == 'supplementaryFile3') {
+                        if (camForm.fields[i].element.context.value == '') {
+                            camForm.fields.splice(i, 1);
+                            camForm.variableManager.destroyVariable('supplementaryFile3');
+                        }
+                    }
+                }
+                for (var i = 0; i < camForm.fields.length; i++) {
+                    if (camForm.fields[i].variableName == 'supplementaryFile4') {
+                        if (camForm.fields[i].element.context.value == '') {
+                            camForm.fields.splice(i, 1);
+                            camForm.variableManager.destroyVariable('supplementaryFile4');
+                        }
+                    }
+                }
+                for (var i = 0; i < camForm.fields.length; i++) {
+                    if (camForm.fields[i].variableName == 'supplementaryFile5') {
+                        if (camForm.fields[i].element.context.value == '') {
+                            camForm.fields.splice(i, 1);
+                            camForm.variableManager.destroyVariable('supplementaryFile5');
+                        }
+                    }
+                }
+            });
             $scope.custom = {
                 contract: undefined,
                 contractor: undefined
             };
-
-            camForm.on('form-loaded', function() {
-                $scope.createDate = new Date();
-                $scope.soaComplaintIdCorrect = false;
-                camForm.variableManager.createVariable({
-    				name: 'requestedDate',
-    				type: 'Date',
-    				value: new Date()
-    			});
-                camForm.variableManager.createVariable({
-                    name: 'validityDate',
-                    type: 'Date',
-                    value: new Date()
-                });
-                camForm.variableManager.createVariable({
-    				name: 'contract',
-    				type: 'Integer',
-    				value: undefined
-    			});
-                camForm.variableManager.createVariable({
-    				name: 'contractor',
-    				type: 'Integer',
-    				value: undefined
-    			});
-                camForm.variableManager.createVariable({
-    				name: 'materialsRequired',
-    				type: 'String',
-    				value: 'Yes'
-    			});
-                camForm.variableManager.createVariable({
-    				name: 'leasingRequired',
-    				type: 'String',
-    				value: 'No'
-    			});
-                camForm.variableManager.createVariable({
-    				name: 'powerRequired',
-    				type: 'String',
-    				value: 'No'
-    			});
-                camForm.variableManager.createVariable({
-    				name: 'worksBelongsTo',
-    				type: 'String',
-    				value: 'No'
-    			});
-                camForm.variableManager.createVariable({
-    				name: 'jobWorks',
-    				type: 'Json',
-    				value: undefined
-    			});
-
-                $http.get('/api/catalogs').then(
-                    function(result){
-                        angular.extend($scope, result.data);
-                    },
-                    function(error){
-                        console.log(error.data);
-                    }
-                );
-            });
 
             $scope.open = open;
             $scope.toggleJr = toggleJr;
@@ -232,71 +313,61 @@
             function serviceChanged(){
                 console.log('changed');
                 $scope.conts = [];
-                for(var i=0;i<$scope.contracts.length;i++){
-                    if($scope.contracts[i].service.id == $scope.custom.contract){
-                        $scope.conts.push($scope.contracts[i].contractor);
+                if($scope.contracts){
+                    for(var i=0;i<$scope.contracts.length;i++){
+                        if($scope.contracts[i].service.id == $scope.custom.contract){
+                            $scope.conts.push($scope.contracts[i].contractor);
+                        }
                     }
                 }
                 console.log($scope.conts);
             }
 
-            camForm.on('submit', function(){
-                var validityDate = new Date($scope.validityDate);
-                camForm.variableManager.variableValue('validityDate', validityDate);
-                camForm.variableManager.variableValue('contract', parseInt($scope.custom.contract));
-                camForm.variableManager.variableValue('contractor', parseInt($scope.custom.contractor));
-                camForm.variableManager.variableValue('materialsRequired', $scope.materialsRequired);
-                camForm.variableManager.variableValue('leasingRequired', $scope.leasingRequired);
-                camForm.variableManager.variableValue('powerRequired', $scope.powerRequired);
-                camForm.variableManager.variableValue('worksBelongsTo', $scope.worksBelongsTo);
-                camForm.variableManager.variableValue('jobWorks', JSON.parse(angular.toJson($scope.jobWorks)));
-                for (var i = 0; i < camForm.fields.length; i++) {
-                    if (camForm.fields[i].variableName == 'supplementaryFile1') {
-                        if (camForm.fields[i].element.context.value == '') {
-                            camForm.fields.splice(i, 1);
-                            camForm.variableManager.destroyVariable('supplementaryFile1');
-                        }
-                    }
-                }
-                for (var i = 0; i < camForm.fields.length; i++) {
-                    if (camForm.fields[i].variableName == 'supplementaryFile2') {
-                        if (camForm.fields[i].element.context.value == '') {
-                            camForm.fields.splice(i, 1);
-                            camForm.variableManager.destroyVariable('supplementaryFile2');
-                        }
-                    }
-                }
-                for (var i = 0; i < camForm.fields.length; i++) {
-                    if (camForm.fields[i].variableName == 'supplementaryFile3') {
-                        if (camForm.fields[i].element.context.value == '') {
-                            camForm.fields.splice(i, 1);
-                            camForm.variableManager.destroyVariable('supplementaryFile3');
-                        }
-                    }
-                }
-                for (var i = 0; i < camForm.fields.length; i++) {
-                    if (camForm.fields[i].variableName == 'supplementaryFile4') {
-                        if (camForm.fields[i].element.context.value == '') {
-                            camForm.fields.splice(i, 1);
-                            camForm.variableManager.destroyVariable('supplementaryFile4');
-                        }
-                    }
-                }
-                for (var i = 0; i < camForm.fields.length; i++) {
-                    if (camForm.fields[i].variableName == 'supplementaryFile5') {
-                        if (camForm.fields[i].element.context.value == '') {
-                            camForm.fields.splice(i, 1);
-                            camForm.variableManager.destroyVariable('supplementaryFile5');
-                        }
-                    }
-                }
-
-            });
-
             camForm.on('variables-applied', function() {
 		        var validityDate = camForm.variableManager.variableValue('validityDate');
 		        $scope.validityDate = new Date(validityDate);
 		    });
+
+            camForm.on('store', function() {
+                variablesToCreate.forEach(function (el) {
+                    if (el.store) {
+                        camForm.variableManager.variableValue(el.name, $scope[el.name]);
+                    }
+                });
+
+                var validityDate = new Date($scope.validityDate);
+                camForm.variableManager.variableValue('validityDate', validityDate);
+                camForm.variableManager.variableValue('contract', parseInt($scope.custom.contract));
+                camForm.variableManager.variableValue('contractor', parseInt($scope.custom.contractor));
+                camForm.variableManager.variableValue('jobWorks', JSON.parse(angular.toJson($scope.jobWorks)));
+            });
+
+            camForm.on('variables-restored', function() {
+                variablesToCreate.forEach(function (el) {
+                    if (el.store) {
+                        $scope[el.name] = camForm.variableManager.variableValue(el.name);
+                    }
+                });
+                $scope['validityDate'] = camForm.variableManager.variableValue('validityDate');
+                $scope.custom.contract = parseInt(camForm.variableManager.variableValue('contract'));
+                $scope.custom.contractor = parseInt(camForm.variableManager.variableValue('contractor'));
+                try{
+                    $scope.requestedDate = new Date(camForm.variableManager.variableValue('requestedDate'));
+                } catch(e){}
+                try{
+                    if(camForm.variableManager.variableValue('jobWorks')){
+                        $scope.jobWorks = JSON.parse(angular.toJson(camForm.variableManager.variableValue('jobWorks')));
+                    } else {
+                        $scope.jobWorks = [{}];
+                    }
+                } catch(e){
+                    $scope.jobWorks = [{}];
+                }
+                console.log($scope.jobWorks);
+                $scope.reason = camForm.variableManager.variableValue('reason');
+                refreshJobRequests();
+                serviceChanged();
+            });
         }]);
 
 
