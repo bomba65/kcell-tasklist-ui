@@ -95,6 +95,10 @@
             ];
 
             camForm.on('form-loaded', function () {
+                $scope.custom = {
+                    contract: 1,
+                    contractor: undefined
+                };
                 variablesToCreate.forEach(function (el) {
                     camForm.variableManager.fetchVariable(el.name);
                 });
@@ -104,7 +108,16 @@
                 $http.get('/api/catalogs').then(
                         function(result){
                             angular.extend($scope, result.data);
-                            serviceChanged();
+                            $scope.conts = [];
+                            console.log($scope.contracts);
+                            console.log($scope.custom.contract);
+                            if($scope.contracts){
+                                for(var i=0;i<$scope.contracts.length;i++){
+                                    if($scope.contracts[i].service.id === $scope.custom.contract){
+                                        $scope.conts.push($scope.contracts[i].contractor);
+                                    }
+                                }
+                            }
                         },
                         function(error){
                             console.log(error.data);
@@ -134,6 +147,23 @@
                         camForm.variableManager.variableValue(el.name, $scope[el.name]);
                     }
                 });
+                console.log($scope.materialsRequiredCheckbox);
+                if($scope.materialsRequiredCheckbox){
+                    camForm.variableManager.variableValue('materialsRequired', 'Yes');
+                } else {
+                    camForm.variableManager.variableValue('materialsRequired', 'No');
+                }
+                console.log($scope.leasingRequiredCheckbox);
+                if($scope.leasingRequiredCheckbox){
+                    camForm.variableManager.variableValue('leasingRequired', 'Yes');
+                } else {
+                    camForm.variableManager.variableValue('leasingRequired', 'No');
+                }
+                if($scope.powerRequiredCheckbox){
+                    camForm.variableManager.variableValue('powerRequired', 'Yes');
+                } else {
+                    camForm.variableManager.variableValue('powerRequired', 'No');
+                }
                 var validityDate = new Date($scope.validityDate);
                 camForm.variableManager.variableValue('validityDate', validityDate);
                 camForm.variableManager.variableValue('contract', parseInt($scope.custom.contract));
@@ -180,10 +210,6 @@
                     }
                 }
             });
-            $scope.custom = {
-                contract: undefined,
-                contractor: undefined
-            };
 
             $scope.open = open;
             $scope.toggleJr = toggleJr;
@@ -343,8 +369,12 @@
                     }
                 });
                 $scope['validityDate'] = camForm.variableManager.variableValue('validityDate');
-                $scope.custom.contract = parseInt(camForm.variableManager.variableValue('contract'));
-                $scope.custom.contractor = parseInt(camForm.variableManager.variableValue('contractor'));
+                if(camForm.variableManager.variableValue('contract')){
+                    $scope.custom.contract = parseInt(camForm.variableManager.variableValue('contract'));
+                }
+                if(camForm.variableManager.variableValue('contractor')){
+                    $scope.custom.contractor = parseInt(camForm.variableManager.variableValue('contractor'));
+                }
                 try{
                     $scope.requestedDate = new Date(camForm.variableManager.variableValue('requestedDate'));
                 } catch(e){}
@@ -368,13 +398,13 @@
     <h4>Create job request</h4>
     <div class="form-group">
         <label class="col-sm-4 control-label">Requested date*</label>
-        <div class="col-sm-2">
+        <div class="col-sm-3">
             <div class="form-control">{{createDate | date: 'dd.MM.yyyy HH:mm'}}</div>
         </div>
     </div>
     <div class="form-group">
         <label class="col-sm-4 control-label">Validity date*:</label>
-        <div class="col-sm-2">
+        <div class="col-sm-3">
             <div class="input-group">
                 <input type="text" ng-model="validityDate" required class="form-control" datepicker-popup="dd.MM.yyyy" is-open="dateFieldOpened" id="validityDate" min-date="datepickerOptions.minDate" />
                 <span class="input-group-btn">
@@ -421,52 +451,11 @@
         </div>
     </div>
     <div class="form-group">
-        <label class="col-sm-4 control-label">Contract*:</label>
-        <div class="col-sm-8">
-            <label class="radio-inline" ng-repeat="service in services">
-                <input type="radio" name="contract" ng-model="custom.contract" id="contract{{$index}}" value="{{service.id}}" ng-change="serviceChanged()"> {{service.name}}
-            </label>
-        </div>
-    </div>
-    <div class="form-group">
         <label class="col-sm-4 control-label">Contractor*:</label>
         <div class="col-sm-8">
             <div ng-if="conts.length == 0 || conts == undefined">Please select Contract</div>
             <label class="radio-inline" ng-repeat="c in conts">
                 <input type="radio" name="contractor" ng-model="custom.contractor" id="contractor{{$index}}" value="{{c.id}}" required> {{c.name}}
-            </label>
-        </div>
-    </div>
-    <div class="form-group">
-        <label class="col-sm-4 control-label">Materials required*:</label>
-        <div class="col-sm-8">
-            <label class="radio-inline">
-                <input type="radio" name="materialsRequired" ng-model="materialsRequired" id="materialsRequired1" value="Yes" required> Yes
-            </label>
-            <label class="radio-inline">
-                <input type="radio" name="materialsRequired" ng-model="materialsRequired" id="materialsRequired2" value="No" required> No
-            </label>
-        </div>
-    </div>
-    <div class="form-group">
-        <label class="col-sm-4 control-label">Leasing required*:</label>
-        <div class="col-sm-8">
-            <label class="radio-inline">
-                <input type="radio" name="leasingRequired" ng-model="leasingRequired" id="leasingRequired1" value="Yes" required> Yes
-            </label>
-            <label class="radio-inline">
-                <input type="radio" name="leasingRequired" ng-model="leasingRequired" id="leasingRequired2" value="No" required> No
-            </label>
-        </div>
-    </div>
-    <div class="form-group">
-        <label class="col-sm-4 control-label">Power engineering required*:</label>
-        <div class="col-sm-8">
-            <label class="radio-inline">
-                <input type="radio" name="powerRequired" ng-model="powerRequired" id="powerRequired1" value="Yes" required> Yes
-            </label>
-            <label class="radio-inline">
-                <input type="radio" name="powerRequired" ng-model="powerRequired" id="powerRequired2" value="No" required> No
             </label>
         </div>
     </div>
@@ -484,11 +473,19 @@
     <div class="form-group">
         <label class="col-sm-4 control-label">Supplementary files:</label>
         <div class="col-sm-8">
-            <input type="file" class="form-control" cam-variable-type="File" cam-max-filesize="10000000" cam-variable-name="supplementaryFile1" onchange="angular.element(this).scope().fileSelected(this, 1)"/>
-            <input type="file" class="form-control" cam-variable-type="File" cam-max-filesize="10000000" cam-variable-name="supplementaryFile2" onchange="angular.element(this).scope().fileSelected(this, 2)"/>
-            <input type="file" class="form-control" cam-variable-type="File" cam-max-filesize="10000000" cam-variable-name="supplementaryFile3" onchange="angular.element(this).scope().fileSelected(this, 3)"/>
-            <input type="file" class="form-control" cam-variable-type="File" cam-max-filesize="10000000" cam-variable-name="supplementaryFile4" onchange="angular.element(this).scope().fileSelected(this, 4)"/>
-            <input type="file" class="form-control" cam-variable-type="File" cam-max-filesize="10000000" cam-variable-name="supplementaryFile5" onchange="angular.element(this).scope().fileSelected(this, 5)"/>
+            <input type="file" class="form-control" cam-variable-type="File" cam-max-filesize="10000000" cam-variable-name="supplementaryFile1"  onchange="angular.element(this).scope().fileSelected(this, 1)" />
+            <div ng-show="supplementaryFileSelected1">
+                <input type="file" class="form-control" cam-variable-type="File" cam-max-filesize="10000000" cam-variable-name="supplementaryFile2" onchange="angular.element(this).scope().fileSelected(this, 2)"/>
+            </div>
+            <div ng-show="supplementaryFileSelected2">
+                <input type="file" class="form-control" cam-variable-type="File" cam-max-filesize="10000000" cam-variable-name="supplementaryFile3" onchange="angular.element(this).scope().fileSelected(this, 3)"/>
+            </div>
+            <div ng-show="supplementaryFileSelected3">
+                <input type="file" class="form-control" cam-variable-type="File" cam-max-filesize="10000000" cam-variable-name="supplementaryFile4" onchange="angular.element(this).scope().fileSelected(this, 4)"/>
+            </div>
+            <div ng-show="supplementaryFileSelected4">
+                <input type="file" class="form-control" cam-variable-type="File" cam-max-filesize="10000000" cam-variable-name="supplementaryFile5" onchange="angular.element(this).scope().fileSelected(this, 5)"/>
+            </div>
         </div>
     </div>
     <div class="form-group">
@@ -579,6 +576,24 @@
                     </tr>
                 </tbody>
             </table>
+        </div>
+    </div>
+    <div class="form-group">
+        <label class="col-sm-4 control-label">Materials required*:</label>
+        <div class="col-sm-8">
+            <input type="checkbox" class="form-control" cam-variable-name="materialsRequiredCheckbox" cam-variable-type="Boolean" />
+        </div>
+    </div>
+    <div class="form-group">
+        <label class="col-sm-4 control-label">Leasing required*:</label>
+        <div class="col-sm-8">
+            <input type="checkbox" class="form-control" cam-variable-name="leasingRequiredCheckbox" cam-variable-type="Boolean" />
+        </div>
+    </div>
+    <div class="form-group">
+        <label class="col-sm-4 control-label">Power engineering required*:</label>
+        <div class="col-sm-8">
+            <input type="checkbox" class="form-control" cam-variable-name="powerRequiredCheckbox" cam-variable-type="Boolean" />
         </div>
     </div>
     <div class="form-group">
