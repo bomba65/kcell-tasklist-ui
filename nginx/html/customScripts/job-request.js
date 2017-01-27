@@ -35,11 +35,32 @@ define('job-request-module', ['angular'], function (angular) {
               '<div class="col-md-12" ng-if="jobModel.supplementaryFile5.contentUrl">&nbsp;&nbsp;&nbsp;&nbsp;<a href="{{jobModel.supplementaryFile5.contentUrl}}">{{jobModel.supplementaryFile5.valueInfo.filename}}</a></div>'+
           '</div>'+
           '<br/>'+
-          '<div class="row">'+
+          '<div class="row" ng-if="!jobModel.showPrice">'+
               '<div class="col-md-12"><b>Works</b>:</div>'+
               '<div class="col-md-12" ng-repeat="work in jobModel.jobWorks.value">'+
                   '&nbsp;&nbsp;&nbsp;&nbsp;{{$index+1}}. {{jobModel.worksTitle[work.sapServiceNumber]}}, works qty: {{work.quantity}}, materials qty: {{work.materialQuantity}} {{jobModel.unitsTitle[work.unit]}}, on sites: {{work.sites}} (Near end)'+
               '</div>'+
+          '</div>'+
+          '<div class="row" ng-if="jobModel.showPrice">'+
+              '<div class="col-md-6"><b>Works</b>:</div>'+
+              '<div class="col-md-2"><b>Price</b>:</div>'+
+              '<div class="col-md-2"><b>Transportation 8%</b></div>'+
+              '<div class="col-md-2"><b>Total</b>:</div>'+
+              '<div ng-repeat="work in jobModel.jobWorks">'+
+                '<div class="col-md-6">'+
+                    '&nbsp;&nbsp;&nbsp;&nbsp;{{$index+1}}. {{jobModel.worksTitle[work.sapServiceNumber]}}, works qty: {{work.quantity}}, materials qty: {{work.materialQuantity}} {{jobModel.unitsTitle[work.unit]}}, on sites: {{work.sites}} (Near end)'+
+                '</div>'+
+                '<div class="col-md-2"><b>{{work.price}} тенге</b></div>'+
+                '<div class="col-md-2"><b>{{work.transportationPrice}} тенге</b></div>'+
+                '<div class="col-md-2"><b>{{work.totalPrice}} тенге</b></div>'+
+              '</div>'+
+          '</div>'+
+          '<hr/>'+
+          '<div class="row">'+
+              '<div class="col-md-6"><b>Total:</b></div>'+
+              '<div class="col-md-2"><b>{{jobModel.jobWorksPriceTotal}} тенге</b></div>'+
+              '<div class="col-md-2"><b>{{jobModel.jobWorksTransportationTotal}} тенге</b></div>'+
+              '<div class="col-md-2"><b>{{jobModel.jobWorksTotal}} тенге</b></div>'+
           '</div>'+
           '<br/>'+
           '<div class="row">'+
