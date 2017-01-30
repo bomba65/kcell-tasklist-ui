@@ -56,7 +56,7 @@ define('job-request-module', ['angular'], function (angular) {
               '</div>'+
           '</div>'+
           '<hr/>'+
-          '<div class="row">'+
+          '<div class="row" ng-if="jobModel.showPrice">'+
               '<div class="col-md-6"><b>Total:</b></div>'+
               '<div class="col-md-2"><b>{{jobModel.jobWorksPriceTotal}} тенге</b></div>'+
               '<div class="col-md-2"><b>{{jobModel.jobWorksTransportationTotal}} тенге</b></div>'+
@@ -66,13 +66,13 @@ define('job-request-module', ['angular'], function (angular) {
           '<div class="row">'+
               '<div class="col-md-12"><b>Explanation of works</b>: {{jobModel.explanation.value}}</div>'+
           '</div>'+
-          '<div class="row" ng-if="jobModel.sapPRNo.value">'+
+          '<div class="row" ng-if="jobModel.sapPRNo.value && !jobModel.hideSAPPRNO">'+
               '<div class="col-md-12"><b>SAP Purchase Request No</b>: {{jobModel.sapPRNo.value}} <a href="{{jobModel.sapPRFileXLS.contentUrl}}">(Download PR)</a></div>'+
           '</div>'+
           '<div class="row" ng-if="jobModel.kcellWarehouseMaterialsList.contentUrl">'+
               '<div class="col-md-12"><a href="{{jobModel.kcellWarehouseMaterialsList.contentUrl}}">Kcell Warehouse Materials List (xls)</a></div>'+
           '</div>'+
-          '<div class="row" ng-if="jobModel.contractorZIPWarehouseMaterialsList.contentUrl">'+
+          '<div class="row" ng-if="jobModel.contractorZIPWarehouseMaterialsList.contentUrl && !hideContractorZIPWarehouseMaterialList">'+
               '<div class="col-md-12"><a href="{{jobModel.contractorZIPWarehouseMaterialsList.contentUrl}}">Contractor ZIP Warehouse Materials List (xls)</a></div>'+
           '</div>'+
           '<div class="row" ng-if="jobModel.sapTransferRequestFile.contentUrl">'+
