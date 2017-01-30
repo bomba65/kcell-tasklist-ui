@@ -7,7 +7,7 @@ import org.springframework.data.repository.query.Param;
 import javax.validation.Valid;
 import java.util.List;
 
-public interface SitesRepository extends PagingAndSortingRepository<Site, String> {
+public interface SiteRepository extends PagingAndSortingRepository<Site, String> {
 
     List<Site> findByName(@Param("name") String name);
 

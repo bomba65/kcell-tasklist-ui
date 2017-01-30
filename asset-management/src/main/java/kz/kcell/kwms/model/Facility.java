@@ -1,26 +1,20 @@
 package kz.kcell.kwms.model;
 
-import javax.persistence.Column;
-import javax.persistence.Entity;
-import javax.persistence.GeneratedValue;
-import javax.persistence.GenerationType;
-import javax.persistence.Id;
-import javax.persistence.Inheritance;
-import javax.persistence.InheritanceType;
-import javax.persistence.JoinColumn;
-import javax.persistence.JoinTable;
-import javax.persistence.ManyToMany;
-import javax.persistence.ManyToOne;
-import javax.persistence.Table;
-import javax.persistence.UniqueConstraint;
-import javax.persistence.Version;
+import com.vividsolutions.jts.geom.Point;
+import lombok.*;
+
+import javax.persistence.*;
 import javax.validation.constraints.Size;
+import java.util.HashSet;
 import java.util.Set;
 
 @Entity
-@Table(uniqueConstraints = @UniqueConstraint(columnNames = {"site_id", "name"}))
+@Table(name = "facility")
 @Inheritance(strategy = InheritanceType.JOINED)
-public class Facility {
+public @Data @Builder @NoArgsConstructor @AllArgsConstructor
+@EqualsAndHashCode(exclude = {"sites", "version"})
+@ToString(exclude = "sites")
+class Facility {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     Long id;
@@ -28,36 +22,14 @@ public class Facility {
     @Size(min = 5)
     String name;
 
+    Point location;
+
     @ManyToMany
     @JoinTable(name = "site_facility",
             joinColumns = @JoinColumn(name = "facility_id"),
             inverseJoinColumns = @JoinColumn(name = "site_id")
     )
-    Set<Site> sites;
+    Set<Site> sites = new HashSet<>();
 
     @Version long version;
-
-    public Long getId() {
-        return id;
-    }
-
-    public void setId(Long id) {
-        this.id = id;
-    }
-
-    public String getName() {
-        return name;
-    }
-
-    public void setName(String name) {
-        this.name = name;
-    }
-
-    public Set<Site> getSites() {
-        return sites;
-    }
-
-    public void setSites(Set<Site> sites) {
-        this.sites = sites;
-    }
 }
