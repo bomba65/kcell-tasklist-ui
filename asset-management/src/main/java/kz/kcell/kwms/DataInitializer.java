@@ -36,6 +36,30 @@ public class DataInitializer {
     final @NonNull
     InstallationInstanceRepository installationInstanceRepository;
 
+    final
+    @NonNull
+    SiteRepository sites;
+
+    final
+    @NonNull
+    FacilityRepository facilities;
+
+    final
+    @NonNull
+    EquipmentDefinitionRepository definitions;
+
+    final
+    @NonNull
+    EquipmentInstanceRepository instances;
+
+    final
+    @NonNull
+    InstallationInstanceRepository installations;
+
+    final
+    @NonNull
+    InstallationDefinitionRepository installationDefinitions;
+
     @EventListener
     public void init(ApplicationReadyEvent event) throws ParseException {
 
@@ -59,13 +83,13 @@ public class DataInitializer {
 
         Facility facility1 = Facility.builder()
                 .name("Facility 1")
-                .location((Point)wktReader.read("POINT(10.0 10.0)"))
+                .location((Point) wktReader.read("POINT(10.0 10.0)"))
                 .sites(new HashSet<>(Arrays.asList(site1)))
                 .build();
 
         Facility facility2 = Facility.builder()
                 .name("Facility 2")
-                .location((Point)wktReader.read("POINT(-10.0 10.0)"))
+                .location((Point) wktReader.read("POINT(-10.0 10.0)"))
                 .sites(new HashSet<>(Arrays.asList(site2)))
                 .build();
 
@@ -130,6 +154,5 @@ public class DataInitializer {
 
         installationDefinitionRepository.save(Arrays.asList(installationDefinition1, installationDefinition2));
         installationInstanceRepository.save(Arrays.asList(installationInstance1, installationInstance2));
-
     }
 }
