@@ -13,14 +13,9 @@ import javax.persistence.*;
 @EqualsAndHashCode(exclude = {"version"})
 public class InstallationDefinition implements Definition {
     @Id
-    @GeneratedValue(strategy = GenerationType.IDENTITY)
-    Long id;
+    String id;
 
     String name;
-
-    String vendor;
-
-    String gtin;
 
     @Column(columnDefinition = "jsonb default '{}'", nullable = false)
     String schema = "{}";
