@@ -3,14 +3,8 @@ package kz.kcell.kwms;
 import com.vividsolutions.jts.geom.Point;
 import com.vividsolutions.jts.io.ParseException;
 import com.vividsolutions.jts.io.WKTReader;
-import kz.kcell.kwms.model.EquipmentDefinition;
-import kz.kcell.kwms.model.EquipmentInstance;
-import kz.kcell.kwms.model.Facility;
-import kz.kcell.kwms.model.Site;
-import kz.kcell.kwms.repository.EquipmentDefinitionRepository;
-import kz.kcell.kwms.repository.EquipmentInstanceRepository;
-import kz.kcell.kwms.repository.FacilityRepository;
-import kz.kcell.kwms.repository.SiteRepository;
+import kz.kcell.kwms.model.*;
+import kz.kcell.kwms.repository.*;
 import lombok.NonNull;
 import lombok.RequiredArgsConstructor;
 import org.springframework.boot.context.event.ApplicationReadyEvent;
@@ -25,21 +19,27 @@ import java.util.HashSet;
 public class DataInitializer {
 
     final @NonNull
-    SiteRepository sites;
+    SiteRepository siteRepository;
 
     final @NonNull
-    FacilityRepository facilities;
+    FacilityRepository facilityRepository;
 
     final @NonNull
-    EquipmentDefinitionRepository definitions;
+    EquipmentDefinitionRepository equipmentDefinitionRepository;
 
     final @NonNull
-    EquipmentInstanceRepository instances;
+    EquipmentInstanceRepository equipmentInstanceRepository;
+
+    final @NonNull
+    InstallationDefinitionRepository installationDefinitionRepository;
+
+    final @NonNull
+    InstallationInstanceRepository installationInstanceRepository;
 
     @EventListener
     public void init(ApplicationReadyEvent event) throws ParseException {
 
-        if (sites.count() != 0) {
+        if (siteRepository.count() != 0) {
             return;
         }
 
@@ -53,7 +53,7 @@ public class DataInitializer {
                 .name("Site 2")
                 .build();
 
-        sites.save(Arrays.asList(site1, site2));
+        siteRepository.save(Arrays.asList(site1, site2));
 
         WKTReader wktReader = new WKTReader();
 
@@ -69,29 +69,67 @@ public class DataInitializer {
                 .sites(new HashSet<>(Arrays.asList(site2)))
                 .build();
 
-        facilities.save(Arrays.asList(facility1, facility2));
+        facilityRepository.save(Arrays.asList(facility1, facility2));
 
-        EquipmentDefinition definition1 = EquipmentDefinition.builder()
+        EquipmentDefinition equipmentDefinition1 = EquipmentDefinition.builder()
                 .name("Air conditioner")
                 .gtin("12345")
                 .vendor("Samsung")
                 .schema("{}")
                 .build();
 
-        EquipmentInstance instance1 = EquipmentInstance.builder()
+        EquipmentDefinition equipmentDefinition2 = EquipmentDefinition.builder()
+                .name("Microwave antenna")
+                .gtin("23456")
+                .vendor("Ericsson")
+                .schema("{}")
+                .build();
+
+        EquipmentInstance equipmentInstance1 = EquipmentInstance.builder()
                 .sn("1000")
-                .definition(definition1)
+                .definition(equipmentDefinition1)
                 .params("{}")
                 .build();
 
-        EquipmentInstance instance2 = EquipmentInstance.builder()
+        EquipmentInstance equipmentInstance2 = EquipmentInstance.builder()
                 .sn("2000")
-                .definition(definition1)
+                .definition(equipmentDefinition2)
                 .params("{}")
                 .build();
 
-        definitions.save(definition1);
-        instances.save(Arrays.asList(instance1, instance2));
+        equipmentDefinitionRepository.save(Arrays.asList(equipmentDefinition1, equipmentDefinition2));
+        equipmentInstanceRepository.save(Arrays.asList(equipmentInstance1, equipmentInstance2));
+
+        InstallationDefinition installationDefinition1 = InstallationDefinition.builder()
+                .id("AIRCONDITIONER")
+                .name("Air Conditioner Installation")
+                .schema("{}")
+                .build();
+
+        InstallationInstance installationInstance1 = InstallationInstance.builder()
+                .definition(installationDefinition1)
+                .equipment(equipmentInstance1)
+                .facility(facility1)
+                .site(site1)
+                .params("{}")
+                .build();
+
+        InstallationDefinition installationDefinition2 = InstallationDefinition.builder()
+                .id("MICROWAVE")
+                .name("Microwave Installation")
+                .schema("{}")
+                .build();
+
+        InstallationInstance installationInstance2 = InstallationInstance.builder()
+                .definition(installationDefinition2)
+                .equipment(equipmentInstance2)
+                .facility(facility2)
+                .site(site2)
+                .params("{}")
+                .build();
+
+        installationDefinitionRepository.save(Arrays.asList(installationDefinition1, installationDefinition2));
+        installationInstanceRepository.save(Arrays.asList(installationInstance1, installationInstance2));
 
     }
 }

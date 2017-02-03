@@ -16,8 +16,6 @@ public class InstallationInstance implements Instance<InstallationDefinition> {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     Long id;
 
-    String sn;
-
     @ManyToOne(optional = false)
     InstallationDefinition definition;
 
