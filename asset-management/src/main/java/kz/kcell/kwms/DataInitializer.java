@@ -18,22 +18,28 @@ import java.util.HashSet;
 @RequiredArgsConstructor
 public class DataInitializer {
 
-    final @NonNull
+    final
+    @NonNull
     SiteRepository siteRepository;
 
-    final @NonNull
+    final
+    @NonNull
     FacilityRepository facilityRepository;
 
-    final @NonNull
+    final
+    @NonNull
     EquipmentDefinitionRepository equipmentDefinitionRepository;
 
-    final @NonNull
+    final
+    @NonNull
     EquipmentInstanceRepository equipmentInstanceRepository;
 
-    final @NonNull
+    final
+    @NonNull
     InstallationDefinitionRepository installationDefinitionRepository;
 
-    final @NonNull
+    final
+    @NonNull
     InstallationInstanceRepository installationInstanceRepository;
 
     final
@@ -43,6 +49,14 @@ public class DataInitializer {
     final
     @NonNull
     FacilityRepository facilities;
+
+    final
+    @NonNull
+    FacilityInstanceRepository facilityInstanceRepository;
+
+    final
+    @NonNull
+    FacilityDefinitionRepository facilityDefinitionRepository;
 
     final
     @NonNull
@@ -81,19 +95,41 @@ public class DataInitializer {
 
         WKTReader wktReader = new WKTReader();
 
-        Facility facility1 = Facility.builder()
-                .name("Facility 1")
+        FacilityDefinition facilityDefinition1 = FacilityDefinition.builder()
+                .id("BUILDING")
+                .schema("{}")
+                .name("Building")
+                .build();
+
+        FacilityDefinition facilityDefinition2 = FacilityDefinition.builder()
+                .id("TOWER")
+                .schema("{}")
+                .name("Tower")
+                .build();
+
+        FacilityDefinition facilityDefinition3 = FacilityDefinition.builder()
+                .id("MAST")
+                .schema("{}")
+                .name("Mast")
+                .build();
+
+        facilityDefinitionRepository.save(Arrays.asList(facilityDefinition1, facilityDefinition2, facilityDefinition3));
+
+        FacilityInstance facilityInstance1 = FacilityInstance.builder()
+                .definition(facilityDefinition1)
                 .location((Point) wktReader.read("POINT(10.0 10.0)"))
-                .sites(new HashSet<>(Arrays.asList(site1)))
+                .site(site1)
+                .params("{}")
                 .build();
 
-        Facility facility2 = Facility.builder()
-                .name("Facility 2")
+        FacilityInstance facilityInstance2 = FacilityInstance.builder()
+                .definition(facilityDefinition1)
                 .location((Point) wktReader.read("POINT(-10.0 10.0)"))
-                .sites(new HashSet<>(Arrays.asList(site2)))
+                .site(site2)
+                .params("{}")
                 .build();
 
-        facilityRepository.save(Arrays.asList(facility1, facility2));
+        facilityInstanceRepository.save(Arrays.asList(facilityInstance1, facilityInstance2));
 
         EquipmentDefinition equipmentDefinition1 = EquipmentDefinition.builder()
                 .name("Air conditioner")
@@ -133,7 +169,7 @@ public class DataInitializer {
         InstallationInstance installationInstance1 = InstallationInstance.builder()
                 .definition(installationDefinition1)
                 .equipment(equipmentInstance1)
-                .facility(facility1)
+                .facility(facilityInstance1)
                 .site(site1)
                 .params("{}")
                 .build();
@@ -147,7 +183,7 @@ public class DataInitializer {
         InstallationInstance installationInstance2 = InstallationInstance.builder()
                 .definition(installationDefinition2)
                 .equipment(equipmentInstance2)
-                .facility(facility2)
+                .facility(facilityInstance2)
                 .site(site2)
                 .params("{}")
                 .build();

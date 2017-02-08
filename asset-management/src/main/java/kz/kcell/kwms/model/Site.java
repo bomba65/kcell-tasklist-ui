@@ -24,12 +24,12 @@ class Site {
     @Size(min = 5)
     String name;
 
-    @ManyToMany
-    @JoinTable(name = "site_facility",
+    @OneToMany(mappedBy = "site")
+    /*@JoinTable(name = "site_facility",
             joinColumns = @JoinColumn(name = "site_id"),
             inverseJoinColumns = @JoinColumn(name = "facility_id")
-    )
-    Set<Facility> facilities = new HashSet<>();
+    )*/
+    List<FacilityInstance> facilities = new ArrayList<>();
 
     @ManyToMany(targetEntity = Site.class)
     @JoinTable(name = "site_far_end_candidate",

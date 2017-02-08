@@ -1,6 +1,7 @@
 package kz.kcell.kwms;
 
 import kz.kcell.kwms.model.Facility;
+import kz.kcell.kwms.model.FacilityInstance;
 import org.junit.Assert;
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -56,7 +57,7 @@ public class AssetManagementApplicationTests {
     public void testJpaGeometry() throws Exception {
         Assert.assertNotNull(em);
 
-        em.createQuery("select f from Facility f order by distance(f.location, point(:x, :y))", Facility.class)
+        em.createQuery("select f from FacilityInstance f order by distance(f.location, point(:x, :y))", FacilityInstance.class)
                 .setParameter("x", -9.0)
                 .setParameter("y", 9.0)
                 .getResultList()

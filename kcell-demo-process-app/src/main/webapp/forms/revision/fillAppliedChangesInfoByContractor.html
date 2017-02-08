@@ -5,7 +5,7 @@
 </style>
 <form role="form" class="form-horizontal">
     <script cam-script type="text/form-script">
-        inject(['$scope', '$http', 'Uri', function ($scope, $http, Uri) {
+        inject(['$scope', '$http', 'Uri', '$timeout', function ($scope, $http, Uri, $timeout) {
             var variables = [
                 'requestedDate',
                 'validityDate',
@@ -84,12 +84,53 @@
                     value: {}
                 });
             });
+            function getDefinition(link, index){
+                console.log(link, index);
+                $http.get(link).then(
+                    function(result){
+                        $timeout(function(){
+                            $scope.$apply(function(){
+                                $scope.fillSite.facilities[index].definition = result.data._links.self.href.substr(result.data._links.self.href.lastIndexOf('/') + 1);
+                            });
+                        });
+                    },
+                    function(error){
+                        console.log(error.data);
+                    }
+                );
+            }
             camForm.on('variables-fetched', function () {
                 variables.forEach(function (el) {
                     $scope.jobModel[el] = camForm.variableManager.variables[el];
                 });
                 console.log('-------START-------');
                 console.log($scope.jobModel.site);
+                $http.get('/asset-management/api/facilityDefinitions').then(
+                    function(result){
+                        $scope.facilityDefinitions = [];
+                        for(var i=0;i<result.data._embedded.facilityDefinitions.length;i++){
+                            var id = result.data._embedded.facilityDefinitions[i]._links.self.href.substr(result.data._embedded.facilityDefinitions[i]._links.self.href.lastIndexOf('/') + 1)
+                            $scope.facilityDefinitions.push({name:result.data._embedded.facilityDefinitions[i].name,id:id});
+                        }
+                    },
+                    function(error){
+                        console.log(error.data);
+                    }
+                );
+                $http.get('/asset-management/api/sites/'+$scope.jobModel.site.originalValue+'/facilities').then(
+                    function(result){
+                        $scope.fillSite.facilities = [];// = result.data._embedded.facilityInstances;
+                        for(var i=0;i<result.data._embedded.facilityInstances.length;i++){
+                            $scope.fillSite.facilities.push(result.data._embedded.facilityInstances[i].params);
+                            $scope.fillSite.facilities[i]._facilityId = result.data._embedded.facilityInstances[i]._links.self.href.substr(result.data._embedded.facilityInstances[i]._links.self.href.lastIndexOf('/') + 1);
+                            console.log('getDefinition_getDefinition');
+                            getDefinition(result.data._embedded.facilityInstances[i]._links.definition.href, i);
+                        }
+                    },
+                    function(error){
+                        console.log(error.data);
+                    }
+                );
                 $http.get('/asset-management/api/installationInstances/search/findBySiteAndDefinition?site=/asset-management/api/sites/'+$scope.jobModel.site.originalValue+'&definition=/asset-management/api/installationDefinitions/MICROWAVE').then(
                     function(searchResult){
                         console.log('======');
@@ -198,6 +239,36 @@
                         rack_serial_number:$scope.fillSite.transmission.nearEnd.rack_serial_number
                     }
                 };
+                for(var i=0;i<$scope.fillSite.facilities.length;i++){
+                    $scope.fillSite.facilities[i].object = {
+                        id: $scope.fillSite.facilities[i]._facilityId,
+                        definition: $scope.fillSite.facilities[i].definition,
+                        type: $scope.fillSite.facilities[i].type,
+                        region: $scope.fillSite.facilities[i].region,
+                        city: $scope.fillSite.facilities[i].city,
+                        street: $scope.fillSite.facilities[i].street,
+                        building_number: $scope.fillSite.facilities[i].building_number,
+                        cadastral_number: $scope.fillSite.facilities[i].cadastral_number,
+                        latitude: $scope.fillSite.facilities[i].latitude,
+                        longitude: $scope.fillSite.facilities[i].longitude,
+                        atitude: $scope.fillSite.facilities[i].atitude,
+                        owner: $scope.fillSite.facilities[i].owner,
+                        height: $scope.fillSite.facilities[i].height,
+                        max_neighbor_height: $scope.fillSite.facilities[i].max_neighbor_height,
+                        additional_info: $scope.fillSite.facilities[i].additional_info,
+                        building_type_ext: $scope.fillSite.facilities[i].building_type_ext,
+                        roof_type: $scope.fillSite.facilities[i].roof_type,
+                        roof_degrees: $scope.fillSite.facilities[i].roof_degrees,
+                        ceiling_type: $scope.fillSite.facilities[i].ceiling_type,
+                        has_technical_floor: $scope.fillSite.facilities[i].has_technical_floor,
+                        tower_type: $scope.fillSite.facilities[i].tower_type,
+                        tower_base_type: $scope.fillSite.facilities[i].tower_base_type,
+                        mast_type: $scope.fillSite.facilities[i].mast_type,
+                        mast_base_type: $scope.fillSite.facilities[i].mast_base_type,
+                        mast_base_area: $scope.fillSite.facilities[i].mast_base_area,
+                        other_owner: $scope.fillSite.facilities[i].other_owner
+                    }
+                }
                 $scope.fillSite.microWave = microWave;
                 console.log($scope.fillSite.microWave);
                 camForm.variableManager.variableValue('sitesWorks', JSON.parse(angular.toJson($scope.sitesWorks)));
