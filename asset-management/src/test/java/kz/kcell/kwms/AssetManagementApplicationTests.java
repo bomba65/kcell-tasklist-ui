@@ -1,6 +1,5 @@
 package kz.kcell.kwms;
 
-import kz.kcell.kwms.model.Facility;
 import kz.kcell.kwms.model.FacilityInstance;
 import org.junit.Assert;
 import org.junit.Test;

@@ -1,7 +1,7 @@
 package kz.kcell.kwms.repository.custom;
 
-import kz.kcell.kwms.model.Facility;
-import kz.kcell.kwms.repository.FacilityRepository;
+import kz.kcell.kwms.model.FacilityInstance;
+import kz.kcell.kwms.repository.FacilityInstanceRepository;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
@@ -18,32 +18,32 @@ import org.springframework.web.bind.annotation.ResponseBody;
 import static org.springframework.web.bind.annotation.RequestMethod.GET;
 
 @RepositoryRestController
-public class FacilityController implements ResourceProcessor<RepositorySearchesResource> {
+public class FacilityInstanceController implements ResourceProcessor<RepositorySearchesResource> {
 
     @Autowired
-    private PagedResourcesAssembler<Facility> assembler;
+    private PagedResourcesAssembler<FacilityInstance> assembler;
 
     @Autowired
-    private FacilityRepository repository;
+    private FacilityInstanceRepository repository;
 
     @Override
     public RepositorySearchesResource process(RepositorySearchesResource resource) {
-        if (Facility.class.equals(resource.getDomainType())) {
+        if (FacilityInstance.class.equals(resource.getDomainType())) {
             resource.add(new Link(resource.getId().getHref() + "/findByLocationNear{?long,lat,page,size}", "findByLocationNear"));
         }
         return resource;
     }
 
     @SuppressWarnings("unchecked")
-    @RequestMapping(method = GET, value = "/facilities/search/findByLocationNear")
+    @RequestMapping(method = GET, value = "/facilityInstances/search/findByLocationNear")
     public @ResponseBody
-    PagedResources<Resource<Facility>> findByLocationNear(
+    PagedResources<Resource<FacilityInstance>> findByLocationNear(
             @RequestParam("long") double longitude,
             @RequestParam("lat") double latitude,
             @PageableDefault Pageable pageable,
             PersistentEntityResourceAssembler entityAssembler
     ) {
-        Page<Facility> facilities = repository.findByLocationNear(longitude, latitude, pageable);
+        Page<FacilityInstance> facilities = repository.findByLocationNear(longitude, latitude, pageable);
         return assembler.toResource(facilities, (ResourceAssembler) entityAssembler);
     }
 

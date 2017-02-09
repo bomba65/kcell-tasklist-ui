@@ -14,7 +14,8 @@ import java.util.Set;
 @Builder
 @NoArgsConstructor
 @AllArgsConstructor
-@EqualsAndHashCode(exclude = {"definition", "version"})
+@EqualsAndHashCode(exclude = {"definition", "sites", "version"})
+@ToString(exclude = {"definition", "sites"})
 public class FacilityInstance implements Instance<FacilityDefinition> {
 
     @Id
@@ -27,21 +28,12 @@ public class FacilityInstance implements Instance<FacilityDefinition> {
     @Column(columnDefinition = "jsonb default '{}'", nullable = false)
     String params = "{}";
 
-    @ManyToOne(optional = false)
-    Site site;
+    @ManyToMany
+    Set<Site> sites = new HashSet<>();
 
     Point location;
 
     @Version
     long version;
 
-    @Override
-    public FacilityDefinition getDefinition() {
-        return this.definition;
-    }
-
-    @Override
-    public String getParams() {
-        return this.params;
-    }
 }

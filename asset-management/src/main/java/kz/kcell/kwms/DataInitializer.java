@@ -12,7 +12,8 @@ import org.springframework.context.event.EventListener;
 import org.springframework.stereotype.Service;
 
 import java.util.Arrays;
-import java.util.HashSet;
+import java.util.stream.Collectors;
+import java.util.stream.Stream;
 
 @Service
 @RequiredArgsConstructor
@@ -24,7 +25,11 @@ public class DataInitializer {
 
     final
     @NonNull
-    FacilityRepository facilityRepository;
+    FacilityInstanceRepository facilityInstanceRepository;
+
+    final
+    @NonNull
+    FacilityDefinitionRepository facilityDefinitionRepository;
 
     final
     @NonNull
@@ -41,38 +46,6 @@ public class DataInitializer {
     final
     @NonNull
     InstallationInstanceRepository installationInstanceRepository;
-
-    final
-    @NonNull
-    SiteRepository sites;
-
-    final
-    @NonNull
-    FacilityRepository facilities;
-
-    final
-    @NonNull
-    FacilityInstanceRepository facilityInstanceRepository;
-
-    final
-    @NonNull
-    FacilityDefinitionRepository facilityDefinitionRepository;
-
-    final
-    @NonNull
-    EquipmentDefinitionRepository definitions;
-
-    final
-    @NonNull
-    EquipmentInstanceRepository instances;
-
-    final
-    @NonNull
-    InstallationInstanceRepository installations;
-
-    final
-    @NonNull
-    InstallationDefinitionRepository installationDefinitions;
 
     @EventListener
     public void init(ApplicationReadyEvent event) throws ParseException {
@@ -118,14 +91,14 @@ public class DataInitializer {
         FacilityInstance facilityInstance1 = FacilityInstance.builder()
                 .definition(facilityDefinition1)
                 .location((Point) wktReader.read("POINT(10.0 10.0)"))
-                .site(site1)
+                .sites(Stream.of(site1).collect(Collectors.toSet()))
                 .params("{}")
                 .build();
 
         FacilityInstance facilityInstance2 = FacilityInstance.builder()
                 .definition(facilityDefinition1)
                 .location((Point) wktReader.read("POINT(-10.0 10.0)"))
-                .site(site2)
+                .sites(Stream.of(site2).collect(Collectors.toSet()))
                 .params("{}")
                 .build();
 
