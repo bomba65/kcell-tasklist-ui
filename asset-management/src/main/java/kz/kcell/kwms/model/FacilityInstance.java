@@ -28,7 +28,7 @@ public class FacilityInstance implements Instance<FacilityDefinition> {
     @Column(columnDefinition = "jsonb default '{}'", nullable = false)
     String params = "{}";
 
-    @ManyToMany
+    @ManyToMany(mappedBy = "facilities")
     Set<Site> sites = new HashSet<>();
 
     Point location;

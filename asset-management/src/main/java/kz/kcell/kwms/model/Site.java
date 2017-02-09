@@ -29,7 +29,7 @@ class Site {
             joinColumns = @JoinColumn(name = "site_id"),
             inverseJoinColumns = @JoinColumn(name = "facility_id")
     )
-    List<FacilityInstance> facilities = new ArrayList<>();
+    Set<FacilityInstance> facilities = new HashSet<>();
 
     @ManyToMany(targetEntity = Site.class)
     @JoinTable(name = "site_far_end_candidate",

@@ -54,18 +54,6 @@ public class DataInitializer {
             return;
         }
 
-        Site site1 = Site.builder()
-                .id("SITE1")
-                .name("Site 1")
-                .build();
-
-        Site site2 = Site.builder()
-                .id("SITE2")
-                .name("Site 2")
-                .build();
-
-        siteRepository.save(Arrays.asList(site1, site2));
-
         WKTReader wktReader = new WKTReader();
 
         FacilityDefinition facilityDefinition1 = FacilityDefinition.builder()
@@ -91,18 +79,30 @@ public class DataInitializer {
         FacilityInstance facilityInstance1 = FacilityInstance.builder()
                 .definition(facilityDefinition1)
                 .location((Point) wktReader.read("POINT(10.0 10.0)"))
-                .sites(Stream.of(site1).collect(Collectors.toSet()))
                 .params("{}")
                 .build();
 
         FacilityInstance facilityInstance2 = FacilityInstance.builder()
                 .definition(facilityDefinition1)
                 .location((Point) wktReader.read("POINT(-10.0 10.0)"))
-                .sites(Stream.of(site2).collect(Collectors.toSet()))
                 .params("{}")
                 .build();
 
+        Site site1 = Site.builder()
+                .id("SITE1")
+                .name("Site 1")
+                .facilities(Stream.of(facilityInstance1).collect(Collectors.toSet()))
+                .build();
+
+        Site site2 = Site.builder()
+                .id("SITE2")
+                .name("Site 2")
+                .facilities(Stream.of(facilityInstance2).collect(Collectors.toSet()))
+                .build();
+
         facilityInstanceRepository.save(Arrays.asList(facilityInstance1, facilityInstance2));
+        siteRepository.save(Arrays.asList(site1, site2));
+
 
         EquipmentDefinition equipmentDefinition1 = EquipmentDefinition.builder()
                 .name("Air conditioner")
