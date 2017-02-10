@@ -118,6 +118,13 @@ public class DataInitializer {
                 .schema("{}")
                 .build();
 
+        EquipmentDefinition equipmentDefinition3 = EquipmentDefinition.builder()
+                .name("Cabinets to BSC/RNC Connection")
+                .gtin("444rrrwer")
+                .vendor("Ericsson")
+                .schema("{}")
+                .build();
+
         EquipmentInstance equipmentInstance1 = EquipmentInstance.builder()
                 .sn("1000")
                 .definition(equipmentDefinition1)
@@ -130,8 +137,14 @@ public class DataInitializer {
                 .params("{}")
                 .build();
 
-        equipmentDefinitionRepository.save(Arrays.asList(equipmentDefinition1, equipmentDefinition2));
-        equipmentInstanceRepository.save(Arrays.asList(equipmentInstance1, equipmentInstance2));
+        EquipmentInstance equipmentInstance3 = EquipmentInstance.builder()
+                .sn("444rrrwer")
+                .definition(equipmentDefinition3)
+                .params("{}")
+                .build();
+
+        equipmentDefinitionRepository.save(Arrays.asList(equipmentDefinition1, equipmentDefinition2, equipmentDefinition3));
+        equipmentInstanceRepository.save(Arrays.asList(equipmentInstance1, equipmentInstance2, equipmentInstance3));
 
         InstallationDefinition installationDefinition1 = InstallationDefinition.builder()
                 .id("AIRCONDITIONER")
@@ -161,7 +174,21 @@ public class DataInitializer {
                 .params("{}")
                 .build();
 
-        installationDefinitionRepository.save(Arrays.asList(installationDefinition1, installationDefinition2));
-        installationInstanceRepository.save(Arrays.asList(installationInstance1, installationInstance2));
+        InstallationDefinition installationDefinition3 = InstallationDefinition.builder()
+                .id("CABINET")
+                .name("Cabinet Installation")
+                .schema("{}")
+                .build();
+
+        InstallationInstance installationInstance3 = InstallationInstance.builder()
+                .definition(installationDefinition3)
+                .equipment(equipmentInstance3)
+                .facility(facilityInstance2)
+                .site(site2)
+                .params("{}")
+                .build();
+
+        installationDefinitionRepository.save(Arrays.asList(installationDefinition1, installationDefinition2, installationDefinition3));
+        installationInstanceRepository.save(Arrays.asList(installationInstance1, installationInstance2, installationInstance3));
     }
 }

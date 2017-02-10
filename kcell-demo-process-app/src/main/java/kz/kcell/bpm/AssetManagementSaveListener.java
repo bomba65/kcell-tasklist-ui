@@ -22,6 +22,7 @@ public class AssetManagementSaveListener implements TaskListener {
             if (delegateTask.getVariableTyped("fillSite") != null && delegateTask.getVariableTyped("fillSite").getValue() != null) {
                 JsonNode fillSite = mapper.readTree(delegateTask.getVariableTyped("fillSite").getValue().toString());
                 //MicroWave section
+                System.out.println("========== MICROWAVE =========");
                 try {
                     JsonNode equipment = fillSite.get("microWave").get("equipment");
                     JsonNode installation = fillSite.get("microWave").get("installation");
@@ -50,6 +51,7 @@ public class AssetManagementSaveListener implements TaskListener {
                     e.printStackTrace();
                 }
                 //Facility section
+                System.out.println("========== FACILITY =========");
                 try {
                     for (JsonNode facility : fillSite.get("facilities")) {
                         String definitionId = facility.get("definition").textValue();
@@ -67,6 +69,37 @@ public class AssetManagementSaveListener implements TaskListener {
                         CloseableHttpClient facilityHttpClient = HttpClients.createDefault();
                         CloseableHttpResponse facilityResponse = facilityHttpClient.execute(facilityHttpPatch);
                         System.out.println("facilityResponse: " + facilityResponse.getStatusLine().getStatusCode());
+                    }
+                } catch (Exception e) {
+                    e.printStackTrace();
+                }
+                //Cabinets sections
+                System.out.println("========== CABINETS =========");
+                try {
+                    for (JsonNode cabinet : fillSite.get("cabinets")) {
+                        JsonNode equipment = cabinet.get("equipment").get("object");
+                        JsonNode installation = cabinet.get("installation").get("object");
+                        StringEntity installationInputData = new StringEntity("{\"params\":" + installation.toString() + "}");
+                        String installationUrl = "http://assets:8080/asset-management/api/installationInstances/" + cabinet.get("_installationId").toString().replace("\"", "");
+                        System.out.println(installationUrl);
+                        HttpPatch installationHttpPatch = new HttpPatch(new URI(installationUrl));
+                        installationHttpPatch.addHeader("Content-Type", "application/json;charset=UTF-8");
+                        installationHttpPatch.setEntity(installationInputData);
+
+                        CloseableHttpClient installationHttpClient = HttpClients.createDefault();
+                        CloseableHttpResponse installationResponse = installationHttpClient.execute(installationHttpPatch);
+                        System.out.println("installationResponse: " + installationResponse.getStatusLine().getStatusCode());
+
+                        StringEntity equipmentInputData = new StringEntity("{\"params\":" + equipment.toString() + "}");
+                        String equipmentUrl = "http://assets:8080/asset-management/api/equipmentInstances/" + cabinet.get("_equipmentId").toString().replace("\"", "");
+                        System.out.println(equipmentUrl);
+                        HttpPatch equipmentHttpPatch = new HttpPatch(new URI(equipmentUrl));
+                        equipmentHttpPatch.addHeader("Content-Type", "application/json;charset=UTF-8");
+                        equipmentHttpPatch.setEntity(equipmentInputData);
+
+                        CloseableHttpClient equipmentHttpClient = HttpClients.createDefault();
+                        CloseableHttpResponse equipmentResponse = equipmentHttpClient.execute(equipmentHttpPatch);
+                        System.out.println("equipmentResponse: " + equipmentResponse.getStatusLine().getStatusCode());
                     }
                 } catch (Exception e) {
                     e.printStackTrace();

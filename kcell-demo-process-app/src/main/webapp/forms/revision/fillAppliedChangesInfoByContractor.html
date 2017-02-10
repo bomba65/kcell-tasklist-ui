@@ -43,7 +43,7 @@
                 $scope.fillSite = {
                     facilities: [{}],
                     persons: [{}],
-                    rbsz: [{}],
+                    cabinets: [{}],
                     rudus: [{}],
                     antennas: [{}],
                     transmission:{}
@@ -84,7 +84,7 @@
                     value: {}
                 });
             });
-            function getDefinition(link, index){
+            function getFacilityDefinition(link, index){
                 console.log(link, index);
                 $http.get(link).then(
                     function(result){
@@ -97,6 +97,24 @@
                     function(error){
                         console.log(error.data);
                     }
+                );
+            }
+
+            function getCabinetEquipment(link, index){
+                $http.get(link).then(
+                        function(result){
+                            $timeout(function(){
+                                $scope.$apply(function(){
+                                    console.log("PARAMS!");
+                                    console.log(result.data.params);
+                                    $scope.fillSite.cabinets[index].equipment = result.data.params;
+                                    $scope.fillSite.cabinets[index]._equipmentId = result.data._links.self.href.substr(result.data._links.self.href.lastIndexOf('/') + 1);
+                                });
+                            });
+                        },
+                        function(error){
+                            console.log(error.data);
+                        }
                 );
             }
             camForm.on('variables-fetched', function () {
@@ -124,11 +142,28 @@
                             $scope.fillSite.facilities.push(result.data._embedded.facilityInstances[i].params);
                             $scope.fillSite.facilities[i]._facilityId = result.data._embedded.facilityInstances[i]._links.self.href.substr(result.data._embedded.facilityInstances[i]._links.self.href.lastIndexOf('/') + 1);
                             console.log('getDefinition_getDefinition');
-                            getDefinition(result.data._embedded.facilityInstances[i]._links.definition.href, i);
+                            getFacilityDefinition(result.data._embedded.facilityInstances[i]._links.definition.href, i);
                         }
                     },
                     function(error){
                         console.log(error.data);
+                    }
+                );
+                $http.get('/asset-management/api/installationInstances/search/findBySiteAndDefinition?site=/asset-management/api/sites/'+$scope.jobModel.site.originalValue+'&definition=/asset-management/api/installationDefinitions/CABINET').then(
+                    function(searchResult){
+                        $scope.fillSite.cabinets = [];
+                        console.log(searchResult.data);
+                        if(searchResult.data._embedded.installationInstances.length > 0){
+                            for(var i=0;i<searchResult.data._embedded.installationInstances.length;i++){
+                                console.log("PARAMS!");
+                                console.log(searchResult.data._embedded.installationInstances[i].params);
+                                $scope.fillSite.cabinets.push({
+                                    installation: searchResult.data._embedded.installationInstances[i].params,
+                                    _installationId: searchResult.data._embedded.installationInstances[i]._links.self.href.substr(searchResult.data._embedded.installationInstances[i]._links.self.href.lastIndexOf('/') + 1)
+                                });
+                                getCabinetEquipment(searchResult.data._embedded.installationInstances[i]._links.equipment.href, i);
+                            }
+                        }
                     }
                 );
                 $http.get('/asset-management/api/installationInstances/search/findBySiteAndDefinition?site=/asset-management/api/sites/'+$scope.jobModel.site.originalValue+'&definition=/asset-management/api/installationDefinitions/MICROWAVE').then(
@@ -268,6 +303,24 @@
                         mast_base_area: $scope.fillSite.facilities[i].mast_base_area,
                         other_owner: $scope.fillSite.facilities[i].other_owner
                     }
+                }
+                for(var i=0;i<$scope.fillSite.cabinets.length;i++){
+                    try{
+                        $scope.fillSite.cabinets[i].installation.object = {
+                            id: $scope.fillSite.cabinets[i].installation._installationId,
+                            location: $scope.fillSite.cabinets[i].installation.location,
+                            construction_type: $scope.fillSite.cabinets[i].installation.construction_type
+                        };
+
+                        $scope.fillSite.cabinets[i].equipment.object = {
+                            id: $scope.fillSite.cabinets[i].equipment._equipmentId,
+                            bsc: $scope.fillSite.cabinets[i].equipment.bsc,
+                            company_vendor_id: $scope.fillSite.cabinets[i].equipment.company_vendor_id,
+                            cabinet_type: $scope.fillSite.cabinets[i].equipment.cabinet_type,
+                            voltage: $scope.fillSite.cabinets[i].equipment.voltage,
+                            rnc: $scope.fillSite.cabinets[i].equipment.rnc
+                        }
+                    } catch(e){console.log(e)}
                 }
                 $scope.fillSite.microWave = microWave;
                 console.log($scope.fillSite.microWave);
