@@ -1,13 +1,14 @@
 'use strict';
 define('job-request-module', ['angular'], function (angular) {
   var customModule = angular.module('kcell.custom.module', []);
+
   customModule.directive('jobRequest', function () {
     return {
       restrict: 'E',
       scope: {
         jobModel: '='
       },
-      template: 
+      template:
         '<div class="well">'+
           '<div class="row">'+
               '<div class="col-md-4"><b>Requested date</b>: {{jobModel.requestedDate.value | date: \'dd.MM.yyyy HH:mm\'}}</div>'+
@@ -15,7 +16,7 @@ define('job-request-module', ['angular'], function (angular) {
               '<div class="col-md-4"><b>Materials required</b>: {{jobModel.materialsRequired.value}}</div>'+
           '</div>'+
           '<div class="row">'+
-              '<div class="col-md-4"><b>Validity date</b>: {{jobModel.validityDate.value | date: \'dd.MM.yyyy\'}}</div>'+
+              '<div class="col-md-4"><b>Validity date</b>: {{toUTCDate(jobModel.validityDate.value) | date: \'dd.MM.yyyy\'}}</div>'+
               '<div class="col-md-4"><b>Contract</b>: {{jobModel.servicesTitle[jobModel.contract.value]}}</div>'+
               '<div class="col-md-4"><b>Leasing required</b>: {{jobModel.leasingRequired.value}}</div>'+
           '</div>'+
