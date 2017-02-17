@@ -1,12 +1,12 @@
 'use strict';
-define('ng-pattern-restrict-module', ['angular'], function (angular) {
-  var customModule = angular.module('kcell.custom.module', []);
-  customModule.directive('ngPatternRestrict', function () {
+define('pattern-restrict-module', ['angular'], function (angular) {
+  var customModule = angular.module('pattern.restrict.custom.module', []);
+  customModule.directive('patternRestrict', function () {
     return {
         restrict: 'A',
         require: "?ngModel",
         compile: function uiPatternRestrictCompile() {
-          return function ngPatternRestrictLinking(scope, iElement, iAttrs, ngModelController) {
+          return function patternRestrictLinking(scope, iElement, iAttrs, ngModelController) {
             var regex, // validation regex object
               oldValue, // keeping track of the previous value of the element
               caretPosition, // keeping track of where the caret is at to avoid jumpiness
@@ -153,7 +153,7 @@ define('ng-pattern-restrict-module', ['angular'], function (angular) {
               try {
                 regex = new RegExp(regexString);
               } catch (e) {
-                throw "Invalid RegEx string parsed for ngPatternRestrict: " + regexString;
+                throw "Invalid RegEx string parsed for patternRestrict: " + regexString;
               }
             }
   
@@ -189,7 +189,7 @@ define('ng-pattern-restrict-module', ['angular'], function (angular) {
             //-------------------------------------------------------------------
             // initialization
             function readPattern() {
-              var entryRegex = !!iAttrs.ngPatternRestrict ? iAttrs.ngPatternRestrict : iAttrs.pattern;
+              var entryRegex = !!iAttrs.patternRestrict ? iAttrs.patternRestrict : iAttrs.pattern;
               tryParseRegex(entryRegex);
             }
   
@@ -254,7 +254,7 @@ define('ng-pattern-restrict-module', ['angular'], function (angular) {
               unbindListeners();
             }
   
-            iAttrs.$observe("ngPatternRestrict", readPattern);
+            iAttrs.$observe("patternRestrict", readPattern);
             iAttrs.$observe("pattern", readPattern);
   
             scope.$on("$destroy", uninitialize);
