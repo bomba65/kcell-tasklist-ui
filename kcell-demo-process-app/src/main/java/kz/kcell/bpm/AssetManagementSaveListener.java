@@ -26,7 +26,7 @@ public class AssetManagementSaveListener implements TaskListener {
                 try {
                     JsonNode equipment = fillSite.get("microWave").get("equipment");
                     JsonNode installation = fillSite.get("microWave").get("installation");
-                    StringEntity installationInputData = new StringEntity("{\"params\":" + installation.toString() + "}");
+                    StringEntity installationInputData = new StringEntity("{\"params\":" + installation.toString() + "}","UTF-8");
                     String installationUrl = "http://assets:8080/asset-management/api/installationInstances/" + fillSite.get("microWave").get("installation").get("id").toString().replace("\"", "");
                     System.out.println(installationUrl);
                     HttpPatch installationHttpPatch = new HttpPatch(new URI(installationUrl));
@@ -37,7 +37,7 @@ public class AssetManagementSaveListener implements TaskListener {
                     CloseableHttpResponse installationResponse = installationHttpClient.execute(installationHttpPatch);
                     System.out.println("installationResponse: " + installationResponse.getStatusLine().getStatusCode());
 
-                    StringEntity equipmentInputData = new StringEntity("{\"params\":" + equipment.toString() + "}");
+                    StringEntity equipmentInputData = new StringEntity("{\"params\":" + equipment.toString() + "}","UTF-8");
                     String equipmentUrl = "http://assets:8080/asset-management/api/equipmentInstances/" + fillSite.get("microWave").get("equipment").get("id").toString().replace("\"", "");
                     System.out.println(equipmentUrl);
                     HttpPatch equipmentHttpPatch = new HttpPatch(new URI(equipmentUrl));
@@ -61,7 +61,8 @@ public class AssetManagementSaveListener implements TaskListener {
                         }
                         System.out.println(facility.toString());
                         String facilityUrl = "http://assets:8080/asset-management/api/facilityInstances/" + facility.get("_facilityId").toString().replace("\"", "");
-                        StringEntity installationInputData = new StringEntity("{\"params\":" + facility.get("object").toString() + ", \"definition\": \"" + definitionUrl + "\"}");
+                        StringEntity installationInputData = new StringEntity("{\"params\":" + facility.get("object").toString() + ", \"definition\": \"" + definitionUrl + "\"}","UTF-8");
+                        System.out.println("[FACILITY:"+installationInputData+"]");
                         HttpPatch facilityHttpPatch = new HttpPatch(new URI(facilityUrl));
                         facilityHttpPatch.addHeader("Content-Type", "application/json;charset=UTF-8");
                         facilityHttpPatch.setEntity(installationInputData);
@@ -79,7 +80,7 @@ public class AssetManagementSaveListener implements TaskListener {
                     for (JsonNode cabinet : fillSite.get("cabinets")) {
                         JsonNode equipment = cabinet.get("equipment").get("object");
                         JsonNode installation = cabinet.get("installation").get("object");
-                        StringEntity installationInputData = new StringEntity("{\"params\":" + installation.toString() + "}");
+                        StringEntity installationInputData = new StringEntity("{\"params\":" + installation.toString() + "}","UTF-8");
                         String installationUrl = "http://assets:8080/asset-management/api/installationInstances/" + cabinet.get("_installationId").toString().replace("\"", "");
                         System.out.println(installationUrl);
                         HttpPatch installationHttpPatch = new HttpPatch(new URI(installationUrl));
@@ -90,7 +91,7 @@ public class AssetManagementSaveListener implements TaskListener {
                         CloseableHttpResponse installationResponse = installationHttpClient.execute(installationHttpPatch);
                         System.out.println("installationResponse: " + installationResponse.getStatusLine().getStatusCode());
 
-                        StringEntity equipmentInputData = new StringEntity("{\"params\":" + equipment.toString() + "}");
+                        StringEntity equipmentInputData = new StringEntity("{\"params\":" + equipment.toString() + "}","UTF-8");
                         String equipmentUrl = "http://assets:8080/asset-management/api/equipmentInstances/" + cabinet.get("_equipmentId").toString().replace("\"", "");
                         System.out.println(equipmentUrl);
                         HttpPatch equipmentHttpPatch = new HttpPatch(new URI(equipmentUrl));
