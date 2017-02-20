@@ -129,8 +129,22 @@
                 variables.forEach(function (el) {
                     $scope.jobModel[el] = camForm.variableManager.variables[el];
                 });
-                console.log('-------START-------');
-                console.log($scope.jobModel.site);
+
+                $http.get('/asset-management/api/sites').then(
+                    function(result){
+                        $scope.sitesList = [];
+                        for(var i=0;i<result.data._embedded.sites.length;i++){
+                            var site = result.data._embedded.sites[i];
+                            $scope.sitesList.push( {
+                                name: site.name,
+                                id: site._links.self.href.substr(site._links.self.href.lastIndexOf('/') + 1)
+                            });
+                        }
+                    },
+                    function(error){
+                        console.log(error.data);
+                    }
+                );
                 $http.get('/asset-management/api/facilityDefinitions').then(
                     function(result){
                         $scope.facilityDefinitions = [];
@@ -143,113 +157,6 @@
                         console.log(error.data);
                     }
                 );
-                $http.get('/asset-management/api/sites/'+$scope.jobModel.site.originalValue+'/facilities').then(
-                    function(result){
-                        $scope.fillSite.facilities = [];// = result.data._embedded.facilityInstances;
-                        for(var i=0;i<result.data._embedded.facilityInstances.length;i++){
-                            $scope.fillSite.facilities.push(result.data._embedded.facilityInstances[i].params);
-                            $scope.fillSite.facilities[i]._facilityId = result.data._embedded.facilityInstances[i]._links.self.href.substr(result.data._embedded.facilityInstances[i]._links.self.href.lastIndexOf('/') + 1);
-                            console.log('getDefinition_getDefinition');
-                            getFacilityDefinition(result.data._embedded.facilityInstances[i]._links.definition.href, i);
-                        }
-                    },
-                    function(error){
-                        console.log(error.data);
-                    }
-                );
-                $http.get('/asset-management/api/installationInstances/search/findBySiteAndDefinition?site=/asset-management/api/sites/'+$scope.jobModel.site.originalValue+'&definition=/asset-management/api/installationDefinitions/CABINET').then(
-                    function(searchResult){
-                        $scope.fillSite.cabinets = [];
-                        console.log(searchResult.data);
-                        if(searchResult.data._embedded.installationInstances.length > 0){
-                            for(var i=0;i<searchResult.data._embedded.installationInstances.length;i++){
-                                console.log("PARAMS!");
-                                console.log(searchResult.data._embedded.installationInstances[i].params);
-                                $scope.fillSite.cabinets.push({
-                                    installation: searchResult.data._embedded.installationInstances[i].params,
-                                    _installationId: searchResult.data._embedded.installationInstances[i]._links.self.href.substr(searchResult.data._embedded.installationInstances[i]._links.self.href.lastIndexOf('/') + 1)
-                                });
-                                getCabinetEquipment(searchResult.data._embedded.installationInstances[i]._links.equipment.href, i);
-                            }
-                        }
-                    }
-                );
-                $http.get('/asset-management/api/installationInstances/search/findBySiteAndDefinition?site=/asset-management/api/sites/'+$scope.jobModel.site.originalValue+'&definition=/asset-management/api/installationDefinitions/MICROWAVE').then(
-                    function(searchResult){
-                        console.log('======');
-                        console.log(searchResult.data);
-                        if(searchResult.data._embedded.installationInstances.length > 0){
-                            $http.get(searchResult.data._embedded.installationInstances[0]._links.installationInstance.href).then(
-                                function(result){
-                                    console.log(result.data);
-                                    $scope.fillSite.transmission.nearEnd = {};
-
-                                    $scope.fillSite.transmission.nearEnd.direction = result.data.params.direction,
-                                    $scope.fillSite.transmission.nearEnd.height_in_top = result.data.params.height_in_top,
-                                    $scope.fillSite.transmission.nearEnd.has_space_diversity = result.data.params.has_space_diversity,
-                                    $scope.fillSite.transmission.nearEnd.min_horiz_roof_edge_distance = result.data.params.min_horiz_roof_edge_distance,
-                                    $scope.fillSite.transmission.nearEnd.coaxial_cable_length = result.data.params.coaxial_cable_length,
-                                    $scope.fillSite.transmission.nearEnd.location = result.data.params.location,
-                                    $scope.fillSite.transmission.nearEnd.site_id = result.data.params.site_id,
-                                    $scope.fillSite.transmission.nearEnd.facility_id = result.data.params.facility_id,
-                                    $scope.fillSite.transmission.nearEnd.equipment_type = result.data.params.equipment_type,
-                                    $scope.fillSite.transmission.nearEnd.equipment_id = result.data.params.equipment_id,
-                                    $scope.fillSite.transmission.nearEnd.placement_type = result.data.params.placement_type,
-                                    $scope.fillSite.transmission.nearEnd.construction_type = result.data.params.construction_type;
-                                    $scope.fillSite.transmission.nearEnd.link_type = result.data.params.link_type;
-                                    $scope.fillSite.transmission.nearEnd.azimuth = result.data.params.azimuth;
-                                    $scope.fillSite.transmission.nearEnd.polarization = result.data.params.polarization;
-                                    $scope.fillSite.transmission.nearEnd.rack_serial_number = result.data.params.rack_serial_number;
-                                    $http.get(searchResult.data._embedded.installationInstances[0]._links.equipment.href).then(
-                                        function(result1){
-
-                                            console.log(result1.data);
-                                            $scope.fillSite.transmission.nearEnd._equipmentId = result1.data._links.equipmentInstance.href.substr(result1.data._links.equipmentInstance.href.lastIndexOf('/') + 1);
-                                            $scope.fillSite.transmission.nearEnd._installationId = searchResult.data._embedded.installationInstances[0]._links.installationInstance.href.substr(searchResult.data._embedded.installationInstances[0]._links.installationInstance.href.lastIndexOf('/') + 1);
-                                            $scope.fillSite.transmission.nearEnd.terminal_id = result1.data.params.terminal_id;
-                                            $scope.fillSite.transmission.nearEnd.type = result1.data.params.type;
-                                            $scope.fillSite.transmission.nearEnd.diameter = result1.data.params.diameter;
-                                            $scope.fillSite.transmission.nearEnd.weight = result1.data.params.weight;
-                                            $scope.fillSite.transmission.nearEnd.modulation_type = result1.data.params.modulation_type;
-                                            $scope.fillSite.transmission.nearEnd.protection_type = result1.data.params.protection_type;
-                                            $scope.fillSite.transmission.nearEnd.protection_diameter = result1.data.params.protection_diameter;
-                                            $scope.fillSite.transmission.nearEnd.height_of_suspention_of_ant = result1.data.params.height_of_suspention_of_ant;
-                                            $scope.fillSite.transmission.nearEnd.height_of_suspention_of_ant_protection = result1.data.params.height_of_suspention_of_ant_protection;
-                                            $scope.fillSite.transmission.nearEnd.power_lvl = result1.data.params.power_lvl;
-                                            $scope.fillSite.transmission.nearEnd.protection_line_power_lvl = result1.data.params.protection_line_power_lvl;
-                                            $scope.fillSite.transmission.nearEnd.tx_rx_frequencies = result1.data.params.tx_rx_frequencies;
-                                            $scope.fillSite.transmission.nearEnd.protection_tx_rx_frequencies = result1.data.params.protection_tx_rx_frequencies;
-                                            $scope.fillSite.transmission.nearEnd.serial_number = result1.data.params.serial_number;
-                                            $scope.fillSite.transmission.nearEnd.power_lvl_Tx = result1.data.params.power_lvl_Tx;
-                                            $scope.fillSite.transmission.nearEnd.power_lvl_Rx = result1.data.params.power_lvl_Rx;
-                                            $scope.fillSite.transmission.nearEnd.protection_line_power_lvl_Tx = result1.data.params.protection_line_power_lvl_Tx;
-                                            $scope.fillSite.transmission.nearEnd.protection_line_power_lvl_Rx = result1.data.params.protection_line_power_lvl_Rx;
-                                            $scope.fillSite.transmission.nearEnd.pass_distance = result1.data.params.pass_distance;
-                                            $scope.fillSite.transmission.nearEnd.link_capacity_ethernet = result1.data.params.link_capacity_ethernet;
-                                            $scope.fillSite.transmission.nearEnd.link_capacity_nxE1 = result1.data.params.link_capacity_nxE1;
-                                            $scope.fillSite.transmission.nearEnd.channel_bandwidth = result1.data.params.channel_bandwidth;
-                                            $scope.fillSite.transmission.nearEnd.rau_subband = result1.data.params.rau_subband;
-                                            $scope.fillSite.transmission.nearEnd.protection_rau_subband = result1.data.params.protection_rau_subband;
-                                        },
-                                        function(error1){
-                                            console.log(error1);
-                                        }
-
-                                    );
-                                },
-                                function(error){
-                                    console.log(error.data);
-                                }
-                            );
-                        } else {
-                            $scope.noMicroWaveWarning = true;
-                        }
-                    },
-                    function(error){
-                        console.log(error.data);
-                    }
-                );
-                console.log('-------END-------');
             });
 
             camForm.on('submit', function () {
@@ -379,6 +286,7 @@
                 console.log('store');
                 camForm.variableManager.variableValue('fillAppliedChangesInfoByContractorTaskResult', $scope.fillAppliedChangesInfoByContractorTaskResult);
                 camForm.variableManager.variableValue('sitesWorks', $scope.sitesWorks);
+                camForm.variableManager.variableValue('fillSite', $scope.fillSite);
             });
 
             camForm.on('variables-restored', function() {
@@ -401,6 +309,128 @@
                     }
                 }
                 console.log($scope.sitesWorks);
+                $scope.fillSite = camForm.variableManager.variableValue('fillSite');
+                console.log("RESTORES =================");
+                console.log($scope.fillSite);
+                if(angular.equals({}, $scope.fillSite)){
+                    $scope.fillSite = {
+                        facilities: [{}],
+                        persons: [{}],
+                        cabinets: [{}],
+                        rudus: [{}],
+                        antennas: [{}],
+                        transmission:{}
+                    };
+                    console.log('-------START-------');
+                    console.log($scope.jobModel.site);
+                    $http.get('/asset-management/api/sites/'+$scope.jobModel.site.originalValue+'/facilities').then(
+                        function(result){
+                            $scope.fillSite.facilities = [];// = result.data._embedded.facilityInstances;
+                            for(var i=0;i<result.data._embedded.facilityInstances.length;i++){
+                                $scope.fillSite.facilities.push(result.data._embedded.facilityInstances[i].params);
+                                $scope.fillSite.facilities[i]._facilityId = result.data._embedded.facilityInstances[i]._links.self.href.substr(result.data._embedded.facilityInstances[i]._links.self.href.lastIndexOf('/') + 1);
+                                console.log('getDefinition_getDefinition');
+                                getFacilityDefinition(result.data._embedded.facilityInstances[i]._links.definition.href, i);
+                            }
+                        },
+                        function(error){
+                            console.log(error.data);
+                        }
+                    );
+                    $http.get('/asset-management/api/installationInstances/search/findBySiteAndDefinition?site=/asset-management/api/sites/'+$scope.jobModel.site.originalValue+'&definition=/asset-management/api/installationDefinitions/CABINET').then(
+                        function(searchResult){
+                            $scope.fillSite.cabinets = [];
+                            console.log(searchResult.data);
+                            if(searchResult.data._embedded.installationInstances.length > 0){
+                                for(var i=0;i<searchResult.data._embedded.installationInstances.length;i++){
+                                    console.log("PARAMS!");
+                                    console.log(searchResult.data._embedded.installationInstances[i].params);
+                                    $scope.fillSite.cabinets.push({
+                                        installation: searchResult.data._embedded.installationInstances[i].params,
+                                        _installationId: searchResult.data._embedded.installationInstances[i]._links.self.href.substr(searchResult.data._embedded.installationInstances[i]._links.self.href.lastIndexOf('/') + 1)
+                                    });
+                                    getCabinetEquipment(searchResult.data._embedded.installationInstances[i]._links.equipment.href, i);
+                                }
+                            }
+                        }
+                    );
+                    $http.get('/asset-management/api/installationInstances/search/findBySiteAndDefinition?site=/asset-management/api/sites/'+$scope.jobModel.site.originalValue+'&definition=/asset-management/api/installationDefinitions/MICROWAVE').then(
+                        function(searchResult){
+                            console.log('======');
+                            console.log(searchResult.data);
+                            if(searchResult.data._embedded.installationInstances.length > 0){
+                                $http.get(searchResult.data._embedded.installationInstances[0]._links.installationInstance.href).then(
+                                    function(result){
+                                        console.log(result.data);
+                                        $scope.fillSite.transmission.nearEnd = {};
+
+                                        $scope.fillSite.transmission.nearEnd.direction = result.data.params.direction,
+                                        $scope.fillSite.transmission.nearEnd.height_in_top = result.data.params.height_in_top,
+                                        $scope.fillSite.transmission.nearEnd.has_space_diversity = result.data.params.has_space_diversity,
+                                        $scope.fillSite.transmission.nearEnd.min_horiz_roof_edge_distance = result.data.params.min_horiz_roof_edge_distance,
+                                        $scope.fillSite.transmission.nearEnd.coaxial_cable_length = result.data.params.coaxial_cable_length,
+                                        $scope.fillSite.transmission.nearEnd.location = result.data.params.location,
+                                        $scope.fillSite.transmission.nearEnd.site_id = result.data.params.site_id,
+                                        $scope.fillSite.transmission.nearEnd.facility_id = result.data.params.facility_id,
+                                        $scope.fillSite.transmission.nearEnd.equipment_type = result.data.params.equipment_type,
+                                        $scope.fillSite.transmission.nearEnd.equipment_id = result.data.params.equipment_id,
+                                        $scope.fillSite.transmission.nearEnd.placement_type = result.data.params.placement_type,
+                                        $scope.fillSite.transmission.nearEnd.construction_type = result.data.params.construction_type;
+                                        $scope.fillSite.transmission.nearEnd.link_type = result.data.params.link_type;
+                                        $scope.fillSite.transmission.nearEnd.azimuth = result.data.params.azimuth;
+                                        $scope.fillSite.transmission.nearEnd.polarization = result.data.params.polarization;
+                                        $scope.fillSite.transmission.nearEnd.rack_serial_number = result.data.params.rack_serial_number;
+                                        $http.get(searchResult.data._embedded.installationInstances[0]._links.equipment.href).then(
+                                            function(result1){
+
+                                                console.log(result1.data);
+                                                $scope.fillSite.transmission.nearEnd._equipmentId = result1.data._links.equipmentInstance.href.substr(result1.data._links.equipmentInstance.href.lastIndexOf('/') + 1);
+                                                $scope.fillSite.transmission.nearEnd._installationId = searchResult.data._embedded.installationInstances[0]._links.installationInstance.href.substr(searchResult.data._embedded.installationInstances[0]._links.installationInstance.href.lastIndexOf('/') + 1);
+                                                $scope.fillSite.transmission.nearEnd.terminal_id = result1.data.params.terminal_id;
+                                                $scope.fillSite.transmission.nearEnd.type = result1.data.params.type;
+                                                $scope.fillSite.transmission.nearEnd.diameter = result1.data.params.diameter;
+                                                $scope.fillSite.transmission.nearEnd.weight = result1.data.params.weight;
+                                                $scope.fillSite.transmission.nearEnd.modulation_type = result1.data.params.modulation_type;
+                                                $scope.fillSite.transmission.nearEnd.protection_type = result1.data.params.protection_type;
+                                                $scope.fillSite.transmission.nearEnd.protection_diameter = result1.data.params.protection_diameter;
+                                                $scope.fillSite.transmission.nearEnd.height_of_suspention_of_ant = result1.data.params.height_of_suspention_of_ant;
+                                                $scope.fillSite.transmission.nearEnd.height_of_suspention_of_ant_protection = result1.data.params.height_of_suspention_of_ant_protection;
+                                                $scope.fillSite.transmission.nearEnd.power_lvl = result1.data.params.power_lvl;
+                                                $scope.fillSite.transmission.nearEnd.protection_line_power_lvl = result1.data.params.protection_line_power_lvl;
+                                                $scope.fillSite.transmission.nearEnd.tx_rx_frequencies = result1.data.params.tx_rx_frequencies;
+                                                $scope.fillSite.transmission.nearEnd.protection_tx_rx_frequencies = result1.data.params.protection_tx_rx_frequencies;
+                                                $scope.fillSite.transmission.nearEnd.serial_number = result1.data.params.serial_number;
+                                                $scope.fillSite.transmission.nearEnd.power_lvl_Tx = result1.data.params.power_lvl_Tx;
+                                                $scope.fillSite.transmission.nearEnd.power_lvl_Rx = result1.data.params.power_lvl_Rx;
+                                                $scope.fillSite.transmission.nearEnd.protection_line_power_lvl_Tx = result1.data.params.protection_line_power_lvl_Tx;
+                                                $scope.fillSite.transmission.nearEnd.protection_line_power_lvl_Rx = result1.data.params.protection_line_power_lvl_Rx;
+                                                $scope.fillSite.transmission.nearEnd.pass_distance = result1.data.params.pass_distance;
+                                                $scope.fillSite.transmission.nearEnd.link_capacity_ethernet = result1.data.params.link_capacity_ethernet;
+                                                $scope.fillSite.transmission.nearEnd.link_capacity_nxE1 = result1.data.params.link_capacity_nxE1;
+                                                $scope.fillSite.transmission.nearEnd.channel_bandwidth = result1.data.params.channel_bandwidth;
+                                                $scope.fillSite.transmission.nearEnd.rau_subband = result1.data.params.rau_subband;
+                                                $scope.fillSite.transmission.nearEnd.protection_rau_subband = result1.data.params.protection_rau_subband;
+                                            },
+                                            function(error1){
+                                                console.log(error1);
+                                            }
+
+                                        );
+                                    },
+                                    function(error){
+                                        console.log(error.data);
+                                    }
+                                );
+                            } else {
+                                $scope.noMicroWaveWarning = true;
+                            }
+                        },
+                        function(error){
+                            console.log(error.data);
+                        }
+                );
+                console.log('-------END-------');
+                }
             });
 
             $scope.addPerson = function(index){

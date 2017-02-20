@@ -171,7 +171,7 @@ public class DataInitializer {
                 .equipment(equipmentInstance2)
                 .facility(facilityInstance2)
                 .site(site2)
-                .params("{}")
+                .params("{\"farEndSites\":[\"SITE2\"]}")
                 .build();
 
         InstallationDefinition installationDefinition3 = InstallationDefinition.builder()
