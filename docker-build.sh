@@ -13,5 +13,9 @@ BASEDIR=`pwd`
 cd "$BASEDIR/asset-management"
 ./gradlew build
 
+cd "$BASEDIR/kcell-demo-process-app"
+./mvnw clean install
+./mvnw package
+
 cd "$BASEDIR"
 docker-compose -f "$DOCKER_COMPOSE_YML" build
