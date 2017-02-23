@@ -1,11 +1,8 @@
 package kz.kcell.kwms.model;
 
-import com.vividsolutions.jts.geom.Point;
 import lombok.*;
 
 import javax.persistence.*;
-import java.util.HashSet;
-import java.util.Set;
 
 @Entity
 @Table(name = "facility_definition")

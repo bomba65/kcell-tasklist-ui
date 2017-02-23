@@ -47,6 +47,10 @@ public class DataInitializer {
     @NonNull
     InstallationInstanceRepository installationInstanceRepository;
 
+    final
+    @NonNull
+    PowerSourceRepository powerSourceRepository;
+
     @EventListener
     public void init(ApplicationReadyEvent event) throws ParseException {
 
@@ -143,8 +147,14 @@ public class DataInitializer {
                 .params("{}")
                 .build();
 
+        EquipmentInstance equipmentInstance4 = EquipmentInstance.builder()
+                .sn("2001")
+                .definition(equipmentDefinition2)
+                .params("{}")
+                .build();
+
         equipmentDefinitionRepository.save(Arrays.asList(equipmentDefinition1, equipmentDefinition2, equipmentDefinition3));
-        equipmentInstanceRepository.save(Arrays.asList(equipmentInstance1, equipmentInstance2, equipmentInstance3));
+        equipmentInstanceRepository.save(Arrays.asList(equipmentInstance1, equipmentInstance2, equipmentInstance3, equipmentInstance4));
 
         InstallationDefinition installationDefinition1 = InstallationDefinition.builder()
                 .id("AIRCONDITIONER")
@@ -188,7 +198,26 @@ public class DataInitializer {
                 .params("{}")
                 .build();
 
+        InstallationInstance installationInstance4 = InstallationInstance.builder()
+                .definition(installationDefinition2)
+                .equipment(equipmentInstance4)
+                .facility(facilityInstance1)
+                .site(site1)
+                .params("{\"farEndSites\":[\"SITE2\"]}")
+                .build();
+
         installationDefinitionRepository.save(Arrays.asList(installationDefinition1, installationDefinition2, installationDefinition3));
-        installationInstanceRepository.save(Arrays.asList(installationInstance1, installationInstance2, installationInstance3));
+        installationInstanceRepository.save(Arrays.asList(installationInstance1, installationInstance2, installationInstance3, installationInstance4));
+
+        PowerSource powerSource1 = PowerSource.builder()
+                .site(site1)
+                .params("{}")
+                .build();
+
+        PowerSource powerSource2 = PowerSource.builder()
+                .site(site2)
+                .params("{}")
+                .build();
+        powerSourceRepository.save(Arrays.asList(powerSource1, powerSource2));
     }
 }
