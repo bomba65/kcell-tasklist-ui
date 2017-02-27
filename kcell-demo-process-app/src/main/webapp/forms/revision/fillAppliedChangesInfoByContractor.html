@@ -53,7 +53,7 @@
                     persons: [{}],
                     cabinets: [{}],
                     powerSources: [{"cablcable_ways":[]}],
-                    rudus: [{}],
+                    rudus: [{rat:[]}],
                     antennas: [{}],
                     transmission:{}
                 };
@@ -94,7 +94,6 @@
                 });
             });
             function getFacilityDefinition(link, index){
-                console.log(link, index);
                 $http.get(link).then(
                     function(result){
                         $timeout(function(){
@@ -114,8 +113,6 @@
                         function(result){
                             $timeout(function(){
                                 $scope.$apply(function(){
-                                    console.log("PARAMS!");
-                                    console.log(result.data.params);
                                     $scope.fillSite.cabinets[index].equipment = result.data.params;
                                     $scope.fillSite.cabinets[index]._equipmentId = result.data._links.self.href.substr(result.data._links.self.href.lastIndexOf('/') + 1);
                                 });
@@ -328,8 +325,24 @@
                         }
                     } catch(e){console.log(e)}
                 }
+                for(var i=0;i<$scope.fillSite.rudus.length;i++){
+                    try{
+                        $scope.fillSite.rudus[i].equipment.object = {
+                            id: $scope.fillSite.rudus[i].equipment._equipmentId,
+                            type: $scope.fillSite.rudus[i].equipment.type,
+                            rbs_number: $scope.fillSite.rudus[i].equipment.rbs_number,
+                            serial_number: $scope.fillSite.rudus[i].equipment.serial_number,
+                            band: $scope.fillSite.rudus[i].equipment.band,
+                            rrus_construction_type: $scope.fillSite.rudus[i].equipment.rrus_construction_type,
+                            trx_quantity: $scope.fillSite.rudus[i].equipment.trx_quantity,
+                            carrier_quantity: $scope.fillSite.rudus[i].equipment.carrier_quantity,
+                            sector: $scope.fillSite.rudus[i].equipment.sector,
+                            voltage: $scope.fillSite.rudus[i].equipment.voltage,
+                            rat: $scope.fillSite.rudus[i].equipment.rat
+                        };
+                    } catch(e){console.log(e)}
+                }
                 $scope.fillSite.microWave = microWave;
-                console.log($scope.fillSite.microWave);
                 camForm.variableManager.variableValue('sitesWorks', JSON.parse(angular.toJson($scope.sitesWorks)));
                 camForm.variableManager.variableValue('fillSite', JSON.parse(angular.toJson($scope.fillSite)));
                 camForm.variableManager.variableValue('fillAppliedChangesInfoByContractorTaskResult', $scope.fillAppliedChangesInfoByContractorTaskResult);
@@ -352,7 +365,6 @@
             }
 
             camForm.on('store', function() {
-                console.log('store');
                 camForm.variableManager.variableValue('fillAppliedChangesInfoByContractorTaskResult', $scope.fillAppliedChangesInfoByContractorTaskResult);
                 camForm.variableManager.variableValue('sitesWorks', $scope.sitesWorks);
                 camForm.variableManager.variableValue('fillSite', $scope.fillSite);
@@ -364,7 +376,6 @@
                 if($scope.sitesWorks===undefined){
                     try {
                         $scope.jobModel.jobWorks.originalValue = JSON.parse($scope.jobModel.jobWorks.originalValue);
-                        console.log($scope.jobModel.jobWorks);
                         $scope.sitesWorks = [];
                         for (var i = 0; i < $scope.jobModel.jobWorks.originalValue.length; i++) {
                             var w = {
@@ -377,29 +388,23 @@
                         console.log(e);
                     }
                 }
-                console.log($scope.sitesWorks);
                 $scope.fillSite = camForm.variableManager.variableValue('fillSite');
-                console.log("RESTORES =================");
-                console.log($scope.fillSite);
                 if(angular.equals({}, $scope.fillSite)){
                     $scope.fillSite = {
                         facilities: [{}],
                         persons: [{}],
                         cabinets: [{}],
                         powerSources: [{"cablcable_ways":[]}],
-                        rudus: [{}],
+                        rudus: [{rat:[]}],
                         antennas: [{}],
                         transmission:{}
                     };
-                    console.log('-------START-------');
-                    console.log($scope.jobModel.site);
                     $http.get('/asset-management/api/sites/'+$scope.jobModel.site.originalValue+'/facilities').then(
                         function(result){
                             $scope.fillSite.facilities = [];// = result.data._embedded.facilityInstances;
                             for(var i=0;i<result.data._embedded.facilityInstances.length;i++){
                                 $scope.fillSite.facilities.push(result.data._embedded.facilityInstances[i].params);
                                 $scope.fillSite.facilities[i]._facilityId = result.data._embedded.facilityInstances[i]._links.self.href.substr(result.data._embedded.facilityInstances[i]._links.self.href.lastIndexOf('/') + 1);
-                                console.log('getDefinition_getDefinition');
                                 getFacilityDefinition(result.data._embedded.facilityInstances[i]._links.definition.href, i);
                             }
                         },
@@ -410,11 +415,8 @@
                     $http.get('/asset-management/api/installationInstances/search/findBySiteAndDefinition?site=/asset-management/api/sites/'+$scope.jobModel.site.originalValue+'&definition=/asset-management/api/installationDefinitions/CABINET').then(
                         function(searchResult){
                             $scope.fillSite.cabinets = [];
-                            console.log(searchResult.data);
                             if(searchResult.data._embedded.installationInstances.length > 0){
                                 for(var i=0;i<searchResult.data._embedded.installationInstances.length;i++){
-                                    console.log("PARAMS!");
-                                    console.log(searchResult.data._embedded.installationInstances[i].params);
                                     $scope.fillSite.cabinets.push({
                                         installation: searchResult.data._embedded.installationInstances[i].params,
                                         _installationId: searchResult.data._embedded.installationInstances[i]._links.self.href.substr(searchResult.data._embedded.installationInstances[i]._links.self.href.lastIndexOf('/') + 1)
@@ -428,7 +430,6 @@
                         function(searchResult){
                             $scope.fillSite.powerSources = [];
                             for(var i=0;i<searchResult.data._embedded.powerSources.length;i++){
-                                console.log(searchResult.data._embedded.powerSources[i].params);
                                 $scope.fillSite.powerSources.push(searchResult.data._embedded.powerSources[i].params);
                                 if(!$scope.fillSite.powerSources[i].cable_ways){
                                     $scope.fillSite.powerSources[i].cable_ways = [];
@@ -453,18 +454,13 @@
                                     $scope.fillSite.powerSources[i].electricity_counter = {};
                                 }
                             }
-                            console.log("________");
-                            console.log($scope.fillSite.powerSources);
                         }
                     );
                     $http.get('/asset-management/api/installationInstances/search/findBySiteAndDefinition?site=/asset-management/api/sites/'+$scope.jobModel.site.originalValue+'&definition=/asset-management/api/installationDefinitions/MICROWAVE').then(
                         function(searchResult){
-                            console.log('======');
-                            console.log(searchResult.data);
                             if(searchResult.data._embedded.installationInstances.length > 0){
                                 $http.get(searchResult.data._embedded.installationInstances[0]._links.installationInstance.href).then(
                                     function(result){
-                                        console.log(result.data);
                                         $scope.fillSite.transmission.nearEnd = {};
 
                                         $scope.fillSite.transmission.nearEnd.direction = result.data.params.direction,
@@ -485,8 +481,6 @@
                                         $scope.fillSite.transmission.nearEnd.rack_serial_number = result.data.params.rack_serial_number;
                                         $http.get(searchResult.data._embedded.installationInstances[0]._links.equipment.href).then(
                                             function(result1){
-
-                                                console.log(result1.data);
                                                 $scope.fillSite.transmission.nearEnd._equipmentId = result1.data._links.equipmentInstance.href.substr(result1.data._links.equipmentInstance.href.lastIndexOf('/') + 1);
                                                 $scope.fillSite.transmission.nearEnd._installationId = searchResult.data._embedded.installationInstances[0]._links.installationInstance.href.substr(searchResult.data._embedded.installationInstances[0]._links.installationInstance.href.lastIndexOf('/') + 1);
                                                 $scope.fillSite.transmission.nearEnd.terminal_id = result1.data.params.terminal_id;
@@ -532,10 +526,32 @@
                             console.log(error.data);
                         }
                     );
-                    console.log('-------END-------');
+                    $http.get('/asset-management/api/installationInstances/search/findBySiteAndDefinition?site=/asset-management/api/sites/'+$scope.jobModel.site.originalValue+'&definition=/asset-management/api/installationDefinitions/RUDU').then(
+                        function(searchResult){
+                            $scope.fillSite.rudus = [];
+                            for(var i=0;i<searchResult.data._embedded.installationInstances.length;i++){
+                                $scope.fillSite.rudus.push({equipment:{rat:[]}});
+                                getRUDUEquipment(i, searchResult.data._embedded.installationInstances[i]._links.equipment.href);
+                            }
+                        },
+                        function(error){
+                            console.log(error.data);
+                        }
+                    );
                 }
             });
 
+            function getRUDUEquipment(index, href){
+                $http.get(href).then(
+                    function(result){
+                        angular.copy(result.data.params, $scope.fillSite.rudus[index].equipment);
+                        $scope.fillSite.rudus[index].equipment._equipmentId = result.data._links.self.href.substr(result.data._links.self.href.lastIndexOf('/') + 1);
+                    },
+                    function(error){
+                        console.log(error.data);
+                    }
+                );
+            }
             $scope.addPerson = function(index){
                 if(!$scope.fillSite.facilities[index].persons){
                     $scope.fillSite.facilities[index].persons = [];
@@ -563,14 +579,19 @@
                 $scope.fillSite.cabinets.splice(index, 1);
             };
 
+            $scope.addRuDu = function(){
+                $scope.fillSite.rudus.push({rat:[]});
+            };
+
+            $scope.removeRudu = function(index){
+                $scope.fillSite.rudus.splice(index, 1);
+            };
+
             $scope.changeModificationType = function(target, value){
                 $scope.fillSite[target] = value;
             };
 
             $scope.addCellToPower = function(index){
-                console.log("INDEX: " + index);
-                console.log($scope.fillSite.powerSources[index]);
-                console.log($scope.fillSite.powerSources[index].cable_ways);
                 if(!$scope.fillSite.powerSources[index].cable_ways){
                     $scope.fillSite.powerSources[index].cable_ways = [];
                 }
@@ -581,15 +602,35 @@
                 return String.fromCharCode(c);
             };
 
+            $scope.toggleRadioTechnologies = function(index, technology){
+                console.log(index, technology);
+                if(!$scope.fillSite.rudus[index].equipment.rat){
+                    $scope.fillSite.rudus[index].equipment.rat = [];
+                }
+                console.log($scope.fillSite.rudus[index]);
+                console.log($scope.fillSite.rudus[index].equipment);
+                console.log($scope.fillSite.rudus[index].equipment.rat);
+                console.log($scope.fillSite.rudus[index].equipment.rat.indexOf);
+                var idx = $scope.fillSite.rudus[index].equipment.rat.indexOf(technology);
+
+                if (idx > -1) {
+                    $scope.fillSite.rudus[index].equipment.rat.splice(idx, 1);
+                }
+
+                // Is newly selected
+                else {
+                    $scope.fillSite.rudus[index].equipment.rat.push(technology);
+                }
+            }
+
+            $scope.technologies = ['2G', '3G', 'WiMAX', 'LTE', 'Indoor'];
+
             $scope.farEndSiteSelected = function(){
                 $http.get('/asset-management/api/installationInstances/search/findBySiteAndDefinition?site=/asset-management/api/sites/'+$scope.fillSite.transmission.farEnd.site_id+'&definition=/asset-management/api/installationDefinitions/MICROWAVE').then(
                     function(searchResult){
-                        console.log('======');
-                        console.log(searchResult.data);
                         if(searchResult.data._embedded.installationInstances.length > 0){
                             $http.get(searchResult.data._embedded.installationInstances[0]._links.installationInstance.href).then(
                                 function(result){
-                                    console.log(result.data);
                                     $scope.fillSite.transmission.farEnd.direction = result.data.params.direction,
                                     $scope.fillSite.transmission.farEnd.height_in_top = result.data.params.height_in_top,
                                     $scope.fillSite.transmission.farEnd.has_space_diversity = result.data.params.has_space_diversity,
@@ -608,7 +649,6 @@
                                     $scope.fillSite.transmission.farEnd.rack_serial_number = result.data.params.rack_serial_number;
                                     $http.get(searchResult.data._embedded.installationInstances[0]._links.equipment.href).then(
                                         function(result1){
-                                            console.log(result1.data);
                                             $scope.fillSite.transmission.farEnd._equipmentId = result1.data._links.equipmentInstance.href.substr(result1.data._links.equipmentInstance.href.lastIndexOf('/') + 1);
                                             $scope.fillSite.transmission.farEnd._installationId = searchResult.data._embedded.installationInstances[0]._links.installationInstance.href.substr(searchResult.data._embedded.installationInstances[0]._links.installationInstance.href.lastIndexOf('/') + 1);
                                             $scope.fillSite.transmission.farEnd.terminal_id = result1.data.params.terminal_id;

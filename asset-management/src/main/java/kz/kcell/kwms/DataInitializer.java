@@ -129,6 +129,13 @@ public class DataInitializer {
                 .schema("{}")
                 .build();
 
+        EquipmentDefinition equipmentDefinition4 = EquipmentDefinition.builder()
+                .name("Radio/Digital Unit")
+                .gtin("444rrrwer")
+                .vendor("Ericsson")
+                .schema("{}")
+                .build();
+
         EquipmentInstance equipmentInstance1 = EquipmentInstance.builder()
                 .sn("1000")
                 .definition(equipmentDefinition1)
@@ -153,8 +160,14 @@ public class DataInitializer {
                 .params("{}")
                 .build();
 
-        equipmentDefinitionRepository.save(Arrays.asList(equipmentDefinition1, equipmentDefinition2, equipmentDefinition3));
-        equipmentInstanceRepository.save(Arrays.asList(equipmentInstance1, equipmentInstance2, equipmentInstance3, equipmentInstance4));
+        EquipmentInstance equipmentInstance5 = EquipmentInstance.builder()
+                .sn("2001")
+                .definition(equipmentDefinition4)
+                .params("{}")
+                .build();
+
+        equipmentDefinitionRepository.save(Arrays.asList(equipmentDefinition1, equipmentDefinition2, equipmentDefinition3, equipmentDefinition4));
+        equipmentInstanceRepository.save(Arrays.asList(equipmentInstance1, equipmentInstance2, equipmentInstance3, equipmentInstance4, equipmentInstance5));
 
         InstallationDefinition installationDefinition1 = InstallationDefinition.builder()
                 .id("AIRCONDITIONER")
@@ -206,8 +219,22 @@ public class DataInitializer {
                 .params("{\"farEndSites\":[\"SITE2\"]}")
                 .build();
 
-        installationDefinitionRepository.save(Arrays.asList(installationDefinition1, installationDefinition2, installationDefinition3));
-        installationInstanceRepository.save(Arrays.asList(installationInstance1, installationInstance2, installationInstance3, installationInstance4));
+        InstallationDefinition installationDefinition4 = InstallationDefinition.builder()
+                .id("RUDU")
+                .name("RU/DU Installation")
+                .schema("{}")
+                .build();
+
+        InstallationInstance installationInstance5 = InstallationInstance.builder()
+                .definition(installationDefinition4)
+                .equipment(equipmentInstance5)
+                .facility(facilityInstance1)
+                .site(site1)
+                .params("{}")
+                .build();
+
+        installationDefinitionRepository.save(Arrays.asList(installationDefinition1, installationDefinition2, installationDefinition3, installationDefinition4));
+        installationInstanceRepository.save(Arrays.asList(installationInstance1, installationInstance2, installationInstance3, installationInstance4, installationInstance5));
 
         PowerSource powerSource1 = PowerSource.builder()
                 .site(site1)

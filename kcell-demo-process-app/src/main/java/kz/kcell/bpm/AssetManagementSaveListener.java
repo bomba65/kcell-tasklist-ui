@@ -123,6 +123,26 @@ public class AssetManagementSaveListener implements TaskListener {
                 } catch (Exception e) {
                     e.printStackTrace();
                 }
+                //RUDUs sections
+                System.out.println("========== RUDU =========");
+                try {
+                    for (JsonNode cabinet : fillSite.get("rudus")) {
+                        JsonNode equipment = cabinet.get("equipment").get("object");
+
+                        StringEntity equipmentInputData = new StringEntity("{\"params\":" + equipment.toString() + "}", "UTF-8");
+                        String equipmentUrl = "http://assets:8080/asset-management/api/equipmentInstances/" + cabinet.get("equipment").get("_equipmentId").toString().replace("\"", "");
+                        System.out.println(equipmentUrl);
+                        HttpPatch equipmentHttpPatch = new HttpPatch(new URI(equipmentUrl));
+                        equipmentHttpPatch.addHeader("Content-Type", "application/json;charset=UTF-8");
+                        equipmentHttpPatch.setEntity(equipmentInputData);
+
+                        CloseableHttpClient equipmentHttpClient = HttpClients.createDefault();
+                        CloseableHttpResponse equipmentResponse = equipmentHttpClient.execute(equipmentHttpPatch);
+                        System.out.println("equipmentResponse: " + equipmentResponse.getStatusLine().getStatusCode());
+                    }
+                } catch (Exception e) {
+                    e.printStackTrace();
+                }
             }
         } catch (Exception e) {
             e.printStackTrace();
