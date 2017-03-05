@@ -10,8 +10,7 @@ import javax.persistence.*;
 @EqualsAndHashCode(exclude = {"version"})
 public class EquipmentDefinition implements Definition {
     @Id
-    @GeneratedValue(strategy = GenerationType.IDENTITY)
-    Long id;
+    String id;
 
     String name;
 

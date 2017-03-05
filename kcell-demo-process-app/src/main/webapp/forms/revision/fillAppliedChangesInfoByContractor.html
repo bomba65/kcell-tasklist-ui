@@ -1,16 +1,4 @@
-<style>
-    .well {
-        color: #333;
-    }
-    .my-tab {
-        font-size: 16px;
-        font-weight: bold;
-    }
-    .my-tab-head {
-        padding-top: 15px;
-    }
-</style>
-<form role="form" class="form-horizontal">
+<form role="form" class="form-horizontal kcell-form-custom">
     <script cam-script type="text/form-script">
         inject(['$scope', '$http', 'Uri', '$timeout', function ($scope, $http, Uri, $timeout) {
             var variables = [
@@ -55,7 +43,8 @@
                     powerSources: [{"cablcable_ways":[]}],
                     rudus: [{rat:[]}],
                     antennas: [{}],
-                    transmission:{}
+                    transmission:{},
+                    supplementary: []
                 };
 
                 $http.get('/api/catalogs').then(
@@ -109,12 +98,47 @@
             }
 
             function getCabinetEquipment(link, index){
+                console.log("getCabinetEquipment: " +link+ " " + index);
                 $http.get(link).then(
                         function(result){
                             $timeout(function(){
                                 $scope.$apply(function(){
                                     $scope.fillSite.cabinets[index].equipment = result.data.params;
                                     $scope.fillSite.cabinets[index]._equipmentId = result.data._links.self.href.substr(result.data._links.self.href.lastIndexOf('/') + 1);
+                                });
+                            });
+                        },
+                        function(error){
+                            console.log(error.data);
+                        }
+                );
+            }
+
+            function getSupplementaryEquipment(link, index){
+                console.log("getSupplementaryEquipment:");
+                $http.get(link).then(
+                        function(result){
+                            $timeout(function(){
+                                $scope.$apply(function(){
+                                    $scope.fillSite.supplementary[index].equipment = result.data.params;
+                                    $scope.fillSite.supplementary[index]._equipmentId = result.data._links.self.href.substr(result.data._links.self.href.lastIndexOf('/') + 1);
+                                });
+                            });
+                        },
+                        function(error){
+                            console.log(error.data);
+                        }
+                );
+            }
+
+            function getAntennasEquipment(link, index){
+                console.log("getAntennasEquipment:");
+                $http.get(link).then(
+                        function(result){
+                            $timeout(function(){
+                                $scope.$apply(function(){
+                                    $scope.fillSite.antennas[index].equipment = result.data.params;
+                                    $scope.fillSite.antennas[index]._equipmentId = result.data._links.self.href.substr(result.data._links.self.href.lastIndexOf('/') + 1);
                                 });
                             });
                         },
@@ -340,6 +364,67 @@
                             voltage: $scope.fillSite.rudus[i].equipment.voltage,
                             rat: $scope.fillSite.rudus[i].equipment.rat
                         };
+                        $scope.fillSite.rudus[i].installation.object = {
+                            id: $scope.fillSite.rudus[i].installation._installationId,
+                            location: $scope.fillSite.rudus[i].installation.location
+                        }
+                    } catch(e){console.log(e)}
+                }
+                for(var i=0;i<$scope.fillSite.supplementary.length;i++){
+                    try{
+                        $scope.fillSite.supplementary[i].equipment.object = {
+                            type: $scope.fillSite.supplementary[i].equipment.type,
+                            type_other: $scope.fillSite.supplementary[i].equipment.type_other,
+                            vendor: $scope.fillSite.supplementary[i].equipment.vendor,
+                            vendor_other: $scope.fillSite.supplementary[i].equipment.vendor_other,
+                            serial_number: $scope.fillSite.supplementary[i].equipment.serial_number,
+                            location_type: $scope.fillSite.supplementary[i].equipment.location_type,
+                            voltage: $scope.fillSite.supplementary[i].equipment.voltage
+                        };
+                        $scope.fillSite.supplementary[i].installation.object = {
+                            id: $scope.fillSite.supplementary[i].installation._installationId,
+                            location: $scope.fillSite.supplementary[i].installation.location
+                        }
+                    } catch(e){console.log(e)}
+                }
+                for(var i=0;i<$scope.fillSite.antennas.length;i++){
+                    try{
+                        $scope.fillSite.antennas[i].equipment.object = {
+                            rat: $scope.fillSite.antennas[i].equipment.rat,
+                            sector: $scope.fillSite.antennas[i].equipment.sector,
+                            model: $scope.fillSite.antennas[i].equipment.model,
+                            serial_number: $scope.fillSite.antennas[i].equipment.serial_number,
+                            rbs_number: $scope.fillSite.antennas[i].equipment.rbs_number,
+                            duplex_filter: $scope.fillSite.antennas[i].equipment.duplex_filter,
+                            hcu: $scope.fillSite.antennas[i].equipment.hcu,
+                            power_splitter: $scope.fillSite.antennas[i].equipment.power_splitter,
+                            tma: $scope.fillSite.antennas[i].equipment.tma,
+                            extended_range: $scope.fillSite.antennas[i].equipment.extended_range,
+                            retu: $scope.fillSite.antennas[i].equipment.retu,
+                            beam_width: $scope.fillSite.antennas[i].equipment.beam_width,
+                            gain: $scope.fillSite.antennas[i].equipment.gain,
+                            max_wind_velocity: $scope.fillSite.antennas[i].equipment.max_wind_velocity,
+                            weight: $scope.fillSite.antennas[i].equipment.weight
+                        };
+                        $scope.fillSite.antennas[i].installation.object = {
+                            id: $scope.fillSite.antennas[i].installation._installationId,
+                            location: $scope.fillSite.antennas[i].installation.location,
+                            height_in_top: $scope.fillSite.antennas[i].installation.height_in_top,
+                            distance_from_roof_level: $scope.fillSite.antennas[i].installation.distance_from_roof_level,
+                            min_horiz_distance_from_roof_edge: $scope.fillSite.antennas[i].installation.min_horiz_distance_from_roof_edge,
+                            height_of_phasecenter_from_grnd_lvl: $scope.fillSite.antennas[i].installation.height_of_phasecenter_from_grnd_lvl,
+                            direction: $scope.fillSite.antennas[i].installation.direction,
+                            m_tilt_value: $scope.fillSite.antennas[i].installation.m_tilt_value,
+                            e_tilt_value: $scope.fillSite.antennas[i].installation.e_tilt_value,
+                            location_type: $scope.fillSite.antennas[i].installation.location_type,
+                            placement_type: $scope.fillSite.antennas[i].installation.placement_type,
+                            feeder_type: $scope.fillSite.antennas[i].installation.feeder_type,
+                            number_of_feeders: $scope.fillSite.antennas[i].installation.number_of_feeders,
+                            length_of_cable: $scope.fillSite.antennas[i].installation.length_of_cable,
+                            free_space_for_addition_rru: $scope.fillSite.antennas[i].installation.free_space_for_addition_rru,
+                            carrying_capacity_for_additional_rru: $scope.fillSite.antennas[i].installation.carrying_capacity_for_additional_rru,
+                            diversity: $scope.fillSite.antennas[i].installation.diversity
+                        };
                     } catch(e){console.log(e)}
                 }
                 $scope.fillSite.microWave = microWave;
@@ -397,7 +482,8 @@
                         powerSources: [{"cablcable_ways":[]}],
                         rudus: [{rat:[]}],
                         antennas: [{}],
-                        transmission:{}
+                        transmission:{},
+                        supplementary: []
                     };
                     $http.get('/asset-management/api/sites/'+$scope.jobModel.site.originalValue+'/facilities').then(
                         function(result){
@@ -419,9 +505,40 @@
                                 for(var i=0;i<searchResult.data._embedded.installationInstances.length;i++){
                                     $scope.fillSite.cabinets.push({
                                         installation: searchResult.data._embedded.installationInstances[i].params,
+                                        action: 'modify',
                                         _installationId: searchResult.data._embedded.installationInstances[i]._links.self.href.substr(searchResult.data._embedded.installationInstances[i]._links.self.href.lastIndexOf('/') + 1)
                                     });
                                     getCabinetEquipment(searchResult.data._embedded.installationInstances[i]._links.equipment.href, i);
+                                }
+                            }
+                        }
+                    );
+                    $http.get('/asset-management/api/installationInstances/search/findBySiteAndDefinition?site=/asset-management/api/sites/'+$scope.jobModel.site.originalValue+'&definition=/asset-management/api/installationDefinitions/ANTENNA').then(
+                        function(searchResult){
+                            $scope.fillSite.antennas = [];
+                            if(searchResult.data._embedded.installationInstances.length > 0){
+                                for(var i=0;i<searchResult.data._embedded.installationInstances.length;i++){
+                                    $scope.fillSite.antennas.push({
+                                        installation: searchResult.data._embedded.installationInstances[i].params,
+                                        action: 'modify',
+                                        _installationId: searchResult.data._embedded.installationInstances[i]._links.self.href.substr(searchResult.data._embedded.installationInstances[i]._links.self.href.lastIndexOf('/') + 1)
+                                    });
+                                    getAntennasEquipment(searchResult.data._embedded.installationInstances[i]._links.equipment.href, i);
+                                }
+                            }
+                        }
+                    );
+                    $http.get('/asset-management/api/installationInstances/search/findBySiteAndDefinition?site=/asset-management/api/sites/'+$scope.jobModel.site.originalValue+'&definition=/asset-management/api/installationDefinitions/SUPPLEMENTARY').then(
+                        function(searchResult){
+                            $scope.fillSite.supplementary = [];
+                            if(searchResult.data._embedded.installationInstances.length > 0){
+                                for(var i=0;i<searchResult.data._embedded.installationInstances.length;i++){
+                                    $scope.fillSite.supplementary.push({
+                                        installation: searchResult.data._embedded.installationInstances[i].params,
+                                        action: 'modify',
+                                        _installationId: searchResult.data._embedded.installationInstances[i]._links.self.href.substr(searchResult.data._embedded.installationInstances[i]._links.self.href.lastIndexOf('/') + 1)
+                                    });
+                                    getSupplementaryEquipment(searchResult.data._embedded.installationInstances[i]._links.equipment.href, i);
                                 }
                             }
                         }
@@ -431,6 +548,7 @@
                             $scope.fillSite.powerSources = [];
                             for(var i=0;i<searchResult.data._embedded.powerSources.length;i++){
                                 $scope.fillSite.powerSources.push(searchResult.data._embedded.powerSources[i].params);
+                                $scope.fillSite.powerSources[i].action = 'modify';
                                 if(!$scope.fillSite.powerSources[i].cable_ways){
                                     $scope.fillSite.powerSources[i].cable_ways = [];
                                 }
@@ -530,7 +648,10 @@
                         function(searchResult){
                             $scope.fillSite.rudus = [];
                             for(var i=0;i<searchResult.data._embedded.installationInstances.length;i++){
-                                $scope.fillSite.rudus.push({equipment:{rat:[]}});
+                                $scope.fillSite.rudus.push({action:'modify',installation:{},equipment:{rat:[]}});
+                                angular.copy(searchResult.data._embedded.installationInstances[i].params, $scope.fillSite.rudus[i].installation);
+                                $scope.fillSite.rudus[i].installation._installationId = searchResult.data._embedded.installationInstances[i]._links.self.href.substr(searchResult.data._embedded.installationInstances[i]._links.self.href.lastIndexOf('/') + 1);
+                                $scope.fillSite.rudus[i]._installationId = searchResult.data._embedded.installationInstances[i]._links.self.href.substr(searchResult.data._embedded.installationInstances[i]._links.self.href.lastIndexOf('/') + 1);
                                 getRUDUEquipment(i, searchResult.data._embedded.installationInstances[i]._links.equipment.href);
                             }
                         },
@@ -538,6 +659,7 @@
                             console.log(error.data);
                         }
                     );
+                    $scope.fillSite.siteId = $scope.jobModel.site.originalValue;
                 }
             });
 
@@ -546,6 +668,7 @@
                     function(result){
                         angular.copy(result.data.params, $scope.fillSite.rudus[index].equipment);
                         $scope.fillSite.rudus[index].equipment._equipmentId = result.data._links.self.href.substr(result.data._links.self.href.lastIndexOf('/') + 1);
+                        $scope.fillSite.rudus[index]._equipmentId = result.data._links.self.href.substr(result.data._links.self.href.lastIndexOf('/') + 1);
                     },
                     function(error){
                         console.log(error.data);
@@ -591,11 +714,47 @@
                 $scope.fillSite[target] = value;
             };
 
+            $scope.addPowerSource = function(){
+                $scope.fillSite.powerSources.push({
+                    cable_ways: [],
+                    cable_way: {},
+                    lightning_sys: {},
+                    grounding_sys: {},
+                    disel_generator: {},
+                    oil_tank: {},
+                    electricity_counter: {}
+                });
+            };
+
+            $scope.removePowerSource = function(index){
+                $scope.fillSite.powerSources.splice(index, 1);
+            };
+
+            $scope.addSupplementary = function(){
+                $scope.fillSite.supplementary.push({equipment:{}, installation:{}});
+            }
+
+            $scope.removeSupplementary = function(index){
+                $scope.fillSite.supplementary.splice(index, 1);
+            };
+
+            $scope.addAntenna = function(){
+                $scope.fillSite.antennas.push({equipment:{}, installation:{}});
+            }
+
+            $scope.removeAntenna = function(index){
+                $scope.fillSite.antennas.splice(index, 1);
+            };
+
             $scope.addCellToPower = function(index){
                 if(!$scope.fillSite.powerSources[index].cable_ways){
                     $scope.fillSite.powerSources[index].cable_ways = [];
                 }
                 $scope.fillSite.powerSources[index].cable_ways.push({});
+            };
+
+            $scope.removeCellFromPower = function(powerIndex, cableIndex){
+                $scope.fillSite.powerSources[powerIndex].cable_ways.splice(cableIndex, 1);
             };
 
             $scope.fromCharCode = function(c){
@@ -621,7 +780,23 @@
                 else {
                     $scope.fillSite.rudus[index].equipment.rat.push(technology);
                 }
-            }
+            };
+
+            $scope.toggleRadioTechnologies = function(index, technology){
+                if(!$scope.fillSite.antennas[index].equipment.rat){
+                    $scope.fillSite.antennas[index].equipment.rat = [];
+                }
+                var idx = $scope.fillSite.antennas[index].equipment.rat.indexOf(technology);
+
+                if (idx > -1) {
+                    $scope.fillSite.antennas[index].equipment.rat.splice(idx, 1);
+                }
+
+                // Is newly selected
+                else {
+                    $scope.fillSite.antennas[index].equipment.rat.push(technology);
+                }
+            };
 
             $scope.technologies = ['2G', '3G', 'WiMAX', 'LTE', 'Indoor'];
 
@@ -698,44 +873,43 @@
             $scope.myRegex = /[a-zA-Z]{4}[0-9]{6,6}[a-zA-Z0-9]{3}/;
         }]);
     </script>
-    <h3>Site Id: {{jobModel.site.originalValue}}, Site Name: {{jobModel.siteName.originalValue}} </h3>
-    <div class="row">
-        <div class="form-group">
-            <label class="col-sm-2 control-label">LAC</label>
-            <div class="col-sm-4">
-                <select class="form-control" ng-model="facility.owner">
-                    <option value="140">140: Almaty Microdistrict 1_1</option>
-                    <option value="141">141: Astana Microdistrict 1_2</option>
-                </select>
-            </div>
-        </div>
-        <div class="form-group">
-            <label class="col-sm-2 control-label">Fance type</label>
-            <div class="col-sm-4">
-                <input type="text" class="form-control" ng-model="facility.fanceType" palceholder="сетка рабица"/>
-            </div>
-        </div>
-    </div>
-    <div class="row">
-        <div class="col-md-12">
-            <div class="well">
-                <b>List of works:</b>
-                <table class="table table-hover">
-                    <tr ng-repeat="work in jobModel.jobWorks.value">
-                        <td>{{$index+1}}. {{jobModel.worksTitle[work.sapServiceNumber]}}, works qty: {{work.quantity}}, materials qty: {{work.materialQuantity}} {{jobModel.unitsTitle[work.unit]}}, on sites: {{work.sites}} (Near end)</td>
-                    </tr>
-                </table>
-            </div>
-        </div>
-    </div>
-    <tabset class="my-tab-head">
-        <tab heading="Facility" class="my-tab"><ng-include ng-if="contextPath" src="contextPath+'/forms/revision/fill-facility.html'"></ng-include></tab>
-        <tab heading="Cabinets" class="my-tab"><ng-include ng-if="contextPath" src="contextPath+'/forms/revision/fill-cabinets.html'"></ng-include></tab>
-        <tab heading="Radio/Digital Units" class="my-tab"><ng-include ng-if="contextPath" src="contextPath+'/forms/revision/fill-radio.html'"></ng-include></tab>
-        <tab heading="Antenna system" class="my-tab"><ng-include ng-if="contextPath" src="contextPath+'/forms/revision/fill-antenna.html'"></ng-include></tab>
-        <tab heading="Power" class="my-tab"><ng-include ng-if="contextPath" src="contextPath+'/forms/revision/fill-power.html'"></ng-include></tab>
-        <tab heading="Transmission" class="my-tab"><ng-include ng-if="contextPath" src="contextPath+'/forms/revision/fill-transmission.html'"></ng-include></tab>
-        <tab heading="Supplementary" class="my-tab"><ng-include ng-if="contextPath" src="contextPath+'/forms/revision/fill-supplementary.html'"></ng-include></tab>
+    <h4>Site Id: {{jobModel.site.originalValue}}, Site Name: {{jobModel.siteName.originalValue}} </h4>
+    <table class="table table-hover table-bordered well">
+        <thead><tr><th>#</th><th>List of works</th></tr></thead>
+        <tbody>
+        <tr ng-repeat="work in jobModel.jobWorks.value">
+            <td>{{$index+1}}</td><td>{{jobModel.worksTitle[work.sapServiceNumber]}}, works qty: {{work.quantity}}, materials qty: {{work.materialQuantity}} {{jobModel.unitsTitle[work.unit]}}, on sites: {{work.sites}} (Near end)</td>
+        </tr>
+        </tbody>
+    </table>
+    <tabset class="my-tab-head my-tab" justified="true" >
+        <tab>
+            <tab-heading><span class="glyphicon glyphicon-map-marker"></span> Facility</tab-heading>
+            <ng-include ng-if="contextPath" src="contextPath+'/forms/revision/fill-facility.html'"></ng-include></tab>
+        <tab>
+            <tab-heading><span class="glyphicon glyphicon-th"></span> Cabinets</tab-heading>
+            <ng-include ng-if="contextPath" src="contextPath+'/forms/revision/fill-cabinets.html'"></ng-include>
+        </tab>
+        <tab>
+            <tab-heading title="Radio/Digital Units"><span class="glyphicon glyphicon-cog"></span> RU/DU</tab-heading>
+            <ng-include ng-if="contextPath" src="contextPath+'/forms/revision/fill-radio.html'"></ng-include>
+        </tab>
+        <tab>
+            <tab-heading title="Antenna Systems"><span class="glyphicon glyphicon-signal"></span> Antenna</tab-heading>
+            <ng-include ng-if="contextPath" src="contextPath+'/forms/revision/fill-antenna.html'"></ng-include>
+        </tab>
+        <tab>
+            <tab-heading><span class="glyphicon glyphicon-flash"></span> Power</tab-heading>
+            <ng-include ng-if="contextPath" src="contextPath+'/forms/revision/fill-power.html'"></ng-include>
+        </tab>
+        <tab>
+            <tab-heading><span class="glyphicon glyphicon-transfer"></span> Transmission</tab-heading>
+            <ng-include ng-if="contextPath" src="contextPath+'/forms/revision/fill-transmission.html'"></ng-include>
+        </tab>
+        <tab>
+            <tab-heading><span class="glyphicon glyphicon-leaf"></span> Supplementary</tab-heading>
+            <ng-include ng-if="contextPath" src="contextPath+'/forms/revision/fill-supplementary.html'"></ng-include>
+        </tab>
     </tabset>
     <div class="form-group">
         <label class="col-sm-4 control-label">Resolution</label>
