@@ -272,9 +272,7 @@ public class AssetManagementSaveListener implements TaskListener {
                     for (JsonNode rudu : fillSite.get("rudus")) {
                         JsonNode equipment = rudu.get("equipment").get("object");
                         JsonNode installation = rudu.get("installation").get("object");
-                        System.out.println(rudu.get("action").textValue());
                         if (rudu.get("_equipmentId") == null || rudu.get("_installationId") == null) {
-
                             StringEntity equipmentInputData = new StringEntity("{\"params\":" + equipment.toString() + ", \"definition\":\"http://assets:8080/asset-management/api/equipmentDefinitions/RUDU\"}", "UTF-8");
                             String equipmentUrl = "http://assets:8080/asset-management/api/equipmentInstances";
                             HttpPost equipmentPost = new HttpPost(new URI(equipmentUrl));
