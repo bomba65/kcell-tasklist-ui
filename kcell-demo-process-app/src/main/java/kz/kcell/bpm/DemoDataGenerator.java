@@ -689,7 +689,7 @@ public class DemoDataGenerator {
         salesReadProcessInstance.setGroupId("kcellUsers");
         salesReadProcessInstance.addPermission(Permissions.ALL);
         salesReadProcessInstance.setResource(Resources.PROCESS_INSTANCE);
-        salesReadProcessInstance.setResourceId("Revision");
+        salesReadProcessInstance.setResourceId("*");
         authorizationService.saveAuthorization(salesReadProcessInstance);
 
         Authorization salesDemoAuth = authorizationService.createNewAuthorization(AUTH_TYPE_GRANT);
@@ -1272,7 +1272,7 @@ public class DemoDataGenerator {
         filterProperties.put("description", "My Claimed Tasks");
         filterProperties.put("priority", -10);
         //addVariables(filterProperties);
-        query = taskService.createTaskQuery().taskAssignee("${ currentUser() }");
+        query = taskService.createTaskQuery().taskAssigneeExpression("${ currentUser() }");
         Filter myClaimedTasks = filterService.newTaskFilter().setName("My Claimed Tasks").setProperties(filterProperties).setOwner("demo").setQuery(query);
         filterService.saveFilter(myClaimedTasks);
 
