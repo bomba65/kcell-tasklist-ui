@@ -111,16 +111,12 @@ public class DataInitializer {
         EquipmentDefinition equipmentDefinition1 = EquipmentDefinition.builder()
                 .id("AIRCONDITIONER")
                 .name("Air conditioner")
-                .gtin("12345")
-                .vendor("Samsung")
                 .schema("{}")
                 .build();
 
         EquipmentDefinition equipmentDefinition2 = EquipmentDefinition.builder()
                 .id("MICROWAVE")
                 .name("Microwave antenna")
-                .gtin("23456")
-                .vendor("Ericsson")
                 .schema("{}")
                 .build();
 

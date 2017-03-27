@@ -14,10 +14,6 @@ public class EquipmentDefinition implements Definition {
 
     String name;
 
-    String vendor;
-
-    String gtin;
-
     @Column(columnDefinition = "jsonb default '{}'", nullable = false)
     String schema = "{}";
 

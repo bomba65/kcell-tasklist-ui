@@ -13,8 +13,9 @@ import javax.persistence.*;
 @EqualsAndHashCode(exclude = {"version"})
 public class ConnectionDefinition implements Definition {
     @Id
-    @GeneratedValue(strategy = GenerationType.IDENTITY)
-    Long id;
+    String id;
+
+    String name;
 
     @Column(columnDefinition = "jsonb default '{}'", nullable = false)
     String schema = "{}";
