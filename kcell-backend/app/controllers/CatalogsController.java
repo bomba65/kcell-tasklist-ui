@@ -64,7 +64,7 @@ public class CatalogsController extends Controller {
         List<Service> services = jpaApi.em().createQuery("select s from Service s order by s.id").getResultList();
         List<ServiceDto> serviceDtos = services.stream().map(ServiceDto::new).collect(Collectors.toList());
 
-        List<Work> works = jpaApi.em().createQuery("select w from Work w order by w.sapPOServiceName").getResultList();
+        List<Work> works = jpaApi.em().createQuery("select w from Work w order by w.id").getResultList();
         List<WorkDto> workDtos = works.stream().map(WorkDto::new).collect(Collectors.toList());
 
         ArrayNode equipments = Json.newArray();

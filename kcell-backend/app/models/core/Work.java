@@ -22,6 +22,7 @@ public class Work {
     private String spp;
     private String sppSao;
     private Date createDate;
+    private String units;
 
     @Id
     @GeneratedValue
@@ -163,5 +164,14 @@ public class Work {
 
     public void setCreateDate(Date createDate) {
         this.createDate = createDate;
+    }
+
+    @Column(name = "UNITS_")
+    public String getUnits() {
+        return units;
+    }
+
+    public void setUnits(String units) {
+        this.units = units;
     }
 }

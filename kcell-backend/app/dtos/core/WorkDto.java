@@ -25,6 +25,7 @@ public class WorkDto {
     public String spp;
     public String sppSao;
     public Date createDate;
+    public String units;
 
     public WorkDto() {
     }
@@ -46,6 +47,7 @@ public class WorkDto {
             this.spp = work.getSpp();
             this.sppSao = work.getSppSao();
             this.createDate = work.getCreateDate();
+            this.units = work.getUnits();
         }
     }
 }

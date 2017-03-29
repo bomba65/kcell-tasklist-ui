@@ -47,7 +47,6 @@
                 {
                     name: 'requestedDate',
                     type: 'Date',
-                    value: new Date(),
                     submit: true,
                     store: false
                 },
@@ -126,14 +125,11 @@
                     camForm.variableManager.fetchVariable(el.name);
                 });
 
-                $scope.createDate = new Date();
                 $scope.soaComplaintIdCorrect = false;
                 $http.get('/api/catalogs').then(
                         function(result){
                             angular.extend($scope, result.data);
                             $scope.conts = [];
-                            console.log($scope.contracts);
-                            console.log($scope.custom.contract);
                             if($scope.contracts){
                                 for(var i=0;i<$scope.contracts.length;i++){
                                     if($scope.contracts[i].service.id === $scope.custom.contract){
@@ -165,10 +161,6 @@
             });
 
             camForm.on('variables-fetched', function () {
-
-                $scope.user = {
-                    name: '123'
-                };
                 variablesToCreate.forEach(function (el) {
                     if (camForm.variableManager.variables[el.name].type === undefined) {
                         camForm.variableManager.variables[el.name].type = el.type;
@@ -187,20 +179,15 @@
                     }
                 });
                 $scope.sitesList.forEach(function(sl){
-                    console.log(sl.id);
-                    console.log($scope.site);
                     if(sl.id === $scope.site){
-                        console.log("THIS IS SPARTA");
                         camForm.variableManager.variableValue('siteName', sl.name);
                     }
                 });
-                console.log($scope.materialsRequiredCheckbox);
                 if($scope.materialsRequiredCheckbox){
                     camForm.variableManager.variableValue('materialsRequired', 'Yes');
                 } else {
                     camForm.variableManager.variableValue('materialsRequired', 'No');
                 }
-                console.log($scope.leasingRequiredCheckbox);
                 if($scope.leasingRequiredCheckbox){
                     camForm.variableManager.variableValue('leasingRequired', 'Yes');
                 } else {
@@ -211,14 +198,10 @@
                 } else {
                     camForm.variableManager.variableValue('powerRequired', 'No');
                 }
-                console.log("ptypeCheckbox:");
-                console.log($scope.ptypeCheckbox);
                 if($scope.ptypeCheckbox){
-                    console.log('TYPE:TEST');
                     camForm.variableManager.variableValue('ptype', 'test');
                     camForm.variableManager.variableValue('createJRResult', "approved");
                 } else {
-                    console.log('TYPE:PROD');
                     camForm.variableManager.variableValue('ptype', 'prod');
                     camForm.variableManager.variableValue('createJRResult', "approved");
                 }
@@ -226,6 +209,7 @@
                 camForm.variableManager.variableValue('validityDate', validityDate);
                 camForm.variableManager.variableValue('contract', parseInt($scope.custom.contract));
                 camForm.variableManager.variableValue('contractor', parseInt($scope.custom.contractor));
+                //camForm.variableManager.variableValue('relatedTo', parseInt($scope.relatedTo));
                 camForm.variableManager.variableValue('jobWorks', JSON.parse(angular.toJson($scope.jobWorks)));
                 for (var i = 0; i < camForm.fields.length; i++) {
                     if (camForm.fields[i].variableName == 'supplementaryFile1') {
@@ -417,6 +401,7 @@
                 camForm.variableManager.variableValue('validityDate', validityDate);
                 camForm.variableManager.variableValue('contract', parseInt($scope.custom.contract));
                 camForm.variableManager.variableValue('contractor', parseInt($scope.custom.contractor));
+                //camForm.variableManager.variableValue('relatedTo', parseInt($scope.relatedTo));
                 camForm.variableManager.variableValue('jobWorks', JSON.parse(angular.toJson($scope.jobWorks)));
             });
 
@@ -433,6 +418,9 @@
                 if(camForm.variableManager.variableValue('contractor')){
                     $scope.custom.contractor = parseInt(camForm.variableManager.variableValue('contractor'));
                 }
+                /*if(camForm.variableManager.variableValue('relatedTo')){
+                    $scope.relatedTo = parseInt(camForm.variableManager.variableValue('relatedTo'));
+                }*/
                 try{
                     $scope.requestedDate = new Date(camForm.variableManager.variableValue('requestedDate'));
                 } catch(e){}
@@ -445,10 +433,18 @@
                 } catch(e){
                     $scope.jobWorks = [{}];
                 }
-                $scope.reason = camForm.variableManager.variableValue('reason');
+                //$scope.reason = camForm.variableManager.variableValue('reason');
                 refreshJobRequests();
                 serviceChanged();
             });
+
+            $scope.getUnits = function(index){
+                for(var i=0;i<$scope.works.length;i++){
+                    if($scope.jobWorks[index].sapServiceNumber === $scope.works[i].sapServiceNumber){
+                        $scope.jobWorks[index].materialUnit = $scope.works[i].units;
+                    }
+                }
+            }
         }]);
 
 
@@ -457,7 +453,7 @@
     <div class="form-group">
         <label class="col-sm-4 control-label">Requested date*</label>
         <div class="col-sm-3">
-            <div class="form-control">{{createDate | date: 'dd.MM.yyyy HH:mm'}}</div>
+            <div class="form-control">{{requestedDate | date: 'dd.MM.yyyy HH:mm'}}</div>
         </div>
     </div>
     <div class="form-group">
@@ -476,7 +472,7 @@
     </div>
     <div class="form-group">
         <label class="col-sm-4 control-label">SA&O Complaint Id:</label>
-        <div class="col-sm-8">
+        <div class="col-sm-3">
             <div class="input-group">
                 <input type="text" cam-variable-name="soaComplaintId" cam-variable-type="String" class="form-control" ng-blur="checkSOAComplaintId()" maxlength="20"/>
                 <span class="input-group-btn">
@@ -489,30 +485,19 @@
     </div>
     <div class="form-group">
         <label class="col-sm-4 control-label">Site (near end)*:</label>
-        <div class="col-sm-8">
-            <div class="input-group">
-                <!-- NOT REQUIRED -->
-                <select class="form-control" cam-variable-name="site" cam-variable-type="String" required>
-                    <option value="{{s.id}}" ng-repeat="s in sitesList">{{s.name}}</option>
-                </select>
-                <!--
-                <input type="text" cam-variable-name="site" cam-variable-type="String" class="form-control" ng-blur="checkSite()"/>
-                <span class="input-group-btn">
-                    <button type="button" class="btn btn-default" ng-click="checkSite()">
-                        <i class="glyphicon glyphicon-search"></i>
-                    </button>
-                </span>
-                -->
-            </div>
+        <div class="col-sm-3">
+            <select class="form-control" cam-variable-name="site" cam-variable-type="String" required>
+                <option value="{{s.id}}" ng-repeat="s in sitesList">{{s.name}}</option>
+            </select>
         </div>
     </div>
     <div class="form-group">
         <label class="col-sm-4 control-label">Reason*:</label>
-        <div class="col-sm-8">
+        <div class="col-sm-3">
             <!-- NOT REQUIRED -->
             <select class="form-control" cam-variable-name="reason" required cam-variable-type="String" ng-change="refreshJobRequests()">
                 <option value="">select reason</option>
-                <option value="{{r.id}}" ng-repeat="r in reasons">{{r.name}}</option>
+                <option value="{{r.id}}" ng-repeat="r in reasons" ng-selected="{{r.id == reason}}">{{r.name}}</option>
             </select>
         </div>
     </div>
@@ -521,10 +506,10 @@
         <div class="col-sm-8">
             <!-- NOT REQUIRED -->
             <label class="radio-inline">
-                <input type="radio" name="relatedTo" required ng-model="custom.relatedTo" value="Capacity"> Capacity
+                <input type="radio" name="relatedTo" required ng-model="relatedTo" value="Capacity"> Capacity
             </label>
             <label class="radio-inline">
-                <input type="radio" name="relatedTo" required ng-model="custom.relatedTo" value="Coverage"> Coverage
+                <input type="radio" name="relatedTo" required ng-model="relatedTo" value="Coverage"> Coverage
             </label>
         </div>
     </div>
@@ -536,6 +521,12 @@
             <label class="radio-inline" ng-repeat="c in conts">
                 <input type="radio" name="contractor" ng-model="custom.contractor" id="contractor{{$index}}" value="{{c.id}}" required> {{c.name}}
             </label>
+        </div>
+    </div>
+    <div class="form-group">
+        <label class="col-sm-4 control-label">Project:</label>
+        <div class="col-sm-3">
+            <input type="text" cam-variable-name="project" cam-variable-type="String" class="form-control" placeholder="2017XYZ"/>
         </div>
     </div>
     <div class="form-group">
@@ -615,53 +606,39 @@
         </div>
     </div>
     <div class="form-group">
-        <label class="col-sm-4 control-label">Works*</label>
-        <div class="col-sm-8">
-            <table>
-                <thead>
-                    <tr>
-                        <th>#</th>
-                        <th>Title</th>
-                        <th>Works Qty</th>
-                        <th>Materials Qty</th>
-                        <th>On sites</th>
-                        <th></th>
-                    </tr>
-                </thead>
-                <tbody>
-                    <tr ng-repeat="jobWork in jobWorks">
-                        <td>{{$index+1}}</td>
-                        <td width="40%">
-                            <!-- NOT REQUIRED -->
-                            <select ng-model="jobWork.sapServiceNumber" required class="form-control">
-                                <option ng-repeat="work in works" value="{{work.sapServiceNumber}}">{{work.sapPOServiceName}}</option>
-                            </select>
-                        </td>
-                        <td>
-                            <!-- NOT REQUIRED -->
-                            <input type="number" class="form-control" required ng-model="jobWork.quantity" min="1"/></td>
-                        <td>
-                            <div class="input-group my-group">
-                                <!-- NOT REQUIRED -->
-                                <input type="number" class="form-control" required ng-model="jobWork.materialQuantity" min="1" required/>
-                                <select class="selectpicker form-control" required ng-model="jobWork.unit" >
-                                    <option ng-repeat="unit in units" value="{{unit.value}}">{{unit.description}}</option>
-                                </select>
-                            </div>
-                        </td>
-                        <td>
-                            <!-- NOT REQUIRED -->
-                            <input type="text" class="form-control" required ng-model="jobWork.sites" /></td>
-                        <td><button type="button" class="btn btn-sm btn-warning" ng-if="$index !== 0" ng-click="removeWork($index)"><i class="glyphicon glyphicon-trash"></i> Remove</button></td>
-                    </tr>
-                    <tr>
-                        <td></td>
-                        <td colspan="5">
-                            <button type="button" class="btn btn-sm btn-primary" ng-click="addJobWork()"><i class="glyphicon glyphicon-plus"></i> Add work</button>
-                        </td>
-                    </tr>
-                </tbody>
-            </table>
+        <h4>Works</h4>
+        <div class="col-sm-12">
+            <div class="row" ng-repeat="jobWork in jobWorks">
+                <div class="col-md-3" style="padding:0px">
+                    <select ng-model="jobWork.sapServiceNumber" required class="form-control" ng-change="getUnits($index)">
+                        <option ng-repeat="work in works" ng-selected="{{work.sapServiceNumber == jobWork.sapServiceNumber}}" value="{{work.sapServiceNumber}}">{{work.sapPOServiceName}}</option>
+                    </select>
+                </div>
+                <div class="col-md-2" style="padding:0px">
+                    <div class="input-group">
+                        <span class="input-group-addon" style="padding-right:5px; background-color: #fff;border: 1px solid #fff;">Works Qty</span>
+                        <input type="number" class="form-control" required ng-model="jobWork.quantity" min="1"/>
+                    </div>
+                </div>
+                <div class="col-md-4" style="padding:0px">
+                    <div class="input-group">
+                        <span class="input-group-addon" style="padding-right:5px; background-color: #fff;border: 1px solid #fff;">Materials Qty</span>
+                        <input type="number" class="form-control" required ng-model="jobWork.materialQuantity" min="1" required/>
+                        <span class="input-group-addon">{{jobWork.materialUnit}}</span>
+                    </div>
+                </div>
+                <div class="col-md-2" ng-if="reason == '2'" style="padding:0px">
+                    <select class="form-control" ng-model="jobWork.sites">
+                        <option value="{{s.id}}" ng-repeat="s in sitesList">{{s.name}}</option>
+                    </select>
+                </div>
+                <div class="col-md-1"><button type="button" class="btn btn-sm btn-warning" ng-if="$index !== 0" ng-click="removeWork($index)"><i class="glyphicon glyphicon-trash"></i> Remove</button></div>
+            </div>
+            <div class="row">
+                <div class="col-md-12">
+                    <button type="button" class="btn btn-sm btn-primary" ng-click="addJobWork()"><i class="glyphicon glyphicon-plus"></i> Add work</button>
+                </div>
+            </div>
         </div>
     </div>
     <div class="form-group">
