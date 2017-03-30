@@ -7,6 +7,7 @@ import kz.kcell.kwms.model.*;
 import kz.kcell.kwms.repository.*;
 import lombok.NonNull;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.java.Log;
 import org.springframework.boot.context.event.ApplicationReadyEvent;
 import org.springframework.context.event.EventListener;
 import org.springframework.stereotype.Service;
@@ -17,6 +18,7 @@ import java.util.stream.Stream;
 
 @Service
 @RequiredArgsConstructor
+@Log
 public class DataInitializer {
 
     final
@@ -55,8 +57,11 @@ public class DataInitializer {
     public void init(ApplicationReadyEvent event) throws ParseException {
 
         if (siteRepository.count() != 0) {
+            log.info("Database not empty, skip initialization");
             return;
         }
+
+        log.info("Start initialization");
 
         WKTReader wktReader = new WKTReader();
 
@@ -322,5 +327,8 @@ public class DataInitializer {
                 .params("{}")
                 .build();
         powerSourceRepository.save(Arrays.asList(powerSource1, powerSource2));
+
+        log.info("End initialization");
     }
+
 }
