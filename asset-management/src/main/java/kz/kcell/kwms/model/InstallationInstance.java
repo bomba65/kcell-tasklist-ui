@@ -25,7 +25,7 @@ public class InstallationInstance implements Instance<InstallationDefinition> {
     @ManyToOne(optional = false)
     Site site;
 
-    @ManyToOne(optional = false)
+    @ManyToOne
     FacilityInstance facility;
 
     @OneToOne(optional = false)

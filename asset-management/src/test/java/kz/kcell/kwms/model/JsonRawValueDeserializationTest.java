@@ -40,7 +40,20 @@ public class JsonRawValueDeserializationTest {
         System.out.println(jsonString);
 
         JSONAssert.assertEquals(
-                "{\"id\":null,\"sn\":null,\"definition\":{\"id\":null,\"name\":null,\"vendor\":null,\"gtin\":null,\"schema\":{},\"version\":0},\"params\":{\"Hello\": \"World\"},\"version\":0}",
+                "{\n" +
+                        "  \"id\":null,\n" +
+                        "  \"sn\":null,\n" +
+                        "  \"definition\":{\n" +
+                        "    \"id\":null,\n" +
+                        "    \"name\":null,\n" +
+                        "    \"schema\":{},\n" +
+                        "    \"version\":0\n" +
+                        "  },\n" +
+                        "  \"params\":{\n" +
+                        "    \"Hello\": \"World\"\n" +
+                        "  },\n" +
+                        "  \"version\":0\n" +
+                        "}",
                 jsonString,
                 true);
 

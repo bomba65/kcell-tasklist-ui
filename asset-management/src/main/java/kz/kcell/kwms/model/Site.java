@@ -1,7 +1,11 @@
 package kz.kcell.kwms.model;
 
+import com.fasterxml.jackson.annotation.JsonRawValue;
+import com.fasterxml.jackson.databind.annotation.JsonDeserialize;
+import kz.kcell.kwms.jackson.JsonAsStringDeserializer;
 import lombok.*;
 import org.hibernate.annotations.Tables;
+import org.hibernate.validator.constraints.NotBlank;
 
 import javax.persistence.*;
 import javax.validation.constraints.Size;
@@ -23,6 +27,12 @@ class Site {
 
     @Size(min = 5)
     String name;
+
+    @NotBlank
+    @JsonRawValue
+    @JsonDeserialize(using = JsonAsStringDeserializer.class)
+    @Column(columnDefinition = "jsonb default '{}'", nullable = false)
+    String params = "{}";
 
     @ManyToMany
     @JoinTable(name = "site_facility",

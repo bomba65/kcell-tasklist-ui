@@ -95,12 +95,14 @@ public class DataInitializer {
         Site site1 = Site.builder()
                 .id("SITE1")
                 .name("Site 1")
+                .params("{}")
                 .facilities(Stream.of(facilityInstance1).collect(Collectors.toSet()))
                 .build();
 
         Site site2 = Site.builder()
                 .id("SITE2")
                 .name("Site 2")
+                .params("{}")
                 .facilities(Stream.of(facilityInstance2).collect(Collectors.toSet()))
                 .build();
 
