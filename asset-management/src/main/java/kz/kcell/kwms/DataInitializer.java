@@ -129,8 +129,8 @@ public class DataInitializer {
                 .build();
 
         EquipmentDefinition equipmentDefinition4 = EquipmentDefinition.builder()
-                .id("RUDU")
-                .name("Radio/Digital Unit")
+                .id("RU")
+                .name("Radio Unit")
                 .schema("{}")
                 .build();
 
@@ -143,6 +143,12 @@ public class DataInitializer {
         EquipmentDefinition equipmentDefinition6 = EquipmentDefinition.builder()
                 .id("ANTENNA")
                 .name("Supplementary equipment")
+                .schema("{}")
+                .build();
+
+        EquipmentDefinition equipmentDefinition7 = EquipmentDefinition.builder()
+                .id("DU")
+                .name("Digital Unit")
                 .schema("{}")
                 .build();
 
@@ -188,8 +194,14 @@ public class DataInitializer {
                 .params("{}")
                 .build();
 
-        equipmentDefinitionRepository.save(Arrays.asList(equipmentDefinition1, equipmentDefinition2, equipmentDefinition3, equipmentDefinition4, equipmentDefinition5, equipmentDefinition6));
-        equipmentInstanceRepository.save(Arrays.asList(equipmentInstance1, equipmentInstance2, equipmentInstance3, equipmentInstance4, equipmentInstance5, equipmentInstance6, equipmentInstance7));
+        EquipmentInstance equipmentInstance8 = EquipmentInstance.builder()
+                .sn("2001")
+                .definition(equipmentDefinition7)
+                .params("{}")
+                .build();
+
+        equipmentDefinitionRepository.save(Arrays.asList(equipmentDefinition1, equipmentDefinition2, equipmentDefinition3, equipmentDefinition4, equipmentDefinition5, equipmentDefinition6, equipmentDefinition7));
+        equipmentInstanceRepository.save(Arrays.asList(equipmentInstance1, equipmentInstance2, equipmentInstance3, equipmentInstance4, equipmentInstance5, equipmentInstance6, equipmentInstance7, equipmentInstance8));
 
         InstallationDefinition installationDefinition1 = InstallationDefinition.builder()
                 .id("AIRCONDITIONER")
@@ -242,8 +254,8 @@ public class DataInitializer {
                 .build();
 
         InstallationDefinition installationDefinition4 = InstallationDefinition.builder()
-                .id("RUDU")
-                .name("RU/DU Installation")
+                .id("RU")
+                .name("RU Installation")
                 .schema("{}")
                 .build();
 
@@ -283,8 +295,22 @@ public class DataInitializer {
                 .params("{}")
                 .build();
 
-        installationDefinitionRepository.save(Arrays.asList(installationDefinition1, installationDefinition2, installationDefinition3, installationDefinition4, installationDefinition5, installationDefinition6));
-        installationInstanceRepository.save(Arrays.asList(installationInstance1, installationInstance2, installationInstance3, installationInstance4, installationInstance5, installationInstance6, installationInstance7));
+        InstallationDefinition installationDefinition7 = InstallationDefinition.builder()
+                .id("DU")
+                .name("DU Installation")
+                .schema("{}")
+                .build();
+
+        InstallationInstance installationInstance8 = InstallationInstance.builder()
+                .definition(installationDefinition7)
+                .equipment(equipmentInstance8)
+                .facility(facilityInstance1)
+                .site(site1)
+                .params("{}")
+                .build();
+
+        installationDefinitionRepository.save(Arrays.asList(installationDefinition1, installationDefinition2, installationDefinition3, installationDefinition4, installationDefinition5, installationDefinition6, installationDefinition7));
+        installationInstanceRepository.save(Arrays.asList(installationInstance1, installationInstance2, installationInstance3, installationInstance4, installationInstance5, installationInstance6, installationInstance7, installationInstance8));
 
         PowerSource powerSource1 = PowerSource.builder()
                 .site(site1)
