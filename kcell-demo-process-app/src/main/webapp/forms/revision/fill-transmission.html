@@ -1,8 +1,25 @@
-<h4>Microwave Hop information  <a ng-click="addHop()" class="btn btn-primary"><i class="glyphicon glyphicon-plus"></i> Add Another Hop</a></h4>
+<h4>Microwave Hop information  <a ng-click="toggleHop()" class="btn btn-primary"><i class="glyphicon glyphicon-plus"></i> Add Another Hop</a></h4>
+<div ng-show="showAddHop">
+    <div class="form-group">
+        <label class="col-sm-2 control-label">Site *:</label>
+        <div class="col-sm-3">
+            <select class="form-control" ng-model="farEndSite.id" required>
+                <option value="">please choose site</option>
+                <option value="{{s.id}}" ng-repeat="s in sitesList" ng-if="s.id !== jobModel.site.originalValue">{{s.name}}</option>
+            </select>
+        </div>
+    </div>
+    <div class="form-group">
+        <label class="col-sm-2 control-label">&nbsp;</label>
+        <div class="col-sm-3">
+            <a ng-click="addHop()" class="btn btn-primary"><i class="glyphicon glyphicon-plus"></i> Add</a>
+        </div>
+    </div>
+</div>
 <accordion>
     <accordion-group ng-repeat="hop in fillSite.transmissions track by $index">
         <accordion-heading>
-            Hop {{jobModel.siteName.originalValue}} -  {{$index}}{{jobModel.siteName.originalValue}} <i class="pull-right glyphicon" ng-class="{'glyphicon-chevron-up': status.isCustomHeaderOpen, 'glyphicon-chevron-down': !status.isCustomHeaderOpen}"></i>
+            Hop {{jobModel.siteName.originalValue}} -  {{$index}}{{hop.farEnd.site.name}} <i class="pull-right glyphicon" ng-class="{'glyphicon-chevron-up': status.isCustomHeaderOpen, 'glyphicon-chevron-down': !status.isCustomHeaderOpen}"></i>
         </accordion-heading>
         <div class="row">
             <div class="col-md-6"><h4>Near end {{jobModel.siteName.originalValue}}</h4></div>
@@ -50,9 +67,7 @@
                     <div class="form-group">
                         <label>Facility</label>
                         <select class="form-control" ng-model="hop.nearEnd.indoor.location">
-                            <option value="BUILDING">Building</option>
-                            <option value="TOWER">Tower</option>
-                            <option value="MAST">Mast</option>
+                            <option value="{{f.definition}}" ng-repeat="f in fillSite.facilities">{{f.name}} ({{f.definition}})</option>
                         </select>
                     </div>
                 </div>
@@ -98,9 +113,7 @@
                     <div class="form-group">
                         <label>Facility</label>
                         <select class="form-control" ng-model="hop.farEnd.indoor.location">
-                            <option value="BUILDING">Building</option>
-                            <option value="TOWER">Tower</option>
-                            <option value="MAST">Mast</option>
+                            <option value="{{f.definition}}" ng-repeat="f in fillSite.facilities">{{f.name}} ({{f.definition}})</option>
                         </select>
                     </div>
                 </div>
@@ -199,9 +212,7 @@
                     <div class="form-group">
                         <label>Facility</label>
                         <select class="form-control" ng-model="hop.nearEnd.outdoor.location">
-                            <option value="BUILDING">Building</option>
-                            <option value="TOWER">Tower</option>
-                            <option value="MAST">Mast</option>
+                            <option value="{{f.definition}}" ng-repeat="f in fillSite.facilities">{{f.name}} ({{f.definition}})</option>
                         </select>
                     </div>
                 </div>
@@ -292,9 +303,7 @@
                     <div class="form-group">
                         <label>Facility</label>
                         <select class="form-control" ng-model="hop.farEnd.outdoor.location">
-                            <option value="BUILDING">Building</option>
-                            <option value="TOWER">Tower</option>
-                            <option value="MAST">Mast</option>
+                            <option value="{{f.definition}}" ng-repeat="f in fillSite.facilities">{{f.name}} ({{f.definition}})</option>
                         </select>
                     </div>
                 </div>
@@ -357,9 +366,7 @@
                     <div class="form-group">
                         <label>Facility</label>
                         <select class="form-control" ng-model="hop.nearEnd.antenna.location">
-                            <option value="BUILDING">Building</option>
-                            <option value="TOWER">Tower</option>
-                            <option value="MAST">Mast</option>
+                            <option value="{{f.definition}}" ng-repeat="f in fillSite.facilities">{{f.name}} ({{f.definition}})</option>
                         </select>
                     </div>
                 </div>
@@ -414,9 +421,7 @@
                     <div class="form-group">
                         <label>Facility</label>
                         <select class="form-control" ng-model="hop.farEnd.antenna.location">
-                            <option value="BUILDING">Building</option>
-                            <option value="TOWER">Tower</option>
-                            <option value="MAST">Mast</option>
+                            <option value="{{f.definition}}" ng-repeat="f in fillSite.facilities">{{f.name}} ({{f.definition}})</option>
                         </select>
                     </div>
                 </div>
@@ -603,48 +608,29 @@
         <div class="col-md-6">
             <div class="form-group">
                 <label>Indoor Unit #</label>
-                <select class="form-control">
-                    <option value="1">1</option>
-                </select>
+                <div class="form-control">{{fillSite.nearEnd.indoors.length+1}}</div>
             </div>
         </div>
         <div class="col-md-6">
             <div class="form-group">
                 <label>Terminal ID</label>
                 <div class="input-group">
-                    <input type="number" class="form-control" ng-model="indoorUnit." placeholder="150"/>
-                    <span class="input-group-addon">Mb/s</span>
+                    <input type="number" class="form-control" ng-model="indoorUnit.terminalId" placeholder="SAR1"/>
                 </div>
             </div>
         </div>
         <div class="col-md-6">
             <div class="form-group">
                 <label>Type</label>
-                <select class="form-control">
-                    <option value="1+1">1+1</option>
-                    <option value="1+0">1+0</option>
+                <select class="form-control" ng-model="indoorUnit.type">
+                    <option value="TN 20p">TN 20p</option>
                 </select>
             </div>
         </div>
         <div class="col-md-6">
             <div class="form-group">
                 <label>Serial number</label>
-                <select class="form-control">
-                    <option value="1+1">1+1</option>
-                    <option value="1+0">1+0</option>
-                </select>
-            </div>
-        </div>
-        <div class="col-md-6">
-            <div class="form-group">
-                <label>&nbsp;</label>
-                <br/>
-            </div>
-        </div>
-        <div class="col-md-6">
-            <div class="form-group">
-                <label>&nbsp;</label>
-                <br/>
+                <input class="form-control" ng-model="indoorUnit.serial_number" />
             </div>
         </div>
         <div class="row"><div class="col-md-6"><a ng-click="addIndoorUnit()" class="btn btn-primary">Add</a></div></div>
@@ -654,111 +640,97 @@
         <div class="col-md-6">
             <div class="form-group">
                 <label>Outdoor unit #</label>
-                <select class="form-control">
-                    <option value="1">1</option>
-                </select>
+                <div class="form-control">{{fillSite.nearEnd.outdoors.length+1}}</div>
             </div>
         </div>
         <div class="col-md-6">
             <div class="form-group">
                 <label>Frequency, GHz</label>
                 <div class="input-group">
-                    <input type="number" class="form-control" ng-model="hop" placeholder="150"/>
-                    <span class="input-group-addon">Mb/s</span>
+                    <input type="number" class="form-control" ng-model="outdoor.frequency" placeholder="23"/>
+                    <span class="input-group-addon">GHz</span>
                 </div>
             </div>
         </div>
         <div class="col-md-6">
             <div class="form-group">
                 <label>Type</label>
-                <select class="form-control">
-                    <option value="1+1">1+1</option>
-                    <option value="1+0">1+0</option>
+                <select class="form-control" ng-model="outdoor.type">
+                    <option value="RAU2 N">RAU2 N</option>
+                    <option value="RAU1 N">RAU1 N</option>
                 </select>
             </div>
         </div>
         <div class="col-md-6">
             <div class="form-group">
                 <label>Modulation type</label>
-                <select class="form-control">
-                    <option value="1+1">1+1</option>
-                    <option value="1+0">1+0</option>
-                </select>
+                <input class="form-control" ng-model="outdoor.modulation_type" placeholder="64QAM"/>
             </div>
         </div>
         <div class="col-md-6">
             <div class="form-group">
                 <label>Serial number</label>
-                <select class="form-control">
-                    <option value="1+1">1+1</option>
-                    <option value="1+0">1+0</option>
-                </select>
+                <input class="form-control" ng-model="outdoor.serial_number" placeholder="3334rrr5"/>
             </div>
         </div>
         <div class="col-md-6">
             <div class="form-group">
                 <label>RAU subband</label>
-                <select class="form-control">
-                    <option value="1+1">1+1</option>
-                    <option value="1+0">1+0</option>
-                </select>
+                <input class="form-control" ng-model="outdoor.rau_subband" placeholder="23/78" />
             </div>
         </div>
-        <div class="row"><div class="col-md-6"><a href="#" class="btn btn-primary">Add</a></div></div>
+        <div class="row"><div class="col-md-6"><a ng-click="addOutdoorUnit()" class="btn btn-primary">Add</a></div></div>
     </div>
     <div class="col-md-4 well">
         <h4>Add Antenna</h4>
         <div class="col-md-6">
             <div class="form-group">
                 <label>Antenna #</label>
-                <select class="form-control">
-                    <option value="1">1</option>
-                </select>
+                <div class="form-control">{{fillSite.nearEnd.antennas.length+1}}</div>
             </div>
         </div>
         <div class="col-md-6">
             <div class="form-group">
                 <label>Polarization</label>
                 <div class="input-group">
-                    <input type="number" class="form-control" ng-model="hop" placeholder="150"/>
-                    <span class="input-group-addon">Mb/s</span>
+                    <select class="form-control" ng-model="antenna.polarization">
+                        <option value="Horizontal">Horizontal</option>
+                        <option value="Vertical">Vertical</option>
+                    </select>
                 </div>
             </div>
         </div>
         <div class="col-md-6">
             <div class="form-group">
                 <label>Type</label>
-                <select class="form-control">
-                    <option value="1+1">1+1</option>
-                    <option value="1+0">1+0</option>
+                <select class="form-control" ng-model="antenna.type">
+                    <option value="">выбрать</option>
+                    <option value="Type1">Type1</option>
                 </select>
             </div>
         </div>
         <div class="col-md-6">
             <div class="form-group">
                 <label>Diameter, m</label>
-                <select class="form-control">
-                    <option value="1+1">1+1</option>
-                    <option value="1+0">1+0</option>
+                <select class="form-control" ng-model="antenna.diameter">
+                    <option value="0.6">0.6</option>
+                    <option value="0.7">0.7</option>
                 </select>
             </div>
         </div>
         <div class="col-md-6">
             <div class="form-group">
                 <label>Serial number</label>
-                <select class="form-control">
-                    <option value="1+1">1+1</option>
-                    <option value="1+0">1+0</option>
-                </select>
+                <input class="form-control" ng-model="antenna.serial_number" />
             </div>
         </div>
         <div class="col-md-6">
             <div class="form-group">
                 <label>Weight, kg</label>
-                <select class="form-control">
-                    <option value="1+1">1+1</option>
-                    <option value="1+0">1+0</option>
-                </select>
+                <div class="input-group">
+                    <input type="number" class="form-control" ng-model="antenna.weight" placeholder="20"/>
+                    <span class="input-group-addon">kg.</span>
+                </div>
             </div>
         </div>
         <div class="row"><div class="col-md-6"><a href="#" class="btn btn-primary">Add</a></div></div>
