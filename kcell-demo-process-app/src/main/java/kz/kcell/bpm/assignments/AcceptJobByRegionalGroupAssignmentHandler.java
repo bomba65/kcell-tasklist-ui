@@ -6,9 +6,6 @@ import org.camunda.bpm.engine.delegate.TaskListener;
 import java.util.ArrayList;
 import java.util.Arrays;
 
-/**
- * Created by admin on 3/27/17.
- */
 public class AcceptJobByRegionalGroupAssignmentHandler implements TaskListener {
 
     @Override
