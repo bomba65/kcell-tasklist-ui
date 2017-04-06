@@ -1,15 +1,15 @@
 package kz.kcell.kwms.model;
 
+import com.fasterxml.jackson.annotation.JsonInclude;
 import com.fasterxml.jackson.annotation.JsonRawValue;
 import com.fasterxml.jackson.databind.annotation.JsonDeserialize;
 import kz.kcell.kwms.jackson.JsonAsStringDeserializer;
+import kz.kcell.kwms.model.projection.SiteFull;
 import lombok.*;
-import org.hibernate.annotations.Tables;
 import org.hibernate.validator.constraints.NotBlank;
 
 import javax.persistence.*;
 import javax.validation.constraints.Size;
-import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
@@ -47,6 +47,9 @@ class Site {
         inverseJoinColumns = @JoinColumn(name = "far_end_site_id", referencedColumnName = "id")
     )
     Set<Site> farEndCandidates = new HashSet<>();
+
+    @OneToMany(mappedBy = "site")
+    List<InstallationInstance> installations;
 
     @Version long version;
 
