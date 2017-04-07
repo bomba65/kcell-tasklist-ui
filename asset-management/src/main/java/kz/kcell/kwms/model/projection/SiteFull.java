@@ -7,7 +7,7 @@ import org.springframework.data.rest.core.config.Projection;
 import java.util.List;
 import java.util.Set;
 
-@Projection(types = Site.class)
+@Projection(name = "full", types = Site.class)
 public interface SiteFull {
     String getId();
     String getName();
