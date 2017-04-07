@@ -157,6 +157,24 @@ public class DataInitializer {
                 .schema("{}")
                 .build();
 
+        EquipmentDefinition equipmentDefinition8 = EquipmentDefinition.builder()
+                .id("AU")
+                .name("Hop Antenna Unit")
+                .schema("{}")
+                .build();
+
+        EquipmentDefinition equipmentDefinition9 = EquipmentDefinition.builder()
+                .id("OU")
+                .name("Hop Outdoor Unit")
+                .schema("{}")
+                .build();
+
+        EquipmentDefinition equipmentDefinition10 = EquipmentDefinition.builder()
+                .id("IU")
+                .name("Hop Indoor Unit")
+                .schema("{}")
+                .build();
+
         EquipmentInstance equipmentInstance1 = EquipmentInstance.builder()
                 .sn("1000")
                 .definition(equipmentDefinition1)
@@ -205,7 +223,7 @@ public class DataInitializer {
                 .params("{}")
                 .build();
 
-        equipmentDefinitionRepository.save(Arrays.asList(equipmentDefinition1, equipmentDefinition2, equipmentDefinition3, equipmentDefinition4, equipmentDefinition5, equipmentDefinition6, equipmentDefinition7));
+        equipmentDefinitionRepository.save(Arrays.asList(equipmentDefinition1, equipmentDefinition2, equipmentDefinition3, equipmentDefinition4, equipmentDefinition5, equipmentDefinition6, equipmentDefinition7, equipmentDefinition8, equipmentDefinition9, equipmentDefinition10));
         equipmentInstanceRepository.save(Arrays.asList(equipmentInstance1, equipmentInstance2, equipmentInstance3, equipmentInstance4, equipmentInstance5, equipmentInstance6, equipmentInstance7, equipmentInstance8));
 
         InstallationDefinition installationDefinition1 = InstallationDefinition.builder()
@@ -306,6 +324,24 @@ public class DataInitializer {
                 .schema("{}")
                 .build();
 
+        InstallationDefinition installationDefinition8 = InstallationDefinition.builder()
+                .id("IU")
+                .name("Indoor Unit Installation")
+                .schema("{}")
+                .build();
+
+        InstallationDefinition installationDefinition9 = InstallationDefinition.builder()
+                .id("OU")
+                .name("Outdoor Unit Installation")
+                .schema("{}")
+                .build();
+
+        InstallationDefinition installationDefinition10 = InstallationDefinition.builder()
+                .id("AU")
+                .name("Antenna Unit Installation")
+                .schema("{}")
+                .build();
+
         InstallationInstance installationInstance8 = InstallationInstance.builder()
                 .definition(installationDefinition7)
                 .equipment(equipmentInstance8)
@@ -314,7 +350,7 @@ public class DataInitializer {
                 .params("{}")
                 .build();
 
-        installationDefinitionRepository.save(Arrays.asList(installationDefinition1, installationDefinition2, installationDefinition3, installationDefinition4, installationDefinition5, installationDefinition6, installationDefinition7));
+        installationDefinitionRepository.save(Arrays.asList(installationDefinition1, installationDefinition2, installationDefinition3, installationDefinition4, installationDefinition5, installationDefinition6, installationDefinition7, installationDefinition8, installationDefinition9, installationDefinition10));
         installationInstanceRepository.save(Arrays.asList(installationInstance1, installationInstance2, installationInstance3, installationInstance4, installationInstance5, installationInstance6, installationInstance7, installationInstance8));
 
         PowerSource powerSource1 = PowerSource.builder()
