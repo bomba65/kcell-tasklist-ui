@@ -29,12 +29,7 @@ public class DemoDataGenerator {
     public void createUsers(ProcessEngine engine) {
 
         final IdentityService identityService = engine.getIdentityService();
-        System.out.println("========================================================================");
-        System.out.println();
-        System.out.println();
-        System.out.println();
-        System.out.println();
-        System.out.println();
+        LOGGER.warning("========================================================================");
 
         if (identityService.isReadOnly()) {
             LOGGER.info("Identity service provider is Read Only, not creating any demo users.");
@@ -43,24 +38,13 @@ public class DemoDataGenerator {
 
         User singleResult = identityService.createUserQuery().userId("demo").singleResult();
         if (singleResult != null) {
-            System.out.println("DEMO USER EXISTS");
-            System.out.println();
-            System.out.println();
-            System.out.println();
-            System.out.println();
-            System.out.println();
-            System.out.println("========================================================================");
+            LOGGER.warning("DEMO USER EXISTS");
+            LOGGER.warning("========================================================================");
             return;
         }
 
-        LOGGER.info("Generating demo data for revision process");
-        System.out.println("Generating demo data for revision process");
-        System.out.println();
-        System.out.println();
-        System.out.println();
-        System.out.println();
-        System.out.println();
-        System.out.println("========================================================================");
+        LOGGER.warning("Generating demo data for revision process");
+        LOGGER.warning("========================================================================");
 
         User user = identityService.newUser("demo");
         user.setFirstName("Demo");
@@ -531,26 +515,37 @@ public class DemoDataGenerator {
         user_64.setEmail("Alexey.Kolesnikov@kcell.kz");
         identityService.saveUser(user_64);
 
-        System.out.println("ALL USERS CREATED");
-        System.out.println();
-        System.out.println();
-        System.out.println();
-        System.out.println();
-        System.out.println();
-        System.out.println("========================================================================");
+        User user_65 = identityService.newUser("Anzor.Israilov@kcell.kz");
+        user_65.setFirstName("Anzor");
+        user_65.setLastName("Israilov");
+        user_65.setPassword("demo");
+        user_65.setEmail("Anzor.Israilov@kcell.kz");
+        identityService.saveUser(user_65);
+
+        User user_66 = identityService.newUser("Yernaz.Kalingarayev@kcell.kz");
+        user_66.setFirstName("Yernaz");
+        user_66.setLastName("Kalingarayev");
+        user_66.setPassword("demo");
+        user_66.setEmail("Yernaz.Kalingarayev@kcell.kz");
+        identityService.saveUser(user_66);
+
+        User user_67 = identityService.newUser("Askar.Slambekov@kcell.kz");
+        user_67.setFirstName("Askar");
+        user_67.setLastName("Slambekov");
+        user_67.setPassword("demo");
+        user_67.setEmail("Askar.Slambekov@kcell.kz");
+        identityService.saveUser(user_67);
+
+        LOGGER.warning("ALL USERS CREATED");
+        LOGGER.warning("========================================================================");
 
 
         Group salesGroup = identityService.newGroup("kcellUsers");
         salesGroup.setName("Kcell Users");
         salesGroup.setType("WORKFLOW");
         identityService.saveGroup(salesGroup);
-        System.out.println("KCELL USERS GROUP CREATED");
-        System.out.println();
-        System.out.println();
-        System.out.println();
-        System.out.println();
-        System.out.println();
-        System.out.println("========================================================================");
+        LOGGER.warning("KCELL USERS GROUP CREATED");
+        LOGGER.warning("========================================================================");
 
         final AuthorizationService authorizationService = engine.getAuthorizationService();
 
@@ -573,26 +568,16 @@ public class DemoDataGenerator {
                 authorizationService.saveAuthorization(userAdminAuth);
             }
         }
-        System.out.println("CREATING MEMBERSHIPS DEMO");
-        System.out.println();
-        System.out.println();
-        System.out.println();
-        System.out.println();
-        System.out.println();
-        System.out.println("========================================================================");
+        LOGGER.warning("CREATING MEMBERSHIPS DEMO");
+        LOGGER.warning("========================================================================");
 
         identityService.createMembership("demo", "kcellUsers");
         identityService.createMembership("demo", "camunda-admin");
         identityService.createMembership("test_flow@kcell.kz", "kcellUsers");
         identityService.createMembership("test_flow@kcell.kz", "camunda-admin");
 
-        System.out.println("CREATING MEMBERSHIPS ALL");
-        System.out.println();
-        System.out.println();
-        System.out.println();
-        System.out.println();
-        System.out.println();
-        System.out.println("========================================================================");
+        LOGGER.warning("CREATING MEMBERSHIPS ALL");
+        LOGGER.warning("========================================================================");
 
         identityService.createMembership("Daniyar.Yespayev@kcell.kz", "kcellUsers");
         identityService.createMembership("Yerkebulan.Dauletbayev@kcell.kz", "kcellUsers");
@@ -659,14 +644,12 @@ public class DemoDataGenerator {
         identityService.createMembership("Dmitriy.Saidashev@kcell.kz", "kcellUsers");
         identityService.createMembership("Sergey.Grigor@kcell.kz", "kcellUsers");
         identityService.createMembership("Alexey.Kolesnikov@kcell.kz", "kcellUsers");
+        identityService.createMembership("Anzor.Israilov@kcell.kz", "kcellUsers");
+        identityService.createMembership("Yernaz.Kalingarayev@kcell.kz", "kcellUsers");
+        identityService.createMembership("Askar.Slambekov@kcell.kz", "kcellUsers");
 
-        System.out.println("MEMBERSHIPS CREATED");
-        System.out.println();
-        System.out.println();
-        System.out.println();
-        System.out.println();
-        System.out.println();
-        System.out.println("========================================================================");
+        LOGGER.warning("MEMBERSHIPS CREATED");
+        LOGGER.warning("========================================================================");
 
 
         // authorize groups for tasklist only:
@@ -1162,13 +1145,29 @@ public class DemoDataGenerator {
         kcellUserAuth_64.addPermission(READ);
         authorizationService.saveAuthorization(kcellUserAuth_64);
 
-        System.out.println("AUTHORIZATION CREATED");
-        System.out.println();
-        System.out.println();
-        System.out.println();
-        System.out.println();
-        System.out.println();
-        System.out.println("========================================================================");
+        Authorization kcellUserAuth_65 = authorizationService.createNewAuthorization(AUTH_TYPE_GRANT);
+        kcellUserAuth_65.setGroupId("kcellUsers");
+        kcellUserAuth_65.setResource(USER);
+        kcellUserAuth_65.setResourceId("Anzor.Israilov@kcell.kz");
+        kcellUserAuth_65.addPermission(READ);
+        authorizationService.saveAuthorization(kcellUserAuth_65);
+
+        Authorization kcellUserAuth_66 = authorizationService.createNewAuthorization(AUTH_TYPE_GRANT);
+        kcellUserAuth_66.setGroupId("kcellUsers");
+        kcellUserAuth_66.setResource(USER);
+        kcellUserAuth_66.setResourceId("Yernaz.Kalingarayev@kcell.kz");
+        kcellUserAuth_66.addPermission(READ);
+        authorizationService.saveAuthorization(kcellUserAuth_66);
+
+        Authorization kcellUserAuth_67 = authorizationService.createNewAuthorization(AUTH_TYPE_GRANT);
+        kcellUserAuth_67.setGroupId("kcellUsers");
+        kcellUserAuth_67.setResource(USER);
+        kcellUserAuth_67.setResourceId("Askar.Slambekov@kcell.kz");
+        kcellUserAuth_67.addPermission(READ);
+        authorizationService.saveAuthorization(kcellUserAuth_67);
+
+        LOGGER.warning("AUTHORIZATION CREATED");
+        LOGGER.warning("========================================================================");
 
         // create default filters
 
@@ -1315,13 +1314,8 @@ public class DemoDataGenerator {
         myGroupTasksFilterRead.setGroupId("kcellUsers");
         authorizationService.saveAuthorization(myGroupTasksFilterRead);
 
-        System.out.println("FILTERS CREATED");
-        System.out.println();
-        System.out.println();
-        System.out.println();
-        System.out.println();
-        System.out.println();
-        System.out.println("========================================================================");
+        LOGGER.warning("FILTERS CREATED");
+        LOGGER.warning("========================================================================");
 
     }
 

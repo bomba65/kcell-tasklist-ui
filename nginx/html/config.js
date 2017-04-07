@@ -1,12 +1,13 @@
 var camTasklistConf = {
   customScripts: {
     ngDeps: ['kcell.custom.module', 'ngAnimate','xeditable', 'pattern.restrict.custom.module'],
-    deps: ['job-request-module', 'ng-animate','x-editable', 'pattern-restrict-module'],
+    deps: ['job-request-module', 'ng-animate','x-editable', 'pattern-restrict-module', 'lodash'],
     paths: {
       'job-request-module': '/customScripts/job-request',
       'pattern-restrict-module': '/customScripts/cadastral',
       'ng-animate': '//ajax.googleapis.com/ajax/libs/angularjs/1.2.29/angular-animate',
-      'x-editable': '/customScripts/xeditable.min'
+      'x-editable': '/customScripts/xeditable.min',
+      'lodash': '/customScripts/lodash.min'
     }
   },
 

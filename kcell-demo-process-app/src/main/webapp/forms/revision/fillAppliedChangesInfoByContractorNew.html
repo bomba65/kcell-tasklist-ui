@@ -1,0 +1,545 @@
+<form role="form" class="form-horizontal kcell-form-custom">
+    <script cam-script type="text/form-script">
+        inject(['$scope', '$http', 'Uri', '$timeout', function ($scope, $http, Uri, $timeout) {
+            var variables = [
+                'requestedDate',
+                'validityDate',
+                'soaComplaintId',
+                'site',
+                'siteName',
+                'reason',
+                'contract',
+                'contractor',
+                'materialsRequired',
+                'leasingRequired',
+                'powerRequired',
+                'supplementaryFile1',
+                'supplementaryFile2',
+                'supplementaryFile3',
+                'supplementaryFile4',
+                'supplementaryFile5',
+                'explanation',
+                'jobWorks',
+                'sapPRFileXLS',
+                'sapPRNo',
+                'kcellWarehouseMaterialsList',
+                'contractorZIPWarehouseMaterialsList',
+                'sapTransferRequestFile',
+                'actOfMaterialsDispatchingFile'
+            ];
+
+            var assetsUrl = '/asset-management/api';
+            $scope.jobModel = {};
+            $scope.showAddHop = false;
+            $scope.farEndSite = {
+                id: undefined
+            };
+            $scope.indoorUnit = {};
+            $scope.outdoorUnit = {};
+            $scope.antenna = {};
+            $http.get(Uri.appUri("engine://engine/:engine/task/" + camForm.taskId + "/form")).success(function (result) {
+                $scope.contextPath = result.contextPath;
+            });
+            camForm.on('form-loaded', function () {
+                variables.forEach(function (el) {
+                    camForm.variableManager.fetchVariable(el);
+                });
+
+                $http.get('/api/catalogs').then(
+                        function (result) {
+                            angular.extend($scope, result.data);
+                            angular.extend($scope.jobModel, result.data);
+                        },
+                        function (error) {
+                            console.log(error.data);
+                        }
+                );
+                camForm.variableManager.createVariable({
+                    name: 'fillAppliedChangesInfoByContractorTaskResult',
+                    type: 'String',
+                    value: ''
+                });
+                camForm.variableManager.createVariable({
+                    name: 'modifyWorks',
+                    type: 'Boolean',
+                    value: undefined
+                });
+                camForm.variableManager.createVariable({
+                    name: 'sitesWorks',
+                    type: 'Json',
+                    value: undefined
+                });
+                camForm.variableManager.createVariable({
+                    name: 'fillApplied',
+                    type: 'String',
+                    value: undefined
+                });
+                camForm.variableManager.createVariable({
+                    name: 'fillSite',
+                    type: 'Json',
+                    value: {}
+                });
+            });
+            camForm.on('variables-fetched', function () {
+                variables.forEach(function (el) {
+                    $scope.jobModel[el] = camForm.variableManager.variables[el];
+                });
+
+                $http.get('/asset-management/api/sites').then(
+                        function (result) {
+                            $scope.sitesList = [];
+                            for (var i = 0; i < result.data._embedded.sites.length; i++) {
+                                var site = result.data._embedded.sites[i];
+                                $scope.sitesList.push({
+                                    name: site.name,
+                                    id: site._links.self.href.replace("{projection}","").substr(site._links.self.href.replace("{projection}","").lastIndexOf('/') + 1)
+                                });
+                            }
+                        },
+                        function (error) {
+                            console.log(error.data);
+                        }
+                );
+                $http.get('/asset-management/api/facilityDefinitions').then(
+                        function (result) {
+                            $scope.facilityDefinitions = [];
+                            for (var i = 0; i < result.data._embedded.facilityDefinitions.length; i++) {
+                                var id = result.data._embedded.facilityDefinitions[i]._links.self.href.replace("{projection}","").substr(result.data._embedded.facilityDefinitions[i]._links.self.href.replace("{projection}","").lastIndexOf('/') + 1)
+                                $scope.facilityDefinitions.push({
+                                    name: result.data._embedded.facilityDefinitions[i].name,
+                                    id: id
+                                });
+                            }
+                        },
+                        function (error) {
+                            console.log(error.data);
+                        }
+                );
+            });
+
+            camForm.on('submit', function () {
+                camForm.variableManager.variableValue('sitesWorks', JSON.parse(angular.toJson($scope.sitesWorks)));
+                camForm.variableManager.variableValue('fillSite', JSON.parse(angular.toJson($scope.fillSite)));
+                camForm.variableManager.variableValue('fillAppliedChangesInfoByContractorTaskResult', $scope.fillAppliedChangesInfoByContractorTaskResult);
+                if ($scope.fillAppliedChangesInfoByContractorTaskResult == 'saveChanges') {
+                    camForm.variableManager.variableValue('fillApplied', 'saveChanges');
+                } else if ($scope.fillAppliedChangesInfoByContractorTaskResult == 'cannotPerform') {
+                    camForm.variableManager.variableValue('fillApplied', 'cannotPerform');
+                } else if ($scope.fillAppliedChangesInfoByContractorTaskResult == 'notAvailable') {
+                    camForm.variableManager.variableValue('fillApplied', 'notAvailable');
+                }
+            });
+
+            $scope.addMoreWork = addMoreWork;
+            function addMoreWork(site) {
+                for (var i = 0; i < $scope.sitesWorks.length; i++) {
+                    if ($scope.sitesWorks[i].id === site) {
+                        $scope.sitesWorks[i].works.push({id: 1});
+                    }
+                }
+            }
+
+            camForm.on('store', function () {
+                camForm.variableManager.variableValue('fillAppliedChangesInfoByContractorTaskResult', $scope.fillAppliedChangesInfoByContractorTaskResult);
+                camForm.variableManager.variableValue('sitesWorks', $scope.sitesWorks);
+                camForm.variableManager.variableValue('fillSite', $scope.fillSite);
+            });
+
+            camForm.on('variables-restored', function () {
+                $scope.fillAppliedChangesInfoByContractorTaskResult = camForm.variableManager.variableValue('fillAppliedChangesInfoByContractorTaskResult');
+                $scope.sitesWorks = camForm.variableManager.variableValue('sitesWorks');
+                if ($scope.sitesWorks === undefined) {
+                    try {
+                        $scope.jobModel.jobWorks.originalValue = JSON.parse($scope.jobModel.jobWorks.originalValue);
+                        $scope.sitesWorks = [];
+                        for (var i = 0; i < $scope.jobModel.jobWorks.originalValue.length; i++) {
+                            var w = {
+                                id: $scope.jobModel.jobWorks.originalValue[i].sites,
+                                works: []
+                            };
+                            $scope.sitesWorks.push(w);
+                        }
+                    } catch (e) {
+                        console.log(e);
+                    }
+                }
+                $scope.fillSite = camForm.variableManager.variableValue('fillSite');
+                if (angular.equals({}, $scope.fillSite)) {
+                    $scope.fillSite = {
+                        facilities: [],
+                        persons: [],
+                        cabinets: [],
+                        powerSources: [],
+                        rus: [],
+                        dus: [],
+                        antennas: [],
+                        transmissions: [],
+                        ius: [],
+                        ous: [],
+                        aus: [],
+                        supplementary: [],
+                        siteId: $scope.jobModel.site.originalValue
+                    };
+                    $http.get('/asset-management/api/sites/'+$scope.fillSite.siteId+'?projection=siteFull').then(
+                        function(result){
+                            var site = result.data;
+                            if(site.facilities !== undefined){
+                                $scope.fillSite.facilities = site.facilities;
+                            }
+                            if(site.powerSources !== undefined){
+                                $scope.fillSite.powerSources = site.powerSources;
+                            }
+                            if(site.installations !== undefined){
+                                var map = _.groupBy(site.installations, 'equipment.definitionId');
+                                $scope.fillSite.cabinets = map.CABINET;
+                                $scope.fillSite.rus = map.RU;
+                                $scope.fillSite.dus = map.DU;
+                                $scope.fillSite.antennas = map.ANTENNA;
+                                $scope.fillSite.supplementary = map.SUPPLEMENTARY;
+                                $scope.fillSite.ous = map.OU;
+                                $scope.fillSite.ius = map.IU;
+                                $scope.fillSite.aus = map.AU;
+                            }
+                        },
+                        function (error) {
+                            console.log(error.data);
+                        }
+                    );
+                }
+            });
+
+            $scope.addPerson = function (index) {
+                if (!$scope.fillSite.facilities[index].persons) {
+                    $scope.fillSite.facilities[index].params.persons = [];
+                }
+                $scope.fillSite.facilities[index].params.persons.push({});
+            };
+
+            $scope.removePerson = function (facilityIndex, personIndex) {
+                $scope.fillSite.facilities[facilityIndex].params.persons.splice(personIndex, 1);
+            };
+
+            $scope.addFacility = function () {
+                $scope.fillSite.facilities.push({});
+            };
+
+            $scope.removeFacility = function (index) {
+                $scope.fillSite.facilities.splice(index, 1);
+            };
+
+            $scope.addCabinet = function () {
+                $scope.fillSite.cabinets.push({});
+            };
+
+            $scope.removeCabinet = function (index) {
+                $scope.fillSite.cabinets.splice(index, 1);
+            };
+
+            $scope.addRu = function () {
+                $scope.fillSite.rus.push({equipment: {rat: []}});
+            };
+
+            $scope.removeRu = function (index) {
+                $scope.fillSite.rus.splice(index, 1);
+            };
+
+            $scope.addDu = function () {
+                $scope.fillSite.dus.push({equipment: {rat: []}});
+            };
+
+            $scope.removeDu = function (index) {
+                $scope.fillSite.dus.splice(index, 1);
+            };
+
+            $scope.changeModificationType = function (target, value) {
+                $scope.fillSite[target] = value;
+            };
+
+            $scope.addPowerSource = function () {
+                $scope.fillSite.powerSources.push({
+                    cable_ways: [],
+                    cable_way: {},
+                    lightning_sys: {},
+                    grounding_sys: {},
+                    disel_generator: {},
+                    oil_tank: {},
+                    electricity_counter: {}
+                });
+            };
+
+            $scope.removePowerSource = function (index) {
+                $scope.fillSite.powerSources.splice(index, 1);
+            };
+
+            $scope.addSupplementary = function () {
+                $scope.fillSite.supplementary.push({equipment: {}, installation: {}});
+            }
+
+            $scope.removeSupplementary = function (index) {
+                $scope.fillSite.supplementary.splice(index, 1);
+            };
+
+            $scope.addAntenna = function () {
+                $scope.fillSite.antennas.push({equipment: {}, installation: {}});
+            }
+
+            $scope.removeAntenna = function (index) {
+                $scope.fillSite.antennas.splice(index, 1);
+            };
+
+            $scope.addCellToPower = function (index) {
+                if (!$scope.fillSite.powerSources[index].cable_ways) {
+                    $scope.fillSite.powerSources[index].cable_ways = [];
+                }
+                $scope.fillSite.powerSources[index].cable_ways.push({});
+            };
+
+            $scope.removeCellFromPower = function (powerIndex, cableIndex) {
+                $scope.fillSite.powerSources[powerIndex].cable_ways.splice(cableIndex, 1);
+            };
+
+            $scope.fromCharCode = function (c) {
+                return String.fromCharCode(c);
+            };
+
+            $scope.toggleRadioTechnologies = function (index, technology) {
+                if (!$scope.fillSite.rus[index].equipment.params.rat) {
+                    $scope.fillSite.rus[index].equipment.params.rat = [];
+                }
+                var idx = $scope.fillSite.rus[index].equipment.params.rat.indexOf(technology);
+
+                if (idx > -1) {
+                    $scope.fillSite.rus[index].equipment.params.rat.splice(idx, 1);
+                }
+                else {
+                    $scope.fillSite.rus[index].equipment.params.rat.push(technology);
+                }
+            };
+
+            $scope.toggleDigitalTechnologies = function (index, technology) {
+                if (!$scope.fillSite.dus[index].equipment.params.rat) {
+                    $scope.fillSite.dus[index].equipment.params.rat = [];
+                }
+                var idx = $scope.fillSite.dus[index].equipment.params.rat.indexOf(technology);
+
+                if (idx > -1) {
+                    $scope.fillSite.dus[index].equipment.params.rat.splice(idx, 1);
+                }
+                else {
+                    $scope.fillSite.dus[index].equipment.params.rat.push(technology);
+                }
+            };
+
+            $scope.toggleAntennaTechnologies = function (index, technology) {
+                if (!$scope.fillSite.antennas[index].equipment.params.rat) {
+                    $scope.fillSite.antennas[index].equipment.params.rat = [];
+                }
+                var idx = $scope.fillSite.antennas[index].equipment.params.rat.indexOf(technology);
+                if (idx > -1) {
+                    $scope.fillSite.antennas[index].equipment.params.rat.splice(idx, 1);
+                }
+                else {
+                    $scope.fillSite.antennas[index].equipment.params.rat.push(technology);
+                }
+            };
+
+            $scope.technologies = ['2G', '3G', 'WiMAX', 'LTE', 'Indoor'];
+
+            $scope.farEndSiteSelected = function () {
+                $http.get('/asset-management/api/installationInstances/search/findBySiteAndDefinition?site=/asset-management/api/sites/' + $scope.fillSite.transmission.farEnd.site_id + '&definition=/asset-management/api/installationDefinitions/MICROWAVE').then(
+                        function (searchResult) {
+                            if (searchResult.data._embedded.installationInstances.length > 0) {
+                                $http.get(searchResult.data._embedded.installationInstances[0]._links.installationInstance.href).then(
+                                        function (result) {
+                                            $scope.fillSite.transmission.farEnd.direction = result.data.params.direction,
+                                            $scope.fillSite.transmission.farEnd.height_in_top = result.data.params.height_in_top,
+                                            $scope.fillSite.transmission.farEnd.has_space_diversity = result.data.params.has_space_diversity,
+                                            $scope.fillSite.transmission.farEnd.min_horiz_roof_edge_distance = result.data.params.min_horiz_roof_edge_distance,
+                                            $scope.fillSite.transmission.farEnd.coaxial_cable_length = result.data.params.coaxial_cable_length,
+                                            $scope.fillSite.transmission.farEnd.location = result.data.params.location,
+                                            $scope.fillSite.transmission.farEnd.facility_id = result.data.params.facility_id,
+                                            $scope.fillSite.transmission.farEnd.equipment_type = result.data.params.equipment_type,
+                                            $scope.fillSite.transmission.farEnd.equipment_id = result.data.params.equipment_id,
+                                            $scope.fillSite.transmission.farEnd.placement_type = result.data.params.placement_type,
+                                            $scope.fillSite.transmission.farEnd.construction_type = result.data.params.construction_type;
+                                            $scope.fillSite.transmission.farEnd.link_type = result.data.params.link_type;
+                                            $scope.fillSite.transmission.farEnd.azimuth = result.data.params.azimuth;
+                                            $scope.fillSite.transmission.farEnd.polarization = result.data.params.polarization;
+                                            $scope.fillSite.transmission.farEnd.rack_serial_number = result.data.params.rack_serial_number;
+                                            $http.get(searchResult.data._embedded.installationInstances[0]._links.equipment.href).then(
+                                                    function (result1) {
+                                                        $scope.fillSite.transmission.farEnd._equipmentId = result1.data._links.equipmentInstance.href.substr(result1.data._links.equipmentInstance.href.lastIndexOf('/') + 1);
+                                                        $scope.fillSite.transmission.farEnd._installationId = searchResult.data._embedded.installationInstances[0]._links.installationInstance.href.substr(searchResult.data._embedded.installationInstances[0]._links.installationInstance.href.lastIndexOf('/') + 1);
+                                                        $scope.fillSite.transmission.farEnd.terminal_id = result1.data.params.terminal_id;
+                                                        $scope.fillSite.transmission.farEnd.type = result1.data.params.type;
+                                                        $scope.fillSite.transmission.farEnd.diameter = result1.data.params.diameter;
+                                                        $scope.fillSite.transmission.farEnd.weight = result1.data.params.weight;
+                                                        $scope.fillSite.transmission.farEnd.modulation_type = result1.data.params.modulation_type;
+                                                        $scope.fillSite.transmission.farEnd.protection_type = result1.data.params.protection_type;
+                                                        $scope.fillSite.transmission.farEnd.protection_diameter = result1.data.params.protection_diameter;
+                                                        $scope.fillSite.transmission.farEnd.height_of_suspention_of_ant = result1.data.params.height_of_suspention_of_ant;
+                                                        $scope.fillSite.transmission.farEnd.height_of_suspention_of_ant_protection = result1.data.params.height_of_suspention_of_ant_protection;
+                                                        $scope.fillSite.transmission.farEnd.power_lvl = result1.data.params.power_lvl;
+                                                        $scope.fillSite.transmission.farEnd.protection_line_power_lvl = result1.data.params.protection_line_power_lvl;
+                                                        $scope.fillSite.transmission.farEnd.tx_rx_frequencies = result1.data.params.tx_rx_frequencies;
+                                                        $scope.fillSite.transmission.farEnd.protection_tx_rx_frequencies = result1.data.params.protection_tx_rx_frequencies;
+                                                        $scope.fillSite.transmission.farEnd.serial_number = result1.data.params.serial_number;
+                                                        $scope.fillSite.transmission.farEnd.power_lvl_Tx = result1.data.params.power_lvl_Tx;
+                                                        $scope.fillSite.transmission.farEnd.power_lvl_Rx = result1.data.params.power_lvl_Rx;
+                                                        $scope.fillSite.transmission.farEnd.protection_line_power_lvl_Tx = result1.data.params.protection_line_power_lvl_Tx;
+                                                        $scope.fillSite.transmission.farEnd.protection_line_power_lvl_Rx = result1.data.params.protection_line_power_lvl_Rx;
+                                                        $scope.fillSite.transmission.farEnd.pass_distance = result1.data.params.pass_distance;
+                                                        $scope.fillSite.transmission.farEnd.link_capacity_ethernet = result1.data.params.link_capacity_ethernet;
+                                                        $scope.fillSite.transmission.farEnd.link_capacity_nxE1 = result1.data.params.link_capacity_nxE1;
+                                                        $scope.fillSite.transmission.farEnd.channel_bandwidth = result1.data.params.channel_bandwidth;
+                                                        $scope.fillSite.transmission.farEnd.rau_subband = result1.data.params.rau_subband;
+                                                        $scope.fillSite.transmission.farEnd.protection_rau_subband = result1.data.params.protection_rau_subband;
+                                                    },
+                                                    function (error1) {
+                                                        console.log(error1);
+                                                    }
+                                            );
+                                        },
+                                        function (error) {
+                                            console.log(error.data);
+                                        }
+                                );
+                            } else {
+                                $scope.noMicroWaveWarning = true;
+                            }
+                        },
+                        function (error) {
+                            console.log(error.data);
+                        }
+                );
+            };
+
+            $scope.addHop = function () {
+                var selectedSite;
+                console.log($scope.farEndSite);
+                for (var i = 0; i < $scope.sitesList.length; i++) {
+                    if ($scope.sitesList[i].id === $scope.farEndSite.id) {
+                        selectedSite = $scope.sitesList[i];
+                    }
+                }
+                if (selectedSite) {
+                    $scope.fillSite.transmissions.push({
+                        farEnd: {site: selectedSite},
+                        nearEnd: {site: $scope.jobModel.site.originalValue, indoors: [], outdoors: [], antennas: []}
+                    });
+                    $scope.toggleHop();
+                }
+            };
+
+            $scope.addIndoorUnit = function () {
+                $scope.indoorUnit.index = $scope.fillSite.transmission.indoorUnits.length + 1;
+                $scope.fillSite.transmission.indoorUnits.push($scope.indoorUnit);
+                $scope.indoorUnit = {};
+            };
+
+            $scope.addOutdoorUnit = function () {
+                $scope.outdoorUnit.index = $scope.fillSite.transmission.outdoorUnits.length + 1;
+                $scope.fillSite.transmission.outdoorUnits.push($scope.outdoorUnit);
+                $scope.outdoorUnit = {};
+            };
+
+            $scope.addAntennaUnit = function () {
+                $scope.antenna.index = $scope.fillSite.transmission.antennas.length + 1;
+                $scope.fillSite.transmission.antennas.push($scope.antenna);
+                $scope.antenna = {};
+            };
+
+            $scope.toggleHop = function () {
+                $scope.showAddHop = !$scope.showAddHop;
+            }
+
+            $scope.addHopOd = function(index){
+                $scope.fillSite.transmissions[index].nearEnd.outdoors.push({});
+            }
+
+            $scope.addHopAntenna = function(index){
+                $scope.fillSite.transmissions[index].nearEnd.antennas.push({});
+            }
+
+            $scope.myRegex = /[a-zA-Z]{4}[0-9]{6,6}[a-zA-Z0-9]{3}/;
+        }]);
+    </script>
+    <h4>Site Id: {{jobModel.site.originalValue}}, Site Name: {{jobModel.siteName.originalValue}} </h4>
+    <table class="table table-hover table-bordered well">
+        <thead>
+        <tr>
+            <th>#</th>
+            <th>List of works</th>
+        </tr>
+        </thead>
+        <tbody>
+        <tr ng-repeat="work in jobModel.jobWorks.value">
+            <td>{{$index+1}}</td>
+            <td>{{jobModel.worksTitle[work.sapServiceNumber]}}, works qty: {{work.quantity}}, materials qty:
+                {{work.materialQuantity}} {{jobModel.unitsTitle[work.unit]}}, on sites: {{work.sites}} (Near end)
+            </td>
+        </tr>
+        </tbody>
+    </table>
+    <tabset class="my-tab-head my-tab" justified="true">
+        <tab>
+            <tab-heading><span class="glyphicon glyphicon-map-marker"></span> Facility</tab-heading>
+            <ng-include ng-if="contextPath" src="contextPath+'/forms/revision/fill-facility.html'"></ng-include>
+        </tab>
+        <tab>
+            <tab-heading><span class="glyphicon glyphicon-th"></span> Cabinets</tab-heading>
+            <ng-include ng-if="contextPath" src="contextPath+'/forms/revision/fill-cabinets.html'"></ng-include>
+        </tab>
+        <tab>
+            <tab-heading title="Radio/Digital Units"><span class="glyphicon glyphicon-cog"></span> RU/DU</tab-heading>
+            <ng-include ng-if="contextPath" src="contextPath+'/forms/revision/fill-radio.html'"></ng-include>
+        </tab>
+        <tab>
+            <tab-heading title="Antenna Systems"><span class="glyphicon glyphicon-signal"></span> Antenna</tab-heading>
+            <ng-include ng-if="contextPath" src="contextPath+'/forms/revision/fill-antenna.html'"></ng-include>
+        </tab>
+        <tab>
+            <tab-heading><span class="glyphicon glyphicon-flash"></span> Power</tab-heading>
+            <ng-include ng-if="contextPath" src="contextPath+'/forms/revision/fill-power.html'"></ng-include>
+        </tab>
+        <tab>
+            <tab-heading><span class="glyphicon glyphicon-transfer"></span> Transmission</tab-heading>
+            <ng-include ng-if="contextPath" src="contextPath+'/forms/revision/fill-transmission.html'"></ng-include>
+        </tab>
+        <tab>
+            <tab-heading><span class="glyphicon glyphicon-leaf"></span> Supplementary</tab-heading>
+            <ng-include ng-if="contextPath" src="contextPath+'/forms/revision/fill-supplementary.html'"></ng-include>
+        </tab>
+    </tabset>
+    <div class="well">
+        <div class="form-group">
+            <label class="col-sm-4 control-label">Resolution</label>
+            <div class="col-sm-8">
+                <label class="radio-inline">
+                    <input type="radio" name="fillAppliedChangesInfoByContractorTaskResult"
+                           ng-model="fillAppliedChangesInfoByContractorTaskResult" value="saveChanges" required> Save
+                    changes
+                </label>
+                <label class="radio-inline">
+                    <input type="radio" name="fillAppliedChangesInfoByContractorTaskResult"
+                           ng-model="fillAppliedChangesInfoByContractorTaskResult" value="notAvailable" required>
+                    Materials not available
+                </label>
+                <label class="radio-inline">
+                    <input type="radio" name="fillAppliedChangesInfoByContractorTaskResult"
+                           ng-model="fillAppliedChangesInfoByContractorTaskResult" value="cannotPerform" required>
+                    Cannot perform works
+                </label>
+            </div>
+        </div>
+        <div class="form-group">
+            <label class="col-sm-4 control-label">Comments</label>
+            <div class="col-sm-8">
+                <textarea class="form-control" rows="4" maxlength="500"
+                          cam-variable-name="fillAppliedChangesByContractorComment"
+                          ng-required="fillAppliedChangesInfoByContractorTaskResult == 'notAvailable' || fillAppliedChangesInfoByContractorTaskResult == 'cannotPerform'"
+                          cam-variable-type="String"></textarea>
+            </div>
+        </div>
+    </div>
+</form>

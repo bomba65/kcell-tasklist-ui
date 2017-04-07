@@ -65,304 +65,272 @@ public class DataInitializer {
 
         WKTReader wktReader = new WKTReader();
 
-        FacilityDefinition facilityDefinition1 = FacilityDefinition.builder()
+        FacilityDefinition facilityDefinitionBUILDING = FacilityDefinition.builder()
                 .id("BUILDING")
                 .schema("{}")
                 .name("Building")
                 .build();
 
-        FacilityDefinition facilityDefinition2 = FacilityDefinition.builder()
+        FacilityDefinition facilityDefinitionTOWER = FacilityDefinition.builder()
                 .id("TOWER")
                 .schema("{}")
                 .name("Tower")
                 .build();
 
-        FacilityDefinition facilityDefinition3 = FacilityDefinition.builder()
+        FacilityDefinition facilityDefinitionMAST = FacilityDefinition.builder()
                 .id("MAST")
                 .schema("{}")
                 .name("Mast")
                 .build();
 
-        facilityDefinitionRepository.save(Arrays.asList(facilityDefinition1, facilityDefinition2, facilityDefinition3));
+        facilityDefinitionRepository.save(Arrays.asList(facilityDefinitionBUILDING, facilityDefinitionTOWER, facilityDefinitionMAST));
 
-        FacilityInstance facilityInstance1 = FacilityInstance.builder()
-                .definition(facilityDefinition1)
-                .location((Point) wktReader.read("POINT(10.0 10.0 10.0)"))
-                .params("{}")
-                .build();
-
-        FacilityInstance facilityInstance2 = FacilityInstance.builder()
-                .definition(facilityDefinition1)
+        FacilityInstance facilityInstanceBUILDING = FacilityInstance.builder()
+                .definition(facilityDefinitionBUILDING)
                 .location((Point) wktReader.read("POINT(-10.0 10.0 10.0)"))
-                .params("{}")
+                .params("{\"name\":\"Near shop 'Nurlan'\",\"region\":\"South Region\",\"city\":\"Almaty\",\"street\":\"Furmanova\",\"building_number\":127,\"cadastral_number\":\"01-2032-032832\",\"latitude\":\"43.252540\",\"longitude\":\"76.946774\",\"altitude\":911,\"owner\":\"Kazakhtelecom\",\"height:\":43,\"max_neighbor_height\":20,\"building_type\":\"Specialization 1\",\"roof_type\":\"Профнастил\",\"roof_degrees\":\"13\",\"ceiling_type\":\"железобетон\",\"has_technical_floor\":\"No\",\"additional_info\":\"г. Алматы, Фурманова 127 над магазином 'Нурлан'\"}")
                 .build();
 
         Site site1 = Site.builder()
                 .id("SITE1")
                 .name("Site 1")
                 .params("{}")
-                .facilities(Stream.of(facilityInstance1).collect(Collectors.toSet()))
+                .facilities(Stream.of(facilityInstanceBUILDING).collect(Collectors.toSet()))
                 .build();
 
-        Site site2 = Site.builder()
-                .id("SITE2")
-                .name("Site 2")
-                .params("{}")
-                .facilities(Stream.of(facilityInstance2).collect(Collectors.toSet()))
-                .build();
-
-        facilityInstanceRepository.save(Arrays.asList(facilityInstance1, facilityInstance2));
-        siteRepository.save(Arrays.asList(site1, site2));
+        facilityInstanceRepository.save(Arrays.asList(facilityInstanceBUILDING));
+        siteRepository.save(Arrays.asList(site1));
 
 
-        EquipmentDefinition equipmentDefinition1 = EquipmentDefinition.builder()
+        EquipmentDefinition equipmentDefinitionAIRCONDITIONER = EquipmentDefinition.builder()
                 .id("AIRCONDITIONER")
                 .name("Air conditioner")
                 .schema("{}")
                 .build();
 
-        EquipmentDefinition equipmentDefinition2 = EquipmentDefinition.builder()
+        EquipmentDefinition equipmentDefinitionMICROWAVE = EquipmentDefinition.builder()
                 .id("MICROWAVE")
                 .name("Microwave antenna")
                 .schema("{}")
                 .build();
 
-        EquipmentDefinition equipmentDefinition3 = EquipmentDefinition.builder()
+        EquipmentDefinition equipmentDefinitionCABINET = EquipmentDefinition.builder()
                 .id("CABINET")
                 .name("Cabinets to BSC/RNC Connection")
                 .schema("{}")
                 .build();
 
-        EquipmentDefinition equipmentDefinition4 = EquipmentDefinition.builder()
+        EquipmentDefinition equipmentDefinitionRU = EquipmentDefinition.builder()
                 .id("RU")
                 .name("Radio Unit")
                 .schema("{}")
                 .build();
 
-        EquipmentDefinition equipmentDefinition5 = EquipmentDefinition.builder()
+        EquipmentDefinition equipmentDefinitionSUPPLEMENTARY = EquipmentDefinition.builder()
                 .id("SUPPLEMENTARY")
                 .name("Supplementary equipment")
                 .schema("{}")
                 .build();
 
-        EquipmentDefinition equipmentDefinition6 = EquipmentDefinition.builder()
+        EquipmentDefinition equipmentDefinitionANTENNA = EquipmentDefinition.builder()
                 .id("ANTENNA")
                 .name("Supplementary equipment")
                 .schema("{}")
                 .build();
 
-        EquipmentDefinition equipmentDefinition7 = EquipmentDefinition.builder()
+        EquipmentDefinition equipmentDefinitionDU = EquipmentDefinition.builder()
                 .id("DU")
                 .name("Digital Unit")
                 .schema("{}")
                 .build();
 
-        EquipmentDefinition equipmentDefinition8 = EquipmentDefinition.builder()
+        EquipmentDefinition equipmentDefinitionAU = EquipmentDefinition.builder()
                 .id("AU")
                 .name("Hop Antenna Unit")
                 .schema("{}")
                 .build();
 
-        EquipmentDefinition equipmentDefinition9 = EquipmentDefinition.builder()
+        EquipmentDefinition equipmentDefinitionOU = EquipmentDefinition.builder()
                 .id("OU")
                 .name("Hop Outdoor Unit")
                 .schema("{}")
                 .build();
 
-        EquipmentDefinition equipmentDefinition10 = EquipmentDefinition.builder()
+        EquipmentDefinition equipmentDefinitionIU = EquipmentDefinition.builder()
                 .id("IU")
                 .name("Hop Indoor Unit")
                 .schema("{}")
                 .build();
 
-        EquipmentInstance equipmentInstance1 = EquipmentInstance.builder()
+        EquipmentInstance equipmentInstanceAIRCONDITIONER = EquipmentInstance.builder()
                 .sn("1000")
-                .definition(equipmentDefinition1)
+                .definition(equipmentDefinitionAIRCONDITIONER)
                 .params("{}")
                 .build();
 
-        EquipmentInstance equipmentInstance2 = EquipmentInstance.builder()
+        EquipmentInstance equipmentInstanceMICROWAVE = EquipmentInstance.builder()
                 .sn("2000")
-                .definition(equipmentDefinition2)
+                .definition(equipmentDefinitionMICROWAVE)
                 .params("{}")
                 .build();
 
-        EquipmentInstance equipmentInstance3 = EquipmentInstance.builder()
+        EquipmentInstance equipmentInstanceCABINET = EquipmentInstance.builder()
                 .sn("444rrrwer")
-                .definition(equipmentDefinition3)
-                .params("{}")
+                .definition(equipmentDefinitionCABINET)
+                .params("{\"bsc\": \"AlmBSC8\",\"rnc\":\"AlmRNC5\",\"company_vendor_id\":\"Ericsson\",\"cabinet_type\": \"RBS 2216\",\"voltage\": \"220V\"}")
                 .build();
 
-        EquipmentInstance equipmentInstance4 = EquipmentInstance.builder()
+        EquipmentInstance equipmentInstanceRU = EquipmentInstance.builder()
                 .sn("2001")
-                .definition(equipmentDefinition2)
-                .params("{}")
+                .definition(equipmentDefinitionRU)
+                .params("{\"type\":\"RRU\",\"rbs_number\":\"1\",\"serial_number\":\"SN23782713FY\",\"sector\":\"A\",\"band\":\"GSM1800/WCDMA2100\",\"rrus_construction_type\":\"RRU\",\"trx_quantity\":5,\"carrier_quantity\":6,\"voltage\":\"220V\",\"rat\":[\"2G\",\"3G\",\"WiMAX\"]}")
                 .build();
 
-        EquipmentInstance equipmentInstance5 = EquipmentInstance.builder()
+        EquipmentInstance equipmentInstanceSUPPLEMENTARY = EquipmentInstance.builder()
                 .sn("2001")
-                .definition(equipmentDefinition4)
-                .params("{}")
+                .definition(equipmentDefinitionSUPPLEMENTARY)
+                .params("{\"type\":\"Air conditioner\",\"vendor\":\"Samsung\",\"serial_number\":\"SN89217821KZ\",\"location_type\":\"indoor\",\"voltage\":\"220\"}")
                 .build();
 
-        EquipmentInstance equipmentInstance6 = EquipmentInstance.builder()
+        EquipmentInstance equipmentInstanceANTENNA = EquipmentInstance.builder()
                 .sn("2001")
-                .definition(equipmentDefinition5)
-                .params("{}")
+                .definition(equipmentDefinitionANTENNA)
+                .params("{\"rat\":[\"2G\",\"3G\"],\"sector\":\"A\",\"rbs_number\":\"1\",\"model\":\"23466XYZ\",\"serial_number\":\"SN18238213KZ\",\"duplex_filter\":\"Yes\",\"hcu\":\"Yes\",\"power_splitter\":\"Yes\",\"tma\":\"Yes\",\"extended_range\":\"Yes\",\"retu\":\"Yes\",\"beam_width\":\"214\",\"gain\":\"421\",\"max_wind_velocity\":\"4124\",\"weight\":\"412421\",\"length_of_cable\":\"23\"}")
                 .build();
 
-        EquipmentInstance equipmentInstance7 = EquipmentInstance.builder()
+        EquipmentInstance equipmentInstanceDU = EquipmentInstance.builder()
                 .sn("2001")
-                .definition(equipmentDefinition6)
-                .params("{}")
+                .definition(equipmentDefinitionDU)
+                .params("{\"type\":\"DUS3101\",\"rbs_number\":\"1\",\"serial_number\":\"SN217832UIRWWW73\",\"rat\":[\"2G\",\"WiMAX\",\"3G\",\"LTE\"]}")
                 .build();
 
-        EquipmentInstance equipmentInstance8 = EquipmentInstance.builder()
-                .sn("2001")
-                .definition(equipmentDefinition7)
-                .params("{}")
-                .build();
+        equipmentDefinitionRepository.save(Arrays.asList(equipmentDefinitionAIRCONDITIONER, equipmentDefinitionMICROWAVE, equipmentDefinitionCABINET, equipmentDefinitionRU, equipmentDefinitionSUPPLEMENTARY, equipmentDefinitionANTENNA, equipmentDefinitionDU, equipmentDefinitionAU, equipmentDefinitionOU, equipmentDefinitionIU));
+        equipmentInstanceRepository.save(Arrays.asList(equipmentInstanceAIRCONDITIONER, equipmentInstanceMICROWAVE, equipmentInstanceCABINET, equipmentInstanceRU, equipmentInstanceSUPPLEMENTARY, equipmentInstanceANTENNA, equipmentInstanceDU));
 
-        equipmentDefinitionRepository.save(Arrays.asList(equipmentDefinition1, equipmentDefinition2, equipmentDefinition3, equipmentDefinition4, equipmentDefinition5, equipmentDefinition6, equipmentDefinition7, equipmentDefinition8, equipmentDefinition9, equipmentDefinition10));
-        equipmentInstanceRepository.save(Arrays.asList(equipmentInstance1, equipmentInstance2, equipmentInstance3, equipmentInstance4, equipmentInstance5, equipmentInstance6, equipmentInstance7, equipmentInstance8));
-
-        InstallationDefinition installationDefinition1 = InstallationDefinition.builder()
+        InstallationDefinition installationDefinitionAIRCONDITIONER = InstallationDefinition.builder()
                 .id("AIRCONDITIONER")
                 .name("Air Conditioner Installation")
                 .schema("{}")
                 .build();
 
-        InstallationInstance installationInstance1 = InstallationInstance.builder()
-                .definition(installationDefinition1)
-                .equipment(equipmentInstance1)
-                .facility(facilityInstance1)
+        InstallationInstance installationInstanceAIRCONDITIONER = InstallationInstance.builder()
+                .definition(installationDefinitionAIRCONDITIONER)
+                .equipment(equipmentInstanceAIRCONDITIONER)
+                .facility(facilityInstanceBUILDING)
                 .site(site1)
                 .params("{}")
                 .build();
 
-        InstallationDefinition installationDefinition2 = InstallationDefinition.builder()
+        InstallationDefinition installationDefinitionMICROWAVE = InstallationDefinition.builder()
                 .id("MICROWAVE")
                 .name("Microwave Installation")
                 .schema("{}")
                 .build();
 
-        InstallationInstance installationInstance2 = InstallationInstance.builder()
-                .definition(installationDefinition2)
-                .equipment(equipmentInstance2)
-                .facility(facilityInstance2)
-                .site(site2)
-                .params("{\"farEndSites\":[\"SITE2\"]}")
+        InstallationInstance installationInstanceMICROWAVE = InstallationInstance.builder()
+                .definition(installationDefinitionMICROWAVE)
+                .equipment(equipmentInstanceMICROWAVE)
+                .facility(facilityInstanceBUILDING)
+                .site(site1)
+                .params("{}")
                 .build();
 
-        InstallationDefinition installationDefinition3 = InstallationDefinition.builder()
+        InstallationDefinition installationDefinitionCABINET = InstallationDefinition.builder()
                 .id("CABINET")
                 .name("Cabinet Installation")
                 .schema("{}")
                 .build();
 
-        InstallationInstance installationInstance3 = InstallationInstance.builder()
-                .definition(installationDefinition3)
-                .equipment(equipmentInstance3)
-                .facility(facilityInstance2)
-                .site(site2)
-                .params("{}")
-                .build();
-
-        InstallationInstance installationInstance4 = InstallationInstance.builder()
-                .definition(installationDefinition2)
-                .equipment(equipmentInstance4)
-                .facility(facilityInstance1)
+        InstallationInstance installationInstanceCABINET = InstallationInstance.builder()
+                .definition(installationDefinitionCABINET)
+                .equipment(equipmentInstanceCABINET)
+                .facility(facilityInstanceBUILDING)
                 .site(site1)
-                .params("{\"farEndSites\":[\"SITE2\"]}")
+                .params("{\"facility\":\"BUILDING\",\"construction_type\":\"indoor\"}")
                 .build();
 
-        InstallationDefinition installationDefinition4 = InstallationDefinition.builder()
+        InstallationDefinition installationDefinitionRU = InstallationDefinition.builder()
                 .id("RU")
                 .name("RU Installation")
                 .schema("{}")
                 .build();
 
-        InstallationInstance installationInstance5 = InstallationInstance.builder()
-                .definition(installationDefinition4)
-                .equipment(equipmentInstance5)
-                .facility(facilityInstance1)
+        InstallationInstance installationInstanceRU = InstallationInstance.builder()
+                .definition(installationDefinitionRU)
+                .equipment(equipmentInstanceRU)
+                .facility(facilityInstanceBUILDING)
                 .site(site1)
-                .params("{}")
+                .params("{\"facility\":\"BUILDING\"}")
                 .build();
 
-        InstallationDefinition installationDefinition5 = InstallationDefinition.builder()
+        InstallationDefinition installationDefinitionSUPPLEMENTARY = InstallationDefinition.builder()
                 .id("SUPPLEMENTARY")
                 .name("Supplementary Installation")
                 .schema("{}")
                 .build();
 
-        InstallationInstance installationInstance6 = InstallationInstance.builder()
-                .definition(installationDefinition5)
-                .equipment(equipmentInstance7)
-                .facility(facilityInstance1)
+        InstallationInstance installationInstanceSUPPLEMENTARY = InstallationInstance.builder()
+                .definition(installationDefinitionSUPPLEMENTARY)
+                .equipment(equipmentInstanceSUPPLEMENTARY)
+                .facility(facilityInstanceBUILDING)
                 .site(site1)
-                .params("{}")
+                .params("{\"facility\": \"BUILDING\"}")
                 .build();
 
-        InstallationDefinition installationDefinition6 = InstallationDefinition.builder()
+        InstallationDefinition installationDefinitionANTENNA = InstallationDefinition.builder()
                 .id("ANTENNA")
                 .name("Antenna system")
                 .schema("{}")
                 .build();
 
-        InstallationInstance installationInstance7 = InstallationInstance.builder()
-                .definition(installationDefinition6)
-                .equipment(equipmentInstance6)
-                .facility(facilityInstance1)
+        InstallationInstance installationInstanceANTENNA = InstallationInstance.builder()
+                .definition(installationDefinitionANTENNA)
+                .equipment(equipmentInstanceANTENNA)
+                .facility(facilityInstanceBUILDING)
                 .site(site1)
-                .params("{}")
+                .params("{\"facility\":\"BUILDING\",\"height_in_top\":3,\"distance_from_roof_level\":3,\"min_horiz_distance_from_roof_edge\":\"4\",\"height_of_phasecenter_from_grnd_lvl\":\"2\",\"direction\":\"4\",\"m_tilt_value\":\"4\",\"e_tilt_value\":\"4\",\"location_type\":\"roof\",\"placement_type\":\"Frontal\",\"feeder_type\":\"8/9\",\"number_of_feeders\":\"4\",\"free_space_for_addition_rru\":\"Yes\",\"carrying_capacity_for_additional_rru\":\"Yes\",\"diversity\":\"Yes\"}")
                 .build();
 
-        InstallationDefinition installationDefinition7 = InstallationDefinition.builder()
+        InstallationDefinition installationDefinitionDU = InstallationDefinition.builder()
                 .id("DU")
                 .name("DU Installation")
                 .schema("{}")
                 .build();
 
-        InstallationDefinition installationDefinition8 = InstallationDefinition.builder()
+        InstallationDefinition installationDefinitionIU = InstallationDefinition.builder()
                 .id("IU")
                 .name("Indoor Unit Installation")
                 .schema("{}")
                 .build();
 
-        InstallationDefinition installationDefinition9 = InstallationDefinition.builder()
+        InstallationDefinition installationDefinitionOU = InstallationDefinition.builder()
                 .id("OU")
                 .name("Outdoor Unit Installation")
                 .schema("{}")
                 .build();
 
-        InstallationDefinition installationDefinition10 = InstallationDefinition.builder()
+        InstallationDefinition installationDefinitionAU = InstallationDefinition.builder()
                 .id("AU")
                 .name("Antenna Unit Installation")
                 .schema("{}")
                 .build();
 
         InstallationInstance installationInstance8 = InstallationInstance.builder()
-                .definition(installationDefinition7)
-                .equipment(equipmentInstance8)
-                .facility(facilityInstance1)
+                .definition(installationDefinitionDU)
+                .equipment(equipmentInstanceDU)
+                .facility(facilityInstanceBUILDING)
                 .site(site1)
-                .params("{}")
+                .params("{\"facility\": \"BUILDING\"}")
                 .build();
 
-        installationDefinitionRepository.save(Arrays.asList(installationDefinition1, installationDefinition2, installationDefinition3, installationDefinition4, installationDefinition5, installationDefinition6, installationDefinition7, installationDefinition8, installationDefinition9, installationDefinition10));
-        installationInstanceRepository.save(Arrays.asList(installationInstance1, installationInstance2, installationInstance3, installationInstance4, installationInstance5, installationInstance6, installationInstance7, installationInstance8));
+        installationDefinitionRepository.save(Arrays.asList(installationDefinitionAIRCONDITIONER, installationDefinitionMICROWAVE, installationDefinitionCABINET, installationDefinitionRU, installationDefinitionSUPPLEMENTARY, installationDefinitionANTENNA, installationDefinitionDU, installationDefinitionIU, installationDefinitionOU, installationDefinitionAU));
+        installationInstanceRepository.save(Arrays.asList(installationInstanceAIRCONDITIONER, installationInstanceCABINET, installationInstanceMICROWAVE, installationInstanceRU, installationInstanceSUPPLEMENTARY, installationInstanceANTENNA, installationInstance8));
 
         PowerSource powerSource1 = PowerSource.builder()
                 .site(site1)
-                .params("{}")
+                .params("{\"object_for_supply\":\"Container\",\"necessary_qty_of_phases\":\"2\",\"supplier\":\"Rented\",\"necessary_level\":10,\"need_tech_conditions\":\"Yes\",\"need_transformer\":\"No\",\"transformer_owner\":\"RES\",\"voltage_quality\":\"low\",\"connection_point_cable_length\":32,\"cable_way\":{\"type\":\"Under ground\",\"cable_run_ladders_length\":4,\"space_for_opticcable_in_cable_run_ladder\":\"Yes\",\"space_for_opticcable_in_metalhose\":\"Yes\",\"need_to_lay_opticcable_in_fiberclamps\":\"Yes\",\"qty_of_separated_pipes_for_antennas\":42},\"is_cable_runladders_conn_btw_electr_circuit\":\"Yes\",\"is_cable_runladders_conn_to_exist_lighting_sys\":\"Yes\",\"need_addtional_work_and_materials\":\"No\",\"additional_work_desc\":\"DESCRIPTION OF\",\"dc_power_system_model\":\"Emerson\",\"rru_circuit_breakers_25\":2,\"rru_circuit_breakers_32\":3,\"batteries_qty\":4,\"batteries_model\":\"GFM\",\"each_rectifier_module_power\":1233,\"qty_of_rectifiers\":42,\"free_space_for_dcpd\":\"Yes\",\"cable_type\":\"ВВГ\",\"cable_cross_section\":\"4x10\",\"grounding_sys\":{\"is_serviceable\":\"Yes\"},\"lightning_sys\":{\"is_serviceable\":\"Yes\"},\"disel_generator\":{\"model\":\"Aksa\",\"voltage\":\"220\",\"capacity\":4},\"oil_tank\":{\"type\":\"DIESEL\",\"volume\":424,\"location_type\":\"underground\"},\"electricity_counter\":{\"condition\":\"working\",\"need_upgrade\":\"Yes\",\"need_add_work\":\"Yes\",\"location\":\"в подвальном помещении\",\"cable_information\":\"Info\",\"location_place\":\"outside of our room or container\"}}")
                 .build();
-
-        PowerSource powerSource2 = PowerSource.builder()
-                .site(site2)
-                .params("{}")
-                .build();
-        powerSourceRepository.save(Arrays.asList(powerSource1, powerSource2));
+        powerSourceRepository.save(Arrays.asList(powerSource1));
 
         log.info("End initialization");
     }
