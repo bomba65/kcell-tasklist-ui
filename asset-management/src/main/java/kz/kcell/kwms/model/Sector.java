@@ -2,10 +2,9 @@ package kz.kcell.kwms.model;
 
 import lombok.*;
 
-import javax.persistence.*;
-import javax.validation.constraints.Size;
-import java.util.HashSet;
-import java.util.Set;
+import javax.persistence.Entity;
+import javax.persistence.Id;
+import javax.persistence.Version;
 
 @Entity
 public @Data @Builder @NoArgsConstructor @AllArgsConstructor

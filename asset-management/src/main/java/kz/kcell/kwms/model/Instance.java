@@ -7,9 +7,6 @@ import kz.kcell.kwms.validation.ValidInstance;
 import lombok.NonNull;
 import org.hibernate.validator.constraints.NotBlank;
 
-import javax.persistence.Column;
-import javax.persistence.ManyToOne;
-import javax.persistence.MappedSuperclass;
 import javax.validation.Valid;
 
 @ValidInstance

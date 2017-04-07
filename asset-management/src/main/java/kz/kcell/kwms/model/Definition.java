@@ -5,9 +5,6 @@ import com.fasterxml.jackson.databind.annotation.JsonDeserialize;
 import kz.kcell.kwms.jackson.JsonAsStringDeserializer;
 import org.hibernate.validator.constraints.NotBlank;
 
-import javax.persistence.Column;
-import javax.persistence.MappedSuperclass;
-
 public interface Definition {
     @NotBlank
     @JsonRawValue

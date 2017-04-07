@@ -1,6 +1,5 @@
 package kz.kcell.kwms.model;
 
-import kz.kcell.kwms.validation.ValidInstance;
 import lombok.*;
 
 import javax.persistence.*;

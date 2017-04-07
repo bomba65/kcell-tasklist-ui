@@ -1,10 +1,8 @@
 package kz.kcell.kwms.model;
 
-import com.fasterxml.jackson.annotation.JsonInclude;
 import com.fasterxml.jackson.annotation.JsonRawValue;
 import com.fasterxml.jackson.databind.annotation.JsonDeserialize;
 import kz.kcell.kwms.jackson.JsonAsStringDeserializer;
-import kz.kcell.kwms.model.projection.SiteFull;
 import lombok.*;
 import org.hibernate.validator.constraints.NotBlank;
 
@@ -20,7 +18,7 @@ import java.util.Set;
         uniqueConstraints = @UniqueConstraint(name = "unique_name", columnNames = "name")
 )
 public @Data @Builder @NoArgsConstructor @AllArgsConstructor
-@EqualsAndHashCode(exclude = {"facilities", "farEndCandidates", "version"})
+@EqualsAndHashCode(exclude = {"facilities", "farEndCandidates", "installations", "version"})
 class Site {
     @Id
     String id;

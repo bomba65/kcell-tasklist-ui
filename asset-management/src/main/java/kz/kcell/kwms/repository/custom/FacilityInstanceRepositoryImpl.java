@@ -1,7 +1,9 @@
 package kz.kcell.kwms.repository.custom;
 
 import kz.kcell.kwms.model.FacilityInstance;
-import org.springframework.data.domain.*;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageImpl;
+import org.springframework.data.domain.Pageable;
 
 import javax.persistence.EntityManager;
 import javax.persistence.PersistenceContext;
