@@ -18,7 +18,7 @@ import java.util.Set;
         uniqueConstraints = @UniqueConstraint(name = "unique_name", columnNames = "name")
 )
 public @Data @Builder @NoArgsConstructor @AllArgsConstructor
-@EqualsAndHashCode(exclude = {"facilities", "farEndCandidates", "installations", "version"})
+@EqualsAndHashCode(exclude = {"facilities", "farEndCandidates", "installations", "powerSources", "version"})
 class Site {
     @Id
     String id;
@@ -48,6 +48,9 @@ class Site {
 
     @OneToMany(mappedBy = "site")
     List<InstallationInstance> installations;
+
+    @OneToMany(mappedBy = "site")
+    List<PowerSource> powerSources;
 
     @Version long version;
 

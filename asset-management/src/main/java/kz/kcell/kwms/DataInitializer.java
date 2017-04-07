@@ -87,13 +87,13 @@ public class DataInitializer {
 
         FacilityInstance facilityInstance1 = FacilityInstance.builder()
                 .definition(facilityDefinition1)
-                .location((Point) wktReader.read("POINT(10.0 10.0)"))
+                .location((Point) wktReader.read("POINT(10.0 10.0 10.0)"))
                 .params("{}")
                 .build();
 
         FacilityInstance facilityInstance2 = FacilityInstance.builder()
                 .definition(facilityDefinition1)
-                .location((Point) wktReader.read("POINT(-10.0 10.0)"))
+                .location((Point) wktReader.read("POINT(-10.0 10.0 10.0)"))
                 .params("{}")
                 .build();
 

@@ -17,4 +17,5 @@ public interface SiteFull {
     Set<FacilityInstanceFull> getFacilities();
     Set<Site> getFarEndCandidates();
     List<InstallationInstanceFull> getInstallations();
+    List<PowerSourceFull> getPowerSources();
 }
