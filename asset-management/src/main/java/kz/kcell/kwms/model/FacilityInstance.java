@@ -4,7 +4,9 @@ import com.vividsolutions.jts.geom.Point;
 import lombok.*;
 
 import javax.persistence.*;
+import java.util.ArrayList;
 import java.util.HashSet;
+import java.util.List;
 import java.util.Set;
 
 
@@ -30,7 +32,7 @@ public class FacilityInstance implements Instance<FacilityDefinition> {
 
     @ManyToMany(mappedBy = "facilities")
     @OrderBy("id")
-    Set<Site> sites = new HashSet<>();
+    List<Site> sites = new ArrayList<>();
 
     Point location;
 

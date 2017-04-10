@@ -8,6 +8,7 @@ import org.hibernate.validator.constraints.NotBlank;
 
 import javax.persistence.*;
 import javax.validation.constraints.Size;
+import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
@@ -38,7 +39,7 @@ class Site {
             inverseJoinColumns = @JoinColumn(name = "facility_id")
     )
     @OrderBy("id")
-    Set<FacilityInstance> facilities = new HashSet<>();
+    List<FacilityInstance> facilities = new ArrayList<>();
 
     @ManyToMany(targetEntity = Site.class)
     @JoinTable(name = "site_far_end_candidate",
