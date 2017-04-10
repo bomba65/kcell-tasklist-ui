@@ -1,6 +1,6 @@
 <form role="form" class="form-horizontal kcell-form-custom">
     <script cam-script type="text/form-script">
-        inject(['$scope', '$http', 'Uri', '$timeout', function ($scope, $http, Uri, $timeout) {
+        inject(['$scope', '$http', 'Uri', '$rootScope', function ($scope, $http, Uri, $rootScope) {
             var variables = [
                 'requestedDate',
                 'validityDate',
@@ -37,6 +37,7 @@
             $scope.indoorUnit = {};
             $scope.outdoorUnit = {};
             $scope.antenna = {};
+            $scope.technologies = ['2G', '3G', 'WiMAX', 'LTE', 'Indoor'];
             $http.get(Uri.appUri("engine://engine/:engine/task/" + camForm.taskId + "/form")).success(function (result) {
                 $scope.contextPath = result.contextPath;
             });
@@ -92,7 +93,7 @@
                                 var site = result.data._embedded.sites[i];
                                 $scope.sitesList.push({
                                     name: site.name,
-                                    id: site._links.self.href.replace("{projection}","").substr(site._links.self.href.replace("{projection}","").lastIndexOf('/') + 1)
+                                    id: site._links.self.href.replace("{projection}", "").substr(site._links.self.href.replace("{projection}", "").lastIndexOf('/') + 1)
                                 });
                             }
                         },
@@ -104,7 +105,7 @@
                         function (result) {
                             $scope.facilityDefinitions = [];
                             for (var i = 0; i < result.data._embedded.facilityDefinitions.length; i++) {
-                                var id = result.data._embedded.facilityDefinitions[i]._links.self.href.replace("{projection}","").substr(result.data._embedded.facilityDefinitions[i]._links.self.href.replace("{projection}","").lastIndexOf('/') + 1)
+                                var id = result.data._embedded.facilityDefinitions[i]._links.self.href.replace("{projection}", "").substr(result.data._embedded.facilityDefinitions[i]._links.self.href.replace("{projection}", "").lastIndexOf('/') + 1)
                                 $scope.facilityDefinitions.push({
                                     name: result.data._embedded.facilityDefinitions[i].name,
                                     id: id
@@ -118,6 +119,7 @@
             });
 
             camForm.on('submit', function () {
+                console.log(JSON.stringify($scope.fillSite));
                 camForm.variableManager.variableValue('sitesWorks', JSON.parse(angular.toJson($scope.sitesWorks)));
                 camForm.variableManager.variableValue('fillSite', JSON.parse(angular.toJson($scope.fillSite)));
                 camForm.variableManager.variableValue('fillAppliedChangesInfoByContractorTaskResult', $scope.fillAppliedChangesInfoByContractorTaskResult);
@@ -146,6 +148,9 @@
             });
 
             camForm.on('variables-restored', function () {
+                console.log($scope);
+                console.log($rootScope);
+                console.log($rootScope.authentication.name);
                 $scope.fillAppliedChangesInfoByContractorTaskResult = camForm.variableManager.variableValue('fillAppliedChangesInfoByContractorTaskResult');
                 $scope.sitesWorks = camForm.variableManager.variableValue('sitesWorks');
                 if ($scope.sitesWorks === undefined) {
@@ -180,33 +185,58 @@
                         supplementary: [],
                         siteId: $scope.jobModel.site.originalValue
                     };
-                    $http.get('/asset-management/api/sites/'+$scope.fillSite.siteId+'?projection=siteFull').then(
-                        function(result){
-                            var site = result.data;
-                            if(site.facilities !== undefined){
-                                $scope.fillSite.facilities = site.facilities;
+                    $http.get('/asset-management/api/sites/' + $scope.fillSite.siteId + '?projection=full').then(
+                            function (result) {
+                                var site = result.data;
+                                if (site.facilities !== undefined) {
+                                    $scope.fillSite.facilities = site.facilities;
+                                    $scope.fillSite.facilities.forEach(function (facility) {
+                                        facility._original = angular.copy(facility);
+                                    });
+                                }
+                                if (site.powerSources !== undefined) {
+                                    $scope.fillSite.powerSources = site.powerSources;
+                                }
+                                if (site.installations !== undefined) {
+                                    var map = _.groupBy(site.installations, 'equipment.definitionId');
+                                    $scope.fillSite.cabinets = map.CABINET;
+                                    map.RU.forEach(function (ru) {
+                                        ru.equipment.params.technologies = {};
+                                        $scope.technologies.forEach(function (e) {
+                                            console.log(e);
+                                            ru.equipment.params.technologies[e] = ru.equipment.params.rat.indexOf(e) >= 0;
+                                            console.log(ru.equipment.params.technologies);
+                                        });
+                                        ru._original = angular.copy(ru);
+                                    });
+                                    console.log("RU=====");
+                                    console.log(map.RU);
+                                    $scope.fillSite.rus = map.RU;
+                                    $scope.fillSite.dus = map.DU;
+                                    $scope.fillSite.antennas = map.ANTENNA;
+                                    $scope.fillSite.supplementary = map.SUPPLEMENTARY;
+                                    $scope.fillSite.ous = map.OU;
+                                    $scope.fillSite.ius = map.IU;
+                                    $scope.fillSite.aus = map.AU;
+                                }
+                            },
+                            function (error) {
+                                console.log(error.data);
                             }
-                            if(site.powerSources !== undefined){
-                                $scope.fillSite.powerSources = site.powerSources;
-                            }
-                            if(site.installations !== undefined){
-                                var map = _.groupBy(site.installations, 'equipment.definitionId');
-                                $scope.fillSite.cabinets = map.CABINET;
-                                $scope.fillSite.rus = map.RU;
-                                $scope.fillSite.dus = map.DU;
-                                $scope.fillSite.antennas = map.ANTENNA;
-                                $scope.fillSite.supplementary = map.SUPPLEMENTARY;
-                                $scope.fillSite.ous = map.OU;
-                                $scope.fillSite.ius = map.IU;
-                                $scope.fillSite.aus = map.AU;
-                            }
-                        },
-                        function (error) {
-                            console.log(error.data);
-                        }
                     );
                 }
             });
+
+            function guid() {
+                function s4() {
+                    return Math.floor((1 + Math.random()) * 0x10000)
+                            .toString(16)
+                            .substring(1);
+                }
+
+                return s4() + s4() + '-' + s4() + '-' + s4() + '-' +
+                        s4() + '-' + s4() + s4() + s4();
+            }
 
             $scope.addPerson = function (index) {
                 if (!$scope.fillSite.facilities[index].persons) {
@@ -220,7 +250,7 @@
             };
 
             $scope.addFacility = function () {
-                $scope.fillSite.facilities.push({});
+                $scope.fillSite.facilities.push({id: '_NEW' + guid()});
             };
 
             $scope.removeFacility = function (index) {
@@ -228,7 +258,7 @@
             };
 
             $scope.addCabinet = function () {
-                $scope.fillSite.cabinets.push({});
+                $scope.fillSite.cabinets.push({id: '_NEW' + guid()});
             };
 
             $scope.removeCabinet = function (index) {
@@ -236,7 +266,7 @@
             };
 
             $scope.addRu = function () {
-                $scope.fillSite.rus.push({equipment: {rat: []}});
+                $scope.fillSite.rus.push({equipment: {params: {rat: []}}});
             };
 
             $scope.removeRu = function (index) {
@@ -244,7 +274,7 @@
             };
 
             $scope.addDu = function () {
-                $scope.fillSite.dus.push({equipment: {rat: []}});
+                $scope.fillSite.dus.push({equipment: {params: {rat: []}}});
             };
 
             $scope.removeDu = function (index) {
@@ -280,7 +310,7 @@
             };
 
             $scope.addAntenna = function () {
-                $scope.fillSite.antennas.push({equipment: {}, installation: {}});
+                $scope.fillSite.antennas.push({equipment: {params: {rat: []}}, installation: {}});
             }
 
             $scope.removeAntenna = function (index) {
@@ -288,14 +318,14 @@
             };
 
             $scope.addCellToPower = function (index) {
-                if (!$scope.fillSite.powerSources[index].cable_ways) {
-                    $scope.fillSite.powerSources[index].cable_ways = [];
+                if (!$scope.fillSite.powerSources[index].params.cable_ways) {
+                    $scope.fillSite.powerSources[index].params.cable_ways = [];
                 }
-                $scope.fillSite.powerSources[index].cable_ways.push({});
+                $scope.fillSite.powerSources[index].params.cable_ways.push({});
             };
 
             $scope.removeCellFromPower = function (powerIndex, cableIndex) {
-                $scope.fillSite.powerSources[powerIndex].cable_ways.splice(cableIndex, 1);
+                $scope.fillSite.powerSources[powerIndex].params.cable_ways.splice(cableIndex, 1);
             };
 
             $scope.fromCharCode = function (c) {
@@ -343,7 +373,6 @@
                 }
             };
 
-            $scope.technologies = ['2G', '3G', 'WiMAX', 'LTE', 'Indoor'];
 
             $scope.farEndSiteSelected = function () {
                 $http.get('/asset-management/api/installationInstances/search/findBySiteAndDefinition?site=/asset-management/api/sites/' + $scope.fillSite.transmission.farEnd.site_id + '&definition=/asset-management/api/installationDefinitions/MICROWAVE').then(
@@ -352,16 +381,16 @@
                                 $http.get(searchResult.data._embedded.installationInstances[0]._links.installationInstance.href).then(
                                         function (result) {
                                             $scope.fillSite.transmission.farEnd.direction = result.data.params.direction,
-                                            $scope.fillSite.transmission.farEnd.height_in_top = result.data.params.height_in_top,
-                                            $scope.fillSite.transmission.farEnd.has_space_diversity = result.data.params.has_space_diversity,
-                                            $scope.fillSite.transmission.farEnd.min_horiz_roof_edge_distance = result.data.params.min_horiz_roof_edge_distance,
-                                            $scope.fillSite.transmission.farEnd.coaxial_cable_length = result.data.params.coaxial_cable_length,
-                                            $scope.fillSite.transmission.farEnd.location = result.data.params.location,
-                                            $scope.fillSite.transmission.farEnd.facility_id = result.data.params.facility_id,
-                                            $scope.fillSite.transmission.farEnd.equipment_type = result.data.params.equipment_type,
-                                            $scope.fillSite.transmission.farEnd.equipment_id = result.data.params.equipment_id,
-                                            $scope.fillSite.transmission.farEnd.placement_type = result.data.params.placement_type,
-                                            $scope.fillSite.transmission.farEnd.construction_type = result.data.params.construction_type;
+                                                    $scope.fillSite.transmission.farEnd.height_in_top = result.data.params.height_in_top,
+                                                    $scope.fillSite.transmission.farEnd.has_space_diversity = result.data.params.has_space_diversity,
+                                                    $scope.fillSite.transmission.farEnd.min_horiz_roof_edge_distance = result.data.params.min_horiz_roof_edge_distance,
+                                                    $scope.fillSite.transmission.farEnd.coaxial_cable_length = result.data.params.coaxial_cable_length,
+                                                    $scope.fillSite.transmission.farEnd.location = result.data.params.location,
+                                                    $scope.fillSite.transmission.farEnd.facility_id = result.data.params.facility_id,
+                                                    $scope.fillSite.transmission.farEnd.equipment_type = result.data.params.equipment_type,
+                                                    $scope.fillSite.transmission.farEnd.equipment_id = result.data.params.equipment_id,
+                                                    $scope.fillSite.transmission.farEnd.placement_type = result.data.params.placement_type,
+                                                    $scope.fillSite.transmission.farEnd.construction_type = result.data.params.construction_type;
                                             $scope.fillSite.transmission.farEnd.link_type = result.data.params.link_type;
                                             $scope.fillSite.transmission.farEnd.azimuth = result.data.params.azimuth;
                                             $scope.fillSite.transmission.farEnd.polarization = result.data.params.polarization;
@@ -425,41 +454,53 @@
                 if (selectedSite) {
                     $scope.fillSite.transmissions.push({
                         farEnd: {site: selectedSite},
-                        nearEnd: {site: $scope.jobModel.site.originalValue, indoors: [], outdoors: [], antennas: []}
+                        nearEnd: {site: $scope.jobModel.site.originalValue},
+                        ius: [],
+                        ous: [],
+                        aus: []
                     });
                     $scope.toggleHop();
                 }
             };
 
             $scope.addIndoorUnit = function () {
-                $scope.indoorUnit.index = $scope.fillSite.transmission.indoorUnits.length + 1;
-                $scope.fillSite.transmission.indoorUnits.push($scope.indoorUnit);
+                $scope.indoorUnit.id = '_NEW' + guid();
+                if($scope.fillSite.ius === undefined){
+                    $scope.fillSite.ius = [];
+                }
+                $scope.fillSite.ius.push($scope.indoorUnit);
                 $scope.indoorUnit = {};
             };
 
             $scope.addOutdoorUnit = function () {
-                $scope.outdoorUnit.index = $scope.fillSite.transmission.outdoorUnits.length + 1;
-                $scope.fillSite.transmission.outdoorUnits.push($scope.outdoorUnit);
+                $scope.outdoorUnit.id = '_NEW' + guid();
+                if($scope.fillSite.ous === undefined){
+                    $scope.fillSite.ous = [];
+                }
+                $scope.fillSite.ous.push($scope.outdoorUnit);
                 $scope.outdoorUnit = {};
             };
 
             $scope.addAntennaUnit = function () {
-                $scope.antenna.index = $scope.fillSite.transmission.antennas.length + 1;
-                $scope.fillSite.transmission.antennas.push($scope.antenna);
+                $scope.antenna.id = '_NEW' + guid();
+                if($scope.fillSite.aus === undefined){
+                    $scope.fillSite.aus = [];
+                }
+                $scope.fillSite.aus.push($scope.antenna);
                 $scope.antenna = {};
             };
 
             $scope.toggleHop = function () {
                 $scope.showAddHop = !$scope.showAddHop;
-            }
+            };
 
-            $scope.addHopOd = function(index){
-                $scope.fillSite.transmissions[index].nearEnd.outdoors.push({});
-            }
+            $scope.addHopOd = function (index) {
+                $scope.fillSite.transmissions[index].ous.push({});
+            };
 
-            $scope.addHopAntenna = function(index){
-                $scope.fillSite.transmissions[index].nearEnd.antennas.push({});
-            }
+            $scope.addHopAntenna = function (index) {
+                $scope.fillSite.transmissions[index].aus.push({});
+            };
 
             $scope.myRegex = /[a-zA-Z]{4}[0-9]{6,6}[a-zA-Z0-9]{3}/;
         }]);

@@ -29,6 +29,7 @@ public class FacilityInstance implements Instance<FacilityDefinition> {
     String params = "{}";
 
     @ManyToMany(mappedBy = "facilities")
+    @OrderBy("id")
     Set<Site> sites = new HashSet<>();
 
     Point location;

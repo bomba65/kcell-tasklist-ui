@@ -37,6 +37,7 @@ class Site {
             joinColumns = @JoinColumn(name = "site_id"),
             inverseJoinColumns = @JoinColumn(name = "facility_id")
     )
+    @OrderBy("id")
     Set<FacilityInstance> facilities = new HashSet<>();
 
     @ManyToMany(targetEntity = Site.class)
@@ -47,9 +48,11 @@ class Site {
     Set<Site> farEndCandidates = new HashSet<>();
 
     @OneToMany(mappedBy = "site")
+    @OrderBy("id")
     List<InstallationInstance> installations;
 
     @OneToMany(mappedBy = "site")
+    @OrderBy("id")
     List<PowerSource> powerSources;
 
     @Version long version;

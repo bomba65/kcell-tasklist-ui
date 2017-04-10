@@ -91,6 +91,12 @@ public class DataInitializer {
                 .params("{\"name\":\"Near shop 'Nurlan'\",\"region\":\"South Region\",\"city\":\"Almaty\",\"street\":\"Furmanova\",\"building_number\":127,\"cadastral_number\":\"01-2032-032832\",\"latitude\":\"43.252540\",\"longitude\":\"76.946774\",\"altitude\":911,\"owner\":\"Kazakhtelecom\",\"height:\":43,\"max_neighbor_height\":20,\"building_type\":\"Specialization 1\",\"roof_type\":\"Профнастил\",\"roof_degrees\":\"13\",\"ceiling_type\":\"железобетон\",\"has_technical_floor\":\"No\",\"additional_info\":\"г. Алматы, Фурманова 127 над магазином 'Нурлан'\"}")
                 .build();
 
+        FacilityInstance facilityInstanceMAST = FacilityInstance.builder()
+                .definition(facilityDefinitionMAST)
+                .location((Point) wktReader.read("POINT(-10.0 10.0 10.0)"))
+                .params("{\"name\":\"Near apteka 'Tair'\",\"region\":\"South Region\",\"city\":\"Almaty\",\"street\":\"Furmanova\",\"building_number\":127,\"cadastral_number\":\"01-2032-032832\",\"latitude\":\"43.252540\",\"longitude\":\"76.946774\",\"altitude\":911,\"owner\":\"Kazakhtelecom\",\"height:\":43,\"max_neighbor_height\":20,\"building_type\":\"Specialization 1\",\"roof_type\":\"Профнастил\",\"roof_degrees\":\"13\",\"ceiling_type\":\"железобетон\",\"has_technical_floor\":\"No\",\"additional_info\":\"г. Алматы, Фурманова 127 над магазином 'Нурлан'\"}")
+                .build();
+
         Site site1 = Site.builder()
                 .id("SITE1")
                 .name("Site 1")
@@ -98,8 +104,15 @@ public class DataInitializer {
                 .facilities(Stream.of(facilityInstanceBUILDING).collect(Collectors.toSet()))
                 .build();
 
-        facilityInstanceRepository.save(Arrays.asList(facilityInstanceBUILDING));
-        siteRepository.save(Arrays.asList(site1));
+        Site site2 = Site.builder()
+                .id("SITE2")
+                .name("Site 2")
+                .params("{}")
+                .facilities(Stream.of(facilityInstanceMAST).collect(Collectors.toSet()))
+                .build();
+
+        facilityInstanceRepository.save(Arrays.asList(facilityInstanceBUILDING, facilityInstanceMAST));
+        siteRepository.save(Arrays.asList(site1, site2));
 
 
         EquipmentDefinition equipmentDefinitionAIRCONDITIONER = EquipmentDefinition.builder()
@@ -195,7 +208,7 @@ public class DataInitializer {
         EquipmentInstance equipmentInstanceANTENNA = EquipmentInstance.builder()
                 .sn("2001")
                 .definition(equipmentDefinitionANTENNA)
-                .params("{\"rat\":[\"2G\",\"3G\"],\"sector\":\"A\",\"rbs_number\":\"1\",\"model\":\"23466XYZ\",\"serial_number\":\"SN18238213KZ\",\"duplex_filter\":\"Yes\",\"hcu\":\"Yes\",\"power_splitter\":\"Yes\",\"tma\":\"Yes\",\"extended_range\":\"Yes\",\"retu\":\"Yes\",\"beam_width\":\"214\",\"gain\":\"421\",\"max_wind_velocity\":\"4124\",\"weight\":\"412421\",\"length_of_cable\":\"23\"}")
+                .params("{\"rat\":[\"2G\",\"3G\"],\"sector\":\"A\",\"model\":\"23466XYZ\",\"serial_number\":\"SN18238213KZ\",\"duplex_filter\":\"Yes\",\"hcu\":\"Yes\",\"power_splitter\":\"Yes\",\"tma\":\"Yes\",\"extended_range\":\"Yes\",\"retu\":\"Yes\",\"beam_width\":\"214\",\"gain\":\"421\",\"max_wind_velocity\":\"4124\",\"weight\":\"412421\",\"length_of_cable\":\"23\"}")
                 .build();
 
         EquipmentInstance equipmentInstanceDU = EquipmentInstance.builder()
@@ -260,7 +273,7 @@ public class DataInitializer {
                 .equipment(equipmentInstanceRU)
                 .facility(facilityInstanceBUILDING)
                 .site(site1)
-                .params("{\"facility\":\"BUILDING\"}")
+                .params("{\"facility\":\"BUILDING\",\"rbs_number\":\"1\"}")
                 .build();
 
         InstallationDefinition installationDefinitionSUPPLEMENTARY = InstallationDefinition.builder()
@@ -288,7 +301,7 @@ public class DataInitializer {
                 .equipment(equipmentInstanceANTENNA)
                 .facility(facilityInstanceBUILDING)
                 .site(site1)
-                .params("{\"facility\":\"BUILDING\",\"height_in_top\":3,\"distance_from_roof_level\":3,\"min_horiz_distance_from_roof_edge\":\"4\",\"height_of_phasecenter_from_grnd_lvl\":\"2\",\"direction\":\"4\",\"m_tilt_value\":\"4\",\"e_tilt_value\":\"4\",\"location_type\":\"roof\",\"placement_type\":\"Frontal\",\"feeder_type\":\"8/9\",\"number_of_feeders\":\"4\",\"free_space_for_addition_rru\":\"Yes\",\"carrying_capacity_for_additional_rru\":\"Yes\",\"diversity\":\"Yes\"}")
+                .params("{\"facility\":\"BUILDING\",\"height_in_top\":3,\"distance_from_roof_level\":3,\"min_horiz_distance_from_roof_edge\":\"4\",\"height_of_phasecenter_from_grnd_lvl\":\"2\",\"direction\":\"4\",\"m_tilt_value\":\"4\",\"e_tilt_value\":\"4\",\"location_type\":\"roof\",\"placement_type\":\"Frontal\",\"feeder_type\":\"8/9\",\"number_of_feeders\":\"4\",\"free_space_for_addition_rru\":\"Yes\",\"carrying_capacity_for_additional_rru\":\"Yes\",\"diversity\":\"Yes\",\"rbs_number\":\"1\"}")
                 .build();
 
         InstallationDefinition installationDefinitionDU = InstallationDefinition.builder()
@@ -328,7 +341,7 @@ public class DataInitializer {
 
         PowerSource powerSource1 = PowerSource.builder()
                 .site(site1)
-                .params("{\"object_for_supply\":\"Container\",\"necessary_qty_of_phases\":\"2\",\"supplier\":\"Rented\",\"necessary_level\":10,\"need_tech_conditions\":\"Yes\",\"need_transformer\":\"No\",\"transformer_owner\":\"RES\",\"voltage_quality\":\"low\",\"connection_point_cable_length\":32,\"cable_way\":{\"type\":\"Under ground\",\"cable_run_ladders_length\":4,\"space_for_opticcable_in_cable_run_ladder\":\"Yes\",\"space_for_opticcable_in_metalhose\":\"Yes\",\"need_to_lay_opticcable_in_fiberclamps\":\"Yes\",\"qty_of_separated_pipes_for_antennas\":42},\"is_cable_runladders_conn_btw_electr_circuit\":\"Yes\",\"is_cable_runladders_conn_to_exist_lighting_sys\":\"Yes\",\"need_addtional_work_and_materials\":\"No\",\"additional_work_desc\":\"DESCRIPTION OF\",\"dc_power_system_model\":\"Emerson\",\"rru_circuit_breakers_25\":2,\"rru_circuit_breakers_32\":3,\"batteries_qty\":4,\"batteries_model\":\"GFM\",\"each_rectifier_module_power\":1233,\"qty_of_rectifiers\":42,\"free_space_for_dcpd\":\"Yes\",\"cable_type\":\"ВВГ\",\"cable_cross_section\":\"4x10\",\"grounding_sys\":{\"is_serviceable\":\"Yes\"},\"lightning_sys\":{\"is_serviceable\":\"Yes\"},\"disel_generator\":{\"model\":\"Aksa\",\"voltage\":\"220\",\"capacity\":4},\"oil_tank\":{\"type\":\"DIESEL\",\"volume\":424,\"location_type\":\"underground\"},\"electricity_counter\":{\"condition\":\"working\",\"need_upgrade\":\"Yes\",\"need_add_work\":\"Yes\",\"location\":\"в подвальном помещении\",\"cable_information\":\"Info\",\"location_place\":\"outside of our room or container\"}}")
+                .params("{\"object_for_supply\":\"Container\",\"necessary_qty_of_phases\":\"2\",\"supplier\":\"Rented\",\"necessary_level\":10,\"need_tech_conditions\":\"Yes\",\"need_transformer\":\"No\",\"transformer_owner\":\"RES\",\"voltage_quality\":\"low\",\"connection_point_cable_length\":32,\"cable_way\":{\"type\":\"Under ground\",\"cable_run_ladders_length\":4,\"space_for_opticcable_in_cable_run_ladder\":\"Yes\",\"space_for_opticcable_in_metalhose\":\"Yes\",\"need_to_lay_opticcable_in_fiberclamps\":\"Yes\",\"qty_of_separated_pipes_for_antennas\":42},\"is_cable_runladders_conn_btw_electr_circuit\":\"Yes\",\"is_cable_runladders_conn_to_exist_lighting_sys\":\"Yes\",\"need_addtional_work_and_materials\":\"No\",\"additional_work_desc\":\"DESCRIPTION OF\",\"dc_power_system_model\":\"Emerson\",\"rru_circuit_breakers_25\":2,\"rru_circuit_breakers_32\":3,\"batteries_qty\":4,\"batteries_model\":\"GFM\",\"each_rectifier_module_power\":1233,\"qty_of_rectifiers\":42,\"free_space_for_dcpd\":\"Yes\",\"cable_type\":\"ВВГ\",\"cable_cross_section\":\"4x10\",\"grounding_sys\":{\"is_serviceable\":\"Yes\"},\"lightning_sys\":{\"is_serviceable\":\"Yes\"},\"disel_generator\":{\"model\":\"Aksa\",\"voltage\":\"220\",\"capacity\":4},\"oil_tank\":{\"type\":\"DIESEL\",\"volume\":424,\"location_type\":\"underground\"},\"electricity_counter\":{\"condition\":\"working\",\"need_upgrade\":\"Yes\",\"need_add_work\":\"Yes\",\"location\":\"в подвальном помещении\",\"cable_information\":\"Info\",\"location_place\":\"outside of our room or container\"},\"cable_ways\":[{\"cable_length\":2,\"free_space_for_addition_rru\":\"Yes\",\"carrying_capacity_metal_construction\":\"No\"},{\"cable_length\":4,\"free_space_for_addition_rru\":\"No\",\"carrying_capacity_metal_construction\":\"Yes\"},{\"cable_length\":4,\"free_space_for_addition_rru\":\"Yes\",\"carrying_capacity_metal_construction\":\"No\"}]}")
                 .build();
         powerSourceRepository.save(Arrays.asList(powerSource1));
 
