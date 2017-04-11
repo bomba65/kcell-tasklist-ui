@@ -9,8 +9,8 @@ import org.springframework.data.rest.core.config.Projection;
 public interface PowerSourceFull {
     Long getId();
 
-    @Value("#{target.site.id}")
-    String getSiteId();
+    @Value("/sites/#{target.site.id}")
+    String getSite();
 
     @JsonRawValue
     String getParams();

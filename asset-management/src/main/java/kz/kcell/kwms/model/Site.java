@@ -46,7 +46,8 @@ class Site {
         joinColumns = @JoinColumn(name = "site_id", referencedColumnName = "id"),
         inverseJoinColumns = @JoinColumn(name = "far_end_site_id", referencedColumnName = "id")
     )
-    Set<Site> farEndCandidates = new HashSet<>();
+    @OrderBy("id")
+    List<Site> farEndCandidates = new ArrayList<>();
 
     @OneToMany(mappedBy = "site")
     @OrderBy("id")

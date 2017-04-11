@@ -14,8 +14,8 @@ public interface SiteFull {
     @JsonRawValue
     String getParams();
 
-    Set<FacilityInstanceFull> getFacilities();
-    Set<Site> getFarEndCandidates();
+    List<FacilityInstanceFull> getFacilities();
+    List<Site> getFarEndCandidates();
     List<InstallationInstanceFull> getInstallations();
     List<PowerSourceFull> getPowerSources();
 }
