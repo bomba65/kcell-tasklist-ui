@@ -3,6 +3,7 @@ package kz.kcell.kwms.model;
 import lombok.*;
 
 import javax.persistence.*;
+import java.util.Comparator;
 
 @Entity
 @Table(name = "installation_instance")
@@ -10,8 +11,8 @@ import javax.persistence.*;
 @Builder
 @NoArgsConstructor
 @AllArgsConstructor
-@EqualsAndHashCode(exclude = {"definition", "version"})
-public class InstallationInstance implements Instance<InstallationDefinition> {
+@EqualsAndHashCode(exclude = {"version"})
+public class InstallationInstance implements Instance<InstallationDefinition>, Comparable<InstallationInstance> {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     Long id;
@@ -33,4 +34,11 @@ public class InstallationInstance implements Instance<InstallationDefinition> {
 
     @Version
     long version;
+
+    public static Comparator<InstallationInstance> compareById = Comparator.comparing(InstallationInstance::getId);
+
+    @Override
+    public int compareTo(InstallationInstance o) {
+        return compareById.compare(this, o);
+    }
 }

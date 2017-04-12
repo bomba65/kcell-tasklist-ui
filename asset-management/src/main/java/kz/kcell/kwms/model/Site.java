@@ -4,14 +4,13 @@ import com.fasterxml.jackson.annotation.JsonRawValue;
 import com.fasterxml.jackson.databind.annotation.JsonDeserialize;
 import kz.kcell.kwms.jackson.JsonAsStringDeserializer;
 import lombok.*;
+import org.hibernate.annotations.SortComparator;
+import org.hibernate.annotations.SortNatural;
 import org.hibernate.validator.constraints.NotBlank;
 
 import javax.persistence.*;
 import javax.validation.constraints.Size;
-import java.util.ArrayList;
-import java.util.HashSet;
-import java.util.List;
-import java.util.Set;
+import java.util.*;
 
 @Entity
 @Table(
@@ -20,7 +19,7 @@ import java.util.Set;
 )
 public @Data @Builder @NoArgsConstructor @AllArgsConstructor
 @EqualsAndHashCode(exclude = {"facilities", "farEndCandidates", "installations", "powerSources", "version"})
-class Site {
+class Site implements Comparable<Site> {
     @Id
     String id;
 
@@ -39,7 +38,7 @@ class Site {
             inverseJoinColumns = @JoinColumn(name = "facility_id")
     )
     @OrderBy("id")
-    List<FacilityInstance> facilities = new ArrayList<>();
+    SortedSet<FacilityInstance> facilities = new TreeSet<>();
 
     @ManyToMany(targetEntity = Site.class)
     @JoinTable(name = "site_far_end_candidate",
@@ -47,16 +46,23 @@ class Site {
         inverseJoinColumns = @JoinColumn(name = "far_end_site_id", referencedColumnName = "id")
     )
     @OrderBy("id")
-    List<Site> farEndCandidates = new ArrayList<>();
+    SortedSet<Site> farEndCandidates = new TreeSet<>();
 
     @OneToMany(mappedBy = "site")
     @OrderBy("id")
-    List<InstallationInstance> installations;
+    SortedSet<InstallationInstance> installations = new TreeSet<>();
 
     @OneToMany(mappedBy = "site")
     @OrderBy("id")
-    List<PowerSource> powerSources;
+    SortedSet<PowerSource> powerSources = new TreeSet<>();
 
     @Version long version;
+
+    public static Comparator<Site> compareById = Comparator.comparing(Site::getId);
+
+    @Override
+    public int compareTo(Site o) {
+        return compareById.compare(this, o);
+    }
 
 }

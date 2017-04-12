@@ -15,7 +15,7 @@ public interface InstallationInstanceFull {
     @Value("/installationDefinitions/#{target.definition.id}")
     String getDefinition();
 
-    @Value("/facilityInstances/#{target.facility.id}")
+    @Value("/facilityInstances/#{target?.facility.id}")
     String getFacility();
 
     EquipmentInstanceFull getEquipment();

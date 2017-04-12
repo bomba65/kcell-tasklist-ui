@@ -4,10 +4,7 @@ import com.vividsolutions.jts.geom.Point;
 import lombok.*;
 
 import javax.persistence.*;
-import java.util.ArrayList;
-import java.util.HashSet;
-import java.util.List;
-import java.util.Set;
+import java.util.*;
 
 
 @Entity
@@ -16,9 +13,8 @@ import java.util.Set;
 @Builder
 @NoArgsConstructor
 @AllArgsConstructor
-@EqualsAndHashCode(exclude = {"definition", "sites", "version"})
-@ToString(exclude = {"definition", "sites"})
-public class FacilityInstance implements Instance<FacilityDefinition> {
+@EqualsAndHashCode(exclude = {"sites", "version"})
+public class FacilityInstance implements Instance<FacilityDefinition>, Comparable<FacilityInstance> {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
@@ -32,11 +28,17 @@ public class FacilityInstance implements Instance<FacilityDefinition> {
 
     @ManyToMany(mappedBy = "facilities")
     @OrderBy("id")
-    List<Site> sites = new ArrayList<>();
+    SortedSet<Site> sites = new TreeSet<>();
 
     Point location;
 
     @Version
     long version;
 
+    public static Comparator<FacilityInstance> compareById = Comparator.comparing(FacilityInstance::getId);
+
+    @Override
+    public int compareTo(FacilityInstance o) {
+        return compareById.compare(this, o);
+    }
 }

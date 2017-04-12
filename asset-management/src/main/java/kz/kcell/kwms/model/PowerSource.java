@@ -7,6 +7,7 @@ import lombok.*;
 import org.hibernate.validator.constraints.NotBlank;
 
 import javax.persistence.*;
+import java.util.Comparator;
 
 @Entity
 @Table(name = "power_source")
@@ -15,7 +16,7 @@ import javax.persistence.*;
 @NoArgsConstructor
 @AllArgsConstructor
 @EqualsAndHashCode(exclude = {"version"})
-public class PowerSource {
+public class PowerSource implements Comparable<PowerSource> {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
@@ -32,4 +33,11 @@ public class PowerSource {
 
     @Version
     long version;
+
+    public static Comparator<PowerSource> compareById = Comparator.comparing(PowerSource::getId);
+
+    @Override
+    public int compareTo(PowerSource o) {
+        return compareById.compare(this, o);
+    }
 }
