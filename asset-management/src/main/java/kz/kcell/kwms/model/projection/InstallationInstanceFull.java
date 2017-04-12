@@ -6,7 +6,7 @@ import org.springframework.data.rest.core.config.Projection;
 
 @Projection(name = "full", types = InstallationInstance.class)
 public interface InstallationInstanceFull extends InstanceFull {
-    @Value("#{target.facility.id}")
+    @Value("#{target.facility?.id}")
     Long getFacilityId();
     EquipmentInstanceFull getEquipment();
 }

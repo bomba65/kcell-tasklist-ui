@@ -34,9 +34,15 @@
             $scope.farEndSite = {
                 id: undefined
             };
-            $scope.indoorUnit = {};
-            $scope.outdoorUnit = {};
-            $scope.antenna = {};
+            $scope.indoorUnit = {
+                params: {}
+            };
+            $scope.outdoorUnit = {
+                params: {}
+            };
+            $scope.antenna = {
+                params: {}
+            };
             $scope.technologies = ['2G', '3G', 'WiMAX', 'LTE', 'Indoor'];
             $http.get(Uri.appUri("engine://engine/:engine/task/" + camForm.taskId + "/form")).success(function (result) {
                 $scope.contextPath = result.contextPath;
@@ -185,7 +191,7 @@
                         supplementary: [],
                         siteId: $scope.jobModel.site.originalValue
                     };
-                    $http.get('/asset-management/api/sites/' + $scope.fillSite.siteId + '?projection=full').then(
+                    $http.get('/asset-management/api/sites/' + $scope.fillSite.siteId + '?projection=full', {headers:{'If-None-Match':'*'}}).then(
                             function (result) {
                                 var site = result.data;
                                 if (site.facilities !== undefined) {
@@ -200,17 +206,33 @@
                                 if (site.installations !== undefined) {
                                     var map = _.groupBy(site.installations, 'equipment.definitionId');
                                     $scope.fillSite.cabinets = map.CABINET;
-                                    map.RU.forEach(function (ru) {
-                                        ru.equipment.params.technologies = {};
-                                        $scope.technologies.forEach(function (e) {
-                                            console.log(e);
-                                            ru.equipment.params.technologies[e] = ru.equipment.params.rat.indexOf(e) >= 0;
-                                            console.log(ru.equipment.params.technologies);
+                                    if(map.RU){
+                                        map.RU.forEach(function (ru) {
+                                            ru.equipment.params.technologies = {};
+                                            $scope.technologies.forEach(function (e) {
+                                                ru.equipment.params.technologies[e] = ru.equipment.params.rat.indexOf(e) >= 0;
+                                            });
+                                            ru._original = angular.copy(ru);
                                         });
-                                        ru._original = angular.copy(ru);
-                                    });
-                                    console.log("RU=====");
-                                    console.log(map.RU);
+                                    }
+                                    if(map.DU){
+                                        map.DU.forEach(function (du) {
+                                            du.equipment.params.technologies = {};
+                                            $scope.technologies.forEach(function (e) {
+                                                du.equipment.params.technologies[e] = du.equipment.params.rat.indexOf(e) >= 0;
+                                            });
+                                            du._original = angular.copy(du);
+                                        });
+                                    }
+                                    if(map.ANTENNA){
+                                        map.ANTENNA.forEach(function (antenna) {
+                                            antenna.equipment.params.technologies = {};
+                                            $scope.technologies.forEach(function (e) {
+                                                antenna.equipment.params.technologies[e] = antenna.equipment.params.rat.indexOf(e) >= 0;
+                                            });
+                                            antenna._original = angular.copy(antenna);
+                                        });
+                                    }
                                     $scope.fillSite.rus = map.RU;
                                     $scope.fillSite.dus = map.DU;
                                     $scope.fillSite.antennas = map.ANTENNA;
@@ -452,42 +474,90 @@
                     }
                 }
                 if (selectedSite) {
-                    $scope.fillSite.transmissions.push({
-                        farEnd: {site: selectedSite},
-                        nearEnd: {site: $scope.jobModel.site.originalValue},
-                        ius: [],
-                        ous: [],
-                        aus: []
-                    });
+                    $http.get('/asset-management/api/sites/' + selectedSite.id + '?projection=full', {headers:{'If-None-Match':'*'}}).then(
+                            function (result) {
+                                var site = result.data;
+                                if (site.installations !== undefined) {
+                                    var map = _.groupBy(site.installations, 'equipment.definitionId');
+                                    site.ous = angular.copy(map.OU);
+                                    site.ius = angular.copy(map.IU);
+                                    site.aus = angular.copy(map.AU);
+                                    site.id = selectedSite;
+                                    delete site['installations'];
+
+                                    $scope.fillSite.transmissions.push({
+                                        farEnd: site,
+                                        nearEnd: {
+                                            site: $scope.jobModel.site.originalValue
+                                        },
+                                        ius: [],
+                                        ous: [],
+                                        aus: []
+                                    });
+                                } else {
+                                    $scope.fillSite.transmissions.push({
+                                        farEnd: {site: selectedSite},
+                                        nearEnd: {site: $scope.jobModel.site.originalValue},
+                                        ius: [],
+                                        ous: [],
+                                        aus: []
+                                    });
+                                }
+                            },
+                            function (error) {
+                                console.log(error.data);
+                            }
+                    );
                     $scope.toggleHop();
                 }
             };
 
             $scope.addIndoorUnit = function () {
-                $scope.indoorUnit.id = '_NEW' + guid();
-                if($scope.fillSite.ius === undefined){
-                    $scope.fillSite.ius = [];
+                if($scope.indoorUnit.params.terminal_id || $scope.indoorUnit.params.type || $scope.indoorUnit.params.serial_number){
+                    $scope.indoorUnit.id = '_NEW' + guid();
+                    $scope.indoorUnit.definitionId = 'IU';
+                    if($scope.fillSite.ius === undefined){
+                        $scope.fillSite.ius = [];
+                    }
+                    $scope.fillSite.ius.push($scope.indoorUnit);
+                    $scope.indoorUnit = {
+                        params: {}
+                    };
+                } else {
+                    alert('Please fill all fields');
                 }
-                $scope.fillSite.ius.push($scope.indoorUnit);
-                $scope.indoorUnit = {};
             };
 
             $scope.addOutdoorUnit = function () {
-                $scope.outdoorUnit.id = '_NEW' + guid();
-                if($scope.fillSite.ous === undefined){
-                    $scope.fillSite.ous = [];
+                if($scope.outdoorUnit.params.frequency || $scope.outdoorUnit.params.type || $scope.outdoorUnit.params.modulation_type || $scope.outdoorUnit.params.serial_number || $scope.outdoorUnit.params.rau_subband ){
+                    $scope.outdoorUnit.id = '_NEW' + guid();
+                    $scope.outdoorUnit.definitionId = 'OU';
+                    if($scope.fillSite.ous === undefined){
+                        $scope.fillSite.ous = [];
+                    }
+                    $scope.fillSite.ous.push($scope.outdoorUnit);
+                    $scope.outdoorUnit = {
+                        params: {}
+                    };
+                } else {
+                    alert('Please fill all fields');
                 }
-                $scope.fillSite.ous.push($scope.outdoorUnit);
-                $scope.outdoorUnit = {};
             };
 
             $scope.addAntennaUnit = function () {
-                $scope.antenna.id = '_NEW' + guid();
-                if($scope.fillSite.aus === undefined){
-                    $scope.fillSite.aus = [];
+                if($scope.antenna.params.polarization || $scope.antenna.params.type || $scope.antenna.params.diameter || $scope.antenna.params.serial_number || $scope.antenna.params.weight){
+                    $scope.antenna.id = '_NEW' + guid();
+                    $scope.antenna.definitionId = "AU";
+                    if($scope.fillSite.aus === undefined){
+                        $scope.fillSite.aus = [];
+                    }
+                    $scope.fillSite.aus.push($scope.antenna);
+                    $scope.antenna = {
+                        params: {}
+                    };
+                } else {
+                    alert('Please fill all fields');
                 }
-                $scope.fillSite.aus.push($scope.antenna);
-                $scope.antenna = {};
             };
 
             $scope.toggleHop = function () {

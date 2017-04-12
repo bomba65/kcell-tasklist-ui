@@ -175,6 +175,18 @@ public class DataInitializer {
                 .schema("{}")
                 .build();
 
+        EquipmentDefinition equipmentDefinitionANTENNALINK = EquipmentDefinition.builder()
+                .id("ANTENNA_LINK")
+                .name("Transmission Microwave antenna link")
+                .schema("{}")
+                .build();
+
+        EquipmentDefinition equipmentDefinitionANTENNACONSTRUCTION = EquipmentDefinition.builder()
+                .id("ANTENNA_CONSTRUCTION")
+                .name("Transmission Microwave antenna construction")
+                .schema("{}")
+                .build();
+
         EquipmentInstance equipmentInstanceAIRCONDITIONER = EquipmentInstance.builder()
                 .sn("1000")
                 .definition(equipmentDefinitionAIRCONDITIONER)
@@ -217,7 +229,7 @@ public class DataInitializer {
                 .params("{\"type\":\"DUS3101\",\"rbs_number\":\"1\",\"serial_number\":\"SN217832UIRWWW73\",\"rat\":[\"2G\",\"WiMAX\",\"3G\",\"LTE\"]}")
                 .build();
 
-        equipmentDefinitionRepository.save(Arrays.asList(equipmentDefinitionAIRCONDITIONER, equipmentDefinitionMICROWAVE, equipmentDefinitionCABINET, equipmentDefinitionRU, equipmentDefinitionSUPPLEMENTARY, equipmentDefinitionANTENNA, equipmentDefinitionDU, equipmentDefinitionAU, equipmentDefinitionOU, equipmentDefinitionIU));
+        equipmentDefinitionRepository.save(Arrays.asList(equipmentDefinitionAIRCONDITIONER, equipmentDefinitionMICROWAVE, equipmentDefinitionCABINET, equipmentDefinitionRU, equipmentDefinitionSUPPLEMENTARY, equipmentDefinitionANTENNA, equipmentDefinitionDU, equipmentDefinitionAU, equipmentDefinitionOU, equipmentDefinitionIU, equipmentDefinitionANTENNALINK, equipmentDefinitionANTENNACONSTRUCTION));
         equipmentInstanceRepository.save(Arrays.asList(equipmentInstanceAIRCONDITIONER, equipmentInstanceMICROWAVE, equipmentInstanceCABINET, equipmentInstanceRU, equipmentInstanceSUPPLEMENTARY, equipmentInstanceANTENNA, equipmentInstanceDU));
 
         InstallationDefinition installationDefinitionAIRCONDITIONER = InstallationDefinition.builder()
@@ -328,6 +340,18 @@ public class DataInitializer {
                 .schema("{}")
                 .build();
 
+        InstallationDefinition installationDefinitionANTENNALINK = InstallationDefinition.builder()
+                .id("ANTENNA_LINK")
+                .name("Antenna Link Installation")
+                .schema("{}")
+                .build();
+
+        InstallationDefinition installationDefinitionANTENNACONSTRUCTION = InstallationDefinition.builder()
+                .id("ANTENNA_CONSTRUCTION")
+                .name("Antenna CONSTRUCTION Installation")
+                .schema("{}")
+                .build();
+
         InstallationInstance installationInstance8 = InstallationInstance.builder()
                 .definition(installationDefinitionDU)
                 .equipment(equipmentInstanceDU)
@@ -336,7 +360,7 @@ public class DataInitializer {
                 .params("{\"facility\": \"BUILDING\"}")
                 .build();
 
-        installationDefinitionRepository.save(Arrays.asList(installationDefinitionAIRCONDITIONER, installationDefinitionMICROWAVE, installationDefinitionCABINET, installationDefinitionRU, installationDefinitionSUPPLEMENTARY, installationDefinitionANTENNA, installationDefinitionDU, installationDefinitionIU, installationDefinitionOU, installationDefinitionAU));
+        installationDefinitionRepository.save(Arrays.asList(installationDefinitionAIRCONDITIONER, installationDefinitionMICROWAVE, installationDefinitionCABINET, installationDefinitionRU, installationDefinitionSUPPLEMENTARY, installationDefinitionANTENNA, installationDefinitionDU, installationDefinitionIU, installationDefinitionOU, installationDefinitionAU, installationDefinitionANTENNALINK, installationDefinitionANTENNACONSTRUCTION));
         installationInstanceRepository.save(Arrays.asList(installationInstanceAIRCONDITIONER, installationInstanceCABINET, installationInstanceMICROWAVE, installationInstanceRU, installationInstanceSUPPLEMENTARY, installationInstanceANTENNA, installationInstance8));
 
         PowerSource powerSource1 = PowerSource.builder()
