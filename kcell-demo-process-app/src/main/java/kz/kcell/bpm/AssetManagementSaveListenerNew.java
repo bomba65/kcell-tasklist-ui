@@ -617,15 +617,27 @@ public class AssetManagementSaveListenerNew implements TaskListener {
             if (fillSite.get("transmissions") != null) {
                 for (JsonNode transmission : fillSite.get("transmissions")) {
                     if (transmission.get("indoor") != null) {
-                        JsonNode iu = transmission.get("indoor").get("nearEnd");
+                        JsonNode nearEndIndoor = transmission.get("indoor").get("nearEnd");
+                        JsonNode farEndIndoor = transmission.get("indoor").get("farEnd");
+
                         LOGGER.warning("START INDOOR");
-                        if (iu.get("id") == null) {
-                            String facilityUrl = "http://assets:8080/asset-management/api/facilityInstances/" + facilityMap.get(iu.get("facility").toString().replaceAll("\"", ""));
+                        if (nearEndIndoor.get("id") == null) {
+                            String facilityUrl = "http://assets:8080/asset-management/api/facilityInstances/" + facilityMap.get(nearEndIndoor.get("facility").toString().replaceAll("\"", ""));
                             String siteUrl = "http://assets:8080/asset-management/api/sites/" + transmission.get("nearEnd").get("site").textValue().replaceAll("\"", "");
-                            String equipmentInstanceUrl = indoorUnits.get(iu.get("equipmentId").toString().replaceAll("\"", ""));
-                            postInstallation(iu, "IU", siteUrl, facilityUrl, equipmentInstanceUrl);
+                            String equipmentInstanceUrl = indoorUnits.get(nearEndIndoor.get("equipmentId").toString().replaceAll("\"", ""));
+                            CloseableHttpResponse postInstallationResponse = postInstallation(nearEndIndoor, "IU", siteUrl, facilityUrl, equipmentInstanceUrl);
+                            //String nearEndInstallationInstanceUrl = postInstallationResponse.getFirstHeader("Location").getValue();
+
+                            //farEndIndoor.get("equipment").get("id").t
+
+//                            List<String> equipmentUris = Arrays.asList(equipmentInstanceUrl, cabinetsMap.get(cabinetId.substring(cabinetId.lastIndexOf('/') + 1)));
+//                            ObjectMapper mapper = new ObjectMapper();
+//                            ObjectNode connectionNode = mapper.createObjectNode();
+//                            ObjectNode connectionParams = mapper.createObjectNode();
+//                            connectionNode.set("params", connectionParams);
+//                            postConnection(connectionNode, "RU2RBS", equipmentUris);
                         } else {
-                            patchInstallation(iu);
+                            CloseableHttpResponse patchInstallationResponse = patchInstallation(nearEndIndoor);
                         }
                     }
                     if (transmission.get("ous") != null) {
