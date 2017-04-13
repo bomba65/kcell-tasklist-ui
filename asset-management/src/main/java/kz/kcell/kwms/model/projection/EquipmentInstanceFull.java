@@ -24,6 +24,4 @@ public interface EquipmentInstanceFull {
     @Value("#{target.definition.id}")
     String getDefinition();
 
-    @Value("#{target.connections.![id]}")
-    List<Long> getConnections();
 }
