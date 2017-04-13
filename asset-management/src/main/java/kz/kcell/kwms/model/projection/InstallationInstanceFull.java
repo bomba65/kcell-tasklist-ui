@@ -12,10 +12,10 @@ public interface InstallationInstanceFull {
     @JsonRawValue
     String getParams();
 
-    @Value("/installationDefinitions/#{target.definition.id}")
+    @Value("#{target.definition.id}")
     String getDefinition();
 
-    @Value("/facilityInstances/#{target?.facility.id}")
+    @Value("#{target?.facility?.id}")
     String getFacility();
 
     EquipmentInstanceFull getEquipment();

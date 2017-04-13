@@ -13,12 +13,15 @@ import java.util.SortedSet;
 public interface EquipmentInstanceFull {
     Long getId();
 
+    @Value("/equipmentInstances/")
+    String getSegment();
+
     String getSn();
 
     @JsonRawValue
     String getParams();
 
-    @Value("/equipmentDefinitions/#{target.definition.id}")
+    @Value("#{target.definition.id}")
     String getDefinition();
 
     List<ConnectionInstanceId> getConnections();

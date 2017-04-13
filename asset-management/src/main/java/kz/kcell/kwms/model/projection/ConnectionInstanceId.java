@@ -10,6 +10,5 @@ import java.util.SortedSet;
 
 @Projection(name = "id", types = ConnectionInstance.class)
 public interface ConnectionInstanceId {
-    @Value("/connectionInstances/#{target.id}")
     String getId();
 }

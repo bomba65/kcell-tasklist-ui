@@ -19,6 +19,8 @@ import org.camunda.bpm.engine.delegate.TaskListener;
 import java.net.URI;
 import java.util.*;
 import java.util.logging.Logger;
+import java.util.stream.Collectors;
+import java.util.stream.Stream;
 
 public class AssetManagementSaveListenerNew implements TaskListener {
 
@@ -72,7 +74,7 @@ public class AssetManagementSaveListenerNew implements TaskListener {
             System.out.println("facilityUrl: " + facilityUrl);
             System.out.println("equipmentInstanceUrl: " + equipmentInstanceUrl);
             String installationUrl = baseUri + "/asset-management/api/installationInstances";
-
+            LOGGER.warning("{\"params\":" + node.get("params").toString() + ", \"site\":\"" + siteUrl + "\", " + (facilityUrl != null ? "\"facility\":\"" + facilityUrl + "\", " : "") + "\"equipment\":\"" + equipmentInstanceUrl + "\", \"definition\":\"/installationDefinitions/" + definitionId + "\"}");
             StringEntity installationInputData = new StringEntity("{\"params\":" + node.get("params").toString() + ", \"site\":\"" + siteUrl + "\", " + (facilityUrl != null ? "\"facility\":\"" + facilityUrl + "\", " : "") + "\"equipment\":\"" + equipmentInstanceUrl + "\", \"definition\":\"/installationDefinitions/" + definitionId + "\"}", "UTF-8");
             HttpPost installationHttpPost = new HttpPost(new URI(installationUrl));
             installationHttpPost.addHeader("Content-Type", "application/json;charset=UTF-8");
@@ -83,6 +85,37 @@ public class AssetManagementSaveListenerNew implements TaskListener {
             LOGGER.warning("====================");
             LOGGER.warning(installationResponse.toString());
             return installationResponse;
+        } catch (Exception e) {
+            e.printStackTrace();
+            return null;
+        }
+    }
+
+    public CloseableHttpResponse postConnection(JsonNode node, String definitionId, List<String> equipments) {
+        try {
+            String connectionUrl = baseUri + "/asset-management/api/connectionInstances";
+
+            String equipmentUris = equipments.stream().collect(Collectors.joining("\",\"", "[\"", "\"]"));
+
+            LOGGER.warning("{\"params\":" + node.get("params").toString() + ", \"definition\":\"/connectionDefinitions/" + definitionId + "\", \"equipments\": " + equipmentUris + "}");
+            StringEntity connectionInputData = new StringEntity("{\"params\":" + node.get("params").toString() + ", \"definition\":\"/connectionDefinitions/" + definitionId + "\", \"equipments\": " + equipmentUris + "}", "UTF-8");
+            HttpPost connectionHttpPost = new HttpPost(new URI(connectionUrl));
+            connectionHttpPost.addHeader("Content-Type", "application/json;charset=UTF-8");
+            connectionHttpPost.setEntity(connectionInputData);
+            CloseableHttpClient connectionHttpClient = HttpClients.createDefault();
+            CloseableHttpResponse connectionResponse = connectionHttpClient.execute(connectionHttpPost);
+
+            String connectionInstanceUrl = connectionResponse.getFirstHeader("Location").getValue();
+
+            HttpPost postFacilityToSite = new HttpPost(new URI(connectionInstanceUrl + "/equipments"));
+            postFacilityToSite.addHeader("Content-Type", "text/uri-list;charset=UTF-8");
+            postFacilityToSite.setEntity(new StringEntity(equipments.stream().collect(Collectors.joining(","))));
+            CloseableHttpClient postFacilityToSiteHttpClient = HttpClients.createDefault();
+            postFacilityToSiteHttpClient.execute(postFacilityToSite);
+
+            LOGGER.warning("====================");
+            LOGGER.warning(connectionResponse.toString());
+            return connectionResponse;
         } catch (Exception e) {
             e.printStackTrace();
             return null;
@@ -187,6 +220,11 @@ public class AssetManagementSaveListenerNew implements TaskListener {
                     }
                 }
             }
+            System.out.println("============================");
+            System.out.println("Facilities");
+            for (Map.Entry<String, String> e : facilityMap.entrySet()) {
+                System.out.println(e.getKey() + " " + e.getValue());
+            }
             if (fillSite.get("cabinets") != null) {
                 for (JsonNode cabinet : fillSite.get("cabinets")) {
                     if (cabinet.get("id").toString().replaceAll("\"", "").startsWith("_NEW")) {
@@ -196,7 +234,7 @@ public class AssetManagementSaveListenerNew implements TaskListener {
                         String equipmentInstanceUrl = equipmentResponse.getFirstHeader("Location").getValue();
                         cabinetsMap.put(cabinet.get("id").toString().replaceAll("\"", ""), equipmentInstanceUrl);
 
-                        String facilityUrl = "http://assets:8080/asset-management/api/facilityInstances/" + facilityMap.get(cabinet.get("facilityId").toString().replaceAll("\"", ""));
+                        String facilityUrl = "http://assets:8080/asset-management/api/facilityInstances/" + facilityMap.get(cabinet.get("facility").toString().replaceAll("\"", ""));
                         String siteUrl = "http://assets:8080/asset-management/api/sites/" + fillSite.get("siteId").textValue().replaceAll("\"", "");
 
                         CloseableHttpResponse installationResponse = postInstallation(cabinet, "CABINET", siteUrl, facilityUrl, equipmentInstanceUrl);
@@ -219,15 +257,23 @@ public class AssetManagementSaveListenerNew implements TaskListener {
                             String equipmentInstanceUrl = "http://assets:8080/asset-management/api/equipmentInstances/" + cabinet.get("id").toString().replaceAll("\"", "");
                             cabinetsMap.put(cabinet.get("id").toString().replaceAll("\"", ""), equipmentInstanceUrl);
 
-                            String facilityUrl = "http://assets:8080/asset-management/api/facilityInstances/" + facilityMap.get(cabinet.get("facilityId").toString().replaceAll("\"", ""));
+                            String facilityUrl = "http://assets:8080/asset-management/api/facilityInstances/" + facilityMap.get(cabinet.get("facility").toString().replaceAll("\"", ""));
                             String siteUrl = "http://assets:8080/asset-management/api/sites/" + fillSite.get("siteId").textValue().replaceAll("\"", "");
 
                             postInstallation(cabinet, "CABINET", siteUrl, facilityUrl, equipmentInstanceUrl);
                         } else if (cabinet.get("action") != null && cabinet.get("action").textValue().equals("dismantle")) {
                             deleteInstallation(cabinet);
+                        } else {
+                            String equipmentInstanceUrl = "http://assets:8080/asset-management/api/equipmentInstances/" + cabinet.get("id").toString().replaceAll("\"", "");
+                            cabinetsMap.put(cabinet.get("id").toString().replaceAll("\"", ""), equipmentInstanceUrl);
                         }
                     }
                 }
+            }
+            System.out.println("============================");
+            System.out.println("Cabinets");
+            for (Map.Entry<String, String> e : cabinetsMap.entrySet()) {
+                System.out.println(e.getKey() + " " + e.getValue());
             }
             if (fillSite.get("powerSources") != null) {
                 for (JsonNode powerSource : fillSite.get("powerSources")) {
@@ -298,7 +344,7 @@ public class AssetManagementSaveListenerNew implements TaskListener {
                         System.out.println("equipmentResponse: " + equipmentResponse.getStatusLine().getStatusCode());
                         String equipmentInstanceUrl = equipmentResponse.getFirstHeader("Location").getValue();
 
-                        String facilityUrl = "http://assets:8080/asset-management/api/facilityInstances/" + facilityMap.get(ru.get("facilityId").toString().replaceAll("\"", ""));
+                        String facilityUrl = "http://assets:8080/asset-management/api/facilityInstances/" + facilityMap.get(ru.get("facility").toString().replaceAll("\"", ""));
                         String siteUrl = "http://assets:8080/asset-management/api/sites/" + fillSite.get("siteId").textValue().replaceAll("\"", "");
 
                         String cabinetId = ru.get("params").get("rbs_number").toString().replaceAll("\"", "");
@@ -308,6 +354,13 @@ public class AssetManagementSaveListenerNew implements TaskListener {
 
                         CloseableHttpResponse installationResponse = postInstallation(ru, "RU", siteUrl, facilityUrl, equipmentInstanceUrl);
                         System.out.println("installationResponse: " + installationResponse.getStatusLine().getStatusCode());
+
+                        List<String> equipmentUris = Arrays.asList(equipmentInstanceUrl, cabinetsMap.get(cabinetId.substring(cabinetId.lastIndexOf('/') + 1)));
+                        ObjectMapper mapper = new ObjectMapper();
+                        ObjectNode connectionNode = mapper.createObjectNode();
+                        ObjectNode connectionParams = mapper.createObjectNode();
+                        connectionNode.set("params", connectionParams);
+                        postConnection(connectionNode, "RU2RBS", equipmentUris);
                     } else {
                         if (ru.get("action") != null && ru.get("action").textValue().equals("modify")) {
                             CloseableHttpResponse patchEquipmentResponse = patchEquipment(ru.get("equipment"));
@@ -332,7 +385,7 @@ public class AssetManagementSaveListenerNew implements TaskListener {
                             params.put("rbs_number", cabinetsMap.get(cabinetId.substring(cabinetId.lastIndexOf('/') + 1)).substring(cabinetsMap.get(cabinetId.substring(cabinetId.lastIndexOf('/') + 1)).lastIndexOf('/') + 1));
                             ((ObjectNode) ru).replace("params", params);
 
-                            String facilityUrl = "http://assets:8080/asset-management/api/facilityInstances/" + facilityMap.get(ru.get("facilityId").toString().replaceAll("\"", ""));
+                            String facilityUrl = "http://assets:8080/asset-management/api/facilityInstances/" + facilityMap.get(ru.get("facility").toString().replaceAll("\"", ""));
                             String siteUrl = "http://assets:8080/asset-management/api/sites/" + fillSite.get("siteId").textValue().replaceAll("\"", "");
 
                             postInstallation(ru, "RU", siteUrl, facilityUrl, equipmentInstanceUrl);
@@ -350,7 +403,7 @@ public class AssetManagementSaveListenerNew implements TaskListener {
                         System.out.println("equipmentResponse: " + equipmentResponse.getStatusLine().getStatusCode());
                         String equipmentInstanceUrl = equipmentResponse.getFirstHeader("Location").getValue();
 
-                        String facilityUrl = "http://assets:8080/asset-management/api/facilityInstances/" + facilityMap.get(du.get("facilityId").toString().replaceAll("\"", ""));
+                        String facilityUrl = "http://assets:8080/asset-management/api/facilityInstances/" + facilityMap.get(du.get("facility").toString().replaceAll("\"", ""));
                         String siteUrl = "http://assets:8080/asset-management/api/sites/" + fillSite.get("siteId").textValue().replaceAll("\"", "");
 
                         String cabinetId = du.get("params").get("rbs_number").toString().replaceAll("\"", "");
@@ -384,7 +437,7 @@ public class AssetManagementSaveListenerNew implements TaskListener {
                             params.put("rbs_number", cabinetsMap.get(cabinetId.substring(cabinetId.lastIndexOf('/') + 1)).substring(cabinetsMap.get(cabinetId.substring(cabinetId.lastIndexOf('/') + 1)).lastIndexOf('/') + 1));
                             ((ObjectNode) du).replace("params", params);
 
-                            String facilityUrl = "http://assets:8080/asset-management/api/facilityInstances/" + facilityMap.get(du.get("facilityId").toString().replaceAll("\"", ""));
+                            String facilityUrl = "http://assets:8080/asset-management/api/facilityInstances/" + facilityMap.get(du.get("facility").toString().replaceAll("\"", ""));
                             String siteUrl = "http://assets:8080/asset-management/api/sites/" + fillSite.get("siteId").textValue().replaceAll("\"", "");
 
                             postInstallation(du, "DU", siteUrl, facilityUrl, equipmentInstanceUrl);
@@ -402,7 +455,7 @@ public class AssetManagementSaveListenerNew implements TaskListener {
                         System.out.println("equipmentResponse: " + equipmentResponse.getStatusLine().getStatusCode());
                         String equipmentInstanceUrl = equipmentResponse.getFirstHeader("Location").getValue();
 
-                        String facilityUrl = "http://assets:8080/asset-management/api/facilityInstances/" + facilityMap.get(supplementary.get("facilityId").toString().replaceAll("\"", ""));
+                        String facilityUrl = "http://assets:8080/asset-management/api/facilityInstances/" + facilityMap.get(supplementary.get("facility").toString().replaceAll("\"", ""));
                         String siteUrl = "http://assets:8080/asset-management/api/sites/" + fillSite.get("siteId").textValue().replaceAll("\"", "");
 
                         CloseableHttpResponse installationResponse = postInstallation(supplementary, "SUPPLEMENTARY", siteUrl, facilityUrl, equipmentInstanceUrl);
@@ -421,7 +474,7 @@ public class AssetManagementSaveListenerNew implements TaskListener {
                             HttpResponse equipmentResponse = postEquipment(supplementary.get("equipment"), "SUPPLEMENTARY");
                             String equipmentInstanceUrl = equipmentResponse.getFirstHeader("Location").getValue();
 
-                            String facilityUrl = "http://assets:8080/asset-management/api/facilityInstances/" + facilityMap.get(supplementary.get("facilityId").toString().replaceAll("\"", ""));
+                            String facilityUrl = "http://assets:8080/asset-management/api/facilityInstances/" + facilityMap.get(supplementary.get("facility").toString().replaceAll("\"", ""));
                             String siteUrl = "http://assets:8080/asset-management/api/sites/" + fillSite.get("siteId").textValue().replaceAll("\"", "");
 
                             postInstallation(supplementary, "SUPPLEMENTARY", siteUrl, facilityUrl, equipmentInstanceUrl);
@@ -444,7 +497,7 @@ public class AssetManagementSaveListenerNew implements TaskListener {
                         params.put("rbs_number", cabinetsMap.get(cabinetId.substring(cabinetId.lastIndexOf('/') + 1)).substring(cabinetsMap.get(cabinetId.substring(cabinetId.lastIndexOf('/') + 1)).lastIndexOf('/') + 1));
                         ((ObjectNode) antenna).replace("params", params);
 
-                        String facilityUrl = "http://assets:8080/asset-management/api/facilityInstances/" + facilityMap.get(antenna.get("facilityId").toString().replaceAll("\"", ""));
+                        String facilityUrl = "http://assets:8080/asset-management/api/facilityInstances/" + facilityMap.get(antenna.get("facility").toString().replaceAll("\"", ""));
                         String siteUrl = "http://assets:8080/asset-management/api/sites/" + fillSite.get("siteId").textValue().replaceAll("\"", "");
 
                         CloseableHttpResponse installationResponse = postInstallation(antenna, "ANTENNA", siteUrl, facilityUrl, equipmentInstanceUrl);
@@ -473,7 +526,7 @@ public class AssetManagementSaveListenerNew implements TaskListener {
                             params.put("rbs_number", cabinetsMap.get(cabinetId.substring(cabinetId.lastIndexOf('/') + 1)).substring(cabinetsMap.get(cabinetId.substring(cabinetId.lastIndexOf('/') + 1)).lastIndexOf('/') + 1));
                             ((ObjectNode) antenna).replace("params", params);
 
-                            String facilityUrl = "http://assets:8080/asset-management/api/facilityInstances/" + facilityMap.get(antenna.get("facilityId").toString().replaceAll("\"", ""));
+                            String facilityUrl = "http://assets:8080/asset-management/api/facilityInstances/" + facilityMap.get(antenna.get("facility").toString().replaceAll("\"", ""));
                             String siteUrl = "http://assets:8080/asset-management/api/sites/" + fillSite.get("siteId").textValue().replaceAll("\"", "");
 
                             postInstallation(antenna, "ANTENNA", siteUrl, facilityUrl, equipmentInstanceUrl);
@@ -567,7 +620,7 @@ public class AssetManagementSaveListenerNew implements TaskListener {
                         JsonNode iu = transmission.get("indoor").get("nearEnd");
                         LOGGER.warning("START INDOOR");
                         if (iu.get("id") == null) {
-                            String facilityUrl = "http://assets:8080/asset-management/api/facilityInstances/" + facilityMap.get(iu.get("facilityId").toString().replaceAll("\"", ""));
+                            String facilityUrl = "http://assets:8080/asset-management/api/facilityInstances/" + facilityMap.get(iu.get("facility").toString().replaceAll("\"", ""));
                             String siteUrl = "http://assets:8080/asset-management/api/sites/" + transmission.get("nearEnd").get("site").textValue().replaceAll("\"", "");
                             String equipmentInstanceUrl = indoorUnits.get(iu.get("equipmentId").toString().replaceAll("\"", ""));
                             postInstallation(iu, "IU", siteUrl, facilityUrl, equipmentInstanceUrl);
@@ -580,7 +633,7 @@ public class AssetManagementSaveListenerNew implements TaskListener {
                         for (JsonNode outdoorUnit : transmission.get("ous")) {
                             JsonNode ou = outdoorUnit.get("nearEnd").get("main_line");
                             if (ou.get("id") == null) {
-                                String facilityUrl = facilityMap.get(ou.get("facilityId").toString().replaceAll("\"", ""));
+                                String facilityUrl = facilityMap.get(ou.get("facility").toString().replaceAll("\"", ""));
                                 String siteUrl = "http://assets:8080/asset-management/api/sites/" + transmission.get("nearEnd").get("site").textValue().replaceAll("\"", "");
                                 String equipmentInstanceUrl = outdoorUnits.get(ou.get("equipmentId").toString().replaceAll("\"", ""));
                                 LOGGER.warning("EQUIPMENT ID: " + ou.get("equipmentId").toString().replaceAll("\"", ""));
@@ -596,7 +649,7 @@ public class AssetManagementSaveListenerNew implements TaskListener {
                         for (JsonNode outdoorUnit : transmission.get("aus")) {
                             JsonNode au = outdoorUnit.get("nearEnd").get("main_line");
                             if (au.get("id") == null) {
-                                String facilityUrl = facilityMap.get(au.get("facilityId").toString().replaceAll("\"", ""));
+                                String facilityUrl = facilityMap.get(au.get("facility").toString().replaceAll("\"", ""));
                                 String siteUrl = "http://assets:8080/asset-management/api/sites/" + transmission.get("nearEnd").get("site").textValue().replaceAll("\"", "");
                                 String equipmentInstanceUrl = antennaUnits.get(au.get("equipmentId").toString().replaceAll("\"", ""));
                                 LOGGER.warning("EQUIPMENT ID: " + au.get("equipmentId").toString().replaceAll("\"", ""));

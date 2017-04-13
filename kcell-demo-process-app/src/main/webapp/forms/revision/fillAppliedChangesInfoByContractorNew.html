@@ -111,7 +111,7 @@
                         function (result) {
                             $scope.facilityDefinitions = [];
                             for (var i = 0; i < result.data._embedded.facilityDefinitions.length; i++) {
-                                var id = result.data._embedded.facilityDefinitions[i]._links.self.href.replace("{projection}", "").substr(result.data._embedded.facilityDefinitions[i]._links.self.href.replace("{projection}", "").lastIndexOf('/') + 1)
+                                var id = result.data._embedded.facilityDefinitions[i]._links.self.href.replace("{projection}", "").substr(result.data._embedded.facilityDefinitions[i]._links.self.href.replace("{projection}", "").lastIndexOf('/') + 1);
                                 $scope.facilityDefinitions.push({
                                     name: result.data._embedded.facilityDefinitions[i].name,
                                     id: id
@@ -204,8 +204,9 @@
                                     $scope.fillSite.powerSources = site.powerSources;
                                 }
                                 if (site.installations !== undefined) {
-                                    var map = _.groupBy(site.installations, 'equipment.definitionId');
-                                    $scope.fillSite.cabinets = map.CABINET;
+                                    var map = _.groupBy(site.installations, 'equipment.definition');
+
+                                    $scope.fillSite.cabinets = map.CABINET || [];
                                     if(map.RU){
                                         map.RU.forEach(function (ru) {
                                             ru.equipment.params.technologies = {};
@@ -233,13 +234,13 @@
                                             antenna._original = angular.copy(antenna);
                                         });
                                     }
-                                    $scope.fillSite.rus = map.RU;
-                                    $scope.fillSite.dus = map.DU;
-                                    $scope.fillSite.antennas = map.ANTENNA;
-                                    $scope.fillSite.supplementary = map.SUPPLEMENTARY;
-                                    $scope.fillSite.ous = map.OU;
-                                    $scope.fillSite.ius = map.IU;
-                                    $scope.fillSite.aus = map.AU;
+                                    $scope.fillSite.rus = map.RU || [];
+                                    $scope.fillSite.dus = map.DU || [];
+                                    $scope.fillSite.antennas = map.ANTENNA || [];
+                                    $scope.fillSite.supplementary = map.SUPPLEMENTARY || [];
+                                    $scope.fillSite.ous = map.OU || [];
+                                    $scope.fillSite.ius = map.IU || [];
+                                    $scope.fillSite.aus = map.AU || [];
                                 }
                             },
                             function (error) {
@@ -272,7 +273,7 @@
             };
 
             $scope.addFacility = function () {
-                $scope.fillSite.facilities.push({id: '_NEW' + guid()});
+                $scope.fillSite.facilities.push({id: '_NEW' + guid(), params: {}});
             };
 
             $scope.removeFacility = function (index) {
@@ -280,7 +281,7 @@
             };
 
             $scope.addCabinet = function () {
-                $scope.fillSite.cabinets.push({id: '_NEW' + guid()});
+                $scope.fillSite.cabinets.push({id: '_NEW' + guid(), params: {}});
             };
 
             $scope.removeCabinet = function (index) {
@@ -324,7 +325,7 @@
             };
 
             $scope.addSupplementary = function () {
-                $scope.fillSite.supplementary.push({equipment: {}, installation: {}});
+                $scope.fillSite.supplementary.push({equipment: {}, params: {}});
             }
 
             $scope.removeSupplementary = function (index) {
@@ -332,7 +333,7 @@
             };
 
             $scope.addAntenna = function () {
-                $scope.fillSite.antennas.push({equipment: {params: {rat: []}}, installation: {}});
+                $scope.fillSite.antennas.push({equipment: {params: {rat: []}}, params: {}});
             }
 
             $scope.removeAntenna = function (index) {

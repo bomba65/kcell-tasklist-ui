@@ -15,6 +15,6 @@ public interface FacilityInstanceFull {
     @JsonRawValue
     String getParams();
 
-    @Value("/facilityDefinitions/#{target.definition.id}")
+    @Value("#{target.definition.id}")
     String getDefinition();
 }

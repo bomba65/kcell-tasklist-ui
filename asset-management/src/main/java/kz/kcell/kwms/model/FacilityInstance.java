@@ -14,6 +14,7 @@ import java.util.*;
 @NoArgsConstructor
 @AllArgsConstructor
 @EqualsAndHashCode(exclude = {"sites", "version"})
+@ToString(exclude = "sites")
 public class FacilityInstance implements Instance<FacilityDefinition>, Comparable<FacilityInstance> {
 
     @Id

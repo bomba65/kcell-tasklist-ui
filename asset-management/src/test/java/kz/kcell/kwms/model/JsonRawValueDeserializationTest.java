@@ -52,7 +52,8 @@ public class JsonRawValueDeserializationTest {
                         "  \"params\":{\n" +
                         "    \"Hello\": \"World\"\n" +
                         "  },\n" +
-                        "  \"version\":0\n" +
+                        "  \"version\":0,\n" +
+                        "  \"connections\":null\n" +
                         "}",
                 jsonString,
                 true);

@@ -211,7 +211,7 @@ public class DataInitializer {
         EquipmentInstance equipmentInstanceRU = equipmentInstanceRepository.save(EquipmentInstance.builder()
                 .sn("2001")
                 .definition(equipmentDefinitionRU)
-                .params("{\"type\":\"RRU\",\"rbs_number\":\"1\",\"serial_number\":\"SN23782713FY\",\"sector\":\"A\",\"band\":\"GSM1800/WCDMA2100\",\"rrus_construction_type\":\"RRU\",\"trx_quantity\":5,\"carrier_quantity\":6,\"voltage\":\"220V\",\"rat\":[\"2G\",\"3G\",\"WiMAX\"]}")
+                .params("{\"type\":\"RRU\",\"serial_number\":\"SN23782713FY\",\"sector\":\"A\",\"band\":\"GSM1800/WCDMA2100\",\"rrus_construction_type\":\"RRU\",\"trx_quantity\":5,\"carrier_quantity\":6,\"voltage\":\"220V\",\"rat\":[\"2G\",\"3G\",\"WiMAX\"]}")
                 .build());
 
         EquipmentInstance equipmentInstanceSUPPLEMENTARY = equipmentInstanceRepository.save(EquipmentInstance.builder()
@@ -229,7 +229,7 @@ public class DataInitializer {
         EquipmentInstance equipmentInstanceDU = equipmentInstanceRepository.save(EquipmentInstance.builder()
                 .sn("2001")
                 .definition(equipmentDefinitionDU)
-                .params("{\"type\":\"DUS3101\",\"rbs_number\":\"1\",\"serial_number\":\"SN217832UIRWWW73\",\"rat\":[\"2G\",\"WiMAX\",\"3G\",\"LTE\"]}")
+                .params("{\"type\":\"DUS3101\",\"serial_number\":\"SN217832UIRWWW73\",\"rat\":[\"2G\",\"WiMAX\",\"3G\",\"LTE\"]}")
                 .build());
 
         InstallationDefinition installationDefinitionAIRCONDITIONER = installationDefinitionRepository.save(InstallationDefinition.builder()
@@ -285,7 +285,7 @@ public class DataInitializer {
                 .equipment(equipmentInstanceRU)
                 .facility(facilityInstanceBUILDING)
                 .site(site1)
-                .params("{\"facility\":\"BUILDING\",\"rbs_number\":\"1\"}")
+                .params("{\"facility\":\"BUILDING\",\"rbs_number\":\"" + installationInstanceCABINET.getId() + "\"}")
                 .build());
 
         InstallationDefinition installationDefinitionSUPPLEMENTARY = installationDefinitionRepository.save(InstallationDefinition.builder()
@@ -313,7 +313,7 @@ public class DataInitializer {
                 .equipment(equipmentInstanceANTENNA)
                 .facility(facilityInstanceBUILDING)
                 .site(site1)
-                .params("{\"facility\":\"BUILDING\",\"height_in_top\":3,\"distance_from_roof_level\":3,\"min_horiz_distance_from_roof_edge\":\"4\",\"height_of_phasecenter_from_grnd_lvl\":\"2\",\"direction\":\"4\",\"m_tilt_value\":\"4\",\"e_tilt_value\":\"4\",\"location_type\":\"roof\",\"placement_type\":\"Frontal\",\"feeder_type\":\"8/9\",\"number_of_feeders\":\"4\",\"free_space_for_addition_rru\":\"Yes\",\"carrying_capacity_for_additional_rru\":\"Yes\",\"diversity\":\"Yes\",\"rbs_number\":\"1\"}")
+                .params("{\"facility\":\"BUILDING\",\"height_in_top\":3,\"distance_from_roof_level\":3,\"min_horiz_distance_from_roof_edge\":\"4\",\"height_of_phasecenter_from_grnd_lvl\":\"2\",\"direction\":\"4\",\"m_tilt_value\":\"4\",\"e_tilt_value\":\"4\",\"location_type\":\"roof\",\"placement_type\":\"Frontal\",\"feeder_type\":\"8/9\",\"number_of_feeders\":\"4\",\"free_space_for_addition_rru\":\"Yes\",\"carrying_capacity_for_additional_rru\":\"Yes\",\"diversity\":\"Yes\",\"rbs_number\":\"" + installationInstanceCABINET.getId() + "\"}")
                 .build());
 
         InstallationDefinition installationDefinitionDU = installationDefinitionRepository.save(InstallationDefinition.builder()
@@ -352,12 +352,12 @@ public class DataInitializer {
                 .schema("{}")
                 .build());
 
-        InstallationInstance installationInstance8 = installationInstanceRepository.save(InstallationInstance.builder()
+        InstallationInstance installationInstanceDU = installationInstanceRepository.save(InstallationInstance.builder()
                 .definition(installationDefinitionDU)
                 .equipment(equipmentInstanceDU)
                 .facility(facilityInstanceBUILDING)
                 .site(site1)
-                .params("{\"facility\": \"BUILDING\"}")
+                .params("{\"facility\": \"BUILDING\",\"rbs_number\": \"" + installationInstanceCABINET.getId() + "\"}")
                 .build());
 
         ConnectionDefinition connectionDefinitionRU2RBS = connectionDefinitionRepository.save(
@@ -370,10 +370,10 @@ public class DataInitializer {
 
         ConnectionInstance connectionInstanceRU2RBS = connectionInstanceRepository.save(
                 ConnectionInstance.builder()
-                    .definition(connectionDefinitionRU2RBS)
-                    .equipments(Stream.of(equipmentInstanceRU, equipmentInstanceCABINET).collect(Collectors.toCollection(TreeSet::new)))
-                    .params("{}")
-                    .build()
+                        .definition(connectionDefinitionRU2RBS)
+                        .equipments(Stream.of(equipmentInstanceRU, equipmentInstanceCABINET).collect(Collectors.toCollection(TreeSet::new)))
+                        .params("{}")
+                        .build()
         );
 
         PowerSource powerSource1 = powerSourceRepository.save(PowerSource.builder()
