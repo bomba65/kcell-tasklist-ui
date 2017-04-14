@@ -19,544 +19,78 @@
 <accordion>
     <accordion-group ng-repeat="hop in fillSite.transmissions track by $index">
         <accordion-heading>
-            Hop {{jobModel.siteName.originalValue}} - {{hop.farEnd.name}} <i class="pull-right glyphicon" ng-class="{'glyphicon-chevron-up': status.isCustomHeaderOpen, 'glyphicon-chevron-down': !status.isCustomHeaderOpen}"></i>
+            Hop {{jobModel.siteName.originalValue}} - {{hop.farEnd.site.name}} <i class="pull-right glyphicon" ng-class="{'glyphicon-chevron-up': status.isCustomHeaderOpen, 'glyphicon-chevron-down': !status.isCustomHeaderOpen}"></i>
         </accordion-heading>
         <div class="row">
-            <div class="col-md-6"><h4>Near end {{jobModel.siteName.originalValue}}</h4></div>
-            <div class="col-md-6"><h4>Far end {{jobModel.siteName.originalValue}}</h4></div>
-        </div>
-        <div class="row">
-            <div class="col-md-6 well">
-                <h4>Indoor Unit</h4>
-                <div class="col-md-5 col-md-offset-2">
-                    <div class="form-group">
-                        <label>Indoor unit #</label>
-                        <select class="form-control" ng-model="hop.indoor.nearEnd.equipmentId">
-                            <option ng-repeat="iu in fillSite.ius" value="{{iu.id}}" ng-selected="{{iu.id === hop.indoor.nearEnd.equipmentId}}">{{$index+1}}</option>
-                        </select>
-                    </div>
+            <div ng-if="!hop.id">
+                <a ng-click="removeHop($index)" class="btn btn-danger">Remove Hop</a>
+            </div>
+            <div class="col-md-6"><h4>Near End Equipment</h4></div>
+            <div class="col-md-6"><h4>Far End Equipment</h4></div>
+            <div class="col-md-6">
+                <h4>Indoors</h4>
+                <div ng-repeat="indoor in fillSite.ius">
+                    <label>
+                        <input type="checkbox" value="{{indoor.equipment.id}}"
+                                ng-checked="hop.equipments.indexOf(indoor.equipment.id) > -1"
+                                ng-click="toggleConnectionEquipment($parent.$index, indoor.equipment.id)"
+                        > Type: {{indoor.equipment.params.type}}, Serial Number: {{indoor.equipment.params.serial_number}}
+                    </label>
                 </div>
-                <div class="col-md-5">
-                    <div class="form-group">
-                        <label>Capacity Ethernet</label>
-                        <div class="input-group">
-                            <input type="number" class="form-control" ng-model="hop.indoor.nearEnd.params.capacity_ethernet" placeholder="150"/>
-                            <span class="input-group-addon">Mb/s</span>
-                        </div>
-                    </div>
+                <h4>Outdoors</h4>
+                <div ng-repeat="outdoor in fillSite.ous">
+                    <label>
+                        <input type="checkbox" value="{{outdoor.equipment.id}}"
+                                ng-checked="hop.equipments.indexOf(outdoor.equipment.id) > -1"
+                                ng-click="toggleConnectionEquipment($parent.$index, outdoor.equipment.id)"
+                        > Type: {{outdoor.equipment.params.type}}, Serial Number: {{outdoor.equipment.params.serial_number}}
+                    </label>
                 </div>
-                <div class="col-md-5 col-md-offset-2">
-                    <div class="form-group">
-                        <label>Protection type</label>
-                        <select class="form-control" ng-model="hop.indoor.nearEnd.params.protection_type">
-                            <option value="1+1">1+1</option>
-                            <option value="1+0">1+0</option>
-                            <option value="1+1 Hot Standby">1+1 Hot Standby</option>
-                            <option value="1+1 Working Standby">1+1 Working Standby</option>
-                            <option value="1+0 Unprotected">1+0 Unprotected</option>
-                        </select>
-                    </div>
-                </div>
-                <div class="col-md-5">
-                    <div class="form-group">
-                        <label>Link capacity nxE1</label>
-                        <input type="number" class="form-control" ng-model="hop.indoor.nearEnd.params.link_capacity_nxe1" placeholder="10"/>
-                    </div>
-                </div>
-                <div class="col-md-5 col-md-offset-2">
-                    <div class="form-group">
-                        <label>Facility</label>
-                        <select class="form-control" ng-model="hop.indoor.nearEnd.facility">
-                            <option value="{{f.id}}" ng-repeat="f in fillSite.facilities" ng-selected="{{hop.indoor.nearEnd.facility === f.id}}">{{f.definitionId}} ({{f.params.name}})</option>
-                        </select>
-                    </div>
+                <h4>Antennas</h4>
+                <div ng-repeat="antenna in fillSite.aus">
+                    <label>
+                        <input type="checkbox" value="{{antenna.equipment.id}}"
+                                ng-checked="hop.equipments.indexOf(antenna.equipment.id) > -1"
+                                ng-click="toggleConnectionEquipment($parent.$index, antenna.equipment.id)"
+                        > Type: {{antenna.equipment.params.type}}, Serial Number: {{antenna.equipment.params.serial_number}}
+                    </label>
                 </div>
             </div>
-            <div class="col-md-6 well">
-                <h4>Indoor Unit</h4>
-                <div class="col-md-5 col-md-offset-2">
-                    <div class="form-group">
-                        <label>Indoor unit #</label>
-                        <select class="form-control" ng-model="hop.indoor.farEnd.equipmentId">
-                            <option ng-repeat="iu in hop.farEnd.ius" value="{{iu.id}}" ng-selected="{{iu.id === hop.indoor.farEnd.equipmentId}}">{{$index+1}}</option>
-                        </select>
-                    </div>
+            <div class="col-md-6">
+                <h4>Indoors</h4>
+                <div ng-repeat="indoor in hop.farEnd.ius">
+                    <label>
+                        <input type="checkbox" value="{{indoor.equipment.id}}"
+                                ng-checked="hop.equipments.indexOf(indoor.equipment.id) > -1"
+                                ng-click="toggleConnectionEquipment($parent.$index, indoor.equipment.id)"
+                        > Type: {{indoor.equipment.params.type}}, Serial Number: {{indoor.equipment.params.serial_number}}
+                    </label>
                 </div>
-                <div class="col-md-5">
-                    <div class="form-group">
-                        <label>Capacity Ethernet</label>
-                        <div class="input-group">
-                            <input type="number" class="form-control" ng-model="hop.indoor.farEnd.params.capacity_ethernet" placeholder="150"/>
-                            <span class="input-group-addon">Mb/s</span>
-                        </div>
-                    </div>
+                <h4>Outdoors</h4>
+                <div ng-repeat="outdoor in hop.farEnd.ous">
+                    <label>
+                        <input type="checkbox" value="{{outdoor.equipment.id}}"
+                                ng-checked="hop.equipments.indexOf(outdoor.equipment.id) > -1"
+                                ng-click="toggleConnectionEquipment($parent.$index, outdoor.equipment.id)"
+                        > Type: {{outdoor.equipment.params.type}}, Serial Number: {{outdoor.equipment.params.serial_number}}
+                    </label>
                 </div>
-                <div class="col-md-5 col-md-offset-2">
-                    <div class="form-group">
-                        <label>Protection type</label>
-                        <select class="form-control" ng-model="hop.indoor.farEnd.params.protection_type">
-                            <option value="1+1">1+1</option>
-                            <option value="1+0">1+0</option>
-                            <option value="1+1 Hot Standby">1+1 Hot Standby</option>
-                            <option value="1+1 Working Standby">1+1 Working Standby</option>
-                            <option value="1+0 Unprotected">1+0 Unprotected</option>
-                        </select>
-                    </div>
-                </div>
-                <div class="col-md-5">
-                    <div class="form-group">
-                        <label>Link capacity nxE1</label>
-                        <input type="number" class="form-control" ng-model="hop.indoor.farEnd.params.link_capacity_nxe1" placeholder="10"/>
-                    </div>
-                </div>
-                <div class="col-md-5 col-md-offset-2">
-                    <div class="form-group">
-                        <label>Facility</label>
-                        <select class="form-control" ng-model="hop.indoor.farEnd.facility">
-                            <option value="{{f.id}}" ng-repeat="f in hop.farEnd.facilities">{{f.definitionId}} ({{f.params.name}})</option>
-                        </select>
-                    </div>
+                <h4>Antennas</h4>
+                <div ng-repeat="antenna in hop.farEnd.aus">
+                    <label>
+                        <input type="checkbox" value="{{antenna.equipment.id}}"
+                                ng-checked="hop.equipments.indexOf(antenna.equipment.id) > -1"
+                                ng-click="toggleConnectionEquipment($parent.$index, antenna.equipment.id)"
+                        > Type: {{antenna.equipment.params.type}}, Serial Number: {{antenna.equipment.params.serial_number}}
+                    </label>
                 </div>
             </div>
-        </div>
-        <h4>Outdoor Unit
-            <a ng-click="addHopOd($index)" class="btn btn-danger" ng-if="fillSite.ous.length > hop.ous.length">Add Outdoor Unit</a>
-            <a  class="btn btn-danger" disabled ng-if="fillSite.ous.length <= hop.ous.length">Add Outdoor Unit</a>
-            <span style="font-size: 12px; color: orange;" ng-if="fillSite.ous.length <= hop.ous.length">Sorry, you don't have free outdoor please add</span></h4>
-        <accordion>
-            <accordion-group ng-repeat="od in hop.ous track by $index">
-                <accordion-heading>
-                    Outdoor unit # {{$index}}<i class="pull-right glyphicon" ng-class="{'glyphicon-chevron-up': status.isCustomHeaderOpen, 'glyphicon-chevron-down': !status.isCustomHeaderOpen}"></i>
-                </accordion-heading>
-                <div class="row">
-                    <div class="col-md-6 well">
-                        <div class="col-md-6">
-                            <div class="form-group">
-                                <label>Main Line</label>
-                            </div>
-                        </div>
-                        <div class="col-md-6" ng-if="hop.indoor.nearEnd.params.protection_type === '1+1' || hop.indoor.nearEnd.params.protection_type === '1+1 Hot Standby' || hop.indoor.nearEnd.params.protection_type === '1+1 Working Standby'">
-                            <div class="form-group">
-                                <label>Protection Line</label>
-                            </div>
-                        </div>
-                        <div class="col-md-6">
-                            <div class="form-group">
-                                <label>Outdoor unit</label>
-                                <select class="form-control" ng-model="od.nearEnd.main_line.equipmentId">
-                                    <option value="{{ou.id}}" ng-repeat="ou in fillSite.ous" ng-selected="{{ou.id === od.nearEnd.main_line.equipmentId}}">{{$index+1}}</option>
-                                </select>
-                            </div>
-                        </div>
-                        <div class="col-md-6" ng-if="hop.indoor.nearEnd.params.protection_type === '1+1' || hop.indoor.nearEnd.params.protection_type === '1+1 Hot Standby' || hop.indoor.nearEnd.params.protection_type === '1+1 Working Standby'">
-                            <div class="form-group">
-                                <label>Outdoor unit</label>
-                                <select class="form-control" ng-model="od.nearEnd.protection_line.equipmentId">
-                                    <option value="{{ou.id}}" ng-repeat="ou in fillSite.ous" ng-selected="{{ou.id === od.nearEnd.protection_line.equipmentId}}">{{$index+1}}</option>
-                                </select>
-                            </div>
-                        </div>
-                        <div class="col-md-6">
-                            <div class="form-group">
-                                <label>IF cabel length from IDU to ODU</label>
-                                <div class="input-group">
-                                    <input type="number" class="form-control" ng-model="od.nearEnd.main_line.params.if_cable_length" placeholder="24584"/>
-                                    <span class="input-group-addon">m.</span>
-                                </div>
-                            </div>
-                        </div>
-                        <div class="col-md-6" ng-if="hop.indoor.nearEnd.params.protection_type === '1+1' || hop.indoor.nearEnd.params.protection_type === '1+1 Hot Standby' || hop.indoor.nearEnd.params.protection_type === '1+1 Working Standby'">
-                            <div class="form-group">
-                                <label>IF cabel length from IDU to ODU</label>
-                                <div class="input-group">
-                                    <input type="number" class="form-control" ng-model="od.nearEnd.protection_line.params.if_cable_length" placeholder="24584"/>
-                                    <span class="input-group-addon">m.</span>
-                                </div>
-                            </div>
-                        </div>
-                        <div class="col-md-6">
-                            <div class="form-group">
-                                <label>TX/RX Freq., MHz</label>
-                                <div class="input-group">
-                                    <input type="number" class="form-control" ng-model="od.nearEnd.main_line.params.tx_rx_frequencies" placeholder="24584"/>
-                                    <span class="input-group-addon">MHz</span>
-                                </div>
-                            </div>
-                        </div>
-                        <div class="col-md-6" ng-if="hop.indoor.nearEnd.params.protection_type === '1+1' || hop.indoor.nearEnd.params.protection_type === '1+1 Hot Standby' || hop.indoor.nearEnd.params.protection_type === '1+1 Working Standby'">
-                            <div class="form-group">
-                                <label>TX/RX Freq., MHz</label>
-                                <div class="input-group">
-                                    <input type="number" class="form-control" ng-model="od.nearEnd.protection_line.params.tx_rx_frequencies" placeholder="24584"/>
-                                    <span class="input-group-addon">MHz</span>
-                                </div>
-                            </div>
-                        </div>
-                        <div class="col-md-6">
-                            <div class="form-group">
-                                <label>Power level: Tx, dBm  </label>
-                                <div class="input-group">
-                                    <input type="number" class="form-control" ng-model="od.nearEnd.main_line.params.power_lvl_Tx" placeholder="10"/>
-                                    <span class="input-group-addon">dBm</span>
-                                </div>
-                            </div>
-                        </div>
-                        <div class="col-md-6" ng-if="hop.indoor.nearEnd.params.protection_type === '1+1' || hop.indoor.nearEnd.params.protection_type === '1+1 Hot Standby' || hop.indoor.nearEnd.params.protection_type === '1+1 Working Standby'">
-                            <div class="form-group">
-                                <label>Power level: Tx, dBm  </label>
-                                <div class="input-group">
-                                    <input type="number" class="form-control" ng-model="od.nearEnd.protection_line.params.power_lvl_Tx" placeholder="10"/>
-                                    <span class="input-group-addon">dBm</span>
-                                </div>
-                            </div>
-                        </div>
-                        <div class="col-md-6">
-                            <div class="form-group">
-                                <label>Power level: Rx, dBm  </label>
-                                <div class="input-group">
-                                    <input type="number" class="form-control" ng-model="od.nearEnd.main_line.params.power_lvl_Rx" placeholder="-35"/>
-                                    <span class="input-group-addon">dBm</span>
-                                </div>
-                            </div>
-                        </div>
-                        <div class="col-md-6" ng-if="hop.indoor.nearEnd.params.protection_type === '1+1' || hop.indoor.nearEnd.params.protection_type === '1+1 Hot Standby' || hop.indoor.nearEnd.params.protection_type === '1+1 Working Standby'">
-                            <div class="form-group">
-                                <label>Power level: Rx, dBm  </label>
-                                <div class="input-group">
-                                    <input type="number" class="form-control" ng-model="od.nearEnd.protection_line.params.power_lvl_Rx" placeholder="-35"/>
-                                    <span class="input-group-addon">dBm</span>
-                                </div>
-                            </div>
-                        </div>
-                        <div class="col-md-6">
-                            <div class="form-group">
-                                <label>Facility</label>
-                                <select class="form-control" ng-model="od.nearEnd.main_line.facility">
-                                    <option value="{{f.id}}" ng-repeat="f in fillSite.facilities">{{f.definitionId}} ({{f.params.name}})</option>
-                                </select>
-                            </div>
-                        </div>
-                    </div>
-                    <div class="col-md-6 well">
-                        <div class="col-md-6">
-                            <div class="form-group">
-                                <label>Main Line</label>
-                            </div>
-                        </div>
-                        <div class="col-md-6" ng-if="hop.indoor.farEnd.params.protection_type === '1+1' || hop.indoor.farEnd.params.protection_type === '1+1 Hot Standby' || hop.indoor.farEnd.params.protection_type === '1+1 Working Standby'">
-                            <div class="form-group">
-                                <label>Protection Line</label>
-                            </div>
-                        </div>
-                        <div class="col-md-6">
-                            <div class="form-group">
-                                <label>Outdoor unit</label>
-                                <select class="form-control" ng-model="od.farEnd.main_line.equipmentId">
-                                    <option value="{{ou.id}}" ng-repeat="ou in hop.farEnd.ous" ng-selected="{{ou.id === od.farEnd.main_line.equipmentId}}">{{$index+1}}</option>
-                                </select>
-                            </div>
-                        </div>
-                        <div class="col-md-6" ng-if="hop.indoor.farEnd.params.protection_type === '1+1' || hop.indoor.farEnd.params.protection_type === '1+1 Hot Standby' || hop.farEnd.nearEnd.params.protection_type === '1+1 Working Standby'">
-                            <div class="form-group">
-                                <label>Outdoor unit</label>
-                                <select class="form-control" ng-model="od.farEnd.protection_line.equipmentId">
-                                    <option value="{{ou.id}}" ng-repeat="ou in hop.farEnd.ous" ng-selected="{{ou.id === od.farEnd.protection_line.equipmentId}}">{{$index+1}}</option>
-                                </select>
-                            </div>
-                        </div>
-                        <div class="col-md-6">
-                            <div class="form-group">
-                                <label>IF cabel length from IDU to ODU</label>
-                                <div class="input-group">
-                                    <input type="number" class="form-control" ng-model="od.farEnd.main_line.params.if_cable_length" placeholder="24584"/>
-                                    <span class="input-group-addon">m.</span>
-                                </div>
-                            </div>
-                        </div>
-                        <div class="col-md-6" ng-if="hop.indoor.farEnd.params.protection_type === '1+1' || hop.indoor.farEnd.params.protection_type === '1+1 Hot Standby' || hop.indoor.farEnd.params.protection_type === '1+1 Working Standby'">
-                            <div class="form-group">
-                                <label>IF cabel length from IDU to ODU</label>
-                                <div class="input-group">
-                                    <input type="number" class="form-control" ng-model="od.farEnd.protection_line.params.if_cable_length" placeholder="24584"/>
-                                    <span class="input-group-addon">m.</span>
-                                </div>
-                            </div>
-                        </div>
-                        <div class="col-md-6">
-                            <div class="form-group">
-                                <label>TX/RX Freq., MHz</label>
-                                <div class="input-group">
-                                    <input type="number" class="form-control" ng-model="od.farEnd.main_line.params.tx_rx_frequencies" placeholder="24584"/>
-                                    <span class="input-group-addon">MHz</span>
-                                </div>
-                            </div>
-                        </div>
-                        <div class="col-md-6" ng-if="hop.indoor.farEnd.params.protection_type === '1+1' || hop.indoor.farEnd.params.protection_type === '1+1 Hot Standby' || hop.indoor.farEnd.params.protection_type === '1+1 Working Standby'">
-                            <div class="form-group">
-                                <label>TX/RX Freq., MHz</label>
-                                <div class="input-group">
-                                    <input type="number" class="form-control" ng-model="od.farEnd.protection_line.params.tx_rx_frequencies" placeholder="24584"/>
-                                    <span class="input-group-addon">MHz</span>
-                                </div>
-                            </div>
-                        </div>
-                        <div class="col-md-6">
-                            <div class="form-group">
-                                <label>Power level: Tx, dBm  </label>
-                                <div class="input-group">
-                                    <input type="number" class="form-control" ng-model="od.farEnd.main_line.params.power_lvl_Tx" placeholder="10"/>
-                                    <span class="input-group-addon">dBm</span>
-                                </div>
-                            </div>
-                        </div>
-                        <div class="col-md-6" ng-if="hop.indoor.farEnd.params.protection_type === '1+1' || hop.indoor.farEnd.params.protection_type === '1+1 Hot Standby' || hop.indoor.farEnd.params.protection_type === '1+1 Working Standby'">
-                            <div class="form-group">
-                                <label>Power level: Tx, dBm  </label>
-                                <div class="input-group">
-                                    <input type="number" class="form-control" ng-model="od.farEnd.protection_line.params.power_lvl_Tx" placeholder="10"/>
-                                    <span class="input-group-addon">dBm</span>
-                                </div>
-                            </div>
-                        </div>
-                        <div class="col-md-6">
-                            <div class="form-group">
-                                <label>Power level: Rx, dBm  </label>
-                                <div class="input-group">
-                                    <input type="number" class="form-control" ng-model="od.farEnd.main_line.params.power_lvl_Rx" placeholder="-35"/>
-                                    <span class="input-group-addon">dBm</span>
-                                </div>
-                            </div>
-                        </div>
-                        <div class="col-md-6" ng-if="hop.indoor.farEnd.params.protection_type === '1+1' || hop.indoor.farEnd.params.protection_type === '1+1 Hot Standby' || hop.indoor.farEnd.params.protection_type === '1+1 Working Standby'">
-                            <div class="form-group">
-                                <label>Power level: Rx, dBm  </label>
-                                <div class="input-group">
-                                    <input type="number" class="form-control" ng-model="od.farEnd.protection_line.params.power_lvl_Rx" placeholder="-35"/>
-                                    <span class="input-group-addon">dBm</span>
-                                </div>
-                            </div>
-                        </div>
-                        <div class="col-md-6">
-                            <div class="form-group">
-                                <label>Facility</label>
-                                <select class="form-control" ng-model="od.farEnd.main_line.facility">
-                                    <option value="{{f.id}}" ng-repeat="f in hop.farEnd.facilities">{{f.definitionId}} ({{f.params.name}})</option>
-                                </select>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-            </accordion-group>
-        </accordion>
-        <h4>Antenna
-            <a ng-click="addHopAntenna($index)" class="btn btn-danger" ng-if="fillSite.aus.length > hop.aus.length">Add Antenna</a>
-            <a  class="btn btn-danger" disabled ng-if="fillSite.aus.length <= hop.aus.length">Add Antenna</a>
-            <span style="font-size: 12px; color: orange;" ng-if="fillSite.aus.length <= hop.aus.length">Sorry, you don't have free antenna please add</span></h4>
-        </h4>
-        <accordion>
-            <accordion-group ng-repeat="an in hop.aus track by $index">
-                <accordion-heading>
-                    Antenna # {{$index}}<i class="pull-right glyphicon" ng-class="{'glyphicon-chevron-up': status.isCustomHeaderOpen, 'glyphicon-chevron-down': !status.isCustomHeaderOpen}"></i>
-                </accordion-heading>
-                <div class="row">
-                    <div class="col-md-6 well">
-                        <div class="col-md-6">
-                            <div class="form-group">
-                                <label>Main Line</label>
-                            </div>
-                        </div>
-                        <div class="col-md-6" ng-if="hop.indoor.nearEnd.params.protection_type === '1+1' || hop.indoor.nearEnd.params.protection_type === '1+1 Hot Standby' || hop.indoor.nearEnd.params.protection_type === '1+1 Working Standby'">
-                            <div class="form-group">
-                                <label>Protection Line</label>
-                            </div>
-                        </div>
-                        <div class="col-md-6">
-                            <div class="form-group">
-                                <label>Antenna</label>
-                                <select class="form-control" ng-model="an.nearEnd.main_line.equipmentId">
-                                    <option ng-repeat="ant in fillSite.aus" value="{{ant.id}}" ng-selected="{{ant.id === an.nearEnd.main_line.params.equipmentId}}">{{$index+1}}</option>
-                                </select>
-                            </div>
-                        </div>
-                        <div class="col-md-6" ng-if="hop.indoor.nearEnd.params.protection_type === '1+1' || hop.indoor.nearEnd.params.protection_type === '1+1 Hot Standby' || hop.indoor.nearEnd.params.protection_type === '1+1 Working Standby'">
-                            <div class="form-group">
-                                <label>Antenna</label>
-                                <select class="form-control" ng-model="an.nearEnd.protection_line.equipmentId">
-                                    <option ng-repeat="ant in fillSite.aus" value="{{ant.id}}" ng-selected="{{ant.id === an.nearEnd.protection_line.params.equipmentId}}">{{$index+1}}</option>
-                                </select>
-                            </div>
-                        </div>
-                        <div class="col-md-6">
-                            <div class="form-group">
-                                <label>Height of suspension</label>
-                                <div class="input-group">
-                                    <input type="number" class="form-control" ng-model="an.nearEnd.main_line.params.height_of_suspention_of_ant" placeholder="10"/>
-                                    <span class="input-group-addon">m.</span>
-                                </div>
-                            </div>
-                        </div>
-                        <div class="col-md-6" ng-if="hop.indoor.nearEnd.params.protection_type === '1+1' || hop.indoor.nearEnd.params.protection_type === '1+1 Hot Standby' || hop.indoor.nearEnd.params.protection_type === '1+1 Working Standby'">
-                            <div class="form-group">
-                                <label>Height of suspension</label>
-                                <div class="input-group">
-                                    <input type="number" class="form-control" ng-model="an.nearEnd.protection_line.params.height_of_suspention_of_ant" placeholder="10"/>
-                                    <span class="input-group-addon">m.</span>
-                                </div>
-                            </div>
-                        </div>
-                        <div class="col-md-6">
-                            <div class="form-group">
-                                <label>Min horizontal distance from roof edge</label>
-                                <div class="input-group">
-                                    <input type="number" class="form-control" ng-model="an.nearEnd.main_line.params.min_horizontal_distance_from_roof_edge" placeholder="10"/>
-                                    <span class="input-group-addon">m.</span>
-                                </div>
-                            </div>
-                        </div>
-                        <div class="col-md-6" ng-if="hop.indoor.nearEnd.params.protection_type === '1+1' || hop.indoor.nearEnd.params.protection_type === '1+1 Hot Standby' || hop.indoor.nearEnd.params.protection_type === '1+1 Working Standby'">
-                            <div class="form-group">
-                                <label>Min horizontal distance from roof edge</label>
-                                <div class="input-group">
-                                    <input type="number" class="form-control" ng-model="an.nearEnd.protection_line.params.min_horizontal_distance_from_roof_edge" placeholder="10"/>
-                                    <span class="input-group-addon">m.</span>
-                                </div>
-                            </div>
-                        </div>
-                        <div class="col-md-6">
-                            <div class="form-group">
-                                <label>Placement type</label>
-                                <select class="form-control" ng-model="an.nearEnd.main_line.params.placement_type">
-                                    <option value="on pole">on pole</option>
-                                </select>
-                            </div>
-                        </div>
-                        <div class="col-md-6" ng-if="hop.indoor.nearEnd.params.protection_type === '1+1' || hop.indoor.nearEnd.params.protection_type === '1+1 Hot Standby' || hop.indoor.nearEnd.params.protection_type === '1+1 Working Standby'">
-                            <div class="form-group">
-                                <label>Placement type</label>
-                                <select class="form-control" ng-model="an.nearEnd.protection_line.params.placement_type">
-                                    <option value="on pole">on pole</option>
-                                </select>
-                            </div>
-                        </div>
-                        <div class="col-md-6">
-                            <div class="form-group">
-                                <label>Azimuth</label>
-                                <input type="number" class="form-control" ng-model="an.nearEnd.main_line.params.azimuth" placeholder="10"/>
-                            </div>
-                        </div>
-                        <div class="col-md-6">
-                            <div class="form-group">
-                                <label>Facility</label>
-                                <select class="form-control" ng-model="an.nearEnd.main_line.facility">
-                                    <option value="{{f.id}}" ng-repeat="f in fillSite.facilities">{{f.definitionId}} ({{f.params.name}})</option>
-                                </select>
-                            </div>
-                        </div>
-                    </div>
-                    <div class="col-md-6 well">
-                        <div class="col-md-6">
-                            <div class="form-group">
-                                <label>Main Line</label>
-                            </div>
-                        </div>
-                        <div class="col-md-6" ng-if="hop.indoor.farEnd.params.protection_type === '1+1' || hop.indoor.farEnd.params.protection_type === '1+1 Hot Standby' || hop.indoor.farEnd.params.protection_type === '1+1 Working Standby'">
-                            <div class="form-group">
-                                <label>Protection Line</label>
-                            </div>
-                        </div>
-                        <div class="col-md-6">
-                            <div class="form-group">
-                                <label>Antenna</label>
-                                <select class="form-control" ng-model="an.farEnd.main_line.equipmentId">
-                                    <option ng-repeat="ant in hop.farEnd.aus" value="{{ant.id}}" ng-selected="{{ant.id === an.farEnd.main_line.params.equipmentId}}">{{$index+1}}</option>
-                                </select>
-                            </div>
-                        </div>
-                        <div class="col-md-6" ng-if="hop.indoor.farEnd.params.protection_type === '1+1' || hop.indoor.farEnd.params.protection_type === '1+1 Hot Standby' || hop.indoor.farEnd.params.protection_type === '1+1 Working Standby'">
-                            <div class="form-group">
-                                <label>Antenna</label>
-                                <select class="form-control" ng-model="an.farEnd.protection_line.equipmentId">
-                                    <option ng-repeat="ant in hop.farEnd.aus" value="{{ant.id}}" ng-selected="{{ant.id === an.farEnd.protection_line.params.equipmentId}}">{{$index+1}}</option>
-                                </select>
-                            </div>
-                        </div>
-                        <div class="col-md-6">
-                            <div class="form-group">
-                                <label>Height of suspension</label>
-                                <div class="input-group">
-                                    <input type="number" class="form-control" ng-model="an.farEnd.main_line.params.height_of_suspention_of_ant" placeholder="10"/>
-                                    <span class="input-group-addon">m.</span>
-                                </div>
-                            </div>
-                        </div>
-                        <div class="col-md-6" ng-if="hop.indoor.farEnd.params.protection_type === '1+1' || hop.indoor.farEnd.params.protection_type === '1+1 Hot Standby' || hop.indoor.farEnd.params.protection_type === '1+1 Working Standby'">
-                            <div class="form-group">
-                                <label>Height of suspension</label>
-                                <div class="input-group">
-                                    <input type="number" class="form-control" ng-model="an.farEnd.protection_line.params.height_of_suspention_of_ant" placeholder="10"/>
-                                    <span class="input-group-addon">m.</span>
-                                </div>
-                            </div>
-                        </div>
-                        <div class="col-md-6">
-                            <div class="form-group">
-                                <label>Min horizontal distance from roof edge</label>
-                                <div class="input-group">
-                                    <input type="number" class="form-control" ng-model="an.farEnd.main_line.params.min_horizontal_distance_from_roof_edge" placeholder="10"/>
-                                    <span class="input-group-addon">m.</span>
-                                </div>
-                            </div>
-                        </div>
-                        <div class="col-md-6" ng-if="hop.indoor.farEnd.params.protection_type === '1+1' || hop.indoor.farEnd.params.protection_type === '1+1 Hot Standby' || hop.indoor.farEnd.params.protection_type === '1+1 Working Standby'">
-                            <div class="form-group">
-                                <label>Min horizontal distance from roof edge</label>
-                                <div class="input-group">
-                                    <input type="number" class="form-control" ng-model="an.farEnd.protection_line.params.min_horizontal_distance_from_roof_edge" placeholder="10"/>
-                                    <span class="input-group-addon">m.</span>
-                                </div>
-                            </div>
-                        </div>
-                        <div class="col-md-6">
-                            <div class="form-group">
-                                <label>Placement type</label>
-                                <select class="form-control" ng-model="an.farEnd.main_line.params.placement_type">
-                                    <option value="on pole">on pole</option>
-                                </select>
-                            </div>
-                        </div>
-                        <div class="col-md-6" ng-if="hop.indoor.farEnd.params.protection_type === '1+1' || hop.indoor.farEnd.params.protection_type === '1+1 Hot Standby' || hop.indoor.nearEnd.params.protection_type === '1+1 Working Standby'">
-                            <div class="form-group">
-                                <label>Placement type</label>
-                                <select class="form-control" ng-model="an.farEnd.protection_line.params.placement_type">
-                                    <option value="on pole">on pole</option>
-                                </select>
-                            </div>
-                        </div>
-                        <div class="col-md-6">
-                            <div class="form-group">
-                                <label>Azimuth</label>
-                                <input type="number" class="form-control" ng-model="an.farEnd.main_line.params.azimuth" placeholder="10"/>
-                            </div>
-                        </div>
-                        <div class="col-md-6">
-                            <div class="form-group">
-                                <label>Facility</label>
-                                <select class="form-control" ng-model="an.farEnd.main_line.facility">
-                                    <option value="{{f.id}}" ng-repeat="f in hop.farEnd.facilities">{{f.definitionId}} ({{f.params.name}})</option>
-                                </select>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-            </accordion-group>
-        </accordion>
-        <div class="row">
+            <h4>Connection Link</h4>
             <div class="col-md-12 well">
-                <h4>Connection Link</h4>
                 <div class="col-md-3">
                     <div class="form-group">
                         <label>Link type</label>
-                        <select class="form-control" ng-model="indoor.connection.params.type">
+                        <select class="form-control" ng-model="hop.params.type">
                             <option value="TDM">TDM</option>
                         </select>
                     </div>
@@ -564,7 +98,7 @@
                 <div class="col-md-3">
                     <div class="form-group">
                         <label>Channel bandwidth</label>
-                        <select class="form-control" ng-model="indoor.connection.params.channel_bandwidth">
+                        <select class="form-control" ng-model="hop.params.channel_bandwidth">
                             <option value="3.5">3.5 MHZ</option>
                             <option value="7">7 MHZ</option>
                             <option value="14">14 MHZ</option>
@@ -578,166 +112,313 @@
                     <div class="form-group">
                         <label>Pass distance, km</label>
                         <div class="input-group">
-                            <input type="number" class="form-control" ng-model="indoor.connection.params.pass_distance" placeholder="15"/>
+                            <input type="number" class="form-control" ng-model="hop.params.pass_distance" placeholder="15"/>
                             <span class="input-group-addon">m.</span>
                         </div>
                     </div>
                 </div>
+                <div class="col-md-3">
+                    <div class="form-group">
+                        <label>Protection mode</label>
+                        <select class="form-control" ng-model="hop.params.mode">
+                            <option value="1+1">1+1</option>
+                            <option value="1+0">1+0</option>
+                            <option value="1+1 Hot Standby">1+1 Hot Standby</option>
+                            <option value="1+1 Working Standby">1+1 Working Standby</option>
+                            <option value="1+0 Unprotected">1+0 Unprotected</option>
+                        </select>
+                    </div>
+                </div>
             </div>
-            <div class="col-md-6">&nbsp;</div>
-            <div class="col-md-6 well" style="background-color: #ececec;">
-                <h4>Microwave equipment on site</h4>
-                <h4>Indoor Unit</h4>
-                <span style="padding-right: 15px;" ng-repeat="iu in hop.farEnd.ius track by $index" tooltip="Type: {{iu.equipment.params.type}}, Terminal ID: {{iu.equipment.params.terminal_id}}, Serial Number: {{iu.equipment.params.serial_number}}" tooltip-placement="top"><a style="cursor: pointer">Indoor unit #{{$index+1}}</a> <a><i class="glyphicon glyphicon-pencil"></i></a></span>
-                <h4>Outdoor Unit</h4>
-                <span style="padding-right: 15px;" ng-repeat="ou in hop.farEnd.ous track by $index" tooltip="Type: {{ou.equipment.params.type}}, Frequency: {{ou.equipment.params.frequency}}, Rau Subband: {{ou.equipment.params.rau_subband}}, Modulation type{{ou.equipment.params.mudulation_type}}" tooltip-placement="top"><a style="cursor: pointer;">Outdoor unit #{{$index+1}}</a> <a><i class="glyphicon glyphicon-pencil"></i></a></span>
-                <h4>Antenna</h4>
-                <span style="padding-right: 15px;" ng-repeat="an in hop.farEnd.aus track by $index" tooltip="Type: {{an.equipment.params.type}}, Weight: {{an.equipment.params.weight}}, Diameter: {{an.equipment.params.diameter}}, Polarization: {{an.equipment.params.polarization}}, Serial Number: {{an.equipment.params.serial_number}}" tooltip-placement="top"><a style="cursor: pointer;">Antenna #{{$index+1}}</a> <a><i class="glyphicon glyphicon-pencil"></i></a></span>
+            <div class="col-md-12" ng-if="hop.id">
+                <div class="btn-group" role="group">
+                    <button type="button" class="btn {{hop._command == 'MODIFY_INSTALLATION'?'btn-primary':'btn-default'}}" ng-click="hop._command = 'MODIFY_INSTALLATION'">Modify settings</button>
+                    <button type="button" class="btn {{hop._command == 'REPLACE_INSTALLATION'?'btn-primary':'btn-default'}}" ng-click="hop._command = 'REPLACE_INSTALLATION'">Replace</button>
+                    <button type="button" class="btn {{hop._command == 'DELETE_INSTALLATION'?'btn-primary':'btn-default'}}" ng-click="hop._command = 'DELETE_INSTALLATION'">Dismantle</button>
+                </div>
             </div>
         </div>
     </accordion-group>
 </accordion>
 <h4>Microwave equipment</h4>
 <div class="row">
-    <div class="col-md-4 well">
-        <h4>Add Indoor Unit</h4>
-        <div class="col-md-6">
-            <div class="form-group">
-                <label>Indoor Unit #</label>
-                <div class="form-control">{{fillSite.ius.length+1}}</div>
-            </div>
-        </div>
-        <div class="col-md-6">
-            <div class="form-group">
-                <label>Terminal ID</label>
-                <div class="input-group">
-                    <input type="number" class="form-control" ng-model="indoorUnit.params.terminal_id" placeholder="SAR1"/>
-                </div>
-            </div>
-        </div>
-        <div class="col-md-6">
-            <div class="form-group">
-                <label>Type</label>
-                <select class="form-control" ng-model="indoorUnit.params.type">
-                    <option value="TN 20p">TN 20p</option>
-                </select>
-            </div>
-        </div>
-        <div class="col-md-6">
-            <div class="form-group">
-                <label>Serial number</label>
-                <input class="form-control" ng-model="indoorUnit.params.serial_number" />
-            </div>
-        </div>
-        <div class="row"><div class="col-md-6"><a ng-click="addIndoorUnit()" class="btn btn-primary">Add</a></div></div>
-    </div>
-    <div class="col-md-4 well">
-        <h4>Add Outdoor Unit</h4>
-        <div class="col-md-6">
-            <div class="form-group">
-                <label>Outdoor unit #</label>
-                <div class="form-control">{{fillSite.ous.length+1}}</div>
-            </div>
-        </div>
-        <div class="col-md-6">
-            <div class="form-group">
-                <label>Frequency, GHz</label>
-                <div class="input-group">
-                    <input type="number" class="form-control" ng-model="outdoorUnit.params.frequency" placeholder="23"/>
-                    <span class="input-group-addon">GHz</span>
-                </div>
-            </div>
-        </div>
-        <div class="col-md-6">
-            <div class="form-group">
-                <label>Type</label>
-                <select class="form-control" ng-model="outdoorUnit.params.type">
-                    <option value="RAU2 N">RAU2 N</option>
-                    <option value="RAU1 N">RAU1 N</option>
-                </select>
-            </div>
-        </div>
-        <div class="col-md-6">
-            <div class="form-group">
-                <label>Modulation type</label>
-                <input class="form-control" ng-model="outdoorUnit.params.modulation_type" placeholder="64QAM"/>
-            </div>
-        </div>
-        <div class="col-md-6">
-            <div class="form-group">
-                <label>Serial number</label>
-                <input class="form-control" ng-model="outdoorUnit.params.serial_number" placeholder="3334rrr5"/>
-            </div>
-        </div>
-        <div class="col-md-6">
-            <div class="form-group">
-                <label>RAU subband</label>
-                <input class="form-control" ng-model="outdoorUnit.params.rau_subband" placeholder="23/78" />
-            </div>
-        </div>
-        <div class="row"><div class="col-md-6"><a ng-click="addOutdoorUnit()" class="btn btn-primary">Add</a></div></div>
-    </div>
-    <div class="col-md-4 well">
-        <h4>Add Antenna</h4>
-        <div class="col-md-6">
-            <div class="form-group">
-                <label>Antenna #</label>
-                <div class="form-control">{{fillSite.aus.length+1}}</div>
-            </div>
-        </div>
-        <div class="col-md-6">
-            <div class="form-group">
-                <label>Polarization</label>
-                <div class="input-group">
-                    <select class="form-control" ng-model="antenna.params.polarization">
-                        <option value="Horizontal">Horizontal</option>
-                        <option value="Vertical">Vertical</option>
-                    </select>
-                </div>
-            </div>
-        </div>
-        <div class="col-md-6">
-            <div class="form-group">
-                <label>Type</label>
-                <select class="form-control" ng-model="antenna.params.type">
-                    <option value="">выбрать</option>
-                    <option value="Type1">Type1</option>
-                </select>
-            </div>
-        </div>
-        <div class="col-md-6">
-            <div class="form-group">
-                <label>Diameter, m</label>
-                <select class="form-control" ng-model="antenna.params.diameter">
-                    <option value="0.6">0.6</option>
-                    <option value="0.7">0.7</option>
-                </select>
-            </div>
-        </div>
-        <div class="col-md-6">
-            <div class="form-group">
-                <label>Serial number</label>
-                <input class="form-control" ng-model="antenna.params.serial_number" />
-            </div>
-        </div>
-        <div class="col-md-6">
-            <div class="form-group">
-                <label>Weight, kg</label>
-                <div class="input-group">
-                    <input type="number" class="form-control" ng-model="antenna.params.weight" placeholder="20"/>
-                    <span class="input-group-addon">kg.</span>
-                </div>
-            </div>
-        </div>
-        <div class="row"><div class="col-md-6"><a ng-click="addAntennaUnit()" class="btn btn-primary">Add</a></div></div>
-    </div>
     <div class="col-md-12 well" style="background-color: #ececec;">
         <h4>Microwave equipment on site</h4>
         <h4>Indoor Unit</h4>
-        <span style="padding-right: 15px;" ng-repeat="iu in fillSite.ius track by $index" tooltip="Type: {{iu.equipment.params.type}}, Terminal ID: {{iu.equipment.params.terminal_id}}, Serial Number: {{iu.equipment.params.serial_number}}" tooltip-placement="top"><a style="cursor: pointer">Indoor unit #{{$index+1}}</a> <a><i class="glyphicon glyphicon-pencil"></i></a></span>
+        <a ng-click="addIndoorUnit()" class="btn btn-danger">Add Indoor Unit</a>
+        <accordion>
+            <accordion-group ng-repeat="indoorUnit in fillSite.ius track by $index">
+                <accordion-heading>
+                    Indoor Unit # {{$index+1}}<i class="pull-right glyphicon" ng-class="{'glyphicon-chevron-up': status.isCustomHeaderOpen, 'glyphicon-chevron-down': !status.isCustomHeaderOpen}"></i>
+                </accordion-heading>
+                <div class="col-md-12" ng-if="indoorUnit.id.indexOf('_NEW') == 0">
+                    <a ng-click="removeIndoorUnit($index)" class="btn btn-danger">Remove Indoor Unit</a>
+                </div>
+                <div class="col-md-3">
+                    <div class="form-group">
+                        <label>Terminal ID</label>
+                        <input type="text" class="form-control" ng-model="indoorUnit.equipment.params.terminal_id" placeholder="SAR1"/>
+                    </div>
+                </div>
+                <div class="col-md-3">
+                    <div class="form-group">
+                        <label>Type</label>
+                        <select class="form-control" ng-model="indoorUnit.equipment.params.type">
+                            <option value="TN 20p">TN 20p</option>
+                        </select>
+                    </div>
+                </div>
+                <div class="col-md-3">
+                    <div class="form-group">
+                        <label>Serial number</label>
+                        <input class="form-control" ng-model="indoorUnit.equipment.params.serial_number" />
+                    </div>
+                </div>
+                <div class="col-md-3">
+                    <div class="form-group">
+                        <label>Capacity Ethernet</label>
+                        <div class="input-group">
+                            <input type="number" class="form-control" ng-model="indoorUnit.params.capacity_ethernet" placeholder="150"/>
+                            <span class="input-group-addon">Mb/s</span>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-md-3">
+                    <div class="form-group">
+                        <label>Protection type</label>
+                        <select class="form-control" ng-model="indoorUnit.params.protection_type">
+                            <option value="1+1">1+1</option>
+                            <option value="1+0">1+0</option>
+                            <option value="1+1 Hot Standby">1+1 Hot Standby</option>
+                            <option value="1+1 Working Standby">1+1 Working Standby</option>
+                            <option value="1+0 Unprotected">1+0 Unprotected</option>
+                        </select>
+                    </div>
+                </div>
+                <div class="col-md-3">
+                    <div class="form-group">
+                        <label>Link capacity nxE1</label>
+                        <input type="number" class="form-control" ng-model="indoorUnit.params.link_capacity_nxe1" placeholder="10"/>
+                    </div>
+                </div>
+                <div class="col-md-3">
+                    <div class="form-group">
+                        <label>Facility</label>
+                        <select class="form-control" ng-model="indoorUnit.facility">
+                            <option value="{{f.id}}" ng-repeat="f in fillSite.facilities" ng-selected="{{indoorUnit.facility === f.id}}">{{f.definitionId}} ({{f.params.name}})</option>
+                        </select>
+                    </div>
+                </div>
+                <div class="col-md-12" ng-if="indoorUnit.id.indexOf('_NEW') != 0">
+                    <div class="btn-group" role="group">
+                        <button type="button" class="btn {{indoorUnit._command == 'MODIFY_INSTALLATION'?'btn-primary':'btn-default'}}" ng-click="indoorUnit._command = 'MODIFY_INSTALLATION'">Modify settings</button>
+                        <button type="button" class="btn {{indoorUnit._command == 'REPLACE_INSTALLATION'?'btn-primary':'btn-default'}}" ng-click="indoorUnit._command = 'REPLACE_INSTALLATION'">Replace</button>
+                        <button type="button" class="btn {{indoorUnit._command == 'DELETE_INSTALLATION'?'btn-primary':'btn-default'}}" ng-click="indoorUnit._command = 'DELETE_INSTALLATION'">Dismantle</button>
+                    </div>
+                </div>
+            </accordion-group>
+        </accordion>
         <h4>Outdoor Unit</h4>
-        <span style="padding-right: 15px;" ng-repeat="ou in fillSite.ous track by $index" tooltip="Type: {{ou.equipment.params.type}}, Frequency: {{ou.equipment.params.frequency}}, Rau Subband: {{ou.equipment.params.rau_subband}}, Modulation type{{ou.equipment.params.mudulation_type}}" tooltip-placement="top"><a style="cursor: pointer;">Outdoor unit #{{$index+1}}</a> <a><i class="glyphicon glyphicon-pencil"></i></a></span>
-        <h4>Antenna</h4>
-        <span style="padding-right: 15px;" ng-repeat="an in fillSite.aus track by $index" tooltip="Type: {{an.equipment.params.type}}, Weight: {{an.equipment.params.weight}}, Diameter: {{an.equipment.params.diameter}}, Polarization: {{an.equipment.params.polarization}}, Serial Number: {{an.equipment.params.serial_number}}" tooltip-placement="top"><a style="cursor: pointer;">Antenna #{{$index+1}}</a> <a><i class="glyphicon glyphicon-pencil"></i></a></span>
+        <a ng-click="addOutdoorUnit()" class="btn btn-danger">Add Outdoor Unit</a>
+        <accordion>
+            <accordion-group ng-repeat="outdoorUnit in fillSite.ous track by $index">
+                <accordion-heading>
+                    Outdoor Unit # {{$index+1}}<i class="pull-right glyphicon" ng-class="{'glyphicon-chevron-up': status.isCustomHeaderOpen, 'glyphicon-chevron-down': !status.isCustomHeaderOpen}"></i>
+                </accordion-heading>
+                <div class="col-md-12" ng-if="outdoorUnit.id.indexOf('_NEW') == 0">
+                    <a ng-click="removeOutdoorUnit($index)" class="btn btn-danger">Remove Outdoor Unit</a>
+                </div>
+                <div class="col-md-6">
+                    <div class="form-group">
+                        <label>Frequency, GHz</label>
+                        <div class="input-group">
+                            <input type="number" class="form-control" ng-model="outdoorUnit.equipment.params.frequency" placeholder="23"/>
+                            <span class="input-group-addon">GHz</span>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-md-6">
+                    <div class="form-group">
+                        <label>Type</label>
+                        <select class="form-control" ng-model="outdoorUnit.equipment.params.type">
+                            <option value="RAU2 N">RAU2 N</option>
+                            <option value="RAU1 N">RAU1 N</option>
+                        </select>
+                    </div>
+                </div>
+                <div class="col-md-6">
+                    <div class="form-group">
+                        <label>Modulation type</label>
+                        <input class="form-control" ng-model="outdoorUnit.equipment.params.modulation_type" placeholder="64QAM"/>
+                    </div>
+                </div>
+                <div class="col-md-6">
+                    <div class="form-group">
+                        <label>Serial number</label>
+                        <input class="form-control" ng-model="outdoorUnit.equipment.params.serial_number" placeholder="3334rrr5"/>
+                    </div>
+                </div>
+                <div class="col-md-6">
+                    <div class="form-group">
+                        <label>RAU subband</label>
+                        <input class="form-control" ng-model="outdoorUnit.equipment.params.rau_subband" placeholder="23/78" />
+                    </div>
+                </div>
+                <div class="col-md-6">
+                    <div class="form-group">
+                        <label>IF cabel length from IDU to ODU</label>
+                        <div class="input-group">
+                            <input type="number" class="form-control" ng-model="outdoorUnit.params.if_cable_length" placeholder="24584"/>
+                            <span class="input-group-addon">m.</span>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-md-6">
+                    <div class="form-group">
+                        <label>TX/RX Freq., MHz</label>
+                        <div class="input-group">
+                            <input type="number" class="form-control" ng-model="outdoorUnit.params.tx_rx_frequencies" placeholder="24584"/>
+                            <span class="input-group-addon">MHz</span>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-md-6">
+                    <div class="form-group">
+                        <label>Power level: Tx, dBm  </label>
+                        <div class="input-group">
+                            <input type="number" class="form-control" ng-model="outdoorUnit.params.power_lvl_Tx" placeholder="10"/>
+                            <span class="input-group-addon">dBm</span>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-md-6">
+                    <div class="form-group">
+                        <label>Power level: Rx, dBm  </label>
+                        <div class="input-group">
+                            <input type="number" class="form-control" ng-model="outdoorUnit.params.power_lvl_Rx" placeholder="-35"/>
+                            <span class="input-group-addon">dBm</span>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-md-6">
+                    <div class="form-group">
+                        <label>Facility</label>
+                        <select class="form-control" ng-model="outdoorUnit.facility">
+                            <option value="{{f.id}}" ng-repeat="f in fillSite.facilities">{{f.definitionId}} ({{f.params.name}})</option>
+                        </select>
+                    </div>
+                </div>
+                <div class="col-md-12" ng-if="outdoorUnit.id.indexOf('_NEW') != 0">
+                    <div class="btn-group" role="group">
+                        <button type="button" class="btn {{outdoorUnit._command == 'MODIFY_INSTALLATION'?'btn-primary':'btn-default'}}" ng-click="outdoorUnit._command = 'MODIFY_INSTALLATION'">Modify settings</button>
+                        <button type="button" class="btn {{outdoorUnit._command == 'REPLACE_INSTALLATION'?'btn-primary':'btn-default'}}" ng-click="outdoorUnit._command = 'REPLACE_INSTALLATION'">Replace</button>
+                        <button type="button" class="btn {{outdoorUnit._command == 'DELETE_INSTALLATION'?'btn-primary':'btn-default'}}" ng-click="outdoorUnit._command = 'DELETE_INSTALLATION'">Dismantle</button>
+                    </div>
+                </div>
+            </accordion-group>
+        </accordion>
+        <h4>Antenna Unit</h4>
+        <a ng-click="addAntennaUnit()" class="btn btn-danger">Add Antenna Unit</a>
+        <accordion>
+            <accordion-group ng-repeat="antenna in fillSite.aus track by $index">
+                <accordion-heading>
+                    Antenna Unit # {{$index+1}}<i class="pull-right glyphicon" ng-class="{'glyphicon-chevron-up': status.isCustomHeaderOpen, 'glyphicon-chevron-down': !status.isCustomHeaderOpen}"></i>
+                </accordion-heading>
+                <div class="col-md-12" ng-if="antenna.id.indexOf('_NEW') == 0">
+                    <a ng-click="removeAntennaUnit($index)" class="btn btn-danger">Remove Antenna Unit</a>
+                </div>
+                <div class="col-md-6">
+                    <div class="form-group">
+                        <label>Polarization</label>
+                        <div class="input-group">
+                            <select class="form-control" ng-model="antenna.equipment.params.polarization">
+                                <option value="Horizontal">Horizontal</option>
+                                <option value="Vertical">Vertical</option>
+                            </select>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-md-6">
+                    <div class="form-group">
+                        <label>Type</label>
+                        <select class="form-control" ng-model="antenna.equipment.params.type">
+                            <option value="">выбрать</option>
+                            <option value="Type1">Type1</option>
+                        </select>
+                    </div>
+                </div>
+                <div class="col-md-6">
+                    <div class="form-group">
+                        <label>Diameter, m</label>
+                        <select class="form-control" ng-model="antenna.equipment.params.diameter">
+                            <option value="0.6">0.6</option>
+                            <option value="0.7">0.7</option>
+                        </select>
+                    </div>
+                </div>
+                <div class="col-md-6">
+                    <div class="form-group">
+                        <label>Serial number</label>
+                        <input class="form-control" ng-model="antenna.equipment.params.serial_number" />
+                    </div>
+                </div>
+                <div class="col-md-6">
+                    <div class="form-group">
+                        <label>Weight, kg</label>
+                        <div class="input-group">
+                            <input type="number" class="form-control" ng-model="antenna.equipment.params.weight" placeholder="20"/>
+                            <span class="input-group-addon">kg.</span>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-md-6">
+                    <div class="form-group">
+                        <label>Height of suspension</label>
+                        <div class="input-group">
+                            <input type="number" class="form-control" ng-model="antenna.params.height_of_suspention_of_ant" placeholder="10"/>
+                            <span class="input-group-addon">m.</span>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-md-6">
+                    <div class="form-group">
+                        <label>Min horizontal distance from roof edge</label>
+                        <div class="input-group">
+                            <input type="number" class="form-control" ng-model="antenna.params.min_horizontal_distance_from_roof_edge" placeholder="10"/>
+                            <span class="input-group-addon">m.</span>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-md-6">
+                    <div class="form-group">
+                        <label>Placement type</label>
+                        <select class="form-control" ng-model="antenna.params.placement_type">
+                            <option value="on pole">on pole</option>
+                        </select>
+                    </div>
+                </div>
+                <div class="col-md-6">
+                    <div class="form-group">
+                        <label>Azimuth</label>
+                        <input type="number" class="form-control" ng-model="antenna.params.azimuth" placeholder="10"/>
+                    </div>
+                </div>
+                <div class="col-md-6">
+                    <div class="form-group">
+                        <label>Facility</label>
+                        <select class="form-control" ng-model="antenna.facility">
+                            <option value="{{f.id}}" ng-repeat="f in fillSite.facilities">{{f.definitionId}} ({{f.params.name}})</option>
+                        </select>
+                    </div>
+                </div>
+                <div class="col-md-12" ng-if="antenna.id.indexOf('_NEW') != 0">
+                    <div class="btn-group" role="group">
+                        <button type="button" class="btn {{antenna._command == 'MODIFY_INSTALLATION'?'btn-primary':'btn-default'}}" ng-click="antenna._command = 'MODIFY_INSTALLATION'">Modify settings</button>
+                        <button type="button" class="btn {{antenna._command == 'REPLACE_INSTALLATION'?'btn-primary':'btn-default'}}" ng-click="antenna._command = 'REPLACE_INSTALLATION'">Replace</button>
+                        <button type="button" class="btn {{antenna._command == 'DELETE_INSTALLATION'?'btn-primary':'btn-default'}}" ng-click="antenna._command = 'DELETE_INSTALLATION'">Dismantle</button>
+                    </div>
+                </div>
+            </accordion-group>
+        </accordion>
     </div>
 </div>

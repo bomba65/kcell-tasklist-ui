@@ -40,8 +40,16 @@ public class AssetManagementSaveListenerNew implements TaskListener {
         try {
             ObjectMapper mapper = new ObjectMapper();
             if (delegateTask.getVariableTyped("fillSite") != null && delegateTask.getVariableTyped("fillSite").getValue() != null) {
-                JsonNode fillSite = mapper.readTree(delegateTask.getVariableTyped("fillSite").getValue().toString());
-                saveToAssetManagement(fillSite);
+                //JsonNode fillSite = mapper.readTree(delegateTask.getVariableTyped("fillSite").getValue().toString());
+                //saveToAssetManagement(fillSite);
+                JsonNode summaries = mapper.readTree(delegateTask.getVariableTyped("summaries").getValue().toString());
+                StringEntity equipmentInputData = new StringEntity(summaries.toString());
+                HttpPost equipmentPost = new HttpPost(new URI("http://assets:8080/asset-management/command"));
+                equipmentPost.addHeader("Content-Type", "application/json;charset=UTF-8");
+                equipmentPost.setEntity(equipmentInputData);
+                HttpClient equipmentHttpClient = HttpClients.createDefault();
+                HttpResponse equipmentResponse = equipmentHttpClient.execute(equipmentPost);
+                EntityUtils.consume(equipmentResponse.getEntity());
             }
         } catch (Exception e) {
             e.printStackTrace();
