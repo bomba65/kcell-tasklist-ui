@@ -12,6 +12,7 @@ import java.util.TreeSet;
 @Table(name = "equipment_instance")
 @Data @Builder @NoArgsConstructor @AllArgsConstructor
 @EqualsAndHashCode(exclude = {"connections", "version"})
+@ToString(exclude = "connections")
 public class EquipmentInstance implements Instance<EquipmentDefinition>, Comparable<EquipmentInstance> {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)

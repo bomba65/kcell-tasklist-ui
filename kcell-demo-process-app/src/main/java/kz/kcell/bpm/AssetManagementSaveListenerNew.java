@@ -43,14 +43,22 @@ public class AssetManagementSaveListenerNew implements TaskListener {
                 //JsonNode fillSite = mapper.readTree(delegateTask.getVariableTyped("fillSite").getValue().toString());
                 //saveToAssetManagement(fillSite);
                 JsonNode summaries = mapper.readTree(delegateTask.getVariableTyped("summaries").getValue().toString());
-                StringEntity equipmentInputData = new StringEntity(summaries.toString());
-                HttpPost equipmentPost = new HttpPost(new URI("http://assets:8080/asset-management/command"));
-                equipmentPost.addHeader("Content-Type", "application/json;charset=UTF-8");
-                equipmentPost.setEntity(equipmentInputData);
-                HttpClient equipmentHttpClient = HttpClients.createDefault();
-                HttpResponse equipmentResponse = equipmentHttpClient.execute(equipmentPost);
-                EntityUtils.consume(equipmentResponse.getEntity());
+                saveCommandsToAssetManagement(summaries, delegateTask.getVariable("site").toString());
             }
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+    }
+
+    public void saveCommandsToAssetManagement(JsonNode summaries, String siteId) {
+        try {
+            StringEntity equipmentInputData = new StringEntity(summaries.toString());
+            HttpPost equipmentPost = new HttpPost(new URI(baseUri + "/asset-management/command/" + siteId));
+            equipmentPost.addHeader("Content-Type", "application/json;charset=UTF-8");
+            equipmentPost.setEntity(equipmentInputData);
+            HttpClient equipmentHttpClient = HttpClients.createDefault();
+            HttpResponse equipmentResponse = equipmentHttpClient.execute(equipmentPost);
+            EntityUtils.consume(equipmentResponse.getEntity());
         } catch (Exception e) {
             e.printStackTrace();
         }
