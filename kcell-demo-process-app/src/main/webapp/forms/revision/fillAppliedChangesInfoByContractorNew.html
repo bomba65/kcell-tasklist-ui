@@ -43,7 +43,7 @@
                     id: generateId()
                 },
                 definition: "IU",
-                _command: "CREATE_INSTALLATION_AND_EQUIPMENT"
+                _command: "INSTALL_NEW_EQUIPMENT"
             };
             $scope.outdoorUnit = {
                 id : generateId(),
@@ -54,7 +54,7 @@
                     id: generateId()
                 },
                 definition: "OU",
-                _command: "CREATE_INSTALLATION_AND_EQUIPMENT"
+                _command: "INSTALL_NEW_EQUIPMENT"
             };
             $scope.antenna = {
                 id : generateId(),
@@ -65,7 +65,7 @@
                     id: generateId()
                 },
                 definition: "AU",
-                _command: "CREATE_INSTALLATION_AND_EQUIPMENT"
+                _command: "INSTALL_NEW_EQUIPMENT"
             };
             $scope.technologies = ['2G', '3G', 'WiMAX', 'LTE', 'Indoor'];
             $http.get(Uri.appUri("engine://engine/:engine/task/" + camForm.taskId + "/form")).success(function (result) {
@@ -275,6 +275,7 @@
                                     $scope.fillSite.ius = map.IU || [];
                                     $scope.fillSite.aus = map.AU || [];
                                 }
+                                getConnections(result.data);
                             },
                             function (error) {
                                 console.log(error.data);
@@ -282,6 +283,39 @@
                     );
                 }
             });
+
+            function getConnections(fillSite){
+                var equipmentIds = _.map(fillSite.installations, 'equipment.id');
+                console.log(equipmentIds);
+                $http.get("/asset-management/api/connectionInstances/search/findByEquipments?equipments=" + equipmentIds.join() + "&projection=full").then(
+                    function(result){
+                        var connectionsByDefinition = _.groupBy(result.data._embedded.connectionInstances, "definition");
+                        $scope.fillSite.transmissions = connectionsByDefinition['TRANSMISSION_RADIO_RELAY'] || [];
+                        $scope.fillSite.transmissions.forEach(function(hop){
+                            if(hop.params.sites){
+                                console.log("YES SITES");
+                                hop.params.sites.forEach(function(site){
+                                    if(site !== $scope.jobModel.site.originalValue){
+                                        console.log("YES FAR END SITE");
+                                        $scope.sitesList.forEach(function(sl){
+                                            if (sl.id === site) {
+                                                console.log(sl);
+                                                hop.farEnd = {
+                                                    site: sl
+                                                };
+                                            }
+                                        });
+                                    }
+                                });
+                            }
+                            console.log(hop.farEnd);
+                        });
+                    },
+                    function (error) {
+                        console.log(error.data);
+                    }
+                );
+            }
 
             function guid() {
                 function s4() {
@@ -310,7 +344,7 @@
             };
 
             $scope.addFacility = function () {
-                $scope.fillSite.facilities.push({id: generateId(), params: {}, _command: "CREATE_FACILITY"});
+                $scope.fillSite.facilities.push({id: generateId(), params: {}, _command: "ADD_FACILITY"});
             };
 
             $scope.removeFacility = function (index) {
@@ -318,7 +352,7 @@
             };
 
             $scope.addCabinet = function () {
-                $scope.fillSite.cabinets.push({id: generateId(), params: {}, equipment:{definition:"CABINET",params:{}, id: generateId()}, _command: "CREATE_INSTALLATION_AND_EQUIPMENT", definition:"CABINET"});
+                $scope.fillSite.cabinets.push({id: generateId(), params: {}, equipment:{definition:"CABINET",params:{}, id: generateId()}, _command: "INSTALL_NEW_EQUIPMENT", definition:"CABINET"});
             };
 
             $scope.removeCabinet = function (index) {
@@ -326,7 +360,7 @@
             };
 
             $scope.addRu = function () {
-                $scope.fillSite.rus.push({equipment: {definition:"RU", params: {rat: []}}, _command: "CREATE_INSTALLATION_AND_EQUIPMENT",definition:"RU"});
+                $scope.fillSite.rus.push({equipment: {definition:"RU", params: {rat: []}}, _command: "INSTALL_NEW_EQUIPMENT",definition:"RU"});
             };
 
             $scope.removeRu = function (index) {
@@ -334,7 +368,7 @@
             };
 
             $scope.addDu = function () {
-                $scope.fillSite.dus.push({equipment: {definition:"DU", params: {rat: []}}, _command: "CREATE_INSTALLATION_AND_EQUIPMENT",definition:"DU"});
+                $scope.fillSite.dus.push({equipment: {definition:"DU", params: {rat: []}}, _command: "INSTALL_NEW_EQUIPMENT",definition:"DU"});
             };
 
             $scope.removeDu = function (index) {
@@ -364,7 +398,7 @@
             };
 
             $scope.addSupplementary = function () {
-                $scope.fillSite.supplementary.push({equipment: {definition:"SUPPLEMENTARY", params:{}}, params: {}, _command: "CREATE_INSTALLATION_AND_EQUIPMENT",definition:"SUPPLEMENTARY"});
+                $scope.fillSite.supplementary.push({equipment: {definition:"SUPPLEMENTARY", params:{}}, params: {}, _command: "INSTALL_NEW_EQUIPMENT",definition:"SUPPLEMENTARY"});
             }
 
             $scope.removeSupplementary = function (index) {
@@ -372,7 +406,7 @@
             };
 
             $scope.addAntenna = function () {
-                $scope.fillSite.antennas.push({equipment: {definition:"ANTENNA", params: {rat: []}}, params: {}, _command: "CREATE_INSTALLATION_AND_EQUIPMENT",definition:"ANTENNA"});
+                $scope.fillSite.antennas.push({equipment: {definition:"ANTENNA", params: {rat: []}}, params: {}, _command: "INSTALL_NEW_EQUIPMENT",definition:"ANTENNA"});
             }
 
             $scope.removeAntenna = function (index) {
@@ -478,7 +512,7 @@
                                         nearEnd: {
                                             site: $scope.jobModel.site.originalValue
                                         },
-                                        _command: "CREATE_CONNECTION",
+                                        _command: "CONNECT_EQUIPMENT",
                                         equipments: []
                                     });
                                 } else {
@@ -494,7 +528,7 @@
                                             sites: [$scope.jobModel.site.originalValue, selectedSite.id]
                                         },
                                         nearEnd: {site: $scope.jobModel.site.originalValue},
-                                        _command: "CREATE_CONNECTION",
+                                        _command: "CONNECT_EQUIPMENT",
                                         equipments: []
                                     });
                                 }
@@ -521,7 +555,7 @@
                         id: generateId()
                     },
                     definition: "IU",
-                    _command: "CREATE_INSTALLATION_AND_EQUIPMENT"
+                    _command: "INSTALL_NEW_EQUIPMENT"
                 });
             };
 
@@ -539,7 +573,7 @@
                         id: generateId()
                     },
                     definition: "OU",
-                    _command: "CREATE_INSTALLATION_AND_EQUIPMENT"
+                    _command: "INSTALL_NEW_EQUIPMENT"
                 });
             };
 
@@ -557,7 +591,7 @@
                         id: generateId()
                     },
                     definition: "AU",
-                    _command: "CREATE_INSTALLATION_AND_EQUIPMENT"
+                    _command: "INSTALL_NEW_EQUIPMENT"
                 });
             };
 
@@ -600,63 +634,23 @@
                 var summary = [];
                 if(fillSite !== undefined){
                     var facilityCommands = _.flatMap(fillSite.facilities, function(e){
-                        if(e._command == 'CREATE_FACILITY'){
+                        if(e._command == 'ADD_FACILITY'){
                             return [{command:e._command, payload:e}];
                         } else if(e._command == 'MODIFY_FACILITY'){
                             return [{command:e._command, id: e.id, payload:e}];
-                        } else if(e._command == 'DELETE_FACILITY') {
-                            return [{command:e._command, id: e.id}];
-                        } else if(e._command == 'REPLACE_FACILITY') {
-                            return [{command:e._command, id: e.id, payload: e}];
                         } else {
                             return [];
                         }
                     });
                     summary = summary.concat(facilityCommands);
 
-                    var cabinetCommands = _.flatMap(fillSite.cabinets, function(e){
-                        if(e._command == 'CREATE_INSTALLATION_AND_EQUIPMENT'){
-                            return [{command:e._command, payload:e}];
-                        } else if(e._command == 'MODIFY_INSTALLATION'){
-                            return [{command:e._command, id: e.id, payload:e}];
-                        } else if(e._command == 'DELETE_INSTALLATION') {
-                            return [{command:e._command, id: e.id}];
-                        } else if(e._command == 'REPLACE_INSTALLATION') {
-                            return [{command:e._command, id: e.id, payload: e}];
-                        } else {
-                            return [];
-                        }
-                    });
+                    var cabinetCommands = _.flatMap(fillSite.cabinets, createCommandForEquipment);
                     summary = summary.concat(cabinetCommands);
 
-                    var ruCommands = _.flatMap(fillSite.rus, function(e){
-                        if(e._command == 'CREATE_INSTALLATION_AND_EQUIPMENT'){
-                            return [{command:e._command, payload:e}];
-                        } else if(e._command == 'MODIFY_INSTALLATION'){
-                            return [{command:e._command, id: e.id, payload:e}];
-                        } else if(e._command == 'DELETE_INSTALLATION') {
-                            return [{command:e._command, id: e.id}];
-                        } else if(e._command == 'REPLACE_INSTALLATION') {
-                            return [{command:e._command, id: e.id, payload: e}];
-                        } else {
-                            return [];
-                        }
-                    });
+                    var ruCommands = _.flatMap(fillSite.rus, createCommandForEquipment);
                     summary = summary.concat(ruCommands);
 
-                    var duCommands = _.flatMap(fillSite.dus, function(e){
-                        if(e._command == 'CREATE_INSTALLATION_AND_EQUIPMENT'){
-                            return [{command:e._command, payload:e}];
-                        } else if(e._command == 'MODIFY_INSTALLATION'){
-                            return [{command:e._command, id: e.id, payload:e}];
-                        } else if(e._command == 'DELETE_INSTALLATION') {
-                            return [{command:e._command, id: e.id}];
-                        } else if(e._command == 'REPLACE_INSTALLATION') {
-                            return [{command:e._command, id: e.id, payload: e}];
-                        } else {
-                            return [];
-                        }
-                    });
+                    var duCommands = _.flatMap(fillSite.dus, createCommandForEquipment);
                     summary = summary.concat(duCommands);
 
                     var powerSourcesCommands = _.flatMap(fillSite.powerSources, function(e){
@@ -664,102 +658,42 @@
                             return [{command:e._command, payload:e}];
                         } else if(e._command == 'MODIFY_POWERSOURCE'){
                             return [{command:e._command, id: e.id, payload:e}];
-                        } else if(e._command == 'DELETE_POWERSOURCE') {
-                            return [{command:e._command, id: e.id}];
+                        } else if(e._command == 'REMOVE_POWERSOURCE') {
+                            return [{command:e._command, payload:{id: e.id}}];
                         } else if(e._command == 'REPLACE_POWERSOURCE') {
-                            return [{command:e._command, id: e.id, payload: e}];
+                            var payload = angular.copy(e);
+                            payload.id = generateId();
+                            return [{command:e._command, id: e.id, payload: payload}];
                         } else {
                             return [];
                         }
                     });
                     summary = summary.concat(powerSourcesCommands);
 
-                    var antennasCommands = _.flatMap(fillSite.antennas, function(e){
-                        if(e._command == 'CREATE_INSTALLATION_AND_EQUIPMENT'){
-                            return [{command:e._command, payload:e}];
-                        } else if(e._command == 'MODIFY_INSTALLATION'){
-                            return [{command:e._command, id: e.id, payload:e}];
-                        } else if(e._command == 'DELETE_INSTALLATION') {
-                            return [{command:e._command, id: e.id}];
-                        } else if(e._command == 'REPLACE_INSTALLATION') {
-                            return [{command:e._command, id: e.id, payload: e}];
-                        } else {
-                            return [];
-                        }
-                    });
+                    var antennasCommands = _.flatMap(fillSite.antennas, createCommandForEquipment);
                     summary = summary.concat(antennasCommands);
 
-                    var supplementaryCommands = _.flatMap(fillSite.supplementary, function(e){
-                        if(e._command == 'CREATE_INSTALLATION_AND_EQUIPMENT'){
-                            return [{command:e._command, payload:e}];
-                        } else if(e._command == 'MODIFY_INSTALLATION'){
-                            return [{command:e._command, id: e.id, payload:e}];
-                        } else if(e._command == 'DELETE_INSTALLATION') {
-                            return [{command:e._command, id: e.id}];
-                        } else if(e._command == 'REPLACE_INSTALLATION') {
-                            return [{command:e._command, id: e.id, payload: e}];
-                        } else {
-                            return [];
-                        }
-                    });
+                    var supplementaryCommands = _.flatMap(fillSite.supplementary, createCommandForEquipment);
                     summary = summary.concat(supplementaryCommands);
 
-                    var indoorUnitCommands = _.flatMap(fillSite.ius, function(e){
-                        if(e._command == 'CREATE_INSTALLATION_AND_EQUIPMENT'){
-                            return [{command:e._command, payload:e}];
-                        } else if(e._command == 'MODIFY_INSTALLATION'){
-                            return [{command:e._command, id: e.id, payload:e}];
-                        } else if(e._command == 'DELETE_INSTALLATION') {
-                            return [{command:e._command, id: e.id}];
-                        } else if(e._command == 'REPLACE_INSTALLATION') {
-                            return [{command:e._command, id: e.id, payload: e}];
-                        } else {
-                            return [];
-                        }
-                    });
+                    var indoorUnitCommands = _.flatMap(fillSite.ius, createCommandForEquipment);
                     summary = summary.concat(indoorUnitCommands);
 
-                    var outdoorUnitCommands = _.flatMap(fillSite.ous, function(e){
-                        if(e._command == 'CREATE_INSTALLATION_AND_EQUIPMENT'){
-                            return [{command:e._command, payload:e}];
-                        } else if(e._command == 'MODIFY_INSTALLATION'){
-                            return [{command:e._command, id: e.id, payload:e}];
-                        } else if(e._command == 'DELETE_INSTALLATION') {
-                            return [{command:e._command, id: e.id}];
-                        } else if(e._command == 'REPLACE_INSTALLATION') {
-                            return [{command:e._command, id: e.id, payload: e}];
-                        } else {
-                            return [];
-                        }
-                    });
+                    var outdoorUnitCommands = _.flatMap(fillSite.ous, createCommandForEquipment);
                     summary = summary.concat(outdoorUnitCommands);
 
-                    var antennaUnitCommands = _.flatMap(fillSite.aus, function(e){
-                        if(e._command == 'CREATE_INSTALLATION_AND_EQUIPMENT'){
-                            return [{command:e._command, payload:e}];
-                        } else if(e._command == 'MODIFY_INSTALLATION'){
-                            return [{command:e._command, id: e.id, payload:e}];
-                        } else if(e._command == 'DELETE_INSTALLATION') {
-                            return [{command:e._command, id: e.id}];
-                        } else if(e._command == 'REPLACE_INSTALLATION') {
-                            return [{command:e._command, id: e.id, payload: e}];
-                        } else {
-                            return [];
-                        }
-                    });
+                    var antennaUnitCommands = _.flatMap(fillSite.aus, createCommandForEquipment);
                     summary = summary.concat(antennaUnitCommands);
 
                     var tranmissionCommands = _.flatMap(fillSite.transmissions, function(e){
                         delete e['farEnd'];
                         delete e['nearEnd'];
-                        if(e._command == 'CREATE_CONNECTION'){
+                        if(e._command == 'CONNECT_EQUIPMENT'){
                             return [{command:e._command, payload:e}];
                         } else if(e._command == 'MODIFY_CONNECTION'){
                             return [{command:e._command, id: e.id, payload:e}];
-                        } else if(e._command == 'DELETE_CONNECTION') {
-                            return [{command:e._command, id: e.id}];
-                        } else if(e._command == 'REPLACE_CONNECTION') {
-                            return [{command:e._command, id: e.id, payload: e}];
+                        } else if(e._command == 'REMOVE_CONNECTION') {
+                            return [{command:e._command, payload:{id: e.id}}];
                         } else {
                             return [];
                         }
@@ -768,6 +702,25 @@
                     $scope.summaries = summary;
                 }
             };
+            function createCommandForEquipment(e){
+                if(e._command == 'INSTALL_NEW_EQUIPMENT'){
+                    return [{command:e._command, payload:e}];
+                } else if(e._command == 'MODIFY_INSTALLATION'){
+                    return [{command:e._command, id: e.id, payload:e}];
+                } else if(e._command == 'DISMANTLE_EQUIPMENT') {
+                    return [{command:e._command, payload:{id: e.id}}];
+                } else if(e._command == 'REPLACE_EQUIPMENT') {
+                    var payload = angular.copy(e);
+                    if(!payload.equipment){
+                        payload.equipment = {params:{}};
+                    }
+                    payload.equipment.id = generateId();
+                    payload.equipment.definition = e.definition;
+                    return [{command:e._command, id: e.id, payload: payload}];
+                } else {
+                    return [];
+                }
+            }
         }]);
     </script>
     <h4>Site Id: {{jobModel.site.originalValue}}, Site Name: {{jobModel.siteName.originalValue}} </h4>
