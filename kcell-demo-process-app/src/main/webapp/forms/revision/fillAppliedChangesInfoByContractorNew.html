@@ -1,4 +1,4 @@
-<form role="form" class="form-horizontal kcell-form-custom">
+<form role="form" class="form-horizontal kcell-form-custom" name="fillAppliedChangesForm">
     <script cam-script type="text/form-script">
         inject(['$scope', '$http', 'Uri', '$rootScope', 'exModal', function ($scope, $http, Uri, $rootScope, exModal) {
             var variables = [
@@ -155,9 +155,7 @@
 
             camForm.on('submit', function () {
                 $scope.createSummaryDocument();
-                console.log(JSON.stringify($scope.fillSite));
                 console.log(JSON.stringify($scope.summaries));
-                console.log(angular.toJson($scope.summaries));
                 camForm.variableManager.variableValue('sitesWorks', JSON.parse(angular.toJson($scope.sitesWorks)));
                 camForm.variableManager.variableValue('summaries', JSON.parse(angular.toJson($scope.summaries)));
                 camForm.variableManager.variableValue('fillSite', JSON.parse(angular.toJson($scope.fillSite)));
@@ -187,9 +185,6 @@
             });
 
             camForm.on('variables-restored', function () {
-                console.log($scope);
-                console.log($rootScope);
-                console.log($rootScope.authentication.name);
                 $scope.fillAppliedChangesInfoByContractorTaskResult = camForm.variableManager.variableValue('fillAppliedChangesInfoByContractorTaskResult');
                 $scope.sitesWorks = camForm.variableManager.variableValue('sitesWorks');
                 if ($scope.sitesWorks === undefined) {
@@ -286,21 +281,16 @@
 
             function getConnections(fillSite){
                 var equipmentIds = _.map(fillSite.installations, 'equipment.id');
-                console.log(equipmentIds);
                 if(equipmentIds.length > 0){
                     $http.get("/asset-management/api/connectionInstances/search/findByEquipments?equipments=" + equipmentIds.join() + "&projection=full").then(
                         function(result){
                             var connectionsByDefinition = _.groupBy(result.data._embedded.connectionInstances, "definition");
-                            $scope.fillSite.transmissions = connectionsByDefinition['TRANSMISSION_RADIO_RELAY'] || [];
-                            $scope.fillSite.transmissions.forEach(function(hop){
+                            connectionsByDefinition['TRANSMISSION_RADIO_RELAY'].forEach(function(hop){
                                 if(hop.params.sites){
-                                    console.log("YES SITES");
                                     hop.params.sites.forEach(function(site){
                                         if(site !== $scope.jobModel.site.originalValue){
-                                            console.log("YES FAR END SITE");
                                             $scope.sitesList.forEach(function(sl){
                                                 if (sl.id === site) {
-                                                    console.log(sl);
                                                     hop.farEnd = {
                                                         site: sl
                                                     };
@@ -308,8 +298,9 @@
                                             });
                                         }
                                     });
+                                    hop.valid = "valid";
+                                    getSiteData(hop);
                                 }
-                                console.log(hop.farEnd);
                             });
                         },
                         function (error) {
@@ -430,7 +421,8 @@
                 return String.fromCharCode(c);
             };
 
-            $scope.toggleConnectionEquipment = function(index, equipment){
+            $scope.toggleConnectionEquipment = function(index, equipment, hopForm){
+                console.log(hopForm);
                 var idx = $scope.fillSite.transmissions[index].equipments.indexOf(equipment);
 
                 if(idx > -1){
@@ -438,7 +430,36 @@
                 } else {
                     $scope.fillSite.transmissions[index].equipments.push(equipment);
                 }
-            }
+                var farEndValid = false;
+                var nearEndValid = false;
+                $scope.fillSite.transmissions[index].equipments.forEach(function(e){
+                    if(_.map($scope.fillSite.transmissions[index].farEnd.ius, 'equipment.id').indexOf(e) >= 0){
+                        farEndValid = true;
+                    }
+                    if(_.map($scope.fillSite.transmissions[index].farEnd.ous, 'equipment.id').indexOf(e) >= 0){
+                        farEndValid = true;
+                    }
+                    if(_.map($scope.fillSite.transmissions[index].farEnd.aus, 'equipment.id').indexOf(e) >= 0){
+                        farEndValid = true;
+                    }
+                    if(_.map($scope.fillSite.ius, 'equipment.id').indexOf(e) >= 0){
+                        nearEndValid = true;
+                    }
+                    if(_.map($scope.fillSite.ous, 'equipment.id').indexOf(e) >= 0){
+                        nearEndValid = true;
+                    }
+                    if(_.map($scope.fillSite.aus, 'equipment.id').indexOf(e) >= 0){
+                        nearEndValid = true;
+                    }
+                });
+                hopForm.$setValidity('connectionEquipmentValid', farEndValid && nearEndValid);
+                if(farEndValid && nearEndValid){
+                    $scope.fillSite.transmissions[index].valid = "valid";
+                } else {
+                    $scope.fillSite.transmissions[index].valid = "";
+                }
+                console.log(hopForm);
+            };
 
             $scope.toggleRadioTechnologies = function (index, technology) {
                 if (!$scope.fillSite.rus[index].equipment.params.rat) {
@@ -481,71 +502,55 @@
                 }
             };
 
+            function getSiteData(hop){
+                $http.get('/asset-management/api/sites/' + hop.farEnd.site.id + '?projection=full', {headers:{'If-None-Match':'*'}}).then(
+                    function (result) {
+                        var site = result.data;
+                        if (site.installations !== undefined) {
+                            var map = _.groupBy(site.installations, 'equipment.definition');
+                            hop.farEnd.ous = angular.copy(map.OU);
+                            hop.farEnd.ius = angular.copy(map.IU);
+                            hop.farEnd.aus = angular.copy(map.AU);
+                            $scope.fillSite.transmissions.push(hop);
+                        } else {
+                            $scope.fillSite.transmissions.push(hop);
+                        }
+                    },
+                    function (error) {
+                        console.log(error.data);
+                    }
+                );
+            }
+
             $scope.addHop = function () {
                 var selectedSite;
-                console.log($scope.farEndSite);
                 for (var i = 0; i < $scope.sitesList.length; i++) {
                     if ($scope.sitesList[i].id === $scope.farEndSite.id) {
                         selectedSite = $scope.sitesList[i];
                     }
                 }
-                if (selectedSite) {
-                    $http.get('/asset-management/api/sites/' + selectedSite.id + '?projection=full', {headers:{'If-None-Match':'*'}}).then(
-                            function (result) {
-                                var site = result.data;
-                                var siteData = {};
-                                if (site.installations !== undefined) {
-                                    var map = _.groupBy(site.installations, 'equipment.definition');
-                                    siteData.ous = angular.copy(map.OU);
-                                    siteData.ius = angular.copy(map.IU);
-                                    siteData.aus = angular.copy(map.AU);
-                                    siteData.site = {
-                                        id : selectedSite.id,
-                                        name: selectedSite.name
-                                    };
-                                    delete site['installations'];
-
-                                    $scope.fillSite.transmissions.push({
-                                        farEnd: siteData,
-                                        definition: "TRANSMISSION_RADIO_RELAY",
-                                        params:{
-                                            sites: [$scope.jobModel.site.originalValue, selectedSite.id]
-                                        },
-                                        nearEnd: {
-                                            site: $scope.jobModel.site.originalValue
-                                        },
-                                        _command: "CONNECT_EQUIPMENT",
-                                        equipments: []
-                                    });
-                                } else {
-                                    $scope.fillSite.transmissions.push({
-                                        farEnd: {
-                                            site : {
-                                                id: selectedSite.id,
-                                                name: selectedSite.name
-                                            }
-                                        },
-                                        definition: "TRANSMISSION_RADIO_RELAY",
-                                        params:{
-                                            sites: [$scope.jobModel.site.originalValue, selectedSite.id]
-                                        },
-                                        nearEnd: {site: $scope.jobModel.site.originalValue},
-                                        _command: "CONNECT_EQUIPMENT",
-                                        equipments: []
-                                    });
-                                }
-                            },
-                            function (error) {
-                                console.log(error.data);
-                            }
-                    );
-                    $scope.toggleHop();
-                }
-            };
+                var hop = {
+                    farEnd : {
+                        site: {
+                            id: selectedSite.id,
+                            name: selectedSite.name
+                        }
+                    },
+                    definition: "TRANSMISSION_RADIO_RELAY",
+                    params: {
+                        sites: [$scope.jobModel.site.originalValue, selectedSite.id]
+                    },
+                    nearEnd: {site: $scope.jobModel.site.originalValue},
+                    _command: "CONNECT_EQUIPMENT",
+                    equipments: []
+                };
+                getSiteData(hop);
+                $scope.toggleHop();
+            }
 
             $scope.removeHop = function(index){
                 $scope.fillSite.transmissions.splice(index, 1);
-            }
+            };
 
             $scope.addIndoorUnit = function () {
                 $scope.fillSite.ius.push({
@@ -563,7 +568,7 @@
 
             $scope.removeIndoorUnit = function(index){
                 $scope.fillSite.ius.splice(index,1);
-            }
+            };
 
             $scope.addOutdoorUnit = function () {
                 $scope.fillSite.ous.push({
@@ -581,7 +586,7 @@
 
             $scope.removeOutdoorUnit = function(index){
                 $scope.fillSite.ous.splice(index,1);
-            }
+            };
 
             $scope.addAntennaUnit = function () {
                 $scope.fillSite.aus.push({
@@ -632,7 +637,7 @@
             $scope.myRegex = /[a-zA-Z]{4}[0-9]{6,6}[a-zA-Z0-9]{3}/;
 
             $scope.createSummaryDocument = function(){
-                var fillSite = $scope.fillSite;
+                var fillSite = angular.copy($scope.fillSite);
                 var summary = [];
                 if(fillSite !== undefined){
                     var facilityCommands = _.flatMap(fillSite.facilities, function(e){
@@ -722,7 +727,7 @@
                 } else {
                     return [];
                 }
-            }
+            };
         }]);
     </script>
     <h4>Site Id: {{jobModel.site.originalValue}}, Site Name: {{jobModel.siteName.originalValue}} </h4>
