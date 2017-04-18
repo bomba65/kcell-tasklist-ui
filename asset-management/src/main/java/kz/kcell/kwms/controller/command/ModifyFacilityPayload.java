@@ -25,7 +25,7 @@ public class ModifyFacilityPayload implements Payload {
 
         facilityInstance = commandController.facilityInstanceRepository.save(FacilityInstance.builder()
                 .definition(commandController.facilityDefinitionRepository.findOne(this.definition))
-                .params(this.params.toString())
+                .params(this.params != null ? this.params.toString() : "{}")
                 .build());
         commandController.facilityInstanceRepository.save(facilityInstance);
     }

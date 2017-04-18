@@ -368,6 +368,22 @@ public class DataInitializer {
                         .build()
         );
 
+        ConnectionDefinition connectionDefinitionDU2RBS = connectionDefinitionRepository.save(
+                ConnectionDefinition.builder()
+                        .id("DU2RBS")
+                        .name("Radio Unit to Cabinet")
+                        .schema("{}")
+                        .build()
+        );
+
+        ConnectionDefinition connectionDefinitionANTENNA2RBS = connectionDefinitionRepository.save(
+                ConnectionDefinition.builder()
+                        .id("ANTENNA2RBS")
+                        .name("Radio Unit to Cabinet")
+                        .schema("{}")
+                        .build()
+        );
+
         ConnectionDefinition connectionDefinitionTRANSMISSION_RADIO_RELAY = connectionDefinitionRepository.save(
                 ConnectionDefinition.builder()
                         .id("TRANSMISSION_RADIO_RELAY")

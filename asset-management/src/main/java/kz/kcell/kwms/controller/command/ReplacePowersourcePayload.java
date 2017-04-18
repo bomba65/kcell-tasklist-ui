@@ -15,7 +15,7 @@ public class ReplacePowersourcePayload implements Payload {
         commandController.powerSourceRepository.delete(Long.valueOf(id));
 
         commandController.powerSourceRepository.save(PowerSource.builder()
-                .params(this.params.toString())
+                .params(this.params != null ? this.params.toString() : "{}")
                 .site((Site) objectMap.get("site"))
                 .build());
     }

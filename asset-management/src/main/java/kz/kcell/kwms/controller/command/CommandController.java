@@ -57,6 +57,7 @@ public class CommandController {
 
         for (JsonNode commandNode : commands) {
             Command<Payload> command = new Command<>();
+            log.warning(commandNode.toString());
             command.command = valueOf(commandNode.get("command").asText());
             System.out.println("COMMAND:" + command.command);
             switch (command.command) {

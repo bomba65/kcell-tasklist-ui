@@ -36,7 +36,7 @@ public class CreateConnectionPayload implements Payload {
         ConnectionInstance connectionInstance = commandController.connectionInstanceRepository.save(
                 ConnectionInstance.builder()
                         .definition(commandController.connectionDefinitionRepository.findOne(this.definition))
-                        .params(this.params.toString())
+                        .params(this.params != null ? this.params.toString() : "{}")
                         .equipments(equipmentsField)
                         .build());
         objectMap.put(this.id, connectionInstance);

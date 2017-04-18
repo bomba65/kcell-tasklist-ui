@@ -241,6 +241,12 @@
                                             $scope.technologies.forEach(function (e) {
                                                 ru.equipment.params.technologies[e] = ru.equipment.params.rat.indexOf(e) >= 0;
                                             });
+                                            if(!ru.connections){
+                                                ru.connections = {};
+                                            }
+                                            if(!ru.connections.RU2RBS){
+                                                ru.connections.RU2RBS = {id: generateId(), equipments: [ru.equipment.id], definition: 'RU2RBS'};
+                                            }
                                             ru._original = angular.copy(ru);
                                         });
                                     }
@@ -250,6 +256,12 @@
                                             $scope.technologies.forEach(function (e) {
                                                 du.equipment.params.technologies[e] = du.equipment.params.rat.indexOf(e) >= 0;
                                             });
+                                            if(!du.connections){
+                                                du.connections = {};
+                                            }
+                                            if(!du.connections.DU2RBS){
+                                                du.connections.DU2RBS = {id: generateId(), equipments: [du.equipment.id], definition: 'DU2RBS'};
+                                            }
                                             du._original = angular.copy(du);
                                         });
                                     }
@@ -259,6 +271,12 @@
                                             $scope.technologies.forEach(function (e) {
                                                 antenna.equipment.params.technologies[e] = antenna.equipment.params.rat.indexOf(e) >= 0;
                                             });
+                                            if(!antenna.connections){
+                                                antenna.connections = {};
+                                            }
+                                            if(!antenna.connections.ANTENNA2RBS){
+                                                antenna.connections.ANTENNA2RBS = {id: generateId(), equipments: [antenna.equipment.id], definition: 'ANTENNA2RBS'};
+                                            }
                                             antenna._original = angular.copy(antenna);
                                         });
                                     }
@@ -284,24 +302,74 @@
                 if(equipmentIds.length > 0){
                     $http.get("/asset-management/api/connectionInstances/search/findByEquipments?equipments=" + equipmentIds.join() + "&projection=full").then(
                         function(result){
-                            var connectionsByDefinition = _.groupBy(result.data._embedded.connectionInstances, "definition");
-                            connectionsByDefinition['TRANSMISSION_RADIO_RELAY'].forEach(function(hop){
-                                if(hop.params.sites){
-                                    hop.params.sites.forEach(function(site){
-                                        if(site !== $scope.jobModel.site.originalValue){
-                                            $scope.sitesList.forEach(function(sl){
-                                                if (sl.id === site) {
-                                                    hop.farEnd = {
-                                                        site: sl
-                                                    };
-                                                }
-                                            });
+                            var connectionsByDefinition = _.groupBy(result.data._embedded.connectionInstances, "definition") || [];
+                            if(connectionsByDefinition['TRANSMISSION_RADIO_RELAY']){
+                                connectionsByDefinition['TRANSMISSION_RADIO_RELAY'].forEach(function(hop){
+                                    if(hop.params.sites){
+                                        hop.params.sites.forEach(function(site){
+                                            if(site !== $scope.jobModel.site.originalValue){
+                                                $scope.sitesList.forEach(function(sl){
+                                                    if (sl.id === site) {
+                                                        hop.farEnd = {
+                                                            site: sl
+                                                        };
+                                                    }
+                                                });
+                                            }
+                                        });
+                                        hop.valid = "valid";
+                                        getSiteData(hop);
+                                    }
+                                });
+                            }
+                            if(connectionsByDefinition['RU2RBS']){
+                                connectionsByDefinition['RU2RBS'].forEach(function(connection){
+                                    $scope.fillSite.rus.forEach(function(ru){
+                                        if(connection.equipments.indexOf(ru.equipment.id) >=0){
+                                            if(connection.equipments[0] !== ru.equipment.id){
+                                                var temp = angular.copy(connection.equipments[0]);
+                                                connection.equipments[0] = angular.copy(connection.equipments[1]);
+                                                connection.equipments[1] = angular.copy(temp);
+                                            }
+                                            ru.connections = {
+                                                'RU2RBS' : connection
+                                            }
                                         }
                                     });
-                                    hop.valid = "valid";
-                                    getSiteData(hop);
-                                }
-                            });
+                                });
+                            }
+                            if(connectionsByDefinition['DU2RBS']){
+                                connectionsByDefinition['DU2RBS'].forEach(function(connection){
+                                    $scope.fillSite.dus.forEach(function(ru){
+                                        if(connection.equipments.indexOf(ru.equipment.id) >=0){
+                                            if(connection.equipments[0] !== ru.equipment.id){
+                                                var temp = angular.copy(connection.equipments[0]);
+                                                connection.equipments[0] = angular.copy(connection.equipments[1]);
+                                                connection.equipments[1] = angular.copy(temp);
+                                            }
+                                            ru.connections = {
+                                                'DU2RBS' : connection
+                                            }
+                                        }
+                                    });
+                                });
+                            }
+                            if(connectionsByDefinition['ANTENNA2RBS']){
+                                connectionsByDefinition['ANTENNA2RBS'].forEach(function(connection){
+                                    $scope.fillSite.antennas.forEach(function(ru){
+                                        if(connection.equipments.indexOf(ru.equipment.id) >=0){
+                                            if(connection.equipments[0] !== ru.equipment.id){
+                                                var temp = angular.copy(connection.equipments[0]);
+                                                connection.equipments[0] = angular.copy(connection.equipments[1]);
+                                                connection.equipments[1] = angular.copy(temp);
+                                            }
+                                            ru.connections = {
+                                                'ANTENNA2RBS' : connection
+                                            }
+                                        }
+                                    });
+                                });
+                            }
                         },
                         function (error) {
                             console.log(error.data);
@@ -353,7 +421,8 @@
             };
 
             $scope.addRu = function () {
-                $scope.fillSite.rus.push({equipment: {definition:"RU", params: {rat: []}}, _command: "INSTALL_NEW_EQUIPMENT",definition:"RU"});
+                var equipmentId = generateId();
+                $scope.fillSite.rus.push({equipment: {definition:"RU", params: {rat: []}, id: equipmentId}, _command: "INSTALL_NEW_EQUIPMENT",definition:"RU", connections : {'RU2RBS':{equipments:[equipmentId],definition:'RU2RBS', _command:'CONNECT_EQUIPMENT'}}});
             };
 
             $scope.removeRu = function (index) {
@@ -361,7 +430,8 @@
             };
 
             $scope.addDu = function () {
-                $scope.fillSite.dus.push({equipment: {definition:"DU", params: {rat: []}}, _command: "INSTALL_NEW_EQUIPMENT",definition:"DU"});
+                var equipmentId = generateId();
+                $scope.fillSite.dus.push({equipment: {definition:"DU", params: {rat: []}, id: equipmentId}, _command: "INSTALL_NEW_EQUIPMENT",definition:"DU", connections : {'DU2RBS':{equipments:[equipmentId],definition:'DU2RBS', _command:'CONNECT_EQUIPMENT'}}});
             };
 
             $scope.removeDu = function (index) {
@@ -399,7 +469,8 @@
             };
 
             $scope.addAntenna = function () {
-                $scope.fillSite.antennas.push({equipment: {definition:"ANTENNA", params: {rat: []}}, params: {}, _command: "INSTALL_NEW_EQUIPMENT",definition:"ANTENNA"});
+                var equipmentId = generateId();
+                $scope.fillSite.antennas.push({equipment: {definition:"ANTENNA", params: {rat: []}, id: equipmentId}, params: {}, _command: "INSTALL_NEW_EQUIPMENT",definition:"ANTENNA", connections : {'ANTENNA2RBS':{equipments:[equipmentId],definition:'ANTENNA2RBS', _command:'CONNECT_EQUIPMENT'}}});
             }
 
             $scope.removeAntenna = function (index) {
@@ -657,6 +728,29 @@
                     var ruCommands = _.flatMap(fillSite.rus, createCommandForEquipment);
                     summary = summary.concat(ruCommands);
 
+                    var ruDuAntennaConnections = _.filter(_.flatMap(_.filter(_.map(_.concat(fillSite.rus, fillSite.dus, fillSite.antennas), 'connections'),undefined), createCommandForConnection), function(e){return e.equipments && e.equipments.length == 2 && e._command});
+                    ruDuAntennaConnections.forEach(function(e){
+                        if(e.id.indexOf('_NEW:') == 0){
+                            e._command = 'CONNECT_EQUIPMENT';
+                        }
+
+                    });
+
+                    var ruDuAntennaConnectionsCommands = _.flatMap(ruDuAntennaConnections, function(e){
+                        if(e._command == 'CONNECT_EQUIPMENT'){
+                            return [{command:e._command, payload:e}];
+                        } else if(e._command == 'MODIFY_CONNECTION'){
+                            return [{command:e._command, id: e.id, payload:e}];
+                        } else if(e._command == 'REMOVE_CONNECTION') {
+                            return [{command:e._command, payload:{id: e.id}}];
+                        } else {
+                            return [];
+                        }
+                    })
+
+
+                    summary = summary.concat(ruDuAntennaConnectionsCommands);
+
                     var duCommands = _.flatMap(fillSite.dus, createCommandForEquipment);
                     summary = summary.concat(duCommands);
 
@@ -711,9 +805,13 @@
             };
             function createCommandForEquipment(e){
                 if(e._command == 'INSTALL_NEW_EQUIPMENT'){
-                    return [{command:e._command, payload:e}];
+                    var payload = angular.copy(e);
+                    delete payload['connections'];
+                    return [{command:e._command, payload: payload}];
                 } else if(e._command == 'MODIFY_INSTALLATION'){
-                    return [{command:e._command, id: e.id, payload:e}];
+                    var payload = angular.copy(e);
+                    delete payload['connections'];
+                    return [{command:e._command, id: e.id, payload: payload}];
                 } else if(e._command == 'DISMANTLE_EQUIPMENT') {
                     return [{command:e._command, payload:{id: e.id}}];
                 } else if(e._command == 'REPLACE_EQUIPMENT') {
@@ -727,6 +825,9 @@
                 } else {
                     return [];
                 }
+            };
+            function createCommandForConnection(e){
+                return _.values(e);
             };
         }]);
     </script>

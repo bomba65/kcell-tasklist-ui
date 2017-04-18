@@ -36,10 +36,13 @@ public class ModifyConnectionPayload implements Payload {
             }
         }).collect(Collectors.toCollection(TreeSet::new));
 
-        ConnectionInstance connectionInstance = commandController.connectionInstanceRepository.findOne(Long.valueOf(this.id));
-        connectionInstance.setDefinition(commandController.connectionDefinitionRepository.findOne(this.definition));
-        connectionInstance.setParams(this.params.toString());
-        connectionInstance.setEquipments(equipmentsField);
-        commandController.connectionInstanceRepository.save(connectionInstance);
+        ConnectionInstance connectionInstance;
+        if (this.id != null && !this.id.isEmpty()) {
+            connectionInstance = commandController.connectionInstanceRepository.findOne(Long.valueOf(this.id));
+            connectionInstance.setDefinition(commandController.connectionDefinitionRepository.findOne(this.definition));
+            connectionInstance.setParams(this.params.toString());
+            connectionInstance.setEquipments(equipmentsField);
+            commandController.connectionInstanceRepository.save(connectionInstance);
+        }
     }
 }

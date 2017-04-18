@@ -17,7 +17,7 @@ public class CreatePowersourcePayload implements Payload {
     @Override
     public <T extends Payload> void execute(Command tCommand, CommandController commandController, Map<String, Object> objectMap) {
         commandController.powerSourceRepository.save(PowerSource.builder()
-                .params(this.params.toString())
+                .params(this.params != null ? this.params.toString() : "{}")
                 .site((Site) objectMap.get("site"))
                 .build());
     }

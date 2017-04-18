@@ -26,12 +26,6 @@ public class InstallNewEquipmentPayload implements Payload {
         if (facility != null && facility.startsWith("_NEW:")) {
             result.add(facility);
         }
-        if (Arrays.asList("RU", "DU", "ANTENNA").contains(definition)) {
-            JsonNode rbsNumber = params.get("rbs_number");
-            if (rbsNumber != null && rbsNumber.asText().startsWith("_NEW:")) {
-                result.add(rbsNumber.asText());
-            }
-        }
         result.addAll(equipment.getDependencies());
         return result;
     }
@@ -48,18 +42,11 @@ public class InstallNewEquipmentPayload implements Payload {
             }
         }
 
-        //Replace RBS_NUMBER with Equipment Id
-        ObjectNode params = (ObjectNode) this.params;
-        if (params.get("rbs_number") != null && params.get("rbs_number").textValue().startsWith("_NEW:")) {
-            EquipmentInstance rbs = (EquipmentInstance) objectMap.get(params.get("rbs_number").textValue());
-            params.put("rbs_number", rbs.getId());
-        }
-
         InstallationInstance installationInstance = commandController.installationInstanceRepository.save(InstallationInstance.builder()
                 .definition(commandController.installationDefinitionRepository.findOne(this.definition))
                 .equipment((EquipmentInstance) objectMap.get(equipment.id))
                 .facility(facilityInstance)
-                .params(params.toString())
+                .params(this.params != null ? this.params.toString() : "{}")
                 .site((Site) objectMap.get("site"))
                 .build());
         objectMap.put(this.id, installationInstance);

@@ -16,7 +16,7 @@ public class CreateEquipmentPayload implements Payload {
     public <T extends Payload> void execute(Command tCommand, CommandController commandController, Map<String, Object> objectMap) {
         EquipmentInstance equipmentInstance = commandController.equipmentInstanceRepository.save(EquipmentInstance.builder()
                 .definition(commandController.equipmentDefinitionRepository.findOne(this.definition))
-                .params(this.params.toString())
+                .params(this.params != null ? this.params.toString() : "{}")
                 .build());
         objectMap.put(this.id, equipmentInstance);
     }

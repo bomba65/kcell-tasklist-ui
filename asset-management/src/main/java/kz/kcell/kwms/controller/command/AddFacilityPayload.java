@@ -18,7 +18,7 @@ public class AddFacilityPayload implements Payload {
     public <T extends Payload> void execute(Command tCommand, CommandController commandController, Map<String, Object> objectMap) {
         FacilityInstance facilityInstance = commandController.facilityInstanceRepository.save(FacilityInstance.builder()
                 .definition(commandController.facilityDefinitionRepository.findOne(this.definition))
-                .params(this.params.toString())
+                .params(this.params != null ? this.params.toString() : "{}")
                 .build());
         objectMap.put(this.id, facilityInstance);
         Site site = (Site) objectMap.get("site");
