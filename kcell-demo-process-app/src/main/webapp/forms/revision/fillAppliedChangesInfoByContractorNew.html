@@ -232,11 +232,32 @@
                                 }
                                 if (site.powerSources !== undefined) {
                                     $scope.fillSite.powerSources = site.powerSources;
+                                    $scope.fillSite.powerSources.forEach(function(powerSource){
+                                        powerSource._original = angular.copy(powerSource);
+                                    });
                                 }
                                 if (site.installations !== undefined) {
                                     var map = _.groupBy(site.installations, 'equipment.definition');
 
                                     $scope.fillSite.cabinets = map.CABINET || [];
+                                    $scope.fillSite.cabinets.forEach(function(cabinet){
+                                        cabinet._original = angular.copy(cabinet);
+                                    });
+
+                                    $scope.fillSite.ius = map.IU || [];
+                                    $scope.fillSite.ius.forEach(function(iu){
+                                        iu_original = angular.copy(iu);
+                                    });
+
+                                    $scope.fillSite.ous = map.OU || [];
+                                    $scope.fillSite.ous.forEach(function(ou){
+                                        ou._original = angular.copy(ou);
+                                    });
+
+                                    $scope.fillSite.aus = map.AU || [];
+                                    $scope.fillSite.aus.forEach(function(au){
+                                        au._original = angular.copy(au);
+                                    });
                                     if(map.RU){
                                         map.RU.forEach(function (ru) {
                                             ru.equipment.params.technologies = {};
@@ -286,9 +307,6 @@
                                     $scope.fillSite.dus = map.DU || [];
                                     $scope.fillSite.antennas = map.ANTENNA || [];
                                     $scope.fillSite.supplementary = map.SUPPLEMENTARY || [];
-                                    $scope.fillSite.ous = map.OU || [];
-                                    $scope.fillSite.ius = map.IU || [];
-                                    $scope.fillSite.aus = map.AU || [];
                                 }
                                 getConnections(result.data);
                             },
@@ -322,6 +340,7 @@
                                         hop.valid = "valid";
                                         getSiteData(hop);
                                     }
+                                    hop._original = angular.copy(hop);
                                 });
                             }
                             if(connectionsByDefinition['RU2RBS']){
@@ -337,6 +356,10 @@
                                                 'RU2RBS' : connection
                                             }
                                         }
+                                        if(ru._original){
+                                            delete ru['_original'];
+                                        }
+                                        ru._original = angular.copy(ru);
                                     });
                                 });
                             }
@@ -353,6 +376,10 @@
                                                 'DU2RBS' : connection
                                             }
                                         }
+                                        if(ru._original){
+                                            delete ru['_original'];
+                                        }
+                                        ru._original = angular.copy(ru);
                                     });
                                 });
                             }
@@ -369,6 +396,10 @@
                                                 'ANTENNA2RBS' : connection
                                             }
                                         }
+                                        if(ru._original){
+                                            delete ru['_original'];
+                                        }
+                                        ru._original = angular.copy(ru);
                                     });
                                 });
                             }
@@ -424,7 +455,7 @@
 
             $scope.addRu = function () {
                 var equipmentId = generateId();
-                $scope.fillSite.rus.push({equipment: {definition:"RU", params: {rat: []}, id: equipmentId}, _command: "INSTALL_NEW_EQUIPMENT",definition:"RU", connections : {'RU2RBS':{equipments:[equipmentId],definition:'RU2RBS', _command:'CONNECT_EQUIPMENT'}}});
+                $scope.fillSite.rus.push({params: {}, equipment: {definition:"RU", params: {rat: []}, id: equipmentId}, _command: "INSTALL_NEW_EQUIPMENT",definition:"RU", connections : {'RU2RBS':{equipments:[equipmentId],definition:'RU2RBS', _command:'CONNECT_EQUIPMENT'}}});
             };
 
             $scope.removeRu = function (index) {
@@ -433,7 +464,7 @@
 
             $scope.addDu = function () {
                 var equipmentId = generateId();
-                $scope.fillSite.dus.push({equipment: {definition:"DU", params: {rat: []}, id: equipmentId}, _command: "INSTALL_NEW_EQUIPMENT",definition:"DU", connections : {'DU2RBS':{equipments:[equipmentId],definition:'DU2RBS', _command:'CONNECT_EQUIPMENT'}}});
+                $scope.fillSite.dus.push({params: {}, equipment: {definition:"DU", params: {rat: []}, id: equipmentId}, _command: "INSTALL_NEW_EQUIPMENT",definition:"DU", connections : {'DU2RBS':{equipments:[equipmentId],definition:'DU2RBS', _command:'CONNECT_EQUIPMENT'}}});
             };
 
             $scope.removeDu = function (index) {
@@ -463,7 +494,7 @@
             };
 
             $scope.addSupplementary = function () {
-                $scope.fillSite.supplementary.push({equipment: {definition:"SUPPLEMENTARY", params:{}}, params: {}, _command: "INSTALL_NEW_EQUIPMENT",definition:"SUPPLEMENTARY"});
+                $scope.fillSite.supplementary.push({equipment: {definition:"SUPPLEMENTARY", params:{rat: []}}, params: {}, _command: "INSTALL_NEW_EQUIPMENT", definition:"SUPPLEMENTARY"});
             }
 
             $scope.removeSupplementary = function (index) {
@@ -472,7 +503,7 @@
 
             $scope.addAntenna = function () {
                 var equipmentId = generateId();
-                $scope.fillSite.antennas.push({equipment: {definition:"ANTENNA", params: {rat: []}, id: equipmentId}, params: {}, _command: "INSTALL_NEW_EQUIPMENT",definition:"ANTENNA", connections : {'ANTENNA2RBS':{equipments:[equipmentId],definition:'ANTENNA2RBS', _command:'CONNECT_EQUIPMENT'}}});
+                $scope.fillSite.antennas.push({params: {}, equipment: {definition:"ANTENNA", params: {rat: []}, id: equipmentId}, params: {}, _command: "INSTALL_NEW_EQUIPMENT",definition:"ANTENNA", connections : {'ANTENNA2RBS':{equipments:[equipmentId],definition:'ANTENNA2RBS', _command:'CONNECT_EQUIPMENT'}}});
             }
 
             $scope.removeAntenna = function (index) {
@@ -722,7 +753,7 @@
                     transmissions: []
                 };
                 if(fillSite !== undefined){
-                    var changedFacilities = _.flatMap(fillSite.facilities, function(e){
+                    summary.facility = _.flatMap(fillSite.facilities, function(e){
                         var original = angular.copy(e._original);
                         var modified = angular.copy(e);
                         if(original){
@@ -742,116 +773,123 @@
                             return [];
                         }
                     });
-                    summary.facility = changedFacilities;
 
-
-                    var changedCabinets = _.flatMap(fillSite.cabinets, function(e){
+                    summary.cabinets = _.flatMap(fillSite.cabinets, createSummaryForEquipment);
+                    summary.rus = _.flatMap(fillSite.rus, createSummaryForEquipment);
+                    summary.dus = _.flatMap(fillSite.dus, createSummaryForEquipment);
+                    summary.antennas = _.flatMap(fillSite.antennas, createSummaryForEquipment);
+                    summary.supplementary = _.flatMap(fillSite.supplementary, createSummaryForEquipment);
+                    summary.ius = _.flatMap(fillSite.ius, createSummaryForEquipment);
+                    summary.ous = _.flatMap(fillSite.ous, createSummaryForEquipment);
+                    summary.aus = _.flatMap(fillSite.aus, createSummaryForEquipment);
+                    summary.powerSources = _.flatMap(fillSite.powerSources, function(e){
                         var original = angular.copy(e._original);
                         var modified = angular.copy(e);
                         if(original){
                             original = _.omitBy(original, function(value, key){
-                                return key.indexOf('_') === 0 || key === 'id' || key === 'definition';
+                                return key.indexOf('_') === 0 || key === 'id';
                             });
                         }
-                        modified.equipment = _.omitBy(modified.equipment, function(value, key){
-                            return key.indexOf('_') === 0 || key === 'id' || key === 'definition';
-                        });
                         modified = _.omitBy(modified, function(value, key){
-                            return key.indexOf('_') === 0 || key === 'id' || key === 'definition';
+                            return key.indexOf('_') === 0 || key === 'id';
                         });
                         var delta = diff(original, modified);
-                        if(e._command === 'MODIFY_INSTALLATION'){
-                            return [{lhs: original, rhs: modified, delta: delta}];
-                        } else if(e._command === 'INSTALL_NEW_EQUIPMENT'){
-                            return [{command: e._command, rhs: modified, delta: diff({params:{}, equipment:{params: {}}}, modified)}];
-                        } else if(e._command === 'DISMANTLE_EQUIPMENT'){
-                            return [{command: e._command, lhs: original}];
-                        } else {
-                            return [{}];
-                        }
-
-                    });
-                    summary.cabinets = changedCabinets;
-                    /*
-                    var ruCommands = _.flatMap(fillSite.rus, createCommandForEquipment);
-                    summary = summary.concat(ruCommands);
-
-                    var ruDuAntennaConnections = _.filter(_.flatMap(_.filter(_.map(_.concat(fillSite.rus, fillSite.dus, fillSite.antennas), 'connections'),undefined), createCommandForConnection), function(e){return e.equipments && e.equipments.length == 2 && e._command});
-                    ruDuAntennaConnections.forEach(function(e){
-                        if(e.id.indexOf('_NEW:') == 0){
-                            e._command = 'CONNECT_EQUIPMENT';
-                        }
-
-                    });
-
-                    var ruDuAntennaConnectionsCommands = _.flatMap(ruDuAntennaConnections, function(e){
-                        if(e._command == 'CONNECT_EQUIPMENT'){
-                            return [{command:e._command, payload:e}];
-                        } else if(e._command == 'MODIFY_CONNECTION'){
-                            return [{command:e._command, id: e.id, payload:e}];
-                        } else if(e._command == 'REMOVE_CONNECTION') {
-                            return [{command:e._command, payload:{id: e.id}}];
-                        } else {
-                            return [];
-                        }
-                    })
-
-
-                    summary = summary.concat(ruDuAntennaConnectionsCommands);
-
-                    var duCommands = _.flatMap(fillSite.dus, createCommandForEquipment);
-                    summary = summary.concat(duCommands);
-
-                    var powerSourcesCommands = _.flatMap(fillSite.powerSources, function(e){
-                        if(e._command == 'CREATE_POWERSOURCE'){
-                            return [{command:e._command, payload:e}];
-                        } else if(e._command == 'MODIFY_POWERSOURCE'){
-                            return [{command:e._command, id: e.id, payload:e}];
-                        } else if(e._command == 'REMOVE_POWERSOURCE') {
-                            return [{command:e._command, payload:{id: e.id}}];
-                        } else if(e._command == 'REPLACE_POWERSOURCE') {
-                            var payload = angular.copy(e);
-                            payload.id = generateId();
-                            return [{command:e._command, id: e.id, payload: payload}];
+                        if(e._command === 'MODIFY_POWERSOURCE'){
+                            return [{command: e._command, lhs: original, rhs: modified, delta: delta}];
+                        } else if(e._command === 'CREATE_POWERSOURCE'){
+                            return [{command: e._command, rhs: modified, delta: diff({params:{}}, modified)}];
+                        } else if(e._command === 'REMOVE_POWERSOURCE'){
+                            return [{commnad: e._command}];
                         } else {
                             return [];
                         }
                     });
-                    summary = summary.concat(powerSourcesCommands);
-
-                    var antennasCommands = _.flatMap(fillSite.antennas, createCommandForEquipment);
-                    summary = summary.concat(antennasCommands);
-
-                    var supplementaryCommands = _.flatMap(fillSite.supplementary, createCommandForEquipment);
-                    summary = summary.concat(supplementaryCommands);
-
-                    var indoorUnitCommands = _.flatMap(fillSite.ius, createCommandForEquipment);
-                    summary = summary.concat(indoorUnitCommands);
-
-                    var outdoorUnitCommands = _.flatMap(fillSite.ous, createCommandForEquipment);
-                    summary = summary.concat(outdoorUnitCommands);
-
-                    var antennaUnitCommands = _.flatMap(fillSite.aus, createCommandForEquipment);
-                    summary = summary.concat(antennaUnitCommands);
-
-                    var tranmissionCommands = _.flatMap(fillSite.transmissions, function(e){
-                        delete e['farEnd'];
-                        delete e['nearEnd'];
-                        if(e._command == 'CONNECT_EQUIPMENT'){
-                            return [{command:e._command, payload:e}];
-                        } else if(e._command == 'MODIFY_CONNECTION'){
-                            return [{command:e._command, id: e.id, payload:e}];
-                        } else if(e._command == 'REMOVE_CONNECTION') {
-                            return [{command:e._command, payload:{id: e.id}}];
+                    summary.transmissions = _.flatMap(fillSite.transmissions, function(e){
+                        var original = angular.copy(e._original);
+                        var modified = angular.copy(e);
+                        if(original){
+                            original.params  = _.omitBy(original.params, function(value, key){
+                                return key.indexOf('_') === 0 || key === 'sites';
+                            });
+                            original = _.omitBy(original, function(value, key){
+                                return key.indexOf('_') === 0 || key === 'id' || key === 'farEnd' || key === 'nearEnd' || key === 'definition' || key === 'valid';
+                            });
+                        }
+                        modified.params  = _.omitBy(modified.params, function(value, key){
+                            return key.indexOf('_') === 0 || key === 'sites';
+                        });
+                        modified = _.omitBy(modified, function(value, key){
+                            return key.indexOf('_') === 0 || key === 'id' || key === 'farEnd' || key === 'nearEnd' || key === 'definition' || key === 'valid';
+                        });
+                        var delta = diff(original, modified);
+                        if(e._command === 'MODIFY_CONNECTION'){
+                            return [{command: e._command, lhs: original, rhs: modified, delta: delta}];
+                        } else if(e._command === 'CONNECT_EQUIPMENT'){
+                            return [{command: e._command, rhs: modified, delta: diff({params:{}}, modified)}];
+                        } else if(e._command === 'REMOVE_CONNECTION'){
+                            return [{commnad: e._command}];
                         } else {
                             return [];
                         }
                     });
-                    summary = summary.concat(tranmissionCommands);
-                            */
                     $scope.summaries = summary;
                 }
             };
+            function createSummaryForEquipment(e){
+                var definition = e.definition;
+                var original = angular.copy(e._original);
+                var modified = angular.copy(e);
+                if(original){
+                    original.equipment = _.omitBy(original.equipment, function(value, key){
+                        return key.indexOf('_') === 0 || key === 'id' || key === 'definition';
+                    });
+                    for(var c in original.connections){
+                        original.connections[c] = _.omitBy(original.connections[c], function(value, key){
+                            return key.indexOf('_') === 0 || key === 'id' || key === 'definition' || key === '_command';
+                        });
+                    }
+                    /*original.connections = _.omitBy(original.connections, function(value, key){
+                        return key.indexOf('_') === 0 || key === 'id' || key === 'definition';
+                    });*/
+                    original = _.omitBy(original, function(value, key){
+                        return key.indexOf('_') === 0 || key === 'id' || key === 'definition';
+                    });
+                }
+                modified.equipment = _.omitBy(modified.equipment, function(value, key){
+                    return key.indexOf('_') === 0 || key === 'id' || key === 'definition';
+                });
+                for(var c in modified.connections){
+                    modified.connections[c] = _.omitBy(modified.connections[c], function(value, key){
+                        return key.indexOf('_') === 0 || key === 'id' || key === 'definition' || key === '_command';
+                    });
+                }
+                /*modified.connections = _.omitBy(modified.connections, function(value, key){
+                    return key.indexOf('_') === 0 || key === 'id' || key === 'definition';
+                });*/
+                modified = _.omitBy(modified, function(value, key){
+                    return key.indexOf('_') === 0 || key === 'id' || key === 'definition';
+                });
+                var delta = diff(original, modified);
+                console.log(delta);
+                if(e._command === 'MODIFY_INSTALLATION'){
+                    return [{command: e._command, lhs: original, rhs: modified, delta: delta}];
+                } else if(e._command === 'INSTALL_NEW_EQUIPMENT'){
+                    console.log(definition);
+                    if(e.connections){
+                        var connectionsObject = {};
+                        connectionsObject[definition+"2RBS"] = {equipments:[]}
+                        return [{command: e._command, rhs: modified, delta: diff({params:{}, equipment:{params: {rat: []}}, connections:connectionsObject}, modified)}];
+                    } else {
+                        return [{command: e._command, rhs: modified, delta: diff({params:{}, equipment:{params: {}}}, modified)}];
+                    }
+                } else if(e._command === 'DISMANTLE_EQUIPMENT'){
+                    //return [{command: e._command, lhs: original, delta: diff(original, {facility:original.facility, equipment: {params: {}}, params:{}})}];
+                    return [{command: e._command}];
+                } else {
+                    return [];
+                }
+
+            }
             $scope.createCommandsDocument = function(){
                 var fillSite = angular.copy($scope.fillSite);
                 var summary = [];
