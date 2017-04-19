@@ -28,6 +28,8 @@
                 'actOfMaterialsDispatchingFile'
             ];
 
+            var diff = window.requirejs('deep-diff').diff;
+
             var assetsUrl = '/asset-management/api';
             $scope.jobModel = {};
             $scope.showAddHop = false;
@@ -111,7 +113,7 @@
                     value: {}
                 });
                 camForm.variableManager.createVariable({
-                    name: 'summaries',
+                    name: 'commands',
                     type: 'Json',
                     value: {}
                 });
@@ -154,10 +156,10 @@
             });
 
             camForm.on('submit', function () {
-                $scope.createSummaryDocument();
-                console.log(JSON.stringify($scope.summaries));
+                $scope.createCommandsDocument();
+                console.log(JSON.stringify($scope.commands));
                 camForm.variableManager.variableValue('sitesWorks', JSON.parse(angular.toJson($scope.sitesWorks)));
-                camForm.variableManager.variableValue('summaries', JSON.parse(angular.toJson($scope.summaries)));
+                camForm.variableManager.variableValue('commands', JSON.parse(angular.toJson($scope.commands)));
                 camForm.variableManager.variableValue('fillSite', JSON.parse(angular.toJson($scope.fillSite)));
                 camForm.variableManager.variableValue('fillAppliedChangesInfoByContractorTaskResult', $scope.fillAppliedChangesInfoByContractorTaskResult);
                 if ($scope.fillAppliedChangesInfoByContractorTaskResult == 'saveChanges') {
@@ -709,6 +711,149 @@
 
             $scope.createSummaryDocument = function(){
                 var fillSite = angular.copy($scope.fillSite);
+                var summary = {
+                    facilities: [],
+                    cabinets: [],
+                    antennas: [],
+                    rus: [],
+                    dus: [],
+                    powerSources: [],
+                    supplementary: [],
+                    transmissions: []
+                };
+                if(fillSite !== undefined){
+                    var changedFacilities = _.flatMap(fillSite.facilities, function(e){
+                        var original = angular.copy(e._original);
+                        var modified = angular.copy(e);
+                        if(original){
+                            original = _.omitBy(original, function(value, key){
+                                return key.indexOf('_') === 0 || key === 'id';
+                            });
+                        }
+                        modified = _.omitBy(modified, function(value, key){
+                            return key.indexOf('_') === 0 || key === 'id';
+                        });
+                        var delta = diff(original, modified);
+                        if(e._command === 'MODIFY_FACILITY'){
+                            return [{command: e._command, lhs: original, rhs: modified, delta: delta}];
+                        } else if(e._command === 'ADD_FACILITY'){
+                            return [{command: e._command, rhs: modified, delta: diff({params:{}}, modified)}];
+                        } else {
+                            return [];
+                        }
+                    });
+                    summary.facility = changedFacilities;
+
+
+                    var changedCabinets = _.flatMap(fillSite.cabinets, function(e){
+                        var original = angular.copy(e._original);
+                        var modified = angular.copy(e);
+                        if(original){
+                            original = _.omitBy(original, function(value, key){
+                                return key.indexOf('_') === 0 || key === 'id' || key === 'definition';
+                            });
+                        }
+                        modified.equipment = _.omitBy(modified.equipment, function(value, key){
+                            return key.indexOf('_') === 0 || key === 'id' || key === 'definition';
+                        });
+                        modified = _.omitBy(modified, function(value, key){
+                            return key.indexOf('_') === 0 || key === 'id' || key === 'definition';
+                        });
+                        var delta = diff(original, modified);
+                        if(e._command === 'MODIFY_INSTALLATION'){
+                            return [{lhs: original, rhs: modified, delta: delta}];
+                        } else if(e._command === 'INSTALL_NEW_EQUIPMENT'){
+                            return [{command: e._command, rhs: modified, delta: diff({params:{}, equipment:{params: {}}}, modified)}];
+                        } else if(e._command === 'DISMANTLE_EQUIPMENT'){
+                            return [{command: e._command, lhs: original}];
+                        } else {
+                            return [{}];
+                        }
+
+                    });
+                    summary.cabinets = changedCabinets;
+                    /*
+                    var ruCommands = _.flatMap(fillSite.rus, createCommandForEquipment);
+                    summary = summary.concat(ruCommands);
+
+                    var ruDuAntennaConnections = _.filter(_.flatMap(_.filter(_.map(_.concat(fillSite.rus, fillSite.dus, fillSite.antennas), 'connections'),undefined), createCommandForConnection), function(e){return e.equipments && e.equipments.length == 2 && e._command});
+                    ruDuAntennaConnections.forEach(function(e){
+                        if(e.id.indexOf('_NEW:') == 0){
+                            e._command = 'CONNECT_EQUIPMENT';
+                        }
+
+                    });
+
+                    var ruDuAntennaConnectionsCommands = _.flatMap(ruDuAntennaConnections, function(e){
+                        if(e._command == 'CONNECT_EQUIPMENT'){
+                            return [{command:e._command, payload:e}];
+                        } else if(e._command == 'MODIFY_CONNECTION'){
+                            return [{command:e._command, id: e.id, payload:e}];
+                        } else if(e._command == 'REMOVE_CONNECTION') {
+                            return [{command:e._command, payload:{id: e.id}}];
+                        } else {
+                            return [];
+                        }
+                    })
+
+
+                    summary = summary.concat(ruDuAntennaConnectionsCommands);
+
+                    var duCommands = _.flatMap(fillSite.dus, createCommandForEquipment);
+                    summary = summary.concat(duCommands);
+
+                    var powerSourcesCommands = _.flatMap(fillSite.powerSources, function(e){
+                        if(e._command == 'CREATE_POWERSOURCE'){
+                            return [{command:e._command, payload:e}];
+                        } else if(e._command == 'MODIFY_POWERSOURCE'){
+                            return [{command:e._command, id: e.id, payload:e}];
+                        } else if(e._command == 'REMOVE_POWERSOURCE') {
+                            return [{command:e._command, payload:{id: e.id}}];
+                        } else if(e._command == 'REPLACE_POWERSOURCE') {
+                            var payload = angular.copy(e);
+                            payload.id = generateId();
+                            return [{command:e._command, id: e.id, payload: payload}];
+                        } else {
+                            return [];
+                        }
+                    });
+                    summary = summary.concat(powerSourcesCommands);
+
+                    var antennasCommands = _.flatMap(fillSite.antennas, createCommandForEquipment);
+                    summary = summary.concat(antennasCommands);
+
+                    var supplementaryCommands = _.flatMap(fillSite.supplementary, createCommandForEquipment);
+                    summary = summary.concat(supplementaryCommands);
+
+                    var indoorUnitCommands = _.flatMap(fillSite.ius, createCommandForEquipment);
+                    summary = summary.concat(indoorUnitCommands);
+
+                    var outdoorUnitCommands = _.flatMap(fillSite.ous, createCommandForEquipment);
+                    summary = summary.concat(outdoorUnitCommands);
+
+                    var antennaUnitCommands = _.flatMap(fillSite.aus, createCommandForEquipment);
+                    summary = summary.concat(antennaUnitCommands);
+
+                    var tranmissionCommands = _.flatMap(fillSite.transmissions, function(e){
+                        delete e['farEnd'];
+                        delete e['nearEnd'];
+                        if(e._command == 'CONNECT_EQUIPMENT'){
+                            return [{command:e._command, payload:e}];
+                        } else if(e._command == 'MODIFY_CONNECTION'){
+                            return [{command:e._command, id: e.id, payload:e}];
+                        } else if(e._command == 'REMOVE_CONNECTION') {
+                            return [{command:e._command, payload:{id: e.id}}];
+                        } else {
+                            return [];
+                        }
+                    });
+                    summary = summary.concat(tranmissionCommands);
+                            */
+                    $scope.summaries = summary;
+                }
+            };
+            $scope.createCommandsDocument = function(){
+                var fillSite = angular.copy($scope.fillSite);
                 var summary = [];
                 if(fillSite !== undefined){
                     var facilityCommands = _.flatMap(fillSite.facilities, function(e){
@@ -800,7 +945,7 @@
                         }
                     });
                     summary = summary.concat(tranmissionCommands);
-                    $scope.summaries = summary;
+                    $scope.commands = summary;
                 }
             };
             function createCommandForEquipment(e){

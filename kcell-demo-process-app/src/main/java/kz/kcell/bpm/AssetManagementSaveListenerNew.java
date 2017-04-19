@@ -42,8 +42,8 @@ public class AssetManagementSaveListenerNew implements TaskListener {
             if (delegateTask.getVariableTyped("fillSite") != null && delegateTask.getVariableTyped("fillSite").getValue() != null) {
                 //JsonNode fillSite = mapper.readTree(delegateTask.getVariableTyped("fillSite").getValue().toString());
                 //saveToAssetManagement(fillSite);
-                JsonNode summaries = mapper.readTree(delegateTask.getVariableTyped("summaries").getValue().toString());
-                saveCommandsToAssetManagement(summaries, delegateTask.getVariable("site").toString());
+                JsonNode commands = mapper.readTree(delegateTask.getVariableTyped("commands").getValue().toString());
+                saveCommandsToAssetManagement(commands, delegateTask.getVariable("site").toString());
             }
         } catch (Exception e) {
             e.printStackTrace();
