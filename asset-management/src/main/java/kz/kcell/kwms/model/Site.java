@@ -21,7 +21,8 @@ public @Data @Builder @NoArgsConstructor @AllArgsConstructor
 @EqualsAndHashCode(exclude = {"facilities", "farEndCandidates", "installations", "powerSources", "version"})
 class Site implements Comparable<Site> {
     @Id
-    String id;
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
+    Long id;
 
     @Size(min = 5)
     String name;

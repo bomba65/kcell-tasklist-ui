@@ -10,7 +10,7 @@ import java.util.Set;
 
 @Projection(name = "full", types = Site.class)
 public interface SiteFull {
-    String getId();
+    Long getId();
 
     String getName();
 

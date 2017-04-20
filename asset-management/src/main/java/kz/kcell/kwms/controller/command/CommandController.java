@@ -106,7 +106,7 @@ public class CommandController {
             commandsList.add(command);
         }
         Map<String, Object> objectMap = new HashMap<String, Object>();
-        objectMap.put("site", siteRepository.findOne(siteId));
+        objectMap.put("site", siteRepository.findOne(Long.valueOf(siteId)));
 
         while (!commandsList.isEmpty()) {
             List<Command> independentCommands = commandsList.stream().filter(c -> objectMap.keySet().containsAll(c.getDependencies())).collect(Collectors.toList());

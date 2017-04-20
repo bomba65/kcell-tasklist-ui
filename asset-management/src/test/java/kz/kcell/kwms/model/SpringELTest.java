@@ -26,8 +26,8 @@ public class SpringELTest {
                 .build();
 
         Site s1 = Site.builder()
-                .id("A")
-                .name("Site A")
+                .id(1L)
+                .name("SITE1")
                 .params("{}")
                 .facilities(Stream.of(f1, f2).collect(Collectors.toCollection(TreeSet::new)))
                 .build();

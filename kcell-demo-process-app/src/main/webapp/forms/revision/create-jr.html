@@ -91,13 +91,18 @@
                     submit: true,
                     store: true
                 }, {
-                    name: 'jobWorks',
-                    type: 'Json',
+                    name: 'site',
+                    type: 'String',
                     submit: true,
                     store: true
                 }, {
                     name: 'siteName',
                     type: 'String',
+                    submit: true,
+                    store: true
+                }, {
+                    name: 'jobWorks',
+                    type: 'Json',
                     submit: true,
                     store: true
                 },
@@ -148,22 +153,6 @@
                             console.log(error.data);
                         }
                 );
-
-                $http.get('/asset-management/api/sites').then(
-                    function(result){
-                        $scope.sitesList = [];
-                        for(var i=0;i<result.data._embedded.sites.length;i++){
-                            var site = result.data._embedded.sites[i];
-                            $scope.sitesList.push( {
-                                name: site.name,
-                                id: site._links.self.href.substr(site._links.self.href.lastIndexOf('/') + 1)
-                            });
-                        }
-                    },
-                    function(error){
-                        console.log(error.data);
-                    }
-                );
             });
 
             camForm.on('variables-fetched', function () {
@@ -182,11 +171,6 @@
                 variablesToCreate.forEach(function (el) {
                     if (el.submit) {
                         camForm.variableManager.variableValue(el.name, $scope[el.name]);
-                    }
-                });
-                $scope.sitesList.forEach(function(sl){
-                    if(sl.id === $scope.site){
-                        camForm.variableManager.variableValue('siteName', sl.name);
                     }
                 });
                 if($scope.materialsRequiredCheckbox){
@@ -450,6 +434,44 @@
                         $scope.jobWorks[index].materialUnit = $scope.works[i].units;
                     }
                 }
+            };
+
+            $scope.getSite = function(val) {
+                return $http.get('/asset-management/api/sites/search/findByNameIgnoreCaseContaining?name='+val).then(
+                    function(response){
+                        console.log(response);
+                        var sites = response.data._embedded.sites.map(function(site){
+                            var site = {
+                                name: site.name,
+                                id: site._links.self.href.substring(site._links.self.href.lastIndexOf('/')+1)
+                            };
+                            console.log(site);
+                            return site;
+                        });
+                        console.log(sites);
+                        return sites;
+                    }
+                );
+            };
+
+            $scope.siteSelected = function($item){
+                $scope.siteName = $item.name;
+                $scope.site = $item.id;
+            }
+
+            $scope.clearSiteId = function(){
+                $scope.site = undefined;
+            }
+
+            $scope.siteJobWorkSelected = function($item, $index){
+                $scope.jobWorks[$index].sites.name = $item.name;
+                $scope.jobWorks[$index].sites.id = $item.id;
+            }
+            $scope.clearWorkSiteId = function($index){
+                if(!$scope.jobWorks[$index].sites){
+                    $scope.jobWorks[$index].sites = {id:undefined};
+                }
+                $scope.jobWorks[$index].sites.id = undefined;
             }
         }]);
 
@@ -466,7 +488,6 @@
         <label class="col-sm-4 control-label required">Validity date*:</label>
         <div class="col-sm-3">
             <div class="input-group">
-                <!-- NOT REQUIRED -->
                 <input type="text" ng-model="validityDate" required class="form-control" datepicker-popup="dd.MM.yyyy" is-open="dateFieldOpened" id="validityDate" min-date="datepickerOptions.minDate" />
                 <span class="input-group-btn">
                     <button type="button" class="btn btn-default" ng-click="open($event)">
@@ -479,28 +500,19 @@
     <div class="form-group">
         <label class="col-sm-4 control-label required">SA&O Complaint Id:</label>
         <div class="col-sm-3">
-            <div class="input-group">
-                <input type="text" cam-variable-name="soaComplaintId" cam-variable-type="String" class="form-control" ng-blur="checkSOAComplaintId()" maxlength="20"/>
-                <span class="input-group-btn">
-                    <button type="button" class="btn btn-default" ng-click="checkSOAComplaintId()">
-                        <i class="glyphicon glyphicon-search"></i>
-                    </button>
-                </span>
-            </div>
+            <input type="text" cam-variable-name="soaComplaintId" cam-variable-type="String" class="form-control" ng-blur="checkSOAComplaintId()" maxlength="20"/>
         </div>
     </div>
     <div class="form-group">
-        <label class="col-sm-4 control-label required">Site *:</label>
+        <label class="col-sm-4 control-label required">Site *: {{siteObject}}</label>
         <div class="col-sm-3">
-            <select class="form-control" cam-variable-name="site" cam-variable-type="String" required>
-                <option value="{{s.id}}" ng-repeat="s in sitesList">{{s.name}}</option>
-            </select>
+            <input type="text" ng-model="siteName" typeahead="site as sites.name for sites in getSite($viewValue) | filter:$viewValue" typeahead-on-select="siteSelected($item,$model,$label)" class="form-control" required>
+            <input type="hidden" ng-model="site" required/>
         </div>
     </div>
     <div class="form-group">
         <label class="col-sm-4 control-label required">Reason*:</label>
         <div class="col-sm-3">
-            <!-- NOT REQUIRED -->
             <select class="form-control" cam-variable-name="reason" required cam-variable-type="String" ng-change="refreshJobRequests()">
                 <option value="">select reason</option>
                 <option value="{{r.id}}" ng-repeat="r in reasons" ng-selected="{{r.id == reason}}">{{r.name}}</option>
@@ -510,7 +522,6 @@
     <div class="form-group">
         <label class="col-sm-4 control-label">Related to the:</label>
         <div class="col-sm-8">
-            <!-- NOT REQUIRED -->
             <label class="radio-inline">
                 <input type="radio" name="relatedTo" required ng-model="relatedTo" value="Capacity"> Capacity
             </label>
@@ -637,9 +648,8 @@
                     </div>
                 </div>
                 <div class="col-md-2" ng-if="reason == '2'" style="padding:0px">
-                    <select class="form-control" ng-model="jobWork.sites">
-                        <option value="{{s.id}}" ng-repeat="s in sitesList">{{s.name}}</option>
-                    </select>
+                    <input type="text" ng-model="jobWork.sites.name" typeahead="site as sites.name for sites in getSite($viewValue) | filter:$viewValue" typeahead-on-select="siteJobWorkSelected($item,$index)" class="form-control">
+                    <input type="hidden" ng-model="jobWork.sites.id" ng-required="jobWork.sites.name" />
                 </div>
                 <div class="col-md-1"><button type="button" class="btn btn-sm btn-warning" ng-if="$index !== 0" ng-click="removeWork($index)"><i class="glyphicon glyphicon-trash"></i> Remove</button></div>
             </div>
