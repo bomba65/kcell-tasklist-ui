@@ -184,6 +184,12 @@ public class DemoDataGenerator {
         filterProperties.clear();
         filterProperties.put("description", "All Tasks - Not recommended to be used in production :)");
         filterProperties.put("priority", 10);
+        Map<String, String> variablesMap = new HashMap<>();
+        variablesMap.put("name", "siteName");
+        variablesMap.put("label", "Site Name");
+
+        List<Map<String, String>> filterVariables = Arrays.asList(variablesMap);
+        filterProperties.put("variables", filterVariables);
         //addVariables(filterProperties);
         query = taskService.createTaskQuery();
         Filter allTasksFilter = filterService.newTaskFilter().setName("All Tasks").setProperties(filterProperties).setOwner("demo").setQuery(query);
@@ -194,6 +200,7 @@ public class DemoDataGenerator {
         filterProperties.clear();
         filterProperties.put("description", "My Claimed Tasks");
         filterProperties.put("priority", -10);
+        filterProperties.put("variables", filterVariables);
         //addVariables(filterProperties);
         query = taskService.createTaskQuery().taskAssigneeExpression("${ currentUser() }");
         Filter myClaimedTasks = filterService.newTaskFilter().setName("My Claimed Tasks").setProperties(filterProperties).setOwner("demo").setQuery(query);
@@ -210,6 +217,7 @@ public class DemoDataGenerator {
         filterProperties.clear();
         filterProperties.put("description", "My Unclaimed Tasks");
         filterProperties.put("priority", -10);
+        filterProperties.put("variables", filterVariables);
         //addVariables(filterProperties);
         query = taskService.createTaskQuery().taskCandidateUserExpression("${currentUser()}");
         Filter myUnclaimedTasksFilter = filterService.newTaskFilter().setName("My Unclaimed Tasks").setProperties(filterProperties).setOwner("demo").setQuery(query);
@@ -226,6 +234,7 @@ public class DemoDataGenerator {
         filterProperties.clear();
         filterProperties.put("description", "My Group Tasks");
         filterProperties.put("priority", -10);
+        filterProperties.put("variables", filterVariables);
         //addVariables(filterProperties);
         query = taskService.createTaskQuery().taskCandidateGroupInExpression("${ currentUserGroups() }");
         Filter myGroupTasks = filterService.newTaskFilter().setName("My Group Tasks").setProperties(filterProperties).setOwner("demo").setQuery(query);
