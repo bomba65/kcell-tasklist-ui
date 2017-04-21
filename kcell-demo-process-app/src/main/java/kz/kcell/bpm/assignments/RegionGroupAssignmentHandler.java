@@ -15,7 +15,6 @@ public class RegionGroupAssignmentHandler implements TaskListener {
         String reason = delegateTask.getVariable("reason").toString();
         if (reason != null) {
             if (reason.equals("1")) {
-
                 delegateTask.addCandidateUsers(Arrays.asList("Kerey.Zatilda@kcell.kz", "Kanat.Kulmukhambetov@kcell.kz"));
             } else if (reason.equals("2")) {
                 delegateTask.addCandidateUsers(Arrays.asList("Maulen.Kempirbayev@kcell.kz"));
