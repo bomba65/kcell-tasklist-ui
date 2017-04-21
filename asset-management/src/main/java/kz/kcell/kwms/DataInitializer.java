@@ -110,11 +110,20 @@ public class DataInitializer {
                 .facilities(Stream.of(facilityInstanceBUILDING).collect(Collectors.toCollection(TreeSet::new)))
                 .build());
 
-        Site site2 = siteRepository.save(Site.builder()
-                .name("SITE2")
-                .params("{}")
-                .facilities(Stream.of(facilityInstanceMAST).collect(Collectors.toCollection(TreeSet::new)))
-                .build());
+        for (int i = 2; i <= 10; i++) {
+            FacilityInstance facilityInstance = facilityInstanceRepository.save(FacilityInstance.builder()
+                    .definition(facilityDefinitionBUILDING)
+                    .location((Point) wktReader.read("POINT(-10.0 10.0 10.0)"))
+                    .params("{\"name\":\"Near shop 'Nurlan'\",\"region\":\"South Region\",\"city\":\"Almaty\",\"street\":\"Furmanova\",\"building_number\":127,\"cadastral_number\":\"01-2032-032832\",\"latitude\":\"43.252540\",\"longitude\":\"76.946774\",\"altitude\":911,\"owner\":\"Kazakhtelecom\",\"height:\":43,\"max_neighbor_height\":20,\"building_type\":\"Specialization 1\",\"roof_type\":\"Профнастил\",\"roof_degrees\":\"13\",\"ceiling_type\":\"железобетон\",\"has_technical_floor\":\"No\",\"additional_info\":\"г. Алматы, Фурманова 127 над магазином 'Нурлан'\"}")
+                    .build());
+            siteRepository.save(
+                    Site.builder()
+                            .name("SITE" + i)
+                            .params("{}")
+                            .facilities(Stream.of(facilityInstance).collect(Collectors.toCollection(TreeSet::new)))
+                            .build()
+            );
+        }
 
         EquipmentDefinition equipmentDefinitionAIRCONDITIONER = equipmentDefinitionRepository.save(EquipmentDefinition.builder()
                 .id("AIRCONDITIONER")
