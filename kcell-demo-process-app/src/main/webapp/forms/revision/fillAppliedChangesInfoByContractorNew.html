@@ -1,6 +1,6 @@
 <form role="form" class="form-horizontal kcell-form-custom" name="fillAppliedChangesForm">
     <script cam-script type="text/form-script">
-        inject(['$scope', '$http', 'Uri', '$rootScope', 'exModal', function ($scope, $http, Uri, $rootScope, exModal) {
+        inject(['$scope', '$http', 'Uri', function ($scope, $http, Uri) {
             var variables = [
                 'requestedDate',
                 'validityDate',
@@ -97,11 +97,6 @@
                     value: undefined
                 });
                 camForm.variableManager.createVariable({
-                    name: 'sitesWorks',
-                    type: 'Json',
-                    value: undefined
-                });
-                camForm.variableManager.createVariable({
                     name: 'fillApplied',
                     type: 'String',
                     value: undefined
@@ -116,11 +111,22 @@
                     type: 'Json',
                     value: {}
                 });
+                camForm.variableManager.createVariable({
+                    name: 'summaries',
+                    type: 'Json',
+                    value: {}
+                });
             });
             camForm.on('variables-fetched', function () {
                 variables.forEach(function (el) {
                     $scope.jobModel[el] = camForm.variableManager.variables[el];
                 });
+                $scope.sitesWorks = JSON.parse($scope.jobModel.jobWorks.originalValue);
+                if ($scope.sitesWorks.length > 0) {
+                    $scope.sitesWorks.forEach(function(work){
+                        work.files=[{type:'File', valueInfo: {filename:'', mimeType:'application/octet-stream'}, value:''}];
+                    })
+                }
 
                 $http.get('/asset-management/api/facilityDefinitions').then(
                         function (result) {
@@ -141,9 +147,20 @@
 
             camForm.on('submit', function () {
                 $scope.createCommandsDocument();
+                $scope.createSummaryDocument();
                 console.log(JSON.stringify($scope.commands));
-                camForm.variableManager.variableValue('sitesWorks', JSON.parse(angular.toJson($scope.sitesWorks)));
+                $scope.sitesWorks.forEach(function(e,i){
+                    e.files.forEach(function(f, j){
+                        if(f.value){
+                            console.log(f);
+                            f.name = 'works_'+i+'_file_'+j;
+                            f.type = 'File';
+                            camForm.variableManager.createVariable(f);
+                        }
+                    });
+                });
                 camForm.variableManager.variableValue('commands', JSON.parse(angular.toJson($scope.commands)));
+                camForm.variableManager.variableValue('summaries', JSON.parse(angular.toJson($scope.summaries)));
                 camForm.variableManager.variableValue('fillSite', JSON.parse(angular.toJson($scope.fillSite)));
                 camForm.variableManager.variableValue('fillAppliedChangesInfoByContractorTaskResult', $scope.fillAppliedChangesInfoByContractorTaskResult);
                 if ($scope.fillAppliedChangesInfoByContractorTaskResult == 'saveChanges') {
@@ -155,39 +172,13 @@
                 }
             });
 
-            $scope.addMoreWork = addMoreWork;
-            function addMoreWork(site) {
-                for (var i = 0; i < $scope.sitesWorks.length; i++) {
-                    if ($scope.sitesWorks[i].id === site) {
-                        $scope.sitesWorks[i].works.push({id: 1});
-                    }
-                }
-            }
-
             camForm.on('store', function () {
                 camForm.variableManager.variableValue('fillAppliedChangesInfoByContractorTaskResult', $scope.fillAppliedChangesInfoByContractorTaskResult);
-                camForm.variableManager.variableValue('sitesWorks', $scope.sitesWorks);
                 camForm.variableManager.variableValue('fillSite', $scope.fillSite);
             });
 
             camForm.on('variables-restored', function () {
                 $scope.fillAppliedChangesInfoByContractorTaskResult = camForm.variableManager.variableValue('fillAppliedChangesInfoByContractorTaskResult');
-                $scope.sitesWorks = camForm.variableManager.variableValue('sitesWorks');
-                if ($scope.sitesWorks === undefined) {
-                    try {
-                        $scope.jobModel.jobWorks.originalValue = JSON.parse($scope.jobModel.jobWorks.originalValue);
-                        $scope.sitesWorks = [];
-                        for (var i = 0; i < $scope.jobModel.jobWorks.originalValue.length; i++) {
-                            var w = {
-                                id: $scope.jobModel.jobWorks.originalValue[i].sites,
-                                works: []
-                            };
-                            $scope.sitesWorks.push(w);
-                        }
-                    } catch (e) {
-                        console.log(e);
-                    }
-                }
                 $scope.fillSite = camForm.variableManager.variableValue('fillSite');
                 if (angular.equals({}, $scope.fillSite)) {
                     $scope.fillSite = {
@@ -870,6 +861,7 @@
 
             }
             $scope.createCommandsDocument = function(){
+                console.log("CREATE COMMANDS DOCUMENT")
                 var fillSite = angular.copy($scope.fillSite);
                 var summary = [];
                 if(fillSite !== undefined){
@@ -891,12 +883,14 @@
                     summary = summary.concat(ruCommands);
 
                     var ruDuAntennaConnections = _.filter(_.flatMap(_.filter(_.map(_.concat(fillSite.rus, fillSite.dus, fillSite.antennas), 'connections'),undefined), createCommandForConnection), function(e){return e.equipments && e.equipments.length == 2 && e._command});
-                    ruDuAntennaConnections.forEach(function(e){
-                        if(e.id.indexOf('_NEW:') == 0){
-                            e._command = 'CONNECT_EQUIPMENT';
-                        }
+                    if(ruDuAntennaConnections){
+                        ruDuAntennaConnections.forEach(function(e){
+                            if(!e.id || e.id.indexOf('_NEW:') == 0){
+                                e._command = 'CONNECT_EQUIPMENT';
+                            }
 
-                    });
+                        });
+                    }
 
                     var ruDuAntennaConnectionsCommands = _.flatMap(ruDuAntennaConnections, function(e){
                         if(e._command == 'CONNECT_EQUIPMENT'){
@@ -1012,6 +1006,35 @@
             $scope.siteSelected = function($item){
                 $scope.farEndSite.name = $item.name;
                 $scope.farEndSite.id = $item.id;
+            };
+
+            $scope.addWorkFile = function(workIndex){
+
+            };
+
+            function getBase64(el, workIndex, fileIndex){
+                var reader = new FileReader();
+                reader.readAsDataURL(el.files[0]);
+                reader.onload = function () {
+                    $scope.$apply(function(){
+                        $scope.sitesWorks[workIndex].files[fileIndex].valueInfo.filename = el.files[0].name;
+                        $scope.sitesWorks[workIndex].files[fileIndex].value = reader.result;
+                        $scope.sitesWorks[workIndex].files.push({type:'File', valueInfo: {filename:'', mimeType:'application/octet-stream'}, value:''});
+                    });
+                };
+                reader.onerror = function (error) {
+                    console.log('Error: ', error);
+                };
+            }
+
+            $scope.fileSelected = function(el, workIndex, fileIndex){
+                if(el.files[0]){
+                    getBase64(el, workIndex, fileIndex)
+                } else {
+                    $scope.$apply(function(){
+                        $scope.sitesWorks[workIndex].files.splice(fileIndex,1);
+                    });
+                }
             }
         }]);
     </script>

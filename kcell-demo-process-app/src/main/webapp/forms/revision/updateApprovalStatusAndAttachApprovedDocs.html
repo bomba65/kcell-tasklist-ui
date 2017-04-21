@@ -5,7 +5,7 @@
 </style>
 <form role="form" class="form-horizontal">
     <script cam-script type="text/form-script">
-        inject(['$scope', '$http', function ($scope, $http) {
+        inject(['$scope', '$http', 'Uri', function ($scope, $http, Uri) {
             var variables = [
                 'requestedDate',
                 'validityDate',
@@ -31,8 +31,12 @@
                 'kcellWarehouseMaterialsList',
                 'contractorZIPWarehouseMaterialsList',
                 'sapTransferRequestFile',
-                'actOfMaterialsDispatchingFile'
+                'actOfMaterialsDispatchingFile',
+                'summaries'
             ];
+            $http.get(Uri.appUri("engine://engine/:engine/task/" + camForm.taskId + "/form")).success(function (result) {
+                $scope.contextPath = result.contextPath;
+            });
             $scope.jobModel = {};
             camForm.on('form-loaded', function () {
                 variables.forEach(function (el) {
@@ -62,6 +66,9 @@
             camForm.on('variables-fetched', function () {
                 variables.forEach(function (el) {
                     $scope.jobModel[el] = camForm.variableManager.variables[el];
+                    if(el==='summaries'){
+                        $scope.summaries = camForm.variableManager.variables[el].value
+                    }
                 });
             });
 
@@ -90,9 +97,17 @@
         }]);
     </script>
     <job-request job-model="jobModel"></job-request>
-    <div class="row">
+    <ng-include ng-if="contextPath" src="contextPath+'/forms/revision/summaries.html'"></ng-include>
+    <h4>Works:</h4>
+    <div class="row" ng-repeat="work in jobModel.jobWorks.value">
+        <div class="col-md-12">&nbsp;&nbsp;&nbsp;&nbsp;{{jobModel.worksTitle[work.sapServiceNumber]}}, works qty: {{work.quantity}}, materials qty: {{work.materialQuantity}} {{jobModel.unitsTitle[work.unit]}}, on sites: {{work.sites}}</div>
+        <div class="col-md-12" ng-repeat="file in work.files">
+            <input type="file" class="form-control" ng-model="file.file" onchange="angular.element(this).scope().fileSelected(this, angular.element(this).scope().$parent.$index, angular.element(this).scope().$index)"/>
+        </div>
+    </div>
+    <div class="well">
         <div class="form-group">
-            <label class="col-sm-4 control-label">E-License resolution *:</label>
+            <label class="col-sm-4 control-label">Permits resolution *:</label>
             <div class="col-sm-8">
                 <input type="file" class="form-control" cam-variable-name="eLicenseResolutionFile" cam-variable-type="File" cam-max-filesize="10000000" />
             </div>
@@ -101,10 +116,10 @@
             <label class="col-sm-4 control-label">Resolution</label>
             <div class="col-sm-8">
                 <label class="radio-inline">
-                    <input type="radio" name="updateApprovalStatusAndAttachApprovedDocsTaskResult" ng-model="updateApprovalStatusAndAttachApprovedDocsTaskResult" value="approved" required> Approved
+                    <input type="radio" name="updateApprovalStatusAndAttachApprovedDocsTaskResult" ng-model="updateApprovalStatusAndAttachApprovedDocsTaskResult" value="approved" required> Permits received
                 </label>
                 <label class="radio-inline">
-                    <input type="radio" name="updateApprovalStatusAndAttachApprovedDocsTaskResult" ng-model="updateApprovalStatusAndAttachApprovedDocsTaskResult" value="notApproved" required> Not approved
+                    <input type="radio" name="updateApprovalStatusAndAttachApprovedDocsTaskResult" ng-model="updateApprovalStatusAndAttachApprovedDocsTaskResult" value="notApproved" required> Permits rejected
                 </label>
             </div>
         </div>
