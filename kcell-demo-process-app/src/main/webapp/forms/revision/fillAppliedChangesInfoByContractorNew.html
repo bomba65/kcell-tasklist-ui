@@ -151,6 +151,8 @@
                 console.log(JSON.stringify($scope.commands));
                 $scope.sitesWorks.forEach(function(e,i){
                     e.files.forEach(function(f, j){
+                        console.log("FILE");
+                        console.log(f);
                         if(f.value){
                             console.log(f);
                             f.name = 'works_'+i+'_file_'+j;
@@ -1014,11 +1016,20 @@
 
             function getBase64(el, workIndex, fileIndex){
                 var reader = new FileReader();
-                reader.readAsDataURL(el.files[0]);
-                reader.onload = function () {
+                reader.readAsArrayBuffer(el.files[0]);
+                reader.onloadend = function (e) {
+                    var binary = '';
+                    var bytes = new Uint8Array( e.target.result );
+                    var len = bytes.byteLength;
+                    for (var j = 0; j < len; j++) {
+                        binary += String.fromCharCode( bytes[ j ] );
+                    }
                     $scope.$apply(function(){
-                        $scope.sitesWorks[workIndex].files[fileIndex].valueInfo.filename = el.files[0].name;
-                        $scope.sitesWorks[workIndex].files[fileIndex].value = reader.result;
+                        $scope.sitesWorks[workIndex].files[fileIndex].valueInfo = {
+                            filename: el.files[0].name,
+                            mimeType: el.files[0].type
+                        }
+                        $scope.sitesWorks[workIndex].files[fileIndex].value = btoa(binary);
                         $scope.sitesWorks[workIndex].files.push({type:'File', valueInfo: {filename:'', mimeType:'application/octet-stream'}, value:''});
                     });
                 };

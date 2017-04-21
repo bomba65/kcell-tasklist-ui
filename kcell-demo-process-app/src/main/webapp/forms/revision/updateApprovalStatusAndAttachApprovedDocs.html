@@ -75,6 +75,9 @@
             camForm.on('submit', function () {
                 camForm.variableManager.variableValue('updateApprovalStatusAndAttachApprovedDocsTaskResult', $scope.updateApprovalStatusAndAttachApprovedDocsTaskResult);
                 camForm.variableManager.variableValue('revisionPrepare', $scope.updateApprovalStatusAndAttachApprovedDocsTaskResult);
+                $scope.jobModel.jobWorks.value.forEach(function(work){
+                    delete work['files'];
+                });
                 if($scope.updateApprovalStatusAndAttachApprovedDocsTaskResult === 'notApproved'){
                     for (var i = 0; i < camForm.fields.length; i++) {
                         if (camForm.fields[i].variableName == 'eLicenseResolutionFile') {
@@ -94,15 +97,51 @@
             camForm.on('variables-restored', function() {
                 $scope.updateApprovalStatusAndAttachApprovedDocsTaskResult = camForm.variableManager.variableValue('updateApprovalStatusAndAttachApprovedDocsTaskResult');
             });
+
+            $scope. download = download;
+            function download(file){
+                document.getElementById('fileDownloadIframe').src = '/camunda/api/engine/engine/default/variable-instance/'+file.id+'/data';
+            }
+            $http.get('/camunda/api/engine/engine/default/task/'+camForm.taskId).then(
+                function(taskResult){
+                    var variableQuery = {
+                        processInstanceIdIn: [taskResult.data.processInstanceId],
+                        variableNameLike: 'works_%'
+                    };
+                    $http.post('/camunda/api/engine/engine/default/variable-instance?deserializeValues=false', variableQuery).then(
+                            function(variables){
+                                if(variables.data){
+                                    variables.data.forEach(function(file){
+                                        if(file.name.startsWith('works_')){
+                                            $scope.jobModel[file.name] = file;
+                                            var workIndex = file.name.split('_')[1];
+                                            if(!$scope.jobModel.jobWorks.value[workIndex].files){
+                                                $scope.jobModel.jobWorks.value[workIndex].files = [];
+                                            }
+                                            $scope.jobModel.jobWorks.value[workIndex].files.push(file);
+                                        }
+                                    });
+                                }
+                            },
+                            function(error){
+                                console.log(error.data);
+                            }
+                    );
+                },
+                function(error){
+                    console.log(error.data);
+                }
+            );
         }]);
     </script>
     <job-request job-model="jobModel"></job-request>
     <ng-include ng-if="contextPath" src="contextPath+'/forms/revision/summaries.html'"></ng-include>
     <h4>Works:</h4>
+    <iframe id="fileDownloadIframe" style="display:none;"></iframe>
     <div class="row" ng-repeat="work in jobModel.jobWorks.value">
         <div class="col-md-12">&nbsp;&nbsp;&nbsp;&nbsp;{{jobModel.worksTitle[work.sapServiceNumber]}}, works qty: {{work.quantity}}, materials qty: {{work.materialQuantity}} {{jobModel.unitsTitle[work.unit]}}, on sites: {{work.sites}}</div>
         <div class="col-md-12" ng-repeat="file in work.files">
-            <input type="file" class="form-control" ng-model="file.file" onchange="angular.element(this).scope().fileSelected(this, angular.element(this).scope().$parent.$index, angular.element(this).scope().$index)"/>
+            <div class="col-md-12">&nbsp;&nbsp;&nbsp;&nbsp;<a ng-click="download(file)">{{file.valueInfo.filename}}</a></div>
         </div>
     </div>
     <div class="well">
