@@ -17,7 +17,7 @@ public class AcceptJobByCentralGroup implements TaskListener {
         } else if (reason.equals("3")) {
             delegateTask.addCandidateUsers(Arrays.asList("Andrey.Medvedev@kcell.kz", "Sergey.Chumachenko@kcell.kz"));
         } else if (reason.equals("4")) {
-            delegateTask.addCandidateUsers(Collections.emptyList());
+            delegateTask.addCandidateUsers(Arrays.asList("Kairat.Parmanov@kcell.kz"));
         }
     }
 }
