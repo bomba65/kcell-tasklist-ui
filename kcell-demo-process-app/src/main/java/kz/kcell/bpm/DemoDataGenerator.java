@@ -26,6 +26,7 @@ public class DemoDataGenerator {
     private final static Logger LOGGER = Logger.getLogger(DemoDataGenerator.class.getName());
 
     private final static List<String> emails = Arrays.asList("Yernaz.Kalingarayev@kcell.kz", "Askar.Slambekov@kcell.kz", "Anzor.Israilov@kcell.kz", "Abai.Shapagatin@kcell.kz", "Adilet.Baishalov@kcell.kz", "Aidos.Kenzhebayev@kcell.kz", "Aigerim.Iskakova@kcell.kz", "Aigerim.Satybekova@kcell.kz", "Aigerim.Segizbayeva@kcell.kz", "Ainur.Beknazarova@kcell.kz", "Aleksandr.Kobelev@kcell.kz", "Alexander.Shanygin@kcell.kz", "Alexey.Khudaev@kcell.kz", "Alexey.Kolesnikov@kcell.kz", "Alexey.Kolyagin@kcell.kz", "Alibek.Nurkassymov@kcell.kz", "Amanbek.Suimenbayev@kcell.kz", "Anastassiya.Shenojak@kcell.kz", "Andrei.Lugovoy@kcell.kz", "Andrey.Medvedev@kcell.kz", "Anna.Martynova@kcell.kz", "Arman.Utepov@kcell.kz", "Askar.Bekmurzayev@kcell.kz", "Askar.Pernebekov@kcell.kz", "Askhat.Tatepbaev@kcell.kz", "Aslan.Shalov@kcell.kz", "Asset.Rashitov@kcell.kz", "Bahytzhan.Sandybayev@kcell.kz", "Begaly.Kokin@kcell.kz", "Beibit.Bitenov@kcell.kz", "Bella.Mamatova@kcell.kz", "Bogembay.Tleuzhanov@kcell.kz", "Bolat.Idirisov@kcell.kz", "Daniyar.Uzibayev@kcell.kz", "Daniyar.Yespayev@kcell.kz", "Dauren.Beispaev@kcell.kz", "Dmitriy.Saidashev@kcell.kz", "Evgeniy.Semenov@kcell.kz", "Farida.Jumanazarova@kcell.kz", "Galym.Tulenbayev@kcell.kz", "Gaukhar.Kaisarova@kcell.kz", "Georgiy.Kan@kcell.kz", "Gulzhan.Imandosova@kcell.kz", "Kairat.Parmanov@kcell.kz", "Kali.Esimbekov@kcell.kz", "Kanat.Kulmukhambetov@kcell.kz", "Kerey.Zatilda@kcell.kz", "Kirill.Kassatkin@kcell.kz", "Kuanysh.Khozhamuratov@kcell.kz", "Kuanysh.Kussainbekov@kcell.kz", "Lazizbek.Kurbantayev@kcell.kz", "Leila.Raisova@kcell.kz", "Lyudmila.Jabrailova@kcell.kz", "Lyudmila.Vilkova@kcell.kz", "Makhabbat.Sasanova@kcell.kz", "Maral.Amantay@kcell.kz", "Margarita.Kim@kcell.kz", "Marina.Paramonova@kcell.kz", "Maulen.Kempirbayev@kcell.kz", "Maxim.Goikolov@kcell.kz", "Nurzhan.Kochshigulov@kcell.kz", "Nurzhan.Mynbayev@kcell.kz", "Rinat.Kurbangaliyev@kcell.kz", "Ruslan.Tubekbayev@kcell.kz", "Samat.Akhmetov@kcell.kz", "Sara.Turabayeva@kcell.kz", "Saule.Beisembekova@kcell.kz", "Sergey.Chekh@kcell.kz", "Sergey.Chumachenko@kcell.kz", "Sergey.Grigor@kcell.kz", "Sergey.Lee@kcell.kz", "Sergey.Michshenko@kcell.kz", "Shyngys.Kassabekov@kcell.kz", "Tatyana.Solovyova@kcell.kz", "Temirlan.Kaliyev@kcell.kz", "Valeriy.Pogorelov@kcell.kz", "Vassiliy.Gopkalo@kcell.kz", "Vladimir.Grachyov@kcell.kz", "Vladimir.Yefanov@kcell.kz", "Vladislav.Posashkov@kcell.kz", "Yerkebulan.Dauletbayev@kcell.kz", "Yermek.Tanabekov@kcell.kz", "Yevgeniy.Elunin@kcell.kz", "Zhanat.Seitkanov@kcell.kz", "Zhandos.Bolatov@kcell.kz");
+    private final static List<String> createJREmails = Arrays.asList("Yernaz.Kalingarayev@kcell.kz", "Askar.Slambekov@kcell.kz", "Anzor.Israilov@kcell.kz", "Alexey.Kolyagin@kcell.kz", "Anastassiya.Shenojak@kcell.kz", "Dmitriy.Saidashev@kcell.kz", "Lazizbek.Kurbantayev@kcell.kz", "Nurzhan.Kochshigulov@kcell.kz", "Sergey.Michshenko@kcell.kz", "Kanat.Kulmukhambetov@kcell.kz", "Kerey.Zatilda@kcell.kz", "Maulen.Kempirbayev@kcell.kz", "Nurzhan.Mynbayev@kcell.kz", "Asset.Rashitov@kcell.kz", "Vladimir.Yefanov@kcell.kz", "Aslan.Shalov@kcell.kz", "Shyngys.Kassabekov@kcell.kz", "Alexey.Khudaev@kcell.kz", "Evgeniy.Semenov@kcell.kz", "Sergey.Chekh@kcell.kz", "Sergey.Lee@kcell.kz", "Yevgeniy.Elunin@kcell.kz", "Yermek.Tanabekov@kcell.kz", "Andrei.Lugovoy@kcell.kz", "Alexey.Kolesnikov@kcell.kz", "Askar.Bekmurzayev@kcell.kz", "Temirlan.Kaliyev@kcell.kz");
 
     public void createUsers(ProcessEngine engine) {
 
@@ -77,11 +78,16 @@ public class DemoDataGenerator {
         LOGGER.warning("========================================================================");
 
 
-        Group salesGroup = identityService.newGroup("kcellUsers");
-        salesGroup.setName("Kcell Users");
-        salesGroup.setType("WORKFLOW");
-        identityService.saveGroup(salesGroup);
-        LOGGER.warning("KCELL USERS GROUP CREATED");
+        Group kcellUsers = identityService.newGroup("kcellUsers");
+        kcellUsers.setName("Kcell Users");
+        kcellUsers.setType("WORKFLOW");
+        identityService.saveGroup(kcellUsers);
+
+        Group createJR = identityService.newGroup("createJR");
+        createJR.setName("Create JR Users");
+        createJR.setType("WORKFLOW");
+        identityService.saveGroup(createJR);
+        LOGGER.warning("Create JR Users GROUP CREATED");
         LOGGER.warning("========================================================================");
 
         final AuthorizationService authorizationService = engine.getAuthorizationService();
@@ -119,6 +125,9 @@ public class DemoDataGenerator {
         for (String email : emails) {
             identityService.createMembership(email, "kcellUsers");
         }
+        for (String email : createJREmails) {
+            identityService.createMembership(email, "createJR");
+        }
 
         LOGGER.warning("MEMBERSHIPS CREATED");
         LOGGER.warning("========================================================================");
@@ -126,33 +135,40 @@ public class DemoDataGenerator {
 
         // authorize groups for tasklist only:
 
-        Authorization salesTasklistAuth = authorizationService.createNewAuthorization(AUTH_TYPE_GRANT);
-        salesTasklistAuth.setGroupId("kcellUsers");
-        salesTasklistAuth.addPermission(ACCESS);
-        salesTasklistAuth.setResourceId("tasklist");
-        salesTasklistAuth.setResource(APPLICATION);
-        authorizationService.saveAuthorization(salesTasklistAuth);
+        Authorization kcellUsersTasklistAuth = authorizationService.createNewAuthorization(AUTH_TYPE_GRANT);
+        kcellUsersTasklistAuth.setGroupId("kcellUsers");
+        kcellUsersTasklistAuth.addPermission(ACCESS);
+        kcellUsersTasklistAuth.setResourceId("tasklist");
+        kcellUsersTasklistAuth.setResource(APPLICATION);
+        authorizationService.saveAuthorization(kcellUsersTasklistAuth);
 
-        Authorization salesReadProcessDefinition = authorizationService.createNewAuthorization(AUTH_TYPE_GRANT);
-        salesReadProcessDefinition.setGroupId("kcellUsers");
-        salesReadProcessDefinition.addPermission(Permissions.ALL);
-        salesReadProcessDefinition.setResource(Resources.PROCESS_DEFINITION);
-        salesReadProcessDefinition.setResourceId("Revision");
-        authorizationService.saveAuthorization(salesReadProcessDefinition);
+        Authorization createJRReadProcessDefinition = authorizationService.createNewAuthorization(AUTH_TYPE_GRANT);
+        createJRReadProcessDefinition.setGroupId("createJR");
+        createJRReadProcessDefinition.addPermission(Permissions.ALL);
+        createJRReadProcessDefinition.setResource(Resources.PROCESS_DEFINITION);
+        createJRReadProcessDefinition.setResourceId("Revision");
+        authorizationService.saveAuthorization(createJRReadProcessDefinition);
 
-        Authorization salesReadProcessInstance = authorizationService.createNewAuthorization(AUTH_TYPE_GRANT);
-        salesReadProcessInstance.setGroupId("kcellUsers");
-        salesReadProcessInstance.addPermission(Permissions.ALL);
-        salesReadProcessInstance.setResource(Resources.PROCESS_INSTANCE);
-        salesReadProcessInstance.setResourceId("*");
-        authorizationService.saveAuthorization(salesReadProcessInstance);
+        Authorization createJRReadProcessInstance = authorizationService.createNewAuthorization(AUTH_TYPE_GRANT);
+        createJRReadProcessInstance.setGroupId("createJR");
+        createJRReadProcessInstance.addPermission(Permissions.ALL);
+        createJRReadProcessInstance.setResource(Resources.PROCESS_INSTANCE);
+        createJRReadProcessInstance.setResourceId("*");
+        authorizationService.saveAuthorization(createJRReadProcessInstance);
 
-        Authorization salesDemoAuth = authorizationService.createNewAuthorization(AUTH_TYPE_GRANT);
-        salesDemoAuth.setGroupId("kcellUsers");
-        salesDemoAuth.setResource(USER);
-        salesDemoAuth.setResourceId("demo");
-        salesDemoAuth.addPermission(READ);
-        authorizationService.saveAuthorization(salesDemoAuth);
+        Authorization kcellUsersReadProcessInstance = authorizationService.createNewAuthorization(AUTH_TYPE_GRANT);
+        kcellUsersReadProcessInstance.setGroupId("kcellUsers");
+        kcellUsersReadProcessInstance.addPermission(Permissions.ALL);
+        kcellUsersReadProcessInstance.setResource(Resources.PROCESS_INSTANCE);
+        kcellUsersReadProcessInstance.setResourceId("*");
+        authorizationService.saveAuthorization(kcellUsersReadProcessInstance);
+
+        Authorization kcellUsersAuth = authorizationService.createNewAuthorization(AUTH_TYPE_GRANT);
+        kcellUsersAuth.setGroupId("kcellUsers");
+        kcellUsersAuth.setResource(USER);
+        kcellUsersAuth.setResourceId("demo");
+        kcellUsersAuth.addPermission(READ);
+        authorizationService.saveAuthorization(kcellUsersAuth);
 
         Authorization salesTestDemoAuth = authorizationService.createNewAuthorization(AUTH_TYPE_GRANT);
         salesTestDemoAuth.setGroupId("kcellUsers");
@@ -165,6 +181,15 @@ public class DemoDataGenerator {
         for (String email : emails) {
             Authorization kcellUserAuth = authorizationService.createNewAuthorization(AUTH_TYPE_GRANT);
             kcellUserAuth.setGroupId("kcellUsers");
+            kcellUserAuth.setResource(USER);
+            kcellUserAuth.setResourceId(email);
+            kcellUserAuth.addPermission(READ);
+            authorizationService.saveAuthorization(kcellUserAuth);
+        }
+
+        for (String email : createJREmails) {
+            Authorization kcellUserAuth = authorizationService.createNewAuthorization(AUTH_TYPE_GRANT);
+            kcellUserAuth.setGroupId("createJR");
             kcellUserAuth.setResource(USER);
             kcellUserAuth.setResourceId(email);
             kcellUserAuth.addPermission(READ);
@@ -203,7 +228,7 @@ public class DemoDataGenerator {
         filterProperties.put("variables", filterVariables);
         //addVariables(filterProperties);
         query = taskService.createTaskQuery().taskAssigneeExpression("${ currentUser() }");
-        Filter myClaimedTasks = filterService.newTaskFilter().setName("My Claimed Tasks").setProperties(filterProperties).setOwner("demo").setQuery(query);
+        Filter myClaimedTasks = filterService.newTaskFilter().setName("My Claimed Tasks").setProperties(filterProperties).setOwner("kcellUsers").setQuery(query);
         filterService.saveFilter(myClaimedTasks);
 
         Authorization myClaimedTasksFilterRead = authorizationService.createNewAuthorization(Authorization.AUTH_TYPE_GRANT);
@@ -220,7 +245,7 @@ public class DemoDataGenerator {
         filterProperties.put("variables", filterVariables);
         //addVariables(filterProperties);
         query = taskService.createTaskQuery().taskCandidateUserExpression("${currentUser()}");
-        Filter myUnclaimedTasksFilter = filterService.newTaskFilter().setName("My Unclaimed Tasks").setProperties(filterProperties).setOwner("demo").setQuery(query);
+        Filter myUnclaimedTasksFilter = filterService.newTaskFilter().setName("My Unclaimed Tasks").setProperties(filterProperties).setOwner("kcellUsers").setQuery(query);
         filterService.saveFilter(myUnclaimedTasksFilter);
 
         Authorization myUnclaimedTasksFilterRead = authorizationService.createNewAuthorization(Authorization.AUTH_TYPE_GRANT);
@@ -237,7 +262,7 @@ public class DemoDataGenerator {
         filterProperties.put("variables", filterVariables);
         //addVariables(filterProperties);
         query = taskService.createTaskQuery().taskCandidateGroupInExpression("${ currentUserGroups() }");
-        Filter myGroupTasks = filterService.newTaskFilter().setName("My Group Tasks").setProperties(filterProperties).setOwner("demo").setQuery(query);
+        Filter myGroupTasks = filterService.newTaskFilter().setName("My Group Tasks").setProperties(filterProperties).setOwner("kcellUsers").setQuery(query);
         filterService.saveFilter(myGroupTasks);
 
         Authorization myGroupTasksFilterRead = authorizationService.createNewAuthorization(Authorization.AUTH_TYPE_GRANT);
