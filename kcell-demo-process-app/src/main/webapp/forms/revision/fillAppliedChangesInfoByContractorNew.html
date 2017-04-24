@@ -237,10 +237,10 @@
                                     });
                                     if(map.RU){
                                         map.RU.forEach(function (ru) {
-                                            ru.equipment.params.technologies = {};
+                                            /*ru.equipment.params.technologies = {};
                                             $scope.technologies.forEach(function (e) {
                                                 ru.equipment.params.technologies[e] = ru.equipment.params.rat.indexOf(e) >= 0;
-                                            });
+                                            });*/
                                             if(!ru.connections){
                                                 ru.connections = {};
                                             }
@@ -252,10 +252,10 @@
                                     }
                                     if(map.DU){
                                         map.DU.forEach(function (du) {
-                                            du.equipment.params.technologies = {};
+                                            /*du.equipment.params.technologies = {};
                                             $scope.technologies.forEach(function (e) {
                                                 du.equipment.params.technologies[e] = du.equipment.params.rat.indexOf(e) >= 0;
-                                            });
+                                            });*/
                                             if(!du.connections){
                                                 du.connections = {};
                                             }
@@ -267,16 +267,25 @@
                                     }
                                     if(map.ANTENNA){
                                         map.ANTENNA.forEach(function (antenna) {
-                                            antenna.equipment.params.technologies = {};
+                                            /*antenna.equipment.params.technologies = {};
                                             $scope.technologies.forEach(function (e) {
                                                 antenna.equipment.params.technologies[e] = antenna.equipment.params.rat.indexOf(e) >= 0;
-                                            });
+                                            });*/
                                             if(!antenna.connections){
                                                 antenna.connections = {};
                                             }
                                             if(!antenna.connections.ANTENNA2RBS){
                                                 antenna.connections.ANTENNA2RBS = {id: generateId(), equipments: [antenna.equipment.id], definition: 'ANTENNA2RBS'};
                                             }
+                                            antenna._original = angular.copy(antenna);
+                                        });
+                                    }
+                                    if(map.SUPPLEMENTARY){
+                                        map.SUPPLEMENTARY.forEach(function (antenna) {
+                                            /*antenna.equipment.params.technologies = {};
+                                            $scope.technologies.forEach(function (e) {
+                                                antenna.equipment.params.technologies[e] = antenna.equipment.params.rat.indexOf(e) >= 0;
+                                            });*/
                                             antenna._original = angular.copy(antenna);
                                         });
                                     }
@@ -430,7 +439,7 @@
 
             $scope.addRu = function () {
                 var equipmentId = generateId();
-                $scope.fillSite.rus.push({params: {}, equipment: {definition:"RU", params: {rat: []}, id: equipmentId}, _command: "INSTALL_NEW_EQUIPMENT",definition:"RU", connections : {'RU2RBS':{equipments:[equipmentId],definition:'RU2RBS', _command:'CONNECT_EQUIPMENT'}}});
+                $scope.fillSite.rus.push({params: {}, equipment: {definition:"RU", params: {rat: {}}, id: equipmentId}, _command: "INSTALL_NEW_EQUIPMENT",definition:"RU", connections : {'RU2RBS':{equipments:[equipmentId],definition:'RU2RBS', _command:'CONNECT_EQUIPMENT'}}});
             };
 
             $scope.removeRu = function (index) {
@@ -439,7 +448,7 @@
 
             $scope.addDu = function () {
                 var equipmentId = generateId();
-                $scope.fillSite.dus.push({params: {}, equipment: {definition:"DU", params: {rat: []}, id: equipmentId}, _command: "INSTALL_NEW_EQUIPMENT",definition:"DU", connections : {'DU2RBS':{equipments:[equipmentId],definition:'DU2RBS', _command:'CONNECT_EQUIPMENT'}}});
+                $scope.fillSite.dus.push({params: {}, equipment: {definition:"DU", params: {rat: {}}, id: equipmentId}, _command: "INSTALL_NEW_EQUIPMENT",definition:"DU", connections : {'DU2RBS':{equipments:[equipmentId],definition:'DU2RBS', _command:'CONNECT_EQUIPMENT'}}});
             };
 
             $scope.removeDu = function (index) {
@@ -452,14 +461,15 @@
 
             $scope.addPowerSource = function () {
                 $scope.fillSite.powerSources.push({
-                    params: {},
-                    cable_ways: [],
-                    cable_way: {},
-                    lightning_sys: {},
-                    grounding_sys: {},
-                    disel_generator: {},
-                    oil_tank: {},
-                    electricity_counter: {},
+                    params: {
+                        cable_ways: [],
+                        cable_way: {},
+                        lightning_sys: {},
+                        grounding_sys: {},
+                        disel_generator: {},
+                        oil_tank: {},
+                        electricity_counter: {}
+                    },
                     _command: "CREATE_POWERSOURCE"
                 });
             };
@@ -469,7 +479,7 @@
             };
 
             $scope.addSupplementary = function () {
-                $scope.fillSite.supplementary.push({equipment: {definition:"SUPPLEMENTARY", params:{rat: []}}, params: {}, _command: "INSTALL_NEW_EQUIPMENT", definition:"SUPPLEMENTARY"});
+                $scope.fillSite.supplementary.push({equipment: {definition:"SUPPLEMENTARY", params:{}}, params: {}, _command: "INSTALL_NEW_EQUIPMENT", definition:"SUPPLEMENTARY"});
             }
 
             $scope.removeSupplementary = function (index) {
@@ -478,7 +488,7 @@
 
             $scope.addAntenna = function () {
                 var equipmentId = generateId();
-                $scope.fillSite.antennas.push({params: {}, equipment: {definition:"ANTENNA", params: {rat: []}, id: equipmentId}, params: {}, _command: "INSTALL_NEW_EQUIPMENT",definition:"ANTENNA", connections : {'ANTENNA2RBS':{equipments:[equipmentId],definition:'ANTENNA2RBS', _command:'CONNECT_EQUIPMENT'}}});
+                $scope.fillSite.antennas.push({params: {}, equipment: {definition:"ANTENNA", params: {rat: {}}, id: equipmentId}, params: {}, _command: "INSTALL_NEW_EQUIPMENT",definition:"ANTENNA", connections : {'ANTENNA2RBS':{equipments:[equipmentId],definition:'ANTENNA2RBS', _command:'CONNECT_EQUIPMENT'}}});
             }
 
             $scope.removeAntenna = function (index) {
@@ -538,47 +548,6 @@
                     $scope.fillSite.transmissions[index].valid = "";
                 }
                 console.log(hopForm);
-            };
-
-            $scope.toggleRadioTechnologies = function (index, technology) {
-                if (!$scope.fillSite.rus[index].equipment.params.rat) {
-                    $scope.fillSite.rus[index].equipment.params.rat = [];
-                }
-                var idx = $scope.fillSite.rus[index].equipment.params.rat.indexOf(technology);
-
-                if (idx > -1) {
-                    $scope.fillSite.rus[index].equipment.params.rat.splice(idx, 1);
-                }
-                else {
-                    $scope.fillSite.rus[index].equipment.params.rat.push(technology);
-                }
-            };
-
-            $scope.toggleDigitalTechnologies = function (index, technology) {
-                if (!$scope.fillSite.dus[index].equipment.params.rat) {
-                    $scope.fillSite.dus[index].equipment.params.rat = [];
-                }
-                var idx = $scope.fillSite.dus[index].equipment.params.rat.indexOf(technology);
-
-                if (idx > -1) {
-                    $scope.fillSite.dus[index].equipment.params.rat.splice(idx, 1);
-                }
-                else {
-                    $scope.fillSite.dus[index].equipment.params.rat.push(technology);
-                }
-            };
-
-            $scope.toggleAntennaTechnologies = function (index, technology) {
-                if (!$scope.fillSite.antennas[index].equipment.params.rat) {
-                    $scope.fillSite.antennas[index].equipment.params.rat = [];
-                }
-                var idx = $scope.fillSite.antennas[index].equipment.params.rat.indexOf(technology);
-                if (idx > -1) {
-                    $scope.fillSite.antennas[index].equipment.params.rat.splice(idx, 1);
-                }
-                else {
-                    $scope.fillSite.antennas[index].equipment.params.rat.push(technology);
-                }
             };
 
             function getSiteData(hop){
@@ -766,10 +735,47 @@
                             return key.indexOf('_') === 0 || key === 'id';
                         });
                         var delta = diff(original, modified);
+                        console.log(e);
+                        console.log(delta);
                         if(e._command === 'MODIFY_POWERSOURCE'){
-                            return [{command: e._command, lhs: original, rhs: modified, delta: delta}];
+                            var result = [{command: e._command, lhs: original, rhs: modified, delta: delta}];
+                            for(var i=0;i<result[0].delta.length;i++){
+                                if(result[0].delta[i].path){
+                                    if(result[0].delta[i].path){
+                                        if(result[0].delta[i].path.length === 4){
+                                            if(result[0].delta[i].path[1] === 'cable_ways'){
+                                                result[0].delta[i].path.splice(2,1);
+                                            }
+                                        }
+                                    }
+                                }
+                            }
+                            return result;
                         } else if(e._command === 'CREATE_POWERSOURCE'){
-                            return [{command: e._command, rhs: modified, delta: diff({params:{}}, modified)}];
+                            var cable_ways = [];
+                            if(modified.params.cable_ways){
+                                for(var i=0;i<modified.params.cable_ways.length;i++){
+                                    cable_ways.push({});
+                                }
+                            }
+                            var result = [{command: e._command, rhs: modified, delta: diff({params:{
+                                cable_ways: cable_ways,
+                                cable_way: {},
+                                lightning_sys: {},
+                                grounding_sys: {},
+                                disel_generator: {},
+                                oil_tank: {},
+                                electricity_counter: {}}}, modified)}];
+                            for(var i=0;i<result[0].delta.length;i++){
+                                if(result[0].delta[i].path){
+                                    if(result[0].delta[i].path.length === 4){
+                                        if(result[0].delta[i].path[1] === 'cable_ways'){
+                                            result[0].delta[i].path.splice(2,1);
+                                        }
+                                    }
+                                }
+                            }
+                            return result;
                         } else if(e._command === 'REMOVE_POWERSOURCE'){
                             return [{commnad: e._command}];
                         } else {
@@ -804,6 +810,7 @@
                             return [];
                         }
                     });
+                    console.log(summary);
                     $scope.summaries = summary;
                 }
             };
@@ -843,6 +850,7 @@
                 });
                 var delta = diff(original, modified);
                 console.log(delta);
+                console.log(e._command);
                 if(e._command === 'MODIFY_INSTALLATION'){
                     return [{command: e._command, lhs: original, rhs: modified, delta: delta}];
                 } else if(e._command === 'INSTALL_NEW_EQUIPMENT'){
@@ -850,7 +858,7 @@
                     if(e.connections){
                         var connectionsObject = {};
                         connectionsObject[definition+"2RBS"] = {equipments:[]}
-                        return [{command: e._command, rhs: modified, delta: diff({params:{}, equipment:{params: {rat: []}}, connections:connectionsObject}, modified)}];
+                        return [{command: e._command, rhs: modified, delta: diff({params:{}, equipment:{params: {rat: {}}}, connections:connectionsObject}, modified)}];
                     } else {
                         return [{command: e._command, rhs: modified, delta: diff({params:{}, equipment:{params: {}}}, modified)}];
                     }

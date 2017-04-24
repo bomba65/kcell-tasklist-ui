@@ -218,7 +218,7 @@ public class DataInitializer {
         EquipmentInstance equipmentInstanceRU = equipmentInstanceRepository.save(EquipmentInstance.builder()
                 .sn("2001")
                 .definition(equipmentDefinitionRU)
-                .params("{\"type\":\"RRU\",\"serial_number\":\"SN23782713FY\",\"sector\":\"A\",\"band\":\"GSM1800/WCDMA2100\",\"rrus_construction_type\":\"RRU\",\"trx_quantity\":5,\"carrier_quantity\":6,\"voltage\":\"220V\",\"rat\":[\"2G\",\"3G\",\"WiMAX\"]}")
+                .params("{\"type\":\"RRU\",\"serial_number\":\"SN23782713FY\",\"sector\":\"A\",\"band\":\"GSM1800/WCDMA2100\",\"rrus_construction_type\":\"RRU\",\"trx_quantity\":5,\"carrier_quantity\":6,\"voltage\":\"220V\",\"rat\":{\"2G\":true,\"3G\":true,\"WiMAX\":true}}")
                 .build());
 
         EquipmentInstance equipmentInstanceSUPPLEMENTARY = equipmentInstanceRepository.save(EquipmentInstance.builder()
@@ -230,13 +230,13 @@ public class DataInitializer {
         EquipmentInstance equipmentInstanceANTENNA = equipmentInstanceRepository.save(EquipmentInstance.builder()
                 .sn("2001")
                 .definition(equipmentDefinitionANTENNA)
-                .params("{\"rat\":[\"2G\",\"3G\"],\"sector\":\"A\",\"model\":\"23466XYZ\",\"serial_number\":\"SN18238213KZ\",\"duplex_filter\":\"Yes\",\"hcu\":\"Yes\",\"power_splitter\":\"Yes\",\"tma\":\"Yes\",\"extended_range\":\"Yes\",\"retu\":\"Yes\",\"beam_width\":\"214\",\"gain\":\"421\",\"max_wind_velocity\":\"4124\",\"weight\":\"412421\",\"length_of_cable\":\"23\"}")
+                .params("{\"rat\":{\"2G\":true,\"3G\":true},\"sector\":\"A\",\"model\":\"23466XYZ\",\"serial_number\":\"SN18238213KZ\",\"duplex_filter\":\"Yes\",\"hcu\":\"Yes\",\"power_splitter\":\"Yes\",\"tma\":\"Yes\",\"extended_range\":\"Yes\",\"retu\":\"Yes\",\"beam_width\":\"214\",\"gain\":\"421\",\"max_wind_velocity\":\"4124\",\"weight\":\"412421\",\"length_of_cable\":\"23\"}")
                 .build());
 
         EquipmentInstance equipmentInstanceDU = equipmentInstanceRepository.save(EquipmentInstance.builder()
                 .sn("2001")
                 .definition(equipmentDefinitionDU)
-                .params("{\"type\":\"DUS3101\",\"serial_number\":\"SN217832UIRWWW73\",\"rat\":[\"2G\",\"WiMAX\",\"3G\",\"LTE\"]}")
+                .params("{\"type\":\"DUS3101\",\"serial_number\":\"SN217832UIRWWW73\",\"rat\":{\"2G\":true,\"WiMAX\":true,\"3G\":true,\"LTE\":true}}")
                 .build());
 
         InstallationDefinition installationDefinitionAIRCONDITIONER = installationDefinitionRepository.save(InstallationDefinition.builder()
