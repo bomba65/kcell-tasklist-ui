@@ -411,7 +411,7 @@
             }
 
             $scope.addPerson = function (index) {
-                if (!$scope.fillSite.facilities[index].persons) {
+                if (!$scope.fillSite.facilities[index].params.persons) {
                     $scope.fillSite.facilities[index].params.persons = [];
                 }
                 $scope.fillSite.facilities[index].params.persons.push({});
@@ -422,7 +422,7 @@
             };
 
             $scope.addFacility = function () {
-                $scope.fillSite.facilities.push({id: generateId(), params: {}, _command: "ADD_FACILITY"});
+                $scope.fillSite.facilities.push({id: generateId(), params: {persons: []}, _command: "ADD_FACILITY"});
             };
 
             $scope.removeFacility = function (index) {
@@ -707,9 +707,35 @@
                         });
                         var delta = diff(original, modified);
                         if(e._command === 'MODIFY_FACILITY'){
-                            return [{command: e._command, lhs: original, rhs: modified, delta: delta}];
+                            var result = [{command: e._command, lhs: original, rhs: modified, delta: delta}];
+                            for(var i=0;i<result[0].delta.length;i++){
+                                if(result[0].delta[i].path){
+                                    if(result[0].delta[i].path.length === 4){
+                                        if(result[0].delta[i].path[1] === 'persons'){
+                                            result[0].delta[i].path.splice(2,1);
+                                        }
+                                    }
+                                }
+                            }
+                            return result;
                         } else if(e._command === 'ADD_FACILITY'){
-                            return [{command: e._command, rhs: modified, delta: diff({params:{}}, modified)}];
+                            var persons = [];
+                            if(modified.params.persons){
+                                for(var i=0;i<modified.params.persons.length;i++){
+                                    persons.push({});
+                                }
+                            }
+                            var result = [{command: e._command, rhs: modified, delta: diff({params:{persons: persons}}, modified)}];
+                            for(var i=0;i<result[0].delta.length;i++){
+                                if(result[0].delta[i].path){
+                                    if(result[0].delta[i].path.length === 4){
+                                        if(result[0].delta[i].path[1] === 'persons'){
+                                            result[0].delta[i].path.splice(2,1);
+                                        }
+                                    }
+                                }
+                            }
+                            return result;
                         } else {
                             return [];
                         }
@@ -735,8 +761,6 @@
                             return key.indexOf('_') === 0 || key === 'id';
                         });
                         var delta = diff(original, modified);
-                        console.log(e);
-                        console.log(delta);
                         if(e._command === 'MODIFY_POWERSOURCE'){
                             var result = [{command: e._command, lhs: original, rhs: modified, delta: delta}];
                             for(var i=0;i<result[0].delta.length;i++){
