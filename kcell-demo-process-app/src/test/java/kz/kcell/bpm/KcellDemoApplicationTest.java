@@ -15,27 +15,24 @@ public class KcellDemoApplicationTest extends ProcessEngineTestCase {
     private static final String EMAIL = "demo@example.org";
 
 
-    @Deployment(resources = "revision.bpmn")
+    @Deployment(resources = "test-mail.bpmn")
     public void testSimpleProcess() {
-        /*Map<String, Object> variables = new HashMap<String, Object>();
-        variables.put("city", "CITY_5164");
+//        System.setProperty(MailTaskAssigneeListener.FLOW_MAIL_ENABLED, "true");
+
+//        Map<String, Object> variables = new HashMap<String, Object>();
+//        variables.put("city", "CITY_5164");
 
         // Create the user that will be informed on assignment
-        User newUser = identityService.newUser("demo");
-        newUser.setEmail(EMAIL);
+        User newUser = identityService.newUser("yernaz.kalingarayev");
+        newUser.setEmail("yernaz.kalingarayev@kcell.kz");
         identityService.saveUser(newUser);
 
-        runtimeService.startProcessInstanceByKey("KcellDemoProcess", variables);
+
+        identityService.setAuthenticatedUserId("demo");
+        runtimeService.startProcessInstanceByKey("Test_Mail");
 
         Task task = taskService.createTaskQuery().singleResult();
-        Assert.assertNotNull(task);
-
-        int temperature = Integer.parseInt( taskService.getVariable(task.getId(), "temperature").toString() );
-        if(temperature >= 18) {
-            Assert.assertEquals("PackWarmTask", task.getTaskDefinitionKey());
-        } else {
-            Assert.assertEquals("PackColdTask", task.getTaskDefinitionKey());
-        }*/
+//        Assert.assertNotNull(task);
 
     }
 

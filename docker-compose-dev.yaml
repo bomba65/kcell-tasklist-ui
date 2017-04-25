@@ -1,9 +1,10 @@
-version: '2'
+version: '3.1'
 services:
   camunda:
     build: ./kcell-camunda
     links:
       - camundadb
+      - mail
     environment:
       - DB_DRIVER=postgresql
       - DB_URL=jdbc:postgresql://camundadb:5432/process-engine
@@ -11,9 +12,12 @@ services:
       - DB_PASSWORD=camunda
     volumes:
       - ./kcell-demo-process-app/target/deployments/:/camunda/standalone/deployments/kcell/:rw
-#      - ./kcell-camunda/authentication-module/:/camunda/modules/kz/kcell/camunda/authentication/main/:ro
-#      - ./kcell-camunda/camunda-wildfly-subsystem/module.xml:/camunda/modules/org/camunda/bpm/wildfly/camunda-wildfly-subsystem/main/module.xml:ro
-#      - ./kcell-camunda/standalone.xml:/camunda/standalone/configuration/standalone.xml:ro
+      - ./kcell-camunda/modules/kz/kcell/camunda/authentication/main/:/camunda/modules/kz/kcell/camunda/authentication/main/:ro
+      - ./kcell-camunda/modules/org/camunda/bpm/wildfly/camunda-wildfly-subsystem/main/module.xml:/camunda/modules/org/camunda/bpm/wildfly/camunda-wildfly-subsystem/main/module.xml:ro
+#      LDAP authenication             
+#      - ./kcell-camunda/standalone/configuration/standalone.xml:/camunda/standalone/configuration/standalone.xml:ro
+      - ./kcell-camunda/modules/org/camunda/bpm/camunda-engine-plugin-connect/main/module.xml:/camunda/modules/org/camunda/bpm/camunda-engine-plugin-connect/main/module.xml:ro
+      - ./kcell-camunda/modules/org/camunda/bpm/extension/camunda-bpm-mail-core/main:/camunda/modules/org/camunda/bpm/extension/camunda-bpm-mail-core/main:ro
     extra_hosts:
       - "assets:192.168.99.1"
       - "ldap.kcell.kz:192.168.99.1"
@@ -56,3 +60,15 @@ services:
     extra_hosts:
       - "backend:192.168.99.1"
       - "assets:192.168.99.1"
+  # mail:
+  #   image: tozd/postfix:latest
+  #   volumes:
+  #     - ./mail/run.config:/etc/service/postfix/run.config:ro
+  #     - ./mail/run.initialization:/etc/service/postfix/run.initialization:ro
+  #   extra_hosts:
+  #     - "upstream:smtp1.kcell.kz"
+  mail:
+    image: schickling/mailcatcher
+    ports:
+      - "1080:1080"
+      - "1025:1025"

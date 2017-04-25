@@ -5,6 +5,7 @@ services:
     links:
       - camundadb
       - assets
+      - mail
     environment:
       - DB_DRIVER=postgresql
       - DB_URL=jdbc:postgresql://camundadb:5432/process-engine
@@ -12,6 +13,12 @@ services:
       - DB_PASSWORD=camunda
     volumes:
       - ./kcell-demo-process-app/target/deployments/:/camunda/standalone/deployments/kcell/:rw
+      - ./kcell-camunda/modules/kz/kcell/camunda/authentication/main/:/camunda/modules/kz/kcell/camunda/authentication/main/:ro
+      - ./kcell-camunda/modules/org/camunda/bpm/wildfly/camunda-wildfly-subsystem/main/module.xml:/camunda/modules/org/camunda/bpm/wildfly/camunda-wildfly-subsystem/main/module.xml:ro
+#      LDAP authenication             
+#      - ./kcell-camunda/standalone/configuration/standalone.xml:/camunda/standalone/configuration/standalone.xml:ro
+      - ./kcell-camunda/modules/org/camunda/bpm/camunda-engine-plugin-connect/main/module.xml:/camunda/modules/org/camunda/bpm/camunda-engine-plugin-connect/main/module.xml:ro
+      - ./kcell-camunda/modules/org/camunda/bpm/extension/camunda-bpm-mail-core/main:/camunda/modules/org/camunda/bpm/extension/camunda-bpm-mail-core/main:ro
   camundadb:
     image: postgres:9.6
     ports:
@@ -26,8 +33,6 @@ services:
     build: ./asset-management
     links:
       - assetsdb
-    ports:
-      - "8080:8080"
   assetsdb:
     image: mdillon/postgis:9.6
     ports:
@@ -48,5 +53,7 @@ services:
     volumes:
       - ./nginx/conf/nginx.conf:/etc/nginx/nginx.conf:ro
       - ./nginx/html/:/usr/share/nginx/html/:ro
-    extra_hosts:
-      - "backend:192.168.99.1"
+  mail:
+    image: schickling/mailcatcher
+    ports:
+      - "1080:1080"
