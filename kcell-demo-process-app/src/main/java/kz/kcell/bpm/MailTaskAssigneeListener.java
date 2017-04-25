@@ -16,7 +16,7 @@ public class MailTaskAssigneeListener implements TaskListener {
 
     public static final String FLOW_MAIL_HOST = "mail";
     public static final int    FLOW_MAIL_PORT = 1025;
-    public static final String FLOW_BASE_URL  = "https://test-flow.kcell.kz";
+    public static final String FLOW_BASE_URL  = "http://localhost";
 
     private final static Logger LOGGER = Logger.getLogger(MailTaskAssigneeListener.class.getName());
 
