@@ -43,6 +43,8 @@
 <form role="form" class="form-horizontal">
     <script cam-script type="text/form-script">
         inject([ '$scope', '$http', '$rootScope', function($scope, $http, $rootScope) {
+            console.log($rootScope);
+            console.log(camForm);
             var variablesToCreate = [
                 {
                     name: 'requestedDate',
@@ -118,8 +120,24 @@
                     type: 'String',
                     submit: true,
                     store: true
+                },
+                {
+                    name: 'resolutions',
+                    type: 'Json',
+                    submit: true,
+                    store: true,
+                    value: []
                 }
             ];
+
+            $http.get('/camunda/api/engine/engine/default/task/' + camForm.taskId).then(
+                function(result){
+                    $scope.processInstanceId = result.data.processInstanceId;
+                },
+                function (error) {
+                    console.log(error.data);
+                }
+            );
 
             $scope.showJump = false;
 
@@ -163,7 +181,6 @@
                             camForm.variableManager.variables[el.name].value = el.value;
                         }
                     }
-                    $scope[el.name] = camForm.variableManager.variables[el.name].value;
                 });
             });
 
@@ -194,6 +211,13 @@
                 } else {
                     camForm.variableManager.variableValue('ptype', 'prod');
                     camForm.variableManager.variableValue('createJRResult', "approved");
+                }
+                if($scope.explanation){
+                    if(!$scope.resolutions){
+                        $scope.resolutions = {};
+                    }
+                    $scope.resolutions.push({processInstanceId: $scope.processInstanceId, assignee: $rootScope.authentication.name, resolution: 'createJr', comment: $scope.explanation, taskId: camForm.taskId});
+                    camForm.variableManager.variableValue('resolutions', $scope.resolutions);
                 }
                 var validityDate = new Date($scope.validityDate);
                 camForm.variableManager.variableValue('validityDate', validityDate);
@@ -688,7 +712,7 @@
         <label class="col-sm-4 control-label">Explanation of works *</label>
         <div class="col-sm-8">
             <!-- NOT REQUIRED -->
-            <textarea class="form-control" cam-variable-name="explanation" cam-variable-type="String" placeholder="Explanation of works..." maxlength="500" rows="4"></textarea>
+            <textarea class="form-control" cam-variable-name="explanation" cam-variable-type="String" placeholder="Explanation of works..." maxlength="500" rows="4" required></textarea>
         </div>
     </div>
 </form>

@@ -5,7 +5,7 @@
 </style>
 <form role="form" class="form-horizontal">
     <script cam-script type="text/form-script">
-        inject(['$scope', '$http', 'Uri', function ($scope, $http, Uri) {
+        inject(['$scope', '$http', 'Uri', '$rootScope', '$q', function ($scope, $http, Uri, $rootScope, $q) {
             var variables = [
                 'requestedDate',
                 'validityDate',
@@ -33,8 +33,19 @@
                 'sapTransferRequestFile',
                 'eLicenseResolutionFile',
                 'actOfMaterialsDispatchingFile',
+                'resolutions',
                 'summaries'
             ];
+
+            $http.get('/camunda/api/engine/engine/default/task/' + camForm.taskId).then(
+                    function (result) {
+                        $scope.processInstanceId = result.data.processInstanceId;
+                    },
+                    function (error) {
+                        console.log(error.data);
+                    }
+            );
+
             $http.get(Uri.appUri("engine://engine/:engine/task/" + camForm.taskId + "/form")).success(function (result) {
                 $scope.contextPath = result.contextPath;
             });
@@ -61,9 +72,32 @@
             });
             camForm.on('variables-fetched', function () {
                 variables.forEach(function (el) {
-                    $scope.jobModel[el] = camForm.variableManager.variables[el];
-                    if(el==='summaries'){
-                        $scope.summaries = camForm.variableManager.variables[el].value
+                    if (el === 'resolutions') {
+                        $scope.jobModel.resolutions = angular.copy(camForm.variableManager.variables[el].value);
+                        $q.all($scope.jobModel.resolutions.map(function (resolution) {
+                            return $http.get("/camunda/api/engine/engine/default/user/" + resolution.assignee + "/profile");
+                        })).then(function (profiles) {
+                            profiles.forEach(function (e, index) {
+                                $scope.jobModel.resolutions[index].assigneeName = e.data.firstName ? e.data.firstName : "" + " " + e.data.lastName ? e.data.lastName : "";
+                            });
+                        });
+                        $q.all($scope.jobModel.resolutions.map(function (resolution) {
+                            return $http.get("/camunda/api/engine/engine/default/history/task?processInstanceId=" + resolution.processInstanceId + "&taskId=" + resolution.taskId);
+                        })).then(function (tasks) {
+                            tasks.forEach(function (e, index) {
+                                $scope.jobModel.resolutions[index].taskName = e.data[0].name;
+                                try {
+                                    $scope.jobModel.resolutions[index].taskEndDate = new Date(e.data[0].endTime);
+                                } catch(e){
+                                    console.log(e);
+                                }
+                            })
+                        });
+                    } else {
+                        $scope.jobModel[el] = camForm.variableManager.variables[el];
+                        if (el === 'summaries') {
+                            $scope.summaries = camForm.variableManager.variables[el].value
+                        }
                     }
                 });
             });
@@ -74,40 +108,49 @@
             });
 
             camForm.on('submit', function () {
-                $scope.jobModel.jobWorks.value.forEach(function(work){
+                $scope.jobModel.jobWorks.value.forEach(function (work) {
                     delete work['files'];
                 });
                 camForm.variableManager.variableValue('acceptJobByCentralGroupTaskResult', $scope.acceptJobByCentralGroupTaskResult);
                 camForm.variableManager.variableValue('acceptPerformedJob', $scope.acceptJobByCentralGroupTaskResult);
+                $scope.jobModel.resolutions.push({
+                    processInstanceId: $scope.processInstanceId,
+                    assignee: $rootScope.authentication.name,
+                    resolution: $scope.acceptJobByCentralGroupTaskResult,
+                    comment: $scope.acceptJobByCentralGroupComment,
+                    taskId: camForm.taskId
+                });
+                camForm.variableManager.variableValue('resolutions', $scope.jobModel.resolutions);
             });
 
-            camForm.on('store', function() {
+            camForm.on('store', function () {
                 camForm.variableManager.variableValue('acceptJobByCentralGroupTaskResult', $scope.acceptJobByCentralGroupTaskResult);
             });
 
-            camForm.on('variables-restored', function() {
+            camForm.on('variables-restored', function () {
                 $scope.acceptJobByCentralGroupTaskResult = camForm.variableManager.variableValue('acceptJobByCentralGroupTaskResult');
             });
 
-            $scope. download = download;
-            function download(file){
-                document.getElementById('fileDownloadIframe').src = '/camunda/api/engine/engine/default/variable-instance/'+file.id+'/data';
+            $scope.download = download;
+            function download(file) {
+                document.getElementById('fileDownloadIframe').src = '/camunda/api/engine/engine/default/variable-instance/' + file.id + '/data';
             }
-            $http.get('/camunda/api/engine/engine/default/task/'+camForm.taskId).then(
-                    function(taskResult){
+
+            $http.get('/camunda/api/engine/engine/default/task/' + camForm.taskId).then(
+                    function (taskResult) {
                         var variableQuery = {
                             processInstanceIdIn: [taskResult.data.processInstanceId],
                             variableNameLike: 'works_%'
                         };
                         $http.post('/camunda/api/engine/engine/default/variable-instance?deserializeValues=false', variableQuery).then(
-                                function(variables){
-                                    if(variables.data){
-                                        variables.data.forEach(function(file){
-                                            if(file.name.startsWith('works_')){
+                                function (variables) {
+                                    if (variables.data) {
+                                        variables.data.forEach(function (file) {
+                                            if (file.name.startsWith('works_')) {
                                                 $scope[file.name] = file;
                                                 $scope.jobModel[file.name] = file;
                                                 var workIndex = file.name.split('_')[1];
-                                                if(!$scope.jobModel.jobWorks.value[workIndex].files){
+                                                if (!$scope.jobModel.jobWorks.value[workIndex].files) {
                                                     $scope.jobModel.jobWorks.value[workIndex].files = [];
                                                 }
                                                 $scope.jobModel.jobWorks.value[workIndex].files.push(file);
@@ -115,12 +158,12 @@
                                         });
                                     }
                                 },
-                                function(error){
+                                function (error) {
                                     console.log(error.data);
                                 }
                         );
                     },
-                    function(error){
+                    function (error) {
                         console.log(error.data);
                     }
             );

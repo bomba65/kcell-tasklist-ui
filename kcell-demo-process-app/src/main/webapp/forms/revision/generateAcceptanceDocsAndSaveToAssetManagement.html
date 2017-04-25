@@ -5,7 +5,7 @@
 </style>
 <form role="form" class="form-horizontal">
     <script cam-script type="text/form-script">
-        inject(['$scope', '$http', function ($scope, $http) {
+        inject(['$scope', '$http', 'Uri', '$rootScope', '$q', function ($scope, $http, Uri, $rootScope, $q) {
             var variables = [
                 'requestedDate',
                 'validityDate',
@@ -32,9 +32,18 @@
                 'contractorZIPWarehouseMaterialsList',
                 'sapTransferRequestFile',
                 'eLicenseResolutionFile',
+                'resolutions',
                 'actOfMaterialsDispatchingFile'
             ];
             $scope.jobModel = {};
+            $http.get('/camunda/api/engine/engine/default/task/' + camForm.taskId).then(
+                function(result){
+                    $scope.processInstanceId = result.data.processInstanceId;
+                },
+                function (error) {
+                    console.log(error.data);
+                }
+            );
             camForm.on('form-loaded', function () {
                 variables.forEach(function (el) {
                     camForm.variableManager.fetchVariable(el);
@@ -57,7 +66,31 @@
             });
             camForm.on('variables-fetched', function () {
                 variables.forEach(function (el) {
-                    $scope.jobModel[el] = camForm.variableManager.variables[el];
+                    if(el === 'resolutions'){
+                        $scope.jobModel.resolutions = angular.copy(camForm.variableManager.variables[el].value);
+                        $q.all($scope.jobModel.resolutions.map(function (resolution) {
+                            return $http.get("/camunda/api/engine/engine/default/user/" + resolution.assignee + "/profile");
+                        })).then(function (profiles) {
+                            profiles.forEach(function (e, index) {
+                                $scope.jobModel.resolutions[index].assigneeName = e.data.firstName ? e.data.firstName : "" + " " + e.data.lastName ? e.data.lastName : "";
+                            });
+                        });
+                        $q.all($scope.jobModel.resolutions.map(function (resolution) {
+                            return $http.get("/camunda/api/engine/engine/default/history/task?processInstanceId="+resolution.processInstanceId+"&taskId=" + resolution.taskId);
+                        })).then(function (tasks) {
+                            tasks.forEach(function (e, index) {
+                                console.log(e.data);
+                                $scope.jobModel.resolutions[index].taskName = e.data[0].name;
+                                try {
+                                    $scope.jobModel.resolutions[index].taskEndDate = new Date(e.data[0].endTime);
+                                } catch(e){
+                                    console.log(e);
+                                }
+                            })
+                        });
+                    } else {
+                        $scope.jobModel[el] = camForm.variableManager.variables[el];
+                    }
                 });
             });
             camForm.variableManager.createVariable({
@@ -69,6 +102,8 @@
             camForm.on('submit', function () {
                 camForm.variableManager.variableValue('generateAcceptanceDocsAndSaveToAssetManagementTaskResult', $scope.generateAcceptanceDocsAndSaveToAssetManagementTaskResult);
                 camForm.variableManager.variableValue('acceptPerformedJob', $scope.generateAcceptanceDocsAndSaveToAssetManagementTaskResult);
+                $scope.jobModel.resolutions.push({processInstanceId: $scope.processInstanceId, assignee: $rootScope.authentication.name, resolution: 'generate.'+$scope.generateAcceptanceDocsAndSaveToAssetManagementTaskResult, comment: $scope.generateAcceptanceDocsAndSaveToAssetManagementComment, taskId: camForm.taskId});
+                camForm.variableManager.variableValue('resolutions', $scope.jobModel.resolutions);
             });
 
             camForm.on('store', function() {
