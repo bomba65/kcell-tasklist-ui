@@ -80,7 +80,7 @@ public class DataInitializer {
                 .name("Building")
                 .build());
 
-        FacilityDefinition facilityDefinitionTOWER = facilityDefinitionRepository.save(FacilityDefinition.builder()
+        facilityDefinitionRepository.save(FacilityDefinition.builder()
                 .id("TOWER")
                 .schema("{}")
                 .name("Tower")
@@ -92,16 +92,28 @@ public class DataInitializer {
                 .name("Mast")
                 .build());
 
+        facilityDefinitionRepository.save(FacilityDefinition.builder()
+                .id("CONCRETE_BASE")
+                .schema("{}")
+                .name("Concrete Base")
+                .build());
+
+        facilityDefinitionRepository.save(FacilityDefinition.builder()
+                .id("CONTAINER")
+                .schema("{}")
+                .name("Container")
+                .build());
+
         FacilityInstance facilityInstanceBUILDING = facilityInstanceRepository.save(FacilityInstance.builder()
                 .definition(facilityDefinitionBUILDING)
                 .location((Point) wktReader.read("POINT(-10.0 10.0 10.0)"))
-                .params("{\"name\":\"Near shop 'Nurlan'\",\"region\":\"South Region\",\"city\":\"Almaty\",\"street\":\"Furmanova\",\"building_number\":127,\"cadastral_number\":\"01-2032-032832\",\"latitude\":\"43.252540\",\"longitude\":\"76.946774\",\"altitude\":911,\"owner\":\"Kazakhtelecom\",\"height:\":43,\"max_neighbor_height\":20,\"building_type\":\"Specialization 1\",\"roof_type\":\"Профнастил\",\"roof_degrees\":\"13\",\"ceiling_type\":\"железобетон\",\"has_technical_floor\":\"No\",\"additional_info\":\"г. Алматы, Фурманова 127 над магазином 'Нурлан'\", \"persons\":[]}")
+                .params("{\"name\":\"Near shop 'Nurlan'\",\"region\":\"Almaty\",\"city\":\"Almaty\",\"street\":\"Furmanova\",\"building_number\":127,\"cadastral_number\":\"01-2032-032832\",\"latitude\":\"43.252540\",\"longitude\":\"76.946774\",\"altitude\":911,\"owner\":\"Kcell\",\"height:\":43,\"max_neighbor_height\":20,\"building_type\":\"Administrative\",\"roof_type\":\"Профнастил\",\"roof_degrees\":\"13\",\"ceiling_type\":\"железобетон\",\"has_technical_floor\":\"No\",\"additional_info\":\"г. Алматы, Фурманова 127 над магазином 'Нурлан'\", \"persons\":[]}")
                 .build());
 
         FacilityInstance facilityInstanceMAST = facilityInstanceRepository.save(FacilityInstance.builder()
                 .definition(facilityDefinitionMAST)
                 .location((Point) wktReader.read("POINT(-10.0 10.0 10.0)"))
-                .params("{\"name\":\"Near apteka 'Tair'\",\"region\":\"South Region\",\"city\":\"Almaty\",\"street\":\"Furmanova\",\"building_number\":127,\"cadastral_number\":\"01-2032-032832\",\"latitude\":\"43.252540\",\"longitude\":\"76.946774\",\"altitude\":911,\"owner\":\"Kazakhtelecom\",\"height:\":43,\"max_neighbor_height\":20,\"building_type\":\"Specialization 1\",\"roof_type\":\"Профнастил\",\"roof_degrees\":\"13\",\"ceiling_type\":\"железобетон\",\"has_technical_floor\":\"No\",\"additional_info\":\"г. Алматы, Фурманова 127 над магазином 'Нурлан'\"}")
+                .params("{\"name\":\"Near apteka 'Tair'\",\"region\":\"Almaty\",\"city\":\"Almaty\",\"street\":\"Furmanova\",\"building_number\":127,\"cadastral_number\":\"01-2032-032832\",\"latitude\":\"43.252540\",\"longitude\":\"76.946774\",\"altitude\":911,\"owner\":\"Kcell\",\"height:\":43,\"max_neighbor_height\":20,\"building_type\":\"Administrative\",\"roof_type\":\"Профнастил\",\"roof_degrees\":\"13\",\"ceiling_type\":\"железобетон\",\"has_technical_floor\":\"No\",\"additional_info\":\"г. Алматы, Фурманова 127 над магазином 'Нурлан'\"}")
                 .build());
 
         Site site1 = siteRepository.save(Site.builder()
@@ -114,7 +126,7 @@ public class DataInitializer {
             FacilityInstance facilityInstance = facilityInstanceRepository.save(FacilityInstance.builder()
                     .definition(facilityDefinitionBUILDING)
                     .location((Point) wktReader.read("POINT(-10.0 10.0 10.0)"))
-                    .params("{\"name\":\"Near shop 'Nurlan'\",\"region\":\"South Region\",\"city\":\"Almaty\",\"street\":\"Furmanova\",\"building_number\":127,\"cadastral_number\":\"01-2032-032832\",\"latitude\":\"43.252540\",\"longitude\":\"76.946774\",\"altitude\":911,\"owner\":\"Kazakhtelecom\",\"height:\":43,\"max_neighbor_height\":20,\"building_type\":\"Specialization 1\",\"roof_type\":\"Профнастил\",\"roof_degrees\":\"13\",\"ceiling_type\":\"железобетон\",\"has_technical_floor\":\"No\",\"additional_info\":\"г. Алматы, Фурманова 127 над магазином 'Нурлан'\"}")
+                    .params("{\"name\":\"Near shop 'Nurlan'\",\"region\":\"South Region\",\"city\":\"Almaty\",\"street\":\"Furmanova\",\"building_number\":127,\"cadastral_number\":\"01-2032-032832\",\"latitude\":\"43.252540\",\"longitude\":\"76.946774\",\"altitude\":911,\"owner\":\"Kcell\",\"height:\":43,\"max_neighbor_height\":20,\"building_type\":\"Administrative\",\"roof_type\":\"Профнастил\",\"roof_degrees\":\"13\",\"ceiling_type\":\"железобетон\",\"has_technical_floor\":\"No\",\"additional_info\":\"г. Алматы, Фурманова 127 над магазином 'Нурлан'\"}")
                     .build());
             siteRepository.save(
                     Site.builder()
@@ -212,13 +224,13 @@ public class DataInitializer {
         EquipmentInstance equipmentInstanceCABINET = equipmentInstanceRepository.save(EquipmentInstance.builder()
                 .sn("444rrrwer")
                 .definition(equipmentDefinitionCABINET)
-                .params("{\"bsc\": \"AlmBSC8\",\"rnc\":\"AlmRNC5\",\"company_vendor_id\":\"Ericsson\",\"cabinet_type\": \"RBS 2216\",\"voltage\": \"220V\"}")
+                .params("{\"bsc\": \"AlmBSC8\",\"rnc\":\"AlmRNC5\",\"company_vendor_id\":\"Ericsson\",\"cabinet_type\": \"2216\",\"voltage\": \"220\"}")
                 .build());
 
         EquipmentInstance equipmentInstanceRU = equipmentInstanceRepository.save(EquipmentInstance.builder()
                 .sn("2001")
                 .definition(equipmentDefinitionRU)
-                .params("{\"type\":\"RRU\",\"serial_number\":\"SN23782713FY\",\"sector\":\"A\",\"band\":\"GSM1800/WCDMA2100\",\"rrus_construction_type\":\"RRU\",\"trx_quantity\":5,\"carrier_quantity\":6,\"voltage\":\"220V\",\"rat\":{\"2G\":true,\"3G\":true,\"WiMAX\":true}}")
+                .params("{\"type\":\"RRU\",\"serial_number\":\"SN23782713FY\",\"sector\":\"A\",\"band\":\"800\",\"rrus_construction_type\":\"RRU\",\"trx_quantity\":5,\"carrier_quantity\":6,\"voltage\":\"220\",\"rat\":{\"2G\":true,\"3G\":true,\"WiMAX\":true}}")
                 .build());
 
         EquipmentInstance equipmentInstanceSUPPLEMENTARY = equipmentInstanceRepository.save(EquipmentInstance.builder()
@@ -320,7 +332,7 @@ public class DataInitializer {
                 .equipment(equipmentInstanceANTENNA)
                 .facility(facilityInstanceBUILDING)
                 .site(site1)
-                .params("{\"facility\":\"BUILDING\",\"height_in_top\":3,\"distance_from_roof_level\":3,\"min_horiz_distance_from_roof_edge\":\"4\",\"height_of_phasecenter_from_grnd_lvl\":\"2\",\"direction\":\"4\",\"m_tilt_value\":\"4\",\"e_tilt_value\":\"4\",\"location_type\":\"roof\",\"placement_type\":\"Frontal\",\"feeder_type\":\"8/9\",\"number_of_feeders\":\"4\",\"free_space_for_addition_rru\":\"Yes\",\"carrying_capacity_for_additional_rru\":\"Yes\",\"diversity\":\"Yes\",\"rbs_number\":\"" + installationInstanceCABINET.getId() + "\"}")
+                .params("{\"facility\":\"BUILDING\",\"height_in_top\":3,\"distance_from_roof_level\":3,\"min_horiz_distance_from_roof_edge\":\"4\",\"height_of_phasecenter_from_grnd_lvl\":\"2\",\"direction\":\"4\",\"m_tilt_value\":\"4\",\"e_tilt_value\":\"4\",\"location_type\":\"Roof\",\"placement_type\":\"Frontal\",\"feeder_type\":\"8/9\",\"number_of_feeders\":\"4\",\"free_space_for_addition_rru\":\"Yes\",\"carrying_capacity_for_additional_rru\":\"Yes\",\"diversity\":\"Yes\",\"rbs_number\":\"" + installationInstanceCABINET.getId() + "\"}")
                 .build());
 
         InstallationDefinition installationDefinitionDU = installationDefinitionRepository.save(InstallationDefinition.builder()
