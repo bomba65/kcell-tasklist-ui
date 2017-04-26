@@ -1,5 +1,7 @@
 package kz.kcell.bpm;
 
+import java.io.IOException;
+import java.util.Properties;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
@@ -11,14 +13,14 @@ import org.camunda.bpm.engine.delegate.TaskListener;
 import org.camunda.bpm.engine.identity.User;
 import org.camunda.bpm.engine.impl.context.Context;
 import org.camunda.bpm.engine.impl.identity.Authentication;
+import org.camunda.bpm.extension.mail.config.MailConfiguration;
+import org.camunda.bpm.extension.mail.config.MailConfigurationFactory;
 
 public class MailTaskAssigneeListener implements TaskListener {
 
-    public static final String FLOW_MAIL_HOST = "mail";
-    public static final int    FLOW_MAIL_PORT = 1025;
-    public static final String FLOW_BASE_URL  = "http://localhost";
-
     private final static Logger LOGGER = Logger.getLogger(MailTaskAssigneeListener.class.getName());
+
+    MailConfiguration configuration = MailConfigurationFactory.getConfiguration();
 
     public void notify(DelegateTask delegateTask) {
         if (!TaskListener.EVENTNAME_ASSIGNMENT.equals(delegateTask.getEventName())) {
@@ -70,14 +72,14 @@ public class MailTaskAssigneeListener implements TaskListener {
     protected void sendMail(DelegateTask delegateTask, String assignee, String taskId, String recipient) {
         Email email = new SimpleEmail();
         email.setCharset("utf-8");
-        email.setHostName(System.getProperty("FLOW_MAIL_HOST", FLOW_MAIL_HOST));
-        email.setSmtpPort(Integer.getInteger("FLOW_MAIL_PORT", FLOW_MAIL_PORT));
+        email.setHostName(configuration.getProperties().getProperty("mail.smtp.host", "mail"));
+        email.setSmtpPort(Integer.valueOf(configuration.getProperties().getProperty("mail.smtp.port", "1025")));
 
         try {
-            email.setFrom("kcell_flow@kcell.kz");
+            email.setFrom(configuration.getSender());
             email.setSubject("Task assigned: " + delegateTask.getName());
 
-            final String baseUrl = System.getProperty("FLOW_BASE_URL", FLOW_BASE_URL);
+            final String baseUrl = configuration.getProperties().getProperty("mail.message.baseurl", "http://localhost");
 
             email.setMsg("Please complete: " + baseUrl + "/camunda/app/tasklist/default/#/?task=" + taskId);
 
