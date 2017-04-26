@@ -107,13 +107,13 @@ public class DataInitializer {
         FacilityInstance facilityInstanceBUILDING = facilityInstanceRepository.save(FacilityInstance.builder()
                 .definition(facilityDefinitionBUILDING)
                 .location((Point) wktReader.read("POINT(-10.0 10.0 10.0)"))
-                .params("{\"name\":\"Near shop 'Nurlan'\",\"region\":\"Almaty\",\"city\":\"Almaty\",\"street\":\"Furmanova\",\"building_number\":127,\"cadastral_number\":\"01-2032-032832\",\"latitude\":\"43.252540\",\"longitude\":\"76.946774\",\"altitude\":911,\"owner\":\"Kcell\",\"height:\":43,\"max_neighbor_height\":20,\"building_type\":\"Administrative\",\"roof_type\":\"Профнастил\",\"roof_degrees\":\"13\",\"ceiling_type\":\"железобетон\",\"has_technical_floor\":\"No\",\"additional_info\":\"г. Алматы, Фурманова 127 над магазином 'Нурлан'\", \"persons\":[]}")
+                .params("{\"name\":\"Near shop 'Nurlan'\",\"region\":\"Almaty\",\"city\":\"Almaty\",\"street\":\"Furmanova\",\"building_number\":127,\"cadastral_number\":\"01-2032-032832\",\"latitude\":\"43.252540\",\"longitude\":\"76.946774\",\"altitude\":911,\"owner\":\"Kcell\",\"height\":43,\"max_neighbor_height\":20,\"building_type\":\"Administrative\",\"roof_type\":\"Профнастил\",\"roof_degrees\":13,\"ceiling_type\":\"железобетон\",\"has_technical_floor\":\"No\",\"additional_info\":\"г. Алматы, Фурманова 127 над магазином 'Нурлан'\", \"persons\":[]}")
                 .build());
 
         FacilityInstance facilityInstanceMAST = facilityInstanceRepository.save(FacilityInstance.builder()
                 .definition(facilityDefinitionMAST)
                 .location((Point) wktReader.read("POINT(-10.0 10.0 10.0)"))
-                .params("{\"name\":\"Near apteka 'Tair'\",\"region\":\"Almaty\",\"city\":\"Almaty\",\"street\":\"Furmanova\",\"building_number\":127,\"cadastral_number\":\"01-2032-032832\",\"latitude\":\"43.252540\",\"longitude\":\"76.946774\",\"altitude\":911,\"owner\":\"Kcell\",\"height:\":43,\"max_neighbor_height\":20,\"building_type\":\"Administrative\",\"roof_type\":\"Профнастил\",\"roof_degrees\":\"13\",\"ceiling_type\":\"железобетон\",\"has_technical_floor\":\"No\",\"additional_info\":\"г. Алматы, Фурманова 127 над магазином 'Нурлан'\"}")
+                .params("{\"name\":\"Near apteka 'Tair'\",\"region\":\"Almaty\",\"city\":\"Almaty\",\"street\":\"Furmanova\",\"building_number\":127,\"cadastral_number\":\"01-2032-032832\",\"latitude\":\"43.252540\",\"longitude\":\"76.946774\",\"altitude\":911,\"owner\":\"Kcell\",\"height\":43,\"max_neighbor_height\":20,\"building_type\":\"Administrative\",\"roof_type\":\"Профнастил\",\"roof_degrees\":13,\"ceiling_type\":\"железобетон\",\"has_technical_floor\":\"No\",\"additional_info\":\"г. Алматы, Фурманова 127 над магазином 'Нурлан'\"}")
                 .build());
 
         Site site1 = siteRepository.save(Site.builder()
@@ -126,7 +126,7 @@ public class DataInitializer {
             FacilityInstance facilityInstance = facilityInstanceRepository.save(FacilityInstance.builder()
                     .definition(facilityDefinitionBUILDING)
                     .location((Point) wktReader.read("POINT(-10.0 10.0 10.0)"))
-                    .params("{\"name\":\"Near shop 'Nurlan'\",\"region\":\"South Region\",\"city\":\"Almaty\",\"street\":\"Furmanova\",\"building_number\":127,\"cadastral_number\":\"01-2032-032832\",\"latitude\":\"43.252540\",\"longitude\":\"76.946774\",\"altitude\":911,\"owner\":\"Kcell\",\"height:\":43,\"max_neighbor_height\":20,\"building_type\":\"Administrative\",\"roof_type\":\"Профнастил\",\"roof_degrees\":\"13\",\"ceiling_type\":\"железобетон\",\"has_technical_floor\":\"No\",\"additional_info\":\"г. Алматы, Фурманова 127 над магазином 'Нурлан'\"}")
+                    .params("{\"name\":\"Near shop 'Nurlan'\",\"region\":\"South\",\"city\":\"Almaty\",\"street\":\"Furmanova\",\"building_number\":127,\"cadastral_number\":\"01-2032-032832\",\"latitude\":\"43.252540\",\"longitude\":\"76.946774\",\"altitude\":911,\"owner\":\"Kcell\",\"height\":43,\"max_neighbor_height\":20,\"building_type\":\"Administrative\",\"roof_type\":\"Профнастил\",\"roof_degrees\":13,\"ceiling_type\":\"железобетон\",\"has_technical_floor\":\"No\",\"additional_info\":\"г. Алматы, Фурманова 127 над магазином 'Нурлан'\"}")
                     .build());
             siteRepository.save(
                     Site.builder()

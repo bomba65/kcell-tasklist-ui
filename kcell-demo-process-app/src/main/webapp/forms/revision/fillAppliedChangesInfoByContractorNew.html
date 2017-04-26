@@ -30,6 +30,12 @@
                 'actOfMaterialsDispatchingFile'
             ];
 
+            $scope.facilityRegions = ['Astana', 'Almaty', 'North', 'South', 'East', 'West', 'All regions (LINE)'];
+            $scope.facilityOwners = ['Kcell', 'Kazakhtelecom', 'ODS', 'Beeline', 'KTC', 'KTZH', 'Other'];
+            $scope.facilityBuildingTypes = ['Administrative', 'House', 'Other'];
+            $scope.cabinetBscs = ['AlmBSC8', 'AlmBSC9'];
+            $scope.cabinetRncs = ['AlmRNC5', 'AlmRNC6'];
+
             var diff = window.requirejs('deep-diff').diff;
 
             $http.get('/camunda/api/engine/engine/default/task/' + camForm.taskId).then(
@@ -594,8 +600,10 @@
                             hop.farEnd.ous = angular.copy(map.OU);
                             hop.farEnd.ius = angular.copy(map.IU);
                             hop.farEnd.aus = angular.copy(map.AU);
+                            hop._original = angular.copy(hop);
                             $scope.fillSite.transmissions.push(hop);
                         } else {
+                            hop._original = angular.copy(hop);
                             $scope.fillSite.transmissions.push(hop);
                         }
                     },
@@ -1112,7 +1120,100 @@
                         $scope.sitesWorks[workIndex].files.splice(fileIndex,1);
                     });
                 }
-            }
+            };
+
+            $scope.resetFacility = function(index){
+                var facility = angular.copy($scope.fillSite.facilities[index]._original);
+                facility._original = angular.copy(facility);
+                $scope.fillSite.facilities[index] = facility;
+                delete $scope.fillSite.facilities[index]['_command'];
+            };
+
+            $scope.resetCabinet = function(index){
+                var cabinet = angular.copy($scope.fillSite.cabinets[index]._original);
+                cabinet._original = angular.copy(cabinet);
+                $scope.fillSite.cabinets[index] = cabinet;
+                delete $scope.fillSite.cabinets[index]['_command'];
+            };
+
+            $scope.resetAntenna = function(index){
+                var antenna = angular.copy($scope.fillSite.antennas[index]._original);
+                antenna._original = angular.copy(antenna);
+                $scope.fillSite.antennas[index] = antenna;
+                delete $scope.fillSite.antennas[index]['_command'];
+            };
+
+            $scope.resetIndoorUnit = function(index){
+                var iu = angular.copy($scope.fillSite.ius[index]._original);
+                iu._original = angular.copy(iu);
+                $scope.fillSite.ius[index] = iu;
+                delete $scope.fillSite.ius[index]['_command'];
+            };
+
+            $scope.resetOutdoorUnit = function(index){
+                var ou = angular.copy($scope.fillSite.ous[index]._original);
+                ou._original = angular.copy(ou);
+                $scope.fillSite.ous[index] = ou;
+                delete $scope.fillSite.ous[index]['_command'];
+            };
+
+            $scope.resetAntennaUnit = function(index){
+                var au = angular.copy($scope.fillSite.aus[index]._original);
+                au._original = angular.copy(au);
+                $scope.fillSite.aus[index] = au;
+                delete $scope.fillSite.aus[index]['_command'];
+            };
+
+            $scope.resetSupplementary = function(index){
+                var supp = angular.copy($scope.fillSite.supplementary[index]._original);
+                supp._original = angular.copy(supp);
+                $scope.fillSite.supplementary[index] = supp;
+                delete $scope.fillSite.supplementary[index]['_command'];
+            };
+
+            $scope.resetRu = function(index){
+                var ru = angular.copy($scope.fillSite.rus[index]._original);
+                ru._original = angular.copy(ru);
+                $scope.fillSite.rus[index] = ru;
+                delete $scope.fillSite.rus[index]['_command'];
+            };
+
+            $scope.resetDu = function(index){
+                var du = angular.copy($scope.fillSite.dus[index]._original);
+                du._original = angular.copy(du);
+                $scope.fillSite.dus[index] = du;
+                delete $scope.fillSite.dus[index]['_command'];
+            };
+
+            $scope.resetHop = function(index){
+                var hop = angular.copy($scope.fillSite.transmissions[index]._original);
+                hop._original = angular.copy(hop);
+                $scope.fillSite.transmissions[index] = hop;
+                delete $scope.fillSite.transmissions[index]['_command'];
+            };
+
+            $scope.resetPowerSource = function(index){
+                var powerSource = angular.copy($scope.fillSite.powerSources[index]._original);
+                powerSource._original = angular.copy(powerSource);
+                $scope.fillSite.powerSources[index] = powerSource;
+                delete $scope.fillSite.powerSources[index]['_command'];
+            };
+
+            $scope.isInstallationDisabled = function(command){
+                return command !== 'MODIFY_INSTALLATION' && command !== 'REPLACE_EQUIPMENT' && command !== 'INSTALL_NEW_EQUIPMENT';
+            };
+
+            $scope.isFacilityDisabled = function(command){
+                return command !== 'MODIFY_FACILITY' && command !== 'ADD_FACILITY';
+            };
+
+            $scope.isPowerSourceDisabled = function(command){
+                return command !== 'MODIFY_POWERSOURCE' && command !== 'REPLACE_POWERSOURCE' && command !== 'CREATE_POWERSOURCE';
+            };
+
+            $scope.isHopDisabled = function(command){
+                return command !== 'MODIFY_CONNECTION' && command !== 'REMOVE_CONNECTION';
+            };
         }]);
     </script>
     <h4>Site Id: {{jobModel.site.originalValue}}, Site Name: {{jobModel.siteName.originalValue}} </h4>

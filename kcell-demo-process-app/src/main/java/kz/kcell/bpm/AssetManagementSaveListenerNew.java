@@ -9,6 +9,7 @@ import org.apache.http.client.methods.CloseableHttpResponse;
 import org.apache.http.client.methods.HttpDelete;
 import org.apache.http.client.methods.HttpPatch;
 import org.apache.http.client.methods.HttpPost;
+import org.apache.http.entity.ContentType;
 import org.apache.http.entity.StringEntity;
 import org.apache.http.impl.client.CloseableHttpClient;
 import org.apache.http.impl.client.HttpClients;
@@ -17,10 +18,12 @@ import org.camunda.bpm.engine.delegate.DelegateTask;
 import org.camunda.bpm.engine.delegate.TaskListener;
 
 import java.net.URI;
-import java.util.*;
+import java.util.Arrays;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
 import java.util.logging.Logger;
 import java.util.stream.Collectors;
-import java.util.stream.Stream;
 
 public class AssetManagementSaveListenerNew implements TaskListener {
 
@@ -52,9 +55,8 @@ public class AssetManagementSaveListenerNew implements TaskListener {
 
     public void saveCommandsToAssetManagement(JsonNode summaries, String siteId) {
         try {
-            StringEntity equipmentInputData = new StringEntity(summaries.toString());
+            StringEntity equipmentInputData = new StringEntity(summaries.toString(), ContentType.APPLICATION_JSON);
             HttpPost equipmentPost = new HttpPost(new URI(baseUri + "/asset-management/command/" + siteId));
-            equipmentPost.addHeader("Content-Type", "application/json;charset=UTF-8");
             equipmentPost.setEntity(equipmentInputData);
             HttpClient equipmentHttpClient = HttpClients.createDefault();
             HttpResponse equipmentResponse = equipmentHttpClient.execute(equipmentPost);
