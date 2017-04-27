@@ -741,14 +741,14 @@
                         var modified = angular.copy(e);
                         if(original){
                             original = _.omitBy(original, function(value, key){
-                                return key.indexOf('_') === 0 || key === 'id';
+                                return key.indexOf('_') === 0 ;
                             });
                         }
                         modified = _.omitBy(modified, function(value, key){
-                            return key.indexOf('_') === 0 || key === 'id';
+                            return key.indexOf('_') === 0;
                         });
-                        var delta = diff(original, modified);
                         if(e._command === 'MODIFY_FACILITY'){
+                            var delta = diff(original, modified);
                             var result = [{command: e._command, lhs: original, rhs: modified, delta: delta}];
                             for(var i=0;i<result[0].delta.length;i++){
                                 if(result[0].delta[i].path){
@@ -767,12 +767,17 @@
                                     persons.push({});
                                 }
                             }
+                            modified = _.omitBy(modified, function(value, key){
+                                return key === 'id';
+                            });
                             var result = [{command: e._command, rhs: modified, delta: diff({params:{persons: persons}}, modified)}];
-                            for(var i=0;i<result[0].delta.length;i++){
-                                if(result[0].delta[i].path){
-                                    if(result[0].delta[i].path.length === 4){
-                                        if(result[0].delta[i].path[1] === 'persons'){
-                                            result[0].delta[i].path.splice(2,1);
+                            if(result[0].delta){
+                                for(var i=0;i<result[0].delta.length;i++){
+                                    if(result[0].delta[i].path){
+                                        if(result[0].delta[i].path.length === 4){
+                                            if(result[0].delta[i].path[1] === 'persons'){
+                                                result[0].delta[i].path.splice(2,1);
+                                            }
                                         }
                                     }
                                 }
@@ -796,11 +801,11 @@
                         var modified = angular.copy(e);
                         if(original){
                             original = _.omitBy(original, function(value, key){
-                                return key.indexOf('_') === 0 || key === 'id';
+                                return key.indexOf('_') === 0;
                             });
                         }
                         modified = _.omitBy(modified, function(value, key){
-                            return key.indexOf('_') === 0 || key === 'id';
+                            return key.indexOf('_') === 0;
                         });
                         var delta = diff(original, modified);
                         if(e._command === 'MODIFY_POWERSOURCE'){
@@ -824,6 +829,9 @@
                                     cable_ways.push({});
                                 }
                             }
+                            modified = _.omitBy(modified, function(value, key){
+                                return key === 'id';
+                            });
                             var result = [{command: e._command, rhs: modified, delta: diff({params:{
                                 cable_ways: cable_ways,
                                 cable_way: {},
@@ -832,18 +840,20 @@
                                 disel_generator: {},
                                 oil_tank: {},
                                 electricity_counter: {}}}, modified)}];
-                            for(var i=0;i<result[0].delta.length;i++){
-                                if(result[0].delta[i].path){
-                                    if(result[0].delta[i].path.length === 4){
-                                        if(result[0].delta[i].path[1] === 'cable_ways'){
-                                            result[0].delta[i].path.splice(2,1);
+                            if(result[0].delta){
+                                for(var i=0;i<result[0].delta.length;i++){
+                                    if(result[0].delta[i].path){
+                                        if(result[0].delta[i].path.length === 4){
+                                            if(result[0].delta[i].path[1] === 'cable_ways'){
+                                                result[0].delta[i].path.splice(2,1);
+                                            }
                                         }
                                     }
                                 }
                             }
                             return result;
                         } else if(e._command === 'REMOVE_POWERSOURCE'){
-                            return [{commnad: e._command}];
+                            return [{command: e._command, lhs:{id:e.id}}];
                         } else {
                             return [];
                         }
@@ -853,25 +863,28 @@
                         var modified = angular.copy(e);
                         if(original){
                             original.params  = _.omitBy(original.params, function(value, key){
-                                return key.indexOf('_') === 0 || key === 'sites';
+                                return key.indexOf('_') === 0;
                             });
                             original = _.omitBy(original, function(value, key){
-                                return key.indexOf('_') === 0 || key === 'id' || key === 'farEnd' || key === 'nearEnd' || key === 'definition' || key === 'valid';
+                                return key.indexOf('_') === 0 || key === 'farEnd' || key === 'nearEnd' || key === 'definition' || key === 'valid';
                             });
                         }
                         modified.params  = _.omitBy(modified.params, function(value, key){
                             return key.indexOf('_') === 0 || key === 'sites';
                         });
                         modified = _.omitBy(modified, function(value, key){
-                            return key.indexOf('_') === 0 || key === 'id' || key === 'farEnd' || key === 'nearEnd' || key === 'definition' || key === 'valid';
+                            return key.indexOf('_') === 0  || key === 'farEnd' || key === 'nearEnd' || key === 'definition' || key === 'valid';
                         });
                         var delta = diff(original, modified);
                         if(e._command === 'MODIFY_CONNECTION'){
                             return [{command: e._command, lhs: original, rhs: modified, delta: delta}];
                         } else if(e._command === 'CONNECT_EQUIPMENT'){
+                            modified = _.omitBy(modified, function(value, key){
+                                return key === 'id';
+                            });
                             return [{command: e._command, rhs: modified, delta: diff({params:{}}, modified)}];
                         } else if(e._command === 'REMOVE_CONNECTION'){
-                            return [{commnad: e._command}];
+                            return [{commnad: e._command, lhs:{id:e.id}}];
                         } else {
                             return [];
                         }
@@ -893,11 +906,8 @@
                             return key.indexOf('_') === 0 || key === 'id' || key === 'definition' || key === '_command';
                         });
                     }
-                    /*original.connections = _.omitBy(original.connections, function(value, key){
-                        return key.indexOf('_') === 0 || key === 'id' || key === 'definition';
-                    });*/
                     original = _.omitBy(original, function(value, key){
-                        return key.indexOf('_') === 0 || key === 'id' || key === 'definition';
+                        return key.indexOf('_') === 0 || key === 'definition';
                     });
                 }
                 modified.equipment = _.omitBy(modified.equipment, function(value, key){
@@ -908,11 +918,8 @@
                         return key.indexOf('_') === 0 || key === 'id' || key === 'definition' || key === '_command';
                     });
                 }
-                /*modified.connections = _.omitBy(modified.connections, function(value, key){
-                    return key.indexOf('_') === 0 || key === 'id' || key === 'definition';
-                });*/
                 modified = _.omitBy(modified, function(value, key){
-                    return key.indexOf('_') === 0 || key === 'id' || key === 'definition';
+                    return key.indexOf('_') === 0 || key === 'definition';
                 });
                 var delta = diff(original, modified);
                 console.log(delta);
@@ -920,7 +927,9 @@
                 if(e._command === 'MODIFY_INSTALLATION'){
                     return [{command: e._command, lhs: original, rhs: modified, delta: delta}];
                 } else if(e._command === 'INSTALL_NEW_EQUIPMENT'){
-                    console.log(definition);
+                    modified = _.omitBy(modified, function(value, key){
+                        return key === 'id';
+                    });
                     if(e.connections){
                         var connectionsObject = {};
                         connectionsObject[definition+"2RBS"] = {equipments:[]}
@@ -930,7 +939,7 @@
                     }
                 } else if(e._command === 'DISMANTLE_EQUIPMENT'){
                     //return [{command: e._command, lhs: original, delta: diff(original, {facility:original.facility, equipment: {params: {}}, params:{}})}];
-                    return [{command: e._command}];
+                    return [{command: e._command, lhs:{id:e.id}}];
                 } else {
                     return [];
                 }
@@ -1213,6 +1222,162 @@
 
             $scope.isHopDisabled = function(command){
                 return command !== 'MODIFY_CONNECTION' && command !== 'REMOVE_CONNECTION';
+            };
+
+            $scope.resetFacilitySummary = function(index){
+                for(var i =0;i<$scope.fillSite.facilities.length;i++){
+                    if($scope.fillSite.facilities[i]._original && $scope.fillSite.facilities[i]._original.id){
+                        if($scope.fillSite.facilities[i]._original.id === $scope.summaries.facility[index].lhs.id){
+                            console.log("reset facility");
+                            $scope.fillSite.facilities[i] = $scope.fillSite.facilities[i]._original
+                            $scope.fillSite.facilities[i]._original = angular.copy($scope.fillSite.facilities[i]);
+                        }
+                    }
+                }
+                $scope.summaries.facility.splice(index, 1);
+            };
+
+            $scope.resetCabinetSummary = function(index){
+                for(var i =0;i<$scope.fillSite.cabinets.length;i++){
+                    if($scope.fillSite.cabinets[i]._original && $scope.fillSite.cabinets[i]._original.id){
+                        if($scope.fillSite.cabinets[i]._original.id === $scope.summaries.cabinets[index].lhs.id){
+                            console.log("reset cabinet");
+                            $scope.fillSite.cabinets[i] = $scope.fillSite.cabinets[i]._original
+                            $scope.fillSite.cabinets[i]._original = angular.copy($scope.fillSite.cabinets[i]);
+                        }
+                    }
+                }
+                $scope.summaries.cabinets.splice(index, 1);
+            };
+
+            $scope.resetCabinetSummary = function(index){
+                for(var i =0;i<$scope.fillSite.cabinets.length;i++){
+                    if($scope.fillSite.cabinets[i]._original && $scope.fillSite.cabinets[i]._original.id){
+                        if($scope.fillSite.cabinets[i]._original.id === $scope.summaries.cabinets[index].lhs.id){
+                            console.log("reset cabinet");
+                            $scope.fillSite.cabinets[i] = $scope.fillSite.cabinets[i]._original
+                            $scope.fillSite.cabinets[i]._original = angular.copy($scope.fillSite.cabinets[i]);
+                        }
+                    }
+                }
+                $scope.summaries.cabinets.splice(index, 1);
+            };
+
+            $scope.resetRUSummary = function(index){
+                for(var i =0;i<$scope.fillSite.rus.length;i++){
+                    if($scope.fillSite.rus[i]._original && $scope.fillSite.rus[i]._original.id){
+                        if($scope.fillSite.rus[i]._original.id === $scope.summaries.rus[index].lhs.id){
+                            console.log("reset cabinet");
+                            $scope.fillSite.rus[i] = $scope.fillSite.rus[i]._original
+                            $scope.fillSite.rus[i]._original = angular.copy($scope.fillSite.rus[i]);
+                        }
+                    }
+                }
+                $scope.summaries.rus.splice(index, 1);
+            };
+
+            $scope.resetDUSummary = function(index){
+                for(var i =0;i<$scope.fillSite.dus.length;i++){
+                    if($scope.fillSite.dus[i]._original && $scope.fillSite.dus[i]._original.id){
+                        if($scope.fillSite.dus[i]._original.id === $scope.summaries.dus[index].lhs.id){
+                            console.log("reset cabinet");
+                            $scope.fillSite.dus[i] = $scope.fillSite.dus[i]._original
+                            $scope.fillSite.dus[i]._original = angular.copy($scope.fillSite.dus[i]);
+                        }
+                    }
+                }
+                $scope.summaries.dus.splice(index, 1);
+            };
+
+            $scope.resetAntennaSummary = function(index){
+                for(var i =0;i<$scope.fillSite.antennas.length;i++){
+                    if($scope.fillSite.antennas[i]._original && $scope.fillSite.antennas[i]._original.id){
+                        if($scope.fillSite.antennas[i]._original.id === $scope.summaries.antennas[index].lhs.id){
+                            console.log("reset cabinet");
+                            $scope.fillSite.antennas[i] = $scope.fillSite.antennas[i]._original
+                            $scope.fillSite.antennas[i]._original = angular.copy($scope.fillSite.antennas[i]);
+                        }
+                    }
+                }
+                $scope.summaries.antennas.splice(index, 1);
+            };
+
+            $scope.resetSupplementarySummary = function(index){
+                for(var i =0;i<$scope.fillSite.supplementary.length;i++){
+                    if($scope.fillSite.supplementary[i]._original && $scope.fillSite.supplementary[i]._original.id){
+                        if($scope.fillSite.supplementary[i]._original.id === $scope.summaries.supplementary[index].lhs.id){
+                            console.log("reset cabinet");
+                            $scope.fillSite.supplementary[i] = $scope.fillSite.supplementary[i]._original
+                            $scope.fillSite.supplementary[i]._original = angular.copy($scope.fillSite.supplementary[i]);
+                        }
+                    }
+                }
+                $scope.summaries.supplementary.splice(index, 1);
+            };
+
+            $scope.resetPowerSourceSummary = function(index){
+                for(var i =0;i<$scope.fillSite.powerSources.length;i++){
+                    if($scope.fillSite.powerSources[i]._original && $scope.fillSite.powerSources[i]._original.id){
+                        if($scope.fillSite.powerSources[i]._original.id === $scope.summaries.powerSources[index].lhs.id){
+                            console.log("reset cabinet");
+                            $scope.fillSite.powerSources[i] = $scope.fillSite.powerSources[i]._original
+                            $scope.fillSite.powerSources[i]._original = angular.copy($scope.fillSite.powerSources[i]);
+                        }
+                    }
+                }
+                $scope.summaries.powerSources.splice(index, 1);
+            };
+
+            $scope.resetIndoorUnitSummary = function(index){
+                for(var i =0;i<$scope.fillSite.ius.length;i++){
+                    if($scope.fillSite.ius[i]._original && $scope.fillSite.ius[i]._original.id){
+                        if($scope.fillSite.ius[i]._original.id === $scope.summaries.ius[index].lhs.id){
+                            console.log("reset cabinet");
+                            $scope.fillSite.ius[i] = $scope.fillSite.ius[i]._original
+                            $scope.fillSite.ius[i]._original = angular.copy($scope.fillSite.ius[i]);
+                        }
+                    }
+                }
+                $scope.summaries.ius.splice(index, 1);
+            };
+
+            $scope.resetOutdoorUnitSummary = function(index){
+                for(var i =0;i<$scope.fillSite.ous.length;i++){
+                    if($scope.fillSite.ous[i]._original && $scope.fillSite.ous[i]._original.id){
+                        if($scope.fillSite.ous[i]._original.id === $scope.summaries.ous[index].lhs.id){
+                            console.log("reset cabinet");
+                            $scope.fillSite.ous[i] = $scope.fillSite.ous[i]._original
+                            $scope.fillSite.ous[i]._original = angular.copy($scope.fillSite.ous[i]);
+                        }
+                    }
+                }
+                $scope.summaries.ous.splice(index, 1);
+            };
+
+            $scope.resetAntennaUnitSummary = function(index){
+                for(var i =0;i<$scope.fillSite.aus.length;i++){
+                    if($scope.fillSite.aus[i]._original && $scope.fillSite.aus[i]._original.id){
+                        if($scope.fillSite.aus[i]._original.id === $scope.summaries.aus[index].lhs.id){
+                            console.log("reset cabinet");
+                            $scope.fillSite.aus[i] = $scope.fillSite.aus[i]._original
+                            $scope.fillSite.aus[i]._original = angular.copy($scope.fillSite.aus[i]);
+                        }
+                    }
+                }
+                $scope.summaries.aus.splice(index, 1);
+            };
+
+            $scope.resetHopSummary = function(index){
+                for(var i =0;i<$scope.fillSite.transmissions.length;i++){
+                    if($scope.fillSite.transmissions[i]._original && $scope.fillSite.transmissions[i]._original.id){
+                        if($scope.fillSite.transmissions[i]._original.id === $scope.summaries.transmissions[index].lhs.id){
+                            console.log("reset cabinet");
+                            $scope.fillSite.transmissions[i] = $scope.fillSite.transmissions[i]._original
+                            $scope.fillSite.transmissions[i]._original = angular.copy($scope.fillSite.transmissions[i]);
+                        }
+                    }
+                }
+                $scope.summaries.transmissions.splice(index, 1);
             };
         }]);
     </script>
