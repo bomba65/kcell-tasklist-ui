@@ -12,13 +12,13 @@ BASEDIR=`pwd`
 MVNREPO="$HOME/.m2/repository"
 
 cd "$BASEDIR/asset-management"
-./gradlew build
+./gradlew clean build
 
 cd "$BASEDIR/kcell-demo-process-app"
-./mvnw package -Dmaven.test.skip=true
+./mvnw clean package -Dmaven.test.skip=true
 
 cd "$BASEDIR/ldap-authentication"
-./mvnw package
+./mvnw clean package
 
 cp "$BASEDIR/ldap-authentication/target/ldap-authentication-7.6.0.jar" \
    "$BASEDIR/kcell-camunda/modules/kz/kcell/camunda/authentication/main/"

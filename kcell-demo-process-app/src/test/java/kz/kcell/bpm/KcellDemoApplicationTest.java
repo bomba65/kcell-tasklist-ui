@@ -17,21 +17,20 @@ public class KcellDemoApplicationTest extends ProcessEngineTestCase {
 
     @Deployment(resources = "test-mail.bpmn")
     public void testSimpleProcess() {
-//        System.setProperty(MailTaskAssigneeListener.FLOW_MAIL_ENABLED, "true");
-
-//        Map<String, Object> variables = new HashMap<String, Object>();
-//        variables.put("city", "CITY_5164");
+        Map<String, Object> variables = new HashMap<>();
+        variables.put("starter", "yernaz.kalingarayev");
 
         // Create the user that will be informed on assignment
         User newUser = identityService.newUser("yernaz.kalingarayev");
         newUser.setEmail("yernaz.kalingarayev@kcell.kz");
         identityService.saveUser(newUser);
-
-
         identityService.setAuthenticatedUserId("demo");
-        runtimeService.startProcessInstanceByKey("Test_Mail");
 
-        Task task = taskService.createTaskQuery().singleResult();
+        Assert.assertNotNull(this.getClass().getResourceAsStream("/GetStarterEmail.groovy"));
+
+        runtimeService.startProcessInstanceByKey("Test_Mail", variables);
+
+//        Task task = taskService.createTaskQuery().singleResult();
 //        Assert.assertNotNull(task);
 
     }
