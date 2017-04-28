@@ -210,8 +210,8 @@ public class DemoDataGenerator {
         filterProperties.put("description", "All Tasks - Not recommended to be used in production :)");
         filterProperties.put("priority", 10);
         Map<String, String> variablesMap = new HashMap<>();
-        variablesMap.put("name", "siteName");
-        variablesMap.put("label", "Site Name");
+        variablesMap.put("name", "jrNumber");
+        variablesMap.put("label", "JR Number");
 
         List<Map<String, String>> filterVariables = Arrays.asList(variablesMap);
         filterProperties.put("variables", filterVariables);
