@@ -3,7 +3,7 @@
         color: #333;
     }
 </style>
-<form role="form" class="form-horizontal">
+<form role="form" class="form-horizontal" name="myForm">
     <script cam-script type="text/form-script">
         inject(['$scope', '$http', 'Uri', '$rootScope', '$q', function ($scope, $http, Uri, $rootScope, $q) {
             var variables = [
@@ -100,65 +100,19 @@
                 camForm.variableManager.variableValue('contractorAttachesMaterialListTaskResult', $scope.contractorAttachesMaterialListTaskResult);
                 if ($scope.contractorAttachesMaterialListTaskResult === 'attached') {
                     camForm.variableManager.variableValue('modifyWorks', false);
-                    var kcellWarehouseMaterialsListExist = false;
-                    for (var i = 0; i < camForm.fields.length; i++) {
-                        if (camForm.fields[i].variableName == 'kcellWarehouseMaterialsList') {
-                            if (camForm.fields[i].element.context.value !== '') {
-                                console.log("kcellWarehouseMaterialsListExist");
-                                kcellWarehouseMaterialsListExist = true;
-                            }
-                        }
-                    }
-                    var contractorZIPWarehouseMaterialsListExist = false;
-                    for (var i = 0; i < camForm.fields.length; i++) {
-                        if (camForm.fields[i].variableName == 'contractorZIPWarehouseMaterialsList') {
-                            if (camForm.fields[i].element.context.value !== '') {
-                                console.log("contractorZIPWarehouseMaterialsListExist");
-                                contractorZIPWarehouseMaterialsListExist = true;
-                            }
-                        }
-                    }
-                    if(contractorZIPWarehouseMaterialsListExist || kcellWarehouseMaterialsListExist ){
-                        if(contractorZIPWarehouseMaterialsListExist){
-                            for (var i = 0; i < camForm.fields.length; i++) {
-                                if (camForm.fields[i].variableName == 'kcellWarehouseMaterialsList') {
-                                    if (camForm.fields[i].element.context.value == '') {
-                                        camForm.fields.splice(i, 1);
-                                        camForm.variableManager.destroyVariable('kcellWarehouseMaterialsList');
-                                    }
-                                }
-                            }
-                        }
-                        if(kcellWarehouseMaterialsListExist){
-                            for (var i = 0; i < camForm.fields.length; i++) {
-                                if (camForm.fields[i].variableName == 'contractorZIPWarehouseMaterialsList') {
-                                    if (camForm.fields[i].element.context.value == '') {
-                                        camForm.fields.splice(i, 1);
-                                        camForm.variableManager.destroyVariable('contractorZIPWarehouseMaterialsList');
-                                    }
-                                }
-                            }
-                        }
-                    }
                 }
                 else{
                     camForm.variableManager.variableValue('modifyWorks', true);
-                    for (var i = 0; i < camForm.fields.length; i++) {
-                        if (camForm.fields[i].variableName == 'kcellWarehouseMaterialsList') {
-                            if (camForm.fields[i].element.context.value == '') {
-                                camForm.fields.splice(i, 1);
-                                camForm.variableManager.destroyVariable('kcellWarehouseMaterialsList');
-                            }
-                        }
-                    }
-                    for (var i = 0; i < camForm.fields.length; i++) {
-                        if (camForm.fields[i].variableName == 'contractorZIPWarehouseMaterialsList') {
-                            if (camForm.fields[i].element.context.value == '') {
-                                camForm.fields.splice(i, 1);
-                                camForm.variableManager.destroyVariable('contractorZIPWarehouseMaterialsList');
-                            }
-                        }
-                    }
+                }
+                if($scope.kcellWarehouseMaterialsListModel && $scope.kcellWarehouseMaterialsListModel.value){
+                    $scope.kcellWarehouseMaterialsListModel.name="kcellWarehouseMaterialsList";
+                    $scope.kcellWarehouseMaterialsListModel.type="File";
+                    camForm.variableManager.createVariable($scope.kcellWarehouseMaterialsListModel);
+                }
+                if($scope.contractorZIPWarehouseMaterialsListModel && $scope.contractorZIPWarehouseMaterialsListModel.value){
+                    $scope.contractorZIPWarehouseMaterialsListModel.name="contractorZIPWarehouseMaterialsList";
+                    $scope.contractorZIPWarehouseMaterialsListModel.type="File";
+                    camForm.variableManager.createVariable($scope.contractorZIPWarehouseMaterialsListModel);
                 }
                 $scope.jobModel.resolutions.push({processInstanceId: $scope.processInstanceId, assignee: $rootScope.authentication.name, resolution: $scope.contractorAttachesMaterialListTaskResult, comment: $scope.contractorAttachesMaterialListComment, taskId: camForm.taskId});
                 camForm.variableManager.variableValue('resolutions', $scope.jobModel.resolutions);
@@ -171,19 +125,57 @@
             camForm.on('variables-restored', function() {
                 $scope.contractorAttachesMaterialListTaskResult = camForm.variableManager.variableValue('contractorAttachesMaterialListTaskResult');
             });
+
+            function getBase64(el, fileName){
+                console.log($scope[fileName]);
+                var reader = new FileReader();
+                reader.readAsArrayBuffer(el.files[0]);
+                reader.onloadend = function (e) {
+                    var binary = '';
+                    var bytes = new Uint8Array( e.target.result );
+                    var len = bytes.byteLength;
+                    for (var j = 0; j < len; j++) {
+                        binary += String.fromCharCode( bytes[ j ] );
+                    }
+                    $scope.$apply(function(){
+                        console.log(fileName);
+                        console.log($scope[fileName]);
+                        $scope[fileName].valueInfo = {
+                            filename: el.files[0].name,
+                            mimeType: el.files[0].type
+                        };
+                        $scope[fileName].value = btoa(binary);
+                    });
+                };
+                reader.onerror = function (error) {
+                    console.log('Error: ', error);
+                };
+            }
+
+            $scope.fileSelected = function(el, fileName){
+                if(el.files[0]){
+                    getBase64(el,fileName)
+                } else {
+                    $scope.$apply(function(){
+                        $scope[fileName] = undefined;
+                    });
+                }
+            };
         }]);
     </script>
     <job-request job-model="jobModel"></job-request>
     <div class="form-group">
         <label class="col-sm-4 control-label">Kcell Warehouse Materials List (xls):</label>
         <div class="col-sm-8">
-            <input type="file" cam-variable-name="kcellWarehouseMaterialsList" cam-variable-type="File" cam-max-filesize="10000000" accept=".xls, .xlsx" />
+            <input type="file" class="form-control" name="kcellWarehouseMaterialsListModel" ng-model="kcellWarehouseMaterialsListModel.file" required-file="contractorAttachesMaterialListTaskResult === 'attached'" onchange="angular.element(this).scope().fileSelected(this, 'kcellWarehouseMaterialsListModel')"/>
+            <label class="has-error" ng-show="myForm.kcellWarehouseMaterialsListModel.$error.validFile">File is required</label>
         </div>
     </div>
     <div class="form-group">
         <label class="col-sm-4 control-label">Contractor ZIP Warehouse Materials List (xls):</label>
         <div class="col-sm-8">
-            <input type="file" cam-variable-name="contractorZIPWarehouseMaterialsList" cam-variable-type="File" cam-max-filesize="10000000" accept=".xls, .xlsx"/>
+            <input type="file" class="form-control" name="contractorZIPWarehouseMaterialsListModel" ng-model="contractorZIPWarehouseMaterialsListModel.file" required-file="contractorAttachesMaterialListTaskResult === 'attached'" onchange="angular.element(this).scope().fileSelected(this, 'contractorZIPWarehouseMaterialsListModel')"/>
+            <label class="has-error" ng-show="myForm.contractorZIPWarehouseMaterialsListModel.$error.validFile">File is required</label>
         </div>
     </div>
     <div class="form-group">

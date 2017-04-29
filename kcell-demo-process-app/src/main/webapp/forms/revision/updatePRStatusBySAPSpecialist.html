@@ -3,7 +3,7 @@
         color: #333;
     }
 </style>
-<form role="form" class="form-horizontal">
+<form role="form" class="form-horizontal" name="myForm">
     <script cam-script type="text/form-script">
         inject(['$scope', '$http', 'Uri', '$rootScope', '$q', function ($scope, $http, Uri, $rootScope, $q) {
             var variables = [
@@ -94,22 +94,18 @@
                     }
                 });
             });
-
-            camForm.on('submit', function () {
+            camForm.on('submit', function (e) {
                 camForm.variableManager.variableValue('sapLeasingCompletionCommenTaskResult', $scope.sapLeasingCompletionCommenTaskResult);
                 if ($scope.sapLeasingCompletionCommenTaskResult === 'prCreated') {
                     camForm.variableManager.variableValue('prCreated', true);
                 }
                 else{
                     camForm.variableManager.variableValue('prCreated', false);
-                    for (var i = 0; i < camForm.fields.length; i++) {
-                        if (camForm.fields[i].variableName == 'sapPRFileXLS') {
-                            if (camForm.fields[i].element.context.value == '') {
-                                camForm.fields.splice(i, 1);
-                                camForm.variableManager.destroyVariable('sapPRFileXLS');
-                            }
-                        }
-                    }
+                }
+                if($scope.sapPRFileXLSModel && $scope.sapPRFileXLSModel.value){
+                    $scope.sapPRFileXLSModel.name="sapPRFileXLS";
+                    $scope.sapPRFileXLSModel.type="File";
+                    camForm.variableManager.createVariable($scope.sapPRFileXLSModel);
                 }
                 $scope.jobModel.resolutions.push({processInstanceId: $scope.processInstanceId, assignee: $rootScope.authentication.name, resolution: $scope.sapLeasingCompletionCommenTaskResult, comment: $scope.sapLeasingCompletionComment, taskId: camForm.taskId});
                 camForm.variableManager.variableValue('resolutions', $scope.jobModel.resolutions);
@@ -122,6 +118,42 @@
             camForm.on('variables-restored', function() {
                 $scope.sapLeasingCompletionCommenTaskResult = camForm.variableManager.variableValue('sapLeasingCompletionCommenTaskResult');
             });
+
+            function getBase64(el, fileName){
+                console.log($scope[fileName]);
+                var reader = new FileReader();
+                reader.readAsArrayBuffer(el.files[0]);
+                reader.onloadend = function (e) {
+                    var binary = '';
+                    var bytes = new Uint8Array( e.target.result );
+                    var len = bytes.byteLength;
+                    for (var j = 0; j < len; j++) {
+                        binary += String.fromCharCode( bytes[ j ] );
+                    }
+                    $scope.$apply(function(){
+                        console.log(fileName);
+                        console.log($scope[fileName]);
+                        $scope[fileName].valueInfo = {
+                            filename: el.files[0].name,
+                            mimeType: el.files[0].type
+                        };
+                        $scope[fileName].value = btoa(binary);
+                    });
+                };
+                reader.onerror = function (error) {
+                    console.log('Error: ', error);
+                };
+            }
+
+            $scope.fileSelected = function(el, fileName){
+                if(el.files[0]){
+                    getBase64(el,fileName)
+                } else {
+                    $scope.$apply(function(){
+                        $scope[fileName] = undefined;
+                    });
+                }
+            };
         }]);
     </script>
     <job-request job-model="jobModel"></job-request>
@@ -134,7 +166,8 @@
     <div class="form-group">
         <label class="col-sm-4 control-label">SAP PR File (xls):</label>
         <div class="col-sm-8">
-            <input type="file" cam-variable-name="sapPRFileXLS" cam-variable-type="File" cam-max-filesize="10000000" accept=".xls, .xlsx" />
+            <input type="file" class="form-control" name="sapPRFileXLSModel" ng-model="sapPRFileXLSModel.file" required-file="sapLeasingCompletionCommenTaskResult === 'prCreated'" onchange="angular.element(this).scope().fileSelected(this, 'sapPRFileXLSModel')"/>
+            <label class="has-error" ng-show="myForm.sapPRFileXLSModel.$error.validFile">File is required</label>
         </div>
     </div>
     <div class="form-group">

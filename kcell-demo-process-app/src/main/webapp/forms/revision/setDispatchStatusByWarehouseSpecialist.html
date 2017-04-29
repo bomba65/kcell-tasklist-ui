@@ -3,7 +3,7 @@
         color: #333;
     }
 </style>
-<form role="form" class="form-horizontal">
+<form role="form" class="form-horizontal" name="myForm">
     <script cam-script type="text/form-script">
         inject(['$scope', '$http', 'Uri', '$rootScope', '$q', function ($scope, $http, Uri, $rootScope, $q) {
             var variables = [
@@ -104,17 +104,14 @@
                 camForm.variableManager.variableValue('setDispatchStatusByWarehouseSpecialistTaskResult', $scope.setDispatchStatusByWarehouseSpecialistTaskResult);
                 if ($scope.setDispatchStatusByWarehouseSpecialistTaskResult === 'notAvailable') {
                     camForm.variableManager.variableValue('materialsNotAvailable', true);
-                    for (var i = 0; i < camForm.fields.length; i++) {
-                        if (camForm.fields[i].variableName == 'actOfMaterialsDispatchingFile') {
-                            if (camForm.fields[i].element.context.value == '') {
-                                camForm.fields.splice(i, 1);
-                                camForm.variableManager.destroyVariable('actOfMaterialsDispatchingFile');
-                            }
-                        }
-                    }
                 }
                 else{
                     camForm.variableManager.variableValue('materialsNotAvailable', false);
+                }
+                if($scope.actOfMaterialsDispatchingFileModel && $scope.actOfMaterialsDispatchingFileModel.value){
+                    $scope.actOfMaterialsDispatchingFileModel.name="actOfMaterialsDispatchingFile";
+                    $scope.actOfMaterialsDispatchingFileModel.type="File";
+                    camForm.variableManager.createVariable($scope.actOfMaterialsDispatchingFileModel);
                 }
                 $scope.jobModel.resolutions.push({processInstanceId: $scope.processInstanceId, assignee: $rootScope.authentication.name, resolution: $scope.setDispatchStatusByWarehouseSpecialistTaskResult, comment: $scope.setDispatchStatusByWarehouseSpecialistComment, taskId: camForm.taskId});
                 camForm.variableManager.variableValue('resolutions', $scope.jobModel.resolutions);
@@ -127,13 +124,50 @@
             camForm.on('variables-restored', function() {
                 $scope.setDispatchStatusByWarehouseSpecialistTaskResult = camForm.variableManager.variableValue('setDispatchStatusByWarehouseSpecialistTaskResult');
             });
+
+            function getBase64(el, fileName){
+                console.log($scope[fileName]);
+                var reader = new FileReader();
+                reader.readAsArrayBuffer(el.files[0]);
+                reader.onloadend = function (e) {
+                    var binary = '';
+                    var bytes = new Uint8Array( e.target.result );
+                    var len = bytes.byteLength;
+                    for (var j = 0; j < len; j++) {
+                        binary += String.fromCharCode( bytes[ j ] );
+                    }
+                    $scope.$apply(function(){
+                        console.log(fileName);
+                        console.log($scope[fileName]);
+                        $scope[fileName].valueInfo = {
+                            filename: el.files[0].name,
+                            mimeType: el.files[0].type
+                        };
+                        $scope[fileName].value = btoa(binary);
+                    });
+                };
+                reader.onerror = function (error) {
+                    console.log('Error: ', error);
+                };
+            }
+
+            $scope.fileSelected = function(el, fileName){
+                if(el.files[0]){
+                    getBase64(el,fileName)
+                } else {
+                    $scope.$apply(function(){
+                        $scope[fileName] = undefined;
+                    });
+                }
+            };
         }]);
     </script>
     <job-request job-model="jobModel"></job-request>
     <div class="form-group">
         <label class="col-sm-4 control-label">Act of Materials Dispatching file:</label>
         <div class="col-sm-8">
-            <input type="file" class="form-control" cam-variable-name="actOfMaterialsDispatchingFile" cam-variable-type="File" cam-max-filesize="10000000" ng-required='false'/>
+            <input type="file" class="form-control" name="actOfMaterialsDispatchingFileModel" ng-model="actOfMaterialsDispatchingFileModel.file" required-file="setDispatchStatusByWarehouseSpecialistTaskResult === 'dispatched'" onchange="angular.element(this).scope().fileSelected(this, 'actOfMaterialsDispatchingFileModel')"/>
+            <label class="has-error" ng-show="myForm.actOfMaterialsDispatchingFileModel.$error.validFile">File is required</label>
         </div>
     </div>
     <div class="form-group">
