@@ -26,8 +26,6 @@ public class KcellDemoApplicationTest extends ProcessEngineTestCase {
         identityService.saveUser(newUser);
         identityService.setAuthenticatedUserId("demo");
 
-        Assert.assertNotNull(this.getClass().getResourceAsStream("/GetStarterEmail.groovy"));
-
         runtimeService.startProcessInstanceByKey("Test_Mail", variables);
 
 //        Task task = taskService.createTaskQuery().singleResult();

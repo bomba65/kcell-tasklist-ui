@@ -32,7 +32,19 @@
         <bpmn:conditionExpression xsi:type="bpmn:tFormalExpression"><![CDATA[${leasingCompletionTaskResult=='impossible'}]]></bpmn:conditionExpression>
       </bpmn:sequenceFlow>
       <bpmn:sequenceFlow id="SequenceFlow_1ywl9mw" name="" sourceRef="Task_18z71ln" targetRef="EndEvent_0zv5f6j" />
-      <bpmn:sendTask id="Task_18z71ln" name="Notify of impossibility of JR execution" camunda:class="kz.kcell.bpm.MyJavaDelegate">
+      <bpmn:sendTask id="Task_18z71ln" name="Notify of impossibility of JR execution">
+        <bpmn:extensionElements>
+          <camunda:connector>
+            <camunda:inputOutput>
+              <camunda:inputParameter name="to">Maulen.Kempirbayev@kcell.kz, Alexey.Khudaev@kcell.kz</camunda:inputParameter>
+              <camunda:inputParameter name="subject">JR Execution Impossible</camunda:inputParameter>
+              <camunda:inputParameter name="html">
+                <camunda:script scriptFormat="freemarker" resource="LeasingImpossibleMessage.ftl" />
+              </camunda:inputParameter>
+            </camunda:inputOutput>
+            <camunda:connectorId>mail-send</camunda:connectorId>
+          </camunda:connector>
+        </bpmn:extensionElements>
         <bpmn:incoming>SequenceFlow_1awdwuw</bpmn:incoming>
         <bpmn:outgoing>SequenceFlow_1ywl9mw</bpmn:outgoing>
       </bpmn:sendTask>
@@ -110,7 +122,19 @@
       <bpmn:sequenceFlow id="SequenceFlow_00qbbhz" name="not approved, request corrections" sourceRef="ExclusiveGateway_0t2jovj" targetRef="EndEvent_0ze2bsp">
         <bpmn:conditionExpression xsi:type="bpmn:tFormalExpression"><![CDATA[${checkDocsAndApproveBySiteLeasingTaskResult=='notApproved'}]]></bpmn:conditionExpression>
       </bpmn:sequenceFlow>
-      <bpmn:sendTask id="Task_09uy9fl" name="Alarm of Permission not Given for Revision JR by e-mail" camunda:class="kz.kcell.bpm.MyJavaDelegate">
+      <bpmn:sendTask id="Task_09uy9fl" name="Alarm of Permission not Given for Revision JR by e-mail">
+        <bpmn:extensionElements>
+          <camunda:connector>
+            <camunda:inputOutput>
+              <camunda:inputParameter name="to">Nurzhan.Mynbayev@kcell.kz, Sergey.Grigor@kcell.kz, Andrey.Medvedev@kcell.kz</camunda:inputParameter>
+              <camunda:inputParameter name="subject">Permission not given for Revision JR</camunda:inputParameter>
+              <camunda:inputParameter name="html">
+                <camunda:script scriptFormat="freemarker" resource="PermissionNotGivenForJRMessage.ftl" />
+              </camunda:inputParameter>
+            </camunda:inputOutput>
+            <camunda:connectorId>mail-send</camunda:connectorId>
+          </camunda:connector>
+        </bpmn:extensionElements>
         <bpmn:incoming>SequenceFlow_10rgai8</bpmn:incoming>
         <bpmn:outgoing>SequenceFlow_1fnfk0m</bpmn:outgoing>
       </bpmn:sendTask>
@@ -395,6 +419,9 @@
       <bpmn:sequenceFlow id="SequenceFlow_0mxowg3" sourceRef="Task_0s5v6wl" targetRef="ExclusiveGateway_1l2kum0" />
       <bpmn:userTask id="Task_0s5v6wl" name="PR Status" camunda:formKey="embedded:app:forms/revision/updatePRStatusBySAPSpecialist.html" camunda:assignee="Aigerim.Segizbayeva@kcell.kz">
         <bpmn:documentation>Update PR Status by SAP Specialist</bpmn:documentation>
+        <bpmn:extensionElements>
+          <camunda:formData />
+        </bpmn:extensionElements>
         <bpmn:incoming>SequenceFlow_1i35baw</bpmn:incoming>
         <bpmn:incoming>SequenceFlow_1ss7wlc</bpmn:incoming>
         <bpmn:outgoing>SequenceFlow_0mxowg3</bpmn:outgoing>
@@ -516,7 +543,7 @@
       <bpmn:sequenceFlow id="SequenceFlow_1troz3f" name="approved" sourceRef="ExclusiveGateway_0aqvpql" targetRef="ExclusiveGateway_125e0rj">
         <bpmn:conditionExpression xsi:type="bpmn:tFormalExpression"><![CDATA[${regionGroupHeadApprovalTaskResult == 'approved'}]]></bpmn:conditionExpression>
       </bpmn:sequenceFlow>
-      <bpmn:sendTask id="Task_1j7ew7f" name="Notification: JR execution impossible">
+      <bpmn:sendTask id="Notify_Cant_Fix_JR" name="Notification: JR execution impossible">
         <bpmn:extensionElements>
           <camunda:connector>
             <camunda:inputOutput>
@@ -524,7 +551,9 @@
                 <camunda:script scriptFormat="groovy" resource="GetStarterEmail.groovy" />
               </camunda:inputParameter>
               <camunda:inputParameter name="subject"><![CDATA[Can't fix JR]]></camunda:inputParameter>
-              <camunda:inputParameter name="text">${ regionGroupHeadApprovalComment }</camunda:inputParameter>
+              <camunda:inputParameter name="html">
+                <camunda:script scriptFormat="freemarker" resource="CantFixJobRequestMessage.ftl" />
+              </camunda:inputParameter>
             </camunda:inputOutput>
             <camunda:connectorId>mail-send</camunda:connectorId>
           </camunda:connector>
@@ -532,10 +561,10 @@
         <bpmn:incoming>SequenceFlow_1tkoxjb</bpmn:incoming>
         <bpmn:outgoing>SequenceFlow_05dm0js</bpmn:outgoing>
       </bpmn:sendTask>
-      <bpmn:sequenceFlow id="SequenceFlow_1tkoxjb" name="can&#39;t fix" sourceRef="ExclusiveGateway_0aqvpql" targetRef="Task_1j7ew7f">
+      <bpmn:sequenceFlow id="SequenceFlow_1tkoxjb" name="can&#39;t fix" sourceRef="ExclusiveGateway_0aqvpql" targetRef="Notify_Cant_Fix_JR">
         <bpmn:conditionExpression xsi:type="bpmn:tFormalExpression"><![CDATA[${regionGroupHeadApprovalTaskResult == 'cantFix'}]]></bpmn:conditionExpression>
       </bpmn:sequenceFlow>
-      <bpmn:sequenceFlow id="SequenceFlow_05dm0js" sourceRef="Task_1j7ew7f" targetRef="EndEvent_03do2v0" />
+      <bpmn:sequenceFlow id="SequenceFlow_05dm0js" sourceRef="Notify_Cant_Fix_JR" targetRef="EndEvent_03do2v0" />
       <bpmn:userTask id="Task_1xhzfxw" name="Check Power" camunda:formKey="embedded:app:forms/revision/checkByPowerEngineerAndMakeCalculations.html" camunda:candidateUsers="Yevgeniy.Elunin@kcell.kz, Yermek.Tanabekov@kcell.kz, Alexey.Kolesnikov@kcell.kz">
         <bpmn:documentation>Check by Power engineer and make calculations</bpmn:documentation>
         <bpmn:incoming>SequenceFlow_1p9994w</bpmn:incoming>
@@ -718,7 +747,17 @@
         <bpmn:conditionExpression xsi:type="bpmn:tFormalExpression"><![CDATA[${generateAcceptanceDocsAndSaveToAssetManagementTaskResult== 'submitToLeasing'}]]></bpmn:conditionExpression>
       </bpmn:sequenceFlow>
       <bpmn:sequenceFlow id="SequenceFlow_1mn2lcw" sourceRef="Task_1vniyf0" targetRef="EndEvent_1h89z2r" />
-      <bpmn:sendTask id="Task_1vniyf0" name="Notify of requiring submit to leasing " camunda:class="kz.kcell.bpm.MyJavaDelegate">
+      <bpmn:sendTask id="Task_1vniyf0" name="Notify of requiring submit to leasing ">
+        <bpmn:extensionElements>
+          <camunda:connector>
+            <camunda:inputOutput>
+              <camunda:inputParameter name="to">Askar.Slambekov@kcell.kz</camunda:inputParameter>
+              <camunda:inputParameter name="subject">Job Request Requires Submit to Leasing</camunda:inputParameter>
+              <camunda:inputParameter name="text">Не знаю, кого уведомлять, поэтому уведомляю вас :)</camunda:inputParameter>
+            </camunda:inputOutput>
+            <camunda:connectorId>mail-send</camunda:connectorId>
+          </camunda:connector>
+        </bpmn:extensionElements>
         <bpmn:incoming>SequenceFlow_1gr7bbx</bpmn:incoming>
         <bpmn:outgoing>SequenceFlow_1mn2lcw</bpmn:outgoing>
       </bpmn:sendTask>
@@ -752,7 +791,21 @@
       <bpmn:conditionExpression xsi:type="bpmn:tFormalExpression"><![CDATA[${fillAppliedChangesInfoByContractorTaskResult=='notAvailable'}]]></bpmn:conditionExpression>
     </bpmn:sequenceFlow>
     <bpmn:sequenceFlow id="SequenceFlow_01n47ri" sourceRef="Task_0y93m8z" targetRef="EndEvent_1pp7st1" />
-    <bpmn:sendTask id="Task_0y93m8z" name="Notify of Job Request Completion" camunda:expression="console.log(&#39;log&#39;)">
+    <bpmn:sendTask id="Task_0y93m8z" name="Notify of Job Request Completion">
+      <bpmn:extensionElements>
+        <camunda:connector>
+          <camunda:inputOutput>
+            <camunda:inputParameter name="to">
+              <camunda:script scriptFormat="groovy" resource="GetStarterEmail.groovy" />
+            </camunda:inputParameter>
+            <camunda:inputParameter name="subject">JR Complete</camunda:inputParameter>
+            <camunda:inputParameter name="html">
+              <camunda:script scriptFormat="freemarker" resource="JRCompleteMessage.ftl" />
+            </camunda:inputParameter>
+          </camunda:inputOutput>
+          <camunda:connectorId>mail-send</camunda:connectorId>
+        </camunda:connector>
+      </bpmn:extensionElements>
       <bpmn:incoming>SequenceFlow_0fhdfes</bpmn:incoming>
       <bpmn:incoming>SequenceFlow_0paiubf</bpmn:incoming>
       <bpmn:outgoing>SequenceFlow_01n47ri</bpmn:outgoing>
@@ -1877,7 +1930,7 @@
           <dc:Bounds x="-3802" y="-350" width="46" height="12" />
         </bpmndi:BPMNLabel>
       </bpmndi:BPMNEdge>
-      <bpmndi:BPMNShape id="SendTask_0mh2pym_di" bpmnElement="Task_1j7ew7f">
+      <bpmndi:BPMNShape id="SendTask_0mh2pym_di" bpmnElement="Notify_Cant_Fix_JR">
         <dc:Bounds x="-3195" y="-225" width="100" height="80" />
       </bpmndi:BPMNShape>
       <bpmndi:BPMNEdge id="SequenceFlow_1tkoxjb_di" bpmnElement="SequenceFlow_1tkoxjb">
