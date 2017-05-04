@@ -81,7 +81,12 @@ public class MailTaskAssigneeListener implements TaskListener {
 
             final String baseUrl = configuration.getProperties().getProperty("mail.message.baseurl", "http://localhost");
 
-            email.setMsg("Please complete: " + baseUrl + "/camunda/app/tasklist/default/#/?task=" + taskId);
+            email.setMsg("Добрый день.\n" +
+                    "\n" +
+                    "В рамках процесса одобрения заявок на проведение работ, в системе Kcell Workflow создана заявка, ожидающая вашего одобрения. Для просмотра заявки необходимо пройти по следующей ссылке: " + baseUrl + "/camunda/app/tasklist/default/#/?task=" + taskId +
+                    "\n" +
+                    "\n" +
+                    "Пройдя по следующей ссылке на страницу в HUB.Kcell.kz, вы можете оставить в поле комментариев свои замечания и/или пожелания относительно функционала и интерфейса системы: https://hub.kcell.kz/x/kYNoAg");
 
             email.addTo(recipient);
 

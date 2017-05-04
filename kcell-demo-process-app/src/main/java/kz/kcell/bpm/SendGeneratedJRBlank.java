@@ -555,7 +555,10 @@ public class SendGeneratedJRBlank implements JavaDelegate {
 
             email.setFrom(configuration.getSender());
             email.setSubject("JR " + jrNumber + " Blank");
-            email.setMsg("Your JR Approved. JR Blank attached");
+            email.setMsg("Your JR Approved. JR Blank attached\n" +
+                    "\n" +
+                    "\n" +
+                    "Пройдя по следующей ссылке на страницу в HUB.Kcell.kz, вы можете оставить в поле комментариев свои замечания и/или пожелания относительно функционала и интерфейса системы: https://hub.kcell.kz/x/kYNoAg");
             email.addTo(recipient);
             email.attach(source, "jr-blank.xlsx", "Job Request blank");
 
