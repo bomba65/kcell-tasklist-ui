@@ -5,7 +5,7 @@
 </p>
 
 <p>
-    Request was rejected with comment: ${regionGroupHeadApprovalComment!'(No comment)'}
+    PR cannot be created with comment: ${sapLeasingCompletionComment!'(No comment)'}
 </p>
 <br/>
 <p>
