@@ -136,7 +136,7 @@ public class MailDeliveryTest {
     @Test
     public void testCantFixNotification() throws Exception {
         Map<String, Object> variables = new HashMap<>();
-        variables.put("starter", "yernaz.kalingarayev");
+        variables.put("starter", "cantfixuser");
         variables.put("jrNumber", "jrNumber");
         variables.put("regionGroupHeadApprovalComment", "Что-то там не так");
         variables.put("regionGroupHeadApprovalTaskResult", "cantFix");
@@ -144,8 +144,8 @@ public class MailDeliveryTest {
 
         // Create the user that will be informed on assignment
         IdentityService identityService = processEngineRule.getIdentityService();
-        User newUser = identityService.newUser("yernaz.kalingarayev");
-        newUser.setEmail("yernaz.kalingarayev@kcell.kz");
+        User newUser = identityService.newUser("cantfixuser");
+        newUser.setEmail("cantfixuser@kcell.kz");
         identityService.saveUser(newUser);
 
         identityService.setAuthenticatedUserId("demo");

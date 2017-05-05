@@ -21,6 +21,8 @@ public class KcellDemoApplication extends ServletProcessApplication {
                  */
                 if (TaskListener.EVENTNAME_ASSIGNMENT.equals(delegateTask.getEventName())) {
                     new MailTaskAssigneeListener().notify(delegateTask);
+                } else if (TaskListener.EVENTNAME_CREATE.equals(delegateTask.getEventName())) {
+                    new MailTaskCandidatesListener().notify(delegateTask);
                 }
             }
         };
