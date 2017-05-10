@@ -14,13 +14,17 @@ import java.util.Scanner;
 public class GenerateJobRequestNumber implements TaskListener {
     @Override
     public void notify(DelegateTask delegateTask) {
-        //"###-"+$scope.project.split(' ').join('')+"-"+(new Date().getFullYear().toString().substr(-2))+"####_"+$scope.siteName;
-        String project = (String) delegateTask.getVariable("project");
-        String siteName = (String) delegateTask.getVariable("siteName");
-        String site = (String) delegateTask.getVariable("site");
-        int counter = getNextSiteCounter(site);
-        String jrNumber = String.format("%s-%s-%ty-%04d_%s", "###", project.replaceAll(" ", ""), new Date(), counter, siteName);
-        delegateTask.setVariable("jrNumber", jrNumber);
+//        String project = (String) delegateTask.getVariable("project");
+//        String siteName = (String) delegateTask.getVariable("siteName");
+//        String site = (String) delegateTask.getVariable("site");
+//        String counterNumber = (String) delegateTask.getVariable("counterNumber");
+//        if (counterNumber == null) {
+//            int counter = getNextSiteCounter(site);
+//            counterNumber = String.format("%04d", counter);
+//        }
+//        delegateTask.setVariable("counterNumber", counterNumber);
+//        String jrNumber = String.format("%s-%s-%ty-%s_%s", "###", project.replaceAll(" ", ""), new Date(), counterNumber, siteName);
+//        delegateTask.setVariable("jrNumber", jrNumber);
     }
 
     public int getNextSiteCounter(String siteId) {

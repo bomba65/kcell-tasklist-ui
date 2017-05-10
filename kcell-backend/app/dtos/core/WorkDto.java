@@ -17,6 +17,7 @@ public class WorkDto {
     public ServiceDto service;
     public String sapServiceNumber;
     public String sapPOServiceName;
+    public String displayServiceName;
     public Long netPrice;
     public Currency currency;
     public String faClass;
@@ -39,6 +40,7 @@ public class WorkDto {
             this.service = new ServiceDto(work.getService());
             this.sapServiceNumber = work.getSapServiceNumber();
             this.sapPOServiceName = work.getSapPOServiceName();
+            this.displayServiceName = work.getDisplayServiceName();
             this.netPrice = work.getNetPrice();
             this.currency = work.getCurrency();
             this.faClass = work.getFaClass();

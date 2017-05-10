@@ -3,11 +3,13 @@
         color: #333;
     }
 </style>
-<form role="form" class="form-horizontal">
+<form role="form" class="form-horizontal" name="kcell_form">
     <script cam-script type="text/form-script">
         inject(['$scope', '$http', 'Uri', '$rootScope', '$q', function ($scope, $http, Uri, $rootScope, $q) {
             var variables = [
                 'requestedDate',
+                'jrNumber',
+                'initiatorFull',
                 'validityDate',
                 'soaComplaintId',
                 'site',
@@ -26,6 +28,7 @@
                 'supplementaryFile5',
                 'explanation',
                 'resolutions',
+                'workPrices',
                 'jobWorks'
             ];
 
@@ -87,13 +90,27 @@
                                 }
                             })
                         });
+                    } else if(el === 'workPrices'){
+                        $scope.jobModel[el] = JSON.parse(camForm.variableManager.variables[el].originalValue);
                     } else {
                         $scope.jobModel[el] = camForm.variableManager.variables[el];
                     }
                 });
+                $scope.jobModel.jobWorksTotal = 0;
+                $scope.jobModel.jobWorksPriceTotal = 0;
+                $scope.jobModel.jobWorksTransportationTotal = 0;
+                console.log($scope.jobModel.workPrices);
+                for(var i=0;i<$scope.jobModel.workPrices.length;i++){
+                    $scope.jobModel.workPrices[i].transportationPrice = $scope.jobModel.workPrices[i].price * 0.08;
+                    $scope.jobModel.workPrices[i].totalPrice = $scope.jobModel.workPrices[i].price + $scope.jobModel.workPrices[i].transportationPrice;
+                    $scope.jobModel.jobWorksPriceTotal += $scope.jobModel.workPrices[i].price;
+                    $scope.jobModel.jobWorksTotal += $scope.jobModel.workPrices[i].totalPrice;
+                    $scope.jobModel.jobWorksTransportationTotal += $scope.jobModel.workPrices[i].transportationPrice;
+                }
             });
 
             camForm.on('submit', function () {
+                camForm.variableManager.variableValue('workPrices', JSON.parse(angular.toJson($scope.jobModel.workPrices)));
                 camForm.variableManager.variableValue('centralGroupHeadApprovalTaskResult', $scope.centralGroupHeadApprovalTaskResult);
                 if ($scope.centralGroupHeadApprovalTaskResult === 'approved') {
                     camForm.variableManager.variableValue('createJRResult', 'approved');
@@ -111,9 +128,45 @@
             camForm.on('variables-restored', function() {
                 $scope.centralGroupHeadApprovalTaskResult = camForm.variableManager.variableValue('centralGroupHeadApprovalTaskResult');
             });
+
+            $scope.priceChanged = function(){
+                $scope.jobModel.jobWorksTotal = 0;
+                $scope.jobModel.jobWorksPriceTotal = 0;
+                $scope.jobModel.jobWorksTransportationTotal = 0;
+                for(var i=0;i<$scope.jobModel.workPrices.length;i++){
+                    $scope.jobModel.workPrices[i].transportationPrice = $scope.jobModel.workPrices[i].price * 0.08;
+                    $scope.jobModel.workPrices[i].totalPrice = $scope.jobModel.workPrices[i].price + $scope.jobModel.workPrices[i].transportationPrice;
+                    $scope.jobModel.jobWorksPriceTotal += $scope.jobModel.workPrices[i].price;
+                    $scope.jobModel.jobWorksTotal += $scope.jobModel.workPrices[i].totalPrice;
+                    $scope.jobModel.jobWorksTransportationTotal += $scope.jobModel.workPrices[i].transportationPrice;
+                }
+                console.log($scope.jobModel);
+            }
         }]);
     </script>
     <job-request job-model="jobModel"></job-request>
+    <div class="row">
+        <div class="col-md-6"><b>Works</b>:</div>
+        <div class="col-md-2"><b>Price</b>:</div>
+        <div class="col-md-2"><b>Transportation 8%</b></div>
+        <div class="col-md-2"><b>Total</b>:</div>
+        <div class="col-md-12">
+            <div ng-repeat="work in jobModel.workPrices" class="row">
+                <div class="col-md-6">&nbsp;&nbsp;&nbsp;&nbsp;{{jobModel.worksTitle[work.sapServiceNumber]}}</span></div>
+                <div class="col-md-2"><input type="number" step="0.01" ng-model="work.price" ng-change="priceChanged()"></div>
+                <div class="col-md-2"><b>{{work.transportationPrice.toFixed(2)}} тенге</b></div>
+                <div class="col-md-2"><b>{{work.totalPrice.toFixed(2)}} тенге</b></div>
+            </div>
+        </div>
+    </div>
+    <hr/>
+    <div class="row">
+        <div class="col-md-6"><b>Total:</b></div>
+        <div class="col-md-2"><b>{{jobModel.jobWorksPriceTotal}} тенге</b></div>
+        <div class="col-md-2"><b>{{jobModel.jobWorksTransportationTotal.toFixed(2)}} тенге</b></div>
+        <div class="col-md-2"><b>{{jobModel.jobWorksTotal.toFixed(2)}} тенге</b></div>
+    </div>
+    <br/>
     <div class="form-group">
         <label class="col-sm-4 control-label">Resolution</label>
         <div class="col-sm-8">
@@ -132,7 +185,7 @@
         </div>
     </div>
     <accordion>
-        <accordion-group>
+        <accordion-group is-open="isHistoryOpen">
             <accordion-heading>
                 History <i class="pull-right glyphicon" ng-class="{'glyphicon-chevron-up': status.isCustomHeaderOpen, 'glyphicon-chevron-down': !status.isCustomHeaderOpen}"></i>
             </accordion-heading>

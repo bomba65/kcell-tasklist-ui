@@ -1,0 +1,64 @@
+<div class="row">
+	<div class="col-md-2 no-float left">
+		<div class="left-wrapper">
+			<h4>Folders</h4>
+			<ul id="filters">
+				<li ng-repeat="filter in filters" ng-class="{active: filter.id == currentFilter.id}">
+					<a ng-click="selectFilter(filter)">{{filter.name}} ({{filter.itemCount}})</a>
+				</li>
+			</ul>
+			<h4>Processes</h4>
+			<ul id="definitions">
+				<li ng-repeat="pd in processDefinitions"><a ng-click="starProcess(pd.id)">{{pd.name}}</a></li>
+			</ul>
+			<h4>Tasks</h4>
+			<div class="scrollcontainer">
+				<div  class="scrollable">
+					<ul id="tasks">
+						<li ng-repeat="task in tasks" ng-click="loadTaskForm(task)" ng-class="{active: task.id == currentTask.id}">
+						  <div class="task">
+					          <h5>{{ (task.name || task.id) }}</h5>
+					          <div ng-if="task.description">{{ task.description }}</div>
+					          <small class="text-muted" ng-if="task.assignee">{{ task.assigneeObject.firstName }} {{ task.assigneeObject.lastName }}</small>
+					          <div ng-repeat="variable in task._embedded.variable" class="variable">
+					          	{{ variable.name }}: {{ variable.value }}
+					          </div>
+				          </div>
+				        </li>
+					</ul>
+				</div>
+			</div>
+		</div>
+	</div>
+	<div class="col-md-10 no-float right">
+		<div class="currentTask" ng-show="currentTask">
+		<div class="scrollcontainer">
+			<div  class="scrollable">
+				<div ng-if="!currentTask.assignee">
+					<a ng-click="claim(currentTask)"><i class="glyphicon glyphicon-user ng-scope"></i> Claim</a>
+				</div>
+				<div ng-if="currentTask">
+					<h3>{{currentTask.description}}</h3>
+					<p>{{currentTask.processDefinitionId.split(':')[0]}}</p>
+					<hr/>
+				</div>
+				<ul class="nav nav-tabs">
+          			<li ng-class="{ active: selectedTab == 'form' }">
+						<a href="" ng-click="selectTab('form')">Form</a>
+          			</li>
+					<li ng-class="{ active: selectedTab == 'diagram' }">
+						<a href="" ng-click="selectTab('diagram')" class="ng-binding">Diagram</a>
+					</li>
+				</ul>
+				<div class="tab-content">
+					<div id="taskElement" ng-show="selectedTab == 'form'">
+					</div>
+					<div ng-show="selectedTab == 'diagram'">
+						<div class="diagram-pane" cam-widget-bpmn-viewer diagram-data="diagram.xml" on-load="highlightTask()" control="control"></div>
+					</div>
+				</div>
+			</div>
+		</div>
+		</div>
+	</div>
+</div>

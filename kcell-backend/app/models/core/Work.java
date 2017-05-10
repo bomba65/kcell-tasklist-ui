@@ -14,6 +14,7 @@ public class Work {
     private Service service;
     private String sapServiceNumber;
     private String sapPOServiceName;
+    private String displayServiceName;
     private Long netPrice;
     private Currency currency;
     private String faClass;
@@ -84,7 +85,7 @@ public class Work {
         this.sapServiceNumber = sapServiceNumber;
     }
 
-    @Column(name = "SAP_PO_SERVICE_NAME_")
+    @Column(name = "SAP_PO_SERVICE_NAME_", columnDefinition = "TEXT")
     public String getSapPOServiceName() {
         return sapPOServiceName;
     }
@@ -173,5 +174,14 @@ public class Work {
 
     public void setUnits(String units) {
         this.units = units;
+    }
+
+    @Column(name = "DISPLAY_SERVICE_NAME_", columnDefinition = "TEXT")
+    public String getDisplayServiceName() {
+        return displayServiceName;
+    }
+
+    public void setDisplayServiceName(String displayServiceName) {
+        this.displayServiceName = displayServiceName;
     }
 }

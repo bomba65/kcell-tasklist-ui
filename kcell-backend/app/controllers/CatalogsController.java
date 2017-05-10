@@ -127,7 +127,7 @@ public class CatalogsController extends Controller {
         }
         ObjectNode worksTitle = Json.newObject();
         for (Work work : works) {
-            worksTitle.put(work.getSapServiceNumber().toString(), work.getSapPOServiceName());
+            worksTitle.put(work.getSapServiceNumber().toString(), work.getDisplayServiceName());
         }
         node.put("unitsTitle", unitsTitle);
         node.put("reasonsTitle", reasonsTitle);

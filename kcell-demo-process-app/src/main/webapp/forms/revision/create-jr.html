@@ -40,11 +40,9 @@
         padding-bottom: 13px;
     }
 </style>
-<form role="form" class="form-horizontal">
+<form role="form" class="form-horizontal" name="kcell_form" novalidate="">
     <script cam-script type="text/form-script">
         inject([ '$scope', '$http', '$rootScope', '$q', function($scope, $http, $rootScope, $q) {
-            console.log($rootScope);
-            console.log(camForm);
             var variablesToCreate = [
                 {
                     name: 'requestedDate',
@@ -127,6 +125,18 @@
                     submit: true,
                     store: true,
                     value: []
+                },
+                {
+                    name: 'initiatorFull',
+                    type: 'Json',
+                    submit: true,
+                    store: true
+                },
+                {
+                    name: 'jrNumber',
+                    type: 'String',
+                    submit: true,
+                    store: true
                 }
             ];
 
@@ -208,9 +218,15 @@
                         });
                     }
                 });
+                $http.get('/camunda/api/engine/engine/default/user/'+$rootScope.authentication.name+'/profile').then(
+                        function(result){
+                            $scope.initiatorFull = result.data;
+                        },
+                        function(error){}
+                );
             });
 
-            camForm.on('submit', function () {
+            camForm.on('submit', function (e) {
                 variablesToCreate.forEach(function (el) {
                     if (el.submit) {
                         camForm.variableManager.variableValue(el.name, $scope[el.name]);
@@ -245,6 +261,10 @@
                     $scope.resolutions.push({processInstanceId: $scope.processInstanceId, assignee: $rootScope.authentication.name, resolution: 'createJr', comment: $scope.explanation, taskId: camForm.taskId});
                     camForm.variableManager.variableValue('resolutions', $scope.resolutions);
                 }
+                var jrn = $scope.regionShortName+'-'+$scope.contractorShortName[$scope.custom.contractor]+'-'+$scope.reasonShortName[$scope.reason]+'-'+$scope.requestedDate.getFullYear().toString().substr(-2)+'-'+$scope.siteCounter;
+                camForm.variableManager.variableValue('initiatorFull', $scope.initiatorFull);
+                camForm.variableManager.variableValue('jrNumber', jrn);
+                camForm.businessKey = jrn;
                 var validityDate = new Date($scope.validityDate);
                 camForm.variableManager.variableValue('validityDate', validityDate);
                 camForm.variableManager.variableValue('contract', parseInt($scope.custom.contract));
@@ -342,11 +362,18 @@
                             "name": "reason",
                             "operator": "eq",
                             "value": $scope.reason
+                        },{
+                            "name": "site",
+                            "operator": "eq",
+                            "value" : $scope.site
                         }]
                 };
+                console.log("==================== QUERY ====================");
+                console.log(query);
                 var path  = '/camunda/api/engine/engine/default/process-instance?firstResult='+($scope.page*5)+'&maxResults=5';
                 $http.post(path,query).then(
                     function(result){
+                        console.log(result.data);
                         $scope.page = $scope.page + 1;
                         var piIds = [];
                         if(result.data.length < 5){
@@ -372,8 +399,9 @@
                                             $scope.jobRequests[variables.data[i].processInstanceId][variables.data[i].name] = JSON.parse(variables.data[i].value);
                                         } else if(variables.data[i].name === 'supplementaryFile1' || variables.data[i].name === 'supplementaryFile2' || variables.data[i].name === 'supplementaryFile3' || variables.data[i].name === 'supplementaryFile4' || variables.data[i].name === 'supplementaryFile5'){
                                             $scope.jobRequests[variables.data[i].processInstanceId][variables.data[i].name] = variables.data[i];
-                                        }
-                                        else {
+                                        } else if(variables.data[i].name === 'initiatorFull'){
+                                            $scope.jobRequests[variables.data[i].processInstanceId][variables.data[i].name] = JSON.parse(variables.data[i].value);
+                                        } else {
                                             $scope.jobRequests[variables.data[i].processInstanceId][variables.data[i].name] = variables.data[i].value;
                                         }
 
@@ -507,6 +535,23 @@
             $scope.siteSelected = function($item){
                 $scope.siteName = $item.name;
                 $scope.site = $item.id;
+                $scope.jrNumber = "";
+                if($scope.siteName.startsWith('11')){
+                    $scope.regionShortName = $scope.regionsMap['11'];
+                } else {
+                    $scope.regionShortName = $scope.regionsMap[$scope.siteName.substring(0,1)];
+                }
+
+                $http.get('/asset-management/sitecounter/' + $scope.site).then(
+                    function(result){
+                        var s = result.data+"";
+                        while (s.length < 4) s = "0" + s;
+                        $scope.siteCounter = s;
+                    },
+                    function(error){
+                    }
+                );
+                refreshJobRequests();
             };
 
             $scope.clearSiteId = function(){
@@ -522,11 +567,42 @@
                     $scope.jobWorks[$index].sites = {id:undefined};
                 }
                 $scope.jobWorks[$index].sites.id = undefined;
+            };
+
+            $scope.regionsMap = {
+                '0': 'Alm',
+                '11':'Astana',
+                '1': 'N&C',
+                '2': 'N&C',
+                '3': 'East',
+                '4': 'South',
+                '5': 'West',
+                '6': 'West',
+                '7': 'West',
+                '8': 'West'
+            };
+            $scope.contractorShortName = {
+                '4': 'LSE'
+            };
+            $scope.reasonShortName = {
+                '1': 'P&O',
+                '2': 'TNU',
+                '3': 'S&FM',
+                '4': 'SAO'
             }
         }]);
 
     </script>
     <h4>Create job request</h4>
+    <div class="form-group">
+        <label class="col-sm-4 control-label required">JR Number:</label>
+        <div class="col-sm-3">
+            <div class="form-control">
+                <span ng-if="jrNumber">{{jrNumber}}</span>
+                <span ng-if="!jrNumber">{{regionShortName?regionShortName:'###'}}-{{contractorShortName[custom.contractor]?contractorShortName[custom.contractor]:'###'}}-{{reasonShortName[reason]?reasonShortName[reason]:'###'}}-{{requestedDate.getFullYear().toString().substr(-2)}}-{{siteCounter?siteCounter:'###'}}</span>
+            </div>
+        </div>
+    </div>
     <div class="form-group">
         <label class="col-sm-4 control-label">Requested date*</label>
         <div class="col-sm-3">
@@ -555,21 +631,24 @@
     <div class="form-group">
         <label class="col-sm-4 control-label required">Site *: {{siteObject}}</label>
         <div class="col-sm-3">
-            <input type="text" ng-model="siteName" typeahead="site as sites.name for sites in getSite($viewValue) | filter:$viewValue" typeahead-on-select="siteSelected($item,$model,$label)" class="form-control" required>
-            <input type="hidden" ng-model="site" required/>
+            <input type="text" ng-model="siteName" name="siteName" typeahead="site as sites.name for sites in getSite($viewValue) | filter:$viewValue" typeahead-on-select="siteSelected($item,$model,$label)" class="form-control" required autocomplete="off">
+            <input type="hidden" ng-model="site" name="siteId" required/>
+            <label class="error" ng-if="kcell_form.siteName.$error.required && ( kcell_form.siteName.$touched || view.submitted)">Обязательное поле</label>
+            <label class="error" ng-if="kcell_form.siteId.$error.required && ( kcell_form.siteName.$touched || view.submitted)">Необходимо выбрать сайт из списка</label>
         </div>
     </div>
     <div class="form-group">
         <label class="col-sm-4 control-label required">Reason*:</label>
         <div class="col-sm-3">
-            <select class="form-control" cam-variable-name="reason" required cam-variable-type="String" ng-change="refreshJobRequests()">
+            <select class="form-control" cam-variable-name="reason" name="reason" ng-required="true" cam-variable-type="String" ng-change="refreshJobRequests()">
                 <option value="">select reason</option>
                 <option value="{{r.id}}" ng-repeat="r in reasons" ng-selected="{{r.id == reason}}">{{r.name}}</option>
             </select>
+            <label class="error" ng-if="kcell_form.reason.$error.required && ( kcell_form.reason.$touched || view.submitted)">Обязательное поле</label>
         </div>
     </div>
     <div class="form-group">
-        <label class="col-sm-4 control-label">Related to the:</label>
+        <label class="col-sm-4 control-label required">Related to the: *</label>
         <div class="col-sm-8">
             <label class="radio-inline">
                 <input type="radio" name="relatedTo" required ng-model="relatedTo" value="Capacity"> Capacity
@@ -583,25 +662,27 @@
             <label class="radio-inline">
                 <input type="radio" name="relatedTo" required ng-model="relatedTo" value="Field works"> Field works
             </label>
+            <label class="error" ng-if="kcell_form.relatedTo.$error.required && ( kcell_form.relatedTo.$touched || view.submitted)">Обязательное поле</label>
         </div>
     </div>
     <div class="form-group">
         <label class="col-sm-4 control-label required">Contractor*:</label>
         <div class="col-sm-8">
             <div ng-if="conts.length == 0 || conts == undefined">Please select Contract</div>
-            <!-- NOT REQUIRED -->
             <label class="radio-inline" ng-repeat="c in conts">
                 <input type="radio" name="contractor" ng-model="custom.contractor" id="contractor{{$index}}" value="{{c.id}}" required> {{c.name}}
             </label>
+            <label class="error" ng-if="kcell_form.contractor.$error.required && ( kcell_form.contractor.$touched || view.submitted)">Обязательное поле</label>
         </div>
     </div>
     <div class="form-group">
         <label class="col-sm-4 control-label required">Type of project:</label>
         <div class="col-sm-3">
-            <select cam-variable-name="project" cam-variable-type="String" class="form-control" required>
+            <select cam-variable-name="project" name="project" cam-variable-type="String" class="form-control" required>
                 <option value="Astana Expo 2017">Astana Expo 2017</option>
                 <option value="N/A">N/A</option>
             </select>
+            <label class="error" ng-if="kcell_form.project.$error.required && ( kcell_form.project.$touched || view.submitted)">Обязательное поле</label>
         </div>
     </div>
     <div class="form-group">
@@ -614,6 +695,7 @@
             <label class="radio-inline">
                 <input type="radio" name="worksBelongsTo" ng-model="worksBelongsTo" id="worksBelongsTo2" value="No" required> No
             </label>
+            <label class="error" ng-if="kcell_form.worksBelongsTo.$error.required && ( kcell_form.worksBelongsTo.$touched || view.submitted)">Обязательное поле</label>
         </div>
     </div>
     <div class="form-group">
@@ -638,8 +720,32 @@
         <label class="col-sm-4 control-label">Running job requests for these sites ({{jobRequestsCount}} JRs)</label>
         <div class="col-sm-8">
             <div ng-repeat="(k,job) in jobRequests">
-                <a ng-click="toggleJr($index)">JR No. XYZ{{$index+1}}, Reason: {{reasonsTitle[job.reason]}}, Created at: {{job.requestedDate | date: 'dd.MM.yyyy'}}</a>
+                <a ng-click="toggleJr($index)">JR No. {{job.jrNumber}}{{$index+1}}, Reason: {{reasonsTitle[job.reason]}}, Created at: {{job.requestedDate | date: 'dd.MM.yyyy'}}</a>
                 <div ng-if="jrIndex === $index" class="animate-if" ng-animate-children>
+                    <div class="row">
+                        <div class="col-md-4"><b>Initiator</b>: {{job.initiatorFull.firstName}} {{job.initiatorFull.lastName}}</div>
+                        <div class="col-md-8"><b>JR Number</b>: {{job.jrNumber}}</div>
+                    </div>
+                    <div class="row">
+                        <div class="col-md-4"><b>Requested date</b>: {{job.requestedDate | date: 'dd.MM.yyyy HH:mm'}}</div>
+                        <div class="col-md-4"><b>Reason</b>: {{reasonsTitle[job.reason]}}</div>
+                        <div class="col-md-4"><b>Materials required</b>: {{job.materialsRequired}}</div>
+                    </div>
+                    <div class="row">
+                        <div class="col-md-4"><b>Validity date</b>: {{job.validityDate.value | date: 'dd.MM.yyyy'}}</div>
+                        <div class="col-md-4"><b>Contract</b>: {{servicesTitle[job.contract]}}</div>
+                        <div class="col-md-4"><b>Leasing required</b>: {{job.leasingRequired}}</div>
+                    </div>
+                    <div class="row">
+                        <div class="col-md-4"><b>SA&O Complaint Id</b>: {{job.soaComplaintId}}</div>
+                        <div class="col-md-4"><b>Contractor</b>: {{contractorsTitle[job.contractor]}}</div>
+                        <div class="col-md-4"><b>Site (near end)</b>: {{job.siteName}}</div>
+                    </div>
+                    <div class="row">
+                        <div class="col-md-4"><b>Power engineering required</b>: {{job.powerRequired}}</div>
+                        <div class="col-md-4"><b>Project</b>: {{job.project}}</div>
+                    </div>
+
                     <div class="row">
                         <div class="col-md-4">Requested date: {{job.requestedDate | date: 'dd.MM.yyyy HH:mm'}}</div>
                         <div class="col-md-4">Reason: {{reasonsTitle[job.reason]}}</div>
@@ -653,7 +759,7 @@
                     <div class="row">
                         <div class="col-md-4">SA&O Complaint Id: {{job.soaComplaintId}}</div>
                         <div class="col-md-4">Contractor: {{contractorsTitle[job.contractor]}}</div>
-                        <div class="col-md-4">Site (near end): {{job.site}}</div>
+                        <div class="col-md-4">Site (near end): {{job.siteName}}</div>
                     </div>
                     <div class="row">
                         <div class="col-md-12">Supplementary files:</div>
@@ -667,7 +773,7 @@
                     <div class="row">
                         <div class="col-md-12">Works:</div>
                         <div class="col-md-12" ng-repeat="work in job.jobWorks">
-                            <a href="javascript:void(0)">{{$index+1}}. {{worksTitle[work.sapServiceNumber]}}, works qty: {{work.quantity}}, materials qty: {{work.materialQuantity}} {{unitsTitle[work.unit]}}, on sites: {{work.sites}} (Near end)</a>
+                            <a href="javascript:void(0)">{{$index+1}}. {{worksTitle[work.sapServiceNumber]}}, works qty: {{work.quantity}}, <span ng-if="work.materialQuantity">materials qty: {{work.materialQuantity}} {{unitsTitle[work.unit]}},</span> on sites: {{work.sites}} (Near end)</a>
                         </div>
                     </div>
                     <div class="row">
@@ -683,67 +789,74 @@
     <h4>Works</h4>
     <div class="col-sm-12">
         <div class="row" ng-repeat="jobWork in jobWorks">
-            <div class="col-md-3" style="padding:0px">
-                <select ng-model="jobWork.sapServiceNumber" required class="form-control" ng-change="getUnits($index)">
-                    <option ng-repeat="work in works" ng-selected="{{work.sapServiceNumber == jobWork.sapServiceNumber}}" value="{{work.sapServiceNumber}}">{{work.sapPOServiceName}}</option>
-                </select>
-            </div>
-            <div class="col-md-2" style="padding:0px">
-                <div class="input-group">
-                    <span class="input-group-addon" style="padding-right:5px; background-color: #fff;border: 1px solid #fff;">Works Qty</span>
-                    <input type="number" class="form-control" required ng-model="jobWork.quantity" min="1"/>
+            <ng-form name="workForm">
+                <div class="col-md-3" style="padding:0px">
+                    <select ng-model="jobWork.sapServiceNumber" name="sapServiceNumber" required class="form-control" ng-change="getUnits($index)">
+                        <option ng-repeat="work in works" ng-selected="{{work.sapServiceNumber == jobWork.sapServiceNumber}}" value="{{work.sapServiceNumber}}">{{work.displayServiceName}}</option>
+                    </select>
+                    <label class="error" ng-if="workForm.sapServiceNumber.$error.required && ( workForm.sapServiceNumber.$touched || view.submitted)">Обязательное поле</label>
                 </div>
-            </div>
-            <div class="col-md-4" style="padding:0px">
-                <div class="input-group">
-                    <span class="input-group-addon" style="padding-right:5px; background-color: #fff;border: 1px solid #fff;">Materials Qty</span>
-                    <input type="number" class="form-control" required ng-model="jobWork.materialQuantity" min="1" required/>
-                    <span class="input-group-addon">{{jobWork.materialUnit}}</span>
+                <div class="col-md-2" style="padding:0px">
+                    <div class="input-group">
+                        <span class="input-group-addon" style="padding-right:5px; background-color: #fff;border: 1px solid #fff;">Works Qty</span>
+                        <input type="number" class="form-control" name="quantity" required ng-model="jobWork.quantity" min="1"/>
+                    </div>
+                    <label class="error" ng-if="workForm.quantity.$error.required && ( workForm.quantity.$touched || view.submitted)">Обязательное поле</label>
                 </div>
-            </div>
-            <div class="col-md-2" ng-if="reason == '2'" style="padding:0px">
-                <input type="text" ng-model="jobWork.sites.name" typeahead="site as sites.name for sites in getSite($viewValue) | filter:$viewValue" typeahead-on-select="siteJobWorkSelected($item,$index)" class="form-control">
-                <input type="hidden" ng-model="jobWork.sites.id" ng-required="jobWork.sites.name" />
-            </div>
+                <div class="col-md-4" style="padding:0px">
+                    <div class="input-group">
+                        <span class="input-group-addon" style="padding-right:5px; background-color: #fff;border: 1px solid #fff;">Materials Qty</span>
+                        <input type="number" class="form-control" name="materialQuantity" ng-model="jobWork.materialQuantity" min="1"/>
+                        <span class="input-group-addon">{{jobWork.materialUnit}}</span>
+                    </div>
+                    <label class="error" ng-if="workForm.materialQuantity.$error.required && ( workForm.materialQuantity.$touched || view.submitted)">Обязательное поле</label>
+                </div>
+                <div class="col-md-2" ng-if="reason == '2'" style="padding:0px">
+                    <input type="text" ng-model="jobWork.sites.name" name="workSiteName" typeahead="site as sites.name for sites in getSite($viewValue) | filter:$viewValue" typeahead-on-select="siteJobWorkSelected($item,$index)" class="form-control" autocomplete="off" placeholder="Far end site">
+                    <input type="hidden" ng-model="jobWork.sites.id" ng-required="jobWork.sites.name" />
+                    <label class="error" ng-if="workForm.workSiteName.$error.required && ( workForm.workSiteName.$touched || view.submitted)">Обязательное поле</label>
+                </div>
+            </ng-form>
             <div class="col-md-1"><button type="button" class="btn btn-sm btn-warning" ng-if="$index !== 0" ng-click="removeWork($index)"><i class="glyphicon glyphicon-trash"></i> Remove</button></div>
         </div>
         <div class="row">
-            <button type="button" class="btn btn-sm btn-primary" ng-click="addJobWork()"><i class="glyphicon glyphicon-plus"></i> Add work</button>
+            <button type="button" class="btn btn-sm btn-primary" style="margin-top: 10px;" ng-click="addJobWork()"><i class="glyphicon glyphicon-plus"></i> Add work</button>
         </div>
     </div>
     <div class="form-group">
         <label class="col-sm-4 control-label">Materials required*:</label>
         <div class="col-sm-8">
-            <input type="checkbox" class="form-control" cam-variable-name="materialsRequiredCheckbox" cam-variable-type="Boolean" />
+            <input type="checkbox" cam-variable-name="materialsRequiredCheckbox" cam-variable-type="Boolean" />
         </div>
     </div>
     <div class="form-group">
         <label class="col-sm-4 control-label">Leasing required*:</label>
         <div class="col-sm-8">
-            <input type="checkbox" class="form-control" cam-variable-name="leasingRequiredCheckbox" cam-variable-type="Boolean" />
+            <input type="checkbox" cam-variable-name="leasingRequiredCheckbox" cam-variable-type="Boolean" />
         </div>
     </div>
     <div class="form-group">
         <label class="col-sm-4 control-label">Power engineering required*:</label>
         <div class="col-sm-8">
-            <input type="checkbox" class="form-control" cam-variable-name="powerRequiredCheckbox" cam-variable-type="Boolean" />
+            <input type="checkbox" cam-variable-name="powerRequiredCheckbox" cam-variable-type="Boolean" />
         </div>
     </div>
     <div class="form-group" ng-show="showJump">
         <label class="col-sm-4 control-label"><b>Jump to Fill applied changed (test only)</b>*:</label>
         <div class="col-sm-8">
-            <input type="checkbox" class="form-control" cam-variable-name="ptypeCheckbox" cam-variable-type="Boolean" />
+            <input type="checkbox" cam-variable-name="ptypeCheckbox" cam-variable-type="Boolean" />
         </div>
     </div>
     <div class="form-group">
         <label class="col-sm-4 control-label">Explanation of works *</label>
         <div class="col-sm-8">
             <!-- NOT REQUIRED -->
-            <textarea class="form-control" cam-variable-name="explanation" cam-variable-type="String" placeholder="Explanation of works..." maxlength="500" rows="4" required></textarea>
+            <textarea class="form-control" name="explanation" cam-variable-name="explanation" cam-variable-type="String" placeholder="Explanation of works..." maxlength="500" rows="4" required></textarea>
+            <label class="error" ng-if="kcell_form.explanation.$error.required && ( kcell_form.explanation.$touched || view.submitted)">Обязательное поле</label>
         </div>
     </div>
     <accordion ng-if="jobModel.resolutions.length > 0">
-        <accordion-group>
+        <accordion-group is-open="isHistoryOpen">
             <accordion-heading>
                 History <i class="pull-right glyphicon" ng-class="{'glyphicon-chevron-up': status.isCustomHeaderOpen, 'glyphicon-chevron-down': !status.isCustomHeaderOpen}"></i>
             </accordion-heading>

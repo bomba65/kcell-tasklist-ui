@@ -130,7 +130,7 @@ public class MailDeliveryTest {
 
         Object result = engine.eval(new InputStreamReader(this.getClass().getResourceAsStream("/GetStarterEmail.groovy")), bindings);
 
-        assertEquals("testGetStarterEmail@kcell.kz", result);
+        assertEquals("testGetStarterEmail@kcell.kz, Askar.Slambekov@kcell.kz", result);
     }
 
     @Test
