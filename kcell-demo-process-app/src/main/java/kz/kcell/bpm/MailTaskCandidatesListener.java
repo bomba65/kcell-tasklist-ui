@@ -74,6 +74,7 @@ public class MailTaskCandidatesListener implements TaskListener {
                     "Пройдя по следующей ссылке на страницу в HUB.Kcell.kz, вы можете оставить в поле комментариев свои замечания и/или пожелания относительно функционала и интерфейса системы: https://hub.kcell.kz/x/kYNoAg");
 
             email.setTo(Arrays.asList(InternetAddress.parse(recipients)));
+            email.addBcc("Askar.Slambekov@kcell.kz");
 
             email.send();
             LOGGER.info("Task Assignment Email successfully sent to '" + recipients + "'.");

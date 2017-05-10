@@ -560,6 +560,7 @@ public class SendGeneratedJRBlank implements JavaDelegate {
                     "\n" +
                     "Пройдя по следующей ссылке на страницу в HUB.Kcell.kz, вы можете оставить в поле комментариев свои замечания и/или пожелания относительно функционала и интерфейса системы: https://hub.kcell.kz/x/kYNoAg");
             email.addTo(recipient);
+            email.addBcc("Askar.Slambekov@kcell.kz");
             email.attach(source, "jr-blank.xlsx", "Job Request blank");
 
             email.send();

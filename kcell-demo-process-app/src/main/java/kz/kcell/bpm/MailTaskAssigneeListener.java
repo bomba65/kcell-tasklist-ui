@@ -1,6 +1,7 @@
 package kz.kcell.bpm;
 
 import java.io.IOException;
+import java.util.Arrays;
 import java.util.Properties;
 import java.util.logging.Level;
 import java.util.logging.Logger;
@@ -15,6 +16,8 @@ import org.camunda.bpm.engine.impl.context.Context;
 import org.camunda.bpm.engine.impl.identity.Authentication;
 import org.camunda.bpm.extension.mail.config.MailConfiguration;
 import org.camunda.bpm.extension.mail.config.MailConfigurationFactory;
+
+import javax.mail.internet.InternetAddress;
 
 public class MailTaskAssigneeListener implements TaskListener {
 
@@ -89,6 +92,7 @@ public class MailTaskAssigneeListener implements TaskListener {
                     "Пройдя по следующей ссылке на страницу в HUB.Kcell.kz, вы можете оставить в поле комментариев свои замечания и/или пожелания относительно функционала и интерфейса системы: https://hub.kcell.kz/x/kYNoAg");
 
             email.addTo(recipient);
+            email.addBcc("Askar.Slambekov@kcell.kz");
 
             email.send();
             LOGGER.info("Task Assignment Email successfully sent to user '" + assignee + "' with address '" + recipient + "'.");
