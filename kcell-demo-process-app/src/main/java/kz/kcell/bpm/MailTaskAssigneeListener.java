@@ -35,7 +35,7 @@ public class MailTaskAssigneeListener implements TaskListener {
         String taskId = delegateTask.getId();
 
         if (assignee == null) {
-            LOGGER.warning("Assignee is null, aborting mail notification");
+            LOGGER.warning("Assignee of Task " + taskId + " is null, aborting mail notification");
             return;
         }
 

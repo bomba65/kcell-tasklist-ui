@@ -577,7 +577,7 @@ public class SendGeneratedJRBlank implements JavaDelegate {
         String recipient = (String) delegateExecution.getVariable("starter");
 
         if (recipient == null) {
-            LOGGER.warning("Assignee is null, aborting mail notification");
+            LOGGER.warning("Recipient is null for activity instance " + delegateExecution.getActivityInstanceId() + ", aborting mail notification");
             return;
         }
 
