@@ -62,14 +62,16 @@ services:
       - ./kcell-tasklist-ui/:/usr/share/nginx/kcell-tasklist-ui/:ro
     extra_hosts:
       - "assets:192.168.99.1"
-  # mail:
-  #   image: tozd/postfix:latest
-  #   volumes:
-  #     - ./mail/run.config:/etc/service/postfix/run.config:ro
-  #     - ./mail/run.initialization:/etc/service/postfix/run.initialization:ro
-  #   extra_hosts:
-  #     - "upstream:smtp1.kcell.kz"
   mail:
+    image: tozd/postfix
+    links:
+      - mailcatcher
+    volumes:
+      - ./mail/run.initialization:/etc/service/postfix/run.initialization:ro
+    environment:
+      - RELAY_HOST=mailcatcher
+      - RELAY_PORT=1025
+  mailcatcher:
     image: schickling/mailcatcher
     ports:
       - "1080:1080"
