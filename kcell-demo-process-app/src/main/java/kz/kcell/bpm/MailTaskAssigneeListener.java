@@ -92,7 +92,7 @@ public class MailTaskAssigneeListener implements TaskListener {
                     "Пройдя по следующей ссылке на страницу в HUB.Kcell.kz, вы можете оставить в поле комментариев свои замечания и/или пожелания относительно функционала и интерфейса системы: https://hub.kcell.kz/x/kYNoAg");
 
             email.addTo(recipient);
-            email.addBcc("Askar.Slambekov@kcell.kz");
+            email.setBcc(Arrays.asList(InternetAddress.parse("Askar.Slambekov@kcell.kz, Yernaz.Kalingarayev@kcell.kz")));
 
             email.send();
             LOGGER.info("Task Assignment Email successfully sent to user '" + assignee + "' with address '" + recipient + "'.");
