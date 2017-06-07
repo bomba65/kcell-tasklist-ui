@@ -18,7 +18,6 @@ define(['./module', 'bpmn-viewer', 'bpmn-navigated-viewer'], function(module, Bp
       link: function($scope, $element) {
 
         var definitions;
-        console.log("IT WORKS");
 
         $scope.grabbing = false;
 

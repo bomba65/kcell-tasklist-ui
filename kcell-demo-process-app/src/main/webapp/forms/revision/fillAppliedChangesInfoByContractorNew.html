@@ -1,4 +1,23 @@
-<form role="form" class="form-horizontal kcell-form-custom" name="kcell_form">
+<style>
+    .badge1 {
+        position:relative;
+    }
+    .badge1[data-badge]:after {
+        content:attr(data-badge);
+        position:absolute;
+        top:-10px;
+        right:-10px;
+        font-size:.7em;
+        background:green;
+        color:white;
+        width:18px;height:18px;
+        text-align:center;
+        line-height:18px;
+        border-radius:50%;
+        box-shadow:0 0 1px #333;
+    }
+</style>
+<form role="form" class="form-horizontal kcell-form-custom" name="kcell_form" novalidate>
     <script cam-script type="text/form-script">
         inject(['$scope', '$http', 'Uri', '$rootScope', '$q', function ($scope, $http, Uri, $rootScope, $q) {
             var variables = [
@@ -44,6 +63,8 @@
             } else {
                 diff = window.DeepDiff;
             }
+
+            console.log(diff);
 
             $http.get('/camunda/api/engine/engine/default/task/' + camForm.taskId).then(
                 function(result){
@@ -191,26 +212,26 @@
             });
 
             camForm.on('submit', function () {
-                $scope.createCommandsDocument();
-                $scope.createSummaryDocument();
-                console.log(JSON.stringify($scope.commands));
-                $scope.sitesWorks.forEach(function(e,i){
-                    e.files.forEach(function(f, j){
-                        console.log("FILE");
-                        console.log(f);
-                        if(f.value){
-                            console.log(f);
-                            f.name = 'works_'+i+'_file_'+j;
-                            f.type = 'File';
-                            camForm.variableManager.createVariable(f);
-                        }
-                    });
-                });
-                camForm.variableManager.variableValue('commands', JSON.parse(angular.toJson($scope.commands)));
-                camForm.variableManager.variableValue('summaries', JSON.parse(angular.toJson($scope.summaries)));
-                camForm.variableManager.variableValue('fillSite', JSON.parse(angular.toJson($scope.fillSite)));
                 camForm.variableManager.variableValue('fillAppliedChangesInfoByContractorTaskResult', $scope.fillAppliedChangesInfoByContractorTaskResult);
                 if ($scope.fillAppliedChangesInfoByContractorTaskResult == 'saveChanges') {
+                    $scope.createCommandsDocument();
+                    $scope.createSummaryDocument();
+                    console.log(JSON.stringify($scope.commands));
+                    $scope.sitesWorks.forEach(function(e,i){
+                        e.files.forEach(function(f, j){
+                            console.log("FILE");
+                            console.log(f);
+                            if(f.value){
+                                console.log(f);
+                                f.name = 'works_'+i+'_file_'+j;
+                                f.type = 'File';
+                                camForm.variableManager.createVariable(f);
+                            }
+                        });
+                    });
+                    camForm.variableManager.variableValue('commands', JSON.parse(angular.toJson($scope.commands)));
+                    camForm.variableManager.variableValue('summaries', JSON.parse(angular.toJson($scope.summaries)));
+                    camForm.variableManager.variableValue('fillSite', JSON.parse(angular.toJson($scope.fillSite)));
                     camForm.variableManager.variableValue('fillApplied', 'saveChanges');
                 } else if ($scope.fillAppliedChangesInfoByContractorTaskResult == 'cannotPerform') {
                     camForm.variableManager.variableValue('fillApplied', 'cannotPerform');
@@ -743,9 +764,11 @@
                     transmissions: []
                 };
                 if(fillSite !== undefined){
+                    console.log("FILL SITE IS NOT NULL");
                     summary.facility = _.flatMap(fillSite.facilities, function(e){
                         var original = angular.copy(e._original);
                         var modified = angular.copy(e);
+                        console.log(original, modified);
                         if(original){
                             original = _.omitBy(original, function(value, key){
                                 return key.indexOf('_') === 0 ;
@@ -814,8 +837,8 @@
                         modified = _.omitBy(modified, function(value, key){
                             return key.indexOf('_') === 0;
                         });
-                        var delta = diff(original, modified);
                         if(e._command === 'MODIFY_POWERSOURCE'){
+                            var delta = diff(original, modified);
                             var result = [{command: e._command, lhs: original, rhs: modified, delta: delta}];
                             for(var i=0;i<result[0].delta.length;i++){
                                 if(result[0].delta[i].path){
@@ -882,8 +905,8 @@
                         modified = _.omitBy(modified, function(value, key){
                             return key.indexOf('_') === 0  || key === 'farEnd' || key === 'nearEnd' || key === 'definition' || key === 'valid';
                         });
-                        var delta = diff(original, modified);
                         if(e._command === 'MODIFY_CONNECTION'){
+                            var delta = diff(original, modified);
                             return [{command: e._command, lhs: original, rhs: modified, delta: delta}];
                         } else if(e._command === 'CONNECT_EQUIPMENT'){
                             modified = _.omitBy(modified, function(value, key){
@@ -928,10 +951,8 @@
                 modified = _.omitBy(modified, function(value, key){
                     return key.indexOf('_') === 0 || key === 'definition';
                 });
-                var delta = diff(original, modified);
-                console.log(delta);
-                console.log(e._command);
                 if(e._command === 'MODIFY_INSTALLATION'){
+                    var delta = diff(original, modified);
                     return [{command: e._command, lhs: original, rhs: modified, delta: delta}];
                 } else if(e._command === 'INSTALL_NEW_EQUIPMENT'){
                     modified = _.omitBy(modified, function(value, key){
@@ -1228,7 +1249,7 @@
             };
 
             $scope.isHopDisabled = function(command){
-                return command !== 'MODIFY_CONNECTION' && command !== 'REMOVE_CONNECTION';
+                return command !== 'MODIFY_CONNECTION' && command !== 'REMOVE_CONNECTION' && command !== 'CONNECT_EQUIPMENT';
             };
 
             $scope.resetFacilitySummary = function(index){
@@ -1411,32 +1432,46 @@
             <ng-include ng-if="contextPath" src="contextPath+'/forms/revision/fill-summary.html'"></ng-include>
         </tab>
         <tab>
-            <tab-heading><span class="glyphicon glyphicon-map-marker"></span> Facility</tab-heading>
-            <ng-include ng-if="contextPath" src="contextPath+'/forms/revision/fill-facility.html'"></ng-include>
+            <tab-heading ng-class="{error: fillFacilityFormValidator.$invalid && view.submitted}"><span class="glyphicon glyphicon-map-marker" ng-class="{error: fillFacilityFormValidator.$invalid && view.submitted}"></span> Facility</tab-heading>
+            <ng-form name="fillFacilityFormValidator">
+                <ng-include ng-if="contextPath" src="contextPath+'/forms/revision/fill-facility.html'"></ng-include>
+            </ng-form>
         </tab>
         <tab>
-            <tab-heading><span class="glyphicon glyphicon-th"></span> Cabinets</tab-heading>
-            <ng-include ng-if="contextPath" src="contextPath+'/forms/revision/fill-cabinets.html'"></ng-include>
+            <tab-heading ng-class="{error: fillCabinetsFormValidator.$invalid && view.submitted}"><span class="glyphicon glyphicon-th" ng-class="{error: fillCabinetsFormValidator.$invalid && view.submitted}"></span> Cabinets</tab-heading>
+            <ng-form name="fillCabinetsFormValidator">
+                <ng-include ng-if="contextPath" src="contextPath+'/forms/revision/fill-cabinets.html'"></ng-include>
+            </ng-form>
         </tab>
         <tab>
-            <tab-heading title="Radio/Digital Units"><span class="glyphicon glyphicon-cog"></span> RU/DU</tab-heading>
-            <ng-include ng-if="contextPath" src="contextPath+'/forms/revision/fill-radio.html'"></ng-include>
+            <tab-heading title="Radio/Digital Units" ng-class="{error: fillRUDUSFormValidator.$invalid && view.submitted}"><span class="glyphicon glyphicon-cog" ng-class="{error: fillRUDUSFormValidator.$invalid && view.submitted}"></span> RU/DU</tab-heading>
+            <ng-form name="fillRUDUSFormValidator">
+                <ng-include ng-if="contextPath" src="contextPath+'/forms/revision/fill-radio.html'"></ng-include>
+            </ng-form>
         </tab>
         <tab>
-            <tab-heading title="Antenna Systems"><span class="glyphicon glyphicon-signal"></span> Antenna</tab-heading>
-            <ng-include ng-if="contextPath" src="contextPath+'/forms/revision/fill-antenna.html'"></ng-include>
+            <tab-heading title="Antenna Systems" ng-class="{error: fillAntennaFormValidator.$invalid && view.submitted}"><span class="glyphicon glyphicon-signal" ng-class="{error: fillAntennaFormValidator.$invalid && view.submitted}"></span> Antenna</tab-heading>
+            <ng-form name="fillAntennaFormValidator">
+                <ng-include ng-if="contextPath" src="contextPath+'/forms/revision/fill-antenna.html'"></ng-include>
+            </ng-form>
         </tab>
         <tab>
-            <tab-heading><span class="glyphicon glyphicon-flash"></span> Power</tab-heading>
-            <ng-include ng-if="contextPath" src="contextPath+'/forms/revision/fill-power.html'"></ng-include>
+            <tab-heading ng-class="{error: fillPowerFormValidator.$invalid && view.submitted}"><span class="glyphicon glyphicon-flash" ng-class="{error: fillPowerFormValidator.$invalid && view.submitted}"></span> Power</tab-heading>
+            <ng-form name="fillPowerFormValidator">
+                <ng-include ng-if="contextPath" src="contextPath+'/forms/revision/fill-power.html'"></ng-include>
+            </ng-form>
         </tab>
         <tab>
-            <tab-heading><span class="glyphicon glyphicon-transfer"></span> Transmission</tab-heading>
-            <ng-include ng-if="contextPath" src="contextPath+'/forms/revision/fill-transmission.html'"></ng-include>
+            <tab-heading ng-class="{error: fillTransmissionFormValidator.$invalid && view.submitted}"><span class="glyphicon glyphicon-transfer" ng-class="{error: fillTransmissionFormValidator.$invalid && view.submitted}"></span> Transmission</tab-heading>
+            <ng-form name="fillTransmissionFormValidator">
+                <ng-include ng-if="contextPath" src="contextPath+'/forms/revision/fill-transmission.html'"></ng-include>
+            </ng-form>
         </tab>
         <tab>
-            <tab-heading><span class="glyphicon glyphicon-leaf"></span> Supplementary</tab-heading>
-            <ng-include ng-if="contextPath" src="contextPath+'/forms/revision/fill-supplementary.html'"></ng-include>
+            <tab-heading ng-class="{error: fillSupplementaryFormValidator.$invalid && view.submitted}"><span class="glyphicon glyphicon-leaf" ng-class="{error: fillSupplementaryFormValidator.$invalid && view.submitted}"></span> Supplementary</tab-heading>
+            <ng-form name="fillSupplementaryFormValidator">
+                <ng-include ng-if="contextPath" src="contextPath+'/forms/revision/fill-supplementary.html'"></ng-include>
+            </ng-form>
         </tab>
     </tabset>
     <div class="well">
@@ -1458,15 +1493,14 @@
                            ng-model="fillAppliedChangesInfoByContractorTaskResult" value="cannotPerform" required>
                     Cannot perform works
                 </label>
+                <label class="error" ng-show="kcell_form.fillAppliedChangesInfoByContractorTaskResult.$error.required && ( kcell_form.fillAppliedChangesInfoByContractorTaskResult.$touched || view.submitted)">Required field</label>
             </div>
         </div>
         <div class="form-group">
             <label class="col-sm-4 control-label">Comments</label>
             <div class="col-sm-8">
-                <textarea class="form-control" rows="4" maxlength="500"
-                          cam-variable-name="fillAppliedChangesByContractorComment"
-                          ng-required="fillAppliedChangesInfoByContractorTaskResult == 'notAvailable' || fillAppliedChangesInfoByContractorTaskResult == 'cannotPerform'"
-                          cam-variable-type="String"></textarea>
+                <textarea class="form-control" rows="4" maxlength="500" cam-variable-name="fillAppliedChangesByContractorComment" name="fillAppliedChangesByContractorComment" ng-required="fillAppliedChangesInfoByContractorTaskResult == 'notAvailable' || fillAppliedChangesInfoByContractorTaskResult == 'cannotPerform'" cam-variable-type="String"></textarea>
+                <label class="error" ng-show="kcell_form.fillAppliedChangesByContractorComment.$error.required && ( kcell_form.fillAppliedChangesByContractorComment.$touched || view.submitted)">Required field</label>
             </div>
         </div>
     </div>

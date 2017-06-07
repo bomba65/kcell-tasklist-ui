@@ -40,7 +40,7 @@
         padding-bottom: 13px;
     }
 </style>
-<form role="form" class="form-horizontal" name="kcell_form" novalidate="">
+<form role="form" class="form-horizontal" name="kcell_form" novalidate>
     <script cam-script type="text/form-script">
         inject([ '$scope', '$http', '$rootScope', '$q', function($scope, $http, $rootScope, $q) {
             var variablesToCreate = [
@@ -207,7 +207,6 @@
                             return $http.get("/camunda/api/engine/engine/default/history/task?processInstanceId="+resolution.processInstanceId+"&taskId=" + resolution.taskId);
                         })).then(function (tasks) {
                             tasks.forEach(function (e, index) {
-                                console.log(e.data);
                                 $scope.jobModel.resolutions[index].taskName = e.data[0].name;
                                 try {
                                     $scope.jobModel.resolutions[index].taskEndDate = new Date(e.data[0].endTime);
@@ -368,12 +367,9 @@
                             "value" : $scope.site
                         }]
                 };
-                console.log("==================== QUERY ====================");
-                console.log(query);
                 var path  = '/camunda/api/engine/engine/default/process-instance?firstResult='+($scope.page*5)+'&maxResults=5';
                 $http.post(path,query).then(
                     function(result){
-                        console.log(result.data);
                         $scope.page = $scope.page + 1;
                         var piIds = [];
                         if(result.data.length < 5){
@@ -517,16 +513,13 @@
             $scope.getSite = function(val) {
                 return $http.get('/asset-management/api/sites/search/findByNameIgnoreCaseContaining?name='+val).then(
                     function(response){
-                        console.log(response);
                         var sites = response.data._embedded.sites.map(function(site){
                             var site = {
                                 name: site.name,
                                 id: site._links.self.href.substring(site._links.self.href.lastIndexOf('/')+1)
                             };
-                            console.log(site);
                             return site;
                         });
-                        console.log(sites);
                         return sites;
                     }
                 );
@@ -633,7 +626,7 @@
         <div class="col-sm-3">
             <input type="text" ng-model="siteName" name="siteName" typeahead="site as sites.name for sites in getSite($viewValue) | filter:$viewValue" typeahead-on-select="siteSelected($item,$model,$label)" class="form-control" required autocomplete="off">
             <input type="hidden" ng-model="site" name="siteId" required/>
-            <label class="error" ng-if="kcell_form.siteName.$error.required && ( kcell_form.siteName.$touched || view.submitted)">Обязательное поле</label>
+            <label class="error" ng-if="kcell_form.siteName.$error.required && ( kcell_form.siteName.$touched || view.submitted)">Required field</label>
             <label class="error" ng-if="kcell_form.siteId.$error.required && ( kcell_form.siteName.$touched || view.submitted)">Необходимо выбрать сайт из списка</label>
         </div>
     </div>
@@ -644,7 +637,7 @@
                 <option value="">select reason</option>
                 <option value="{{r.id}}" ng-repeat="r in reasons" ng-selected="{{r.id == reason}}">{{r.name}}</option>
             </select>
-            <label class="error" ng-if="kcell_form.reason.$error.required && ( kcell_form.reason.$touched || view.submitted)">Обязательное поле</label>
+            <label class="error" ng-if="kcell_form.reason.$error.required && ( kcell_form.reason.$touched || view.submitted)">Required field</label>
         </div>
     </div>
     <div class="form-group">
@@ -662,7 +655,7 @@
             <label class="radio-inline">
                 <input type="radio" name="relatedTo" required ng-model="relatedTo" value="Field works"> Field works
             </label>
-            <label class="error" ng-if="kcell_form.relatedTo.$error.required && ( kcell_form.relatedTo.$touched || view.submitted)">Обязательное поле</label>
+            <label class="error" ng-if="kcell_form.relatedTo.$error.required && ( kcell_form.relatedTo.$touched || view.submitted)">Required field</label>
         </div>
     </div>
     <div class="form-group">
@@ -672,7 +665,7 @@
             <label class="radio-inline" ng-repeat="c in conts">
                 <input type="radio" name="contractor" ng-model="custom.contractor" id="contractor{{$index}}" value="{{c.id}}" required> {{c.name}}
             </label>
-            <label class="error" ng-if="kcell_form.contractor.$error.required && ( kcell_form.contractor.$touched || view.submitted)">Обязательное поле</label>
+            <label class="error" ng-if="kcell_form.contractor.$error.required && ( kcell_form.contractor.$touched || view.submitted)">Required field</label>
         </div>
     </div>
     <div class="form-group">
@@ -682,7 +675,7 @@
                 <option value="Astana Expo 2017">Astana Expo 2017</option>
                 <option value="N/A">N/A</option>
             </select>
-            <label class="error" ng-if="kcell_form.project.$error.required && ( kcell_form.project.$touched || view.submitted)">Обязательное поле</label>
+            <label class="error" ng-if="kcell_form.project.$error.required && ( kcell_form.project.$touched || view.submitted)">Required field</label>
         </div>
     </div>
     <div class="form-group">
@@ -695,7 +688,7 @@
             <label class="radio-inline">
                 <input type="radio" name="worksBelongsTo" ng-model="worksBelongsTo" id="worksBelongsTo2" value="No" required> No
             </label>
-            <label class="error" ng-if="kcell_form.worksBelongsTo.$error.required && ( kcell_form.worksBelongsTo.$touched || view.submitted)">Обязательное поле</label>
+            <label class="error" ng-if="kcell_form.worksBelongsTo.$error.required && ( kcell_form.worksBelongsTo.$touched || view.submitted)">Required field</label>
         </div>
     </div>
     <div class="form-group">
@@ -794,14 +787,14 @@
                     <select ng-model="jobWork.sapServiceNumber" name="sapServiceNumber" required class="form-control" ng-change="getUnits($index)">
                         <option ng-repeat="work in works" ng-selected="{{work.sapServiceNumber == jobWork.sapServiceNumber}}" value="{{work.sapServiceNumber}}">{{work.displayServiceName}}</option>
                     </select>
-                    <label class="error" ng-if="workForm.sapServiceNumber.$error.required && ( workForm.sapServiceNumber.$touched || view.submitted)">Обязательное поле</label>
+                    <label class="error" ng-if="workForm.sapServiceNumber.$error.required && ( workForm.sapServiceNumber.$touched || view.submitted)">Required field</label>
                 </div>
                 <div class="col-md-2" style="padding:0px">
                     <div class="input-group">
                         <span class="input-group-addon" style="padding-right:5px; background-color: #fff;border: 1px solid #fff;">Works Qty</span>
                         <input type="number" class="form-control" name="quantity" required ng-model="jobWork.quantity" min="1"/>
                     </div>
-                    <label class="error" ng-if="workForm.quantity.$error.required && ( workForm.quantity.$touched || view.submitted)">Обязательное поле</label>
+                    <label class="error" ng-if="workForm.quantity.$error.required && ( workForm.quantity.$touched || view.submitted)">Required field</label>
                 </div>
                 <div class="col-md-4" style="padding:0px">
                     <div class="input-group">
@@ -809,12 +802,12 @@
                         <input type="number" class="form-control" name="materialQuantity" ng-model="jobWork.materialQuantity" min="1"/>
                         <span class="input-group-addon">{{jobWork.materialUnit}}</span>
                     </div>
-                    <label class="error" ng-if="workForm.materialQuantity.$error.required && ( workForm.materialQuantity.$touched || view.submitted)">Обязательное поле</label>
+                    <label class="error" ng-if="workForm.materialQuantity.$error.required && ( workForm.materialQuantity.$touched || view.submitted)">Required field</label>
                 </div>
                 <div class="col-md-2" ng-if="reason == '2'" style="padding:0px">
                     <input type="text" ng-model="jobWork.sites.name" name="workSiteName" typeahead="site as sites.name for sites in getSite($viewValue) | filter:$viewValue" typeahead-on-select="siteJobWorkSelected($item,$index)" class="form-control" autocomplete="off" placeholder="Far end site">
                     <input type="hidden" ng-model="jobWork.sites.id" ng-required="jobWork.sites.name" />
-                    <label class="error" ng-if="workForm.workSiteName.$error.required && ( workForm.workSiteName.$touched || view.submitted)">Обязательное поле</label>
+                    <label class="error" ng-if="workForm.workSiteName.$error.required && ( workForm.workSiteName.$touched || view.submitted)">Required field</label>
                 </div>
             </ng-form>
             <div class="col-md-1"><button type="button" class="btn btn-sm btn-warning" ng-if="$index !== 0" ng-click="removeWork($index)"><i class="glyphicon glyphicon-trash"></i> Remove</button></div>
@@ -842,17 +835,17 @@
         </div>
     </div>
     <div class="form-group" ng-show="showJump">
-        <label class="col-sm-4 control-label"><b>Jump to Fill applied changed (test only)</b>*:</label>
+        <label class="col-sm-4 control-label">Jump to Fill applied changed (test only)*:</label>
         <div class="col-sm-8">
             <input type="checkbox" cam-variable-name="ptypeCheckbox" cam-variable-type="Boolean" />
         </div>
     </div>
     <div class="form-group">
-        <label class="col-sm-4 control-label">Explanation of works *</label>
+        <label class="col-sm-4 control-label required">Explanation of works *</label>
         <div class="col-sm-8">
             <!-- NOT REQUIRED -->
             <textarea class="form-control" name="explanation" cam-variable-name="explanation" cam-variable-type="String" placeholder="Explanation of works..." maxlength="500" rows="4" required></textarea>
-            <label class="error" ng-if="kcell_form.explanation.$error.required && ( kcell_form.explanation.$touched || view.submitted)">Обязательное поле</label>
+            <label class="error" ng-if="kcell_form.explanation.$error.required && ( kcell_form.explanation.$touched || view.submitted)">Required field</label>
         </div>
     </div>
     <accordion ng-if="jobModel.resolutions.length > 0">

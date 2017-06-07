@@ -196,7 +196,6 @@ define('app',[
 		$translateProvider.useLoader('translateLoader');
 	}).factory('translateLoader', function ($http, $q) {
 		return function (options) {
-			console.log(options);
 			var deferred = $q.defer();
 			$http.get('./resources/locale-' + options.key + '.json').then(
 				function(httpStaticData){

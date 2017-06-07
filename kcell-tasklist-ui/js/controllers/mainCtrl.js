@@ -66,7 +66,7 @@ define(['./module','camundaSDK', 'lodash'], function(module, CamSDK, _){
 			$scope.currentFilter = filter;
 			loadTasks();
 		}
-		$scope.starProcess = function(id){
+		$scope.startProcess = function(id){
 			processDefinitionService.start({id:id}, function(err, results){
 				$scope.tryToOpen = results;
 				getTaskList();
@@ -147,6 +147,7 @@ define(['./module','camundaSDK', 'lodash'], function(module, CamSDK, _){
 							$('#taskElement').html('');
 							$scope.currentTask = undefined;
 							getTaskList();
+							$location.search({});
 						}
 					});
 				} else {

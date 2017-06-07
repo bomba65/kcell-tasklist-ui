@@ -1,5 +1,6 @@
 define([
 	'./jobRequest',
 	'./cam-widget-bpmn-viewer',
-	'./trackChange'
+	'./trackChange',
+	'./requiredFile'
 	], function(){});

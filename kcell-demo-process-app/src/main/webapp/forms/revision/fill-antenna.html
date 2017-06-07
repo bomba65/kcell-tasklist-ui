@@ -1,256 +1,261 @@
 <h4>Cell Antenna Quantity: {{fillSite.antennas.length}} <a ng-click="addAntenna()" class="btn btn-primary"><i class="glyphicon glyphicon-plus"></i> Add Antenna</a></h4>
 <accordion>
     <accordion-group ng-repeat="antenna in fillSite.antennas track by $index">
-        <accordion-heading>
-            Antenna #{{$index+1}} <i class="pull-right glyphicon" ng-class="{'glyphicon-chevron-up': status.isCustomHeaderOpen, 'glyphicon-chevron-down': !status.isCustomHeaderOpen}"></i>
-        </accordion-heading>
-        <div class="row">
-            <div class="col-md-12">
-                <a ng-click="removeAntenna($index)" class="btn btn-danger" ng-if="!antenna.id && !antenna.params.id"><i class="glyphicon glyphicon-trash"></i> Remove</a>
+        <ng-form name="antennaForm">
+            <accordion-heading>
+                <span ng-class="{error:antennaForm.$invalid && view.submitted}">Antenna #{{$index+1}}</span> <i class="pull-right glyphicon" ng-class="{'glyphicon-chevron-up': status.isCustomHeaderOpen, 'glyphicon-chevron-down': !status.isCustomHeaderOpen}"></i>
+            </accordion-heading>
+            <div class="row">
+                <div class="col-md-12">
+                    <a ng-click="removeAntenna($index)" class="btn btn-danger" ng-if="!antenna.id && !antenna.params.id"><i class="glyphicon glyphicon-trash"></i> Remove</a>
+                </div>
             </div>
-        </div>
-        <div class="form-group">
-            <label class="col-sm-4 control-label"></label>
-            <div class="col-sm-6">
-                <label class="radio-inline" ng-repeat="technology in technologies">
-                    <input type="checkbox" ng-model="antenna.equipment.params.rat[technology]" ng-disabled="isInstallationDisabled(antenna._command)"/> {{technology}}
-                </label>
+            <div class="form-group">
+                <label class="col-sm-4 control-label"></label>
+                <div class="col-sm-6">
+                    <label class="radio-inline" ng-repeat="technology in technologies">
+                        <input type="checkbox" ng-model="antenna.equipment.params.rat[technology]" ng-disabled="isInstallationDisabled(antenna._command)"/> {{technology}}
+                    </label>
+                </div>
             </div>
-        </div>
-        <div class="form-group">
-            <label class="col-sm-4 control-label">Sector</label>
-            <div class="col-sm-3">
-                <select class="form-control" ng-model="antenna.equipment.params.sector" ng-disabled="isInstallationDisabled(antenna._command)">
-                    <option value="A">A</option>
-                    <option value="B">B</option>
-                    <option value="C">C</option>
-                </select>
+            <div class="form-group">
+                <label class="col-sm-4 control-label">Sector</label>
+                <div class="col-sm-3">
+                    <select class="form-control" ng-model="antenna.equipment.params.sector" ng-disabled="isInstallationDisabled(antenna._command)">
+                        <option value="A">A</option>
+                        <option value="B">B</option>
+                        <option value="C">C</option>
+                    </select>
+                </div>
             </div>
-        </div>
-        <div class="form-group">
-            <label class="col-sm-4 control-label">Facility</label>
-            <div class="col-sm-3">
-                <select class="form-control" ng-model="antenna.facility" ng-disabled="isInstallationDisabled(antenna._command)">
-                    <option value="{{f.id}}" ng-repeat="f in fillSite.facilities">{{f.definition}} ({{f.params.name}})</option>
-                </select>
+            <div class="form-group">
+                <label class="col-sm-4 control-label required">Facility</label>
+                <div class="col-sm-3">
+                    <select class="form-control" ng-model="antenna.facility" name="antennaFacility" ng-required="fillAppliedChangesInfoByContractorTaskResult==='saveChanges'" ng-disabled="isInstallationDisabled(antenna._command)">
+                        <option value="{{f.id}}" ng-repeat="f in fillSite.facilities">{{f.definition}} ({{f.params.name}})</option>
+                    </select>
+                    <label class="error" ng-show="antennaForm.antennaFacility.$error.required && ( antennaForm.antennaFacility.$touched || view.submitted)">Required field</label>
+                </div>
             </div>
-        </div>
-        <div class="form-group">
-            <label class="col-sm-4 control-label">RBS #</label>
-            <div class="col-sm-3">
-                <select class="form-control" ng-model="antenna.connections.ANTENNA2RBS.equipments[1]" ng-disabled="isInstallationDisabled(antenna._command)">
-                    <option value="{{cabinet.equipment.id}}" ng-repeat="cabinet in fillSite.cabinets" ng-selected="{{cabinet.equipment.id === cabinet.connections.ANTENNA2RBS.equipments[1]}}">Type: {{cabinet.equipment.params.cabinet_type}} SN:{{cabinet.equipment.params.serial_number}}</option>
-                </select>
+            <div class="form-group">
+                <label class="col-sm-4 control-label required">RBS #</label>
+                <div class="col-sm-3">
+                    <select class="form-control" ng-model="antenna.connections.ANTENNA2RBS.equipments[1]" name="antennaConnectionsANTENNA2RBSEquipments" ng-required="fillAppliedChangesInfoByContractorTaskResult==='saveChanges'" ng-disabled="isInstallationDisabled(antenna._command)">
+                        <option value="{{cabinet.equipment.id}}" ng-repeat="cabinet in fillSite.cabinets" ng-selected="{{cabinet.equipment.id === cabinet.connections.ANTENNA2RBS.equipments[1]}}">Type: {{cabinet.equipment.params.cabinet_type}} SN:{{cabinet.equipment.params.serial_number}}</option>
+                    </select>
+                    <label class="error" ng-show="antennaForm.antennaConnectionsANTENNA2RBSEquipments.$error.required && ( antennaForm.antennaFormAntennaConnectionsANTENNA2RBSEquipments.$touched || view.submitted)">Required field</label>
+                </div>
             </div>
-        </div>
-        <div class="form-group">
-            <label class="col-sm-4 control-label">Antenna model</label>
-            <div class="col-sm-3">
-                <select class="form-control" ng-model="antenna.equipment.params.model" ng-disabled="isInstallationDisabled(antenna._command)">
-                    <option value="{{model}}" ng-repeat="model in antennaModels">{{model}}</option>
-                </select>
+            <div class="form-group">
+                <label class="col-sm-4 control-label">Antenna model</label>
+                <div class="col-sm-3">
+                    <select class="form-control" ng-model="antenna.equipment.params.model" ng-disabled="isInstallationDisabled(antenna._command)">
+                        <option value="{{model}}" ng-repeat="model in antennaModels">{{model}}</option>
+                    </select>
+                </div>
             </div>
-        </div>
-        <div class="form-group">
-            <label class="col-sm-4 control-label">Serial number</label>
-            <div class="col-sm-3">
-                <input type="text" class="form-control" ng-model="antenna.equipment.params.serial_number" ng-disabled="isInstallationDisabled(antenna._command)"/>
+            <div class="form-group">
+                <label class="col-sm-4 control-label required">Serial number</label>
+                <div class="col-sm-3">
+                    <input type="text" class="form-control" name="antennaEquipmentParamsSerialNumber" ng-model="antenna.equipment.params.serial_number" ng-disabled="isInstallationDisabled(antenna._command)" ng-required="fillAppliedChangesInfoByContractorTaskResult==='saveChanges'"/>
+                    <label class="error" ng-show="antennaForm.antennaEquipmentParamsSerialNumber.$error.required && ( antennaForm.antennaEquipmentParamsSerialNumber.$touched || view.submitted)">Required field</label>
+                </div>
             </div>
-        </div>
-        <div class="form-group">
-            <label class="col-sm-4 control-label">Antenna Height in top</label>
-            <div class="col-sm-3">
-                <input type="number" class="form-control" ng-model="antenna.params.height_in_top" ng-disabled="isInstallationDisabled(antenna._command)"/>
+            <div class="form-group">
+                <label class="col-sm-4 control-label">Antenna Height in top</label>
+                <div class="col-sm-3">
+                    <input type="number" class="form-control" ng-model="antenna.params.height_in_top" ng-disabled="isInstallationDisabled(antenna._command)"/>
+                </div>
             </div>
-        </div>
-        <div class="form-group">
-            <label class="col-sm-4 control-label">Distance from the roof level</label>
-            <div class="col-sm-3">
-                <input type="number" class="form-control" ng-model="antenna.params.distance_from_roof_level" ng-disabled="isInstallationDisabled(antenna._command)"/>
+            <div class="form-group">
+                <label class="col-sm-4 control-label">Distance from the roof level</label>
+                <div class="col-sm-3">
+                    <input type="number" class="form-control" ng-model="antenna.params.distance_from_roof_level" ng-disabled="isInstallationDisabled(antenna._command)"/>
+                </div>
             </div>
-        </div>
-        <div class="form-group">
-            <label class="col-sm-4 control-label">Min horizontal distance from the roof edge</label>
-            <div class="col-sm-3">
-                <input type="text" class="form-control" ng-model="antenna.params.min_horiz_distance_from_roof_edge" ng-disabled="isInstallationDisabled(antenna._command)"/>
+            <div class="form-group">
+                <label class="col-sm-4 control-label">Min horizontal distance from the roof edge</label>
+                <div class="col-sm-3">
+                    <input type="text" class="form-control" ng-model="antenna.params.min_horiz_distance_from_roof_edge" ng-disabled="isInstallationDisabled(antenna._command)"/>
+                </div>
             </div>
-        </div>
-        <div class="form-group">
-            <label class="col-sm-4 control-label">Height of antenna phase center placing from ground level</label>
-            <div class="col-sm-3">
-                <input type="text" class="form-control" ng-model="antenna.params.height_of_phasecenter_from_grnd_lvl" ng-disabled="isInstallationDisabled(antenna._command)"/>
+            <div class="form-group">
+                <label class="col-sm-4 control-label">Height of antenna phase center placing from ground level</label>
+                <div class="col-sm-3">
+                    <input type="text" class="form-control" ng-model="antenna.params.height_of_phasecenter_from_grnd_lvl" ng-disabled="isInstallationDisabled(antenna._command)"/>
+                </div>
             </div>
-        </div>
-        <div class="form-group">
-            <label class="col-sm-4 control-label">Antenna direction</label>
-            <div class="col-sm-3">
-                <input type="text" class="form-control" ng-model="antenna.params.direction" ng-disabled="isInstallationDisabled(antenna._command)"/>
+            <div class="form-group">
+                <label class="col-sm-4 control-label">Antenna direction</label>
+                <div class="col-sm-3">
+                    <input type="text" class="form-control" ng-model="antenna.params.direction" ng-disabled="isInstallationDisabled(antenna._command)"/>
+                </div>
             </div>
-        </div>
-        <div class="form-group">
-            <label class="col-sm-4 control-label">Antenna tilt (mech)</label>
-            <div class="col-sm-3">
-                <input type="text" class="form-control" ng-model="antenna.params.m_tilt_value" ng-disabled="isInstallationDisabled(antenna._command)"/>
+            <div class="form-group">
+                <label class="col-sm-4 control-label">Antenna tilt (mech)</label>
+                <div class="col-sm-3">
+                    <input type="text" class="form-control" ng-model="antenna.params.m_tilt_value" ng-disabled="isInstallationDisabled(antenna._command)"/>
+                </div>
             </div>
-        </div>
-        <div class="form-group">
-            <label class="col-sm-4 control-label">Antenna tilt (el)</label>
-            <div class="col-sm-3">
-                <input type="text" class="form-control" ng-model="antenna.params.e_tilt_value" ng-disabled="isInstallationDisabled(antenna._command)"/>
+            <div class="form-group">
+                <label class="col-sm-4 control-label">Antenna tilt (el)</label>
+                <div class="col-sm-3">
+                    <input type="text" class="form-control" ng-model="antenna.params.e_tilt_value" ng-disabled="isInstallationDisabled(antenna._command)"/>
+                </div>
             </div>
-        </div>
-        <div class="form-group">
-            <label class="col-sm-4 control-label">Location type  </label>
-            <div class="col-sm-3">
-                <select class="form-control" ng-model="antenna.params.location_type" ng-disabled="isInstallationDisabled(antenna._command)">
-                    <option value="Room">Room</option>
-                    <option value="Roof">Roof</option>
-                    <option value="Balcony">Balcony</option>
-                    <option value="Wall">Wall</option>
-                    <option value="Container">Container</option>
-                </select>
+            <div class="form-group">
+                <label class="col-sm-4 control-label">Location type  </label>
+                <div class="col-sm-3">
+                    <select class="form-control" ng-model="antenna.params.location_type" ng-disabled="isInstallationDisabled(antenna._command)">
+                        <option value="Room">Room</option>
+                        <option value="Roof">Roof</option>
+                        <option value="Balcony">Balcony</option>
+                        <option value="Wall">Wall</option>
+                        <option value="Container">Container</option>
+                    </select>
+                </div>
             </div>
-        </div>
-        <div class="form-group">
-            <label class="col-sm-4 control-label">Placement type</label>
-            <div class="col-sm-3">
-                <select class="form-control" ng-model="antenna.params.placement_type" ng-disabled="isInstallationDisabled(antenna._command)">
-                    <option value="Frontal">Frontal</option>
-                    <option value="Rear">Rear</option>
-                </select>
+            <div class="form-group">
+                <label class="col-sm-4 control-label">Placement type</label>
+                <div class="col-sm-3">
+                    <select class="form-control" ng-model="antenna.params.placement_type" ng-disabled="isInstallationDisabled(antenna._command)">
+                        <option value="Frontal">Frontal</option>
+                        <option value="Rear">Rear</option>
+                    </select>
+                </div>
             </div>
-        </div>
-        <div class="form-group">
-            <label class="col-sm-4 control-label">Feeder type</label>
-            <div class="col-sm-3">
-                <select class="form-control" ng-model="antenna.params.feeder_type" ng-disabled="isInstallationDisabled(antenna._command)">
-                    <option value="7/8">7/8</option>
-                    <option value="8/9">8/9</option>
-                </select>
+            <div class="form-group">
+                <label class="col-sm-4 control-label">Feeder type</label>
+                <div class="col-sm-3">
+                    <select class="form-control" ng-model="antenna.params.feeder_type" ng-disabled="isInstallationDisabled(antenna._command)">
+                        <option value="7/8">7/8</option>
+                        <option value="8/9">8/9</option>
+                    </select>
+                </div>
             </div>
-        </div>
-        <div class="form-group">
-            <label class="col-sm-4 control-label">Number of feeder</label>
-            <div class="col-sm-3">
-                <input type="text" class="form-control" ng-model="antenna.params.number_of_feeders" ng-disabled="isInstallationDisabled(antenna._command)"/>
+            <div class="form-group">
+                <label class="col-sm-4 control-label">Number of feeder</label>
+                <div class="col-sm-3">
+                    <input type="text" class="form-control" ng-model="antenna.params.number_of_feeders" ng-disabled="isInstallationDisabled(antenna._command)"/>
+                </div>
             </div>
-        </div>
-        <div class="form-group">
-            <label class="col-sm-4 control-label">Length of cable from cabinet to antenna</label>
-            <div class="col-sm-3">
-                <input type="text" class="form-control" ng-model="antenna.params.length_of_cable" ng-disabled="isInstallationDisabled(antenna._command)"/>
+            <div class="form-group">
+                <label class="col-sm-4 control-label">Length of cable from cabinet to antenna</label>
+                <div class="col-sm-3">
+                    <input type="text" class="form-control" ng-model="antenna.params.length_of_cable" ng-disabled="isInstallationDisabled(antenna._command)"/>
+                </div>
             </div>
-        </div>
-        <div class="form-group">
-            <label class="col-sm-4 control-label">Free space on existing metal construction for additional RRU on each sector</label>
-            <div class="col-sm-3">
-                <select class="form-control" ng-model="antenna.params.free_space_for_addition_rru" ng-disabled="isInstallationDisabled(antenna._command)">
-                    <option value="Yes">Yes</option>
-                    <option value="No">No</option>
-                </select>
+            <div class="form-group">
+                <label class="col-sm-4 control-label">Free space on existing metal construction for additional RRU on each sector</label>
+                <div class="col-sm-3">
+                    <select class="form-control" ng-model="antenna.params.free_space_for_addition_rru" ng-disabled="isInstallationDisabled(antenna._command)">
+                        <option value="Yes">Yes</option>
+                        <option value="No">No</option>
+                    </select>
+                </div>
             </div>
-        </div>
-        <div class="form-group">
-            <label class="col-sm-4 control-label">Carrying capacity of existing metal construction is enough for additional remote radio unit (RRU)</label>
-            <div class="col-sm-3">
-                <select class="form-control" ng-model="antenna.params.carrying_capacity_for_additional_rru" ng-disabled="isInstallationDisabled(antenna._command)">
-                    <option value="Yes">Yes</option>
-                    <option value="No">No</option>
-                </select>
+            <div class="form-group">
+                <label class="col-sm-4 control-label">Carrying capacity of existing metal construction is enough for additional remote radio unit (RRU)</label>
+                <div class="col-sm-3">
+                    <select class="form-control" ng-model="antenna.params.carrying_capacity_for_additional_rru" ng-disabled="isInstallationDisabled(antenna._command)">
+                        <option value="Yes">Yes</option>
+                        <option value="No">No</option>
+                    </select>
+                </div>
             </div>
-        </div>
-        <div class="form-group">
-            <label class="col-sm-4 control-label">Diversity  </label>
-            <div class="col-sm-3">
-                <select class="form-control" ng-model="antenna.params.diversity" ng-disabled="isInstallationDisabled(antenna._command)">
-                    <option value="Yes">Yes</option>
-                    <option value="No">No</option>
-                </select>
+            <div class="form-group">
+                <label class="col-sm-4 control-label">Diversity  </label>
+                <div class="col-sm-3">
+                    <select class="form-control" ng-model="antenna.params.diversity" ng-disabled="isInstallationDisabled(antenna._command)">
+                        <option value="Yes">Yes</option>
+                        <option value="No">No</option>
+                    </select>
+                </div>
             </div>
-        </div>
-        <div class="form-group">
-            <label class="col-sm-4 control-label">Duplex filter  </label>
-            <div class="col-sm-3">
-                <select class="form-control" ng-model="antenna.equipment.params.duplex_filter" ng-disabled="isInstallationDisabled(antenna._command)">
-                    <option value="Yes">Yes</option>
-                    <option value="No">No</option>
-                </select>
+            <div class="form-group">
+                <label class="col-sm-4 control-label">Duplex filter  </label>
+                <div class="col-sm-3">
+                    <select class="form-control" ng-model="antenna.equipment.params.duplex_filter" ng-disabled="isInstallationDisabled(antenna._command)">
+                        <option value="Yes">Yes</option>
+                        <option value="No">No</option>
+                    </select>
+                </div>
             </div>
-        </div>
-        <div class="form-group">
-            <label class="col-sm-4 control-label">HCU</label>
-            <div class="col-sm-3">
-                <select class="form-control" ng-model="antenna.equipment.params.hcu" ng-disabled="isInstallationDisabled(antenna._command)">
-                    <option value="Yes">Yes</option>
-                    <option value="No">No</option>
-                </select>
+            <div class="form-group">
+                <label class="col-sm-4 control-label">HCU</label>
+                <div class="col-sm-3">
+                    <select class="form-control" ng-model="antenna.equipment.params.hcu" ng-disabled="isInstallationDisabled(antenna._command)">
+                        <option value="Yes">Yes</option>
+                        <option value="No">No</option>
+                    </select>
+                </div>
             </div>
-        </div>
-        <div class="form-group">
-            <label class="col-sm-4 control-label">Power splitter</label>
-            <div class="col-sm-3">
-                <select class="form-control" ng-model="antenna.equipment.params.power_splitter" ng-disabled="isInstallationDisabled(antenna._command)">
-                    <option value="Yes">Yes</option>
-                    <option value="No">No</option>
-                </select>
+            <div class="form-group">
+                <label class="col-sm-4 control-label">Power splitter</label>
+                <div class="col-sm-3">
+                    <select class="form-control" ng-model="antenna.equipment.params.power_splitter" ng-disabled="isInstallationDisabled(antenna._command)">
+                        <option value="Yes">Yes</option>
+                        <option value="No">No</option>
+                    </select>
+                </div>
             </div>
-        </div>
-        <div class="form-group">
-            <label class="col-sm-4 control-label">TMA</label>
-            <div class="col-sm-3">
-                <select class="form-control" ng-model="antenna.equipment.params.tma" ng-disabled="isInstallationDisabled(antenna._command)">
-                    <option value="Yes">Yes</option>
-                    <option value="No">No</option>
-                </select>
+            <div class="form-group">
+                <label class="col-sm-4 control-label">TMA</label>
+                <div class="col-sm-3">
+                    <select class="form-control" ng-model="antenna.equipment.params.tma" ng-disabled="isInstallationDisabled(antenna._command)">
+                        <option value="Yes">Yes</option>
+                        <option value="No">No</option>
+                    </select>
+                </div>
             </div>
-        </div>
-        <div class="form-group">
-            <label class="col-sm-4 control-label">Extended range</label>
-            <div class="col-sm-3">
-                <select class="form-control" ng-model="antenna.equipment.params.extended_range" ng-disabled="isInstallationDisabled(antenna._command)">
-                    <option value="Yes">Yes</option>
-                    <option value="No">No</option>
-                </select>
+            <div class="form-group">
+                <label class="col-sm-4 control-label">Extended range</label>
+                <div class="col-sm-3">
+                    <select class="form-control" ng-model="antenna.equipment.params.extended_range" ng-disabled="isInstallationDisabled(antenna._command)">
+                        <option value="Yes">Yes</option>
+                        <option value="No">No</option>
+                    </select>
+                </div>
             </div>
-        </div>
-        <div class="form-group">
-            <label class="col-sm-4 control-label">RETU</label>
-            <div class="col-sm-3">
-                <select class="form-control" ng-model="antenna.equipment.params.retu" ng-disabled="isInstallationDisabled(antenna._command)">
-                    <option value="Yes">Yes</option>
-                    <option value="No">No</option>
-                </select>
+            <div class="form-group">
+                <label class="col-sm-4 control-label">RETU</label>
+                <div class="col-sm-3">
+                    <select class="form-control" ng-model="antenna.equipment.params.retu" ng-disabled="isInstallationDisabled(antenna._command)">
+                        <option value="Yes">Yes</option>
+                        <option value="No">No</option>
+                    </select>
+                </div>
             </div>
-        </div>
-        <div class="form-group">
-            <label class="col-sm-4 control-label">Antenna beam width</label>
-            <div class="col-sm-3">
-                <input type="text" class="form-control" ng-model="antenna.equipment.params.beam_width" ng-disabled="isInstallationDisabled(antenna._command)"/>
+            <div class="form-group">
+                <label class="col-sm-4 control-label">Antenna beam width</label>
+                <div class="col-sm-3">
+                    <input type="text" class="form-control" ng-model="antenna.equipment.params.beam_width" ng-disabled="isInstallationDisabled(antenna._command)"/>
+                </div>
             </div>
-        </div>
-        <div class="form-group">
-            <label class="col-sm-4 control-label">Gain of antennas</label>
-            <div class="col-sm-3">
-                <input type="text" class="form-control" ng-model="antenna.equipment.params.gain" ng-disabled="isInstallationDisabled(antenna._command)"/>
+            <div class="form-group">
+                <label class="col-sm-4 control-label">Gain of antennas</label>
+                <div class="col-sm-3">
+                    <input type="text" class="form-control" ng-model="antenna.equipment.params.gain" ng-disabled="isInstallationDisabled(antenna._command)"/>
+                </div>
             </div>
-        </div>
-        <div class="form-group">
-            <label class="col-sm-4 control-label">Maximum wind velocity</label>
-            <div class="col-sm-3">
-                <input type="text" class="form-control" ng-model="antenna.equipment.params.max_wind_velocity" ng-disabled="isInstallationDisabled(antenna._command)"/>
+            <div class="form-group">
+                <label class="col-sm-4 control-label">Maximum wind velocity</label>
+                <div class="col-sm-3">
+                    <input type="text" class="form-control" ng-model="antenna.equipment.params.max_wind_velocity" ng-disabled="isInstallationDisabled(antenna._command)"/>
+                </div>
             </div>
-        </div>
-        <div class="form-group">
-            <label class="col-sm-4 control-label">Antenna weight</label>
-            <div class="col-sm-3">
-                <input type="text" class="form-control" ng-model="antenna.equipment.params.weight" ng-disabled="isInstallationDisabled(antenna._command)"/>
+            <div class="form-group">
+                <label class="col-sm-4 control-label">Antenna weight</label>
+                <div class="col-sm-3">
+                    <input type="text" class="form-control" ng-model="antenna.equipment.params.weight" ng-disabled="isInstallationDisabled(antenna._command)"/>
+                </div>
             </div>
-        </div>
-        <div class="btn-group" role="group" ng-if="antenna.id && antenna.equipment.id">
-            <button type="button" class="btn btn-default" ng-click="resetAntenna($index)">Reset</button>
-            <button type="button" class="btn {{antenna._command == 'MODIFY_INSTALLATION'?'btn-primary':'btn-default'}}" ng-click="antenna._command = 'MODIFY_INSTALLATION';antenna.connections.ANTENNA2RBS.definition='ANTENNA2RBS';antenna.connections.ANTENNA2RBS._command='MODIFY_CONNECTION'">Modify settings</button>
-            <button type="button" class="btn {{antenna._command == 'REPLACE_EQUIPMENT'?'btn-primary':'btn-default'}}" ng-click="antenna._command = 'REPLACE_EQUIPMENT';antenna.connections.ANTENNA2RBS.definition='ANTENNA2RBS';antenna.connections.ANTENNA2RBS._command='MODIFY_CONNECTION'">Replace</button>
-            <button type="button" class="btn {{antenna._command == 'DISMANTLE_EQUIPMENT'?'btn-primary':'btn-default'}}" ng-click="antenna._command = 'DISMANTLE_EQUIPMENT';antenna.connections.ANTENNA2RBS.definition='ANTENNA2RBS';antenna.connections.ANTENNA2RBS._command='REMOVE_CONNECTION'">Dismantle</button>
-        </div>
+            <div class="btn-group" role="group" ng-if="antenna.id && antenna.equipment.id">
+                <button type="button" class="btn btn-default" ng-click="resetAntenna($index)">Reset</button>
+                <button type="button" class="btn {{antenna._command == 'MODIFY_INSTALLATION'?'btn-primary':'btn-default'}}" ng-click="antenna._command = 'MODIFY_INSTALLATION';antenna.connections.ANTENNA2RBS.definition='ANTENNA2RBS';antenna.connections.ANTENNA2RBS._command='MODIFY_CONNECTION'">Modify settings</button>
+                <button type="button" class="btn {{antenna._command == 'REPLACE_EQUIPMENT'?'btn-primary':'btn-default'}}" ng-click="antenna._command = 'REPLACE_EQUIPMENT';antenna.connections.ANTENNA2RBS.definition='ANTENNA2RBS';antenna.connections.ANTENNA2RBS._command='MODIFY_CONNECTION'">Replace</button>
+                <button type="button" class="btn {{antenna._command == 'DISMANTLE_EQUIPMENT'?'btn-primary':'btn-default'}}" ng-click="antenna._command = 'DISMANTLE_EQUIPMENT';antenna.connections.ANTENNA2RBS.definition='ANTENNA2RBS';antenna.connections.ANTENNA2RBS._command='REMOVE_CONNECTION'">Dismantle</button>
+            </div>
+        </ng-form>
     </accordion-group>
 </accordion>
