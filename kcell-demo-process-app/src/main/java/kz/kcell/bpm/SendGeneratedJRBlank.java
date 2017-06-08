@@ -30,6 +30,7 @@ import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
 import java.io.FileInputStream;
 import java.io.InputStream;
+import java.text.SimpleDateFormat;
 import java.util.*;
 import java.util.function.Supplier;
 import java.util.logging.Level;
@@ -209,9 +210,12 @@ public class SendGeneratedJRBlank implements JavaDelegate {
     protected void sendMail(DelegateExecution delegateExecution, String assignee, String recipient) {
         try {
             String siteName = (String) delegateExecution.getVariable("siteName");
+            String site_name = (String) delegateExecution.getVariable("site_name");
             String jrNumber = (String) delegateExecution.getVariable("jrNumber");
             String jobDescription = (String) delegateExecution.getVariable("jobDescription");
             String explanation = (String) delegateExecution.getVariable("explanation");
+            Date requestDate = (Date) delegateExecution.getVariable("requestedDate");
+            SimpleDateFormat sdf = new SimpleDateFormat("dd.MM.yyyy");
             ObjectMapper mapper = new ObjectMapper();
             ArrayNode jobWorks = (ArrayNode) mapper.readTree(delegateExecution.getVariableTyped("jobWorks").getValue().toString());
             XSSFWorkbook workbook = new XSSFWorkbook();
@@ -311,7 +315,7 @@ public class SendGeneratedJRBlank implements JavaDelegate {
             cell.setCellValue("Request Date :");
             cell.setCellStyle(alignRight);
 
-            row.createCell(2).setCellValue("");
+            row.createCell(2).setCellValue(sdf.format(requestDate));
 
             row = sheet.createRow(12);
             cell = row.createCell(0);
@@ -324,7 +328,11 @@ public class SendGeneratedJRBlank implements JavaDelegate {
             cell.setCellValue("Site Name :");
             cell.setCellStyle(alignRight);
 
-            row.createCell(2).setCellValue("");
+            if (site_name != null && !site_name.isEmpty()) {
+                row.createCell(2).setCellValue(site_name);
+            } else {
+                row.createCell(2).setCellValue("Not found");
+            }
 
             row = sheet.createRow(14);
             cell = row.createCell(0);
