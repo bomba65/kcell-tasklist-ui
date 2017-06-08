@@ -66,12 +66,19 @@ public class MailTaskCandidatesListener implements TaskListener {
 
             final String baseUrl = configuration.getProperties().getProperty("mail.message.baseurl", "http://localhost");
 
-            email.setMsg("Добрый день.\n" +
+            email.setMsg(String.format("В рамках процесса одобрения заявок на проведение работ, в системе Kcell Workflow создана заявка, ожидающая вашего участия. Для просмотра заявки необходимо пройти по следующей ссылке: %s \n" +
+                    "Пройдя по следующей ссылке на страницу в HUB.Kcell.kz, вы можете оставить в поле комментариев свои замечания и/или пожелания относительно функционала и интерфейса системы: https://hub.kcell.kz/x/kYNoAg\n" +
                     "\n" +
-                    "В рамках процесса одобрения заявок на проведение работ, в системе Kcell Workflow создана заявка, ожидающая вашего одобрения. Для просмотра заявки необходимо пройти по следующей ссылке: " + baseUrl + "/camunda/app/tasklist/default/#/?task=" + taskId +
+                    " \n" +
+                    "Открыть Kcell Workflow вы можете пройдя по следующей ссылке: <b>https://flow.kcell.kz</b>\n" +
                     "\n" +
+                    "Для входа в систему используйте свой корпоративный логин (Name.Surname@kcell.kz)* и пароль.\n" +
                     "\n" +
-                    "Пройдя по следующей ссылке на страницу в HUB.Kcell.kz, вы можете оставить в поле комментариев свои замечания и/или пожелания относительно функционала и интерфейса системы: https://hub.kcell.kz/x/kYNoAg");
+                    " \n" +
+                    "При возникновении каких-либо проблем в работе с системой, отправьте письмо в <b>support_flow@kcell.kz</b> с описанием возникшей проблемы.\n" +
+                    "\n" +
+                    " \n" +
+                    "*-имя и фамилию в логине нужно писать с заглавной буквы. Например: <b>Petr.Petrov@kcell.kz</b>", baseUrl + "/kcell-tasklist-ui/#/?task=" + taskId));
 
             email.setTo(Arrays.asList(InternetAddress.parse(recipients)));
             email.setBcc(Arrays.asList(InternetAddress.parse("Askar.Slambekov@kcell.kz, Yernaz.Kalingarayev@kcell.kz")));

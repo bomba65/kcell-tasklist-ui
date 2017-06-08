@@ -1,6 +1,6 @@
 define(['./module','camundaSDK', 'lodash'], function(module, CamSDK, _){
 	'use strict';
-	return module.controller('mainCtrl', ['$scope', '$rootScope', 'toasty', 'AuthenticationService', '$routeParams', '$timeout', '$location', function($scope, $rootScope, toasty, AuthenticationService, $routeParams, $timeout, $location) {
+	return module.controller('mainCtrl', ['$scope', '$rootScope', 'toasty', 'AuthenticationService', '$routeParams', '$timeout', '$location', 'exModal', function($scope, $rootScope, toasty, AuthenticationService, $routeParams, $timeout, $location, exModal) {
 		$rootScope.currentPage = {
 			name: 'tasks'
 		};
@@ -10,8 +10,8 @@ define(['./module','camundaSDK', 'lodash'], function(module, CamSDK, _){
 		});
 
 		var Authentication = function(data) {
-		    angular.extend(this, data);
-		  }
+			angular.extend(this, data);
+		}
 
 		var taskService = new camClient.resource('task');
 		var userService = new camClient.resource('user');
@@ -67,10 +67,71 @@ define(['./module','camundaSDK', 'lodash'], function(module, CamSDK, _){
 			loadTasks();
 		}
 		$scope.startProcess = function(id){
-			processDefinitionService.start({id:id}, function(err, results){
-				$scope.tryToOpen = results;
-				getTaskList();
+			processDefinitionService.startForm({id:id}, function(err, startFormInfo){
+				if(startFormInfo.key){
+					var url = startFormInfo.key.replace('embedded:app:', startFormInfo.contextPath + '/');
+					exModal.open({
+						scope: {
+							processDefinitionId: id,
+							url: url,
+							view: {
+								submitted: false
+							}
+						},
+						templateUrl: './js/partials/start-form.html',
+						controller: StartFormController,
+						size: 'lg'
+					}).then(function(){
+					});
+				} else {
+					processDefinitionService.start({id:id}, function(err, results){
+						$scope.tryToOpen = results;
+						getTaskList();
+					});
+				}
 			});
+
+			StartFormController.$inject = ['scope'];
+			function StartFormController(scope){
+				console.log($('#start-form-modal-body'));
+				$timeout(function(){
+					new CamSDK.Form({
+						client: camClient,
+						formUrl: scope.url,
+						processDefinitionId: scope.processDefinitionId,
+						containerElement: $('#start-form-modal-body'),
+						done: scope.addStartFormButtion
+					});
+				})
+				scope.addStartFormButtion = function(err, camForm, evt) {
+					if (err) {
+						throw err;
+					}
+					var $submitBtn = $('<button type="submit" class="btn btn-primary">Start</button>').click(function (e) {
+						scope.view = {
+							submitted : true
+						};
+						if(scope.kcell_form.$valid){
+							camForm.submit(function (err) {
+								if (err) {
+									toasty.error({title: "Could not complete task", msg: err});
+									e.preventDefault();
+									throw err;
+								} else {
+									$('#start-form-modal-body').html('');
+									$scope.currentTask = undefined;
+									getTaskList();
+									$location.search({});
+									scope.$close();
+								}
+							});
+						} else {
+							toasty.error({title: "Could not complete task", msg: "Please fill required fields"});
+						}
+					});
+					camForm.formElement.append($submitBtn);
+				}
+			}
 		}
 		$rootScope.logout = function(){
 			AuthenticationService.logout();
