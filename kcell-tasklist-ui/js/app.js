@@ -37,7 +37,8 @@ define('app',[
 		});
 		$routeProvider.when('/statistics', {
 			templateUrl: 'js/partials/statistics.html',
-			controller: 'statisticsCtrl'
+			controller: 'statisticsCtrl',
+            authentication: 'required',
 		});
 		$routeProvider.otherwise({
 			redirectTo: '/'
