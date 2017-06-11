@@ -8,8 +8,8 @@ define(['./module','jquery'], function(app,$){
 
 		$scope._ = window._;
 
-		// $scope.baseUrl = '/camunda/api/engine/engine/default';
-		$scope.baseUrl = "https://test-flow.kcell.kz/engine-rest/engine/default";
+		$scope.baseUrl = '/camunda/api/engine/engine/default';
+		// $scope.baseUrl = "https://test-flow.kcell.kz/engine-rest/engine/default";
 
 		$scope.reportsMap = {
             'revision-open-tasks': {name: 'Revision open tasks'}
