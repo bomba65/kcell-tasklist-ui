@@ -1,7 +1,7 @@
 define(['./module','jquery'], function(app,$){
 	'use strict';
-	return app.controller('statisticsCtrl', ['$scope', '$rootScope', '$http', '$routeParams', '$q',
-			                         function($scope,   $rootScope,   $http,   $routeParams,   $q) {
+	return app.controller('statisticsCtrl', ['$scope', '$rootScope', '$http', '$routeParams', '$q', '$location',
+			                         function($scope,   $rootScope,   $http,   $routeParams,   $q, $location) {
 		$rootScope.currentPage = {
 			name: 'statistics'
 		};
@@ -22,6 +22,15 @@ define(['./module','jquery'], function(app,$){
 		$scope.currentReport = $routeParams.report || 'revision-open-tasks';
 
         $scope.task = $routeParams.task;
+
+        $http.get('/api/catalogs').then(
+            function (result) {
+                angular.extend($scope, result.data);
+            },
+            function (error) {
+                console.log(error.data);
+            }
+        );
 
         $scope.getJrRegion = function (jrNumber) {
             if (jrNumber) {
@@ -212,6 +221,10 @@ define(['./module','jquery'], function(app,$){
                         $scope.userTasksMap = userTasksMap;
 					});
 			}
+		}
+		$scope.selectReport = function(report){
+			console.log(report)
+			$location.url($location.path());
 		}
 	}]);
 });
