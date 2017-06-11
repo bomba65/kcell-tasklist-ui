@@ -23,22 +23,56 @@ define(['./module','jquery'], function(app,$){
 
         $scope.task = $routeParams.task;
 
+        $scope.getJrRegion = function (jrNumber) {
+            if (jrNumber) {
+                if (jrNumber.startsWith("Alm")) {
+                    return 'almaty';
+                } else if (jrNumber.startsWith("East")) {
+                    return 'east';
+                } else if (jrNumber.startsWith("N&C")) {
+                    return 'north_central';
+                } else if (jrNumber.startsWith("South")) {
+                    return 'south';
+                } else if (jrNumber.startsWith("West")) {
+                    return 'west';
+                } else if (jrNumber.startsWith("Astana")) {
+                    return 'astana';
+                } else {
+                    return 'no_region';
+                }
+            } else {
+                return 'no_region';
+            }
+        };
+
         if ($scope.currentReport === 'revision-open-tasks') {
         	if ($scope.task) {
-				// console.log($scope.task);
-				// $http.post($scope.baseUrl + '/history/task', {
-                 //    taskDefinitionKey: $scope.task,
-                 //    processDefinitionKey: 'Revision',
-                 //    unfinished: true,
-                 //    sorting: {
-                 //
-				// 	}
-				// }).then(function(response) {
-				// 	var tasks = response.data;
-                //
-                //
-				// });
-                //
+				$http.post($scope.baseUrl + '/history/task', {
+                    taskDefinitionKey: $scope.task,
+                    processDefinitionKey: 'Revision',
+                    unfinished: true
+				}).then(function(response) {
+					var tasks = response.data;
+                    var processInstanceIds = _.map(tasks, 'processInstanceId');
+                    return $http.post($scope.baseUrl + '/history/variable-instance', {
+                        processInstanceIdIn: processInstanceIds
+                    }).then(function(response){
+                        var variables = response.data;
+                        var variablesByProcessInstance = _.groupBy(variables, 'processInstanceId');
+                        return _.map(tasks, function(task) {
+                            return _.assign({}, task, {
+                                variables: _.keyBy(
+                                    variablesByProcessInstance[task.processInstanceId],
+                                    'name'
+                                )
+                            });
+                        });
+                    });
+				}).then(function (tasks) {
+                    console.log(tasks);
+                    $scope.tasks = tasks;
+                });
+
 			} else {
         		$scope.kcellTasks = [
                     'UserTask_1ru64f6',
@@ -160,29 +194,7 @@ define(['./module','jquery'], function(app,$){
                                     function(task) {
                                         var pid = task.processInstanceId;
                                         if (processInstances[pid]) {
-                                            var getJrRegion = function (jrNumber) {
-                                                if (jrNumber) {
-                                                    if (jrNumber.startsWith("Alm")) {
-                                                        return 'almaty';
-                                                    } else if (jrNumber.startsWith("East")) {
-                                                        return 'east';
-                                                    } else if (jrNumber.startsWith("N&C")) {
-                                                        return 'north_central';
-                                                    } else if (jrNumber.startsWith("South")) {
-                                                        return 'south';
-                                                    } else if (jrNumber.startsWith("West")) {
-                                                        return 'west';
-                                                    } else if (jrNumber.startsWith("Astana")) {
-                                                        return 'astana';
-                                                    } else {
-                                                        return 'no_region';
-                                                    }
-                                                } else {
-                                                    return 'no_region';
-                                                }
-                                            };
-
-                                            return getJrRegion(processInstances[pid].jrNumber);
+                                            return $scope.getJrRegion(processInstances[pid].jrNumber);
                                         } else {
                                             return 'no_processinstance';
                                         }
