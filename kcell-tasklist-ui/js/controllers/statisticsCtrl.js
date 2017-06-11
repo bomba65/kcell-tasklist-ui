@@ -54,6 +54,56 @@ define(['./module','jquery'], function(app,$){
             }
         };
 
+        var userTasksPromise = $http.get($scope.baseUrl + '/process-definition/key/Revision/xml')
+            .then(function(response) {
+                var domParser = new DOMParser();
+
+                var xml = domParser.parseFromString(response.data.bpmn20Xml, 'application/xml');
+
+                function getUserTasks(xml) {
+                    var namespaces = {
+                        bpmn: 'http://www.omg.org/spec/BPMN/20100524/MODEL'
+                    };
+
+                    var userTaskNodes = getElementsByXPath(xml, '//bpmn:userTask', prefix => namespaces[prefix]);
+
+                    function getElementsByXPath(doc, xpath, namespaceFn, parent) {
+                        let results = [];
+                        let query = doc.evaluate(xpath,
+                            parent || doc,
+                            namespaceFn,
+                            XPathResult.ORDERED_NODE_SNAPSHOT_TYPE, null);
+                        for (let i=0, length=query.snapshotLength; i<length; ++i) {
+                            results.push(query.snapshotItem(i));
+                        }
+                        return results;
+                    }
+
+                    return userTaskNodes.map(node => {
+                        var id = node.id;
+                        var name = node.attributes["name"] && node.attributes["name"].textContent;
+                        var description = getElementsByXPath(
+                            xml,
+                            'bpmn:documentation/text()',
+                            prefix => namespaces[prefix],
+                            node
+                        )[0];
+
+                        description = description && description.textContent;
+
+                        return {
+                            "id" : id,
+                            "name" : name,
+                            "description": description
+                        };
+                    });
+                }
+
+                var userTasks = getUserTasks(xml);
+                var userTasksMap = _.keyBy(userTasks, 'id');
+                $scope.userTasksMap = userTasksMap;
+            });
+
         if ($scope.currentReport === 'revision-open-tasks') {
         	if ($scope.task) {
 				$http.post($scope.baseUrl + '/history/task', {
@@ -78,7 +128,6 @@ define(['./module','jquery'], function(app,$){
                         });
                     });
 				}).then(function (tasks) {
-                    console.log(tasks);
                     $scope.tasks = tasks;
                 });
 
@@ -111,55 +160,6 @@ define(['./module','jquery'], function(app,$){
                     'UserTask_0rj3nbv'
                 ];
 
-                var userTasksPromise = $http.get($scope.baseUrl + '/process-definition/key/Revision/xml')
-					.then(function(response) {
-                        var domParser = new DOMParser();
-
-                        var xml = domParser.parseFromString(response.data.bpmn20Xml, 'application/xml');
-
-                        function getUserTasks(xml) {
-                            var namespaces = {
-                                bpmn: 'http://www.omg.org/spec/BPMN/20100524/MODEL'
-                            };
-
-                            var userTaskNodes = getElementsByXPath(xml, '//bpmn:userTask', prefix => namespaces[prefix]);
-
-                            function getElementsByXPath(doc, xpath, namespaceFn, parent)
-                            {
-                                let results = [];
-                                let query = doc.evaluate(xpath,
-                                    parent || doc,
-                                    namespaceFn,
-                                    XPathResult.ORDERED_NODE_SNAPSHOT_TYPE, null);
-                                for (let i=0, length=query.snapshotLength; i<length; ++i) {
-                                    results.push(query.snapshotItem(i));
-                                }
-                                return results;
-                            }
-
-                            return userTaskNodes.map(node => {
-                                var id = node.id;
-                                var name = node.attributes["name"] && node.attributes["name"].textContent;
-                                var description = getElementsByXPath(
-                                    xml,
-                                    'bpmn:documentation/text()',
-                                    prefix => namespaces[prefix],
-                                    node
-                                )[0];
-
-                                description = description && description.textContent;
-
-                                return {
-                                    "id" : id,
-                                    "name" : name,
-                                    "description": description
-                                };
-                            });
-                        }
-
-						return getUserTasks(xml);
-
-                    });
 
                 var processInstancesPromise = $http.post($scope.baseUrl + '/history/process-instance', {
                     "processDefinitionKey": "Revision"
@@ -182,13 +182,10 @@ define(['./module','jquery'], function(app,$){
 					return response.data;
 				});
 
-				$q.all([userTasksPromise, processInstancesPromise, taskInstancesPromise])
+				$q.all([processInstancesPromise, taskInstancesPromise])
 					.then(function(results) {
-                        var userTasks = results[0];
-                        var processInstances = results[1];
-                        var taskInstances = results[2];
-
-                        var userTasksMap = _.keyBy(userTasks, 'id');
+                        var processInstances = results[0];
+                        var taskInstances = results[1];
 
                         var taskInstancesByDefinition = _.groupBy(
                             taskInstances,
@@ -218,7 +215,6 @@ define(['./module','jquery'], function(app,$){
                         );
 
                         $scope.tasksByIdAndRegionCounted = tasksByIdAndRegionCounted;
-                        $scope.userTasksMap = userTasksMap;
 					});
 			}
 		}
