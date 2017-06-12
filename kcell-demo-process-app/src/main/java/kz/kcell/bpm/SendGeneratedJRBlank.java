@@ -206,6 +206,16 @@ public class SendGeneratedJRBlank implements JavaDelegate {
                 map.put("160", "160.Impl/indoor antenna (51-^ per site)");
                 return Collections.unmodifiableMap(map);
             })).get();
+    private static final Map<String, String> contractorsTitle =
+            ((Supplier<Map<String, String>>) (() -> {
+                Map<String, String> map = new HashMap();
+                map.put("1", "ТОО Аврора Сервис");
+                map.put("2", "ТОО AICOM");
+                map.put("3", "ТОО Spectr energy group");
+                map.put("4", "TOO Line System Engineering");
+                map.put("5", "JSC Kcell");
+                return Collections.unmodifiableMap(map);
+            })).get();
 
     protected void sendMail(DelegateExecution delegateExecution, String assignee, String recipient) {
         try {
@@ -214,10 +224,14 @@ public class SendGeneratedJRBlank implements JavaDelegate {
             String jrNumber = (String) delegateExecution.getVariable("jrNumber");
             String jobDescription = (String) delegateExecution.getVariable("jobDescription");
             String explanation = (String) delegateExecution.getVariable("explanation");
+            String contractor = delegateExecution.getVariable("contractor").toString();
+            String regionApproval = (String) delegateExecution.getVariable("regionApproval");
+            String centralApproval = (String) delegateExecution.getVariable("centralApproval");
             Date requestDate = (Date) delegateExecution.getVariable("requestedDate");
             SimpleDateFormat sdf = new SimpleDateFormat("dd.MM.yyyy");
             ObjectMapper mapper = new ObjectMapper();
             ArrayNode jobWorks = (ArrayNode) mapper.readTree(delegateExecution.getVariableTyped("jobWorks").getValue().toString());
+            JsonNode initiatorFull = mapper.readTree(delegateExecution.getVariableTyped("initiatorFull").getValue().toString());
             XSSFWorkbook workbook = new XSSFWorkbook();
             XSSFSheet sheet = workbook.createSheet();
 
@@ -368,9 +382,10 @@ public class SendGeneratedJRBlank implements JavaDelegate {
 
             row = sheet.createRow(20 + jobWorks.size());
             row.createCell(0).setCellValue("Job Request to:");
-            row.createCell(2).setCellValue("");
+            row.createCell(2).setCellValue(initiatorFull.get("firstName").textValue() + " " + initiatorFull.get("lastName").textValue());
 
             row = sheet.createRow(21 + jobWorks.size());
+            row.createCell(0).setCellValue((contractorsTitle.get(contractor) != null ? contractorsTitle.get(contractor) : "Not found"));
             row.createCell(2).setCellValue("             (position, name & signature)");
 
             row = sheet.createRow(22 + jobWorks.size());
@@ -380,7 +395,7 @@ public class SendGeneratedJRBlank implements JavaDelegate {
             row.createCell(2).setCellValue("Approved by:");
 
             row = sheet.createRow(24 + jobWorks.size());
-            row.createCell(2).setCellValue("");
+            row.createCell(2).setCellValue(regionApproval+", "+centralApproval);
 
             row = sheet.createRow(25 + jobWorks.size());
             row.createCell(2).setCellValue("             (position, name & signature)");

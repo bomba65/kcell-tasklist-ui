@@ -55,6 +55,14 @@
                             console.log(error.data);
                         }
                 );
+                $http.get("/camunda/api/engine/engine/default/user/" + $rootScope.authentication.name + "/profile").then(
+                        function(result){
+                            $scope.centralApproval = result.data.firstName + " " +result.data.lastName;
+                        },
+                        function(error){
+                            console.log(error);
+                        }
+                );
                 camForm.variableManager.createVariable({
                     name: 'centralGroupHeadApprovalTaskResult',
                     type: 'String',
@@ -64,6 +72,11 @@
                     name: 'createJRResult',
                     type: 'String',
                     value: undefined
+                });
+                camForm.variableManager.createVariable({
+                    name: 'centralApproval',
+                    type: 'String',
+                    value: ''
                 });
             });
             camForm.on('variables-fetched', function () {
@@ -119,6 +132,7 @@
                 }
                 $scope.jobModel.resolutions.push({processInstanceId: $scope.processInstanceId, assignee: $rootScope.authentication.name, resolution: $scope.centralGroupHeadApprovalTaskResult, comment: $scope.centralGroupHeadApprovalComment, taskId: camForm.taskId});
                 camForm.variableManager.variableValue('resolutions', $scope.jobModel.resolutions);
+                camForm.variableManager.variableValue('centralApproval', $scope.centralApproval);
             });
 
             camForm.on('store', function() {
