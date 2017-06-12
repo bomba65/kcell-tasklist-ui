@@ -16,7 +16,7 @@ public class ApproveMaterialsListByCentralGroupsHeadAssignmentHandler implements
         String reason = delegateTask.getVariable("reason").toString();
         if (reason != null) {
             if (reason.equals("1")) {
-                delegateTask.addCandidateUsers(Arrays.asList("Vladimir.Grachyov@kcell.kz"));
+                delegateTask.addCandidateUsers(Arrays.asList("Daniyar.Yespayev@kcell.kz", "Vladimir.Grachyov@kcell.kz"));
             } else if (reason.equals("2")) {
                 delegateTask.addCandidateUsers(Arrays.asList("Sergey.Grigor@kcell.kz", "Galym.Tulenbayev@kcell.kz"));
             } else if (reason.equals("3")) {
