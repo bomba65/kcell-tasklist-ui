@@ -82,20 +82,31 @@ define(['./module','camundaSDK', 'lodash'], function(module, CamSDK, _){
 						controller: StartFormController,
 						size: 'lg'
 					}).then(function(results){
-						$scope.tryToOpen = results;
-						getTaskList();
+						taskService.list({processInstanceId:results.id}, function(err, tasks){
+							if(tasks._embedded.task.length > 0){
+								$scope.tryToOpen = tasks._embedded.task[0];
+							} else {
+								$scope.tryToOpen = results
+							}
+							getTaskList();
+						});
 					});
 				} else {
 					processDefinitionService.start({id:id}, function(err, results){
-						$scope.tryToOpen = results;
-						getTaskList();
+						taskService.list({processInstanceId:results.id}, function(err, tasks){
+							if(tasks._embedded.task.length > 0){
+								$scope.tryToOpen = tasks._embedded.task[0];
+							} else {
+								$scope.tryToOpen = results
+							}
+							getTaskList();
+						});
 					});
 				}
 			});
 
 			StartFormController.$inject = ['scope'];
 			function StartFormController(scope){
-				console.log($('#start-form-modal-body'));
 				$timeout(function(){
 					new CamSDK.Form({
 						client: camClient,
