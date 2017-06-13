@@ -81,7 +81,9 @@ define(['./module','camundaSDK', 'lodash'], function(module, CamSDK, _){
 						templateUrl: './js/partials/start-form.html',
 						controller: StartFormController,
 						size: 'lg'
-					}).then(function(){
+					}).then(function(results){
+						$scope.tryToOpen = results;
+						getTaskList();
 					});
 				} else {
 					processDefinitionService.start({id:id}, function(err, results){
@@ -112,17 +114,14 @@ define(['./module','camundaSDK', 'lodash'], function(module, CamSDK, _){
 							submitted : true
 						};
 						if(scope.kcell_form.$valid){
-							camForm.submit(function (err) {
+							camForm.submit(function (err,results) {
 								if (err) {
 									toasty.error({title: "Could not complete task", msg: err});
 									e.preventDefault();
 									throw err;
 								} else {
 									$('#start-form-modal-body').html('');
-									$scope.currentTask = undefined;
-									getTaskList();
-									$location.search({});
-									scope.$close();
+									scope.$close(results);
 								}
 							});
 						} else {
