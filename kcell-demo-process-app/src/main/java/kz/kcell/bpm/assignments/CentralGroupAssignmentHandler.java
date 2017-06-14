@@ -14,7 +14,7 @@ public class CentralGroupAssignmentHandler implements TaskListener {
             if (reason.equals("1")) {
                 delegateTask.addCandidateUsers(Arrays.asList("Marina.Paramonova@kcell.kz", "Daniyar.Yespayev@kcell.kz", "Vladimir.Grachyov@kcell.kz"));
             } else if (reason.equals("2")) {
-                delegateTask.addCandidateUsers(Arrays.asList("Sergey.Grigor@kcell.kz", "Galym.Tulenbayev@kcell.kz"));
+                delegateTask.addCandidateUsers(Arrays.asList("Sergey.Grigor@kcell.kz", "Galym.Tulenbayev@kcell.kz", "Nikolay.Ustinov@kcell.kz"));
             } else if (reason.equals("3")) {
                 delegateTask.addCandidateUsers(Arrays.asList("Andrey.Medvedev@kcell.kz", "Sergey.Chumachenko@kcell.kz"));
             } else if (reason.equals("4")) {
