@@ -5,21 +5,16 @@ import lombok.*;
 import javax.persistence.*;
 
 @Entity
-@Table(name = "site_counter")
+@Table(name = "jobrequest_counter")
 @Data
 @Builder
 @NoArgsConstructor
 @AllArgsConstructor
-public class SiteCounter {
+public class JobRequestCounter {
 
     @Id
-    Long id;
+    String id;
 
     @Column(columnDefinition = "int default 1")
     int value;
-
-    @MapsId
-    @OneToOne
-    @JoinColumn(name = "id")
-    Site site;
 }

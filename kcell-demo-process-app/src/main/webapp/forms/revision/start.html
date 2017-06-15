@@ -43,7 +43,7 @@
 <div class="col-md-12">
     <form role="form" class="form-horizontal" name="kcell_form" novalidate>
         <script cam-script type="text/form-script">
-            inject([ '$scope', '$http', '$rootScope', '$q', function($scope, $http, $rootScope, $q) {
+            inject([ '$scope', '$http', '$rootScope', '$q', '$timeout', function($scope, $http, $rootScope, $q, $timeout) {
                 $scope.regionsMap = {
                     '0': 'Alm',
                     '11':'Astana',
@@ -88,22 +88,11 @@
                     $scope.siteName = $item.name;
                     $scope.site = $item.id;
                     $scope.site_name = $item.site_name;
-                    $scope.jrNumber = "";
                     if($scope.siteName.startsWith('11')){
                         $scope.regionShortName = $scope.regionsMap['11'];
                     } else {
                         $scope.regionShortName = $scope.regionsMap[$scope.siteName.substring(0,1)];
                     }
-
-                    $http.get('/asset-management/sitecounter/' + $scope.site).then(
-                        function(result){
-                            var s = result.data+"";
-                            while (s.length < 4) s = "0" + s;
-                            $scope.siteCounter = s;
-                        },
-                        function(error){
-                        }
-                    );
                     refreshJobRequests();
                 };
 
@@ -150,25 +139,23 @@
                         value: ''
                     });
                     camForm.variableManager.createVariable({
-                        name: 'jrNumber',
-                        type: 'String',
+                        name: 'contractor',
+                        type: 'Integer',
                         value: ''
                     });
                     camForm.variableManager.createVariable({
-                        name: 'contractor',
-                        type: 'Integer',
+                        name: 'jrNumber',
+                        type: 'String',
                         value: ''
                     });
                 });
 
                 camForm.on('submit', function (e) {
-                    var jrn = $scope.regionShortName+'-'+$scope.contractorShortName[$scope.custom.contractor]+'-'+$scope.reasonShortName[$scope.reason]+'-'+$scope.requestedDate.getFullYear().toString().substr(-2)+'-'+$scope.siteCounter;
-                    camForm.variableManager.variableValue('jrNumber', jrn);
+                    camForm.variableManager.variableValue('jrNumber', $scope.jrNumber);
                     camForm.variableManager.variableValue('site_name', $scope.site_name);
                     camForm.variableManager.variableValue('site', $scope.site);
                     camForm.variableManager.variableValue('siteName', $scope.siteName);
                     camForm.variableManager.variableValue('contractor', parseInt($scope.custom.contractor));
-                    camForm.businessKey = jrn;
                 });
                 $scope.showMoreJobRequests = showMoreJobRequests;
                 $scope.refreshJobRequests = refreshJobRequests;
@@ -255,6 +242,17 @@
                     } else {
                         $scope.jrIndex = index;
                     }
+                };
+
+                $scope.preSubmit = function(){
+
+                    var jrCounter = $scope.regionShortName+'-'+$scope.contractorShortName[$scope.custom.contractor]+'-'+$scope.reasonShortName[$scope.reason]+'-'+$scope.requestedDate.getFullYear().toString().substr(-2);
+                    return $http.post('/asset-management/jobrequestcounter/' + jrCounter).then(
+                        function(result){
+                            $scope.jrNumber = result.data;
+                            camForm.businessKey = result.data;
+                        }
+                    );
                 }
             }]);
         </script>
@@ -262,8 +260,7 @@
             <label class="col-sm-3 control-label required">JR Number:</label>
             <div class="col-sm-3">
                 <div class="form-control">
-                    <span ng-if="jrNumber">{{jrNumber}}</span>
-                    <span ng-if="!jrNumber">{{regionShortName?regionShortName:'###'}}-{{contractorShortName[custom.contractor]?contractorShortName[custom.contractor]:'###'}}-{{reasonShortName[reason]?reasonShortName[reason]:'###'}}-{{requestedDate.getFullYear().toString().substr(-2)}}-{{siteCounter?siteCounter:'###'}}</span>
+                    <span>{{regionShortName?regionShortName:'###'}}-{{contractorShortName[custom.contractor]?contractorShortName[custom.contractor]:'###'}}-{{reasonShortName[reason]?reasonShortName[reason]:'###'}}-{{requestedDate.getFullYear().toString().substr(-2)}}-{{siteCounter?siteCounter:'####'}}</span>
                 </div>
             </div>
         </div>

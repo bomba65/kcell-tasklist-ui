@@ -124,17 +124,40 @@ define(['./module','camundaSDK', 'lodash'], function(module, CamSDK, _){
 						scope.view = {
 							submitted : true
 						};
+						console.log(camForm);
 						if(scope.kcell_form.$valid){
-							camForm.submit(function (err,results) {
-								if (err) {
-									toasty.error({title: "Could not complete task", msg: err});
-									e.preventDefault();
-									throw err;
-								} else {
-									$('#start-form-modal-body').html('');
-									scope.$close(results);
-								}
-							});
+							if(scope.preSubmit){
+								scope.preSubmit().then(
+									function(result){
+										camForm.submit(function (err,results) {
+											if (err) {
+												toasty.error({title: "Could not complete task", msg: err});
+												e.preventDefault();
+												throw err;
+											} else {
+												$('#start-form-modal-body').html('');
+												scope.$close(results);
+											}
+										});
+									},
+									function(err){
+										toasty.error({title: "Could not complete task", msg: err});
+										e.preventDefault();
+										throw err;
+									}
+								);
+							} else {
+								camForm.submit(function (err,results) {
+									if (err) {
+										toasty.error({title: "Could not complete task", msg: err});
+										e.preventDefault();
+										throw err;
+									} else {
+										$('#start-form-modal-body').html('');
+										scope.$close(results);
+									}
+								});
+							}
 						} else {
 							toasty.error({title: "Could not complete task", msg: "Please fill required fields"});
 						}
