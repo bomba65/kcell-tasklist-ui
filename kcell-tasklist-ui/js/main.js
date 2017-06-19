@@ -41,5 +41,6 @@ require.config({
      },
  
      // запустить приложение
-     deps: ['./bootstrapAngular']
+     deps: ['./bootstrapAngular'],
+     urlArgs: "bust=" + (new Date()).getTime()
 });
