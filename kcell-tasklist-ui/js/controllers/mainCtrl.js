@@ -1,4 +1,4 @@
-define(['./module','camundaSDK', 'lodash'], function(module, CamSDK, _){
+define(['./module','camundaSDK', 'lodash', 'big-js'], function(module, CamSDK, _, Big){
 	'use strict';
 	return module.controller('mainCtrl', ['$scope', '$rootScope', 'toasty', 'AuthenticationService', '$routeParams', '$timeout', '$location', 'exModal', function($scope, $rootScope, toasty, AuthenticationService, $routeParams, $timeout, $location, exModal) {
 		$rootScope.currentPage = {
@@ -180,7 +180,7 @@ define(['./module','camundaSDK', 'lodash'], function(module, CamSDK, _){
 			});
 		}
 		function loadTasks(e) {
-			filterService.getTasks({id:$scope.currentFilter.id,sorting:[{"sortBy":"created","sortOrder":"desc"}],"active":true}, function(err, results){
+			filterService.getTasks({id:$scope.currentFilter.id,sorting:[{"sortBy":"created","sortOrder":"desc"}],"active":true,maxResults:200}, function(err, results){
 				if (err) {
 					throw err;
 				}

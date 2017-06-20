@@ -9,7 +9,8 @@ define('app',[
 	'./controllers/index',
 	'./directives/index',
 	'./services/index',
-	'camundaSDK'
+	'camundaSDK',
+	'big-js'
 ], function(ng){
 	'use strict';
 	var app =  ng.module('app', [

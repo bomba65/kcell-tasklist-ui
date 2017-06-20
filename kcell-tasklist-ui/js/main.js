@@ -21,7 +21,8 @@ require.config({
          'camundaSDK': './camunda/camunda-bpm-sdk-angular',
          'lodash': './lodash.min',
          'bpmn-viewer': './camunda/bpmn-viewer',
-         'bpmn-navigated-viewer': './camunda/bpmn-navigated-viewer'
+         'bpmn-navigated-viewer': './camunda/bpmn-navigated-viewer',
+         'big-js': './node_modules/big.js/big.min'
      },
  
      // angular не поддерживает AMD из коробки, поэтому экспортируем перменную angular в глобальную область

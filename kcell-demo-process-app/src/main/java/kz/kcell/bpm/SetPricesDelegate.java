@@ -3,6 +3,7 @@ package kz.kcell.bpm;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.node.ArrayNode;
+import com.fasterxml.jackson.databind.node.ObjectNode;
 import org.camunda.bpm.engine.delegate.DelegateTask;
 import org.camunda.bpm.engine.delegate.TaskListener;
 import org.camunda.spin.plugin.variable.SpinValues;
@@ -18,7 +19,7 @@ public class SetPricesDelegate implements TaskListener {
     @Override
     public void notify(DelegateTask delegateTask) {
         try {
-            Map<String, Double> worksMap = new HashMap<>();
+            Map<String, String> worksMap = new HashMap<>();
 
             ObjectMapper mapper = new ObjectMapper();
 
@@ -26,7 +27,7 @@ public class SetPricesDelegate implements TaskListener {
             InputStreamReader reader = new InputStreamReader(fis, "utf-8");
             ArrayNode json = (ArrayNode) mapper.readTree(reader);
             for (JsonNode workPrice : json) {
-                worksMap.put(workPrice.get("id").textValue(), Double.valueOf(workPrice.get("price").textValue()));
+                worksMap.put(workPrice.get("id").textValue(), workPrice.get("price").textValue());
             }
 
             ArrayNode workPrices = mapper.createArrayNode();
@@ -34,7 +35,8 @@ public class SetPricesDelegate implements TaskListener {
             ArrayNode jobWorks = (ArrayNode) mapper.readTree(delegateTask.getVariable("jobWorks").toString());
 
             for (JsonNode work : jobWorks) {
-                JsonNode workPrice = mapper.readTree("{\"sapServiceNumber\": \"" + work.get("sapServiceNumber").textValue() + "\", \"price\":" + Double.valueOf(worksMap.get(work.get("sapServiceNumber").textValue())).longValue() + "}");
+                ObjectNode workPrice = work.deepCopy();
+                workPrice.put("basePrice", worksMap.get(work.get("sapServiceNumber").textValue()));
                 workPrices.add(workPrice);
             }
 
