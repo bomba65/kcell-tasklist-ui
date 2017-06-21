@@ -44,6 +44,12 @@
                     }
             );
 
+            var Big;
+            if(window.require){
+                $scope.Big = require('big-js')
+                Big = require('big-js')
+            }
+
             camForm.on('form-loaded', function () {
                 variables.forEach(function (el) {
                     camForm.variableManager.fetchVariable(el);
@@ -106,16 +112,7 @@
                         $scope.jobModel[el] = camForm.variableManager.variables[el];
                     }
                 });
-                $scope.jobModel.jobWorksTotal = 0;
-                $scope.jobModel.jobWorksPriceTotal = 0;
-                $scope.jobModel.jobWorksTransportationTotal = 0;
-                for(var i=0;i<$scope.jobModel.workPrices.length;i++){
-                    $scope.jobModel.workPrices[i].transportationPrice = $scope.jobModel.workPrices[i].price * 0.08;
-                    $scope.jobModel.workPrices[i].totalPrice = $scope.jobModel.workPrices[i].price + $scope.jobModel.workPrices[i].transportationPrice;
-                    $scope.jobModel.jobWorksPriceTotal += $scope.jobModel.workPrices[i].price;
-                    $scope.jobModel.jobWorksTotal += $scope.jobModel.workPrices[i].totalPrice;
-                    $scope.jobModel.jobWorksTransportationTotal += $scope.jobModel.workPrices[i].transportationPrice;
-                }
+                $scope.priceChanged();
             });
 
             camForm.on('submit', function () {
@@ -139,40 +136,69 @@
             });
 
             $scope.priceChanged = function(){
-                $scope.jobModel.jobWorksTotal = 0;
-                $scope.jobModel.jobWorksPriceTotal = 0;
-                $scope.jobModel.jobWorksTransportationTotal = 0;
+                var jobWorksTotal = Big('0.0');
+                var jobWorksTransportationTotal = Big('0.0');
                 for(var i=0;i<$scope.jobModel.workPrices.length;i++){
-                    $scope.jobModel.workPrices[i].transportationPrice = $scope.jobModel.workPrices[i].price * 0.08;
-                    $scope.jobModel.workPrices[i].totalPrice = $scope.jobModel.workPrices[i].price + $scope.jobModel.workPrices[i].transportationPrice;
-                    $scope.jobModel.jobWorksPriceTotal += $scope.jobModel.workPrices[i].price;
-                    $scope.jobModel.jobWorksTotal += $scope.jobModel.workPrices[i].totalPrice;
-                    $scope.jobModel.jobWorksTransportationTotal += $scope.jobModel.workPrices[i].transportationPrice;
+                    if(!$scope.jobModel.workPrices[i].relatedSites.length){
+                        $scope.jobModel.workPrices[i].relatedSites.length = [];
+                    }
+                    var basePrice = Big($scope.jobModel.workPrices[i].basePrice);
+                    var quantity = Big($scope.jobModel.workPrices[i].quantity);
+                    var basePrices = Big(basePrice).times(quantity);
+                    var pricePerWork = basePrices.div($scope.jobModel.workPrices[i].relatedSites.length + 1);
+                    var transportation = basePrices.times('0.08');
+                    var total = basePrices.plus(transportation);
+
+                    $scope.jobModel.workPrices[i].transportationPrice = transportation.toFixed(2);
+                    $scope.jobModel.workPrices[i].totalPrice = total.toFixed(2);
+                    $scope.jobModel.workPrices[i].pricePerWork = pricePerWork.toFixed(2);
+                    $scope.jobModel.workPrices[i].basePrice = Number($scope.jobModel.workPrices[i].basePrice);
+
+                    jobWorksTotal = jobWorksTotal.plus(total);
+                    jobWorksTransportationTotal = jobWorksTransportationTotal.plus(transportation);
                 }
+                $scope.jobModel.jobWorksTotal = jobWorksTotal.toFixed(2);
+                $scope.jobModel.jobWorksTransportationTotal = jobWorksTransportationTotal.toFixed(2);
             }
         }]);
     </script>
     <job-request job-model="jobModel"></job-request>
     <div class="row">
-        <div class="col-md-6"><b>Works</b>:</div>
-        <div class="col-md-2"><b>Price</b>:</div>
-        <div class="col-md-2"><b>Transportation 8%</b></div>
-        <div class="col-md-2"><b>Total</b>:</div>
-        <div class="col-md-12">
-            <div ng-repeat="work in jobModel.workPrices" class="row">
-                <div class="col-md-6">&nbsp;&nbsp;&nbsp;&nbsp;{{jobModel.worksTitle[work.sapServiceNumber]}}</div>
-                <div class="col-md-2"><input type="number" ng-model="work.price" ng-change="priceChanged()"></div>
-                <div class="col-md-2"><b>{{work.transportationPrice.toFixed(2)}} тенге</b></div>
-                <div class="col-md-2"><b>{{work.totalPrice.toFixed(2)}} тенге</b></div>
-            </div>
-        </div>
-    </div>
-    <hr/>
-    <div class="row">
-        <div class="col-md-6"><b>Total:</b></div>
-        <div class="col-md-2"><b>{{jobModel.jobWorksPriceTotal}} тенге</b></div>
-        <div class="col-md-2"><b>{{jobModel.jobWorksTransportationTotal.toFixed(2)}} тенге</b></div>
-        <div class="col-md-2"><b>{{jobModel.jobWorksTotal.toFixed(2)}} тенге</b></div>
+        <table class="table table-condensed">
+            <thead>
+            <tr>
+                <th width="30%">Works</th>
+                <th>Materials Qty</th>
+                <th>Main site</th>
+                <th>Other Related Sites</th>
+                <th>Base Price</th>
+                <th>Works Qty</th>
+                <th>Sites</th>
+                <th style="text-align: center;">Price Per Site</th>
+                <th>Transpor- tation +8%</th>
+                <th style="text-align:right;font-weight: bold;font-size: 16px;background-color: lightpink;">Total</th>
+            </tr>
+            </thead>
+            <tbody>
+            <tr ng-repeat="work in jobModel.workPrices">
+                <td>{{jobModel.worksTitle[work.sapServiceNumber]}}</td>
+                <td>{{work.materialQuantity}}</td>
+                <td>{{jobModel.site_name.value}}</td>
+                <td><span class="my-tag" ng-repeat="rs in work.relatedSites">{{rs.site_name}}</span></td>
+                <td><input type="number" style="min-width: 100px" step="0.01" ng-model="work.basePrice" class="form-control" ng-change="priceChanged()"/></td>
+                <td><span style="padding: 6px 0px;display: inline-block;">&times;&nbsp;{{work.quantity}}</span></td>
+                <td><span style="padding: 6px 0px;display: inline-block;">&divide;&nbsp;{{work.relatedSites.length+1}}</span></td>
+                <td><span style="padding: 6px 0px;display: inline-block;">=&nbsp;{{work.pricePerWork}}&nbsp;KZT</span></td>
+                <td><span style="padding: 6px 0px;display: inline-block;">{{work.transportationPrice}}</span></td>
+                <td style="text-align:right;font-weight: bold;font-size: 16px;background-color: lightpink;"><span style="padding: 6px 0px;display: inline-block;">{{work.totalPrice}}</span></td>
+            </tr>
+            <tr>
+                <th colspan="8">Total</th>
+                <th>{{jobModel.jobWorksTransportationTotal}}</th>
+                <th style="text-align:right;font-weight: bold;font-size: 16px;background-color: lightpink;">{{jobModel.jobWorksTotal}}</th>
+            </tr>
+            </tbody>
+        </table>
     </div>
     <br/>
     <div class="form-group">

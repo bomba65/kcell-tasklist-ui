@@ -524,13 +524,22 @@
             $scope.getSite = function(val) {
                 return $http.get('/asset-management/api/sites/search/findByNameIgnoreCaseContaining?name='+val).then(
                     function(response){
-                        var sites = response.data._embedded.sites.map(function(site){
-                            var site = {
-                                name: site.name,
-                                id: site._links.self.href.substring(site._links.self.href.lastIndexOf('/')+1),
-                                site_name: (site.params?site.params.site_name:'')
-                            };
-                            return site;
+                        var sites = _.flatMap(response.data._embedded.sites, function(s){
+                            if(s.params.site_name){
+                                return s.params.site_name.split(',').map(function(sitename){
+                                    return {
+                                        name: s.name,
+                                        id: s._links.self.href.substring(s._links.self.href.lastIndexOf('/')+1),
+                                        site_name: sitename
+                                    };
+                                })
+                            } else {
+                                return {
+                                    name: s.name,
+                                    id: s._links.self.href.substring(s._links.self.href.lastIndexOf('/')+1),
+                                    site_name: s.name
+                                }
+                            }
                         });
                         return sites;
                     }
@@ -541,8 +550,8 @@
                 if(!$scope.jobWorks[$index].relatedSites){
                     $scope.jobWorks[$index].relatedSites = [];
                 }
-                if(!_.some($scope.jobWorks[$index].relatedSites, function(value){
-                    return value.id === $item.id;
+                if($item.site_name !== $scope.site_name && !_.some($scope.jobWorks[$index].relatedSites, function(value){
+                    return value.site_name === $item.site_name;
                 })){
                     $scope.jobWorks[$index].relatedSites.push($item);
                 }
@@ -783,11 +792,10 @@
                 <table class="table table-condensed">
                     <thead>
                         <tr>
-                            <th width="30%">Works</th>
+                            <th width="40%">Works</th>
                             <th width="7%">Works Qty</th>
                             <th width="13%">Materials Qty</th>
-                            <th width="10%">Main Site</th>
-                            <th width="30%">Other Related Sites</th>
+                            <th width="30%">Sites involved</th>
                             <th width="10%"></th>
                         </tr>
                     </thead>
@@ -812,11 +820,9 @@
                                     <label class="error" ng-if="workForm.materialQuantity.$error.required && ( workForm.materialQuantity.$touched || view.submitted)">Required field</label>
                                 </td>
                                 <td>
-                                    <div class="form-control disabled">{{siteName}}</div>
-                                </td>
-                                <td>
-                                    <span ng-repeat="rs in jobWork.relatedSites" class="my-tag">{{rs.name}} <a ng-click="removeRelatedSite($parent.$index, $index)">&times;</a></span>
-                                    <input type="text" ng-model="tempSite.name" style="display: inline-block; width:100px;" name="tempSiteName" typeahead="site as sites.name for sites in getSite($viewValue) | filter:$viewValue" typeahead-on-select="siteSelected($item, $index); tempSite={};" class="form-control" autocomplete="off">
+                                    <span class="my-tag" style="font-weight: bold; background-color: lightpink;">Main Site: {{site_name}}</span>
+                                    <span ng-repeat="rs in jobWork.relatedSites" class="my-tag">{{rs.site_name}} <a ng-click="removeRelatedSite($parent.$index, $index)">&times;</a></span>
+                                    <input type="text" ng-model="tempSite.name" style="display: inline-block; width:100px;" name="tempSiteName" typeahead="site as sites.site_name for sites in getSite($viewValue) | filter:$viewValue" typeahead-on-select="siteSelected($item, $index); tempSite={};" class="form-control" autocomplete="off" placeholder="Add Site">
                                 </td>
                                 <td><div class="col-md-1"><button type="button" class="btn btn-sm btn-warning" ng-if="$index !== 0" ng-click="removeWork($index)"><i class="glyphicon glyphicon-trash"></i> Remove</button></div></td>
                             </ng-form>

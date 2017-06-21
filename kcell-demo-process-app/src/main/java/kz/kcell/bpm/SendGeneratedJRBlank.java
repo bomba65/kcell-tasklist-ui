@@ -395,7 +395,7 @@ public class SendGeneratedJRBlank implements JavaDelegate {
             row.createCell(2).setCellValue("Approved by:");
 
             row = sheet.createRow(24 + jobWorks.size());
-            row.createCell(2).setCellValue(regionApproval+", "+centralApproval);
+            row.createCell(2).setCellValue(regionApproval + ", " + centralApproval);
 
             row = sheet.createRow(25 + jobWorks.size());
             row.createCell(2).setCellValue("             (position, name & signature)");
@@ -585,6 +585,7 @@ public class SendGeneratedJRBlank implements JavaDelegate {
                     "Пройдя по следующей ссылке на страницу в HUB.Kcell.kz, вы можете оставить в поле комментариев свои замечания и/или пожелания относительно функционала и интерфейса системы: https://hub.kcell.kz/x/kYNoAg");
             email.addTo(recipient);
             email.setBcc(Arrays.asList(InternetAddress.parse("Askar.Slambekov@kcell.kz, Yernaz.Kalingarayev@kcell.kz")));
+            email.setCc(Arrays.asList(InternetAddress.parse("Tatyana.Solovyova@kcell.kz")));
             email.attach(source, "jr-blank.xlsx", "Job Request blank");
 
             email.send();
