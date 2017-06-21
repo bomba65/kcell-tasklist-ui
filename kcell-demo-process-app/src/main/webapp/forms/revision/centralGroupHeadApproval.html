@@ -141,28 +141,26 @@
 
             $scope.priceChanged = function(){
                 var jobWorksTotal = Big('0.0');
-                var jobWorksTransportationTotal = Big('0.0');
                 for(var i=0;i<$scope.jobModel.workPrices.length;i++){
-                    if(!$scope.jobModel.workPrices[i].relatedSites.length){
-                        $scope.jobModel.workPrices[i].relatedSites.length = [];
+                    if(!$scope.jobModel.workPrices[i].relatedSites){
+                        $scope.jobModel.workPrices[i].relatedSites= [];
                     }
-                    var basePrice = Big($scope.jobModel.workPrices[i].basePrice);
-                    var quantity = Big($scope.jobModel.workPrices[i].quantity);
-                    var basePrices = Big(basePrice).times(quantity);
-                    var pricePerWork = basePrices.div($scope.jobModel.workPrices[i].relatedSites.length + 1);
-                    var transportation = basePrices.times('0.08');
-                    var total = basePrices.plus(transportation);
+                    var unitWorkPrice = Big($scope.jobModel.workPrices[i].basePrice);
+                    var unitWorkPricePlusTx = unitWorkPrice.times('1.08');
+                    var unitWorkPricePerSite = unitWorkPricePlusTx.div($scope.jobModel.workPrices[i].relatedSites.length);
+                    var netWorkPricePerSite = unitWorkPricePerSite.times($scope.jobModel.workPrices[i].quantity);
 
-                    $scope.jobModel.workPrices[i].transportationPrice = transportation.toFixed(2);
-                    $scope.jobModel.workPrices[i].totalPrice = total.toFixed(2);
-                    $scope.jobModel.workPrices[i].pricePerWork = pricePerWork.toFixed(2);
-                    $scope.jobModel.workPrices[i].basePrice = Number($scope.jobModel.workPrices[i].basePrice);
+                    var total = unitWorkPricePlusTx.times($scope.jobModel.workPrices[i].quantity);
+
+                    $scope.jobModel.workPrices[i].unitWorkPrice = unitWorkPrice.toFixed(2);
+                    $scope.jobModel.workPrices[i].unitWorkPricePlusTx = unitWorkPricePlusTx.toFixed(2);
+                    $scope.jobModel.workPrices[i].unitWorkPricePerSite = unitWorkPricePerSite.toFixed(2);
+                    $scope.jobModel.workPrices[i].netWorkPricePerSite = netWorkPricePerSite.toFixed(2);
+                    $scope.jobModel.workPrices[i].total = total.toFixed(2);
 
                     jobWorksTotal = jobWorksTotal.plus(total);
-                    jobWorksTransportationTotal = jobWorksTransportationTotal.plus(transportation);
                 }
                 $scope.jobModel.jobWorksTotal = jobWorksTotal.toFixed(2);
-                $scope.jobModel.jobWorksTransportationTotal = jobWorksTransportationTotal.toFixed(2);
             }
         }]);
     </script>
@@ -172,32 +170,30 @@
             <thead>
                 <tr>
                     <th width="30%">Works</th>
-                    <th>Materials Qty</th>
-                    <th>Main site</th>
-                    <th>Other Related Sites</th>
-                    <th>Base Price</th>
                     <th>Works Qty</th>
+                    <th>Materials Qty</th>
                     <th>Sites</th>
-                    <th style="text-align: center;">Price Per Site</th>
-                    <th>Transpor- tation +8%</th>
+                    <th>Base Price</th>
+                    <th>Base + Transportation +8%</th>
+                    <th>1 work price per site Sum/site q-ty</th>
+                    <th>Sum * works q-ty</th>
                     <th style="text-align:right;font-weight: bold;font-size: 16px;background-color: lightpink;">Total</th>
                 </tr>
             </thead>
             <tbody>
                 <tr ng-repeat="work in jobModel.workPrices">
                     <td>{{jobModel.worksTitle[work.sapServiceNumber]}}</td>
+                    <td>{{work.quantity}}</td>
                     <td>{{work.materialQuantity}}</td>
-                    <td>{{jobModel.site_name.value}}</td>
-                    <td><span class="my-tag" ng-repeat="rs in work.relatedSites">{{rs.site_name}}</span></td>
-                    <td><input type="number" style="min-width: 100px" step="0.01" ng-model="work.basePrice" class="form-control" ng-change="priceChanged()"/></td>
-                    <td><span style="padding: 6px 0px;display: inline-block;">&times;&nbsp;{{work.quantity}}</span></td>
-                    <td><span style="padding: 6px 0px;display: inline-block;">&divide;&nbsp;{{work.relatedSites.length+1}}</span></td>
-                    <td><span style="padding: 6px 0px;display: inline-block;">=&nbsp;{{work.pricePerWork}}&nbsp;KZT</span></td>
-                    <td><span style="padding: 6px 0px;display: inline-block;">{{work.transportationPrice}}</span></td>
-                    <td style="text-align:right;font-weight: bold;font-size: 16px;background-color: lightpink;"><span style="padding: 6px 0px;display: inline-block;">{{work.totalPrice}}</span></td>
+                    <td><span ng-repeat="rs in work.relatedSites" class="my-tag" ng-class="{'main-site':rs.site_name===jobModel.site_name.value}"><span ng-if="rs.site_name===jobModel.site_name.value">Main Site: </span>{{rs.site_name}}</span></td>
+                    <td>{{work.unitWorkPrice}}&nbsp;&#8376;</td>
+                    <td>{{work.unitWorkPricePlusTx}}&nbsp;&#8376;</td>
+                    <td>{{work.unitWorkPricePerSite}}&nbsp;&#8376;</td>
+                    <td>{{work.netWorkPricePerSite}}&nbsp;&#8376;</td>
+                    <td style="text-align:right;font-weight: bold;font-size: 16px;background-color: lightpink;"><span style="padding: 6px 0px;display: inline-block;">{{work.total}}</span></td>
                 </tr>
                 <tr>
-                    <th colspan="8">Total</th>
+                    <th colspan="7">Total</th>
                     <th>{{jobModel.jobWorksTransportationTotal}}</th>
                     <th style="text-align:right;font-weight: bold;font-size: 16px;background-color: lightpink;">{{jobModel.jobWorksTotal}}</th>
                 </tr>

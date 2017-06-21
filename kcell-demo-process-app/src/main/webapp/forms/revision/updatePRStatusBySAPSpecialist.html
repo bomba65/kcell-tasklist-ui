@@ -29,6 +29,7 @@
                 'supplementaryFile5',
                 'explanation',
                 'resolutions',
+                'workPrices',
                 'jobWorks'
             ];
 
@@ -92,12 +93,16 @@
                                 }
                             })
                         });
+                    } else if(el === 'workPrices'){
+                        $scope.jobModel[el] = JSON.parse(camForm.variableManager.variables[el].originalValue);
                     } else {
                         $scope.jobModel[el] = camForm.variableManager.variables[el];
                     }
                 });
+                $scope.priceChanged();
             });
             camForm.on('submit', function (e) {
+                camForm.variableManager.variableValue('workPrices', JSON.parse(angular.toJson($scope.jobModel.workPrices)));
                 camForm.variableManager.variableValue('sapLeasingCompletionCommenTaskResult', $scope.sapLeasingCompletionCommenTaskResult);
                 if ($scope.sapLeasingCompletionCommenTaskResult === 'prCreated') {
                     camForm.variableManager.variableValue('prCreated', true);
@@ -157,9 +162,68 @@
                     });
                 }
             };
+
+            $scope.priceChanged = function(){
+                var jobWorksTotal = Big('0.0');
+                for(var i=0;i<$scope.jobModel.workPrices.length;i++){
+                    if(!$scope.jobModel.workPrices[i].relatedSites){
+                        $scope.jobModel.workPrices[i].relatedSites= [];
+                    }
+                    var unitWorkPrice = Big($scope.jobModel.workPrices[i].basePrice);
+                    var unitWorkPricePlusTx = unitWorkPrice.times('1.08');
+                    var unitWorkPricePerSite = unitWorkPricePlusTx.div($scope.jobModel.workPrices[i].relatedSites.length);
+                    var netWorkPricePerSite = unitWorkPricePerSite.times($scope.jobModel.workPrices[i].quantity);
+
+                    var total = unitWorkPricePlusTx.times($scope.jobModel.workPrices[i].quantity);
+
+                    $scope.jobModel.workPrices[i].unitWorkPrice = unitWorkPrice.toFixed(2);
+                    $scope.jobModel.workPrices[i].unitWorkPricePlusTx = unitWorkPricePlusTx.toFixed(2);
+                    $scope.jobModel.workPrices[i].unitWorkPricePerSite = unitWorkPricePerSite.toFixed(2);
+                    $scope.jobModel.workPrices[i].netWorkPricePerSite = netWorkPricePerSite.toFixed(2);
+                    $scope.jobModel.workPrices[i].total = total.toFixed(2);
+
+                    jobWorksTotal = jobWorksTotal.plus(total);
+                }
+                $scope.jobModel.jobWorksTotal = jobWorksTotal.toFixed(2);
+            }
         }]);
     </script>
     <job-request job-model="jobModel"></job-request>
+    <div class="row">
+        <table class="table table-condensed">
+            <thead>
+            <tr>
+                <th width="30%">Works</th>
+                <th>Works Qty</th>
+                <th>Materials Qty</th>
+                <th>Sites</th>
+                <th>Base Price</th>
+                <th>Base + Transportation +8%</th>
+                <th>1 work price per site Sum/site q-ty</th>
+                <th>Sum * works q-ty</th>
+                <th style="text-align:right;font-weight: bold;font-size: 16px;background-color: lightpink;">Total</th>
+            </tr>
+            </thead>
+            <tbody>
+            <tr ng-repeat="work in jobModel.workPrices">
+                <td>{{jobModel.worksTitle[work.sapServiceNumber]}}</td>
+                <td>{{work.quantity}}</td>
+                <td>{{work.materialQuantity}}</td>
+                <td><span ng-repeat="rs in work.relatedSites" class="my-tag" ng-class="{'main-site':rs.site_name===jobModel.site_name.value}"><span ng-if="rs.site_name===jobModel.site_name.value">Main Site: </span>{{rs.site_name}}</span></td>
+                <td>{{work.unitWorkPrice}}&nbsp;&#8376;</td>
+                <td>{{work.unitWorkPricePlusTx}}&nbsp;&#8376;</td>
+                <td>{{work.unitWorkPricePerSite}}&nbsp;&#8376;</td>
+                <td>{{work.netWorkPricePerSite}}&nbsp;&#8376;</td>
+                <td style="text-align:right;font-weight: bold;font-size: 16px;background-color: lightpink;"><span style="padding: 6px 0px;display: inline-block;">{{work.total}}</span></td>
+            </tr>
+            <tr>
+                <th colspan="7">Total</th>
+                <th>{{jobModel.jobWorksTransportationTotal}}</th>
+                <th style="text-align:right;font-weight: bold;font-size: 16px;background-color: lightpink;">{{jobModel.jobWorksTotal}}</th>
+            </tr>
+            </tbody>
+        </table>
+    </div>
     <div class="form-group">
         <label class="col-sm-4 control-label">PR No.:</label>
         <div class="col-sm-8">

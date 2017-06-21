@@ -336,7 +336,7 @@
             $scope.download = download;
             $scope.removeWork = removeWork;
             $scope.serviceChanged = serviceChanged;
-            $scope.jobWorks = [{}];
+            $scope.jobWorks = [{relatedSites:[{id:$scope.site, name:$scope.siteName,site_name:$scope.site_name||$scope.siteName}]}];
             $scope.jobRequests = {};
 
             var currentDate = new Date();
@@ -427,7 +427,7 @@
             }
 
             function addJobWork(){
-                $scope.jobWorks.push({});
+                $scope.jobWorks.push({relatedSites:[{id:$scope.site, name:$scope.siteName,site_name:$scope.site_name||$scope.siteName}]});
             }
 
             function showMoreJobRequests(){
@@ -503,10 +503,10 @@
                     if(camForm.variableManager.variableValue('jobWorks')){
                         $scope.jobWorks = JSON.parse(angular.toJson(camForm.variableManager.variableValue('jobWorks')));
                     } else {
-                        $scope.jobWorks = [{}];
+                        $scope.jobWorks = [{relatedSites:[{id:$scope.site, name:$scope.siteName,site_name:$scope.site_name||$scope.siteName}]}];
                     }
                 } catch(e){
-                    $scope.jobWorks = [{}];
+                    $scope.jobWorks = [{relatedSites:[{id:$scope.site, name:$scope.siteName,site_name:$scope.site_name||$scope.siteName}]}];
                 }
                 //$scope.reason = camForm.variableManager.variableValue('reason');
                 refreshJobRequests();
@@ -550,7 +550,7 @@
                 if(!$scope.jobWorks[$index].relatedSites){
                     $scope.jobWorks[$index].relatedSites = [];
                 }
-                if($item.site_name !== $scope.site_name && !_.some($scope.jobWorks[$index].relatedSites, function(value){
+                if(!_.some($scope.jobWorks[$index].relatedSites, function(value){
                     return value.site_name === $item.site_name;
                 })){
                     $scope.jobWorks[$index].relatedSites.push($item);
@@ -820,8 +820,7 @@
                                     <label class="error" ng-if="workForm.materialQuantity.$error.required && ( workForm.materialQuantity.$touched || view.submitted)">Required field</label>
                                 </td>
                                 <td>
-                                    <span class="my-tag" style="font-weight: bold; background-color: lightpink;">Main Site: {{site_name}}</span>
-                                    <span ng-repeat="rs in jobWork.relatedSites" class="my-tag">{{rs.site_name}} <a ng-click="removeRelatedSite($parent.$index, $index)">&times;</a></span>
+                                    <span ng-repeat="rs in jobWork.relatedSites" class="my-tag" ng-class="{'main-site':rs.site_name===site_name}"><span ng-if="rs.site_name===site_name">Main Site: </span>{{rs.site_name}} <a ng-click="removeRelatedSite($parent.$index, $index)">&times;</a></span>
                                     <input type="text" ng-model="tempSite.name" style="display: inline-block; width:100px;" name="tempSiteName" typeahead="site as sites.site_name for sites in getSite($viewValue) | filter:$viewValue" typeahead-on-select="siteSelected($item, $index); tempSite={};" class="form-control" autocomplete="off" placeholder="Add Site">
                                 </td>
                                 <td><div class="col-md-1"><button type="button" class="btn btn-sm btn-warning" ng-if="$index !== 0" ng-click="removeWork($index)"><i class="glyphicon glyphicon-trash"></i> Remove</button></div></td>
