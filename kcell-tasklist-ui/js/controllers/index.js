@@ -1,5 +1,6 @@
 define([
 	'./mainCtrl',
 	'./loginCtrl',
-	'./statisticsCtrl'
+	'./statisticsCtrl',
+	'./processesCtrl'
 	], function(){});

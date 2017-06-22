@@ -20,6 +20,9 @@ import org.camunda.bpm.engine.delegate.JavaDelegate;
 import org.camunda.bpm.engine.identity.User;
 import org.camunda.bpm.engine.impl.context.Context;
 import org.camunda.bpm.engine.impl.util.json.JSONArray;
+import org.camunda.bpm.engine.variable.Variables;
+import org.camunda.bpm.engine.variable.impl.value.FileValueImpl;
+import org.camunda.bpm.engine.variable.value.FileValue;
 import org.camunda.bpm.extension.mail.config.MailConfiguration;
 import org.camunda.bpm.extension.mail.config.MailConfigurationFactory;
 
@@ -589,7 +592,7 @@ public class SendGeneratedJRBlank implements JavaDelegate {
             out.close();
             ByteArrayInputStream is = new ByteArrayInputStream(out.toByteArray());
 
-            DataSource source = new ByteArrayDataSource(is, "application/pdf");
+            DataSource source = new ByteArrayDataSource(is, "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet");
 
             MultiPartEmail email = new MultiPartEmail();
             email.setCharset("utf-8");
@@ -609,6 +612,9 @@ public class SendGeneratedJRBlank implements JavaDelegate {
 
             email.send();
             LOGGER.info("Task Assignment Email successfully sent to user '" + assignee + "' with address '" + recipient + "'.");
+
+            FileValue jrBlank = Variables.fileValue("jrBlank.xlsx").file(out.toByteArray()).mimeType("application/vnd.openxmlformats-officedocument.spreadsheetml.sheet").create();
+            delegateExecution.setVariable("jrBlank", jrBlank);
 
         } catch (Exception e) {
             e.printStackTrace();

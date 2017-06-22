@@ -41,6 +41,11 @@ define('app',[
 			controller: 'statisticsCtrl',
             authentication: 'required',
 		});
+		$routeProvider.when('/processes', {
+			templateUrl: 'js/partials/processes.html',
+			controller: 'processesCtrl',
+            authentication: 'required',
+		});
 		$routeProvider.otherwise({
 			redirectTo: '/'
 		});
