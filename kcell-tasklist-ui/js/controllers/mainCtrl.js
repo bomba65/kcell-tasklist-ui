@@ -232,18 +232,42 @@ define(['./module','camundaSDK', 'lodash', 'big-js'], function(module, CamSDK, _
 					submitted : true
 				};
 				if($scope.kcell_form.$valid){
-					camForm.submit(function (err) {
-						if (err) {
-							toasty.error({title: "Could not complete task", msg: err});
-							e.preventDefault();
-							throw err;
-						} else {
-							$('#taskElement').html('');
-							$scope.currentTask = undefined;
-							getTaskList();
-							$location.search({});
-						}
-					});
+					if($scope.preSubmit){
+						$scope.preSubmit().then(
+							function(result){
+								camForm.submit(function (err) {
+									if (err) {
+										toasty.error({title: "Could not complete task", msg: err});
+										e.preventDefault();
+										throw err;
+									} else {
+										$('#taskElement').html('');
+										$scope.currentTask = undefined;
+										getTaskList();
+										$location.search({});
+									}
+								});
+							},
+							function(err){
+								toasty.error({title: "Could not complete task", msg: err});
+								e.preventDefault();
+								throw err;
+							}
+						);
+					} else {
+						camForm.submit(function (err) {
+							if (err) {
+								toasty.error({title: "Could not complete task", msg: err});
+								e.preventDefault();
+								throw err;
+							} else {
+								$('#taskElement').html('');
+								$scope.currentTask = undefined;
+								getTaskList();
+								$location.search({});
+							}
+						});
+					}
 				} else {
 					toasty.error({title: "Could not complete task", msg: "Please fill required fields"});
 				}

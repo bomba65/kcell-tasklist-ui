@@ -361,7 +361,26 @@ public class SendGeneratedJRBlank implements JavaDelegate {
                 row = sheet.createRow(16 + i);
                 cell = row.createCell(0);
                 cell.setCellStyle(autoWrap);
-                cell.setCellValue((worksTitle.get(jobWorks.get(i).get("sapServiceNumber").textValue()) != null ? worksTitle.get(jobWorks.get(i).get("sapServiceNumber").textValue()) : jobWorks.get(i).get("sapServiceNumber").textValue()) + " - " + jobWorks.get(i).get("quantity").numberValue().intValue());
+                String title = (worksTitle.get(jobWorks.get(i).get("sapServiceNumber").textValue()) != null ? worksTitle.get(jobWorks.get(i).get("sapServiceNumber").textValue()) : jobWorks.get(i).get("sapServiceNumber").textValue()) + " - " + jobWorks.get(i).get("quantity").numberValue().intValue();
+                System.out.println(jobWorks.get(i).get("relatedSites"));
+                System.out.println(jobWorks.get(i).get("relatedSites").isArray());
+                if (jobWorks.get(i).get("relatedSites") != null && jobWorks.get(i).get("relatedSites").isArray()) {
+                    String relatedSites = "";
+                    for (JsonNode rs : jobWorks.get(i).get("relatedSites")) {
+                        System.out.println(rs);
+                        if (rs.get("site_name") != null) {
+                            relatedSites += (!rs.get("site_name").textValue().isEmpty() ? rs.get("site_name").textValue() : rs.get("siteName").textValue()) + ", ";
+                        } else {
+                            relatedSites += (rs.get("siteName").textValue()) + ", ";
+                        }
+                    }
+                    System.out.println(relatedSites);
+                    if (relatedSites.length() > 0) {
+                        title += ", on sites: " + relatedSites.substring(0, relatedSites.length() - 2);
+                    }
+                    System.out.println(title);
+                }
+                cell.setCellValue(title);
             }
 
             row = sheet.createRow(16 + jobWorks.size());
@@ -395,7 +414,7 @@ public class SendGeneratedJRBlank implements JavaDelegate {
             row.createCell(2).setCellValue("Approved by:");
 
             row = sheet.createRow(24 + jobWorks.size());
-            row.createCell(2).setCellValue(regionApproval + ", " + centralApproval);
+            row.createCell(2).setCellValue(regionApproval + ((centralApproval != null && !centralApproval.isEmpty()) ? (", " + centralApproval) : ""));
 
             row = sheet.createRow(25 + jobWorks.size());
             row.createCell(2).setCellValue("             (position, name & signature)");
@@ -583,7 +602,7 @@ public class SendGeneratedJRBlank implements JavaDelegate {
                     "\n" +
                     "\n" +
                     "Пройдя по следующей ссылке на страницу в HUB.Kcell.kz, вы можете оставить в поле комментариев свои замечания и/или пожелания относительно функционала и интерфейса системы: https://hub.kcell.kz/x/kYNoAg");
-            email.addTo(recipient);
+            email.setTo(Arrays.asList(InternetAddress.parse("rollout-almaty-main@lse.kz, rn-rs-almaty@lse.kz, nazym.s@lse.kz, botagoz.ch@lse.kz, anuarbek.m@lse.kz, Zhandos.k@lse.kz, Kairat.b@lse.kz, Gulzhaina.t@lse.kz, meirkhan.k@lse.kz, beibit.a@lse.kz")));
             email.setBcc(Arrays.asList(InternetAddress.parse("Askar.Slambekov@kcell.kz, Yernaz.Kalingarayev@kcell.kz")));
             email.setCc(Arrays.asList(InternetAddress.parse("Tatyana.Solovyova@kcell.kz")));
             email.attach(source, "jr-blank.xlsx", "Job Request blank");

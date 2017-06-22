@@ -336,7 +336,7 @@
             $scope.download = download;
             $scope.removeWork = removeWork;
             $scope.serviceChanged = serviceChanged;
-            $scope.jobWorks = [{relatedSites:[{id:$scope.site, name:$scope.siteName,site_name:$scope.site_name||$scope.siteName}]}];
+            $scope.jobWorks = [{relatedSites:[]}];
             $scope.jobRequests = {};
 
             var currentDate = new Date();
@@ -427,7 +427,7 @@
             }
 
             function addJobWork(){
-                $scope.jobWorks.push({relatedSites:[{id:$scope.site, name:$scope.siteName,site_name:$scope.site_name||$scope.siteName}]});
+                $scope.jobWorks.push({relatedSites:[]});
             }
 
             function showMoreJobRequests(){
@@ -503,10 +503,10 @@
                     if(camForm.variableManager.variableValue('jobWorks')){
                         $scope.jobWorks = JSON.parse(angular.toJson(camForm.variableManager.variableValue('jobWorks')));
                     } else {
-                        $scope.jobWorks = [{relatedSites:[{id:$scope.site, name:$scope.siteName,site_name:$scope.site_name||$scope.siteName}]}];
+                        $scope.jobWorks = [{relatedSites:[]}];
                     }
                 } catch(e){
-                    $scope.jobWorks = [{relatedSites:[{id:$scope.site, name:$scope.siteName,site_name:$scope.site_name||$scope.siteName}]}];
+                    $scope.jobWorks = [{relatedSites:[]}];
                 }
                 //$scope.reason = camForm.variableManager.variableValue('reason');
                 refreshJobRequests();
@@ -598,6 +598,19 @@
                 '3': 'S&FM',
                 '4': 'SAO'
             }
+
+            $scope.preSubmit = function(){
+                var deferred = $q.defer();
+                var contains = _.some(_.flatMap($scope.jobWorks, 'relatedSites'), function(value){
+                    return value.site_name === $scope.site_name;
+                });
+                if(!contains){
+                    deferred.reject('At least one job should contains Main Site');
+                } else {
+                    deferred.resolve();
+                }
+                return deferred.promise;
+            }
         }]);
 
     </script>
@@ -681,6 +694,12 @@
             <select cam-variable-name="project" name="project" cam-variable-type="String" class="form-control" required>
                 <option value="N/A">N/A</option>
                 <option value="Astana Expo 2017">Astana Expo 2017</option>
+                <option ng-if="reason === '2'" value="Other - (Re-routing, re-planning, etc.)">Other - (Re-routing, re-planning, etc.)</option>
+                <option ng-if="reason === '2'" value="Transmission FIX/IPVPN">Transmission FIX/IPVPN</option>
+                <option ng-if="reason === '2'" value="Transmission PBX">Transmission PBX</option>
+                <option ng-if="reason === '2'" value="Transmission 1+1">Transmission 1+1</option>
+                <option ng-if="reason === '2'" value="Transmission Upgrades">Transmission Upgrades</option>
+                <option ng-if="reason === '2'" value="Transmission Revision LTE">Transmission Revision LTE</option>
             </select>
             <label class="error" ng-if="kcell_form.project.$error.required && ( kcell_form.project.$touched || view.submitted)">Required field</label>
         </div>
