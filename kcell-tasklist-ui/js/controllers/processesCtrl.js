@@ -62,8 +62,10 @@ define(['./module','jquery', 'camundaSDK'], function(app, $, CamSDK){
 			var filter = {
 				processDefinitionKey: $scope.filter.processDefinitionKey,
 				startedBy: $rootScope.authentication.name,
-				processInstanceBusinessKey: $scope.filter.businessKey,
 				sorting:[{sortBy: "startTime",sortOrder: "desc"}]
+			}
+			if($scope.filter.businessKey){
+				filter.processInstanceBusinessKey = $scope.filter.businessKey;
 			}
 			historyService.processInstance(filter, function(err, result){
 				$scope.$apply(function (){
