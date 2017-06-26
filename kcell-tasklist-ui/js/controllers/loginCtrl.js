@@ -4,6 +4,17 @@ define(['./module','jquery'], function(app,$){
 		if ($rootScope.authentication) {
 			return $location.path('/');
 		}
+		$rootScope.apps = {
+			welcome:{
+				label: 'Welcome'
+			},
+			admin: {
+				label: 'Admin'
+			},
+			cockpit: {
+				label: 'Cockpit'
+			}
+		};
 		var loginErrorsTranslation = translateWithDefault({
 			LOGIN_ERROR_MSG: 'Wrong credentials or missing access rights to application',
 			LOGIN_FAILED: 'Login Failed'

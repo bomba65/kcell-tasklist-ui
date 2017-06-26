@@ -26,12 +26,14 @@ define(['./module','camundaSDK', 'lodash', 'big-js'], function(module, CamSDK, _
 				$scope.getDiagram();
 			}
 		}
-		userService.profile($rootScope.authentication.name, function(err, userProfile){
-			if(err){
-				throw err;
-			}
-			$rootScope.authUser = userProfile;
-		});
+		if($rootScope.authentication){
+			userService.profile($rootScope.authentication.name, function(err, userProfile){
+				if(err){
+					throw err;
+				}
+				$rootScope.authUser = userProfile;
+			});
+		}
 
 		if($routeParams.task){
 			$scope.tryToOpen = {
@@ -124,7 +126,6 @@ define(['./module','camundaSDK', 'lodash', 'big-js'], function(module, CamSDK, _
 						scope.view = {
 							submitted : true
 						};
-						console.log(camForm);
 						if(scope.kcell_form.$valid){
 							if(scope.preSubmit){
 								scope.preSubmit().then(
@@ -167,7 +168,9 @@ define(['./module','camundaSDK', 'lodash', 'big-js'], function(module, CamSDK, _
 			}
 		}
 		$rootScope.logout = function(){
-			AuthenticationService.logout();
+			AuthenticationService.logout().then(function(){
+				$scope.authentication = null;
+			});
 		}
 		function loadProcessDefinitions(e){
 			processDefinitionService.list({latest:true, active:true, firstResult:0, maxResults:15}, function(err, results){

@@ -19,6 +19,7 @@ define(['./module'], function(module){
 		}
 		function update(authentication) {
 			$rootScope.authentication = authentication;
+			$rootScope.authUser = authentication;
 			emit('authentication.changed', authentication);
 		}
 		this.updateAuthentication = update;

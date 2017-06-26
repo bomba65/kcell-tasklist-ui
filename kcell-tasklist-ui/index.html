@@ -11,14 +11,14 @@
 		<link href="css/kcell.css" rel="stylesheet" type="text/css" />
 	</head>
 	<body>
-		<nav class="navbar navbar-default app-header">
+		<nav class="navbar navbar-default app-header" ng-cloak>
 			<div class="container-fluid">
 				<div class="navbar-header">
 					<a class="navbar-brand" href="#/" title="KcellFlow Tasklist ">
 						<span class="brand-logo"></span>
 					</a>
 				</div>
-				<ul class="nav navbar-nav">
+				<ul class="nav navbar-nav" ng-if="$root.authUser" ng-cloak>
 					<li ng-class="{active: $root.currentPage.name === 'tasks'}">
 						<a href="#/">Tasks</a>
 					</li>
@@ -30,8 +30,8 @@
 					</li>
 				</ul>
 				<ul class="nav navbar-nav navbar-right">
-					<li class="dropdown" dropdown>
-						<a class="dropdown-toggle" ng-cloak dropdown-toggle>{{$root.authUser.firstName}} {{$root.authUser.lastName}}<span class="caret"></span></a>
+					<li class="dropdown" dropdown ng-if="$root.authUser">
+						<a class="dropdown-toggle" dropdown-toggle>{{$root.authUser.firstName}} {{$root.authUser.lastName}}<span class="caret"></span></a>
 						<ul class="dropdown-menu" dropdown>
 							<li><a href="/camunda/app/welcome/default/">Profile</a></li>
 							<li class="divider"></li>
@@ -43,10 +43,15 @@
 						</ul>
 					</li>
 					<li class="dropdown" dropdown>
-						<a class="dropdown-toggle" dropdown-toggle><span class="glyphicon glyphicon-home"></span><span class="caret"></span></a>
-						<ul class="dropdown-menu" dropdown>
+						<a class="dropdown-toggle" dropdown-toggle><span class="glyphicon glyphicon-home"></span> <span class="caret" ng-if="$root.authentication.authorizedApps.length >= 3 || !$root.authentication.authorizedApps"></span></a>
+						<ul class="dropdown-menu" dropdown ng-if="$root.authentication.authorizedApps && $root.authentication.authorizedApps.length >= 3">
 							<li ng-repeat="app in $root.authentication.authorizedApps" ng-if="app =='admin' || app === 'cockpit'">
-								<a href="/camunda/app/{{app}}/default/">{{app}}</a></li>
+								<a href="/camunda/app/{{app}}/default/" class="app-name">{{app}}</a></li>
+							</li>
+						</ul>
+						<ul class="dropdown-menu" dropdown ng-if="!$root.authentication.authorizedApps">
+							<li ng-repeat="(appName, app) in $root.apps">
+								<a href="/camunda/app/{{appName}}/default/" class="app-name">{{app.label}}</a></li>
 							</li>
 						</ul>
 					</li>
