@@ -4,7 +4,7 @@ set -e
 
 DOCKER_COMPOSE_YML=$1
 
-if [ -z "$DOCKER_COMPOSE_YML"]; then
+if [ -z "$DOCKER_COMPOSE_YML" ]; then
 	DOCKER_COMPOSE_YML="docker-compose-dev.yaml"
 fi
 
@@ -12,16 +12,19 @@ BASEDIR=`pwd`
 MVNREPO="$HOME/.m2/repository"
 
 cd "$BASEDIR/asset-management"
-./gradlew clean build
+./gradlew clean build -x test 
 
-cd "$BASEDIR/kcell-demo-process-app"
-./mvnw clean package -Dmaven.test.skip=true
+cd "$BASEDIR/kcell-process-app"
+./gradlew clean build -x test 
 
-cd "$BASEDIR/ldap-authentication"
-./mvnw clean package
+#cd "$BASEDIR/kcell-demo-process-app"
+#./mvnw clean package -Dmaven.test.skip=true
 
-cp "$BASEDIR/ldap-authentication/target/ldap-authentication-7.6.0.jar" \
-   "$BASEDIR/kcell-camunda/modules/kz/kcell/camunda/authentication/main/"
+#cd "$BASEDIR/ldap-authentication"
+#./mvnw clean package
+
+#cp "$BASEDIR/ldap-authentication/target/ldap-authentication-7.6.0.jar" \
+#   "$BASEDIR/kcell-camunda/modules/kz/kcell/camunda/authentication/main/"
 
 cd "$BASEDIR/kcell-tasklist-ui/js"
 npm install

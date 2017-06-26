@@ -1,0 +1,60 @@
+<form role="form">
+    <script cam-script type="text/form-script">
+        inject([ '$scope', '$http', function($scope, $http) {
+            var variableManager = camForm.variableManager;
+
+            var cities = {
+                "CITY_5320":"Aktau",
+                "CITY_5165":"Aktobe",
+                "CITY_5205":"Almaty",
+                "CITY_5164":"Astana"
+            };
+
+            camForm.on('form-loaded', function() {
+                variableManager.fetchVariable('city');
+                variableManager.fetchVariable('temperature');
+            });
+
+            $scope.checkSOAComplaintId = checkSOAComplaintId;
+
+            function checkSOAComplaintId(){
+                $http.jsonp('http://www.omdbapi.com/?callback=JSON_CALLBACK&y=&plot=short&r=json&t=' + $scope.var1)
+                    .success(
+                        function(result){
+                            console.log(result);
+                            $scope.var2 = result;
+                        }
+                    ).error(
+                        function(error){
+                            console.log(error);
+                        }
+                    );
+            }
+
+            camForm.on('variables-fetched', function() {
+                $scope.city = variableManager.variableValue('city');
+                $scope.temperature = variableManager.variableValue('temperature');
+            });
+        }]);
+
+
+
+    </script>
+    <div class="form-group">
+        <div class="input-group">
+            <input type="text" ng-model="var1" class="form-control" cam-variable-type="String" cam-variable-name="var1" ng-blur="checkSOAComplaintId()"/>
+            <span class="input-group-btn">
+                <button class="btn btn-default" ng-click="checkSOAComplaintId()" type="button"><i class="glyphicon glyphicon-search"></i></button>
+            </span>
+        </div>
+        <div class="well sponsor" ng-if="var2.Title">
+            <span style="float: left; margin-right: 15px;"><img src="{{var2.Poster}}" width="170" height="250"></span>
+            <a href="http://img.omdbapi.com" rel="nofollow" target="_blank"><h4 style="margin-bottom: 0.4em;">{{var2.Title}}</h4></a>
+            <div class="clearfix">
+                <p>{{var2.Genre}}</p>
+                <p>{{var2.Plot}}</p>
+                <small>{{var2.Awards}}</small>
+            </div>
+        </div>
+    </div>
+</form>

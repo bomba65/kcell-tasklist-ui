@@ -1,28 +1,17 @@
 version: '2'
 services:
   camunda:
-    build: ./kcell-camunda
+    build: ./kcell-process-app
     links:
       - camundadb
       - mail
     environment:
-      - DB_DRIVER=postgresql
-      - DB_URL=jdbc:postgresql://camundadb:5432/process-engine
-      - DB_USERNAME=camunda
-      - DB_PASSWORD=camunda
-      - MAIL_CONFIG=/camunda/mail-config.properties
+      - MAIL_CONFIG=/opt/mail-config.properties
     volumes:
-      - ./kcell-demo-process-app/target/deployments/:/camunda/standalone/deployments/kcell/:rw
-      - ./kcell-camunda/modules/kz/kcell/camunda/authentication/main/:/camunda/modules/kz/kcell/camunda/authentication/main/:ro
-      - ./kcell-camunda/modules/org/camunda/bpm/wildfly/camunda-wildfly-subsystem/main/module.xml:/camunda/modules/org/camunda/bpm/wildfly/camunda-wildfly-subsystem/main/module.xml:ro
-      # LDAP authenication             
-      # - ./kcell-camunda/standalone/configuration/standalone.xml:/camunda/standalone/configuration/standalone.xml:ro
-      - ./kcell-camunda/modules/org/camunda/bpm/camunda-engine-plugin-connect/main/module.xml:/camunda/modules/org/camunda/bpm/camunda-engine-plugin-connect/main/module.xml:ro
-      - ./kcell-camunda/modules/org/camunda/bpm/extension/camunda-bpm-mail-core/main:/camunda/modules/org/camunda/bpm/extension/camunda-bpm-mail-core/main:ro
-      - ./kcell-camunda/mail-config.properties:/camunda/mail-config.properties:ro
-    extra_hosts:
-      - "assets:192.168.99.1"
-      - "ldap.kcell.kz:192.168.99.1"
+      - ./kcell-camunda/mail-config.properties:/opt/mail-config.properties:ro
+    # extra_hosts:
+    #   - "assets:192.168.99.1"
+    #   - "ldap.kcell.kz:192.168.99.1"
   camundadb:
     image: postgres:9.6
     ports:
@@ -31,14 +20,12 @@ services:
       - POSTGRES_DB=process-engine
       - POSTGRES_USER=camunda
       - POSTGRES_PASSWORD=camunda
-    # volumes:
-    #   - ./camundadb/data:/var/lib/postgresql/data:rw
-  # assets:
-  #   build: ./asset-management
-  #   links:
-  #     - assetsdb
-  #   ports:
-  #     - "8085:8080"
+  assets:
+    build: ./asset-management
+    links:
+      - assetsdb
+    # ports:
+    #   - "8085:8080"
   assetsdb:
     image: mdillon/postgis:9.6
     ports:
@@ -47,8 +34,6 @@ services:
       - POSTGRES_DB=assets
       - POSTGRES_USER=assets
       - POSTGRES_PASSWORD=assets
-    # volumes:
-    #   - ./assetsdb/data:/var/lib/postgresql/data:rw
   nginx:
     image: nginx:stable
     ports:
@@ -60,8 +45,9 @@ services:
       - ./nginx/html/:/usr/share/nginx/html/:ro
       - ./kcell-demo-process-app/src/main/webapp/:/usr/share/nginx/kcell/webapp/:ro
       - ./kcell-tasklist-ui/:/usr/share/nginx/kcell-tasklist-ui/:ro
-    extra_hosts:
-      - "assets:192.168.99.1"
+    # extra_hosts:
+    #   - "assets:192.168.99.1"
+    #   - "camunda:192.168.99.1"
   mail:
     image: tozd/postfix
     links:
@@ -71,8 +57,9 @@ services:
     environment:
       - RELAY_HOST=mailcatcher
       - RELAY_PORT=1025
+    # ports:
+    #   - "1025:25"
   mailcatcher:
     image: schickling/mailcatcher
     ports:
       - "1080:1080"
-      - "1025:1025"

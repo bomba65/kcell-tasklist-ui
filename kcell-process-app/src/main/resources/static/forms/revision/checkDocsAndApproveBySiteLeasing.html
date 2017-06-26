@@ -1,0 +1,412 @@
+<style>
+    .well {
+        color: #333;
+    }
+</style>
+<form role="form" class="form-horizontal" name="kcell_form" novalidate>
+    <script cam-script type="text/form-script">
+        inject(['$scope', '$http', 'Uri', '$rootScope', '$q', function ($scope, $http, Uri, $rootScope, $q) {
+            var variables = [
+                'requestedDate',
+                'jrNumber',
+                'initiatorFull',
+                'validityDate',
+                'soaComplaintId',
+                'site',
+                'siteName',
+                'site_name',
+                'reason',
+                'contract',
+                'contractor',
+                'materialsRequired',
+                'leasingRequired',
+                'powerRequired',
+                'project',
+                'supplementaryFile1',
+                'supplementaryFile2',
+                'supplementaryFile3',
+                'supplementaryFile4',
+                'supplementaryFile5',
+                'explanation',
+                'jobWorks',
+                'sapPRFileXLS',
+                'sapPRNo',
+                'kcellWarehouseMaterialsList',
+                'contractorZIPWarehouseMaterialsList',
+                'sapTransferRequestFile',
+                'resolutions',
+                'actOfMaterialsDispatchingFile',
+                'jrBlank',
+                'tssrssidFile'
+            ];
+            $scope.jobModel = {};
+            $scope.workFiles = [];
+            $http.get('/camunda/api/engine/engine/default/task/' + camForm.taskId).then(
+                    function(result){
+                        $scope.processInstanceId = result.data.processInstanceId;
+                    },
+                    function (error) {
+                        console.log(error.data);
+                    }
+            );
+            camForm.on('form-loaded', function () {
+                variables.forEach(function (el) {
+                    console.log("FETCH FROM VARIABLES");
+                    camForm.variableManager.fetchVariable(el);
+                });
+
+                $http.get('/api/catalogs').then(
+                        function (result) {
+                            angular.extend($scope, result.data);
+                            angular.extend($scope.jobModel, result.data);
+                        },
+                        function (error) {
+                            console.log(error.data);
+                        }
+                );
+                camForm.variableManager.createVariable({
+                    name: 'checkDocsAndApproveBySiteLeasingTaskResult',
+                    type: 'String',
+                    value: ''
+                });
+                camForm.variableManager.createVariable({
+                    name: 'revisionPrepare',
+                    type: 'String',
+                    value: ''
+                });
+            });
+            camForm.on('variables-fetched', function () {
+                console.log("FETCHED VARIABLES");
+                console.log(variables);
+                variables.forEach(function (el) {
+                    if(el === 'resolutions'){
+                        $scope.jobModel.resolutions = angular.copy(camForm.variableManager.variables[el].value);
+                        $q.all($scope.jobModel.resolutions.map(function (resolution) {
+                            return $http.get("/camunda/api/engine/engine/default/user/" + resolution.assignee + "/profile");
+                        })).then(function (profiles) {
+                            profiles.forEach(function (e, index) {
+                                $scope.jobModel.resolutions[index].assigneeName = (e.data.firstName ? e.data.firstName : "") + " " + (e.data.lastName ? e.data.lastName : "");
+                            });
+                        });
+                        $q.all($scope.jobModel.resolutions.map(function (resolution) {
+                            return $http.get("/camunda/api/engine/engine/default/history/task?processInstanceId="+resolution.processInstanceId+"&taskId=" + resolution.taskId);
+                        })).then(function (tasks) {
+                            tasks.forEach(function (e, index) {
+                                if(e.data.length > 0){
+                                    $scope.jobModel.resolutions[index].taskName = e.data[0].name;
+                                    try {
+                                        $scope.jobModel.resolutions[index].taskEndDate = new Date(e.data[0].endTime);
+                                    } catch(e){
+                                        console.log(e);
+                                    }
+                                }
+                            });
+                        });
+                    } else {
+                        $scope.jobModel[el] = camForm.variableManager.variables[el];
+                    }
+                    $scope[el] = camForm.variableManager.variables[el];
+                });
+                $http.get(Uri.appUri("engine://engine/:engine/task/" + camForm.taskId + "/form-variables")).success(function(result){
+                    console.log("GET FROM URI");
+                    angular.forEach(result, function(value, key) {
+                        if(key.startsWith('works_')){
+                            $scope[key] = value;
+                            $scope.jobModel[key] = value;
+                        }
+                    });
+                    console.log("FETCHED");
+                });
+            });
+
+            camForm.on('submit', function () {
+                camForm.variableManager.variableValue('checkDocsAndApproveBySiteLeasingTaskResult', $scope.checkDocsAndApproveBySiteLeasingTaskResult);
+                camForm.variableManager.variableValue('revisionPrepare', $scope.checkDocsAndApproveBySiteLeasingTaskResult);
+                $scope.jobModel.resolutions.push({processInstanceId: $scope.processInstanceId, assignee: $rootScope.authentication.name, resolution: $scope.checkDocsAndApproveBySiteLeasingTaskResult, comment: $scope.checkDocsAndApproveBySiteLeasingComment, taskId: camForm.taskId});
+                camForm.variableManager.variableValue('resolutions', $scope.jobModel.resolutions);
+            });
+
+            camForm.on('store', function() {
+                camForm.variableManager.variableValue('checkDocsAndApproveBySiteLeasingTaskResult', $scope.checkDocsAndApproveBySiteLeasingTaskResult);
+            });
+
+            camForm.on('variables-restored', function() {
+                $scope.checkDocsAndApproveBySiteLeasingTaskResult = camForm.variableManager.variableValue('checkDocsAndApproveBySiteLeasingTaskResult');
+            });
+        }]);
+    </script>
+    <job-request job-model="jobModel"></job-request>
+    <h3 ng-if="summaries.facility.length > 0">Facility changes</h3>
+    <div ng-repeat="facility in summaries.facility track by $index">
+        <h4 ng-if="facility.command === 'MODIFY_FACILITY'">{{$index+1}}. Facility changes for "{{facility.lhs.params.name}}"</h4>
+        <h4 ng-if="facility.command === 'ADD_FACILITY'">{{$index+1}}. Added new Facility</h4>
+        <table class="table" ng-if="facility.delta.length > 0">
+            <tr>
+                <td>Kind</td>
+                <td>Field</td>
+                <td>Old</td>
+                <td>New</td>
+            </tr>
+            <tr ng-repeat="change in facility.delta">
+                <td>{{change.kind}}</td>
+                <td>{{change.path.join('.')}}</td>
+                <td>{{change.lhs}}</td>
+                <td>{{change.rhs}}</td>
+            </tr>
+        </table>
+    </div>
+    <h3 ng-if="summaries.cabinets.length > 0">Cabinet changes</h3>
+    <div ng-repeat="cabinet in summaries.cabinets track by $index">
+        <h4 ng-if="cabinet.command === 'MODIFY_INSTALLATION'">{{$index+1}}. Cabinet changes for "{{cabinet.lhs.params.serial_number}}"</h4>
+        <h4 ng-if="cabinet.command === 'INSTALL_NEW_EQUIPMENT'">{{$index+1}}. Added new Cabinet</h4>
+        <h4 ng-if="cabinet.command === 'DISMANTLE_EQUIPMENT'">{{$index+1}}. Cabinet dismantled</h4>
+        <table class="table" ng-if="cabinet.delta.length > 0">
+            <tr>
+                <td>Kind</td>
+                <td>Field</td>
+                <td>Old</td>
+                <td>New</td>
+            </tr>
+            <tr ng-repeat="change in cabinet.delta">
+                <td>{{change.kind}}</td>
+                <td>{{change.path.join('.')}}</td>
+                <td>{{change.lhs}}</td>
+                <td>{{change.rhs}}</td>
+            </tr>
+        </table>
+    </div>
+    <h3 ng-if="summaries.rus.length > 0">Radio Unit changes</h3>
+    <div ng-repeat="ru in summaries.rus track by $index">
+        <h4 ng-if="ru.command === 'MODIFY_INSTALLATION'">{{$index+1}}. Radio Unit changes for "{{ru.lhs.params.serial_number}}"</h4>
+        <h4 ng-if="ru.command === 'INSTALL_NEW_EQUIPMENT'">{{$index+1}}. Added new Radio Unit</h4>
+        <h4 ng-if="ru.command === 'DISMANTLE_EQUIPMENT'">{{$index+1}}. Radio Unit dismantled</h4>
+        <table class="table" ng-if="ru.delta.length > 0">
+            <tr>
+                <td>Kind</td>
+                <td>Field</td>
+                <td>Old</td>
+                <td>New</td>
+            </tr>
+            <tr ng-repeat="change in ru.delta">
+                <td>{{change.kind === 'A' ? change.item.kind : change.kind}}</td>
+                <td>{{change.path.join('.')}}</td>
+                <td>{{change.kind === 'A' ? change.item.lhs : change.lhs}}</td>
+                <td>{{change.kind === 'A' ? change.item.rhs : change.rhs}}</td>
+            </tr>
+        </table>
+    </div>
+    <h3 ng-if="summaries.dus.length > 0">Digital Unit changes</h3>
+    <div ng-repeat="du in summaries.dus track by $index">
+        <h4 ng-if="du.command === 'MODIFY_INSTALLATION'">{{$index+1}}. Digital Unit changes for "{{du.lhs.params.serial_number}}"</h4>
+        <h4 ng-if="du.command === 'INSTALL_NEW_EQUIPMENT'">{{$index+1}}. Added new Digital Unit</h4>
+        <h4 ng-if="du.command === 'DISMANTLE_EQUIPMENT'">{{$index+1}}. Digital Unit dismantled</h4>
+        <table class="table" ng-if="du.delta.length > 0">
+            <tr>
+                <td>Kind</td>
+                <td>Field</td>
+                <td>Old</td>
+                <td>New</td>
+            </tr>
+            <tr ng-repeat="change in du.delta">
+                <td>{{change.kind === 'A' ? change.item.kind : change.kind}}</td>
+                <td>{{change.path.join('.')}}</td>
+                <td>{{change.kind === 'A' ? change.item.lhs : change.lhs}}</td>
+                <td>{{change.kind === 'A' ? change.item.rhs : change.rhs}}</td>
+            </tr>
+        </table>
+    </div>
+    <h3 ng-if="summaries.antennas.length > 0">Antenna changes</h3>
+    <div ng-repeat="antenna in summaries.antennas track by $index">
+        <h4 ng-if="antenna.command === 'MODIFY_INSTALLATION'">{{$index+1}}. Antenna changes for "{{antenna.lhs.params.serial_number}}"</h4>
+        <h4 ng-if="antenna.command === 'INSTALL_NEW_EQUIPMENT'">{{$index+1}}. Added new Antenna</h4>
+        <h4 ng-if="antenna.command === 'DISMANTLE_EQUIPMENT'">{{$index+1}}. Antenna dismantled</h4>
+        <table class="table" ng-if="antenna.delta.length > 0">
+            <tr>
+                <td>Kind</td>
+                <td>Field</td>
+                <td>Old</td>
+                <td>New</td>
+            </tr>
+            <tr ng-repeat="change in antenna.delta">
+                <td>{{change.kind === 'A' ? change.item.kind : change.kind}}</td>
+                <td>{{change.path.join('.')}}</td>
+                <td>{{change.kind === 'A' ? change.item.lhs : change.lhs}}</td>
+                <td>{{change.kind === 'A' ? change.item.rhs : change.rhs}}</td>
+            </tr>
+        </table>
+    </div>
+    <h3 ng-if="summaries.supplementary.length > 0">Supplementary changes</h3>
+    <div ng-repeat="supp in summaries.supplementary track by $index">
+        <h4 ng-if="supp.command === 'MODIFY_INSTALLATION'">{{$index+1}}. Supplementary changes for "{{supp.lhs.params.serial_number}}"</h4>
+        <h4 ng-if="supp.command === 'INSTALL_NEW_EQUIPMENT'">{{$index+1}}. Added new Supplementary</h4>
+        <h4 ng-if="supp.command === 'DISMANTLE_EQUIPMENT'">{{$index+1}}. Supplementary dismantled</h4>
+        <table class="table" ng-if="supp.delta.length > 0">
+            <tr>
+                <td>Kind</td>
+                <td>Field</td>
+                <td>Old</td>
+                <td>New</td>
+            </tr>
+            <tr ng-repeat="change in supp.delta">
+                <td>{{change.kind === 'A' ? change.item.kind : change.kind}}</td>
+                <td>{{change.path.join('.')}}</td>
+                <td>{{change.kind === 'A' ? change.item.lhs : change.lhs}}</td>
+                <td>{{change.kind === 'A' ? change.item.rhs : change.rhs}}</td>
+            </tr>
+        </table>
+    </div>
+    <h3 ng-if="summaries.powerSources.length > 0">Power Source changes</h3>
+    <div ng-repeat="powerSource in summaries.powerSources track by $index">
+        <h4 ng-if="powerSource.command === 'MODIFY_POWERSOURCE'">{{$index+1}}. Power Source changes for "{{powerSource.lhs.params.serial_number}}"</h4>
+        <h4 ng-if="powerSource.command === 'CREATE_POWERSOURCE'">{{$index+1}}. Added new Power Source</h4>
+        <h4 ng-if="powerSource.command === 'REMOVE_POWERSOURCE'">{{$index+1}}. Power Source dismantled</h4>
+        <table class="table" ng-if="powerSource.delta.length > 0">
+            <tr>
+                <td>Kind</td>
+                <td>Field</td>
+                <td>Old</td>
+                <td>New</td>
+            </tr>
+            <tr ng-repeat="change in powerSource.delta">
+                <td>{{change.kind === 'A' ? change.item.kind : change.kind}}</td>
+                <td>{{change.path.join('.')}}</td>
+                <td>{{change.kind === 'A' ? change.item.lhs : change.lhs}}</td>
+                <td>{{change.kind === 'A' ? change.item.rhs : change.rhs}}</td>
+            </tr>
+        </table>
+    </div>
+    <h3 ng-if="summaries.ius.length > 0">Indoor Unit changes</h3>
+    <div ng-repeat="iu in summaries.ius track by $index">
+        <h4 ng-if="iu.command === 'MODIFY_INSTALLATION'">{{$index+1}}. Indoor Unit changes for "{{iu.lhs.params.serial_number}}"</h4>
+        <h4 ng-if="iu.command === 'INSTALL_NEW_EQUIPMENT'">{{$index+1}}. Added new Indoor Unit</h4>
+        <h4 ng-if="iu.command === 'DISMANTLE_EQUIPMENT'">{{$index+1}}. Indoor Unit dismantled</h4>
+        <table class="table" ng-if="iu.delta.length > 0">
+            <tr>
+                <td>Kind</td>
+                <td>Field</td>
+                <td>Old</td>
+                <td>New</td>
+            </tr>
+            <tr ng-repeat="change in iu.delta">
+                <td>{{change.kind === 'A' ? change.item.kind : change.kind}}</td>
+                <td>{{change.path.join('.')}}</td>
+                <td>{{change.kind === 'A' ? change.item.lhs : change.lhs}}</td>
+                <td>{{change.kind === 'A' ? change.item.rhs : change.rhs}}</td>
+            </tr>
+        </table>
+    </div>
+    <h3 ng-if="summaries.ous.length > 0">Outdoor Unit changes</h3>
+    <div ng-repeat="ou in summaries.ous track by $index">
+        <h4 ng-if="ou.command === 'MODIFY_INSTALLATION'">{{$index+1}}. Outdoor Unit changes for "{{ou.lhs.params.serial_number}}"</h4>
+        <h4 ng-if="ou.command === 'INSTALL_NEW_EQUIPMENT'">{{$index+1}}. Added new Outdoor Unit</h4>
+        <h4 ng-if="ou.command === 'DISMANTLE_EQUIPMENT'">{{$index+1}}. Outdoor Unit dismantled</h4>
+        <table class="table" ng-if="ou.delta.length > 0">
+            <tr>
+                <td>Kind</td>
+                <td>Field</td>
+                <td>Old</td>
+                <td>New</td>
+            </tr>
+            <tr ng-repeat="change in ou.delta">
+                <td>{{change.kind === 'A' ? change.item.kind : change.kind}}</td>
+                <td>{{change.path.join('.')}}</td>
+                <td>{{change.kind === 'A' ? change.item.lhs : change.lhs}}</td>
+                <td>{{change.kind === 'A' ? change.item.rhs : change.rhs}}</td>
+            </tr>
+        </table>
+    </div>
+    <h3 ng-if="summaries.aus.length > 0">Antenna Unit changes</h3>
+    <div ng-repeat="au in summaries.aus track by $index">
+        <h4 ng-if="au.command === 'MODIFY_INSTALLATION'">{{$index+1}}. Antenna Unit changes for "{{au.lhs.params.serial_number}}"</h4>
+        <h4 ng-if="au.command === 'INSTALL_NEW_EQUIPMENT'">{{$index+1}}. Added new Antenna Unit</h4>
+        <h4 ng-if="au.command === 'DISMANTLE_EQUIPMENT'">{{$index+1}}. Antenna Unit dismantled</h4>
+        <table class="table" ng-if="au.delta.length > 0">
+            <tr>
+                <td>Kind</td>
+                <td>Field</td>
+                <td>Old</td>
+                <td>New</td>
+            </tr>
+            <tr ng-repeat="change in au.delta">
+                <td>{{change.kind === 'A' ? change.item.kind : change.kind}}</td>
+                <td>{{change.path.join('.')}}</td>
+                <td>{{change.kind === 'A' ? change.item.lhs : change.lhs}}</td>
+                <td>{{change.kind === 'A' ? change.item.rhs : change.rhs}}</td>
+            </tr>
+        </table>
+    </div>
+    <h3 ng-if="summaries.transmissions.length > 0">Hop changes</h3>
+    <div ng-repeat="transmission in summaries.transmissions track by $index">
+        <h4 ng-if="transmission.command === 'MODIFY_INSTALLATION'">{{$index+1}}. Antenna Unit changes for "{{transmission.lhs.params.serial_number}}"</h4>
+        <h4 ng-if="transmission.command === 'INSTALL_NEW_EQUIPMENT'">{{$index+1}}. Added new Antenna Unit</h4>
+        <h4 ng-if="transmission.command === 'DISMANTLE_EQUIPMENT'">{{$index+1}}. Antenna Unit dismantled</h4>
+        <table class="table" ng-if="transmission.delta.length > 0">
+            <tr>
+                <td>Kind</td>
+                <td>Field</td>
+                <td>Old</td>
+                <td>New</td>
+            </tr>
+            <tr ng-repeat="change in transmission.delta">
+                <td>{{change.kind === 'A' ? change.item.kind : change.kind}}</td>
+                <td>{{change.path.join('.')}}</td>
+                <td>{{change.kind === 'A' ? change.item.lhs : change.lhs}}</td>
+                <td>{{change.kind === 'A' ? change.item.rhs : change.rhs}}</td>
+            </tr>
+        </table>
+    </div>
+    <h3>Works:</h3>
+
+    <div class="row" ng-repeat="work in sitesWorks">
+        <div class="col-md-12">&nbsp;&nbsp;&nbsp;&nbsp;{{jobModel.worksTitle[work.sapServiceNumber]}}, works qty: {{work.quantity}}, materials qty: {{work.materialQuantity}} {{jobModel.unitsTitle[work.unit]}}, on sites: {{work.sites}}</div>
+        <div class="col-md-12" ng-repeat="file in work.files">
+            <input type="file" class="form-control" ng-model="file.file" onchange="angular.element(this).scope().fileSelected(this, angular.element(this).scope().$parent.$index, angular.element(this).scope().$index)"/>
+        </div>
+    </div>
+    <div class="form-group">
+        <label class="col-sm-4 control-label">Resolution</label>
+        <div class="col-sm-8">
+            <label class="radio-inline">
+                <input type="radio" name="checkDocsAndApproveBySiteLeasingTaskResult" ng-model="checkDocsAndApproveBySiteLeasingTaskResult" value="approved" required> Approved
+            </label>
+            <label class="radio-inline">
+                <input type="radio" name="checkDocsAndApproveBySiteLeasingTaskResult" ng-model="checkDocsAndApproveBySiteLeasingTaskResult" value="notApproved" required> Not approved, request corrections
+            </label>
+            <label class="error" ng-show="kcell_form.checkDocsAndApproveBySiteLeasingTaskResult.$error.required && ( kcell_form.checkDocsAndApproveBySiteLeasingTaskResult.$touched || view.submitted)">Required field</label>
+        </div>
+    </div>
+    <div class="form-group">
+        <label class="col-sm-4 control-label">Comments</label>
+        <div class="col-sm-8">
+            <textarea class="form-control" rows="4" maxlength="500" cam-variable-name="checkDocsAndApproveBySiteLeasingComment" name="checkDocsAndApproveBySiteLeasingComment" ng-required="checkDocsAndApproveBySiteLeasingTaskResult == 'notApproved'" cam-variable-type="String"></textarea>
+            <label class="error" ng-show="kcell_form.checkDocsAndApproveBySiteLeasingComment.$error.required && ( kcell_form.checkDocsAndApproveBySiteLeasingComment.$touched || view.submitted)">Required field</label>
+        </div>
+    </div>
+    <accordion>
+        <accordion-group is-open="isHistoryOpen">
+            <accordion-heading>
+                History <i class="pull-right glyphicon" ng-class="{'glyphicon-chevron-up': status.isCustomHeaderOpen, 'glyphicon-chevron-down': !status.isCustomHeaderOpen}"></i>
+            </accordion-heading>
+            <table class="table">
+                <thead>
+                <tr>
+                    <th>Activity</th>
+                    <th>Assignee</th>
+                    <th>Resolution</th>
+                    <th>Date</th>
+                    <th>Comment</th>
+                </tr>
+                </thead>
+                <tbody>
+                <tr ng-repeat="resolution in jobModel.resolutions">
+                    <td>{{resolution.taskName}}</td>
+                    <td>{{resolution.assigneeName}}</td>
+                    <td>{{'task.resolution.'+resolution.resolution | translate}}</td>
+                    <td>{{resolution.taskEndDate | date: 'dd.MM.yyyy HH:mm'}}</td>
+                    <td>{{resolution.comment}}</td>
+                </tr>
+                </tbody>
+            </table>
+        </accordion-group>
+    </accordion>
+</form>
