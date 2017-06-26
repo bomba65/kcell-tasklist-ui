@@ -15,6 +15,7 @@ define(['./module','camundaSDK', 'lodash', 'big-js'], function(module, CamSDK, _
 
 		var taskService = new camClient.resource('task');
 		var userService = new camClient.resource('user');
+		var groupService = new camClient.resource('group');
 		var filterService = new camClient.resource('filter');
 		var processDefinitionService = new camClient.resource('process-definition');
 
@@ -32,7 +33,24 @@ define(['./module','camundaSDK', 'lodash', 'big-js'], function(module, CamSDK, _
 					throw err;
 				}
 				$rootScope.authUser = userProfile;
+				groupService.list({member:$rootScope.authUser.id}, function(err, groups){
+					console.log(groups);
+					$rootScope.authUser.groups = groups;
+				});
 			});
+		}
+
+		$rootScope.hasGroup = function(group){
+			if($rootScope.authUser && $rootScope.authUser.groups){
+				console.log(_.some($rootScope.authUser.groups, function(value){
+					return value.id === group;
+				}));
+				return _.some($rootScope.authUser.groups, function(value){
+					return value.id === group;
+				});
+			} else {
+				return false;
+			}
 		}
 
 		if($routeParams.task){
@@ -47,6 +65,7 @@ define(['./module','camundaSDK', 'lodash', 'big-js'], function(module, CamSDK, _
 				}
 				$timeout(function(){
 					$scope.$apply(function(){
+						console.log($scope.currentTask);
 						$scope.diagram = {
 							xml: result.bpmn20Xml,
 							task: $scope.currentTask
@@ -323,6 +342,7 @@ define(['./module','camundaSDK', 'lodash', 'big-js'], function(module, CamSDK, _
 		loadProcessDefinitions();
 
 		$scope.highlightTask = function() {
+			console.log($scope.control);
 			$scope.control.highlight($scope.diagram.task.taskDefinitionKey);
 		};
 

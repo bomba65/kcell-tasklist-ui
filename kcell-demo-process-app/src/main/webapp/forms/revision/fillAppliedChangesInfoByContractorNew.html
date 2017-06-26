@@ -627,6 +627,7 @@
                         hop.farEnd.site.name = site.name;
                         if (site.installations !== undefined) {
                             var map = _.groupBy(site.installations, 'equipment.definition');
+                            console.log(map);
                             hop.farEnd.ous = angular.copy(map.OU);
                             hop.farEnd.ius = angular.copy(map.IU);
                             hop.farEnd.aus = angular.copy(map.AU);
@@ -649,7 +650,8 @@
                     farEnd : {
                         site: {
                             id: selectedSite.id,
-                            name: selectedSite.name
+                            name: selectedSite.name,
+                            site_name: selectedSite.site_name
                         }
                     },
                     definition: "TRANSMISSION_RADIO_RELAY",
@@ -1103,24 +1105,29 @@
 
             $scope.getSite = function(val) {
                 return $http.get('/asset-management/api/sites/search/findByNameIgnoreCaseContaining?name='+val).then(
-                        function(response){
-                            console.log(response);
-                            var sites = response.data._embedded.sites.map(function(site){
-                                var site = {
-                                    name: site.name,
-                                    id: site._links.self.href.substring(site._links.self.href.lastIndexOf('/')+1)
-                                };
-                                return site;
-                            });
-                            sites = _.filter(sites, function(e){return e.id !== $scope.jobModel.site.originalValue});
-                            return sites;
-                        }
+                    function(response){
+                        var sites = _.flatMap(response.data._embedded.sites, function(s){
+                            if(s.params.site_name){
+                                return s.params.site_name.split(',').map(function(sitename){
+                                    return {
+                                        name: s.name,
+                                        id: s._links.self.href.substring(s._links.self.href.lastIndexOf('/')+1),
+                                        site_name: sitename
+                                    };
+                                })
+                            } else {
+                                return [];
+                            }
+                        });
+                        return sites;
+                    }
                 );
             };
 
             $scope.siteSelected = function($item){
                 $scope.farEndSite.name = $item.name;
                 $scope.farEndSite.id = $item.id;
+                $scope.farEndSite.site_name  = $item.site_name;
             };
 
             $scope.addWorkFile = function(workIndex){
