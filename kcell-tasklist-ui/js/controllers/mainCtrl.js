@@ -1,6 +1,6 @@
 define(['./module','camundaSDK', 'lodash', 'big-js'], function(module, CamSDK, _, Big){
 	'use strict';
-	return module.controller('mainCtrl', ['$scope', '$rootScope', 'toasty', 'AuthenticationService', '$routeParams', '$timeout', '$location', 'exModal', function($scope, $rootScope, toasty, AuthenticationService, $routeParams, $timeout, $location, exModal) {
+	return module.controller('mainCtrl', ['$scope', '$rootScope', 'toasty', 'AuthenticationService', '$routeParams', '$timeout', '$location', 'exModal', '$http', function($scope, $rootScope, toasty, AuthenticationService, $routeParams, $timeout, $location, exModal, $http) {
 		$rootScope.currentPage = {
 			name: 'tasks'
 		};
@@ -13,11 +13,13 @@ define(['./module','camundaSDK', 'lodash', 'big-js'], function(module, CamSDK, _
 			angular.extend(this, data);
 		}
 
-		var taskService = new camClient.resource('task');
-		var userService = new camClient.resource('user');
-		var groupService = new camClient.resource('group');
-		var filterService = new camClient.resource('filter');
-		var processDefinitionService = new camClient.resource('process-definition');
+		var baseUrl = '/camunda/api/engine/engine/default';
+
+		//var taskService = new camClient.resource('task');
+		//var userService = new camClient.resource('user');
+		//var groupService = new camClient.resource('group');
+		//var filterService = new camClient.resource('filter');
+		//var processDefinitionService = new camClient.resource('process-definition');
 
 		$scope.camForm = null;
 		$scope.selectedTab = 'form';
@@ -28,16 +30,22 @@ define(['./module','camundaSDK', 'lodash', 'big-js'], function(module, CamSDK, _
 			}
 		}
 		if($rootScope.authentication){
-			userService.profile($rootScope.authentication.name, function(err, userProfile){
-				if(err){
-					throw err;
+			$http.get(baseUrl+'/user/'+$rootScope.authentication.name+'/profile').then(
+				function(userProfile){
+					$rootScope.authUser = userProfile.data;
+					$http.get(baseUrl+'/group?member='+$rootScope.authUser.id).then(
+						function(groups){
+							$rootScope.authUser.groups = groups.data;
+						},
+						function(error){
+							console.log(error.data);
+						}
+					);
+				},
+				function(error){
+					console.log(error.data);
 				}
-				$rootScope.authUser = userProfile;
-				groupService.list({member:$rootScope.authUser.id}, function(err, groups){
-					console.log(groups);
-					$rootScope.authUser.groups = groups;
-				});
-			});
+			);
 		}
 
 		$rootScope.hasGroup = function(group){
@@ -59,72 +67,98 @@ define(['./module','camundaSDK', 'lodash', 'big-js'], function(module, CamSDK, _
 			}
 		}
 		$scope.getDiagram = function(){
-			processDefinitionService.xml({id:$scope.currentTask.processDefinitionId}, function(err, result){
-				if(err){
-					throw err;
-				}
-				$timeout(function(){
-					$scope.$apply(function(){
-						console.log($scope.currentTask);
-						$scope.diagram = {
-							xml: result.bpmn20Xml,
-							task: $scope.currentTask
-						};
+			$http.get(baseUrl+'/process-definition/'+$scope.currentTask.processDefinitionId+'/xml').then(
+				function(result){
+					$timeout(function(){
+						$scope.$apply(function(){
+							$scope.diagram = {
+								xml: result.data.bpmn20Xml,
+								task: $scope.currentTask
+							};
+						});
 					});
-				});
-			});
+				},
+				function(error) {
+					console.log(error.data);
+				}
+			);
 		}
 		function getTaskList(){
-			filterService.list({itemCount:true,resoureType: 'Task'}, function(err, result){
-				$scope.filters = result;
-				if($scope.filters.length > 0 && $scope.currentFilter == undefined){
-					$scope.currentFilter = $scope.filters[0];
+			$http.get(baseUrl+'/filter?itemCount=true&resoureType=Task').then(
+				function(result){
+					$scope.filters = result.data;
+					if($scope.filters.length > 0 && $scope.currentFilter == undefined){
+						$scope.currentFilter = $scope.filters[0];
+					}
+					loadTasks();
+				},
+				function(error){
+					console.log(error.data);
 				}
-				loadTasks();
-			});
+			);
 		}
 		$scope.selectFilter = function(filter){
 			$scope.currentFilter = filter;
 			loadTasks();
 		}
 		$scope.startProcess = function(id){
-			processDefinitionService.startForm({id:id}, function(err, startFormInfo){
-				if(startFormInfo.key){
-					var url = startFormInfo.key.replace('embedded:app:', startFormInfo.contextPath + '/');
-					exModal.open({
-						scope: {
-							processDefinitionId: id,
-							url: url,
-							view: {
-								submitted: false
-							}
-						},
-						templateUrl: './js/partials/start-form.html',
-						controller: StartFormController,
-						size: 'lg'
-					}).then(function(results){
-						taskService.list({processInstanceId:results.id}, function(err, tasks){
-							if(tasks._embedded.task.length > 0){
-								$scope.tryToOpen = tasks._embedded.task[0];
-							} else {
-								$scope.tryToOpen = results
-							}
-							getTaskList();
+			$http.get(baseUrl+'/process-definition/'+id+'/startForm').then(
+				function(startFormInfo){
+					if(startFormInfo.data.key){
+						var url = startFormInfo.data.key.replace('embedded:app:', startFormInfo.data.contextPath + '/');
+						exModal.open({
+							scope: {
+								processDefinitionId: id,
+								url: url,
+								view: {
+									submitted: false
+								}
+							},
+							templateUrl: './js/partials/start-form.html',
+							controller: StartFormController,
+							size: 'lg'
+						}).then(function(results){
+							$http.get(baseUrl+'/task?processInstanceId='+results.id).then(
+								function(tasks){
+									if(tasks.data.length > 0){
+										$scope.tryToOpen = tasks.data[0];
+									} else {
+										$scope.tryToOpen = results.data
+									}
+									getTaskList();
+								},
+								function(error){
+									console.log(error.data);
+								}
+							);
 						});
-					});
-				} else {
-					processDefinitionService.start({id:id}, function(err, results){
-						taskService.list({processInstanceId:results.id}, function(err, tasks){
-							if(tasks._embedded.task.length > 0){
-								$scope.tryToOpen = tasks._embedded.task[0];
-							} else {
-								$scope.tryToOpen = results
+					} else {
+						$http.post(baseUrl+'/process-definition/'+id+'/start').then(
+							function(results){
+								$http.get(baseUrl+'/task?processInstanceId='+results.id).then(
+									function(tasks){
+										if(tasks.data.length > 0){
+											$scope.tryToOpen = tasks.data[0];
+										} else {
+											$scope.tryToOpen = results.data
+										}
+										getTaskList();
+									},
+									function(error){
+										console.log(error.data);
+									}
+								);
+							},
+							function(error){
+								console.log(error.data);
 							}
-							getTaskList();
-						});
-					});
+						);
+					}
+				},
+				function(error){
+					console.log(error.data);
 				}
-			});
+			);
 
 			StartFormController.$inject = ['scope'];
 			function StartFormController(scope){
@@ -192,29 +226,31 @@ define(['./module','camundaSDK', 'lodash', 'big-js'], function(module, CamSDK, _
 			});
 		}
 		function loadProcessDefinitions(e){
-			processDefinitionService.list({latest:true, active:true, firstResult:0, maxResults:15}, function(err, results){
-				if(err) {
-					throw err;
+			$http.get(baseUrl+'/process-definition?latest=true&active=true&firstResult=0&maxResults=15').then(
+				function(results){
+					$scope.processDefinitions = results.data;
+				},
+				function(error){
+					console.log(error.data);
 				}
-				$scope.$apply(function (){
-					$scope.processDefinitions = results.items;
-				});
-			});
+			);
 		}
 		function loadTasks(e) {
-			filterService.getTasks({id:$scope.currentFilter.id,sorting:[{"sortBy":"created","sortOrder":"desc"}],"active":true,maxResults:200}, function(err, results){
-				if (err) {
-					throw err;
-				}
-				$scope.$apply(function() {
-					$scope.tasks = results._embedded.task;
+			$http({
+				method: 'POST',
+				headers:{'Accept':'application/hal+json, application/json; q=0.5'},
+				data: {sorting:[{"sortBy":"created","sortOrder":"desc"}],"active":true,maxResults:200},
+				url: baseUrl+'/filter/'+$scope.currentFilter.id+'/list',
+			}).then(
+				function(results){
+					$scope.tasks = results.data._embedded.task;
 					var selectedTask;
 					if($scope.tasks && $scope.tasks.length > 0){
 						$scope.tasks.forEach(function(e){
 							if(e.assignee){
-								for(var i=0;i<results._embedded.assignee.length;i++){
-									if(results._embedded.assignee[i].id === e.assignee){
-										e.assigneeObject = results._embedded.assignee[i];
+								for(var i=0;i<results.data._embedded.assignee.length;i++){
+									if(results.data._embedded.assignee[i].id === e.assignee){
+										e.assigneeObject = results.data._embedded.assignee[i];
 									}
 								}
 							}
@@ -226,24 +262,33 @@ define(['./module','camundaSDK', 'lodash', 'big-js'], function(module, CamSDK, _
 					if(selectedTask){
 						$scope.loadTaskForm(selectedTask);
 					} else if($scope.tryToOpen){
-						taskService.get($scope.tryToOpen.id, function(err, taskResult){
-							if(err){
-								throw err;
-								console.log(err);
+						$http.get(baseUrl+'/task/'+$scope.tryToOpen.id).then(
+							function(taskResult){
+								$scope.tryToOpen = undefined;
+								if(taskResult.data.assignee){
+									$http.get(baseUrl+'/user/'+taskResult.data.assignee+'/profile').then(
+										function(userResult){
+											taskResult.data.assigneeObject = userResult.data;
+											$scope.loadTaskForm(taskResult.data);
+										},
+										function(error){
+											console.log(error.data);
+										}
+									);
+								} else{
+									$scope.loadTaskForm(taskResult.data);
+								}
+							},
+							function(error){
+								console.log(error.data);
 							}
-							$scope.tryToOpen = undefined;
-							if(taskResult.assignee){
-								userService.profile(taskResult.assignee, function(err, userResult){
-									taskResult.assigneeObject = userResult;
-									$scope.loadTaskForm(taskResult);
-								});
-							} else{
-								$scope.loadTaskForm(taskResult);
-							}
-						})
+						);
 					}
-				});
-			});
+				},
+				function(error){
+					console.log(error.data);
+				}
+			);
 		}
 		function addFormButton(err, camForm, evt) {
 			if (err) {
@@ -309,29 +354,40 @@ define(['./module','camundaSDK', 'lodash', 'big-js'], function(module, CamSDK, _
 			var taskId = task.id;
 			$('#taskElement').html('');
 			$scope.isHistoryOpen = false;
+			console.log(task);
 			if(task.assignee === $rootScope.authentication.name){
-				taskService.form(taskId, function(err, taskFormInfo) {
-					var url = taskFormInfo.key.replace('embedded:app:', taskFormInfo.contextPath + '/');
-					new CamSDK.Form({
-						client: camClient,
-						formUrl: url,
-						taskId: taskId,
-						containerElement: $('#taskElement'),
-						done: addFormButton
-					});
-				});
+				$http.get(baseUrl+'/task/'+taskId+'/form').then(
+					function(taskFormInfo) {
+						var url = taskFormInfo.data.key.replace('embedded:app:', taskFormInfo.data.contextPath + '/');
+						new CamSDK.Form({
+							client: camClient,
+							formUrl: url,
+							taskId: taskId,
+							containerElement: $('#taskElement'),
+							done: addFormButton
+						});
+					},
+					function(error){
+						console.log(error.data);
+					}
+				);
 			} else {
-				taskService.form(taskId, function(err, taskFormInfo) {
-					$scope.isHistoryOpen = true;
-					var url = taskFormInfo.key.replace('embedded:app:', taskFormInfo.contextPath + '/');
-					new CamSDK.Form({
-						client: camClient,
-						formUrl: url,
-						taskId: taskId,
-						containerElement: $('#taskElement'),
-						done: disableForm
-					});
-				});
+				$http.get(baseUrl+'/task/'+taskId+'/form').then(
+					function(taskFormInfo) {
+						$scope.isHistoryOpen = true;
+						var url = taskFormInfo.data.key.replace('embedded:app:', taskFormInfo.data.contextPath + '/');
+						new CamSDK.Form({
+							client: camClient,
+							formUrl: url,
+							taskId: taskId,
+							containerElement: $('#taskElement'),
+							done: disableForm
+						});
+					},
+					function(error) {
+						console.log(error.data);
+					}
+				);
 			}
 		}
 		function disableForm(){
@@ -347,26 +403,30 @@ define(['./module','camundaSDK', 'lodash', 'big-js'], function(module, CamSDK, _
 		};
 
 		$scope.claim = function(task) {
-			taskService.claim({taskId: task.id, userId: $rootScope.authentication.name}, function(err, result){
-				if (err) {
-					throw err;
+			$http.post(baseUrl+'/task/'+task.id+'/claim', {userId: $rootScope.authentication.name}).then(
+				function(){
+					$scope.tryToOpen = {
+						id: task.processInstanceId
+					};
+					getTaskList();
+				},
+				function(error){
+					console.log(error.data);
 				}
-				$scope.tryToOpen = {
-					id: task.processInstanceId
-				};
-				getTaskList();
-			});
+			);
 		}
 		$scope.unclaim = function(task) {
-			taskService.unclaim({taskId: task.id}, function(err, result){
-				if (err) {
-					throw err;
+			$http.post(baseUrl+'/task/'+task.id+'/unclaim').then(
+				function(){
+					$scope.tryToOpen = {
+						id: task.id
+					};
+					getTaskList();
+				},
+				function(error){
+					console.log(error.data);
 				}
-				$scope.tryToOpen = {
-					id: task.id
-				};
-				getTaskList();
-			});
+			);
 		}
 	}]);
 });

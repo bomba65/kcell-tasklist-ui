@@ -24,6 +24,7 @@ define('app',[
 		'ngRoute',
 		'ngCookies'
 	]);
+	var preLoginUrl;
 	app.config(['$routeProvider', '$httpProvider', function($routeProvider, $httpProvider){
 		$httpProvider.interceptors.push('httpInterceptor');
 		$routeProvider.when('/', {
@@ -79,7 +80,6 @@ define('app',[
 	}).run(['AuthenticationService', '$rootScope', function(AuthenticationService, $rootScope){
 
 	}]).run([ '$rootScope', '$location', function($rootScope, $location) {
-		var preLoginUrl;
 		$rootScope.$on('authentication.login.required', function(event) {
 			$rootScope.$evalAsync(function() {
 				var url = $location.url();
@@ -176,7 +176,7 @@ define('app',[
 	  };
 
 	  return search;
-	}]).factory('httpInterceptor', function ($q) {
+	}]).factory('httpInterceptor', ['$q', '$rootScope', '$injector', '$location', function ($q, $rootScope, $injector, $location) {
 		var numLoadings = 0;
 		return {
 			request: function (httpInterceptorConfig) {
@@ -194,10 +194,15 @@ define('app',[
 				if (!(--numLoadings)) {
 					$('#loaderDiv').hide();
 				}
+				if(response.status === 401){
+					var authentication = $injector.get('AuthenticationService');
+					preLoginUrl = $location.url();
+					authentication.logout();
+				}
 				return $q.reject(response);
 			}
 		};
-	}).config(function ($translateProvider) {
+	}]).config(function ($translateProvider) {
 		$translateProvider.useSanitizeValueStrategy('escape');
 		$translateProvider.preferredLanguage('en_EN');
 		$translateProvider.useLoader('translateLoader');
