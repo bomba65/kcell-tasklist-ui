@@ -21,7 +21,7 @@ public class RegionGroupAssignmentHandler implements TaskListener {
             } else if (reason.equals("3")) {
                 delegateTask.addCandidateUsers(Arrays.asList("Kali.Esimbekov@kcell.kz", "Maulen.Kempirbayev@kcell.kz", "Samat.Akhmetov@kcell.kz", "Zhanat.Seitkanov@kcell.kz"));
             } else if (reason.equals("4")) {
-                delegateTask.addCandidateUsers(Arrays.asList("Askar.Bekmurzayev@kcell.kz", "Temirlan.Kaliyev@kcell.kz"));
+                delegateTask.addCandidateUsers(Arrays.asList("Kali.Esimbekov@kcell.kz"));
             }
         }
     }
