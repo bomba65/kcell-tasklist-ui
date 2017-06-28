@@ -9,17 +9,17 @@ define(['./module','jquery', 'camundaSDK'], function(app, $, CamSDK){
 		  apiUri: '/camunda/api/engine/'
 		});
 
-		var processDefinitionService = new camClient.resource('process-definition');
-		var userService = new camClient.resource('user');
-		var groupService = new camClient.resource('group');
-		var taskService = new camClient.resource('task');
+		//var processDefinitionService = new camClient.resource('process-definition');
+		//var userService = new camClient.resource('user');
+		//var groupService = new camClient.resource('group');
+		//var taskService = new camClient.resource('task');
 
 		$rootScope.currentPage = {
 			name: 'processes'
 		};
 		$scope._ = window._;
 
-		$scope.baseUrl = '/camunda/api/engine/engine/default';
+		var baseUrl = '/camunda/api/engine/engine/default';
 
 		$scope.filter = {
 			processDefinitionKey: 'Revision',
@@ -41,19 +41,22 @@ define(['./module','jquery', 'camundaSDK'], function(app, $, CamSDK){
         );
 
 		if($rootScope.authentication){
-			userService.profile($rootScope.authentication.name, function(err, userProfile){
-				if(err){
-					throw err;
+			$http.get(baseUrl+'/user/'+$rootScope.authentication.name+'/profile').then(
+				function(userProfile){
+					$rootScope.authUser = userProfile.data;
+					$http.get(baseUrl+'/group?member='+$rootScope.authUser.id).then(
+						function(groups){
+							$rootScope.authUser.groups = groups.data;
+						},
+						function(error){
+							console.log(error.data);
+						}
+					);
+				},
+				function(error){
+					console.log(error.data);
 				}
-				$scope.$apply(function(){
-					$rootScope.authUser = userProfile;
-					groupService.list({member:$rootScope.authUser.id}, function(err, groups){
-						$scope.$apply(function(){
-							$rootScope.authUser.groups = groups;
-						});
-					});
-				});
-			});
+			);
 		}
 
 		$rootScope.hasGroup = function(group){
@@ -66,16 +69,16 @@ define(['./module','jquery', 'camundaSDK'], function(app, $, CamSDK){
 			}
 		}
 
-		var historyService = new camClient.resource('history');
+		//var historyService = new camClient.resource('history');
 
-		processDefinitionService.list({latest:true, active:true, firstResult:0, maxResults:15}, function(err, results){
-			if(err) {
-				throw err;
+		$http.get(baseUrl+'/process-definition?latest=true&active=true&firstResult=0&maxResults=15').then(
+			function(results){
+				$scope.processDefinitions = results.data;
+			},
+			function(error){
+				console.log(error.data);
 			}
-			$scope.$apply(function (){
-				$scope.processDefinitions = results.items;
-			});
-		});
+		);
 
 		$scope.search = function(){
 			var filter = {
@@ -90,7 +93,7 @@ define(['./module','jquery', 'camundaSDK'], function(app, $, CamSDK){
 				filter.startedBy = $rootScope.authentication.name;
 				getProcessInstances(filter);
 			} else {
-				$http.post($scope.baseUrl+'/history/task',{taskAssignee: $rootScope.authentication.name}).then(
+				$http.post(baseUrl+'/history/task',{taskAssignee: $rootScope.authentication.name}).then(
 					function(result){
 						filter.processInstanceIds = _.map(result.data, 'processInstanceId');
 						getProcessInstances(filter);
@@ -103,52 +106,66 @@ define(['./module','jquery', 'camundaSDK'], function(app, $, CamSDK){
 		};
 
 		function getProcessInstances(filter){
-			historyService.processInstance(filter, function(err, result){
-				$scope.$apply(function () {
-					$scope.processInstances = result;
-				});
-			});
+			$http.post(baseUrl+'/history/process-instance', filter).then(
+				function(result){
+					$scope.processInstances = result.data;
+				},
+				function(error){
+					console.log(error.data);
+				}
+			);
 		}
 
 		$scope.toggleProcessView = function(index){
 			$scope.showDiagramView = false;
+            $scope.diagram = {};
 			if($scope.piIndex === index){
                 $scope.piIndex = undefined;
             } else {
                 $scope.piIndex = index;
-            }
-            $scope.jobModel = {};
-            taskService.list({processInstanceId:$scope.processInstances[index].id},function(err, tasks){
-            	var processInstanceTasks = tasks._embedded.task;
-            	if(processInstanceTasks && processInstanceTasks.length > 0){
-					processInstanceTasks.forEach(function(e){
-						if(e.assignee){
-							for(var i=0;i<tasks._embedded.assignee.length;i++){
-								if(tasks._embedded.assignee[i].id === e.assignee){
-									e.assigneeObject = tasks._embedded.assignee[i];
+	            $scope.jobModel = {};
+	            $http({
+					method: 'GET',
+					headers:{'Accept':'application/hal+json, application/json; q=0.5'},
+					url: baseUrl+'/task?processInstanceId='+$scope.processInstances[index].id,
+				}).then(
+	            	function(tasks){
+		            	var processInstanceTasks = tasks.data._embedded.task;
+		            	if(processInstanceTasks && processInstanceTasks.length > 0){
+							processInstanceTasks.forEach(function(e){
+								if(e.assignee){
+									for(var i=0;i<tasks.data._embedded.assignee.length;i++){
+										if(tasks.data._embedded.assignee[i].id === e.assignee){
+											e.assigneeObject = tasks.data._embedded.assignee[i];
+										}
+									}
 								}
-							}
+							});
 						}
-					});
-				}
-	            $http.get($scope.baseUrl+'/history/variable-instance?deserializeValues=false&processInstanceId='+$scope.processInstances[index].id).then(
-	            	function(result){
-	            		result.data.forEach(function(el){
-	            			$scope.jobModel[el.name] = el;
-	            			if(el.type === 'File' || el.type === 'Bytes'){
-	            				$scope.jobModel[el.name].contentUrl = $scope.baseUrl+'/history/variable-instance/'+el.id+'/data';
-	            			}
-	            			if(el.type === 'Json'){
-	            				$scope.jobModel[el.name].value = JSON.parse(el.value);
-	            			}
-	            		});
-	            		angular.extend($scope.jobModel, catalogs);
-	            		$scope.jobModel.tasks = processInstanceTasks;
-	            		console.log($scope.jobModel.tasks);
-	            	},
-	            	function(error){}
-	        	);
-	        });
+			            $http.get(baseUrl+'/history/variable-instance?deserializeValues=false&processInstanceId='+$scope.processInstances[index].id).then(
+			            	function(result){
+			            		result.data.forEach(function(el){
+			            			$scope.jobModel[el.name] = el;
+			            			if(el.type === 'File' || el.type === 'Bytes'){
+			            				$scope.jobModel[el.name].contentUrl = baseUrl+'/history/variable-instance/'+el.id+'/data';
+			            			}
+			            			if(el.type === 'Json'){
+			            				$scope.jobModel[el.name].value = JSON.parse(el.value);
+			            			}
+			            		});
+			            		angular.extend($scope.jobModel, catalogs);
+			            		$scope.jobModel.tasks = processInstanceTasks;
+			            	},
+			            	function(error){
+			            		console.log(error.data);
+			            	}
+			        	);
+			        },
+			        function(error){
+			        	console.log(error.data);
+			        }
+		        );
+            }
 		};
 		$scope.showDiagram = function(processDefinitionId){
 			$scope.showDiagramView = true;
@@ -156,24 +173,24 @@ define(['./module','jquery', 'camundaSDK'], function(app, $, CamSDK){
 		}
 
 		function getDiagram(processDefinitionId){
-			processDefinitionService.xml({id:processDefinitionId}, function(err, result){
-				if(err){
-					throw err;
-				}
-				$timeout(function(){
-					$scope.$apply(function(){
-						console.log($scope.jobModel.tasks);
-						$scope.diagram = {
-							xml: result.bpmn20Xml,
-							task: ($scope.jobModel.tasks && $scope.jobModel.tasks.length > 0) ? $scope.jobModel.tasks[0]:undefined
-						};
+			$http.get(baseUrl+'/process-definition/'+processDefinitionId+'/xml').then(
+				function(result){
+					$timeout(function(){
+						$scope.$apply(function(){
+							$scope.diagram = {
+								xml: result.data.bpmn20Xml,
+								task: ($scope.jobModel.tasks && $scope.jobModel.tasks.length > 0) ? $scope.jobModel.tasks[0]:undefined
+							};
+						});
 					});
-				});
-			});
+				},
+				function(error){
+					console.log(error.data);
+				}
+			);
 		}
 
 		$scope.highlightTask = function() {
-			console.log($scope.control);
 			$scope.control.highlight($scope.diagram.task.taskDefinitionKey);
 		};
 	}]);
