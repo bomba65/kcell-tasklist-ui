@@ -12,13 +12,13 @@ public class CentralGroupAssignmentHandler implements TaskListener {
         String reason = delegateTask.getVariable("reason").toString();
         if (reason != null) {
             if (reason.equals("1")) {
-                delegateTask.addCandidateUsers(Arrays.asList("Marina.Paramonova@kcell.kz", "Daniyar.Yespayev@kcell.kz", "Vladimir.Grachyov@kcell.kz"));
+                delegateTask.addCandidateGroup("hq_optimization");
             } else if (reason.equals("2")) {
-                delegateTask.addCandidateUsers(Arrays.asList("Sergey.Grigor@kcell.kz", "Galym.Tulenbayev@kcell.kz", "Nikolay.Ustinov@kcell.kz"));
+                //Данные работы идут по другой ветке
             } else if (reason.equals("3")) {
-                delegateTask.addCandidateUsers(Arrays.asList("Andrey.Medvedev@kcell.kz", "Sergey.Chumachenko@kcell.kz"));
+                delegateTask.addCandidateGroup("hq_infrastructure");
             } else if (reason.equals("4")) {
-                delegateTask.addCandidateUsers(Arrays.asList("Kairat.Parmanov@kcell.kz", "Askar.Bekmurzayev@kcell.kz", "Temirlan.Kaliyev@kcell.kz"));
+                delegateTask.addCandidateGroup("hq_operation");
             }
         }
     }

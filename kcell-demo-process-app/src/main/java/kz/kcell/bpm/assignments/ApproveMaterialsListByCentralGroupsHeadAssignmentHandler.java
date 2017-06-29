@@ -13,13 +13,13 @@ public class ApproveMaterialsListByCentralGroupsHeadAssignmentHandler implements
         String reason = delegateTask.getVariable("reason").toString();
         if (reason != null) {
             if (reason.equals("1")) {
-                delegateTask.addCandidateUsers(Arrays.asList("Daniyar.Yespayev@kcell.kz", "Vladimir.Grachyov@kcell.kz"));
+                delegateTask.addCandidateGroup("hq_optimization");
             } else if (reason.equals("2")) {
-                delegateTask.addCandidateUsers(Arrays.asList("Sergey.Grigor@kcell.kz", "Galym.Tulenbayev@kcell.kz", "Nikolay.Ustinov@kcell.kz"));
+                delegateTask.addCandidateGroup("hq_transmission_engineer");
             } else if (reason.equals("3")) {
-                delegateTask.addCandidateUsers(Arrays.asList("Andrey.Medvedev@kcell.kz", "Sergey.Chumachenko@kcell.kz"));
+                delegateTask.addCandidateGroup("hq_infrastructure");
             } else if (reason.equals("4")) {
-                delegateTask.setAssignee("Kairat.Parmanov@kcell.kz");
+                delegateTask.addCandidateGroup("hq_operation");
             }
         }
     }

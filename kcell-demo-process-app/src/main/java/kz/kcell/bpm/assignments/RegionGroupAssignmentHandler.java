@@ -13,15 +13,16 @@ public class RegionGroupAssignmentHandler implements TaskListener {
     @Override
     public void notify(DelegateTask delegateTask) {
         String reason = delegateTask.getVariable("reason").toString();
+        String siteRegion = delegateTask.getVariable("siteRegion").toString();
         if (reason != null) {
             if (reason.equals("1")) {
-                delegateTask.addCandidateUsers(Arrays.asList("Kerey.Zatilda@kcell.kz", "Kanat.Kulmukhambetov@kcell.kz"));
+                delegateTask.addCandidateGroup(siteRegion + "_optimization_head");
             } else if (reason.equals("2")) {
-                delegateTask.addCandidateUsers(Arrays.asList("Maulen.Kempirbayev@kcell.kz"));
+                delegateTask.addCandidateGroup(siteRegion + "_transmission_head");
             } else if (reason.equals("3")) {
-                delegateTask.addCandidateUsers(Arrays.asList("Kali.Esimbekov@kcell.kz", "Maulen.Kempirbayev@kcell.kz", "Samat.Akhmetov@kcell.kz", "Zhanat.Seitkanov@kcell.kz"));
+                delegateTask.addCandidateGroup(siteRegion + "_infrastructure_head");
             } else if (reason.equals("4")) {
-                delegateTask.addCandidateUsers(Arrays.asList("Kali.Esimbekov@kcell.kz"));
+                delegateTask.addCandidateGroup(siteRegion + "_operation_head");
             }
         }
     }

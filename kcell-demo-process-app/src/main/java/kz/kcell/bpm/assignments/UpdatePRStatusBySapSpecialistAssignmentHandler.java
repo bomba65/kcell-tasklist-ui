@@ -12,13 +12,13 @@ public class UpdatePRStatusBySapSpecialistAssignmentHandler implements TaskListe
         String reason = delegateTask.getVariable("reason").toString();
         if (reason != null) {
             if (reason.equals("1")) {
-                delegateTask.addCandidateUsers(Arrays.asList("Gulzhan.Imandosova@kcell.kz", "Ernat.Suleimenov@kcell.kz", "Dana.Sabitova@kcell.kz"));
+                delegateTask.addCandidateGroup("hq_sap_specialist_optimization");
             } else if (reason.equals("2")) {
-                delegateTask.addCandidateUsers(Arrays.asList("Aigerim.Satybekova@kcell.kz", "Tatyana.Solovyova@kcell.kz", "Bolat.Idirisov@kcell.kz", "Lyudmila.Vilkova@kcell.kz"));
+                delegateTask.addCandidateGroup("hq_sap_specialist_transmission");
             } else if (reason.equals("3")) {
-                delegateTask.addCandidateUsers(Arrays.asList("Aigerim.Segizbayeva@kcell.kz", "Ernat.Suleimenov@kcell.kz"));
+                delegateTask.addCandidateGroup("hq_sap_specialist_infrastructure");
             } else if (reason.equals("4")) {
-                delegateTask.addCandidateUsers(Arrays.asList("Chingis.Zholdassov@kcell.kz", "Keremet.Ibragimova@kcell.kz"));
+                delegateTask.addCandidateGroup("hq_sap_specialist_operation");
             }
         }
     }

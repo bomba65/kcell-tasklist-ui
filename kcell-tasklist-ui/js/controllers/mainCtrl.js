@@ -313,9 +313,7 @@ define(['./module','camundaSDK', 'lodash', 'big-js'], function(module, CamSDK, _
 				throw err;
 			}
 			var $submitBtn = $('<button type="submit" class="btn btn-primary">Complete</button>').click(function (e) {
-				$scope.view = {
-					submitted : true
-				};
+				$scope.view.submitted + true;
 				if($scope.kcell_form.$valid){
 					if($scope.preSubmit){
 						$scope.preSubmit().then(
