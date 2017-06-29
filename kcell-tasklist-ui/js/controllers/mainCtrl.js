@@ -13,6 +13,11 @@ define(['./module','camundaSDK', 'lodash', 'big-js'], function(module, CamSDK, _
 			angular.extend(this, data);
 		}
 
+		$scope.view = {
+			page: 1,
+			maxResults: 20
+		}
+
 		var baseUrl = '/camunda/api/engine/engine/default';
 
 		//var taskService = new camClient.resource('task');
@@ -98,6 +103,7 @@ define(['./module','camundaSDK', 'lodash', 'big-js'], function(module, CamSDK, _
 			);
 		}
 		$scope.selectFilter = function(filter){
+			$scope.view.page = 1;
 			$scope.currentTask = undefined;
 			$location.search({task:undefined});
 			$scope.currentFilter = filter;
@@ -237,12 +243,22 @@ define(['./module','camundaSDK', 'lodash', 'big-js'], function(module, CamSDK, _
 				}
 			);
 		}
+
+		$scope.nextTasks = function(){
+			$scope.view.page++;
+			loadTasks();
+		}
+
+		$scope.prevTasks = function(){
+			$scope.view.page--;
+			loadTasks();
+		}
 		function loadTasks(e) {
 			$http({
 				method: 'POST',
 				headers:{'Accept':'application/hal+json, application/json; q=0.5'},
-				data: {sorting:[{"sortBy":"created","sortOrder":"desc"}],"active":true,maxResults:200},
-				url: baseUrl+'/filter/'+$scope.currentFilter.id+'/list',
+				data: {sorting:[{"sortBy":"created","sortOrder":"desc"}]},
+				url: baseUrl+'/filter/'+$scope.currentFilter.id+'/list?firstResult='+(($scope.view.page-1)*$scope.view.maxResults) + '&maxResults=' + $scope.view.maxResults
 			}).then(
 				function(results){
 					$scope.tasks = results.data._embedded.task;
@@ -348,9 +364,7 @@ define(['./module','camundaSDK', 'lodash', 'big-js'], function(module, CamSDK, _
 			$scope.diagram = undefined;
 			$scope.selectedTab = 'form';
 			$scope.currentTask = task;
-			$scope.view = {
-				submitted: false
-			}
+			$scope.view.submitted = false;
 			$scope.tryToOpen = undefined;
 			$rootScope.kcell_form = undefined;
 			var taskId = task.id;
