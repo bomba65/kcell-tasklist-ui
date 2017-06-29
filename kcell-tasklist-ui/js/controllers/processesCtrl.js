@@ -26,7 +26,8 @@ define(['./module','jquery', 'camundaSDK'], function(app, $, CamSDK){
 			participation: 'initiator',
 			startedBy: $rootScope.authentication.name,
 			startedAfter: undefined,
-			startedBefore: undefined
+			startedBefore: undefined,
+			unfinished: true
 		};
 
 		var catalogs = {};
@@ -83,11 +84,15 @@ define(['./module','jquery', 'camundaSDK'], function(app, $, CamSDK){
 		$scope.search = function(){
 			var filter = {
 				processDefinitionKey: $scope.filter.processDefinitionKey,
-				sorting:[{sortBy: "startTime",sortOrder: "desc"}],
-				unfinished: true
+				sorting:[{sortBy: "startTime",sortOrder: "desc"}]
 			}
 			if($scope.filter.businessKey){
 				filter.processInstanceBusinessKey = $scope.filter.businessKey;
+			}
+			if($scope.filter.unfinished){
+				filter.unfinished = true;
+			} else {
+				delete filter.unfinished;
 			}
 			if($scope.filter.participation === 'initiator'){
 				filter.startedBy = $rootScope.authentication.name;
