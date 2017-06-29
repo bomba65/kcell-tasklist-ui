@@ -1,7 +1,7 @@
 define(['./module','jquery', 'camundaSDK'], function(app, $, CamSDK){
 	'use strict';
-	return app.controller('processesCtrl', ['$scope', '$rootScope', '$http', '$routeParams', '$q', '$location', '$timeout', 
-			                         function($scope, $rootScope, $http, $routeParams, $q, $location, $timeout) {
+	return app.controller('processesCtrl', ['$scope', '$rootScope', '$http', '$routeParams', '$q', '$location', '$timeout', 'AuthenticationService',
+			                         function($scope, $rootScope, $http, $routeParams, $q, $location, $timeout, AuthenticationService) {
 		
 		
 		var camClient = new CamSDK.Client({
@@ -19,6 +19,12 @@ define(['./module','jquery', 'camundaSDK'], function(app, $, CamSDK){
 		};
 		$scope._ = window._;
 
+		$rootScope.logout = function(){
+			AuthenticationService.logout().then(function(){
+				$scope.authentication = null;
+			});
+		}
+
 		var baseUrl = '/camunda/api/engine/engine/default';
 
 		$scope.filter = {
@@ -27,7 +33,9 @@ define(['./module','jquery', 'camundaSDK'], function(app, $, CamSDK){
 			startedBy: $rootScope.authentication.name,
 			startedAfter: undefined,
 			startedBefore: undefined,
-			unfinished: true
+			unfinished: true,
+			page: 1,
+			maxResults: 20
 		};
 
 		var catalogs = {};
@@ -81,7 +89,11 @@ define(['./module','jquery', 'camundaSDK'], function(app, $, CamSDK){
 			}
 		);
 
-		$scope.search = function(){
+		$scope.search = function(refreshPages){
+			if(refreshPages){
+				$scope.filter.page = 1;
+				$scope.piIndex = undefined;
+			}
 			var filter = {
 				processDefinitionKey: $scope.filter.processDefinitionKey,
 				sorting:[{sortBy: "startTime",sortOrder: "desc"}]
@@ -110,8 +122,20 @@ define(['./module','jquery', 'camundaSDK'], function(app, $, CamSDK){
 			}
 		};
 
+		$scope.nextPage = function(){
+			$scope.filter.page++;
+			$scope.search(false);
+			$scope.piIndex = undefined;
+		}
+
+		$scope.prevPage = function(){
+			$scope.filter.page--;
+			$scope.search(false);
+			$scope.piIndex = undefined;
+		}
+
 		function getProcessInstances(filter){
-			$http.post(baseUrl+'/history/process-instance', filter).then(
+			$http.post(baseUrl+'/history/process-instance?firstResult=' + ($scope.filter.page-1)*$scope.filter.maxResults + '&maxResults=' + $scope.filter.maxResults, filter).then(
 				function(result){
 					$scope.processInstances = result.data;
 				},

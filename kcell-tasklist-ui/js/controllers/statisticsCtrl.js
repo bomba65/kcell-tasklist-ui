@@ -1,12 +1,18 @@
 define(['./module','jquery'], function(app,$){
 	'use strict';
-	return app.controller('statisticsCtrl', ['$scope', '$rootScope', '$http', '$routeParams', '$q', '$location',
-			                         function($scope,   $rootScope,   $http,   $routeParams,   $q, $location) {
+	return app.controller('statisticsCtrl', ['$scope', '$rootScope', '$http', '$routeParams', '$q', '$location', 'AuthenticationService',
+			                         function($scope,   $rootScope,   $http,   $routeParams,   $q, $location, AuthenticationService) {
 		$rootScope.currentPage = {
 			name: 'statistics'
 		};
 
 		$scope._ = window._;
+
+		$rootScope.logout = function(){
+			AuthenticationService.logout().then(function(){
+				$scope.authentication = null;
+			});
+		}
 
 		$scope.baseUrl = '/camunda/api/engine/engine/default';
 		// $scope.baseUrl = "https://test-flow.kcell.kz/engine-rest/engine/default";
