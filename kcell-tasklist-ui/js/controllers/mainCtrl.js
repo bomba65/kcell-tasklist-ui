@@ -98,6 +98,8 @@ define(['./module','camundaSDK', 'lodash', 'big-js'], function(module, CamSDK, _
 			);
 		}
 		$scope.selectFilter = function(filter){
+			$scope.currentTask = undefined;
+			$location.search({task:undefined});
 			$scope.currentFilter = filter;
 			loadTasks();
 		}
@@ -405,10 +407,11 @@ define(['./module','camundaSDK', 'lodash', 'big-js'], function(module, CamSDK, _
 		$scope.claim = function(task) {
 			$http.post(baseUrl+'/task/'+task.id+'/claim', {userId: $rootScope.authentication.name}).then(
 				function(){
-					$scope.tryToOpen = {
-						id: task.processInstanceId
-					};
+					$scope.tryToOpen = {};
 					getTaskList();
+					task.assigneeObject = $rootScope.authUser;
+					task.assignee = $rootScope.authentication.name;
+					$scope.loadTaskForm(task);
 				},
 				function(error){
 					console.log(error.data);
