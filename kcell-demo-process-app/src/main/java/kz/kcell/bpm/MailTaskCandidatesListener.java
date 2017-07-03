@@ -4,6 +4,7 @@ import org.apache.commons.mail.HtmlEmail;
 import org.camunda.bpm.engine.IdentityService;
 import org.camunda.bpm.engine.delegate.DelegateTask;
 import org.camunda.bpm.engine.delegate.TaskListener;
+import org.camunda.bpm.engine.identity.Group;
 import org.camunda.bpm.engine.identity.User;
 import org.camunda.bpm.engine.impl.context.Context;
 import org.camunda.bpm.engine.impl.identity.Authentication;
@@ -13,10 +14,13 @@ import org.camunda.bpm.extension.mail.config.MailConfigurationFactory;
 
 import javax.mail.internet.InternetAddress;
 import java.util.Arrays;
+import java.util.HashSet;
+import java.util.List;
 import java.util.Set;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import java.util.stream.Collectors;
+import java.util.stream.Stream;
 
 public class MailTaskCandidatesListener implements TaskListener {
 
@@ -37,15 +41,26 @@ public class MailTaskCandidatesListener implements TaskListener {
 
         // Get User Profile from User Management
         IdentityService identityService = Context.getProcessEngineConfiguration().getIdentityService();
-        String recipients = candidates.stream()
+        Set<String> recipientsSet = candidates.stream()
+                .filter(identityLink -> identityLink.getGroupId() != null)
+                .map(IdentityLink::getGroupId)
+                .flatMap(groupId -> identityService.createUserQuery().memberOfGroup(groupId).list().stream())
+                .filter(user -> !user.getId().equals(currentAuthentication.getUserId()))
+                .map(User::getEmail)
+                .filter(email -> email != null && !email.isEmpty())
+                .collect(Collectors.toSet());
+
+        recipientsSet.addAll(candidates.stream()
                 .filter(identityLink -> identityLink.getUserId() != null)
                 .map(IdentityLink::getUserId)
                 .filter(userId -> currentAuthentication == null || !userId.equals(currentAuthentication.getUserId()))
                 .flatMap(userId -> identityService.createUserQuery().userId(userId).list().stream())
                 .map(User::getEmail)
                 .filter(email -> email != null && !email.isEmpty())
-                .collect(Collectors.joining(","));
+                .collect(Collectors.toSet()));
+        String recipients = recipientsSet.stream().collect(Collectors.joining(","));
 
+        System.out.println(recipients);
         if (!recipients.isEmpty()) {
             sendMail(delegateTask, recipients, taskId);
         }
