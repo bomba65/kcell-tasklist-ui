@@ -71,11 +71,6 @@
                     submit: true,
                     store: true
                 }, {
-                    name: 'reason',
-                    type: 'Integer',
-                    submit: true,
-                    store: true
-                }, {
                     name: 'materialsRequired',
                     type: 'String',
                     submit: true,
@@ -116,6 +111,11 @@
                     submit: true,
                     store: true
                 }, {
+                    name: 'reason',
+                    type: 'String',
+                    submit: true,
+                    store: true
+                }, {
                     name: 'jobWorks',
                     type: 'Json',
                     submit: true,
@@ -152,16 +152,37 @@
                     type: 'String',
                     submit: true,
                     store: true
+                },
+                {
+                    name: 'siteRegion',
+                    type: 'String',
+                    submit: true,
+                    store: true
+                },
+                {
+                    name: 'worksChanged',
+                    type: 'String',
+                    submit: true,
+                    store: true
+                },
+                {
+                    name: 'isPermitDocsNeeded',
+                    type: 'String',
+                    submit: true,
+                    store: true
                 }
+
             ];
 
+            var permitWorks = ['3', '4', '5', '6', '7', '8', '9', '10', '35', '36', '37', '38', '39', '40', '41', '42', '43', '44', '65', '66', '67', '68', '69', '70', '71', '72', '73', '74', '75', '76', '77', '78', '86', '87', '91', '94', '95', '96', '155', '156', '157', '158', '159', '160'];
+
             $http.get('/camunda/api/engine/engine/default/task/' + camForm.taskId).then(
-                function(result){
-                    $scope.processInstanceId = result.data.processInstanceId;
-                },
-                function (error) {
-                    console.log(error.data);
-                }
+                    function(result){
+                        $scope.processInstanceId = result.data.processInstanceId;
+                    },
+                    function (error) {
+                        console.log(error.data);
+                    }
             );
 
             $scope.showJump = false;
@@ -175,6 +196,11 @@
                     contract: 1,
                     contractor: undefined
                 };
+                camForm.variableManager.createVariable({
+                    name: 'modifyJrResult',
+                    type: 'String',
+                    value: ''
+                });
                 variablesToCreate.forEach(function (el) {
                     camForm.variableManager.fetchVariable(el.name);
                 });
@@ -222,16 +248,19 @@
                             return $http.get("/camunda/api/engine/engine/default/history/task?processInstanceId="+resolution.processInstanceId+"&taskId=" + resolution.taskId);
                         })).then(function (tasks) {
                             tasks.forEach(function (e, index) {
-                                $scope.jobModel.resolutions[index].taskName = e.data[0].name;
-                                try {
-                                    $scope.jobModel.resolutions[index].taskEndDate = new Date(e.data[0].endTime);
-                                } catch(e){
-                                    console.log(e);
+                                if(e.data.length >0){
+                                    $scope.jobModel.resolutions[index].taskName = e.data[0].name;
+                                    try {
+                                        $scope.jobModel.resolutions[index].taskEndDate = new Date(e.data[0].endTime);
+                                    } catch(e){
+                                        console.log(e);
+                                    }
                                 }
-                            })
+                            });
                         });
                     }
                 });
+                console.log($rootScope.authentication);
                 $http.get('/camunda/api/engine/engine/default/user/'+$rootScope.authentication.name+'/profile').then(
                         function(result){
                             $scope.initiatorFull = result.data;
@@ -268,6 +297,15 @@
                     camForm.variableManager.variableValue('ptype', 'prod');
                     camForm.variableManager.variableValue('createJRResult', "approved");
                 }
+
+                camForm.variableManager.variableValue('modifyJrResult', $scope.modifyJrResult);
+                camForm.variableManager.variableValue('worksChanged', $scope.worksChanged);
+                if($scope.isPermitDocsNeeded){
+                    camForm.variableManager.variableValue('isPermitDocsNeeded', 'true');
+                } else {
+                    camForm.variableManager.variableValue('isPermitDocsNeeded', 'false');
+                }
+
                 if($scope.explanation){
                     if(!$scope.resolutions){
                         $scope.resolutions = {};
@@ -275,6 +313,7 @@
                     $scope.resolutions.push({processInstanceId: $scope.processInstanceId, assignee: $rootScope.authentication.name, resolution: 'createJr', comment: $scope.explanation, taskId: camForm.taskId});
                     camForm.variableManager.variableValue('resolutions', $scope.resolutions);
                 }
+
                 camForm.variableManager.variableValue('initiatorFull', $scope.initiatorFull);
                 var validityDate = new Date($scope.validityDate);
                 camForm.variableManager.variableValue('validityDate', validityDate);
@@ -339,6 +378,45 @@
             $scope.jobWorks = [{relatedSites:[]}];
             $scope.jobRequests = {};
 
+            $scope.regionsMap = {
+                '0': 'Alm',
+                '11':'Astana',
+                '1': 'N&C',
+                '2': 'N&C',
+                '3': 'East',
+                '4': 'South',
+                '5': 'West',
+                '6': 'West',
+                '7': 'West',
+                '8': 'West'
+            };
+            $scope.regionsMapLC = {
+                '0': 'alm',
+                '11':'astana',
+                '1': 'nc',
+                '2': 'nc',
+                '3': 'east',
+                '4': 'south',
+                '5': 'west',
+                '6': 'west',
+                '7': 'west',
+                '8': 'west'
+            };
+            $scope.contractorShortName = {
+                '4': 'LSE'
+            };
+            $scope.contractorShortNameLC = {
+                '4': 'lse'
+            };
+            $scope.reasonShortName = {
+                '1': 'P&O',
+                '2': 'TNU',
+                '3': 'S&FM',
+                '4': 'SAO'
+            };
+
+            $scope.requestedDate = new Date();
+
             var currentDate = new Date();
 
             $scope.datepickerOptions = {
@@ -368,61 +446,61 @@
                     "processDefinitionKey" : "Revision",
                     "active" : true,
                     "variables" :
-                        [{
-                            "name": "reason",
-                            "operator": "eq",
-                            "value": $scope.reason
-                        },{
-                            "name": "site",
-                            "operator": "eq",
-                            "value" : $scope.site
-                        }]
+                            [{
+                                "name": "reason",
+                                "operator": "eq",
+                                "value": $scope.reason
+                            },{
+                                "name": "site",
+                                "operator": "eq",
+                                "value" : $scope.site
+                            }]
                 };
                 var path  = '/camunda/api/engine/engine/default/process-instance?firstResult='+($scope.page*5)+'&maxResults=5';
                 $http.post(path,query).then(
-                    function(result){
-                        $scope.page = $scope.page + 1;
-                        var piIds = [];
-                        if(result.data.length < 5){
-                            $scope.showMore = false;
-                        } else {
-                            $scope.showMore = true;
-                        }
-                        for(var i=0;i<result.data.length;i++){
-                            piIds.push(result.data[i].id);
-                        }
-                        var variableQuery = {
-                            processInstanceIdIn: piIds
-                        };
-                        if(piIds.length > 0){
-                            $http.post('/camunda/api/engine/engine/default/variable-instance?deserializeValues=false', variableQuery).then(
-                                function(variables){
-                                    for(var i=0;i<variables.data.length;i++){
-                                        if(!$scope.jobRequests[variables.data[i].processInstanceId]){
-                                            $scope.jobRequestsCount++;
-                                            $scope.jobRequests[variables.data[i].processInstanceId] = {};
-                                        }
-                                        if(variables.data[i].name === 'jobWorks'){
-                                            $scope.jobRequests[variables.data[i].processInstanceId][variables.data[i].name] = JSON.parse(variables.data[i].value);
-                                        } else if(variables.data[i].name === 'supplementaryFile1' || variables.data[i].name === 'supplementaryFile2' || variables.data[i].name === 'supplementaryFile3' || variables.data[i].name === 'supplementaryFile4' || variables.data[i].name === 'supplementaryFile5'){
-                                            $scope.jobRequests[variables.data[i].processInstanceId][variables.data[i].name] = variables.data[i];
-                                        } else if(variables.data[i].name === 'initiatorFull'){
-                                            $scope.jobRequests[variables.data[i].processInstanceId][variables.data[i].name] = JSON.parse(variables.data[i].value);
-                                        } else {
-                                            $scope.jobRequests[variables.data[i].processInstanceId][variables.data[i].name] = variables.data[i].value;
-                                        }
+                        function(result){
+                            $scope.page = $scope.page + 1;
+                            var piIds = [];
+                            if(result.data.length < 5){
+                                $scope.showMore = false;
+                            } else {
+                                $scope.showMore = true;
+                            }
+                            for(var i=0;i<result.data.length;i++){
+                                piIds.push(result.data[i].id);
+                            }
+                            var variableQuery = {
+                                processInstanceIdIn: piIds
+                            };
+                            if(piIds.length > 0){
+                                $http.post('/camunda/api/engine/engine/default/variable-instance?deserializeValues=false', variableQuery).then(
+                                        function(variables){
+                                            for(var i=0;i<variables.data.length;i++){
+                                                if(!$scope.jobRequests[variables.data[i].processInstanceId]){
+                                                    $scope.jobRequestsCount++;
+                                                    $scope.jobRequests[variables.data[i].processInstanceId] = {};
+                                                }
+                                                if(variables.data[i].name === 'jobWorks'){
+                                                    $scope.jobRequests[variables.data[i].processInstanceId][variables.data[i].name] = JSON.parse(variables.data[i].value);
+                                                } else if(variables.data[i].name === 'supplementaryFile1' || variables.data[i].name === 'supplementaryFile2' || variables.data[i].name === 'supplementaryFile3' || variables.data[i].name === 'supplementaryFile4' || variables.data[i].name === 'supplementaryFile5'){
+                                                    $scope.jobRequests[variables.data[i].processInstanceId][variables.data[i].name] = variables.data[i];
+                                                } else if(variables.data[i].name === 'initiatorFull'){
+                                                    $scope.jobRequests[variables.data[i].processInstanceId][variables.data[i].name] = JSON.parse(variables.data[i].value);
+                                                } else {
+                                                    $scope.jobRequests[variables.data[i].processInstanceId][variables.data[i].name] = variables.data[i].value;
+                                                }
 
-                                    }
-                                },
-                                function(error){
-                                    console.log(error);
-                                }
-                            );
+                                            }
+                                        },
+                                        function(error){
+                                            console.log(error);
+                                        }
+                                );
+                            }
+                        },
+                        function(error){
+                            console.log(error);
                         }
-                    },
-                    function(error){
-                        console.log(error);
-                    }
                 );
             }
 
@@ -461,9 +539,9 @@
             }
 
             camForm.on('variables-applied', function() {
-		        // var validityDate = camForm.variableManager.variableValue('validityDate');
-		        // $scope.validityDate = new Date(validityDate);
-		    });
+                // var validityDate = camForm.variableManager.variableValue('validityDate');
+                // $scope.validityDate = new Date(validityDate);
+            });
 
             camForm.on('store', function() {
                 variablesToCreate.forEach(function (el) {
@@ -497,11 +575,17 @@
                     $scope.custom.contractor = parseInt(camForm.variableManager.variableValue('contractor'));
                 }
                 /*if(camForm.variableManager.variableValue('relatedTo')){
-                    $scope.relatedTo = parseInt(camForm.variableManager.variableValue('relatedTo'));
-                }*/
+                 $scope.relatedTo = parseInt(camForm.variableManager.variableValue('relatedTo'));
+                 }*/
                 try{
-                    $scope.requestedDate = new Date(camForm.variableManager.variableValue('requestedDate'));
-                } catch(e){}
+                    if(camForm.variableManager.variableValue('requestedDate')){
+                        $scope.requestedDate = new Date(camForm.variableManager.variableValue('requestedDate'));
+                    } else {
+                        $scope.requestedDate = new Date();
+                    }
+                } catch(e){
+                    $scope.requestedDate = new Date();
+                }
                 try{
                     if(camForm.variableManager.variableValue('jobWorks')){
                         $scope.jobWorks = JSON.parse(angular.toJson(camForm.variableManager.variableValue('jobWorks')));
@@ -514,6 +598,7 @@
                 //$scope.reason = camForm.variableManager.variableValue('reason');
                 refreshJobRequests();
                 serviceChanged();
+                $scope.oldWorks = angular.copy($scope.jobWorks);
             });
 
             $scope.getUnits = function(index){
@@ -526,39 +611,53 @@
 
             $scope.getSite = function(val) {
                 return $http.get('/asset-management/api/sites/search/findByNameIgnoreCaseContaining?name='+val).then(
-                    function(response){
-                        var sites = _.flatMap(response.data._embedded.sites, function(s){
-                            if(s.params.site_name){
-                                return s.params.site_name.split(',').map(function(sitename){
-                                    return {
-                                        name: s.name,
-                                        id: s._links.self.href.substring(s._links.self.href.lastIndexOf('/')+1),
-                                        site_name: sitename
-                                    };
-                                })
-                            } else {
-                                return {
-                                    name: s.name,
-                                    id: s._links.self.href.substring(s._links.self.href.lastIndexOf('/')+1),
-                                    site_name: s.name
+                        function(response){
+                            var sites = _.flatMap(response.data._embedded.sites, function(s){
+                                if(s.params.site_name){
+                                    return s.params.site_name.split(',').map(function(sitename){
+                                        return {
+                                            name: s.name,
+                                            id: s._links.self.href.substring(s._links.self.href.lastIndexOf('/')+1),
+                                            site_name: sitename
+                                        };
+                                    })
+                                } else {
+                                    return [];
                                 }
-                            }
-                        });
-                        return sites;
-                    }
+                            });
+                            return sites;
+                        }
                 );
             };
 
-            $scope.siteSelected = function($item, $index){
+            $scope.siteSelected = function($item){
+                $scope.siteName = $item.name;
+                $scope.site = $item.id;
+                $scope.site_name = $item.site_name;
+                if($scope.siteName.startsWith('11')){
+                    $scope.regionShortName = $scope.regionsMap['11'];
+                    $scope.siteRegion  = $scope.regionsMapLC['11'];
+                } else {
+                    $scope.regionShortName = $scope.regionsMap[$scope.siteName.substring(0,1)];
+                    $scope.siteRegion = $scope.regionsMapLC[$scope.siteName.substring(0,1)];
+                }
+                refreshJobRequests();
+            };
+
+            $scope.workSiteSelected = function($item, $index){
                 if(!$scope.jobWorks[$index].relatedSites){
                     $scope.jobWorks[$index].relatedSites = [];
                 }
                 if(!_.some($scope.jobWorks[$index].relatedSites, function(value){
-                    return value.site_name === $item.site_name;
-                })){
+                            return value.site_name === $item.site_name;
+                        })){
                     $scope.jobWorks[$index].relatedSites.push($item);
                 }
                 $scope.tempSite = {};
+            };
+
+            $scope.clearSiteId = function(){
+                $scope.site = undefined;
             };
 
             $scope.removeRelatedSite = function(i, j){
@@ -579,31 +678,39 @@
                 }
                 $scope.jobWorks[$index].sites.id = undefined;
             };
-
-            $scope.regionsMap = {
-                '0': 'Alm',
-                '11':'Astana',
-                '1': 'N&C',
-                '2': 'N&C',
-                '3': 'East',
-                '4': 'South',
-                '5': 'West',
-                '6': 'West',
-                '7': 'West',
-                '8': 'West'
-            };
-            $scope.contractorShortName = {
-                '4': 'LSE'
-            };
-            $scope.reasonShortName = {
-                '1': 'P&O',
-                '2': 'TNU',
-                '3': 'S&FM',
-                '4': 'SAO'
+            var diff;
+            if(window.requirejs){
+                diff = window.requirejs('deep-diff').diff;
+            } else {
+                diff = window.DeepDiff;
             }
 
             $scope.preSubmit = function(){
+                console.log(diff);
                 var deferred = $q.defer();
+                var worksChanged = false;
+                var a = JSON.stringify($scope.oldWorks, function(key, value) {
+                    if (typeof key === 'string' && (key.charAt(0) === '$' || key === 'this')) {
+                        return undefined;
+                    }
+                    return value;
+                });
+                var b = JSON.stringify($scope.jobWorks, function(key, value) {
+                    if (typeof key === 'string' && (key.charAt(0) === '$' || key === 'this')) {
+                        return undefined;
+                    }
+                    return value;
+                });
+                var delta = diff(a, b);
+                if(delta){
+                    $scope.worksChanged = 'true';
+                } else {
+                    $scope.worksChanged = 'false';
+                }
+
+                var containsPermit = _.intersection(_.map($scope.jobWorks, 'sapServiceNumber'), permitWorks);
+                $scope.isPermitDocsNeeded = containsPermit.length > 0;
+
                 var contains = _.some(_.flatMap($scope.jobWorks, 'relatedSites'), function(value){
                     return value.site_name === $scope.site_name;
                 });
@@ -843,7 +950,7 @@
                                 </td>
                                 <td>
                                     <span ng-repeat="rs in jobWork.relatedSites" class="my-tag" ng-class="{'main-site':rs.site_name===site_name}"><span ng-if="rs.site_name===site_name">Main Site: </span>{{rs.site_name}} <a ng-click="removeRelatedSite($parent.$index, $index)">&times;</a></span>
-                                    <input type="text" ng-model="tempSite.name" style="display: inline-block; width:100px;" name="tempSiteName" typeahead="site as sites.site_name for sites in getSite($viewValue) | filter:$viewValue" typeahead-on-select="siteSelected($item, $index); tempSite={};" class="form-control" autocomplete="off" placeholder="Add Site">
+                                    <input type="text" ng-model="tempSite.name" style="display: inline-block; width:100px;" name="tempSiteName" typeahead="site as sites.site_name for sites in getSite($viewValue) | filter:$viewValue" typeahead-on-select="workSiteSelected($item, $index); tempSite={};" class="form-control" autocomplete="off" placeholder="Add Site">
                                 </td>
                                 <td><div class="col-md-1"><button type="button" class="btn btn-sm btn-warning" ng-if="$index !== 0" ng-click="removeWork($index)"><i class="glyphicon glyphicon-trash"></i> Remove</button></div></td>
                             </ng-form>
@@ -880,6 +987,18 @@
         <label class="col-sm-4 control-label">Jump to Fill applied changed (test only):</label>
         <div class="col-sm-8">
             <input type="checkbox" cam-variable-name="ptypeCheckbox" cam-variable-type="Boolean" />
+        </div>
+    </div>
+    <div class="form-group">
+        <label class="col-sm-4 control-label">Resolution</label>
+        <div class="col-sm-8">
+            <label class="radio-inline">
+                <input type="radio" ng-model="modifyJrResult" name="modifyJrResult" value="modified" required> Modified
+            </label>
+            <label class="radio-inline">
+                <input type="radio" ng-model="modifyJrResult" name="modifyJrResult" value="canceled" required> Cancel
+            </label>
+            <label class="error" ng-show="kcell_form.modifyJrResult.$error.required && ( kcell_form.modifyJrResult.$touched || view.submitted)">Required field</label>
         </div>
     </div>
     <div class="form-group">

@@ -260,7 +260,7 @@ public class SendGeneratedJRBlank implements JavaDelegate {
             row.createCell(2).setCellValue("Approved by:");
 
             row = sheet.createRow(24 + jobWorks.size());
-            row.createCell(2).setCellValue(regionApproval + ((centralApproval != null && !centralApproval.isEmpty()) ? (", " + centralApproval) : ""));
+            row.createCell(2).setCellValue(((regionApproval != null && !regionApproval.isEmpty()) ? centralApproval : "") + ((centralApproval != null && !centralApproval.isEmpty()) ? (", " + centralApproval) : ""));
 
             row = sheet.createRow(25 + jobWorks.size());
             row.createCell(2).setCellValue("             (position, name & signature)");
@@ -458,6 +458,7 @@ public class SendGeneratedJRBlank implements JavaDelegate {
 
             FileValue jrBlank = Variables.fileValue("jrBlank.xlsx").file(out.toByteArray()).mimeType("application/vnd.openxmlformats-officedocument.spreadsheetml.sheet").create();
             delegateExecution.setVariable("jrBlank", jrBlank);
+            delegateExecution.setVariable("isNewProcessCreated", "false");
 
         } catch (Exception e) {
             e.printStackTrace();

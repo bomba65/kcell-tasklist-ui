@@ -75,7 +75,7 @@ public class AssetManagementSaveListenerTest {
                 "  }\n" +
                 "}]");
         assetManagementSaveListenerNew.saveCommandsToAssetManagement(node, "1");*/
-        //GenerateJobRequestNumber s = new GenerateJobRequestNumber();
+        //StartRevisionProcess s = new StartRevisionProcess();
         //System.out.println(s.getNextSiteCounter("1"));
         Email email = new SimpleEmail();
         email.setCharset("utf-8");

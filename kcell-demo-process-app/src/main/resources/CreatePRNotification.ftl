@@ -1,12 +1,7 @@
 <p>Hi,</p>
 
-
-<p>Уважаемые коллеги!</p>
-
-<p>Примите во внимание, что в рамках процесса оформления разрешительных документов по проведенным ревизионным работам JR: ${jrNumber!"########"} , был получен Отказ.</p>
-
 <p>
-    Request was rejected with comment: ${updateInstallationPermissionStatusComment!'(No comment)'}
+    Create PR for  Job Request ${jrNumber!"########"}
 </p>
 <br/>
 <p>

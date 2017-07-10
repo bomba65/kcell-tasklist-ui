@@ -55,9 +55,6 @@ define(['./module','camundaSDK', 'lodash', 'big-js'], function(module, CamSDK, _
 
 		$rootScope.hasGroup = function(group){
 			if($rootScope.authUser && $rootScope.authUser.groups){
-				console.log(_.some($rootScope.authUser.groups, function(value){
-					return value.id === group;
-				}));
 				return _.some($rootScope.authUser.groups, function(value){
 					return value.id === group;
 				});
@@ -199,6 +196,7 @@ define(['./module','camundaSDK', 'lodash', 'big-js'], function(module, CamSDK, _
 											} else {
 												$('#start-form-modal-body').html('');
 												scope.$close(results);
+												scope.preSubmit = undefined;
 											}
 										});
 									},
@@ -217,6 +215,7 @@ define(['./module','camundaSDK', 'lodash', 'big-js'], function(module, CamSDK, _
 									} else {
 										$('#start-form-modal-body').html('');
 										scope.$close(results);
+										scope.preSubmit = undefined;
 									}
 								});
 							}
@@ -324,6 +323,7 @@ define(['./module','camundaSDK', 'lodash', 'big-js'], function(module, CamSDK, _
 										e.preventDefault();
 										throw err;
 									} else {
+										$scope.preSubmit = undefined;
 										$('#taskElement').html('');
 										$scope.currentTask = undefined;
 										getTaskList();
@@ -348,6 +348,7 @@ define(['./module','camundaSDK', 'lodash', 'big-js'], function(module, CamSDK, _
 								$scope.currentTask = undefined;
 								getTaskList();
 								$location.search({});
+								$scope.preSubmit = undefined;
 							}
 						});
 					}
