@@ -30,7 +30,7 @@ public class KcellDemoApplication extends ServletProcessApplication {
 
     @PostDeploy
     public void startFirstProcess(ProcessEngine processEngine) {
-        this.createUsers(processEngine);
+        //this.createUsers(processEngine);
     }
 
     private void createUsers(ProcessEngine processEngine) {

@@ -118,7 +118,7 @@ public class DataInitializer {
 
         Site site1 = siteRepository.save(Site.builder()
                 .name("00SITE1")
-                .params("{}")
+                .params("{\"site_name\":\"00SITE1\"}")
                 .facilities(Stream.of(facilityInstanceBUILDING).collect(Collectors.toCollection(TreeSet::new)))
                 .build());
 
@@ -131,7 +131,7 @@ public class DataInitializer {
             siteRepository.save(
                     Site.builder()
                             .name((i % 9) + "0SITE" + i)
-                            .params("{}")
+                            .params("{\"site_name\":\"" + (i) + "SITE1\"}")
                             .facilities(Stream.of(facilityInstance).collect(Collectors.toCollection(TreeSet::new)))
                             .build()
             );

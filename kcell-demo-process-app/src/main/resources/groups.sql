@@ -65,7 +65,7 @@ insert into act_id_membership(group_id_, user_id_) values('hq_optimization','Vla
 insert into act_id_membership(group_id_, user_id_) values('hq_optimization','Gulzhan.Imandosova@kcell.kz');
 insert into act_id_membership(group_id_, user_id_) values('hq_transmission_engineer','Sergey.Grigor@kcell.kz');
 insert into act_id_membership(group_id_, user_id_) values('hq_transmission_engineer','Galym.Tulenbayev@kcell.kz');
-insert into act_id_membership(group_id_, user_id_) values('hq_transmission_engineer','Nikolay.Ustinov@kcell.kz');
+--insert into act_id_membership(group_id_, user_id_) values('hq_transmission_engineer','Nikolay.Ustinov@kcell.kz');
 insert into act_id_membership(group_id_, user_id_) values('hq_transmission_budget','Aigerim.Satybekova@kcell.kz');
 insert into act_id_membership(group_id_, user_id_) values('hq_transmission_budget','Tatyana.Solovyova@kcell.kz');
 insert into act_id_membership(group_id_, user_id_) values('hq_transmission_budget','Bolat.Idirissov@kcell.kz');
@@ -78,7 +78,7 @@ insert into act_id_membership(group_id_, user_id_) values('hq_operation','Temirl
 insert into act_id_membership(group_id_, user_id_) values('hq_leasing','Sara.Turabayeva@kcell.kz');
 insert into act_id_membership(group_id_, user_id_) values('hq_leasing','Ainur.Beknazarova@kcell.kz');
 insert into act_id_membership(group_id_, user_id_) values('hq_leasing','Bella.Mamatova@kcell.kz');
-insert into act_id_membership(group_id_, user_id_) values('hq_leasing','Ikhtiyar.Ibrayev@kcell.kz');
+--insert into act_id_membership(group_id_, user_id_) values('hq_leasing','Ikhtiyar.Ibrayev@kcell.kz');
 insert into act_id_membership(group_id_, user_id_) values('hq_sap_specialist_optimization','Gulzhan.Imandosova@kcell.kz');
 insert into act_id_membership(group_id_, user_id_) values('hq_sap_specialist_optimization','Ernat.Suleimenov@kcell.kz');
 insert into act_id_membership(group_id_, user_id_) values('hq_sap_specialist_optimization','Dana.Sabitova@kcell.kz');
@@ -112,8 +112,8 @@ insert into act_id_membership(group_id_, user_id_) values('alm_engineer','Nurzha
 insert into act_id_membership(group_id_, user_id_) values('alm_engineer','Sergey.Michshenko@kcell.kz');
 insert into act_id_membership(group_id_, user_id_) values('alm_engineer','Kanat.Kulmukhambetov@kcell.kz');
 insert into act_id_membership(group_id_, user_id_) values('alm_engineer','Kerey.Zatilda@kcell.kz');
-insert into act_id_membership(group_id_, user_id_) values('alm_engineer','Nurlan.Shokparov@kcell.kz');
-insert into act_id_membership(group_id_, user_id_) values('alm_engineer','Evgeniy.Degtyarev@kcell.kz');
+--insert into act_id_membership(group_id_, user_id_) values('alm_engineer','Nurlan.Shokparov@kcell.kz');
+--insert into act_id_membership(group_id_, user_id_) values('alm_engineer','Evgeniy.Degtyarev@kcell.kz');
 insert into act_id_membership(group_id_, user_id_) values('alm_engineer','Maulen.Kempirbayev@kcell.kz');
 insert into act_id_membership(group_id_, user_id_) values('alm_engineer','Nurzhan.Mynbayev@kcell.kz');
 insert into act_id_membership(group_id_, user_id_) values('alm_engineer','Asset.Rashitov@kcell.kz');
@@ -149,13 +149,3 @@ insert into act_id_membership(group_id_, user_id_) values('alm_power_engineer','
 insert into act_id_membership(group_id_, user_id_) values('alm_leasing','Maxim.Goikolov@kcell.kz');
 insert into act_id_membership(group_id_, user_id_) values('alm_leasing','Adilet.Baishalov@kcell.kz');
 insert into act_id_membership(group_id_, user_id_) values('alm_leasing','Samat.Akhmetov@kcell.kz');
-insert into act_id_membership(group_id_, user_id_) values('alm_contractor_lse','rollout-almaty-main@lse.kz');
-insert into act_id_membership(group_id_, user_id_) values('alm_contractor_lse','rn-rs-almaty@lse.kz');
-insert into act_id_membership(group_id_, user_id_) values('alm_contractor_lse','nazym.s@lse.kz');
-insert into act_id_membership(group_id_, user_id_) values('alm_contractor_lse','botagoz.ch@lse.kz');
-insert into act_id_membership(group_id_, user_id_) values('alm_contractor_lse','anuarbek.m@lse.kz');
-insert into act_id_membership(group_id_, user_id_) values('alm_contractor_lse','zhandos.k@lse.kz');
-insert into act_id_membership(group_id_, user_id_) values('alm_contractor_lse','kairat.b@lse.kz');
-insert into act_id_membership(group_id_, user_id_) values('alm_contractor_lse','gulzhaina.t@lse.kz');
-insert into act_id_membership(group_id_, user_id_) values('alm_contractor_lse','meirkhan.k@lse.kz');
-insert into act_id_membership(group_id_, user_id_) values('alm_contractor_lse','beibit.a@lse.kz');
