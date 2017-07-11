@@ -232,6 +232,11 @@
                             }
                         });
                     });
+                    if($scope.tssrssidFileModel && $scope.tssrssidFileModel.value){
+                        $scope.tssrssidFileModel.name="tssrssidFile";
+                        $scope.tssrssidFileModel.type="File";
+                        camForm.variableManager.createVariable($scope.tssrssidFileModel);
+                    }
                     camForm.variableManager.variableValue('commands', JSON.parse(angular.toJson($scope.commands)));
                     camForm.variableManager.variableValue('summaries', JSON.parse(angular.toJson($scope.summaries)));
                     camForm.variableManager.variableValue('fillSite', JSON.parse(angular.toJson($scope.fillSite)));
@@ -1131,9 +1136,7 @@
                 $scope.farEndSite.site_name  = $item.site_name;
             };
 
-            $scope.addWorkFile = function(workIndex){
-
-            };
+            $scope.tssrssidFileModel = {};
 
             function getBase64(el, workIndex, fileIndex){
                 var reader = new FileReader();
@@ -1165,6 +1168,41 @@
                 } else {
                     $scope.$apply(function(){
                         $scope.sitesWorks[workIndex].files.splice(fileIndex,1);
+                    });
+                }
+            };
+
+            function getBase64TSSR(el, fileName){
+                console.log($scope[fileName]);
+                var reader = new FileReader();
+                reader.readAsArrayBuffer(el.files[0]);
+                reader.onloadend = function (e) {
+                    var binary = '';
+                    var bytes = new Uint8Array( e.target.result );
+                    var len = bytes.byteLength;
+                    for (var j = 0; j < len; j++) {
+                        binary += String.fromCharCode( bytes[ j ] );
+                    }
+                    $scope.$apply(function(){
+                        $scope[fileName].valueInfo = {
+                            filename: el.files[0].name,
+                            mimeType: el.files[0].type
+                        };
+                        $scope[fileName].value = btoa(binary);
+                    });
+                };
+                reader.onerror = function (error) {
+                    console.log('Error: ', error);
+                };
+            }
+
+            $scope.fileSelectedTSSR = function(el, fileName){
+                console.log(fileName);
+                if(el.files[0]){
+                    getBase64TSSR(el,fileName)
+                } else {
+                    $scope.$apply(function(){
+                        $scope[fileName] = undefined;
                     });
                 }
             };
@@ -1431,7 +1469,7 @@
         <tr ng-repeat="work in jobModel.jobWorks.value">
             <td>{{$index+1}}</td>
             <td>{{jobModel.worksTitle[work.sapServiceNumber]}}, works qty: {{work.quantity}}, materials qty:
-                {{work.materialQuantity}} {{jobModel.unitsTitle[work.unit]}}, on sites: {{work.sites}} (Near end)
+                {{work.materialQuantity}} {{jobModel.unitsTitle[work.unit]}}, on sites: <ul class="site-list"><li ng-repeat="rs in work.relatedSites">{{rs.site_name}}</li></ul></span>
             </td>
         </tr>
         </tbody>

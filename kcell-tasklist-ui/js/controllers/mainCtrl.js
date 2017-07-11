@@ -223,7 +223,7 @@ define(['./module','camundaSDK', 'lodash', 'big-js'], function(module, CamSDK, _
 							toasty.error({title: "Could not complete task", msg: "Please fill required fields"});
 						}
 					});
-					camForm.formElement.append($submitBtn);
+					$("#modal-footer").append($submitBtn);
 				}
 			}
 		}
