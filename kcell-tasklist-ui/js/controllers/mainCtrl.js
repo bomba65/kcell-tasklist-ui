@@ -196,7 +196,6 @@ define(['./module','camundaSDK', 'lodash', 'big-js'], function(module, CamSDK, _
 											} else {
 												$('#start-form-modal-body').html('');
 												scope.$close(results);
-												scope.preSubmit = undefined;
 											}
 										});
 									},
@@ -215,7 +214,6 @@ define(['./module','camundaSDK', 'lodash', 'big-js'], function(module, CamSDK, _
 									} else {
 										$('#start-form-modal-body').html('');
 										scope.$close(results);
-										scope.preSubmit = undefined;
 									}
 								});
 							}
@@ -328,6 +326,7 @@ define(['./module','camundaSDK', 'lodash', 'big-js'], function(module, CamSDK, _
 										$scope.currentTask = undefined;
 										getTaskList();
 										$location.search({});
+										$scope.submitted = false;
 									}
 								});
 							},
@@ -349,6 +348,7 @@ define(['./module','camundaSDK', 'lodash', 'big-js'], function(module, CamSDK, _
 								getTaskList();
 								$location.search({});
 								$scope.preSubmit = undefined;
+								$scope.submitted = false;
 							}
 						});
 					}
