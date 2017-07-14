@@ -184,12 +184,36 @@ define(['./module','camundaSDK', 'lodash', 'big-js'], function(module, CamSDK, _
 						scope.view = {
 							submitted : true
 						};
-						if(scope.kcell_form.$valid){
-							if(scope.preSubmit){
-								scope.preSubmit().then(
-									function(result){
+						$timeout(function(){
+							scope.$apply(function(){
+								if(scope.kcell_form.$valid){
+									$submitBtn.attr('disabled', true);
+									if(scope.preSubmit){
+										scope.preSubmit().then(
+											function(result){
+												camForm.submit(function (err,results) {
+													if (err) {
+														$submitBtn.removeAttr('disabled');
+														toasty.error({title: "Could not complete task", msg: err});
+														e.preventDefault();
+														throw err;
+													} else {
+														$('#start-form-modal-body').html('');
+														scope.$close(results);
+													}
+												});
+											},
+											function(err){
+												$submitBtn.removeAttr('disabled');
+												toasty.error({title: "Could not complete task", msg: err});
+												e.preventDefault();
+												throw err;
+											}
+										);
+									} else {
 										camForm.submit(function (err,results) {
 											if (err) {
+												$submitBtn.removeAttr('disabled');
 												toasty.error({title: "Could not complete task", msg: err});
 												e.preventDefault();
 												throw err;
@@ -198,28 +222,12 @@ define(['./module','camundaSDK', 'lodash', 'big-js'], function(module, CamSDK, _
 												scope.$close(results);
 											}
 										});
-									},
-									function(err){
-										toasty.error({title: "Could not complete task", msg: err});
-										e.preventDefault();
-										throw err;
 									}
-								);
-							} else {
-								camForm.submit(function (err,results) {
-									if (err) {
-										toasty.error({title: "Could not complete task", msg: err});
-										e.preventDefault();
-										throw err;
-									} else {
-										$('#start-form-modal-body').html('');
-										scope.$close(results);
-									}
-								});
-							}
-						} else {
-							toasty.error({title: "Could not complete task", msg: "Please fill required fields"});
-						}
+								} else {
+									toasty.error({title: "Could not complete task", msg: "Please fill required fields"});
+								}
+							})
+						});
 					});
 					$("#modal-footer").append($submitBtn);
 				}
@@ -312,11 +320,13 @@ define(['./module','camundaSDK', 'lodash', 'big-js'], function(module, CamSDK, _
 			var $submitBtn = $('<button type="submit" class="btn btn-primary">Complete</button>').click(function (e) {
 				$scope.view.submitted = true;
 				if($scope.kcell_form.$valid){
+					$(this).attr('disabled', true);
 					if($scope.preSubmit){
 						$scope.preSubmit().then(
 							function(result){
 								camForm.submit(function (err) {
 									if (err) {
+										$(this).removeAttr('disabled');
 										toasty.error({title: "Could not complete task", msg: err});
 										e.preventDefault();
 										throw err;
@@ -331,6 +341,7 @@ define(['./module','camundaSDK', 'lodash', 'big-js'], function(module, CamSDK, _
 								});
 							},
 							function(err){
+								$(this).removeAttr('disabled');
 								toasty.error({title: "Could not complete task", msg: err});
 								e.preventDefault();
 								throw err;
@@ -339,6 +350,7 @@ define(['./module','camundaSDK', 'lodash', 'big-js'], function(module, CamSDK, _
 					} else {
 						camForm.submit(function (err) {
 							if (err) {
+								$(this).removeAttr('disabled');
 								toasty.error({title: "Could not complete task", msg: err});
 								e.preventDefault();
 								throw err;
