@@ -93,6 +93,12 @@
             $scope.supplementaryFile4Exist = false;
             $scope.supplementaryFile5Exist = false;
 
+            $scope.supplementaryFile1={};
+            $scope.supplementaryFile2={};
+            $scope.supplementaryFile3={};
+            $scope.supplementaryFile4={};
+            $scope.supplementaryFile5={};
+
             var permitWorks = ['3', '4', '5', '6', '7', '8', '9', '10', '35', '36', '37', '38', '39', '40', '41', '42', '43', '44', '65', '66', '67', '68', '69', '70', '71', '72', '73', '74', '75', '76', '77', '78', '86', '87', '91', '94', '95', '96', '155', '156', '157', '158', '159', '160'];
 
             $http.get('/camunda/api/engine/engine/default/task/' + camForm.taskId).then(
@@ -188,6 +194,11 @@
                         $scope[el] = camForm.variableManager.variables[el].value;
                     }
                 });
+                for(var i=1;i<=5;i++){
+                    if(!$scope['supplementaryFile' + i]){
+                        $scope['supplementaryFile' + i] = {};
+                    }
+                }
                 if($scope['materialsRequired'] === 'Yes'){
                     $scope.materialsRequiredCheckbox = true;
                 }
@@ -329,8 +340,8 @@
                     if($scope['supplementaryFile'+i] && $scope['supplementaryFile'+i].value){
                         $scope['supplementaryFile'+i].name="supplementaryFile"+i;
                         $scope['supplementaryFile'+i].type="File";
-                        if($scope['supplementaryFile'+i+'Exist']){
-                            camForm.variableManager.destroyVariable('supplementaryFile1');
+                        if(!$scope['supplementaryFile'+i].prev){
+                            camForm.variableManager.destroyVariable('supplementaryFile'+i);
                         }
                         camForm.variableManager.createVariable($scope['supplementaryFile'+i]);
                     }
@@ -496,7 +507,6 @@
             }
 
             function getBase64(el, fileName){
-                console.log($scope[fileName]);
                 var reader = new FileReader();
                 reader.readAsArrayBuffer(el.files[0]);
                 reader.onloadend = function (e) {
@@ -508,7 +518,6 @@
                     }
                     $scope.$apply(function(){
                         console.log(fileName);
-                        console.log($scope[fileName]);
                         $scope[fileName].valueInfo = {
                             filename: el.files[0].name,
                             mimeType: el.files[0].type
