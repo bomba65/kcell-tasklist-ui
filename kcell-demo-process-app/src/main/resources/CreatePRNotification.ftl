@@ -4,7 +4,7 @@
     Create PR for Job Request ${jrNumber!"########"}
 </p>
 <#assign initiatorFullObj = initiatorFull?eval>
-<#assign jobWorksObj = jobWorks?eval>
+<#assign jobWorksObj = workPrices?eval>
 <#assign reasonsTitle = {"1":"Optimization works", "2":"Transmission works","3":"Infrastructure works","4":"Operation works"}>
 <#assign servicesTitle = {"1":"Revision","2":"Rollout","3":"Power","4":"Field Maintainance"}>
 <#assign contractorsTitle = {"1":"ТОО Аврора Сервис","2":"ТОО AICOM","3":"ТОО Spectr energy group","4":"TOO Line System Engineering","5":"JSC Kcell"}>
@@ -45,11 +45,50 @@
         <td></td>
         <td></td>
     </tr>
-    <#list jobWorksObj as work>
-        <tr>
-            <td colspan="3">&nbsp;&nbsp;&nbsp;&nbsp;${worksTitle[work.sapServiceNumber]}, works qty: ${work.quantity!""}, materials qty: ${work.materialQuantity!""} ${work.materialUnit} <#if work.relatedSites?size != 0>, on sites: <#list work.relatedSites as rs>${rs.site_name},</#list></#if></td>
-        </tr>
-    </#list>
+    <tr>
+        <td colspan="3">
+            <table class="table table-condensed">
+                <thead>
+                <tr>
+                    <th width="30%">Works</th>
+                    <th>Works Qty</th>
+                    <th>Materials Qty</th>
+                    <th>Sites</th>
+                    <th>Base Price</th>
+                    <th>Base + Transportation +8%</th>
+                    <th>1 work price per site Sum/site q-ty</th>
+                    <th>Sum * works q-ty</th>
+                    <th>Total</th>
+                </tr>
+                </thead>
+                <tbody>
+                <#list jobWorksObj as work>
+                    <tr>
+                        <td>${worksTitle[work.sapServiceNumber]}</td>
+                        <td>${work.quantity!""}</td>
+                        <td>${work.materialQuantity}</td>
+                        <td>
+                            <#if work.relatedSites?size != 0>
+                                <#list work.relatedSites as rs>
+                                    <#if rs.site_name == site_name>Main Site: </#if> ${rs.site_name},
+                                </#list>
+                            </#if>
+                        <td>${work.unitWorkPrice}&nbsp;&#8376;</td>
+                        <td>${work.unitWorkPricePlusTx}&nbsp;&#8376;</td>
+                        <td>${work.unitWorkPricePerSite} &nbsp;&#8376;</td>
+                        <td>${work.netWorkPricePerSite}&nbsp;&#8376;</span></td>
+                        <td>${work.total}</td>
+                    </tr>
+                </#list>
+                <tr>
+                    <th colspan="7" style="text-align: left;">Total</th>
+                    <th></th>
+                    <th>${jobWorksTotal}</th>
+                </tr>
+                </tbody>
+            </table>
+        </td>
+    </tr>
     <tr>
         <td colspan="3"><b>Explanation of works</b>: ${explanation}</td>
         <td></td>
