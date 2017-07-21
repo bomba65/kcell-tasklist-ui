@@ -47,7 +47,7 @@
     </tr>
     <#list jobWorksObj as work>
         <tr>
-            <td colspan="3">&nbsp;&nbsp;&nbsp;&nbsp;${worksTitle[work.sapServiceNumber]}, works qty: ${work.quantity}, materials qty: ${work.materialQuantity} ${work.materialUnit} <#if work.relatedSites?size != 0>, on sites: <#list work.relatedSites as rs>${rs.site_name},</#list></#if></td>
+            <td colspan="3">&nbsp;&nbsp;&nbsp;&nbsp;${worksTitle[work.sapServiceNumber]}, works qty: ${work.quantity!""}, materials qty: ${work.materialQuantity!""} ${work.materialUnit} <#if work.relatedSites?size != 0>, on sites: <#list work.relatedSites as rs>${rs.site_name},</#list></#if></td>
         </tr>
     </#list>
     <tr>
