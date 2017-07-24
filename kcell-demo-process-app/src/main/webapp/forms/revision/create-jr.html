@@ -318,6 +318,7 @@
                         $scope.resolutions = {};
                     }
                     $scope.resolutions.push({processInstanceId: $scope.processInstanceId, assignee: $rootScope.authentication.name, resolution: 'createJr', comment: $scope.explanation, taskId: camForm.taskId});
+                    $scope.resolutions.push({processInstanceId: $scope.processInstanceId, assignee: $rootScope.authentication.name, resolution: 'filesModified', comment: _.map($scope.supplementaryFilesActions, function(e){return "file " + e.filename+" "+e.action}).join(', '), taskId: camForm.taskId});
                     camForm.variableManager.variableValue('resolutions', $scope.resolutions);
                 }
 
@@ -435,15 +436,15 @@
                     "processDefinitionKey" : "Revision",
                     "active" : true,
                     "variables" :
-                            [{
-                                "name": "reason",
-                                "operator": "eq",
-                                "value": $scope.reason
-                            },{
-                                "name": "site",
-                                "operator": "eq",
-                                "value" : $scope.site
-                            }]
+                        [{
+                            "name": "reason",
+                            "operator": "eq",
+                            "value": $scope.reason
+                        },{
+                            "name": "site",
+                            "operator": "eq",
+                            "value" : $scope.site
+                        }]
                 };
                 var path  = '/camunda/api/engine/engine/default/process-instance?firstResult='+($scope.page*5)+'&maxResults=5';
                 $http.post(path,query).then(
@@ -463,27 +464,27 @@
                             };
                             if(piIds.length > 0){
                                 $http.post('/camunda/api/engine/engine/default/variable-instance?deserializeValues=false', variableQuery).then(
-                                        function(variables){
-                                            for(var i=0;i<variables.data.length;i++){
-                                                if(!$scope.jobRequests[variables.data[i].processInstanceId]){
-                                                    $scope.jobRequestsCount++;
-                                                    $scope.jobRequests[variables.data[i].processInstanceId] = {};
-                                                }
-                                                if(variables.data[i].name === 'jobWorks'){
-                                                    $scope.jobRequests[variables.data[i].processInstanceId][variables.data[i].name] = JSON.parse(variables.data[i].value);
-                                                } else if(variables.data[i].name === 'supplementaryFile1' || variables.data[i].name === 'supplementaryFile2' || variables.data[i].name === 'supplementaryFile3' || variables.data[i].name === 'supplementaryFile4' || variables.data[i].name === 'supplementaryFile5'){
-                                                    $scope.jobRequests[variables.data[i].processInstanceId][variables.data[i].name] = variables.data[i];
-                                                } else if(variables.data[i].name === 'initiatorFull'){
-                                                    $scope.jobRequests[variables.data[i].processInstanceId][variables.data[i].name] = JSON.parse(variables.data[i].value);
-                                                } else {
-                                                    $scope.jobRequests[variables.data[i].processInstanceId][variables.data[i].name] = variables.data[i].value;
-                                                }
-
+                                    function(variables){
+                                        for(var i=0;i<variables.data.length;i++){
+                                            if(!$scope.jobRequests[variables.data[i].processInstanceId]){
+                                                $scope.jobRequestsCount++;
+                                                $scope.jobRequests[variables.data[i].processInstanceId] = {};
                                             }
-                                        },
-                                        function(error){
-                                            console.log(error);
+                                            if(variables.data[i].name === 'jobWorks'){
+                                                $scope.jobRequests[variables.data[i].processInstanceId][variables.data[i].name] = JSON.parse(variables.data[i].value);
+                                            } else if(variables.data[i].name === 'supplementaryFile1' || variables.data[i].name === 'supplementaryFile2' || variables.data[i].name === 'supplementaryFile3' || variables.data[i].name === 'supplementaryFile4' || variables.data[i].name === 'supplementaryFile5'){
+                                                $scope.jobRequests[variables.data[i].processInstanceId][variables.data[i].name] = variables.data[i];
+                                            } else if(variables.data[i].name === 'initiatorFull'){
+                                                $scope.jobRequests[variables.data[i].processInstanceId][variables.data[i].name] = JSON.parse(variables.data[i].value);
+                                            } else {
+                                                $scope.jobRequests[variables.data[i].processInstanceId][variables.data[i].name] = variables.data[i].value;
+                                            }
+
                                         }
+                                    },
+                                    function(error){
+                                        console.log(error);
+                                    }
                                 );
                             }
                         },
@@ -508,6 +509,8 @@
                 getJobs();
             }
 
+            $scope.supplementaryFilesActions = [];
+
             function getBase64(el, fileName){
                 var reader = new FileReader();
                 reader.readAsArrayBuffer(el.files[0]);
@@ -525,6 +528,7 @@
                             mimeType: el.files[0].type
                         };
                         $scope[fileName].value = btoa(binary);
+                        $scope.supplementaryFilesActions.push({supplementaryId: fileName, filename:el.files[0].name,action:'added'});
                     });
                 };
                 reader.onerror = function (error) {
@@ -557,10 +561,6 @@
                 }
             }
 
-            camForm.on('variables-restored', function() {
-
-            });
-
             $scope.getUnits = function(index){
                 for(var i=0;i<$scope.works.length;i++){
                     if($scope.jobWorks[index].sapServiceNumber === $scope.works[i].sapServiceNumber){
@@ -571,22 +571,22 @@
 
             $scope.getSite = function(val) {
                 return $http.get('/asset-management/api/sites/search/findByNameIgnoreCaseContaining?name='+val).then(
-                        function(response){
-                            var sites = _.flatMap(response.data._embedded.sites, function(s){
-                                if(s.params.site_name){
-                                    return s.params.site_name.split(',').map(function(sitename){
-                                        return {
-                                            name: s.name,
-                                            id: s._links.self.href.substring(s._links.self.href.lastIndexOf('/')+1),
-                                            site_name: sitename
-                                        };
-                                    })
-                                } else {
-                                    return [];
-                                }
-                            });
-                            return sites;
-                        }
+                    function(response){
+                        var sites = _.flatMap(response.data._embedded.sites, function(s){
+                            if(s.params.site_name){
+                                return s.params.site_name.split(',').map(function(sitename){
+                                    return {
+                                        name: s.name,
+                                        id: s._links.self.href.substring(s._links.self.href.lastIndexOf('/')+1),
+                                        site_name: sitename
+                                    };
+                                })
+                            } else {
+                                return [];
+                            }
+                        });
+                        return sites;
+                    }
                 );
             };
 
@@ -669,6 +669,10 @@
 
                 var containsPermit = _.intersection(_.map($scope.jobWorks, 'sapServiceNumber'), permitWorks);
                 $scope.isPermitDocsNeeded = containsPermit.length > 0;
+                var promises = [];
+                $scope.supplementaryFilesActions.forEach(function(e){
+                    promises.push($http.delete('/camunda/api/engine/engine/default/process-instance/'+$scope.processInstanceId+'/variables/'+e.supplementaryId));
+                });
 
                 var contains = _.some(_.flatMap($scope.jobWorks, 'relatedSites'), function(value){
                     return value.site_name === $scope.site_name;
@@ -678,16 +682,18 @@
                 } else {
                     deferred.resolve();
                 }
-                return deferred.promise;
-            }
+                return $q.all(promises);
+            };
 
             $scope.clearFile = function(filename){
+                $scope.supplementaryFilesActions.push({supplementaryId: filename, filename:$scope[filename].prev.valueInfo.filename, action:'deleted'});
                 delete $scope[filename].prev;
             }
         }]);
 
     </script>
     <h4>Create job request</h4>
+    {{supplementaryFilesActions}}
     <div class="form-group">
         <label class="col-sm-4 control-label">JR Number:</label>
         <div class="col-sm-3">
@@ -793,27 +799,27 @@
     <div class="form-group">
         <label class="col-sm-4 control-label">Supplementary files:</label>
         <div class="col-sm-8">
-            <div ng-if="supplementaryFile1.prev"><a href="supplementaryFile1.prev.contentUrl">{{supplementaryFile1.prev.valueInfo.filename}} <a ng-click="clearFile('supplementaryFile1')">&times;</a></a></div>
+            <div ng-if="supplementaryFile1.prev"><a href="{{supplementaryFile1.prev.contentUrl}}">{{supplementaryFile1.prev.valueInfo.filename}}</a> <a ng-click="clearFile('supplementaryFile1')">&times;</a></div>
             <div ng-if="!supplementaryFile1.prev">
                 <input type="file" class="form-control" ng-model="supplementaryFile1.file" name="supplementaryFile1" onchange="angular.element(this).scope().fileSelected(this, 'supplementaryFile1')" />
             </div>
 
-            <div ng-if="supplementaryFile2.prev"><a href="supplementaryFile2.prev.contentUrl">{{supplementaryFile2.prev.valueInfo.filename}} <a ng-click="clearFile('supplementaryFile2')">&times;</a></a></a></div>
+            <div ng-if="supplementaryFile2.prev"><a href="{{supplementaryFile2.prev.contentUrl}}">{{supplementaryFile2.prev.valueInfo.filename}}</a> <a ng-click="clearFile('supplementaryFile2')">&times;</a></div>
             <div ng-if="!supplementaryFile2.prev">
                 <input type="file" class="form-control" ng-model="supplementaryFile2.file" name="supplementaryFile2" onchange="angular.element(this).scope().fileSelected(this, 'supplementaryFile2')" />
             </div>
 
-            <div ng-if="supplementaryFile3.prev"><a href="supplementaryFile3.prev.contentUrl">{{supplementaryFile3.prev.valueInfo.filename}}</a></div>
+            <div ng-if="supplementaryFile3.prev"><a href="{{supplementaryFile3.prev.contentUrl}}">{{supplementaryFile3.prev.valueInfo.filename}}</a> <a ng-click="clearFile('supplementaryFile3')">&times;</a></div>
             <div ng-if="!supplementaryFile3.prev">
                 <input type="file" class="form-control" ng-model="supplementaryFile3.file" name="supplementaryFile3" onchange="angular.element(this).scope().fileSelected(this, 'supplementaryFile3')" />
             </div>
 
-            <div ng-if="supplementaryFile4.prev"><a href="supplementaryFile4.prev.contentUrl">{{supplementaryFile4.prev.valueInfo.filename}}</a></div>
+            <div ng-if="supplementaryFile4.prev"><a href="{{supplementaryFile4.prev.contentUrl}}">{{supplementaryFile4.prev.valueInfo.filename}}</a> <a ng-click="clearFile('supplementaryFile4')">&times;</a></div>
             <div ng-if="!supplementaryFile4.prev">
                 <input type="file" class="form-control" ng-model="supplementaryFile4.file" name="supplementaryFile4" onchange="angular.element(this).scope().fileSelected(this, 'supplementaryFile4')" />
             </div>
 
-            <div ng-if="supplementaryFile5.prev"><a href="supplementaryFile5.prev.contentUrl">{{supplementaryFile5.prev.valueInfo.filename}}</a></div>
+            <div ng-if="supplementaryFile5.prev"><a href="{{supplementaryFile5.prev.contentUrl}}">{{supplementaryFile5.prev.valueInfo.filename}}</a> <a ng-click="clearFile('supplementaryFile5')">&times;</a></div>
             <div ng-if="!supplementaryFile5.prev">
                 <input type="file" class="form-control" ng-model="supplementaryFile5.file" name="supplementaryFile5" onchange="angular.element(this).scope().fileSelected(this, 'supplementaryFile5')" />
             </div>
