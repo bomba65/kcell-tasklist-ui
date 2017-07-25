@@ -312,16 +312,17 @@
                 }
 
                 camForm.variableManager.variableValue('soaComplaintId', $scope.soaComplaintId);
-
-                if($scope.explanation){
-                    if(!$scope.resolutions){
-                        $scope.resolutions = {};
-                    }
-                    $scope.resolutions.push({processInstanceId: $scope.processInstanceId, assignee: $rootScope.authentication.name, resolution: 'createJr', comment: $scope.explanation, taskId: camForm.taskId});
-                    $scope.resolutions.push({processInstanceId: $scope.processInstanceId, assignee: $rootScope.authentication.name, resolution: 'filesModified', comment: _.map($scope.supplementaryFilesActions, function(e){return "file " + e.filename+" "+e.action}).join(', '), taskId: camForm.taskId});
-                    camForm.variableManager.variableValue('resolutions', $scope.resolutions);
+                if(!$scope.resolutions){
+                    $scope.resolutions = {};
                 }
 
+                if($scope.explanation){
+                    $scope.resolutions.push({processInstanceId: $scope.processInstanceId, assignee: $rootScope.authentication.name, resolution: 'createJr', comment: $scope.explanation, taskId: camForm.taskId});
+                    camForm.variableManager.variableValue('resolutions', $scope.resolutions);
+                }
+                if($scope.supplementaryFilesActions.length > 0){
+                    $scope.resolutions.push({processInstanceId: $scope.processInstanceId, assignee: $rootScope.authentication.name, resolution: 'filesModified', comment: _.map($scope.supplementaryFilesActions, function(e){return "file " + e.filename+" "+e.action}).join(', '), taskId: camForm.taskId});
+                }
                 camForm.variableManager.createVariable({
                     name: 'cancelPrComment',
                     type: 'String',
@@ -522,7 +523,6 @@
                         binary += String.fromCharCode( bytes[ j ] );
                     }
                     $scope.$apply(function(){
-                        console.log(fileName);
                         $scope[fileName].valueInfo = {
                             filename: el.files[0].name,
                             mimeType: el.files[0].type
@@ -671,7 +671,7 @@
                 $scope.isPermitDocsNeeded = containsPermit.length > 0;
                 var promises = [];
                 $scope.supplementaryFilesActions.forEach(function(e){
-                    if(e.action === 'delete'){
+                    if(e.action === 'deleted'){
                         promises.push($http.delete('/camunda/api/engine/engine/default/process-instance/'+$scope.processInstanceId+'/variables/'+e.supplementaryId));
                     }
                 });
@@ -695,7 +695,6 @@
 
     </script>
     <h4>Create job request</h4>
-    {{supplementaryFilesActions}}
     <div class="form-group">
         <label class="col-sm-4 control-label">JR Number:</label>
         <div class="col-sm-3">

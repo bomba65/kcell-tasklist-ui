@@ -33,8 +33,14 @@
                 'resolutions',
                 'sapPRNo',
                 'jrBlank',
-                'tssrssidFile'
+                'tssrssidFile',
+                'kcellWarehouseMaterialsList',
+                'contractorZIPWarehouseMaterialsList'
             ];
+            $scope.kcellWarehouseMaterialsListExist = false;
+            $scope.kcellWarehouseMaterialsList = {};
+            $scope.contractorZIPWarehouseMaterialsList = {};
+            $scope.filesActions = [];
             $scope.jobModel = {
                 hideSAPPRNO: true
             };
@@ -99,6 +105,12 @@
                     } else {
                         $scope.jobModel[el] = camForm.variableManager.variables[el];
                     }
+                    if(el === 'kcellWarehouseMaterialsList' || el === 'contractorZIPWarehouseMaterialsList'){
+                        $scope[el+'Exist'] = true;
+                        $scope[el] = {
+                            prev: camForm.variableManager.variables[el]
+                        };
+                    }
                 });
             });
 
@@ -110,17 +122,31 @@
                 else{
                     camForm.variableManager.variableValue('modifyWorks', true);
                 }
-                if($scope.kcellWarehouseMaterialsListModel && $scope.kcellWarehouseMaterialsListModel.value){
-                    $scope.kcellWarehouseMaterialsListModel.name="kcellWarehouseMaterialsList";
-                    $scope.kcellWarehouseMaterialsListModel.type="File";
-                    camForm.variableManager.createVariable($scope.kcellWarehouseMaterialsListModel);
+                if($scope.kcellWarehouseMaterialsList && $scope.kcellWarehouseMaterialsList.value){
+                    $scope.kcellWarehouseMaterialsList.name="kcellWarehouseMaterialsList";
+                    $scope.kcellWarehouseMaterialsList.type="File";
+                    if(!$scope.kcellWarehouseMaterialsList.prev){
+                        camForm.variableManager.destroyVariable('kcellWarehouseMaterialsList');
+                    }
+                    camForm.variableManager.createVariable($scope.kcellWarehouseMaterialsList);
+                } else{
+                    camForm.variableManager.destroyVariable('kcellWarehouseMaterialsList');
                 }
-                if($scope.contractorZIPWarehouseMaterialsListModel && $scope.contractorZIPWarehouseMaterialsListModel.value){
-                    $scope.contractorZIPWarehouseMaterialsListModel.name="contractorZIPWarehouseMaterialsList";
-                    $scope.contractorZIPWarehouseMaterialsListModel.type="File";
-                    camForm.variableManager.createVariable($scope.contractorZIPWarehouseMaterialsListModel);
+                if($scope.contractorZIPWarehouseMaterialsList && $scope.contractorZIPWarehouseMaterialsList.value){
+                    $scope.contractorZIPWarehouseMaterialsList.name="contractorZIPWarehouseMaterialsList";
+                    $scope.contractorZIPWarehouseMaterialsList.type="File";
+                    if(!$scope.kcellWarehouseMaterialsList.prev){
+                        camForm.variableManager.destroyVariable('contractorZIPWarehouseMaterialsList');
+                    }
+                    camForm.variableManager.createVariable($scope.contractorZIPWarehouseMaterialsList);
+                } else{
+                    camForm.variableManager.destroyVariable('contractorZIPWarehouseMaterialsList');
                 }
                 $scope.jobModel.resolutions.push({processInstanceId: $scope.processInstanceId, assignee: $rootScope.authentication.name, resolution: $scope.contractorAttachesMaterialListTaskResult, comment: $scope.contractorAttachesMaterialListComment, taskId: camForm.taskId});
+
+                if($scope.filesActions.length > 0){
+                    $scope.jobModel.resolutions.push({processInstanceId: $scope.processInstanceId, assignee: $rootScope.authentication.name, resolution: 'filesModified', comment: _.map($scope.filesActions, function(e){return "file " + e.filename+" "+e.action}).join(', '), taskId: camForm.taskId});
+                }
                 camForm.variableManager.variableValue('resolutions', $scope.jobModel.resolutions);
             });
 
@@ -133,7 +159,6 @@
             });
 
             function getBase64(el, fileName){
-                console.log($scope[fileName]);
                 var reader = new FileReader();
                 reader.readAsArrayBuffer(el.files[0]);
                 reader.onloadend = function (e) {
@@ -144,13 +169,12 @@
                         binary += String.fromCharCode( bytes[ j ] );
                     }
                     $scope.$apply(function(){
-                        console.log(fileName);
-                        console.log($scope[fileName]);
                         $scope[fileName].valueInfo = {
                             filename: el.files[0].name,
                             mimeType: el.files[0].type
                         };
                         $scope[fileName].value = btoa(binary);
+                        $scope.filesActions.push({fileId: fileName, filename:el.files[0].name, action:'added'});
                     });
                 };
                 reader.onerror = function (error) {
@@ -167,21 +191,54 @@
                     });
                 }
             };
+
+            $scope.clearFile = function(filename){
+                $scope.filesActions.push({supplementaryId: filename, filename:$scope[filename].prev.valueInfo.filename, action:'deleted'});
+                delete $scope[filename].prev;
+            };
+            $scope.preSubmit = function(){
+                var promises = [];
+                $scope.filesActions.forEach(function(e){
+                    console.log(e);
+                    var deferred = $q.defer();
+                    if(e.action === 'deleted'){
+                        console.log("DELETE");
+                        $http.delete('/camunda/api/engine/engine/default/process-instance/'+$scope.processInstanceId+'/variables/'+e.supplementaryId).then(
+                            function(e){
+                                deffered.resolve(e);
+                            },
+                            function(){
+                                deferred.reject();
+                            }
+                        );
+                    }
+                    promises.push(deferred.prommise);
+                });
+                return $q.all(promises);
+            };
         }]);
     </script>
     <job-request job-model="jobModel"></job-request>
     <div class="form-group">
         <label class="col-sm-4 control-label">Kcell Warehouse Materials List (xls):</label>
         <div class="col-sm-8">
-            <input type="file" class="form-control" name="kcellWarehouseMaterialsListModel" ng-model="kcellWarehouseMaterialsListModel.file" required-file="contractorAttachesMaterialListTaskResult === 'attached'" onchange="angular.element(this).scope().fileSelected(this, 'kcellWarehouseMaterialsListModel')"/>
-            <label class="has-error" ng-show="kcell_form.kcellWarehouseMaterialsListModel.$error.validFile">File is required</label>
+            <div ng-if="kcellWarehouseMaterialsList.prev"><a href="{{kcellWarehouseMaterialsList.prev.contentUrl}}">{{kcellWarehouseMaterialsList.prev.valueInfo.filename}}</a> <a ng-click="clearFile('kcellWarehouseMaterialsList')">&times;</a></div>
+            <div ng-if="!kcellWarehouseMaterialsList.prev">
+                <input type="file" class="form-control" name="kcellWarehouseMaterialsList" ng-model="kcellWarehouseMaterialsList.file" required-file="contractorAttachesMaterialListTaskResult === 'attached'" onchange="angular.element(this).scope().fileSelected(this, 'kcellWarehouseMaterialsList')"/>
+            </div>
+            <label class="has-error" ng-show="kcell_form.kcellWarehouseMaterialsList.$error.validFile">File is required</label>
         </div>
     </div>
     <div class="form-group">
         <label class="col-sm-4 control-label">Contractor ZIP Warehouse Materials List (xls):</label>
         <div class="col-sm-8">
-            <input type="file" class="form-control" name="contractorZIPWarehouseMaterialsListModel" ng-model="contractorZIPWarehouseMaterialsListModel.file" onchange="angular.element(this).scope().fileSelected(this, 'contractorZIPWarehouseMaterialsListModel')"/>
-            <label class="has-error" ng-show="kcell_form.contractorZIPWarehouseMaterialsListModel.$error.validFile">File is required</label>
+
+            <div ng-if="contractorZIPWarehouseMaterialsList.prev"><a href="{{contractorZIPWarehouseMaterialsList.prev.contentUrl}}">{{contractorZIPWarehouseMaterialsList.prev.valueInfo.filename}}</a> <a ng-click="clearFile('contractorZIPWarehouseMaterialsList')">&times;</a></div>
+            <div ng-if="!contractorZIPWarehouseMaterialsList.prev">
+                <input type="file" class="form-control" name="contractorZIPWarehouseMaterialsList" ng-model="contractorZIPWarehouseMaterialsList.file" onchange="angular.element(this).scope().fileSelected(this, 'contractorZIPWarehouseMaterialsList')"/>
+            </div>
+
+            <label class="has-error" ng-show="kcell_form.contractorZIPWarehouseMaterialsList.$error.validFile">File is required</label>
         </div>
     </div>
     <div class="form-group">
