@@ -66,7 +66,7 @@
                     <tr>
                         <td>${worksTitle[work.sapServiceNumber]}</td>
                         <td>${work.quantity!""}</td>
-                        <td>${work.materialQuantity}</td>
+                        <td>${work.materialQuantity!""}</td>
                         <td>
                             <#if work.relatedSites?size != 0>
                                 <#list work.relatedSites as rs>
