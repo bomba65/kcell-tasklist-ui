@@ -73,17 +73,17 @@
                                     <#if rs.site_name == site_name>Main Site: </#if> ${rs.site_name},
                                 </#list>
                             </#if>
-                        <td>${work.unitWorkPrice}&nbsp;&#8376;</td>
-                        <td>${work.unitWorkPricePlusTx}&nbsp;&#8376;</td>
-                        <td>${work.unitWorkPricePerSite} &nbsp;&#8376;</td>
-                        <td>${work.netWorkPricePerSite}&nbsp;&#8376;</span></td>
-                        <td>${work.total}</td>
+                        <td>${work.unitWorkPrice!"N/A"}&nbsp;&#8376;</td>
+                        <td>${work.unitWorkPricePlusTx!"N/A"}&nbsp;&#8376;</td>
+                        <td>${work.unitWorkPricePerSite!"N/A"} &nbsp;&#8376;</td>
+                        <td>${work.netWorkPricePerSite!"N/A"}&nbsp;&#8376;</span></td>
+                        <td>${work.total!"N/A"}</td>
                     </tr>
                 </#list>
                 <tr>
                     <th colspan="7" style="text-align: left;">Total</th>
                     <th></th>
-                    <th>${jobWorksTotal}</th>
+                    <th>${jobWorksTotal!"N/A"}</th>
                 </tr>
                 </tbody>
             </table>

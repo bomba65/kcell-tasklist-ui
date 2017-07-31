@@ -162,7 +162,7 @@ define(['./module','jquery', 'camundaSDK'], function(app, $, CamSDK){
 		            	var processInstanceTasks = tasks.data._embedded.task;
 		            	if(processInstanceTasks && processInstanceTasks.length > 0){
 							processInstanceTasks.forEach(function(e){
-								if(e.assignee){
+								if(e.assignee && tasks.data._embedded.assignee){
 									for(var i=0;i<tasks.data._embedded.assignee.length;i++){
 										if(tasks.data._embedded.assignee[i].id === e.assignee){
 											e.assigneeObject = tasks.data._embedded.assignee[i];

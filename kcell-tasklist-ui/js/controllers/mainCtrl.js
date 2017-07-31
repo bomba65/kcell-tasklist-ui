@@ -138,7 +138,7 @@ define(['./module','camundaSDK', 'lodash', 'big-js'], function(module, CamSDK, _
 							);
 						});
 					} else {
-						$http.post(baseUrl+'/process-definition/'+id+'/start').then(
+						$http.post(baseUrl+'/process-definition/'+id+'/start',{},{headers:{'Content-Type':'application/json'}}).then(
 							function(results){
 								$http.get(baseUrl+'/task?processInstanceId='+results.id).then(
 									function(tasks){
