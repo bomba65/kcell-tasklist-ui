@@ -10,7 +10,8 @@ define('app',[
 	'./directives/index',
 	'./services/index',
 	'camundaSDK',
-	'big-js'
+	'big-js',
+	'angular-ui-router'
 ], function(ng){
 	'use strict';
 	var app =  ng.module('app', [
@@ -22,34 +23,44 @@ define('app',[
 		'ui.bootstrap',
 		'angular-toasty',
 		'ngRoute',
-		'ngCookies'
+		'ngCookies',
+		'ui.router'
 	]);
 	var preLoginUrl;
-	app.config(['$routeProvider', '$httpProvider', function($routeProvider, $httpProvider){
+	var resolve = {
+        authentication: ['AuthenticationService', '$q', function(AuthenticationService, $q) {
+        	var defer = $q.defer();
+            return AuthenticationService.getAuthentication().then(
+            	function(res){
+            		return defer.resolve(res);
+            	},
+            	function(err){
+            		return defer.reject(err);
+            	}
+        	);
+        }]
+    }
+	app.config(['$urlRouterProvider', '$httpProvider', '$stateProvider', function($urlRouterProvider, $httpProvider, $stateProvider){
 		$httpProvider.interceptors.push('httpInterceptor');
-		$routeProvider.when('/', {
-			controller : 'mainCtrl',
-			templateUrl : 'js/partials/tasks.html',
-			authentication: 'required',
-    		reloadOnSearch: false
-		});
-		$routeProvider.when('/login', {
-			templateUrl: 'js/partials/login.html',
-			controller: 'loginCtrl'
-		});
-		$routeProvider.when('/statistics', {
-			templateUrl: 'js/partials/statistics.html',
-			controller: 'statisticsCtrl',
-            authentication: 'required',
-		});
-		$routeProvider.when('/processes', {
-			templateUrl: 'js/partials/processes.html',
-			controller: 'processesCtrl',
-            authentication: 'required',
-		});
-		$routeProvider.otherwise({
-			redirectTo: '/'
-		});
+		$urlRouterProvider.otherwise("/tasks");
+
+		$stateProvider.state("tasks", {
+			url: "/tasks",
+			templateUrl: "js/partials/tasks.html",
+			controller: "mainCtrl",
+			authenticate: true,
+		    resolve: resolve
+	    }).state("tasks.task", {
+			url: "/:id",
+			templateUrl: "js/partials/task.html",
+			controller: "TaskCtrl",
+			authenticate: true
+	    }).state("login", {
+	    	url: "/login",
+	    	templateUrl: "js/partials/login.html",
+	    	controller: "loginCtrl",
+	    	authenticate: false
+	    });
 	}]).provider('Uri',  function() {
 		var TEMPLATES_PATTERN = /[\w]+:\/\/|:[\w]+/g;
 		var replacements = {};
@@ -79,7 +90,7 @@ define('app',[
 		}];
 	}).run(['AuthenticationService', '$rootScope', function(AuthenticationService, $rootScope){
 
-	}]).run([ '$rootScope', '$location', function($rootScope, $location) {
+	}]).run([ '$rootScope', '$location', 'AuthenticationService', '$q', '$state', function($rootScope, $location, AuthenticationService, $q, $state) {
 		$rootScope.$on('authentication.login.required', function(event) {
 			$rootScope.$evalAsync(function() {
 				var url = $location.url();

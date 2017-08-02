@@ -22,7 +22,8 @@ require.config({
          'lodash': './lodash.min',
          'bpmn-viewer': './camunda/bpmn-viewer',
          'bpmn-navigated-viewer': './camunda/bpmn-navigated-viewer',
-         'big-js': './node_modules/big.js/big.min'
+         'big-js': './node_modules/big.js/big.min',
+         'angular-ui-router': './node_modules/angular-ui-router/release/angular-ui-router.min'
      },
  
      // angular не поддерживает AMD из коробки, поэтому экспортируем перменную angular в глобальную область
@@ -36,6 +37,7 @@ require.config({
          'toasty' : ['angular'],
          'camundaSDK' : ['angular'],
          'translate' : ['angular'],
+         'angular-ui-router': ['angular'],
          'angular-ui-bootstrap': ['angular'],
          'angular-translate-storage-local': ['translate'],
          'angular-translate-storage-cookie': ['translate']

@@ -20,20 +20,7 @@ define(['./module','camundaSDK', 'lodash', 'big-js'], function(module, CamSDK, _
 
 		var baseUrl = '/camunda/api/engine/engine/default';
 
-		//var taskService = new camClient.resource('task');
-		//var userService = new camClient.resource('user');
-		//var groupService = new camClient.resource('group');
-		//var filterService = new camClient.resource('filter');
-		//var processDefinitionService = new camClient.resource('process-definition');
-
 		$scope.camForm = null;
-		$scope.selectedTab = 'form';
-		$scope.selectTab = function(tab){
-			$scope.selectedTab = tab;
-			if(tab==='diagram'){
-				$scope.getDiagram();
-			}
-		}
 		if($rootScope.authentication){
 			$http.get(baseUrl+'/user/'+$rootScope.authentication.name+'/profile').then(
 				function(userProfile){
@@ -67,23 +54,6 @@ define(['./module','camundaSDK', 'lodash', 'big-js'], function(module, CamSDK, _
 			$scope.tryToOpen = {
 				id: $routeParams.task
 			}
-		}
-		$scope.getDiagram = function(){
-			$http.get(baseUrl+'/process-definition/'+$scope.currentTask.processDefinitionId+'/xml').then(
-				function(result){
-					$timeout(function(){
-						$scope.$apply(function(){
-							$scope.diagram = {
-								xml: result.data.bpmn20Xml,
-								task: $scope.currentTask
-							};
-						});
-					});
-				},
-				function(error) {
-					console.log(error.data);
-				}
-			);
 		}
 		function getTaskList(){
 			$http.get(baseUrl+'/filter?itemCount=true&resoureType=Task').then(
@@ -241,7 +211,12 @@ define(['./module','camundaSDK', 'lodash', 'big-js'], function(module, CamSDK, _
 		function loadProcessDefinitions(e){
 			$http.get(baseUrl+'/process-definition?latest=true&active=true&firstResult=0&maxResults=15').then(
 				function(results){
-					$scope.processDefinitions = results.data;
+					$scope.processDefinitions = [];
+					results.data.forEach(function(e){
+						if(e.key === 'Revision' || e.key === 'SiteSharingTopProcess'){
+							$scope.processDefinitions.push(e);
+						}
+					})
 				},
 				function(error){
 					console.log(error.data);
@@ -313,148 +288,9 @@ define(['./module','camundaSDK', 'lodash', 'big-js'], function(module, CamSDK, _
 				}
 			);
 		}
-		function addFormButton(err, camForm, evt) {
-			if (err) {
-				throw err;
-			}
-			var $submitBtn = $('<button type="submit" class="btn btn-primary">Complete</button>').click(function (e) {
-				$scope.view.submitted = true;
-				if($scope.kcell_form.$valid){
-					$(this).attr('disabled', true);
-					if($scope.preSubmit){
-						$scope.preSubmit().then(
-							function(result){
-								camForm.submit(function (err) {
-									if (err) {
-										$(this).removeAttr('disabled');
-										toasty.error({title: "Could not complete task", msg: err});
-										e.preventDefault();
-										throw err;
-									} else {
-										$scope.preSubmit = undefined;
-										$('#taskElement').html('');
-										$scope.currentTask = undefined;
-										getTaskList();
-										$location.search({});
-										$scope.submitted = false;
-									}
-								});
-							},
-							function(err){
-								$(this).removeAttr('disabled');
-								toasty.error({title: "Could not complete task", msg: err});
-								e.preventDefault();
-								throw err;
-							}
-						);
-					} else {
-						camForm.submit(function (err) {
-							if (err) {
-								$(this).removeAttr('disabled');
-								toasty.error({title: "Could not complete task", msg: err});
-								e.preventDefault();
-								throw err;
-							} else {
-								$('#taskElement').html('');
-								$scope.currentTask = undefined;
-								getTaskList();
-								$location.search({});
-								$scope.preSubmit = undefined;
-								$scope.submitted = false;
-							}
-						});
-					}
-				} else {
-					toasty.error({title: "Could not complete task", msg: "Please fill required fields"});
-				}
-			});
-			camForm.formElement.append($submitBtn);
-		}
-		$scope.loadTaskForm = function(task) {
-			$location.search({task:task.id});
-			$scope.diagram = undefined;
-			$scope.selectedTab = 'form';
-			$scope.currentTask = task;
-			$scope.view.submitted = false;
-			$scope.tryToOpen = undefined;
-			$rootScope.kcell_form = undefined;
-			var taskId = task.id;
-			$('#taskElement').html('');
-			$scope.isHistoryOpen = false;
-			console.log(task);
-			if(task.assignee === $rootScope.authentication.name){
-				$http.get(baseUrl+'/task/'+taskId+'/form').then(
-					function(taskFormInfo) {
-						var url = taskFormInfo.data.key.replace('embedded:app:', taskFormInfo.data.contextPath + '/');
-						new CamSDK.Form({
-							client: camClient,
-							formUrl: url,
-							taskId: taskId,
-							containerElement: $('#taskElement'),
-							done: addFormButton
-						});
-					},
-					function(error){
-						console.log(error.data);
-					}
-				);
-			} else {
-				$http.get(baseUrl+'/task/'+taskId+'/form').then(
-					function(taskFormInfo) {
-						$scope.isHistoryOpen = true;
-						var url = taskFormInfo.data.key.replace('embedded:app:', taskFormInfo.data.contextPath + '/');
-						new CamSDK.Form({
-							client: camClient,
-							formUrl: url,
-							taskId: taskId,
-							containerElement: $('#taskElement'),
-							done: disableForm
-						});
-					},
-					function(error) {
-						console.log(error.data);
-					}
-				);
-			}
-		}
-		function disableForm(){
-			$("[name=kcell_form]").css("pointer-events", "none");
-			$("[name=kcell_form]").css("opacity", "0.4");
-		}
 		getTaskList();
 		loadProcessDefinitions();
 
-		$scope.highlightTask = function() {
-			console.log($scope.control);
-			$scope.control.highlight($scope.diagram.task.taskDefinitionKey);
-		};
-
-		$scope.claim = function(task) {
-			$http.post(baseUrl+'/task/'+task.id+'/claim', {userId: $rootScope.authentication.name}).then(
-				function(){
-					$scope.tryToOpen = {};
-					getTaskList();
-					task.assigneeObject = $rootScope.authUser;
-					task.assignee = $rootScope.authentication.name;
-					$scope.loadTaskForm(task);
-				},
-				function(error){
-					console.log(error.data);
-				}
-			);
-		}
-		$scope.unclaim = function(task) {
-			$http.post(baseUrl+'/task/'+task.id+'/unclaim').then(
-				function(){
-					$scope.tryToOpen = {
-						id: task.id
-					};
-					getTaskList();
-				},
-				function(error){
-					console.log(error.data);
-				}
-			);
-		}
+		$scope.getTaskList = getTaskList;
 	}]);
 });
