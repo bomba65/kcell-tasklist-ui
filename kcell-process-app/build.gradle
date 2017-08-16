@@ -1,42 +1,44 @@
 buildscript {
-	repositories {
-		mavenCentral()
-	}
-	dependencies {
-		classpath "org.springframework.boot:spring-boot-gradle-plugin:1.5.4.RELEASE"
-	}
+    repositories {
+        mavenCentral()
+    }
+    dependencies {
+        classpath "org.springframework.boot:spring-boot-gradle-plugin:1.5.6.RELEASE"
+    }
 }
 
-apply plugin: 'java'
+allprojects {
+    apply plugin: 'java'
+    apply plugin: 'org.springframework.boot'
+
+    bootRepackage {
+        excludeDevtools = true
+    }
+
+    sourceCompatibility = 1.8
+    targetCompatibility = 1.8
+
+    repositories {
+        mavenCentral()
+    }
+
+    dependencyManagement {
+        imports {
+            mavenBom 'org.camunda.bpm.extension.springboot:camunda-bpm-spring-boot-starter-bom:2.2.0'
+        }
+        imports {
+            mavenBom 'org.springframework.boot:spring-boot-dependencies:1.5.6.RELEASE'
+        }
+        imports {
+            mavenBom 'org.camunda.bpm:camunda-bom:7.6.0'
+        }
+    }
+
+}
+
 jar {
 	baseName = 'kcell-process-app'
 //	version = '0.0.1-SNAPSHOT'
-}
-
-apply plugin: 'java'
-apply plugin: 'org.springframework.boot'
-
-bootRepackage {
-    excludeDevtools = true
-}
-
-sourceCompatibility = 1.8
-targetCompatibility = 1.8
-
-repositories {
-    mavenCentral()
-}
-
-dependencyManagement {
-    imports {
-        mavenBom 'org.camunda.bpm.extension.springboot:camunda-bpm-spring-boot-starter-bom:2.1.2'
-    }
-    imports {
-        mavenBom 'org.springframework.boot:spring-boot-dependencies:1.5.6.RELEASE'
-    }
-    imports {
-        mavenBom 'org.camunda.bpm:camunda-bom:7.6.0'
-    }
 }
 
 dependencies {
@@ -49,7 +51,7 @@ dependencies {
 	compile 'org.camunda.bpm.extension.springboot:camunda-bpm-spring-boot-starter-rest'
 	compile 'org.camunda.bpm:camunda-engine-plugin-connect'
 	compile 'org.camunda.bpm:camunda-engine-plugin-spin'
-	compile 'org.camunda.bpm.identity:camunda-identity-ldap'
+	compile project(':ldap-authentication')
 	compile 'org.camunda.spin:camunda-spin-dataformat-all'
 	compile 'org.camunda.template-engines:camunda-template-engines-freemarker'
 	compile 'org.codehaus.groovy:groovy-all'
@@ -67,4 +69,11 @@ dependencies {
 
     testCompile("org.springframework.boot:spring-boot-starter-test")
     testCompile("com.h2database:h2")
+}
+
+project('ldap-authentication') {
+    dependencies {
+        compile 'org.camunda.bpm:camunda-engine'
+        compile 'org.camunda.bpm.identity:camunda-identity-ldap'
+    }
 }

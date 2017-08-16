@@ -2,6 +2,7 @@ package kz.kcell.flow;
 
 import kz.kcell.bpm.MailTaskAssigneeListener;
 import kz.kcell.bpm.MailTaskCandidatesListener;
+import kz.kcell.camunda.authentication.plugin.KcellIdentityProviderPlugin;
 import org.camunda.bpm.application.ProcessApplication;
 import org.camunda.bpm.application.impl.event.ProcessApplicationEventListenerPlugin;
 import org.camunda.bpm.engine.delegate.TaskListener;
@@ -47,7 +48,7 @@ public class CamundaApplication extends SpringBootProcessApplication {
     @Bean
     @ConfigurationProperties(prefix="kcell.ldap")
     @ConditionalOnProperty(prefix = "kcell.ldap", name = "enabled")
-    public LdapIdentityProviderPlugin ldapIdentityProviderPlugin() {
-        return new LdapIdentityProviderPlugin();
+    public KcellIdentityProviderPlugin kcellIdentityProviderPlugin() {
+        return new KcellIdentityProviderPlugin();
     }
 }
