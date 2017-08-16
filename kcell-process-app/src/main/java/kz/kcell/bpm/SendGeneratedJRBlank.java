@@ -3,6 +3,8 @@ package kz.kcell.bpm;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.node.ArrayNode;
+import kz.kcell.bpm.assignments.ContractorAssignmentHandler;
+import org.apache.commons.mail.Email;
 import org.apache.commons.mail.MultiPartEmail;
 import org.apache.poi.hssf.usermodel.HSSFFont;
 import org.apache.poi.hssf.util.HSSFColor;
@@ -18,6 +20,8 @@ import org.camunda.bpm.engine.delegate.DelegateExecution;
 import org.camunda.bpm.engine.delegate.JavaDelegate;
 import org.camunda.bpm.engine.identity.User;
 import org.camunda.bpm.engine.impl.context.Context;
+import org.camunda.bpm.engine.impl.identity.Authentication;
+import org.camunda.bpm.engine.task.IdentityLink;
 import org.camunda.bpm.engine.variable.Variables;
 import org.camunda.bpm.engine.variable.value.FileValue;
 import org.camunda.bpm.extension.mail.config.MailConfiguration;
@@ -35,6 +39,7 @@ import java.util.*;
 import java.util.function.Supplier;
 import java.util.logging.Level;
 import java.util.logging.Logger;
+import java.util.stream.Collectors;
 
 public class SendGeneratedJRBlank implements JavaDelegate {
 
@@ -51,6 +56,17 @@ public class SendGeneratedJRBlank implements JavaDelegate {
                 map.put("3", "ТОО Spectr energy group");
                 map.put("4", "TOO Line System Engineering");
                 map.put("5", "JSC Kcell");
+                return Collections.unmodifiableMap(map);
+            })).get();
+
+    private static final Map<String, String> contractorsCode =
+            ((Supplier<Map<String, String>>) (() -> {
+                Map<String, String> map = new HashMap();
+                map.put("1", "avrora");
+                map.put("2", "aicom");
+                map.put("3", "spectr");
+                map.put("4", "lse");
+                map.put("5", "kcell");
                 return Collections.unmodifiableMap(map);
             })).get();
 
@@ -73,6 +89,8 @@ public class SendGeneratedJRBlank implements JavaDelegate {
             String contractor = delegateExecution.getVariable("contractor").toString();
             String regionApproval = (String) delegateExecution.getVariable("regionApproval");
             String centralApproval = (String) delegateExecution.getVariable("centralApproval");
+            String siteRegion = delegateExecution.getVariable("siteRegion").toString();
+            String reason = delegateExecution.getVariable("reason").toString();
             Date requestDate = (Date) delegateExecution.getVariable("requestedDate");
             SimpleDateFormat sdf = new SimpleDateFormat("dd.MM.yyyy");
             ObjectMapper mapper = new ObjectMapper();
@@ -448,9 +466,27 @@ public class SendGeneratedJRBlank implements JavaDelegate {
                     "\n" +
                     "\n" +
                     "Пройдя по следующей ссылке на страницу в HUB.Kcell.kz, вы можете оставить в поле комментариев свои замечания и/или пожелания относительно функционала и интерфейса системы: https://hub.kcell.kz/x/kYNoAg");
-            email.setTo(Arrays.asList(InternetAddress.parse("rollout-almaty-main@lse.kz, rn-rs-almaty@lse.kz, nazym.s@lse.kz, botagoz.ch@lse.kz, anuarbek.m@lse.kz, Zhandos.k@lse.kz, Kairat.b@lse.kz, Gulzhaina.t@lse.kz, meirkhan.k@lse.kz, beibit.a@lse.kz")));
-            email.setBcc(Arrays.asList(InternetAddress.parse("Askar.Slambekov@kcell.kz, Yernaz.Kalingarayev@kcell.kz")));
-            email.setCc(Arrays.asList(InternetAddress.parse("Tatyana.Solovyova@kcell.kz")));
+
+            IdentityService identityService = Context.getProcessEngineConfiguration().getIdentityService();
+
+            Set<String> ccList = identityService.createUserQuery().userId(delegateExecution.getVariable("starter").toString()).list().stream().map(user -> user.getId()).collect(Collectors.toSet());
+            ccList.addAll(Arrays.asList("Askar.Slambekov@kcell.kz", "Yernaz.Kalingarayev@kcell.kz"));
+            if (reason != null && reason.equals("2")) {
+                ccList.add("Tatyana.Solovyova@kcell.kz");
+            }
+            if (delegateExecution.getVariableLocal("sendToContractor") != null && delegateExecution.getVariableLocal("sendToContractor").toString().equals("yes")) {
+                String contractorGroup = siteRegion + "_contractor_" + contractorsCode.get(contractor);
+
+                String recipientsSet = identityService.createUserQuery().memberOfGroup(contractorGroup).list().stream()
+                        .map(User::getEmail)
+                        .filter(userEmail -> userEmail != null && !userEmail.isEmpty())
+                        .collect(Collectors.joining(","));
+
+                email.setTo(Arrays.asList(InternetAddress.parse(recipientsSet)));
+                email.setCc(Arrays.asList(InternetAddress.parse(ccList.stream().collect(Collectors.joining(",")))));
+            } else {
+                email.setTo(Arrays.asList(InternetAddress.parse(ccList.stream().collect(Collectors.joining(",")))));
+            }
             email.attach(source, "jr-blank.xlsx", "Job Request blank");
 
             email.send();

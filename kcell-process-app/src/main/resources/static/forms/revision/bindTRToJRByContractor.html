@@ -112,6 +112,22 @@
                 camForm.variableManager.variableValue('bindTRToJRByContractorTaskResult', $scope.bindTRToJRByContractorTaskResult);
                 if ($scope.bindTRToJRByContractorTaskResult === 'attached') {
                     camForm.variableManager.variableValue('modifyWorks', false);
+                    var trFiles = [];
+                    $scope.trFiles.forEach(function(trFile, index){
+                        if(trFile.file && trFile.file.value){
+                            trFiles.push({id:trFile.id});
+                            trFile.file.name = 'trFile' + index;
+                            trFile.file.type = 'File';
+                            camForm.variableManager.createVariable(trFile.file);
+                        }
+                    });
+                    if(trFiles.length > 0){
+                        camForm.variableManager.createVariable({
+                            name: 'trFiles',
+                            type: 'Json',
+                            value: JSON.parse(angular.toJson(trFiles))
+                        });
+                    }
                 }
                 else{
                     camForm.variableManager.variableValue('modifyWorks', true);
@@ -123,11 +139,6 @@
                             }
                         }
                     }
-                }
-                if($scope.sapTransferRequestFileModel && $scope.sapTransferRequestFileModel.value){
-                    $scope.sapTransferRequestFileModel.name="sapTransferRequestFile";
-                    $scope.sapTransferRequestFileModel.type="File";
-                    camForm.variableManager.createVariable($scope.sapTransferRequestFileModel);
                 }
                 $scope.jobModel.resolutions.push({processInstanceId: $scope.processInstanceId, assignee: $rootScope.authentication.name, resolution: $scope.bindTRToJRByContractorTaskResult, comment: $scope.bindTRToJRByContractorComment, taskId: camForm.taskId});
                 camForm.variableManager.variableValue('resolutions', $scope.jobModel.resolutions);
@@ -143,8 +154,7 @@
                 $scope.trMatch = camForm.variableManager.variableValue('trMatch');
             });
 
-            function getBase64(el, fileName){
-                console.log($scope[fileName]);
+            function getBase64(el, index){
                 var reader = new FileReader();
                 reader.readAsArrayBuffer(el.files[0]);
                 reader.onloadend = function (e) {
@@ -155,13 +165,14 @@
                         binary += String.fromCharCode( bytes[ j ] );
                     }
                     $scope.$apply(function(){
-                        console.log(fileName);
-                        console.log($scope[fileName]);
-                        $scope[fileName].valueInfo = {
+                        $scope.trFiles[index].file.valueInfo = {
                             filename: el.files[0].name,
                             mimeType: el.files[0].type
                         };
-                        $scope[fileName].value = btoa(binary);
+                        $scope.trFiles[index].file.value = btoa(binary);
+                        if($scope.trFiles.length-1 == index){
+                            $scope.trFiles.push({file:undefined,id:undefined});
+                        }
                     });
                 };
                 reader.onerror = function (error) {
@@ -169,31 +180,37 @@
                 };
             }
 
-            $scope.fileSelected = function(el, fileName){
-                $scope.sapTransferRequestID = el.value.replace(/^.*[\\\/]/, '').replace(/\.[^/.]+$/, "");
+            $scope.fileSelected = function(el, index){
+                $scope.trFiles[index].id = el.value.replace(/^.*[\\\/]/, '').replace(/\.[^/.]+$/, "");
                 if(el.files[0]){
-                    getBase64(el,fileName)
+                    getBase64(el, index)
                 } else {
                     $scope.$apply(function(){
-                        $scope[fileName] = undefined;
+                        $scope.trFiles[index] = {file:undefined,id:undefined};
                     });
                 }
             };
+
+            $scope.trFiles = [{file:undefined,id:undefined}];
         }]);
     </script>
     <job-request job-model="jobModel"></job-request>
-    <div class="form-group">
-        <label class="col-sm-4 control-label">SAP Transport Request File:</label>
-        <div class="col-sm-8">
-            <input type="file" class="form-control" name="sapTransferRequestFileModel" ng-model="sapTransferRequestFileModel.file" required-file="bindTRToJRByContractorTaskResult === 'attached'" onchange="angular.element(this).scope().fileSelected(this, 'sapTransferRequestFileModel')"/>
-            <label class="has-error" ng-show="kcell_form.sapTransferRequestFileModel.$error.validFile">File is required</label>
+    <div ng-repeat="trfile in trFiles">
+        <div class="form-group">
+            <label class="col-sm-4 control-label">SAP Transport Request File # {{$index+1}}:</label>
+            <div class="col-sm-8">
+                <ng-form name="trfilesform">
+                    <input type="file" class="form-control" name="trfile" ng-model="trfile.file.file" required-file="bindTRToJRByContractorTaskResult === 'attached' && !trFiles[0].file.file" onchange="angular.element(this).scope().fileSelected(this, angular.element(this).scope().$index)"/>
+                    <label class="has-error" ng-show="trfilesform.trfile.$error.validFile">File is required</label>
+                </ng-form>
+            </div>
         </div>
-    </div>
-    <div class="form-group">
-        <label class="col-sm-4 control-label">SAP Transport Request ID:</label>
-        <div class="col-sm-8">
-            <input type="text" cam-variable-name="sapTransferRequestID" name="sapTransferRequestID" cam-variable-type="String" ng-required="bindTRToJRByContractorTaskResult == 'attached'" class="form-control" />
-            <label class="error" ng-show="kcell_form.sapTransferRequestID.$error.required && ( kcell_form.sapTransferRequestID.$touched || view.submitted)">Required field</label>
+        <div class="form-group">
+            <label class="col-sm-4 control-label">SAP Transport Request ID # {{$index+1}}:</label>
+            <div class="col-sm-8">
+                <input type="text" class="form-control" name="trfileId" ng-model="trfile.id" ng-required="trfile.file.file" />
+                <label class="error" ng-show="trfilesform.trfileId.$error.required && ( trfilesform.trfileId.$touched || view.submitted)">Required field</label>
+            </div>
         </div>
     </div>
     <div class="form-group">

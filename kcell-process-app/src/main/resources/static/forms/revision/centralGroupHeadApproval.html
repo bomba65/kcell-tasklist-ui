@@ -30,6 +30,7 @@
                 'explanation',
                 'resolutions',
                 'workPrices',
+                'jobWorksTotal',
                 'jobWorks',
                 'jrBlank',
                 'tssrssidFile'
@@ -118,7 +119,6 @@
                         $scope.jobModel[el] = camForm.variableManager.variables[el];
                     }
                 });
-                $scope.priceChanged();
             });
 
             camForm.on('submit', function () {
@@ -141,31 +141,6 @@
             camForm.on('variables-restored', function() {
                 $scope.centralGroupHeadApprovalTaskResult = camForm.variableManager.variableValue('centralGroupHeadApprovalTaskResult');
             });
-
-            $scope.priceChanged = function(){
-                var jobWorksTotal = Big('0.0');
-                for(var i=0;i<$scope.jobModel.workPrices.length;i++){
-                    if(!$scope.jobModel.workPrices[i].relatedSites){
-                        $scope.jobModel.workPrices[i].relatedSites= [];
-                    }
-                    var unitWorkPrice = Big($scope.jobModel.workPrices[i].basePrice);
-                    var unitWorkPricePlusTx = unitWorkPrice.times('1.08');
-                    if($scope.jobModel.workPrices[i].relatedSites.length > 0){
-                        var unitWorkPricePerSite = unitWorkPricePlusTx.div($scope.jobModel.workPrices[i].relatedSites.length);
-                        var netWorkPricePerSite = unitWorkPricePerSite.times($scope.jobModel.workPrices[i].quantity);
-                        $scope.jobModel.workPrices[i].unitWorkPricePerSite = unitWorkPricePerSite.toFixed(2);
-                        $scope.jobModel.workPrices[i].netWorkPricePerSite = netWorkPricePerSite.toFixed(2);
-                    }
-                    var total = unitWorkPricePlusTx.times($scope.jobModel.workPrices[i].quantity);
-
-                    $scope.jobModel.workPrices[i].unitWorkPrice = unitWorkPrice.toFixed(2);
-                    $scope.jobModel.workPrices[i].unitWorkPricePlusTx = unitWorkPricePlusTx.toFixed(2);
-                    $scope.jobModel.workPrices[i].total = total.toFixed(2);
-
-                    jobWorksTotal = jobWorksTotal.plus(total);
-                }
-                $scope.jobModel.jobWorksTotal = jobWorksTotal.toFixed(2);
-            }
         }]);
     </script>
     <job-request job-model="jobModel"></job-request>
@@ -198,8 +173,8 @@
                 </tr>
                 <tr>
                     <th colspan="7">Total</th>
-                    <th>{{jobModel.jobWorksTransportationTotal}}</th>
-                    <th style="text-align:right;font-weight: bold;font-size: 16px;background-color: lightpink;">{{jobModel.jobWorksTotal}}</th>
+                    <th></th>
+                    <th style="text-align:right;font-weight: bold;font-size: 16px;background-color: lightpink;">{{jobModel.jobWorksTotal.value}}</th>
                 </tr>
             </tbody>
         </table>

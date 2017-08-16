@@ -39,7 +39,8 @@
                 'resolutions',
                 'summaries',
                 'jrBlank',
-                'tssrssidFile'
+                'tssrssidFile',
+                'trFiles'
             ];
 
             $http.get('/camunda/api/engine/engine/default/task/' + camForm.taskId).then(
@@ -107,6 +108,38 @@
                         }
                     }
                 });
+
+                $http.get('/camunda/api/engine/engine/default/task/' + camForm.taskId).then(
+                    function (taskResult) {
+                        var variableQuery = {
+                            processInstanceIdIn: [taskResult.data.processInstanceId],
+                            variableNameLike: 'works_%'
+                        };
+                        $http.post('/camunda/api/engine/engine/default/variable-instance?deserializeValues=false', variableQuery).then(
+                            function (variables) {
+                                if (variables.data) {
+                                    variables.data.forEach(function (file) {
+                                        if (file.name.startsWith('works_')) {
+                                            $scope[file.name] = file;
+                                            $scope.jobModel[file.name] = file;
+                                            var workIndex = file.name.split('_')[1];
+                                            if (!$scope.jobModel.jobWorks.value[workIndex].files) {
+                                                $scope.jobModel.jobWorks.value[workIndex].files = [];
+                                            }
+                                            $scope.jobModel.jobWorks.value[workIndex].files.push(file);
+                                        }
+                                    });
+                                }
+                            },
+                            function (error) {
+                                console.log(error.data);
+                            }
+                        );
+                    },
+                    function (error) {
+                        console.log(error.data);
+                    }
+                );
             });
             camForm.variableManager.createVariable({
                 name: 'acceptPerformedJob',
@@ -142,38 +175,6 @@
             function download(file) {
                 document.getElementById('fileDownloadIframe').src = '/camunda/api/engine/engine/default/variable-instance/' + file.id + '/data';
             }
-
-            $http.get('/camunda/api/engine/engine/default/task/' + camForm.taskId).then(
-                    function (taskResult) {
-                        var variableQuery = {
-                            processInstanceIdIn: [taskResult.data.processInstanceId],
-                            variableNameLike: 'works_%'
-                        };
-                        $http.post('/camunda/api/engine/engine/default/variable-instance?deserializeValues=false', variableQuery).then(
-                                function (variables) {
-                                    if (variables.data) {
-                                        variables.data.forEach(function (file) {
-                                            if (file.name.startsWith('works_')) {
-                                                $scope[file.name] = file;
-                                                $scope.jobModel[file.name] = file;
-                                                var workIndex = file.name.split('_')[1];
-                                                if (!$scope.jobModel.jobWorks.value[workIndex].files) {
-                                                    $scope.jobModel.jobWorks.value[workIndex].files = [];
-                                                }
-                                                $scope.jobModel.jobWorks.value[workIndex].files.push(file);
-                                            }
-                                        });
-                                    }
-                                },
-                                function (error) {
-                                    console.log(error.data);
-                                }
-                        );
-                    },
-                    function (error) {
-                        console.log(error.data);
-                    }
-            );
         }]);
     </script>
     <job-request job-model="jobModel"></job-request>
