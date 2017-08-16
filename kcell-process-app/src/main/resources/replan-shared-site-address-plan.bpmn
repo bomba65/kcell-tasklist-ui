@@ -1,0 +1,150 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<bpmn:definitions xmlns:bpmn="http://www.omg.org/spec/BPMN/20100524/MODEL" xmlns:bpmndi="http://www.omg.org/spec/BPMN/20100524/DI" xmlns:di="http://www.omg.org/spec/DD/20100524/DI" xmlns:dc="http://www.omg.org/spec/DD/20100524/DC" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:camunda="http://camunda.org/schema/1.0/bpmn" id="Definitions_1" targetNamespace="http://bpmn.io/schema/bpmn" exporter="Camunda Modeler" exporterVersion="1.9.0">
+  <bpmn:process id="ReplanSharedSiteAddressPlan" name="Replan Shared Site" isExecutable="true">
+    <bpmn:startEvent id="startevt_replan">
+      <bpmn:outgoing>SequenceFlow_1v9l08l</bpmn:outgoing>
+    </bpmn:startEvent>
+    <bpmn:sequenceFlow id="SequenceFlow_1v9l08l" sourceRef="startevt_replan" targetRef="task_update_shared_site_address_plan" />
+    <bpmn:userTask id="task_update_shared_site_address_plan" name="Modify Shared Site Address Plan " camunda:formKey="embedded:app:forms/replan/updateSharedSiteAddressPlan.html">
+      <bpmn:incoming>SequenceFlow_1v9l08l</bpmn:incoming>
+      <bpmn:incoming>SequenceFlow_14dmzeh</bpmn:incoming>
+      <bpmn:outgoing>SequenceFlow_0mgy8m1</bpmn:outgoing>
+    </bpmn:userTask>
+    <bpmn:exclusiveGateway id="exclgw_modify_site_needed" default="SequenceFlow_0n9dzul">
+      <bpmn:incoming>SequenceFlow_0mgy8m1</bpmn:incoming>
+      <bpmn:outgoing>SequenceFlow_0n9dzul</bpmn:outgoing>
+      <bpmn:outgoing>SequenceFlow_0ymsitl</bpmn:outgoing>
+    </bpmn:exclusiveGateway>
+    <bpmn:sequenceFlow id="SequenceFlow_0mgy8m1" sourceRef="task_update_shared_site_address_plan" targetRef="exclgw_modify_site_needed" />
+    <bpmn:sequenceFlow id="SequenceFlow_0n9dzul" name="updated" sourceRef="exclgw_modify_site_needed" targetRef="task_accept_or_reject_address_plan_modification" />
+    <bpmn:userTask id="task_accept_or_reject_address_plan_modification" name="Accept or Reject Address Plan Modification" camunda:formKey="embedded:app:forms/replan/acceptOrRejectAddressPlanModification.html">
+      <bpmn:incoming>SequenceFlow_0n9dzul</bpmn:incoming>
+      <bpmn:outgoing>SequenceFlow_15rvj9u</bpmn:outgoing>
+    </bpmn:userTask>
+    <bpmn:endEvent id="endevt_replan_not_needed">
+      <bpmn:incoming>SequenceFlow_0ymsitl</bpmn:incoming>
+    </bpmn:endEvent>
+    <bpmn:sequenceFlow id="SequenceFlow_0ymsitl" name="not needed" sourceRef="exclgw_modify_site_needed" targetRef="endevt_replan_not_needed">
+      <bpmn:conditionExpression xsi:type="bpmn:tFormalExpression"><![CDATA[${updateSiteSharingAddressPlanResult=='false'}]]></bpmn:conditionExpression>
+    </bpmn:sequenceFlow>
+    <bpmn:exclusiveGateway id="exclgw_modification_accepted" default="SequenceFlow_1yi49zw">
+      <bpmn:incoming>SequenceFlow_15rvj9u</bpmn:incoming>
+      <bpmn:outgoing>SequenceFlow_1yi49zw</bpmn:outgoing>
+      <bpmn:outgoing>SequenceFlow_14dmzeh</bpmn:outgoing>
+    </bpmn:exclusiveGateway>
+    <bpmn:sequenceFlow id="SequenceFlow_15rvj9u" sourceRef="task_accept_or_reject_address_plan_modification" targetRef="exclgw_modification_accepted" />
+    <bpmn:sequenceFlow id="SequenceFlow_1yi49zw" name="accepted" sourceRef="exclgw_modification_accepted" targetRef="task_update_address_plan_in_db" />
+    <bpmn:scriptTask id="task_update_address_plan_in_db" name="Update Address Plan in DB" camunda:resource="mock.groovy">
+      <bpmn:incoming>SequenceFlow_1yi49zw</bpmn:incoming>
+      <bpmn:outgoing>SequenceFlow_13towxn</bpmn:outgoing>
+    </bpmn:scriptTask>
+    <bpmn:endEvent id="endevt_replan_success">
+      <bpmn:incoming>SequenceFlow_13towxn</bpmn:incoming>
+    </bpmn:endEvent>
+    <bpmn:sequenceFlow id="SequenceFlow_13towxn" sourceRef="task_update_address_plan_in_db" targetRef="endevt_replan_success" />
+    <bpmn:sequenceFlow id="SequenceFlow_14dmzeh" name="rejected" sourceRef="exclgw_modification_accepted" targetRef="task_update_shared_site_address_plan">
+      <bpmn:conditionExpression xsi:type="bpmn:tFormalExpression"><![CDATA[${addressPlanUpdateAcceptedResult=='false'}]]></bpmn:conditionExpression>
+    </bpmn:sequenceFlow>
+  </bpmn:process>
+  <bpmndi:BPMNDiagram id="BPMNDiagram_1">
+    <bpmndi:BPMNPlane id="BPMNPlane_1" bpmnElement="ReplanSharedSiteAddressPlan">
+      <bpmndi:BPMNShape id="_BPMNShape_StartEvent_2" bpmnElement="startevt_replan">
+        <dc:Bounds x="223" y="162" width="36" height="36" />
+        <bpmndi:BPMNLabel>
+          <dc:Bounds x="196" y="198" width="90" height="20" />
+        </bpmndi:BPMNLabel>
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNEdge id="SequenceFlow_1v9l08l_di" bpmnElement="SequenceFlow_1v9l08l">
+        <di:waypoint xsi:type="dc:Point" x="259" y="180" />
+        <di:waypoint xsi:type="dc:Point" x="361" y="180" />
+        <bpmndi:BPMNLabel>
+          <dc:Bounds x="310" y="159" width="0" height="12" />
+        </bpmndi:BPMNLabel>
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNShape id="UserTask_005h2uc_di" bpmnElement="task_update_shared_site_address_plan">
+        <dc:Bounds x="361" y="140" width="100" height="80" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="ExclusiveGateway_1n6g8bo_di" bpmnElement="exclgw_modify_site_needed" isMarkerVisible="true">
+        <dc:Bounds x="559" y="155" width="50" height="50" />
+        <bpmndi:BPMNLabel>
+          <dc:Bounds x="584" y="209" width="0" height="12" />
+        </bpmndi:BPMNLabel>
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNEdge id="SequenceFlow_0mgy8m1_di" bpmnElement="SequenceFlow_0mgy8m1">
+        <di:waypoint xsi:type="dc:Point" x="461" y="180" />
+        <di:waypoint xsi:type="dc:Point" x="559" y="180" />
+        <bpmndi:BPMNLabel>
+          <dc:Bounds x="510" y="159" width="0" height="12" />
+        </bpmndi:BPMNLabel>
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="SequenceFlow_0n9dzul_di" bpmnElement="SequenceFlow_0n9dzul">
+        <di:waypoint xsi:type="dc:Point" x="609" y="180" />
+        <di:waypoint xsi:type="dc:Point" x="713" y="180" />
+        <bpmndi:BPMNLabel>
+          <dc:Bounds x="637" y="159" width="39" height="12" />
+        </bpmndi:BPMNLabel>
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNShape id="UserTask_1xy4d53_di" bpmnElement="task_accept_or_reject_address_plan_modification">
+        <dc:Bounds x="713" y="140" width="100" height="80" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="EndEvent_1uauogz_di" bpmnElement="endevt_replan_not_needed">
+        <dc:Bounds x="566" y="50.333" width="36" height="36" />
+        <bpmndi:BPMNLabel>
+          <dc:Bounds x="584" y="90.333" width="0" height="12" />
+        </bpmndi:BPMNLabel>
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNEdge id="SequenceFlow_0ymsitl_di" bpmnElement="SequenceFlow_0ymsitl">
+        <di:waypoint xsi:type="dc:Point" x="584" y="155" />
+        <di:waypoint xsi:type="dc:Point" x="584" y="86" />
+        <bpmndi:BPMNLabel>
+          <dc:Bounds x="592" y="116.84158415841584" width="54" height="12" />
+        </bpmndi:BPMNLabel>
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNShape id="ExclusiveGateway_0tvx4l6_di" bpmnElement="exclgw_modification_accepted" isMarkerVisible="true">
+        <dc:Bounds x="905.667" y="155" width="50" height="50" />
+        <bpmndi:BPMNLabel>
+          <dc:Bounds x="930.667" y="209" width="0" height="12" />
+        </bpmndi:BPMNLabel>
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNEdge id="SequenceFlow_15rvj9u_di" bpmnElement="SequenceFlow_15rvj9u">
+        <di:waypoint xsi:type="dc:Point" x="813" y="180" />
+        <di:waypoint xsi:type="dc:Point" x="906" y="180" />
+        <bpmndi:BPMNLabel>
+          <dc:Bounds x="859.5" y="159" width="0" height="12" />
+        </bpmndi:BPMNLabel>
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="SequenceFlow_1yi49zw_di" bpmnElement="SequenceFlow_1yi49zw">
+        <di:waypoint xsi:type="dc:Point" x="956" y="180" />
+        <di:waypoint xsi:type="dc:Point" x="1042" y="180" />
+        <bpmndi:BPMNLabel>
+          <dc:Bounds x="977" y="159" width="45" height="12" />
+        </bpmndi:BPMNLabel>
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNShape id="ScriptTask_1skdutu_di" bpmnElement="task_update_address_plan_in_db">
+        <dc:Bounds x="1042" y="140" width="100" height="80" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="EndEvent_04t8h67_di" bpmnElement="endevt_replan_success">
+        <dc:Bounds x="1231.6666666666665" y="162" width="36" height="36" />
+        <bpmndi:BPMNLabel>
+          <dc:Bounds x="1249.6666666666665" y="202" width="0" height="12" />
+        </bpmndi:BPMNLabel>
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNEdge id="SequenceFlow_13towxn_di" bpmnElement="SequenceFlow_13towxn">
+        <di:waypoint xsi:type="dc:Point" x="1142" y="180" />
+        <di:waypoint xsi:type="dc:Point" x="1232" y="180" />
+        <bpmndi:BPMNLabel>
+          <dc:Bounds x="1187" y="159" width="0" height="12" />
+        </bpmndi:BPMNLabel>
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="SequenceFlow_14dmzeh_di" bpmnElement="SequenceFlow_14dmzeh">
+        <di:waypoint xsi:type="dc:Point" x="931" y="155" />
+        <di:waypoint xsi:type="dc:Point" x="931" y="-42" />
+        <di:waypoint xsi:type="dc:Point" x="411" y="-42" />
+        <di:waypoint xsi:type="dc:Point" x="411" y="140" />
+        <bpmndi:BPMNLabel>
+          <dc:Bounds x="651.5" y="-63" width="39" height="12" />
+        </bpmndi:BPMNLabel>
+      </bpmndi:BPMNEdge>
+    </bpmndi:BPMNPlane>
+  </bpmndi:BPMNDiagram>
+</bpmn:definitions>

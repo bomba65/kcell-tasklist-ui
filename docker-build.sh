@@ -5,7 +5,7 @@ set -e
 DOCKER_COMPOSE_YML=$1
 
 if [ -z "$DOCKER_COMPOSE_YML" ]; then
-	DOCKER_COMPOSE_YML="docker-compose-dev.yaml"
+	DOCKER_COMPOSE_YML="docker-compose.yml"
 fi
 
 BASEDIR=`pwd`
