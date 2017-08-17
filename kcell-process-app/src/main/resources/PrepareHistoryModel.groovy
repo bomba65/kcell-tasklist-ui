@@ -21,7 +21,7 @@ def getUserEmail(DelegateExecution execution) {
         def user = identityService.createUserQuery().userId(it["assignee"]).singleResult()
         println user
         assigneeMap.put(user.id, (user.firstName != null ? user.firstName : "")+" " +(user.lastName !=null ? user.lastName : ""))
-        taskMap.put(it.taskId, execution.processEngineServices.historyService.createHistoricTaskInstanceQuery().taskId(it.taskId).singleResult().getName())
+        taskMap.put(it.taskId, execution.processEngineServices.historyService.createHistoricTaskInstanceQuery().taskId(it.taskId).singleResult())
     }
 
     def historyModel = [:]

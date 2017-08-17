@@ -7,8 +7,8 @@ import org.camunda.bpm.model.bpmn.BpmnModelInstance;
 import org.camunda.spin.plugin.variable.SpinValues;
 import org.camunda.spin.plugin.variable.value.JsonValue;
 import org.junit.Rule;
-import org.junit.Test;
 
+import javax.script.ScriptException;
 import java.io.IOException;
 import java.io.InputStream;
 import java.nio.file.Files;
@@ -43,5 +43,32 @@ public class FreemarketTest {
         Object obj = processEngineRule.getHistoryService().createHistoricVariableInstanceQuery().variableName("actOfAcceptanceDocument").singleResult().getValue();
 
         Files.copy((InputStream) obj, Paths.get("nurlan.doc"), StandardCopyOption.REPLACE_EXISTING);
+    }
+
+    //@Test
+    public void testCreatePR() throws ScriptException, IOException {
+//        Object freemarker = processEngineRule.getProcessEngineConfiguration().getScriptingEngines().getScriptEngineForLanguage("freemarker").eval("/testCreatePR.ftl");
+//        System.out.println(freemarker);
+
+        BpmnModelInstance done = Bpmn.createExecutableProcess("test-freemarker")
+                .startEvent()
+                .scriptTask()
+                    .scriptFormat("freemarker")
+                    .camundaResource("testCreatePR.ftl")
+                    .camundaResultVariable("result")
+                .endEvent()
+                .done();
+        processEngineRule.getRepositoryService().createDeployment().addModelInstance("test-freemarker.bpmn", done).deploy();
+
+        Map<String, Object> variables = new HashMap<>();
+        Map<String, Object> historyMap = new HashMap<>();
+        Map<String, String> tasksMap = new HashMap<String, String>();
+        tasksMap.put("83a118ac-8329-11e7-8181-da6044b09f14","ACCEPT");
+        historyMap.put("tasksMap", tasksMap);
+        variables.put("history", historyMap);
+
+        ProcessInstance processInstance = processEngineRule.getRuntimeService().startProcessInstanceByKey("test-freemarker", variables);
+        Object obj = processEngineRule.getHistoryService().createHistoricVariableInstanceQuery().variableName("result").singleResult().getValue();
+        System.out.println(obj);
     }
 }

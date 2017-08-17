@@ -1,6 +1,6 @@
 define(['./module','camundaSDK', 'lodash', 'big-js'], function(module, CamSDK, _, Big){
 	'use strict';
-	return module.controller('mainCtrl', ['$scope', '$rootScope', 'toasty', 'AuthenticationService', '$routeParams', '$timeout', '$location', 'exModal', '$http', function($scope, $rootScope, toasty, AuthenticationService, $routeParams, $timeout, $location, exModal, $http) {
+	return module.controller('mainCtrl', ['$scope', '$rootScope', 'toasty', 'AuthenticationService', '$routeParams', '$timeout', '$location', 'exModal', '$http', '$state', function($scope, $rootScope, toasty, AuthenticationService, $routeParams, $timeout, $location, exModal, $http, $state) {
 		$rootScope.currentPage = {
 			name: 'tasks'
 		};
@@ -258,7 +258,7 @@ define(['./module','camundaSDK', 'lodash', 'big-js'], function(module, CamSDK, _
 						});
 					}
 					if(selectedTask){
-						$scope.loadTaskForm(selectedTask);
+						$state.go('tasks.task', {id:selectedTask.id});
 					} else if($scope.tryToOpen){
 						$http.get(baseUrl+'/task/'+$scope.tryToOpen.id).then(
 							function(taskResult){
@@ -267,14 +267,14 @@ define(['./module','camundaSDK', 'lodash', 'big-js'], function(module, CamSDK, _
 									$http.get(baseUrl+'/user/'+taskResult.data.assignee+'/profile').then(
 										function(userResult){
 											taskResult.data.assigneeObject = userResult.data;
-											$scope.loadTaskForm(taskResult.data);
+											$state.go('tasks.task', {id:taskResult.data.id});
 										},
 										function(error){
 											console.log(error.data);
 										}
 									);
 								} else{
-									$scope.loadTaskForm(taskResult.data);
+									$state.go('tasks.task', {id:taskResult.data.id});
 								}
 							},
 							function(error){

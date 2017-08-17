@@ -45,7 +45,7 @@ public class MailTaskCandidatesListener implements TaskListener {
                 .filter(identityLink -> identityLink.getGroupId() != null)
                 .map(IdentityLink::getGroupId)
                 .flatMap(groupId -> identityService.createUserQuery().memberOfGroup(groupId).list().stream())
-                .filter(user -> !user.getId().equals(currentAuthentication.getUserId()))
+                .filter(user -> currentAuthentication == null || !user.getId().equals(currentAuthentication.getUserId()))
                 .map(User::getEmail)
                 .filter(email -> email != null && !email.isEmpty())
                 .collect(Collectors.toSet());
