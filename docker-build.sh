@@ -29,6 +29,9 @@ cd "$BASEDIR/kcell-process-app"
 cd "$BASEDIR/kcell-tasklist-ui/js"
 npm install
 
+cd "$BASEDIR/minio-client"
+npm install
+
 # cp "$MVNREPO/org/camunda/bpm/extension/camunda-bpm-mail-core/1.1.0/camunda-bpm-mail-core-1.1.0.jar" \
 #    "$BASEDIR/kcell-camunda/modules/org/camunda/bpm/extension/camunda-bpm-mail-core/main/camunda-bpm-mail-core-1.1.0.jar"
 
