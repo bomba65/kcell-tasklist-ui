@@ -11,7 +11,8 @@ define('app',[
 	'./services/index',
 	'camundaSDK',
 	'big-js',
-	'angular-ui-router'
+	'angular-ui-router',
+	'ng-file-upload'
 ], function(ng){
 	'use strict';
 	var app =  ng.module('app', [
@@ -24,7 +25,8 @@ define('app',[
 		'angular-toasty',
 		'ngRoute',
 		'ngCookies',
-		'ui.router'
+		'ui.router',
+		'ngFileUpload'
 	]);
 	var preLoginUrl;
 	var resolve = {
@@ -60,6 +62,11 @@ define('app',[
 	    	templateUrl: "js/partials/login.html",
 	    	controller: "loginCtrl",
 	    	authenticate: false
+	    }).state("processes", {
+	    	url: "/processes",
+	    	templateUrl: "js/partials/processes.html",
+	    	controller: "processesCtrl",
+	    	authenticate: true
 	    });
 	}]).provider('Uri',  function() {
 		var TEMPLATES_PATTERN = /[\w]+:\/\/|:[\w]+/g;

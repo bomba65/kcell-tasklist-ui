@@ -45,9 +45,6 @@ public class SetPricesDelegate implements TaskListener {
                 BigDecimal unitWorkPricePlusTx = unitWorkPrice.multiply(new BigDecimal("1.08"));
                 if (workPrice.get("relatedSites").size() > 0) {
                     BigDecimal unitWorkPricePerSite = unitWorkPricePlusTx.divide(new BigDecimal(workPrice.get("relatedSites").size()));
-                    System.out.println(unitWorkPricePerSite);
-                    System.out.println(workPrice.get("quantity").asText());
-                    System.out.println(new BigDecimal(workPrice.get("quantity").asText()));
                     BigDecimal netWorkPricePerSite = unitWorkPricePerSite.multiply(new BigDecimal(workPrice.get("quantity").asText()));
                     workPrice.put("unitWorkPricePerSite", unitWorkPricePerSite.setScale(2, RoundingMode.CEILING).toString());
                     workPrice.put("netWorkPricePerSite", netWorkPricePerSite.setScale(2, RoundingMode.CEILING).toString());

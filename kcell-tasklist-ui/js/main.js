@@ -23,7 +23,8 @@ require.config({
          'bpmn-viewer': './camunda/bpmn-viewer',
          'bpmn-navigated-viewer': './camunda/bpmn-navigated-viewer',
          'big-js': './node_modules/big.js/big.min',
-         'angular-ui-router': './node_modules/angular-ui-router/release/angular-ui-router.min'
+         'angular-ui-router': './node_modules/angular-ui-router/release/angular-ui-router.min',
+         'ng-file-upload': './node_modules/ng-file-upload/dist/ng-file-upload-all.min'
      },
  
      // angular не поддерживает AMD из коробки, поэтому экспортируем перменную angular в глобальную область
@@ -39,6 +40,7 @@ require.config({
          'translate' : ['angular'],
          'angular-ui-router': ['angular'],
          'angular-ui-bootstrap': ['angular'],
+         'ng-file-upload': ['angular'],
          'angular-translate-storage-local': ['translate'],
          'angular-translate-storage-cookie': ['translate']
      },

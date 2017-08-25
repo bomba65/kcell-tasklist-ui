@@ -1,6 +1,6 @@
 <form role="form" class="form-horizontal" name="kcell_form" novalidate>
     <script cam-script type="text/form-script">
-        inject(['$scope', '$q', '$http', '$rootScope', function ($scope, $q, $http, $rootScope) {
+        inject(['$scope', '$q', '$http', '$rootScope', '$timeout', function ($scope, $q, $http, $rootScope, $timeout) {
             var variables = [
                 'sharingPlan',
                 'resolutions',
@@ -8,23 +8,25 @@
                 'actOfAcceptanceDocument'
             ];
 
+            var fileActions = [];
+
             camForm.on('form-loaded', function () {
                 variables.forEach(function (el) {
                     camForm.variableManager.fetchVariable(el);
                 });
                 $http.get('/camunda/api/engine/engine/default/task/' + camForm.taskId).then(
-                    function(result){
-                        $scope.processInstanceId = result.data.processInstanceId;
-                    },
-                    function (error) {
-                        console.log(error.data);
-                    }
+                        function (result) {
+                            $scope.processInstanceId = result.data.processInstanceId;
+                        },
+                        function (error) {
+                            console.log(error.data);
+                        }
                 );
             });
 
             camForm.on('variables-fetched', function () {
                 variables.forEach(function (el) {
-                    if(el === 'resolutions'){
+                    if (el === 'resolutions') {
                         $scope.resolutions = angular.copy(camForm.variableManager.variables[el].value);
                         $q.all($scope.resolutions.map(function (resolution) {
                             return $http.get("/camunda/api/engine/engine/default/user/" + resolution.assignee + "/profile");
@@ -34,54 +36,48 @@
                             });
                         });
                         $q.all($scope.resolutions.map(function (resolution) {
-                            return $http.get("/camunda/api/engine/engine/default/history/task?processInstanceId="+resolution.processInstanceId+"&taskId=" + resolution.taskId);
+                            return $http.get("/camunda/api/engine/engine/default/history/task?processInstanceId=" + resolution.processInstanceId + "&taskId=" + resolution.taskId);
                         })).then(function (tasks) {
                             tasks.forEach(function (e, index) {
-                                if(e.data.length > 0){
+                                if (e.data.length > 0) {
                                     $scope.resolutions[index].taskName = e.data[0].name;
                                     try {
                                         $scope.resolutions[index].taskEndDate = new Date(e.data[0].endTime);
-                                    } catch(e){
+                                    } catch (e) {
                                         console.log(e);
                                     }
                                 }
                             });
                         });
-                    } else if(el === 'actOfAcceptanceDocument'){
+                    } else if (el === 'actOfAcceptanceDocument') {
                         $scope[el] = camForm.variableManager.variables[el];
                     } else {
                         $scope[el] = camForm.variableManager.variables[el].value;
                     }
                 });
-                $scope.sharingPlan.acceptanceDocFiles = angular.copy($scope.acceptanceDocFiles);
-                if(!$scope.acceptanceDocFiles){
-                    $scope.acceptanceDocFiles = [{file:undefined,id:undefined}];
-                } else {
-                    var files = "";
-                    $scope.acceptanceDocFiles.forEach(function(file){
-                        files+="acceptanceDocFile"+file.id+",";
+                if ($scope.acceptanceDocFiles) {
+                    $scope.acceptanceDocFiles.forEach(function (e, index) {
+                        $http.get('/minio-client/presignedDownloadUrl?name=' + e.path).then(
+                            function (result) {
+                                console.log(e);
+                                e.url = result.data;
+                            },
+                            function (error) {
+                                console.log(error);
+                            }
+                        );
                     });
-                    $scope.acceptanceDocFilesPrev = [];
-                    $http.get('/camunda/api/engine/engine/default/task/'+camForm.taskId+'/form-variables?deserializeValues=false&variableNames='+files).then(
-                        function(result){
-                            $scope.acceptanceDocFiles.forEach(function(file, index){
-                                if(result.data['acceptanceDocFile'+file.id] && result.data['acceptanceDocFile'+file.id].valueInfo){
-                                    $scope['acceptanceDocFile'+file.id] = {
-                                        prev: result.data['acceptanceDocFile'+file.id]
-                                    };
-                                    $scope.acceptanceDocFiles[index] = $scope['acceptanceDocFile'+file.id];
-                                }
-                            });
-                        },
-                        function (error) {
-                            console.log(error.data);
-                        }
-                    );
+                } else {
+                    $scope.acceptanceDocFiles = [];
+                    camForm.variableManager.destroyVariable('acceptanceDocFiles');
+                    camForm.variableManager.createVariable({
+                        name: 'acceptanceDocFiles',
+                        type: 'Json'
+                    });
                 }
-                camForm.variableManager.destroyVariable('acceptanceDocFiles');
-
-                if($scope.sharingPlan){
-                    $scope.sharingPlan.currentTask = {id:camForm.taskId};
+                if ($scope.sharingPlan) {
+                    $scope.sharingPlan.currentTask = {id: camForm.taskId};
+                    $scope.sharingPlan.acceptanceDocFiles = angular.copy($scope.acceptanceDocFiles);
                 }
 
                 camForm.variableManager.createVariable({
@@ -106,72 +102,83 @@
             camForm.on('submit', function () {
                 camForm.variableManager.variableValue('uploadActOfAcceptanceDocResult', $scope.uploadActOfAcceptanceDocResult);
                 camForm.variableManager.variableValue('uploadActOfAcceptanceDocComment', $scope.uploadActOfAcceptanceDocComment);
-                if($scope.uploadActOfAcceptanceDocResult !== 'replan'){
+                if ($scope.uploadActOfAcceptanceDocResult !== 'replan') {
                     camForm.variableManager.variableValue('replanStatus', 'notreplan');
                 } else {
                     camForm.variableManager.variableValue('replanStatus', 'replan');
                 }
-                var acceptanceDocFiles = [];
-                $scope.acceptanceDocFiles.forEach(function(acceptanceDocFile, index){
-                    if(acceptanceDocFile.file && acceptanceDocFile.file.value){
-                        acceptanceDocFiles.push({id:index, name:acceptanceDocFile.file.valueInfo.filename});
-                        acceptanceDocFile.file.name = 'acceptanceDocFile' + index;
-                        acceptanceDocFile.file.type = 'File';
-                        camForm.variableManager.createVariable(acceptanceDocFile.file);
-                    }
+                $scope.resolutions.push({
+                    processInstanceId: $scope.processInstanceId,
+                    assignee: $rootScope.authentication.name,
+                    resolution: $scope.uploadActOfAcceptanceDocResult,
+                    comment: $scope.uploadActOfAcceptanceDocComment,
+                    taskId: camForm.taskId
                 });
-                if(acceptanceDocFiles.length > 0){
-                    camForm.variableManager.createVariable({
-                        name: 'acceptanceDocFiles',
-                        type: 'Json',
-                        value: JSON.parse(angular.toJson(acceptanceDocFiles))
+                if(fileActions.length > 0){
+                    $scope.resolutions.push({
+                        processInstanceId: $scope.processInstanceId,
+                        assignee: $rootScope.authentication.name,
+                        resolution: 'Files.changes',
+                        comment: fileActions.join(", "),
+                        taskId: camForm.taskId
                     });
                 }
-                $scope.resolutions.push({processInstanceId: $scope.processInstanceId, assignee: $rootScope.authentication.name, resolution: $scope.uploadActOfAcceptanceDocResult, comment: $scope.uploadActOfAcceptanceDocComment, taskId: camForm.taskId});
+                var acceptanceDocFiles = _.map($scope.acceptanceDocFiles, function(e){
+                   return _.pick(e, ['name','path']);
+                });
+                camForm.variableManager.variableValue('acceptanceDocFiles', acceptanceDocFiles);
                 camForm.variableManager.variableValue('resolutions', $scope.resolutions);
             });
 
-            function getBase64(el, index){
-                var reader = new FileReader();
-                reader.readAsArrayBuffer(el.files[0]);
-                reader.onloadend = function (e) {
-                    var binary = '';
-                    var bytes = new Uint8Array( e.target.result );
-                    var len = bytes.byteLength;
-                    for (var j = 0; j < len; j++) {
-                        binary += String.fromCharCode( bytes[ j ] );
+            function uploadFileToMinio(file){
+                var fileToUpload = {
+                    name:file.name,
+                    path: 'kcell-host-kcell-site/' + $scope.processInstanceId + '/' + camForm.taskId + '/' + file.name
+                };
+                $http.get('/minio-client/presignedUploadUrl?name='+fileToUpload.path).then(
+                    function (result) {
+                        $http.put(result.data, file, {headers:{'Content-Type': undefined}}).then(
+                            function () {
+                                $http.get('/minio-client/presignedDownloadUrl?name='+fileToUpload.path).then(
+                                    function(result){
+                                        fileToUpload.url = result.data;
+                                        fileToUpload.isNew = true;
+                                        fileToUpload.fileActionsIndex = fileActions.length;
+                                        $scope.acceptanceDocFiles.push(fileToUpload);
+                                        fileActions.push('file added: ' + fileToUpload.name)
+                                    },
+                                    function(error){
+                                        console.log(error.data);
+                                    }
+                                );
+                            },
+                            function(error){
+                                console.log(error.data);
+                            }
+                        );
+                    },
+                    function (error) {
+                        console.log(error);
                     }
-                    $scope.$apply(function(){
-                        $scope.acceptanceDocFiles[index].file.valueInfo = {
-                            filename: el.files[0].name,
-                            mimeType: el.files[0].type
-                        };
-                        $scope.acceptanceDocFiles[index].file.value = btoa(binary);
-                        if($scope.acceptanceDocFiles.length-1 == index){
-                            $scope.acceptanceDocFiles.push({file:undefined,id:undefined});
-                        }
-                    });
-                };
-                reader.onerror = function (error) {
-                    console.log('Error: ', error);
-                };
+                );
             }
 
-            $scope.fileSelected = function(el, index){
-                $scope.acceptanceDocFiles[index].id = el.value.replace(/^.*[\\\/]/, '').replace(/\.[^/.]+$/, "");
-                if(el.files[0]){
-                    getBase64(el, index)
-                } else {
-                    $scope.$apply(function(){
-                        $scope.acceptanceDocFiles[index] = {file:undefined,id:undefined};
+            $scope.fileSelected = function (el) {
+                $timeout(function () {
+                    $scope.$apply(function () {
+                        uploadFileToMinio(el.files[0]);
                     });
-                }
+                })
             };
-            $scope.filesActions = [];
             $scope.clearFile = function(index){
-                $scope.filesActions.push({supplementaryId: index, filename:$scope.acceptanceDocFiles[index].prev.valueInfo.filename, action:'deleted'});
-                delete $scope.acceptanceDocFiles[index].prev;
-            };
+                if(!$scope.acceptanceDocFiles[index].isNew){
+                    fileActions.push('file deleted: ' + $scope.acceptanceDocFiles[index].name)
+                } else {
+                    console.log($scope.acceptanceDocFiles[index]);
+                    fileActions.splice($scope.acceptanceDocFiles[index].fileActionsIndex, 1);
+                }
+                $scope.acceptanceDocFiles.splice(index,1);
+            }
         }]);
 
     </script>
@@ -182,31 +189,34 @@
             <a href="{{actOfAcceptanceDocument.contentUrl}}">{{actOfAcceptanceDocument.valueInfo.filename}}</a>
         </div>
     </div>
-    <div ng-repeat="acceptanceDocFile in acceptanceDocFiles">
-        <div class="form-group">
-            <label class="col-sm-4 control-label">Upload Act of Acceptance # {{$index+1}}:</label>
-            <div class="col-sm-8">
-                <ng-form name="acceptanceDocFilesform">
-                    <div ng-if="acceptanceDocFile.prev"><a href="{{acceptanceDocFile.prev.contentUrl}}">{{acceptanceDocFile.prev.valueInfo.filename}}</a> <a ng-click="clearFile($index)">&times;</a></div>
-                    <div ng-if="!acceptanceDocFile.prev">
-                        <input type="file" class="form-control" name="acceptanceDocFile" ng-model="acceptanceDocFile.file.file" required-file="!acceptanceDocFiles[0].file.file" onchange="angular.element(this).scope().fileSelected(this, angular.element(this).scope().$index)"/>
-                    </div>
-                    <label class="has-error" ng-show="acceptanceDocFilesform.acceptanceDocFile.$error.validFile">File is required</label>
-                </ng-form>
-            </div>
+    <div ng-repeat="acceptanceDocFile in acceptanceDocFiles" class="form-group">
+        <div class="col-sm-12">
+            <a href="{{acceptanceDocFile.url}}">{{acceptanceDocFile.name}}</a> | <a ng-click="clearFile($index)"><i class="glyphicon glyphicon-trash"></i></a>
+        </div>
+    </div>
+    <div class="form-group">
+    <label class="col-sm-4 control-label">Upload Act of Acceptance # {{acceptanceDocFiles.length + 1}}:</label>
+        <div class="col-sm-8">
+            <input type="file" ng-model="acceptanceFile" name="acceptanceFile" accept="*" required-file="acceptanceDocFiles.length == 0" onchange="angular.element(this).scope().fileSelected(this)"/>
+            <label class="has-error" ng-show="kcell_form.acceptanceFile.$error.validFile">File is required</label>
         </div>
     </div>
     <div class="form-group">
         <label class="col-sm-4 control-label">Comments</label>
         <div class="col-sm-8">
-            <textarea class="form-control" ng-model="uploadActOfAcceptanceDocComment" name="uploadActOfAcceptanceDocComment" placeholder="Comments..." maxlength="500" rows="4" ng-required="uploadActOfAcceptanceDocResult !== 'documentedCompleted'"></textarea>
-            <label class="error" ng-show="kcell_form.uploadActOfAcceptanceDocComment.$error.required && ( kcell_form.uploadActOfAcceptanceDocComment.$touched || view.submitted)">Required field</label>
+            <textarea class="form-control" ng-model="uploadActOfAcceptanceDocComment"
+                      name="uploadActOfAcceptanceDocComment" placeholder="Comments..." maxlength="500" rows="4"
+                      ng-required="uploadActOfAcceptanceDocResult !== 'documentedCompleted'"></textarea>
+            <label class="error"
+                   ng-show="kcell_form.uploadActOfAcceptanceDocComment.$error.required && ( kcell_form.uploadActOfAcceptanceDocComment.$touched || view.submitted)">Required
+                field</label>
         </div>
     </div>
     <accordion>
         <accordion-group is-open="isHistoryOpen">
             <accordion-heading>
-                History <i class="pull-right glyphicon" ng-class="{'glyphicon-chevron-up': status.isCustomHeaderOpen, 'glyphicon-chevron-down': !status.isCustomHeaderOpen}"></i>
+                History <i class="pull-right glyphicon"
+                           ng-class="{'glyphicon-chevron-up': status.isCustomHeaderOpen, 'glyphicon-chevron-down': !status.isCustomHeaderOpen}"></i>
             </accordion-heading>
             <table class="table">
                 <thead>

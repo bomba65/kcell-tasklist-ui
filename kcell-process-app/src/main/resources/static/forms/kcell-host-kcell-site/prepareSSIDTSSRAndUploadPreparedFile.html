@@ -1,6 +1,6 @@
 <form role="form" class="form-horizontal" name="kcell_form" novalidate>
     <script cam-script type="text/form-script">
-        inject(['$scope', '$q', '$http', '$rootScope',  function ($scope, $q, $http, $rootScope) {
+        inject(['$scope', '$q', '$http', '$rootScope', 'Upload', '$timeout', function ($scope, $q, $http, $rootScope, Upload, $timeout) {
             var variables = [
                 'sharingPlan',
                 'resolutions',
@@ -8,23 +8,27 @@
                 'siteAccessGrantStatus'
             ];
 
+            var fileActions = [];
+            console.log('klsdjfldf');
+
             camForm.on('form-loaded', function () {
+                console.log('klsdjfldf');
                 variables.forEach(function (el) {
                     camForm.variableManager.fetchVariable(el);
                 });
                 $http.get('/camunda/api/engine/engine/default/task/' + camForm.taskId).then(
-                    function(result){
-                        $scope.processInstanceId = result.data.processInstanceId;
-                    },
-                    function (error) {
-                        console.log(error.data);
-                    }
+                        function (result) {
+                            $scope.processInstanceId = result.data.processInstanceId;
+                        },
+                        function (error) {
+                            console.log(error.data);
+                        }
                 );
             });
 
             camForm.on('variables-fetched', function () {
                 variables.forEach(function (el) {
-                    if(el === 'resolutions'){
+                    if (el === 'resolutions') {
                         $scope.resolutions = angular.copy(camForm.variableManager.variables[el].value);
                         $q.all($scope.resolutions.map(function (resolution) {
                             return $http.get("/camunda/api/engine/engine/default/user/" + resolution.assignee + "/profile");
@@ -34,14 +38,14 @@
                             });
                         });
                         $q.all($scope.resolutions.map(function (resolution) {
-                            return $http.get("/camunda/api/engine/engine/default/history/task?processInstanceId="+resolution.processInstanceId+"&taskId=" + resolution.taskId);
+                            return $http.get("/camunda/api/engine/engine/default/history/task?processInstanceId=" + resolution.processInstanceId + "&taskId=" + resolution.taskId);
                         })).then(function (tasks) {
                             tasks.forEach(function (e, index) {
-                                if(e.data.length > 0){
+                                if (e.data.length > 0) {
                                     $scope.resolutions[index].taskName = e.data[0].name;
                                     try {
                                         $scope.resolutions[index].taskEndDate = new Date(e.data[0].endTime);
-                                    } catch(e){
+                                    } catch (e) {
                                         console.log(e);
                                     }
                                 }
@@ -51,35 +55,29 @@
                         $scope[el] = camForm.variableManager.variables[el].value;
                     }
                 });
-                if(!$scope.ssidtssrFiles){
-                    $scope.ssidtssrFiles = [{file:undefined,id:undefined}];
-                } else {
-                    var files = "";
-                    $scope.ssidtssrFiles.forEach(function(file){
-                        files+="ssidtssrFile"+file.id+",";
-                    });
-                    $scope.ssidtssrFilesPrev = [];
-                    $http.get('/camunda/api/engine/engine/default/task/'+camForm.taskId+'/form-variables?deserializeValues=false&variableNames='+files).then(
-                        function(result){
-                            $scope.ssidtssrFiles.forEach(function(file, index){
-                                if(result.data['ssidtssrFile'+file.id] && result.data['ssidtssrFile'+file.id].valueInfo){
-                                    $scope['ssidtssrFile'+file.id] = {
-                                        prev: result.data['ssidtssrFile'+file.id]
-                                    };
-                                    $scope.ssidtssrFiles[index] = $scope['ssidtssrFile'+file.id];
+                if ($scope.ssidtssrFiles) {
+                    $scope.ssidtssrFiles.forEach(function (e) {
+                        $http.get('/minio-client/presignedDownloadUrl?name=' + e.path).then(
+                                function (result) {
+                                    console.log(e);
+                                    e.url = result.data;
+                                },
+                                function (error) {
+                                    console.log(error);
                                 }
-                            });
-                        },
-                        function (error) {
-                            console.log(error.data);
-                        }
-                    );
+                        );
+                    });
+                } else {
+                    $scope.ssidtssrFiles = [];
+                    camForm.variableManager.destroyVariable('ssidtssrFiles');
+                    camForm.variableManager.createVariable({
+                        name: 'ssidtssrFiles',
+                        type: 'Json'
+                    });
                 }
-                camForm.variableManager.destroyVariable('ssidtssrFiles');
-
-                if($scope.sharingPlan){
+                if ($scope.sharingPlan) {
                     $scope.sharingPlan.ssidtssrFiles = angular.copy($scope.ssidtssrFiles);
-                    $scope.sharingPlan.currentTask = {id:camForm.taskId};
+                    $scope.sharingPlan.currentTask = {id: camForm.taskId};
                 }
 
                 camForm.variableManager.createVariable({
@@ -104,120 +102,144 @@
             camForm.on('submit', function () {
                 camForm.variableManager.variableValue('prepareSSIDTSSRAndUploadPreparedFileResult', $scope.prepareSSIDTSSRAndUploadPreparedFileResult);
                 camForm.variableManager.variableValue('siteAccessGrantStatus', $scope.siteAccessGrantStatus);
-                if($scope.prepareSSIDTSSRAndUploadPreparedFileResult !== 'replan'){
+                if ($scope.prepareSSIDTSSRAndUploadPreparedFileResult !== 'replan') {
                     camForm.variableManager.variableValue('replanStatus', 'notreplan');
                     camForm.variableManager.variableValue('needSSIDForNegotiations', 'true');
                 } else {
                     camForm.variableManager.variableValue('replanStatus', 'replan');
                     camForm.variableManager.variableValue('needSSIDForNegotiations', 'false');
                 }
-                if($scope.prepareSSIDTSSRAndUploadPreparedFileResult === 'projectCompleted'){
-                    var ssidtssrFiles = [];
-                    $scope.ssidtssrFiles.forEach(function(ssidtssrFile, index){
-                        if(ssidtssrFile.file && ssidtssrFile.file.value){
-                            ssidtssrFiles.push({id:index, name:ssidtssrFile.file.valueInfo.filename});
-                            ssidtssrFile.file.name = 'ssidtssrFile' + index;
-                            ssidtssrFile.file.type = 'File';
-                            camForm.variableManager.createVariable(ssidtssrFile.file);
-                        }
+                $scope.resolutions.push({
+                    processInstanceId: $scope.processInstanceId,
+                    assignee: $rootScope.authentication.name,
+                    resolution: $scope.prepareSSIDTSSRAndUploadPreparedFileResult,
+                    comment: $scope.prepareSSIDTSSRAndUploadPreparedFileComment,
+                    taskId: camForm.taskId
+                });
+                if (fileActions.length > 0) {
+                    $scope.resolutions.push({
+                        processInstanceId: $scope.processInstanceId,
+                        assignee: $rootScope.authentication.name,
+                        resolution: 'Files.changes',
+                        comment: fileActions.join(", "),
+                        taskId: camForm.taskId
                     });
-                    if(ssidtssrFiles.length > 0){
-                        camForm.variableManager.createVariable({
-                            name: 'ssidtssrFiles',
-                            type: 'Json',
-                            value: JSON.parse(angular.toJson(ssidtssrFiles))
-                        });
-                    }
                 }
-                $scope.resolutions.push({processInstanceId: $scope.processInstanceId, assignee: $rootScope.authentication.name, resolution: $scope.prepareSSIDTSSRAndUploadPreparedFileResult, comment: $scope.prepareSSIDTSSRAndUploadPreparedFileComment, taskId: camForm.taskId});
                 camForm.variableManager.variableValue('resolutions', $scope.resolutions);
+                console.log($scope.ssidtssrFiles);
+                var ssidtssrFiles = _.map($scope.ssidtssrFiles, function (e) {
+                    return _.pick(e, ['name', 'path']);
+                });
+                console.log(ssidtssrFiles);
+                camForm.variableManager.variableValue('ssidtssrFiles', ssidtssrFiles);
             });
 
-            function getBase64(el, index){
-                var reader = new FileReader();
-                reader.readAsArrayBuffer(el.files[0]);
-                reader.onloadend = function (e) {
-                    var binary = '';
-                    var bytes = new Uint8Array( e.target.result );
-                    var len = bytes.byteLength;
-                    for (var j = 0; j < len; j++) {
-                        binary += String.fromCharCode( bytes[ j ] );
-                    }
-                    $scope.$apply(function(){
-                        $scope.ssidtssrFiles[index].file.valueInfo = {
-                            filename: el.files[0].name,
-                            mimeType: el.files[0].type
-                        };
-                        $scope.ssidtssrFiles[index].file.value = btoa(binary);
-                        if($scope.ssidtssrFiles.length-1 == index){
-                            $scope.ssidtssrFiles.push({file:undefined,id:undefined});
+            function uploadFileToMinio(file) {
+                var fileToUpload = {
+                    name: file.name,
+                    path: 'kcell-host-kcell-site/' + $scope.processInstanceId + '/' + camForm.taskId + '/' + file.name
+                };
+                $http.get('/minio-client/presignedUploadUrl?name=' + fileToUpload.path).then(
+                        function (result) {
+                            $http.put(result.data, file, {headers: {'Content-Type': undefined}}).then(
+                                    function () {
+                                        $http.get('/minio-client/presignedDownloadUrl?name=' + fileToUpload.path).then(
+                                                function (result) {
+                                                    fileToUpload.url = result.data;
+                                                    fileToUpload.isNew = true;
+                                                    fileToUpload.fileActionsIndex = fileActions.length;
+                                                    $scope.ssidtssrFiles.push(fileToUpload);
+                                                    fileActions.push('file added: ' + fileToUpload.name)
+                                                },
+                                                function (error) {
+                                                    console.log(error.data);
+                                                }
+                                        );
+                                    },
+                                    function (error) {
+                                        console.log(error.data);
+                                    }
+                            );
+                        },
+                        function (error) {
+                            console.log(error);
                         }
-                    });
-                };
-                reader.onerror = function (error) {
-                    console.log('Error: ', error);
-                };
+                );
             }
 
-            $scope.fileSelected = function(el, index){
-                $scope.ssidtssrFiles[index].id = el.value.replace(/^.*[\\\/]/, '').replace(/\.[^/.]+$/, "");
-                if(el.files[0]){
-                    getBase64(el, index)
-                } else {
-                    $scope.$apply(function(){
-                        $scope.ssidtssrFiles[index] = {file:undefined,id:undefined};
+            $scope.fileSelected = function (el) {
+                $timeout(function () {
+                    $scope.$apply(function () {
+                        uploadFileToMinio(el.files[0]);
                     });
+                })
+            };
+            $scope.clearFile = function (index) {
+                if (!$scope.ssidtssrFiles[index].isNew) {
+                    fileActions.push('file deleted: ' + $scope.ssidtssrFiles[index].name)
+                } else {
+                    fileActions.splice($scope.ssidtssrFiles[index].fileActionsIndex, 1);
                 }
-            };
-            $scope.filesActions = [];
-            $scope.clearFile = function(index){
-                $scope.filesActions.push({supplementaryId: index, filename:$scope.ssidtssrFiles[index].prev.valueInfo.filename, action:'deleted'});
-                delete $scope.ssidtssrFiles[index].prev;
-            };
+                $scope.ssidtssrFiles.splice(index, 1);
+            }
         }]);
 
     </script>
     <shared-site-plan plan-model="sharingPlan"></shared-site-plan>
     <div class="form-group">
-        <label class="col-sm-12 control-label">Initial Site Access Grant Status for TSSR/SSID Prepartion: <b>{{siteAccessGrantStatus == "grant" ? "Granted" : "Not Grant"}}</b></label>
+        <label class="col-sm-12 control-label">Initial Site Access Grant Status for TSSR/SSID Prepartion: <b>{{siteAccessGrantStatus
+            == "grant" ? "Granted" : "Not Grant"}}</b></label>
     </div>
-    <div ng-repeat="ssidtssrFile in ssidtssrFiles">
-        <div class="form-group">
-            <label class="col-sm-4 control-label">Upload SSID/TSSR files # {{$index+1}}:</label>
-            <div class="col-sm-8">
-                <ng-form name="ssidtssrFilesform">
-                    <div ng-if="ssidtssrFile.prev"><a href="{{ssidtssrFile.prev.contentUrl}}">{{ssidtssrFile.prev.valueInfo.filename}}</a> <a ng-click="clearFile($index)">&times;</a></div>
-                    <div ng-if="!ssidtssrFile.prev">
-                        <input type="file" class="form-control" name="ssidtssrFile" ng-model="ssidtssrFile.file.file" required-file="prepareSSIDTSSRAndUploadPreparedFileResult === 'projectCompleted' && !ssidtssrFiles[0].file.file" onchange="angular.element(this).scope().fileSelected(this, angular.element(this).scope().$index)"/>
-                    </div>
-                    <label class="has-error" ng-show="ssidtssrFilesform.ssidtssrFile.$error.validFile">File is required</label>
-                </ng-form>
-            </div>
+
+    <div ng-repeat="ssidtssrFile in ssidtssrFiles" class="form-group">
+        <div class="col-sm-12">
+            <a href="{{ssidtssrFile.url}}" target="_blank">{{ssidtssrFile.name}}</a> | <a ng-click="clearFile($index)"><i
+                class="glyphicon glyphicon-trash"></i></a>
+        </div>
+    </div>
+    <div class="form-group">
+        <label class="col-sm-4 control-label">Upload SSDI/TSSR File # {{ssidtssrFiles.length + 1}}:</label>
+        <div class="col-sm-8">
+            <input type="file" ng-model="ssidtssrFile" name="ssidtssrFile" accept="*"
+                   required-file="ssidtssrFiles.length == 0"
+                   onchange="angular.element(this).scope().fileSelected(this)"/>
+            <label class="has-error" ng-show="kcell_form.ssidtssrFile.$error.validFile">File is required</label>
         </div>
     </div>
     <div class="form-group">
         <label class="col-sm-4 control-label">SSID/TSSR Preparation Status:</label>
         <div class="col-sm-8">
             <label class="radio-inline">
-                <input type="radio" ng-model="prepareSSIDTSSRAndUploadPreparedFileResult" name="prepareSSIDTSSRAndUploadPreparedFileResult" value="projectCompleted" required> Project Completed
+                <input type="radio" ng-model="prepareSSIDTSSRAndUploadPreparedFileResult"
+                       name="prepareSSIDTSSRAndUploadPreparedFileResult" value="projectCompleted" required> Project
+                Completed
             </label>
             <label class="radio-inline">
-                <input type="radio" ng-model="prepareSSIDTSSRAndUploadPreparedFileResult" name="prepareSSIDTSSRAndUploadPreparedFileResult" value="replan" required>Need Replan
+                <input type="radio" ng-model="prepareSSIDTSSRAndUploadPreparedFileResult"
+                       name="prepareSSIDTSSRAndUploadPreparedFileResult" value="replan" required>Need Replan
             </label>
-            <label class="error" ng-show="kcell_form.prepareSSIDTSSRAndUploadPreparedFileResult.$error.required && ( kcell_form.prepareSSIDTSSRAndUploadPreparedFileResult.$touched || view.submitted)">Required field</label>
+            <label class="error"
+                   ng-show="kcell_form.prepareSSIDTSSRAndUploadPreparedFileResult.$error.required && ( kcell_form.prepareSSIDTSSRAndUploadPreparedFileResult.$touched || view.submitted)">Required
+                field</label>
         </div>
     </div>
     <div class="form-group">
         <label class="col-sm-4 control-label">Comments</label>
         <div class="col-sm-8">
-            <textarea class="form-control" cam-variable-name="prepareSSIDTSSRAndUploadPreparedFileComment" name="prepareSSIDTSSRAndUploadPreparedFileComment" cam-variable-type="String" placeholder="Comments..." maxlength="500" rows="4" ng-required="prepareSSIDTSSRAndUploadPreparedFileResult !== 'projectCompleted'"></textarea>
-            <label class="error" ng-show="kcell_form.prepareSSIDTSSRAndUploadPreparedFileComment.$error.required && ( kcell_form.prepareSSIDTSSRAndUploadPreparedFileComment.$touched || view.submitted)">Required field</label>
+            <textarea class="form-control" cam-variable-name="prepareSSIDTSSRAndUploadPreparedFileComment"
+                      name="prepareSSIDTSSRAndUploadPreparedFileComment" cam-variable-type="String"
+                      placeholder="Comments..." maxlength="500" rows="4"
+                      ng-required="prepareSSIDTSSRAndUploadPreparedFileResult !== 'projectCompleted'"></textarea>
+            <label class="error"
+                   ng-show="kcell_form.prepareSSIDTSSRAndUploadPreparedFileComment.$error.required && ( kcell_form.prepareSSIDTSSRAndUploadPreparedFileComment.$touched || view.submitted)">Required
+                field</label>
         </div>
     </div>
     <accordion>
         <accordion-group is-open="isHistoryOpen">
             <accordion-heading>
-                History <i class="pull-right glyphicon" ng-class="{'glyphicon-chevron-up': status.isCustomHeaderOpen, 'glyphicon-chevron-down': !status.isCustomHeaderOpen}"></i>
+                History <i class="pull-right glyphicon"
+                           ng-class="{'glyphicon-chevron-up': status.isCustomHeaderOpen, 'glyphicon-chevron-down': !status.isCustomHeaderOpen}"></i>
             </accordion-heading>
             <table class="table">
                 <thead>

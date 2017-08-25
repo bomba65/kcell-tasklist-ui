@@ -1,0 +1,49 @@
+<html>
+<body>
+<input type="file" id="selector" multiple>
+<button onclick="upload()">Upload</button>
+
+<div id="status">No uploads</div>
+<a href="http://localhost/uploads/kcell-host-kcell-site/04dba01c-889b-11e7-b36f-da6044b09f14/07c9988a-889b-11e7-b36f-da6044b09f14/%5Brutracker.org%5D.t5291063%20%282%29%20%281%29.torrent?X-Amz-Algorithm=AWS4-HMAC-SHA256&X-Amz-Credential=AKIAIOSFODNN7EXAMPLE%2F20170824%2Fus-east-1%2Fs3%2Faws4_request&X-Amz-Date=20170824T070903Z&X-Amz-Expires=86400&X-Amz-SignedHeaders=host&X-Amz-Signature=25d0df8af623ea0680cc39cd5182ffa0b7f88f07cf374ff16bd215dd3a12cbed">DOWNLOAD</a>
+
+<script src="//code.jquery.com/jquery-3.1.0.min.js"></script>
+<script type="text/javascript">
+
+ function upload() {
+ 	[$('#selector')[0].files].forEach(fileObj => {
+ 		console.log(fileObj);
+ 		console.log(fileObj[0]);
+     var file = fileObj[0]
+     // Retrieve a URL from our server.
+     retrieveNewURL(file, url => {
+       // Upload the file to the server.
+       uploadFile(file, url);
+     })
+   })
+ }
+
+ // Request to our Node.js server for an upload URL.
+ function retrieveNewURL(file, cb) {
+   $.get(`/minio-client/presignedUploadUrl?name=processes/1292193-12098329013-1203890123-08390213/${file.name}`, (url) => {
+   	 cb(url)
+   })
+ }
+
+ // Use XMLHttpRequest to upload the file to S3.
+ function uploadFile(file, url) {
+ 	console.log(url);
+     var xhr = new XMLHttpRequest ()
+     xhr.open('PUT', url, true);
+     xhr.send(file);
+     xhr.onload = () => {
+	    if (xhr.status == 200) {
+     		$.get(`/minio-client/presignedDownloadUrl?name=processes/1292193-12098329013-1203890123-08390213/${file.name}`, (downloadUrl) =>{
+	        	 $('#status').html(`<a href="${downloadUrl}">Download ${file.name}.</a>`)
+	   		});
+     	}
+     }
+ }
+
+</script>
+</body>
+</html>

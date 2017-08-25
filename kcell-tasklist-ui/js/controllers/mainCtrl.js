@@ -213,7 +213,7 @@ define(['./module','camundaSDK', 'lodash', 'big-js'], function(module, CamSDK, _
 				function(results){
 					$scope.processDefinitions = [];
 					results.data.forEach(function(e){
-						if(e.key === 'Revision' || e.key === 'SiteSharingTopProcess'){
+						if(e.key === 'Revision' || e.key === 'SiteSharingTopProcess' || e.key === 'Process_1'){
 							$scope.processDefinitions.push(e);
 						}
 					})
