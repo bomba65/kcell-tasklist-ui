@@ -7,16 +7,12 @@ import org.camunda.bpm.application.ProcessApplication;
 import org.camunda.bpm.application.impl.event.ProcessApplicationEventListenerPlugin;
 import org.camunda.bpm.engine.delegate.TaskListener;
 import org.camunda.bpm.engine.impl.cfg.ProcessEnginePlugin;
-import org.camunda.bpm.identity.impl.ldap.plugin.LdapIdentityProviderPlugin;
 import org.camunda.bpm.spring.boot.starter.SpringBootProcessApplication;
-import org.camunda.bpm.spring.boot.starter.configuration.Ordering;
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
-import org.springframework.boot.autoconfigure.condition.ConditionalOnClass;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.boot.context.properties.ConfigurationProperties;
 import org.springframework.context.annotation.Bean;
-import org.springframework.core.annotation.Order;
 
 @SpringBootApplication
 @ProcessApplication
@@ -41,7 +37,7 @@ public class CamundaApplication extends SpringBootProcessApplication {
     }
 
     @Bean
-    public static ProcessEnginePlugin processApplicationEventListenerPlugin() {
+    public ProcessEnginePlugin processApplicationEventListenerPlugin() {
         return new ProcessApplicationEventListenerPlugin();
     }
 
