@@ -1,12 +1,12 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<bpmn:definitions xmlns:bpmn="http://www.omg.org/spec/BPMN/20100524/MODEL" xmlns:bpmndi="http://www.omg.org/spec/BPMN/20100524/DI" xmlns:di="http://www.omg.org/spec/DD/20100524/DI" xmlns:dc="http://www.omg.org/spec/DD/20100524/DC" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:camunda="http://camunda.org/schema/1.0/bpmn" id="Definitions_1" targetNamespace="http://bpmn.io/schema/bpmn" exporter="Camunda Modeler" exporterVersion="1.9.0">
+<bpmn:definitions xmlns:bpmn="http://www.omg.org/spec/BPMN/20100524/MODEL" xmlns:bpmndi="http://www.omg.org/spec/BPMN/20100524/DI" xmlns:di="http://www.omg.org/spec/DD/20100524/DI" xmlns:dc="http://www.omg.org/spec/DD/20100524/DC" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:camunda="http://camunda.org/schema/1.0/bpmn" id="Definitions_1" targetNamespace="http://bpmn.io/schema/bpmn" exporter="Camunda Modeler" exporterVersion="1.10.0">
   <bpmn:error id="myException" name="name of error" errorCode="ERROR-OCCURED" />
   <bpmn:process id="Revision" name="Revision" isExecutable="true">
     <bpmn:subProcess id="SubProcess_0cwj4g6" name="Revision Leasing Procedures">
       <bpmn:incoming>SequenceFlow_0jidb3c</bpmn:incoming>
       <bpmn:outgoing>SequenceFlow_17n684j</bpmn:outgoing>
       <bpmn:outgoing>SequenceFlow_0eg1f85</bpmn:outgoing>
-      <bpmn:endEvent id="EndEvent_08g7218">
+      <bpmn:endEvent id="endevt_leasing_approved">
         <bpmn:incoming>SequenceFlow_1i5ejbh</bpmn:incoming>
       </bpmn:endEvent>
       <bpmn:userTask id="update_leasing_status_general" name="Leasing status" camunda:formKey="embedded:app:forms/revision/updateLeasingStatusByRegionalLeasing.html">
@@ -17,25 +17,25 @@
         <bpmn:incoming>SequenceFlow_0k5dp8v</bpmn:incoming>
         <bpmn:outgoing>SequenceFlow_0ur6mix</bpmn:outgoing>
       </bpmn:userTask>
-      <bpmn:sequenceFlow id="SequenceFlow_0ur6mix" sourceRef="update_leasing_status_general" targetRef="exclgw_is_leasing_done" />
-      <bpmn:startEvent id="startevt_leasing">
+      <bpmn:sequenceFlow id="SequenceFlow_0ur6mix" sourceRef="update_leasing_status_general" targetRef="exclgw_leasing_is_leasing_done" />
+      <bpmn:startEvent id="startevt_revision_leasing">
         <bpmn:outgoing>SequenceFlow_1lir1ve</bpmn:outgoing>
       </bpmn:startEvent>
-      <bpmn:sequenceFlow id="SequenceFlow_1lir1ve" sourceRef="startevt_leasing" targetRef="exclgw_site_belongs_to_whom" />
-      <bpmn:exclusiveGateway id="exclgw_is_leasing_done">
+      <bpmn:sequenceFlow id="SequenceFlow_1lir1ve" sourceRef="startevt_revision_leasing" targetRef="exclgw_leasing_site_belongs_to_whom" />
+      <bpmn:exclusiveGateway id="exclgw_leasing_is_leasing_done">
         <bpmn:incoming>SequenceFlow_0ur6mix</bpmn:incoming>
         <bpmn:incoming>SequenceFlow_14draw4</bpmn:incoming>
         <bpmn:outgoing>SequenceFlow_1i5ejbh</bpmn:outgoing>
         <bpmn:outgoing>SequenceFlow_1awdwuw</bpmn:outgoing>
       </bpmn:exclusiveGateway>
-      <bpmn:sequenceFlow id="SequenceFlow_1i5ejbh" name="leasing done" sourceRef="exclgw_is_leasing_done" targetRef="EndEvent_08g7218">
+      <bpmn:sequenceFlow id="SequenceFlow_1i5ejbh" name="leasing done" sourceRef="exclgw_leasing_is_leasing_done" targetRef="endevt_leasing_approved">
         <bpmn:conditionExpression xsi:type="bpmn:tFormalExpression"><![CDATA[${leasingCompletionTaskResult=='done'}]]></bpmn:conditionExpression>
       </bpmn:sequenceFlow>
-      <bpmn:sequenceFlow id="SequenceFlow_1awdwuw" name="leasing impossible" sourceRef="exclgw_is_leasing_done" targetRef="notify_jr_exec_impossible">
+      <bpmn:sequenceFlow id="SequenceFlow_1awdwuw" name="leasing impossible" sourceRef="exclgw_leasing_is_leasing_done" targetRef="leasing_notify_jr_exec_impossible">
         <bpmn:conditionExpression xsi:type="bpmn:tFormalExpression"><![CDATA[${leasingCompletionTaskResult=='impossible'}]]></bpmn:conditionExpression>
       </bpmn:sequenceFlow>
-      <bpmn:sequenceFlow id="SequenceFlow_1ywl9mw" name="" sourceRef="notify_jr_exec_impossible" targetRef="endevt_notify_impossible_jr_exec" />
-      <bpmn:sendTask id="notify_jr_exec_impossible" name="Notify of impossibility of JR execution">
+      <bpmn:sequenceFlow id="SequenceFlow_1ywl9mw" name="" sourceRef="leasing_notify_jr_exec_impossible" targetRef="endevt_leasing_notify_impossible_jr_exec" />
+      <bpmn:sendTask id="leasing_notify_jr_exec_impossible" name="Notify of impossibility of JR execution">
         <bpmn:extensionElements>
           <camunda:connector>
             <camunda:inputOutput>
@@ -51,7 +51,7 @@
         <bpmn:incoming>SequenceFlow_1awdwuw</bpmn:incoming>
         <bpmn:outgoing>SequenceFlow_1ywl9mw</bpmn:outgoing>
       </bpmn:sendTask>
-      <bpmn:exclusiveGateway id="exclgw_site_belongs_to_whom">
+      <bpmn:exclusiveGateway id="exclgw_leasing_site_belongs_to_whom">
         <bpmn:incoming>SequenceFlow_1lir1ve</bpmn:incoming>
         <bpmn:outgoing>SequenceFlow_0k5dp8v</bpmn:outgoing>
         <bpmn:outgoing>SequenceFlow_1i0x6bl</bpmn:outgoing>
@@ -61,14 +61,14 @@
         <bpmn:incoming>SequenceFlow_1i0x6bl</bpmn:incoming>
         <bpmn:outgoing>SequenceFlow_14draw4</bpmn:outgoing>
       </bpmn:userTask>
-      <bpmn:sequenceFlow id="SequenceFlow_0k5dp8v" name="works doesn&#39;t belong to KZT, Beeline, ODS" sourceRef="exclgw_site_belongs_to_whom" targetRef="update_leasing_status_general">
+      <bpmn:sequenceFlow id="SequenceFlow_0k5dp8v" name="works doesn&#39;t belong to KZT, Beeline, ODS" sourceRef="exclgw_leasing_site_belongs_to_whom" targetRef="update_leasing_status_general">
         <bpmn:conditionExpression xsi:type="bpmn:tFormalExpression"><![CDATA[${worksBelongsTo=='No'}]]></bpmn:conditionExpression>
       </bpmn:sequenceFlow>
-      <bpmn:sequenceFlow id="SequenceFlow_1i0x6bl" name=" works belongs to KZT, Beeline, ODS" sourceRef="exclgw_site_belongs_to_whom" targetRef="update_leasing_status_special">
+      <bpmn:sequenceFlow id="SequenceFlow_1i0x6bl" name=" works belongs to KZT, Beeline, ODS" sourceRef="exclgw_leasing_site_belongs_to_whom" targetRef="update_leasing_status_special">
         <bpmn:conditionExpression xsi:type="bpmn:tFormalExpression"><![CDATA[${worksBelongsTo=='Yes'}]]></bpmn:conditionExpression>
       </bpmn:sequenceFlow>
-      <bpmn:sequenceFlow id="SequenceFlow_14draw4" sourceRef="update_leasing_status_special" targetRef="exclgw_is_leasing_done" />
-      <bpmn:intermediateThrowEvent id="endevt_notify_impossible_jr_exec">
+      <bpmn:sequenceFlow id="SequenceFlow_14draw4" sourceRef="update_leasing_status_special" targetRef="exclgw_leasing_is_leasing_done" />
+      <bpmn:intermediateThrowEvent id="endevt_leasing_notify_impossible_jr_exec">
         <bpmn:incoming>SequenceFlow_1ywl9mw</bpmn:incoming>
       </bpmn:intermediateThrowEvent>
       <bpmn:association id="Association_1r45mq2" sourceRef="update_leasing_status_general" targetRef="TextAnnotation_04juvza" />
@@ -160,7 +160,7 @@
       <bpmn:sequenceFlow id="SequenceFlow_1ppjvpj" name="rejected" sourceRef="exclgw_ml_approved_re" targetRef="attach_material_list_contractor">
         <bpmn:conditionExpression xsi:type="bpmn:tFormalExpression"><![CDATA[${approveMaterialsListByRegionGroupsHeadTaskResult=='rejected'}]]></bpmn:conditionExpression>
       </bpmn:sequenceFlow>
-      <bpmn:sequenceFlow id="SequenceFlow_1uudu22" sourceRef="attach_material_list_contractor" targetRef="exclgw_need_to_modify" />
+      <bpmn:sequenceFlow id="SequenceFlow_1uudu22" sourceRef="attach_material_list_contractor" targetRef="exclgw_ml_need_to_modify" />
       <bpmn:sequenceFlow id="SequenceFlow_1y9us7r" name="rejected" sourceRef="exclgw_ml_approved_center" targetRef="approve_material_list_region">
         <bpmn:conditionExpression xsi:type="bpmn:tFormalExpression"><![CDATA[${approveMaterialsListByCentralGroupsHeadTaskResult=='rejected'}]]></bpmn:conditionExpression>
       </bpmn:sequenceFlow>
@@ -176,19 +176,19 @@
         <bpmn:outgoing>SequenceFlow_1sjo7n5</bpmn:outgoing>
       </bpmn:startEvent>
       <bpmn:sequenceFlow id="SequenceFlow_1sjo7n5" sourceRef="startevt_ml_list_prep" targetRef="attach_material_list_contractor" />
-      <bpmn:exclusiveGateway id="exclgw_trupload_status">
+      <bpmn:exclusiveGateway id="exclgw_ml_trupload_status">
         <bpmn:incoming>SequenceFlow_1puv934</bpmn:incoming>
         <bpmn:outgoing>SequenceFlow_0x5m8bx</bpmn:outgoing>
         <bpmn:outgoing>SequenceFlow_1g2fm4f</bpmn:outgoing>
       </bpmn:exclusiveGateway>
-      <bpmn:sequenceFlow id="SequenceFlow_1puv934" sourceRef="upload_tr_contractor" targetRef="exclgw_trupload_status" />
-      <bpmn:sequenceFlow id="SequenceFlow_0x5m8bx" name="required materials are not available in SAP Warehouse" sourceRef="exclgw_trupload_status" targetRef="attach_material_list_contractor">
+      <bpmn:sequenceFlow id="SequenceFlow_1puv934" sourceRef="upload_tr_contractor" targetRef="exclgw_ml_trupload_status" />
+      <bpmn:sequenceFlow id="SequenceFlow_0x5m8bx" name="required materials are not available in SAP Warehouse" sourceRef="exclgw_ml_trupload_status" targetRef="attach_material_list_contractor">
         <bpmn:conditionExpression xsi:type="bpmn:tFormalExpression"><![CDATA[${bindTRToJRByContractorTaskResult=='notAvailable'}]]></bpmn:conditionExpression>
       </bpmn:sequenceFlow>
       <bpmn:endEvent id="endevt_ml_list_prep_success">
         <bpmn:incoming>SequenceFlow_1tbf21w</bpmn:incoming>
       </bpmn:endEvent>
-      <bpmn:sequenceFlow id="SequenceFlow_1g2fm4f" name="materials attached" sourceRef="exclgw_trupload_status" targetRef="validate_tr">
+      <bpmn:sequenceFlow id="SequenceFlow_1g2fm4f" name="materials attached" sourceRef="exclgw_ml_trupload_status" targetRef="validate_tr">
         <bpmn:conditionExpression xsi:type="bpmn:tFormalExpression"><![CDATA[${bindTRToJRByContractorTaskResult=='attached'}]]></bpmn:conditionExpression>
       </bpmn:sequenceFlow>
       <bpmn:endEvent id="endevt_ml_list_prep_rejected">
@@ -202,28 +202,28 @@
       <bpmn:sequenceFlow id="SequenceFlow_1klmxot" name="modify works" sourceRef="exclgw_ml_approved_center" targetRef="endevt_ml_list_prep_rejected">
         <bpmn:conditionExpression xsi:type="bpmn:tFormalExpression"><![CDATA[${approveMaterialsListByCentralGroupsHeadTaskResult=='modify'}]]></bpmn:conditionExpression>
       </bpmn:sequenceFlow>
-      <bpmn:exclusiveGateway id="exclgw_need_to_modify">
+      <bpmn:exclusiveGateway id="exclgw_ml_need_to_modify">
         <bpmn:incoming>SequenceFlow_1uudu22</bpmn:incoming>
         <bpmn:outgoing>SequenceFlow_12vbsjq</bpmn:outgoing>
         <bpmn:outgoing>SequenceFlow_087eljg</bpmn:outgoing>
       </bpmn:exclusiveGateway>
-      <bpmn:sequenceFlow id="SequenceFlow_12vbsjq" name="ml attached" sourceRef="exclgw_need_to_modify" targetRef="approve_material_list_region">
+      <bpmn:sequenceFlow id="SequenceFlow_12vbsjq" name="ml attached" sourceRef="exclgw_ml_need_to_modify" targetRef="approve_material_list_region">
         <bpmn:conditionExpression xsi:type="bpmn:tFormalExpression"><![CDATA[${contractorAttachesMaterialListTaskResult=='attached'}]]></bpmn:conditionExpression>
       </bpmn:sequenceFlow>
-      <bpmn:sequenceFlow id="SequenceFlow_087eljg" name="modify works" sourceRef="exclgw_need_to_modify" targetRef="endevt_ml_list_prep_rejected">
+      <bpmn:sequenceFlow id="SequenceFlow_087eljg" name="modify works" sourceRef="exclgw_ml_need_to_modify" targetRef="endevt_ml_list_prep_rejected">
         <bpmn:conditionExpression xsi:type="bpmn:tFormalExpression"><![CDATA[${contractorAttachesMaterialListTaskResult=='modify'}]]></bpmn:conditionExpression>
       </bpmn:sequenceFlow>
-      <bpmn:sequenceFlow id="SequenceFlow_1mvqaxr" sourceRef="validate_tr" targetRef="exclgw_trvalidated" />
+      <bpmn:sequenceFlow id="SequenceFlow_1mvqaxr" sourceRef="validate_tr" targetRef="exclgw_ml_trvalidated" />
       <bpmn:sequenceFlow id="SequenceFlow_1tbf21w" sourceRef="generate_bar_code_and_unload_to_tr" targetRef="endevt_ml_list_prep_success" />
-      <bpmn:exclusiveGateway id="exclgw_trvalidated">
+      <bpmn:exclusiveGateway id="exclgw_ml_trvalidated">
         <bpmn:incoming>SequenceFlow_1mvqaxr</bpmn:incoming>
         <bpmn:outgoing>SequenceFlow_1aovmnd</bpmn:outgoing>
         <bpmn:outgoing>SequenceFlow_1cr5ksn</bpmn:outgoing>
       </bpmn:exclusiveGateway>
-      <bpmn:sequenceFlow id="SequenceFlow_1aovmnd" name="TR match with material list" sourceRef="exclgw_trvalidated" targetRef="notify_contractor_tr_approved">
+      <bpmn:sequenceFlow id="SequenceFlow_1aovmnd" name="TR match with material list" sourceRef="exclgw_ml_trvalidated" targetRef="notify_contractor_tr_approved">
         <bpmn:conditionExpression xsi:type="bpmn:tFormalExpression"><![CDATA[${checkTRMaterialsByInitiatorTaskResult== 'match'}]]></bpmn:conditionExpression>
       </bpmn:sequenceFlow>
-      <bpmn:sequenceFlow id="SequenceFlow_1cr5ksn" name="TR doesn&#39;t match with material list" sourceRef="exclgw_trvalidated" targetRef="upload_tr_contractor">
+      <bpmn:sequenceFlow id="SequenceFlow_1cr5ksn" name="TR doesn&#39;t match with material list" sourceRef="exclgw_ml_trvalidated" targetRef="upload_tr_contractor">
         <bpmn:conditionExpression xsi:type="bpmn:tFormalExpression"><![CDATA[${checkTRMaterialsByInitiatorTaskResult== 'doesNotMatch'}]]></bpmn:conditionExpression>
       </bpmn:sequenceFlow>
       <bpmn:userTask id="validate_tr" name=" Validate TR" camunda:formKey="embedded:app:forms/revision/checkTRWithApprovedMaterialsByInitiator.html" camunda:assignee="${ starter }">
@@ -385,7 +385,7 @@
         <bpmn:incoming>SequenceFlow_0tunbpb</bpmn:incoming>
         <bpmn:outgoing>SequenceFlow_0n4aumv</bpmn:outgoing>
       </bpmn:userTask>
-      <bpmn:exclusiveGateway id="exclgw_is_budget_approved" name="">
+      <bpmn:exclusiveGateway id="exclgw_createjr_is_budget_approved" name="">
         <bpmn:incoming>SequenceFlow_1pq5xas</bpmn:incoming>
         <bpmn:outgoing>SequenceFlow_1wqdne7</bpmn:outgoing>
         <bpmn:outgoing>SequenceFlow_1hoa515</bpmn:outgoing>
@@ -395,46 +395,46 @@
         <bpmn:incoming>SequenceFlow_03otu34</bpmn:incoming>
         <bpmn:incoming>SequenceFlow_1p9psxx</bpmn:incoming>
       </bpmn:endEvent>
-      <bpmn:sequenceFlow id="SequenceFlow_1wqdne7" name="approved" sourceRef="exclgw_is_budget_approved" targetRef="endevt_createjr_approved">
+      <bpmn:sequenceFlow id="SequenceFlow_1wqdne7" name="approved" sourceRef="exclgw_createjr_is_budget_approved" targetRef="endevt_createjr_approved">
         <bpmn:conditionExpression xsi:type="bpmn:tFormalExpression"><![CDATA[${centralGroupApprovalBudgetEngineerTaskResult=='approved'}]]></bpmn:conditionExpression>
       </bpmn:sequenceFlow>
-      <bpmn:sequenceFlow id="SequenceFlow_1hoa515" name="rejected" sourceRef="exclgw_is_budget_approved" targetRef="modify_jr">
+      <bpmn:sequenceFlow id="SequenceFlow_1hoa515" name="rejected" sourceRef="exclgw_createjr_is_budget_approved" targetRef="modify_jr">
         <bpmn:conditionExpression xsi:type="bpmn:tFormalExpression"><![CDATA[${centralGroupApprovalBudgetEngineerTaskResult=='rejected'}]]></bpmn:conditionExpression>
       </bpmn:sequenceFlow>
-      <bpmn:startEvent id="startevt_createjr">
+      <bpmn:startEvent id="startevt_revision_create_jr">
         <bpmn:outgoing>SequenceFlow_1vga6jb</bpmn:outgoing>
       </bpmn:startEvent>
-      <bpmn:exclusiveGateway id="exclgw_is_power_req">
+      <bpmn:exclusiveGateway id="exclgw_createjr_is_power_req">
         <bpmn:incoming>SequenceFlow_1troz3f</bpmn:incoming>
         <bpmn:outgoing>SequenceFlow_1p9994w</bpmn:outgoing>
         <bpmn:outgoing>SequenceFlow_056em9e</bpmn:outgoing>
       </bpmn:exclusiveGateway>
-      <bpmn:sequenceFlow id="SequenceFlow_1p9994w" name="Power engineering required" sourceRef="exclgw_is_power_req" targetRef="check_power">
+      <bpmn:sequenceFlow id="SequenceFlow_1p9994w" name="Power engineering required" sourceRef="exclgw_createjr_is_power_req" targetRef="check_power">
         <bpmn:conditionExpression xsi:type="bpmn:tFormalExpression"><![CDATA[${powerRequired=='Yes'}]]></bpmn:conditionExpression>
       </bpmn:sequenceFlow>
-      <bpmn:sequenceFlow id="SequenceFlow_056em9e" name="Power engineering not required" sourceRef="exclgw_is_power_req" targetRef="exclgw_is_transm_approve_needed">
+      <bpmn:sequenceFlow id="SequenceFlow_056em9e" name="Power engineering not required" sourceRef="exclgw_createjr_is_power_req" targetRef="exclgw_createjr_is_transm_approve_needed">
         <bpmn:conditionExpression xsi:type="bpmn:tFormalExpression"><![CDATA[${powerRequired=='No'}]]></bpmn:conditionExpression>
       </bpmn:sequenceFlow>
-      <bpmn:exclusiveGateway id="exclgw_is_powerrejected">
+      <bpmn:exclusiveGateway id="exclgw_createjr_is_powerrejected">
         <bpmn:incoming>SequenceFlow_0uqg7t2</bpmn:incoming>
         <bpmn:outgoing>SequenceFlow_07gu6kr</bpmn:outgoing>
         <bpmn:outgoing>SequenceFlow_0ifgbkt</bpmn:outgoing>
       </bpmn:exclusiveGateway>
-      <bpmn:sequenceFlow id="SequenceFlow_0uqg7t2" sourceRef="check_power" targetRef="exclgw_is_powerrejected" />
-      <bpmn:sequenceFlow id="SequenceFlow_07gu6kr" name="approved" sourceRef="exclgw_is_powerrejected" targetRef="exclgw_is_transm_approve_needed">
+      <bpmn:sequenceFlow id="SequenceFlow_0uqg7t2" sourceRef="check_power" targetRef="exclgw_createjr_is_powerrejected" />
+      <bpmn:sequenceFlow id="SequenceFlow_07gu6kr" name="approved" sourceRef="exclgw_createjr_is_powerrejected" targetRef="exclgw_createjr_is_transm_approve_needed">
         <bpmn:conditionExpression xsi:type="bpmn:tFormalExpression"><![CDATA[${checkByPowerEngineerAndMakeCalculationsTaskResult == 'approved'}]]></bpmn:conditionExpression>
       </bpmn:sequenceFlow>
-      <bpmn:exclusiveGateway id="exclgw_is_reg_approved">
+      <bpmn:exclusiveGateway id="exclgw_createjr_is_reg_approved">
         <bpmn:incoming>SequenceFlow_0bhtmw4</bpmn:incoming>
         <bpmn:outgoing>SequenceFlow_1troz3f</bpmn:outgoing>
         <bpmn:outgoing>SequenceFlow_1tkoxjb</bpmn:outgoing>
         <bpmn:outgoing>SequenceFlow_1ip3b6e</bpmn:outgoing>
       </bpmn:exclusiveGateway>
-      <bpmn:sequenceFlow id="SequenceFlow_0bhtmw4" sourceRef="approve_jr_regions" targetRef="exclgw_is_reg_approved" />
-      <bpmn:sequenceFlow id="SequenceFlow_1troz3f" name="approved" sourceRef="exclgw_is_reg_approved" targetRef="exclgw_is_power_req">
+      <bpmn:sequenceFlow id="SequenceFlow_0bhtmw4" sourceRef="approve_jr_regions" targetRef="exclgw_createjr_is_reg_approved" />
+      <bpmn:sequenceFlow id="SequenceFlow_1troz3f" name="approved" sourceRef="exclgw_createjr_is_reg_approved" targetRef="exclgw_createjr_is_power_req">
         <bpmn:conditionExpression xsi:type="bpmn:tFormalExpression"><![CDATA[${regionGroupHeadApprovalTaskResult == 'approved'}]]></bpmn:conditionExpression>
       </bpmn:sequenceFlow>
-      <bpmn:sendTask id="notify_jr_execution_impossible" name="Notification: JR execution impossible">
+      <bpmn:sendTask id="createjr_notify_jr_exec_impossible" name="Notification: JR execution impossible">
         <bpmn:extensionElements>
           <camunda:connector>
             <camunda:inputOutput>
@@ -453,10 +453,10 @@
         <bpmn:incoming>SequenceFlow_0774hpl</bpmn:incoming>
         <bpmn:outgoing>SequenceFlow_05dm0js</bpmn:outgoing>
       </bpmn:sendTask>
-      <bpmn:sequenceFlow id="SequenceFlow_1tkoxjb" name="can&#39;t fix" sourceRef="exclgw_is_reg_approved" targetRef="exclgw_cantfix">
+      <bpmn:sequenceFlow id="SequenceFlow_1tkoxjb" name="can&#39;t fix" sourceRef="exclgw_createjr_is_reg_approved" targetRef="exclgw_createjr_cantfix">
         <bpmn:conditionExpression xsi:type="bpmn:tFormalExpression"><![CDATA[${regionGroupHeadApprovalTaskResult == 'cantFix'}]]></bpmn:conditionExpression>
       </bpmn:sequenceFlow>
-      <bpmn:sequenceFlow id="SequenceFlow_05dm0js" sourceRef="notify_jr_execution_impossible" targetRef="endevt_create_jr_impossible" />
+      <bpmn:sequenceFlow id="SequenceFlow_05dm0js" sourceRef="createjr_notify_jr_exec_impossible" targetRef="endevt_createjr_impossible" />
       <bpmn:userTask id="check_power" name="Check Power" camunda:formKey="embedded:app:forms/revision/checkByPowerEngineerAndMakeCalculations.html">
         <bpmn:documentation>Check by Power engineer and make calculations</bpmn:documentation>
         <bpmn:extensionElements>
@@ -465,10 +465,10 @@
         <bpmn:incoming>SequenceFlow_1p9994w</bpmn:incoming>
         <bpmn:outgoing>SequenceFlow_0uqg7t2</bpmn:outgoing>
       </bpmn:userTask>
-      <bpmn:sequenceFlow id="SequenceFlow_1ip3b6e" name="rejected" sourceRef="exclgw_is_reg_approved" targetRef="modify_jr">
+      <bpmn:sequenceFlow id="SequenceFlow_1ip3b6e" name="rejected" sourceRef="exclgw_createjr_is_reg_approved" targetRef="modify_jr">
         <bpmn:conditionExpression xsi:type="bpmn:tFormalExpression"><![CDATA[${regionGroupHeadApprovalTaskResult == 'rejected'}]]></bpmn:conditionExpression>
       </bpmn:sequenceFlow>
-      <bpmn:sequenceFlow id="SequenceFlow_0ifgbkt" name="rejected" sourceRef="exclgw_is_powerrejected" targetRef="modify_jr">
+      <bpmn:sequenceFlow id="SequenceFlow_0ifgbkt" name="rejected" sourceRef="exclgw_createjr_is_powerrejected" targetRef="modify_jr">
         <bpmn:conditionExpression xsi:type="bpmn:tFormalExpression"><![CDATA[${checkByPowerEngineerAndMakeCalculationsTaskResult == 'rejected'}]]></bpmn:conditionExpression>
       </bpmn:sequenceFlow>
       <bpmn:userTask id="approve_transmission_works" name="Approve Transmission works" camunda:formKey="embedded:app:forms/revision/centralGroupApprovalEngineer.html" camunda:candidateGroups="hq_transmission_engineer">
@@ -484,68 +484,68 @@
         <bpmn:incoming>SequenceFlow_0c7fdul</bpmn:incoming>
         <bpmn:outgoing>SequenceFlow_1pq5xas</bpmn:outgoing>
       </bpmn:userTask>
-      <bpmn:exclusiveGateway id="exclgw_is_transm_approve_needed">
+      <bpmn:exclusiveGateway id="exclgw_createjr_is_transm_approve_needed">
         <bpmn:incoming>SequenceFlow_07gu6kr</bpmn:incoming>
         <bpmn:incoming>SequenceFlow_056em9e</bpmn:incoming>
         <bpmn:outgoing>SequenceFlow_0tunbpb</bpmn:outgoing>
         <bpmn:outgoing>SequenceFlow_0s4pkfn</bpmn:outgoing>
       </bpmn:exclusiveGateway>
-      <bpmn:sequenceFlow id="SequenceFlow_0tunbpb" sourceRef="exclgw_is_transm_approve_needed" targetRef="approve_jr">
+      <bpmn:sequenceFlow id="SequenceFlow_0tunbpb" sourceRef="exclgw_createjr_is_transm_approve_needed" targetRef="approve_jr">
         <bpmn:conditionExpression xsi:type="bpmn:tFormalExpression"><![CDATA[${reason != '2'}]]></bpmn:conditionExpression>
       </bpmn:sequenceFlow>
-      <bpmn:sequenceFlow id="SequenceFlow_0s4pkfn" name="if transmission works selected" sourceRef="exclgw_is_transm_approve_needed" targetRef="approve_transmission_works">
+      <bpmn:sequenceFlow id="SequenceFlow_0s4pkfn" name="if transmission works selected" sourceRef="exclgw_createjr_is_transm_approve_needed" targetRef="approve_transmission_works">
         <bpmn:conditionExpression xsi:type="bpmn:tFormalExpression"><![CDATA[${reason == '2'}]]></bpmn:conditionExpression>
       </bpmn:sequenceFlow>
-      <bpmn:sequenceFlow id="SequenceFlow_1pq5xas" sourceRef="approve_jr_budget" targetRef="exclgw_is_budget_approved" />
-      <bpmn:exclusiveGateway id="exclgw_is_tran_approved">
+      <bpmn:sequenceFlow id="SequenceFlow_1pq5xas" sourceRef="approve_jr_budget" targetRef="exclgw_createjr_is_budget_approved" />
+      <bpmn:exclusiveGateway id="exclgw_createjr_is_tran_approved">
         <bpmn:incoming>SequenceFlow_1856psw</bpmn:incoming>
         <bpmn:outgoing>SequenceFlow_0c7fdul</bpmn:outgoing>
         <bpmn:outgoing>SequenceFlow_1eg1vhx</bpmn:outgoing>
       </bpmn:exclusiveGateway>
-      <bpmn:sequenceFlow id="SequenceFlow_1856psw" sourceRef="approve_transmission_works" targetRef="exclgw_is_tran_approved" />
-      <bpmn:sequenceFlow id="SequenceFlow_0c7fdul" name="Approved" sourceRef="exclgw_is_tran_approved" targetRef="approve_jr_budget">
+      <bpmn:sequenceFlow id="SequenceFlow_1856psw" sourceRef="approve_transmission_works" targetRef="exclgw_createjr_is_tran_approved" />
+      <bpmn:sequenceFlow id="SequenceFlow_0c7fdul" name="Approved" sourceRef="exclgw_createjr_is_tran_approved" targetRef="approve_jr_budget">
         <bpmn:conditionExpression xsi:type="bpmn:tFormalExpression"><![CDATA[${centralGroupApprovalEngineerTaskResult == 'approved'}]]></bpmn:conditionExpression>
       </bpmn:sequenceFlow>
-      <bpmn:sequenceFlow id="SequenceFlow_1eg1vhx" name="Rejected" sourceRef="exclgw_is_tran_approved" targetRef="modify_jr">
+      <bpmn:sequenceFlow id="SequenceFlow_1eg1vhx" name="Rejected" sourceRef="exclgw_createjr_is_tran_approved" targetRef="modify_jr">
         <bpmn:conditionExpression xsi:type="bpmn:tFormalExpression"><![CDATA[${centralGroupApprovalEngineerTaskResult == 'rejected'}]]></bpmn:conditionExpression>
       </bpmn:sequenceFlow>
-      <bpmn:exclusiveGateway id="exclgw_is_jr_approved">
+      <bpmn:exclusiveGateway id="exclgw_createjr_is_jr_approved">
         <bpmn:incoming>SequenceFlow_0n4aumv</bpmn:incoming>
         <bpmn:outgoing>SequenceFlow_03otu34</bpmn:outgoing>
         <bpmn:outgoing>SequenceFlow_068h5f0</bpmn:outgoing>
       </bpmn:exclusiveGateway>
-      <bpmn:sequenceFlow id="SequenceFlow_0n4aumv" sourceRef="approve_jr" targetRef="exclgw_is_jr_approved" />
-      <bpmn:sequenceFlow id="SequenceFlow_03otu34" name="Approved" sourceRef="exclgw_is_jr_approved" targetRef="endevt_createjr_approved">
+      <bpmn:sequenceFlow id="SequenceFlow_0n4aumv" sourceRef="approve_jr" targetRef="exclgw_createjr_is_jr_approved" />
+      <bpmn:sequenceFlow id="SequenceFlow_03otu34" name="Approved" sourceRef="exclgw_createjr_is_jr_approved" targetRef="endevt_createjr_approved">
         <bpmn:conditionExpression xsi:type="bpmn:tFormalExpression"><![CDATA[${centralGroupHeadApprovalTaskResult == 'approved'}]]></bpmn:conditionExpression>
       </bpmn:sequenceFlow>
-      <bpmn:sequenceFlow id="SequenceFlow_068h5f0" name="Rejected" sourceRef="exclgw_is_jr_approved" targetRef="modify_jr">
+      <bpmn:sequenceFlow id="SequenceFlow_068h5f0" name="Rejected" sourceRef="exclgw_createjr_is_jr_approved" targetRef="modify_jr">
         <bpmn:conditionExpression xsi:type="bpmn:tFormalExpression"><![CDATA[${centralGroupHeadApprovalTaskResult == 'rejected'}]]></bpmn:conditionExpression>
       </bpmn:sequenceFlow>
-      <bpmn:exclusiveGateway id="exclgw_is_workschg">
+      <bpmn:exclusiveGateway id="exclgw_createjr_is_workschg">
         <bpmn:incoming>SequenceFlow_0htg4cl</bpmn:incoming>
         <bpmn:outgoing>SequenceFlow_0k8qm6w</bpmn:outgoing>
         <bpmn:outgoing>SequenceFlow_1p9psxx</bpmn:outgoing>
         <bpmn:outgoing>SequenceFlow_1pbmltu</bpmn:outgoing>
       </bpmn:exclusiveGateway>
-      <bpmn:sequenceFlow id="SequenceFlow_0k8qm6w" name="works not changed" sourceRef="exclgw_is_workschg" targetRef="generate_blank_jr_and_attach_to_the_process_instance">
+      <bpmn:sequenceFlow id="SequenceFlow_0k8qm6w" name="works not changed" sourceRef="exclgw_createjr_is_workschg" targetRef="generate_blank_jr_and_attach_to_the_process_instance">
         <bpmn:conditionExpression xsi:type="bpmn:tFormalExpression"><![CDATA[${ptype=='prod' && worksChanged=='false'}]]></bpmn:conditionExpression>
       </bpmn:sequenceFlow>
-      <bpmn:sequenceFlow id="SequenceFlow_1p9psxx" name="test mode" sourceRef="exclgw_is_workschg" targetRef="endevt_createjr_approved">
+      <bpmn:sequenceFlow id="SequenceFlow_1p9psxx" name="test mode" sourceRef="exclgw_createjr_is_workschg" targetRef="endevt_createjr_approved">
         <bpmn:conditionExpression xsi:type="bpmn:tFormalExpression"><![CDATA[${ptype=='test'}]]></bpmn:conditionExpression>
       </bpmn:sequenceFlow>
-      <bpmn:sequenceFlow id="SequenceFlow_0a0y9kl" name="" sourceRef="modify_jr" targetRef="exclgw_modify_jr_complete_status" />
-      <bpmn:exclusiveGateway id="exclgw_modify_jr_complete_status">
+      <bpmn:sequenceFlow id="SequenceFlow_0a0y9kl" name="" sourceRef="modify_jr" targetRef="exclgw_createjr_modifyjr_complete_status" />
+      <bpmn:exclusiveGateway id="exclgw_createjr_modifyjr_complete_status">
         <bpmn:incoming>SequenceFlow_0a0y9kl</bpmn:incoming>
         <bpmn:outgoing>SequenceFlow_0htg4cl</bpmn:outgoing>
         <bpmn:outgoing>SequenceFlow_1s723rd</bpmn:outgoing>
       </bpmn:exclusiveGateway>
-      <bpmn:sequenceFlow id="SequenceFlow_0htg4cl" name="not cancelled" sourceRef="exclgw_modify_jr_complete_status" targetRef="exclgw_is_workschg">
+      <bpmn:sequenceFlow id="SequenceFlow_0htg4cl" name="not cancelled" sourceRef="exclgw_createjr_modifyjr_complete_status" targetRef="exclgw_createjr_is_workschg">
         <bpmn:conditionExpression xsi:type="bpmn:tFormalExpression"><![CDATA[${modifyJrResult == 'modified'}]]></bpmn:conditionExpression>
       </bpmn:sequenceFlow>
-      <bpmn:sequenceFlow id="SequenceFlow_1s723rd" name="cancelled" sourceRef="exclgw_modify_jr_complete_status" targetRef="notify_to_cancel_pr_by_email_1">
+      <bpmn:sequenceFlow id="SequenceFlow_1s723rd" name="cancelled" sourceRef="exclgw_createjr_modifyjr_complete_status" targetRef="createjr_notify_to_cancel_pr_by_email_1">
         <bpmn:conditionExpression xsi:type="bpmn:tFormalExpression"><![CDATA[${modifyJrResult == 'canceled'}]]></bpmn:conditionExpression>
       </bpmn:sequenceFlow>
-      <bpmn:sendTask id="notify_to_cancel_pr_by_email_1" name="Notify to Cancel PR by Email">
+      <bpmn:sendTask id="createjr_notify_to_cancel_pr_by_email_1" name="Notify to Cancel PR by Email">
         <bpmn:extensionElements>
           <camunda:connector>
             <camunda:inputOutput>
@@ -563,15 +563,15 @@
         <bpmn:incoming>SequenceFlow_1s723rd</bpmn:incoming>
         <bpmn:outgoing>SequenceFlow_1rcbch1</bpmn:outgoing>
       </bpmn:sendTask>
-      <bpmn:endEvent id="endevt_cancelled">
+      <bpmn:endEvent id="endevt_createjr_cancelled">
         <bpmn:incoming>SequenceFlow_1x6rg94</bpmn:incoming>
       </bpmn:endEvent>
-      <bpmn:sequenceFlow id="SequenceFlow_1rcbch1" sourceRef="notify_to_cancel_pr_by_email_1" targetRef="set_pr_creation_not_in_progress_1" />
-      <bpmn:sequenceFlow id="SequenceFlow_1pbmltu" name="works changed" sourceRef="exclgw_is_workschg" targetRef="notify_to_cancel_pr_by_email">
+      <bpmn:sequenceFlow id="SequenceFlow_1rcbch1" sourceRef="createjr_notify_to_cancel_pr_by_email_1" targetRef="set_pr_creation_not_in_progress_1" />
+      <bpmn:sequenceFlow id="SequenceFlow_1pbmltu" name="works changed" sourceRef="exclgw_createjr_is_workschg" targetRef="createjr_notify_to_cancel_pr_by_email">
         <bpmn:conditionExpression xsi:type="bpmn:tFormalExpression"><![CDATA[${ptype == 'prod' && worksChanged == 'true'}]]></bpmn:conditionExpression>
       </bpmn:sequenceFlow>
-      <bpmn:sequenceFlow id="SequenceFlow_1cviy5h" sourceRef="notify_to_cancel_pr_by_email" targetRef="set_pr_creation_not_in_progress_2" />
-      <bpmn:sendTask id="notify_to_cancel_pr_by_email" name="Notify to Cancel PR by Email">
+      <bpmn:sequenceFlow id="SequenceFlow_1cviy5h" sourceRef="createjr_notify_to_cancel_pr_by_email" targetRef="set_pr_creation_not_in_progress_2" />
+      <bpmn:sendTask id="createjr_notify_to_cancel_pr_by_email" name="Notify to Cancel PR by Email">
         <bpmn:extensionElements>
           <camunda:connector>
             <camunda:inputOutput>
@@ -607,36 +607,36 @@
         <bpmn:outgoing>SequenceFlow_0ex1sjt</bpmn:outgoing>
       </bpmn:serviceTask>
       <bpmn:sequenceFlow id="SequenceFlow_0ex1sjt" sourceRef="generate_blank_jr_and_attach_to_the_process_instance" targetRef="approve_jr_regions" />
-      <bpmn:exclusiveGateway id="exclgw_is_initial">
+      <bpmn:exclusiveGateway id="exclgw_createjr_is_initial">
         <bpmn:incoming>SequenceFlow_1vga6jb</bpmn:incoming>
         <bpmn:outgoing>SequenceFlow_04jba9p</bpmn:outgoing>
         <bpmn:outgoing>SequenceFlow_1nruvfr</bpmn:outgoing>
       </bpmn:exclusiveGateway>
-      <bpmn:sequenceFlow id="SequenceFlow_04jba9p" name="&#62; 0 activities passed - not initial request" sourceRef="exclgw_is_initial" targetRef="modify_jr">
+      <bpmn:sequenceFlow id="SequenceFlow_04jba9p" name="&#62; 0 activities passed - not initial request" sourceRef="exclgw_createjr_is_initial" targetRef="modify_jr">
         <bpmn:conditionExpression xsi:type="bpmn:tFormalExpression"><![CDATA[${isNewProcessCreated == 'false'}]]></bpmn:conditionExpression>
       </bpmn:sequenceFlow>
-      <bpmn:sequenceFlow id="SequenceFlow_1nruvfr" name="0 activities passed - initial request" sourceRef="exclgw_is_initial" targetRef="generate_blank_jr_and_attach_to_the_process_instance">
+      <bpmn:sequenceFlow id="SequenceFlow_1nruvfr" name="0 activities passed - initial request" sourceRef="exclgw_createjr_is_initial" targetRef="generate_blank_jr_and_attach_to_the_process_instance">
         <bpmn:conditionExpression xsi:type="bpmn:tFormalExpression">${isNewProcessCreated == true}</bpmn:conditionExpression>
       </bpmn:sequenceFlow>
-      <bpmn:sequenceFlow id="SequenceFlow_1vga6jb" sourceRef="startevt_createjr" targetRef="exclgw_is_initial" />
+      <bpmn:sequenceFlow id="SequenceFlow_1vga6jb" sourceRef="startevt_revision_create_jr" targetRef="exclgw_createjr_is_initial" />
       <bpmn:scriptTask id="set_pr_creation_not_in_progress_3" name="Set prCreationInProgress=false variable">
         <bpmn:incoming>SequenceFlow_1jm891a</bpmn:incoming>
         <bpmn:outgoing>SequenceFlow_1ksspc2</bpmn:outgoing>
         <bpmn:script><![CDATA[${execution.setVariable('prCreationInProgress','false')}]]></bpmn:script>
       </bpmn:scriptTask>
-      <bpmn:sequenceFlow id="SequenceFlow_1ksspc2" sourceRef="set_pr_creation_not_in_progress_3" targetRef="notify_jr_execution_impossible" />
-      <bpmn:exclusiveGateway id="exclgw_cantfix">
+      <bpmn:sequenceFlow id="SequenceFlow_1ksspc2" sourceRef="set_pr_creation_not_in_progress_3" targetRef="createjr_notify_jr_exec_impossible" />
+      <bpmn:exclusiveGateway id="exclgw_createjr_cantfix">
         <bpmn:incoming>SequenceFlow_1tkoxjb</bpmn:incoming>
         <bpmn:outgoing>SequenceFlow_0txlt2s</bpmn:outgoing>
         <bpmn:outgoing>SequenceFlow_0774hpl</bpmn:outgoing>
       </bpmn:exclusiveGateway>
-      <bpmn:sequenceFlow id="SequenceFlow_0txlt2s" name="pr creation was launched before" sourceRef="exclgw_cantfix" targetRef="notify_to_cancel_pr_by_email_2">
+      <bpmn:sequenceFlow id="SequenceFlow_0txlt2s" name="pr creation was launched before" sourceRef="exclgw_createjr_cantfix" targetRef="createjr_notify_to_cancel_pr_by_email_2">
         <bpmn:conditionExpression xsi:type="bpmn:tFormalExpression"><![CDATA[${prCreationInProgress=='true'}]]></bpmn:conditionExpression>
       </bpmn:sequenceFlow>
-      <bpmn:sequenceFlow id="SequenceFlow_0774hpl" name="pr creation was not launched before" sourceRef="exclgw_cantfix" targetRef="notify_jr_execution_impossible">
+      <bpmn:sequenceFlow id="SequenceFlow_0774hpl" name="pr creation was not launched before" sourceRef="exclgw_createjr_cantfix" targetRef="createjr_notify_jr_exec_impossible">
         <bpmn:conditionExpression xsi:type="bpmn:tFormalExpression"><![CDATA[${prCreationInProgress=='false'}]]></bpmn:conditionExpression>
       </bpmn:sequenceFlow>
-      <bpmn:sendTask id="notify_to_cancel_pr_by_email_2" name="Notify to Cancel PR by Email">
+      <bpmn:sendTask id="createjr_notify_to_cancel_pr_by_email_2" name="Notify to Cancel PR by Email">
         <bpmn:extensionElements>
           <camunda:connector>
             <camunda:inputOutput>
@@ -654,21 +654,21 @@
         <bpmn:incoming>SequenceFlow_0txlt2s</bpmn:incoming>
         <bpmn:outgoing>SequenceFlow_1jm891a</bpmn:outgoing>
       </bpmn:sendTask>
-      <bpmn:sequenceFlow id="SequenceFlow_1jm891a" sourceRef="notify_to_cancel_pr_by_email_2" targetRef="set_pr_creation_not_in_progress_3" />
+      <bpmn:sequenceFlow id="SequenceFlow_1jm891a" sourceRef="createjr_notify_to_cancel_pr_by_email_2" targetRef="set_pr_creation_not_in_progress_3" />
       <bpmn:scriptTask id="set_pr_creation_not_in_progress_1" name="Set prCreationInProgress=false variable">
         <bpmn:incoming>SequenceFlow_1rcbch1</bpmn:incoming>
         <bpmn:outgoing>SequenceFlow_1x6rg94</bpmn:outgoing>
         <bpmn:script><![CDATA[${execution.setVariable('prCreationInProgress','false')}]]></bpmn:script>
       </bpmn:scriptTask>
-      <bpmn:sequenceFlow id="SequenceFlow_1x6rg94" sourceRef="set_pr_creation_not_in_progress_1" targetRef="endevt_cancelled" />
-      <bpmn:endEvent id="endevt_create_jr_impossible">
+      <bpmn:sequenceFlow id="SequenceFlow_1x6rg94" sourceRef="set_pr_creation_not_in_progress_1" targetRef="endevt_createjr_cancelled" />
+      <bpmn:endEvent id="endevt_createjr_impossible">
         <bpmn:incoming>SequenceFlow_05dm0js</bpmn:incoming>
       </bpmn:endEvent>
       <bpmn:association id="Association_13cbx79" sourceRef="modify_jr" targetRef="TextAnnotation_0hzejdn" />
       <bpmn:association id="Association_0j5a8e6" sourceRef="approve_jr_regions" targetRef="TextAnnotation_0j3uh3b" />
       <bpmn:association id="Association_0qnw6yg" sourceRef="approve_jr" targetRef="TextAnnotation_1u53fp1" />
-      <bpmn:association id="Association_1bh03t0" sourceRef="notify_to_cancel_pr_by_email" targetRef="TextAnnotation_1f0f6i9" />
-      <bpmn:association id="Association_1qrwgmn" sourceRef="notify_to_cancel_pr_by_email_1" targetRef="TextAnnotation_010uo03" />
+      <bpmn:association id="Association_1bh03t0" sourceRef="createjr_notify_to_cancel_pr_by_email" targetRef="TextAnnotation_1f0f6i9" />
+      <bpmn:association id="Association_1qrwgmn" sourceRef="createjr_notify_to_cancel_pr_by_email_1" targetRef="TextAnnotation_010uo03" />
       <bpmn:association id="Association_0p8o61s" sourceRef="set_pr_creation_not_in_progress_2" targetRef="TextAnnotation_1ccusbv" />
       <bpmn:association id="Association_0mtuzci" sourceRef="generate_blank_jr_and_attach_to_the_process_instance" targetRef="TextAnnotation_044d1qz" />
     </bpmn:subProcess>
@@ -705,99 +705,125 @@
       <bpmn:incoming>SequenceFlow_1ntmj29</bpmn:incoming>
       <bpmn:outgoing>SequenceFlow_1lwdiem</bpmn:outgoing>
       <bpmn:outgoing>SequenceFlow_0fhdfes</bpmn:outgoing>
-      <bpmn:userTask id="accept_performed_works_region" name="Accept Performed Works" camunda:formKey="embedded:app:forms/revision/acceptJobByRegionalGroup.html">
-        <bpmn:documentation>Accept Job by Regional Group</bpmn:documentation>
-        <bpmn:extensionElements>
-          <camunda:taskListener class="kz.kcell.bpm.assignments.AcceptJobByRegionalGroup" event="create" />
-        </bpmn:extensionElements>
-        <bpmn:incoming>SequenceFlow_1oqa52r</bpmn:incoming>
-        <bpmn:outgoing>SequenceFlow_1o9e13l</bpmn:outgoing>
-      </bpmn:userTask>
-      <bpmn:exclusiveGateway id="exclgw_accept_performed_works_region">
-        <bpmn:incoming>SequenceFlow_1o9e13l</bpmn:incoming>
-        <bpmn:outgoing>SequenceFlow_0p9r9wf</bpmn:outgoing>
-        <bpmn:outgoing>SequenceFlow_0fkgaq0</bpmn:outgoing>
-      </bpmn:exclusiveGateway>
-      <bpmn:userTask id="accept_performed_works_center" name="Accept Performed Works" camunda:formKey="embedded:app:forms/revision/acceptJobByCentralGroup.html">
-        <bpmn:documentation>Accept Job by Central Group</bpmn:documentation>
-        <bpmn:extensionElements>
-          <camunda:taskListener class="kz.kcell.bpm.assignments.AcceptJobByCentralGroup" event="create" />
-        </bpmn:extensionElements>
-        <bpmn:incoming>SequenceFlow_0p9r9wf</bpmn:incoming>
-        <bpmn:outgoing>SequenceFlow_152tq2c</bpmn:outgoing>
-      </bpmn:userTask>
-      <bpmn:exclusiveGateway id="exclgw_accept_performed_works_center">
-        <bpmn:incoming>SequenceFlow_152tq2c</bpmn:incoming>
-        <bpmn:outgoing>SequenceFlow_0b8zlhx</bpmn:outgoing>
-        <bpmn:outgoing>SequenceFlow_061k4i3</bpmn:outgoing>
-      </bpmn:exclusiveGateway>
-      <bpmn:endEvent id="endevt_accept_performed_job_rejected_not_submitted_to_leasing">
-        <bpmn:incoming>SequenceFlow_1j4zio7</bpmn:incoming>
-      </bpmn:endEvent>
-      <bpmn:endEvent id="endevt_accept_performed_job_rejected_region">
-        <bpmn:incoming>SequenceFlow_0fkgaq0</bpmn:incoming>
-      </bpmn:endEvent>
-      <bpmn:endEvent id="endevt_accept_performed_job_rejected_center">
-        <bpmn:incoming>SequenceFlow_061k4i3</bpmn:incoming>
-      </bpmn:endEvent>
-      <bpmn:sequenceFlow id="SequenceFlow_0p9r9wf" name="accepted" sourceRef="exclgw_accept_performed_works_region" targetRef="accept_performed_works_center">
-        <bpmn:conditionExpression xsi:type="bpmn:tFormalExpression"><![CDATA[${acceptJobByRegionalGroupTaskResult=='accepted'}]]></bpmn:conditionExpression>
-      </bpmn:sequenceFlow>
-      <bpmn:sequenceFlow id="SequenceFlow_0fkgaq0" name="rejected" sourceRef="exclgw_accept_performed_works_region" targetRef="endevt_accept_performed_job_rejected_region">
-        <bpmn:conditionExpression xsi:type="bpmn:tFormalExpression"><![CDATA[${acceptJobByRegionalGroupTaskResult=='rejected'}]]></bpmn:conditionExpression>
-      </bpmn:sequenceFlow>
-      <bpmn:sequenceFlow id="SequenceFlow_152tq2c" sourceRef="accept_performed_works_center" targetRef="exclgw_accept_performed_works_center" />
-      <bpmn:sequenceFlow id="SequenceFlow_0b8zlhx" name="accepted" sourceRef="exclgw_accept_performed_works_center" targetRef="generate_acceptance_docs_and_save_to_asset_management">
-        <bpmn:conditionExpression xsi:type="bpmn:tFormalExpression"><![CDATA[${acceptJobByCentralGroupTaskResult=='accepted'}]]></bpmn:conditionExpression>
-      </bpmn:sequenceFlow>
-      <bpmn:sequenceFlow id="SequenceFlow_061k4i3" name="rejected" sourceRef="exclgw_accept_performed_works_center" targetRef="endevt_accept_performed_job_rejected_center">
-        <bpmn:conditionExpression xsi:type="bpmn:tFormalExpression"><![CDATA[${acceptJobByCentralGroupTaskResult=='rejected'}]]></bpmn:conditionExpression>
-      </bpmn:sequenceFlow>
-      <bpmn:startEvent id="startevt_accept_performed_job">
-        <bpmn:outgoing>SequenceFlow_1oqa52r</bpmn:outgoing>
+      <bpmn:startEvent id="startevt_accept_works">
+        <bpmn:outgoing>SequenceFlow_0g3rb8x</bpmn:outgoing>
       </bpmn:startEvent>
-      <bpmn:sequenceFlow id="SequenceFlow_1oqa52r" sourceRef="startevt_accept_performed_job" targetRef="accept_performed_works_region" />
-      <bpmn:userTask id="generate_acceptance_docs_and_save_to_asset_management" name="Generate Acceptance Docs and Save to Asset Management" camunda:formKey="embedded:app:forms/revision/generateAcceptanceDocsAndSaveToAssetManagement.html" camunda:assignee="${ starter }">
-        <bpmn:documentation>Generate Acceptance Docs and Save to Asset Management</bpmn:documentation>
-        <bpmn:incoming>SequenceFlow_0b8zlhx</bpmn:incoming>
-        <bpmn:outgoing>SequenceFlow_1ea0261</bpmn:outgoing>
+      <bpmn:userTask id="accept_work_initiator" name="accept and sign by initiator" camunda:formKey="embedded:app:forms/revision/accept-and-sign-by-initiator.html" camunda:assignee="${ starter }">
+        <bpmn:incoming>SequenceFlow_0g3rb8x</bpmn:incoming>
+        <bpmn:incoming>SequenceFlow_0fjaonh</bpmn:incoming>
+        <bpmn:incoming>SequenceFlow_01i21oc</bpmn:incoming>
+        <bpmn:incoming>SequenceFlow_10el177</bpmn:incoming>
+        <bpmn:outgoing>SequenceFlow_08btjh3</bpmn:outgoing>
       </bpmn:userTask>
-      <bpmn:exclusiveGateway id="exclgw_need_to_submit_to_leasing">
-        <bpmn:incoming>SequenceFlow_1ea0261</bpmn:incoming>
-        <bpmn:outgoing>SequenceFlow_1j4zio7</bpmn:outgoing>
-        <bpmn:outgoing>SequenceFlow_1gr7bbx</bpmn:outgoing>
+      <bpmn:exclusiveGateway id="exclgw_acceptance_is_transm_accept_needed">
+        <bpmn:incoming>SequenceFlow_0parye1</bpmn:incoming>
+        <bpmn:outgoing>SequenceFlow_092yoln</bpmn:outgoing>
+        <bpmn:outgoing>SequenceFlow_0uvgbxl</bpmn:outgoing>
       </bpmn:exclusiveGateway>
-      <bpmn:sequenceFlow id="SequenceFlow_1j4zio7" name="not required submit to leasing " sourceRef="exclgw_need_to_submit_to_leasing" targetRef="endevt_accept_performed_job_rejected_not_submitted_to_leasing">
-        <bpmn:conditionExpression xsi:type="bpmn:tFormalExpression"><![CDATA[${generateAcceptanceDocsAndSaveToAssetManagementTaskResult== 'accepted'}]]></bpmn:conditionExpression>
-      </bpmn:sequenceFlow>
-      <bpmn:sequenceFlow id="SequenceFlow_1gr7bbx" name="required submit to leasing" sourceRef="exclgw_need_to_submit_to_leasing" targetRef="notify_submit_to_leasing_required">
-        <bpmn:conditionExpression xsi:type="bpmn:tFormalExpression"><![CDATA[${generateAcceptanceDocsAndSaveToAssetManagementTaskResult== 'submitToLeasing'}]]></bpmn:conditionExpression>
-      </bpmn:sequenceFlow>
-      <bpmn:sequenceFlow id="SequenceFlow_1mn2lcw" sourceRef="notify_submit_to_leasing_required" targetRef="endevt_accept_performed_job_submit_to_leasing" />
-      <bpmn:sendTask id="notify_submit_to_leasing_required" name="Notify of requiring submit to leasing ">
+      <bpmn:userTask id="accept_work_planning_group" name="accept and sign by planning group">
+        <bpmn:incoming>SequenceFlow_092yoln</bpmn:incoming>
+        <bpmn:outgoing>SequenceFlow_1fimqfq</bpmn:outgoing>
+      </bpmn:userTask>
+      <bpmn:exclusiveGateway id="exclgw_acceptance_is_planning_accepted" default="SequenceFlow_15zk73k">
+        <bpmn:incoming>SequenceFlow_1fimqfq</bpmn:incoming>
+        <bpmn:outgoing>SequenceFlow_0fjaonh</bpmn:outgoing>
+        <bpmn:outgoing>SequenceFlow_15zk73k</bpmn:outgoing>
+      </bpmn:exclusiveGateway>
+      <bpmn:exclusiveGateway id="exclgw_acceptance_is_maintenance_accepted" default="SequenceFlow_1aw7g43">
+        <bpmn:incoming>SequenceFlow_1dtnt7b</bpmn:incoming>
+        <bpmn:outgoing>SequenceFlow_01i21oc</bpmn:outgoing>
+        <bpmn:outgoing>SequenceFlow_1aw7g43</bpmn:outgoing>
+      </bpmn:exclusiveGateway>
+      <bpmn:endEvent id="endevt_accept_work">
+        <bpmn:incoming>SequenceFlow_1f56l0l</bpmn:incoming>
+      </bpmn:endEvent>
+      <bpmn:exclusiveGateway id="exclgw_acceptance_is_work_signed_region" default="SequenceFlow_06di5fs">
+        <bpmn:incoming>SequenceFlow_0osamjm</bpmn:incoming>
+        <bpmn:outgoing>SequenceFlow_10el177</bpmn:outgoing>
+        <bpmn:outgoing>SequenceFlow_06di5fs</bpmn:outgoing>
+      </bpmn:exclusiveGateway>
+      <bpmn:exclusiveGateway id="exclgw_acceptance_accepted_initiator" default="SequenceFlow_0parye1">
+        <bpmn:incoming>SequenceFlow_08btjh3</bpmn:incoming>
+        <bpmn:outgoing>SequenceFlow_0parye1</bpmn:outgoing>
+        <bpmn:outgoing>SequenceFlow_175xf1g</bpmn:outgoing>
+      </bpmn:exclusiveGateway>
+      <bpmn:endEvent id="endevt_accept_return_for_correction">
+        <bpmn:incoming>SequenceFlow_175xf1g</bpmn:incoming>
+      </bpmn:endEvent>
+      <bpmn:exclusiveGateway id="exclgw_acceptance_is_work_accepted">
+        <bpmn:incoming>SequenceFlow_0uvgbxl</bpmn:incoming>
+        <bpmn:incoming>SequenceFlow_1aw7g43</bpmn:incoming>
+        <bpmn:outgoing>SequenceFlow_0b1di1f</bpmn:outgoing>
+      </bpmn:exclusiveGateway>
+      <bpmn:sendTask id="notify_work_accepted" name="Send notification: Work accepted">
         <bpmn:extensionElements>
           <camunda:connector>
             <camunda:inputOutput>
-              <camunda:inputParameter name="to">Askar.Slambekov@kcell.kz, Yernaz.Kalingarayev@kcell.kz</camunda:inputParameter>
-              <camunda:inputParameter name="subject">Job Request Requires Submit to Leasing</camunda:inputParameter>
-              <camunda:inputParameter name="text">Не знаю, кого уведомлять, поэтому уведомляю вас :)</camunda:inputParameter>
+              <camunda:inputParameter name="to">${ starter }</camunda:inputParameter>
+              <camunda:inputParameter name="subject">JR Accepted</camunda:inputParameter>
+              <camunda:inputParameter name="text">JR Accepted</camunda:inputParameter>
             </camunda:inputOutput>
             <camunda:connectorId>mail-send</camunda:connectorId>
           </camunda:connector>
         </bpmn:extensionElements>
-        <bpmn:incoming>SequenceFlow_1gr7bbx</bpmn:incoming>
-        <bpmn:outgoing>SequenceFlow_1mn2lcw</bpmn:outgoing>
+        <bpmn:incoming>SequenceFlow_06di5fs</bpmn:incoming>
+        <bpmn:outgoing>SequenceFlow_1f56l0l</bpmn:outgoing>
       </bpmn:sendTask>
-      <bpmn:sequenceFlow id="SequenceFlow_1o9e13l" sourceRef="accept_performed_works_region" targetRef="exclgw_accept_performed_works_region" />
-      <bpmn:endEvent id="endevt_accept_performed_job_submit_to_leasing">
-        <bpmn:incoming>SequenceFlow_1mn2lcw</bpmn:incoming>
-      </bpmn:endEvent>
-      <bpmn:sequenceFlow id="SequenceFlow_1ea0261" sourceRef="generate_acceptance_docs_and_save_to_asset_management" targetRef="exclgw_need_to_submit_to_leasing" />
-      <bpmn:association id="Association_0x6qk75" sourceRef="accept_performed_works_region" targetRef="TextAnnotation_0ub63m4" />
-      <bpmn:association id="Association_19lmx9x" sourceRef="accept_performed_works_center" targetRef="TextAnnotation_12ixz7b" />
+      <bpmn:userTask id="sign_region_head" name="Sign by region head">
+        <bpmn:incoming>SequenceFlow_0b1di1f</bpmn:incoming>
+        <bpmn:outgoing>SequenceFlow_0osamjm</bpmn:outgoing>
+      </bpmn:userTask>
+      <bpmn:sequenceFlow id="SequenceFlow_0g3rb8x" sourceRef="startevt_accept_works" targetRef="accept_work_initiator" />
+      <bpmn:sequenceFlow id="SequenceFlow_0fjaonh" sourceRef="exclgw_acceptance_is_planning_accepted" targetRef="accept_work_initiator">
+        <bpmn:conditionExpression xsi:type="bpmn:tFormalExpression"><![CDATA[${acceptAndSignByPlanningGroupTaskResult=='rejected'}]]></bpmn:conditionExpression>
+      </bpmn:sequenceFlow>
+      <bpmn:sequenceFlow id="SequenceFlow_01i21oc" sourceRef="exclgw_acceptance_is_maintenance_accepted" targetRef="accept_work_initiator">
+        <bpmn:conditionExpression xsi:type="bpmn:tFormalExpression"><![CDATA[${acceptAndSignByMaintenanceGroupTaskResult=='rejected'}]]></bpmn:conditionExpression>
+      </bpmn:sequenceFlow>
+      <bpmn:sequenceFlow id="SequenceFlow_10el177" sourceRef="exclgw_acceptance_is_work_signed_region" targetRef="accept_work_initiator">
+        <bpmn:conditionExpression xsi:type="bpmn:tFormalExpression"><![CDATA[${acceptAndSignByRegionHeadTaskResult=='rejected'}]]></bpmn:conditionExpression>
+      </bpmn:sequenceFlow>
+      <bpmn:sequenceFlow id="SequenceFlow_08btjh3" sourceRef="accept_work_initiator" targetRef="exclgw_acceptance_accepted_initiator" />
+      <bpmn:sequenceFlow id="SequenceFlow_0parye1" name="accept and sign" sourceRef="exclgw_acceptance_accepted_initiator" targetRef="exclgw_acceptance_is_transm_accept_needed" />
+      <bpmn:sequenceFlow id="SequenceFlow_092yoln" name="if choosed Optimization, Operation or Infrastructure works" sourceRef="exclgw_acceptance_is_transm_accept_needed" targetRef="accept_work_planning_group">
+        <bpmn:conditionExpression xsi:type="bpmn:tFormalExpression"><![CDATA[${ reason == '1' || reason == '3' || reason == '4' }]]></bpmn:conditionExpression>
+      </bpmn:sequenceFlow>
+      <bpmn:sequenceFlow id="SequenceFlow_0uvgbxl" name="if choosed Transmission works" sourceRef="exclgw_acceptance_is_transm_accept_needed" targetRef="exclgw_acceptance_is_work_accepted">
+        <bpmn:conditionExpression xsi:type="bpmn:tFormalExpression"><![CDATA[${ reason == '2' }]]></bpmn:conditionExpression>
+      </bpmn:sequenceFlow>
+      <bpmn:sequenceFlow id="SequenceFlow_15zk73k" sourceRef="exclgw_acceptance_is_planning_accepted" targetRef="accept_work_maintenance_group" />
+      <bpmn:sequenceFlow id="SequenceFlow_1dtnt7b" sourceRef="accept_work_maintenance_group" targetRef="exclgw_acceptance_is_maintenance_accepted" />
+      <bpmn:sequenceFlow id="SequenceFlow_1fimqfq" sourceRef="accept_work_planning_group" targetRef="exclgw_acceptance_is_planning_accepted" />
+      <bpmn:sequenceFlow id="SequenceFlow_1aw7g43" sourceRef="exclgw_acceptance_is_maintenance_accepted" targetRef="exclgw_acceptance_is_work_accepted" />
+      <bpmn:sequenceFlow id="SequenceFlow_1f56l0l" sourceRef="notify_work_accepted" targetRef="endevt_accept_work" />
+      <bpmn:sequenceFlow id="SequenceFlow_0osamjm" sourceRef="sign_region_head" targetRef="exclgw_acceptance_is_work_signed_region" />
+      <bpmn:sequenceFlow id="SequenceFlow_06di5fs" sourceRef="exclgw_acceptance_is_work_signed_region" targetRef="notify_work_accepted" />
+      <bpmn:sequenceFlow id="SequenceFlow_175xf1g" name="return for correction" sourceRef="exclgw_acceptance_accepted_initiator" targetRef="endevt_accept_return_for_correction">
+        <bpmn:conditionExpression xsi:type="bpmn:tFormalExpression"><![CDATA[${acceptAndSignByInitiatorTaskResult=='notApproved'}]]></bpmn:conditionExpression>
+      </bpmn:sequenceFlow>
+      <bpmn:sequenceFlow id="SequenceFlow_0b1di1f" sourceRef="exclgw_acceptance_is_work_accepted" targetRef="sign_region_head" />
+      <bpmn:userTask id="accept_work_maintenance_group" name="accept and sign by maintanance group">
+        <bpmn:incoming>SequenceFlow_15zk73k</bpmn:incoming>
+        <bpmn:outgoing>SequenceFlow_1dtnt7b</bpmn:outgoing>
+      </bpmn:userTask>
+      <bpmn:textAnnotation id="TextAnnotation_03pk2rp">      <bpmn:text><![CDATA[status can be "sign" or "not nessesary"]]></bpmn:text>
+</bpmn:textAnnotation>
+      <bpmn:textAnnotation id="TextAnnotation_1204ymp">      <bpmn:text><![CDATA[status can be "sign" or "not nessesary"]]></bpmn:text>
+</bpmn:textAnnotation>
+      <bpmn:textAnnotation id="TextAnnotation_0g5peyz">      <bpmn:text>при возврате на коррекцию на форме должна быть отметка выделенная что это возврат и от кого, а также комментарий должен быть виден</bpmn:text>
+</bpmn:textAnnotation>
+      <bpmn:textAnnotation id="TextAnnotation_06k66mm">      <bpmn:text>при возврате на коррекцию на форме должна быть отметка выделенная что это возврат и от кого, а также комментарий должен быть виден</bpmn:text>
+</bpmn:textAnnotation>
+      <bpmn:textAnnotation id="TextAnnotation_18educ8">      <bpmn:text>при возврате на коррекцию на форме должна быть отметка выделенная что это возврат и от кого, а также комментарий должен быть виден</bpmn:text>
+</bpmn:textAnnotation>
+      <bpmn:association id="Association_0gv2hbj" sourceRef="accept_work_maintenance_group" targetRef="TextAnnotation_1204ymp" />
+      <bpmn:association id="Association_0pb1vnl" sourceRef="accept_work_planning_group" targetRef="TextAnnotation_03pk2rp" />
+      <bpmn:association id="Association_0hlxl8a" sourceRef="exclgw_acceptance_is_planning_accepted" targetRef="TextAnnotation_0g5peyz" />
+      <bpmn:association id="Association_0ov1aan" sourceRef="exclgw_acceptance_is_maintenance_accepted" targetRef="TextAnnotation_06k66mm" />
+      <bpmn:association id="Association_0kavnbb" sourceRef="exclgw_acceptance_is_work_signed_region" targetRef="TextAnnotation_18educ8" />
     </bpmn:subProcess>
     <bpmn:endEvent id="endevt_revision">
-      <bpmn:incoming>SequenceFlow_01n47ri</bpmn:incoming>
+      <bpmn:incoming>SequenceFlow_0fhdfes</bpmn:incoming>
     </bpmn:endEvent>
     <bpmn:sequenceFlow id="SequenceFlow_1p8u37f" name="materials are not available" sourceRef="SubProcess_0eah6dm" targetRef="SubProcess_04dekrg">
       <bpmn:conditionExpression xsi:type="bpmn:tFormalExpression">${materialsNotAvailable==true}</bpmn:conditionExpression>
@@ -820,24 +846,6 @@
     <bpmn:sequenceFlow id="SequenceFlow_05vqen4" name="materials not available" sourceRef="SubProcess_0a0tcem" targetRef="SubProcess_04dekrg">
       <bpmn:conditionExpression xsi:type="bpmn:tFormalExpression"><![CDATA[${fillAppliedChangesInfoByContractorTaskResult=='notAvailable'}]]></bpmn:conditionExpression>
     </bpmn:sequenceFlow>
-    <bpmn:sendTask id="notify_job_request_completed" name="Notify of Job Request Completion">
-      <bpmn:extensionElements>
-        <camunda:connector>
-          <camunda:inputOutput>
-            <camunda:inputParameter name="to">
-              <camunda:script scriptFormat="groovy" resource="GetStarterEmail.groovy" />
-            </camunda:inputParameter>
-            <camunda:inputParameter name="subject">JR Complete</camunda:inputParameter>
-            <camunda:inputParameter name="html">
-              <camunda:script scriptFormat="freemarker" resource="JRCompleteMessage.ftl" />
-            </camunda:inputParameter>
-          </camunda:inputOutput>
-          <camunda:connectorId>mail-send</camunda:connectorId>
-        </camunda:connector>
-      </bpmn:extensionElements>
-      <bpmn:incoming>SequenceFlow_0fhdfes</bpmn:incoming>
-      <bpmn:outgoing>SequenceFlow_01n47ri</bpmn:outgoing>
-    </bpmn:sendTask>
     <bpmn:endEvent id="endevt_create_jr_rejected">
       <bpmn:incoming>SequenceFlow_062z6hr</bpmn:incoming>
     </bpmn:endEvent>
@@ -850,7 +858,7 @@
     <bpmn:sequenceFlow id="SequenceFlow_1sfkegw" name="job executed successfully" sourceRef="SubProcess_0a0tcem" targetRef="exclgw_permidocs_needed">
       <bpmn:conditionExpression xsi:type="bpmn:tFormalExpression"><![CDATA[${fillAppliedChangesInfoByContractorTaskResult=='saveChanges'}]]></bpmn:conditionExpression>
     </bpmn:sequenceFlow>
-    <bpmn:sequenceFlow id="SequenceFlow_0fhdfes" name="accepted" sourceRef="SubProcess_0v7hq1m" targetRef="notify_job_request_completed">
+    <bpmn:sequenceFlow id="SequenceFlow_0fhdfes" name="accepted" sourceRef="SubProcess_0v7hq1m" targetRef="endevt_revision">
       <bpmn:conditionExpression xsi:type="bpmn:tFormalExpression"><![CDATA[${acceptPerformedJob== 'accepted'}]]></bpmn:conditionExpression>
     </bpmn:sequenceFlow>
     <bpmn:exclusiveGateway id="exclgw_istest">
@@ -938,14 +946,13 @@
     <bpmn:sequenceFlow id="SequenceFlow_1qx3n24" name="permit docs are not needed" sourceRef="exclgw_permidocs_needed" targetRef="SubProcess_0v7hq1m">
       <bpmn:conditionExpression xsi:type="bpmn:tFormalExpression"><![CDATA[${isPermitDocsNeeded=='false'}]]></bpmn:conditionExpression>
     </bpmn:sequenceFlow>
-    <bpmn:startEvent id="startevt_initial" camunda:formKey="embedded:app:forms/revision/start.html" camunda:initiator="starter">
+    <bpmn:startEvent id="startevt_revision_initial" camunda:formKey="embedded:app:forms/revision/start.html" camunda:initiator="starter">
       <bpmn:extensionElements>
         <camunda:executionListener class="kz.kcell.bpm.StartRevisionProcess" event="end" />
       </bpmn:extensionElements>
       <bpmn:outgoing>SequenceFlow_1euq1js</bpmn:outgoing>
     </bpmn:startEvent>
-    <bpmn:sequenceFlow id="SequenceFlow_1euq1js" sourceRef="startevt_initial" targetRef="SubProcess_0cd7y34" />
-    <bpmn:sequenceFlow id="SequenceFlow_01n47ri" sourceRef="notify_job_request_completed" targetRef="endevt_revision" />
+    <bpmn:sequenceFlow id="SequenceFlow_1euq1js" sourceRef="startevt_revision_initial" targetRef="SubProcess_0cd7y34" />
     <bpmn:exclusiveGateway id="exclgw_is_pr_creation_launched">
       <bpmn:incoming>SequenceFlow_17n684j</bpmn:incoming>
       <bpmn:incoming>SequenceFlow_0xhyefk</bpmn:incoming>
@@ -1018,30 +1025,6 @@
       <bpmndi:BPMNShape id="SubProcess_0a0tcem_di" bpmnElement="SubProcess_0a0tcem" isExpanded="true">
         <dc:Bounds x="1097" y="-693" width="905" height="490" />
       </bpmndi:BPMNShape>
-      <bpmndi:BPMNShape id="UserTask_1i7na4a_di" bpmnElement="accept_performed_works_region">
-        <dc:Bounds x="3732" y="-481" width="100" height="80" />
-      </bpmndi:BPMNShape>
-      <bpmndi:BPMNShape id="ExclusiveGateway_1fzj1w1_di" bpmnElement="exclgw_accept_performed_works_region" isMarkerVisible="true">
-        <dc:Bounds x="3884" y="-466" width="50" height="50" />
-        <bpmndi:BPMNLabel>
-          <dc:Bounds x="3864" y="-416" width="90" height="0" />
-        </bpmndi:BPMNLabel>
-      </bpmndi:BPMNShape>
-      <bpmndi:BPMNShape id="UserTask_0m3wppw_di" bpmnElement="accept_performed_works_center">
-        <dc:Bounds x="4024" y="-481" width="100" height="80" />
-      </bpmndi:BPMNShape>
-      <bpmndi:BPMNShape id="ExclusiveGateway_1aciqr8_di" bpmnElement="exclgw_accept_performed_works_center" isMarkerVisible="true">
-        <dc:Bounds x="4210" y="-466" width="50" height="50" />
-        <bpmndi:BPMNLabel>
-          <dc:Bounds x="4190" y="-416" width="90" height="0" />
-        </bpmndi:BPMNLabel>
-      </bpmndi:BPMNShape>
-      <bpmndi:BPMNShape id="EndEvent_1nd7ldr_di" bpmnElement="endevt_accept_performed_job_rejected_not_submitted_to_leasing">
-        <dc:Bounds x="4735" y="-459" width="36" height="36" />
-        <bpmndi:BPMNLabel>
-          <dc:Bounds x="4708" y="-423" width="90" height="0" />
-        </bpmndi:BPMNLabel>
-      </bpmndi:BPMNShape>
       <bpmndi:BPMNShape id="ExclusiveGateway_15zm0uz_di" bpmnElement="exclgw_materials_required" isMarkerVisible="true">
         <dc:Bounds x="-1830" y="-177" width="50" height="50" />
         <bpmndi:BPMNLabel>
@@ -1076,29 +1059,6 @@
           <dc:Bounds x="1026" y="-447" width="90" height="0" />
         </bpmndi:BPMNLabel>
       </bpmndi:BPMNEdge>
-      <bpmndi:BPMNEdge id="SequenceFlow_0p9r9wf_di" bpmnElement="SequenceFlow_0p9r9wf">
-        <di:waypoint xsi:type="dc:Point" x="3934" y="-441" />
-        <di:waypoint xsi:type="dc:Point" x="3983" y="-441" />
-        <di:waypoint xsi:type="dc:Point" x="3983" y="-441" />
-        <di:waypoint xsi:type="dc:Point" x="4024" y="-441" />
-        <bpmndi:BPMNLabel>
-          <dc:Bounds x="3940" y="-460" width="45" height="12" />
-        </bpmndi:BPMNLabel>
-      </bpmndi:BPMNEdge>
-      <bpmndi:BPMNEdge id="SequenceFlow_152tq2c_di" bpmnElement="SequenceFlow_152tq2c">
-        <di:waypoint xsi:type="dc:Point" x="4124" y="-441" />
-        <di:waypoint xsi:type="dc:Point" x="4210" y="-441" />
-        <bpmndi:BPMNLabel>
-          <dc:Bounds x="4122" y="-456" width="90" height="0" />
-        </bpmndi:BPMNLabel>
-      </bpmndi:BPMNEdge>
-      <bpmndi:BPMNEdge id="SequenceFlow_0b8zlhx_di" bpmnElement="SequenceFlow_0b8zlhx">
-        <di:waypoint xsi:type="dc:Point" x="4260" y="-441" />
-        <di:waypoint xsi:type="dc:Point" x="4377" y="-441" />
-        <bpmndi:BPMNLabel>
-          <dc:Bounds x="4302" y="-459" width="45" height="12" />
-        </bpmndi:BPMNLabel>
-      </bpmndi:BPMNEdge>
       <bpmndi:BPMNEdge id="SequenceFlow_01s02ho_di" bpmnElement="SequenceFlow_01s02ho">
         <di:waypoint xsi:type="dc:Point" x="-2743" y="-343" />
         <di:waypoint xsi:type="dc:Point" x="-2577" y="-343" />
@@ -1116,7 +1076,7 @@
           <dc:Bounds x="-1873.5" y="581" width="90" height="12" />
         </bpmndi:BPMNLabel>
       </bpmndi:BPMNEdge>
-      <bpmndi:BPMNShape id="EndEvent_08g7218_di" bpmnElement="EndEvent_08g7218">
+      <bpmndi:BPMNShape id="EndEvent_08g7218_di" bpmnElement="endevt_leasing_approved">
         <dc:Bounds x="-2035" y="105" width="36" height="36" />
         <bpmndi:BPMNLabel>
           <dc:Bounds x="-2062" y="141" width="90" height="0" />
@@ -1185,7 +1145,7 @@
       <bpmndi:BPMNShape id="UserTask_1qf7rmc_di" bpmnElement="approve_jr">
         <dc:Bounds x="-3522" y="-369" width="100" height="80" />
       </bpmndi:BPMNShape>
-      <bpmndi:BPMNShape id="ExclusiveGateway_1j6sg6y_di" bpmnElement="exclgw_is_budget_approved" isMarkerVisible="true">
+      <bpmndi:BPMNShape id="ExclusiveGateway_1j6sg6y_di" bpmnElement="exclgw_createjr_is_budget_approved" isMarkerVisible="true">
         <dc:Bounds x="-3254" y="-467" width="50" height="50" />
         <bpmndi:BPMNLabel>
           <dc:Bounds x="-3274" y="-417" width="90" height="0" />
@@ -1329,7 +1289,7 @@
           <dc:Bounds x="545" y="-465" width="0" height="0" />
         </bpmndi:BPMNLabel>
       </bpmndi:BPMNEdge>
-      <bpmndi:BPMNShape id="StartEvent_1xcw8jg_di" bpmnElement="startevt_createjr">
+      <bpmndi:BPMNShape id="StartEvent_1xcw8jg_di" bpmnElement="startevt_revision_create_jr">
         <dc:Bounds x="-4758" y="-448" width="36" height="36" />
         <bpmndi:BPMNLabel>
           <dc:Bounds x="-4785" y="-412" width="90" height="0" />
@@ -1366,7 +1326,7 @@
           <dc:Bounds x="-2260" y="-427" width="54" height="25" />
         </bpmndi:BPMNLabel>
       </bpmndi:BPMNEdge>
-      <bpmndi:BPMNShape id="StartEvent_0tw26xn_di" bpmnElement="startevt_leasing">
+      <bpmndi:BPMNShape id="StartEvent_0tw26xn_di" bpmnElement="startevt_revision_leasing">
         <dc:Bounds x="-2655" y="152" width="36" height="36" />
         <bpmndi:BPMNLabel>
           <dc:Bounds x="-2682" y="188" width="90" height="0" />
@@ -1380,53 +1340,12 @@
         </bpmndi:BPMNLabel>
       </bpmndi:BPMNEdge>
       <bpmndi:BPMNShape id="SubProcess_0v7hq1m_di" bpmnElement="SubProcess_0v7hq1m" isExpanded="true">
-        <dc:Bounds x="3590" y="-683" width="1243" height="474" />
+        <dc:Bounds x="3590" y="-683" width="1926" height="684" />
       </bpmndi:BPMNShape>
-      <bpmndi:BPMNEdge id="SequenceFlow_0fkgaq0_di" bpmnElement="SequenceFlow_0fkgaq0">
-        <di:waypoint xsi:type="dc:Point" x="3909" y="-466" />
-        <di:waypoint xsi:type="dc:Point" x="3909" y="-536" />
-        <bpmndi:BPMNLabel>
-          <dc:Bounds x="3928" y="-503" width="39" height="12" />
-        </bpmndi:BPMNLabel>
-      </bpmndi:BPMNEdge>
-      <bpmndi:BPMNEdge id="SequenceFlow_061k4i3_di" bpmnElement="SequenceFlow_061k4i3">
-        <di:waypoint xsi:type="dc:Point" x="4235" y="-466" />
-        <di:waypoint xsi:type="dc:Point" x="4235" y="-528" />
-        <bpmndi:BPMNLabel>
-          <dc:Bounds x="4252" y="-500" width="39" height="12" />
-        </bpmndi:BPMNLabel>
-      </bpmndi:BPMNEdge>
-      <bpmndi:BPMNShape id="EndEvent_0ozmh12_di" bpmnElement="endevt_accept_performed_job_rejected_region">
-        <dc:Bounds x="3891" y="-572" width="36" height="36" />
-        <bpmndi:BPMNLabel>
-          <dc:Bounds x="3864" y="-536" width="90" height="0" />
-        </bpmndi:BPMNLabel>
-      </bpmndi:BPMNShape>
-      <bpmndi:BPMNShape id="EndEvent_1aget54_di" bpmnElement="endevt_accept_performed_job_rejected_center">
-        <dc:Bounds x="4217" y="-564" width="36" height="36" />
-        <bpmndi:BPMNLabel>
-          <dc:Bounds x="4190" y="-528" width="90" height="0" />
-        </bpmndi:BPMNLabel>
-      </bpmndi:BPMNShape>
-      <bpmndi:BPMNShape id="StartEvent_1g9cwh9_di" bpmnElement="startevt_accept_performed_job">
-        <dc:Bounds x="3650" y="-459" width="36" height="36" />
-        <bpmndi:BPMNLabel>
-          <dc:Bounds x="3623" y="-423" width="90" height="0" />
-        </bpmndi:BPMNLabel>
-      </bpmndi:BPMNShape>
-      <bpmndi:BPMNEdge id="SequenceFlow_1oqa52r_di" bpmnElement="SequenceFlow_1oqa52r">
-        <di:waypoint xsi:type="dc:Point" x="3686" y="-441" />
-        <di:waypoint xsi:type="dc:Point" x="3708" y="-441" />
-        <di:waypoint xsi:type="dc:Point" x="3708" y="-441" />
-        <di:waypoint xsi:type="dc:Point" x="3732" y="-441" />
-        <bpmndi:BPMNLabel>
-          <dc:Bounds x="3678" y="-441" width="90" height="0" />
-        </bpmndi:BPMNLabel>
-      </bpmndi:BPMNEdge>
       <bpmndi:BPMNShape id="EndEvent_1pp7st1_di" bpmnElement="endevt_revision">
-        <dc:Bounds x="5131" y="-430" width="36" height="36" />
+        <dc:Bounds x="5771" y="-310" width="36" height="36" />
         <bpmndi:BPMNLabel>
-          <dc:Bounds x="5104" y="-394" width="90" height="0" />
+          <dc:Bounds x="5744" y="-274" width="90" height="0" />
         </bpmndi:BPMNLabel>
       </bpmndi:BPMNShape>
       <bpmndi:BPMNShape id="TextAnnotation_189rkq0_di" bpmnElement="TextAnnotation_189rkq0">
@@ -1452,7 +1371,7 @@
         <di:waypoint xsi:type="dc:Point" x="-4990" y="-369" />
         <di:waypoint xsi:type="dc:Point" x="-4990" y="-726" />
       </bpmndi:BPMNEdge>
-      <bpmndi:BPMNShape id="ExclusiveGateway_0qmnnga_di" bpmnElement="exclgw_trupload_status" isMarkerVisible="true">
+      <bpmndi:BPMNShape id="ExclusiveGateway_0qmnnga_di" bpmnElement="exclgw_ml_trupload_status" isMarkerVisible="true">
         <dc:Bounds x="-211" y="-485" width="50" height="50" />
         <bpmndi:BPMNLabel>
           <dc:Bounds x="-186" y="-435" width="0" height="0" />
@@ -1550,12 +1469,11 @@
         </bpmndi:BPMNLabel>
       </bpmndi:BPMNEdge>
       <bpmndi:BPMNEdge id="SequenceFlow_1lwdiem_di" bpmnElement="SequenceFlow_1lwdiem">
-        <di:waypoint xsi:type="dc:Point" x="4212" y="-209" />
-        <di:waypoint xsi:type="dc:Point" x="4212" y="-60" />
-        <di:waypoint xsi:type="dc:Point" x="1550" y="-60" />
-        <di:waypoint xsi:type="dc:Point" x="1550" y="-203" />
+        <di:waypoint xsi:type="dc:Point" x="3588" y="-43" />
+        <di:waypoint xsi:type="dc:Point" x="1965" y="-43" />
+        <di:waypoint xsi:type="dc:Point" x="1965" y="-197" />
         <bpmndi:BPMNLabel>
-          <dc:Bounds x="4220" y="-193" width="56" height="12" />
+          <dc:Bounds x="3320" y="-85" width="57" height="13" />
         </bpmndi:BPMNLabel>
       </bpmndi:BPMNEdge>
       <bpmndi:BPMNShape id="TextAnnotation_04juvza_di" bpmnElement="TextAnnotation_04juvza">
@@ -1587,7 +1505,7 @@
           <dc:Bounds x="-445" y="-512" width="65" height="13" />
         </bpmndi:BPMNLabel>
       </bpmndi:BPMNEdge>
-      <bpmndi:BPMNShape id="ExclusiveGateway_0cztiwt_di" bpmnElement="exclgw_need_to_modify" isMarkerVisible="true">
+      <bpmndi:BPMNShape id="ExclusiveGateway_0cztiwt_di" bpmnElement="exclgw_ml_need_to_modify" isMarkerVisible="true">
         <dc:Bounds x="-1438" y="-485" width="50" height="50" />
         <bpmndi:BPMNLabel>
           <dc:Bounds x="-1413" y="-435" width="0" height="0" />
@@ -1620,7 +1538,7 @@
           <dc:Bounds x="-2377" y="-863" width="65" height="12" />
         </bpmndi:BPMNLabel>
       </bpmndi:BPMNEdge>
-      <bpmndi:BPMNShape id="ExclusiveGateway_0x3smuu_di" bpmnElement="exclgw_is_leasing_done" isMarkerVisible="true">
+      <bpmndi:BPMNShape id="ExclusiveGateway_0x3smuu_di" bpmnElement="exclgw_leasing_is_leasing_done" isMarkerVisible="true">
         <dc:Bounds x="-2252" y="98" width="50" height="50" />
         <bpmndi:BPMNLabel>
           <dc:Bounds x="-2272" y="148" width="90" height="0" />
@@ -1707,9 +1625,6 @@
           <dc:Bounds x="1403" y="-806" width="63" height="25" />
         </bpmndi:BPMNLabel>
       </bpmndi:BPMNEdge>
-      <bpmndi:BPMNShape id="SendTask_1j0jhn5_di" bpmnElement="notify_job_request_completed">
-        <dc:Bounds x="4951" y="-452" width="100" height="80" />
-      </bpmndi:BPMNShape>
       <bpmndi:BPMNShape id="EndEvent_1fo49fj_di" bpmnElement="endevt_create_jr_rejected">
         <dc:Bounds x="-3998" y="243" width="36" height="36" />
         <bpmndi:BPMNLabel>
@@ -1723,7 +1638,7 @@
           <dc:Bounds x="-4025" y="113" width="39" height="12" />
         </bpmndi:BPMNLabel>
       </bpmndi:BPMNEdge>
-      <bpmndi:BPMNShape id="ExclusiveGateway_125e0rj_di" bpmnElement="exclgw_is_power_req" isMarkerVisible="true">
+      <bpmndi:BPMNShape id="ExclusiveGateway_125e0rj_di" bpmnElement="exclgw_createjr_is_power_req" isMarkerVisible="true">
         <dc:Bounds x="-4107" y="-354" width="50" height="50" />
         <bpmndi:BPMNLabel>
           <dc:Bounds x="-4127" y="-304" width="90" height="0" />
@@ -1745,7 +1660,7 @@
           <dc:Bounds x="-3922" y="-272" width="74" height="36" />
         </bpmndi:BPMNLabel>
       </bpmndi:BPMNEdge>
-      <bpmndi:BPMNShape id="ExclusiveGateway_1of3ayp_di" bpmnElement="exclgw_is_powerrejected" isMarkerVisible="true">
+      <bpmndi:BPMNShape id="ExclusiveGateway_1of3ayp_di" bpmnElement="exclgw_createjr_is_powerrejected" isMarkerVisible="true">
         <dc:Bounds x="-3806" y="-354" width="50" height="50" />
         <bpmndi:BPMNLabel>
           <dc:Bounds x="-3825" y="-304" width="90" height="0" />
@@ -1765,7 +1680,7 @@
           <dc:Bounds x="-3750" y="-355" width="46" height="12" />
         </bpmndi:BPMNLabel>
       </bpmndi:BPMNEdge>
-      <bpmndi:BPMNShape id="ExclusiveGateway_0aqvpql_di" bpmnElement="exclgw_is_reg_approved" isMarkerVisible="true">
+      <bpmndi:BPMNShape id="ExclusiveGateway_0aqvpql_di" bpmnElement="exclgw_createjr_is_reg_approved" isMarkerVisible="true">
         <dc:Bounds x="-4228" y="-354" width="50" height="50" />
         <bpmndi:BPMNLabel>
           <dc:Bounds x="-4247" y="-304" width="90" height="0" />
@@ -1785,7 +1700,7 @@
           <dc:Bounds x="-4168" y="-353" width="46" height="12" />
         </bpmndi:BPMNLabel>
       </bpmndi:BPMNEdge>
-      <bpmndi:BPMNShape id="SendTask_0mh2pym_di" bpmnElement="notify_jr_execution_impossible">
+      <bpmndi:BPMNShape id="SendTask_0mh2pym_di" bpmnElement="createjr_notify_jr_exec_impossible">
         <dc:Bounds x="-3522" y="-188" width="100" height="80" />
       </bpmndi:BPMNShape>
       <bpmndi:BPMNEdge id="SequenceFlow_1tkoxjb_di" bpmnElement="SequenceFlow_1tkoxjb">
@@ -1819,10 +1734,10 @@
           <dc:Bounds x="-2136" y="242" width="90" height="0" />
         </bpmndi:BPMNLabel>
       </bpmndi:BPMNEdge>
-      <bpmndi:BPMNShape id="SendTask_0mxszrn_di" bpmnElement="notify_jr_exec_impossible">
+      <bpmndi:BPMNShape id="SendTask_0mxszrn_di" bpmnElement="leasing_notify_jr_exec_impossible">
         <dc:Bounds x="-2277" y="203" width="100" height="80" />
       </bpmndi:BPMNShape>
-      <bpmndi:BPMNShape id="ExclusiveGateway_19zbppn_di" bpmnElement="exclgw_site_belongs_to_whom" isMarkerVisible="true">
+      <bpmndi:BPMNShape id="ExclusiveGateway_19zbppn_di" bpmnElement="exclgw_leasing_site_belongs_to_whom" isMarkerVisible="true">
         <dc:Bounds x="-2573" y="145" width="50" height="50" />
         <bpmndi:BPMNLabel>
           <dc:Bounds x="-2593" y="195" width="90" height="0" />
@@ -1877,7 +1792,7 @@
           <dc:Bounds x="-4410" y="-509" width="39" height="12" />
         </bpmndi:BPMNLabel>
       </bpmndi:BPMNEdge>
-      <bpmndi:BPMNShape id="IntermediateThrowEvent_1433yh8_di" bpmnElement="endevt_notify_impossible_jr_exec">
+      <bpmndi:BPMNShape id="IntermediateThrowEvent_1433yh8_di" bpmnElement="endevt_leasing_notify_impossible_jr_exec">
         <dc:Bounds x="-2035" y="224" width="36" height="36" />
         <bpmndi:BPMNLabel>
           <dc:Bounds x="-2062" y="260" width="90" height="0" />
@@ -1904,7 +1819,7 @@
           <dc:Bounds x="289" y="-475" width="0" height="0" />
         </bpmndi:BPMNLabel>
       </bpmndi:BPMNEdge>
-      <bpmndi:BPMNShape id="ExclusiveGateway_1x0cs8g_di" bpmnElement="exclgw_trvalidated" isMarkerVisible="true">
+      <bpmndi:BPMNShape id="ExclusiveGateway_1x0cs8g_di" bpmnElement="exclgw_ml_trvalidated" isMarkerVisible="true">
         <dc:Bounds x="36" y="-485" width="50" height="50" />
         <bpmndi:BPMNLabel>
           <dc:Bounds x="61" y="-435" width="0" height="0" />
@@ -1949,66 +1864,16 @@
         </bpmndi:BPMNLabel>
       </bpmndi:BPMNEdge>
       <bpmndi:BPMNEdge id="SequenceFlow_0fhdfes_di" bpmnElement="SequenceFlow_0fhdfes">
-        <di:waypoint xsi:type="dc:Point" x="4833" y="-412" />
-        <di:waypoint xsi:type="dc:Point" x="4951" y="-412" />
+        <di:waypoint xsi:type="dc:Point" x="5516" y="-292" />
+        <di:waypoint xsi:type="dc:Point" x="5660" y="-292" />
+        <di:waypoint xsi:type="dc:Point" x="5660" y="-292" />
+        <di:waypoint xsi:type="dc:Point" x="5771" y="-292" />
         <bpmndi:BPMNLabel>
-          <dc:Bounds x="4869.819656061566" y="-431.81415546172764" width="45" height="12" />
-        </bpmndi:BPMNLabel>
-      </bpmndi:BPMNEdge>
-      <bpmndi:BPMNShape id="UserTask_0gbjxt6_di" bpmnElement="generate_acceptance_docs_and_save_to_asset_management">
-        <dc:Bounds x="4377" y="-482" width="100" height="80" />
-      </bpmndi:BPMNShape>
-      <bpmndi:BPMNShape id="ExclusiveGateway_00yqrvw_di" bpmnElement="exclgw_need_to_submit_to_leasing" isMarkerVisible="true">
-        <dc:Bounds x="4560" y="-466" width="50" height="50" />
-        <bpmndi:BPMNLabel>
-          <dc:Bounds x="4540" y="-416" width="90" height="0" />
-        </bpmndi:BPMNLabel>
-      </bpmndi:BPMNShape>
-      <bpmndi:BPMNEdge id="SequenceFlow_1j4zio7_di" bpmnElement="SequenceFlow_1j4zio7">
-        <di:waypoint xsi:type="dc:Point" x="4610" y="-441" />
-        <di:waypoint xsi:type="dc:Point" x="4675" y="-441" />
-        <di:waypoint xsi:type="dc:Point" x="4675" y="-441" />
-        <di:waypoint xsi:type="dc:Point" x="4735" y="-441" />
-        <bpmndi:BPMNLabel>
-          <dc:Bounds x="4644" y="-441" width="81" height="24" />
-        </bpmndi:BPMNLabel>
-      </bpmndi:BPMNEdge>
-      <bpmndi:BPMNEdge id="SequenceFlow_1gr7bbx_di" bpmnElement="SequenceFlow_1gr7bbx">
-        <di:waypoint xsi:type="dc:Point" x="4585" y="-416" />
-        <di:waypoint xsi:type="dc:Point" x="4585" y="-378" />
-        <di:waypoint xsi:type="dc:Point" x="4585" y="-378" />
-        <di:waypoint xsi:type="dc:Point" x="4585" y="-326" />
-        <bpmndi:BPMNLabel>
-          <dc:Bounds x="4532" y="-402" width="87" height="24" />
-        </bpmndi:BPMNLabel>
-      </bpmndi:BPMNEdge>
-      <bpmndi:BPMNEdge id="SequenceFlow_1mn2lcw_di" bpmnElement="SequenceFlow_1mn2lcw">
-        <di:waypoint xsi:type="dc:Point" x="4535" y="-286" />
-        <di:waypoint xsi:type="dc:Point" x="4444" y="-286" />
-        <di:waypoint xsi:type="dc:Point" x="4444" y="-286" />
-        <di:waypoint xsi:type="dc:Point" x="4366" y="-286" />
-        <bpmndi:BPMNLabel>
-          <dc:Bounds x="4415" y="-286" width="90" height="0" />
-        </bpmndi:BPMNLabel>
-      </bpmndi:BPMNEdge>
-      <bpmndi:BPMNShape id="SendTask_16wr58n_di" bpmnElement="notify_submit_to_leasing_required">
-        <dc:Bounds x="4535" y="-326" width="100" height="80" />
-      </bpmndi:BPMNShape>
-      <bpmndi:BPMNEdge id="SequenceFlow_1o9e13l_di" bpmnElement="SequenceFlow_1o9e13l">
-        <di:waypoint xsi:type="dc:Point" x="3832" y="-441" />
-        <di:waypoint xsi:type="dc:Point" x="3884" y="-441" />
-        <bpmndi:BPMNLabel>
-          <dc:Bounds x="3813" y="-466" width="90" height="0" />
+          <dc:Bounds x="5654" y="-275" width="45" height="13" />
         </bpmndi:BPMNLabel>
       </bpmndi:BPMNEdge>
       <bpmndi:BPMNShape id="UserTask_09pj0pg_di" bpmnElement="validate_tr">
         <dc:Bounds x="-105" y="-500" width="100" height="80" />
-      </bpmndi:BPMNShape>
-      <bpmndi:BPMNShape id="EndEvent_1h89z2r_di" bpmnElement="endevt_accept_performed_job_submit_to_leasing">
-        <dc:Bounds x="4330" y="-304" width="36" height="36" />
-        <bpmndi:BPMNLabel>
-          <dc:Bounds x="4303" y="-268" width="90" height="0" />
-        </bpmndi:BPMNLabel>
       </bpmndi:BPMNShape>
       <bpmndi:BPMNShape id="UserTask_1qksldt_di" bpmnElement="approve_transmission_works">
         <dc:Bounds x="-3650" y="-482" width="100" height="80" />
@@ -2016,7 +1881,7 @@
       <bpmndi:BPMNShape id="UserTask_1tpn4q3_di" bpmnElement="approve_jr_budget">
         <dc:Bounds x="-3384" y="-482" width="100" height="80" />
       </bpmndi:BPMNShape>
-      <bpmndi:BPMNShape id="ExclusiveGateway_06g0jl8_di" bpmnElement="exclgw_is_transm_approve_needed" isMarkerVisible="true">
+      <bpmndi:BPMNShape id="ExclusiveGateway_06g0jl8_di" bpmnElement="exclgw_createjr_is_transm_approve_needed" isMarkerVisible="true">
         <dc:Bounds x="-3700" y="-354" width="50" height="50" />
         <bpmndi:BPMNLabel>
           <dc:Bounds x="-3719" y="-304" width="90" height="0" />
@@ -2044,7 +1909,7 @@
           <dc:Bounds x="-3314" y="-457" width="90" height="0" />
         </bpmndi:BPMNLabel>
       </bpmndi:BPMNEdge>
-      <bpmndi:BPMNShape id="ExclusiveGateway_059gfjr_di" bpmnElement="exclgw_is_tran_approved" isMarkerVisible="true">
+      <bpmndi:BPMNShape id="ExclusiveGateway_059gfjr_di" bpmnElement="exclgw_createjr_is_tran_approved" isMarkerVisible="true">
         <dc:Bounds x="-3510" y="-467" width="50" height="50" />
         <bpmndi:BPMNLabel>
           <dc:Bounds x="-3530" y="-417" width="90" height="0" />
@@ -2073,7 +1938,7 @@
           <dc:Bounds x="-4255" y="-532" width="43" height="12" />
         </bpmndi:BPMNLabel>
       </bpmndi:BPMNEdge>
-      <bpmndi:BPMNShape id="ExclusiveGateway_0ejyp7l_di" bpmnElement="exclgw_is_jr_approved" isMarkerVisible="true">
+      <bpmndi:BPMNShape id="ExclusiveGateway_0ejyp7l_di" bpmnElement="exclgw_createjr_is_jr_approved" isMarkerVisible="true">
         <dc:Bounds x="-3254" y="-354" width="50" height="50" />
         <bpmndi:BPMNLabel>
           <dc:Bounds x="-3273" y="-304" width="90" height="0" />
@@ -2109,7 +1974,7 @@
       <bpmndi:BPMNShape id="ServiceTask_1bvwtle_di" bpmnElement="generate_bar_code_and_unload_to_tr">
         <dc:Bounds x="160" y="-500" width="100" height="80" />
       </bpmndi:BPMNShape>
-      <bpmndi:BPMNShape id="ExclusiveGateway_0gs09yt_di" bpmnElement="exclgw_is_workschg" isMarkerVisible="true">
+      <bpmndi:BPMNShape id="ExclusiveGateway_0gs09yt_di" bpmnElement="exclgw_createjr_is_workschg" isMarkerVisible="true">
         <dc:Bounds x="-4533" y="-241" width="50" height="50" />
         <bpmndi:BPMNLabel>
           <dc:Bounds x="-4553" y="-191" width="90" height="0" />
@@ -2165,13 +2030,6 @@
       <bpmndi:BPMNShape id="ServiceTask_0hxdxvx_di" bpmnElement="generate_jr_blank_and_save">
         <dc:Bounds x="-2517" y="-651" width="100" height="80" />
       </bpmndi:BPMNShape>
-      <bpmndi:BPMNEdge id="SequenceFlow_1ea0261_di" bpmnElement="SequenceFlow_1ea0261">
-        <di:waypoint xsi:type="dc:Point" x="4477" y="-442" />
-        <di:waypoint xsi:type="dc:Point" x="4560" y="-441" />
-        <bpmndi:BPMNLabel>
-          <dc:Bounds x="4474" y="-456" width="90" height="0" />
-        </bpmndi:BPMNLabel>
-      </bpmndi:BPMNEdge>
       <bpmndi:BPMNShape id="TextAnnotation_0j3uh3b_di" bpmnElement="TextAnnotation_0j3uh3b">
         <dc:Bounds x="-4437" y="-896" width="231" height="60" />
       </bpmndi:BPMNShape>
@@ -2203,17 +2061,9 @@
       <bpmndi:BPMNShape id="TextAnnotation_0ub63m4_di" bpmnElement="TextAnnotation_0ub63m4">
         <dc:Bounds x="3710" y="-807" width="181" height="30" />
       </bpmndi:BPMNShape>
-      <bpmndi:BPMNEdge id="Association_0x6qk75_di" bpmnElement="Association_0x6qk75">
-        <di:waypoint xsi:type="dc:Point" x="3785" y="-481" />
-        <di:waypoint xsi:type="dc:Point" x="3800" y="-777" />
-      </bpmndi:BPMNEdge>
       <bpmndi:BPMNShape id="TextAnnotation_12ixz7b_di" bpmnElement="TextAnnotation_12ixz7b">
         <dc:Bounds x="4002" y="-807" width="191" height="30" />
       </bpmndi:BPMNShape>
-      <bpmndi:BPMNEdge id="Association_19lmx9x_di" bpmnElement="Association_19lmx9x">
-        <di:waypoint xsi:type="dc:Point" x="4077" y="-481" />
-        <di:waypoint xsi:type="dc:Point" x="4097" y="-777" />
-      </bpmndi:BPMNEdge>
       <bpmndi:BPMNEdge id="SequenceFlow_13wqeej_di" bpmnElement="SequenceFlow_13wqeej">
         <di:waypoint xsi:type="dc:Point" x="-2279" y="477" />
         <di:waypoint xsi:type="dc:Point" x="-2133" y="477" />
@@ -2248,7 +2098,7 @@
           <dc:Bounds x="-4923" y="-332" width="90" height="12" />
         </bpmndi:BPMNLabel>
       </bpmndi:BPMNEdge>
-      <bpmndi:BPMNShape id="ExclusiveGateway_1kmafjq_di" bpmnElement="exclgw_modify_jr_complete_status" isMarkerVisible="true">
+      <bpmndi:BPMNShape id="ExclusiveGateway_1kmafjq_di" bpmnElement="exclgw_createjr_modifyjr_complete_status" isMarkerVisible="true">
         <dc:Bounds x="-4841" y="-241" width="50" height="50" />
         <bpmndi:BPMNLabel>
           <dc:Bounds x="-4861" y="-187" width="90" height="12" />
@@ -2270,10 +2120,10 @@
           <dc:Bounds x="-4903" y="-241" width="46" height="12" />
         </bpmndi:BPMNLabel>
       </bpmndi:BPMNEdge>
-      <bpmndi:BPMNShape id="SendTask_00x7x65_di" bpmnElement="notify_to_cancel_pr_by_email_1">
+      <bpmndi:BPMNShape id="SendTask_00x7x65_di" bpmnElement="createjr_notify_to_cancel_pr_by_email_1">
         <dc:Bounds x="-5040" y="-241" width="100" height="80" />
       </bpmndi:BPMNShape>
-      <bpmndi:BPMNShape id="EndEvent_1nj482g_di" bpmnElement="endevt_cancelled">
+      <bpmndi:BPMNShape id="EndEvent_1nj482g_di" bpmnElement="endevt_createjr_cancelled">
         <dc:Bounds x="-5009" y="7" width="36" height="36" />
         <bpmndi:BPMNLabel>
           <dc:Bounds x="-5036" y="47" width="90" height="12" />
@@ -2300,7 +2150,7 @@
           <dc:Bounds x="-4459" y="-110" width="90" height="12" />
         </bpmndi:BPMNLabel>
       </bpmndi:BPMNEdge>
-      <bpmndi:BPMNShape id="SendTask_0midoz5_di" bpmnElement="notify_to_cancel_pr_by_email">
+      <bpmndi:BPMNShape id="SendTask_0midoz5_di" bpmnElement="createjr_notify_to_cancel_pr_by_email">
         <dc:Bounds x="-4558" y="-129" width="100" height="80" />
       </bpmndi:BPMNShape>
       <bpmndi:BPMNShape id="ScriptTask_14hqsws_di" bpmnElement="set_pr_creation_not_in_progress_2">
@@ -2406,13 +2256,13 @@
         <di:waypoint xsi:type="dc:Point" x="2382" y="-421" />
         <di:waypoint xsi:type="dc:Point" x="2382" y="-160" />
         <di:waypoint xsi:type="dc:Point" x="3466" y="-160" />
-        <di:waypoint xsi:type="dc:Point" x="3466" y="-395" />
-        <di:waypoint xsi:type="dc:Point" x="3590" y="-395" />
+        <di:waypoint xsi:type="dc:Point" x="3466" y="-267" />
+        <di:waypoint xsi:type="dc:Point" x="3590" y="-267" />
         <bpmndi:BPMNLabel>
-          <dc:Bounds x="2389" y="-402" width="76" height="24" />
+          <dc:Bounds x="2389" y="-402" width="76" height="25" />
         </bpmndi:BPMNLabel>
       </bpmndi:BPMNEdge>
-      <bpmndi:BPMNShape id="ExclusiveGateway_1co4cdz_di" bpmnElement="exclgw_is_initial" isMarkerVisible="true">
+      <bpmndi:BPMNShape id="ExclusiveGateway_1co4cdz_di" bpmnElement="exclgw_createjr_is_initial" isMarkerVisible="true">
         <dc:Bounds x="-4765" y="-368" width="50" height="50" />
         <bpmndi:BPMNLabel>
           <dc:Bounds x="-4785" y="-314" width="90" height="12" />
@@ -2449,7 +2299,7 @@
           <dc:Bounds x="-3618" y="-169" width="90" height="12" />
         </bpmndi:BPMNLabel>
       </bpmndi:BPMNEdge>
-      <bpmndi:BPMNShape id="ExclusiveGateway_0ln82wg_di" bpmnElement="exclgw_cantfix" isMarkerVisible="true">
+      <bpmndi:BPMNShape id="ExclusiveGateway_0ln82wg_di" bpmnElement="exclgw_createjr_cantfix" isMarkerVisible="true">
         <dc:Bounds x="-4107" y="-173" width="50" height="50" />
         <bpmndi:BPMNLabel>
           <dc:Bounds x="-4127" y="-119" width="90" height="12" />
@@ -2471,7 +2321,7 @@
           <dc:Bounds x="-4067" y="-107" width="75" height="36" />
         </bpmndi:BPMNLabel>
       </bpmndi:BPMNEdge>
-      <bpmndi:BPMNShape id="SendTask_04ajuqd_di" bpmnElement="notify_to_cancel_pr_by_email_2">
+      <bpmndi:BPMNShape id="SendTask_04ajuqd_di" bpmnElement="createjr_notify_to_cancel_pr_by_email_2">
         <dc:Bounds x="-3921" y="-188" width="100" height="80" />
       </bpmndi:BPMNShape>
       <bpmndi:BPMNEdge id="SequenceFlow_1jm891a_di" bpmnElement="SequenceFlow_1jm891a">
@@ -2481,7 +2331,7 @@
           <dc:Bounds x="-3818" y="-169" width="90" height="12" />
         </bpmndi:BPMNLabel>
       </bpmndi:BPMNEdge>
-      <bpmndi:BPMNShape id="StartEvent_0tadyic_di" bpmnElement="startevt_initial">
+      <bpmndi:BPMNShape id="StartEvent_0tadyic_di" bpmnElement="startevt_revision_initial">
         <dc:Bounds x="-5347.6866666666665" y="-296" width="36" height="36" />
         <bpmndi:BPMNLabel>
           <dc:Bounds x="-5329.6866666666665" y="-256" width="0" height="12" />
@@ -2504,13 +2354,6 @@
         <di:waypoint xsi:type="dc:Point" x="-4991" y="7" />
         <bpmndi:BPMNLabel>
           <dc:Bounds x="-5035" y="-33" width="90" height="12" />
-        </bpmndi:BPMNLabel>
-      </bpmndi:BPMNEdge>
-      <bpmndi:BPMNEdge id="SequenceFlow_01n47ri_di" bpmnElement="SequenceFlow_01n47ri">
-        <di:waypoint xsi:type="dc:Point" x="5051" y="-412" />
-        <di:waypoint xsi:type="dc:Point" x="5131" y="-412" />
-        <bpmndi:BPMNLabel>
-          <dc:Bounds x="5046" y="-427" width="90" height="0" />
         </bpmndi:BPMNLabel>
       </bpmndi:BPMNEdge>
       <bpmndi:BPMNShape id="ExclusiveGateway_03m16mq_di" bpmnElement="exclgw_is_pr_creation_launched" isMarkerVisible="true">
@@ -2540,10 +2383,10 @@
       <bpmndi:BPMNEdge id="SequenceFlow_1ntmj29_di" bpmnElement="SequenceFlow_1ntmj29">
         <di:waypoint xsi:type="dc:Point" x="3477" y="-658" />
         <di:waypoint xsi:type="dc:Point" x="3534" y="-658" />
-        <di:waypoint xsi:type="dc:Point" x="3534" y="-446" />
-        <di:waypoint xsi:type="dc:Point" x="3590" y="-446" />
+        <di:waypoint xsi:type="dc:Point" x="3534" y="-341" />
+        <di:waypoint xsi:type="dc:Point" x="3590" y="-341" />
         <bpmndi:BPMNLabel>
-          <dc:Bounds x="3549" y="-559" width="0" height="13" />
+          <dc:Bounds x="3504" y="-506" width="90" height="13" />
         </bpmndi:BPMNLabel>
       </bpmndi:BPMNEdge>
       <bpmndi:BPMNShape id="EndEvent_1e5da97_di" bpmnElement="endevt_parallel_permitdocs">
@@ -2559,7 +2402,7 @@
           <dc:Bounds x="3467" y="-937.5" width="0" height="13" />
         </bpmndi:BPMNLabel>
       </bpmndi:BPMNEdge>
-      <bpmndi:BPMNShape id="EndEvent_1wdcaed_di" bpmnElement="endevt_create_jr_impossible">
+      <bpmndi:BPMNShape id="EndEvent_1wdcaed_di" bpmnElement="endevt_createjr_impossible">
         <dc:Bounds x="-3343" y="-166" width="36" height="36" />
         <bpmndi:BPMNLabel>
           <dc:Bounds x="-3415" y="-130" width="90" height="13" />
@@ -2575,6 +2418,237 @@
           <dc:Bounds x="225" y="-541" width="0" height="13" />
         </bpmndi:BPMNLabel>
       </bpmndi:BPMNEdge>
+      <bpmndi:BPMNShape id="StartEvent_1s3ejic_di" bpmnElement="startevt_accept_works">
+        <dc:Bounds x="3764" y="-493" width="36" height="36" />
+        <bpmndi:BPMNLabel>
+          <dc:Bounds x="3647" y="-453" width="90" height="12" />
+        </bpmndi:BPMNLabel>
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="UserTask_1ew4law_di" bpmnElement="accept_work_initiator">
+        <dc:Bounds x="3840" y="-515" width="100" height="80" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="ExclusiveGateway_1tcuzbj_di" bpmnElement="exclgw_acceptance_is_transm_accept_needed" isMarkerVisible="true">
+        <dc:Bounds x="4139" y="-500" width="50" height="50" />
+        <bpmndi:BPMNLabel>
+          <dc:Bounds x="4029" y="-446" width="90" height="12" />
+        </bpmndi:BPMNLabel>
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="UserTask_1sqhfcz_di" bpmnElement="accept_work_planning_group">
+        <dc:Bounds x="4194" y="-319" width="100" height="80" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="ExclusiveGateway_05sltp6_di" bpmnElement="exclgw_acceptance_is_planning_accepted" isMarkerVisible="true">
+        <dc:Bounds x="4349" y="-304" width="50" height="50" />
+        <bpmndi:BPMNLabel>
+          <dc:Bounds x="4239" y="-250" width="90" height="12" />
+        </bpmndi:BPMNLabel>
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="ExclusiveGateway_10hquhy_di" bpmnElement="exclgw_acceptance_is_maintenance_accepted" isMarkerVisible="true">
+        <dc:Bounds x="4636" y="-304" width="50" height="50" />
+        <bpmndi:BPMNLabel>
+          <dc:Bounds x="4526" y="-250" width="90" height="12" />
+        </bpmndi:BPMNLabel>
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="EndEvent_18hnouo_di" bpmnElement="endevt_accept_work">
+        <dc:Bounds x="5360" y="-493" width="36" height="36" />
+        <bpmndi:BPMNLabel>
+          <dc:Bounds x="5243" y="-453" width="90" height="12" />
+        </bpmndi:BPMNLabel>
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="ExclusiveGateway_1xkc4ad_di" bpmnElement="exclgw_acceptance_is_work_signed_region" isMarkerVisible="true">
+        <dc:Bounds x="5124" y="-500" width="50" height="50" />
+        <bpmndi:BPMNLabel>
+          <dc:Bounds x="5014" y="-446" width="90" height="12" />
+        </bpmndi:BPMNLabel>
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="ExclusiveGateway_0x0vam0_di" bpmnElement="exclgw_acceptance_accepted_initiator" isMarkerVisible="true">
+        <dc:Bounds x="3991" y="-500" width="50" height="50" />
+        <bpmndi:BPMNLabel>
+          <dc:Bounds x="3881" y="-446" width="90" height="12" />
+        </bpmndi:BPMNLabel>
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="EndEvent_0uexwsg_di" bpmnElement="endevt_accept_return_for_correction">
+        <dc:Bounds x="3998" y="-642" width="36" height="36" />
+        <bpmndi:BPMNLabel>
+          <dc:Bounds x="3881" y="-602" width="90" height="12" />
+        </bpmndi:BPMNLabel>
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="ExclusiveGateway_0bgxsl7_di" bpmnElement="exclgw_acceptance_is_work_accepted" isMarkerVisible="true">
+        <dc:Bounds x="4795" y="-500" width="50" height="50" />
+        <bpmndi:BPMNLabel>
+          <dc:Bounds x="4730" y="-446" width="90" height="12" />
+        </bpmndi:BPMNLabel>
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="SendTask_0sty8ij_di" bpmnElement="notify_work_accepted">
+        <dc:Bounds x="5218" y="-515" width="100" height="80" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="UserTask_01dehkh_di" bpmnElement="sign_region_head">
+        <dc:Bounds x="4946" y="-515" width="100" height="80" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="TextAnnotation_03pk2rp_di" bpmnElement="TextAnnotation_03pk2rp">
+        <dc:Bounds x="4241" y="-406" width="100" height="63" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="TextAnnotation_1204ymp_di" bpmnElement="TextAnnotation_1204ymp">
+        <dc:Bounds x="4495" y="-421" width="104" height="76" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="TextAnnotation_0g5peyz_di" bpmnElement="TextAnnotation_0g5peyz">
+        <dc:Bounds x="4320" y="-140" width="227" height="64" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="TextAnnotation_06k66mm_di" bpmnElement="TextAnnotation_06k66mm">
+        <dc:Bounds x="4608" y="-140" width="291" height="59" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="TextAnnotation_18educ8_di" bpmnElement="TextAnnotation_18educ8">
+        <dc:Bounds x="5131" y="-614" width="242" height="80" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNEdge id="SequenceFlow_0g3rb8x_di" bpmnElement="SequenceFlow_0g3rb8x">
+        <di:waypoint xsi:type="dc:Point" x="3800" y="-475" />
+        <di:waypoint xsi:type="dc:Point" x="3840" y="-475" />
+        <bpmndi:BPMNLabel>
+          <dc:Bounds x="3685" y="-496" width="90" height="12" />
+        </bpmndi:BPMNLabel>
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="SequenceFlow_0fjaonh_di" bpmnElement="SequenceFlow_0fjaonh">
+        <di:waypoint xsi:type="dc:Point" x="4374" y="-254" />
+        <di:waypoint xsi:type="dc:Point" x="4374" y="-200" />
+        <di:waypoint xsi:type="dc:Point" x="3917" y="-200" />
+        <di:waypoint xsi:type="dc:Point" x="3917" y="-435" />
+        <bpmndi:BPMNLabel>
+          <dc:Bounds x="4013" y="-221" width="90" height="12" />
+        </bpmndi:BPMNLabel>
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="SequenceFlow_01i21oc_di" bpmnElement="SequenceFlow_01i21oc">
+        <di:waypoint xsi:type="dc:Point" x="4661" y="-254" />
+        <di:waypoint xsi:type="dc:Point" x="4661" y="-167" />
+        <di:waypoint xsi:type="dc:Point" x="3890" y="-167" />
+        <di:waypoint xsi:type="dc:Point" x="3890" y="-435" />
+        <bpmndi:BPMNLabel>
+          <dc:Bounds x="4143" y="-188" width="90" height="12" />
+        </bpmndi:BPMNLabel>
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="SequenceFlow_10el177_di" bpmnElement="SequenceFlow_10el177">
+        <di:waypoint xsi:type="dc:Point" x="5149" y="-450" />
+        <di:waypoint xsi:type="dc:Point" x="5149" y="-132" />
+        <di:waypoint xsi:type="dc:Point" x="3857" y="-132" />
+        <di:waypoint xsi:type="dc:Point" x="3857" y="-435" />
+        <bpmndi:BPMNLabel>
+          <dc:Bounds x="4413" y="-153" width="90" height="12" />
+        </bpmndi:BPMNLabel>
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="SequenceFlow_08btjh3_di" bpmnElement="SequenceFlow_08btjh3">
+        <di:waypoint xsi:type="dc:Point" x="3940" y="-475" />
+        <di:waypoint xsi:type="dc:Point" x="3991" y="-475" />
+        <bpmndi:BPMNLabel>
+          <dc:Bounds x="3833" y="-496" width="90" height="12" />
+        </bpmndi:BPMNLabel>
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="SequenceFlow_0parye1_di" bpmnElement="SequenceFlow_0parye1">
+        <di:waypoint xsi:type="dc:Point" x="4041" y="-475" />
+        <di:waypoint xsi:type="dc:Point" x="4139" y="-475" />
+        <bpmndi:BPMNLabel>
+          <dc:Bounds x="4052" y="-496" width="78" height="13" />
+        </bpmndi:BPMNLabel>
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="SequenceFlow_092yoln_di" bpmnElement="SequenceFlow_092yoln">
+        <di:waypoint xsi:type="dc:Point" x="4164" y="-450" />
+        <di:waypoint xsi:type="dc:Point" x="4164" y="-279" />
+        <di:waypoint xsi:type="dc:Point" x="4194" y="-279" />
+        <bpmndi:BPMNLabel>
+          <dc:Bounds x="4082" y="-385" width="65" height="63" />
+        </bpmndi:BPMNLabel>
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="SequenceFlow_0uvgbxl_di" bpmnElement="SequenceFlow_0uvgbxl">
+        <di:waypoint xsi:type="dc:Point" x="4189" y="-475" />
+        <di:waypoint xsi:type="dc:Point" x="4795" y="-475" />
+        <bpmndi:BPMNLabel>
+          <dc:Bounds x="4258" y="-528" width="65" height="38" />
+        </bpmndi:BPMNLabel>
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="SequenceFlow_15zk73k_di" bpmnElement="SequenceFlow_15zk73k">
+        <di:waypoint xsi:type="dc:Point" x="4399" y="-279" />
+        <di:waypoint xsi:type="dc:Point" x="4467" y="-279" />
+        <bpmndi:BPMNLabel>
+          <dc:Bounds x="4388" y="-300" width="90" height="12" />
+        </bpmndi:BPMNLabel>
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="SequenceFlow_1dtnt7b_di" bpmnElement="SequenceFlow_1dtnt7b">
+        <di:waypoint xsi:type="dc:Point" x="4567" y="-279" />
+        <di:waypoint xsi:type="dc:Point" x="4636" y="-279" />
+        <bpmndi:BPMNLabel>
+          <dc:Bounds x="4557" y="-300" width="90" height="12" />
+        </bpmndi:BPMNLabel>
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Association_0gv2hbj_di" bpmnElement="Association_0gv2hbj">
+        <di:waypoint xsi:type="dc:Point" x="4529" y="-319" />
+        <di:waypoint xsi:type="dc:Point" x="4536" y="-345" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="SequenceFlow_1fimqfq_di" bpmnElement="SequenceFlow_1fimqfq">
+        <di:waypoint xsi:type="dc:Point" x="4294" y="-279" />
+        <di:waypoint xsi:type="dc:Point" x="4349" y="-279" />
+        <bpmndi:BPMNLabel>
+          <dc:Bounds x="4189" y="-300" width="90" height="12" />
+        </bpmndi:BPMNLabel>
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Association_0pb1vnl_di" bpmnElement="Association_0pb1vnl">
+        <di:waypoint xsi:type="dc:Point" x="4264" y="-319" />
+        <di:waypoint xsi:type="dc:Point" x="4275" y="-341" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Association_0hlxl8a_di" bpmnElement="Association_0hlxl8a">
+        <di:waypoint xsi:type="dc:Point" x="4381" y="-261" />
+        <di:waypoint xsi:type="dc:Point" x="4424" y="-140" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="SequenceFlow_1aw7g43_di" bpmnElement="SequenceFlow_1aw7g43">
+        <di:waypoint xsi:type="dc:Point" x="4686" y="-279" />
+        <di:waypoint xsi:type="dc:Point" x="4820" y="-279" />
+        <di:waypoint xsi:type="dc:Point" x="4820" y="-448" />
+        <bpmndi:BPMNLabel>
+          <dc:Bounds x="4663" y="-300" width="90" height="12" />
+        </bpmndi:BPMNLabel>
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Association_0ov1aan_di" bpmnElement="Association_0ov1aan">
+        <di:waypoint xsi:type="dc:Point" x="4670" y="-263" />
+        <di:waypoint xsi:type="dc:Point" x="4737" y="-140" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="SequenceFlow_1f56l0l_di" bpmnElement="SequenceFlow_1f56l0l">
+        <di:waypoint xsi:type="dc:Point" x="5318" y="-475" />
+        <di:waypoint xsi:type="dc:Point" x="5360" y="-475" />
+        <bpmndi:BPMNLabel>
+          <dc:Bounds x="5249" y="-496" width="90" height="12" />
+        </bpmndi:BPMNLabel>
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="SequenceFlow_0osamjm_di" bpmnElement="SequenceFlow_0osamjm">
+        <di:waypoint xsi:type="dc:Point" x="5046" y="-475" />
+        <di:waypoint xsi:type="dc:Point" x="5124" y="-475" />
+        <bpmndi:BPMNLabel>
+          <dc:Bounds x="4995" y="-496" width="90" height="12" />
+        </bpmndi:BPMNLabel>
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="SequenceFlow_06di5fs_di" bpmnElement="SequenceFlow_06di5fs">
+        <di:waypoint xsi:type="dc:Point" x="5174" y="-475" />
+        <di:waypoint xsi:type="dc:Point" x="5218" y="-475" />
+        <bpmndi:BPMNLabel>
+          <dc:Bounds x="5106" y="-496" width="90" height="12" />
+        </bpmndi:BPMNLabel>
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Association_0kavnbb_di" bpmnElement="Association_0kavnbb">
+        <di:waypoint xsi:type="dc:Point" x="5162" y="-487" />
+        <di:waypoint xsi:type="dc:Point" x="5210" y="-534" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="SequenceFlow_175xf1g_di" bpmnElement="SequenceFlow_175xf1g">
+        <di:waypoint xsi:type="dc:Point" x="4016" y="-500" />
+        <di:waypoint xsi:type="dc:Point" x="4016" y="-606" />
+        <bpmndi:BPMNLabel>
+          <dc:Bounds x="3963" y="-561" width="49" height="25" />
+        </bpmndi:BPMNLabel>
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="SequenceFlow_0b1di1f_di" bpmnElement="SequenceFlow_0b1di1f">
+        <di:waypoint xsi:type="dc:Point" x="4845" y="-475" />
+        <di:waypoint xsi:type="dc:Point" x="4946" y="-475" />
+        <bpmndi:BPMNLabel>
+          <dc:Bounds x="4806" y="-496" width="90" height="12" />
+        </bpmndi:BPMNLabel>
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNShape id="UserTask_14r7iv6_di" bpmnElement="accept_work_maintenance_group">
+        <dc:Bounds x="4467" y="-319" width="100" height="80" />
+      </bpmndi:BPMNShape>
     </bpmndi:BPMNPlane>
   </bpmndi:BPMNDiagram>
 </bpmn:definitions>
