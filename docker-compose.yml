@@ -10,8 +10,8 @@ services:
     volumes:
       - ./kcell-camunda/mail-config.properties:/opt/mail-config.properties:ro
     # extra_hosts:
-    #   - "assets:192.168.99.1"
     #   - "ldap.kcell.kz:192.168.99.1"
+    # entrypoint: "bash -c 'sleep 3 && java -jar /opt/kcell-process-app.jar --postgresql.host=camundadb --postgresql.port=5432 --kcell.ldap.enabled=true --kcell.ldap.managerPassword=*****'"
   camundadb:
     image: postgres:9.6
     ports:
@@ -20,13 +20,12 @@ services:
       - POSTGRES_DB=process-engine
       - POSTGRES_USER=camunda
       - POSTGRES_PASSWORD=camunda
-    #volumes:
-    #  - ./camundadb/docker-entrypoint-initdb.d:/docker-entrypoint-initdb.d:ro
+    volumes:
+     - ./camundadb/docker-entrypoint-initdb.d:/docker-entrypoint-initdb.d:ro
   assets:
     build: ./asset-management
     links:
       - assetsdb
-    # entrypoint: "bash -c 'sleep 3 && java -jar /opt/asset-management.jar --postgresql.host=assetsdb --postgresql.port=5432'"
   assetsdb:
     image: mdillon/postgis:9.6
     ports:
@@ -35,8 +34,6 @@ services:
       - POSTGRES_DB=assets
       - POSTGRES_USER=assets
       - POSTGRES_PASSWORD=assets
-    # volumes:
-    #   - ./postgres/data:/var/lib/postgresql/data:rw
   nginx:
     image: nginx:stable
     ports:
@@ -51,9 +48,6 @@ services:
       - ./nginx/html/:/usr/share/nginx/html/:ro
       - ./kcell-process-app/src/main/resources/static/:/usr/share/nginx/kcell/webapp/:ro
       - ./kcell-tasklist-ui/:/usr/share/nginx/kcell-tasklist-ui/:ro
-    # extra_hosts:
-    #   - "assets:192.168.99.1"
-    #   - "camunda:192.168.99.1"
   mail:
     image: tozd/postfix
     links:
@@ -63,8 +57,6 @@ services:
     environment:
       - RELAY_HOST=mailcatcher
       - RELAY_PORT=1025
-    # ports:
-    #   - "1025:25"
   mailcatcher:
     image: schickling/mailcatcher
     ports:
