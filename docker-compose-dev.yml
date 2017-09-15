@@ -1,21 +1,11 @@
 version: '2.2'
 services:
-  camunda:
-    extends:
-      file: common-services.yml
-      service: camunda
-    links:
-      - mail
-    depends_on:
-      camundadb:
-        condition: service_healthy
-      minio:
-        condition: service_healthy
-    # command: ["--kcell.ldap.enabled=true", "--kcell.ldap.managerPassword=*****"]
   camundadb:
     extends:
       file: common-services.yml
       service: camundadb
+    ports:
+      - "5432:5432"
   assets:
     extends:
       file: common-services.yml
@@ -35,9 +25,10 @@ services:
       minio:
         condition: service_healthy
     links:
-      - camunda
       - assets
       - maildev
+    extra_hosts:
+      - "camunda:192.168.99.1"
   mail:
     extends:
       file: common-services.yml
@@ -52,3 +43,5 @@ services:
     extends:
       file: common-services.yml
       service: minio
+    ports:
+      - "9000:9000"

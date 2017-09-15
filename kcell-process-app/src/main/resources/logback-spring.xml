@@ -1,0 +1,42 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<configuration scan="true">
+    <include resource="org/springframework/boot/logging/logback/base.xml"/>
+
+
+    <springProfile name="fluentd">
+        <springProperty name="fluentdHost" source="fluentd.host" defaultValue="localhost"/>
+        <springProperty name="fluentdPort" source="fluentd.port" defaultValue="24224"/>
+        <springProperty name="fluentdTag"  source="fluentd.tag"  defaultValue="local"/>
+
+        <appender name="FLUENT_SYNC" class="ch.qos.logback.more.appenders.DataFluentAppender">
+            <tag>${fluentdTag}</tag>
+            <label>normal</label>
+            <remoteHost>${fluentdHost}</remoteHost>
+            <port>${fluentdPort}</port>
+            <!--
+            <additionalField>
+                <key>foo</key>
+                <value>bar</value>
+            </additionalField>
+            <additionalField>
+                <key>foo2</key>
+                <value>bar2</value>
+            </additionalField>
+            -->
+        </appender>
+
+        <appender name="FLUENT" class="ch.qos.logback.classic.AsyncAppender">
+            <!-- Max queue size of logs which is waiting to be sent (When it reach to the max size, the log will be disappeared). -->
+            <queueSize>999</queueSize>
+            <appender-ref ref="FLUENT_SYNC" />
+        </appender>
+
+        <root level="INFO">
+            <appender-ref ref="CONSOLE" />
+            <appender-ref ref="FILE" />
+            <appender-ref ref="FLUENT" />
+        </root>
+    </springProfile>
+
+</configuration>

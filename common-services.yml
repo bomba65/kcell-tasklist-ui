@@ -1,82 +1,60 @@
-version: '2'
+version: '2.2'
 services:
-  # camunda:
-  #   build: ./kcell-process-app
-  #   links:
-  #     - camundadb
-  #     - mail
-  #   environment:
-  #     - MAIL_CONFIG=/opt/mail-config.properties
-  #   volumes:
-  #     - ./kcell-camunda/mail-config.properties:/opt/mail-config.properties:ro
-  #   extra_hosts:
-  #     - "assets:192.168.99.1"
-  #     - "ldap.kcell.kz:192.168.99.1"
+  camunda:
+    build: ./kcell-process-app
+    environment:
+      - MAIL_CONFIG=/opt/mail-config.properties
+    volumes:
+      - ./kcell-camunda/mail-config.properties:/opt/mail-config.properties:ro
   camundadb:
     image: postgres:9.6
-    ports:
-      - "5432:5432"
     environment:
       - POSTGRES_DB=process-engine
       - POSTGRES_USER=camunda
       - POSTGRES_PASSWORD=camunda
     volumes:
       - ./camundadb/docker-entrypoint-initdb.d:/docker-entrypoint-initdb.d:ro
+    healthcheck:
+      test: "pg_isready --host=camundadb"
+      interval: 2s
+      timeout: 10s
+      retries: 30
   assets:
     build: ./asset-management
-    links:
-      - assetsdb
-    # ports:
-    #   - "8085:8080"
   assetsdb:
     image: mdillon/postgis:9.6
-    ports:
-      - "5433:5432"
     environment:
       - POSTGRES_DB=assets
       - POSTGRES_USER=assets
       - POSTGRES_PASSWORD=assets
+    healthcheck:
+      test: "pg_isready --host=assetsdb"
+      interval: 2s
+      timeout: 10s
+      retries: 30
   nginx:
     image: nginx:stable
     ports:
-      - "80:80"
-    links:
-      #- camunda
-      - assets
-      - minio
-      - minioclient
+      - "127.0.0.1:${NGINX_PORT:-80}:80"
     volumes:
+      - ./build/nginx/conf/version.conf:/etc/nginx/conf.d/version.conf:ro
       - ./nginx/conf/nginx.conf:/etc/nginx/nginx.conf:ro
       - ./nginx/html/:/usr/share/nginx/html/:ro
       - ./kcell-process-app/src/main/resources/static/:/usr/share/nginx/kcell/webapp/:ro
       - ./kcell-tasklist-ui/:/usr/share/nginx/kcell-tasklist-ui/:ro
-    extra_hosts:
-    #  - "assets:192.168.99.1"
-      - "camunda:192.168.99.1"
   mail:
     image: tozd/postfix
-    links:
-      - mailcatcher
     volumes:
       - ./mail/run.initialization:/etc/service/postfix/run.initialization:ro
     environment:
-      - RELAY_HOST=mailcatcher
+      - RELAY_HOST=maildev
       - RELAY_PORT=1025
-    ports:
-      - "1025:25"
-  mailcatcher:
-    image: schickling/mailcatcher
-    ports:
-      - "1080:1080"
+  maildev:
+    image: djfarrelly/maildev
+    command: ["bin/maildev", "--base-pathname", "/mail"]
   minio:
     image: minio/minio
-    ports:
-      - "9000:9000"
     environment:
       - MINIO_ACCESS_KEY=AKIAIOSFODNN7EXAMPLE
       - MINIO_SECRET_KEY=wJalrXUtnFEMI/K7MDENG/bPxRfiCYEXAMPLEKEY
     command: server /export
-  minioclient:
-    build: ./minio-client
-    links: 
-      - minio
