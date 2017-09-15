@@ -711,7 +711,6 @@
       <bpmn:userTask id="accept_work_initiator" name="accept and sign by initiator" camunda:formKey="embedded:app:forms/revision/accept-and-sign-by-initiator.html" camunda:assignee="${ starter }">
         <bpmn:documentation>Accept and sign by initiator</bpmn:documentation>
         <bpmn:incoming>SequenceFlow_0g3rb8x</bpmn:incoming>
-        <bpmn:incoming>SequenceFlow_0fjaonh</bpmn:incoming>
         <bpmn:incoming>SequenceFlow_01i21oc</bpmn:incoming>
         <bpmn:incoming>SequenceFlow_10el177</bpmn:incoming>
         <bpmn:outgoing>SequenceFlow_08btjh3</bpmn:outgoing>
@@ -721,19 +720,22 @@
         <bpmn:outgoing>SequenceFlow_092yoln</bpmn:outgoing>
         <bpmn:outgoing>SequenceFlow_0uvgbxl</bpmn:outgoing>
       </bpmn:exclusiveGateway>
-      <bpmn:userTask id="accept_work_planning_group" name="accept and sign by planning group" camunda:formKey="embedded:app:forms/revision/accept-and-sign-by-planning-group.html">
-        <bpmn:documentation>Accept and sign by planning group</bpmn:documentation>
+      <bpmn:userTask id="accept_work_maintenance_group" name="accept and sign by maintanance group" camunda:formKey="embedded:app:forms/revision/accept-and-sign-by-maintenance-group.html">
+        <bpmn:documentation>Accept and sign by maintanance group</bpmn:documentation>
+        <bpmn:extensionElements>
+          <camunda:taskListener class="kz.kcell.bpm.assignments.AcceptAndSignByMaintananceGroupAssignmentHandler" event="create" />
+        </bpmn:extensionElements>
         <bpmn:incoming>SequenceFlow_092yoln</bpmn:incoming>
         <bpmn:outgoing>SequenceFlow_1fimqfq</bpmn:outgoing>
       </bpmn:userTask>
-      <bpmn:exclusiveGateway id="exclgw_acceptance_is_planning_accepted" default="SequenceFlow_15zk73k">
+      <bpmn:exclusiveGateway id="exclgw_acceptance_is_planning_accepted" default="SequenceFlow_0fjaonh">
         <bpmn:incoming>SequenceFlow_1fimqfq</bpmn:incoming>
         <bpmn:outgoing>SequenceFlow_0fjaonh</bpmn:outgoing>
         <bpmn:outgoing>SequenceFlow_15zk73k</bpmn:outgoing>
       </bpmn:exclusiveGateway>
-      <bpmn:exclusiveGateway id="exclgw_acceptance_is_maintenance_accepted" default="SequenceFlow_1aw7g43">
+      <bpmn:exclusiveGateway id="exclgw_acceptance_is_maintenance_accepted">
         <bpmn:incoming>SequenceFlow_1dtnt7b</bpmn:incoming>
-        <bpmn:outgoing>SequenceFlow_01i21oc</bpmn:outgoing>
+        <bpmn:incoming>SequenceFlow_0fjaonh</bpmn:incoming>
         <bpmn:outgoing>SequenceFlow_1aw7g43</bpmn:outgoing>
       </bpmn:exclusiveGateway>
       <bpmn:endEvent id="endevt_accept_work">
@@ -754,7 +756,7 @@
       </bpmn:endEvent>
       <bpmn:exclusiveGateway id="exclgw_acceptance_is_work_accepted">
         <bpmn:incoming>SequenceFlow_0uvgbxl</bpmn:incoming>
-        <bpmn:incoming>SequenceFlow_1aw7g43</bpmn:incoming>
+        <bpmn:incoming>SequenceFlow_0v75fi7</bpmn:incoming>
         <bpmn:outgoing>SequenceFlow_0b1di1f</bpmn:outgoing>
       </bpmn:exclusiveGateway>
       <bpmn:sendTask id="notify_work_accepted" name="Send notification: Work accepted">
@@ -773,43 +775,55 @@
       </bpmn:sendTask>
       <bpmn:userTask id="sign_region_head" name="Sign by region head" camunda:formKey="embedded:app:forms/revision/accept-and-sign-by-region-head.html">
         <bpmn:documentation>Sign by region head</bpmn:documentation>
+        <bpmn:extensionElements>
+          <camunda:taskListener class="kz.kcell.bpm.assignments.RegionGroupAssignmentHandler" event="create" />
+        </bpmn:extensionElements>
         <bpmn:incoming>SequenceFlow_0b1di1f</bpmn:incoming>
         <bpmn:outgoing>SequenceFlow_0osamjm</bpmn:outgoing>
       </bpmn:userTask>
       <bpmn:sequenceFlow id="SequenceFlow_0g3rb8x" sourceRef="startevt_accept_works" targetRef="accept_work_initiator" />
-      <bpmn:sequenceFlow id="SequenceFlow_0fjaonh" sourceRef="exclgw_acceptance_is_planning_accepted" targetRef="accept_work_initiator">
-        <bpmn:conditionExpression xsi:type="bpmn:tFormalExpression"><![CDATA[${acceptAndSignByPlanningGroupTaskResult=='rejected'}]]></bpmn:conditionExpression>
-      </bpmn:sequenceFlow>
-      <bpmn:sequenceFlow id="SequenceFlow_01i21oc" sourceRef="exclgw_acceptance_is_maintenance_accepted" targetRef="accept_work_initiator">
-        <bpmn:conditionExpression xsi:type="bpmn:tFormalExpression"><![CDATA[${acceptAndSignByMaintenanceGroupTaskResult=='rejected'}]]></bpmn:conditionExpression>
-      </bpmn:sequenceFlow>
-      <bpmn:sequenceFlow id="SequenceFlow_10el177" sourceRef="exclgw_acceptance_is_work_signed_region" targetRef="accept_work_initiator">
+      <bpmn:sequenceFlow id="SequenceFlow_0fjaonh" name="not selected" sourceRef="exclgw_acceptance_is_planning_accepted" targetRef="exclgw_acceptance_is_maintenance_accepted" />
+      <bpmn:sequenceFlow id="SequenceFlow_01i21oc" name="rejected" sourceRef="ExclusiveGateway_0rnvvn9" targetRef="accept_work_initiator" />
+      <bpmn:sequenceFlow id="SequenceFlow_10el177" name="rejected" sourceRef="exclgw_acceptance_is_work_signed_region" targetRef="accept_work_initiator">
         <bpmn:conditionExpression xsi:type="bpmn:tFormalExpression"><![CDATA[${acceptAndSignByRegionHeadTaskResult=='rejected'}]]></bpmn:conditionExpression>
       </bpmn:sequenceFlow>
       <bpmn:sequenceFlow id="SequenceFlow_08btjh3" sourceRef="accept_work_initiator" targetRef="exclgw_acceptance_accepted_initiator" />
       <bpmn:sequenceFlow id="SequenceFlow_0parye1" name="accept and sign" sourceRef="exclgw_acceptance_accepted_initiator" targetRef="exclgw_acceptance_is_transm_accept_needed" />
-      <bpmn:sequenceFlow id="SequenceFlow_092yoln" name="if choosed Optimization, Operation or Infrastructure works" sourceRef="exclgw_acceptance_is_transm_accept_needed" targetRef="accept_work_planning_group">
+      <bpmn:sequenceFlow id="SequenceFlow_092yoln" name="if choosed Optimization, Operation or Infrastructure works" sourceRef="exclgw_acceptance_is_transm_accept_needed" targetRef="accept_work_maintenance_group">
         <bpmn:conditionExpression xsi:type="bpmn:tFormalExpression"><![CDATA[${ reason == '1' || reason == '3' || reason == '4' }]]></bpmn:conditionExpression>
       </bpmn:sequenceFlow>
       <bpmn:sequenceFlow id="SequenceFlow_0uvgbxl" name="if choosed Transmission works" sourceRef="exclgw_acceptance_is_transm_accept_needed" targetRef="exclgw_acceptance_is_work_accepted">
         <bpmn:conditionExpression xsi:type="bpmn:tFormalExpression"><![CDATA[${ reason == '2' }]]></bpmn:conditionExpression>
       </bpmn:sequenceFlow>
-      <bpmn:sequenceFlow id="SequenceFlow_15zk73k" sourceRef="exclgw_acceptance_is_planning_accepted" targetRef="accept_work_maintenance_group" />
-      <bpmn:sequenceFlow id="SequenceFlow_1dtnt7b" sourceRef="accept_work_maintenance_group" targetRef="exclgw_acceptance_is_maintenance_accepted" />
-      <bpmn:sequenceFlow id="SequenceFlow_1fimqfq" sourceRef="accept_work_planning_group" targetRef="exclgw_acceptance_is_planning_accepted" />
-      <bpmn:sequenceFlow id="SequenceFlow_1aw7g43" sourceRef="exclgw_acceptance_is_maintenance_accepted" targetRef="exclgw_acceptance_is_work_accepted" />
+      <bpmn:sequenceFlow id="SequenceFlow_15zk73k" name="selected" sourceRef="exclgw_acceptance_is_planning_accepted" targetRef="accept_work_planning_group">
+        <bpmn:conditionExpression xsi:type="bpmn:tFormalExpression"><![CDATA[${planningGroupReviewSelected=='selected'}]]></bpmn:conditionExpression>
+      </bpmn:sequenceFlow>
+      <bpmn:sequenceFlow id="SequenceFlow_1dtnt7b" sourceRef="accept_work_planning_group" targetRef="exclgw_acceptance_is_maintenance_accepted" />
+      <bpmn:sequenceFlow id="SequenceFlow_1fimqfq" sourceRef="accept_work_maintenance_group" targetRef="exclgw_acceptance_is_planning_accepted" />
+      <bpmn:sequenceFlow id="SequenceFlow_1aw7g43" sourceRef="exclgw_acceptance_is_maintenance_accepted" targetRef="ExclusiveGateway_0rnvvn9" />
       <bpmn:sequenceFlow id="SequenceFlow_1f56l0l" sourceRef="notify_work_accepted" targetRef="endevt_accept_work" />
       <bpmn:sequenceFlow id="SequenceFlow_0osamjm" sourceRef="sign_region_head" targetRef="exclgw_acceptance_is_work_signed_region" />
       <bpmn:sequenceFlow id="SequenceFlow_06di5fs" sourceRef="exclgw_acceptance_is_work_signed_region" targetRef="notify_work_accepted" />
       <bpmn:sequenceFlow id="SequenceFlow_175xf1g" name="return for correction" sourceRef="exclgw_acceptance_accepted_initiator" targetRef="endevt_accept_return_for_correction">
-        <bpmn:conditionExpression xsi:type="bpmn:tFormalExpression"><![CDATA[${acceptAndSignByInitiatorTaskResult=='notApproved'}]]></bpmn:conditionExpression>
+        <bpmn:conditionExpression xsi:type="bpmn:tFormalExpression"><![CDATA[${acceptAndSignByInitiatorTaskResult=='reject'}]]></bpmn:conditionExpression>
       </bpmn:sequenceFlow>
       <bpmn:sequenceFlow id="SequenceFlow_0b1di1f" sourceRef="exclgw_acceptance_is_work_accepted" targetRef="sign_region_head" />
-      <bpmn:userTask id="accept_work_maintenance_group" name="accept and sign by maintanance group" camunda:formKey="embedded:app:forms/revision/accept-and-sign-by-maintenance-group.html">
-        <bpmn:documentation>Accept and sign by maintanance group</bpmn:documentation>
+      <bpmn:userTask id="accept_work_planning_group" name="accept and sign by planning group" camunda:formKey="embedded:app:forms/revision/accept-and-sign-by-planning-group.html">
+        <bpmn:documentation>Accept and sign by planning group</bpmn:documentation>
+        <bpmn:extensionElements>
+          <camunda:taskListener class="kz.kcell.bpm.assignments.AcceptAndSignByPlanningGroupAssignmentHandler" event="create" />
+        </bpmn:extensionElements>
         <bpmn:incoming>SequenceFlow_15zk73k</bpmn:incoming>
         <bpmn:outgoing>SequenceFlow_1dtnt7b</bpmn:outgoing>
       </bpmn:userTask>
+      <bpmn:exclusiveGateway id="ExclusiveGateway_0rnvvn9" default="SequenceFlow_01i21oc">
+        <bpmn:incoming>SequenceFlow_1aw7g43</bpmn:incoming>
+        <bpmn:outgoing>SequenceFlow_0v75fi7</bpmn:outgoing>
+        <bpmn:outgoing>SequenceFlow_01i21oc</bpmn:outgoing>
+      </bpmn:exclusiveGateway>
+      <bpmn:sequenceFlow id="SequenceFlow_0v75fi7" sourceRef="ExclusiveGateway_0rnvvn9" targetRef="exclgw_acceptance_is_work_accepted">
+        <bpmn:conditionExpression xsi:type="bpmn:tFormalExpression"><![CDATA[${acceptAndSignByMaintenanceGroupTaskResult=='approved' && (planningGroupReviewSelected!='selected' || acceptAndSignByPlanningGroupTaskResult=='approved')}]]></bpmn:conditionExpression>
+      </bpmn:sequenceFlow>
       <bpmn:textAnnotation id="TextAnnotation_03pk2rp">      <bpmn:text><![CDATA[status can be "sign" or "not nessesary"]]></bpmn:text>
 </bpmn:textAnnotation>
       <bpmn:textAnnotation id="TextAnnotation_1204ymp">      <bpmn:text><![CDATA[status can be "sign" or "not nessesary"]]></bpmn:text>
@@ -820,8 +834,8 @@
 </bpmn:textAnnotation>
       <bpmn:textAnnotation id="TextAnnotation_18educ8">      <bpmn:text>при возврате на коррекцию на форме должна быть отметка выделенная что это возврат и от кого, а также комментарий должен быть виден</bpmn:text>
 </bpmn:textAnnotation>
-      <bpmn:association id="Association_0gv2hbj" sourceRef="accept_work_maintenance_group" targetRef="TextAnnotation_1204ymp" />
-      <bpmn:association id="Association_0pb1vnl" sourceRef="accept_work_planning_group" targetRef="TextAnnotation_03pk2rp" />
+      <bpmn:association id="Association_0gv2hbj" sourceRef="accept_work_planning_group" targetRef="TextAnnotation_1204ymp" />
+      <bpmn:association id="Association_0pb1vnl" sourceRef="accept_work_maintenance_group" targetRef="TextAnnotation_03pk2rp" />
       <bpmn:association id="Association_0hlxl8a" sourceRef="exclgw_acceptance_is_planning_accepted" targetRef="TextAnnotation_0g5peyz" />
       <bpmn:association id="Association_0ov1aan" sourceRef="exclgw_acceptance_is_maintenance_accepted" targetRef="TextAnnotation_06k66mm" />
       <bpmn:association id="Association_0kavnbb" sourceRef="exclgw_acceptance_is_work_signed_region" targetRef="TextAnnotation_18educ8" />
@@ -2437,7 +2451,7 @@
           <dc:Bounds x="4029" y="-446" width="90" height="12" />
         </bpmndi:BPMNLabel>
       </bpmndi:BPMNShape>
-      <bpmndi:BPMNShape id="UserTask_1sqhfcz_di" bpmnElement="accept_work_planning_group">
+      <bpmndi:BPMNShape id="UserTask_1sqhfcz_di" bpmnElement="accept_work_maintenance_group">
         <dc:Bounds x="4194" y="-319" width="100" height="80" />
       </bpmndi:BPMNShape>
       <bpmndi:BPMNShape id="ExclusiveGateway_05sltp6_di" bpmnElement="exclgw_acceptance_is_planning_accepted" isMarkerVisible="true">
@@ -2513,19 +2527,19 @@
       <bpmndi:BPMNEdge id="SequenceFlow_0fjaonh_di" bpmnElement="SequenceFlow_0fjaonh">
         <di:waypoint xsi:type="dc:Point" x="4374" y="-254" />
         <di:waypoint xsi:type="dc:Point" x="4374" y="-200" />
-        <di:waypoint xsi:type="dc:Point" x="3917" y="-200" />
-        <di:waypoint xsi:type="dc:Point" x="3917" y="-435" />
+        <di:waypoint xsi:type="dc:Point" x="4661" y="-200" />
+        <di:waypoint xsi:type="dc:Point" x="4661" y="-248" />
         <bpmndi:BPMNLabel>
-          <dc:Bounds x="4013" y="-221" width="90" height="12" />
+          <dc:Bounds x="4488" y="-221" width="60" height="13" />
         </bpmndi:BPMNLabel>
       </bpmndi:BPMNEdge>
       <bpmndi:BPMNEdge id="SequenceFlow_01i21oc_di" bpmnElement="SequenceFlow_01i21oc">
-        <di:waypoint xsi:type="dc:Point" x="4661" y="-254" />
-        <di:waypoint xsi:type="dc:Point" x="4661" y="-167" />
+        <di:waypoint xsi:type="dc:Point" x="4820" y="-250" />
+        <di:waypoint xsi:type="dc:Point" x="4820" y="-167" />
         <di:waypoint xsi:type="dc:Point" x="3890" y="-167" />
         <di:waypoint xsi:type="dc:Point" x="3890" y="-435" />
         <bpmndi:BPMNLabel>
-          <dc:Bounds x="4143" y="-188" width="90" height="12" />
+          <dc:Bounds x="4335" y="-188" width="40" height="13" />
         </bpmndi:BPMNLabel>
       </bpmndi:BPMNEdge>
       <bpmndi:BPMNEdge id="SequenceFlow_10el177_di" bpmnElement="SequenceFlow_10el177">
@@ -2534,7 +2548,7 @@
         <di:waypoint xsi:type="dc:Point" x="3857" y="-132" />
         <di:waypoint xsi:type="dc:Point" x="3857" y="-435" />
         <bpmndi:BPMNLabel>
-          <dc:Bounds x="4413" y="-153" width="90" height="12" />
+          <dc:Bounds x="4440" y="-153" width="40" height="13" />
         </bpmndi:BPMNLabel>
       </bpmndi:BPMNEdge>
       <bpmndi:BPMNEdge id="SequenceFlow_08btjh3_di" bpmnElement="SequenceFlow_08btjh3">
@@ -2570,7 +2584,7 @@
         <di:waypoint xsi:type="dc:Point" x="4399" y="-279" />
         <di:waypoint xsi:type="dc:Point" x="4467" y="-279" />
         <bpmndi:BPMNLabel>
-          <dc:Bounds x="4388" y="-300" width="90" height="12" />
+          <dc:Bounds x="4399" y="-300" width="41" height="13" />
         </bpmndi:BPMNLabel>
       </bpmndi:BPMNEdge>
       <bpmndi:BPMNEdge id="SequenceFlow_1dtnt7b_di" bpmnElement="SequenceFlow_1dtnt7b">
@@ -2601,10 +2615,9 @@
       </bpmndi:BPMNEdge>
       <bpmndi:BPMNEdge id="SequenceFlow_1aw7g43_di" bpmnElement="SequenceFlow_1aw7g43">
         <di:waypoint xsi:type="dc:Point" x="4686" y="-279" />
-        <di:waypoint xsi:type="dc:Point" x="4820" y="-279" />
-        <di:waypoint xsi:type="dc:Point" x="4820" y="-448" />
+        <di:waypoint xsi:type="dc:Point" x="4795" y="-279" />
         <bpmndi:BPMNLabel>
-          <dc:Bounds x="4663" y="-300" width="90" height="12" />
+          <dc:Bounds x="4695.5" y="-300" width="90" height="12" />
         </bpmndi:BPMNLabel>
       </bpmndi:BPMNEdge>
       <bpmndi:BPMNEdge id="Association_0ov1aan_di" bpmnElement="Association_0ov1aan">
@@ -2650,9 +2663,22 @@
           <dc:Bounds x="4806" y="-496" width="90" height="12" />
         </bpmndi:BPMNLabel>
       </bpmndi:BPMNEdge>
-      <bpmndi:BPMNShape id="UserTask_14r7iv6_di" bpmnElement="accept_work_maintenance_group">
+      <bpmndi:BPMNShape id="UserTask_14r7iv6_di" bpmnElement="accept_work_planning_group">
         <dc:Bounds x="4467" y="-319" width="100" height="80" />
       </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="ExclusiveGateway_0rnvvn9_di" bpmnElement="ExclusiveGateway_0rnvvn9" isMarkerVisible="true">
+        <dc:Bounds x="4795" y="-304" width="50" height="50" />
+        <bpmndi:BPMNLabel>
+          <dc:Bounds x="4820" y="-251" width="0" height="13" />
+        </bpmndi:BPMNLabel>
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNEdge id="SequenceFlow_0v75fi7_di" bpmnElement="SequenceFlow_0v75fi7">
+        <di:waypoint xsi:type="dc:Point" x="4820" y="-304" />
+        <di:waypoint xsi:type="dc:Point" x="4820" y="-450" />
+        <bpmndi:BPMNLabel>
+          <dc:Bounds x="4834" y="-384" width="4" height="13" />
+        </bpmndi:BPMNLabel>
+      </bpmndi:BPMNEdge>
     </bpmndi:BPMNPlane>
   </bpmndi:BPMNDiagram>
 </bpmn:definitions>

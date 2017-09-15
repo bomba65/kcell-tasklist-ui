@@ -137,6 +137,12 @@ INSERT INTO act_id_group (id_, rev_, name_, type_) VALUES ('alm_operation_head',
 INSERT INTO act_id_group (id_, rev_, name_, type_) VALUES ('alm_power_engineer', 1, 'alm_power_engineer', 'WORKFLOW');
 INSERT INTO act_id_group (id_, rev_, name_, type_) VALUES ('alm_leasing', 1, 'alm_leasing', 'WORKFLOW');
 INSERT INTO act_id_group (id_, rev_, name_, type_) VALUES ('alm_contractor_lse', 1, 'alm_contractor_lse', 'WORKFLOW');
+INSERT INTO act_id_group (id_, rev_, name_, type_) VALUES ('alm_optimization_planning', 1, 'alm_optimization_planning', 'WORKFLOW');
+INSERT INTO act_id_group (id_, rev_, name_, type_) VALUES ('alm_infrastructure_planning', 1, 'alm_infrastructure_planning', 'WORKFLOW');
+INSERT INTO act_id_group (id_, rev_, name_, type_) VALUES ('alm_sao_planning', 1, 'alm_sao_planning', 'WORKFLOW');
+INSERT INTO act_id_group (id_, rev_, name_, type_) VALUES ('alm_optimization_maintanance', 1, 'alm_optimization_maintanance', 'WORKFLOW');
+INSERT INTO act_id_group (id_, rev_, name_, type_) VALUES ('alm_infrastructure_maintanance', 1, 'alm_infrastructure_maintanance', 'WORKFLOW');
+INSERT INTO act_id_group (id_, rev_, name_, type_) VALUES ('alm_sao_maintanance', 1, 'alm_sao_maintanance', 'WORKFLOW');
 INSERT INTO act_id_group (id_, rev_, name_, type_) VALUES ('astana_engineer', 1, 'astana_engineer', 'WORKFLOW');
 INSERT INTO act_id_group (id_, rev_, name_, type_) VALUES ('astana_optimization_head', 1, 'astana_optimization_head', 'WORKFLOW');
 INSERT INTO act_id_group (id_, rev_, name_, type_) VALUES ('astana_transmission_head', 1, 'astana_transmission_head', 'WORKFLOW');
@@ -145,6 +151,12 @@ INSERT INTO act_id_group (id_, rev_, name_, type_) VALUES ('astana_operation_hea
 INSERT INTO act_id_group (id_, rev_, name_, type_) VALUES ('astana_power_engineer', 1, 'astana_power_engineer', 'WORKFLOW');
 INSERT INTO act_id_group (id_, rev_, name_, type_) VALUES ('astana_leasing', 1, 'astana_leasing', 'WORKFLOW');
 INSERT INTO act_id_group (id_, rev_, name_, type_) VALUES ('astana_contractor_lse', 1, 'astana_contractor_lse', 'WORKFLOW');
+INSERT INTO act_id_group (id_, rev_, name_, type_) VALUES ('astana_optimization_planning', 1, 'astana_optimization_planning', 'WORKFLOW');
+INSERT INTO act_id_group (id_, rev_, name_, type_) VALUES ('astana_infrastructure_planning', 1, 'astana_infrastructure_planning', 'WORKFLOW');
+INSERT INTO act_id_group (id_, rev_, name_, type_) VALUES ('astana_sao_planning', 1, 'astana_sao_planning', 'WORKFLOW');
+INSERT INTO act_id_group (id_, rev_, name_, type_) VALUES ('astana_optimization_maintanance', 1, 'astana_optimization_maintanance', 'WORKFLOW');
+INSERT INTO act_id_group (id_, rev_, name_, type_) VALUES ('astana_infrastructure_maintanance', 1, 'astana_infrastructure_maintanance', 'WORKFLOW');
+INSERT INTO act_id_group (id_, rev_, name_, type_) VALUES ('astana_sao_maintanance', 1, 'astana_sao_maintanance', 'WORKFLOW');
 INSERT INTO act_id_group (id_, rev_, name_, type_) VALUES ('nc_engineer', 1, 'nc_engineer', 'WORKFLOW');
 INSERT INTO act_id_group (id_, rev_, name_, type_) VALUES ('nc_optimization_head', 1, 'nc_optimization_head', 'WORKFLOW');
 INSERT INTO act_id_group (id_, rev_, name_, type_) VALUES ('nc_transmission_head', 1, 'nc_transmission_head', 'WORKFLOW');
@@ -153,6 +165,12 @@ INSERT INTO act_id_group (id_, rev_, name_, type_) VALUES ('nc_operation_head', 
 INSERT INTO act_id_group (id_, rev_, name_, type_) VALUES ('nc_power_engineer', 1, 'nc_power_engineer', 'WORKFLOW');
 INSERT INTO act_id_group (id_, rev_, name_, type_) VALUES ('nc_leasing', 1, 'nc_leasing', 'WORKFLOW');
 INSERT INTO act_id_group (id_, rev_, name_, type_) VALUES ('nc_contractor_lse', 1, 'nc_contractor_lse', 'WORKFLOW');
+INSERT INTO act_id_group (id_, rev_, name_, type_) VALUES ('nc_optimization_planning', 1, 'nc_optimization_planning', 'WORKFLOW');
+INSERT INTO act_id_group (id_, rev_, name_, type_) VALUES ('nc_infrastructure_planning', 1, 'nc_infrastructure_planning', 'WORKFLOW');
+INSERT INTO act_id_group (id_, rev_, name_, type_) VALUES ('nc_sao_planning', 1, 'nc_sao_planning', 'WORKFLOW');
+INSERT INTO act_id_group (id_, rev_, name_, type_) VALUES ('nc_optimization_maintanance', 1, 'nc_optimization_maintanance', 'WORKFLOW');
+INSERT INTO act_id_group (id_, rev_, name_, type_) VALUES ('nc_infrastructure_maintanance', 1, 'nc_infrastructure_maintanance', 'WORKFLOW');
+INSERT INTO act_id_group (id_, rev_, name_, type_) VALUES ('nc_sao_maintanance', 1, 'nc_sao_maintanance', 'WORKFLOW');
 INSERT INTO act_id_group (id_, rev_, name_, type_) VALUES ('east_engineer', 1, 'east_engineer', 'WORKFLOW');
 INSERT INTO act_id_group (id_, rev_, name_, type_) VALUES ('east_optimization_head', 1, 'east_optimization_head', 'WORKFLOW');
 INSERT INTO act_id_group (id_, rev_, name_, type_) VALUES ('east_transmission_head', 1, 'east_transmission_head', 'WORKFLOW');
@@ -161,6 +179,12 @@ INSERT INTO act_id_group (id_, rev_, name_, type_) VALUES ('east_operation_head'
 INSERT INTO act_id_group (id_, rev_, name_, type_) VALUES ('east_power_engineer', 1, 'east_power_engineer', 'WORKFLOW');
 INSERT INTO act_id_group (id_, rev_, name_, type_) VALUES ('east_leasing', 1, 'east_leasing', 'WORKFLOW');
 INSERT INTO act_id_group (id_, rev_, name_, type_) VALUES ('east_contractor_lse', 1, 'east_contractor_lse', 'WORKFLOW');
+INSERT INTO act_id_group (id_, rev_, name_, type_) VALUES ('east_optimization_planning', 1, 'east_optimization_planning', 'WORKFLOW');
+INSERT INTO act_id_group (id_, rev_, name_, type_) VALUES ('east_infrastructure_planning', 1, 'east_infrastructure_planning', 'WORKFLOW');
+INSERT INTO act_id_group (id_, rev_, name_, type_) VALUES ('east_sao_planning', 1, 'east_sao_planning', 'WORKFLOW');
+INSERT INTO act_id_group (id_, rev_, name_, type_) VALUES ('east_optimization_maintanance', 1, 'east_optimization_maintanance', 'WORKFLOW');
+INSERT INTO act_id_group (id_, rev_, name_, type_) VALUES ('east_infrastructure_maintanance', 1, 'east_infrastructure_maintanance', 'WORKFLOW');
+INSERT INTO act_id_group (id_, rev_, name_, type_) VALUES ('east_sao_maintanance', 1, 'east_sao_maintanance', 'WORKFLOW');
 INSERT INTO act_id_group (id_, rev_, name_, type_) VALUES ('south_engineer', 1, 'south_engineer', 'WORKFLOW');
 INSERT INTO act_id_group (id_, rev_, name_, type_) VALUES ('south_optimization_head', 1, 'south_optimization_head', 'WORKFLOW');
 INSERT INTO act_id_group (id_, rev_, name_, type_) VALUES ('south_transmission_head', 1, 'south_transmission_head', 'WORKFLOW');
@@ -169,6 +193,12 @@ INSERT INTO act_id_group (id_, rev_, name_, type_) VALUES ('south_operation_head
 INSERT INTO act_id_group (id_, rev_, name_, type_) VALUES ('south_power_engineer', 1, 'south_power_engineer', 'WORKFLOW');
 INSERT INTO act_id_group (id_, rev_, name_, type_) VALUES ('south_leasing', 1, 'south_leasing', 'WORKFLOW');
 INSERT INTO act_id_group (id_, rev_, name_, type_) VALUES ('south_contractor_lse', 1, 'south_contractor_lse', 'WORKFLOW');
+INSERT INTO act_id_group (id_, rev_, name_, type_) VALUES ('south_optimization_planning', 1, 'south_optimization_planning', 'WORKFLOW');
+INSERT INTO act_id_group (id_, rev_, name_, type_) VALUES ('south_infrastructure_planning', 1, 'south_infrastructure_planning', 'WORKFLOW');
+INSERT INTO act_id_group (id_, rev_, name_, type_) VALUES ('south_sao_planning', 1, 'south_sao_planning', 'WORKFLOW');
+INSERT INTO act_id_group (id_, rev_, name_, type_) VALUES ('south_optimization_maintanance', 1, 'south_optimization_maintanance', 'WORKFLOW');
+INSERT INTO act_id_group (id_, rev_, name_, type_) VALUES ('south_infrastructure_maintanance', 1, 'south_infrastructure_maintanance', 'WORKFLOW');
+INSERT INTO act_id_group (id_, rev_, name_, type_) VALUES ('south_sao_maintanance', 1, 'south_sao_maintanance', 'WORKFLOW');
 INSERT INTO act_id_group (id_, rev_, name_, type_) VALUES ('west_engineer', 1, 'west_engineer', 'WORKFLOW');
 INSERT INTO act_id_group (id_, rev_, name_, type_) VALUES ('west_optimization_head', 1, 'west_optimization_head', 'WORKFLOW');
 INSERT INTO act_id_group (id_, rev_, name_, type_) VALUES ('west_transmission_head', 1, 'west_transmission_head', 'WORKFLOW');
@@ -177,6 +207,13 @@ INSERT INTO act_id_group (id_, rev_, name_, type_) VALUES ('west_operation_head'
 INSERT INTO act_id_group (id_, rev_, name_, type_) VALUES ('west_power_engineer', 1, 'west_power_engineer', 'WORKFLOW');
 INSERT INTO act_id_group (id_, rev_, name_, type_) VALUES ('west_leasing', 1, 'west_leasing', 'WORKFLOW');
 INSERT INTO act_id_group (id_, rev_, name_, type_) VALUES ('west_contractor_lse', 1, 'west_contractor_lse', 'WORKFLOW');
+INSERT INTO act_id_group (id_, rev_, name_, type_) VALUES ('west_optimization_planning', 1, 'west_optimization_planning', 'WORKFLOW');
+INSERT INTO act_id_group (id_, rev_, name_, type_) VALUES ('west_infrastructure_planning', 1, 'west_infrastructure_planning', 'WORKFLOW');
+INSERT INTO act_id_group (id_, rev_, name_, type_) VALUES ('west_sao_planning', 1, 'south_sao_planning', 'WORKFLOW');
+INSERT INTO act_id_group (id_, rev_, name_, type_) VALUES ('west_optimization_maintanance', 1, 'west_optimization_maintanance', 'WORKFLOW');
+INSERT INTO act_id_group (id_, rev_, name_, type_) VALUES ('west_infrastructure_maintanance', 1, 'west_infrastructure_maintanance', 'WORKFLOW');
+INSERT INTO act_id_group (id_, rev_, name_, type_) VALUES ('west_sao_maintanance', 1, 'south_sao_maintanance', 'WORKFLOW');
+
 
 --MEMBERSHIPS
 INSERT INTO act_id_membership (user_id_, group_id_) VALUES ('demo', 'kcellUsers');
