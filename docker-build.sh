@@ -37,3 +37,5 @@ npm install
 
 cd "$BASEDIR"
 docker-compose -f "$DOCKER_COMPOSE_YML" build
+
+echo -e "return 200 \"$(git log -1 --pretty=tformat:"%H")\";\ndefault_type text/plain;" > nginx/conf/version.conf
