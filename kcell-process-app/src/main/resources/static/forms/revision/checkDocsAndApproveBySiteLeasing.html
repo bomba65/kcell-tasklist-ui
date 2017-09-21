@@ -120,41 +120,43 @@
                 });
 
                 $http.get('/camunda/api/engine/engine/default/task/' + camForm.taskId).then(
-                        function (taskResult) {
-                            var variableQuery = {
-                                processInstanceIdIn: [taskResult.data.processInstanceId],
-                                variableNameLike: 'works_%'
-                            };
-                            $http.post('/camunda/api/engine/engine/default/variable-instance?deserializeValues=false', variableQuery).then(
-                                    function (variables) {
-                                        console.log(variables);
-                                        if (variables.data) {
-                                            variables.data.forEach(function (file) {
-                                                if (file.name.startsWith('works_')) {
-                                                    $scope[file.name] = file;
-                                                    $scope.jobModel[file.name] = file;
-                                                    var workIndex = file.name.split('_')[1];
-                                                    console.log($scope.jobModel.jobWorks);
-                                                    if (!$scope.jobModel.jobWorks.value){
-                                                        $scope.jobModel.jobWorks.value = [{}];
-                                                    }
-                                                    if(!$scope.jobModel.jobWorks.value[workIndex].files) {
-                                                        $scope.jobModel.jobWorks.value[workIndex].files = [];
-                                                    }
+                    function (taskResult) {
+                        var variableQuery = {
+                            processInstanceIdIn: [taskResult.data.processInstanceId],
+                            variableNameLike: 'works_%'
+                        };
+                        $http.post('/camunda/api/engine/engine/default/variable-instance?deserializeValues=false', variableQuery).then(
+                                function (variables) {
+                                    console.log(variables);
+                                    if (variables.data) {
+                                        variables.data.forEach(function (file) {
+                                            if (file.name.startsWith('works_')) {
+                                                $scope[file.name] = file;
+                                                $scope.jobModel[file.name] = file;
+                                                var workIndex = file.name.split('_')[1];
+                                                console.log($scope.jobModel.jobWorks);
+                                                if (!$scope.jobModel.jobWorks.value){
+                                                    $scope.jobModel.jobWorks.value = [{}];
+                                                }
+                                                if(!$scope.jobModel.jobWorks.value[workIndex].files) {
+                                                    $scope.jobModel.jobWorks.value[workIndex].files = [];
+                                                }
+                                                if($scope.jobModel.jobWorks.value[workIndex].files && !containsFile($scope.jobModel.jobWorks.value[workIndex].files, file)){
                                                     $scope.jobModel.jobWorks.value[workIndex].files.push(file);
                                                 }
-                                            });
-                                            console.log($scope.jobModel.jobWorks);
-                                        }
-                                    },
-                                    function (error) {
-                                        console.log(error.data);
+                                            }
+                                        });
+                                        console.log($scope.jobModel.jobWorks);
                                     }
-                            );
-                        },
-                        function (error) {
-                            console.log(error.data);
-                        }
+                                },
+                                function (error) {
+                                    console.log(error.data);
+                                }
+                        );
+                    },
+                    function (error) {
+                        console.log(error.data);
+                    }
                 );
             });
 
@@ -176,6 +178,15 @@
             $scope.download = download;
             function download(file) {
                 document.getElementById('fileDownloadIframe').src = '/camunda/api/engine/engine/default/variable-instance/' + file.id + '/data';
+            }
+
+            function containsFile(files, file){
+                for(var i = 0; i<files.length; i++){
+                    if(files[i].valueInfo.filename === file.valueInfo.filename){
+                        return true;
+                    }
+                }
+                return false;
             }
         }]);
     </script>
