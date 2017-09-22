@@ -95,10 +95,15 @@ define(['./module','camundaSDK', 'lodash', 'big-js'], function(module, CamSDK, _
 						}).then(function(results){
 							$http.get(baseUrl+'/task?processInstanceId='+results.id).then(
 								function(tasks){
+									var task = null;
 									if(tasks.data.length > 0){
-										$scope.tryToOpen = tasks.data[0];
+										task = tasks.data[0];
 									} else {
-										$scope.tryToOpen = results.data
+										task = results.data
+									}
+
+									if (task.assignee === $rootScope.authUser.id) {
+										$scope.tryToOpen = task;
 									}
 									getTaskList();
 								},
