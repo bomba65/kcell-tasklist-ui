@@ -11,10 +11,10 @@ fi
 BASEDIR=`pwd`
 
 cd "$BASEDIR/asset-management"
-./gradlew clean build -x test 
+./gradlew --no-daemon clean build -x test 
 
 cd "$BASEDIR/kcell-process-app"
-./gradlew clean build -x test 
+./gradlew --no-daemon clean build -x test 
 
 cd "$BASEDIR/kcell-tasklist-ui/js"
 npm install
