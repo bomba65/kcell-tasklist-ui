@@ -31,14 +31,17 @@ public class MinioController {
 
     public MinioController(@Value("${minio.url:http://localhost:9000}") String minioUrl,
                            @Value("${minio.access.key:AKIAIOSFODNN7EXAMPLE}") String minioAccessKey,
-                           @Value("${minio.secret.key:wJalrXUtnFEMI/K7MDENG/bPxRfiCYEXAMPLEKEY}") String minioSecretKey) throws InvalidPortException, InvalidEndpointException, IOException, InvalidKeyException, NoSuchAlgorithmException, InsufficientDataException, NoResponseException, InvalidBucketNameException, XmlPullParserException, InternalException, RegionConflictException, ErrorResponseException {
-
+                           @Value("${minio.secret.key:wJalrXUtnFEMI/K7MDENG/bPxRfiCYEXAMPLEKEY}") String minioSecretKey)
+			throws InvalidPortException, InvalidEndpointException, IOException, InvalidKeyException, NoSuchAlgorithmException,
+			InsufficientDataException, NoResponseException, InvalidBucketNameException, XmlPullParserException, InternalException,
+			RegionConflictException, ErrorResponseException {
         minioClient = new MinioClient(minioUrl, minioAccessKey, minioSecretKey);
-
     }
 
     @EventListener
-    public void makeBucket(ApplicationReadyEvent event) throws IOException, InvalidKeyException, NoSuchAlgorithmException, InsufficientDataException, InternalException, NoResponseException, InvalidBucketNameException, XmlPullParserException, RegionConflictException, ErrorResponseException {
+    public void makeBucket(ApplicationReadyEvent event)
+			throws IOException, InvalidKeyException, NoSuchAlgorithmException, InsufficientDataException, InternalException,
+			NoResponseException, InvalidBucketNameException, XmlPullParserException, RegionConflictException, ErrorResponseException {
 		try {
 			minioClient.makeBucket(bucketName);
 		} catch (ErrorResponseException e) {
