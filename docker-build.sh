@@ -23,8 +23,8 @@ cd "$BASEDIR/minio-client"
 npm install
 
 cd "$BASEDIR"
-mkdir -p build/nginx/conf/
-echo "return 200" $(git log -1 --pretty=tformat:'"%H"') ";" > build/nginx/conf/version.conf
+#/usr/bin/git log --graph -3 > nginx/html/version.html
+echo -e "<pre>$(git log --graph -3)</pre>" > nginx/html/version.html
 
 cd "$BASEDIR"
 docker-compose -f "$DOCKER_COMPOSE_YML" build
