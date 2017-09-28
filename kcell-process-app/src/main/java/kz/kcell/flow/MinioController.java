@@ -16,6 +16,8 @@ import org.springframework.web.bind.annotation.*;
 import org.xmlpull.v1.XmlPullParserException;
 
 import java.io.IOException;
+import java.net.MalformedURLException;
+import java.net.URL;
 import java.security.InvalidKeyException;
 import java.security.NoSuchAlgorithmException;
 
@@ -27,6 +29,7 @@ public class MinioController {
 
     private final MinioClient minioClient;
     private final String bucketName = "uploads";
+    private final String minioUrl;
 
 
     public MinioController(@Value("${minio.url:http://localhost:9000}") String minioUrl,
@@ -35,6 +38,7 @@ public class MinioController {
 			throws InvalidPortException, InvalidEndpointException, IOException, InvalidKeyException, NoSuchAlgorithmException,
 			InsufficientDataException, NoResponseException, InvalidBucketNameException, XmlPullParserException, InternalException,
 			RegionConflictException, ErrorResponseException {
+        this.minioUrl = minioUrl;
         minioClient = new MinioClient(minioUrl, minioAccessKey, minioSecretKey);
     }
 
@@ -58,7 +62,7 @@ public class MinioController {
 	
 	@Autowired
 	private TaskService taskService;
-	
+
 	@RequestMapping(value = "/get/{processId}/{taskId}/{fileName:.+}", method = RequestMethod.GET)
 	@ResponseBody
 	public ResponseEntity<String> getPresignedGetObjectUrl(@PathVariable("processId") String processId, @PathVariable("taskId") String taskId, @PathVariable("fileName") String fileName) throws InvalidEndpointException, InvalidPortException, InvalidKeyException, InvalidBucketNameException, NoSuchAlgorithmException, InsufficientDataException, NoResponseException, ErrorResponseException, InternalException, InvalidExpiresRangeException, IOException, XmlPullParserException{
@@ -84,7 +88,8 @@ public class MinioController {
 		}
 
         String url = minioClient.presignedGetObject(bucketName, processId + "/" + taskId + "/" + fileName, 60 * 60 * 1); // 1 hour
-		return ResponseEntity.ok(url);
+
+        return ResponseEntity.ok(stripProtocolHostPort(url));
 	}
 
 	@RequestMapping(value = "/put/{processId}/{taskId}/{fileName:.+}", method = RequestMethod.GET)
@@ -123,7 +128,13 @@ public class MinioController {
 		}
 
 		String url = minioClient.presignedPutObject(bucketName, processId + "/" + taskId + "/" + fileName);
-		return ResponseEntity.ok(url);
+
+        return ResponseEntity.ok(stripProtocolHostPort(url));
 	}
-	
+
+    private static String stripProtocolHostPort(String urlString) throws MalformedURLException {
+        URL url = new URL(urlString);
+        return url.getPath() + "?" + url.getQuery();
+    }
+
 }
