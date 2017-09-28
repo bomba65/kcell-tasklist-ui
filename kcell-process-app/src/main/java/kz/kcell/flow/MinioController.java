@@ -29,7 +29,6 @@ public class MinioController {
 
     private final MinioClient minioClient;
     private final String bucketName = "uploads";
-    private final String minioUrl;
 
 
     public MinioController(@Value("${minio.url:http://localhost:9000}") String minioUrl,
@@ -38,7 +37,6 @@ public class MinioController {
 			throws InvalidPortException, InvalidEndpointException, IOException, InvalidKeyException, NoSuchAlgorithmException,
 			InsufficientDataException, NoResponseException, InvalidBucketNameException, XmlPullParserException, InternalException,
 			RegionConflictException, ErrorResponseException {
-        this.minioUrl = minioUrl;
         minioClient = new MinioClient(minioUrl, minioAccessKey, minioSecretKey);
     }
 
