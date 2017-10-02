@@ -19,7 +19,7 @@
 </style>
 <form role="form" class="form-horizontal kcell-form-custom" name="kcell_form" novalidate>
     <script cam-script type="text/form-script">
-        inject(['$scope', '$http', 'Uri', '$rootScope', '$q', function ($scope, $http, Uri, $rootScope, $q) {
+        inject(['$scope', '$http', 'Uri', '$rootScope', '$q', 'Upload', '$timeout', function ($scope, $http, Uri, $rootScope, $q, Upload, $timeout) {
             var variables = [
                 'requestedDate',
                 'jrNumber',
@@ -51,7 +51,10 @@
                 'resolutions',
                 'actOfMaterialsDispatchingFile',
                 'jrBlank',
-                'trFiles'
+                'trFiles',
+                'tssrssidFile',
+                'tssrssidFileName',
+                'siteWorksFiles'
             ];
 
             $scope.facilityRegions = ['Astana', 'Almaty', 'North', 'South', 'East', 'West', 'All regions (LINE)'];
@@ -180,14 +183,12 @@
                         });
                     } else {
                         $scope.jobModel[el] = camForm.variableManager.variables[el];
+                        if(el === 'tssrssidFileName') {
+                            $scope[el] = camForm.variableManager.variables[el];
+                        }
                     }
                 });
                 $scope.sitesWorks = JSON.parse($scope.jobModel.jobWorks.originalValue);
-                if ($scope.sitesWorks.length > 0) {
-                    $scope.sitesWorks.forEach(function(work){
-                        work.files=[{type:'File', valueInfo: {filename:'', mimeType:'application/octet-stream'}, value:''}];
-                    })
-                }
 
                 $http.get('/asset-management/api/facilityDefinitions').then(
                         function (result) {
@@ -214,23 +215,30 @@
                 if ($scope.fillAppliedChangesInfoByContractorTaskResult == 'saveChanges') {
                     $scope.createCommandsDocument();
                     $scope.createSummaryDocument();
-                    console.log(JSON.stringify($scope.commands));
+
+                    var siteWorksFiles = [];
                     $scope.sitesWorks.forEach(function(e,i){
                         e.files.forEach(function(f, j){
-                            console.log("FILE");
-                            console.log(f);
                             if(f.value){
-                                console.log(f);
-                                f.name = 'works_'+i+'_file_'+j;
-                                f.type = 'File';
-                                camForm.variableManager.createVariable(f);
+                                siteWorksFiles.push(f);
                             }
                         });
                     });
-                    if($scope.tssrssidFileModel && $scope.tssrssidFileModel.value){
-                        $scope.tssrssidFileModel.name="tssrssidFile";
-                        $scope.tssrssidFileModel.type="File";
-                        camForm.variableManager.createVariable($scope.tssrssidFileModel);
+
+                    if(camForm.variableManager.variables['siteWorksFiles']){
+                        camForm.variableManager.destroyVariable('siteWorksFiles');
+                    }
+                    camForm.variableManager.createVariable({
+                        name: 'siteWorksFiles',
+                        type: 'Json',
+                        value: siteWorksFiles
+                    });
+
+                    if($scope.tssrssidFileName){
+                        if(camForm.variableManager.variables['tssrssidFileName']){
+                            camForm.variableManager.destroyVariable('tssrssidFileName');
+                        }
+                        camForm.variableManager.createVariable($scope.tssrssidFileName);
                     }
                     camForm.variableManager.variableValue('commands', JSON.parse(angular.toJson($scope.commands)));
                     camForm.variableManager.variableValue('summaries', JSON.parse(angular.toJson($scope.summaries)));
@@ -1133,75 +1141,6 @@
 
             $scope.tssrssidFileModel = {};
 
-            function getBase64(el, workIndex, fileIndex){
-                var reader = new FileReader();
-                reader.readAsArrayBuffer(el.files[0]);
-                reader.onloadend = function (e) {
-                    var binary = '';
-                    var bytes = new Uint8Array( e.target.result );
-                    var len = bytes.byteLength;
-                    for (var j = 0; j < len; j++) {
-                        binary += String.fromCharCode( bytes[ j ] );
-                    }
-                    $scope.$apply(function(){
-                        $scope.sitesWorks[workIndex].files[fileIndex].valueInfo = {
-                            filename: el.files[0].name,
-                            mimeType: el.files[0].type
-                        }
-                        $scope.sitesWorks[workIndex].files[fileIndex].value = btoa(binary);
-                        $scope.sitesWorks[workIndex].files.push({type:'File', valueInfo: {filename:'', mimeType:'application/octet-stream'}, value:''});
-                    });
-                };
-                reader.onerror = function (error) {
-                    console.log('Error: ', error);
-                };
-            }
-
-            $scope.fileSelected = function(el, workIndex, fileIndex){
-                if(el.files[0]){
-                    getBase64(el, workIndex, fileIndex)
-                } else {
-                    $scope.$apply(function(){
-                        $scope.sitesWorks[workIndex].files.splice(fileIndex,1);
-                    });
-                }
-            };
-
-            function getBase64TSSR(el, fileName){
-                console.log($scope[fileName]);
-                var reader = new FileReader();
-                reader.readAsArrayBuffer(el.files[0]);
-                reader.onloadend = function (e) {
-                    var binary = '';
-                    var bytes = new Uint8Array( e.target.result );
-                    var len = bytes.byteLength;
-                    for (var j = 0; j < len; j++) {
-                        binary += String.fromCharCode( bytes[ j ] );
-                    }
-                    $scope.$apply(function(){
-                        $scope[fileName].valueInfo = {
-                            filename: el.files[0].name,
-                            mimeType: el.files[0].type
-                        };
-                        $scope[fileName].value = btoa(binary);
-                    });
-                };
-                reader.onerror = function (error) {
-                    console.log('Error: ', error);
-                };
-            }
-
-            $scope.fileSelectedTSSR = function(el, fileName){
-                console.log(fileName);
-                if(el.files[0]){
-                    getBase64TSSR(el,fileName)
-                } else {
-                    $scope.$apply(function(){
-                        $scope[fileName] = undefined;
-                    });
-                }
-            };
-
             $scope.resetFacility = function(index){
                 var facility = angular.copy($scope.fillSite.facilities[index]._original);
                 facility._original = angular.copy(facility);
@@ -1450,6 +1389,110 @@
                 }
                 $scope.summaries.transmissions.splice(index, 1);
             };
+
+            $scope.fileSelected = function (el, variableName) {
+                $timeout(function () {
+                    $scope.$apply(function () {
+                        uploadFileToMinio(el.files[0], variableName);
+                    });
+                })
+            };
+
+            function uploadFileToMinio(file, variableName) {
+                var fileToUpload = {
+                    name: 'tssrssidFileName',
+                    type: 'Json',
+                    value: {
+                        name: file.name,
+                        path: $scope.processInstanceId + '/' + camForm.taskId + '/' + file.name
+                    }
+                };
+                $http.get('/camunda/uploads/put/' + fileToUpload.value.path).then(
+                        function (result) {
+                            $http.put(result.data, file, {headers: {'Content-Type': undefined}}).then(
+                                    function () {
+                                        $http.get('/camunda/uploads/get/' + fileToUpload.value.path).then(
+                                                function (result) {
+                                                    fileToUpload.value.url = result.data;
+                                                    $scope[variableName] = fileToUpload;
+                                                },
+                                                function (error) {
+                                                    console.log(error.data);
+                                                }
+                                        );
+                                    },
+                                    function (error) {
+                                        console.log(error.data);
+                                    }
+                            );
+                        },
+                        function (error) {
+                            console.log(error);
+                        }
+                );
+            }
+
+            $scope.clearFile = function (variableName) {
+                $scope[variableName].value = {};
+                angular.element(document.querySelector('#tssrssidFileName')).val(null);
+            }
+
+            $scope.siteWorkfileSelected = function(el, workIndex){
+                $timeout(function () {
+                    $scope.$apply(function () {
+                        uploadSiteWorkFileToMinio(el.files[0], workIndex);
+                    });
+                })
+            };
+
+            function uploadSiteWorkFileToMinio(file, workIndex) {
+                if(!$scope.sitesWorks[workIndex].files){
+                    $scope.sitesWorks[workIndex].files = [];
+                }
+                var fileIndex = $scope.sitesWorks[workIndex].files.length;
+
+                var fileToUpload = {
+                    name: 'work_' + workIndex + '_file_' + fileIndex,
+                    type: 'Json',
+                    value: {
+                        name: file.name,
+                        path: $scope.processInstanceId + '/' + camForm.taskId + '/' + file.name
+                    }
+                };
+                $http.get('/camunda/uploads/put/' + fileToUpload.value.path).then(
+                        function (result) {
+                            console.log(result);
+                            $http.put(result.data, file, {headers: {'Content-Type': undefined}}).then(
+                                    function () {
+                                        $http.get('/camunda/uploads/get/' + fileToUpload.value.path).then(
+                                            function (result) {
+                                                console.log(result);
+                                                fileToUpload.value.url = result.data;
+                                                console.log("0");
+                                                $scope.sitesWorks[workIndex].files.push(fileToUpload);
+                                                console.log("0");
+                                                angular.element(document.querySelector('#works_' + workIndex + '_file_' + fileIndex)).val(null);
+                                                console.log("1");
+                                            },
+                                            function (error) {
+                                                console.log(error.data);
+                                            }
+                                        );
+                                    },
+                                    function (error) {
+                                        console.log(error.data);
+                                    }
+                            );
+                        },
+                        function (error) {
+                            console.log(error);
+                        }
+                );
+            }
+
+            $scope.clearFile = function (parentIndex, fileIndex) {
+                $scope.sitesWorks[parentIndex].files.splice(fileIndex, 1);
+            }
         }]);
     </script>
     <h4>Site Id: {{jobModel.site.originalValue}}, Site Name: {{jobModel.siteName.originalValue}} </h4>
