@@ -66,7 +66,8 @@ define('app',[
 	    	url: "/processes",
 	    	templateUrl: "js/partials/processes.html",
 	    	controller: "processesCtrl",
-	    	authenticate: true
+	    	authenticate: true,
+	    	resolve: resolve
 	    });
 	}]).provider('Uri',  function() {
 		var TEMPLATES_PATTERN = /[\w]+:\/\/|:[\w]+/g;
