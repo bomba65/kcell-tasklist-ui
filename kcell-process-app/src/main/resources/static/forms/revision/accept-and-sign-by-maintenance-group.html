@@ -138,7 +138,11 @@
             camForm.on('submit', function () {
                 camForm.variableManager.variableValue('acceptAndSignByMaintenanceGroupTaskResult', $scope.acceptAndSignByMaintenanceGroupTaskResult);
                 camForm.variableManager.variableValue('planningGroupReviewSelected', $scope.planningGroupReviewSelected);
-                $scope.jobModel.resolutions.push({processInstanceId: $scope.processInstanceId, assignee: $rootScope.authentication.name, assigneeName: $rootScope.authentication.assigneeName, resolution: $scope.acceptAndSignByMaintenanceGroupTaskResult, comment: $scope.acceptAndSignByMaintenanceGroupComment, taskId: camForm.taskId});
+                var visibility = 'all';
+                if($scope.acceptAndSignByMaintenanceGroupComment && $scope.acceptAndSignByMaintenanceGroupCommentVisibility){
+                    visibility = $scope.acceptAndSignByMaintenanceGroupCommentVisibility;
+                }
+                $scope.jobModel.resolutions.push({processInstanceId: $scope.processInstanceId, assignee: $rootScope.authentication.name, assigneeName: $rootScope.authentication.assigneeName, resolution: $scope.acceptAndSignByMaintenanceGroupTaskResult, comment: $scope.acceptAndSignByMaintenanceGroupComment, taskId: camForm.taskId, visibility: visibility});
                 camForm.variableManager.variableValue('resolutions', $scope.jobModel.resolutions);
             });
 
@@ -174,6 +178,14 @@
                     }
                 }
                 return false;
+            }
+
+            $scope.isVisible = function (resolution) {
+               return !resolution.visibility || resolution.visibility === 'all' || (resolution.visibility === 'kcell' && $rootScope.authUser.groups.some(function (el) { return el.id === 'kcellUsers'; }));
+            }
+
+            $scope.hasComment = function () {
+                return $scope.acceptAndSignByMaintenanceGroupComment && $rootScope.authUser.groups.some(function (el) { return el.id === 'kcellUsers'; });
             }
         }]);
     </script>
@@ -219,6 +231,20 @@
             <label class="error" ng-show="kcell_form.acceptAndSignByMaintenanceGroupComment.$error.required && ( kcell_form.acceptAndSignByMaintenanceGroupComment.$touched || view.submitted)">Required field</label>
         </div>
     </div>
+    <div class="form-group" ng-show="hasComment()">
+        <label class="col-sm-4 control-label">Comments visibility</label>
+        <div class="col-sm-8">
+            <label class="radio-inline">
+                <input type="radio" name="acceptAndSignByMaintenanceGroupCommentVisibility"
+                       ng-model="acceptAndSignByMaintenanceGroupCommentVisibility" value="all" ng-required="hasComment()"> Visible for all
+            </label>
+            <label class="radio-inline">
+                <input type="radio" name="acceptAndSignByMaintenanceGroupCommentVisibility"
+                       ng-model="acceptAndSignByMaintenanceGroupCommentVisibility" value="kcell" ng-required="hasComment()"> Kcell staff only
+            </label>
+            <label class="error" ng-show="kcell_form.acceptAndSignByMaintenanceGroupCommentVisibility.$error.required && ( kcell_form.acceptAndSignByMaintenanceGroupCommentVisibility.$touched || view.submitted)">Required field</label>
+        </div>
+    </div>
     <accordion>
         <accordion-group is-open="isHistoryOpen">
             <accordion-heading>
@@ -240,7 +266,7 @@
                     <td>{{resolution.assigneeName || resolution.assignee}}</td>
                     <td>{{'task.resolution.'+resolution.resolution | translate}}</td>
                     <td>{{resolution.taskEndDate | date: 'dd.MM.yyyy HH:mm'}}</td>
-                    <td>{{resolution.comment}}</td>
+                    <td>{{isVisible(resolution)? resolution.comment : ''}}</td>
                 </tr>
                 </tbody>
             </table>

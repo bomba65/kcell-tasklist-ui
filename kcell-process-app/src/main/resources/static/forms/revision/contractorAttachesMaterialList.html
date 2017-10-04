@@ -138,7 +138,11 @@
                 } else{
                     camForm.variableManager.destroyVariable('contractorZIPWarehouseMaterialsList');
                 }
-                $scope.jobModel.resolutions.push({processInstanceId: $scope.processInstanceId, assignee: $rootScope.authentication.name, assigneeName: $rootScope.authentication.assigneeName, resolution: $scope.contractorAttachesMaterialListTaskResult, comment: $scope.contractorAttachesMaterialListComment, taskId: camForm.taskId});
+                var visibility = 'all';
+                if($scope.contractorAttachesMaterialListComment && $scope.contractorAttachesMaterialListCommentVisibility){
+                    visibility = $scope.contractorAttachesMaterialListCommentVisibility;
+                }
+                $scope.jobModel.resolutions.push({processInstanceId: $scope.processInstanceId, assignee: $rootScope.authentication.name, assigneeName: $rootScope.authentication.assigneeName, resolution: $scope.contractorAttachesMaterialListTaskResult, comment: $scope.contractorAttachesMaterialListComment, taskId: camForm.taskId, visibility: visibility});
 
                 if($scope.filesActions.length > 0){
                     $scope.jobModel.resolutions.push({processInstanceId: $scope.processInstanceId, assignee: $rootScope.authentication.name, assigneeName: $rootScope.authentication.assigneeName, resolution: 'filesModified', comment: _.map($scope.filesActions, function(e){return "file " + e.filename+" "+e.action}).join(', '), taskId: camForm.taskId});
@@ -212,6 +216,14 @@
                 });
                 return $q.all(promises);
             };
+
+            $scope.isVisible = function (resolution) {
+               return !resolution.visibility || resolution.visibility === 'all' || (resolution.visibility === 'kcell' && $rootScope.authUser.groups.some(function (el) { return el.id === 'kcellUsers'; }));
+            }
+
+            $scope.hasComment = function () {
+                return $scope.contractorAttachesMaterialListComment && $rootScope.authUser.groups.some(function (el) { return el.id === 'kcellUsers'; });
+            }
         }]);
     </script>
     <job-request job-model="jobModel"></job-request>
@@ -256,6 +268,20 @@
             <label class="error" ng-show="kcell_form.contractorAttachesMaterialListComment.$error.required && ( kcell_form.contractorAttachesMaterialListComment.$touched || view.submitted)">Required field</label>
         </div>
     </div>
+    <div class="form-group" ng-show="hasComment()">
+        <label class="col-sm-4 control-label">Comments visibility</label>
+        <div class="col-sm-8">
+            <label class="radio-inline">
+                <input type="radio" name="contractorAttachesMaterialListCommentVisibility"
+                       ng-model="contractorAttachesMaterialListCommentVisibility" value="all" ng-required="hasComment()"> Visible for all
+            </label>
+            <label class="radio-inline">
+                <input type="radio" name="contractorAttachesMaterialListCommentVisibility"
+                       ng-model="contractorAttachesMaterialListCommentVisibility" value="kcell" ng-required="hasComment()"> Kcell staff only
+            </label>
+            <label class="error" ng-show="kcell_form.contractorAttachesMaterialListCommentVisibility.$error.required && ( kcell_form.contractorAttachesMaterialListCommentVisibility.$touched || view.submitted)">Required field</label>
+        </div>
+    </div>
     <accordion>
         <accordion-group is-open="isHistoryOpen">
             <accordion-heading>
@@ -277,7 +303,7 @@
                     <td>{{resolution.assigneeName || resolution.assignee}}</td>
                     <td>{{'task.resolution.'+resolution.resolution | translate}}</td>
                     <td>{{resolution.taskEndDate | date: 'dd.MM.yyyy HH:mm'}}</td>
-                    <td>{{resolution.comment}}</td>
+                    <td>{{isVisible(resolution)? resolution.comment : ''}}</td>
                 </tr>
                 </tbody>
             </table>

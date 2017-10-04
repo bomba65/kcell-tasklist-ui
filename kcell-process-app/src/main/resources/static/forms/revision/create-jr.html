@@ -315,7 +315,12 @@
                 }
 
                 if($scope.explanation){
-                    $scope.resolutions.push({processInstanceId: $scope.processInstanceId, assignee: $rootScope.authentication.name, resolution: 'createJr', comment: $scope.explanation, taskId: camForm.taskId});
+
+                    var visibility = 'all';
+                    if($scope.explanation && $scope.explanationVisibility){
+                        visibility = $scope.explanationVisibility;
+                    }
+                    $scope.resolutions.push({processInstanceId: $scope.processInstanceId, assignee: $rootScope.authentication.name, resolution: 'createJr', comment: $scope.explanation, taskId: camForm.taskId, visibility: visibility});
                     camForm.variableManager.variableValue('resolutions', $scope.resolutions);
                 }
                 if($scope.supplementaryFilesActions.length > 0){
@@ -689,8 +694,15 @@
                 $scope.supplementaryFilesActions.push({supplementaryId: filename, filename:$scope[filename].prev.valueInfo.filename, action:'deleted'});
                 delete $scope[filename].prev;
             }
-        }]);
 
+            $scope.isVisible = function (resolution) {
+               return !resolution.visibility || resolution.visibility === 'all' || (resolution.visibility === 'kcell' && $rootScope.authUser.groups.some(function (el) { return el.id === 'kcellUsers'; }));
+            }
+
+            $scope.hasComment = function () {
+                return $scope.explanation && $rootScope.authUser.groups.some(function (el) { return el.id === 'kcellUsers'; });
+            }
+        }]);
     </script>
     <h4>Create job request</h4>
     <div class="form-group">
@@ -988,6 +1000,20 @@
             <label class="error" ng-if="kcell_form.explanation.$error.required && ( kcell_form.explanation.$touched || view.submitted)">Required field</label>
         </div>
     </div>
+    <div class="form-group" ng-show="hasComment()">
+        <label class="col-sm-4 control-label">Comments visibility</label>
+        <div class="col-sm-8">
+            <label class="radio-inline">
+                <input type="radio" name="explanationVisibility"
+                       ng-model="explanationVisibility" value="all" ng-required="hasComment()"> Visible for all
+            </label>
+            <label class="radio-inline">
+                <input type="radio" name="explanationVisibility"
+                       ng-model="explanationVisibility" value="kcell" ng-required="hasComment()"> Kcell staff only
+            </label>
+            <label class="error" ng-show="kcell_form.explanationVisibility.$error.required && ( kcell_form.explanationVisibility.$touched || view.submitted)">Required field</label>
+        </div>
+    </div>
     <accordion ng-if="jobModel.resolutions.length > 0">
         <accordion-group is-open="isHistoryOpen">
             <accordion-heading>
@@ -1009,7 +1035,7 @@
                     <td>{{resolution.assigneeName || resolution.assignee}}</td>
                     <td>{{'task.resolution.'+resolution.resolution | translate}}</td>
                     <td>{{resolution.taskEndDate | date: 'dd.MM.yyyy HH:mm'}}</td>
-                    <td>{{resolution.comment}}</td>
+                    <td>{{isVisible(resolution)? resolution.comment : ''}}</td>
                 </tr>
                 </tbody>
             </table>

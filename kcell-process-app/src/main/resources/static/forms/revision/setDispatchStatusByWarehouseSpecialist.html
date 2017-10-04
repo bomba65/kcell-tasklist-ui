@@ -119,7 +119,12 @@
                     $scope.actOfMaterialsDispatchingFileModel.type="File";
                     camForm.variableManager.createVariable($scope.actOfMaterialsDispatchingFileModel);
                 }
-                $scope.jobModel.resolutions.push({processInstanceId: $scope.processInstanceId, assignee: $rootScope.authentication.name, assigneeName: $rootScope.authentication.assigneeName, resolution: $scope.setDispatchStatusByWarehouseSpecialistTaskResult, comment: $scope.setDispatchStatusByWarehouseSpecialistComment, taskId: camForm.taskId});
+
+                var visibility = 'all';
+                if($scope.setDispatchStatusByWarehouseSpecialistComment && $scope.setDispatchStatusByWarehouseSpecialistCommentVisibility){
+                    visibility = $scope.setDispatchStatusByWarehouseSpecialistCommentVisibility;
+                }
+                $scope.jobModel.resolutions.push({processInstanceId: $scope.processInstanceId, assignee: $rootScope.authentication.name, assigneeName: $rootScope.authentication.assigneeName, resolution: $scope.setDispatchStatusByWarehouseSpecialistTaskResult, comment: $scope.setDispatchStatusByWarehouseSpecialistComment, taskId: camForm.taskId, visibility: visibility});
                 camForm.variableManager.variableValue('resolutions', $scope.jobModel.resolutions);
             });
 
@@ -166,6 +171,14 @@
                     });
                 }
             };
+
+            $scope.isVisible = function (resolution) {
+               return !resolution.visibility || resolution.visibility === 'all' || (resolution.visibility === 'kcell' && $rootScope.authUser.groups.some(function (el) { return el.id === 'kcellUsers'; }));
+            }
+
+            $scope.hasComment = function () {
+                return $scope.setDispatchStatusByWarehouseSpecialistComment && $rootScope.authUser.groups.some(function (el) { return el.id === 'kcellUsers'; });
+            }
         }]);
     </script>
     <job-request job-model="jobModel"></job-request>
@@ -195,6 +208,20 @@
             <label class="error" ng-show="kcell_form.setDispatchStatusByWarehouseSpecialistComment.$error.required && ( kcell_form.setDispatchStatusByWarehouseSpecialistComment.$touched || view.submitted)">Required field</label>
         </div>
     </div>
+    <div class="form-group" ng-show="hasComment()">
+        <label class="col-sm-4 control-label">Comments visibility</label>
+        <div class="col-sm-8">
+            <label class="radio-inline">
+                <input type="radio" name="setDispatchStatusByWarehouseSpecialistCommentVisibility"
+                       ng-model="setDispatchStatusByWarehouseSpecialistCommentVisibility" value="all" ng-required="hasComment()"> Visible for all
+            </label>
+            <label class="radio-inline">
+                <input type="radio" name="setDispatchStatusByWarehouseSpecialistCommentVisibility"
+                       ng-model="setDispatchStatusByWarehouseSpecialistCommentVisibility" value="kcell" ng-required="hasComment()"> Kcell staff only
+            </label>
+            <label class="error" ng-show="kcell_form.setDispatchStatusByWarehouseSpecialistCommentVisibility.$error.required && ( kcell_form.setDispatchStatusByWarehouseSpecialistCommentVisibility.$touched || view.submitted)">Required field</label>
+        </div>
+    </div>
     <accordion>
         <accordion-group is-open="isHistoryOpen">
             <accordion-heading>
@@ -216,7 +243,7 @@
                     <td>{{resolution.assigneeName || resolution.assignee}}</td>
                     <td>{{'task.resolution.'+resolution.resolution | translate}}</td>
                     <td>{{resolution.taskEndDate | date: 'dd.MM.yyyy HH:mm'}}</td>
-                    <td>{{resolution.comment}}</td>
+                    <td>{{isVisible(resolution)? resolution.comment : ''}}</td>
                 </tr>
                 </tbody>
             </table>

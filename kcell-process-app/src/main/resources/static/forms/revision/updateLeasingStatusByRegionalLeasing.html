@@ -102,7 +102,12 @@
                 } else {
                     camForm.variableManager.variableValue('leasingDone', false);
                 }
-                $scope.jobModel.resolutions.push({processInstanceId: $scope.processInstanceId, assignee: $rootScope.authentication.name, assigneeName: $rootScope.authentication.assigneeName, resolution: $scope.leasingCompletionTaskResult, comment: $scope.leasingCompletionComment, taskId: camForm.taskId});
+
+                var visibility = 'all';
+                if($scope.leasingCompletionComment && $scope.leasingCompletionCommentVisibility){
+                    visibility = $scope.leasingCompletionCommentVisibility;
+                }
+                $scope.jobModel.resolutions.push({processInstanceId: $scope.processInstanceId, assignee: $rootScope.authentication.name, assigneeName: $rootScope.authentication.assigneeName, resolution: $scope.leasingCompletionTaskResult, comment: $scope.leasingCompletionComment, taskId: camForm.taskId, visibility: visibility});
                 camForm.variableManager.variableValue('resolutions', $scope.jobModel.resolutions);
             });
 
@@ -113,6 +118,14 @@
             camForm.on('variables-restored', function() {
                 $scope.leasingCompletionTaskResult = camForm.variableManager.variableValue('leasingCompletionTaskResult');
             });
+
+            $scope.isVisible = function (resolution) {
+               return !resolution.visibility || resolution.visibility === 'all' || (resolution.visibility === 'kcell' && $rootScope.authUser.groups.some(function (el) { return el.id === 'kcellUsers'; }));
+            }
+
+            $scope.hasComment = function () {
+                return $scope.leasingCompletionComment && $rootScope.authUser.groups.some(function (el) { return el.id === 'kcellUsers'; });
+            }
         }]);
     </script>
     <job-request job-model="jobModel"></job-request>
@@ -133,6 +146,20 @@
         <div class="col-sm-8">
             <textarea class="form-control" cam-variable-name="leasingCompletionComment" name="leasingCompletionComment" ng-required="leasingCompletionTaskResult == 'impossible'" cam-variable-type="String" rows="4" maxlength="500"></textarea>
             <label class="error" ng-show="kcell_form.leasingCompletionComment.$error.required && ( kcell_form.leasingCompletionComment.$touched || view.submitted)">Required field</label>
+        </div>
+    </div>
+    <div class="form-group" ng-show="hasComment()">
+        <label class="col-sm-4 control-label">Comments visibility</label>
+        <div class="col-sm-8">
+            <label class="radio-inline">
+                <input type="radio" name="leasingCompletionCommentVisibility"
+                       ng-model="leasingCompletionCommentVisibility" value="all" ng-required="hasComment()"> Visible for all
+            </label>
+            <label class="radio-inline">
+                <input type="radio" name="leasingCompletionCommentVisibility"
+                       ng-model="leasingCompletionCommentVisibility" value="kcell" ng-required="hasComment()"> Kcell staff only
+            </label>
+            <label class="error" ng-show="kcell_form.leasingCompletionCommentVisibility.$error.required && ( kcell_form.leasingCompletionCommentVisibility.$touched || view.submitted)">Required field</label>
         </div>
     </div>
     <accordion>
@@ -156,7 +183,7 @@
                     <td>{{resolution.assigneeName || resolution.assignee}}</td>
                     <td>{{'task.resolution.'+resolution.resolution | translate}}</td>
                     <td>{{resolution.taskEndDate | date: 'dd.MM.yyyy HH:mm'}}</td>
-                    <td>{{resolution.comment}}</td>
+                    <td>{{isVisible(resolution)? resolution.comment : ''}}</td>
                 </tr>
                 </tbody>
             </table>

@@ -120,7 +120,11 @@
                     $scope.sapPRFileXLSModel.type="File";
                     camForm.variableManager.createVariable($scope.sapPRFileXLSModel);
                 }
-                $scope.jobModel.resolutions.push({processInstanceId: $scope.processInstanceId, assignee: $rootScope.authentication.name, assigneeName: $rootScope.authentication.assigneeName, resolution: $scope.sapLeasingCompletionCommenTaskResult, comment: $scope.sapLeasingCompletionComment, taskId: camForm.taskId});
+                var visibility = 'all';
+                if($scope.sapLeasingCompletionComment && $scope.sapLeasingCompletionCommentVisibility){
+                    visibility = $scope.sapLeasingCompletionCommentVisibility;
+                }
+                $scope.jobModel.resolutions.push({processInstanceId: $scope.processInstanceId, assignee: $rootScope.authentication.name, assigneeName: $rootScope.authentication.assigneeName, resolution: $scope.sapLeasingCompletionCommenTaskResult, comment: $scope.sapLeasingCompletionComment, taskId: camForm.taskId, visibility: visibility});
                 camForm.variableManager.variableValue('resolutions', $scope.jobModel.resolutions);
             });
 
@@ -191,6 +195,14 @@
                     jobWorksTotal = jobWorksTotal.plus(total);
                 }
                 $scope.jobModel.jobWorksTotal = jobWorksTotal.toFixed(2);
+            }
+
+            $scope.isVisible = function (resolution) {
+               return !resolution.visibility || resolution.visibility === 'all' || (resolution.visibility === 'kcell' && $rootScope.authUser.groups.some(function (el) { return el.id === 'kcellUsers'; }));
+            }
+
+            $scope.hasComment = function () {
+                return $scope.sapLeasingCompletionComment && $rootScope.authUser.groups.some(function (el) { return el.id === 'kcellUsers'; });
             }
         }]);
     </script>
@@ -266,6 +278,20 @@
             <label class="error" ng-show="kcell_form.sapLeasingCompletionComment.$error.required && ( kcell_form.sapLeasingCompletionComment.$touched || view.submitted)">Required field</label>
         </div>
     </div>
+    <div class="form-group" ng-show="hasComment()">
+        <label class="col-sm-4 control-label">Comments visibility</label>
+        <div class="col-sm-8">
+            <label class="radio-inline">
+                <input type="radio" name="sapLeasingCompletionCommentVisibility"
+                       ng-model="sapLeasingCompletionCommentVisibility" value="all" ng-required="hasComment()"> Visible for all
+            </label>
+            <label class="radio-inline">
+                <input type="radio" name="sapLeasingCompletionCommentVisibility"
+                       ng-model="sapLeasingCompletionCommentVisibility" value="kcell" ng-required="hasComment()"> Kcell staff only
+            </label>
+            <label class="error" ng-show="kcell_form.sapLeasingCompletionCommentVisibility.$error.required && ( kcell_form.sapLeasingCompletionCommentVisibility.$touched || view.submitted)">Required field</label>
+        </div>
+    </div>
     <accordion>
         <accordion-group is-open="isHistoryOpen">
             <accordion-heading>
@@ -287,7 +313,7 @@
                     <td>{{resolution.assigneeName || resolution.assignee}}</td>
                     <td>{{'task.resolution.'+resolution.resolution | translate}}</td>
                     <td>{{resolution.taskEndDate | date: 'dd.MM.yyyy HH:mm'}}</td>
-                    <td>{{resolution.comment}}</td>
+                    <td>{{isVisible(resolution)? resolution.comment : ''}}</td>
                 </tr>
                 </tbody>
             </table>

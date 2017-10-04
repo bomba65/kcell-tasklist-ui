@@ -109,7 +109,11 @@
                 else{
                     camForm.variableManager.variableValue('modifyWorks', true);
                 }
-                $scope.jobModel.resolutions.push({processInstanceId: $scope.processInstanceId, assignee: $rootScope.authentication.name, assigneeName: $rootScope.authentication.assigneeName, resolution: $scope.approveMaterialsListByRegionGroupsHeadTaskResult, comment: $scope.approveMaterialsListByRegionGroupsHeadComment, taskId: camForm.taskId});
+                var visibility = 'all';
+                if($scope.approveMaterialsListByRegionGroupsHeadComment && $scope.approveMaterialsListByRegionGroupsHeadCommentVisibility){
+                    visibility = $scope.approveMaterialsListByRegionGroupsHeadCommentVisibility;
+                }
+                $scope.jobModel.resolutions.push({processInstanceId: $scope.processInstanceId, assignee: $rootScope.authentication.name, assigneeName: $rootScope.authentication.assigneeName, resolution: $scope.approveMaterialsListByRegionGroupsHeadTaskResult, comment: $scope.approveMaterialsListByRegionGroupsHeadComment, taskId: camForm.taskId, visibility: visibility});
                 camForm.variableManager.variableValue('resolutions', $scope.jobModel.resolutions);
             });
 
@@ -124,6 +128,14 @@
             $scope.fileSelected = fileSelected;
             function fileSelected(el) {
                 $scope['sapPRFile'] = (el.value !== '');
+            }
+
+            $scope.isVisible = function (resolution) {
+               return !resolution.visibility || resolution.visibility === 'all' || (resolution.visibility === 'kcell' && $rootScope.authUser.groups.some(function (el) { return el.id === 'kcellUsers'; }));
+            }
+
+            $scope.hasComment = function () {
+                return $scope.approveMaterialsListByRegionGroupsHeadComment && $rootScope.authUser.groups.some(function (el) { return el.id === 'kcellUsers'; });
             }
         }]);
     </script>
@@ -150,6 +162,20 @@
             <label class="error" ng-show="kcell_form.approveMaterialsListByRegionGroupsHeadComment.$error.required && ( kcell_form.approveMaterialsListByRegionGroupsHeadComment.$touched || view.submitted)">Required field</label>
         </div>
     </div>
+    <div class="form-group" ng-show="hasComment()">
+        <label class="col-sm-4 control-label">Comments visibility</label>
+        <div class="col-sm-8">
+            <label class="radio-inline">
+                <input type="radio" name="approveMaterialsListByRegionGroupsHeadCommentVisibility"
+                       ng-model="approveMaterialsListByRegionGroupsHeadCommentVisibility" value="all" ng-required="hasComment()"> Visible for all
+            </label>
+            <label class="radio-inline">
+                <input type="radio" name="approveMaterialsListByRegionGroupsHeadCommentVisibility"
+                       ng-model="approveMaterialsListByRegionGroupsHeadCommentVisibility" value="kcell" ng-required="hasComment()"> Kcell staff only
+            </label>
+            <label class="error" ng-show="kcell_form.approveMaterialsListByRegionGroupsHeadCommentVisibility.$error.required && ( kcell_form.approveMaterialsListByRegionGroupsHeadCommentVisibility.$touched || view.submitted)">Required field</label>
+        </div>
+    </div>
     <accordion>
         <accordion-group is-open="isHistoryOpen">
             <accordion-heading>
@@ -171,7 +197,7 @@
                     <td>{{resolution.assigneeName || resolution.assignee}}</td>
                     <td>{{'task.resolution.'+resolution.resolution | translate}}</td>
                     <td>{{resolution.taskEndDate | date: 'dd.MM.yyyy HH:mm'}}</td>
-                    <td>{{resolution.comment}}</td>
+                    <td>{{isVisible(resolution)? resolution.comment : ''}}</td>
                 </tr>
                 </tbody>
             </table>

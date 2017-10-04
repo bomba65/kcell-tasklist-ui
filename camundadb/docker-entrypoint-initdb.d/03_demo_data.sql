@@ -118,6 +118,7 @@ INSERT INTO act_id_user (id_, rev_, first_, last_, email_, pwd_, picture_id_) VA
 
 --GROUPS
 INSERT INTO act_id_group (id_, rev_, name_, type_) VALUES ('kcellUsers', 1, 'Kcell Users', 'WORKFLOW');
+INSERT INTO act_id_group (id_, rev_, name_, type_) VALUES ('contractor_users', 1, 'Contractor Users', 'WORKFLOW');
 INSERT INTO act_id_group (id_, rev_, name_, type_) VALUES ('camunda-admin', 1, 'camunda BPM Administrators', 'SYSTEM');
 INSERT INTO act_id_group (id_, rev_, name_, type_) VALUES ('hq_optimization', 1, 'hq_optimization', 'WORKFLOW');
 INSERT INTO act_id_group (id_, rev_, name_, type_) VALUES ('hq_transmission_engineer', 1, 'hq_transmission_engineer', 'WORKFLOW');
@@ -219,8 +220,10 @@ INSERT INTO act_id_group (id_, rev_, name_, type_) VALUES ('west_sao_maintanance
 
 --MEMBERSHIPS
 INSERT INTO act_id_membership (user_id_, group_id_) VALUES ('demo', 'kcellUsers');
+INSERT INTO act_id_membership (user_id_, group_id_) VALUES ('demo', 'contractor_users');
 INSERT INTO act_id_membership (user_id_, group_id_) VALUES ('demo', 'camunda-admin');
 INSERT INTO act_id_membership (user_id_, group_id_) VALUES ('test_flow@kcell.kz', 'kcellUsers');
+INSERT INTO act_id_membership (user_id_, group_id_) VALUES ('test_flow@kcell.kz', 'contractor_users');
 INSERT INTO act_id_membership (user_id_, group_id_) VALUES ('test_flow@kcell.kz', 'camunda-admin');
 INSERT INTO act_id_membership (user_id_, group_id_) VALUES ('Yernaz.Kalingarayev@kcell.kz', 'camunda-admin');
 INSERT INTO act_id_membership (user_id_, group_id_) VALUES ('Askar.Slambekov@kcell.kz', 'camunda-admin');
@@ -322,18 +325,18 @@ INSERT INTO act_id_membership (user_id_, group_id_) VALUES ('Alexandr.Kim@kcell.
 INSERT INTO act_id_membership (user_id_, group_id_) VALUES ('Begaly.Kokin@kcell.kz', 'camunda-admin');
 INSERT INTO act_id_membership (user_id_, group_id_) VALUES ('Kirill.Strashenko@kcell.kz', 'camunda-admin');
 INSERT INTO act_id_membership (user_id_, group_id_) VALUES ('Nikolay.Ustinov@kcell.kz', 'kcellUsers');
-INSERT INTO act_id_membership (user_id_, group_id_) VALUES ('anuarbek.m@lse.kz', 'kcellUsers');
-INSERT INTO act_id_membership (user_id_, group_id_) VALUES ('beibit.a@lse.kz', 'kcellUsers');
-INSERT INTO act_id_membership (user_id_, group_id_) VALUES ('botagoz.ch@lse.kz', 'kcellUsers');
-INSERT INTO act_id_membership (user_id_, group_id_) VALUES ('kairat.b@lse.kz', 'kcellUsers');
-INSERT INTO act_id_membership (user_id_, group_id_) VALUES ('gulzhaina.t@lse.kz', 'kcellUsers');
-INSERT INTO act_id_membership (user_id_, group_id_) VALUES ('meirkhan.k@lse.kz', 'kcellUsers');
-INSERT INTO act_id_membership (user_id_, group_id_) VALUES ('nazym.s@lse.kz', 'kcellUsers');
-INSERT INTO act_id_membership (user_id_, group_id_) VALUES ('rn-rs-almaty@lse.kz', 'kcellUsers');
-INSERT INTO act_id_membership (user_id_, group_id_) VALUES ('rollout-almaty-main@lse.kz', 'kcellUsers');
-INSERT INTO act_id_membership (user_id_, group_id_) VALUES ('zhandos.k@lse.kz', 'kcellUsers');
+INSERT INTO act_id_membership (user_id_, group_id_) VALUES ('anuarbek.m@lse.kz', 'contractor_users');
+INSERT INTO act_id_membership (user_id_, group_id_) VALUES ('beibit.a@lse.kz', 'contractor_users');
+INSERT INTO act_id_membership (user_id_, group_id_) VALUES ('botagoz.ch@lse.kz', 'contractor_users');
+INSERT INTO act_id_membership (user_id_, group_id_) VALUES ('kairat.b@lse.kz', 'contractor_users');
+INSERT INTO act_id_membership (user_id_, group_id_) VALUES ('gulzhaina.t@lse.kz', 'contractor_users');
+INSERT INTO act_id_membership (user_id_, group_id_) VALUES ('meirkhan.k@lse.kz', 'contractor_users');
+INSERT INTO act_id_membership (user_id_, group_id_) VALUES ('nazym.s@lse.kz', 'contractor_users');
+INSERT INTO act_id_membership (user_id_, group_id_) VALUES ('rn-rs-almaty@lse.kz', 'contractor_users');
+INSERT INTO act_id_membership (user_id_, group_id_) VALUES ('rollout-almaty-main@lse.kz', 'contractor_users');
+INSERT INTO act_id_membership (user_id_, group_id_) VALUES ('zhandos.k@lse.kz', 'contractor_users');
+INSERT INTO act_id_membership (user_id_, group_id_) VALUES ('LSE_Revision_Alm', 'contractor_users');
 INSERT INTO act_id_membership (user_id_, group_id_) VALUES ('Evgeniy.Degtyarev@kcell.kz', 'kcellUsers');
-INSERT INTO act_id_membership (user_id_, group_id_) VALUES ('LSE_Revision_Alm', 'kcellUsers');
 INSERT INTO act_id_membership (user_id_, group_id_) VALUES ('Marina.Paramonova@kcell.kz', 'hq_optimization');
 INSERT INTO act_id_membership (user_id_, group_id_) VALUES ('Daniyar.Yespayev@kcell.kz', 'hq_optimization');
 INSERT INTO act_id_membership (user_id_, group_id_) VALUES ('Vladimir.Grachyov@kcell.kz', 'hq_optimization');

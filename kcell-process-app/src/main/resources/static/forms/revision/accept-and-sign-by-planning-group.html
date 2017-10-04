@@ -132,7 +132,11 @@
 
             camForm.on('submit', function () {
                 camForm.variableManager.variableValue('acceptAndSignByPlanningGroupTaskResult', $scope.acceptAndSignByPlanningGroupTaskResult);
-                $scope.jobModel.resolutions.push({processInstanceId: $scope.processInstanceId, assignee: $rootScope.authentication.name, assigneeName: $rootScope.authentication.assigneeName, resolution: $scope.acceptAndSignByPlanningGroupTaskResult, comment: $scope.acceptAndSignByPlanningGroupComment, taskId: camForm.taskId});
+                var visibility = 'all';
+                if($scope.acceptAndSignByPlanningGroupComment && $scope.acceptAndSignByPlanningGroupCommentVisibility){
+                    visibility = $scope.acceptAndSignByPlanningGroupCommentVisibility;
+                }
+                $scope.jobModel.resolutions.push({processInstanceId: $scope.processInstanceId, assignee: $rootScope.authentication.name, assigneeName: $rootScope.authentication.assigneeName, resolution: $scope.acceptAndSignByPlanningGroupTaskResult, comment: $scope.acceptAndSignByPlanningGroupComment, taskId: camForm.taskId, visibility: visibility});
                 camForm.variableManager.variableValue('resolutions', $scope.jobModel.resolutions);
             });
 
@@ -167,6 +171,14 @@
                 }
                 return false;
             }
+
+            $scope.isVisible = function (resolution) {
+               return !resolution.visibility || resolution.visibility === 'all' || (resolution.visibility === 'kcell' && $rootScope.authUser.groups.some(function (el) { return el.id === 'kcellUsers'; }));
+            }
+
+            $scope.hasComment = function () {
+                return $scope.acceptAndSignByPlanningGroupComment && $rootScope.authUser.groups.some(function (el) { return el.id === 'kcellUsers'; });
+            }
         }]);
     </script>
     <job-request job-model="jobModel"></job-request>
@@ -199,6 +211,20 @@
             <label class="error" ng-show="kcell_form.acceptAndSignByPlanningGroupComment.$error.required && ( kcell_form.acceptAndSignByPlanningGroupComment.$touched || view.submitted)">Required field</label>
         </div>
     </div>
+    <div class="form-group" ng-show="hasComment()">
+        <label class="col-sm-4 control-label">Comments visibility</label>
+        <div class="col-sm-8">
+            <label class="radio-inline">
+                <input type="radio" name="acceptAndSignByPlanningGroupCommentVisibility"
+                       ng-model="acceptAndSignByPlanningGroupCommentVisibility" value="all" ng-required="hasComment()"> Visible for all
+            </label>
+            <label class="radio-inline">
+                <input type="radio" name="acceptAndSignByPlanningGroupCommentVisibility"
+                       ng-model="acceptAndSignByPlanningGroupCommentVisibility" value="kcell" ng-required="hasComment()"> Kcell staff only
+            </label>
+            <label class="error" ng-show="kcell_form.acceptAndSignByPlanningGroupCommentVisibility.$error.required && ( kcell_form.acceptAndSignByPlanningGroupCommentVisibility.$touched || view.submitted)">Required field</label>
+        </div>
+    </div>
     <accordion>
         <accordion-group is-open="isHistoryOpen">
             <accordion-heading>
@@ -220,7 +246,7 @@
                     <td>{{resolution.assigneeName || resolution.assignee}}</td>
                     <td>{{'task.resolution.'+resolution.resolution | translate}}</td>
                     <td>{{resolution.taskEndDate | date: 'dd.MM.yyyy HH:mm'}}</td>
-                    <td>{{resolution.comment}}</td>
+                    <td>{{isVisible(resolution)? resolution.comment : ''}}</td>
                 </tr>
                 </tbody>
             </table>

@@ -126,7 +126,12 @@
                 } else {
                     camForm.variableManager.variableValue('createJRResult', 'rejected');
                 }
-                $scope.jobModel.resolutions.push({processInstanceId: $scope.processInstanceId, assignee: $rootScope.authentication.name, assigneeName: $rootScope.authentication.assigneeName, resolution: $scope.regionGroupHeadApprovalTaskResult, comment: $scope.regionGroupHeadApprovalComment, taskId: camForm.taskId});
+
+                var visibility = 'all';
+                if($scope.regionGroupHeadApprovalComment && $scope.regionGroupHeadApprovalCommentVisibility){
+                    visibility = $scope.regionGroupHeadApprovalCommentVisibility;
+                }
+                $scope.jobModel.resolutions.push({processInstanceId: $scope.processInstanceId, assignee: $rootScope.authentication.name, assigneeName: $rootScope.authentication.assigneeName, resolution: $scope.regionGroupHeadApprovalTaskResult, comment: $scope.regionGroupHeadApprovalComment, taskId: camForm.taskId, visibility: visibility});
                 camForm.variableManager.variableValue('resolutions', $scope.jobModel.resolutions);
                 camForm.variableManager.variableValue('regionApproval', $scope.regionApproval);
                 camForm.variableManager.variableValue('cancelPrComment', $scope.regionGroupHeadApprovalComment);
@@ -139,6 +144,14 @@
             camForm.on('variables-restored', function() {
                 $scope.regionGroupHeadApprovalTaskResult = camForm.variableManager.variableValue('regionGroupHeadApprovalTaskResult');
             });
+
+            $scope.isVisible = function (resolution) {
+               return !resolution.visibility || resolution.visibility === 'all' || (resolution.visibility === 'kcell' && $rootScope.authUser.groups.some(function (el) { return el.id === 'kcellUsers'; }));
+            }
+
+            $scope.hasComment = function () {
+                return $scope.regionGroupHeadApprovalComment && $rootScope.authUser.groups.some(function (el) { return el.id === 'kcellUsers'; });
+            }
         }]);
     </script>
     <job-request job-model="jobModel"></job-request>
@@ -164,6 +177,20 @@
             <label class="error" ng-show="kcell_form.regionGroupHeadApprovalComment.$error.required && ( kcell_form.regionGroupHeadApprovalComment.$touched || view.submitted)">Required field</label>
         </div>
     </div>
+    <div class="form-group" ng-show="hasComment()">
+        <label class="col-sm-4 control-label">Comments visibility</label>
+        <div class="col-sm-8">
+            <label class="radio-inline">
+                <input type="radio" name="regionGroupHeadApprovalCommentVisibility"
+                       ng-model="regionGroupHeadApprovalCommentVisibility" value="all" ng-required="hasComment()"> Visible for all
+            </label>
+            <label class="radio-inline">
+                <input type="radio" name="regionGroupHeadApprovalCommentVisibility"
+                       ng-model="regionGroupHeadApprovalCommentVisibility" value="kcell" ng-required="hasComment()"> Kcell staff only
+            </label>
+            <label class="error" ng-show="kcell_form.regionGroupHeadApprovalCommentVisibility.$error.required && ( kcell_form.regionGroupHeadApprovalCommentVisibility.$touched || view.submitted)">Required field</label>
+        </div>
+    </div>
     <accordion>
         <accordion-group is-open="isHistoryOpen">
             <accordion-heading>
@@ -185,7 +212,7 @@
                     <td>{{resolution.assigneeName || resolution.assignee}}</td>
                     <td>{{'task.resolution.'+resolution.resolution | translate}}</td>
                     <td>{{resolution.taskEndDate | date: 'dd.MM.yyyy HH:mm'}}</td>
-                    <td>{{resolution.comment}}</td>
+                    <td>{{isVisible(resolution)? resolution.comment : ''}}</td>
                 </tr>
                 </tbody>
             </table>
