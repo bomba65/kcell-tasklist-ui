@@ -99,15 +99,14 @@
                             });
                         });
                     } else if(el === 'tssrssidFileName' && camForm.variableManager.variables[el] && camForm.variableManager.variables[el].value && camForm.variableManager.variables[el].value.url) {
-                        $http.get('/camunda/uploads/get/' + $scope.processInstanceId + '/' + camForm.taskId + '/' + camForm.variableManager.variables[el].value.name).then(
-                            function (result) {
-                                camForm.variableManager.variables[el].value.url = result.data;
-                                $scope.jobModel[el] = camForm.variableManager.variables[el];
-                            },
-                            function (error) {
-                                console.log(error);
-                            }
-                        );
+                        $http({method: 'GET', url: '/camunda/uploads/get/' + $scope.processInstanceId + '/' + camForm.taskId + '/' + camForm.variableManager.variables[el].value.name, transformResponse: [] }).
+                        success(function(data, status, headers, config) {
+                            camForm.variableManager.variables[el].value.url = data;
+                            $scope.jobModel[el] = camForm.variableManager.variables[el];
+                        }).
+                        error (function(data, status, headers, config) {
+                            console.log(data);
+                        });
                     } else if(el === 'siteWorksFiles' && camForm.variableManager.variables[el].value) {
                         workFiles = camForm.variableManager.variables[el].value;
                     } else {
@@ -133,14 +132,18 @@
                     if(file.name){
                         var workIndex = file.name.split('_')[1];
                         console.log($scope.jobModel.jobWorks);
-                        if (!$scope.jobModel.jobWorks.value){
-                            $scope.jobModel.jobWorks.value = [{}];
-                        }
                         if(!$scope.jobModel.jobWorks.value[workIndex].files) {
                             $scope.jobModel.jobWorks.value[workIndex].files = [];
                         }
                         if($scope.jobModel.jobWorks.value[workIndex].files && !containsFile($scope.jobModel.jobWorks.value[workIndex].files, file)){
-                            $scope.jobModel.jobWorks.value[workIndex].files.push(file);
+                            $http({method: 'GET', url: '/camunda/uploads/get/' + $scope.processInstanceId + '/' + camForm.taskId + '/' + file.value.name, transformResponse: [] }).
+                            success(function(data, status, headers, config) {
+                                file.url = data;
+                                $scope.jobModel.jobWorks.value[workIndex].files.push(file);
+                            }).
+                            error (function(data, status, headers, config) {
+                                console.log(data);
+                            });
                         }
                     }
                 });
@@ -162,17 +165,6 @@
                 $scope.acceptAndSignByMaintenanceGroupTaskResult = camForm.variableManager.variableValue('acceptAndSignByMaintenanceGroupTaskResult');
                 $scope.planningGroupReviewSelected = camForm.variableManager.variableValue('planningGroupReviewSelected');
             });
-
-            $scope.download = function(file) {
-                $http.get('/camunda/uploads/get/' + $scope.processInstanceId + '/' + camForm.taskId + '/' + file.value.name).then(
-                    function (result) {
-                        window.location.href = result.data;
-                    },
-                    function (error) {
-                        console.log(error);
-                    }
-                );
-            }
 
             $scope.downloadOldFile = function downloadOldFile(file) {
                 document.getElementById('fileDownloadIframe').src = '/camunda/api/engine/engine/default/variable-instance/' + file.id + '/data';
@@ -196,7 +188,7 @@
         <div class="col-md-12">&nbsp;&nbsp;&nbsp;&nbsp;{{jobModel.worksTitle[work.sapServiceNumber]}}, works qty: {{work.quantity}}, materials qty: {{work.materialQuantity}} {{jobModel.unitsTitle[work.unit]}}, on sites: {{work.sites}}</div>
         <div class="col-md-12" ng-repeat="file in work.files">
             <div class="col-md-12" ng-if="file.valueInfo">&nbsp;&nbsp;&nbsp;&nbsp;{{$index+1}}.<a ng-click="downloadOldFile(file)">{{file.valueInfo.filename}} (Old file, read only)</a></div>
-            <div class="col-md-12" ng-if="file.value">&nbsp;&nbsp;&nbsp;&nbsp;{{$index+1}}.<a ng-click="download(file)">{{file.value.name}}</a></div>
+            <div class="col-md-12" ng-if="file.value">&nbsp;&nbsp;&nbsp;&nbsp;{{$index+1}}.<a href="{{file.value.url}}" target="_blank">{{file.value.name}}</a></div>
         </div>
     </div>
     <div class="form-group">

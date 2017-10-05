@@ -64,6 +64,7 @@
             $scope.cabinetRncs = ['AlmRNC5', 'AlmRNC6'];
             $scope.antennaModels = ["1710-2500", "2K742215", "2xK742215", "379-623", "3x742223", "639684", "730-376", "730-382", "730376", "730382", "732-448", "732448", "735-727", "735727", "736-624", "736623", "736624", "738-573", "738694", "739-322", "739-489", "739-619", "739-620", "739-621", "739-622", "739-623", "739-624", "739-625", "739-626", "739-627", "739-628", "739-629", "739-630", "739-631", "739-634", "739-637", "739-639", "739-646", "739-683", "739-684", "739-685", "739-686", "739-687", "739-688", "739-689", "739-785", "739326", "739384", "739489", "739619", "739620", "739622", "739623", "739623N", "739634", "739646", "7396684", "739682", "739684", "739684_05", "739684OWN", "73922", "739630", "7396884", "739785", "741215", "741316", "741322", "741571", "741571K742149", "741572", "741785", "742", "742149", "742211", "742215", "742223", "742224", "7422270", "742236", "742264", "742270", "742322", "742351", "742515", "749684", "80010173", "80010203", "80010248", "80010303", "80010305", "80010306", "80010504", "741-211", "741-215", "741-316", "741-322", "741-326", "741-376", "741-571", "741-572", "741-622", "741-623", "741-717", "741-785", "741211", "741326", "741522", "741571x17", "741571x53", "741684", "741717", "7417854", "742-149", "742-211", "742-212", "742-213", "742-215", "742-223", "742-235", "742-236", "742-326", "742212", "742213", "7422224", "742226", "742243", "742271V03", "742272V03", "742571", "742624", "744-223", "789-684", "800-10141", "800-10173", "80010122", "80010290", "80010291", "8001030303", "80010304", "80010456", "80010465", "80010510", "80010622V01", "80010664", "80010665", "80010699", "80010864", "80010865", "80010866", "80010867", "80010868", "80070305", "8010303", "839-623", "876-960", "ADU4518R10", "ADU4518R11", "AQU4518R5", "ATR4517R1", "ATR4518R4", "ATR4518R7", "CELLMAX-O-CPUSE_VERTICAL_01DT", "DBXLH-6565A-A2M", "DBXLH-6565A-VTM", "DBXLH-6565C-A2M", "DBXLH-6565C-R2M", "DBXLH-6565C-VTM", "default", "HBX-6516DS-A1M", "HBX-6516DS-R2M", "HBX-6516DS-T2M", "HBX-6516DS-VTM", "HBX-6517DS-A1M", "HBXX-6516DS-A2M", "LBX-6515DS-VTM", "LDX-6513DS-VTM", "LDX-6515DS-VTM", "LDX-6516DS-VTM", "sector", "TBXLHA-6565B-A3M", "TBXLHB-6565A-A3M", "TBXLHB-6565A-R2M", "TBXLHB-6565A-VTM"];
             var diff;
+            var siteWorksFiles = [];
             if(window.requirejs){
                 diff = window.requirejs('deep-diff').diff;
             } else {
@@ -185,6 +186,15 @@
                         $scope.jobModel[el] = camForm.variableManager.variables[el];
                         if(el === 'tssrssidFileName') {
                             $scope[el] = camForm.variableManager.variables[el];
+                            $http({method: 'GET', url: '/camunda/uploads/get/' + $scope.processInstanceId + '/' + camForm.taskId + '/' + $scope[el].value.name, transformResponse: [] }).
+                            success(function(data, status, headers, config) {
+                                $scope[el].value.url = data;
+                            }).
+                            error (function(data, status, headers, config) {
+                                console.log(data);
+                            });
+                        } else if(el === 'siteWorksFiles' && camForm.variableManager.variables[el].value) {
+                            siteWorksFiles = camForm.variableManager.variables[el].value;
                         }
                     }
                 });
@@ -208,6 +218,25 @@
                 $http.get("/camunda/api/engine/engine/default/user/" + $rootScope.authentication.name+ "/profile").then(function(result){
                     $rootScope.authentication.assigneeName = (result.data.firstName ? result.data.firstName : "") + " " + (result.data.lastName ? result.data.lastName : "");
                 });
+                siteWorksFiles.forEach(function (file) {
+                    if(file.name){
+                        var workIndex = file.name.split('_')[1];
+                        if(!$scope.sitesWorks[workIndex].files) {
+                            $scope.sitesWorks[workIndex].files = [];
+                        }
+                        if(!containsFile($scope.sitesWorks[workIndex].files, file)){
+                            $http({method: 'GET', url: '/camunda/uploads/get/' + $scope.processInstanceId + '/' + camForm.taskId + '/' + file.value.name, transformResponse: [] }).
+                            success(function(data, status, headers, config) {
+                                file.url = data;
+                                $scope.sitesWorks[workIndex].files.push(file);
+                            }).
+                            error (function(data, status, headers, config) {
+                                console.log(data);
+                            });
+                        }
+                    }
+                });
+
             });
 
             camForm.on('submit', function () {
@@ -1464,14 +1493,14 @@
                         $http.put(data, file, {headers: {'Content-Type': undefined}}).then(
                             function () {
                                 $http({method: 'GET', url: '/camunda/uploads/get/' + fileToUpload.value.path, transformResponse: [] }).
-                                    success(function(data, status, headers, config) {
-                                        fileToUpload.value.url = data;
-                                        $scope.sitesWorks[workIndex].files.push(fileToUpload);
-                                        angular.element(document.querySelector('#works_' + workIndex + '_file_' + fileIndex)).val(null);
-                                    }).
-                                    error (function(data, status, headers, config) {
-                                        console.log(data);
-                                    });
+                                success(function(data, status, headers, config) {
+                                    fileToUpload.value.url = data;
+                                    $scope.sitesWorks[workIndex].files.push(fileToUpload);
+                                    angular.element(document.querySelector('#works_' + workIndex + '_file_' + fileIndex)).val(null);
+                                }).
+                                error (function(data, status, headers, config) {
+                                    console.log(data);
+                                });
                             },
                             function (error) {
                                 console.log(error.data);
@@ -1481,6 +1510,19 @@
                 error (function(data, status, headers, config) {
                     console.log(data);
                 });
+            }
+
+            function containsFile(files, file){
+                for(var i = 0; i<files.length; i++){
+                    if(files[i].name === file.name){
+                        return true;
+                    }
+                }
+                return false;
+            }
+
+            $scope.downloadOldFile = function downloadOldFile(file) {
+                document.getElementById('fileDownloadIframe').src = '/camunda/api/engine/engine/default/variable-instance/' + file.id + '/data';
             }
 
             $scope.clearFile = function (parentIndex, fileIndex) {
@@ -1610,4 +1652,5 @@
             </table>
         </accordion-group>
     </accordion>
+    <iframe id="fileDownloadIframe" download style="display:none;"></iframe>
 </form>
