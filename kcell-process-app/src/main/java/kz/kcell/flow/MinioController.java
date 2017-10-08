@@ -31,6 +31,7 @@ public class MinioController {
     private final String bucketName = "uploads";
 
 
+    @Autowired
     public MinioController(@Value("${minio.url:http://localhost:9000}") String minioUrl,
                            @Value("${minio.access.key:AKIAIOSFODNN7EXAMPLE}") String minioAccessKey,
                            @Value("${minio.secret.key:wJalrXUtnFEMI/K7MDENG/bPxRfiCYEXAMPLEKEY}") String minioSecretKey)
