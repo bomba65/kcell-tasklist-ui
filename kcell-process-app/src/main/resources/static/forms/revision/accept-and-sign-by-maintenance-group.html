@@ -5,7 +5,7 @@
 </style>
 <form role="form" class="form-horizontal" name="kcell_form" novalidate>
     <script cam-script type="text/form-script">
-        inject(['$scope', '$http', 'Uri', '$rootScope', '$q', function ($scope, $http, Uri, $rootScope, $q) {
+        inject(['$scope', '$http', 'Uri', '$rootScope', '$q', 'Upload', '$timeout', function ($scope, $http, Uri, $rootScope, $q, Upload, $timeout) {
             var variables = [
                 'requestedDate',
                 'jrNumber',
@@ -40,7 +40,9 @@
                 'tssrssidFile',
                 'tssrssidFileName',
                 'trFiles',
-                'siteWorksFiles'
+                'siteWorksFiles',
+                'initiatorFiles',
+                'maintananceFiles'
             ];
             $scope.jobModel = {};
             var workFiles = [];
@@ -133,11 +135,21 @@
                         }
                     }
                 });
+
+                $scope.maintananceFiles.type = 'Json';
+                if(!$scope.maintananceFiles.value){
+                    $scope.maintananceFiles.value = [];
+                }
             });
 
             camForm.on('submit', function () {
                 camForm.variableManager.variableValue('acceptAndSignByMaintenanceGroupTaskResult', $scope.acceptAndSignByMaintenanceGroupTaskResult);
                 camForm.variableManager.variableValue('planningGroupReviewSelected', $scope.planningGroupReviewSelected);
+                if(camForm.variableManager.variables['maintananceFiles']){
+                    camForm.variableManager.destroyVariable('maintananceFiles');
+                }
+                camForm.variableManager.createVariable($scope.maintananceFiles);
+
                 var visibility = 'all';
                 if($scope.acceptAndSignByMaintenanceGroupComment && $scope.acceptAndSignByMaintenanceGroupCommentVisibility){
                     visibility = $scope.acceptAndSignByMaintenanceGroupCommentVisibility;
@@ -180,6 +192,46 @@
                 return false;
             }
 
+            $scope.fileSelected = function(el){
+                $timeout(function () {
+                    $scope.$apply(function () {
+                        uploadFileToMinio(el.files[0]);
+                    });
+                })
+            };
+
+            function uploadFileToMinio(file) {
+                var fileIndex = $scope.maintananceFiles.value.length;
+
+                var fileToUpload = {
+                    name: 'initiator_file_' + fileIndex,
+                    type: 'Json',
+                    value: {
+                        name: file.name,
+                        path: $scope.processInstanceId + '/' + camForm.taskId + '/' + file.name
+                    }
+                };
+                $http({method: 'GET', url: '/camunda/uploads/put/' + fileToUpload.value.path, transformResponse: [] }).
+                    success(function(data, status, headers, config) {
+                        $http.put(data, file, {headers: {'Content-Type': undefined}}).then(
+                            function () {
+                                $scope.maintananceFiles.value.push(fileToUpload);
+                                angular.element(document.querySelector('#initiator_file_' + fileIndex)).val(null);
+                            },
+                            function (error) {
+                                console.log(error.data);
+                            }
+                        );
+                }).
+                error (function(data, status, headers, config) {
+                    console.log(data);
+                });
+            }
+
+            $scope.clearFile = function (fileIndex) {
+                $scope.maintananceFiles.value.splice(fileIndex, 1);
+            }
+
             $scope.isVisible = function (resolution) {
                return !resolution.visibility || resolution.visibility === 'all' || (resolution.visibility === 'kcell' && $rootScope.authUser.groups.some(function (el) { return el.id === 'kcellUsers'; }));
             }
@@ -200,6 +252,31 @@
             <div class="col-md-12" ng-if="file.value">&nbsp;&nbsp;&nbsp;&nbsp;{{$index+1}}.<a ng-click="download(file)">{{file.value.name}}</a></div>
         </div>
     </div>
+
+    <div style="margin-bottom: 20px;"></div>
+
+    <div class="form-group">
+        <label class="col-sm-4 control-label">Additional files (by Initiator)</label>
+        <div class="col-md-12" ng-repeat="file in initiatorFiles.value">
+            <div class="col-md-12" ng-show="file.value.name">
+                {{$index + 1}}. <a download="file">{{file.value.name}}</a>
+            </div>
+        </div>
+    </div>
+
+    <div class="form-group">
+        <label class="col-sm-4 control-label">Additional files</label>
+        <div class="col-md-12" ng-repeat="file in maintananceFiles.value">
+            <div class="col-md-12" ng-show="file.value.name">
+                {{$index + 1}}.
+                <a download="file">{{file.value.name}}</a> | <a ng-click="clearFile($index)"><i
+                    class="glyphicon glyphicon-trash"></i>
+            </a>
+            </div>
+        </div>
+        <input type="file" class="form-control" id="initiator_file_{{maintananceFiles.value.length}}" name="initiator_file_{{maintananceFiles.value.length}}" ng-model="file.file" onchange="angular.element(this).scope().fileSelected(this)"/>
+    </div>
+
     <div class="form-group">
         <label class="col-sm-4 control-label">Planning Group review is required</label>
         <div class="col-sm-8">
