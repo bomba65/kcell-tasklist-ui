@@ -160,6 +160,9 @@ define(['./module','camundaSDK', 'lodash', 'big-js'], function(module, CamSDK, _
 				}
 			);
 		}
+		$scope.hasGroup = function(group){
+			return $rootScope.authUser.groups.some(function (el) { return el.id === group; });
+		}
 		$scope.selectedTab = 'form';
 		$scope.selectTab = function(tab){
 			$scope.selectedTab = tab;
