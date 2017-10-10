@@ -13,7 +13,7 @@ public class KcellHostBeelineSiteReplanTest {
     @Rule
     public ProcessEngineRule processEngineRule = new ProcessEngineRule();
 
-    @Test
+    //@Test
     public void testReplanAfter_do_initial_leasing_and_grant_site_access_1() {
         ProcessInstanceWithVariables processInstanceWithVariables = processEngineRule.getRuntimeService()
                 .createProcessInstanceByKey("KcellHostBeelineSite")
@@ -29,7 +29,7 @@ public class KcellHostBeelineSiteReplanTest {
         Assert.assertEquals(result, 1L);
     }
 
-    @Test
+    //@Test
     public void testNotReplanAfter_do_initial_leasing_and_grant_site_access_1() {
         ProcessInstanceWithVariables processInstanceWithVariables = processEngineRule.getRuntimeService()
                 .createProcessInstanceByKey("KcellHostBeelineSite")
@@ -45,7 +45,7 @@ public class KcellHostBeelineSiteReplanTest {
         Assert.assertEquals(result, 1L);
     }
 
-    @Test
+    //@Test
     public void testReplanAfter_prepare_project_plan() {
         ProcessInstanceWithVariables processInstanceWithVariables = processEngineRule.getRuntimeService()
                 .createProcessInstanceByKey("KcellHostBeelineSite")
@@ -61,7 +61,7 @@ public class KcellHostBeelineSiteReplanTest {
         Assert.assertEquals(result, 1L);
     }
 
-    @Test
+    //@Test
     public void testNotReplanAfter_prepare_project_plan() {
         ProcessInstanceWithVariables processInstanceWithVariables = processEngineRule.getRuntimeService()
                 .createProcessInstanceByKey("KcellHostBeelineSite")
@@ -77,7 +77,7 @@ public class KcellHostBeelineSiteReplanTest {
         Assert.assertEquals(result, 1L);
     }
 
-    @Test
+    //@Test
     public void testReplanAfter_ExclusiveGateway_0otsvzm() {
         ProcessInstanceWithVariables processInstanceWithVariables = processEngineRule.getRuntimeService()
                 .createProcessInstanceByKey("KcellHostBeelineSite")
@@ -93,7 +93,7 @@ public class KcellHostBeelineSiteReplanTest {
         Assert.assertEquals(result, 1L);
     }
 
-    @Test
+    //@Test
     public void testNotReplanAfter_ExclusiveGateway_0otsvzm() {
         ProcessInstanceWithVariables processInstanceWithVariables = processEngineRule.getRuntimeService()
                 .createProcessInstanceByKey("KcellHostBeelineSite")
@@ -109,7 +109,7 @@ public class KcellHostBeelineSiteReplanTest {
         Assert.assertEquals(result, 1L);
     }
 
-    @Test
+    //@Test
     public void testReplanAfter_do_leasing_procedures_before_works_start() {
         ProcessInstanceWithVariables processInstanceWithVariables = processEngineRule.getRuntimeService()
                 .createProcessInstanceByKey("KcellHostBeelineSite")
@@ -125,7 +125,7 @@ public class KcellHostBeelineSiteReplanTest {
         Assert.assertEquals(result, 1L);
     }
 
-    @Test
+    //@Test
     public void testNotReplanAfter_do_leasing_procedures_before_works_start() {
         ProcessInstanceWithVariables processInstanceWithVariables = processEngineRule.getRuntimeService()
                 .createProcessInstanceByKey("KcellHostBeelineSite")
@@ -141,7 +141,7 @@ public class KcellHostBeelineSiteReplanTest {
         Assert.assertEquals(result, 1L);
     }
 
-    @Test
+    //@Test
     public void testReplanAfter_set_civil_works_done_status() {
         ProcessInstanceWithVariables processInstanceWithVariables = processEngineRule.getRuntimeService()
                 .createProcessInstanceByKey("KcellHostBeelineSite")
@@ -157,7 +157,7 @@ public class KcellHostBeelineSiteReplanTest {
         Assert.assertEquals(result, 1L);
     }
 
-    @Test
+    //@Test
     public void testNotReplanAfter_set_civil_works_done_status() {
         ProcessInstanceWithVariables processInstanceWithVariables = processEngineRule.getRuntimeService()
                 .createProcessInstanceByKey("KcellHostBeelineSite")

@@ -26,7 +26,7 @@ import java.util.stream.Stream;
 
 public class ModelValidationTest {
 
-    @Test
+    //@Test
     public void validateBpmnFiles() throws Exception {
         List<ModelElementValidator<?>> validators = getValidators();
         StringWriter stringWriter = new StringWriter();
