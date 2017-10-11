@@ -6,7 +6,10 @@ import org.camunda.bpm.engine.delegate.DelegateTask;
 import org.camunda.bpm.engine.delegate.TaskListener;
 import org.camunda.bpm.engine.identity.User;
 import org.camunda.bpm.engine.impl.identity.Authentication;
+import org.camunda.bpm.engine.runtime.ProcessInstance;
 import org.camunda.bpm.engine.task.IdentityLink;
+import org.camunda.bpm.model.bpmn.instance.Process;
+import org.camunda.bpm.model.bpmn.instance.camunda.CamundaProperties;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.mail.javamail.JavaMailSender;
@@ -61,18 +64,28 @@ public class TaskNotificationListener implements TaskListener {
         if (recipientEmails.size() > 0) {
 
             try {
+                String templateName = delegateTask
+                    .getExecution()
+                    .getProcessEngineServices()
+                    .getRepositoryService()
+                    .getBpmnModelInstance(delegateTask.getProcessDefinitionId())
+                    .getModelElementsByType(Process.class)
+                    .stream()
+                    .map(Process::getExtensionElements)
+                    .filter(Objects::nonNull)
+                    .flatMap(e -> e.getElementsQuery().filterByType(CamundaProperties.class).list().stream())
+                    .flatMap(e -> e.getCamundaProperties().stream())
+                    .filter(e -> e.getCamundaName().equals("taskNotificationTemplate"))
+                    .map(e -> e.getCamundaValue())
+                    .findAny()
+                    .orElse("/TaskAssigneeNotificationTemplate.tpl");
+
                 Bindings bindings = template.getEngine().createBindings();
                 bindings.put("delegateTask", delegateTask);
                 bindings.put("baseUrl", baseUrl);
+                bindings.put("templateName", templateName);
                 String htmlMessage = String.valueOf(template.eval(bindings));
-                String businessKey = delegateTask
-                    .getProcessEngineServices()
-                    .getRuntimeService()
-                    .createProcessInstanceQuery()
-                    .processInstanceId(delegateTask.getProcessInstanceId())
-                    .singleResult()
-                    .getBusinessKey();
-
+                String businessKey = delegateTask.getExecution().getProcessBusinessKey();
                 String subject = String.format("%s, %s", businessKey, delegateTask.getName());
 
                 mailSender.send(mimeMessage -> {
@@ -131,5 +144,4 @@ public class TaskNotificationListener implements TaskListener {
     private static boolean validEmail(String email) {
         return email != null && !email.isEmpty();
     }
-
 }
