@@ -1,26 +1,27 @@
 package kz.kcell.bpm;
 
-import com.fasterxml.jackson.core.type.TypeReference;
-import com.fasterxml.jackson.databind.ObjectMapper;
 import org.camunda.bpm.model.bpmn.Bpmn;
 import org.camunda.bpm.model.bpmn.BpmnModelInstance;
-import org.camunda.bpm.model.bpmn.instance.ExtensionElements;
+import org.camunda.bpm.model.bpmn.instance.Process;
 import org.camunda.bpm.model.bpmn.instance.SendTask;
 import org.camunda.bpm.model.bpmn.instance.UserTask;
 import org.camunda.bpm.model.bpmn.instance.camunda.CamundaConnector;
 import org.camunda.bpm.model.bpmn.instance.camunda.CamundaConnectorId;
+import org.camunda.bpm.model.bpmn.instance.camunda.CamundaProperties;
 import org.camunda.bpm.model.xml.instance.ModelElementInstance;
 import org.camunda.bpm.model.xml.validation.*;
 import org.junit.Assert;
 import org.junit.Test;
 
 import java.io.File;
-import java.io.IOException;
 import java.io.StringWriter;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
-import java.util.*;
+import java.util.Arrays;
+import java.util.List;
+import java.util.Objects;
+import java.util.Optional;
 import java.util.function.BiConsumer;
 import java.util.stream.Stream;
 
@@ -70,6 +71,7 @@ public class ModelValidationTest {
                 } else {
                     Path formsDir = Paths.get("src/main/resources/static");
                     Path formFile = formsDir.resolve(formKey.substring(prefix.length()));
+
                     if (!Files.exists(formFile) || !Files.isRegularFile(formFile)) {
                         validationResultCollector.addError(0, String.format("Form key refers to non-existing form file: %s", formFile.toString()));
                     }
@@ -110,7 +112,26 @@ public class ModelValidationTest {
                 validationResultCollector.addError(0, "must specify task implementation");
             }
 
-        }));
+        }),makeValidator(Process.class, (Process process, ValidationResultCollector validationResultCollector) -> {
+                Optional<String> templateName = Stream.of(process)
+                    .map(Process::getExtensionElements)
+                    .filter(Objects::nonNull)
+                    .flatMap(e -> e.getElementsQuery().filterByType(CamundaProperties.class).list().stream())
+                    .flatMap(e -> e.getCamundaProperties().stream())
+                    .filter(e -> e.getCamundaName().equals("taskNotificationTemplate"))
+                    .map(e -> e.getCamundaValue())
+                    .findAny();
+
+                if(templateName.isPresent()){
+                    Path tplDir = Paths.get("src/main/resources/");
+                    Path tplFile = tplDir.resolve(templateName.get().substring(1));
+
+                    if (!Files.exists(tplFile) || !Files.isRegularFile(tplFile)) {
+                        validationResultCollector.addError(0, String.format("Custom task notification value refers to non-existing .tpl file: %s", tplFile.toString()));
+                    }
+                }
+            })
+        );
     }
 
     private void checkBpmn(List<ModelElementValidator<?>> validators, File bpmnFile, StringWriter stringWriter ) {
