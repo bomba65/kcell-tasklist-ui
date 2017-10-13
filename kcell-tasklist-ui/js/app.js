@@ -68,6 +68,12 @@ define('app',[
 	    	controller: "processesCtrl",
 	    	authenticate: true,
 	    	resolve: resolve
+	    }).state("statistics", {
+	    	url: "/statistics",
+	    	templateUrl: "js/partials/statistics.html",
+	    	controller: "statisticsCtrl",
+	    	authenticate: true,
+	    	resolve: resolve
 	    });
 	}]).provider('Uri',  function() {
 		var TEMPLATES_PATTERN = /[\w]+:\/\/|:[\w]+/g;
