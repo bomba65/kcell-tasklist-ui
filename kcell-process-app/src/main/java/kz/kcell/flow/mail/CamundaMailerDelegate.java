@@ -1,4 +1,4 @@
-package kz.kcell.bpm;
+package kz.kcell.flow.mail;
 
 import org.camunda.bpm.engine.delegate.DelegateExecution;
 import org.camunda.bpm.engine.delegate.JavaDelegate;
@@ -16,9 +16,9 @@ public class CamundaMailerDelegate implements JavaDelegate {
     public void execute(DelegateExecution delegateExecution) throws Exception {
         MimeMessage message = sender.createMimeMessage();
         MimeMessageHelper helper = new MimeMessageHelper(message);
-        helper.setTo((String)delegateExecution.getVariable("to"));
-        helper.setText((String) delegateExecution.getVariable("html"), true);
-        helper.setSubject((String) delegateExecution.getVariable("subject"));
+        helper.setTo(String.valueOf(delegateExecution.getVariable("to")));
+        helper.setText(String.valueOf(delegateExecution.getVariable("html")), true);
+        helper.setSubject(String.valueOf(delegateExecution.getVariable("subject")));
 
         sender.send(message);
     }

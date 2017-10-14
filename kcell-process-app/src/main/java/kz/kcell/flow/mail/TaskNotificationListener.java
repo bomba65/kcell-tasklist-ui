@@ -10,6 +10,7 @@ import org.camunda.bpm.engine.runtime.ProcessInstance;
 import org.camunda.bpm.engine.task.IdentityLink;
 import org.camunda.bpm.model.bpmn.instance.Process;
 import org.camunda.bpm.model.bpmn.instance.camunda.CamundaProperties;
+import org.camunda.bpm.model.bpmn.instance.camunda.CamundaProperty;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.mail.javamail.JavaMailSender;
@@ -76,7 +77,7 @@ public class TaskNotificationListener implements TaskListener {
                     .flatMap(e -> e.getElementsQuery().filterByType(CamundaProperties.class).list().stream())
                     .flatMap(e -> e.getCamundaProperties().stream())
                     .filter(e -> e.getCamundaName().equals("taskNotificationTemplate"))
-                    .map(e -> e.getCamundaValue())
+                    .map(CamundaProperty::getCamundaValue)
                     .findAny()
                     .orElse("/TaskAssigneeNotificationTemplate.tpl");
 
