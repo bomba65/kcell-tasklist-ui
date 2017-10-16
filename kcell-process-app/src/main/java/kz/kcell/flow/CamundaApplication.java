@@ -1,7 +1,7 @@
 package kz.kcell.flow;
 
-import kz.kcell.flow.mail.CamundaMailerDelegate;
 import kz.kcell.camunda.authentication.plugin.KcellIdentityProviderPlugin;
+import kz.kcell.flow.mail.CamundaMailerDelegate;
 import kz.kcell.flow.mail.TaskNotificationListener;
 import org.camunda.bpm.application.ProcessApplication;
 import org.camunda.bpm.application.impl.event.ProcessApplicationEventListenerPlugin;
@@ -67,4 +67,5 @@ public class CamundaApplication extends SpringBootProcessApplication {
     public ScriptEngineManager scriptEngineManager() {
         return new ScriptEngineManager();
     }
+
 }
