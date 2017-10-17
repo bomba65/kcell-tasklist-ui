@@ -8,6 +8,7 @@ import org.camunda.bpm.application.impl.event.ProcessApplicationEventListenerPlu
 import org.camunda.bpm.engine.delegate.TaskListener;
 import org.camunda.bpm.engine.impl.cfg.ProcessEnginePlugin;
 import org.camunda.bpm.spring.boot.starter.SpringBootProcessApplication;
+import org.camunda.bpm.spring.boot.starter.webapp.CamundaBpmWebappAutoConfiguration;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
@@ -20,7 +21,7 @@ import javax.script.ScriptEngineManager;
 import static org.camunda.bpm.engine.delegate.TaskListener.EVENTNAME_ASSIGNMENT;
 import static org.camunda.bpm.engine.delegate.TaskListener.EVENTNAME_CREATE;
 
-@SpringBootApplication
+@SpringBootApplication(exclude = CamundaBpmWebappAutoConfiguration.class)
 @ProcessApplication
 public class CamundaApplication extends SpringBootProcessApplication {
 
