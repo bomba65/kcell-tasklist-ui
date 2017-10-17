@@ -60,7 +60,29 @@ public class CamundaApplication extends SpringBootProcessApplication {
     @ConfigurationProperties(prefix="kcell.ldap")
     @ConditionalOnProperty(prefix = "kcell.ldap", name = "enabled")
     public KcellIdentityProviderPlugin kcellIdentityProviderPlugin() {
-        return new KcellIdentityProviderPlugin();
+        KcellIdentityProviderPlugin plugin = new KcellIdentityProviderPlugin();
+        // Set some defaults
+        plugin.setServerUrl("ldaps://ldap.kcell.kz:636/");
+        plugin.setAcceptUntrustedCertificates(true);
+        plugin.setManagerDn("CN=flow,OU=Special,OU=KCELL,DC=kcell,DC=kz");
+        plugin.setBaseDn("DC=kcell,DC=kz");
+        plugin.setUserSearchBase("OU=KCELL");
+        plugin.setUserSearchFilter("(&(objectClass=user)(objectClass=person)(mail=*)(!(userAccountControl:1.2.840.113556.1.4.803:=2)))");
+        plugin.setUserIdAttribute("userPrincipalName");
+        plugin.setUserFirstnameAttribute("givenName");
+        plugin.setUserLastnameAttribute("sn");
+        plugin.setUserEmailAttribute("mail");
+        plugin.setUserPasswordAttribute("userpassword");
+        plugin.setGroupSearchBase("OU=Workflow,OU=KCELL");
+        plugin.setGroupSearchFilter("(objectclass=group)");
+        plugin.setGroupIdAttribute("cn");
+        plugin.setGroupNameAttribute("cn");
+        plugin.setGroupMemberAttribute("member");
+        plugin.setSortControlSupported(true);
+        plugin.setAuthorizationCheckEnabled(false);
+        plugin.setUseSsl(true);
+
+        return plugin;
     }
 
     @Bean
