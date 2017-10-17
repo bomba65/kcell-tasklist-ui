@@ -56,7 +56,8 @@ define('app',[
 			url: "/:id",
 			templateUrl: "js/partials/task.html",
 			controller: "TaskCtrl",
-			authenticate: true
+			authenticate: true,
+		    resolve: resolve
 	    }).state("login", {
 	    	url: "/login",
 	    	templateUrl: "js/partials/login.html",

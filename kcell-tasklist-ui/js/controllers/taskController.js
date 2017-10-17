@@ -85,7 +85,18 @@ define(['./module','camundaSDK', 'lodash', 'big-js'], function(module, CamSDK, _
 					}
 					initData(result.data);
 				},
-				function(error){}
+				function(error){
+					$http.get('/camunda/api/engine/engine/default/history/task?taskId=' + $stateParams.id).then(
+						function(result){
+							if(result.data && result.data[0]){
+								initHistoryData(result.data[0]);
+							}
+						},
+						function(error){
+							console.log('Not found in history');
+						}
+					);					
+				}
 			);
 		}
 		function initData(task){
@@ -131,6 +142,20 @@ define(['./module','camundaSDK', 'lodash', 'big-js'], function(module, CamSDK, _
 				);
 			}
 		}
+		function initHistoryData(task){
+			var variableQuery = {
+                processInstanceId: task.processInstanceId,
+                variableName: 'resolutions'
+            };
+            $http.post('/camunda/api/engine/engine/default/history/variable-instance?deserializeValues=false', variableQuery).then(
+				function(result){
+					if(result.data && result.data[0] && result.data[0].value){
+						$scope.resolution = JSON.parse(result.data[0].value).find(function (el) { return el.taskId === $stateParams.id; });
+						$scope.historyTask = task;
+					}
+				}
+			);					
+		}
 
 		$scope.claim = function(task) {
 			$http.post(baseUrl+'/task/'+task.id+'/claim', {userId: $rootScope.authentication.name}).then(
@@ -159,9 +184,6 @@ define(['./module','camundaSDK', 'lodash', 'big-js'], function(module, CamSDK, _
 					console.log(error.data);
 				}
 			);
-		}
-		$scope.hasGroup = function(group){
-			return $rootScope.authUser.groups.some(function (el) { return el.id === group; });
 		}
 		$scope.selectedTab = 'form';
 		$scope.selectTab = function(tab){
