@@ -12,7 +12,7 @@ html(lang:'en') {
         p {
             yield 'Номер заявки: ' + businessKey + '.'
             br()
-            yield 'Сайт: ' + siteName + '.'
+            yield 'Сайт: ' + delegateTask.getVariable("siteName") + '.'
         }
         p {
             yield 'Открыть Kcell Workflow вы можете пройдя по следующей ссылке: '
