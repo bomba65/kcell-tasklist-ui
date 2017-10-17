@@ -24,7 +24,7 @@ npm install
 
 cd "$BASEDIR"
 #/usr/bin/git log --graph -3 > nginx/html/version.html
-echo -e "<pre>$(git log --graph -3)</pre>" > nginx/html/version.html
+echo -e "<pre>$(git log --graph -10)</pre>" > nginx/html/version.html
 
 cd "$BASEDIR"
 docker-compose -f "$DOCKER_COMPOSE_YML" build
