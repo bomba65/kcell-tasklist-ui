@@ -139,36 +139,36 @@ define(['./module','jquery'], function(app,$){
 
 			} else {
         		$scope.kcellTasks = [
-                    'UserTask_1ru64f6',
-                    'UserTask_11b2osi',
-                    'Task_1xhzfxw',
-                    'UserTask_1qksldt',
-                    'UserTask_1tpn4q3',
-                    'UserTask_1qf7rmc',
-                    'UserTask_1uw9qzb',
-                    'Task_0euindd',
-                    'Task_0s5v6wl',
-                    'UserTask_12n8eyi',
-                    'UserTask_1n39kzy',
-                    'Task_0jxwgbt',
-                    'UserTask_1g0uit4',
-                    'UserTask_0ib18ut',
-                    'UserTask_0xsau1t',
-                    'UserTask_1i7na4a',
-                    'UserTask_0m3wppw',
-                    'Task_1kwxxw1'
+                    'modify_jr', //modify_jr
+                    'approve_jr_regions', //approve_jr_regions
+                    'check_power', //check_power
+                    'approve_transmission_works', //approve_transmission_works
+                    'approve_jr_budget', //approve_jr_budget
+                    'approve_jr', //approve_jr
+                    'update_leasing_status_general', //update_leasing_status_general
+                    'update_leasing_status_special', //update_leasing_status_special
+                    //'Task_0s5v6wl',
+                    'approve_material_list_region', //approve_material_list_region
+                    'approve_material_list_center', //approve_material_list_center
+                    'validate_tr', //validate_tr
+                    'set_materials_dispatch_status', //set_materials_dispatch_status
+                    'verify_works', //verify_works
+                    //'UserTask_0xsau1t',
+                    'accept_work_initiator', //accept_work_initiator
+                    'accept_work_maintenance_group' //accept_work_maintenance_group
                 ];
 
         		$scope.contractorTasks = [
-                    'UserTask_0syren9',
-                    'UserTask_14yc5q6',
-                    'UserTask_1wkrl5k',
-                    'UserTask_0rj3nbv'
+                    //'UserTask_0syren9',
+                    'upload_tr_contractor', //upload_tr_contractor
+                    'attach_material_list_contractor', //attach_material_list_contractor
+                    'fill_applied_changes_info' //fill_applied_changes_info
                 ];
 
 
                 var processInstancesPromise = $http.post($scope.baseUrl + '/history/process-instance', {
-                    "processDefinitionKey": "Revision"
+                    "processDefinitionKey": "Revision",
+                    "unfinished": true
 				}).then(function(response) {
 					var processInstances = _.keyBy(response.data, 'id');
 					return $http.post($scope.baseUrl + '/history/variable-instance', {
@@ -177,7 +177,8 @@ define(['./module','jquery'], function(app,$){
 					}).then(function(response){
 						var variablesByProcessInstance = _.keyBy(response.data, 'processInstanceId');
 						var valueByProcessInstance = _.mapValues(variablesByProcessInstance, 'value');
-						return _.mapValues(processInstances, (pi, id) => _.assign({}, pi, {'jrNumber': valueByProcessInstance[id]}))
+                        var result = _.mapValues(processInstances, (pi, id) => _.assign({}, pi, {'jrNumber': valueByProcessInstance[id]}));
+						return result;
 					});
 				});
 
