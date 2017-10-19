@@ -8,6 +8,7 @@ import org.camunda.bpm.model.bpmn.instance.UserTask;
 import org.camunda.bpm.model.bpmn.instance.camunda.CamundaConnector;
 import org.camunda.bpm.model.bpmn.instance.camunda.CamundaConnectorId;
 import org.camunda.bpm.model.bpmn.instance.camunda.CamundaProperties;
+import org.camunda.bpm.model.bpmn.instance.camunda.CamundaScript;
 import org.camunda.bpm.model.xml.instance.ModelElementInstance;
 import org.camunda.bpm.model.xml.validation.*;
 import org.junit.Assert;
@@ -111,27 +112,43 @@ public class ModelValidationTest {
                     expressionIsPresent).allMatch(Boolean.FALSE::equals)) {
                 validationResultCollector.addError(0, "must specify task implementation");
             }
-
         }),makeValidator(Process.class, (Process process, ValidationResultCollector validationResultCollector) -> {
-                Optional<String> templateName = Stream.of(process)
-                    .map(Process::getExtensionElements)
-                    .filter(Objects::nonNull)
-                    .flatMap(e -> e.getElementsQuery().filterByType(CamundaProperties.class).list().stream())
-                    .flatMap(e -> e.getCamundaProperties().stream())
-                    .filter(e -> e.getCamundaName().equals("taskNotificationTemplate"))
-                    .map(e -> e.getCamundaValue())
-                    .findAny();
+            Optional<String> templateName = Stream.of(process)
+                .map(Process::getExtensionElements)
+                .filter(Objects::nonNull)
+                .flatMap(e -> e.getElementsQuery().filterByType(CamundaProperties.class).list().stream())
+                .flatMap(e -> e.getCamundaProperties().stream())
+                .filter(e -> e.getCamundaName().equals("taskNotificationTemplate"))
+                .map(e -> e.getCamundaValue())
+                .findAny();
 
-                if(templateName.isPresent()){
-                    Path tplDir = Paths.get("src/main/resources/");
-                    Path tplFile = tplDir.resolve(templateName.get().substring(1));
+            if(templateName.isPresent()){
+                Path tplDir = Paths.get("src/main/resources/");
+                Path tplFile = tplDir.resolve(templateName.get().substring(1));
 
-                    if (!Files.exists(tplFile) || !Files.isRegularFile(tplFile)) {
-                        validationResultCollector.addError(0, String.format("Custom task notification value refers to non-existing .tpl file: %s", tplFile.toString()));
-                    }
+                if (!Files.exists(tplFile) || !Files.isRegularFile(tplFile)) {
+                    validationResultCollector.addError(0, String.format("Custom task notification value refers to non-existing .tpl file: %s", tplFile.toString()));
                 }
-            })
-        );
+            }
+        }),makeValidator(SendTask.class, (SendTask sendTask, ValidationResultCollector validationResultCollector) -> {
+            boolean hasFreeMarker = Optional.ofNullable(sendTask.getExtensionElements())
+                .flatMap(scripts -> scripts
+                    .getElementsQuery()
+                    .filterByType(CamundaConnector.class)
+                    .list()
+                    .stream()
+                    .map(CamundaConnector::getCamundaInputOutput)
+                    .filter(Objects::nonNull)
+                    .flatMap(e -> e.getCamundaInputParameters().stream())
+                    .flatMap(e -> e.getChildElementsByType(CamundaScript.class).stream())
+                    .filter(e -> e.getCamundaResource().endsWith(".ftl"))
+                    .findAny()
+                ).isPresent();
+
+            if (Stream.of(hasFreeMarker).allMatch(Boolean.TRUE::equals)) {
+                validationResultCollector.addError(0, " change freemarker template to groovy template");
+            }
+        }));
     }
 
     private void checkBpmn(List<ModelElementValidator<?>> validators, File bpmnFile, StringWriter stringWriter ) {
