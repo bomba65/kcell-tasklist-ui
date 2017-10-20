@@ -27,12 +27,19 @@
                 'supplementaryFile3',
                 'supplementaryFile4',
                 'supplementaryFile5',
+                'supplementaryFile1Visibility',
+                'supplementaryFile2Visibility',
+                'supplementaryFile3Visibility',
+                'supplementaryFile4Visibility',
+                'supplementaryFile5Visibility',
                 'explanation',
                 'jobWorks',
                 'sapPRFileXLS',
                 'sapPRNo',
                 'kcellWarehouseMaterialsList',
                 'contractorZIPWarehouseMaterialsList',
+                'kcellWarehouseMaterialsListName',
+                'contractorZIPWarehouseMaterialsListName',
                 'sapTransferRequestFile',
                 'resolutions',
                 'actOfMaterialsDispatchingFile',
@@ -40,12 +47,14 @@
                 'tssrssidFile',
                 'tssrssidFileName',
                 'trFiles',
+                'trFilesName',
                 'siteWorksFiles',
                 'initiatorFiles',
                 'maintananceFiles'
             ];
             $scope.jobModel = {};
             var workFiles = [];
+            var newFiles = [];
             $http.get('/camunda/api/engine/engine/default/task/' + camForm.taskId).then(
                     function(result){
                         $scope.processInstanceId = result.data.processInstanceId;
@@ -100,7 +109,7 @@
                                 }
                             });
                         });
-                    } else if(el === 'tssrssidFileName' && camForm.variableManager.variables[el] && camForm.variableManager.variables[el].value && camForm.variableManager.variables[el].value.url) {
+                    } else if(el === 'tssrssidFileName' && camForm.variableManager.variables[el] && camForm.variableManager.variables[el].value && camForm.variableManager.variables[el].value.name) {
                         $scope.jobModel[el] = camForm.variableManager.variables[el];
                     } else if(el === 'siteWorksFiles' && camForm.variableManager.variables[el].value) {
                         workFiles = camForm.variableManager.variables[el].value;
@@ -148,13 +157,19 @@
                 if(camForm.variableManager.variables['maintananceFiles']){
                     camForm.variableManager.destroyVariable('maintananceFiles');
                 }
+                $scope.maintananceFiles.value.forEach(function (f, i) {
+                    if(f.value.isNew){
+                        newFiles.push(f.value.name);
+                        delete $scope.maintananceFiles.value[i].value.isNew;
+                    }
+                });
                 camForm.variableManager.createVariable($scope.maintananceFiles);
 
                 var visibility = 'all';
                 if($scope.acceptAndSignByMaintenanceGroupComment && $scope.acceptAndSignByMaintenanceGroupCommentVisibility){
                     visibility = $scope.acceptAndSignByMaintenanceGroupCommentVisibility;
                 }
-                $scope.jobModel.resolutions.push({processInstanceId: $scope.processInstanceId, assignee: $rootScope.authentication.name, assigneeName: $rootScope.authentication.assigneeName, resolution: $scope.acceptAndSignByMaintenanceGroupTaskResult, comment: $scope.acceptAndSignByMaintenanceGroupComment, taskId: camForm.taskId, visibility: visibility});
+                $scope.jobModel.resolutions.push({processInstanceId: $scope.processInstanceId, assignee: $rootScope.authentication.name, assigneeName: $rootScope.authentication.assigneeName, resolution: $scope.acceptAndSignByMaintenanceGroupTaskResult, comment: $scope.acceptAndSignByMaintenanceGroupComment, taskId: camForm.taskId, visibility: visibility, files:newFiles});
                 camForm.variableManager.variableValue('resolutions', $scope.jobModel.resolutions);
             });
 
@@ -205,6 +220,7 @@
 
                 var fileToUpload = {
                     name: 'initiator_file_' + fileIndex,
+                    isNew: true,
                     type: 'Json',
                     value: {
                         name: file.name,
@@ -233,15 +249,15 @@
             }
 
             $scope.isVisible = function (resolution) {
-               return !resolution.visibility || resolution.visibility === 'all' || (resolution.visibility === 'kcell' && $rootScope.authUser.groups.some(function (el) { return el.id === 'kcellUsers'; }));
+               return !resolution.visibility || resolution.visibility === 'all' || (resolution.visibility === 'kcell' && $rootScope.hasGroup('kcellUsers'));
             }
 
             $scope.hasComment = function () {
-                return $scope.acceptAndSignByMaintenanceGroupComment && $rootScope.authUser.groups.some(function (el) { return el.id === 'kcellUsers'; });
+                return $scope.acceptAndSignByMaintenanceGroupComment && $rootScope.hasGroup('kcellUsers');
             }
         }]);
     </script>
-    <job-request job-model="jobModel"></job-request>
+    <job-request job-model="jobModel" process-instance-id="processInstanceId" task-id="camForm.taskId"></job-request>
     <ng-include ng-if="contextPath" src="contextPath+'/forms/revision/summaries-card.html'"></ng-include>
     <h3>Works:</h3>
     <iframe id="fileDownloadIframe" style="display:none;"></iframe>
@@ -335,6 +351,7 @@
                     <th>Resolution</th>
                     <th>Date</th>
                     <th>Comment</th>
+                    <th ng-if="hasGroup('kcellUsers')">Attached files</th>
                 </tr>
                 </thead>
                 <tbody>
@@ -344,6 +361,7 @@
                     <td>{{'task.resolution.'+resolution.resolution | translate}}</td>
                     <td>{{resolution.taskEndDate | date: 'dd.MM.yyyy HH:mm'}}</td>
                     <td>{{isVisible(resolution)? resolution.comment : ''}}</td>
+                    <td ng-if="hasGroup('kcellUsers')">{{resolution.files.join(', ')}}</td>
                 </tr>
                 </tbody>
             </table>

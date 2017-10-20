@@ -33,18 +33,22 @@
                 'sapPRNo',
                 'kcellWarehouseMaterialsList',
                 'contractorZIPWarehouseMaterialsList',
+                'kcellWarehouseMaterialsListName',
+                'contractorZIPWarehouseMaterialsListName',
                 'sapTransferRequestFile',
                 'resolutions',
                 'actOfMaterialsDispatchingFile',
                 'jrBlank',
                 'tssrssidFile',
                 'tssrssidFileName',
+                'trFilesName',
                 'trFiles',
                 'siteWorksFiles',
                 'initiatorFiles'
             ];
             $scope.jobModel = {};
             var workFiles = [];
+            var newFiles = [];
             $http.get('/camunda/api/engine/engine/default/task/' + camForm.taskId).then(
                     function(result){
                         $scope.processInstanceId = result.data.processInstanceId;
@@ -107,7 +111,7 @@
                                 }
                             });
                         });
-                    } else if(el === 'tssrssidFileName' && camForm.variableManager.variables[el] && camForm.variableManager.variables[el].value && camForm.variableManager.variables[el].value.url) {
+                    } else if(el === 'tssrssidFileName' && camForm.variableManager.variables[el] && camForm.variableManager.variables[el].value && camForm.variableManager.variables[el].value.name) {
                         $scope.jobModel[el] = camForm.variableManager.variables[el];
                     } else if(el === 'siteWorksFiles' && camForm.variableManager.variables[el].value) {
                         workFiles = camForm.variableManager.variables[el].value;
@@ -157,13 +161,19 @@
                 if(camForm.variableManager.variables['initiatorFiles']){
                     camForm.variableManager.destroyVariable('initiatorFiles');
                 }
+                $scope.initiatorFiles.value.forEach(function (f, i) {
+                    if(f.value.isNew){
+                        newFiles.push(f.value.name);
+                        delete $scope.initiatorFiles.value[i].value.isNew;
+                    }
+                });
                 camForm.variableManager.createVariable($scope.initiatorFiles);
 
                 var visibility = 'all';
                 if($scope.acceptAndSignByInitiatorComment && $scope.acceptAndSignByInitiatorCommentVisibility){
                     visibility = $scope.acceptAndSignByInitiatorCommentVisibility;
                 }
-                $scope.jobModel.resolutions.push({processInstanceId: $scope.processInstanceId, assignee: $rootScope.authentication.name, assigneeName: $rootScope.authentication.assigneeName, resolution: $scope.acceptAndSignByInitiatorTaskResult, comment: $scope.acceptAndSignByInitiatorComment, taskId: camForm.taskId, visibility: visibility});
+                $scope.jobModel.resolutions.push({processInstanceId: $scope.processInstanceId, assignee: $rootScope.authentication.name, assigneeName: $rootScope.authentication.assigneeName, resolution: $scope.acceptAndSignByInitiatorTaskResult, comment: $scope.acceptAndSignByInitiatorComment, taskId: camForm.taskId, visibility: visibility, files:newFiles});
                 camForm.variableManager.variableValue('resolutions', $scope.jobModel.resolutions);
             });
 
@@ -215,6 +225,7 @@
                     type: 'Json',
                     value: {
                         name: file.name,
+                        isNew: true,
                         path: $scope.processInstanceId + '/' + camForm.taskId + '/' + file.name
                     }
                 };
@@ -240,15 +251,15 @@
             }
 
             $scope.isVisible = function (resolution) {
-               return !resolution.visibility || resolution.visibility === 'all' || (resolution.visibility === 'kcell' && $rootScope.authUser.groups.some(function (el) { return el.id === 'kcellUsers'; }));
+               return !resolution.visibility || resolution.visibility === 'all' || (resolution.visibility === 'kcell' && $rootScope.hasGroup('kcellUsers'));
             }
 
             $scope.hasComment = function () {
-                return $scope.acceptAndSignByInitiatorComment && $rootScope.authUser.groups.some(function (el) { return el.id === 'kcellUsers'; });
+                return $scope.acceptAndSignByInitiatorComment && $rootScope.hasGroup('kcellUsers');
             }
         }]);
     </script>
-    <job-request job-model="jobModel"></job-request>
+    <job-request job-model="jobModel" process-instance-id="processInstanceId" task-id="camForm.taskId"></job-request>
     <ng-include ng-if="contextPath" src="contextPath+'/forms/revision/summaries-card.html'"></ng-include>
     <h3>Works:</h3>
     <iframe id="fileDownloadIframe" style="display:none;"></iframe>
@@ -267,9 +278,7 @@
         <div class="col-md-12" ng-repeat="file in initiatorFiles.value">
             <div class="col-md-12" ng-show="file.value.name">
                 {{$index + 1}}.
-                <a ng-click="download(file)">{{file.value.name}}</a> | <a ng-click="clearFile($index)"><i
-                    class="glyphicon glyphicon-trash"></i>
-            </a>
+                <a ng-click="download(file)">{{file.value.name}}</a> | <a ng-click="clearFile($index)"><i class="glyphicon glyphicon-trash"></i></a>
             </div>
         </div>
         <input type="file" class="form-control" id="initiator_file_{{initiatorFiles.value.length}}" name="initiator_file_{{initiatorFiles.value.length}}" ng-model="file.file" onchange="angular.element(this).scope().fileSelected(this)"/>
@@ -321,6 +330,7 @@
                     <th>Resolution</th>
                     <th>Date</th>
                     <th>Comment</th>
+                    <th ng-if="hasGroup('kcellUsers')">Attached files</th>
                 </tr>
                 </thead>
                 <tbody>
@@ -330,6 +340,7 @@
                     <td>{{'task.resolution.'+resolution.resolution | translate}}</td>
                     <td>{{resolution.taskEndDate | date: 'dd.MM.yyyy HH:mm'}}</td>
                     <td>{{isVisible(resolution)? resolution.comment : ''}}</td>
+                    <td ng-if="hasGroup('kcellUsers')">{{resolution.files.join(', ')}}</td>
                 </tr>
                 </tbody>
             </table>

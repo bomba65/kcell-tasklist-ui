@@ -69,12 +69,19 @@
                 'supplementaryFile3',
                 'supplementaryFile4',
                 'supplementaryFile5',
+                'supplementaryFile1Visibility',
+                'supplementaryFile2Visibility',
+                'supplementaryFile3Visibility',
+                'supplementaryFile4Visibility',
+                'supplementaryFile5Visibility',
                 'explanation',
                 'jobWorks',
                 'sapPRFileXLS',
                 'sapPRNo',
                 'kcellWarehouseMaterialsList',
                 'contractorZIPWarehouseMaterialsList',
+                'kcellWarehouseMaterialsListName',
+                'contractorZIPWarehouseMaterialsListName',
                 'sapTransferRequestFile',
                 'eLicenseResolutionFile',
                 'actOfMaterialsDispatchingFile',
@@ -315,17 +322,14 @@
                 }
 
                 if($scope.explanation){
-
                     var visibility = 'all';
                     if($scope.explanation && $scope.explanationVisibility){
                         visibility = $scope.explanationVisibility;
                     }
-                    $scope.resolutions.push({processInstanceId: $scope.processInstanceId, assignee: $rootScope.authentication.name, resolution: 'createJr', comment: $scope.explanation, taskId: camForm.taskId, visibility: visibility});
+                    $scope.resolutions.push({processInstanceId: $scope.processInstanceId, assignee: $rootScope.authentication.name, resolution: 'createJr', comment: $scope.explanation, taskId: camForm.taskId, visibility: visibility, files: $scope.supplementaryFiles});
                     camForm.variableManager.variableValue('resolutions', $scope.resolutions);
                 }
-                if($scope.supplementaryFilesActions.length > 0){
-                    $scope.resolutions.push({processInstanceId: $scope.processInstanceId, assignee: $rootScope.authentication.name, resolution: 'filesModified', comment: _.map($scope.supplementaryFilesActions, function(e){return "file " + e.filename+" "+e.action}).join(', '), taskId: camForm.taskId});
-                }
+
                 camForm.variableManager.createVariable({
                     name: 'cancelPrComment',
                     type: 'String',
@@ -354,6 +358,22 @@
                     }
                 }
             });
+
+            if($scope.supplementaryFile1Visibility){
+                camForm.variableManager.variableValue('supplementaryFile1Visibility', $scope.supplementaryFile1Visibility);
+            }
+            if($scope.supplementaryFile2Visibility){
+                camForm.variableManager.variableValue('supplementaryFile2Visibility', $scope.supplementaryFile2Visibility);
+            }
+            if($scope.supplementaryFile3Visibility){
+                camForm.variableManager.variableValue('supplementaryFile3Visibility', $scope.supplementaryFile3Visibility);
+            }
+            if($scope.supplementaryFile4Visibility){
+                camForm.variableManager.variableValue('supplementaryFile4Visibility', $scope.supplementaryFile4Visibility);
+            }
+            if($scope.supplementaryFile5Visibility){
+                camForm.variableManager.variableValue('supplementaryFile5Visibility', $scope.supplementaryFile5Visibility);
+            }
 
             $scope.open = open;
             $scope.toggleJr = toggleJr;
@@ -513,7 +533,7 @@
                 getJobs();
             }
 
-            $scope.supplementaryFilesActions = [];
+            $scope.supplementaryFiles = [];
 
             function getBase64(el, fileName){
                 var reader = new FileReader();
@@ -531,7 +551,7 @@
                             mimeType: el.files[0].type
                         };
                         $scope[fileName].value = btoa(binary);
-                        $scope.supplementaryFilesActions.push({supplementaryId: fileName, filename:el.files[0].name,action:'added'});
+                        $scope.supplementaryFiles.push(el.files[0].name);
                     });
                 };
                 reader.onerror = function (error) {
@@ -673,11 +693,6 @@
                 var containsPermit = _.intersection(_.map($scope.jobWorks, 'sapServiceNumber'), permitWorks);
                 $scope.isPermitDocsNeeded = containsPermit.length > 0;
                 var promises = [];
-                $scope.supplementaryFilesActions.forEach(function(e){
-                    if(e.action === 'deleted'){
-                        promises.push($http.delete('/camunda/api/engine/engine/default/process-instance/'+$scope.processInstanceId+'/variables/'+e.supplementaryId));
-                    }
-                });
 
                 var contains = _.some(_.flatMap($scope.jobWorks, 'relatedSites'), function(value){
                     return value.site_name === $scope.site_name;
@@ -691,16 +706,15 @@
             };
 
             $scope.clearFile = function(filename){
-                $scope.supplementaryFilesActions.push({supplementaryId: filename, filename:$scope[filename].prev.valueInfo.filename, action:'deleted'});
                 delete $scope[filename].prev;
             }
 
             $scope.isVisible = function (resolution) {
-               return !resolution.visibility || resolution.visibility === 'all' || (resolution.visibility === 'kcell' && $rootScope.authUser.groups.some(function (el) { return el.id === 'kcellUsers'; }));
+               return !resolution.visibility || resolution.visibility === 'all' || (resolution.visibility === 'kcell' && $rootScope.hasGroup('kcellUsers'));
             }
 
             $scope.hasComment = function () {
-                return $scope.explanation && $rootScope.authUser.groups.some(function (el) { return el.id === 'kcellUsers'; });
+                return $scope.explanation && $rootScope.hasGroup('kcellUsers');
             }
         }]);
     </script>
@@ -810,29 +824,85 @@
     <div class="form-group">
         <label class="col-sm-4 control-label">Supplementary files:</label>
         <div class="col-sm-8">
-            <div ng-if="supplementaryFile1.prev"><a href="{{supplementaryFile1.prev.contentUrl}}">{{supplementaryFile1.prev.valueInfo.filename}}</a> <a ng-click="clearFile('supplementaryFile1')">&times;</a></div>
-            <div ng-if="!supplementaryFile1.prev">
-                <input type="file" class="form-control" ng-model="supplementaryFile1.file" name="supplementaryFile1" onchange="angular.element(this).scope().fileSelected(this, 'supplementaryFile1')" />
+            <div ng-if="supplementaryFile1.prev" class="input-group">
+                <a href="{{supplementaryFile1.prev.contentUrl}}">{{supplementaryFile1.prev.valueInfo.filename}}</a> <a ng-click="clearFile('supplementaryFile1')">&times;</a>
             </div>
-
+            <div ng-if="!supplementaryFile1.prev" class="input-group">
+                <input type="file" class="form-control" ng-model="supplementaryFile1.file" name="supplementaryFile1" onchange="angular.element(this).scope().fileSelected(this, 'supplementaryFile1')" />
+                <div class="input-group-addon" ng-show="supplementaryFile1.valueInfo.filename && hasGroup('kcellUsers')">
+                    <label class="radio-inline">
+                        <input type="radio" name="supplementaryFile1Visibility"
+                               ng-model="supplementaryFile1Visibility" value="all" ng-required="supplementaryFile1.valueInfo.filename && hasGroup('kcellUsers')"> Visible for all
+                    </label>
+                    <label class="radio-inline">
+                        <input type="radio" name="supplementaryFile1Visibility"
+                               ng-model="supplementaryFile1Visibility" value="kcell" ng-required="supplementaryFile1.valueInfo.filename && hasGroup('kcellUsers')"> Kcell staff only
+                    </label>
+                    <label class="error" ng-show="kcell_form.supplementaryFile1Visibility.$error.required && ( kcell_form.supplementaryFile1Visibility.$touched || view.submitted)">Required field</label>
+                </div>
+            </div>
             <div ng-if="supplementaryFile2.prev"><a href="{{supplementaryFile2.prev.contentUrl}}">{{supplementaryFile2.prev.valueInfo.filename}}</a> <a ng-click="clearFile('supplementaryFile2')">&times;</a></div>
-            <div ng-if="!supplementaryFile2.prev">
+            <div ng-if="!supplementaryFile2.prev" class="input-group">
                 <input type="file" class="form-control" ng-model="supplementaryFile2.file" name="supplementaryFile2" onchange="angular.element(this).scope().fileSelected(this, 'supplementaryFile2')" />
+                <div class="input-group-addon" ng-show="supplementaryFile2.valueInfo.filename && hasGroup('kcellUsers')">
+                    <label class="radio-inline">
+                        <input type="radio" name="supplementaryFile2Visibility"
+                               ng-model="supplementaryFile2Visibility" value="all" ng-required="supplementaryFile2.valueInfo.filename && hasGroup('kcellUsers')"> Visible for all
+                    </label>
+                    <label class="radio-inline">
+                        <input type="radio" name="supplementaryFile2Visibility"
+                               ng-model="supplementaryFile2Visibility" value="kcell" ng-required="supplementaryFile2.valueInfo.filename && hasGroup('kcellUsers')"> Kcell staff only
+                    </label>
+                    <label class="error" ng-show="kcell_form.supplementaryFile2Visibility.$error.required && ( kcell_form.supplementaryFile2Visibility.$touched || view.submitted)">Required field</label>
+                </div>
             </div>
 
             <div ng-if="supplementaryFile3.prev"><a href="{{supplementaryFile3.prev.contentUrl}}">{{supplementaryFile3.prev.valueInfo.filename}}</a> <a ng-click="clearFile('supplementaryFile3')">&times;</a></div>
-            <div ng-if="!supplementaryFile3.prev">
+            <div ng-if="!supplementaryFile3.prev" class="input-group">
                 <input type="file" class="form-control" ng-model="supplementaryFile3.file" name="supplementaryFile3" onchange="angular.element(this).scope().fileSelected(this, 'supplementaryFile3')" />
+                <div class="input-group-addon" ng-show="supplementaryFile3.valueInfo.filename && hasGroup('kcellUsers')">
+                    <label class="radio-inline">
+                        <input type="radio" name="supplementaryFile3Visibility"
+                               ng-model="supplementaryFile3Visibility" value="all" ng-required="supplementaryFile3.valueInfo.filename && hasGroup('kcellUsers')"> Visible for all
+                    </label>
+                    <label class="radio-inline">
+                        <input type="radio" name="supplementaryFile3Visibility"
+                               ng-model="supplementaryFile3Visibility" value="kcell" ng-required="supplementaryFile3.valueInfo.filename && hasGroup('kcellUsers')"> Kcell staff only
+                    </label>
+                    <label class="error" ng-show="kcell_form.supplementaryFile3Visibility.$error.required && ( kcell_form.supplementaryFile3Visibility.$touched || view.submitted)">Required field</label>
+                </div>
             </div>
 
             <div ng-if="supplementaryFile4.prev"><a href="{{supplementaryFile4.prev.contentUrl}}">{{supplementaryFile4.prev.valueInfo.filename}}</a> <a ng-click="clearFile('supplementaryFile4')">&times;</a></div>
-            <div ng-if="!supplementaryFile4.prev">
+            <div ng-if="!supplementaryFile4.prev" class="input-group">
                 <input type="file" class="form-control" ng-model="supplementaryFile4.file" name="supplementaryFile4" onchange="angular.element(this).scope().fileSelected(this, 'supplementaryFile4')" />
+                <div class="input-group-addon" ng-show="supplementaryFile4.valueInfo.filename && hasGroup('kcellUsers')">
+                    <label class="radio-inline">
+                        <input type="radio" name="supplementaryFile4Visibility"
+                               ng-model="supplementaryFile4Visibility" value="all" ng-required="supplementaryFile4.valueInfo.filename && hasGroup('kcellUsers')"> Visible for all
+                    </label>
+                    <label class="radio-inline">
+                        <input type="radio" name="supplementaryFile4Visibility"
+                               ng-model="supplementaryFile4Visibility" value="kcell" ng-required="supplementaryFile4.valueInfo.filename && hasGroup('kcellUsers')"> Kcell staff only
+                    </label>
+                    <label class="error" ng-show="kcell_form.supplementaryFile4Visibility.$error.required && ( kcell_form.supplementaryFile4Visibility.$touched || view.submitted)">Required field</label>
+                </div>
             </div>
 
             <div ng-if="supplementaryFile5.prev"><a href="{{supplementaryFile5.prev.contentUrl}}">{{supplementaryFile5.prev.valueInfo.filename}}</a> <a ng-click="clearFile('supplementaryFile5')">&times;</a></div>
-            <div ng-if="!supplementaryFile5.prev">
+            <div ng-if="!supplementaryFile5.prev" class="input-group">
                 <input type="file" class="form-control" ng-model="supplementaryFile5.file" name="supplementaryFile5" onchange="angular.element(this).scope().fileSelected(this, 'supplementaryFile5')" />
+                <div class="input-group-addon" ng-show="supplementaryFile5.valueInfo.filename && hasGroup('kcellUsers')">
+                    <label class="radio-inline">
+                        <input type="radio" name="supplementaryFile5Visibility"
+                               ng-model="supplementaryFile5Visibility" value="all" ng-required="supplementaryFile5.valueInfo.filename && hasGroup('kcellUsers')"> Visible for all
+                    </label>
+                    <label class="radio-inline">
+                        <input type="radio" name="supplementaryFile5Visibility"
+                               ng-model="supplementaryFile5Visibility" value="kcell" ng-required="supplementaryFile5.valueInfo.filename && hasGroup('kcellUsers')"> Kcell staff only
+                    </label>
+                    <label class="error" ng-show="kcell_form.supplementaryFile5Visibility.$error.required && ( kcell_form.supplementaryFile5Visibility.$touched || view.submitted)">Required field</label>
+                </div>
             </div>
         </div>
     </div>
@@ -1027,6 +1097,7 @@
                     <th>Resolution</th>
                     <th>Date</th>
                     <th>Comment</th>
+                    <th ng-if="hasGroup('kcellUsers')">Attached files</th>
                 </tr>
                 </thead>
                 <tbody>
@@ -1036,6 +1107,7 @@
                     <td>{{'task.resolution.'+resolution.resolution | translate}}</td>
                     <td>{{resolution.taskEndDate | date: 'dd.MM.yyyy HH:mm'}}</td>
                     <td>{{isVisible(resolution)? resolution.comment : ''}}</td>
+                    <td ng-if="hasGroup('kcellUsers')">{{resolution.files.join(', ')}}</td>
                 </tr>
                 </tbody>
             </table>

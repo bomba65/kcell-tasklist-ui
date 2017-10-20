@@ -27,12 +27,19 @@
                 'supplementaryFile3',
                 'supplementaryFile4',
                 'supplementaryFile5',
+                'supplementaryFile1Visibility',
+                'supplementaryFile2Visibility',
+                'supplementaryFile3Visibility',
+                'supplementaryFile4Visibility',
+                'supplementaryFile5Visibility',
                 'explanation',
                 'jobWorks',
                 'sapPRFileXLS',
                 'sapPRNo',
                 'kcellWarehouseMaterialsList',
                 'contractorZIPWarehouseMaterialsList',
+                'kcellWarehouseMaterialsListName',
+                'contractorZIPWarehouseMaterialsListName',
                 'sapTransferRequestFile',
                 'eLicenseResolutionFile',
                 'actOfMaterialsDispatchingFile',
@@ -40,6 +47,7 @@
                 'summaries',
                 'jrBlank',
                 'tssrssidFile',
+                'trFilesName',
                 'trFiles'
             ];
 
@@ -172,28 +180,39 @@
                 $scope.acceptJobByCentralGroupTaskResult = camForm.variableManager.variableValue('acceptJobByCentralGroupTaskResult');
             });
 
-            $scope.download = download;
-            function download(file) {
+            $scope.download = function (file) {
+                console.log(file);
+                $http({method: 'GET', url: '/camunda/uploads/get/' + $scope.processInstanceId + '/' + camForm.taskId + '/' + file.value.name, transformResponse: [] }).
+                success(function(data, status, headers, config) {
+                    document.getElementById('fileDownloadIframe').src = data;
+                }).
+                error (function(data, status, headers, config) {
+                    console.log(data);
+                });
+            }
+
+            $scope.downloadOldFile = function (file) {
                 document.getElementById('fileDownloadIframe').src = '/camunda/api/engine/engine/default/variable-instance/' + file.id + '/data';
             }
 
             $scope.isVisible = function (resolution) {
-               return !resolution.visibility || resolution.visibility === 'all' || (resolution.visibility === 'kcell' && $rootScope.authUser.groups.some(function (el) { return el.id === 'kcellUsers'; }));
+               return !resolution.visibility || resolution.visibility === 'all' || (resolution.visibility === 'kcell' && $rootScope.hasGroup('kcellUsers'));
             }
 
             $scope.hasComment = function () {
-                return $scope.acceptJobByCentralGroupComment && $rootScope.authUser.groups.some(function (el) { return el.id === 'kcellUsers'; });
+                return $scope.acceptJobByCentralGroupComment && $rootScope.hasGroup('kcellUsers');
             }
         }]);
     </script>
-    <job-request job-model="jobModel"></job-request>
+    <job-request job-model="jobModel" process-instance-id="processInstanceId" task-id="camForm.taskId"></job-request>
     <ng-include ng-if="contextPath" src="contextPath+'/forms/revision/summaries-card.html'"></ng-include>
     <h4>Works:</h4>
     <iframe id="fileDownloadIframe" style="display:none;"></iframe>
     <div class="row" ng-repeat="work in jobModel.jobWorks.value">
         <div class="col-md-12">&nbsp;&nbsp;&nbsp;&nbsp;{{jobModel.worksTitle[work.sapServiceNumber]}}, works qty: {{work.quantity}}, materials qty: {{work.materialQuantity}} {{jobModel.unitsTitle[work.unit]}}, on sites: {{work.sites}}</div>
         <div class="col-md-12" ng-repeat="file in work.files">
-            <div class="col-md-12">&nbsp;&nbsp;&nbsp;&nbsp;<a ng-click="download(file)">{{file.valueInfo.filename}}</a></div>
+            <div class="col-md-12" ng-if="file.valueInfo">&nbsp;&nbsp;&nbsp;&nbsp;{{$index+1}}.<a ng-click="downloadOldFile(file)">{{file.valueInfo.filename}} (Old file, read only)</a></div>
+            <div class="col-md-12" ng-if="file.value">&nbsp;&nbsp;&nbsp;&nbsp;{{$index+1}}.<a ng-click="download(file)">{{file.value.name}}</a></div>
         </div>
     </div>
     <div class="well">
@@ -244,6 +263,7 @@
                     <th>Resolution</th>
                     <th>Date</th>
                     <th>Comment</th>
+                    <th ng-if="hasGroup('kcellUsers')">Attached files</th>
                 </tr>
                 </thead>
                 <tbody>
@@ -253,6 +273,7 @@
                     <td>{{'task.resolution.'+resolution.resolution | translate}}</td>
                     <td>{{resolution.taskEndDate | date: 'dd.MM.yyyy HH:mm'}}</td>
                     <td>{{isVisible(resolution)? resolution.comment : ''}}</td>
+                    <td ng-if="hasGroup('kcellUsers')">{{resolution.files.join(', ')}}</td>
                 </tr>
                 </tbody>
             </table>

@@ -27,18 +27,26 @@
                 'supplementaryFile3',
                 'supplementaryFile4',
                 'supplementaryFile5',
+                'supplementaryFile1Visibility',
+                'supplementaryFile2Visibility',
+                'supplementaryFile3Visibility',
+                'supplementaryFile4Visibility',
+                'supplementaryFile5Visibility',
                 'explanation',
                 'jobWorks',
                 'sapPRFileXLS',
                 'sapPRNo',
                 'kcellWarehouseMaterialsList',
                 'contractorZIPWarehouseMaterialsList',
+                'kcellWarehouseMaterialsListName',
+                'contractorZIPWarehouseMaterialsListName',
                 'sapTransferRequestFile',
                 'resolutions',
                 'actOfMaterialsDispatchingFile',
                 'jrBlank',
                 'tssrssidFile',
                 'tssrssidFileName',
+                'trFilesName',
                 'trFiles',
                 'siteWorksFiles',
                 'initiatorFiles',
@@ -47,6 +55,7 @@
             ];
             $scope.jobModel = {};
             var workFiles = [];
+            var newFiles = [];
             $http.get('/camunda/api/engine/engine/default/task/' + camForm.taskId).then(
                     function(result){
                         $scope.processInstanceId = result.data.processInstanceId;
@@ -96,7 +105,7 @@
                                 }
                             });
                         });
-                    } else if(el === 'tssrssidFileName' && camForm.variableManager.variables[el] && camForm.variableManager.variables[el].value && camForm.variableManager.variables[el].value.url) {
+                    } else if(el === 'tssrssidFileName' && camForm.variableManager.variables[el] && camForm.variableManager.variables[el].value && camForm.variableManager.variables[el].value.name) {
                         $scope.jobModel[el] = camForm.variableManager.variables[el];
                     } else if(el === 'siteWorksFiles' && camForm.variableManager.variables[el].value) {
                         workFiles = camForm.variableManager.variables[el].value;
@@ -143,13 +152,19 @@
                 if(camForm.variableManager.variables['planningFiles']){
                     camForm.variableManager.destroyVariable('planningFiles');
                 }
+                $scope.planningFiles.value.forEach(function (f, i) {
+                    if(f.value.isNew){
+                        newFiles.push(f.value.name);
+                        delete $scope.planningFiles.value[i].value.isNew;
+                    }
+                });
                 camForm.variableManager.createVariable($scope.planningFiles);
 
                 var visibility = 'all';
                 if($scope.acceptAndSignByPlanningGroupComment && $scope.acceptAndSignByPlanningGroupCommentVisibility){
                     visibility = $scope.acceptAndSignByPlanningGroupCommentVisibility;
                 }
-                $scope.jobModel.resolutions.push({processInstanceId: $scope.processInstanceId, assignee: $rootScope.authentication.name, assigneeName: $rootScope.authentication.assigneeName, resolution: $scope.acceptAndSignByPlanningGroupTaskResult, comment: $scope.acceptAndSignByPlanningGroupComment, taskId: camForm.taskId, visibility: visibility});
+                $scope.jobModel.resolutions.push({processInstanceId: $scope.processInstanceId, assignee: $rootScope.authentication.name, assigneeName: $rootScope.authentication.assigneeName, resolution: $scope.acceptAndSignByPlanningGroupTaskResult, comment: $scope.acceptAndSignByPlanningGroupComment, taskId: camForm.taskId, visibility: visibility, files: newFiles});
                 camForm.variableManager.variableValue('resolutions', $scope.jobModel.resolutions);
             });
 
@@ -198,9 +213,11 @@
 
                 var fileToUpload = {
                     name: 'initiator_file_' + fileIndex,
+                    isNew: true,
                     type: 'Json',
                     value: {
                         name: file.name,
+                        isNew: true,
                         path: $scope.processInstanceId + '/' + camForm.taskId + '/' + file.name
                     }
                 };
@@ -226,15 +243,15 @@
             }
 
             $scope.isVisible = function (resolution) {
-               return !resolution.visibility || resolution.visibility === 'all' || (resolution.visibility === 'kcell' && $rootScope.authUser.groups.some(function (el) { return el.id === 'kcellUsers'; }));
+               return !resolution.visibility || resolution.visibility === 'all' || (resolution.visibility === 'kcell' && $rootScope.hasGroup('kcellUsers'));
             }
 
             $scope.hasComment = function () {
-                return $scope.acceptAndSignByPlanningGroupComment && $rootScope.authUser.groups.some(function (el) { return el.id === 'kcellUsers'; });
+                return $scope.acceptAndSignByPlanningGroupComment && $rootScope.hasGroup('kcellUsers');
             }
         }]);
     </script>
-    <job-request job-model="jobModel"></job-request>
+    <job-request job-model="jobModel" process-instance-id="processInstanceId" task-id="camForm.taskId"></job-request>
     <ng-include ng-if="contextPath" src="contextPath+'/forms/revision/summaries-card.html'"></ng-include>
     <h3>Works:</h3>
     <iframe id="fileDownloadIframe" style="display:none;"></iframe>
@@ -325,6 +342,7 @@
                     <th>Resolution</th>
                     <th>Date</th>
                     <th>Comment</th>
+                    <th ng-if="hasGroup('kcellUsers')">Attached files</th>
                 </tr>
                 </thead>
                 <tbody>
@@ -334,6 +352,7 @@
                     <td>{{'task.resolution.'+resolution.resolution | translate}}</td>
                     <td>{{resolution.taskEndDate | date: 'dd.MM.yyyy HH:mm'}}</td>
                     <td>{{isVisible(resolution)? resolution.comment : ''}}</td>
+                    <td ng-if="hasGroup('kcellUsers')">{{resolution.files.join(', ')}}</td>
                 </tr>
                 </tbody>
             </table>

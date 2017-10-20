@@ -41,16 +41,24 @@
                 'supplementaryFile3',
                 'supplementaryFile4',
                 'supplementaryFile5',
+                'supplementaryFile1Visibility',
+                'supplementaryFile2Visibility',
+                'supplementaryFile3Visibility',
+                'supplementaryFile4Visibility',
+                'supplementaryFile5Visibility',
                 'explanation',
                 'jobWorks',
                 'sapPRFileXLS',
                 'sapPRNo',
                 'kcellWarehouseMaterialsList',
                 'contractorZIPWarehouseMaterialsList',
+                'kcellWarehouseMaterialsListName',
+                'contractorZIPWarehouseMaterialsListName',
                 'sapTransferRequestFile',
                 'resolutions',
                 'actOfMaterialsDispatchingFile',
                 'jrBlank',
+                'trFilesName',
                 'trFiles',
                 'tssrssidFile',
                 'tssrssidFileName',
@@ -65,6 +73,7 @@
             $scope.antennaModels = ["1710-2500", "2K742215", "2xK742215", "379-623", "3x742223", "639684", "730-376", "730-382", "730376", "730382", "732-448", "732448", "735-727", "735727", "736-624", "736623", "736624", "738-573", "738694", "739-322", "739-489", "739-619", "739-620", "739-621", "739-622", "739-623", "739-624", "739-625", "739-626", "739-627", "739-628", "739-629", "739-630", "739-631", "739-634", "739-637", "739-639", "739-646", "739-683", "739-684", "739-685", "739-686", "739-687", "739-688", "739-689", "739-785", "739326", "739384", "739489", "739619", "739620", "739622", "739623", "739623N", "739634", "739646", "7396684", "739682", "739684", "739684_05", "739684OWN", "73922", "739630", "7396884", "739785", "741215", "741316", "741322", "741571", "741571K742149", "741572", "741785", "742", "742149", "742211", "742215", "742223", "742224", "7422270", "742236", "742264", "742270", "742322", "742351", "742515", "749684", "80010173", "80010203", "80010248", "80010303", "80010305", "80010306", "80010504", "741-211", "741-215", "741-316", "741-322", "741-326", "741-376", "741-571", "741-572", "741-622", "741-623", "741-717", "741-785", "741211", "741326", "741522", "741571x17", "741571x53", "741684", "741717", "7417854", "742-149", "742-211", "742-212", "742-213", "742-215", "742-223", "742-235", "742-236", "742-326", "742212", "742213", "7422224", "742226", "742243", "742271V03", "742272V03", "742571", "742624", "744-223", "789-684", "800-10141", "800-10173", "80010122", "80010290", "80010291", "8001030303", "80010304", "80010456", "80010465", "80010510", "80010622V01", "80010664", "80010665", "80010699", "80010864", "80010865", "80010866", "80010867", "80010868", "80070305", "8010303", "839-623", "876-960", "ADU4518R10", "ADU4518R11", "AQU4518R5", "ATR4517R1", "ATR4518R4", "ATR4518R7", "CELLMAX-O-CPUSE_VERTICAL_01DT", "DBXLH-6565A-A2M", "DBXLH-6565A-VTM", "DBXLH-6565C-A2M", "DBXLH-6565C-R2M", "DBXLH-6565C-VTM", "default", "HBX-6516DS-A1M", "HBX-6516DS-R2M", "HBX-6516DS-T2M", "HBX-6516DS-VTM", "HBX-6517DS-A1M", "HBXX-6516DS-A2M", "LBX-6515DS-VTM", "LDX-6513DS-VTM", "LDX-6515DS-VTM", "LDX-6516DS-VTM", "sector", "TBXLHA-6565B-A3M", "TBXLHB-6565A-A3M", "TBXLHB-6565A-R2M", "TBXLHB-6565A-VTM"];
             var diff;
             var siteWorksFiles = [];
+            var files = [];
             if(window.requirejs){
                 diff = window.requirejs('deep-diff').diff;
             } else {
@@ -184,7 +193,7 @@
                         });
                     } else {
                         $scope.jobModel[el] = camForm.variableManager.variables[el];
-                        if(el === 'tssrssidFileName' && camForm.variableManager.variables[el] && camForm.variableManager.variables[el].value && camForm.variableManager.variables[el].value.url) {
+                        if(el === 'tssrssidFileName' && camForm.variableManager.variables[el] && camForm.variableManager.variables[el].value && camForm.variableManager.variables[el].value.name) {
                             $scope[el] = camForm.variableManager.variables[el];
                         } else if(el === 'siteWorksFiles' && camForm.variableManager.variables[el].value) {
                             siteWorksFiles = camForm.variableManager.variables[el].value;
@@ -236,15 +245,19 @@
                         if(e.files){
                             e.files.forEach(function(f, j){
                                 if(f.value){
+                                    if(f.value.isNew){
+                                        files.push(f.value.name);
+                                        delete f.value.isNew;
+                                    }
                                     siteWorksFiles.push(f);
                                 }
                             });
                         }
                     });
-
                     if(camForm.variableManager.variables['siteWorksFiles']){
                         camForm.variableManager.destroyVariable('siteWorksFiles');
                     }
+
                     camForm.variableManager.createVariable({
                         name: 'siteWorksFiles',
                         type: 'Json',
@@ -254,6 +267,10 @@
                     if($scope.tssrssidFileName){
                         if(camForm.variableManager.variables['tssrssidFileName']){
                             camForm.variableManager.destroyVariable('tssrssidFileName');
+                        }
+                        if($scope.tssrssidFileName.value && $scope.tssrssidFileName.value.isNew){
+                            files.push($scope.tssrssidFileName.value.name);
+                            delete $scope.tssrssidFileName.value.isNew;
                         }
                         camForm.variableManager.createVariable($scope.tssrssidFileName);
                     }
@@ -271,7 +288,7 @@
                 if($scope.fillAppliedChangesByContractorComment && $scope.fillAppliedChangesByContractorCommentVisibility){
                     visibility  = $scope.fillAppliedChangesByContractorCommentVisibility;
                 }
-                $scope.jobModel.resolutions.push({processInstanceId: $scope.processInstanceId, assignee: $rootScope.authentication.name, assigneeName: $rootScope.authentication.assigneeName, resolution: $scope.fillAppliedChangesInfoByContractorTaskResult, comment: $scope.fillAppliedChangesByContractorComment, taskId: camForm.taskId, visibility: visibility});
+                $scope.jobModel.resolutions.push({processInstanceId: $scope.processInstanceId, assignee: $rootScope.authentication.name, assigneeName: $rootScope.authentication.assigneeName, resolution: $scope.fillAppliedChangesInfoByContractorTaskResult, comment: $scope.fillAppliedChangesByContractorComment, taskId: camForm.taskId, visibility: visibility, files:files});
                 camForm.variableManager.variableValue('resolutions', $scope.jobModel.resolutions);
             });
 
@@ -1426,6 +1443,7 @@
                     type: 'Json',
                     value: {
                         name: file.name,
+                        isNew: true,
                         path: $scope.processInstanceId + '/' + camForm.taskId + '/' + file.name
                     }
                 };
@@ -1469,6 +1487,7 @@
                     type: 'Json',
                     value: {
                         name: file.name,
+                        isNew: true,
                         path: $scope.processInstanceId + '/' + camForm.taskId + '/' + file.name
                     }
                 };
@@ -1516,11 +1535,11 @@
             $scope.isVisible = function (resolution) {
                return !resolution.visibility
                     || resolution.visibility === 'all'
-                    || (resolution.visibility === 'kcell' && $rootScope.authUser.groups.some(function (el) { return el.id === 'kcellUsers'; }));
+                    || (resolution.visibility === 'kcell' && $rootScope.hasGroup('kcellUsers'));
             }
 
             $scope.hasComment = function () {
-                return $scope.checkDocsAndApproveBySiteLeasingComment && $rootScope.authUser.groups.some(function (el) { return el.id === 'kcellUsers'; });
+                return $scope.checkDocsAndApproveBySiteLeasingComment && $rootScope.hasGroup('kcellUsers');
             }
         }]);
     </script>
@@ -1646,6 +1665,7 @@
                     <th>Resolution</th>
                     <th>Date</th>
                     <th>Comment</th>
+                    <th ng-if="hasGroup('kcellUsers')">Attached files</th>
                 </tr>
                 </thead>
                 <tbody>
@@ -1655,6 +1675,7 @@
                     <td>{{'task.resolution.'+resolution.resolution | translate}}</td>
                     <td>{{resolution.taskEndDate | date: 'dd.MM.yyyy HH:mm'}}</td>
                     <td>{{isVisible(resolution)? resolution.comment : ''}}</td>
+                    <td ng-if="hasGroup('kcellUsers')">{{resolution.files.join(', ')}}</td>
                 </tr>
                 </tbody>
             </table>
