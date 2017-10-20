@@ -27,34 +27,78 @@ image::kcell-demo-process-app/src/main/resources/kcellDemoProcess.png[Process Di
 
 == How to get started
 
-You need Docker stack of tools (`docker` + `docker-compose`) and Maven 3.3.9 and a decent Internet connection (Maven will download half of internet, the other half is downloaded by docker).
+You need Docker stack of tools (`docker` + `docker-compose`) installed on your environment and a decent Internet connection to download docker images.
+
+==== Default application start
 
 First, build demo process application:
 ----
-$ cd kcell-demo-process-app
-$ mvn package
-$ cd ..
+$ ./docker-build.sh
 ----
 
-Initialize database container:
-----
-$ docker-compose up db
-----
+Start all the containers in background:
 
-Start all the containers:
+_You can use NGINX_PORT variable to set Nginx container exposed port (if ignored 80 port is used by default)_
+
 ----
-$ docker-compose up
+$ docker-compose up -d
 ----
-Now you can navigate to http://localhost:8080/camunda. Also, the Postgresql database is exposed at `localhost:5432`
+Now you can navigate to *http://localhost/* to access the Camunda (creds are - demo/demo)
 
 Stop the containers started in background:
 ----
 $ docker-compose stop
 ----
 
-Stop and clean all the container state (including db):
+Stop and clean all the container state (including db and network):
 ----
 $ docker-compose down
+----
+
+==== Start app as Camunda developer
+
+Use +docker-compose-dev-camunda.yml+ to start app and start your local Camunda instance:
+
+----
+$ docker-compose -f docker-compose-dev-camunda.yml up -d
+----
+
+==== Start app as Assets developer
+
+Use +docker-compose-dev-assets.yml+ to start app:
+
+----
+$ docker-compose -f docker-compose-dev-assets.yml up -d
+----
+
+==== Start app in test environment
+
+Use +docker-compose-test.yml+ to start app with some exposed ports:
+
+----
+$ docker-compose -f docker-compose-test.yml up -d
+----
+
+==== Start app with forwarded logs to Fluentd
+
+For this you need to extend the base +docker-compose.yml+ with +docker-compose-fluentd.yml+:
+
+----
+$ docker-compose -f docker-compose.yml -f docker-compose-fluentd.yml up -d
+----
+
+_You have to specify Fluentd address and port with variables: FLUENTD_ADDRESS (required), FLUENTD_PORT (by default is 24224)._
+
+== Example
+
+In this example we are going to:
+
+- Start app in Camunda developer environment
+- Set our web-server's container port to 81
+- Sending our app logs to Fluentd instance with 25300 port
+
+----
+$ NGINX_PORT=81 FLUENTD_ADDRESS=192.168.0.50 FLUENTD_PORT=25300 docker-compose -f docker-compose-dev-camunda.yml -f docker-compose-fluentd.yml up -d
 ----
 
 == Where to go next?
