@@ -83,6 +83,9 @@ define(['./module','camundaSDK', 'lodash', 'big-js'], function(module, CamSDK, _
 					if(result.data._embedded.user && result.data._embedded.user.length > 0){
 						result.data.assigneeObject = result.data._embedded.user[0];
 					}
+					if(result.data._embedded.identityLink && result.data._embedded.identityLink.length > 0){
+						result.data.candidateObject = result.data._embedded.identityLink.find(function (el) { return el.type === 'candidate'; });
+					}
 					initData(result.data);
 				},
 				function(error){

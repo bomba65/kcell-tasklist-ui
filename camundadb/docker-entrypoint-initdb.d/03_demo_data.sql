@@ -119,6 +119,7 @@ INSERT INTO act_id_user (id_, rev_, first_, last_, email_, pwd_, picture_id_) VA
 --GROUPS
 INSERT INTO act_id_group (id_, rev_, name_, type_) VALUES ('kcellUsers', 1, 'Kcell Users', 'WORKFLOW');
 INSERT INTO act_id_group (id_, rev_, name_, type_) VALUES ('contractor_users', 1, 'Contractor Users', 'WORKFLOW');
+INSERT INTO act_id_group (id_, rev_, name_, type_) VALUES ('revision_managers', 1, 'Revision Managers', 'WORKFLOW');
 INSERT INTO act_id_group (id_, rev_, name_, type_) VALUES ('camunda-admin', 1, 'camunda BPM Administrators', 'SYSTEM');
 INSERT INTO act_id_group (id_, rev_, name_, type_) VALUES ('hq_optimization', 1, 'hq_optimization', 'WORKFLOW');
 INSERT INTO act_id_group (id_, rev_, name_, type_) VALUES ('hq_transmission_engineer', 1, 'hq_transmission_engineer', 'WORKFLOW');
@@ -221,10 +222,14 @@ INSERT INTO act_id_group (id_, rev_, name_, type_) VALUES ('west_sao_maintanance
 --MEMBERSHIPS
 INSERT INTO act_id_membership (user_id_, group_id_) VALUES ('demo', 'kcellUsers');
 INSERT INTO act_id_membership (user_id_, group_id_) VALUES ('demo', 'camunda-admin');
+INSERT INTO act_id_membership (user_id_, group_id_) VALUES ('demo', 'revision_managers');
 INSERT INTO act_id_membership (user_id_, group_id_) VALUES ('test_flow@kcell.kz', 'kcellUsers');
 INSERT INTO act_id_membership (user_id_, group_id_) VALUES ('test_flow@kcell.kz', 'camunda-admin');
+INSERT INTO act_id_membership (user_id_, group_id_) VALUES ('test_flow@kcell.kz', 'revision_managers');
 INSERT INTO act_id_membership (user_id_, group_id_) VALUES ('Yernaz.Kalingarayev@kcell.kz', 'camunda-admin');
+INSERT INTO act_id_membership (user_id_, group_id_) VALUES ('Yernaz.Kalingarayev@kcell.kz', 'revision_managers');
 INSERT INTO act_id_membership (user_id_, group_id_) VALUES ('Askar.Slambekov@kcell.kz', 'camunda-admin');
+INSERT INTO act_id_membership (user_id_, group_id_) VALUES ('Askar.Slambekov@kcell.kz', 'revision_managers');
 INSERT INTO act_id_membership (user_id_, group_id_) VALUES ('Anzor.Israilov@kcell.kz', 'camunda-admin');
 INSERT INTO act_id_membership (user_id_, group_id_) VALUES ('Yernaz.Kalingarayev@kcell.kz', 'kcellUsers');
 INSERT INTO act_id_membership (user_id_, group_id_) VALUES ('Askar.Slambekov@kcell.kz', 'kcellUsers');
@@ -478,6 +483,7 @@ INSERT INTO act_ru_filter (id_, rev_, resource_type_, name_, owner_, query_, pro
 INSERT INTO act_ru_filter (id_, rev_, resource_type_, name_, owner_, query_, properties_) VALUES ('00e642ad-4f69-11e7-a8c6-0242ac120007', 1, 'Task', 'My Claimed Tasks', 'kcellUsers', '{"taskAssigneeExpression":"${ currentUser() }"}', '{"variables":[{"name":"jrNumber","label":"JR Number"}],"description":"My Claimed Tasks","priority":-10}');
 INSERT INTO act_ru_filter (id_, rev_, resource_type_, name_, owner_, query_, properties_) VALUES ('00e83e80-4f69-11e7-a8c6-0242ac120007', 1, 'Task', 'My Unclaimed Tasks', 'kcellUsers', '{"taskCandidateUserExpression":"${currentUser()}"}', '{"variables":[{"name":"jrNumber","label":"JR Number"}],"description":"My Unclaimed Tasks","priority":-10}');
 INSERT INTO act_ru_filter (id_, rev_, resource_type_, name_, owner_, query_, properties_) VALUES ('00e99e13-4f69-11e7-a8c6-0242ac120007', 1, 'Task', 'My Group Tasks', 'kcellUsers', '{"taskCandidateGroupInExpression":"${ currentUserGroups() }"}', '{"variables":[{"name":"jrNumber","label":"JR Number"}],"description":"My Group Tasks","priority":-10}');
+INSERT INTO act_ru_filter (id_, rev_, resource_type_, name_, owner_, query_, properties_) VALUES ('00e99e28-4f69-11e7-a8c6-0242ac120007', 1, 'Task', 'Revision Tasks', 'revision_managers', '{"processDefinitionName":"Revision"}', '{"variables":[{"name":"jrNumber","label":"JR Number"}],"description":"Revision Tasks","priority":-10}');
 
 --AUTHORIZATIONS
 --FILTER AUTHORIZATION
@@ -485,6 +491,7 @@ INSERT INTO act_ru_authorization (id_, rev_, type_, group_id_, user_id_, resourc
 INSERT INTO act_ru_authorization (id_, rev_, type_, group_id_, user_id_, resource_type_, resource_id_, perms_) VALUES ('00e7a23f-4f69-11e7-a8c6-0242ac120007', 1, 1, 'kcellUsers', NULL, 5, '00e642ad-4f69-11e7-a8c6-0242ac120007', 2);
 INSERT INTO act_ru_authorization (id_, rev_, type_, group_id_, user_id_, resource_type_, resource_id_, perms_) VALUES ('00e928e2-4f69-11e7-a8c6-0242ac120007', 1, 1, 'kcellUsers', NULL, 5, '00e83e80-4f69-11e7-a8c6-0242ac120007', 2);
 INSERT INTO act_ru_authorization (id_, rev_, type_, group_id_, user_id_, resource_type_, resource_id_, perms_) VALUES ('00ea3a55-4f69-11e7-a8c6-0242ac120007', 1, 1, 'kcellUsers', NULL, 5, '00e99e13-4f69-11e7-a8c6-0242ac120007', 2);
+INSERT INTO act_ru_authorization (id_, rev_, type_, group_id_, user_id_, resource_type_, resource_id_, perms_) VALUES ('00fd3a57-4f69-11e7-a8c6-0242ac120007', 1, 1, 'revision_managers', NULL, 5, '00e99e13-4f69-11e7-a8c6-0242ac120007', 2);
 
 --REVISION PROCESS AUTOHIRZATION
 INSERT INTO act_ru_authorization (id_, rev_, type_, group_id_, user_id_, resource_type_, resource_id_, perms_) VALUES ('ab656542-501a-11e7-a8c4-0242ac120006', 3, 1, 'kcellUsers', NULL, 6, 'Revision', 4674);

@@ -41,7 +41,7 @@ public class CamundaApplication extends SpringBootProcessApplication {
              */
             String eventName = delegateTask.getEventName();
 
-            if (EVENTNAME_ASSIGNMENT.equals(eventName) ||  EVENTNAME_CREATE.equals(eventName)) {
+            if (delegateTask.getAssignee()!=null && (EVENTNAME_ASSIGNMENT.equals(eventName) ||  EVENTNAME_CREATE.equals(eventName))) {
                 taskNotificationListener.notify(delegateTask);
             }
         };
