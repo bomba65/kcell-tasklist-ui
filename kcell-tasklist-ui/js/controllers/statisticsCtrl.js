@@ -155,7 +155,9 @@ define(['./module','jquery'], function(app,$){
                     'verify_works', //verify_works
                     //'UserTask_0xsau1t',
                     'accept_work_initiator', //accept_work_initiator
-                    'accept_work_maintenance_group' //accept_work_maintenance_group
+                    'accept_work_maintenance_group', //accept_work_maintenance_group
+                    'accept_work_planning_group', //accept_work_planning_group
+                    'sign_region_head', //accept_work_planning_group
                 ];
 
         		$scope.contractorTasks = [

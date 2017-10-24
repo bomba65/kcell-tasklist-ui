@@ -56,7 +56,7 @@ public class TaskNotificationListener implements TaskListener {
     @Override
     public void notify(DelegateTask delegateTask) {
         final Set<String> recipientEmails = new HashSet<>();
-        if (TaskListener.EVENTNAME_ASSIGNMENT.equals(delegateTask.getEventName())) {
+        if (delegateTask.getAssignee()!=null && TaskListener.EVENTNAME_ASSIGNMENT.equals(delegateTask.getEventName())) {
             recipientEmails.addAll(getAssigneeAddresses(delegateTask));
         } else if(TaskListener.EVENTNAME_CREATE.equals(delegateTask.getEventName())) {
             recipientEmails.addAll(getCandidateAddresses(delegateTask));
