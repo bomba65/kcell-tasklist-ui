@@ -491,7 +491,7 @@ INSERT INTO act_ru_authorization (id_, rev_, type_, group_id_, user_id_, resourc
 INSERT INTO act_ru_authorization (id_, rev_, type_, group_id_, user_id_, resource_type_, resource_id_, perms_) VALUES ('00e7a23f-4f69-11e7-a8c6-0242ac120007', 1, 1, 'kcellUsers', NULL, 5, '00e642ad-4f69-11e7-a8c6-0242ac120007', 2);
 INSERT INTO act_ru_authorization (id_, rev_, type_, group_id_, user_id_, resource_type_, resource_id_, perms_) VALUES ('00e928e2-4f69-11e7-a8c6-0242ac120007', 1, 1, 'kcellUsers', NULL, 5, '00e83e80-4f69-11e7-a8c6-0242ac120007', 2);
 INSERT INTO act_ru_authorization (id_, rev_, type_, group_id_, user_id_, resource_type_, resource_id_, perms_) VALUES ('00ea3a55-4f69-11e7-a8c6-0242ac120007', 1, 1, 'kcellUsers', NULL, 5, '00e99e13-4f69-11e7-a8c6-0242ac120007', 2);
-INSERT INTO act_ru_authorization (id_, rev_, type_, group_id_, user_id_, resource_type_, resource_id_, perms_) VALUES ('00fd3a57-4f69-11e7-a8c6-0242ac120007', 1, 1, 'revision_managers', NULL, 5, '00e99e13-4f69-11e7-a8c6-0242ac120007', 2);
+INSERT INTO act_ru_authorization (id_, rev_, type_, group_id_, user_id_, resource_type_, resource_id_, perms_) VALUES ('00fd3a57-4f69-11e7-a8c6-0242ac120007', 1, 1, 'revision_managers', NULL, 5, '00e99e28-4f69-11e7-a8c6-0242ac120007', 2);
 
 --REVISION PROCESS AUTOHIRZATION
 INSERT INTO act_ru_authorization (id_, rev_, type_, group_id_, user_id_, resource_type_, resource_id_, perms_) VALUES ('ab656542-501a-11e7-a8c4-0242ac120006', 3, 1, 'kcellUsers', NULL, 6, 'Revision', 4674);

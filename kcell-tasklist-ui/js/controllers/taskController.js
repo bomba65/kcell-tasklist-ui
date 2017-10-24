@@ -188,6 +188,27 @@ define(['./module','camundaSDK', 'lodash', 'big-js'], function(module, CamSDK, _
 				}
 			);
 		}
+		$scope.assignmentInProgress = false;
+		$scope.dispayAssignField = function() {
+			$scope.assignmentInProgress = true;
+		}
+		$scope.assign = function(keyCode, userId, task) {
+			$scope.assignmentInProgress = false;
+			if(keyCode === 13){
+				$http.post(baseUrl+'/task/'+task.id+'/claim', {userId: userId}).then(
+					function(){
+						$scope.tryToOpen = {};
+						$scope.$parent.getTaskList();
+						task.assigneeObject = $rootScope.authUser;
+						task.assignee = $rootScope.authentication.name;
+						init();
+					},
+					function(error){
+						console.log(error.data);
+					}
+				);
+			}
+		}
 		$scope.selectedTab = 'form';
 		$scope.selectTab = function(tab){
 			$scope.selectedTab = tab;
