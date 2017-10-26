@@ -60,7 +60,6 @@ public class MailTaskCandidatesListener implements TaskListener {
                 .collect(Collectors.toSet()));
         String recipients = recipientsSet.stream().collect(Collectors.joining(","));
 
-        System.out.println(recipients);
         if (!recipients.isEmpty()) {
             sendMail(delegateTask, recipients, taskId);
         }

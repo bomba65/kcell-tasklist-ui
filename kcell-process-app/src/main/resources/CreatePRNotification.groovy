@@ -1,12 +1,12 @@
 import groovy.text.markup.MarkupTemplateEngine
 import groovy.text.markup.TemplateConfiguration
+import org.camunda.bpm.engine.delegate.DelegateExecution
 
 import java.text.SimpleDateFormat
 import groovy.json.JsonSlurper
 
 def reasonsTitle = new JsonSlurper().parseText(this.getClass().getResource("/dictionary/reason.json").text)
 def servicesTitle = new JsonSlurper().parseText(this.getClass().getResource("/dictionary/service.json").text)
-def resolutionsTitle = new JsonSlurper().parseText(this.getClass().getResource("/dictionary/resolution.json").text)
 def contractorsTitle = new JsonSlurper().parseText(this.getClass().getResource("/dictionary/contractor.json").text)
 def worksTitle = new JsonSlurper().parseText(this.getClass().getResource("/dictionary/work.json").text)
 def i18n = new JsonSlurper().parseText(this.getClass().getResource("/dictionary/i18n.json").text)
@@ -24,8 +24,17 @@ def initiatorFullObj = new JsonSlurper().parseText(initiatorFull.toString())
 def jobWorksObj = new JsonSlurper().parseText(workPrices.toString())
 def resolutionsObj = new JsonSlurper().parseText(resolutions.toString())
 
-def binding = ["initiatorFull": initiatorFullObj, "jrNumber": jrNumberObj, "requestedDate": requestedDateObj, "reasons": reasonsObj, "materialsRequired" : materialsRequired, "validityDate": validityDateObj, "service": serviceObj, "leasingRequired": leasingRequired, "soaComplaintId": soaComplaintId, "contractor": contractorObj, "siteName": siteName, "powerRequired": powerRequired, "project": project, "site_name": site_name, "jobWorks": jobWorksObj, "jobWorksTotal": jobWorksTotalObj, "explanation": explanation, "resolutions": resolutionsObj, "worksTitle": worksTitle, "formatDateTime": formatDateTime, "history": history, "i18n": i18n]
+def getUserEmail(DelegateExecution execution, resolutions) {
+    def tasksMap = [:]
+    resolutions.each {
+        tasksMap.put(it.taskId, execution.processEngineServices.historyService.createHistoricTaskInstanceQuery().taskId(it.taskId).singleResult())
+    }
+    tasksMap
+}
 
+def tasksMap = getUserEmail(execution, resolutionsObj)
+
+def binding = ["initiatorFull": initiatorFullObj, "jrNumber": jrNumberObj, "requestedDate": requestedDateObj, "reasons": reasonsObj, "materialsRequired" : materialsRequired, "validityDate": validityDateObj, "service": serviceObj, "leasingRequired": leasingRequired, "soaComplaintId": soaComplaintId, "contractor": contractorObj, "siteName": siteName, "powerRequired": powerRequired, "project": project, "site_name": site_name, "jobWorks": jobWorksObj, "jobWorksTotal": jobWorksTotalObj, "explanation": explanation, "resolutions": resolutionsObj, "worksTitle": worksTitle, "formatDateTime": formatDateTime, "i18n": i18n, "tasksMap": tasksMap]
 
 def template = '''\
 yieldUnescaped '<!DOCTYPE html>'
@@ -181,10 +190,10 @@ html(lang:'en') {
                         tbody {
                             resolutions.each { resolution ->
                                 tr {
-                                    td(history["tasksMap"]?.(resolution.taskId)?.name!=null?history["tasksMap"].(resolution.taskId).name:'N/A')
-                                    td(history["assigneesMap"][resolution.assignee]!=null? history["assigneesMap"][resolution.assignee]:'N/A')
+                                    td(tasksMap[resolution.taskId]?.name!=null?tasksMap[resolution.taskId].name:'N/A')
+                                    td(resolution.assigneeName!=null? resolution.assigneeName:resolution.assignee)
                                     td(i18n["task.resolution."+resolution.resolution]!=null?i18n["task.resolution."+resolution.resolution]: 'N/A')
-                                    td(history["tasksMap"][resolution.taskId]?.endTime!=null?formatDateTime.format(history["tasksMap"][resolution.taskId].endTime):'N/A')
+                                    td(tasksMap[resolution.taskId]?.endTime!=null?formatDateTime.format(tasksMap[resolution.taskId].endTime):'N/A')
                                     td(resolution.comment!=null?resolution.comment:'N/A')
                                 }
                             }

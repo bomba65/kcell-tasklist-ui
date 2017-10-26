@@ -14,12 +14,20 @@ public class CamundaMailerDelegate implements JavaDelegate {
 
     @Override
     public void execute(DelegateExecution delegateExecution) throws Exception {
+
         MimeMessage message = sender.createMimeMessage();
         MimeMessageHelper helper = new MimeMessageHelper(message);
-        helper.setTo(String.valueOf(delegateExecution.getVariable("to")));
-        helper.setText(String.valueOf(delegateExecution.getVariable("html")), true);
-        helper.setSubject(String.valueOf(delegateExecution.getVariable("subject")));
+        helper.setTo(separateEmails(String.valueOf(delegateExecution.getVariableLocal("to"))));
+        helper.setText(String.valueOf(delegateExecution.getVariableLocal("html")), true);
+        helper.setSubject(String.valueOf(delegateExecution.getVariableLocal("subject")));
 
         sender.send(message);
+    }
+
+    private String[] separateEmails(String addresses){
+        if(addresses!=null && !"".equals(addresses)){
+            return addresses.split(",");
+        }
+        return new String[0];
     }
 }
