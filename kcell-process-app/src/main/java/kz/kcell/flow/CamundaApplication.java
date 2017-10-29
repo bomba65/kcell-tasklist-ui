@@ -7,6 +7,7 @@ import org.camunda.bpm.application.ProcessApplication;
 import org.camunda.bpm.application.impl.event.ProcessApplicationEventListenerPlugin;
 import org.camunda.bpm.engine.delegate.TaskListener;
 import org.camunda.bpm.engine.impl.cfg.ProcessEnginePlugin;
+import org.camunda.bpm.engine.rest.mapper.JacksonConfigurator;
 import org.camunda.bpm.spring.boot.starter.SpringBootProcessApplication;
 import org.camunda.bpm.spring.boot.starter.webapp.CamundaBpmWebappAutoConfiguration;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -29,6 +30,7 @@ public class CamundaApplication extends SpringBootProcessApplication {
     TaskNotificationListener taskNotificationListener;
 
     public static void main(String[] args) {
+        JacksonConfigurator.setDateFormatString("yyyy-MM-dd'T'HH:mm:ss.SSSX");
         SpringApplication.run(CamundaApplication.class, args);
     }
 
