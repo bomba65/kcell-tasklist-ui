@@ -1,7 +1,7 @@
 define(['./module','jquery'], function(app,$){
 	'use strict';
-	return app.controller('statisticsCtrl', ['$scope', '$rootScope', '$http', '$routeParams', '$q', '$location', 'AuthenticationService',
-			                         function($scope,   $rootScope,   $http,   $routeParams,   $q, $location, AuthenticationService) {
+	return app.controller('statisticsCtrl', ['$scope', '$rootScope', '$http', '$state', '$stateParams', '$q', '$location', 'AuthenticationService',
+			                         function($scope,   $rootScope,   $http, $state,  $stateParams,   $q, $location, AuthenticationService) {
 		$rootScope.currentPage = {
 			name: 'statistics'
 		};
@@ -25,9 +25,9 @@ define(['./module','jquery'], function(app,$){
         	'revision-open-tasks'
         ];
 
-		$scope.currentReport = $routeParams.report || 'revision-open-tasks';
+		$scope.currentReport = $stateParams.report || 'revision-open-tasks';
 
-        $scope.task = $routeParams.task;
+        $scope.task = $stateParams.task;
 
         $http.get('/api/catalogs').then(
             function (result) {
