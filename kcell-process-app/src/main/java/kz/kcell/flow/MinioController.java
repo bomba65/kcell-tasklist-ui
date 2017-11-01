@@ -63,7 +63,7 @@ public class MinioController {
             return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body("No user logged in");
         }
 
-        MinioClient minioClient = new MinioClient(request.getRequestURL().toString().replace(request.getRequestURI(), ""), this.minioAccessKey, this.minioSecretKey, "us-east-1");
+        MinioClient minioClient = new MinioClient(getLocation(request), this.minioAccessKey, this.minioSecretKey, "us-east-1");
 
         String url = minioClient.presignedGetObject(minio.getBucketName(), processId + "/" + taskId + "/" + fileName, 60 * 60 * 1); // 1 hour
 
@@ -84,7 +84,7 @@ public class MinioController {
             return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body("No user logged in");
         }
 
-        MinioClient minioClient = new MinioClient(request.getRequestURL().toString().replace(request.getRequestURI(), ""), this.minioAccessKey, this.minioSecretKey, "us-east-1");
+        MinioClient minioClient = new MinioClient(getLocation(request), this.minioAccessKey, this.minioSecretKey, "us-east-1");
 
         String url = minioClient.presignedGetObject(minio.getBucketName(), processId + "/" + fileName, 60 * 60 * 1); // 1 hour
 
@@ -126,7 +126,7 @@ public class MinioController {
             return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body("The User is not authorized to upload Files to the Task");
         }
 
-        MinioClient minioClient = new MinioClient(request.getRequestURL().toString().replace(request.getRequestURI(), ""), this.minioAccessKey, this.minioSecretKey, "us-east-1");
+        MinioClient minioClient = new MinioClient(getLocation(request), this.minioAccessKey, this.minioSecretKey, "us-east-1");
 
         String url = minioClient.presignedPutObject(minio.getBucketName(), processId + "/" + taskId + "/" + fileName, 60 * 60 * 1);
 
@@ -147,10 +147,21 @@ public class MinioController {
             return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body("No user logged in");
         }
 
-        MinioClient minioClient = new MinioClient(request.getRequestURL().toString().replace(request.getRequestURI(), ""), this.minioAccessKey, this.minioSecretKey, "us-east-1");
+        MinioClient minioClient = new MinioClient(getLocation(request), this.minioAccessKey, this.minioSecretKey, "us-east-1");
 
         String url = minioClient.presignedPutObject(minio.getTempBucketName(), uuid + "/" + fileName, 60 * 60 * 1);
 
         return ResponseEntity.ok(url);
+    }
+
+    private String getLocation(HttpServletRequest request){
+        
+        String location = request.getRequestURL().toString().replace(request.getRequestURI(), "");
+
+        if("https".equals(request.getHeader("X-Forwarded-Proto")) && !location.contains("https://")){
+            location = location.replace("http://", "https://");
+        }
+
+        return location;
     }
 }
