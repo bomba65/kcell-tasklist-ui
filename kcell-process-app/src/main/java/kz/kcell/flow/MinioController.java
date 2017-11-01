@@ -2,19 +2,19 @@ package kz.kcell.flow;
 
 import io.minio.MinioClient;
 import io.minio.errors.*;
+import kz.kcell.flow.minio.Minio;
 import org.camunda.bpm.engine.IdentityService;
 import org.camunda.bpm.engine.TaskService;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
-import org.springframework.boot.context.event.ApplicationReadyEvent;
-import org.springframework.context.event.EventListener;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 import org.xmlpull.v1.XmlPullParserException;
 
+import javax.servlet.http.HttpServletRequest;
 import java.io.IOException;
 import java.net.MalformedURLException;
 import java.net.URL;
@@ -26,35 +26,8 @@ import java.security.NoSuchAlgorithmException;
 public class MinioController {
 
     private static final Logger log = LoggerFactory.getLogger(MinioController.class);
-
-    private final MinioClient minioClient;
-    private final String bucketName = "uploads";
-
-
-    @Autowired
-    public MinioController(@Value("${minio.url:http://localhost:9000}") String minioUrl,
-                           @Value("${minio.access.key:AKIAIOSFODNN7EXAMPLE}") String minioAccessKey,
-                           @Value("${minio.secret.key:wJalrXUtnFEMI/K7MDENG/bPxRfiCYEXAMPLEKEY}") String minioSecretKey)
-            throws InvalidPortException, InvalidEndpointException, IOException, InvalidKeyException, NoSuchAlgorithmException,
-            InsufficientDataException, NoResponseException, InvalidBucketNameException, XmlPullParserException, InternalException,
-            RegionConflictException, ErrorResponseException {
-        minioClient = new MinioClient(minioUrl, minioAccessKey, minioSecretKey);
-    }
-
-    @EventListener
-    public void makeBucket(ApplicationReadyEvent event)
-            throws IOException, InvalidKeyException, NoSuchAlgorithmException, InsufficientDataException, InternalException,
-            NoResponseException, InvalidBucketNameException, XmlPullParserException, RegionConflictException, ErrorResponseException {
-        try {
-            minioClient.makeBucket(bucketName);
-        } catch (ErrorResponseException e) {
-            if ("BucketAlreadyOwnedByYou".equals(e.errorResponse().code())) {
-                log.debug("Bucket is already there, noop");
-            } else {
-                throw e;
-            }
-        }
-    }
+    private final String minioAccessKey;
+    private final String minioSecretKey;
 
     @Autowired
     private IdentityService identityService;
@@ -62,9 +35,23 @@ public class MinioController {
     @Autowired
     private TaskService taskService;
 
+    @Autowired
+    private Minio minio;
+
+    @Autowired
+    public MinioController(@Value("${minio.access.key:AKIAIOSFODNN7EXAMPLE}") String minioAccessKey,
+                 @Value("${minio.secret.key:wJalrXUtnFEMI/K7MDENG/bPxRfiCYEXAMPLEKEY}") String minioSecretKey)
+        throws InvalidPortException, InvalidEndpointException, IOException, InvalidKeyException, NoSuchAlgorithmException,
+        InsufficientDataException, NoResponseException, InvalidBucketNameException, XmlPullParserException, InternalException,
+        RegionConflictException, ErrorResponseException {
+
+        this.minioAccessKey = minioAccessKey;
+        this.minioSecretKey = minioSecretKey;
+    }
+
     @RequestMapping(value = "/get/{processId}/{taskId}/{fileName:.+}", method = RequestMethod.GET)
     @ResponseBody
-    public ResponseEntity<String> getPresignedGetObjectUrl(@PathVariable("processId") String processId, @PathVariable("taskId") String taskId, @PathVariable("fileName") String fileName) throws InvalidEndpointException, InvalidPortException, InvalidKeyException, InvalidBucketNameException, NoSuchAlgorithmException, InsufficientDataException, NoResponseException, ErrorResponseException, InternalException, InvalidExpiresRangeException, IOException, XmlPullParserException{
+    public ResponseEntity<String> getPresignedGetObjectUrl(@PathVariable("processId") String processId, @PathVariable("taskId") String taskId, @PathVariable("fileName") String fileName, HttpServletRequest request) throws InvalidEndpointException, InvalidPortException, InvalidKeyException, InvalidBucketNameException, NoSuchAlgorithmException, InsufficientDataException, NoResponseException, ErrorResponseException, InternalException, InvalidExpiresRangeException, IOException, XmlPullParserException{
 
         if (processId == null || taskId == null || fileName == null) {
             log.debug("No Process Instance, Task or File specified");
@@ -76,24 +63,37 @@ public class MinioController {
             return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body("No user logged in");
         }
 
-        boolean taskBelongsToProcessInstance = taskService.createTaskQuery()
-                .taskId(taskId)
-                .processInstanceId(processId)
-                .count() > 0;
+        MinioClient minioClient = new MinioClient(request.getRequestURL().toString().replace(request.getRequestURI(), ""), this.minioAccessKey, this.minioSecretKey, "us-east-1");
 
-        if (!taskBelongsToProcessInstance) {
-            log.debug("The Task not found or does not belong to the Process Instance");
-            return ResponseEntity.status(HttpStatus.BAD_REQUEST).body("The Task not found or does not belong to the Process Instance");
+        String url = minioClient.presignedGetObject(minio.getBucketName(), processId + "/" + taskId + "/" + fileName, 60 * 60 * 1); // 1 hour
+
+        return ResponseEntity.ok(url);
+    }
+
+    @RequestMapping(value = "/process/get/{processId}/{fileName:.+}", method = RequestMethod.GET)
+    @ResponseBody
+    public ResponseEntity<String> getTempPresignedGetObjectUrl(@PathVariable("processId") String processId, @PathVariable("fileName") String fileName, HttpServletRequest request) throws InvalidEndpointException, InvalidPortException, InvalidKeyException, InvalidBucketNameException, NoSuchAlgorithmException, InsufficientDataException, NoResponseException, ErrorResponseException, InternalException, InvalidExpiresRangeException, IOException, XmlPullParserException{
+
+        if (processId == null || fileName == null) {
+            log.debug("No processId or File specified");
+            return ResponseEntity.status(HttpStatus.BAD_REQUEST).body("No processId or File specified");
         }
 
-        String url = minioClient.presignedGetObject(bucketName, processId + "/" + taskId + "/" + fileName, 60 * 60 * 1); // 1 hour
+        if (identityService.getCurrentAuthentication() == null || identityService.getCurrentAuthentication().getUserId() == null) {
+            log.debug("No user logged in");
+            return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body("No user logged in");
+        }
 
-        return ResponseEntity.ok(stripProtocolHostPort(url));
+        MinioClient minioClient = new MinioClient(request.getRequestURL().toString().replace(request.getRequestURI(), ""), this.minioAccessKey, this.minioSecretKey, "us-east-1");
+
+        String url = minioClient.presignedGetObject(minio.getBucketName(), processId + "/" + fileName, 60 * 60 * 1); // 1 hour
+
+        return ResponseEntity.ok(url);
     }
 
     @RequestMapping(value = "/put/{processId}/{taskId}/{fileName:.+}", method = RequestMethod.GET)
     @ResponseBody
-    public ResponseEntity<String> getPresignedPutObjectUrl(@PathVariable("processId") String processId, @PathVariable("taskId") String taskId, @PathVariable("fileName") String fileName) throws InvalidEndpointException, InvalidPortException, InvalidKeyException, InvalidBucketNameException, NoSuchAlgorithmException, InsufficientDataException, NoResponseException, ErrorResponseException, InternalException, InvalidExpiresRangeException, IOException, XmlPullParserException{
+    public ResponseEntity<String> getPresignedPutObjectUrl(@PathVariable("processId") String processId, @PathVariable("taskId") String taskId, @PathVariable("fileName") String fileName, HttpServletRequest request) throws InvalidEndpointException, InvalidPortException, InvalidKeyException, InvalidBucketNameException, NoSuchAlgorithmException, InsufficientDataException, NoResponseException, ErrorResponseException, InternalException, InvalidExpiresRangeException, IOException, XmlPullParserException{
 
         if (processId == null || taskId == null || fileName == null) {
             log.debug("No Process Instance, Task or File specified");
@@ -126,14 +126,31 @@ public class MinioController {
             return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body("The User is not authorized to upload Files to the Task");
         }
 
-        String url = minioClient.presignedPutObject(bucketName, processId + "/" + taskId + "/" + fileName);
+        MinioClient minioClient = new MinioClient(request.getRequestURL().toString().replace(request.getRequestURI(), ""), this.minioAccessKey, this.minioSecretKey, "us-east-1");
 
-        return ResponseEntity.ok(stripProtocolHostPort(url));
+        String url = minioClient.presignedPutObject(minio.getBucketName(), processId + "/" + taskId + "/" + fileName, 60 * 60 * 1);
+
+        return ResponseEntity.ok(url);
     }
 
-    private static String stripProtocolHostPort(String urlString) throws MalformedURLException {
-        URL url = new URL(urlString);
-        return url.getPath() + "?" + url.getQuery();
-    }
+    @RequestMapping(value = "/tmp/put/{uuid}/{fileName:.+}", method = RequestMethod.GET)
+    @ResponseBody
+    public ResponseEntity<String> getTempPresignedPutObjectUrl(@PathVariable("uuid") String uuid, @PathVariable("fileName") String fileName, HttpServletRequest request) throws InvalidEndpointException, InvalidPortException, InvalidKeyException, InvalidBucketNameException, NoSuchAlgorithmException, InsufficientDataException, NoResponseException, ErrorResponseException, InternalException, InvalidExpiresRangeException, IOException, XmlPullParserException{
 
+        if (uuid == null || fileName == null) {
+            log.debug("No Uuid or File specified");
+            return ResponseEntity.status(HttpStatus.BAD_REQUEST).body("No Uuid or File specified");
+        }
+
+        if (identityService.getCurrentAuthentication() == null || identityService.getCurrentAuthentication().getUserId() == null) {
+            log.debug("No user logged in");
+            return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body("No user logged in");
+        }
+
+        MinioClient minioClient = new MinioClient(request.getRequestURL().toString().replace(request.getRequestURI(), ""), this.minioAccessKey, this.minioSecretKey, "us-east-1");
+
+        String url = minioClient.presignedPutObject(minio.getTempBucketName(), uuid + "/" + fileName, 60 * 60 * 1);
+
+        return ResponseEntity.ok(url);
+    }
 }

@@ -5,6 +5,7 @@ import kz.kcell.flow.mail.CamundaMailerDelegate;
 import kz.kcell.flow.mail.TaskNotificationListener;
 import org.camunda.bpm.application.ProcessApplication;
 import org.camunda.bpm.application.impl.event.ProcessApplicationEventListenerPlugin;
+import org.camunda.bpm.engine.delegate.ExecutionListener;
 import org.camunda.bpm.engine.delegate.TaskListener;
 import org.camunda.bpm.engine.impl.cfg.ProcessEnginePlugin;
 import org.camunda.bpm.engine.rest.mapper.JacksonConfigurator;
@@ -21,6 +22,7 @@ import javax.script.ScriptEngineManager;
 
 import static org.camunda.bpm.engine.delegate.TaskListener.EVENTNAME_ASSIGNMENT;
 import static org.camunda.bpm.engine.delegate.TaskListener.EVENTNAME_CREATE;
+import static org.camunda.bpm.engine.delegate.ExecutionListener.EVENTNAME_START;
 
 @SpringBootApplication(exclude = CamundaBpmWebappAutoConfiguration.class)
 @ProcessApplication
@@ -28,6 +30,9 @@ public class CamundaApplication extends SpringBootProcessApplication {
 
     @Autowired
     TaskNotificationListener taskNotificationListener;
+
+    @Autowired
+    ExecutionFileMoveListener executionFileMoveListener;
 
     public static void main(String[] args) {
         JacksonConfigurator.setDateFormatString("yyyy-MM-dd'T'HH:mm:ss.SSSX");
@@ -45,6 +50,17 @@ public class CamundaApplication extends SpringBootProcessApplication {
 
             if (EVENTNAME_CREATE.equals(eventName) || EVENTNAME_ASSIGNMENT.equals(eventName)) {
                 taskNotificationListener.notify(delegateTask);
+            }
+        };
+    }
+
+    @Override
+    public ExecutionListener getExecutionListener() {
+        return delegateExecution -> {
+            String eventName = delegateExecution.getEventName();
+
+            if (EVENTNAME_START.equals(eventName)) {
+                executionFileMoveListener.notify(delegateExecution);
             }
         };
     }
@@ -92,5 +108,4 @@ public class CamundaApplication extends SpringBootProcessApplication {
     public ScriptEngineManager scriptEngineManager() {
         return new ScriptEngineManager();
     }
-
 }

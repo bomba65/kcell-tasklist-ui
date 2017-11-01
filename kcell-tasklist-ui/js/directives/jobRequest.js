@@ -10,7 +10,16 @@ define(['./module'], function(module){
 			},
 			link: function(scope, element, attrs) {
 	            scope.download = function(file) {
-	                $http({method: 'GET', url: '/camunda/uploads/get/' + scope.processInstanceId + '/' + scope.taskId + '/' + file.value.name, transformResponse: [] }).
+	                $http({method: 'GET', url: '/camunda/uploads/get/' + file.value.path, transformResponse: [] }).
+	                success(function(data, status, headers, config) {
+	                    document.getElementById('fileDownloadIframe').src = data;
+	                }).
+	                error (function(data, status, headers, config) {
+	                    console.log(data);
+	                });
+               	};
+	            scope.downloadSupplementary = function(file) {
+	                $http({method: 'GET', url: '/camunda/uploads/process/get/' + file.value.path, transformResponse: [] }).
 	                success(function(data, status, headers, config) {
 	                    document.getElementById('fileDownloadIframe').src = data;
 	                }).
