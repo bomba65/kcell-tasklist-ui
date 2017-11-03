@@ -293,6 +293,18 @@ define(['./module','camundaSDK', 'lodash', 'big-js'], function(module, CamSDK, _
 				}
 			);
 		}
+		$scope.getVariableLabel = function(key){
+			var result = key;
+			if($scope.currentFilter.properties && $scope.currentFilter.properties.variables){				
+                $scope.currentFilter.properties.variables.forEach(function (variable) {
+                   	if (variable.name === key){
+						result = variable.label;
+					}
+                });
+			}
+			return result;
+		}
+
 		getTaskList();
 		loadProcessDefinitions();
 

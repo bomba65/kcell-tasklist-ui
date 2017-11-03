@@ -46,7 +46,9 @@ public class ExecutionFileMoveListener implements ExecutionListener {
     Minio minioClient;
 
     @Override
-    public void notify(DelegateExecution delegateExecution) {
+    public void notify(DelegateExecution delegateExecution) throws InvalidKeyException, InvalidBucketNameException, NoSuchAlgorithmException, InsufficientDataException,
+    NoResponseException, ErrorResponseException, InternalException, IOException, XmlPullParserException,
+    InvalidArgumentException {
 
         String[] fileVars = delegateExecution.getProcessEngineServices()
             .getRepositoryService()
@@ -65,32 +67,28 @@ public class ExecutionFileMoveListener implements ExecutionListener {
 
         ObjectMapper mapper = new ObjectMapper();
 
-        try{
-            for (String fileName: fileVars){
-                if(!"".equals(fileName) && delegateExecution.getVariableTyped(fileName)!=null && delegateExecution.getVariableTyped(fileName).getValue()!=null){
+        for (String fileName: fileVars){
+            if(!"".equals(fileName) && delegateExecution.getVariableTyped(fileName)!=null && delegateExecution.getVariableTyped(fileName).getValue()!=null){
 
-                    JsonValue file = delegateExecution.getVariableTyped(fileName);
+                JsonValue file = delegateExecution.getVariableTyped(fileName);
 
-                    if(file.getValue().hasProp("isNew")){
-                        Boolean isNew = file.getValue().prop("isNew").boolValue();
+                if(file.getValue().hasProp("isNew")){
+                    Boolean isNew = file.getValue().prop("isNew").boolValue();
 
-                        if(isNew && file.getValue().hasProp("path")){
-                            String path = file.getValue().prop("path").stringValue();
-                            String name = file.getValue().prop("name").stringValue();
+                    if(isNew && file.getValue().hasProp("path")){
+                        String path = file.getValue().prop("path").stringValue();
+                        String name = file.getValue().prop("name").stringValue();
 
-                            minioClient.copyObject(minioClient.getTempBucketName(), path, minioClient.getBucketName(), delegateExecution.getProcessInstanceId() + "/" + name);
-                            file.getValue().prop("path", delegateExecution.getProcessInstanceId() + "/" + name);
-                            file.getValue().prop("isNew", false);
+                        minioClient.copyObject(minioClient.getTempBucketName(), path, minioClient.getBucketName(), delegateExecution.getProcessInstanceId() + "/" + name);
+                        file.getValue().prop("path", delegateExecution.getProcessInstanceId() + "/" + name);
+                        file.getValue().prop("isNew", false);
 
-                            delegateExecution.setVariable(fileName, file);
+                        delegateExecution.setVariable(fileName, file);
 
-                            minioClient.removeObject(minioClient.getTempBucketName(), path);
-                        }
+                        minioClient.removeObject(minioClient.getTempBucketName(), path);
                     }
                 }
             }
-        } catch (Exception e) {
-            e.printStackTrace();
         }
     }
 }
