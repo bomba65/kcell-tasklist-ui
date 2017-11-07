@@ -35,7 +35,7 @@ public class CamundaApplication extends SpringBootProcessApplication {
     ExecutionFileMoveListener executionFileMoveListener;
 
     public static void main(String[] args) {
-        JacksonConfigurator.setDateFormatString("yyyy-MM-dd'T'HH:mm:ss.SSSX");
+        JacksonConfigurator.setDateFormatString("yyyy-MM-dd'T'HH:mm:ss.SSSXX");
         SpringApplication.run(CamundaApplication.class, args);
     }
 
