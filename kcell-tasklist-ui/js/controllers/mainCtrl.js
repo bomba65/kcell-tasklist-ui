@@ -20,6 +20,7 @@ define(['./module','camundaSDK', 'lodash', 'big-js'], function(module, CamSDK, _
 
 		var baseUrl = '/camunda/api/engine/engine/default';
 
+		$scope.searchSelected = false;
 		$scope.camForm = null;
 		if($rootScope.authentication){
 			$http.get(baseUrl+'/user/'+$rootScope.authentication.name+'/profile').then(
@@ -70,11 +71,16 @@ define(['./module','camundaSDK', 'lodash', 'big-js'], function(module, CamSDK, _
 			);
 		}
 		$scope.selectFilter = function(filter){
-			$scope.view.page = 1;
 			$scope.currentTask = undefined;
-			$location.search({task:undefined});
 			$scope.currentFilter = filter;
-			loadTasks();
+			$location.search({task:undefined});
+			if (filter === 'search'){
+				$scope.searchSelected = true;
+			} else {
+				$scope.searchSelected = false;
+				$scope.view.page = 1;
+				loadTasks();
+			}
 		}
 		$scope.startProcess = function(id){
 			$http.get(baseUrl+'/process-definition/'+id+'/startForm').then(
@@ -293,16 +299,77 @@ define(['./module','camundaSDK', 'lodash', 'big-js'], function(module, CamSDK, _
 				}
 			);
 		}
+
+        $scope.getSite = function(val) {
+            return $http.get('/asset-management/api/sites/search/findByNameIgnoreCaseContaining?name='+val).then(
+                function(response){
+                    var sites = _.flatMap(response.data._embedded.sites, function(s){
+                        if(s.params.site_name){
+                            return s.params.site_name.split(',').map(function(sitename){
+                                return {
+                                    name: s.name,
+                                    id: s._links.self.href.substring(s._links.self.href.lastIndexOf('/')+1),
+                                    site_name: sitename
+                                };
+                            })
+                        } else {
+                            return [];
+                        }
+                    });
+                    return sites;
+                }
+            );
+        };
+
+        $scope.siteSelected = function($item){
+            $scope.siteName = $item.name;
+            $scope.site = $item.id;
+            $scope.site_name = $item.site_name;
+        };
+
+        $scope.taskIds = [{id:'all', label:'All'},{id:'attach_material_list_contractor', label:'Attach Material List'},{id:'upload_tr_contractor', label:'Upload TR'},{id:'fill_applied_changes_info', label:'Fill Applied Changes Info'}];
+        $scope.searchTasks =  function(){
+        	var queryParams = {};
+        	if($scope.site){
+        		queryParams.processVariables = [{name:"site", value:$scope.site, operator: "eq"}];
+        	}
+        	if($scope.taskId !== 'all'){
+        		queryParams.taskDefinitionKey = $scope.taskId;
+        	} else {
+        		var taskIdList = _.filter($scope.taskIds, function(n) {
+				  return n.id !== 'all';
+				});
+				queryParams.taskDefinitionKeyIn = _.map(taskIdList, 'id');
+        	}
+        	if($scope.priority === 'emergency'){
+        		queryParams.priority = 100;
+        	}
+        	if($scope.bussinessKey){
+        		if(!queryParams.processVariables){
+        			queryParams.processVariables = [];
+        		}
+        		queryParams.processVariables.push({name:"jrNumber", value:$scope.bussinessKey, operator: "eq"});
+        	}
+        	queryParams.candidateUser = $rootScope.authUser.id;
+
+			$scope.searchResults = [];
+			$http({
+				method: 'POST',
+				headers:{'Accept':'application/hal+json, application/json; q=0.5'},
+				data: queryParams,
+				url: baseUrl+'/task'
+			}).then(
+				function(results){
+					$scope.searchResults = results.data;
+				},
+				function(error){
+					console.log(error.data);
+				}
+			);
+        };
+
 		$scope.getVariableLabel = function(key){
-			var result = key;
-			if($scope.currentFilter.properties && $scope.currentFilter.properties.variables){				
-                $scope.currentFilter.properties.variables.forEach(function (variable) {
-                   	if (variable.name === key){
-						result = variable.label;
-					}
-                });
-			}
-			return result;
+			return _.keyBy($scope.currentFilter.properties.variables, 'name')[key].label;
 		}
 
 		getTaskList();

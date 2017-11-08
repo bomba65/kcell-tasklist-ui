@@ -6,6 +6,9 @@
 				<li ng-repeat="filter in filters" ng-class="{active: filter.id == currentFilter.id}">
 					<a ng-click="selectFilter(filter)">{{filter.name}} ({{filter.itemCount}})</a>
 				</li>
+				<li ng-if="hasGroup('contractor_users')" ng-class = "{active: 'search' == currentFilter}">
+					<a ng-click="selectFilter('search')">Search</a>
+				</li>
 			</ul>
 			<span ng-if="hasGroup('camunda-admin') || hasGroup('alm_engineer') || hasGroup('astana_engineer') || hasGroup('nc_engineer') || hasGroup('east_engineer') || hasGroup('south_engineer') || hasGroup('west_engineer')">
 				<h4>Processes</h4>
@@ -14,7 +17,7 @@
 				</ul>
 			</span>
 			<h4>Tasks</h4>
-			<div class="scrollcontainer">
+			<div class="scrollcontainer" ng-if="!searchSelected">
 				<div  class="scrollable">
 					<ul id="tasks">
 						<li ng-repeat="task in tasks" ui-sref="tasks.task({id:task.id})" ng-class="{active: task.id == currentTask.id}" 
@@ -41,7 +44,70 @@
 		<div class="currentTask">
 			<div class="scrollcontainer">
 				<div  class="scrollable">
-					<div ui-view>
+					<div ui-view ng-show="!searchSelected"></div>
+					<div ng-show="searchSelected">
+					    <h4>Task Search</h4>
+					    <div class="col-sm-12">
+					        <div class="row">
+					            <table class="table">
+					                <thead>
+					                <tr>
+					                    <th width="20%">Site Name</th>
+					                    <th width="25%">Task Type</th>
+					                    <th width="20%">Priority</th>
+					                    <th width="25%">Bussiness Key</th>
+					                    <th width="10%"></th>
+					                </tr>
+					                </thead>
+					                <tbody>
+					                <tr>
+					                    <ng-form name="workForm">
+					                        <td>
+									            <input type="text" ng-model="site_name" name="site_name" typeahead="site as sites.site_name for sites in getSite($viewValue) | filter:$viewValue" typeahead-on-select="siteSelected($item,$model,$label)" class="form-control" autocomplete="off" placeholder="Site Name">
+									            <input type="hidden" ng-model="site" name="siteId"/>
+					                        </td>
+					                        <td ng-init="taskId = taskId || 'all'">
+									            <select class="form-control" name="taskId" ng-model="taskId" ng-options="task.id as task.label for task in taskIds" />
+					                        </td>
+					                        <td>
+									            <select class="form-control" name="priority" ng-model="priority" ng-init="priority = priority || 'all'">
+									                <option value="all">All</option>
+									                <option value="emergency">Emergency</option>
+									            </select>
+					                        </td>
+					                        <td>
+				                                <input type="text" class="form-control" name="bussinessKey" ng-model="bussinessKey" />
+					                        </td>
+						                    <td><button type="button" class="btn btn-sm btn-primary" ng-click="searchTasks()"><i class="glyphicon glyphicon-search"></i> Search</button></td>
+					                    </ng-form>
+					                </tr>
+					                </tbody>
+					            </table>
+					        </div>
+					        <div class="row">
+					            <table class="table" ng-if="searchResults.length>0">
+					                <thead>
+					                <tr>
+					                    <th width="5%"></th>
+					                    <th width="10%">Priority</th>
+					                    <th width="20%">Name</th>
+					                    <th width="35%">Description</th>
+					                    <th width="20%">Create Date</th>
+					                </tr>
+					                </thead>
+					                <tbody>
+						                <tr ng-repeat="task in searchResults">
+					                        <td><a ui-sref="tasks.task({id:task.id})" target="_blank">{{$index+1}}</a></td>
+					                        <td><a ui-sref="tasks.task({id:task.id})" target="_blank">{{task.priority == 100 ? 'Emergency' : 'Regular'}}</a></td>
+					                        <td><a ui-sref="tasks.task({id:task.id})" target="_blank">{{task.name}}</a></td>
+					                        <td><a ui-sref="tasks.task({id:task.id})" target="_blank">{{task.description}}</a></td>
+					                        <td>{{task.created | date:'dd.MM.yyyy HH:mm'}}</td>
+						                </tr>
+					                </tbody>
+					            </table>
+					        </div>
+					    </div>
+					</div>
 				</div>
 			</div>
 		</div>
