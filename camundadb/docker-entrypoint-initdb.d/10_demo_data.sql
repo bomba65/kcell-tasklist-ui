@@ -120,6 +120,7 @@ INSERT INTO act_id_user (id_, rev_, first_, last_, email_, pwd_, picture_id_) VA
 INSERT INTO act_id_group (id_, rev_, name_, type_) VALUES ('kcellUsers', 1, 'Kcell Users', 'WORKFLOW');
 INSERT INTO act_id_group (id_, rev_, name_, type_) VALUES ('contractor_users', 1, 'Contractor Users', 'WORKFLOW');
 INSERT INTO act_id_group (id_, rev_, name_, type_) VALUES ('revision_managers', 1, 'Revision Managers', 'WORKFLOW');
+INSERT INTO act_id_group (id_, rev_, name_, type_) VALUES ('revision_audit', 1, 'Revision Managers', 'WORKFLOW');
 INSERT INTO act_id_group (id_, rev_, name_, type_) VALUES ('camunda-admin', 1, 'camunda BPM Administrators', 'SYSTEM');
 INSERT INTO act_id_group (id_, rev_, name_, type_) VALUES ('hq_optimization', 1, 'hq_optimization', 'WORKFLOW');
 INSERT INTO act_id_group (id_, rev_, name_, type_) VALUES ('hq_transmission_engineer', 1, 'hq_transmission_engineer', 'WORKFLOW');
@@ -223,13 +224,17 @@ INSERT INTO act_id_group (id_, rev_, name_, type_) VALUES ('west_sao_maintanance
 INSERT INTO act_id_membership (user_id_, group_id_) VALUES ('demo', 'kcellUsers');
 INSERT INTO act_id_membership (user_id_, group_id_) VALUES ('demo', 'camunda-admin');
 INSERT INTO act_id_membership (user_id_, group_id_) VALUES ('demo', 'revision_managers');
+INSERT INTO act_id_membership (user_id_, group_id_) VALUES ('demo', 'revision_audit');
 INSERT INTO act_id_membership (user_id_, group_id_) VALUES ('test_flow@kcell.kz', 'kcellUsers');
 INSERT INTO act_id_membership (user_id_, group_id_) VALUES ('test_flow@kcell.kz', 'camunda-admin');
 INSERT INTO act_id_membership (user_id_, group_id_) VALUES ('test_flow@kcell.kz', 'revision_managers');
+INSERT INTO act_id_membership (user_id_, group_id_) VALUES ('test_flow@kcell.kz', 'revision_audit');
 INSERT INTO act_id_membership (user_id_, group_id_) VALUES ('Yernaz.Kalingarayev@kcell.kz', 'camunda-admin');
 INSERT INTO act_id_membership (user_id_, group_id_) VALUES ('Yernaz.Kalingarayev@kcell.kz', 'revision_managers');
+INSERT INTO act_id_membership (user_id_, group_id_) VALUES ('Yernaz.Kalingarayev@kcell.kz', 'revision_audit');
 INSERT INTO act_id_membership (user_id_, group_id_) VALUES ('Askar.Slambekov@kcell.kz', 'camunda-admin');
 INSERT INTO act_id_membership (user_id_, group_id_) VALUES ('Askar.Slambekov@kcell.kz', 'revision_managers');
+INSERT INTO act_id_membership (user_id_, group_id_) VALUES ('Askar.Slambekov@kcell.kz', 'revision_audit');
 INSERT INTO act_id_membership (user_id_, group_id_) VALUES ('Anzor.Israilov@kcell.kz', 'camunda-admin');
 INSERT INTO act_id_membership (user_id_, group_id_) VALUES ('Yernaz.Kalingarayev@kcell.kz', 'kcellUsers');
 INSERT INTO act_id_membership (user_id_, group_id_) VALUES ('Askar.Slambekov@kcell.kz', 'kcellUsers');
@@ -492,6 +497,7 @@ INSERT INTO act_ru_authorization (id_, rev_, type_, group_id_, user_id_, resourc
 INSERT INTO act_ru_authorization (id_, rev_, type_, group_id_, user_id_, resource_type_, resource_id_, perms_) VALUES ('00e928e2-4f69-11e7-a8c6-0242ac120007', 1, 1, 'kcellUsers', NULL, 5, '00e83e80-4f69-11e7-a8c6-0242ac120007', 2);
 INSERT INTO act_ru_authorization (id_, rev_, type_, group_id_, user_id_, resource_type_, resource_id_, perms_) VALUES ('00ea3a55-4f69-11e7-a8c6-0242ac120007', 1, 1, 'kcellUsers', NULL, 5, '00e99e13-4f69-11e7-a8c6-0242ac120007', 2);
 INSERT INTO act_ru_authorization (id_, rev_, type_, group_id_, user_id_, resource_type_, resource_id_, perms_) VALUES ('00fd3a57-4f69-11e7-a8c6-0242ac120007', 1, 1, 'revision_managers', NULL, 5, '00e99e28-4f69-11e7-a8c6-0242ac120007', 2);
+INSERT INTO act_ru_authorization (id_, rev_, type_, group_id_, user_id_, resource_type_, resource_id_, perms_) VALUES ('00ff4e71-4f69-11e7-a8c6-0242ac120007', 1, 1, 'revision_audit', NULL, 5, '00e99e28-4f69-11e7-a8c6-0242ac120007', 2);
 
 --REVISION PROCESS AUTOHIRZATION
 INSERT INTO act_ru_authorization (id_, rev_, type_, group_id_, user_id_, resource_type_, resource_id_, perms_) VALUES ('ab656542-501a-11e7-a8c4-0242ac120006', 3, 1, 'kcellUsers', NULL, 6, 'Revision', 4674);
