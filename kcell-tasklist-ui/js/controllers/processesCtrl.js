@@ -1,7 +1,7 @@
 define(['./module','jquery', 'camundaSDK'], function(app, $, CamSDK){
 	'use strict';
-	return app.controller('processesCtrl', ['$scope', '$rootScope', '$http', '$routeParams', '$q', '$location', '$timeout', 'AuthenticationService',
-			                         function($scope, $rootScope, $http, $routeParams, $q, $location, $timeout, AuthenticationService) {
+	return app.controller('processesCtrl', ['$scope', '$rootScope', '$http', '$routeParams', '$q', '$location', '$timeout', 'AuthenticationService', 'exModal',
+			                         function($scope, $rootScope, $http, $routeParams, $q, $location, $timeout, AuthenticationService, exModal) {
 		
 		
 		var camClient = new CamSDK.Client({
@@ -18,6 +18,8 @@ define(['./module','jquery', 'camundaSDK'], function(app, $, CamSDK){
 			name: 'processes'
 		};
 		$scope._ = window._;
+
+		$scope.participations = [{key:'initiator', label:'I am Inititator'},{key:'participant', label:'I am Participant'}];
 
 		$rootScope.logout = function(){
 			AuthenticationService.logout().then(function(){
@@ -56,6 +58,10 @@ define(['./module','jquery', 'camundaSDK'], function(app, $, CamSDK){
 					$http.get(baseUrl+'/group?member='+$rootScope.authUser.id).then(
 						function(groups){
 							$rootScope.authUser.groups = groups.data;
+
+							if ($rootScope.hasGroup('revision_managers') || $rootScope.hasGroup('revision_audit')){
+								$scope.participations.push({key:'all', label:'All'});
+							}
 						},
 						function(error){
 							console.log(error.data);
@@ -109,7 +115,7 @@ define(['./module','jquery', 'camundaSDK'], function(app, $, CamSDK){
 			if($scope.filter.participation === 'initiator'){
 				filter.startedBy = $rootScope.authentication.name;
 				getProcessInstances(filter);
-			} else {
+			} else if($scope.filter.participation === 'participant') {
 				$http.post(baseUrl+'/history/task',{taskAssignee: $rootScope.authentication.name}).then(
 					function(result){
 						filter.processInstanceIds = _.map(result.data, 'processInstanceId');
@@ -119,6 +125,8 @@ define(['./module','jquery', 'camundaSDK'], function(app, $, CamSDK){
 						console.log(error.data)
 					}
 				);
+			} else {
+				getProcessInstances(filter);
 			}
 		};
 
@@ -169,6 +177,20 @@ define(['./module','jquery', 'camundaSDK'], function(app, $, CamSDK){
 										}
 									}
 								}
+								$http({
+									method: 'GET',
+									headers:{'Accept':'application/hal+json, application/json; q=0.5'},
+									url: baseUrl+'/task/'+e.id
+								}).then(
+									function(taskResult){
+										if(taskResult.data._embedded && taskResult.data._embedded.group){
+											e.group = taskResult.data._embedded.group[0].id;
+										}
+									},
+									function(error){
+										console.log(error.data);
+									}
+								);
 							});
 						}
 			            $http.get(baseUrl+'/history/variable-instance?deserializeValues=false&processInstanceId='+$scope.processInstances[index].id).then(
@@ -189,6 +211,7 @@ define(['./module','jquery', 'camundaSDK'], function(app, $, CamSDK){
 			            		console.log(error.data);
 			            	}
 			        	);
+
 			        },
 			        function(error){
 			        	console.log(error.data);
@@ -222,5 +245,28 @@ define(['./module','jquery', 'camundaSDK'], function(app, $, CamSDK){
 		$scope.highlightTask = function() {
 			$scope.control.highlight($scope.diagram.task.taskDefinitionKey);
 		};
+
+
+        $scope.showGroupDetails = function(group){
+			$http({
+				method: 'GET',
+				headers:{'Accept':'application/hal+json, application/json; q=0.5'},
+				url: baseUrl+'/user?memberOfGroup='+group
+			}).then(
+				function(result){
+					exModal.open({
+						scope: {
+							members: result.data,
+						},
+						templateUrl: './js/partials/members.html',
+						size: 'md'
+					}).then(function(results){
+					});
+				},
+				function(error){
+					console.log(error.data);
+				}
+			);
+        };
 	}]);
 });
