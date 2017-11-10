@@ -18,20 +18,8 @@ define(['./module'], function(module){
 	                    console.log(data);
 	                });
                	};
-	            scope.downloadSupplementary = function(file) {
-	                $http({method: 'GET', url: '/camunda/uploads/process/get/' + file.value.path, transformResponse: [] }).
-	                success(function(data, status, headers, config) {
-	                    document.getElementById('fileDownloadIframe').src = data;
-	                }).
-	                error (function(data, status, headers, config) {
-	                    console.log(data);
-	                });
-               	};
 	            scope.isFileVisible = function(file) {
 	            	return !file.value.visibility || file.value.visibility == 'all' || (file.value.visibility == 'kcell' && $rootScope.hasGroup('kcellUsers'));
-	            }
-	            scope.isVisible = function(visibility) {
-	            	return !visibility || !visibility.value || visibility.value == 'all' ||  (visibility.value == 'kcell' && $rootScope.hasGroup('kcellUsers'));
 	            }
 	        },
 			templateUrl: './js/directives/jobRequest.html'

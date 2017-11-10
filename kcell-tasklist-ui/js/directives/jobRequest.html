@@ -2,7 +2,7 @@
     <div class="row">
         <div class="col-xs-4 col-md-4"><b>Initiator</b>: {{jobModel.initiatorFull.value.firstName}} {{jobModel.initiatorFull.value.lastName}}</div>
     	<div class="col-xs-4 col-md-4"><b>JR Number</b>: {{jobModel.jrNumber.value}}</div>
-        <div class="col-xs-4 col-md-4"><b>Priority</b>: {{jobModel.priority.value}}</div>
+        <div class="col-xs-4 col-md-4"><b>Priority</b>: {{jobModel.priority.value == 'emergency'?'Emergency':'Regular'}}</div>
     </div>
     <div class="row">
         <div class="col-xs-4 col-md-4"><b>Requested date</b>: {{jobModel.requestedDate.value | date: 'dd.MM.yyyy HH:mm'}}</div>
@@ -28,24 +28,17 @@
     <div class="row">
         <div class="col-md-12"><b>Supplementary files</b>:</div>
         <iframe id="fileDownloadIframe" style="display:none;"></iframe>
-        <!-- Old version-->
-        <div class="col-md-12" ng-if="jobModel.supplementaryFile1.contentUrl && isVisible(jobModel.supplementaryFile1Visibility)">&nbsp;&nbsp;&nbsp;&nbsp;<a href="{{jobModel.supplementaryFile1.contentUrl}}">{{jobModel.supplementaryFile1.valueInfo.filename}}</a></div>
-        <div class="col-md-12" ng-if="jobModel.supplementaryFile2.contentUrl && isVisible(jobModel.supplementaryFile2Visibility)">&nbsp;&nbsp;&nbsp;&nbsp;<a href="{{jobModel.supplementaryFile2.contentUrl}}">{{jobModel.supplementaryFile2.valueInfo.filename}}</a></div>
-        <div class="col-md-12" ng-if="jobModel.supplementaryFile3.contentUrl && isVisible(jobModel.supplementaryFile3Visibility)">&nbsp;&nbsp;&nbsp;&nbsp;<a href="{{jobModel.supplementaryFile3.contentUrl}}">{{jobModel.supplementaryFile3.valueInfo.filename}}</a></div>
-        <div class="col-md-12" ng-if="jobModel.supplementaryFile4.contentUrl && isVisible(jobModel.supplementaryFile4Visibility)">&nbsp;&nbsp;&nbsp;&nbsp;<a href="{{jobModel.supplementaryFile4.contentUrl}}">{{jobModel.supplementaryFile4.valueInfo.filename}}</a></div>
-        <div class="col-md-12" ng-if="jobModel.supplementaryFile5.contentUrl && isVisible(jobModel.supplementaryFile5Visibility)">&nbsp;&nbsp;&nbsp;&nbsp;<a href="{{jobModel.supplementaryFile5.contentUrl}}">{{jobModel.supplementaryFile5.valueInfo.filename}}</a></div>
-
-        <!-- New version-->
-        <div class="col-md-12" ng-if="jobModel.supplementaryFile1.value.name && isFileVisible(jobModel.supplementaryFile1)">&nbsp;&nbsp;&nbsp;&nbsp;<a ng-click="downloadSupplementary(jobModel.supplementaryFile1)">{{jobModel.supplementaryFile1.value.name}}</a></div>
-        <div class="col-md-12" ng-if="jobModel.supplementaryFile2.value.name && isFileVisible(jobModel.supplementaryFile2)">&nbsp;&nbsp;&nbsp;&nbsp;<a ng-click="downloadSupplementary(jobModel.supplementaryFile2)">{{jobModel.supplementaryFile2.value.name}}</a></div>
-        <div class="col-md-12" ng-if="jobModel.supplementaryFile3.value.name && isFileVisible(jobModel.supplementaryFile3)">&nbsp;&nbsp;&nbsp;&nbsp;<a ng-click="downloadSupplementary(jobModel.supplementaryFile3)">{{jobModel.supplementaryFile3.value.name}}</a></div>
-        <div class="col-md-12" ng-if="jobModel.supplementaryFile4.value.name && isFileVisible(jobModel.supplementaryFile4)">&nbsp;&nbsp;&nbsp;&nbsp;<a ng-click="downloadSupplementary(jobModel.supplementaryFile4)">{{jobModel.supplementaryFile4.value.name}}</a></div>
-        <div class="col-md-12" ng-if="jobModel.supplementaryFile5.value.name && isFileVisible(jobModel.supplementaryFile5)">&nbsp;&nbsp;&nbsp;&nbsp;<a ng-click="downloadSupplementary(jobModel.supplementaryFile5)">{{jobModel.supplementaryFile5.value.name}}</a></div>        
+        <div class="col-md-12" ng-repeat="file in jobModel.supplementaryFiles.value.files track by $index">&nbsp;&nbsp;&nbsp;&nbsp;<a ng-if="isFileVisible(file)" ng-click="download(file)">{{file.name}}</a></div>
     </div>
     <br/>
     <div class="row">
         <div class="col-md-12"><b>Works</b>:</div>
-        <div class="col-md-12" ng-repeat="work in jobModel.jobWorks.value track by $index">&nbsp;&nbsp;&nbsp;&nbsp;{{jobModel.worksTitle[work.sapServiceNumber]}}, works qty: {{work.quantity}}, materials qty: {{work.materialQuantity}} {{work.materialUnit}}<span ng-if="work.relatedSites.length > 0">, on sites: <ul class="site-list"><li ng-repeat="rs in work.relatedSites">{{rs.site_name}}</li></ul></span></div>
+        <div class="col-md-12" ng-repeat="work in jobModel.jobWorks.value track by $index">&nbsp;&nbsp;&nbsp;&nbsp;{{jobModel.worksTitle[work.sapServiceNumber]}}, works qty: {{work.quantity}}, materials qty: {{work.materialQuantity}} {{work.materialUnit}}<span ng-if="work.relatedSites.length > 0">, on sites: <ul class="site-list"><li ng-repeat="rs in work.relatedSites">{{rs.site_name}}</li></ul></span>
+            <div class="col-md-12" ng-repeat="file in work.files">
+                <div class="col-md-12" ng-if="file.valueInfo">&nbsp;&nbsp;&nbsp;&nbsp;{{$index+1}}.<a href="/camunda/api/engine/engine/default/{{jobModel.state && jobModel.state == 'COMPLETED'?'history/':''}}variable-instance/{{file.id}}/data">{{file.valueInfo.filename}} (Old file, read only)</a></div>
+                <div class="col-md-12" ng-if="file.value">&nbsp;&nbsp;&nbsp;&nbsp;{{$index+1}}.<a ng-click="download(file)">{{file.value.name}}</a></div>
+            </div>
+        </div>
     </div>
     <br/>
     <div class="row">
@@ -60,10 +53,10 @@
     <div class="row" ng-if="jobModel.kcellWarehouseMaterialsListName.value.name && isFileVisible(jobModel.kcellWarehouseMaterialsListName)">
         <div class="col-md-12"><a ng-click="download(jobModel.kcellWarehouseMaterialsListName)">Kcell Warehouse Materials List</a></div>
     </div>
-    <div class="row" ng-if="jobModel.contractorZIPWarehouseMaterialsList.contentUrl && !hideContractorZIPWarehouseMaterialList">
+    <div class="row" ng-if="jobModel.contractorZIPWarehouseMaterialsList.contentUrl">
         <div class="col-md-12"><a href="{{jobModel.contractorZIPWarehouseMaterialsList.contentUrl}}">Contractor ZIP Warehouse Materials List  (Old version, read only)</a></div>
     </div>
-    <div class="row" ng-if="jobModel.contractorZIPWarehouseMaterialsListName.value.name && !hideContractorZIPWarehouseMaterialList && isFileVisible(jobModel.contractorZIPWarehouseMaterialsListName)">
+    <div class="row" ng-if="jobModel.contractorZIPWarehouseMaterialsListName.value.name && isFileVisible(jobModel.contractorZIPWarehouseMaterialsListName)">
         <div class="col-md-12"><a ng-click="download(jobModel.contractorZIPWarehouseMaterialsListName)">Contractor ZIP Warehouse Materials List</a></div>
     </div>
     <div class="row" ng-if="jobModel.sapTransferRequestFile.contentUrl">
@@ -78,13 +71,38 @@
     <div class="row" ng-if="jobModel.tssrssidFile.contentUrl">
         <div class="col-md-12"><a href="{{jobModel.tssrssidFile.contentUrl}}">TSSR/SSID (Old version, read only)</a></div>
     </div>
-    <div class="row" ng-if="jobModel.tssrssidFileName.value.name">
+    <div class="row" ng-if="jobModel.tssrssidFileName.value.name && isFileVisible(jobModel.tssrssidFileName)">
         <div class="col-md-12"><a ng-click="download(jobModel.tssrssidFileName)">TSSR/SSID</a></div>
     </div>
     <div class="row" ng-repeat="trFile in jobModel.trFiles.value">
-        <div class="col-md-12"><a href="/camunda/api/engine/engine/default/task/{{jobModel.currentTask.id}}/variables/{{'trFile'+$index}}/data">TR File # {{trFile.id}} (Old version, read only)</a></div>
+        <div class="col-md-12">
+            <a ng-if="jobModel.currentTask.id" href="/camunda/api/engine/engine/default/task/{{jobModel.currentTask.id}}/variables/{{'trFile'+$index}}/data">TR File # {{trFile.id}} (Old version, read only)</a>
+            <a ng-if="!jobModel.currentTask.id" href="/camunda/api/engine/engine/default/{{jobModel.state && jobModel.state == 'COMPLETED'?'history/':''}}variable-instance/{{jobModel['trFile'+$index].id}}/data">TR File # {{trFile.id}} (Old version, read only)</a>
+        </div>
     </div>
     <div class="row" ng-repeat="trFile in jobModel.trFilesName.value">
-        <div class="col-md-12"><a ng-click="download(trFile)">TR File # {{trFile.value.id}} </a></div>
-    </div>    
+        <div class="col-md-12"><a ng-if="isFileVisible(trFile)" ng-click="download(trFile)">TR File # {{trFile.value.description}} </a></div>
+    </div>
+    <div class="row" ng-if="jobModel.actOfMaterialsDispatchingFile.contentUrl">
+        <div class="col-md-12"><a href="{{jobModel.actOfMaterialsDispatchingFile.contentUrl}}">Act of Materials Dispatching file (Old version, read only)</a></div>
+    </div>
+    <div class="row" ng-if="jobModel.actOfMaterialsDispatchingFile.value.name && isFileVisible(jobModel.actOfMaterialsDispatchingFile)">
+        <div class="col-md-12"><a ng-click="download(jobModel.actOfMaterialsDispatchingFile)">Act of Materials Dispatching file</a></div>
+    </div>
+    <div class="row" ng-if="jobModel.initiatorFiles.value">
+        <div class="col-md-12">Initiator file(s)
+            <a ng-if="isFileVisible(file)" ng-repeat="file in jobModel.initiatorFiles.value" ng-click="download(file)">{{file.value.name}} {{$last?'':','}}</a>
+        </div>
+    </div>
+    <div class="row" ng-if="jobModel.maintananceFiles.value" ng-repeat="file in jobModel.maintananceFiles.value">
+        <div class="col-md-12">Maintanance file(s) 
+            <a ng-if="isFileVisible(file)" ng-repeat="file in jobModel.maintananceFiles.value" ng-click="download(file)">{{file.value.name}} {{$last?'':','}}</a>
+        </div>
+    </div>
+    <div class="row" ng-if="jobModel.planningFiles.value" ng-repeat="file in jobModel.planningFiles.value">
+        <div class="col-md-12">Planning file(s) 
+            <a ng-if="isFileVisible(file)" ng-repeat="file in jobModel.planningFiles.value" ng-click="download(file)">{{file.value.name}} {{$last?'':','}}</a>
+        </div>
+    </div>
+
 </div>

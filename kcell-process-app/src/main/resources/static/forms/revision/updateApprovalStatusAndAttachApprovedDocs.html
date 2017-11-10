@@ -5,7 +5,7 @@
 </style>
 <form role="form" class="form-horizontal" name="kcell_form" novalidate>
     <script cam-script type="text/form-script">
-        inject(['$scope', '$http', 'Uri', '$rootScope', '$q', function ($scope, $http, Uri, $rootScope, $q) {
+        inject(['$scope', '$http', 'Uri', '$rootScope', '$q', '$timeout', function ($scope, $http, Uri, $rootScope, $q, $timeout) {
             var variables = [
                 'requestedDate',
                 'jrNumber',
@@ -22,16 +22,7 @@
                 'leasingRequired',
                 'powerRequired',
                 'project',
-                'supplementaryFile1',
-                'supplementaryFile2',
-                'supplementaryFile3',
-                'supplementaryFile4',
-                'supplementaryFile5',
-                'supplementaryFile1Visibility',
-                'supplementaryFile2Visibility',
-                'supplementaryFile3Visibility',
-                'supplementaryFile4Visibility',
-                'supplementaryFile5Visibility',
+                'supplementaryFiles',
                 'explanation',
                 'jobWorks',
                 'sapPRFileXLS',
@@ -46,7 +37,8 @@
                 'summaries',
                 'jrBlank',
                 'tssrssidFile',
-                'priority'
+                'priority',
+                'eLicenseResolutionFileName'
             ];
             $http.get(Uri.appUri("engine://engine/:engine/task/" + camForm.taskId + "/form")).success(function (result) {
                 $scope.contextPath = result.contextPath;
@@ -106,8 +98,11 @@
                     } else {
                         $scope.jobModel[el] = camForm.variableManager.variables[el];
                         if(el==='summaries'){
-                            $scope.summaries = camForm.variableManager.variables[el].value
+                            $scope.summaries = camForm.variableManager.variables[el].value;
                         }
+                    }
+                    if(el === 'eLicenseResolutionFileName') {
+                        $scope[el] = camForm.variableManager.variables[el];
                     }
                 });
                 $http.get("/camunda/api/engine/engine/default/user/" + $rootScope.authentication.name+ "/profile").then(function(result){
@@ -116,6 +111,7 @@
             });
 
             camForm.on('submit', function () {
+                var files = [];
                 camForm.variableManager.variableValue('updateApprovalStatusAndAttachApprovedDocsTaskResult', $scope.updateApprovalStatusAndAttachApprovedDocsTaskResult);
                 camForm.variableManager.variableValue('revisionPrepare', $scope.updateApprovalStatusAndAttachApprovedDocsTaskResult);
                 $scope.jobModel.jobWorks.value.forEach(function(work){
@@ -131,17 +127,27 @@
                         }
                     }
                 }
-                if($scope.eLicenseResolutionFileModel && $scope.eLicenseResolutionFileModel.value){
-                    $scope.eLicenseResolutionFileModel.name="eLicenseResolutionFile";
-                    $scope.eLicenseResolutionFileModel.type="File";
-                    camForm.variableManager.createVariable($scope.eLicenseResolutionFileModel);
+
+                if($scope.eLicenseResolutionFileName && $scope.eLicenseResolutionFileName.value.isNew){
+                    files.push($scope.eLicenseResolutionFileName.value.name);
+                    delete $scope.eLicenseResolutionFileName.value.isNew;
+                }
+
+                if(camForm.variableManager.variables['eLicenseResolutionFileName']){
+                    if($scope.eLicenseResolutionFileName){
+                        camForm.variableManager.variableValue('eLicenseResolutionFileName', $scope.eLicenseResolutionFileName.value);
+                    } else{
+                        camForm.variableManager.variableValue('eLicenseResolutionFileName', null);
+                    }
+                } else if($scope.eLicenseResolutionFileName) {
+                    camForm.variableManager.createVariable($scope.eLicenseResolutionFileName);
                 }
 
                 var visibility = 'all';
                 if($scope.updateApprovalStatusAndAttachApprovedDocsComment && $scope.updateApprovalStatusAndAttachApprovedDocsCommentVisibility){
                     visibility = $scope.updateApprovalStatusAndAttachApprovedDocsCommentVisibility;
                 }
-                $scope.jobModel.resolutions.push({processInstanceId: $scope.processInstanceId, assignee: $rootScope.authentication.name, assigneeName: $rootScope.authentication.assigneeName, resolution: 'permit.' + $scope.updateApprovalStatusAndAttachApprovedDocsTaskResult, comment: $scope.updateApprovalStatusAndAttachApprovedDocsComment, taskId: camForm.taskId, visibility: visibility});
+                $scope.jobModel.resolutions.push({processInstanceId: $scope.processInstanceId, assignee: $rootScope.authentication.name, assigneeName: $rootScope.authentication.assigneeName, resolution: 'permit.' + $scope.updateApprovalStatusAndAttachApprovedDocsTaskResult, comment: $scope.updateApprovalStatusAndAttachApprovedDocsComment, taskId: camForm.taskId, visibility: visibility, files: files});
                 camForm.variableManager.variableValue('resolutions', $scope.jobModel.resolutions);
             });
 
@@ -199,40 +205,48 @@
                 }
             );
 
-            function getBase64(el, fileName){
-                console.log($scope[fileName]);
-                var reader = new FileReader();
-                reader.readAsArrayBuffer(el.files[0]);
-                reader.onloadend = function (e) {
-                    var binary = '';
-                    var bytes = new Uint8Array( e.target.result );
-                    var len = bytes.byteLength;
-                    for (var j = 0; j < len; j++) {
-                        binary += String.fromCharCode( bytes[ j ] );
-                    }
-                    $scope.$apply(function(){
-                        console.log(fileName);
-                        console.log($scope[fileName]);
-                        $scope[fileName].valueInfo = {
-                            filename: el.files[0].name,
-                            mimeType: el.files[0].type
-                        };
-                        $scope[fileName].value = btoa(binary);
-                    });
-                };
-                reader.onerror = function (error) {
-                    console.log('Error: ', error);
-                };
-            }
-
             $scope.fileSelected = function(el, fileName){
                 if(el.files[0]){
-                    getBase64(el,fileName)
-                } else {
+                    $timeout(function () {
+                        $scope.$apply(function () {
+                            uploadFileToMinio(el.files[0], fileName);
+                        });
+                    })                } else {
                     $scope.$apply(function(){
                         $scope[fileName] = undefined;
                     });
                 }
+            };
+
+            function uploadFileToMinio(file, fileName) {
+                var fileToUpload = {
+                    name: 'eLicenseResolutionFileName',
+                    type: 'Json',
+                    value: {
+                        name: file.name,
+                        isNew : true,
+                        path: $scope.processInstanceId + '/' + camForm.taskId + '/' + file.name
+                    }
+                };
+                $http({method: 'GET', url: '/camunda/uploads/put/' + fileToUpload.value.path, transformResponse: [] }).
+                success(function(data, status, headers, config) {
+                    $http.put(data, file, {headers: {'Content-Type': undefined}}).then(
+                            function () {
+                                $scope[fileName] = fileToUpload;
+                                angular.element(document.querySelector('#'+fileName)).val(null);
+                            },
+                            function (error) {
+                                console.log(error.data);
+                            }
+                    );
+                }).
+                error (function(data, status, headers, config) {
+                    console.log(data);
+                });
+            }
+
+            $scope.clearFile = function(filename){
+                delete $scope[filename];
             };
 
             $scope.isVisible = function (resolution) {
@@ -259,8 +273,12 @@
         <div class="form-group">
             <label class="col-sm-4 control-label">Permits resolution:</label>
             <div class="col-sm-8">
-                <input type="file" class="form-control" name="eLicenseResolutionFileModel" ng-model="eLicenseResolutionFileModel.file" required-file="updateApprovalStatusAndAttachApprovedDocsTaskResult === 'approved'" onchange="angular.element(this).scope().fileSelected(this, 'eLicenseResolutionFileModel')"/>
-                <label class="has-error" ng-show="kcell_form.eLicenseResolutionFileModel.$error.validFile">File is required</label>
+                <div ng-show="eLicenseResolutionFileName.value.name">
+                    <a ng-click="download(eLicenseResolutionFileName)">{{eLicenseResolutionFileName.value.name}}</a> | <a ng-click="clearFile('eLicenseResolutionFileName')"><i class="glyphicon glyphicon-trash"></i></a>
+                </div>
+                <input ng-hide="eLicenseResolutionFileName.value.name" type="file" class="form-control" id="eLicenseResolutionFileName" name="eLicenseResolutionFileName" ng-model="eLicenseResolutionFileName"
+                       required-file="updateApprovalStatusAndAttachApprovedDocsTaskResult === 'approved' && !eLicenseResolutionFileName.value.name" onchange="angular.element(this).scope().fileSelected(this, 'eLicenseResolutionFileName')"/>
+                <label class="has-error" ng-show="kcell_form.eLicenseResolutionFileName.$error.validFile">File is required</label>
             </div>
         </div>
         <div class="form-group">

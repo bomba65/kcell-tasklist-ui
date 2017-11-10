@@ -22,16 +22,7 @@
                 'leasingRequired',
                 'powerRequired',
                 'project',
-                'supplementaryFile1',
-                'supplementaryFile2',
-                'supplementaryFile3',
-                'supplementaryFile4',
-                'supplementaryFile5',
-                'supplementaryFile1Visibility',
-                'supplementaryFile2Visibility',
-                'supplementaryFile3Visibility',
-                'supplementaryFile4Visibility',
-                'supplementaryFile5Visibility',
+                'supplementaryFiles',
                 'explanation',
                 'jobWorks',
                 'sapPRFileXLS',
@@ -129,24 +120,36 @@
                 else{
                     camForm.variableManager.variableValue('modifyWorks', true);
                 }
-                if(camForm.variableManager.variables['kcellWarehouseMaterialsListName']){
-                    camForm.variableManager.destroyVariable('kcellWarehouseMaterialsListName');
-                }
 
-                if($scope.kcellWarehouseMaterialsListName.value.isNew){
+                if($scope.kcellWarehouseMaterialsListName && $scope.kcellWarehouseMaterialsListName.value.isNew){
                     files.push($scope.kcellWarehouseMaterialsListName.value.name);
                     delete $scope.kcellWarehouseMaterialsListName.value.isNew;
                 }
-                camForm.variableManager.createVariable($scope.kcellWarehouseMaterialsListName);
 
-                if(camForm.variableManager.variables['contractorZIPWarehouseMaterialsListName']){
-                    camForm.variableManager.destroyVariable('contractorZIPWarehouseMaterialsListName');
+                if(camForm.variableManager.variables['kcellWarehouseMaterialsListName']){
+                    if($scope.kcellWarehouseMaterialsListName){
+                        camForm.variableManager.variableValue('kcellWarehouseMaterialsListName', $scope.kcellWarehouseMaterialsListName.value);
+                    } else{
+                        camForm.variableManager.variableValue('kcellWarehouseMaterialsListName', null);
+                    }
+                } else if($scope.kcellWarehouseMaterialsListName) {
+                    camForm.variableManager.createVariable($scope.kcellWarehouseMaterialsListName);
                 }
-                if($scope.contractorZIPWarehouseMaterialsListName.value.isNew){
+
+                if($scope.contractorZIPWarehouseMaterialsListName && $scope.contractorZIPWarehouseMaterialsListName.value.isNew){
                     files.push($scope.contractorZIPWarehouseMaterialsListName.value.name);
                     delete $scope.contractorZIPWarehouseMaterialsListName.value.isNew;
                 }
-                camForm.variableManager.createVariable($scope.contractorZIPWarehouseMaterialsListName);
+
+                if(camForm.variableManager.variables['contractorZIPWarehouseMaterialsListName']){
+                    if($scope.contractorZIPWarehouseMaterialsListName){
+                        camForm.variableManager.variableValue('contractorZIPWarehouseMaterialsListName', $scope.contractorZIPWarehouseMaterialsListName.value);
+                    } else{
+                        camForm.variableManager.variableValue('contractorZIPWarehouseMaterialsListName', null);
+                    }
+                } else if($scope.contractorZIPWarehouseMaterialsListName) {
+                    camForm.variableManager.createVariable($scope.contractorZIPWarehouseMaterialsListName);
+                }
 
                 var visibility = 'all';
                 if($scope.contractorAttachesMaterialListComment && $scope.contractorAttachesMaterialListCommentVisibility){
@@ -235,10 +238,6 @@
         <label class="col-sm-4 control-label">Kcell Warehouse Materials List (xls) (Old version, read only):</label>
         <div class="col-sm-8">
             <div ng-if="kcellWarehouseMaterialsList.prev"><a href="{{kcellWarehouseMaterialsList.prev.contentUrl}}">{{kcellWarehouseMaterialsList.prev.valueInfo.filename}}</a> <a ng-click="clearFile('kcellWarehouseMaterialsList')">&times;</a></div>
-            <div ng-if="!kcellWarehouseMaterialsList.prev">
-                <input type="file" class="form-control" name="kcellWarehouseMaterialsList" ng-model="kcellWarehouseMaterialsList.file" required-file="contractorAttachesMaterialListTaskResult === 'attached'" onchange="angular.element(this).scope().fileSelected(this, 'kcellWarehouseMaterialsList')"/>
-            </div>
-            <label class="has-error" ng-show="kcell_form.kcellWarehouseMaterialsList.$error.validFile">File is required</label>
         </div>
     </div>
     <div class="form-group">
@@ -247,7 +246,9 @@
             <div ng-show="kcellWarehouseMaterialsListName.value.name">
                 <a ng-click="download(kcellWarehouseMaterialsListName)">{{kcellWarehouseMaterialsListName.value.name}}</a> | <a ng-click="clearFile('kcellWarehouseMaterialsListName')"><i class="glyphicon glyphicon-trash"></i></a>
             </div>
-            <input ng-hide="kcellWarehouseMaterialsListName.value.name" type="file" class="form-control" id="kcellWarehouseMaterialsListName" name="contractorZIPWarehouseMaterialsListName" ng-model="kcellWarehouseMaterialsListName" onchange="angular.element(this).scope().fileSelected(this, 'kcellWarehouseMaterialsListName')"/>
+            <input ng-hide="kcellWarehouseMaterialsListName.value.name" type="file" class="form-control" id="kcellWarehouseMaterialsListName"
+                   name="kcellWarehouseMaterialsListName" ng-model="kcellWarehouseMaterialsListName"  required-file="contractorAttachesMaterialListTaskResult === 'attached' && !kcellWarehouseMaterialsListName.value.name" onchange="angular.element(this).scope().fileSelected(this, 'kcellWarehouseMaterialsListName')"/>
+            <label class="has-error" ng-show="kcell_form.kcellWarehouseMaterialsListName.$error.validFile">File is required</label>
         </div>
     </div>
     <div class="form-group" ng-show="kcellWarehouseMaterialsListName.value.name && hasGroup('kcellUsers')">
@@ -255,11 +256,11 @@
         <div class="col-sm-8">
             <label class="radio-inline">
                 <input type="radio" name="kcellWarehouseMaterialsListNameVisibility"
-                       ng-model="kcellWarehouseMaterialsListName.value.visibility" value="all" ng-required="hasGroup('kcellUsers')"> Visible for all
+                       ng-model="kcellWarehouseMaterialsListName.value.visibility" value="all" ng-required="kcellWarehouseMaterialsListName.value && hasGroup('kcellUsers')"> Visible for all
             </label>
             <label class="radio-inline">
                 <input type="radio" name="kcellWarehouseMaterialsListNameVisibility"
-                       ng-model="kcellWarehouseMaterialsListName.value.visibility" value="kcell" ng-required="hasGroup('kcellUsers')"> Kcell staff only
+                       ng-model="kcellWarehouseMaterialsListName.value.visibility" value="kcell" ng-required="kcellWarehouseMaterialsListName.value && hasGroup('kcellUsers')"> Kcell staff only
             </label>
             <label class="error" ng-show="kcell_form.kcellWarehouseMaterialsListNameVisibility.$error.required && ( kcell_form.kcellWarehouseMaterialsListNameVisibility.$touched || view.submitted)">Required field</label>
         </div>
@@ -276,7 +277,8 @@
             <div ng-show="contractorZIPWarehouseMaterialsListName.value.name">
                 <a ng-click="download(contractorZIPWarehouseMaterialsListName)">{{contractorZIPWarehouseMaterialsListName.value.name}}</a> | <a ng-click="clearFile('contractorZIPWarehouseMaterialsListName')"><i class="glyphicon glyphicon-trash"></i></a>
             </div>
-            <input ng-hide="contractorZIPWarehouseMaterialsListName.value.name" type="file" class="form-control" id="contractorZIPWarehouseMaterialsListName" name="contractorZIPWarehouseMaterialsListName" ng-model="contractorZIPWarehouseMaterialsListName" onchange="angular.element(this).scope().fileSelected(this, 'contractorZIPWarehouseMaterialsListName')"/>
+            <input ng-hide="contractorZIPWarehouseMaterialsListName.value.name" type="file" class="form-control" id="contractorZIPWarehouseMaterialsListName"
+                   name="contractorZIPWarehouseMaterialsListName" ng-model="contractorZIPWarehouseMaterialsListName" onchange="angular.element(this).scope().fileSelected(this, 'contractorZIPWarehouseMaterialsListName')"/>
         </div>
     </div>
     <div class="form-group" ng-show="contractorZIPWarehouseMaterialsListName.value.name && hasGroup('kcellUsers')">
@@ -284,11 +286,11 @@
         <div class="col-sm-8">
             <label class="radio-inline">
                 <input type="radio" name="contractorZIPWarehouseMaterialsListNameVisibility"
-                       ng-model="contractorZIPWarehouseMaterialsListName.value.visibility" value="all" ng-required="hasGroup('kcellUsers')"> Visible for all
+                       ng-model="contractorZIPWarehouseMaterialsListName.value.visibility" value="all" ng-required="contractorZIPWarehouseMaterialsListName.value && hasGroup('kcellUsers')"> Visible for all
             </label>
             <label class="radio-inline">
                 <input type="radio" name="contractorZIPWarehouseMaterialsListNameVisibility"
-                       ng-model="contractorZIPWarehouseMaterialsListName.value.visibility" value="kcell" ng-required="hasGroup('kcellUsers')"> Kcell staff only
+                       ng-model="contractorZIPWarehouseMaterialsListName.value.visibility" value="kcell" ng-required="contractorZIPWarehouseMaterialsListName.value && hasGroup('kcellUsers')"> Kcell staff only
             </label>
             <label class="error" ng-show="kcell_form.contractorZIPWarehouseMaterialsListNameVisibility.$error.required && ( kcell_form.contractorZIPWarehouseMaterialsListNameVisibility.$touched || view.submitted)">Required field</label>
         </div>

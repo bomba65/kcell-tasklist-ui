@@ -18,6 +18,10 @@ import org.camunda.bpm.engine.task.IdentityLink;
 import org.camunda.bpm.model.bpmn.instance.Process;
 import org.camunda.bpm.model.bpmn.instance.camunda.CamundaProperties;
 import org.camunda.bpm.model.bpmn.instance.camunda.CamundaProperty;
+import org.camunda.spin.Spin;
+import org.camunda.spin.SpinList;
+import org.camunda.spin.impl.SpinListImpl;
+import org.camunda.spin.json.SpinJsonNode;
 import org.camunda.spin.plugin.variable.SpinValues;
 import org.camunda.spin.plugin.variable.value.JsonValue;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -59,6 +63,7 @@ public class ExecutionFileMoveListener implements ExecutionListener {
             .filter(Objects::nonNull)
             .flatMap(e -> e.getElementsQuery().filterByType(CamundaProperties.class).list().stream())
             .flatMap(e -> e.getCamundaProperties().stream())
+            .filter(Objects::nonNull)
             .filter(e -> e.getCamundaName().equals("fileVars"))
             .map(CamundaProperty::getCamundaValue)
             .findAny()
@@ -75,17 +80,29 @@ public class ExecutionFileMoveListener implements ExecutionListener {
                 if(file.getValue().hasProp("isNew")){
                     Boolean isNew = file.getValue().prop("isNew").boolValue();
 
-                    if(isNew && file.getValue().hasProp("path")){
-                        String path = file.getValue().prop("path").stringValue();
-                        String name = file.getValue().prop("name").stringValue();
+                    if(isNew && file.getValue().hasProp("files") && file.getValue().prop("files").isArray()) {
+                        SpinList<SpinJsonNode> newFiles = new SpinListImpl<>();
+                        SpinList<SpinJsonNode> files = file.getValue().prop("files").elements();
+                        for (SpinJsonNode node: files) {
+                            if(node.hasProp("value") && node.prop("value").hasProp("path")) {
+                                SpinJsonNode value = node.prop("value");
+                                String path = value.prop("path").stringValue();
+                                String name = node.prop("name").stringValue();
 
-                        minioClient.copyObject(minioClient.getTempBucketName(), path, minioClient.getBucketName(), delegateExecution.getProcessInstanceId() + "/" + name);
-                        file.getValue().prop("path", delegateExecution.getProcessInstanceId() + "/" + name);
+                                minioClient.copyObject(minioClient.getTempBucketName(), path, minioClient.getBucketName(), delegateExecution.getProcessInstanceId() + "/" + name);
+                                value.prop("path", delegateExecution.getProcessInstanceId() + "/" + name);
+                                node.prop("value", value);
+
+                                minioClient.removeObject(minioClient.getTempBucketName(), path);
+                                newFiles.add(node);
+                            }
+                        }
+
+                        System.out.println("size: " + newFiles.size());
+
                         file.getValue().prop("isNew", false);
-
+                        file.getValue().prop("files", newFiles.stream().collect(toList()));
                         delegateExecution.setVariable(fileName, file);
-
-                        minioClient.removeObject(minioClient.getTempBucketName(), path);
                     }
                 }
             }

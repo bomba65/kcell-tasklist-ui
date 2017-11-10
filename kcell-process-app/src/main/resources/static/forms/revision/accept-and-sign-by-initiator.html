@@ -22,11 +22,7 @@
                 'leasingRequired',
                 'powerRequired',
                 'project',
-                'supplementaryFile1',
-                'supplementaryFile2',
-                'supplementaryFile3',
-                'supplementaryFile4',
-                'supplementaryFile5',
+                'supplementaryFiles',
                 'explanation',
                 'jobWorks',
                 'sapPRFileXLS',
@@ -161,16 +157,19 @@
                 else{
                     camForm.variableManager.variableValue('acceptPerformedJob', 'accepted');
                 }
-                if(camForm.variableManager.variables['initiatorFiles']){
-                    camForm.variableManager.destroyVariable('initiatorFiles');
-                }
+
                 $scope.initiatorFiles.value.forEach(function (f, i) {
                     if(f.value.isNew){
                         newFiles.push(f.value.name);
                         delete $scope.initiatorFiles.value[i].value.isNew;
                     }
                 });
-                camForm.variableManager.createVariable($scope.initiatorFiles);
+
+                if(camForm.variableManager.variables['initiatorFiles']){
+                    camForm.variableManager.variableValue('initiatorFiles', $scope.initiatorFiles.value);
+                } else {
+                    camForm.variableManager.createVariable($scope.initiatorFiles);
+                }
 
                 var visibility = 'all';
                 if($scope.acceptAndSignByInitiatorComment && $scope.acceptAndSignByInitiatorCommentVisibility){
@@ -264,42 +263,27 @@
     </script>
     <job-request job-model="jobModel"></job-request>
     <ng-include ng-if="contextPath" src="contextPath+'/forms/revision/summaries-card.html'"></ng-include>
-    <h3>Works:</h3>
     <iframe id="fileDownloadIframe" style="display:none;"></iframe>
-    <div class="row" ng-repeat="work in jobModel.jobWorks.value">
-        <div class="col-md-12">&nbsp;&nbsp;&nbsp;&nbsp;{{jobModel.worksTitle[work.sapServiceNumber]}}, works qty: {{work.quantity}}, materials qty: {{work.materialQuantity}} {{jobModel.unitsTitle[work.unit]}}, on sites: {{work.sites}}</div>
-        <div class="col-md-12" ng-repeat="file in work.files">
-            <div class="col-md-12" ng-if="file.valueInfo">&nbsp;&nbsp;&nbsp;&nbsp;{{$index+1}}.<a ng-click="downloadOldFile(file)">{{file.valueInfo.filename}} (Old file, read only)</a></div>
-            <div class="col-md-12" ng-if="file.value">&nbsp;&nbsp;&nbsp;&nbsp;{{$index+1}}.<a ng-click="download(file)">{{file.value.name}}</a></div>
-        </div>
-    </div>
 
     <div style="margin-bottom: 20px;"></div>
-
-    <div class="form-group" ng-if="maintananceFiles.value">
-        <label class="col-sm-4 control-label">Additional files (by Maintanance)</label>
-        <div class="col-md-12" ng-repeat="file in maintananceFiles.value">
-            <div class="col-md-12" ng-show="file.value.name">
-                {{$index + 1}}. <a download="file">{{file.value.name}}</a>
-            </div>
-        </div>
-    </div>
-
-    <div class="form-group" ng-if="planningFiles.value">
-        <label class="col-sm-4 control-label">Additional files (by Planning)</label>
-        <div class="col-md-12" ng-repeat="file in planningFiles.value">
-            <div class="col-md-12" ng-show="file.value.name">
-                {{$index + 1}}. <a download="file">{{file.value.name}}</a>
-            </div>
-        </div>
-    </div>
 
     <div class="form-group">
         <label class="col-sm-4 control-label">Additional files</label>
         <div class="col-md-12" ng-repeat="file in initiatorFiles.value">
-            <div class="col-md-12" ng-show="file.value.name">
+            <div class="input-group">
                 {{$index + 1}}.
                 <a ng-click="download(file)">{{file.value.name}}</a> | <a ng-click="clearFile($index)"><i class="glyphicon glyphicon-trash"></i></a>
+                <div class="input-group-addon">
+                    <label class="radio-inline">
+                        <input type="radio" name="initiatorFilesVisibility_{{$index}}"
+                               ng-model="file.value.visibility" value="all" ng-required="hasGroup('kcellUsers') && file.value.name"> Visible for all
+                    </label>
+                    <label class="radio-inline">
+                        <input type="radio" name="initiatorFilesVisibility_{{$index}}"
+                               ng-model="file.value.visibility" value="kcell" ng-required="hasGroup('kcellUsers') && file.value.name"> Kcell staff only
+                    </label>
+                    <label class="error" ng-show="kcell_form['initiatorFilesVisibility_'+$index].$error.required && ( kcell_form['initiatorFilesVisibility_'+$index].$touched || view.submitted)">Required field</label>
+                </div>
             </div>
         </div>
         <input type="file" class="form-control" id="initiator_file_{{initiatorFiles.value.length}}" name="initiator_file_{{initiatorFiles.value.length}}" ng-model="file.file" onchange="angular.element(this).scope().fileSelected(this)"/>

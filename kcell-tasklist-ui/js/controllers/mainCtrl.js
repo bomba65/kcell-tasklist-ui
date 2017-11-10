@@ -330,7 +330,7 @@ define(['./module','camundaSDK', 'lodash', 'big-js'], function(module, CamSDK, _
         $scope.taskIds = [{id:'all', label:'All'},{id:'attach_material_list_contractor', label:'Attach Material List'},{id:'upload_tr_contractor', label:'Upload TR'},{id:'fill_applied_changes_info', label:'Fill Applied Changes Info'}];
         $scope.searchTasks =  function(){
         	var queryParams = {};
-        	if($scope.site){
+			if($scope.site && $scope.site_name){
         		queryParams.processVariables = [{name:"site", value:$scope.site, operator: "eq"}];
         	}
         	if($scope.taskId !== 'all'){
@@ -351,6 +351,7 @@ define(['./module','camundaSDK', 'lodash', 'big-js'], function(module, CamSDK, _
         		queryParams.processVariables.push({name:"jrNumber", value:$scope.bussinessKey, operator: "eq"});
         	}
         	queryParams.candidateUser = $rootScope.authUser.id;
+        	queryParams.includeAssignedTasks = true;
 
 			$scope.searchResults = [];
 			$http({
@@ -360,7 +361,32 @@ define(['./module','camundaSDK', 'lodash', 'big-js'], function(module, CamSDK, _
 				url: baseUrl+'/task'
 			}).then(
 				function(results){
-					$scope.searchResults = results.data;
+					$scope.searchResults = _.filter(results.data, function(d) {
+						return !d.assignee || d.assignee === $rootScope.authUser.id;
+					});
+
+					if($scope.searchResults.length > 0){
+						_.forEach(['jrNumber','site_name', 'validityDate'], function(variable) {
+							var varSearchParams = {processInstanceIdIn: _.map($scope.searchResults, 'processInstanceId'), variableName: variable};
+							$http({
+								method: 'POST',
+								headers:{'Accept':'application/hal+json, application/json; q=0.5'},
+								data: varSearchParams,
+								url: baseUrl+'/variable-instance'
+							}).then(
+								function(vars){
+									$scope.searchResults.forEach((el)=> {
+									el[variable] = _.filter(vars.data, function(v) {
+											return v.processInstanceId === el.processInstanceId; 
+										})[0].value;
+									});
+								},
+								function(error){
+									console.log(error.data);
+								}
+							);
+						});
+					}
 				},
 				function(error){
 					console.log(error.data);

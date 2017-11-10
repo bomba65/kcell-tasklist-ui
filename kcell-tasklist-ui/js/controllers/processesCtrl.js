@@ -160,7 +160,7 @@ define(['./module','jquery', 'camundaSDK'], function(app, $, CamSDK){
                 $scope.piIndex = undefined;
             } else {
                 $scope.piIndex = index;
-	            $scope.jobModel = {};
+	            $scope.jobModel = {state: $scope.processInstances[index].state};
 	            $http({
 					method: 'GET',
 					headers:{'Accept':'application/hal+json, application/json; q=0.5'},

@@ -22,11 +22,7 @@
                 'leasingRequired',
                 'powerRequired',
                 'project',
-                'supplementaryFile1',
-                'supplementaryFile2',
-                'supplementaryFile3',
-                'supplementaryFile4',
-                'supplementaryFile5',
+                'supplementaryFiles',
                 'explanation',
                 'jobWorks',
                 'sapPRFileXLS',
@@ -122,16 +118,18 @@
                 if ($scope.bindTRToJRByContractorTaskResult === 'attached') {
                     camForm.variableManager.variableValue('modifyWorks', false);
 
-                    if(camForm.variableManager.variables['trFilesName']){
-                        camForm.variableManager.destroyVariable('trFilesName');
-                    }
                     $scope.trFilesName.value.forEach(function (f, i) {
                         if(f.value.isNew){
                             newFiles.push(f.value.name);
                             delete $scope.trFilesName.value[i].value.isNew;
                         }
                     });
-                    camForm.variableManager.createVariable($scope.trFilesName);
+
+                    if(camForm.variableManager.variables['trFilesName']){
+                        camForm.variableManager.variableValue('trFilesName', $scope.trFilesName.value);
+                    } else {
+                        camForm.variableManager.createVariable($scope.trFilesName);
+                    }
                 }
                 else{
                     camForm.variableManager.variableValue('modifyWorks', true);
@@ -181,7 +179,7 @@
                     name: 'trFile' + index,
                     type: 'Json',
                     value: {
-                        id: value.replace(/^.*[\\\/]/, '').replace(/\.[^/.]+$/, ""),
+                        description: value.replace(/^.*[\\\/]/, '').replace(/\.[^/.]+$/, ""),
                         isNew : true,
                         name: file.name,
                         path: $scope.processInstanceId + '/' + camForm.taskId + '/' + file.name
@@ -240,8 +238,8 @@
         <div class="form-group">
             <label class="col-sm-4 control-label">SAP Transport Request ID # {{$index+1}}:</label>
             <div class="col-sm-8">
-                <input type="text" class="form-control" name="trfileId" ng-model="trfile.value.id" ng-required="trfile.value.name && !trfile.value.id" />
-                <label class="error" ng-show="trfilesform.trfileId.$error.required && ( trfilesform.trfileId.$touched || view.submitted)">Required field</label>
+                <input type="text" class="form-control" name="trfile_{{$index}}" ng-model="trfile.value.description" ng-required="trfile.value.name && !trfile.value.description" />
+                <label class="error" ng-show="kcell_form['trfile_'+$index].$error.required && ( trfilesform.trfileId.$touched || view.submitted)">Required field</label>
             </div>
         </div>
     </div>

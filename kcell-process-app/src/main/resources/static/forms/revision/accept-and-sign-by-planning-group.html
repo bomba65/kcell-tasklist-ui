@@ -22,16 +22,7 @@
                 'leasingRequired',
                 'powerRequired',
                 'project',
-                'supplementaryFile1',
-                'supplementaryFile2',
-                'supplementaryFile3',
-                'supplementaryFile4',
-                'supplementaryFile5',
-                'supplementaryFile1Visibility',
-                'supplementaryFile2Visibility',
-                'supplementaryFile3Visibility',
-                'supplementaryFile4Visibility',
-                'supplementaryFile5Visibility',
+                'supplementaryFiles',
                 'explanation',
                 'jobWorks',
                 'sapPRFileXLS',
@@ -150,16 +141,19 @@
 
             camForm.on('submit', function () {
                 camForm.variableManager.variableValue('acceptAndSignByPlanningGroupTaskResult', $scope.acceptAndSignByPlanningGroupTaskResult);
-                if(camForm.variableManager.variables['planningFiles']){
-                    camForm.variableManager.destroyVariable('planningFiles');
-                }
+
                 $scope.planningFiles.value.forEach(function (f, i) {
                     if(f.value.isNew){
                         newFiles.push(f.value.name);
                         delete $scope.planningFiles.value[i].value.isNew;
                     }
                 });
-                camForm.variableManager.createVariable($scope.planningFiles);
+
+                if(camForm.variableManager.variables['planningFiles']){
+                    camForm.variableManager.variableValue('planningFiles', $scope.planningFiles.value);
+                } else {
+                    camForm.variableManager.createVariable($scope.planningFiles);
+                }
 
                 var visibility = 'all';
                 if($scope.acceptAndSignByPlanningGroupComment && $scope.acceptAndSignByPlanningGroupCommentVisibility){
@@ -254,44 +248,27 @@
     </script>
     <job-request job-model="jobModel"></job-request>
     <ng-include ng-if="contextPath" src="contextPath+'/forms/revision/summaries-card.html'"></ng-include>
-    <h3>Works:</h3>
     <iframe id="fileDownloadIframe" style="display:none;"></iframe>
-    <div class="row" ng-repeat="work in jobModel.jobWorks.value">
-        <div class="col-md-12">&nbsp;&nbsp;&nbsp;&nbsp;{{jobModel.worksTitle[work.sapServiceNumber]}}, works qty: {{work.quantity}}, materials qty: {{work.materialQuantity}} {{jobModel.unitsTitle[work.unit]}}, on sites: {{work.sites}}</div>
-        <div class="col-md-12" ng-repeat="file in work.files">
-            <div class="col-md-12" ng-if="file.valueInfo">&nbsp;&nbsp;&nbsp;&nbsp;{{$index+1}}.<a ng-click="downloadOldFile(file)">{{file.valueInfo.filename}} (Old file, read only)</a></div>
-            <div class="col-md-12" ng-if="file.value">&nbsp;&nbsp;&nbsp;&nbsp;{{$index+1}}.<a ng-click="download(file)">{{file.value.name}}</a></div>
-        </div>
-    </div>
 
     <div style="margin-bottom: 20px;"></div>
 
     <div class="form-group">
-        <label class="col-sm-4 control-label">Additional files (by Initiator)</label>
-        <div class="col-md-12" ng-repeat="file in initiatorFiles.value">
-            <div class="col-md-12" ng-show="file.value.name">
-                {{$index + 1}}. <a download="file">{{file.value.name}}</a>
-            </div>
-        </div>
-    </div>
-
-    <div class="form-group">
-        <label class="col-sm-4 control-label">Additional files (by Maintanance)</label>
-        <div class="col-md-12" ng-repeat="file in maintananceFiles.value">
-            <div class="col-md-12" ng-show="file.value.name">
-                {{$index + 1}}. <a download="file">{{file.value.name}}</a>
-            </div>
-        </div>
-    </div>
-
-    <div class="form-group">
         <label class="col-sm-4 control-label">Additional files</label>
         <div class="col-md-12" ng-repeat="file in planningFiles.value">
-            <div class="col-md-12" ng-show="file.value.name">
+            <div class="input-group">
                 {{$index + 1}}.
-                <a download="file">{{file.value.name}}</a> | <a ng-click="clearFile($index)"><i
-                    class="glyphicon glyphicon-trash"></i>
-            </a>
+                <a ng-click="download(file)">{{file.value.name}}</a> | <a ng-click="clearFile($index)"><i class="glyphicon glyphicon-trash"></i></a>
+                <div class="input-group-addon">
+                    <label class="radio-inline">
+                        <input type="radio" name="planningFilesVisibility_{{$index}}"
+                               ng-model="file.value.visibility" value="all" ng-required="hasGroup('kcellUsers') && file.value.name"> Visible for all
+                    </label>
+                    <label class="radio-inline">
+                        <input type="radio" name="planningFilesVisibility_{{$index}}"
+                               ng-model="file.value.visibility" value="kcell" ng-required="hasGroup('kcellUsers') && file.value.name"> Kcell staff only
+                    </label>
+                    <label class="error" ng-show="kcell_form['planningFilesVisibility_'+$index].$error.required && ( kcell_form['planningFilesVisibility_'+$index].$touched || view.submitted)">Required field</label>
+                </div>
             </div>
         </div>
         <input type="file" class="form-control" id="planning_file_{{planningFiles.value.length}}" name="planning_file_{{planningFiles.value.length}}" ng-model="file.file" onchange="angular.element(this).scope().fileSelected(this)"/>

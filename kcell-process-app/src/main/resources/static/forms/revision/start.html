@@ -163,35 +163,11 @@
                     store: true
                 },
                 {
-                    name: 'supplementaryFile1',
+                    name: 'supplementaryFiles',
                     type: 'Json',
                     submit: true,
                     store: true
-                },
-                {
-                    name: 'supplementaryFile2',
-                    type: 'Json',
-                    submit: true,
-                    store: true
-                },
-                {
-                    name: 'supplementaryFile3',
-                    type: 'Json',
-                    submit: true,
-                    store: true
-                },
-                {
-                    name: 'supplementaryFile4',
-                    type: 'Json',
-                    submit: true,
-                    store: true
-                },
-                {
-                    name: 'supplementaryFile5',
-                    type: 'Json',
-                    submit: true,
-                    store: true
-                },
+                }
             ];
 
             var permitWorks = ['3', '4', '5', '6', '7', '8', '9', '10', '35', '36', '37', '38', '39', '40', '41', '42', '43', '44', '65', '66', '67', '68', '69', '70', '71', '72', '73', '74', '75', '76', '77', '78', '86', '87', '91', '94', '95', '96', '155', '156', '157', '158', '159', '160'];
@@ -333,30 +309,14 @@
                 //camForm.variableManager.variableValue('relatedTo', parseInt($scope.relatedTo));
                 camForm.variableManager.variableValue('jobWorks', JSON.parse(angular.toJson($scope.jobWorks)));
 
-                if($scope.supplementaryFile1 && $scope.supplementaryFile1.name){
-                    camForm.variableManager.variableValue('supplementaryFile1', $scope.supplementaryFile1);
+                if($scope.supplementaryFiles && $scope.supplementaryFiles.length > 0){
+                    var value = {
+                        isNew: true,
+                        files: $scope.supplementaryFiles
+                    }
+                    camForm.variableManager.variableValue('supplementaryFiles', value);
                 } else {
-                    camForm.variableManager.destroyVariable('supplementaryFile1');
-                }
-                if($scope.supplementaryFile2 && $scope.supplementaryFile2.name){
-                    camForm.variableManager.variableValue('supplementaryFile2', $scope.supplementaryFile2);
-                } else {
-                    camForm.variableManager.destroyVariable('supplementaryFile2');
-                }
-                if($scope.supplementaryFile3 && $scope.supplementaryFile3.name){
-                    camForm.variableManager.variableValue('supplementaryFile3', $scope.supplementaryFile3);
-                } else {
-                    camForm.variableManager.destroyVariable('supplementaryFile3');
-                }
-                if($scope.supplementaryFile4 && $scope.supplementaryFile4.name){
-                    camForm.variableManager.variableValue('supplementaryFile4', $scope.supplementaryFile4);
-                } else {
-                    camForm.variableManager.destroyVariable('supplementaryFile4');
-                }
-                if($scope.supplementaryFile5 && $scope.supplementaryFile5.name){
-                    camForm.variableManager.variableValue('supplementaryFile5', $scope.supplementaryFile5);
-                } else {
-                    camForm.variableManager.destroyVariable('supplementaryFile5');
+                    camForm.variableManager.destroyVariable('supplementaryFiles');
                 }
             });
 
@@ -371,7 +331,6 @@
             $scope.jobRequestsCount = 0;
             $scope.fileSelected = fileSelected;
             $scope.download = download;
-            $scope.downloadOldFile = downloadOldFile;
             $scope.removeWork = removeWork;
             $scope.serviceChanged = serviceChanged;
             $scope.jobWorks = [{relatedSites:[]}];
@@ -483,7 +442,7 @@
                                                 }
                                                 if(variables.data[i].name === 'jobWorks'){
                                                     $scope.jobRequests[variables.data[i].processInstanceId][variables.data[i].name] = JSON.parse(variables.data[i].value);
-                                                } else if(variables.data[i].name === 'supplementaryFile1' || variables.data[i].name === 'supplementaryFile2' || variables.data[i].name === 'supplementaryFile3' || variables.data[i].name === 'supplementaryFile4' || variables.data[i].name === 'supplementaryFile5'){
+                                                } else if(variables.data[i].name === 'supplementaryFiles'){
                                                     if (variables.data[i].value){
                                                         variables.data[i].value = JSON.parse(variables.data[i].value);
                                                     }
@@ -523,25 +482,30 @@
                 getJobs();
             }
 
-            function fileSelected(el, index){
+            function fileSelected(el){
                 $timeout(function () {
                     $scope.$apply(function () {
-                        uploadFileToMinio(el.files[0], index);
+                        uploadFileToMinio(el.files[0]);
                     });
                 })
             }
 
-            function uploadFileToMinio(file, index) {
+            function uploadFileToMinio(file) {
                 var fileValue = {
                     name: file.name,
-                    isNew: true,
-                    path: uuid + '/' + file.name
+                    value: {
+                        path: uuid + '/' + file.name
+                    }
                 };
-                $http({method: 'GET', url: '/camunda/uploads/tmp/put/' + fileValue.path, transformResponse: [] }).
+                $http({method: 'GET', url: '/camunda/uploads/tmp/put/' + fileValue.value.path, transformResponse: [] }).
                 success(function(data, status, headers, config) {
                     $http.put(data, file, {headers: {'Content-Type': undefined}}).then(
                         function () {
-                            $scope['supplementaryFile'+index] = fileValue;
+                            if(!$scope.supplementaryFiles){
+                                $scope.supplementaryFiles = [];
+                            }
+                            $scope.supplementaryFiles.push(fileValue);
+                            angular.element(document.querySelector('#supplementaryFiles')).val(null);
                         },
                         function (error) {
                             console.log(error.data);
@@ -553,8 +517,8 @@
                 });
             }
 
-            function downloadOldFile(file){
-                document.getElementById('fileDownloadIframe').src = '/camunda/api/engine/engine/default/variable-instance/'+file.id+'/data';
+            $scope.clearFile = function(index){
+                $scope.supplementaryFiles.splice(index, 1);
             }
 
             function download(file) {
@@ -873,76 +837,21 @@
     <div class="form-group">
         <label class="col-sm-3 control-label">Supplementary files:</label>
         <div class="col-sm-6">
-            <div class="input-group">
-                <input type="file" class="form-control" name="supplementaryFile1" ng-model="supplementaryFile1"  onchange="angular.element(this).scope().fileSelected(this, 1)" />
-                <div class="input-group-addon" ng-show="supplementaryFile1.name && hasGroup('kcellUsers')">
+            <div class="input-group" ng-repeat="file in supplementaryFiles track by $index">
+                <a ng-click="download(file)">{{file.name}}</a> | <a ng-click="clearFile($index)"><i class="glyphicon glyphicon-trash"></i></a>
+                <div class="input-group-addon" ng-show="file.name && hasGroup('kcellUsers')">
                     <label class="radio-inline">
-                        <input type="radio" name="supplementaryFile1Visibility"
-                               ng-model="supplementaryFile1.visibility" value="all" ng-required="supplementaryFile1.name && hasGroup('kcellUsers')"> Visible for all
+                        <input type="radio" name="supplementaryFileVisibility_{{$index}}"
+                               ng-model="file.value.visibility" value="all" ng-required="file.name && hasGroup('kcellUsers')"> Visible for all
                     </label>
                     <label class="radio-inline">
-                        <input type="radio" name="supplementaryFile1Visibility"
-                               ng-model="supplementaryFile1.visibility" value="kcell" ng-required="supplementaryFile1.name && hasGroup('kcellUsers')"> Kcell staff only
+                        <input type="radio" name="supplementaryFileVisibility_{{$index}}"
+                               ng-model="file.value.visibility" value="kcell" ng-required="file.name && hasGroup('kcellUsers')"> Kcell staff only
                     </label>
-                    <label class="error" ng-show="kcell_form.supplementaryFile1Visibility.$error.required && ( kcell_form.supplementaryFile1Visibility.$touched || view.submitted)">Required field</label>
+                    <label class="error" ng-show="kcell_form['supplementaryFileVisibility_'+$index].$error.required && ( kcell_form['supplementaryFileVisibility_'+$index].$index.$touched || view.submitted)">Required field</label>
                 </div>
             </div>
-            <div ng-show="supplementaryFile1.name" class="input-group">
-                <input type="file" class="form-control" name="supplementaryFile2" onchange="angular.element(this).scope().fileSelected(this, 2)"/>
-                <div class="input-group-addon" ng-show="supplementaryFile2.name && hasGroup('kcellUsers')">
-                    <label class="radio-inline">
-                        <input type="radio" name="supplementaryFile2Visibility"
-                               ng-model="supplementaryFile2.visibility" value="all" ng-required="supplementaryFile2.name && hasGroup('kcellUsers')"> Visible for all
-                    </label>
-                    <label class="radio-inline">
-                        <input type="radio" name="supplementaryFile2Visibility"
-                               ng-model="supplementaryFile2.visibility" value="kcell" ng-required="supplementaryFile2.name && hasGroup('kcellUsers')"> Kcell staff only
-                    </label>
-                    <label class="error" ng-show="kcell_form.supplementaryFile2Visibility.$error.required && ( kcell_form.supplementaryFile2Visibility.$touched || view.submitted)">Required field</label>
-                </div>
-            </div>
-            <div ng-show="supplementaryFile2.name" class="input-group">
-                <input type="file" class="form-control" name="supplementaryFile3" onchange="angular.element(this).scope().fileSelected(this, 3)"/>
-                <div class="input-group-addon" ng-show="supplementaryFile3.name && hasGroup('kcellUsers')">
-                    <label class="radio-inline">
-                        <input type="radio" name="supplementaryFile3Visibility"
-                               ng-model="supplementaryFile3.name" value="all" ng-required="supplementaryFile3.name && hasGroup('kcellUsers')"> Visible for all
-                    </label>
-                    <label class="radio-inline">
-                        <input type="radio" name="supplementaryFile3Visibility"
-                               ng-model="supplementaryFile3.name" value="kcell" ng-required="supplementaryFile3.name && hasGroup('kcellUsers')"> Kcell staff only
-                    </label>
-                    <label class="error" ng-show="kcell_form.supplementaryFile3Visibility.$error.required && ( kcell_form.supplementaryFile3Visibility.$touched || view.submitted)">Required field</label>
-                </div>
-            </div>
-            <div ng-show="supplementaryFile3.name" class="input-group">
-                <input type="file" class="form-control" name="supplementaryFile4" onchange="angular.element(this).scope().fileSelected(this, 4)"/>
-                <div class="input-group-addon" ng-show="supplementaryFile4.name && hasGroup('kcellUsers')">
-                    <label class="radio-inline">
-                        <input type="radio" name="supplementaryFile4Visibility"
-                               ng-model="supplementaryFile4.name" value="all" ng-required="supplementaryFile4.name && hasGroup('kcellUsers')"> Visible for all
-                    </label>
-                    <label class="radio-inline">
-                        <input type="radio" name="supplementaryFile4Visibility"
-                               ng-model="supplementaryFile4.name" value="kcell" ng-required="supplementaryFile4.name && hasGroup('kcellUsers')"> Kcell staff only
-                    </label>
-                    <label class="error" ng-show="kcell_form.supplementaryFile4Visibility.$error.required && ( kcell_form.supplementaryFile4Visibility.$touched || view.submitted)">Required field</label>
-                </div>
-            </div>
-            <div ng-show="supplementaryFile4.name" class="input-group">
-                <input type="file" class="form-control" name="supplementaryFile5" onchange="angular.element(this).scope().fileSelected(this, 5)"/>
-                <div class="input-group-addon" ng-show="supplementaryFile5.name && hasGroup('kcellUsers')">
-                    <label class="radio-inline">
-                        <input type="radio" name="supplementaryFile5Visibility"
-                               ng-model="supplementaryFile5.name" value="all" ng-required="supplementaryFile5.name && hasGroup('kcellUsers')"> Visible for all
-                    </label>
-                    <label class="radio-inline">
-                        <input type="radio" name="supplementaryFile5Visibility"
-                               ng-model="supplementaryFile5.name" value="kcell" ng-required="supplementaryFile5.name && hasGroup('kcellUsers')"> Kcell staff only
-                    </label>
-                    <label class="error" ng-show="kcell_form.supplementaryFile5Visibility.$error.required && ( kcell_form.supplementaryFile5Visibility.$touched || view.submitted)">Required field</label>
-                </div>
-            </div>
+            <input type="file" class="form-control" name="supplementaryFiles" id="supplementaryFiles" onchange="angular.element(this).scope().fileSelected(this)" />
         </div>
     </div>
     <div class="form-group">
@@ -993,24 +902,8 @@
                     <div class="row">
                         <div class="col-md-12">Supplementary files:</div>
                         <iframe id="fileDownloadIframe" style="display:none;"></iframe>
-                        <div class="col-md-12">
-                            <a ng-if="job.supplementaryFile1.valueInfo.filename" ng-click="downloadOldFile(job.supplementaryFile1)">{{job.supplementaryFile1.valueInfo.filename}}</a>
-                            <a ng-click="download(job.supplementaryFile1)">{{job.supplementaryFile1.value.name}}</a>
-                        </div>
-                        <div class="col-md-12">
-                            <a ng-if="job.supplementaryFile2.valueInfo.filename" ng-click="downloadOldFile(job.supplementaryFile2)">{{job.supplementaryFile2.valueInfo.filename}}</a>
-                            <a ng-if="job.supplementaryFile2.value.name" ng-click="download(job.supplementaryFile2)">{{job.supplementaryFile2.value.name}}</a>
-                        </div>
-                        <div class="col-md-12">
-                            <a ng-if="job.supplementaryFile3.valueInfo.filename" ng-click="downloadOldFile(job.supplementaryFile3)">{{job.supplementaryFile3.valueInfo.filename}}</a></div>
-                            <a ng-if="job.supplementaryFile3.value.name" ng-click="download(job.supplementaryFile3)">{{job.supplementaryFile3.value.name}}</a>
-                        <div class="col-md-12">
-                            <a ng-if="job.supplementaryFile4.valueInfo.filename" ng-click="downloadOldFile(job.supplementaryFile4)">{{job.supplementaryFile4.valueInfo.filename}}</a>
-                            <a ng-if="job.supplementaryFile4.value.name" ng-click="download(job.supplementaryFile4)">{{job.supplementaryFile4.value.name}}</a>
-                        </div>
-                        <div class="col-md-12">
-                            <a ng-if="job.supplementaryFile5.valueInfo.filename" ng-click="downloadOldFile(job.supplementaryFile5)">{{job.supplementaryFile5.valueInfo.filename}}</a>
-                            <a ng-if="job.supplementaryFile5.value.name" ng-click="download(job.supplementaryFile5)">{{job.supplementaryFile5.value.name}}</a>
+                        <div class="col-md-12" ng-repeat="file in job.supplementaryFiles.value.files">
+                            <a ng-if="file.name" ng-click="download(file)">{{file.name}}</a>
                         </div>
                     </div>
                     <div class="row">
