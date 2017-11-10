@@ -39,12 +39,7 @@ public class MinioController {
     private Minio minio;
 
     @Autowired
-    public MinioController(@Value("${minio.access.key:AKIAIOSFODNN7EXAMPLE}") String minioAccessKey,
-                 @Value("${minio.secret.key:wJalrXUtnFEMI/K7MDENG/bPxRfiCYEXAMPLEKEY}") String minioSecretKey)
-        throws InvalidPortException, InvalidEndpointException, IOException, InvalidKeyException, NoSuchAlgorithmException,
-        InsufficientDataException, NoResponseException, InvalidBucketNameException, XmlPullParserException, InternalException,
-        RegionConflictException, ErrorResponseException {
-
+    public MinioController(@Value("${minio.access.key:AKIAIOSFODNN7EXAMPLE}") String minioAccessKey, @Value("${minio.secret.key:wJalrXUtnFEMI/K7MDENG/bPxRfiCYEXAMPLEKEY}") String minioSecretKey) {
         this.minioAccessKey = minioAccessKey;
         this.minioSecretKey = minioSecretKey;
     }
@@ -70,7 +65,7 @@ public class MinioController {
         return ResponseEntity.ok(url);
     }
 
-    @RequestMapping(value = "/process/get/{processId}/{fileName:.+}", method = RequestMethod.GET)
+    @RequestMapping(value = "/get/{processId}/{fileName:.+}", method = RequestMethod.GET)
     @ResponseBody
     public ResponseEntity<String> getTempPresignedGetObjectUrl(@PathVariable("processId") String processId, @PathVariable("fileName") String fileName, HttpServletRequest request) throws InvalidEndpointException, InvalidPortException, InvalidKeyException, InvalidBucketNameException, NoSuchAlgorithmException, InsufficientDataException, NoResponseException, ErrorResponseException, InternalException, InvalidExpiresRangeException, IOException, XmlPullParserException{
 

@@ -120,7 +120,7 @@ INSERT INTO act_id_user (id_, rev_, first_, last_, email_, pwd_, picture_id_) VA
 INSERT INTO act_id_group (id_, rev_, name_, type_) VALUES ('kcellUsers', 1, 'Kcell Users', 'WORKFLOW');
 INSERT INTO act_id_group (id_, rev_, name_, type_) VALUES ('contractor_users', 1, 'Contractor Users', 'WORKFLOW');
 INSERT INTO act_id_group (id_, rev_, name_, type_) VALUES ('revision_managers', 1, 'Revision Managers', 'WORKFLOW');
-INSERT INTO act_id_group (id_, rev_, name_, type_) VALUES ('revision_audit', 1, 'Revision Managers', 'WORKFLOW');
+INSERT INTO act_id_group (id_, rev_, name_, type_) VALUES ('revision_audit', 1, 'Revision Audit', 'WORKFLOW');
 INSERT INTO act_id_group (id_, rev_, name_, type_) VALUES ('camunda-admin', 1, 'camunda BPM Administrators', 'SYSTEM');
 INSERT INTO act_id_group (id_, rev_, name_, type_) VALUES ('hq_optimization', 1, 'hq_optimization', 'WORKFLOW');
 INSERT INTO act_id_group (id_, rev_, name_, type_) VALUES ('hq_transmission_engineer', 1, 'hq_transmission_engineer', 'WORKFLOW');
