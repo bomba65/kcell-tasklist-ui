@@ -1,4 +1,4 @@
-package kz.kcell.flow;
+package kz.kcell.flow.files;
 
 import io.minio.MinioClient;
 import io.minio.errors.*;

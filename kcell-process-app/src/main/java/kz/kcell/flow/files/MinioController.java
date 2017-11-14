@@ -1,4 +1,4 @@
-package kz.kcell.flow;
+package kz.kcell.flow.files;
 
 import io.minio.MinioClient;
 import io.minio.errors.*;
@@ -16,8 +16,6 @@ import org.xmlpull.v1.XmlPullParserException;
 
 import javax.servlet.http.HttpServletRequest;
 import java.io.IOException;
-import java.net.MalformedURLException;
-import java.net.URL;
 import java.security.InvalidKeyException;
 import java.security.NoSuchAlgorithmException;
 

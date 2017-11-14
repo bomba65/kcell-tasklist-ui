@@ -226,23 +226,18 @@ public class SendGeneratedJRBlank implements JavaDelegate {
                 cell = row.createCell(0);
                 cell.setCellStyle(autoWrap);
                 String title = (worksTitle.get(jobWorks.get(i).get("sapServiceNumber").textValue()) != null ? worksTitle.get(jobWorks.get(i).get("sapServiceNumber").textValue()) : jobWorks.get(i).get("sapServiceNumber").textValue()) + " - " + jobWorks.get(i).get("quantity").numberValue().intValue();
-                System.out.println(jobWorks.get(i).get("relatedSites"));
-                System.out.println(jobWorks.get(i).get("relatedSites").isArray());
                 if (jobWorks.get(i).get("relatedSites") != null && jobWorks.get(i).get("relatedSites").isArray()) {
                     String relatedSites = "";
                     for (JsonNode rs : jobWorks.get(i).get("relatedSites")) {
-                        System.out.println(rs);
                         if (rs.get("site_name") != null) {
                             relatedSites += (!rs.get("site_name").textValue().isEmpty() ? rs.get("site_name").textValue() : rs.get("siteName").textValue()) + ", ";
                         } else {
                             relatedSites += (rs.get("siteName").textValue()) + ", ";
                         }
                     }
-                    System.out.println(relatedSites);
                     if (relatedSites.length() > 0) {
                         title += ", on sites: " + relatedSites.substring(0, relatedSites.length() - 2);
                     }
-                    System.out.println(title);
                 }
                 cell.setCellValue(title);
             }
@@ -367,7 +362,6 @@ public class SendGeneratedJRBlank implements JavaDelegate {
                 } else {
                     CellUtil.setCellStyleProperty(sheet.getRow(15 + i).createCell(0), CellUtil.BORDER_LEFT, BorderStyle.THIN);
                 }
-                System.out.println((15 + i) + ". " + sheet.getRow(15 + i).getCell(0).getStringCellValue());
                 CellUtil.setCellStyleProperty(sheet.getRow(15 + i).createCell(4), CellUtil.BORDER_RIGHT, BorderStyle.THIN);
             }
 

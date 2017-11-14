@@ -2,14 +2,12 @@ package kz.kcell.flow.minio;
 
 import io.minio.MinioClient;
 import io.minio.errors.*;
-import lombok.extern.java.Log;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
+import lombok.extern.apachecommons.CommonsLog;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.context.event.ApplicationReadyEvent;
 import org.springframework.context.event.EventListener;
 import org.springframework.stereotype.Service;
-import org.springframework.beans.factory.annotation.Value;
 import org.xmlpull.v1.XmlPullParserException;
 
 import java.io.IOException;
@@ -17,10 +15,8 @@ import java.security.InvalidKeyException;
 import java.security.NoSuchAlgorithmException;
 
 @Service
-@Log
+@CommonsLog
 public class Minio {
-
-    private static final Logger log = LoggerFactory.getLogger(Minio.class);
 
     private final MinioClient minioClient;
     private final String bucketName = "uploads";
@@ -38,7 +34,7 @@ public class Minio {
     }
 
     @EventListener
-    public void makeBucket(ApplicationReadyEvent event)
+    protected void makeBucket(ApplicationReadyEvent event)
         throws IOException, InvalidKeyException, NoSuchAlgorithmException, InsufficientDataException, InternalException,
         NoResponseException, InvalidBucketNameException, XmlPullParserException, RegionConflictException, ErrorResponseException {
         try {
@@ -62,25 +58,16 @@ public class Minio {
     }
 
 
-    public void copyObject(String bucketName, String objectName, String destBucketName, String destObjectName)
-        throws InvalidKeyException, InvalidBucketNameException, NoSuchAlgorithmException, InsufficientDataException,
-        NoResponseException, ErrorResponseException, InternalException, IOException, XmlPullParserException,
-        InvalidArgumentException {
-        minioClient.copyObject(bucketName, objectName, destBucketName, destObjectName);
-    }
-
-    public void removeObject(String bucketName, String objectName)
-        throws InvalidBucketNameException, NoSuchAlgorithmException, InsufficientDataException, IOException,
-        InvalidKeyException, NoResponseException, XmlPullParserException, ErrorResponseException,
-        InternalException {
-        minioClient.removeObject(bucketName, objectName);
-    }
-
     public String getBucketName() {
         return bucketName;
     }
 
     public String getTempBucketName() {
         return tempBucketName;
+    }
+
+    public void moveToPermanentStorage(String tempPath, String path) throws IOException, InvalidKeyException, NoSuchAlgorithmException, InsufficientDataException, InternalException, NoResponseException, InvalidBucketNameException, XmlPullParserException, ErrorResponseException, InvalidArgumentException {
+        minioClient.copyObject(this.getTempBucketName(), tempPath, this.getBucketName(), path);
+        minioClient.removeObject(this.getTempBucketName(), tempPath);
     }
 }
