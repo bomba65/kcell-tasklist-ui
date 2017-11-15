@@ -603,7 +603,7 @@ INSERT INTO act_ru_authorization (id_, rev_, type_, group_id_, user_id_, resourc
 INSERT INTO act_ru_authorization (id_, rev_, type_, group_id_, user_id_, resource_type_, resource_id_, perms_) VALUES ('008a3f7e-4f69-11e7-a8c6-0242ac120007', 1, 1, 'kcellUsers', NULL, 0, 'tasklist', 32);
 
 --CAMUNDA-ADMIN AUTHORIZATION
-INSERT INTO act_ru_authorization (id_, rev_, type_, group_id_, user_id_, resource_type_, resource_id_, perms_) VALUES ('ffb319d0-4f68-11e7-a8c6-0242ac120007', 1, 1, 'kcellUsers', NULL, 2, '*', 2);
+--INSERT INTO act_ru_authorization (id_, rev_, type_, group_id_, user_id_, resource_type_, resource_id_, perms_) VALUES ('ffb319d0-4f68-11e7-a8c6-0242ac120007', 1, 1, 'kcellUsers', NULL, 2, '*', 2);
 INSERT INTO act_ru_authorization (id_, rev_, type_, group_id_, user_id_, resource_type_, resource_id_, perms_) VALUES ('ffb6ea61-4f68-11e7-a8c6-0242ac120007', 1, 1, 'camunda-admin', NULL, 0, '*', 2147483647);
 INSERT INTO act_ru_authorization (id_, rev_, type_, group_id_, user_id_, resource_type_, resource_id_, perms_) VALUES ('ffb849f2-4f68-11e7-a8c6-0242ac120007', 1, 1, 'camunda-admin', NULL, 1, '*', 2147483647);
 INSERT INTO act_ru_authorization (id_, rev_, type_, group_id_, user_id_, resource_type_, resource_id_, perms_) VALUES ('ffb90d43-4f68-11e7-a8c6-0242ac120007', 1, 1, 'camunda-admin', NULL, 2, '*', 2147483647);

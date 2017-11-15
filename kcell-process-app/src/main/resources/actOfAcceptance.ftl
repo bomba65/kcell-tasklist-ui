@@ -1,5 +1,6 @@
 <#assign sharingPlanObj = sharingPlan?eval>
 <#assign colspan = sharingPlanObj.shared_sectors?size>
+
 <html>
 <head>
     <style>
@@ -116,11 +117,11 @@
         <td></td>
         <td colspan="${colspan}"></td>
     </tr>
-    <tr>
-        <td>Дата включения БС:</td>
-        <td><#if technical_launch_date??>${technical_launch_date?string['dd.MM.yyyy']}</#if></td>
-        <td colspan="${colspan}"></td>
-    </tr>
+    <#--<tr>-->
+        <#--<td>Дата включения БС:</td>-->
+        <#--<td><#if technical_launch_date??>${technical_launch_date?string['dd.MM.yyyy']}</#if></td>-->
+        <#--<td colspan="${colspan}"></td>-->
+    <#--</tr>-->
 </table>
 <br/>
 <table class="table">
@@ -276,7 +277,8 @@
 <p>Ответственный за приёмку БС в эксплуатацию со стороны Ведущего</p>
 <p><u>Начальник технического отдела КФ ТОО «КаР-Тел»     Имашев Б. Г</u>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<u>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</u></p>
 <p>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;(подпись)</p>
-<p style="text-align: right;">« ____ » ____________ 20___ г.</p>
+<p style="text-align: right;"><#if taskSubmitDate?? && checkingByGuestResult?? &&  checkingByGuestResult == 'approved' >${taskSubmitDate?string['dd.MM.yyyy']} г.<#else>« ____ » ____________ 20___ г.</#if> </p>
+
 <br/>
 <p>Ответственный за приёмку БС в эксплуатацию со стороны Ведомого</p>
 <p>«__________ » ________________ «Ф.И.О.»&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;___________</p>
@@ -284,23 +286,6 @@
 <br/>
 <br/>
 <br/>
-<table>
-    <tr>
-        <td colspan="2"><b>ПОДПИСАНО</b> от имени и по поручению<br/>ТОО «КаР-Тел»</td>
-        <td colspan="2"><b>ПОДПИСАНО</b> от имени и по поручению<br/>АО «Кселл»</td>
-    </tr>
-    <tr>
-        <td>Подпись:<br/>ФИО:<br/>Должность:</td>
-        <td><br/>Имашев Б. Г.<br/><u>Начальник технического отдела КФ ТОО «КаР-Тел»</u></td>
-        <td>Подпись:<br/>ФИО:<br/>Должность:</td>
-    </tr>
-    <tr>
-        <td>Дата:</td>
-        <td>27.09.2016</td>
-        <td>Дата:</td>
-        <td></td>
-    </tr>
-</table>
 
 <span><br clear=all style='mso-special-character:line-break;page-break-before:always'></span>
 
@@ -371,6 +356,6 @@
 <p>Ответственный за проверку выполнения требований со стороны Ведущего</p>
 <p><u>Начальник технического отдела КФ ТОО «КаР-Тел»     Имашев Б. Г</u>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<u>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</u></p>
 <p>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;(подпись)</p>
-<p style="text-align: right;">« ____ » ____________ 20___ г.</p>
+<p style="text-align: right;"><#if taskSubmitDate?? && checkingByGuestResult?? && checkingByGuestResult == 'approved' >${taskSubmitDate?string['dd.MM.yyyy']} г.<#else>« ____ » ____________ 20___ г.</#if> </p>
 </body>
 </html>

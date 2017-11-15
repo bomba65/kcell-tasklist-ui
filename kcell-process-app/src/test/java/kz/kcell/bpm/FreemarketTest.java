@@ -28,7 +28,7 @@ public class FreemarketTest {
         BpmnModelInstance done = Bpmn.createExecutableProcess("test-freemarker")
                 .startEvent()
                 .serviceTask()
-                .camundaClass("kz.kcell.bpm.GenerateActOfAcceptance")
+                .camundaClass("kz.kcell.flow.files.GenerateActOfAcceptance")
                 .endEvent()
                 .done();
         processEngineRule.getRepositoryService().createDeployment().addModelInstance("test-freemarket.bpmn", done).deploy();

@@ -5,7 +5,9 @@
                 'sharingPlan',
                 'resolutions',
                 'showSSID',
-                'ssidtssrFiles'
+                'ssidtssrFiles',
+                'isSpecialSite',
+                'sharingPlanStatus'
             ];
 
             camForm.on('form-loaded', function () {
@@ -56,6 +58,9 @@
                                 value: ''
                             });
                         }
+                    } else if (el === 'sharingPlanStatus') {
+                        $scope[el] = camForm.variableManager.variables[el].value;
+                        $scope.sharingPlan.status = camForm.variableManager.variables[el].value;
                     } else {
                         $scope[el] = camForm.variableManager.variables[el].value;
                     }
@@ -85,7 +90,8 @@
                 });
             });
 
-            camForm.on('submit', function () {
+            camForm.on('submit', function (event) {
+                //event.submitPrevented = true;
                 if(!$scope.resolutions){
                     $scope.resolutions = [];
                 }
@@ -95,6 +101,11 @@
                     camForm.variableManager.variableValue('replanStatus', 'notreplan');
                 } else {
                     camForm.variableManager.variableValue('replanStatus', 'replan');
+                }
+                if ($scope.isSpecialSite === 'yes') {
+                    camForm.variableManager.variableValue('isSpecialSite', true);
+                } else if ($scope.isSpecialSite === 'no') {
+                    camForm.variableManager.variableValue('isSpecialSite', false);
                 }
                 $scope.resolutions.push({processInstanceId: $scope.processInstanceId, assignee: $rootScope.authentication.name, resolution: $scope.doLeasingProceduresAndUpdateLeasingStatusResult, comment: $scope.doLeasingProceduresAndUpdateLeasingStatusComment, taskId: camForm.taskId});
                 camForm.variableManager.variableValue('resolutions', $scope.resolutions);
@@ -109,13 +120,22 @@
             <label class="radio-inline">
                 <input type="radio" ng-model="doLeasingProceduresAndUpdateLeasingStatusResult" name="doLeasingProceduresAndUpdateLeasingStatusResult" value="done" required> Leasing done
             </label>
-            <label class="radio-inline" ng-if="showSSID == 'true'">
-                <input type="radio" ng-model="doLeasingProceduresAndUpdateLeasingStatusResult" name="doLeasingProceduresAndUpdateLeasingStatusResult" value="needSSID" required> Need SSID
-            </label>
             <label class="radio-inline">
                 <input type="radio" ng-model="doLeasingProceduresAndUpdateLeasingStatusResult" name="doLeasingProceduresAndUpdateLeasingStatusResult" value="replan" required> Leasing impossible, need re-plan
             </label>
             <label class="error" ng-show="kcell_form.doLeasingProceduresAndUpdateLeasingStatusResult.$error.required && ( kcell_form.doLeasingProceduresAndUpdateLeasingStatusResult.$touched || view.submitted)">Required field</label>
+        </div>
+    </div>
+    <div class="form-group">
+        <label class="col-sm-4 control-label">Site belongs to KZT, Beeline, ODS:</label>
+        <div class="col-sm-8">
+            <label class="radio-inline">
+                <input type="radio" ng-model="isSpecialSite" name="isSpecialSite" value="yes" required> Yes
+            </label>
+            <label class="radio-inline">
+                <input type="radio" ng-model="isSpecialSite" name="isSpecialSite" value="no" required> No
+            </label>
+            <label class="error" ng-show="kcell_form.isSpecialSite.$error.required && ( kcell_form.isSpecialSite.$touched || view.submitted)">Required field</label>
         </div>
     </div>
     <div class="form-group">

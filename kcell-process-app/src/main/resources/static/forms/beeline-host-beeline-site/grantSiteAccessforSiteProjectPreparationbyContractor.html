@@ -1,0 +1,167 @@
+<form role="form" class="form-horizontal" name="kcell_form" novalidate>
+    <script cam-script type="text/form-script">
+        inject(['$scope', '$q', '$http', '$rootScope', function ($scope, $q, $http, $rootScope) {
+            var variables = [
+                'sharingPlan',
+                'resolutions',
+                'showSSID',
+                'ssidtssrFiles',
+                'sharingPlanStatus'
+            ];
+
+            camForm.on('form-loaded', function () {
+                variables.forEach(function (el) {
+                    camForm.variableManager.fetchVariable(el);
+                });
+                $http.get('/camunda/api/engine/engine/default/task/' + camForm.taskId).then(
+                    function(result){
+                        $scope.processInstanceId = result.data.processInstanceId;
+                    },
+                    function (error) {
+                        console.log(error.data);
+                    }
+                );
+            });
+
+            camForm.on('variables-fetched', function () {
+                variables.forEach(function (el) {
+                    if (el === 'resolutions') {
+                        if (camForm.variableManager.variables[el].value) {
+                            $scope.resolutions = angular.copy(camForm.variableManager.variables[el].value);
+                            $q.all($scope.resolutions.map(function (resolution) {
+                                return $http.get("/camunda/api/engine/engine/default/user/" + resolution.assignee + "/profile");
+                            })).then(function (profiles) {
+                                profiles.forEach(function (e, index) {
+                                    $scope.resolutions[index].assigneeName = (e.data.firstName ? e.data.firstName : "") + " " + (e.data.lastName ? e.data.lastName : "");
+                                });
+                            });
+                            $q.all($scope.resolutions.map(function (resolution) {
+                                return $http.get("/camunda/api/engine/engine/default/history/task?processInstanceId=" + resolution.processInstanceId + "&taskId=" + resolution.taskId);
+                            })).then(function (tasks) {
+                                tasks.forEach(function (e, index) {
+                                    if (e.data.length > 0) {
+                                        $scope.resolutions[index].taskName = e.data[0].name;
+                                        try {
+                                            $scope.resolutions[index].taskEndDate = new Date(e.data[0].endTime);
+                                        } catch (e) {
+                                            console.log(e);
+                                        }
+                                    }
+                                });
+                            });
+                        } else {
+                            camForm.variableManager.destroyVariable('resolutions');
+                            camForm.variableManager.createVariable({
+                                name: 'resolutions',
+                                type: 'Json',
+                                value: ''
+                            });
+                        }
+                    } else if (el === 'sharingPlanStatus') {
+                        $scope[el] = camForm.variableManager.variables[el].value;
+                        $scope.sharingPlan.status = camForm.variableManager.variables[el].value;
+                    } else {
+                        $scope[el] = camForm.variableManager.variables[el].value;
+                    }
+                });
+
+                if($scope.sharingPlan){
+                    $scope.sharingPlan.ssidtssrFiles = angular.copy($scope.ssidtssrFiles);
+                    $scope.sharingPlan.currentTask = {id:camForm.taskId};
+                }
+
+                camForm.variableManager.createVariable({
+                    name: 'grantSiteAccessForSiteProjectPreparationByContractorComment',
+                    type: 'String',
+                    value: ''
+                });
+
+                camForm.variableManager.createVariable({
+                    name: 'grantSiteAccessForSiteProjectPreparationByContractorStatus',
+                    type: 'String',
+                    value: 'Completed'
+                });
+
+                camForm.variableManager.createVariable({
+                    name: 'siteAccessGrantStatus',
+                    type: 'String',
+                    value: ''
+                });
+
+                camForm.variableManager.createVariable({
+                    name: 'replanStatus',
+                    type: 'String',
+                    value: ''
+                });
+            });
+
+            camForm.on('submit', function (event) {
+                //event.submitPrevented = true;
+                if(!$scope.resolutions){
+                    $scope.resolutions = [];
+                }
+                $scope.grantSiteAccessForSiteProjectPreparationByContractorStatus = "Completed";
+                camForm.variableManager.variableValue('grantSiteAccessForSiteProjectPreparationByContractorStatus', $scope.grantSiteAccessForSiteProjectPreparationByContractorStatus);
+                camForm.variableManager.variableValue('grantSiteAccessForSiteProjectPreparationByContractorComment', $scope.grantSiteAccessForSiteProjectPreparationByContractorComment);
+                camForm.variableManager.variableValue('siteAccessGrantStatus', $scope.siteAccessGrantStatus);
+                if ($scope.siteAccessGrantStatus === 'granted') {
+                    camForm.variableManager.variableValue('replanStatus', 'notreplan');
+                } else {
+                    camForm.variableManager.variableValue('replanStatus', 'replan');
+                }
+                $scope.resolutions.push({processInstanceId: $scope.processInstanceId, assignee: $rootScope.authentication.name,resolution: $scope.grantSiteAccessForSiteProjectPreparationByContractorStatus , comment: $scope.grantSiteAccessForSiteProjectPreparationByContractorComment, taskId: camForm.taskId});
+                camForm.variableManager.variableValue('resolutions', $scope.resolutions);
+                console.log('siteAccessGrantStatus: ' + $scope.siteAccessGrantStatus);
+                console.log('replanStatus: ' + camForm.variableManager.variableValue('replanStatus'));
+            });
+        }]);
+
+    </script>
+    <shared-site-plan plan-model="sharingPlan"></shared-site-plan>
+    <div class="form-group">
+        <label class="col-sm-4 control-label">Initial Site Access Grant Status For Site Ready:</label>
+        <div class="col-sm-8">
+            <label class="radio-inline">
+                <input type="radio" ng-model="siteAccessGrantStatus" name="siteAccessGrantStatus" value="granted" required> Granted
+            </label>
+            <label class="radio-inline">
+                <input type="radio" ng-model="siteAccessGrantStatus" name="siteAccessGrantStatus" value="notgranted" required> Not Granted (Replan)
+            </label>
+            <label class="error" ng-show="kcell_form.siteAccessGrantStatus.$error.required && ( kcell_form.siteAccessGrantStatus.$touched || view.submitted)">Required field</label>
+        </div>
+    </div>
+    <div class="form-group">
+        <label class="col-sm-4 control-label">Comments</label>
+        <div class="col-sm-8">
+            <textarea class="form-control" ng-model="grantSiteAccessForSiteProjectPreparationByContractorComment" name="grantSiteAccessForSiteProjectPreparationByContractorComment" placeholder="Comments..." maxlength="500" rows="4" ng-required="siteAccessGrantStatus !== 'grant'"></textarea>
+            <label class="error" ng-show="kcell_form.grantSiteAccessForSiteProjectPreparationByContractorComment.$error.required && ( kcell_form.grantSiteAccessForSiteProjectPreparationByContractorComment.$touched || view.submitted)">Required field</label>
+        </div>
+    </div>
+    <accordion>
+        <accordion-group is-open="isHistoryOpen">
+            <accordion-heading>
+                History <i class="pull-right glyphicon" ng-class="{'glyphicon-chevron-up': status.isCustomHeaderOpen, 'glyphicon-chevron-down': !status.isCustomHeaderOpen}"></i>
+            </accordion-heading>
+            <table class="table">
+                <thead>
+                <tr>
+                    <th>Activity</th>
+                    <th>Assignee</th>
+                    <th>Resolution</th>
+                    <th>Date</th>
+                    <th>Comment</th>
+                </tr>
+                </thead>
+                <tbody>
+                <tr ng-repeat="resolution in resolutions">
+                    <td>{{resolution.taskName}}</td>
+                    <td>{{resolution.assigneeName}}</td>
+                    <td>{{'task.resolution.'+resolution.resolution | translate}}</td>
+                    <td>{{resolution.taskEndDate | date: 'dd.MM.yyyy HH:mm'}}</td>
+                    <td>{{resolution.comment}}</td>
+                </tr>
+                </tbody>
+            </table>
+        </accordion-group>
+    </accordion>
+</form>

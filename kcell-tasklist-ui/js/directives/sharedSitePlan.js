@@ -4,7 +4,8 @@ define(['./module'], function(module){
 		return {
 			restrict: 'E',
 			scope: {
-				planModel: '='
+				planModel: '=',
+				planStatus: '='
 			},
 			link: function(scope, el, attrs){
 				scope.download = function(path){

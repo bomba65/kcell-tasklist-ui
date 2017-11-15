@@ -66,6 +66,10 @@ public class DataInitializer {
     @NonNull
     LocationRepository locationRepository;
 
+    final
+    @NonNull
+    PlanRepository planRepository;
+
     @EventListener
     public void init(ApplicationReadyEvent event) throws ParseException {
 
@@ -130,6 +134,13 @@ public class DataInitializer {
                 .name("M595")
                 .params("{\"type\":\"SITE\",\"contractor\":\"ERICSSON\"}")
                 .site(site1)
+                .build());
+
+        Plan plan1 = planRepository.save(Plan.builder()
+                .site(site1)
+                .params("{}")
+                .status("new")
+                .is_current(Boolean.TRUE)
                 .build());
 
         for (int i = 2; i <= 10; i++) {

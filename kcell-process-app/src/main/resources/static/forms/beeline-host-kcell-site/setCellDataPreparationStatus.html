@@ -1,0 +1,187 @@
+<form role="form" class="form-horizontal" name="kcell_form" novalidate>
+    <script cam-script type="text/form-script">
+        inject(['$scope', '$q', '$http', '$rootScope', function ($scope, $q, $http, $rootScope) {
+            var variables = [
+                'sharingPlan',
+                'resolutions',
+                'ssidtssrFiles',
+                'revisionJrStatus',
+                'rolloutJrStatus',
+                'transmission_jr_status',
+                'signedAgreementListFileName',
+                'sharingPlanStatus'
+            ];
+
+            camForm.on('form-loaded', function () {
+                variables.forEach(function (el) {
+                    camForm.variableManager.fetchVariable(el);
+                });
+                $http.get('/camunda/api/engine/engine/default/task/' + camForm.taskId).then(
+                    function(result){
+                        $scope.processInstanceId = result.data.processInstanceId;
+                    },
+                    function (error) {
+                        console.log(error.data);
+                    }
+                );
+            });
+
+            camForm.on('variables-fetched', function () {
+                variables.forEach(function (el) {
+                    if (el === 'resolutions') {
+                        if (camForm.variableManager.variables[el].value) {
+                            $scope.resolutions = angular.copy(camForm.variableManager.variables[el].value);
+                            $q.all($scope.resolutions.map(function (resolution) {
+                                return $http.get("/camunda/api/engine/engine/default/user/" + resolution.assignee + "/profile");
+                            })).then(function (profiles) {
+                                profiles.forEach(function (e, index) {
+                                    $scope.resolutions[index].assigneeName = (e.data.firstName ? e.data.firstName : "") + " " + (e.data.lastName ? e.data.lastName : "");
+                                });
+                            });
+                            $q.all($scope.resolutions.map(function (resolution) {
+                                return $http.get("/camunda/api/engine/engine/default/history/task?processInstanceId=" + resolution.processInstanceId + "&taskId=" + resolution.taskId);
+                            })).then(function (tasks) {
+                                tasks.forEach(function (e, index) {
+                                    if (e.data.length > 0) {
+                                        $scope.resolutions[index].taskName = e.data[0].name;
+                                        try {
+                                            $scope.resolutions[index].taskEndDate = new Date(e.data[0].endTime);
+                                        } catch (e) {
+                                            console.log(e);
+                                        }
+                                    }
+                                });
+                            });
+                        } else {
+                            camForm.variableManager.destroyVariable('resolutions');
+                            camForm.variableManager.createVariable({
+                                name: 'resolutions',
+                                type: 'Json',
+                                value: ''
+                            });
+                        }
+                    } else if (el === 'sharingPlanStatus') {
+                        $scope[el] = camForm.variableManager.variables[el].value;
+                        $scope.sharingPlan.status = camForm.variableManager.variables[el].value;
+                    } else {
+                        $scope[el] = camForm.variableManager.variables[el].value;
+                    }
+                });
+
+                if($scope.sharingPlan){
+                    $scope.sharingPlan.ssidtssrFiles = angular.copy($scope.ssidtssrFiles);
+                    $scope.sharingPlan.currentTask = {id:camForm.taskId};
+                }
+
+                camForm.variableManager.createVariable({
+                    name: 'setCellDataPreparationStatus',
+                    type: 'String',
+                    value: ''
+                });
+
+                camForm.variableManager.createVariable({
+                    name: 'replanStatus',
+                    type: 'String',
+                    value: ''
+                });
+            });
+
+            camForm.on('submit', function () {
+                if(!$scope.resolutions){
+                    $scope.resolutions = [];
+                }
+                $scope.setCellDataPreparationStatus = "Completed"
+                camForm.variableManager.variableValue('setCellDataPreparationStatus', $scope.setCellDataPreparationStatus);
+                camForm.variableManager.variableValue('replanStatus', "notreplan");
+                $scope.resolutions.push({processInstanceId: $scope.processInstanceId, assignee: $rootScope.authentication.name, resolution: $scope.setCellDataPreparationStatus, comment: $scope.setCellDataPreparationStatusComment, taskId: camForm.taskId});
+                console.log($scope.resolutions);
+                camForm.variableManager.variableValue('resolutions', $scope.resolutions);
+            });
+
+            $scope.fileSelected = function(el, index){
+                $scope.ssidtssrFiles[index].id = el.value.replace(/^.*[\\\/]/, '').replace(/\.[^/.]+$/, "");
+                if(el.files[0]){
+                    getBase64(el, index)
+                } else {
+                    $scope.$apply(function(){
+                        $scope.ssidtssrFiles[index] = {file:undefined,id:undefined};
+                    });
+                }
+            };
+
+            $scope.download = function (file) {
+                console.log(file);
+                $http({method: 'GET', url: '/camunda/uploads/get/' + file.path, transformResponse: [] }).
+                success(function(data, status, headers, config) {
+                    document.getElementById('fileDownloadIframe').src = data;
+                }).
+                error (function(data, status, headers, config) {
+                    console.log(data);
+                });
+            }
+
+            $scope.filesActions = [];
+            $scope.clearFile = function(index){
+                $scope.filesActions.push({supplementaryId: index, filename:$scope.ssidtssrFiles[index].prev.valueInfo.filename, action:'deleted'});
+                delete $scope.ssidtssrFiles[index].prev;
+            };
+        }]);
+
+    </script>
+    <shared-site-plan plan-model="sharingPlan"></shared-site-plan>
+    <iframe id="fileDownloadIframe" style="display:none;"></iframe>
+    <div class="form-group">
+        <label class="col-sm-4 control-label">Uploaded signed agreement list:</label>
+        <div class="col-sm-8">
+            <div ng-show="signedAgreementListFileName.name">
+                <a ng-click="download(signedAgreementListFileName)">{{signedAgreementListFileName.name}}</a>
+            </div>
+        </div>
+    </div>
+    <div class="form-group">
+        <label class="col-sm-4 control-label">JR Statutes:</label>
+        <div class="col-sm-8">
+            <div class="well">
+                <p>Revision JR:</p>
+                <div class="row">
+                    <div class="col-md-12" ng-repeat="revision in revisionJrStatus">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;{{revision.jrNumber}}, {{revision.createdIn}}, {{revision.jrStatus}}</div>
+                </div>
+                <p>Transmission Status: {{transmission_jr_status}}</p>
+            </div>
+        </div>
+    </div>
+    <div class="form-group">
+        <label class="col-sm-4 control-label">Comments</label>
+        <div class="col-sm-8">
+            <textarea class="form-control" cam-variable-name="setCellDataPreparationStatusComment" name="setCellDataPreparationStatusComment" cam-variable-type="String" placeholder="Comments..." maxlength="500" rows="4" ng-required="setCellDataPreparationStatus !== 'completed'"></textarea>
+            <label class="error" ng-show="kcell_form.setCellDataPreparationStatusComment.$error.required && ( kcell_form.setCellDataPreparationStatusComment.$touched || view.submitted)">Required field</label>
+        </div>
+    </div>
+    <accordion>
+        <accordion-group is-open="isHistoryOpen">
+            <accordion-heading>
+                History <i class="pull-right glyphicon" ng-class="{'glyphicon-chevron-up': status.isCustomHeaderOpen, 'glyphicon-chevron-down': !status.isCustomHeaderOpen}"></i>
+            </accordion-heading>
+            <table class="table">
+                <thead>
+                <tr>
+                    <th>Activity</th>
+                    <th>Assignee</th>
+                    <th>Resolution</th>
+                    <th>Date</th>
+                    <th>Comment</th>
+                </tr>
+                </thead>
+                <tbody>
+                <tr ng-repeat="resolution in resolutions">
+                    <td>{{resolution.taskName}}</td>
+                    <td>{{resolution.assigneeName}}</td>
+                    <td>{{'task.resolution.'+resolution.resolution | translate}}</td>
+                    <td>{{resolution.taskEndDate | date: 'dd.MM.yyyy HH:mm'}}</td>
+                    <td>{{resolution.comment}}</td>
+                </tr>
+                </tbody>
+            </table>
+        </accordion-group>
+    </accordion>
+</form>

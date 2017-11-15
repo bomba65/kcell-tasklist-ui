@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <bpmn:definitions xmlns:bpmn="http://www.omg.org/spec/BPMN/20100524/MODEL" xmlns:bpmndi="http://www.omg.org/spec/BPMN/20100524/DI" xmlns:di="http://www.omg.org/spec/DD/20100524/DI" xmlns:dc="http://www.omg.org/spec/DD/20100524/DC" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:camunda="http://camunda.org/schema/1.0/bpmn" id="Definitions_1" targetNamespace="http://bpmn.io/schema/bpmn" exporter="Camunda Modeler" exporterVersion="1.9.0">
-  <bpmn:process id="SiteSharingTopProcess" name="Start 4g Site Sharing" isExecutable="true">
+  <bpmn:process id="SiteSharingTopProcess" name="4g Site Sharing" isExecutable="true">
     <bpmn:startEvent id="StartEvent_1" name="Start Form: Start Sharing (Mostly autostarted by &#34;load address plan&#34;)" camunda:formKey="embedded:app:forms/siteSharingTopProcess/start.html" camunda:initiator="starter">
       <bpmn:outgoing>SequenceFlow_0kurj78</bpmn:outgoing>
     </bpmn:startEvent>
@@ -56,6 +56,11 @@
       <bpmn:extensionElements>
         <camunda:in variables="all" />
         <camunda:out variables="all" />
+        <camunda:in businessKey="#{execution.processBusinessKey}" />
+        <camunda:executionListener class="kz.kcell.flow.sharing.changePlanStatusToInstallationDone" event="start" />
+        <camunda:inputOutput>
+          <camunda:inputParameter name="newStatus">site_sharing_in_progress</camunda:inputParameter>
+        </camunda:inputOutput>
       </bpmn:extensionElements>
       <bpmn:incoming>SequenceFlow_02s9iqf</bpmn:incoming>
       <bpmn:outgoing>SequenceFlow_1v8w56p</bpmn:outgoing>
@@ -65,17 +70,40 @@
       <bpmn:extensionElements>
         <camunda:in variables="all" />
         <camunda:out variables="all" />
+        <camunda:in businessKey="#{execution.processBusinessKey}" />
+        <camunda:inputOutput>
+          <camunda:inputParameter name="newStatus">site_sharing_in_progress</camunda:inputParameter>
+        </camunda:inputOutput>
+        <camunda:executionListener class="kz.kcell.flow.sharing.changePlanStatusToInstallationDone" event="start" />
       </bpmn:extensionElements>
       <bpmn:incoming>SequenceFlow_164q850</bpmn:incoming>
       <bpmn:outgoing>SequenceFlow_1v42npc</bpmn:outgoing>
       <bpmn:outgoing>SequenceFlow_1ywokwu</bpmn:outgoing>
     </bpmn:callActivity>
-    <bpmn:callActivity id="Task_053orx4" name="Shared Rollout&#10;Beeline Host&#10;Kcell Site" default="SequenceFlow_10blrxi" calledElement="KcellHostKcellSite">
+    <bpmn:callActivity id="Task_053orx4" name="Shared Rollout&#10;Beeline Host&#10;Kcell Site" default="SequenceFlow_10blrxi" calledElement="BeelineHostKcellSite">
+      <bpmn:extensionElements>
+        <camunda:in variables="all" />
+        <camunda:out variables="all" />
+        <camunda:in businessKey="#{execution.processBusinessKey}" />
+        <camunda:inputOutput>
+          <camunda:inputParameter name="newStatus">site_sharing_in_progress</camunda:inputParameter>
+        </camunda:inputOutput>
+        <camunda:executionListener class="kz.kcell.flow.sharing.changePlanStatusToInstallationDone" event="start" />
+      </bpmn:extensionElements>
       <bpmn:incoming>SequenceFlow_1x0jlvg</bpmn:incoming>
       <bpmn:outgoing>SequenceFlow_10blrxi</bpmn:outgoing>
       <bpmn:outgoing>SequenceFlow_1wnrycf</bpmn:outgoing>
     </bpmn:callActivity>
-    <bpmn:callActivity id="Task_1cm0s85" name="Shared Rollout&#10;Beeline Host&#10;Beeline Site" default="SequenceFlow_0s75zo0" calledElement="KcellHostKcellSite">
+    <bpmn:callActivity id="Task_1cm0s85" name="Shared Rollout&#10;Beeline Host&#10;Beeline Site" default="SequenceFlow_0s75zo0" calledElement="BeelineHostBeelineSite">
+      <bpmn:extensionElements>
+        <camunda:in variables="all" />
+        <camunda:out variables="all" />
+        <camunda:in businessKey="#{execution.processBusinessKey}" />
+        <camunda:inputOutput>
+          <camunda:inputParameter name="newStatus">site_sharing_in_progress</camunda:inputParameter>
+        </camunda:inputOutput>
+        <camunda:executionListener class="kz.kcell.flow.sharing.changePlanStatusToInstallationDone" event="start" />
+      </bpmn:extensionElements>
       <bpmn:incoming>SequenceFlow_0mk3fe6</bpmn:incoming>
       <bpmn:outgoing>SequenceFlow_0s75zo0</bpmn:outgoing>
       <bpmn:outgoing>SequenceFlow_13fdzck</bpmn:outgoing>
@@ -103,12 +131,13 @@
       <bpmn:extensionElements>
         <camunda:in variables="all" />
         <camunda:out variables="all" />
+        <camunda:in businessKey="#{execution.processBusinessKey}" />
       </bpmn:extensionElements>
       <bpmn:incoming>SequenceFlow_1v8w56p</bpmn:incoming>
       <bpmn:outgoing>SequenceFlow_0cf1jez</bpmn:outgoing>
     </bpmn:callActivity>
     <bpmn:sequenceFlow id="SequenceFlow_13fdzck" name="replan" sourceRef="Task_1cm0s85" targetRef="Task_1lzkuei">
-      <bpmn:conditionExpression xsi:type="bpmn:tFormalExpression" />
+      <bpmn:conditionExpression xsi:type="bpmn:tFormalExpression"><![CDATA[${ replanStatus == 'replan' }]]></bpmn:conditionExpression>
     </bpmn:sequenceFlow>
     <bpmn:sequenceFlow id="SequenceFlow_1wnrycf" name="replan" sourceRef="Task_053orx4" targetRef="Task_09cf8b0">
       <bpmn:conditionExpression xsi:type="bpmn:tFormalExpression"><![CDATA[${ replanStatus == 'replan' }]]></bpmn:conditionExpression>
@@ -136,6 +165,7 @@
       <bpmn:extensionElements>
         <camunda:in variables="all" />
         <camunda:out variables="all" />
+        <camunda:in businessKey="#{execution.processBusinessKey}" />
       </bpmn:extensionElements>
       <bpmn:incoming>SequenceFlow_1ywokwu</bpmn:incoming>
       <bpmn:outgoing>SequenceFlow_19xhaav</bpmn:outgoing>
@@ -144,6 +174,7 @@
       <bpmn:extensionElements>
         <camunda:in variables="all" />
         <camunda:out variables="all" />
+        <camunda:in businessKey="#{execution.processBusinessKey}" />
       </bpmn:extensionElements>
       <bpmn:incoming>SequenceFlow_1wnrycf</bpmn:incoming>
       <bpmn:outgoing>SequenceFlow_0x32u6t</bpmn:outgoing>
@@ -152,6 +183,7 @@
       <bpmn:extensionElements>
         <camunda:in variables="all" />
         <camunda:out variables="all" />
+        <camunda:in businessKey="#{execution.processBusinessKey}" />
       </bpmn:extensionElements>
       <bpmn:incoming>SequenceFlow_13fdzck</bpmn:incoming>
       <bpmn:outgoing>SequenceFlow_031xzz2</bpmn:outgoing>

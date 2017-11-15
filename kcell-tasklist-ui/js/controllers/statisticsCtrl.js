@@ -53,15 +53,17 @@ define(['./module','jquery'], function(app,$){
 
 		$scope.reportsMap = {
             'revision-open-tasks': {name: 'Revision open tasks'},
-            'invoice-open-tasks': {name: 'Monthly Act open tasks'}
+            'invoice-open-tasks': {name: 'Monthly Act open tasks'},
+            '4gSharing-open-tasks': {name: '4G Site Sharing open tasks'}
         };
 
         $scope.reports = [
             'revision-open-tasks',
-            'invoice-open-tasks'
+            'invoice-open-tasks',
+            '4gSharing-open-tasks'
         ];
 
-		$scope.currentReport = $stateParams.report || 'revision-open-tasks';
+        $scope.currentReport = $stateParams.report || 'revision-open-tasks';
 
         $scope.task = $stateParams.task;
         $scope.filter = {};
@@ -139,6 +141,8 @@ define(['./module','jquery'], function(app,$){
             if($scope.currentReport === 'revision-open-tasks'){
                 return 'Revision';
             } else if($scope.currentReport === 'invoice-open-tasks'){
+                return 'Invoice';
+            } else if($scope.currentReport === '4gSharing-open-tasks'){
                 return 'Invoice';
             }
         }
@@ -218,238 +222,525 @@ define(['./module','jquery'], function(app,$){
             });
         }
 
-    	if ($scope.task) {
-            var query = {
-                taskDefinitionKey: $scope.task,
-                processDefinitionKey: $scope.getProcessDefinition(),
-                unfinished: true
-            };
-            if($scope.filter.reason) {
-                if($scope.getProcessDefinition() === 'Revision'){
-                    query.processVariables = [{name:'reason', operator:'eq', value:$scope.filter.reason}];
-                } else if($scope.getProcessDefinition() === 'Invoice'){
-                    query.processVariables = [{name:'workType', operator:'eq', value:$scope.filter.reason}];
-                }
-            }
+        if ($scope.currentReport === '4gSharing-open-tasks') {
+            $scope.userTasksMap = {};
+            for (let pid of ['BeelineHostBeelineSite', 'BeelineHostKcellSite', 'KcellHostBeelineSite', 'KcellHostKcellSite','ReplanSharedSiteAddressPlan']) {
+                var userTasksPromise = $http.get($scope.baseUrl + '/process-definition/key/' + pid +'/xml')
+                //var userTasksPromise = $http.get($scope.baseUrl + '/process-definition/key/Revision/xml')
+                    .then(function(response) {
+                        var domParser = new DOMParser();
 
-			$http.post($scope.baseUrl + '/history/task', query).then(function(response) {
-				var tasks = response.data;
-                var processInstanceIds = _.map(tasks, 'processInstanceId');
-                return $http.post($scope.baseUrl + '/history/variable-instance', {
-                    processInstanceIdIn: processInstanceIds
-                }).then(function(response){
-                    var variables = response.data;
-                    var variablesByProcessInstance = _.groupBy(variables, 'processInstanceId');
-                    return _.map(tasks, function(task) {
-                        return _.assign({}, task, {
-                            variables: _.keyBy(
-                                variablesByProcessInstance[task.processInstanceId],
-                                'name'
-                            )
+                        var xml = domParser.parseFromString(response.data.bpmn20Xml, 'application/xml');
+
+                        function getUserTasks(xml) {
+                            var namespaces = {
+                                bpmn: 'http://www.omg.org/spec/BPMN/20100524/MODEL'
+                            };
+
+                            var userTaskNodes = getElementsByXPath(xml, '//bpmn:userTask', prefix => namespaces[prefix]);
+
+                            function getElementsByXPath(doc, xpath, namespaceFn, parent) {
+                                let results = [];
+                                let query = doc.evaluate(xpath,
+                                    parent || doc,
+                                    namespaceFn,
+                                    XPathResult.ORDERED_NODE_SNAPSHOT_TYPE, null);
+                                for (let i=0, length=query.snapshotLength; i<length; ++i) {
+                                    results.push(query.snapshotItem(i));
+                                }
+                                return results;
+                            }
+
+                            return userTaskNodes.map(node => {
+                                var id = node.id;
+                                var name = node.attributes["name"] && node.attributes["name"].textContent;
+                                var description = getElementsByXPath(
+                                    xml,
+                                    'bpmn:documentation/text()',
+                                    prefix => namespaces[prefix],
+                                    node
+                                )[0];
+
+                                description = description && description.textContent;
+
+                                return {
+                                    "id" : id,
+                                    "name" : name,
+                                    "description": description
+                                };
+                            });
+                        }
+
+                        var userTasks = getUserTasks(xml);
+                        var userTasksMap = _.keyBy(userTasks, 'id');
+                        //$scope.userTasksMap = userTasksMap;
+                        $scope.userTasksMap = _.assign($scope.userTasksMap , userTasksMap);
+                    });
+                }
+
+            if ($scope.task) {
+                $http.post($scope.baseUrl + '/history/task', {
+                    taskDefinitionKey: $scope.task,
+                    unfinished: true
+                }).then(function(response) {
+                    var tasks = response.data;
+                    var processInstanceIds = _.map(tasks, 'processInstanceId');
+                    return $http.post($scope.baseUrl + '/history/variable-instance/?deserializeValues=false', {
+                        processInstanceIdIn: processInstanceIds
+                    }).then(function(response){
+                        var variables = _.flatMap(response.data, function(pi) {
+                            if (pi.type === 'Json') {
+                                return {"name": pi.name, "value": JSON.parse(pi.value), "processInstanceId": pi.processInstanceId}
+                            } else return {"name": pi.name, "value": pi.value, "processInstanceId": pi.processInstanceId}
+                        })
+                        var variablesByProcessInstance = _.groupBy(variables, 'processInstanceId');
+                        console.log(
+                             
+                        );
+                        return _.map(tasks, function(task) {
+                            return _.assign({}, task, {
+                                variables: _.keyBy(
+                                    variablesByProcessInstance[task.processInstanceId],
+                                    'name'
+                                )
+                            });
                         });
                     });
+                }).then(function (tasks) {
+                    $scope.tasks = tasks;
+                    console.log($scope.tasks);
                 });
-			}).then(function (tasks) {
-                $scope.tasks = tasks;
-            });
 
-		} else {
-            $scope.updateTaskDefinitions();
+            } else {
+                $scope.sharingTasks = [
+                    {  
+                    "title": "Beeline Host - Beeline Site",
+                    "pid":"BeelineHostBeelineSite",
+                    "tasks" : [
+                        'bb_send_avp', 
+                        'bb_grant_site_region_leasinggr', 
+                        'bb_project_plan_installgr', 
+                        'bb_grant_site_accs_ciwill_works',
+                        'bb_site_installation_done',
+                        'bb_set_cell_data_preparation_status',
+                        'bb_configure_site_for_kcell',
+                        'bb_test_for_kcell_status',
+                        'bb_upload_act_accpt_for_kcell',
+                        'bb_check_approval_kcell',
+                        'bb_generate_act_of_acceptance_for_print_out',
+                        'bb_write_email_rcmu',
+                        'bb_accept_rcmu_group',
+                        'bb_upload_scan_copy_signed_act_acceptence'
+                    ]},
+                    {
+                    "title": "Beeline Host - Kcell Site",
+                    "pid":"BeelineHostKcellSite",
+                    "tasks" : [
+                        'bk_do_initial_leasing_and_grant_site_access_1',
+                        'bk_do_initial_leasing_and_grant_site_access_2',
+                        'bk_projectPlanSiteReadySendingToKcell',
+                        'bk_approve_by_power_group',
+                        'bk_approve_by_transmission_group',
+                        'bk_approve_by_planning_group',
+                        'bk_approve_by_leasing_group',
+                        'bk_approve_by_permit_group',
+                        'bk_project_approved',
+                        'bk_Update_Transmission_Readiness_Status',
+                        'bk_Update_Infrastructure_Revision_JR_Execution_Status',
+                        'bk_Set_Installation_Status',
+                        'bk_set_cell_Data_Preparation_Status_by_Guest',
+                        'bk_configure_site_for_guest_and_update_status',
+                        'bk_send_site_for_acceptance_for_guest',
+                        'bk_generate_act_for_checking_by_guest',
+                        'bk_generate_act_for_print_out_by_guest',
+                        'bk_upload_scan_copy_signed_act_acceptence'
+                    ]},
+                    {
+                    "title": "Kcell Host - Beeline Site",
+                    "pid":"KcellHostBeelineSite",
+                    "tasks" : [
+                        'kb_do_initial_leasing_and_grant_site_access_1',
+                        'kb_prepare_project_plan',
+                        'kb_approve_by_implementation_regional_group',
+                        'kb_approve_by_permit_group',
+                        'kb_project_plan_for_site_ready_installation_approved',
+                        'kb_set_cell_data_preparation_status',
+                        'kb_update_transmission_readiness_status',
+                        'kb_update_infrastructure_revision_jr_execution_status',
+                        'kb_update_rollout_jr_status',
+                        'kb_set_cell_data_preparation_status_by_guest',
+                        'kb_set_site_integration_for_host_and_guest',
+                        'kb_upload_act_of_acceptance_for_guest',
+                        'kb_set_accepted_installation_status_by_beeline',
+                        'kb_set_accepted_installation_status_by_kcell',
+                        'kb_checking_and_approval_by_guest',
+                        'kb_generate_act_of_acceptance_for_print_out',
+                        'kb_upload_scan_copy_signed_act_acceptance'
+                    ]},
+                    {
+                        "title": "Kcell Host - Kcell Site",
+                        "pid":"KcellHostKcellSite",
+                        "tasks" : [
+                            'kk_do_initial_leasing_and_grant_site_access_2',
+                            'kk_do_initial_leasing_and_grant_site_access_1',
+                            'kk_prepare_project_plan',
+                            'kk_approve_by_power_group',
+                            'kk_approve_by_transmission_group',
+                            'kk_approve_by_optimization_group',
+                            'kk_approve_by_leasing_group',
+                            'kk_approve_by_permit_group',
+                            'kk_set_cell_data_preparation_status_by_guest',
+                            'kk_update_transmission_readiness_status',
+                            'kk_update_rollout_jr_status',
+                            'kk_update_infrastructure_revision_jr_execution_status',
+                            'kk_set_cell_data_preparation_status_by_host',
+                            'kk_configure_site_for_host_and_guest',
+                            'kk_site_accepted_for_contractor',
+                            'kk_upload_act_of_acceptance_for_guest',
+                            'kk_checking_and_approval_by_guest_status',
+                            'kk_generate_act_for_print_out_by_guest',
+                            'kk_upload_scan_copy_signed_act_acceptence'
+                        ]
+                    },
+                    {
+                        "title": "Replan Shared Site",
+                        "pid":"ReplanSharedSiteAddressPlan",
+                        "tasks" : [
+                            'rss_task_update_shared_site_address_plan',
+                            'rss_task_accept_or_reject_address_plan_modification'
+                        ]
+                    }
+                   
+                ];
 
-    		$scope.kcellTasks = {
-                'revision-open-tasks':[
-                    'modify_jr', //modify_jr
-                    'approve_jr_regions', //approve_jr_regions
-                    'check_power', //check_power
-                    'approve_transmission_works', //approve_transmission_works
-                    'approve_jr_budget', //approve_jr_budget
-                    'approve_jr', //approve_jr
-                    'update_leasing_status_general', //update_leasing_status_general
-                    'update_leasing_status_special', //update_leasing_status_special
-                    //'Task_0s5v6wl',
-                    'approve_material_list_region', //approve_material_list_region
-                    'approve_material_list_center', //approve_material_list_center
-                    'approve_material_list_center1',
-                    'validate_tr', //validate_tr
-                    'set_materials_dispatch_status', //set_materials_dispatch_status
-                    'verify_works', //verify_works
-                    //'UserTask_0xsau1t',
-                    'accept_work_initiator', //accept_work_initiator
-                    'accept_work_maintenance_group', //accept_work_maintenance_group
-                    'accept_work_planning_group', //accept_work_planning_group
-                    'sign_region_head', //accept_work_planning_group
-                    'attach-scan-copy-of-acceptance-form'],
-                 'invoice-open-tasks': [
-                    'ma_check_region',
-                    'ma_sign_region_head',
-                    'ma_sign_region_manager',
-                    'ma_check_budget',
-                    'ma_check_centralgroup_tech',
-                    'ma_sign_budget',
-                    'ma_check_centralgroup',
-                    'ma_sign_head1',
-                    'ma_sign_head2',
-                    'ma_sign_manager',
-                    'ma_sign_cto',
-                    'ma_print_version',
-                    'ma_invoice_number'
-                ]
-            };
 
-    		$scope.contractorTasks = {
-                'revision-open-tasks':[
-                    'upload_tr_contractor', //upload_tr_contractor
-                    'attach_material_list_contractor', //attach_material_list_contractor
-                    'fill_applied_changes_info' //fill_applied_changes_info
-                ],
-                'invoice-open-tasks': [
-                    'ma_sendtobranch',
-                    'ma_modify'
-                ]
-            };
-
-            if ($scope.currentReport === 'revision-open-tasks') {
-
-                var processQuery = {
-                    "processDefinitionKey": "Revision",
-                    "unfinished": true
-                };
-                if($scope.filter.reason) {
-                    processQuery.variables = [{name:'reason', operator:'eq', value:$scope.filter.reason}];
-                }
-                var processInstancesPromise = $http.post($scope.baseUrl + '/history/process-instance', processQuery).then(function(response) {
-                    var processInstances = _.keyBy(response.data, 'id');
-                    return $http.post($scope.baseUrl + '/history/variable-instance', {
-                        variableName: 'jrNumber',
-                        processInstanceIdIn: _.keys(processInstances)
-                    }).then(function(response){
-                        var variablesByProcessInstance = _.keyBy(response.data, 'processInstanceId');
-                        var valueByProcessInstance = _.mapValues(variablesByProcessInstance, 'value');
-                        var result = _.mapValues(processInstances, (pi, id) => _.assign({}, pi, {'jrNumber': valueByProcessInstance[id]}));
-                        return result;
+                
+                var processInstances = {};
+                var taskInstances = []; 
+                for (let sharingPiD of ['BeelineHostBeelineSite', 'BeelineHostKcellSite', 'KcellHostBeelineSite', 'KcellHostKcellSite','ReplanSharedSiteAddressPlan']) {
+                    var processInstancesPromise = $http.post($scope.baseUrl + '/process-instance', {
+                        "processDefinitionKey": sharingPiD,
+                        "unfinished": true
+                    }).then(function(response) {
+                        if (response.data.length > 0) {
+                            var processInstances = _.keyBy(response.data, 'id');
+                        
+                            return $http.post($scope.baseUrl + '/history/variable-instance/?deserializeValues=false', {
+                                variableName: 'sharingPlan',
+                                processInstanceIdIn: _.keys(processInstances)
+                            }).then(function(response){
+                                var variablesByProcessInstance = _.keyBy(response.data, 'processInstanceId');
+                                var valueByProcessInstance = _.mapValues(variablesByProcessInstance, 'value');
+                                var result = _.mapValues(processInstances, (pi, id) => _.assign({}, pi, {'sharingPlan': JSON.parse(valueByProcessInstance[id])}));
+                                //console.log(result);
+                                return result;
+                            });
+                        } else {
+                            return [];
+                        };
+                        
                     });
-                });
+                    var taskInstancesPromise = $http.post($scope.baseUrl + '/history/task', {
+                        "processDefinitionKey": sharingPiD,
+                        "unfinished": true
+                    }).then(function(response) {
+                        return response.data;
+                    });
 
-                var taskQuery = {
-                    "processDefinitionKey": 'Revision',
-                    "unfinished": true
-                };
-                if($scope.filter.reason) {
-                    taskQuery.processVariables = [{name:'reason', operator:'eq', value:$scope.filter.reason}];
-                }
-                var taskInstancesPromise = $http.post($scope.baseUrl + '/history/task', taskQuery).then(function(response) {
-                    return response.data;
-                });
+                    $q.all([processInstancesPromise, taskInstancesPromise])
+                        .then(function(results) {
+                            processInstances = _.assign(processInstances, results[0]);
+                            //taskInstances = _.assign(taskInstances, results[1]);
+                            taskInstances = _.concat(taskInstances, results[1]);
+                            var taskInstancesByDefinition = _.groupBy(
+                                taskInstances,
+                                'taskDefinitionKey'
+                            );
 
-                $q.all([processInstancesPromise, taskInstancesPromise])
-                    .then(function(results) {
-                        var processInstances = results[0];
-                        var taskInstances = results[1];
-
-                        var taskInstancesByDefinition = _.groupBy(
-                            taskInstances,
-                            'taskDefinitionKey'
-                        );
-
-                        var tasksByIdAndRegionGrouped = _.mapValues(
-                            taskInstancesByDefinition,
-                            function(tasks) {
-                                return _.groupBy(
-                                    tasks,
-                                    function(task) {
-                                        var pid = task.processInstanceId;
-                                        if (processInstances[pid]) {
-                                            return $scope.getJrRegion(processInstances[pid].jrNumber);
-                                        } else {
-                                            return 'no_processinstance';
+                            var tasksByIdAndRegionGrouped = _.mapValues(
+                                taskInstancesByDefinition,
+                                function(tasks) {
+                                    return _.groupBy(
+                                        tasks,
+                                        function(task) {
+                                            var pid = task.processInstanceId;
+                                            if (processInstances[pid]) {
+                                                return $scope.getSiteRegion(processInstances[pid].sharingPlan.site_id.toString());
+                                            } else {
+                                                return 'no_processinstance';
+                                            }
                                         }
-                                    }
-                                );
-                            }
-                        );
+                                    );
+                                }
+                            );
 
-                        var tasksByIdAndRegionCounted = _.mapValues(
-                            tasksByIdAndRegionGrouped,
-                            function(tasks) { return _.mapValues(tasks, 'length'); }
-                        );
+                            var tasksByIdAndRegionCounted = _.mapValues(
+                                tasksByIdAndRegionGrouped,
+                                function(tasks) { return _.mapValues(tasks, 'length'); }
+                            );
 
-                        $scope.tasksByIdAndRegionCounted = tasksByIdAndRegionCounted;
-                    });
-            } else if($scope.currentReport === 'invoice-open-tasks'){
-
-                var processQuery = {
-                    "processDefinitionKey": "Invoice",
-                    "unfinished": true
-                };
-                if($scope.filter.reason) {
-                    processQuery.variables = [{name:'workType', operator:'eq', value:$scope.filter.reason}];
+                            $scope.tasksByIdAndRegionCounted = tasksByIdAndRegionCounted;
+                        });
                 }
-
-                var processInstancesPromise = $http.post($scope.baseUrl + '/history/process-instance', processQuery).then(function(response) {
-                    var processInstances = _.keyBy(response.data, 'id');
-                    return $http.post($scope.baseUrl + '/history/variable-instance', {
-                        variableName: 'invoiceNumber',
-                        processInstanceIdIn: _.keys(processInstances)
-                    }).then(function(response){
-                        var variablesByProcessInstance = _.keyBy(response.data, 'processInstanceId');
-                        var valueByProcessInstance = _.mapValues(variablesByProcessInstance, 'value');
-                        var result = _.mapValues(processInstances, (pi, id) => _.assign({}, pi, {'invoiceNumber': valueByProcessInstance[id]}));
-                        return result;
-                    });
-                });
-
-                var taskQuery = {
-                    "processDefinitionKey": 'Invoice',
-                    "unfinished": true
-                };
-                if($scope.filter.reason) {
-                    taskQuery.processVariables = [{name:'workType', operator:'eq', value:$scope.filter.reason}];
-                }
-
-                var taskInstancesPromise = $http.post($scope.baseUrl + '/history/task', taskQuery).then(function(response) {
-                    return response.data;
-                });
-
-                $q.all([processInstancesPromise, taskInstancesPromise])
-                    .then(function(results) {
-                        var processInstances = results[0];
-                        var taskInstances = results[1];
-
-                        var taskInstancesByDefinition = _.groupBy(
-                            taskInstances,
-                            'taskDefinitionKey'
-                        );
-
-                        var tasksByIdAndRegionGrouped = _.mapValues(
-                            taskInstancesByDefinition,
-                            function(tasks) {
-                                return _.groupBy(
-                                    tasks,
-                                    function(task) {
-                                        var pid = task.processInstanceId;
-                                        if (processInstances[pid]) {
-                                            return $scope.getInvoiceRegion(processInstances[pid].invoiceNumber);
-                                        } else {
-                                            return 'no_processinstance';
-                                        }
-                                    }
-                                );
-                            }
-                        );
-
-                        var tasksByIdAndRegionCounted = _.mapValues(
-                            tasksByIdAndRegionGrouped,
-                            function(tasks) { return _.mapValues(tasks, 'length'); }
-                        );
-
-                        $scope.tasksByIdAndRegionCounted = tasksByIdAndRegionCounted;
-                    });
             }
-		}
+        } else {
+            if ($scope.task) {
+                var query = {
+                    taskDefinitionKey: $scope.task,
+                    processDefinitionKey: $scope.getProcessDefinition(),
+                    unfinished: true
+                };
+                if($scope.filter.reason) {
+                    if($scope.getProcessDefinition() === 'Revision'){
+                        query.processVariables = [{name:'reason', operator:'eq', value:$scope.filter.reason}];
+                    } else if($scope.getProcessDefinition() === 'Invoice'){
+                        query.processVariables = [{name:'workType', operator:'eq', value:$scope.filter.reason}];
+                    }
+                }
 
-		$scope.selectReport = function(report){
-			$location.url($location.path() + "?report=" + report);
-		}
+                $http.post($scope.baseUrl + '/history/task', query).then(function(response) {
+                    var tasks = response.data;
+                    var processInstanceIds = _.map(tasks, 'processInstanceId');
+                    return $http.post($scope.baseUrl + '/history/variable-instance', {
+                        processInstanceIdIn: processInstanceIds
+                    }).then(function(response){
+                        var variables = response.data;
+                        var variablesByProcessInstance = _.groupBy(variables, 'processInstanceId');
+                        return _.map(tasks, function(task) {
+                            return _.assign({}, task, {
+                                variables: _.keyBy(
+                                    variablesByProcessInstance[task.processInstanceId],
+                                    'name'
+                                )
+                            });
+                        });
+                    });
+                }).then(function (tasks) {
+                    $scope.tasks = tasks;
+                });
+
+            } else {
+                $scope.updateTaskDefinitions();
+
+                $scope.kcellTasks = {
+                    'revision-open-tasks':[
+                        'modify_jr', //modify_jr
+                        'approve_jr_regions', //approve_jr_regions
+                        'check_power', //check_power
+                        'approve_transmission_works', //approve_transmission_works
+                        'approve_jr_budget', //approve_jr_budget
+                        'approve_jr', //approve_jr
+                        'update_leasing_status_general', //update_leasing_status_general
+                        'update_leasing_status_special', //update_leasing_status_special
+                        //'Task_0s5v6wl',
+                        'approve_material_list_region', //approve_material_list_region
+                        'approve_material_list_center', //approve_material_list_center
+                        'approve_material_list_center1',
+                        'validate_tr', //validate_tr
+                        'set_materials_dispatch_status', //set_materials_dispatch_status
+                        'verify_works', //verify_works
+                        //'UserTask_0xsau1t',
+                        'accept_work_initiator', //accept_work_initiator
+                        'accept_work_maintenance_group', //accept_work_maintenance_group
+                        'accept_work_planning_group', //accept_work_planning_group
+                        'sign_region_head', //accept_work_planning_group
+                        'attach-scan-copy-of-acceptance-form'],
+                     'invoice-open-tasks': [
+                        'ma_check_region',
+                        'ma_sign_region_head',
+                        'ma_sign_region_manager',
+                        'ma_check_budget',
+                        'ma_check_centralgroup_tech',
+                        'ma_sign_budget',
+                        'ma_check_centralgroup',
+                        'ma_sign_head1',
+                        'ma_sign_head2',
+                        'ma_sign_manager',
+                        'ma_sign_cto',
+                        'ma_print_version',
+                        'ma_invoice_number'
+                    ]
+                };
+
+                $scope.contractorTasks = {
+                    'revision-open-tasks':[
+                        'upload_tr_contractor', //upload_tr_contractor
+                        'attach_material_list_contractor', //attach_material_list_contractor
+                        'fill_applied_changes_info' //fill_applied_changes_info
+                    ],
+                    'invoice-open-tasks': [
+                        'ma_sendtobranch',
+                        'ma_modify'
+                    ]
+                };
+
+                if ($scope.currentReport === 'revision-open-tasks') {
+
+                    var processQuery = {
+                        "processDefinitionKey": "Revision",
+                        "unfinished": true
+                    };
+                    if($scope.filter.reason) {
+                        processQuery.variables = [{name:'reason', operator:'eq', value:$scope.filter.reason}];
+                    }
+                    var processInstancesPromise = $http.post($scope.baseUrl + '/history/process-instance', processQuery).then(function(response) {
+                        var processInstances = _.keyBy(response.data, 'id');
+                        return $http.post($scope.baseUrl + '/history/variable-instance', {
+                            variableName: 'jrNumber',
+                            processInstanceIdIn: _.keys(processInstances)
+                        }).then(function(response){
+                            var variablesByProcessInstance = _.keyBy(response.data, 'processInstanceId');
+                            var valueByProcessInstance = _.mapValues(variablesByProcessInstance, 'value');
+                            var result = _.mapValues(processInstances, (pi, id) => _.assign({}, pi, {'jrNumber': valueByProcessInstance[id]}));
+                            return result;
+                        });
+                    });
+
+                    var taskQuery = {
+                        "processDefinitionKey": 'Revision',
+                        "unfinished": true
+                    };
+                    if($scope.filter.reason) {
+                        taskQuery.processVariables = [{name:'reason', operator:'eq', value:$scope.filter.reason}];
+                    }
+                    var taskInstancesPromise = $http.post($scope.baseUrl + '/history/task', taskQuery).then(function(response) {
+                        return response.data;
+                    });
+
+                    $q.all([processInstancesPromise, taskInstancesPromise])
+                        .then(function(results) {
+                            var processInstances = results[0];
+                            var taskInstances = results[1];
+
+                            var taskInstancesByDefinition = _.groupBy(
+                                taskInstances,
+                                'taskDefinitionKey'
+                            );
+
+                            var tasksByIdAndRegionGrouped = _.mapValues(
+                                taskInstancesByDefinition,
+                                function(tasks) {
+                                    return _.groupBy(
+                                        tasks,
+                                        function(task) {
+                                            var pid = task.processInstanceId;
+                                            if (processInstances[pid]) {
+                                                return $scope.getJrRegion(processInstances[pid].jrNumber);
+                                            } else {
+                                                return 'no_processinstance';
+                                            }
+                                        }
+                                    );
+                                }
+                            );
+
+                            var tasksByIdAndRegionCounted = _.mapValues(
+                                tasksByIdAndRegionGrouped,
+                                function(tasks) { return _.mapValues(tasks, 'length'); }
+                            );
+
+                            $scope.tasksByIdAndRegionCounted = tasksByIdAndRegionCounted;
+                        });
+                } else if($scope.currentReport === 'invoice-open-tasks'){
+
+                    var processQuery = {
+                        "processDefinitionKey": "Invoice",
+                        "unfinished": true
+                    };
+                    if($scope.filter.reason) {
+                        processQuery.variables = [{name:'workType', operator:'eq', value:$scope.filter.reason}];
+                    }
+
+                    var processInstancesPromise = $http.post($scope.baseUrl + '/history/process-instance', processQuery).then(function(response) {
+                        var processInstances = _.keyBy(response.data, 'id');
+                        return $http.post($scope.baseUrl + '/history/variable-instance', {
+                            variableName: 'invoiceNumber',
+                            processInstanceIdIn: _.keys(processInstances)
+                        }).then(function(response){
+                            var variablesByProcessInstance = _.keyBy(response.data, 'processInstanceId');
+                            var valueByProcessInstance = _.mapValues(variablesByProcessInstance, 'value');
+                            var result = _.mapValues(processInstances, (pi, id) => _.assign({}, pi, {'invoiceNumber': valueByProcessInstance[id]}));
+                            return result;
+                        });
+                    });
+
+                    var taskQuery = {
+                        "processDefinitionKey": 'Invoice',
+                        "unfinished": true
+                    };
+                    if($scope.filter.reason) {
+                        taskQuery.processVariables = [{name:'workType', operator:'eq', value:$scope.filter.reason}];
+                    }
+
+                    var taskInstancesPromise = $http.post($scope.baseUrl + '/history/task', taskQuery).then(function(response) {
+                        return response.data;
+                    });
+
+                    $q.all([processInstancesPromise, taskInstancesPromise])
+                        .then(function(results) {
+                            var processInstances = results[0];
+                            var taskInstances = results[1];
+
+                            var taskInstancesByDefinition = _.groupBy(
+                                taskInstances,
+                                'taskDefinitionKey'
+                            );
+
+                            var tasksByIdAndRegionGrouped = _.mapValues(
+                                taskInstancesByDefinition,
+                                function(tasks) {
+                                    return _.groupBy(
+                                        tasks,
+                                        function(task) {
+                                            var pid = task.processInstanceId;
+                                            if (processInstances[pid]) {
+                                                return $scope.getInvoiceRegion(processInstances[pid].invoiceNumber);
+                                            } else {
+                                                return 'no_processinstance';
+                                            }
+                                        }
+                                    );
+                                }
+                            );
+
+                            var tasksByIdAndRegionCounted = _.mapValues(
+                                tasksByIdAndRegionGrouped,
+                                function(tasks) { return _.mapValues(tasks, 'length'); }
+                            );
+
+                            $scope.tasksByIdAndRegionCounted = tasksByIdAndRegionCounted;
+                        });
+                }
+            }
+
+        }
+
+        $scope.getSiteRegion = function (siteID) {
+            //console.log(siteID);
+            if (siteID) {
+                if ( siteID.startsWith('0')) {
+                    return 'almaty';
+                } else if ( siteID.startsWith('1') || siteID.startsWith('2') ) {
+                    if (siteID.startsWith('11')) {
+                        return 'astana';
+                    } else {
+                        return 'north_central';
+                    }
+                } else if ( siteID.startsWith('3')) {
+                    return 'east';
+                } else if ( siteID.startsWith('4')) {
+                    return 'south';
+                } else { 
+                    return 'west'; 
+                }
+            } else {
+                return 'no_region';
+            }
+        };
+
+        $scope.selectReport = function(report){
+            $location.url($location.path() + "?report=" + report);
+        }
 
         $scope.selectReason = function(reason){
             if(reason == 'all'){

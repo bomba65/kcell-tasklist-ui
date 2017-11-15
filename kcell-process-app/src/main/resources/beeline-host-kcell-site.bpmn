@@ -1,0 +1,986 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<bpmn:definitions xmlns:bpmn="http://www.omg.org/spec/BPMN/20100524/MODEL" xmlns:bpmndi="http://www.omg.org/spec/BPMN/20100524/DI" xmlns:di="http://www.omg.org/spec/DD/20100524/DI" xmlns:dc="http://www.omg.org/spec/DD/20100524/DC" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:camunda="http://camunda.org/schema/1.0/bpmn" id="Definitions_1" targetNamespace="http://bpmn.io/schema/bpmn" exporter="Camunda Modeler" exporterVersion="1.9.0">
+  <bpmn:process id="BeelineHostKcellSite" name="Beeline Host Kcell Site" isExecutable="true">
+    <bpmn:startEvent id="StartEvent_1" name="Start">
+      <bpmn:outgoing>SequenceFlow_1yt7he9</bpmn:outgoing>
+    </bpmn:startEvent>
+    <bpmn:parallelGateway id="ParallelGateway_0hebnh3">
+      <bpmn:incoming>SequenceFlow_0c5w42l</bpmn:incoming>
+      <bpmn:outgoing>SequenceFlow_1n7k5oi</bpmn:outgoing>
+      <bpmn:outgoing>SequenceFlow_1qu6tlw</bpmn:outgoing>
+    </bpmn:parallelGateway>
+    <bpmn:userTask id="bk_configure_site_for_guest_and_update_status" name="Configure Site for Guest and Update Status" camunda:formKey="embedded:app:forms/beeline-host-kcell-site/configureSiteForHostAndGuestAndUpdateStatus.html" camunda:candidateGroups="sharing_regional_tech_director">
+      <bpmn:documentation>Configure Site for Guest and Update Status</bpmn:documentation>
+      <bpmn:incoming>SequenceFlow_14ae1x6</bpmn:incoming>
+      <bpmn:outgoing>SequenceFlow_0lpr18m</bpmn:outgoing>
+    </bpmn:userTask>
+    <bpmn:userTask id="bk_send_site_for_acceptance_for_guest" name="Send site for Acceptance for guest" camunda:formKey="embedded:app:forms/beeline-host-kcell-site/sendSiteForAcceptanceForGuest.html" camunda:candidateGroups="sharing_regional_tech_director">
+      <bpmn:documentation>Send site for Acceptance for guest</bpmn:documentation>
+      <bpmn:incoming>SequenceFlow_0wloth3</bpmn:incoming>
+      <bpmn:incoming>SequenceFlow_0lpr18m</bpmn:incoming>
+      <bpmn:outgoing>SequenceFlow_05z4ut6</bpmn:outgoing>
+    </bpmn:userTask>
+    <bpmn:userTask id="bk_generate_act_for_checking_by_guest" name="Generate act of acceptance for Checking and Approval by Guest" default="SequenceFlow_1lfn5fh" camunda:formKey="embedded:app:forms/beeline-host-kcell-site/checkingByGuestAndGenerateActOfAcceptance.html" camunda:assignee="Kanat.Kulmukhambetov@kcell.kz">
+      <bpmn:documentation>Generate act of acceptance for Checking and Approval by Guest</bpmn:documentation>
+      <bpmn:extensionElements>
+        <camunda:taskListener delegateExpression="${generateActOfAcceptance}" event="create" />
+        <camunda:taskListener delegateExpression="${generateActOfAcceptance}" event="complete" />
+        <camunda:taskListener class="kz.kcell.bpm.assignments.SharingRegionalImplementationGroup" event="create" />
+      </bpmn:extensionElements>
+      <bpmn:incoming>SequenceFlow_05z4ut6</bpmn:incoming>
+      <bpmn:outgoing>SequenceFlow_1lfn5fh</bpmn:outgoing>
+    </bpmn:userTask>
+    <bpmn:exclusiveGateway id="ExclusiveGateway_18mxsdp" default="SequenceFlow_1u370ah">
+      <bpmn:incoming>SequenceFlow_1lfn5fh</bpmn:incoming>
+      <bpmn:outgoing>SequenceFlow_0wloth3</bpmn:outgoing>
+      <bpmn:outgoing>SequenceFlow_1u370ah</bpmn:outgoing>
+    </bpmn:exclusiveGateway>
+    <bpmn:endEvent id="EndEvent_00paxxn">
+      <bpmn:incoming>SequenceFlow_0clf1ru</bpmn:incoming>
+    </bpmn:endEvent>
+    <bpmn:sequenceFlow id="SequenceFlow_0wloth3" name="rejected" sourceRef="ExclusiveGateway_18mxsdp" targetRef="bk_send_site_for_acceptance_for_guest">
+      <bpmn:conditionExpression xsi:type="bpmn:tFormalExpression"><![CDATA[${ checkingByGuestResult == 'rejected' }]]></bpmn:conditionExpression>
+    </bpmn:sequenceFlow>
+    <bpmn:sequenceFlow id="SequenceFlow_05z4ut6" sourceRef="bk_send_site_for_acceptance_for_guest" targetRef="bk_generate_act_for_checking_by_guest" />
+    <bpmn:sequenceFlow id="SequenceFlow_1lfn5fh" sourceRef="bk_generate_act_for_checking_by_guest" targetRef="ExclusiveGateway_18mxsdp" />
+    <bpmn:sequenceFlow id="SequenceFlow_1u370ah" sourceRef="ExclusiveGateway_18mxsdp" targetRef="bk_generate_act_for_print_out_by_guest" />
+    <bpmn:sequenceFlow id="SequenceFlow_0yespf5" sourceRef="ScriptTask_1isa030" targetRef="bk_upload_scan_copy_signed_act_acceptence" />
+    <bpmn:userTask id="bk_approve_by_permit_group" name="Approve Project by Permit Group" camunda:formKey="embedded:app:forms/beeline-host-kcell-site/approveByPermitGroup.html" camunda:assignee="Kanat.Kulmukhambetov@kcell.kz">
+      <bpmn:documentation>Approve Project by Permit Group</bpmn:documentation>
+      <bpmn:extensionElements>
+        <camunda:taskListener class="kz.kcell.bpm.assignments.SharingCentralPermitGroup" event="create" />
+      </bpmn:extensionElements>
+      <bpmn:incoming>SequenceFlow_1pkf3za</bpmn:incoming>
+      <bpmn:outgoing>SequenceFlow_1tot6y4</bpmn:outgoing>
+    </bpmn:userTask>
+    <bpmn:userTask id="bk_approve_by_leasing_group" name="Approve Project by Leasing Group" camunda:formKey="embedded:app:forms/beeline-host-kcell-site/approveByLeasingGroup.html" camunda:assignee="Kanat.Kulmukhambetov@kcell.kz">
+      <bpmn:documentation>Approve Project by Leasing Group</bpmn:documentation>
+      <bpmn:extensionElements>
+        <camunda:taskListener class="kz.kcell.bpm.assignments.SharingRegionalLeasingGroup" event="create" />
+      </bpmn:extensionElements>
+      <bpmn:incoming>SequenceFlow_0x2e38o</bpmn:incoming>
+      <bpmn:outgoing>SequenceFlow_0e2t4qc</bpmn:outgoing>
+    </bpmn:userTask>
+    <bpmn:userTask id="bk_approve_by_planning_group" name="Approve Project by Planning Group" camunda:formKey="embedded:app:forms/beeline-host-kcell-site/approveByPlaningGroup.html" camunda:assignee="Kanat.Kulmukhambetov@kcell.kz">
+      <bpmn:documentation>Approve Project by Planning Group</bpmn:documentation>
+      <bpmn:extensionElements>
+        <camunda:taskListener class="kz.kcell.bpm.assignments.SharingRegionalPlanningGroup" event="create" />
+      </bpmn:extensionElements>
+      <bpmn:incoming>SequenceFlow_1kaxovy</bpmn:incoming>
+      <bpmn:outgoing>SequenceFlow_1o0xtt1</bpmn:outgoing>
+    </bpmn:userTask>
+    <bpmn:userTask id="bk_approve_by_transmission_group" name="Approve Project by Transmission Group" camunda:formKey="embedded:app:forms/beeline-host-kcell-site/approveByTransmissionGroup.html" camunda:assignee="Kanat.Kulmukhambetov@kcell.kz">
+      <bpmn:documentation>Approve Project by Transmission Group</bpmn:documentation>
+      <bpmn:extensionElements>
+        <camunda:taskListener class="kz.kcell.bpm.assignments.SharingRegionalTransmissionGroup" event="create" />
+      </bpmn:extensionElements>
+      <bpmn:incoming>SequenceFlow_0d3d02l</bpmn:incoming>
+      <bpmn:outgoing>SequenceFlow_0ii1tbw</bpmn:outgoing>
+    </bpmn:userTask>
+    <bpmn:userTask id="bk_approve_by_power_group" name="Approve Project by Power Group" camunda:formKey="embedded:app:forms/beeline-host-kcell-site/approveByPowerGroup.html" camunda:assignee="Kanat.Kulmukhambetov@kcell.kz">
+      <bpmn:documentation>Approve Project by Power Group</bpmn:documentation>
+      <bpmn:extensionElements>
+        <camunda:taskListener class="kz.kcell.bpm.assignments.SharingRegionalPowerGroup" event="create" />
+      </bpmn:extensionElements>
+      <bpmn:incoming>SequenceFlow_04pn9ew</bpmn:incoming>
+      <bpmn:outgoing>SequenceFlow_0q4l7b1</bpmn:outgoing>
+    </bpmn:userTask>
+    <bpmn:parallelGateway id="ParallelGateway_0lzv2zr">
+      <bpmn:incoming>SequenceFlow_0y8k23f</bpmn:incoming>
+      <bpmn:outgoing>SequenceFlow_1pkf3za</bpmn:outgoing>
+      <bpmn:outgoing>SequenceFlow_1kaxovy</bpmn:outgoing>
+      <bpmn:outgoing>SequenceFlow_0d3d02l</bpmn:outgoing>
+      <bpmn:outgoing>SequenceFlow_04pn9ew</bpmn:outgoing>
+      <bpmn:outgoing>SequenceFlow_0x2e38o</bpmn:outgoing>
+    </bpmn:parallelGateway>
+    <bpmn:parallelGateway id="ParallelGateway_00svkf4">
+      <bpmn:incoming>SequenceFlow_1tot6y4</bpmn:incoming>
+      <bpmn:incoming>SequenceFlow_1o0xtt1</bpmn:incoming>
+      <bpmn:incoming>SequenceFlow_0ii1tbw</bpmn:incoming>
+      <bpmn:incoming>SequenceFlow_0q4l7b1</bpmn:incoming>
+      <bpmn:incoming>SequenceFlow_0e2t4qc</bpmn:incoming>
+      <bpmn:outgoing>SequenceFlow_0474nwz</bpmn:outgoing>
+    </bpmn:parallelGateway>
+    <bpmn:sequenceFlow id="SequenceFlow_1pkf3za" sourceRef="ParallelGateway_0lzv2zr" targetRef="bk_approve_by_permit_group" />
+    <bpmn:sequenceFlow id="SequenceFlow_1tot6y4" sourceRef="bk_approve_by_permit_group" targetRef="ParallelGateway_00svkf4" />
+    <bpmn:sequenceFlow id="SequenceFlow_1kaxovy" sourceRef="ParallelGateway_0lzv2zr" targetRef="bk_approve_by_planning_group" />
+    <bpmn:sequenceFlow id="SequenceFlow_1o0xtt1" sourceRef="bk_approve_by_planning_group" targetRef="ParallelGateway_00svkf4" />
+    <bpmn:sequenceFlow id="SequenceFlow_0d3d02l" sourceRef="ParallelGateway_0lzv2zr" targetRef="bk_approve_by_transmission_group" />
+    <bpmn:sequenceFlow id="SequenceFlow_0ii1tbw" sourceRef="bk_approve_by_transmission_group" targetRef="ParallelGateway_00svkf4" />
+    <bpmn:sequenceFlow id="SequenceFlow_04pn9ew" sourceRef="ParallelGateway_0lzv2zr" targetRef="bk_approve_by_power_group" />
+    <bpmn:sequenceFlow id="SequenceFlow_0q4l7b1" sourceRef="bk_approve_by_power_group" targetRef="ParallelGateway_00svkf4" />
+    <bpmn:sequenceFlow id="SequenceFlow_0b6fm3m" name="replan" sourceRef="ExclusiveGateway_09mw30q" targetRef="EndEvent_1nmm8jh">
+      <bpmn:conditionExpression xsi:type="bpmn:tFormalExpression"><![CDATA[${replanStatus == 'replan'}]]></bpmn:conditionExpression>
+    </bpmn:sequenceFlow>
+    <bpmn:sequenceFlow id="SequenceFlow_0474nwz" sourceRef="ParallelGateway_00svkf4" targetRef="bk_project_approved" />
+    <bpmn:exclusiveGateway id="ExclusiveGateway_02ucjno" default="SequenceFlow_058xg35">
+      <bpmn:incoming>SequenceFlow_1yt7he9</bpmn:incoming>
+      <bpmn:outgoing>SequenceFlow_1f7nqyb</bpmn:outgoing>
+      <bpmn:outgoing>SequenceFlow_058xg35</bpmn:outgoing>
+    </bpmn:exclusiveGateway>
+    <bpmn:userTask id="bk_do_initial_leasing_and_grant_site_access_2" name="Do Leasing and Grant Site Access" camunda:formKey="embedded:app:forms/beeline-host-kcell-site/doInitialLeasingAndGrantAccessToSite.html" camunda:assignee="Kanat.Kulmukhambetov@kcell.kz">
+      <bpmn:documentation>Do Leasing and Grant Site Access</bpmn:documentation>
+      <bpmn:extensionElements>
+        <camunda:inputOutput>
+          <camunda:inputParameter name="showSSID">true</camunda:inputParameter>
+        </camunda:inputOutput>
+        <camunda:taskListener class="kz.kcell.bpm.assignments.SharingRegionalLeasingGroup" event="create" />
+      </bpmn:extensionElements>
+      <bpmn:incoming>SequenceFlow_058xg35</bpmn:incoming>
+      <bpmn:outgoing>SequenceFlow_0mptwfb</bpmn:outgoing>
+    </bpmn:userTask>
+    <bpmn:exclusiveGateway id="ExclusiveGateway_0zb0t1v">
+      <bpmn:incoming>SequenceFlow_0mptwfb</bpmn:incoming>
+      <bpmn:incoming>SequenceFlow_1p7ixq4</bpmn:incoming>
+      <bpmn:outgoing>SequenceFlow_0ti2ana</bpmn:outgoing>
+    </bpmn:exclusiveGateway>
+    <bpmn:userTask id="bk_do_initial_leasing_and_grant_site_access_1" name="Do Leasing and Grant Site Access" camunda:formKey="embedded:app:forms/beeline-host-kcell-site/doInitialLeasingAndGrantAccessToSite.html" camunda:assignee="Kanat.Kulmukhambetov@kcell.kz" camunda:candidateGroups="Kcell_central_leasing_group">
+      <bpmn:documentation>Do Leasing and Grant Site Access</bpmn:documentation>
+      <bpmn:extensionElements>
+        <camunda:inputOutput>
+          <camunda:inputParameter name="showSSID">true</camunda:inputParameter>
+        </camunda:inputOutput>
+      </bpmn:extensionElements>
+      <bpmn:incoming>SequenceFlow_1f7nqyb</bpmn:incoming>
+      <bpmn:outgoing>SequenceFlow_1p7ixq4</bpmn:outgoing>
+    </bpmn:userTask>
+    <bpmn:sequenceFlow id="SequenceFlow_1f7nqyb" name="site belongs to KZT, Beeline, ODS" sourceRef="ExclusiveGateway_02ucjno" targetRef="bk_do_initial_leasing_and_grant_site_access_1">
+      <bpmn:conditionExpression xsi:type="bpmn:tFormalExpression"><![CDATA[${isSpecialSite == 'true'}]]></bpmn:conditionExpression>
+    </bpmn:sequenceFlow>
+    <bpmn:sequenceFlow id="SequenceFlow_058xg35" name="regular site" sourceRef="ExclusiveGateway_02ucjno" targetRef="bk_do_initial_leasing_and_grant_site_access_2" />
+    <bpmn:sequenceFlow id="SequenceFlow_0mptwfb" sourceRef="bk_do_initial_leasing_and_grant_site_access_2" targetRef="ExclusiveGateway_0zb0t1v" />
+    <bpmn:sequenceFlow id="SequenceFlow_1c8543o" name="replan" sourceRef="ExclusiveGateway_0q2k1pc" targetRef="EndEvent_10ukpas">
+      <bpmn:conditionExpression xsi:type="bpmn:tFormalExpression"><![CDATA[${replanStatus == 'replan'}]]></bpmn:conditionExpression>
+    </bpmn:sequenceFlow>
+    <bpmn:sequenceFlow id="SequenceFlow_1p7ixq4" sourceRef="bk_do_initial_leasing_and_grant_site_access_1" targetRef="ExclusiveGateway_0zb0t1v" />
+    <bpmn:sequenceFlow id="SequenceFlow_0clf1ru" sourceRef="Task_01zifzu" targetRef="EndEvent_00paxxn" />
+    <bpmn:sendTask id="Task_01zifzu" name="Notify Initiator that Site Commercially on Air on Both Sides" camunda:class="kz.kcell.bpm.MyJavaDelegate">
+      <bpmn:incoming>SequenceFlow_0f1qx7u</bpmn:incoming>
+      <bpmn:outgoing>SequenceFlow_0clf1ru</bpmn:outgoing>
+    </bpmn:sendTask>
+    <bpmn:exclusiveGateway id="ExclusiveGateway_09mw30q" default="SequenceFlow_0y8k23f">
+      <bpmn:incoming>SequenceFlow_16i73c5</bpmn:incoming>
+      <bpmn:outgoing>SequenceFlow_0y8k23f</bpmn:outgoing>
+      <bpmn:outgoing>SequenceFlow_0b6fm3m</bpmn:outgoing>
+    </bpmn:exclusiveGateway>
+    <bpmn:sequenceFlow id="SequenceFlow_0y8k23f" sourceRef="ExclusiveGateway_09mw30q" targetRef="ParallelGateway_0lzv2zr" />
+    <bpmn:exclusiveGateway id="ExclusiveGateway_0q2k1pc" default="SequenceFlow_1rpmqtd">
+      <bpmn:incoming>SequenceFlow_0ti2ana</bpmn:incoming>
+      <bpmn:outgoing>SequenceFlow_1rpmqtd</bpmn:outgoing>
+      <bpmn:outgoing>SequenceFlow_1c8543o</bpmn:outgoing>
+    </bpmn:exclusiveGateway>
+    <bpmn:sequenceFlow id="SequenceFlow_1rpmqtd" sourceRef="ExclusiveGateway_0q2k1pc" targetRef="bk_projectPlanSiteReadySendingToKcell" />
+    <bpmn:sequenceFlow id="SequenceFlow_0ti2ana" sourceRef="ExclusiveGateway_0zb0t1v" targetRef="ExclusiveGateway_0q2k1pc" />
+    <bpmn:sequenceFlow id="SequenceFlow_16i73c5" sourceRef="bk_projectPlanSiteReadySendingToKcell" targetRef="ExclusiveGateway_09mw30q" />
+    <bpmn:sequenceFlow id="SequenceFlow_0x2e38o" sourceRef="ParallelGateway_0lzv2zr" targetRef="bk_approve_by_leasing_group" />
+    <bpmn:sequenceFlow id="SequenceFlow_0e2t4qc" sourceRef="bk_approve_by_leasing_group" targetRef="ParallelGateway_00svkf4" />
+    <bpmn:sequenceFlow id="SequenceFlow_0rr6g3k" sourceRef="bk_project_approved" targetRef="ExclusiveGateway_0pz1d93" />
+    <bpmn:sequenceFlow id="SequenceFlow_0c5w42l" sourceRef="ExclusiveGateway_0pz1d93" targetRef="ParallelGateway_0hebnh3" />
+    <bpmn:parallelGateway id="ExclusiveGateway_0pz1d93">
+      <bpmn:incoming>SequenceFlow_0rr6g3k</bpmn:incoming>
+      <bpmn:outgoing>SequenceFlow_0c5w42l</bpmn:outgoing>
+      <bpmn:outgoing>SequenceFlow_0z3hs8r</bpmn:outgoing>
+    </bpmn:parallelGateway>
+    <bpmn:sequenceFlow id="SequenceFlow_0z3hs8r" sourceRef="ExclusiveGateway_0pz1d93" targetRef="bk_Update_Transmission_Readiness_Status" />
+    <bpmn:sequenceFlow id="SequenceFlow_1wczdgp" sourceRef="ExclusiveGateway_1dzv2un" targetRef="ScriptTask_1bzbvq3" />
+    <bpmn:sequenceFlow id="SequenceFlow_114v2ko" sourceRef="bk_Update_Transmission_Readiness_Status" targetRef="ExclusiveGateway_1dzv2un" />
+    <bpmn:parallelGateway id="ExclusiveGateway_1dzv2un">
+      <bpmn:incoming>SequenceFlow_114v2ko</bpmn:incoming>
+      <bpmn:incoming>SequenceFlow_04bh6ux</bpmn:incoming>
+      <bpmn:outgoing>SequenceFlow_1wczdgp</bpmn:outgoing>
+    </bpmn:parallelGateway>
+    <bpmn:userTask id="bk_Update_Infrastructure_Revision_JR_Execution_Status" name="Update Infrastructure Revision JR Execution Status" camunda:formKey="embedded:app:forms/beeline-host-kcell-site/updateInfrastructureRevisionJRExecutionStatus.html" camunda:assignee="Kanat.Kulmukhambetov@kcell.kz">
+      <bpmn:documentation>Update Infrastructure Revision JR Execution Status</bpmn:documentation>
+      <bpmn:extensionElements>
+        <camunda:taskListener class="kz.kcell.bpm.assignments.SharingRegionalImplementationGroup" event="create" />
+      </bpmn:extensionElements>
+      <bpmn:incoming>SequenceFlow_1n7k5oi</bpmn:incoming>
+      <bpmn:outgoing>SequenceFlow_06njeua</bpmn:outgoing>
+      <bpmn:dataOutputAssociation id="DataOutputAssociation_0e2mznb">
+        <bpmn:targetRef>DataStoreReference_0xgnrle</bpmn:targetRef>
+      </bpmn:dataOutputAssociation>
+    </bpmn:userTask>
+    <bpmn:sequenceFlow id="SequenceFlow_1n7k5oi" sourceRef="ParallelGateway_0hebnh3" targetRef="bk_Update_Infrastructure_Revision_JR_Execution_Status" />
+    <bpmn:userTask id="bk_Set_Installation_Status" name="Set Installation Status" camunda:formKey="embedded:app:forms/beeline-host-kcell-site/setInstallationStatus.html" camunda:candidateGroups="sharing_regional_tech_director">
+      <bpmn:documentation>Set Installation Status</bpmn:documentation>
+      <bpmn:incoming>SequenceFlow_06njeua</bpmn:incoming>
+      <bpmn:outgoing>SequenceFlow_04bh6ux</bpmn:outgoing>
+    </bpmn:userTask>
+    <bpmn:sequenceFlow id="SequenceFlow_06njeua" sourceRef="bk_Update_Infrastructure_Revision_JR_Execution_Status" targetRef="bk_Set_Installation_Status" />
+    <bpmn:sequenceFlow id="SequenceFlow_1qu6tlw" sourceRef="ParallelGateway_0hebnh3" targetRef="bk_set_cell_Data_Preparation_Status_by_Guest" />
+    <bpmn:sequenceFlow id="SequenceFlow_15otmyu" sourceRef="bk_set_cell_Data_Preparation_Status_by_Guest" targetRef="ParallelGateway_0pbq800" />
+    <bpmn:sequenceFlow id="SequenceFlow_0lpr18m" sourceRef="bk_configure_site_for_guest_and_update_status" targetRef="bk_send_site_for_acceptance_for_guest" />
+    <bpmn:sequenceFlow id="SequenceFlow_15sv19e" sourceRef="ScriptTask_1bzbvq3" targetRef="ParallelGateway_0pbq800" />
+    <bpmn:endEvent id="EndEvent_1nmm8jh">
+      <bpmn:extensionElements>
+        <camunda:executionListener class="kz.kcell.flow.sharing.changePlanStatusToInstallationDone" event="start" />
+        <camunda:inputOutput>
+          <camunda:inputParameter name="newStatus">replan</camunda:inputParameter>
+        </camunda:inputOutput>
+      </bpmn:extensionElements>
+      <bpmn:incoming>SequenceFlow_0b6fm3m</bpmn:incoming>
+    </bpmn:endEvent>
+    <bpmn:endEvent id="EndEvent_10ukpas">
+      <bpmn:extensionElements>
+        <camunda:inputOutput>
+          <camunda:inputParameter name="newStatus">replan</camunda:inputParameter>
+        </camunda:inputOutput>
+        <camunda:executionListener class="kz.kcell.flow.sharing.changePlanStatusToInstallationDone" event="start" />
+      </bpmn:extensionElements>
+      <bpmn:incoming>SequenceFlow_1c8543o</bpmn:incoming>
+    </bpmn:endEvent>
+    <bpmn:userTask id="bk_projectPlanSiteReadySendingToKcell" name="Project Plan for Site Ready, Sending Project to Kcell" camunda:formKey="embedded:app:forms/beeline-host-kcell-site/projectPlanSiteReadySendingToKcell.html" camunda:assignee="YKhakimzhanov@beeline.kz" camunda:candidateGroups="sharing_installation_group">
+      <bpmn:documentation>Project Plan for Site Ready, Sending Project to Kcell</bpmn:documentation>
+      <bpmn:incoming>SequenceFlow_1rpmqtd</bpmn:incoming>
+      <bpmn:outgoing>SequenceFlow_16i73c5</bpmn:outgoing>
+    </bpmn:userTask>
+    <bpmn:userTask id="bk_project_approved" name="Project Approved" camunda:formKey="embedded:app:forms/beeline-host-kcell-site/projectApproved.html" camunda:assignee="Kanat.Kulmukhambetov@kcell.kz">
+      <bpmn:documentation>Project Approved</bpmn:documentation>
+      <bpmn:extensionElements>
+        <camunda:taskListener class="kz.kcell.bpm.assignments.SharingRegionalImplementationGroup" event="create" />
+      </bpmn:extensionElements>
+      <bpmn:incoming>SequenceFlow_0474nwz</bpmn:incoming>
+      <bpmn:outgoing>SequenceFlow_0rr6g3k</bpmn:outgoing>
+    </bpmn:userTask>
+    <bpmn:userTask id="bk_Update_Transmission_Readiness_Status" name="Update Transmission Readiness Status" camunda:formKey="embedded:app:forms/beeline-host-kcell-site/updateTransmissionReadinessStatus.html" camunda:assignee="Kanat.Kulmukhambetov@kcell.kz">
+      <bpmn:documentation>Update Transmission Readiness Status</bpmn:documentation>
+      <bpmn:extensionElements>
+        <camunda:taskListener class="kz.kcell.bpm.assignments.SharingRegionalTransmissionGroup" event="create" />
+      </bpmn:extensionElements>
+      <bpmn:incoming>SequenceFlow_0z3hs8r</bpmn:incoming>
+      <bpmn:outgoing>SequenceFlow_114v2ko</bpmn:outgoing>
+    </bpmn:userTask>
+    <bpmn:serviceTask id="ScriptTask_1bzbvq3" name="Set Site Installation Done in Address Plan" camunda:class="kz.kcell.flow.sharing.changePlanStatusToInstallationDone">
+      <bpmn:extensionElements>
+        <camunda:inputOutput>
+          <camunda:inputParameter name="newStatus">site_installation_done</camunda:inputParameter>
+        </camunda:inputOutput>
+      </bpmn:extensionElements>
+      <bpmn:incoming>SequenceFlow_1wczdgp</bpmn:incoming>
+      <bpmn:outgoing>SequenceFlow_15sv19e</bpmn:outgoing>
+      <bpmn:dataOutputAssociation id="DataOutputAssociation_1150p6z">
+        <bpmn:targetRef>DataStoreReference_0cqwaep</bpmn:targetRef>
+      </bpmn:dataOutputAssociation>
+    </bpmn:serviceTask>
+    <bpmn:serviceTask id="ScriptTask_1isa030" name="Set Commercial on Air Status for Guest" camunda:class="kz.kcell.flow.sharing.changePlanStatusToInstallationDone">
+      <bpmn:extensionElements>
+        <camunda:inputOutput>
+          <camunda:inputParameter name="newStatus">site_on_air</camunda:inputParameter>
+        </camunda:inputOutput>
+      </bpmn:extensionElements>
+      <bpmn:incoming>SequenceFlow_1dms9yc</bpmn:incoming>
+      <bpmn:outgoing>SequenceFlow_0yespf5</bpmn:outgoing>
+    </bpmn:serviceTask>
+    <bpmn:dataStoreReference id="DataStoreReference_0cqwaep" name="Address Plan DB" />
+    <bpmn:dataStoreReference id="DataStoreReference_0xgnrle" name="flow.kcell.kz" />
+    <bpmn:userTask id="bk_set_cell_Data_Preparation_Status_by_Guest" name="Set Cell Data Preparation Status by Guest" camunda:formKey="embedded:app:forms/beeline-host-kcell-site/setCellDataPreparationStatus.html" camunda:assignee="Kanat.Kulmukhambetov@kcell.kz" camunda:candidateGroups="Kcell_Central_planning_group">
+      <bpmn:documentation>Set Cell Data Preparation Status by Guest</bpmn:documentation>
+      <bpmn:incoming>SequenceFlow_1qu6tlw</bpmn:incoming>
+      <bpmn:outgoing>SequenceFlow_15otmyu</bpmn:outgoing>
+    </bpmn:userTask>
+    <bpmn:sequenceFlow id="SequenceFlow_04bh6ux" sourceRef="bk_Set_Installation_Status" targetRef="ExclusiveGateway_1dzv2un" />
+    <bpmn:parallelGateway id="ParallelGateway_0pbq800">
+      <bpmn:incoming>SequenceFlow_15sv19e</bpmn:incoming>
+      <bpmn:incoming>SequenceFlow_15otmyu</bpmn:incoming>
+      <bpmn:outgoing>SequenceFlow_14ae1x6</bpmn:outgoing>
+    </bpmn:parallelGateway>
+    <bpmn:sequenceFlow id="SequenceFlow_14ae1x6" sourceRef="ParallelGateway_0pbq800" targetRef="bk_configure_site_for_guest_and_update_status" />
+    <bpmn:userTask id="bk_upload_scan_copy_signed_act_acceptence" name="Upload scan copy signed act acceptence by host" camunda:formKey="embedded:app:forms/beeline-host-kcell-site/uploadScanCopyByHost.html" camunda:assignee="VProkhodov@beeline.kz" camunda:candidateGroups="sharing_regional_tech_director">
+      <bpmn:documentation>Upload scan copy signed act acceptence by host</bpmn:documentation>
+      <bpmn:incoming>SequenceFlow_0yespf5</bpmn:incoming>
+      <bpmn:outgoing>SequenceFlow_0f1qx7u</bpmn:outgoing>
+    </bpmn:userTask>
+    <bpmn:sequenceFlow id="SequenceFlow_0f1qx7u" sourceRef="bk_upload_scan_copy_signed_act_acceptence" targetRef="Task_01zifzu" />
+    <bpmn:userTask id="bk_generate_act_for_print_out_by_guest" name="Generate Act of acceptance, for print out and signed by guest " camunda:formKey="embedded:app:forms/beeline-host-kcell-site/generateActOfAcceptanceForPrintOut.html" camunda:assignee="Kanat.Kulmukhambetov@kcell.kz">
+      <bpmn:documentation>Generate Act of acceptance, for print out and signed by guest</bpmn:documentation>
+      <bpmn:extensionElements>
+        <camunda:taskListener class="kz.kcell.bpm.assignments.SharingRegionalImplementationGroup" event="create" />
+      </bpmn:extensionElements>
+      <bpmn:incoming>SequenceFlow_1u370ah</bpmn:incoming>
+      <bpmn:outgoing>SequenceFlow_1dms9yc</bpmn:outgoing>
+    </bpmn:userTask>
+    <bpmn:sequenceFlow id="SequenceFlow_1dms9yc" sourceRef="bk_generate_act_for_print_out_by_guest" targetRef="ScriptTask_1isa030" />
+    <bpmn:sequenceFlow id="SequenceFlow_1yt7he9" sourceRef="StartEvent_1" targetRef="ExclusiveGateway_02ucjno" />
+    <bpmn:textAnnotation id="TextAnnotation_0hmsv6c">    <bpmn:text>Beeline [installation group]</bpmn:text>
+</bpmn:textAnnotation>
+    <bpmn:association id="Association_0cslzdp" sourceRef="bk_projectPlanSiteReadySendingToKcell" targetRef="TextAnnotation_0hmsv6c" />
+    <bpmn:textAnnotation id="TextAnnotation_19hkqpd">    <bpmn:text>Beeline regional tech director</bpmn:text>
+</bpmn:textAnnotation>
+    <bpmn:textAnnotation id="TextAnnotation_0bmbxjb">    <bpmn:text>Beeline regional tech director</bpmn:text>
+</bpmn:textAnnotation>
+    <bpmn:textAnnotation id="TextAnnotation_1vgywws">    <bpmn:text>Kcell_regional Implementation_group</bpmn:text>
+</bpmn:textAnnotation>
+    <bpmn:association id="Association_1xoxwx3" sourceRef="bk_configure_site_for_guest_and_update_status" targetRef="TextAnnotation_0bmbxjb" />
+    <bpmn:association id="Association_0coez5g" sourceRef="bk_send_site_for_acceptance_for_guest" targetRef="TextAnnotation_19hkqpd" />
+    <bpmn:association id="Association_0vts8ht" sourceRef="bk_generate_act_for_checking_by_guest" targetRef="TextAnnotation_1vgywws" />
+    <bpmn:textAnnotation id="TextAnnotation_0oiof4f">    <bpmn:text>Kcell_central_permit_group</bpmn:text>
+</bpmn:textAnnotation>
+    <bpmn:textAnnotation id="TextAnnotation_1k5g3o8">    <bpmn:text>Kcell_regional_leasing_group</bpmn:text>
+</bpmn:textAnnotation>
+    <bpmn:textAnnotation id="TextAnnotation_0eh8rid">    <bpmn:text>Kcell_regional_planning_group</bpmn:text>
+</bpmn:textAnnotation>
+    <bpmn:textAnnotation id="TextAnnotation_0fisbv6">    <bpmn:text>Kcell_regional_transmission_group</bpmn:text>
+</bpmn:textAnnotation>
+    <bpmn:textAnnotation id="TextAnnotation_0ct1mhs">    <bpmn:text>Kcell_regional_power_group</bpmn:text>
+</bpmn:textAnnotation>
+    <bpmn:association id="Association_10nyatj" sourceRef="bk_approve_by_permit_group" targetRef="TextAnnotation_0oiof4f" />
+    <bpmn:association id="Association_0ph1wo4" sourceRef="bk_approve_by_leasing_group" targetRef="TextAnnotation_1k5g3o8" />
+    <bpmn:association id="Association_051lk40" sourceRef="bk_approve_by_planning_group" targetRef="TextAnnotation_0eh8rid" />
+    <bpmn:association id="Association_09gs8h5" sourceRef="bk_approve_by_transmission_group" targetRef="TextAnnotation_0fisbv6" />
+    <bpmn:association id="Association_1niutmb" sourceRef="bk_approve_by_power_group" targetRef="TextAnnotation_0ct1mhs" />
+    <bpmn:textAnnotation id="TextAnnotation_1hrun27">    <bpmn:text>Kcell_regional leasing_group</bpmn:text>
+</bpmn:textAnnotation>
+    <bpmn:textAnnotation id="TextAnnotation_0336rg9">    <bpmn:text>Kcell_central_leasing_group</bpmn:text>
+</bpmn:textAnnotation>
+    <bpmn:association id="Association_0bj576v" sourceRef="bk_do_initial_leasing_and_grant_site_access_2" targetRef="TextAnnotation_1hrun27" />
+    <bpmn:association id="Association_1wtnfu6" sourceRef="bk_do_initial_leasing_and_grant_site_access_1" targetRef="TextAnnotation_0336rg9" />
+    <bpmn:textAnnotation id="TextAnnotation_03vv9yl">    <bpmn:text>Kcell_regional Implementation_group</bpmn:text>
+</bpmn:textAnnotation>
+    <bpmn:association id="Association_0shr6xz" sourceRef="bk_project_approved" targetRef="TextAnnotation_03vv9yl" />
+    <bpmn:textAnnotation id="TextAnnotation_0qiunoq">    <bpmn:text>Kcell_regional_transmission_group</bpmn:text>
+</bpmn:textAnnotation>
+    <bpmn:association id="Association_024tt7n" sourceRef="bk_Update_Transmission_Readiness_Status" targetRef="TextAnnotation_0qiunoq" />
+    <bpmn:textAnnotation id="TextAnnotation_1h9vu5l">    <bpmn:text>Kcell_regional Implementation_group</bpmn:text>
+</bpmn:textAnnotation>
+    <bpmn:association id="Association_1kamd9b" sourceRef="bk_Update_Infrastructure_Revision_JR_Execution_Status" targetRef="TextAnnotation_1h9vu5l" />
+    <bpmn:textAnnotation id="TextAnnotation_0qw9c7i">    <bpmn:text>Beeline regional tech director</bpmn:text>
+</bpmn:textAnnotation>
+    <bpmn:association id="Association_058uzs7" sourceRef="bk_Set_Installation_Status" targetRef="TextAnnotation_0qw9c7i" />
+    <bpmn:textAnnotation id="TextAnnotation_1d1w4tz">    <bpmn:text>Kcell_Central_planning_group</bpmn:text>
+</bpmn:textAnnotation>
+    <bpmn:association id="Association_0u60ozm" sourceRef="bk_set_cell_Data_Preparation_Status_by_Guest" targetRef="TextAnnotation_1d1w4tz" />
+    <bpmn:textAnnotation id="TextAnnotation_0rf94ml">    <bpmn:text>Kcell_regional Implementation_group</bpmn:text>
+</bpmn:textAnnotation>
+    <bpmn:association id="Association_08dn38l" sourceRef="bk_generate_act_for_print_out_by_guest" targetRef="TextAnnotation_0rf94ml" />
+    <bpmn:textAnnotation id="TextAnnotation_1hcaiae">    <bpmn:text>Beeline regional tech director</bpmn:text>
+</bpmn:textAnnotation>
+    <bpmn:association id="Association_0b20kwy" sourceRef="bk_upload_scan_copy_signed_act_acceptence" targetRef="TextAnnotation_1hcaiae" />
+  </bpmn:process>
+  <bpmndi:BPMNDiagram id="BPMNDiagram_1">
+    <bpmndi:BPMNPlane id="BPMNPlane_1" bpmnElement="BeelineHostKcellSite">
+      <bpmndi:BPMNShape id="_BPMNShape_StartEvent_2" bpmnElement="StartEvent_1">
+        <dc:Bounds x="1251" y="102" width="36" height="36" />
+        <bpmndi:BPMNLabel>
+          <dc:Bounds x="1257" y="138" width="24" height="13" />
+        </bpmndi:BPMNLabel>
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="TextAnnotation_0hmsv6c_di" bpmnElement="TextAnnotation_0hmsv6c">
+        <dc:Bounds x="2180" y="193" width="100" height="56" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNEdge id="Association_0cslzdp_di" bpmnElement="Association_0cslzdp">
+        <di:waypoint xsi:type="dc:Point" x="2230" y="160" />
+        <di:waypoint xsi:type="dc:Point" x="2230" y="193" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNShape id="ParallelGateway_0hebnh3_di" bpmnElement="ParallelGateway_0hebnh3">
+        <dc:Bounds x="3434" y="95" width="50" height="50" />
+        <bpmndi:BPMNLabel>
+          <dc:Bounds x="3279" y="149" width="90" height="12" />
+        </bpmndi:BPMNLabel>
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="UserTask_0e9f2na_di" bpmnElement="bk_configure_site_for_guest_and_update_status">
+        <dc:Bounds x="4576" y="80" width="100" height="80" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="UserTask_1u22fhf_di" bpmnElement="bk_send_site_for_acceptance_for_guest">
+        <dc:Bounds x="4819" y="80" width="100" height="80" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="TextAnnotation_19hkqpd_di" bpmnElement="TextAnnotation_19hkqpd">
+        <dc:Bounds x="4959" y="-7" width="99.99691510365253" height="41.46100691016782" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="TextAnnotation_0bmbxjb_di" bpmnElement="TextAnnotation_0bmbxjb">
+        <dc:Bounds x="4576" y="17" width="99.99691510365253" height="39.99568114511353" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="UserTask_0nm0gg1_di" bpmnElement="bk_generate_act_for_checking_by_guest">
+        <dc:Bounds x="4819" y="623" width="100" height="80" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="ExclusiveGateway_18mxsdp_di" bpmnElement="ExclusiveGateway_18mxsdp" isMarkerVisible="true">
+        <dc:Bounds x="5027" y="638" width="50" height="50" />
+        <bpmndi:BPMNLabel>
+          <dc:Bounds x="4962" y="691" width="90" height="12" />
+        </bpmndi:BPMNLabel>
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="EndEvent_00paxxn_di" bpmnElement="EndEvent_00paxxn">
+        <dc:Bounds x="5990" y="645" width="36" height="36" />
+        <bpmndi:BPMNLabel>
+          <dc:Bounds x="5828" y="685" width="90" height="12" />
+        </bpmndi:BPMNLabel>
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="TextAnnotation_1vgywws_di" bpmnElement="TextAnnotation_1vgywws">
+        <dc:Bounds x="4828" y="781" width="140" height="48" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNEdge id="Association_1xoxwx3_di" bpmnElement="Association_1xoxwx3">
+        <di:waypoint xsi:type="dc:Point" x="4624" y="80" />
+        <di:waypoint xsi:type="dc:Point" x="4623" y="57" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="SequenceFlow_0wloth3_di" bpmnElement="SequenceFlow_0wloth3">
+        <di:waypoint xsi:type="dc:Point" x="5052" y="638" />
+        <di:waypoint xsi:type="dc:Point" x="5052" y="120" />
+        <di:waypoint xsi:type="dc:Point" x="4919" y="120" />
+        <bpmndi:BPMNLabel>
+          <dc:Bounds x="5057" y="373" width="40" height="13" />
+        </bpmndi:BPMNLabel>
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="SequenceFlow_05z4ut6_di" bpmnElement="SequenceFlow_05z4ut6">
+        <di:waypoint xsi:type="dc:Point" x="4869" y="160" />
+        <di:waypoint xsi:type="dc:Point" x="4869" y="392" />
+        <di:waypoint xsi:type="dc:Point" x="4869" y="392" />
+        <di:waypoint xsi:type="dc:Point" x="4869" y="623" />
+        <bpmndi:BPMNLabel>
+          <dc:Bounds x="4839" y="386" width="90" height="12" />
+        </bpmndi:BPMNLabel>
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Association_0coez5g_di" bpmnElement="Association_0coez5g">
+        <di:waypoint xsi:type="dc:Point" x="4908" y="80" />
+        <di:waypoint xsi:type="dc:Point" x="4959" y="32" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="SequenceFlow_1lfn5fh_di" bpmnElement="SequenceFlow_1lfn5fh">
+        <di:waypoint xsi:type="dc:Point" x="4919" y="663" />
+        <di:waypoint xsi:type="dc:Point" x="5027" y="663" />
+        <bpmndi:BPMNLabel>
+          <dc:Bounds x="4928" y="642" width="90" height="12" />
+        </bpmndi:BPMNLabel>
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Association_0vts8ht_di" bpmnElement="Association_0vts8ht">
+        <di:waypoint xsi:type="dc:Point" x="4872" y="703" />
+        <di:waypoint xsi:type="dc:Point" x="4879" y="781" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="SequenceFlow_1u370ah_di" bpmnElement="SequenceFlow_1u370ah">
+        <di:waypoint xsi:type="dc:Point" x="5077" y="663" />
+        <di:waypoint xsi:type="dc:Point" x="5191" y="663" />
+        <bpmndi:BPMNLabel>
+          <dc:Bounds x="5089" y="642" width="90" height="12" />
+        </bpmndi:BPMNLabel>
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="SequenceFlow_0yespf5_di" bpmnElement="SequenceFlow_0yespf5">
+        <di:waypoint xsi:type="dc:Point" x="5495" y="663" />
+        <di:waypoint xsi:type="dc:Point" x="5604" y="663" />
+        <bpmndi:BPMNLabel>
+          <dc:Bounds x="5504.5" y="642" width="90" height="12" />
+        </bpmndi:BPMNLabel>
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNShape id="UserTask_1dyxs83_di" bpmnElement="bk_approve_by_permit_group">
+        <dc:Bounds x="2769" y="472" width="100" height="80" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="UserTask_1vap64c_di" bpmnElement="bk_approve_by_leasing_group">
+        <dc:Bounds x="2769" y="261" width="100" height="80" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="UserTask_0t5nrqq_di" bpmnElement="bk_approve_by_planning_group">
+        <dc:Bounds x="2769" y="80" width="100" height="80" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="UserTask_1rw9x90_di" bpmnElement="bk_approve_by_transmission_group">
+        <dc:Bounds x="2769" y="-48" width="100" height="80" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="UserTask_14lkmgk_di" bpmnElement="bk_approve_by_power_group">
+        <dc:Bounds x="2769" y="-206" width="100" height="80" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="ParallelGateway_0lzv2zr_di" bpmnElement="ParallelGateway_0lzv2zr">
+        <dc:Bounds x="2567" y="95" width="50" height="50" />
+        <bpmndi:BPMNLabel>
+          <dc:Bounds x="2457" y="145" width="0" height="12" />
+        </bpmndi:BPMNLabel>
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="ParallelGateway_00svkf4_di" bpmnElement="ParallelGateway_00svkf4">
+        <dc:Bounds x="3016" y="95" width="50" height="50" />
+        <bpmndi:BPMNLabel>
+          <dc:Bounds x="2816" y="145" width="0" height="12" />
+        </bpmndi:BPMNLabel>
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="TextAnnotation_0oiof4f_di" bpmnElement="TextAnnotation_0oiof4f">
+        <dc:Bounds x="2898" y="586" width="93" height="44" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="TextAnnotation_1k5g3o8_di" bpmnElement="TextAnnotation_1k5g3o8">
+        <dc:Bounds x="2854" y="367" width="100" height="40" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="TextAnnotation_0eh8rid_di" bpmnElement="TextAnnotation_0eh8rid">
+        <dc:Bounds x="2893" y="201" width="100" height="40" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="TextAnnotation_0fisbv6_di" bpmnElement="TextAnnotation_0fisbv6">
+        <dc:Bounds x="2894" y="30" width="104" height="56" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="TextAnnotation_0ct1mhs_di" bpmnElement="TextAnnotation_0ct1mhs">
+        <dc:Bounds x="2898" y="-104" width="100" height="40" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNEdge id="SequenceFlow_1pkf3za_di" bpmnElement="SequenceFlow_1pkf3za">
+        <di:waypoint xsi:type="dc:Point" x="2592" y="145" />
+        <di:waypoint xsi:type="dc:Point" x="2592" y="512" />
+        <di:waypoint xsi:type="dc:Point" x="2769" y="512" />
+        <bpmndi:BPMNLabel>
+          <dc:Bounds x="2562" y="322.5" width="90" height="12" />
+        </bpmndi:BPMNLabel>
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="SequenceFlow_1tot6y4_di" bpmnElement="SequenceFlow_1tot6y4">
+        <di:waypoint xsi:type="dc:Point" x="2869" y="512" />
+        <di:waypoint xsi:type="dc:Point" x="3041" y="512" />
+        <di:waypoint xsi:type="dc:Point" x="3041" y="145" />
+        <bpmndi:BPMNLabel>
+          <dc:Bounds x="2910" y="491" width="90" height="12" />
+        </bpmndi:BPMNLabel>
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Association_10nyatj_di" bpmnElement="Association_10nyatj">
+        <di:waypoint xsi:type="dc:Point" x="2866" y="545" />
+        <di:waypoint xsi:type="dc:Point" x="2924" y="586" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Association_0ph1wo4_di" bpmnElement="Association_0ph1wo4">
+        <di:waypoint xsi:type="dc:Point" x="2860" y="340" />
+        <di:waypoint xsi:type="dc:Point" x="2888" y="367" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="SequenceFlow_1kaxovy_di" bpmnElement="SequenceFlow_1kaxovy">
+        <di:waypoint xsi:type="dc:Point" x="2617" y="120" />
+        <di:waypoint xsi:type="dc:Point" x="2693" y="120" />
+        <di:waypoint xsi:type="dc:Point" x="2693" y="120" />
+        <di:waypoint xsi:type="dc:Point" x="2769" y="120" />
+        <bpmndi:BPMNLabel>
+          <dc:Bounds x="2708" y="114" width="0" height="12" />
+        </bpmndi:BPMNLabel>
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="SequenceFlow_1o0xtt1_di" bpmnElement="SequenceFlow_1o0xtt1">
+        <di:waypoint xsi:type="dc:Point" x="2869" y="120" />
+        <di:waypoint xsi:type="dc:Point" x="2943" y="120" />
+        <di:waypoint xsi:type="dc:Point" x="2943" y="120" />
+        <di:waypoint xsi:type="dc:Point" x="3016" y="120" />
+        <bpmndi:BPMNLabel>
+          <dc:Bounds x="2958" y="114" width="0" height="12" />
+        </bpmndi:BPMNLabel>
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Association_051lk40_di" bpmnElement="Association_051lk40">
+        <di:waypoint xsi:type="dc:Point" x="2865" y="154" />
+        <di:waypoint xsi:type="dc:Point" x="2922" y="201" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="SequenceFlow_0d3d02l_di" bpmnElement="SequenceFlow_0d3d02l">
+        <di:waypoint xsi:type="dc:Point" x="2592" y="95" />
+        <di:waypoint xsi:type="dc:Point" x="2592" y="-8" />
+        <di:waypoint xsi:type="dc:Point" x="2769" y="-8" />
+        <bpmndi:BPMNLabel>
+          <dc:Bounds x="2607" y="37.5" width="0" height="12" />
+        </bpmndi:BPMNLabel>
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="SequenceFlow_0ii1tbw_di" bpmnElement="SequenceFlow_0ii1tbw">
+        <di:waypoint xsi:type="dc:Point" x="2869" y="-8" />
+        <di:waypoint xsi:type="dc:Point" x="3041" y="-8" />
+        <di:waypoint xsi:type="dc:Point" x="3041" y="95" />
+        <bpmndi:BPMNLabel>
+          <dc:Bounds x="2955" y="-29" width="0" height="12" />
+        </bpmndi:BPMNLabel>
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Association_09gs8h5_di" bpmnElement="Association_09gs8h5">
+        <di:waypoint xsi:type="dc:Point" x="2869" y="15" />
+        <di:waypoint xsi:type="dc:Point" x="2902" y="30" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="SequenceFlow_04pn9ew_di" bpmnElement="SequenceFlow_04pn9ew">
+        <di:waypoint xsi:type="dc:Point" x="2592" y="95" />
+        <di:waypoint xsi:type="dc:Point" x="2592" y="-166" />
+        <di:waypoint xsi:type="dc:Point" x="2769" y="-166" />
+        <bpmndi:BPMNLabel>
+          <dc:Bounds x="2607" y="-41.5" width="0" height="12" />
+        </bpmndi:BPMNLabel>
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="SequenceFlow_0q4l7b1_di" bpmnElement="SequenceFlow_0q4l7b1">
+        <di:waypoint xsi:type="dc:Point" x="2869" y="-166" />
+        <di:waypoint xsi:type="dc:Point" x="3041" y="-166" />
+        <di:waypoint xsi:type="dc:Point" x="3041" y="95" />
+        <bpmndi:BPMNLabel>
+          <dc:Bounds x="2955" y="-187" width="0" height="12" />
+        </bpmndi:BPMNLabel>
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Association_1niutmb_di" bpmnElement="Association_1niutmb">
+        <di:waypoint xsi:type="dc:Point" x="2869" y="-136" />
+        <di:waypoint xsi:type="dc:Point" x="2921" y="-104" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="SequenceFlow_0b6fm3m_di" bpmnElement="SequenceFlow_0b6fm3m">
+        <di:waypoint xsi:type="dc:Point" x="2395" y="95" />
+        <di:waypoint xsi:type="dc:Point" x="2395" y="-42" />
+        <bpmndi:BPMNLabel>
+          <dc:Bounds x="2407" y="17" width="31" height="13" />
+        </bpmndi:BPMNLabel>
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="SequenceFlow_0474nwz_di" bpmnElement="SequenceFlow_0474nwz">
+        <di:waypoint xsi:type="dc:Point" x="3066" y="120" />
+        <di:waypoint xsi:type="dc:Point" x="3165" y="120" />
+        <bpmndi:BPMNLabel>
+          <dc:Bounds x="3070.5" y="99" width="90" height="12" />
+        </bpmndi:BPMNLabel>
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNShape id="ExclusiveGateway_02ucjno_di" bpmnElement="ExclusiveGateway_02ucjno" isMarkerVisible="true">
+        <dc:Bounds x="1588" y="95" width="50" height="50" />
+        <bpmndi:BPMNLabel>
+          <dc:Bounds x="1477" y="149" width="90" height="12" />
+        </bpmndi:BPMNLabel>
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="UserTask_0q5l1eo_di" bpmnElement="bk_do_initial_leasing_and_grant_site_access_2">
+        <dc:Bounds x="1741" y="80" width="100" height="80" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="TextAnnotation_1hrun27_di" bpmnElement="TextAnnotation_1hrun27">
+        <dc:Bounds x="1746" y="213" width="108" height="41" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="ExclusiveGateway_0zb0t1v_di" bpmnElement="ExclusiveGateway_0zb0t1v" isMarkerVisible="true">
+        <dc:Bounds x="1917" y="95" width="50" height="50" />
+        <bpmndi:BPMNLabel>
+          <dc:Bounds x="1852" y="148" width="90" height="12" />
+        </bpmndi:BPMNLabel>
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="UserTask_00gtj7w_di" bpmnElement="bk_do_initial_leasing_and_grant_site_access_1">
+        <dc:Bounds x="1741" y="-87" width="100" height="80" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="TextAnnotation_0336rg9_di" bpmnElement="TextAnnotation_0336rg9">
+        <dc:Bounds x="1711" y="-186" width="141" height="45" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNEdge id="SequenceFlow_1f7nqyb_di" bpmnElement="SequenceFlow_1f7nqyb">
+        <di:waypoint xsi:type="dc:Point" x="1613" y="95" />
+        <di:waypoint xsi:type="dc:Point" x="1613" y="-47" />
+        <di:waypoint xsi:type="dc:Point" x="1741" y="-47" />
+        <bpmndi:BPMNLabel>
+          <dc:Bounds x="1644" y="-96" width="73" height="36" />
+        </bpmndi:BPMNLabel>
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="SequenceFlow_058xg35_di" bpmnElement="SequenceFlow_058xg35">
+        <di:waypoint xsi:type="dc:Point" x="1638" y="120" />
+        <di:waypoint xsi:type="dc:Point" x="1741" y="120" />
+        <bpmndi:BPMNLabel>
+          <dc:Bounds x="1656" y="94" width="55" height="13" />
+        </bpmndi:BPMNLabel>
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="SequenceFlow_0mptwfb_di" bpmnElement="SequenceFlow_0mptwfb">
+        <di:waypoint xsi:type="dc:Point" x="1841" y="120" />
+        <di:waypoint xsi:type="dc:Point" x="1917" y="120" />
+        <bpmndi:BPMNLabel>
+          <dc:Bounds x="1834" y="99" width="90" height="12" />
+        </bpmndi:BPMNLabel>
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Association_0bj576v_di" bpmnElement="Association_0bj576v">
+        <di:waypoint xsi:type="dc:Point" x="1789" y="160" />
+        <di:waypoint xsi:type="dc:Point" x="1788" y="213" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="SequenceFlow_1c8543o_di" bpmnElement="SequenceFlow_1c8543o">
+        <di:waypoint xsi:type="dc:Point" x="2077" y="145" />
+        <di:waypoint xsi:type="dc:Point" x="2077" y="308" />
+        <bpmndi:BPMNLabel>
+          <dc:Bounds x="2087" y="214" width="31" height="13" />
+        </bpmndi:BPMNLabel>
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="SequenceFlow_1p7ixq4_di" bpmnElement="SequenceFlow_1p7ixq4">
+        <di:waypoint xsi:type="dc:Point" x="1841" y="-47" />
+        <di:waypoint xsi:type="dc:Point" x="1942" y="-47" />
+        <di:waypoint xsi:type="dc:Point" x="1942" y="95" />
+        <bpmndi:BPMNLabel>
+          <dc:Bounds x="1847" y="-68" width="90" height="12" />
+        </bpmndi:BPMNLabel>
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Association_1wtnfu6_di" bpmnElement="Association_1wtnfu6">
+        <di:waypoint xsi:type="dc:Point" x="1782" y="-87" />
+        <di:waypoint xsi:type="dc:Point" x="1769" y="-141" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="SequenceFlow_0clf1ru_di" bpmnElement="SequenceFlow_0clf1ru">
+        <di:waypoint xsi:type="dc:Point" x="5900" y="663" />
+        <di:waypoint xsi:type="dc:Point" x="5990" y="663" />
+        <bpmndi:BPMNLabel>
+          <dc:Bounds x="5900" y="642" width="90" height="12" />
+        </bpmndi:BPMNLabel>
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNShape id="SendTask_1is8bk0_di" bpmnElement="Task_01zifzu">
+        <dc:Bounds x="5800" y="623" width="100" height="80" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="ExclusiveGateway_09mw30q_di" bpmnElement="ExclusiveGateway_09mw30q" isMarkerVisible="true">
+        <dc:Bounds x="2370" y="95" width="50" height="50" />
+        <bpmndi:BPMNLabel>
+          <dc:Bounds x="2350" y="149" width="90" height="12" />
+        </bpmndi:BPMNLabel>
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNEdge id="SequenceFlow_0y8k23f_di" bpmnElement="SequenceFlow_0y8k23f">
+        <di:waypoint xsi:type="dc:Point" x="2420" y="120" />
+        <di:waypoint xsi:type="dc:Point" x="2567" y="120" />
+        <bpmndi:BPMNLabel>
+          <dc:Bounds x="2448.5" y="99" width="90" height="12" />
+        </bpmndi:BPMNLabel>
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNShape id="ExclusiveGateway_0q2k1pc_di" bpmnElement="ExclusiveGateway_0q2k1pc" isMarkerVisible="true">
+        <dc:Bounds x="2052" y="95" width="50" height="50" />
+        <bpmndi:BPMNLabel>
+          <dc:Bounds x="2032" y="149" width="90" height="12" />
+        </bpmndi:BPMNLabel>
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNEdge id="SequenceFlow_1rpmqtd_di" bpmnElement="SequenceFlow_1rpmqtd">
+        <di:waypoint xsi:type="dc:Point" x="2102" y="120" />
+        <di:waypoint xsi:type="dc:Point" x="2180" y="120" />
+        <bpmndi:BPMNLabel>
+          <dc:Bounds x="2096" y="99" width="90" height="12" />
+        </bpmndi:BPMNLabel>
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="SequenceFlow_0ti2ana_di" bpmnElement="SequenceFlow_0ti2ana">
+        <di:waypoint xsi:type="dc:Point" x="1967" y="120" />
+        <di:waypoint xsi:type="dc:Point" x="2052" y="120" />
+        <bpmndi:BPMNLabel>
+          <dc:Bounds x="1965" y="99" width="90" height="12" />
+        </bpmndi:BPMNLabel>
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="SequenceFlow_16i73c5_di" bpmnElement="SequenceFlow_16i73c5">
+        <di:waypoint xsi:type="dc:Point" x="2280" y="120" />
+        <di:waypoint xsi:type="dc:Point" x="2370" y="120" />
+        <bpmndi:BPMNLabel>
+          <dc:Bounds x="2280" y="99" width="90" height="12" />
+        </bpmndi:BPMNLabel>
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="SequenceFlow_0x2e38o_di" bpmnElement="SequenceFlow_0x2e38o">
+        <di:waypoint xsi:type="dc:Point" x="2592" y="145" />
+        <di:waypoint xsi:type="dc:Point" x="2592" y="301" />
+        <di:waypoint xsi:type="dc:Point" x="2769" y="301" />
+        <bpmndi:BPMNLabel>
+          <dc:Bounds x="2607" y="217" width="0" height="12" />
+        </bpmndi:BPMNLabel>
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="SequenceFlow_0e2t4qc_di" bpmnElement="SequenceFlow_0e2t4qc">
+        <di:waypoint xsi:type="dc:Point" x="2869" y="301" />
+        <di:waypoint xsi:type="dc:Point" x="3041" y="301" />
+        <di:waypoint xsi:type="dc:Point" x="3041" y="145" />
+        <bpmndi:BPMNLabel>
+          <dc:Bounds x="2955" y="280" width="0" height="12" />
+        </bpmndi:BPMNLabel>
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="SequenceFlow_0rr6g3k_di" bpmnElement="SequenceFlow_0rr6g3k">
+        <di:waypoint xsi:type="dc:Point" x="3265" y="120" />
+        <di:waypoint xsi:type="dc:Point" x="3333" y="120" />
+        <bpmndi:BPMNLabel>
+          <dc:Bounds x="3254" y="99" width="90" height="12" />
+        </bpmndi:BPMNLabel>
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNShape id="TextAnnotation_03vv9yl_di" bpmnElement="TextAnnotation_03vv9yl">
+        <dc:Bounds x="3102" y="229" width="135" height="52" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNEdge id="Association_0shr6xz_di" bpmnElement="Association_0shr6xz">
+        <di:waypoint xsi:type="dc:Point" x="3182" y="160" />
+        <di:waypoint xsi:type="dc:Point" x="3173" y="229" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="SequenceFlow_0c5w42l_di" bpmnElement="SequenceFlow_0c5w42l">
+        <di:waypoint xsi:type="dc:Point" x="3383" y="120" />
+        <di:waypoint xsi:type="dc:Point" x="3434" y="120" />
+        <bpmndi:BPMNLabel>
+          <dc:Bounds x="3363.5" y="99" width="90" height="12" />
+        </bpmndi:BPMNLabel>
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNShape id="ParallelGateway_0dl9zhp_di" bpmnElement="ExclusiveGateway_0pz1d93">
+        <dc:Bounds x="3333" y="95" width="50" height="50" />
+        <bpmndi:BPMNLabel>
+          <dc:Bounds x="3357.0710760118463" y="149" width="0" height="12" />
+        </bpmndi:BPMNLabel>
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNEdge id="SequenceFlow_0z3hs8r_di" bpmnElement="SequenceFlow_0z3hs8r">
+        <di:waypoint xsi:type="dc:Point" x="3358" y="95" />
+        <di:waypoint xsi:type="dc:Point" x="3358" y="-84" />
+        <di:waypoint xsi:type="dc:Point" x="3662" y="-84" />
+        <bpmndi:BPMNLabel>
+          <dc:Bounds x="3328" y="-0.5" width="90" height="12" />
+        </bpmndi:BPMNLabel>
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNShape id="TextAnnotation_0qiunoq_di" bpmnElement="TextAnnotation_0qiunoq">
+        <dc:Bounds x="3639" y="-214" width="123" height="46" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNEdge id="Association_024tt7n_di" bpmnElement="Association_024tt7n">
+        <di:waypoint xsi:type="dc:Point" x="3708" y="-124" />
+        <di:waypoint xsi:type="dc:Point" x="3703" y="-168" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="SequenceFlow_1wczdgp_di" bpmnElement="SequenceFlow_1wczdgp">
+        <di:waypoint xsi:type="dc:Point" x="4043" y="120" />
+        <di:waypoint xsi:type="dc:Point" x="4088" y="120" />
+        <di:waypoint xsi:type="dc:Point" x="4088" y="120" />
+        <di:waypoint xsi:type="dc:Point" x="4132" y="120" />
+        <bpmndi:BPMNLabel>
+          <dc:Bounds x="4058" y="114" width="90" height="12" />
+        </bpmndi:BPMNLabel>
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="SequenceFlow_114v2ko_di" bpmnElement="SequenceFlow_114v2ko">
+        <di:waypoint xsi:type="dc:Point" x="3762" y="-84" />
+        <di:waypoint xsi:type="dc:Point" x="4018" y="-84" />
+        <di:waypoint xsi:type="dc:Point" x="4018" y="95" />
+        <bpmndi:BPMNLabel>
+          <dc:Bounds x="3845" y="-105" width="90" height="12" />
+        </bpmndi:BPMNLabel>
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNShape id="ParallelGateway_1rsktkw_di" bpmnElement="ExclusiveGateway_1dzv2un">
+        <dc:Bounds x="3993" y="95" width="50" height="50" />
+        <bpmndi:BPMNLabel>
+          <dc:Bounds x="4017.7107601184603" y="149" width="0" height="12" />
+        </bpmndi:BPMNLabel>
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="UserTask_1a3jp6d_di" bpmnElement="bk_Update_Infrastructure_Revision_JR_Execution_Status">
+        <dc:Bounds x="3586" y="80" width="100" height="80" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="TextAnnotation_1h9vu5l_di" bpmnElement="TextAnnotation_1h9vu5l">
+        <dc:Bounds x="3580" y="206" width="106" height="58" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNEdge id="Association_1kamd9b_di" bpmnElement="Association_1kamd9b">
+        <di:waypoint xsi:type="dc:Point" x="3635" y="160" />
+        <di:waypoint xsi:type="dc:Point" x="3634" y="206" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="SequenceFlow_1n7k5oi_di" bpmnElement="SequenceFlow_1n7k5oi">
+        <di:waypoint xsi:type="dc:Point" x="3484" y="120" />
+        <di:waypoint xsi:type="dc:Point" x="3586" y="120" />
+        <bpmndi:BPMNLabel>
+          <dc:Bounds x="3490" y="99" width="90" height="12" />
+        </bpmndi:BPMNLabel>
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNShape id="UserTask_0ar1lvd_di" bpmnElement="bk_Set_Installation_Status">
+        <dc:Bounds x="3790" y="80" width="100" height="80" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="TextAnnotation_0qw9c7i_di" bpmnElement="TextAnnotation_0qw9c7i">
+        <dc:Bounds x="3795" y="200" width="100" height="41" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNEdge id="Association_058uzs7_di" bpmnElement="Association_058uzs7">
+        <di:waypoint xsi:type="dc:Point" x="3844" y="160" />
+        <di:waypoint xsi:type="dc:Point" x="3844" y="200" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="SequenceFlow_06njeua_di" bpmnElement="SequenceFlow_06njeua">
+        <di:waypoint xsi:type="dc:Point" x="3686" y="120" />
+        <di:waypoint xsi:type="dc:Point" x="3790" y="120" />
+        <bpmndi:BPMNLabel>
+          <dc:Bounds x="3693" y="99" width="90" height="12" />
+        </bpmndi:BPMNLabel>
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="SequenceFlow_1qu6tlw_di" bpmnElement="SequenceFlow_1qu6tlw">
+        <di:waypoint xsi:type="dc:Point" x="3459" y="145" />
+        <di:waypoint xsi:type="dc:Point" x="3459" y="326" />
+        <di:waypoint xsi:type="dc:Point" x="3930" y="326" />
+        <bpmndi:BPMNLabel>
+          <dc:Bounds x="3429" y="230" width="90" height="12" />
+        </bpmndi:BPMNLabel>
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="SequenceFlow_15otmyu_di" bpmnElement="SequenceFlow_15otmyu">
+        <di:waypoint xsi:type="dc:Point" x="4030" y="326" />
+        <di:waypoint xsi:type="dc:Point" x="4388" y="326" />
+        <di:waypoint xsi:type="dc:Point" x="4388" y="145" />
+        <bpmndi:BPMNLabel>
+          <dc:Bounds x="4164" y="305" width="90" height="12" />
+        </bpmndi:BPMNLabel>
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNShape id="TextAnnotation_1d1w4tz_di" bpmnElement="TextAnnotation_1d1w4tz">
+        <dc:Bounds x="3925" y="206" width="107" height="43" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNEdge id="Association_0u60ozm_di" bpmnElement="Association_0u60ozm">
+        <di:waypoint xsi:type="dc:Point" x="3980" y="286" />
+        <di:waypoint xsi:type="dc:Point" x="3979" y="249" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="SequenceFlow_0lpr18m_di" bpmnElement="SequenceFlow_0lpr18m">
+        <di:waypoint xsi:type="dc:Point" x="4676" y="120" />
+        <di:waypoint xsi:type="dc:Point" x="4819" y="120" />
+        <bpmndi:BPMNLabel>
+          <dc:Bounds x="4702.5" y="99" width="90" height="12" />
+        </bpmndi:BPMNLabel>
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="SequenceFlow_15sv19e_di" bpmnElement="SequenceFlow_15sv19e">
+        <di:waypoint xsi:type="dc:Point" x="4232" y="120" />
+        <di:waypoint xsi:type="dc:Point" x="4363" y="120" />
+        <bpmndi:BPMNLabel>
+          <dc:Bounds x="4252.5" y="99" width="90" height="12" />
+        </bpmndi:BPMNLabel>
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNShape id="EndEvent_1nmm8jh_di" bpmnElement="EndEvent_1nmm8jh">
+        <dc:Bounds x="2377" y="-78" width="36" height="36" />
+        <bpmndi:BPMNLabel>
+          <dc:Bounds x="2260" y="-38" width="90" height="12" />
+        </bpmndi:BPMNLabel>
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="EndEvent_10ukpas_di" bpmnElement="EndEvent_10ukpas">
+        <dc:Bounds x="2059" y="308" width="36" height="36" />
+        <bpmndi:BPMNLabel>
+          <dc:Bounds x="1987" y="347" width="90" height="12" />
+        </bpmndi:BPMNLabel>
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="UserTask_10kfaa0_di" bpmnElement="bk_projectPlanSiteReadySendingToKcell">
+        <dc:Bounds x="2180" y="80" width="100" height="80" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="UserTask_0rnp8mx_di" bpmnElement="bk_project_approved">
+        <dc:Bounds x="3165" y="80" width="100" height="80" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="UserTask_00fj9z2_di" bpmnElement="bk_Update_Transmission_Readiness_Status">
+        <dc:Bounds x="3662" y="-124" width="100" height="80" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="ServiceTask_0pctruw_di" bpmnElement="ScriptTask_1bzbvq3">
+        <dc:Bounds x="4132" y="80" width="100" height="80" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="ServiceTask_1lwaw50_di" bpmnElement="ScriptTask_1isa030">
+        <dc:Bounds x="5395" y="623" width="100" height="80" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="DataStoreReference_0cqwaep_di" bpmnElement="DataStoreReference_0cqwaep">
+        <dc:Bounds x="4157" y="-22" width="50" height="50" />
+        <bpmndi:BPMNLabel>
+          <dc:Bounds x="4140" y="32" width="84" height="12" />
+        </bpmndi:BPMNLabel>
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNEdge id="DataOutputAssociation_1150p6z_di" bpmnElement="DataOutputAssociation_1150p6z">
+        <di:waypoint xsi:type="dc:Point" x="4183" y="80" />
+        <di:waypoint xsi:type="dc:Point" x="4183" y="28" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNShape id="DataStoreReference_0xgnrle_di" bpmnElement="DataStoreReference_0xgnrle">
+        <dc:Bounds x="3605" y="-11" width="50" height="50" />
+        <bpmndi:BPMNLabel>
+          <dc:Bounds x="3601" y="-36" width="59" height="12" />
+        </bpmndi:BPMNLabel>
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNEdge id="DataOutputAssociation_0e2mznb_di" bpmnElement="DataOutputAssociation_0e2mznb">
+        <di:waypoint xsi:type="dc:Point" x="3635" y="80" />
+        <di:waypoint xsi:type="dc:Point" x="3635" y="39" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNShape id="UserTask_1rq3mij_di" bpmnElement="bk_set_cell_Data_Preparation_Status_by_Guest">
+        <dc:Bounds x="3930" y="286" width="100" height="80" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNEdge id="SequenceFlow_04bh6ux_di" bpmnElement="SequenceFlow_04bh6ux">
+        <di:waypoint xsi:type="dc:Point" x="3890" y="120" />
+        <di:waypoint xsi:type="dc:Point" x="3993" y="120" />
+        <bpmndi:BPMNLabel>
+          <dc:Bounds x="3941.5" y="98.5" width="0" height="13" />
+        </bpmndi:BPMNLabel>
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNShape id="ParallelGateway_0pbq800_di" bpmnElement="ParallelGateway_0pbq800">
+        <dc:Bounds x="4363" y="95" width="50" height="50" />
+        <bpmndi:BPMNLabel>
+          <dc:Bounds x="4118" y="149" width="0" height="13" />
+        </bpmndi:BPMNLabel>
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNEdge id="SequenceFlow_14ae1x6_di" bpmnElement="SequenceFlow_14ae1x6">
+        <di:waypoint xsi:type="dc:Point" x="4413" y="120" />
+        <di:waypoint xsi:type="dc:Point" x="4576" y="120" />
+        <bpmndi:BPMNLabel>
+          <dc:Bounds x="4449.5" y="98.5" width="90" height="13" />
+        </bpmndi:BPMNLabel>
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNShape id="UserTask_1f0s7x1_di" bpmnElement="bk_upload_scan_copy_signed_act_acceptence">
+        <dc:Bounds x="5604" y="623" width="100" height="80" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNEdge id="SequenceFlow_0f1qx7u_di" bpmnElement="SequenceFlow_0f1qx7u">
+        <di:waypoint xsi:type="dc:Point" x="5704" y="663" />
+        <di:waypoint xsi:type="dc:Point" x="5800" y="663" />
+        <bpmndi:BPMNLabel>
+          <dc:Bounds x="5707" y="641.5" width="90" height="13" />
+        </bpmndi:BPMNLabel>
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNShape id="UserTask_1v75rd6_di" bpmnElement="bk_generate_act_for_print_out_by_guest">
+        <dc:Bounds x="5191" y="623" width="100" height="80" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNEdge id="SequenceFlow_1dms9yc_di" bpmnElement="SequenceFlow_1dms9yc">
+        <di:waypoint xsi:type="dc:Point" x="5291" y="663" />
+        <di:waypoint xsi:type="dc:Point" x="5395" y="663" />
+        <bpmndi:BPMNLabel>
+          <dc:Bounds x="5343" y="641.5" width="0" height="13" />
+        </bpmndi:BPMNLabel>
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="SequenceFlow_1yt7he9_di" bpmnElement="SequenceFlow_1yt7he9">
+        <di:waypoint xsi:type="dc:Point" x="1287" y="120" />
+        <di:waypoint xsi:type="dc:Point" x="1588" y="120" />
+        <bpmndi:BPMNLabel>
+          <dc:Bounds x="1392.5" y="98.5" width="90" height="13" />
+        </bpmndi:BPMNLabel>
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNShape id="TextAnnotation_0rf94ml_di" bpmnElement="TextAnnotation_0rf94ml">
+        <dc:Bounds x="5189" y="770" width="146" height="47" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNEdge id="Association_08dn38l_di" bpmnElement="Association_08dn38l">
+        <di:waypoint xsi:type="dc:Point" x="5247" y="703" />
+        <di:waypoint xsi:type="dc:Point" x="5258" y="770" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNShape id="TextAnnotation_1hcaiae_di" bpmnElement="TextAnnotation_1hcaiae">
+        <dc:Bounds x="5604" y="769" width="100" height="43" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNEdge id="Association_0b20kwy_di" bpmnElement="Association_0b20kwy">
+        <di:waypoint xsi:type="dc:Point" x="5654" y="703" />
+        <di:waypoint xsi:type="dc:Point" x="5654" y="769" />
+      </bpmndi:BPMNEdge>
+    </bpmndi:BPMNPlane>
+  </bpmndi:BPMNDiagram>
+</bpmn:definitions>

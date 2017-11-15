@@ -262,21 +262,25 @@ define(['./module','camundaSDK', 'lodash', 'big-js'], function(module, CamSDK, _
 			});
 		}
 
+		var startableProcessDefinitions = ['Revision', 'Invoice', 'SiteSharingTopProcess'];
+
 		function loadProcessDefinitions(){
 			$http.get(baseUrl+'/process-definition?latest=true&active=true&firstResult=0&maxResults=15').then(
 				function(results){
 					$scope.processDefinitions = [];
 					results.data.forEach(function(e){
-						$http.get(baseUrl+'/authorization/check?permissionName=CREATE_INSTANCE&permissionValue=256&resourceName=Process Definition&resourceType=6&resourceId=' + e.key).then(
-							function(result){
-								if(result && result.data && result.data.authorized){
-									$scope.processDefinitions.push(e);
+						if(startableProcessDefinitions.indexOf(e.key)!==-1){
+							$http.get(baseUrl+'/authorization/check?permissionName=CREATE_INSTANCE&permissionValue=256&resourceName=Process Definition&resourceType=6&resourceId=' + e.key).then(
+								function(result){
+									if(result && result.data && result.data.authorized){
+										$scope.processDefinitions.push(e);
+									}
+								},
+								function(error){
+									console.log(error.data);
 								}
-							},
-							function(error){
-								console.log(error.data);
-							}
-						);
+							);
+						}
 					});
 				},
 				function(error){
