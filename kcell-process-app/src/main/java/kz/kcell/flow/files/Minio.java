@@ -1,4 +1,4 @@
-package kz.kcell.flow.minio;
+package kz.kcell.flow.files;
 
 import io.minio.MinioClient;
 import io.minio.errors.*;
@@ -68,6 +68,5 @@ public class Minio {
 
     public void moveToPermanentStorage(String tempPath, String path) throws IOException, InvalidKeyException, NoSuchAlgorithmException, InsufficientDataException, InternalException, NoResponseException, InvalidBucketNameException, XmlPullParserException, ErrorResponseException, InvalidArgumentException {
         minioClient.copyObject(this.getTempBucketName(), tempPath, this.getBucketName(), path);
-        minioClient.removeObject(this.getTempBucketName(), tempPath);
     }
 }

@@ -2,7 +2,6 @@ package kz.kcell.flow.files;
 
 import io.minio.MinioClient;
 import io.minio.errors.*;
-import kz.kcell.flow.minio.Minio;
 import org.camunda.bpm.engine.IdentityService;
 import org.camunda.bpm.engine.TaskService;
 import org.slf4j.Logger;

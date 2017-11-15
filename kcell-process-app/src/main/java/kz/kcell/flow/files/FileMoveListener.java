@@ -1,16 +1,10 @@
 package kz.kcell.flow.files;
 
 import io.minio.errors.*;
-import kz.kcell.flow.minio.Minio;
-import lombok.Data;
-import lombok.Getter;
-import lombok.Setter;
-import lombok.extern.apachecommons.CommonsLog;
 import org.camunda.bpm.engine.delegate.DelegateExecution;
 import org.camunda.bpm.engine.delegate.ExecutionListener;
 import org.camunda.bpm.engine.delegate.Expression;
 import org.camunda.spin.SpinList;
-import org.camunda.spin.impl.SpinListImpl;
 import org.camunda.spin.json.SpinJsonNode;
 import org.camunda.spin.plugin.variable.SpinValues;
 import org.camunda.spin.plugin.variable.value.JsonValue;
@@ -23,14 +17,7 @@ import org.xmlpull.v1.XmlPullParserException;
 import java.io.IOException;
 import java.security.InvalidKeyException;
 import java.security.NoSuchAlgorithmException;
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Map;
 import java.util.stream.Stream;
-
-import static java.util.stream.Collectors.mapping;
-import static java.util.stream.Collectors.toMap;
-import static org.camunda.spin.Spin.JSON;
 
 @Service
 @Scope(ConfigurableBeanFactory.SCOPE_PROTOTYPE)
@@ -53,18 +40,16 @@ public class FileMoveListener implements ExecutionListener {
         Stream<String> fileVars = Stream.of(this.fileVars.getValue(delegateExecution).toString().split(",")).map(String::trim).filter(s -> !s.isEmpty());
 
         fileVars.forEach(fileVarName -> {
-            if(delegateExecution.getVariableTyped(fileVarName)!=null && delegateExecution.getVariableTyped(fileVarName).getValue()!=null){
+            if(delegateExecution.getVariableTyped(fileVarName)!=null){
 
-                JsonValue filesVar = delegateExecution.getVariableTyped(fileVarName);
-
-                SpinJsonNode files = filesVar.getValue();
+                SpinJsonNode files = delegateExecution.<JsonValue>getVariableTyped(fileVarName).getValue();
                 if (files.isArray()) {
                     String piId = delegateExecution.getProcessInstanceId();
 
                     SpinList<SpinJsonNode> filesList = files.elements();
-                    filesList.forEach(f -> {
-                        String tempPath = f.prop("path").stringValue();
-                        String name = f.prop("name").stringValue();
+                    filesList.forEach(file -> {
+                        String tempPath = file.prop("path").stringValue();
+                        String name = file.prop("name").stringValue();
                         String permPath = piId + "/" + name;
                         try {
                             minioClient.moveToPermanentStorage(tempPath, permPath);
@@ -72,11 +57,10 @@ public class FileMoveListener implements ExecutionListener {
                             throw new RuntimeException("Failed to move object to permanent storage", e);
                         }
 
-                        f.prop("path", permPath);
+                        file.prop("path", permPath);
                     });
 
-                    String s = filesList.toString();
-                    delegateExecution.setVariable(fileVarName, SpinValues.jsonValue(s));
+                    delegateExecution.setVariable(fileVarName, SpinValues.jsonValue(filesList.toString()));
                 }
             }
         });
