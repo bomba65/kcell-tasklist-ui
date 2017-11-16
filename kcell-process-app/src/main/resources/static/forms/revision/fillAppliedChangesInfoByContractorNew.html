@@ -186,7 +186,7 @@
                         });
                     } else {
                         $scope.jobModel[el] = camForm.variableManager.variables[el];
-                        if(el === 'tssrssidFileName' && camForm.variableManager.variables[el] && camForm.variableManager.variables[el].value && camForm.variableManager.variables[el].value.name) {
+                        if(el === 'tssrssidFileName') {
                             $scope[el] = camForm.variableManager.variables[el];
                             $scope[el].type = 'Json';
                         } else if(el === 'siteWorksFiles' && camForm.variableManager.variables[el].value) {
@@ -214,12 +214,14 @@
                 $http.get("/camunda/api/engine/engine/default/user/" + $rootScope.authentication.name+ "/profile").then(function(result){
                     $rootScope.authentication.assigneeName = (result.data.firstName ? result.data.firstName : "") + " " + (result.data.lastName ? result.data.lastName : "");
                 });
+
+                $scope.sitesWorks.forEach(function (work, index) {
+                    $scope.sitesWorks[index].files = [];
+                });
+
                 siteWorksFiles.forEach(function (file) {
                     if(file.name){
                         var workIndex = file.name.split('_')[1];
-                        if(!$scope.sitesWorks[workIndex].files) {
-                            $scope.sitesWorks[workIndex].files = [];
-                        }
                         if(!containsFile($scope.sitesWorks[workIndex].files, file)){
                             $scope.sitesWorks[workIndex].files.push(file);
                         }
@@ -250,14 +252,13 @@
                     });
 
                     if(camForm.variableManager.variables['siteWorksFiles']){
-                        camForm.variableManager.variableValue('siteWorksFiles', siteWorksFiles);
-                    } else if($scope.siteWorksFiles) {
-                        camForm.variableManager.createVariable({
-                            name: 'siteWorksFiles',
-                            type: 'Json',
-                            value: siteWorksFiles
-                        });
+                        camForm.variableManager.destroyVariable('siteWorksFiles');
                     }
+                    camForm.variableManager.createVariable({
+                        name: 'siteWorksFiles',
+                        type: 'Json',
+                        value: siteWorksFiles
+                    });
 
                     if($scope.tssrssidFileName && $scope.tssrssidFileName.value && $scope.tssrssidFileName.value.isNew){
                         files.push($scope.tssrssidFileName.value.name);
