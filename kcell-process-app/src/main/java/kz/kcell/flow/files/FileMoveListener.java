@@ -40,8 +40,7 @@ public class FileMoveListener implements ExecutionListener {
         Stream<String> fileVars = Stream.of(this.fileVars.getValue(delegateExecution).toString().split(",")).map(String::trim).filter(s -> !s.isEmpty());
 
         fileVars.forEach(fileVarName -> {
-            if(delegateExecution.getVariableTyped(fileVarName)!=null){
-
+            if(delegateExecution.hasVariable(fileVarName)){
                 SpinJsonNode files = delegateExecution.<JsonValue>getVariableTyped(fileVarName).getValue();
                 if (files.isArray()) {
                     String piId = delegateExecution.getProcessInstanceId();

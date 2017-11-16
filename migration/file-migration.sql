@@ -220,3 +220,21 @@ from (
       t.var_scope_
     order by t.proc_inst_id_
 ) l
+
+--priority variable creation
+
+select 'insert into act_ru_variable(id_, rev_, type_, name_, execution_id_, proc_inst_id_, text_, var_scope_, sequence_counter_, is_concurrent_local_) values '||
+       '('''||vuuid||''', 1, ''string'', ''priority'', '''||execution_id_||''', '''||proc_inst_id_||''', ''regular'', '''||proc_inst_id_||''', 1, null)'
+from (
+  select uuid_generate_v4() as vuuid,
+        arv.execution_id_,
+        arv.proc_inst_id_
+  FROM act_ru_variable arv
+  where arv.name_ = 'jrNumber'
+  and arv.proc_inst_id_ not in (
+    select arv.proc_inst_id_
+    FROM act_ru_variable arv
+    where arv.name_ = 'priority'
+  )
+  GROUP BY arv.execution_id_, arv.proc_inst_id_
+) l

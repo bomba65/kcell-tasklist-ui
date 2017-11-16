@@ -1,8 +1,12 @@
 package kz.kcell.flow.files;
 
 import io.minio.MinioClient;
+import io.minio.Result;
 import io.minio.errors.*;
+import io.minio.messages.Item;
 import lombok.extern.apachecommons.CommonsLog;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.context.event.ApplicationReadyEvent;
@@ -18,6 +22,7 @@ import java.security.NoSuchAlgorithmException;
 @CommonsLog
 public class Minio {
 
+    private static final Logger log = LoggerFactory.getLogger(Minio.class);
     private final MinioClient minioClient;
     private final String bucketName = "uploads";
     private final String tempBucketName = "tempuploads";

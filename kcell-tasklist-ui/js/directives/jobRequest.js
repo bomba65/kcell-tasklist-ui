@@ -10,7 +10,7 @@ define(['./module'], function(module){
 			},
 			link: function(scope, element, attrs) {
 	            scope.download = function(file) {
-	                $http({method: 'GET', url: '/camunda/uploads/get/' + file.value.path, transformResponse: [] }).
+	                $http({method: 'GET', url: '/camunda/uploads/get/' + file.path, transformResponse: [] }).
 	                success(function(data, status, headers, config) {
 	                    document.getElementById('fileDownloadIframe').src = data;
 	                }).
@@ -19,7 +19,7 @@ define(['./module'], function(module){
 	                });
                	};
 	            scope.isFileVisible = function(file) {
-	            	return !file.value.visibility || file.value.visibility == 'all' || (file.value.visibility == 'kcell' && $rootScope.hasGroup('kcellUsers'));
+	            	return !file.visibility || file.visibility == 'all' || (file.visibility == 'kcell' && $rootScope.hasGroup('kcellUsers'));
 	            }
 	        },
 			templateUrl: './js/directives/jobRequest.html'

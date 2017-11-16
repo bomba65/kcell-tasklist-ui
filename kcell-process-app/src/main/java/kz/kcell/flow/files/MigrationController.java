@@ -72,13 +72,13 @@ public class MigrationController {
                         map.put(supplementaryFile.getFilename(), supplementaryFile);
                     }
                 }
-                if(supplementaryFiles.getValue().hasProp("files") && supplementaryFiles.getValue().prop("files").isArray()){
-                    SpinList<SpinJsonNode> elements = supplementaryFiles.getValue().prop("files").elements();
+                if(supplementaryFiles.getValue().isArray()){
+                    SpinList<SpinJsonNode> elements = supplementaryFiles.getValue().elements();
 
                     for (SpinJsonNode node: elements) {
-                        if(node.hasProp("value") && node.prop("value").hasProp("path")){
+                        if(node.hasProp("path")){
                             String name = node.prop("name").stringValue();
-                            String path = node.prop("value").prop("path").stringValue();
+                            String path = node.prop("path").stringValue();
 
                             FileValue file = map.get(name);
                             if(file!=null){
