@@ -1,4 +1,3 @@
-begin;
 create table ACT_ID_GROUP (
     ID_ varchar(64),
     REV_ integer,
@@ -20,6 +19,7 @@ create table ACT_ID_USER (
     LAST_ varchar(255),
     EMAIL_ varchar(255),
     PWD_ varchar(255),
+    SALT_ varchar(255),
     PICTURE_ID_ varchar(64),
     primary key (ID_)
 );
@@ -88,4 +88,3 @@ alter table ACT_ID_TENANT_MEMBER
     add constraint ACT_FK_TENANT_MEMB_GROUP
     foreign key (GROUP_ID_)
     references ACT_ID_GROUP (ID_);
-commit;

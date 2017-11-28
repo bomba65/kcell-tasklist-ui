@@ -1,4 +1,3 @@
-begin;
 create table ACT_GE_PROPERTY (
     NAME_ varchar(64),
     VALUE_ varchar(300),
@@ -17,6 +16,9 @@ values ('next.dbid', '1', 1);
 
 insert into ACT_GE_PROPERTY
 values ('deployment.lock', '0', 1);
+
+insert into ACT_GE_PROPERTY
+values ('history.cleanup.job.lock', '0', 1);
 
 create table ACT_GE_BYTEARRAY (
     ID_ varchar(64),
@@ -116,6 +118,7 @@ create table ACT_RE_PROCDEF (
     SUSPENSION_STATE_ integer,
     TENANT_ID_ varchar(64),
     VERSION_TAG_ varchar(64),
+    HISTORY_TTL_ integer,
     primary key (ID_)
 );
 
@@ -185,7 +188,7 @@ create table ACT_RU_EVENT_SUBSCR (
     EVENT_NAME_ varchar(255),
     EXECUTION_ID_ varchar(64),
     PROC_INST_ID_ varchar(64),
-    ACTIVITY_ID_ varchar(64),
+    ACTIVITY_ID_ varchar(255),
     CONFIGURATION_ varchar(255),
     CREATED_ timestamp not null,
     TENANT_ID_ varchar(64),
@@ -313,6 +316,7 @@ CREATE INDEX ACT_IDX_METER_LOG ON ACT_RU_METER_LOG(NAME_, TIMESTAMP_);
 create index ACT_IDX_EXT_TASK_TOPIC on ACT_RU_EXT_TASK(TOPIC_NAME_);
 create index ACT_IDX_EXT_TASK_TENANT_ID on ACT_RU_EXT_TASK(TENANT_ID_);
 create index ACT_IDX_EXT_TASK_PRIORITY ON ACT_RU_EXT_TASK(PRIORITY_);
+create index ACT_IDX_EXT_TASK_ERR_DETAILS ON ACT_RU_EXT_TASK(ERROR_DETAILS_ID_);
 create index ACT_IDX_AUTH_GROUP_ID on ACT_RU_AUTHORIZATION(GROUP_ID_);
 create index ACT_IDX_JOB_JOB_DEF_ID on ACT_RU_JOB(JOB_DEF_ID_);
 
@@ -512,6 +516,7 @@ create table ACT_RE_CASE_DEF (
     RESOURCE_NAME_ varchar(4000),
     DGRM_RESOURCE_NAME_ varchar(4000),
     TENANT_ID_ varchar(64),
+    HISTORY_TTL_ integer,
     primary key (ID_)
 );
 
@@ -630,6 +635,7 @@ create table ACT_RE_DECISION_DEF (
     DEC_REQ_ID_ varchar(64),
     DEC_REQ_KEY_ varchar(255),
     TENANT_ID_ varchar(64),
+    HISTORY_TTL_ integer,
     primary key (ID_)
 );
 
@@ -778,6 +784,7 @@ create table ACT_HI_DETAIL (
     TEXT2_ varchar(4000),
     SEQUENCE_COUNTER_ bigint,
     TENANT_ID_ varchar(64),
+    OPERATION_ID_ varchar(64),
     primary key (ID_)
 );
 
@@ -910,6 +917,27 @@ create table ACT_HI_BATCH (
     primary key (ID_)
 );
 
+create table ACT_HI_EXT_TASK_LOG (
+    ID_ varchar(64) not null,
+    TIMESTAMP_ timestamp not null,
+    EXT_TASK_ID_ varchar(64) not null,
+    RETRIES_ integer,
+    TOPIC_NAME_ varchar(255),
+    WORKER_ID_ varchar(255),
+    PRIORITY_ bigint not null default 0,
+    ERROR_MSG_ varchar(4000),
+    ERROR_DETAILS_ID_ varchar(64),
+    ACT_ID_ varchar(255),
+    ACT_INST_ID_ varchar(64),
+    EXECUTION_ID_ varchar(64),
+    PROC_INST_ID_ varchar(64),
+    PROC_DEF_ID_ varchar(64),
+    PROC_DEF_KEY_ varchar(255),
+    TENANT_ID_ varchar(64),
+    STATE_ integer,
+    primary key (ID_)
+);
+
 create index ACT_IDX_HI_PRO_INST_END on ACT_HI_PROCINST(END_TIME_);
 create index ACT_IDX_HI_PRO_I_BUSKEY on ACT_HI_PROCINST(BUSINESS_KEY_);
 create index ACT_IDX_HI_PRO_INST_TENANT_ID on ACT_HI_PROCINST(TENANT_ID_);
@@ -957,6 +985,10 @@ create index ACT_IDX_HI_JOB_LOG_TENANT_ID on ACT_HI_JOB_LOG(TENANT_ID_);
 create index ACT_IDX_HI_JOB_LOG_JOB_DEF_ID on ACT_HI_JOB_LOG(JOB_DEF_ID_);
 create index ACT_IDX_HI_JOB_LOG_PROC_DEF_KEY on ACT_HI_JOB_LOG(PROCESS_DEF_KEY_);
 
+create index ACT_HI_EXT_TASK_LOG_PROCINST on ACT_HI_EXT_TASK_LOG(PROC_INST_ID_);
+create index ACT_HI_EXT_TASK_LOG_PROCDEF on ACT_HI_EXT_TASK_LOG(PROC_DEF_ID_);
+create index ACT_HI_EXT_TASK_LOG_PROC_DEF_KEY on ACT_HI_EXT_TASK_LOG(PROC_DEF_KEY_);
+create index ACT_HI_EXT_TASK_LOG_TENANT_ID on ACT_HI_EXT_TASK_LOG(TENANT_ID_);
 
 create index ACT_IDX_HI_OP_LOG_PROCINST on ACT_HI_OP_LOG(PROC_INST_ID_);
 create index ACT_IDX_HI_OP_LOG_PROCDEF on ACT_HI_OP_LOG(PROC_DEF_ID_);
@@ -1081,4 +1113,3 @@ create index ACT_IDX_HI_DEC_IN_CLAUSE on ACT_HI_DEC_IN(DEC_INST_ID_, CLAUSE_ID_)
 
 create index ACT_IDX_HI_DEC_OUT_INST on ACT_HI_DEC_OUT(DEC_INST_ID_);
 create index ACT_IDX_HI_DEC_OUT_RULE on ACT_HI_DEC_OUT(RULE_ORDER_, CLAUSE_ID_);
-commit;
