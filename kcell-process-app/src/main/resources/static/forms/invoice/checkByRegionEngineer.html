@@ -47,8 +47,8 @@
             camForm.on('variables-fetched', function () {
                 variables.forEach(function (el) {
                     if(el === 'resolutions'){
-                        $scope.invoice.resolutions = angular.copy(camForm.variableManager.variables[el].value);
-                        if($scope.invoice.resolutions){
+                        if(camForm.variableManager.variables[el] && camForm.variableManager.variables[el].value){
+                            $scope.invoice.resolutions = angular.copy(camForm.variableManager.variables[el].value);
                             $q.all($scope.invoice.resolutions.map(function (resolution) {
                                 return $http.get("/camunda/api/engine/engine/default/history/task?processInstanceId="+resolution.processInstanceId+"&taskId=" + resolution.taskId);
                             })).then(function (tasks) {
@@ -102,11 +102,11 @@
                     visibility = $scope.acceptAndSignByInitiatorCommentVisibility;
                 }
 
-                if(!$scope.jobModel.resolutions){
-                    $scope.jobModel.resolutions = [];
+                if(!$scope.invoice.resolutions){
+                    $scope.invoice.resolutions = [];
                 }
-                $scope.jobModel.resolutions.push({processInstanceId: $scope.processInstanceId, assignee: $rootScope.authentication.name, assigneeName: $rootScope.authentication.assigneeName, resolution: $scope.regionEngineerTaskResult, comment: $scope.regionEngineerComment, taskId: camForm.taskId, visibility: visibility});
-                camForm.variableManager.variableValue('resolutions', $scope.jobModel.resolutions);
+                $scope.invoice.resolutions.push({processInstanceId: $scope.processInstanceId, assignee: $rootScope.authentication.name, assigneeName: $rootScope.authentication.assigneeName, resolution: $scope.regionEngineerTaskResult, comment: $scope.regionEngineerComment, taskId: camForm.taskId, visibility: visibility});
+                camForm.variableManager.variableValue('resolutions', $scope.invoice.resolutions);
             });
 
             camForm.on('store', function() {
@@ -122,6 +122,8 @@
             }
         }]);
     </script>
+
+    <h4>Monthly Act #____ of accepted P&O works according to "Contract Agreement for Revision Works Performing between АО "Кселл"/Kcel JSC d "Line System Engineering" LLP/ТОО "Line System Engineering"  </h4>
 
     <invoice-detail invoice="invoice"></invoice-detail>
 
@@ -174,7 +176,7 @@
                 </tr>
                 </thead>
                 <tbody>
-                <tr ng-repeat="resolution in jobModel.resolutions">
+                <tr ng-repeat="resolution in invoice.resolutions">
                     <td>{{resolution.taskName}}</td>
                     <td>{{resolution.assigneeName || resolution.assignee}}</td>
                     <td>{{'task.resolution.'+resolution.resolution | translate}}</td>
