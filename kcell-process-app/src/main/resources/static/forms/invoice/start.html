@@ -1,0 +1,297 @@
+<form role="form" class="form-horizontal" name="kcell_form" novalidate>
+    <script cam-script type="text/form-script">
+        inject(['$scope', '$http', '$rootScope', '$q', '$timeout', function ($scope, $http, $rootScope, $q, $timeout) {
+            var variablesToCreate = [
+                {
+                    name: 'jobRequests',
+                    type: 'Json',
+                    submit: true,
+                    store: true
+                },
+                {
+                    name: 'resolutions',
+                    type: 'Json',
+                    submit: true,
+                    store: true,
+                    value: []
+                },
+                {
+                    name: 'initiatorFull',
+                    type: 'Json',
+                    submit: true,
+                    store: true
+                },
+                {
+                    name: 'periodDate',
+                    type: 'Date',
+                    submit: true,
+                    store: true
+                },
+                {
+                    name: 'regionLabel',
+                    type: 'String',
+                    submit: true,
+                    store: true
+                },
+                {
+                    name: 'workTypeLabel',
+                    type: 'String',
+                    submit: true,
+                    store: true
+                }
+            ];
+
+            $scope.regions = [
+                {id: 'alm', label: 'Almaty'},
+                {id: 'astana', label: 'Astana'},
+                {id: 'nc', label: 'North & Central'},
+                {id: 'east', label: 'East'},
+                {id: 'south', label: 'South'},
+                {id: 'west', label: 'West'}
+            ];
+
+            camForm.on('form-loaded', function () {
+                variablesToCreate.forEach(function (el) {
+                    camForm.variableManager.fetchVariable(el.name);
+                });
+
+                $scope.soaComplaintIdCorrect = false;
+                $http.get('/api/catalogs').then(
+                        function (result) {
+                            angular.extend($scope, result.data);
+                        },
+                        function (error) {
+                            console.log(error.data);
+                        }
+                );
+            });
+
+            camForm.on('variables-fetched', function () {
+                variablesToCreate.forEach(function (el) {
+                    if (camForm.variableManager.variables[el.name].type === undefined) {
+                        camForm.variableManager.variables[el.name].type = el.type;
+                        if (el.value) {
+                            camForm.variableManager.variables[el.name].value = el.value;
+                        }
+                    }
+                    if (el.name === 'resolutions') {
+                        if (!$scope.jobModel) {
+                            $scope.jobModel = {};
+                        }
+                        $scope.jobModel['resolutions'] = camForm.variableManager.variables[el.name].value;
+                        $q.all($scope.jobModel.resolutions.map(function (resolution) {
+                            return $http.get("/camunda/api/engine/engine/default/history/task?processInstanceId=" + resolution.processInstanceId + "&taskId=" + resolution.taskId);
+                        })).then(function (tasks) {
+                            tasks.forEach(function (e, index) {
+                                $scope.jobModel.resolutions[index].taskName = e.data[0].name;
+                                try {
+                                    $scope.jobModel.resolutions[index].taskEndDate = new Date(e.data[0].endTime);
+                                } catch (e) {
+                                    console.log(e);
+                                }
+                            })
+                        });
+                    }
+                });
+                $http.get('/camunda/api/engine/engine/default/user/' + $rootScope.authentication.name + '/profile').then(
+                        function (result) {
+                            $scope.initiatorFull = result.data;
+                        },
+                        function (error) {
+                        }
+                );
+                $http.get("/camunda/api/engine/engine/default/user/" + $rootScope.authentication.name + "/profile").then(function (result) {
+                    $rootScope.authentication.assigneeName = (result.data.firstName ? result.data.firstName : "") + " " + (result.data.lastName ? result.data.lastName : "");
+                });
+            });
+
+            camForm.on('submit', function (e) {
+                variablesToCreate.forEach(function (el) {
+                    if (el.submit) {
+                        console.log(el.name);
+                        camForm.variableManager.variableValue(el.name, $scope[el.name]);
+                    }
+                });
+                camForm.variableManager.variableValue('region', $scope.region);
+                camForm.variableManager.variableValue('workType', $scope.workType);
+                camForm.variableManager.variableValue('regionLabel', $scope.regionLabel);
+                camForm.variableManager.variableValue('workTypeLabel', $scope.workTypeLabel);
+
+                camForm.variableManager.variableValue('initiatorFull', $scope.initiatorFull);
+                var periodDate = new Date($scope.periodDate);
+                camForm.variableManager.variableValue('periodDate', periodDate);
+
+                var requests = [];
+                $scope.jobRequests.forEach(function (jobRequest) {
+                    if(jobRequest.selected){
+                        requests.push(jobRequest);
+                    }
+                });
+                
+                camForm.variableManager.variableValue('jobRequests', JSON.parse(angular.toJson(requests)));
+            });
+
+            $scope.open = open;
+            $scope.refreshJobRequests = refreshJobRequests;
+            $scope.regionChanged = regionChanged;
+            $scope.workTypeChanged = workTypeChanged;
+
+            function open($event) {
+                $event.preventDefault();
+                $event.stopPropagation();
+                $scope.dateFieldOpened = true;
+            };
+
+            function regionChanged(){
+                $scope.regionLabel = $scope.regions.find(function (r) {
+                    return r.id = $scope.region;
+                }).label;
+                refreshJobRequests();
+            }
+
+            function workTypeChanged(){
+                $scope.workTypeLabel = $scope.reasons.find(function (r) {
+                    return r.id = $scope.workType;
+                }).name;
+                refreshJobRequests();
+            }
+
+            function refreshJobRequests() {
+                if ($scope.region && $scope.workType && $scope.periodDate){
+                    var processParams = {
+                        processDefinitionKey: 'Revision',
+                        "variables":
+                                [{"name": "siteRegion", "operator": "eq", "value": $scope.region},
+                                    {"name": "contractor", "operator": "eq", "value": 4},
+                                    {"name": "reason", "operator": "eq", "value": $scope.workType},
+                                    {"name": "acceptPerformedJob", "operator": "eq", "value": 'accepted'}
+                                ]
+                    };
+
+                    $http({
+                        method: 'POST',
+                        headers: {'Accept': 'application/hal+json, application/json; q=0.5'},
+                        data: processParams,
+                        url: '/camunda/api/engine/engine/default/process-instance'
+                    }).then(function (results) {
+                        var processes = results.data;
+
+                        var activityParams = {
+                            activityId: 'intermediate_wait_invoiced',
+                            processDefinitionKey: 'Revision',
+                            unfinished: true,
+                            startedBefore: new Date($scope.periodDate)
+                        };
+
+                        $http({
+                            method: 'POST',
+                            headers: {'Accept': 'application/hal+json, application/json; q=0.5'},
+                            data: activityParams,
+                            url: '/camunda/api/engine/engine/default/history/activity-instance'
+                        }).then(function (res) {
+                            var activityProcesses = res.data;
+
+                            var mapped = _.map(processes, function(obj) {
+                                return _.assign(obj, _.find(activityProcesses, function(o){ return obj.id == o.processInstanceId}));
+                            });
+
+                            $scope.jobRequests = [];
+                            mapped.forEach(function(x){
+                                if(x.hasOwnProperty('startTime')){
+                                    var jobRequest = {
+                                        selected: true,
+                                        businessKey: x.businessKey,
+                                        site_name: x.site_name,
+                                        startTime, x.startTime,
+                                        processInstanceId, x.processInstanceId
+                                    }
+                                    $scope.jobRequests.push(jobRequest);
+                                }
+                            });
+
+                            if($scope.jobRequests.length > 0){
+                                _.forEach(['site_name'], function(variable) {
+                                    var varSearchParams = {processInstanceIdIn: _.map($scope.jobRequests, 'processInstanceId'), variableName: variable};
+                                    $http({
+                                        method: 'POST',
+                                        headers:{'Accept':'application/hal+json, application/json; q=0.5'},
+                                        data: varSearchParams,
+                                        url: '/camunda/api/engine/engine/default/variable-instance'
+                                    }).then(
+                                            function(vars){
+                                                $scope.jobRequests.forEach((el)=> {
+                                                    el[variable] = _.filter(vars.data, function(v) {
+                                                        return v.processInstanceId === el.processInstanceId;
+                                                    })[0].value;
+                                            });
+                                            },
+                                            function(error){
+                                                console.log(error.data);
+                                            }
+                                    );
+                                });
+                            }
+                        });
+                    });
+                }
+            }
+        }]);
+    </script>
+    <h4>Create invoice</h4>
+    <div class="form-group">
+        <label class="col-sm-3 control-label">Region:</label>
+        <div class="col-sm-3">
+            <select class="form-control" cam-variable-name="region" name="region" ng-required="true" cam-variable-type="String" ng-change="regionChanged()">
+                <option value="">select region</option>
+                <option value="{{r.id}}" ng-repeat="r in regions" ng-selected="{{r.id == region}}">{{r.label}}</option>
+            </select>
+            <label class="error" ng-if="kcell_form.region.$error.required && ( kcell_form.region.$touched || view.submitted)">Required field</label>
+        </div>
+    </div>
+    <div class="form-group">
+        <label class="col-sm-3 control-label">Type of works:</label>
+        <div class="col-sm-3">
+            <select class="form-control" cam-variable-name="workType" name="workType" ng-required="true" cam-variable-type="String" ng-change="workTypeChanged()">
+                <option value="">select reason</option>
+                <option value="{{r.id}}" ng-repeat="r in reasons" ng-selected="{{r.id == workType}}">{{r.name}}</option>
+            </select>
+            <label class="error" ng-if="kcell_form.workType.$error.required && ( kcell_form.workType.$touched || view.submitted)">Required field</label>
+        </div>
+    </div>
+    <div class="form-group">
+        <label class="col-sm-3 control-label">Last date:</label>
+        <div class="col-sm-3">
+            <div class="input-group">
+                <input type="text" ng-model="periodDate" name="periodDate" required class="form-control" datepicker-popup="dd.MM.yyyy hh:mm" is-open="dateFieldOpened" id="periodDate" min-date="datepickerOptions.minDate" ng-change="refreshJobRequests()" />
+                <span class="input-group-btn">
+                    <button type="button" class="btn btn-default" ng-click="open($event)">
+                        <i class="glyphicon glyphicon-calendar"></i>
+                    </button>
+                </span>
+            </div>
+        </div>
+    </div>
+
+    <div class="col-sm-12">
+        <div class="row">
+            <table class="table table-condensed">
+                <thead>
+                    <tr>
+                        <th></th>
+                        <th>Job Request Number</th>
+                        <th>Sitename</th>
+                        <th>Acceptance date</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr ng-repeat="jobRequest in jobRequests">
+                        <td><input type="checkbox" name="{{jobRequest.processInstanceId}}" ng-model="jobRequest.selected" /></td>
+                        <td>{{jobRequest.businessKey}}</td>
+                        <td>{{jobRequest.site_name}}</td>
+                        <td>{{jobRequest.startTime | date:'dd.MM.yyyy hh:mm'}}</td>
+                    </tr>
+                </tbody>
+            </table>
+        </div>
+    </div>
+</form>
