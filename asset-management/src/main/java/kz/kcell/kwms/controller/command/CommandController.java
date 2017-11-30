@@ -53,7 +53,7 @@ public class CommandController {
         mapper.configure(SerializationFeature.WRITE_DATES_AS_TIMESTAMPS, false);
         mapper.configure(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES, false);
 
-        Set<Command> commandsList = new HashSet<>();
+        Set<Command<? extends Payload>> commandsList = new HashSet<>();
 
         for (JsonNode commandNode : commands) {
             Command<Payload> command = new Command<>();
@@ -109,11 +109,11 @@ public class CommandController {
         objectMap.put("site", siteRepository.findOne(Long.valueOf(siteId)));
 
         while (!commandsList.isEmpty()) {
-            List<Command> independentCommands = commandsList.stream().filter(c -> objectMap.keySet().containsAll(c.getDependencies())).collect(Collectors.toList());
+            List<Command<? extends Payload>> independentCommands = commandsList.stream().filter(c -> objectMap.keySet().containsAll(c.getDependencies())).collect(Collectors.toList());
             if (independentCommands.isEmpty() && !commandsList.isEmpty()) {
                 throw new IllegalStateException("Could not find independent commands for execution");
             }
-            independentCommands.forEach(c -> {
+            independentCommands.forEach((c) -> {
                 c.execute(this, objectMap);
             });
             commandsList.removeAll(independentCommands);

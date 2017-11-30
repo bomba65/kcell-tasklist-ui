@@ -22,7 +22,6 @@ import java.security.NoSuchAlgorithmException;
 @CommonsLog
 public class Minio {
 
-    private static final Logger log = LoggerFactory.getLogger(Minio.class);
     private final MinioClient minioClient;
     private final String bucketName = "uploads";
     private final String tempBucketName = "tempuploads";

@@ -50,7 +50,7 @@ public class SendGeneratedJRBlank implements JavaDelegate {
 
     private static final Map<String, String> contractorsTitle =
             ((Supplier<Map<String, String>>) (() -> {
-                Map<String, String> map = new HashMap();
+                Map<String, String> map = new HashMap<>();
                 map.put("1", "ТОО Аврора Сервис");
                 map.put("2", "ТОО AICOM");
                 map.put("3", "ТОО Spectr energy group");
@@ -61,7 +61,7 @@ public class SendGeneratedJRBlank implements JavaDelegate {
 
     private static final Map<String, String> contractorsCode =
             ((Supplier<Map<String, String>>) (() -> {
-                Map<String, String> map = new HashMap();
+                Map<String, String> map = new HashMap<>();
                 map.put("1", "avrora");
                 map.put("2", "aicom");
                 map.put("3", "spectr");

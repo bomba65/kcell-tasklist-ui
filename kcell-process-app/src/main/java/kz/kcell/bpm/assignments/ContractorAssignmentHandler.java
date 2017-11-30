@@ -12,7 +12,7 @@ public class ContractorAssignmentHandler implements TaskListener {
 
     private static final Map<String, String> contractorsTitle =
             ((Supplier<Map<String, String>>) (() -> {
-                Map<String, String> map = new HashMap();
+                Map<String, String> map = new HashMap<>();
                 map.put("1", "avrora");
                 map.put("2", "aicom");
                 map.put("3", "spectr");
