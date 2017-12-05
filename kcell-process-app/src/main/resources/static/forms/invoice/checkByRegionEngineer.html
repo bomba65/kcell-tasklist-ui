@@ -9,7 +9,8 @@
                 'workTypeLabel',
                 'periodDate',
                 'jobRequests',
-                'resolutions'
+                'resolutions',
+                'selectedWorks'
             ];
 
             $scope.invoice = {};
@@ -34,11 +35,6 @@
                     name: 'regionEngineerCommentVisibility',
                     type: 'String',
                     value: ''
-                });
-                camForm.variableManager.createVariable({
-                    name: 'works',
-                    type: 'Json',
-                    value: {}
                 });
                 $http.get("/camunda/api/engine/engine/default/user/" + $rootScope.authentication.name+ "/profile").then(function(result){
                     $rootScope.authentication.assigneeName = (result.data.firstName ? result.data.firstName : "") + " " + (result.data.lastName ? result.data.lastName : "");
@@ -69,29 +65,9 @@
                     }
                     $scope[el] = camForm.variableManager.variables[el];
                 });
-
-                $scope.works = {};
-
-                $scope.jobRequests.value.forEach(function (el) {
-                    $http.get("/camunda/api/engine/engine/default/process-instance/"+el.processInstanceId+"/variables/jobWorks?deserializeValue=false").then(function (result) {
-                        var processDetail = _.find($scope.jobRequests.value, function(j) { return j.processInstanceId == el.processInstanceId });
-                        var list = JSON.parse(result.data.value);
-                        list.forEach(function (work) {
-                            var processDetailCopy = angular.copy(processDetail);
-                            processDetailCopy.quantity = work.quantity;
-                            if(!$scope.works[work.sapServiceNumber]){
-                                $scope.works[work.sapServiceNumber] = [processDetailCopy];
-                            } else {
-                                $scope.works[work.sapServiceNumber].push(processDetailCopy);
-                            }
-                        });
-                        $scope.invoice.works = $scope.works;
-                    });
-                });
             });
 
             camForm.on('submit', function () {
-                camForm.variableManager.variableValue('works', $scope.works);
                 camForm.variableManager.variableValue('regionEngineerTaskResult', $scope.regionEngineerTaskResult);
                 if($scope.regionEngineerComment){
                     camForm.variableManager.variableValue('regionEngineerComment', $scope.regionEngineerComment);

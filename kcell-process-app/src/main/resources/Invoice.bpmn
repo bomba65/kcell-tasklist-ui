@@ -119,7 +119,7 @@
     <bpmn:userTask id="modify_ma" name="Modify MA" camunda:formKey="embedded:app:forms/invoice/modify.html" camunda:assignee="${ starter }">
       <bpmn:documentation>Modify MA</bpmn:documentation>
       <bpmn:incoming>SequenceFlow_0eo7u4x</bpmn:incoming>
-      <bpmn:outgoing>SequenceFlow_0gp51jz</bpmn:outgoing>
+      <bpmn:outgoing>SequenceFlow_0mw1f4t</bpmn:outgoing>
     </bpmn:userTask>
     <bpmn:userTask id="attach_signed_docs" name="Attach scan copies of all signed documents">
       <bpmn:incoming>SequenceFlow_0el6bzq</bpmn:incoming>
@@ -186,7 +186,9 @@
     <bpmn:sequenceFlow id="SequenceFlow_1wmiwc6" name="return for correction" sourceRef="exclgw_ma_is_signed_region_head" targetRef="check_ma_region">
       <bpmn:conditionExpression xsi:type="bpmn:tFormalExpression"><![CDATA[${regionHeadTaskResult == 'returnForCorrection'}]]></bpmn:conditionExpression>
     </bpmn:sequenceFlow>
-    <bpmn:sequenceFlow id="SequenceFlow_0gp51jz" sourceRef="modify_ma" targetRef="check_ma_region" />
+    <bpmn:sequenceFlow id="SequenceFlow_0gp51jz" name="modified" sourceRef="ExclusiveGateway_0glwhu7" targetRef="check_ma_region">
+      <bpmn:conditionExpression xsi:type="bpmn:tFormalExpression"><![CDATA[${modifyMaTaskResult== 'modified'}]]></bpmn:conditionExpression>
+    </bpmn:sequenceFlow>
     <bpmn:sequenceFlow id="SequenceFlow_1oe6j17" sourceRef="check_ma_region" targetRef="exclgw_ma_is_checked_region" />
     <bpmn:sequenceFlow id="SequenceFlow_0eo7u4x" name="modify" sourceRef="exclgw_ma_is_checked_region" targetRef="modify_ma">
       <bpmn:conditionExpression xsi:type="bpmn:tFormalExpression"><![CDATA[${regionEngineerTaskResult == 'modify'}]]></bpmn:conditionExpression>
@@ -201,7 +203,7 @@
       <bpmn:incoming>SequenceFlow_1aeqwo7</bpmn:incoming>
       <bpmn:outgoing>SequenceFlow_0fjcgxj</bpmn:outgoing>
     </bpmn:sendTask>
-    <bpmn:serviceTask id="set_invoice_status" name="Set Invoicing status">
+    <bpmn:serviceTask id="set_invoice_status" name="Set Invoicing status" camunda:expression="${invoiceStatus== &#39;accepted&#39;}">
       <bpmn:incoming>SequenceFlow_0j9yvgb</bpmn:incoming>
       <bpmn:outgoing>SequenceFlow_0cw3b9i</bpmn:outgoing>
     </bpmn:serviceTask>
@@ -218,6 +220,18 @@
       <bpmn:incoming>SequenceFlow_05ps3g2</bpmn:incoming>
       <bpmn:outgoing>SequenceFlow_1q176ib</bpmn:outgoing>
     </bpmn:userTask>
+    <bpmn:endEvent id="EndEvent_0tset5c">
+      <bpmn:incoming>SequenceFlow_072ew06</bpmn:incoming>
+    </bpmn:endEvent>
+    <bpmn:sequenceFlow id="SequenceFlow_072ew06" name="cancelled" sourceRef="ExclusiveGateway_0glwhu7" targetRef="EndEvent_0tset5c">
+      <bpmn:conditionExpression xsi:type="bpmn:tFormalExpression"><![CDATA[${modifyMaTaskResult== 'cancel'}]]></bpmn:conditionExpression>
+    </bpmn:sequenceFlow>
+    <bpmn:exclusiveGateway id="ExclusiveGateway_0glwhu7">
+      <bpmn:incoming>SequenceFlow_0mw1f4t</bpmn:incoming>
+      <bpmn:outgoing>SequenceFlow_072ew06</bpmn:outgoing>
+      <bpmn:outgoing>SequenceFlow_0gp51jz</bpmn:outgoing>
+    </bpmn:exclusiveGateway>
+    <bpmn:sequenceFlow id="SequenceFlow_0mw1f4t" sourceRef="modify_ma" targetRef="ExclusiveGateway_0glwhu7" />
     <bpmn:textAnnotation id="TextAnnotation_10jqhlq">    <bpmn:text>проверка и генерация месячного акта осуществляется Подрядчиком</bpmn:text>
 </bpmn:textAnnotation>
     <bpmn:textAnnotation id="TextAnnotation_0p5xf9y">    <bpmn:text>должен формироваться бланк месячного акта и к нему приложены бланки актов выполненных работ с фамилиями, кто апрувил их при приемке</bpmn:text>
@@ -619,7 +633,7 @@
         </bpmndi:BPMNLabel>
       </bpmndi:BPMNEdge>
       <bpmndi:BPMNShape id="UserTask_1et6xa1_di" bpmnElement="modify_ma">
-        <dc:Bounds x="3234" y="417" width="100" height="80" />
+        <dc:Bounds x="3234" y="398" width="100" height="80" />
       </bpmndi:BPMNShape>
       <bpmndi:BPMNEdge id="SequenceFlow_178lwgr_di" bpmnElement="SequenceFlow_178lwgr">
         <di:waypoint xsi:type="dc:Point" x="6587" y="343" />
@@ -633,10 +647,10 @@
       </bpmndi:BPMNShape>
       <bpmndi:BPMNEdge id="SequenceFlow_0eo7u4x_di" bpmnElement="SequenceFlow_0eo7u4x">
         <di:waypoint xsi:type="dc:Point" x="3413" y="357" />
-        <di:waypoint xsi:type="dc:Point" x="3413" y="457" />
-        <di:waypoint xsi:type="dc:Point" x="3335" y="457" />
+        <di:waypoint xsi:type="dc:Point" x="3413" y="438" />
+        <di:waypoint xsi:type="dc:Point" x="3334" y="438" />
         <bpmndi:BPMNLabel>
-          <dc:Bounds x="3421" y="401" width="33" height="13" />
+          <dc:Bounds x="3421" y="391.405" width="33" height="13" />
         </bpmndi:BPMNLabel>
       </bpmndi:BPMNEdge>
       <bpmndi:BPMNEdge id="SequenceFlow_1e2ycnv_di" bpmnElement="SequenceFlow_1e2ycnv">
@@ -647,11 +661,11 @@
         </bpmndi:BPMNLabel>
       </bpmndi:BPMNEdge>
       <bpmndi:BPMNEdge id="SequenceFlow_0gp51jz_di" bpmnElement="SequenceFlow_0gp51jz">
-        <di:waypoint xsi:type="dc:Point" x="3232" y="457" />
-        <di:waypoint xsi:type="dc:Point" x="3133" y="457" />
+        <di:waypoint xsi:type="dc:Point" x="3256" y="557" />
+        <di:waypoint xsi:type="dc:Point" x="3133" y="557" />
         <di:waypoint xsi:type="dc:Point" x="3133" y="372" />
         <bpmndi:BPMNLabel>
-          <dc:Bounds x="3137.5" y="436" width="90" height="12" />
+          <dc:Bounds x="3174" y="536" width="42" height="13" />
         </bpmndi:BPMNLabel>
       </bpmndi:BPMNEdge>
       <bpmndi:BPMNShape id="StartEvent_0kab601_di" bpmnElement="startevt_monthly_act">
@@ -689,8 +703,8 @@
         <dc:Bounds x="3281.9177631578946" y="366.3381578947368" width="100" height="27.631578947368418" />
       </bpmndi:BPMNShape>
       <bpmndi:BPMNEdge id="Association_04k69wa_di" bpmnElement="Association_04k69wa">
-        <di:waypoint xsi:type="dc:Point" x="3309" y="417" />
-        <di:waypoint xsi:type="dc:Point" x="3323" y="394" />
+        <di:waypoint xsi:type="dc:Point" x="3317" y="398" />
+        <di:waypoint xsi:type="dc:Point" x="3321" y="394" />
       </bpmndi:BPMNEdge>
       <bpmndi:BPMNShape id="SendTask_130952t_di" bpmnElement="Task_1shofox">
         <dc:Bounds x="5219" y="441" width="100" height="80" />
@@ -717,6 +731,32 @@
       <bpmndi:BPMNShape id="UserTask_0mwcxog_di" bpmnElement="sign_transmission_head">
         <dc:Bounds x="4729" y="116" width="100" height="80" />
       </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="EndEvent_0tset5c_di" bpmnElement="EndEvent_0tset5c">
+        <dc:Bounds x="3547" y="539" width="36" height="36" />
+        <bpmndi:BPMNLabel>
+          <dc:Bounds x="3565" y="578" width="0" height="13" />
+        </bpmndi:BPMNLabel>
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNEdge id="SequenceFlow_072ew06_di" bpmnElement="SequenceFlow_072ew06">
+        <di:waypoint xsi:type="dc:Point" x="3309" y="557" />
+        <di:waypoint xsi:type="dc:Point" x="3547" y="557" />
+        <bpmndi:BPMNLabel>
+          <dc:Bounds x="3405" y="536" width="47" height="13" />
+        </bpmndi:BPMNLabel>
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNShape id="ExclusiveGateway_0glwhu7_di" bpmnElement="ExclusiveGateway_0glwhu7" isMarkerVisible="true">
+        <dc:Bounds x="3259" y="532" width="50" height="50" />
+        <bpmndi:BPMNLabel>
+          <dc:Bounds x="3284" y="585" width="0" height="13" />
+        </bpmndi:BPMNLabel>
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNEdge id="SequenceFlow_0mw1f4t_di" bpmnElement="SequenceFlow_0mw1f4t">
+        <di:waypoint xsi:type="dc:Point" x="3284" y="478" />
+        <di:waypoint xsi:type="dc:Point" x="3284" y="532" />
+        <bpmndi:BPMNLabel>
+          <dc:Bounds x="3299" y="498.5" width="0" height="13" />
+        </bpmndi:BPMNLabel>
+      </bpmndi:BPMNEdge>
     </bpmndi:BPMNPlane>
   </bpmndi:BPMNDiagram>
 </bpmn:definitions>
