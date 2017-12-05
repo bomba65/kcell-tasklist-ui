@@ -25,7 +25,7 @@ import static org.camunda.bpm.engine.delegate.ExecutionListener.EVENTNAME_START;
 import static org.camunda.bpm.engine.delegate.TaskListener.EVENTNAME_ASSIGNMENT;
 import static org.camunda.bpm.engine.delegate.TaskListener.EVENTNAME_CREATE;
 
-@SpringBootApplication(exclude = CamundaBpmWebappAutoConfiguration.class)
+@SpringBootApplication
 @ProcessApplication
 public class CamundaApplication extends SpringBootProcessApplication {
 
