@@ -1,6 +1,7 @@
-FROM java:openjdk-8-jdk
+FROM openjdk:8u151-jdk
 
 ADD ./build/libs/kcell-process-app.jar /opt/kcell-process-app.jar
 
 EXPOSE 8080
-ENTRYPOINT ["java", "-jar", "/opt/kcell-process-app.jar", "--spring.profiles.active=docker"]
+ENV SPRING_PROFILES_ACTIVE=docker
+ENTRYPOINT ["java", "-jar", "/opt/kcell-process-app.jar"]
