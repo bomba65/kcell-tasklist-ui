@@ -1,0 +1,192 @@
+<form role="form" class="form-horizontal" name="kcell_form" novalidate>
+    <script cam-script type="text/form-script">
+        inject(['$scope', '$http', 'Uri', '$rootScope', '$q', 'Upload', '$timeout', function ($scope, $http, Uri, $rootScope, $q, Upload, $timeout) {
+            var variables = [
+                'initiatorFull',
+                'region',
+                'workType',
+                'regionLabel',
+                'workTypeLabel',
+                'periodDate',
+                'jobRequests',
+                'resolutions',
+                'selectedWorks',
+                'invoiceNumber'
+            ];
+
+            $scope.invoice = {};
+            $http.get('/camunda/api/engine/engine/default/task/' + camForm.taskId).then(
+                    function(result){
+                        $scope.processInstanceId = result.data.processInstanceId;
+                    },
+                    function (error) {
+                        console.log(error.data);
+                    }
+            );
+            camForm.on('form-loaded', function () {
+                variables.forEach(function (el) {
+                    camForm.variableManager.fetchVariable(el);
+                });
+                camForm.variableManager.createVariable({
+                    name: 'transmissionHeadTaskResult',
+                    type: 'String',
+                    value: ''
+                });
+                camForm.variableManager.createVariable({
+                    name: 'transmissionHeadCommentVisibility',
+                    type: 'String',
+                    value: ''
+                });
+                camForm.variableManager.createVariable({
+                    name: 'works',
+                    type: 'Json',
+                    value: {}
+                });
+                $http.get("/camunda/api/engine/engine/default/user/" + $rootScope.authentication.name+ "/profile").then(function(result){
+                    $rootScope.authentication.assigneeName = (result.data.firstName ? result.data.firstName : "") + " " + (result.data.lastName ? result.data.lastName : "");
+                });
+            });
+            camForm.on('variables-fetched', function () {
+                variables.forEach(function (el) {
+                    if(el === 'resolutions'){
+                        if(camForm.variableManager.variables[el] && camForm.variableManager.variables[el].value){
+                            $scope.invoice.resolutions = angular.copy(camForm.variableManager.variables[el].value);
+                            $q.all($scope.invoice.resolutions.map(function (resolution) {
+                                return $http.get("/camunda/api/engine/engine/default/history/task?processInstanceId="+resolution.processInstanceId+"&taskId=" + resolution.taskId);
+                            })).then(function (tasks) {
+                                tasks.forEach(function (e, index) {
+                                    if(e.data.length > 0){
+                                        $scope.invoice.resolutions[index].taskName = e.data[0].name;
+                                        try {
+                                            $scope.invoice.resolutions[index].taskEndDate = new Date(e.data[0].endTime);
+                                        } catch(e){
+                                            console.log(e);
+                                        }
+                                    }
+                                });
+                            });
+                        }
+                    } else {
+                        $scope.invoice[el] = camForm.variableManager.variables[el];
+                    }
+                    $scope[el] = camForm.variableManager.variables[el];
+                });
+
+                $scope.works = {};
+
+                $scope.jobRequests.value.forEach(function (el) {
+                    $http.get("/camunda/api/engine/engine/default/process-instance/"+el.processInstanceId+"/variables/jobWorks?deserializeValue=false").then(function (result) {
+                        var processDetail = _.find($scope.jobRequests.value, function(j) { return j.processInstanceId == el.processInstanceId });
+                        var list = JSON.parse(result.data.value);
+                        list.forEach(function (work) {
+                            var processDetailCopy = angular.copy(processDetail);
+                            processDetailCopy.quantity = work.quantity;
+                            if(!$scope.works[work.sapServiceNumber]){
+                                $scope.works[work.sapServiceNumber] = [processDetailCopy];
+                            } else {
+                                $scope.works[work.sapServiceNumber].push(processDetailCopy);
+                            }
+                        });
+                        $scope.invoice.works = $scope.works;
+                    });
+                });
+            });
+
+            camForm.on('submit', function () {
+                camForm.variableManager.variableValue('works', $scope.works);
+                camForm.variableManager.variableValue('transmissionHeadTaskResult', $scope.transmissionHeadTaskResult);
+                if($scope.transmissionHeadComment){
+                    camForm.variableManager.variableValue('transmissionHeadComment', $scope.transmissionHeadComment);
+                }
+                var visibility = 'all';
+                if($scope.transmissionHeadCommentVisibility){
+                    camForm.variableManager.variableValue('transmissionHeadCommentVisibility', $scope.transmissionHeadCommentVisibility);
+                    visibility = $scope.acceptAndSignByInitiatorCommentVisibility;
+                }
+
+                if(!$scope.invoice.resolutions){
+                    $scope.invoice.resolutions = [];
+                }
+                $scope.invoice.resolutions.push({processInstanceId: $scope.processInstanceId, assignee: $rootScope.authentication.name, assigneeName: $rootScope.authentication.assigneeName, resolution: $scope.transmissionHeadTaskResult, comment: $scope.transmissionHeadComment, taskId: camForm.taskId, visibility: visibility});
+                camForm.variableManager.variableValue('resolutions', $scope.invoice.resolutions);
+            });
+
+            camForm.on('store', function() {
+                camForm.variableManager.variableValue('transmissionHeadTaskResult', $scope.transmissionHeadTaskResult);
+            });
+
+            $scope.isVisible = function (resolution) {
+                return !resolution.visibility || resolution.visibility === 'all' || (resolution.visibility === 'kcell' && $rootScope.hasGroup('kcellUsers'));
+            }
+
+            $scope.hasComment = function () {
+                return $scope.transmissionHeadComment && $rootScope.hasGroup('kcellUsers');
+            }
+        }]);
+    </script>
+
+    <h4>Monthly Act of accepted P&O works according to "Contract Agreement for Revision Works Performing" between АО "Кселл"/Kcel JSC d "Line System Engineering" LLP/ТОО "Line System Engineering"</h4>
+
+    <invoice-detail invoice="invoice"></invoice-detail>
+
+    <div class="form-group">
+        <label class="col-sm-4 control-label">Resolution</label>
+        <div class="col-sm-8">
+            <label class="radio-inline">
+                <input type="radio" name="transmissionHeadTaskResult" ng-model="transmissionHeadTaskResult" value="accept" required> Accept and sign
+            </label>
+            <label class="radio-inline">
+                <input type="radio" name="transmissionHeadTaskResult" ng-model="transmissionHeadTaskResult" value="returnForCorrection" required> Return for correction
+            </label>
+            <label class="error" ng-show="kcell_form.transmissionHeadTaskResult.$error.required && ( kcell_form.transmissionHeadTaskResult.$touched || view.submitted)">Required field</label>
+        </div>
+    </div>
+    <div class="form-group">
+        <label class="col-sm-4 control-label">Comments</label>
+        <div class="col-sm-8">
+            <textarea class="form-control" rows="4" maxlength="500" cam-variable-name="transmissionHeadComment" name="transmissionHeadComment" ng-required="transmissionHeadTaskResult == 'returnForCorrection'" cam-variable-type="String"></textarea>
+            <label class="error" ng-show="kcell_form.transmissionHeadComment.$error.required && ( kcell_form.transmissionHeadComment.$touched || view.submitted)">Required field</label>
+        </div>
+    </div>
+    <div class="form-group" ng-show="hasComment()">
+        <label class="col-sm-4 control-label">Comments visibility</label>
+        <div class="col-sm-8">
+            <label class="radio-inline">
+                <input type="radio" name="transmissionHeadCommentVisibility"
+                       ng-model="transmissionHeadCommentVisibility" value="all" ng-required="hasComment()"> Visible for all
+            </label>
+            <label class="radio-inline">
+                <input type="radio" name="transmissionHeadCommentVisibility"
+                       ng-model="transmissionHeadCommentVisibility" value="kcell" ng-required="hasComment()"> Kcell staff only
+            </label>
+            <label class="error" ng-show="kcell_form.transmissionHeadCommentVisibility.$error.required && ( kcell_form.transmissionHeadCommentVisibility.$touched || view.submitted)">Required field</label>
+        </div>
+    </div>
+    <accordion>
+        <accordion-group is-open="isHistoryOpen">
+            <accordion-heading>
+                History <i class="pull-right glyphicon" ng-class="{'glyphicon-chevron-up': status.isCustomHeaderOpen, 'glyphicon-chevron-down': !status.isCustomHeaderOpen}"></i>
+            </accordion-heading>
+            <table class="table">
+                <thead>
+                <tr>
+                    <th>Activity</th>
+                    <th>Assignee</th>
+                    <th>Resolution</th>
+                    <th>Date</th>
+                    <th>Comment</th>
+                </tr>
+                </thead>
+                <tbody>
+                <tr ng-repeat="resolution in invoice.resolutions">
+                    <td>{{resolution.taskName}}</td>
+                    <td>{{resolution.assigneeName || resolution.assignee}}</td>
+                    <td>{{'task.resolution.'+resolution.resolution | translate}}</td>
+                    <td>{{resolution.taskEndDate | date: 'dd.MM.yyyy HH:mm'}}</td>
+                    <td>{{isVisible(resolution)? resolution.comment : ''}}</td>
+                </tr>
+                </tbody>
+            </table>
+        </accordion-group>
+    </accordion>
+</form>
