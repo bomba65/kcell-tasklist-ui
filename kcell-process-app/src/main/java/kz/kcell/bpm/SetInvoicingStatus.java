@@ -9,6 +9,8 @@ import org.camunda.spin.SpinList;
 import org.camunda.spin.json.SpinJsonNode;
 import org.camunda.spin.plugin.variable.value.JsonValue;
 
+import java.util.ArrayList;
+import java.util.List;
 import java.util.logging.Logger;
 import java.util.stream.Stream;
 
@@ -21,13 +23,19 @@ public class SetInvoicingStatus implements JavaDelegate {
 
         RuntimeService runtimeService = delegateExecution.getProcessEngineServices().getRuntimeService();
 
+        List<String> revisions = new ArrayList<>();
+
         SpinJsonNode selectedWorks = delegateExecution.<JsonValue>getVariableTyped("selectedWorks").getValue();
         for(String field: selectedWorks.fieldNames()){
             if(selectedWorks.prop(field).isArray()){
                 SpinList<SpinJsonNode> requests = selectedWorks.prop(field).elements();
                 requests.forEach(request -> {
                     String revisionId = request.prop("processInstanceId").stringValue();
-                    runtimeService.setVariable(revisionId, "acceptPerformedJob", "invoiced");
+
+                    if(!revisions.contains(revisionId)){
+                        runtimeService.setVariable(revisionId, "acceptPerformedJob", "invoiced");
+                        revisions.add(revisionId);
+                    }
                 });
             }
         }
