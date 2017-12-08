@@ -15,6 +15,9 @@
             ];
 
             $scope.invoice = {};
+            $scope.piIndex = undefined;
+            $scope.jobModel = {};
+
             $http.get('/camunda/api/engine/engine/default/task/' + camForm.taskId).then(
                     function(result){
                         $scope.processInstanceId = result.data.processInstanceId;
@@ -36,11 +39,6 @@
                     name: 'createDocsPrintVersionTaskCommentVisibility',
                     type: 'String',
                     value: ''
-                });
-                camForm.variableManager.createVariable({
-                    name: 'works',
-                    type: 'Json',
-                    value: {}
                 });
                 $http.get("/camunda/api/engine/engine/default/user/" + $rootScope.authentication.name+ "/profile").then(function(result){
                     $rootScope.authentication.assigneeName = (result.data.firstName ? result.data.firstName : "") + " " + (result.data.lastName ? result.data.lastName : "");
@@ -72,24 +70,13 @@
                     $scope[el] = camForm.variableManager.variables[el];
                 });
 
-                $scope.works = {};
+                $scope.requests = {};
 
-                $scope.jobRequests.value.forEach(function (el) {
-                    $http.get("/camunda/api/engine/engine/default/process-instance/"+el.processInstanceId+"/variables/jobWorks?deserializeValue=false").then(function (result) {
-                        var processDetail = _.find($scope.jobRequests.value, function(j) { return j.processInstanceId == el.processInstanceId });
-                        var list = JSON.parse(result.data.value);
-                        list.forEach(function (work) {
-                            var processDetailCopy = angular.copy(processDetail);
-                            processDetailCopy.quantity = work.quantity;
-                            if(!$scope.works[work.sapServiceNumber]){
-                                $scope.works[work.sapServiceNumber] = [processDetailCopy];
-                            } else {
-                                $scope.works[work.sapServiceNumber].push(processDetailCopy);
-                            }
-                        });
-                        $scope.invoice.works = $scope.works;
+                for(var propt in $scope.selectedWorks.value){
+                    $scope.selectedWorks.value[propt].forEach(function (el) {
+                        $scope.requests[el.processInstanceId] = el.businessKey;
                     });
-                });
+                }
             });
 
             camForm.on('submit', function () {
@@ -123,12 +110,94 @@
             $scope.hasComment = function () {
                 return $scope.createDocsPrintVersionTaskComment && $rootScope.hasGroup('kcellUsers');
             }
+
+
+            $scope.toggleProcessView = function(index){
+                if($scope.piIndex === index){
+                    $scope.piIndex = undefined;
+                } else {
+                    $scope.piIndex = index;
+                    $scope.jobModel.state = 'COMPLETED';
+                    $http({
+                        method: 'GET',
+                        headers:{'Accept':'application/hal+json, application/json; q=0.5'},
+                        url: '/camunda/api/engine/engine/default/task?processInstanceId='+index
+                    }).then(
+                            function(tasks){
+                                var processInstanceTasks = tasks.data._embedded.task;
+                                if(processInstanceTasks && processInstanceTasks.length > 0){
+                                    processInstanceTasks.forEach(function(e){
+                                        if(e.assignee && tasks.data._embedded.assignee){
+                                            for(var i=0;i<tasks.data._embedded.assignee.length;i++){
+                                                if(tasks.data._embedded.assignee[i].id === e.assignee){
+                                                    e.assigneeObject = tasks.data._embedded.assignee[i];
+                                                }
+                                            }
+                                        }
+                                    });
+                                }
+                                $http.get('/camunda/api/engine/engine/default/history/variable-instance?deserializeValues=false&processInstanceId='+index).then(
+                                        function(result){
+                                            var workFiles = [];
+                                            result.data.forEach(function(el){
+                                                $scope.jobModel[el.name] = el;
+                                                if(el.type === 'File' || el.type === 'Bytes'){
+                                                    $scope.jobModel[el.name].contentUrl = '/camunda/api/engine/engine/default/history/variable-instance/'+el.id+'/data';
+                                                }
+                                                if(el.type === 'Json'){
+                                                    $scope.jobModel[el.name].value = JSON.parse(el.value);
+                                                }
+                                                if(el.name.startsWith('works_') && el.name.includes('_file_')){
+                                                    workFiles.push(el);
+                                                }
+                                            });
+                                            workFiles.forEach(function(file){
+                                                var workIndex = file.name.split('_')[1];
+                                                if (!$scope.jobModel.jobWorks.value[workIndex].files) {
+                                                    $scope.jobModel.jobWorks.value[workIndex].files = [];
+                                                }
+                                                $scope.jobModel.jobWorks.value[workIndex].files.push(file);
+                                            });
+                                            $scope.jobModel.tasks = processInstanceTasks;
+                                        },
+                                        function(error){
+                                            console.log(error.data);
+                                        }
+                                );
+                            },
+                            function(error){
+                                console.log(error.data);
+                            }
+                    );
+                }
+            };
         }]);
     </script>
 
     <h4>Monthly Act of accepted P&O works according to "Contract Agreement for Revision Works Performing" between АО "Кселл"/Kcel JSC d "Line System Engineering" LLP/ТОО "Line System Engineering"</h4>
 
     <invoice-detail invoice="invoice"></invoice-detail>
+
+    <h4>Attachments</h4>
+
+    <table class="table table-condensed">
+        <thead>
+        <tr>
+            <th>Job Request Number</th>
+        </tr>
+        </thead>
+        <tbody ng-repeat="(key, value) in requests">
+        <tr>
+            <td><a ng-click="toggleProcessView(key)">{{value}}</a></td>
+        </tr>
+        <tr ng-if="piIndex === key && jobModel">
+            <td colspan="4">
+                <job-request job-model="jobModel"></job-request>
+            </td>
+        </tr>
+        </tbody>
+    </table>
+
 
     <!--<div class="form-group">
         <label class="col-sm-4 control-label">Resolution</label>
