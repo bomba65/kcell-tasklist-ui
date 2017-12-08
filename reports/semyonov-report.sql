@@ -860,24 +860,35 @@ from act_hi_procinst pi
                            and ti.task_def_key_ in ('UserTask_14yc5q6', 'upload_tr_contractor'))
     as mtListSignDate
     on true
+
+  left join lateral (select max(ai.end_time_) as value_
+                     from act_hi_actinst ai
+                     where pi.id_ = ai.proc_inst_id_
+                           and ai.act_id_ = 'endevt_accept_return_for_correction')
+    as acceptReturn
+    on true
   left join lateral (select max(ti.end_time_) as value_
                      from act_hi_taskinst ti
                      where pi.id_ = ti.proc_inst_id_
                            and ti.task_def_key_ in ('accept_work_maintenance_group'))
     as acceptMaint
-    on true
+    on acceptMaint.value_ > acceptReturn.value_
   left join lateral (select max(ti.end_time_) as value_
                      from act_hi_taskinst ti
                      where pi.id_ = ti.proc_inst_id_
                            and ti.task_def_key_ in ('accept_work_planning_group'))
     as acceptPlan
-    on true
-  left join lateral (select max(ti.start_time_) as value_
-                     from act_hi_taskinst ti
-                     where pi.id_ = ti.proc_inst_id_
-                           and ti.task_def_key_ in ('Task_1kwxxw1', 'sign_region_head'))
+    on acceptPlan.value_ > acceptReturn.value_
+
+  left join act_hi_varinst acceptance
+    on pi.id_ = acceptance.proc_inst_id_
+       and acceptance.name_ = 'acceptPerformedJob'
+  left join lateral (select max(ai.end_time_) as value_
+                     from act_hi_actinst ai
+                     where pi.id_ = ai.proc_inst_id_
+                           and ai.act_id_ = 'SubProcess_0v7hq1m')
     as acceptanceDate
-    on true
+    on acceptance.text_ = 'accepted'
 
   left join act_hi_varinst jobWorks
     on pi.id_ = jobWorks.proc_inst_id_ and jobWorks.name_ = 'jobWorks'
