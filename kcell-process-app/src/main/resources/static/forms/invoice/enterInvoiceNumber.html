@@ -14,6 +14,15 @@
                 'monthActNumber'
             ];
 
+            $scope.printDiv = function(forPrint) {
+                var printContents = document.getElementById(forPrint).innerHTML;
+                var popupWin = window.open('', '_blank', 'width=3100,height=3100');
+
+                popupWin.document.open();
+                popupWin.document.write('<html><head><link href="css/bootstrap.min.css" rel="stylesheet"><link href="css/styles.css" rel="stylesheet" type="text/css"></head><body onload="window.print()">' + printContents + '</body></html>');
+                popupWin.document.close();
+            }
+
             $scope.invoice = {};
             $http.get('/camunda/api/engine/engine/default/task/' + camForm.taskId).then(
                     function(result){
@@ -91,7 +100,7 @@
                     });
                 });
             });
-
+                console.log($scope.invoice);
             camForm.on('submit', function () {
                 camForm.variableManager.variableValue('works', $scope.works);
                 $scope.enterInvoiceNumberTaskResult = 'accept';
@@ -125,9 +134,14 @@
             }
         }]);
     </script>
-
-    <h4>Monthly Act of accepted P&O works according to "Contract Agreement for Revision Works Performing" between АО "Кселл"/Kcel JSC d "Line System Engineering" LLP/ТОО "Line System Engineering"</h4>
-
+    <div class="row">
+        <div class="col-sm-10">
+            <h4>Monthly Act of accepted P&O works according to "Contract Agreement for Revision Works Performing" between АО "Кселл"/Kcel JSC d "Line System Engineering" LLP/ТОО "Line System Engineering"</h4>
+        </div>
+        <div class="col-sm-2 pull-right">
+            <button class="btn btn-default" type="button" ng-click="printDiv('forPrint');">Распечатать</button>
+        </div>
+    </div>
     <invoice-detail invoice="invoice"></invoice-detail>
 
     <div class="form-group">
@@ -190,4 +204,57 @@
             </table>
         </accordion-group>
     </accordion>
+    <div id="forPrint" class="hidden">
+        <style>
+            @media print {
+
+                @page {
+                    size: 210mm 297mm;
+                    margin: 2mm 0 0 2mm;
+                    width: 2100px;
+                }
+
+                .col-sm-3{
+                    width: 25%;
+                    float: left;
+                    text-align: right;
+                }
+
+            }
+        </style>
+        <div class="form-horizontal" style="margin: 10px; width: 1100px;">
+            <div class="text">
+                <h4>Monthly Act of accepted P&O works according to "Contract Agreement for Revision Works Performing" between АО "Кселл"/Kcel JSC d "Line System Engineering" LLP/ТОО "Line System Engineering"</h4>
+            </div>
+            <invoice-detail invoice="invoice"></invoice-detail>
+            <p><b>_______________________________________________________</b></p>
+            <p><b>Responsible from Contractor                     <span style="margin-left:7em">Signature</b></p>
+            <p><b>_______________________________________________________</b></p>
+            <p><b>Responsible from Contractor                     <span style="margin-left:7em">Signature</b></p>
+            <br>
+            <p>АО "Кселл" Kcell JSC</p>
+            <table class="table">
+                <thead>
+                <tr>
+                    <th>Activity</th>
+                    <th>Assignee</th>
+                    <th>Resolution</th>
+                    <th>Date</th>
+                    <th>Comment</th>
+                </tr>
+                </thead>
+                <tbody>
+                <tr ng-repeat="resolution in invoice.resolutions">
+                    <td>{{resolution.taskName}}</td>
+                    <td>{{resolution.assigneeName || resolution.assignee}}</td>
+                    <td>{{'task.resolution.'+resolution.resolution | translate}}</td>
+                    <td>{{resolution.taskEndDate | date: 'dd.MM.yyyy HH:mm'}}</td>
+                    <td>{{isVisible(resolution)? resolution.comment : ''}}</td>
+                </tr>
+                </tbody>
+            </table>
+            <p><b>_______________________________________________________</b></p>
+            <p><b>Director of Technology Department                     <span style="margin-left:5em">Signature</b></p>
+        </div>
+    </div>
 </form>
