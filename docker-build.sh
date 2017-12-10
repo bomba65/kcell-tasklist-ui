@@ -19,9 +19,6 @@ cd "$BASEDIR/kcell-process-app"
 cd "$BASEDIR/kcell-tasklist-ui/js"
 npm install
 
-cd "$BASEDIR/minio-client"
-npm install
-
 cd "$BASEDIR"
 #/usr/bin/git log --graph -3 > nginx/html/version.html
 echo -e "<pre>$(git log --graph -10)</pre>" > nginx/html/version.html
