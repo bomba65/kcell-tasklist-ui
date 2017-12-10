@@ -1,11 +1,10 @@
-package kz.kcell.bpm;
+package kz.kcell.flow.mail;
 
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.node.ArrayNode;
-import kz.kcell.bpm.assignments.ContractorAssignmentHandler;
-import org.apache.commons.mail.Email;
-import org.apache.commons.mail.MultiPartEmail;
+import kz.kcell.bpm.SetPricesDelegate;
+import lombok.extern.java.Log;
 import org.apache.poi.hssf.usermodel.HSSFFont;
 import org.apache.poi.hssf.util.HSSFColor;
 import org.apache.poi.ss.usermodel.*;
@@ -20,15 +19,17 @@ import org.camunda.bpm.engine.delegate.DelegateExecution;
 import org.camunda.bpm.engine.delegate.JavaDelegate;
 import org.camunda.bpm.engine.identity.User;
 import org.camunda.bpm.engine.impl.context.Context;
-import org.camunda.bpm.engine.impl.identity.Authentication;
-import org.camunda.bpm.engine.task.IdentityLink;
 import org.camunda.bpm.engine.variable.Variables;
 import org.camunda.bpm.engine.variable.value.FileValue;
-import org.camunda.bpm.extension.mail.config.MailConfiguration;
-import org.camunda.bpm.extension.mail.config.MailConfigurationFactory;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
+import org.springframework.mail.javamail.JavaMailSender;
+import org.springframework.mail.javamail.MimeMessageHelper;
+import org.springframework.stereotype.Service;
 
 import javax.activation.DataSource;
 import javax.mail.internet.InternetAddress;
+import javax.mail.internet.MimeMessage;
 import javax.mail.util.ByteArrayDataSource;
 import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
@@ -38,14 +39,19 @@ import java.text.SimpleDateFormat;
 import java.util.*;
 import java.util.function.Supplier;
 import java.util.logging.Level;
-import java.util.logging.Logger;
 import java.util.stream.Collectors;
 
+@Service("sendJobRequestBlank")
+@Log
 public class SendGeneratedJRBlank implements JavaDelegate {
 
-    private final static Logger LOGGER = Logger.getLogger(SendGeneratedJRBlank.class.getName());
+    @Autowired
+    JavaMailSender mailSender;
 
-    MailConfiguration configuration = MailConfigurationFactory.getConfiguration();
+    @Value("${mail.sender:flow@kcell.kz}")
+    private String sender;
+
+
     private static final Map<String, String> worksTitle = new HashMap<>();
 
     private static final Map<String, String> contractorsTitle =
@@ -449,17 +455,16 @@ public class SendGeneratedJRBlank implements JavaDelegate {
 
             DataSource source = new ByteArrayDataSource(is, "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet");
 
-            MultiPartEmail email = new MultiPartEmail();
-            email.setCharset("utf-8");
-            email.setHostName(configuration.getProperties().getProperty("mail.smtp.host", "mail"));
-            email.setSmtpPort(Integer.valueOf(configuration.getProperties().getProperty("mail.smtp.port", "1025")));
+            MimeMessage message = mailSender.createMimeMessage();
+            MimeMessageHelper messageHelper = new MimeMessageHelper(message, true);
 
-            email.setFrom(configuration.getSender());
-            email.setSubject("JR " + jrNumber + " Blank");
-            email.setMsg("Your JR Approved. JR Blank attached\n" +
-                    "\n" +
-                    "\n" +
-                    "Пройдя по следующей ссылке на страницу в HUB.Kcell.kz, вы можете оставить в поле комментариев свои замечания и/или пожелания относительно функционала и интерфейса системы: https://hub.kcell.kz/x/kYNoAg");
+            messageHelper.setFrom(sender);
+            messageHelper.setSubject("JR " + jrNumber + " Blank");
+
+            messageHelper.setText("Your JR Approved. JR Blank attached\n" +
+                "\n" +
+                "\n" +
+                "Пройдя по следующей ссылке на страницу в HUB.Kcell.kz, вы можете оставить в поле комментариев свои замечания и/или пожелания относительно функционала и интерфейса системы: https://hub.kcell.kz/x/kYNoAg");
 
             IdentityService identityService = Context.getProcessEngineConfiguration().getIdentityService();
 
@@ -476,15 +481,16 @@ public class SendGeneratedJRBlank implements JavaDelegate {
                         .filter(userEmail -> userEmail != null && !userEmail.isEmpty())
                         .collect(Collectors.joining(","));
 
-                email.setTo(Arrays.asList(InternetAddress.parse(recipientsSet)));
-                email.setCc(Arrays.asList(InternetAddress.parse(ccList.stream().collect(Collectors.joining(",")))));
+                messageHelper.setTo(InternetAddress.parse(recipientsSet));
+                messageHelper.setCc(InternetAddress.parse(ccList.stream().collect(Collectors.joining(","))));
             } else {
-                email.setTo(Arrays.asList(InternetAddress.parse(ccList.stream().collect(Collectors.joining(",")))));
+                messageHelper.setTo(InternetAddress.parse(ccList.stream().collect(Collectors.joining(","))));
             }
-            email.attach(source, "jr-blank.xlsx", "Job Request blank");
+            messageHelper.addAttachment("jr-blank.xlsx", source);
 
-            email.send();
-            LOGGER.info("Task Assignment Email successfully sent to user '" + assignee + "' with address '" + recipient + "'.");
+            mailSender.send(message);
+
+            log.info("Task Assignment Email successfully sent to user '" + assignee + "' with address '" + recipient + "'.");
 
             FileValue jrBlank = Variables.fileValue("jrBlank.xlsx").file(out.toByteArray()).mimeType("application/vnd.openxmlformats-officedocument.spreadsheetml.sheet").create();
             delegateExecution.setVariable("jrBlank", jrBlank);
@@ -492,7 +498,7 @@ public class SendGeneratedJRBlank implements JavaDelegate {
 
         } catch (Exception e) {
             e.printStackTrace();
-            LOGGER.log(Level.WARNING, "Could not send email to assignee", e);
+            log.log(Level.WARNING, "Could not send email to assignee", e);
         }
     }
 
@@ -501,7 +507,7 @@ public class SendGeneratedJRBlank implements JavaDelegate {
         String recipient = (String) delegateExecution.getVariable("starter");
 
         if (recipient == null) {
-            LOGGER.warning("Recipient is null for activity instance " + delegateExecution.getActivityInstanceId() + ", aborting mail notification");
+            log.warning("Recipient is null for activity instance " + delegateExecution.getActivityInstanceId() + ", aborting mail notification");
             return;
         }
 
@@ -518,11 +524,11 @@ public class SendGeneratedJRBlank implements JavaDelegate {
                 sendMail(delegateExecution, recipient, recipientEmail);
 
             } else {
-                LOGGER.warning("Not sending email to user " + recipient + "', user has no email address.");
+                log.warning("Not sending email to user " + recipient + "', user has no email address.");
             }
 
         } else {
-            LOGGER.warning("Not sending email to user " + recipient + "', user is not enrolled with identity service.");
+            log.warning("Not sending email to user " + recipient + "', user is not enrolled with identity service.");
         }
     }
 }
