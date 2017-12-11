@@ -25,18 +25,22 @@ public class SetInvoicingStatus implements JavaDelegate {
 
         List<String> revisions = new ArrayList<>();
 
-        SpinJsonNode selectedWorks = delegateExecution.<JsonValue>getVariableTyped("selectedWorks").getValue();
-        for(String field: selectedWorks.fieldNames()){
-            if(selectedWorks.prop(field).isArray()){
-                SpinList<SpinJsonNode> requests = selectedWorks.prop(field).elements();
-                requests.forEach(request -> {
-                    String revisionId = request.prop("processInstanceId").stringValue();
+        String pushInvoice = (String)delegateExecution.getVariable("pushInvoice");
 
-                    if(!revisions.contains(revisionId)){
-                        runtimeService.setVariable(revisionId, "acceptPerformedJob", "invoiced");
-                        revisions.add(revisionId);
-                    }
-                });
+        if(pushInvoice == null || "enable".equals(pushInvoice)){
+            SpinJsonNode selectedWorks = delegateExecution.<JsonValue>getVariableTyped("selectedWorks").getValue();
+            for(String field: selectedWorks.fieldNames()){
+                if(selectedWorks.prop(field).isArray()){
+                    SpinList<SpinJsonNode> requests = selectedWorks.prop(field).elements();
+                    requests.forEach(request -> {
+                        String revisionId = request.prop("processInstanceId").stringValue();
+
+                        if(!revisions.contains(revisionId)){
+                            runtimeService.setVariable(revisionId, "acceptPerformedJob", "invoiced");
+                            revisions.add(revisionId);
+                        }
+                    });
+                }
             }
         }
     }
