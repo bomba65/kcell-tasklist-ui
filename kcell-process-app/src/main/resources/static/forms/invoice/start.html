@@ -283,7 +283,7 @@
                             });
 
                             if($scope.jobRequests.length > 0){
-                                _.forEach(['site_name'], function(variable) {
+                                _.forEach(['site_name', 'priority', 'materialsRequired'], function(variable) {
                                     var varSearchParams = {processInstanceIdIn: _.map($scope.jobRequests, 'processInstanceId'), variableName: variable};
                                     $http({
                                         method: 'POST',
@@ -302,6 +302,55 @@
                                                 console.log(error.data);
                                             }
                                     );
+                                });
+
+                                // fill_applied_changes_info - task, first date
+                                // validate_tr - task, approved last date
+                                // accept_work_initiator - task, approved last date
+
+                                ['fill_applied_changes_info', 'validate_tr', 'accept_work_initiator'].forEach(function (taskId) {
+                                    var taskParams = {
+                                        taskDefinitionKey: taskId,
+                                        processInstanceBusinessKeyIn: _.map($scope.jobRequests, 'businessKey')
+                                    };
+
+                                    if (taskId === 'fill_applied_changes_info') {
+                                        taskParams.sorting = [{sortBy: 'startTime', sortOrder: 'asc'}];
+                                    } else {
+                                        taskParams.sorting = [{sortBy: 'endTime', sortOrder: 'desc'}];
+                                    }
+
+                                    $http({
+                                        method: 'POST',
+                                        headers: {'Accept': 'application/hal+json, application/json; q=0.5'},
+                                        data: taskParams,
+                                        url: '/camunda/api/engine/engine/default/history/task?firstResult=0&maxResults=1'
+                                    }).then(function (res) {
+                                        if (res.data.length > 0) {
+                                            if (taskId === 'fill_applied_changes_info') {
+                                                $scope.jobRequests.forEach((el) => {
+                                                    el[taskId] = _.filter(res.data, function (v) {
+                                                        return v.bussinessKey === el.bussinessKey;
+                                                    })[0].startTime;
+                                                });
+                                            } else if (taskId === 'accept_work_initiator') {
+                                                $scope.jobRequests.forEach((el) => {
+                                                    el[taskId + '_start'] = _.filter(res.data, function (v) {
+                                                        return v.bussinessKey === el.bussinessKey;
+                                                    })[0].startTime;
+                                                    el[taskId + '_end'] = _.filter(res.data, function (v) {
+                                                        return v.bussinessKey === el.bussinessKey;
+                                                    })[0].endTime;
+                                                });
+                                            } else {
+                                                $scope.jobRequests.forEach((el) => {
+                                                    el[taskId] = _.filter(res.data, function (v) {
+                                                        return v.bussinessKey === el.bussinessKey;
+                                                    })[0].endTime;
+                                            });
+                                            }
+                                        }
+                                    });
                                 });
                             }
                         });
@@ -570,14 +619,24 @@
                             <td>{{w.quantity}}</td>
                             <td>{{w.site_name}}</td>
                             <td>{{w.businessKey}} <a href ng-click="removeJobRequest(w.processInstanceId)">x</a></td>
-                            <td></td>
-                            <td></td>
-                            <td></td>
-                            <td></td>
-                            <td></td>
-                            <td></td>
-                            <td></td>
-                            <td></td>
+                            <td>{{w.fill_applied_changes_info | date:'dd.MM.yyyy hh:mm'}}</td>
+                            <td>{{w.validate_tr | date:'dd.MM.yyyy hh:mm'}}</td>
+                            <td>{{w.accept_work_initiator_start | date:'dd.MM.yyyy hh:mm'}}</td>
+                            <td>{{w.accept_work_initiator_end | date:'dd.MM.yyyy hh:mm'}}</td>
+                            <td>{{w.priority == 'emergency'?'Emergency':'Regular'}}</td>
+                            <td>{{w.materialsRequired}}</td>
+                            <td>
+                                <div class="input-group">
+                                    <input type="number" ng-model="w.emergencyDelay" min="1" name="emergencyDelay{{$index}}" ng-required="w.priority == 'emergency'" style="width: 50px;">
+                                </div>
+                                <label class="error" ng-if="kcell_form['emergencyDelay' + $index].$error.required && ( kcell_form['emergencyDelay' + $index].$touched || view.submitted)">Required field</label>
+                            </td>
+                            <td>
+                                <div class="input-group">
+                                    <input type="number" ng-model="w.regularDelay" min="1" name="regularDelay{{$index}}" ng-required="w.priority != 'emergency'" style="width: 50px;">
+                                </div>
+                                <label class="error" ng-if="kcell_form['regularDelay' + $index].$error.required && ( kcell_form['regularDelay' + $index].$touched || view.submitted)">Required field</label>
+                            </td>
                         </tr>
                         </tbody>
                     </table>
