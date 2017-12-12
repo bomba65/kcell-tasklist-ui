@@ -375,10 +375,13 @@ define(['./module','camundaSDK', 'lodash', 'big-js'], function(module, CamSDK, _
 								url: baseUrl+'/variable-instance'
 							}).then(
 								function(vars){
-									$scope.searchResults.forEach((el)=> {
-									el[variable] = _.filter(vars.data, function(v) {
+									$scope.searchResults.forEach(function(el) {
+										var f =  _.filter(vars.data, function(v) {
 											return v.processInstanceId === el.processInstanceId; 
-										})[0].value;
+										});
+										if(f){
+											el[variable] = f[0].value;
+										}
 									});
 								},
 								function(error){
