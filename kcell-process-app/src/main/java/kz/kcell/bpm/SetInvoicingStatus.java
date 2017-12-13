@@ -16,8 +16,6 @@ import java.util.stream.Stream;
 
 public class SetInvoicingStatus implements JavaDelegate {
 
-    private final static Logger LOGGER = Logger.getLogger(SetInvoicingStatus.class.getName());
-
     @Override
     public void execute(DelegateExecution delegateExecution) throws Exception {
 
