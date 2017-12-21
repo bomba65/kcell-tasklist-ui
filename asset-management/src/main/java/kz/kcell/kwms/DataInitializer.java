@@ -62,6 +62,10 @@ public class DataInitializer {
     @NonNull
     PowerSourceRepository powerSourceRepository;
 
+    final
+    @NonNull
+    LocationRepository locationRepository;
+
     @EventListener
     public void init(ApplicationReadyEvent event) throws ParseException {
 
@@ -120,6 +124,12 @@ public class DataInitializer {
                 .name("00SITE1")
                 .params("{\"site_name\":\"00SITE1\"}")
                 .facilities(Stream.of(facilityInstanceBUILDING).collect(Collectors.toCollection(TreeSet::new)))
+                .build());
+
+        Location location1 = locationRepository.save(Location.builder()
+                .name("M595")
+                .params("{\"type\":\"SITE\",\"contractor\":\"ERICSSON\"}")
+                .site(site1)
                 .build());
 
         for (int i = 2; i <= 10; i++) {
