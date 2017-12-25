@@ -1,0 +1,240 @@
+<style>
+    .well {
+        color: #333;
+    }
+</style>
+<form role="form" class="form-horizontal" name="kcell_form" novalidate>
+    <script cam-script type="text/form-script">
+        inject(['$scope', '$http', 'Uri', '$rootScope', '$q', '$timeout', function ($scope, $http, Uri, $rootScope, $q, $timeout) {
+            var variables = [
+                'requestedDate',
+                'jrNumber',
+                'initiatorFull',
+                'validityDate',
+                'soaComplaintId',
+                'site',
+                'siteName',
+                'site_name',
+                'reason',
+                'contract',
+                'contractor',
+                'materialsRequired',
+                'leasingRequired',
+                'powerRequired',
+                'project',
+                'supplementaryFiles',
+                'explanation',
+                'resolutions',
+                'workPrices',
+                'jobWorksTotal',
+                'jobWorks',
+                'jrBlank',
+                'tssrssidFile',
+                'tssrssidFileName',
+                'kcellWarehouseMaterialsList',
+                'contractorZIPWarehouseMaterialsList',
+                'kcellWarehouseMaterialsListName',
+                'contractorZIPWarehouseMaterialsListName',
+                'priority'
+            ];
+
+            $scope.jobModel = {};
+
+            var Big;
+            if(window.require){
+                $scope.Big = require('big-js')
+                Big = require('big-js')
+            }
+            $http.get('/camunda/api/engine/engine/default/task/' + camForm.taskId).then(
+                    function(result){
+                        $scope.processInstanceId = result.data.processInstanceId;
+                    },
+                    function (error) {
+                        console.log(error.data);
+                    }
+            );
+            camForm.on('form-loaded', function () {
+                variables.forEach(function (el) {
+                    camForm.variableManager.fetchVariable(el);
+                });
+
+                $http.get('/api/catalogs').then(
+                        function (result) {
+                            angular.extend($scope, result.data);
+                            angular.extend($scope.jobModel, result.data);
+                        },
+                        function (error) {
+                            console.log(error.data);
+                        }
+                );
+                camForm.variableManager.createVariable({
+                    name: 'signByCTOTaskResult',
+                    type: 'String',
+                    value: ''
+                });
+                $scope.signByCTOTaskResult = '';
+                camForm.variableManager.variableValue('signByCTOTaskResult', $scope.signByCTOTaskResult);
+            });
+            camForm.on('variables-fetched', function () {
+                variables.forEach(function (el) {
+                    if(el === 'resolutions'){
+                        $scope.jobModel.resolutions = angular.copy(camForm.variableManager.variables[el].value);
+                        $q.all($scope.jobModel.resolutions.map(function (resolution) {
+                            return $http.get("/camunda/api/engine/engine/default/history/task?processInstanceId="+resolution.processInstanceId+"&taskId=" + resolution.taskId);
+                        })).then(function (tasks) {
+                            tasks.forEach(function (e, index) {
+                                if(e.data.length > 0){
+                                    $scope.jobModel.resolutions[index].taskName = e.data[0].name;
+                                    try {
+                                        $scope.jobModel.resolutions[index].taskEndDate = new Date(e.data[0].endTime);
+                                    } catch(e){
+                                        console.log(e);
+                                    }
+                                }
+                            });
+                        });
+                    } else if(el === 'workPrices'){
+                        $scope.jobModel[el] = JSON.parse(camForm.variableManager.variables[el].originalValue);
+                    } else if(el === 'sapPRFileXLSName'){
+                        $scope[el] = camForm.variableManager.variables[el];
+                    } else {
+                        $scope.jobModel[el] = camForm.variableManager.variables[el];
+                    }
+                });
+                $http.get("/camunda/api/engine/engine/default/user/" + $rootScope.authentication.name+ "/profile").then(function(result){
+                    $rootScope.authentication.assigneeName = (result.data.firstName ? result.data.firstName : "") + " " + (result.data.lastName ? result.data.lastName : "");
+                });
+            });
+            camForm.on('submit', function (e) {
+                camForm.variableManager.variableValue('signByCTOTaskResult', $scope.signByCTOTaskResult);
+
+                var visibility = 'all';
+                if($scope.signByCTOComment && $scope.signByCTOCommentVisibility){
+                    visibility = $scope.signByCTOCommentVisibility;
+                }
+                $scope.jobModel.resolutions.push({processInstanceId: $scope.processInstanceId, assignee: $rootScope.authentication.name, assigneeName: $rootScope.authentication.assigneeName, resolution: $scope.signByCTOTaskResult, comment: $scope.signByCTOComment, taskId: camForm.taskId, visibility: visibility});
+                camForm.variableManager.variableValue('resolutions', $scope.jobModel.resolutions);
+            });
+
+            camForm.on('store', function() {
+                camForm.variableManager.variableValue('signByCTOTaskResult', $scope.signByCTOTaskResult);
+            });
+
+            camForm.on('variables-restored', function() {
+                $scope.signByCTOTaskResult = camForm.variableManager.variableValue('signByCTOTaskResult');
+            });
+
+            $scope.isVisible = function (resolution) {
+                return !resolution.visibility || resolution.visibility === 'all' || (resolution.visibility === 'kcell' && $rootScope.hasGroup('kcellUsers'));
+            }
+
+            $scope.hasComment = function () {
+                return $scope.signByCTOComment && $rootScope.hasGroup('kcellUsers');
+            }
+        }]);
+    </script>
+    <job-request job-model="jobModel"></job-request>
+    <div class="row">
+        <table class="table table-condensed">
+            <thead>
+            <tr>
+                <th width="30%">Works</th>
+                <th>Works Qty</th>
+                <th>Materials Qty</th>
+                <th>Sites</th>
+                <th>Base Price</th>
+                <th>Base + Transportation +8%</th>
+                <th>1 work price per site Sum/site q-ty</th>
+                <th>Sum * works q-ty</th>
+                <th style="text-align:right;font-weight: bold;font-size: 16px;background-color: lightpink;">Total</th>
+            </tr>
+            </thead>
+            <tbody>
+            <tr ng-repeat="work in jobModel.workPrices">
+                <td>{{jobModel.worksTitle[work.sapServiceNumber]}}</td>
+                <td>{{work.quantity}}</td>
+                <td>{{work.materialQuantity}}</td>
+                <td><span ng-repeat="rs in work.relatedSites" class="my-tag" ng-class="{'main-site':rs.site_name===jobModel.site_name.value}"><span ng-if="rs.site_name===jobModel.site_name.value">Main Site: </span>{{rs.site_name}}</span></td>
+                <td>{{work.unitWorkPrice}}&nbsp;&#8376;</td>
+                <td>{{work.unitWorkPricePlusTx}}&nbsp;&#8376;</td>
+                <td><span ng-if="work.unitWorkPricePerSite >= 0">{{work.unitWorkPricePerSite}}&nbsp;&#8376;</span></td>
+                <td><span ng-if="work.netWorkPricePerSite >= 0">{{work.netWorkPricePerSite}}&nbsp;&#8376;</span></td>
+                <td style="text-align:right;font-weight: bold;font-size: 16px;background-color: lightpink;"><span style="padding: 6px 0px;display: inline-block;">{{work.total}}</span></td>
+            </tr>
+            <tr>
+                <th colspan="7">Total</th>
+                <th>{{jobModel.jobWorksTransportationTotal}}</th>
+                <th style="text-align:right;font-weight: bold;font-size: 16px;background-color: lightpink;">{{jobModel.jobWorksTotal.value}}</th>
+            </tr>
+            </tbody>
+        </table>
+    </div>
+    <div class="form-group">
+        <label class="col-sm-4 control-label">Resolution</label>
+        <div class="col-sm-8">
+            <label class="radio-inline">
+                <input type="radio" name="signByCTOTaskResult" ng-model="signByCTOTaskResult" value="approve" required> Approve
+            </label>
+            <label class="radio-inline">
+                <input type="radio" name="signByCTOTaskResult" ng-model="signByCTOTaskResult" value="reject" required> Reject
+            </label>
+            <label class="radio-inline">
+                <input type="radio" name="signByCTOTaskResult" ng-model="signByCTOTaskResult" value="suspend" required> Suspend
+            </label>
+            <label class="radio-inline">
+                <input type="radio" name="signByCTOTaskResult" ng-model="signByCTOTaskResult" value="unsuspend" required> Unsuspend
+            </label>
+            <label class="error" ng-show="kcell_form.signByCTOTaskResult.$error.required && ( kcell_form.signByCTOTaskResult.$touched || view.submitted)">Required field</label>
+        </div>
+    </div>
+    <div class="form-group">
+        <label class="col-sm-4 control-label">Comments:</label>
+        <div class="col-sm-8">
+            <textarea class="form-control" rows="4" maxlength="500" cam-variable-name="signByCTOComment" name="signByCTOComment" ng-required="signByCTOTaskResult === 'reject'" cam-variable-type="String"></textarea>
+            <label class="error" ng-show="kcell_form.signByCTOComment.$error.required && ( kcell_form.signByCTOComment.$touched || view.submitted)">Required field</label>
+        </div>
+    </div>
+    <div class="form-group" ng-show="hasComment()">
+        <label class="col-sm-4 control-label">Comments visibility</label>
+        <div class="col-sm-8">
+            <label class="radio-inline">
+                <input type="radio" name="signByCTOCommentVisibility"
+                       ng-model="signByCTOCommentVisibility" value="all" ng-required="hasComment()"> Visible for all
+            </label>
+            <label class="radio-inline">
+                <input type="radio" name="signByCTOCommentVisibility"
+                       ng-model="signByCTOCommentVisibility" value="kcell" ng-required="hasComment()"> Kcell staff only
+            </label>
+            <label class="error" ng-show="kcell_form.signByCTOCommentVisibility.$error.required && ( kcell_form.signByCTOCommentVisibility.$touched || view.submitted)">Required field</label>
+        </div>
+    </div>
+    <accordion>
+        <accordion-group is-open="isHistoryOpen">
+            <accordion-heading>
+                History <i class="pull-right glyphicon" ng-class="{'glyphicon-chevron-up': status.isCustomHeaderOpen, 'glyphicon-chevron-down': !status.isCustomHeaderOpen}"></i>
+            </accordion-heading>
+            <table class="table">
+                <thead>
+                <tr>
+                    <th>Activity</th>
+                    <th>Assignee</th>
+                    <th>Resolution</th>
+                    <th>Date</th>
+                    <th>Comment</th>
+                    <th ng-if="hasGroup('kcellUsers')">Attached files</th>
+                </tr>
+                </thead>
+                <tbody>
+                <tr ng-repeat="resolution in jobModel.resolutions">
+                    <td>{{resolution.taskName}}</td>
+                    <td>{{resolution.assigneeName || resolution.assignee}}</td>
+                    <td>{{'task.resolution.'+resolution.resolution | translate}}</td>
+                    <td>{{resolution.taskEndDate | date: 'dd.MM.yyyy HH:mm'}}</td>
+                    <td>{{isVisible(resolution)? resolution.comment : ''}}</td>
+                    <td ng-if="hasGroup('kcellUsers')">{{resolution.files.join(', ')}}</td>
+                </tr>
+                </tbody>
+            </table>
+        </accordion-group>
+    </accordion>
+</form>

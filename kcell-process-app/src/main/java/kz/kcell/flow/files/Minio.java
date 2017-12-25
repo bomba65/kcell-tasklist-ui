@@ -15,6 +15,7 @@ import org.springframework.stereotype.Service;
 import org.xmlpull.v1.XmlPullParserException;
 
 import java.io.IOException;
+import java.io.InputStream;
 import java.security.InvalidKeyException;
 import java.security.NoSuchAlgorithmException;
 
@@ -72,5 +73,9 @@ public class Minio {
 
     public void moveToPermanentStorage(String tempPath, String path) throws IOException, InvalidKeyException, NoSuchAlgorithmException, InsufficientDataException, InternalException, NoResponseException, InvalidBucketNameException, XmlPullParserException, ErrorResponseException, InvalidArgumentException {
         minioClient.copyObject(this.getTempBucketName(), tempPath, this.getBucketName(), path);
+    }
+
+    public void saveFile(String path, InputStream stream, String contentType) throws IOException, InvalidKeyException, NoSuchAlgorithmException, InsufficientDataException, InternalException, NoResponseException, InvalidBucketNameException, XmlPullParserException, ErrorResponseException, InvalidArgumentException {
+        minioClient.putObject(this.getBucketName(), path, stream, contentType);
     }
 }

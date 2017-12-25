@@ -4,7 +4,7 @@ import groovy.text.markup.TemplateConfiguration
 import java.text.SimpleDateFormat
 
 def baseUrl = "http://localhost"
-def jrNumber = "Alm-LSE-P&O-17-5266"
+def jrNumber = "Alm-LSE-P&O-17-5267"
 def requestDate = new Date()
 def jobWorksObj = '[{"relatedSites":[{"name":"00713","id":"28421","site_name":"00713ULZHAN2","$$hashKey":"object:790"}],"sapServiceNumber":"128","materialUnit":"site/сайт","quantity":1,"materialQuantity":1}]';
 def contractor = 4
@@ -28,21 +28,9 @@ jobWorks.each { work ->
     }
     work.contractorNo = contractorsTitle[contractor.toString()].contract.service
 }
+def sloc = "S666"
 
-/*
-def site = "28354"
-def site_name = "00596MARIOTDOM"
-
-def formatDate = new SimpleDateFormat("dd.MM.yyyy")
-def contractorsTitle = new JsonSlurper().parseText(this.getClass().getResource("/dictionary/contractor.json").text)
-
-def jrNumberObj = (jrNumber != null ? jrNumber : '########')
-def contractorObj = (contractorsTitle[contractor.toString()] != null ? contractorsTitle[contractor.toString()].code : contractorsTitle["0"].id)
-def subcontructerId = 10
-def plant = "0201"
-def sloc = "К001"
-*/
-def binding = ["jobWorks":jobWorks, "jrNumber":jrNumber, "requestDate": requestDateObj, "yearEndDate":yearEndDate]
+def binding = ["jobWorks":jobWorks, "jrNumber":jrNumber, "requestDate": requestDateObj, "yearEndDate":yearEndDate, "sloc":sloc]
 
 /*
 FIELD DESCRIPTION	 For FA PRs (CAPEX)	    For Service PRs (OPEX)	Примечание
@@ -84,7 +72,7 @@ def template = '''\
 jobWorks.each { w ->
     yield 'ZK73-01\t' + w.costType + '\t' + jrNumber + '\tapproved\t' + requestDate + '\t' + w.definition.vendor + '\t' + w.definition.region.id +
           '\tY\tinstallation service\t' + w.contractorNo + '\t' + w.definition.sapServiceNumber + '\t' + yearEndDate + '\t' +
-          w.definition.spp + '\t' + jrNumber + '\tS666\t294130000523\t25510\t3020\t7016000 '
+          w.definition.spp + '\t' + jrNumber + '\t' + sloc + '\t294130000523\t25510\t3020\t7016000 '
     newLine()
 }
 '''

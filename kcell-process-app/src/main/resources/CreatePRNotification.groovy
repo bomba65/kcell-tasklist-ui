@@ -18,7 +18,7 @@ def reasonsObj = reasonsTitle[reason]
 def requestedDateObj = formatDateTime.format(requestedDate)
 def validityDateObj = formatDate.format(validityDate)
 def serviceObj = servicesTitle[contract.toString()]
-def contractorObj = contractorsTitle[contractor.toString()]
+def contractorObj = contractorsTitle[contractor.toString()]!=null?contractorsTitle[contractor.toString()].name:""
 def jobWorksTotalObj = jobWorksTotal != null ? jobWorksTotal : 'N/A'
 def initiatorFullObj = new JsonSlurper().parseText(initiatorFull.toString())
 def jobWorksObj = new JsonSlurper().parseText(workPrices.toString())
