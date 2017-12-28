@@ -4,6 +4,7 @@ import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.node.ArrayNode;
 import kz.kcell.bpm.SetPricesDelegate;
+import kz.kcell.flow.files.Minio;
 import lombok.extern.java.Log;
 import org.apache.poi.hssf.usermodel.HSSFFont;
 import org.apache.poi.hssf.util.HSSFColor;
@@ -21,6 +22,7 @@ import org.camunda.bpm.engine.identity.User;
 import org.camunda.bpm.engine.impl.context.Context;
 import org.camunda.bpm.engine.variable.Variables;
 import org.camunda.bpm.engine.variable.value.FileValue;
+import org.camunda.spin.plugin.variable.SpinValues;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.mail.javamail.JavaMailSender;
@@ -47,6 +49,9 @@ public class SendGeneratedJRBlank implements JavaDelegate {
 
     @Autowired
     JavaMailSender mailSender;
+
+    @Autowired
+    private Minio minioClient;
 
     @Value("${mail.sender:flow@kcell.kz}")
     private String sender;
@@ -492,8 +497,15 @@ public class SendGeneratedJRBlank implements JavaDelegate {
 
             log.info("Task Assignment Email successfully sent to user '" + assignee + "' with address '" + recipient + "'.");
 
-            FileValue jrBlank = Variables.fileValue("jrBlank.xlsx").file(out.toByteArray()).mimeType("application/vnd.openxmlformats-officedocument.spreadsheetml.sheet").create();
-            delegateExecution.setVariable("jrBlank", jrBlank);
+//            FileValue jrBlank = Variables.fileValue("jrBlank.xlsx").file(out.toByteArray()).mimeType("application/vnd.openxmlformats-officedocument.spreadsheetml.sheet").create();
+//            delegateExecution.setVariable("jrBlank", jrBlank);
+
+            String path = delegateExecution.getProcessInstanceId() + "/" + "jrBlank.xlsx";
+            minioClient.saveFile(path, is, "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet");
+
+            String json = "{\"name\" : \"jrBlank.xlsx\",\"path\" : \"" + path + "\"}";
+            delegateExecution.setVariable("jrBlank", SpinValues.jsonValue(json));
+
             delegateExecution.setVariable("isNewProcessCreated", "false");
 
         } catch (Exception e) {
