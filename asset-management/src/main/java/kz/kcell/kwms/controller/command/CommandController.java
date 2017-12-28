@@ -43,6 +43,8 @@ public class CommandController {
     ConnectionInstanceRepository connectionInstanceRepository;
     @Autowired
     ConnectionDefinitionRepository connectionDefinitionRepository;
+    @Autowired
+    LocationRepository locationRepository;
 
     @PostMapping(path = "/command/{siteId}", consumes = "application/json")
     @Transactional
@@ -99,6 +101,9 @@ public class CommandController {
                     break;
                 case REPLACE_POWERSOURCE:
                     command.payload = mapper.treeToValue(commandNode.get("payload"), ReplacePowersourcePayload.class);
+                    break;
+                case CREATE_LOCATION:
+                    command.payload = mapper.treeToValue(commandNode.get("payload"), CreateLocationPayload.class);
                     break;
                 default:
                     throw new IllegalArgumentException("Unknown command: " + command.command);
