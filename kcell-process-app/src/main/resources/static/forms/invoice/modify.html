@@ -25,6 +25,7 @@
 
             $scope.jobModel = {};
             $scope.invoice = {};
+            var catalogs = {};
 
             $http.get('/camunda/api/engine/engine/default/task/' + camForm.taskId).then(
                     function(result){
@@ -43,6 +44,7 @@
                 $http.get('/api/catalogs').then(
                         function (result) {
                             angular.extend($scope, result.data);
+                            angular.extend(catalogs, result.data);
                         },
                         function (error) {
                             console.log(error.data);
@@ -116,9 +118,7 @@
                 }
                 $scope.invoice.resolutions.push({processInstanceId: $scope.processInstanceId, assignee: $rootScope.authentication.name, assigneeName: $rootScope.authentication.assigneeName, resolution: '', comment: $scope.modifyComment, taskId: camForm.taskId, visibility: visibility});
                 camForm.variableManager.variableValue('resolutions', $scope.invoice.resolutions);
-            });
-
-            camForm.on('store', function() {
+                console.log('test');
             });
 
             $scope.isVisible = function (resolution) {
@@ -133,6 +133,7 @@
             $scope.addSelected = addSelected;
             $scope.removeJobRequest = removeJobRequest;
             $scope.countSelected = countSelected;
+            $scope.selectAll = selectAll;
 
             function open($event) {
                 $event.preventDefault();
@@ -205,7 +206,7 @@
                             mapped.forEach(function(x){
                                 if(x.hasOwnProperty('startTime') && notInSelected(x.processInstanceId)){
                                     var jobRequest = {
-                                        selected: true,
+                                        selected: false,
                                         businessKey: x.businessKey,
                                         site_name: x.site_name,
                                         startTime: x.startTime,
@@ -295,16 +296,24 @@
                 }
             }
 
-            $scope.toggleProcessView = function(index){
-                if($scope.piIndex === index){
-                    $scope.piIndex = undefined;
+            $scope.processInstanceId = undefined;
+            $scope.selectedView = undefined;
+            $scope.pkey = undefined;
+
+            $scope.toggleProcessView = function(processInstanceId, selectedView, key){
+                if($scope.processInstanceId === processInstanceId && $scope.selectedView === selectedView){
+                    $scope.processInstanceId = undefined;
+                    $scope.selectedView = undefined;
                 } else {
-                    $scope.piIndex = index;
+                    $scope.jobModel = {};
+                    $scope.processInstanceId = processInstanceId;
+                    $scope.selectedView = selectedView;
+                    $scope.pkey = key;
                     $scope.jobModel.state = 'ACTIVE';
                     $http({
                         method: 'GET',
                         headers:{'Accept':'application/hal+json, application/json; q=0.5'},
-                        url: '/camunda/api/engine/engine/default/task?processInstanceId='+$scope.jobRequests[index].processInstanceId,
+                        url: '/camunda/api/engine/engine/default/task?processInstanceId='+processInstanceId,
                     }).then(
                             function(tasks){
                                 var processInstanceTasks = tasks.data._embedded.task;
@@ -319,7 +328,7 @@
                                         }
                                     });
                                 }
-                                $http.get('/camunda/api/engine/engine/default/history/variable-instance?deserializeValues=false&processInstanceId='+$scope.jobRequests[index].processInstanceId).then(
+                                $http.get('/camunda/api/engine/engine/default/history/variable-instance?deserializeValues=false&processInstanceId='+processInstanceId).then(
                                         function(result){
                                             var workFiles = [];
                                             result.data.forEach(function(el){
@@ -342,6 +351,7 @@
                                                 $scope.jobModel.jobWorks.value[workIndex].files.push(file);
                                             });
                                             $scope.jobModel.tasks = processInstanceTasks;
+                                            angular.extend($scope.jobModel, catalogs);
                                         },
                                         function(error){
                                             console.log(error.data);
@@ -425,6 +435,18 @@
                 }
                 return Object.keys(obj).length;
             }
+
+            var selected = false;
+            function selectAll(){
+                $scope.jobRequests.forEach(function(x){
+                    x.selected = !selected;
+                });
+                if(selected === true){
+                    selected = false;
+                } else {
+                    selected = true;
+                }
+            }
         }]);
     </script>
 
@@ -434,7 +456,7 @@
         <label class="col-sm-4 control-label">Monthly Act #:</label>
         <div class="col-sm-3">
             <input type="text" ng-model="monthActNumber" class="form-control" ng-required="true" />
-            <label class="error" ng-if="kcell_form.monthActNumber.$error.required && ( kcell_form.monthActNumber.$touched || view.submitted)">Required field</label>
+            <label class="error" ng-if="kcell_form.monthActNumber.$error.required && ( kcell_form.monthActNumber.$touched || selectedView.submitted)">Required field</label>
         </div>
     </div>
     <div class="form-group">
@@ -487,7 +509,7 @@
                     <table class="table table-condensed">
                         <thead>
                         <tr>
-                            <th></th>
+                            <th><input type="checkbox" ng-model="selected" ng-click="selectAll()"></th>
                             <th>Job Request Number</th>
                             <th>Sitename</th>
                             <th>Acceptance date</th>
@@ -496,11 +518,11 @@
                         <tbody ng-repeat="jobRequest in jobRequests" ng-show="jobRequests && jobRequests.length">
                         <tr>
                             <td><input type="checkbox" name="{{jobRequest.processInstanceId}}" ng-model="jobRequest.selected" /></td>
-                            <td><a ng-click="toggleProcessView($index)">{{jobRequest.businessKey}}</a></td>
+                            <td><a ng-click="toggleProcessView(jobRequest.processInstanceId, 'list', undefined)">{{jobRequest.businessKey}}</a></td>
                             <td>{{jobRequest.site_name}}</td>
                             <td>{{jobRequest.startTime | date:'dd.MM.yyyy hh:mm'}}</td>
                         </tr>
-                        <tr ng-if="piIndex === $index && jobModel">
+                        <tr ng-if="processInstanceId === jobRequest.processInstanceId && jobModel && selectedView === 'list'">
                             <td colspan="4">
                                 <job-request job-model="jobModel"></job-request>
                             </td>
@@ -521,7 +543,7 @@
             </tab-heading>
             <div class="col-sm-12">
                 <div class="row">
-                    <table class="table table-condensed" class="form-group" name="works" id="works">
+                    <table class="table table-condensed" class="form-group">
                         <thead>
                         <tr>
                             <th colspan="2">Requested Job Info</th>
@@ -549,7 +571,7 @@
                             <td ng-if="$first" rowspan="{{value.length}}">{{worksTitle[key]}}</td>
                             <td>{{w.quantity}}</td>
                             <td>{{w.site_name}}</td>
-                            <td>{{w.businessKey}} <a class="glyphicon glyphicon-trash" aria-hidden="true" ng-click="removeJobRequest(w.processInstanceId)"></a></td>
+                            <td><a ng-click="toggleProcessView(w.processInstanceId, 'table', key)">{{w.businessKey}}</a> <a class="glyphicon glyphicon-trash" aria-hidden="true" ng-click="removeJobRequest(w.processInstanceId)"></a></td>
                             <td>{{w.fillAppliedChanges | date:'dd.MM.yyyy'}}</td>
                             <td>{{w.validateTr | date:'dd.MM.yyyy'}}</td>
                             <td>{{w.acceptWorkStartTime | date:'dd.MM.yyyy'}}</td>
@@ -567,6 +589,11 @@
                                     <input type="number" ng-model="w.regularDelay" min="1" name="regularDelay{{$index}}" style="width: 50px;">
                                 </div>
                                 <label class="error" ng-if="kcell_form['regularDelay' + $index].$error.required && ( kcell_form['regularDelay' + $index].$touched || view.submitted)">Required field</label>
+                            </td>
+                        </tr>
+                        <tr ng-if="pkey === key && jobModel && selectedView === 'table'">
+                            <td colspan="11">
+                                <job-request job-model="jobModel"></job-request>
                             </td>
                         </tr>
                         </tbody>
