@@ -298,6 +298,7 @@ define(['./module','jquery', 'camundaSDK'], function(app, $, CamSDK){
 			exModal.open({
 				scope: {
 					resolutions: resolutions.value,
+					isKcellStaff: $rootScope.hasGroup('kcellUsers')
 				},
 				templateUrl: './js/partials/resolutions.html',
 				size: 'lg'
