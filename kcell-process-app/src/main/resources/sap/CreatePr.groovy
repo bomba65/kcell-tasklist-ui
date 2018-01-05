@@ -70,7 +70,7 @@ User		        Из нового формата текстового файла	�
 
 def template = '''\
 jobWorks.each { w ->
-    yield 'ZK73-01\t' + w.costType + '\t' + jrNumber + '\tapproved\t' + requestDate + '\t' + w.definition.vendor + '\t' + w.definition.region.id +
+    yieldUnescaped 'ZK73-01\t' + w.costType + '\t' + jrNumber + '\tapproved\t' + requestDate + '\t' + w.definition.vendor + '\t' + w.definition.region.id +
           '\tY\tinstallation service\t' + w.contractorNo + '\t' + w.definition.sapServiceNumber + '\t' + yearEndDate + '\t' +
           w.definition.spp + '\t' + jrNumber + '\t' + sloc + '\t294130000523\t25510\t3020\t7016000 '
     newLine()

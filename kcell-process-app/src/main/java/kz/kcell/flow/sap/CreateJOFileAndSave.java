@@ -31,15 +31,10 @@ import java.io.InputStreamReader;
 @Log
 public class CreateJOFileAndSave implements JavaDelegate {
 
-    private final CompiledScript template;
     private Minio minioClient;
 
     @Autowired
-    public CreateJOFileAndSave(ScriptEngineManager manager, Minio minioClient) throws ScriptException {
-
-        ScriptEngine groovy = manager.getEngineByName("groovy");
-        InputStreamReader reader = new InputStreamReader(TaskListener.class.getResourceAsStream("/sap/JoJr.groovy"));
-        this.template = ((Compilable)groovy).compile(reader);
+    public CreateJOFileAndSave(ScriptEngineManager manager, Minio minioClient) {
         this.minioClient = minioClient;
     }
 
@@ -48,6 +43,8 @@ public class CreateJOFileAndSave implements JavaDelegate {
 
         String content = String.valueOf(delegateExecution.getVariableLocal("content"));
         ByteArrayInputStream is = new ByteArrayInputStream(content.getBytes("utf-8"));
+
+        log.info("content:" + content);
 
         String path = delegateExecution.getProcessInstanceId() + "/" + delegateExecution.getVariable("jrNumber") + "_JoJr.txt";
         minioClient.saveFile(path, is, "text/plain");

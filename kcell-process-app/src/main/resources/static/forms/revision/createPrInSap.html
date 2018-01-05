@@ -35,10 +35,7 @@
                 'contractorZIPWarehouseMaterialsList',
                 'kcellWarehouseMaterialsListName',
                 'contractorZIPWarehouseMaterialsListName',
-                'priority',
-                'siteAddress',
-                'sloc',
-                'JoJrFile'
+                'priority'
             ];
 
             $scope.jobModel = {};
@@ -66,12 +63,12 @@
                         }
                 );
                 camForm.variableManager.createVariable({
-                    name: 'processFilesInSapToRegisterJOTaskResult',
+                    name: 'createPrInSapTaskResult',
                     type: 'String',
                     value: ''
                 });
-                $scope.processFilesInSapToRegisterJOTaskResult = '';
-                camForm.variableManager.variableValue('processFilesInSapToRegisterJOTaskResult', $scope.processFilesInSapToRegisterJOTaskResult);
+                $scope.createPrInSapTaskResult = '';
+                camForm.variableManager.variableValue('createPrInSapTaskResult', $scope.createPrInSapTaskResult);
             });
             camForm.on('variables-fetched', function () {
                 variables.forEach(function (el) {
@@ -104,22 +101,22 @@
                 });
             });
             camForm.on('submit', function (e) {
-                camForm.variableManager.variableValue('processFilesInSapToRegisterJOTaskResult', $scope.processFilesInSapToRegisterJOTaskResult);
+                camForm.variableManager.variableValue('createPrInSapTaskResult', $scope.createPrInSapTaskResult);
 
                 var visibility = 'all';
-                if($scope.processFilesInSapToRegisterJOComment && $scope.processFilesInSapToRegisterJOCommentVisibility){
-                    visibility = $scope.processFilesInSapToRegisterJOCommentVisibility;
+                if($scope.createPrInSapComment && $scope.createPrInSapCommentVisibility){
+                    visibility = $scope.createPrInSapCommentVisibility;
                 }
-                $scope.jobModel.resolutions.push({processInstanceId: $scope.processInstanceId, assignee: $rootScope.authentication.name, assigneeName: $rootScope.authentication.assigneeName, resolution: $scope.processFilesInSapToRegisterJOTaskResult, comment: $scope.processFilesInSapToRegisterJOComment, taskId: camForm.taskId, visibility: visibility});
+                $scope.jobModel.resolutions.push({processInstanceId: $scope.processInstanceId, assignee: $rootScope.authentication.name, assigneeName: $rootScope.authentication.assigneeName, resolution: $scope.createPrInSapTaskResult, comment: $scope.createPrInSapComment, taskId: camForm.taskId, visibility: visibility});
                 camForm.variableManager.variableValue('resolutions', $scope.jobModel.resolutions);
             });
 
             camForm.on('store', function() {
-                camForm.variableManager.variableValue('processFilesInSapToRegisterJOTaskResult', $scope.processFilesInSapToRegisterJOTaskResult);
+                camForm.variableManager.variableValue('createPrInSapTaskResult', $scope.createPrInSapTaskResult);
             });
 
             camForm.on('variables-restored', function() {
-                $scope.processFilesInSapToRegisterJOTaskResult = camForm.variableManager.variableValue('processFilesInSapToRegisterJOTaskResult');
+                $scope.createPrInSapTaskResult = camForm.variableManager.variableValue('createPrInSapTaskResult');
             });
 
             $scope.isVisible = function (resolution) {
@@ -127,102 +124,32 @@
             }
 
             $scope.hasComment = function () {
-                return $scope.processFilesInSapToRegisterJOComment && $rootScope.hasGroup('kcellUsers');
-            }
-
-            $scope.download = function (file) {
-                $http({method: 'GET', url: '/camunda/uploads/get/' + file.value.path, transformResponse: [] }).
-                success(function(data, status, headers, config) {
-                    document.getElementById('fileDownloadIframe').src = data;
-                }).
-                error (function(data, status, headers, config) {
-                    console.log(data);
-                });
+                return $scope.createPrInSapComment && $rootScope.hasGroup('kcellUsers');
             }
         }]);
     </script>
 
     <job-request job-model="jobModel"></job-request>
 
-    <h4>Job Order Information</h4>
-
-    <table class="table table-condensed">
-        <thead>
-            <tr>
-                <th>Field description</th>
-                <th>Value</th>
-            </tr>
-        </thead>
-        <tbody>
-            <tr>
-                <td>Job Order number</td>
-                <td>{{jobModel.jrNumber.value}}</td>
-            </tr>
-            <tr>
-                <td>Job Order Description</td>
-                <td>Revision</td>
-            </tr>
-            <tr>
-                <td>Job Requester</td>
-                <td>{{contractorsShortTitle[jobModel.contractor.value]}}</td>
-            </tr>
-            <tr>
-                <td>Requester type</td>
-                <td>Revision</td>
-            </tr>
-            <tr>
-                <td>Status</td>
-                <td>Approved</td>
-            </tr>
-            <tr>
-                <td>Job Detail</td>
-                <td>{{jobModel.site.value}};{{jobModel.site_name.value}}</td>
-            </tr>
-            <tr>
-                <td>Subcontractor ID</td>
-                <td>{{reasonsSubcontractors[jobModel.reason.value]}}</td>
-            </tr>
-            <tr>
-                <td>Job Order date</td>
-                <td>{{jobModel.requestedDate.value | date: 'dd.MM.yyyy'}}</td>
-            </tr>
-            <tr>
-                <td>Plant</td>
-                <td>02001</td>
-            </tr>
-            <tr>
-                <td>Sloc</td>
-                <td>{{jobModel.sloc.value}}</td>
-            </tr>
-        </tbody>
-    </table>
-
-    <div class="form-group">
-        <label class="col-sm-4 control-label">JO JR file:</label>
-        <div class="col-sm-8">
-            <a ng-click="download(jobModel.JoJrFile)">{{jobModel.JoJrFile.value.name}}</a>
-        </div>
-    </div>
-
     <div class="form-group">
         <label class="col-sm-4 control-label">Comments:</label>
         <div class="col-sm-8">
-            <textarea class="form-control" rows="4" maxlength="500" cam-variable-name="processFilesInSapToRegisterJOComment" name="processFilesInSapToRegisterJOComment" cam-variable-type="String"></textarea>
-            <label class="error" ng-show="kcell_form.processFilesInSapToRegisterJOComment.$error.required && ( kcell_form.processFilesInSapToRegisterJOComment.$touched || view.submitted)">Required field</label>
+            <textarea class="form-control" rows="4" maxlength="500" cam-variable-name="createPrInSapComment" name="createPrInSapComment" cam-variable-type="String"></textarea>
+            <label class="error" ng-show="kcell_form.createPrInSapComment.$error.required && ( kcell_form.createPrInSapComment.$touched || view.submitted)">Required field</label>
         </div>
     </div>
     <div class="form-group" ng-show="hasComment()">
         <label class="col-sm-4 control-label">Comments visibility</label>
         <div class="col-sm-8">
             <label class="radio-inline">
-                <input type="radio" name="processFilesInSapToRegisterJOCommentVisibility"
-                       ng-model="processFilesInSapToRegisterJOCommentVisibility" value="all" ng-required="hasComment()"> Visible for all
+                <input type="radio" name="createPrInSapCommentVisibility"
+                       ng-model="createPrInSapCommentVisibility" value="all" ng-required="hasComment()"> Visible for all
             </label>
             <label class="radio-inline">
-                <input type="radio" name="processFilesInSapToRegisterJOCommentVisibility"
-                       ng-model="processFilesInSapToRegisterJOCommentVisibility" value="kcell" ng-required="hasComment()"> Kcell staff only
+                <input type="radio" name="createPrInSapCommentVisibility"
+                       ng-model="createPrInSapCommentVisibility" value="kcell" ng-required="hasComment()"> Kcell staff only
             </label>
-            <label class="error" ng-show="kcell_form.processFilesInSapToRegisterJOCommentVisibility.$error.required && ( kcell_form.processFilesInSapToRegisterJOCommentVisibility.$touched || view.submitted)">Required field</label>
+            <label class="error" ng-show="kcell_form.createPrInSapCommentVisibility.$error.required && ( kcell_form.createPrInSapCommentVisibility.$touched || view.submitted)">Required field</label>
         </div>
     </div>
     <accordion>

@@ -9,18 +9,19 @@ def jrNumber = "Alm-LSE-P&O-17-5267"
 def contractor = 4
 def site = "00596"
 def site_name = "00596MARIOTDOM"
-def requestDate = new Date()//2017-10-16T14:14:37.000+0600
+def requestedDate = new Date()//2017-10-16T14:14:37.000+0600
+def sloc = "S666"
 */
 
-def formatDate = new SimpleDateFormat("dd.MM.yyyy")
 def contractorsTitle = new JsonSlurper().parseText(this.getClass().getResource("/dictionary/contractor.json").text)
+def subcontractorsTitle = new JsonSlurper().parseText(this.getClass().getResource("/dictionary/subcontractor.json").text)
 
+def formatDate = new SimpleDateFormat("dd.MM.yyyy")
 def jrNumberObj = (jrNumber != null ? jrNumber : '########')
 def contractorObj = (contractorsTitle[contractor.toString()] != null ? contractorsTitle[contractor.toString()].code : contractorsTitle["0"].id)
 def requestedDateObj = formatDate.format(requestedDate)
-def subcontructerId = 10
+def subcontructerId = (subcontractorsTitle[reason] != null ? subcontractorsTitle[reason].code : "10")
 def plant = "0201"
-def sloc = "S666"
 
 def binding = ["jrNumber" : jrNumberObj, "contractor":contractorObj, "site_name":site_name, "site":site, "subcontructerId":subcontructerId,
                "requestDate":requestedDateObj, "plant":plant, "sloc":sloc]
@@ -43,7 +44,7 @@ SLoc              | К001             | Sloc from "ZKZMM0022 - Site List"
 */
 
 def template = '''\
-yield '' + jrNumber + '\t' + 'REVISION\t' + contractor + '\tRevision\tApproved\t' + site + ',' + site_name + '\t' + subcontructerId + '\t' + requestDate + '\t' + plant + '\t' + sloc
+yieldUnescaped '' + jrNumber + '\t' + 'REVISION\t' + contractor + '\tRevision\tApproved\t' + site + ',' + site_name + '\t' + subcontructerId + '\t' + requestDate + '\t' + plant + '\t' + sloc
 '''
 
 def config = new TemplateConfiguration()
