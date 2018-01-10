@@ -34,7 +34,7 @@ public class CreateJOFileAndSave implements JavaDelegate {
     private Minio minioClient;
 
     @Autowired
-    public CreateJOFileAndSave(ScriptEngineManager manager, Minio minioClient) {
+    public CreateJOFileAndSave(Minio minioClient) {
         this.minioClient = minioClient;
     }
 
@@ -50,6 +50,6 @@ public class CreateJOFileAndSave implements JavaDelegate {
         minioClient.saveFile(path, is, "text/plain");
 
         String json = "{\"name\" : \"" + delegateExecution.getVariable("jrNumber") + "_JoJr.txt" + "\",\"path\" : \"" + path + "\"}";
-        delegateExecution.setVariable("JoJrFile", SpinValues.jsonValue(json));
+        delegateExecution.setVariable("joJrFile", SpinValues.jsonValue(json));
     }
 }

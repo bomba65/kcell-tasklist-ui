@@ -3,24 +3,22 @@ import groovy.text.markup.MarkupTemplateEngine
 import groovy.text.markup.TemplateConfiguration
 import java.text.SimpleDateFormat
 
-def baseUrl = "http://localhost"
+/*
 def jrNumber = "Alm-LSE-P&O-17-5267"
-def requestDate = new Date()
-def jobWorksObj = '[{"relatedSites":[{"name":"00713","id":"28421","site_name":"00713ULZHAN2","$$hashKey":"object:790"}],"sapServiceNumber":"128","materialUnit":"site/сайт","quantity":1,"materialQuantity":1}]';
+def requestedDate = new Date()
+def jobWorks = '[{"relatedSites":[{"name":"00010","id":"28096","site_name":"00010OKZHETPES","$$hashKey":"object:3868"}],"sapServiceNumber":"5","materialUnit":"site/сайт","quantity":1,"materialQuantity":1,"definition":{"id":5,"costType":"CAPEX","contractor":{"id":5,"name":"JSC Kcell"},"region":{"id":7,"name":"Almaty"},"service":{"id":2,"name":"Rollout","sapCode":"Y"},"sapServiceNumber":"5","sapPOServiceName":"5.RBS/BTS add(BBS+cab+ant+feed+pole)oair","displayServiceName":"5.RBS/BTS cell addition(BBS+cabinet+antennas+feeders+poles) with on-air / Добавление сотового сегмента к  RBS/BTS (BBS+кабинет+антенны+фидер+  трубостойкb) с активацией","currency":"KZT","faClass":"29403422","materialGroup":"STD0018","year":2016,"spp":"RN-0502-33-0067","createDate":1496599200000,"units":"site/сайт","vendor":"280209"},"fixedAssetClass":"29403422","fixedAssetNumber":"29403422"}]';
 def contractor = 4
-
+def sloc = 'S333'
+*/
 def cal = Calendar.instance
 def yearEndDate = "31.12."+cal.get(Calendar.YEAR)
 
 def formatDate = new SimpleDateFormat("dd.MM.yyyy")
-def jobWorks = new JsonSlurper().parseText(jobWorksObj)
-def catalog = new JsonSlurper().parseText(new URL(baseUrl + "/api/catalogs").text)
-def works = catalog.works
-def requestDateObj = formatDate.format(requestDate)
+def jobWorksObj = new JsonSlurper().parseText(jobWorks.toString())
+def requestDateObj = formatDate.format(requestedDate)
 def contractorsTitle = new JsonSlurper().parseText(this.getClass().getResource("/dictionary/contractor.json").text)
 
-jobWorks.each { work ->
-    work.definition = works.find { it.sapServiceNumber == work.sapServiceNumber };
+jobWorksObj.each { work ->
     if ('CAPEX' == work.definition.costType){
         work.costType = 'Y'
     } else if ('OPEX' == work.definition.costType){
@@ -28,9 +26,8 @@ jobWorks.each { work ->
     }
     work.contractorNo = contractorsTitle[contractor.toString()].contract.service
 }
-def sloc = "S666"
 
-def binding = ["jobWorks":jobWorks, "jrNumber":jrNumber, "requestDate": requestDateObj, "yearEndDate":yearEndDate, "sloc":sloc]
+def binding = ["jobWorksObj":jobWorksObj, "jrNumber":jrNumber, "requestDate": requestDateObj, "yearEndDate":yearEndDate, "sloc":sloc]
 
 /*
 FIELD DESCRIPTION	 For FA PRs (CAPEX)	    For Service PRs (OPEX)	Примечание
@@ -69,10 +66,10 @@ User		        Из нового формата текстового файла	�
 */
 
 def template = '''\
-jobWorks.each { w ->
+jobWorksObj.each { w ->
     yieldUnescaped 'ZK73-01\t' + w.costType + '\t' + jrNumber + '\tapproved\t' + requestDate + '\t' + w.definition.vendor + '\t' + w.definition.region.id +
           '\tY\tinstallation service\t' + w.contractorNo + '\t' + w.definition.sapServiceNumber + '\t' + yearEndDate + '\t' +
-          w.definition.spp + '\t' + jrNumber + '\t' + sloc + '\t294130000523\t25510\t3020\t7016000 '
+          w.definition.spp + '\t' + jrNumber + '\t' + sloc + '\t' + (w.fixedAssetNumber!=null?w.fixedAssetNumber:'DUMMY') + '\t25510\t3020\t7016000 '
     newLine()
 }
 '''
@@ -83,7 +80,5 @@ config.setAutoIndent(true)
 
 def engine = new MarkupTemplateEngine(config)
 def result = engine.createTemplate(template).make(binding).toString()
-
-print result
 
 result

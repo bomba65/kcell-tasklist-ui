@@ -35,7 +35,8 @@
                 'contractorZIPWarehouseMaterialsList',
                 'kcellWarehouseMaterialsListName',
                 'contractorZIPWarehouseMaterialsListName',
-                'priority'
+                'priority',
+                'sloc'
             ];
 
             $scope.jobModel = {};
@@ -49,19 +50,26 @@
                     }
             );
             camForm.on('form-loaded', function () {
-                variables.forEach(function (el) {
-                    camForm.variableManager.fetchVariable(el);
-                });
-
                 $http.get('/api/catalogs').then(
                         function (result) {
                             angular.extend($scope, result.data);
                             angular.extend($scope.jobModel, result.data);
+
+                            if($scope.jobWorks){
+                                $scope.jobWorks.forEach(function (jobWork) {
+                                    jobWork.definition = _.find(result.data.works, function(r) { return r.sapServiceNumber === jobWork.sapServiceNumber });
+                                });
+                            }
                         },
                         function (error) {
                             console.log(error.data);
                         }
                 );
+
+                variables.forEach(function (el) {
+                    camForm.variableManager.fetchVariable(el);
+                });
+
                 camForm.variableManager.createVariable({
                     name: 'enterSapFATaskResult',
                     type: 'String',
@@ -90,10 +98,17 @@
                         });
                     } else if(el === 'workPrices'){
                         $scope.jobModel[el] = JSON.parse(camForm.variableManager.variables[el].originalValue);
-                    } else if(el === 'sapPRFileXLSName'){
-                        $scope[el] = camForm.variableManager.variables[el];
                     } else {
                         $scope.jobModel[el] = camForm.variableManager.variables[el];
+                    }
+                    if(el === 'jobWorks'){
+                        $scope[el] = camForm.variableManager.variables[el].value;
+
+                        if($scope.works){
+                            $scope.jobWorks.forEach(function (jobWork) {
+                                jobWork.definition = _.find($scope.works, function(r) { return r.sapServiceNumber === jobWork.sapServiceNumber });
+                            });
+                        }
                     }
                 });
                 $http.get("/camunda/api/engine/engine/default/user/" + $rootScope.authentication.name+ "/profile").then(function(result){
@@ -130,6 +145,36 @@
     </script>
 
     <job-request job-model="jobModel"></job-request>
+
+    <div class="col-sm-12">
+        <div class="row">
+            <table class="table table-condensed" class="form-group">
+                <thead>
+                <td width="40%">Works</td>
+                <td>Sloc</td>
+                <td>Fixed Asset class</td>
+                <td>Cost type</td>
+                <td>Fixed Asset Number</td>
+                </thead>
+                <tbody>
+                <tr ng-repeat="work in jobWorks track by $index">
+                    <td>{{jobModel.worksTitle[work.sapServiceNumber]}}</td>
+                    <td><input type="text" value="{{jobModel.sloc.value}}" disabled="disabled" readonly="readonly"></td>
+                    <td>
+                        <input type="text" ng-model="work.fixedAssetClass" name="fixedAssetClass{{$index}}" ng-required = "work.definition.costType == 'CAPEX'" placeholder="Leave empty for Opex">
+                        <label class="error" ng-if="kcell_form['fixedAssetClass'+$index].$error.required && ( kcell_form['fixedAssetClass'+$index].$touched || view.submitted)">Required field</label>
+                    </td>
+                    <td><input type="text" value="{{work.definition.costType == 'CAPEX'?'Y':'K'}}" disabled="disabled" readonly="readonly"></td>
+                    <td>
+                        <input type="text" ng-model="work.fixedAssetNumber" name="fixedAssetNumber{{$index}}" ng-required = "work.definition.costType == 'CAPEX'" placeholder="Leave empty for Opex">
+                        <label class="error" ng-if="kcell_form['fixedAssetNumber'+$index].$error.required && ( kcell_form['fixedAssetNumber'+$index].$touched || view.submitted)">Required field</label>
+                    </td>
+                </tr>
+                </tbody>
+            </table>
+            <span>Where Y- CAPEX, K-OPEX</span>
+        </div>
+    </div>
 
     <div class="form-group">
         <label class="col-sm-4 control-label">Comments:</label>
