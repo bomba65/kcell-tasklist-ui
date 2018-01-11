@@ -475,7 +475,7 @@ public class SendGeneratedJRBlank implements JavaDelegate {
 
             Set<String> ccList = identityService.createUserQuery().userId(delegateExecution.getVariable("starter").toString()).list().stream().map(user -> user.getId()).collect(Collectors.toSet());
             ccList.addAll(Arrays.asList("Askar.Slambekov@kcell.kz", "Yernaz.Kalingarayev@kcell.kz"));
-            if (reason != null && reason.equals("2")) {
+            if (reason != null && reason.equals("3")) {
                 ccList.add("Tatyana.Solovyova@kcell.kz");
             }
             if (delegateExecution.getVariableLocal("sendToContractor") != null && delegateExecution.getVariableLocal("sendToContractor").toString().equals("yes")) {
