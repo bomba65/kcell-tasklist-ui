@@ -501,7 +501,10 @@ public class SendGeneratedJRBlank implements JavaDelegate {
 //            delegateExecution.setVariable("jrBlank", jrBlank);
 
             String path = delegateExecution.getProcessInstanceId() + "/" + "jrBlank.xlsx";
-            minioClient.saveFile(path, is, "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet");
+
+            ByteArrayInputStream bis = new ByteArrayInputStream(out.toByteArray());
+            minioClient.saveFile(path, bis, "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet");
+            bis.close();
 
             String json = "{\"name\" : \"jrBlank.xlsx\",\"path\" : \"" + path + "\"}";
             delegateExecution.setVariable("jrBlank", SpinValues.jsonValue(json));
