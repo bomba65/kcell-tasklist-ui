@@ -51,5 +51,7 @@ public class CreateJOFileAndSave implements JavaDelegate {
 
         String json = "{\"name\" : \"" + delegateExecution.getVariable("jrNumber") + "_JoJr.txt" + "\",\"path\" : \"" + path + "\"}";
         delegateExecution.setVariable("joJrFile", SpinValues.jsonValue(json));
+
+        is.close();
     }
 }

@@ -36,6 +36,8 @@ public class CreateSapPR implements JavaDelegate {
 
         String json = "{\"name\" : \"" + delegateExecution.getVariable("jrNumber") + "_Pr.txt" + "\",\"path\" : \"" + path + "\"}";
         delegateExecution.setVariable("prFile", SpinValues.jsonValue(json));
+
+        is.close();
     }
 
 }
