@@ -40,4 +40,33 @@
         </root>
     </springProfile>
 
+    <springProfile name="gelf">
+        <springProperty name="gelfHost" source="gelf-host" defaultValue="localhost"/>
+        <springProperty name="gelfPort" source="gelf-port" defaultValue="12201"/>
+        <springProperty name="gelfFacility"  source="gelf-facility"  defaultValue="local"/>
+        <springProperty name="appName"     source="spring.application.name"/>
+
+        <appender name="GELF_SYNC" class="biz.paluch.logging.gelf.logback.GelfLogbackAppender">
+            <host>${gelfHost}</host>
+            <port>${gelfPort}</port>
+            <version>1.1</version>
+            <facility>${gelfFacility}</facility>
+            <extractStackTrace>true</extractStackTrace>
+            <filterStackTrace>true</filterStackTrace>
+            <additionalFields>app=${appName}</additionalFields>
+            <additionalFieldTypes>app=String</additionalFieldTypes>
+        </appender>
+
+        <appender name="GELF" class="ch.qos.logback.classic.AsyncAppender">
+            <!-- Max queue size of logs which is waiting to be sent (When it reach to the max size, the log will be disappeared). -->
+            <queueSize>999</queueSize>
+            <appender-ref ref="GELF_SYNC" />
+        </appender>
+
+        <root level="INFO">
+            <appender-ref ref="CONSOLE" />
+            <appender-ref ref="FILE" />
+            <appender-ref ref="GELF" />
+        </root>
+    </springProfile>
 </configuration>
