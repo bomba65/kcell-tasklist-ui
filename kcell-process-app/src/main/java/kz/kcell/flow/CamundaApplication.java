@@ -18,15 +18,18 @@ import org.springframework.boot.autoconfigure.SpringBootApplication;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.boot.context.properties.ConfigurationProperties;
 import org.springframework.context.annotation.Bean;
+import org.springframework.integration.annotation.IntegrationComponentScan;
+import org.springframework.integration.config.EnableIntegration;
 
 import javax.script.ScriptEngineManager;
 
-import static org.camunda.bpm.engine.delegate.ExecutionListener.EVENTNAME_START;
 import static org.camunda.bpm.engine.delegate.TaskListener.EVENTNAME_ASSIGNMENT;
 import static org.camunda.bpm.engine.delegate.TaskListener.EVENTNAME_CREATE;
 
 @SpringBootApplication
 @ProcessApplication
+@IntegrationComponentScan
+@EnableIntegration
 public class CamundaApplication extends SpringBootProcessApplication {
 
     @Autowired
