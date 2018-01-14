@@ -13,7 +13,7 @@ import java.util.Comparator;
 @Entity
 @Table(
         name = "location",
-        uniqueConstraints = @UniqueConstraint(name = "unique_name", columnNames = "name")
+        uniqueConstraints = @UniqueConstraint(name = "location_unique_name", columnNames = "name")
 )
 public  @Data @Builder @NoArgsConstructor @AllArgsConstructor
 @EqualsAndHashCode(exclude = {"version"})
