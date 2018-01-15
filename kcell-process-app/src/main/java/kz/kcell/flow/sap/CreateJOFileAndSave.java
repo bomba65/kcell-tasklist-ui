@@ -55,6 +55,7 @@ public class CreateJOFileAndSave implements JavaDelegate {
         String name = delegateExecution.getVariable("jrNumber") + "_JoJr.txt";
         String path = delegateExecution.getProcessInstanceId() + "/" + name;
         minioClient.saveFile(path, is, "text/plain");
+        is.close();
 
         String json = "{\"name\" : \"" + name + "\",\"path\" : \"" + path + "\"}";
         delegateExecution.setVariable("joJrFile", SpinValues.jsonValue(json));
@@ -63,10 +64,11 @@ public class CreateJOFileAndSave implements JavaDelegate {
 
         File file = new File(tmpDir + name);
 
+        ByteArrayInputStream iis = new ByteArrayInputStream(content.getBytes("utf-8"));
         FileOutputStream fos = new FileOutputStream(file);
-        fos.write(IOUtils.toByteArray(is));
+        fos.write(IOUtils.toByteArray(iis));
         fos.close();
-        is.close();
+        iis.close();
 
         gateway.uploadJrJo(file);
 
