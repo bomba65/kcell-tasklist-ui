@@ -46,7 +46,7 @@ public class CreateSapPR implements JavaDelegate {
 
         String tmpDir = System.getProperty("java.io.tmpdir");
 
-        File file = new File(tmpDir + name);
+        File file = new File(tmpDir + "/" + name);
 
         ByteArrayInputStream iis = new ByteArrayInputStream(content.getBytes("utf-8"));
         FileOutputStream fos = new FileOutputStream(file);
