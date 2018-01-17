@@ -78,4 +78,8 @@ public class Minio {
     public void saveFile(String path, InputStream stream, String contentType) throws IOException, InvalidKeyException, NoSuchAlgorithmException, InsufficientDataException, InternalException, NoResponseException, InvalidBucketNameException, XmlPullParserException, ErrorResponseException, InvalidArgumentException {
         minioClient.putObject(this.getBucketName(), path, stream, contentType);
     }
+
+    public InputStream getObject(String path) throws IOException, InvalidKeyException, NoSuchAlgorithmException, InsufficientDataException, InvalidArgumentException, InternalException, NoResponseException, InvalidBucketNameException, XmlPullParserException, ErrorResponseException {
+        return minioClient.getObject(this.bucketName, path);
+    }
 }

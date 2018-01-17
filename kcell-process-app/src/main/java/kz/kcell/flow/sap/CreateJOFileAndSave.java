@@ -37,12 +37,10 @@ import java.nio.file.Path;
 public class CreateJOFileAndSave implements JavaDelegate {
 
     private Minio minioClient;
-    private SftpConfig.UploadGateway gateway;
 
     @Autowired
-    public CreateJOFileAndSave(Minio minioClient, SftpConfig.UploadGateway uploadGateway) {
+    public CreateJOFileAndSave(Minio minioClient) {
         this.minioClient = minioClient;
-        this.gateway = uploadGateway;
     }
 
     @Override
@@ -50,28 +48,17 @@ public class CreateJOFileAndSave implements JavaDelegate {
         String content = String.valueOf(delegateExecution.getVariableLocal("content"));
         ByteArrayInputStream is = new ByteArrayInputStream(content.getBytes("utf-8"));
 
-        log.info("content:" + content);
+        log.info("JoJr content is: " + content);
 
         String name = delegateExecution.getVariable("jrNumber") + "_JoJr.txt";
         String path = delegateExecution.getProcessInstanceId() + "/" + name;
+
         minioClient.saveFile(path, is, "text/plain");
+        log.info("Saved to Minio JoJr file: " + name);
         is.close();
 
         String json = "{\"name\" : \"" + name + "\",\"path\" : \"" + path + "\"}";
         delegateExecution.setVariable("joJrFile", SpinValues.jsonValue(json));
-
-        String tmpDir = System.getProperty("java.io.tmpdir");
-
-        File file = new File(tmpDir+ "/" + name);
-
-        ByteArrayInputStream iis = new ByteArrayInputStream(content.getBytes("utf-8"));
-        FileOutputStream fos = new FileOutputStream(file);
-        fos.write(IOUtils.toByteArray(iis));
-        fos.close();
-        iis.close();
-
-        gateway.uploadJrJo(file);
-
-        file.delete();
+        log.info(" JoJr variable added with content: " + json);
     }
 }
