@@ -15,15 +15,15 @@ import java.io.ByteArrayInputStream;
 import java.io.File;
 import java.io.FileOutputStream;
 
-@Service("createSapPr")
+@Service("createPRFile")
 @Log
-public class CreateSapPR implements JavaDelegate {
+public class CreatePRFile implements JavaDelegate {
 
     private Minio minioClient;
     private SftpConfig.UploadGateway gateway;
 
     @Autowired
-    public CreateSapPR(Minio minioClient, SftpConfig.UploadGateway uploadGateway) {
+    public CreatePRFile(Minio minioClient, SftpConfig.UploadGateway uploadGateway) {
         this.minioClient = minioClient;
         this.gateway = uploadGateway;
     }
@@ -34,29 +34,17 @@ public class CreateSapPR implements JavaDelegate {
         String content = String.valueOf(delegateExecution.getVariableLocal("content"));
         ByteArrayInputStream is = new ByteArrayInputStream(content.getBytes("utf-8"));
 
-        log.info("content:" + content);
+        log.info("Pr file content is: " + content);
 
         String name = delegateExecution.getVariable("jrNumber") + "_Pr.txt";
         String path = delegateExecution.getProcessInstanceId() + "/" + name;
         minioClient.saveFile(path, is, "text/plain");
+        log.info("Saved to Minio Pr file: " + name);
         is.close();
 
         String json = "{\"name\" : \"" + name + "\",\"path\" : \"" + path + "\"}";
         delegateExecution.setVariable("prFile", SpinValues.jsonValue(json));
-
-        String tmpDir = System.getProperty("java.io.tmpdir");
-
-        File file = new File(tmpDir + "/" + name);
-
-        ByteArrayInputStream iis = new ByteArrayInputStream(content.getBytes("utf-8"));
-        FileOutputStream fos = new FileOutputStream(file);
-        fos.write(IOUtils.toByteArray(iis));
-        fos.close();
-        iis.close();
-
-        gateway.uploadPr(file);
-
-        file.delete();
+        log.info(" Pr variable added with content: " + json);
     }
 
 }

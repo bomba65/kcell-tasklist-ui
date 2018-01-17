@@ -38,8 +38,8 @@
                 'priority',
                 'siteAddress',
                 'sloc',
-                'joJrFile',
-                'joFileCheckError'
+                'prFile',
+                'prFileCheckError'
             ];
 
             $scope.jobModel = {};
@@ -67,12 +67,12 @@
                         }
                 );
                 camForm.variableManager.createVariable({
-                    name: 'correctJOFileTaskResult',
+                    name: 'correctPRFileTaskResult',
                     type: 'String',
                     value: ''
                 });
-                $scope.correctJOFileTaskResult = '';
-                camForm.variableManager.variableValue('correctJOFileTaskResult', $scope.correctJOFileTaskResult);
+                $scope.correctPRFileTaskResult = '';
+                camForm.variableManager.variableValue('correctPRFileTaskResult', $scope.correctPRFileTaskResult);
             });
             camForm.on('variables-fetched', function () {
                 variables.forEach(function (el) {
@@ -94,7 +94,7 @@
                         });
                     } else if(el === 'workPrices'){
                         $scope.jobModel[el] = JSON.parse(camForm.variableManager.variables[el].originalValue);
-                    } else if(el === 'joJrFile'){
+                    } else if(el === 'prFile'){
                         $scope[el] = camForm.variableManager.variables[el];
                     } else {
                         $scope.jobModel[el] = camForm.variableManager.variables[el];
@@ -105,32 +105,32 @@
                 });
             });
             camForm.on('submit', function (e) {
-                camForm.variableManager.variableValue('correctJOFileTaskResult', $scope.correctJOFileTaskResult);
+                camForm.variableManager.variableValue('correctPRFileTaskResult', $scope.correctPRFileTaskResult);
 
-                if(camForm.variableManager.variables['joJrFile']){
-                    if($scope.joJrFile){
-                        camForm.variableManager.variableValue('joJrFile', $scope.joJrFile.value);
+                if(camForm.variableManager.variables['prFile']){
+                    if($scope.prFile){
+                        camForm.variableManager.variableValue('prFile', $scope.prFile.value);
                     } else{
-                        camForm.variableManager.variableValue('joJrFile', null);
+                        camForm.variableManager.variableValue('prFile', null);
                     }
-                } else if($scope.joJrFile) {
-                    camForm.variableManager.createVariable($scope.joJrFile);
+                } else if($scope.prFile) {
+                    camForm.variableManager.createVariable($scope.prFile);
                 }
 
                 var visibility = 'all';
-                if($scope.correctJOFileComment && $scope.correctJOFileCommentVisibility){
-                    visibility = $scope.correctJOFileCommentVisibility;
+                if($scope.correctPRFileComment && $scope.correctPRFileCommentVisibility){
+                    visibility = $scope.correctPRFileCommentVisibility;
                 }
-                $scope.jobModel.resolutions.push({processInstanceId: $scope.processInstanceId, assignee: $rootScope.authentication.name, assigneeName: $rootScope.authentication.assigneeName, resolution: $scope.correctJOFileTaskResult, comment: $scope.correctJOFileComment, taskId: camForm.taskId, visibility: visibility});
+                $scope.jobModel.resolutions.push({processInstanceId: $scope.processInstanceId, assignee: $rootScope.authentication.name, assigneeName: $rootScope.authentication.assigneeName, resolution: $scope.correctPRFileTaskResult, comment: $scope.correctPRFileComment, taskId: camForm.taskId, visibility: visibility});
                 camForm.variableManager.variableValue('resolutions', $scope.jobModel.resolutions);
             });
 
             camForm.on('store', function() {
-                camForm.variableManager.variableValue('correctJOFileTaskResult', $scope.correctJOFileTaskResult);
+                camForm.variableManager.variableValue('correctPRFileTaskResult', $scope.correctPRFileTaskResult);
             });
 
             camForm.on('variables-restored', function() {
-                $scope.correctJOFileTaskResult = camForm.variableManager.variableValue('correctJOFileTaskResult');
+                $scope.correctPRFileTaskResult = camForm.variableManager.variableValue('correctPRFileTaskResult');
             });
 
             $scope.isVisible = function (resolution) {
@@ -138,7 +138,7 @@
             }
 
             $scope.hasComment = function () {
-                return $scope.correctJOFileComment && $rootScope.hasGroup('kcellUsers');
+                return $scope.correctPRFileComment && $rootScope.hasGroup('kcellUsers');
             }
 
             $scope.fileSelected = function(el, fileName){
@@ -202,96 +202,44 @@
 
     <h4>Job Order Information</h4>
 
-    <table class="table table-condensed">
-        <thead>
-        <tr>
-            <th>Field description</th>
-            <th>Value</th>
-        </tr>
-        </thead>
-        <tbody>
-        <tr>
-            <td>Job Order number</td>
-            <td>{{jobModel.jrNumber.value}}</td>
-        </tr>
-        <tr>
-            <td>Job Order Description</td>
-            <td>Revision</td>
-        </tr>
-        <tr>
-            <td>Job Requester</td>
-            <td>{{contractorsShortTitle[jobModel.contractor.value]}}</td>
-        </tr>
-        <tr>
-            <td>Requester type</td>
-            <td>Revision</td>
-        </tr>
-        <tr>
-            <td>Status</td>
-            <td>Approved</td>
-        </tr>
-        <tr>
-            <td>Job Detail</td>
-            <td>{{jobModel.site.value}};{{jobModel.site_name.value}}</td>
-        </tr>
-        <tr>
-            <td>Subcontractor ID</td>
-            <td>{{reasonsSubcontractors[jobModel.reason.value]}}</td>
-        </tr>
-        <tr>
-            <td>Job Order date</td>
-            <td>{{jobModel.requestedDate.value | date: 'dd.MM.yyyy'}}</td>
-        </tr>
-        <tr>
-            <td>Plant</td>
-            <td>02001</td>
-        </tr>
-        <tr>
-            <td>Sloc</td>
-            <td>{{jobModel.sloc.value}}</td>
-        </tr>
-        </tbody>
-    </table>
-
-
     <div class="form-group">
-        <label class="col-sm-4 control-label">JO JR file error:</label>
+        <label class="col-sm-4 control-label">PR file error:</label>
         <div class="col-sm-8">
-            <span>{{jobModel.joFileCheckError.value}}</span>
+            <span>{{jobModel.prFileCheckError.value}}</span>
         </div>
     </div>
 
     <div class="form-group">
-        <label class="col-sm-4 control-label">JO JR file:</label>
+        <label class="col-sm-4 control-label">PR file:</label>
         <div class="col-sm-8">
-            <div ng-show="joJrFile.value.name">
-                <a ng-click="download(joJrFile)">{{joJrFile.value.name}}</a> | <a ng-click="clearFile('joJrFile')"><i class="glyphicon glyphicon-trash"></i></a>
+            <div ng-show="prFile.value.name">
+                <a ng-click="download(prFile)">{{prFile.value.name}}</a> | <a ng-click="clearFile('prFile')"><i class="glyphicon glyphicon-trash"></i></a>
             </div>
-            <input ng-hide="joJrFile.value.name" type="file" class="form-control" name="joJrFile" ng-model="joJrFile.file"
-                   required-file="!joJrFile.value.name"  onchange="angular.element(this).scope().fileSelected(this, 'joJrFile')"/>
-            <label class="has-error" ng-show="kcell_form.joJrFile.$error.validFile">File is required</label>
+            <input ng-hide="prFile.value.name" type="file" class="form-control" name="prFile" ng-model="prFile.file"
+                   required-file="!prFile.value.name"  onchange="angular.element(this).scope().fileSelected(this, 'prFile')"/>
+            <label class="has-error" ng-show="kcell_form.prFile.$error.validFile">File is required</label>
         </div>
     </div>
 
     <div class="form-group">
         <label class="col-sm-4 control-label">Comments:</label>
         <div class="col-sm-8">
-            <textarea class="form-control" rows="4" maxlength="500" cam-variable-name="correctJOFileComment" name="correctJOFileComment" cam-variable-type="String"></textarea>
-            <label class="error" ng-show="kcell_form.correctJOFileComment.$error.required && ( kcell_form.correctJOFileComment.$touched || view.submitted)">Required field</label>
+            <textarea class="form-control" rows="4" maxlength="500" cam-variable-name="correctPRFileComment" name="correctPRFileComment" cam-variable-type="String"></textarea>
+            <label class="error" ng-show="kcell_form.correctPRFileComment.$error.required && ( kcell_form.correctPRFileComment.$touched || view.submitted)">Required field</label>
         </div>
     </div>
     <div class="form-group" ng-show="hasComment()">
         <label class="col-sm-4 control-label">Comments visibility</label>
         <div class="col-sm-8">
             <label class="radio-inline">
-                <input type="radio" name="correctJOFileCommentVisibility"
-                       ng-model="correctJOFileCommentVisibility" value="all" ng-required="hasComment()"> Visible for all
+                <input type="radio" name="correctPRFileCommentVisibility"
+                       ng-model="correctPRFileCommentVisibility" value="all" ng-required="hasComment()"> Visible for all
             </label>
             <label class="radio-inline">
-                <input type="radio" name="correctJOFileCommentVisibility"
-                       ng-model="correctJOFileCommentVisibility" value="kcell" ng-required="hasComment()"> Kcell staff only
+                <input type="radio" name="correctPRFileCommentVisibility"
+                       ng-model="correctPRFileCommentVisibility" value="kcell" ng-required="hasComment()"> Kcell staff only
             </label>
-            <label class="error" ng-show="kcell_form.correctJOFileCommentVisibility.$error.required && ( kcell_form.correctJOFileCommentVisibility.$touched || view.submitted)">Required field</label>
+            <label class="error" ng-show="kcell_form.correctPRFileCommentVisibility.$error.required && ( kcell_form.correctPRFileCommentVisibility.$touched || view.submitted)">Required field</label>
         </div>
     </div>
     <accordion>

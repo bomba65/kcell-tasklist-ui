@@ -54,9 +54,6 @@ public class SftpConfig {
     @Value("${sftp.remote.directory.jojr:/home/KWMS/JR_JO_Creation/Sap JO File}")
     private String sftpRemoteDirectoryJoJr;
 
-    @Autowired
-    private SftpRemoteFileTemplate template;
-
     @Bean
     public SessionFactory<ChannelSftp.LsEntry> sftpSessionFactory() {
         DefaultSftpSessionFactory factory = new DefaultSftpSessionFactory(true);
@@ -78,6 +75,7 @@ public class SftpConfig {
             public String generateFileName(Message<?> message) {
                 if (message.getPayload() instanceof File) {
 
+                    SftpRemoteFileTemplate template = template();
                     String successFilePath = sftpRemoteDirectoryToJoJr + "/" + ((File) message.getPayload()).getName();
                     Boolean successResult = template.exists(successFilePath);
                     if(successResult){
@@ -103,6 +101,7 @@ public class SftpConfig {
             public String generateFileName(Message<?> message) {
                 if (message.getPayload() instanceof File) {
 
+                    SftpRemoteFileTemplate template = template();
                     String successFilePath = sftpRemoteDirectoryToPr + "/" + ((File) message.getPayload()).getName();
                     Boolean successResult = template.exists(successFilePath);
                     if(successResult){

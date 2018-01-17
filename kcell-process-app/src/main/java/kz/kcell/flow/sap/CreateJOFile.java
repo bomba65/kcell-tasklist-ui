@@ -32,14 +32,14 @@ import java.io.InputStreamReader;
 import java.nio.file.Files;
 import java.nio.file.Path;
 
-@Service("createJOFileAndSave")
+@Service("createJOFile")
 @Log
-public class CreateJOFileAndSave implements JavaDelegate {
+public class CreateJOFile implements JavaDelegate {
 
     private Minio minioClient;
 
     @Autowired
-    public CreateJOFileAndSave(Minio minioClient) {
+    public CreateJOFile(Minio minioClient) {
         this.minioClient = minioClient;
     }
 
