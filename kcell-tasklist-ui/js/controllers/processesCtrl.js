@@ -305,5 +305,8 @@ define(['./module','jquery', 'camundaSDK'], function(app, $, CamSDK){
 			}).then(function(results){
 			});
         };
+        $scope.getStatus = function(state, value){
+        	return state == 'COMPLETED'? 'Closed': (value == 'accepted'?'Accepted & waiting scan attach':(value == 'scan attached'?'Accepted & waiting invoice':'In progress'))
+        };
 	}]);
 });
