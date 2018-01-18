@@ -6,17 +6,23 @@ import java.text.SimpleDateFormat
 /*
 def jrNumber = "Alm-LSE-P&O-17-5267"
 def requestedDate = new Date()
-def jobWorks = '[{"relatedSites":[{"name":"00010","id":"28096","site_name":"00010OKZHETPES","$$hashKey":"object:3868"}],"sapServiceNumber":"5","materialUnit":"site/сайт","quantity":1,"materialQuantity":1,"definition":{"id":5,"costType":"CAPEX","contractor":{"id":5,"name":"JSC Kcell"},"region":{"id":7,"name":"Almaty"},"service":{"id":2,"name":"Rollout","sapCode":"Y"},"sapServiceNumber":"5","sapPOServiceName":"5.RBS/BTS add(BBS+cab+ant+feed+pole)oair","displayServiceName":"5.RBS/BTS cell addition(BBS+cabinet+antennas+feeders+poles) with on-air / Добавление сотового сегмента к  RBS/BTS (BBS+кабинет+антенны+фидер+  трубостойкb) с активацией","currency":"KZT","faClass":"29403422","materialGroup":"STD0018","year":2016,"spp":"RN-0502-33-0067","createDate":1496599200000,"units":"site/сайт","vendor":"280209"},"fixedAssetClass":"29403422","fixedAssetNumber":"29403422"}]';
+def jobWorks = '[{"relatedSites":[{"name":"00SITE1","id":"1","site_name":"00SITE1"}],"sapServiceNumber":"6","materialUnit":"site/сайт","quantity":1,"materialQuantity":1,"definition":{"id": 6,"costType": "OPEX","contractor": {"id": 5,"name": "JSC Kcell"},"region": { "id": 7,"name": "Almaty"}, "service": {}, "sapServiceNumber": "6", "sapPOServiceName": "6. BTS Macro removal ","displayServiceName": "6.BTS Macro removal (including packaging according Kcell required) / Демонтаж кабинета BTS Macro (включая упаковку согласно стандартам Kcell)", "currency": "KZT","faClass": "29403422", "materialGroup": "STD0019", "year": 2016, "spp": "251-70160-1", "sppSao": "252-70160-1", "createDate": 1496599200000, "units": "site/сайт", "vendor":"280209"}}]';
 def contractor = 4
 def sloc = 'S333'
+def workPrices = '[{"relatedSites":[{"name":"00SITE1","id":"1","site_name":"00SITE1"}],"sapServiceNumber":"6","materialUnit":"site/сайт","quantity":1,"materialQuantity":1,"unitWorkPricePerSite":"98029.28","netWorkPricePerSite":"98029.28","unitWorkPrice":"90767.85","unitWorkPricePlusTx":"98029.28","total":"98029.28","basePrice":"90767.85"}]';
+def reason = "1";
 */
+
 def cal = Calendar.instance
 def yearEndDate = "31.12."+cal.get(Calendar.YEAR)
 
 def formatDate = new SimpleDateFormat("dd.MM.yyyy")
 def jobWorksObj = new JsonSlurper().parseText(jobWorks.toString())
+def workPricesObj = new JsonSlurper().parseText(workPrices.toString())
 def requestDateObj = formatDate.format(requestedDate)
 def contractorsTitle = new JsonSlurper().parseText(this.getClass().getResource("/dictionary/contractor.json").text)
+def subcontractorsTitle = new JsonSlurper().parseText(this.getClass().getResource("/dictionary/subcontractor.json").text)
+def subcontructerId = (subcontractorsTitle[reason] != null ? subcontractorsTitle[reason].code : "10")
 
 jobWorksObj.each { work ->
     if ('CAPEX' == work.definition.costType){
@@ -27,7 +33,13 @@ jobWorksObj.each { work ->
     work.contractorNo = contractorsTitle[contractor.toString()].contract.service
 }
 
-def binding = ["jobWorksObj":jobWorksObj, "jrNumber":jrNumber, "requestDate": requestDateObj, "yearEndDate":yearEndDate, "sloc":sloc]
+jobWorksObj.each { work ->
+    work.price = workPricesObj.find {
+        it.sapServiceNumber == work.sapServiceNumber
+    }
+}
+
+def binding = ["jobWorksObj":jobWorksObj, "workPricesObj": workPricesObj, "jrNumber":jrNumber, "requestDate": requestDateObj, "yearEndDate":yearEndDate, "sloc":sloc, "subcontructerId":subcontructerId]
 
 /*
 FIELD DESCRIPTION	 For FA PRs (CAPEX)	    For Service PRs (OPEX)	Примечание
@@ -69,7 +81,8 @@ def template = '''\
 jobWorksObj.each { w ->
     yieldUnescaped 'ZK73-01\t' + w.costType + '\t' + jrNumber + '\tapproved\t' + requestDate + '\t' + w.definition.vendor + '\t' + w.definition.region.id +
           '\tY\tinstallation service\t' + w.contractorNo + '\t' + w.definition.sapServiceNumber + '\t' + yearEndDate + '\t' +
-          w.definition.spp + '\t' + jrNumber + '\t' + sloc + '\t' + (w.fixedAssetNumber!=null?w.fixedAssetNumber:'DUMMY') + '\t25510\t3020\t7016000 '
+          w.definition.spp + '\t' + jrNumber + '\t' + sloc + '\t' + (w.fixedAssetNumber!=null?w.fixedAssetNumber:'DUMMY') + '\t25510\t3020\t7016000\t' +
+          w.price.unitWorkPricePlusTx + '\t' + subcontructerId + ''
     newLine()
 }
 '''

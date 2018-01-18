@@ -11,6 +11,7 @@ def site = "00596"
 def site_name = "00596MARIOTDOM"
 def requestedDate = new Date()//2017-10-16T14:14:37.000+0600
 def sloc = "S666"
+def reason = "1";
 */
 
 def contractorsTitle = new JsonSlurper().parseText(this.getClass().getResource("/dictionary/contractor.json").text)
@@ -40,7 +41,6 @@ Subcontructer ID  | 10               | Из списка SubcontractorID
 Job Order Date    | 22.08.2017       | KWMS – creation date
 Plant             | 0201             | 0201 ALMATY для всех регионов по умолчанию
 SLoc              | К001             | Sloc from "ZKZMM0022 - Site List"
-
 */
 
 def template = '''\
