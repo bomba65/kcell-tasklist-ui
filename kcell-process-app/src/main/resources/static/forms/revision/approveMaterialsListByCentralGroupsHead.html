@@ -37,7 +37,9 @@
                 'jrBlank',
                 'tssrssidFile',
                 'tssrssidFileName',
-                'priority'
+                'priority',
+                'approveMaterialsListResult',
+                'nrOfCompletedInstances'
             ];
             $scope.jobModel = {};
             $http.get('/camunda/api/engine/engine/default/task/' + camForm.taskId).then(
@@ -68,11 +70,6 @@
                     type: 'String',
                     value: ''
                 });
-                camForm.variableManager.createVariable({
-                    name: 'modifyWorks',
-                    type: 'Boolean',
-                    value: undefined
-                });
             });
             camForm.on('variables-fetched', function () {
                 variables.forEach(function (el) {
@@ -95,20 +92,44 @@
                     } else {
                         $scope.jobModel[el] = camForm.variableManager.variables[el];
                     }
+                    if(el === 'approveMaterialsListResult' && camForm.variableManager.variables[el].value){
+                        $scope[el] = camForm.variableManager.variables[el].value;
+                    }
+                    if(el === 'nrOfCompletedInstances'){
+                        $scope[el] = camForm.variableManager.variables[el].value;
+                    }
                 });
                 $http.get("/camunda/api/engine/engine/default/user/" + $rootScope.authentication.name+ "/profile").then(function(result){
                     $rootScope.authentication.assigneeName = (result.data.firstName ? result.data.firstName : "") + " " + (result.data.lastName ? result.data.lastName : "");
                 });
+
+                if($scope.nrOfCompletedInstances === 0){
+                    $scope.approveMaterialsListResult = undefined;
+                }
+                $scope.approveMaterialsListByCentralGroupsHeadTaskResult = undefined;
             });
 
             camForm.on('submit', function () {
                 camForm.variableManager.variableValue('approveMaterialsListByCentralGroupsHeadTaskResult', $scope.approveMaterialsListByCentralGroupsHeadTaskResult);
-                if ($scope.approveMaterialsListByCentralGroupsHeadTaskResult === 'approved') {
-                    camForm.variableManager.variableValue('modifyWorks', false);
+                if ($scope.approveMaterialsListByCentralGroupsHeadTaskResult === 'rejected') {
+                    $scope.approveMaterialsListResult = 'rejected';
+                } else if($scope.approveMaterialsListResult === undefined) {
+                    $scope.approveMaterialsListResult = 'approved';
                 }
-                else{
-                    camForm.variableManager.variableValue('modifyWorks', true);
+
+                if($scope.approveMaterialsListResult){
+                    if(camForm.variableManager.variables['approveMaterialsListResult'] && camForm.variableManager.variables['approveMaterialsListResult'].type){
+                        camForm.variableManager.variableValue('approveMaterialsListResult', $scope.approveMaterialsListResult);
+                    } else {
+                        camForm.variableManager.destroyVariable('approveMaterialsListResult');
+                        camForm.variableManager.createVariable({
+                            name: 'approveMaterialsListResult',
+                            type: 'String',
+                            value: $scope.approveMaterialsListResult
+                        });
+                    }
                 }
+
                 var visibility = 'all';
                 if($scope.approveMaterialsListByCentralGroupsHeadComment && $scope.approveMaterialsListByCentralGroupsHeadCommentVisibility){
                     visibility = $scope.approveMaterialsListByCentralGroupsHeadCommentVisibility;
@@ -126,10 +147,6 @@
                 camForm.variableManager.variableValue('approveMaterialsListByCentralGroupsHeadTaskResult', $scope.approveMaterialsListByCentralGroupsHeadTaskResult);
             });
 
-            camForm.on('variables-restored', function() {
-                $scope.approveMaterialsListByCentralGroupsHeadTaskResult = camForm.variableManager.variableValue('approveMaterialsListByCentralGroupsHeadTaskResult');
-            });
-
             $scope.isVisible = function (resolution) {
                return !resolution.visibility || resolution.visibility === 'all' || (resolution.visibility === 'kcell' && $rootScope.hasGroup('kcellUsers'));
             }
@@ -140,14 +157,12 @@
         }]);
     </script>
     <job-request job-model="jobModel"></job-request>
+
     <div class="form-group">
         <label class="col-sm-4 control-label">Resolution</label>
         <div class="col-sm-8">
             <label class="radio-inline">
                 <input type="radio" ng-model="approveMaterialsListByCentralGroupsHeadTaskResult" name="approveMaterialsListByCentralGroupsHeadTaskResult" value="approved" required> Approve
-            </label>
-            <label class="radio-inline">
-                <input type="radio" ng-model="approveMaterialsListByCentralGroupsHeadTaskResult" name="approveMaterialsListByCentralGroupsHeadTaskResult" value="modify" required> Modify works
             </label>
             <label class="radio-inline">
                 <input type="radio" ng-model="approveMaterialsListByCentralGroupsHeadTaskResult" name="approveMaterialsListByCentralGroupsHeadTaskResult" value="rejected" required> Reject
@@ -158,7 +173,7 @@
     <div class="form-group">
         <label class="col-sm-4 control-label">Comments</label>
         <div class="col-sm-8">
-            <textarea class="form-control" rows="4" maxlength="500" cam-variable-name="approveMaterialsListByCentralGroupsHeadComment" name="approveMaterialsListByCentralGroupsHeadComment" ng-required="approveMaterialsListByCentralGroupsHeadTaskResult == 'modify' || approveMaterialsListByCentralGroupsHeadTaskResult == 'rejected'" cam-variable-type="String"></textarea>
+            <textarea class="form-control" rows="4" maxlength="500" name="approveMaterialsListByCentralGroupsHeadComment" ng-model="approveMaterialsListByCentralGroupsHeadComment" ng-required="approveMaterialsListByCentralGroupsHeadTaskResult == 'rejected'"></textarea>
             <label class="error" ng-show="kcell_form.approveMaterialsListByCentralGroupsHeadComment.$error.required && ( kcell_form.approveMaterialsListByCentralGroupsHeadComment.$touched || view.submitted)">Required field</label>
         </div>
     </div>

@@ -38,7 +38,9 @@
                 'tssrssidFileName',
                 'trFilesName',
                 'trFiles',
-                'priority'
+                'priority',
+                'checkTRMaterialsResult',
+                'nrOfCompletedInstances'
             ];
             $scope.jobModel = {
                 hideSAPPRNO: true
@@ -70,11 +72,6 @@
                     type: 'String',
                     value: ''
                 });
-                camForm.variableManager.createVariable({
-                    name: 'modifyWorks',
-                    type: 'Boolean',
-                    value: undefined
-                });
             });
             camForm.on('variables-fetched', function () {
                 variables.forEach(function (el) {
@@ -98,14 +95,45 @@
                     } else {
                         $scope.jobModel[el] = camForm.variableManager.variables[el];
                     }
+                    if(el === 'checkTRMaterialsResult' && camForm.variableManager.variables[el].value){
+                        $scope[el] = camForm.variableManager.variables[el].value;
+                    }
+                    if(el === 'nrOfCompletedInstances'){
+                        $scope[el] = camForm.variableManager.variables[el].value;
+                    }
                 });
                 $http.get("/camunda/api/engine/engine/default/user/" + $rootScope.authentication.name+ "/profile").then(function(result){
                     $rootScope.authentication.assigneeName = (result.data.firstName ? result.data.firstName : "") + " " + (result.data.lastName ? result.data.lastName : "");
                 });
+
+                if($scope.nrOfCompletedInstances === 0){
+                    $scope.checkTRMaterialsResult = undefined;
+                }
+                $scope.checkTRMaterialsByCenterTaskResult = undefined;
             });
 
             camForm.on('submit', function () {
                 camForm.variableManager.variableValue('checkTRMaterialsByCenterTaskResult', $scope.checkTRMaterialsByCenterTaskResult);
+
+                if ($scope.checkTRMaterialsByCenterTaskResult === 'rejected') {
+                    $scope.checkTRMaterialsResult = 'rejected';
+                } else if($scope.checkTRMaterialsResult === undefined) {
+                    $scope.checkTRMaterialsResult = 'approved';
+                }
+
+                if($scope.checkTRMaterialsResult){
+                    if(camForm.variableManager.variables['checkTRMaterialsResult'] && camForm.variableManager.variables['checkTRMaterialsResult'].type){
+                        camForm.variableManager.variableValue('checkTRMaterialsResult', $scope.checkTRMaterialsResult);
+                    } else {
+                        camForm.variableManager.destroyVariable('checkTRMaterialsResult');
+                        camForm.variableManager.createVariable({
+                            name: 'checkTRMaterialsResult',
+                            type: 'String',
+                            value: $scope.checkTRMaterialsResult
+                        });
+                    }
+                }
+
                 var visibility = 'all';
                 if($scope.checkTRMaterialsByCenterComment && $scope.checkTRMaterialsByCenterCommentVisibility){
                     visibility = $scope.checkTRMaterialsByCenterCommentVisibility;
@@ -116,10 +144,6 @@
 
             camForm.on('store', function() {
                 camForm.variableManager.variableValue('checkTRMaterialsByCenterTaskResult', $scope.checkTRMaterialsByCenterTaskResult);
-            });
-
-            camForm.on('variables-restored', function() {
-                $scope.checkTRMaterialsByCenterTaskResult = camForm.variableManager.variableValue('checkTRMaterialsByCenterTaskResult');
             });
 
             $scope.isVisible = function (resolution) {
@@ -147,7 +171,7 @@
     <div class="form-group">
         <label class="col-sm-4 control-label">Comments</label>
         <div class="col-sm-8">
-            <textarea class="form-control" rows="4" maxlength="500" cam-variable-name="checkTRMaterialsByCenterComment" name="checkTRMaterialsByCenterComment" ng-required="checkTRMaterialsByCenterTaskResult == 'doesNotMatch'" cam-variable-type="String"></textarea>
+            <textarea class="form-control" rows="4" maxlength="500" ng-model="approveMaterialsListByCentralGroupsHeadComment" name="approveMaterialsListByCentralGroupsHeadComment" ng-required="checkTRMaterialsByCenterTaskResult == 'doesNotMatch'"></textarea>
             <label class="error" ng-show="kcell_form.checkTRMaterialsByCenterComment.$error.required && ( kcell_form.checkTRMaterialsByCenterComment.$touched || view.submitted)">Required field</label>
         </div>
     </div>

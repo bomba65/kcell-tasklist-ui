@@ -3,19 +3,23 @@ package kz.kcell.bpm.assignments;
 import org.camunda.bpm.engine.delegate.DelegateTask;
 import org.camunda.bpm.engine.delegate.TaskListener;
 
+@lombok.extern.java.Log
 public class ApproveMaterialsListByCentralGroupsHeadAssignmentHandler implements TaskListener {
 
     @Override
     public void notify(DelegateTask delegateTask) {
-        String reason = delegateTask.getVariable("reason").toString();
-        if (reason != null) {
-            if (reason.equals("1")) {
+
+
+        String group = String.valueOf(delegateTask.getVariable("group"));
+
+        if (group != null) {
+            if (group.equals("\"P&O\"")) {
                 delegateTask.addCandidateGroup("hq_optimization");
-            } else if (reason.equals("2")) {
+            } else if (group.equals("\"Transmission\"")) {
                 delegateTask.addCandidateGroup("hq_transmission_engineer");
-            } else if (reason.equals("3")) {
+            } else if (group.equals("\"S&FM\"")) {
                 delegateTask.addCandidateGroup("hq_infrastructure");
-            } else if (reason.equals("4")) {
+            } else if (group.equals("\"Operation\"")) {
                 delegateTask.addCandidateGroup("hq_operation");
             }
         }

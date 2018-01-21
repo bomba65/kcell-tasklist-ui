@@ -110,6 +110,29 @@
                 else{
                     camForm.variableManager.variableValue('modifyWorks', true);
                 }
+
+                $scope.approveMaterialsGroupList = [];
+                if($scope.optimizationMaterialApproveRequired){
+                    $scope.approveMaterialsGroupList.push('P&O');
+                }
+                if($scope.transmissionMaterialApproveRequired){
+                    $scope.approveMaterialsGroupList.push('Transmission');
+                }
+                if($scope.infrastructureMaterialApproveRequired){
+                    $scope.approveMaterialsGroupList.push('S&FM');
+                }
+                if($scope.operationMaterialApproveRequired){
+                    $scope.approveMaterialsGroupList.push('Operation');
+                }
+
+                if($scope.approveMaterialsGroupList.length>0){
+                    camForm.variableManager.createVariable({
+                        name: 'approveMaterialsGroupList',
+                        type: 'Json',
+                        value: $scope.approveMaterialsGroupList
+                    });
+                }
+
                 var visibility = 'all';
                 if($scope.approveMaterialsListByRegionGroupsHeadComment && $scope.approveMaterialsListByRegionGroupsHeadCommentVisibility){
                     visibility = $scope.approveMaterialsListByRegionGroupsHeadCommentVisibility;
@@ -138,9 +161,33 @@
             $scope.hasComment = function () {
                 return $scope.approveMaterialsListByRegionGroupsHeadComment && $rootScope.hasGroup('kcellUsers');
             }
+
+            $scope.checkMaterialApproveRequired = function (){
+                return !$scope.optimizationMaterialApproveRequired && !$scope.transmissionMaterialApproveRequired && !$scope.infrastructureMaterialApproveRequired && !$scope.operationMaterialApproveRequired;
+            }
         }]);
     </script>
     <job-request job-model="jobModel"></job-request>
+
+    <div class="form-group">
+        <label class="col-sm-4 control-label">Please select the groups whose materials will be used</label>
+        <div class="col-sm-8">
+            <label class="radio-inline">
+                <input type="checkbox" cam-variable-name="optimizationMaterialApproveRequired" name="materialApproveGroupList" cam-variable-type="Boolean" ng-required="checkMaterialApproveRequired()" /> P&O
+            </label><br/>
+            <label class="radio-inline">
+                <input type="checkbox" cam-variable-name="transmissionMaterialApproveRequired" name="materialApproveGroupList" cam-variable-type="Boolean" ng-required="checkMaterialApproveRequired()" /> Transmission
+            </label><br/>
+            <label class="radio-inline">
+                <input type="checkbox" cam-variable-name="infrastructureMaterialApproveRequired" name="materialApproveGroupList" cam-variable-type="Boolean" ng-required="checkMaterialApproveRequired()" /> S&FM
+            </label><br/>
+            <label class="radio-inline">
+                <input type="checkbox" cam-variable-name="operationMaterialApproveRequired" name="materialApproveGroupList" cam-variable-type="Boolean" ng-required="checkMaterialApproveRequired()" /> Operation
+            </label><br/>
+            <label class="error" ng-show="kcell_form.materialApproveGroupList.$error.required && ( kcell_form.materialApproveGroupList.$touched || view.submitted)">Required field</label>
+        </div>
+    </div>
+
     <div class="form-group">
         <label class="col-sm-4 control-label">Resolution</label>
         <div class="col-sm-8">
