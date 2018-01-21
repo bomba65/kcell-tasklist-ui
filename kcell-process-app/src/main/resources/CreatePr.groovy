@@ -22,7 +22,7 @@ def workPricesObj = new JsonSlurper().parseText(workPrices.toString())
 def requestDateObj = formatDate.format(requestedDate)
 def contractorsTitle = new JsonSlurper().parseText(this.getClass().getResource("/dictionary/contractor.json").text)
 def subcontractorsTitle = new JsonSlurper().parseText(this.getClass().getResource("/dictionary/subcontractor.json").text)
-def subcontructerId = (subcontractorsTitle[reason] != null ? subcontractorsTitle[reason].code : "10")
+def subcontructerName = (subcontractorsTitle[reason] != null ? subcontractorsTitle[reason].responsible : "-")
 
 jobWorksObj.each { work ->
     if ('CAPEX' == work.definition.costType){
@@ -39,7 +39,7 @@ jobWorksObj.each { work ->
     }
 }
 
-def binding = ["jobWorksObj":jobWorksObj, "workPricesObj": workPricesObj, "jrNumber":jrNumber, "requestDate": requestDateObj, "yearEndDate":yearEndDate, "sloc":sloc, "subcontructerId":subcontructerId]
+def binding = ["jobWorksObj":jobWorksObj, "workPricesObj": workPricesObj, "jrNumber":jrNumber, "requestDate": requestDateObj, "yearEndDate":yearEndDate, "sloc":sloc, "subcontructerName":subcontructerName]
 
 /*
 FIELD DESCRIPTION	 For FA PRs (CAPEX)	    For Service PRs (OPEX)	Примечание
@@ -82,7 +82,7 @@ jobWorksObj.each { w ->
     yieldUnescaped 'ZK73-01\t' + w.costType + '\t' + jrNumber + '\tapproved\t' + requestDate + '\t' + w.definition.vendor + '\t' + w.definition.region.id +
           '\tY\tinstallation service\t' + w.contractorNo + '\t' + w.definition.sapServiceNumber + '\t' + yearEndDate + '\t' +
           w.definition.spp + '\t' + jrNumber + '\t' + sloc + '\t' + (w.fixedAssetNumber!=null?w.fixedAssetNumber:'DUMMY') + '\t25510\t3020\t7016000\t' +
-          w.price.unitWorkPricePlusTx + '\t' + subcontructerId + ''
+          w.price.unitWorkPricePlusTx + '\t' + subcontructerName + ''
     newLine()
 }
 '''
