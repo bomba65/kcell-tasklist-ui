@@ -24,7 +24,7 @@ def requestedDateObj = formatDate.format(requestedDate)
 def subcontructerId = (subcontractorsTitle[reason] != null ? subcontractorsTitle[reason].code : "10")
 def plant = "0201"
 
-def binding = ["jrNumber" : jrNumberObj, "contractor":contractorObj, "site_name":site_name, "site":site, "subcontructerId":subcontructerId,
+def binding = ["jrNumber" : jrNumberObj, "contractor":contractorObj, "site_name":site_name, "siteName":siteName, "subcontructerId":subcontructerId,
                "requestDate":requestedDateObj, "plant":plant, "sloc":sloc]
 
 /*
@@ -44,7 +44,7 @@ SLoc              | К001             | Sloc from "ZKZMM0022 - Site List"
 */
 
 def template = '''\
-yieldUnescaped '' + jrNumber + '\t' + 'REVISION\t' + contractor + '\tRevision\tApproved\t' + site + ',' + site_name + '\t' + subcontructerId + '\t' + requestDate + '\t' + plant + '\t' + sloc
+yieldUnescaped '' + jrNumber + '\t' + 'REVISION\t' + contractor + '\tRevision\tApproved\t' + siteName + ',' + site_name + '\t' + subcontructerId + '\t' + requestDate + '\t' + plant + '\t' + sloc
 '''
 
 def config = new TemplateConfiguration()

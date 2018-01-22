@@ -8,9 +8,12 @@ import org.apache.http.client.HttpClient;
 import org.apache.http.client.methods.CloseableHttpResponse;
 import org.apache.http.client.methods.HttpGet;
 import org.apache.http.client.methods.HttpPost;
+import org.apache.http.conn.ssl.SSLConnectionSocketFactory;
+import org.apache.http.conn.ssl.TrustSelfSignedStrategy;
 import org.apache.http.entity.StringEntity;
 import org.apache.http.impl.client.CloseableHttpClient;
 import org.apache.http.impl.client.HttpClients;
+import org.apache.http.ssl.SSLContextBuilder;
 import org.apache.http.util.EntityUtils;
 import org.camunda.bpm.engine.delegate.DelegateExecution;
 import org.camunda.bpm.engine.delegate.JavaDelegate;
@@ -29,21 +32,28 @@ public class CheckSlocExistance implements JavaDelegate {
     private final String baseUri;
 
     @Autowired
-    public CheckSlocExistance(@Value("${assets.url:http://localhost}") String assetsUrl) {
-        this.baseUri = assetsUrl;
+    public CheckSlocExistance(@Value("${mail.message.baseurl:http://localhost}") String baseUri) {
+        this.baseUri = baseUri;
     }
 
     @Override
     public void execute(DelegateExecution delegateExecution) throws Exception {
 
+        SSLContextBuilder builder = new SSLContextBuilder();
+        builder.loadTrustMaterial(null, new TrustSelfSignedStrategy());
+        SSLConnectionSocketFactory sslsf = new SSLConnectionSocketFactory(
+            builder.build());
+        CloseableHttpClient httpclient = HttpClients.custom().setSSLSocketFactory(
+            sslsf).build();
+
         String siteLocationName = String.valueOf(delegateExecution.getVariable("siteLocationName"));
 
         log.info("siteLocationName:" + siteLocationName);
 
-        if(StringUtils.isNotEmpty(siteLocationName)){
+        if(siteLocationName!=null && StringUtils.isNotEmpty(siteLocationName.trim())){
             String locationUrl = baseUri + "/asset-management/api/locations";
             String siteId = String.valueOf(delegateExecution.getVariable("site"));
-            String siteUrl = "http://assets:8080/asset-management/api/sites/" + siteId;
+            String siteUrl = baseUri + "/asset-management/api/sites/" + siteId;
 
             log.info("{\"params\":{}, \"name\":\"" + siteLocationName + "\",\"site\": \"" + siteUrl + "\"}");
 
@@ -53,15 +63,13 @@ public class CheckSlocExistance implements JavaDelegate {
             locationHttpPost.addHeader("Content-Type", "application/json;charset=UTF-8");
             locationHttpPost.setEntity(locationInputData);
 
-            CloseableHttpClient locationHttpClient = HttpClients.createDefault();
-            CloseableHttpResponse locationResponse = locationHttpClient.execute(locationHttpPost);
+            CloseableHttpResponse locationResponse = httpclient.execute(locationHttpPost);
             log.info("locationResponse code: " + locationResponse.getStatusLine().getStatusCode());
         }
 
         String site = delegateExecution.getVariable("site").toString();
         HttpGet httpGet = new HttpGet(baseUri + "/asset-management/api/locations/search/findBySite?siteId=" + site);
-        HttpClient httpClient = HttpClients.createDefault();
-        HttpResponse httpResponse = httpClient.execute(httpGet);
+        HttpResponse httpResponse = httpclient.execute(httpGet);
 
         HttpEntity entity = httpResponse.getEntity();
 
