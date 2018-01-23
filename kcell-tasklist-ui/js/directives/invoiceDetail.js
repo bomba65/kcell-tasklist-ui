@@ -8,7 +8,6 @@ define(['./module'], function(module){
 			},
 			link: function(scope, element, attrs) {
 				scope.catalogs = {};
-
 				scope.getCatalogs = function(){
 	                $http.get('/api/catalogs').then(
 	                    function (result) {
