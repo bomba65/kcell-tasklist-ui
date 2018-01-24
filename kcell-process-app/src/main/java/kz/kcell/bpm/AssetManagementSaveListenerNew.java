@@ -35,6 +35,8 @@ public class AssetManagementSaveListenerNew implements TaskListener {
         this.baseUri = baseUri;
     }
 
+    public AssetManagementSaveListenerNew() {}
+
     @Override
     public void notify(DelegateTask delegateTask) {
         try {
