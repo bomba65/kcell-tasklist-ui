@@ -25,6 +25,9 @@ public class CheckPRFile implements JavaDelegate {
     @Value("${sftp.remote.directory.pr.error:/home/KWMS/CIP_PR_Creation/PR_Didnt_Created}")
     private String sftpRemoteDirectoryPrError;
 
+    @Value("${sftp.remote.directory.pr.number:/home/KWMS/CIP_PR_Creation/PR_Status/status.txt}")
+    private String sftpRemoteDirectoryPrNumber;
+
     @Override
     public void execute(DelegateExecution delegateExecution) throws Exception {
 
@@ -43,6 +46,36 @@ public class CheckPRFile implements JavaDelegate {
                     log.info("Remote succes file for JR " + delegateExecution.getVariable("jrNumber").toString() + " is: " + result);
                 }
             );
+/*            Boolean numberResult = template.exists(sftpRemoteDirectoryPrNumber);
+            if(numberResult){
+                template.get(sftpRemoteDirectoryPrNumber,
+                    inputStream -> {
+                        Scanner s = new Scanner(inputStream).useDelimiter("\\A");
+                        String result = s.hasNext() ? s.next() : "";
+
+                        boolean statusFound = false;
+                        String[] statuses = result.split("\n");
+                        for(String status:statuses){
+                            String jrNumber = status.substring(status.indexOf("\t")+1,status.lastIndexOf("\t"));
+                            if(delegateExecution.getVariable("jrNumber").toString().equals(jrNumber)){
+                                delegateExecution.setVariable("prGeneratedKey", status.substring(0,t.indexOf("\t")));
+                                delegateExecution.setVariable("prFileCheckResult", "succes");
+                                statusFound = true;
+                                break;
+                            }
+                        }
+
+                        if(statusFound){
+                            delegateExecution.setVariable("prFileCheckError", "Pr status not found");
+                            delegateExecution.setVariable("prFileCheckResult", "error");
+                        }
+                    }
+                );
+            } else {
+                delegateExecution.setVariable("prFileCheckError", "Pr status file not found");
+                delegateExecution.setVariable("prFileCheckResult", "error");
+            }
+*/
             delegateExecution.setVariable("prFileCheckResult", "succes");
         } else {
             String errorFilePath = sftpRemoteDirectoryPrError + "/" + name;
@@ -59,7 +92,7 @@ public class CheckPRFile implements JavaDelegate {
                 );
                 template.remove(errorFilePath);
             } else {
-                delegateExecution.setVariable("prFileCheckError", "Файлы для проверки создания Pr не найдены");
+                delegateExecution.setVariable("prFileCheckError", "Pr result files not found");
             }
 
             delegateExecution.setVariable("prFileCheckResult", "error");

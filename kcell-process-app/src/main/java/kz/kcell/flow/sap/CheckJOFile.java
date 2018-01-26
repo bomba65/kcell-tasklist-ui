@@ -63,7 +63,7 @@ public class CheckJOFile implements JavaDelegate {
                 );
                 template.remove(errorFilePath);
             } else {
-                delegateExecution.setVariable("joFileCheckError", "Файлы для провекри создания JoJr не найдены");
+                delegateExecution.setVariable("joFileCheckError", "JO result files not found");
             }
 
             delegateExecution.setVariable("joFileCheckResult", "error");
