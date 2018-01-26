@@ -37,12 +37,13 @@
                 'contractorZIPWarehouseMaterialsListName',
                 'priority',
                 'siteAddress',
-                'sloc',
                 'prFile',
-                'prFileCheckError'
+                'prFileCheckError',
+                'sloc'
             ];
 
             $scope.jobModel = {};
+            $scope.currentDate = new Date();
 
             $http.get('/camunda/api/engine/engine/default/task/' + camForm.taskId).then(
                     function(result){
@@ -99,9 +100,17 @@
                     } else {
                         $scope.jobModel[el] = camForm.variableManager.variables[el];
                     }
+                    if(el === 'jobWorks'){
+                        $scope.jobWorksValue = angular.copy(camForm.variableManager.variables[el].value);
+                    }
                 });
                 $http.get("/camunda/api/engine/engine/default/user/" + $rootScope.authentication.name+ "/profile").then(function(result){
                     $rootScope.authentication.assigneeName = (result.data.firstName ? result.data.firstName : "") + " " + (result.data.lastName ? result.data.lastName : "");
+                });
+                $scope.jobWorksValue.forEach(function(work){
+                    work.price = _.find($scope.jobModel.workPrices, function(p){
+                        return work.sapServiceNumber === p.sapServiceNumber
+                    });
                 });
             });
             camForm.on('submit', function (e) {
@@ -200,7 +209,58 @@
 
     <job-request job-model="jobModel"></job-request>
 
-    <h4>Job Order Information</h4>
+    <table class="table table-condensed" style="no-w">
+        <thead>
+        <tr>
+            <th>PR document type</th>
+            <th>Cost Type</th>
+            <th>KWMS Number</th>
+            <th>KWMS Status</th>
+            <th>KWMS Reuqest date</th>
+            <th>Vendor</th>
+            <th>Region</th>
+            <th>Service Type</th>
+            <th>PR Item text</th>
+            <th>CM Contract no</th>
+            <th>Service number</th>
+            <th>Delivery Date</th>
+            <th>WBS Element</th>
+            <th>Job Order no</th>
+            <th>Storage Location</th>
+            <th>FA number</th>
+            <th>Cost center</th>
+            <th>Controlling Area</th>
+            <th>Activity Service Number</th>
+            <th>Price</th>
+            <th>User</th>
+        </tr>
+        </thead>
+        <tbody>
+        <tr ng-repeat="w in jobWorksValue track by $index">
+            <td>ZK73-01</td>
+            <td>{{w.definition.costType=='CAPEX'?'Y':(w.definition.costType=='OPEX'?'K':'')}}</td>
+            <td nowrap>{{jobModel.jrNumber.value}}</td>
+            <td>approved</td>
+            <td>{{jobModel.requestedDate.value | date:'dd.MM.yyyy'}}</td>
+            <td>{{w.definition.vendor}}</td>
+            <td>{{w.definition.region.id}}</td>
+            <td>Y</td>
+            <td>installation service</td>
+            <td>{{contractorsService[jobModel.contractor.value].contract.service}}</td>
+            <td>{{w.definition.sapServiceNumber}}</td>
+            <td>31.12.{{currentDate | date:'yyyy'}}</td>
+            <td nowrap>{{w.definition.spp}}</tdnowrap>
+            <td nowrap>{{jobModel.jrNumber.value}}</td>
+            <td>{{jobModel.sloc.value}}</td>
+            <td>{{w.fixedAssetNumber!=null?w.fixedAssetNumber:'DUMMY'}}</td>
+            <td>{{w.costCenter}}</td>
+            <td>{{w.controllingArea}}</td>
+            <td>{{w.activityServiceNumber!=null?w.activityServiceNumber:'DUMMY'}}</td>
+            <td>{{w.price.unitWorkPricePlusTx}}</td>
+            <td>{{reasonsSubcontractorResponsible[jobModel.reason.value].responsible}}</td>
+        </tr>
+        </tbody>
+    </table>
 
     <div class="form-group">
         <label class="col-sm-4 control-label">PR file error:</label>
@@ -220,6 +280,20 @@
             <label class="has-error" ng-show="kcell_form.prFile.$error.validFile">File is required</label>
         </div>
     </div>
+
+    <div style="border: black 1px solid;">
+        <p>
+            <b>Please, download file from  “PR file” and make necessary corrections..</b>
+        </p>
+        <p>
+            <b>Upload corrected file to “PR file”.</b>
+        </p>
+        <p>
+            <b>Then please press "Complete" button.</b>
+        </p>
+    </div>
+
+    <div style="margin-bottom: 20px;"></div>
 
     <div class="form-group">
         <label class="col-sm-4 control-label">Comments:</label>

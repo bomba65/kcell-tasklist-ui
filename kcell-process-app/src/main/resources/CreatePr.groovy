@@ -79,9 +79,10 @@ User		        Из нового формата текстового файла	�
 
 def template = '''\
 jobWorksObj.each { w ->
-    yieldUnescaped 'ZK73-01\t' + w.costType + '\t' + jrNumber + '\tapproved\t' + requestDate + '\t' + w.definition.vendor + '\t' + w.definition.region.id +
-          '\tY\tinstallation service\t' + w.contractorNo + '\t' + w.definition.sapServiceNumber + '\t' + yearEndDate + '\t' +
-          w.definition.spp + '\t' + jrNumber + '\t' + sloc + '\t' + (w.fixedAssetNumber!=null?w.fixedAssetNumber:'DUMMY') + '\t25510\t3020\t7016000\t' +
+    yieldUnescaped 'ZK73-01\t' + w.costType + '\t' + jrNumber + '\tapproved\t' + requestDate + '\t' + w.definition.vendor + '\t' + 
+          w.definition.region.id + '\tY\tinstallation service\t' + w.contractorNo + '\t' + w.definition.sapServiceNumber + '\t' +
+          yearEndDate + '\t' + w.definition.spp + '\t' + jrNumber + '\t' + sloc + '\t' + (w.fixedAssetNumber!=null?w.fixedAssetNumber:'DUMMY') + '\t' + 
+          w.costCenter + '\t' + w.controllingArea + '\t' + (w.activityServiceNumber!=null?w.activityServiceNumber:'DUMMY') + '\t' + 
           w.price.unitWorkPricePlusTx + '\t' + subcontructerName + ''
     newLine()
 }
