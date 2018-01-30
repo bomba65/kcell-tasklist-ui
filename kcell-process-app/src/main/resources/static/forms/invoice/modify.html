@@ -87,7 +87,7 @@
                 });
 
                 $scope.$watch('selectedWorks', function (selectedWorks) {
-                    $scope.kcell_form.$setValidity('selectedCount', Object.keys(selectedWorks).length > 0);
+                    $scope.kcell_form.$setValidity('selectedCount', selectedWorks.length > 0);
                 }, true);
             });
             camForm.on('submit', function () {
@@ -146,7 +146,7 @@
                 $scope.regionLabel = $scope.regions.find(function (r) {
                     return r.id = $scope.region;
                 }).label;
-                $scope.selectedWorks = {};
+                $scope.selectedWorks = [];
                 refreshJobRequests();
             }
 
@@ -154,12 +154,12 @@
                 $scope.workTypeLabel = $scope.reasons.find(function (r) {
                     return r.id = $scope.workType;
                 }).name;
-                $scope.selectedWorks = {};
+                $scope.selectedWorks = [];
                 refreshJobRequests();
             }
 
             function periodDateSelected(){
-                $scope.selectedWorks = {};
+                $scope.selectedWorks = [];
                 refreshJobRequests();
             }
 
@@ -173,7 +173,7 @@
                                 [{"name": "siteRegion", "operator": "eq", "value": $scope.region},
                                     {"name": "contractor", "operator": "eq", "value": 4},
                                     {"name": "reason", "operator": "eq", "value": $scope.workType},
-                                    {"name": "acceptPerformedJob", "operator": "eq", "value": 'accepted'}
+                                    {"name": "acceptPerformedJob", "operator": "eq", "value": 'scan attached'}
                                 ]
                     };
 
@@ -375,6 +375,11 @@
                 });
                 var size = list.length;
                 var count = 0;
+                var selectedWorksMap = {};
+                _.forEach($scope.selectedWorks, function(work) {
+                    selectedWorksMap[work.key] = work.value;
+                });
+
                 list.forEach(function (el) {
                     $http.get("/camunda/api/engine/engine/default/process-instance/"+el.processInstanceId+"/variables/jobWorks?deserializeValue=false").then(function (result) {
                         var processDetail = _.find($scope.jobRequests, function(j) { return j.processInstanceId == el.processInstanceId });
@@ -382,14 +387,19 @@
                         list.forEach(function (work) {
                             var processDetailCopy = angular.copy(processDetail);
                             processDetailCopy.quantity = work.quantity;
-                            if(!$scope.selectedWorks[work.sapServiceNumber]){
-                                $scope.selectedWorks[work.sapServiceNumber] = [processDetailCopy];
+                            if(!selectedWorksMap[work.sapServiceNumber]){
+                                selectedWorksMap[work.sapServiceNumber] = [processDetailCopy];
                             } else {
-                                $scope.selectedWorks[work.sapServiceNumber].push(processDetailCopy);
+                                selectedWorksMap[work.sapServiceNumber].push(processDetailCopy);
                             }
                         });
                         count++;
                         if(size === count){
+                            var selectedWorks = [];
+                            _.forEach(selectedWorksMap, function(value, key) {
+                                selectedWorks.push({ key: key, value: value});
+                            });
+                            $scope.selectedWorks = selectedWorks;
                             refreshJobRequests();
                         }
                     });
@@ -397,49 +407,43 @@
             }
 
             function notInSelected(processInstanceId){
-                var result = true;
-                for(var propt in $scope.selectedWorks){
-                    for(var i=0; i<$scope.selectedWorks[propt].length;i++){
-                        if($scope.selectedWorks[propt][i].processInstanceId === processInstanceId){
-                            result = false;
-                            break;
-                            break;
-                        }
-                    }
-                }
-                return result;
+                return !_.some($scope.selectedWorks, function(work){
+                    return _.some(work.value, function(jr){
+                        return jr.processInstanceId === processInstanceId;
+                    });
+                });
             }
 
             function removeJobRequest(processInstanceId){
-                for(var propt in $scope.selectedWorks){
-                    var list = [];
-                    $scope.selectedWorks[propt].forEach(function (el) {
-                        if (el.processInstanceId !== processInstanceId){
-                            list.push(el);
+                var works = [];
+                angular.forEach($scope.selectedWorks,function (work) {
+                    var jrs = [];
+                    work.value.forEach(function (jr) {
+                        if(jr.processInstanceId !== processInstanceId){
+                            jrs.push(jr);
                         }
                     });
-                    if(list.length > 0){
-                        $scope.selectedWorks[propt] = list;
-                    } else {
-                        delete $scope.selectedWorks[propt];
+                    if(jrs.length>0){
+                        works.push({key:work.key, value:jrs});
                     }
-                }
+                });
+                $scope.selectedWorks = works;
                 refreshJobRequests();
             }
 
             function countSelected() {
                 var obj = {};
-                for(var propt in $scope.selectedWorks){
-                    $scope.selectedWorks[propt].forEach(function (el) {
-                        obj[el.processInstanceId] = {};
+                angular.forEach($scope.selectedWorks, function (work) {
+                    work.value.forEach(function (jr) {
+                        obj[jr.processInstanceId] = {};
                     });
-                }
+                });
                 return Object.keys(obj).length;
             }
 
             var selected = false;
             function selectAll(){
-                $scope.jobRequests.forEach(function(x){
+                angular.forEach($scope.jobRequests, function(x){
                     x.selected = !selected;
                 });
                 if(selected === true){
@@ -447,6 +451,10 @@
                 } else {
                     selected = true;
                 }
+            }
+
+            $scope.orderWorks = function(work){
+                return Number(work.key);
             }
         }]);
     </script>
@@ -568,12 +576,12 @@
                             <th>Comment</th>
                         </tr>
                         </thead>
-                        <tbody ng-repeat="(key, value) in selectedWorks">
-                        <tr ng-repeat="w in value">
-                            <td ng-if="$first" rowspan="{{value.length}}">{{worksTitle[key]}}</td>
+                        <tbody ng-repeat="work in selectedWorks | orderBy: orderWorks">
+                        <tr ng-repeat="w in work.value">
+                            <td ng-if="$first" rowspan="{{work.value.length}}">{{worksTitle[work.key]}}</td>
                             <td>{{w.quantity}}</td>
                             <td>{{w.site_name}}</td>
-                            <td><a ng-click="toggleProcessView(w.processInstanceId, 'table', key)">{{w.businessKey}}</a> <a class="glyphicon glyphicon-trash" aria-hidden="true" ng-click="removeJobRequest(w.processInstanceId)"></a></td>
+                            <td><a ng-click="toggleProcessView(w.processInstanceId, 'table', work.key)">{{w.businessKey}}</a> <a class="glyphicon glyphicon-trash" aria-hidden="true" ng-click="removeJobRequest(w.processInstanceId)"></a></td>
                             <td>{{w.fillAppliedChanges | date:'dd.MM.yyyy'}}</td>
                             <td>{{w.validateTr | date:'dd.MM.yyyy'}}</td>
                             <td>{{w.acceptWorkStartTime | date:'dd.MM.yyyy'}}</td>
@@ -602,7 +610,7 @@
                                 <label class="error" ng-if="kcell_form['jrComment' + $index].$error.required && ( kcell_form['jrComment' + $index].$touched || view.submitted) && jrCommentEditable">Required field</label>
                             </td>
                         </tr>
-                        <tr ng-if="pkey === key && jobModel && selectedView === 'table'">
+                        <tr ng-if="pkey === work.key && jobModel && selectedView === 'table'">
                             <td colspan="11">
                                 <job-request job-model="jobModel"></job-request>
                             </td>
