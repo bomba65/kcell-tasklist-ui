@@ -35,6 +35,9 @@ public class SetInvoicingStatus implements JavaDelegate {
 
                         if(!revisions.contains(revisionId)){
                             runtimeService.setVariable(revisionId, "acceptPerformedJob", "invoiced");
+                            runtimeService.setVariable(revisionId, "monthActNumber", delegateExecution.getVariable("monthActNumber"));
+                            runtimeService.setVariable(revisionId, "invoiceNumber", delegateExecution.getVariable("invoiceNumber"));
+                            runtimeService.setVariable(revisionId, "invoiceDate", delegateExecution.getVariable("invoiceDate"));
                             revisions.add(revisionId);
                         }
                     });
