@@ -5,6 +5,7 @@ import kz.kcell.flow.mail.CamundaMailerDelegate;
 import kz.kcell.flow.mail.TaskNotificationListener;
 import org.camunda.bpm.application.ProcessApplication;
 import org.camunda.bpm.application.impl.event.ProcessApplicationEventListenerPlugin;
+import org.camunda.bpm.engine.authorization.Permissions;
 import org.camunda.bpm.engine.delegate.TaskListener;
 import org.camunda.bpm.engine.impl.cfg.ProcessEnginePlugin;
 import org.camunda.bpm.engine.rest.mapper.JacksonConfigurator;
@@ -65,7 +66,7 @@ public class CamundaApplication extends SpringBootProcessApplication {
         return new SpringBootProcessEnginePlugin() {
             @Override
             public void preInit(SpringProcessEngineConfiguration processEngineConfiguration) {
-                processEngineConfiguration.setDefaultUserPermissionNameForTask("TASK_WORK");
+                processEngineConfiguration.setDefaultUserPermissionForTask(Permissions.TASK_WORK);
             }
         };
     }
