@@ -1,16 +1,16 @@
 package kz.kcell.flow;
 
 import kz.kcell.camunda.authentication.plugin.KcellIdentityProviderPlugin;
-import kz.kcell.flow.files.FileMoveListener;
 import kz.kcell.flow.mail.CamundaMailerDelegate;
 import kz.kcell.flow.mail.TaskNotificationListener;
 import org.camunda.bpm.application.ProcessApplication;
 import org.camunda.bpm.application.impl.event.ProcessApplicationEventListenerPlugin;
-import org.camunda.bpm.engine.delegate.ExecutionListener;
 import org.camunda.bpm.engine.delegate.TaskListener;
 import org.camunda.bpm.engine.impl.cfg.ProcessEnginePlugin;
 import org.camunda.bpm.engine.rest.mapper.JacksonConfigurator;
+import org.camunda.bpm.engine.spring.SpringProcessEngineConfiguration;
 import org.camunda.bpm.spring.boot.starter.SpringBootProcessApplication;
+import org.camunda.bpm.spring.boot.starter.util.SpringBootProcessEnginePlugin;
 import org.camunda.bpm.spring.boot.starter.webapp.CamundaBpmWebappAutoConfiguration;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.SpringApplication;
@@ -58,6 +58,16 @@ public class CamundaApplication extends SpringBootProcessApplication {
     @Bean
     public ProcessEnginePlugin processApplicationEventListenerPlugin() {
         return new ProcessApplicationEventListenerPlugin();
+    }
+
+    @Bean
+    public ProcessEnginePlugin defaultTaskPermissionNameSettingsPlugin() {
+        return new SpringBootProcessEnginePlugin() {
+            @Override
+            public void preInit(SpringProcessEngineConfiguration processEngineConfiguration) {
+                processEngineConfiguration.setDefaultUserPermissionNameForTask("TASK_WORK");
+            }
+        };
     }
 
     @Bean
