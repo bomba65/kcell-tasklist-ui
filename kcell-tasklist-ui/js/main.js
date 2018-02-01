@@ -23,6 +23,7 @@ require.config({
          'bpmn-viewer': './camunda/bpmn-viewer',
          'bpmn-navigated-viewer': './camunda/bpmn-navigated-viewer',
          'big-js': './node_modules/big.js/big.min',
+         'excellentexport': './node_modules/excellentexport/dist/excellentexport',
          'angular-ui-router': './node_modules/angular-ui-router/release/angular-ui-router.min',
          'ng-file-upload': './node_modules/ng-file-upload/dist/ng-file-upload-all.min'
      },

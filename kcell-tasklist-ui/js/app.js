@@ -11,6 +11,7 @@ define('app',[
 	'./services/index',
 	'camundaSDK',
 	'big-js',
+	'excellentexport',
 	'angular-ui-router',
 	'ng-file-upload'
 ], function(ng){

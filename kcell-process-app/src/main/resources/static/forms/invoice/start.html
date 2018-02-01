@@ -56,7 +56,19 @@
                     store: true
                 },
                 {
-                    name: 'selectedWorks',
+                    name: 'selectedRevisions',
+                    type: 'Json',
+                    submit: true,
+                    store: true
+                },
+                {
+                    name: 'regularDelay',
+                    type: 'Json',
+                    submit: true,
+                    store: true
+                },
+                {
+                    name: 'emergencyDelay',
                     type: 'Json',
                     submit: true,
                     store: true
@@ -116,15 +128,23 @@
                 {id: 'nov', label: 'November'},
                 {id: 'dec', label: 'December'}
             ];
+
+            if(window.require){
+                $scope.ExcellentExport = require('excellentexport');
+            }
+
             var currentDate = new Date;
             $scope.years = [currentDate.getFullYear(), currentDate.getFullYear()-1, currentDate.getFullYear()-2];
             $scope.jobModel = {};
             $scope.selectedWorks = [];
+            $scope.selectedRevisions = {};
+            $scope.emergencyDelay = {};
+            $scope.regularDelay = {};
             $scope.jobRequests = [];
             var catalogs = {};
 
-            $scope.$watch('selectedWorks', function (selectedWorks) {
-                $scope.kcell_form.$setValidity('selectedCount', selectedWorks.length > 0);
+            $scope.$watch('selectedRevisions', function (selectedRevisions) {
+                $scope.kcell_form.$setValidity('selectedCount', Object.keys(selectedRevisions).length > 0);
             }, true);
 
             camForm.on('form-loaded', function () {
@@ -224,7 +244,9 @@
                 });
 
                 camForm.variableManager.variableValue('jobRequests', JSON.parse(angular.toJson(requests)));
-                camForm.variableManager.variableValue('selectedWorks', $scope.selectedWorks);
+                camForm.variableManager.variableValue('selectedRevisions', $scope.selectedRevisions);
+                camForm.variableManager.variableValue('regularDelay', $scope.regularDelay);
+                camForm.variableManager.variableValue('emergencyDelay', $scope.emergencyDelay);
             });
 
             $scope.open = open;
@@ -247,7 +269,7 @@
                 $scope.regionLabel = $scope.regions.find(function (r) {
                     return r.id == $scope.region;
                 }).label;
-                $scope.selectedWorks = [];
+                $scope.selectedRevisions = {};
                 refreshJobRequests();
             }
 
@@ -255,17 +277,18 @@
                 $scope.workTypeLabel = $scope.reasons.find(function (r) {
                     return r.id == $scope.workType;
                 }).name;
-                $scope.selectedWorks = [];
+                $scope.selectedRevisions = {};
                 refreshJobRequests();
             }
 
             function periodDateSelected(){
-                $scope.selectedWorks = [];
+                $scope.selectedRevisions = {};
                 refreshJobRequests();
             }
 
             function refreshJobRequests() {
                 $scope.jobRequests = [];
+                reDrawTable();
 
                 if ($scope.region && $scope.workType && $scope.periodDate){
                     var processParams = {
@@ -406,6 +429,7 @@
                 if($scope.processInstanceId === processInstanceId && $scope.selectedView === selectedView){
                     $scope.processInstanceId = undefined;
                     $scope.selectedView = undefined;
+                    $scope.jobModel = {};
                 } else {
                     $scope.jobModel = {};
                     $scope.processInstanceId = processInstanceId;
@@ -476,71 +500,50 @@
                 });
                 var size = list.length;
                 var count = 0;
-                var selectedWorksMap = {};
-                _.forEach($scope.selectedWorks, function(work) {
-                    selectedWorksMap[work.key] = work.value;
-                });
                 list.forEach(function (el) {
                     $http.get("/camunda/api/engine/engine/default/process-instance/"+el.processInstanceId+"/variables/jobWorks?deserializeValue=false").then(function (result) {
-                        var processDetail = _.find($scope.jobRequests, function(j) { return j.processInstanceId == el.processInstanceId });
-                        var list = JSON.parse(result.data.value);
-                        list.forEach(function (work) {
-                            var processDetailCopy = angular.copy(processDetail);
-                            processDetailCopy.quantity = work.quantity;
-                            if(!selectedWorksMap[work.sapServiceNumber]){
-                                selectedWorksMap[work.sapServiceNumber] = [processDetailCopy];
-                            } else {
-                                selectedWorksMap[work.sapServiceNumber].push(processDetailCopy);
-                            }
-                        });
+                        $scope.selectedRevisions[el.processInstanceId] = el;
+                        $scope.selectedRevisions[el.processInstanceId].works = JSON.parse(result.data.value);
                         count++;
                         if(size === count){
-                            var selectedWorks = [];
-                            _.forEach(selectedWorksMap, function(value, key) {
-                                selectedWorks.push({ key: key, value: value});
-                            });
-                            $scope.selectedWorks = selectedWorks;
                             refreshJobRequests();
                         }
-                    });
-                });
-
-
-            }
-
-            function notInSelected(processInstanceId){
-                return !_.some($scope.selectedWorks, function(work){
-                    return _.some(work.value, function(jr){
-                        return jr.processInstanceId === processInstanceId;
                     });
                 });
             }
 
             function removeJobRequest(processInstanceId){
-                var works = [];
-                angular.forEach($scope.selectedWorks, function (work) {
-                    var jrs = [];
-                    work.value.forEach(function (jr) {
-                        if(jr.processInstanceId !== processInstanceId){
-                            jrs.push(jr);
-                        }
-                    });
-                    if(jrs.length>0){
-                        works.push({key:work.key, value:jrs});
-                    }
-                });
-                $scope.selectedWorks = works;
+                delete $scope.selectedRevisions[processInstanceId];
                 refreshJobRequests();
             }
 
-            function countSelected() {
-                var obj = {};
-                angular.forEach($scope.selectedWorks, function (work) {
-                    work.value.forEach(function (jr) {
-                        obj[jr.processInstanceId] = {};
+            function reDrawTable(){
+                $scope.selectedWorks = [];
+                var selectedWorksMap = {};
+                for(var propt in $scope.selectedRevisions){
+                    _.forEach($scope.selectedRevisions[propt].works, function (work) {
+                        var processDetailCopy = angular.copy($scope.selectedRevisions[propt]);
+                        processDetailCopy.quantity = work.quantity;
+                        delete processDetailCopy.works;
+
+                        if(!selectedWorksMap[work.sapServiceNumber]){
+                            selectedWorksMap[work.sapServiceNumber] = [processDetailCopy];
+                        } else {
+                            selectedWorksMap[work.sapServiceNumber].push(processDetailCopy);
+                        }
                     });
+                }
+                _.forEach(selectedWorksMap, function(value, key) {
+                    $scope.selectedWorks.push({ key: key, value: value});
                 });
-                return Object.keys(obj).length;
+            }
+
+            function notInSelected(processInstanceId){
+                return !$scope.selectedRevisions[processInstanceId];
+            }
+
+            function countSelected() {
+                return Object.keys($scope.selectedRevisions).length;
             }
 
             var selected = false;
@@ -557,6 +560,10 @@
 
             $scope.orderWorks = function(work){
                 return Number(work.key);
+            }
+
+            $scope.exportExel = function(){
+                console.log($scope.excellent);
             }
         }]);
     </script>
@@ -685,6 +692,8 @@
                     <h4>Monthly Act #{{monthActNumber}} of accepted {{workTypeLabel}} according to "Contract Agreement for Revision Works Performing" between АО "Кселл"/Kcell JSC and "Line System Engineering" LLP/ТОО "Line System Engineering" for {{monthOfFormalPeriod}} {{yearOfFormalPeriod}}. </h4>
                     <div style="margin-bottom: 20px;"></div>
 
+                    <a style="float: right" ng-if="selectedWorks.length > 0" download="monthlyAct.xlsx" id="xlsxClick" href="#" onclick="return angular.element(this).scope().ExcellentExport.convert({anchor: 'xlsxClick',format: 'xlsx',filename: 'monthlyAct.xlsx'}, [{name: 'Sheet Name Here 1',from: {table: 'works'}}])">Export to Excel</a>
+
                     <table class="table table-condensed" class="form-group" name="works" id="works">
                         <thead>
                         <tr>
@@ -722,13 +731,13 @@
                             <td>{{w.materialsRequired}}</td>
                             <td>
                                 <div class="input-group">
-                                    <input type="number" ng-model="w.emergencyDelay" min="0" name="emergencyDelay{{$index}}-{{$parent.$index}}" style="width: 50px;" required>
+                                    <input type="number" ng-model="emergencyDelay[w.processInstanceId+':'+work.key]" min="0" name="emergencyDelay{{$index}}-{{$parent.$index}}" style="width: 50px;" required>
                                 </div>
                                 <label class="error" ng-if="kcell_form['emergencyDelay' + $index + '-' + $parent.$index].$error.required && ( kcell_form['emergencyDelay' + $index + '-' + $parent.$index].$touched || view.submitted)">Required field</label>
                             </td>
                             <td>
                                 <div class="input-group">
-                                    <input type="number" ng-model="w.regularDelay" min="0" name="regularDelay{{$index}}-{{$parent.$index}}" style="width: 50px;" required>
+                                    <input type="number" ng-model="regularDelay[w.processInstanceId+':'+work.key]" min="0" name="regularDelay{{$index}}-{{$parent.$index}}" style="width: 50px;" required>
                                 </div>
                                 <label class="error" ng-if="kcell_form['regularDelay' + $index + '-' + $parent.$index].$error.required && ( kcell_form['regularDelay' + $index + '-' + $parent.$index].$touched || view.submitted)">Required field</label>
                             </td>

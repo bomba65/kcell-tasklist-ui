@@ -10,7 +10,10 @@
                 'periodDate',
                 'jobRequests',
                 'resolutions',
-                'selectedWorks',
+                'selectedRevisions',
+                'regularDelay',
+                'emergencyDelay',
+                'workComments',
                 'monthActNumber',
                 'formalPeriod'
             ];
@@ -86,9 +89,11 @@
                     }
                 });
 
-                $scope.$watch('selectedWorks', function (selectedWorks) {
-                    $scope.kcell_form.$setValidity('selectedCount', selectedWorks.length > 0);
+                $scope.$watch('selectedRevisions', function (selectedRevisions) {
+                    $scope.kcell_form.$setValidity('selectedCount', Object.keys(selectedRevisions).length > 0);
                 }, true);
+
+                reDrawTable();
             });
             camForm.on('submit', function () {
                 camForm.variableManager.variableValue('modifyMaTaskResult', $scope.modifyMaTaskResult);
@@ -110,7 +115,9 @@
                 });
 
                 camForm.variableManager.variableValue('jobRequests', JSON.parse(angular.toJson(requests)));
-                camForm.variableManager.variableValue('selectedWorks', $scope.selectedWorks);
+                camForm.variableManager.variableValue('selectedRevisions', $scope.selectedRevisions);
+                camForm.variableManager.variableValue('regularDelay', $scope.regularDelay);
+                camForm.variableManager.variableValue('emergencyDelay', $scope.emergencyDelay);
                 camForm.variableManager.variableValue('monthActNumber', $scope.monthActNumber);
 
                 var visibility = 'all';
@@ -146,7 +153,7 @@
                 $scope.regionLabel = $scope.regions.find(function (r) {
                     return r.id = $scope.region;
                 }).label;
-                $scope.selectedWorks = [];
+                $scope.selectedRevisions = {};
                 refreshJobRequests();
             }
 
@@ -154,17 +161,18 @@
                 $scope.workTypeLabel = $scope.reasons.find(function (r) {
                     return r.id = $scope.workType;
                 }).name;
-                $scope.selectedWorks = [];
+                $scope.selectedRevisions = {};
                 refreshJobRequests();
             }
 
             function periodDateSelected(){
-                $scope.selectedWorks = [];
+                $scope.selectedRevisions = {};
                 refreshJobRequests();
             }
 
             function refreshJobRequests() {
                 $scope.jobRequests = [];
+                reDrawTable();
 
                 if ($scope.region && $scope.workType && $scope.periodDate){
                     var processParams = {
@@ -375,70 +383,55 @@
                 });
                 var size = list.length;
                 var count = 0;
-                var selectedWorksMap = {};
-                _.forEach($scope.selectedWorks, function(work) {
-                    selectedWorksMap[work.key] = work.value;
-                });
 
                 list.forEach(function (el) {
                     $http.get("/camunda/api/engine/engine/default/process-instance/"+el.processInstanceId+"/variables/jobWorks?deserializeValue=false").then(function (result) {
-                        var processDetail = _.find($scope.jobRequests, function(j) { return j.processInstanceId == el.processInstanceId });
-                        var list = JSON.parse(result.data.value);
-                        list.forEach(function (work) {
-                            var processDetailCopy = angular.copy(processDetail);
-                            processDetailCopy.quantity = work.quantity;
-                            if(!selectedWorksMap[work.sapServiceNumber]){
-                                selectedWorksMap[work.sapServiceNumber] = [processDetailCopy];
-                            } else {
-                                selectedWorksMap[work.sapServiceNumber].push(processDetailCopy);
-                            }
-                        });
+                        $scope.selectedRevisions[el.processInstanceId] = el;
+                        $scope.selectedRevisions[el.processInstanceId].works = JSON.parse(result.data.value);
                         count++;
                         if(size === count){
-                            var selectedWorks = [];
-                            _.forEach(selectedWorksMap, function(value, key) {
-                                selectedWorks.push({ key: key, value: value});
-                            });
-                            $scope.selectedWorks = selectedWorks;
                             refreshJobRequests();
                         }
                     });
                 });
             }
 
-            function notInSelected(processInstanceId){
-                return !_.some($scope.selectedWorks, function(work){
-                    return _.some(work.value, function(jr){
-                        return jr.processInstanceId === processInstanceId;
-                    });
-                });
-            }
-
             function removeJobRequest(processInstanceId){
-                var works = [];
-                angular.forEach($scope.selectedWorks,function (work) {
-                    var jrs = [];
-                    work.value.forEach(function (jr) {
-                        if(jr.processInstanceId !== processInstanceId){
-                            jrs.push(jr);
-                        }
-                    });
-                    if(jrs.length>0){
-                        works.push({key:work.key, value:jrs});
-                    }
-                });
-                $scope.selectedWorks = works;
+                delete $scope.selectedRevisions[processInstanceId];
                 refreshJobRequests();
             }
 
-            function countSelected() {
-                var obj = {};
-                angular.forEach($scope.selectedWorks, function (work) {
-                    work.value.forEach(function (jr) {
-                        obj[jr.processInstanceId] = {};
+            function reDrawTable(){
+                $scope.selectedWorks = [];
+                var selectedWorksMap = {};
+                for(var propt in $scope.selectedRevisions){
+                    _.forEach($scope.selectedRevisions[propt].works, function (work) {
+                        var processDetailCopy = angular.copy($scope.selectedRevisions[propt]);
+                        processDetailCopy.quantity = work.quantity;
+                        delete processDetailCopy.works;
+
+                        if(!selectedWorksMap[work.sapServiceNumber]){
+                            selectedWorksMap[work.sapServiceNumber] = [processDetailCopy];
+                        } else {
+                            selectedWorksMap[work.sapServiceNumber].push(processDetailCopy);
+                        }
                     });
+                }
+                _.forEach(selectedWorksMap, function(value, key) {
+                    $scope.selectedWorks.push({ key: key, value: value});
                 });
-                return Object.keys(obj).length;
+            }
+
+            function notInSelected(processInstanceId){
+                return !$scope.selectedRevisions[processInstanceId];
+            }
+
+            function countSelected() {
+                if($scope.selectedRevisions){
+                    return Object.keys($scope.selectedRevisions).length;
+                } else {
+                    return 0;
+                }
             }
 
             var selected = false;
@@ -590,22 +583,22 @@
                             <td>{{w.materialsRequired}}</td>
                             <td>
                                 <div class="input-group">
-                                    <input type="number" ng-model="w.emergencyDelay" min="0" name="emergencyDelay{{$index}}" style="width: 50px;" required>
+                                    <input type="number" ng-model="emergencyDelay[w.processInstanceId+':'+work.key]" min="0" name="emergencyDelay{{$index}}-{{$parent.$index}}" style="width: 50px;" required>
                                 </div>
-                                <label class="error" ng-if="kcell_form['emergencyDelay' + $index].$error.required && ( kcell_form['emergencyDelay' + $index].$touched || view.submitted)">Required field</label>
+                                <label class="error" ng-if="kcell_form['emergencyDelay' + $index + '-' + $parent.$index].$error.required && ( kcell_form['emergencyDelay' + $index + '-' + $parent.$index].$touched || view.submitted)">Required field</label>
                             </td>
                             <td>
                                 <div class="input-group">
-                                    <input type="number" ng-model="w.regularDelay" min="0" name="regularDelay{{$index}}" style="width: 50px;" required>
+                                    <input type="number" ng-model="regularDelay[w.processInstanceId+':'+work.key]" min="0" name="regularDelay{{$index}}-{{$parent.$index}}" style="width: 50px;" required>
                                 </div>
-                                <label class="error" ng-if="kcell_form['regularDelay' + $index].$error.required && ( kcell_form['regularDelay' + $index].$touched || view.submitted)">Required field</label>
+                                <label class="error" ng-if="kcell_form['regularDelay' + $index + '-' + $parent.$index].$error.required && ( kcell_form['regularDelay' + $index + '-' + $parent.$index].$touched || view.submitted)">Required field</label>
                             </td>
                             <td>
                                 <div ng-show="!jrCommentEditable">
-                                    <a class="glyphicon" ng-class="{'glyphicon-comment': w.jrComment, 'glyphicon-plus': !w.jrComment }" placement="left" tooltip="{{w.jrComment}}" aria-hidden="true" ng-click="jrCommentEditable = !jrCommentEditable"></a>
+                                    <a class="glyphicon" ng-class="{'glyphicon-comment': workComments[w.processInstanceId + ':' + work.key], 'glyphicon-plus': !workComments[w.processInstanceId + ':' + work.key] }" placement="left" tooltip="{{workComments[w.processInstanceId + ':' + work.key]}}" aria-hidden="true" ng-click="jrCommentEditable = !jrCommentEditable"></a>
                                 </div>
                                 <div ng-show="jrCommentEditable" class="input-group">
-                                    <input type="text" ng-model="w.jrComment" name="jrComment{{$index}}" style="width: 50px;">
+                                    <input type="text" ng-model="workComments[w.processInstanceId + ':' + work.key]" name="jrComment{{$index}}" style="width: 50px;">
                                 </div>
                                 <label class="error" ng-if="kcell_form['jrComment' + $index].$error.required && ( kcell_form['jrComment' + $index].$touched || view.submitted) && jrCommentEditable">Required field</label>
                             </td>
