@@ -12,7 +12,13 @@ define(['./module'], function(module){
                 scope.processInstanceId = undefined;
                 scope.pkey = undefined;
                 scope.selectedWorks = [];
-                var selectedWorksMap = {};
+                var selectedWorksMap = {};      
+
+                var Big;
+                if(window.require){
+                    Big = require('big-js')
+                }
+                scope.totalPrice = Big('0.0');
 
                 function transformToArray(){
                     for(var propt in scope.invoice.selectedRevisions.value){
@@ -20,6 +26,12 @@ define(['./module'], function(module){
                             var processDetailCopy = angular.copy(scope.invoice.selectedRevisions.value[propt]);
                             processDetailCopy.quantity = work.quantity;
                             delete processDetailCopy.works;
+
+                            var prices = _.find(scope.invoice.selectedRevisions.value[propt].workPrices, function(price){
+                                return price.sapServiceNumber === work.sapServiceNumber;
+                            });
+                            processDetailCopy.workPrices = prices;
+                            scope.totalPrice = scope.totalPrice.plus(Number(prices.total));
 
                             if(!selectedWorksMap[work.sapServiceNumber]){
                                 selectedWorksMap[work.sapServiceNumber] = [processDetailCopy];
@@ -31,7 +43,8 @@ define(['./module'], function(module){
                     _.forEach(selectedWorksMap, function(value, key) {
                         scope.selectedWorks.push({ key: key, value: value});
                     });
-                }
+                    scope.total = scope.totalPrice.toFixed(2);
+                }                
 
 				scope.getCatalogs = function(){
 	                $http.get('/api/catalogs').then(

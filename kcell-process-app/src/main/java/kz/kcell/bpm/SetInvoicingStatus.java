@@ -10,7 +10,9 @@ import org.camunda.spin.json.SpinJsonNode;
 import org.camunda.spin.plugin.variable.value.JsonValue;
 
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.logging.Logger;
 import java.util.stream.Stream;
 
@@ -21,27 +23,18 @@ public class SetInvoicingStatus implements JavaDelegate {
 
         RuntimeService runtimeService = delegateExecution.getProcessEngineServices().getRuntimeService();
 
-        List<String> revisions = new ArrayList<>();
-
         String pushInvoice = (String)delegateExecution.getVariable("pushInvoice");
 
-        if(pushInvoice == null || "enable".equals(pushInvoice)){
-            SpinJsonNode selectedWorks = delegateExecution.<JsonValue>getVariableTyped("selectedWorks").getValue();
-            for(String field: selectedWorks.fieldNames()){
-                if(selectedWorks.prop(field).isArray()){
-                    SpinList<SpinJsonNode> requests = selectedWorks.prop(field).elements();
-                    requests.forEach(request -> {
-                        String revisionId = request.prop("processInstanceId").stringValue();
+        Map<String, Object> variables = new HashMap<>();
+        variables.put("acceptPerformedJob", "invoiced");
+        variables.put("monthActNumber", delegateExecution.getVariable("monthActNumber"));
+        variables.put("invoiceNumber", delegateExecution.getVariable("invoiceNumber"));
+        variables.put("invoiceDate", delegateExecution.getVariable("invoiceDate"));
 
-                        if(!revisions.contains(revisionId)){
-                            runtimeService.setVariable(revisionId, "acceptPerformedJob", "invoiced");
-                            runtimeService.setVariable(revisionId, "monthActNumber", delegateExecution.getVariable("monthActNumber"));
-                            runtimeService.setVariable(revisionId, "invoiceNumber", delegateExecution.getVariable("invoiceNumber"));
-                            runtimeService.setVariable(revisionId, "invoiceDate", delegateExecution.getVariable("invoiceDate"));
-                            revisions.add(revisionId);
-                        }
-                    });
-                }
+        if(pushInvoice == null || "enable".equals(pushInvoice)){
+            SpinJsonNode selectedRevisions = delegateExecution.<JsonValue>getVariableTyped("selectedRevisions").getValue();
+            for(String revisionId: selectedRevisions.fieldNames()){
+                runtimeService.setVariables(revisionId, variables);
             }
         }
     }
