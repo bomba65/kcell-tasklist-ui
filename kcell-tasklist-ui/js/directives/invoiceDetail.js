@@ -11,6 +11,7 @@ define(['./module'], function(module){
 
                 scope.processInstanceId = undefined;
                 scope.pkey = undefined;
+                scope.table = undefined;
                 scope.selectedWorks = [];
                 var selectedWorksMap = {};      
 
@@ -60,15 +61,17 @@ define(['./module'], function(module){
                     transformToArray();
 				}
 
-	            scope.toggleProcessView = function(processInstanceId, key){
-                    if(scope.processInstanceId === processInstanceId){
+	            scope.toggleProcessView = function(processInstanceId, key, table){
+                    if(scope.processInstanceId === processInstanceId && scope.pkey === key && scope.table===table){
                        	scope.processInstanceId = undefined;
                         scope.pkey = undefined;
+                        scope.table = undefined;
                         scope.jobModel = {};
                     } else {
                         scope.jobModel = {};
                         scope.processInstanceId = processInstanceId;
                         scope.pkey = key;
+                        scope.table = table;
                         scope.jobModel.state = 'ACTIVE';
                         $http({
                             method: 'GET',
