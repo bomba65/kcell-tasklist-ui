@@ -26,6 +26,7 @@ define(['./module'], function(module){
                         _.forEach(scope.invoice.selectedRevisions.value[propt].works, function (work) {
                             var processDetailCopy = angular.copy(scope.invoice.selectedRevisions.value[propt]);
                             processDetailCopy.quantity = work.quantity;
+                            processDetailCopy.relatedSites = work.relatedSites;
                             delete processDetailCopy.works;
 
                             if(scope.invoice.selectedRevisions.value[propt].workPrices){
