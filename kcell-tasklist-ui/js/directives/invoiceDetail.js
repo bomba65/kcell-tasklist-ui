@@ -27,11 +27,13 @@ define(['./module'], function(module){
                             processDetailCopy.quantity = work.quantity;
                             delete processDetailCopy.works;
 
-                            var prices = _.find(scope.invoice.selectedRevisions.value[propt].workPrices, function(price){
-                                return price.sapServiceNumber === work.sapServiceNumber;
-                            });
-                            processDetailCopy.workPrices = prices;
-                            scope.totalPrice = scope.totalPrice.plus(Number(prices.total));
+                            if(scope.invoice.selectedRevisions.value[propt].workPrices){
+                                var prices = _.find(scope.invoice.selectedRevisions.value[propt].workPrices, function(price){
+                                    return price.sapServiceNumber === work.sapServiceNumber;
+                                });
+                                processDetailCopy.workPrices = prices;
+                                scope.totalPrice = scope.totalPrice.plus(Number(prices.total));
+                            }
 
                             if(!selectedWorksMap[work.sapServiceNumber]){
                                 selectedWorksMap[work.sapServiceNumber] = [processDetailCopy];
