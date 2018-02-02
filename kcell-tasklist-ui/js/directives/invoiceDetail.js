@@ -61,6 +61,7 @@ define(['./module'], function(module){
 	            scope.toggleProcessView = function(processInstanceId, key){
                     if(scope.processInstanceId === processInstanceId){
                        	scope.processInstanceId = undefined;
+                        scope.pkey = undefined;
                         scope.jobModel = {};
                     } else {
                         scope.jobModel = {};
