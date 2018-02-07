@@ -501,15 +501,17 @@ INSERT INTO act_ru_authorization (id_, rev_, type_, group_id_, user_id_, resourc
 
 --REVISION PROCESS AUTOHIRZATION
 INSERT INTO act_ru_authorization (id_, rev_, type_, group_id_, user_id_, resource_type_, resource_id_, perms_) VALUES ('ab656542-501a-11e7-a8c4-0242ac120006', 3, 1, 'kcellUsers', NULL, 6, 'Revision', 4674);
-INSERT INTO act_ru_authorization (id_, rev_, type_, group_id_, user_id_, resource_type_, resource_id_, perms_) VALUES ('008bc61f-4f69-11e7-a8c6-0242ac120007', 1, 1, 'alm_engineer', NULL, 6, 'Revision', 2147483647);
-INSERT INTO act_ru_authorization (id_, rev_, type_, group_id_, user_id_, resource_type_, resource_id_, perms_) VALUES ('008bc62f-4f69-11e7-a8c6-0242ac120007', 1, 1, 'astana_engineer', NULL, 6, 'Revision', 2147483647);
-INSERT INTO act_ru_authorization (id_, rev_, type_, group_id_, user_id_, resource_type_, resource_id_, perms_) VALUES ('008bc63f-4f69-11e7-a8c6-0242ac120007', 1, 1, 'nc_engineer', NULL, 6, 'Revision', 2147483647);
-INSERT INTO act_ru_authorization (id_, rev_, type_, group_id_, user_id_, resource_type_, resource_id_, perms_) VALUES ('008bc64f-4f69-11e7-a8c6-0242ac120007', 1, 1, 'east_engineer', NULL, 6, 'Revision', 2147483647);
-INSERT INTO act_ru_authorization (id_, rev_, type_, group_id_, user_id_, resource_type_, resource_id_, perms_) VALUES ('008bc65f-4f69-11e7-a8c6-0242ac120007', 1, 1, 'south_engineer', NULL, 6, 'Revision', 2147483647);
-INSERT INTO act_ru_authorization (id_, rev_, type_, group_id_, user_id_, resource_type_, resource_id_, perms_) VALUES ('008bc66f-4f69-11e7-a8c6-0242ac120007', 1, 1, 'west_engineer', NULL, 6, 'Revision', 2147483647);
+
+--INVOICE PROCESS AUTOHIRZATION
+INSERT INTO act_ru_authorization (id_, rev_, type_, group_id_, user_id_, resource_type_, resource_id_, perms_) VALUES ('a5b26117-0a5c-11e8-bc04-0242ac1d0008', 1, 1, 'kcellUsers', null, 6, 'Invoice', 4096);
+INSERT INTO act_ru_authorization (id_, rev_, type_, group_id_, user_id_, resource_type_, resource_id_, perms_) VALUES ('3dbb1566-0a5c-11e8-bc04-0242ac1d0008', 1, 1, 'hq_contractor_lse', null, 6, 'Invoice', 770);
 
 --PROCESS INSTANCE AUTHORIZATION
-INSERT INTO act_ru_authorization (id_, rev_, type_, group_id_, user_id_, resource_type_, resource_id_, perms_) VALUES ('008d9ae1-4f69-11e7-a8c6-0242ac120007', 1, 1, 'kcellUsers', NULL, 8, '*', 2147483647);
+INSERT INTO act_ru_authorization (id_, rev_, type_, group_id_, user_id_, resource_type_, resource_id_, perms_) VALUES ('008d9ae1-4f69-11e7-a8c6-0242ac120007', 1, 1, 'kcellUsers', NULL, 8, '*', 8);
+INSERT INTO act_ru_authorization (id_, rev_, type_, group_id_, user_id_, resource_type_, resource_id_, perms_) VALUES ('ab656832-501a-11e7-a8c4-0242ac120006', 4, 1, 'contractor_users', null, 6, 'Revision', 4096);
+INSERT INTO act_ru_authorization (id_, rev_, type_, group_id_, user_id_, resource_type_, resource_id_, perms_) VALUES ('b38f6bcb-0a5c-11e8-bc04-0242ac1d0008', 1, 1, 'revision_managers', null, 6, 'Revision', 32768);
+INSERT INTO act_ru_authorization (id_, rev_, type_, group_id_, user_id_, resource_type_, resource_id_, perms_) VALUES ('64e246ed-0a5c-11e8-bc04-0242ac1d0008', 1, 1, 'hq_contractor_lse', null, 6, 'Revision', 4608);
+INSERT INTO act_ru_authorization (id_, rev_, type_, group_id_, user_id_, resource_type_, resource_id_, perms_) VALUES ('008bc61g-4f69-11e7-a8c6-0242ac120007', 2, 1, 'createJR', null, 6, 'Revision', 770);
 
 --APPLICATION AUTHORIZATION
 INSERT INTO act_ru_authorization (id_, rev_, type_, group_id_, user_id_, resource_type_, resource_id_, perms_) VALUES ('008a3f7e-4f69-11e7-a8c6-0242ac120007', 1, 1, 'kcellUsers', NULL, 0, 'tasklist', 32);
@@ -549,7 +551,7 @@ update act_id_membership set group_id_ = 'contractor_users' where user_id_ = 'rn
 update act_id_membership set group_id_ = 'contractor_users' where user_id_ = 'rollout-almaty-main@lse.kz' and group_id_ = 'kcellUsers';
 update act_id_membership set group_id_ = 'contractor_users' where user_id_ = 'zhandos.k@lse.kz' and group_id_ = 'kcellUsers';
 
-INSERT INTO act_ru_authorization (id_, rev_, type_, group_id_, user_id_, resource_type_, resource_id_, perms_) VALUES ('008d9ff1-4f69-11e7-a8c6-0242ac120007', 1, 1, 'contractor_users', NULL, 8, '*', 2147483647);
+INSERT INTO act_ru_authorization (id_, rev_, type_, group_id_, user_id_, resource_type_, resource_id_, perms_) VALUES ('008d9ff1-4f69-11e7-a8c6-0242ac120007', 1, 1, 'contractor_users', NULL, 8, '*', 8);
 
 INSERT INTO act_ru_authorization (id_, rev_, type_, group_id_, user_id_, resource_type_, resource_id_, perms_) VALUES ('00fa443f-4f69-11e7-a8c6-0242ac120007', 1, 1, 'contractor_users', NULL, 5, '00e642ad-4f69-11e7-a8c6-0242ac120007', 2);
 INSERT INTO act_ru_authorization (id_, rev_, type_, group_id_, user_id_, resource_type_, resource_id_, perms_) VALUES ('00e349e2-4f69-11e7-a8c6-0242ac120007', 1, 1, 'contractor_users', NULL, 5, '00e83e80-4f69-11e7-a8c6-0242ac120007', 2);
@@ -570,12 +572,5 @@ INSERT INTO act_ru_authorization (id_, rev_, type_, group_id_, user_id_, resourc
 INSERT INTO act_ru_authorization (id_, rev_, type_, group_id_, user_id_, resource_type_, resource_id_, perms_) VALUES ('017a7f7c-4f69-11e7-a8c6-0242ac120007', 1, 1, 'contractor_users', NULL, 1, 'rn-rs-almaty@lse.kz', 2);
 INSERT INTO act_ru_authorization (id_, rev_, type_, group_id_, user_id_, resource_type_, resource_id_, perms_) VALUES ('018a7f7c-4f69-11e7-a8c6-0242ac120007', 1, 1, 'contractor_users', NULL, 1, 'rollout-almaty-main@lse.kz', 2);
 INSERT INTO act_ru_authorization (id_, rev_, type_, group_id_, user_id_, resource_type_, resource_id_, perms_) VALUES ('019a7f7c-4f69-11e7-a8c6-0242ac120007', 1, 1, 'contractor_users', NULL, 1, 'zhandos.k@lse.kz', 2);
-
-INSERT INTO public.act_ru_authorization (id_, rev_, type_, group_id_, user_id_, resource_type_, resource_id_, perms_) VALUES ('a5b26117-0a5c-11e8-bc04-0242ac1d0008', 1, 1, 'kcellUsers', null, 6, 'Invoice', 4096);
-INSERT INTO public.act_ru_authorization (id_, rev_, type_, group_id_, user_id_, resource_type_, resource_id_, perms_) VALUES ('ab656832-501a-11e7-a8c4-0242ac120006', 4, 1, 'contractor_users', null, 6, 'Revision', 4096);
-INSERT INTO public.act_ru_authorization (id_, rev_, type_, group_id_, user_id_, resource_type_, resource_id_, perms_) VALUES ('b38f6bcb-0a5c-11e8-bc04-0242ac1d0008', 1, 1, 'revision_managers', null, 6, 'Revision', 32768);
-INSERT INTO public.act_ru_authorization (id_, rev_, type_, group_id_, user_id_, resource_type_, resource_id_, perms_) VALUES ('008bc61g-4f69-11e7-a8c6-0242ac120007', 2, 1, 'createJR', null, 6, 'Revision', 770);
-INSERT INTO public.act_ru_authorization (id_, rev_, type_, group_id_, user_id_, resource_type_, resource_id_, perms_) VALUES ('3dbb1566-0a5c-11e8-bc04-0242ac1d0008', 1, 1, 'hq_contractor_lse', null, 6, 'Invoice', 770);
-INSERT INTO public.act_ru_authorization (id_, rev_, type_, group_id_, user_id_, resource_type_, resource_id_, perms_) VALUES ('64e246ed-0a5c-11e8-bc04-0242ac1d0008', 1, 1, 'hq_contractor_lse', null, 6, 'Revision', 4608);
 
 commit;
