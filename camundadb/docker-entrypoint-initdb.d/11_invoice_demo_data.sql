@@ -4,7 +4,7 @@ INSERT INTO act_id_user (id_, rev_, first_, last_, email_, pwd_, picture_id_) VA
 INSERT INTO act_id_user (id_, rev_, first_, last_, email_, pwd_, picture_id_) VALUES ('Sholpan.Ongarova@kcell.kz', 1, 'Sholpan', 'Ongarova', 'Sholpan.Ongarova@kcell.kz', '{SHA}ieSV55Qc+eQOaYDRSha/AjzNTJE=', NULL);
 INSERT INTO act_id_user (id_, rev_, first_, last_, email_, pwd_, picture_id_) VALUES ('Sasa.Lekovic@kcell.kz', 1, 'Sasa', 'Lekovic', 'Sasa.Lekovic@kcell.kz', '{SHA}ieSV55Qc+eQOaYDRSha/AjzNTJE=', NULL);
 INSERT INTO act_id_user (id_, rev_, first_, last_, email_, pwd_, picture_id_) VALUES ('Saule.Khassenova@kcell.kz', 1, 'Saule', 'Khassenova', 'Saule.Khassenova@kcell.kz', '{SHA}ieSV55Qc+eQOaYDRSha/AjzNTJE=', NULL);
-
+INSERT INTO act_id_user (id_, rev_, first_, last_, email_, pwd_, picture_id_) VALUES ('LSE_Revision_HQ', 1, 'LSE_Revision', 'HQ', null, '{SHA}ieSV55Qc+eQOaYDRSha/AjzNTJE=', NULL);
 
 
 --GROUPS
@@ -64,6 +64,7 @@ INSERT INTO act_id_membership (user_id_, group_id_) VALUES ('Sergey.Chekh@kcell.
 INSERT INTO act_id_membership (user_id_, group_id_) VALUES ('Evgeniy.Semenov@kcell.kz', 'alm_engineer_sao_ma_approver');
 INSERT INTO act_id_membership (user_id_, group_id_) VALUES ('Sergey.Chekh@kcell.kz', 'alm_engineer_sao_ma_approver');
 INSERT INTO act_id_membership (user_id_, group_id_) VALUES ('Kerey.Zatilda@kcell.kz', 'alm_manager');
+INSERT INTO act_id_membership (user_id_, group_id_) VALUES ('LSE_Revision_HQ', 'hq_contractor_lse');
 --INSERT INTO act_id_membership (user_id_, group_id_) VALUES ('Kerey.Zatilda@kcell.kz', 'alm_optimization_head');
 --INSERT INTO act_id_membership (user_id_, group_id_) VALUES ('Kanat.Kulmukhambetov@kcell.kz', 'alm_optimization_head');
 --INSERT INTO act_id_membership (user_id_, group_id_) VALUES ('Maulen.Kempirbayev@kcell.kz', 'alm_transmission_head');
@@ -78,16 +79,6 @@ INSERT INTO act_id_membership (user_id_, group_id_) VALUES ('Kerey.Zatilda@kcell
 
 
 --INVOICE PROCESS AUTOHIRZATION
-INSERT INTO act_ru_authorization (id_, rev_, type_, group_id_, user_id_, resource_type_, resource_id_, perms_) VALUES ('ab656542-501a-11e7-a8c4-0242ac120016', 3, 1, 'kcellUsers', NULL, 6, 'Invoice', 4674);
-INSERT INTO act_ru_authorization (id_, rev_, type_, group_id_, user_id_, resource_type_, resource_id_, perms_) VALUES ('008bc61f-4f69-11e7-a8c6-0242ac120017', 1, 1, 'hq_contractor_lse', NULL, 6, 'Invoice', 2147483647);
--- INSERT INTO act_ru_authorization (id_, rev_, type_, group_id_, user_id_, resource_type_, resource_id_, perms_) VALUES ('008bc62f-4f69-11e7-a8c6-0242ac120017', 1, 1, 'astana_engineer', NULL, 6, 'Invoice', 2147483647);
--- INSERT INTO act_ru_authorization (id_, rev_, type_, group_id_, user_id_, resource_type_, resource_id_, perms_) VALUES ('008bc63f-4f69-11e7-a8c6-0242ac120017', 1, 1, 'nc_engineer', NULL, 6, 'Invoice', 2147483647);
--- INSERT INTO act_ru_authorization (id_, rev_, type_, group_id_, user_id_, resource_type_, resource_id_, perms_) VALUES ('008bc64f-4f69-11e7-a8c6-0242ac120017', 1, 1, 'east_engineer', NULL, 6, 'Invoice', 2147483647);
--- INSERT INTO act_ru_authorization (id_, rev_, type_, group_id_, user_id_, resource_type_, resource_id_, perms_) VALUES ('008bc65f-4f69-11e7-a8c6-0242ac120017', 1, 1, 'south_engineer', NULL, 6, 'Invoice', 2147483647);
--- INSERT INTO act_ru_authorization (id_, rev_, type_, group_id_, user_id_, resource_type_, resource_id_, perms_) VALUES ('008bc66f-4f69-11e7-a8c6-0242ac120017', 1, 1, 'west_engineer', NULL, 6, 'Invoice', 2147483647);
-
---PROCESS INSTANCE AUTHORIZATION
-INSERT INTO act_ru_authorization (id_, rev_, type_, group_id_, user_id_, resource_type_, resource_id_, perms_) VALUES ('008d9ae1-4f69-11e7-a8c6-0242ac120027', 1, 1, 'kcellUsers', NULL, 8, 'Invoice', 2147483647);
 
 
 commit;
