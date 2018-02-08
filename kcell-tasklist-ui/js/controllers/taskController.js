@@ -6,6 +6,8 @@ define(['./module','camundaSDK', 'lodash', 'big-js'], function(module, CamSDK, _
 		  apiUri: '/camunda/api/engine/'
 		});
 
+		$scope.hasAssignPermission = false;
+
 		var Authentication = function(data) {
 			angular.extend(this, data);
 		}
@@ -85,6 +87,17 @@ define(['./module','camundaSDK', 'lodash', 'big-js'], function(module, CamSDK, _
 					}
 					if(result.data._embedded.identityLink && result.data._embedded.identityLink.length > 0){
 						result.data.candidateObject = result.data._embedded.identityLink.find(function (el) { return el.type === 'candidate'; });
+					}
+					if(result.data._embedded.processDefinition && result.data._embedded.processDefinition[0].key){
+						$http.get('/camunda/api/engine/engine/default/authorization/check?permissionName=TASK_ASSIGN&resourceName=' + result.data._embedded.processDefinition.key + '&resourceType=6').then(
+							function(r){
+								$scope.hasAssignPermission = r.data.authorized;
+							},
+							function(e){
+								$scope.hasAssignPermission = false;
+								console.log(e.data);
+							}
+						);
 					}
 					initData(result.data);
 				},
