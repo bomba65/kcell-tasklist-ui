@@ -44,8 +44,7 @@
                 'initiatorFiles',
                 'maintananceFiles',
                 'planningFiles',
-                'priority',
-                'performDate'
+                'priority'
             ];
             $scope.jobModel = {};
             var workFiles = [];
@@ -116,14 +115,7 @@
                     } else {
                         $scope.jobModel[el] = camForm.variableManager.variables[el];
                     }
-
-                    if(el === 'performDate'){
-                        if(camForm.variableManager.variables[el].value){
-                            $scope[el] = new Date(camForm.variableManager.variables[el].value);
-                        }
-                    } else {
-                        $scope[el] = camForm.variableManager.variables[el];
-                    }
+                    $scope[el] = camForm.variableManager.variables[el];
                 });
                 $http.get(Uri.appUri("engine://engine/:engine/task/" + camForm.taskId + "/form-variables")).success(function(result){
                     angular.forEach(result, function(value, key) {
@@ -160,21 +152,6 @@
                 } else {
                     camForm.variableManager.variableValue('acceptPerformedJob', 'accepted');
                 }
-
-                var performDate = new Date($scope.performDate);
-                if(camForm.variableManager.variables['performDate'].value){
-                    camForm.variableManager.variableValue('performDate', $scope.performDate);
-                } else {
-                    camForm.variableManager.destroyVariable('performDate');
-                    camForm.variableManager.createVariable({
-                        name: 'performDate',
-                        type: 'Date',
-                        value: new Date($scope.performDate)
-                    });
-                }
-
-
-                camForm.variableManager.variableValue('performDate', performDate);
 
                 $scope.initiatorFiles.value.forEach(function (f, i) {
                     if(f.value.isNew){
@@ -276,12 +253,6 @@
             $scope.hasComment = function () {
                 return $scope.acceptAndSignByInitiatorComment && $rootScope.hasGroup('kcellUsers');
             }
-
-            $scope.open = function ($event) {
-                $event.preventDefault();
-                $event.stopPropagation();
-                $scope.dateFieldOpened = true;
-            };
         }]);
     </script>
     <job-request job-model="jobModel"></job-request>
@@ -290,20 +261,6 @@
 
     <div style="margin-bottom: 20px;"></div>
 
-    <div class="form-group">
-        <label class="col-sm-4 control-label">Perform date:</label>
-        <div class="col-sm-4">
-            <div class="input-group">
-                <input type="text" ng-model="performDate" name="performDate" ng-required = "acceptAndSignByInitiatorTaskResult == 'approved'" class="form-control" datepicker-popup="dd.MM.yyyy" is-open="dateFieldOpened" id="performDate" min-date="datepickerOptions.minDate" />
-                <span class="input-group-btn">
-                    <button type="button" class="btn btn-default" ng-click="open($event)">
-                        <i class="glyphicon glyphicon-calendar"></i>
-                    </button>
-                </span>
-            </div>
-            <label class="error" ng-if="kcell_form.performDate.$error.required && ( kcell_form.performDate.$touched || view.submitted)">Required field</label>
-        </div>
-    </div>
     <div class="form-group">
         <label class="col-sm-4 control-label">Additional files</label>
         <div class="col-md-12" ng-repeat="file in initiatorFiles.value">
