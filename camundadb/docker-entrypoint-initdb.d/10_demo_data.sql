@@ -119,6 +119,7 @@ INSERT INTO act_id_user (id_, rev_, first_, last_, email_, pwd_, picture_id_) VA
 --GROUPS
 INSERT INTO act_id_group (id_, rev_, name_, type_) VALUES ('kcellUsers', 1, 'Kcell Users', 'WORKFLOW');
 INSERT INTO act_id_group (id_, rev_, name_, type_) VALUES ('contractor_users', 1, 'Contractor Users', 'WORKFLOW');
+INSERT INTO act_id_group (id_, rev_, name_, type_) VALUES ('contractor_users_lse', 1, 'LSE Contractor Users', 'WORKFLOW');
 INSERT INTO act_id_group (id_, rev_, name_, type_) VALUES ('revision_managers', 1, 'Revision Managers', 'WORKFLOW');
 INSERT INTO act_id_group (id_, rev_, name_, type_) VALUES ('revision_audit', 1, 'Revision Audit', 'WORKFLOW');
 INSERT INTO act_id_group (id_, rev_, name_, type_) VALUES ('camunda-admin', 1, 'camunda BPM Administrators', 'SYSTEM');
@@ -344,6 +345,17 @@ INSERT INTO act_id_membership (user_id_, group_id_) VALUES ('rn-rs-almaty@lse.kz
 INSERT INTO act_id_membership (user_id_, group_id_) VALUES ('rollout-almaty-main@lse.kz', 'contractor_users');
 INSERT INTO act_id_membership (user_id_, group_id_) VALUES ('zhandos.k@lse.kz', 'contractor_users');
 INSERT INTO act_id_membership (user_id_, group_id_) VALUES ('LSE_Revision_Alm', 'contractor_users');
+INSERT INTO act_id_membership (user_id_, group_id_) VALUES ('anuarbek.m@lse.kz', 'contractor_users_lse');
+INSERT INTO act_id_membership (user_id_, group_id_) VALUES ('beibit.a@lse.kz', 'contractor_users_lse');
+INSERT INTO act_id_membership (user_id_, group_id_) VALUES ('botagoz.ch@lse.kz', 'contractor_users_lse');
+INSERT INTO act_id_membership (user_id_, group_id_) VALUES ('kairat.b@lse.kz', 'contractor_users_lse');
+INSERT INTO act_id_membership (user_id_, group_id_) VALUES ('gulzhaina.t@lse.kz', 'contractor_users_lse');
+INSERT INTO act_id_membership (user_id_, group_id_) VALUES ('meirkhan.k@lse.kz', 'contractor_users_lse');
+INSERT INTO act_id_membership (user_id_, group_id_) VALUES ('nazym.s@lse.kz', 'contractor_users_lse');
+INSERT INTO act_id_membership (user_id_, group_id_) VALUES ('rn-rs-almaty@lse.kz', 'contractor_users_lse');
+INSERT INTO act_id_membership (user_id_, group_id_) VALUES ('rollout-almaty-main@lse.kz', 'contractor_users_lse');
+INSERT INTO act_id_membership (user_id_, group_id_) VALUES ('zhandos.k@lse.kz', 'contractor_users_lse');
+INSERT INTO act_id_membership (user_id_, group_id_) VALUES ('LSE_Revision_Alm', 'contractor_users_lse');
 INSERT INTO act_id_membership (user_id_, group_id_) VALUES ('Evgeniy.Degtyarev@kcell.kz', 'kcellUsers');
 INSERT INTO act_id_membership (user_id_, group_id_) VALUES ('Marina.Paramonova@kcell.kz', 'hq_optimization');
 INSERT INTO act_id_membership (user_id_, group_id_) VALUES ('Daniyar.Yespayev@kcell.kz', 'hq_optimization');
@@ -539,18 +551,6 @@ INSERT INTO act_ru_authorization (id_, rev_, type_, group_id_, user_id_, resourc
 
 
 --CONTRACTORS
-update act_id_membership set group_id_ = 'contractor_users' where user_id_ = 'anuarbek.m@lse.kz' and group_id_ = 'kcellUsers';
-update act_id_membership set group_id_ = 'contractor_users' where user_id_ = 'beibit.a@lse.kz' and group_id_ = 'kcellUsers';
-update act_id_membership set group_id_ = 'contractor_users' where user_id_ = 'botagoz.ch@lse.kz' and group_id_ = 'kcellUsers';
-update act_id_membership set group_id_ = 'contractor_users' where user_id_ = 'gulzhaina.t@lse.kz' and group_id_ = 'kcellUsers';
-update act_id_membership set group_id_ = 'contractor_users' where user_id_ = 'kairat.b@lse.kz' and group_id_ = 'kcellUsers';
-update act_id_membership set group_id_ = 'contractor_users' where user_id_ = 'LSE_Revision_Alm' and group_id_ = 'kcellUsers';
-update act_id_membership set group_id_ = 'contractor_users' where user_id_ = 'meirkhan.k@lse.kz' and group_id_ = 'kcellUsers';
-update act_id_membership set group_id_ = 'contractor_users' where user_id_ = 'nazym.s@lse.kz' and group_id_ = 'kcellUsers';
-update act_id_membership set group_id_ = 'contractor_users' where user_id_ = 'rn-rs-almaty@lse.kz' and group_id_ = 'kcellUsers';
-update act_id_membership set group_id_ = 'contractor_users' where user_id_ = 'rollout-almaty-main@lse.kz' and group_id_ = 'kcellUsers';
-update act_id_membership set group_id_ = 'contractor_users' where user_id_ = 'zhandos.k@lse.kz' and group_id_ = 'kcellUsers';
-
 INSERT INTO act_ru_authorization (id_, rev_, type_, group_id_, user_id_, resource_type_, resource_id_, perms_) VALUES ('008d9ff1-4f69-11e7-a8c6-0242ac120007', 1, 1, 'contractor_users', NULL, 8, '*', 8);
 
 INSERT INTO act_ru_authorization (id_, rev_, type_, group_id_, user_id_, resource_type_, resource_id_, perms_) VALUES ('00fa443f-4f69-11e7-a8c6-0242ac120007', 1, 1, 'contractor_users', NULL, 5, '00e642ad-4f69-11e7-a8c6-0242ac120007', 2);
