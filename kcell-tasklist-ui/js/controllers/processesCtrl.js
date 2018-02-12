@@ -86,7 +86,7 @@ define(['./module','jquery', 'camundaSDK'], function(app, $, CamSDK){
 
 		//var historyService = new camClient.resource('history');
 
-		$http.get(baseUrl+'/process-definition?latest=true&active=true&firstResult=0&maxResults=15').then(
+/*		$http.get(baseUrl+'/process-definition?latest=true&active=true&firstResult=0&maxResults=15').then(
 			function(results){
 				$scope.processDefinitions = results.data;
 			},
@@ -94,6 +94,8 @@ define(['./module','jquery', 'camundaSDK'], function(app, $, CamSDK){
 				console.log(error.data);
 			}
 		);
+*/
+		$scope.processDefinitions = [{key: 'Revision', name: 'Revision'}, {key: 'Invoice', name: 'Generate Monthy Act'}];
 
 		$scope.search = function(refreshPages){
 			if(refreshPages){
@@ -153,14 +155,14 @@ define(['./module','jquery', 'camundaSDK'], function(app, $, CamSDK){
 			);
 		}
 
-		$scope.toggleProcessView = function(index){
+		$scope.toggleProcessView = function(index, processDefinitionKey){
 			$scope.showDiagramView = false;
             $scope.diagram = {};
 			if($scope.piIndex === index){
                 $scope.piIndex = undefined;
             } else {
                 $scope.piIndex = index;
-	            $scope.jobModel = {state: $scope.processInstances[index].state};
+	            $scope.jobModel = {state: $scope.processInstances[index].state, processDefinitionKey: processDefinitionKey};
 	            $http({
 					method: 'GET',
 					headers:{'Accept':'application/hal+json, application/json; q=0.5'},
