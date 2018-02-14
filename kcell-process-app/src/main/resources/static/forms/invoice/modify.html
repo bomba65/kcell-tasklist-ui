@@ -15,8 +15,41 @@
                 'emergencyDelay',
                 'workComments',
                 'monthActNumber',
-                'formalPeriod'
+                'monthOfFormalPeriod',
+                'yearOfFormalPeriod',
+                'formalPeriod',
+                'contractor',
             ];
+
+            $scope.regions = [
+                {id: 'alm', label: 'Almaty'},
+                {id: 'astana', label: 'Astana'},
+                {id: 'nc', label: 'North & Central'},
+                {id: 'east', label: 'East'},
+                {id: 'south', label: 'South'},
+                {id: 'west', label: 'West'}
+            ];
+
+            $scope.months = [
+                {id: 'jan', label: 'January'},
+                {id: 'feb', label: 'February'},
+                {id: 'mar', label: 'March'},
+                {id: 'apr', label: 'April'},
+                {id: 'may', label: 'May'},
+                {id: 'jun', label: 'June'},
+                {id: 'jul', label: 'July'},
+                {id: 'aug', label: 'August'},
+                {id: 'sep', label: 'September'},
+                {id: 'oct', label: 'October'},
+                {id: 'nov', label: 'November'},
+                {id: 'dec', label: 'December'}
+            ];
+            var currentDate = new Date;
+            $scope.years = [currentDate.getFullYear(), currentDate.getFullYear()-1, currentDate.getFullYear()-2];
+
+            if(window.require){
+                $scope.ExcellentExport = require('excellentexport');
+            }
 
             $scope.regions = [
                 {id: 'alm', label: 'Almaty'},
@@ -30,6 +63,7 @@
             $scope.jobModel = {};
             $scope.invoice = {};
             var catalogs = {};
+            $scope.previousInvoiceCount = 0;
 
             $http.get('/camunda/api/engine/engine/default/task/' + camForm.taskId).then(
                     function(result){
@@ -90,7 +124,7 @@
                 });
 
                 $scope.$watch('selectedRevisions', function (selectedRevisions) {
-                    $scope.kcell_form.$setValidity('selectedCount', Object.keys(selectedRevisions).length > 0);
+                    $scope.kcell_form.$setValidity('selectedCount', (Object.keys(selectedRevisions).length > 0 && $scope.modifyMaTaskResult==='modified') || $scope.modifyMaTaskResult==='cancel');
                 }, true);
 
                 reDrawTable();
@@ -138,6 +172,8 @@
             $scope.regionChanged = regionChanged;
             $scope.workTypeChanged = workTypeChanged;
             $scope.periodDateSelected = periodDateSelected;
+            $scope.formalPeriodMonthSelected = formalPeriodMonthSelected;
+            $scope.formalPeriodYearSelected = formalPeriodYearSelected;
             $scope.addSelected = addSelected;
             $scope.removeJobRequest = removeJobRequest;
             $scope.countSelected = countSelected;
@@ -151,23 +187,33 @@
 
             function regionChanged(){
                 $scope.regionLabel = $scope.regions.find(function (r) {
-                    return r.id = $scope.region;
+                    return r.id == $scope.region;
                 }).label;
                 $scope.selectedRevisions = {};
                 refreshJobRequests();
+                checkMonthlyActs();
             }
 
             function workTypeChanged(){
                 $scope.workTypeLabel = $scope.reasons.find(function (r) {
-                    return r.id = $scope.workType;
+                    return r.id == $scope.workType;
                 }).name;
                 $scope.selectedRevisions = {};
                 refreshJobRequests();
+                checkMonthlyActs();
             }
 
             function periodDateSelected(){
                 $scope.selectedRevisions = {};
                 refreshJobRequests();
+            }
+
+            function formalPeriodMonthSelected(){
+                checkMonthlyActs();
+            }
+
+            function formalPeriodYearSelected(){
+                checkMonthlyActs();
             }
 
             function refreshJobRequests() {
@@ -450,6 +496,58 @@
             $scope.orderWorks = function(work){
                 return Number(work.key);
             }
+
+            function checkMonthlyActs(){
+                $scope.previousInvoiceCount = 0;
+                if($scope.region && $scope.workType && $scope.monthOfFormalPeriod && $scope.yearOfFormalPeriod){
+                    var formalPeriod = $scope.monthOfFormalPeriod + ' ' + $scope.yearOfFormalPeriod;
+                    var query = {
+                        "processDefinitionKey" : "Invoice",
+                        "active" : true,
+                        "variables" :
+                            [{
+                                "name": "region",
+                                "operator": "eq",
+                                "value": $scope.region
+                            },{
+                                "name": "workType",
+                                "operator": "eq",
+                                "value" : $scope.workType
+                            },{
+                                "name": "formalPeriod",
+                                "operator": "eq",
+                                "value" : formalPeriod
+                            },{
+                                "name": "contractor",
+                                "operator": "eq",
+                                "value" : $scope.contractor
+                            }]
+                    };
+                    $http.post('/camunda/api/engine/engine/default/process-instance',query).then(
+                            function(result){
+                                var revisions = _.filter(result.data, function(rev){
+                                   return rev.id !== $scope.processInstanceId;
+                                });
+                                $scope.previousInvoiceCount = revisions.length;
+                            },
+                            function(error){
+                                console.log(error);
+                            }
+                    );
+                }
+            }
+
+            $scope.preSubmit = function(){
+                var deferred = $q.defer();
+
+                if($scope.previousInvoiceCount > 0){
+                    deferred.reject('Identical monthly acts are found, please change region, type of work or period');
+                    return deferred.promise;
+                } else {
+                    deferred.resolve();
+                    return deferred.promise;
+                }
+            }
         }]);
     </script>
 
@@ -458,14 +556,14 @@
     <div class="form-group">
         <label class="col-sm-4 control-label">Monthly Act #:</label>
         <div class="col-sm-3">
-            <input type="text" ng-model="monthActNumber" class="form-control" ng-required="true" />
+            <input type="text" ng-model="monthActNumber" class="form-control" ng-required="modifyMaTaskResult=='modified'" />
             <label class="error" ng-if="kcell_form.monthActNumber.$error.required && ( kcell_form.monthActNumber.$touched || selectedView.submitted)">Required field</label>
         </div>
     </div>
     <div class="form-group">
         <label class="col-sm-4 control-label">Region:</label>
         <div class="col-sm-3">
-            <select class="form-control" ng-model="region" ng-required="true" ng-change="regionChanged()">
+            <select class="form-control" ng-model="region" ng-required="modifyMaTaskResult=='modified'" ng-change="regionChanged()">
                 <option value="">select region</option>
                 <option value="{{r.id}}" ng-repeat="r in regions" ng-selected="{{r.id == region}}">{{r.label}}</option>
             </select>
@@ -475,7 +573,7 @@
     <div class="form-group">
         <label class="col-sm-4 control-label">Type of works:</label>
         <div class="col-sm-3">
-            <select class="form-control" ng-model="workType" ng-required="true" ng-change="workTypeChanged()">
+            <select class="form-control" ng-model="workType" ng-required="modifyMaTaskResult=='modified'" ng-change="workTypeChanged()">
                 <option value="">select reason</option>
                 <option value="{{r.id}}" ng-repeat="r in reasons" ng-selected="{{r.id == workType}}">{{r.name}}</option>
             </select>
@@ -483,10 +581,24 @@
         </div>
     </div>
     <div class="form-group">
-        <label class="col-sm-4 control-label">Last date:</label>
+        <label class="col-sm-4 control-label">Period:</label>
+        <div class="col-sm-3">
+            <select class="select" name="monthOfFormalPeriod" ng-model="monthOfFormalPeriod" ng-required="modifyMaTaskResult=='modified'" ng-change="formalPeriodMonthSelected()">
+                <option value="">select month</option>
+                <option ng-repeat="m in months" value="{{m.label}}" ng-selected="{{m.label == monthOfFormalPeriod}}">{{m.label}}</option>
+            </select>
+            <select class="custom-select" name="yearOfFormalPeriod" ng-model="yearOfFormalPeriod" ng-required="modifyMaTaskResult=='modified'" ng-change="formalPeriodYearSelected()">
+                <option value="">select year</option>
+                <option value="{{y}}" ng-repeat="y in years" ng-selected="{{y == yearOfFormalPeriod}}">{{y}}</option>
+            </select>
+            <label class="error" ng-if="(kcell_form.monthOfFormalPeriod.$error.required || kcell_form.yearOfFormalPeriod.$error.required) && (kcell_form.monthOfFormalPeriod.$touched || kcell_form.yearOfFormalPeriod.$touched  || view.submitted)">Required fields</label>
+        </div>
+    </div>
+    <div class="form-group">
+        <label class="col-sm-4 control-label">Show all accepted works until:</label>
         <div class="col-sm-3">
             <div class="input-group">
-                <input type="text" ng-model="periodDate" name="periodDate" required class="form-control" datepicker-popup="dd.MM.yyyy hh:mm" is-open="dateFieldOpened" id="periodDate" min-date="datepickerOptions.minDate" ng-change="periodDateSelected()" />
+                <input type="text" ng-model="periodDate" name="periodDate" ng-required="modifyMaTaskResult=='modified'" class="form-control" datepicker-popup="dd.MM.yyyy hh:mm" is-open="dateFieldOpened" id="periodDate" min-date="datepickerOptions.minDate" ng-change="periodDateSelected()" />
                 <span class="input-group-btn">
                     <button type="button" class="btn btn-default" ng-click="open($event)">
                         <i class="glyphicon glyphicon-calendar"></i>
@@ -495,6 +607,10 @@
             </div>
             <label class="error" ng-if="kcell_form.periodDate.$error.required && ( kcell_form.periodDate.$touched || view.submitted)">Required field</label>
         </div>
+    </div>
+
+    <div class="form-group" ng-if="previousInvoiceCount > 0">
+        <label class="col-sm-6 control-label error">Identical monthly acts are found, please change region, type of work or period</label>
     </div>
 
     <div style="margin-bottom: 20px;"></div>
@@ -546,7 +662,13 @@
             </tab-heading>
             <div class="col-sm-12">
                 <div class="row">
-                    <table class="table table-condensed" class="form-group">
+                    <div style="margin-bottom: 20px;"></div>
+                    <h4>Monthly Act #{{monthActNumber}} of accepted {{workTypeLabel}} according to "Contract Agreement for Revision Works Performing" between АО "Кселл"/Kcell JSC and "Line System Engineering" LLP/ТОО "Line System Engineering" for {{monthOfFormalPeriod}} {{yearOfFormalPeriod}}. </h4>
+                    <div style="margin-bottom: 20px;"></div>
+
+                    <a style="float: right" ng-if="selectedWorks.length > 0" download="monthlyAct.xlsx" id="xlsxClick" href="#" onclick="return angular.element(this).scope().ExcellentExport.convert({anchor: 'xlsxClick',format: 'xlsx',filename: 'monthlyAct'}, [{name: 'Sheet Name Here 1',from: {table: 'works'}}])">Export to Excel</a>
+
+                    <table class="table table-condensed" class="form-group" name="works" id="works">
                         <thead>
                         <tr>
                             <th colspan="2">Requested Job Info</th>

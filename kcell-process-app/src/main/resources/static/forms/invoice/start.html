@@ -103,6 +103,30 @@
                     type: 'String',
                     submit: true,
                     store: true
+                },
+                {
+                    name: 'monthOfFormalPeriod',
+                    type: 'String',
+                    submit: true,
+                    store: true
+                },
+                {
+                    name: 'yearOfFormalPeriod',
+                    type: 'String',
+                    submit: true,
+                    store: true
+                },
+                {
+                    name: 'formalPeriod',
+                    type: 'String',
+                    submit: true,
+                    store: true
+                },
+                {
+                    name: 'contractor',
+                    type: 'String',
+                    submit: true,
+                    store: true
                 }
             ];
 
@@ -133,7 +157,14 @@
                 $scope.ExcellentExport = require('excellentexport');
             }
 
+            $scope.showDisablePush = false;
+
+            if($rootScope.authentication.name === 'demo' || $rootScope.authentication.name === 'Yernaz.Kalingarayev@kcell.kz' || $rootScope.authentication.name === 'Askar.Slambekov@kcell.kz' || $rootScope.authentication.name === 'Anzor.Israilov@kcell.kz'){
+                $scope.showDisablePush = true;
+            }
+
             var currentDate = new Date;
+            var catalogs = {};
             $scope.years = [currentDate.getFullYear(), currentDate.getFullYear()-1, currentDate.getFullYear()-2];
             $scope.jobModel = {};
             $scope.selectedWorks = [];
@@ -141,7 +172,7 @@
             $scope.emergencyDelay = {};
             $scope.regularDelay = {};
             $scope.jobRequests = [];
-            var catalogs = {};
+            $scope.previousInvoiceCount = 0;
 
             $scope.$watch('selectedRevisions', function (selectedRevisions) {
                 $scope.kcell_form.$setValidity('selectedCount', Object.keys(selectedRevisions).length > 0);
@@ -193,13 +224,25 @@
                 $http.get('/camunda/api/engine/engine/default/user/' + $rootScope.authentication.name + '/profile').then(
                         function (result) {
                             $scope.initiatorFull = result.data;
+                            $rootScope.authentication.assigneeName = (result.data.firstName ? result.data.firstName : "") + " " + (result.data.lastName ? result.data.lastName : "");
                         },
                         function (error) {
                         }
                 );
-                $http.get("/camunda/api/engine/engine/default/user/" + $rootScope.authentication.name + "/profile").then(function (result) {
-                    $rootScope.authentication.assigneeName = (result.data.firstName ? result.data.firstName : "") + " " + (result.data.lastName ? result.data.lastName : "");
-                });
+                $http.get("/camunda/api/engine/engine/default/group?member=" + $rootScope.authentication.name).then(
+                    function (result) {
+                        angular.forEach(result.data, function(group){
+                            if(group.id.indexOf('contractor_users_') == 0){
+                                $scope.contractor = group.id.replace('contractor_users_', '');
+                            }
+                        });
+                        if(!$scope.contractor){
+                            $scope.contractor = 'lse';
+                        }
+                    },
+                    function (error) {
+                    }
+                );
             });
 
             camForm.on('submit', function (e) {
@@ -218,19 +261,18 @@
                 var periodDate = new Date($scope.periodDate);
                 camForm.variableManager.variableValue('periodDate', periodDate);
                 camForm.variableManager.variableValue('resolutions', []);
+                camForm.variableManager.variableValue('contractor', $scope.contractor);
+
+                camForm.variableManager.variableValue('monthOfFormalPeriod', $scope.monthOfFormalPeriod);
+                camForm.variableManager.variableValue('yearOfFormalPeriod', $scope.yearOfFormalPeriod);
+                var formalPeriod = $scope.monthOfFormalPeriod + ' ' + $scope.yearOfFormalPeriod;
+                camForm.variableManager.variableValue('formalPeriod', formalPeriod);
 
                 var requests = [];
                 angular.forEach($scope.jobRequests, function (jobRequest) {
                     if(jobRequest.selected){
                         requests.push(jobRequest);
                     }
-                });
-
-                var formalPeriod = $scope.monthOfFormalPeriod + ' ' + $scope.yearOfFormalPeriod;
-                camForm.variableManager.createVariable({
-                    name: 'formalPeriod',
-                    type: 'String',
-                    value: formalPeriod
                 });
 
                 if ($scope.disableInvoicePush) {
@@ -254,6 +296,8 @@
             $scope.regionChanged = regionChanged;
             $scope.workTypeChanged = workTypeChanged;
             $scope.periodDateSelected = periodDateSelected;
+            $scope.formalPeriodMonthSelected = formalPeriodMonthSelected;
+            $scope.formalPeriodYearSelected = formalPeriodYearSelected;
             $scope.addSelected = addSelected;
             $scope.removeJobRequest = removeJobRequest;
             $scope.countSelected = countSelected;
@@ -271,6 +315,7 @@
                 }).label;
                 $scope.selectedRevisions = {};
                 refreshJobRequests();
+                checkMonthlyActs();
             }
 
             function workTypeChanged(){
@@ -279,11 +324,20 @@
                 }).name;
                 $scope.selectedRevisions = {};
                 refreshJobRequests();
+                checkMonthlyActs();
             }
 
             function periodDateSelected(){
                 $scope.selectedRevisions = {};
                 refreshJobRequests();
+            }
+
+            function formalPeriodMonthSelected(){
+                checkMonthlyActs();
+            }
+
+            function formalPeriodYearSelected(){
+                checkMonthlyActs();
             }
 
             function refreshJobRequests() {
@@ -296,8 +350,8 @@
                         "variables":
                                 [{"name": "siteRegion", "operator": "eq", "value": $scope.region},
                                     {"name": "contractor", "operator": "eq", "value": 4},
-                                    {"name": "reason", "operator": "eq", "value": $scope.workType}//,
-                                    //{"name": "acceptPerformedJob", "operator": "eq", "value": 'scan attached'}
+                                    {"name": "reason", "operator": "eq", "value": $scope.workType},
+                                    {"name": "acceptPerformedJob", "operator": "eq", "value": 'scan attached'}
                                 ]
                     };
 
@@ -566,10 +620,59 @@
             $scope.exportExel = function(){
                 console.log($scope.excellent);
             }
+
+            function checkMonthlyActs(){
+                $scope.previousInvoiceCount = 0;
+                if($scope.region && $scope.workType && $scope.monthOfFormalPeriod && $scope.yearOfFormalPeriod){
+                    var formalPeriod = $scope.monthOfFormalPeriod + ' ' + $scope.yearOfFormalPeriod;
+                    var query = {
+                        "processDefinitionKey" : "Invoice",
+                        "active" : true,
+                        "variables" :
+                                [{
+                                    "name": "region",
+                                    "operator": "eq",
+                                    "value": $scope.region
+                                },{
+                                    "name": "workType",
+                                    "operator": "eq",
+                                    "value" : $scope.workType
+                                },{
+                                    "name": "formalPeriod",
+                                    "operator": "eq",
+                                    "value" : formalPeriod
+                                },{
+                                    "name": "contractor",
+                                    "operator": "eq",
+                                    "value" : $scope.contractor
+                                }]
+                    };
+                    $http.post('/camunda/api/engine/engine/default/process-instance/count',query).then(
+                            function(result){
+                                $scope.previousInvoiceCount = result.data.count;
+                            },
+                            function(error){
+                                console.log(error);
+                            }
+                    );
+                }
+            }
+
+            $scope.preSubmit = function(){
+                var deferred = $q.defer();
+
+                if($scope.previousInvoiceCount > 0){
+                    deferred.reject('Identical monthly acts are found, please change region, type of work or period');
+                    return deferred.promise;
+                } else {
+                    deferred.resolve();
+                    return deferred.promise;
+                }
+            }
         }]);
     </script>
     <h4>Create Monthly Act</h4>
-    <div class="form-group">
+    <div class="form-group" ng-show="showDisablePush">
         <span class="radio-inline">
         <input type="checkbox" name="optradio" value="true" ng-model="disableInvoicePush"> Disable invoice push (test)</span>
     </div>
@@ -609,11 +712,11 @@
     <div class="form-group">
         <label class="col-sm-3 control-label">Period:</label>
         <div class="col-sm-3">
-            <select class="select" name="monthOfFormalPeriod" ng-model="monthOfFormalPeriod" required>
+            <select class="select" name="monthOfFormalPeriod" ng-model="monthOfFormalPeriod" required ng-change="formalPeriodMonthSelected()">
                 <option value="">select month</option>
                 <option ng-repeat="m in months" value="{{m.label}}">{{m.label}}</option>
             </select>
-            <select class="custom-select" name="yearOfFormalPeriod" ng-model="yearOfFormalPeriod" required>
+            <select class="custom-select" name="yearOfFormalPeriod" ng-model="yearOfFormalPeriod" required ng-change="formalPeriodYearSelected()">
                 <option value="">select year</option>
                 <option value="{{y}}" ng-repeat="y in years">{{y}}</option>
             </select>
@@ -638,6 +741,10 @@
             </div>
             <label class="error" ng-if="kcell_form.periodDate.$error.required && ( kcell_form.periodDate.$touched || view.submitted)">Required field</label>
         </div>
+    </div>
+
+    <div class="form-group" ng-if="previousInvoiceCount > 0">
+        <label class="col-sm-6 control-label error">Identical monthly acts are found, please change region, type of work or period</label>
     </div>
 
     <tabset class="my-tab-head my-tab" justified="true" id="jobRequestId">
