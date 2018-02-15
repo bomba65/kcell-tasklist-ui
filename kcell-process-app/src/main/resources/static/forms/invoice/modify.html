@@ -64,6 +64,7 @@
             $scope.invoice = {};
             var catalogs = {};
             $scope.previousInvoiceCount = 0;
+            $scope.alreadyInInvoiceRevisions = {};
 
             $http.get('/camunda/api/engine/engine/default/task/' + camForm.taskId).then(
                     function(result){
@@ -126,6 +127,9 @@
                 $scope.$watch('selectedRevisions', function (selectedRevisions) {
                     $scope.kcell_form.$setValidity('selectedCount', (Object.keys(selectedRevisions).length > 0 && $scope.modifyMaTaskResult==='modified') || $scope.modifyMaTaskResult==='cancel');
                 }, true);
+                $scope.$watch('modifyMaTaskResult', function (modifyMaTaskResult) {
+                    $scope.kcell_form.$setValidity('selectedCount', (Object.keys($scope.selectedRevisions).length > 0 && $scope.modifyMaTaskResult==='modified') || $scope.modifyMaTaskResult==='cancel');
+                }, true);
 
                 reDrawTable();
             });
@@ -160,7 +164,6 @@
                 }
                 $scope.invoice.resolutions.push({processInstanceId: $scope.processInstanceId, assignee: $rootScope.authentication.name, assigneeName: $rootScope.authentication.assigneeName, resolution: '', comment: $scope.modifyComment, taskId: camForm.taskId, visibility: visibility});
                 camForm.variableManager.variableValue('resolutions', $scope.invoice.resolutions);
-                console.log('test');
             });
 
             $scope.isVisible = function (resolution) {
@@ -259,7 +262,7 @@
                             });
 
                             mapped.forEach(function(x){
-                                if(x.hasOwnProperty('startTime') && notInSelected(x.processInstanceId)){
+                                if(x.hasOwnProperty('startTime') && notInSelected(x.processInstanceId) && !$scope.alreadyInInvoiceRevisions[x.processInstanceId]){
                                     var jobRequest = {
                                         selected: false,
                                         businessKey: x.businessKey,
@@ -344,6 +347,42 @@
                                             request.acceptWorkEndTime = acceptWorkInitiator.endTime;
                                         }
                                     });
+                                });
+                            }
+                        });
+                    });
+                    $http({
+                        method: 'POST',
+                        headers: {'Accept': 'application/hal+json, application/json; q=0.5'},
+                        data: {
+                            processDefinitionKey: 'Invoice',
+                            "variables":
+                                    [{"name": "region", "operator": "eq", "value": $scope.region},
+                                        {"name": "contractor", "operator": "eq", "value": $scope.contractor},
+                                        {"name": "workType", "operator": "eq", "value": $scope.workType}
+                                    ]
+                        },
+                        url: '/camunda/api/engine/engine/default/process-instance'
+                    }).then(function (results) {
+                        var checkedList = _.filter(results.data, function(invoice){
+                            return invoice.id !== $scope.processInstanceId;
+                        });
+                        var invoices = _.map(checkedList, _.property('id'));
+                        $http({
+                            method: 'POST',
+                            headers: {'Accept': 'application/hal+json, application/json; q=0.5'},
+                            data: {
+                                processInstanceIdIn: invoices,
+                                "variableName":"selectedRevisions"
+                            },
+                            url: '/camunda/api/engine/engine/default/variable-instance?deserializeValues=false'
+                        }).then(function (result) {
+                            if(result.data){
+                                angular.forEach(result.data, function(revisions){
+                                    for(var propt in JSON.parse(revisions.value)){
+                                        $scope.alreadyInInvoiceRevisions[propt] = {};
+                                        delete $scope.selectedRevisions[propt];
+                                    }
                                 });
                             }
                         });
