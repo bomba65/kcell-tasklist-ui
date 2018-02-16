@@ -21,12 +21,12 @@ public class CamundaMailerDelegate implements JavaDelegate {
 
         String subject = String.valueOf(delegateExecution.getVariableLocal("subject"));
         String businessKey = delegateExecution.getProcessInstance().getBusinessKey();
-        if(!subject.contains(businessKey) && businessKey!=null){
+        if(subject!=null && !subject.contains(businessKey) && businessKey!=null){
             subject = businessKey + ", " + subject;
         }
-        
+
         String addresses = String.valueOf(delegateExecution.getVariableLocal("to"));
-        if(!addresses.contains("Yernaz.Kalingarayev@kcell.kz")){
+        if(addresses!=null && !addresses.contains("Yernaz.Kalingarayev@kcell.kz")){
             addresses = addresses + ",Yernaz.Kalingarayev@kcell.kz";
         }
 
