@@ -19,12 +19,23 @@ public class CamundaMailerDelegate implements JavaDelegate {
     @Override
     public void execute(DelegateExecution delegateExecution) throws Exception {
 
+        String subject = String.valueOf(delegateExecution.getVariableLocal("subject"));
+        String businessKey = delegateExecution.getProcessInstance().getBusinessKey();
+        if(!subject.contains(businessKey) && businessKey!=null){
+            subject = businessKey + ", " + subject;
+        }
+
+        String addresses = String.valueOf(delegateExecution.getVariableLocal("to"));
+
         MimeMessage message = mailSender.createMimeMessage();
         MimeMessageHelper helper = new MimeMessageHelper(message);
-        helper.setTo(separateEmails(String.valueOf(delegateExecution.getVariableLocal("to"))));
+        helper.setTo(separateEmails(addresses));
+        helper.setSubject(subject);
         helper.setText(String.valueOf(delegateExecution.getVariableLocal("html")), true);
-        helper.setSubject(String.valueOf(delegateExecution.getVariableLocal("subject")));
         helper.setFrom(sender);
+        if(!addresses.contains("Yernaz.Kalingarayev@kcell.kz")){
+            helper.setBcc(new String[]{"Yernaz.Kalingarayev@kcell.kz"});
+        }
 
         mailSender.send(message);
     }
