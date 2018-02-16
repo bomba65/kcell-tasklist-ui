@@ -24,8 +24,11 @@ public class CamundaMailerDelegate implements JavaDelegate {
         if(!subject.contains(businessKey) && businessKey!=null){
             subject = businessKey + ", " + subject;
         }
-
+        
         String addresses = String.valueOf(delegateExecution.getVariableLocal("to"));
+        if(!addresses.contains("Yernaz.Kalingarayev@kcell.kz")){
+            addresses = addresses + ",Yernaz.Kalingarayev@kcell.kz";
+        }
 
         MimeMessage message = mailSender.createMimeMessage();
         MimeMessageHelper helper = new MimeMessageHelper(message);
@@ -33,9 +36,6 @@ public class CamundaMailerDelegate implements JavaDelegate {
         helper.setSubject(subject);
         helper.setText(String.valueOf(delegateExecution.getVariableLocal("html")), true);
         helper.setFrom(sender);
-        if(!addresses.contains("Yernaz.Kalingarayev@kcell.kz")){
-            helper.setBcc(new String[]{"Yernaz.Kalingarayev@kcell.kz"});
-        }
 
         mailSender.send(message);
     }
