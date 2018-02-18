@@ -114,6 +114,25 @@ INSERT INTO act_id_user (id_, rev_, first_, last_, email_, pwd_, picture_id_) VA
 INSERT INTO act_id_user (id_, rev_, first_, last_, email_, pwd_, picture_id_) VALUES ('Zhanat.Seitkanov@kcell.kz', 1, 'Zhanat', 'Seitkanov', 'Zhanat.Seitkanov@kcell.kz', '{SHA}ieSV55Qc+eQOaYDRSha/AjzNTJE=', NULL);
 INSERT INTO act_id_user (id_, rev_, first_, last_, email_, pwd_, picture_id_) VALUES ('Zhandos.Bolatov@kcell.kz', 1, 'Zhandos', 'Bolatov', 'Zhandos.Bolatov@kcell.kz', '{SHA}ieSV55Qc+eQOaYDRSha/AjzNTJE=', NULL);
 INSERT INTO act_id_user (id_, rev_, first_, last_, email_, pwd_, picture_id_) VALUES ('Konstantin.Pominov@kcell.kz', 1, 'Konstantin', 'Pominov', 'Konstantin.Pominov@kcell.kz', '{SHA}ieSV55Qc+eQOaYDRSha/AjzNTJE=', NULL);
+INSERT INTO act_id_user (id_, rev_, first_, last_, email_, pwd_, picture_id_) VALUES ('Alexander.Buss@kcell.kz', 1, 'Alexander', 'Buss', 'Alexander.Buss@kcell.kz', '{SHA}ieSV55Qc+eQOaYDRSha/AjzNTJE=', NULL);
+INSERT INTO act_id_user (id_, rev_, first_, last_, email_, pwd_, picture_id_) VALUES ('Igor.Orlov@kcell.kz', 1, 'Igor', 'Orlov', 'Igor.Orlov@kcell.kz', '{SHA}ieSV55Qc+eQOaYDRSha/AjzNTJE=', NULL);
+INSERT INTO act_id_user (id_, rev_, first_, last_, email_, pwd_, picture_id_) VALUES ('Evgeniy.Tsoy@kcell.kz', 1, 'Evgeniy', 'Tsoy', 'Evgeniy.Tsoy@kcell.kz', '{SHA}ieSV55Qc+eQOaYDRSha/AjzNTJE=', NULL);
+INSERT INTO act_id_user (id_, rev_, first_, last_, email_, pwd_, picture_id_) VALUES ('Valeriy.Zhilyaev@kcell.kz', 1, 'Valeriy', 'Zhilyaev', 'Valeriy.Zhilyaev@kcell.kz', '{SHA}ieSV55Qc+eQOaYDRSha/AjzNTJE=', NULL);
+INSERT INTO act_id_user (id_, rev_, first_, last_, email_, pwd_, picture_id_) VALUES ('Pavel.Zaitsev@kcell.kz', 1, 'Pavel', 'Zaitsev', 'Pavel.Zaitsev@kcell.kz', '{SHA}ieSV55Qc+eQOaYDRSha/AjzNTJE=', NULL);
+INSERT INTO act_id_user (id_, rev_, first_, last_, email_, pwd_, picture_id_) VALUES ('Stanislav.Khvan@kcell.kz', 1, 'Stanislav', 'Khvan', 'Stanislav.Khvan@kcell.kz', '{SHA}ieSV55Qc+eQOaYDRSha/AjzNTJE=', NULL);
+INSERT INTO act_id_user (id_, rev_, first_, last_, email_, pwd_, picture_id_) VALUES ('Dastan.Kazhibayev@kcell.kz', 1, 'Dastan', 'Kazhibayev', 'Dastan.Kazhibayev@kcell.kz', '{SHA}ieSV55Qc+eQOaYDRSha/AjzNTJE=', NULL);
+INSERT INTO act_id_user (id_, rev_, first_, last_, email_, pwd_, picture_id_) VALUES ('Altynay.Ashken@kcell.kz', 1, 'Altynay', 'Ashken', 'Altynay.Ashken@kcell.kz', '{SHA}ieSV55Qc+eQOaYDRSha/AjzNTJE=', NULL);
+INSERT INTO act_id_user (id_, rev_, first_, last_, email_, pwd_, picture_id_) VALUES ('Makhambet.Sandybayev@kcell.kz', 1, 'Makhambet', 'Sandybayev', 'Makhambet.Sandybayev@kcell.kz', '{SHA}ieSV55Qc+eQOaYDRSha/AjzNTJE=', NULL);
+INSERT INTO act_id_user (id_, rev_, first_, last_, email_, pwd_, picture_id_) VALUES ('Dulat.Kumekov@kcell.kz', 1, 'Dulat', 'Kumekov', 'Dulat.Kumekov@kcell.kz', '{SHA}ieSV55Qc+eQOaYDRSha/AjzNTJE=', NULL);
+INSERT INTO act_id_user (id_, rev_, first_, last_, email_, pwd_, picture_id_) VALUES ('Andrey.Orlov@kcell.kz', 1, 'Andrey', 'Orlov', 'Andrey.Orlov@kcell.kz', '{SHA}ieSV55Qc+eQOaYDRSha/AjzNTJE=', NULL);
+INSERT INTO act_id_user (id_, rev_, first_, last_, email_, pwd_, picture_id_) VALUES ('Alexandr.Galat@kcell.kz', 1, 'Alexandr', 'Galat', 'Alexandr.Galat@kcell.kz', '{SHA}ieSV55Qc+eQOaYDRSha/AjzNTJE=', NULL);
+INSERT INTO act_id_user (id_, rev_, first_, last_, email_, pwd_, picture_id_) VALUES ('Ilya.A.Nevpryaga@kcell.kz', 1, 'Ilya', 'Nevpryaga', 'Ilya.A.Nevpryaga@kcell.kz', '{SHA}ieSV55Qc+eQOaYDRSha/AjzNTJE=', NULL);
+INSERT INTO act_id_user (id_, rev_, first_, last_, email_, pwd_, picture_id_) VALUES ('Yuriy.Ivanov@kcell.kz', 1, 'Yuriy', 'Ivanov', 'Yuriy.Ivanov@kcell.kz', '{SHA}ieSV55Qc+eQOaYDRSha/AjzNTJE=', NULL);
+INSERT INTO act_id_user (id_, rev_, first_, last_, email_, pwd_, picture_id_) VALUES ('Erzhan.Beimbetov@kcell.kz', 1, 'Erzhan', 'Beimbetov', 'Erzhan.Beimbetov@kcell.kz', '{SHA}ieSV55Qc+eQOaYDRSha/AjzNTJE=', NULL);
+INSERT INTO act_id_user (id_, rev_, first_, last_, email_, pwd_, picture_id_) VALUES ('Kenzhekhan.Mussayev@kcell.kz', 1, 'Kenzhekhan', 'Mussayev', 'Kenzhekhan.Mussayev@kcell.kz', '{SHA}ieSV55Qc+eQOaYDRSha/AjzNTJE=', NULL);
+INSERT INTO act_id_user (id_, rev_, first_, last_, email_, pwd_, picture_id_) VALUES ('Erbol.Abenov@kcell.kz', 1, 'Erbol', 'Abenov', 'Erbol.Abenov@kcell.kz', '{SHA}ieSV55Qc+eQOaYDRSha/AjzNTJE=', NULL);
+INSERT INTO act_id_user (id_, rev_, first_, last_, email_, pwd_, picture_id_) VALUES ('Aida.Ildebaeva@kcell.kz', 1, 'Aida', 'Ildebaeva', 'Aida.Ildebaeva@kcell.kz', '{SHA}ieSV55Qc+eQOaYDRSha/AjzNTJE=', NULL);
+INSERT INTO act_id_user (id_, rev_, first_, last_, email_, pwd_, picture_id_) VALUES ('aknur.s@lse.kz', 1, 'Aknur', 'Sagalova', 'aknur.s@lse.kz', '{SHA}ieSV55Qc+eQOaYDRSha/AjzNTJE=', NULL);
 
 
 --GROUPS
@@ -219,6 +238,12 @@ INSERT INTO act_id_group (id_, rev_, name_, type_) VALUES ('west_sao_planning', 
 INSERT INTO act_id_group (id_, rev_, name_, type_) VALUES ('west_optimization_maintanance', 1, 'west_optimization_maintanance', 'WORKFLOW');
 INSERT INTO act_id_group (id_, rev_, name_, type_) VALUES ('west_infrastructure_maintanance', 1, 'west_infrastructure_maintanance', 'WORKFLOW');
 INSERT INTO act_id_group (id_, rev_, name_, type_) VALUES ('west_sao_maintanance', 1, 'south_sao_maintanance', 'WORKFLOW');
+INSERT INTO act_id_group (id_, rev_, name_, type_) VALUES ('nc_infrastructure_planning', 1, 'nc_infrastructure_planning', 'WORKFLOW');
+INSERT INTO act_id_group (id_, rev_, name_, type_) VALUES ('nc_infrastructure_maintenance', 1, 'nc_infrastructure_maintenance', 'WORKFLOW');
+INSERT INTO act_id_group (id_, rev_, name_, type_) VALUES ('nc_optimization_planning', 1, 'nc_optimization_planning', 'WORKFLOW');
+INSERT INTO act_id_group (id_, rev_, name_, type_) VALUES ('nc_optimization_maintenance', 1, 'nc_optimization_maintenance', 'WORKFLOW');
+INSERT INTO act_id_group (id_, rev_, name_, type_) VALUES ('nc_sao_planning', 1, 'nc_sao_planning', 'WORKFLOW');
+INSERT INTO act_id_group (id_, rev_, name_, type_) VALUES ('nc_sao_maintenance', 1, 'nc_sao_maintenance', 'WORKFLOW');
 
 
 --MEMBERSHIPS
@@ -494,6 +519,58 @@ INSERT INTO act_id_membership (user_id_, group_id_) VALUES ('Alexey.Khudaev@kcel
 INSERT INTO act_id_membership (user_id_, group_id_) VALUES ('Evgeniy.Semenov@kcell.kz', 'alm_sao_maintanance');
 INSERT INTO act_id_membership (user_id_, group_id_) VALUES ('Sergey.Chekh@kcell.kz', 'alm_sao_maintanance');
 INSERT INTO act_id_membership (user_id_, group_id_) VALUES ('Sergey.Lee@kcell.kz', 'alm_sao_maintanance');
+INSERT INTO act_id_membership (user_id_, group_id_) VALUES ('Alexander.Buss@kcell.kz', 'nc_engineer');
+INSERT INTO act_id_membership (user_id_, group_id_) VALUES ('Igor.Orlov@kcell.kz', 'nc_engineer');
+INSERT INTO act_id_membership (user_id_, group_id_) VALUES ('Evgeniy.Tsoy@kcell.kz', 'nc_engineer');
+INSERT INTO act_id_membership (user_id_, group_id_) VALUES ('Valeriy.Zhilyaev@kcell.kz', 'nc_engineer');
+INSERT INTO act_id_membership (user_id_, group_id_) VALUES ('Pavel.Zaitsev@kcell.kz', 'nc_engineer');
+INSERT INTO act_id_membership (user_id_, group_id_) VALUES ('Stanislav.Khvan@kcell.kz', 'nc_engineer');
+INSERT INTO act_id_membership (user_id_, group_id_) VALUES ('Dastan.Kazhibayev@kcell.kz', 'nc_engineer');
+INSERT INTO act_id_membership (user_id_, group_id_) VALUES ('Altynay.Ashken@kcell.kz', 'nc_engineer');
+INSERT INTO act_id_membership (user_id_, group_id_) VALUES ('Makhambet.Sandybayev@kcell.kz', 'nc_engineer');
+INSERT INTO act_id_membership (user_id_, group_id_) VALUES ('Dulat.Kumekov@kcell.kz', 'nc_engineer');
+INSERT INTO act_id_membership (user_id_, group_id_) VALUES ('Andrey.Orlov@kcell.kz', 'nc_engineer');
+INSERT INTO act_id_membership (user_id_, group_id_) VALUES ('Alexandr.Galat@kcell.kz', 'nc_engineer');
+INSERT INTO act_id_membership (user_id_, group_id_) VALUES ('Ilya.A.Nevpryaga@kcell.kz', 'nc_engineer');
+INSERT INTO act_id_membership (user_id_, group_id_) VALUES ('Yuriy.Ivanov@kcell.kz', 'nc_engineer');
+INSERT INTO act_id_membership (user_id_, group_id_) VALUES ('Erzhan.Beimbetov@kcell.kz', 'nc_optimization_head');
+INSERT INTO act_id_membership (user_id_, group_id_) VALUES ('Kenzhekhan.Mussayev@kcell.kz', 'nc_optimization_head');
+INSERT INTO act_id_membership (user_id_, group_id_) VALUES ('Erbol.Abenov@kcell.kz', 'nc_optimization_head');
+INSERT INTO act_id_membership (user_id_, group_id_) VALUES ('Pavel.Zaitsev@kcell.kz', 'nc_transmission_head');
+INSERT INTO act_id_membership (user_id_, group_id_) VALUES ('Erbol.Abenov@kcell.kz', 'nc_infrastructure_head');
+INSERT INTO act_id_membership (user_id_, group_id_) VALUES ('Erbol.Abenov@kcell.kz', 'nc_operation_head');
+INSERT INTO act_id_membership (user_id_, group_id_) VALUES ('Erzhan.Beimbetov@kcell.kz', 'nc_power_engineer');
+INSERT INTO act_id_membership (user_id_, group_id_) VALUES ('Kenzhekhan.Mussayev@kcell.kz', 'nc_power_engineer');
+INSERT INTO act_id_membership (user_id_, group_id_) VALUES ('Kenzhekhan.Mussayev@kcell.kz', 'nc_power_engineer');
+INSERT INTO act_id_membership (user_id_, group_id_) VALUES ('Azamat.Mukhametalin@kcell.kz', 'nc_power_engineer');
+INSERT INTO act_id_membership (user_id_, group_id_) VALUES ('Igor.Orlov@kcell.kz', 'nc_power_engineer');
+INSERT INTO act_id_membership (user_id_, group_id_) VALUES ('Azamat.Mukhametalin@kcell.kz', 'nc_leasing');
+INSERT INTO act_id_membership (user_id_, group_id_) VALUES ('Aida.Ildebaeva@kcell.kz', 'nc_leasing');
+INSERT INTO act_id_membership (user_id_, group_id_) VALUES ('aknur.s@lse.kz', 'nc_contractor_lse');
+INSERT INTO act_id_membership (user_id_, group_id_) VALUES ('Erbol.Abenov@kcell.kz', 'nc_infrastructure_planning');
+INSERT INTO act_id_membership (user_id_, group_id_) VALUES ('Stanislav.Khvan@kcell.kz', 'nc_infrastructure_planning');
+INSERT INTO act_id_membership (user_id_, group_id_) VALUES ('Dastan.Kazhibayev@kcell.kz', 'nc_infrastructure_planning');
+INSERT INTO act_id_membership (user_id_, group_id_) VALUES ('Altynay.Ashken@kcell.kz', 'nc_infrastructure_planning');
+INSERT INTO act_id_membership (user_id_, group_id_) VALUES ('Kenzhekhan.Mussayev@kcell.kz', 'nc_infrastructure_planning');
+INSERT INTO act_id_membership (user_id_, group_id_) VALUES ('Alexander.Buss@kcell.kz', 'nc_infrastructure_planning');
+INSERT INTO act_id_membership (user_id_, group_id_) VALUES ('Erbol.Abenov@kcell.kz', 'nc_infrastructure_maintenance');
+INSERT INTO act_id_membership (user_id_, group_id_) VALUES ('Alexander.Buss@kcell.kz', 'nc_infrastructure_maintenance');
+INSERT INTO act_id_membership (user_id_, group_id_) VALUES ('Erbol.Abenov@kcell.kz', 'nc_optimization_planning');
+INSERT INTO act_id_membership (user_id_, group_id_) VALUES ('Stanislav.Khvan@kcell.kz', 'nc_optimization_planning');
+INSERT INTO act_id_membership (user_id_, group_id_) VALUES ('Dastan.Kazhibayev@kcell.kz', 'nc_optimization_planning');
+INSERT INTO act_id_membership (user_id_, group_id_) VALUES ('Altynay.Ashken@kcell.kz', 'nc_optimization_planning');
+INSERT INTO act_id_membership (user_id_, group_id_) VALUES ('Kenzhekhan.Mussayev@kcell.kz', 'nc_optimization_planning');
+INSERT INTO act_id_membership (user_id_, group_id_) VALUES ('Alexander.Buss@kcell.kz', 'nc_optimization_planning');
+INSERT INTO act_id_membership (user_id_, group_id_) VALUES ('Erbol.Abenov@kcell.kz', 'nc_optimization_maintenance');
+INSERT INTO act_id_membership (user_id_, group_id_) VALUES ('Alexander.Buss@kcell.kz', 'nc_optimization_maintenance');
+INSERT INTO act_id_membership (user_id_, group_id_) VALUES ('Erbol.Abenov@kcell.kz', 'nc_sao_planning');
+INSERT INTO act_id_membership (user_id_, group_id_) VALUES ('Stanislav.Khvan@kcell.kz', 'nc_sao_planning');
+INSERT INTO act_id_membership (user_id_, group_id_) VALUES ('Dastan.Kazhibayev@kcell.kz', 'nc_sao_planning');
+INSERT INTO act_id_membership (user_id_, group_id_) VALUES ('Altynay.Ashken@kcell.kz', 'nc_sao_planning');
+INSERT INTO act_id_membership (user_id_, group_id_) VALUES ('Kenzhekhan.Mussayev@kcell.kz', 'nc_sao_planning');
+INSERT INTO act_id_membership (user_id_, group_id_) VALUES ('Alexander.Buss@kcell.kz', 'nc_sao_planning');
+INSERT INTO act_id_membership (user_id_, group_id_) VALUES ('Erbol.Abenov@kcell.kz', 'nc_sao_maintenance');
+INSERT INTO act_id_membership (user_id_, group_id_) VALUES ('Alexander.Buss@kcell.kz', 'nc_sao_maintenance');
 
 --FILTERS
 INSERT INTO act_ru_filter (id_, rev_, resource_type_, name_, owner_, query_, properties_) VALUES ('00e50a2b-4f69-11e7-a8c6-0242ac120007', 1, 'Task', 'All Tasks', 'demo', '{}', '{"variables":[{"name":"jrNumber","label":"JR Number"}],"description":"All Tasks - Not recommended to be used in production :)","priority":10}');
