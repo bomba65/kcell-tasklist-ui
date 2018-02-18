@@ -132,6 +132,7 @@ INSERT INTO act_id_user (id_, rev_, first_, last_, email_, pwd_, picture_id_) VA
 INSERT INTO act_id_user (id_, rev_, first_, last_, email_, pwd_, picture_id_) VALUES ('Kenzhekhan.Mussayev@kcell.kz', 1, 'Kenzhekhan', 'Mussayev', 'Kenzhekhan.Mussayev@kcell.kz', '{SHA}ieSV55Qc+eQOaYDRSha/AjzNTJE=', NULL);
 INSERT INTO act_id_user (id_, rev_, first_, last_, email_, pwd_, picture_id_) VALUES ('Erbol.Abenov@kcell.kz', 1, 'Erbol', 'Abenov', 'Erbol.Abenov@kcell.kz', '{SHA}ieSV55Qc+eQOaYDRSha/AjzNTJE=', NULL);
 INSERT INTO act_id_user (id_, rev_, first_, last_, email_, pwd_, picture_id_) VALUES ('Aida.Ildebaeva@kcell.kz', 1, 'Aida', 'Ildebaeva', 'Aida.Ildebaeva@kcell.kz', '{SHA}ieSV55Qc+eQOaYDRSha/AjzNTJE=', NULL);
+INSERT INTO act_id_user (id_, rev_, first_, last_, email_, pwd_, picture_id_) VALUES ('Azamat.Mukhametalin@kcell.kz', 1, 'Azamat', 'Mukhametalin', 'Azamat.Mukhametalin@kcell.kz', '{SHA}ieSV55Qc+eQOaYDRSha/AjzNTJE=', NULL);
 INSERT INTO act_id_user (id_, rev_, first_, last_, email_, pwd_, picture_id_) VALUES ('aknur.s@lse.kz', 1, 'Aknur', 'Sagalova', 'aknur.s@lse.kz', '{SHA}ieSV55Qc+eQOaYDRSha/AjzNTJE=', NULL);
 
 
@@ -238,11 +239,8 @@ INSERT INTO act_id_group (id_, rev_, name_, type_) VALUES ('west_sao_planning', 
 INSERT INTO act_id_group (id_, rev_, name_, type_) VALUES ('west_optimization_maintanance', 1, 'west_optimization_maintanance', 'WORKFLOW');
 INSERT INTO act_id_group (id_, rev_, name_, type_) VALUES ('west_infrastructure_maintanance', 1, 'west_infrastructure_maintanance', 'WORKFLOW');
 INSERT INTO act_id_group (id_, rev_, name_, type_) VALUES ('west_sao_maintanance', 1, 'south_sao_maintanance', 'WORKFLOW');
-INSERT INTO act_id_group (id_, rev_, name_, type_) VALUES ('nc_infrastructure_planning', 1, 'nc_infrastructure_planning', 'WORKFLOW');
 INSERT INTO act_id_group (id_, rev_, name_, type_) VALUES ('nc_infrastructure_maintenance', 1, 'nc_infrastructure_maintenance', 'WORKFLOW');
-INSERT INTO act_id_group (id_, rev_, name_, type_) VALUES ('nc_optimization_planning', 1, 'nc_optimization_planning', 'WORKFLOW');
 INSERT INTO act_id_group (id_, rev_, name_, type_) VALUES ('nc_optimization_maintenance', 1, 'nc_optimization_maintenance', 'WORKFLOW');
-INSERT INTO act_id_group (id_, rev_, name_, type_) VALUES ('nc_sao_planning', 1, 'nc_sao_planning', 'WORKFLOW');
 INSERT INTO act_id_group (id_, rev_, name_, type_) VALUES ('nc_sao_maintenance', 1, 'nc_sao_maintenance', 'WORKFLOW');
 
 
