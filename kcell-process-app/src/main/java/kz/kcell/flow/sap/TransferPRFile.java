@@ -22,9 +22,9 @@ public class TransferPRFile implements JavaDelegate {
     private SftpConfig.UploadGateway gateway;
 
     @Autowired
-    public TransferPRFile(Minio minioClient, SftpConfig.UploadGateway uploadGateway) {
+    public TransferPRFile(Minio minioClient, SftpConfig.UploadGateway gateway) {
         this.minioClient = minioClient;
-        this.gateway = uploadGateway;
+        this.gateway = gateway;
     }
 
     @Override

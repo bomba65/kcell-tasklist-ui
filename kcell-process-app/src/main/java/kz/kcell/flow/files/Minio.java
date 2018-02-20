@@ -1,12 +1,8 @@
 package kz.kcell.flow.files;
 
 import io.minio.MinioClient;
-import io.minio.Result;
 import io.minio.errors.*;
-import io.minio.messages.Item;
 import lombok.extern.apachecommons.CommonsLog;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.context.event.ApplicationReadyEvent;
@@ -31,37 +27,30 @@ public class Minio {
     public Minio(@Value("${minio.url:http://localhost:9000}") String minioUrl,
                  @Value("${minio.access.key:AKIAIOSFODNN7EXAMPLE}") String minioAccessKey,
                  @Value("${minio.secret.key:wJalrXUtnFEMI/K7MDENG/bPxRfiCYEXAMPLEKEY}") String minioSecretKey)
-        throws InvalidPortException, InvalidEndpointException, IOException, InvalidKeyException, NoSuchAlgorithmException,
-        InsufficientDataException, NoResponseException, InvalidBucketNameException, XmlPullParserException, InternalException,
-        RegionConflictException, ErrorResponseException {
+        throws InvalidPortException, InvalidEndpointException {
 
         minioClient = new MinioClient(minioUrl, minioAccessKey, minioSecretKey);
     }
 
     @EventListener
-    protected void makeBucket(ApplicationReadyEvent event)
-        throws IOException, InvalidKeyException, NoSuchAlgorithmException, InsufficientDataException, InternalException,
+    protected void makeBucket(ApplicationReadyEvent event) throws IOException, InvalidKeyException, NoSuchAlgorithmException, InsufficientDataException, InternalException,
+        NoResponseException, InvalidBucketNameException, XmlPullParserException, RegionConflictException, ErrorResponseException {
+        makeBucket(bucketName);
+        makeBucket(tempBucketName);
+    }
+
+    private void makeBucket(String bucketName) throws IOException, InvalidKeyException, NoSuchAlgorithmException, InsufficientDataException, InternalException,
         NoResponseException, InvalidBucketNameException, XmlPullParserException, RegionConflictException, ErrorResponseException {
         try {
             minioClient.makeBucket(bucketName);
         } catch (ErrorResponseException e) {
             if ("BucketAlreadyOwnedByYou".equals(e.errorResponse().code())) {
-                log.debug("Bucket is already there, noop");
-            } else {
-                throw e;
-            }
-        }
-        try {
-            minioClient.makeBucket(tempBucketName);
-        } catch (ErrorResponseException e) {
-            if ("BucketAlreadyOwnedByYou".equals(e.errorResponse().code())) {
-                log.debug("Temp Bucket is already there, noop");
+                log.debug("Bucket " + bucketName + " is already there, noop");
             } else {
                 throw e;
             }
         }
     }
-
 
     public String getBucketName() {
         return bucketName;

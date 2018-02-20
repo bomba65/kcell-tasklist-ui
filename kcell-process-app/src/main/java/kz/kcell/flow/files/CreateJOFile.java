@@ -1,4 +1,4 @@
-package kz.kcell.flow.sap;
+package kz.kcell.flow.files;
 
 import kz.kcell.flow.files.Minio;
 import lombok.extern.java.Log;

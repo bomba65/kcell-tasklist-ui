@@ -6,6 +6,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.context.annotation.Profile;
 import org.springframework.expression.common.LiteralExpression;
 import org.springframework.integration.annotation.Gateway;
 import org.springframework.integration.annotation.InboundChannelAdapter;
@@ -14,6 +15,7 @@ import org.springframework.integration.annotation.ServiceActivator;
 import org.springframework.integration.core.MessageSource;
 import org.springframework.integration.file.FileNameGenerator;
 import org.springframework.integration.file.filters.AcceptOnceFileListFilter;
+import org.springframework.integration.file.remote.RemoteFileTemplate;
 import org.springframework.integration.file.remote.session.CachingSessionFactory;
 import org.springframework.integration.file.remote.session.SessionFactory;
 import org.springframework.integration.sftp.filters.SftpSimplePatternFileListFilter;
@@ -30,6 +32,7 @@ import javax.annotation.Resource;
 import java.io.File;
 
 @Configuration
+@Profile("production")
 @Log
 public class SftpConfig {
 
@@ -54,7 +57,6 @@ public class SftpConfig {
     @Value("${sftp.remote.directory.jojr:/home/KWMS/JR_JO_Creation/Sap JO File}")
     private String sftpRemoteDirectoryJoJr;
 
-    @Bean
     public SessionFactory<ChannelSftp.LsEntry> sftpSessionFactory() {
         DefaultSftpSessionFactory factory = new DefaultSftpSessionFactory(true);
         factory.setHost(sftpHost);
@@ -67,7 +69,7 @@ public class SftpConfig {
 
     @Bean
     @ServiceActivator(inputChannel = "toJoJrSftpChannel")
-    public MessageHandler toJoJrHandler() {
+    public MessageHandler toJoJrSftpMessageHandler() {
         SftpMessageHandler handler = new SftpMessageHandler(sftpSessionFactory());
         handler.setRemoteDirectoryExpression(new LiteralExpression(sftpRemoteDirectoryJoJr));
         handler.setFileNameGenerator(new FileNameGenerator() {
@@ -75,7 +77,7 @@ public class SftpConfig {
             public String generateFileName(Message<?> message) {
                 if (message.getPayload() instanceof File) {
 
-                    SftpRemoteFileTemplate template = template();
+                    SftpRemoteFileTemplate template = (SftpRemoteFileTemplate) template();
                     String successFilePath = sftpRemoteDirectoryToJoJr + "/" + ((File) message.getPayload()).getName();
                     Boolean successResult = template.exists(successFilePath);
                     if(successResult){
@@ -93,7 +95,7 @@ public class SftpConfig {
 
     @Bean
     @ServiceActivator(inputChannel = "toPrSftpChannel")
-    public MessageHandler toPrHandler() {
+    public MessageHandler toPrSftpMessageHandler() {
         SftpMessageHandler handler = new SftpMessageHandler(sftpSessionFactory());
         handler.setRemoteDirectoryExpression(new LiteralExpression(sftpRemoteDirectoryToPr));
         handler.setFileNameGenerator(new FileNameGenerator() {
@@ -101,7 +103,7 @@ public class SftpConfig {
             public String generateFileName(Message<?> message) {
                 if (message.getPayload() instanceof File) {
 
-                    SftpRemoteFileTemplate template = template();
+                    SftpRemoteFileTemplate template = (SftpRemoteFileTemplate) template();
                     String successFilePath = sftpRemoteDirectoryToPr + "/" + ((File) message.getPayload()).getName();
                     Boolean successResult = template.exists(successFilePath);
                     if(successResult){
@@ -118,17 +120,17 @@ public class SftpConfig {
     }
 
     @Bean
-    public SftpRemoteFileTemplate template() {
+    public RemoteFileTemplate template() {
         return new SftpRemoteFileTemplate(sftpSessionFactory());
     }
 
     @MessagingGateway
     public interface UploadGateway {
 
-        @Gateway(requestChannel = "toJoJrSftpChannel")
+        @Gateway(requestChannel = "toJoJrChannel")
         void uploadJrJo(File file);
 
-        @Gateway(requestChannel = "toPrSftpChannel")
+        @Gateway(requestChannel = "toPrChannel")
         void uploadPr(File file);
     }
 }

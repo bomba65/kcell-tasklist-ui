@@ -1,5 +1,13 @@
 package kz.kcell.flow;
 
+import com.amazonaws.ClientConfiguration;
+import com.amazonaws.Protocol;
+import com.amazonaws.auth.AWSCredentials;
+import com.amazonaws.auth.AWSStaticCredentialsProvider;
+import com.amazonaws.auth.BasicAWSCredentials;
+import com.amazonaws.client.builder.AwsClientBuilder;
+import com.amazonaws.services.s3.AmazonS3;
+import com.amazonaws.services.s3.AmazonS3ClientBuilder;
 import kz.kcell.camunda.authentication.plugin.KcellIdentityProviderPlugin;
 import kz.kcell.flow.mail.CamundaMailerDelegate;
 import kz.kcell.flow.mail.TaskNotificationListener;
@@ -12,8 +20,8 @@ import org.camunda.bpm.engine.rest.mapper.JacksonConfigurator;
 import org.camunda.bpm.engine.spring.SpringProcessEngineConfiguration;
 import org.camunda.bpm.spring.boot.starter.SpringBootProcessApplication;
 import org.camunda.bpm.spring.boot.starter.util.SpringBootProcessEnginePlugin;
-import org.camunda.bpm.spring.boot.starter.webapp.CamundaBpmWebappAutoConfiguration;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
@@ -108,5 +116,25 @@ public class CamundaApplication extends SpringBootProcessApplication {
     @Bean
     public ScriptEngineManager scriptEngineManager() {
         return new ScriptEngineManager();
+    }
+
+    @Bean
+    public AmazonS3 amazonS3(@Value("${minio.url:http://localhost:9000}") String minioUrl,
+                             @Value("${minio.access.key:AKIAIOSFODNN7EXAMPLE}") String minioAccessKey,
+                             @Value("${minio.secret.key:wJalrXUtnFEMI/K7MDENG/bPxRfiCYEXAMPLEKEY}") String minioSecretKey){
+
+        AWSCredentials credentials = new BasicAWSCredentials(minioAccessKey, minioSecretKey);
+
+        ClientConfiguration clientConfig = new ClientConfiguration();
+        clientConfig.setProtocol(Protocol.HTTP);
+
+        AwsClientBuilder.EndpointConfiguration endpointConfiguration = new AwsClientBuilder.EndpointConfiguration(
+            "http://localhost:9000", "us-east-1");
+
+        return AmazonS3ClientBuilder.standard()
+            .withCredentials(new AWSStaticCredentialsProvider(credentials))
+            .withClientConfiguration(clientConfig)
+            .withPathStyleAccessEnabled(true)
+            .withEndpointConfiguration(endpointConfiguration).build();
     }
 }

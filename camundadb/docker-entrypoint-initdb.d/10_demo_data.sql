@@ -539,7 +539,6 @@ INSERT INTO act_id_membership (user_id_, group_id_) VALUES ('Erbol.Abenov@kcell.
 INSERT INTO act_id_membership (user_id_, group_id_) VALUES ('Erbol.Abenov@kcell.kz', 'nc_operation_head');
 INSERT INTO act_id_membership (user_id_, group_id_) VALUES ('Erzhan.Beimbetov@kcell.kz', 'nc_power_engineer');
 INSERT INTO act_id_membership (user_id_, group_id_) VALUES ('Kenzhekhan.Mussayev@kcell.kz', 'nc_power_engineer');
-INSERT INTO act_id_membership (user_id_, group_id_) VALUES ('Kenzhekhan.Mussayev@kcell.kz', 'nc_power_engineer');
 INSERT INTO act_id_membership (user_id_, group_id_) VALUES ('Azamat.Mukhametalin@kcell.kz', 'nc_power_engineer');
 INSERT INTO act_id_membership (user_id_, group_id_) VALUES ('Igor.Orlov@kcell.kz', 'nc_power_engineer');
 INSERT INTO act_id_membership (user_id_, group_id_) VALUES ('Azamat.Mukhametalin@kcell.kz', 'nc_leasing');

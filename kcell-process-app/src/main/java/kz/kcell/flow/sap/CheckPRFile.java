@@ -7,9 +7,11 @@ import org.camunda.spin.json.SpinJsonNode;
 import org.camunda.spin.plugin.variable.value.JsonValue;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
-import org.springframework.integration.sftp.session.SftpRemoteFileTemplate;
+import org.springframework.core.env.Environment;
+import org.springframework.integration.file.remote.RemoteFileTemplate;
 import org.springframework.stereotype.Service;
 
+import java.util.Arrays;
 import java.util.Scanner;
 
 @Service("checkPRFile")
@@ -17,7 +19,10 @@ import java.util.Scanner;
 public class CheckPRFile implements JavaDelegate {
 
     @Autowired
-    private SftpRemoteFileTemplate template;
+    private RemoteFileTemplate template;
+
+    @Autowired
+    private Environment environment;
 
     @Value("${sftp.remote.directory.pr.ok:/home/KWMS/CIP_PR_Creation/PR_Created}")
     private String sftpRemoteDirectoryPrOk;
@@ -28,24 +33,35 @@ public class CheckPRFile implements JavaDelegate {
     @Value("${sftp.remote.directory.pr.number:/home/KWMS/CIP_PR_Creation/PR_Status/status.txt}")
     private String sftpRemoteDirectoryPrNumber;
 
+    @Value("${s3.bucket.pr:prfiles}")
+    private String prBucketName;
+
     @Override
-    public void execute(DelegateExecution delegateExecution) throws Exception {
+    public void execute(DelegateExecution delegateExecution){
+
+        Boolean isSftp = Arrays.stream(environment.getActiveProfiles()).anyMatch(env -> (env.equalsIgnoreCase("production")));
 
         SpinJsonNode prFile =  delegateExecution.<JsonValue>getVariableTyped("prFile").getValue();
         String name = prFile.prop("name").stringValue();
 
-        String successFilePath = sftpRemoteDirectoryPrOk + "/" + name;
+        String successFilePath = isSftp ? sftpRemoteDirectoryPrOk + "/" + name : prBucketName + "/" + name;
         Boolean successResult = template.exists(successFilePath);
 
-        if(successResult){
-            template.get(successFilePath,
-                inputStream -> {
-                    Scanner s = new Scanner(inputStream).useDelimiter("\\A");
-                    String result = s.hasNext() ? s.next() : "";
+        log.info("isSftp :" + isSftp);
+        log.info("successFilePath :" + successFilePath);
+        log.info("successResult :" + successResult);
 
-                    log.info("Remote succes file for JR " + delegateExecution.getVariable("jrNumber").toString() + " is: " + result);
-                }
-            );
+        if(successResult){
+            if(isSftp) {
+                template.get(successFilePath,
+                    inputStream -> {
+                        Scanner s = new Scanner(inputStream).useDelimiter("\\A");
+                        String result = s.hasNext() ? s.next() : "";
+
+                        log.info("Remote succes file for JR " + delegateExecution.getVariable("jrNumber").toString() + " is: " + result);
+                    }
+                );
+            }
 /*            Boolean numberResult = template.exists(sftpRemoteDirectoryPrNumber);
             if(numberResult){
                 template.get(sftpRemoteDirectoryPrNumber,
@@ -78,21 +94,25 @@ public class CheckPRFile implements JavaDelegate {
 */
             delegateExecution.setVariable("prFileCheckResult", "succes");
         } else {
-            String errorFilePath = sftpRemoteDirectoryPrError + "/" + name;
-            Boolean errorResult = template.exists(errorFilePath);
+            if(isSftp){
+                String errorFilePath = sftpRemoteDirectoryPrError + "/" + name;
+                Boolean errorResult = template.exists(errorFilePath);
 
-            if(errorResult){
-                template.get(errorFilePath,
-                    inputStream -> {
-                        Scanner s = new Scanner(inputStream).useDelimiter("\\A");
-                        String result = s.hasNext() ? s.next() : "";
+                if(errorResult){
+                    template.get(errorFilePath,
+                        inputStream -> {
+                            Scanner s = new Scanner(inputStream).useDelimiter("\\A");
+                            String result = s.hasNext() ? s.next() : "";
 
-                        delegateExecution.setVariable("prFileCheckError", result);
-                    }
-                );
-                template.remove(errorFilePath);
+                            delegateExecution.setVariable("prFileCheckError", result);
+                        }
+                    );
+                    template.remove(errorFilePath);
+                } else {
+                    delegateExecution.setVariable("prFileCheckError", "Pr result files not found");
+                }
             } else {
-                delegateExecution.setVariable("prFileCheckError", "Pr result files not found");
+                delegateExecution.setVariable("prFileCheckError", "PR files not found in bucket");
             }
 
             delegateExecution.setVariable("prFileCheckResult", "error");

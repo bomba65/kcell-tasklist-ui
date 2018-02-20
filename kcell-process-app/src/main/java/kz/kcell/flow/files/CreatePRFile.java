@@ -1,6 +1,7 @@
-package kz.kcell.flow.sap;
+package kz.kcell.flow.files;
 
 import kz.kcell.flow.files.Minio;
+import kz.kcell.flow.sap.SftpConfig;
 import lombok.extern.java.Log;
 import org.apache.commons.io.IOUtils;
 import org.camunda.bpm.engine.delegate.DelegateExecution;

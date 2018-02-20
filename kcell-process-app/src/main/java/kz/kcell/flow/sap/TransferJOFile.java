@@ -8,9 +8,9 @@ import org.camunda.bpm.engine.delegate.JavaDelegate;
 import org.camunda.spin.json.SpinJsonNode;
 import org.camunda.spin.plugin.variable.value.JsonValue;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 
-import java.io.ByteArrayInputStream;
 import java.io.File;
 import java.io.FileOutputStream;
 import java.io.InputStream;
@@ -23,9 +23,9 @@ public class TransferJOFile implements JavaDelegate {
     private SftpConfig.UploadGateway gateway;
 
     @Autowired
-    public TransferJOFile(Minio minioClient, SftpConfig.UploadGateway uploadGateway) {
+    public TransferJOFile(Minio minioClient, SftpConfig.UploadGateway gateway) {
         this.minioClient = minioClient;
-        this.gateway = uploadGateway;
+        this.gateway = gateway;
     }
 
     @Override
