@@ -129,7 +129,7 @@ public class CamundaApplication extends SpringBootProcessApplication {
         clientConfig.setProtocol(Protocol.HTTP);
 
         AwsClientBuilder.EndpointConfiguration endpointConfiguration = new AwsClientBuilder.EndpointConfiguration(
-            "http://localhost:9000", "us-east-1");
+            minioUrl, "us-east-1");
 
         return AmazonS3ClientBuilder.standard()
             .withCredentials(new AWSStaticCredentialsProvider(credentials))
