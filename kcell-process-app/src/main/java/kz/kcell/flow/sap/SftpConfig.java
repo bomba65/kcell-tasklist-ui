@@ -32,7 +32,7 @@ import javax.annotation.Resource;
 import java.io.File;
 
 @Configuration
-@Profile("production")
+@Profile("sftp")
 @Log
 public class SftpConfig {
 

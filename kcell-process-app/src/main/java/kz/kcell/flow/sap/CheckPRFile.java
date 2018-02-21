@@ -39,17 +39,13 @@ public class CheckPRFile implements JavaDelegate {
     @Override
     public void execute(DelegateExecution delegateExecution){
 
-        Boolean isSftp = Arrays.stream(environment.getActiveProfiles()).anyMatch(env -> (env.equalsIgnoreCase("production")));
+        Boolean isSftp = Arrays.stream(environment.getActiveProfiles()).anyMatch(env -> (env.equalsIgnoreCase("sftp")));
 
         SpinJsonNode prFile =  delegateExecution.<JsonValue>getVariableTyped("prFile").getValue();
         String name = prFile.prop("name").stringValue();
 
         String successFilePath = isSftp ? sftpRemoteDirectoryPrOk + "/" + name : prBucketName + "/" + name;
         Boolean successResult = template.exists(successFilePath);
-
-        log.info("isSftp :" + isSftp);
-        log.info("successFilePath :" + successFilePath);
-        log.info("successResult :" + successResult);
 
         if(successResult){
             if(isSftp) {

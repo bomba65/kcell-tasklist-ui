@@ -22,7 +22,7 @@ import java.io.File;
 import java.util.Arrays;
 
 @Configuration
-@Profile("!production")
+@Profile("!sftp")
 @Log
 public class S3Config {
 
@@ -40,15 +40,11 @@ public class S3Config {
 
     @EventListener
     protected void makeBucket(ApplicationReadyEvent event) {
-        Boolean isSftp = Arrays.stream(environment.getActiveProfiles()).anyMatch(env -> (env.equalsIgnoreCase("production")));
-
-        if(!isSftp){
-            if(!amazonS3.doesBucketExist(jojrBucketName)){
-                amazonS3.createBucket(jojrBucketName);
-            }
-            if(!amazonS3.doesBucketExist(prBucketName)){
-                amazonS3.createBucket(prBucketName);
-            }
+        if(!amazonS3.doesBucketExist(jojrBucketName)){
+            amazonS3.createBucket(jojrBucketName);
+        }
+        if(!amazonS3.doesBucketExist(prBucketName)){
+            amazonS3.createBucket(prBucketName);
         }
     }
 
