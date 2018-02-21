@@ -9,6 +9,7 @@ import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.context.annotation.Profile;
 import org.springframework.context.event.EventListener;
+import org.springframework.core.env.Environment;
 import org.springframework.integration.annotation.Gateway;
 import org.springframework.integration.annotation.MessagingGateway;
 import org.springframework.integration.annotation.ServiceActivator;
@@ -18,6 +19,7 @@ import org.springframework.integration.file.remote.RemoteFileTemplate;
 import org.springframework.messaging.MessageHandler;
 
 import java.io.File;
+import java.util.Arrays;
 
 @Configuration
 @Profile("!production")
@@ -27,6 +29,9 @@ public class S3Config {
     @Autowired
     private AmazonS3 amazonS3;
 
+    @Autowired
+    private Environment environment;
+
     @Value("${s3.bucket.jojr:jojr}")
     private String jojrBucketName;
 
@@ -35,11 +40,15 @@ public class S3Config {
 
     @EventListener
     protected void makeBucket(ApplicationReadyEvent event) {
-        if(!amazonS3.doesBucketExist(jojrBucketName)){
-            amazonS3.createBucket(jojrBucketName);
-        }
-        if(!amazonS3.doesBucketExist(prBucketName)){
-            amazonS3.createBucket(prBucketName);
+        Boolean isSftp = Arrays.stream(environment.getActiveProfiles()).anyMatch(env -> (env.equalsIgnoreCase("production")));
+
+        if(!isSftp){
+            if(!amazonS3.doesBucketExist(jojrBucketName)){
+                amazonS3.createBucket(jojrBucketName);
+            }
+            if(!amazonS3.doesBucketExist(prBucketName)){
+                amazonS3.createBucket(prBucketName);
+            }
         }
     }
 
