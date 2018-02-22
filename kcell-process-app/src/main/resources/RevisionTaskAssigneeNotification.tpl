@@ -17,7 +17,7 @@ html(lang:'en') {
         p {
             yield 'Открыть Kcell Workflow вы можете пройдя по следующей ссылке: '
             b {
-                a(href: 'https://flow.kcell.kz', 'https://flow.kcell.kz')
+                a(href: baseUrl, baseUrl)
             }
         }
         p {

@@ -3,7 +3,7 @@ import groovy.text.markup.TemplateConfiguration
 
 def taskUrl = baseUrl + '/kcell-tasklist-ui/#/tasks/' + delegateTask.id
 
-def binding = ["taskUrl": taskUrl, "businessKey": delegateTask.execution.processBusinessKey, "delegateTask": delegateTask]
+def binding = ["taskUrl": taskUrl, "baseUrl": baseUrl, "businessKey": delegateTask.execution.processBusinessKey, "delegateTask": delegateTask]
 
 def template = this.getClass().getResource(templateName).text
 
