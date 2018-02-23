@@ -4,23 +4,22 @@ define(['./module'], function(module){
 		return {
 			restrict: 'E',
 			scope: {
-				invoice: '='
+                invoice: '=',
+                print: '='
 			},
 			link: function(scope, element, attrs) {
 				scope.catalogs = {};
-
                 scope.processInstanceId = undefined;
                 scope.pkey = undefined;
                 scope.table = undefined;
                 scope.selectedWorks = [];
                 var selectedWorksMap = {};      
-
+                console.log(scope.print);
                 var Big;
                 if(window.require){
                     Big = require('big-js')
                 }
                 scope.totalPrice = Big('0.0');
-
                 function transformToArray(){
                     for(var propt in scope.invoice.selectedRevisions.value){
                         _.forEach(scope.invoice.selectedRevisions.value[propt].works, function (work) {
@@ -28,7 +27,6 @@ define(['./module'], function(module){
                             processDetailCopy.quantity = work.quantity;
                             processDetailCopy.relatedSites = work.relatedSites;
                             delete processDetailCopy.works;
-
                             if(scope.invoice.selectedRevisions.value[propt].workPrices){
                                 var prices = _.find(scope.invoice.selectedRevisions.value[propt].workPrices, function(price){
                                     return price.sapServiceNumber === work.sapServiceNumber;
