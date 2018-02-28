@@ -3,5 +3,6 @@ define([
 	'./loginCtrl',
 	'./statisticsCtrl',
 	'./taskController',
-	'./processesCtrl'
+	'./processesCtrl',
+	'./searchCtrl'
 	], function(){});

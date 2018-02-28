@@ -17,6 +17,35 @@ define(['./module','jquery'], function(app,$){
 		$scope.baseUrl = '/camunda/api/engine/engine/default';
 		// $scope.baseUrl = "https://test-flow.kcell.kz/engine-rest/engine/default";
 
+        if($rootScope.authentication){
+            $http.get($scope.baseUrl+'/user/'+$rootScope.authentication.name+'/profile').then(
+                function(userProfile){
+                    $rootScope.authUser = userProfile.data;
+                    $http.get($scope.baseUrl+'/group?member='+$rootScope.authUser.id).then(
+                        function(groups){
+                            $rootScope.authUser.groups = groups.data;
+                        },
+                        function(error){
+                            console.log(error.data);
+                        }
+                    );
+                },
+                function(error){
+                    console.log(error.data);
+                }
+            );
+        }
+
+        $rootScope.hasGroup = function(group){
+            if($rootScope.authUser && $rootScope.authUser.groups){
+                return _.some($rootScope.authUser.groups, function(value){
+                    return value.id === group;
+                });
+            } else {
+                return false;
+            }
+        }
+
 		$scope.reportsMap = {
             'revision-open-tasks': {name: 'Revision open tasks'}
         };

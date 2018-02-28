@@ -76,6 +76,12 @@ define('app',[
 	    	controller: "statisticsCtrl",
 	    	authenticate: true,
 	    	resolve: resolve
+	    }).state("search", {
+	    	url: "/search",
+	    	templateUrl: "js/partials/search.html",
+	    	controller: "searchCtrl",
+	    	authenticate: true,
+	    	resolve: resolve
 	    });
 	}]).provider('Uri',  function() {
 		var TEMPLATES_PATTERN = /[\w]+:\/\/|:[\w]+/g;

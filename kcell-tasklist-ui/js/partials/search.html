@@ -1,0 +1,161 @@
+<div class="row layout-row">
+	<div class="col-md-12 no-float">
+		<div class="currentTask">
+			<div class="scrollcontainer">
+				<div class="scrollable">
+					<div class="page-body container-fluid">
+						<h3>Revision Works Processes Search</h3>
+						<h3>Filter</h3>
+						<div class="row" ng-if="hasGroup('head_kcell_users') || hasGroup('revision_managers') || hasGroup('revision_audit')">
+						    <div class="form-group col-sm-4">
+						        <label class="col-sm-4 control-label">Region:</label>
+						        <div class="col-sm-8">
+									<select ng-model="filter.region" class="form-control" ng-init="filter.region = 'all'">
+										<option value="all">All</option>
+										<option value="{{key}}" ng-repeat="(key, value) in regionsMap" ng-selected="{{key == filter.region}}">{{value}}</option>
+									</select>
+						        </div>
+						    </div>							
+						</div>
+						<div class="row">
+						    <div class="form-group col-sm-4">
+						        <label class="col-sm-4 control-label">Sitename:</label>
+						        <div class="col-sm-8">
+						            <input type="text" ng-model="filter.sitename" name="site_name" typeahead="site as sites.site_name for sites in getSite($viewValue) | filter:$viewValue" typeahead-on-select="siteSelected($item,$model,$label)" class="form-control" autocomplete="off" placeholder="Site Name">
+						            <input type="hidden" ng-model="site" name="siteId"/>				
+						        </div>
+						    </div>
+						    <div class="form-group col-sm-4">
+						        <label class="col-sm-4 control-label">JR Number:</label>
+						        <div class="col-sm-8">
+									<input type="text" ng-model="filter.businessKey" class="form-control" placeholder="Alm-LSE-P&O-17-4025" />
+						        </div>
+						    </div>
+						    <div class="form-group col-sm-4">
+						        <label class="col-sm-4 control-label">Work Type:</label>
+						        <div class="col-sm-8">
+									<select ng-model="filter.workType" class="form-control">
+										<option value="{{r.id}}" ng-repeat="r in reasons" ng-selected="{{r.id == filter.workType}}">{{r.name}}</option>
+									</select>
+						        </div>
+						    </div>
+						</div>
+						<div class="row">
+						    <div class="form-group">
+						        <div class="col-sm-8">			    	
+									<a class="btn btn-success" ng-click="search(true)">Filter ({{total}})<i class="fa fa-search"></i></a>
+								</div>
+							</div>				
+						</div>
+					    <div style="margin-bottom: 20px;"></div>
+
+						<table class="table table-condensed table-hover table-bordered" ng-if="processInstances">
+							<thead>
+								<tr>
+									<th>#</th>
+									<th>Region</th>
+									<th>Sitename</th>
+									<th>JR Number</th>
+									<th>Execution Time</th>
+									<th>Current Activity</th>
+									<th>Contractor</th>
+									<th>Reason</th>
+									<th>Requested By</th>
+									<th>Current Assignee</th>
+									<th>Requested Date</th>
+									<th>Validity Date</th>
+									<th>Jobs List</th>
+								</tr>
+							</thead>
+							<tbody ng-repeat="pi in processInstances">
+								<tr class="pi-{{pi.state}}">
+									<td>{{(filter.page-1)*20 + $index + 1}}</td>
+									<td>{{regionsMap[pi.siteRegion]}}</td>
+									<td>{{pi.site_name}}</td>
+									<td>
+										<a ng-click="toggleProcessView($index, pi.processDefinitionKey)">
+											{{pi.businessKey}}
+										</a>
+									</td>
+									<td>{{pi.executionTime}} days</td>
+									<td>
+										<span ng-if="!(hasGroup('revision_managers') || hasGroup('revision_audit'))" ng-repeat="task in pi.tasks">Task: {{task.name}}<br/></span>
+										<a ng-if="hasGroup('revision_managers') || hasGroup('revision_audit')" ng-repeat="task in pi.tasks" ui-sref="tasks.task({id:task.id})" target="_blank">Task: {{task.name}}<br/></a>
+										<span ng-repeat="act in pi.otherActivities">Activity: {{act.activityName}}<br/></span>
+									</td>
+									<td>{{contractorShortName[pi.contractor]}}</td>
+									<td>{{reasonShortName[pi.reason]}}</td>
+									<td>{{pi.startUser.firstName}} {{pi.startUser.lastName}}</td>
+									<td>
+										<a ng-click="showTaskDetail(task)" ng-repeat="task in pi.tasks">{{task.assignee ? (task.assigneeDetail.firstName + ' ' + task.assigneeDetail.lastName) : 'Not claimed'}}<br/></a>
+									</td>
+									<td>{{pi.requestedDate | date:'dd-MM-yyyy'}}</td>
+									<td>{{pi.validityDate | date:'dd-MM-yyyy'}}</td>
+									<td>
+										<a ng-click="showWorkDetail(pi.jobWorks)" >{{pi.jobWorks.length}} works</a>
+									</td>
+								</tr>
+								<tr ng-if="piIndex === $index && jobModel">
+									<td colspan="10">
+										<job-request job-model="jobModel" ng-if="jobModel.processDefinitionKey == 'Revision'"></job-request>
+									</td>
+									<td colspan="3" style="height: 1px;">
+										<div class="left-wrapper" style="padding: 0">
+											<div class="scrollcontainer">
+												<div class="scrollable left" style="padding: 10px 0px; background: transparent;">
+													<div>
+													    <div class="row" ng-if="jobModel.state">
+													        <div class="col-xs-4 col-md-4"><b>{{getStatus(jobModel.state, jobModel.acceptPerformedJob.value)}}</b>
+													        </div>
+													    </div>
+													</div>
+													<div>
+														<a href="" class="btn btn-default" ng-click="showDiagram(pi.processDefinitionId)" class="ng-binding"><span class="glyphicon glyphicon-indent-left" aria-hidden="true"></span> Diagram</a>
+													</div>
+													<div style="margin-top: 10px;">
+														<a href="" class="btn btn-default" ng-click="showHistory(jobModel.resolutions)" class="ng-binding"><span class="glyphicon glyphicon-list-alt" aria-hidden="true"></span> History  </a>
+													</div>
+													<ul id="tasks">
+														<li ng-repeat="task in jobModel.tasks">
+														  <div class="task">
+															<h5>
+																<a ng-if="hasGroup('revision_managers') || hasGroup('revision_audit')" ui-sref="tasks.task({id:task.id})" target="_blank">{{ (task.name || task.id) }}</a></h5>
+																<span ng-if="!(hasGroup('revision_managers') || hasGroup('revision_audit'))" ui-sref="tasks.task({id:task.id})" target="_blank">{{ (task.name || task.id) }}</span></h5>
+																<div ng-if="task.description"> {{ task.description }} </div>
+																<small ng-if="hasGroup('kcellUsers')" class="text-muted" ng-if="task.group">
+																	Group: <a ng-click="showGroupDetails(task.group)">{{task.group}}</a>
+																</small>
+																<br/>
+																<small class="text-muted" ng-if="task.assignee">{{ task.assigneeObject.firstName }} {{ task.assigneeObject.lastName }}</small>
+																<small class="text-muted" ng-if="!task.assignee">Unassigned</small>
+															</div>
+														</li>
+													</ul>
+												</div>
+											</div>
+										</div>
+									</td>
+								</tr>
+							</tbody>
+							<tbody>
+								<tr>
+									<td colspan="13" style="text-align: center">
+										<a ng-disabled="filter.page <= 1" ng-click="selectPage(1)" class="btn btn-success">First</a>
+										<a ng-disabled="filter.page <= 1" ng-click="prevPage()" class="btn btn-success">Previous</a>
+										<a ng-repeat="page in getPages()" ng-disabled="filter.page == page" ng-click="selectPage(page)" class="btn btn-success">{{page}}</a>
+										<a ng-disabled="filter.page >= pages" ng-click="nextPage()" class="btn btn-success">Next</a>
+										<a ng-disabled="filter.page >= pages" ng-click="selectPage(pages)" class="btn btn-success">Last</a>
+									</td>
+								</tr>
+							</tbody>
+						</table>
+					</div>
+				</div>
+			</div>
+		</div>
+	</div>
+</div>
+<div class="diagram-pane scrollcontainer"  ng-show="showDiagramView && diagram.xml">
+	<a class="pull-right text-muted text-lg p-a-sm m-r-sm diagram-close-button" ng-click="showDiagramView = false;">×</a>
+	<div cam-widget-bpmn-viewer diagram-data="diagram.xml" on-load="highlightTask()" control="control"></div>
+</div>
