@@ -21,7 +21,7 @@ public class CamundaMailerDelegate implements JavaDelegate {
 
         String subject = String.valueOf(delegateExecution.getVariableLocal("subject"));
         String businessKey = delegateExecution.getProcessInstance().getBusinessKey();
-        if(subject!=null && businessKey!=null && !subject.contains(businessKey)){
+        if(subject!=null && businessKey!=null && !businessKey.equals("null") && !subject.contains(businessKey)){
             subject = businessKey + ", " + subject;
         }
 

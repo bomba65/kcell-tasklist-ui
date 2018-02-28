@@ -397,7 +397,7 @@
                             });
 
                             if($scope.jobRequests.length > 0){
-                                _.forEach(['site_name', 'priority', 'materialsRequired'], function(variable) {
+                                _.forEach(['site_name', 'priority', 'materialsRequired', 'performDate'], function(variable) {
                                     var varSearchParams = {processInstanceIdIn: _.map($scope.jobRequests, 'processInstanceId'), variableName: variable};
                                     $http({
                                         method: 'POST',
@@ -410,7 +410,7 @@
                                                     var f = _.filter(vars.data, function(v) {
                                                         return v.processInstanceId === el.processInstanceId;
                                                     });
-                                                    if(f){
+                                                    if(f && f[0]){
                                                         el[variable] = f[0].value;
                                                     }
                                                 });
@@ -453,12 +453,16 @@
                                             request.validateTr = validateTr.endTime;
                                         }
 
-                                        var acceptWorkInitiator = _.maxBy(_.filter(res.data, function(task){
-                                            return task.taskDefinitionKey === 'accept_work_initiator' || task.taskDefinitionKey === 'UserTask_1i7na4a';
-                                        }), function(o) { return o.startTime; });
+                                        if(request.performDate){
+                                            request.acceptWorkStartTime = request.performDate;
+                                        } else {
+                                            var acceptWorkInitiator = _.maxBy(_.filter(res.data, function(task){
+                                                return task.taskDefinitionKey === 'accept_work_initiator' || task.taskDefinitionKey === 'UserTask_1i7na4a';
+                                            }), function(o) { return o.startTime; });
 
-                                        if(acceptWorkInitiator){
-                                            request.acceptWorkStartTime = acceptWorkInitiator.startTime;
+                                            if(acceptWorkInitiator){
+                                                request.acceptWorkStartTime = acceptWorkInitiator.startTime;
+                                            }
                                         }
 
                                         var acceptWorkInitiator = _.maxBy(_.filter(res.data, function(task){
