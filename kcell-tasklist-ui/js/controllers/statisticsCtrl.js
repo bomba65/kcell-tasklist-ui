@@ -187,6 +187,7 @@ define(['./module','jquery'], function(app,$){
                     'accept_work_maintenance_group', //accept_work_maintenance_group
                     'accept_work_planning_group', //accept_work_planning_group
                     'sign_region_head', //accept_work_planning_group
+                    'attach-scan-copy-of-acceptance-form'
                 ];
 
         		$scope.contractorTasks = [
