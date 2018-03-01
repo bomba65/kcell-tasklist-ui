@@ -1,3 +1,13 @@
+<style type="text/css">
+.nowrapDots {
+    display:inline-block;
+    width:180px;
+    white-space: nowrap;
+    overflow:hidden !important;
+    text-overflow: ellipsis;
+}	
+</style>
+
 <div class="row layout-row">
 	<div class="col-md-12 no-float">
 		<div class="currentTask">
@@ -45,11 +55,14 @@
 						        <div class="col-sm-8">			    	
 									<a class="btn btn-success" ng-click="search(true)">Filter ({{total}})<i class="fa fa-search"></i></a>
 								</div>
+						        <div class="col-sm-4">
+				                    <a class="btn btn-success" style="float: right" ng-if="processInstances.length > 0" download="revisions.xlsx" id="xlsxClick" href="#" onclick="return angular.element(this).scope().ExcellentExport.convert({anchor: 'xlsxClick',format: 'xlsx',filename: 'revisions'}, [{name: 'Sheet Name Here 1',from: {table: 'revisionsTable'}}])">Export to Excel</a>
+								</div>
 							</div>				
 						</div>
 					    <div style="margin-bottom: 20px;"></div>
 
-						<table class="table table-condensed table-hover table-bordered" ng-if="processInstances">
+						<table class="table table-condensed table-hover table-bordered" ng-if="processInstances" id="revisionsTable" name="revisionsTable">
 							<thead>
 								<tr>
 									<th>#</th>
@@ -78,21 +91,26 @@
 										</a>
 									</td>
 									<td>{{pi.executionTime}} days</td>
-									<td>
-										<span ng-if="!(hasGroup('revision_managers') || hasGroup('revision_audit'))" ng-repeat="task in pi.tasks">Task: {{task.name}}<br/></span>
-										<a ng-if="hasGroup('revision_managers') || hasGroup('revision_audit')" ng-repeat="task in pi.tasks" ui-sref="tasks.task({id:task.id})" target="_blank">Task: {{task.name}}<br/></a>
-										<span ng-repeat="act in pi.otherActivities">Activity: {{act.activityName}}<br/></span>
+									<td style="max-width: 100px;">
+										<span ng-if="!(hasGroup('revision_managers') || hasGroup('revision_audit'))" ng-repeat="task in pi.tasks">{{$index+1}}. {{task.name}}<br/></span>
+										<a ng-if="hasGroup('revision_managers') || hasGroup('revision_audit')" ng-repeat="task in pi.tasks" ui-sref="tasks.task({id:task.id})" target="_blank">{{$index+1}}. {{task.name}}<br/></a>
+										<span ng-repeat="act in pi.otherActivities">{{pi.tasks.length+$index+1}}. {{act.activityName}}<br/></span>
 									</td>
 									<td>{{contractorShortName[pi.contractor]}}</td>
 									<td>{{reasonShortName[pi.reason]}}</td>
 									<td>{{pi.startUser.firstName}} {{pi.startUser.lastName}}</td>
 									<td>
-										<a ng-click="showTaskDetail(task)" ng-repeat="task in pi.tasks">{{task.assignee ? (task.assigneeDetail.firstName + ' ' + task.assigneeDetail.lastName) : 'Not claimed'}}<br/></a>
+										<a ng-click="showTaskDetail(task)" ng-repeat="task in pi.tasks">{{$index+1}}. {{task.assignee ? (task.assigneeDetail.firstName + ' ' + task.assigneeDetail.lastName) : 'Not claimed'}}<br/></a>
 									</td>
 									<td>{{pi.requestedDate | date:'dd-MM-yyyy'}}</td>
 									<td>{{pi.validityDate | date:'dd-MM-yyyy'}}</td>
-									<td>
-										<a ng-click="showWorkDetail(pi.jobWorks)" >{{pi.jobWorks.length}} works</a>
+									<td style="max-width: 190px;">
+										<a ng-click="showWorkDetail(pi.jobWorks)">
+											<span ng-repeat="work in pi.jobWorks" class="nowrapDots">
+												{{worksTitle[work.sapServiceNumber]}}, works qty: {{work.quantity}}, materials qty: {{work.materialQuantity}} {{work.materialUnit}}
+												<br/>
+											</span>
+										</a>
 									</td>
 								</tr>
 								<tr ng-if="piIndex === $index && jobModel">

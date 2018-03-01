@@ -15,6 +15,11 @@ define(['./module','jquery', 'camundaSDK'], function(app, $, CamSDK){
 		$rootScope.currentPage = {
 			name: 'search'
 		};
+
+        if(window.require){
+            $scope.ExcellentExport = require('excellentexport');
+        }
+
 		$scope._ = window._;
         $scope.regionsMap = {
             'alm': 'Almaty',
@@ -354,7 +359,7 @@ define(['./module','jquery', 'camundaSDK'], function(app, $, CamSDK){
 					worksTitle: $scope.worksTitle
 				},
 				templateUrl: './js/partials/jobWorksModal.html',
-				size: 'md'
+				size: 'lg'
 			}).then(function(results){
 			});
 		}
