@@ -53,10 +53,11 @@
 						<div class="row">
 						    <div class="form-group">
 						        <div class="col-sm-8">			    	
-									<a class="btn btn-success" ng-click="search(true)">Filter ({{total}})<i class="fa fa-search"></i></a>
+									<a class="btn btn-success" ng-click="search(true)">Filter ({{processInstancesTotal}})<i class="fa fa-search"></i></a>
 								</div>
-						        <div class="col-sm-4" ng-if="false">
-				                    <a class="btn btn-success" style="float: right" ng-if="processInstances.length > 0" download="revisions.xlsx" id="xlsxClick" href="#" onclick="return angular.element(this).scope().ExcellentExport.convert({anchor: 'xlsxClick',format: 'xlsx',filename: 'revisions'}, [{name: 'Sheet Name Here 1',from: {table: 'revisionsTable'}}])">Export to Excel</a>
+						        <div class="col-sm-4">
+				                    <a class="btn btn-success" style="float: right" ng-if="processInstancesTotal > 0 && processInstancesTotal < 21" download="revisions.xlsx" id="xlsxClick" href="#" onclick="return angular.element(this).scope().ExcellentExport.convert({anchor: 'xlsxClick',format: 'xlsx',filename: 'revisions'}, [{name: 'Sheet Name Here 1',from: {table: 'revisionsTable'}}])">Export to Excel</a>
+				                    <a ng-if="lastSearchParams && processInstancesTotal > 20" class="btn btn-success" style="float: right" id="xlsxClick" href="#" ng-click="getXlsxProcessInstances()">{{xlsxPrepared ? 'Export to Excel' : 'Prepare Excel'}}</a>
 								</div>
 							</div>				
 						</div>
@@ -98,12 +99,12 @@
 									</td>
 									<td>{{contractorShortName[pi.contractor]}}</td>
 									<td>{{reasonShortName[pi.reason]}}</td>
-									<td>{{pi.startUser.firstName}} {{pi.startUser.lastName}}</td>
+									<td>{{profiles[pi.startUserId].firstName}} {{profiles[pi.startUserId].lastName}}</td>
 									<td>
-										<a ng-click="showTaskDetail(task)" ng-repeat="task in pi.tasks">{{$index+1}}. {{task.assignee ? (task.assigneeDetail.firstName + ' ' + task.assigneeDetail.lastName) : 'Not claimed'}}<br/></a>
+										<a ng-click="showTaskDetail(task)" ng-repeat="task in pi.tasks">{{$index+1}}. {{profiles[task.assignee] ? (profiles[task.assignee].firstName + ' ' + profiles[task.assignee].lastName) : 'Not claimed'}}<br/></a>
 									</td>
-									<td>{{pi.requestedDate | date:'dd-MM-yyyy'}}</td>
-									<td>{{pi.validityDate | date:'dd-MM-yyyy'}}</td>
+									<td>{{pi.requestedDate | date:'dd MMM yyyy'}}</td>
+									<td>{{pi.validityDate | date:'dd MMM yyyy'}}</td>
 									<td style="max-width: 190px;">
 										<a ng-click="showWorkDetail(pi.jobWorks)">
 											<span ng-repeat="work in pi.jobWorks" class="nowrapDots">
@@ -161,12 +162,59 @@
 										<a ng-disabled="filter.page <= 1" ng-click="selectPage(1)" class="btn btn-success">First</a>
 										<a ng-disabled="filter.page <= 1" ng-click="prevPage()" class="btn btn-success">Previous</a>
 										<a ng-repeat="page in getPages()" ng-disabled="filter.page == page" ng-click="selectPage(page)" class="btn btn-success">{{page}}</a>
-										<a ng-disabled="filter.page >= pages" ng-click="nextPage()" class="btn btn-success">Next</a>
-										<a ng-disabled="filter.page >= pages" ng-click="selectPage(pages)" class="btn btn-success">Last</a>
+										<a ng-disabled="filter.page >= processInstancesPages" ng-click="nextPage()" class="btn btn-success">Next</a>
+										<a ng-disabled="filter.page >= processInstancesPages" ng-click="selectPage(processInstancesPages)" class="btn btn-success">Last</a>
 									</td>
 								</tr>
 							</tbody>
 						</table>
+
+						<table id="xlsxRevisionsTable" name="xlsxRevisionsTable" style="display: none;">
+							<thead>
+								<tr>
+									<th>#</th>
+									<th>Region</th>
+									<th>Sitename</th>
+									<th>JR Number</th>
+									<th>Execution Time</th>
+									<th>Current Activity</th>
+									<th>Contractor</th>
+									<th>Reason</th>
+									<th>Requested By</th>
+									<th>Current Assignee</th>
+									<th>Requested Date</th>
+									<th>Validity Date</th>
+									<th>Jobs List</th>
+								</tr>
+							</thead>
+							<tbody ng-repeat="pi in xlsxProcessInstances">
+								<tr>
+									<td>{{$index + 1}}</td>
+									<td>{{regionsMap[pi.siteRegion]}}</td>
+									<td>{{pi.site_name}}</td>
+									<td>{{pi.businessKey}}</td>
+									<td>{{pi.executionTime}} days</td>
+									<td>
+										<span ng-repeat="task in pi.tasks">{{$index+1}}. {{task.name}}<br/></span>
+										<span ng-repeat="act in pi.otherActivities">{{pi.tasks.length+$index+1}}. {{act.activityName}}<br/></span>
+									</td>
+									<td>{{contractorShortName[pi.contractor]}}</td>
+									<td>{{reasonShortName[pi.reason]}}</td>
+									<td>{{profiles[pi.startUserId].firstName}} {{profiles[pi.startUserId].lastName}}</td>
+									<td>
+										<span ng-repeat="task in pi.tasks">{{$index+1}}. {{profiles[task.assignee] ? (profiles[task.assignee].firstName + ' ' + profiles[task.assignee].lastName) : 'Not claimed'}}<br/></span>
+									</td>
+									<td>{{pi.requestedDate | date:'dd MMM yyyy'}}</td>
+									<td>{{pi.validityDate | date:'dd MMM yyyy'}}</td>
+									<td>
+										<span ng-repeat="work in pi.jobWorks" class="nowrapDots">
+											{{worksTitle[work.sapServiceNumber]}}, works qty: {{work.quantity}}, materials qty: {{work.materialQuantity}} {{work.materialUnit}}
+											<br/>
+										</span>
+									</td>
+								</tr>
+							</tbody>
+						</table>						
 					</div>
 				</div>
 			</div>

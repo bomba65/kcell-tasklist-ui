@@ -38,9 +38,12 @@ define(['./module','jquery', 'camundaSDK'], function(app, $, CamSDK){
             '3': 'S&FM',
             '4': 'SAO'
         };
-        $scope.total = 0;
-        $scope.pages = 0;
+        $scope.processInstancesTotal = 0;
+        $scope.processInstancesPages = 0;
         $scope.shownPages = 0;
+        $scope.profiles = {};
+        $scope.lastSearchParams;
+        $scope.xlsxPrepared = false;
 
         var regionGroupsMap = {
         	'alm_kcell_users' : 'alm',
@@ -137,14 +140,11 @@ define(['./module','jquery', 'camundaSDK'], function(app, $, CamSDK){
             );
         };
 
-        if($rootScope.hasGroup('')){
-
-        }
-
 		$scope.search = function(refreshPages){
 			if(refreshPages){
 				$scope.filter.page = 1;
 				$scope.piIndex = undefined;
+				$scope.xlsxPrepared = false;
 			}
 			var filter = {
 				processDefinitionKey: 'Revision',
@@ -168,10 +168,20 @@ define(['./module','jquery', 'camundaSDK'], function(app, $, CamSDK){
 			} else {
 				delete filter.unfinished;
 			}
-			getProcessInstances(filter);
+			$scope.lastSearchParams = filter;
+			getProcessInstances(filter, 'processInstances');
 		};
 
-		function getProcessInstances(filter){
+		$scope.getXlsxProcessInstances = function(){
+			if($scope.xlsxPrepared){
+				return $scope.ExcellentExport.convert({anchor: 'xlsxClick',format: 'xlsx',filename: 'revisions'}, [{name: 'Sheet Name Here 1',from: {table: 'xlsxRevisionsTable'}}]);
+			} else {
+				getProcessInstances($scope.lastSearchParams, 'xlsxProcessInstances');
+				$scope.xlsxPrepared = true;
+			}
+		}
+
+		function getProcessInstances(filter, processInstances){
 			$http({
 				method: 'POST',
 				headers:{'Accept':'application/hal+json, application/json; q=0.5'},
@@ -179,30 +189,31 @@ define(['./module','jquery', 'camundaSDK'], function(app, $, CamSDK){
 				url: baseUrl+'/history/process-instance/count'
 			}).then(
 				function(result){
-					$scope.total = result.data.count;
-					$scope.pages = Math.floor(result.data.count / $scope.filter.maxResults) + ((result.data.count % $scope.filter.maxResults) > 0 ? 1 : 0);
+					$scope[processInstances + 'Total'] = result.data.count;
+					$scope[processInstances + 'Pages'] = Math.floor(result.data.count / $scope.filter.maxResults) + ((result.data.count % $scope.filter.maxResults) > 0 ? 1 : 0);
 				}
 			);
 			$http({
 				method: 'POST',
 				headers:{'Accept':'application/hal+json, application/json; q=0.5'},
 				data: filter,
-				url: baseUrl+'/history/process-instance?firstResult=' + ($scope.filter.page-1)*$scope.filter.maxResults + '&maxResults=' + $scope.filter.maxResults
+				url: baseUrl+'/history/process-instance?firstResult=' + (processInstances === 'processInstances' ? ($scope.filter.page-1)*$scope.filter.maxResults + '&maxResults=' + $scope.filter.maxResults : '')
 			}).then(
 			function(result){
-				$scope.processInstances = result.data;
+				$scope[processInstances] = result.data;
 
-				if($scope.processInstances.length > 0){
-					$scope.processInstances.forEach(function(el) {
-				        $http.get(baseUrl+'/user/' + el.startUserId + '/profile').then(
-				            function (result) {
-				                el.startUser = result.data;
-				            },
-				            function (error) {
-				                console.log(error.data);
-				            }
-				        );					
-
+				if($scope[processInstances].length > 0){
+					$scope[processInstances].forEach(function(el) {
+						if(!$scope.profiles[el.startUserId]){
+					        $http.get(baseUrl+'/user/' + el.startUserId + '/profile').then(
+					            function (result) {
+									$scope.profiles[el.startUserId] = result.data;
+					            },
+					            function (error) {
+					                console.log(error.data);
+					            }
+					        );
+						}
 						if(el.durationInMillis){
 							el['executionTime'] = Math.floor(el.durationInMillis / (1000*60*60*24));
 						} else {
@@ -212,7 +223,7 @@ define(['./module','jquery', 'camundaSDK'], function(app, $, CamSDK){
 					});
 
 					_.forEach(['siteRegion','site_name', 'contractor', 'reason', 'requestedDate', 'validityDate', 'jobWorks'], function(variable) {
-						var varSearchParams = {processInstanceIdIn: _.map($scope.processInstances, 'id'), variableName: variable};
+						var varSearchParams = {processInstanceIdIn: _.map($scope[processInstances], 'id'), variableName: variable};
 						$http({
 							method: 'POST',
 							headers:{'Accept':'application/hal+json, application/json; q=0.5'},
@@ -220,7 +231,7 @@ define(['./module','jquery', 'camundaSDK'], function(app, $, CamSDK){
 							url: baseUrl+'/history/variable-instance?deserializeValues=false'
 						}).then(
 							function(vars){
-								$scope.processInstances.forEach(function(el) {
+								$scope[processInstances].forEach(function(el) {
 									var f =  _.filter(vars.data, function(v) {
 										return v.processInstanceId === el.id; 
 									});
@@ -238,7 +249,7 @@ define(['./module','jquery', 'camundaSDK'], function(app, $, CamSDK){
 							}
 						);
 					});
-					var activeProcessInstances = _.filter($scope.processInstances, function(pi) { return pi.state === 'ACTIVE'; });
+					var activeProcessInstances = _.filter($scope[processInstances], function(pi) { return pi.state === 'ACTIVE'; });
 					var taskSearchParams = {processInstanceBusinessKeyIn: _.map(activeProcessInstances, 'businessKey'), active: true};
 					$http({
 						method: 'POST',
@@ -247,17 +258,17 @@ define(['./module','jquery', 'camundaSDK'], function(app, $, CamSDK){
 						url: baseUrl+'/task'
 					}).then(
 						function(tasks){
-							$scope.processInstances.forEach(function(el) {
+							$scope[processInstances].forEach(function(el) {
 								var f =  _.filter(tasks.data, function(t) {
 									return t.processInstanceId === el.id; 
 								});
 								if(f && f.length>0){
 									el['tasks'] = f;
 									_.forEach(el.tasks, function(task){
-										if(task.assignee){
+										if(task.assignee && !$scope.profiles[task.assignee]){
 									        $http.get(baseUrl+'/user/' + task.assignee + '/profile').then(
 									            function (result) {
-									                task.assigneeDetail = result.data;
+									            	$scope.profiles[task.assignee] = result.data;
 									            },
 									            function (error) {
 									                console.log(error.data);
@@ -320,8 +331,8 @@ define(['./module','jquery', 'camundaSDK'], function(app, $, CamSDK){
 
 		$scope.getPages = function(){
 			var array = [];
-			if($scope.pages < 8){
-				for(var i=1;i<=$scope.pages;i++){
+			if($scope.processInstancesPages < 8){
+				for(var i=1;i<=$scope.processInstancesPages;i++){
 					array.push(i);
 				}
 			} else {
@@ -332,7 +343,7 @@ define(['./module','jquery', 'camundaSDK'], function(app, $, CamSDK){
 					if(decrease > 0){
 						array.unshift(decrease--);
 					}
-					if(increase < $scope.pages){
+					if(increase < $scope.processInstancesPages){
 						array.push(increase++);
 					}
 				}
