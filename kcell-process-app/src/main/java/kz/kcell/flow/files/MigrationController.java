@@ -2,7 +2,10 @@ package kz.kcell.flow.files;
 
 import io.minio.MinioClient;
 import io.minio.errors.*;
+import lombok.extern.java.Log;
 import org.camunda.bpm.engine.*;
+import org.camunda.bpm.engine.history.HistoricProcessInstance;
+import org.camunda.bpm.engine.history.HistoricVariableInstance;
 import org.camunda.bpm.engine.runtime.Execution;
 import org.camunda.bpm.engine.variable.value.FileValue;
 import org.camunda.spin.SpinList;
@@ -16,11 +19,13 @@ import org.xmlpull.v1.XmlPullParserException;
 
 import javax.servlet.http.HttpServletRequest;
 import java.io.IOException;
+import java.io.InputStream;
 import java.security.InvalidKeyException;
 import java.security.NoSuchAlgorithmException;
 import java.util.*;
 
 @RestController
+@Log
 @RequestMapping("/migrate")
 public class MigrationController {
 
@@ -49,19 +54,89 @@ public class MigrationController {
         this.minioUrl = minioUrl;
     }
 
-    @RequestMapping(value = "/files/migrate/{processDefinitionId}", method = RequestMethod.GET)
+    @RequestMapping(value = "/files/migrate", method = RequestMethod.GET)
     @ResponseBody
-    public ResponseEntity<String> migrateFiles(@PathVariable("processDefinitionId") String processDefinitionId, HttpServletRequest request) throws InvalidBucketNameException, NoSuchAlgorithmException, InsufficientDataException, IOException,
+    public ResponseEntity<String> migrateFiles(HttpServletRequest request) throws InvalidBucketNameException, NoSuchAlgorithmException, InsufficientDataException, IOException,
         InvalidKeyException, NoResponseException, XmlPullParserException, ErrorResponseException,
         InternalException, InvalidEndpointException, InvalidPortException,
         InvalidArgumentException {
 
         MinioClient minioClient = new MinioClient(this.minioUrl, this.minioAccessKey, this.minioSecretKey, "us-east-1");
 
-        List<Execution> executions = runtimeService.createExecutionQuery().processDefinitionId(processDefinitionId).list();
+        List<Execution> executions = runtimeService.createExecutionQuery().processDefinitionKey("Revision").list();
 
         for (Execution e:executions){
-            JsonValue supplementaryFiles = runtimeService.getVariableTyped(e.getId(), "supplementaryFiles");
+            log.info("+++++++++++++++++++++++++++++++++++++++++++++");
+            log.info("e: " + e.getId());
+            String[] vars = new String[] {"actOfMaterialsDispatchingFile", "tssrssidFile", "eLicenseResolutionFile", "sapPRFileXLS", "kcellWarehouseMaterialsList", "contractorZIPWarehouseMaterialsList"};
+
+            for (String variable : vars){
+                if (runtimeService.getVariableTyped(e.getId(), variable) instanceof FileValue) {
+                    FileValue oldVariable = runtimeService.getVariableTyped(e.getId(), variable);
+                    JsonValue newVariable = runtimeService.getVariableTyped(e.getId(), variable + "Name");
+
+                    if (oldVariable != null && oldVariable.getValue() != null && newVariable != null && newVariable.getValue() != null && newVariable.getValue().hasProp("path")) {
+                        InputStream fileContent = oldVariable.getValue();
+                        String mimeType = oldVariable.getMimeType();
+
+                        String path = newVariable.getValue().prop("path").stringValue();
+
+                        minioClient.putObject(minio.getBucketName(), path, fileContent, mimeType);
+                    }
+                }
+            }
+
+            SpinJsonNode siteWorksFiles = runtimeService.<JsonValue>getVariableTyped(e.getId(), "siteWorksFiles").getValue();
+            if(siteWorksFiles.isArray()){
+                SpinList<SpinJsonNode> workList = siteWorksFiles.elements();
+                for (SpinJsonNode work:workList){
+                    String name = work.prop("name").stringValue();
+                    String path = work.prop("value").prop("path").stringValue();
+
+                    FileValue workFile = runtimeService.<FileValue>getVariableTyped(e.getId(), name);
+                    if(workFile!=null){
+                        InputStream fileContent = workFile.getValue();
+                        String mimeType = workFile.getMimeType();
+                        minioClient.putObject(minio.getBucketName(), path, fileContent, mimeType);
+                    }
+                }
+            }
+
+            JsonValue trJsonVariable = runtimeService.<JsonValue>getVariableTyped(e.getId(), "trFilesName");
+            if(trJsonVariable!=null){
+                SpinJsonNode trFilesName = trJsonVariable.getValue();
+                log.info("trFilesName: " + trFilesName);
+                if(trFilesName.isArray()){
+                    SpinList<SpinJsonNode> trList = trFilesName.elements();
+
+                    Map<String, FileValue> trFiles = new HashMap<>();
+                    for(int i=0;i<trFilesName.elements().size();i++){
+                        FileValue trFile = runtimeService.<FileValue>getVariableTyped(e.getId(), "trFile"+i);
+                        if(trFile!=null){
+                            trFiles.put(trFile.getFilename(), trFile);
+                        }
+                    }
+                    if(trFiles.size()>0){
+                        for (SpinJsonNode tr:trList){
+                            String name = tr.prop("name").stringValue();
+                            String path = tr.prop("path").stringValue();
+
+                            log.info("name: " + name);
+                            log.info("path: " + path);
+
+                            if(trFiles.get(name)!=null){
+                                InputStream fileContent = trFiles.get(name).getValue();
+                                String mimeType = trFiles.get(name).getMimeType();
+                                log.info("fileName: " + trFiles.get(name).getFilename());
+                                log.info("mimeType: " + mimeType);
+                                minioClient.putObject(minio.getBucketName(), path, fileContent, mimeType);
+                            }
+                        }
+                    }
+                }
+            }
+
+/*            JsonValue supplementaryFiles = runtimeService.getVariableTyped(e.getId(), "supplementaryFiles");
 
             if(supplementaryFiles!=null && supplementaryFiles.getValue()!=null){
 
@@ -90,228 +165,88 @@ public class MigrationController {
                     }
                 }
             }
-
-/*            JsonValue trFiles = runtimeService.getVariableTyped(e.getId(), "trFiles");
-            JsonValue trFilesName = runtimeService.getVariableTyped(e.getId(), "trFilesName");
-
-            if (trFiles!=null && trFiles.getValue()!=null && trFilesName!=null && trFilesName.getValue()!=null){
-
-                Map<String, Map<String, String>> trFilesNameMap = new HashMap<>();
-                if(trFilesName.getValue().isArray()) {
-                    SpinList<SpinJsonNode> elements = trFilesName.getValue().elements();
-                    for (SpinJsonNode node: elements) {
-                        Map<String, String> properties = new HashMap<>();
-                        if(node.hasProp("name")){
-                            properties.put("name", node.prop("name").stringValue());
-                        }
-                        if(node.hasProp("value")){
-                            SpinJsonNode value = node.prop("value");
-                            if(value.hasProp("path")){
-                                properties.put("path", value.prop("path").stringValue());
-                            }
-                            if(value.hasProp("description")){
-                                properties.put("description", value.prop("description").stringValue());
-                            }
-                            if(value.hasProp("name")){
-                                properties.put("filename", value.prop("name").stringValue());
-                            }
-                        }
-                        trFilesNameMap.put(properties.get("name"), properties);
-                    }
-                }
-
-                if(trFiles.getValue().isArray()){
-                    SpinList<SpinJsonNode> elements = trFiles.getValue().elements();
-
-                    for (SpinJsonNode node: elements){
-                        if(node.hasProp("id")){
-                            String id = node.prop("id").stringValue();
-
-                            Map<String, String> properties = null;
-
-                            for (Map.Entry<String, Map<String, String>> entry : trFilesNameMap.entrySet()) {
-                                if (id.equals(entry.getValue().get("description"))){
-                                    properties = entry.getValue();
-                                }
-                            }
-
-                            if(properties!=null){
-                                FileValue trFile = runtimeService.getVariableTyped(e.getId(), properties.get("name"));
-                                if(trFile!=null && trFile.getValue()!=null){
-                                    InputStream fileContent = trFile.getValue();
-                                    String mimeType = trFile.getMimeType();
-
-                                    minioClient.putObject(minio.getBucketName(), properties.get("path"), fileContent, mimeType);
-                                }
-                            }
-                        }
-                    }
-                }
-            }
-            runtimeService.setVariable(e.getId(), "trFilesOld", trFilesName);
-            runtimeService.removeVariable(e.getId(), "trFiles");
+*/
+        }
 
 
-            String[] vars = new String[] {"actOfMaterialsDispatchingFile", "tssrssidFile", "eLicenseResolutionFile", "sapPRFileXLS", "kcellWarehouseMaterialsList",
-                "contractorZIPWarehouseMaterialsList", "supplementaryFile1", "supplementaryFile2", "supplementaryFile3", "supplementaryFile4", "supplementaryFile5"};
+        List<HistoricProcessInstance> processInstances = historyService.createHistoricProcessInstanceQuery().finished().processDefinitionKey("Revision").list();
 
-            for (String variable : vars){
-                if (runtimeService.getVariableTyped(e.getId(), variable) instanceof FileValue) {
-                    FileValue oldVariable = runtimeService.getVariableTyped(e.getId(), variable);
-                    JsonValue newVariable = runtimeService.getVariableTyped(e.getId(), variable + "Name");
+        for (HistoricProcessInstance hp: processInstances){
+            log.info("=======================================");
+            String[] vars = new String[] {"actOfMaterialsDispatchingFile", "tssrssidFile", "eLicenseResolutionFile", "sapPRFileXLS", "kcellWarehouseMaterialsList", "contractorZIPWarehouseMaterialsList"};
 
-                    if (oldVariable != null && oldVariable.getValue() != null && newVariable != null && newVariable.getValue() != null) {
-                        InputStream fileContent = oldVariable.getValue();
-                        String mimeType = oldVariable.getMimeType();
+            for (String variable : vars) {
+                List<HistoricVariableInstance> hVariables = historyService.createHistoricVariableInstanceQuery().processInstanceId(hp.getId()).variableName(variable).list();
+                if(hVariables.size()>0){
+                    HistoricVariableInstance hVariable = hVariables.get(0);
 
-                        String path = newVariable.getValue().prop("path").stringValue();
+                    List<HistoricVariableInstance> hVariableNames = historyService.createHistoricVariableInstanceQuery().processInstanceId(hp.getId()).variableName(variable+"Name").list();
+                    if(hVariableNames.size()>0 && ((JsonValue) hVariableNames.get(0).getTypedValue()).getValue().hasProp("path")) {
+                        InputStream fileContent = ((FileValue) hVariable.getTypedValue()).getValue();
+                        String mimeType = ((FileValue) hVariable.getTypedValue()).getMimeType();
+                        HistoricVariableInstance hVariableName = hVariableNames.get(0);
+
+                        String path = ((JsonValue)hVariableName.getTypedValue()).getValue().prop("path").stringValue();
 
                         minioClient.putObject(minio.getBucketName(), path, fileContent, mimeType);
                     }
                 }
             }
 
-            JsonValue siteWorksFiles = runtimeService.getVariableTyped(e.getId(), "siteWorksFiles");
-            if(siteWorksFiles!=null && siteWorksFiles.getValue()!=null){
-                SpinList<SpinJsonNode> elements = siteWorksFiles.getValue().elements();
-                for (SpinJsonNode node: elements) {
-                    if(node.hasProp("name")){
-                        FileValue oldFile = runtimeService.getVariableTyped(e.getId(), node.prop("name").stringValue());
-                        if(oldFile!=null && oldFile.getValue()!=null){
-                            InputStream fileContent = oldFile.getValue();
-                            String mimeType = oldFile.getMimeType();
-                            String path = node.prop("value").prop("path").stringValue();
+            List<HistoricVariableInstance> hVariables = historyService.createHistoricVariableInstanceQuery().processInstanceId(hp.getId()).variableName("siteWorksFiles").list();
+            if(hVariables.size()>0){
+                SpinJsonNode siteWorksFiles = ((JsonValue) hVariables.get(0).getTypedValue()).getValue();
 
+                if(siteWorksFiles.isArray()){
+                    SpinList<SpinJsonNode> workList = siteWorksFiles.elements();
+                    for (SpinJsonNode work:workList){
+                        String name = work.prop("name").stringValue();
+                        String path = work.prop("value").prop("path").stringValue();
+
+                        List<HistoricVariableInstance> hWorkVariables = historyService.createHistoricVariableInstanceQuery().processInstanceId(hp.getId()).variableName(name).list();
+                        if(hWorkVariables.size()>0){
+                            InputStream fileContent = ((FileValue) hWorkVariables.get(0).getTypedValue()).getValue();
+                            String mimeType = ((FileValue) hWorkVariables.get(0).getTypedValue()).getMimeType();
                             minioClient.putObject(minio.getBucketName(), path, fileContent, mimeType);
                         }
                     }
                 }
             }
-*/
-        }
 
-/*
-        List<HistoricProcessInstance> processInstances = historyService.createHistoricProcessInstanceQuery().finished().processDefinitionId("Revision:9:9d66a48a-a08a-11e7-90e3-0242ac130008").list();
-
-        for (HistoricProcessInstance hp: processInstances){
-           List<HistoricVariableInstance> trFilesList = historyService.createHistoricVariableInstanceQuery().processInstanceId(hp.getId()).variableName("trFiles").list();
-           List<HistoricVariableInstance> trFilesNameList = historyService.createHistoricVariableInstanceQuery().processInstanceId(hp.getId()).variableName("trFilesName").list();
-
-            Map<String, Map<String, String>> trFilesNameMap = new HashMap<>();
-           for(HistoricVariableInstance v: trFilesNameList){
-               SpinJsonNode trFilesName = (SpinJsonNode) v.getTypedValue().getValue();
-
-               if(trFilesName.isArray()) {
-                   SpinList<SpinJsonNode> elements = trFilesName.elements();
-                   for (SpinJsonNode node: elements) {
-                       Map<String, String> properties = new HashMap<>();
-                       if(node.hasProp("name")){
-                           properties.put("name", node.prop("name").stringValue());
-                       }
-                       if(node.hasProp("value")){
-                           SpinJsonNode value = node.prop("value");
-                           if(value.hasProp("path")){
-                               properties.put("path", value.prop("path").stringValue());
-                           }
-                           if(value.hasProp("description")){
-                               properties.put("description", value.prop("description").stringValue());
-                           }
-                           if(value.hasProp("name")){
-                               properties.put("filename", value.prop("name").stringValue());
-                           }
-                       }
-                       trFilesNameMap.put(properties.get("name"), properties);
-                   }
-               }
-           }
-           for(HistoricVariableInstance v: trFilesList){
-               JsonValue trFiles = (JsonValue) v;
-
-               if(trFiles.getValue().isArray()){
-                   SpinList<SpinJsonNode> elements = trFiles.getValue().elements();
-
-                   for (SpinJsonNode node: elements){
-                       if(node.hasProp("id")){
-                           String id = node.prop("id").stringValue();
-
-                           Map<String, String> properties = null;
-
-                           for (Map.Entry<String, Map<String, String>> entry : trFilesNameMap.entrySet()) {
-                               System.out.println(entry.getKey() + "/" + entry.getValue());
-                               if (id.equals(entry.getValue().get("description"))){
-                                   properties = entry.getValue();
-                               }
-                           }
-
-                           if(properties!=null){
-                               FileValue trFile = runtimeService.getVariableTyped(v.getName(), properties.get("name"));
-                               if(trFile!=null && trFile.getValue()!=null){
-                                   InputStream fileContent = trFile.getValue();
-                                   String mimeType = trFile.getMimeType();
-
-                                   minioClient.putObject(minio.getBucketName(), properties.get("path"), fileContent, mimeType);
-                               }
-                           }
-                       }
-                   }
-               }
-           }
-
-            String[] vars = new String[] {"actOfMaterialsDispatchingFile", "tssrssidFile", "eLicenseResolutionFile", "sapPRFileXLS", "kcellWarehouseMaterialsList",
-                "contractorZIPWarehouseMaterialsList", "supplementaryFile1", "supplementaryFile2", "supplementaryFile3", "supplementaryFile4", "supplementaryFile5"};
-
-            for (String variable : vars){
-                List<HistoricVariableInstance> varInstance = historyService.createHistoricVariableInstanceQuery().processInstanceId(hp.getId()).variableName(variable).list();
-
-                for (HistoricVariableInstance v:varInstance){
-                    if (v instanceof FileValue) {
-                        FileValue oldVariable = (FileValue) v;
-                        JsonValue newVariable = null;
-
-                        List<HistoricVariableInstance> newVariables = historyService.createHistoricVariableInstanceQuery().processInstanceId(hp.getId()).variableName(variable + "Name").list();
-                        for (HistoricVariableInstance n:newVariables){
-                            newVariable = (JsonValue) n;
+            List<HistoricVariableInstance> trVariables = historyService.createHistoricVariableInstanceQuery().processInstanceId(hp.getId()).variableName("trFilesName").list();
+            if(trVariables.size()>0){
+                SpinJsonNode trFilesName = ((JsonValue) trVariables.get(0).getTypedValue()).getValue();
+                log.info("trFilesName: " + trFilesName);
+                if(trFilesName.isArray()) {
+                    SpinList<SpinJsonNode> trList = trFilesName.elements();
+                    Map<String, FileValue> trFiles = new HashMap<>();
+                    for(int i=0;i<trFilesName.elements().size();i++){
+                        List<HistoricVariableInstance> hTrFileVariables = historyService.createHistoricVariableInstanceQuery().processInstanceId(hp.getId()).variableName("trFile"+i).list();
+                        if(hTrFileVariables.size()>0){
+                            FileValue trFile = ((FileValue) hTrFileVariables.get(0).getTypedValue());
+                            trFiles.put(trFile.getFilename(), trFile);
                         }
-
-                        if (oldVariable.getValue() != null && newVariable != null && newVariable.getValue() != null) {
-                            InputStream fileContent = oldVariable.getValue();
-                            String mimeType = oldVariable.getMimeType();
-
-                            String path = newVariable.getValue().prop("path").stringValue();
-                            minioClient.putObject(minio.getBucketName(), path, fileContent, mimeType);
                     }
-                }
-            }
+                    if(trFiles.size()>0){
+                        for (SpinJsonNode tr:trList) {
+                            String name = tr.prop("name").stringValue();
+                            String path = tr.prop("path").stringValue();
 
-            List<HistoricVariableInstance> variables = historyService.createHistoricVariableInstanceQuery().processInstanceId(hp.getId()).variableName("siteWorksFiles").list();
-            for (HistoricVariableInstance v:variables) {
-                SpinJsonNode siteWorksFiles = (SpinJsonNode) v.getTypedValue().getValue();
+                            log.info("name: " + name);
+                            log.info("path: " + path);
 
-                if(siteWorksFiles!=null){
-                    SpinList<SpinJsonNode> elements = siteWorksFiles.elements();
-                    for (SpinJsonNode node: elements) {
-                        if(node.hasProp("name")){
-                            List<HistoricVariableInstance> oldFiles = historyService.createHistoricVariableInstanceQuery().processInstanceId(hp.getId()).variableName(node.prop("name").stringValue()).list();
-
-                            for (HistoricVariableInstance o:oldFiles) {
-                                FileValue oldFile = (FileValue) o.getTypedValue();
-
-                                if (oldFile != null) {
-                                    InputStream fileContent = oldFile.getValue();
-                                    String mimeType = oldFile.getMimeType();
-                                    String path = node.prop("value").prop("path").stringValue();
-
-                                    minioClient.putObject(minio.getBucketName(), path, fileContent, mimeType);
-
-                                }
+                            if(trFiles.get(name)!=null){
+                                InputStream fileContent = trFiles.get(name).getValue();
+                                String mimeType = trFiles.get(name).getMimeType();
+                                log.info("fileName: " + trFiles.get(name).getFilename());
+                                log.info("mimeType: " + mimeType);
+                                minioClient.putObject(minio.getBucketName(), path, fileContent, mimeType);
                             }
                         }
                     }
                 }
-
             }
         }
-*/
         return ResponseEntity.ok("Succes");
     }
 
@@ -322,11 +257,6 @@ public class MigrationController {
         sapPRFileXLS - sapPRFileXLSName
         kcellWarehouseMaterialsList - kcellWarehouseMaterialsListName
         contractorZIPWarehouseMaterialsList - contractorZIPWarehouseMaterialsListName
-        supplementaryFile1 - in supplementaryFiles
-        supplementaryFile2 - in supplementaryFiles
-        supplementaryFile3 - in supplementaryFiles
-        supplementaryFile4 - in supplementaryFiles
-        supplementaryFile5 - in supplementaryFiles
         works_{{$index}}_file_{{work.files.length}} - worksFiles
 
         jrBlank -
