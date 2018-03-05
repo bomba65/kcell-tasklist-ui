@@ -211,23 +211,25 @@ define(['./module','jquery', 'camundaSDK'], function(app, $, CamSDK){
 			            				workFiles.push(el);
 			            			}
 			            		});
+	                            if($scope.jobModel['siteWorksFiles']){
+	                                _.forEach($scope.jobModel['siteWorksFiles'].value, function(file){
+	                                    var workIndex = file.name.split('_')[1];
+	                                    if (!$scope.jobModel.jobWorks.value[workIndex].files) {
+	                                        $scope.jobModel.jobWorks.value[workIndex].files = [];
+	                                    }
+	                                    if(_.findIndex($scope.jobModel.jobWorks.value[workIndex].files, function(f) { return f.name == file.name; }) < 0){
+	                                        $scope.jobModel.jobWorks.value[workIndex].files.push(file);
+	                                    }
+	                                });
+	                            }
 								_.forEach(workFiles, function(file){
 									var workIndex = file.name.split('_')[1];
 									if (!$scope.jobModel.jobWorks.value[workIndex].files) {
 										$scope.jobModel.jobWorks.value[workIndex].files = [];
 									}
 									if(_.findIndex($scope.jobModel.jobWorks.value[workIndex].files, function(f) { return f.name == file.name; }) < 0){
-										$scope.jobModel.jobWorks.value[workIndex].files.push(file);									
-									}
-								});
-								_.forEach($scope.jobModel['siteWorksFiles'].value, function(file){
-									var workIndex = file.name.split('_')[1];
-									if (!$scope.jobModel.jobWorks.value[workIndex].files) {
-										$scope.jobModel.jobWorks.value[workIndex].files = [];
-									}
-									if(_.findIndex($scope.jobModel.jobWorks.value[workIndex].files, function(f) { return f.name == file.name; }) < 0){
 										$scope.jobModel.jobWorks.value[workIndex].files.push(file);
-									}									
+									}
 								});
 		                        $q.all($scope.jobModel.resolutions.value.map(function (resolution) {
 		                            return $http.get("/camunda/api/engine/engine/default/history/task?processInstanceId="+resolution.processInstanceId+"&taskId=" + resolution.taskId);
