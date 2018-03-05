@@ -71,7 +71,7 @@ public class MigrationController {
             String[] vars = new String[] {"actOfMaterialsDispatchingFile", "tssrssidFile", "eLicenseResolutionFile", "sapPRFileXLS", "kcellWarehouseMaterialsList", "contractorZIPWarehouseMaterialsList"};
 
             for (String variable : vars){
-                if (runtimeService.getVariableTyped(e.getId(), variable) instanceof FileValue) {
+                if (runtimeService.getVariableTyped(e.getId(), variable)!=null && runtimeService.getVariableTyped(e.getId(), variable) instanceof FileValue) {
                     FileValue oldVariable = runtimeService.getVariableTyped(e.getId(), variable);
                     JsonValue newVariable = runtimeService.getVariableTyped(e.getId(), variable + "Name");
 
@@ -86,18 +86,21 @@ public class MigrationController {
                 }
             }
 
-            SpinJsonNode siteWorksFiles = runtimeService.<JsonValue>getVariableTyped(e.getId(), "siteWorksFiles").getValue();
-            if(siteWorksFiles.isArray()){
-                SpinList<SpinJsonNode> workList = siteWorksFiles.elements();
-                for (SpinJsonNode work:workList){
-                    String name = work.prop("name").stringValue();
-                    String path = work.prop("value").prop("path").stringValue();
+            JsonValue siteWorksJsonVariable = runtimeService.<JsonValue>getVariableTyped(e.getId(), "siteWorksFiles");
+            if(siteWorksJsonVariable!=null){
+                SpinJsonNode siteWorksFiles = siteWorksJsonVariable.getValue();
+                if(siteWorksFiles.isArray()){
+                    SpinList<SpinJsonNode> workList = siteWorksFiles.elements();
+                    for (SpinJsonNode work:workList){
+                        String name = work.prop("name").stringValue();
+                        String path = work.prop("value").prop("path").stringValue();
 
-                    FileValue workFile = runtimeService.<FileValue>getVariableTyped(e.getId(), name);
-                    if(workFile!=null){
-                        InputStream fileContent = workFile.getValue();
-                        String mimeType = workFile.getMimeType();
-                        minioClient.putObject(minio.getBucketName(), path, fileContent, mimeType);
+                        FileValue workFile = runtimeService.<FileValue>getVariableTyped(e.getId(), name);
+                        if(workFile!=null){
+                            InputStream fileContent = workFile.getValue();
+                            String mimeType = workFile.getMimeType();
+                            minioClient.putObject(minio.getBucketName(), path, fileContent, mimeType);
+                        }
                     }
                 }
             }
