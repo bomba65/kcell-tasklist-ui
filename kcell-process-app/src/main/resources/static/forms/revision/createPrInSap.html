@@ -37,19 +37,23 @@
                 'contractorZIPWarehouseMaterialsListName',
                 'priority',
                 'prFile',
-                'sloc'
+                'sloc',
+                'siteRegion'
             ];
 
             $scope.jobModel = {};
             $scope.currentDate = new Date();
 
+            $scope.documentType = {1:"ZK73-02", 2:"ZK73-03", 3:"ZK73-04", 4:"ZK73-01"};
+            $scope.regionId = {alm:"2", astana:"1", nc:"3", east:"5", south:"4"};
+
             $http.get('/camunda/api/engine/engine/default/task/' + camForm.taskId).then(
-                    function(result){
-                        $scope.processInstanceId = result.data.processInstanceId;
-                    },
-                    function (error) {
-                        console.log(error.data);
-                    }
+                function(result){
+                    $scope.processInstanceId = result.data.processInstanceId;
+                },
+                function (error) {
+                    console.log(error.data);
+                }
             );
             camForm.on('form-loaded', function () {
                 variables.forEach(function (el) {
@@ -108,6 +112,21 @@
                     work.price = _.find($scope.jobModel.workPrices, function(p){
                         return work.sapServiceNumber === p.sapServiceNumber
                     });
+                    if(work.definition.costType=='CAPEX'){
+                        if($scope.jobModel.reason.value === '2'){ //Transmission
+                            work.wbsElement = 'TN-0502-48-015';
+                        } else {
+                            work.wbsElement = 'RN-0502-33-015';
+                        }
+                        work.activityServiceNumber = 'DUMMY';
+                    } else if(work.definition.costType=='OPEX'){
+                        work.wbsElement = '251-70160-1';
+                        if($scope.jobModel.reason.value === '2'){
+                            work.activityServiceNumber = '7016046';
+                        } else {
+                            work.activityServiceNumber = '7016045';
+                        }
+                    }
                 });
             });
 
@@ -154,9 +173,11 @@
 
     <job-request job-model="jobModel"></job-request>
 
-    <table class="table table-condensed" style="no-w">
-        <thead>
+    <div style="overflow: scroll">
+        <table class="table table-condensed">
+            <thead>
             <tr>
+                <th>#</th>
                 <th>PR document type</th>
                 <th>Cost Type</th>
                 <th>KWMS Number</th>
@@ -176,36 +197,55 @@
                 <th>Cost center</th>
                 <th>Controlling Area</th>
                 <th>Activity Service Number</th>
-                <th>Price</th>
-                <th>User</th>
+                <th>Amount</th>
+                <th>KWMS PR Req name</th>
+                <th>Purchase group</th>
+                <th>Requested by</th>
+                <th>Header Note</th>
             </tr>
-        </thead>
-        <tbody>
-            <tr ng-repeat="w in jobWorksValue track by $index">
-                <td>ZK73-01</td>
+            </thead>
+            <tbody ng-repeat="w in jobWorksValue track by $index">
+            <tr>
+                <td>{{$index+1}}</td>
+                <td>{{documentType[jobModel.reason.value]}}</td>
                 <td>{{w.definition.costType=='CAPEX'?'Y':(w.definition.costType=='OPEX'?'K':'')}}</td>
                 <td nowrap>{{jobModel.jrNumber.value}}</td>
                 <td>approved</td>
                 <td>{{jobModel.requestedDate.value | date:'dd.MM.yyyy'}}</td>
                 <td>{{w.definition.vendor}}</td>
-                <td>{{w.definition.region.id}}</td>
+                <td>{{regionId[jobModel.siteRegion.value]}}</td>
                 <td>Y</td>
-                <td>installation service</td>
+                <td nowrap>installation service {{jobModel.site_name.value}}</td>
                 <td>{{contractorsService[jobModel.contractor.value].contract.service}}</td>
                 <td>{{w.definition.sapServiceNumber}}</td>
-                <td>31.12.{{currentDate | date:'yyyy'}} {{currentDate}}</td>
-                <td nowrap>{{w.definition.spp}}</tdnowrap>
+                <td>31.12.{{currentDate | date:'yyyy'}}</td>
+                <td nowrap>{{w.wbsElement}}</td>
                 <td nowrap>{{jobModel.jrNumber.value}}</td>
                 <td>{{jobModel.sloc.value}}</td>
                 <td>{{w.fixedAssetNumber!=null?w.fixedAssetNumber:'DUMMY'}}</td>
                 <td>{{w.costCenter}}</td>
                 <td>{{w.controllingArea}}</td>
-                <td>{{w.activityServiceNumber!=null?w.activityServiceNumber:'DUMMY'}}</td>
+                <td>{{w.activityServiceNumber}}</td>
                 <td>{{w.price.unitWorkPricePlusTx}}</td>
-                <td>{{reasonsSubcontractorResponsible[jobModel.reason.value].responsible}}</td>
+                <td nowrap>{{reasonsSubcontractorResponsible[jobModel.reason.value].responsible}}</td>
+                <td>131</td>
+                <td>{{jobModel.reason.value == '4' ? '252' : '251'}}</td>
             </tr>
-        </tbody>
-    </table>
+            <tr>
+                <td></td>
+                <td colspan="23">
+                    1.Purchase description: Revision works for site {{jobModel.site_name.value}} JR# {{jobModel.jrNumber.value}} dated {{jobModel.requestedDate.value | date:'dd.MM.yyyy'}}
+                    2.Budgeted or not: yes {{w.wbsElement}}
+                    3.Main project for Fintur: revision works
+                    4.Describe the need of this purchase for this year: necessary for revision works
+                    5.Contact person: {{reasonsSubcontractorResponsible[jobModel.reason.value].responsible}}
+                    6. Vendor: Line System Engineering LLP
+                    8. Total sum: {{w.price.unitWorkPricePlusTx}}
+                </td>
+            </tr>
+            </tbody>
+        </table>
+    </div>
 
     <div style="border: black 1px solid;">
         <p>

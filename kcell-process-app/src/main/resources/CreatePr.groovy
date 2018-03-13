@@ -11,6 +11,8 @@ def contractor = 4
 def sloc = 'S333'
 def workPrices = '[{"relatedSites":[{"name":"00SITE1","id":"1","site_name":"00SITE1"}],"sapServiceNumber":"6","materialUnit":"site/сайт","quantity":1,"materialQuantity":1,"unitWorkPricePerSite":"98029.28","netWorkPricePerSite":"98029.28","unitWorkPrice":"90767.85","unitWorkPricePlusTx":"98029.28","total":"98029.28","basePrice":"90767.85"}]';
 def reason = "1";
+def siteRegion = "alm";
+def site_name = "00SITE1";
 */
 
 def cal = Calendar.instance
@@ -24,11 +26,27 @@ def contractorsTitle = new JsonSlurper().parseText(this.getClass().getResource("
 def subcontractorsTitle = new JsonSlurper().parseText(this.getClass().getResource("/dictionary/subcontractor.json").text)
 def subcontructerName = (subcontractorsTitle[reason] != null ? subcontractorsTitle[reason].responsible : "-")
 
+def documentType = ["1":"ZK73-02", "2":"ZK73-03", "3":"ZK73-04", "4":"ZK73-01"]
+def regionId = ["alm":"2", "astana":"1", "nc":"3", "east":"5", "south":"4"]
+def requestedBy = (reason == '4' ? '252' : '251')
+
 jobWorksObj.each { work ->
     if ('CAPEX' == work.definition.costType){
         work.costType = 'Y'
+        work.activityServiceNumber = 'DUMMY'
+        if(reason == '2'){
+            work.wbsElement = 'TN-0502-48-015'
+        } else {
+            work.wbsElement = 'RN-0502-33-015'
+        }
     } else if ('OPEX' == work.definition.costType){
         work.costType = 'K'
+        if('2' == reason){
+            work.activityServiceNumber = '7016046'
+        } else {
+            work.activityServiceNumber = '7016045'
+        }
+        work.wbsElement = '251-70160-1'
     }
     work.contractorNo = contractorsTitle[contractor.toString()].contract.service
 }
@@ -39,7 +57,9 @@ jobWorksObj.each { work ->
     }
 }
 
-def binding = ["jobWorksObj":jobWorksObj, "workPricesObj": workPricesObj, "jrNumber":jrNumber, "requestDate": requestDateObj, "yearEndDate":yearEndDate, "sloc":sloc, "subcontructerName":subcontructerName]
+def binding = ["documentType": documentType[reason],"jobWorksObj":jobWorksObj, "workPricesObj": workPricesObj, "jrNumber":jrNumber, "requestDate": requestDateObj,
+               "yearEndDate":yearEndDate, "sloc":sloc, "subcontructerName":subcontructerName, "regionId":regionId[siteRegion], "site_name":site_name,
+                "requestedBy":requestedBy]
 
 /*
 FIELD DESCRIPTION	 For FA PRs (CAPEX)	    For Service PRs (OPEX)	Примечание
@@ -79,14 +99,35 @@ User		        Из нового формата текстового файла	�
 
 def template = '''\
 jobWorksObj.each { w ->
-    yieldUnescaped 'ZK73-01\t' + w.costType + '\t' + jrNumber + '\tapproved\t' + requestDate + '\t' + w.definition.vendor + '\t' + 
-          w.definition.region.id + '\tY\tinstallation service\t' + w.contractorNo + '\t' + w.definition.sapServiceNumber + '\t' +
-          yearEndDate + '\t' + w.definition.spp + '\t' + jrNumber + '\t' + sloc + '\t' + (w.fixedAssetNumber!=null?w.fixedAssetNumber:'DUMMY') + '\t' + 
-          w.costCenter + '\t' + w.controllingArea + '\t' + (w.activityServiceNumber!=null?w.activityServiceNumber:'DUMMY') + '\t' + 
-          w.price.unitWorkPricePlusTx + '\t' + subcontructerName + ''
+    yieldUnescaped '' + documentType + '\t' + w.costType + '\t' + jrNumber + '\tapproved\t' + requestDate + '\t' + w.definition.vendor + '\t' + 
+          regionId + '\tY\tinstallation service ' + site_name + '\t' + w.contractorNo + '\t' + w.definition.sapServiceNumber + '\t' +
+          yearEndDate + '\t' + w.wbsElement + '\t' + jrNumber + '\t' + sloc + '\t' + (w.fixedAssetNumber!=null?w.fixedAssetNumber:'DUMMY') + '\t' + 
+          w.costCenter + '\t' + w.controllingArea + '\t' + w.activityServiceNumber + '\t' + w.price.unitWorkPricePlusTx + '\t' + 
+          subcontructerName + '\t131\t' + requestedBy + ' ' +
+          '1.Purchase description: Revision works for site ' + site_name + ' JR# ' + jrNumber + ' dated ' + requestDate + ' ' +
+          '2.Budgeted or not: yes ' + w.definition.spp + ' ' +
+          '3.Main project for Fintur: revision works ' +
+          '4.Describe the need of this purchase for this year: necessary for revision works ' +
+          '5.Contact person: ' + subcontructerName + ' ' +
+          '6. Vendor: Line System Engineering LLP ' + 
+          '8. Total sum: ' + w.price.unitWorkPricePlusTx + ''
+          
     newLine()
 }
 '''
+/*
+Briefly answer the following questions:
+1.Purchase description: Revision works for site 00000ALMATY
+JR# West-P&O-17-0048 dated 01.12.2017
+2.Budgeted or not: yes
+RN-0502-33-0150; 251-70160-1
+CIF's # 0150 (на 2018 будет меняться каждый год)
+3.Main project for Fintur: revision works
+4.Describe the need of this purchase for this year: necessary for revision works
+5.Contact person: Keremet Ibragimova
+6. Vendor: Line System Engineering LLP
+8. Total sum: ______
+*/
 
 def config = new TemplateConfiguration()
 config.setAutoNewLine(true)
