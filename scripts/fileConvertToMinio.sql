@@ -1,19 +1,3 @@
-CREATE EXTENSION IF NOT EXISTS "uuid-ossp";
-
-/*actOfMaterialsDispatchingFile - actOfMaterialsDispatchingFileName
-tssrssidFile - tssrssidFileName
-eLicenseResolutionFile - eLicenseResolutionFileName
-sapPRFileXLS - sapPRFileXLSName
-kcellWarehouseMaterialsList - kcellWarehouseMaterialsListName
-contractorZIPWarehouseMaterialsList - contractorZIPWarehouseMaterialsListName
-works_{{$index}}_file_{{work.files.length}} - worksFiles
-trFile{X} -
-
-jrBlank - jrBlank
-sapTransferRequestFile -
-*/
--- for active
-
 select 'insert into act_ge_bytearray(id_, rev_, name_, bytes_) VALUES ('''||buuid||''', 1, '''||l.name||''', '''||json||''')',
        'insert into act_ru_variable(id_, rev_, type_, name_, execution_id_, proc_inst_id_, bytearray_id_, var_scope_, sequence_counter_, is_concurrent_local_) values '||
        '('''||vuuid||''', 1, ''json'', '''||l.name||''', '''||execution_id_||''', '''||proc_inst_id_||''', '''||buuid||''', '''||proc_inst_id_||''', 1, null)'
@@ -38,16 +22,12 @@ from (
          FROM act_ru_variable arv
            JOIN act_ge_bytearray ba ON (arv.bytearray_id_ = ba.id_)
            left OUTER JOIN act_ru_execution are ON (arv.proc_inst_id_ = are.id_)
+           left OUTER JOIN act_ru_variable ch ON (arv.proc_inst_id_ = ch.proc_inst_id_ and arv.name_ || 'Name' = ch.name_)
          WHERE arv.type_ = 'file'
               AND arv.name_ IN
                    ('actOfMaterialsDispatchingFile', 'tssrssidFile', 'eLicenseResolutionFile', 'sapPRFileXLS',
                     'kcellWarehouseMaterialsList', 'contractorZIPWarehouseMaterialsList')
-              AND arv.proc_inst_id_ not in (
-                  select alr.proc_inst_id_
-                  from act_ru_variable alr
-                  where alr.name_ = 'siteWorksFiles'
-                  and alr.type_ = 'json'
-              )
+              AND ch.id_ is null
        ) t
 ) l;
 
@@ -155,17 +135,11 @@ from (
            hvi.proc_def_key_, hvi.proc_def_id_, hvi.proc_inst_id_ , hvi.execution_id_ , hvi.act_inst_id_ , hvi.case_def_key_ , hvi.case_def_id_ , hvi.case_inst_id_, hvi.case_execution_id_, hvi.task_id_
          FROM act_hi_varinst hvi
            JOIN act_ge_bytearray ba ON (hvi.bytearray_id_ = ba.id_)
+           left OUTER JOIN act_hi_varinst ch ON (hvi.proc_inst_id_ = ch.proc_inst_id_ and hvi.name_ || 'Name' = ch.name_)
          WHERE hvi.var_type_ = 'file'
                AND hvi.name_ IN
                    ('actOfMaterialsDispatchingFile', 'tssrssidFile', 'eLicenseResolutionFile', 'sapPRFileXLS',
                     'kcellWarehouseMaterialsList', 'contractorZIPWarehouseMaterialsList')
-              AND hvi.proc_inst_id_ not in (
-                  select alr.proc_inst_id_
-                  from act_hi_varinst alr
-                  where alr.name_ in ('actOfMaterialsDispatchingFileName', 'tssrssidFileName', 'eLicenseResolutionFileName', 'sapPRFileXLSName',
-                    'kcellWarehouseMaterialsListName', 'contractorZIPWarehouseMaterialsListName')
-                  and alr.var_type_ = 'json'
-              )
        ) t
 ) l;
 
