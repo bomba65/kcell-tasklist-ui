@@ -421,13 +421,13 @@
                                     );
                                 });
 
-                                // fill_applied_changes_info - task, first date
+                                // attach_material_list_contractor, fill_applied_changes_info - task, first date
                                 // validate_tr - task, approved last date
                                 // accept_work_initiator - task, approved last date
 
                                 angular.forEach($scope.jobRequests, function (request) {
                                     var taskParams = {
-                                        taskDefinitionKeyIn:['fill_applied_changes_info','validate_tr','accept_work_initiator','UserTask_0rj3nbv','Task_0jxwgbt','UserTask_1i7na4a'],
+                                        taskDefinitionKeyIn: ['attach_material_list_contractor','UserTask_1wkrl5k','fill_applied_changes_info','validate_tr','accept_work_initiator','UserTask_0rj3nbv','Task_0jxwgbt','UserTask_1i7na4a'],
                                         processInstanceBusinessKey: request.businessKey
                                     };
 
@@ -437,6 +437,14 @@
                                         data: taskParams,
                                         url: '/camunda/api/engine/engine/default/history/task'
                                     }).then(function (res) {
+                                        var attachMaterialList = _.minBy(_.filter(res.data, function(task){
+                                            return task.taskDefinitionKey === 'attach_material_list_contractor' || task.taskDefinitionKey === 'UserTask_1wkrl5k';
+                                        }), function(o) { return o.startTime; });
+
+                                        if(attachMaterialList){
+                                            request.attachMaterialList = attachMaterialList.startTime;
+                                        }
+
                                         var fillAppliedChanges = _.minBy(_.filter(res.data, function(task){
                                             return task.taskDefinitionKey === 'fill_applied_changes_info' || task.taskDefinitionKey === 'UserTask_0rj3nbv';
                                         }), function(o) { return o.startTime; });
@@ -883,7 +891,7 @@
                             <td>{{w.quantity}}</td>
                             <td><span ng-repeat="rs in w.relatedSites">{{rs.site_name}}<br ng-if="!$last"/></span></td>
                             <td><a ng-click="toggleProcessView(w.processInstanceId, 'table', work.key)">{{w.businessKey}}</a> <a class="glyphicon glyphicon-trash" aria-hidden="true" ng-click="removeJobRequest(w.processInstanceId)"></a></td>
-                            <td>{{w.fillAppliedChanges | date:'dd MMM yyyy'}}</td>
+                            <td>{{(w.attachMaterialList!=null ? w.attachMaterialList : w.fillAppliedChanges) | date:'dd MMM yyyy'}}</td>
                             <td>{{w.validateTr | date:'dd MMM yyyy'}}</td>
                             <td>{{w.acceptWorkStartTime | date:'dd MMM yyyy'}}</td>
                             <td>{{w.acceptWorkEndTime | date:'dd MMM yyyy'}}</td>
