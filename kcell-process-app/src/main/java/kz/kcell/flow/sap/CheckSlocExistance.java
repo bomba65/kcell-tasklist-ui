@@ -39,6 +39,31 @@ public class CheckSlocExistance implements JavaDelegate {
     @Override
     public void execute(DelegateExecution delegateExecution) throws Exception {
 
+
+        String siteRegion = String.valueOf(delegateExecution.getVariable("siteRegion"));
+        String contractor = String.valueOf(delegateExecution.getVariable("contractor"));
+        String reason = String.valueOf(delegateExecution.getVariable("reason"));
+        String jrNumber = String.valueOf(delegateExecution.getVariable("jrNumber"));
+
+        Integer counter = 1;
+        if(delegateExecution.getVariable("sapTryCounter")!=null){
+            counter = Integer.valueOf(String.valueOf(delegateExecution.getVariable("prCounter"))) + 1;
+        }
+        delegateExecution.setVariable("sapTryCounter", counter);
+
+        String sapJrNumber = (siteRegion.equals("astana")?"ast":siteRegion) + "-"
+            + contractor + "-"
+            + reason + "-"
+            + jrNumber.substring(jrNumber.length()-7,jrNumber.length()) + "-"
+            + (String.valueOf(counter).length()<2 ?"0":"") + String.valueOf(counter);
+        delegateExecution.setVariable("sapJrNumber", sapJrNumber);
+
+        // astana-4-3-18-5001-01
+        // astana-lse-S&FM-18-5001
+
+        log.info("sapTryCounter: " + counter);
+        log.info("sapJrNumber: " + sapJrNumber);
+
         SSLContextBuilder builder = new SSLContextBuilder();
         builder.loadTrustMaterial(null, new TrustSelfSignedStrategy());
         SSLConnectionSocketFactory sslsf = new SSLConnectionSocketFactory(
@@ -78,12 +103,20 @@ public class CheckSlocExistance implements JavaDelegate {
         JSONObject obj = new JSONObject(content);
         JSONArray locations = obj.getJSONObject("_embedded").getJSONArray("locations");
 
+        log.info("locations.length(): " + locations.length());
+
         if(locations.length()>0){
+            log.info("locations.get(0): " + locations.get(0));
+
             JSONObject location = (JSONObject) locations.get(0);
+            log.info("location.get(name): " + location.get("name"));
 
-            delegateExecution.setVariable("sloc", (String) location.get("name"));
-
-            delegateExecution.setVariable("hasSloc", "yes");
+            if(location.get("name")!=null && !"null".equals((String) location.get("name"))){
+                delegateExecution.setVariable("sloc", (String) location.get("name"));
+                delegateExecution.setVariable("hasSloc", "yes");
+            } else {
+                delegateExecution.setVariable("hasSloc", "no");
+            }
         } else {
             delegateExecution.setVariable("hasSloc", "no");
         }

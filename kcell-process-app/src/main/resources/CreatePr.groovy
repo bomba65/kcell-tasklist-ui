@@ -4,6 +4,7 @@ import groovy.text.markup.TemplateConfiguration
 import java.text.SimpleDateFormat
 
 /*
+def sapJrNumber = "ast-4-3-18-5001-01"
 def jrNumber = "Alm-LSE-P&O-17-5267"
 def requestedDate = new Date()
 def jobWorks = '[{"relatedSites":[{"name":"00SITE1","id":"1","site_name":"00SITE1"}],"sapServiceNumber":"6","materialUnit":"site/сайт","quantity":1,"materialQuantity":1,"definition":{"id": 6,"costType": "OPEX","contractor": {"id": 5,"name": "JSC Kcell"},"region": { "id": 7,"name": "Almaty"}, "service": {}, "sapServiceNumber": "6", "sapPOServiceName": "6. BTS Macro removal ","displayServiceName": "6.BTS Macro removal (including packaging according Kcell required) / Демонтаж кабинета BTS Macro (включая упаковку согласно стандартам Kcell)", "currency": "KZT","faClass": "29403422", "materialGroup": "STD0019", "year": 2016, "spp": "251-70160-1", "sppSao": "252-70160-1", "createDate": 1496599200000, "units": "site/сайт", "vendor":"280209"}}]';
@@ -27,7 +28,7 @@ def subcontractorsTitle = new JsonSlurper().parseText(this.getClass().getResourc
 def subcontructerName = (subcontractorsTitle[reason] != null ? subcontractorsTitle[reason].responsible : "-")
 
 def documentType = ["1":"ZK73-02", "2":"ZK73-03", "3":"ZK73-04", "4":"ZK73-01"]
-def regionId = ["alm":"2", "astana":"1", "nc":"3", "east":"5", "south":"4"]
+def regionId = ["alm":"2", "astana":"1", "nc":"3", "east":"5", "south":"4", "west":"6"]
 def requestedBy = (reason == '4' ? '252' : '251')
 
 jobWorksObj.each { work ->
@@ -57,9 +58,9 @@ jobWorksObj.each { work ->
     }
 }
 
-def binding = ["documentType": documentType[reason],"jobWorksObj":jobWorksObj, "workPricesObj": workPricesObj, "jrNumber":jrNumber, "requestDate": requestDateObj,
-               "yearEndDate":yearEndDate, "sloc":sloc, "subcontructerName":subcontructerName, "regionId":regionId[siteRegion], "site_name":site_name,
-                "requestedBy":requestedBy]
+def binding = ["documentType": documentType[reason],"jobWorksObj":jobWorksObj, "workPricesObj": workPricesObj, "jrNumber":jrNumber,
+               "requestDate": requestDateObj, "yearEndDate":yearEndDate, "sloc":sloc, "subcontructerName":subcontructerName,
+               "regionId":regionId[siteRegion], "site_name":site_name, "requestedBy":requestedBy, "sapJrNumber": sapJrNumber]
 
 /*
 FIELD DESCRIPTION	 For FA PRs (CAPEX)	    For Service PRs (OPEX)	Примечание
@@ -99,9 +100,9 @@ User		        Из нового формата текстового файла	�
 
 def template = '''\
 jobWorksObj.each { w ->
-    yieldUnescaped '' + documentType + '\t' + w.costType + '\t' + jrNumber + '\tapproved\t' + requestDate + '\t' + w.definition.vendor + '\t' + 
+    yieldUnescaped '' + documentType + '\t' + w.costType + '\t' + sapJrNumber + '\tapproved\t' + requestDate + '\t' + w.definition.vendor + '\t' + 
           regionId + '\tY\tinstallation service ' + site_name + '\t' + w.contractorNo + '\t' + w.definition.sapServiceNumber + '\t' +
-          yearEndDate + '\t' + w.wbsElement + '\t' + jrNumber + '\t' + sloc + '\t' + (w.fixedAssetNumber!=null?w.fixedAssetNumber:'DUMMY') + '\t' + 
+          yearEndDate + '\t' + w.wbsElement + '\t' + sapJrNumber + '\t' + sloc + '\t' + (w.fixedAssetNumber!=null?w.fixedAssetNumber:'DUMMY') + '\t' + 
           w.costCenter + '\t' + w.controllingArea + '\t' + w.activityServiceNumber + '\t' + w.price.unitWorkPricePlusTx + '\t' + 
           subcontructerName + '\t131\t' + requestedBy + ' ' +
           '1.Purchase description: Revision works for site ' + site_name + ' JR# ' + jrNumber + ' dated ' + requestDate + ' ' +
