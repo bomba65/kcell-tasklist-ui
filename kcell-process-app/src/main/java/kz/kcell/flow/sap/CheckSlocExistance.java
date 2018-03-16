@@ -47,7 +47,7 @@ public class CheckSlocExistance implements JavaDelegate {
 
         Integer counter = 1;
         if(delegateExecution.getVariable("sapTryCounter")!=null){
-            counter = Integer.valueOf(String.valueOf(delegateExecution.getVariable("prCounter"))) + 1;
+            counter = Integer.valueOf(String.valueOf(delegateExecution.getVariable("sapTryCounter"))) + 1;
         }
         delegateExecution.setVariable("sapTryCounter", counter);
 
