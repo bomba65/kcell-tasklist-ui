@@ -77,7 +77,7 @@ public class MinioController {
 
         MinioClient minioClient = new MinioClient(getLocation(request), this.minioAccessKey, this.minioSecretKey, "us-east-1");
 
-        String url = minioClient.presignedGetObject(minio.getBucketName(), processId + "/" + fileName, 60 * 60 * 1); // 1 hour
+        String url = minioClient.presignedGetObject(minio.getTempBucketName(), processId + "/" + fileName, 60 * 60 * 1); // 1 hour
 
         return ResponseEntity.ok(url);
     }
