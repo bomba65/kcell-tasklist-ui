@@ -70,7 +70,7 @@ public class MinioController {
             return ResponseEntity.status(HttpStatus.BAD_REQUEST).body("No processId or File specified");
         }
 
-        if (identityService.getCurrentAuthentication() == null || identityService.getCurrentAuthentication().getUserId() == null) {
+        if (identityService.getCurrentAuthentication() == null || identityService.getCurrentAuthentication().getUserId() == null) {s
             log.warning("No user logged in");
             return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body("No user logged in");
         }
