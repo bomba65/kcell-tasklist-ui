@@ -105,6 +105,15 @@ define(['./module','jquery', 'camundaSDK'], function(app, $, CamSDK){
 			maxResults: 20
 		};
 
+        var currentDate = new Date();
+        $scope.filter.beginYear = currentDate.getFullYear();
+        $scope.filter.endYear = currentDate.getFullYear();
+        $scope.years = [];
+
+        for(var year=2017;year<=$scope.filter.beginYear;year++){
+			$scope.years.push(year);
+        }
+
 		$rootScope.hasGroup = function(group){
 			if($rootScope.authUser && $rootScope.authUser.groups){
 				return _.some($rootScope.authUser.groups, function(value){
@@ -149,7 +158,8 @@ define(['./module','jquery', 'camundaSDK'], function(app, $, CamSDK){
 			var filter = {
 				processDefinitionKey: 'Revision',
 				sorting:[{sortBy: "startTime",sortOrder: "desc"}],
-				variables: []
+				variables:[],
+				processInstanceBusinessKeyLike:'%-%'
 			}
 			if($scope.filter.region && $scope.filter.region!=='all'){
 				filter.variables.push({"name": "siteRegion", "operator": "eq", "value": $scope.filter.region});
@@ -167,6 +177,27 @@ define(['./module','jquery', 'camundaSDK'], function(app, $, CamSDK){
 				filter.unfinished = true;
 			} else {
 				delete filter.unfinished;
+			}
+			if($scope.filter.beginYear){
+				filter.startedAfter = $scope.filter.beginYear + '-01-01T00:00:00.000+0600';
+			}
+			if($scope.filter.endYear){
+				filter.startedBefore = (Number($scope.filter.endYear) + 1) + '-01-01T00:00:00.000+0600';
+			}
+			if($scope.filter.requestedFromDate){
+				filter.variables.push({"name": "requestedDate", "operator": "gteq", "value": $scope.filter.requestedFromDate});
+			}
+			if($scope.filter.requestedToDate){
+				filter.variables.push({"name": "requestedDate", "operator": "lteq", "value": $scope.filter.requestedToDate});				
+			}
+			if($scope.filter.validityFromDate){
+				filter.variables.push({"name": "validityDate", "operator": "gteq", "value": $scope.filter.validityFromDate});
+			}
+			if($scope.filter.validityToDate){
+				filter.variables.push({"name": "validityDate", "operator": "lteq", "value": $scope.filter.validityToDate});				
+			}
+			if($scope.filter.requestor){
+				filter.startedBy = $scope.filter.requestor;
 			}
 			$scope.lastSearchParams = filter;
 			getProcessInstances(filter, 'processInstances');
@@ -569,5 +600,12 @@ define(['./module','jquery', 'camundaSDK'], function(app, $, CamSDK){
 				size: 'lg'
 			}).then(function(results){
 			});
-        };	}]);
+        };	
+
+        $scope.open = function ($event, dateFieldOpened) {
+            $event.preventDefault();
+            $event.stopPropagation();
+            $scope[dateFieldOpened] = true;
+        };
+    }]);
 });
