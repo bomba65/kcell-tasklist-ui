@@ -64,7 +64,7 @@ public class MinioController {
 
     @RequestMapping(value = "/get/{processId}/{fileName:.+}", method = RequestMethod.GET)
     @ResponseBody
-    public ResponseEntity<String> getTempPresignedGetObjectUrl(@PathVariable("processId") String processId, @PathVariable("fileName") String fileName, HttpServletRequest request) throws InvalidEndpointException, InvalidPortException, InvalidKeyException, InvalidBucketNameException, NoSuchAlgorithmException, InsufficientDataException, NoResponseException, ErrorResponseException, InternalException, InvalidExpiresRangeException, IOException, XmlPullParserException{
+    public ResponseEntity<String> getPresignedGetObjectUrl(@PathVariable("processId") String processId, @PathVariable("fileName") String fileName, HttpServletRequest request) throws InvalidEndpointException, InvalidPortException, InvalidKeyException, InvalidBucketNameException, NoSuchAlgorithmException, InsufficientDataException, NoResponseException, ErrorResponseException, InternalException, InvalidExpiresRangeException, IOException, XmlPullParserException{
 
         if (processId == null || fileName == null) {
             log.debug("No processId or File specified");
@@ -79,6 +79,27 @@ public class MinioController {
         MinioClient minioClient = new MinioClient(getLocation(request), this.minioAccessKey, this.minioSecretKey, "us-east-1");
 
         String url = minioClient.presignedGetObject(minio.getBucketName(), processId + "/" + fileName, 60 * 60 * 1); // 1 hour
+
+        return ResponseEntity.ok(url);
+    }
+
+    @RequestMapping(value = "/tmp/get/{processId}/{fileName:.+}", method = RequestMethod.GET)
+    @ResponseBody
+    public ResponseEntity<String> getTempPresignedGetObjectUrl(@PathVariable("processId") String processId, @PathVariable("fileName") String fileName, HttpServletRequest request) throws InvalidEndpointException, InvalidPortException, InvalidKeyException, InvalidBucketNameException, NoSuchAlgorithmException, InsufficientDataException, NoResponseException, ErrorResponseException, InternalException, InvalidExpiresRangeException, IOException, XmlPullParserException{
+
+        if (processId == null || fileName == null) {
+            log.debug("No processId or File specified");
+            return ResponseEntity.status(HttpStatus.BAD_REQUEST).body("No processId or File specified");
+        }
+
+        if (identityService.getCurrentAuthentication() == null || identityService.getCurrentAuthentication().getUserId() == null) {
+            log.debug("No user logged in");
+            return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body("No user logged in");
+        }
+
+        MinioClient minioClient = new MinioClient(getLocation(request), this.minioAccessKey, this.minioSecretKey, "us-east-1");
+
+        String url = minioClient.presignedGetObject(minio.getTempBucketName(), processId + "/" + fileName, 60 * 60 * 1); // 1 hour
 
         return ResponseEntity.ok(url);
     }
