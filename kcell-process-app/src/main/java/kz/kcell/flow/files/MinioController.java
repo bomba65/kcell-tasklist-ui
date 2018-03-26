@@ -2,10 +2,9 @@ package kz.kcell.flow.files;
 
 import io.minio.MinioClient;
 import io.minio.errors.*;
+import lombok.extern.java.Log;
 import org.camunda.bpm.engine.IdentityService;
 import org.camunda.bpm.engine.TaskService;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.HttpStatus;
@@ -20,9 +19,9 @@ import java.security.NoSuchAlgorithmException;
 
 @RestController
 @RequestMapping("/uploads")
+@Log
 public class MinioController {
 
-    private static final Logger log = LoggerFactory.getLogger(MinioController.class);
     private final String minioAccessKey;
     private final String minioSecretKey;
 
@@ -46,12 +45,12 @@ public class MinioController {
     public ResponseEntity<String> getPresignedGetObjectUrl(@PathVariable("processId") String processId, @PathVariable("taskId") String taskId, @PathVariable("fileName") String fileName, HttpServletRequest request) throws InvalidEndpointException, InvalidPortException, InvalidKeyException, InvalidBucketNameException, NoSuchAlgorithmException, InsufficientDataException, NoResponseException, ErrorResponseException, InternalException, InvalidExpiresRangeException, IOException, XmlPullParserException{
 
         if (processId == null || taskId == null || fileName == null) {
-            log.debug("No Process Instance, Task or File specified");
+            log.warning("No Process Instance, Task or File specified");
             return ResponseEntity.status(HttpStatus.BAD_REQUEST).body("No Process Instance, Task or File specified");
         }
 
         if (identityService.getCurrentAuthentication() == null || identityService.getCurrentAuthentication().getUserId() == null) {
-            log.debug("No user logged in");
+            log.warning("No user logged in");
             return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body("No user logged in");
         }
 
@@ -67,12 +66,12 @@ public class MinioController {
     public ResponseEntity<String> getPresignedGetObjectUrl(@PathVariable("processId") String processId, @PathVariable("fileName") String fileName, HttpServletRequest request) throws InvalidEndpointException, InvalidPortException, InvalidKeyException, InvalidBucketNameException, NoSuchAlgorithmException, InsufficientDataException, NoResponseException, ErrorResponseException, InternalException, InvalidExpiresRangeException, IOException, XmlPullParserException{
 
         if (processId == null || fileName == null) {
-            log.debug("No processId or File specified");
+            log.warning("No processId or File specified");
             return ResponseEntity.status(HttpStatus.BAD_REQUEST).body("No processId or File specified");
         }
 
         if (identityService.getCurrentAuthentication() == null || identityService.getCurrentAuthentication().getUserId() == null) {
-            log.debug("No user logged in");
+            log.warning("No user logged in");
             return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body("No user logged in");
         }
 
@@ -88,12 +87,12 @@ public class MinioController {
     public ResponseEntity<String> getTempPresignedGetObjectUrl(@PathVariable("processId") String processId, @PathVariable("fileName") String fileName, HttpServletRequest request) throws InvalidEndpointException, InvalidPortException, InvalidKeyException, InvalidBucketNameException, NoSuchAlgorithmException, InsufficientDataException, NoResponseException, ErrorResponseException, InternalException, InvalidExpiresRangeException, IOException, XmlPullParserException{
 
         if (processId == null || fileName == null) {
-            log.debug("No processId or File specified");
+            log.warning("No processId or File specified");
             return ResponseEntity.status(HttpStatus.BAD_REQUEST).body("No processId or File specified");
         }
 
         if (identityService.getCurrentAuthentication() == null || identityService.getCurrentAuthentication().getUserId() == null) {
-            log.debug("No user logged in");
+            log.warning("No user logged in");
             return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body("No user logged in");
         }
 
@@ -109,12 +108,12 @@ public class MinioController {
     public ResponseEntity<String> getPresignedPutObjectUrl(@PathVariable("processId") String processId, @PathVariable("taskId") String taskId, @PathVariable("fileName") String fileName, HttpServletRequest request) throws InvalidEndpointException, InvalidPortException, InvalidKeyException, InvalidBucketNameException, NoSuchAlgorithmException, InsufficientDataException, NoResponseException, ErrorResponseException, InternalException, InvalidExpiresRangeException, IOException, XmlPullParserException{
 
         if (processId == null || taskId == null || fileName == null) {
-            log.debug("No Process Instance, Task or File specified");
+            log.warning("No Process Instance, Task or File specified");
             return ResponseEntity.status(HttpStatus.BAD_REQUEST).body("No Process Instance, Task or File specified");
         }
 
         if (identityService.getCurrentAuthentication() == null || identityService.getCurrentAuthentication().getUserId() == null) {
-            log.debug("No user logged in");
+            log.warning("No user logged in");
             return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body("No user logged in");
         }
 
@@ -124,7 +123,7 @@ public class MinioController {
                 .count() > 0;
 
         if (!taskBelongsToProcessInstance) {
-            log.debug("The Task not found or does not belong to the Process Instance");
+            log.warning("The Task not found or does not belong to the Process Instance");
             return ResponseEntity.status(HttpStatus.BAD_REQUEST).body("The Task not found or does not belong to the Process Instance");
         }
 
@@ -135,7 +134,7 @@ public class MinioController {
                 .count() > 0;
 
         if (!taskAssignedToCurrentUser) {
-            log.debug("The User is not authorized to upload Files to the Task");
+            log.warning("The User is not authorized to upload Files to the Task");
             return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body("The User is not authorized to upload Files to the Task");
         }
 
@@ -151,12 +150,12 @@ public class MinioController {
     public ResponseEntity<String> getTempPresignedPutObjectUrl(@PathVariable("uuid") String uuid, @PathVariable("fileName") String fileName, HttpServletRequest request) throws InvalidEndpointException, InvalidPortException, InvalidKeyException, InvalidBucketNameException, NoSuchAlgorithmException, InsufficientDataException, NoResponseException, ErrorResponseException, InternalException, InvalidExpiresRangeException, IOException, XmlPullParserException{
 
         if (uuid == null || fileName == null) {
-            log.debug("No Uuid or File specified");
+            log.warning("No Uuid or File specified");
             return ResponseEntity.status(HttpStatus.BAD_REQUEST).body("No Uuid or File specified");
         }
 
         if (identityService.getCurrentAuthentication() == null || identityService.getCurrentAuthentication().getUserId() == null) {
-            log.debug("No user logged in");
+            log.warning("No user logged in");
             return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body("No user logged in");
         }
 
