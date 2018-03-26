@@ -11,6 +11,7 @@ import com.amazonaws.services.s3.AmazonS3ClientBuilder;
 import kz.kcell.camunda.authentication.plugin.KcellIdentityProviderPlugin;
 import kz.kcell.flow.mail.CamundaMailerDelegate;
 import kz.kcell.flow.mail.TaskNotificationListener;
+import kz.kcell.flow.repository.custom.ReportRepository;
 import org.camunda.bpm.application.ProcessApplication;
 import org.camunda.bpm.application.impl.event.ProcessApplicationEventListenerPlugin;
 import org.camunda.bpm.engine.authorization.Permissions;
@@ -82,6 +83,11 @@ public class CamundaApplication extends SpringBootProcessApplication {
     @Bean
     public CamundaMailerDelegate camundaMailer() {
         return new CamundaMailerDelegate();
+    }
+
+    @Bean
+    public ReportRepository reportRepository() {
+        return new ReportRepository();
     }
 
     @Bean
