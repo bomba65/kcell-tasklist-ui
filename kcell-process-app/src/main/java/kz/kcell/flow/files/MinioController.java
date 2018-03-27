@@ -70,14 +70,14 @@ public class MinioController {
             return ResponseEntity.status(HttpStatus.BAD_REQUEST).body("No processId or File specified");
         }
 
-        if (identityService.getCurrentAuthentication() == null || identityService.getCurrentAuthentication().getUserId() == null) {s
+        if (identityService.getCurrentAuthentication() == null || identityService.getCurrentAuthentication().getUserId() == null) {
             log.warning("No user logged in");
             return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body("No user logged in");
         }
 
         MinioClient minioClient = new MinioClient(getLocation(request), this.minioAccessKey, this.minioSecretKey, "us-east-1");
 
-        String url = minioClient.presignedGetObject(minio.getTempBucketName(), processId + "/" + fileName, 60 * 60 * 1); // 1 hour
+        String url = minioClient.presignedGetObject(minio.getBucketName(), processId + "/" + fileName, 60 * 60 * 1); // 1 hour
 
         return ResponseEntity.ok(url);
     }
