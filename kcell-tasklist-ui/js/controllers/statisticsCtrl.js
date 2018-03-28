@@ -6,6 +6,10 @@ define(['./module','jquery'], function(app,$){
 			name: 'statistics'
 		};
 
+        if(window.require){
+            $scope.ExcellentExport = require('excellentexport');
+        }
+
 		$scope._ = window._;
 
 		$rootScope.logout = function(){
@@ -261,5 +265,16 @@ define(['./module','jquery'], function(app,$){
 			console.log(report)
 			$location.url($location.path());
 		}
+
+        if($rootScope.authentication.name === 'demo'){
+            $http.get('/camunda/reports/report').then(function(response) {
+                $scope.reportList = response.data;
+                $scope.showReportDownload = true;
+            });
+        }
+
+        $scope.downloadReport = function(){
+            return $scope.ExcellentExport.convert({anchor: 'reportClick',format: 'xlsx',filename: 'report'}, [{name: 'Sheet Name Here 1',from: {table: 'reportTable'}}]);
+        }
 	}]);
 });

@@ -824,11 +824,13 @@ select
   else null
   end as "JR Reason",
   case pi.state_
-  when 'ACTIVE' then 'Open JR'
+  when 'ACTIVE' then 'Open/In progress JR'
   else case pi.end_act_id_
        when 'EndEvent_1fo49fj' then 'Rejected JR'
        when 'endevt_create_jr_rejected' then 'Rejected JR'
-       else 'Closed JR'
+       when 'endevt_createjr_cancelled' then 'Cancelled JR'
+       when 'endevt_revision' then 'Completed JR'
+       else 'Closed JR (' || pi.end_act_id_ || ')'
        end
   end as "JR Status",
   pi.start_time_ as "Requested Date",
@@ -840,7 +842,7 @@ select
   acceptanceDate.value_ as "Acceptance Date",
   -- сюда еще нужно состав работ разбитый на строки
   worksDict.title as "Job Description",
-  worksJson.value->>'quantity' as "Quantity",
+  worksJson.value ->>'quantity' as "Quantity",
   explanation.text_ as "Comments",
   case materialsRequired.text_
   when 'Yes' then 'required'
@@ -890,6 +892,8 @@ from act_hi_procinst pi
                            and ai.act_id_ = 'SubProcess_0v7hq1m')
     as acceptanceDate
     on acceptance.text_ = 'accepted'
+
+  -- canceled, accepted, in progress, количество работ
 
   left join act_hi_varinst jobWorks
     on pi.id_ = jobWorks.proc_inst_id_ and jobWorks.name_ = 'jobWorks'
