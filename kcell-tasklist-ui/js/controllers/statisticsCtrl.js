@@ -266,7 +266,7 @@ define(['./module','jquery'], function(app,$){
 			$location.url($location.path());
 		}
 
-        if($rootScope.authentication.name === 'demo'){
+        if($rootScope.authentication.name === 'demo' || $rootScope.authentication.name === 'Evgeniy.Semenov@kcell.kz' || $rootScope.authentication.name === 'Yernaz.Kalingarayev@kcell.kz'){
             $http.get('/camunda/reports/report').then(function(response) {
                 $scope.reportList = response.data;
                 $scope.showReportDownload = true;
