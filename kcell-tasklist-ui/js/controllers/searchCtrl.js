@@ -105,9 +105,9 @@ define(['./module','jquery', 'camundaSDK'], function(app, $, CamSDK){
 			maxResults: 20
 		};
 
-        var currentDate = new Date();
-        $scope.filter.beginYear = currentDate.getFullYear();
-        $scope.filter.endYear = currentDate.getFullYear();
+        $scope.currentDate = new Date();
+        $scope.filter.beginYear = $scope.currentDate.getFullYear();
+        $scope.filter.endYear = $scope.currentDate.getFullYear();
         $scope.years = [];
 
         for(var year=2017;year<=$scope.filter.beginYear;year++){
@@ -202,6 +202,21 @@ define(['./module','jquery', 'camundaSDK'], function(app, $, CamSDK){
 			$scope.lastSearchParams = filter;
 			getProcessInstances(filter, 'processInstances');
 		};
+
+		$scope.clearFilters = function(){
+			$scope.filter.region = 'all';
+			$scope.filter.sitename = undefined;
+			$scope.filter.businessKey = undefined;
+			$scope.filter.workType = undefined;
+			$scope.filter.beginYear = $scope.currentDate.getFullYear();
+			$scope.filter.endYear = $scope.currentDate.getFullYear();
+			$scope.filter.requestedFromDate = undefined;
+			$scope.filter.requestedToDate = undefined;
+			$scope.filter.validityFromDate = undefined;
+			$scope.filter.validityToDate = undefined;
+			$scope.filter.requestor = undefined;
+			$scope.filter.sitename = undefined;
+		}
 
 		$scope.getXlsxProcessInstances = function(){
 			if($scope.xlsxPrepared){
