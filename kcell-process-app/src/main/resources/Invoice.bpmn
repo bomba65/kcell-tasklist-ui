@@ -11,7 +11,7 @@
       <bpmn:extensionElements>
         <camunda:taskListener class="kz.kcell.bpm.assignments.InvoiceCenterGroupSpecialistAssignmentHandler" event="create" />
       </bpmn:extensionElements>
-      <bpmn:incoming>SequenceFlow_0r1o363</bpmn:incoming>
+      <bpmn:incoming>SequenceFlow_1dbgk7p</bpmn:incoming>
       <bpmn:outgoing>SequenceFlow_0tf2clk</bpmn:outgoing>
     </bpmn:userTask>
     <bpmn:userTask id="ma_sign_manager" name="Check and sign Monthly act by Manager" camunda:formKey="embedded:app:forms/invoice/checkByManager.html">
@@ -137,6 +137,7 @@
       <bpmn:incoming>SequenceFlow_0fjcgxj</bpmn:incoming>
       <bpmn:incoming>SequenceFlow_04uzs9r</bpmn:incoming>
       <bpmn:incoming>SequenceFlow_1e3pm8v</bpmn:incoming>
+      <bpmn:incoming>SequenceFlow_0lhip4t</bpmn:incoming>
       <bpmn:outgoing>SequenceFlow_1oe6j17</bpmn:outgoing>
     </bpmn:userTask>
     <bpmn:exclusiveGateway id="ma_exclgw_check_region" default="SequenceFlow_03v1qjb">
@@ -159,7 +160,7 @@
       <bpmn:outgoing>SequenceFlow_1e2ycnv</bpmn:outgoing>
     </bpmn:startEvent>
     <bpmn:sequenceFlow id="SequenceFlow_14qnvsm" sourceRef="ma_sign_region_manager" targetRef="ma_exclgw_sign_region_manager" />
-    <bpmn:sequenceFlow id="SequenceFlow_0r1o363" name="if choosed Optimization, Operation or Infrastructure works" sourceRef="ma_exclgw_groups" targetRef="ma_check_centralgroup" />
+    <bpmn:sequenceFlow id="SequenceFlow_0r1o363" name="if choosed Optimization, Operation or Infrastructure works" sourceRef="ma_exclgw_groups" targetRef="ma_exclgw_check_centralgroup_tech1" />
     <bpmn:sequenceFlow id="SequenceFlow_0tf2clk" sourceRef="ma_check_centralgroup" targetRef="ma_exclgw_check_centralgroup" />
     <bpmn:sequenceFlow id="SequenceFlow_1nvucr0" sourceRef="ma_exclgw_signbygroups" targetRef="ma_sign_manager" />
     <bpmn:sequenceFlow id="SequenceFlow_1qd4dki" sourceRef="ma_sign_manager" targetRef="ma_exclgw_sign_manager" />
@@ -280,6 +281,36 @@
       <bpmn:incoming>SequenceFlow_1e2ycnv</bpmn:incoming>
       <bpmn:outgoing>SequenceFlow_1e3pm8v</bpmn:outgoing>
     </bpmn:userTask>
+    <bpmn:exclusiveGateway id="ma_exclgw_check_centralgroup_tech1" default="SequenceFlow_1rj54ot">
+      <bpmn:incoming>SequenceFlow_0r1o363</bpmn:incoming>
+      <bpmn:outgoing>SequenceFlow_1rj54ot</bpmn:outgoing>
+      <bpmn:outgoing>SequenceFlow_0p9qc38</bpmn:outgoing>
+    </bpmn:exclusiveGateway>
+    <bpmn:sequenceFlow id="SequenceFlow_1rj54ot" name="P&#38;O, S&#38;FM" sourceRef="ma_exclgw_check_centralgroup_tech1" targetRef="ma_exclgw_check_centralgroup_tech2" />
+    <bpmn:exclusiveGateway id="ma_exclgw_check_centralgroup_tech2">
+      <bpmn:incoming>SequenceFlow_1rj54ot</bpmn:incoming>
+      <bpmn:incoming>SequenceFlow_0xzxatj</bpmn:incoming>
+      <bpmn:outgoing>SequenceFlow_0j37rb1</bpmn:outgoing>
+    </bpmn:exclusiveGateway>
+    <bpmn:sequenceFlow id="SequenceFlow_0j37rb1" sourceRef="ma_exclgw_check_centralgroup_tech2" targetRef="ma_exclgw_check_centralgroup_tech3" />
+    <bpmn:sequenceFlow id="SequenceFlow_0p9qc38" name="if SAO" sourceRef="ma_exclgw_check_centralgroup_tech1" targetRef="ma_check_centralgroup_tech">
+      <bpmn:conditionExpression xsi:type="bpmn:tFormalExpression"><![CDATA[${workType == '4'}]]></bpmn:conditionExpression>
+    </bpmn:sequenceFlow>
+    <bpmn:sequenceFlow id="SequenceFlow_0xzxatj" sourceRef="ma_check_centralgroup_tech" targetRef="ma_exclgw_check_centralgroup_tech2" />
+    <bpmn:userTask id="ma_check_centralgroup_tech" name="Check and sign Monthly act by central group specialist (technical)" camunda:formKey="embedded:app:forms/invoice/checkByCentralGroupTechnicalSpecialist.html" camunda:candidateGroups="hq_sao_engineer">
+      <bpmn:documentation>Central group specialist (technical) checks and signs monthly act</bpmn:documentation>
+      <bpmn:incoming>SequenceFlow_0p9qc38</bpmn:incoming>
+      <bpmn:outgoing>SequenceFlow_0xzxatj</bpmn:outgoing>
+    </bpmn:userTask>
+    <bpmn:exclusiveGateway id="ma_exclgw_check_centralgroup_tech3" default="SequenceFlow_1dbgk7p">
+      <bpmn:incoming>SequenceFlow_0j37rb1</bpmn:incoming>
+      <bpmn:outgoing>SequenceFlow_1dbgk7p</bpmn:outgoing>
+      <bpmn:outgoing>SequenceFlow_0lhip4t</bpmn:outgoing>
+    </bpmn:exclusiveGateway>
+    <bpmn:sequenceFlow id="SequenceFlow_1dbgk7p" sourceRef="ma_exclgw_check_centralgroup_tech3" targetRef="ma_check_centralgroup" />
+    <bpmn:sequenceFlow id="SequenceFlow_0lhip4t" name="return for correction" sourceRef="ma_exclgw_check_centralgroup_tech3" targetRef="ma_check_region">
+      <bpmn:conditionExpression xsi:type="bpmn:tFormalExpression"><![CDATA[${centralGroupTechnicalTaskResult == 'returnForCorrection'}]]></bpmn:conditionExpression>
+    </bpmn:sequenceFlow>
     <bpmn:textAnnotation id="TextAnnotation_10jqhlq">    <bpmn:text>проверка и генерация месячного акта осуществляется Подрядчиком</bpmn:text>
 </bpmn:textAnnotation>
     <bpmn:textAnnotation id="TextAnnotation_0p5xf9y">    <bpmn:text>должен формироваться бланк месячного акта и к нему приложены бланки актов выполненных работ с фамилиями, кто апрувил их при приемке</bpmn:text>
@@ -302,7 +333,7 @@
         <dc:Bounds x="3784" y="292" width="100" height="80" />
       </bpmndi:BPMNShape>
       <bpmndi:BPMNShape id="UserTask_0s0htrf_di" bpmnElement="ma_check_centralgroup">
-        <dc:Bounds x="4239" y="492" width="100" height="80" />
+        <dc:Bounds x="4483" y="492" width="100" height="80" />
       </bpmndi:BPMNShape>
       <bpmndi:BPMNShape id="UserTask_0qo907o_di" bpmnElement="ma_sign_manager">
         <dc:Bounds x="5075" y="303" width="100" height="80" />
@@ -320,7 +351,7 @@
         </bpmndi:BPMNLabel>
       </bpmndi:BPMNShape>
       <bpmndi:BPMNShape id="UserTask_0tkqa33_di" bpmnElement="ma_sign_head2">
-        <dc:Bounds x="4613" y="492" width="100" height="80" />
+        <dc:Bounds x="4750" y="492" width="100" height="80" />
       </bpmndi:BPMNShape>
       <bpmndi:BPMNShape id="UserTask_03aoo5j_di" bpmnElement="ma_invoice_number">
         <dc:Bounds x="5868" y="303" width="100" height="80" />
@@ -340,17 +371,17 @@
         <di:waypoint xsi:type="dc:Point" x="2751" y="248" />
       </bpmndi:BPMNEdge>
       <bpmndi:BPMNEdge id="SequenceFlow_0tf2clk_di" bpmnElement="SequenceFlow_0tf2clk">
-        <di:waypoint xsi:type="dc:Point" x="4339" y="532" />
-        <di:waypoint xsi:type="dc:Point" x="4447" y="532" />
+        <di:waypoint xsi:type="dc:Point" x="4583" y="532" />
+        <di:waypoint xsi:type="dc:Point" x="4644" y="532" />
         <bpmndi:BPMNLabel>
-          <dc:Bounds x="4348" y="511" width="90" height="12" />
+          <dc:Bounds x="4568.5" y="511" width="90" height="12" />
         </bpmndi:BPMNLabel>
       </bpmndi:BPMNEdge>
       <bpmndi:BPMNEdge id="SequenceFlow_09ekg28_di" bpmnElement="SequenceFlow_09ekg28">
-        <di:waypoint xsi:type="dc:Point" x="4713" y="532" />
-        <di:waypoint xsi:type="dc:Point" x="4825" y="532" />
+        <di:waypoint xsi:type="dc:Point" x="4850" y="532" />
+        <di:waypoint xsi:type="dc:Point" x="4904" y="532" />
         <bpmndi:BPMNLabel>
-          <dc:Bounds x="4724" y="511" width="90" height="12" />
+          <dc:Bounds x="4832" y="511" width="90" height="12" />
         </bpmndi:BPMNLabel>
       </bpmndi:BPMNEdge>
       <bpmndi:BPMNEdge id="SequenceFlow_1qd4dki_di" bpmnElement="SequenceFlow_1qd4dki">
@@ -383,9 +414,9 @@
       <bpmndi:BPMNEdge id="SequenceFlow_0r1o363_di" bpmnElement="SequenceFlow_0r1o363">
         <di:waypoint xsi:type="dc:Point" x="4079" y="357" />
         <di:waypoint xsi:type="dc:Point" x="4079" y="532" />
-        <di:waypoint xsi:type="dc:Point" x="4239" y="532" />
+        <di:waypoint xsi:type="dc:Point" x="4101" y="532" />
         <bpmndi:BPMNLabel>
-          <dc:Bounds x="4006" y="410" width="65" height="63" />
+          <dc:Bounds x="4006" y="410" width="66" height="60" />
         </bpmndi:BPMNLabel>
       </bpmndi:BPMNEdge>
       <bpmndi:BPMNShape id="TextAnnotation_0p5xf9y_di" bpmnElement="TextAnnotation_0p5xf9y">
@@ -505,48 +536,48 @@
         </bpmndi:BPMNLabel>
       </bpmndi:BPMNEdge>
       <bpmndi:BPMNShape id="ExclusiveGateway_1pdji57_di" bpmnElement="ma_exclgw_signl_head2" isMarkerVisible="true">
-        <dc:Bounds x="4825" y="507" width="50" height="50" />
+        <dc:Bounds x="4904" y="507" width="50" height="50" />
         <bpmndi:BPMNLabel>
-          <dc:Bounds x="4805" y="561" width="90" height="12" />
+          <dc:Bounds x="4884" y="561" width="90" height="12" />
         </bpmndi:BPMNLabel>
       </bpmndi:BPMNShape>
       <bpmndi:BPMNEdge id="SequenceFlow_1716h7g_di" bpmnElement="SequenceFlow_1716h7g">
-        <di:waypoint xsi:type="dc:Point" x="4875" y="532" />
+        <di:waypoint xsi:type="dc:Point" x="4954" y="532" />
         <di:waypoint xsi:type="dc:Point" x="5015" y="532" />
         <di:waypoint xsi:type="dc:Point" x="5015" y="368" />
         <bpmndi:BPMNLabel>
-          <dc:Bounds x="4900" y="511" width="90" height="12" />
+          <dc:Bounds x="4939.5" y="511" width="90" height="12" />
         </bpmndi:BPMNLabel>
       </bpmndi:BPMNEdge>
       <bpmndi:BPMNShape id="ExclusiveGateway_0l8v6he_di" bpmnElement="ma_exclgw_check_centralgroup" isMarkerVisible="true">
-        <dc:Bounds x="4447" y="507" width="50" height="50" />
+        <dc:Bounds x="4644" y="507" width="50" height="50" />
         <bpmndi:BPMNLabel>
-          <dc:Bounds x="4427" y="561" width="90" height="12" />
+          <dc:Bounds x="4624" y="561" width="90" height="12" />
         </bpmndi:BPMNLabel>
       </bpmndi:BPMNShape>
       <bpmndi:BPMNEdge id="SequenceFlow_0jyh189_di" bpmnElement="SequenceFlow_0jyh189">
-        <di:waypoint xsi:type="dc:Point" x="4497" y="532" />
-        <di:waypoint xsi:type="dc:Point" x="4613" y="532" />
+        <di:waypoint xsi:type="dc:Point" x="4694" y="532" />
+        <di:waypoint xsi:type="dc:Point" x="4750" y="532" />
         <bpmndi:BPMNLabel>
-          <dc:Bounds x="4510" y="511" width="90" height="12" />
+          <dc:Bounds x="4677" y="511" width="90" height="12" />
         </bpmndi:BPMNLabel>
       </bpmndi:BPMNEdge>
       <bpmndi:BPMNEdge id="SequenceFlow_1qol5gg_di" bpmnElement="SequenceFlow_1qol5gg">
-        <di:waypoint xsi:type="dc:Point" x="4472" y="557" />
-        <di:waypoint xsi:type="dc:Point" x="4472" y="600" />
+        <di:waypoint xsi:type="dc:Point" x="4669" y="557" />
+        <di:waypoint xsi:type="dc:Point" x="4669" y="600" />
         <di:waypoint xsi:type="dc:Point" x="3115" y="600" />
         <di:waypoint xsi:type="dc:Point" x="3115" y="372" />
         <bpmndi:BPMNLabel>
-          <dc:Bounds x="3907.7947477539738" y="622" width="49" height="24" />
+          <dc:Bounds x="4678" y="579" width="49" height="25" />
         </bpmndi:BPMNLabel>
       </bpmndi:BPMNEdge>
       <bpmndi:BPMNEdge id="SequenceFlow_1wadv2r_di" bpmnElement="SequenceFlow_1wadv2r">
-        <di:waypoint xsi:type="dc:Point" x="4850" y="557" />
-        <di:waypoint xsi:type="dc:Point" x="4850" y="627" />
+        <di:waypoint xsi:type="dc:Point" x="4929" y="557" />
+        <di:waypoint xsi:type="dc:Point" x="4929" y="627" />
         <di:waypoint xsi:type="dc:Point" x="3094" y="627" />
         <di:waypoint xsi:type="dc:Point" x="3094" y="372" />
         <bpmndi:BPMNLabel>
-          <dc:Bounds x="4780.16847826087" y="583" width="49" height="24" />
+          <dc:Bounds x="4856.953018223235" y="583" width="49" height="24" />
         </bpmndi:BPMNLabel>
       </bpmndi:BPMNEdge>
       <bpmndi:BPMNShape id="ExclusiveGateway_0lth6vx_di" bpmnElement="ma_exclgw_sign_region_manager" isMarkerVisible="true">
@@ -815,6 +846,73 @@
       <bpmndi:BPMNShape id="UserTask_1gjxtz9_di" bpmnElement="ma_sendtobranch">
         <dc:Bounds x="2798" y="292" width="100" height="80" />
       </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="ExclusiveGateway_1426n1a_di" bpmnElement="ma_exclgw_check_centralgroup_tech1" isMarkerVisible="true">
+        <dc:Bounds x="4101.1900000000005" y="507" width="50" height="50" />
+        <bpmndi:BPMNLabel>
+          <dc:Bounds x="4126.1900000000005" y="561" width="0" height="12" />
+        </bpmndi:BPMNLabel>
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNEdge id="SequenceFlow_1rj54ot_di" bpmnElement="SequenceFlow_1rj54ot">
+        <di:waypoint xsi:type="dc:Point" x="4151" y="532" />
+        <di:waypoint xsi:type="dc:Point" x="4296" y="532" />
+        <bpmndi:BPMNLabel>
+          <dc:Bounds x="4194" y="511" width="60" height="13" />
+        </bpmndi:BPMNLabel>
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNShape id="ExclusiveGateway_12ncczd_di" bpmnElement="ma_exclgw_check_centralgroup_tech2" isMarkerVisible="true">
+        <dc:Bounds x="4296.1900000000005" y="507" width="50" height="50" />
+        <bpmndi:BPMNLabel>
+          <dc:Bounds x="4321.1900000000005" y="561" width="0" height="12" />
+        </bpmndi:BPMNLabel>
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNEdge id="SequenceFlow_0j37rb1_di" bpmnElement="SequenceFlow_0j37rb1">
+        <di:waypoint xsi:type="dc:Point" x="4346" y="532" />
+        <di:waypoint xsi:type="dc:Point" x="4383" y="532" />
+        <bpmndi:BPMNLabel>
+          <dc:Bounds x="4364.5" y="511" width="0" height="12" />
+        </bpmndi:BPMNLabel>
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="SequenceFlow_0p9qc38_di" bpmnElement="SequenceFlow_0p9qc38">
+        <di:waypoint xsi:type="dc:Point" x="4126" y="507" />
+        <di:waypoint xsi:type="dc:Point" x="4126" y="451" />
+        <di:waypoint xsi:type="dc:Point" x="4177" y="451" />
+        <bpmndi:BPMNLabel>
+          <dc:Bounds x="4110" y="432" width="31" height="12" />
+        </bpmndi:BPMNLabel>
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="SequenceFlow_0xzxatj_di" bpmnElement="SequenceFlow_0xzxatj">
+        <di:waypoint xsi:type="dc:Point" x="4277" y="451" />
+        <di:waypoint xsi:type="dc:Point" x="4321" y="451" />
+        <di:waypoint xsi:type="dc:Point" x="4321" y="507" />
+        <bpmndi:BPMNLabel>
+          <dc:Bounds x="4299" y="430" width="0" height="12" />
+        </bpmndi:BPMNLabel>
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNShape id="UserTask_1a4w9kh_di" bpmnElement="ma_check_centralgroup_tech">
+        <dc:Bounds x="4177" y="411" width="100" height="80" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="ExclusiveGateway_1evjn1c_di" bpmnElement="ma_exclgw_check_centralgroup_tech3" isMarkerVisible="true">
+        <dc:Bounds x="4383.1900000000005" y="507" width="50" height="50" />
+        <bpmndi:BPMNLabel>
+          <dc:Bounds x="4408.1900000000005" y="561" width="0" height="12" />
+        </bpmndi:BPMNLabel>
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNEdge id="SequenceFlow_1dbgk7p_di" bpmnElement="SequenceFlow_1dbgk7p">
+        <di:waypoint xsi:type="dc:Point" x="4433" y="532" />
+        <di:waypoint xsi:type="dc:Point" x="4483" y="532" />
+        <bpmndi:BPMNLabel>
+          <dc:Bounds x="4458" y="511" width="0" height="12" />
+        </bpmndi:BPMNLabel>
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="SequenceFlow_0lhip4t_di" bpmnElement="SequenceFlow_0lhip4t">
+        <di:waypoint xsi:type="dc:Point" x="4408" y="557" />
+        <di:waypoint xsi:type="dc:Point" x="4408" y="583" />
+        <di:waypoint xsi:type="dc:Point" x="3129" y="583" />
+        <di:waypoint xsi:type="dc:Point" x="3129" y="372" />
+        <bpmndi:BPMNLabel>
+          <dc:Bounds x="4416" y="561" width="49" height="25" />
+        </bpmndi:BPMNLabel>
+      </bpmndi:BPMNEdge>
     </bpmndi:BPMNPlane>
   </bpmndi:BPMNDiagram>
 </bpmn:definitions>
