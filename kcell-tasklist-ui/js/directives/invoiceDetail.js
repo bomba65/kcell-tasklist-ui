@@ -14,7 +14,6 @@ define(['./module'], function(module){
                 scope.table = undefined;
                 scope.selectedWorks = [];
                 var selectedWorksMap = {};      
-                console.log(scope.print);
                 var Big;
                 if(window.require){
                     Big = require('big-js')
