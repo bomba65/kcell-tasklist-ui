@@ -104,7 +104,7 @@ jobWorksObj.each { w ->
           regionId + '\tY\tinstallation service ' + site_name + '\t' + w.contractorNo + '\t' + w.definition.sapServiceNumber + '\t' +
           yearEndDate + '\t' + w.wbsElement + '\t' + sapJrNumber + '\t' + sloc + '\t' + (w.fixedAssetNumber!=null?w.fixedAssetNumber:'DUMMY') + '\t' + 
           w.costCenter + '\t' + w.controllingArea + '\t' + w.activityServiceNumber + '\t' + w.price.unitWorkPricePlusTx + '\t' + 
-          subcontructerName + '\t131\t' + requestedBy + ' ' +
+          subcontructerName + '\t131\t' + requestedBy + '\t' +
           '1.Purchase description: Revision works for site ' + site_name + ' JR# ' + jrNumber + ' dated ' + requestDate + ' ' +
           '2.Budgeted or not: yes ' + w.definition.spp + ' ' +
           '3.Main project for Fintur: revision works ' +
