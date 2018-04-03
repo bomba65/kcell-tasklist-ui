@@ -12,7 +12,7 @@ public class InvoiceRegionContractorAssignmentHandler implements TaskListener {
         String region = delegateTask.getVariable("region").toString();
         String contractor = delegateTask.getVariable("contractor").toString();
         if (region != null) {
-            group.insert(0, region);
+            group.insert(0, ("nc".equals(region)?"astana":region));
             group.append(contractor);
             delegateTask.addCandidateGroup(group.toString());
         }
