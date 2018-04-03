@@ -231,20 +231,22 @@ define(['./module','jquery', 'camundaSDK'], function(app, $, CamSDK){
 										$scope.jobModel.jobWorks.value[workIndex].files.push(file);
 									}
 								});
-		                        $q.all($scope.jobModel.resolutions.value.map(function (resolution) {
-		                            return $http.get("/camunda/api/engine/engine/default/history/task?processInstanceId="+resolution.processInstanceId+"&taskId=" + resolution.taskId);
-		                        })).then(function (tasks) {
-		                            tasks.forEach(function (e, index) {
-		                                if(e.data.length > 0){
-		                                    $scope.jobModel.resolutions.value[index].taskName = e.data[0].name;
-		                                    try {
-		                                        $scope.jobModel.resolutions.value[index].taskEndDate = new Date(e.data[0].endTime);
-		                                    } catch(e){
-		                                        console.log(e);
-		                                    }
-		                                }
-		                            });
-		                        });
+			                    if($scope.jobModel.resolutions && $scope.jobModel.resolutions.value){
+			                        $q.all($scope.jobModel.resolutions.value.map(function (resolution) {
+			                            return $http.get("/camunda/api/engine/engine/default/history/task?processInstanceId="+resolution.processInstanceId+"&taskId=" + resolution.taskId);
+			                        })).then(function (tasks) {
+			                            tasks.forEach(function (e, index) {
+			                                if(e.data.length > 0){
+			                                    $scope.jobModel.resolutions.value[index].taskName = e.data[0].name;
+			                                    try {
+			                                        $scope.jobModel.resolutions.value[index].taskEndDate = new Date(e.data[0].endTime);
+			                                    } catch(e){
+			                                        console.log(e);
+			                                    }
+			                                }
+			                            });
+			                        });
+								}
 
 			            		angular.extend($scope.jobModel, catalogs);
 			            		$scope.jobModel.tasks = processInstanceTasks;
