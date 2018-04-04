@@ -20,6 +20,7 @@ define(['./module','jquery'], function(app,$){
 
 		$scope.baseUrl = '/camunda/api/engine/engine/default';
 		// $scope.baseUrl = "https://test-flow.kcell.kz/engine-rest/engine/default";
+        $scope.report_ready = false;
 
         if($rootScope.authentication){
             $http.get($scope.baseUrl+'/user/'+$rootScope.authentication.name+'/profile').then(
@@ -61,6 +62,7 @@ define(['./module','jquery'], function(app,$){
 		$scope.currentReport = $stateParams.report || 'revision-open-tasks';
 
         $scope.task = $stateParams.task;
+        $scope.region = $stateParams.region;
 
         $http.get('/api/catalogs').then(
             function (result) {
@@ -92,6 +94,14 @@ define(['./module','jquery'], function(app,$){
                 return 'no_region';
             }
         };
+
+        $scope.filterRegion = function(task){
+            if($scope.region){
+                return $scope.getJrRegion(task.variables.jrNumber.value) === $scope.region;
+            } else {
+                return true;
+            }
+        }
 
         var userTasksPromise = $http.get($scope.baseUrl + '/process-definition/key/Revision/xml')
             .then(function(response) {
@@ -145,11 +155,13 @@ define(['./module','jquery'], function(app,$){
 
         if ($scope.currentReport === 'revision-open-tasks') {
         	if ($scope.task) {
-				$http.post($scope.baseUrl + '/history/task', {
+                var query = {
                     taskDefinitionKey: $scope.task,
                     processDefinitionKey: 'Revision',
                     unfinished: true
-				}).then(function(response) {
+                };
+
+				$http.post($scope.baseUrl + '/history/task', query).then(function(response) {
 					var tasks = response.data;
                     var processInstanceIds = _.map(tasks, 'processInstanceId');
                     return $http.post($scope.baseUrl + '/history/variable-instance', {
@@ -266,15 +278,19 @@ define(['./module','jquery'], function(app,$){
 			$location.url($location.path());
 		}
 
-        if($rootScope.authentication.name === 'demo' || $rootScope.authentication.name === 'Evgeniy.Semenov@kcell.kz' || $rootScope.authentication.name === 'Yernaz.Kalingarayev@kcell.kz'){
-            $http.get('/camunda/reports/report').then(function(response) {
-                $scope.reportList = response.data;
-                $scope.showReportDownload = true;
-            });
-        }
+
 
         $scope.downloadReport = function(){
-            return $scope.ExcellentExport.convert({anchor: 'reportClick',format: 'xlsx',filename: 'report'}, [{name: 'Sheet Name Here 1',from: {table: 'reportTable'}}]);
+            if($scope.report_ready){
+                return $scope.ExcellentExport.convert({anchor: 'reportClick',format: 'xlsx',filename: 'report'}, [{name: 'Sheet Name Here 1',from: {table: 'reportTable'}}]);
+            } else {
+                if($rootScope.authentication.name === 'demo' || $rootScope.authentication.name === 'Evgeniy.Semenov@kcell.kz' || $rootScope.authentication.name === 'Yernaz.Kalingarayev@kcell.kz'){
+                    $http.get('/camunda/reports/report').then(function(response) {
+                        $scope.reportList = response.data;
+                        $scope.report_ready = true;
+                    });
+                } 
+            }
         }
 	}]);
 });
