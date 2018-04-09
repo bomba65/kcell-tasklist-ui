@@ -7,6 +7,7 @@ define(['./module','camundaSDK', 'lodash', 'big-js'], function(module, CamSDK, _
 		});
 
 		$scope.hasAssignPermission = false;
+		$scope.control = {};
 
 		var Authentication = function(data) {
 			angular.extend(this, data);
