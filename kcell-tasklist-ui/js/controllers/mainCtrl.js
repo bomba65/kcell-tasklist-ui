@@ -26,14 +26,14 @@ define(['./module','camundaSDK', 'lodash', 'big-js'], function(module, CamSDK, _
 			$http.get(baseUrl+'/user/'+$rootScope.authentication.name+'/profile').then(
 				function(userProfile){
 					$rootScope.authUser = userProfile.data;
-					$http.get(baseUrl+'/group?member='+$rootScope.authUser.id).then(
-						function(groups){
-							$rootScope.authUser.groups = groups.data;
-						},
-						function(error){
-							console.log(error.data);
-						}
-					);
+				},
+				function(error){
+					console.log(error.data);
+				}
+			);
+			$http.get(baseUrl+'/group?member='+$rootScope.authentication.name).then(
+				function(groups){
+					$rootScope.authUser.groups = groups.data;
 				},
 				function(error){
 					console.log(error.data);
@@ -219,14 +219,31 @@ define(['./module','camundaSDK', 'lodash', 'big-js'], function(module, CamSDK, _
 				$scope.authentication = null;
 			});
 		}
+
+		$scope.showProcessDefinition = function(e){
+			if(e){
+				if(e.key === 'SiteSharingTopProcess'){
+					return true;
+				}
+				else if(e.key === 'Revision' && $rootScope.hasGroup('alm_engineer')){
+					return true;
+				}
+				else if(e.key === 'Invoice' && !$rootScope.hasGroup('kcellUsers')){
+					return true;
+				} else {
+					return false;
+				}
+			} else {
+				return false;
+			}
+		}
+
 		function loadProcessDefinitions(e){
-			$http.get(baseUrl+'/process-definition?latest=true&active=true&firstResult=0&maxResults=15&startableBy=' + $scope.authentication.name).then(
+			$http.get(baseUrl+'/process-definition?latest=true&active=true&firstResult=0&maxResults=15').then(
 				function(results){
 					$scope.processDefinitions = [];
 					results.data.forEach(function(e){
-						if(e.key === 'Revision' || e.key === 'SiteSharingTopProcess' || e.key === 'Process_1' || e.key === 'Invoice'){
-							$scope.processDefinitions.push(e);
-						}
+						$scope.processDefinitions.push(e);
 					})
 				},
 				function(error){
