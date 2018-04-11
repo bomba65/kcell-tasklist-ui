@@ -26,15 +26,14 @@ define(['./module','camundaSDK', 'lodash', 'big-js'], function(module, CamSDK, _
 			$http.get(baseUrl+'/user/'+$rootScope.authentication.name+'/profile').then(
 				function(userProfile){
 					$rootScope.authUser = userProfile.data;
-				},
-				function(error){
-					console.log(error.data);
-				}
-			);
-			$http.get(baseUrl+'/group?member='+$rootScope.authentication.name).then(
-				function(groups){
-					$rootScope.authUser.groups = groups.data;
-					loadProcessDefinitions();
+					$http.get(baseUrl+'/group?member='+$rootScope.authUser.id).then(
+						function(groups){
+							$rootScope.authUser.groups = groups.data;
+						},
+						function(error){
+							console.log(error.data);
+						}
+					);
 				},
 				function(error){
 					console.log(error.data);
@@ -226,16 +225,17 @@ define(['./module','camundaSDK', 'lodash', 'big-js'], function(module, CamSDK, _
 				function(results){
 					$scope.processDefinitions = [];
 					results.data.forEach(function(e){
-						if(e.key === 'SiteSharingTopProcess'){
-							$scope.processDefinitions.push(e);
-						}
-						else if(e.key === 'Revision' && $rootScope.hasGroup('alm_engineer')){
-							$scope.processDefinitions.push(e);
-						}
-						else if(e.key === 'Invoice' && $rootScope.hasGroup('hq_contractor_lse')){
-							$scope.processDefinitions.push(e);
-						}					
-					})
+						$http.get(baseUrl+'/authorization/check?permissionName=CREATE_INSTANCE&permissionValue=256&resourceName=Process Definition&resourceType=6&resourceId=' + e.key).then(
+							function(result){
+								if(result && result.data && result.data.authorized){
+									$scope.processDefinitions.push(e);
+								}
+							},
+							function(error){
+								console.log(error.data);
+							}
+						);
+					});
 				},
 				function(error){
 					console.log(error.data);
@@ -409,6 +409,7 @@ define(['./module','camundaSDK', 'lodash', 'big-js'], function(module, CamSDK, _
 			return _.keyBy($scope.currentFilter.properties.variables, 'name')[key].label;
 		}
 
+		loadProcessDefinitions();
 		getTaskList();
 
 		$scope.getTaskList = getTaskList;
