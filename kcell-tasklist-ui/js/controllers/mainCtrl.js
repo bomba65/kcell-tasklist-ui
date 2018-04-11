@@ -232,7 +232,7 @@ define(['./module','camundaSDK', 'lodash', 'big-js'], function(module, CamSDK, _
 						else if(e.key === 'Revision' && $rootScope.hasGroup('alm_engineer')){
 							$scope.processDefinitions.push(e);
 						}
-						else if(e.key === 'Invoice' && !$rootScope.hasGroup('kcellUsers')){
+						else if(e.key === 'Invoice' && $rootScope.hasGroup('hq_contractor_lse')){
 							$scope.processDefinitions.push(e);
 						}					
 					})
