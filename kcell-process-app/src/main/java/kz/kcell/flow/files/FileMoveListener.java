@@ -33,9 +33,7 @@ public class FileMoveListener implements ExecutionListener {
     }
 
     @Override
-    public void notify(DelegateExecution delegateExecution) throws InvalidKeyException, InvalidBucketNameException, NoSuchAlgorithmException, InsufficientDataException,
-    NoResponseException, ErrorResponseException, InternalException, IOException, XmlPullParserException,
-    InvalidArgumentException {
+    public void notify(DelegateExecution delegateExecution) {
 
         Stream<String> fileVars = Stream.of(this.fileVars.getValue(delegateExecution).toString().split(",")).map(String::trim).filter(s -> !s.isEmpty());
 
