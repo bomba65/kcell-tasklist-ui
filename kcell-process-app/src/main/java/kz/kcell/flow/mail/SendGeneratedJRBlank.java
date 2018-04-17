@@ -500,13 +500,13 @@ public class SendGeneratedJRBlank implements JavaDelegate {
 //            FileValue jrBlank = Variables.fileValue("jrBlank.xlsx").file(out.toByteArray()).mimeType("application/vnd.openxmlformats-officedocument.spreadsheetml.sheet").create();
 //            delegateExecution.setVariable("jrBlank", jrBlank);
 
-            String path = delegateExecution.getProcessInstanceId() + "/" + "jrBlank.xlsx";
+            String path = delegateExecution.getProcessInstanceId() + "/" + jrNumber + "_blank.xlsx";
 
             ByteArrayInputStream bis = new ByteArrayInputStream(out.toByteArray());
             minioClient.saveFile(path, bis, "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet");
             bis.close();
 
-            String json = "{\"name\" : \"jrBlank.xlsx\",\"path\" : \"" + path + "\"}";
+            String json = "{\"name\" : \"" + jrNumber + "_jrBlank.xlsx\",\"path\" : \"" + path + "\"}";
             delegateExecution.setVariable("jrBlank", SpinValues.jsonValue(json));
 
             delegateExecution.setVariable("isNewProcessCreated", "false");
