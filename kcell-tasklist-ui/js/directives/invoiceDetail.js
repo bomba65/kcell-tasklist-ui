@@ -59,6 +59,13 @@ define(['./module'], function(module){
                     transformToArray();
 				}
 
+                scope.calculateBasePriceByQuantity = function(work){
+                    var unitWorkPrice = Big(work.unitWorkPrice);
+                    var quantity = Big(work.quantity);
+                    var result = unitWorkPrice.times(quantity);
+                    return result.toFixed(2).replace('.',',');
+                }
+
 	            scope.toggleProcessView = function(processInstanceId, key, table){
                     if(scope.processInstanceId === processInstanceId && scope.pkey === key && scope.table===table){
                        	scope.processInstanceId = undefined;

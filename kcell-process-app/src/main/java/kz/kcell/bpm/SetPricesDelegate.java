@@ -69,9 +69,11 @@ public class SetPricesDelegate implements TaskListener {
                     workPrice.put("netWorkPricePerSite", netWorkPricePerSite.setScale(2, RoundingMode.CEILING).toString());
                 }
 
+                BigDecimal basePriceByQuantity = unitWorkPrice.multiply(new BigDecimal(workPrice.get("quantity").asText()));
                 BigDecimal total = unitWorkPricePlusTx.multiply(new BigDecimal(workPrice.get("quantity").asText()));
                 workPrice.put("unitWorkPrice", unitWorkPrice.setScale(2, RoundingMode.CEILING).toString());
                 workPrice.put("unitWorkPricePlusTx", unitWorkPricePlusTx.setScale(2, RoundingMode.CEILING).toString());
+                workPrice.put("basePriceByQuantity", basePriceByQuantity.setScale(2, RoundingMode.CEILING).toString());
                 workPrice.put("total", total.setScale(2, RoundingMode.CEILING).toString());
 
                 jobWorksTotal = jobWorksTotal.add(total);
