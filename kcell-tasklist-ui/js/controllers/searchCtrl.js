@@ -54,6 +54,58 @@ define(['./module','jquery', 'camundaSDK'], function(app, $, CamSDK){
         	'west_kcell_users' : 'west'
         }
 
+        $http.get(baseUrl + '/process-definition/key/Revision/xml')
+        .then(function(response) {
+            var domParser = new DOMParser();
+
+            var xml = domParser.parseFromString(response.data.bpmn20Xml, 'application/xml');
+
+            function getUserTasks(xml) {
+                var namespaces = {
+                    bpmn: 'http://www.omg.org/spec/BPMN/20100524/MODEL'
+                };
+
+                var userTaskNodes = getElementsByXPath(xml, '//bpmn:userTask', prefix => namespaces[prefix]);
+//                var userTaskNodes = getElementsByXPath(xml, '//bpmn:intermediateCatchEvent', prefix => namespaces[prefix]);
+
+                function getElementsByXPath(doc, xpath, namespaceFn, parent) {
+                    let results = [];
+                    let query = doc.evaluate(xpath,
+                        parent || doc,
+                        namespaceFn,
+                        XPathResult.ORDERED_NODE_SNAPSHOT_TYPE, null);
+                    for (let i=0, length=query.snapshotLength; i<length; ++i) {
+                        results.push(query.snapshotItem(i));
+                    }
+                    return results;
+                }
+
+                return userTaskNodes.map(node => {
+                    var id = node.id;
+                    var name = node.attributes["name"] && node.attributes["name"].textContent;
+                    var description = getElementsByXPath(
+                        xml,
+                        'bpmn:documentation/text()',
+                        prefix => namespaces[prefix],
+                        node
+                    )[0];
+
+                    description = description && description.textContent;
+
+                    return {
+                        "id" : id,
+                        "name" : name,
+                        "description": description
+                    };
+                });
+            }
+
+            var userTasks = getUserTasks(xml);
+            var userTasksMap = _.keyBy(userTasks, 'id');
+            $scope.userTasksMap = userTasksMap;
+            console.log(userTasksMap);
+        });
+
 		if($rootScope.authentication){
 			$http.get(baseUrl+'/user/'+$rootScope.authentication.name+'/profile').then(
 				function(userProfile){
@@ -196,8 +248,17 @@ define(['./module','jquery', 'camundaSDK'], function(app, $, CamSDK){
 			if($scope.filter.validityToDate){
 				filter.variables.push({"name": "validityDate", "operator": "lteq", "value": $scope.filter.validityToDate});				
 			}
+			if($scope.filter.priority){
+				filter.variables.push({"name": "priority", "operator": "eq", "value": $scope.filter.priority});
+			}
+			if($scope.filter.workName){
+				filter.variables.push({"name": "workTitlesForSearch", "operator": "like", "value": "%" + $scope.filter.workName + "%"});
+			}
 			if($scope.filter.requestor){
 				filter.startedBy = $scope.filter.requestor;
+			}
+			if($scope.filter.activityId){
+				filter.activeActivityIdIn = [$scope.filter.activityId];
 			}
 			$scope.lastSearchParams = filter;
 			getProcessInstances(filter, 'processInstances');
@@ -216,6 +277,9 @@ define(['./module','jquery', 'camundaSDK'], function(app, $, CamSDK){
 			$scope.filter.validityToDate = undefined;
 			$scope.filter.requestor = undefined;
 			$scope.filter.sitename = undefined;
+			$scope.filter.priority = undefined;
+			$scope.filter.activityId = undefined;
+			$scope.filter.workName = undefined;
 		}
 
 		$scope.getXlsxProcessInstances = function(){

@@ -28,6 +28,7 @@ public class StartRevisionProcess implements ExecutionListener {
 
         InputStream fis = SetPricesDelegate.class.getResourceAsStream("/workPrice.json");
 
+        StringBuilder workTitlesForSearch = new StringBuilder("");
         InputStreamReader reader = new InputStreamReader(fis, "utf-8");
         ArrayNode json = (ArrayNode) mapper.readTree(reader);
         for (JsonNode workPrice : json) {
@@ -47,8 +48,14 @@ public class StartRevisionProcess implements ExecutionListener {
                 workPriceJson.put("title", title);
                 worksPriceList.add(workPriceJson);
                 uniqueWorks.put(work.get("sapServiceNumber").textValue(), "");
+
+                if(workTitlesForSearch.length() > 0){
+                    workTitlesForSearch.append(", ");
+                }
+                workTitlesForSearch.append(title);
             }
         }
         execution.setVariable("worksPriceList", SpinValues.jsonValue(worksPriceList.toString()).create());
+        execution.setVariable("workTitlesForSearch", workTitlesForSearch.toString());
     }
 }
