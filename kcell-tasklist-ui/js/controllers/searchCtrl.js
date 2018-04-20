@@ -200,6 +200,10 @@ define(['./module','jquery', 'camundaSDK'], function(app, $, CamSDK){
             $scope.filter.sitename = $item.site_name;
         };
 
+        $scope.siteIdSelected = function($item){
+            $scope.filter.siteId = $item.name;
+        };
+
         $scope.getSite = function(val) {
             return $http.get('/asset-management/api/sites/search/findByNameIgnoreCaseContaining?name='+val).then(
                 function(response){
@@ -212,6 +216,24 @@ define(['./module','jquery', 'camundaSDK'], function(app, $, CamSDK){
                                     site_name: sitename
                                 };
                             })
+                        } else {
+                            return [];
+                        }
+                    });
+                    return sites;
+                }
+            );
+        };
+
+        $scope.getSiteId = function(val) {
+            return $http.get('/asset-management/api/sites/search/findByNameIgnoreCaseContaining?name='+val).then(
+                function(response){
+                    var sites = _.flatMap(response.data._embedded.sites, function(s){
+                        if(s.name){
+                            return {
+                                name: s.name,
+                                id: s._links.self.href.substring(s._links.self.href.lastIndexOf('/')+1)
+                            };
                         } else {
                             return [];
                         }
@@ -235,6 +257,9 @@ define(['./module','jquery', 'camundaSDK'], function(app, $, CamSDK){
 			}
 			if($scope.filter.region && $scope.filter.region!=='all'){
 				filter.variables.push({"name": "siteRegion", "operator": "eq", "value": $scope.filter.region});
+			}
+			if($scope.filter.siteId){
+				filter.variables.push({"name": "siteName", "operator": "eq", "value": $scope.filter.siteId});
 			}
 			if($scope.filter.sitename){
 				filter.variables.push({"name": "site_name", "operator": "eq", "value": $scope.filter.sitename});
@@ -286,6 +311,7 @@ define(['./module','jquery', 'camundaSDK'], function(app, $, CamSDK){
 
 		$scope.clearFilters = function(){
 			$scope.filter.region = 'all';
+			$scope.filter.siteId = undefined;
 			$scope.filter.sitename = undefined;
 			$scope.filter.businessKey = undefined;
 			$scope.filter.workType = undefined;
