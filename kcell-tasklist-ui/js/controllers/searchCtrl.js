@@ -100,10 +100,30 @@ define(['./module','jquery', 'camundaSDK'], function(app, $, CamSDK){
                 });
             }
 
+            var excludeTasks = [
+            'signpr_by_center',
+            'signpr_by_manager',
+            'signpr_by_budgetowner',
+            'signpr_by_cto',
+            'signpr_by_cfo',
+            'signpr_by_ceo',
+            'Task_1ix12n7',
+            'Task_1uvnb7n',
+            'Task_12eq7hi',
+            'Task_1wf6n5j',
+            'Task_1puv0a9',
+            'Task_1m2xspc',
+            'Task_1mb15j2',
+            'Task_1mocj2s',
+            'Task_1gjdn28'
+			];
+
             var userTasks = getUserTasks(xml);
-            var userTasksMap = _.keyBy(userTasks, 'id');
+            var includedUserTasks = _.filter(userTasks, function(task) {
+			    return excludeTasks.indexOf(task.id) === -1;
+			});
+            var userTasksMap = _.keyBy(includedUserTasks, 'id');
             $scope.userTasksMap = userTasksMap;
-            console.log(userTasksMap);
         });
 
 		if($rootScope.authentication){
