@@ -378,7 +378,7 @@ define(['./module','jquery', 'camundaSDK'], function(app, $, CamSDK){
 						}	
 					});
 
-					_.forEach(['siteRegion','site_name', 'contractor', 'reason', 'requestedDate', 'validityDate', 'jobWorks'], function(variable) {
+					_.forEach(['siteRegion','site_name', 'contractor', 'reason', 'requestedDate', 'validityDate', 'jobWorks', 'explanation'], function(variable) {
 						var varSearchParams = {processInstanceIdIn: _.map($scope[processInstances], 'id'), variableName: variable};
 						$http({
 							method: 'POST',
