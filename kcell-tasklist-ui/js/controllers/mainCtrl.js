@@ -20,6 +20,18 @@ define(['./module','camundaSDK', 'lodash', 'big-js'], function(module, CamSDK, _
 
 		var baseUrl = '/camunda/api/engine/engine/default';
 
+		var regions = {
+			alm : 'Almaty',
+			astana : 'Astana',
+			east : 'East',
+			nc : 'North & Center',
+			south : 'South',
+			west : 'West',
+		};
+
+		$scope.regionFilters = [];
+		$scope.currentRegionFilter = undefined;
+
 		$scope.searchSelected = false;
 		$scope.camForm = null;
 		if($rootScope.authentication){
@@ -56,12 +68,31 @@ define(['./module','camundaSDK', 'lodash', 'big-js'], function(module, CamSDK, _
 				id: $routeParams.task
 			}
 		}
+
+		function loadRegionCount(){
+			$scope.regionFilters = [];
+			angular.forEach(regions,function(value,key){
+				var query = {'processVariables':[{'name': 'siteRegion', "operator": "eq","value": key}]};
+				$http.post(baseUrl+'/filter/'+$scope.currentFilter.id+'/count',query,{headers:{'Content-Type':'application/json'}}).then(
+					function(results){
+						if(results.data.count > 0){
+							$scope.regionFilters.push({id: key,name: value, itemCount: results.data.count});
+						}
+					},
+					function(error){
+						console.log(error.data);
+					}
+				);
+			});
+		}
+
 		function getTaskList(){
 			$http.get(baseUrl+'/filter?itemCount=true&resoureType=Task').then(
 				function(result){
 					$scope.filters = result.data;
 					if($scope.filters.length > 0 && $scope.currentFilter == undefined){
 						$scope.currentFilter = $scope.filters[0];
+						loadRegionCount();
 					}
 					loadTasks();
 				},
@@ -74,14 +105,25 @@ define(['./module','camundaSDK', 'lodash', 'big-js'], function(module, CamSDK, _
 			$scope.currentTask = undefined;
 			$scope.currentFilter = filter;
 			$location.search({task:undefined});
+			$scope.currentRegionFilter = undefined;
 			if (filter === 'search'){
 				$scope.searchSelected = true;
 			} else {
 				$scope.searchSelected = false;
 				$scope.view.page = 1;
+				loadRegionCount();
 				loadTasks();
 			}
 		}
+		$scope.selectRegionFilter = function(filter, region){
+			$scope.currentTask = undefined;
+			$location.search({task:undefined});
+			$scope.searchSelected = false;
+			$scope.view.page = 1;
+			$scope.currentRegionFilter = region;
+			loadTasks();
+		}
+
 		$scope.startProcess = function(id){
 			$http.get(baseUrl+'/process-definition/'+id+'/startForm').then(
 				function(startFormInfo){
@@ -252,11 +294,16 @@ define(['./module','camundaSDK', 'lodash', 'big-js'], function(module, CamSDK, _
 			$scope.view.page--;
 			loadTasks();
 		}
-		function loadTasks(e) {
+		function loadTasks() {
+			var queryData = {sorting:[{"sortBy":"created","sortOrder":"desc"}]};
+			if($scope.currentRegionFilter){
+				queryData.processVariables = [{'name': 'siteRegion', "operator": "eq","value": $scope.currentRegionFilter.id}];
+			}
+
 			$http({
 				method: 'POST',
 				headers:{'Accept':'application/hal+json, application/json; q=0.5'},
-				data: {sorting:[{"sortBy":"created","sortOrder":"desc"}]},
+				data: queryData,
 				url: baseUrl+'/filter/'+$scope.currentFilter.id+'/list?firstResult='+(($scope.view.page-1)*$scope.view.maxResults) + '&maxResults=' + $scope.view.maxResults
 			}).then(
 				function(results){
