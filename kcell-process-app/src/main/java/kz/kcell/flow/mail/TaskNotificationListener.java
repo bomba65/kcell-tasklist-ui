@@ -31,7 +31,7 @@ import static java.util.stream.Collectors.toList;
 @Service
 @Log
 public class TaskNotificationListener implements TaskListener {
-    private static final String[] BCC = {"Askar.Slambekov@kcell.kz", "Yernaz.Kalingarayev@kcell.kz"};
+    private static final String[] BCC = {"Yernaz.Kalingarayev@kcell.kz"};
     private String sender;
     private String baseUrl;
     private JavaMailSender mailSender;

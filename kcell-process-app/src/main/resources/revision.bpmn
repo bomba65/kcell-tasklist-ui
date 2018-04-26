@@ -43,7 +43,7 @@
       <bpmn:sendTask id="leasing_notify_jr_exec_impossible" name="Notify of impossibility of JR execution" camunda:delegateExpression="${camundaMailer}">
         <bpmn:extensionElements>
           <camunda:inputOutput>
-            <camunda:inputParameter name="to">Maulen.Kempirbayev@kcell.kz, Alexey.Khudaev@kcell.kz, Askar.Slambekov@kcell.kz, Yernaz.Kalingarayev@kcell.kz</camunda:inputParameter>
+            <camunda:inputParameter name="to">Maulen.Kempirbayev@kcell.kz, Alexey.Khudaev@kcell.kz, Yernaz.Kalingarayev@kcell.kz</camunda:inputParameter>
             <camunda:inputParameter name="subject">JR Execution Impossible</camunda:inputParameter>
             <camunda:inputParameter name="html">
               <camunda:script scriptFormat="groovy" resource="LeasingImpossibleMessage.groovy" />
@@ -114,6 +114,7 @@
       <bpmn:incoming>SequenceFlow_1jm2qc2</bpmn:incoming>
       <bpmn:outgoing>SequenceFlow_0b217tv</bpmn:outgoing>
       <bpmn:outgoing>SequenceFlow_1951c3w</bpmn:outgoing>
+      <bpmn:outgoing>SequenceFlow_1fv2m2r</bpmn:outgoing>
       <bpmn:userTask id="attach_material_list_contractor" name="Attach Material List" camunda:formKey="embedded:app:forms/revision/contractorAttachesMaterialList.html" camunda:priority="#{priority == &#39;emergency&#39;? 100: 50}">
         <bpmn:documentation>Contractor Attaches Material List</bpmn:documentation>
         <bpmn:extensionElements>
@@ -358,6 +359,7 @@
       <bpmn:incoming>SequenceFlow_1lwdiem</bpmn:incoming>
       <bpmn:incoming>SequenceFlow_0jvqwqj</bpmn:incoming>
       <bpmn:incoming>SequenceFlow_0d3icf7</bpmn:incoming>
+      <bpmn:incoming>SequenceFlow_0icojjf</bpmn:incoming>
       <bpmn:outgoing>SequenceFlow_1hw1xm0</bpmn:outgoing>
       <bpmn:outgoing>SequenceFlow_05vqen4</bpmn:outgoing>
       <bpmn:outgoing>SequenceFlow_1sfkegw</bpmn:outgoing>
@@ -910,7 +912,7 @@
       <bpmn:conditionExpression xsi:type="bpmn:tFormalExpression">${acceptPerformedJob== 'rejected'}</bpmn:conditionExpression>
     </bpmn:sequenceFlow>
     <bpmn:sequenceFlow id="SequenceFlow_0b217tv" name="modify works" sourceRef="SubProcess_04dekrg" targetRef="SubProcess_0cd7y34">
-      <bpmn:conditionExpression xsi:type="bpmn:tFormalExpression">${modifyWorks==true}</bpmn:conditionExpression>
+      <bpmn:conditionExpression xsi:type="bpmn:tFormalExpression">${modifyWorks==true &amp;&amp; contractorAttachesMaterialListTaskResult!='notRequired'}</bpmn:conditionExpression>
     </bpmn:sequenceFlow>
     <bpmn:sequenceFlow id="SequenceFlow_0eg1f85" name="leasing impossible" sourceRef="SubProcess_0cwj4g6" targetRef="SubProcess_0cd7y34">
       <bpmn:conditionExpression xsi:type="bpmn:tFormalExpression">${leasingDone==false}</bpmn:conditionExpression>
@@ -931,7 +933,7 @@
       <bpmn:conditionExpression xsi:type="bpmn:tFormalExpression">${createJRResult=='rejected'}</bpmn:conditionExpression>
     </bpmn:sequenceFlow>
     <bpmn:sequenceFlow id="SequenceFlow_1951c3w" sourceRef="SubProcess_04dekrg" targetRef="SubProcess_0eah6dm">
-      <bpmn:conditionExpression xsi:type="bpmn:tFormalExpression">${modifyWorks==false}</bpmn:conditionExpression>
+      <bpmn:conditionExpression xsi:type="bpmn:tFormalExpression">${modifyWorks==false &amp;&amp; contractorAttachesMaterialListTaskResult!='notRequired'}</bpmn:conditionExpression>
     </bpmn:sequenceFlow>
     <bpmn:sequenceFlow id="SequenceFlow_1sfkegw" name="job executed successfully" sourceRef="SubProcess_0a0tcem" targetRef="exclgw_permidocs_needed">
       <bpmn:conditionExpression xsi:type="bpmn:tFormalExpression">${fillAppliedChangesInfoByContractorTaskResult=='saveChanges'}</bpmn:conditionExpression>
@@ -1413,6 +1415,25 @@
     <bpmn:sequenceFlow id="SequenceFlow_1jm2qc2" name="materials not enough" sourceRef="SubProcess_0a0tcem" targetRef="SubProcess_04dekrg">
       <bpmn:conditionExpression xsi:type="bpmn:tFormalExpression">${fillAppliedChangesInfoByContractorTaskResult=='notEnough'}</bpmn:conditionExpression>
     </bpmn:sequenceFlow>
+    <bpmn:sequenceFlow id="SequenceFlow_1fv2m2r" name="No need materials" sourceRef="SubProcess_04dekrg" targetRef="notify_intiator_no_need_material">
+      <bpmn:conditionExpression xsi:type="bpmn:tFormalExpression">${contractorAttachesMaterialListTaskResult=='notRequired'}</bpmn:conditionExpression>
+    </bpmn:sequenceFlow>
+    <bpmn:sendTask id="notify_intiator_no_need_material" name="Notify Initiator No need material" camunda:delegateExpression="${camundaMailer}">
+      <bpmn:extensionElements>
+        <camunda:inputOutput>
+          <camunda:inputParameter name="to">
+            <camunda:script scriptFormat="groovy" resource="GetStarterEmail.groovy" />
+          </camunda:inputParameter>
+          <camunda:inputParameter name="subject">No need for materials</camunda:inputParameter>
+          <camunda:inputParameter name="html">
+            <camunda:script scriptFormat="groovy" resource="NoNeedMaterial.groovy" />
+          </camunda:inputParameter>
+        </camunda:inputOutput>
+      </bpmn:extensionElements>
+      <bpmn:incoming>SequenceFlow_1fv2m2r</bpmn:incoming>
+      <bpmn:outgoing>SequenceFlow_0icojjf</bpmn:outgoing>
+    </bpmn:sendTask>
+    <bpmn:sequenceFlow id="SequenceFlow_0icojjf" sourceRef="notify_intiator_no_need_material" targetRef="SubProcess_0a0tcem" />
     <bpmn:textAnnotation id="TextAnnotation_189rkq0">
       <bpmn:text>Infrormation is taken from step "Fill Applied Changes Info by Contractor"</bpmn:text>
     </bpmn:textAnnotation>
@@ -1477,29 +1498,28 @@
         <dc:Bounds x="1343" y="-691" width="905" height="490" />
       </bpmndi:BPMNShape>
       <bpmndi:BPMNShape id="ExclusiveGateway_15zm0uz_di" bpmnElement="exclgw_materials_required" isMarkerVisible="true">
-        <dc:Bounds x="-1830" y="-177" width="50" height="50" />
+        <dc:Bounds x="-1830" y="-50" width="50" height="50" />
         <bpmndi:BPMNLabel>
-          <dc:Bounds x="-1930" y="-152" width="90" height="0" />
+          <dc:Bounds x="-1930" y="-25" width="90" height="0" />
         </bpmndi:BPMNLabel>
       </bpmndi:BPMNShape>
       <bpmndi:BPMNShape id="SubProcess_0cd7y34_di" bpmnElement="SubProcess_0cd7y34" isExpanded="true">
         <dc:Bounds x="-5215" y="-637" width="2472" height="718" />
       </bpmndi:BPMNShape>
       <bpmndi:BPMNEdge id="SequenceFlow_0uvzo91_di" bpmnElement="SequenceFlow_0uvzo91">
-        <di:waypoint x="-1780" y="-152" />
-        <di:waypoint x="1432" y="-152" />
+        <di:waypoint x="-1780" y="-25" />
+        <di:waypoint x="1432" y="-25" />
         <di:waypoint x="1432" y="-201" />
         <bpmndi:BPMNLabel>
-          <dc:Bounds x="-1608.7437626432907" y="-188" width="82" height="25" />
+          <dc:Bounds x="-1609" y="-61" width="82" height="25" />
         </bpmndi:BPMNLabel>
       </bpmndi:BPMNEdge>
       <bpmndi:BPMNEdge id="SequenceFlow_10nsvzs_di" bpmnElement="SequenceFlow_10nsvzs">
-        <di:waypoint x="-1805" y="-177" />
-        <di:waypoint x="-1805" y="-229" />
-        <di:waypoint x="-617" y="-229" />
-        <di:waypoint x="-617" y="-282" />
+        <di:waypoint x="-1805" y="-50" />
+        <di:waypoint x="-1805" y="-241" />
+        <di:waypoint x="-1805" y="-275" />
         <bpmndi:BPMNLabel>
-          <dc:Bounds x="-675" y="-270" width="89" height="13" />
+          <dc:Bounds x="-1800" y="-248" width="89" height="13" />
         </bpmndi:BPMNLabel>
       </bpmndi:BPMNEdge>
       <bpmndi:BPMNEdge id="SequenceFlow_0xqu1s7_di" bpmnElement="SequenceFlow_0xqu1s7">
@@ -1628,7 +1648,7 @@
         <di:waypoint x="-1644" y="-608" />
         <di:waypoint x="-1585" y="-608" />
         <bpmndi:BPMNLabel>
-          <dc:Bounds x="-1659.5" y="-623" width="90" height="0" />
+          <dc:Bounds x="-1659" y="-623" width="90" height="0" />
         </bpmndi:BPMNLabel>
       </bpmndi:BPMNEdge>
       <bpmndi:BPMNEdge id="SequenceFlow_1y9us7r_di" bpmnElement="SequenceFlow_1y9us7r">
@@ -1658,7 +1678,7 @@
         <di:waypoint x="-793" y="-460" />
         <di:waypoint x="-682" y="-460" />
         <bpmndi:BPMNLabel>
-          <dc:Bounds x="-782.5" y="-475" width="90" height="0" />
+          <dc:Bounds x="-782" y="-475" width="90" height="0" />
         </bpmndi:BPMNLabel>
       </bpmndi:BPMNEdge>
       <bpmndi:BPMNEdge id="SequenceFlow_18hclu9_di" bpmnElement="SequenceFlow_18hclu9">
@@ -2000,7 +2020,7 @@
         <di:waypoint x="1925" y="-479" />
         <di:waypoint x="1925" y="-589" />
         <bpmndi:BPMNLabel>
-          <dc:Bounds x="1852" y="-545.875" width="63" height="25" />
+          <dc:Bounds x="1852" y="-546" width="63" height="25" />
         </bpmndi:BPMNLabel>
       </bpmndi:BPMNEdge>
       <bpmndi:BPMNEdge id="SequenceFlow_1hw1xm0_di" bpmnElement="SequenceFlow_1hw1xm0">
@@ -2009,7 +2029,7 @@
         <di:waypoint x="-3975" y="-1007" />
         <di:waypoint x="-3975" y="-637" />
         <bpmndi:BPMNLabel>
-          <dc:Bounds x="1819.080181274702" y="-865.229254067994" width="74" height="25" />
+          <dc:Bounds x="1819" y="-865" width="74" height="25" />
         </bpmndi:BPMNLabel>
       </bpmndi:BPMNEdge>
       <bpmndi:BPMNShape id="EndEvent_0ze2bsp_di" bpmnElement="endevt_verify_reg_modif_notapproved">
@@ -2269,7 +2289,7 @@
         <di:waypoint x="613" y="-459" />
         <di:waypoint x="702" y="-459" />
         <bpmndi:BPMNLabel>
-          <dc:Bounds x="612.5" y="-474" width="90" height="0" />
+          <dc:Bounds x="613" y="-474" width="90" height="0" />
         </bpmndi:BPMNLabel>
       </bpmndi:BPMNEdge>
       <bpmndi:BPMNShape id="TextAnnotation_0zdrz4s_di" bpmnElement="TextAnnotation_0zdrz4s">
@@ -2285,7 +2305,7 @@
         <di:waypoint x="2303" y="-439" />
         <di:waypoint x="2357" y="-439" />
         <bpmndi:BPMNLabel>
-          <dc:Bounds x="2271.4826666878257" y="-471.98277353523497" width="63" height="25" />
+          <dc:Bounds x="2272" y="-472" width="63" height="25" />
         </bpmndi:BPMNLabel>
       </bpmndi:BPMNEdge>
       <bpmndi:BPMNEdge id="SequenceFlow_0fhdfes_di" bpmnElement="SequenceFlow_0fhdfes">
@@ -2498,9 +2518,9 @@
       <bpmndi:BPMNEdge id="SequenceFlow_13tgs24_di" bpmnElement="SequenceFlow_13tgs24">
         <di:waypoint x="-2279" y="477" />
         <di:waypoint x="-1805" y="477" />
-        <di:waypoint x="-1805" y="-127" />
+        <di:waypoint x="-1805" y="0" />
         <bpmndi:BPMNLabel>
-          <dc:Bounds x="-2089.945434298441" y="442.9999999999999" width="79" height="25" />
+          <dc:Bounds x="-2090" y="443" width="79" height="25" />
         </bpmndi:BPMNLabel>
       </bpmndi:BPMNEdge>
       <bpmndi:BPMNShape id="SendTask_0qo39q4_di" bpmnElement="notify_create_pr">
@@ -3765,9 +3785,9 @@
       </bpmndi:BPMNShape>
       <bpmndi:BPMNEdge id="SequenceFlow_1no8bbb_di" bpmnElement="SequenceFlow_1no8bbb">
         <di:waypoint x="-1805" y="792" />
-        <di:waypoint x="-1805" y="-127" />
+        <di:waypoint x="-1805" y="0" />
         <bpmndi:BPMNLabel>
-          <dc:Bounds x="-1790" y="325.5" width="0" height="13" />
+          <dc:Bounds x="-1835" y="389.5" width="90" height="13" />
         </bpmndi:BPMNLabel>
       </bpmndi:BPMNEdge>
       <bpmndi:BPMNShape id="ExclusiveGateway_1w3g978_di" bpmnElement="ExclusiveGateway_1w3g978" isMarkerVisible="true">
@@ -3804,7 +3824,7 @@
       <bpmndi:BPMNShape id="EndEvent_0bfi4er_di" bpmnElement="EndEvent_0bfi4er">
         <dc:Bounds x="1995" y="-625" width="36" height="36" />
         <bpmndi:BPMNLabel>
-          <dc:Bounds x="2013" y="-586" width="0" height="13" />
+          <dc:Bounds x="1968" y="-586" width="90" height="13" />
         </bpmndi:BPMNLabel>
       </bpmndi:BPMNShape>
       <bpmndi:BPMNEdge id="SequenceFlow_0a2f4cf_di" bpmnElement="SequenceFlow_0a2f4cf">
@@ -3816,9 +3836,9 @@
         </bpmndi:BPMNLabel>
       </bpmndi:BPMNEdge>
       <bpmndi:BPMNShape id="EndEvent_1ye0qn3_di" bpmnElement="EndEvent_1ye0qn3">
-        <dc:Bounds x="-1578" y="-478.25" width="36" height="36" />
+        <dc:Bounds x="-1578" y="-478" width="36" height="36" />
         <bpmndi:BPMNLabel>
-          <dc:Bounds x="-1560" y="-439.25" width="0" height="13" />
+          <dc:Bounds x="-1605" y="-439" width="90" height="13" />
         </bpmndi:BPMNLabel>
       </bpmndi:BPMNShape>
       <bpmndi:BPMNEdge id="SequenceFlow_1b1ykhz_di" bpmnElement="SequenceFlow_1b1ykhz">
@@ -3832,9 +3852,9 @@
         <dc:Bounds x="-1164" y="-648" width="100" height="80" />
       </bpmndi:BPMNShape>
       <bpmndi:BPMNShape id="ExclusiveGateway_14fitax_di" bpmnElement="ExclusiveGateway_14fitax" isMarkerVisible="true">
-        <dc:Bounds x="-996.9617486338798" y="-633" width="50" height="50" />
+        <dc:Bounds x="-997" y="-633" width="50" height="50" />
         <bpmndi:BPMNLabel>
-          <dc:Bounds x="-971.9617486338798" y="-656.5" width="0" height="13" />
+          <dc:Bounds x="-1017" y="-656" width="90" height="13" />
         </bpmndi:BPMNLabel>
       </bpmndi:BPMNShape>
       <bpmndi:BPMNEdge id="SequenceFlow_130l6if_di" bpmnElement="SequenceFlow_130l6if">
@@ -3842,14 +3862,14 @@
         <di:waypoint x="-972" y="-460" />
         <di:waypoint x="-893" y="-460" />
         <bpmndi:BPMNLabel>
-          <dc:Bounds x="-957" y="-528.5" width="0" height="13" />
+          <dc:Bounds x="-1002" y="-528" width="90" height="13" />
         </bpmndi:BPMNLabel>
       </bpmndi:BPMNEdge>
       <bpmndi:BPMNEdge id="SequenceFlow_0plpgx5_di" bpmnElement="SequenceFlow_0plpgx5">
         <di:waypoint x="-1064" y="-608" />
         <di:waypoint x="-997" y="-608" />
         <bpmndi:BPMNLabel>
-          <dc:Bounds x="-1030.5" y="-630" width="0" height="13" />
+          <dc:Bounds x="-1075" y="-630" width="90" height="13" />
         </bpmndi:BPMNLabel>
       </bpmndi:BPMNEdge>
       <bpmndi:BPMNEdge id="SequenceFlow_0uxv5ol_di" bpmnElement="SequenceFlow_0uxv5ol">
@@ -3858,6 +3878,25 @@
         <di:waypoint x="-657" y="-485" />
         <bpmndi:BPMNLabel>
           <dc:Bounds x="-870" y="-651" width="83" height="38" />
+        </bpmndi:BPMNLabel>
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="SequenceFlow_1fv2m2r_di" bpmnElement="SequenceFlow_1fv2m2r">
+        <di:waypoint x="-617" y="-282" />
+        <di:waypoint x="-617" y="-148" />
+        <di:waypoint x="-471" y="-148" />
+        <bpmndi:BPMNLabel>
+          <dc:Bounds x="-594" y="-167" width="90" height="13" />
+        </bpmndi:BPMNLabel>
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNShape id="SendTask_0m3lb36_di" bpmnElement="notify_intiator_no_need_material">
+        <dc:Bounds x="-471" y="-188" width="100" height="80" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNEdge id="SequenceFlow_0icojjf_di" bpmnElement="SequenceFlow_0icojjf">
+        <di:waypoint x="-371" y="-148" />
+        <di:waypoint x="1349" y="-148" />
+        <di:waypoint x="1428" y="-201" />
+        <bpmndi:BPMNLabel>
+          <dc:Bounds x="489" y="-169.5" width="0" height="13" />
         </bpmndi:BPMNLabel>
       </bpmndi:BPMNEdge>
     </bpmndi:BPMNPlane>
