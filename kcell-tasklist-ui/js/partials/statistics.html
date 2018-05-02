@@ -30,7 +30,7 @@
 				<li ng-repeat="report in reports" ng-class="active" ng-class="{active: report === currentReport}">
 					<a ng-click="selectReport(report)" class="ng-binding">{{reportsMap[report].name}}</a>
 				</li>
-				<li ng-if="(authentication.name === 'demo' || authentication.name === 'Evgeniy.Semenov@kcell.kz' || authentication.name === 'Yernaz.Kalingarayev@kcell.kz')" ng-class="active">
+				<li ng-if="(authentication.name === 'demo' || authentication.name === 'Evgeniy.Semenov@kcell.kz' || authentication.name === 'Yernaz.Kalingarayev@kcell.kz')">
 					<a ng-click="downloadReport()" class="ng-binding" id="reportClick" href="#">{{report_ready?'Скачать отчет':'Подготовить отчет'}}</a>
 				</li>
 			</ul>
@@ -65,10 +65,10 @@
 							</tr>
 							</thead>
 							<tbody>
-							<tr ng-repeat="taskDefId in kcellTasks">
-								<td><a href="#/statistics?task={{taskDefId}}">{{userTasksMap[taskDefId].name}}</a></td>
+							<tr ng-repeat="taskDefId in kcellTasks[currentReport]">
+								<td><a href="#/statistics?task={{taskDefId}}&report={{currentReport}}">{{userTasksMap[taskDefId].name}}</a></td>
 								<td class="number" ng-repeat="region in ['.almaty', '.east', '.west', '.north_central', '.south', '.astana', '.no_region',]">
-									<a href="#/statistics?task={{taskDefId}}&region={{region.replace('.','')}}">{{ _.get(tasksByIdAndRegionCounted, taskDefId + region, 0) }}</a>
+									<a href="#/statistics?task={{taskDefId}}&report={{currentReport}}&region={{region.replace('.','')}}">{{ _.get(tasksByIdAndRegionCounted, taskDefId + region, 0) }}</a>
 								</td>
 							</tr>
 							</tbody>
@@ -84,10 +84,10 @@
 							</tr>
 							</thead>
 							<tbody>
-							<tr ng-repeat="taskDefId in contractorTasks">
-								<td><a href="#/statistics?task={{taskDefId}}">{{userTasksMap[taskDefId].name}}</a></td>
+							<tr ng-repeat="taskDefId in contractorTasks[currentReport]">
+								<td><a href="#/statistics?task={{taskDefId}}&report={{currentReport}}">{{userTasksMap[taskDefId].name}}</a></td>
 								<td class="number" ng-repeat="region in ['.almaty', '.east', '.west', '.north_central', '.south', '.astana', '.no_region',]">
-									<a href="#/statistics?task={{taskDefId}}&region={{region.replace('.','')}}">{{ _.get(tasksByIdAndRegionCounted, taskDefId + region, 0) }}</a>
+									<a href="#/statistics?task={{taskDefId}}&report={{currentReport}}&region={{region.replace('.','')}}">{{ _.get(tasksByIdAndRegionCounted, taskDefId + region, 0) }}</a>
 								</td>
 							</tr>
 							</tbody>
@@ -95,7 +95,7 @@
 							</tfoot>
 						</table>
 
-						<table class="report" ng-show="task">
+						<table class="report" ng-show="task" ng-if="currentReport == 'revision-open-tasks'">
 							<thead>
 							<tr>
 								<th>Region</th>
@@ -129,51 +129,34 @@
 							</tfoot>
 						</table>
 
-						<table id = "reportTable" name = "reportTable" ng-show="false">
+						<table class="report" ng-show="task" ng-if="currentReport == 'invoice-open-tasks'">
 							<thead>
-								<tr>
-									<th>region</th>
-									<th>sitename</th>
-									<th>JR No</th>
-									<th>JR To</th>
-									<th>JR Reason</th>
-									<th>JR Status</th>
-									<th>Requested Date</th>
-									<th>Requested By</th>
-									<th>Validity Date</th>
-									<th>Material List Signing Date</th>
-									<th>Accept by Work Maintenance</th>
-									<th>Accept by Work Planning</th>
-									<th>Acceptance Date</th>
-									<th>Job Description</th>
-									<th>Quantity</th>
-									<th>Comments</th>
-									<th>Customer</th>
-									<th>Material</th>
-								</tr>
+							<tr>
+								<th>Region</th>
+								<th>Act #</th>
+								<th>Type of work</th>
+								<th>Period</th>
+								<th>Contractor</th>
+								<th>Requested by</th>
+							</tr>
 							</thead>
-							<tbody ng-repeat="data in reportList">
-								<tr>
-									<td>{{data[0]}}</td>
-									<td>{{data[1]}}</td>
-									<td>{{data[2]}}</td>
-									<td>{{data[3]}}</td>
-									<td>{{data[4]}}</td>
-									<td>{{data[5]}}</td>
-									<td>{{data[6] | date:'dd MMM yyyy'}}</td>
-									<td>{{data[7]}}</td>
-									<td>{{data[8] | date:'dd MMM yyyy'}}</td>
-									<td>{{data[9] | date:'dd MMM yyyy'}}</td>
-									<td>{{data[10] | date:'dd MMM yyyy'}}</td>
-									<td>{{data[11] | date:'dd MMM yyyy'}}</td>
-									<td>{{data[12] | date:'dd MMM yyyy'}}</td>
-									<td>{{data[13]}}</td>
-									<td>{{data[14]}}</td>
-									<td>{{data[15]}}</td>
-									<td>{{data[16]}}</td>
-									<td>{{data[17]}}</td>
-								</tr>
+							<tbody ng-show="tasks.length > 0">
+							<tr ng-repeat="task in tasks | filter:filterRegion">
+								<td>{{ getInvoiceRegion(task.variables.invoiceNumber.value) }}</td>
+								<td>{{ task.variables.monthActNumber.value }}</td>
+								<td>{{ reasonsTitle[task.variables.workType.value] }}</td>
+								<td>{{ task.variables.monthOfFormalPeriod.value }} {{ task.variables.yearOfFormalPeriod.value }}</td>
+								<td>{{ contractorsTitle[task.variables.workType.value] }}</td>
+								<td>{{ task.variables.starter.value }}</td>
+							</tr>
 							</tbody>
+							<tbody ng-hide="tasks.length > 0">
+							<tr>
+								<th colspan="9">No data</th>
+							</tr>
+							</tbody>
+							<tfoot>
+							</tfoot>
 						</table>
 					</div>
 				</div>
@@ -181,3 +164,50 @@
 		</div>
 	</div>
 </div>
+
+<table id = "reportTable" name = "reportTable" ng-show="false">
+	<thead>
+		<tr>
+			<th>region</th>
+			<th>sitename</th>
+			<th>JR No</th>
+			<th>JR To</th>
+			<th>JR Reason</th>
+			<th>JR Status</th>
+			<th>Requested Date</th>
+			<th>Requested By</th>
+			<th>Validity Date</th>
+			<th>Material List Signing Date</th>
+			<th>Accept by Work Maintenance</th>
+			<th>Accept by Work Planning</th>
+			<th>Acceptance Date</th>
+			<th>Job Description</th>
+			<th>Quantity</th>
+			<th>Comments</th>
+			<th>Customer</th>
+			<th>Material</th>
+		</tr>
+	</thead>
+	<tbody ng-repeat="data in reportList">
+		<tr>
+			<td>{{data[0]}}</td>
+			<td>{{data[1]}}</td>
+			<td>{{data[2]}}</td>
+			<td>{{data[3]}}</td>
+			<td>{{data[4]}}</td>
+			<td>{{data[5]}}</td>
+			<td>{{data[6] | date:'dd MMM yyyy'}}</td>
+			<td>{{data[7]}}</td>
+			<td>{{data[8] | date:'dd MMM yyyy'}}</td>
+			<td>{{data[9] | date:'dd MMM yyyy'}}</td>
+			<td>{{data[10] | date:'dd MMM yyyy'}}</td>
+			<td>{{data[11] | date:'dd MMM yyyy'}}</td>
+			<td>{{data[12] | date:'dd MMM yyyy'}}</td>
+			<td>{{data[13]}}</td>
+			<td>{{data[14]}}</td>
+			<td>{{data[15]}}</td>
+			<td>{{data[16]}}</td>
+			<td>{{data[17]}}</td>
+		</tr>
+	</tbody>
+</table>

@@ -52,11 +52,13 @@ define(['./module','jquery'], function(app,$){
         }
 
 		$scope.reportsMap = {
-            'revision-open-tasks': {name: 'Revision open tasks'}
+            'revision-open-tasks': {name: 'Revision open tasks'},
+            'invoice-open-tasks': {name: 'Monthly Act open tasks'}
         };
 
         $scope.reports = [
-        	'revision-open-tasks'
+            'revision-open-tasks',
+            'invoice-open-tasks'
         ];
 
 		$scope.currentReport = $stateParams.report || 'revision-open-tasks';
@@ -95,6 +97,28 @@ define(['./module','jquery'], function(app,$){
             }
         };
 
+        $scope.getInvoiceRegion = function (invoiceNumber) {
+            if (invoiceNumber) {
+                if (invoiceNumber.endsWith("Alm")) {
+                    return 'almaty';
+                } else if (invoiceNumber.endsWith("East")) {
+                    return 'east';
+                } else if (invoiceNumber.endsWith("N&C")) {
+                    return 'north_central';
+                } else if (invoiceNumber.endsWith("South")) {
+                    return 'south';
+                } else if (invoiceNumber.endsWith("West")) {
+                    return 'west';
+                } else if (invoiceNumber.endsWith("Astana")) {
+                    return 'astana';
+                } else {
+                    return 'no_region';
+                }
+            } else {
+                return 'no_region';
+            }
+        };
+
         $scope.filterRegion = function(task){
             if($scope.region){
                 return $scope.getJrRegion(task.variables.jrNumber.value) === $scope.region;
@@ -103,7 +127,19 @@ define(['./module','jquery'], function(app,$){
             }
         }
 
-        var userTasksPromise = $http.get($scope.baseUrl + '/process-definition/key/Revision/xml')
+        $scope.getProcessDefinition = function(){
+            if($scope.currentReport === 'revision-open-tasks'){
+                return 'Revision';
+            } else if($scope.currentReport === 'invoice-open-tasks'){
+                return 'Invoice';
+            }
+        }
+
+
+        $scope.updateTaskDefinitions = function(){
+            var processDefinition = $scope.getProcessDefinition();
+
+            $http.get($scope.baseUrl + '/process-definition/key/' + processDefinition + '/xml')
             .then(function(response) {
                 var domParser = new DOMParser();
 
@@ -152,38 +188,41 @@ define(['./module','jquery'], function(app,$){
                 var userTasksMap = _.keyBy(userTasks, 'id');
                 $scope.userTasksMap = userTasksMap;
             });
+        }
 
-        if ($scope.currentReport === 'revision-open-tasks') {
-        	if ($scope.task) {
-                var query = {
-                    taskDefinitionKey: $scope.task,
-                    processDefinitionKey: 'Revision',
-                    unfinished: true
-                };
+    	if ($scope.task) {
+            var query = {
+                taskDefinitionKey: $scope.task,
+                processDefinitionKey: $scope.getProcessDefinition(),
+                unfinished: true
+            };
 
-				$http.post($scope.baseUrl + '/history/task', query).then(function(response) {
-					var tasks = response.data;
-                    var processInstanceIds = _.map(tasks, 'processInstanceId');
-                    return $http.post($scope.baseUrl + '/history/variable-instance', {
-                        processInstanceIdIn: processInstanceIds
-                    }).then(function(response){
-                        var variables = response.data;
-                        var variablesByProcessInstance = _.groupBy(variables, 'processInstanceId');
-                        return _.map(tasks, function(task) {
-                            return _.assign({}, task, {
-                                variables: _.keyBy(
-                                    variablesByProcessInstance[task.processInstanceId],
-                                    'name'
-                                )
-                            });
+			$http.post($scope.baseUrl + '/history/task', query).then(function(response) {
+				var tasks = response.data;
+                var processInstanceIds = _.map(tasks, 'processInstanceId');
+                return $http.post($scope.baseUrl + '/history/variable-instance', {
+                    processInstanceIdIn: processInstanceIds
+                }).then(function(response){
+                    var variables = response.data;
+                    var variablesByProcessInstance = _.groupBy(variables, 'processInstanceId');
+                    return _.map(tasks, function(task) {
+                        return _.assign({}, task, {
+                            variables: _.keyBy(
+                                variablesByProcessInstance[task.processInstanceId],
+                                'name'
+                            )
                         });
                     });
-				}).then(function (tasks) {
-                    $scope.tasks = tasks;
                 });
+			}).then(function (tasks) {
+                $scope.tasks = tasks;
+            });
 
-			} else {
-        		$scope.kcellTasks = [
+		} else {
+            $scope.updateTaskDefinitions();
+
+    		$scope.kcellTasks = {
+                'revision-open-tasks':[
                     'modify_jr', //modify_jr
                     'approve_jr_regions', //approve_jr_regions
                     'check_power', //check_power
@@ -195,6 +234,7 @@ define(['./module','jquery'], function(app,$){
                     //'Task_0s5v6wl',
                     'approve_material_list_region', //approve_material_list_region
                     'approve_material_list_center', //approve_material_list_center
+                    'approve_material_list_center1',
                     'validate_tr', //validate_tr
                     'set_materials_dispatch_status', //set_materials_dispatch_status
                     'verify_works', //verify_works
@@ -203,42 +243,62 @@ define(['./module','jquery'], function(app,$){
                     'accept_work_maintenance_group', //accept_work_maintenance_group
                     'accept_work_planning_group', //accept_work_planning_group
                     'sign_region_head', //accept_work_planning_group
-                    'attach-scan-copy-of-acceptance-form'
-                ];
+                    'attach-scan-copy-of-acceptance-form'],
+                 'invoice-open-tasks': [
+                    'ma_check_region',
+                    'ma_sign_region_head',
+                    'ma_sign_region_manager',
+                    'ma_check_budget',
+                    'ma_check_centralgroup_tech',
+                    'ma_sign_budget',
+                    'ma_check_centralgroup',
+                    'ma_sign_head1',
+                    'ma_sign_head2',
+                    'ma_sign_manager',
+                    'ma_sign_cto',
+                    'ma_print_version',
+                    'ma_invoice_number'
+                ]
+            };
 
-        		$scope.contractorTasks = [
-                    //'UserTask_0syren9',
+    		$scope.contractorTasks = {
+                'revision-open-tasks':[
                     'upload_tr_contractor', //upload_tr_contractor
                     'attach_material_list_contractor', //attach_material_list_contractor
                     'fill_applied_changes_info' //fill_applied_changes_info
-                ];
+                ],
+                'invoice-open-tasks': [
+                    'ma_sendtobranch',
+                    'ma_modify'
+                ]
+            };
 
-
+            if ($scope.currentReport === 'revision-open-tasks') {
                 var processInstancesPromise = $http.post($scope.baseUrl + '/history/process-instance', {
                     "processDefinitionKey": "Revision",
                     "unfinished": true
-				}).then(function(response) {
-					var processInstances = _.keyBy(response.data, 'id');
-					return $http.post($scope.baseUrl + '/history/variable-instance', {
+                }).then(function(response) {
+                    var processInstances = _.keyBy(response.data, 'id');
+                    return $http.post($scope.baseUrl + '/history/variable-instance', {
                         variableName: 'jrNumber',
                         processInstanceIdIn: _.keys(processInstances)
-					}).then(function(response){
-						var variablesByProcessInstance = _.keyBy(response.data, 'processInstanceId');
-						var valueByProcessInstance = _.mapValues(variablesByProcessInstance, 'value');
+                    }).then(function(response){
+                        var variablesByProcessInstance = _.keyBy(response.data, 'processInstanceId');
+                        var valueByProcessInstance = _.mapValues(variablesByProcessInstance, 'value');
                         var result = _.mapValues(processInstances, (pi, id) => _.assign({}, pi, {'jrNumber': valueByProcessInstance[id]}));
-						return result;
-					});
-				});
+                        return result;
+                    });
+                });
 
                 var taskInstancesPromise = $http.post($scope.baseUrl + '/history/task', {
                     "processDefinitionKey": 'Revision',
                     "unfinished": true
-				}).then(function(response) {
-					return response.data;
-				});
+                }).then(function(response) {
+                    return response.data;
+                });
 
-				$q.all([processInstancesPromise, taskInstancesPromise])
-					.then(function(results) {
+                $q.all([processInstancesPromise, taskInstancesPromise])
+                    .then(function(results) {
                         var processInstances = results[0];
                         var taskInstances = results[1];
 
@@ -248,9 +308,9 @@ define(['./module','jquery'], function(app,$){
                         );
 
                         var tasksByIdAndRegionGrouped = _.mapValues(
-							taskInstancesByDefinition,
+                            taskInstancesByDefinition,
                             function(tasks) {
-                            	return _.groupBy(
+                                return _.groupBy(
                                     tasks,
                                     function(task) {
                                         var pid = task.processInstanceId;
@@ -270,12 +330,71 @@ define(['./module','jquery'], function(app,$){
                         );
 
                         $scope.tasksByIdAndRegionCounted = tasksByIdAndRegionCounted;
-					});
-			}
+                    });
+            } else if($scope.currentReport === 'invoice-open-tasks'){
+
+                var processInstancesPromise = $http.post($scope.baseUrl + '/history/process-instance', {
+                    "processDefinitionKey": "Invoice",
+                    "unfinished": true
+                }).then(function(response) {
+                    var processInstances = _.keyBy(response.data, 'id');
+                    return $http.post($scope.baseUrl + '/history/variable-instance', {
+                        variableName: 'invoiceNumber',
+                        processInstanceIdIn: _.keys(processInstances)
+                    }).then(function(response){
+                        var variablesByProcessInstance = _.keyBy(response.data, 'processInstanceId');
+                        var valueByProcessInstance = _.mapValues(variablesByProcessInstance, 'value');
+                        var result = _.mapValues(processInstances, (pi, id) => _.assign({}, pi, {'invoiceNumber': valueByProcessInstance[id]}));
+                        return result;
+                    });
+                });
+
+                var taskInstancesPromise = $http.post($scope.baseUrl + '/history/task', {
+                    "processDefinitionKey": 'Invoice',
+                    "unfinished": true
+                }).then(function(response) {
+                    return response.data;
+                });
+
+                $q.all([processInstancesPromise, taskInstancesPromise])
+                    .then(function(results) {
+                        var processInstances = results[0];
+                        var taskInstances = results[1];
+
+                        var taskInstancesByDefinition = _.groupBy(
+                            taskInstances,
+                            'taskDefinitionKey'
+                        );
+
+                        var tasksByIdAndRegionGrouped = _.mapValues(
+                            taskInstancesByDefinition,
+                            function(tasks) {
+                                return _.groupBy(
+                                    tasks,
+                                    function(task) {
+                                        var pid = task.processInstanceId;
+                                        if (processInstances[pid]) {
+                                            return $scope.getInvoiceRegion(processInstances[pid].invoiceNumber);
+                                        } else {
+                                            return 'no_processinstance';
+                                        }
+                                    }
+                                );
+                            }
+                        );
+
+                        var tasksByIdAndRegionCounted = _.mapValues(
+                            tasksByIdAndRegionGrouped,
+                            function(tasks) { return _.mapValues(tasks, 'length'); }
+                        );
+
+                        $scope.tasksByIdAndRegionCounted = tasksByIdAndRegionCounted;
+                    });
+            }
 		}
+
 		$scope.selectReport = function(report){
-			console.log(report)
-			$location.url($location.path());
+			$location.url($location.path() + "?report=" + report);
 		}
 
 
