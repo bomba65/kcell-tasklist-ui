@@ -93,6 +93,12 @@
                     store: true
                 },
                 {
+                    name: 'siteRegion',
+                    type: 'String',
+                    submit: true,
+                    store: true
+                },
+                {
                     name: 'regionLabel',
                     type: 'String',
                     submit: true,
@@ -123,6 +129,12 @@
                     store: true
                 },
                 {
+                    name: 'invoiceNumber',
+                    type: 'String',
+                    submit: true,
+                    store: true
+                },
+                {
                     name: 'contractor',
                     type: 'String',
                     submit: true,
@@ -131,27 +143,34 @@
             ];
 
             $scope.regions = [
-                {id: 'alm', label: 'Almaty'},
-                {id: 'astana', label: 'Astana'},
-                {id: 'nc', label: 'North & Central'},
-                {id: 'east', label: 'East'},
-                {id: 'south', label: 'South'},
-                {id: 'west', label: 'West'}
+                {id: 'alm', label: 'Almaty', code:'Alm'},
+                {id: 'astana', label: 'Astana', code:'Astana'},
+                {id: 'nc', label: 'North & Central', code:'N&C'},
+                {id: 'east', label: 'East', code:'East'},
+                {id: 'south', label: 'South', code:'South'},
+                {id: 'west', label: 'West', code:'West'}
             ];
             $scope.months = [
-                {id: 'jan', label: 'January'},
-                {id: 'feb', label: 'February'},
-                {id: 'mar', label: 'March'},
-                {id: 'apr', label: 'April'},
-                {id: 'may', label: 'May'},
-                {id: 'jun', label: 'June'},
-                {id: 'jul', label: 'July'},
-                {id: 'aug', label: 'August'},
-                {id: 'sep', label: 'September'},
-                {id: 'oct', label: 'October'},
-                {id: 'nov', label: 'November'},
-                {id: 'dec', label: 'December'}
+                {id: 'jan', label: 'January', order: '1'},
+                {id: 'feb', label: 'February', order: '2'},
+                {id: 'mar', label: 'March', order: '3'},
+                {id: 'apr', label: 'April', order: '4'},
+                {id: 'may', label: 'May', order: '5'},
+                {id: 'jun', label: 'June', order: '6'},
+                {id: 'jul', label: 'July', order: '7'},
+                {id: 'aug', label: 'August', order: '8'},
+                {id: 'sep', label: 'September', order: '9'},
+                {id: 'oct', label: 'October', order: '10'},
+                {id: 'nov', label: 'November', order: '11'},
+                {id: 'dec', label: 'December', order: '12'}
             ];
+
+            $scope.reasonShortName = {
+                '1': 'P&O',
+                '2': 'TNU',
+                '3': 'S&FM',
+                '4': 'SAO'
+            };
 
             if(window.require){
                 $scope.ExcellentExport = require('excellentexport');
@@ -269,6 +288,7 @@
                 camForm.variableManager.variableValue('yearOfFormalPeriod', $scope.yearOfFormalPeriod);
                 var formalPeriod = $scope.monthOfFormalPeriod + ' ' + $scope.yearOfFormalPeriod;
                 camForm.variableManager.variableValue('formalPeriod', formalPeriod);
+                camForm.variableManager.variableValue('invoiceNumber', $scope.invoiceNumber);
 
                 var requests = [];
                 angular.forEach($scope.jobRequests, function (jobRequest) {
@@ -721,6 +741,20 @@
 
             $scope.preSubmit = function(){
                 var deferred = $q.defer();
+
+                var contractor = 'LSE';
+                if($rootScope.hasGroup('hq_contractor_lse')){
+                    contractor = 'LSE'
+                }
+                var selectedMonth = _.filter($scope.months, function(m){
+                    return m.label === $scope.monthOfFormalPeriod;
+                });
+                var selectedRegion = _.filter($scope.regions, function(r){
+                    return r.id === $scope.region;
+                });
+
+                $scope.invoiceNumber = contractor + '-' + $scope.yearOfFormalPeriod + '-' + selectedMonth[0].order + '-KWMS-' + $scope.reasonShortName[$scope.workType] + '-' + selectedRegion[0].code;
+                camForm.businessKey = $scope.invoiceNumber;
 
                 if($scope.previousInvoiceCount > 0){
                     deferred.reject('Identical monthly acts are found, please change region, type of work or period');
