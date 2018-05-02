@@ -64,6 +64,10 @@ define(['./module','jquery'], function(app,$){
 		$scope.currentReport = $stateParams.report || 'revision-open-tasks';
 
         $scope.task = $stateParams.task;
+        $scope.filter = {};
+        if($stateParams.reason){
+             $scope.filter.reason = $stateParams.reason;
+        }
         $scope.region = $stateParams.region;
 
         $http.get('/api/catalogs').then(
@@ -121,7 +125,11 @@ define(['./module','jquery'], function(app,$){
 
         $scope.filterRegion = function(task){
             if($scope.region){
-                return $scope.getJrRegion(task.variables.jrNumber.value) === $scope.region;
+                if($scope.getProcessDefinition() === 'Revision'){
+                    return $scope.getJrRegion(task.variables.jrNumber.value) === $scope.region;
+                } else if($scope.getProcessDefinition() === 'Invoice'){
+                    return $scope.getInvoiceRegion(task.variables.invoiceNumber.value) === $scope.region;
+                }
             } else {
                 return true;
             }
@@ -134,7 +142,6 @@ define(['./module','jquery'], function(app,$){
                 return 'Invoice';
             }
         }
-
 
         $scope.updateTaskDefinitions = function(){
             var processDefinition = $scope.getProcessDefinition();
@@ -196,6 +203,13 @@ define(['./module','jquery'], function(app,$){
                 processDefinitionKey: $scope.getProcessDefinition(),
                 unfinished: true
             };
+            if($scope.filter.reason) {
+                if($scope.getProcessDefinition() === 'Revision'){
+                    query.processVariables = [{name:'reason', operator:'eq', value:$scope.filter.reason}];
+                } else if($scope.getProcessDefinition() === 'Invoice'){
+                    query.processVariables = [{name:'workType', operator:'eq', value:$scope.filter.reason}];
+                }
+            }
 
 			$http.post($scope.baseUrl + '/history/task', query).then(function(response) {
 				var tasks = response.data;
@@ -274,10 +288,15 @@ define(['./module','jquery'], function(app,$){
             };
 
             if ($scope.currentReport === 'revision-open-tasks') {
-                var processInstancesPromise = $http.post($scope.baseUrl + '/history/process-instance', {
+
+                var processQuery = {
                     "processDefinitionKey": "Revision",
                     "unfinished": true
-                }).then(function(response) {
+                };
+                if($scope.filter.reason) {
+                    processQuery.variables = [{name:'reason', operator:'eq', value:$scope.filter.reason}];
+                }
+                var processInstancesPromise = $http.post($scope.baseUrl + '/history/process-instance', processQuery).then(function(response) {
                     var processInstances = _.keyBy(response.data, 'id');
                     return $http.post($scope.baseUrl + '/history/variable-instance', {
                         variableName: 'jrNumber',
@@ -290,10 +309,14 @@ define(['./module','jquery'], function(app,$){
                     });
                 });
 
-                var taskInstancesPromise = $http.post($scope.baseUrl + '/history/task', {
+                var taskQuery = {
                     "processDefinitionKey": 'Revision',
                     "unfinished": true
-                }).then(function(response) {
+                };
+                if($scope.filter.reason) {
+                    taskQuery.processVariables = [{name:'reason', operator:'eq', value:$scope.filter.reason}];
+                }
+                var taskInstancesPromise = $http.post($scope.baseUrl + '/history/task', taskQuery).then(function(response) {
                     return response.data;
                 });
 
@@ -333,10 +356,15 @@ define(['./module','jquery'], function(app,$){
                     });
             } else if($scope.currentReport === 'invoice-open-tasks'){
 
-                var processInstancesPromise = $http.post($scope.baseUrl + '/history/process-instance', {
+                var processQuery = {
                     "processDefinitionKey": "Invoice",
                     "unfinished": true
-                }).then(function(response) {
+                };
+                if($scope.filter.reason) {
+                    processQuery.variables = [{name:'workType', operator:'eq', value:$scope.filter.reason}];
+                }
+
+                var processInstancesPromise = $http.post($scope.baseUrl + '/history/process-instance', processQuery).then(function(response) {
                     var processInstances = _.keyBy(response.data, 'id');
                     return $http.post($scope.baseUrl + '/history/variable-instance', {
                         variableName: 'invoiceNumber',
@@ -349,10 +377,15 @@ define(['./module','jquery'], function(app,$){
                     });
                 });
 
-                var taskInstancesPromise = $http.post($scope.baseUrl + '/history/task', {
+                var taskQuery = {
                     "processDefinitionKey": 'Invoice',
                     "unfinished": true
-                }).then(function(response) {
+                };
+                if($scope.filter.reason) {
+                    taskQuery.processVariables = [{name:'workType', operator:'eq', value:$scope.filter.reason}];
+                }
+
+                var taskInstancesPromise = $http.post($scope.baseUrl + '/history/task', taskQuery).then(function(response) {
                     return response.data;
                 });
 
@@ -397,7 +430,9 @@ define(['./module','jquery'], function(app,$){
 			$location.url($location.path() + "?report=" + report);
 		}
 
-
+        $scope.selectReason = function(reason){
+            $location.url($location.path() + "?report=" + $scope.currentReport + "&reason=" + reason);
+        }
 
         $scope.downloadReport = function(){
             if($scope.report_ready){

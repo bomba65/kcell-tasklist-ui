@@ -71,7 +71,7 @@ define('app',[
 	    	authenticate: true,
 	    	resolve: resolve
 	    }).state("statistics", {
-	    	url: "/statistics?report&task&region",
+			url: "/statistics?report&task&region&reason",
 	    	templateUrl: "js/partials/statistics.html",
 	    	controller: "statisticsCtrl",
 	    	authenticate: true,
