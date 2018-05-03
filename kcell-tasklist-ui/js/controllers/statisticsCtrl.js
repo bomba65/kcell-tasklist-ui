@@ -18,6 +18,16 @@ define(['./module','jquery'], function(app,$){
 			});
 		}
 
+        $rootScope.hasGroup = function(group){
+            if($rootScope.authUser && $rootScope.authUser.groups){
+                return _.some($rootScope.authUser.groups, function(value){
+                    return value.id === group;
+                });
+            } else {
+                return false;
+            }
+        }
+
 		$scope.baseUrl = '/camunda/api/engine/engine/default';
 		// $scope.baseUrl = "https://test-flow.kcell.kz/engine-rest/engine/default";
         $scope.report_ready = false;
@@ -39,16 +49,6 @@ define(['./module','jquery'], function(app,$){
                     console.log(error.data);
                 }
             );
-        }
-
-        $rootScope.hasGroup = function(group){
-            if($rootScope.authUser && $rootScope.authUser.groups){
-                return _.some($rootScope.authUser.groups, function(value){
-                    return value.id === group;
-                });
-            } else {
-                return false;
-            }
         }
 
 		$scope.reportsMap = {
@@ -140,6 +140,27 @@ define(['./module','jquery'], function(app,$){
                 return 'Revision';
             } else if($scope.currentReport === 'invoice-open-tasks'){
                 return 'Invoice';
+            }
+        }
+
+        $scope.regions = ['.almaty', '.east', '.west', '.north_central', '.south', '.astana', '.no_region',];
+        $scope.checkRegionView = function(region){
+            if($rootScope.hasGroup('head_kcell_users')){
+                return true;
+            } else if($rootScope.hasGroup('alm_kcell_users')){
+                return region === '.almaty';
+            } else if($rootScope.hasGroup('astana_kcell_users')){
+                return region === '.astana';
+            } else if($rootScope.hasGroup('east_kcell_users')){
+                return region === '.east';
+            } else if($rootScope.hasGroup('nc_kcell_users')){
+                return region === '.north_central';
+            } else if($rootScope.hasGroup('south_kcell_users')){
+                return region === '.south';
+            } else if($rootScope.hasGroup('west_kcell_users')){
+                return region === '.west';
+            } else {
+                return false;
             }
         }
 
@@ -431,7 +452,11 @@ define(['./module','jquery'], function(app,$){
 		}
 
         $scope.selectReason = function(reason){
-            $location.url($location.path() + "?report=" + $scope.currentReport + "&reason=" + reason);
+            if(reason == 'all'){
+                $location.url($location.path() + "?report=" + $scope.currentReport);
+            } else {
+                $location.url($location.path() + "?report=" + $scope.currentReport + "&reason=" + reason);
+            }
         }
 
         $scope.downloadReport = function(){

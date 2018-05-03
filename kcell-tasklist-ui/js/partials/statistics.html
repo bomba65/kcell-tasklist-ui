@@ -28,7 +28,7 @@
 			<h4>Reports</h4>
 			<ul id="filters">
 				<li ng-repeat="report in reports" ng-class="{active: report === currentReport}">
-					<a ng-click="selectReport(report)" class="ng-binding">{{reportsMap[report].name}}</a>
+					<a ng-if="report !== 'invoice-open-tasks' || hasGroup('head_kcell_users')" ng-click="selectReport(report)" class="ng-binding">{{reportsMap[report].name}}</a>
 				</li>
 				<li ng-if="(authentication.name === 'demo' || authentication.name === 'Evgeniy.Semenov@kcell.kz' || authentication.name === 'Yernaz.Kalingarayev@kcell.kz')">
 					<a ng-click="downloadReport()" class="ng-binding" id="reportClick" href="#">{{report_ready?'Скачать отчет':'Подготовить отчет'}}</a>
@@ -38,6 +38,9 @@
 			<div ng-show="(currentReport == 'revision-open-tasks' || currentReport == 'invoice-open-tasks') && !task">
 				<h4>Reason</h4>
 				<ul>
+					<li ng-class="{active: !filter.reason}">
+						<a ng-click="selectReason('all')" class="ng-binding">All</a>
+					</li>
 					<li ng-repeat="reason in reasons" ng-class="{active: reason.id == filter.reason}">
 						<a ng-click="selectReason(reason.id)" class="ng-binding">{{reason.name}}</a>
 					</li>
@@ -76,8 +79,8 @@
 							<tbody>
 							<tr ng-repeat="taskDefId in kcellTasks[currentReport]">
 								<td><a href="#/statistics?task={{taskDefId}}&report={{currentReport.concat(filter.reason?'&reason='+filter.reason:'')}}">{{userTasksMap[taskDefId].name}}</a></td>
-								<td class="number" ng-repeat="region in ['.almaty', '.east', '.west', '.north_central', '.south', '.astana', '.no_region',]">
-									<a href="#/statistics?task={{taskDefId}}&report={{currentReport.concat(filter.reason?'&reason='+filter.reason:'')}}&region={{region.replace('.','')}}">{{ _.get(tasksByIdAndRegionCounted, taskDefId + region, 0) }}</a>
+								<td class="number" ng-repeat="region in regions">
+									<a ng-if="checkRegionView(region)" href="#/statistics?task={{taskDefId}}&report={{currentReport.concat(filter.reason?'&reason='+filter.reason:'')}}&region={{region.replace('.','')}}">{{ _.get(tasksByIdAndRegionCounted, taskDefId + region, 0) }}</a>
 								</td>
 							</tr>
 							</tbody>
@@ -95,8 +98,8 @@
 							<tbody>
 							<tr ng-repeat="taskDefId in contractorTasks[currentReport]">
 								<td><a href="#/statistics?task={{taskDefId}}&report={{currentReport.concat(filter.reason?'&reason='+filter.reason:'')}}">{{userTasksMap[taskDefId].name}}</a></td>
-								<td class="number" ng-repeat="region in ['.almaty', '.east', '.west', '.north_central', '.south', '.astana', '.no_region',]">
-									<a href="#/statistics?task={{taskDefId}}&report={{currentReport.concat(filter.reason?'&reason='+filter.reason:'')}}&region={{region.replace('.','')}}">{{ _.get(tasksByIdAndRegionCounted, taskDefId + region, 0) }}</a>
+								<td class="number" ng-repeat="region in regions">
+									<a ng-if="checkRegionView(region)" href="#/statistics?task={{taskDefId}}&report={{currentReport.concat(filter.reason?'&reason='+filter.reason:'')}}&region={{region.replace('.','')}}">{{ _.get(tasksByIdAndRegionCounted, taskDefId + region, 0) }}</a>
 								</td>
 							</tr>
 							</tbody>
