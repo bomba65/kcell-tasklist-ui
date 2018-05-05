@@ -68,7 +68,7 @@ public class SftpConfig {
     }
 
     @Bean
-    @ServiceActivator(inputChannel = "toJoJrSftpChannel")
+    @ServiceActivator(inputChannel = "toJoJrChannel")
     public MessageHandler toJoJrSftpMessageHandler() {
         SftpMessageHandler handler = new SftpMessageHandler(sftpSessionFactory());
         handler.setRemoteDirectoryExpression(new LiteralExpression(sftpRemoteDirectoryJoJr));
@@ -94,7 +94,7 @@ public class SftpConfig {
     }
 
     @Bean
-    @ServiceActivator(inputChannel = "toPrSftpChannel")
+    @ServiceActivator(inputChannel = "toPrChannel")
     public MessageHandler toPrSftpMessageHandler() {
         SftpMessageHandler handler = new SftpMessageHandler(sftpSessionFactory());
         handler.setRemoteDirectoryExpression(new LiteralExpression(sftpRemoteDirectoryToPr));
