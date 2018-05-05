@@ -26,8 +26,6 @@ import java.util.stream.Stream;
 
 import static java.util.stream.Collectors.toList;
 
-@Service
-@Log
 public class TaskHistoryListener implements TaskListener {
 
     @Autowired
