@@ -86,7 +86,7 @@ define(['./module','jquery', 'camundaSDK'], function(app, $, CamSDK){
 
 		//var historyService = new camClient.resource('history');
 
-		$http.get(baseUrl+'/process-definition?latest=true&active=true&firstResult=0&maxResults=15').then(
+/*		$http.get(baseUrl+'/process-definition?latest=true&active=true&firstResult=0&maxResults=15').then(
 			function(results){
 				$scope.processDefinitions = results.data;
 			},
@@ -94,8 +94,8 @@ define(['./module','jquery', 'camundaSDK'], function(app, $, CamSDK){
 				console.log(error.data);
 			}
 		);
-
-//		$scope.processDefinitions = [{key: 'Revision', name: 'Revision'}, {key: 'Invoice', name: 'Generate Monthy Act'}];
+*/
+		$scope.processDefinitions = [{key: 'Revision', name: 'Revision'}, {key: 'Invoice', name: 'Generate Monthy Act'}, {key: 'SiteSharingTopProcess', name: '4g Site Sharing'}];
 
 		$scope.search = function(refreshPages){
 			if(refreshPages){

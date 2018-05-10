@@ -143,7 +143,7 @@ define(['./module','jquery'], function(app,$){
             } else if($scope.currentReport === 'invoice-open-tasks'){
                 return 'Invoice';
             } else if($scope.currentReport === '4gSharing-open-tasks'){
-                return 'Invoice';
+                return 'SiteSharingTopProcess';
             }
         }
 
