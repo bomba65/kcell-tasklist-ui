@@ -24,7 +24,7 @@ class Plan implements Comparable<Plan> {
     Long id;
 
     @Size(min = 1)
-    String site_id;
+    Integer site_id;
 
     @Size(min = 1)
     String status;

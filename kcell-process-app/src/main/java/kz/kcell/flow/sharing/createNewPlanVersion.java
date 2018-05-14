@@ -49,7 +49,7 @@ public class createNewPlanVersion implements JavaDelegate {
             String plansUrl = baseUri + "/asset-management/api/plans";
             //log.info("{\"params\":\"" + sharingPlanParams + "\",\"status\":\"" + sharingPlanStatus + "\",\"site\": \"" + siteUrl + "\",\"is_current\":true}");
 
-            StringEntity planInputData = new StringEntity("{\"params\":" + sharingPlanParams + ",\"status\":\"candidate_sharing\",\"site_id\": \"" + siteId + "\",\"is_current\":true}", "UTF-8");
+            StringEntity planInputData = new StringEntity("{\"params\":" + sharingPlanParams + ",\"status\":\"candidate_sharing\",\"site_id\": " + siteId + ",\"is_current\":true}", "UTF-8");
 
             HttpPost planHttpPost = new HttpPost(new URI(plansUrl));
             planHttpPost.addHeader("Content-Type", "application/json;charset=UTF-8");
