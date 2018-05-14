@@ -453,7 +453,9 @@ class GenerateActOfAcceptance implements TaskListener {
 
 
         def result = render(binding)
+        if (checkingByGuestResult && checkingByGuestResult == "approved") {
+            execution.setVariable("acceptanceDate", taskSubmitDate)
+        }
         execution.setVariable("actOfAcceptanceDocument", Variables.fileValue("actOfAcceptance.doc").file(result.getBytes("utf-8")).mimeType("application/msword").create())
-        execution.setVariable("acceptanceDate", taskSubmitDate)
     }
 }

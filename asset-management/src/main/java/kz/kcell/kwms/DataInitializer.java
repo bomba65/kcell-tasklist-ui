@@ -137,7 +137,7 @@ public class DataInitializer {
                 .build());
 
         Plan plan1 = planRepository.save(Plan.builder()
-                .site(site1)
+                .site_id("000001")
                 .params("{}")
                 .status("new")
                 .is_current(Boolean.TRUE)

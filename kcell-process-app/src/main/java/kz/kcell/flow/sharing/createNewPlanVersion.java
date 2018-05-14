@@ -47,11 +47,9 @@ public class createNewPlanVersion implements JavaDelegate {
 
         if(StringUtils.isNotEmpty(sharingPlanStatus) && StringUtils.isNotEmpty(sharingPlanParams)){
             String plansUrl = baseUri + "/asset-management/api/plans";
-            String siteUrl = "http://assets:8080/asset-management/api/sites/" + siteId;
-
             //log.info("{\"params\":\"" + sharingPlanParams + "\",\"status\":\"" + sharingPlanStatus + "\",\"site\": \"" + siteUrl + "\",\"is_current\":true}");
 
-            StringEntity planInputData = new StringEntity("{\"params\":" + sharingPlanParams + ",\"status\":\"candidate_sharing\",\"site\": \"" + siteUrl + "\",\"is_current\":true}", "UTF-8");
+            StringEntity planInputData = new StringEntity("{\"params\":" + sharingPlanParams + ",\"status\":\"candidate_sharing\",\"site_id\": \"" + siteId + "\",\"is_current\":true}", "UTF-8");
 
             HttpPost planHttpPost = new HttpPost(new URI(plansUrl));
             planHttpPost.addHeader("Content-Type", "application/json;charset=UTF-8");

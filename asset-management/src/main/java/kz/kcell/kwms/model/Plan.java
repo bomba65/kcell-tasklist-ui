@@ -23,13 +23,11 @@ class Plan implements Comparable<Plan> {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     Long id;
 
-    @ManyToOne
-    Site site;
+    @Size(min = 1)
+    String site_id;
 
-    @Size(min = 4)
+    @Size(min = 1)
     String status;
-
-    Date acceptance_date;
 
     Boolean is_current;
 
