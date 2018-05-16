@@ -44,16 +44,15 @@ public class createNewPlanVersion implements JavaDelegate {
 
         //log.info("sharingPlanStatus:" + sharingPlanStatus);
 
-        if(StringUtils.isNotEmpty(siteId)){
-            HttpGet httpGet = new HttpGet(baseUri + "/asset-management/api/plans/search/changePrevCurrentStatus?siteId=" + siteId);
-            SSLContextBuilder builder = new SSLContextBuilder();
-            builder.loadTrustMaterial(null, new TrustSelfSignedStrategy());
-            SSLConnectionSocketFactory sslsf = new SSLConnectionSocketFactory(
-                builder.build());
-            CloseableHttpClient httpClient = HttpClients.custom().setSSLSocketFactory(
-                sslsf).build();
-            HttpResponse httpResponse = httpClient.execute(httpGet);
-        }
+        HttpGet httpGet = new HttpGet(baseUri + "/asset-management/api/plans/search/changePrevCurrentStatus?siteId=" + siteId);
+        SSLContextBuilder builder = new SSLContextBuilder();
+        builder.loadTrustMaterial(null, new TrustSelfSignedStrategy());
+        SSLConnectionSocketFactory sslsf = new SSLConnectionSocketFactory(
+            builder.build());
+        CloseableHttpClient httpClient = HttpClients.custom().setSSLSocketFactory(
+            sslsf).build();
+        HttpResponse httpResponse = httpClient.execute(httpGet);
+
 
         if(StringUtils.isNotEmpty(sharingPlanStatus) && StringUtils.isNotEmpty(sharingPlanParams)){
             String plansUrl = baseUri + "/asset-management/api/plans";
@@ -67,14 +66,8 @@ public class createNewPlanVersion implements JavaDelegate {
 
             //CloseableHttpClient planHttpClient = HttpClients.createDefault();
 
-            SSLContextBuilder builder = new SSLContextBuilder();
-            builder.loadTrustMaterial(null, new TrustSelfSignedStrategy());
-            SSLConnectionSocketFactory sslsf = new SSLConnectionSocketFactory(
-                builder.build());
-            CloseableHttpClient planHttpClient = HttpClients.custom().setSSLSocketFactory(
-                sslsf).build();
+            CloseableHttpResponse planResponse = httpClient.execute(planHttpPost);
 
-            CloseableHttpResponse planResponse = planHttpClient.execute(planHttpPost);
             log.info("planResponse code: " + planResponse.getStatusLine().getStatusCode());
         }
     }
