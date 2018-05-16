@@ -25,8 +25,8 @@ public class createNewPlanVersion implements JavaDelegate {
     private final String baseUri;
 
     @Autowired
-    public createNewPlanVersion(@Value("${assets.url:http://localhost}") String assetsUrl) {
-        this.baseUri = assetsUrl;
+    public createNewPlanVersion(@Value("${mail.message.baseurl:http://localhost}") String baseUri) {
+        this.baseUri = baseUri;
     }
 
     @Override

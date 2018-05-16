@@ -19,8 +19,8 @@ public class changePlanStatusToInstallationDone implements JavaDelegate {
     private final String baseUri;
 
     @Autowired
-    public changePlanStatusToInstallationDone(@Value("${assets.url:http://localhost}") String assetsUrl) {
-        this.baseUri = assetsUrl;
+    public changePlanStatusToInstallationDone(@Value("${mail.message.baseurl:http://localhost}") String baseUri) {
+        this.baseUri = baseUri;
     }
 
     @Override
