@@ -17,6 +17,11 @@ import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 //import kz.kcell.flow.sharing.createNewPlanVersion;
 import java.net.URI;
+import org.apache.http.conn.ssl.SSLConnectionSocketFactory;
+import org.apache.http.conn.ssl.TrustSelfSignedStrategy;
+import org.apache.http.ssl.SSLContextBuilder;
+import org.apache.http.impl.client.HttpClients;
+
 
 @Service("createNewPlanVersion")
 @Log
@@ -41,7 +46,12 @@ public class createNewPlanVersion implements JavaDelegate {
 
         if(StringUtils.isNotEmpty(siteId)){
             HttpGet httpGet = new HttpGet(baseUri + "/asset-management/api/plans/search/changePrevCurrentStatus?siteId=" + siteId);
-            HttpClient httpClient = HttpClients.createDefault();
+            SSLContextBuilder builder = new SSLContextBuilder();
+            builder.loadTrustMaterial(null, new TrustSelfSignedStrategy());
+            SSLConnectionSocketFactory sslsf = new SSLConnectionSocketFactory(
+                builder.build());
+            CloseableHttpClient httpClient = HttpClients.custom().setSSLSocketFactory(
+                sslsf).build();
             HttpResponse httpResponse = httpClient.execute(httpGet);
         }
 
@@ -55,7 +65,15 @@ public class createNewPlanVersion implements JavaDelegate {
             planHttpPost.addHeader("Content-Type", "application/json;charset=UTF-8");
             planHttpPost.setEntity(planInputData);
 
-            CloseableHttpClient planHttpClient = HttpClients.createDefault();
+            //CloseableHttpClient planHttpClient = HttpClients.createDefault();
+
+            SSLContextBuilder builder = new SSLContextBuilder();
+            builder.loadTrustMaterial(null, new TrustSelfSignedStrategy());
+            SSLConnectionSocketFactory sslsf = new SSLConnectionSocketFactory(
+                builder.build());
+            CloseableHttpClient planHttpClient = HttpClients.custom().setSSLSocketFactory(
+                sslsf).build();
+
             CloseableHttpResponse planResponse = planHttpClient.execute(planHttpPost);
             log.info("planResponse code: " + planResponse.getStatusLine().getStatusCode());
         }

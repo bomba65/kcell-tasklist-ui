@@ -11,6 +11,12 @@ import org.camunda.bpm.engine.delegate.JavaDelegate;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
+import org.apache.http.conn.ssl.SSLConnectionSocketFactory;
+import org.apache.http.conn.ssl.TrustSelfSignedStrategy;
+import org.apache.http.ssl.SSLContextBuilder;
+import org.apache.http.impl.client.CloseableHttpClient;
+import org.apache.http.impl.client.HttpClients;
+
 
 @Service("changePlanStatusToInstallationDone")
 @Log
@@ -32,7 +38,12 @@ public class changePlanStatusToInstallationDone implements JavaDelegate {
 
         if(StringUtils.isNotEmpty(siteId)){
             HttpGet httpGet = new HttpGet(baseUri + "/asset-management/api/plans/search/changePlanStatus?siteId=" + siteId + "&status=" + newStatus);
-            HttpClient httpClient = HttpClients.createDefault();
+            SSLContextBuilder builder = new SSLContextBuilder();
+            builder.loadTrustMaterial(null, new TrustSelfSignedStrategy());
+            SSLConnectionSocketFactory sslsf = new SSLConnectionSocketFactory(
+                builder.build());
+            CloseableHttpClient httpClient = HttpClients.custom().setSSLSocketFactory(
+                sslsf).build();
             HttpResponse httpResponse = httpClient.execute(httpGet);
             delegateExecution.setVariable("sharingPlanStatus", newStatus);
             //log.info("plan change current status Response: " + httpResponse.getStatusLine().getStatusCode());
