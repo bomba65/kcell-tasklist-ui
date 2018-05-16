@@ -336,8 +336,8 @@
                         });
                     }
 
-                    if($scope.supplementaryFiles && $scope.supplementaryFiles.files){
-                        $scope.supplementaryFiles.files.forEach(function (file) {
+                    if($scope.supplementaryFiles && $scope.supplementaryFiles.value){
+                        $scope.supplementaryFiles.value.forEach(function (file) {
                             if (file.name){
                                 if(file.value.isNew){
                                     files.push(file.name);
@@ -346,9 +346,9 @@
                             }
                         });
 
-                        if(camForm.variableManager.variables['kcellWarehouseMaterialsListName']){
+                        if(camForm.variableManager.variables['supplementaryFiles']){
                             camForm.variableManager.variableValue('supplementaryFiles', $scope.supplementaryFiles.value);
-                        } {
+                        } else {
                             camForm.variableManager.createVariable($scope.supplementaryFiles);
                         }
                     }
@@ -548,10 +548,10 @@
                 success(function(data, status, headers, config) {
                     $http.put(data, file, {headers: {'Content-Type': undefined}}).then(
                             function () {
-                                if(!$scope.supplementaryFiles.value || !$scope.supplementaryFiles.value.files){
-                                    $scope.supplementaryFiles.value = {files: []};
+                                if(!$scope.supplementaryFiles.value){
+                                    $scope.supplementaryFiles.value = [];
                                 }
-                                $scope.supplementaryFiles.value.files.push(fileValue);
+                                $scope.supplementaryFiles.value.push(fileValue);
                                 angular.element(document.querySelector('#supplementaryFiles')).val(null);
                             },
                             function (error) {
@@ -712,7 +712,7 @@
             };
 
             $scope.clearFile = function(index){
-                $scope.supplementaryFiles.value.files.splice(index, 1);
+                $scope.supplementaryFiles.value.splice(index, 1);
             }
 
             $scope.isVisible = function (resolution) {
@@ -840,15 +840,15 @@
     <div class="form-group">
         <label class="col-sm-4 control-label">Supplementary files:</label>
         <div class="col-sm-8">
-            <div class="input-group" ng-repeat="file in supplementaryFiles.value.files">
+            <div class="input-group" ng-repeat="file in supplementaryFiles.value">
                 <a ng-click="download(file)">{{file.name}}</a> | <a ng-click="clearFile($index)"><i class="glyphicon glyphicon-trash" /></a>
                 <div class="input-group-addon" ng-show="file.name && hasGroup('kcellUsers')">
                     <label class="radio-inline">
-                        <input type="radio" name="supplementaryFile_{{$index}}" ng-model="file.value.visibility"
+                        <input type="radio" name="supplementaryFile_{{$index}}" ng-model="file.visibility"
                                value="all" ng-required="file.name && hasGroup('kcellUsers')"> Visible for all
                     </label>
                     <label class="radio-inline">
-                        <input type="radio" name="supplementaryFile_{{$index}}" ng-model="file.value.visibility"
+                        <input type="radio" name="supplementaryFile_{{$index}}" ng-model="file.visibility"
                                value="kcell" ng-required="file.name && hasGroup('kcellUsers')"> Kcell staff only
                     </label>
                     <label class="error" ng-show="kcell_form['supplementaryFile_'+$index].$error.required && ( kcell_form['supplementaryFile_'+$index].$touched || view.submitted)">Required field</label>
