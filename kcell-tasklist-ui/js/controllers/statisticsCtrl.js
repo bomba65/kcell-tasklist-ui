@@ -224,65 +224,60 @@ define(['./module','jquery'], function(app,$){
 
         if ($scope.currentReport === '4gSharing-open-tasks') {
             $http.get('/asset-management/api/plans/search/findCurrentPlanSites').then(function(response) {
-                var currentPlans = _.flatMap(response.data._embedded.plans, function (plan) {
-                    if (plan.status !== 'site_sharing_complete')
+                ;
+                var currentPlans = _.flatMap( _.filter(response.data._embedded.plans, function(plan) { return plan.status !== 'site_sharing_complete'; }), function (plan) {
+                    if (plan.status !== 'site_sharing_complete') {
                         var range = [];
                         _.forEach(plan.params.shared_sectors, function(sector) {
                             if (!_.includes(range, sector.enodeb_range)) {
                                 range.push(sector.enodeb_range);
-                                return {"site_id": plan.site_id, "status": plan.status, "host": plan.params.host, "range": range};
                             }
                         });
                         return {"site_id": plan.site_id, "status": plan.status, "host": plan.params.host, "range": range};
+                    } else return null;
                 });
 
-                //----------------------------------------------------------
 
-                var siteCountByType = {'planed':{"800":0,"1800":0, "all": 0}, 'onair':{"800":0,"1800":0, "all": 0}, 'kcellHost':{"800":0,"1800":0, "all": 0}, 'beelineHost':{"800":0,"1800":0, "all": 0}};
-                var planned = {
-                    "800": _.flatMap(currentPlans, function(plan){
-                        if (_.includes(plan.range, "800")) {
-                            return plan;
-                        }
-                    }).length
-                }
-
-                
-                // для подсчета статистики по шеринг сайтам
-                //-----------------------------------------------------------
-                _.flatMap(currentPlans, function(plan){
-                    _.forEach(["800", "1800", "all"], function(band) {
-                        if (band === 'all') {
-                            siteCountByType.planed.all += 1;
-                            if(plan.status === 'site_on_air') {
-                                siteCountByType.onair.all += 1;
-                            } else if ( plan.status === 'site_accepted_service') {
-                                if(plan.host.toLowerCase() === 'beeline') {
-                                    siteCountByType.beelineHost.all += 1;
-                                } else if (plan.host.toLowerCase() === 'kcell') {
-                                    siteCountByType.kcellHost.all += 1;
-                                }
-                            } 
-                        } else if (_.includes(plan.range, band)) {
-                            siteCountByType.planed[band] += 1;
-                            if(plan.status === 'site_on_air') {
-                                siteCountByType.onair[band] += 1;
-                            } else if ( plan.status === 'site_accepted_service') {
-                                if(plan.host.toLowerCase() === 'beeline') {
-                                    siteCountByType.beelineHost[band] += 1;
-                                } else if (plan.host.toLowerCase() === 'kcell') {
-                                    siteCountByType.kcellHost[band] += 1;
+                if(currentPlans) {
+                    console.log(currentPlans);
+                    //----------------------------------------------------------
+                    var siteCountByType = {'planed':{"800":0,"1800":0, "all": 0}, 'onair':{"800":0,"1800":0, "all": 0}, 'kcellHost':{"800":0,"1800":0, "all": 0}, 'beelineHost':{"800":0,"1800":0, "all": 0}};                
+                    // для подсчета статистики по шеринг сайтам
+                    //-----------------------------------------------------------
+                    _.flatMap(currentPlans, function(plan){
+                        _.forEach(["800", "1800", "all"], function(band) {
+                            if (band === 'all') {
+                                siteCountByType.planed.all += 1;
+                                if(plan.status === 'site_on_air') {
+                                    siteCountByType.onair.all += 1;
+                                } else if ( plan.status === 'site_accepted_service') {
+                                    if(plan.host.toLowerCase() === 'beeline') {
+                                        siteCountByType.beelineHost.all += 1;
+                                    } else if (plan.host.toLowerCase() === 'kcell') {
+                                        siteCountByType.kcellHost.all += 1;
+                                    }
+                                } 
+                            } else if (_.includes(plan.range, band)) {
+                                siteCountByType.planed[band] += 1;
+                                if(plan.status === 'site_on_air') {
+                                    siteCountByType.onair[band] += 1;
+                                } else if ( plan.status === 'site_accepted_service') {
+                                    if(plan.host.toLowerCase() === 'beeline') {
+                                        siteCountByType.beelineHost[band] += 1;
+                                    } else if (plan.host.toLowerCase() === 'kcell') {
+                                        siteCountByType.kcellHost[band] += 1;
+                                    }
                                 }
                             }
-                        }
+                        })
                     })
-                })
+                    
+                    //$scope.siteCountByType = {"planed":{"800":"4","1800":"6","all":"10"}, "onair":{"800":"1","1800":"3","all":"4"}, "kcellHost":{"800":"2","1800":"2","all":"4"}, "beelineHost":{"800":"3","1800":"2","all":"5"}};
+                    $scope.siteCountByType = siteCountByType;
+                    //console.log($scope.siteCountByType);
+                    //-----------------------------------------------------------
+                }
                 
-                //$scope.siteCountByType = {"planed":{"800":"4","1800":"6","all":"10"}, "onair":{"800":"1","1800":"3","all":"4"}, "kcellHost":{"800":"2","1800":"2","all":"4"}, "beelineHost":{"800":"3","1800":"2","all":"5"}};
-                $scope.siteCountByType = siteCountByType;
-                //console.log($scope.siteCountByType);
-                //-----------------------------------------------------------
-
             });
             $scope.userTasksMap = {};
             for (let pid of ['BeelineHostBeelineSite', 'BeelineHostKcellSite', 'KcellHostBeelineSite', 'KcellHostKcellSite','ReplanSharedSiteAddressPlan']) {
