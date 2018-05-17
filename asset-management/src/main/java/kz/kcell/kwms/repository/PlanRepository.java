@@ -16,8 +16,11 @@ public interface PlanRepository extends PagingAndSortingRepository<Plan, Long> {
     @Query("select distinct l from Plan l where l.site_id = ?1 and l.is_current = true")
     List<Plan> findBySite(@Param("siteId") Integer siteId);
 
-    @Query("select l from Plan l where l.is_current = true and l.status = 'candidate_sharing'")
+    @Query("select l from Plan l where l.is_current = true")
     List<Plan> findCurrentPlanSites();
+
+    @Query("select l from Plan l where l.is_current = true and l.status = 'candidate_sharing'")
+    List<Plan> findCurrentToStartPlanSites();
 
     @Modifying
     @Query("update Plan l set l.is_current = false where l.site_id = ?1 and l.is_current = true")
