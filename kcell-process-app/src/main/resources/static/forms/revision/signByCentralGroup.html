@@ -132,6 +132,21 @@
             $scope.hasComment = function () {
                 return $scope.signByCentralGroupComment && $rootScope.hasGroup('kcellUsers');
             }
+
+            $scope.calculateBasePriceByQuantity = function(work){
+                var unitWorkPrice = Big(work.unitWorkPrice);
+                var quantity = Big(work.quantity);
+                var result = unitWorkPrice.times(quantity);
+                return result.toFixed(2).replace('.',',');
+            }
+
+            $scope.calculateBasePriceTotal = function(){
+                var total = Big(0.0);
+                angular.forEach($scope.jobModel.workPrices, function(work){
+                    total = total.plus((work.basePriceByQuantity? Big(work.basePriceByQuantity) : Big(work.unitWorkPrice).times(Big(work.quantity))));
+                });
+                return total.toFixed(2).replace('.',',');
+            }
         }]);
     </script>
     <job-request job-model="jobModel"></job-request>
@@ -145,6 +160,7 @@
                 <th>Sites</th>
                 <th>Base Price</th>
                 <th>Base + Transportation +8%</th>
+                <th>Base Price * works q-ty</th>
                 <th>1 work price per site Sum/site q-ty</th>
                 <th>Sum * works q-ty</th>
                 <th style="text-align:right;font-weight: bold;font-size: 16px;background-color: lightpink;">Total</th>
@@ -158,12 +174,15 @@
                 <td><span ng-repeat="rs in work.relatedSites" class="my-tag" ng-class="{'main-site':rs.site_name===jobModel.site_name.value}"><span ng-if="rs.site_name===jobModel.site_name.value">Main Site: </span>{{rs.site_name}}</span></td>
                 <td>{{work.unitWorkPrice.replace('.',',')}}&nbsp;&#8376;</td>
                 <td>{{work.unitWorkPricePlusTx.replace('.',',')}}&nbsp;&#8376;</td>
+                <td>{{work.basePriceByQuantity ? work.basePriceByQuantity.replace('.',',') : calculateBasePriceByQuantity(work)}}&nbsp;&#8376;</td>
                 <td><span ng-if="work.unitWorkPricePerSite >= 0">{{work.unitWorkPricePerSite.replace('.',',')}}&nbsp;&#8376;</span></td>
                 <td><span ng-if="work.netWorkPricePerSite >= 0">{{work.netWorkPricePerSite.replace('.',',')}}&nbsp;&#8376;</span></td>
                 <td style="text-align:right;font-weight: bold;font-size: 16px;background-color: lightpink;"><span style="padding: 6px 0px;display: inline-block;">{{work.total.replace('.',',')}}</span></td>
             </tr>
             <tr>
-                <th colspan="7">Total</th>
+                <th colspan="6">Total</th>
+                <th>{{calculateBasePriceTotal()}}</th>
+                <th></th>
                 <th>{{jobModel.jobWorksTransportationTotal.replace('.',',')}}</th>
                 <th style="text-align:right;font-weight: bold;font-size: 16px;background-color: lightpink;">{{jobModel.jobWorksTotal.value.replace('.',',')}}</th>
             </tr>
