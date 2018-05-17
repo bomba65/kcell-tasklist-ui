@@ -241,7 +241,7 @@ define(['./module','jquery'], function(app,$){
                 if(currentPlans) {
                     console.log(currentPlans);
                     //----------------------------------------------------------
-                    var siteCountByType = {'planed':{"800":0,"1800":0, "all": 0}, 'onair':{"800":0,"1800":0, "all": 0}, 'kcellHost':{"800":0,"1800":0, "all": 0}, 'beelineHost':{"800":0,"1800":0, "all": 0}};                
+                    var siteCountByType = {'planed':{"band800":0,"band1800":0, "all": 0}, 'onair':{"band800":0,"band1800":0, "all": 0}, 'kcellHost':{"band800":0,"band1800":0, "all": 0}, 'beelineHost':{"band800":0,"band1800":0, "all": 0}};                
                     // для подсчета статистики по шеринг сайтам
                     //-----------------------------------------------------------
                     _.flatMap(currentPlans, function(plan){
@@ -258,20 +258,20 @@ define(['./module','jquery'], function(app,$){
                                     }
                                 } 
                             } else if (_.includes(plan.range, band)) {
-                                siteCountByType.planed[band] += 1;
+                                siteCountByType.planed['band'+band] += 1;
                                 if(plan.status === 'site_on_air') {
-                                    siteCountByType.onair[band] += 1;
+                                    siteCountByType.onair['band'+band] += 1;
                                 } else if ( plan.status === 'site_accepted_service') {
                                     if(plan.host.toLowerCase() === 'beeline') {
-                                        siteCountByType.beelineHost[band] += 1;
+                                        siteCountByType.beelineHost['band'+band] += 1;
                                     } else if (plan.host.toLowerCase() === 'kcell') {
-                                        siteCountByType.kcellHost[band] += 1;
+                                        siteCountByType.kcellHost['band'+band] += 1;
                                     }
                                 }
                             }
                         })
                     })
-                    
+                    console.log(siteCountByType);
                     //$scope.siteCountByType = {"planed":{"800":"4","1800":"6","all":"10"}, "onair":{"800":"1","1800":"3","all":"4"}, "kcellHost":{"800":"2","1800":"2","all":"4"}, "beelineHost":{"800":"3","1800":"2","all":"5"}};
                     $scope.siteCountByType = siteCountByType;
                     //console.log($scope.siteCountByType);
