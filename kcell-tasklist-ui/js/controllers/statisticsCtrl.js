@@ -241,11 +241,11 @@ define(['./module','jquery'], function(app,$){
                 if(currentPlans) {
                     console.log(currentPlans);
                     //----------------------------------------------------------
-                    var siteCountByType = {'planed':{"band800":0,"band1800":0, "all": 0}, 'onair':{"band800":0,"band1800":0, "all": 0}, 'kcellHost':{"band800":0,"band1800":0, "all": 0}, 'beelineHost':{"band800":0,"band1800":0, "all": 0}};                
+                    var siteCountByType = {'planed':{"band800":0,"band1800":0,"band2100":0, "all": 0}, 'onair':{"band800":0,"band1800":0,"band2100":0, "all": 0}, 'kcellHost':{"band800":0,"band1800":0,"band2100":0, "all": 0}, 'beelineHost':{"band800":0,"band1800":0,"band2100":0, "all": 0}};                
                     // для подсчета статистики по шеринг сайтам
                     //-----------------------------------------------------------
                     _.flatMap(currentPlans, function(plan){
-                        _.forEach(["800", "1800", "all"], function(band) {
+                        _.forEach([800, 1800, 2100, 'all'], function(band) {
                             if (band === 'all') {
                                 siteCountByType.planed.all += 1;
                                 if(plan.status === 'site_on_air') {
