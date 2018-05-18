@@ -7,10 +7,10 @@ import java.text.SimpleDateFormat
 def sapJrNumber = "ast-4-3-18-5001-01"
 def jrNumber = "Alm-LSE-P&O-17-5267"
 def requestedDate = new Date()
-def jobWorks = '[{"relatedSites":[{"name":"00SITE1","id":"1","site_name":"00SITE1"}],"sapServiceNumber":"6","materialUnit":"site/сайт","quantity":1,"materialQuantity":1,"definition":{"id": 6,"costType": "OPEX","contractor": {"id": 5,"name": "JSC Kcell"},"region": { "id": 7,"name": "Almaty"}, "service": {}, "sapServiceNumber": "6", "sapPOServiceName": "6. BTS Macro removal ","displayServiceName": "6.BTS Macro removal (including packaging according Kcell required) / Демонтаж кабинета BTS Macro (включая упаковку согласно стандартам Kcell)", "currency": "KZT","faClass": "29403422", "materialGroup": "STD0019", "year": 2016, "spp": "251-70160-1", "sppSao": "252-70160-1", "createDate": 1496599200000, "units": "site/сайт", "vendor":"280209"}}]';
+def jobWorks = '[{"relatedSites":[{"name":"00SITE1","id":"1","site_name":"00SITE1","$$hashKey":"object:1976"}],"sapServiceNumber":"8","materialUnit":"site/сайт","quantity":2,"materialQuantity":1,"definition":{"id":8,"costType":"CAPEX","contractor":{"id":5,"name":"JSC Kcell"},"region":{"id":7,"name":"Almaty"},"service":{"id":2,"name":"Rollout","sapCode":"Y"},"sapServiceNumber":"8","sapPOServiceName":"8.Site chge/repl (All equips)","displayServiceName":"8.Site change/replacement (All equipments, RF &TR& Infrastructure including packaging according Kcell required) / Замена/перемещение  сайта (все оборудование, RF &TR& Infrastructure, включая упаковку согласно стандартам Kcell)","currency":"KZT","faClass":"29403422","materialGroup":"STD0021","year":2016,"spp":"RN-0502-33-0067","createDate":1496599200000,"units":"site/сайт","vendor":"280209"},"fixedAssetClass":"234234234","fixedAssetNumber":"234234234","costCenter":1,"controllingArea":2},{"relatedSites":[{"name":"00SITE1","id":"1","site_name":"00SITE1","$$hashKey":"object:1979"}],"sapServiceNumber":"12","materialUnit":"pc/шт","quantity":2,"materialQuantity":1,"definition":{"id":12,"costType":"CAPEX","contractor":{"id":5,"name":"JSC Kcell"},"region":{"id":7,"name":"Almaty"},"service":{"id":2,"name":"Rollout","sapCode":"Y"},"sapServiceNumber":"12","sapPOServiceName":"12.BattBackSys chg/repl on-air (^2 sets)","displayServiceName":"12.Battery Backup System change/replacement with on-air if required ( up to 2 sets) / Замена/перемещение системы резервных батарей с активацией, если необходимо (до 2 комплектов).","currency":"KZT","faClass":"29403422","materialGroup":"STD0025","year":2016,"spp":"RN-0502-33-0067","createDate":1496599200000,"units":"pc/шт","vendor":"280209"},"fixedAssetClass":"2342342","fixedAssetNumber":"234234234","costCenter":3,"controllingArea":4}]';
 def contractor = 4
 def sloc = 'S333'
-def workPrices = '[{"relatedSites":[{"name":"00SITE1","id":"1","site_name":"00SITE1"}],"sapServiceNumber":"6","materialUnit":"site/сайт","quantity":1,"materialQuantity":1,"unitWorkPricePerSite":"98029.28","netWorkPricePerSite":"98029.28","unitWorkPrice":"90767.85","unitWorkPricePlusTx":"98029.28","total":"98029.28","basePrice":"90767.85"}]';
+def workPrices = '[{"relatedSites":[{"name":"00SITE1","id":"1","site_name":"00SITE1"}],"sapServiceNumber":"8","materialUnit":"site/сайт","quantity":2,"materialQuantity":1,"unitWorkPricePerSite":"669468.24","netWorkPricePerSite":"1338936.48","unitWorkPrice":"619878.00","unitWorkPricePlusTx":"669468.24","basePriceByQuantity":"1239756.00","total":"1338936.48","basePrice":"619878.00"},{"relatedSites":[{"name":"00SITE1","id":"1","site_name":"00SITE1"}],"sapServiceNumber":"12","materialUnit":"pc/шт","quantity":2,"materialQuantity":1,"unitWorkPricePerSite":"69337.79","netWorkPricePerSite":"138675.57","unitWorkPrice":"64201.65","unitWorkPricePlusTx":"69337.79","basePriceByQuantity":"128403.30","total":"138675.57","basePrice":"64201.65"}]';
 def reason = "1";
 def siteRegion = "alm";
 def site_name = "00SITE1";
@@ -28,18 +28,14 @@ def subcontractorsTitle = new JsonSlurper().parseText(this.getClass().getResourc
 def subcontructerName = (subcontractorsTitle[reason] != null ? subcontractorsTitle[reason].responsible : "-")
 
 def documentType = ["1":"ZK73-02", "2":"ZK73-03", "3":"ZK73-04", "4":"ZK73-01"]
-def regionId = ["alm":"2", "astana":"1", "nc":"3", "east":"5", "south":"4", "west":"6"]
 def requestedBy = (reason == '4' ? '252' : '251')
 
 jobWorksObj.each { work ->
     if ('CAPEX' == work.definition.costType){
         work.costType = 'Y'
         work.activityServiceNumber = 'DUMMY'
-        if(reason == '2'){
-            work.wbsElement = 'TN-0502-48-015'
-        } else {
-            work.wbsElement = 'RN-0502-33-015'
-        }
+        work.wbsElement = 'RN-0502-33-0067'
+        work.controllingArea = 'DUMMY'
     } else if ('OPEX' == work.definition.costType){
         work.costType = 'K'
         if('2' == reason){
@@ -48,8 +44,10 @@ jobWorksObj.each { work ->
             work.activityServiceNumber = '7016045'
         }
         work.wbsElement = '251-70160-1'
+        work.controllingArea = '3020'
     }
     work.contractorNo = contractorsTitle[contractor.toString()].contract.service
+    work.costCenter = '25510'
 }
 
 jobWorksObj.each { work ->
@@ -60,7 +58,7 @@ jobWorksObj.each { work ->
 
 def binding = ["documentType": documentType[reason],"jobWorksObj":jobWorksObj, "workPricesObj": workPricesObj, "jrNumber":jrNumber,
                "requestDate": requestDateObj, "yearEndDate":yearEndDate, "sloc":sloc, "subcontructerName":subcontructerName,
-               "regionId":regionId[siteRegion], "site_name":site_name, "requestedBy":requestedBy, "sapJrNumber": sapJrNumber]
+               "site_name":site_name, "requestedBy":requestedBy, "sapJrNumber": sapJrNumber]
 
 /*
 FIELD DESCRIPTION	 For FA PRs (CAPEX)	    For Service PRs (OPEX)	Примечание
@@ -100,20 +98,21 @@ User		        Из нового формата текстового файла	�
 
 def template = '''\
 jobWorksObj.each { w ->
-    yieldUnescaped '' + documentType + '\t' + w.costType + '\t' + sapJrNumber + '\tapproved\t' + requestDate + '\t' + w.definition.vendor + '\t' + 
-          regionId + '\tY\tinstallation service ' + site_name + '\t' + w.contractorNo + '\t' + w.definition.sapServiceNumber + '\t' +
-          yearEndDate + '\t' + w.wbsElement + '\t' + sapJrNumber + '\t' + sloc + '\t' + (w.fixedAssetNumber!=null?w.fixedAssetNumber:'DUMMY') + '\t' + 
-          w.costCenter + '\t' + w.controllingArea + '\t' + w.activityServiceNumber + '\t' + w.price.unitWorkPricePlusTx + '\t' + 
-          subcontructerName + '\t131\t' + requestedBy + '\t' +
-          '1.Purchase description: Revision works for site ' + site_name + ' JR# ' + jrNumber + ' dated ' + requestDate + ' ' +
-          '2.Budgeted or not: yes ' + w.definition.spp + ' ' +
-          '3.Main project for Fintur: revision works ' +
-          '4.Describe the need of this purchase for this year: necessary for revision works ' +
-          '5.Contact person: ' + subcontructerName + ' ' +
-          '6. Vendor: Line System Engineering LLP ' + 
-          '8. Total sum: ' + w.price.unitWorkPricePlusTx + ''
-          
-    newLine()
+    w.quantity.times {
+        yieldUnescaped '' + documentType + '\t' + w.costType + '\t' + sapJrNumber + '\tapproved\t' + requestDate + '\t' + w.definition.vendor + '\t' + 
+              '7\tY\tinstallation service ' + site_name + '\t' + w.contractorNo + '\t' + w.definition.sapServiceNumber + '\t' +
+              yearEndDate + '\t' + w.wbsElement + '\t' + sapJrNumber + '\t' + sloc + '\t' + (w.fixedAssetNumber!=null?w.fixedAssetNumber:'DUMMY') + '\t' + 
+              w.costCenter + '\t' + w.controllingArea + '\t' + w.activityServiceNumber + '\t' + w.price.unitWorkPricePlusTx + '\t' + 
+              subcontructerName + '\t131\t' + requestedBy + '\t' +
+              '1.Purchase description: Revision works for site ' + site_name + ' JR# ' + jrNumber + ' dated ' + requestDate + ' ' +
+              '2.Budgeted or not: yes ' + w.definition.spp + ' ' +
+              '3.Main project for Fintur: revision works ' +
+              '4.Describe the need of this purchase for this year: necessary for revision works ' +
+              '5.Contact person: ' + subcontructerName + ' ' +
+              '6. Vendor: Line System Engineering LLP ' +
+              '8. Total sum: ' + w.price.unitWorkPricePlusTx + ''
+        newLine()
+    }
 }
 '''
 /*
