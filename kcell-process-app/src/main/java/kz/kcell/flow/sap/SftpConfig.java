@@ -64,6 +64,7 @@ public class SftpConfig {
         factory.setUser(sftpUser);
         factory.setPassword(sftpPasword);
         factory.setAllowUnknownKeys(true);
+        factory.setTimeout(60000);
         return new CachingSessionFactory<>(factory);
     }
 
