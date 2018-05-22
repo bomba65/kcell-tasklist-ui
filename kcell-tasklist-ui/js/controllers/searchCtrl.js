@@ -172,6 +172,7 @@ define(['./module','jquery', 'camundaSDK'], function(app, $, CamSDK){
 
 		$scope.filter = {
 			processDefinitionKey: 'Revision',
+			businessKeyFilterType: 'eq',
 			unfinished: false,
 			page: 1,
 			maxResults: 20
@@ -265,7 +266,11 @@ define(['./module','jquery', 'camundaSDK'], function(app, $, CamSDK){
 				filter.variables.push({"name": "site_name", "operator": "eq", "value": $scope.filter.sitename});
 			}
 			if($scope.filter.businessKey){
-				filter.processInstanceBusinessKey = $scope.filter.businessKey;
+				if($scope.filter.businessKeyFilterType === 'eq'){
+					filter.processInstanceBusinessKey = $scope.filter.businessKey;
+				} else {
+					filter.variables.push({"name": "jrNumber", "operator": "like", "value": $scope.filter.businessKey + '%'});
+				}
 			}
 			if($scope.filter.workType){
 				filter.variables.push({"name": "reason", "operator": "eq", "value": $scope.filter.workType});
@@ -326,6 +331,7 @@ define(['./module','jquery', 'camundaSDK'], function(app, $, CamSDK){
 			$scope.filter.priority = undefined;
 			$scope.filter.activityId = undefined;
 			$scope.filter.workName = undefined;
+			$scope.filter.businessKeyFilterType = 'eq';
 		}
 
 		$scope.getXlsxProcessInstances = function(){
