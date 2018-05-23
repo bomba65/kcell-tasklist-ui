@@ -2,31 +2,10 @@
     <script cam-script type="text/form-script">
         inject(['$scope', '$http', 'Uri', '$rootScope', '$q', '$timeout', function ($scope, $http, Uri, $rootScope, $q, $timeout) {
             var variables = [
-                'resolutions',
                 'identifiers',
-                'connectionType',
-                'transmitNumber',
-                'ipNumber',
-                'applicationScanCopyFileName',
-                'contractScanCopyFileName',
-                'abonentTarif',
-                'description',
-                'techSpecNumber',
-                'techSpecFIO',
-                'officialClientCompanyName',
-                'clientCompanyLatName',
-                'addressATS',
-                'coordinates',
-                'priority',
-                'provider',
-                'clientBIN',
-                'techSpecEmail',
-                'finalIDs',
-                'buildingOwner',
-                'channelKLM',
-                'operatorType'
-
-
+                'operatorType',
+                'operators',
+                'resolutions'
             ];
 
             camForm.on('form-loaded', function () {
@@ -79,52 +58,90 @@
                                 value: ''
                             });
                         }
-                    } else if (el === 'applicationScanCopyFileName' || el === 'contractScanCopyFileName') {
-                        $scope[el] = camForm.variableManager.variables[el].value;
-                        $scope.freephoneInfo.files.push(camForm.variableManager.variables[el].value);
                     } else {
                         $scope[el] = camForm.variableManager.variables[el].value;
-                        $scope.freephoneInfo[el] = camForm.variableManager.variables[el].value;
                     }
                 });
-                $scope.freephoneInfo.showTarif = true;
-                console.log($scope.freephoneInfo);
-                console.log($scope.freephoneInfo.files);
 
                 camForm.variableManager.createVariable({
-                    name: 'sendSIPtrankPreferencesTaskResult',
+                    name: 'matchIdentifierWithClientTaskResult',
                     type: 'String',
                     value: ''
                 });
 
                 camForm.variableManager.createVariable({
-                    name: 'sendSIPtrankPreferencesTaskComment',
+                    name: 'matchIdentifierWithClientTaskComment',
                     type: 'String',
                     value: ''
                 });
 
-                $scope.sendSIPtrankPreferencesTaskResult = '';
+                $scope.matchIdentifierWithClientTaskResult = '';
+
             });
 
-            camForm.on('submit', function () {
-                $scope.sendSIPtrankPreferencesTaskResult = 'Completed';
+            camForm.on('submit', function (evt) {
+                // evt.submitPrevented = true;
                 if(!$scope.resolutions){
                     $scope.resolutions = [];
                 }
-                camForm.variableManager.variableValue('sendSIPtrankPreferencesTaskResult', $scope.sendSIPtrankPreferencesTaskResult);
-                camForm.variableManager.variableValue('sendSIPtrankPreferencesTaskComment', $scope.sendSIPtrankPreferencesTaskComment);
-                $scope.resolutions.push({processInstanceId: $scope.processInstanceId, assignee: $rootScope.authentication.name, resolution: $scope.sendSIPtrankPreferencesTaskResult, comment: $scope.sendSIPtrankPreferencesTaskComment, taskId: camForm.taskId});
+                camForm.variableManager.variableValue('matchIdentifierWithClientTaskResult', $scope.matchIdentifierWithClientTaskResult);
+                camForm.variableManager.variableValue('matchIdentifierWithClientTaskComment', $scope.matchIdentifierWithClientTaskComment);
+                $scope.resolutions.push({processInstanceId: $scope.processInstanceId, assignee: $rootScope.authentication.name, resolution: $scope.matchIdentifierWithClientTaskResult, comment: $scope.matchIdentifierWithClientTaskComment, taskId: camForm.taskId});
                 camForm.variableManager.variableValue('resolutions', $scope.resolutions);
+                camForm.variableManager.variableValue('identifiers', $scope.identifiers);
             });
         }]);
 
     </script>
-    <info-freephone freephone-info="freephoneInfo"></info-freephone>
+    <p>Добавьте информацию по статусам и ценам за короткий номер</p>
+
+    <div class="form-group" ng-repeat="id in identifiers">
+        <label class="col-sm-12 control-label"/>Идентификатор - {{id.title}}
+        <div class="col-sm-12" style="border-left: solid; border-left-width: 1px; margin-left: 2vh">
+            <table class="table">
+                <thead>
+                <tr>
+                    <th scope="col">Оператор</th>
+                    <th scope="col">Статус</th>
+                    <th scope="col">Цена АП</th>
+                    <th scope="col">Цена ЕП</th>
+                    <th scope="col">Выбрать</th>
+                </tr>
+                </thead>
+                <tbody>
+                <tr ng-repeat="o in id.operators" ng-class="{ 'disabled': !o.isAvailable}">
+                    <th scope="row">{{o.name}}</th>
+                    <td>{{o.isAvailable?'Доступен':'Не доступен'}}</td>
+                    <td>{{o.priceAP}}</td>
+                    <td>{{o.priceEP}}</td>
+                    <td>
+                        <input type="checkbox" ng-show="o.isAvailable" ng-model="o.checked">
+                    </td>
+                </tr>
+                </tbody>
+            </table>
+        </div>
+    </div>
+
+    <div class="form-group">
+        <label class="col-sm-3 control-label">Решение</label>
+        <div class="col-sm-9">
+            <label class="radio-inline">
+                <input type="radio" name="matchIdentifierWithClientTaskResult" ng-model="matchIdentifierWithClientTaskResult" value="approved" required> Approve
+            </label>
+            <label class="radio-inline">
+                <input type="radio" name="matchIdentifierWithClientTaskResult" ng-model="matchIdentifierWithClientTaskResult" value="rejected" required> Reject
+            </label>
+            <label class="error" ng-show="kcell_form.matchIdentifierWithClientTaskResult.$error.required && ( kcell_form.matchIdentifierWithClientTaskResult.$touched || view.submitted)">Required field</label>
+        </div>
+    </div>
+
+    <!--<info-freephone freephone-info="freephoneInfo"></info-freephone>-->
     <div class="form-group">
         <label class="col-sm-3 control-label">Комментарии</label>
         <div class="col-sm-9">
-            <textarea class="form-control" ng-model="sendSIPtrankPreferencesTaskComment" name="sendSIPtrankPreferencesTaskComment" placeholder="Comments..." maxlength="500" rows="4" style="resize:none"></textarea>
-            <label class="error" ng-show="kcell_form.sendSIPtrankPreferencesTaskComment.$error.required && ( kcell_form.sendSIPtrankPreferencesTaskComment.$touched || view.submitted)">Required field</label>
+            <textarea class="form-control" ng-model="matchIdentifierWithClientTaskComment" name="matchIdentifierWithClientTaskComment" placeholder="Comments..." ng-required="matchIdentifierWithClientTaskResult === 'rejected'" maxlength="500" rows="4" style="resize:none"></textarea>
+            <label class="error" ng-show="kcell_form.matchIdentifierWithClientTaskComment.$error.required && ( kcell_form.matchIdentifierWithClientTaskComment.$touched || view.submitted)">Required field</label>
         </div>
     </div>
     <accordion>

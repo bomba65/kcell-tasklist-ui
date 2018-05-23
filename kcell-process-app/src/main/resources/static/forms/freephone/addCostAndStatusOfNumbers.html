@@ -2,31 +2,9 @@
     <script cam-script type="text/form-script">
         inject(['$scope', '$http', 'Uri', '$rootScope', '$q', '$timeout', function ($scope, $http, Uri, $rootScope, $q, $timeout) {
             var variables = [
-                'resolutions',
                 'identifiers',
-                'connectionType',
-                'transmitNumber',
-                'ipNumber',
-                'applicationScanCopyFileName',
-                'contractScanCopyFileName',
-                'abonentTarif',
-                'description',
-                'techSpecNumber',
-                'techSpecFIO',
-                'officialClientCompanyName',
-                'clientCompanyLatName',
-                'addressATS',
-                'coordinates',
-                'priority',
-                'provider',
-                'clientBIN',
-                'techSpecEmail',
-                'finalIDs',
-                'buildingOwner',
-                'channelKLM',
-                'operatorType'
-
-
+                'operatorType',
+                'operators'
             ];
 
             camForm.on('form-loaded', function () {
@@ -79,52 +57,97 @@
                                 value: ''
                             });
                         }
-                    } else if (el === 'applicationScanCopyFileName' || el === 'contractScanCopyFileName') {
-                        $scope[el] = camForm.variableManager.variables[el].value;
-                        $scope.freephoneInfo.files.push(camForm.variableManager.variables[el].value);
                     } else {
                         $scope[el] = camForm.variableManager.variables[el].value;
-                        $scope.freephoneInfo[el] = camForm.variableManager.variables[el].value;
                     }
                 });
-                $scope.freephoneInfo.showTarif = true;
-                console.log($scope.freephoneInfo);
-                console.log($scope.freephoneInfo.files);
 
                 camForm.variableManager.createVariable({
-                    name: 'sendSIPtrankPreferencesTaskResult',
+                    name: 'addCostAndStatusOfNumbersTaskResult',
                     type: 'String',
                     value: ''
                 });
 
                 camForm.variableManager.createVariable({
-                    name: 'sendSIPtrankPreferencesTaskComment',
+                    name: 'addCostAndStatusOfNumbersTaskComment',
                     type: 'String',
                     value: ''
                 });
 
-                $scope.sendSIPtrankPreferencesTaskResult = '';
+                camForm.variableManager.createVariable({
+                    name: 'resolutions',
+                    type: 'Json',
+                    value: ''
+                });
+
+                $scope.addCostAndStatusOfNumbersTaskResult = '';
+
             });
 
-            camForm.on('submit', function () {
-                $scope.sendSIPtrankPreferencesTaskResult = 'Completed';
+            camForm.on('submit', function (evt) {
+                // evt.submitPrevented = true;
+                $scope.addCostAndStatusOfNumbersTaskResult = 'Completed';
                 if(!$scope.resolutions){
                     $scope.resolutions = [];
                 }
-                camForm.variableManager.variableValue('sendSIPtrankPreferencesTaskResult', $scope.sendSIPtrankPreferencesTaskResult);
-                camForm.variableManager.variableValue('sendSIPtrankPreferencesTaskComment', $scope.sendSIPtrankPreferencesTaskComment);
-                $scope.resolutions.push({processInstanceId: $scope.processInstanceId, assignee: $rootScope.authentication.name, resolution: $scope.sendSIPtrankPreferencesTaskResult, comment: $scope.sendSIPtrankPreferencesTaskComment, taskId: camForm.taskId});
+                camForm.variableManager.variableValue('addCostAndStatusOfNumbersTaskResult', $scope.addCostAndStatusOfNumbersTaskResult);
+                camForm.variableManager.variableValue('addCostAndStatusOfNumbersTaskComment', $scope.addCostAndStatusOfNumbersTaskComment);
+                $scope.resolutions.push({processInstanceId: $scope.processInstanceId, assignee: $rootScope.authentication.name, resolution: $scope.addCostAndStatusOfNumbersTaskResult, comment: $scope.addCostAndStatusOfNumbersTaskComment, taskId: camForm.taskId});
                 camForm.variableManager.variableValue('resolutions', $scope.resolutions);
+                camForm.variableManager.variableValue('identifiers', $scope.identifiers);
             });
         }]);
 
     </script>
-    <info-freephone freephone-info="freephoneInfo"></info-freephone>
+    <p>Добавьте информацию по статусам и ценам за короткий номер</p>
+    <div class="form-group" ng-repeat="id in identifiers">
+        <label class="col-sm-12 control-label">Идентификатор - {{id.title}}
+        <div class="col-sm-12" style="border-left: solid; border-left-width: 1px; margin-left: 2vh">
+            <div class="form-group">
+                <div class="col-sm-1">
+                    <p>&nbsp;</p>
+                    <div class="input">
+                        <label for="operator.id">АП</label>
+                    </div>
+                    <br>
+                    <div class="input">
+                        <label for="operator.id">ЕП</label>
+                    </div>
+                </div>
+                <div class="col-sm-10">
+                    <div class="col-sm-3" ng-repeat="operator in id.operators">
+                        <label for="operator.id"><input type="checkbox" ng-model="operator.isAvailable" ng-change="clearPrices(operator)"> {{operator.name}}</label>
+                        <div class="input" id="operator.id" >
+                            <input ng-model="operator.priceAP" name="{{operator.id + 'AP' + id.title}}" class="form-control"  placeholder="{{operator.isAvailable?'Цена':'Не доступен'}}" ng-disabled="!operator.isAvailable" ng-required="operator.isAvailable"/>
+                            <label class="error" ng-show="kcell_form.{{operator.id + 'AP' + id.title}}.$error.required && ( kcell_form.{{operator.id + 'AP'}}.$touched || view.submitted)">Required field</label>
+                        </div>
+                        <br>
+                        <div class="input">
+                            <input ng-model="operator.priceEP" name="{{operator.id + 'EP' + id.title}}" class="form-control"  placeholder="{{operator.isAvailable?'Цена':'Не доступен'}}" ng-disabled="!operator.isAvailable" ng-required="operator.isAvailable"/>
+                            <label class="error" ng-show="kcell_form.{{operator.id + 'EP' + id.title}}.$error.required && ( kcell_form.{{operator.id + 'EP'}}.$touched || view.submitted)">Required field</label>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="form-group">
+                <div class="col-sm-2">
+                </div>
+                <div class="col-sm-5">
+                    <label>АП -­ Абонентский платёж</label>
+                </div>
+                <div class="col-sm-5">
+                    <label>ЕП -­ Единовременный платёж</label>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!--<info-freephone freephone-info="freephoneInfo"></info-freephone>-->
     <div class="form-group">
         <label class="col-sm-3 control-label">Комментарии</label>
         <div class="col-sm-9">
-            <textarea class="form-control" ng-model="sendSIPtrankPreferencesTaskComment" name="sendSIPtrankPreferencesTaskComment" placeholder="Comments..." maxlength="500" rows="4" style="resize:none"></textarea>
-            <label class="error" ng-show="kcell_form.sendSIPtrankPreferencesTaskComment.$error.required && ( kcell_form.sendSIPtrankPreferencesTaskComment.$touched || view.submitted)">Required field</label>
+            <textarea class="form-control" ng-model="addCostAndStatusOfNumbersTaskComment" name="addCostAndStatusOfNumbersTaskComment" placeholder="Comments..." maxlength="500" rows="4" style="resize:none"></textarea>
+            <label class="error" ng-show="kcell_form.addCostAndStatusOfNumbersTaskComment.$error.required && ( kcell_form.addCostAndStatusOfNumbersTaskComment.$touched || view.submitted)">Required field</label>
         </div>
     </div>
     <accordion>
