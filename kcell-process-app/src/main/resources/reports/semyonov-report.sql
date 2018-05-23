@@ -91,14 +91,14 @@ from act_hi_procinst pi
   -- canceled, accepted, in progress, количество работ
 
   left join act_hi_varinst jobWorks
-    on pi.id_ = jobWorks.proc_inst_id_ and jobWorks.name_ = 'jobWorks'
+    on pi.id_ = jobWorks.proc_inst_id_ and jobWorks.name_ = 'jobWorks' and jobWorks.proc_def_id_ = pi.id_
   left join act_ge_bytearray jobWorksBytes
     on jobWorks.bytearray_id_ = jobWorksBytes.id_
   left join json_array_elements(CAST(convert_from(jobWorksBytes.bytes_, 'UTF8') AS json)) as worksJson
     on true
 
   left join act_hi_varinst worksPriceList
-    on pi.id_ = worksPriceList.proc_inst_id_ and worksPriceList.name_ = 'worksPriceList'
+    on pi.id_ = worksPriceList.proc_inst_id_ and worksPriceList.name_ = 'worksPriceList' and worksPriceList.proc_def_id_ = pi.id_
   left join act_ge_bytearray worksPriceListBytes
     on worksPriceList.bytearray_id_ = worksPriceListBytes.id_
   left join json_array_elements(CAST(convert_from(worksPriceListBytes.bytes_, 'UTF8') AS json)) as worksPriceListJson
