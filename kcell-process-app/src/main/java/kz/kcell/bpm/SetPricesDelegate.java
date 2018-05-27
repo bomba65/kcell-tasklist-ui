@@ -65,16 +65,16 @@ public class SetPricesDelegate implements TaskListener {
                 if (workPrice.get("relatedSites").size() > 0) {
                     BigDecimal unitWorkPricePerSite = unitWorkPricePlusTx.divide(new BigDecimal(workPrice.get("relatedSites").size()));
                     BigDecimal netWorkPricePerSite = unitWorkPricePerSite.multiply(new BigDecimal(workPrice.get("quantity").asText()));
-                    workPrice.put("unitWorkPricePerSite", unitWorkPricePerSite.setScale(2, RoundingMode.CEILING).toString());
-                    workPrice.put("netWorkPricePerSite", netWorkPricePerSite.setScale(2, RoundingMode.CEILING).toString());
+                    workPrice.put("unitWorkPricePerSite", unitWorkPricePerSite.setScale(2, RoundingMode.DOWN).toString());
+                    workPrice.put("netWorkPricePerSite", netWorkPricePerSite.setScale(2, RoundingMode.DOWN).toString());
                 }
 
                 BigDecimal basePriceByQuantity = unitWorkPrice.multiply(new BigDecimal(workPrice.get("quantity").asText()));
                 BigDecimal total = unitWorkPricePlusTx.multiply(new BigDecimal(workPrice.get("quantity").asText()));
-                workPrice.put("unitWorkPrice", unitWorkPrice.setScale(2, RoundingMode.CEILING).toString());
-                workPrice.put("unitWorkPricePlusTx", unitWorkPricePlusTx.setScale(2, RoundingMode.CEILING).toString());
-                workPrice.put("basePriceByQuantity", basePriceByQuantity.setScale(2, RoundingMode.CEILING).toString());
-                workPrice.put("total", total.setScale(2, RoundingMode.CEILING).toString());
+                workPrice.put("unitWorkPrice", unitWorkPrice.setScale(2, RoundingMode.DOWN).toString());
+                workPrice.put("unitWorkPricePlusTx", unitWorkPricePlusTx.setScale(2, RoundingMode.DOWN).toString());
+                workPrice.put("basePriceByQuantity", basePriceByQuantity.setScale(2, RoundingMode.DOWN).toString());
+                workPrice.put("total", total.setScale(2, RoundingMode.DOWN).toString());
 
                 jobWorksTotal = jobWorksTotal.add(total);
 
@@ -86,7 +86,7 @@ public class SetPricesDelegate implements TaskListener {
             delegateTask.setVariable("workPrices", jsonValue);
             delegateTask.setVariable("worksPriceList", SpinValues.jsonValue(worksPriceList.toString()).create());
             System.out.println(jobWorksTotal);
-            delegateTask.setVariable("jobWorksTotal", jobWorksTotal.setScale(2, RoundingMode.CEILING).toString());
+            delegateTask.setVariable("jobWorksTotal", jobWorksTotal.setScale(2, RoundingMode.DOWN).toString());
 
         } catch (Exception e) {
             e.printStackTrace();
