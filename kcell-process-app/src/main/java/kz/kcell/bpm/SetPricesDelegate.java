@@ -23,7 +23,10 @@ public class SetPricesDelegate implements TaskListener {
         try {
             ObjectMapper mapper = new ObjectMapper();
 
+            ArrayNode worksPriceList = mapper.createArrayNode();
+            Map<String, String> uniqueWorks = new HashMap<>();
             Map<String, String> worksPriceMap = new HashMap<>();
+            Map<String, String> worksTitleMap = new HashMap<>();
 
             InputStream fis = SetPricesDelegate.class.getResourceAsStream("/workPrice.json");
 
@@ -31,6 +34,7 @@ public class SetPricesDelegate implements TaskListener {
             ArrayNode json = (ArrayNode) mapper.readTree(reader);
             for (JsonNode workPrice : json) {
                 worksPriceMap.put(workPrice.get("id").textValue(), workPrice.get("price").textValue());
+                worksTitleMap.put(workPrice.get("id").textValue(), workPrice.get("title").textValue());
             }
 
             ArrayNode workPrices = mapper.createArrayNode();
@@ -42,6 +46,19 @@ public class SetPricesDelegate implements TaskListener {
                 if (workPrice.get("relatedSites") == null) {
                     workPrice.set("relatedSites", mapper.createArrayNode());
                 }
+
+                if(!uniqueWorks.containsKey(work.get("sapServiceNumber").textValue())){
+                    String price = worksPriceMap.get(work.get("sapServiceNumber").textValue());
+                    String title = worksTitleMap.get(work.get("sapServiceNumber").textValue());
+
+                    ObjectNode workPriceJson = mapper.createObjectNode();
+                    workPriceJson.put("sapServiceNumber", work.get("sapServiceNumber").textValue());
+                    workPriceJson.put("price", price);
+                    workPriceJson.put("title", title);
+                    worksPriceList.add(workPriceJson);
+                    uniqueWorks.put(work.get("sapServiceNumber").textValue(), "");
+                }
+
 
                 BigDecimal unitWorkPrice = new BigDecimal(worksPriceMap.get(work.get("sapServiceNumber").textValue()));
                 BigDecimal unitWorkPricePlusTx = unitWorkPrice.multiply(new BigDecimal("1.08"));
@@ -67,6 +84,7 @@ public class SetPricesDelegate implements TaskListener {
             JsonValue jsonValue = SpinValues.jsonValue(workPrices.toString()).create();
 
             delegateTask.setVariable("workPrices", jsonValue);
+            delegateTask.setVariable("worksPriceList", SpinValues.jsonValue(worksPriceList.toString()).create());
             System.out.println(jobWorksTotal);
             delegateTask.setVariable("jobWorksTotal", jobWorksTotal.setScale(2, RoundingMode.CEILING).toString());
 
