@@ -37,7 +37,8 @@
                 'contractorZIPWarehouseMaterialsListName',
                 'priority',
                 'sloc',
-                'mlApprovalAdditionalInfoFile'
+                'mlApprovalAdditionalInfoFile',
+                'tnuSiteLocations'
             ];
 
             $scope.jobModel = {};
@@ -99,6 +100,8 @@
                         });
                     } else if(el === 'workPrices'){
                         $scope.jobModel[el] = JSON.parse(camForm.variableManager.variables[el].originalValue);
+                    } else if(el === 'tnuSiteLocations'){
+                        $scope[el] = camForm.variableManager.variables[el].value;
                     } else {
                         $scope.jobModel[el] = camForm.variableManager.variables[el];
                     }
@@ -120,6 +123,10 @@
             camForm.on('submit', function (e) {
                 camForm.variableManager.variableValue('enterSapFATaskResult', $scope.enterSapFATaskResult);
                 camForm.variableManager.variableValue('jobWorks', $scope.jobWorks);
+
+                if($scope.jobModel.reason.value === '2'){
+                    camForm.variableManager.variableValue('tnuSiteLocations', $scope.tnuSiteLocations);
+                }
 
                 var visibility = 'all';
                 if($scope.enterSapFAComment && $scope.enterSapFACommentVisibility){
@@ -151,7 +158,35 @@
 
     <div class="col-sm-12">
         <div class="row">
-            <table class="table table-condensed" class="form-group">
+            <table class="table table-condensed" class="form-group" ng-if="jobModel.reason.value == '2'">
+                <thead>
+                <td width="40%">Works</td>
+                <td>Site</td>
+                <td>Sloc</td>
+                <td>Fixed Asset class</td>
+                <td>Cost type</td>
+                <td>Fixed Asset Number</td>
+                </thead>
+                <tbody ng-repeat="work in jobWorks track by $index">
+                <tr ng-repeat="r in work.relatedSites">
+                    <td>{{jobModel.worksTitle[work.sapServiceNumber]}}</td>
+                    <td>{{r.site_name}}</td>
+                    <td>{{tnuSiteLocations[r.id].siteLocation}}</td>
+                    <td>
+                        <span ng-if="work.definition.costType == 'OPEX'">No need to fill for Opex</span>
+                        <span ng-if="work.definition.costType == 'CAPEX'">{{work.definition.faClass}}</span>
+                    </td>
+                    <td><input type="text" value="{{work.definition.costType == 'CAPEX'?'Y':'K'}}" disabled="disabled" readonly="readonly"></td>
+                    <td>
+                        <span ng-if="work.definition.costType == 'OPEX'">No need to fill for Opex</span>
+                        <input type="text" ng-model="tnuSiteLocations[r.id].fixedAssetNumber" name="fixedAssetNumber{{$parent.$index+$index}}" required ng-if = "work.definition.costType == 'CAPEX'">
+                        <label class="error" ng-if="kcell_form['fixedAssetNumber'+($parent.$index+$index)].$error.required && ( kcell_form['fixedAssetNumber'+($parent.$index+$index)].$touched || view.submitted)">Required field</label>
+                    </td>
+                </tr>
+                </tbody>
+            </table>
+
+            <table class="table table-condensed" class="form-group" ng-if="jobModel.reason.value != '2'">
                 <thead>
                 <td width="40%">Works</td>
                 <td>Sloc</td>
@@ -176,6 +211,7 @@
                 </tr>
                 </tbody>
             </table>
+
             <span>Where Y- CAPEX, K-OPEX</span>
         </div>
     </div>
