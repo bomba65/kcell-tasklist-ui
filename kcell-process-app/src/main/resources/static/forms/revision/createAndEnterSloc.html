@@ -37,7 +37,8 @@
                 'contractorZIPWarehouseMaterialsListName',
                 'priority',
                 'siteAddress',
-                'mlApprovalAdditionalInfoFile'
+                'mlApprovalAdditionalInfoFile',
+                'tnuSiteLocations'
             ];
 
             $scope.jobModel = {};
@@ -92,6 +93,8 @@
                         });
                     } else if(el === 'workPrices'){
                         $scope.jobModel[el] = JSON.parse(camForm.variableManager.variables[el].originalValue);
+                    } else if(el === 'tnuSiteLocations'){
+                        $scope[el] = camForm.variableManager.variables[el].value;
                     } else if(el === 'sapPRFileXLSName'){
                         $scope[el] = camForm.variableManager.variables[el];
                     } else {
@@ -104,6 +107,10 @@
             });
             camForm.on('submit', function (e) {
                 camForm.variableManager.variableValue('createAndEnterSlocTaskResult', $scope.createAndEnterSlocTaskResult);
+
+                if($scope.jobModel.reason.value === '2'){
+                    camForm.variableManager.variableValue('tnuSiteLocations', $scope.tnuSiteLocations);
+                }
 
                 var visibility = 'all';
                 if($scope.createAndEnterSlocComment && $scope.createAndEnterSlocCommentVisibility){
@@ -135,29 +142,56 @@
 
     <job-request job-model="jobModel"></job-request>
 
-    <div class="form-group">
-        <label class="col-sm-4 control-label">Site ID:</label>
-        <div class="col-sm-8">
-            <input type="text" class="form-control" value="{{jobModel.siteName.value}}" disabled="disabled"></input>
+    <div ng-if="jobModel.reason.value !== '2'">
+        <div class="form-group">
+            <label class="col-sm-4 control-label">Site ID:</label>
+            <div class="col-sm-8">
+                <input type="text" class="form-control" value="{{jobModel.siteName.value}}" disabled="disabled"></input>
+            </div>
+        </div>
+        <div class="form-group">
+            <label class="col-sm-4 control-label">Sitename:</label>
+            <div class="col-sm-8">
+                <input type="text" class="form-control" value="{{jobModel.site_name.value}}" disabled="disabled"></input>
+            </div>
+        </div>
+        <div class="form-group">
+            <label class="col-sm-4 control-label">Adress:</label>
+            <div class="col-sm-8">
+                <input type="text" class="form-control" value="{{jobModel.siteAddress.value}}" disabled="disabled"></input>
+            </div>
+        </div>
+        <div class="form-group">
+            <label class="col-sm-4 control-label">Site Location (Name in SAP):</label>
+            <div class="col-sm-8">
+                <input type="text" class="form-control" cam-variable-name="siteLocationName" name="siteLocationName" required cam-variable-type="String" placeholder="Ex: M595"></input>
+                <label class="error" ng-show="kcell_form.siteLocationName.$error.required && ( kcell_form.siteLocationName.$touched || view.submitted)">Required field</label>
+            </div>
         </div>
     </div>
-    <div class="form-group">
-        <label class="col-sm-4 control-label">Sitename:</label>
-        <div class="col-sm-8">
-            <input type="text" class="form-control" value="{{jobModel.site_name.value}}" disabled="disabled"></input>
-        </div>
-    </div>
-    <div class="form-group">
-        <label class="col-sm-4 control-label">Adress:</label>
-        <div class="col-sm-8">
-            <input type="text" class="form-control" value="{{jobModel.siteAddress.value}}" disabled="disabled"></input>
-        </div>
-    </div>
-    <div class="form-group">
-        <label class="col-sm-4 control-label">Site Location (Name in SAP):</label>
-        <div class="col-sm-8">
-            <input type="text" class="form-control" cam-variable-name="siteLocationName" name="siteLocationName" required cam-variable-type="String" placeholder="Ex: M595"></input>
-            <label class="error" ng-show="kcell_form.siteLocationName.$error.required && ( kcell_form.siteLocationName.$touched || view.submitted)">Required field</label>
+    <div ng-if="jobModel.reason.value == '2'">
+        <div class="col-sm-12">
+            <div class="row">
+                <table class="table table-condensed" class="form-group">
+                    <thead>
+                    <td>Site ID</td>
+                    <td>Sitename</td>
+                    <td>Adress</td>
+                    <td>Site Location (Name in SAP)</td>
+                    </thead>
+                    <tbody>
+                    <tr ng-repeat="(key, value) in tnuSiteLocations">
+                        <td>{{value.siteId}}</td>
+                        <td>{{value.siteName}}</td>
+                        <td>{{value.siteAddress}}</td>
+                        <td>
+                            <span ng-show="value.siteLocation.length > 0">{{value.siteLocation}}</span>
+                            <input ng-show="value.siteLocation.length == 0" type="text" ng-model="value.filledSiteLocation" placeholder="Ex: M595" />
+                        </td>
+                    </tr>
+                    </tbody>
+                </table>
+            </div>
         </div>
     </div>
 

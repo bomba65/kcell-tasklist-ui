@@ -1,6 +1,6 @@
 <style>
-    .well {
-        color: #333;
+   .well {
+       color: #333;
     }
 </style>
 <form role="form" class="form-horizontal" name="kcell_form" novalidate>
@@ -40,7 +40,8 @@
                 'sloc',
                 'siteRegion',
                 'sapJrNumber',
-                'mlApprovalAdditionalInfoFile'
+                'mlApprovalAdditionalInfoFile',
+                'tnuSiteLocations'
             ];
 
             $scope.jobModel = {};
@@ -98,6 +99,8 @@
                         });
                     } else if(el === 'workPrices'){
                         $scope.jobModel[el] = JSON.parse(camForm.variableManager.variables[el].originalValue);
+                    } else if(el === 'tnuSiteLocations'){
+                        $scope[el] = camForm.variableManager.variables[el].value;
                     } else {
                         $scope.jobModel[el] = camForm.variableManager.variables[el];
                     }
@@ -209,8 +212,10 @@
             </tr>
             </thead>
             <tbody ng-repeat="w in jobWorksValue track by $index">
-            <tr ng-repeat="i in getNumber(w.quantity) track by $index">
-                <td>{{$parent.$index + $index+1}}</td>
+            <tr ng-repeat-start="i in getNumber(w.quantity) track by $index">
+            </tr>
+            <tr ng-repeat-end ng-repeat="r in w.relatedSites">
+                <td>{{$parent.$parent.$index + $parent.$index + $index+1}}</td>
                 <td>{{documentType[jobModel.reason.value]}}</td>
                 <td>{{w.definition.costType=='CAPEX'?'Y':(w.definition.costType=='OPEX'?'K':'')}}</td>
                 <td nowrap>{{jobModel.sapJrNumber.value}}</td>
@@ -219,34 +224,33 @@
                 <td>{{w.definition.vendor}}</td>
                 <td>7</td>
                 <td>Y</td>
-                <td nowrap>installation service {{jobModel.site_name.value}}</td>
+                <td nowrap>installation service {{r.site_name}}</td>
                 <td>{{contractorsService[jobModel.contractor.value].contract.service}}</td>
                 <td>{{w.definition.sapServiceNumber}}</td>
                 <td>31.12.{{currentDate | date:'yyyy'}}</td>
                 <td nowrap>{{w.wbsElement}}</td>
                 <td nowrap>{{jobModel.sapJrNumber.value}}</td>
-                <td>{{jobModel.sloc.value}}</td>
+                <td>{{tnuSiteLocations[r.id].siteLocation}}</td>
                 <td>{{w.fixedAssetNumber!=null?w.fixedAssetNumber:'DUMMY'}}</td>
                 <td>{{w.costCenter}}</td>
                 <td>{{w.controllingArea}}</td>
                 <td>{{w.activityServiceNumber}}</td>
-                <td>{{w.price.unitWorkPricePlusTx.replace('.',',')}}</td>
+                <td>{{w.price.unitWorkPricePerSite.replace('.',',')}}</td>
                 <td nowrap>{{reasonsSubcontractorResponsible[jobModel.reason.value].responsible}}</td>
                 <td>131</td>
                 <td>{{jobModel.reason.value == '4' ? '252' : '251'}}</td>
-            </tr>
-            <tr>
-                <td></td>
-                <td colspan="23">
-                    1.Purchase description: Revision works for site {{jobModel.site_name.value}} JR# {{jobModel.jrNumber.value}} dated {{jobModel.requestedDate.value | date:'dd.MM.yyyy'}}
-                    2.Budgeted or not: yes {{w.wbsElement}}
-                    3.Main project for Fintur: revision works
-                    4.Describe the need of this purchase for this year: necessary for revision works
-                    5.Contact person: {{reasonsSubcontractorResponsible[jobModel.reason.value].responsible}}
-                    6. Vendor: Line System Engineering LLP
-                    8. Total sum: {{w.price.unitWorkPricePlusTx.replace('.',',')}}
+                <td style="min-width: 720px;">
+                    1.Purchase description: Revision works for site {{r.site_name}} JR# {{jobModel.jrNumber.value}} dated {{jobModel.requestedDate.value | date:'dd.MM.yyyy'}}<br />
+                    2.Budgeted or not: yes {{w.wbsElement}}<br />
+                    3.Main project for Fintur: revision works<br />
+                    4.Describe the need of this purchase for this year: necessary for revision works<br />
+                    5.Contact person: {{reasonsSubcontractorResponsible[jobModel.reason.value].responsible}}<br />
+                    6. Vendor: Line System Engineering LLP<br />
+                    8. Total sum: {{w.price.unitWorkPricePerSite.replace('.',',')}}<br />
                 </td>
             </tr>
+            </tr>
+            </any-->
             </tbody>
         </table>
     </div>
