@@ -8,7 +8,7 @@
                 'transmitNumber',
                 'ipNumber',
                 'applicationScanCopyFileName',
-                'contractScanCopyFileName',
+                'vpnQuestionnaireFileName',
                 'abonentTarif',
                 'description',
                 'techSpecNumber',
@@ -79,7 +79,7 @@
                                 value: ''
                             });
                         }
-                    } else if (el === 'applicationScanCopyFileName' || el === 'contractScanCopyFileName') {
+                    } else if (el === 'applicationScanCopyFileName' || el === 'vpnQuestionnaireFileName') {
                         $scope[el] = camForm.variableManager.variables[el].value;
                         $scope.freephoneInfo.files.push(camForm.variableManager.variables[el].value);
                     } else {
@@ -92,51 +92,101 @@
                 console.log($scope.freephoneInfo.files);
 
                 camForm.variableManager.createVariable({
-                    name: 'sendSIPtrankPreferencesTaskResult',
+                    name: 'confirmCompleteVPNchannelBuildTaskResult',
                     type: 'String',
                     value: ''
                 });
 
                 camForm.variableManager.createVariable({
-                    name: 'sendSIPtrankPreferencesTaskComment',
+                    name: 'confirmCompleteVPNchannelBuildTaskComment',
                     type: 'String',
                     value: ''
                 });
 
-                $scope.sendSIPtrankPreferencesTaskResult = '';
+                $scope.confirmCompleteVPNchannelBuildTaskResult = '';
             });
 
             camForm.on('submit', function () {
+                $scope.confirmCompleteVPNchannelBuildTaskResult = 'Completed';
                 if(!$scope.resolutions){
                     $scope.resolutions = [];
                 }
-                camForm.variableManager.variableValue('sendSIPtrankPreferencesTaskResult', $scope.sendSIPtrankPreferencesTaskResult);
-                camForm.variableManager.variableValue('sendSIPtrankPreferencesTaskComment', $scope.sendSIPtrankPreferencesTaskComment);
-                $scope.resolutions.push({processInstanceId: $scope.processInstanceId, assignee: $rootScope.authentication.name, resolution: $scope.sendSIPtrankPreferencesTaskResult, comment: $scope.sendSIPtrankPreferencesTaskComment, taskId: camForm.taskId});
+                camForm.variableManager.variableValue('confirmCompleteVPNchannelBuildTaskResult', $scope.confirmCompleteVPNchannelBuildTaskResult);
+                camForm.variableManager.variableValue('confirmCompleteVPNchannelBuildTaskComment', $scope.confirmCompleteVPNchannelBuildTaskComment);
+                $scope.resolutions.push({processInstanceId: $scope.processInstanceId, assignee: $rootScope.authentication.name, resolution: $scope.confirmCompleteVPNchannelBuildTaskResult, comment: $scope.confirmCompleteVPNchannelBuildTaskComment, taskId: camForm.taskId});
                 camForm.variableManager.variableValue('resolutions', $scope.resolutions);
             });
+
+            $scope.download = function (file) {
+                console.log(file);
+                $http({method: 'GET', url: '/camunda/uploads/tmp/get/' + file.path, transformResponse: [] }).
+                success(function(data, status, headers, config) {
+                    document.getElementById('fileDownloadIframe').src = data;
+                }).
+                error (function(data, status, headers, config) {
+                    console.log(data);
+                });
+            }
+
+            $scope.fileSelected = function(el, fileName){
+                if(el.files[0]){
+                    $timeout(function () {
+                        $scope.$apply(function () {
+                            uploadFileToMinio(el.files[0], fileName);
+                        });
+                    })                } else {
+                    $scope.$apply(function(){
+                        $scope[fileName] = undefined;
+                    });
+                }
+            };
+
+            function uploadFileToMinio(file, fileName) {
+                var fileValue = {
+                    name: file.name,
+                    path: uuid + '/' + file.name
+                };
+                $http({method: 'GET', url: '/camunda/uploads/tmp/put/' + fileValue.path, transformResponse: [] }).
+                success(function(data, status, headers, config) {
+                    $http.put(data, file, {headers: {'Content-Type': undefined}}).then(
+                            function () {
+                                $scope[fileName] = fileValue;
+                                angular.element(document.querySelector('#'+fileName)).val(null);
+                            },
+                            function (error) {
+                                console.log(error.data);
+                            }
+                    );
+                }).
+                error (function(data, status, headers, config) {
+                    console.log(data);
+                });
+            }
+
+            $scope.clearFile = function(filename){
+                delete $scope[filename];
+            };
+
         }]);
 
     </script>
     <info-freephone freephone-info="freephoneInfo"></info-freephone>
-
     <div class="form-group">
-        <label class="col-sm-3 control-label">Решение</label>
-        <div class="col-sm-9">
-            <label class="radio-inline">
-                <input type="radio" name="sendSIPtrankPreferencesTaskResult" ng-model="sendSIPtrankPreferencesTaskResult" value="Completed" required> Complete
-            </label>
-            <label class="radio-inline">
-                <input type="radio" name="sendSIPtrankPreferencesTaskResult" ng-model="sendSIPtrankPreferencesTaskResult" value="rejected" required> Reject
-            </label>
-            <label class="error" ng-show="kcell_form.sendSIPtrankPreferencesTaskResult.$error.required && ( kcell_form.sendSIPtrankPreferencesTaskResult.$touched || view.submitted)">Required field</label>
+        <label class="col-sm-4 control-label">Опросник по VPN:</label>
+        <div class="col-sm-8">
+            <div ng-show="vpnQuestionnaireFileName.name">
+                <a ng-click="download(vpnQuestionnaireFileName)">{{vpnQuestionnaireFileName.name}}</a> | <a ng-click="clearFile('vpnQuestionnaireFileName')"><i class="glyphicon glyphicon-trash"></i></a>
+            </div>
+            <input ng-hide="vpnQuestionnaireFileName.name" type="file" class="form-control" id="vpnQuestionnaireFileName" name="vpnQuestionnaireFileName" ng-model="vpnQuestionnaireFileName"
+                   onchange="angular.element(this).scope().fileSelected(this, 'vpnQuestionnaireFileName')"/>
+            <label class="has-error" ng-show="kcell_form.vpnQuestionnaireFileName.$error.validFile && ( kcell_form.vpnQuestionnaireFileName.$touched || view.submitted)">File is required</label>
         </div>
     </div>
     <div class="form-group">
         <label class="col-sm-3 control-label">Комментарии</label>
         <div class="col-sm-9">
-            <textarea class="form-control" ng-model="sendSIPtrankPreferencesTaskComment" name="sendSIPtrankPreferencesTaskComment" placeholder="Comments..." maxlength="500" rows="4" style="resize:none"></textarea>
-            <label class="error" ng-show="kcell_form.sendSIPtrankPreferencesTaskComment.$error.required && ( kcell_form.sendSIPtrankPreferencesTaskComment.$touched || view.submitted)">Required field</label>
+            <textarea class="form-control" ng-model="confirmCompleteVPNchannelBuildTaskComment" name="confirmCompleteVPNchannelBuildTaskComment" placeholder="Comments..." maxlength="500" rows="4" style="resize:none"></textarea>
+            <label class="error" ng-show="kcell_form.confirmCompleteVPNchannelBuildTaskComment.$error.required && ( kcell_form.confirmCompleteVPNchannelBuildTaskComment.$touched || view.submitted)">Required field</label>
         </div>
     </div>
     <accordion>

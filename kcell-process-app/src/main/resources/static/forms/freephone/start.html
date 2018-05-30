@@ -27,7 +27,7 @@
                 $scope.identifier = [];
                 $scope.requestedDate = new Date();
                 $scope.operators = [
-                    {id: 'kcell', name: 'Kcell'},
+                    {id: 'kcell', name: 'Kcell', isAvailable: true},
                     {id: 'beeline', name: 'Beeline'},
                     {id: 'tele2', name: 'Tele2'},
                     {id: 'altel', name: 'Altel'}
@@ -60,6 +60,15 @@
                 $scope.identifier.splice(index, 1);
             }
 
+            $scope.$watch('identifier', function (identifier) {
+                if (identifier && identifier.length) {
+                    $scope.kcell_form.newIdentifier.$setValidity('length', true);
+                } else {
+                    $scope.kcell_form.newIdentifier.$setValidity('length', false);
+                }
+            }, true);
+
+
         }]);
 
     </script>
@@ -69,23 +78,25 @@
     <div class="form-group">
         <label class="col-sm-4 control-label">Тип оператора:</label>
         <div class="col-sm-4">
-            <select class="form-control" id="operatorType"
+            <select class="form-control" id="operatorType" name="operatorType"
                     ng-model="operatorType"
-                    placeholder="Укажите тип подключения">
+                    placeholder="Укажите тип подключения" required>
                 <option value="onnet">Onnet</option>
                 <option value="offnet">Offnet\Onnet</option>
             </select>
+            <label class="error" ng-show="kcell_form.operatorType.$error.required && ( kcell_form.operatorType.$touched || view.submitted)">Required field</label>
         </div>
     </div>
     <div class="form-group">
         <label class="col-sm-4 control-label">Идентификатор:</label>
         <div class="col-sm-4">
             <div  class="input-group" ng-submit="addIdentifier()">
-                <input class="form-control" placeholder="Идентификатор на проверку" type="text" name="newIdentifier" ng-model="newIdentifier"/>
+                <input class="form-control" placeholder="Идентификатор" type="text" name="newIdentifier" ng-model="newIdentifier"/>
                 <span class="input-group-btn">
-		        	<button class="btn btn-secondary" type="button" ng-click="addIdentifier(newIdentifier)">+</button>
+		        	<button class="btn btn-secondary" type="button" ng-click="addIdentifier(newIdentifier)">Добавить</button>
 		      	</span>
             </div>
+            <label class="error" ng-show="kcell_form.newIdentifier.$error.length && (kcell_form.iin.$touched || view.submitted)">Добавьте хотя бы 1 идентификатор</label>
         </div>
     </div>
 
@@ -101,11 +112,12 @@
     <div class="form-group" ng-show="operatorType === 'offnet'">
         <label class="col-sm-4 control-label">Провайдер:</label>
         <div class="col-sm-4">
-            <select class="form-control" id="provider"
+            <select class="form-control" id="provider" name="provider" ng-required="operatorType === 'offnet'"
                     ng-model="provider">
                 <option value="SMS Consult">SMS Consult</option>
                 <option value="MMS">MMS</option>
             </select>
+            <label class="error" ng-show="kcell_form.provider.$error.required && ( kcell_form.provider.$touched || view.submitted)">Required field</label>
         </div>
     </div>
 </form>
