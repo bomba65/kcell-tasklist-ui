@@ -39,7 +39,11 @@ jobWorksObj.each { work ->
     if ('CAPEX' == work.definition.costType){
         work.costType = 'Y'
         work.activityServiceNumber = 'DUMMY'
-        work.wbsElement = 'RN-0502-33-0067'
+        if('2' == reason){
+            work.wbsElement = 'TN-0502-48-0067'
+        } else {
+            work.wbsElement = 'RN-0502-33-0067'
+        }
         work.controllingArea = 'DUMMY'
     } else if ('OPEX' == work.definition.costType){
         work.costType = 'K'
@@ -48,7 +52,11 @@ jobWorksObj.each { work ->
         } else {
             work.activityServiceNumber = '7016045'
         }
-        work.wbsElement = '251-70160-1'
+        if('4' == reason){
+            work.wbsElement = '251-70160-1'
+        } else {
+            work.wbsElement = '252-70160-1'
+        }
         work.controllingArea = '3020'
     }
     work.contractorNo = contractorsTitle[contractor.toString()].contract.service
