@@ -54,25 +54,6 @@ public class CheckSlocExistance implements JavaDelegate {
         String reason = String.valueOf(delegateExecution.getVariable("reason"));
         String jrNumber = String.valueOf(delegateExecution.getVariable("jrNumber"));
 
-        Integer counter = 1;
-        if(delegateExecution.getVariable("sapTryCounter")!=null){
-            counter = Integer.valueOf(String.valueOf(delegateExecution.getVariable("sapTryCounter"))) + 1;
-        }
-        delegateExecution.setVariable("sapTryCounter", counter);
-
-        String sapJrNumber = (siteRegion.equals("astana")?"ast":siteRegion) + "-"
-            + contractor + "-"
-            + reason + "-"
-            + jrNumber.substring(jrNumber.length()-7,jrNumber.length()) + "-"
-            + (String.valueOf(counter).length()<2 ?"0":"") + String.valueOf(counter);
-        delegateExecution.setVariable("sapJrNumber", sapJrNumber);
-
-        // astana-4-3-18-5001-01
-        // astana-lse-S&FM-18-5001
-
-        log.info("sapTryCounter: " + counter);
-        log.info("sapJrNumber: " + sapJrNumber);
-
         String site = delegateExecution.getVariable("site").toString();
 
         if("2".equals(reason)) {
