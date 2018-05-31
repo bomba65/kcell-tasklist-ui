@@ -31,7 +31,7 @@ def documentType = ["1":"ZK73-02", "2":"ZK73-03", "3":"ZK73-04", "4":"ZK73-01"]
 def requestedBy = (reason == '4' ? '252' : '251')
 
 def tnuSiteLocationsObj = new JsonSlurper();
-if(tnuSiteLocations){
+if('2' == reason){
     tnuSiteLocationsObj = new JsonSlurper().parseText(tnuSiteLocations.toString())
 }
 
