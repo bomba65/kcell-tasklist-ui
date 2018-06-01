@@ -88,6 +88,16 @@
                     type: 'Json'
                 });
                 camForm.variableManager.createVariable({
+                    name: 'responsibleB2BSales',
+                    value: undefined,
+                    type: 'Json'
+                });
+                camForm.variableManager.createVariable({
+                    name: 'responsibleB2BDelivery',
+                    value: undefined,
+                    type: 'Json'
+                });
+                camForm.variableManager.createVariable({
                     name: 'applicationScanCopyFileName',
                     value: undefined,
                     type: 'Json'
@@ -124,6 +134,8 @@
                 if(!$scope.resolutions){
                     $scope.resolutions = [];
                 }
+                camForm.variableManager.variableValue('responsibleB2BDelivery', $scope.responsibleB2BDelivery);
+                camForm.variableManager.variableValue('responsibleB2BSales', $scope.responsibleB2BSales);
                 camForm.variableManager.variableValue('operatorType', $scope.operatorType);
                 camForm.variableManager.variableValue('billing', $scope.billing);
                 camForm.variableManager.variableValue('createApplicationToConnectionTaskResult', $scope.createApplicationToConnectionTaskResult);
@@ -237,6 +249,71 @@
                 $event.stopPropagation();
                 $scope.dateFieldOpened = true;
             };
+
+            $scope.$watch('responsibleB2BSales', function (responsibleB2BSales) {
+                if (responsibleB2BSales && responsibleB2BSales.id) {
+                    $scope.kcell_form.responsibleB2BSales.$setValidity('valid', true);
+                } else {
+                    $scope.kcell_form.responsibleB2BSales.$setValidity('valid', false);
+                }
+            }, true);
+
+            $scope.$watch('responsibleB2BDelivery', function (responsibleB2BDelivery) {
+                if (responsibleB2BDelivery && responsibleB2BDelivery.id) {
+                    $scope.kcell_form.responsibleB2BDelivery.$setValidity('valid', true);
+                } else {
+                    $scope.kcell_form.responsibleB2BDelivery.$setValidity('valid', false);
+                }
+            }, true);
+
+            $scope.getUsers = function(val, group) {
+                var users = $http.get('/camunda/api/engine/engine/default/user?memberOfGroup='+ group +'&firstNameLike=%'+val+'%').then(
+                        function(response){
+                            var usersByFirstName = _.flatMap(response.data, function(s){
+                                if(s.id){
+                                    return s.id.split(',').map(function(user){
+                                        return {
+                                            id: s.id,
+                                            email: s.email.substring(s.email.lastIndexOf('/')+1),
+                                            firstName: s.firstName,
+                                            lastName: s.lastName,
+                                            name: s.firstName + ' ' + s.lastName
+                                        };
+                                    })
+                                } else {
+                                    return [];
+                                }
+                            });
+                            //return usersByFirstName;
+                            return $http.get('/camunda/api/engine/engine/default/user?memberOfGroup='+ group +'&lastNameLike=%'+val+'%').then(
+                                    function(response){
+                                        var usersByLastName = _.flatMap(response.data, function(s){
+                                            if(s.id){
+                                                return s.id.split(',').map(function(user){
+                                                    return {
+                                                        id: s.id,
+                                                        email: s.email.substring(s.email.lastIndexOf('/')+1),
+                                                        firstName: s.firstName,
+                                                        lastName: s.lastName,
+                                                        name: s.firstName + ' ' + s.lastName
+                                                    };
+                                                })
+                                            } else {
+                                                return [];
+                                            }
+                                        });
+                                        return _.unionWith(usersByFirstName, usersByLastName, _.isEqual);
+                                    }
+                            );
+                        }
+                );
+                return users;
+            };
+
+            $scope.userSelected = function($item, varName){
+                $scope[varName] = {'id': $item.id, 'name': $item.name, 'email': $item.email };
+            };
+
         }]);
 
     </script>
@@ -465,23 +542,19 @@
     <div class="form-group">
         <label class="col-sm-4 control-label">Ответственный B2B Delivery:</label>
         <div class="col-sm-8">
-            <select ng-model="responsibleB2BDelivery" name="responsibleB2BDelivery" class="form-control" required="true">
-                <option value="наполненый">наполненый</option>
-                <option value="выпадающий">выпадающий</option>
-                <option value="список">список</option>
-            </select>
-            <label class="error" ng-show="kcell_form.connectionType.$error.required && ( kcell_form.connectionType.$touched || view.submitted)">Required field</label>
+            <input type="text" ng-model="responsibleB2BDelivery" name="responsibleB2BDelivery" typeahead="name as users.name for users in getUsers($viewValue, 'b2bDelivery') | filter:$viewValue" typeahead-on-select="userSelected($item,'responsibleB2BDelivery')" class="form-control" required autocomplete="off">
+            <!--<input type="hidden" ng-model="userIDValidate" name="userIDValidate" required/>-->
+            <!--<label class="error" ng-if="kcell_form.site_name.$error.required && ( kcell_form.site_name.$touched || view.submitted)">Required field</label>-->
+            <label class="error" ng-if="kcell_form.responsibleB2BDelivery.$error.valid && view.submitted">Необходимо выбрать пользователя</label>
         </div>
     </div>
     <div class="form-group">
         <label class="col-sm-4 control-label">Ответственный B2B Sales:</label>
         <div class="col-sm-8">
-            <select ng-model="responsibleB2BSales" name="responsibleB2BSales" class="form-control" required="true">
-                <option value="наполненый">наполненый</option>
-                <option value="выпадающий">выпадающий</option>
-                <option value="список">список</option>
-            </select>
-            <label class="error" ng-show="kcell_form.connectionType.$error.required && ( kcell_form.connectionType.$touched || view.submitted)">Required field</label>
+            <input type="text" ng-model="responsibleB2BSales" name="responsibleB2BSales" typeahead="name as users.name for users in getUsers($viewValue, 'b2bSales') | filter:$viewValue" typeahead-on-select="userSelected($item,'responsibleB2BSales')" class="form-control" required autocomplete="off">
+            <!--<input type="hidden" ng-model="userIDValidate" name="userIDValidate" required/>-->
+            <!--<label class="error" ng-if="kcell_form.site_name.$error.required && ( kcell_form.site_name.$touched || view.submitted)">Required field</label>-->
+            <label class="error" ng-if="kcell_form.responsibleB2BSales.$error.valid && view.submitted">Необходимо выбрать пользователя</label>
         </div>
     </div>
     <div class="form-group">
