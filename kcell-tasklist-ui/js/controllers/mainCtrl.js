@@ -349,6 +349,7 @@ define(['./module','camundaSDK', 'lodash', 'big-js'], function(module, CamSDK, _
 			$scope.view.page--;
 			loadTasks();
 		}
+
 		function loadTasks() {
 			var processes = $rootScope.getCurrentProcesses();
 			var subprocessToParent = {};
@@ -396,10 +397,9 @@ define(['./module','camundaSDK', 'lodash', 'big-js'], function(module, CamSDK, _
 							var processId = e.processDefinitionId.substring(0,e.processDefinitionId.indexOf(':'));
 							if(subprocessToParent[processId]){
 								processId = subprocessToParent[processId];
-								console.log('1')
 							}
 							if(!currentProcesses[processId].taskGroups[e.name]){
-								currentProcesses[processId].taskGroups[e.name] = {tasks:[], };
+								currentProcesses[processId].taskGroups[e.name] = {tasks:[], taskDefinitionKey: e.taskDefinitionKey};
 							}
 							currentProcesses[processId].taskGroups[e.name].tasks.push(e);
 
@@ -472,65 +472,72 @@ define(['./module','camundaSDK', 'lodash', 'big-js'], function(module, CamSDK, _
 		}
 
 		$scope.setSelectedTaskGroupName = function(currentTaskGroup, selectedProcessDisplay){
+
 			$scope.currentTask = undefined;
 			$location.search({task:undefined});
-			$scope.selectedView = 'tasks';
-
 			$scope.currentTaskGroup = currentTaskGroup;
 			$scope.currentTaskGroup.selectedProcessDisplay = selectedProcessDisplay;
 
-			var varSearchParams = {processInstanceIds: _.map($scope.currentTaskGroup.tasks, 'processInstanceId')};
-            $http({
-                method: 'POST',
-                headers:{'Accept':'application/hal+json, application/json; q=0.5'},
-                data: varSearchParams,
-                url: baseUrl + '/history/process-instance'
-            }).then(
-                    function(processes){
-                    	angular.forEach($scope.currentTaskGroup.tasks, function(task){
-                    		var process = _.find(processes.data, function(p){ return p.id === task.processInstanceId });
-                    		task.processBusinessKey = process.businessKey;
-                    		task.processStartUserId = process.startUserId;
-                    		task.processStartTime = process.startTime;
-                    	});
-                    },
-                    function(error){
-                        console.log(error.data);
-                    }
-            );
-            if($scope.selectedProcessKey === 'Revision'){
-				_.forEach(['site_name'], function(variable) {
-					var varSearchParams = {processInstanceIdIn: _.map($scope.currentTaskGroup.tasks, 'processInstanceId'), variableName: variable};
-					$http({
-						method: 'POST',
-						headers:{'Accept':'application/hal+json, application/json; q=0.5'},
-						data: varSearchParams,
-						url: baseUrl+'/variable-instance'
-					}).then(
-						function(vars){
-							angular.forEach($scope.currentTaskGroup.tasks, function(task){
-								var f =  _.find(vars.data, function(v) {
-									return v.processInstanceId === task.processInstanceId; 
+			if(currentTaskGroup.taskDefinitionKey.indexOf("massApprove") === 0){
+				$state.go('tasks.massapprove', {defKey:currentTaskGroup.taskDefinitionKey});
+				$scope.selectedView = 'massapprove';
+			} else {
+				$scope.selectedView = 'tasks';
+				
+				var varSearchParams = {processInstanceIds: _.map($scope.currentTaskGroup.tasks, 'processInstanceId')};
+	            $http({
+	                method: 'POST',
+	                headers:{'Accept':'application/hal+json, application/json; q=0.5'},
+	                data: varSearchParams,
+	                url: baseUrl + '/history/process-instance'
+	            }).then(
+	                    function(processes){
+	                    	angular.forEach($scope.currentTaskGroup.tasks, function(task){
+	                    		var process = _.find(processes.data, function(p){ return p.id === task.processInstanceId });
+	                    		task.processBusinessKey = process.businessKey;
+	                    		task.processStartUserId = process.startUserId;
+	                    		task.processStartTime = process.startTime;
+	                    	});
+	                    },
+	                    function(error){
+	                        console.log(error.data);
+	                    }
+	            );
+	            if($scope.selectedProcessKey === 'Revision'){
+					_.forEach(['site_name'], function(variable) {
+						var varSearchParams = {processInstanceIdIn: _.map($scope.currentTaskGroup.tasks, 'processInstanceId'), variableName: variable};
+						$http({
+							method: 'POST',
+							headers:{'Accept':'application/hal+json, application/json; q=0.5'},
+							data: varSearchParams,
+							url: baseUrl+'/variable-instance'
+						}).then(
+							function(vars){
+								angular.forEach($scope.currentTaskGroup.tasks, function(task){
+									var f =  _.find(vars.data, function(v) {
+										return v.processInstanceId === task.processInstanceId; 
+									});
+									if(f){
+										task[variable] = f.value;
+									}
 								});
-								if(f){
-									task[variable] = f.value;
-								}
-							});
-							angular.forEach($scope.currentTaskGroup.filterableTasks, function(task){
-								var f =  _.find(vars.data, function(v) {
-									return v.processInstanceId === task.processInstanceId; 
+								angular.forEach($scope.currentTaskGroup.filterableTasks, function(task){
+									var f =  _.find(vars.data, function(v) {
+										return v.processInstanceId === task.processInstanceId; 
+									});
+									if(f){
+										task[variable] = f.value;
+									}
 								});
-								if(f){
-									task[variable] = f.value;
-								}
-							});
-						},
-						function(error){
-							console.log(error.data);
-						}
-					);
-				});
-            }
+							},
+							function(error){
+								console.log(error.data);
+							}
+						);
+					});
+	            }
+
+			}
 		}
 
 		$scope.getCurrentProjectDisplay = function(){

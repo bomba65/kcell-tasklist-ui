@@ -1,0 +1,61 @@
+<style>
+.table td, th {
+   text-align: center;   
+}
+</style>
+
+<div class="page-body container-fluid">
+    <div ng-repeat="definition in definitions" class="col-sm-12">
+        <h4 ng-if="getCurrentProjectDisplay()">Project: {{getCurrentProjectDisplay()}}</h4>
+        <h4 ng-if="currentTaskGroup.selectedProcessDisplay">Process: {{currentTaskGroup.selectedProcessDisplay}}</h4>
+        <h4>Task: {{definition.name}}</h4>
+        <table class="table table-bordered">
+            <thead>
+                <th>#</th>
+                <th>Bussiness key</th>                
+                <th ng-repeat="header in definition.configs.table.headers">{{header}}</th>
+                <th>Comment</th>
+                <th>{{definition.configs.resolutionQuestion || 'Confirm'}}</th>
+            </thead>
+            <tbody ng-if="allVariablesAssign">
+                <tr ng-repeat="instance in definition.tasks track by $index">
+                    <td>{{$index+1}}</td>
+                    <td><a ng-click="openTask(instance.taskId)">{{instance.processBusinessKey}}</a></td>
+                    <!--td ng-repeat="field in definition.configs.table.fields">{{massTableField(instance,field)}}</td-->
+                    <td ng-repeat="field in definition.configs.table.fields">
+                        <p ng-show="definition.configs.table.readOnly[field] && !definition.configs.table.date[field]">{{massTableField(instance,field)}}</p>
+                        <p ng-show="definition.configs.table.date[field] && definition.configs.table.readOnly[field]">{{massTableField(instance,field) | date:"dd.MM.yyyy" }}</p>
+                        <textarea class="form-control" ng-show="!definition.configs.table.readOnly[field]" ng-model="instance[field]" style="resize:none" ng-readonly="definition.configs.table.readOnly[field]"></textarea>
+                    </td>
+                    <td>
+                        <textarea class="form-control" ng-model="instance.comment" style="resize:none"></textarea>
+                    </td>
+                    <td>
+                        <label class="radio-inline" ng-repeat="r in definition.configs.resolutions">
+                            <input type="radio" name="{{definition.id}}_resolution_{{$parent.$index}}" ng-model="instance.resolution" value="{{r.variable}}"> {{r.text}}
+                        </label>
+                        <a ng-click="instance.resolution = null" style="margin-left: 5px;"><i class="glyphicon glyphicon-remove-circle"></i> Clear</a>
+                    </td>
+                </tr>
+            </tbody>
+        </table>
+        <div class="col-sm-12"><hr/></div>
+    </div>
+    
+    <div class="col-sm-12">
+        <label class="col-sm-2 control-label" ng-show="definitions[0].configs.showCloseDate">{{definitions[0].configs.closeDateTitle?definitions[0].configs.closeDateTitle:'Дата закрытия'}}:</label>
+        <div class="col-sm-3" ng-show="definitions[0].configs.showCloseDate">
+            <div class="input-group">
+                <input type="text" ng-model="closeDate" name="closeDate" ng-required="definitions[0].configs.showCloseDate" class="form-control" datepicker-popup="dd.MM.yyyy" is-open="dateFieldOpened" />
+                <span class="input-group-btn">
+                    <button type="button" class="btn btn-default" ng-click="dateFieldOpened = true;">
+                        <i class="glyphicon glyphicon-calendar"></i>
+                    </button>
+                </span>
+            </div>
+        </div>
+        <div class="col-sm-3">
+            <button type="button" class="btn btn-primary" ng-click="submitThem()">Complete</button>
+        </div>
+    </div>
+</div>

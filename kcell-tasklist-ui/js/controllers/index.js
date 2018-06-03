@@ -5,5 +5,6 @@ define([
 	'./taskController',
 	'./processesCtrl',
 	'./searchCtrl',
-	'./minioCtrl'
+	'./minioCtrl',
+	'./massApproveCtrl'
 	], function(){});

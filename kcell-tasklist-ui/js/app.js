@@ -163,6 +163,12 @@ define('app',[
 			controller: "TaskCtrl",
 			authenticate: true,
 		    resolve: resolve
+	    }).state("tasks.massapprove", {
+			url: "/massapprove/:defKey",
+			templateUrl: "js/partials/massApprove.html",
+			controller: "MassApproveCtrl",
+			authenticate: true,
+		    resolve: resolve
 	    }).state("login", {
 	    	url: "/login",
 	    	templateUrl: "js/partials/login.html",
