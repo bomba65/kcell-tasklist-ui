@@ -40,7 +40,9 @@
                 'trFiles',
                 'actOfMaterialsDispatchingFileName',
                 'priority',
-                'mlApprovalAdditionalInfoFile'
+                'mlApprovalAdditionalInfoFile',
+                'nrOfCompletedInstances',
+                'setDispatchStatusResult'
             ];
             var files = [];
             $scope.jobModel = {
@@ -108,19 +110,45 @@
                     $scope.jobModel.currentTask = {
                         id: camForm.taskId
                     }
+                    if(el === 'setDispatchStatusResult' && camForm.variableManager.variables[el].value){
+                        $scope[el] = camForm.variableManager.variables[el].value;
+                    }
+                    if(el === 'nrOfCompletedInstances'){
+                        $scope[el] = camForm.variableManager.variables[el].value;
+                    }
+                    $scope.setDispatchStatusByWarehouseSpecialistTaskResult = undefined;
                 });
                 $http.get("/camunda/api/engine/engine/default/user/" + $rootScope.authentication.name+ "/profile").then(function(result){
                     $rootScope.authentication.assigneeName = (result.data.firstName ? result.data.firstName : "") + " " + (result.data.lastName ? result.data.lastName : "");
                 });
+                if($scope.nrOfCompletedInstances === 0){
+                    $scope.setDispatchStatusResult = undefined;
+                }
             });
 
             camForm.on('submit', function () {
                 camForm.variableManager.variableValue('setDispatchStatusByWarehouseSpecialistTaskResult', $scope.setDispatchStatusByWarehouseSpecialistTaskResult);
                 if ($scope.setDispatchStatusByWarehouseSpecialistTaskResult === 'notAvailable') {
                     camForm.variableManager.variableValue('materialsNotAvailable', true);
-                }
-                else{
+                    $scope.setDispatchStatusResult = 'notAvailable';
+                } else {
                     camForm.variableManager.variableValue('materialsNotAvailable', false);
+                    if($scope.approveMaterialsListResult === undefined) {
+                        $scope.setDispatchStatusResult = 'dispatched';
+                    }
+                }
+
+                if($scope.setDispatchStatusResult){
+                    if(camForm.variableManager.variables['setDispatchStatusResult'] && camForm.variableManager.variables['setDispatchStatusResult'].type){
+                        camForm.variableManager.variableValue('setDispatchStatusResult', $scope.setDispatchStatusResult);
+                    } else {
+                        camForm.variableManager.destroyVariable('setDispatchStatusResult');
+                        camForm.variableManager.createVariable({
+                            name: 'setDispatchStatusResult',
+                            type: 'String',
+                            value: $scope.setDispatchStatusResult
+                        });
+                    }
                 }
 
                 if($scope.actOfMaterialsDispatchingFileName && $scope.actOfMaterialsDispatchingFileName.value && $scope.actOfMaterialsDispatchingFileName.value.isNew){

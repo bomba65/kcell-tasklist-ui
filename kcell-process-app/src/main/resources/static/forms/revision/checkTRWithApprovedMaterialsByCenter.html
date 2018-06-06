@@ -76,6 +76,11 @@
             });
             camForm.on('variables-fetched', function () {
                 variables.forEach(function (el) {
+                    if(el == 'trFilesName'){
+                        $scope[el] = camForm.variableManager.variables[el];
+                        $scope.trFilesName.type = 'Json';
+                    }
+
                     if(el === 'resolutions'){
                         $scope.jobModel.resolutions = angular.copy(camForm.variableManager.variables[el].value);
                         $scope.jobModel.currentTask = $scope.currentTask;
@@ -122,6 +127,30 @@
                     $scope.checkTRMaterialsResult = 'match';
                 }
 
+                if(camForm.variableManager.variables['trFilesName']){
+                    camForm.variableManager.variableValue('trFilesName', $scope.trFilesName.value);
+                } else {
+                    camForm.variableManager.createVariable($scope.trFilesName);
+                }
+
+                var warehouseRegions = [];
+                if($scope.trFilesName.value){
+                    angular.forEach($scope.trFilesName.value, function(trFile){
+                        var warehouse = _.find($scope.jobModel.warehouses, function(warehouse){
+                            return warehouse.id === trFile.warehouse;
+                        });
+                        if(warehouseRegions.indexOf(warehouse.region) === -1){
+                            warehouseRegions.push(warehouse.region);
+                        }
+                    });
+                }
+
+                camForm.variableManager.createVariable({
+                    name: 'warehouseRegions',
+                    type: 'Json',
+                    value: warehouseRegions
+                });
+
                 if($scope.checkTRMaterialsResult){
                     if(camForm.variableManager.variables['checkTRMaterialsResult'] && camForm.variableManager.variables['checkTRMaterialsResult'].type){
                         camForm.variableManager.variableValue('checkTRMaterialsResult', $scope.checkTRMaterialsResult);
@@ -157,6 +186,33 @@
         }]);
     </script>
     <job-request job-model="jobModel"></job-request>
+    <iframe id="fileDownloadIframe" style="display:none;"></iframe>
+
+    <div ng-repeat="trfile in trFilesName.value">
+        <div class="form-group">
+            <label class="col-sm-4 control-label">SAP Transport Request File # {{$index+1}}:</label>
+            <div class="col-sm-8">
+                <a ng-click="download(trfile)">{{trfile.name}}</a>
+            </div>
+        </div>
+        <div class="form-group">
+            <label class="col-sm-4 control-label">SAP Transport Request ID # {{$index+1}}:</label>
+            <div class="col-sm-8">
+                <span>{{trfile.description}}</span>
+            </div>
+        </div>
+        <div class="form-group">
+            <label class="col-sm-4 control-label">Warehouse # {{$index+1}}:</label>
+            <div class="col-sm-8">
+                <select class="form-control" ng-model="trfile.warehouse" name="trfile_{{$index}}_warehouse" ng-required="trfile.name && !trfile.warehouse">
+                    <option value="">select warehouse</option>
+                    <option value="{{w.id}}" ng-repeat="w in warehouses" ng-selected="{{w.id == trfile.warehouse}}">{{w.name}}</option>
+                </select>
+                <label class="error" ng-show="kcell_form['trfile_'+$index+'_warehouse'].$error.required && ( kcell_form['trfile_'+$index+'_warehouse'].$touched || view.submitted)">Required field</label>
+            </div>
+        </div>
+    </div>
+
     <div class="form-group">
         <label class="col-sm-4 control-label">Resolution</label>
         <div class="col-sm-8">

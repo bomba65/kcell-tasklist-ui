@@ -325,10 +325,14 @@
       <bpmn:incoming>SequenceFlow_1951c3w</bpmn:incoming>
       <bpmn:outgoing>SequenceFlow_0xqu1s7</bpmn:outgoing>
       <bpmn:outgoing>SequenceFlow_1p8u37f</bpmn:outgoing>
-      <bpmn:userTask id="set_materials_dispatch_status" name="Set Materials  Dispatch Status" camunda:formKey="embedded:app:forms/revision/setDispatchStatusByWarehouseSpecialist.html" camunda:candidateGroups="hq_warehouse" camunda:priority="#{priority == &#39;emergency&#39;? 100: 50}">
+      <bpmn:userTask id="set_materials_dispatch_status" name="Set Materials  Dispatch Status" camunda:formKey="embedded:app:forms/revision/setDispatchStatusByWarehouseSpecialist.html" camunda:priority="#{priority == &#39;emergency&#39;? 100: 50}">
         <bpmn:documentation>Set Dispatch Status by Warehouse Specialist</bpmn:documentation>
+        <bpmn:extensionElements>
+          <camunda:taskListener class="kz.kcell.bpm.assignments.RegionWarehouseAssignmentHandler" event="create" />
+        </bpmn:extensionElements>
         <bpmn:incoming>SequenceFlow_0lh9xfe</bpmn:incoming>
         <bpmn:outgoing>SequenceFlow_12505uo</bpmn:outgoing>
+        <bpmn:multiInstanceLoopCharacteristics camunda:collection="${warehouseRegions.elements()}" camunda:elementVariable="warehouse" />
       </bpmn:userTask>
       <bpmn:endEvent id="endevt_materials_dispatched">
         <bpmn:incoming>SequenceFlow_1mhjbfu</bpmn:incoming>
@@ -344,13 +348,13 @@
       </bpmn:exclusiveGateway>
       <bpmn:sequenceFlow id="SequenceFlow_12505uo" sourceRef="set_materials_dispatch_status" targetRef="exclgw_materials_dispatch" />
       <bpmn:sequenceFlow id="SequenceFlow_1mhjbfu" name="dispatched" sourceRef="exclgw_materials_dispatch" targetRef="endevt_materials_dispatched">
-        <bpmn:conditionExpression xsi:type="bpmn:tFormalExpression">${setDispatchStatusByWarehouseSpecialistTaskResult=='dispatched'}</bpmn:conditionExpression>
+        <bpmn:conditionExpression xsi:type="bpmn:tFormalExpression">${setDispatchStatusResult =='dispatched'}</bpmn:conditionExpression>
       </bpmn:sequenceFlow>
       <bpmn:endEvent id="endevt_materials_not_available">
         <bpmn:incoming>SequenceFlow_1hgha1n</bpmn:incoming>
       </bpmn:endEvent>
       <bpmn:sequenceFlow id="SequenceFlow_1hgha1n" name="materials are not available" sourceRef="exclgw_materials_dispatch" targetRef="endevt_materials_not_available">
-        <bpmn:conditionExpression xsi:type="bpmn:tFormalExpression">${setDispatchStatusByWarehouseSpecialistTaskResult=='notAvailable'}</bpmn:conditionExpression>
+        <bpmn:conditionExpression xsi:type="bpmn:tFormalExpression">${setDispatchStatusResult =='notAvailable'}</bpmn:conditionExpression>
       </bpmn:sequenceFlow>
     </bpmn:subProcess>
     <bpmn:subProcess id="SubProcess_0a0tcem" name="Execute Works">
