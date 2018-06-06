@@ -19,10 +19,7 @@ import org.camunda.bpm.engine.delegate.DelegateTask;
 import org.camunda.bpm.engine.delegate.TaskListener;
 
 import java.net.URI;
-import java.util.Arrays;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 import java.util.logging.Logger;
 import java.util.stream.Collectors;
 
@@ -50,6 +47,8 @@ public class AssetManagementSaveListenerNew implements TaskListener {
         } catch (Exception e) {
             e.printStackTrace();
         }
+
+        delegateTask.setVariable("performDate", new Date());
     }
 
     public void saveCommandsToAssetManagement(JsonNode summaries, String siteId) {

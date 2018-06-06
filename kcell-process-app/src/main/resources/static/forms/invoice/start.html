@@ -250,18 +250,18 @@
                         }
                 );
                 $http.get("/camunda/api/engine/engine/default/group?member=" + $rootScope.authentication.name).then(
-                    function (result) {
-                        angular.forEach(result.data, function(group){
-                            if(group.id.indexOf('contractor_users_') == 0){
-                                $scope.contractor = group.id.replace('contractor_users_', '');
+                        function (result) {
+                            angular.forEach(result.data, function(group){
+                                if(group.id.indexOf('contractor_users_') == 0){
+                                    $scope.contractor = group.id.replace('contractor_users_', '');
+                                }
+                            });
+                            if(!$scope.contractor){
+                                $scope.contractor = 'lse';
                             }
-                        });
-                        if(!$scope.contractor){
-                            $scope.contractor = 'lse';
+                        },
+                        function (error) {
                         }
-                    },
-                    function (error) {
-                    }
                 );
             });
 
@@ -418,7 +418,7 @@
                             });
 
                             if($scope.jobRequests.length > 0){
-                                _.forEach(['site_name', 'priority', 'materialsRequired'], function(variable) {
+                                _.forEach(['site_name', 'priority', 'materialsRequired', 'performDate'], function(variable) {
                                     var varSearchParams = {processInstanceIdIn: _.map($scope.jobRequests, 'processInstanceId'), variableName: variable};
                                     $http({
                                         method: 'POST',
@@ -482,12 +482,16 @@
                                             request.validateTr = validateTr.endTime;
                                         }
 
-                                        var acceptWorkInitiator = _.maxBy(_.filter(res.data, function(task){
-                                            return task.taskDefinitionKey === 'fill_applied_changes_info' || task.taskDefinitionKey === 'UserTask_0rj3nbv';
-                                        }), function(o) { return o.endTime; });
+                                        if(request.performDate){
+                                            request.acceptWorkStartTime = request.performDate;
+                                        } else {
+                                            var acceptWorkInitiator = _.maxBy(_.filter(res.data, function(task){
+                                                return task.taskDefinitionKey === 'accept_work_initiator' || task.taskDefinitionKey === 'UserTask_1i7na4a';
+                                            }), function(o) { return o.startTime; });
 
-                                        if(acceptWorkInitiator){
-                                            request.acceptWorkStartTime = acceptWorkInitiator.startTime;
+                                            if(acceptWorkInitiator){
+                                                request.acceptWorkStartTime = acceptWorkInitiator.startTime;
+                                            }
                                         }
 
                                         var acceptWorkInitiator = _.maxBy(_.filter(res.data, function(task){
@@ -873,9 +877,9 @@
                         </tr>
                         </tbody>
                         <tbody ng-hide="jobRequests && jobRequests.length">
-                            <tr>
-                                <td colspan="4" style="text-align: center">No rows to display</td>
-                            </tr>
+                        <tr>
+                            <td colspan="4" style="text-align: center">No rows to display</td>
+                        </tr>
                         </tbody>
                     </table>
                 </div>
