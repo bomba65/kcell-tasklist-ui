@@ -115,6 +115,19 @@
                 camForm.variableManager.variableValue('resolutions', $scope.resolutions);
                 camForm.variableManager.variableValue('identifiers', $scope.identifiers);
             });
+
+            $scope.dateFieldOpened = [];
+
+            $scope.open = function open($event, index, id, o) {
+                $event.preventDefault();
+                $event.stopPropagation();
+                $scope.identifiers.forEach(function (identifier) {
+                    if(identifier.title === id ){
+                        identifier.operators[index].dateFieldOpened = true;
+                    }
+                });
+                //$scope.identifier[id][o].dateFieldOpened = true;
+            };
         }]);
 
     </script>
@@ -126,13 +139,25 @@
                 <thead>
                 <tr>
                     <th scope="col">Оператор</th>
+                    <th scope="col">Дата заведения короткого номера</th>
                     <th scope="col">Добавить</th>
                 </tr>
                 </thead>
                 <tbody>
                 <tr ng-repeat="o in id.operators" ng-if="o.isAvailable && o.checked && o.id !== 'kcell'">
-                    <th scope="row">{{o.name}}</th>
-                    <td>
+                    <th scope="row" style="width: 40%">{{o.name}}</th>
+                    <td style="width: 40%">
+                        <div class="input-group">
+                            <input type="text" ng-model="o.addedToNetworkDate" name="{{'addedToNetworkDate' + id.title + o.id}}" ng-disabled="!o.addedToNetwork" ng-required="o.addedToNetwork" class="form-control" datepicker-popup="dd.MM.yyyy" is-open="o.dateFieldOpened" id="{{'addedToNetworkDate' + id.title + o.id}}" min-date="datepickerOptions.minDate" />
+                            <span class="input-group-btn">
+                                <button type="button" class="btn btn-default" ng-disabled="!o.addedToNetwork" ng-click="open($event, $index, id.title, o.id)">
+                                    <i class="glyphicon glyphicon-calendar"></i>
+                                </button>
+                            </span>
+                        </div>
+                        <label class="error" ng-show="kcell_form.{{'addedToNetworkDate' + id.title + o.id}}.$error.required && ( kcell_form.{{'addedToNetworkDate' + id.title + o.id}}.$touched || view.submitted)">Required field</label>
+                    </td>
+                    <td style="width: 20%">
                         <input type="checkbox" ng-model="o.addedToNetwork">
                     </td>
                 </tr>

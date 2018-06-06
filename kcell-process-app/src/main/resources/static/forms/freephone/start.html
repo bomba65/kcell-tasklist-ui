@@ -26,31 +26,45 @@
                 });
                 $scope.identifier = [];
                 $scope.requestedDate = new Date();
-                $scope.operators = [
+                $scope.offnetOperators = [
                     {id: 'kcell', name: 'Kcell', isAvailable: true},
                     {id: 'beeline', name: 'Beeline'},
                     {id: 'tele2', name: 'Tele2'},
                     {id: 'altel', name: 'Altel'}
                 ];
+                $scope.onnetOperators = [
+                    {id: 'kcell', name: 'Kcell'}
+                ];
             });
 
             camForm.on('submit', function (evt) {
-                //evt.submitPrevented = true;
+                // evt.submitPrevented = true;
                 camForm.variableManager.variableValue('operatorType', $scope.operatorType);
-                if ($scope.provider && operatorType === 'offnet') {
-                    camForm.variableManager.variableValue('provider', $scope.provider);
+
+                if ($scope.operatorType === 'offnet') {
+                    if ($scope.provider) {
+                        camForm.variableManager.variableValue('provider', $scope.provider);
+                    } else {
+                        camForm.variableManager.destroyVariable('provider');
+                    }
+                    camForm.variableManager.variableValue('operators', $scope.offnetOperators);
+                    _.forEach($scope.identifier, function(id) {
+                        id.operators = $scope.offnetOperators;
+                    });
                 } else {
-                    camForm.variableManager.destroyVariable('provider');
+                    camForm.variableManager.variableValue('operators', $scope.onnetOperators);
+                    _.forEach($scope.identifier, function(id) {
+                        id.operators = $scope.onnetOperators;
+                    });
                 }
                 camForm.variableManager.variableValue('identifiers', $scope.identifier);
-                camForm.variableManager.variableValue('operators', $scope.operators);
-                //console.log(camForm.variableManager.variableValue('identifiers'));
+
             });
 
             $scope.addIdentifier = function(identifier) {
                 if (identifier) {
                     if(!_.find($scope.identifier, function (id) { return id.title === identifier; })) {
-                        $scope.identifier.push({'title': identifier, 'operators': $scope.operators});
+                        $scope.identifier.push({'title': identifier, 'operators': []});
                    }
                    $scope.newIdentifier = '';
                 }
@@ -119,5 +133,9 @@
             </select>
             <label class="error" ng-show="kcell_form.provider.$error.required && ( kcell_form.provider.$touched || view.submitted)">Required field</label>
         </div>
+    </div>
+    <div class="form-check" ng-show="identifier.length > 0">
+        <input type="checkbox" ng-model="previouslyBought" class="form-check-input" id="check1" cam-variable-type="Boolean" cam-variable-name="previouslyBought">
+        <label class="form-check-label" for="check1">Ранее выкуплен</label>
     </div>
 </form>
