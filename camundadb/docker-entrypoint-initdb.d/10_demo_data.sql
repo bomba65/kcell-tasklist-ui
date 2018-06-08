@@ -585,11 +585,6 @@ INSERT INTO act_id_membership (user_id_, group_id_) VALUES ('Lyudmila.Jabrailova
 INSERT INTO act_id_membership (user_id_, group_id_) VALUES ('Zhienbay.Taraziev@kcell.kz', 'warehouse_atyrau');
 INSERT INTO act_id_membership (user_id_, group_id_) VALUES ('Zhienbay.Taraziev@kcell.kz', 'warehouse_aktau');
 
-INSERT INTO act_id_group (id_, rev_, name_, type_) VALUES ('warehouse_alm', 1, 'warehouse_alm', 'WORKFLOW');
-INSERT INTO act_id_group (id_, rev_, name_, type_) VALUES ('warehouse_astana', 1, 'warehouse_astana', 'WORKFLOW');
-INSERT INTO act_id_group (id_, rev_, name_, type_) VALUES ('warehouse_atyrau', 1, 'warehouse_atyrau', 'WORKFLOW');
-INSERT INTO act_id_group (id_, rev_, name_, type_) VALUES ('warehouse_aktau', 1, 'warehouse_aktau', 'WORKFLOW');
-
 --FILTERS
 INSERT INTO act_ru_filter (id_, rev_, resource_type_, name_, owner_, query_, properties_) VALUES ('00e50a2b-4f69-11e7-a8c6-0242ac120007', 1, 'Task', 'All Tasks', 'demo', '{}', '{"variables":[{"name":"jrNumber","label":"JR Number"}],"description":"All Tasks - Not recommended to be used in production :)","priority":10}');
 INSERT INTO act_ru_filter (id_, rev_, resource_type_, name_, owner_, query_, properties_) VALUES ('00e642ad-4f69-11e7-a8c6-0242ac120007', 1, 'Task', 'My Claimed Tasks', 'kcellUsers', '{"taskAssigneeExpression":"${ currentUser() }"}', '{"variables":[{"name":"jrNumber","label":"JR Number"}],"description":"My Claimed Tasks","priority":-10}');
