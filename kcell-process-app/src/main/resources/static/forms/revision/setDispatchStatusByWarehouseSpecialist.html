@@ -39,6 +39,7 @@
                 'trFilesName',
                 'trFiles',
                 'actOfMaterialsDispatchingFileName',
+                'actOfMaterialsDispatchingFiles',
                 'priority',
                 'mlApprovalAdditionalInfoFile',
                 'nrOfCompletedInstances',
@@ -103,7 +104,7 @@
                     } else {
                         $scope.jobModel[el] = camForm.variableManager.variables[el];
                     }
-                    if(el === 'actOfMaterialsDispatchingFileName'){
+                    if(el === 'actOfMaterialsDispatchingFileName' || el === 'actOfMaterialsDispatchingFiles'){
                         $scope[el] = camForm.variableManager.variables[el];
                         $scope[el].type = 'Json';
                     }
@@ -123,6 +124,15 @@
                 });
                 if($scope.nrOfCompletedInstances === 0){
                     $scope.setDispatchStatusResult = undefined;
+                }
+
+                $scope.actOfMaterialsDispatchingFiles.type = 'Json';
+                if(!$scope.actOfMaterialsDispatchingFiles.value){
+                    $scope.actOfMaterialsDispatchingFiles.value = [];
+                }
+
+                if($scope.currentTask.candidateObject && $scope.currentTask.candidateObject.groupId){
+                    $scope.currentUploaderGroup = $scope.currentTask.candidateObject.groupId;
                 }
             });
 
@@ -166,6 +176,19 @@
                     camForm.variableManager.createVariable($scope.actOfMaterialsDispatchingFileName);
                 }
 
+                $scope.actOfMaterialsDispatchingFiles.value.forEach(function (f, i) {
+                    if(f.isNew){
+                        files.push(f.name);
+                        delete $scope.actOfMaterialsDispatchingFiles.value[i].isNew;
+                    }
+                });
+
+                if(camForm.variableManager.variables['actOfMaterialsDispatchingFiles']){
+                    camForm.variableManager.variableValue('actOfMaterialsDispatchingFiles', $scope.actOfMaterialsDispatchingFiles.value);
+                } else {
+                    camForm.variableManager.createVariable($scope.actOfMaterialsDispatchingFiles);
+                }
+
                 var visibility = 'all';
                 if($scope.setDispatchStatusByWarehouseSpecialistComment && $scope.setDispatchStatusByWarehouseSpecialistCommentVisibility){
                     visibility = $scope.setDispatchStatusByWarehouseSpecialistCommentVisibility;
@@ -193,27 +216,24 @@
             };
 
             function uploadFileToMinio(file) {
-                console.log(file.name);
+                var fileIndex = $scope.actOfMaterialsDispatchingFiles.value.length;
 
                 var fileToUpload = {
-                    name: 'actOfMaterialsDispatchingFileName',
-                    type: 'Json',
-                    value: {
-                        name: file.name,
-                        isNew : true,
-                        path: $scope.processInstanceId + '/' + camForm.taskId + '/' + file.name
-                    }
+                    name: file.name,
+                    isNew: true,
+                    uploader: $scope.currentUploaderGroup,
+                    path: $scope.processInstanceId + '/' + camForm.taskId + '/' + file.name
                 };
-                $http({method: 'GET', url: '/camunda/uploads/put/' + fileToUpload.value.path, transformResponse: [] }).
+                $http({method: 'GET', url: '/camunda/uploads/put/' + fileToUpload.path, transformResponse: [] }).
                 success(function(data, status, headers, config) {
                     $http.put(data, file, {headers: {'Content-Type': undefined}}).then(
-                            function () {
-                                $scope.actOfMaterialsDispatchingFileName = fileToUpload;
-                                angular.element(document.querySelector('#actOfMaterialsDispatchingFileName')).val(null);
-                            },
-                            function (error) {
-                                console.log(error.data);
-                            }
+                        function () {
+                            $scope.actOfMaterialsDispatchingFiles.value.push(fileToUpload);
+                            angular.element(document.querySelector('#act_of_dispatching_new_file')).val(null);
+                        },
+                        function (error) {
+                            console.log(error.data);
+                        }
                     );
                 }).
                 error (function(data, status, headers, config) {
@@ -221,12 +241,12 @@
                 });
             }
 
-            $scope.clearFile = function (fileName) {
-                $scope[fileName] = null;
+            $scope.clearFile = function (fileIndex) {
+                $scope.actOfMaterialsDispatchingFiles.value.splice(fileIndex, 1);
             }
 
             $scope.download = function (file) {
-                $http({method: 'GET', url: '/camunda/uploads/get/' + file.value.path, transformResponse: [] }).
+                $http({method: 'GET', url: '/camunda/uploads/get/' + file.path, transformResponse: [] }).
                 success(function(data, status, headers, config) {
                     document.getElementById('fileDownloadIframe').src = data;
                 }).
@@ -242,33 +262,60 @@
             $scope.hasComment = function () {
                 return $scope.setDispatchStatusByWarehouseSpecialistComment && $rootScope.hasGroup('kcellUsers');
             }
+
+            $scope.notUploadedFile = function(){
+                if ($scope.actOfMaterialsDispatchingFiles.value && $scope.actOfMaterialsDispatchingFiles.value.length>0){
+                    var file = _.find($scope.actOfMaterialsDispatchingFiles.value, function(file){
+                        return file.uploader === $scope.currentUploaderGroup;
+                    });
+                    if(file){
+                        return false;
+                    } else {
+                        return true;
+                    }
+                } else {
+                    return true;
+                }
+            }
         }]);
     </script>
     <job-request job-model="jobModel"></job-request>
     <iframe id="fileDownloadIframe" style="display:none;"></iframe>
-    <div class="form-group">
-        <label class="col-sm-4 control-label">Act of Materials Dispatching file:</label>
-        <div class="col-sm-8" ng-show="actOfMaterialsDispatchingFileName.value">
-            <a ng-click="download(actOfMaterialsDispatchingFileName)">{{actOfMaterialsDispatchingFileName.value.name}}</a> | <a ng-click="clearFile('actOfMaterialsDispatchingFileName')"><i class="glyphicon glyphicon-trash"></i></a>
+
+    <div ng-repeat="file in actOfMaterialsDispatchingFiles.value">
+        <div class="form-group">
+            <label class="col-sm-4 control-label">Act of Materials Dispatching file # {{$index+1}}</label>
+            <div class="col-sm-8">
+                {{$index + 1}}.
+                <a ng-click="download(file)">{{file.name}}</a> | <a ng-if="file.uploader === currentUploaderGroup" ng-click="clearFile($index)"><i class="glyphicon glyphicon-trash"></i></a>
+                [uploaded by {{file.uploader}}]
+            </div>
         </div>
-        <div class="col-sm-8" ng-hide="actOfMaterialsDispatchingFileName.value">
-            <input type="file" class="form-control" id="actOfMaterialsDispatchingFileName" name="actOfMaterialsDispatchingFileName" ng-model="actOfMaterialsDispatchingFileName" required-file="setDispatchStatusByWarehouseSpecialistTaskResult === 'dispatched' && !actOfMaterialsDispatchingFileName.value" onchange="angular.element(this).scope().fileSelected(this)"/>
-            <label class="has-error" ng-show="kcell_form.actOfMaterialsDispatchingFileName.$error.validFile">File is required</label>
+        <div class="form-group" ng-if="file.uploader === currentUploaderGroup">
+            <label class="col-sm-4 control-label">Act of Materials Dispatching file visibility # {{$index+1}}</label>
+            <label class="radio-inline">
+                <input type="radio" name="actOfMaterialsDispatchingFilesVisibility_{{$index}}"
+                       ng-model="file.visibility" value="all" ng-required="hasGroup('kcellUsers') && file.name"> Visible for all
+            </label>
+            <label class="radio-inline">
+                <input type="radio" name="actOfMaterialsDispatchingFilesVisibility_{{$index}}"
+                       ng-model="file.visibility" value="kcell" ng-required="hasGroup('kcellUsers') && file.name"> Kcell staff only
+            </label>
+            <label class="error" ng-show="kcell_form['actOfMaterialsDispatchingFilesVisibility_'+$index].$error.required && ( kcell_form['actOfMaterialsDispatchingFilesVisibility_'+$index].$touched || view.submitted)">Required field</label>
         </div>
     </div>
-    <div class="form-group" ng-show="actOfMaterialsDispatchingFileName.value.name && hasGroup('kcellUsers')">
-        <label class="col-sm-4 control-label"><b>Act of Materials Dispatching file visibility:</label>
+
+    <div class="form-group">
+        <label class="col-sm-4 control-label">New Act of Materials Dispatching file</label>
         <div class="col-sm-8">
-            <label class="radio-inline">
-                <input type="radio" name="actOfMaterialsDispatchingFileNameVisibility"
-                       ng-model="actOfMaterialsDispatchingFileName.value.visibility" value="all" ng-required="actOfMaterialsDispatchingFileName.value && hasGroup('kcellUsers')"> Visible for all
-            </label>
-            <label class="radio-inline">
-                <input type="radio" name="actOfMaterialsDispatchingFileNameVisibility"
-                       ng-model="actOfMaterialsDispatchingFileName.value.visibility" value="kcell" ng-required="actOfMaterialsDispatchingFileName.value && hasGroup('kcellUsers')"> Kcell staff only
-            </label>
-            <label class="error" ng-show="kcell_form.actOfMaterialsDispatchingFileNameVisibility.$error.required && ( kcell_form.actOfMaterialsDispatchingFileNameVisibility.$touched || view.submitted)">Required field</label>
+            <ng-form name="act_of_dispatching_file_form">
+                <input type="file" class="form-control" id="act_of_dispatching_new_file" name="act_of_dispatching_new_file" ng-model="newFile"  required-file="setDispatchStatusByWarehouseSpecialistTaskResult === 'dispatched' && notUploadedFile()" onchange="angular.element(this).scope().fileSelected(this)"/>
+                <label class="has-error" ng-show="act_of_dispatching_file_form.act_of_dispatching_new_file.$error.validFile">File is required</label>
+            </ng-form>
         </div>
+    </div>
+    <div class="form-group">
+        <label class="col-sm-4 control-label"></label>
     </div>
     <div class="form-group">
         <label class="col-sm-4 control-label">Resolution</label>
