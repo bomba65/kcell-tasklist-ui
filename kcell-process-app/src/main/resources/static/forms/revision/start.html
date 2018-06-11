@@ -294,7 +294,6 @@
                     camForm.variableManager.variableValue('ignoreSignPR', 'false');
                 }
 
-
                 camForm.variableManager.variableValue('jrNumber', $scope.jrNumber);
                 camForm.variableManager.variableValue('site_name', $scope.site_name);
                 camForm.variableManager.variableValue('site', $scope.site);
@@ -345,6 +344,14 @@
             $scope.jobWorks = [{relatedSites:[]}];
             $scope.jobRequests = {};
 
+            $scope.regions = [
+                {id: 'alm', name: 'Almaty', value: 'Alm'},
+                {id: 'astana', name: 'Astana', value: 'Astana'},
+                {id: 'nc', name: 'North and Center', value: 'N\&C'},
+                {id: 'east', name: 'East', value: 'East'},
+                {id: 'south', name: 'South', value: 'South'},
+                {id: 'west', name: 'West', value: 'West'}
+            ]
             $scope.regionsMap = {
                 '0': 'Alm',
                 '11':'Astana',
@@ -355,8 +362,8 @@
                 '5': 'West',
                 '6': 'West',
                 '7': 'West',
-                '8': 'West',
-                '9': 'Alm'
+                '8': 'West'
+//                '9': 'Mobile'
             };
             $scope.regionsMapLC = {
                 '0': 'alm',
@@ -368,8 +375,8 @@
                 '5': 'west',
                 '6': 'west',
                 '7': 'west',
-                '8': 'west',
-                '9': 'alm'
+                '8': 'west'
+//              '9': 'mobile'
             };
             $scope.contractorShortName = {
                 '4': 'LSE'
@@ -647,12 +654,23 @@
                 if($scope.siteName.startsWith('11')){
                     $scope.regionShortName = $scope.regionsMap['11'];
                     $scope.siteRegion  = $scope.regionsMapLC['11'];
+                    refreshJobRequests();
+                } else if($scope.siteName.startsWith('9')) {
+                    $scope.regionShortName = undefined;
+                    $scope.siteRegion = undefined;
                 } else {
                     $scope.regionShortName = $scope.regionsMap[$scope.siteName.substring(0,1)];
                     $scope.siteRegion = $scope.regionsMapLC[$scope.siteName.substring(0,1)];
+                    refreshJobRequests();
                 }
-                refreshJobRequests();
             };
+
+            $scope.regionSelected = function(siteRegion){
+                $scope.regionShortName = _.find($scope.regions, function (r) {
+                    return r.id === siteRegion;
+                }).value;
+                refreshJobRequests();
+            }
 
             $scope.workSiteSelected = function($item, $index){
                 if(!$scope.jobWorks[$index].relatedSites){
@@ -762,6 +780,16 @@
             <input type="hidden" ng-model="site" name="siteId" required/>
             <label class="error" ng-if="kcell_form.site_name.$error.required && ( kcell_form.site_name.$touched || view.submitted)">Required field</label>
             <label class="error" ng-if="kcell_form.siteId.$error.required && ( kcell_form.siteName.$touched || view.submitted)">Необходимо выбрать сайт из списка</label>
+        </div>
+    </div>
+    <div class="form-group" ng-show="siteName.startsWith('9')">
+        <label class="col-sm-3 control-label">Site region:</label>
+        <div class="col-sm-3">
+            <select class="form-control" ng-model="siteRegion" name="siteRegion" ng-change="regionSelected(siteRegion)" required="true">
+                <option value="">select region for mobile site</option>
+                <option value="{{r.id}}" ng-repeat="r in regions" ng-selected="{{r.id == siteRegion}}">{{r.name}}</option>
+            </select>
+            <label class="error" ng-if="siteName.startsWith('9') && kcell_form.siteRegion.$error.required && ( kcell_form.siteRegion.$touched || view.submitted)">Required field</label>
         </div>
     </div>
     <div class="form-group">
