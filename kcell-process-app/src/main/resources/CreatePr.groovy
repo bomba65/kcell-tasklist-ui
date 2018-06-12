@@ -95,6 +95,7 @@ CM Contract no	     56357	                56357	                56477 SEG Mat+Se
                                                                     56486 Avrora Serv
                                                                     56556 Avrora Mat
 Service number	     1	                    1	                    Номер заказываемой работы по контракту
+Quantity             2                      3                       Количество работ
 Delivery Date	     21.09.2017	            21.09.2017	            Взять дату до которой нужно выполнить работу из стартовой формы прибавить 1 неделю (31.12.currentYear)
 WBS Element	         TN-0502-07-9995	    200-70160-1	            СПП из справочника works (необходимо получить справочники на 2017 и 2018 годы)
 Job Order no	     A-TPOU-10-0230	        A-TPOU-10-0230	        Номер JR из KWMS (повторяется с KWMS Number) или может использовать тех номер из KWMS  в поле KWMS Number? KWMS Number – это ваш номер заявки, аналог номера PR.
@@ -111,41 +112,37 @@ User		        Из нового формата текстового файла	�
 def template = '''\
 if (reason == '2') {
     jobWorksObj.each { w ->
-        w.quantity.times {
-            w.relatedSites.each { r ->
-                yieldUnescaped '' + documentType + '\t' + w.costType + '\t' + jrNumber + '\tapproved\t' + requestDate + '\t' + w.definition.vendor + '\t' + 
-                      '7\tY\tinstallation service ' + r.site_name + '\t' + w.contractorNo + '\t' + w.definition.sapServiceNumber + '\t' +
-                      yearEndDate + '\t' + w.wbsElement + '\t' + jrNumber + '\t' + tnuSiteLocations[r.id].siteLocation + '\t' + (tnuSiteLocations[r.id].fixedAssetNumber!=null?tnuSiteLocations[r.id].fixedAssetNumber:'DUMMY') + '\t' +
-                      w.costCenter + '\t' + w.controllingArea + '\t' + w.activityServiceNumber + '\t' + w.price.unitWorkPricePerSite + '\t' +
-                      subcontructerName + '\t131\t' + requestedBy + '\t' +
-                      '1.Purchase description: Revision works for site ' + r.site_name + ' JR# ' + jrNumber + ' dated ' + requestDate + ' ' +
-                      '2.Budgeted or not: yes ' + w.definition.spp + ' ' +
-                      '3.Main project for Fintur: revision works ' +
-                      '4.Describe the need of this purchase for this year: necessary for revision works ' +
-                      '5.Contact person: ' + subcontructerName + ' ' +
-                      '6. Vendor: Line System Engineering LLP ' +
-                      '8. Total sum: ' + w.price.unitWorkPricePerSite + ''
-                newLine()
-            }
-        }
-    }
-} else {
-    jobWorksObj.each { w ->
-        w.quantity.times {
+        w.relatedSites.each { r ->
             yieldUnescaped '' + documentType + '\t' + w.costType + '\t' + jrNumber + '\tapproved\t' + requestDate + '\t' + w.definition.vendor + '\t' + 
-                  '7\tY\tinstallation service ' + site_name + '\t' + w.contractorNo + '\t' + w.definition.sapServiceNumber + '\t' +
-                  yearEndDate + '\t' + w.wbsElement + '\t' + jrNumber + '\t' + sloc + '\t' + (w.fixedAssetNumber!=null?w.fixedAssetNumber:'DUMMY') + '\t' + 
-                  w.costCenter + '\t' + w.controllingArea + '\t' + w.activityServiceNumber + '\t' + w.price.unitWorkPricePlusTx + '\t' + 
+                  '7\tY\tinstallation service ' + r.site_name + '\t' + w.contractorNo + '\t' + w.definition.sapServiceNumber + '\t' + w.quantity + '\t' +
+                  yearEndDate + '\t' + w.wbsElement + '\t' + jrNumber + '\t' + tnuSiteLocations[r.id].siteLocation + '\t' + (tnuSiteLocations[r.id].fixedAssetNumber!=null?tnuSiteLocations[r.id].fixedAssetNumber:'DUMMY') + '\t' +
+                  w.costCenter + '\t' + w.controllingArea + '\t' + w.activityServiceNumber + '\t' + w.price.unitWorkPricePerSite + '\t' +
                   subcontructerName + '\t131\t' + requestedBy + '\t' +
-                  '1.Purchase description: Revision works for site ' + site_name + ' JR# ' + jrNumber + ' dated ' + requestDate + ' ' +
+                  '1.Purchase description: Revision works for site ' + r.site_name + ' JR# ' + jrNumber + ' dated ' + requestDate + ' ' +
                   '2.Budgeted or not: yes ' + w.definition.spp + ' ' +
                   '3.Main project for Fintur: revision works ' +
                   '4.Describe the need of this purchase for this year: necessary for revision works ' +
                   '5.Contact person: ' + subcontructerName + ' ' +
                   '6. Vendor: Line System Engineering LLP ' +
-                  '8. Total sum: ' + w.price.unitWorkPricePlusTx + ''
+                  '8. Total sum: ' + w.price.unitWorkPricePerSite + ''
             newLine()
         }
+    }
+} else {
+    jobWorksObj.each { w ->
+        yieldUnescaped '' + documentType + '\t' + w.costType + '\t' + jrNumber + '\tapproved\t' + requestDate + '\t' + w.definition.vendor + '\t' + 
+              '7\tY\tinstallation service ' + site_name + '\t' + w.contractorNo + '\t' + w.definition.sapServiceNumber + '\t' + w.quantity + '\t' +
+              yearEndDate + '\t' + w.wbsElement + '\t' + jrNumber + '\t' + sloc + '\t' + (w.fixedAssetNumber!=null?w.fixedAssetNumber:'DUMMY') + '\t' + 
+              w.costCenter + '\t' + w.controllingArea + '\t' + w.activityServiceNumber + '\t' + w.price.unitWorkPricePlusTx + '\t' + 
+              subcontructerName + '\t131\t' + requestedBy + '\t' +
+              '1.Purchase description: Revision works for site ' + site_name + ' JR# ' + jrNumber + ' dated ' + requestDate + ' ' +
+              '2.Budgeted or not: yes ' + w.definition.spp + ' ' +
+              '3.Main project for Fintur: revision works ' +
+              '4.Describe the need of this purchase for this year: necessary for revision works ' +
+              '5.Contact person: ' + subcontructerName + ' ' +
+              '6. Vendor: Line System Engineering LLP ' +
+              '8. Total sum: ' + w.price.unitWorkPricePlusTx + ''
+        newLine()
     }
 }
 '''
