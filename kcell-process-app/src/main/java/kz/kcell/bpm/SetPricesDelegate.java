@@ -38,7 +38,6 @@ public class SetPricesDelegate implements TaskListener {
             }
 
             ArrayNode workPrices = mapper.createArrayNode();
-            System.out.println(delegateTask.getVariable("jobWorks").toString());
             ArrayNode jobWorks = (ArrayNode) mapper.readTree(delegateTask.getVariable("jobWorks").toString());
             BigDecimal jobWorksTotal = BigDecimal.ZERO;
             for (JsonNode work : jobWorks) {
@@ -59,9 +58,12 @@ public class SetPricesDelegate implements TaskListener {
                     uniqueWorks.put(work.get("sapServiceNumber").textValue(), "");
                 }
 
-
                 BigDecimal unitWorkPrice = new BigDecimal(worksPriceMap.get(work.get("sapServiceNumber").textValue()));
-                BigDecimal unitWorkPricePlusTx = unitWorkPrice.multiply(new BigDecimal("1.08"));
+                BigDecimal unitTransportationPrice = unitWorkPrice.multiply(new BigDecimal("0.08"));
+                unitTransportationPrice = unitTransportationPrice.setScale(2, RoundingMode.DOWN);
+
+                BigDecimal unitWorkPricePlusTx = unitWorkPrice.add(unitTransportationPrice);
+
                 if (workPrice.get("relatedSites").size() > 0) {
                     BigDecimal unitWorkPricePerSite = unitWorkPricePlusTx.divide(new BigDecimal(workPrice.get("relatedSites").size()));
                     BigDecimal netWorkPricePerSite = unitWorkPricePerSite.multiply(new BigDecimal(workPrice.get("quantity").asText()));
@@ -85,7 +87,6 @@ public class SetPricesDelegate implements TaskListener {
 
             delegateTask.setVariable("workPrices", jsonValue);
             delegateTask.setVariable("worksPriceList", SpinValues.jsonValue(worksPriceList.toString()).create());
-            System.out.println(jobWorksTotal);
             delegateTask.setVariable("jobWorksTotal", jobWorksTotal.setScale(2, RoundingMode.DOWN).toString());
 
         } catch (Exception e) {
