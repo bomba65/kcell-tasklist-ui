@@ -262,7 +262,8 @@ define(['./module','camundaSDK', 'lodash', 'big-js'], function(module, CamSDK, _
 			});
 		}
 
-		var startableProcessDefinitions = ['Revision', 'Invoice', 'SiteSharingTopProcess', 'Demand'];
+		// var startableProcessDefinitions = ['Revision', 'Invoice', 'SiteSharingTopProcess', 'Demand'];
+		var startableProcessDefinitions = ['Demand'];
 
 		function loadProcessDefinitions(){
 			$http.get(baseUrl+'/process-definition?latest=true&active=true&firstResult=0&maxResults=25').then(

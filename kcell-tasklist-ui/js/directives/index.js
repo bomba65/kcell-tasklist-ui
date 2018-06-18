@@ -4,5 +4,6 @@ define([
 	'./cam-widget-bpmn-viewer',
 	'./trackChange',
 	'./requiredFile',
-	'./sharedSitePlan'
+	'./sharedSitePlan',
+	'./demand/index'
 	], function(){});
