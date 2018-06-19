@@ -48,148 +48,153 @@
         </div>
     </div>
 </div>
-{{worksTitle}}
-<tabset class="my-tab-head my-tab" justified="true" id="selectedWorksId">
-    <tab>
-        <tab-heading >
-            <span class="glyphicon glyphicon-list"></span> Technical information 
-        </tab-heading>
-        <div style="margin-bottom: 20px;"></div>
-        <table class="table table-condensed" class="form-group" ng-if="invoice.selectedRevisions.value" ng-init="getCatalogs();">
-            <thead>
-                <tr>
-                    <th colspan="2">Requested Job Info</th>
-                    <th>Site Info</th>
-                    <th colspan="7">Job Request Info</th>
-                    <th colspan="2">Delay Info</th>
-                </tr>
-                <tr>
-                    <th width="35%">Ordered work</th>
-                    <th width="3%">Q-ty</th>
-                    <th width="9%">Sitename</th>
-                    <th width="12%">JR number</th>
-                    <th width="6%">Job Request ordered date</th>
-                    <th width="6%">Material list approval date</th>
-                    <th width="6%">Job Request Perform date</th>
-                    <th width="6%">Job Request Acceptance date</th>
-                    <th width="3%">Emergency JR</th> <!--"yes" or "no"-->
-                    <th width="3%">Customer's material required</th> <!--"yes" or "no"-->
-                    <th width="3%">Emergency JR</th>
-                    <th width="3%">Regular JR</th>
-                    <th width="3%" ng-if="invoice.showComments">Comment</th>
-                </tr>
-            </thead>
-            <tbody ng-repeat="work in selectedWorks | orderBy: work.key">
-                <tr ng-repeat="w in work.value">
-                    <td ng-if="$first" rowspan="{{work.value.length}}">{{catalogs.worksTitle[work.key]}}</td>
-                    <td>{{w.quantity}}</td>
-                    <td><span ng-repeat="rs in w.relatedSites">{{rs.site_name}}<br ng-if="!$last" /></span></td>
-                    <td><a ng-click="toggleProcessView(w.processInstanceId, work.key, 'technical')">{{w.businessKey}}</a></td>
-                    <td>{{(w.attachMaterialList!=null ? w.attachMaterialList : w.fillAppliedChanges) | date:'dd.MM.yyyy'}}</td>
-                    <td>{{w.validateTr | date:'dd.MM.yyyy'}}</td>
-                    <td>{{w.acceptWorkStartTime | date:'dd.MM.yyyy'}}</td>
-                    <td>{{w.acceptWorkEndTime | date:'dd.MM.yyyy'}}</td>
-                    <td>{{w.priority == 'emergency'?'Emergency':'Regular'}}</td>
-                    <td>{{w.materialsRequired}}</td>
-                    <td >
-                        <div ng-show="!emergencyDelayEditable">
-                            {{invoice.emergencyDelay.value[w.processInstanceId + ':' + work.key]}}
-                            <a class="glyphicon" ng-class="{'glyphicon-pencil': invoice.showEditableDelay}"  aria-hidden="true" ng-click="emergencyDelayEditable = !emergencyDelayEditable"></a>  
-                        </div>
-                        <div ng-if="emergencyDelayEditable" class="input-group">
-                            <input type="number" ng-model="invoice.emergencyDelay.value[w.processInstanceId + ':' + work.key]" min="0" name="emergencyDelay{{$index}}" style="width: 50px;">
-                        </div>
-                        <label class="error" ng-if="kcell_form['emergencyDelay' + $index].$error.required && ( kcell_form['emergencyDelay' + $index].$touched || view.submitted) && emergencyDelayEditable">Required field</label>
-                        
-                    </td>
-                    <td>
-                        <div ng-show="!regularDelayEditable">
-                            {{invoice.regularDelay.value[w.processInstanceId + ':' + work.key]}}
-                            <a class="glyphicon" ng-class="{'glyphicon-pencil': invoice.showEditableDelay}"  aria-hidden="true" ng-click="regularDelayEditable = !regularDelayEditable"></a>  
-                        </div>
-                        <div ng-if="regularDelayEditable" class="input-group">
-                            <input type="number" ng-model="invoice.regularDelay.value[w.processInstanceId + ':' + work.key]" min="0" name="regularDelay{{$index}}" style="width: 50px;">
-                        </div>
-                        <label class="error" ng-if="kcell_form['regularDelay' + $index].$error.required && ( kcell_form['regularDelay' + $index].$touched || view.submitted) && regularDelayEditable">Required field</label>
-                    </td>
-                    <td ng-if="invoice.showComments">
-                        <div ng-show="!jrCommentEditable">
-                            <a class="glyphicon" ng-class="{'glyphicon-comment': invoice.workComments[w.processInstanceId + ':' + work.key], 'glyphicon-plus': !invoice.workComments[w.processInstanceId + ':' + work.key] }" placement="left" tooltip="{{invoice.workComments[w.processInstanceId + ':' + work.key]}}" tooltip-append-to-body="true" aria-hidden="true" ng-click="jrCommentEditable = !jrCommentEditable"></a>
-                        </div>
-                        <div ng-show="jrCommentEditable" class="input-group">
-                            <input type="text" ng-model="invoice.workComments[w.processInstanceId + ':' + work.key]" name="jrComment{{$index}}" style="width: 50px;">
-                        </div>
-                        <label class="error" ng-if="kcell_form['jrComment' + $index].$error.required && ( kcell_form['jrComment' + $index].$touched || view.submitted) && jrCommentEditable">Required field</label>
-                    </td>
-                </tr>
-                <tr ng-if="pkey === work.key && jobModel && table==='technical'">
-                    <td colspan="11">
-                        <job-request job-model="jobModel"></job-request>
-                    </td>
-                </tr>                
-            </tbody>
-        </table>        
-    </tab>
-    <tab ng-if="invoice.showFinanceInfo">
-        <tab-heading>
-            <span class="glyphicon glyphicon-list"></span> Finance information
-        </tab-heading>
-        <div style="margin-bottom: 20px;"></div>
-        <table class="table table-condensed" class="form-group">
-            <thead>
-                <tr>
-                    <th colspan="2">Requested Job Info</th>
-                    <th>Site Info</th>
-                    <th colspan="2">Job Request Info</th>
-                    <th colspan="5">Price</th>
-                    <th>PR#</th>
-                    <th>PO#</th>
-                </tr>
-                <tr>
-                    <th width="30%">Ordered work</th>
-                    <th width="3%">Q-ty</th>
-                    <th width="8%">Sitename</th>
-                    <th width="12%">JR number</th>
-                    <th width="6%">Base Price for work</th>
-                    <th width="6%">Sum = Base + transportation</th>
-                    <th width="7%">Base Price * works q-ty</th>
-                    <th width="6%">1 work price per site (Sum/sites q-ty)</th>
-                    <th width="7%">Sum * works q-ty</th>
-                    <th width="7%">Total</th>
-                    <th width="4%">PR#</th>
-                    <th width="4%">PO#</th>
-                </tr>
-            </thead>
-            <tbody ng-repeat="work in selectedWorks | orderBy: work.key">
-                <tr ng-repeat="w in work.value">
-                    <td ng-if="$first" rowspan="{{work.value.length}}">{{catalogs.worksTitle[work.key]}}</td>
-                    <td>{{w.quantity}}</td>
-                    <td><span ng-repeat="rs in w.relatedSites">{{rs.site_name}}<br ng-if="!$last" /></span></td>
-                    <td><a ng-click="toggleProcessView(w.processInstanceId, work.key, 'finance')">{{w.businessKey}}</a></td>
-                    <td>{{w.workPrices.unitWorkPrice.replace('.',',')}}</td>
-                    <td>{{w.workPrices.unitWorkPricePlusTx.replace('.',',')}}</td>
-                    <td>{{work.workPrices.basePriceByQuantity ? work.workPrices.basePriceByQuantity.replace('.',',') : calculateBasePriceByQuantity(w.workPrices)}}</td>
-                    <td>{{w.workPrices.unitWorkPricePerSite.replace('.',',')}}</td>
-                    <td>{{w.workPrices.netWorkPricePerSite.replace('.',',')}}</td>
-                    <td>{{w.workPrices.total.replace('.',',')}}</td>
-                    <td>{{w.sapPRNo?'#'+w.sapPRNo:''}}</td>
-                    <td>{{w.sapPONo?'#'+w.sapPONo:''}}</td>
-                </tr>
-                <tr ng-if="pkey === work.key && jobModel && table==='finance'">
-                    <td colspan="11">
-                        <job-request job-model="jobModel"></job-request>
-                    </td>
-                </tr>                
-            </tbody>
-            <tbody>
-                <tr>
-                    <td colspan="9">Total price</td>
-                    <td>{{total.replace('.',',')}}</td>
-                    <td></td>
-                    <td></td>
-                </tr>
-            </tbody>
-        </table>
+<div style="overflow-x: scroll;">
+<div class="row">
+    <div class="col-md-12">
+        <tabset class="my-tab-head my-tab" justified="true" id="selectedWorksId">
+            <tab>
+                <tab-heading>
+                    <span class="glyphicon glyphicon-list"></span> Technical information 
+                </tab-heading>
+                <div style="margin-bottom: 20px;"></div>
+                <table class="table table-condensed" class="form-group" ng-if="invoice.selectedRevisions.value" ng-init="getCatalogs();">
+                    <thead>
+                        <tr>
+                            <th colspan="2">Requested Job Info</th>
+                            <th>Site Info</th>
+                            <th colspan="7">Job Request Info</th>
+                            <th colspan="2">Delay Info</th>
+                        </tr>
+                        <tr>
+                            <th width="35%">Ordered work</th>
+                            <th width="3%">Q-ty</th>
+                            <th width="9%">Sitename</th>
+                            <th width="12%">JR number</th>
+                            <th width="6%">Job Request ordered date</th>
+                            <th width="6%">Material list approval date</th>
+                            <th width="6%">Job Request Perform date</th>
+                            <th width="6%">Job Request Acceptance date</th>
+                            <th width="3%">Emergency JR</th> <!--"yes" or "no"-->
+                            <th width="3%">Customer's material required</th> <!--"yes" or "no"-->
+                            <th width="3%">Emergency JR</th>
+                            <th width="3%">Regular JR</th>
+                            <th width="3%" ng-if="invoice.showComments">Comment</th>
+                        </tr>
+                    </thead>
+                    <tbody ng-repeat="work in selectedWorks | orderBy: work.key">
+                        <tr ng-repeat="w in work.value">
+                            <td ng-if="$first" rowspan="{{work.value.length}}">{{catalogs.worksTitle[work.key]}}</td>
+                            <td>{{w.quantity}}</td>
+                            <td><span ng-repeat="rs in w.relatedSites">{{rs.site_name}}<br ng-if="!$last" /></span></td>
+                            <td><a ng-click="toggleProcessView(w.processInstanceId, work.key, 'technical')">{{w.businessKey}}</a></td>
+                            <td>{{(w.attachMaterialList!=null ? w.attachMaterialList : w.fillAppliedChanges) | date:'dd.MM.yyyy'}}</td>
+                            <td>{{w.validateTr | date:'dd.MM.yyyy'}}</td>
+                            <td>{{w.acceptWorkStartTime | date:'dd.MM.yyyy'}}</td>
+                            <td>{{w.acceptWorkEndTime | date:'dd.MM.yyyy'}}</td>
+                            <td>{{w.priority == 'emergency'?'Emergency':'Regular'}}</td>
+                            <td>{{w.materialsRequired}}</td>
+                            <td >
+                                <div ng-show="!emergencyDelayEditable">
+                                    {{invoice.emergencyDelay.value[w.processInstanceId + ':' + work.key]}}
+                                    <a class="glyphicon" ng-class="{'glyphicon-pencil': invoice.showEditableDelay}"  aria-hidden="true" ng-click="emergencyDelayEditable = !emergencyDelayEditable"></a>  
+                                </div>
+                                <div ng-if="emergencyDelayEditable" class="input-group">
+                                    <input type="number" ng-model="invoice.emergencyDelay.value[w.processInstanceId + ':' + work.key]" min="0" name="emergencyDelay{{$index}}" style="width: 50px;">
+                                </div>
+                                <label class="error" ng-if="kcell_form['emergencyDelay' + $index].$error.required && ( kcell_form['emergencyDelay' + $index].$touched || view.submitted) && emergencyDelayEditable">Required field</label>
+                                
+                            </td>
+                            <td>
+                                <div ng-show="!regularDelayEditable">
+                                    {{invoice.regularDelay.value[w.processInstanceId + ':' + work.key]}}
+                                    <a class="glyphicon" ng-class="{'glyphicon-pencil': invoice.showEditableDelay}"  aria-hidden="true" ng-click="regularDelayEditable = !regularDelayEditable"></a>  
+                                </div>
+                                <div ng-if="regularDelayEditable" class="input-group">
+                                    <input type="number" ng-model="invoice.regularDelay.value[w.processInstanceId + ':' + work.key]" min="0" name="regularDelay{{$index}}" style="width: 50px;">
+                                </div>
+                                <label class="error" ng-if="kcell_form['regularDelay' + $index].$error.required && ( kcell_form['regularDelay' + $index].$touched || view.submitted) && regularDelayEditable">Required field</label>
+                            </td>
+                            <td ng-if="invoice.showComments">
+                                <div ng-show="!jrCommentEditable">
+                                    <a class="glyphicon" ng-class="{'glyphicon-comment': invoice.workComments[w.processInstanceId + ':' + work.key], 'glyphicon-plus': !invoice.workComments[w.processInstanceId + ':' + work.key] }" placement="left" tooltip="{{invoice.workComments[w.processInstanceId + ':' + work.key]}}" tooltip-append-to-body="true" aria-hidden="true" ng-click="jrCommentEditable = !jrCommentEditable"></a>
+                                </div>
+                                <div ng-show="jrCommentEditable" class="input-group">
+                                    <input type="text" ng-model="invoice.workComments[w.processInstanceId + ':' + work.key]" name="jrComment{{$index}}" style="width: 50px;">
+                                </div>
+                                <label class="error" ng-if="kcell_form['jrComment' + $index].$error.required && ( kcell_form['jrComment' + $index].$touched || view.submitted) && jrCommentEditable">Required field</label>
+                            </td>
+                        </tr>
+                        <tr ng-if="pkey === work.key && jobModel && table==='technical'">
+                            <td colspan="11">
+                                <job-request job-model="jobModel"></job-request>
+                            </td>
+                        </tr>                
+                    </tbody>
+                </table>        
+            </tab>
+            <tab ng-if="invoice.showFinanceInfo">
+                <tab-heading>
+                    <span class="glyphicon glyphicon-list"></span> Finance information
+                </tab-heading>
+                <div style="margin-bottom: 20px;"></div>
+                <table class="table table-condensed" class="form-group">
+                    <thead>
+                        <tr>
+                            <th colspan="2">Requested Job Info</th>
+                            <th>Site Info</th>
+                            <th colspan="2">Job Request Info</th>
+                            <th colspan="5">Price</th>
+                            <th>PR#</th>
+                            <th>PO#</th>
+                        </tr>
+                        <tr>
+                            <th width="30%">Ordered work</th>
+                            <th width="3%">Q-ty</th>
+                            <th width="8%">Sitename</th>
+                            <th width="12%">JR number</th>
+                            <th width="6%">Base Price for work</th>
+                            <th width="6%">Sum = Base + transportation</th>
+                            <th width="7%">Base Price * works q-ty</th>
+                            <th width="6%">1 work price per site (Sum/sites q-ty)</th>
+                            <th width="7%">Sum * works q-ty</th>
+                            <th width="7%">Total</th>
+                            <th width="4%">PR#</th>
+                            <th width="4%">PO#</th>
+                        </tr>
+                    </thead>
+                    <tbody ng-repeat="work in selectedWorks | orderBy: work.key">
+                        <tr ng-repeat="w in work.value">
+                            <td ng-if="$first" rowspan="{{work.value.length}}">{{catalogs.worksTitle[work.key]}}</td>
+                            <td>{{w.quantity}}</td>
+                            <td><span ng-repeat="rs in w.relatedSites">{{rs.site_name}}<br ng-if="!$last" /></span></td>
+                            <td><a ng-click="toggleProcessView(w.processInstanceId, work.key, 'finance')">{{w.businessKey}}</a></td>
+                            <td>{{w.workPrices.unitWorkPrice.replace('.',',')}}</td>
+                            <td>{{w.workPrices.unitWorkPricePlusTx.replace('.',',')}}</td>
+                            <td>{{work.workPrices.basePriceByQuantity ? work.workPrices.basePriceByQuantity.replace('.',',') : calculateBasePriceByQuantity(w.workPrices)}}</td>
+                            <td>{{w.workPrices.unitWorkPricePerSite.replace('.',',')}}</td>
+                            <td>{{w.workPrices.netWorkPricePerSite.replace('.',',')}}</td>
+                            <td>{{w.workPrices.total.replace('.',',')}}</td>
+                            <td>{{w.sapPRNo?'#'+w.sapPRNo:''}}</td>
+                            <td>{{w.sapPONo?'#'+w.sapPONo:''}}</td>
+                        </tr>
+                        <tr ng-if="pkey === work.key && jobModel && table==='finance'">
+                            <td colspan="11">
+                                <job-request job-model="jobModel"></job-request>
+                            </td>
+                        </tr>                
+                    </tbody>
+                    <tbody>
+                        <tr>
+                            <td colspan="9">Total price</td>
+                            <td>{{total.replace('.',',')}}</td>
+                            <td></td>
+                            <td></td>
+                        </tr>
+                    </tbody>
+                </table>
 
-    </tab>
-</tabset>
+            </tab>
+        </tabset>
+    </div>
+    </div>
+</div>
