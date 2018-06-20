@@ -25,7 +25,8 @@ require.config({
          'big-js': './node_modules/big.js/big.min',
          'excellentexport': './node_modules/excellentexport/dist/excellentexport',
          'angular-ui-router': './node_modules/angular-ui-router/release/angular-ui-router.min',
-         'ng-file-upload': './node_modules/ng-file-upload/dist/ng-file-upload-all.min'
+         'ng-file-upload': './node_modules/ng-file-upload/dist/ng-file-upload-all.min',
+         'angularjs-dropdown-multiselect': './node_modules/angularjs-dropdown-multiselect/dist/angularjs-dropdown-multiselect.min'
      },
  
      // angular не поддерживает AMD из коробки, поэтому экспортируем перменную angular в глобальную область
@@ -42,6 +43,7 @@ require.config({
          'angular-ui-router': ['angular'],
          'angular-ui-bootstrap': ['angular'],
          'ng-file-upload': ['angular'],
+         'angularjs-dropdown-multiselect': ['angular'],
          'angular-translate-storage-local': ['translate'],
          'angular-translate-storage-cookie': ['translate']
      },
