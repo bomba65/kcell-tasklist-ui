@@ -1,3 +1,5 @@
 define([
-	'./general'
+	'./general',
+	'./details',
+	'./targetAudience'
 	], function(){});
