@@ -1,0 +1,292 @@
+<form role="form" class="form-horizontal" name="kcell_form" novalidate>
+<style>
+    .well {
+        color: #333;
+    }
+</style>
+<script cam-script type="text/form-script">
+        inject(['$scope', '$http', 'Uri', '$rootScope', '$q', function ($scope, $http, Uri, $rootScope, $q) {
+            var variables = [
+                {
+                    name: 'demandID',
+                    type: 'String',
+                    submit: true,
+                    store: true
+                }, {
+                    name: 'demandStatus',
+                    type: 'String',
+                    submit: true,
+                    store: true
+                },{
+                    name: 'demandActivity',
+                    type: 'String',
+                    submit: true,
+                    store: true
+                }, {
+                    name: 'resolutions',
+                    type: 'Json',
+                    submit: true,
+                    store: true,
+                    value: []
+                }
+            ];
+            $scope.generalData = {};
+            $scope.detailsData = {};
+            $scope.targetAudienceData = {};
+            $scope.demandSecondFormTaskResult = {};
+
+
+            camForm.on('form-loaded', function () {
+                variables.forEach(function (el) {
+                    camForm.variableManager.createVariable(el);
+                });
+                $http.get('/camunda/api/engine/engine/default/task/' + camForm.taskId).then(
+                    function(result){
+                        $scope.processInstanceId = result.data.processInstanceId;
+                        $scope.taskName = result.data.name;
+                    },
+                    function (error) {
+                        console.log(error.data);
+                    }
+                );
+                camForm.variableManager.fetchVariable('generalData');
+                camForm.variableManager.fetchVariable('detailsData');
+                camForm.variableManager.fetchVariable('targetAudienceData');
+                camForm.variableManager.fetchVariable('demandSecondFormTaskResult');
+            });
+
+            camForm.on('variables-fetched', function () {
+
+                camForm.variableManager.createVariable({
+                    name: 'demandFillFormTaskResult',
+                    type: 'String',
+                    value: ''
+                });
+
+                $scope.demandSecondFormTaskResult = camForm.variableManager.variableValue('demandSecondFormTaskResult');
+
+                camForm.variableManager.createVariable({
+                    name: 'demandFillFormTaskComment',
+                    type: 'String',
+                    value: ''
+                });
+                $scope.generalData = camForm.variableManager.variableValue('generalData');
+                $scope.detailsData = camForm.variableManager.variableValue('detailsData');
+                $scope.targetAudienceData = camForm.variableManager.variableValue('targetAudienceData');
+                if (!$scope.generalData) $scope.generalData = {};
+                if (!$scope.detailsData) $scope.detailsData = {};
+                if (!$scope.targetAudienceData) $scope.targetAudienceData = {};
+            });
+
+            camForm.on('submit', function (event) {
+                //event.submitPrevented = true;
+                camForm.variableManager.destroyVariable('generalData');
+                camForm.variableManager.createVariable({
+                    name: 'generalData',
+                    type: 'Json',
+                    value: $scope.generalData
+                });
+                camForm.variableManager.destroyVariable('detailsData');
+                camForm.variableManager.createVariable({
+                    name: 'detailsData',
+                    type: 'Json',
+                    value: $scope.detailsData
+                });
+                camForm.variableManager.destroyVariable('targetAudienceData');
+                camForm.variableManager.createVariable({
+                    name: 'targetAudienceData',
+                    type: 'Json',
+                    value: $scope.targetAudienceData
+                });
+
+                var submitDate = new Date ();
+                if(!$scope.resolutions){
+                    $scope.resolutions = [];
+                }
+
+                camForm.variableManager.variableValue('demandFillFormTaskComment', $scope.demandFillFormTaskComment);
+                camForm.variableManager.variableValue('demandFillFormTaskResult', $scope.demandFillFormTaskResult);
+                $scope.resolutions.push({processInstanceId: $scope.processInstanceId, assignee: $rootScope.authentication.name, resolution: $scope.demandFillFormTaskResult, comment: $scope.demandFillFormTaskComment, taskId: camForm.taskId, taskEndDate: submitDate, taskName: $scope.taskName});
+                camForm.variableManager.variableValue('resolutions', $scope.resolutions);
+                console.log($scope.resolutions);
+            });
+            $scope.saveFillForm = function () {
+                var json = JSON.stringify($scope.demandName, function( key, value ) {
+                    if( key === "$$hashKey" ) {
+                        return undefined;
+                    }
+                    return value;
+                });
+                $http.put('/camunda/api/engine/engine/default/process-instance/'+$scope.processInstanceId+'/variables/demandName',{"type":"Json","value": json}).then(
+                        function(){
+                            console.log($scope.demandName);
+                        },
+                        function(error){
+                            console.log(error.data);
+                        }
+                );
+                var json = JSON.stringify($scope.generalData, function( key, value ) {
+                    if( key === "$$hashKey" ) {
+                        return undefined;
+                    }
+                    return value;
+                });
+                $http.put('/camunda/api/engine/engine/default/process-instance/'+$scope.processInstanceId+'/variables/generalData',{"type":"Json","value": json}).then(
+                        function(){
+                            console.log($scope.generalData);
+                        },
+                        function(error){
+                            console.log(error.data);
+                        }
+                );
+                var json = JSON.stringify($scope.detailsData, function( key, value ) {
+                    if( key === "$$hashKey" ) {
+                        return undefined;
+                    }
+                    return value;
+                });
+                $http.put('/camunda/api/engine/engine/default/process-instance/'+$scope.processInstanceId+'/variables/detailsData',{"type":"Json","value": json}).then(
+                        function(){
+                            console.log($scope.detailsData);
+                        },
+                        function(error){
+                            console.log(error.data);
+                        }
+                );
+                var json = JSON.stringify($scope.targetAudienceData, function( key, value ) {
+                    if( key === "$$hashKey" ) {
+                        return undefined;
+                    }
+                    return value;
+                });
+                $http.put('/camunda/api/engine/engine/default/process-instance/'+$scope.processInstanceId+'/variables/targetAudienceData',{"type":"Json","value": json}).then(
+                        function(){
+                            console.log($scope.targetAudienceData);
+                        },
+                        function(error){
+                            console.log(error.data);
+                        }
+                );
+            };
+        }]);
+    </script>
+    <div class="form-group">
+        <label class="col-sm-2 control-label"> Demand ID: </label>
+        <div class="col-sm-2">
+            <textarea rows="1" class="form-control" ng-model="demandID"/>
+        </div>
+        <label class="col-sm-2 control-label"> Demand Status: </label>
+        <div class="col-sm-2">
+            <textarea rows="1" class="form-control" ng-model="demandStatus"/>
+        </div>
+        <label class="col-sm-2 control-label"> Activity: </label>
+        <div class="col-sm-2">
+            <textarea rows="1" class="form-control" ng-model="demandActivity"/>
+        </div>
+    </div>
+    <div class="form-group">
+        <label class="col-sm-2 control-label"> Demand Name: </label>
+        <div class="col-sm-10">
+            <textarea rows="1" class="form-control" cam-variable-name="demandName" cam-variable-type="String"/>
+        </div>
+    </div>
+    <hr>
+    <tabset class="my-tab-head my-tab" justified="true" id="jobRequestId">
+        <tab>
+            <tab-heading> Main </tab-heading>
+            <div style="margin-bottom: 20px;"></div>
+            <h4>General</h4>
+            <br>
+            <div class="col-sm-12">
+                <demand-general data="generalData" form="kcell_form" view="view" readonly="false"></demand-general>
+            </div>
+            <br>
+            <h4>Target Audience:</h4>
+            <div class="col-sm-12">
+                <demand-target-audience data="targetAudienceData" form="kcell_form" view="view" readonly="false"></demand-target-audience>
+            </div>
+            <br>
+            <h4>Demand Details</h4>
+            <div class="col-sm-12">
+                <demand-details data="detailsData" form="kcell_form" view="view" readonly="false"></demand-details>
+            </div>
+        </tab>
+        <tab>
+            <tab-heading> Second Tab </tab-heading>
+        </tab>
+        <tab>
+            <tab-heading> Third Tab </tab-heading>
+        </tab>
+    </tabset>
+
+    <div class="row">
+        <div class="col-md-10" align="right"><a ng-click="saveFillForm()" class="btn btn-success" ng-show="demandSecondFormTaskResult == 'modify'">Save</a></div>
+    </div>
+
+    <hr>
+
+    <div class="form-group">
+        <label class="col-sm-2 control-label">Resolution</label>
+        <div class="col-sm-8">
+            <label class="radio-inline">
+                <input type="radio" ng-model="demandFillFormTaskResult" name="demandFillFormTaskResult" value="approved" required> Approved
+            </label>
+            <label class="radio-inline">
+                <input type="radio" ng-model="demandFillFormTaskResult" name="demandFillFormTaskResult" value="modify" required> Modify works
+            </label>
+            <label class="radio-inline">
+                <input type="radio" ng-model="demandFillFormTaskResult" name="demandFillFormTaskResult" value="rejected" required> Reject
+            </label>
+            <label class="error" ng-show="kcell_form.demandFillFormTaskResult.$error.required && ( kcell_form.demandFillFormTaskResult.$touched || view.submitted)">Required field</label>
+        </div>
+    </div>
+    <div class="form-group">
+        <label class="col-sm-2 control-label">Comments</label>
+        <div class="col-sm-10">
+            <textarea class="form-control" rows="4" maxlength="500" ng-model="demandFillFormTaskComment" name="demandFillFormTaskComment" ng-required="demandFillFormTaskResult == 'rejected'"></textarea>
+            <label class="error" ng-show="kcell_form.demandFillFormTaskComment.$error.required && ( kcell_form.demandFillFormTaskComment.$touched || view.submitted)">Required field</label>
+        </div>
+    </div>
+    <div class="form-group" ng-show="hasComment()">
+        <label class="col-sm-4 control-label">Comments visibility</label>
+        <div class="col-sm-8">
+            <label class="radio-inline">
+                <input type="radio" name="demandFillFormCommentVisibility"
+                       ng-model="demandFillFormCommentVisibility" value="all" ng-required="hasComment()"> Visible for all
+            </label>
+            <label class="radio-inline">
+                <input type="radio" name="demandFillFormCommentVisibility"
+                       ng-model="demandFillFormCommentVisibility" value="kcell" ng-required="hasComment()"> Kcell staff only
+            </label>
+            <label class="error" ng-show="kcell_form.demandFillFormCommentVisibility.$error.required && ( kcell_form.demandFillFormCommentVisibility.$touched || view.submitted)">Required field</label>
+        </div>
+    </div>
+
+    <accordion>
+        <accordion-group is-open="isHistoryOpen">
+            <accordion-heading>
+                History <i class="pull-right glyphicon" ng-class="{'glyphicon-chevron-up': status.isCustomHeaderOpen, 'glyphicon-chevron-down': !status.isCustomHeaderOpen}"></i>
+            </accordion-heading>
+            <table class="table">
+                <thead>
+                <tr>
+                    <th>Activity</th>
+                    <th>Assignee</th>
+                    <th>Resolution</th>
+                    <th>Date</th>
+                    <th>Comment</th>
+                </tr>
+                </thead>
+                <tbody>
+                <tr ng-repeat="resolution in resolutions">
+                    <td>{{resolution.taskName}}</td>
+                    <td>{{resolution.assigneeName}}</td>
+                    <td>{{'task.resolution.'+resolution.resolution | translate}}</td>
+                    <td>{{resolution.taskEndDate | date: 'dd.MM.yyyy HH:mm'}}</td>
+                    <td>{{resolution.comment}}</td>
+                </tr>
+                </tbody>
+            </table>
+        </accordion-group>
+    </accordion>
+</form>
