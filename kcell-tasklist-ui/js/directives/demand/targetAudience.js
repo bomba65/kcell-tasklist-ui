@@ -21,12 +21,9 @@ define(['./../module'], function(module){
 				];
 				scope.$watch('data', function(value) {
 					if (value) {
-						if (!scope.data.audience) {
-							scope.data.audience = [];
-						}
-						if (!scope.data.rouming) {
-							scope.data.rouming = [];
-						}
+						if (!scope.data) scope.data = {};
+						if (!scope.data.audience) scope.data.audience = [];
+						if (!scope.data.rouming) scope.data.rouming = [];
 					}
 				});
 	        },

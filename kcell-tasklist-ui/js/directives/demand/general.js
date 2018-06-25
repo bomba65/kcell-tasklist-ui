@@ -13,6 +13,8 @@ define(['./../module'], function(module){
                 scope.datePickerMinDate = new Date();
                 scope.$watch('data', function(value) {
                     if (value) {
+                        if (!scope.data) scope.data = {};
+                        
                         if (!scope.data.plannedLaunch) scope.data.plannedLaunch = new Date();
                         else scope.data.plannedLaunch = new Date(scope.data.plannedLaunch);
                         

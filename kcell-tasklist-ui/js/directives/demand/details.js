@@ -26,15 +26,10 @@ define(['./../module'], function(module){
 				];
 				scope.$watch('data', function(value) {
 					if (value) {
-						if (!scope.data.productName) {
-							scope.data.productName = [];
-						}
-						if (!scope.data.productOfferName) {
-							scope.data.productOfferName = [];
-						}
-						if (!scope.data.deliverable) {
-							scope.data.deliverable = [];
-						}
+						if (!scope.data) scope.data = {};
+						if (!scope.data.productName) scope.data.productName = [];
+						if (!scope.data.productOfferName) scope.data.productOfferName = [];
+						if (!scope.data.deliverable) scope.data.deliverable = [];
 					}
 				});
 	        },
