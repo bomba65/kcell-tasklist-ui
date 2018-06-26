@@ -31,17 +31,88 @@ define('app',[
 	]);
 	var preLoginUrl;
 	var resolve = {
-        authentication: ['AuthenticationService', '$q', function(AuthenticationService, $q) {
-        	var defer = $q.defer();
-            return AuthenticationService.getAuthentication().then(
+		baseUrl: function(){
+			return '/camunda/api/engine/engine/default';
+		},
+		projects: function(){
+			return [
+				{
+					"key" : "NetworkInfrastructure",
+					"name" : "Network Infrastructure",
+					"processes" : [
+						{key:'Revision', name:'Revision', tenant:'infrastructure_revision_tenant'},
+						{key:'Invoice', name:'Monthly Act', tenant:'infrastructure_monthly_act_tenant'},
+						{key:'SiteSharingTopProcess', name:'4G Site Sharing', tenant:'infrastructure_sharing_tenant',}
+					]
+				}
+			];
+		},
+        authentication: function(AuthenticationService) {
+            return AuthenticationService.getAuthentication();
+        },
+        authUser: function(baseUrl, $http, authentication, $rootScope) {
+            return $http.get(baseUrl+'/user/'+authentication.name+'/profile').then(
             	function(res){
-            		return defer.resolve(res);
-            	},
-            	function(err){
-            		return defer.reject(err);
+            		$rootScope.authUser = res.data;
+            		return res.data;
             	}
         	);
-        }]
+        },
+        groups: function(baseUrl, $http, authentication, $rootScope, authUser) {
+            return $http.get(baseUrl+'/group?member='+authUser.id).then(
+            	function(res){
+            		$rootScope.authUser.groups = res.data;
+            		return res.data;
+            	}
+        	);
+        },
+        tenants: function(baseUrl, $http, authentication, $rootScope, authUser) {
+            return $http.get(baseUrl+'/tenant?userMember='+authUser.id+'&includingGroupsOfUser=true').then(
+            	function(res){
+            		$rootScope.authUser.tenants = res.data;
+            		return res.data;
+            	}
+        	);
+        },        
+        defaults: function ($rootScope, projects, tenants){
+			function hasTenant(tenant){
+				if(tenants){
+					return _.some($rootScope.authUser.tenants, function(value){
+						return value.id === tenant;
+					});
+				} else {
+					return false;
+				}
+			}
+
+        	var aviableProjects = [
+				{
+					"key":"All", name:"All", "processes" : [
+						{"key":"All", name:"All"}
+					]
+				}
+			];
+
+			angular.forEach(projects, function(project){
+				var p = angular.copy(project);
+				p.processes = [];
+				angular.forEach(project.processes, function(process){
+					if(hasTenant(process.tenant)){
+						p.processes.push(process);
+					}
+				});	
+				if(p.processes.length>0){
+					p.processes.splice(0,0,{"key":"All", name:"All"});
+					aviableProjects.push(p);
+				}				
+			});
+
+			$rootScope.projects = aviableProjects;
+			$rootScope.selectedProject = $rootScope.projects[0];
+			$rootScope.selectedProcess = $rootScope.selectedProject.processes[0];
+
+			return [];
+		}
     }
 	app.config(['$urlRouterProvider', '$httpProvider', '$stateProvider', function($urlRouterProvider, $httpProvider, $stateProvider){
 		$httpProvider.interceptors.push('httpInterceptor');
@@ -110,8 +181,57 @@ define('app',[
 	      		}
 	    	};
 		}];
-	}).run(['AuthenticationService', '$rootScope', function(AuthenticationService, $rootScope){
+	}).run(['AuthenticationService', '$rootScope', '$http', function(AuthenticationService, $rootScope, $http){
+		$rootScope.isProcessVisible = function(process){
+			if ($rootScope.selectedProject.key === 'All'){
+				return true;
+			} else if($rootScope.selectedProcess.key === process){
+				return true;
+			} else if($rootScope.selectedProcess.key === 'All' && _.find($rootScope.selectedProject.processes, { 'key': process})){
+				return true;				
+			} else {
+				return false;
+			}
+		}
 
+		$rootScope.isProcessAviable = function(processKey){
+			return _.some($rootScope.projects, function(project){
+				return _.some(project.processes, function(process){
+					return process.key === processKey;
+				});
+			});
+		}		
+
+		$rootScope.getCurrentProcesses = function(){
+			var result = [];
+			if ($rootScope.selectedProject.key === 'All'){
+				angular.forEach($rootScope.projects, function(project){
+					angular.forEach(project.processes, function(process){
+						if(process.key !== 'All'){
+							result.push(process);
+						}
+					});
+				});
+			} else if($rootScope.selectedProcess.key === 'All'){
+				angular.forEach($rootScope.selectedProject.processes, function(process){
+					if(process.key !== 'All'){
+						result.push(process);
+					}
+				});
+			} else {
+				result.push($rootScope.selectedProcess);
+			}
+			return result;
+		}
+		$rootScope.hasGroup = function(group){
+			if($rootScope.authUser && $rootScope.authUser.groups){
+				return _.some($rootScope.authUser.groups, function(value){
+					return value.id === group;
+				});
+			} else {
+				return false;
+			}
+		}
 	}]).run([ '$rootScope', '$location', 'AuthenticationService', '$q', '$state', function($rootScope, $location, AuthenticationService, $q, $state) {
 		$rootScope.$on('authentication.login.required', function(event) {
 			$rootScope.$evalAsync(function() {
