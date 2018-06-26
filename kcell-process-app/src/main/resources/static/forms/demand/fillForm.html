@@ -8,21 +8,6 @@
         inject(['$scope', '$http', 'Uri', '$rootScope', '$q', function ($scope, $http, Uri, $rootScope, $q) {
             var variables = [
                 {
-                    name: 'demandID',
-                    type: 'String',
-                    submit: true,
-                    store: true
-                }, {
-                    name: 'demandStatus',
-                    type: 'String',
-                    submit: true,
-                    store: true
-                },{
-                    name: 'demandActivity',
-                    type: 'String',
-                    submit: true,
-                    store: true
-                }, {
                     name: 'resolutions',
                     type: 'Json',
                     submit: true,
@@ -80,6 +65,16 @@
 
             camForm.on('submit', function (event) {
                 //event.submitPrevented = true;
+                $http.get('/camunda/api/engine/engine/default/history/process-definition/cleanable-process-instance-report/count?processDefinitionKey=' + 1).then(
+                        function(result){
+                            $scope.businessKey = result.data;
+                        },
+                        function (error) {
+                            console.log(error.data);
+                        }
+                );
+                console.log($scope.businessKey);
+
                 camForm.variableManager.destroyVariable('generalData');
                 camForm.variableManager.createVariable({
                     name: 'generalData',
@@ -110,21 +105,8 @@
                 camForm.variableManager.variableValue('resolutions', $scope.resolutions);
                 console.log($scope.resolutions);
             });
+
             $scope.saveFillForm = function () {
-                var json = JSON.stringify($scope.demandName, function( key, value ) {
-                    if( key === "$$hashKey" ) {
-                        return undefined;
-                    }
-                    return value;
-                });
-                $http.put('/camunda/api/engine/engine/default/process-instance/'+$scope.processInstanceId+'/variables/demandName',{"type":"Json","value": json}).then(
-                        function(){
-                            console.log($scope.demandName);
-                        },
-                        function(error){
-                            console.log(error.data);
-                        }
-                );
                 var json = JSON.stringify($scope.generalData, function( key, value ) {
                     if( key === "$$hashKey" ) {
                         return undefined;
@@ -171,9 +153,9 @@
         }]);
     </script>
     <div class="form-group">
-        <label class="col-sm-2 control-label"> Demand ID: </label>
+        <label class="col-sm-2 control-label"> Business Key: </label>
         <div class="col-sm-2">
-            <textarea rows="1" class="form-control" ng-model="demandID"/>
+            {{$scope.businessKey}}
         </div>
         <label class="col-sm-2 control-label"> Demand Status: </label>
         <div class="col-sm-2">
@@ -193,34 +175,48 @@
     <hr>
     <tabset class="my-tab-head my-tab" justified="true" id="jobRequestId">
         <tab>
-            <tab-heading> Main </tab-heading>
+            <tab-heading> General </tab-heading>
+            <div style="margin-bottom: 20px;">
+
+                <div class="col-sm-6">
+                    <h4>General</h4>
+                    <demand-general data="generalData" form="kcell_form" view="view" readonly="false"></demand-general>
+                </div>
+
+
+                <div class="col-sm-6">
+                    <h4>Target Audience:</h4>
+                    <demand-target-audience data="targetAudienceData" form="kcell_form" view="view" readonly="false"></demand-target-audience>
+                </div>
+                <br>
+
+                <div class="col-sm-12">
+                    <h4>Demand Details</h4>
+                    <demand-details data="detailsData" form="kcell_form" view="view" readonly="false"></demand-details>
+                </div>
+            </div>
+
+        </tab>
+        <tab>
+            <tab-heading> BRD </tab-heading>
             <div style="margin-bottom: 20px;"></div>
-            <h4>General</h4>
-            <br>
-            <div class="col-sm-12">
-                <demand-general data="generalData" form="kcell_form" view="view" readonly="false"></demand-general>
-            </div>
-            <br>
-            <h4>Target Audience:</h4>
-            <div class="col-sm-12">
-                <demand-target-audience data="targetAudienceData" form="kcell_form" view="view" readonly="false"></demand-target-audience>
-            </div>
-            <br>
-            <h4>Demand Details</h4>
-            <div class="col-sm-12">
-                <demand-details data="detailsData" form="kcell_form" view="view" readonly="false"></demand-details>
-            </div>
         </tab>
         <tab>
-            <tab-heading> Second Tab </tab-heading>
+            <tab-heading> Cost and Acceptance Criterias </tab-heading>
+            <div style="margin-bottom: 20px;"></div>
         </tab>
         <tab>
-            <tab-heading> Third Tab </tab-heading>
+            <tab-heading> Business Case </tab-heading>
+            <div style="margin-bottom: 20px;"></div>
+        </tab>
+        <tab>
+            <tab-heading> Product passport\Approvement list</tab-heading>
+            <div style="margin-bottom: 20px;"></div>
         </tab>
     </tabset>
 
     <div class="row">
-        <div class="col-md-10" align="right"><a ng-click="saveFillForm()" class="btn btn-success" ng-show="demandSecondFormTaskResult == 'modify'">Save</a></div>
+        <div class="col-md-1"><a ng-click="saveFillForm()" class="btn btn-success">Save</a></div>
     </div>
 
     <hr>
