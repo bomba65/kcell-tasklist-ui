@@ -10,6 +10,15 @@ define(['./../module'], function(module){
                 readonly: '='
 			},
 			link: function(scope, element, attrs) {
+				scope.multiselectSettings = {
+					enableSearch: true,
+					smartButtonMaxItems: 3,
+					showCheckAll: false,
+					showUncheckAll: false,
+					displayProp: 'v',
+					idProp: 'v',
+					externalIdProp: 'v'
+				};
 				scope.audienceOptions = [
 					{v: 'Technology'},
 					{v: 'CCD'}
