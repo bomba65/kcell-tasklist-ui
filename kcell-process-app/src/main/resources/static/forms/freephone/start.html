@@ -1,0 +1,141 @@
+<form role="form" class="form-horizontal" name="kcell_form" novalidate>
+    <script cam-script type="text/form-script">
+        inject(['$scope', '$http', 'Uri', '$rootScope', '$q', '$timeout', function ($scope, $http, Uri, $rootScope, $q, $timeout) {
+            camForm.on('form-loaded', function () {
+                camForm.variableManager.createVariable({
+                    name: 'operatorType',
+                    value: '',
+                    type: 'String'
+                });
+                camForm.variableManager.createVariable({
+                    name: 'provider',
+                    value: '',
+                    type: 'String'
+                });
+
+                camForm.variableManager.createVariable({
+                    name: 'identifiers',
+                    type: 'json',
+                    value: ''
+                });
+
+                camForm.variableManager.createVariable({
+                    name: 'operators',
+                    type: 'json',
+                    value: ''
+                });
+                $scope.identifier = [];
+                $scope.requestedDate = new Date();
+                $scope.offnetOperators = [
+                    {id: 'kcell', name: 'Kcell', isAvailable: true},
+                    {id: 'beeline', name: 'Beeline'},
+                    {id: 'tele2', name: 'Tele2'},
+                    {id: 'altel', name: 'Altel'}
+                ];
+                $scope.onnetOperators = [
+                    {id: 'kcell', name: 'Kcell'}
+                ];
+            });
+
+            camForm.on('submit', function (evt) {
+                // evt.submitPrevented = true;
+                camForm.variableManager.variableValue('operatorType', $scope.operatorType);
+
+                if ($scope.operatorType === 'offnet') {
+                    if ($scope.provider) {
+                        camForm.variableManager.variableValue('provider', $scope.provider);
+                    } else {
+                        camForm.variableManager.destroyVariable('provider');
+                    }
+                    camForm.variableManager.variableValue('operators', $scope.offnetOperators);
+                    _.forEach($scope.identifier, function(id) {
+                        id.operators = $scope.offnetOperators;
+                    });
+                } else {
+                    camForm.variableManager.variableValue('operators', $scope.onnetOperators);
+                    _.forEach($scope.identifier, function(id) {
+                        id.operators = $scope.onnetOperators;
+                    });
+                }
+                camForm.variableManager.variableValue('identifiers', $scope.identifier);
+
+            });
+
+            $scope.addIdentifier = function(identifier) {
+                if (identifier) {
+                    if(!_.find($scope.identifier, function (id) { return id.title === identifier; })) {
+                        $scope.identifier.push({'title': identifier, 'operators': []});
+                   }
+                   $scope.newIdentifier = '';
+                }
+            }
+
+            $scope.deleteIdentifier = function(index) {
+                $scope.identifier.splice(index, 1);
+            }
+
+            $scope.$watch('identifier', function (identifier) {
+                if (identifier && identifier.length) {
+                    $scope.kcell_form.newIdentifier.$setValidity('length', true);
+                } else {
+                    $scope.kcell_form.newIdentifier.$setValidity('length', false);
+                }
+            }, true);
+
+
+        }]);
+
+    </script>
+    <div class="form-group">
+        <h4>Начните процесс подключения</h4>
+    </div>
+    <div class="form-group">
+        <label class="col-sm-4 control-label">Тип оператора:</label>
+        <div class="col-sm-4">
+            <select class="form-control" id="operatorType" name="operatorType"
+                    ng-model="operatorType"
+                    placeholder="Укажите тип подключения" required>
+                <option value="onnet">Onnet</option>
+                <option value="offnet">Offnet\Onnet</option>
+            </select>
+            <label class="error" ng-show="kcell_form.operatorType.$error.required && ( kcell_form.operatorType.$touched || view.submitted)">Required field</label>
+        </div>
+    </div>
+    <div class="form-group">
+        <label class="col-sm-4 control-label">Идентификатор:</label>
+        <div class="col-sm-4">
+            <div  class="input-group" ng-submit="addIdentifier()">
+                <input class="form-control" placeholder="Идентификатор" type="text" name="newIdentifier" ng-model="newIdentifier"/>
+                <span class="input-group-btn">
+		        	<button class="btn btn-secondary" type="button" ng-click="addIdentifier(newIdentifier)">Добавить</button>
+		      	</span>
+            </div>
+            <label class="error" ng-show="kcell_form.newIdentifier.$error.length && (kcell_form.iin.$touched || view.submitted)">Добавьте хотя бы 1 идентификатор</label>
+        </div>
+    </div>
+
+    <div class="form-group" ng-show="identifier">
+        <label class="col-sm-4 control-label"></label>
+        <div class="col-sm-8">
+			<span class="label label-primary mr-1" ng-repeat="id in identifier">
+				{{id.title}}
+			    <span class="glyphicon glyphicon-remove" ng-click="deleteIdentifier($index)"></span>
+			</span>
+        </div>
+    </div>
+    <div class="form-group" ng-show="operatorType === 'offnet'">
+        <label class="col-sm-4 control-label">Провайдер:</label>
+        <div class="col-sm-4">
+            <select class="form-control" id="provider" name="provider" ng-required="operatorType === 'offnet'"
+                    ng-model="provider">
+                <option value="SMS Consult">SMS Consult</option>
+                <option value="MMS">MMS</option>
+            </select>
+            <label class="error" ng-show="kcell_form.provider.$error.required && ( kcell_form.provider.$touched || view.submitted)">Required field</label>
+        </div>
+    </div>
+    <div class="form-check" ng-show="identifier.length > 0">
+        <input type="checkbox" ng-model="previouslyBought" class="form-check-input" id="check1" cam-variable-type="Boolean" cam-variable-name="previouslyBought">
+        <label class="form-check-label" for="check1">Ранее выкуплен</label>
+    </div>
+</form>

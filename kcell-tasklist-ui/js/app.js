@@ -42,7 +42,15 @@ define('app',[
 					"processes" : [
 						{key:'Revision', name:'Revision', tenant:'infrastructure_revision_tenant'},
 						{key:'Invoice', name:'Monthly Act', tenant:'infrastructure_monthly_act_tenant'},
-						{key:'SiteSharingTopProcess', name:'4G Site Sharing', tenant:'infrastructure_sharing_tenant',}
+						{key:'SiteSharingTopProcess', name:'4G Site Sharing', tenant:'infrastructure_sharing_tenant'}
+					]
+				},
+				{
+					"key" : "DeliveryPortal",
+					"name" : "Delivery Portal",
+					"processes" : [
+						{key:'freephone', name:'Подключение IVR', tenant:'delivery_freephone_tenant'},
+						{key:'freephone_disconnection', name:'Отключение IVR', tenant:'delivery_freephone_tenant'}
 					]
 				}
 			];
