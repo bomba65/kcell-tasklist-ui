@@ -34,23 +34,26 @@ define('app',[
 		baseUrl: function(){
 			return '/camunda/api/engine/engine/default';
 		},
-		projects: function(){
+		projects: function(baseUrl, $http){
+			$http.get(baseUrl+'/engine').then(function(engines){
+
+			});
 			return [
 				{
 					"key" : "NetworkInfrastructure",
 					"name" : "Network Infrastructure",
 					"processes" : [
-						{key:'Revision', name:'Revision', tenant:'infrastructure_revision_tenant'},
-						{key:'Invoice', name:'Monthly Act', tenant:'infrastructure_monthly_act_tenant'},
-						{key:'SiteSharingTopProcess', name:'4G Site Sharing', tenant:'infrastructure_sharing_tenant'}
+						{key:'Revision', name:'Revision', group:'infrastructure_revision_users'},
+						{key:'Invoice', name:'Monthly Act', group:'infrastructure_monthly_act_users'},
+						{key:'SiteSharingTopProcess', name:'4G Site Sharing', group:'infrastructure_sharing_users'}
 					]
 				},
 				{
 					"key" : "DeliveryPortal",
 					"name" : "Delivery Portal",
 					"processes" : [
-						{key:'freephone', name:'Подключение IVR', tenant:'delivery_freephone_tenant'},
-						{key:'freephone_disconnection', name:'Отключение IVR', tenant:'delivery_freephone_tenant'}
+						{key:'freephone', name:'Подключение IVR', group:'delivery_freephone_users'},
+						{key:'freephone_disconnection', name:'Отключение IVR', group:'delivery_freephone_users'}
 					]
 				}
 			];
@@ -73,20 +76,12 @@ define('app',[
             		return res.data;
             	}
         	);
-        },
-        tenants: function(baseUrl, $http, authentication, $rootScope, authUser) {
-            return $http.get(baseUrl+'/tenant?userMember='+authUser.id+'&includingGroupsOfUser=true').then(
-            	function(res){
-            		$rootScope.authUser.tenants = res.data;
-            		return res.data;
-            	}
-        	);
         },        
-        defaults: function ($rootScope, projects, tenants){
-			function hasTenant(tenant){
-				if(tenants){
-					return _.some($rootScope.authUser.tenants, function(value){
-						return value.id === tenant;
+        defaults: function ($rootScope, projects, groups){
+			function hasGroup(group){
+				if(groups){
+					return _.some($rootScope.authUser.groups, function(value){
+						return value.id === group;
 					});
 				} else {
 					return false;
@@ -105,14 +100,14 @@ define('app',[
 				var p = angular.copy(project);
 				p.processes = [];
 				angular.forEach(project.processes, function(process){
-					if(hasTenant(process.tenant)){
+					if(hasGroup(process.group)){
 						p.processes.push(process);
 					}
 				});	
 				if(p.processes.length>0){
 					p.processes.splice(0,0,{"key":"All", name:"All"});
 					aviableProjects.push(p);
-				}				
+				}
 			});
 
 			$rootScope.projects = aviableProjects;
@@ -202,7 +197,7 @@ define('app',[
 			}
 		}
 
-		$rootScope.isProcessAviable = function(processKey){
+		$rootScope.isProcessAvailable = function(processKey){
 			return _.some($rootScope.projects, function(project){
 				return _.some(project.processes, function(process){
 					return process.key === processKey;

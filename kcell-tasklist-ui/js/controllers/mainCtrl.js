@@ -39,7 +39,7 @@ define(['./module','camundaSDK', 'lodash', 'big-js'], function(module, CamSDK, _
 		$scope.regionFilters = [];
 		$scope.currentRegionFilter = undefined;
 
-		$scope.searchSelected = false;
+		$scope.selectedView = 'task';
 		$scope.camForm = null;
 
 		if($routeParams.task){
@@ -97,9 +97,9 @@ define(['./module','camundaSDK', 'lodash', 'big-js'], function(module, CamSDK, _
 			$location.search({task:undefined});
 			$scope.currentRegionFilter = undefined;
 			if (filter === 'search'){
-				$scope.searchSelected = true;
+				$scope.selectedView = 'search';
 			} else {
-				$scope.searchSelected = false;
+				$scope.selectedView = 'task';
 				$scope.view.page = 1;
 				loadRegionCount();
 				loadTasks();
@@ -108,7 +108,7 @@ define(['./module','camundaSDK', 'lodash', 'big-js'], function(module, CamSDK, _
 		$scope.selectRegionFilter = function(filter, region){
 			$scope.currentTask = undefined;
 			$location.search({task:undefined});
-			$scope.searchSelected = false;
+			$scope.selectedView = 'task';
 			$scope.view.page = 1;
 			$scope.currentRegionFilter = region;
 			loadTasks();
@@ -257,7 +257,7 @@ define(['./module','camundaSDK', 'lodash', 'big-js'], function(module, CamSDK, _
 				function(results){
 					$scope.processDefinitions = [];
 					results.data.forEach(function(e){
-						if($rootScope.isProcessAviable(e.key)){
+						if($rootScope.isProcessAvailable(e.key)){
 							$http.get(baseUrl+'/authorization/check?permissionName=CREATE_INSTANCE&permissionValue=256&resourceName=Process Definition&resourceType=6&resourceId=' + e.key).then(
 								function(result){
 									if(result && result.data && result.data.authorized){
@@ -296,18 +296,29 @@ define(['./module','camundaSDK', 'lodash', 'big-js'], function(module, CamSDK, _
 			if($scope.currentRegionFilter){
 				queryData.processVariables = [{'name': 'siteRegion', "operator": "eq","value": $scope.currentRegionFilter.id}];
 			}
+			var currentProcesses = _.keyBy($rootScope.getCurrentProcesses(), 'key');
+			for(var propt in currentProcesses){
+				currentProcesses[propt].taskGroups = {};
+			}
+			$scope.currentProcesses = [];
 
 			$http({
 				method: 'POST',
 				headers:{'Accept':'application/hal+json, application/json; q=0.5'},
 				data: queryData,
-				url: baseUrl+'/filter/'+$scope.currentFilter.id+'/list?firstResult='+(($scope.view.page-1)*$scope.view.maxResults) + '&maxResults=' + $scope.view.maxResults
+				url: baseUrl+'/filter/'+$scope.currentFilter.id+'/list'
 			}).then(
 				function(results){
 					$scope.tasks = results.data._embedded.task;
 					var selectedTask;
+
 					if($scope.tasks && $scope.tasks.length > 0){
 						$scope.tasks.forEach(function(e){
+							if(!currentProcesses[e.processDefinitionId.substring(0,e.processDefinitionId.indexOf(':'))].taskGroups[e.name]){
+								currentProcesses[e.processDefinitionId.substring(0,e.processDefinitionId.indexOf(':'))].taskGroups[e.name] = {tasks:[], };
+							}
+							currentProcesses[e.processDefinitionId.substring(0,e.processDefinitionId.indexOf(':'))].taskGroups[e.name].tasks.push(e);
+
 							if(e.assignee){
 								for(var i=0;i<results.data._embedded.assignee.length;i++){
 									if(results.data._embedded.assignee[i].id === e.assignee){
@@ -319,6 +330,19 @@ define(['./module','camundaSDK', 'lodash', 'big-js'], function(module, CamSDK, _
 								selectedTask = e;
 							}
 						});
+						$scope.currentProcesses = [];
+						for(var propt in currentProcesses){
+							var currentProcess = angular.copy(currentProcesses[propt]);
+							delete currentProcess.taskGroups;
+							currentProcess.taskGroups = [];
+
+							for(var taskPropt in currentProcesses[propt].taskGroups){
+								var taskGroup = angular.copy(currentProcesses[propt].taskGroups[taskPropt]);
+								taskGroup.name = taskPropt;
+								currentProcess.taskGroups.push(taskGroup);
+							}
+							$scope.currentProcesses.push(currentProcess);
+						}
 					}
 					if(selectedTask){
 						$state.go('tasks.task', {id:selectedTask.id});
@@ -350,6 +374,55 @@ define(['./module','camundaSDK', 'lodash', 'big-js'], function(module, CamSDK, _
 					console.log(error.data);
 				}
 			);
+		}
+
+		$scope.setSelectedProcessKey = function(key){
+			if($scope.selectedProcessKey === key){
+				$scope.selectedProcessKey = undefined;
+			} else {
+				$scope.selectedProcessKey = key;
+			}
+			$scope.currentTaskGroup = undefined;
+		}
+
+		$scope.setSelectedTaskGroupName = function(currentTaskGroup, selectedProcessDisplay){
+			$scope.currentTask = undefined;
+			$location.search({task:undefined});
+			$scope.selectedView = 'tasks';
+
+			$scope.currentTaskGroup = currentTaskGroup;
+			$scope.currentTaskGroup.selectedProcessDisplay = selectedProcessDisplay;
+
+			var varSearchParams = {processInstanceIds: _.map($scope.currentTaskGroup.tasks, 'processInstanceId')};
+            $http({
+                method: 'POST',
+                headers:{'Accept':'application/hal+json, application/json; q=0.5'},
+                data: varSearchParams,
+                url: baseUrl + '/history/process-instance'
+            }).then(
+                    function(processes){
+                    	angular.forEach($scope.currentTaskGroup.tasks, function(task){
+                    		var process = _.find(processes.data, function(p){ return p.id === task.processInstanceId });
+                    		task.process = process;
+                    	});
+                    },
+                    function(error){
+                        console.log(error.data);
+                    }
+            );
+		}
+
+		$scope.getCurrentProjectDisplay = function(){
+			var project = _.find($rootScope.projects, function(project){
+				return _.find(project.processes, function(process){
+					return process.key === $scope.selectedProcessKey;
+				});
+			});
+			if(project){
+				return project.name;
+			} else {
+				return '';
+			}
 		}
 
         $scope.getSite = function(val) {

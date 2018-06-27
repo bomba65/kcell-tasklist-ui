@@ -52,9 +52,9 @@ define(['./module','jquery'], function(app,$){
         }
 
 		$scope.reportsMap = {
-            'revision-open-tasks': {name: 'Revision open tasks'},
-            'invoice-open-tasks': {name: 'Monthly Act open tasks'},
-            '4gSharing-open-tasks': {name: '4G Site Sharing open tasks'}
+            'revision-open-tasks': {name: 'Revision open tasks', process: 'Revision'},
+            'invoice-open-tasks': {name: 'Monthly Act open tasks', process: 'Invoice'},
+            '4gSharing-open-tasks': {name: '4G Site Sharing open tasks', process: 'SiteSharingTopProcess'}
         };
 
         $scope.reports = [
