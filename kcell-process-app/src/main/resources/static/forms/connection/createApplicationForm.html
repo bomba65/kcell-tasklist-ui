@@ -1,0 +1,490 @@
+<form role="form" class="form-horizontal" name="kcell_form" novalidate>
+	<style type="text/css">
+		.mr-1{
+			margin-right: 2px
+			}
+        .bs-callout {
+            padding: 20px;
+            margin: 20px 0;
+            border: 1px solid #eee;
+            border-left-width: 5px;
+            border-radius: 3px;
+        }
+        .bs-callout h5 {
+            margin-top: 0;
+            margin-bottom: 5px;
+        }
+        .bs-callout p:last-child {
+            margin-bottom: 0;
+        }
+        .bs-callout code {
+            border-radius: 3px;
+        }
+        .bs-callout+.bs-callout {
+            margin-top: -5px;
+        }
+        .bs-callout-default {
+            border-left-color: #777;
+        }
+        .bs-callout-default h5 {
+            color: #777;
+        }
+        .bs-callout-primary {
+            border-left-color: #428bca;
+        }
+        .bs-callout-primary h5 {
+            color: #428bca;
+        }
+        .bs-callout-success {
+            border-left-color: #5cb85c;
+        }
+        .bs-callout-success h5 {
+            color: #5cb85c;
+        }
+        .bs-callout-danger {
+            border-left-color: #d9534f;
+        }
+        .bs-callout-danger h5 {
+            color: #d9534f;
+        }
+        .bs-callout-warning {
+            border-left-color: #f0ad4e;
+        }
+        .bs-callout-warning h5 {
+            color: #f0ad4e;
+        }
+        .bs-callout-info {
+            border-left-color: #5bc0de;
+        }
+        .bs-callout-info h5 {
+            color: #5bc0de;
+        }
+		.form-control.din-2 {
+			height: 50px;
+			overflow: hidden;
+			text-overflow: ellipsis;
+		}
+	</style>
+	<script cam-script type="text/form-script">
+  		camForm.on('form-loaded', function() {
+			camForm.variableManager.fetchVariable('operators');
+			camForm.variableManager.fetchVariable('connectionType');
+			camForm.variableManager.fetchVariable('identificatorType');
+			camForm.variableManager.fetchVariable('firstIdentificator');
+  		});
+
+  		camForm.on('variables-fetched', function() {
+			$scope.connectionType = camForm.variableManager.variableValue('connectionType');
+			$scope.identificatorType = camForm.variableManager.variableValue('identificatorType');
+			$scope.firstIdentificator = camForm.variableManager.variableValue('firstIdentificator');
+
+			if (!camForm.variableManager.variables.testNumbers) {
+				camForm.variableManager.createVariable({
+      				name: 'testNumbers',
+      				type: 'json',
+     				value: []
+  		 	 	});
+			}
+
+			camForm.variableManager.createVariable({
+      				name: 'startDate',
+      				type: 'Date',
+     				value: new Date(),
+     				store: true
+  		 	 	});
+
+  		 	$scope.startDate = camForm.variableManager.variableValue('startDate');
+			$scope.testNumbers = camForm.variableManager.variableValue('testNumbers');
+			$scope.operatorsIdentificators = [{'identificator': $scope.firstIdentificator}];
+			console.log($scope.testNumbers);
+ 		});	
+		
+			camForm.on('submit', function(event) {
+				camForm.variableManager.variableValue('testNumbers', $scope.testNumbers);
+				var startDate = new Date($scope.startDate);
+                camForm.variableManager.variableValue('startDate', startDate);
+
+				var operatorsIdentificators = $scope.operatorsIdentificators;
+				camForm.variableManager.createVariable({
+					name: 'operatorsIdentificators',
+					type: 'Json',
+					value: operatorsIdentificators
+				  });
+				 $scope.finalID = '|';
+				 for (let id of $scope.operatorsIdentificators) {
+
+					$scope.finalID += id.identificator + '|';
+				 }
+
+				 camForm.variableManager.createVariable({
+					name: 'finalID',
+					type: 'String',
+					value: $scope.finalID
+				  });
+				//console.log(camForm.variableManager.variableValue('finalID'));
+				//console.log(camForm.variableManager.variableValue('operatorsIdentificators'));
+				//event.submitPrevented = true;
+ 			 });
+		
+		var currentDate = new Date();
+
+        $scope.datepickerOptions = {
+            minDate: currentDate
+        };
+
+		$scope.open = function() {
+            $scope.dateFieldOpened = true;
+        };
+
+
+		$scope.addNumber = function() {
+			$scope.testNumbers.push({'title': $scope.newTestNumber});
+			$scope.newTestNumber = '';
+		}
+
+		$scope.deleteNumber = function(index) {	
+			$scope.testNumbers.splice(index, 1);
+		}
+	</script>
+    <div class="bs-callout bs-callout-info">
+        <h5>Ситуация:</h5>
+        <ul>
+            <li>Создайте заявку на подключение</li>
+        </ul>
+        <h5>Что необходимо сделать:</h5>
+        <ul>
+            <li>Необходимо заполнить обязательные поля</li>
+            <li>Прикрепить сканы документов</li>
+            <li>Нажмите <b>Complete</b></li>
+        </ul>
+    </div>
+	<div class="form-group">
+		<div class="text col-sm-12">
+			<p>Идентификатор: <b>{{firstIdentificator}}</b></p>
+		</div>
+		<div class="form-group col-sm-12">
+			<label class="control-label col-sm-4"><b>Укажите стоимость идентификаторов:</b></label>
+		</div>
+		<div class="form-group col-sm-12">
+			<label class="col-sm-1 control-label">KCell*:</label>
+			<div class="col-sm-2">
+				<input class="form-control din-2"
+					   name="kcellPrice"
+					   cam-variable-name="kcellPrice"
+					   cam-variable-type="String"
+					   placeholder="KCell" required/>
+				<div class="col-sm-1">
+					<span class="error" ng-show="kcell_form.kcellPrice.$error.required && ( kcell_form.kcellPrice.$touched || view.submitted)">Обязательное поле</span>
+				</div>
+			</div>
+			<label class="col-sm-1 control-label">Beeline:</label>
+			<div class="col-sm-2">
+				<input class="form-control din-2"
+					   cam-variable-name="beelinePrice"
+					   cam-variable-type="String"
+					   placeholder="Beeline"/>
+			</div>
+			<label class="col-sm-1 control-label">Tele2:</label>
+			<div class="col-sm-2">
+				<input class="form-control din-2"
+					   cam-variable-name="tele2Price"
+					   cam-variable-type="String"
+					   placeholder="Tele2"/>
+			</div>
+			<label class="col-sm-1 control-label">Altel:</label>
+			<div class="col-sm-2">
+				<input class="form-control din-2"
+					   cam-variable-name="altelPrice"
+					   cam-variable-type="String"
+					   placeholder="Altel"/>
+			</div>
+		</div>
+		<div class="form-group col-sm-12">
+			<label class="col-sm-4 control-label">ФИО КАЕ*:</label>
+			<div class="col-sm-8">
+				<input class="form-control"
+					   name="kaeSpecialstName"
+					   cam-variable-name="kaeSpecialstName"
+					   cam-variable-type="String"
+					   placeholder="ФИО ответственного (КАЕ)" required/>
+				<div class="col-sm-8">
+					<span class="error" ng-show="kcell_form.kaeSpecialstName.$error.required && ( kcell_form.kaeSpecialstName.$touched || view.submitted)">Обязательное поле</span>
+				</div>
+			</div>
+		</div>
+		<div class="form-group col-sm-12">
+			<label class="col-sm-4 control-label">Email*:</label>
+			<div class="col-sm-8">
+				<input type="email" class="form-control" ng-model="kaeSpecialistEmail"
+					   name="kaeSpecialistEmail" ng-change="inputChanged()" ng-model-options="{debounce:1000}" ng-pattern = '/^[^\s@]+@[^\s@]+\.[^\s@]{2,}$/'
+					   ng-maxlength="100" ng-required="true" ng-model-options="{ updateOn: blur }"
+					   cam-variable-name="kaeSpecialistEmail"
+					   cam-variable-type="String"
+					   placeholder="Email ответственного (КАЕ)" required/>
+				<div class="col-sm-8">
+					<span class="error" ng-show="kcell_form.kaeSpecialistEmail.$error.required && ( kcell_form.kaeSpecialistEmail.$touched || view.submitted)">Обязательное поле</span>
+					<span class="error" ng-show="kcell_form.kaeSpecialistEmail.$error.pattern && ( kcell_form.kaeSpecialistEmail.$touched || view.submitted)">Неверный формат email</span>
+				</div>
+			</div>
+			<!--<label class="error" ng-show="kcell_form.approveByPowerGroupResult.$error.required && ( kcell_form.approveByPowerGroupResult.$touched || view.submitted)">Required field</label>-->
+			<!--<label class="error" ng-show="kcell_form.kaeSpecialistEmail.$error.required && kcell_form.kaeSpecialistEmail.$touched">Required field</label>-->
+		</div>
+		<div class="form-group col-sm-12">
+			<label class="col-sm-4 control-label">Тип идентификатора:</label>
+			<div class="col-sm-8" >
+				<div class="form-control" disabled ng-show="identificatorType === 'alfanumeric'">Альфанумерик</div>
+			    <div class="form-control" disabled ng-show="identificatorType === 'digital'">Цифровой</div>
+			</div>
+		</div>
+		<div class="form-group col-sm-12">
+			<label class="col-sm-4 control-label">Тип подключения:</label>
+			<div class="col-sm-8" >
+				<div class="form-control" disabled ng-show="connectionType === 'onnet'">Onnet</div>
+			    <div class="form-control" disabled ng-show="connectionType === 'offnet'">Offnet\Onnet</div>
+			</div>
+		</div>
+		<div class="form-group col-sm-12">
+			<label class="col-sm-4 control-label">Тип СМС услуги*:</label>
+			<div class="col-sm-8">
+				<select class="form-control" id="sel1"
+		  		cam-variable-name="smsServiceType"
+				cam-variable-type="String"
+				ng-model="smsServiceType" required>
+			    	<option value="MO">MO (Использовать функцию входящих сообщений на короткий номер)</option>
+			    	<option value="MT">MT (Не использовать функцию входящих сообщений на короткий номер)</option>
+		  		</select>
+			</div>
+		</div>
+		<div class="form-group col-sm-12">
+			<label class="col-sm-4 control-label">Описание сервиса*:</label>
+			<div class="col-sm-8">
+				<input class="form-control"
+				    name="serviceDescription"
+					cam-variable-name="serviceDescription"
+					cam-variable-type="String"
+					placeholder="Описание сервиса" required/>
+				<div class="col-sm-1">
+					<span class="error" ng-show="kcell_form.serviceDescription.$error.required && ( kcell_form.serviceDescription.$touched || view.submitted)">Обязательное поле</span>
+				</div>
+			</div>
+		</div>
+		<div class="form-group col-sm-12">
+			<label class="col-sm-4 control-label">Способ подключения*:</label>
+			<div class="col-sm-8">
+				<select class="form-control" id="sel1"
+						name="connectionMethod"
+		  		cam-variable-name="connectionMethod"
+				cam-variable-type="String"
+				ng-model="connectionMethod" required>
+			    	<option value="rest">REST</option>
+					<option value="smpp">SMPP</option>
+					<option value="web" ng-hide="identificatorType === 'digital'">Web interface</option>
+					<div class="col-sm-1">
+					<span class="error" ng-show="kcell_form.connectionMethod.$error.required && ( kcell_form.connectionMethod.$touched || view.submitted)">Обязательное поле</span>
+				</div>
+		  		</select>
+			</div>
+		</div>
+		<div class="form-group col-sm-12">
+			<label class="col-sm-4 control-label">IP*:</label>
+			<div class="col-sm-8">
+				<input class="form-control"
+				ng-required="connectionMethod === 'smpp'" 
+				ng-disabled="connectionMethod !== 'smpp'"
+				cam-variable-name="IPforSMPP"
+				cam-variable-type="String"
+				placeholder="IP (Если выбран SMPP как тип подключения)"/>
+			</div>
+		</div>
+		<div class="form-group col-sm-12"> 
+			<label class="col-sm-4 control-label">Тестовый номер*:</label>
+			<div class="col-sm-8">
+				<div  class="input-group" ng-submit="addNumber()">
+					<input class="form-control" 
+						ng-disabled="connectionMethod !== 'smpp' && connectionMethod !== 'rest'"
+						placeholder="Тестовый номер" type="text" 
+						name="newTestNumber" 
+						ng-model="newTestNumber"/>
+			     	<span class="input-group-btn">
+			        	<button class="btn btn-secondary" type="button" ng-disabled="connectionMethod !== 'smpp' && connectionMethod !== 'rest'" 	ng-click="addNumber()">+</button>
+			      	</span>
+			    </div>
+			</div>
+		</div>
+		<div class="form-group col-sm-12" ng-show="testNumbers && (connectionMethod === 'smpp' || connectionMethod === 'rest')">
+			<label class="col-sm-4 control-label"></label>
+			<div class="col-sm-8">
+				<span class="label label-primary mr-1" ng-repeat="testNumber in testNumbers">
+					{{testNumber.title}}
+				    <span class="glyphicon glyphicon-remove" ng-click="deleteNumber($index)"></span>
+				</span>
+			</div>
+		</div>
+		<br/>
+		<div class="col-sm-12">
+		    <br>
+		    <h4>Информация о Клиенте</h4>
+	   	</div>
+	    <div class="form-group col-sm-12">
+			<label class="col-sm-4 control-label">Название компании*:</label>
+			<div class="col-sm-8">
+				<input ng-required="true" class="form-control"
+				name="companyName"
+			    cam-variable-name="companyName"
+				cam-variable-type="String"
+				placeholder="Название компании" required/>
+				<div class="col-sm-1">
+					<span class="error" ng-show="kcell_form.companyName.$error.required && ( kcell_form.companyName.$touched || view.submitted)">Обязательное поле</span>
+				</div>
+			</div>
+		</div>
+		<div class="form-group col-sm-12">
+			<label class="col-sm-4 control-label">БИН*:</label>
+			<div class="col-sm-8">
+				<input ng-required="true" class="form-control"
+					   name="companyBIN"
+					   ng-change="inputChanged()"
+					   ng-model-options="{debounce:1000}"
+					   ng-pattern="/^(?:\d{12}|\w+@\w+\.\w{2,3})$/"
+					   cam-variable-name="companyBIN"
+					   cam-variable-type="String"
+					   placeholder="БИН" required/>
+				<div class="col-sm-8">
+					<span class="error" ng-show="kcell_form.companyBIN.$error.required && ( kcell_form.companyBIN.$touched || view.submitted)">Обязательное поле</span>
+					<span class="error" ng-show="kcell_form.companyBIN.$error.pattern && ( kcell_form.companyBIN.$touched || view.submitted)">Неверный формат БИН</span>
+				</div>
+			</div>
+		</div>
+		<br/>
+		<div class="col-sm-12">
+		    <br>
+		    <h4>Технический специалист</h4>
+	   	</div>
+	    <div class="form-group col-sm-12">
+			<label class="col-sm-4 control-label">ФИО*:</label>
+			<div class="col-sm-8">
+				<input ng-required="true" class="form-control"
+					   name="techSpecialistName"
+				cam-variable-name="techSpecialistName"
+				cam-variable-type="String"
+				placeholder="ФИО" required/>
+				<div class="col-sm-1">
+					<span class="error" ng-show="kcell_form.companyName.$error.required && ( kcell_form.companyName.$touched || view.submitted)">Обязательное поле</span>
+				</div>
+			</div>
+		</div>
+		<div class="form-group col-sm-12">
+			<label class="col-sm-4 control-label">Телефон*:</label>
+			<div class="col-sm-8">
+				<input ng-required="true" class="form-control"
+					   name="techSpecialistPhone"
+					   ng-change="inputChanged()"
+					   ng-model-options="{debounce:1000}"
+					   ng-pattern="/^(?:\d{11}|\w+@\w+\.\w{2,3})$/"
+					   cam-variable-name="techSpecialistPhone"
+					   cam-variable-type="String"
+					   ng-class="{'red-border-class': name.errors}"
+					   placeholder="Телефон" required/>
+				<div class="col-sm-8">
+					<span class="error" ng-show="kcell_form.techSpecialistPhone.$error.required && ( kcell_form.techSpecialistPhone.$touched || view.submitted)">Обязательное поле</span>
+					<span class="error" ng-show="kcell_form.techSpecialistPhone.$error.pattern && ( kcell_form.techSpecialistPhone.$touched || view.submitted)">10 цифр, например: 701...</span>
+				</div>
+			</div>
+		</div>
+	    <div class="form-group col-sm-12">
+			<label class="col-sm-4 control-label">Email*:</label>
+			<div class="col-sm-8">
+				<input ng-required="true" class="form-control"
+					   name="techSpecialistEmail" ng-change="inputChanged()" ng-model-options="{debounce:1000}" ng-pattern = '/^[^\s@]+@[^\s@]+\.[^\s@]{2,}$/'
+					   ng-maxlength="100" ng-required="true" ng-model-options="{ updateOn: blur }"
+					   cam-variable-name="techSpecialistEmail"
+					   cam-variable-type="String"
+					   placeholder="Email" required/>
+				<div class="col-sm-8">
+					<span class="error" ng-show="kcell_form.techSpecialistEmail.$error.required && ( kcell_form.techSpecialistEmail.$touched || view.submitted)">Обязательное поле</span>
+					<span class="error" ng-show="kcell_form.techSpecialistEmail.$error.pattern && ( kcell_form.techSpecialistEmail.$touched || view.submitted)">Неверный формат email</span>
+				</div>
+			</div>
+		</div>
+		<!--div class="form-group col-sm-12">
+			<label class="col-sm-4 control-label">Дата предполагаемого запуска:</label>
+			<div class="col-sm-8">
+				<input ng-required="true" class="form-control"
+				cam-variable-name="startDate"
+				cam-variable-type="String"
+				placeholder="Дата предполагаемого запуска"/>
+			</div>
+		</div-->
+		<div class="form-group col-sm-12">
+	        <label class="col-sm-4 control-label">Дата предполагаемого запуска*:</label>
+	        <div class="col-sm-8">
+	            <div class="input-group">
+	                <input type="text" ng-model="startDate" name="startDate" required class="form-control" datepicker-popup="dd.MM.yyyy" is-open="dateFieldOpened" id="startDate" min-date="datepickerOptions.minDate"/>
+	                <span class="input-group-btn">
+	                    <button type="button" class="btn btn-default" ng-click="open()">
+	                        <i class="glyphicon glyphicon-calendar"></i>
+	                    </button>
+	                </span>
+	            </div>
+	        </div>
+	    </div>
+		<div class="form-group col-sm-12">
+			<label class="col-sm-4 control-label">Тариф для абонента*:</label>
+			<div class="col-sm-8">
+				<input ng-required="true" class="form-control"
+					   name="abonentTarif"
+				cam-variable-name="abonentTarif"
+				cam-variable-type="String"
+				placeholder="Тариф для абонента" required/>
+				<div class="col-sm-1">
+					<span class="error" ng-show="kcell_form.abonentTarif.$error.required && ( kcell_form.abonentTarif.$touched || view.submitted)">Обязательное поле</span>
+				</div>
+			</div>
+		</div>
+		<div class="form-group col-sm-12">
+			<label class="col-sm-4 control-label">Тарифный план:</label>
+			<div class="col-sm-8">
+				<select class="form-control" id="sel12"
+			  	cam-variable-name="tarifPlane"
+		      	cam-variable-type="String"
+		      	ng-model="tarifPlane">
+				    <option value="1">1</option>
+					<option value="2" selected="selected" >2</option>
+				</select>	
+			</div>
+		</div>
+		<div class="form-group col-sm-12">
+			<label class="col-sm-4 control-label">Коментарии:</label>
+			<div class="col-sm-8">
+				<input class="form-control"
+				cam-variable-name="comments"
+				cam-variable-type="String"
+				placeholder="Коментарии"/>
+			</div>
+		</div>
+		<div class="form-group col-sm-12">
+			<div class="col-sm-8 hidden">
+				<input class="form-control"
+				cam-variable-name="rejectComments"
+				cam-variable-type="String"
+				ng-model="rejectComments"
+				placeholder="Коментарии"/>
+			</div>
+		</div>
+		<div class="form-group col-sm-12">
+			<label class="col-sm-4 control-label">Вложите скан. рег формы*:</label>
+			<div class="col-sm-8">
+				<input type="file" class="form-control" cam-variable-type="File" cam-max-filesize="10000000" cam-variable-name="regFormScan"/>
+			</div>
+		</div>
+		<div class="form-group col-sm-12">
+			<label class="col-sm-4 control-label">Вложите скан. Заявки*:</label>
+			<div class="col-sm-8">
+				<input type="file" class="form-control" cam-variable-type="File" cam-max-filesize="10000000" cam-variable-name="applicationScan" />
+			</div>
+		</div>
+	</div>
+</form>
+
+
+

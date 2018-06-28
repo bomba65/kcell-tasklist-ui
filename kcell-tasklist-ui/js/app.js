@@ -54,7 +54,8 @@ define('app',[
 					"processes" : [
 						{key:'freephone', name:'Подключение IVR', group:'delivery_freephone_users'},
 						{key:'freephone_disconnection', name:'Отключение IVR', group:'delivery_freephone_users'},
-						{key:'PBX', name:'PBX', group:'delivery_pbx_users'}
+						{key:'PBX', name:'PBX', group:'delivery_pbx_users'},
+						{key:'bulksmsConnectionKAE', name:'Bulk SMS through KAE', group:'delivery_sms_users'}
 					]
 				}
 			];

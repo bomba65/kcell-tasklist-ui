@@ -1,6 +1,7 @@
 define([
 	'./jobRequest',
 	'./invoiceDetail',
+	'./infoBulksms',
 	'./cam-widget-bpmn-viewer',
 	'./trackChange',
 	'./requiredFile',
