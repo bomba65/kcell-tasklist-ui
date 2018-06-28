@@ -5,5 +5,11 @@ define([
 	'./trackChange',
 	'./requiredFile',
 	'./infoFreephone',
-	'./sharedSitePlan'
+	'./sharedSitePlan',
+	'./PBX/customerInformation',
+	'./PBX/technicalSpecifications',
+	'./PBX/sipProtocol',
+	'./PBX/e1Protocol',
+	'./PBX/sipDirectProtocol',
+	'./PBX/vpnTunnel'
 	], function(){});
