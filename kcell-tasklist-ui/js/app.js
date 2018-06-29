@@ -35,9 +35,7 @@ define('app',[
 			return '/camunda/api/engine/engine/default';
 		},
 		projects: function(baseUrl, $http){
-			$http.get(baseUrl+'/engine').then(function(engines){
-
-			});
+			$http.get(baseUrl+'/authorization/count').then(function(count){});
 			return [
 				{
 					"key" : "NetworkInfrastructure",
@@ -53,7 +51,6 @@ define('app',[
 					"name" : "Delivery Portal",
 					"processes" : [
 						{key:'freephone', name:'Подключение IVR', group:'delivery_freephone_users'},
-						{key:'freephone_disconnection', name:'Отключение IVR', group:'delivery_freephone_users'},
 						{key:'PBX', name:'PBX', group:'delivery_pbx_users'},
 						{key:'bulksmsConnectionKAE', name:'Bulk SMS through KAE', group:'delivery_sms_users'}
 					]

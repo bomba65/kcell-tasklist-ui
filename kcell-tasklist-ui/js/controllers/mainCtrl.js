@@ -31,7 +31,6 @@ define(['./module','camundaSDK', 'lodash', 'big-js'], function(module, CamSDK, _
 
 		$rootScope.$watchGroup(['selectedProject', 'selectedProcess'], function(newValues, oldValues, scope) {
 			if(newValues[0] !== oldValues[0] || newValues[1] !== oldValues[1]){
-				console.log('selectedProject or selectedProcess changed');
 	            getTaskList();
 			}
 		}, true);
@@ -82,7 +81,9 @@ define(['./module','camundaSDK', 'lodash', 'big-js'], function(module, CamSDK, _
 					});
 					if($scope.filters.length > 0 && $scope.currentFilter == undefined){
 						$scope.currentFilter = $scope.filters[0];
-						//loadRegionCount();
+						if($rootScope.hasGroup('head_kcell_users')){
+							loadRegionCount();
+						}
 					}
 					loadTasks();
 				},
@@ -101,7 +102,9 @@ define(['./module','camundaSDK', 'lodash', 'big-js'], function(module, CamSDK, _
 			} else {
 				$scope.selectedView = 'task';
 				$scope.view.page = 1;
-				loadRegionCount();
+				if($rootScope.hasGroup('head_kcell_users')){
+					loadRegionCount();
+				}
 				loadTasks();
 			}
 		}
@@ -335,11 +338,13 @@ define(['./module','camundaSDK', 'lodash', 'big-js'], function(module, CamSDK, _
 							var currentProcess = angular.copy(currentProcesses[propt]);
 							delete currentProcess.taskGroups;
 							currentProcess.taskGroups = [];
+							currentProcess.taskCount = 0;
 
 							for(var taskPropt in currentProcesses[propt].taskGroups){
 								var taskGroup = angular.copy(currentProcesses[propt].taskGroups[taskPropt]);
 								taskGroup.name = taskPropt;
 								currentProcess.taskGroups.push(taskGroup);
+								currentProcess.taskCount+=taskGroup.tasks.length;
 							}
 							$scope.currentProcesses.push(currentProcess);
 						}
