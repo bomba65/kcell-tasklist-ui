@@ -456,9 +456,5 @@ define(['./module','jquery', 'camundaSDK'], function(app, $, CamSDK){
         $scope.getStatus = function(state, value){
 			return (state == 'COMPLETED' || state == 'EXTERNALLY_TERMINATED')? 'Closed': (value == 'accepted'?'Accepted & waiting scan attach':(value == 'scan attached'?'Accepted & waiting invoice':'In progress'))
         };
-
-        $scope.PDefFilter = function (item) { 
-			return item.key === 'Revision' || item.key === 'SiteSharingTopProcess' || item.key === 'Invoice';
-		};
 	}]);
 });

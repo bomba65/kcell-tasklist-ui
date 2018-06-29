@@ -63,7 +63,7 @@ define(['./module','jquery'], function(app,$){
             '4gSharing-open-tasks'
         ];
 
-        $scope.currentReport = $stateParams.report || 'revision-open-tasks';
+        $scope.currentReport = $stateParams.report;
 
         $scope.task = $stateParams.task;
         $scope.filter = {};
