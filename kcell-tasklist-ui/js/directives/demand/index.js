@@ -1,5 +1,8 @@
 define([
 	'./general',
 	'./details',
-	'./targetAudience'
+	'./targetAudience',
+	'./functionalRequirements',
+	'./nonFunctionalRequirements',
+	'./interfaces'
 	], function(){});
