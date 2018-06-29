@@ -22,7 +22,7 @@ INSERT INTO act_id_user (id_, rev_, first_, last_, email_, pwd_, picture_id_) VA
 
 
 --GROUPS
-INSERT INTO act_id_group (id_, rev_, name_, type_) VALUES ('kcell_users', 1, 'kcell_users', 'WORKFLOW');
+INSERT INTO act_id_group (id_, rev_, name_, type_) VALUES ('kcellUsers', 1, 'kcellUsers', 'WORKFLOW');
 INSERT INTO act_id_group (id_, rev_, name_, type_) VALUES ('delivery_pbx_users', 1, 'delivery_pbx_users', 'WORKFLOW');
 INSERT INTO act_id_group (id_, rev_, name_, type_) VALUES ('delivery_pbx_b2b_delivery', 1, 'delivery_pbx_b2b_delivery', 'WORKFLOW');
 INSERT INTO act_id_group (id_, rev_, name_, type_) VALUES ('delivery_pbx_sbc_technical_dept', 1, 'delivery_pbx_sbc_technical_dept', 'WORKFLOW');
@@ -94,8 +94,6 @@ INSERT INTO act_id_membership (user_id_, group_id_) VALUES ('Vadim.Li@kcell.kz',
 INSERT INTO act_id_membership (user_id_, group_id_) VALUES ('Stepan.Kipel@kcell.kz', 'delivery_pbx_sip_proxy_technical_dept');
 INSERT INTO act_id_membership (user_id_, group_id_) VALUES ('Valentin.Lissassin@kcell.kz', 'delivery_pbx_asterisk_technical_dept');
 INSERT INTO act_id_membership (user_id_, group_id_) VALUES ('Stanislav.Li@kcell.kz', 'delivery_pbx_it_delivery');
-
---INVOICE PROCESS AUTOHIRZATION
 
 --auth
 INSERT INTO public.act_ru_authorization (id_, rev_, type_, group_id_, user_id_, resource_type_, resource_id_, perms_) VALUES (uuid_generate_v4(), 1, 1, null, 'Damir.Auezov@kcell.kz', 1, 'Damir.Auezov@kcell.kz', 2147483647);
