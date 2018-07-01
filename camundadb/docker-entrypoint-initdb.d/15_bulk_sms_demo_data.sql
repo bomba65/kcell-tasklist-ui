@@ -22,7 +22,7 @@ INSERT INTO act_id_user (id_, rev_, first_, last_, email_, pwd_, picture_id_) VA
 
 --GROUPS
 -- INSERT INTO act_id_group (id_, rev_, name_, type_) VALUES ('provider_users', 1, 'provider_users', 'WORKFLOW');
--- INSERT INTO act_id_group (id_, rev_, name_, type_) VALUES ('delivery_sms_users', 1, 'delivery_sms_users', 'WORKFLOW');
+INSERT INTO act_id_group (id_, rev_, name_, type_) VALUES ('delivery_sms_users', 1, 'delivery_sms_users', 'WORKFLOW');
 -- INSERT INTO act_id_group (id_, rev_, name_, type_) VALUES ('delivery_provider_sms_consult', 1, 'delivery_provider_sms_consult', 'WORKFLOW');
 -- INSERT INTO act_id_group (id_, rev_, name_, type_) VALUES ('delivery_provider_mms', 1, 'delivery_provider_mms', 'WORKFLOW');
 -- INSERT INTO act_id_group (id_, rev_, name_, type_) VALUES ('delivery_provider_kit', 1, 'delivery_provider_kit', 'WORKFLOW');
@@ -90,17 +90,3 @@ INSERT INTO act_id_membership (user_id_, group_id_) VALUES ('Nabat.Oralbekova@kc
 INSERT INTO public.act_ru_authorization (id_, rev_, type_, group_id_, user_id_, resource_type_, resource_id_, perms_) VALUES (uuid_generate_v4(), 1, 1, null, 'Andrey.Khan@kcell.kz', 1, 'Andrey.Khan@kcell.kz', 2147483647);
 INSERT INTO public.act_ru_authorization (id_, rev_, type_, group_id_, user_id_, resource_type_, resource_id_, perms_) VALUES (uuid_generate_v4(), 1, 1, null, 'Alexander.Travkin@kcell.kz', 1, 'Alexander.Travkin@kcell.kz', 2147483647);
 INSERT INTO public.act_ru_authorization (id_, rev_, type_, group_id_, user_id_, resource_type_, resource_id_, perms_) VALUES (uuid_generate_v4(), 1, 1, null, 'Nabat.Oralbekova@kcell.kz', 1, 'Nabat.Oralbekova@kcell.kz', 2147483647);
-
--- INSERT INTO public.act_ru_authorization (id_, rev_, type_, group_id_, user_id_, resource_type_, resource_id_, perms_) VALUES (uuid_generate_v4(), 1, 1, 'kcellUsers',null, 1, 'natalya.spirikova@sms-consult.kz', 2);
--- INSERT INTO public.act_ru_authorization (id_, rev_, type_, group_id_, user_id_, resource_type_, resource_id_, perms_) VALUES (uuid_generate_v4(), 1, 1, 'kcellUsers',null, 1, 'e.lopatin@sms-consult.kz', 2);
--- INSERT INTO public.act_ru_authorization (id_, rev_, type_, group_id_, user_id_, resource_type_, resource_id_, perms_) VALUES (uuid_generate_v4(), 1, 1, 'kcellUsers',null, 1, 'zaituna@mobcontent.kz', 2);
--- INSERT INTO public.act_ru_authorization (id_, rev_, type_, group_id_, user_id_, resource_type_, resource_id_, perms_) VALUES (uuid_generate_v4(), 1, 1, 'kcellUsers',null, 1, 'svetlana@kazinfoteh.kz', 2);
--- INSERT INTO public.act_ru_authorization (id_, rev_, type_, group_id_, user_id_, resource_type_, resource_id_, perms_) VALUES (uuid_generate_v4(), 1, 1, 'kcellUsers',null, 1, 'Sagida.Adiyeva@kcell.kz', 2);
--- INSERT INTO public.act_ru_authorization (id_, rev_, type_, group_id_, user_id_, resource_type_, resource_id_, perms_) VALUES (uuid_generate_v4(), 1, 1, 'kcellUsers',null, 1, 'Nazym.Muralimova@kcell.kz', 2);
--- INSERT INTO public.act_ru_authorization (id_, rev_, type_, group_id_, user_id_, resource_type_, resource_id_, perms_) VALUES (uuid_generate_v4(), 1, 1, 'kcellUsers',null, 1, 'Vadim.Li@kcell.kz', 2);
--- INSERT INTO public.act_ru_authorization (id_, rev_, type_, group_id_, user_id_, resource_type_, resource_id_, perms_) VALUES (uuid_generate_v4(), 1, 1, 'kcellUsers',null, 1, 'Andrey.Kravchenko@kcell.kz', 2);
--- INSERT INTO public.act_ru_authorization (id_, rev_, type_, group_id_, user_id_, resource_type_, resource_id_, perms_) VALUES (uuid_generate_v4(), 1, 1, 'kcellUsers',null, 1, 'Vassiliy.Perekrestov@kcell.kz', 2);
--- INSERT INTO public.act_ru_authorization (id_, rev_, type_, group_id_, user_id_, resource_type_, resource_id_, perms_) VALUES (uuid_generate_v4(), 1, 1, 'kcellUsers',null, 1, 'Stanislav.Li@kcell.kz', 2);
-INSERT INTO public.act_ru_authorization (id_, rev_, type_, group_id_, user_id_, resource_type_, resource_id_, perms_) VALUES (uuid_generate_v4(), 1, 1, 'kcellUsers',null, 1, 'Andrey.Khan@kcell.kz', 2);
-INSERT INTO public.act_ru_authorization (id_, rev_, type_, group_id_, user_id_, resource_type_, resource_id_, perms_) VALUES (uuid_generate_v4(), 1, 1, 'kcellUsers',null, 1, 'Alexander.Travkin@kcell.kz', 2);
-INSERT INTO public.act_ru_authorization (id_, rev_, type_, group_id_, user_id_, resource_type_, resource_id_, perms_) VALUES (uuid_generate_v4(), 1, 1, 'kcellUsers',null, 1, 'Nabat.Oralbekova@kcell.kz', 2);

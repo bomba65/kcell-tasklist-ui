@@ -89,6 +89,11 @@
                     type: 'Json'
                 });
                 camForm.variableManager.createVariable({
+                    name: 'MSGGWaccount',
+                    value: undefined,
+                    type: 'String'
+                });
+                camForm.variableManager.createVariable({
                     name: 'applicationScanCopyFileName',
                     value: undefined,
                     type: 'Json'
@@ -171,12 +176,19 @@
                     })
                 } else {
                     _.forEach($scope.identifiers, function(id) {
+                        if ($scope.identifierType === 'alfanumeric') {
+                            _.forEach(id.operators, function(o) {
+                                o.checked = o.isAvailable;
+                            })
+                        }
                         if (_.find(id.operators, 'checked')) {
                             finalIDs.push(id.title);
                         }
                     })
                 }
                 camForm.variableManager.variableValue('finalIDs', finalIDs);
+                camForm.variableManager.variableValue('MSGGWaccount', $scope.MSGGWaccount);
+                camForm.variableManager.variableValue('identifiers', $scope.identifiers);
                 //-------------------------------------------------------------------
             });
 
@@ -318,6 +330,19 @@
             $scope.userSelected = function($item, varName){
                 $scope[varName] = {'id': $item.id, 'name': $item.name, 'email': $item.email };
             };
+            //---MSGGWaccount change---
+            $scope.$watchGroup(['connectionType', 'smsServiceType'], function(newValues, oldValues, scope) {
+                if(newValues[0] !== oldValues[0] || newValues[1] !== oldValues[1]){
+                    if (newValues[0] === 'web'){
+                        $scope.MSGGWaccount = 'kitalf27.ID:3751';
+                    } else if (newValues[0] === 'rest' && newValues[1] === 'MO'){
+                        $scope.MSGGWaccount = 'sg2_msggw_mo';
+                    } else if (newValues[0] === 'smpp' && newValues[1] === 'MO') {
+                        $scope.MSGGWaccount = 'sg2_smpp_mo';
+                    } else { $scope.MSGGWaccount = ''}
+                }
+            }, true);
+            //-------------------------
 
         }]);
 
@@ -464,14 +489,15 @@
                     cam-variable-type="String"
                     ng-model="smsServiceType" ng-required="connectionType !== 'web'">
                 <option value="MO">MO (Использовать функцию входящих сообщений на короткий номер)</option>
-                <option value="MT">MT (Не использовать функцию входящих сообщений на короткий номер)</option>
+                <option value="MT" selected="selected">MT (Не использовать функцию входящих сообщений на короткий номер)</option>
             </select>
         </div>
     </div>
-    <div class="form-group" ng-show="connectionType === 'web'">
+    <div class="form-group" ng-show="connectionType === 'web' || ((connectionType === 'rest' || connectionType === 'smpp') && smsServiceType == 'MO') ">
         <label class="col-sm-4 control-label">* Аккаунт на MSGGW:</label>
         <div class="col-sm-8">
-            <input class="form-control" maxlength="500" cam-variable-name="MSGGWaccount" name="MSGGWaccount" cam-variable-type="String" value="kitalf27.ID:3751" disabled>
+            <input class="form-control" maxlength="500" ng-model="MSGGWaccount" name="MSGGWaccount" disabled>
+
             <label class="error" ng-show="kcell_form.MSGGWaccount.$error.required && ( kcell_form.MSGGWaccount.$touched || view.submitted)">Required field</label>
         </div>
     </div>
@@ -490,13 +516,13 @@
         </div>
     </div>
     <div class="form-group" ng-show="connectionType === 'rest' && deliveryReport">
-        <label class="col-sm-4 control-label">* Адрес и порт принимающего сервера клиента:</label>
+        <label class="col-sm-4 control-label">Адрес и порт принимающего сервера клиента:</label>
         <div class="col-sm-8">
             <input class="form-control" maxlength="500" cam-variable-name="receivingServerAddress" name="receivingServerAddress" cam-variable-type="String">
             <label class="error" ng-show="kcell_form.receivingServerAddress.$error.required && ( kcell_form.receivingServerAddress.$touched || view.submitted)">Required field</label>
         </div>
     </div>
-    <div class="form-group" ng-show="connectionType === 'rest' && smsServiceType">
+    <div class="form-group" ng-show="connectionType === 'rest' && deliveryReport">
         <label class="col-sm-4 control-label">Логин/пароль принимающего сервера клиента:</label>
         <div class="col-sm-4">
             <input class="form-control" maxlength="500" cam-variable-name="receivingServerLogin" name="receivingServerLogin" cam-variable-type="String" placeholder="Логин">
@@ -508,22 +534,10 @@
         </div>
     </div>
     <div class="form-group" ng-show="connectionType === 'rest' && smsServiceType">
-        <label class="col-sm-4 control-label">* Адрес и порт MO сервера клиента:</label>
+        <label class="col-sm-4 control-label">Адрес и порт MO сервера клиента:</label>
         <div class="col-sm-8">
             <input class="form-control" maxlength="500" cam-variable-name="addressServerMO" name="addressServerMO" cam-variable-type="String">
             <label class="error" ng-show="kcell_form.addressServerMO.$error.required && ( kcell_form.addressServerMO.$touched || view.submitted)">Required field</label>
-        </div>
-    </div>
-    <div class="form-group" ng-show="connectionType === 'rest' && smsServiceType">
-        <label class="col-sm-4 control-label">* Логин:</label>
-        <div class="col-sm-3">
-            <input class="form-control" maxlength="500" cam-variable-name="smsServiceLogin" name="smsServiceLogin"  ng-required="connectionType === 'rest' || deliveryReport" cam-variable-type="String">
-            <label class="error" ng-show="kcell_form.smsServiceLogin.$error.required && ( kcell_form.smsServiceLogin.$touched || view.submitted)">Required field</label>
-        </div>
-        <label class="col-sm-2 control-label">* Пароль:</label>
-        <div class="col-sm-3">
-            <input class="form-control" maxlength="500" cam-variable-name="smsServicePass" name="smsServicePass"  ng-required="connectionType === 'rest' || deliveryReport" cam-variable-type="String">
-            <label class="error" ng-show="kcell_form.smsServicePass.$error.required && ( kcell_form.smsServicePass.$touched || view.submitted)">Required field</label>
         </div>
     </div>
     <div class="form-group">

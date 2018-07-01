@@ -1028,7 +1028,6 @@ INSERT INTO act_ru_authorization (id_, rev_, type_, group_id_, user_id_, resourc
 --USER AUTHORIZATION
 INSERT INTO act_ru_authorization (id_, rev_, type_, group_id_, user_id_, resource_type_, resource_id_, perms_) VALUES ('06e2fd21-6569-11e7-b615-0242ac150007', 1, 1, 'kcellUsers', NULL, 1, '*', 2);
 
-
 --CONTRACTORS
 INSERT INTO act_ru_authorization (id_, rev_, type_, group_id_, user_id_, resource_type_, resource_id_, perms_) VALUES ('008d9ff1-4f69-11e7-a8c6-0242ac120007', 1, 1, 'contractor_users', NULL, 8, '*', 8);
 
