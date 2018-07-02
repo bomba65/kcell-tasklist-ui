@@ -59,7 +59,7 @@ define(['./module','jquery', 'camundaSDK'], function(app, $, CamSDK){
 						function(groups){
 							$rootScope.authUser.groups = groups.data;
 
-							if ($rootScope.hasGroup('revision_managers') || $rootScope.hasGroup('revision_audit')){
+							if ($scope.filter.processDefinitionKey === 'Revision' && ($rootScope.hasGroup('revision_managers') || $rootScope.hasGroup('revision_audit'))){
 								$scope.participations.push({key:'all', label:'All'});
 							}
 						},
@@ -72,16 +72,6 @@ define(['./module','jquery', 'camundaSDK'], function(app, $, CamSDK){
 					console.log(error.data);
 				}
 			);
-		}
-
-		$rootScope.hasGroup = function(group){
-			if($rootScope.authUser && $rootScope.authUser.groups){
-				return _.some($rootScope.authUser.groups, function(value){
-					return value.id === group;
-				});
-			} else {
-				return false;
-			}
 		}
 
 		//var historyService = new camClient.resource('history');

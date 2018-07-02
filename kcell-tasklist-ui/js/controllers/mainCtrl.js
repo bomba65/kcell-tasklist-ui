@@ -117,6 +117,11 @@ define(['./module','camundaSDK', 'lodash', 'big-js'], function(module, CamSDK, _
 			loadTasks();
 		}
 
+		$scope.openTask = function(taskId){
+			$scope.selectedView = 'task';
+			$state.go('tasks.task', {id:taskId});
+		}
+
 		$scope.startProcess = function(id){
 			$http.get(baseUrl+'/process-definition/'+id+'/startForm').then(
 				function(startFormInfo){
@@ -256,7 +261,7 @@ define(['./module','camundaSDK', 'lodash', 'big-js'], function(module, CamSDK, _
 		}
 
 		function loadProcessDefinitions(){
-			$http.get(baseUrl+'/process-definition?latest=true&active=true&firstResult=0&maxResults=15').then(
+			$http.get(baseUrl+'/process-definition?latest=true&active=true&firstResult=0&maxResults=30').then(
 				function(results){
 					$scope.processDefinitions = [];
 					results.data.forEach(function(e){
