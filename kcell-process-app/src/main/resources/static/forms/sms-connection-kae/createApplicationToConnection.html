@@ -283,6 +283,22 @@
                 }
             }, true);
 
+            $scope.$watch('identifiers', function (identifiers) {
+                if ($scope.operatorType === 'offnet') {
+                    identifiers.some( function (id) {
+                        if ( $scope.identifierType === 'digital' && _.filter(id.operators, function(o) { return o.checked && o.id !== 'kcell'; }).length > 0  ) {
+                            $scope.kcell_form.createApplicationToConnectionTaskComment.$setValidity('validIdentifiers', true);
+                            return true;
+                        } else if ($scope.identifierType === 'alfanumeric' && _.filter(id.operators, function(o) { return o.isAvailable && o.id !== 'kcell'; }).length > 0 ) {
+                            $scope.kcell_form.createApplicationToConnectionTaskComment.$setValidity('validIdentifiers', true);
+                            return true;
+                        } else { return $scope.kcell_form.createApplicationToConnectionTaskComment.$setValidity('validIdentifiers', false); return false;};
+                    });
+                } else {
+                    $scope.kcell_form.createApplicationToConnectionTaskComment.$setValidity('validIdentifiers', true);
+                }
+            }, true);
+
             $scope.getUsers = function(val, group) {
                 var users = $http.get('/camunda/api/engine/engine/default/user?memberOfGroup='+ group +'&firstNameLike=%'+val+'%').then(
                         function(response){
@@ -349,6 +365,7 @@
     </script>
     <iframe id="fileDownloadIframe" style="display:none;"></iframe>
     <h4 ng-if="!(operatorType === 'offnet' && identifierType === 'digital')">Выберите операторов и укажите цены</h4>
+    <label class="error" ng-show="kcell_form.createApplicationToConnectionTaskComment.$error.validIdentifiers && view.submitted">Выберите хотя бы 1 offnet оператор</label>
     <div class="form-group" ng-repeat="id in identifiers" ng-if="!(operatorType === 'offnet' && identifierType === 'digital')">
         <label class="control-label pull-left"/>Идентификатор - {{id.title}}
         <span class="glyphicon glyphicon-remove pull-right" ng-click="deleteIdentifier($index)"></span>
@@ -631,7 +648,7 @@
     <div class="form-group">
         <label class="col-sm-4 control-label">Ответственный B2B Delivery:</label>
         <div class="col-sm-8">
-            <input type="text" ng-model="responsibleB2BDelivery" name="responsibleB2BDelivery" typeahead="name as users.name for users in getUsers($viewValue, 'b2bDelivery') | filter:$viewValue" typeahead-on-select="userSelected($item,'responsibleB2BDelivery')" class="form-control" required autocomplete="off">
+            <input type="text" ng-model="responsibleB2BDelivery" name="responsibleB2BDelivery" typeahead="name as users.name for users in getUsers($viewValue, 'delivery_sms_ivr_b2b_delivery') | filter:$viewValue" typeahead-on-select="userSelected($item,'responsibleB2BDelivery')" class="form-control" required autocomplete="off">
             <!--<input type="hidden" ng-model="userIDValidate" name="userIDValidate" required/>-->
             <!--<label class="error" ng-if="kcell_form.site_name.$error.required && ( kcell_form.site_name.$touched || view.submitted)">Required field</label>-->
             <label class="error" ng-if="kcell_form.responsibleB2BDelivery.$error.valid && view.submitted">Необходимо выбрать пользователя</label>
@@ -640,7 +657,7 @@
     <div class="form-group">
         <label class="col-sm-4 control-label">Ответственный B2B Sales:</label>
         <div class="col-sm-8">
-            <input type="text" ng-model="responsibleB2BSales" name="responsibleB2BSales" typeahead="name as users.name for users in getUsers($viewValue, 'b2bSales') | filter:$viewValue" typeahead-on-select="userSelected($item,'responsibleB2BSales')" class="form-control" required autocomplete="off">
+            <input type="text" ng-model="responsibleB2BSales" name="responsibleB2BSales" typeahead="name as users.name for users in getUsers($viewValue, 'delivery_sms_ivr_b2b_sales') | filter:$viewValue" typeahead-on-select="userSelected($item,'responsibleB2BSales')" class="form-control" required autocomplete="off">
             <!--<input type="hidden" ng-model="userIDValidate" name="userIDValidate" required/>-->
             <!--<label class="error" ng-if="kcell_form.site_name.$error.required && ( kcell_form.site_name.$touched || view.submitted)">Required field</label>-->
             <label class="error" ng-if="kcell_form.responsibleB2BSales.$error.valid && view.submitted">Необходимо выбрать пользователя</label>
