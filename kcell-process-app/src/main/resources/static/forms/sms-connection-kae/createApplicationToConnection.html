@@ -7,7 +7,8 @@
                 'identifierType',
                 'operatorType',
                 'operators',
-                'resolutions'
+                'resolutions',
+                'previouslyBought'
             ];
 
             camForm.on('form-loaded', function () {
@@ -287,10 +288,10 @@
             $scope.$watch('identifiers', function (identifiers) {
                 if ($scope.operatorType === 'offnet') {
                     identifiers.some( function (id) {
-                        if ( $scope.identifierType === 'digital' && _.filter(id.operators, function(o) { return o.checked && o.id !== 'kcell'; }).length > 0  ) {
+                        if ( $scope.identifierType === 'digital' && !$scope.previouslyBought && _.filter(id.operators, function(o) { return o.checked && o.id !== 'kcell'; }).length > 0  ) {
                             $scope.kcell_form.createApplicationToConnectionTaskComment.$setValidity('validIdentifiers', true);
                             return true;
-                        } else if ($scope.identifierType === 'alfanumeric' && _.filter(id.operators, function(o) { return o.isAvailable && o.id !== 'kcell'; }).length > 0 ) {
+                        } else if (($scope.identifierType === 'alfanumeric' || $scope.previouslyBought) && _.filter(id.operators, function(o) { return o.isAvailable && o.id !== 'kcell'; }).length > 0 ) {
                             $scope.kcell_form.createApplicationToConnectionTaskComment.$setValidity('validIdentifiers', true);
                             return true;
                         } else { return $scope.kcell_form.createApplicationToConnectionTaskComment.$setValidity('validIdentifiers', false); return false;};
@@ -367,7 +368,7 @@
     <iframe id="fileDownloadIframe" style="display:none;"></iframe>
     <h4 ng-if="!(operatorType === 'offnet' && identifierType === 'digital')">Выберите операторов и укажите цены</h4>
     <label class="error" ng-show="kcell_form.createApplicationToConnectionTaskComment.$error.validIdentifiers && view.submitted">Выберите хотя бы 1 offnet оператор</label>
-    <div class="form-group" ng-repeat="id in identifiers" ng-if="!(operatorType === 'offnet' && identifierType === 'digital')">
+    <div class="form-group" ng-repeat="id in identifiers" ng-if="!(operatorType === 'offnet' && identifierType === 'digital' && !previouslyBought)">
         <label class="control-label pull-left"/>Идентификатор - {{id.title}}
         <span class="glyphicon glyphicon-remove pull-right" ng-click="deleteIdentifier($index)"></span>
         <div class="col-sm-12" style="border-left: solid; border-left-width: 1px; margin-left: 2vh">
@@ -420,7 +421,7 @@
             </div>
         </div>
     </div>
-    <div class="form-group" ng-repeat="id in identifiers" ng-if="operatorType === 'offnet' && identifierType === 'digital'">
+    <div class="form-group" ng-repeat="id in identifiers" ng-if="operatorType === 'offnet' && identifierType === 'digital' && !previouslyBought">
         <label class="control-label pull-left"/>Идентификатор - {{id.title}}
         <span class="glyphicon glyphicon-remove pull-right" ng-click="deleteIdentifier($index)"></span>
         <div class="col-sm-12" style="border-left: solid; border-left-width: 1px; margin-left: 2vh">
