@@ -81,7 +81,7 @@ define(['./module','camundaSDK', 'lodash', 'big-js'], function(module, CamSDK, _
 					});
 					if($scope.filters.length > 0 && $scope.currentFilter == undefined){
 						$scope.currentFilter = $scope.filters[0];
-						if($rootScope.hasGroup('head_kcell_users')){
+						if(($rootScope.isProcessAvailable('Revision') || $rootScope.isProcessAvailable('Invoice')) && $rootScope.hasGroup('head_kcell_users')){
 							loadRegionCount();
 						}
 					}
