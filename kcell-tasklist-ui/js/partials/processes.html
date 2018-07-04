@@ -4,7 +4,7 @@
 			<h2>Filters</h2>
 			<h4>Process Definition</h4>
 			<ul>
-				<select ng-model="filter.processDefinitionKey" class="form-control">
+				<select ng-model="filter.processDefinitionKey" class="form-control" ng-change="checkParticipation()">
 					<option ng-repeat="pd in processDefinitions" value="{{pd.key}}">{{pd.name}}</option>
 				</select>
 			</ul>
@@ -14,7 +14,11 @@
 			</ul>
 			<h4>Participation</h4>
 			<ul>
-				<select ng-model="filter.participation" class="form-control" ng-options="p.key as p.label for p in participations" />
+				<select ng-model="filter.participation" class="form-control">
+					<option value="initiator">I am Inititator</option>
+					<option value="participant">I am Participant</option>
+					<option ng-if="filter.processDefinitionKey === 'Revision' && (hasGroup('revision_managers') || hasGroup('revision_audit'))" value="all">All</option>
+				</select>
 			</ul>
 			<br/>
 			<label>
@@ -40,7 +44,10 @@
 							</thead>
 							<tbody ng-repeat="pi in processInstances">
 								<tr class="pi-{{pi.state == 'EXTERNALLY_TERMINATED'?'COMPLETED':pi.state}}">
-									<td><a ng-click="toggleProcessView($index, pi.processDefinitionKey)">{{pi.id}}</a></td>
+									<td>
+										<a ng-show="currentPD === 'Revision' || currentPD == 'Invoice' || currentPD === 'SiteSharingTopProcess'" ng-click="toggleProcessView($index, pi.processDefinitionKey)">{{pi.id}}</a>
+										<span ng-hide="currentPD === 'Revision' || currentPD == 'Invoice' || currentPD === 'SiteSharingTopProcess'">{{pi.id}}</span>
+									</td>
 									<td>{{pi.startTime | date: 'dd.MM.yyyy hh:mm'}}</td>
 									<td>{{pi.businessKey}}</td>
 								</tr>

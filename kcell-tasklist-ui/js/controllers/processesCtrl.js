@@ -3,20 +3,15 @@ define(['./module','jquery', 'camundaSDK'], function(app, $, CamSDK){
 	return app.controller('processesCtrl', ['$scope', '$rootScope', '$http', '$routeParams', '$q', '$location', '$timeout', 'AuthenticationService', 'exModal',
 			                         function($scope, $rootScope, $http, $routeParams, $q, $location, $timeout, AuthenticationService, exModal) {
 		
-		
 		var camClient = new CamSDK.Client({
 		  mock: false,
 		  apiUri: '/camunda/api/engine/'
 		});
 
-		//var processDefinitionService = new camClient.resource('process-definition');
-		//var userService = new camClient.resource('user');
-		//var groupService = new camClient.resource('group');
-		//var taskService = new camClient.resource('task');
-
 		$rootScope.currentPage = {
 			name: 'processes'
 		};
+
 		$scope._ = window._;
 		$scope.currentPI = [];
 		$scope.participations = [{key:'initiator', label:'I am Inititator'},{key:'participant', label:'I am Participant'}];
@@ -29,8 +24,21 @@ define(['./module','jquery', 'camundaSDK'], function(app, $, CamSDK){
 
 		var baseUrl = '/camunda/api/engine/engine/default';
 
+		$scope.processDefinitions = $rootScope.getCurrentProcesses();
+		$scope.$watchGroup(['selectedProject', 'selectedProcess'], function(newValues, oldValues, scope) {
+			if((newValues[0].key !== oldValues[0].key || newValues[1].key !== oldValues[1].key)){
+        		$scope.processDefinitions = $rootScope.getCurrentProcesses();
+        		if($scope.filter.processDefinitionKey && !_.some($scope.processDefinitions, function(pd){ return pd.key === $scope.filter.processDefinitionKey})){
+					if($scope.processDefinitions.length > 0){
+						$scope.filter.processDefinitionKey = $scope.processDefinitions[0].key;
+						$scope.checkParticipation();
+					}
+         		}
+			}
+		}, true);
+
 		$scope.filter = {
-			processDefinitionKey: 'Revision',
+			processDefinitionKey: $scope.processDefinitions[0].key,
 			participation: 'initiator',
 			startedBy: $rootScope.authentication.name,
 			startedAfter: undefined,
@@ -51,41 +59,6 @@ define(['./module','jquery', 'camundaSDK'], function(app, $, CamSDK){
             }
         );
 
-		if($rootScope.authentication){
-			$http.get(baseUrl+'/user/'+$rootScope.authentication.name+'/profile').then(
-				function(userProfile){
-					$rootScope.authUser = userProfile.data;
-					$http.get(baseUrl+'/group?member='+$rootScope.authUser.id).then(
-						function(groups){
-							$rootScope.authUser.groups = groups.data;
-
-							if ($scope.filter.processDefinitionKey === 'Revision' && ($rootScope.hasGroup('revision_managers') || $rootScope.hasGroup('revision_audit'))){
-								$scope.participations.push({key:'all', label:'All'});
-							}
-						},
-						function(error){
-							console.log(error.data);
-						}
-					);
-				},
-				function(error){
-					console.log(error.data);
-				}
-			);
-		}
-
-		//var historyService = new camClient.resource('history');
-
-/*		$http.get(baseUrl+'/process-definition?latest=true&active=true&firstResult=0&maxResults=15').then(
-			function(results){
-				$scope.processDefinitions = results.data;
-			},
-			function(error){
-				console.log(error.data);
-			}
-		);
-*/
-		$scope.processDefinitions = $rootScope.getCurrentProcesses();
 
 		$scope.search = function(refreshPages){
 			if(refreshPages){
@@ -118,7 +91,8 @@ define(['./module','jquery', 'camundaSDK'], function(app, $, CamSDK){
 						console.log(error.data)
 					}
 				);
-			} else {
+			} else if($scope.filter.participation) {
+				console.log($scope.filter.participation);
 				getProcessInstances(filter);
 			}
 		};
@@ -133,6 +107,12 @@ define(['./module','jquery', 'camundaSDK'], function(app, $, CamSDK){
 			$scope.filter.page--;
 			$scope.search(false);
 			$scope.piIndex = undefined;
+		}
+
+		$scope.checkParticipation = function(){
+			if($scope.filter.processDefinitionKey !== 'Revision' && $scope.filter.participation === 'all'){
+				$scope.filter.participation = undefined;
+			}
 		}
 
 		function getProcessInstances(filter){

@@ -37,7 +37,7 @@ define('app',[
 			return '/camunda/api/engine/engine/default';
 		},
 		projects: function(baseUrl, $http){
-			$http.get(baseUrl+'/authorization/count').then(function(count){});
+			$http.post(baseUrl+'/identity/verify',{username:'demo',password:'test'}).then(function(count){});
 			return [
 				{
 					"key" : "NetworkInfrastructure",
@@ -113,10 +113,10 @@ define('app',[
 
 			$rootScope.projects = aviableProjects;
 
-			if(localStorageService.get('selectedProjectKey') && _.some($rootScope.projects, function(project){ return  project.key === localStorageService.get('selectedProjectKey')})){
+			if(localStorageService.get('selectedProjectKey') && _.some($rootScope.projects, function(project){ return project.key === localStorageService.get('selectedProjectKey')})){
 				$rootScope.selectedProject = _.find($rootScope.projects, function(project){ return  project.key === localStorageService.get('selectedProjectKey')})
-				if(localStorageService.get('selectedProcessKey') && _.some($rootScope.selectedProject.processes, function(process){ return  process.key === localStorageService.get('selectedProcessKey')})){
-					$rootScope.selectedProcess = _.find($rootScope.selectedProject.processes, function(process){ return  process.key === localStorageService.get('selectedProcessKey')});
+				if(localStorageService.get('selectedProcessKey') && _.some($rootScope.selectedProject.processes, function(process){ return process.key === localStorageService.get('selectedProcessKey')})){
+					$rootScope.selectedProcess = _.find($rootScope.selectedProject.processes, function(process){ return process.key === localStorageService.get('selectedProcessKey')});
 				} else {
 					$rootScope.selectedProcess = $rootScope.selectedProject.processes[0];
 				}

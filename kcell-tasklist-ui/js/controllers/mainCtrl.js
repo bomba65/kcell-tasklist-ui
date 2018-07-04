@@ -29,8 +29,8 @@ define(['./module','camundaSDK', 'lodash', 'big-js'], function(module, CamSDK, _
 			west : 'West',
 		};
 
-		$rootScope.$watchGroup(['selectedProject', 'selectedProcess'], function(newValues, oldValues, scope) {
-			if(newValues[0] !== oldValues[0] || newValues[1] !== oldValues[1]){
+		$scope.$watchGroup(['selectedProject', 'selectedProcess'], function(newValues, oldValues, scope) {
+			if((newValues[0].key !== oldValues[0].key || newValues[1].key !== oldValues[1].key)){
 	            getTaskList();
 			}
 		}, true);
