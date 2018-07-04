@@ -13,7 +13,8 @@ define('app',[
 	'big-js',
 	'excellentexport',
 	'angular-ui-router',
-	'ng-file-upload'
+	'ng-file-upload',
+	'angular-local-storage'
 ], function(ng){
 	'use strict';
 	var app =  ng.module('app', [
@@ -27,7 +28,8 @@ define('app',[
 		'ngRoute',
 		'ngCookies',
 		'ui.router',
-		'ngFileUpload'
+		'ngFileUpload',
+		'LocalStorageModule'
 	]);
 	var preLoginUrl;
 	var resolve = {
@@ -76,7 +78,7 @@ define('app',[
             	}
         	);
         },        
-        defaults: function ($rootScope, projects, groups){
+        defaults: function ($rootScope, projects, groups, localStorageService){
 			function hasGroup(group){
 				if(groups){
 					return _.some($rootScope.authUser.groups, function(value){
@@ -110,8 +112,20 @@ define('app',[
 			});
 
 			$rootScope.projects = aviableProjects;
-			$rootScope.selectedProject = $rootScope.projects[0];
-			$rootScope.selectedProcess = $rootScope.selectedProject.processes[0];
+
+			if(localStorageService.get('selectedProjectKey') && _.some($rootScope.projects, function(project){ return  project.key === localStorageService.get('selectedProjectKey')})){
+				$rootScope.selectedProject = _.find($rootScope.projects, function(project){ return  project.key === localStorageService.get('selectedProjectKey')})
+				if(localStorageService.get('selectedProcessKey') && _.some($rootScope.selectedProject.processes, function(process){ return  process.key === localStorageService.get('selectedProcessKey')})){
+					$rootScope.selectedProcess = _.find($rootScope.selectedProject.processes, function(process){ return  process.key === localStorageService.get('selectedProcessKey')});
+				} else {
+					$rootScope.selectedProcess = $rootScope.selectedProject.processes[0];
+				}
+			} else {
+				$rootScope.selectedProject = $rootScope.projects[0];
+				$rootScope.selectedProcess = $rootScope.selectedProject.processes[0];
+			}
+			localStorageService.set('selectedProjectKey', $rootScope.selectedProject.key);
+			localStorageService.set('selectedProcessKey', $rootScope.selectedProcess.key);
 
 			return [];
 		}
@@ -156,6 +170,8 @@ define('app',[
 	    	authenticate: true,
 	    	resolve: resolve
 	    });
+	}]).config(['localStorageServiceProvider', function (localStorageServiceProvider) {
+		localStorageServiceProvider.setPrefix('flow');
 	}]).provider('Uri',  function() {
 		var TEMPLATES_PATTERN = /[\w]+:\/\/|:[\w]+/g;
 		var replacements = {};
@@ -183,7 +199,7 @@ define('app',[
 	      		}
 	    	};
 		}];
-	}).run(['AuthenticationService', '$rootScope', '$http', function(AuthenticationService, $rootScope, $http){
+	}).run(['AuthenticationService', '$rootScope', '$http', 'localStorageService', function(AuthenticationService, $rootScope, $http, localStorageService){
 		$rootScope.isProcessVisible = function(process){
 			if ($rootScope.selectedProject.key === 'All'){
 				return true;
@@ -233,6 +249,15 @@ define('app',[
 			} else {
 				return false;
 			}
+		}
+		$rootScope.updateSelectedProject = function(project){
+			$rootScope.selectedProject = project;
+			localStorageService.set('selectedProjectKey',project.key);
+			$rootScope.updateSelectedProcess(project.processes[0]);
+		}
+		$rootScope.updateSelectedProcess = function(process){
+			$rootScope.selectedProcess = process;
+			localStorageService.set('selectedProcessKey',process.key);
 		}
 	}]).run([ '$rootScope', '$location', 'AuthenticationService', '$q', '$state', function($rootScope, $location, AuthenticationService, $q, $state) {
 		$rootScope.$on('authentication.login.required', function(event) {

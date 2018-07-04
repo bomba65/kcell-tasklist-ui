@@ -25,7 +25,8 @@ require.config({
          'big-js': './node_modules/big.js/big.min',
          'excellentexport': './node_modules/excellentexport/dist/excellentexport',
          'angular-ui-router': './node_modules/angular-ui-router/release/angular-ui-router.min',
-         'ng-file-upload': './node_modules/ng-file-upload/dist/ng-file-upload-all.min'
+         'ng-file-upload': './node_modules/ng-file-upload/dist/ng-file-upload-all.min',
+         'angular-local-storage': './node_modules/angular-local-storage/dist/angular-local-storage.min'
      },
  
      // angular не поддерживает AMD из коробки, поэтому экспортируем перменную angular в глобальную область
@@ -39,6 +40,7 @@ require.config({
          'toasty' : ['angular'],
          'camundaSDK' : ['angular'],
          'translate' : ['angular'],
+         'angular-local-storage': ['angular'],
          'angular-ui-router': ['angular'],
          'angular-ui-bootstrap': ['angular'],
          'ng-file-upload': ['angular'],
