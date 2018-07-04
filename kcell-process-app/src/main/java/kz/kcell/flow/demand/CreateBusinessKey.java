@@ -49,10 +49,10 @@ public class CreateBusinessKey implements JavaDelegate {
     @Override
     public void execute(DelegateExecution delegateExecution) throws Exception {
 
-        Long processInstancesCount = historyService.createHistoricProcessInstanceQuery().processDefinitionKey("Demand").count();
+        Long processInstancesCount = historyService.createHistoricProcessInstanceQuery().processDefinitionKey("Demand").count()+1;
         log.info("" + processInstancesCount);
 
-        String businessKey = "DMAOP/" + processInstancesCount;
+        String businessKey = "DMAOP-" + processInstancesCount;
         log.info("businessKey: " + businessKey);
         delegateExecution.setVariable("businessKey", businessKey);
     }
