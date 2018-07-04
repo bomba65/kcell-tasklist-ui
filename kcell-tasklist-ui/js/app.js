@@ -200,12 +200,28 @@ define('app',[
 	    	};
 		}];
 	}).run(['AuthenticationService', '$rootScope', '$http', 'localStorageService', function(AuthenticationService, $rootScope, $http, localStorageService){
-		$rootScope.isProcessVisible = function(process){
+		$rootScope.isProjectVisible = function(projectKey){
 			if ($rootScope.selectedProject.key === 'All'){
 				return true;
-			} else if($rootScope.selectedProcess.key === process){
+			} else if($rootScope.selectedProject.key === projectKey){
 				return true;
-			} else if($rootScope.selectedProcess.key === 'All' && _.find($rootScope.selectedProject.processes, { 'key': process})){
+			} else {
+				return false;
+			}
+		}
+
+		$rootScope.isProjectAvailable = function(projectKey){
+			return _.some($rootScope.projects, function(project){
+				return project.key === projectKey;
+			});
+		}
+
+		$rootScope.isProcessVisible = function(processKey){
+			if ($rootScope.selectedProject.key === 'All'){
+				return true;
+			} else if($rootScope.selectedProcess.key === processKey){
+				return true;
+			} else if($rootScope.selectedProcess.key === 'All' && _.find($rootScope.selectedProject.processes, { 'key': processKey})){
 				return true;				
 			} else {
 				return false;

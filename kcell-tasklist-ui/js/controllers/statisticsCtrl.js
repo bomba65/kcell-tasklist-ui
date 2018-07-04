@@ -2,6 +2,7 @@ define(['./module','jquery'], function(app,$){
 	'use strict';
 	return app.controller('statisticsCtrl', ['$scope', '$rootScope', '$http', '$state', '$stateParams', '$q', '$location', 'AuthenticationService',
 			                         function($scope,   $rootScope,   $http, $state,  $stateParams,   $q, $location, AuthenticationService) {
+
 		$rootScope.currentPage = {
 			name: 'statistics'
 		};
@@ -18,38 +19,8 @@ define(['./module','jquery'], function(app,$){
 			});
 		}
 
-        $rootScope.hasGroup = function(group){
-            if($rootScope.authUser && $rootScope.authUser.groups){
-                return _.some($rootScope.authUser.groups, function(value){
-                    return value.id === group;
-                });
-            } else {
-                return false;
-            }
-        }
-
 		$scope.baseUrl = '/camunda/api/engine/engine/default';
-		// $scope.baseUrl = "https://test-flow.kcell.kz/engine-rest/engine/default";
         $scope.report_ready = false;
-
-        if($rootScope.authentication){
-            $http.get($scope.baseUrl+'/user/'+$rootScope.authentication.name+'/profile').then(
-                function(userProfile){
-                    $rootScope.authUser = userProfile.data;
-                    $http.get($scope.baseUrl+'/group?member='+$rootScope.authUser.id).then(
-                        function(groups){
-                            $rootScope.authUser.groups = groups.data;
-                        },
-                        function(error){
-                            console.log(error.data);
-                        }
-                    );
-                },
-                function(error){
-                    console.log(error.data);
-                }
-            );
-        }
 
 		$scope.reportsMap = {
             'revision-open-tasks': {name: 'Revision open tasks', process: 'Revision'},
