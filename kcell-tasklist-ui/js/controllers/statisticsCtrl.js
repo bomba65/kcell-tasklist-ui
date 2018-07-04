@@ -575,7 +575,7 @@ define(['./module','jquery'], function(app,$){
                     $scope.tasks = tasks;
                 });
 
-            } else {
+            } else if($scope.currentReport) {
                 $scope.updateTaskDefinitions();
 
                 $scope.kcellTasks = {
