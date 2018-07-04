@@ -1,5 +1,6 @@
 require.config({
      //  псевдонимы и пути используемых библиотек и плагинов
+     waitSeconds : 60,
      map: {
      		'lodash/*': './node_modules/lodash/index'
      	}
@@ -50,5 +51,5 @@ require.config({
  
      // запустить приложение
      deps: ['./bootstrapAngular'],
-     urlArgs: "bust=" + (new Date()).getTime()
+     urlArgs: "bust=" + Math.floor((new Date()).getTime()/(24*60*60*1000))
 });
