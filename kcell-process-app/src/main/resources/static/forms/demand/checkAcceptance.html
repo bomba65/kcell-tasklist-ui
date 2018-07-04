@@ -26,13 +26,6 @@
                 acceptCrits: []
             };
 
-            // $scope.generalData = {};
-            // $scope.detailsData = {};
-            // $scope.targetAudienceData = {};
-            // $scope.funcRequirements = {};
-            // $scope.nonFuncRequirements = {};
-            // $scope.interfaces = {};
-
 
             camForm.on('form-loaded', function () {
                 variables.forEach(function (el) {
@@ -47,18 +40,17 @@
                         console.log(error.data);
                     }
                 );
+
                 camForm.variableManager.fetchVariable('generalData');
                 camForm.variableManager.fetchVariable('BRDData');
                 camForm.variableManager.fetchVariable('CACData');
-
 
                 // camForm.variableManager.fetchVariable('generalData');
                 // camForm.variableManager.fetchVariable('detailsData');
                 // camForm.variableManager.fetchVariable('targetAudienceData');
                 // camForm.variableManager.fetchVariable('funcRequirements');
                 // camForm.variableManager.fetchVariable('nonFuncRequirements');
-                // camForm.variableManager.fetchVariable('interfaces');
-                // camForm.variableManager.fetchVariable('reportsStatistics');
+                // camForm.variableManager.fetchVariable('interfaces')
             });
 
             camForm.on('variables-fetched', function () {
@@ -99,12 +91,18 @@
                         $scope[el] = camForm.variableManager.variables[el].value;
                     }
                 });
+
                 camForm.variableManager.createVariable({
-                    name: 'reportsStatistics',
+                    name: 'demandCheckAcceptanceTaskResult',
                     type: 'String',
                     value: ''
                 });
 
+                camForm.variableManager.createVariable({
+                    name: 'demandCheckAcceptanceTaskComment',
+                    type: 'String',
+                    value: ''
+                });
 
                 $scope.generalData = camForm.variableManager.variableValue('generalData');
                 $scope.BRDData = camForm.variableManager.variableValue('BRDData');
@@ -132,32 +130,26 @@
                     };
                 }
 
-                camForm.variableManager.createVariable({
-                    name: 'demandCheckBRDTaskResult',
-                    type: 'String',
-                    value: ''
-                });
-
-                camForm.variableManager.createVariable({
-                    name: 'demandCheckBRDTaskComment',
-                    type: 'String',
-                    value: ''
-                });
-
+                // camForm.variableManager.createVariable({
+                //     name: 'reportsStatistics',
+                //     type: 'String',
+                //     value: ''
+                // });
+                //
                 // $scope.generalData = camForm.variableManager.variableValue('generalData');
                 // $scope.detailsData = camForm.variableManager.variableValue('detailsData');
                 // $scope.targetAudienceData = camForm.variableManager.variableValue('targetAudienceData');
                 // $scope.funcRequirements = camForm.variableManager.variableValue('funcRequirements');
                 // $scope.nonFuncRequirements = camForm.variableManager.variableValue('nonFuncRequirements');
                 // $scope.interfaces = camForm.variableManager.variableValue('interfaces');
-                // $scope.reportsStatistics = camForm.variableManager.variableValue('reportsStatistics');
+                // // $scope.reportsStatistics = camForm.variableManager.variableValue('reportsStatistics');
                 // if (!$scope.generalData) $scope.generalData = {};
                 // if (!$scope.detailsData) $scope.detailsData = {};
                 // if (!$scope.targetAudienceData) $scope.targetAudienceData = {};
                 // if (!$scope.funcRequirements) $scope.funcRequirements = {};
                 // if (!$scope.nonFuncRequirements) $scope.nonFuncRequirements = {};
                 // if (!$scope.interfaces) $scope.interfaces = {};
-                // if (!$scope.reportsStatistics) $scope.reportsStatistics = '';
+                // // if (!$scope.reportsStatistics) $scope.reportsStatistics = '';
             });
 
             camForm.on('submit', function (event) {
@@ -205,20 +197,68 @@
                 //     type: 'String',
                 //     value: $scope.reportsStatistics
                 // });
-                // console.log($scope.reportsStatistics);
 
                 var submitDate = new Date ();
                 if(!$scope.resolutions){
                     $scope.resolutions = [];
                 }
 
-                camForm.variableManager.variableValue('demandCheckBRDTaskComment', $scope.demandCheckBRDTaskComment);
-                camForm.variableManager.variableValue('demandCheckBRDTaskResult', $scope.demandCheckBRDTaskResult);
-                $scope.resolutions.push({processInstanceId: $scope.processInstanceId, assignee: $rootScope.authentication.name, resolution: $scope.demandCheckBRDTaskResult, comment: $scope.demandCheckBRDTaskComment, taskId: camForm.taskId, taskEndDate: submitDate, taskName: $scope.taskName});
+                camForm.variableManager.variableValue('reportsStatistics', $scope.reportsStatistics);
+
+                camForm.variableManager.variableValue('demandCheckAcceptanceTaskComment', $scope.demandCheckAcceptanceTaskComment);
+                camForm.variableManager.variableValue('demandCheckAcceptanceTaskResult', $scope.demandCheckAcceptanceTaskResult);
+                $scope.resolutions.push({processInstanceId: $scope.processInstanceId, assignee: $rootScope.authentication.name, resolution: $scope.demandCheckAcceptanceTaskResult, comment: $scope.demandCheckAcceptanceTaskComment, taskId: camForm.taskId, taskEndDate: submitDate, taskName: $scope.taskName});
                 camForm.variableManager.variableValue('resolutions', $scope.resolutions);
                 console.log($scope.resolutions);
             });
 
+            $scope.saveCheckAcceptance = function () {
+
+                var json = JSON.stringify($scope.generalData, function( key, value ) {
+                    if( key === "$$hashKey" ) {
+                        return undefined;
+                    }
+                    return value;
+                });
+                $http.put('/camunda/api/engine/engine/default/process-instance/'+$scope.processInstanceId+'/variables/generalData',{"type":"Json","value": json}).then(
+                        function(){
+                            console.log($scope.generalData);
+                        },
+                        function(error){
+                            console.log(error.data);
+                        }
+                );
+                json = JSON.stringify($scope.BRDData, function( key, value ) {
+                    if( key === "$$hashKey" ) {
+                        return undefined;
+                    }
+                    return value;
+                });
+                $http.put('/camunda/api/engine/engine/default/process-instance/'+$scope.processInstanceId+'/variables/BRDData',{"type":"Json","value": json}).then(
+                        function(){
+                            console.log($scope.BRDData);
+                        },
+                        function(error){
+                            console.log(error.data);
+                        }
+                );
+                json = JSON.stringify($scope.CACData, function( key, value ) {
+                    if( key === "$$hashKey" ) {
+                        return undefined;
+                    }
+                    return value;
+                });
+                $http.put('/camunda/api/engine/engine/default/process-instance/'+$scope.processInstanceId+'/variables/CACData',{"type":"Json","value": json}).then(
+                        function(){
+                            console.log($scope.CACData);
+                        },
+                        function(error){
+                            console.log(error.data);
+                        }
+                );
+                toasty.success( "Данные успешно сохранены!");
+
+            };
         }]);
     </script>
     <div class="form-group">
@@ -232,7 +272,7 @@
         </div>
         <label class="col-sm-2 control-label"> Activity:</label>
         <div class="col-sm-2">
-            <label rows="1" class="form-control" id="demandActivity" disabled> CheckBRD </label>
+            <label rows="1" class="form-control" id="demandActivity" disabled> Define acceptance criteria & Assess costs </label>
         </div>
     </div>
     <div class="form-group">
@@ -261,16 +301,16 @@
                 </div>
             </div>
         </tab>
-        <tab active="true">
+        <tab disabled="true">
             <tab-heading> BRD </tab-heading>
-            <div style="margin-bottom: 20px;">
+            <div style="margin-bottom: 20px;" ng-if="taskName === 'Fill BRD (WYSIWYG editor)'">
                 <div class="col-sm-12">
                     <accordion>
                         <accordion-group is-open="true">
                             <accordion-heading>
                                 Functional Requirements <i class="pull-right glyphicon" ng-class="{'glyphicon-chevron-up': status.isCustomHeaderOpen, 'glyphicon-chevron-down': !status.isCustomHeaderOpen}"></i>
                             </accordion-heading>
-                            <demand-func-requirements data="BRDData.funcRequirements" form="kcell_form" view="view" readonly="true"></demand-func-requirements>
+                            <demand-func-requirements data="funcRequirements" form="kcell_form" view="view" readonly="false"></demand-func-requirements>
                         </accordion-group>
                     </accordion>
                     <accordion>
@@ -278,7 +318,7 @@
                             <accordion-heading>
                                 Non-Functional Requirements <i class="pull-right glyphicon" ng-class="{'glyphicon-chevron-up': status.isCustomHeaderOpen, 'glyphicon-chevron-down': !status.isCustomHeaderOpen}"></i>
                             </accordion-heading>
-                            <demand-non-func-requirements data="BRDData.nonFuncRequirements" form="kcell_form" view="view" readonly="true"></demand-non-func-requirements>
+                            <demand-non-func-requirements data="nonFuncRequirements" form="kcell_form" view="view" readonly="false"></demand-non-func-requirements>
                         </accordion-group>
                     </accordion>
                     <accordion>
@@ -286,24 +326,25 @@
                             <accordion-heading>
                                 Interfaces <i class="pull-right glyphicon" ng-class="{'glyphicon-chevron-up': status.isCustomHeaderOpen, 'glyphicon-chevron-down': !status.isCustomHeaderOpen}"></i>
                             </accordion-heading>
-                            <demand-interfaces data="BRDData.interfaces" form="kcell_form" view="view" readonly="true"></demand-interfaces>
+                            <demand-interfaces data="interfaces" form="kcell_form" view="view" readonly="false"></demand-interfaces>
                         </accordion-group>
                     </accordion>
+
                     <accordion>
                         <accordion-group is-open="true">
                             <accordion-heading>
                                 Reports and Statistics <i class="pull-right glyphicon" ng-class="{'glyphicon-chevron-up': status.isCustomHeaderOpen, 'glyphicon-chevron-down': !status.isCustomHeaderOpen}"></i>
                             </accordion-heading>
                             <div class="col-sm-12">
-                                <textarea type="text" style="resize: vertical;" class="form-control" ng-model="BRDData.reportsStatistics" required disabled></textarea>
-                                <span class="has-error" ng-if="BRDData.reportsStatistics.length == 0 && view.submitted">Required field</span>
+                                <textarea type="text" style="resize: vertical" class="form-control" name="reportsStatistics" ng-model="$root.reportsStatistics" required></textarea>
+                                <span class="has-error" ng-if="form.reportsStatistics.$error.required && (form.reportsStatistics.$touched || view.submitted)">Required field</span>
                             </div>
                         </accordion-group>
                     </accordion>
                 </div>
             </div>
         </tab>
-        <tab disabled="true">
+        <tab active="true">
             <tab-heading> Cost and Acceptance Criterias </tab-heading>
             <div style="margin-bottom: 20px;"></div>
             <accordion>
@@ -311,7 +352,7 @@
                     <accordion-heading>
                         Resources <i class="pull-right glyphicon" ng-class="{'glyphicon-chevron-up': status.isCustomHeaderOpen, 'glyphicon-chevron-down': !status.isCustomHeaderOpen}"></i>
                     </accordion-heading>
-                    <demand-resources data="CACData.resources" form="kcell_form" view="view" readonly="false"></demand-resources>
+                    <demand-resources data="CACData.resources" form="kcell_form" view="view" readonly="true"></demand-resources>
                 </accordion-group>
             </accordion>
             <accordion>
@@ -319,7 +360,7 @@
                     <accordion-heading>
                         Materials <i class="pull-right glyphicon" ng-class="{'glyphicon-chevron-up': status.isCustomHeaderOpen, 'glyphicon-chevron-down': !status.isCustomHeaderOpen}"></i>
                     </accordion-heading>
-                    <demand-materials data="CACData.materials" form="kcell_form" view="view" readonly="false"></demand-materials>
+                    <demand-materials data="CACData.materials" form="kcell_form" view="view" readonly="true"></demand-materials>
                 </accordion-group>
             </accordion>
             <accordion>
@@ -327,7 +368,7 @@
                     <accordion-heading>
                         Acceptance criterias <i class="pull-right glyphicon" ng-class="{'glyphicon-chevron-up': status.isCustomHeaderOpen, 'glyphicon-chevron-down': !status.isCustomHeaderOpen}"></i>
                     </accordion-heading>
-                    <div class="col-sm-12">
+                    <div class="col-sm-12" disabled="true">
                         <label class="col-sm-12">
                             Description
                             <a href="#" ng-click="CACData.acceptCrits.push({v:''})" style="font-size: 25px; margin-left: 20px;">
@@ -336,7 +377,7 @@
                         </label>
                         <div class="form-group" ng-repeat="d in CACData.acceptCrits track by $index">
                             <div class="col-sm-9">
-                                <input type="text" class="form-control" ng-model="d.v">
+                                <input type="text" class="form-control" ng-model="d.v" disabled>
                                 <span class="has-error" ng-if="d.v.length == 0 && view.submitted">Required field</span>
                             </div>
                             <div class="col-sm-3">
@@ -357,40 +398,41 @@
         </tab>
     </tabset>
 
+
     <div class="form-group">
         <label class="col-sm-2 control-label">Resolution</label>
         <div class="col-sm-8">
             <label class="radio-inline">
-                <input type="radio" ng-model="demandCheckBRDTaskResult" name="demandCheckBRDTaskResult" value="approved" required> Approved
+                <input type="radio" ng-model="demandCheckAcceptanceTaskResult" name="demandCheckAcceptanceTaskResult" value="approved" required> Approved
             </label>
             <label class="radio-inline">
-                <input type="radio" ng-model="demandCheckBRDTaskResult" name="demandCheckBRDTaskResult" value="modify" required> Modify works
+                <input type="radio" ng-model="demandCheckAcceptanceTaskResult" name="demandCheckAcceptanceTaskResult" value="modify" required> Modify works
             </label>
             <!--<label class="radio-inline">-->
-                <!--<input type="radio" ng-model="demandCheckBRDTaskResult" name="demandCheckBRDTaskResult" value="rejected" required> Reject-->
+                <!--<input type="radio" ng-model="demandCheckAcceptanceTaskResult" name="demandCheckAcceptanceTaskResult" value="rejected" required> Reject-->
             <!--</label>-->
-            <label class="error" ng-show="kcell_form.demandCheckBRDTaskResult.$error.required && ( kcell_form.demandCheckBRDTaskResult.$touched || view.submitted)">Required field</label>
+            <label class="error" ng-show="kcell_form.demandCheckAcceptanceTaskResult.$error.required && ( kcell_form.demandCheckAcceptanceTaskResult.$touched || view.submitted)">Required field</label>
         </div>
     </div>
     <div class="form-group">
         <label class="col-sm-2 control-label">Comments</label>
         <div class="col-sm-10">
-            <textarea class="form-control" rows="4" maxlength="500" ng-model="demandCheckBRDTaskComment" name="demandCheckBRDTaskComment" ng-required="demandCheckBRDTaskResult == 'rejected'"></textarea>
-            <label class="error" ng-show="kcell_form.demandCheckBRDTaskComment.$error.required && ( kcell_form.demandCheckBRDTaskComment.$touched || view.submitted)">Required field</label>
+            <textarea class="form-control" rows="4" maxlength="500" ng-model="demandCheckAcceptanceTaskComment" name="demandCheckAcceptanceTaskComment" ng-required="demandCheckAcceptanceTaskResult == 'rejected'"></textarea>
+            <label class="error" ng-show="kcell_form.demandCheckAcceptanceTaskComment.$error.required && ( kcell_form.demandCheckAcceptanceTaskComment.$touched || view.submitted)">Required field</label>
         </div>
     </div>
     <div class="form-group" ng-show="hasComment()">
         <label class="col-sm-4 control-label">Comments visibility</label>
         <div class="col-sm-8">
             <label class="radio-inline">
-                <input type="radio" name="demandCheckBRDCommentVisibility"
-                       ng-model="demandCheckBRDCommentVisibility" value="all" ng-required="hasComment()"> Visible for all
+                <input type="radio" name="demandCheckAcceptanceCommentVisibility"
+                       ng-model="demandCheckAcceptanceCommentVisibility" value="all" ng-required="hasComment()"> Visible for all
             </label>
             <label class="radio-inline">
-                <input type="radio" name="demandCheckBRDCommentVisibility"
-                       ng-model="demandCheckBRDCommentVisibility" value="kcell" ng-required="hasComment()"> Kcell staff only
+                <input type="radio" name="demandCheckAcceptanceCommentVisibility"
+                       ng-model="demandCheckAcceptanceCommentVisibility" value="kcell" ng-required="hasComment()"> Kcell staff only
             </label>
-            <label class="error" ng-show="kcell_form.demandCheckBRDCommentVisibility.$error.required && ( kcell_form.demandCheckBRDCommentVisibility.$touched || view.submitted)">Required field</label>
+            <label class="error" ng-show="kcell_form.demandCheckAcceptanceCommentVisibility.$error.required && ( kcell_form.demandCheckAcceptanceCommentVisibility.$touched || view.submitted)">Required field</label>
         </div>
     </div>
 
