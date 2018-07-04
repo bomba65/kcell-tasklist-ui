@@ -4,5 +4,7 @@ define([
 	'./targetAudience',
 	'./functionalRequirements',
 	'./nonFunctionalRequirements',
-	'./interfaces'
+	'./interfaces',
+	'./resources',
+	'./materials'
 	], function(){});
