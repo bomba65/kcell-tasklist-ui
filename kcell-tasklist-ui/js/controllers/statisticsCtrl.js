@@ -33,6 +33,14 @@ define(['./module','jquery'], function(app,$){
             'invoice-open-tasks',
             '4gSharing-open-tasks'
         ];
+        
+        $scope.$watchGroup(['selectedProject', 'selectedProcess'], function(newValues, oldValues, scope) {
+            if((newValues[0].key !== oldValues[0].key || newValues[1].key !== oldValues[1].key)){
+                if(!$rootScope.isProjectAvailable('NetworkInfrastructure') || !$rootScope.isProjectVisible('NetworkInfrastructure')){
+                    $state.go('tasks');
+                }
+            }
+        }, true);
 
         $scope.currentReport = $stateParams.report;
 

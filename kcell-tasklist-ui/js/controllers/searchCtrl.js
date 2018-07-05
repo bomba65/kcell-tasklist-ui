@@ -1,7 +1,7 @@
 define(['./module','jquery', 'camundaSDK'], function(app, $, CamSDK){
 	'use strict';
-	return app.controller('searchCtrl', ['$scope', '$rootScope', '$http', '$routeParams', '$q', '$location', '$timeout', 'AuthenticationService', 'exModal',
-			                         function($scope, $rootScope, $http, $routeParams, $q, $location, $timeout, AuthenticationService, exModal) {
+	return app.controller('searchCtrl', ['$scope', '$rootScope', '$http', '$routeParams', '$q', '$location', '$timeout', 'AuthenticationService', 'exModal', '$state',
+			                         function($scope, $rootScope, $http, $routeParams, $q, $location, $timeout, AuthenticationService, exModal, $state) {
 		
 		
 		var camClient = new CamSDK.Client({
@@ -53,6 +53,14 @@ define(['./module','jquery', 'camundaSDK'], function(app, $, CamSDK){
         	'south_kcell_users' : 'south',
         	'west_kcell_users' : 'west'
         }
+
+        $scope.$watchGroup(['selectedProject', 'selectedProcess'], function(newValues, oldValues, scope) {
+            if((newValues[0].key !== oldValues[0].key || newValues[1].key !== oldValues[1].key)){
+                if(!$rootScope.isProcessAvailable('Revision') || !$rootScope.isProcessVisible('Revision')){
+                    $state.go('tasks');
+                }
+            }
+        }, true);
 
         $http.get(baseUrl + '/process-definition/key/Revision/xml')
         .then(function(response) {
