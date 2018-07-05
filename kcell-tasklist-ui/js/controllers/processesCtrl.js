@@ -33,6 +33,7 @@ define(['./module','jquery', 'camundaSDK'], function(app, $, CamSDK){
 						$scope.filter.processDefinitionKey = $scope.processDefinitions[0].key;
 						$scope.checkParticipation();
 					}
+					$scope.processInstances = undefined;
          		}
 			}
 		}, true);
