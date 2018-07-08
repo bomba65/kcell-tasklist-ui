@@ -26,14 +26,14 @@
         assigneeName = (result.data.firstName ? result.data.firstName : "") + " " + (result.data.lastName ? result.data.lastName : "");
     });
 
-    $http.get('/camunda/api/engine/engine/default/task/' + camForm.taskId).then(
-      function (result) {
-        processInstanceId = result.data.processInstanceId;
-      },
-      function (error) {
-        console.log(error.data);
-      }
-    );
+    // $http.get('/camunda/api/engine/engine/default/task/' + camForm.taskId).then(
+    //   function (result) {
+    //     processInstanceId = result.data.processInstanceId;
+    //   },
+    //   function (error) {
+    //     console.log(error.data);
+    //   }
+    // );
 
     $scope.downloadFile = function (file) {
       $http({method: 'GET', url: '/camunda/uploads/' + (file.path.split('/').length === 2 ? 'tmp/' : '') + 'get/' + file.path, transformResponse: [] }).
@@ -82,6 +82,7 @@
     }
 
     camForm.on('submit', function(event) {
+
       camForm.variableManager.createVariable({
         name: 'customerInformation',
         type: 'json',
@@ -128,30 +129,48 @@
 
       var resolutions = [{
         processInstanceId: processInstanceId,
+        taskName: "Start Form",
         taskId: camForm.taskId,
         assigneeName: assigneeName,
-        comment: $scope.comment
+        comment: $scope.comment,
+        taskEndDate: new Date(),
+        resolution: "started"
+
       }];
+      // event.submitPrevented = true;
+
+      //-----------------------------------------------------
+
+      //-----------------------------------------------------
+
+
+
       camForm.variableManager.createVariable({
         name: 'resolutions',
         type: 'json',
         value: resolutions,
         store: true
       });
-
-      var date = new Date;
-      date = date.getFullYear().toString()+("0" + (date.getMonth() + 1)).toString().slice(-2) + ("0" + date.getDate().toString()).slice(-2);
-      var rnd = Math.floor((Math.random() * 9000)+1000);
-      var businessKey = 'STP/' + date +'/'+rnd;
-      camForm.businessKey = businessKey;
     });
-    
-    }]);
+
+    $scope.preSubmit = function(){
+      return $http.get('/camunda/api/engine/engine/default/history/process-instance/count?processDefinitionKey=PBX').then(
+              function(result){
+                var countPID = result.data.count;
+                var date = new Date();
+                $scope.businessKey = 'PBX_' + ("0" + date.getDate().toString()).slice(-2) + ("0" + (date.getMonth() + 1)).toString().slice(-2)
+                        + date.getFullYear().toString() + '_' + $scope.ci.bin + '_' + $scope.ci.ticName + '_' + countPID;
+                console.log($scope.businessKey);
+                camForm.businessKey = $scope.businessKey;
+              }
+      );
+    }
+  }]);
 
   </script>
 
   <div class="col-sm-12">
-    <customer-information ci="ci" form="kcell_form" view="view" readonly="false" legal="false"></customer-information>
+    <customer-information ci="ci" form="kcell_form" view="view" readonly="false" legal="false" start="true"></customer-information>
   </div>
   <div class="col-sm-12">
     <div class="col-sm-6">

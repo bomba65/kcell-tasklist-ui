@@ -8,7 +8,8 @@ define(['./../module'], function(module){
 				form: '=',
 				view: '=',
 				readonly: "=",
-				legal: "="
+				legal: "=",
+				start: "="
 			},
 			link: function(scope, element, attrs) {
 				scope.$watch('ci', function (value) {
