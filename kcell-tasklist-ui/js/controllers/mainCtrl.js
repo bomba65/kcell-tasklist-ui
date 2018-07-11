@@ -420,6 +420,31 @@ define(['./module','camundaSDK', 'lodash', 'big-js'], function(module, CamSDK, _
                         console.log(error.data);
                     }
             );
+            if($scope.selectedProcessKey === 'Revision'){
+				_.forEach(['site_name'], function(variable) {
+					var varSearchParams = {processInstanceIdIn: _.map($scope.currentTaskGroup.tasks, 'processInstanceId'), variableName: variable};
+					$http({
+						method: 'POST',
+						headers:{'Accept':'application/hal+json, application/json; q=0.5'},
+						data: varSearchParams,
+						url: baseUrl+'/variable-instance'
+					}).then(
+						function(vars){
+							angular.forEach($scope.currentTaskGroup.tasks, function(task){
+								var f =  _.find(vars.data, function(v) {
+									return v.processInstanceId === task.processInstanceId; 
+								});
+								if(f){
+									task[variable] = f.value;
+								}
+							});
+						},
+						function(error){
+							console.log(error.data);
+						}
+					);
+				});
+            }
 		}
 
 		$scope.getCurrentProjectDisplay = function(){
