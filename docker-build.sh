@@ -13,6 +13,9 @@ BASEDIR=`pwd`
 cd "$BASEDIR/asset-management"
 ./gradlew --no-daemon clean build -x test 
 
+cd "$BASEDIR/directory-management"
+./gradlew --no-daemon clean build -x test
+
 cd "$BASEDIR/kcell-process-app"
 ./gradlew --no-daemon clean build -x test 
 
