@@ -31,6 +31,11 @@ define(['./module','camundaSDK', 'lodash', 'big-js'], function(module, CamSDK, _
 
 		$scope.$watchGroup(['selectedProject', 'selectedProcess'], function(newValues, oldValues, scope) {
 			if((newValues[0].key !== oldValues[0].key || newValues[1].key !== oldValues[1].key)){
+        		if($scope.selectedProcessKey && !_.some($rootScope.getCurrentProcesses(), function(pd){ return pd.key === $scope.selectedProcessKey})){
+        			$scope.selectedProcessKey = undefined;
+		            $scope.currentTaskGroup = undefined;
+        			$scope.currentFilter = undefined;
+         		}
 	            getTaskList();
 			}
 		}, true);
@@ -81,8 +86,10 @@ define(['./module','camundaSDK', 'lodash', 'big-js'], function(module, CamSDK, _
 					});
 					if($scope.filters.length > 0 && $scope.currentFilter == undefined){
 						$scope.currentFilter = $scope.filters[0];
-						if(($rootScope.isProcessAvailable('Revision') || $rootScope.isProcessAvailable('Invoice')) && $rootScope.hasGroup('head_kcell_users')){
+						if($scope.isRegionFiltersVisible()){
 							loadRegionCount();
+						} else {
+							$scope.regionFilters = [];
 						}
 					}
 					loadTasks();
@@ -92,6 +99,11 @@ define(['./module','camundaSDK', 'lodash', 'big-js'], function(module, CamSDK, _
 				}
 			);
 		}
+
+		$scope.isRegionFiltersVisible = function(){
+			return (($rootScope.isProcessAvailable('Revision') && $rootScope.isProcessVisible('Revision')) || ($rootScope.isProcessAvailable('Invoice') && $rootScope.isProcessVisible('Invoice'))) && $rootScope.hasGroup('head_kcell_users');
+		}
+
 		$scope.selectFilter = function(filter){
 			$scope.currentTask = undefined;
 			$scope.currentFilter = filter;
