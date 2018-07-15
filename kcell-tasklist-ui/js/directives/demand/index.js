@@ -6,5 +6,6 @@ define([
 	'./nonFunctionalRequirements',
 	'./interfaces',
 	'./resources',
-	'./materials'
+	'./materials',
+	'./supportiveInputs'
 	], function(){});
