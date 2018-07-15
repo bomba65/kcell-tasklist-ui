@@ -7,7 +7,8 @@ define(['./../module'], function(module){
                 data: '=',
                 form: '=',
                 view: '=',
-                readonly: '='
+                readonly: '=',
+                allowPrice: '='
 			},
 			link: function(scope, element, attrs) {
                 scope.$watch('data', function(value) {
@@ -16,6 +17,15 @@ define(['./../module'], function(module){
                         scope.totalSumm = 0;
                         for (var d of scope.data) {
                             scope.totalSumm += d.summ;
+                        }
+                        
+                        if (!scope.responsible) {
+                            scope.responsible = $rootScope.authentication.name;
+                            $http.get("/camunda/api/engine/engine/default/user/" + $rootScope.authentication.name+ "/profile").then(function(result) {
+                                if (result.data && result.data.firstName && result.data.lastName) {
+                                    scope.responsible = result.data.firstName + " " + result.data.lastName;
+                                }
+                            });
                         }
                     }
                 });
@@ -33,7 +43,11 @@ define(['./../module'], function(module){
                         existing: null,
                         currency: null,
                         pprice: null,
-                        summ: null
+                        summ: null,
+                        responsible: {
+                            name: $rootScope.authentication.name,
+                            fio: scope.responsible
+                        }
                     });
                 }
                 scope.calcSumm = function(index) {
