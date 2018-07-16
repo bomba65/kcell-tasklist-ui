@@ -1,3 +1,11 @@
+<style type="text/css">
+    .list-group-item:hover{
+        color: #fff;
+        background-color: #5f3e72;
+        cursor: pointer;
+        text-decoration: underline;
+    }
+</style>
 <div align="left">
     <div class="col-sm-6">
         <div class="form-group">
@@ -33,64 +41,90 @@
                     <span class="has-error" ng-if="form.gProductType.$error.required && (form.gProductType.$touched || view.submitted)">Required field</span>
                 </div>
             </div>
-            <div class="form-group">
-                <label class="col-sm-4 control-label">Product name<span class="text-danger glyphicon-asterisk"></span></label>
-                <div class="col-sm-6" ng-if="!readonly">
-                    <div ng-dropdown-multiselect="" options="productNameOptions" selected-model="data.productName" extra-settings="multiselectSettings"></div>
-                    <span class="has-error" ng-if="data.productName.length == 0 && view.submitted">Required field</span>
-                </div>
-                <div class="col-sm-8" ng-if="readonly">
-                    <div class="form-control" style="height: 100%;" disabled>
-                        <div ng-repeat="pn in data.productName">{{pn.v}}</div>
-                    </div>
-                </div>
-                <div class="col-sm-2" ng-if="!readonly">
-                    <a href="#" style="font-size: 25px;" ng-click="productNameAdd()">
-                        <span class="glyphicon glyphicon-plus-sign"></span>
-                    </a>
-                </div>
-            </div>
-            <div class="form-group">
-                <label class="col-sm-4 control-label">Version</label>
-                <div class="col-sm-8">
-                    <input type="text" class="form-control" ng-model="data.productNameVersion" ng-disabled="readonly">
-                </div>
-            </div>
+            <table class="table">
+                <thead>
+                    <tr>
+                        <th>Product name</th>
+                        <th>Version</th>
+                        <th ng-if="!readonly" class="text-center">
+                            <a href="#" style="font-size: 25px;" ng-click="productNameAdd()">
+                                <span class="glyphicon glyphicon-plus-sign"></span>
+                            </a>
+                        </th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr ng-repeat="p in data.productNames track by $index">
+                        <td>
+                            <span ng-if="readonly">{{p.name}}</span>
+                            <span ng-if="!readonly">
+                                <input type="text" class="form-control" ng-model="p.name" ng-keyup="productNameComplete($index)" ng-focus="productNameComplete($index)" required>
+                                <ul class="list-group" ng-blur="productNameBlur($index)">
+                                    <li class="list-group-item" ng-repeat="opt in filteredProductNames[$index]" ng-click="productNameSelect($parent.$index, opt)">{{opt.name}}</li>
+                                </ul>
+                                <span class="has-error" ng-if="p.name.length == 0 && view.submitted">Required field</span>
+                            </span>
+                        </td>
+                        <td>
+                            <span ng-if="readonly">{{p.version}}</span>
+                            <span ng-if="!readonly">
+                                <input type="number" class="form-control" ng-model="p.version">
+                            </span>
+                        </td>
+                        <td ng-if="!readonly" class="text-center">
+                            <button type="button" class="btn btn-default" ng-click="productNameDelete($index)">Delete</button>
+                        </td>
+                    </tr>
+                </tbody>
+            </table>
         </div>
     </div>
     <div class="col-sm-4">
         <label class="col-sm-12">Product Offers</label>
         <div class="col-sm-12" style="border: 1px solid #000; padding-top: 10px; margin-bottom: 10px;">
-            <div class="form-group">
-                <label class="col-sm-4 control-label">Product offer name<span class="text-danger glyphicon-asterisk"></span></label>
-                <div class="col-sm-6" ng-if="!readonly">
-                    <div ng-dropdown-multiselect="" options="offerNameOptions" search-filter="offerNameSearch" selected-model="data.productOfferName" extra-settings="multiselectSettings"></div>
-                    <span class="has-error" ng-if="data.productOfferName.length == 0 && view.submitted">Required field</span>
-                </div>
-                <div class="col-sm-8" ng-if="readonly">
-                    <div class="form-control" style="height: 100%;" disabled>
-                        <div ng-repeat="pon in data.productOfferName">{{pon.v}}</div>
-                    </div>
-                </div>
-                <div class="col-sm-2" ng-if="!readonly">
-                    <a href="#" style="font-size: 25px;" ng-click="offerNameAdd()">
-                        <span class="glyphicon glyphicon-plus-sign"></span>
-                    </a>
-                </div>
-            </div>
-            <div class="form-group">
-                <label class="col-sm-4 control-label">Product offer description<span class="text-danger glyphicon-asterisk"></span></label>
-                <div class="col-sm-8">
-                    <input type="text" class="form-control" name="gProductOfferDesc" ng-model="data.productOfferDesc" required ng-disabled="readonly">
-                    <span class="has-error" ng-if="form.gProductOfferDesc.$error.required && (form.gProductOfferDesc.$touched || view.submitted)">Required field</span>
-                </div>
-            </div>
-            <div class="form-group">
-                <label class="col-sm-4 control-label">Version</label>
-                <div class="col-sm-8">
-                    <input type="text" class="form-control" ng-model="data.offerNameVersion" ng-disabled="readonly">
-                </div>
-            </div>
+            <table class="table">
+                <thead>
+                    <tr>
+                        <th>Product offer name</th>
+                        <th>Product offer description</th>
+                        <th>Version</th>
+                        <th ng-if="!readonly" class="text-center">
+                            <a href="#" style="font-size: 25px;" ng-click="offerNameAdd()">
+                                <span class="glyphicon glyphicon-plus-sign"></span>
+                            </a>
+                        </th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr ng-repeat="p in data.offerNames track by $index">
+                        <td>
+                            <span ng-if="readonly">{{p.name}}</span>
+                            <span ng-if="!readonly">
+                                <input type="text" class="form-control" ng-model="p.name" ng-keyup="offerNameComplete($index)" ng-focus="offerNameComplete($index)" required>
+                                <ul class="list-group" ng-blur="offerNameBlur($index)">
+                                    <li class="list-group-item" ng-repeat="opt in filteredOfferNames[$index]" ng-click="offerNameSelect($parent.$index, opt)">{{opt.name}}</li>
+                                </ul>
+                                <span class="has-error" ng-if="p.name.length == 0 && view.submitted">Required field</span>
+                            </span>
+                        </td>
+                        <td>
+                            <span ng-if="readonly">{{p.description}}</span>
+                            <span ng-if="!readonly">
+                                <input type="text" class="form-control" ng-model="p.description">
+                            </span>
+                        </td>
+                        <td>
+                            <span ng-if="readonly">{{p.version}}</span>
+                            <span ng-if="!readonly">
+                                <input type="number" class="form-control" ng-model="p.version">
+                            </span>
+                        </td>
+                        <td ng-if="!readonly" class="text-center">
+                            <button type="button" class="btn btn-default" ng-click="productNameDelete($index)">Delete</button>
+                        </td>
+                    </tr>
+                </tbody>
+            </table>
         </div>
     </div>
     <div class="col-sm-4">
