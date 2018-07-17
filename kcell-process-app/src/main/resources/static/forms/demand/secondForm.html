@@ -45,7 +45,7 @@
                 camForm.variableManager.fetchVariable('BRDData');
                 camForm.variableManager.fetchVariable('CACData');
                 camForm.variableManager.fetchVariable('supportiveInputs');
-
+                camForm.variableManager.fetchVariable('attachments');
             });
 
             camForm.on('variables-fetched', function () {
@@ -91,7 +91,8 @@
                 $scope.BRDData = camForm.variableManager.variableValue('BRDData');
                 $scope.CACData = camForm.variableManager.variableValue('CACData');
                 $scope.supportiveInputs = camForm.variableManager.variableValue('supportiveInputs');
-                if (!$scope.generalData) {        
+                $scope.attachments = camForm.variableManager.variableValue('attachments');
+                if (!$scope.generalData) {
                     $scope.generalData = {
                         general: {},
                         targetAudience: {},
@@ -144,6 +145,16 @@
                 console.log($scope.resolutions);
 
             });
+
+            $scope.downloadFile = function (file) {
+                $http({method: 'GET', url: '/camunda/uploads/get/' + file.path, transformResponse: [] }).
+                success(function(data, status, headers, config) {
+                  document.getElementById('fileDownloadIframe').src = data;
+                }).
+                error (function(data, status, headers, config) {
+                  console.log(data);
+                });
+            }
         }]);
     </script>
     <div class="form-group">
@@ -174,16 +185,16 @@
             <div style="margin-bottom: 20px;">
                 <div class="col-sm-6">
                     <h4>General</h4>
-                    <demand-general data="generalData.general" form="kcell_form" view="view" readonly="true"></demand-general>
+                    <demand-general data="generalData.general" form="kcell_form" view="view" disabled="true"></demand-general>
                 </div>
                 <div class="col-sm-6">
                     <h4>Target Audience:</h4>
-                    <demand-target-audience data="generalData.targetAudience" form="kcell_form" view="view" readonly="true"></demand-target-audience>
+                    <demand-target-audience data="generalData.targetAudience" form="kcell_form" view="view" disabled="true"></demand-target-audience>
                 </div>
                 <br>
                 <div class="col-sm-12">
                     <h4>Demand Details</h4>
-                    <demand-details data="generalData.demandDetails" form="kcell_form" view="view" readonly="true"></demand-details>
+                    <demand-details data="generalData.demandDetails" form="kcell_form" view="view" disabled="true"></demand-details>
                 </div>
             </div>
         </tab>
@@ -196,7 +207,7 @@
                         <accordion-heading>
                             Functional Requirements <i class="pull-right glyphicon" ng-class="{'glyphicon-chevron-up': status.isCustomHeaderOpen, 'glyphicon-chevron-down': !status.isCustomHeaderOpen}"></i>
                         </accordion-heading>
-                        <demand-func-requirements data="BRDData.funcRequirements" form="kcell_form" view="view" readonly="true"></demand-func-requirements>
+                        <demand-func-requirements data="BRDData.funcRequirements" form="kcell_form" view="view" disabled="true"></demand-func-requirements>
                     </accordion-group>
                 </accordion>
                 <accordion>
@@ -204,7 +215,7 @@
                         <accordion-heading>
                             Non-Functional Requirements <i class="pull-right glyphicon" ng-class="{'glyphicon-chevron-up': status.isCustomHeaderOpen, 'glyphicon-chevron-down': !status.isCustomHeaderOpen}"></i>
                         </accordion-heading>
-                        <demand-non-func-requirements data="BRDData.nonFuncRequirements" form="kcell_form" view="view" readonly="true"></demand-non-func-requirements>
+                        <demand-non-func-requirements data="BRDData.nonFuncRequirements" form="kcell_form" view="view" disabled="true"></demand-non-func-requirements>
                     </accordion-group>
                 </accordion>
                 <accordion>
@@ -212,7 +223,7 @@
                         <accordion-heading>
                             Interfaces <i class="pull-right glyphicon" ng-class="{'glyphicon-chevron-up': status.isCustomHeaderOpen, 'glyphicon-chevron-down': !status.isCustomHeaderOpen}"></i>
                         </accordion-heading>
-                        <demand-interfaces data="BRDData.interfaces" form="kcell_form" view="view" readonly="true"></demand-interfaces>
+                        <demand-interfaces data="BRDData.interfaces" form="kcell_form" view="view" disabled="true"></demand-interfaces>
                     </accordion-group>
                 </accordion>
                 <accordion>
@@ -236,7 +247,7 @@
                     <accordion-heading>
                         Resources <i class="pull-right glyphicon" ng-class="{'glyphicon-chevron-up': status.isCustomHeaderOpen, 'glyphicon-chevron-down': !status.isCustomHeaderOpen}"></i>
                     </accordion-heading>
-                    <demand-resources data="CACData.resources" form="kcell_form" view="view" readonly="true"></demand-resources>
+                    <demand-resources data="CACData.resources" form="kcell_form" view="view" disabled="true"></demand-resources>
                 </accordion-group>
             </accordion>
             <accordion>
@@ -244,7 +255,7 @@
                     <accordion-heading>
                         Materials <i class="pull-right glyphicon" ng-class="{'glyphicon-chevron-up': status.isCustomHeaderOpen, 'glyphicon-chevron-down': !status.isCustomHeaderOpen}"></i>
                     </accordion-heading>
-                    <demand-materials data="CACData.materials" form="kcell_form" view="view" readonly="true"></demand-materials>
+                    <demand-materials data="CACData.materials" form="kcell_form" view="view" disabled="true"></demand-materials>
                 </accordion-group>
             </accordion>
             <accordion>
@@ -279,8 +290,33 @@
 
 
     <div class="col-sm-12" style="border: 1px solid #ccc; border-radius: 10px; padding-top: 10px; margin: 20px 0;">
-        <div class="col-sm-12">
-            <demand-supportive-inputs data="supportiveInputs" form="kcell_form" view="view" readonly="true"></demand-supportive-inputs>
+        <demand-supportive-inputs data="supportiveInputs" form="kcell_form" view="view" disabled="true"></demand-supportive-inputs>
+    </div>
+
+    <div class="col-sm-12" style="border: 1px solid #ccc; border-radius: 10px; padding-top: 10px; margin: 20px 0;">
+        <iframe id="fileDownloadIframe" style="display:none;"></iframe>
+        <div class="form-group">
+            <label class="col-sm-4 control-label">Attachments</label>
+            <div class="col-sm-8">
+                <div class="col-sm-12">
+                    <table class="table table-bordered">
+                        <thead>
+                        <tr>
+                            <th>File Name</th>
+                            <th>Created</th>
+                            <th>Created By</th>
+                        </tr>
+                        </thead>
+                        <tbody>
+                        <tr ng-repeat="file in attachments track by $index">
+                            <td><a ng-click="downloadFile(file)">{{file.name}}</a></td>
+                            <td>{{file.created | date: 'dd.MM.yyyy HH:mm'}}</td>
+                            <td>{{file.createdBy}}</td>
+                        </tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
         </div>
     </div>
 
