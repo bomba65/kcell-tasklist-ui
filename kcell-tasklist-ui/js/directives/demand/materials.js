@@ -7,7 +7,7 @@ define(['./../module'], function(module){
                 data: '=',
                 form: '=',
                 view: '=',
-                readonly: '=',
+                disabled: '=',
                 allowPrice: '='
 			},
 			link: function(scope, element, attrs) {
