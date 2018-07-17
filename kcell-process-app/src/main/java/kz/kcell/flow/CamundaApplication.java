@@ -76,6 +76,7 @@ public class CamundaApplication extends SpringBootProcessApplication {
             @Override
             public void preInit(SpringProcessEngineConfiguration processEngineConfiguration) {
                 processEngineConfiguration.setDefaultUserPermissionForTask(Permissions.TASK_WORK);
+                processEngineConfiguration.setRestrictUserOperationLogToAuthenticatedUsers(false);
             }
         };
     }
