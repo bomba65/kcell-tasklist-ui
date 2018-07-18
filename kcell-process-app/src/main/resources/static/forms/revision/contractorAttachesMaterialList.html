@@ -37,7 +37,8 @@
                 'contractorZIPWarehouseMaterialsListName',
                 'priority',
                 'fillApplied',
-                'mlApprovalAdditionalInfoFile'
+                'mlApprovalAdditionalInfoFile',
+                'kcellWarehouseMaterialsAdditionalList'
             ];
             $scope.kcellWarehouseMaterialsListExist = false;
             $scope.kcellWarehouseMaterialsList = {};
@@ -105,7 +106,7 @@
                             prev: camForm.variableManager.variables[el]
                         };
                     }
-                    if(el === 'kcellWarehouseMaterialsListName' || el === 'contractorZIPWarehouseMaterialsListName') {
+                    if(el === 'kcellWarehouseMaterialsListName' || el === 'contractorZIPWarehouseMaterialsListName' || el === 'kcellWarehouseMaterialsAdditionalList') {
                         $scope[el] = camForm.variableManager.variables[el];
                         $scope[el].type = 'Json';
                     }
@@ -113,6 +114,10 @@
                 $http.get("/camunda/api/engine/engine/default/user/" + $rootScope.authentication.name+ "/profile").then(function(result){
                     $rootScope.authentication.assigneeName = (result.data.firstName ? result.data.firstName : "") + " " + (result.data.lastName ? result.data.lastName : "");
                 });
+
+                if(!$scope.kcellWarehouseMaterialsAdditionalList.value){
+                    $scope.kcellWarehouseMaterialsAdditionalList.value = [];
+                }
             });
 
             camForm.on('submit', function () {
@@ -161,6 +166,19 @@
                 }
                 $scope.jobModel.resolutions.push({processInstanceId: $scope.processInstanceId, assignee: $rootScope.authentication.name, assigneeName: $rootScope.authentication.assigneeName, resolution: $scope.contractorAttachesMaterialListTaskResult, comment: $scope.contractorAttachesMaterialListComment, taskId: camForm.taskId, visibility: visibility, files: files});
                 camForm.variableManager.variableValue('resolutions', $scope.jobModel.resolutions);
+
+                $scope.kcellWarehouseMaterialsAdditionalList.value.forEach(function (f, i) {
+                    if(f.isNew){
+                        files.push(f.name);
+                        delete $scope.kcellWarehouseMaterialsAdditionalList.value[i].isNew;
+                    }
+                });
+
+                if(camForm.variableManager.variables['kcellWarehouseMaterialsAdditionalList']){
+                    camForm.variableManager.variableValue('kcellWarehouseMaterialsAdditionalList', $scope.kcellWarehouseMaterialsAdditionalList.value);
+                } else {
+                    camForm.variableManager.createVariable($scope.kcellWarehouseMaterialsAdditionalList);
+                }
             });
 
             camForm.on('store', function() {
@@ -227,6 +245,55 @@
                 });
             }
 
+            //-------------------------------- Additional material files
+            $scope.additionalMaterialFileSelected = function(el){
+                $timeout(function () {
+                    $scope.$apply(function () {
+                        uploadAdditionalMaterialFileToMinio(el.files[0]);
+                    });
+                })
+            };
+
+            function uploadAdditionalMaterialFileToMinio(file) {
+                var fileIndex = $scope.kcellWarehouseMaterialsAdditionalList.value.length;
+
+                var fileToUpload = {
+                    name: file.name,
+                    isNew: true,
+                    path: $scope.processInstanceId + '/' + camForm.taskId + '/' + file.name
+                };
+                $http({method: 'GET', url: '/camunda/uploads/put/' + fileToUpload.path, transformResponse: [] }).
+                success(function(data, status, headers, config) {
+                    $http.put(data, file, {headers: {'Content-Type': undefined}}).then(
+                            function () {
+                                $scope.kcellWarehouseMaterialsAdditionalList.value.push(fileToUpload);
+                                angular.element(document.querySelector('#additional_material_file_' + fileIndex)).val(null);
+                            },
+                            function (error) {
+                                console.log(error.data);
+                            }
+                    );
+                }).
+                error (function(data, status, headers, config) {
+                    console.log(data);
+                });
+            }
+
+            $scope.clearAdditionalMaterialFile = function (fileIndex) {
+                $scope.kcellWarehouseMaterialsAdditionalList.value.splice(fileIndex, 1);
+            }
+
+            $scope.additionalMaterialFileDownload = function (file) {
+                $http({method: 'GET', url: '/camunda/uploads/get/' + file.path, transformResponse: [] }).
+                success(function(data, status, headers, config) {
+                    document.getElementById('fileDownloadIframe').src = data;
+                }).
+                error (function(data, status, headers, config) {
+                    console.log(data);
+                });
+            }
+            //----------------------------------------------------------
+
             $scope.isVisible = function (resolution) {
                return !resolution.visibility || resolution.visibility === 'all' || (resolution.visibility === 'kcell' && $rootScope.hasGroup('kcellUsers'));
             }
@@ -248,7 +315,7 @@
         <label class="col-sm-4 control-label">Kcell Warehouse Materials List (xls):</label>
         <div class="col-sm-8">
             <div ng-show="kcellWarehouseMaterialsListName.value.name">
-                <a ng-click="download(kcellWarehouseMaterialsListName)">{{kcellWarehouseMaterialsListName.value.name}}</a> | <a ng-click="clearFile('kcellWarehouseMaterialsListName')"><i class="glyphicon glyphicon-trash"></i></a>
+                <a ng-click="download(kcellWarehouseMaterialsListName)">{{kcellWarehouseMaterialsListName.value.name}}</a> | <a ng-show="jobModel.fillApplied.value !== 'notEnough'" ng-click="clearFile('kcellWarehouseMaterialsListName')"><i class="glyphicon glyphicon-trash"></i></a>
             </div>
             <input ng-hide="kcellWarehouseMaterialsListName.value.name" type="file" class="form-control" id="kcellWarehouseMaterialsListName"
                    name="kcellWarehouseMaterialsListName" ng-model="kcellWarehouseMaterialsListName"  required-file="contractorAttachesMaterialListTaskResult === 'attached' && !kcellWarehouseMaterialsListName.value.name" onchange="angular.element(this).scope().fileSelected(this, 'kcellWarehouseMaterialsListName')"/>
@@ -269,6 +336,21 @@
             <label class="error" ng-show="kcell_form.kcellWarehouseMaterialsListNameVisibility.$error.required && ( kcell_form.kcellWarehouseMaterialsListNameVisibility.$touched || view.submitted)">Required field</label>
         </div>
     </div>
+
+    <div class="form-group" ng-show="jobModel.fillApplied.value == 'notEnough'">
+        <label class="col-sm-4 control-label">Kcell WareHouse Additional Material List (xls)</label>
+        <div class="col-md-8">
+            <div class="input-group" ng-repeat="file in kcellWarehouseMaterialsAdditionalList.value">
+                {{$index + 1}}.
+                <a ng-click="additionalMaterialFileDownload(file)">{{file.name}}</a> | <a ng-click="clearAdditionalMaterialFile($index)"><i class="glyphicon glyphicon-trash"></i></a>
+            </div>
+            <ng-form name="trfilesform">
+                <input type="file" class="form-control" id="additional_material_file_{{kcellWarehouseMaterialsAdditionalList.value.length}}" name="additional_material_file_{{kcellWarehouseMaterialsAdditionalList.value.length}}" ng-model="file.file" required-file="jobModel.fillApplied.value == 'notEnough' && kcellWarehouseMaterialsAdditionalList.value.length == 0" onchange="angular.element(this).scope().additionalMaterialFileSelected(this)"/>
+                <label class="has-error" ng-show="trfilesform['additional_material_file_'+kcellWarehouseMaterialsAdditionalList.value.length].$error.validFile">File is required</label>
+            </ng-form>
+        </div>
+    </div>
+
     <div class="form-group" ng-if="contractorZIPWarehouseMaterialsList.prev">
         <label class="col-sm-4 control-label">Contractor ZIP Warehouse Materials List (xls) (Old version, read only):</label>
         <div class="col-sm-8">
