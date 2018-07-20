@@ -169,6 +169,12 @@ define('app',[
 	    	controller: "searchCtrl",
 	    	authenticate: true,
 	    	resolve: resolve
+	    }).state("minio", {
+	    	url: "/minio",
+	    	templateUrl: "js/partials/minio.html",
+	    	controller: "minioCtrl",
+	    	authenticate: true,
+	    	resolve: resolve
 	    });
 	}]).config(['localStorageServiceProvider', function (localStorageServiceProvider) {
 		localStorageServiceProvider.setPrefix('flow');
