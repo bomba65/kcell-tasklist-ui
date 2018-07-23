@@ -52,6 +52,19 @@ define(['./module','camundaSDK', 'lodash', 'big-js'], function(module, CamSDK, _
 			}
 		}
 
+		$scope.reverseOrder = false;
+
+		$scope.fieldName = 'process.businessKey';
+
+		$scope.orderByFieldName = function(fieldName) {
+			if ($scope.fieldName == fieldName) {
+				$scope.reverseOrder = !$scope.reverseOrder;
+			} else {
+				$scope.reverseOrder = false;
+				$scope.fieldName = fieldName;
+			}
+		}
+
 		function loadRegionCount(){
 			$scope.regionFilters = [];
 			angular.forEach(regions,function(value,key){
