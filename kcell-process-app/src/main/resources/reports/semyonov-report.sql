@@ -86,7 +86,7 @@ from act_hi_procinst pi
                      where pi.id_ = ai.proc_inst_id_
                            and ai.act_id_ = 'SubProcess_0v7hq1m')
     as acceptanceDate
-    on acceptance.text_ = 'accepted'
+    on acceptance.text_ in ('accepted','scan attached','invoiced')
 
   -- canceled, accepted, in progress, количество работ
 
