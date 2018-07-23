@@ -73,8 +73,10 @@ define(['./module','jquery', 'camundaSDK'], function(app, $, CamSDK){
                     bpmn: 'http://www.omg.org/spec/BPMN/20100524/MODEL'
                 };
 
-                var userTaskNodes = getElementsByXPath(xml, '//bpmn:userTask', prefix => namespaces[prefix]);
-//                var userTaskNodes = getElementsByXPath(xml, '//bpmn:intermediateCatchEvent', prefix => namespaces[prefix]);
+                var userTaskNodes = [
+                	...getElementsByXPath(xml, '//bpmn:userTask', prefix => namespaces[prefix]),
+                	...getElementsByXPath(xml, '//bpmn:intermediateCatchEvent', prefix => namespaces[prefix])
+                ];
 
                 function getElementsByXPath(doc, xpath, namespaceFn, parent) {
                     let results = [];
