@@ -81,12 +81,16 @@ from act_hi_procinst pi
   left join act_hi_varinst acceptance
     on pi.id_ = acceptance.proc_inst_id_
        and acceptance.name_ = 'acceptPerformedJob'
+  left join act_hi_varinst acceptAndSignByRegionHeadTaskResult
+    on pi.id_ = acceptAndSignByRegionHeadTaskResult.proc_inst_id_
+       and acceptAndSignByRegionHeadTaskResult.name_ = 'acceptAndSignByRegionHeadTaskResult'       
   left join lateral (select max(ai.end_time_) as value_
                      from act_hi_actinst ai
                      where pi.id_ = ai.proc_inst_id_
                            and ai.act_id_ = 'SubProcess_0v7hq1m')
     as acceptanceDate
     on acceptance.text_ in ('accepted','scan attached','invoiced')
+    and acceptAndSignByRegionHeadTaskResult.text_ = 'approved'
 
   -- canceled, accepted, in progress, количество работ
 
