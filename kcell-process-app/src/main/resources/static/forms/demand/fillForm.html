@@ -31,7 +31,11 @@
                 materials: [],
                 acceptCrits: []
             };
-            $scope.supportiveInputs = {};
+            $scope.BCData = {
+                businessCase: {}
+            };
+            $scope.supportiveInputs = [];
+            $scope.supportiveRequests = {};
 
             camForm.on('form-loaded', function () {
                 variables.forEach(function (el) {
@@ -50,7 +54,9 @@
                 camForm.variableManager.fetchVariable('generalData');
                 camForm.variableManager.fetchVariable('BRDData');
                 camForm.variableManager.fetchVariable('CACData');
+                camForm.variableManager.fetchVariable('BCData');
                 camForm.variableManager.fetchVariable('supportiveInputs');
+                camForm.variableManager.fetchVariable('supportiveRequests');
                 camForm.variableManager.fetchVariable('attachments');
             });
 
@@ -69,7 +75,9 @@
                 $scope.generalData = camForm.variableManager.variableValue('generalData');
                 $scope.BRDData = camForm.variableManager.variableValue('BRDData');
                 $scope.CACData = camForm.variableManager.variableValue('CACData');
+                $scope.BCData = camForm.variableManager.variableValue('BCData');
                 $scope.supportiveInputs = camForm.variableManager.variableValue('supportiveInputs');
+                $scope.supportiveRequests = camForm.variableManager.variableValue('supportiveRequests');
                 $scope.attachments = camForm.variableManager.variableValue('attachments');
                 if (!$scope.generalData) {        
                     $scope.generalData = {
@@ -93,7 +101,13 @@
                         acceptCrits: []
                     };
                 }
-                if (!$scope.supportiveInputs) $scope.supportiveInputs = {};
+                if (!$scope.BCData) {
+                    $scope.BCData = {
+                        businessCase: {}
+                    };
+                }
+                if (!$scope.supportiveInputs) $scope.supportiveInputs = [];
+                if (!$scope.supportiveRequests) $scope.supportiveRequests = {};
                 if (!$scope.attachments) $scope.attachments = [];
             });
 
@@ -118,11 +132,23 @@
                     type: 'Json',
                     value: $scope.CACData
                 });
+                camForm.variableManager.destroyVariable('BCData');
+                camForm.variableManager.createVariable({
+                    name: 'BCData',
+                    type: 'Json',
+                    value: $scope.BCData
+                });
                 camForm.variableManager.destroyVariable('supportiveInputs');
                 camForm.variableManager.createVariable({
                     name: 'supportiveInputs',
                     type: 'Json',
                     value: $scope.supportiveInputs
+                });
+                camForm.variableManager.destroyVariable('supportiveRequests');
+                camForm.variableManager.createVariable({
+                    name: 'supportiveRequests',
+                    type: 'Json',
+                    value: $scope.supportiveRequests
                 });
                 camForm.variableManager.destroyVariable('attachments');
                 camForm.variableManager.createVariable({
@@ -187,6 +213,62 @@
                             console.log(error.data);
                         }
                 );
+                json = JSON.stringify($scope.BCData, function( key, value ) {
+                    if( key === "$$hashKey" ) {
+                        return undefined;
+                    }
+                    return value;
+                });
+                $http.put('/camunda/api/engine/engine/default/process-instance/'+$scope.processInstanceId+'/variables/BCData',{"type":"Json","value": json}).then(
+                        function(){
+                            console.log($scope.BCData);
+                        },
+                        function(error){
+                            console.log(error.data);
+                        }
+                );
+                json = JSON.stringify($scope.supportiveInputs, function( key, value ) {
+                    if( key === "$$hashKey" ) {
+                        return undefined;
+                    }
+                    return value;
+                });
+                $http.put('/camunda/api/engine/engine/default/process-instance/'+$scope.processInstanceId+'/variables/supportiveInputs',{"type":"Json","value": json}).then(
+                        function(){
+                            console.log($scope.supportiveInputs);
+                        },
+                        function(error){
+                            console.log(error.data);
+                        }
+                );
+                json = JSON.stringify($scope.supportiveRequests, function( key, value ) {
+                    if( key === "$$hashKey" ) {
+                        return undefined;
+                    }
+                    return value;
+                });
+                $http.put('/camunda/api/engine/engine/default/process-instance/'+$scope.processInstanceId+'/variables/supportiveRequests',{"type":"Json","value": json}).then(
+                        function(){
+                            console.log($scope.supportiveRequests);
+                        },
+                        function(error){
+                            console.log(error.data);
+                        }
+                );
+                json = JSON.stringify($scope.attachments, function( key, value ) {
+                    if( key === "$$hashKey" ) {
+                        return undefined;
+                    }
+                    return value;
+                });
+                $http.put('/camunda/api/engine/engine/default/process-instance/'+$scope.processInstanceId+'/variables/attachments',{"type":"Json","value": json}).then(
+                        function(){
+                            console.log($scope.attachments);
+                        },
+                        function(error){
+                            console.log(error.data);
+                        }
+                );
                 $http.put('/camunda/api/engine/engine/default/process-instance/'+$scope.processInstanceId+'/variables/demandName',{"type":"String","value": $scope.demandName}).then(
                         function(){
                             console.log($scope.demandName);
@@ -246,6 +328,39 @@
                     console.log(data);
                 });
             }
+
+            $scope.$watch('supportiveInputs', function(value) {
+                if (value) {
+                    $scope.humanResourcesSelected = false;
+                    $scope.LAGRDSelected = false;
+                    $scope.materialsRequestForms = [];
+                    $scope.businessIntelligenceForms = [];
+                    for (var v of $scope.supportiveInputs) {
+                        if (v.unit === "Human Resource Department") { 
+                            $scope.humanResourcesSelected = true;
+                        } else if (v.unit === "Legal Affairs and Government Relations Department") {
+                            $scope.LAGRDSelected = true;
+                        } else if (v.unit.startsWith("Business Intelligence - ")) {
+                            $scope.businessIntelligenceForms.push(v.unit.split("-")[1].trim());
+                        } else if (v.unit === "Infrasturcture Procurement Section") {
+                            $scope.materialsRequestForms.push({
+                                label: v.unit,
+                                name: "infrasturcturePS"
+                            });
+                        } else if (v.unit === "Operational Procurement Section") {
+                            $scope.materialsRequestForms.push({
+                                label: v.unit,
+                                name: "operationalPS"
+                            });
+                        } else if (v.unit === "Products and Services Procurement Section") {
+                            $scope.materialsRequestForms.push({
+                                label: v.unit,
+                                name: "productsServicesPS"
+                            });
+                        }
+                    }
+                }
+            }, true);
         }]);
     </script>
     <div class="form-group">
@@ -379,9 +494,26 @@
                 </accordion-group>
             </accordion>-->
         </tab>
-        <tab disabled="true">
+        <tab>
             <tab-heading> Business Case </tab-heading>
             <div style="margin-bottom: 20px;"></div>
+
+            <div class="col-sm-12">
+                <label style="margin-left: 20px;">Business Case</label>
+                <div class="col-sm-12" style="border: 1px solid #ccc; border-radius: 10px; padding-top: 10px;">
+                    <demand-business-case data="BCData.businessCase" form="kcell_form" view="view" disabled="false"></demand-business-case>
+                </div>
+            </div>
+            <div class="col-sm-12" ng-if="humanResourcesSelected" style="border: 1px solid #ccc; border-radius: 10px; padding-top: 10px; margin: 20px 0;">
+                <label style="margin-bottom: 20px;">Supportive request form for Human Resources Department</label>
+                <demand-resources data="supportiveRequests.humanResources" form="kcell_form" view="view" disabled="false" allowPrice="false"></demand-resources>
+            </div>
+            <span ng-repeat="f in materialsRequestForms">
+                <div class="col-sm-12" style="border: 1px solid #ccc; border-radius: 10px; padding-top: 10px; margin: 20px 0;">
+                    <label style="margin-bottom: 20px;">Supportive request form for {{f.label}}</label>
+                    <demand-materials data="supportiveRequests[f.name]" form="kcell_form" view="view" disabled="false" allowPrice="false"></demand-materials>
+                </div>
+            </span>
         </tab>
         <tab disabled="true">
             <tab-heading> Product passport\Approvement list</tab-heading>
@@ -389,16 +521,26 @@
         </tab>
     </tabset>
 
-    <div class="row">
-        <div class="col-md-2">
-            <button type="button" ng-click="saveFillForm()" class="btn btn-success" style="padding: 6px 28px">Save</button>
+    <div class="col-sm-12" style="border: 1px solid #ccc; border-radius: 10px; padding-top: 10px; margin: 20px 0;">
+        <demand-supportive-inputs data="supportiveInputs" form="kcell_form" view="view" disabled="false"></demand-supportive-inputs>
+    </div>
+
+    <span ng-repeat="biName in businessIntelligenceForms">
+        <div class="col-sm-12" style="border: 1px solid #ccc; border-radius: 10px; padding-top: 10px; margin: 20px 0;">
+            <label style="margin-bottom: 20px;">Supportive request form for Business Intelligence - {{biName}}</label>
+            <demand-business-intelligence data="supportiveRequests['businessIntelligence'+biName]" form="kcell_form" view="view" disabled="false" biname="biName"></demand-business-intelligence>
+        </div>
+    </span>
+
+    <div class="col-sm-12" ng-if="LAGRDSelected" style="border: 1px solid #ccc; border-radius: 10px; padding-top: 10px; margin: 20px 0;">
+        <label style="margin-bottom: 20px;">Supportive request form for Legal Affairs and Government Relations Department</label>
+        <div class="form-group">
+            <label class="col-sm-12">Order</label>
+            <div class="col-sm-12">
+                <textarea class="form-control" ng-model="supportiveRequests.LAGRD" style="resize: none;" rows="8"></textarea>
+            </div>
         </div>
     </div>
-    <hr>
-
-    <!--<div class="col-sm-12" style="border: 1px solid #ccc; border-radius: 10px; padding-top: 10px; margin: 20px 0;">-->
-        <!--<demand-supportive-inputs data="supportiveInputs" form="kcell_form" view="view" disabled="false"></demand-supportive-inputs>-->
-    <!--</div>-->
 
     <div class="col-sm-12" style="border: 1px solid #ccc; border-radius: 10px; padding-top: 10px; margin: 20px 0;">
         <iframe id="fileDownloadIframe" style="display:none;"></iframe>
@@ -429,6 +571,13 @@
             </div>
         </div>
     </div>
+
+    <div class="row">
+        <div class="col-md-2" style="margin-top: 20px;">
+            <button type="button" ng-click="saveFillForm()" class="btn btn-success" style="padding: 6px 28px">Save</button>
+        </div>
+    </div>
+    <hr>
 
     <div class="form-group">
         <label class="col-sm-2 control-label">Resolution</label>

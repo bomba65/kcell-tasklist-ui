@@ -7,5 +7,7 @@ define([
 	'./interfaces',
 	'./resources',
 	'./materials',
-	'./supportiveInputs'
+	'./supportiveInputs',
+	'./businessCase',
+	'./businessIntelligence'
 	], function(){});
