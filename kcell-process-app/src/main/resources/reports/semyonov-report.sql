@@ -42,7 +42,9 @@ select distinct
   case materialsRequired.text_
   when 'Yes' then 'required'
   else 'not required'
-  end as "Customer Material"
+  end as "Customer Material",
+  (convert_from(statusBytes.bytes_, 'UTF8'))::json->>'statusName' as "status",
+  (convert_from(statusBytes.bytes_, 'UTF8'))::json->>'comment' as "Return reason"
 from act_hi_procinst pi
   left join act_hi_varinst sitename
     on pi.id_ = sitename.proc_inst_id_ and sitename.name_ = 'site_name'
@@ -83,7 +85,7 @@ from act_hi_procinst pi
        and acceptance.name_ = 'acceptPerformedJob'
   left join act_hi_varinst acceptAndSignByRegionHeadTaskResult
     on pi.id_ = acceptAndSignByRegionHeadTaskResult.proc_inst_id_
-       and acceptAndSignByRegionHeadTaskResult.name_ = 'acceptAndSignByRegionHeadTaskResult'       
+       and acceptAndSignByRegionHeadTaskResult.name_ = 'acceptAndSignByRegionHeadTaskResult'
   left join lateral (select max(ai.end_time_) as value_
                      from act_hi_actinst ai
                      where pi.id_ = ai.proc_inst_id_
@@ -112,6 +114,12 @@ from act_hi_procinst pi
     on pi.id_ = explanation.proc_inst_id_ and explanation.name_ = 'explanation'
   left join act_hi_varinst materialsRequired
     on pi.id_ = materialsRequired.proc_inst_id_ and materialsRequired.name_ = 'materialsRequired'
-where pi.proc_def_key_ = 'Revision' and pi.state_ <> 'EXTERNALLY_TERMINATED'
+
+  left join act_hi_varinst status
+    on pi.id_ = status.proc_inst_id_ and status.name_ = 'status'
+  left join act_ge_bytearray statusBytes
+    on status.bytearray_id_ = statusBytes.id_
+
+where pi.proc_def_key_ = 'Revision' and pi.state_ <> 'EXTERNALLY_TERMINATED' and pi.business_key_ = 'Alm-LSE-P&O-18-5124'
 order by "Requested Date", "Job Description"
 --limit 5
