@@ -144,6 +144,22 @@ INSERT INTO act_id_user (id_, rev_, first_, last_, email_, pwd_, picture_id_) VA
 INSERT INTO act_id_user (id_, rev_, first_, last_, email_, pwd_, picture_id_) VALUES ('Mikhail.Komissarov@kcell.kz', 1, 'Mikhail', 'Komissarov', 'Mikhail.Komissarov@kcell.kz', '{SHA}ieSV55Qc+eQOaYDRSha/AjzNTJE=', NULL);
 INSERT INTO act_id_user (id_, rev_, first_, last_, email_, pwd_, picture_id_) VALUES ('Roman.Stupko@kcell.kz', 1, 'Roman', 'Stupko', 'Roman.Stupko@kcell.kz', '{SHA}ieSV55Qc+eQOaYDRSha/AjzNTJE=', NULL);
 INSERT INTO act_id_user (id_, rev_, first_, last_, email_, pwd_, picture_id_) VALUES ('Oleg.Yelayev@kcell.kz', 1, 'Oleg', 'Yelayev', 'Oleg.Yelayev@kcell.kz', '{SHA}ieSV55Qc+eQOaYDRSha/AjzNTJE=', NULL);
+INSERT INTO act_id_user (id_, rev_, first_, last_, email_, pwd_, picture_id_) VALUES ('Artyom.Myakishev@kcell.kz', 1, 'Artyom', 'Myakishev', 'Artyom.Myakishev@kcell.kz', '{SHA}ieSV55Qc+eQOaYDRSha/AjzNTJE=', NULL);
+INSERT INTO act_id_user (id_, rev_, first_, last_, email_, pwd_, picture_id_) VALUES ('Farkhat.Baterikov@kcell.kz', 1, 'Farkhat', 'Baterikov', 'Farkhat.Baterikov@kcell.kz', '{SHA}ieSV55Qc+eQOaYDRSha/AjzNTJE=', NULL);
+INSERT INTO act_id_user (id_, rev_, first_, last_, email_, pwd_, picture_id_) VALUES ('Oleg.Babkin@kcell.kz', 1, 'Oleg', 'Babkin', 'Oleg.Babkin@kcell.kz', '{SHA}ieSV55Qc+eQOaYDRSha/AjzNTJE=', NULL);
+INSERT INTO act_id_user (id_, rev_, first_, last_, email_, pwd_, picture_id_) VALUES ('Rishad.Makirov@kcell.kz', 1, 'Rishad', 'Makirov', 'Rishad.Makirov@kcell.kz', '{SHA}ieSV55Qc+eQOaYDRSha/AjzNTJE=', NULL);
+INSERT INTO act_id_user (id_, rev_, first_, last_, email_, pwd_, picture_id_) VALUES ('Nurlan.Bekseitov@kcell.kz', 1, 'Nurlan', 'Bekseitov', 'Nurlan.Bekseitov@kcell.kz', '{SHA}ieSV55Qc+eQOaYDRSha/AjzNTJE=', NULL);
+INSERT INTO act_id_user (id_, rev_, first_, last_, email_, pwd_, picture_id_) VALUES ('Bulat.Smagulov@kcell.kz', 1, 'Bulat', 'Smagulov', 'Bulat.Smagulov@kcell.kz', '{SHA}ieSV55Qc+eQOaYDRSha/AjzNTJE=', NULL);
+INSERT INTO act_id_user (id_, rev_, first_, last_, email_, pwd_, picture_id_) VALUES ('Erzhan.Smagulov@kcell.kz', 1, 'Erzhan', 'Smagulov', 'Erzhan.Smagulov@kcell.kz', '{SHA}ieSV55Qc+eQOaYDRSha/AjzNTJE=', NULL);
+INSERT INTO act_id_user (id_, rev_, first_, last_, email_, pwd_, picture_id_) VALUES ('Vladimir.Vladimirov@kcell.kz', 1, 'Vladimir', 'Vladimirov', 'Vladimir.Vladimirov@kcell.kz', '{SHA}ieSV55Qc+eQOaYDRSha/AjzNTJE=', NULL);
+INSERT INTO act_id_user (id_, rev_, first_, last_, email_, pwd_, picture_id_) VALUES ('Viktor.Maximenko@kcell.kz', 1, 'Viktor', 'Maximenko', 'Viktor.Maximenko@kcell.kz', '{SHA}ieSV55Qc+eQOaYDRSha/AjzNTJE=', NULL);
+INSERT INTO act_id_user (id_, rev_, first_, last_, email_, pwd_, picture_id_) VALUES ('Timur.Akylkhanov@kcell.kz', 1, 'Timur', 'Akylkhanov', 'Timur.Akylkhanov@kcell.kz', '{SHA}ieSV55Qc+eQOaYDRSha/AjzNTJE=', NULL);
+INSERT INTO act_id_user (id_, rev_, first_, last_, email_, pwd_, picture_id_) VALUES ('Marat.Bakezhanov@kcell.kz', 1, 'Marat', 'Bakezhanov', 'Marat.Bakezhanov@kcell.kz', '{SHA}ieSV55Qc+eQOaYDRSha/AjzNTJE=', NULL);
+INSERT INTO act_id_user (id_, rev_, first_, last_, email_, pwd_, picture_id_) VALUES ('Baurzhan.Khamzin@kcell.kz', 1, 'Baurzhan', 'Khamzin', 'Baurzhan.Khamzin@kcell.kz', '{SHA}ieSV55Qc+eQOaYDRSha/AjzNTJE=', NULL);
+INSERT INTO act_id_user (id_, rev_, first_, last_, email_, pwd_, picture_id_) VALUES ('Kanat.Mussabekov@kcell.kz', 1, 'Kanat', 'Mussabekov', 'Kanat.Mussabekov@kcell.kz', '{SHA}ieSV55Qc+eQOaYDRSha/AjzNTJE=', NULL);
+INSERT INTO act_id_user (id_, rev_, first_, last_, email_, pwd_, picture_id_) VALUES ('Amangeldy.Kamerdenov@kcell.kz', 1, 'Amangeldy', 'Kamerdenov', 'Amangeldy.Kamerdenov@kcell.kz', '{SHA}ieSV55Qc+eQOaYDRSha/AjzNTJE=', NULL);
+INSERT INTO act_id_user (id_, rev_, first_, last_, email_, pwd_, picture_id_) VALUES ('Nurbolat.Uteyev@kcell.kz', 1, 'Nurbolat', 'Uteyev', 'Nurbolat.Uteyev@kcell.kz', '{SHA}ieSV55Qc+eQOaYDRSha/AjzNTJE=', NULL);
+INSERT INTO act_id_user (id_, rev_, first_, last_, email_, pwd_, picture_id_) VALUES ('Yerbolat.Kairzhanov@kcell.kz', 1, 'Yerbolat', 'Kairzhanov', 'Yerbolat.Kairzhanov@kcell.kz', '{SHA}ieSV55Qc+eQOaYDRSha/AjzNTJE=', NULL);
 
 --freephone
 --users
@@ -235,6 +251,10 @@ INSERT INTO act_id_user (id_, rev_, first_, last_, email_, pwd_, picture_id_) VA
 INSERT INTO act_id_user (id_, rev_, first_, last_, email_, pwd_, picture_id_) VALUES ('Elmira.Urbisinova@kcell.kz', 1, 'Elmira','Urbisinova','Elmira.Urbisinova@kcell.kz', '{SHA}ieSV55Qc+eQOaYDRSha/AjzNTJE=', NULL);
 INSERT INTO act_id_user (id_, rev_, first_, last_, email_, pwd_, picture_id_) VALUES ('Assylbek.Kassiyenov@kcell.kz', 1, 'Assylbek','Kassiyenov','Assylbek.Kassiyenov@kcell.kz', '{SHA}ieSV55Qc+eQOaYDRSha/AjzNTJE=', NULL);
 INSERT INTO act_id_user (id_, rev_, first_, last_, email_, pwd_, picture_id_) VALUES ('Assem.Saifutdinova@kcell.kz', 1, 'Assem','Saifutdinova','Assem.Saifutdinova@kcell.kz', '{SHA}ieSV55Qc+eQOaYDRSha/AjzNTJE=', NULL);
+INSERT INTO act_id_user (id_, rev_, first_, last_, email_, pwd_, picture_id_) VALUES ('Zhaxylyk.Moldakhmetov@kcell.kz', 1, 'Zhaxylyk', 'Moldakhmetov', 'Zhaxylyk.Moldakhmetov@kcell.kz', '{SHA}ieSV55Qc+eQOaYDRSha/AjzNTJE=', NULL);
+INSERT INTO act_id_user (id_, rev_, first_, last_, email_, pwd_, picture_id_) VALUES ('Timur.Mukhamedyanov@kcell.kz', 1, 'Timur', 'Mukhamedyanov', 'Timur.Mukhamedyanov@kcell.kz', '{SHA}ieSV55Qc+eQOaYDRSha/AjzNTJE=', NULL);
+INSERT INTO act_id_user (id_, rev_, first_, last_, email_, pwd_, picture_id_) VALUES ('Alexandr.Uzhakin@kcell.kz', 1, 'Alexandr', 'Uzhakin', 'Alexandr.Uzhakin@kcell.kz', '{SHA}ieSV55Qc+eQOaYDRSha/AjzNTJE=', NULL);
+INSERT INTO act_id_user (id_, rev_, first_, last_, email_, pwd_, picture_id_) VALUES ('Alexey.Pereverzev@kcell.kz', 1, 'Alexey', 'Pereverzev', 'Alexey.Pereverzev@kcell.kz', '{SHA}ieSV55Qc+eQOaYDRSha/AjzNTJE=', NULL);
 
 --groups
 INSERT INTO act_id_group (id_, rev_, name_, type_) VALUES ('b2bDelivery', 1, 'B2B Delivery', 'WORKFLOW');
@@ -380,6 +400,7 @@ INSERT INTO act_id_group (id_, rev_, name_, type_) VALUES ('astana_sao_planning'
 INSERT INTO act_id_group (id_, rev_, name_, type_) VALUES ('astana_optimization_maintanance', 1, 'astana_optimization_maintanance', 'WORKFLOW');
 INSERT INTO act_id_group (id_, rev_, name_, type_) VALUES ('astana_infrastructure_maintanance', 1, 'astana_infrastructure_maintanance', 'WORKFLOW');
 INSERT INTO act_id_group (id_, rev_, name_, type_) VALUES ('astana_sao_maintanance', 1, 'astana_sao_maintanance', 'WORKFLOW');
+INSERT INTO act_id_group (id_, rev_, name_, type_) VALUES ('nc_kcell_users', 1, 'nc_kcell_users', 'WORKFLOW');
 INSERT INTO act_id_group (id_, rev_, name_, type_) VALUES ('nc_engineer', 1, 'nc_engineer', 'WORKFLOW');
 INSERT INTO act_id_group (id_, rev_, name_, type_) VALUES ('nc_optimization_head', 1, 'nc_optimization_head', 'WORKFLOW');
 INSERT INTO act_id_group (id_, rev_, name_, type_) VALUES ('nc_transmission_head', 1, 'nc_transmission_head', 'WORKFLOW');
@@ -467,6 +488,9 @@ INSERT INTO act_id_group (id_, rev_, name_, type_) VALUES ('east_transmission_ml
 INSERT INTO act_id_group (id_, rev_, name_, type_) VALUES ('east_infrastructure_mlapprover', 1, 'east_infrastructure_mlapprover', 'WORKFLOW');
 INSERT INTO act_id_group (id_, rev_, name_, type_) VALUES ('east_sao_mlapprover', 1, 'east_sao_mlapprover', 'WORKFLOW');
 INSERT INTO act_id_group (id_, rev_, name_, type_) VALUES ('south_optimization_mlapprover', 1, 'south_optimization_mlapprover', 'WORKFLOW');
+INSERT INTO act_id_group (id_, rev_, name_, type_) VALUES ('east_kcell_users', 1, 'east_kcell_users', 'WORKFLOW');
+INSERT INTO act_id_group (id_, rev_, name_, type_) VALUES ('west_kcell_users', 1, 'west_kcell_users', 'WORKFLOW');
+INSERT INTO act_id_group (id_, rev_, name_, type_) VALUES ('south_kcell_users', 1, 'south_kcell_users', 'WORKFLOW');
 
 
 --MEMBERSHIPS
@@ -890,90 +914,7 @@ INSERT INTO act_id_membership (user_id_, group_id_) VALUES ('Amangeldy.Kamerdeno
 INSERT INTO act_id_membership (user_id_, group_id_) VALUES ('Nurbolat.Uteyev@kcell.kz', 'east_transmission_mlapprover');
 INSERT INTO act_id_membership (user_id_, group_id_) VALUES ('Roman.Stupko@kcell.kz', 'east_transmission_mlapprover');
 INSERT INTO act_id_membership (user_id_, group_id_) VALUES ('Yerbolat.Kairzhanov@kcell.kz', 'east_transmission_mlapprover');
-INSERT INTO act_id_membership (user_id_, group_id_) VALUES ('Timur.Akylkhanov@kcell.kz', 'east_infrastructure_mlapprover');
-INSERT INTO act_id_membership (user_id_, group_id_) VALUES ('Marat.Bakezhanov@kcell.kz', 'east_infrastructure_mlapprover');
-INSERT INTO act_id_membership (user_id_, group_id_) VALUES ('Baurzhan.Khamzin@kcell.kz', 'east_infrastructure_mlapprover');
-INSERT INTO act_id_membership (user_id_, group_id_) VALUES ('Kanat.Mussabekov@kcell.kz', 'east_infrastructure_mlapprover');
-INSERT INTO act_id_membership (user_id_, group_id_) VALUES ('Amangeldy.Kamerdenov@kcell.kz', 'east_infrastructure_mlapprover');
-INSERT INTO act_id_membership (user_id_, group_id_) VALUES ('Nurbolat.Uteyev@kcell.kz', 'east_infrastructure_mlapprover');
-INSERT INTO act_id_membership (user_id_, group_id_) VALUES ('Roman.Stupko@kcell.kz', 'east_infrastructure_mlapprover');
-INSERT INTO act_id_membership (user_id_, group_id_) VALUES ('Yerbolat.Kairzhanov@kcell.kz', 'east_infrastructure_mlapprover');
-INSERT INTO act_id_membership (user_id_, group_id_) VALUES ('Madiyar.Abikenov@kcell.kz', 'east_infrastructure_mlapprover');
-INSERT INTO act_id_membership (user_id_, group_id_) VALUES ('Sergey.Pasko@kcell.kz', 'east_infrastructure_mlapprover');
-INSERT INTO act_id_membership (user_id_, group_id_) VALUES ('Marat.Habibullin@kcell.kz', 'east_infrastructure_mlapprover');
-INSERT INTO act_id_membership (user_id_, group_id_) VALUES ('Sergey.Shpakov@kcell.kz', 'east_infrastructure_mlapprover');
-INSERT INTO act_id_membership (user_id_, group_id_) VALUES ('Alexander.Bukhantsev@kcell.kz', 'east_infrastructure_mlapprover');
-INSERT INTO act_id_membership (user_id_, group_id_) VALUES ('Madiyar.Abikenov@kcell.kz', 'east_sao_mlapprover');
-INSERT INTO act_id_membership (user_id_, group_id_) VALUES ('Sergey.Pasko@kcell.kz', 'east_sao_mlapprover');
-INSERT INTO act_id_membership (user_id_, group_id_) VALUES ('Marat.Habibullin@kcell.kz', 'east_sao_mlapprover');
-INSERT INTO act_id_membership (user_id_, group_id_) VALUES ('Sergey.Shpakov@kcell.kz', 'east_sao_mlapprover');
-INSERT INTO act_id_membership (user_id_, group_id_) VALUES ('Alexander.Bukhantsev@kcell.kz', 'east_sao_mlapprover');
-INSERT INTO act_id_membership (user_id_, group_id_) VALUES ('Osman.Mamedov@kcell.kz', 'south_optimization_mlapprover');
-INSERT INTO act_id_membership (user_id_, group_id_) VALUES ('Vyacheslav.Khatyushin@kcell.kz', 'south_optimization_mlapprover');
-INSERT INTO act_id_membership (user_id_, group_id_) VALUES ('Zaurbek.Bastarbekov@kcell.kz', 'south_optimization_mlapprover');
-INSERT INTO act_id_membership (user_id_, group_id_) VALUES ('Azat.Kelgenbayev@kcell.kz', 'south_optimization_mlapprover');
-INSERT INTO act_id_membership (user_id_, group_id_) VALUES ('Galymzhan.Kuanyshov@kcell.kz', 'south_optimization_mlapprover');
-INSERT INTO act_id_membership (user_id_, group_id_) VALUES ('Yerbol.Tasenov@kcell.kz', 'south_optimization_mlapprover');
-INSERT INTO act_id_membership (user_id_, group_id_) VALUES ('Olzhas.Sardarov@kcell.kz', 'south_optimization_mlapprover');
-INSERT INTO act_id_membership (user_id_, group_id_) VALUES ('Stanislav.Fodchuk@kcell.kz', 'south_optimization_mlapprover');
-INSERT INTO act_id_membership (user_id_, group_id_) VALUES ('Nurbek.Rysbekov@kcell.kz', 'south_optimization_mlapprover');
-INSERT INTO act_id_membership (user_id_, group_id_) VALUES ('Daulet.Ziyashov@kcell.kz', 'south_optimization_mlapprover');
-INSERT INTO act_id_membership (user_id_, group_id_) VALUES ('Zhassulan.Lukpanov@kcell.kz', 'south_optimization_mlapprover');
-INSERT INTO act_id_membership (user_id_, group_id_) VALUES ('Aziz.Kadyrkulov@kcell.kz', 'south_transmission_mlapprover');
-INSERT INTO act_id_membership (user_id_, group_id_) VALUES ('Alexandr.Koval@kcell.kz', 'south_transmission_mlapprover');
-INSERT INTO act_id_membership (user_id_, group_id_) VALUES ('Askhat.Shektibayev@kcell.kz', 'south_transmission_mlapprover');
-INSERT INTO act_id_membership (user_id_, group_id_) VALUES ('Mansur.Saidirassulov@kcell.kz', 'south_transmission_mlapprover');
-INSERT INTO act_id_membership (user_id_, group_id_) VALUES ('Dauren.Muratbayev@kcell.kz', 'south_transmission_mlapprover');
-INSERT INTO act_id_membership (user_id_, group_id_) VALUES ('Igor.Drantussov@kcell.kz', 'south_transmission_mlapprover');
-INSERT INTO act_id_membership (user_id_, group_id_) VALUES ('Myktybek.Zulpukharov@kcell.kz', 'south_infrastructure_mlapprover');
-INSERT INTO act_id_membership (user_id_, group_id_) VALUES ('Didar.Saparov@kcell.kz', 'south_infrastructure_mlapprover');
-INSERT INTO act_id_membership (user_id_, group_id_) VALUES ('Zhandos.Shaldanbayev@kcell.kz', 'south_infrastructure_mlapprover');
-INSERT INTO act_id_membership (user_id_, group_id_) VALUES ('Zhenis.Sailau@kcell.kz', 'south_infrastructure_mlapprover');
-INSERT INTO act_id_membership (user_id_, group_id_) VALUES ('Zhandos.Usenov@kcell.kz', 'south_infrastructure_mlapprover');
-INSERT INTO act_id_membership (user_id_, group_id_) VALUES ('Olzhas.Sardarov@kcell.kz', 'south_infrastructure_mlapprover');
-INSERT INTO act_id_membership (user_id_, group_id_) VALUES ('Stanislav.Fodchuk@kcell.kz', 'south_infrastructure_mlapprover');
-INSERT INTO act_id_membership (user_id_, group_id_) VALUES ('Nurbek.Rysbekov@kcell.kz', 'south_infrastructure_mlapprover');
-INSERT INTO act_id_membership (user_id_, group_id_) VALUES ('Daulet.Ziyashov@kcell.kz', 'south_infrastructure_mlapprover');
-INSERT INTO act_id_membership (user_id_, group_id_) VALUES ('Zhassulan.Lukpanov@kcell.kz', 'south_infrastructure_mlapprover');
-INSERT INTO act_id_membership (user_id_, group_id_) VALUES ('Abdumalik.Abdumannabov@kcell.kz', 'south_infrastructure_mlapprover');
-INSERT INTO act_id_membership (user_id_, group_id_) VALUES ('Nurlan.Bukharov@kcell.kz', 'south_infrastructure_mlapprover');;
-INSERT INTO act_id_membership (user_id_, group_id_) VALUES ('Serik.Mergenbayev@kcell.kz', 'south_infrastructure_mlapprover');;
-INSERT INTO act_id_membership (user_id_, group_id_) VALUES ('Yerzhan.Makhmudov@kcell.kz', 'south_infrastructure_mlapprover');
-INSERT INTO act_id_membership (user_id_, group_id_) VALUES ('Abdumalik.Abdumannabov@kcell.kz', 'south_sao_mlapprover');
-INSERT INTO act_id_membership (user_id_, group_id_) VALUES ('Daulet.Ziyashov@kcell.kz', 'south_sao_mlapprover');
-INSERT INTO act_id_membership (user_id_, group_id_) VALUES ('Nurbek.Rysbekov@kcell.kz', 'south_sao_mlapprover');
-INSERT INTO act_id_membership (user_id_, group_id_) VALUES ('Nurlan.Bukharov@kcell.kz', 'south_sao_mlapprover');
-INSERT INTO act_id_membership (user_id_, group_id_) VALUES ('Serik.Mergenbayev@kcell.kz', 'south_sao_mlapprover');
-INSERT INTO act_id_membership (user_id_, group_id_) VALUES ('Yerzhan.Makhmudov@kcell.kz', 'south_sao_mlapprover');
-INSERT INTO act_id_membership (user_id_, group_id_) VALUES ('Zhenis.Sailau@kcell.kz', 'south_sao_mlapprover');
-INSERT INTO act_id_membership (user_id_, group_id_) VALUES ('Oleg.Yelayev@kcell.kz', 'kcellUsers');
-INSERT INTO act_id_membership (user_id_, group_id_) VALUES ('Oleg.Yelayev@kcell.kz', 'west_kcell_users');
-INSERT INTO act_id_membership (user_id_, group_id_) VALUES ('Erden.Bektaubayev@kcell.kz', 'west_optimization_mlapprover');
-INSERT INTO act_id_membership (user_id_, group_id_) VALUES ('Nurbol.Kalibekuly@kcell.kz', 'west_optimization_mlapprover');
-INSERT INTO act_id_membership (user_id_, group_id_) VALUES ('Zhassulan.Makhanbetov@kcell.kz', 'west_optimization_mlapprover');
-INSERT INTO act_id_membership (user_id_, group_id_) VALUES ('Yerlan.Begimbayev@kcell.kz', 'west_optimization_mlapprover');
-INSERT INTO act_id_membership (user_id_, group_id_) VALUES ('Marta.Gabdrakhmanova@kcell.kz', 'west_optimization_mlapprover');
-INSERT INTO act_id_membership (user_id_, group_id_) VALUES ('Zhomart.Uteev@kcell.kz', 'west_optimization_mlapprover');
-INSERT INTO act_id_membership (user_id_, group_id_) VALUES ('Valikhan.Baizenov@kcell.kz', 'west_optimization_mlapprover');
-INSERT INTO act_id_membership (user_id_, group_id_) VALUES ('Islam.Kosbatyrov@kcell.kz', 'west_optimization_mlapprover');
-INSERT INTO act_id_membership (user_id_, group_id_) VALUES ('Nurzhan.Zhangaliyev@kcell.kz', 'west_optimization_mlapprover');
-INSERT INTO act_id_membership (user_id_, group_id_) VALUES ('Maxet.Akzhigitov@kcell.kz', 'west_optimization_mlapprover');
-INSERT INTO act_id_membership (user_id_, group_id_) VALUES ('Aleksandr.Kryuchkov@kcell.kz', 'west_transmission_mlapprover');
-INSERT INTO act_id_membership (user_id_, group_id_) VALUES ('Askar.Ospanov@kcell.kz', 'west_transmission_mlapprover');
-INSERT INTO act_id_membership (user_id_, group_id_) VALUES ('Galym.Atambayev@kcell.kz', 'west_transmission_mlapprover');
-INSERT INTO act_id_membership (user_id_, group_id_) VALUES ('Nurken.Seish@kcell.kz', 'west_transmission_mlapprover');
-INSERT INTO act_id_membership (user_id_, group_id_) VALUES ('Nurlan.Tazhmukhanov@kcell.kz', 'west_transmission_mlapprover');
-INSERT INTO act_id_membership (user_id_, group_id_) VALUES ('Yerdos.Tuleuov@kcell.kz', 'west_transmission_mlapprover');
-INSERT INTO act_id_membership (user_id_, group_id_) VALUES ('Talgat.Galym@kcell.kz', 'west_infrastructure_mlapprover');
-INSERT INTO act_id_membership (user_id_, group_id_) VALUES ('Askhat.Altybayev@kcell.kz', 'west_infrastructure_mlapprover');
-INSERT INTO act_id_membership (user_id_, group_id_) VALUES ('Kulsary.Tolemis@kcell.kz', 'west_infrastructure_mlapprover');
-INSERT INTO act_id_membership (user_id_, group_id_) VALUES ('Temir.Isayev@kcell.kz', 'west_infrastructure_mlapprover');
-INSERT INTO act_id_membership (user_id_, group_id_) VALUES ('Askar.Pernebekov@kcell.kz', 'west_infrastructure_mlapprover');
-INSERT INTO act_id_membership (user_id_, group_id_) VALUES ('Kiyukbay.Atagullin@kcell.kz', 'west_sao_mlapprover');
-INSERT INTO act_id_membership (user_id_, group_id_) VALUES ('Malik.Isambergenov@kcell.kz', 'west_sao_mlapprover');
-INSERT INTO act_id_membership (user_id_, group_id_) VALUES ('Oleg.Yelayev@kcell.kz', 'west_sao_mlapprover');
-INSERT INTO act_id_membership (user_id_, group_id_) VALUES ('Erden.Bektaubayev@kcell.kz', 'west_sao_mlapprover');
-INSERT INTO act_id_membership (user_id_, group_id_) VALUES ('Valikhan.Baizenov@kcell.kz', 'west_sao_mlapprover');
+
 --FILTERS
 INSERT INTO act_ru_filter (id_, rev_, resource_type_, name_, owner_, query_, properties_) VALUES ('00e50a2b-4f69-11e7-a8c6-0242ac120007', 1, 'Task', 'All Tasks', 'demo', '{}', '{"variables":[{"name":"jrNumber","label":"JR Number"}],"description":"All Tasks - Not recommended to be used in production :)","priority":10}');
 INSERT INTO act_ru_filter (id_, rev_, resource_type_, name_, owner_, query_, properties_) VALUES ('00e642ad-4f69-11e7-a8c6-0242ac120007', 1, 'Task', 'My Claimed Tasks', 'kcellUsers', '{"taskAssigneeExpression":"${ currentUser() }"}', '{"variables":[{"name":"jrNumber","label":"JR Number"}],"description":"My Claimed Tasks","priority":-10}');
