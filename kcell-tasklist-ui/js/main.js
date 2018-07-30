@@ -1,5 +1,6 @@
 require.config({
      //  псевдонимы и пути используемых библиотек и плагинов
+     waitSeconds: 60,
      map: {
      		'lodash/*': './node_modules/lodash/index'
      	}
