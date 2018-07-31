@@ -243,5 +243,13 @@ define(['./module','camundaSDK', 'lodash', 'big-js'], function(module, CamSDK, _
 		$scope.highlightTask = function() {
 			$scope.control.highlight($scope.diagram.task.taskDefinitionKey);
 		};
+
+		$scope.assignLinkEnabled = function(processDefinitionKey) {
+			if(processDefinitionKey === 'Revision'){
+				return $scope.hasGroup('revision_managers');
+			} else if(processDefinitionKey === 'Invoice'){
+				return $scope.hasGroup('monthly_act_managers');
+			}
+		};
 	}]);
 });

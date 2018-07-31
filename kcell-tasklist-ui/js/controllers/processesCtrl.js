@@ -427,5 +427,26 @@ define(['./module','jquery', 'camundaSDK'], function(app, $, CamSDK){
         $scope.getStatus = function(state, value){
 			return (state == 'COMPLETED' || state == 'EXTERNALLY_TERMINATED')? 'Closed': (value == 'accepted'?'Accepted & waiting scan attach':(value == 'scan attached'?'Accepted & waiting invoice':'In progress'))
         };
+
+        $scope.hasPermissionToViewAll = function(processDefinitionKey){
+			if (processDefinitionKey === 'Revision') {
+				return $scope.hasOneOfListedGroup(['revision_managers','revision_audit']);
+			} else if (processDefinitionKey === 'Invoice') {
+				return $scope.hasOneOfListedGroup(['monthly_act_managers','monthly_act_audit']);
+			} else return false;
+        }
+
+		$scope.hasOneOfListedGroup = function(groups){
+			return _.some(groups, function(group){
+				return $rootScope.hasGroup(group);
+			});
+		}
+
+		$scope.hasLinkToTask = function(task, processDefinitionKey, accessGroups){
+			if(task.processDefinitionId.substring(0,task.processDefinitionId.indexOf(':')) === processDefinitionKey){
+				return $scope.hasOneOfListedGroup(accessGroups);
+			} else 
+				return false;
+		}
 	}]);
 });
