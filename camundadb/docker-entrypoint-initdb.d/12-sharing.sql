@@ -385,9 +385,9 @@ INSERT INTO act_id_membership (user_id_, group_id_) VALUES ('SAmanbekova@beeline
 --INSERT INTO act_id_membership (user_id_, group_id_) VALUES ('Kirill.Strashenko@kcell.kz', 'kcellUsers');
 
 --FILTERS
-INSERT INTO act_ru_filter (id_, rev_, resource_type_, name_, owner_, query_, properties_) VALUES ('00e642ad-4f69-11e7-a8c6-0242ac120008', 1, 'Task', 'My Claimed Tasks', 'sharing_beeline_users_group', '{"taskAssigneeExpression":"${ currentUser() }"}', '{"variables":[{"name":"jrNumber","label":"JR Number"}],"description":"My Claimed Tasks","priority":-10}');
-INSERT INTO act_ru_filter (id_, rev_, resource_type_, name_, owner_, query_, properties_) VALUES ('00e83e80-4f69-11e7-a8c6-0242ac120008', 1, 'Task', 'My Unclaimed Tasks', 'sharing_beeline_users_group', '{"taskCandidateUserExpression":"${currentUser()}"}', '{"variables":[{"name":"jrNumber","label":"JR Number"}],"description":"My Unclaimed Tasks","priority":-10}');
-INSERT INTO act_ru_filter (id_, rev_, resource_type_, name_, owner_, query_, properties_) VALUES ('00e99e13-4f69-11e7-a8c6-0242ac120008', 1, 'Task', 'My Group Tasks', 'sharing_beeline_users_group', '{"taskCandidateGroupInExpression":"${ currentUserGroups() }"}', '{"variables":[{"name":"jrNumber","label":"JR Number"}],"description":"My Group Tasks","priority":-10}');
+--INSERT INTO act_ru_filter (id_, rev_, resource_type_, name_, owner_, query_, properties_) VALUES ('00e642ad-4f69-11e7-a8c6-0242ac120008', 1, 'Task', 'My Claimed Tasks', 'sharing_beeline_users_group', '{"taskAssigneeExpression":"${ currentUser() }"}', '{"variables":[{"name":"jrNumber","label":"JR Number"}],"description":"My Claimed Tasks","priority":-10}');
+--INSERT INTO act_ru_filter (id_, rev_, resource_type_, name_, owner_, query_, properties_) VALUES ('00e83e80-4f69-11e7-a8c6-0242ac120008', 1, 'Task', 'My Unclaimed Tasks', 'sharing_beeline_users_group', '{"taskCandidateUserExpression":"${currentUser()}"}', '{"variables":[{"name":"jrNumber","label":"JR Number"}],"description":"My Unclaimed Tasks","priority":-10}');
+--INSERT INTO act_ru_filter (id_, rev_, resource_type_, name_, owner_, query_, properties_) VALUES ('00e99e13-4f69-11e7-a8c6-0242ac120008', 1, 'Task', 'My Group Tasks', 'sharing_beeline_users_group', '{"taskCandidateGroupInExpression":"${ currentUserGroups() }"}', '{"variables":[{"name":"jrNumber","label":"JR Number"}],"description":"My Group Tasks","priority":-10}');
 
 --AUTHORIZATIONS
 --FILTER AUTHORIZATION

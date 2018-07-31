@@ -124,15 +124,15 @@ INSERT INTO public.act_ru_authorization (id_, rev_, type_, group_id_, user_id_, 
 INSERT INTO public.act_ru_authorization (id_, rev_, type_, group_id_, user_id_, resource_type_, resource_id_, perms_) VALUES (uuid_generate_v4(), 1, 1, null, 'Nabat.Oralbekova@kcell.kz', 1, 'Nabat.Oralbekova@kcell.kz', 2147483647);
 
 --FILTERS
-INSERT INTO act_ru_filter (id_, rev_, resource_type_, name_, owner_, query_, properties_) VALUES ('00e642gd-4f69-11e7-a8c6-0242ac120007', 1, 'Task', 'My Claimed Tasks', 'smsUsers', '{"taskAssigneeExpression":"${ currentUser() }"}', '{"variables":[{"name":"companyName","label":"Компания"}],"description":"Мои Задачи","priority":-10}');
-INSERT INTO act_ru_filter (id_, rev_, resource_type_, name_, owner_, query_, properties_) VALUES ('00e83eg0-4f69-11e7-a8c6-0242ac120007', 1, 'Task', 'My Unclaimed Tasks', 'smsUsers', '{"taskCandidateUserExpression":"${currentUser()}"}', '{"variables":[{"name":"companyName","label":"Компания"}],"description":"Задачи назначенные мне","priority":-10}');
-INSERT INTO act_ru_filter (id_, rev_, resource_type_, name_, owner_, query_, properties_) VALUES ('00e99eg3-4f69-11e7-a8c6-0242ac120007', 1, 'Task', 'My Group Tasks', 'smsUsers', '{"taskCandidateGroupInExpression":"${ currentUserGroups() }"}', '{"variables":[{"name":"companyName","label":"Компания"}],"description":"Задачи назначенные группе","priority":-10}');
+--INSERT INTO act_ru_filter (id_, rev_, resource_type_, name_, owner_, query_, properties_) VALUES ('00e642gd-4f69-11e7-a8c6-0242ac120007', 1, 'Task', 'My Claimed Tasks', 'smsUsers', '{"taskAssigneeExpression":"${ currentUser() }"}', '{"variables":[{"name":"companyName","label":"Компания"}],"description":"Мои Задачи","priority":-10}');
+--INSERT INTO act_ru_filter (id_, rev_, resource_type_, name_, owner_, query_, properties_) VALUES ('00e83eg0-4f69-11e7-a8c6-0242ac120007', 1, 'Task', 'My Unclaimed Tasks', 'smsUsers', '{"taskCandidateUserExpression":"${currentUser()}"}', '{"variables":[{"name":"companyName","label":"Компания"}],"description":"Задачи назначенные мне","priority":-10}');
+--INSERT INTO act_ru_filter (id_, rev_, resource_type_, name_, owner_, query_, properties_) VALUES ('00e99eg3-4f69-11e7-a8c6-0242ac120007', 1, 'Task', 'My Group Tasks', 'smsUsers', '{"taskCandidateGroupInExpression":"${ currentUserGroups() }"}', '{"variables":[{"name":"companyName","label":"Компания"}],"description":"Задачи назначенные группе","priority":-10}');
 
 --AUTHORIZATIONS
 --FILTER AUTHORIZATION
-INSERT INTO act_ru_authorization (id_, rev_, type_, group_id_, user_id_, resource_type_, resource_id_, perms_) VALUES ('00e7a2gf-4f69-11e7-a8c6-0242ac120007', 1, 1, 'smsUsers', NULL, 5, '00e642gd-4f69-11e7-a8c6-0242ac120007', 2);
-INSERT INTO act_ru_authorization (id_, rev_, type_, group_id_, user_id_, resource_type_, resource_id_, perms_) VALUES ('00e928g2-4f69-11e7-a8c6-0242ac120007', 1, 1, 'smsUsers', NULL, 5, '00e83eg0-4f69-11e7-a8c6-0242ac120007', 2);
-INSERT INTO act_ru_authorization (id_, rev_, type_, group_id_, user_id_, resource_type_, resource_id_, perms_) VALUES ('00ea3ag5-4f69-11e7-a8c6-0242ac120007', 1, 1, 'smsUsers', NULL, 5, '00e99eg3-4f69-11e7-a8c6-0242ac120007', 2);
+INSERT INTO act_ru_authorization (id_, rev_, type_, group_id_, user_id_, resource_type_, resource_id_, perms_) VALUES ('00e7a2gf-4f69-11e7-a8c6-0242ac120007', 1, 1, 'smsUsers', NULL, 5, '00e642ad-4f69-11e7-a8c6-0242ac120007', 2);
+INSERT INTO act_ru_authorization (id_, rev_, type_, group_id_, user_id_, resource_type_, resource_id_, perms_) VALUES ('00e928g2-4f69-11e7-a8c6-0242ac120007', 1, 1, 'smsUsers', NULL, 5, '00e83e80-4f69-11e7-a8c6-0242ac120007', 2);
+INSERT INTO act_ru_authorization (id_, rev_, type_, group_id_, user_id_, resource_type_, resource_id_, perms_) VALUES ('00ea3ag5-4f69-11e7-a8c6-0242ac120007', 1, 1, 'smsUsers', NULL, 5, '00e99e13-4f69-11e7-a8c6-0242ac120007', 2);
 
 --PROCESS INSTANCE AUTHORIZATION
 INSERT INTO act_ru_authorization (id_, rev_, type_, group_id_, user_id_, resource_type_, resource_id_, perms_) VALUES ('008d9ag1-4f69-11e7-a8c6-0242ac120007', 1, 1, 'smsUsers', NULL, 8, '*', 2147483647);
