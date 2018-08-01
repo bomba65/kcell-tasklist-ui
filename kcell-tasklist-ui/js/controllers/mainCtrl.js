@@ -456,18 +456,11 @@ define(['./module','camundaSDK', 'lodash', 'big-js'], function(module, CamSDK, _
                 url: baseUrl + '/history/process-instance'
             }).then(
                     function(processes){
-                    	$scope.currentTaskGroup.filterableTasks = [];
                     	angular.forEach($scope.currentTaskGroup.tasks, function(task){
                     		var process = _.find(processes.data, function(p){ return p.id === task.processInstanceId });
-                    		task.process = process;
-                    		$scope.currentTaskGroup.filterableTasks.push({
-                    			processInstanceId: task.processInstanceId,
-								businessKey: process.businessKey,
-								//site_name: task.site_name,
-								startUserId: process.startUserId,
-								startTime: process.startTime,
-								priority: task.priority
-							});
+                    		task.processBusinessKey = process.businessKey;
+                    		task.processStartUserId = process.startUserId;
+                    		task.processStartTime = process.startTime;
                     	});
                     },
                     function(error){
