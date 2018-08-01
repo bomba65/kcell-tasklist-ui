@@ -8,7 +8,7 @@
       </camunda:properties>
     </bpmn:extensionElements>
     <bpmn:subProcess id="SubProcess_0cwj4g6" name="Revision Leasing Procedures">
-      <bpmn:incoming>SequenceFlow_0jidb3c</bpmn:incoming>
+      <bpmn:incoming>SequenceFlow_1d23qig</bpmn:incoming>
       <bpmn:outgoing>SequenceFlow_17n684j</bpmn:outgoing>
       <bpmn:outgoing>SequenceFlow_0eg1f85</bpmn:outgoing>
       <bpmn:endEvent id="endevt_leasing_approved">
@@ -404,12 +404,12 @@
       </bpmn:sequenceFlow>
     </bpmn:subProcess>
     <bpmn:subProcess id="SubProcess_0a0tcem" name="Execute Works">
-      <bpmn:incoming>SequenceFlow_0xqu1s7</bpmn:incoming>
-      <bpmn:incoming>SequenceFlow_0uvzo91</bpmn:incoming>
       <bpmn:incoming>SequenceFlow_1lwdiem</bpmn:incoming>
       <bpmn:incoming>SequenceFlow_0jvqwqj</bpmn:incoming>
       <bpmn:incoming>SequenceFlow_0d3icf7</bpmn:incoming>
-      <bpmn:incoming>SequenceFlow_0icojjf</bpmn:incoming>
+      <bpmn:incoming>SequenceFlow_0yytnh6</bpmn:incoming>
+      <bpmn:incoming>SequenceFlow_15t5z9i</bpmn:incoming>
+      <bpmn:incoming>SequenceFlow_0tbefms</bpmn:incoming>
       <bpmn:outgoing>SequenceFlow_1hw1xm0</bpmn:outgoing>
       <bpmn:outgoing>SequenceFlow_05vqen4</bpmn:outgoing>
       <bpmn:outgoing>SequenceFlow_1sfkegw</bpmn:outgoing>
@@ -495,7 +495,7 @@
         <bpmn:extensionElements>
           <camunda:taskListener class="kz.kcell.bpm.assignments.RegionGroupAssignmentHandler" event="create" />
         </bpmn:extensionElements>
-        <bpmn:incoming>SequenceFlow_0ex1sjt</bpmn:incoming>
+        <bpmn:incoming>SequenceFlow_079i5bq</bpmn:incoming>
         <bpmn:outgoing>SequenceFlow_0bhtmw4</bpmn:outgoing>
       </bpmn:userTask>
       <bpmn:userTask id="approve_jr" name="Approve JR" camunda:formKey="embedded:app:forms/revision/centralGroupHeadApproval.html" camunda:priority="#{priority == &#39;emergency&#39;? 100: 50}">
@@ -719,7 +719,7 @@
         <bpmn:incoming>SequenceFlow_1nruvfr</bpmn:incoming>
         <bpmn:outgoing>SequenceFlow_0ex1sjt</bpmn:outgoing>
       </bpmn:serviceTask>
-      <bpmn:sequenceFlow id="SequenceFlow_0ex1sjt" sourceRef="generate_blank_jr_and_attach_to_the_process_instance" targetRef="approve_jr_regions" />
+      <bpmn:sequenceFlow id="SequenceFlow_0ex1sjt" sourceRef="generate_blank_jr_and_attach_to_the_process_instance" targetRef="IntermediateThrowEvent_wait_head" />
       <bpmn:exclusiveGateway id="exclgw_createjr_is_initial">
         <bpmn:incoming>SequenceFlow_1vga6jb</bpmn:incoming>
         <bpmn:outgoing>SequenceFlow_04jba9p</bpmn:outgoing>
@@ -774,17 +774,20 @@
       <bpmn:endEvent id="endevt_createjr_impossible">
         <bpmn:incoming>SequenceFlow_05dm0js</bpmn:incoming>
       </bpmn:endEvent>
-      <bpmn:intermediateThrowEvent id="IntermediateThrowEvent_approved_by_region" name="Approved by Region">
+      <bpmn:intermediateThrowEvent id="IntermediateThrowEvent_approved_by_region" name="Approved by Region Head">
         <bpmn:extensionElements>
           <camunda:executionListener delegateExpression="${statusListener}" event="start">
             <camunda:field name="statusId">
               <camunda:string>approved_by_region</camunda:string>
             </camunda:field>
             <camunda:field name="statusName">
-              <camunda:string>Approved by Region</camunda:string>
+              <camunda:string>Approved by Region Head</camunda:string>
             </camunda:field>
             <camunda:field name="returnStatus">
               <camunda:string>false</camunda:string>
+            </camunda:field>
+            <camunda:field name="parentStatus">
+              <camunda:string>JR Started</camunda:string>
             </camunda:field>
           </camunda:executionListener>
         </bpmn:extensionElements>
@@ -804,13 +807,16 @@
             <camunda:field name="returnStatus">
               <camunda:string>true</camunda:string>
             </camunda:field>
+            <camunda:field name="parentStatus">
+              <camunda:string>JR Started</camunda:string>
+            </camunda:field>
           </camunda:executionListener>
         </bpmn:extensionElements>
         <bpmn:incoming>SequenceFlow_1ip3b6e</bpmn:incoming>
         <bpmn:outgoing>SequenceFlow_0e9868l</bpmn:outgoing>
       </bpmn:intermediateThrowEvent>
       <bpmn:sequenceFlow id="SequenceFlow_0e9868l" sourceRef="IntermediateThrowEvent_returned_by_region" targetRef="modify_jr" />
-      <bpmn:intermediateThrowEvent id="IntermediateThrowEvent_returned_by_center1" name="JR returned for correction by Center Group">
+      <bpmn:intermediateThrowEvent id="IntermediateThrowEvent_returned_by_center1" name="JR returned for correction by Center Unit">
         <bpmn:extensionElements>
           <camunda:executionListener delegateExpression="${statusListener}" event="start">
             <camunda:field name="statusId">
@@ -821,6 +827,9 @@
             </camunda:field>
             <camunda:field name="returnStatus">
               <camunda:string>true</camunda:string>
+            </camunda:field>
+            <camunda:field name="parentStatus">
+              <camunda:string>JR Started</camunda:string>
             </camunda:field>
           </camunda:executionListener>
         </bpmn:extensionElements>
@@ -840,6 +849,9 @@
             <camunda:field name="returnStatus">
               <camunda:string>true</camunda:string>
             </camunda:field>
+            <camunda:field name="parentStatus">
+              <camunda:string>JR Started</camunda:string>
+            </camunda:field>
           </camunda:executionListener>
         </bpmn:extensionElements>
         <bpmn:incoming>SequenceFlow_1hoa515</bpmn:incoming>
@@ -857,6 +869,9 @@
             </camunda:field>
             <camunda:field name="returnStatus">
               <camunda:string>true</camunda:string>
+            </camunda:field>
+            <camunda:field name="parentStatus">
+              <camunda:string>JR Started</camunda:string>
             </camunda:field>
           </camunda:executionListener>
         </bpmn:extensionElements>
@@ -876,6 +891,9 @@
             <camunda:field name="returnStatus">
               <camunda:string>true</camunda:string>
             </camunda:field>
+            <camunda:field name="parentStatus">
+              <camunda:string>JR Started</camunda:string>
+            </camunda:field>
           </camunda:executionListener>
         </bpmn:extensionElements>
         <bpmn:incoming>SequenceFlow_0ifgbkt</bpmn:incoming>
@@ -893,6 +911,9 @@
             </camunda:field>
             <camunda:field name="returnStatus">
               <camunda:string>false</camunda:string>
+            </camunda:field>
+            <camunda:field name="parentStatus">
+              <camunda:string>JR Started</camunda:string>
             </camunda:field>
           </camunda:executionListener>
         </bpmn:extensionElements>
@@ -912,6 +933,9 @@
             <camunda:field name="returnStatus">
               <camunda:string>false</camunda:string>
             </camunda:field>
+            <camunda:field name="parentStatus">
+              <camunda:string>JR Started</camunda:string>
+            </camunda:field>
           </camunda:executionListener>
         </bpmn:extensionElements>
         <bpmn:incoming>SequenceFlow_07gu6kr</bpmn:incoming>
@@ -930,12 +954,36 @@
             <camunda:field name="returnStatus">
               <camunda:string>false</camunda:string>
             </camunda:field>
+            <camunda:field name="parentStatus">
+              <camunda:string>JR Started</camunda:string>
+            </camunda:field>
           </camunda:executionListener>
         </bpmn:extensionElements>
         <bpmn:incoming>SequenceFlow_0htg4cl</bpmn:incoming>
         <bpmn:outgoing>SequenceFlow_0omkixv</bpmn:outgoing>
       </bpmn:intermediateThrowEvent>
       <bpmn:sequenceFlow id="SequenceFlow_0omkixv" sourceRef="IntermediateThrowEvent_jr_modified" targetRef="exclgw_createjr_is_workschg" />
+      <bpmn:intermediateThrowEvent id="IntermediateThrowEvent_wait_head" name="Wait Region Head Approval">
+        <bpmn:extensionElements>
+          <camunda:executionListener delegateExpression="${statusListener}" event="start">
+            <camunda:field name="statusId">
+              <camunda:string>wait_head</camunda:string>
+            </camunda:field>
+            <camunda:field name="statusName">
+              <camunda:string>Wait Region Head Approval</camunda:string>
+            </camunda:field>
+            <camunda:field name="returnStatus">
+              <camunda:string>false</camunda:string>
+            </camunda:field>
+            <camunda:field name="parentStatus">
+              <camunda:string> </camunda:string>
+            </camunda:field>
+          </camunda:executionListener>
+        </bpmn:extensionElements>
+        <bpmn:incoming>SequenceFlow_0ex1sjt</bpmn:incoming>
+        <bpmn:outgoing>SequenceFlow_079i5bq</bpmn:outgoing>
+      </bpmn:intermediateThrowEvent>
+      <bpmn:sequenceFlow id="SequenceFlow_079i5bq" sourceRef="IntermediateThrowEvent_wait_head" targetRef="approve_jr_regions" />
       <bpmn:association id="Association_13cbx79" sourceRef="modify_jr" targetRef="TextAnnotation_0hzejdn" />
       <bpmn:association id="Association_0j5a8e6" sourceRef="approve_jr_regions" targetRef="TextAnnotation_0j3uh3b" />
       <bpmn:association id="Association_0qnw6yg" sourceRef="approve_jr" targetRef="TextAnnotation_1u53fp1" />
@@ -944,16 +992,16 @@
       <bpmn:association id="Association_0p8o61s" sourceRef="set_pr_creation_not_in_progress_2" targetRef="TextAnnotation_1ccusbv" />
       <bpmn:association id="Association_0mtuzci" sourceRef="generate_blank_jr_and_attach_to_the_process_instance" targetRef="TextAnnotation_044d1qz" />
     </bpmn:subProcess>
-    <bpmn:sequenceFlow id="SequenceFlow_0uvzo91" name="materials are not required" sourceRef="exclgw_materials_required" targetRef="SubProcess_0a0tcem">
+    <bpmn:sequenceFlow id="SequenceFlow_0uvzo91" name="materials are not required" sourceRef="exclgw_materials_required" targetRef="IntermediateThrowEvent_open_not_performed1">
       <bpmn:conditionExpression xsi:type="bpmn:tFormalExpression">${materialsRequired=='No'}</bpmn:conditionExpression>
     </bpmn:sequenceFlow>
     <bpmn:sequenceFlow id="SequenceFlow_10nsvzs" name="materials required" sourceRef="exclgw_materials_required" targetRef="SubProcess_04dekrg">
       <bpmn:conditionExpression xsi:type="bpmn:tFormalExpression">${materialsRequired=='Yes'}</bpmn:conditionExpression>
     </bpmn:sequenceFlow>
-    <bpmn:sequenceFlow id="SequenceFlow_0xqu1s7" sourceRef="SubProcess_0eah6dm" targetRef="SubProcess_0a0tcem">
+    <bpmn:sequenceFlow id="SequenceFlow_0xqu1s7" sourceRef="SubProcess_0eah6dm" targetRef="IntermediateThrowEvent_open_not_performed3">
       <bpmn:conditionExpression xsi:type="bpmn:tFormalExpression">${materialsNotAvailable==false}</bpmn:conditionExpression>
     </bpmn:sequenceFlow>
-    <bpmn:sequenceFlow id="SequenceFlow_01s02ho" name="jr approved" sourceRef="SubProcess_0cd7y34" targetRef="IntermediateThrowEvent_jr_approved">
+    <bpmn:sequenceFlow id="SequenceFlow_01s02ho" name="jr approved" sourceRef="SubProcess_0cd7y34" targetRef="exclgw_istest">
       <bpmn:conditionExpression xsi:type="bpmn:tFormalExpression">${createJRResult=='approved'}</bpmn:conditionExpression>
     </bpmn:sequenceFlow>
     <bpmn:sequenceFlow id="SequenceFlow_17n684j" name="leasing done" sourceRef="SubProcess_0cwj4g6" targetRef="exclgw_is_pr_creation_launched">
@@ -965,7 +1013,7 @@
       <bpmn:outgoing>SequenceFlow_0jidb3c</bpmn:outgoing>
       <bpmn:outgoing>SequenceFlow_0xhyefk</bpmn:outgoing>
     </bpmn:exclusiveGateway>
-    <bpmn:sequenceFlow id="SequenceFlow_0jidb3c" name="leasing required" sourceRef="exclgw_leasingreq" targetRef="SubProcess_0cwj4g6">
+    <bpmn:sequenceFlow id="SequenceFlow_0jidb3c" name="leasing required" sourceRef="exclgw_leasingreq" targetRef="IntermediateThrowEvent_wait_leasing">
       <bpmn:conditionExpression xsi:type="bpmn:tFormalExpression">${leasingRequired=='Yes'}</bpmn:conditionExpression>
     </bpmn:sequenceFlow>
     <bpmn:sequenceFlow id="SequenceFlow_0xhyefk" name="leasing not required" sourceRef="exclgw_leasingreq" targetRef="exclgw_is_pr_creation_launched">
@@ -1045,7 +1093,7 @@
             </camunda:inputParameter>
           </camunda:inputOutput>
         </bpmn:extensionElements>
-        <bpmn:incoming>SequenceFlow_06di5fs</bpmn:incoming>
+        <bpmn:incoming>SequenceFlow_0opnihq</bpmn:incoming>
         <bpmn:outgoing>SequenceFlow_1f56l0l</bpmn:outgoing>
       </bpmn:sendTask>
       <bpmn:userTask id="sign_region_head" name="Sign by region head" camunda:formKey="embedded:app:forms/revision/accept-and-sign-by-region-head.html" camunda:priority="#{priority == &#39;emergency&#39;? 100: 50}">
@@ -1053,7 +1101,7 @@
         <bpmn:extensionElements>
           <camunda:taskListener class="kz.kcell.bpm.assignments.RegionGroupAssignmentHandler" event="create" />
         </bpmn:extensionElements>
-        <bpmn:incoming>SequenceFlow_0b1di1f</bpmn:incoming>
+        <bpmn:incoming>SequenceFlow_1u72h10</bpmn:incoming>
         <bpmn:outgoing>SequenceFlow_0osamjm</bpmn:outgoing>
       </bpmn:userTask>
       <bpmn:sequenceFlow id="SequenceFlow_0g3rb8x" sourceRef="startevt_accept_works" targetRef="accept_work_initiator" />
@@ -1078,11 +1126,11 @@
       <bpmn:sequenceFlow id="SequenceFlow_1aw7g43" sourceRef="exclgw_acceptance_is_not_selected" targetRef="exclgw_acceptance_is_accepted" />
       <bpmn:sequenceFlow id="SequenceFlow_1f56l0l" sourceRef="notify_work_accepted" targetRef="endevt_accept_work" />
       <bpmn:sequenceFlow id="SequenceFlow_0osamjm" sourceRef="sign_region_head" targetRef="exclgw_acceptance_is_work_signed_region" />
-      <bpmn:sequenceFlow id="SequenceFlow_06di5fs" sourceRef="exclgw_acceptance_is_work_signed_region" targetRef="notify_work_accepted" />
+      <bpmn:sequenceFlow id="SequenceFlow_06di5fs" sourceRef="exclgw_acceptance_is_work_signed_region" targetRef="IntermediateThrowEvent_wait_scan_copy" />
       <bpmn:sequenceFlow id="SequenceFlow_175xf1g" name="return for correction" sourceRef="exclgw_acceptance_accepted_initiator" targetRef="endevt_accept_return_for_correction">
         <bpmn:conditionExpression xsi:type="bpmn:tFormalExpression">${acceptAndSignByInitiatorTaskResult=='rejected'}</bpmn:conditionExpression>
       </bpmn:sequenceFlow>
-      <bpmn:sequenceFlow id="SequenceFlow_0b1di1f" sourceRef="exclgw_acceptance_is_work_accepted" targetRef="sign_region_head" />
+      <bpmn:sequenceFlow id="SequenceFlow_0b1di1f" sourceRef="exclgw_acceptance_is_work_accepted" targetRef="IntermediateThrowEvent_wait_tech_acceptance" />
       <bpmn:userTask id="accept_work_planning_group" name="accept and sign by planning group" camunda:formKey="embedded:app:forms/revision/accept-and-sign-by-planning-group.html" camunda:priority="#{priority == &#39;emergency&#39;? 100: 50}">
         <bpmn:documentation>Accept and sign by planning group</bpmn:documentation>
         <bpmn:extensionElements>
@@ -1099,6 +1147,48 @@
       <bpmn:sequenceFlow id="SequenceFlow_0v75fi7" sourceRef="exclgw_acceptance_is_accepted" targetRef="exclgw_acceptance_is_work_accepted">
         <bpmn:conditionExpression xsi:type="bpmn:tFormalExpression">${acceptAndSignByMaintenanceGroupTaskResult=='approved' &amp;&amp; (planningGroupReviewSelected!='selected' || acceptAndSignByPlanningGroupTaskResult=='approved')}</bpmn:conditionExpression>
       </bpmn:sequenceFlow>
+      <bpmn:intermediateThrowEvent id="IntermediateThrowEvent_wait_tech_acceptance" name="Tech Accepted">
+        <bpmn:extensionElements>
+          <camunda:executionListener delegateExpression="${statusListener}" event="start">
+            <camunda:field name="statusId">
+              <camunda:string>wait_tech_acceptance</camunda:string>
+            </camunda:field>
+            <camunda:field name="statusName">
+              <camunda:string>Tech Accepted</camunda:string>
+            </camunda:field>
+            <camunda:field name="returnStatus">
+              <camunda:string>false</camunda:string>
+            </camunda:field>
+            <camunda:field name="parentStatus">
+              <camunda:string>JR performed</camunda:string>
+            </camunda:field>
+          </camunda:executionListener>
+        </bpmn:extensionElements>
+        <bpmn:incoming>SequenceFlow_0b1di1f</bpmn:incoming>
+        <bpmn:outgoing>SequenceFlow_1u72h10</bpmn:outgoing>
+      </bpmn:intermediateThrowEvent>
+      <bpmn:sequenceFlow id="SequenceFlow_1u72h10" sourceRef="IntermediateThrowEvent_wait_tech_acceptance" targetRef="sign_region_head" />
+      <bpmn:intermediateThrowEvent id="IntermediateThrowEvent_wait_scan_copy" name="Wait attach scan copy of Acceptance form">
+        <bpmn:extensionElements>
+          <camunda:executionListener delegateExpression="${statusListener}" event="start">
+            <camunda:field name="statusId">
+              <camunda:string>wait_scan_copy</camunda:string>
+            </camunda:field>
+            <camunda:field name="statusName">
+              <camunda:string>Wait attach scan copy of Acceptance</camunda:string>
+            </camunda:field>
+            <camunda:field name="returnStatus">
+              <camunda:string>false</camunda:string>
+            </camunda:field>
+            <camunda:field name="parentStatus">
+              <camunda:string>Final Accepted</camunda:string>
+            </camunda:field>
+          </camunda:executionListener>
+        </bpmn:extensionElements>
+        <bpmn:incoming>SequenceFlow_06di5fs</bpmn:incoming>
+        <bpmn:outgoing>SequenceFlow_0opnihq</bpmn:outgoing>
+      </bpmn:intermediateThrowEvent>
+      <bpmn:sequenceFlow id="SequenceFlow_0opnihq" sourceRef="IntermediateThrowEvent_wait_scan_copy" targetRef="notify_work_accepted" />
       <bpmn:textAnnotation id="TextAnnotation_03pk2rp">
         <bpmn:text>status can be "sign" or "not nessesary"</bpmn:text>
       </bpmn:textAnnotation>
@@ -1153,14 +1243,14 @@
     <bpmn:sequenceFlow id="SequenceFlow_1951c3w" sourceRef="SubProcess_04dekrg" targetRef="SubProcess_0eah6dm">
       <bpmn:conditionExpression xsi:type="bpmn:tFormalExpression">${modifyWorks==false &amp;&amp; contractorAttachesMaterialListTaskResult!='notRequired'}</bpmn:conditionExpression>
     </bpmn:sequenceFlow>
-    <bpmn:sequenceFlow id="SequenceFlow_1sfkegw" name="job executed successfully" sourceRef="SubProcess_0a0tcem" targetRef="exclgw_permidocs_needed">
+    <bpmn:sequenceFlow id="SequenceFlow_1sfkegw" name="job executed successfully" sourceRef="SubProcess_0a0tcem" targetRef="IntermediateThrowEvent_performed_not_accepted">
       <bpmn:conditionExpression xsi:type="bpmn:tFormalExpression">${fillAppliedChangesInfoByContractorTaskResult=='saveChanges'}</bpmn:conditionExpression>
     </bpmn:sequenceFlow>
     <bpmn:sequenceFlow id="SequenceFlow_0fhdfes" name="accepted" sourceRef="SubProcess_0v7hq1m" targetRef="attach-scan-copy-of-acceptance-form">
       <bpmn:conditionExpression xsi:type="bpmn:tFormalExpression">${acceptPerformedJob== 'accepted'}</bpmn:conditionExpression>
     </bpmn:sequenceFlow>
     <bpmn:exclusiveGateway id="exclgw_istest">
-      <bpmn:incoming>SequenceFlow_1vxcm6e</bpmn:incoming>
+      <bpmn:incoming>SequenceFlow_01s02ho</bpmn:incoming>
       <bpmn:outgoing>SequenceFlow_1w6xl96</bpmn:outgoing>
       <bpmn:outgoing>SequenceFlow_0d3icf7</bpmn:outgoing>
     </bpmn:exclusiveGateway>
@@ -1221,7 +1311,7 @@
       <bpmn:conditionExpression xsi:type="bpmn:tFormalExpression">${revisionPrepare == 'approved'}</bpmn:conditionExpression>
     </bpmn:sequenceFlow>
     <bpmn:exclusiveGateway id="exclgw_permidocs_needed">
-      <bpmn:incoming>SequenceFlow_1sfkegw</bpmn:incoming>
+      <bpmn:incoming>SequenceFlow_0b42mkm</bpmn:incoming>
       <bpmn:outgoing>SequenceFlow_1kru9y3</bpmn:outgoing>
       <bpmn:outgoing>SequenceFlow_1qx3n24</bpmn:outgoing>
     </bpmn:exclusiveGateway>
@@ -1240,17 +1330,6 @@
           </camunda:field>
         </camunda:executionListener>
         <camunda:executionListener delegateExpression="${revisionContractorPermListener}" event="end" />
-        <camunda:executionListener delegateExpression="${statusListener}" event="end">
-          <camunda:field name="statusId">
-            <camunda:string>jr_started</camunda:string>
-          </camunda:field>
-          <camunda:field name="statusName">
-            <camunda:string>JR Started</camunda:string>
-          </camunda:field>
-          <camunda:field name="returnStatus">
-            <camunda:string>false</camunda:string>
-          </camunda:field>
-        </camunda:executionListener>
       </bpmn:extensionElements>
       <bpmn:outgoing>SequenceFlow_1euq1js</bpmn:outgoing>
     </bpmn:startEvent>
@@ -1281,7 +1360,23 @@
     </bpmn:endEvent>
     <bpmn:sequenceFlow id="SequenceFlow_05an1kf" sourceRef="extprocess_prepare_permit_docs" targetRef="endevt_parallel_permitdocs" />
     <bpmn:sequenceFlow id="SequenceFlow_0hpzq8v" name="invoiced" sourceRef="intermediate_wait_invoiced" targetRef="endevt_revision" />
-    <bpmn:intermediateCatchEvent id="intermediate_wait_invoiced" name="Intermediate wait invoiced">
+    <bpmn:intermediateCatchEvent id="intermediate_wait_invoiced" name="Accepted but not invoiced">
+      <bpmn:extensionElements>
+        <camunda:executionListener delegateExpression="${statusListener}" event="start">
+          <camunda:field name="statusId">
+            <camunda:string>intermediate_wait_invoiced</camunda:string>
+          </camunda:field>
+          <camunda:field name="statusName">
+            <camunda:string>Accepted but not invoiced</camunda:string>
+          </camunda:field>
+          <camunda:field name="returnStatus">
+            <camunda:string>false</camunda:string>
+          </camunda:field>
+          <camunda:field name="parentStatus">
+            <camunda:string>Final Accepted</camunda:string>
+          </camunda:field>
+        </camunda:executionListener>
+      </bpmn:extensionElements>
       <bpmn:incoming>SequenceFlow_1n94y9k</bpmn:incoming>
       <bpmn:outgoing>SequenceFlow_0hpzq8v</bpmn:outgoing>
       <bpmn:conditionalEventDefinition camunda:variableName="acceptPerformedJob" camunda:variableEvent="update">
@@ -1664,7 +1759,7 @@
       <bpmn:incoming>SequenceFlow_1fv2m2r</bpmn:incoming>
       <bpmn:outgoing>SequenceFlow_0icojjf</bpmn:outgoing>
     </bpmn:sendTask>
-    <bpmn:sequenceFlow id="SequenceFlow_0icojjf" sourceRef="notify_intiator_no_need_material" targetRef="SubProcess_0a0tcem" />
+    <bpmn:sequenceFlow id="SequenceFlow_0icojjf" sourceRef="notify_intiator_no_need_material" targetRef="IntermediateThrowEvent_open_not_performed2" />
     <bpmn:intermediateThrowEvent id="IntermediateThrowEvent_jr_cancelled" name="JR Canceled">
       <bpmn:extensionElements>
         <camunda:executionListener delegateExpression="${statusListener}" event="start">
@@ -1683,24 +1778,6 @@
       <bpmn:outgoing>SequenceFlow_1pv1t3r</bpmn:outgoing>
     </bpmn:intermediateThrowEvent>
     <bpmn:sequenceFlow id="SequenceFlow_1pv1t3r" sourceRef="IntermediateThrowEvent_jr_cancelled" targetRef="endevt_create_jr_rejected" />
-    <bpmn:intermediateThrowEvent id="IntermediateThrowEvent_jr_approved" name="JR Approved">
-      <bpmn:extensionElements>
-        <camunda:executionListener delegateExpression="${statusListener}" event="start">
-          <camunda:field name="statusId">
-            <camunda:string>jr_approved</camunda:string>
-          </camunda:field>
-          <camunda:field name="statusName">
-            <camunda:string>JR Approved</camunda:string>
-          </camunda:field>
-          <camunda:field name="returnStatus">
-            <camunda:string>false</camunda:string>
-          </camunda:field>
-        </camunda:executionListener>
-      </bpmn:extensionElements>
-      <bpmn:incoming>SequenceFlow_01s02ho</bpmn:incoming>
-      <bpmn:outgoing>SequenceFlow_1vxcm6e</bpmn:outgoing>
-    </bpmn:intermediateThrowEvent>
-    <bpmn:sequenceFlow id="SequenceFlow_1vxcm6e" sourceRef="IntermediateThrowEvent_jr_approved" targetRef="exclgw_istest" />
     <bpmn:intermediateThrowEvent id="IntermediateThrowEvent_leasing_impossible" name="Leasing impossible">
       <bpmn:extensionElements>
         <camunda:executionListener delegateExpression="${statusListener}" event="start">
@@ -1713,12 +1790,120 @@
           <camunda:field name="returnStatus">
             <camunda:string>true</camunda:string>
           </camunda:field>
+          <camunda:field name="parentStatus">
+            <camunda:string>JR Started</camunda:string>
+          </camunda:field>
         </camunda:executionListener>
       </bpmn:extensionElements>
       <bpmn:incoming>SequenceFlow_0eg1f85</bpmn:incoming>
       <bpmn:outgoing>SequenceFlow_0vx49t7</bpmn:outgoing>
     </bpmn:intermediateThrowEvent>
     <bpmn:sequenceFlow id="SequenceFlow_0vx49t7" sourceRef="IntermediateThrowEvent_leasing_impossible" targetRef="SubProcess_0cd7y34" />
+    <bpmn:intermediateThrowEvent id="IntermediateThrowEvent_wait_leasing" name="Wait Leasing">
+      <bpmn:extensionElements>
+        <camunda:executionListener class="${statusListener}" event="start">
+          <camunda:field name="statusId">
+            <camunda:string>wait_leasing</camunda:string>
+          </camunda:field>
+          <camunda:field name="statusName">
+            <camunda:string>Wait Leasing</camunda:string>
+          </camunda:field>
+          <camunda:field name="returnStatus">
+            <camunda:string>false</camunda:string>
+          </camunda:field>
+          <camunda:field name="parentStatus">
+            <camunda:string>JR Started</camunda:string>
+          </camunda:field>
+        </camunda:executionListener>
+      </bpmn:extensionElements>
+      <bpmn:incoming>SequenceFlow_0jidb3c</bpmn:incoming>
+      <bpmn:outgoing>SequenceFlow_1d23qig</bpmn:outgoing>
+    </bpmn:intermediateThrowEvent>
+    <bpmn:sequenceFlow id="SequenceFlow_1d23qig" sourceRef="IntermediateThrowEvent_wait_leasing" targetRef="SubProcess_0cwj4g6" />
+    <bpmn:intermediateThrowEvent id="IntermediateThrowEvent_open_not_performed1" name="JR Open but not performed">
+      <bpmn:extensionElements>
+        <camunda:executionListener delegateExpression="${statusListener}" event="start">
+          <camunda:field name="statusId">
+            <camunda:string>open_not_performed1</camunda:string>
+          </camunda:field>
+          <camunda:field name="statusName">
+            <camunda:string>JR Open but not performed</camunda:string>
+          </camunda:field>
+          <camunda:field name="returnStatus">
+            <camunda:string>false</camunda:string>
+          </camunda:field>
+          <camunda:field name="parentStatus">
+            <camunda:string>JR Open but not performed</camunda:string>
+          </camunda:field>
+        </camunda:executionListener>
+      </bpmn:extensionElements>
+      <bpmn:incoming>SequenceFlow_0uvzo91</bpmn:incoming>
+      <bpmn:outgoing>SequenceFlow_0yytnh6</bpmn:outgoing>
+    </bpmn:intermediateThrowEvent>
+    <bpmn:sequenceFlow id="SequenceFlow_0yytnh6" sourceRef="IntermediateThrowEvent_open_not_performed1" targetRef="SubProcess_0a0tcem" />
+    <bpmn:intermediateThrowEvent id="IntermediateThrowEvent_open_not_performed2" name="JR Open but not performed">
+      <bpmn:extensionElements>
+        <camunda:executionListener delegateExpression="${statusListener}" event="start">
+          <camunda:field name="statusId">
+            <camunda:string>open_not_performed2</camunda:string>
+          </camunda:field>
+          <camunda:field name="statusName">
+            <camunda:string>JR Open but not performed</camunda:string>
+          </camunda:field>
+          <camunda:field name="returnStatus">
+            <camunda:string>false</camunda:string>
+          </camunda:field>
+          <camunda:field name="parentStatus">
+            <camunda:string>JR Open but not performed</camunda:string>
+          </camunda:field>
+        </camunda:executionListener>
+      </bpmn:extensionElements>
+      <bpmn:incoming>SequenceFlow_0icojjf</bpmn:incoming>
+      <bpmn:outgoing>SequenceFlow_15t5z9i</bpmn:outgoing>
+    </bpmn:intermediateThrowEvent>
+    <bpmn:sequenceFlow id="SequenceFlow_15t5z9i" sourceRef="IntermediateThrowEvent_open_not_performed2" targetRef="SubProcess_0a0tcem" />
+    <bpmn:intermediateThrowEvent id="IntermediateThrowEvent_open_not_performed3" name="JR Open but not performed">
+      <bpmn:extensionElements>
+        <camunda:executionListener delegateExpression="${statusListener}" event="start">
+          <camunda:field name="statusId">
+            <camunda:string>open_not_performed3</camunda:string>
+          </camunda:field>
+          <camunda:field name="statusName">
+            <camunda:string>JR Open but not performed</camunda:string>
+          </camunda:field>
+          <camunda:field name="returnStatus">
+            <camunda:string>false</camunda:string>
+          </camunda:field>
+          <camunda:field name="parentStatus">
+            <camunda:string>JR Open but not performed</camunda:string>
+          </camunda:field>
+        </camunda:executionListener>
+      </bpmn:extensionElements>
+      <bpmn:incoming>SequenceFlow_0xqu1s7</bpmn:incoming>
+      <bpmn:outgoing>SequenceFlow_0tbefms</bpmn:outgoing>
+    </bpmn:intermediateThrowEvent>
+    <bpmn:sequenceFlow id="SequenceFlow_0tbefms" sourceRef="IntermediateThrowEvent_open_not_performed3" targetRef="SubProcess_0a0tcem" />
+    <bpmn:intermediateThrowEvent id="IntermediateThrowEvent_performed_not_accepted" name="JR performed but not Accepted">
+      <bpmn:extensionElements>
+        <camunda:executionListener class="${statusListener}" event="start">
+          <camunda:field name="statusId">
+            <camunda:string>performed_not_accepted</camunda:string>
+          </camunda:field>
+          <camunda:field name="statusName">
+            <camunda:string>JR performed but not Accepted</camunda:string>
+          </camunda:field>
+          <camunda:field name="returnStatus">
+            <camunda:string>false</camunda:string>
+          </camunda:field>
+          <camunda:field name="parentStatus">
+            <camunda:string>JR performed but not Accepted</camunda:string>
+          </camunda:field>
+        </camunda:executionListener>
+      </bpmn:extensionElements>
+      <bpmn:incoming>SequenceFlow_1sfkegw</bpmn:incoming>
+      <bpmn:outgoing>SequenceFlow_0b42mkm</bpmn:outgoing>
+    </bpmn:intermediateThrowEvent>
+    <bpmn:sequenceFlow id="SequenceFlow_0b42mkm" sourceRef="IntermediateThrowEvent_performed_not_accepted" targetRef="exclgw_permidocs_needed" />
     <bpmn:textAnnotation id="TextAnnotation_189rkq0">
       <bpmn:text>Infrormation is taken from step "Fill Applied Changes Info by Contractor"</bpmn:text>
     </bpmn:textAnnotation>
@@ -1777,7 +1962,7 @@
         <dc:Bounds x="-1848" y="-789" width="2856" height="507" />
       </bpmndi:BPMNShape>
       <bpmndi:BPMNShape id="SubProcess_0eah6dm_di" bpmnElement="SubProcess_0eah6dm" isExpanded="true">
-        <dc:Bounds x="1150" y="-593" width="571" height="295" />
+        <dc:Bounds x="1103" y="-593" width="571" height="295" />
       </bpmndi:BPMNShape>
       <bpmndi:BPMNShape id="SubProcess_0a0tcem_di" bpmnElement="SubProcess_0a0tcem" isExpanded="true">
         <dc:Bounds x="1794" y="-690" width="740" height="489" />
@@ -1793,8 +1978,7 @@
       </bpmndi:BPMNShape>
       <bpmndi:BPMNEdge id="SequenceFlow_0uvzo91_di" bpmnElement="SequenceFlow_0uvzo91">
         <di:waypoint x="-1780" y="-25" />
-        <di:waypoint x="1867" y="-25" />
-        <di:waypoint x="1867" y="-201" />
+        <di:waypoint x="-1235" y="-25" />
         <bpmndi:BPMNLabel>
           <dc:Bounds x="-1580" y="-61" width="82" height="25" />
         </bpmndi:BPMNLabel>
@@ -1808,17 +1992,19 @@
         </bpmndi:BPMNLabel>
       </bpmndi:BPMNEdge>
       <bpmndi:BPMNEdge id="SequenceFlow_0xqu1s7_di" bpmnElement="SequenceFlow_0xqu1s7">
+        <di:waypoint x="1674" y="-445" />
         <di:waypoint x="1721" y="-445" />
-        <di:waypoint x="1794" y="-445" />
         <bpmndi:BPMNLabel>
-          <dc:Bounds x="1712.5" y="-460" width="90" height="0" />
+          <dc:Bounds x="1652.5" y="-460" width="90" height="0" />
         </bpmndi:BPMNLabel>
       </bpmndi:BPMNEdge>
       <bpmndi:BPMNEdge id="SequenceFlow_01s02ho_di" bpmnElement="SequenceFlow_01s02ho">
         <di:waypoint x="-2743" y="-343" />
-        <di:waypoint x="-2626" y="-343" />
+        <di:waypoint x="-2598" y="-343" />
+        <di:waypoint x="-2598" y="-749" />
+        <di:waypoint x="-2492" y="-749" />
         <bpmndi:BPMNLabel>
-          <dc:Bounds x="-2709" y="-366" width="56" height="13" />
+          <dc:Bounds x="-2662" y="-365" width="56" height="13" />
         </bpmndi:BPMNLabel>
       </bpmndi:BPMNEdge>
       <bpmndi:BPMNShape id="EndEvent_08g7218_di" bpmnElement="endevt_leasing_approved">
@@ -1864,12 +2050,12 @@
         <dc:Bounds x="-200" y="-500" width="100" height="80" />
       </bpmndi:BPMNShape>
       <bpmndi:BPMNShape id="UserTask_1g0uit4_di" bpmnElement="set_materials_dispatch_status">
-        <dc:Bounds x="1287" y="-489" width="100" height="80" />
+        <dc:Bounds x="1240" y="-489" width="100" height="80" />
       </bpmndi:BPMNShape>
       <bpmndi:BPMNShape id="EndEvent_1hidl6i_di" bpmnElement="endevt_materials_dispatched">
-        <dc:Bounds x="1595" y="-467" width="36" height="36" />
+        <dc:Bounds x="1548" y="-467" width="36" height="36" />
         <bpmndi:BPMNLabel>
-          <dc:Bounds x="1568" y="-431" width="90" height="0" />
+          <dc:Bounds x="1521" y="-431" width="90" height="0" />
         </bpmndi:BPMNLabel>
       </bpmndi:BPMNShape>
       <bpmndi:BPMNShape id="UserTask_0rj3nbv_di" bpmnElement="fill_applied_changes_info">
@@ -2019,16 +2205,16 @@
         </bpmndi:BPMNLabel>
       </bpmndi:BPMNEdge>
       <bpmndi:BPMNShape id="StartEvent_00in2ji_di" bpmnElement="startevt_materials_dispatch">
-        <dc:Bounds x="1179" y="-467" width="36" height="36" />
+        <dc:Bounds x="1132" y="-467" width="36" height="36" />
         <bpmndi:BPMNLabel>
-          <dc:Bounds x="1152" y="-431" width="90" height="0" />
+          <dc:Bounds x="1105" y="-431" width="90" height="0" />
         </bpmndi:BPMNLabel>
       </bpmndi:BPMNShape>
       <bpmndi:BPMNEdge id="SequenceFlow_0lh9xfe_di" bpmnElement="SequenceFlow_0lh9xfe">
-        <di:waypoint x="1215" y="-449" />
-        <di:waypoint x="1287" y="-449" />
+        <di:waypoint x="1168" y="-449" />
+        <di:waypoint x="1240" y="-449" />
         <bpmndi:BPMNLabel>
-          <dc:Bounds x="1206" y="-464" width="90" height="0" />
+          <dc:Bounds x="1159" y="-464" width="90" height="0" />
         </bpmndi:BPMNLabel>
       </bpmndi:BPMNEdge>
       <bpmndi:BPMNShape id="StartEvent_1xcw8jg_di" bpmnElement="startevt_revision_create_jr">
@@ -2053,9 +2239,9 @@
       </bpmndi:BPMNShape>
       <bpmndi:BPMNEdge id="SequenceFlow_0jidb3c_di" bpmnElement="SequenceFlow_0jidb3c">
         <di:waypoint x="-2321" y="-365" />
-        <di:waypoint x="-2321" y="20" />
+        <di:waypoint x="-2321" y="-159" />
         <bpmndi:BPMNLabel>
-          <dc:Bounds x="-2316" y="-216.93055555555554" width="77" height="12" />
+          <dc:Bounds x="-2317" y="-289" width="79" height="13" />
         </bpmndi:BPMNLabel>
       </bpmndi:BPMNEdge>
       <bpmndi:BPMNEdge id="SequenceFlow_0xhyefk_di" bpmnElement="SequenceFlow_0xhyefk">
@@ -2082,12 +2268,12 @@
         </bpmndi:BPMNLabel>
       </bpmndi:BPMNEdge>
       <bpmndi:BPMNShape id="SubProcess_0v7hq1m_di" bpmnElement="SubProcess_0v7hq1m" isExpanded="true">
-        <dc:Bounds x="3908" y="-685" width="1926" height="684" />
+        <dc:Bounds x="3908" y="-685" width="2026" height="684" />
       </bpmndi:BPMNShape>
       <bpmndi:BPMNShape id="EndEvent_1pp7st1_di" bpmnElement="endevt_revision">
-        <dc:Bounds x="6369" y="-310" width="36" height="36" />
+        <dc:Bounds x="6489" y="-310" width="36" height="36" />
         <bpmndi:BPMNLabel>
-          <dc:Bounds x="6342" y="-274" width="90" height="0" />
+          <dc:Bounds x="6462" y="-274" width="90" height="0" />
         </bpmndi:BPMNLabel>
       </bpmndi:BPMNShape>
       <bpmndi:BPMNShape id="TextAnnotation_189rkq0_di" bpmnElement="TextAnnotation_189rkq0">
@@ -2149,45 +2335,45 @@
         </bpmndi:BPMNLabel>
       </bpmndi:BPMNEdge>
       <bpmndi:BPMNShape id="ExclusiveGateway_1yyzaop_di" bpmnElement="exclgw_materials_dispatch" isMarkerVisible="true">
-        <dc:Bounds x="1462" y="-474" width="50" height="50" />
+        <dc:Bounds x="1415" y="-474" width="50" height="50" />
         <bpmndi:BPMNLabel>
-          <dc:Bounds x="1442" y="-424" width="90" height="0" />
+          <dc:Bounds x="1395" y="-424" width="90" height="0" />
         </bpmndi:BPMNLabel>
       </bpmndi:BPMNShape>
       <bpmndi:BPMNEdge id="SequenceFlow_12505uo_di" bpmnElement="SequenceFlow_12505uo">
-        <di:waypoint x="1387" y="-449" />
-        <di:waypoint x="1462" y="-449" />
+        <di:waypoint x="1340" y="-449" />
+        <di:waypoint x="1415" y="-449" />
         <bpmndi:BPMNLabel>
-          <dc:Bounds x="1380" y="-464" width="90" height="0" />
+          <dc:Bounds x="1333" y="-464" width="90" height="0" />
         </bpmndi:BPMNLabel>
       </bpmndi:BPMNEdge>
       <bpmndi:BPMNEdge id="SequenceFlow_1mhjbfu_di" bpmnElement="SequenceFlow_1mhjbfu">
-        <di:waypoint x="1512" y="-449" />
-        <di:waypoint x="1595" y="-449" />
+        <di:waypoint x="1465" y="-449" />
+        <di:waypoint x="1548" y="-449" />
         <bpmndi:BPMNLabel>
-          <dc:Bounds x="1526" y="-467" width="54" height="13" />
+          <dc:Bounds x="1479" y="-467" width="54" height="13" />
         </bpmndi:BPMNLabel>
       </bpmndi:BPMNEdge>
       <bpmndi:BPMNShape id="EndEvent_0qyxs4e_di" bpmnElement="endevt_materials_not_available">
-        <dc:Bounds x="1469" y="-357" width="36" height="36" />
+        <dc:Bounds x="1422" y="-357" width="36" height="36" />
         <bpmndi:BPMNLabel>
-          <dc:Bounds x="1442" y="-321" width="90" height="0" />
+          <dc:Bounds x="1395" y="-321" width="90" height="0" />
         </bpmndi:BPMNLabel>
       </bpmndi:BPMNShape>
       <bpmndi:BPMNEdge id="SequenceFlow_1hgha1n_di" bpmnElement="SequenceFlow_1hgha1n">
-        <di:waypoint x="1487" y="-424" />
-        <di:waypoint x="1487" y="-357" />
+        <di:waypoint x="1440" y="-424" />
+        <di:waypoint x="1440" y="-357" />
         <bpmndi:BPMNLabel>
-          <dc:Bounds x="1497" y="-408" width="82" height="25" />
+          <dc:Bounds x="1450" y="-408" width="82" height="25" />
         </bpmndi:BPMNLabel>
       </bpmndi:BPMNEdge>
       <bpmndi:BPMNEdge id="SequenceFlow_1p8u37f_di" bpmnElement="SequenceFlow_1p8u37f">
-        <di:waypoint x="1389" y="-593" />
-        <di:waypoint x="1389" y="-822" />
+        <di:waypoint x="1342" y="-593" />
+        <di:waypoint x="1342" y="-822" />
         <di:waypoint x="793" y="-822" />
         <di:waypoint x="793" y="-789" />
         <bpmndi:BPMNLabel>
-          <dc:Bounds x="1396" y="-651" width="82" height="25" />
+          <dc:Bounds x="1349" y="-651" width="82" height="25" />
         </bpmndi:BPMNLabel>
       </bpmndi:BPMNEdge>
       <bpmndi:BPMNShape id="ExclusiveGateway_176pq00_di" bpmnElement="exclgw_exec_works_status" isMarkerVisible="true">
@@ -2564,11 +2750,11 @@
       </bpmndi:BPMNEdge>
       <bpmndi:BPMNEdge id="SequenceFlow_1951c3w_di" bpmnElement="SequenceFlow_1951c3w">
         <di:waypoint x="1008" y="-474" />
-        <di:waypoint x="1079" y="-474" />
-        <di:waypoint x="1079" y="-458" />
-        <di:waypoint x="1150" y="-458" />
+        <di:waypoint x="1063" y="-474" />
+        <di:waypoint x="1063" y="-458" />
+        <di:waypoint x="1103" y="-458" />
         <bpmndi:BPMNLabel>
-          <dc:Bounds x="1049" y="-466" width="90" height="0" />
+          <dc:Bounds x="1033" y="-466" width="90" height="0" />
         </bpmndi:BPMNLabel>
       </bpmndi:BPMNEdge>
       <bpmndi:BPMNShape id="TextAnnotation_0zdrz4s_di" bpmnElement="TextAnnotation_0zdrz4s">
@@ -2586,10 +2772,10 @@
         </bpmndi:BPMNLabel>
       </bpmndi:BPMNEdge>
       <bpmndi:BPMNEdge id="SequenceFlow_0fhdfes_di" bpmnElement="SequenceFlow_0fhdfes">
-        <di:waypoint x="5834" y="-292" />
-        <di:waypoint x="5971" y="-292" />
+        <di:waypoint x="5934" y="-292" />
+        <di:waypoint x="6084" y="-292" />
         <bpmndi:BPMNLabel>
-          <dc:Bounds x="5888" y="-317" width="45" height="13" />
+          <dc:Bounds x="5995" y="-317" width="45" height="13" />
         </bpmndi:BPMNLabel>
       </bpmndi:BPMNEdge>
       <bpmndi:BPMNShape id="UserTask_09pj0pg_di" bpmnElement="validate_tr">
@@ -2933,41 +3119,41 @@
       </bpmndi:BPMNEdge>
       <bpmndi:BPMNEdge id="SequenceFlow_0ex1sjt_di" bpmnElement="SequenceFlow_0ex1sjt">
         <di:waypoint x="-4542" y="-329" />
-        <di:waypoint x="-4421" y="-329" />
+        <di:waypoint x="-4501" y="-329" />
         <bpmndi:BPMNLabel>
-          <dc:Bounds x="-4526.5" y="-350" width="90" height="12" />
+          <dc:Bounds x="-4566.5" y="-350" width="90" height="12" />
         </bpmndi:BPMNLabel>
       </bpmndi:BPMNEdge>
       <bpmndi:BPMNEdge id="SequenceFlow_0go8umh_di" bpmnElement="SequenceFlow_0go8umh">
-        <di:waypoint x="3661" y="-481" />
-        <di:waypoint x="3908" y="-482" />
+        <di:waypoint x="3661" y="-479" />
+        <di:waypoint x="3785" y="-479" />
+        <di:waypoint x="3785" y="-486" />
+        <di:waypoint x="3908" y="-486" />
         <bpmndi:BPMNLabel>
-          <dc:Bounds x="3744" y="-507" width="46" height="13" />
+          <dc:Bounds x="3815" y="-512" width="46" height="13" />
         </bpmndi:BPMNLabel>
       </bpmndi:BPMNEdge>
       <bpmndi:BPMNShape id="ExclusiveGateway_1pbx6qs_di" bpmnElement="exclgw_permidocs_needed" isMarkerVisible="true">
-        <dc:Bounds x="2611" y="-464" width="50" height="50" />
+        <dc:Bounds x="2686" y="-464" width="50" height="50" />
         <bpmndi:BPMNLabel>
-          <dc:Bounds x="2591" y="-486" width="90" height="12" />
+          <dc:Bounds x="2666" y="-486" width="90" height="12" />
         </bpmndi:BPMNLabel>
       </bpmndi:BPMNShape>
       <bpmndi:BPMNEdge id="SequenceFlow_1kru9y3_di" bpmnElement="SequenceFlow_1kru9y3">
-        <di:waypoint x="2661" y="-439" />
-        <di:waypoint x="2705" y="-439" />
-        <di:waypoint x="2705" y="-479" />
-        <di:waypoint x="2865" y="-479" />
+        <di:waypoint x="2736" y="-439" />
+        <di:waypoint x="2865" y="-439" />
         <bpmndi:BPMNLabel>
-          <dc:Bounds x="2747" y="-511" width="57" height="25" />
+          <dc:Bounds x="2780" y="-471" width="57" height="25" />
         </bpmndi:BPMNLabel>
       </bpmndi:BPMNEdge>
       <bpmndi:BPMNEdge id="SequenceFlow_1qx3n24_di" bpmnElement="SequenceFlow_1qx3n24">
-        <di:waypoint x="2636" y="-414" />
-        <di:waypoint x="2636" y="-160" />
+        <di:waypoint x="2711" y="-414" />
+        <di:waypoint x="2711" y="-160" />
         <di:waypoint x="3803" y="-160" />
         <di:waypoint x="3803" y="-269" />
         <di:waypoint x="3908" y="-269" />
         <bpmndi:BPMNLabel>
-          <dc:Bounds x="2643" y="-396" width="76" height="25" />
+          <dc:Bounds x="2718" y="-396" width="76" height="25" />
         </bpmndi:BPMNLabel>
       </bpmndi:BPMNEdge>
       <bpmndi:BPMNShape id="ExclusiveGateway_1co4cdz_di" bpmnElement="exclgw_createjr_is_initial" isMarkerVisible="true">
@@ -3145,15 +3331,15 @@
         </bpmndi:BPMNLabel>
       </bpmndi:BPMNShape>
       <bpmndi:BPMNShape id="EndEvent_18hnouo_di" bpmnElement="endevt_accept_work">
-        <dc:Bounds x="5678" y="-495" width="36" height="36" />
+        <dc:Bounds x="5832" y="-495" width="36" height="36" />
         <bpmndi:BPMNLabel>
-          <dc:Bounds x="5561" y="-455" width="90" height="12" />
+          <dc:Bounds x="5715" y="-455" width="90" height="12" />
         </bpmndi:BPMNLabel>
       </bpmndi:BPMNShape>
       <bpmndi:BPMNShape id="ExclusiveGateway_1xkc4ad_di" bpmnElement="exclgw_acceptance_is_work_signed_region" isMarkerVisible="true">
-        <dc:Bounds x="5442" y="-502" width="50" height="50" />
+        <dc:Bounds x="5455" y="-502" width="50" height="50" />
         <bpmndi:BPMNLabel>
-          <dc:Bounds x="5332" y="-448" width="90" height="12" />
+          <dc:Bounds x="5345" y="-448" width="90" height="12" />
         </bpmndi:BPMNLabel>
       </bpmndi:BPMNShape>
       <bpmndi:BPMNShape id="ExclusiveGateway_0x0vam0_di" bpmnElement="exclgw_acceptance_accepted_initiator" isMarkerVisible="true">
@@ -3175,10 +3361,10 @@
         </bpmndi:BPMNLabel>
       </bpmndi:BPMNShape>
       <bpmndi:BPMNShape id="SendTask_0sty8ij_di" bpmnElement="notify_work_accepted">
-        <dc:Bounds x="5536" y="-517" width="100" height="80" />
+        <dc:Bounds x="5648" y="-517" width="100" height="80" />
       </bpmndi:BPMNShape>
       <bpmndi:BPMNShape id="UserTask_01dehkh_di" bpmnElement="sign_region_head">
-        <dc:Bounds x="5264" y="-517" width="100" height="80" />
+        <dc:Bounds x="5306" y="-517" width="100" height="80" />
       </bpmndi:BPMNShape>
       <bpmndi:BPMNShape id="TextAnnotation_03pk2rp_di" bpmnElement="TextAnnotation_03pk2rp">
         <dc:Bounds x="4559" y="-408" width="100" height="63" />
@@ -3221,12 +3407,12 @@
         </bpmndi:BPMNLabel>
       </bpmndi:BPMNEdge>
       <bpmndi:BPMNEdge id="SequenceFlow_10el177_di" bpmnElement="SequenceFlow_10el177">
-        <di:waypoint x="5467" y="-452" />
-        <di:waypoint x="5467" y="-134" />
+        <di:waypoint x="5480" y="-452" />
+        <di:waypoint x="5480" y="-134" />
         <di:waypoint x="4175" y="-134" />
         <di:waypoint x="4175" y="-437" />
         <bpmndi:BPMNLabel>
-          <dc:Bounds x="4758" y="-155" width="40" height="13" />
+          <dc:Bounds x="4764" y="-155" width="40" height="13" />
         </bpmndi:BPMNLabel>
       </bpmndi:BPMNEdge>
       <bpmndi:BPMNEdge id="SequenceFlow_08btjh3_di" bpmnElement="SequenceFlow_08btjh3">
@@ -3303,29 +3489,29 @@
         <di:waypoint x="5055" y="-142" />
       </bpmndi:BPMNEdge>
       <bpmndi:BPMNEdge id="SequenceFlow_1f56l0l_di" bpmnElement="SequenceFlow_1f56l0l">
-        <di:waypoint x="5636" y="-477" />
-        <di:waypoint x="5678" y="-477" />
+        <di:waypoint x="5748" y="-477" />
+        <di:waypoint x="5832" y="-477" />
         <bpmndi:BPMNLabel>
-          <dc:Bounds x="5567" y="-498" width="90" height="12" />
+          <dc:Bounds x="5745" y="-498" width="90" height="12" />
         </bpmndi:BPMNLabel>
       </bpmndi:BPMNEdge>
       <bpmndi:BPMNEdge id="SequenceFlow_0osamjm_di" bpmnElement="SequenceFlow_0osamjm">
-        <di:waypoint x="5364" y="-477" />
-        <di:waypoint x="5442" y="-477" />
+        <di:waypoint x="5406" y="-477" />
+        <di:waypoint x="5455" y="-477" />
         <bpmndi:BPMNLabel>
-          <dc:Bounds x="5313" y="-498" width="90" height="12" />
+          <dc:Bounds x="5385.5" y="-498" width="90" height="12" />
         </bpmndi:BPMNLabel>
       </bpmndi:BPMNEdge>
       <bpmndi:BPMNEdge id="SequenceFlow_06di5fs_di" bpmnElement="SequenceFlow_06di5fs">
-        <di:waypoint x="5492" y="-477" />
-        <di:waypoint x="5536" y="-477" />
+        <di:waypoint x="5505" y="-477" />
+        <di:waypoint x="5552" y="-477" />
         <bpmndi:BPMNLabel>
-          <dc:Bounds x="5424" y="-498" width="90" height="12" />
+          <dc:Bounds x="5483.5" y="-498" width="90" height="12" />
         </bpmndi:BPMNLabel>
       </bpmndi:BPMNEdge>
       <bpmndi:BPMNEdge id="Association_0kavnbb_di" bpmnElement="Association_0kavnbb">
-        <di:waypoint x="5480" y="-489" />
-        <di:waypoint x="5528" y="-536" />
+        <di:waypoint x="5492" y="-490" />
+        <di:waypoint x="5533" y="-536" />
       </bpmndi:BPMNEdge>
       <bpmndi:BPMNEdge id="SequenceFlow_175xf1g_di" bpmnElement="SequenceFlow_175xf1g">
         <di:waypoint x="4334" y="-502" />
@@ -3336,9 +3522,9 @@
       </bpmndi:BPMNEdge>
       <bpmndi:BPMNEdge id="SequenceFlow_0b1di1f_di" bpmnElement="SequenceFlow_0b1di1f">
         <di:waypoint x="5163" y="-477" />
-        <di:waypoint x="5264" y="-477" />
+        <di:waypoint x="5208" y="-477" />
         <bpmndi:BPMNLabel>
-          <dc:Bounds x="5124" y="-498" width="90" height="12" />
+          <dc:Bounds x="5140.5" y="-498" width="90" height="12" />
         </bpmndi:BPMNLabel>
       </bpmndi:BPMNEdge>
       <bpmndi:BPMNShape id="UserTask_14r7iv6_di" bpmnElement="accept_work_planning_group">
@@ -3358,16 +3544,16 @@
         </bpmndi:BPMNLabel>
       </bpmndi:BPMNEdge>
       <bpmndi:BPMNEdge id="SequenceFlow_0hpzq8v_di" bpmnElement="SequenceFlow_0hpzq8v">
-        <di:waypoint x="6226" y="-292" />
-        <di:waypoint x="6369" y="-292" />
+        <di:waypoint x="6331" y="-292" />
+        <di:waypoint x="6489" y="-292" />
         <bpmndi:BPMNLabel>
-          <dc:Bounds x="6277" y="-314" width="41" height="13" />
+          <dc:Bounds x="6390" y="-314" width="41" height="13" />
         </bpmndi:BPMNLabel>
       </bpmndi:BPMNEdge>
       <bpmndi:BPMNShape id="IntermediateCatchEvent_1sf1gqm_di" bpmnElement="intermediate_wait_invoiced">
-        <dc:Bounds x="6190" y="-310" width="36" height="36" />
+        <dc:Bounds x="6295" y="-310" width="36" height="36" />
         <bpmndi:BPMNLabel>
-          <dc:Bounds x="6167" y="-272" width="84" height="25" />
+          <dc:Bounds x="6273" y="-272" width="83" height="25" />
         </bpmndi:BPMNLabel>
       </bpmndi:BPMNShape>
       <bpmndi:BPMNShape id="SubProcess_1asnndj_di" bpmnElement="SubProcess_1asnndj" isExpanded="true">
@@ -3901,13 +4087,13 @@
         </bpmndi:BPMNLabel>
       </bpmndi:BPMNEdge>
       <bpmndi:BPMNShape id="UserTask_04e7cxj_di" bpmnElement="attach-scan-copy-of-acceptance-form">
-        <dc:Bounds x="5971" y="-332" width="100" height="80" />
+        <dc:Bounds x="6084" y="-332" width="100" height="80" />
       </bpmndi:BPMNShape>
       <bpmndi:BPMNEdge id="SequenceFlow_1n94y9k_di" bpmnElement="SequenceFlow_1n94y9k">
-        <di:waypoint x="6071" y="-292" />
-        <di:waypoint x="6190" y="-293" />
+        <di:waypoint x="6184" y="-292" />
+        <di:waypoint x="6295" y="-293" />
         <bpmndi:BPMNLabel>
-          <dc:Bounds x="6083" y="-314" width="69" height="13" />
+          <dc:Bounds x="6198" y="-316" width="69" height="13" />
         </bpmndi:BPMNLabel>
       </bpmndi:BPMNEdge>
       <bpmndi:BPMNShape id="ServiceTask_1c16k59_di" bpmnElement="Task_0meslky">
@@ -4153,10 +4339,9 @@
       </bpmndi:BPMNShape>
       <bpmndi:BPMNEdge id="SequenceFlow_0icojjf_di" bpmnElement="SequenceFlow_0icojjf">
         <di:waypoint x="-371" y="-148" />
-        <di:waypoint x="1794" y="-148" />
-        <di:waypoint x="1860" y="-201" />
+        <di:waypoint x="130" y="-148" />
         <bpmndi:BPMNLabel>
-          <dc:Bounds x="666.5" y="-169.5" width="90" height="13" />
+          <dc:Bounds x="-165.5" y="-169.5" width="90" height="13" />
         </bpmndi:BPMNLabel>
       </bpmndi:BPMNEdge>
       <bpmndi:BPMNShape id="ExclusiveGateway_1t5qnml_di" bpmnElement="exclgw_ml_approve_tnu_region" isMarkerVisible="true">
@@ -4248,7 +4433,7 @@
       <bpmndi:BPMNShape id="IntermediateThrowEvent_0tecngg_di" bpmnElement="IntermediateThrowEvent_approved_by_region">
         <dc:Bounds x="-4283.4952766531715" y="-347.0971659919029" width="36" height="36" />
         <bpmndi:BPMNLabel>
-          <dc:Bounds x="-4296" y="-308" width="62" height="25" />
+          <dc:Bounds x="-4297" y="-308" width="65" height="25" />
         </bpmndi:BPMNLabel>
       </bpmndi:BPMNShape>
       <bpmndi:BPMNEdge id="SequenceFlow_07ca53s_di" bpmnElement="SequenceFlow_07ca53s">
@@ -4283,21 +4468,6 @@
         <di:waypoint x="-3980" y="243" />
         <bpmndi:BPMNLabel>
           <dc:Bounds x="-3979.5" y="205" width="0" height="13" />
-        </bpmndi:BPMNLabel>
-      </bpmndi:BPMNEdge>
-      <bpmndi:BPMNShape id="IntermediateThrowEvent_1k82p82_di" bpmnElement="IntermediateThrowEvent_jr_approved">
-        <dc:Bounds x="-2626.418353576248" y="-360.9068825910931" width="36" height="36" />
-        <bpmndi:BPMNLabel>
-          <dc:Bounds x="-2640" y="-384" width="64" height="13" />
-        </bpmndi:BPMNLabel>
-      </bpmndi:BPMNShape>
-      <bpmndi:BPMNEdge id="SequenceFlow_1vxcm6e_di" bpmnElement="SequenceFlow_1vxcm6e">
-        <di:waypoint x="-2591" y="-343" />
-        <di:waypoint x="-2558" y="-343" />
-        <di:waypoint x="-2558" y="-749" />
-        <di:waypoint x="-2492" y="-749" />
-        <bpmndi:BPMNLabel>
-          <dc:Bounds x="-2543" y="-552.5" width="0" height="13" />
         </bpmndi:BPMNLabel>
       </bpmndi:BPMNEdge>
       <bpmndi:BPMNShape id="IntermediateThrowEvent_1nu3n53_di" bpmnElement="IntermediateThrowEvent_returned_by_center1">
@@ -4407,6 +4577,112 @@
         <di:waypoint x="-4617" y="-216" />
         <bpmndi:BPMNLabel>
           <dc:Bounds x="-4649" y="-238" width="0" height="13" />
+        </bpmndi:BPMNLabel>
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNShape id="IntermediateThrowEvent_17c7yo0_di" bpmnElement="IntermediateThrowEvent_wait_head">
+        <dc:Bounds x="-4501.122938530734" y="-347" width="36" height="36" />
+        <bpmndi:BPMNLabel>
+          <dc:Bounds x="-4528" y="-381" width="89" height="25" />
+        </bpmndi:BPMNLabel>
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNEdge id="SequenceFlow_079i5bq_di" bpmnElement="SequenceFlow_079i5bq">
+        <di:waypoint x="-4465" y="-329" />
+        <di:waypoint x="-4421" y="-329" />
+        <bpmndi:BPMNLabel>
+          <dc:Bounds x="-4443" y="-351" width="0" height="13" />
+        </bpmndi:BPMNLabel>
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNShape id="IntermediateThrowEvent_0e1qies_di" bpmnElement="IntermediateThrowEvent_wait_leasing">
+        <dc:Bounds x="-2339" y="-159" width="36" height="36" />
+        <bpmndi:BPMNLabel>
+          <dc:Bounds x="-2406" y="-167" width="64" height="13" />
+        </bpmndi:BPMNLabel>
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNEdge id="SequenceFlow_1d23qig_di" bpmnElement="SequenceFlow_1d23qig">
+        <di:waypoint x="-2321" y="-123" />
+        <di:waypoint x="-2321" y="20" />
+        <bpmndi:BPMNLabel>
+          <dc:Bounds x="-2306" y="-58.5" width="0" height="13" />
+        </bpmndi:BPMNLabel>
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNShape id="IntermediateThrowEvent_109fvr9_di" bpmnElement="IntermediateThrowEvent_open_not_performed1">
+        <dc:Bounds x="-1235.021" y="-43" width="36" height="36" />
+        <bpmndi:BPMNLabel>
+          <dc:Bounds x="-1257" y="-4" width="81" height="25" />
+        </bpmndi:BPMNLabel>
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNEdge id="SequenceFlow_0yytnh6_di" bpmnElement="SequenceFlow_0yytnh6">
+        <di:waypoint x="-1199" y="-25" />
+        <di:waypoint x="1867" y="-25" />
+        <di:waypoint x="1867" y="-201" />
+        <bpmndi:BPMNLabel>
+          <dc:Bounds x="334" y="-47" width="0" height="13" />
+        </bpmndi:BPMNLabel>
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNShape id="IntermediateThrowEvent_16gjtqd_di" bpmnElement="IntermediateThrowEvent_open_not_performed2">
+        <dc:Bounds x="129.97899999999998" y="-166" width="36" height="36" />
+        <bpmndi:BPMNLabel>
+          <dc:Bounds x="108" y="-127" width="81" height="25" />
+        </bpmndi:BPMNLabel>
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNEdge id="SequenceFlow_15t5z9i_di" bpmnElement="SequenceFlow_15t5z9i">
+        <di:waypoint x="166" y="-148" />
+        <di:waypoint x="1794" y="-148" />
+        <di:waypoint x="1860" y="-201" />
+        <bpmndi:BPMNLabel>
+          <dc:Bounds x="980" y="-170" width="0" height="13" />
+        </bpmndi:BPMNLabel>
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNShape id="IntermediateThrowEvent_0d43ab3_di" bpmnElement="IntermediateThrowEvent_open_not_performed3">
+        <dc:Bounds x="1720.9380692167576" y="-463" width="36" height="36" />
+        <bpmndi:BPMNLabel>
+          <dc:Bounds x="1699" y="-424" width="81" height="25" />
+        </bpmndi:BPMNLabel>
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNEdge id="SequenceFlow_0tbefms_di" bpmnElement="SequenceFlow_0tbefms">
+        <di:waypoint x="1757" y="-445" />
+        <di:waypoint x="1794" y="-445" />
+        <bpmndi:BPMNLabel>
+          <dc:Bounds x="1775.5" y="-467" width="0" height="13" />
+        </bpmndi:BPMNLabel>
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNShape id="IntermediateThrowEvent_11wn1pr_di" bpmnElement="IntermediateThrowEvent_performed_not_accepted">
+        <dc:Bounds x="2610.8888888888887" y="-457" width="36" height="36" />
+        <bpmndi:BPMNLabel>
+          <dc:Bounds x="2586" y="-418" width="85" height="25" />
+        </bpmndi:BPMNLabel>
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNEdge id="SequenceFlow_0b42mkm_di" bpmnElement="SequenceFlow_0b42mkm">
+        <di:waypoint x="2647" y="-439" />
+        <di:waypoint x="2686" y="-439" />
+        <bpmndi:BPMNLabel>
+          <dc:Bounds x="2666.5" y="-461" width="0" height="13" />
+        </bpmndi:BPMNLabel>
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNShape id="IntermediateThrowEvent_06rreo7_di" bpmnElement="IntermediateThrowEvent_wait_tech_acceptance">
+        <dc:Bounds x="5207.918032786884" y="-495" width="36" height="36" />
+        <bpmndi:BPMNLabel>
+          <dc:Bounds x="5190" y="-456" width="73" height="13" />
+        </bpmndi:BPMNLabel>
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNEdge id="SequenceFlow_1u72h10_di" bpmnElement="SequenceFlow_1u72h10">
+        <di:waypoint x="5244" y="-477" />
+        <di:waypoint x="5306" y="-477" />
+        <bpmndi:BPMNLabel>
+          <dc:Bounds x="5275" y="-499" width="0" height="13" />
+        </bpmndi:BPMNLabel>
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNShape id="IntermediateThrowEvent_1hzz144_di" bpmnElement="IntermediateThrowEvent_wait_scan_copy">
+        <dc:Bounds x="5552" y="-495" width="36" height="36" />
+        <bpmndi:BPMNLabel>
+          <dc:Bounds x="5529" y="-456" width="83" height="38" />
+        </bpmndi:BPMNLabel>
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNEdge id="SequenceFlow_0opnihq_di" bpmnElement="SequenceFlow_0opnihq">
+        <di:waypoint x="5588" y="-477" />
+        <di:waypoint x="5648" y="-477" />
+        <bpmndi:BPMNLabel>
+          <dc:Bounds x="5618" y="-499" width="0" height="13" />
         </bpmndi:BPMNLabel>
       </bpmndi:BPMNEdge>
     </bpmndi:BPMNPlane>

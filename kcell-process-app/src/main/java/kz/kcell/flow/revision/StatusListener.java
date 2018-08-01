@@ -22,6 +22,7 @@ public class StatusListener implements ExecutionListener {
     Expression statusId;
     Expression statusName;
     Expression returnStatus;
+    Expression parentStatus;
 
     @Override
     public void notify(DelegateExecution delegateExecution) {
@@ -29,6 +30,7 @@ public class StatusListener implements ExecutionListener {
         String statusId = this.statusId.getValue(delegateExecution).toString();
         String statusName = this.statusName.getValue(delegateExecution).toString();
         Boolean returnStatus = Boolean.valueOf(this.returnStatus.getValue(delegateExecution).toString());
+        String parentStatus = this.parentStatus.getValue(delegateExecution).toString();
 
         String comment = "";
         if(returnStatus){
@@ -42,6 +44,7 @@ public class StatusListener implements ExecutionListener {
             + "\",\"statusName\" : \"" + statusName
             + "\",\"comment\" : \"" + comment
             + "\",\"date\" : \"" + (new Date()).getTime()
+            + "\",\"parentStatus\" : \"" + parentStatus
             + "\"}").create();
 
         delegateExecution.setVariable("status", jsonValue);
