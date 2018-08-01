@@ -18,16 +18,6 @@ select distinct
   when '4' then 'Operation works'
   else null
   end as "JR Reason",
-  case pi.state_
-  when 'ACTIVE' then 'Open/In progress JR'
-  else case pi.end_act_id_
-       when 'EndEvent_1fo49fj' then 'Rejected JR'
-       when 'endevt_create_jr_rejected' then 'Rejected JR'
-       when 'endevt_createjr_cancelled' then 'Cancelled JR'
-       when 'endevt_revision' then 'Completed JR'
-       else 'Closed JR (' || pi.end_act_id_ || ')'
-       end
-  end as "JR Status",
   pi.start_time_ as "Requested Date",
   pi.start_user_id_ as "Requested By",
   validityDate.text_ as "Validity Date",
@@ -43,7 +33,12 @@ select distinct
   when 'Yes' then 'required'
   else 'not required'
   end as "Customer Material",
-  CAST(convert_from(statusBytes.bytes_, 'UTF8') AS json)->>'statusName' as "status",
+  case pi.state_
+  when 'ACTIVE' then 'In progress'
+  else 'Closed'
+  end as "Process State",
+  CAST(convert_from(statusBytes.bytes_, 'UTF8') AS json)->>'parentStatus' as "JR Status",
+  CAST(convert_from(statusBytes.bytes_, 'UTF8') AS json)->>'statusName' as "Detailed status",
   CAST(convert_from(statusBytes.bytes_, 'UTF8') AS json)->>'comment' as "Return reason"
 from act_hi_procinst pi
   left join act_hi_varinst sitename
