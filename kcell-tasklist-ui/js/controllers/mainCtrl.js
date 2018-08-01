@@ -53,8 +53,15 @@ define(['./module','camundaSDK', 'lodash', 'big-js'], function(module, CamSDK, _
 		}
 
 		$scope.reverseOrder = false;
+		$scope.fieldName = 'businessKey';
+		$scope.fieldFilter = {};
+		$scope.visibilityFilter = {};
 
-		$scope.fieldName = 'process.businessKey';
+		$scope.setVisibilityFilter = function(fieldName) {
+			//$scope.fieldName = fieldName;
+			$scope.fieldFilter[fieldName] = $scope.visibilityFilter[fieldName] ? undefined : $scope.fieldFilter[fieldName];
+			$scope.visibilityFilter[fieldName] = $scope.visibilityFilter[fieldName] ? false : true;
+		};
 
 		$scope.orderByFieldName = function(fieldName) {
 			if ($scope.fieldName == fieldName) {
@@ -63,7 +70,20 @@ define(['./module','camundaSDK', 'lodash', 'big-js'], function(module, CamSDK, _
 				$scope.reverseOrder = false;
 				$scope.fieldName = fieldName;
 			}
-		}
+		};
+
+		$scope.filterByFields = function() {
+			if (Object.keys($scope.fieldFilter).length !== 0) {
+				return Object.keys($scope.fieldFilter).filter(fieldName => 
+						$scope.fieldFilter[fieldName]
+					).reduce(function(obj, val, i) {
+						obj[val] = $scope.fieldFilter[val];
+					  	return obj;
+					},
+					{});
+			}
+			return undefined;
+		};
 
 		function loadRegionCount(){
 			$scope.regionFilters = [];
@@ -436,9 +456,18 @@ define(['./module','camundaSDK', 'lodash', 'big-js'], function(module, CamSDK, _
                 url: baseUrl + '/history/process-instance'
             }).then(
                     function(processes){
+                    	$scope.currentTaskGroup.filterableTasks = [];
                     	angular.forEach($scope.currentTaskGroup.tasks, function(task){
                     		var process = _.find(processes.data, function(p){ return p.id === task.processInstanceId });
                     		task.process = process;
+                    		$scope.currentTaskGroup.filterableTasks.push({
+                    			processInstanceId: task.processInstanceId,
+								businessKey: process.businessKey,
+								//site_name: task.site_name,
+								startUserId: process.startUserId,
+								startTime: process.startTime,
+								priority: task.priority
+							});
                     	});
                     },
                     function(error){
@@ -456,6 +485,14 @@ define(['./module','camundaSDK', 'lodash', 'big-js'], function(module, CamSDK, _
 					}).then(
 						function(vars){
 							angular.forEach($scope.currentTaskGroup.tasks, function(task){
+								var f =  _.find(vars.data, function(v) {
+									return v.processInstanceId === task.processInstanceId; 
+								});
+								if(f){
+									task[variable] = f.value;
+								}
+							});
+							angular.forEach($scope.currentTaskGroup.filterableTasks, function(task){
 								var f =  _.find(vars.data, function(v) {
 									return v.processInstanceId === task.processInstanceId; 
 								});
