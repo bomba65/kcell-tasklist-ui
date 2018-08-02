@@ -17,6 +17,8 @@ define(['./../module'], function(module){
                         
                         if (!scope.data.plannedLaunch) scope.data.plannedLaunch = new Date();
                         else scope.data.plannedLaunch = new Date(scope.data.plannedLaunch);
+
+                        if (!scope.data.technicalAnalysis) scope.data.technicalAnalysis = false;
                         
                         if (!scope.data.demandOwner) {
                             scope.data.demandOwner = $rootScope.authentication.name;
