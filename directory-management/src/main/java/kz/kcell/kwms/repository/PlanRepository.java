@@ -1,6 +1,9 @@
 package kz.kcell.kwms.repository;
 
+import jdk.nashorn.internal.parser.JSONParser;
 import kz.kcell.kwms.model.Plan;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.Modifying;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.PagingAndSortingRepository;
@@ -9,8 +12,16 @@ import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
 
+//public interface InstallationInstanceRepository extends PagingAndSortingRepository<InstallationInstance, Long> {
+//    Page<InstallationInstance> findBySite(@Param("site") Site site, Pageable p);
+//
+//    List<InstallationInstance> findBySiteAndDefinition(@Param("site") Site site, @Param("definition")InstallationDefinition definition);
+//}
+
 @Transactional
 public interface PlanRepository extends PagingAndSortingRepository<Plan, Long> {
+    @Override
+    Page<Plan> findAll(Pageable pageable);
 
     @Query("select distinct l from Plan l where l.site_id = ?1 and l.is_current = true")
     List<Plan> findBySite(@Param("siteId") Integer siteId);
@@ -28,4 +39,8 @@ public interface PlanRepository extends PagingAndSortingRepository<Plan, Long> {
     @Modifying
     @Query("update Plan l set l.status = ?2 where l.site_id = ?1 and l.is_current = true")
     void changePlanStatus(@Param("siteId") Integer siteId, @Param("status") String status);
+
+    @Modifying
+    @Query(value = "insert into Plan('status', 'is_current', 'site_id', params)  VALUES ( :status, true, :siteId, :params)", nativeQuery = true)
+    void createNewPlan(@Param("siteId") Integer siteId, @Param("status") String status, @Param("params") String params );
 }

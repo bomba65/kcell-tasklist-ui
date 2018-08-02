@@ -44,7 +44,7 @@ public class createNewPlanVersion implements JavaDelegate {
 
         //log.info("sharingPlanStatus:" + sharingPlanStatus);
 
-        HttpGet httpGet = new HttpGet(baseUri + "/asset-management/api/plans/search/changePrevCurrentStatus?siteId=" + siteId);
+        HttpGet httpGet = new HttpGet(baseUri + "/directory-management/networkinfrastructure/plan/changePrevCurrentStatus?siteId=" + siteId);
         SSLContextBuilder builder = new SSLContextBuilder();
         builder.loadTrustMaterial(null, new TrustSelfSignedStrategy());
         SSLConnectionSocketFactory sslsf = new SSLConnectionSocketFactory(
@@ -55,7 +55,7 @@ public class createNewPlanVersion implements JavaDelegate {
 
 
         if(StringUtils.isNotEmpty(sharingPlanStatus) && StringUtils.isNotEmpty(sharingPlanParams)){
-            String plansUrl = baseUri + "/asset-management/api/plans";
+            String plansUrl = baseUri + "/directory-management/networkinfrastructure/plan/createNewPlan";
             //log.info("{\"params\":\"" + sharingPlanParams + "\",\"status\":\"" + sharingPlanStatus + "\",\"site\": \"" + siteUrl + "\",\"is_current\":true}");
 
             StringEntity planInputData = new StringEntity("{\"params\":" + sharingPlanParams + ",\"status\":\"candidate_sharing\",\"site_id\": " + siteId + ",\"is_current\":true}", "UTF-8");

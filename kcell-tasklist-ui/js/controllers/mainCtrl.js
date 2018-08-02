@@ -391,12 +391,13 @@ define(['./module','camundaSDK', 'lodash', 'big-js'], function(module, CamSDK, _
 					var selectedTask;
 
 					if($scope.tasks && $scope.tasks.length > 0){
+						console.log($scope.tasks)
 						$scope.tasks.forEach(function(e){
 							var processId = e.processDefinitionId.substring(0,e.processDefinitionId.indexOf(':'));
 							if(subprocessToParent[processId]){
 								processId = subprocessToParent[processId];
+								console.log('1')
 							}
-
 							if(!currentProcesses[processId].taskGroups[e.name]){
 								currentProcesses[processId].taskGroups[e.name] = {tasks:[], };
 							}

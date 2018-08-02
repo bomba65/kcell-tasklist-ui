@@ -8,10 +8,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.repository.PagingAndSortingRepository;
 import org.springframework.data.rest.core.annotation.RepositoryRestResource;
 import org.springframework.http.ResponseEntity;
-import org.springframework.web.bind.annotation.PathVariable;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RequestMethod;
-import org.springframework.web.bind.annotation.ResponseBody;
+import org.springframework.web.bind.annotation.*;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -45,10 +42,25 @@ public class NetworkInfrastructureController {
         return ResponseEntity.ok(plans);
     }
 
-    @RequestMapping(value = "/plan/changePrevCurrentStatus/{siteId}", method = RequestMethod.GET)
+    @RequestMapping(value = "/plan/changePrevCurrentStatus?siteId={siteId}", method = RequestMethod.GET)
     @ResponseBody
     public void changePrevCurrentStatus(@PathVariable("siteId") Integer siteId){
         planRepository.changePrevCurrentStatus(siteId);
+    }
+
+    @RequestMapping(value = "/plan/createNewPlan", method = RequestMethod.POST)
+    @ResponseBody
+//    public void set(@RequestBody String status, @RequestBody Integer site_id, @RequestBody String params,@RequestBody Boolean is_current ){
+    public void set(@RequestBody Plan plan ){
+
+//        Plan plan = new Plan();
+//        plan.setIs_current(is_current);
+//        plan.setParams(params);
+//        plan.setSite_id(site_id);
+//        plan.setStatus(status);
+        log.info("POST REQUEST /plan/createNewPlan");
+        planRepository.save(plan);
+
     }
 
     @RequestMapping(value = "/plan/changePlanStatus/{status}/{siteId}", method = RequestMethod.GET)
