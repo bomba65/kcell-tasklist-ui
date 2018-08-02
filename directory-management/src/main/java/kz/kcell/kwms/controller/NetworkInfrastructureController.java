@@ -29,7 +29,7 @@ public class NetworkInfrastructureController {
 
     @RequestMapping(value = "/plan/findBySite/{id}", method = RequestMethod.GET)
     @ResponseBody
-    public ResponseEntity<List<Plan>> getNewRequests(Integer id){
+    public ResponseEntity<List<Plan>> getNewRequests(@PathVariable("id") Integer id){
 
         List<Plan> plans = planRepository.findBySite(id);
 
@@ -41,6 +41,27 @@ public class NetworkInfrastructureController {
     public ResponseEntity<List<Plan>> findCurrentPlanSites(){
 
         List<Plan> plans = planRepository.findCurrentPlanSites();
+
+        return ResponseEntity.ok(plans);
+    }
+
+    @RequestMapping(value = "/plan/changePrevCurrentStatus/{siteId}", method = RequestMethod.GET)
+    @ResponseBody
+    public void changePrevCurrentStatus(@PathVariable("siteId") Integer siteId){
+        planRepository.changePrevCurrentStatus(siteId);
+    }
+
+    @RequestMapping(value = "/plan/changePlanStatus/{status}/{siteId}", method = RequestMethod.GET)
+    @ResponseBody
+    public void changePlanStatus(@PathVariable("siteId") Integer siteId, @PathVariable("status") String status){
+        planRepository.changePlanStatus(siteId, status);
+    }
+
+    @RequestMapping(value = "/plan/findCurrentToStartPlanSites", method = RequestMethod.GET)
+    @ResponseBody
+    public ResponseEntity<List<Plan>> findCurrentToStartPlanSites(){
+
+        List<Plan> plans = planRepository.findCurrentToStartPlanSites();
 
         return ResponseEntity.ok(plans);
     }

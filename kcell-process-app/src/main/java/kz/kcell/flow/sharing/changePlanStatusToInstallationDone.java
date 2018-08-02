@@ -37,7 +37,7 @@ public class changePlanStatusToInstallationDone implements JavaDelegate {
 
 
         if(StringUtils.isNotEmpty(siteId)){
-            HttpGet httpGet = new HttpGet(baseUri + "/asset-management/api/plans/search/changePlanStatus?siteId=" + siteId + "&status=" + newStatus);
+            HttpGet httpGet = new HttpGet(baseUri + "/directory-management/networkinfrastructure//plan/changePlanStatus/" + newStatus + "/" + siteId);
             SSLContextBuilder builder = new SSLContextBuilder();
             builder.loadTrustMaterial(null, new TrustSelfSignedStrategy());
             SSLConnectionSocketFactory sslsf = new SSLConnectionSocketFactory(
