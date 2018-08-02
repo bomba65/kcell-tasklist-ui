@@ -43,9 +43,13 @@ define('app',[
 					"key" : "NetworkInfrastructure",
 					"name" : "Network Infrastructure",
 					"processes" : [
-						{key:'Revision', name:'Revision', group:'infrastructure_revision_users'},
+						{key:'Revision', name:'Revision', group:'infrastructure_revision_users',
+							subprocesses:[{key:'PreparePermitDocs'}]
+						},
 						{key:'Invoice', name:'Monthly Act', group:'infrastructure_monthly_act_users'},
-						{key:'SiteSharingTopProcess', name:'4G Site Sharing', group:'infrastructure_sharing_users'}
+						{key:'SiteSharingTopProcess', name:'4G Site Sharing', group:'infrastructure_sharing_users', 
+							subprocesses:[{key:'BeelineHostBeelineSite'},{key:'BeelineHostKcellSite'},{key:'KcellHostBeelineSite'},{key:'KcellHostKcellSite'}]
+						}
 					]
 				},
 				{

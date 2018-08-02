@@ -107,7 +107,17 @@ define(['./module','camundaSDK', 'lodash', 'big-js'], function(module, CamSDK, _
 				function(result){
 					$scope.filters = result.data;
 					angular.forEach($scope.filters, function(filter){
-						var query = {'processDefinitionKeyIn':_.map($rootScope.getCurrentProcesses(), 'key')};
+						var processes = $rootScope.getCurrentProcesses();
+						var processDefinitionKeyMap = _.map(processes, 'key');
+
+						angular.forEach(processes, function(p){
+							if(p.subprocesses && p.subprocesses.length > 0){
+								var subprocessDefinitionKeyMap = _.map(p.subprocesses, 'key');
+								processDefinitionKeyMap = _.concat(processDefinitionKeyMap, subprocessDefinitionKeyMap);
+							}
+						});
+
+						var query = {'processDefinitionKeyIn':processDefinitionKeyMap};
 						$http.post(baseUrl+'/filter/'+filter.id+'/count',query,{headers:{'Content-Type':'application/json'}}).then(
 							function(results){
 								filter.itemCount = results.data.count;
@@ -340,16 +350,31 @@ define(['./module','camundaSDK', 'lodash', 'big-js'], function(module, CamSDK, _
 			loadTasks();
 		}
 		function loadTasks() {
+			var processes = $rootScope.getCurrentProcesses();
+			var subprocessToParent = {};
+
 			$scope.processDefinitionsTasks = {};
-			angular.forEach($rootScope.getCurrentProcesses(), function(process){
+			angular.forEach(processes, function(process){
 				$scope.processDefinitionsTasks[process.key] = {name:process.name, count:0, open:false,taskDefinitionKeys:{}};
  			});
 
-			var queryData = {sorting:[{"sortBy":"created","sortOrder":"desc"}],'processDefinitionKeyIn':_.map($rootScope.getCurrentProcesses(), 'key')};
+			var processDefinitionKeyMap = _.map(processes, 'key');
+			angular.forEach(processes, function(p){
+				if(p.subprocesses && p.subprocesses.length > 0){
+					var subprocessDefinitionKeyMap = _.map(p.subprocesses, 'key');
+					processDefinitionKeyMap = _.concat(processDefinitionKeyMap, subprocessDefinitionKeyMap);
+
+					angular.forEach(p.subprocesses, function(sp){
+						subprocessToParent[sp.key] = p.key;
+					});
+				}
+			});
+
+			var queryData = {sorting:[{"sortBy":"created","sortOrder":"desc"}],'processDefinitionKeyIn':processDefinitionKeyMap};
 			if($scope.currentRegionFilter){
 				queryData.processVariables = [{'name': 'siteRegion', "operator": "eq","value": $scope.currentRegionFilter.id}];
 			}
-			var currentProcesses = _.keyBy($rootScope.getCurrentProcesses(), 'key');
+			var currentProcesses = _.keyBy(processes, 'key');
 			for(var propt in currentProcesses){
 				currentProcesses[propt].taskGroups = {};
 			}
@@ -367,10 +392,15 @@ define(['./module','camundaSDK', 'lodash', 'big-js'], function(module, CamSDK, _
 
 					if($scope.tasks && $scope.tasks.length > 0){
 						$scope.tasks.forEach(function(e){
-							if(!currentProcesses[e.processDefinitionId.substring(0,e.processDefinitionId.indexOf(':'))].taskGroups[e.name]){
-								currentProcesses[e.processDefinitionId.substring(0,e.processDefinitionId.indexOf(':'))].taskGroups[e.name] = {tasks:[], };
+							var processId = e.processDefinitionId.substring(0,e.processDefinitionId.indexOf(':'));
+							if(subprocessToParent[processId]){
+								processId = subprocessToParent[processId];
 							}
-							currentProcesses[e.processDefinitionId.substring(0,e.processDefinitionId.indexOf(':'))].taskGroups[e.name].tasks.push(e);
+
+							if(!currentProcesses[processId].taskGroups[e.name]){
+								currentProcesses[processId].taskGroups[e.name] = {tasks:[], };
+							}
+							currentProcesses[processId].taskGroups[e.name].tasks.push(e);
 
 							if(e.assignee){
 								for(var i=0;i<results.data._embedded.assignee.length;i++){
