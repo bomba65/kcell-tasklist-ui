@@ -236,7 +236,112 @@ define(['./module','jquery', 'camundaSDK'], function(app, $, CamSDK){
 					}
 				);	            
             }
-		} else{
+		} else if (processDefinitionKey === 'freephone' || processDefinitionKey === 'bulksmsConnectionKAE'){
+			$scope.showDiagramView = false;
+            $scope.diagram = {};
+			if($scope.piIndex === index){
+                $scope.piIndex = undefined;
+            } else {
+                $scope.piIndex = index;
+	            $scope.jobModel = {state: $scope.processInstances[index].state};
+	            console.log('$scope.processInstances[index]');
+	            console.log($scope.processInstances[index]);
+	            $http.get(baseUrl+'/process-instance?superProcessInstance='+$scope.processInstances[index].id+'&active=true').then(
+					function(result){
+						if (result.data.length > 0) {
+							$scope.currentPI[index] = result.data[0];
+							console.log($scope.currentPI)
+						} else {
+							$scope.currentPI[index] = $scope.processInstances[index];
+						}
+						$http({
+							method: 'GET',
+							headers:{'Accept':'application/hal+json, application/json; q=0.5'},
+							url: baseUrl+'/task?processInstanceId='+$scope.currentPI[index].id,
+						}).then(
+			            	function(tasks){
+				            	var processInstanceTasks = tasks.data._embedded.task;
+				            	if(processInstanceTasks && processInstanceTasks.length > 0){
+									processInstanceTasks.forEach(function(e){
+										if(e.assignee && tasks.data._embedded.assignee){
+											for(var i=0;i<tasks.data._embedded.assignee.length;i++){
+												if(tasks.data._embedded.assignee[i].id === e.assignee){
+													e.assigneeObject = tasks.data._embedded.assignee[i];
+												}
+											}
+										}
+										$http({
+											method: 'GET',
+											headers:{'Accept':'application/hal+json, application/json; q=0.5'},
+											url: baseUrl+'/task/'+e.id
+										}).then(
+											function(taskResult){
+												if(taskResult.data._embedded && taskResult.data._embedded.group){
+													e.group = taskResult.data._embedded.group[0].id;
+												}
+											},
+											function(error){
+												console.log(error.data);
+											}
+										);
+									});
+								}
+					            $http.get(baseUrl+'/history/variable-instance?deserializeValues=false&processInstanceId='+$scope.currentPI[index].id).then(
+					            	function(result){
+					            		var workFiles = [];
+					            		result.data.forEach(function(el){
+					            			$scope.jobModel[el.name] = el;
+					            			if(el.value || el.value === "" || el.type === 'Boolean') {
+					            				$scope.jobModel[el.name] = el.value;
+					            			}
+					            			if(el.type === 'File' || el.type === 'Bytes'){
+					            				$scope.jobModel[el.name].contentUrl = baseUrl+'/history/variable-instance/'+el.id+'/data';
+					            			}
+					            			if(el.name === 'resolutions'){
+					            				$scope.jobModel[el.name] = JSON.parse(el.value);
+					            			}
+					            			if(el.type === 'Json' && el.name !== 'resolutions'){
+					            				$scope.jobModel[el.name] = JSON.parse(el.value);	
+					            			}
+					            		});
+					            		console.log($scope.jobModel);
+    								if($scope.jobModel.resolutions && $scope.jobModel.resolutions.value){
+				                        $q.all($scope.jobModel.resolutions.value.map(function (resolution) {
+				                            return $http.get("/camunda/api/engine/engine/default/history/task?processInstanceId="+resolution.processInstanceId+"&taskId=" + resolution.taskId);
+				                        })).then(function (tasks) {
+				                            tasks.forEach(function (e, index) {
+				                                if(e.data.length > 0){
+				                                    $scope.jobModel.resolutions.value[index].taskName = e.data[0].name;
+				                                    try {
+				                                        $scope.jobModel.resolutions.value[index].taskEndDate = new Date(e.data[0].endTime);
+				                                    } catch(e){
+				                                        console.log(e);
+				                                    }
+				                                }
+				                            });
+				                        });
+				                    }
+					            		// angular.extend($scope.jobModel, catalogs);
+					            		$scope.jobModel.showTarif = true;
+					            		$scope.jobModel.tasks = processInstanceTasks;
+					            	},
+					            	function(error){
+					            		console.log(error.data);
+					            	}
+					        	);
+
+					        },
+					        function(error){
+					        	console.log(error.data);
+					        }
+				        );
+					},
+					function(error){
+						console.log(error.data);
+					}
+				);	            
+            }
+		} else {
 			$scope.showDiagramView = false;
             $scope.diagram = {};
 			if($scope.piIndex === index){
@@ -359,10 +464,13 @@ define(['./module','jquery', 'camundaSDK'], function(app, $, CamSDK){
 		};
 
 		$scope.showDiagram = function(index){
+			console.log(index)
+			console.log($scope.currentPI[index])
 			if ($scope.currentPI[index].definitionId) {
 				var processDefinitionId = $scope.currentPI[index].definitionId
 			} else {var processDefinitionId = $scope.currentPI[index].processDefinitionId}
-			var processDefinitionId = $scope.currentPI[index].definitionId
+			// var processDefinitionId = $scope.currentPI[index].definitionId
+			console.log(processDefinitionId)
 			$scope.showDiagramView = true;
 			getDiagram(processDefinitionId);
 		}
