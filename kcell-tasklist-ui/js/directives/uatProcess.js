@@ -4,7 +4,8 @@ define(['./module'], function(module){
 		return {
 			restrict: 'E',
 			scope: {
-				uatModel: '='
+				uatModel: '=',
+                print: '='
 			},
 			link: function(scope, el, attrs){
 				scope.download = function(path){
