@@ -23,6 +23,8 @@ define(['./module','jquery', 'camundaSDK'], function(app, $, CamSDK){
 		}
 
 		var baseUrl = '/camunda/api/engine/engine/default';
+<<<<<<< HEAD
+
 		$scope.processDefinitions = $rootScope.getCurrentProcesses();
 		$scope.$watchGroup(['selectedProject', 'selectedProcess'], function(newValues, oldValues, scope) {
 			if((newValues[0].key !== oldValues[0].key || newValues[1].key !== oldValues[1].key)){
@@ -37,6 +39,9 @@ define(['./module','jquery', 'camundaSDK'], function(app, $, CamSDK){
 			}
 		}, true);
 
+=======
+		console.log($scope)
+>>>>>>> Process card added, Save to PDF button added
 		$scope.filter = {
 			processDefinitionKey: $scope.processDefinitions[0].key,
 			participation: 'initiator',
@@ -58,6 +63,55 @@ define(['./module','jquery', 'camundaSDK'], function(app, $, CamSDK){
                 console.log(error.data);
             }
         );
+
+<<<<<<< HEAD
+=======
+		if($rootScope.authentication){
+			$http.get(baseUrl+'/user/'+$rootScope.authentication.name+'/profile').then(
+				function(userProfile){
+					$rootScope.authUser = userProfile.data;
+					$http.get(baseUrl+'/group?member='+$rootScope.authUser.id).then(
+						function(groups){
+							$rootScope.authUser.groups = groups.data;
+
+							if ($rootScope.hasGroup('revision_managers') || $rootScope.hasGroup('revision_audit')){
+								$scope.participations.push({key:'all', label:'All'});
+							}
+						},
+						function(error){
+							console.log(error.data);
+						}
+					);
+				},
+				function(error){
+					console.log(error.data);
+				}
+			);
+		}
+
+		$rootScope.hasGroup = function(group){
+			if($rootScope.authUser && $rootScope.authUser.groups){
+				return _.some($rootScope.authUser.groups, function(value){
+					return value.id === group;
+				});
+			} else {
+				return false;
+			}
+		}
+
+		//var historyService = new camClient.resource('history');
+
+/*		$http.get(baseUrl+'/process-definition?latest=true&active=true&firstResult=0&maxResults=15').then(
+			function(results){
+				$scope.processDefinitions = results.data;
+			},
+			function(error){
+				console.log(error.data);
+			}
+		);
+*/
+		$scope.processDefinitions = [{key: 'Revision', name: 'Revision'}, {key: 'Invoice', name: 'Generate Monthy Act'}, {key: 'SiteSharingTopProcess', name: '4g Site Sharing'}, {key: 'UAT', name: 'Test Protocol'}];
+>>>>>>> Process card added, Save to PDF button added
 
 		$scope.search = function(refreshPages){
 			if(refreshPages){
@@ -233,7 +287,22 @@ define(['./module','jquery', 'camundaSDK'], function(app, $, CamSDK){
 					}
 				);	            
             }
+<<<<<<< HEAD
 		} else if (processDefinitionKey === 'freephone' || processDefinitionKey === 'bulksmsConnectionKAE'){
+=======
+		} else if (processDefinitionKey === 'UAT'){
+			
+			
+            $scope.printDiv = function(forPrint) {
+                var printContents = document.getElementById(forPrint).innerHTML;
+                var popupWin = window.open('', 'PRINT', 'height=400,width=600');
+                popupWin.document.open();
+                popupWin.document.write('<html><head><link href="css/bootstrap.min.css" rel="stylesheet"><link href="css/styles.css" rel="stylesheet" type="text/css"></head><body onload="window.print()">' + printContents + '</body></html>');
+                popupWin.document.close();
+            }
+            
+
+>>>>>>> Process card added, Save to PDF button added
 			$scope.showDiagramView = false;
             $scope.diagram = {};
 			if($scope.piIndex === index){
@@ -288,6 +357,7 @@ define(['./module','jquery', 'camundaSDK'], function(app, $, CamSDK){
 					            		var workFiles = [];
 					            		result.data.forEach(function(el){
 					            			$scope.jobModel[el.name] = el;
+<<<<<<< HEAD
 					            			if(el.value || el.value === "" || el.type === 'Boolean') {
 					            				$scope.jobModel[el.name] = el.value;
 					            			}
@@ -302,106 +372,7 @@ define(['./module','jquery', 'camundaSDK'], function(app, $, CamSDK){
 					            			}
 					            		});
 					            		console.log($scope.jobModel);
-    								if($scope.jobModel.resolutions && $scope.jobModel.resolutions.value){
-				                        $q.all($scope.jobModel.resolutions.value.map(function (resolution) {
-				                            return $http.get("/camunda/api/engine/engine/default/history/task?processInstanceId="+resolution.processInstanceId+"&taskId=" + resolution.taskId);
-				                        })).then(function (tasks) {
-				                            tasks.forEach(function (e, index) {
-				                                if(e.data.length > 0){
-				                                    $scope.jobModel.resolutions.value[index].taskName = e.data[0].name;
-				                                    try {
-				                                        $scope.jobModel.resolutions.value[index].taskEndDate = new Date(e.data[0].endTime);
-				                                    } catch(e){
-				                                        console.log(e);
-				                                    }
-				                                }
-				                            });
-				                        });
-				                    }
-					            		// angular.extend($scope.jobModel, catalogs);
-					            		$scope.jobModel.showTarif = true;
-					            		$scope.jobModel.tasks = processInstanceTasks;
-					            	},
-					            	function(error){
-					            		console.log(error.data);
-					            	}
-					        	);
-
-					        },
-					        function(error){
-					        	console.log(error.data);
-					        }
-				        );
-					},
-					function(error){
-						console.log(error.data);
-					}
-				);	            
-            }
-		} else if (processDefinitionKey === 'UAT'){
-			
-            $scope.printDiv = function(forPrint) {
-                var printContents = document.getElementById(forPrint).innerHTML;
-                var popupWin = window.open('', 'PRINT', 'height=400,width=600');
-                popupWin.document.open();
-                popupWin.document.write('<html><head><link href="css/bootstrap.min.css" rel="stylesheet"><link href="css/styles.css" rel="stylesheet" type="text/css"></head><body onload="window.print()">' + printContents + '</body></html>');
-                popupWin.document.close();
-            }
-
-			$scope.showDiagramView = false;
-            $scope.diagram = {};
-			if($scope.piIndex === index){
-                $scope.piIndex = undefined;
-            } else {
-                $scope.piIndex = index;
-	            $scope.jobModel = {state: $scope.processInstances[index].state};
-	            console.log('$scope.processInstances[index]');
-	            console.log($scope.processInstances[index]);
-	            $http.get(baseUrl+'/process-instance?superProcessInstance='+$scope.processInstances[index].id+'&active=true').then(
-					function(result){
-						if (result.data.length > 0) {
-							$scope.currentPI[index] = result.data[0];
-							console.log($scope.currentPI)
-						} else {
-							$scope.currentPI[index] = $scope.processInstances[index];
-						}
-						$http({
-							method: 'GET',
-							headers:{'Accept':'application/hal+json, application/json; q=0.5'},
-							url: baseUrl+'/task?processInstanceId='+$scope.currentPI[index].id,
-						}).then(
-			            	function(tasks){
-				            	var processInstanceTasks = tasks.data._embedded.task;
-				            	if(processInstanceTasks && processInstanceTasks.length > 0){
-									processInstanceTasks.forEach(function(e){
-										if(e.assignee && tasks.data._embedded.assignee){
-											for(var i=0;i<tasks.data._embedded.assignee.length;i++){
-												if(tasks.data._embedded.assignee[i].id === e.assignee){
-													e.assigneeObject = tasks.data._embedded.assignee[i];
-												}
-											}
-										}
-										$http({
-											method: 'GET',
-											headers:{'Accept':'application/hal+json, application/json; q=0.5'},
-											url: baseUrl+'/task/'+e.id
-										}).then(
-											function(taskResult){
-												if(taskResult.data._embedded && taskResult.data._embedded.group){
-													e.group = taskResult.data._embedded.group[0].id;
-												}
-											},
-											function(error){
-												console.log(error.data);
-											}
-										);
-									});
-								}
-					            $http.get(baseUrl+'/history/variable-instance?deserializeValues=false&processInstanceId='+$scope.currentPI[index].id).then(
-					            	function(result){
-					            		var workFiles = [];
-					            		result.data.forEach(function(el){
-					            			$scope.jobModel[el.name] = el;
+=======
 					            			if(el.type === 'File' || el.type === 'Bytes'){
 					            				$scope.jobModel[el.name].contentUrl = baseUrl+'/history/variable-instance/'+el.id+'/data';
 					            			}
@@ -420,6 +391,7 @@ define(['./module','jquery', 'camundaSDK'], function(app, $, CamSDK){
 											}
 											$scope.jobModel.jobWorks.value[workIndex].files.push(file);
 										});
+>>>>>>> Process card added, Save to PDF button added
     								if($scope.jobModel.resolutions && $scope.jobModel.resolutions.value){
 				                        $q.all($scope.jobModel.resolutions.value.map(function (resolution) {
 				                            return $http.get("/camunda/api/engine/engine/default/history/task?processInstanceId="+resolution.processInstanceId+"&taskId=" + resolution.taskId);
@@ -436,6 +408,11 @@ define(['./module','jquery', 'camundaSDK'], function(app, $, CamSDK){
 				                            });
 				                        });
 				                    }
+<<<<<<< HEAD
+					            		// angular.extend($scope.jobModel, catalogs);
+					            		$scope.jobModel.showTarif = true;
+=======
+>>>>>>> Process card added, Save to PDF button added
 					            		$scope.jobModel.tasks = processInstanceTasks;
 					            	},
 					            	function(error){
@@ -656,6 +633,7 @@ define(['./module','jquery', 'camundaSDK'], function(app, $, CamSDK){
 			return (state == 'COMPLETED' || state == 'EXTERNALLY_TERMINATED')? 'Closed': (value == 'accepted'?'Accepted & waiting scan attach':(value == 'scan attached'?'Accepted & waiting invoice':'In progress'))
         };
 
+<<<<<<< HEAD
         $scope.hasPermissionToViewAll = function(processDefinitionKey){
 			if (processDefinitionKey === 'Revision') {
 				return $scope.hasOneOfListedGroup(['revision_managers','revision_audit']);
@@ -676,5 +654,10 @@ define(['./module','jquery', 'camundaSDK'], function(app, $, CamSDK){
 			} else 
 				return false;
 		}
+=======
+        $scope.PDefFilter = function (item) { 
+			return item.key === 'Revision' || item.key === 'SiteSharingTopProcess' || item.key === 'Invoice' || item.key === 'UAT';
+		};
+>>>>>>> Process card added, Save to PDF button added
 	}]);
 });

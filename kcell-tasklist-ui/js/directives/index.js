@@ -13,5 +13,6 @@ define([
 	'./PBX/e1Protocol',
 	'./PBX/sipDirectProtocol',
 	'./PBX/vpnTunnel',
+	'./uatProcess',
 	'./demand/index'
 	], function(){});
