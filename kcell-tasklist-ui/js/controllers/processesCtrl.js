@@ -142,7 +142,6 @@ define(['./module','jquery', 'camundaSDK'], function(app, $, CamSDK){
 					function(result){
 						if (result.data.length > 0) {
 							$scope.currentPI[index] = result.data[0];
-							console.log($scope.currentPI)
 						} else {
 							$scope.currentPI[index] = $scope.processInstances[index];
 						}
@@ -463,13 +462,20 @@ define(['./module','jquery', 'camundaSDK'], function(app, $, CamSDK){
 		}         
 		};
 
-		$scope.showDiagram = function(index){
-			console.log(index)
-			console.log($scope.currentPI[index])
-			if ($scope.currentPI[index].definitionId) {
-				var processDefinitionId = $scope.currentPI[index].definitionId
-			} else {var processDefinitionId = $scope.currentPI[index].processDefinitionId}
-			// var processDefinitionId = $scope.currentPI[index].definitionId
+		$scope.showDiagram = function(index, processDefinitionKey){
+			if(['SiteSharingTopProcess','freephone','bulksmsConnectionKAE'].indexOf(processDefinitionKey) !== -1){
+				console.log(index)
+				console.log($scope.currentPI[index])
+				if ($scope.currentPI[index].definitionId) {
+					var processDefinitionId = $scope.currentPI[index].definitionId;
+				} else {
+					var processDefinitionId = $scope.currentPI[index].processDefinitionId;
+				}
+			}
+			else {
+				var processDefinitionId = $scope.processInstances[index].processDefinitionId;
+			}
+
 			console.log(processDefinitionId)
 			$scope.showDiagramView = true;
 			getDiagram(processDefinitionId);
