@@ -341,7 +341,7 @@ define(['./module','jquery', 'camundaSDK'], function(app, $, CamSDK){
 		} else if (processDefinitionKey === 'UAT'){
 			
             $scope.printDiv = function(forPrint) {
-                var printContents = document.getElementById(forPrint).innerHTML;
+                var printContents = document.getElementById('forPrint').innerHTML;
                 var popupWin = window.open('', 'PRINT', 'height=400,width=600');
                 popupWin.document.open();
                 popupWin.document.write('<html><head><link href="css/bootstrap.min.css" rel="stylesheet"><link href="css/styles.css" rel="stylesheet" type="text/css"></head><body onload="window.print()">' + printContents + '</body></html>');
