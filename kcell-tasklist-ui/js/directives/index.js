@@ -5,5 +5,6 @@ define([
 	'./trackChange',
 	'./requiredFile',
 	'./sharedSitePlan',
+	'./uatProcess',
 	'./demand/index'
 	], function(){});
