@@ -95,7 +95,7 @@ define(['./module','jquery', 'camundaSDK'], function(app, $, CamSDK){
 			}
 		);
 */
-		$scope.processDefinitions = [{key: 'Revision', name: 'Revision'}, {key: 'Invoice', name: 'Generate Monthy Act'}, {key: 'SiteSharingTopProcess', name: '4g Site Sharing'}, {key: 'UAT', name: 'Test Protocol'}];
+		$scope.processDefinitions = [{key: 'Revision', name: 'Revision'}, {key: 'Invoice', name: 'Generate Monthy Act'}, {key: 'SiteSharingTopProcess', name: '4g Site Sharing'}, {key: 'UAT', name: 'UAT Protocol'}];
 
 		$scope.search = function(refreshPages){
 			if(refreshPages){

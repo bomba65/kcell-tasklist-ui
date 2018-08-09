@@ -266,7 +266,7 @@ define(['./module','camundaSDK', 'lodash', 'big-js'], function(module, CamSDK, _
 		var startableProcessDefinitions = ['Demand', 'UAT'];
 
 		function loadProcessDefinitions(){
-			$http.get(baseUrl+'/process-definition?latest=true&active=true&firstResult=0&maxResults=25').then(
+			$http.get(baseUrl+'/process-definition?latest=true&active=true&firstResult=0').then(
 				function(results){
 					$scope.processDefinitions = [];
 					results.data.forEach(function(e){
