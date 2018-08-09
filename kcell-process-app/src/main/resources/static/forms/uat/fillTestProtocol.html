@@ -6,16 +6,6 @@
 </style>
 <script cam-script type="text/form-script">
         inject(['$scope', '$http', 'Uri', '$rootScope', '$q', 'toasty', '$timeout', function ($scope, $http, Uri, $rootScope, $q, toasty, $timeout) {
-            var variables = [
-                {
-                    name: 'resolutions',
-                    type: 'Json',
-                    submit: true,
-                    store: true,
-                    value: []
-                }
-            ];
-
             camForm.on('form-loaded', function () {
 
                 camForm.variableManager.createVariable({
@@ -68,15 +58,32 @@
                   type: 'String',
                   value: ''
                 });
-
-
-                variables.forEach(function (el) {
-                    camForm.variableManager.fetchVariable(el);
+                camForm.variableManager.createVariable({
+                    name: 'resolutions',
+                    type: 'Json',
+                    value: ''
                 });
+
+                if(!$scope.resolutions){
+                    $scope.resolutions = [];
+                }
                 $http.get('/camunda/api/engine/engine/default/task/' + camForm.taskId).then(
                     function(result){
                         $scope.processInstanceId = result.data.processInstanceId;
                         $scope.taskName = result.data.name;
+                        $http.get('/camunda/api/engine/engine/default/history/process-instance/' + $scope.processInstanceId).then(
+                                function(result){
+                                    $scope.startTime = result.data.startTime;
+                                    $scope.startUserId = result.data.startUserId;
+
+                                    if ($scope.resolutions.length < 1) {
+                                        $scope.resolutions.push({processInstanceId: $scope.processInstanceId, assignee: $scope.startUserId, resolution: 'done', comment: '', taskId: '', taskEndDate: $scope.startTime, taskName: 'Start Process'});
+                                    }
+                                },
+                                function (error) {
+                                    console.log(error.data);
+                                }
+                        );
                     },
                     function (error) {
                         console.log(error.data);
@@ -108,6 +115,7 @@
                 if (!$scope.launchTaskResult) $scope.launchTaskResult = [];
                 if (!$scope.approvalList) $scope.approvalList = [];
                 if (!$scope.data) $scope.data = [];
+
 
             });
 
@@ -281,17 +289,14 @@
                                 type: 'String',
                                 value: ''
                             });}
-                if ($scope.userName10) {camForm.variableManager.variableValue('confirmedStatus10', 'userName10');}
-                else {
-                camForm.variableManager.destroyVariable('confirmedStatus10');
-                camForm.variableManager.createVariable({
+                if ($scope.userName10) {camForm.variableManager.variableValue('confirmedStatus10', 'userName10');
+                } else {
+                    camForm.variableManager.destroyVariable('confirmedStatus10');
+                    camForm.variableManager.createVariable({
                                 name: 'confirmedStatus10',
                                 type: 'String',
                                 value: ''
-                            });}
-
-                if(!$scope.resolutions){
-                    $scope.resolutions = [];
+                            });
                 }
 
                 camForm.variableManager.variableValue('fillTestProtTaskComment', $scope.fillTestProtTaskComment);
@@ -1110,7 +1115,7 @@
         <label class="col-sm-2 control-label">Resolution</label>
         <div class="col-sm-10">
             <label class="radio-inline">
-                <input type="radio" ng-model="fillTestProtTaskResult" name="fillTestProtTaskResult" value="requested" required> Request approval
+                <input type="radio" ng-model="fillTestProtTaskResult" name="fillTestProtTaskResult" value="completed" required> Request approval
             </label>
             <label class="error" ng-show="kcell_form.fillTestProtTaskResult.$error.required && ( kcell_form.fillTestProtTaskResult.$touched || view.submitted)">Required field</label>
         </div>
@@ -1162,7 +1167,7 @@
                 <tbody>
                 <tr ng-repeat="resolution in resolutions">
                     <td>{{resolution.taskName}}</td>
-                    <td>{{resolution.assigneeName}}</td>
+                    <td>{{resolution.assigneeName?resolution.assigneeName:resolution.assignee}}</td>
                     <td>{{resolution.resolution}}</td>
                     <td>{{resolution.taskEndDate | date: 'dd.MM.yyyy HH:mm'}}</td>
                     <td>{{resolution.comment}}</td>
