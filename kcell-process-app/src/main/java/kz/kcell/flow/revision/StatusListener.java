@@ -43,8 +43,9 @@ public class StatusListener implements ExecutionListener {
         JsonValue jsonValue = SpinValues.jsonValue("{\"statusId\" : \"" + statusId
             + "\",\"statusName\" : \"" + statusName
             + "\",\"comment\" : \"" + comment
-            + "\",\"date\" : \"" + (new Date()).getTime()
-            + "\",\"parentStatus\" : \"" + parentStatus
+            + "\",\"date\" : " + (new Date()).getTime()
+            + ",\"returnStatus\" : " + returnStatus
+            + ",\"parentStatus\" : \"" + parentStatus
             + "\"}").create();
 
         delegateExecution.setVariable("status", jsonValue);
