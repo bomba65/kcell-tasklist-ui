@@ -8,16 +8,14 @@ define(['./../module'], function(module){
                 form: '=',
                 view: '=',
                 disabled: '=',
-                allowPrice: '='
+                editprice: '='
 			},
 			link: function(scope, element, attrs) {
                 scope.$watch('data', function(value) {
                     if (value) {
                         if (!scope.data || !(scope.data instanceof Array)) scope.data = [];
-                        scope.totalSumm = 0;
-                        for (var d of scope.data) {
-                            scope.totalSumm += d.summ;
-                        }
+
+                        scope.countTotalSum();
                         
                         if (!scope.responsible) {
                             scope.responsible = $rootScope.authentication.name;
@@ -31,6 +29,7 @@ define(['./../module'], function(module){
                 });
                 scope.deleteItem = function(index) {
                     scope.data.splice(index, 1);
+                    scope.countTotalSum();
                 }
                 scope.addItem = function() {
                     scope.data.push({
@@ -54,6 +53,10 @@ define(['./../module'], function(module){
                     if (!scope.data[index].labor) return;
                     if (!scope.data[index].pprice) return;
                     scope.data[index].summ = scope.data[index].quantity * scope.data[index].labor * scope.data[index].pprice;
+                    scope.countTotalSum();
+                }
+
+                scope.countTotalSum = function() {
                     scope.totalSumm = 0;
                     for (var d of scope.data) {
                         scope.totalSumm += d.summ;

@@ -25,10 +25,10 @@
       <bpmn:sequenceFlow id="SequenceFlow_0gy5f2f" sourceRef="finReview" targetRef="ExclusiveGateway_0vojsge" />
       <bpmn:userTask id="IPMCommitee" name="IPM Commitee" camunda:formKey="embedded:app:forms/demand/test_start.html">
         <bpmn:documentation>IPM Commitee</bpmn:documentation>
-        <bpmn:incoming>SequenceFlow_0d61jgc</bpmn:incoming>
+        <bpmn:incoming>SequenceFlow_07ews5a</bpmn:incoming>
         <bpmn:outgoing>SequenceFlow_0046vn0</bpmn:outgoing>
       </bpmn:userTask>
-      <bpmn:sequenceFlow id="SequenceFlow_07ews5a" name="Approve" sourceRef="ExclusiveGateway_0vojsge" targetRef="legalReview" />
+      <bpmn:sequenceFlow id="SequenceFlow_07ews5a" name="Approve" sourceRef="ExclusiveGateway_0vojsge" targetRef="IPMCommitee" />
       <bpmn:exclusiveGateway id="ExclusiveGateway_19gn7qa" default="SequenceFlow_0ws74ni">
         <bpmn:incoming>SequenceFlow_0046vn0</bpmn:incoming>
         <bpmn:outgoing>SequenceFlow_0ws74ni</bpmn:outgoing>
@@ -152,7 +152,7 @@
       </bpmn:sequenceFlow>
       <bpmn:sequenceFlow id="SequenceFlow_0p83uz0" name="Submit" sourceRef="fillBRD" targetRef="CheckBRD" />
       <bpmn:sequenceFlow id="SequenceFlow_1rdj2rp" sourceRef="CheckBRD" targetRef="ExclusiveGateway_0ub6pp4" />
-      <bpmn:userTask id="enrichStratUnvestment" name="Enrich Strategy Investment" camunda:formKey="embedded:app:forms/demand/test_start.html">
+      <bpmn:userTask id="enrichStratUnvestment" name="Enrich Business case" camunda:formKey="embedded:app:forms/demand/test_start.html">
         <bpmn:documentation>Enrich Strategy Investment</bpmn:documentation>
         <bpmn:incoming>SequenceFlow_1aord75</bpmn:incoming>
         <bpmn:incoming>SequenceFlow_0a6su6l</bpmn:incoming>
@@ -210,7 +210,6 @@
       <bpmn:sequenceFlow id="SequenceFlow_1aord75" name="Approved" sourceRef="ExclusiveGateway_0pszme5" targetRef="enrichStratUnvestment">
         <bpmn:conditionExpression xsi:type="bpmn:tFormalExpression">${demandCheckAcceptanceTaskResult == 'approved'}</bpmn:conditionExpression>
       </bpmn:sequenceFlow>
-      <bpmn:sequenceFlow id="SequenceFlow_0d61jgc" name="Submit" sourceRef="legalReview" targetRef="IPMCommitee" />
       <bpmn:sequenceFlow id="SequenceFlow_018et88" name="" sourceRef="enrichStratUnvestment" targetRef="ExclusiveGateway_05dwofj" />
       <bpmn:exclusiveGateway id="ExclusiveGateway_05dwofj" default="SequenceFlow_0vimzjo">
         <bpmn:incoming>SequenceFlow_018et88</bpmn:incoming>
@@ -224,11 +223,6 @@
       <bpmn:sequenceFlow id="SequenceFlow_1mlgg24" name="Send to edit" sourceRef="ExclusiveGateway_19gn7qa" targetRef="enrichStratUnvestment">
         <bpmn:conditionExpression xsi:type="bpmn:tFormalExpression">${false}</bpmn:conditionExpression>
       </bpmn:sequenceFlow>
-      <bpmn:userTask id="legalReview" name="Legal review" camunda:formKey="embedded:app:forms/demand/test_start.html">
-        <bpmn:documentation>Legal review</bpmn:documentation>
-        <bpmn:incoming>SequenceFlow_07ews5a</bpmn:incoming>
-        <bpmn:outgoing>SequenceFlow_0d61jgc</bpmn:outgoing>
-      </bpmn:userTask>
       <bpmn:exclusiveGateway id="ExclusiveGateway_1jana6m">
         <bpmn:incoming>SequenceFlow_0s0f1zc</bpmn:incoming>
         <bpmn:outgoing>SequenceFlow_0k980ta</bpmn:outgoing>
@@ -245,10 +239,11 @@
       <bpmn:sequenceFlow id="SequenceFlow_0eqhwun" sourceRef="ExclusiveGateway_0o9dknx" targetRef="Task_0diqypa">
         <bpmn:conditionExpression xsi:type="bpmn:tFormalExpression">${requestInfoList.prop("CPD").boolValue()}</bpmn:conditionExpression>
       </bpmn:sequenceFlow>
-      <bpmn:userTask id="Task_0diqypa" name="Fill material costs" camunda:formKey="embedded:app:forms/demand/requestInfo.html">
+      <bpmn:userTask id="Task_0diqypa" name="Request info for ${requestInfoName}" camunda:formKey="embedded:app:forms/demand/requestInfoCPD.html">
         <bpmn:documentation>Fill material costs</bpmn:documentation>
         <bpmn:incoming>SequenceFlow_0eqhwun</bpmn:incoming>
         <bpmn:outgoing>SequenceFlow_0yscy5s</bpmn:outgoing>
+        <bpmn:multiInstanceLoopCharacteristics camunda:collection="${requestInfoList.prop(&#34;CPDs&#34;).elements()}" camunda:elementVariable="requestInfoName" />
       </bpmn:userTask>
       <bpmn:sequenceFlow id="SequenceFlow_1cruid7" sourceRef="ExclusiveGateway_0o9dknx" targetRef="Task_186wz95">
         <bpmn:conditionExpression xsi:type="bpmn:tFormalExpression">${requestInfoList.prop("HR").boolValue()}</bpmn:conditionExpression>
@@ -256,15 +251,17 @@
       <bpmn:sequenceFlow id="SequenceFlow_0sy2lv1" sourceRef="ExclusiveGateway_0o9dknx" targetRef="Task_0gva2vx">
         <bpmn:conditionExpression xsi:type="bpmn:tFormalExpression">${requestInfoList.prop("TD").boolValue()}</bpmn:conditionExpression>
       </bpmn:sequenceFlow>
-      <bpmn:userTask id="Task_186wz95" name="Fill resours costs" camunda:formKey="embedded:app:forms/demand/requestInfo.html">
+      <bpmn:userTask id="Task_186wz95" name="Request info for ${requestInfoName}" camunda:formKey="embedded:app:forms/demand/requestInfoHR.html">
         <bpmn:documentation>Fill resours costs</bpmn:documentation>
         <bpmn:incoming>SequenceFlow_1cruid7</bpmn:incoming>
         <bpmn:outgoing>SequenceFlow_0k4cssh</bpmn:outgoing>
+        <bpmn:multiInstanceLoopCharacteristics camunda:collection="${requestInfoList.prop(&#34;HRs&#34;).elements()}" camunda:elementVariable="requestInfoName" />
       </bpmn:userTask>
-      <bpmn:userTask id="Task_0gva2vx" name="Technical input" camunda:formKey="embedded:app:forms/demand/requestInfo.html">
+      <bpmn:userTask id="Task_0gva2vx" name="Request info for ${requestInfoName}" camunda:formKey="embedded:app:forms/demand/requestInfoTD.html">
         <bpmn:documentation>Technical input</bpmn:documentation>
         <bpmn:incoming>SequenceFlow_0sy2lv1</bpmn:incoming>
         <bpmn:outgoing>SequenceFlow_13ie229</bpmn:outgoing>
+        <bpmn:multiInstanceLoopCharacteristics camunda:collection="${requestInfoList.prop(&#34;TDs&#34;).elements()}" camunda:elementVariable="requestInfoName" />
       </bpmn:userTask>
       <bpmn:sequenceFlow id="SequenceFlow_0yscy5s" sourceRef="Task_0diqypa" targetRef="ExclusiveGateway_106at1c" />
       <bpmn:inclusiveGateway id="ExclusiveGateway_106at1c">
@@ -756,9 +753,9 @@
       </bpmndi:BPMNShape>
       <bpmndi:BPMNEdge id="SequenceFlow_07ews5a_di" bpmnElement="SequenceFlow_07ews5a">
         <di:waypoint x="1616" y="150" />
-        <di:waypoint x="1705" y="150" />
+        <di:waypoint x="1902" y="150" />
         <bpmndi:BPMNLabel>
-          <dc:Bounds x="1628" y="158" width="41" height="14" />
+          <dc:Bounds x="1700" y="158" width="41" height="14" />
         </bpmndi:BPMNLabel>
       </bpmndi:BPMNEdge>
       <bpmndi:BPMNShape id="ExclusiveGateway_19gn7qa_di" bpmnElement="ExclusiveGateway_19gn7qa" isMarkerVisible="true">
@@ -1031,13 +1028,6 @@
           <dc:Bounds x="697" y="211" width="48" height="14" />
         </bpmndi:BPMNLabel>
       </bpmndi:BPMNEdge>
-      <bpmndi:BPMNEdge id="SequenceFlow_0d61jgc_di" bpmnElement="SequenceFlow_0d61jgc">
-        <di:waypoint x="1805" y="150" />
-        <di:waypoint x="1902" y="150" />
-        <bpmndi:BPMNLabel>
-          <dc:Bounds x="1828" y="155" width="35" height="14" />
-        </bpmndi:BPMNLabel>
-      </bpmndi:BPMNEdge>
       <bpmndi:BPMNEdge id="SequenceFlow_018et88_di" bpmnElement="SequenceFlow_018et88">
         <di:waypoint x="941" y="150" />
         <di:waypoint x="1039" y="150" />
@@ -1076,9 +1066,6 @@
           <dc:Bounds x="1465" y="326" width="59" height="14" />
         </bpmndi:BPMNLabel>
       </bpmndi:BPMNEdge>
-      <bpmndi:BPMNShape id="UserTask_05e830c_di" bpmnElement="legalReview">
-        <dc:Bounds x="1705" y="110" width="100" height="80" />
-      </bpmndi:BPMNShape>
       <bpmndi:BPMNShape id="EndEvent_1w8lgis_di" bpmnElement="EndEvent_1w8lgis">
         <dc:Bounds x="2548.5257142857145" y="-224.2257142857145" width="36" height="36" />
         <bpmndi:BPMNLabel>
@@ -1169,21 +1156,21 @@
         <di:waypoint x="635" y="431" />
       </bpmndi:BPMNEdge>
       <bpmndi:BPMNShape id="TextAnnotation_1n6mfrs_di" bpmnElement="TextAnnotation_1n6mfrs">
-        <dc:Bounds x="1273" y="399" width="99.99274099883856" height="29.997822299651567" />
+        <dc:Bounds x="1273" y="399" width="100" height="30" />
       </bpmndi:BPMNShape>
       <bpmndi:BPMNEdge id="Association_0jyusxv_di" bpmnElement="Association_0jyusxv">
         <di:waypoint x="1244" y="449" />
         <di:waypoint x="1289" y="429" />
       </bpmndi:BPMNEdge>
       <bpmndi:BPMNShape id="TextAnnotation_1mrf15f_di" bpmnElement="TextAnnotation_1mrf15f">
-        <dc:Bounds x="1273" y="501" width="99.99274099883856" height="29.997822299651567" />
+        <dc:Bounds x="1273" y="501" width="100" height="30" />
       </bpmndi:BPMNShape>
       <bpmndi:BPMNEdge id="Association_1opgmll_di" bpmnElement="Association_1opgmll">
         <di:waypoint x="1244" y="556" />
         <di:waypoint x="1293" y="531" />
       </bpmndi:BPMNEdge>
       <bpmndi:BPMNShape id="TextAnnotation_0t9d474_di" bpmnElement="TextAnnotation_0t9d474">
-        <dc:Bounds x="1273" y="608" width="99.99274099883856" height="29.997822299651567" />
+        <dc:Bounds x="1273" y="608" width="100" height="30" />
       </bpmndi:BPMNShape>
       <bpmndi:BPMNEdge id="Association_1lv7qnk_di" bpmnElement="Association_1lv7qnk">
         <di:waypoint x="1244" y="665" />
