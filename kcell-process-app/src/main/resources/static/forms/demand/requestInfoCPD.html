@@ -1,0 +1,398 @@
+<form role="form" class="form-horizontal" name="kcell_form" novalidate>
+<style>
+    .well {
+        color: #333;
+    }
+</style>
+<script cam-script type="text/form-script">
+        inject(['$scope', '$http', 'Uri', '$rootScope', '$q', 'toasty', '$timeout', function ($scope, $http, Uri, $rootScope, $q, toasty, $timeout) {
+            $scope.generalData = {
+                general: {},
+                targetAudience: {},
+                demandDetails: {}
+            };
+            $scope.BRDData = {
+                funcRequirements: {},
+                nonFuncRequirements: {},
+                interfaces: {},
+                reportsStatistics: ''
+            };
+            var theMaterials = [];
+            $scope.CACData = {
+                resources: [],
+                materials: [],
+                acceptCrits: []
+            };
+            $scope.BCData = {
+                businessCase: {}
+            };
+            $scope.supportiveInputs = [];
+            var requestInfoName = null;
+
+            var assigneeName = $rootScope.authentication.name;
+            $http.get("/camunda/api/engine/engine/default/user/" + $rootScope.authentication.name+ "/profile").then(function(result){
+                assigneeName = (result.data.firstName ? result.data.firstName : "") + " " + (result.data.lastName ? result.data.lastName : "");
+            });
+            $http.get('/camunda/api/engine/engine/default/task/' + camForm.taskId).then(
+                function(result){
+                    $scope.processInstanceId = result.data.processInstanceId;
+                    $scope.taskName = result.data.name;
+                },
+                function (error) {
+                    console.log(error.data);
+                }
+            );
+
+            camForm.on('form-loaded', function () {
+                camForm.variableManager.fetchVariable('resolutions');
+                camForm.variableManager.fetchVariable('generalData');
+                camForm.variableManager.fetchVariable('BRDData');
+                camForm.variableManager.fetchVariable('CACData');
+                camForm.variableManager.fetchVariable('BCData');
+                camForm.variableManager.fetchVariable('attachments');
+                camForm.variableManager.fetchVariable('supportiveInputs');
+                camForm.variableManager.fetchVariable('requestInfoName');
+            });
+
+            camForm.on('variables-fetched', function () {
+                $scope.resolutions = camForm.variableManager.variableValue('resolutions');
+                $scope.generalData = camForm.variableManager.variableValue('generalData');
+                $scope.BRDData = camForm.variableManager.variableValue('BRDData');
+                $scope.CACData = camForm.variableManager.variableValue('CACData');
+                $scope.BCData = camForm.variableManager.variableValue('BCData');
+                $scope.attachments = camForm.variableManager.variableValue('attachments');
+                $scope.supportiveInputs = camForm.variableManager.variableValue('supportiveInputs');
+                requestInfoName = camForm.variableManager.variableValue('requestInfoName');
+                if (!$scope.resolutions) $scope.resolutions = [];
+                if (!$scope.attachments) $scope.attachments = [];
+                if (!$scope.supportiveInputs) $scope.supportiveInputs = [];
+                if ($scope.CACData.materials) theMaterials = _.map($scope.CACData.materials, _.clone);
+            });
+
+            camForm.on('submit', function (event) {
+                var submitDate = new Date ();
+                $scope.resolutions.push({processInstanceId: $scope.processInstanceId, assignee: assigneeName, resolution: $scope.demandFillFormTaskResult, comment: $scope.comment, taskId: camForm.taskId, taskEndDate: submitDate, taskName: $scope.taskName});
+                camForm.variableManager.destroyVariable('resolutions');
+                camForm.variableManager.createVariable({
+                    name: 'resolutions',
+                    type: 'json',
+                    value: $scope.resolutions
+                });
+
+                if (requestInfoName) {
+                    var elt = $scope.supportiveInputs.find(function(e) {return e.unit == requestInfoName});
+                    if (elt) elt.inputReceived = true;
+                    camForm.variableManager.destroyVariable('supportiveInputs');
+                    camForm.variableManager.createVariable({
+                        name: 'supportiveInputs',
+                        type: 'Json',
+                        value: $scope.supportiveInputs
+                    });
+                }
+
+                $http.get('/camunda/api/engine/engine/default/process-instance/'+$scope.processInstanceId+'/variables/CACData?deserializeValue=false').then(
+                    function(result) {
+                        var lastCACData = JSON.parse(result.data.value);
+                        for (var i = 0; i < theMaterials.length; i++) {
+                            if ($scope.CACData.materials[i].pprice == theMaterials[i].pprice) {
+                                $scope.CACData.materials[i].pprice = lastCACData.materials[i].pprice;
+                                $scope.CACData.materials[i].summ = lastCACData.materials[i].summ;
+                            }
+                        }
+                        camForm.variableManager.destroyVariable('CACData');
+                        camForm.variableManager.createVariable({
+                            name: 'CACData',
+                            type: 'Json',
+                            value: $scope.CACData
+                        });
+                    },
+                    function(error){
+                        console.log(error.data);
+                    }
+                );
+            });
+
+            $scope.downloadFile = function (file) {
+                $http({method: 'GET', url: '/camunda/uploads/get/' + file.path, transformResponse: [] }).
+                success(function(data, status, headers, config) {
+                    document.getElementById('fileDownloadIframe').src = data;
+                }).
+                error (function(data, status, headers, config) {
+                    console.log(data);
+                });
+            }
+
+            $scope.saveFillForm = function () {
+                $http.get('/camunda/api/engine/engine/default/process-instance/'+$scope.processInstanceId+'/variables/CACData?deserializeValue=false').then(
+                    function(result) {
+                        var lastCACData = JSON.parse(result.data.value);
+                        for (var i = 0; i < theMaterials.length; i++) {
+                            if ($scope.CACData.materials[i].pprice == theMaterials[i].pprice) {
+                                $scope.CACData.materials[i].pprice = lastCACData.materials[i].pprice;
+                                $scope.CACData.materials[i].summ = lastCACData.materials[i].summ;
+                            }
+                        }
+                        var json = JSON.stringify($scope.CACData, function( key, value ) {
+                            if( key === "$$hashKey" ) {
+                                return undefined;
+                            }
+                            return value;
+                        });
+                        $http.put('/camunda/api/engine/engine/default/process-instance/'+$scope.processInstanceId+'/variables/CACData',{"type":"Json","value": json}).then(
+                                function(){
+                                    console.log($scope.CACData);
+                                },
+                                function(error){
+                                    console.log(error.data);
+                                }
+                        );
+                        toasty.success( "Данные успешно сохранены!");
+                    },
+                    function(error){
+                        console.log(error.data);
+                    }
+                );
+            };
+
+            $scope.test = function() {
+                $http.get('/camunda/api/engine/engine/default/process-instance/'+$scope.processInstanceId+'/variables/CACData?deserializeValue=false').then(
+                    function(result) {
+                        var lastCACData = JSON.parse(result.data.value);
+                        console.log("last ==> ", lastCACData.materials);
+                        for (var i = 0; i < theMaterials.length; i++) {
+                            if ($scope.CACData.materials[i].pprice == theMaterials[i].pprice) {
+                                $scope.CACData.materials[i].pprice = lastCACData.materials[i].pprice;
+                                $scope.CACData.materials[i].summ = lastCACData.materials[i].summ;
+                            }
+                        }
+                        console.log("new ==> ", $scope.CACData.materials);
+                    },
+                    function(error){
+                        console.log(error.data);
+                    }
+                );
+            }
+        }]);
+    </script>
+    <h1><button type="button" class="btn btn-danger" ng-click="test()">TEST</button></h1>
+    <div class="form-group">
+        <label class="col-sm-2 control-label"> Business Key:</label>
+        <div class="col-sm-2">
+            <input rows="1" class="form-control" cam-variable-name="businessKey" cam-variable-type="String" disabled>
+        </div>
+        <label class="col-sm-2 control-label"> Demand Status:</label>
+        <div class="col-sm-2">
+            <label rows="1" class="form-control" id="demandStatus" disabled>New </label>
+        </div>
+        <label class="col-sm-2 control-label"> Activity:</label>
+        <div class="col-sm-2">
+            <label rows="1" class="form-control" id="demandActivity" disabled> FillForm </label>
+        </div>
+    </div>
+    <div class="form-group">
+        <label class="col-sm-2 control-label"> Demand Name: </label>
+        <div class="col-sm-10">
+            <textarea rows="1" class="form-control" name="demandName" ng-model="demandName" cam-variable-name="demandName" cam-variable-type="String" required/>
+            <label class="error" ng-show="kcell_form.demandName.$error.required && ( kcell_form.demandName.$touched || view.submitted)">Required field</label>
+        </div>
+    </div>
+    <hr>
+    <tabset class="my-tab-head my-tab" justified="true" id="jobRequestId">
+        <tab>
+            <tab-heading> General </tab-heading>
+            <div style="margin-bottom: 20px;">
+
+                <div class="col-sm-6">
+                    <h4>General</h4>
+                    <demand-general data="generalData.general" form="kcell_form" view="view" disabled="true"></demand-general>
+                </div>
+
+
+                <div class="col-sm-6">
+                    <h4>Target Audience:</h4>
+                    <demand-target-audience data="generalData.targetAudience" form="kcell_form" view="view" disabled="true"></demand-target-audience>
+                </div>
+                <br>
+
+                <div class="col-sm-12">
+                    <h4>Demand Details</h4>
+                    <demand-details data="generalData.demandDetails" form="kcell_form" view="view" disabled="true"></demand-details>
+                </div>
+            </div>
+        </tab>
+        <tab>
+            <tab-heading> BRD </tab-heading>
+            <div style="margin-bottom: 20px;">
+                <div class="col-sm-12">
+                    <accordion>
+                        <accordion-group is-open="true">
+                            <accordion-heading>
+                                Functional Requirements <i class="pull-right glyphicon" ng-class="{'glyphicon-chevron-up': status.isCustomHeaderOpen, 'glyphicon-chevron-down': !status.isCustomHeaderOpen}"></i>
+                            </accordion-heading>
+                            <demand-func-requirements data="BRDData.funcRequirements" form="kcell_form" view="view" disabled="true"></demand-func-requirements>
+                        </accordion-group>
+                    </accordion>
+                    <accordion>
+                        <accordion-group is-open="true">
+                            <accordion-heading>
+                                Non-Functional Requirements <i class="pull-right glyphicon" ng-class="{'glyphicon-chevron-up': status.isCustomHeaderOpen, 'glyphicon-chevron-down': !status.isCustomHeaderOpen}"></i>
+                            </accordion-heading>
+                            <demand-non-func-requirements data="BRDData.nonFuncRequirements" form="kcell_form" view="view" disabled="true"></demand-non-func-requirements>
+                        </accordion-group>
+                    </accordion>
+                    <accordion>
+                        <accordion-group is-open="true">
+                            <accordion-heading>
+                                Interfaces <i class="pull-right glyphicon" ng-class="{'glyphicon-chevron-up': status.isCustomHeaderOpen, 'glyphicon-chevron-down': !status.isCustomHeaderOpen}"></i>
+                            </accordion-heading>
+                            <demand-interfaces data="BRDData.interfaces" form="kcell_form" view="view" disabled="true"></demand-interfaces>
+                        </accordion-group>
+                    </accordion>
+                    <accordion>
+                        <accordion-group is-open="true">
+                            <accordion-heading>
+                                Reports and Statistics <i class="pull-right glyphicon" ng-class="{'glyphicon-chevron-up': status.isCustomHeaderOpen, 'glyphicon-chevron-down': !status.isCustomHeaderOpen}"></i>
+                            </accordion-heading>
+                            <div class="col-sm-12">
+                                <textarea type="text" style="resize: vertical;" class="form-control" ng-model="BRDData.reportsStatistics" disabled></textarea>
+                            </div>
+                        </accordion-group>
+                    </accordion>
+                </div>
+            </div>
+        </tab>
+        <tab active="true">
+            <tab-heading> Cost and Acceptance Criterias </tab-heading>
+            <div style="margin-bottom: 20px;"></div>
+            <accordion>
+                <accordion-group is-open="true">
+                    <accordion-heading>
+                        Resources <i class="pull-right glyphicon" ng-class="{'glyphicon-chevron-up': status.isCustomHeaderOpen, 'glyphicon-chevron-down': !status.isCustomHeaderOpen}"></i>
+                    </accordion-heading>
+                    <demand-resources data="CACData.resources" form="kcell_form" view="view" disabled="true" editprice="false"></demand-resources>
+                </accordion-group>
+            </accordion>
+            <accordion>
+                <accordion-group is-open="true">
+                    <accordion-heading>
+                        Materials <i class="pull-right glyphicon" ng-class="{'glyphicon-chevron-up': status.isCustomHeaderOpen, 'glyphicon-chevron-down': !status.isCustomHeaderOpen}"></i>
+                    </accordion-heading>
+                    <demand-materials data="CACData.materials" form="kcell_form" view="view" disabled="true" editprice="true"></demand-materials>
+                </accordion-group>
+            </accordion>
+            <accordion>
+                <accordion-group is-open="true">
+                    <accordion-heading>
+                        Acceptance criterias <i class="pull-right glyphicon" ng-class="{'glyphicon-chevron-up': status.isCustomHeaderOpen, 'glyphicon-chevron-down': !status.isCustomHeaderOpen}"></i>
+                    </accordion-heading>
+                    <div class="col-sm-12">
+                        <label class="col-sm-12">
+                            Description
+                        </label>
+                        <div class="form-group" ng-repeat="d in CACData.acceptCrits track by $index">
+                            <div class="col-sm-9">
+                                <input type="text" class="form-control" ng-model="d.v" disabled>
+                            </div>
+                        </div>
+                    </div>
+                </accordion-group>
+            </accordion>
+        </tab>
+        <tab>
+            <tab-heading> Business Case </tab-heading>
+            <div style="margin-bottom: 20px;"></div>
+
+            <div class="col-sm-12">
+                <label style="margin-left: 20px;">Business Case</label>
+                <div class="col-sm-12" style="border: 1px solid #ccc; border-radius: 10px; padding-top: 10px;">
+                    <demand-business-case data="BCData.businessCase" form="kcell_form" view="view" disabled="true"></demand-business-case>
+                </div>
+            </div>
+            <span ng-repeat="form in SRForms.HR">
+                <div class="col-sm-12" style="border: 1px solid #ccc; border-radius: 10px; padding-top: 10px; margin: 20px 0;">
+                    <label style="margin-bottom: 20px;">Supportive request form for {{form}}</label>
+                    <demand-resources data="supportiveRequests[form]" form="kcell_form" view="view" disabled="true" editprice="false"></demand-resources>
+                </div>
+            </span>
+            <span ng-repeat="form in SRForms.CPD">
+                <div class="col-sm-12" style="border: 1px solid #ccc; border-radius: 10px; padding-top: 10px; margin: 20px 0;">
+                    <label style="margin-bottom: 20px;">Supportive request form for {{form}}</label>
+                    <demand-materials data="supportiveRequests[form]" form="kcell_form" view="view" disabled="true" editprice="false"></demand-materials>
+                </div>
+            </span>
+        </tab>
+        <tab disabled="true">
+            <tab-heading> Product passport\Approvement list</tab-heading>
+            <div style="margin-bottom: 20px;"></div>
+        </tab>
+    </tabset>
+
+    <div class="col-sm-12" style="border: 1px solid #ccc; border-radius: 10px; padding-top: 10px; margin: 20px 0;">
+        <iframe id="fileDownloadIframe" style="display:none;"></iframe>
+        <div class="form-group">
+            <label class="col-sm-4 control-label">Attachments</label>
+            <div class="col-sm-8">
+                <div class="col-sm-12">
+                    <table class="table table-bordered">
+                        <thead>
+                        <tr>
+                            <th>File Name</th>
+                            <th>Created</th>
+                            <th>Created By</th>
+                        </tr>
+                        </thead>
+                        <tbody>
+                        <tr ng-repeat="file in attachments track by $index">
+                            <td><a ng-click="downloadFile(file)">{{file.name}}</a></td>
+                            <td>{{file.created | date: 'dd.MM.yyyy HH:mm'}}</td>
+                            <td>{{file.createdBy}}</td>
+                        </tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="row">
+        <div class="col-md-2" style="margin-top: 20px;">
+            <button type="button" ng-click="saveFillForm()" class="btn btn-success" style="padding: 6px 28px">Save</button>
+        </div>
+    </div>
+    <hr>
+
+    <div class="form-group">
+        <label class="col-sm-2 control-label">Comments</label>
+        <div class="col-sm-10">
+            <textarea class="form-control" rows="4" maxlength="500" ng-model="comment"></textarea>
+        </div>
+    </div>
+
+    <accordion>
+        <accordion-group is-open="isHistoryOpen">
+            <accordion-heading>
+                History <i class="pull-right glyphicon" ng-class="{'glyphicon-chevron-up': status.isCustomHeaderOpen, 'glyphicon-chevron-down': !status.isCustomHeaderOpen}"></i>
+            </accordion-heading>
+            <table class="table">
+                <thead>
+                <tr>
+                    <th>Activity</th>
+                    <th>Assignee</th>
+                    <th>Resolution</th>
+                    <th>Date</th>
+                    <th>Comment</th>
+                </tr>
+                </thead>
+                <tbody>
+                <tr ng-repeat="resolution in resolutions">
+                    <td>{{resolution.taskName}}</td>
+                    <td>{{resolution.assigneeName}}</td>
+                    <td>{{'task.resolution.'+resolution.resolution | translate}}</td>
+                    <td>{{resolution.taskEndDate | date: 'dd.MM.yyyy HH:mm'}}</td>
+                    <td>{{resolution.comment}}</td>
+                </tr>
+                </tbody>
+            </table>
+        </accordion-group>
+    </accordion>
+</form>
