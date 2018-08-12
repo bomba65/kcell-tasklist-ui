@@ -6,344 +6,82 @@
 </style>
 <script cam-script type="text/form-script">
         inject(['$scope', '$http', 'Uri', '$rootScope', '$q', 'toasty', '$timeout', function ($scope, $http, Uri, $rootScope, $q, toasty, $timeout) {
-            var variables = [
-                {
-                    name: 'resolutions',
-                    type: 'Json',
-                    submit: true,
-                    store: true,
-                    value: []
-                }
-            ];
             $scope.generalData = {
                 general: {},
                 targetAudience: {},
                 demandDetails: {}
             };
-            $scope.BRDData = {
-                funcRequirements: {},
-                nonFuncRequirements: {},
-                interfaces: {},
-                reportsStatistics: ''
-            };
-            $scope.CACData = {
-                resources: [],
-                materials: [],
-                acceptCrits: []
-            };
-            $scope.BCData = {
-                businessCase: {}
-            };
-            $scope.supportiveInputs = [];
-            $scope.supportiveRequests = {};
+            $scope.resolutions = [];
+            var processInstanceId = null;
+            var taskName = null;
+            var assigneeName = $rootScope.authentication.name;
+
+            $http.get("/camunda/api/engine/engine/default/user/" + $rootScope.authentication.name+ "/profile").then(function(result){
+                assigneeName = (result.data.firstName ? result.data.firstName : "") + " " + (result.data.lastName ? result.data.lastName : "");
+            });
+
+            $http.get('/camunda/api/engine/engine/default/task/' + camForm.taskId).then(
+                function(result){
+                    processInstanceId = result.data.processInstanceId;
+                    taskName = result.data.name;
+                },
+                function (error) {
+                    console.log(error.data);
+                }
+            );
 
             camForm.on('form-loaded', function () {
-                variables.forEach(function (el) {
-                    camForm.variableManager.createVariable(el);
-                });
-                $http.get('/camunda/api/engine/engine/default/task/' + camForm.taskId).then(
-                    function(result){
-                        $scope.processInstanceId = result.data.processInstanceId;
-                        $scope.taskName = result.data.name;
-                    },
-                    function (error) {
-                        console.log(error.data);
-                    }
-                );
-
                 camForm.variableManager.fetchVariable('generalData');
-                camForm.variableManager.fetchVariable('BRDData');
-                camForm.variableManager.fetchVariable('CACData');
-                camForm.variableManager.fetchVariable('BCData');
-                camForm.variableManager.fetchVariable('supportiveInputs');
-                camForm.variableManager.fetchVariable('supportiveRequests');
-                camForm.variableManager.fetchVariable('attachments');
+                camForm.variableManager.fetchVariable('resolutions');
             });
 
             camForm.on('variables-fetched', function () {
-                camForm.variableManager.createVariable({
-                    name: 'demandFillFormTaskResult',
-                    type: 'String',
-                    value: ''
-                });
-                camForm.variableManager.createVariable({
-                    name: 'demandFillFormTaskComment',
-                    type: 'String',
-                    value: ''
-                });
-
                 $scope.generalData = camForm.variableManager.variableValue('generalData');
-                $scope.BRDData = camForm.variableManager.variableValue('BRDData');
-                $scope.CACData = camForm.variableManager.variableValue('CACData');
-                $scope.BCData = camForm.variableManager.variableValue('BCData');
-                $scope.supportiveInputs = camForm.variableManager.variableValue('supportiveInputs');
-                $scope.supportiveRequests = camForm.variableManager.variableValue('supportiveRequests');
-                $scope.attachments = camForm.variableManager.variableValue('attachments');
-                if (!$scope.generalData) {        
-                    $scope.generalData = {
-                        general: {},
-                        targetAudience: {},
-                        demandDetails: {}
-                    };
-                }
-                if (!$scope.BRDData) {
-                    $scope.BRDData = {
-                        funcRequirements: {},
-                        nonFuncRequirements: {},
-                        interfaces: {},
-                        reportsStatistics: ''
-                    };
-                }
-                if (!$scope.CACData) {
-                    $scope.CACData = {
-                        resources: [],
-                        materials: [],
-                        acceptCrits: []
-                    };
-                }
-                if (!$scope.BCData) {
-                    $scope.BCData = {
-                        businessCase: {}
-                    };
-                }
-                if (!$scope.supportiveInputs) $scope.supportiveInputs = [];
-                if (!$scope.supportiveRequests) $scope.supportiveRequests = {};
-                if (!$scope.attachments) $scope.attachments = [];
+                $scope.resolutions = camForm.variableManager.variableValue('resolutions');
             });
 
             camForm.on('submit', function (event) {
-                //event.submitPrevented = true;
-
                 camForm.variableManager.destroyVariable('generalData');
                 camForm.variableManager.createVariable({
                     name: 'generalData',
                     type: 'Json',
                     value: $scope.generalData
                 });
-                camForm.variableManager.destroyVariable('BRDData');
-                camForm.variableManager.createVariable({
-                    name: 'BRDData',
-                    type: 'Json',
-                    value: $scope.BRDData
-                });
-                camForm.variableManager.destroyVariable('CACData');
-                camForm.variableManager.createVariable({
-                    name: 'CACData',
-                    type: 'Json',
-                    value: $scope.CACData
-                });
-                camForm.variableManager.destroyVariable('BCData');
-                camForm.variableManager.createVariable({
-                    name: 'BCData',
-                    type: 'Json',
-                    value: $scope.BCData
-                });
-                camForm.variableManager.destroyVariable('supportiveInputs');
-                camForm.variableManager.createVariable({
-                    name: 'supportiveInputs',
-                    type: 'Json',
-                    value: $scope.supportiveInputs
-                });
-                camForm.variableManager.destroyVariable('supportiveRequests');
-                camForm.variableManager.createVariable({
-                    name: 'supportiveRequests',
-                    type: 'Json',
-                    value: $scope.supportiveRequests
-                });
-                camForm.variableManager.destroyVariable('attachments');
-                camForm.variableManager.createVariable({
-                  name: 'attachments',
-                  type: 'json',
-                  value: $scope.attachments,
-                  store: true
-                });
 
                 var submitDate = new Date ();
                 if(!$scope.resolutions){
                     $scope.resolutions = [];
                 }
-
-                camForm.variableManager.variableValue('demandFillFormTaskComment', $scope.demandFillFormTaskComment);
-                camForm.variableManager.variableValue('demandFillFormTaskResult', $scope.demandFillFormTaskResult);
-                $scope.resolutions.push({processInstanceId: $scope.processInstanceId, assignee: $rootScope.authentication.name, resolution: $scope.demandFillFormTaskResult, comment: $scope.demandFillFormTaskComment, taskId: camForm.taskId, taskEndDate: submitDate, taskName: $scope.taskName});
-                camForm.variableManager.variableValue('resolutions', $scope.resolutions);
-                console.log($scope.resolutions);
+                $scope.resolutions.push({processInstanceId: processInstanceId, assignee: assigneeName, resolution: null, comment: $scope.comment, taskId: camForm.taskId, taskEndDate: submitDate, taskName: taskName});
+                camForm.variableManager.destroyVariable('resolutions');
+                camForm.variableManager.createVariable({
+                    name: 'resolutions',
+                    type: 'Json',
+                    value: $scope.resolutions
+                });
             });
 
             $scope.saveFillForm = function () {
+                var success = 0;
                 var json = JSON.stringify($scope.generalData, function( key, value ) {
-                    if( key === "$$hashKey" ) {
-                        return undefined;
-                    }
+                    if( key === "$$hashKey" ) return undefined;
                     return value;
                 });
                 $http.put('/camunda/api/engine/engine/default/process-instance/'+$scope.processInstanceId+'/variables/generalData',{"type":"Json","value": json}).then(
-                        function(){
-                            console.log($scope.generalData);
+                        function() {
+                            success++;
+                            if (success == 2) toasty.success( "Данные успешно сохранены!");
                         },
-                        function(error){
-                            console.log(error.data);
-                        }
-                );
-                json = JSON.stringify($scope.BRDData, function( key, value ) {
-                    if( key === "$$hashKey" ) {
-                        return undefined;
-                    }
-                    return value;
-                });
-                $http.put('/camunda/api/engine/engine/default/process-instance/'+$scope.processInstanceId+'/variables/BRDData',{"type":"Json","value": json}).then(
-                        function(){
-                            console.log($scope.BRDData);
-                        },
-                        function(error){
-                            console.log(error.data);
-                        }
-                );
-                json = JSON.stringify($scope.CACData, function( key, value ) {
-                    if( key === "$$hashKey" ) {
-                        return undefined;
-                    }
-                    return value;
-                });
-                $http.put('/camunda/api/engine/engine/default/process-instance/'+$scope.processInstanceId+'/variables/CACData',{"type":"Json","value": json}).then(
-                        function(){
-                            console.log($scope.CACData);
-                        },
-                        function(error){
-                            console.log(error.data);
-                        }
-                );
-                json = JSON.stringify($scope.BCData, function( key, value ) {
-                    if( key === "$$hashKey" ) {
-                        return undefined;
-                    }
-                    return value;
-                });
-                $http.put('/camunda/api/engine/engine/default/process-instance/'+$scope.processInstanceId+'/variables/BCData',{"type":"Json","value": json}).then(
-                        function(){
-                            console.log($scope.BCData);
-                        },
-                        function(error){
-                            console.log(error.data);
-                        }
-                );
-                json = JSON.stringify($scope.supportiveInputs, function( key, value ) {
-                    if( key === "$$hashKey" ) {
-                        return undefined;
-                    }
-                    return value;
-                });
-                $http.put('/camunda/api/engine/engine/default/process-instance/'+$scope.processInstanceId+'/variables/supportiveInputs',{"type":"Json","value": json}).then(
-                        function(){
-                            console.log($scope.supportiveInputs);
-                        },
-                        function(error){
-                            console.log(error.data);
-                        }
-                );
-                json = JSON.stringify($scope.supportiveRequests, function( key, value ) {
-                    if( key === "$$hashKey" ) {
-                        return undefined;
-                    }
-                    return value;
-                });
-                $http.put('/camunda/api/engine/engine/default/process-instance/'+$scope.processInstanceId+'/variables/supportiveRequests',{"type":"Json","value": json}).then(
-                        function(){
-                            console.log($scope.supportiveRequests);
-                        },
-                        function(error){
-                            console.log(error.data);
-                        }
-                );
-                json = JSON.stringify($scope.attachments, function( key, value ) {
-                    if( key === "$$hashKey" ) {
-                        return undefined;
-                    }
-                    return value;
-                });
-                $http.put('/camunda/api/engine/engine/default/process-instance/'+$scope.processInstanceId+'/variables/attachments',{"type":"Json","value": json}).then(
-                        function(){
-                            console.log($scope.attachments);
-                        },
-                        function(error){
-                            console.log(error.data);
-                        }
+                        function(error) {toasty.error(error.data);}
                 );
                 $http.put('/camunda/api/engine/engine/default/process-instance/'+$scope.processInstanceId+'/variables/demandName',{"type":"String","value": $scope.demandName}).then(
-                        function(){
-                            console.log($scope.demandName);
+                        function() {
+                            success++;
+                            if (success == 2) toasty.success( "Данные успешно сохранены!");
                         },
-                        function(error){
-                            console.log(error.data);
-                        }
+                        function(error) {toasty.error(error.data);}
                 );
-                toasty.success( "Данные успешно сохранены!");
             };
-
-            var assigneeName = $rootScope.authentication.name;
-            $http.get("/camunda/api/engine/engine/default/user/" + $rootScope.authentication.name+ "/profile").then(function(result){
-                assigneeName = (result.data.firstName ? result.data.firstName : "") + " " + (result.data.lastName ? result.data.lastName : "");
-            });
-
-            $scope.downloadFile = function (file) {
-                $http({method: 'GET', url: '/camunda/uploads/get/' + file.path, transformResponse: [] }).
-                success(function(data, status, headers, config) {
-                  document.getElementById('fileDownloadIframe').src = data;
-                }).
-                error (function(data, status, headers, config) {
-                  console.log(data);
-                });
-            }
-          
-            $scope.clearFile = function(fileIndex) {
-                $scope.attachments.splice(fileIndex, 1);
-            }
-              
-            $scope.fileSelected = function(el ){
-                $timeout(function () {
-                    $scope.$apply(function () {
-                        uploadFileToMinio(el.files[0]);
-                    });
-                })
-            };
-          
-            function uploadFileToMinio(file) {
-                var fileToUpload = {
-                    name: file.name,
-                    path: $scope.processInstanceId + '/' + camForm.taskId + '/' + file.name,
-                    created: new Date(),
-                    createdBy: assigneeName
-                };
-                $http({method: 'GET', url: '/camunda/uploads/put/' + fileToUpload.path, transformResponse: [] }).success(function(data, status, headers, config) {
-                    $http.put(data, file, {headers: {'Content-Type': undefined}}).then(
-                        function () {
-                            $scope.attachments.push(fileToUpload);
-                            angular.element(document.querySelector('#attachments')).val(null);
-                        },
-                        function (error) {
-                            console.log(error.data);
-                        }
-                    );
-                }).error (function(data, status, headers, config) {
-                    console.log(data);
-                });
-            }
-
-            $scope.$watch('supportiveInputs', function(value) {
-                if (value) {
-                    $scope.SRForms = {
-                        HR: [],
-                        LD: [],
-                        CPD: [],
-                        BI: [],
-                        TD: []
-                    };
-                    for (var v of $scope.supportiveInputs) {
-                        if (!$scope.SRForms[v.form]) $scope.SRForms[v.form] = [];
-                        $scope.SRForms[v.form].push(v.unit);
-                    }
-                }
-            }, true);
         }]);
     </script>
     <div class="form-group">
@@ -353,11 +91,11 @@
         </div>
         <label class="col-sm-2 control-label"> Demand Status:</label>
         <div class="col-sm-2">
-            <label rows="1" class="form-control" id="demandStatus" disabled>New </label>
+            <label rows="1" class="form-control" disabled>Created </label>
         </div>
         <label class="col-sm-2 control-label"> Activity:</label>
         <div class="col-sm-2">
-            <label rows="1" class="form-control" id="demandActivity" disabled> FillForm </label>
+            <label rows="1" class="form-control" disabled> Fill Form </label>
         </div>
     </div>
     <div class="form-group">
@@ -372,19 +110,15 @@
         <tab>
             <tab-heading> General </tab-heading>
             <div style="margin-bottom: 20px;">
-
                 <div class="col-sm-6">
                     <h4>General</h4>
                     <demand-general data="generalData.general" form="kcell_form" view="view" disabled="false"></demand-general>
                 </div>
-
-
                 <div class="col-sm-6">
                     <h4>Target Audience:</h4>
                     <demand-target-audience data="generalData.targetAudience" form="kcell_form" view="view" disabled="false"></demand-target-audience>
                 </div>
                 <br>
-
                 <div class="col-sm-12">
                     <h4>Demand Details</h4>
                     <demand-details data="generalData.demandDetails" form="kcell_form" view="view" disabled="false"></demand-details>
@@ -393,171 +127,17 @@
         </tab>
         <tab disabled="true">
             <tab-heading> BRD </tab-heading>
-            <div style="margin-bottom: 20px;" ng-if="taskName === 'Fill BRD (WYSIWYG editor)'">
-                <div class="col-sm-12">
-                    <accordion>
-                        <accordion-group is-open="true">
-                            <accordion-heading>
-                                Functional Requirements <i class="pull-right glyphicon" ng-class="{'glyphicon-chevron-up': status.isCustomHeaderOpen, 'glyphicon-chevron-down': !status.isCustomHeaderOpen}"></i>
-                            </accordion-heading>
-                            <demand-func-requirements data="BRDData.funcRequirements" form="kcell_form" view="view" disabled="true"></demand-func-requirements>
-                        </accordion-group>
-                    </accordion>
-                    <accordion>
-                        <accordion-group is-open="true">
-                            <accordion-heading>
-                                Non-Functional Requirements <i class="pull-right glyphicon" ng-class="{'glyphicon-chevron-up': status.isCustomHeaderOpen, 'glyphicon-chevron-down': !status.isCustomHeaderOpen}"></i>
-                            </accordion-heading>
-                            <demand-non-func-requirements data="BRDData.nonFuncRequirements" form="kcell_form" view="view" disabled="true"></demand-non-func-requirements>
-                        </accordion-group>
-                    </accordion>
-                    <accordion>
-                        <accordion-group is-open="true">
-                            <accordion-heading>
-                                Interfaces <i class="pull-right glyphicon" ng-class="{'glyphicon-chevron-up': status.isCustomHeaderOpen, 'glyphicon-chevron-down': !status.isCustomHeaderOpen}"></i>
-                            </accordion-heading>
-                            <demand-interfaces data="BRDData.interfaces" form="kcell_form" view="view" disabled="true"></demand-interfaces>
-                        </accordion-group>
-                    </accordion>
-                    <!--<accordion>
-                        <accordion-group is-open="true">
-                            <accordion-heading>
-                                Reports and Statistics <i class="pull-right glyphicon" ng-class="{'glyphicon-chevron-up': status.isCustomHeaderOpen, 'glyphicon-chevron-down': !status.isCustomHeaderOpen}"></i>
-                            </accordion-heading>
-                            <div class="col-sm-12">
-                                <textarea type="text" style="resize: vertical;" class="form-control" ng-model="BRDData.reportsStatistics" required></textarea>
-                                <span class="has-error" ng-if="BRDData.reportsStatistics.length == 0 && view.submitted">Required field</span>
-                            </div>
-                        </accordion-group>
-                    </accordion>-->
-                </div>
-            </div>
         </tab>
         <tab disabled="true">
             <tab-heading> Cost and Acceptance Criterias </tab-heading>
-            <div style="margin-bottom: 20px;"></div>
-            <accordion>
-                <accordion-group is-open="true">
-                    <accordion-heading>
-                        Resources <i class="pull-right glyphicon" ng-class="{'glyphicon-chevron-up': status.isCustomHeaderOpen, 'glyphicon-chevron-down': !status.isCustomHeaderOpen}"></i>
-                    </accordion-heading>
-                    <demand-resources data="CACData.resources" form="kcell_form" view="view" disabled="true" editprice="false"></demand-resources>
-                </accordion-group>
-            </accordion>
-            <accordion>
-                <accordion-group is-open="true">
-                    <accordion-heading>
-                        Materials <i class="pull-right glyphicon" ng-class="{'glyphicon-chevron-up': status.isCustomHeaderOpen, 'glyphicon-chevron-down': !status.isCustomHeaderOpen}"></i>
-                    </accordion-heading>
-                    <demand-materials data="CACData.materials" form="kcell_form" view="view" disabled="true" editprice="false"></demand-materials>
-                </accordion-group>
-            </accordion>
-            <!--<accordion>
-                <accordion-group is-open="true">
-                    <accordion-heading>
-                        Acceptance criterias <i class="pull-right glyphicon" ng-class="{'glyphicon-chevron-up': status.isCustomHeaderOpen, 'glyphicon-chevron-down': !status.isCustomHeaderOpen}"></i>
-                    </accordion-heading>
-                    <div class="col-sm-12">
-                        <label class="col-sm-12">
-                            Description
-                            <a href="#" ng-click="CACData.acceptCrits.push({v:''})" style="font-size: 25px; margin-left: 20px;">
-                                <span class="glyphicon glyphicon-plus-sign"></span>
-                            </a>
-                        </label>
-                        <div class="form-group" ng-repeat="d in CACData.acceptCrits track by $index">
-                            <div class="col-sm-9">
-                                <input type="text" class="form-control" ng-model="d.v">
-                                <span class="has-error" ng-if="d.v.length == 0 && view.submitted">Required field</span>
-                            </div>
-                            <div class="col-sm-3">
-                                <button type="button" class="btn btn-default" ng-click="CACData.acceptCrits.splice($index, 1)">Delete</button>
-                            </div>
-                        </div>
-                    </div>
-                </accordion-group>
-            </accordion>-->
         </tab>
         <tab disabled="true">
             <tab-heading> Business Case </tab-heading>
-            <div style="margin-bottom: 20px;"></div>
-
-            <div class="col-sm-12">
-                <label style="margin-left: 20px;">Business Case</label>
-                <div class="col-sm-12" style="border: 1px solid #ccc; border-radius: 10px; padding-top: 10px;">
-                    <demand-business-case data="BCData.businessCase" form="kcell_form" view="view" disabled="true"></demand-business-case>
-                </div>
-            </div>
-            <span ng-repeat="form in SRForms.HR">
-                <div class="col-sm-12" style="border: 1px solid #ccc; border-radius: 10px; padding-top: 10px; margin: 20px 0;">
-                    <label style="margin-bottom: 20px;">Supportive request form for {{form}}</label>
-                    <demand-resources data="supportiveRequests[form]" form="kcell_form" view="view" disabled="true" editprice="false"></demand-resources>
-                </div>
-            </span>
-            <span ng-repeat="form in SRForms.CPD">
-                <div class="col-sm-12" style="border: 1px solid #ccc; border-radius: 10px; padding-top: 10px; margin: 20px 0;">
-                    <label style="margin-bottom: 20px;">Supportive request form for {{form}}</label>
-                    <demand-materials data="supportiveRequests[form]" form="kcell_form" view="view" disabled="true" editprice="false"></demand-materials>
-                </div>
-            </span>
         </tab>
         <tab disabled="true">
             <tab-heading> Product passport\Approvement list</tab-heading>
-            <div style="margin-bottom: 20px;"></div>
         </tab>
     </tabset>
-
-    <div class="col-sm-12" style="border: 1px solid #ccc; border-radius: 10px; padding-top: 10px; margin: 20px 0;">
-        <demand-supportive-inputs data="supportiveInputs" form="kcell_form" view="view" disabled="false"></demand-supportive-inputs>
-    </div>
-
-    <span ng-repeat="form in SRForms.BI">
-        <div class="col-sm-12" style="border: 1px solid #ccc; border-radius: 10px; padding-top: 10px; margin: 20px 0;">
-            <label style="margin-bottom: 20px;">Supportive request form for {{form}}</label>
-            <demand-business-intelligence data="supportiveRequests[form]" form="kcell_form" view="view" disabled="false" biname="biName"></demand-business-intelligence>
-        </div>
-    </span>
-
-    <span ng-repeat="form in SRForms.LD">
-        <div class="col-sm-12" style="border: 1px solid #ccc; border-radius: 10px; padding-top: 10px; margin: 20px 0;">
-            <label style="margin-bottom: 20px;">Supportive request form for {{form}}</label>
-            <div class="form-group">
-                <label class="col-sm-12">Order</label>
-                <div class="col-sm-12">
-                    <textarea class="form-control" ng-model="supportiveRequests[form]" style="resize: none;" rows="8"></textarea>
-                </div>
-            </div>
-        </div>
-    </span>
-
-    <div class="col-sm-12" style="border: 1px solid #ccc; border-radius: 10px; padding-top: 10px; margin: 20px 0;">
-        <iframe id="fileDownloadIframe" style="display:none;"></iframe>
-        <div class="form-group">
-            <label class="col-sm-4 control-label">Attachments</label>
-            <div class="col-sm-8">
-                <input type="file" class="form-control" id="attachments" name="attachments" onchange="angular.element(this).scope().fileSelected(this)"/>
-                <div class="col-sm-12">
-                    <table class="table table-bordered">
-                        <thead>
-                        <tr>
-                            <th>File Name</th>
-                            <th>Created</th>
-                            <th>Created By</th>
-                            <th>Delete</th>
-                        </tr>
-                        </thead>
-                        <tbody>
-                        <tr ng-repeat="file in attachments track by $index">
-                            <td><a ng-click="downloadFile(file)">{{file.name}}</a></td>
-                            <td>{{file.created | date: 'dd.MM.yyyy HH:mm'}}</td>
-                            <td>{{file.createdBy}}</td>
-                            <td><a ng-click="clearFile($index)"><i class="glyphicon glyphicon-trash"></i></a></td>
-                        </tr>
-                        </tbody>
-                    </table>
-                </div>
-            </div>
-        </div>
-    </div>
 
     <div class="row">
         <div class="col-md-2" style="margin-top: 20px;">
@@ -565,41 +145,11 @@
         </div>
     </div>
     <hr>
-
+    
     <div class="form-group">
-        <label class="col-sm-2 control-label">Resolution</label>
-        <div class="col-sm-8">
-            <label class="radio-inline">
-                <input type="radio" ng-model="demandFillFormTaskResult" name="demandFillFormTaskResult" value="approved" required> Approved
-            </label>
-            <label class="radio-inline">
-                <input type="radio" ng-model="demandFillFormTaskResult" name="demandFillFormTaskResult" value="modify" required> Modify works
-            </label>
-            <label class="radio-inline">
-                <input type="radio" ng-model="demandFillFormTaskResult" name="demandFillFormTaskResult" value="rejected" required> Reject
-            </label>
-            <label class="error" ng-show="kcell_form.demandFillFormTaskResult.$error.required && ( kcell_form.demandFillFormTaskResult.$touched || view.submitted)">Required field</label>
-        </div>
-    </div>
-    <div class="form-group">
-        <label class="col-sm-2 control-label">Comments</label>
+        <label class="col-sm-2 control-label">Comment</label>
         <div class="col-sm-10">
-            <textarea class="form-control" rows="4" maxlength="500" ng-model="demandFillFormTaskComment" name="demandFillFormTaskComment" ng-required="demandFillFormTaskResult == 'rejected'"></textarea>
-            <label class="error" ng-show="kcell_form.demandFillFormTaskComment.$error.required && ( kcell_form.demandFillFormTaskComment.$touched || view.submitted)">Required field</label>
-        </div>
-    </div>
-    <div class="form-group" ng-show="hasComment()">
-        <label class="col-sm-4 control-label">Comments visibility</label>
-        <div class="col-sm-8">
-            <label class="radio-inline">
-                <input type="radio" name="demandFillFormCommentVisibility"
-                       ng-model="demandFillFormCommentVisibility" value="all" ng-required="hasComment()"> Visible for all
-            </label>
-            <label class="radio-inline">
-                <input type="radio" name="demandFillFormCommentVisibility"
-                       ng-model="demandFillFormCommentVisibility" value="kcell" ng-required="hasComment()"> Kcell staff only
-            </label>
-            <label class="error" ng-show="kcell_form.demandFillFormCommentVisibility.$error.required && ( kcell_form.demandFillFormCommentVisibility.$touched || view.submitted)">Required field</label>
+            <textarea class="form-control" rows="4" maxlength="500" ng-model="comment"></textarea>
         </div>
     </div>
 
@@ -622,7 +172,7 @@
                 <tr ng-repeat="resolution in resolutions">
                     <td>{{resolution.taskName}}</td>
                     <td>{{resolution.assigneeName}}</td>
-                    <td>{{'task.resolution.'+resolution.resolution | translate}}</td>
+                    <td>{{resolution.resolution}}</td>
                     <td>{{resolution.taskEndDate | date: 'dd.MM.yyyy HH:mm'}}</td>
                     <td>{{resolution.comment}}</td>
                 </tr>
