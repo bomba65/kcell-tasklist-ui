@@ -22,17 +22,14 @@
                 materials: [],
                 acceptCrits: []
             };
+            $scope.BCData = {};
             $scope.resolutions = [];
             $scope.attachments = [];
             $scope.supportiveInputs = [];
-            $scope.requestInfoList = {
-                CPD: false,
-                CPDs: [],
-                HR: false,
-                HRs: [],
-                TD: false,
-                TDs: []
-            };
+            $scope.supportiveRequests = {};
+            $scope.supportiveResources = {};
+            $scope.supportiveMaterials = {};
+
             var processInstanceId = null;
             var taskName = null;
             var assigneeName = $rootScope.authentication.name;
@@ -55,25 +52,54 @@
                 camForm.variableManager.fetchVariable('generalData');
                 camForm.variableManager.fetchVariable('BRDData');
                 camForm.variableManager.fetchVariable('CACData');
+                camForm.variableManager.fetchVariable('BCData');
+                camForm.variableManager.fetchVariable('supportiveInputs');
+                camForm.variableManager.fetchVariable('supportiveRequests');
                 camForm.variableManager.fetchVariable('resolutions');
                 camForm.variableManager.fetchVariable('attachments');
-                camForm.variableManager.fetchVariable('supportiveInputs');
-                camForm.variableManager.fetchVariable('requestInfoList');
             });
 
             camForm.on('variables-fetched', function () {
                 $scope.generalData = camForm.variableManager.variableValue('generalData');
                 $scope.BRDData = camForm.variableManager.variableValue('BRDData');
                 $scope.CACData = camForm.variableManager.variableValue('CACData');
+                $scope.BCData = camForm.variableManager.variableValue('BCData');
+                $scope.supportiveInputs = camForm.variableManager.variableValue('supportiveInputs');
+                $scope.supportiveRequests = camForm.variableManager.variableValue('supportiveRequests');
                 $scope.resolutions = camForm.variableManager.variableValue('resolutions');
                 $scope.attachments = camForm.variableManager.variableValue('attachments');
-                $scope.supportiveInputs = camForm.variableManager.variableValue('supportiveInputs');
-                $scope.requestInfoList = camForm.variableManager.variableValue('requestInfoList');
                 if (!$scope.attachments) $scope.attachments = [];
                 if (!$scope.supportiveInputs) $scope.supportiveInputs = [];
+                if (!$scope.supportiveRequests) $scope.supportiveRequests = {};
             });
 
             camForm.on('submit', function (event) {
+                camForm.variableManager.destroyVariable('BCData');
+                camForm.variableManager.createVariable({
+                    name: 'BCData',
+                    type: 'Json',
+                    value: $scope.BCData
+                });
+                camForm.variableManager.destroyVariable('attachments');
+                camForm.variableManager.createVariable({
+                    name: 'attachments',
+                    type: 'json',
+                    value: $scope.attachments,
+                    store: true
+                });
+                camForm.variableManager.destroyVariable('supportiveInputs');
+                camForm.variableManager.createVariable({
+                    name: 'supportiveInputs',
+                    type: 'Json',
+                    value: $scope.supportiveInputs
+                });
+                camForm.variableManager.destroyVariable('supportiveRequests');
+                camForm.variableManager.createVariable({
+                    name: 'supportiveRequests',
+                    type: 'Json',
+                    value: $scope.supportiveRequests
+                });
+
                 var submitDate = new Date ();
                 if(!$scope.resolutions){
                     $scope.resolutions = [];
@@ -93,26 +119,18 @@
                     value: $scope.resolution
                 });
 
-                if ($scope.supportiveInputs && $scope.supportiveInputs.length) {
-                    for (var v of $scope.supportiveInputs) {
-                        $scope.requestInfoList[v.form] = true;
-                        if (!$scope.requestInfoList[v.form+'s']) $scope.requestInfoList[v.form+'s'] = [];
-                        $scope.requestInfoList[v.form+'s'].push(v.unit);
-                    }
+                for(var form in $scope.supportiveResources) {
+                    $scope.CACData.resources = ($scope.CACData.resources, $scope.supportiveResources[form]));
                 }
-                
-                camForm.variableManager.destroyVariable("supportiveInputs");
+                for(var form in $scope.supportiveMaterials) {
+                    $scope.CACData.materials = ($scope.CACData.materials, $scope.supportiveMaterials[form]));
+                }
+
+                camForm.variableManager.destroyVariable('CACData');
                 camForm.variableManager.createVariable({
-                    name: 'supportiveInputs',
+                    name: 'CACData',
                     type: 'Json',
-                    value: $scope.supportiveInputs
-                });
-                
-                camForm.variableManager.destroyVariable("requestInfoList");
-                camForm.variableManager.createVariable({
-                    name: 'requestInfoList',
-                    type: 'Json',
-                    value: $scope.requestInfoList
+                    value: $scope.CACData
                 });
             });
 
@@ -125,6 +143,104 @@
                     console.log(data);
                 });
             }
+            
+            $scope.clearFile = function(fileIndex) {
+                $scope.attachments.splice(fileIndex, 1);
+            }
+                
+            $scope.fileSelected = function(el ){
+                $timeout(function () {
+                    $scope.$apply(function () {
+                        uploadFileToMinio(el.files[0]);
+                    });
+                })
+            };
+            
+            function uploadFileToMinio(file) {
+                var fileToUpload = {
+                    name: file.name,
+                    path: $scope.processInstanceId + '/' + camForm.taskId + '/' + file.name,
+                    created: new Date(),
+                    createdBy: assigneeName
+                };
+                $http({method: 'GET', url: '/camunda/uploads/put/' + fileToUpload.path, transformResponse: [] }).success(function(data, status, headers, config) {
+                    $http.put(data, file, {headers: {'Content-Type': undefined}}).then(
+                        function () {
+                            $scope.attachments.push(fileToUpload);
+                            angular.element(document.querySelector('#attachments')).val(null);
+                        },
+                        function (error) {
+                            console.log(error.data);
+                        }
+                    );
+                }).error (function(data, status, headers, config) {
+                    console.log(data);
+                });
+            }
+
+            $scope.saveFillForm = function () {
+                var success = 0;
+                var json = JSON.stringify($scope.BCData, function( key, value ) {
+                    if( key === "$$hashKey" ) return undefined;
+                    return value;
+                });
+                $http.put('/camunda/api/engine/engine/default/process-instance/'+$scope.processInstanceId+'/variables/BCData',{"type":"Json","value": json}).then(
+                    function() {
+                        success++;
+                        if (success == 4) toasty.success( "Данные успешно сохранены!");
+                    },
+                    function(error) {toasty.error(error.data);}
+                );
+                json = JSON.stringify($scope.attachments, function( key, value ) {
+                    if( key === "$$hashKey" ) return undefined;
+                    return value;
+                });
+                $http.put('/camunda/api/engine/engine/default/process-instance/'+$scope.processInstanceId+'/variables/attachments',{"type":"Json","value": json}).then(
+                    function() {
+                        success++;
+                        if (success == 4) toasty.success( "Данные успешно сохранены!");
+                    },
+                    function(error) {toasty.error(error.data);}
+                );
+                json = JSON.stringify($scope.supportiveInputs, function( key, value ) {
+                    if( key === "$$hashKey" ) return undefined;
+                    return value;
+                });
+                $http.put('/camunda/api/engine/engine/default/process-instance/'+$scope.processInstanceId+'/variables/supportiveInputs',{"type":"Json","value": json}).then(
+                    function() {
+                        success++;
+                        if (success == 4) toasty.success( "Данные успешно сохранены!");
+                    },
+                    function(error) {toasty.error(error.data);}
+                );
+                json = JSON.stringify($scope.supportiveRequests, function( key, value ) {
+                    if( key === "$$hashKey" ) return undefined;
+                    return value;
+                });
+                $http.put('/camunda/api/engine/engine/default/process-instance/'+$scope.processInstanceId+'/variables/supportiveRequests',{"type":"Json","value": json}).then(
+                    function() {
+                        success++;
+                        if (success == 4) toasty.success( "Данные успешно сохранены!");
+                    },
+                    function(error) {toasty.error(error.data);}
+                );
+            };
+
+            $scope.$watch('supportiveInputs', function(value) {
+                if (value) {
+                    $scope.SRForms = {
+                        HR: [],
+                        LD: [],
+                        CPD: [],
+                        BI: [],
+                        TD: []
+                    };
+                    for (var v of $scope.supportiveInputs) {
+                        if (!$scope.SRForms[v.form]) $scope.SRForms[v.form] = [];
+                        $scope.SRForms[v.form].push(v.unit);
+                    }
+                }
+            }, true);
         }]);
     </script>
     <div class="form-group">
@@ -138,7 +254,7 @@
         </div>
         <label class="col-sm-2 control-label"> Activity:</label>
         <div class="col-sm-2">
-            <label rows="1" class="form-control" disabled> Check cost assessment </label>
+            <label rows="1" class="form-control" disabled> Enrich Business case </label>
         </div>
     </div>
     <div class="form-group">
@@ -233,6 +349,7 @@
                         <div class="col-sm-12">
                             <label class="col-sm-12">
                                 Description
+
                             </label>
                             <div class="form-group" ng-repeat="d in CACData.acceptCrits">
                                 <div class="col-sm-9">
@@ -244,26 +361,63 @@
                 </accordion>
             </div>
         </tab>
-        <tab disabled="true">
+        <tab active="true">
             <tab-heading> Business Case </tab-heading>
+            <div style="margin-bottom: 20px;">
+                <div class="col-sm-12">
+                    <label style="margin-left: 20px;">Business Case</label>
+                    <div class="col-sm-12" style="border: 1px solid #ccc; border-radius: 10px; padding-top: 10px;">
+                        <demand-business-case data="BCData.businessCase" form="kcell_form" view="view" disabled="true"></demand-business-case>
+                    </div>
+                </div>
+                <span ng-repeat="form in SRForms.HR">
+                    <div class="col-sm-12" style="border: 1px solid #ccc; border-radius: 10px; padding-top: 10px; margin: 20px 0;">
+                        <label style="margin-bottom: 20px;">Supportive request form for {{form}}</label>
+                        <demand-resources data="supportiveResources[form]" form="kcell_form" view="view" disabled="true" editprice="false"></demand-resources>
+                    </div>
+                </span>
+                <span ng-repeat="form in SRForms.CPD">
+                    <div class="col-sm-12" style="border: 1px solid #ccc; border-radius: 10px; padding-top: 10px; margin: 20px 0;">
+                        <label style="margin-bottom: 20px;">Supportive request form for {{form}}</label>
+                        <demand-materials data="supportiveMaterials[form]" form="kcell_form" view="view" disabled="true" editprice="false"></demand-materials>
+                    </div>
+                </span>
+            </div>
         </tab>
         <tab disabled="true">
             <tab-heading> Product passport\Approvement list</tab-heading>
         </tab>
     </tabset>
-    <hr>
 
     <div class="col-sm-12" style="border: 1px solid #ccc; border-radius: 10px; padding-top: 10px; margin: 20px 0;">
-        <div class="col-sm-12">
-            <demand-supportive-inputs data="supportiveInputs" form="kcell_form" view="view" disabled="false"></demand-supportive-inputs>
-        </div>
+        <demand-supportive-inputs data="supportiveInputs" form="kcell_form" view="view" disabled="false"></demand-supportive-inputs>
     </div>
+
+    <span ng-repeat="form in SRForms.BI">
+        <div class="col-sm-12" style="border: 1px solid #ccc; border-radius: 10px; padding-top: 10px; margin: 20px 0;">
+            <label style="margin-bottom: 20px;">Supportive request form for {{form}}</label>
+            <demand-business-intelligence data="supportiveRequests[form]" form="kcell_form" view="view" disabled="false" biname="biName"></demand-business-intelligence>
+        </div>
+    </span>
+
+    <span ng-repeat="form in SRForms.LD">
+        <div class="col-sm-12" style="border: 1px solid #ccc; border-radius: 10px; padding-top: 10px; margin: 20px 0;">
+            <label style="margin-bottom: 20px;">Supportive request form for {{form}}</label>
+            <div class="form-group">
+                <label class="col-sm-12">Order</label>
+                <div class="col-sm-12">
+                    <textarea class="form-control" ng-model="supportiveRequests[form]" style="resize: none;" rows="8"></textarea>
+                </div>
+            </div>
+        </div>
+    </span>
 
     <div class="col-sm-12" style="border: 1px solid #ccc; border-radius: 10px; padding-top: 10px; margin: 20px 0;">
         <iframe id="fileDownloadIframe" style="display:none;"></iframe>
         <div class="form-group">
             <label class="col-sm-4 control-label">Attachments</label>
             <div class="col-sm-8">
+                <input type="file" class="form-control" id="attachments" name="attachments" onchange="angular.element(this).scope().fileSelected(this)"/>
                 <div class="col-sm-12">
                     <table class="table table-bordered">
                         <thead>
@@ -271,6 +425,7 @@
                             <th>File Name</th>
                             <th>Created</th>
                             <th>Created By</th>
+                            <th>Delete</th>
                         </tr>
                         </thead>
                         <tbody>
@@ -278,6 +433,7 @@
                             <td><a ng-click="downloadFile(file)">{{file.name}}</a></td>
                             <td>{{file.created | date: 'dd.MM.yyyy HH:mm'}}</td>
                             <td>{{file.createdBy}}</td>
+                            <td><a ng-click="clearFile($index)"><i class="glyphicon glyphicon-trash"></i></a></td>
                         </tr>
                         </tbody>
                     </table>
@@ -286,14 +442,18 @@
         </div>
     </div>
 
+    <div class="row">
+        <div class="col-md-2" style="margin-top: 20px;">
+            <button type="button" ng-click="saveFillForm()" class="btn btn-success" style="padding: 6px 28px">Save</button>
+        </div>
+    </div>
+    <hr>
+
     <div class="form-group">
         <label class="col-sm-2 control-label">Resolution</label>
         <div class="col-sm-8">
             <label class="radio-inline">
-                <input type="radio" ng-model="resolution" name="resolution" value="Approve" required> Approve
-            </label>
-            <label class="radio-inline">
-                <input type="radio" ng-model="resolution" name="resolution" value="Modify" required> Modify
+                <input type="radio" ng-model="resolution" name="resolution" value="Submit" required> Submit
             </label>
             <label class="radio-inline">
                 <input type="radio" ng-model="resolution" name="resolution" value="Request Info" required> Request Info
@@ -304,8 +464,7 @@
     <div class="form-group">
         <label class="col-sm-2 control-label">Comment</label>
         <div class="col-sm-10">
-            <textarea class="form-control" rows="4" maxlength="500" ng-model="comment" name="comment" ng-required="resolution == 'Modify'"></textarea>
-            <label class="error" ng-show="kcell_form.comment.$error.required && ( kcell_form.comment.$touched || view.submitted)">Required field</label>
+            <textarea class="form-control" rows="4" maxlength="500" ng-model="comment"></textarea>
         </div>
     </div>
 

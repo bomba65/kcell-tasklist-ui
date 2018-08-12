@@ -27,6 +27,7 @@
                 businessCase: {}
             };
             $scope.supportiveInputs = [];
+            $scope.currentSupportiveInput = [];
             var requestInfoName = null;
 
             var assigneeName = $rootScope.authentication.name;
@@ -67,11 +68,21 @@
                 if (!$scope.attachments) $scope.attachments = [];
                 if (!$scope.supportiveInputs) $scope.supportiveInputs = [];
                 if ($scope.CACData.materials) theMaterials = _.map($scope.CACData.materials, _.clone);
+                var elt = $scope.supportiveInputs.find(function(e) {return e.unit == requestInfoName});
+                if (elt) $scope.currentSupportiveInput.push(elt);
             });
 
             camForm.on('submit', function (event) {
+                camForm.variableManager.destroyVariable('attachments');
+                camForm.variableManager.createVariable({
+                    name: 'attachments',
+                    type: 'json',
+                    value: $scope.attachments,
+                    store: true
+                });
+
                 var submitDate = new Date ();
-                $scope.resolutions.push({processInstanceId: $scope.processInstanceId, assignee: assigneeName, resolution: $scope.demandFillFormTaskResult, comment: $scope.comment, taskId: camForm.taskId, taskEndDate: submitDate, taskName: $scope.taskName});
+                $scope.resolutions.push({processInstanceId: $scope.processInstanceId, assignee: assigneeName, resolution: null, comment: $scope.comment, taskId: camForm.taskId, taskEndDate: submitDate, taskName: $scope.taskName});
                 camForm.variableManager.destroyVariable('resolutions');
                 camForm.variableManager.createVariable({
                     name: 'resolutions',
@@ -121,6 +132,40 @@
                     console.log(data);
                 });
             }
+          
+            $scope.clearFile = function(fileIndex) {
+                $scope.attachments.splice(fileIndex, 1);
+            }
+              
+            $scope.fileSelected = function(el ){
+                $timeout(function () {
+                    $scope.$apply(function () {
+                        uploadFileToMinio(el.files[0]);
+                    });
+                })
+            };
+          
+            function uploadFileToMinio(file) {
+                var fileToUpload = {
+                    name: file.name,
+                    path: $scope.processInstanceId + '/' + camForm.taskId + '/' + file.name,
+                    created: new Date(),
+                    createdBy: assigneeName
+                };
+                $http({method: 'GET', url: '/camunda/uploads/put/' + fileToUpload.path, transformResponse: [] }).success(function(data, status, headers, config) {
+                    $http.put(data, file, {headers: {'Content-Type': undefined}}).then(
+                        function () {
+                            $scope.attachments.push(fileToUpload);
+                            angular.element(document.querySelector('#attachments')).val(null);
+                        },
+                        function (error) {
+                            console.log(error.data);
+                        }
+                    );
+                }).error (function(data, status, headers, config) {
+                    console.log(data);
+                });
+            }
 
             $scope.saveFillForm = function () {
                 $http.get('/camunda/api/engine/engine/default/process-instance/'+$scope.processInstanceId+'/variables/CACData?deserializeValue=false').then(
@@ -139,17 +184,12 @@
                             return value;
                         });
                         $http.put('/camunda/api/engine/engine/default/process-instance/'+$scope.processInstanceId+'/variables/CACData',{"type":"Json","value": json}).then(
-                                function(){
-                                    console.log($scope.CACData);
-                                },
-                                function(error){
-                                    console.log(error.data);
-                                }
+                                function() {toasty.success( "Данные успешно сохранены!");},
+                                function(error) {toasty.error(error.data);}
                         );
-                        toasty.success( "Данные успешно сохранены!");
                     },
                     function(error){
-                        console.log(error.data);
+                        toasty.error(error.data);
                     }
                 );
             };
@@ -162,18 +202,17 @@
         </div>
         <label class="col-sm-2 control-label"> Demand Status:</label>
         <div class="col-sm-2">
-            <label rows="1" class="form-control" id="demandStatus" disabled>New </label>
+            <label rows="1" class="form-control" disabled>Active </label>
         </div>
         <label class="col-sm-2 control-label"> Activity:</label>
         <div class="col-sm-2">
-            <label rows="1" class="form-control" id="demandActivity" disabled> FillForm </label>
+            <label rows="1" class="form-control" disabled> Fill Material Costs </label>
         </div>
     </div>
     <div class="form-group">
         <label class="col-sm-2 control-label"> Demand Name: </label>
         <div class="col-sm-10">
-            <textarea rows="1" class="form-control" name="demandName" ng-model="demandName" cam-variable-name="demandName" cam-variable-type="String" required/>
-            <label class="error" ng-show="kcell_form.demandName.$error.required && ( kcell_form.demandName.$touched || view.submitted)">Required field</label>
+            <textarea rows="1" class="form-control" cam-variable-name="demandName" cam-variable-type="String" disabled/>
         </div>
     </div>
     <hr>
@@ -253,40 +292,26 @@
                 </accordion-group>
             </accordion>
         </tab>
-        <tab>
+        <tab disabled="true">
             <tab-heading> Business Case </tab-heading>
-            <div style="margin-bottom: 20px;"></div>
-
-            <div class="col-sm-12">
-                <label style="margin-left: 20px;">Business Case</label>
-                <div class="col-sm-12" style="border: 1px solid #ccc; border-radius: 10px; padding-top: 10px;">
-                    <demand-business-case data="BCData.businessCase" form="kcell_form" view="view" disabled="true"></demand-business-case>
-                </div>
-            </div>
-            <span ng-repeat="form in SRForms.HR">
-                <div class="col-sm-12" style="border: 1px solid #ccc; border-radius: 10px; padding-top: 10px; margin: 20px 0;">
-                    <label style="margin-bottom: 20px;">Supportive request form for {{form}}</label>
-                    <demand-resources data="supportiveRequests[form]" form="kcell_form" view="view" disabled="true" editprice="false"></demand-resources>
-                </div>
-            </span>
-            <span ng-repeat="form in SRForms.CPD">
-                <div class="col-sm-12" style="border: 1px solid #ccc; border-radius: 10px; padding-top: 10px; margin: 20px 0;">
-                    <label style="margin-bottom: 20px;">Supportive request form for {{form}}</label>
-                    <demand-materials data="supportiveRequests[form]" form="kcell_form" view="view" disabled="true" editprice="false"></demand-materials>
-                </div>
-            </span>
         </tab>
         <tab disabled="true">
             <tab-heading> Product passport\Approvement list</tab-heading>
-            <div style="margin-bottom: 20px;"></div>
         </tab>
     </tabset>
+
+    <div class="col-sm-12" style="border: 1px solid #ccc; border-radius: 10px; padding-top: 10px; margin: 20px 0;">
+        <div class="col-sm-12">
+            <demand-supportive-inputs data="currentSupportiveInput" form="kcell_form" view="view" disabled="true"></demand-supportive-inputs>
+        </div>
+    </div>
 
     <div class="col-sm-12" style="border: 1px solid #ccc; border-radius: 10px; padding-top: 10px; margin: 20px 0;">
         <iframe id="fileDownloadIframe" style="display:none;"></iframe>
         <div class="form-group">
             <label class="col-sm-4 control-label">Attachments</label>
             <div class="col-sm-8">
+                <input type="file" class="form-control" id="attachments" name="attachments" onchange="angular.element(this).scope().fileSelected(this)"/>
                 <div class="col-sm-12">
                     <table class="table table-bordered">
                         <thead>
@@ -294,6 +319,7 @@
                             <th>File Name</th>
                             <th>Created</th>
                             <th>Created By</th>
+                            <th>Delete</th>
                         </tr>
                         </thead>
                         <tbody>
@@ -301,6 +327,7 @@
                             <td><a ng-click="downloadFile(file)">{{file.name}}</a></td>
                             <td>{{file.created | date: 'dd.MM.yyyy HH:mm'}}</td>
                             <td>{{file.createdBy}}</td>
+                            <td><a ng-click="clearFile($index)"><i class="glyphicon glyphicon-trash"></i></a></td>
                         </tr>
                         </tbody>
                     </table>
@@ -342,7 +369,7 @@
                 <tr ng-repeat="resolution in resolutions">
                     <td>{{resolution.taskName}}</td>
                     <td>{{resolution.assigneeName}}</td>
-                    <td>{{'task.resolution.'+resolution.resolution | translate}}</td>
+                    <td>{{resolution.resolution}}</td>
                     <td>{{resolution.taskEndDate | date: 'dd.MM.yyyy HH:mm'}}</td>
                     <td>{{resolution.comment}}</td>
                 </tr>
