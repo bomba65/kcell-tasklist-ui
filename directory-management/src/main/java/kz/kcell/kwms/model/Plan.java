@@ -22,7 +22,7 @@ class Plan implements Comparable<Plan> {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     Long id;
 
-    Integer site_id;
+    Integer position_number;
 
     @Size(min = 1)
     String status;

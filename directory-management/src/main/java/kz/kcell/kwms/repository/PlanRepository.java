@@ -23,8 +23,8 @@ public interface PlanRepository extends PagingAndSortingRepository<Plan, Long> {
     @Override
     Page<Plan> findAll(Pageable pageable);
 
-    @Query("select distinct l from Plan l where l.site_id = ?1 and l.is_current = true")
-    List<Plan> findBySite(@Param("siteId") Integer siteId);
+    @Query("select distinct l from Plan l where l.position_number = ?1 and l.is_current = true")
+    List<Plan> findBySite(@Param("position_number") Integer position_number);
 
     @Query("select l from Plan l where l.is_current = true")
     List<Plan> findCurrentPlanSites();
@@ -33,14 +33,11 @@ public interface PlanRepository extends PagingAndSortingRepository<Plan, Long> {
     List<Plan> findCurrentToStartPlanSites();
 
     @Modifying
-    @Query("update Plan l set l.is_current = false where l.site_id = ?1 and l.is_current = true")
-    void changePrevCurrentStatus(@Param("siteId") Integer siteId);
+    @Query("update Plan l set l.is_current = false where l.position_number = ?1 and l.is_current = true")
+    void changePrevCurrentStatus(@Param("position_number") Integer position_number);
 
     @Modifying
-    @Query("update Plan l set l.status = ?2 where l.site_id = ?1 and l.is_current = true")
-    void changePlanStatus(@Param("siteId") Integer siteId, @Param("status") String status);
+    @Query("update Plan l set l.status = ?2 where l.position_number = ?1 and l.is_current = true")
+    void changePlanStatus(@Param("position_number") Integer position_number, @Param("status") String status);
 
-    @Modifying
-    @Query(value = "insert into Plan('status', 'is_current', 'site_id', params)  VALUES ( :status, true, :siteId, :params)", nativeQuery = true)
-    void createNewPlan(@Param("siteId") Integer siteId, @Param("status") String status, @Param("params") String params );
 }

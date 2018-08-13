@@ -39,12 +39,12 @@ public class createNewPlanVersion implements JavaDelegate {
 
         String sharingPlanStatus = String.valueOf(delegateExecution.getVariable("sharingPlanStatus"));
         String sharingPlanParams = String.valueOf(delegateExecution.getVariable("sharingPlan"));
-        String siteId = String.valueOf(delegateExecution.getVariable("siteId"));
+        String positionNumber = String.valueOf(delegateExecution.getVariable("positionNumber"));
         //String sharingPlanVersion = String.valueOf(delegateExecution.getVariable("sharingPlanVersion"));
 
         //log.info("sharingPlanStatus:" + sharingPlanStatus);
 
-        HttpGet httpGet = new HttpGet(baseUri + "/directory-management/networkinfrastructure/plan/changePrevCurrentStatus?siteId=" + siteId);
+        HttpGet httpGet = new HttpGet(baseUri + "/directory-management/networkinfrastructure/plan/changePrevCurrentStatus/" + positionNumber);
         SSLContextBuilder builder = new SSLContextBuilder();
         builder.loadTrustMaterial(null, new TrustSelfSignedStrategy());
         SSLConnectionSocketFactory sslsf = new SSLConnectionSocketFactory(
@@ -58,7 +58,7 @@ public class createNewPlanVersion implements JavaDelegate {
             String plansUrl = baseUri + "/directory-management/networkinfrastructure/plan/createNewPlan";
             //log.info("{\"params\":\"" + sharingPlanParams + "\",\"status\":\"" + sharingPlanStatus + "\",\"site\": \"" + siteUrl + "\",\"is_current\":true}");
 
-            StringEntity planInputData = new StringEntity("{\"params\":" + sharingPlanParams + ",\"status\":\"candidate_sharing\",\"site_id\": " + siteId + ",\"is_current\":true}", "UTF-8");
+            StringEntity planInputData = new StringEntity("{\"params\":" + sharingPlanParams + ",\"status\":\"candidate_sharing\",\"position_number\": " + positionNumber + ",\"is_current\":true}", "UTF-8");
 
             HttpPost planHttpPost = new HttpPost(new URI(plansUrl));
             planHttpPost.addHeader("Content-Type", "application/json;charset=UTF-8");

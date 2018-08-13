@@ -42,10 +42,11 @@ public class NetworkInfrastructureController {
         return ResponseEntity.ok(plans);
     }
 
-    @RequestMapping(value = "/plan/changePrevCurrentStatus?siteId={siteId}", method = RequestMethod.GET)
+    @RequestMapping(value = "/plan/changePrevCurrentStatus/{position_number}", method = RequestMethod.GET)
     @ResponseBody
-    public void changePrevCurrentStatus(@PathVariable("siteId") Integer siteId){
-        planRepository.changePrevCurrentStatus(siteId);
+    public void changePrevCurrentStatus(@PathVariable("position_number") Integer position_number){
+        planRepository.changePrevCurrentStatus(position_number);
+        log.info("GET REQUEST /plan/changePrevCurrentStatus/" + position_number);
     }
 
     @RequestMapping(value = "/plan/createNewPlan", method = RequestMethod.POST)
@@ -63,10 +64,10 @@ public class NetworkInfrastructureController {
 
     }
 
-    @RequestMapping(value = "/plan/changePlanStatus/{status}/{siteId}", method = RequestMethod.GET)
+    @RequestMapping(value = "/plan/changePlanStatus/{status}/{position_number}", method = RequestMethod.GET)
     @ResponseBody
-    public void changePlanStatus(@PathVariable("siteId") Integer siteId, @PathVariable("status") String status){
-        planRepository.changePlanStatus(siteId, status);
+    public void changePlanStatus(@PathVariable("position_number") Integer position_number, @PathVariable("status") String status){
+        planRepository.changePlanStatus(position_number, status);
     }
 
     @RequestMapping(value = "/plan/findCurrentToStartPlanSites", method = RequestMethod.GET)

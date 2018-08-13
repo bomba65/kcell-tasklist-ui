@@ -32,12 +32,12 @@ public class changePlanStatusToInstallationDone implements JavaDelegate {
     @Override
     public void execute(DelegateExecution delegateExecution) throws Exception {
 
-        String siteId = String.valueOf(delegateExecution.getVariable("siteId"));
+        String positionNumber = String.valueOf(delegateExecution.getVariable("positionNumber"));
         String newStatus = String.valueOf(delegateExecution.getVariableLocal("newStatus"));
 
 
-        if(StringUtils.isNotEmpty(siteId)){
-            HttpGet httpGet = new HttpGet(baseUri + "/directory-management/networkinfrastructure//plan/changePlanStatus/" + newStatus + "/" + siteId);
+        if(StringUtils.isNotEmpty(positionNumber)){
+            HttpGet httpGet = new HttpGet(baseUri + "/directory-management/networkinfrastructure//plan/changePlanStatus/" + newStatus + "/" + positionNumber);
             SSLContextBuilder builder = new SSLContextBuilder();
             builder.loadTrustMaterial(null, new TrustSelfSignedStrategy());
             SSLConnectionSocketFactory sslsf = new SSLConnectionSocketFactory(
