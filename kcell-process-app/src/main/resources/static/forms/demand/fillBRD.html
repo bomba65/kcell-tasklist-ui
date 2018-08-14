@@ -46,6 +46,14 @@
                     $scope.generalData = camForm.variableManager.variableValue('generalData');
                     $scope.BRDData = camForm.variableManager.variableValue('BRDData');
                     $scope.resolutions = camForm.variableManager.variableValue('resolutions');
+                    if (!$scope.BRDData) {
+                        $scope.BRDData = {
+                            funcRequirements: {},
+                            nonFuncRequirements: {},
+                            interfaces: {},
+                            reportsStatistics: ''
+                        };
+                    }
                 });
     
                 camForm.on('submit', function (event) {
@@ -74,9 +82,9 @@
                         if( key === "$$hashKey" ) return undefined;
                         return value;
                     });
-                    $http.put('/camunda/api/engine/engine/default/process-instance/'+$scope.processInstanceId+'/variables/BRDData',{"type":"Json","value": json}).then(
+                    $http.put('/camunda/api/engine/engine/default/process-instance/'+processInstanceId+'/variables/BRDData',{"type":"Json","value": json}).then(
                             function() {toasty.success( "Данные успешно сохранены!");},
-                            function(error) {toasty.error(error.data);}
+                            function(error) {toasty.error(error.data.message);}
                     );
                 };
             }]);
@@ -202,7 +210,7 @@
                     </tr>
                     </thead>
                     <tbody>
-                    <tr ng-repeat="resolution in resolutions">
+                    <tr ng-repeat="resolution in resolutions track by $index">
                         <td>{{resolution.taskName}}</td>
                         <td>{{resolution.assigneeName}}</td>
                         <td>{{resolution.resolution}}</td>
