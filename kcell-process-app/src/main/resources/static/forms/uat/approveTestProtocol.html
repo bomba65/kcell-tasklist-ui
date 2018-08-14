@@ -8,7 +8,7 @@
         inject(['$scope', '$http', 'Uri', '$rootScope', '$q', 'toasty', '$timeout', function ($scope, $http, Uri, $rootScope, $q, toasty, $timeout) {
             var variables = [
                 'resolutions',
-                <!--'approvalList',-->
+                'attachments',
                 'data',
                 'launchTaskResult'
             ];
@@ -19,18 +19,22 @@
                     camForm.variableManager.fetchVariable(el);
                 });
                 $http.get('/camunda/api/engine/engine/default/task/' + camForm.taskId).then(
-                    function(result){
-                        $scope.processInstanceId = result.data.processInstanceId;
-                        $scope.taskName = result.data.name;
-                    },
-                    function (error) {
-                        console.log(error.data);
-                    }
+                        function(result){
+                            $scope.processInstanceId = result.data.processInstanceId;
+                            $scope.taskName = result.data.name;
+                            $http.get('/camunda/api/engine/engine/default/process-instance/' + $scope.processInstanceId).then(
+                                    function(result){
+                                        $scope.businessKeyUAT = result.data.businessKey;
+                                    },
+                                    function (error) {
+                                        console.log(error.data);
+                                    }
+                            );
+                        },
+                        function (error) {
+                            console.log(error.data);
+                        }
                 );
-
-                camForm.variableManager.fetchVariable('attachments');
-                //camForm.variableManager.fetchVariable('data');
-
             });
 
             camForm.on('variables-fetched', function () {
