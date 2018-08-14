@@ -23,21 +23,20 @@
                 materials: [],
                 acceptCrits: []
             };
-            $scope.BCData = {
-                businessCase: {}
-            };
             $scope.supportiveInputs = [];
             $scope.currentSupportiveInput = [];
-            var requestInfoName = null;
-
+            var supportiveInputName = null;
+            var processInstanceId = null;
+            var taskName = null;
             var assigneeName = $rootScope.authentication.name;
+
             $http.get("/camunda/api/engine/engine/default/user/" + $rootScope.authentication.name+ "/profile").then(function(result){
                 assigneeName = (result.data.firstName ? result.data.firstName : "") + " " + (result.data.lastName ? result.data.lastName : "");
             });
             $http.get('/camunda/api/engine/engine/default/task/' + camForm.taskId).then(
                 function(result){
-                    $scope.processInstanceId = result.data.processInstanceId;
-                    $scope.taskName = result.data.name;
+                    processInstanceId = result.data.processInstanceId;
+                    taskName = result.data.name;
                 },
                 function (error) {
                     console.log(error.data);
@@ -49,10 +48,9 @@
                 camForm.variableManager.fetchVariable('generalData');
                 camForm.variableManager.fetchVariable('BRDData');
                 camForm.variableManager.fetchVariable('CACData');
-                camForm.variableManager.fetchVariable('BCData');
                 camForm.variableManager.fetchVariable('attachments');
                 camForm.variableManager.fetchVariable('supportiveInputs');
-                camForm.variableManager.fetchVariable('requestInfoName');
+                camForm.variableManager.fetchVariable('supportiveInputName');
             });
 
             camForm.on('variables-fetched', function () {
@@ -60,15 +58,14 @@
                 $scope.generalData = camForm.variableManager.variableValue('generalData');
                 $scope.BRDData = camForm.variableManager.variableValue('BRDData');
                 $scope.CACData = camForm.variableManager.variableValue('CACData');
-                $scope.BCData = camForm.variableManager.variableValue('BCData');
                 $scope.attachments = camForm.variableManager.variableValue('attachments');
                 $scope.supportiveInputs = camForm.variableManager.variableValue('supportiveInputs');
-                requestInfoName = camForm.variableManager.variableValue('requestInfoName');
+                supportiveInputName = camForm.variableManager.variableValue('supportiveInputName');
                 if (!$scope.resolutions) $scope.resolutions = [];
                 if (!$scope.attachments) $scope.attachments = [];
                 if (!$scope.supportiveInputs) $scope.supportiveInputs = [];
                 if ($scope.CACData.resources) theResources = _.map($scope.CACData.resources, _.clone);
-                var elt = $scope.supportiveInputs.find(function(e) {return e.unit == requestInfoName});
+                var elt = $scope.supportiveInputs.find(function(e) {return e.unit == supportiveInputName});
                 if (elt) $scope.currentSupportiveInput.push(elt);
             });
 
@@ -82,7 +79,7 @@
                 });
 
                 var submitDate = new Date ();
-                $scope.resolutions.push({processInstanceId: $scope.processInstanceId, assignee: assigneeName, resolution: null, comment: $scope.comment, taskId: camForm.taskId, taskEndDate: submitDate, taskName: $scope.taskName});
+                $scope.resolutions.push({processInstanceId: processInstanceId, assignee: assigneeName, resolution: null, comment: $scope.comment, taskId: camForm.taskId, taskEndDate: submitDate, taskName: taskName});
                 camForm.variableManager.destroyVariable('resolutions');
                 camForm.variableManager.createVariable({
                     name: 'resolutions',
@@ -91,8 +88,8 @@
                     store: true
                 });
 
-                if (requestInfoName) {
-                    var elt = $scope.supportiveInputs.find(function(e) {return e.unit == requestInfoName});
+                if (supportiveInputName) {
+                    var elt = $scope.supportiveInputs.find(function(e) {return e.unit == supportiveInputName});
                     if (elt) elt.inputReceived = true;
                     camForm.variableManager.destroyVariable('supportiveInputs');
                     camForm.variableManager.createVariable({
@@ -102,7 +99,7 @@
                     });
                 }
 
-                $http.get('/camunda/api/engine/engine/default/process-instance/'+$scope.processInstanceId+'/variables/CACData?deserializeValue=false').then(
+                $http.get('/camunda/api/engine/engine/default/process-instance/'+processInstanceId+'/variables/CACData?deserializeValue=false').then(
                     function(result) {
                         var lastCACData = JSON.parse(result.data.value);
                         for (var i = 0; i < theResources.length; i++) {
@@ -111,15 +108,19 @@
                                 $scope.CACData.resources[i].summ = lastCACData.resources[i].summ;
                             }
                         }
-                        camForm.variableManager.destroyVariable('CACData');
-                        camForm.variableManager.createVariable({
-                            name: 'CACData',
-                            type: 'Json',
-                            value: $scope.CACData
+                        var json = JSON.stringify($scope.CACData, function( key, value ) {
+                            if( key === "$$hashKey" ) {
+                                return undefined;
+                            }
+                            return value;
                         });
+                        $http.put('/camunda/api/engine/engine/default/process-instance/'+processInstanceId+'/variables/CACData',{"type":"Json","value": json}).then(
+                            function() {toasty.success( "Данные успешно сохранены!");},
+                            function(error) {toasty.error(error.data.message);}
+                        );
                     },
-                    function(error){
-                        console.log(error.data);
+                    function(error) {
+                        toasty.error(error.data.message);
                     }
                 );
             });
@@ -149,7 +150,7 @@
             function uploadFileToMinio(file) {
                 var fileToUpload = {
                     name: file.name,
-                    path: $scope.processInstanceId + '/' + camForm.taskId + '/' + file.name,
+                    path: processInstanceId + '/' + camForm.taskId + '/' + file.name,
                     created: new Date(),
                     createdBy: assigneeName
                 };
@@ -169,32 +170,30 @@
             }
 
             $scope.saveFillForm = function () {
-                $scope.saveFillForm = function () {
-                    $http.get('/camunda/api/engine/engine/default/process-instance/'+$scope.processInstanceId+'/variables/CACData?deserializeValue=false').then(
-                        function(result) {
-                            var lastCACData = JSON.parse(result.data.value);
-                            for (var i = 0; i < theResources.length; i++) {
-                                if ($scope.CACData.resources[i].pprice == theResources[i].pprice) {
-                                    $scope.CACData.resources[i].pprice = lastCACData.resources[i].pprice;
-                                    $scope.CACData.resources[i].summ = lastCACData.resources[i].summ;
-                                }
+                $http.get('/camunda/api/engine/engine/default/process-instance/'+processInstanceId+'/variables/CACData?deserializeValue=false').then(
+                    function(result) {
+                        var lastCACData = JSON.parse(result.data.value);
+                        for (var i = 0; i < theResources.length; i++) {
+                            if ($scope.CACData.resources[i].pprice == theResources[i].pprice) {
+                                $scope.CACData.resources[i].pprice = lastCACData.resources[i].pprice;
+                                $scope.CACData.resources[i].summ = lastCACData.resources[i].summ;
                             }
-                            var json = JSON.stringify($scope.CACData, function( key, value ) {
-                                if( key === "$$hashKey" ) {
-                                    return undefined;
-                                }
-                                return value;
-                            });
-                            $http.put('/camunda/api/engine/engine/default/process-instance/'+$scope.processInstanceId+'/variables/CACData',{"type":"Json","value": json}).then(
-                                function() {toasty.success( "Данные успешно сохранены!");},
-                                function(error) {toasty.error(error.data);}
-                            );
-                        },
-                        function(error) {
-                            toasty.error(error.data);
                         }
-                    );
-                };
+                        var json = JSON.stringify($scope.CACData, function( key, value ) {
+                            if( key === "$$hashKey" ) {
+                                return undefined;
+                            }
+                            return value;
+                        });
+                        $http.put('/camunda/api/engine/engine/default/process-instance/'+processInstanceId+'/variables/CACData',{"type":"Json","value": json}).then(
+                            function() {toasty.success( "Данные успешно сохранены!");},
+                            function(error) {toasty.error(error.data.message);}
+                        );
+                    },
+                    function(error) {
+                        toasty.error(error.data.message);
+                    }
+                );
             };
         }]);
     </script>
@@ -285,15 +284,16 @@
         </tab>
         <tab active="true">
             <tab-heading> Cost and Acceptance Criterias </tab-heading>
-            <div style="margin-bottom: 20px;"></div>
-            <accordion>
-                <accordion-group is-open="true">
-                    <accordion-heading>
-                        Resources <i class="pull-right glyphicon" ng-class="{'glyphicon-chevron-up': status.isCustomHeaderOpen, 'glyphicon-chevron-down': !status.isCustomHeaderOpen}"></i>
-                    </accordion-heading>
-                    <demand-resources data="CACData.resources" form="kcell_form" view="view" disabled="true" editprice="true"></demand-resources>
-                </accordion-group>
-            </accordion>
+            <div style="margin-bottom: 20px;">
+                <accordion>
+                    <accordion-group is-open="true">
+                        <accordion-heading>
+                            Resources <i class="pull-right glyphicon" ng-class="{'glyphicon-chevron-up': status.isCustomHeaderOpen, 'glyphicon-chevron-down': !status.isCustomHeaderOpen}"></i>
+                        </accordion-heading>
+                        <demand-resources data="CACData.resources" form="kcell_form" view="view" disabled="true" editprice="true"></demand-resources>
+                    </accordion-group>
+                </accordion>
+            </div>
         </tab>
         <tab disabled="true">
             <tab-heading> Business Case </tab-heading>
@@ -369,7 +369,7 @@
                 </tr>
                 </thead>
                 <tbody>
-                <tr ng-repeat="resolution in resolutions">
+                <tr ng-repeat="resolution in resolutions track by $index">
                     <td>{{resolution.taskName}}</td>
                     <td>{{resolution.assigneeName}}</td>
                     <td>{{resolution.resolution}}</td>

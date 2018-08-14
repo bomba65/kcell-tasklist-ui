@@ -57,6 +57,13 @@
                 $scope.resolutions = camForm.variableManager.variableValue('resolutions');
                 $scope.attachments = camForm.variableManager.variableValue('attachments');
                 if (!$scope.attachments) $scope.attachments = [];
+                if (!$scope.CACData) {
+                    $scope.CACData = {
+                        resources: [],
+                        materials: [],
+                        acceptCrits: []
+                    };
+                }
             });
 
             camForm.on('submit', function (event) {
@@ -112,7 +119,7 @@
             function uploadFileToMinio(file) {
                 var fileToUpload = {
                     name: file.name,
-                    path: $scope.processInstanceId + '/' + camForm.taskId + '/' + file.name,
+                    path: processInstanceId + '/' + camForm.taskId + '/' + file.name,
                     created: new Date(),
                     createdBy: assigneeName
                 };
@@ -137,23 +144,23 @@
                     if( key === "$$hashKey" ) return undefined;
                     return value;
                 });
-                $http.put('/camunda/api/engine/engine/default/process-instance/'+$scope.processInstanceId+'/variables/CACData',{"type":"Json","value": json}).then(
+                $http.put('/camunda/api/engine/engine/default/process-instance/'+processInstanceId+'/variables/CACData',{"type":"Json","value": json}).then(
                         function() {
                             success++;
                             if (success == 2) toasty.success( "Данные успешно сохранены!");
                         },
-                        function(error) {toasty.error(error.data);}
+                        function(error) {toasty.error(error.data.message);}
                 );
                 json = JSON.stringify($scope.attachments, function( key, value ) {
                     if( key === "$$hashKey" ) return undefined;
                     return value;
                 });
-                $http.put('/camunda/api/engine/engine/default/process-instance/'+$scope.processInstanceId+'/variables/attachments',{"type":"Json","value": json}).then(
+                $http.put('/camunda/api/engine/engine/default/process-instance/'+processInstanceId+'/variables/attachments',{"type":"Json","value": json}).then(
                         function() {
                             success++;
                             if (success == 2) toasty.success( "Данные успешно сохранены!");
                         },
-                        function(error) {toasty.error(error.data);}
+                        function(error) {toasty.error(error.data.message);}
                 );
             };
         }]);
@@ -350,7 +357,7 @@
                 </tr>
                 </thead>
                 <tbody>
-                <tr ng-repeat="resolution in resolutions">
+                <tr ng-repeat="resolution in resolutions track by $index">
                     <td>{{resolution.taskName}}</td>
                     <td>{{resolution.assigneeName}}</td>
                     <td>{{resolution.resolution}}</td>
