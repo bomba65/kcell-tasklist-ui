@@ -421,6 +421,14 @@ define(['./module','jquery', 'camundaSDK'], function(app, $, CamSDK){
 											$scope.jobModel.jobWorks.value[workIndex].files.push(file);
 										});
     								if($scope.jobModel.resolutions && $scope.jobModel.resolutions.value){
+    									$q.all($scope.jobModel.resolutions.value.map(function (resolution) {
+			                                return $http.get("/camunda/api/engine/engine/default/user/" + resolution.assignee + "/profile");
+			                            })).then(function (profiles) {
+			                                profiles.forEach(function (e, index) {
+			                                    // $scope.jobModel.resolutions[index].assigneeName = (e.data.firstName ? e.data.firstName : "") + " " + (e.data.lastName ? e.data.lastName : "");
+			                                    $scope.jobModel.resolutions.value[index].assigneeName = (e.data.firstName ? e.data.firstName : "") + " " + (e.data.lastName ? e.data.lastName : "");
+			                                });
+			                            });
 				                        $q.all($scope.jobModel.resolutions.value.map(function (resolution) {
 				                            return $http.get("/camunda/api/engine/engine/default/history/task?processInstanceId="+resolution.processInstanceId+"&taskId=" + resolution.taskId);
 				                        })).then(function (tasks) {
