@@ -67,7 +67,13 @@
                 $scope.attachments = camForm.variableManager.variableValue('attachments');
                 $scope.supportiveInputs = camForm.variableManager.variableValue('supportiveInputs');
                 if (!$scope.attachments) $scope.attachments = [];
-                if (!$scope.supportiveInputs) $scope.supportiveInputs = [];
+                if (!$scope.supportiveInputs) {
+                    $scope.supportiveInputs = [
+                        {unit: 'Human Resource Department', form: 'HR'},
+                        {unit: 'Centralized Procurement Department', form: 'CPD'},
+                        {unit: 'Technology Department', form: 'Other'}
+                    ];
+                }
             });
 
             camForm.on('submit', function (event) {
@@ -92,13 +98,14 @@
 
                 if ($scope.supportiveInputs && $scope.supportiveInputs.length) {
                     for (var v of $scope.supportiveInputs) {
+                        if (!v.needInput) continue;
                         supportiveInputList[v.form] = true;
                         if (!supportiveInputList[v.form+'s']) supportiveInputList[v.form+'s'] = [];
                         supportiveInputList[v.form+'s'].push(v.unit);
                     }
                 }
 
-                if (resolution == 'Approve') $scope.supportiveInputs = [];
+                if ($scope.resolution == 'Approve') $scope.supportiveInputs = [];
                 camForm.variableManager.destroyVariable("supportiveInputs");
                 camForm.variableManager.createVariable({
                     name: 'supportiveInputs',
@@ -253,7 +260,37 @@
 
     <div class="col-sm-12" style="border: 1px solid #ccc; border-radius: 10px; padding-top: 10px; margin: 20px 0;">
         <div class="col-sm-12">
-            <demand-supportive-inputs data="supportiveInputs" form="kcell_form" view="view" disabled="false"></demand-supportive-inputs>
+            <div class="form-group">
+                <label class="col-sm-2">Supportive Inputs</label>
+            </div>
+            <div class="col-sm-12">
+                <table class="table">
+                    <thead>
+                        <tr>
+                            <th class="text-center">Need input</th>
+                            <th class="text-center">Supportive unit</th>
+                            <th class="text-center">Request description</th>
+                            <th class="text-center">Input received</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr ng-repeat="r in supportiveInputs">
+                            <td class="text-center">
+                                    <input type="checkbox" ng-model="r.needInput">
+                            </td>
+                            <td class="text-center">
+                                <input type="text" class="form-control" ng-model="r.unit" disabled>
+                            </td>
+                            <td class="text-center">
+                                <input type="text" class="form-control" ng-model="r.description">
+                            </td>
+                            <td class="text-center">
+                                <input type="checkbox" ng-model="r.inputReceived" disabled>
+                            </td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
         </div>
     </div>
 
