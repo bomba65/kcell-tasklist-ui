@@ -28,6 +28,7 @@
                     value: ''
                 });
                 $scope.identifier = [];
+                $scope.id = [];
                 $scope.requestedDate = new Date();
                 $scope.offnetOperators = [
                     {id: 'kcell', name: 'Kcell', isAvailable: true},
@@ -42,25 +43,29 @@
 
             camForm.on('submit', function (evt) {
                 var date = new Date();
-                var businessKey = 'BulkSMS_' + ("0" + date.getDate().toString()).slice(-2) + ("0" + (date.getMonth() + 1)).toString().slice(-2) + date.getFullYear().toString() + '_' + ("0" + date.getHours()).toString().slice(-2) + ("0" + date.getMinutes()).toString().slice(-2) + ("0" + date.getSeconds()).toString().slice(-2);
+                //var businessKey = 'SMS_' + ("0" + date.getDate().toString()).slice(-2) + ("0" + (date.getMonth() + 1)).toString().slice(-2) + date.getFullYear().toString() + '_' + ("0" + date.getHours()).toString().slice(-2) + ("0" + date.getMinutes()).toString().slice(-2) + ("0" + date.getSeconds()).toString().slice(-2);
                 // evt.submitPrevented = true;
                 camForm.variableManager.variableValue('operatorType', $scope.operatorType);
                 camForm.variableManager.variableValue('identifierType', $scope.identifierType);
+                if ($scope.identifier) {
+                    $scope.id.push({'title': $scope.identifier, 'operators': []});
+                }
                 if ($scope.operatorType === 'offnet') {
                     camForm.variableManager.variableValue('provider', $scope.provider);
                     camForm.variableManager.variableValue('operators', $scope.offnetOperators);
-                    _.forEach($scope.identifier, function(id) {
+                    _.forEach($scope.id, function(id) {
                         id.operators = $scope.offnetOperators;
                     });
                 } else {
                     camForm.variableManager.destroyVariable('provider');
                     camForm.variableManager.variableValue('operators', $scope.onnetOperators);
-                    _.forEach($scope.identifier, function(id) {
+                    _.forEach($scope.id, function(id) {
                         id.operators = $scope.onnetOperators;
                     });
                 }
+                var businessKey = 'SMS_' + $scope.id[0].title + '_' + ("0" + date.getDate().toString()).slice(-2) + ("0" + (date.getMonth() + 1)).toString().slice(-2) + date.getFullYear().toString();
                 camForm.businessKey = businessKey;
-                camForm.variableManager.variableValue('identifiers', $scope.identifier);
+                camForm.variableManager.variableValue('identifiers', $scope.id);
 
             });
 
@@ -77,13 +82,13 @@
                 $scope.identifier.splice(index, 1);
             }
 
-            $scope.$watch('identifier', function (identifier) {
-                if (identifier && identifier.length) {
-                    $scope.kcell_form.newIdentifier.$setValidity('length', true);
-                } else {
-                    $scope.kcell_form.newIdentifier.$setValidity('length', false);
-                }
-            }, true);
+            // $scope.$watch('identifier', function (identifier) {
+            //     if (identifier && identifier.length) {
+            //         $scope.kcell_form.newIdentifier.$setValidity('length', true);
+            //     } else {
+            //         $scope.kcell_form.newIdentifier.$setValidity('length', false);
+            //     }
+            // }, true);
 
 
         }]);
@@ -116,26 +121,33 @@
             <label class="error" ng-show="kcell_form.operatorType.$error.required && ( kcell_form.operatorType.$touched || view.submitted)">Required field</label>
         </div>
     </div>
+    <!--<div class="form-group">-->
+        <!--<label class="col-sm-4 control-label">Идентификатор:</label>-->
+        <!--<div class="col-sm-4">-->
+            <!--<div  class="input-group" ng-submit="addIdentifier()">-->
+                <!--<input class="form-control" placeholder="Идентификатор" type="text" name="newIdentifier" ng-model="newIdentifier"/>-->
+                <!--<span class="input-group-btn">-->
+                    <!--<button class="btn btn-secondary" type="button" ng-click="addIdentifier(newIdentifier)">Добавить</button>-->
+                <!--</span>-->
+            <!--</div>-->
+            <!--<label class="error" ng-show="kcell_form.newIdentifier.$error.length && (kcell_form.iin.$touched || view.submitted)">Добавьте хотя бы 1 идентификатор</label>-->
+        <!--</div>-->
+    <!--</div>-->
+
+    <!--<div class="form-group" ng-show="identifier">-->
+        <!--<label class="col-sm-4 control-label"></label>-->
+        <!--<div class="col-sm-8">-->
+            <!--<span class="label label-primary mr-1" ng-repeat="id in identifier">-->
+                <!--{{id.title}}-->
+                <!--<span class="glyphicon glyphicon-remove" ng-click="deleteIdentifier($index)"></span>-->
+            <!--</span>-->
+        <!--</div>-->
+    <!--</div>-->
     <div class="form-group">
         <label class="col-sm-4 control-label">Идентификатор:</label>
         <div class="col-sm-4">
-            <div  class="input-group" ng-submit="addIdentifier()">
-                <input class="form-control" placeholder="Идентификатор" type="text" name="newIdentifier" ng-model="newIdentifier"/>
-                <span class="input-group-btn">
-		        	<button class="btn btn-secondary" type="button" ng-click="addIdentifier(newIdentifier)">Добавить</button>
-		      	</span>
-            </div>
-            <label class="error" ng-show="kcell_form.newIdentifier.$error.length && (kcell_form.iin.$touched || view.submitted)">Добавьте хотя бы 1 идентификатор</label>
-        </div>
-    </div>
-
-    <div class="form-group" ng-show="identifier">
-        <label class="col-sm-4 control-label"></label>
-        <div class="col-sm-8">
-			<span class="label label-primary mr-1" ng-repeat="id in identifier">
-				{{id.title}}
-			    <span class="glyphicon glyphicon-remove" ng-click="deleteIdentifier($index)"></span>
-			</span>
+            <input class="form-control" id="identifier" name="identifier" required ng-model="identifier">
+            <label class="error" ng-show="kcell_form.identifier.$error.required && ( kcell_form.identifier.$touched || view.submitted)">Required field</label>
         </div>
     </div>
     <div class="form-group" ng-show="operatorType === 'offnet' && !previouslyBought">
@@ -150,7 +162,7 @@
             <label class="error" ng-show="kcell_form.provider.$error.required && ( kcell_form.provider.$touched || view.submitted)">Required field</label>
         </div>
     </div>
-    <div class="form-check" ng-show="identifier.length > 0">
+    <div class="form-check">
         <input type="checkbox" ng-model="previouslyBought" class="form-check-input" id="check1" cam-variable-type="Boolean" cam-variable-name="previouslyBought">
         <label class="form-check-label" for="check1">Ранее выкуплен</label>
     </div>
