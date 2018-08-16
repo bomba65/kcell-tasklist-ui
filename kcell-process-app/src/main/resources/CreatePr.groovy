@@ -13,6 +13,7 @@ def workPrices = '[{"relatedSites":[{"name":"00SITE1","id":"1","site_name":"00SI
 def reason = "1";
 def siteRegion = "alm";
 def site_name = "00SITE1";
+def jobWorksTotal = "70134.76";
 */
 
 def cal = Calendar.instance
@@ -70,7 +71,8 @@ jobWorksObj.each { work ->
 
 def binding = ["documentType": documentType[reason],"jobWorksObj":jobWorksObj, "workPricesObj": workPricesObj, "jrNumber":jrNumber,
                "requestDate": requestDateObj, "yearEndDate":yearEndDate, "sloc":sloc, "subcontructerName":subcontructerName,
-               "site_name":site_name, "requestedBy":requestedBy, "reason": reason, "tnuSiteLocations":tnuSiteLocationsObj]
+               "site_name":site_name, "requestedBy":requestedBy, "reason": reason, "tnuSiteLocations":tnuSiteLocationsObj,
+               "jobWorksTotal": jobWorksTotal]
 
 /*
 FIELD DESCRIPTION	 For FA PRs (CAPEX)	    For Service PRs (OPEX)	Примечание
@@ -124,7 +126,7 @@ if (reason == '2') {
                   '4.Describe the need of this purchase for this year: necessary for revision works ' +
                   '5.Contact person: ' + subcontructerName + ' ' +
                   '6. Vendor: Line System Engineering LLP ' +
-                  '8. Total sum: ' + w.price.unitWorkPricePerSite + ''
+                  '8. Total sum: ' + jobWorksTotal + ''
             newLine()
         }
     }
@@ -141,7 +143,7 @@ if (reason == '2') {
               '4.Describe the need of this purchase for this year: necessary for revision works ' +
               '5.Contact person: ' + subcontructerName + ' ' +
               '6. Vendor: Line System Engineering LLP ' +
-              '8. Total sum: ' + w.price.unitWorkPricePlusTx + ''
+              '8. Total sum: ' + jobWorksTotal + ''
         newLine()
     }
 }
