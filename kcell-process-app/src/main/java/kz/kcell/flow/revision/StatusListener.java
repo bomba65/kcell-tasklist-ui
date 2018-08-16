@@ -1,5 +1,7 @@
 package kz.kcell.flow.revision;
 
+import com.fasterxml.jackson.databind.ObjectMapper;
+import com.fasterxml.jackson.databind.node.ObjectNode;
 import org.camunda.bpm.engine.delegate.DelegateExecution;
 import org.camunda.bpm.engine.delegate.ExecutionListener;
 import org.camunda.bpm.engine.delegate.Expression;
@@ -40,13 +42,16 @@ public class StatusListener implements ExecutionListener {
             comment = lastResolution.prop("comment").stringValue();
         }
 
-        JsonValue jsonValue = SpinValues.jsonValue("{\"statusId\" : \"" + statusId
-            + "\",\"statusName\" : \"" + statusName
-            + "\",\"comment\" : \"" + comment
-            + "\",\"date\" : " + (new Date()).getTime()
-            + ",\"returnStatus\" : " + returnStatus
-            + ",\"parentStatus\" : \"" + parentStatus
-            + "\"}").create();
+        ObjectMapper mapper = new ObjectMapper();
+        ObjectNode status = mapper.createObjectNode();
+        status.put("statusId", statusId);
+        status.put("statusName", statusName);
+        status.put("comment", comment);
+        status.put("date", (new Date()).getTime());
+        status.put("returnStatus", returnStatus);
+        status.put("parentStatus", parentStatus);
+
+        JsonValue jsonValue = SpinValues.jsonValue(status.toString()).create();
 
         delegateExecution.setVariable("status", jsonValue);
 
