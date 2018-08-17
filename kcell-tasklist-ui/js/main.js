@@ -29,7 +29,10 @@ require.config({
          'angular-ui-router': './node_modules/angular-ui-router/release/angular-ui-router.min',
          'ng-file-upload': './node_modules/ng-file-upload/dist/ng-file-upload-all.min',
          'angular-local-storage': './node_modules/angular-local-storage/dist/angular-local-storage.min',
-         'angularjs-dropdown-multiselect': './node_modules/angularjs-dropdown-multiselect/dist/angularjs-dropdown-multiselect.min'
+         'simditor': './node_modules/simditor/lib/simditor',
+         'simple-module': './node_modules/simple-module/lib/module',
+         'simple-hotkeys': './node_modules/simple-hotkeys/lib/hotkeys',
+         'simple-uploader': './node_modules/simple-uploader/lib/uploader'
      },
  
      // angular не поддерживает AMD из коробки, поэтому экспортируем перменную angular в глобальную область

@@ -15,5 +15,6 @@ define([
 	'./PBX/sipDirectProtocol',
 	'./PBX/vpnTunnel',
 	'./uatProcess',
-	'./demand/index'
+	'./demand/index',
+	'./richText'
 	], function(){});

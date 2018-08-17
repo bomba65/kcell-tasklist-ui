@@ -354,9 +354,9 @@ define(['./module','jquery', 'camundaSDK'], function(app, $, CamSDK){
                 $scope.piIndex = undefined;
             } else {
                 $scope.piIndex = index;
-	            $scope.jobModel = {state: $scope.processInstances[index].state};
-	            console.log('$scope.processInstances[index]');
-	            console.log($scope.processInstances[index]);
+				
+				$scope.jobModel = {state: $scope.processInstances[index].state};
+				$scope.jobModel['businessKeyUAT'] = {value: $scope.processInstances[index].businessKey};
 	            $http.get(baseUrl+'/process-instance?superProcessInstance='+$scope.processInstances[index].id+'&active=true').then(
 					function(result){
 						if (result.data.length > 0) {
@@ -420,6 +420,12 @@ define(['./module','jquery', 'camundaSDK'], function(app, $, CamSDK){
 											}
 											$scope.jobModel.jobWorks.value[workIndex].files.push(file);
 										});
+
+										$http.get(baseUrl+'/history/process-instance/'+$scope.currentPI[index].id).then(function(pi) {
+											if (pi.data.startTime) $scope.jobModel.startTime = {value: new Date(pi.data.startTime)};
+											if (pi.data.endTime) $scope.jobModel.endTime = {value: new Date(pi.data.endTime)};
+										});
+
     								if($scope.jobModel.resolutions && $scope.jobModel.resolutions.value){
     									$q.all($scope.jobModel.resolutions.value.map(function (resolution) {
 			                                return $http.get("/camunda/api/engine/engine/default/user/" + resolution.assignee + "/profile");
@@ -428,7 +434,8 @@ define(['./module','jquery', 'camundaSDK'], function(app, $, CamSDK){
 			                                    // $scope.jobModel.resolutions[index].assigneeName = (e.data.firstName ? e.data.firstName : "") + " " + (e.data.lastName ? e.data.lastName : "");
 			                                    $scope.jobModel.resolutions.value[index].assigneeName = (e.data.firstName ? e.data.firstName : "") + " " + (e.data.lastName ? e.data.lastName : "");
 			                                });
-			                            });
+										});
+
 				                        $q.all($scope.jobModel.resolutions.value.map(function (resolution) {
 				                            return $http.get("/camunda/api/engine/engine/default/history/task?processInstanceId="+resolution.processInstanceId+"&taskId=" + resolution.taskId);
 				                        })).then(function (tasks) {
@@ -597,8 +604,6 @@ define(['./module','jquery', 'camundaSDK'], function(app, $, CamSDK){
 			else {
 				var processDefinitionId = $scope.processInstances[index].processDefinitionId;
 			}
-
-			console.log(processDefinitionId)
 			$scope.showDiagramView = true;
 			getDiagram(processDefinitionId);
 		}

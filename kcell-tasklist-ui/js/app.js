@@ -32,7 +32,7 @@ define('app',[
 		'ui.router',
 		'ngFileUpload',
 		'LocalStorageModule',
-		'angularjs-dropdown-multiselect'
+		'angularjs-dropdown-multiselect',
 	]);
 	var preLoginUrl;
 	var resolve = {

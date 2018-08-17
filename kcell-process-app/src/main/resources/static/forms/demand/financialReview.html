@@ -71,8 +71,33 @@
                 $scope.attachments = camForm.variableManager.variableValue('attachments');
                 if (!$scope.attachments) $scope.attachments = [];
                 if (!$scope.supportiveInputs) $scope.supportiveInputs = [];
-                if (!$scope.supportiveRequests) $scope.supportiveRequests = {};
                 if (!$scope.riskData) $scope.riskData = [];
+                if (!$scope.supportiveRequests) {
+                    $scope.supportiveRequests = {
+                        HR: [],
+                        LD: [],
+                        CPD: [],
+                        BI: [],
+                        Other: []
+                    };
+                }
+                if (!$scope.CACData) {
+                    $scope.CACData = {
+                        resources: [],
+                        materials: [],
+                        acceptCrits: []
+                    };
+                }
+
+                $scope.theResources = _.map($scope.CACData.resources, _.clone);
+                $scope.theMaterials = _.map($scope.CACData.materials, _.clone);
+
+                if ($scope.supportiveRequests['HR'].length)
+                    for (var form of $scope.supportiveRequests['HR'])
+                        $scope.theResources = Array.prototype.concat.apply($scope.theResources, form.value);
+                if ($scope.supportiveRequests['CPD'].length)
+                    for (var form of $scope.supportiveRequests['CPD'])
+                        $scope.theMaterials = Array.prototype.concat.apply($scope.theMaterials, form.value);
             });
 
             camForm.on('submit', function (event) {
@@ -98,23 +123,23 @@
         }]);
     </script>
     <div class="form-group">
-        <label class="col-sm-2 control-label"> Business Key:</label>
+        <label style="width: 8%; float: left; padding-left: 15px; padding-top: 7px; font-weight: 500;"> Business Key:</label>
         <div class="col-sm-2">
             <input rows="1" class="form-control" cam-variable-name="businessKey" cam-variable-type="String" disabled>
         </div>
-        <label class="col-sm-2 control-label"> Demand Status:</label>
+        <label style="width: 10%; float: left; padding-left: 15px; padding-top: 7px; font-weight: 500;"> Demand Status:</label>
         <div class="col-sm-2">
             <label rows="1" class="form-control" disabled>Active </label>
         </div>
-        <label class="col-sm-2 control-label"> Activity:</label>
-        <div class="col-sm-2">
+        <label style="width: 6.6%; float: left; padding-left: 15px; padding-top: 7px; font-weight: 500;"> Activity:</label>
+        <div class="col-sm-5">
             <label rows="1" class="form-control" disabled> Financial review </label>
         </div>
     </div>
     <div class="form-group">
-        <label class="col-sm-2 control-label"> Demand Name: </label>
-        <div class="col-sm-10">
-            <textarea rows="1" class="form-control" cam-variable-name="demandName" cam-variable-type="String" disabled/>
+        <label style="width: 8%; float: left; padding-left: 15px; padding-top: 7px; font-weight: 500;"> Demand Name:</label>
+        <div class="col-sm-11">
+            <input rows="1" class="form-control" cam-variable-name="demandName" cam-variable-type="String" disabled/>
         </div>
     </div>
     <hr>
@@ -184,15 +209,7 @@
                         <accordion-heading>
                             Resources <i class="pull-right glyphicon" ng-class="{'glyphicon-chevron-up': status.isCustomHeaderOpen, 'glyphicon-chevron-down': !status.isCustomHeaderOpen}"></i>
                         </accordion-heading>
-                        <div class="col-sm-12" style="border: 1px solid #ccc; border-radius: 10px; padding-top: 10px; margin: 20px 0;">
-                            <demand-resources data="CACData.resources" form="kcell_form" view="view" disabled="true" editprice="false"></demand-resources>
-                        </div>
-                        <span ng-repeat="form in supportiveRequests.HR">
-                            <div class="col-sm-12" style="border: 1px solid #ccc; border-radius: 10px; padding-top: 10px; margin: 20px 0;">
-                                <label style="margin-bottom: 20px;">Supportive request form for {{form.unit}}</label>
-                                <demand-resources data="form.value" form="kcell_form" view="view" disabled="false" editprice="false"></demand-resources>
-                            </div>
-                        </span>
+                        <demand-resources data="theResources" form="kcell_form" view="view" disabled="true" editprice="false"></demand-resources>
                     </accordion-group>
                 </accordion>
                 <accordion>
@@ -200,15 +217,7 @@
                         <accordion-heading>
                             Materials <i class="pull-right glyphicon" ng-class="{'glyphicon-chevron-up': status.isCustomHeaderOpen, 'glyphicon-chevron-down': !status.isCustomHeaderOpen}"></i>
                         </accordion-heading>
-                        <div class="col-sm-12" style="border: 1px solid #ccc; border-radius: 10px; padding-top: 10px; margin: 20px 0;">
-                            <demand-materials data="CACData.materials" form="kcell_form" view="view" disabled="true" editprice="false"></demand-materials>
-                        </div>
-                        <span ng-repeat="form in supportiveRequests.CPD">
-                            <div class="col-sm-12" style="border: 1px solid #ccc; border-radius: 10px; padding-top: 10px; margin: 20px 0;">
-                                <label style="margin-bottom: 20px;">Supportive request form for {{form.unit}}</label>
-                                <demand-materials data="form.value" form="kcell_form" view="view" disabled="true" editprice="false"></demand-materials>
-                            </div>
-                        </span>
+                        <demand-materials data="theMaterials" form="kcell_form" view="view" disabled="true" editprice="false"></demand-materials>
                     </accordion-group>
                 </accordion>
                 <accordion>
@@ -284,8 +293,10 @@
     <div class="col-sm-12" style="border: 1px solid #ccc; border-radius: 10px; padding-top: 10px; margin: 20px 0;">
         <iframe id="fileDownloadIframe" style="display:none;"></iframe>
         <div class="form-group">
-            <label class="col-sm-4 control-label">Attachments</label>
-            <div class="col-sm-8">
+            <div class="col-sm-12">
+                <div class="col-sm-12" style="margin-bottom: 10px;">
+                    <label class="col-sm-12">Attachments</label>
+                </div>
                 <div class="col-sm-12">
                     <table class="table table-bordered">
                         <thead>
@@ -318,7 +329,7 @@
                 <input type="radio" ng-model="resolution" name="resolution" value="Modify" required> Modify
             </label>
             <label class="radio-inline">
-                <input type="radio" ng-model="resolution" name="resolution" value="sendToFillForm" required> Send to Fill form
+                <input type="radio" ng-model="resolution" name="resolution" value="Send to Fill form" required> Send to Fill form
             </label>
             <label class="radio-inline">
                 <input type="radio" ng-model="resolution" name="resolution" value="Reject" required> Reject
@@ -352,7 +363,7 @@
                 <tbody>
                 <tr ng-repeat="resolution in resolutions track by $index">
                     <td>{{resolution.taskName}}</td>
-                    <td>{{resolution.assigneeName}}</td>
+                    <td>{{resolution.assignee}}</td>
                     <td>{{resolution.resolution}}</td>
                     <td>{{resolution.taskEndDate | date: 'dd.MM.yyyy HH:mm'}}</td>
                     <td>{{resolution.comment}}</td>

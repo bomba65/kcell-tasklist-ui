@@ -7,14 +7,21 @@ define(['./../module'], function(module){
                 data: '=',
                 form: '=',
                 view: '=',
-				disabled: '='
+				disabled: '=',
+				onitemselect: '=',
+				onitemdeselect: '='
 			},
 			link: function(scope, element, attrs) {
 				scope.multiselectEvents = {
 					onItemSelect: function(item) {
 						var elt = scope.data.find(function(e) {return e.unit == item.unit});
-						var opt = scope.optionList.find(function(e) {return e.unit == item.unit});
+						var opt = scope.optionList.find(function(e) {return e.unit == item.unit;});
 						if (elt && opt) angular.copy(opt, elt);
+						if (scope.onitemselect) scope.onitemselect(elt);
+					},
+					onItemDeselect: function(item) {
+						var elt = scope.optionList.find(function(e) {return e.unit == item.unit;});
+						if (scope.onitemdeselect) scope.onitemdeselect(elt);
 					}
 				};
 				scope.multiselectSettings = {

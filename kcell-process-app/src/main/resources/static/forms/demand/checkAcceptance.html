@@ -30,6 +30,7 @@
                 HR: false, HRs: [],
                 Other: false, Others: []
             };
+            $scope.requestInfoCount = 0;
             var processInstanceId = null;
             var taskName = null;
             var assigneeName = $rootScope.authentication.name;
@@ -55,7 +56,7 @@
                 camForm.variableManager.fetchVariable('resolutions');
                 camForm.variableManager.fetchVariable('resolution');
                 camForm.variableManager.fetchVariable('attachments');
-                camForm.variableManager.fetchVariable('supportiveInputs');
+                camForm.variableManager.fetchVariable('acceptanceSupportiveInputs');
                 camForm.variableManager.fetchVariable('supportiveInputList');
             });
 
@@ -65,7 +66,7 @@
                 $scope.CACData = camForm.variableManager.variableValue('CACData');
                 $scope.resolutions = camForm.variableManager.variableValue('resolutions');
                 $scope.attachments = camForm.variableManager.variableValue('attachments');
-                $scope.supportiveInputs = camForm.variableManager.variableValue('supportiveInputs');
+                $scope.supportiveInputs = camForm.variableManager.variableValue('acceptanceSupportiveInputs');
                 if (!$scope.attachments) $scope.attachments = [];
                 if (!$scope.supportiveInputs) {
                     $scope.supportiveInputs = [
@@ -73,6 +74,10 @@
                         {unit: 'Centralized Procurement Department', form: 'CPD'},
                         {unit: 'Technology Department', form: 'Other'}
                     ];
+                } else {
+                    for (var s of $scope.supportiveInputs)
+                        if (s.needInput)
+                            $scope.requestInfoCount++;
                 }
             });
 
@@ -105,10 +110,9 @@
                     }
                 }
 
-                if ($scope.resolution == 'Approve') $scope.supportiveInputs = [];
-                camForm.variableManager.destroyVariable("supportiveInputs");
+                camForm.variableManager.destroyVariable("acceptanceSupportiveInputs");
                 camForm.variableManager.createVariable({
-                    name: 'supportiveInputs',
+                    name: 'acceptanceSupportiveInputs',
                     type: 'Json',
                     value: $scope.supportiveInputs
                 });
@@ -130,26 +134,32 @@
                     console.log(data);
                 });
             }
+
+            $scope.needInputClicked = function(selected) {
+                console.log("==> ", $scope.requestInfoCount);
+                $scope.requestInfoCount += (selected ? 1 : -1);
+                if (!$scope.requestInfoCount) $scope.resolution = 'Modify';
+            }
         }]);
     </script>
     <div class="form-group">
-        <label class="col-sm-2 control-label"> Business Key:</label>
+        <label style="width: 8%; float: left; padding-left: 15px; padding-top: 7px; font-weight: 500;"> Business Key:</label>
         <div class="col-sm-2">
             <input rows="1" class="form-control" cam-variable-name="businessKey" cam-variable-type="String" disabled>
         </div>
-        <label class="col-sm-2 control-label"> Demand Status:</label>
+        <label style="width: 10%; float: left; padding-left: 15px; padding-top: 7px; font-weight: 500;"> Demand Status:</label>
         <div class="col-sm-2">
             <label rows="1" class="form-control" disabled>Active </label>
         </div>
-        <label class="col-sm-2 control-label"> Activity:</label>
-        <div class="col-sm-2">
+        <label style="width: 6.6%; float: left; padding-left: 15px; padding-top: 7px; font-weight: 500;"> Activity:</label>
+        <div class="col-sm-5">
             <label rows="1" class="form-control" disabled> Check cost assessment </label>
         </div>
     </div>
     <div class="form-group">
-        <label class="col-sm-2 control-label"> Demand Name: </label>
-        <div class="col-sm-10">
-            <textarea rows="1" class="form-control" cam-variable-name="demandName" cam-variable-type="String" disabled/>
+        <label style="width: 8%; float: left; padding-left: 15px; padding-top: 7px; font-weight: 500;"> Demand Name:</label>
+        <div class="col-sm-11">
+            <input rows="1" class="form-control" cam-variable-name="demandName" cam-variable-type="String" disabled/>
         </div>
     </div>
     <hr>
@@ -240,8 +250,8 @@
                                 Description
                             </label>
                             <div class="form-group" ng-repeat="d in CACData.acceptCrits">
-                                <div class="col-sm-9">
-                                    <input type="text" class="form-control" ng-model="d.v">
+                                <div class="col-sm-12">
+                                    <input type="text" class="form-control" ng-model="d.v" disabled>
                                 </div>
                             </div>
                         </div>
@@ -276,7 +286,7 @@
                     <tbody>
                         <tr ng-repeat="r in supportiveInputs">
                             <td class="text-center">
-                                    <input type="checkbox" ng-model="r.needInput">
+                                <input type="checkbox" ng-model="r.needInput" ng-click="needInputClicked(r.needInput)">
                             </td>
                             <td class="text-center">
                                 <input type="text" class="form-control" ng-model="r.unit" disabled>
@@ -297,8 +307,10 @@
     <div class="col-sm-12" style="border: 1px solid #ccc; border-radius: 10px; padding-top: 10px; margin: 20px 0;">
         <iframe id="fileDownloadIframe" style="display:none;"></iframe>
         <div class="form-group">
-            <label class="col-sm-4 control-label">Attachments</label>
-            <div class="col-sm-8">
+            <div class="col-sm-12">
+                <div class="col-sm-12" style="margin-bottom: 10px;">
+                    <label class="col-sm-12">Attachments</label>
+                </div>
                 <div class="col-sm-12">
                     <table class="table table-bordered">
                         <thead>
@@ -331,7 +343,7 @@
                 <input type="radio" ng-model="resolution" name="resolution" value="Modify" required> Modify
             </label>
             <label class="radio-inline">
-                <input type="radio" ng-model="resolution" name="resolution" value="Request Info" required> Request Info
+                <input type="radio" ng-model="resolution" name="resolution" value="Request Info" required ng-disabled="!requestInfoCount"> Request Info
             </label>
             <label class="error" ng-show="kcell_form.resolution.$error.required && ( kcell_form.resolution.$touched || view.submitted)">Required field</label>
         </div>
@@ -362,7 +374,7 @@
                 <tbody>
                 <tr ng-repeat="resolution in resolutions track by $index">
                     <td>{{resolution.taskName}}</td>
-                    <td>{{resolution.assigneeName}}</td>
+                    <td>{{resolution.assignee}}</td>
                     <td>{{resolution.resolution}}</td>
                     <td>{{resolution.taskEndDate | date: 'dd.MM.yyyy HH:mm'}}</td>
                     <td>{{resolution.comment}}</td>
