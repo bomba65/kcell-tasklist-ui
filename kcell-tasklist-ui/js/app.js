@@ -62,6 +62,13 @@ define('app',[
 						{key:'PBX', name:'PBX', group:'delivery_pbx_users'},
 						{key:'bulksmsConnectionKAE', name:'Bulk SMS through KAE', group:'delivery_sms_users'}
 					]
+				},
+				{
+					"key" : "DemandUAT",
+					"name" : "Demand & UAT",
+					"processes" : [
+						{key:'UAT', name:'UAT protocol', group:'demand_uat_users'}
+					]
 				}
 			];
 		},
