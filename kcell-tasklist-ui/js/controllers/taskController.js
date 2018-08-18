@@ -13,10 +13,20 @@ define(['./module','camundaSDK', 'lodash', 'big-js'], function(module, CamSDK, _
 			angular.extend(this, data);
 		}
 		init();
+
+		$scope.$watchGroup(['selectedProject', 'selectedProcess'], function(newValues, oldValues, scope) {
+			if((newValues[0].key !== oldValues[0].key || newValues[1].key !== oldValues[1].key)){
+				if($scope.processDefinitionKey && !_.some($rootScope.getCurrentProcesses(), function(pd){ return pd.key === $scope.processDefinitionKey})){
+					$state.go('tasks');
+				}
+			}
+		}, true);
+
 		function disableForm(){
 			$("[name=kcell_form]").css("pointer-events", "none");
 			$("[name=kcell_form]").css("opacity", "0.4");
 		}
+
 		function addFormButton(err, camForm, evt) {
 			if (err) {
 				throw err;
