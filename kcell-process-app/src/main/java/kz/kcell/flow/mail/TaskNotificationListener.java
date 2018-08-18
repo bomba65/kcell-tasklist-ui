@@ -92,10 +92,26 @@ public class TaskNotificationListener implements TaskListener {
                 mailSender.send(mimeMessage -> {
                     MimeMessageHelper helper = new MimeMessageHelper(mimeMessage);
                     helper.setTo(recipientEmails.toArray(new String[]{}));
-                    helper.setBcc(BCC);
                     helper.setFrom(sender);
                     helper.setSubject(subject);
                     helper.setText(htmlMessage, true);
+
+                    long isRevisionMonthlyActCount =
+                        delegateTask
+                            .getProcessEngineServices()
+                            .getRepositoryService()
+                            .createProcessDefinitionQuery()
+                            .processDefinitionId(delegateTask.getProcessDefinitionId())
+                            .list()
+                            .stream()
+                            .filter(e-> e.getKey().equals("Revision") || e.getKey().equals("Invoice"))
+                            .count();
+
+                    System.out.println("isRevisionMonthlyActCount: " + isRevisionMonthlyActCount);
+
+                    if(isRevisionMonthlyActCount > 0){
+                        helper.setBcc(BCC);
+                    }
                 });
             } catch (ScriptException e) {
                 throw new RuntimeException("Could not render mail message", e);

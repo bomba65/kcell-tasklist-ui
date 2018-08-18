@@ -26,7 +26,19 @@ public class CamundaMailerDelegate implements JavaDelegate {
         }
 
         String addresses = String.valueOf(delegateExecution.getVariableLocal("to"));
-        if(addresses!=null && !addresses.contains("Yernaz.Kalingarayev@kcell.kz")){
+
+        long isRevisionMonthlyActCount =
+            delegateExecution
+                .getProcessEngineServices()
+                .getRepositoryService()
+                .createProcessDefinitionQuery()
+                .processDefinitionId(delegateExecution.getProcessDefinitionId())
+                .list()
+                .stream()
+                .filter(e-> e.getKey().equals("Revision") || e.getKey().equals("Invoice"))
+                .count();
+
+        if(isRevisionMonthlyActCount > 0 && addresses!=null && !addresses.contains("Yernaz.Kalingarayev@kcell.kz")){
             addresses = addresses + ",Yernaz.Kalingarayev@kcell.kz";
         }
 
