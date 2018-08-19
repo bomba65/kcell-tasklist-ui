@@ -12,6 +12,7 @@ define('app',[
 	'camundaSDK',
 	'big-js',
 	'excellentexport',
+	'xlsx',
 	'angular-ui-router',
 	'ng-file-upload',
 	'angular-local-storage',

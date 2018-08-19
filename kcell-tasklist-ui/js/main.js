@@ -25,6 +25,7 @@ require.config({
          'bpmn-navigated-viewer': './camunda/bpmn-navigated-viewer',
          'big-js': './node_modules/big.js/big.min',
          'excellentexport': './node_modules/excellentexport/dist/excellentexport',
+         'xlsx': './node_modules/xlsx/dist/xlsx.full.min',
          'angular-ui-router': './node_modules/angular-ui-router/release/angular-ui-router.min',
          'ng-file-upload': './node_modules/ng-file-upload/dist/ng-file-upload-all.min',
          'angular-local-storage': './node_modules/angular-local-storage/dist/angular-local-storage.min',

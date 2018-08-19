@@ -1,7 +1,7 @@
 define(['./module','jquery'], function(app,$){
 	'use strict';
-	return app.controller('statisticsCtrl', ['$scope', '$rootScope', '$http', '$state', '$stateParams', '$q', '$location', 'AuthenticationService',
-			                         function($scope,   $rootScope,   $http, $state,  $stateParams,   $q, $location, AuthenticationService) {
+	return app.controller('statisticsCtrl', ['$scope', '$rootScope', '$filter', '$http', '$state', '$stateParams', '$q', '$location', 'AuthenticationService',
+			                         function($scope,   $rootScope, $filter, $http, $state,  $stateParams,   $q, $location, AuthenticationService) {
 
 		$rootScope.currentPage = {
 			name: 'statistics'
@@ -9,6 +9,7 @@ define(['./module','jquery'], function(app,$){
 
         if(window.require){
             $scope.ExcellentExport = require('excellentexport');
+            $scope.XSLX = require('xlsx');
         }
 
 		$scope._ = window._;
@@ -786,15 +787,30 @@ define(['./module','jquery'], function(app,$){
         }
 
         $scope.downloadReport = function(){
-            if($scope.report_ready){
-                return $scope.ExcellentExport.convert({anchor: 'reportClick',format: 'xlsx',filename: 'report'}, [{name: 'Sheet Name Here 1',from: {table: 'reportTable'}}]);
-            } else {
-                if($rootScope.authentication.name === 'demo' || $rootScope.authentication.name === 'Evgeniy.Semenov@kcell.kz' || $rootScope.authentication.name === 'Yernaz.Kalingarayev@kcell.kz'){
-                    $http.get('/camunda/reports/report').then(function(response) {
-                        $scope.reportList = response.data;
-                        $scope.report_ready = true;
+            if($rootScope.authentication.name === 'demo' || $rootScope.authentication.name === 'Evgeniy.Semenov@kcell.kz' || $rootScope.authentication.name === 'Yernaz.Kalingarayev@kcell.kz'){
+                $http.get('/camunda/reports/report').then(function(response) {
+                    var data = response.data;
+
+                    angular.forEach(data, function(d){
+                        d[5] =  $filter('date')(d[5], "yyyy-MM-dd");
+                        d[7] =  $filter('date')(d[7], "yyyy-MM-dd");
+                        d[8] =  $filter('date')(d[8], "yyyy-MM-dd");
+                        d[9] =  $filter('date')(d[9], "yyyy-MM-dd");
+                        d[10] =  $filter('date')(d[10], "yyyy-MM-dd");
+                        d[11] =  $filter('date')(d[11], "yyyy-MM-dd");
                     });
-                } 
+
+                    data.splice(0, 0, ["Region", "Sitename", "JR No", "JR To", "JR Reason", "Requested Date", "Requested By", "Validity Date", "Material List Signing Date"
+                        , "Accept by Work Maintenance", "Accept by Work Planning", "Acceptance Date", "Job Description", "Quantity", "Comments", "Customer Material"
+                        , "Process State", "JR Status", "Detailed status", "Reason"]);
+
+                    var ws = XLSX.utils.json_to_sheet(response.data, {skipHeader:true});
+
+                    var wb = XLSX.utils.book_new();
+                    XLSX.utils.book_append_sheet(wb, ws, 'New Sheet Name 1');
+
+                    return XLSX.writeFile(wb, 'report.xlsx');
+                });
             }
         }
 	}]);
