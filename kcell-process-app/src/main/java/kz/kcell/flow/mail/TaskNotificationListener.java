@@ -107,8 +107,6 @@ public class TaskNotificationListener implements TaskListener {
                             .filter(e-> e.getKey().equals("Revision") || e.getKey().equals("Invoice"))
                             .count();
 
-                    System.out.println("isRevisionMonthlyActCount: " + isRevisionMonthlyActCount);
-
                     if(isRevisionMonthlyActCount > 0){
                         helper.setBcc(BCC);
                     }
