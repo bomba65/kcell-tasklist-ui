@@ -60,7 +60,7 @@ public class SftpConfig {
     @Value("${sftp.remote.directory.to.pr.status:/home/KWMS/CIP_PR_Creation/PR_Status}")
     private String sftpRemoteDirectoryPrStatus;
 
-    @Value("${sftp.remote.directory.to.pr.status:/home/KWMS/CIP_PR_Creation/PR_Status/PR_status_processed}")
+    @Value("${sftp.remote.directory.to.pr.status:/home/KWMS/CIP_PR_Creation/PR_status_processed}")
     private String sftpRemoteDirectoryPrStatusProcessed;
 
     public SessionFactory<ChannelSftp.LsEntry> sftpSessionFactory() {
