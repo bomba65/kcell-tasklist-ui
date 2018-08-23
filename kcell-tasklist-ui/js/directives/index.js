@@ -6,6 +6,7 @@ define([
 	'./trackChange',
 	'./requiredFile',
 	'./infoFreephone',
+	'./infoPbx',
 	'./sharedSitePlan',
 	'./PBX/customerInformation',
 	'./PBX/technicalSpecifications',
