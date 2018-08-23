@@ -15,6 +15,8 @@ import org.springframework.stereotype.Component;
 
 import java.io.File;
 import java.io.FileOutputStream;
+import java.text.ParseException;
+import java.text.SimpleDateFormat;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
 import java.util.*;
@@ -39,19 +41,21 @@ public class CheckPrStatusesSchedule {
     @Value("${s3.bucket.pr:prfiles}")
     private String prBucketName;
 
+    @Autowired
     private SftpConfig.UploadGateway gateway;
 
-    private static final DateTimeFormatter dateTimeFormatter = DateTimeFormatter.ofPattern("HH:mm:ss");
+    private static final DateTimeFormatter timeFormatter = DateTimeFormatter.ofPattern("HH:mm:ss");
+    private static final SimpleDateFormat simpleDateFormat = new SimpleDateFormat("yyyyMMdd");
 
-    @Scheduled(cron = "0 0-23 * * 1-7")
-//    @Scheduled(cron = "0 0-23 * * 2")
-    public void checkPrStatuses(){
+    @Scheduled(cron = "0 20 0-23 * * 1-7")
+//    @Scheduled(cron = "0 20 0-23 * * 2")
+    public void checkPrStatuses() {
 
         List<String> usedBussinessKeyList = new ArrayList<>();
 
         Boolean isSftp = Arrays.stream(environment.getActiveProfiles()).anyMatch(env -> (env.equalsIgnoreCase("sftp")));
 
-        log.info("Cron Task :: Execution Time - " + dateTimeFormatter.format(LocalDateTime.now()));
+        log.info("Cron Task :: Execution Time - " + timeFormatter.format(LocalDateTime.now()));
 
         Calendar calendar = Calendar.getInstance();
         calendar.set(Calendar.DAY_OF_WEEK, Calendar.MONDAY);
@@ -116,7 +120,11 @@ public class CheckPrStatusesSchedule {
 
                                 runtimeService.setVariable(processInstances.get(0).getId(),"sapPRNo", status_parts[2]);
                                 runtimeService.setVariable(processInstances.get(0).getId(),"sapPRTotalValue", Double.valueOf(status_parts[3]));
-                                runtimeService.setVariable(processInstances.get(0).getId(),"sapPONo", status_parts[5]);
+                                try {
+                                    runtimeService.setVariable(processInstances.get(0).getId(),"sapPRApproveDate", simpleDateFormat.parse(status_parts[5]));
+                                } catch (ParseException e){
+                                    log.warning("Date " + status_parts[5] + " parse exception");
+                                }
 
                                 usedBussinessKeyList.add(key);
                             } else {
