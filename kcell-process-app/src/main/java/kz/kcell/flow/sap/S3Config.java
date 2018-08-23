@@ -60,7 +60,7 @@ public class S3Config {
     @Bean
     @ServiceActivator(inputChannel = "toPrStatusProcessedChannel")
     public MessageHandler toPrStatusProcessedS3MessageHandler() {
-        return new S3MessageHandler(amazonS3, prBucketName);
+        return new S3MessageHandler(amazonS3, prBucketName + "/" + "PR_status_processed");
     }
 
     @Bean

@@ -1,5 +1,6 @@
 package kz.kcell.flow.revision;
 
+import kz.kcell.flow.sap.S3Config;
 import kz.kcell.flow.sap.SftpConfig;
 import lombok.extern.java.Log;
 import org.apache.commons.io.IOUtils;
@@ -44,11 +45,14 @@ public class CheckPrStatusesSchedule {
     @Autowired
     private SftpConfig.UploadGateway gateway;
 
+    @Autowired
+    private S3Config.UploadGateway s3gateway;
+
     private static final DateTimeFormatter timeFormatter = DateTimeFormatter.ofPattern("HH:mm:ss");
     private static final SimpleDateFormat simpleDateFormat = new SimpleDateFormat("yyyyMMdd");
 
-    @Scheduled(cron = "0 20 0-23 * * 1-7")
-//    @Scheduled(cron = "0 20 0-23 * * 2")
+    @Scheduled(cron = "0 0 0-23 * * 1-7")
+//    @Scheduled(cron = "0 0 0-23 * * 2")
     public void checkPrStatuses() {
 
         List<String> usedBussinessKeyList = new ArrayList<>();
@@ -141,7 +145,11 @@ public class CheckPrStatusesSchedule {
                     fos.write(IOUtils.toByteArray(inputStream));
                     fos.close();
 
-                    gateway.uploadPrStatusProcessed(file);
+                    if(isSftp){
+                        gateway.uploadPrStatusProcessed(file);
+                    } else {
+                        s3gateway.uploadPrStatusProcessed(file);
+                    }
                 }
             );
 
