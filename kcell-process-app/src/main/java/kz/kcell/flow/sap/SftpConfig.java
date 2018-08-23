@@ -57,6 +57,12 @@ public class SftpConfig {
     @Value("${sftp.remote.directory.jojr:/home/KWMS/JR_JO_Creation/Sap JO File}")
     private String sftpRemoteDirectoryJoJr;
 
+    @Value("${sftp.remote.directory.to.pr.status:/home/KWMS/CIP_PR_Creation/PR_Status}")
+    private String sftpRemoteDirectoryPrStatus;
+
+    @Value("${sftp.remote.directory.to.pr.status:/home/KWMS/CIP_PR_Creation/PR_Status/PR_status_processed}")
+    private String sftpRemoteDirectoryPrStatusProcessed;
+
     public SessionFactory<ChannelSftp.LsEntry> sftpSessionFactory() {
         DefaultSftpSessionFactory factory = new DefaultSftpSessionFactory(true);
         factory.setHost(sftpHost);
@@ -121,6 +127,24 @@ public class SftpConfig {
     }
 
     @Bean
+    @ServiceActivator(inputChannel = "toPrStatusProcessedChannel")
+    public MessageHandler toPrStatusSftpMessageHandler() {
+        SftpMessageHandler handler = new SftpMessageHandler(sftpSessionFactory());
+        handler.setRemoteDirectoryExpression(new LiteralExpression(sftpRemoteDirectoryPrStatusProcessed));
+        handler.setFileNameGenerator(new FileNameGenerator() {
+            @Override
+            public String generateFileName(Message<?> message) {
+                if (message.getPayload() instanceof File) {
+                    return ((File) message.getPayload()).getName();
+                } else {
+                    throw new IllegalArgumentException("pr file expected as payload.");
+                }
+            }
+        });
+        return handler;
+    }
+
+    @Bean
     public RemoteFileTemplate template() {
         return new SftpRemoteFileTemplate(sftpSessionFactory());
     }
@@ -133,5 +157,8 @@ public class SftpConfig {
 
         @Gateway(requestChannel = "toPrChannel")
         void uploadPr(File file);
+
+        @Gateway(requestChannel = "toPrStatusProcessedChannel")
+        void uploadPrStatusProcessed(File file);
     }
 }

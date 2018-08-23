@@ -29,9 +29,6 @@ public class S3Config {
     @Autowired
     private AmazonS3 amazonS3;
 
-    @Autowired
-    private Environment environment;
-
     @Value("${s3.bucket.jojr:jojr}")
     private String jojrBucketName;
 
@@ -61,6 +58,12 @@ public class S3Config {
     }
 
     @Bean
+    @ServiceActivator(inputChannel = "toPrStatusProcessedChannel")
+    public MessageHandler toPrStatusProcessedS3MessageHandler() {
+        return new S3MessageHandler(amazonS3, prBucketName);
+    }
+
+    @Bean
     public RemoteFileTemplate template() {
         return new S3RemoteFileTemplate(amazonS3);
     }
@@ -73,5 +76,8 @@ public class S3Config {
 
         @Gateway(requestChannel = "toPrChannel")
         void uploadPr(File file);
+
+        @Gateway(requestChannel = "toPrStatusProcessedChannel")
+        void uploadPrStatusProcessed(File file);
     }
 }
