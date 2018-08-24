@@ -1,12 +1,19 @@
 package kz.kcell.flow.mail;
 
+import org.apache.commons.codec.CharEncoding;
+import org.apache.poi.xssf.usermodel.XSSFWorkbook;
 import org.camunda.bpm.engine.delegate.DelegateExecution;
 import org.camunda.bpm.engine.delegate.JavaDelegate;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.mail.javamail.JavaMailSender;
 import org.springframework.mail.javamail.MimeMessageHelper;
+
+import javax.activation.DataSource;
 import javax.mail.internet.MimeMessage;
+import javax.mail.util.ByteArrayDataSource;
+import java.io.ByteArrayInputStream;
+import java.io.ByteArrayOutputStream;
 
 public class CamundaMailerDelegate implements JavaDelegate {
 
@@ -20,6 +27,7 @@ public class CamundaMailerDelegate implements JavaDelegate {
     public void execute(DelegateExecution delegateExecution) throws Exception {
 
         String subject = String.valueOf(delegateExecution.getVariableLocal("subject"));
+        String sendInstruction = String.valueOf(delegateExecution.getVariableLocal("sendInstruction"));
         String businessKey = delegateExecution.getProcessInstance().getBusinessKey();
         if(subject!=null && businessKey!=null && !businessKey.equals("null") && !subject.contains(businessKey)){
             subject = businessKey + ", " + subject;
@@ -43,7 +51,18 @@ public class CamundaMailerDelegate implements JavaDelegate {
         }
 
         MimeMessage message = mailSender.createMimeMessage();
-        MimeMessageHelper helper = new MimeMessageHelper(message);
+        MimeMessageHelper helper = new MimeMessageHelper(message, true);
+
+        if (sendInstruction.equals("send")) {
+            XSSFWorkbook workbook = new XSSFWorkbook();
+            ByteArrayOutputStream out = new ByteArrayOutputStream();
+            workbook.write(out);
+            out.close();
+            ByteArrayInputStream is = new ByteArrayInputStream(out.toByteArray());
+            DataSource source = new ByteArrayDataSource(is, "application/src.main.resources.instruction.instruction.pptx");
+            helper.addAttachment("instruction.pptx", source);
+        }
+
         helper.setTo(separateEmails(addresses));
         helper.setSubject(subject);
         helper.setText(String.valueOf(delegateExecution.getVariableLocal("html")), true);

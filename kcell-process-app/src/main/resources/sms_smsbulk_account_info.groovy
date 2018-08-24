@@ -1,6 +1,9 @@
 import groovy.text.markup.MarkupTemplateEngine
 import groovy.text.markup.TemplateConfiguration
 
+import javax.activation.DataSource
+import javax.mail.util.ByteArrayDataSource
+
 def binding = ["finalIDs" : finalIDs, "smsbulkLogin" : smsbulkLogin, "smsbulkPass" : smsbulkPass]
 
 def template = '''\
@@ -13,18 +16,25 @@ html(lang:'en') {
     }
     newLine()
     body {
-        p('Уважаемый коллега!')
+        p('Добрый день!')
         newLine()
-        p('Учётные данные кабинета для кабинета smsbulk.kcell.kz')
-        p('Идентификаторы: ' + finalIDs)
+        p('Подключена услуга SMS-рассылка.')
         newLine()
-        p('Username: ' + smsbulkLogin)
+        p('Ссылка на web-интерфейс:')
+        p('http://smsbulk.kcell.kz/ru/app/auth')
+        //p('Идентификаторы: ' + finalIDs)
         newLine()
-        p('Password: ' + smsbulkPass)
+        p('Логин: ' + smsbulkLogin)
+        newLine()
+        p('Пароль: ' + smsbulkPass)
+        newLine()
+        p('Инструкция во вложении')
+        p('Спасибо за сотрудничество!')
+        newLine()
         newLine()
         p('С Уважением,')
         newLine()
-        p('Kcell Flow')
+        p('АО «Кселл»')
     }
 }
 '''
