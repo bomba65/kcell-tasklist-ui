@@ -124,6 +124,7 @@ public class CheckPrStatusesSchedule {
 
                                 runtimeService.setVariable(processInstances.get(0).getId(),"sapPRNo", status_parts[2]);
                                 runtimeService.setVariable(processInstances.get(0).getId(),"sapPRTotalValue", Double.valueOf(status_parts[3]));
+                                runtimeService.setVariable(processInstances.get(0).getId(),"sapPRStatus", status_parts[4]);
                                 try {
                                     runtimeService.setVariable(processInstances.get(0).getId(),"sapPRApproveDate", simpleDateFormat.parse(status_parts[5]));
                                 } catch (ParseException e){
