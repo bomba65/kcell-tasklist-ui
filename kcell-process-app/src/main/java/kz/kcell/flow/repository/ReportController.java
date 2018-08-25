@@ -1,6 +1,7 @@
 package kz.kcell.flow.repository;
 
 import kz.kcell.flow.repository.custom.ReportRepository;
+import kz.kcell.flow.repository.dto.FinancialReportDto;
 import kz.kcell.flow.repository.dto.ReportDto;
 import lombok.extern.java.Log;
 import org.camunda.bpm.engine.IdentityService;
@@ -39,6 +40,25 @@ public class ReportController {
         String query = s.hasNext() ? s.next() : "";
 
         List<ReportDto> reportDtos = reportRepository.report(query);
+
+        return ResponseEntity.ok(reportDtos);
+    }
+
+
+    @RequestMapping(value = "/financialreport", method = RequestMethod.GET)
+    @ResponseBody
+    public ResponseEntity<List<FinancialReportDto>> getFinancialReport(){
+
+        if (identityService.getCurrentAuthentication() == null || identityService.getCurrentAuthentication().getUserId() == null) {
+            log.warning("No user logged in");
+            return ResponseEntity.ok(new ArrayList<FinancialReportDto>());
+        }
+
+        InputStream fis = ReportController.class.getResourceAsStream("/reports/financial-report.sql");
+        Scanner s = new Scanner(fis).useDelimiter("\\A");
+        String query = s.hasNext() ? s.next() : "";
+
+        List<FinancialReportDto> reportDtos = reportRepository.financialReport(query);
 
         return ResponseEntity.ok(reportDtos);
     }
