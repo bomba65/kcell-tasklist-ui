@@ -29,7 +29,7 @@
             $scope.resolutions = [];
             $scope.attachments = [];
             $scope.supportiveInputs = [];
-            $scope.supportiveInputCopy = [];
+            $scope.supportiveInputsCopy = [];
             $scope.supportiveRequests = {
                 HR: [],
                 LD: [],
@@ -98,20 +98,13 @@
                         Other: []
                     };
                 }
-                if (!$scope.CACData) {
-                    $scope.CACData = {
-                        resources: [],
-                        materials: [],
-                        acceptCrits: []
-                    };
-                }
                 if (!$scope.BCData) {
                     $scope.BCData = {
                         data: {}
                     };
                 }
                 if (!$scope.riskData) $scope.riskData = [];
-                $scope.supportiveInputCopy = _.map($scope.supportiveInputs, _.clone);
+                $scope.supportiveInputsCopy = _.map($scope.supportiveInputs, _.clone);
             });
 
             camForm.on('submit', function (event) {
@@ -127,12 +120,6 @@
                     type: 'json',
                     value: $scope.attachments,
                     store: true
-                });
-                camForm.variableManager.destroyVariable('supportiveInputs');
-                camForm.variableManager.createVariable({
-                    name: 'supportiveInputs',
-                    type: 'Json',
-                    value: $scope.supportiveInputs
                 });
                 camForm.variableManager.destroyVariable('supportiveRequests');
                 camForm.variableManager.createVariable({
@@ -167,6 +154,13 @@
                         supportiveInputList[v.form+'s'].push(v.unit);
                     }
                 }
+                if ($scope.supportiveInputsCopy && $scope.supportiveInputsCopy.length) {
+                    for (var v of $scope.supportiveInputsCopy) {
+                        if (!$scope.supportiveInputs.find(function(e) {return e.unit == v.unit})) {
+                            $scope.supportiveInputs.push(v);
+                        }
+                    }
+                }
                 
                 camForm.variableManager.destroyVariable("supportiveInputList");
                 camForm.variableManager.createVariable({
@@ -175,22 +169,12 @@
                     value: supportiveInputList
                 });
 
-                if ($scope.resolution == 'Submit') {
-                    if ($scope.supportiveRequests['HR'].length)
-                        for (var form of $scope.supportiveRequests['HR'])
-                            $scope.CACData.resources = Array.prototype.concat.apply($scope.CACData.resources, form.value);
-
-                    if ($scope.supportiveRequests['CPD'].length)
-                        for (var form of $scope.supportiveRequests['CPD'])
-                            $scope.CACData.materials = Array.prototype.concat.apply($scope.CACData.materials, form.value);
-
-                    camForm.variableManager.destroyVariable('CACData');
-                    camForm.variableManager.createVariable({
-                        name: 'CACData',
-                        type: 'Json',
-                        value: $scope.CACData
-                    });
-                }
+                camForm.variableManager.destroyVariable('supportiveInputs');
+                camForm.variableManager.createVariable({
+                    name: 'supportiveInputs',
+                    type: 'Json',
+                    value: $scope.supportiveInputs
+                });
             });
 
             $scope.downloadFile = function (file) {
@@ -288,13 +272,13 @@
             $scope.supportiveInputSelect = function(item) {
                 var elt = $scope.supportiveRequests[item.form].find(function(e) {return e.unit == item.unit;});
                 if (elt) elt.disabled = false;
-                elt = scope.supportiveInputCopy.find(function(e) {return e.unit == item.unit;});
+                elt = scope.supportiveInputsCopy.find(function(e) {return e.unit == item.unit;});
                 if (elt) {
-                    var elt1 = scope.supportiveInputs.find(function(e) {return e.unit == item.unit});
+                    var elt1 = $scope.supportiveInputs.find(function(e) {return e.unit == item.unit});
                     elt1.inputReceived = elt.inputReceived;
                     elt1.description = elt.description;
+                    if (elt.inputReceived) return;
                 }
-                if (elt && elt.inputReceived) return;
 
                 var form = {
                     unit: item.unit,
@@ -310,10 +294,11 @@
             $scope.supportiveInputDeselect = function(item) {
                 var ind = $scope.supportiveRequests[item.form].findIndex(function(e) {return e.unit == item.unit;});
                 if (ind !== -1) {
-                    var elt = scope.supportiveInputCopy.find(function(e) {return e.unit == item.unit});
+                    var elt = scope.supportiveInputsCopy.find(function(e) {return e.unit == item.unit});
                     if (!elt || !elt.inputReceived) $scope.supportiveRequests[item.form].splice(ind, 1);
                     else $scope.supportiveRequests[item.form][ind].disabled = true;
                 }
+                if (!$scope.supportiveInputs.length) $scope.resolution = 'Submit';
             };
         }]);
     </script>
@@ -562,7 +547,7 @@
                 <input type="radio" ng-model="resolution" name="resolution" value="Submit" required> Submit
             </label>
             <label class="radio-inline">
-                <input type="radio" ng-model="resolution" name="resolution" value="Request Supportive inputs" required> Request Supportive inputs
+                <input type="radio" ng-model="resolution" name="resolution" value="Request Supportive inputs" required ng-disabled="!supportiveInputs.length"> Request Supportive inputs
             </label>
             <label class="error" ng-show="kcell_form.resolution.$error.required && ( kcell_form.resolution.$touched || view.submitted)">Required field</label>
         </div>

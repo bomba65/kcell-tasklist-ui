@@ -30,6 +30,7 @@
                 HR: false, HRs: [],
                 Other: false, Others: []
             };
+            $scope.requestInfoCount = 0;
             var processInstanceId = null;
             var taskName = null;
             var assigneeName = $rootScope.authentication.name;
@@ -73,6 +74,10 @@
                         {unit: 'Centralized Procurement Department', form: 'CPD'},
                         {unit: 'Technology Department', form: 'Other'}
                     ];
+                } else {
+                    for (var s of $scope.supportiveInputs)
+                        if (s.needInput)
+                            $scope.requestInfoCount++;
                 }
             });
 
@@ -128,6 +133,12 @@
                 error (function(data, status, headers, config) {
                     console.log(data);
                 });
+            }
+
+            $scope.needInputClicked = function(selected) {
+                console.log("==> ", $scope.requestInfoCount);
+                $scope.requestInfoCount += (selected ? 1 : -1);
+                if (!$scope.requestInfoCount) $scope.resolution = 'Modify';
             }
         }]);
     </script>
@@ -275,7 +286,7 @@
                     <tbody>
                         <tr ng-repeat="r in supportiveInputs">
                             <td class="text-center">
-                                    <input type="checkbox" ng-model="r.needInput">
+                                <input type="checkbox" ng-model="r.needInput" ng-click="needInputClicked(r.needInput)">
                             </td>
                             <td class="text-center">
                                 <input type="text" class="form-control" ng-model="r.unit" disabled>
@@ -332,7 +343,7 @@
                 <input type="radio" ng-model="resolution" name="resolution" value="Modify" required> Modify
             </label>
             <label class="radio-inline">
-                <input type="radio" ng-model="resolution" name="resolution" value="Request Info" required> Request Info
+                <input type="radio" ng-model="resolution" name="resolution" value="Request Info" required ng-disabled="!requestInfoCount"> Request Info
             </label>
             <label class="error" ng-show="kcell_form.resolution.$error.required && ( kcell_form.resolution.$touched || view.submitted)">Required field</label>
         </div>

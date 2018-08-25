@@ -71,8 +71,33 @@
                 $scope.attachments = camForm.variableManager.variableValue('attachments');
                 if (!$scope.attachments) $scope.attachments = [];
                 if (!$scope.supportiveInputs) $scope.supportiveInputs = [];
-                if (!$scope.supportiveRequests) $scope.supportiveRequests = {};
                 if (!$scope.riskData) $scope.riskData = [];
+                if (!$scope.supportiveRequests) {
+                    $scope.supportiveRequests = {
+                        HR: [],
+                        LD: [],
+                        CPD: [],
+                        BI: [],
+                        Other: []
+                    };
+                }
+                if (!$scope.CACData) {
+                    $scope.CACData = {
+                        resources: [],
+                        materials: [],
+                        acceptCrits: []
+                    };
+                }
+
+                $scope.theResources = _.map($scope.CACData.resources, _.clone);
+                $scope.theMaterials = _.map($scope.CACData.materials, _.clone);
+
+                if ($scope.supportiveRequests['HR'].length)
+                    for (var form of $scope.supportiveRequests['HR'])
+                        $scope.theResources = Array.prototype.concat.apply($scope.theResources, form.value);
+                if ($scope.supportiveRequests['CPD'].length)
+                    for (var form of $scope.supportiveRequests['CPD'])
+                        $scope.theMaterials = Array.prototype.concat.apply($scope.theMaterials, form.value);
             });
 
             camForm.on('submit', function (event) {
@@ -184,7 +209,7 @@
                         <accordion-heading>
                             Resources <i class="pull-right glyphicon" ng-class="{'glyphicon-chevron-up': status.isCustomHeaderOpen, 'glyphicon-chevron-down': !status.isCustomHeaderOpen}"></i>
                         </accordion-heading>
-                        <demand-resources data="CACData.resources" form="kcell_form" view="view" disabled="true" editprice="false"></demand-resources>
+                        <demand-resources data="theResources" form="kcell_form" view="view" disabled="true" editprice="false"></demand-resources>
                     </accordion-group>
                 </accordion>
                 <accordion>
@@ -192,7 +217,7 @@
                         <accordion-heading>
                             Materials <i class="pull-right glyphicon" ng-class="{'glyphicon-chevron-up': status.isCustomHeaderOpen, 'glyphicon-chevron-down': !status.isCustomHeaderOpen}"></i>
                         </accordion-heading>
-                        <demand-materials data="CACData.materials" form="kcell_form" view="view" disabled="true" editprice="false"></demand-materials>
+                        <demand-materials data="theMaterials" form="kcell_form" view="view" disabled="true" editprice="false"></demand-materials>
                     </accordion-group>
                 </accordion>
                 <accordion>
