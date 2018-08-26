@@ -44,9 +44,9 @@ public class ApproveList implements TaskListener {
 
         JsonValue jsonValue = SpinValues.jsonValue("{\"role\" : \"" + role
             + "\",\"responsible\" : \"" + delegateTask.getAssignee()
-            + "\",\"comment\" : \"" + delegateTask.getVariable(comment)
+            + "\",\"comment\" : \"" + (delegateTask.getVariable(comment) == null ? "" : delegateTask.getVariable(comment).toString())
             + "\",\"date\" : \"" + (new Date()).getTime()
-            + "\",\"result\" : \"" + delegateTask.getVariable(result)
+            + "\",\"result\" : \"" + (delegateTask.getVariable(result) == null ? "" : delegateTask.getVariable(result).toString())
             + "\"}").create();
 
         SpinList<SpinJsonNode> approvalList = new SpinListImpl<>();

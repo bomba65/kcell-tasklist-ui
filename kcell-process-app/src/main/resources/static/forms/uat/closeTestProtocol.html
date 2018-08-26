@@ -15,10 +15,7 @@
                 'demandActivity',
                 'demandName',
                 'generalProductDesc',
-                'risksLimits'
-
-
-
+                'risksLimits',
             ];
 
             camForm.on('form-loaded', function () {
@@ -33,9 +30,7 @@
                         $http.get('/camunda/api/engine/engine/default/process-instance/' + $scope.processInstanceId).then(
                                 function(result){
                                     $scope.businessKeyUAT = result.data.businessKey;
-                                    console.log(result.data)
-                                    console.log('$scope.businessKeyUAT')
-                                    console.log($scope.businessKeyUAT)
+                                    $scope.uatModel['businessKeyUAT'] = {value: result.data.businessKey};
 
                                 },
                                 function (error) {
@@ -90,10 +85,11 @@
                         }
                     } else {
                         $scope[el] = camForm.variableManager.variables[el].value;
-                        $scope.uatModel[el] = camForm.variableManager.variables[el]
+                        $scope.uatModel[el] = camForm.variableManager.variables[el];
                     }
                 });
                 console.log($scope.uatModel);
+                console.log("===> ", $scope.approvalList);
                 $scope.attachments = camForm.variableManager.variableValue('attachments');
 
                 if (!$scope.attachments) $scope.attachments = [];
@@ -131,7 +127,8 @@
 
             $scope.printDiv = function(forPrint) {
                 var printContents = document.getElementById(forPrint).innerHTML;
-                console.log(printContents);
+                //console.log(printContents);
+                console.log("buss => ", $scope.businessKeyUAT);
                 var popupWin = window.open('', 'PRINT', 'height=400,width=600');
                 popupWin.document.open();
                 popupWin.document.write('<html><head><link href="css/bootstrap.min.css" rel="stylesheet"><link href="css/styles.css" rel="stylesheet" type="text/css"></head><body onload="window.print()">' + printContents + '</body></html>');
@@ -140,9 +137,9 @@
         }]);
     </script>
 
-    <div class="col-sm-9 form-group">
+    <div class="form-group">
         <label class="col-sm-2 control-label">Business Key:</label>
-        <div class="col-sm-3">
+        <div class="col-sm-4">
             <input rows="1" class="form-control" ng-model="businessKeyUAT" disabled>
         </div>
         <label class="col-sm-2 control-label">Activity:</label>
@@ -150,41 +147,41 @@
             <input rows="1" class="form-control" ng-model="demandActivity" id="demandActivity" value="Close Test Protocol" disabled> </input>
         </div>
     </div>
-    <div class="col-sm-9 form-group">
+    <div class="form-group">
         <label class="col-sm-2 control-label">Demand Name: </label>
-        <div class="col-sm-9">
+        <div class="col-sm-10">
             <input rows="1" class="form-control" ng-model="demandName"disabled>
         </div>
     </div>
 
     <div class="form-group">
         <label class="col-sm-12 control-label" > General Product/Service description</label>
-        <div class="col-sm-8">
-            <textarea class="form-control" type="text" style="margin: 20px 0; width: 725px; height: 120px;"  ng-model="generalProductDesc" readonly></textarea>
+        <div class="col-sm-12">
+            <textarea class="form-control" rows="4" ng-model="generalProductDesc" readonly></textarea>
         </div>
     </div>
 
     <div class="form-group">
         <label class="col-sm-12 control-label" id="testCases" name="testCases">Test cases</label>
     </div>
-    <div class="col-sm-8 form-group">
+    <div class="col-sm-12">
             <table class="table table-bordered">
                 <thead>
                 <tr>
-                    <th class="col-sm-2"># Test case</th>
+                    <th># Test case</th>
                     <th># Use case</th>
-                    <th class="col-sm-2">Result</th>
+                    <th>Result</th>
                 </tr>
                 </thead>
                 <tbody>
                 <tr ng-repeat="r in data track by $index">
-                    <td class="col-sm-2">
+                    <td>
                         <label class="form-control" type="text" class="form-control" disabled>Test case {{$index+1}}</label>
                     </td>
                     <td>
                         <label class="form-control" type="text" class="form-control" disabled>{{r.useCase}}</label>
                     </td>
-                    <td class="col-sm-3">
+                    <td>
                         <label class="form-control" ng-model="r.result" disabled>{{r.result}}</label>
                     </td>
                 </tr>
@@ -195,7 +192,7 @@
 
     <div class="form-group">
         <label class="col-sm-12 control-label">Resolution</label>
-        <div class="col-sm-8">
+        <div class="col-sm-12">
             <label class="radio-inline">
                 <input type="radio" ng-model="launchTaskResult" name="launchTaskResult" value="ready" disabled> Ready to launch
             </label>
@@ -210,15 +207,15 @@
 
     <div class="form-group">
         <label class="col-sm-12 control-label"> Risks/Limitation</label>
-        <div class="col-sm-8">
-            <textarea class="form-control" style="margin: 20px 0; width: 725px; height: 120px;" type="text" ng-model="risksLimits" readonly></textarea>
+        <div class="col-sm-12">
+            <textarea class="form-control" rows="4" ng-model="risksLimits" readonly></textarea>
         </div>
     </div>
 
     <div class="form-group">
-        <label class="col-sm-8 control-label" id="approvalList" name="approvalList">Approval list</label>
+        <label class="col-sm-12 control-label" id="approvalList" name="approvalList">Approval list</label>
     </div>
-    <div class="col-sm-8 form-group">
+    <div class="col-sm-12 form-group">
             <table class="table">
                 <thead>
                 <tr>
@@ -241,65 +238,38 @@
             </table>
     </div>
 
-    <div class="col-sm-12">
+    <div class="form-group">
         <iframe id="fileDownloadIframe" style="display:none;"></iframe>
+        <label class="col-sm-12 control-label">Attachments</label>
+        <div class="col-sm-12">
+            <table class="table table-bordered">
+                <thead>
+                <tr>
+                    <th>Category</th>
+                    <th>File Name</th>
+                    <th>Date</th>
+                    <th>Responsible</th>
+                </tr>
+                </thead>
+                <tbody>
+                <tr ng-repeat="file in attachments track by $index">
+                    <td>
+                        <label class="form-control" ng-model="file.category" disabled>{{file.category}}</label>
+                    </td>
+                    <td><a ng-click="downloadFile(file)">{{file.name}}</a></td>
+                    <td>{{file.created | date: 'dd.MM.yyyy HH:mm'}}</td>
+                    <td>{{file.createdBy}}</td>
+                </tr>
+                </tbody>
+            </table>
+        </div>
     </div>
-        <label class="col-sm-12 form-group">Attachments</label>
-            <div class="col-sm-8 form-group">
-                    <table class="table table-bordered">
-                        <thead>
-                        <tr>
-                            <th>Category</th>
-                            <th>File Name</th>
-                            <th>Date</th>
-                            <th>Responsible</th>
-                        </tr>
-                        </thead>
-                        <tbody>
-                        <tr ng-repeat="file in attachments track by $index">
-                            <td class="col-sm-3">
-                                <label class="form-control" ng-model="file.category" disabled>{{file.category}}</label>
-                            </td>
-                            <td><a ng-click="downloadFile(file)">{{file.name}}</a></td>
-                            <td>{{file.created | date: 'dd.MM.yyyy HH:mm'}}</td>
-                            <td>{{file.createdBy}}</td>
-                        </tr>
-                        </tbody>
-                    </table>
-            </div>
-
-    <!--<div class="form-group">-->
-        <!--<label class="col-sm-2 control-label">Resolution</label>-->
-        <!--<div class="col-sm-8">-->
-            <!--<label class="radio-inline">-->
-                <!--<input type="radio" ng-model="approveTestProtTaskResult" name="approveTestProtTaskResult" value="approved" required> Approved-->
-            <!--</label>-->
-            <!--<label class="radio-inline">-->
-                <!--<input type="radio" ng-model="approveTestProtTaskResult" name="approveTestProtTaskResult" value="rejected" required> Reject-->
-            <!--</label>-->
-            <!--<label class="error" ng-show="kcell_form.approveTestProtTaskResult.$error.required && ( kcell_form.approveTestProtTaskResult.$touched || view.submitted)">Required field</label>-->
-        <!--</div>-->
-    <!--</div>-->
 
     <div class="form-group">
         <label class="col-sm-12 control-label">Comments</label>
-    </div>
-    <div class="col-sm-12 form-group">
-        <textarea class="form-control" rows="4" maxlength="500" ng-model="approveTestProtTaskComment" name="approveTestProtTaskComment" style="margin: 20px 0; width: 725px; height: 100px;" required></textarea>
-        <label class="error" ng-show="kcell_form.approveTestProtTaskComment.$error.required && (kcell_form.approveTestProtTaskComment.$touched || view.submitted)">Required field</label>
-    </div>
-    <div class="form-group" ng-show="hasComment()">
-        <label class="col-sm-4 control-label">Comments visibility</label>
-        <div class="col-sm-8">
-            <label class="radio-inline">
-                <input type="radio" name="approveTestProtCommentVisibility"
-                       ng-model="approveTestProtCommentVisibility" value="all" ng-required="hasComment()"> Visible for all
-            </label>
-            <label class="radio-inline">
-                <input type="radio" name="approveTestProtCommentVisibility"
-                       ng-model="approveTestProtCommentVisibility" value="kcell" ng-required="hasComment()"> Kcell staff only
-            </label>
-            <label class="error" ng-show="kcell_form.approveTestProtCommentVisibility.$error.required && ( kcell_form.approveTestProtCommentVisibility.$touched || view.submitted)">Required field</label>
+        <div class="col-sm-12">
+            <textarea class="form-control" rows="4" maxlength="500" ng-model="approveTestProtTaskComment" name="approveTestProtTaskComment" required></textarea>
+            <label class="error" ng-show="kcell_form.approveTestProtTaskComment.$error.required && (kcell_form.approveTestProtTaskComment.$touched || view.submitted)">Required field</label>
         </div>
     </div>
 
@@ -322,7 +292,7 @@
                 <tr ng-repeat="resolution in resolutions">
                     <td>{{resolution.taskName}}</td>
                     <td>{{resolution.assigneeName}}</td>
-                    <td>{{'task.resolution.'+resolution.resolution | translate}}</td>
+                    <td>{{resolution.resolution}}</td>
                     <td>{{resolution.taskEndDate | date: 'dd.MM.yyyy HH:mm'}}</td>
                     <td>{{resolution.comment}}</td>
                 </tr>
