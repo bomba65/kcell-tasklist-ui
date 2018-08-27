@@ -1,4 +1,4 @@
-<form role="form" class="form-horizontal" name="kcell_form" novalidate>
+<form role="form" class="form-horizontal" name="kcell_form" novalidate style="max-width: 900px;">
     <style>
         .well {
             color: #333;
@@ -12,7 +12,6 @@
                 'data',
                 'launchTaskResult',
                 'attachments',
-                'demandActivity',
                 'demandName',
                 'generalProductDesc',
                 'risksLimits',
@@ -27,11 +26,12 @@
                         $scope.processInstanceId = result.data.processInstanceId;
                         $scope.taskName = result.data.name;
                         console.log(result.data)
-                        $http.get('/camunda/api/engine/engine/default/process-instance/' + $scope.processInstanceId).then(
+                        $http.get('/camunda/api/engine/engine/default/history/process-instance/' + $scope.processInstanceId).then(
                                 function(result){
                                     $scope.businessKeyUAT = result.data.businessKey;
-                                    $scope.uatModel['businessKeyUAT'] = {value: result.data.businessKey};
-
+                                    $scope.uatModel['businessKeyUAT'] = {value: $scope.businessKeyUAT};
+                                    if (result.data.startTime) $scope.uatModel['startTime'] = {value: new Date(result.data.startTime)};
+                                    if (result.data.endTime) $scope.uatModel['endTime'] = {value: new Date(result.data.endTime)};
                                 },
                                 function (error) {
                                     console.log(error.data);
@@ -88,8 +88,18 @@
                         $scope.uatModel[el] = camForm.variableManager.variables[el];
                     }
                 });
-                console.log($scope.uatModel);
-                console.log("===> ", $scope.approvalList);
+
+                var tmpApprovalList = _.map($scope.approvalList, _.clone);
+                $q.all(tmpApprovalList.map(function (approval) {
+                    return $http.get("/camunda/api/engine/engine/default/user/" + approval.responsible + "/profile");
+                })).then(function (profiles) {
+                    profiles.forEach(function (e, index) {
+                        tmpApprovalList[index].responsible = (e.data.firstName ? e.data.firstName : "") + " " + (e.data.lastName ? e.data.lastName : "");
+                    });
+                    $scope.approvalList = tmpApprovalList;
+                    $scope.uatModel['approvalList'] = {value: tmpApprovalList};
+                });
+                
                 $scope.attachments = camForm.variableManager.variableValue('attachments');
 
                 if (!$scope.attachments) $scope.attachments = [];
@@ -115,6 +125,11 @@
                 console.log($scope.resolutions);
             });
 
+            var assigneeName = $rootScope.authentication.name;
+            $http.get("/camunda/api/engine/engine/default/user/" + $rootScope.authentication.name+ "/profile").then(function(result){
+                assigneeName = (result.data.firstName ? result.data.firstName : "") + " " + (result.data.lastName ? result.data.lastName : "");
+            });
+
             $scope.downloadFile = function (file) {
                 $http({method: 'GET', url: '/camunda/uploads/tmp/get/' + file.path, transformResponse: [] }).
                 success(function(data, status, headers, config) {
@@ -128,7 +143,6 @@
             $scope.printDiv = function(forPrint) {
                 var printContents = document.getElementById(forPrint).innerHTML;
                 //console.log(printContents);
-                console.log("buss => ", $scope.businessKeyUAT);
                 var popupWin = window.open('', 'PRINT', 'height=400,width=600');
                 popupWin.document.open();
                 popupWin.document.write('<html><head><link href="css/bootstrap.min.css" rel="stylesheet"><link href="css/styles.css" rel="stylesheet" type="text/css"></head><body onload="window.print()">' + printContents + '</body></html>');
@@ -144,7 +158,7 @@
         </div>
         <label class="col-sm-2 control-label">Activity:</label>
         <div class="col-sm-4">
-            <input rows="1" class="form-control" ng-model="demandActivity" id="demandActivity" value="Close Test Protocol" disabled> </input>
+            <input rows="1" class="form-control" value="Close Test Protocol" disabled> </input>
         </div>
     </div>
     <div class="form-group">
@@ -157,38 +171,31 @@
     <div class="form-group">
         <label class="col-sm-12 control-label" > General Product/Service description</label>
         <div class="col-sm-12">
-            <textarea class="form-control" rows="4" ng-model="generalProductDesc" readonly></textarea>
+            <textarea style="resize:vertical;" class="form-control" rows="4" ng-model="generalProductDesc" readonly></textarea>
         </div>
     </div>
 
     <div class="form-group">
         <label class="col-sm-12 control-label" id="testCases" name="testCases">Test cases</label>
-    </div>
-    <div class="col-sm-12">
+        <div class="col-sm-12">
             <table class="table table-bordered">
                 <thead>
                 <tr>
-                    <th># Test case</th>
-                    <th># Use case</th>
-                    <th>Result</th>
+                    <th class="col-sm-2 text-center"># Test case</th>
+                    <th class="col-sm-8 text-center"># Use case</th>
+                    <th class="col-sm-2 text-center">Result</th>
                 </tr>
                 </thead>
                 <tbody>
                 <tr ng-repeat="r in data track by $index">
-                    <td>
-                        <label class="form-control" type="text" class="form-control" disabled>Test case {{$index+1}}</label>
-                    </td>
-                    <td>
-                        <label class="form-control" type="text" class="form-control" disabled>{{r.useCase}}</label>
-                    </td>
-                    <td>
-                        <label class="form-control" ng-model="r.result" disabled>{{r.result}}</label>
-                    </td>
+                    <td class="col-sm-2 text-center">Test case {{$index+1}}</td>
+                    <td class="col-sm-8">{{r.useCase}}</td>
+                    <td class="col-sm-2 text-center">{{r.result}}</td>
                 </tr>
                 </tbody>
             </table>
+        </div>
     </div>
-
 
     <div class="form-group">
         <label class="col-sm-12 control-label">Resolution</label>
@@ -208,34 +215,34 @@
     <div class="form-group">
         <label class="col-sm-12 control-label"> Risks/Limitation</label>
         <div class="col-sm-12">
-            <textarea class="form-control" rows="4" ng-model="risksLimits" readonly></textarea>
+            <textarea style="resize:vertical;" class="form-control" rows="4" ng-model="risksLimits" readonly></textarea>
         </div>
     </div>
 
     <div class="form-group">
         <label class="col-sm-12 control-label" id="approvalList" name="approvalList">Approval list</label>
-    </div>
-    <div class="col-sm-12 form-group">
-            <table class="table">
+        <div class="col-sm-12">
+            <table class="table table-bordered">
                 <thead>
                 <tr>
-                    <th class="col-sm-2">Role</th>
-                    <th class="col-sm-2">Responsible</th>
-                    <th class="col-sm-3">Date</th>
-                    <th class="col-sm-2">Result</th>
-                    <th>Comment</th>
+                    <th class="col-sm-3 text-center">Role</th>
+                    <th class="col-sm-2 text-center">Responsible</th>
+                    <th class="col-sm-2 text-center">Date</th>
+                    <th class="col-sm-2 text-center">Result</th>
+                    <th class="col-sm-3 text-center">Comment</th>
                 </tr>
                 </thead>
                 <tbody>
                 <tr ng-repeat="d in approvalList">
-                    <td class="col-sm-2">{{d.role}}</td>
-                    <td>{{d.responsible}}</td>
-                    <td>{{d.date |  date: 'dd.MM.yyyy HH:mm'}}</td>
-                    <td>{{d.result}}</td>
-                    <td>{{d.comment}}</td>
+                    <td class="col-sm-3 text-center">{{d.role}}</td>
+                    <td class="col-sm-2 text-center">{{d.responsible}}</td>
+                    <td class="col-sm-2 text-center">{{d.date |  date: 'dd.MM.yyyy HH:mm'}}</td>
+                    <td class="col-sm-2 text-center">{{d.result}}</td>
+                    <td class="col-sm-3">{{d.comment}}</td>
                 </tr>
                 </tbody>
             </table>
+        </div>
     </div>
 
     <div class="form-group">
@@ -245,20 +252,18 @@
             <table class="table table-bordered">
                 <thead>
                 <tr>
-                    <th>Category</th>
-                    <th>File Name</th>
-                    <th>Date</th>
-                    <th>Responsible</th>
+                    <th class="col-sm-3 text-center">Category</th>
+                    <th class="col-sm-3 text-center">File Name</th>
+                    <th class="col-sm-3 text-center">Date</th>
+                    <th class="col-sm-3 text-center">Responsible</th>
                 </tr>
                 </thead>
                 <tbody>
                 <tr ng-repeat="file in attachments track by $index">
-                    <td>
-                        <label class="form-control" ng-model="file.category" disabled>{{file.category}}</label>
-                    </td>
-                    <td><a ng-click="downloadFile(file)">{{file.name}}</a></td>
-                    <td>{{file.created | date: 'dd.MM.yyyy HH:mm'}}</td>
-                    <td>{{file.createdBy}}</td>
+                    <td class="col-sm-3 text-center">{{file.category}}</td>
+                    <td class="col-sm-3 text-center"><a ng-click="downloadFile(file)">{{file.name}}</a></td>
+                    <td class="col-sm-3 text-center">{{file.created | date: 'dd.MM.yyyy HH:mm'}}</td>
+                    <td class="col-sm-3 text-center">{{file.createdBy}}</td>
                 </tr>
                 </tbody>
             </table>
@@ -268,82 +273,49 @@
     <div class="form-group">
         <label class="col-sm-12 control-label">Comments</label>
         <div class="col-sm-12">
-            <textarea class="form-control" rows="4" maxlength="500" ng-model="approveTestProtTaskComment" name="approveTestProtTaskComment" required></textarea>
+            <textarea style="resize:vertical;" class="form-control" rows="4" maxlength="500" ng-model="approveTestProtTaskComment" name="approveTestProtTaskComment" required></textarea>
             <label class="error" ng-show="kcell_form.approveTestProtTaskComment.$error.required && (kcell_form.approveTestProtTaskComment.$touched || view.submitted)">Required field</label>
         </div>
     </div>
 
-    <accordion class="col-sm-12 form-group">
-        <accordion-group is-open="isHistoryOpen">
-            <accordion-heading>
-                History <i class="pull-right glyphicon" ng-class="{'glyphicon-chevron-up': status.isCustomHeaderOpen, 'glyphicon-chevron-down': !status.isCustomHeaderOpen}"></i>
-            </accordion-heading>
-            <table class="table">
-                <thead>
-                <tr>
-                    <th>Activity</th>
-                    <th>Assignee</th>
-                    <th>Resolution</th>
-                    <th>Date</th>
-                    <th>Comment</th>
-                </tr>
-                </thead>
-                <tbody>
-                <tr ng-repeat="resolution in resolutions">
-                    <td>{{resolution.taskName}}</td>
-                    <td>{{resolution.assigneeName}}</td>
-                    <td>{{resolution.resolution}}</td>
-                    <td>{{resolution.taskEndDate | date: 'dd.MM.yyyy HH:mm'}}</td>
-                    <td>{{resolution.comment}}</td>
-                </tr>
-                </tbody>
-            </table>
-        </accordion-group>
-    </accordion>
+    <div class="form-group">
+        <div class="col-sm-12">
+            <accordion>
+                <accordion-group is-open="isHistoryOpen">
+                    <accordion-heading>
+                        History <i class="pull-right glyphicon" ng-class="{'glyphicon-chevron-up': status.isCustomHeaderOpen, 'glyphicon-chevron-down': !status.isCustomHeaderOpen}"></i>
+                    </accordion-heading>
+                    <table class="table table-bordered">
+                        <thead>
+                        <tr>
+                            <th class="col-sm-3 text-center">Activity</th>
+                            <th class="col-sm-2 text-center">Assignee</th>
+                            <th class="col-sm-2 text-center">Resolution</th>
+                            <th class="col-sm-2 text-center">Date</th>
+                            <th class="col-sm-3">Comment</th>
+                        </tr>
+                        </thead>
+                        <tbody>
+                        <tr ng-repeat="resolution in resolutions">
+                            <td class="col-sm-3 text-center">{{resolution.taskName}}</td>
+                            <td class="col-sm-2 text-center">{{resolution.assigneeName}}</td>
+                            <td class="col-sm-2 text-center">{{resolution.resolution}}</td>
+                            <td class="col-sm-2 text-center">{{resolution.taskEndDate | date: 'dd.MM.yyyy HH:mm'}}</td>
+                            <td class="col-sm-3">{{resolution.comment}}</td>
+                        </tr>
+                        </tbody>
+                    </table>
+                </accordion-group>
+            </accordion>
+        </div>
+    </div>
+    
     <div class="form-group">
         <div class="col-md-12">
             <a ng-click="printDiv('forPrint')"> <i class="glyphicon glyphicon-print"></i> Save as PDF</a>
         </div>
     </div>
     <div id="forPrint" class="hidden">
-        <style>
-
-            @media print {
-
-                @page {
-                    size: 210mm 297mm;
-                    margin: 20mm 0 0 2mm;
-                    width: 1900px;
-                }
-
-                .header {
-                    display: table-header-group;
-                }
-
-                .main {
-                    display: table-row-group;
-                }
-
-                .col-sm-3{
-                    width: 25%;
-                    float: left;
-                    text-align: right;
-                }
-
-                .more {
-                    page-break-before:avoid;
-                }
-
-                .notBreak {
-                    page-break-indide:avoid;
-                }
-
-                .wizard-content{
-                    min-height: 0;
-                }
-
-            }
-        </style>
         <uat-process uat-model="uatModel" print="true" style="margin: 10px; width: 80%; padding: 40px;"> </uat-process>
     </div>
 </form>

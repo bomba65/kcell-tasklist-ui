@@ -1,4 +1,4 @@
-<form role="form" class="form-horizontal" name="kcell_form" novalidate>
+<form role="form" class="form-horizontal" name="kcell_form" novalidate style="max-width: 900px;">
     <style>
         .well {
             color: #333;
@@ -111,6 +111,12 @@
                 console.log($scope.resolutions);
             });
 
+
+            var assigneeName = $rootScope.authentication.name;
+            $http.get("/camunda/api/engine/engine/default/user/" + $rootScope.authentication.name+ "/profile").then(function(result){
+                assigneeName = (result.data.firstName ? result.data.firstName : "") + " " + (result.data.lastName ? result.data.lastName : "");
+            });
+
             $scope.downloadFile = function (file) {
                 $http({method: 'GET', url: '/camunda/uploads/tmp/get/' + file.path, transformResponse: [] }).
                 success(function(data, status, headers, config) {
@@ -131,7 +137,7 @@
         </div>
         <label class="col-sm-2 control-label"> Activity:</label>
         <div class="col-sm-4">
-            <input rows="1" class="form-control" cam-variable-name="demandActivity" cam-variable-type="String" id="demandActivity" value="Approve Test Protocol" disabled> </input>
+            <input rows="1" class="form-control" value="Approve Test Protocol" disabled> </input>
         </div>
     </div>
     <div class="form-group">
@@ -144,36 +150,30 @@
     <div class="form-group">
         <label class="col-sm-12 control-label" > General Product/Service description</label>
         <div class="col-sm-12">
-            <textarea class="form-control" rows="4" cam-variable-name="generalProductDesc" cam-variable-type="String" readonly></textarea>
+            <textarea style="resize:vertical;" class="form-control" rows="4" cam-variable-name="generalProductDesc" cam-variable-type="String" readonly></textarea>
         </div>
     </div>
 
     <div class="form-group">
         <label class="col-sm-12 control-label" id="testCases" name="testCases">Test cases</label>
-    </div>
-    <div class="form-group col-sm-12">
-        <table class="table table-bordered">
-            <thead>
-            <tr>
-                <th># Test case</th>
-                <th># Use case</th>
-                <th>Result</th>
-            </tr>
-            </thead>
-            <tbody>
-            <tr ng-repeat="r in data track by $index">
-                <td>
-                    <label class="form-control" type="text" class="form-control" disabled>Test case {{$index+1}}</label>
-                </td>
-                <td>
-                    <label class="form-control" type="text" class="form-control" disabled>{{r.useCase}}</label>
-                </td>
-                <td>
-                    <label class="form-control" ng-model="r.result" disabled>{{r.result}}</label>
-                </td>
-            </tr>
-            </tbody>
-        </table>
+        <div class="col-sm-12">
+            <table class="table table-bordered">
+                <thead>
+                <tr>
+                    <th class="col-sm-2 text-center"># Test case</th>
+                    <th class="col-sm-8 text-center"># Use case</th>
+                    <th class="col-sm-2 text-center">Result</th>
+                </tr>
+                </thead>
+                <tbody>
+                <tr ng-repeat="r in data track by $index">
+                    <td class="col-sm-2 text-center">Test case {{$index+1}}</td>
+                    <td class="col-sm-8">{{r.useCase}}</td>
+                    <td class="col-sm-2 text-center">{{r.result}}</td>
+                </tr>
+                </tbody>
+            </table>
+        </div>
     </div>
 
     <div class="form-group">
@@ -194,7 +194,7 @@
     <div class="form-group">
         <label class="col-sm-12 control-label"> Risks/Limitation</label>
         <div class="col-sm-12">
-            <textarea class="form-control" rows="4" cam-variable-name="risksLimits" cam-variable-type="String" readonly></textarea>
+            <textarea style="resize:vertical;" class="form-control" rows="4" cam-variable-name="risksLimits" cam-variable-type="String" readonly></textarea>
         </div>
     </div>
 
@@ -205,20 +205,18 @@
             <table class="table table-bordered">
                 <thead>
                 <tr>
-                    <th>Category</th>
-                    <th>File Name</th>
-                    <th>Date</th>
-                    <th>Responsible</th>
+                    <th class="col-sm-3 text-center">Category</th>
+                    <th class="col-sm-3 text-center">File Name</th>
+                    <th class="col-sm-3 text-center">Date</th>
+                    <th class="col-sm-3 text-center">Responsible</th>
                 </tr>
                 </thead>
                 <tbody>
                 <tr ng-repeat="file in attachments track by $index">
-                    <td>
-                        <label class="form-control" ng-model="file.category" disabled>{{file.category}}</label>
-                    </td>
-                    <td><a ng-click="downloadFile(file)">{{file.name}}</a></td>
-                    <td>{{file.created | date: 'dd.MM.yyyy HH:mm'}}</td>
-                    <td>{{file.createdBy}}</td>
+                    <td class="col-sm-3 text-center">{{file.category}}</td>
+                    <td class="col-sm-3 text-center"><a ng-click="downloadFile(file)">{{file.name}}</a></td>
+                    <td class="col-sm-3 text-center">{{file.created | date: 'dd.MM.yyyy HH:mm'}}</td>
+                    <td class="col-sm-3 text-center">{{file.createdBy}}</td>
                 </tr>
                 </tbody>
             </table>
@@ -241,36 +239,40 @@
     <div class="form-group">
         <label class="col-sm-12 control-label">Comments</label>
         <div class="col-sm-12">
-            <textarea class="form-control" rows="4" maxlength="500" ng-model="approveTestProtTaskComment" name="approveTestProtTaskComment" ng-required="approveTestProtTaskResult == 'Rejected'"></textarea>
+            <textarea style="resize:vertical;" class="form-control" rows="4" maxlength="500" ng-model="approveTestProtTaskComment" name="approveTestProtTaskComment" ng-required="approveTestProtTaskResult == 'Rejected'"></textarea>
             <label class="error" ng-show="kcell_form.approveTestProtTaskComment.$error.required && ( kcell_form.approveTestProtTaskComment.$touched || view.submitted)">Required field</label>
         </div>
     </div>
 
-    <accordion class="col-sm-12 form-group">
-        <accordion-group is-open="isHistoryOpen">
-            <accordion-heading>
-                History <i class="pull-right glyphicon" ng-class="{'glyphicon-chevron-up': status.isCustomHeaderOpen, 'glyphicon-chevron-down': !status.isCustomHeaderOpen}"></i>
-            </accordion-heading>
-            <table class="table">
-                <thead>
-                <tr>
-                    <th>Activity</th>
-                    <th>Assignee</th>
-                    <th>Resolution</th>
-                    <th>Date</th>
-                    <th>Comment</th>
-                </tr>
-                </thead>
-                <tbody>
-                <tr ng-repeat="resolution in resolutions">
-                    <td>{{resolution.taskName}}</td>
-                    <td>{{resolution.assigneeName}}</td>
-                    <td>{{resolution.resolution}}</td>
-                    <td>{{resolution.taskEndDate | date: 'dd.MM.yyyy HH:mm'}}</td>
-                    <td>{{resolution.comment}}</td>
-                </tr>
-                </tbody>
-            </table>
-        </accordion-group>
-    </accordion>
+    <div class="form-group">
+        <div class="col-sm-12">
+            <accordion>
+                <accordion-group is-open="isHistoryOpen">
+                    <accordion-heading>
+                        History <i class="pull-right glyphicon" ng-class="{'glyphicon-chevron-up': status.isCustomHeaderOpen, 'glyphicon-chevron-down': !status.isCustomHeaderOpen}"></i>
+                    </accordion-heading>
+                    <table class="table table-bordered">
+                        <thead>
+                        <tr>
+                            <th class="col-sm-3 text-center">Activity</th>
+                            <th class="col-sm-2 text-center">Assignee</th>
+                            <th class="col-sm-2 text-center">Resolution</th>
+                            <th class="col-sm-2 text-center">Date</th>
+                            <th class="col-sm-3">Comment</th>
+                        </tr>
+                        </thead>
+                        <tbody>
+                        <tr ng-repeat="resolution in resolutions">
+                            <td class="col-sm-3 text-center">{{resolution.taskName}}</td>
+                            <td class="col-sm-2 text-center">{{resolution.assigneeName}}</td>
+                            <td class="col-sm-2 text-center">{{resolution.resolution}}</td>
+                            <td class="col-sm-2 text-center">{{resolution.taskEndDate | date: 'dd.MM.yyyy HH:mm'}}</td>
+                            <td class="col-sm-3">{{resolution.comment}}</td>
+                        </tr>
+                        </tbody>
+                    </table>
+                </accordion-group>
+            </accordion>
+        </div>
+    </div>
 </form>
