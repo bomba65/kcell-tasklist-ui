@@ -13,102 +13,77 @@
                 'launchTaskResult'
             ];
 
+            $http.get('/camunda/api/engine/engine/default/task/' + camForm.taskId).then(
+                    function(result) {
+                        $scope.processInstanceId = result.data.processInstanceId;
+                        $scope.taskName = result.data.name;
+                        $http.get('/camunda/api/engine/engine/default/process-instance/' + $scope.processInstanceId).then(
+                                function(result){
+                                    $scope.businessKeyUAT = result.data.businessKey;
+                                },
+                                function (error) {console.log(error.data);}
+                        );
+                    },
+                    function (error) {console.log(error.data);}
+            );
+
 
             camForm.on('form-loaded', function () {
-                variables.forEach(function (el) {
-                    camForm.variableManager.fetchVariable(el);
-                });
-                $http.get('/camunda/api/engine/engine/default/task/' + camForm.taskId).then(
-                        function(result){
-                            $scope.processInstanceId = result.data.processInstanceId;
-                            $scope.taskName = result.data.name;
-                            $http.get('/camunda/api/engine/engine/default/process-instance/' + $scope.processInstanceId).then(
-                                    function(result){
-                                        $scope.businessKeyUAT = result.data.businessKey;
-                                    },
-                                    function (error) {
-                                        console.log(error.data);
-                                    }
-                            );
-                        },
-                        function (error) {
-                            console.log(error.data);
-                        }
-                );
+                camForm.variableManager.fetchVariable('resolutions');
+                camForm.variableManager.fetchVariable('attachments');
+                camForm.variableManager.fetchVariable('data');
+                camForm.variableManager.fetchVariable('launchTaskResult');
+                camForm.variableManager.fetchVariable('approvalList');
+                camForm.variableManager.fetchVariable('approvalIndex');
             });
 
             camForm.on('variables-fetched', function () {
-                variables.forEach(function (el) {
-                    if (el === 'resolutions') {
-                        if (camForm.variableManager.variables[el].value) {
-                            $scope.resolutions = angular.copy(camForm.variableManager.variables[el].value);
-                            $q.all($scope.resolutions.map(function (resolution) {
-                                return $http.get("/camunda/api/engine/engine/default/user/" + resolution.assignee + "/profile");
-                            })).then(function (profiles) {
-                                profiles.forEach(function (e, index) {
-                                    $scope.resolutions[index].assigneeName = (e.data.firstName ? e.data.firstName : "") + " " + (e.data.lastName ? e.data.lastName : "");
-                                });
-                            });
-                            $q.all($scope.resolutions.map(function (resolution) {
-                                return $http.get("/camunda/api/engine/engine/default/history/task?processInstanceId=" + resolution.processInstanceId + "&taskId=" + resolution.taskId);
-                            })).then(function (tasks) {
-                                tasks.forEach(function (e, index) {
-                                    if (e.data.length > 0) {
-                                        $scope.resolutions[index].taskName = e.data[0].name;
-                                        try {
-                                            $scope.resolutions[index].taskEndDate = new Date(e.data[0].endTime);
-                                        } catch (e) {
-                                            console.log(e);
-                                        }
-                                    }
-                                });
-                            });
-                        } else {
-                            camForm.variableManager.destroyVariable('resolutions');
-                            camForm.variableManager.createVariable({
-                                name: 'resolutions',
-                                type: 'Json',
-                                value: ''
-                            });
-                        }
-                    } else {
-                        $scope[el] = camForm.variableManager.variables[el].value;
-                    }
-                });
 
+                $scope.resolutions = camForm.variableManager.variableValue('resolutions');
                 $scope.attachments = camForm.variableManager.variableValue('attachments');
-                //$scope.data = camForm.variableManager.variableValue('data');
+                $scope.data = camForm.variableManager.variableValue('data');
+                $scope.launchTaskResult = camForm.variableManager.variableValue('launchTaskResult');
+                $scope.approvalList = camForm.variableManager.variableValue('approvalList');
+                $scope.approvalIndex = camForm.variableManager.variableValue('approvalIndex');
+
+                $scope.resolutions = _.map($scope.resolutions, _.clone);
+                $q.all($scope.resolutions.map(function (resolution) {
+                    return $http.get("/camunda/api/engine/engine/default/user/" + resolution.assignee + "/profile");
+                })).then(function (profiles) {
+                    profiles.forEach(function (e, index) {
+                        $scope.resolutions[index].assigneeName = (e.data.firstName ? e.data.firstName : "") + " " + (e.data.lastName ? e.data.lastName : "");
+                    });
+                });
+                $q.all($scope.resolutions.map(function (resolution) {
+                    return $http.get("/camunda/api/engine/engine/default/history/task?processInstanceId=" + resolution.processInstanceId + "&taskId=" + resolution.taskId);
+                })).then(function (tasks) {
+                    tasks.forEach(function (e, index) {
+                        if (e.data && e.data.length > 0) {
+                            $scope.resolutions[index].taskName = e.data[0].name;
+                            try {
+                                $scope.resolutions[index].taskEndDate = new Date(e.data[0].endTime);
+                            } catch (e) {
+                                console.log(e);
+                            }
+                        }
+                    });
+                });
 
                 if (!$scope.attachments) $scope.attachments = [];
-                //if (!$scope.data) $scope.data = [];
-
-
-                camForm.variableManager.createVariable({
-                    name: 'approveTestProtTaskResult',
-                    type: 'String',
-                    value: ''
-                });
-                camForm.variableManager.createVariable({
-                    name: 'approveTestProtTaskComment',
-                    type: 'String',
-                    value: ''
-                });
+                if (!$scope.data) $scope.data = [];
             });
 
             camForm.on('submit', function (event) {
-                //event.submitPrevented = true;
-
                 var submitDate = new Date ();
-                if(!$scope.resolutions){
-                    $scope.resolutions = [];
-                }
-
-                camForm.variableManager.variableValue('approveTestProtTaskComment', $scope.approveTestProtTaskComment);
-                camForm.variableManager.variableValue('approveTestProtTaskResult', $scope.approveTestProtTaskResult);
-                //camForm.variableManager.variableValue('launchTaskResult', $scope.launchTaskResult);
-                $scope.resolutions.push({processInstanceId: $scope.processInstanceId, assignee: $rootScope.authentication.name, resolution: $scope.approveTestProtTaskResult, comment: $scope.approveTestProtTaskComment, taskId: camForm.taskId, taskEndDate: submitDate, taskName: $scope.taskName});
+                if(!$scope.resolutions) $scope.resolutions = [];
+                $scope.resolutions.push({processInstanceId: $scope.processInstanceId, assignee: $rootScope.authentication.name, resolution: $scope.resolution, comment: $scope.comment, taskId: camForm.taskId, taskEndDate: submitDate, taskName: $scope.taskName});
                 camForm.variableManager.variableValue('resolutions', $scope.resolutions);
-                console.log($scope.resolutions);
+                camForm.variableManager.variableValue('attachments', $scope.attachments);
+
+                $scope.approvalList[$scope.approvalIndex].date = submitDate;
+                $scope.approvalList[$scope.approvalIndex].result = $scope.resolution;
+                $scope.approvalList[$scope.approvalIndex].comment = $scope.comment;
+                camForm.variableManager.variableValue('approvalList', $scope.approvalList);
             });
 
 
@@ -149,14 +124,14 @@
 
     <div class="form-group">
         <label class="col-sm-12 control-label" > General Product/Service description</label>
-        <div class="col-sm-12">
+        <div class="col-sm-12" style="margin-top: 5px">
             <textarea style="resize:vertical;" class="form-control" rows="4" cam-variable-name="generalProductDesc" cam-variable-type="String" readonly></textarea>
         </div>
     </div>
 
     <div class="form-group">
         <label class="col-sm-12 control-label" id="testCases" name="testCases">Test cases</label>
-        <div class="col-sm-12">
+        <div class="col-sm-12" style="margin-top: 5px">
             <table class="table table-bordered">
                 <thead>
                 <tr>
@@ -177,8 +152,34 @@
     </div>
 
     <div class="form-group">
-        <label class="col-sm-12 control-label">Resolution</label>
-        <div class="col-sm-12">
+        <label class="col-sm-12 control-label">Approval list</label>
+        <div class="col-sm-12" style="margin-top: 5px">
+            <table class="table table-bordered">
+                <thead>
+                <tr>
+                    <th class="col-sm-3 text-center">Role</th>
+                    <th class="col-sm-2 text-center">Responsible</th>
+                    <th class="col-sm-2 text-center">Date</th>
+                    <th class="col-sm-2 text-center">Result</th>
+                    <th class="col-sm-3 text-center">Comment</th>
+                </tr>
+                </thead>
+                <tbody>
+                <tr ng-repeat="user in approvalList track by $index" ng-if="user.role && user.role.length">
+                    <td class="col-sm-3 text-center">{{user.role}}</td>
+                    <td class="col-sm-2 text-center">{{user.responsibleName}}</td>
+                    <td class="col-sm-2 text-center">{{user.date |  date: 'dd.MM.yyyy HH:mm'}}</td>
+                    <td class="col-sm-2 text-center">{{user.result ? user.result : 'Waiting'}}</td>
+                    <td class="col-sm-3">{{user.comment}}</td>
+                </tr>
+                </tbody>
+            </table>
+        </div>
+    </div>
+
+    <div class="form-group">
+        <label class="col-sm-2 control-label">Resolution</label>
+        <div class="col-sm-10">
             <label class="radio-inline">
                 <input type="radio" ng-model="launchTaskResult" name="launchTaskResult" value="ready" disabled> Ready to launch
             </label>
@@ -193,7 +194,7 @@
 
     <div class="form-group">
         <label class="col-sm-12 control-label"> Risks/Limitation</label>
-        <div class="col-sm-12">
+        <div class="col-sm-12" style="margin-top: 5px">
             <textarea style="resize:vertical;" class="form-control" rows="4" cam-variable-name="risksLimits" cam-variable-type="String" readonly></textarea>
         </div>
     </div>
@@ -201,7 +202,7 @@
     <div class="form-group">
         <iframe id="fileDownloadIframe" style="display:none;"></iframe>
         <label class="col-sm-12 control-label">Attachments</label>
-        <div class="col-sm-12">
+        <div class="col-sm-12" style="margin-top: 5px">
             <table class="table table-bordered">
                 <thead>
                 <tr>
@@ -227,20 +228,20 @@
         <label class="col-sm-2 control-label">Resolution</label>
         <div class="col-sm-10">
             <label class="radio-inline">
-                <input type="radio" ng-model="approveTestProtTaskResult" name="approveTestProtTaskResult" value="Approved" required> Approved
+                <input type="radio" ng-model="resolution" name="resolution" value="Approved" required> Approved
             </label>
             <label class="radio-inline">
-                <input type="radio" ng-model="approveTestProtTaskResult" name="approveTestProtTaskResult" value="Rejected" required> Reject
+                <input type="radio" ng-model="resolution" name="resolution" value="Rejected" required> Reject
             </label>
-            <label class="error" ng-show="kcell_form.approveTestProtTaskResult.$error.required && ( kcell_form.approveTestProtTaskResult.$touched || view.submitted)">Required field</label>
+            <label class="error" ng-show="kcell_form.resolution.$error.required && ( kcell_form.resolution.$touched || view.submitted)">Required field</label>
         </div>
     </div>
 
     <div class="form-group">
         <label class="col-sm-12 control-label">Comments</label>
-        <div class="col-sm-12">
-            <textarea style="resize:vertical;" class="form-control" rows="4" maxlength="500" ng-model="approveTestProtTaskComment" name="approveTestProtTaskComment" ng-required="approveTestProtTaskResult == 'Rejected'"></textarea>
-            <label class="error" ng-show="kcell_form.approveTestProtTaskComment.$error.required && ( kcell_form.approveTestProtTaskComment.$touched || view.submitted)">Required field</label>
+        <div class="col-sm-12" style="margin-top: 5px">
+            <textarea style="resize:vertical;" class="form-control" rows="4" maxlength="500" ng-model="comment" name="comment" ng-required="resolution == 'Rejected'"></textarea>
+            <label class="error" ng-show="kcell_form.comment.$error.required && ( kcell_form.comment.$touched || view.submitted)">Required field</label>
         </div>
     </div>
 

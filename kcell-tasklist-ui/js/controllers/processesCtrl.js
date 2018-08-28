@@ -350,15 +350,6 @@ define(['./module','jquery', 'camundaSDK'], function(app, $, CamSDK){
 											$scope.jobModel.jobWorks.value[workIndex].files.push(file);
 										});
 
-										
-    									$q.all($scope.jobModel.approvalList.value.map(function (approval) {
-			                                return $http.get("/camunda/api/engine/engine/default/user/" + approval.responsible + "/profile");
-			                            })).then(function (profiles) {
-			                                profiles.forEach(function (e, index) {
-			                                    $scope.jobModel.approvalList.value[index].responsible = (e.data.firstName ? e.data.firstName : "") + " " + (e.data.lastName ? e.data.lastName : "");
-			                                });
-										});
-
 										$http.get(baseUrl+'/history/process-instance/'+$scope.currentPI[index].id).then(function(pi) {
 											if (pi.data.startTime) $scope.jobModel.startTime = {value: new Date(pi.data.startTime)};
 											if (pi.data.endTime) $scope.jobModel.endTime = {value: new Date(pi.data.endTime)};
@@ -532,10 +523,10 @@ define(['./module','jquery', 'camundaSDK'], function(app, $, CamSDK){
 		};
 
 		$scope.showDiagram = function(index){
+			var processDefinitionId = $scope.currentPI[index].processDefinitionId
 			if ($scope.currentPI[index].definitionId) {
-				var processDefinitionId = $scope.currentPI[index].definitionId
-			} else {var processDefinitionId = $scope.currentPI[index].processDefinitionId}
-			var processDefinitionId = $scope.currentPI[index].definitionId
+				processDefinitionId = $scope.currentPI[index].definitionId;
+			}
 			$scope.showDiagramView = true;
 			getDiagram(processDefinitionId);
 		}
