@@ -24,6 +24,17 @@
             $scope.attachments = [];
             $scope.data = [];
 
+            $scope.preSubmit = function() {
+                return $http.get('/camunda/api/engine/engine/default/history/process-instance/count?processDefinitionKey=UAT').then(
+                    function(result) {
+                        var countPID = result.data.count + 1;
+                        $scope.businessKey = 'Demand-UAT-' + countPID;
+                        camForm.businessKey = $scope.businessKey;
+                    },
+                    function(error) {}
+                );
+            }
+
             camForm.on('submit', function (event) {
                 camForm.variableManager.createVariable({
                   name: 'attachments',
@@ -87,7 +98,7 @@
                           return s.id.split(',').map(function(user){
                             return {
                               id: s.id,
-                              email: s.email.substring(s.email.lastIndexOf('/')+1),
+                              email: (s.email?s.email.substring(s.email.lastIndexOf('/')+1):s.email),
                               firstName: s.firstName,
                               lastName: s.lastName,
                               name: s.firstName + ' ' + s.lastName

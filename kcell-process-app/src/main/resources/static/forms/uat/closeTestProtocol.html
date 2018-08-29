@@ -27,15 +27,15 @@
                         $scope.taskName = result.data.name;
                         console.log(result.data)
                         $http.get('/camunda/api/engine/engine/default/history/process-instance/' + $scope.processInstanceId).then(
-                                function(result){
-                                    $scope.businessKeyUAT = result.data.businessKey;
-                                    $scope.uatModel['businessKeyUAT'] = {value: $scope.businessKeyUAT};
-                                    if (result.data.startTime) $scope.uatModel['startTime'] = {value: new Date(result.data.startTime)};
-                                    if (result.data.endTime) $scope.uatModel['endTime'] = {value: new Date(result.data.endTime)};
-                                },
-                                function (error) {
-                                    console.log(error.data);
-                                }
+                            function(result){
+                                $scope.businessKeyUAT = result.data.businessKey;
+                                $scope.uatModel['businessKeyUAT'] = {value: $scope.businessKeyUAT};
+                                if (result.data.startTime) $scope.uatModel['startTime'] = {value: new Date(result.data.startTime)};
+                                if (result.data.endTime) $scope.uatModel['endTime'] = {value: new Date(result.data.endTime)};
+                            },
+                            function (error) {
+                                console.log(error.data);
+                            }
                         );
                     },
                     function (error) {
@@ -88,41 +88,14 @@
                         $scope.uatModel[el] = camForm.variableManager.variables[el];
                     }
                 });
-
-                var tmpApprovalList = _.map($scope.approvalList, _.clone);
-                $q.all(tmpApprovalList.map(function (approval) {
-                    return $http.get("/camunda/api/engine/engine/default/user/" + approval.responsible + "/profile");
-                })).then(function (profiles) {
-                    profiles.forEach(function (e, index) {
-                        tmpApprovalList[index].responsible = (e.data.firstName ? e.data.firstName : "") + " " + (e.data.lastName ? e.data.lastName : "");
-                    });
-                    $scope.approvalList = tmpApprovalList;
-                    $scope.uatModel['approvalList'] = {value: tmpApprovalList};
-                });
-                
-                $scope.attachments = camForm.variableManager.variableValue('attachments');
-
-                if (!$scope.attachments) $scope.attachments = [];
-
-                camForm.variableManager.createVariable({
-                    name: 'approveTestProtTaskComment',
-                    type: 'String',
-                    value: ''
-                });
             });
 
             camForm.on('submit', function (event) {
-                //event.submitPrevented = true;
-
                 var submitDate = new Date ();
-                if(!$scope.resolutions){
-                    $scope.resolutions = [];
-                }
-
-                camForm.variableManager.variableValue('approveTestProtTaskComment', $scope.approveTestProtTaskComment);
-                $scope.resolutions.push({resolution: 'Completed', processInstanceId: $scope.processInstanceId, assignee: $rootScope.authentication.name, comment: $scope.approveTestProtTaskComment, taskId: camForm.taskId, taskEndDate: submitDate, taskName: $scope.taskName});
+                if(!$scope.resolutions) $scope.resolutions = [];
+                
+                $scope.resolutions.push({resolution: 'Completed', processInstanceId: $scope.processInstanceId, assignee: $rootScope.authentication.name, comment: $scope.comment, taskId: camForm.taskId, taskEndDate: submitDate, taskName: $scope.taskName});
                 camForm.variableManager.variableValue('resolutions', $scope.resolutions);
-                console.log($scope.resolutions);
             });
 
             var assigneeName = $rootScope.authentication.name;
@@ -142,7 +115,6 @@
 
             $scope.printDiv = function(forPrint) {
                 var printContents = document.getElementById(forPrint).innerHTML;
-                //console.log(printContents);
                 var popupWin = window.open('', 'PRINT', 'height=400,width=600');
                 popupWin.document.open();
                 popupWin.document.write('<html><head><link href="css/bootstrap.min.css" rel="stylesheet"><link href="css/styles.css" rel="stylesheet" type="text/css"></head><body onload="window.print()">' + printContents + '</body></html>');
@@ -235,7 +207,7 @@
                 <tbody>
                 <tr ng-repeat="d in approvalList" ng-if="d.role && d.role.length">
                     <td class="col-sm-3 text-center">{{d.role}}</td>
-                    <td class="col-sm-2 text-center">{{d.responsible}}</td>
+                    <td class="col-sm-2 text-center">{{d.responsibleName}}</td>
                     <td class="col-sm-2 text-center">{{d.date |  date: 'dd.MM.yyyy HH:mm'}}</td>
                     <td class="col-sm-2 text-center">{{d.result}}</td>
                     <td class="col-sm-3">{{d.comment}}</td>
@@ -273,8 +245,8 @@
     <div class="form-group">
         <label class="col-sm-12 control-label">Comments</label>
         <div class="col-sm-12" style="margin-top: 5px">
-            <textarea style="resize:vertical;" class="form-control" rows="4" maxlength="500" ng-model="approveTestProtTaskComment" name="approveTestProtTaskComment" required></textarea>
-            <label class="error" ng-show="kcell_form.approveTestProtTaskComment.$error.required && (kcell_form.approveTestProtTaskComment.$touched || view.submitted)">Required field</label>
+            <textarea style="resize:vertical;" class="form-control" rows="4" maxlength="500" ng-model="comment" name="comment" required></textarea>
+            <label class="error" ng-show="kcell_form.comment.$error.required && (kcell_form.comment.$touched || view.submitted)">Required field</label>
         </div>
     </div>
 
