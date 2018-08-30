@@ -6,5 +6,6 @@ define([
 	'./requiredFile',
 	'./sharedSitePlan',
 	'./uatProcess',
-	'./demand/index'
+	'./demand/index',
+	'./richText'
 	], function(){});

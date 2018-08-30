@@ -23,6 +23,7 @@
             $scope.resolutions = [];
             $scope.attachments = [];
             $scope.data = [];
+            $scope.generalProductDesc = null;
 
             $scope.preSubmit = function() {
                 return $http.get('/camunda/api/engine/engine/default/history/process-instance/count?processDefinitionKey=UAT').then(
@@ -36,6 +37,12 @@
             }
 
             camForm.on('submit', function (event) {
+                camForm.variableManager.createVariable({
+                  name: 'generalProductDesc',
+                  type: 'String',
+                  value: $scope.generalProductDesc,
+                  store: true
+                });
                 camForm.variableManager.createVariable({
                   name: 'attachments',
                   type: 'json',
@@ -188,6 +195,10 @@
                 });
             }
 
+            $scope.kcell_form.demandName.$setValidity('length', false);
+            $scope.kcell_form.demandName.$setValidity('attachments', false);
+            $scope.kcell_form.demandName.$setValidity('simditor', false);
+
             $scope.$watch('data', function (data) {
                 if (data && data.length) {
                     $scope.kcell_form.demandName.$setValidity('length', true);
@@ -204,6 +215,15 @@
                 }
             }, true);
 
+            $scope.onGeneralProductDescChange = function(value) {
+                $scope.generalProductDesc = value;
+                if (value && value.length) {
+                    $scope.kcell_form.demandName.$setValidity('simditor', true);
+                } else {
+                    $scope.kcell_form.demandName.$setValidity('simditor', false);
+                }
+            }
+
         }]);
     </script>
     <div class="form-group">
@@ -217,8 +237,8 @@
     <div class="form-group">
         <label class="control-label col-sm-12" for="generalProductDesc"> General Product/Service description</label>
         <div class="col-sm-12" style="margin-top: 5px">
-            <textarea type="text" class="form-control col-sm-12" id="generalProductDesc" rows="4" maxlength="500" placeholder="Text" style="resize: vertical;" name="generalProductDesc" cam-variable-name="generalProductDesc" cam-variable-type="String" required></textarea>
-            <label class="error" ng-show="kcell_form.generalProductDesc.$error.required && ( kcell_form.generalProductDesc.$touched || view.submitted)">Required field</label>
+            <rich-text editorid="'fillTestRichText'" onvalchange="onGeneralProductDescChange" disabled="false"></rich-text>
+            <label class="error" ng-show="kcell_form.demandName.$error.simditor && view.submitted">Required field</label>
         </div>
     </div>
 
@@ -250,7 +270,6 @@
                         <select class="form-control" ng-model="r.result" id="{{'TestCase' + $index}}" required name="{{'TestCase' + $index}}">
                             <option value="Успешен">Успешен</option>
                             <option value="Не успешен">Не успешен</option>
-                            <!--<span class="has-error" ng-if="(!r.result || r.result.length == 0) && view.submitted">Required field</span>-->
                         </select>
                         <label class="error" ng-show="kcell_form.{{'TestCase' + $index}}.$error.required && ( kcell_form.{{'TestCase' + $index+1}}.$touched || view.submitted)">Required field</label>
                     </td>

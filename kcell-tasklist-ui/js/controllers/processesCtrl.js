@@ -283,9 +283,9 @@ define(['./module','jquery', 'camundaSDK'], function(app, $, CamSDK){
                 $scope.piIndex = undefined;
             } else {
                 $scope.piIndex = index;
-	            $scope.jobModel = {state: $scope.processInstances[index].state};
-	            console.log('$scope.processInstances[index]');
-	            console.log($scope.processInstances[index]);
+				
+				$scope.jobModel = {state: $scope.processInstances[index].state};
+				$scope.jobModel['businessKeyUAT'] = {value: $scope.processInstances[index].businessKey};
 	            $http.get(baseUrl+'/process-instance?superProcessInstance='+$scope.processInstances[index].id+'&active=true').then(
 					function(result){
 						if (result.data.length > 0) {
@@ -354,8 +354,6 @@ define(['./module','jquery', 'camundaSDK'], function(app, $, CamSDK){
 											if (pi.data.startTime) $scope.jobModel.startTime = {value: new Date(pi.data.startTime)};
 											if (pi.data.endTime) $scope.jobModel.endTime = {value: new Date(pi.data.endTime)};
 										});
-
-
 
     								if($scope.jobModel.resolutions && $scope.jobModel.resolutions.value){
     									$q.all($scope.jobModel.resolutions.value.map(function (resolution) {
