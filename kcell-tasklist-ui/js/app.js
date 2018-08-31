@@ -14,8 +14,7 @@ define('app',[
 	'excellentexport',
 	'angular-ui-router',
 	'ng-file-upload',
-	'angularjs-dropdown-multiselect',
-	'ngSanitize'
+	'angularjs-dropdown-multiselect'
 ], function(ng){
 	'use strict';
 	var app =  ng.module('app', [
@@ -30,8 +29,7 @@ define('app',[
 		'ngCookies',
 		'ui.router',
 		'ngFileUpload',
-		'angularjs-dropdown-multiselect',
-		'ngSanitize'
+		'angularjs-dropdown-multiselect'
 	]);
 	var preLoginUrl;
 	var resolve = {

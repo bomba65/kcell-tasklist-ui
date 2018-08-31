@@ -1,6 +1,6 @@
 define(['./module', 'simditor'], function(module){
 	'use strict';
-	module.directive('richText', ['$http', '$timeout', function ($http, $timeout) {
+	module.directive('richText', ['$http', '$timeout', '$sce', function ($http, $timeout, $sce) {
 		return {
 			restrict: 'E',
 			scope: {
@@ -24,15 +24,22 @@ define(['./module', 'simditor'], function(module){
 							if (scope.onvalchange)
 								return scope.onvalchange(editor.getValue());
 						});
-
-						scope.$watch('htmlcode', function (value) {
-							if (value && value.length) {
-								editor.setValue(value);
-								editor.sync();
-							}
-						}, true);
+						if (scope.htmlcode && scope.htmlcode.length) {
+							editor.setValue(scope.htmlcode);
+							editor.sync();
+						}
 					});
 				}
+
+				scope.$watch('htmlcode', function (value) {
+					if (value && value.length) {
+						scope.trustedHTML = $sce.trustAsHtml(value);
+						if (editor) {
+							editor.setValue(value);
+							editor.sync();
+						}
+					}
+				}, true);
 			},
 			templateUrl: './js/directives/richText.html'
 		};

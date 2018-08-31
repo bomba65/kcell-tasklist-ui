@@ -31,8 +31,7 @@ require.config({
          'simditor': './node_modules/simditor/lib/simditor',
          'simple-module': './node_modules/simple-module/lib/module',
          'simple-hotkeys': './node_modules/simple-hotkeys/lib/hotkeys',
-         'simple-uploader': './node_modules/simple-uploader/lib/uploader',
-         'ngSanitize': './node_modules/angular-sanitize/angular-sanitize.min'
+         'simple-uploader': './node_modules/simple-uploader/lib/uploader'
      },
  
      // angular не поддерживает AMD из коробки, поэтому экспортируем перменную angular в глобальную область
@@ -50,7 +49,6 @@ require.config({
          'angular-ui-bootstrap': ['angular'],
          'ng-file-upload': ['angular'],
          'angularjs-dropdown-multiselect': ['angular'],
-         'ngSanitize': ['angular'],
          'angular-translate-storage-local': ['translate'],
          'angular-translate-storage-cookie': ['translate']
      },
