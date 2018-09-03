@@ -10,16 +10,21 @@
 <div class="row layout-row">
 	<div class="col-md-12 no-float" >
 		<div class="currentTask">
-			<div name="selectProjectKey">
-				<label>Choose a project to search in </label>
-				<select ng-model="viewSelectedProjectKey" ng-change="handleSelectedProjectChange()">
-					<option value="All" ng-selected="viewSelectedProjectKey === 'All'">All</option>
-					<option value="NetworkInfrastructure" ng-selected="viewSelectedProjectKey === 'NetworkInfrastructure'">Network Infrastructure</option>
-					<option value="DeliveryPortal" ng-selected="viewSelectedProjectKey === 'DeliveryPortal'">Delivery portal</option>
-				</select>
-			</div>
-			<div class="scrollcontainer" ng-if="viewSelectedProjectKey === 'NetworkInfrastructure'">
-				<div class="scrollable">
+			<div class="scrollcontainer">
+				<!--div class="scrollable" ng-if="viewSelectedProjectKey==='NetworkInfrastructure'"-->
+				<div class="scrollable" ng-if="selectedProject.key==='All'">
+					<div class="page-body container-fluid">
+						<div class="row">
+							<div class="form-group">
+								<div class="col-sm-12">
+									<h3 class="text-center">Please select a project</h3>
+								</div>
+							</div>
+						</div>	
+						
+					</div>
+				</div>
+				<div class="scrollable" ng-if="selectedProject.key==='NetworkInfrastructure'">
 					<div class="page-body container-fluid">
 						<h3>Revision Works Processes Search</h3>
 						<div class="row">
@@ -341,27 +346,29 @@
 						</table>						
 					</div>
 				</div>
-			</div>
-			<!-- Delivery Portal-->
-			<div class="scrollcontainer" ng-if="viewSelectedProjectKey==='DeliveryPortal'">
-				<div class="scrollable">
+			<!--/div>
+			
+			<div class="scrollcontainer"></div-->
+				<!--div class="scrollable" ng-if="viewSelectedProjectKey==='DeliveryPortal'"-->
+				<div class="scrollable" ng-if="selectedProject.key==='DeliveryPortal'">
 					<div class="page-body container-fluid">
+						<div ng-form="DeliveryPortalForm" id="DeliveryPortalForm">
+
 						<h3>Delivery Portal Processes Search</h3>
 						<div class="row">
 							<div class="form-group">
 								<div class="col-sm-8">
 									<h3>Filter</h3>
 								</div>
-								<div class="col-sm-4">
-									<a class="btn btn-success" style="float: right" ng-click="clearFiltersDP()">Clear filters</a>
-								</div>
+								<div class="col-sm-4"></div>
 							</div>
 						</div>
 						<div class="row">
 							<div class="form-group col-sm-4">
 								<label class="col-sm-4 control-label">BIN</label>
 								<div class="col-sm-8">
-									<input type="text" ng-model="filterDP.bin" name="bin" typeahead="bin as bin for bin in getBIN($viewValue) | filter:$viewValue" typeahead-on-select="binSelected($item,$model,$label)" typeahead-min-length="3" class="form-control" autocomplete="off" placeholder="BIN">
+									<input limit-to="12" type="number" ng-model="filterDP.bin" ng-pattern="binPattern" id="bin" name="bin" typeahead="bin as bin for bin in getBIN($viewValue) | filter:$viewValue" typeahead-on-select="binSelected($item,$model,$label)" typeahead-min-length="3" class="form-control" autocomplete="off" placeholder="BIN" required>
+									<label class="error" ng-show="DeliveryPortalForm.bin.$error.pattern && (DeliveryPortalForm.bin.$touched)">Неверный формат БИН</label>
 								</div>
 							</div>
 							<div class="form-group col-sm-4">
@@ -384,7 +391,7 @@
 						</div>
 						<div class="row">
 							<div class="form-group col-sm-4">
-								<label class="col-sm-4 control-label">Initiator:</label>
+								<label class="col-sm-4 control-label">User:</label>
 								<div class="col-sm-8">
 									<input type="text" ng-model="filterDP.initiator" name="initiator" typeahead="users as users.name for users in getUsers($viewValue) | filter:$viewValue" typeahead-on-select="userSelected($item,$model,$label)" typeahead-min-length="2" class="form-control" required autocomplete="off">
 								</div>
@@ -418,18 +425,6 @@
 						</div>
 						<div class="row">
 							<div class="form-group col-sm-4">
-								<label class="col-sm-4 control-label">Business Key:</label>
-								<div class="col-sm-8">
-									<input type="text" ng-model="filterDP.businessKey" class="form-control" placeholder="Business Key">
-								</div>
-							</div>
-							<div class="form-group col-sm-4">
-								<label class="col-sm-4 control-label">Short number:</label>
-								<div class="col-sm-8">
-									<input type="text" ng-model="filterDP.shortNumber" class="form-control" placeholder="Short number" />
-								</div>
-							</div>
-							<div class="form-group col-sm-4">
 								<label class="col-sm-4 control-label">Participation:</label>
 								<div class="col-sm-8">
 									<select ng-model="filterDP.participation" class="form-control">
@@ -439,27 +434,45 @@
 									</select>
 								</div>
 							</div>
+							<div class="form-group col-sm-4">
+								<label class="col-sm-4 control-label">Short number:</label>
+								<div class="col-sm-8">
+									<input type="text" ng-model="filterDP.shortNumber" class="form-control" placeholder="Short number" />
+								</div>
+							</div>
+							<div class="form-group col-sm-4">
+								<label class="col-sm-4 control-label">Business Key:</label>
+								<div class="col-sm-8">
+									<input type="text" ng-model="filterDP.businessKey" class="form-control" placeholder="Business Key">
+								</div>
+							</div>
 						</div>
 						<div class="row">
 							<div class="form-group col-sm-4">
-								<div class="form-check">
-									<label class="col-sm-4 form-check-label">Show only active</label>
-									<div class="col-sm-8">
-										<input type="checkbox" ng-model="filterDP.unfinished" class="form-check-input" name="show_activeDP">
-									</div>
+								<label class="col-sm-4 control-label">Show only active</label>
+								<div class="col-sm-8">
+									<input type="checkbox" ng-model="filterDP.unfinished" name="show_activeDP">
 								</div>
 							</div>
 						</div>
 						<div class="row">
 							<div class="form-group">
-								<div class="col-sm-8">			    	
-									<a class="btn btn-success" ng-click="searchDP(true)">Filter ({{processInstancesDPTotal}})<i class="fa fa-search"></i></a>
+								<div class="col-sm-5"></div>
+								<div class="col-sm-2">
+									<a class="btn btn-success" ng-click="clearFiltersDP()">Clear filters</a>
+									<a class="btn btn-success" ng-click="searchDP(true)"><i class="glyphicon glyphicon-search"></i> SEARCH ({{processInstancesDPTotal}})<i class="fa fa-search"></i></a>
 								</div>
-								<div class="col-sm-4">
-									<a ng-if="processInstancesDPTotal > 0" class="btn btn-success" style="float: right" id="xlsxClick" href="#" ng-click="getXlsxProcessInstancesDP()">{{xlsxPrepared ? 'Export to Excel' : 'Prepare Excel'}}</a>
+								<div class="col-sm-5">
+									<div>
+										<a ng-if="processInstancesDPTotal > 0" style="float: right" id="xlsxClick" href="#" ng-click="getXlsxProcessInstancesDP()"><img src="./img/xls-32x32.png"/></a>
+									</div>
+									<!--i class="glyphicon glyphicon-save-file"></i--><!-- {{xlsxPrepared ? 'Export to Excel' : 'Prepare Excel'}} -->
 								</div>
 							</div>				
 						</div>
+
+						</div>
+						
 						<div style="margin-bottom: 20px;"></div>
 						
 						<table class="table table-condensed table-hover table-bordered" ng-if="processInstancesDP" id="deliveryPortalTable" name="deliveryPortalTable">
@@ -474,10 +487,9 @@
 									<th>Created date</th>
 									<th>Closed date</th>
 									<th>Activity</th>
-									<th>Activity Status</th>
 								</tr>
 							</thead>
-							<tbody ng-repeat="pi in getPageDPInstances()">
+							<tbody ng-repeat="pi in getPageInstancesDP()">
 								<tr class="pi-{{pi.state == 'EXTERNALLY_TERMINATED'?'COMPLETED':pi.state}}">
 									<td>{{(filterDP.page-1)*filterDP.maxResults + $index + 1}}</td>
 									<td>
@@ -490,69 +502,74 @@
 									<td>{{pi.startUserId}}</td>
 									<td>{{pi.startTime | date:'dd MMM yyyy'}}</td>
 									<td>{{pi.endTime | date:'dd MMM yyyy'}}</td>
-									<td style="max-width: 100px;">
-										<span ng-repeat="task in pi.tasks">{{$index+1}}. {{task.name}}<br/></span>
-										<!--a ng-repeat="task in pi.tasks" ui-sref="tasks.task({id:task.id})" target="_blank">{{$index+1}}. {{task.name}}<br/></a-->
-										<!--span ng-repeat="act in pi.otherActivities">{{pi.tasks.length+$index+1}}. {{act.activityName}}<br/></span-->
+									<td>
+										<span ng-repeat="task in pi.tasks">
+											{{$index+1}}. {{task.name}}<br/>
+										</span>
 									</td>
-									<td>{{pi.activityStatus}}</td>
 								</tr>
-								<tr ng-if="piIndex === ((filterDP.page-1)*filterDP.maxResults + $index) && jobModel">
-									<td colspan="5">
-										<info-freephone freephone-info="jobModel" ng-if="jobModel.processDefinitionKey === 'freephone'"></info-freephone>
-										<info-bulksms bulksms-info="jobModel" ng-if="jobModel.processDefinitionKey === 'bulksmsConnectionKAE'"></info-bulksms>
-										<info-pbx pbx-info="jobModel" ng-if="jobModel.processDefinitionKey === 'PBX'"></info-pbx>
-									</td>
-									<td colspan="5" style="height: 1px;">
-										<div class="left-wrapper" style="padding: 0">
-											<div class="scrollcontainer">
-												<div class="scrollable left" style="padding: 10px 0px; background: transparent;">
-													<div>
-														<div class="row" ng-if="jobModel.state">
-															<div class="col-xs-8 col-md-8"><b>{{getStatus(jobModel.state, jobModel.acceptPerformedJob.value)}}</b>
+								<tr style="padding: 0;" ng-if="piIndex === ((filterDP.page-1)*filterDP.maxResults + $index) && jobModel">
+									<td colspan="9">
+										<table class="table table-condensed table-hover table-bordered" style="margin: 0;">
+											<tr>
+												<td style="width: 70%">
+													<info-freephone freephone-info="jobModel" ng-if="jobModel.processDefinitionKey === 'freephone'"></info-freephone>
+													<info-bulksms bulksms-info="jobModel" ng-if="jobModel.processDefinitionKey === 'bulksmsConnectionKAE'"></info-bulksms>
+													<info-pbx pbx-info="jobModel" ng-if="jobModel.processDefinitionKey === 'PBX'"></info-pbx>
+												</td>
+												<td style="height: 1px; width: 30%">
+													<div class="left-wrapper" style="padding: 0">
+														<div class="scrollcontainer">
+															<div class="scrollable left" style="padding: 10px 0px; background: transparent;">
+																<div>
+																	<div class="row" ng-if="jobModel.state">
+																		<div class="col-xs-8 col-md-8"><b>{{getStatus(jobModel.state, jobModel.acceptPerformedJob.value)}}</b>
+																		</div>
+																	</div>
+																</div>
+																<div>
+																	<a href="" class="btn btn-default" ng-click="showDiagram(pi.processDefinitionId)" class="ng-binding"><span class="glyphicon glyphicon-indent-left" aria-hidden="true"></span> Diagram</a>
+																</div>
+																<div style="margin-top: 10px;">
+																	<a href="" class="btn btn-default" ng-click="showHistory(jobModel.resolutions.value)" class="ng-binding"><span class="glyphicon glyphicon-list-alt" aria-hidden="true"></span> History  </a>
+																</div>
+																<ul id="tasks">
+																	<li ng-repeat="task in jobModel.tasks">
+																	<div class="task">
+																		<h5>
+																			<!--a ng-if="hasGroup('revision_managers') || hasGroup('revision_audit')" ui-sref="tasks.task({id:task.id})" target="_blank">{{ (task.name || task.id) }}</a></h5>
+																			<span ng-if="!(hasGroup('revision_managers') || hasGroup('revision_audit'))" ui-sref="tasks.task({id:task.id})" target="_blank">{{ (task.name || task.id) }}</span></h5>
+																			<div ng-if="task.description"> {{ task.description }} </div>
+																			<small ng-if="hasGroup('kcellUsers')" class="text-muted" ng-if="task.group">
+																				Group: <a ng-click="showGroupDetails(task.group)">{{task.group}}</a>
+																			</small>
+																			<br/>
+																			<small class="text-muted" ng-if="task.assignee">{{ task.assigneeObject.firstName }} {{ task.assigneeObject.lastName }}</small>
+																			<small class="text-muted" ng-if="!task.assignee">Unassigned</small-->
+																			<a ui-sref="tasks.task({id:task.id})" target="_blank">{{ (task.name || task.id) }}</a></h5>
+																			<!--span ui-sref="tasks.task({id:task.id})" target="_blank">{{ (task.name || task.id) }}</span></h5-->
+																			<div ng-if="task.description"> {{ task.description }} </div>
+																			<small class="text-muted" ng-if="task.group">
+																				Group: <a ng-click="showGroupDetails(task.group)">{{task.group}}</a>
+																			</small>
+																			<br/>
+																			<small class="text-muted" ng-if="task.assignee">{{ task.assigneeObject.firstName }} {{ task.assigneeObject.lastName }}</small>
+																			<small class="text-muted" ng-if="!task.assignee">Unassigned</small>
+																		</div>
+																	</li>
+																</ul>
 															</div>
 														</div>
 													</div>
-													<div>
-														<a href="" class="btn btn-default" ng-click="showDiagram(pi.processDefinitionId)" class="ng-binding"><span class="glyphicon glyphicon-indent-left" aria-hidden="true"></span> Diagram</a>
-													</div>
-													<div style="margin-top: 10px;">
-														<a href="" class="btn btn-default" ng-click="showHistory(jobModel.resolutions)" class="ng-binding"><span class="glyphicon glyphicon-list-alt" aria-hidden="true"></span> History  </a>
-													</div>
-													<ul id="tasks">
-														<li ng-repeat="task in jobModel.tasks">
-														  <div class="task">
-															<h5>
-																<!--a ng-if="hasGroup('revision_managers') || hasGroup('revision_audit')" ui-sref="tasks.task({id:task.id})" target="_blank">{{ (task.name || task.id) }}</a></h5>
-																<span ng-if="!(hasGroup('revision_managers') || hasGroup('revision_audit'))" ui-sref="tasks.task({id:task.id})" target="_blank">{{ (task.name || task.id) }}</span></h5>
-																<div ng-if="task.description"> {{ task.description }} </div>
-																<small ng-if="hasGroup('kcellUsers')" class="text-muted" ng-if="task.group">
-																	Group: <a ng-click="showGroupDetails(task.group)">{{task.group}}</a>
-																</small>
-																<br/>
-																<small class="text-muted" ng-if="task.assignee">{{ task.assigneeObject.firstName }} {{ task.assigneeObject.lastName }}</small>
-																<small class="text-muted" ng-if="!task.assignee">Unassigned</small-->
-																<a ui-sref="tasks.task({id:task.id})" target="_blank">{{ (task.name || task.id) }}</a></h5>
-																<!--span ui-sref="tasks.task({id:task.id})" target="_blank">{{ (task.name || task.id) }}</span></h5-->
-																<div ng-if="task.description"> {{ task.description }} </div>
-																<small class="text-muted" ng-if="task.group">
-																	Group: <a ng-click="showGroupDetails(task.group)">{{task.group}}</a>
-																</small>
-																<br/>
-																<small class="text-muted" ng-if="task.assignee">{{ task.assigneeObject.firstName }} {{ task.assigneeObject.lastName }}</small>
-																<small class="text-muted" ng-if="!task.assignee">Unassigned</small>
-															</div>
-														</li>
-													</ul>
-												</div>
-											</div>
-										</div>
+												</td>
+											</tr>
+										</table>
 									</td>
 								</tr>
 							</tbody>
 							<tbody>
 								<tr>
-									<td colspan="13" style="text-align: center">
+									<td colspan="9" style="text-align: center">
 										<a ng-disabled="filterDP.page <= 1" ng-click="selectPageDP(1)" class="btn btn-success">First</a>
 										<a ng-disabled="filterDP.page <= 1" ng-click="prevPageDP()" class="btn btn-success">Previous</a>
 										<a ng-repeat="page in getPagesDP()" ng-disabled="filterDP.page == page" ng-click="selectPageDP(page)" class="btn btn-success">{{page}}</a>
@@ -575,11 +592,10 @@
 									<th>Created date</th>
 									<th>Closed date</th>
 									<th>Activity</th>
-									<th>Activity Status</th>
 								</tr>
 							</thead>
 							<tbody ng-repeat="pi in processInstancesDP">
-								<tr class="pi-{{pi.state == 'EXTERNALLY_TERMINATED'?'COMPLETED':pi.state}}">
+								<tr>
 									<td>{{$index + 1}}</td>
 									<td>{{pi.businessKey+''}}
 									<td>{{pi.bin}}</td>
@@ -589,10 +605,7 @@
 									<td>{{pi.startUserId}}</td>
 									<td>{{pi.startTime | date:'dd MMM yyyy'}}</td>
 									<td>{{pi.endTime | date:'dd MMM yyyy'}}</td>
-									<td style="max-width: 100px;">
-										<span ng-repeat="task in pi.tasks">{{$index+1}}. {{task.name}}<br/></span>
-									</td>
-									<td>{{pi.activityStatus}}</td>
+									<td><span ng-repeat="task in pi.tasks">{{$index+1}}. {{task.name}}<br/></span></td>
 								</tr>
 							</tbody>
 						</table>						
