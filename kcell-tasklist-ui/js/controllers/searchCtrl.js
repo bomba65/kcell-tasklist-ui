@@ -1030,6 +1030,140 @@ define(['./module','jquery', 'camundaSDK'], function(app, $, CamSDK){
 		function getProcessInstancesDP(filter, processInstancesDP){
 			var defs = $scope.filterDP.processDefinitions.filter(def => filter.processDefinitionKey ? filter.processDefinitionKey === def.value : true);
 			var instanceCount = 0;
+
+			function mapOrder (array, key) {
+				var order = {};  
+				array.sort( function (a, b) {
+					var A = a[key], B = b[key];
+					if (a.processDefinitionId.indexOf("freephone") > -1 ) {
+						order = freephoneTaskOrder;
+					} else if (a.processDefinitionId.indexOf("bulksmsConnectionKAE") > -1 ) {
+						order = bulkSMSTaskOrder;
+					} else if (a.processDefinitionId.indexOf("PBX") > -1 ) {
+						order = PBXTaskOrder;
+					}
+					if (order[A] > order[B]) {
+						return 1;
+					} else {
+						return -1;
+					}					
+				});
+				return array;
+			};
+
+			var freephoneTaskOrder = {
+				add_cost_and_status_of_number: 0, 
+				match_identifier_with_client: 1, 
+				create_application_to_connection: 2, 
+				confirmBillingSystemsDeliveryIdentifiers: 3,
+				title_create_from_PC: 4, 
+				confirm_other_operators_creation_short_number: 5,
+				check_other_operators_creation_short_number: 6,
+				offnetSettings: 7, 
+				UserTask_0djlmd5: 8, 
+				UserTask_1slm9vl: 9, 
+				UserTask_1srxk5z: 10,
+				create_SIP_trank_on_SBC: 11, 
+				firewall_access_confirm: 12,
+				correct_access_to_firewall: 13,
+				confirmTheSettingsAreCorrect: 14, 
+				send_SIP_trank_preferences_to_client: 15,
+				confirmSuccessOfTestsWithVPN: 16,
+				start_tv_check: 17, 
+				result_tv_check: 18,
+				confirm_client_agreement_to_connect: 19,
+				confirm_last_mile_start_construction: 20, 
+				fillConnectionInformation: 21,
+				confirm_last_mile_finish_construction: 22, 
+				confirm_setting_number_on_MSS: 23,
+				confirmSuccessOfTestsW: 24, 
+				/*
+				UserTask_14t2lw4, 
+				UserTask_0woyg7k, 
+				UserTask_0a7shjt, 
+				UserTask_1jrkuqn, 
+				UserTask_1xsquz3, 
+				*/
+			};
+
+			var bulkSMSTaskOrder = {
+				addCostAndStatusOfNumbers: 0,
+				matchIdentifierWithClient: 1,
+				createApplicationToConnection: 2,
+				confirmBillingSystemsDeliveryIdentifiers: 3,
+				createConnectionForm: 4,
+				createTitlePC: 5,
+				confirmOtherOperatorsCreationShortNumber: 6,
+				checkOtherOperatorsCreationShortNumber: 7,
+			
+				smsbulkAccountInfo: 8,
+				markTheConnecttionForm: 9,
+				"firewallAccessConfirm.html": 10,
+				correctAccessToFirewall: 11,
+				sendPreferencesToClient: 12,
+				confirmSuccessOfTests: 13,
+				confirmGeneralReadiness: 14,
+				shareWithClient: 15,
+				/*
+				Task_0km85gh, 
+				Task_1cagjud, 
+				Task_1a4tell, 
+				Task_0807llk, 
+				Task_0zconst, 
+				Task_1ffdpes, 
+				Task_1q0yosd, 
+				Task_0gv08f6, 
+				Task_1uz37wa, 
+				Task_065funq, 
+				UserTask_1nk8ri5, 
+				UserTask_1xq5pie, 
+				UserTask_012elxb, 
+				UserTask_01gopqr, 
+				UserTask_18jefcx, 
+				UserTask_1iy9zim, 
+				*/
+			};
+
+			var PBXTaskOrder = {
+				checkQuestionnaire: 0,
+				confirmCheckingTSScheme: 1,
+				modifyQuestionnaire: 2,
+				confirmAgreementTSScheme: 3,
+				fillLegalInformation: 4, 
+				confirmInTIC: 5,
+				confirmCreatedRoot: 6,
+				confirmCreatedPOI: 7,
+				confirmNumbersInTIC: 8,
+				confirmAdditionIP: 9,
+				confirmSendingTest: 10,
+				confirmTestingSuccess: 11,
+				modifyConnectionSettings: 12,
+				importClientTestCallData: 13,
+				importBillingTestCallData: 14,
+				confirmTestingBilling: 15,
+				confirmStartService: 16,
+				confirmCommercialService: 17,
+				createRequestTCF: 18,
+				confirmTCFRequest: 19,
+				confirmContractReceiption: 20,
+				e1confirmCheckingTSScheme: 21, 
+				confirmReturn: 22, 
+				confirmPaybackRisk: 23,
+				e1confirmAgreementTUScheme: 24, 
+				e1ModifyQuestionnaire: 25, 
+				e1downloadContract: 26, 
+				confirmTheEnd: 27,
+				confirmTheChannel: 28,
+				e1fillLegalInformation: 29,
+				e1confirmLegalInformation: 30, 
+				e1confirmCreatedRoot: 31, 
+				e1confirmCreatedPOI: 32, 
+				e1confirmInTIC: 33,
+				e1confirmNumbersInTIC: 34, 
+				e1confirmTestingBilling: 35, 
+				e1createRequestTCF: 36
+			}
+
 			//console.log('filter', filter);
 			$q.all(defs.map(def => {
 				return $http({
@@ -1084,7 +1218,8 @@ define(['./module','jquery', 'camundaSDK'], function(app, $, CamSDK){
 									return t.processInstanceId === el.id; 
 								});
 								if(f && f.length>0){
-									el['tasks'] = f;
+									//el['tasks'] = f;
+									el['tasks'] = mapOrder(f, 'taskDefinitionKey');
 									_.forEach(el.tasks, function(task){
 										if(task.assignee && !$scope.profiles[task.assignee]){
 									        $http.get(baseUrl+'/user/' + task.assignee + '/profile').then(
