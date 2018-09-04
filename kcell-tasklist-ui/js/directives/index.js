@@ -7,5 +7,6 @@ define([
 	'./sharedSitePlan',
 	'./uatProcess',
 	'./demand/index',
-	'./richText'
+	'./richText',
+	'./elasticTextarea'
 	], function(){});
