@@ -13,6 +13,7 @@
                 'selectedRevisions',
                 'regularDelay',
                 'emergencyDelay',
+                'workComments',
                 'monthActNumber',
                 'formalPeriod',
                 'monthOfFormalPeriod',
@@ -66,11 +67,18 @@
                                 });
                             });
                         }
+                    } else if(el === 'workComments') {
+                        if(camForm.variableManager.variables[el].value){
+                            $scope.invoice.workComments = camForm.variableManager.variables[el].value;
+                        } else {
+                            $scope.invoice.workComments = {};
+                        }
                     } else {
                         $scope.invoice[el] = camForm.variableManager.variables[el];
                     }
                     $scope[el] = camForm.variableManager.variables[el].value;
                 });
+                $scope.invoice.showComments = true;
             });
 
             camForm.on('submit', function (event) {
@@ -80,6 +88,18 @@
                 if($scope.regionHeadComment){
                     camForm.variableManager.variableValue('regionHeadComment', $scope.regionHeadComment);
                 }
+
+                if(camForm.variableManager.variables['workComments'].value){
+                    camForm.variableManager.variableValue('workComments', $scope.invoice.workComments);
+                } else {
+                    camForm.variableManager.destroyVariable('workComments');
+                    camForm.variableManager.createVariable({
+                        name: 'workComments',
+                        type: 'Json',
+                        value: $scope.invoice.workComments
+                    });
+                }
+
                 var visibility = 'all';
                 if($scope.regionHeadCommentVisibility){
                     camForm.variableManager.variableValue('regionHeadCommentVisibility', $scope.regionHeadCommentVisibility);
@@ -116,10 +136,10 @@
         <label class="col-sm-4 control-label">Resolution</label>
         <div class="col-sm-8">
             <label class="radio-inline">
-                <input type="radio" name="regionHeadTaskResult" ng-model="regionHeadTaskResult" value="accept" required> Accept and sign
+                <input type="radio" name="regionHeadTaskResult" ng-model="regionHeadTaskResult" value="accept" required> Accept
             </label>
             <label class="radio-inline">
-                <input type="radio" name="regionHeadTaskResult" ng-model="regionHeadTaskResult" value="returnForCorrection" required> Return for correction
+                <input type="radio" name="regionHeadTaskResult" ng-model="regionHeadTaskResult" value="modify" required> Modify
             </label>
             <label class="error" ng-show="kcell_form.regionHeadTaskResult.$error.required && ( kcell_form.regionHeadTaskResult.$touched || view.submitted)">Required field</label>
         </div>
