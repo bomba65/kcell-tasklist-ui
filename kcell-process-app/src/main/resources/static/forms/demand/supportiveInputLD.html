@@ -87,6 +87,50 @@
                 if (ind != -1) $scope.risk.level = riskData[ind].level;
             });
 
+            $scope.preSubmit = function() {
+                return $q.all([
+                    $http.get('/camunda/api/engine/engine/default/process-instance/'+processInstanceId+'/variables/supportiveInputs?deserializeValue=false'),
+                    $http.get('/camunda/api/engine/engine/default/process-instance/'+processInstanceId+'/variables/supportiveRequests?deserializeValue=false'),
+                    $http.get('/camunda/api/engine/engine/default/process-instance/'+processInstanceId+'/variables/resolutions?deserializeValue=false'),
+                    $http.get('/camunda/api/engine/engine/default/process-instance/'+processInstanceId+'/variables/attachments?deserializeValue=false'),
+                    $http.get('/camunda/api/engine/engine/default/process-instance/'+processInstanceId+'/variables/riskData?deserializeValue=false')
+                ]).then(function (results) {
+                    if (results[0] && results[0].data) {
+                        $scope.supportiveInputs = JSON.parse(results[0].data.value);
+                    }
+                    if (results[1] && results[1].data) {
+                        var lastSupportiveRequests = JSON.parse(results[1].data.value);
+                        if (lastSupportiveRequests && $scope.supportiveRequests) {
+                            var elt = lastSupportiveRequests.LD.find(function(e) {return e.unit == $scope.supportiveInputName;});
+                            var elt1 = $scope.supportiveRequests.LD.find(function(e) {return e.unit == $scope.supportiveInputName;});
+                            if (elt && elt1) elt.value = elt1.value;
+                            $scope.supportiveRequests = lastSupportiveRequests;
+                        }
+                    }
+                    if (results[2] && results[2].data) {
+                        $scope.resolutions = JSON.parse(results[2].data.value);
+                    }
+                    if (results[3] && results[3].data) {
+                        var lastAttachments = JSON.parse(results[3].data.value);
+                        for (var attachment of $scope.attachments) {
+                            if (!lastAttachments.find(function(e) {return e.path == attachment.path;})) {
+                                lastAttachments.push(attachment);
+                            }
+                        }
+                        $scope.attachments = lastAttachments;
+                    }
+                    if (results[4] && results[4].data) {
+                        riskData = JSON.parse(results[4].data.value);
+                        var ind = riskData.findIndex(function(e) {return e.unit == $scope.risk.unit});
+                        if (ind != -1) riskData.splice(ind, 1);
+                        riskData.push($scope.risk);
+                    }
+                },
+                function(error){
+                    toasty.error(error.data.message);
+                });
+            };
+
             camForm.on('submit', function (event) {
                 camForm.variableManager.destroyVariable('attachments');
                 camForm.variableManager.createVariable({
@@ -123,34 +167,11 @@
                 });
                 
                 camForm.variableManager.destroyVariable('riskData');
-                $http.get('/camunda/api/engine/engine/default/process-instance/'+processInstanceId+'/variables/riskData?deserializeValue=false').then(
-                    function(result) {
-                        var riskData = JSON.parse(result.data.value);
-                        var ind = riskData.findIndex(function(e) {return e.unit == $scope.risk.unit});
-                        if (ind != -1) riskData.splice(ind, 1);
-
-                        riskData.push($scope.risk);
-                        var json = JSON.stringify(riskData, function( key, value ) {
-                            if( key === "$$hashKey" ) return undefined;
-                            return value;
-                        });
-                        $http.put('/camunda/api/engine/engine/default/process-instance/'+processInstanceId+'/variables/riskData',{"type":"Json","value": json}).then(
-                            function() {},
-                            function(error) {toasty.error(error.data.message);}
-                        );
-                    },
-                    function(error){
-                        riskData.push($scope.risk);
-                        var json = JSON.stringify(riskData, function( key, value ) {
-                            if( key === "$$hashKey" ) return undefined;
-                            return value;
-                        });
-                        $http.put('/camunda/api/engine/engine/default/process-instance/'+processInstanceId+'/variables/riskData',{"type":"Json","value": json}).then(
-                            function() {},
-                            function(error) {toasty.error(error.data.message);}
-                        );
-                    }
-                );
+                camForm.variableManager.createVariable({
+                    name: 'riskData',
+                    type: 'Json',
+                    value: riskData
+                });
             });
 
             $scope.downloadFile = function (file) {
@@ -198,13 +219,28 @@
             }
 
             $scope.saveFillForm = function () {
-                var json = JSON.stringify($scope.supportiveRequests, function( key, value ) {
-                    if( key === "$$hashKey" ) return undefined;
-                    return value;
-                });
-                $http.put('/camunda/api/engine/engine/default/process-instance/'+processInstanceId+'/variables/supportiveRequests',{"type":"Json","value": json}).then(
-                    function() {toasty.success( "Данные успешно сохранены!");},
-                    function(error) {toasty.error(error.data.message);}
+                $http.get('/camunda/api/engine/engine/default/process-instance/'+processInstanceId+'/variables/supportiveRequests?deserializeValue=false').then(
+                    function(result) {
+                        var lastSupportiveRequests = JSON.parse(result.data.value);
+                        if (lastSupportiveRequests && $scope.supportiveRequests) {
+                            var elt = lastSupportiveRequests.LD.find(function(e) {return e.unit == $scope.supportiveInputName;});
+                            var elt1 = $scope.supportiveRequests.LD.find(function(e) {return e.unit == $scope.supportiveInputName;});
+                            if (elt && elt1) elt.value = elt1.value;
+                            $scope.supportiveRequests = lastSupportiveRequests;
+                        }
+                
+                        var json = JSON.stringify($scope.supportiveRequests, function( key, value ) {
+                            if( key === "$$hashKey" ) return undefined;
+                            return value;
+                        });
+                        $http.put('/camunda/api/engine/engine/default/process-instance/'+processInstanceId+'/variables/supportiveRequests',{"type":"Json","value": json}).then(
+                            function() {toasty.success( "Данные успешно сохранены!");},
+                            function(error) {toasty.error(error.data.message);}
+                        );
+                    },
+                    function(error){
+                        toasty.error(error.data.message);
+                    }
                 );
             };
         }]);

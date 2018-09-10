@@ -17,7 +17,6 @@
                 interfaces: {},
                 reportsStatistics: ''
             };
-            var theResources = [];
             $scope.CACData = {
                 resources: [],
                 materials: [],
@@ -72,10 +71,46 @@
                 if (!$scope.resolutions) $scope.resolutions = [];
                 if (!$scope.attachments) $scope.attachments = [];
                 if (!$scope.supportiveInputs) $scope.supportiveInputs = [];
-                if ($scope.CACData.resources) theResources = _.map($scope.CACData.resources, _.clone);
                 var elt = $scope.supportiveInputs.find(function(e) {return e.unit == $scope.supportiveInputName});
                 if (elt) $scope.currentSupportiveInput.push(elt);
             });
+
+            $scope.preSubmit = function() {
+                return $q.all([
+                    $http.get('/camunda/api/engine/engine/default/process-instance/'+processInstanceId+'/variables/supportiveInputs?deserializeValue=false'),
+                    $http.get('/camunda/api/engine/engine/default/process-instance/'+processInstanceId+'/variables/supportiveRequests?deserializeValue=false'),
+                    $http.get('/camunda/api/engine/engine/default/process-instance/'+processInstanceId+'/variables/resolutions?deserializeValue=false'),
+                    $http.get('/camunda/api/engine/engine/default/process-instance/'+processInstanceId+'/variables/attachments?deserializeValue=false')
+                ]).then(function (results) {
+                    if (results[0] && results[0].data) {
+                        $scope.supportiveInputs = JSON.parse(results[0].data.value);
+                    }
+                    if (results[1] && results[1].data) {
+                        var lastSupportiveRequests = JSON.parse(results[1].data.value);
+                        if (lastSupportiveRequests && $scope.supportiveRequests) {
+                            var elt = lastSupportiveRequests.BI.find(function(e) {return e.unit == $scope.supportiveInputName;});
+                            var elt1 = $scope.supportiveRequests.BI.find(function(e) {return e.unit == $scope.supportiveInputName;});
+                            if (elt && elt1) elt.value = elt1.value;
+                            $scope.supportiveRequests = lastSupportiveRequests;
+                        }
+                    }
+                    if (results[2] && results[2].data) {
+                        $scope.resolutions = JSON.parse(results[2].data.value);
+                    }
+                    if (results[3] && results[3].data) {
+                        var lastAttachments = JSON.parse(results[3].data.value);
+                        for (var attachment of $scope.attachments) {
+                            if (!lastAttachments.find(function(e) {return e.path == attachment.path;})) {
+                                lastAttachments.push(attachment);
+                            }
+                        }
+                        $scope.attachments = lastAttachments;
+                    }
+                },
+                function(error){
+                    toasty.error(error.data.message);
+                });
+            };
 
             camForm.on('submit', function (event) {
                 camForm.variableManager.destroyVariable('attachments');
@@ -160,13 +195,28 @@
             }
 
             $scope.saveFillForm = function () {
-                var json = JSON.stringify($scope.supportiveRequests, function( key, value ) {
-                    if( key === "$$hashKey" ) return undefined;
-                    return value;
-                });
-                $http.put('/camunda/api/engine/engine/default/process-instance/'+processInstanceId+'/variables/supportiveRequests',{"type":"Json","value": json}).then(
-                    function() {toasty.success( "Данные успешно сохранены!");},
-                    function(error) {toasty.error(error.data.message);}
+                $http.get('/camunda/api/engine/engine/default/process-instance/'+processInstanceId+'/variables/supportiveRequests?deserializeValue=false').then(
+                    function(result) {
+                        var lastSupportiveRequests = JSON.parse(result.data.value);
+                        if (lastSupportiveRequests && $scope.supportiveRequests) {
+                            var elt = lastSupportiveRequests.BI.find(function(e) {return e.unit == $scope.supportiveInputName;});
+                            var elt1 = $scope.supportiveRequests.BI.find(function(e) {return e.unit == $scope.supportiveInputName;});
+                            if (elt && elt1) elt.value = elt1.value;
+                            $scope.supportiveRequests = lastSupportiveRequests;
+                        }
+                
+                        var json = JSON.stringify($scope.supportiveRequests, function( key, value ) {
+                            if( key === "$$hashKey" ) return undefined;
+                            return value;
+                        });
+                        $http.put('/camunda/api/engine/engine/default/process-instance/'+processInstanceId+'/variables/supportiveRequests',{"type":"Json","value": json}).then(
+                            function() {toasty.success( "Данные успешно сохранены!");},
+                            function(error) {toasty.error(error.data.message);}
+                        );
+                    },
+                    function(error){
+                        toasty.error(error.data.message);
+                    }
                 );
             };
         }]);

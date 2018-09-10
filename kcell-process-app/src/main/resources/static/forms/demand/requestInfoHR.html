@@ -17,7 +17,6 @@
                 interfaces: {},
                 reportsStatistics: ''
             };
-            var theResources = [];
             $scope.CACData = {
                 resources: [],
                 materials: [],
@@ -49,7 +48,7 @@
                 camForm.variableManager.fetchVariable('BRDData');
                 camForm.variableManager.fetchVariable('CACData');
                 camForm.variableManager.fetchVariable('attachments');
-                camForm.variableManager.fetchVariable('supportiveInputs');
+                camForm.variableManager.fetchVariable('acceptanceSupportiveInputs');
                 camForm.variableManager.fetchVariable('supportiveInputName');
             });
 
@@ -59,15 +58,56 @@
                 $scope.BRDData = camForm.variableManager.variableValue('BRDData');
                 $scope.CACData = camForm.variableManager.variableValue('CACData');
                 $scope.attachments = camForm.variableManager.variableValue('attachments');
-                $scope.supportiveInputs = camForm.variableManager.variableValue('supportiveInputs');
+                $scope.supportiveInputs = camForm.variableManager.variableValue('acceptanceSupportiveInputs');
                 supportiveInputName = camForm.variableManager.variableValue('supportiveInputName');
                 if (!$scope.resolutions) $scope.resolutions = [];
                 if (!$scope.attachments) $scope.attachments = [];
                 if (!$scope.supportiveInputs) $scope.supportiveInputs = [];
-                if ($scope.CACData.resources) theResources = _.map($scope.CACData.resources, _.clone);
                 var elt = $scope.supportiveInputs.find(function(e) {return e.unit == supportiveInputName});
                 if (elt) $scope.currentSupportiveInput.push(elt);
             });
+
+            $scope.preSubmit = function() {
+                return $q.all([
+                    $http.get('/camunda/api/engine/engine/default/process-instance/'+processInstanceId+'/variables/acceptanceSupportiveInputs?deserializeValue=false'),
+                    $http.get('/camunda/api/engine/engine/default/process-instance/'+processInstanceId+'/variables/CACData?deserializeValue=false'),
+                    $http.get('/camunda/api/engine/engine/default/process-instance/'+processInstanceId+'/variables/resolutions?deserializeValue=false'),
+                    $http.get('/camunda/api/engine/engine/default/process-instance/'+processInstanceId+'/variables/attachments?deserializeValue=false')
+                ]).then(function (results) {
+                    if (results[0] && results[0].data) {
+                        $scope.supportiveInputs = JSON.parse(results[0].data.value);
+                    }
+                    if (results[1] && results[1].data) {
+                        var lastCACData = JSON.parse(results[1].data.value);
+                        for (var i = 0; i < $scope.CACData.resources.length; i++) {
+                            if ($scope.CACData.resources[i].pprice != lastCACData.resources[i].pprice
+                                || $scope.CACData.resources[i].existing != lastCACData.resources[i].existing
+                                || $scope.CACData.resources[i].rate != lastCACData.resources[i].rate) {
+                                lastCACData.resources[i].pprice = $scope.CACData.resources[i].pprice;
+                                lastCACData.resources[i].existing = $scope.CACData.resources[i].existing;
+                                lastCACData.resources[i].rate = $scope.CACData.resources[i].rate;
+                                lastCACData.resources[i].summ = $scope.CACData.resources[i].summ;
+                            }
+                        }
+                        $scope.CACData = lastCACData;
+                    }
+                    if (results[2] && results[2].data) {
+                        $scope.resolutions = JSON.parse(results[2].data.value);
+                    }
+                    if (results[3] && results[3].data) {
+                        var lastAttachments = JSON.parse(results[3].data.value);
+                        for (var attachment of $scope.attachments) {
+                            if (!lastAttachments.find(function(e) {return e.path == attachment.path;})) {
+                                lastAttachments.push(attachment);
+                            }
+                        }
+                        $scope.attachments = lastAttachments;
+                    }
+                },
+                function(error){
+                    toasty.error(error.data.message);
+                });
+            }
 
             camForm.on('submit', function (event) {
                 camForm.variableManager.destroyVariable('attachments');
@@ -91,39 +131,20 @@
                 if (supportiveInputName) {
                     var elt = $scope.supportiveInputs.find(function(e) {return e.unit == supportiveInputName});
                     if (elt) elt.inputReceived = true;
-                    camForm.variableManager.destroyVariable('supportiveInputs');
+                    camForm.variableManager.destroyVariable('acceptanceSupportiveInputs');
                     camForm.variableManager.createVariable({
-                        name: 'supportiveInputs',
+                        name: 'acceptanceSupportiveInputs',
                         type: 'Json',
                         value: $scope.supportiveInputs
                     });
                 }
 
                 camForm.variableManager.destroyVariable('CACData');
-                $http.get('/camunda/api/engine/engine/default/process-instance/'+processInstanceId+'/variables/CACData?deserializeValue=false').then(
-                    function(result) {
-                        var lastCACData = JSON.parse(result.data.value);
-                        for (var i = 0; i < theResources.length; i++) {
-                            if ($scope.CACData.resources[i].pprice == theResources[i].pprice) {
-                                $scope.CACData.resources[i].pprice = lastCACData.resources[i].pprice;
-                                $scope.CACData.resources[i].summ = lastCACData.resources[i].summ;
-                            }
-                        }
-                        var json = JSON.stringify($scope.CACData, function( key, value ) {
-                            if( key === "$$hashKey" ) {
-                                return undefined;
-                            }
-                            return value;
-                        });
-                        $http.put('/camunda/api/engine/engine/default/process-instance/'+processInstanceId+'/variables/CACData',{"type":"Json","value": json}).then(
-                            function() {},
-                            function(error) {toasty.error(error.data.message);}
-                        );
-                    },
-                    function(error) {
-                        toasty.error(error.data.message);
-                    }
-                );
+                camForm.variableManager.createVariable({
+                    name: 'CACData',
+                    type: 'Json',
+                    value: $scope.CACData
+                });
             });
 
             $scope.downloadFile = function (file) {
@@ -174,12 +195,17 @@
                 $http.get('/camunda/api/engine/engine/default/process-instance/'+processInstanceId+'/variables/CACData?deserializeValue=false').then(
                     function(result) {
                         var lastCACData = JSON.parse(result.data.value);
-                        for (var i = 0; i < theResources.length; i++) {
-                            if ($scope.CACData.resources[i].pprice == theResources[i].pprice) {
-                                $scope.CACData.resources[i].pprice = lastCACData.resources[i].pprice;
-                                $scope.CACData.resources[i].summ = lastCACData.resources[i].summ;
+                        for (var i = 0; i < $scope.CACData.resources.length; i++) {
+                            if ($scope.CACData.resources[i].pprice != lastCACData.resources[i].pprice
+                                || $scope.CACData.resources[i].existing != lastCACData.resources[i].existing
+                                || $scope.CACData.resources[i].rate != lastCACData.resources[i].rate) {
+                                lastCACData.resources[i].pprice = $scope.CACData.resources[i].pprice;
+                                lastCACData.resources[i].existing = $scope.CACData.resources[i].existing;
+                                lastCACData.resources[i].rate = $scope.CACData.resources[i].rate;
+                                lastCACData.resources[i].summ = $scope.CACData.resources[i].summ;
                             }
                         }
+                        $scope.CACData = lastCACData;
                         var json = JSON.stringify($scope.CACData, function( key, value ) {
                             if( key === "$$hashKey" ) {
                                 return undefined;
