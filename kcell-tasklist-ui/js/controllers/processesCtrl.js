@@ -526,15 +526,22 @@ define(['./module','jquery', 'camundaSDK'], function(app, $, CamSDK){
 			            $http.get(baseUrl+'/history/variable-instance?deserializeValues=false&processInstanceId='+$scope.processInstances[index].id).then(
 			            	function(result){
 			            		var workFiles = [];
-			            		var workFiles = [];
+			            		$scope.jobModel.files = [];
 			            		result.data.forEach(function(el){
 			            			$scope.jobModel[el.name] = el;
 			            			if(el.type === 'File' || el.type === 'Bytes'){
 			            				$scope.jobModel[el.name].contentUrl = baseUrl+'/history/variable-instance/'+el.id+'/data';
 			            			}
 			            			if(el.type === 'Json'){
-			            				$scope.jobModel[el.name].value = JSON.parse(el.value);
-			            			}
+										if(el.name === 'attachInvoiceFileName') {
+											$scope.jobModel.files.push(JSON.parse(el.value));
+										}
+										if(el.name === 'signedScanCopyFileName') {
+											$scope.jobModel.files.push(JSON.parse(el.value));
+										} else {
+											$scope.jobModel[el.name].value = JSON.parse(el.value);
+										}
+									}
 			            			if(el.name.startsWith('works_') && el.name.includes('_file_')){
 			            				workFiles.push(el);
 			            			}
