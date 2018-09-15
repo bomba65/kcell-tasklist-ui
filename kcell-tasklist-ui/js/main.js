@@ -31,7 +31,8 @@ require.config({
          'simditor': './node_modules/simditor/lib/simditor',
          'simple-module': './node_modules/simple-module/lib/module',
          'simple-hotkeys': './node_modules/simple-hotkeys/lib/hotkeys',
-         'simple-uploader': './node_modules/simple-uploader/lib/uploader'
+         'simple-uploader': './node_modules/simple-uploader/lib/uploader',
+         'xlsx': './node_modules/xlsx/dist/xlsx.full.min'
      },
  
      // angular не поддерживает AMD из коробки, поэтому экспортируем перменную angular в глобальную область
