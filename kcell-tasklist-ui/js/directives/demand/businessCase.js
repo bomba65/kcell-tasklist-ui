@@ -13,24 +13,57 @@ define(['./../module', 'xlsx'], function(module){
 				scope.$watch('data', function(value) {
 					if (value) {
 						if (!scope.data) scope.data = {};
-						if (!scope.data.wacc) scope.data.wacc = 13.6;
 						if (!scope.data.cashFlow) {
 							scope.data.cashFlow = {
 								revenues: [],
 								opexes: [],
-								capexes: []
+								capexes: [],
+								cogs: [],
+								income: []
 							};
 						}
 						if (!scope.data.accurals) {
 							scope.data.accurals = {
 								revenues: [],
 								opexes: [],
-								capexes: []
+								capexes: [],
+								cogs: [],
+								income: []
 							};
 						}
 						if (!scope.data.firstYear) scope.data.firstYear = (new Date()).getFullYear() + 1;
+						if (!scope.data.benchmark) {
+							scope.data.benchmark = {
+								minPP: 0.8,
+								maxROI: 0.94,
+								maxNPV: 8205418520.33,
+								maxPL: 2420366789.82,
+								maxCF: 2420366789.82,
+								wacc: 13.6
+							};
+						}
 					}
 				});
+
+				var strategyFitPercentage = function() {
+					if (scope.data.strategyFit.startsWith('Values')) return 1;
+					else if (scope.data.strategyFit.startsWith('Customer')) return 1;
+					else if (scope.data.strategyFit.startsWith('Competitive')) return 1;
+					else if (scope.data.strategyFit.startsWith('Growth')) return 0.8;
+					else return 0;
+				};
+
+				var businessPriorityPercentage = function() {
+					if (scope.data.businessPriority.startsWith('Would')) return 1;
+					else if (scope.data.businessPriority.startsWith('Impacts')) return 0.5;
+					else return 0;
+				};
+
+				var operationalActivityPercentage = function() {
+					if (scope.data.opActivitiesImpact.startsWith('Significantly')) return 1;
+					else if (scope.data.opActivitiesImpact.startsWith('Impacts')) return 0.5;
+					else return 0;
+				}
 
 				scope.xlsxSelected = function(el) {
 					$('#loaderDiv').show();
@@ -51,17 +84,50 @@ define(['./../module', 'xlsx'], function(module){
 				};
 
 				var processSheet = function(sheet) {
-					//
+					// Strategy Goal
+					if (sheet.length > 10 && sheet[10]['G'] && sheet[10]['G'] != 'n/a') {
+						if (sheet[10]['G'].startsWith('Revenue')) scope.data.strategicGoal = 'Revenue growth';
+						else if (sheet[10]['G'].startsWith('Cost')) scope.data.strategicGoal = 'Cost optimisation';
+						else if (sheet[10]['G'].startsWith('Business')) scope.data.strategicGoal = 'Business continuity';
+						else if (sheet[10]['G'].startsWith('Regulatory')) scope.data.strategicGoal = 'Regulatory';
+						else if (sheet[10]['G'].startsWith('Regular')) scope.data.strategicGoal = 'Regular expenses';
+					}
+
+					// Strategy Fit
+					if (sheet.length > 23 && sheet[23]['G'] && sheet[23]['G'] != 'n/a') {
+						if (sheet[23]['G'].startsWith('A'))
+							scope.data.strategyFit = 'Values throug superior network connectivity';
+						else if (sheet[23]['G'].startsWith('B'))
+							scope.data.strategyFit = 'Customer loyalty through convergence';
+						else if (sheet[23]['G'].startsWith('C'))
+							scope.data.strategyFit = 'Competitive operations';
+						else if (sheet[23]['G'].startsWith('D'))
+							scope.data.strategyFit = 'Growth in adjacencies';
+						else
+							scope.data.strategyFit = 'Regular expenses';
+					}
+
+					// Define impact on operational activities
+					if (sheet.length > 27 && sheet[27]['G'] && sheet[27]['G'] != 'n/a') {
+						if (sheet[27]['G'].startsWith('A')) scope.data.opActivitiesImpact = 'No impact';
+						else if (sheet[27]['G'].startsWith('B')) scope.data.opActivitiesImpact = 'Impacts';
+						else scope.data.opActivitiesImpact = 'Significantly hinder';
+					}
+
+					// Define business priority
+					if (sheet.length > 29 && sheet[29]['G'] && sheet[29]['G'] != 'n/a') {
+						if (sheet[29]['G'].startsWith('A')) scope.data.businessPriority = 'No impact';
+						else if (sheet[29]['G'].startsWith('B')) scope.data.businessPriority = 'Impacts';
+						else scope.data.businessPriority = 'Would stop';
+					}
 
 					// TABLE
 					if (sheet.length > 39) {
 						scope.data.firstYear = Math.floor(sheet[37]['AK']);
 
-						scope.data.cashFlow = { revenues: [], opexes: [], capexes: [] };
-						scope.data.accurals = { revenues: [], opexes: [], capexes: [] };
+						scope.data.cashFlow = { revenues: [], opexes: [], capexes: [], cogs: [], income: [] };
+						scope.data.accurals = { revenues: [], opexes: [], capexes: [], cogs: [], income: [] };
 						for (var r = 39; r < sheet.length; r++) {
-							if (sheet[r]['AH'].toLowerCase().startsWith('income')) break;
-							if (!sheet[r]['AG']) continue;
 							// CASH FLOW
 							var cashFlowRow = {
 								rocName: (!sheet[r]['AH'] || sheet[r]['AH'] == 'n/a') ? null : sheet[r]['AH'],
@@ -116,19 +182,32 @@ define(['./../module', 'xlsx'], function(module){
 								var val = sheet[r]['D' + String.fromCharCode(c)];
 								accuralsRow.month[2][scope.months[c - 75]] = !parseFloat(val)?sheet[r]['C' + String.fromCharCode(c - 1)]:val;
 							}
-							if (sheet[r]['AG'].toLowerCase().startsWith('revenue')) {
-								scope.data.cashFlow.revenues.push(cashFlowRow);
-								scope.data.accurals.revenues.push(accuralsRow);
-							} else if (sheet[r]['AG'].toLowerCase().startsWith('opex')) {
-								scope.data.cashFlow.opexes.push(cashFlowRow);
-								scope.data.accurals.opexes.push(accuralsRow);
-							} else if (sheet[r]['AG'].toLowerCase().startsWith('capex')) {
-								scope.data.cashFlow.capexes.push(cashFlowRow);
-								scope.data.accurals.capexes.push(accuralsRow);
+							if (sheet[r]['AG']) {
+								if (sheet[r]['AG'].toLowerCase().startsWith('revenue')) {
+									scope.data.cashFlow.revenues.push(cashFlowRow);
+									scope.data.accurals.revenues.push(accuralsRow);
+								} else if (sheet[r]['AG'].toLowerCase().startsWith('opex')) {
+									scope.data.cashFlow.opexes.push(cashFlowRow);
+									scope.data.accurals.opexes.push(accuralsRow);
+								} else if (sheet[r]['AG'].toLowerCase().startsWith('capex')) {
+									scope.data.cashFlow.capexes.push(cashFlowRow);
+									scope.data.accurals.capexes.push(accuralsRow);
+								} else if (sheet[r]['AG'].toLowerCase().startsWith('cogs')) {
+									scope.data.cashFlow.cogs.push(cashFlowRow);
+									scope.data.accurals.cogs.push(accuralsRow);
+								}
+							} else if (sheet[r]['AH'] && sheet[r]['AH'].toLowerCase().startsWith('income')) {								scope.data.cashFlow.income.push({									
+									year: cashFlowRow.year,
+									month: cashFlowRow.month
+								});
+								scope.data.accurals.income.push({
+									year: accuralsRow.year,
+									month: accuralsRow.month
+								});
+								break;
 							}
 						}
 						scope.onChange();
-						calcQuantitative();
 						scope.$apply();
 					}
 				};
@@ -149,6 +228,10 @@ define(['./../module', 'xlsx'], function(module){
 				scope.addItem = function(name) {
 					scope.data.cashFlow[name].push({month: {1: {}, 2: {}, 3: {}, 4: {}, 5: {}}, year: {}});
 					scope.data.accurals[name].push({month: {1: {}, 2: {}, 3: {}, 4: {}, 5: {}}, year: {}});
+					if (!scope.data.cashFlow.income.length) {
+						scope.data.cashFlow.income.push({month: {1: {}, 2: {}, 3: {}, 4: {}, 5: {}}, year: {}});
+						scope.data.accurals.income.push({month: {1: {}, 2: {}, 3: {}, 4: {}, 5: {}}, year: {}});
+					}
 				};
 				scope.deleteItem = function(index, name) {
 					scope.data.cashFlow[name].splice(index, 1);
@@ -156,8 +239,9 @@ define(['./../module', 'xlsx'], function(module){
 				};
 
 				scope.onChange = function() {
+					$('#loaderDiv').show();
 					for (var table of ['cashFlow', 'accurals']) {
-						for (var name of ['revenues', 'capexes', 'opexes']) {
+						for (var name of ['revenues', 'capexes', 'opexes', 'cogs', 'income']) {
 							scope.data[table][name+'Year'] = {1: 0, 2: 0, 3: 0, 4: 0, 5: 0};
 							for (var i = 0; i < scope.data[table][name].length; i++) {
 								for (var y = 1; y < 6; y++) {
@@ -180,13 +264,21 @@ define(['./../module', 'xlsx'], function(module){
 				};
 
 				var calcQuantitative = function() {
+
+					// Discount factors
+					var discount = [0];
+					for (var i = 1; i < 6; i++) {
+						discount.push(1.0 / Math.pow(1 + (scope.data.benchmark.wacc / 100.0), i - 1));
+					}
+
 					// NPV
 					scope.data.npv = 0.0;
 					for (var i = 1; i < 6; i++) {
-						var discount = 1.0 / Math.pow(1 + (scope.data.wacc / 100.0), i - 1);
 						scope.data.npv += (scope.data.cashFlow.revenuesYear[i]
-										- scope.data.cashFlow.capexesYear[i]
-										- scope.data.cashFlow.opexesYear[i]) * discount;
+										+ scope.data.cashFlow.capexesYear[i]
+										+ scope.data.cashFlow.opexesYear[i]
+										+ scope.data.cashFlow.cogsYear[i]
+										+ scope.data.cashFlow.incomeYear[i]) * discount[i];
 					}
 
 					// ROI
@@ -194,89 +286,82 @@ define(['./../module', 'xlsx'], function(module){
 					if (scope.data.npv > 0.0) {
 						var caps = 0;
 						for (var i = 1; i < 6; i++) {
-							var discount = 1 / Math.pow(1 + (scope.data.wacc / 100.0), i - 1);
-							caps += scope.data.cashFlow.capexesYear[i]
+							caps += (scope.data.cashFlow.capexesYear[i]
+									+ scope.data.cashFlow.opexesYear[i]
+									+ scope.data.cashFlow.cogsYear[i]
+									+ scope.data.cashFlow.incomeYear[i]) * discount[i];
 						}
-						scope.data.roi = scope.data.npv / caps;
+						scope.data.roi = scope.data.npv / Math.abs(caps);
 					}
 
 					// Payback period
 					scope.data.paybackPeriod = 0.0;
 					var ppsum = 0.0;
 					for (var i = 1; i < 6; i++) {
-						var discount = 1 / Math.pow(1 + (scope.data.wacc / 100.0), i - 1);
-						var total = (scope.data.cashFlow.revenuesYear[i]
-										- scope.data.cashFlow.capexesYear[i]
-										- scope.data.cashFlow.opexesYear[i]);
-						ppsum += (total * discount);
-						if (ppsum >= 0.0) {
-							scope.data.paybackPeriod = 1.0 - ((total * discount) / ((total - scope.data.cashFlow.capexesYear[i]) * discount));
+						ppsum += (scope.data.cashFlow.revenuesYear[i]
+										+ scope.data.cashFlow.cogsYear[i]
+										+ scope.data.cashFlow.opexesYear[i]
+										+ scope.data.cashFlow.incomeYear[i]
+										+ scope.data.cashFlow.capexesYear[i]) * discount[i];
+						if (ppsum > 0) {
+							scope.data.paybackPeriod = (i>1?i:0.0) + 1.0 - (ppsum / (ppsum - (scope.data.cashFlow.capexesYear[i] * discount[i])));
 							break;
 						}
 					}
 
 					// P&L effect first year
 					scope.data.plEffect = (scope.data.accurals.revenuesYear[1]
-										- scope.data.accurals.capexesYear[1]
-										- scope.data.accurals.opexesYear[1]);
+										+ scope.data.accurals.capexesYear[1]
+										+ scope.data.accurals.opexesYear[1]
+										+ scope.data.accurals.cogsYear[1]
+										+ scope.data.accurals.incomeYear[1]);
 					
 					// CF effect first year
 					scope.data.cfEffect = (scope.data.cashFlow.revenuesYear[1]
-										- scope.data.cashFlow.capexesYear[1]
-										- scope.data.cashFlow.opexesYear[1]);
+										+ scope.data.cashFlow.capexesYear[1]
+										+ scope.data.cashFlow.opexesYear[1])
+										+ scope.data.cashFlow.cogsYear[1]
+										+ scope.data.cashFlow.incomeYear[1];
 
 					scope.calcScoring();
 				};
 
 				scope.calcScoring = function() {
-					scope.data.score = 0.0;
-
 					// Strategy fit
-					scope.data.strategyFitScore = 0.0;
-					if (scope.data.strategyFit) {
-						scope.data.strategyFitScore = 0.225;
-						if (scope.data.strategyFit == 'Indirect impact')
-							scope.data.strategyFitScore = 0.18;
-					}
-					scope.data.score += scope.data.strategyFitScore;
+					scope.data.strategyFitScore = strategyFitPercentage() * 50;
 
 					// Risks / Opportunities / Business priority
-					var bp = 0, oa = 0;
-					if (scope.data.businessPriority) {
-						if (scope.data.businessPriority == 'Impacts') bp = 11.0;
-						else if (scope.data.businessPriority == 'would stop') bp = 23.0;
-					}
-					if (scope.data.opActivitiesImpact) {
-						if (scope.data.opActivitiesImpact == 'Impacts') oa = 11.0;
-						else if (scope.data.opActivitiesImpact == 'significantly hinder') oa = 23.0;
-					}
-					scope.data.businessPriorityScore = bp + oa;
-					scope.data.score += scope.data.businessPriorityScore;
+					scope.data.businessPriorityScore = ((businessPriorityPercentage() * 0.7) + (operationalActivityPercentage() * 0.3)) * 50;
 
 					// Quantitative score
 					scope.data.quantitativeScore = 0.0;
-					if (scope.data.npv > scope.data.maxNPV) scope.data.quantitativeScore += 11.0;
-					else if (scope.data.maxNPV) scope.data.quantitativeScore += (scope.data.npv / scope.data.maxNPV) * 11.0;
+					if (scope.data.npv > scope.data.benchmark.maxNPV) scope.data.quantitativeScore += 0.2;
+					else if (scope.data.benchmark.maxNPV) scope.data.quantitativeScore += scope.data.npv / scope.data.benchmark.maxNPV * 0.2;
 
-					if (scope.data.roi > scope.data.maxROI) scope.data.quantitativeScore += 11.0;
-					else if (scope.data.maxNPV) scope.data.quantitativeScore += (scope.data.roi / scope.data.maxROI) * 11.0;
+					if (scope.data.roi > 0.0) {
+						if (scope.data.roi > scope.data.benchmark.maxROI) scope.data.quantitativeScore += 0.2;
+						else if (scope.data.benchmark.maxROI) scope.data.quantitativeScore += scope.data.roi / scope.data.benchmark.maxROI * 0.2;
+					}
 
-					if (scope.data.paybackPeriod < scope.data.minPP) scope.data.quantitativeScore += 11.0;
-					else if (scope.data.minPP) scope.data.quantitativeScore += (scope.data.minPP / scope.data.paybackPeriod) * 11.0;
+					if (scope.data.paybackPeriod > 0.0) {
+						if (scope.data.paybackPeriod < scope.data.benchmark.minPP) scope.data.quantitativeScore += 0.2;
+						else if (scope.data.benchmark.minPP) scope.data.quantitativeScore += scope.data.benchmark.minPP / scope.data.paybackPeriod * 0.2;
+					}
 
-					if (scope.data.plEffect > scope.data.maxPL) scope.data.quantitativeScore += 14.0;
-					else if (scope.data.maxPL) scope.data.quantitativeScore += (scope.data.plEffect / scope.data.maxPL) * 14.0;
+					if (scope.data.plEffect > scope.data.benchmark.maxPL) scope.data.quantitativeScore += 0.25;
+					else if (scope.data.benchmark.maxPL) scope.data.quantitativeScore += scope.data.plEffect / scope.data.benchmark.maxPL * 0.25;
 
-					if (scope.data.cfEffect > scope.data.maxCF) scope.data.quantitativeScore += 8.0;
-					else if (scope.data.maxCF) scope.data.quantitativeScore += (scope.data.cfEffect / scope.data.maxCF) * 8.0;
+					if (scope.data.cfEffect > scope.data.benchmark.maxCF) scope.data.quantitativeScore += 0.15;
+					else if (scope.data.benchmark.maxCF) scope.data.quantitativeScore += scope.data.cfEffect / scope.data.benchmark.maxCF * 0.15;
+
+					scope.data.quantitativeScore *= 55;
 
 					// Qualitative score
-					scope.data.qualitativeScore = scope.data.strategyFitScore + scope.data.businessPriorityScore;
-					scope.data.score += scope.data.qualitativeScore;
+					scope.data.qualitativeScore = (scope.data.strategyFitScore + scope.data.businessPriorityScore) * 0.45;
 
-					// CF effect first year
-					scope.data.cfEffectScore = scope.data.cfEffect;
-					scope.data.score += scope.data.cfEffectScore;
+					// SCORE
+					scope.data.score = scope.data.qualitativeScore + scope.data.quantitativeScore;
+					$('#loaderDiv').hide();
 				};
 	        },
 			templateUrl: './js/directives/demand/businessCase.html'
