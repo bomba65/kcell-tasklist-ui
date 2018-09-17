@@ -121,6 +121,35 @@ public class CamundaApplication extends SpringBootProcessApplication {
     }
 
     @Bean
+    @ConfigurationProperties(prefix="external.ldap")
+    @ConditionalOnProperty(prefix = "external.ldap", name = "enabled")
+    public KcellIdentityProviderPlugin externalIdentityProviderPlugin() {
+        KcellIdentityProviderPlugin plugin = new KcellIdentityProviderPlugin();
+        // Set some defaults
+        plugin.setServerUrl("ldaps://ldap.ext.kcell.kz:636");
+        plugin.setAcceptUntrustedCertificates(true);
+        plugin.setManagerDn("CN=camunda,OU=Service_Accounts,OU=EXTKCELL,DC=ext,DC=kcell,DC=kz");
+        plugin.setBaseDn("DC=ext,DC=kcell,DC=kz");
+        plugin.setUserSearchBase("OU=EXTKCELL");
+        plugin.setUserSearchFilter("(&(objectCategory=organizationalPerson)(objectClass=User)(!(userAccountControl:1.2.840.113556.1.4.803:=2)))");
+        plugin.setUserIdAttribute("userPrincipalName");
+        plugin.setUserFirstnameAttribute("givenName");
+        plugin.setUserLastnameAttribute("sn");
+        plugin.setUserEmailAttribute("mail");
+        plugin.setUserPasswordAttribute("userpassword");
+        plugin.setGroupSearchBase("OU=Workflow,OU=KCELL");
+        plugin.setGroupSearchFilter("(objectclass=group)");
+        plugin.setGroupIdAttribute("cn");
+        plugin.setGroupNameAttribute("cn");
+        plugin.setGroupMemberAttribute("member");
+        plugin.setSortControlSupported(true);
+        plugin.setAuthorizationCheckEnabled(false);
+        plugin.setUseSsl(true);
+
+        return plugin;
+    }
+
+    @Bean
     public ScriptEngineManager scriptEngineManager() {
         return new ScriptEngineManager();
     }
