@@ -25,13 +25,13 @@ public class ExternalIdentityProviderPlugin extends LdapConfiguration implements
             LOG.log(Level.WARNING, "Enabling accept of untrusted certificates. Use at own risk.");
         }
 
-        KcellIdentityProviderFactory kcellIdentityProvider = (KcellIdentityProviderFactory) processEngineConfiguration.getIdentityProviderSessionFactory();
-        kcellIdentityProvider.setExternalLdapConfiguration(this);
-
-        if(kcellIdentityProvider.getLdapConfiguration()!=null){
-            LOG.log(Level.INFO, "PLUGIN getLdapConfiguration() is not null");
+        KcellIdentityProviderFactory kcellIdentityProvider;
+        if (processEngineConfiguration.getIdentityProviderSessionFactory() == null){
+            kcellIdentityProvider = new KcellIdentityProviderFactory();
+        } else {
+            kcellIdentityProvider = (KcellIdentityProviderFactory) processEngineConfiguration.getIdentityProviderSessionFactory();
         }
-
+        kcellIdentityProvider.setExternalLdapConfiguration(this);
         processEngineConfiguration.setIdentityProviderSessionFactory(kcellIdentityProvider);
     }
 

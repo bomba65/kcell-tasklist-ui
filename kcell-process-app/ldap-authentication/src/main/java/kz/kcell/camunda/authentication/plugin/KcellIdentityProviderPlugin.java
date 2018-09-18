@@ -29,7 +29,6 @@ public class KcellIdentityProviderPlugin extends LdapConfiguration implements Pr
         KcellIdentityProviderFactory kcellIdentityProvider = new KcellIdentityProviderFactory();
         kcellIdentityProvider.setLdapConfiguration(this);
         processEngineConfiguration.setIdentityProviderSessionFactory(kcellIdentityProvider);
-
     }
 
     public void postInit(ProcessEngineConfigurationImpl processEngineConfiguration) {
