@@ -1,4 +1,4 @@
-define(['./module','jquery', 'camundaSDK'], function(app, $, CamSDK){
+define(['./module','jquery', 'moment', 'camundaSDK'], function(app, $, moment, CamSDK){
 	'use strict';
 	app.directive("limitTo", [function() {
 		return {
@@ -676,7 +676,7 @@ define(['./module','jquery', 'camundaSDK'], function(app, $, CamSDK){
 			                        });
 			                    }
 
-								$scope.jobModel.tasks = processInstanceTasks;
+								//$scope.jobModel.tasks = processInstanceTasks;
 								angular.extend($scope.jobModel, catalogs);
 			            		$scope.jobModel.tasks = processInstanceTasks;
 			            	},
@@ -760,14 +760,62 @@ define(['./module','jquery', 'camundaSDK'], function(app, $, CamSDK){
         $scope.open = function ($event, dateFieldOpened) {
 			$event.preventDefault();
             $event.stopPropagation();
-            $scope[dateFieldOpened] = true;
+			$scope[dateFieldOpened] = true;
 		};
 		
 		// Delivery Portal
 		$scope.processInstancesDPTotal = 0;
 		$scope.processInstancesDPPages = 0;
 		$scope.sortedProcessInstancesDP = [];
-		
+
+		var startDate;
+		var endDate;
+		//var startDate = moment();
+		//var endDate = moment();
+
+		$('input[name="multipleDate"]').daterangepicker({
+			startDate: startDate,
+			endDate: endDate,
+			autoUpdateInput: false,
+			locale: {
+			   format: 'DD/MM/YYYY',
+			   cancelLabel: 'Clear'
+			}
+		}
+		/*, function(start, end, label) {
+			//$(this).val(picker.startDate.format('MM/DD/YYYY') + ' - ' + picker.endDate.format('MM/DD/YYYY'));
+			console.log("Apply :: A new date selection was made: " + start.format('YYYY-MM-DD') + ' to ' + end.format('YYYY-MM-DD'));
+			$scope.$apply(function() {
+				$scope.startDate = start.toDate();
+				$scope.endDate = end.toDate();
+			});
+		}*/
+		);
+
+		$('input[name="multipleDate"]').on('apply.daterangepicker', function(ev, picker) {
+			$(this).val(picker.startDate.format('DD/MM/YYYY') + ' - ' + picker.endDate.format('DD/MM/YYYY'));
+			//console.log("Apply :: A new date selection was made: " + picker.startDate.format('DD/MM/YYYY') + ' to ' + picker.endDate.format('DD/MM/YYYY'));
+			$scope.$apply(function() {
+				$scope.filterDP.startDate = picker.startDate.toDate();
+				$scope.filterDP.endDate = picker.endDate.toDate();
+				//console.log("Apply :: A new date selection was made: " + $scope.filterDP.startDate + ' to ' + $scope.filterDP.endDate);
+			});
+		});
+
+		$('input[name="multipleDate"]').on('cancel.daterangepicker', function(ev, picker) {
+			$(this).val('');
+			//console.log("Cancel :: A new date selection was made: " + picker.startDate.format('DD/MM/YYYY') + ' to ' + picker.endDate.format('DD/MM/YYYY'));
+			$scope.$apply(function() {
+				$scope.filterDP.startDate = undefined;	//picker.start.toDate();
+				$scope.filterDP.endDate = undefined;		//picker.end.toDate();
+			});
+		});
+
+		$('#daterangepickerButton').on('click', function(){
+			//console.log('button click', $('input[name="multipleDate"]'));
+			$('input[name="multipleDate"]').click();
+		});
+
 		$scope.filterDP = {
 			processDefinitionKey: '',
 			processDefinitions: [{name: 'PBX', value: 'PBX'}, {name: 'Подключение IVR', value: 'freephone'}, {name: 'BulkSMS', value: 'bulksmsConnectionKAE'}],
@@ -965,11 +1013,13 @@ define(['./module','jquery', 'camundaSDK'], function(app, $, CamSDK){
 			}
 			if($scope.filterDP.startDate){
 				filter.startedAfter = $scope.filterDP.startDate;
+				//console.log('startDate', $scope.filterDP.startDate);
 			}			
 			if($scope.filterDP.endDate){
 				var beforeDate = new Date($scope.filterDP.endDate);
-				beforeDate.setDate(beforeDate.getDate()+1)
+				//beforeDate.setDate(beforeDate.getDate()+1); //In daterangepicker for endDate time is 23:59:59, so no need adding a day
 				filter.startedBefore = beforeDate;
+				//console.log('endDate', $scope.filterDP.endDate);
 			}
 			if($scope.filterDP.activityId){
 				filter.activeActivityIdIn.push($scope.filterDP.activityId);
@@ -1021,6 +1071,7 @@ define(['./module','jquery', 'camundaSDK'], function(app, $, CamSDK){
 			$scope.filterDP.processDefinitionKey = undefined;
 			$scope.filterDP.processDefinitionActivities = {};
 			$scope.filterDP.unfinished = false;
+			$('input[name="multipleDate"]').val('');
 		}
 
 		$scope.getXlsxProcessInstancesDP = function(){
@@ -1030,6 +1081,8 @@ define(['./module','jquery', 'camundaSDK'], function(app, $, CamSDK){
 		function getProcessInstancesDP(filter, processInstancesDP){
 			var defs = $scope.filterDP.processDefinitions.filter(def => filter.processDefinitionKey ? filter.processDefinitionKey === def.value : true);
 			var instanceCount = 0;
+
+			//console.log('filter', filter);
 
 			function mapOrder (array, key) {
 				var order = {};  

@@ -16,7 +16,9 @@ define('app',[
 	'angular-ui-router',
 	'ng-file-upload',
 	'angular-local-storage',
-	'angularjs-dropdown-multiselect'
+	'angularjs-dropdown-multiselect',
+	'moment',
+	'daterangepicker'
 ], function(ng){
 	'use strict';
 	var app =  ng.module('app', [
