@@ -8,6 +8,7 @@ import com.amazonaws.auth.BasicAWSCredentials;
 import com.amazonaws.client.builder.AwsClientBuilder;
 import com.amazonaws.services.s3.AmazonS3;
 import com.amazonaws.services.s3.AmazonS3ClientBuilder;
+import kz.kcell.camunda.authentication.plugin.ExternalIdentityProviderPlugin;
 import kz.kcell.camunda.authentication.plugin.KcellIdentityProviderPlugin;
 import kz.kcell.flow.mail.CamundaMailerDelegate;
 import kz.kcell.flow.mail.TaskNotificationListener;
@@ -123,8 +124,8 @@ public class CamundaApplication extends SpringBootProcessApplication {
     @Bean
     @ConfigurationProperties(prefix="external.ldap")
     @ConditionalOnProperty(prefix = "external.ldap", name = "enabled")
-    public KcellIdentityProviderPlugin externalIdentityProviderPlugin() {
-        KcellIdentityProviderPlugin plugin = new KcellIdentityProviderPlugin();
+    public ExternalIdentityProviderPlugin externalIdentityProviderPlugin() {
+        ExternalIdentityProviderPlugin plugin = new ExternalIdentityProviderPlugin();
         // Set some defaults
         plugin.setServerUrl("ldaps://ldap.ext.kcell.kz:636");
         plugin.setAcceptUntrustedCertificates(true);

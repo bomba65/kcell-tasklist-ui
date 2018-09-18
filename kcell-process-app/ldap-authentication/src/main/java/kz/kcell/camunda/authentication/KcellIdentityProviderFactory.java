@@ -8,16 +8,21 @@ import org.camunda.bpm.identity.impl.ldap.LdapConfiguration;
 public class KcellIdentityProviderFactory implements SessionFactory {
 
     protected LdapConfiguration ldapConfiguration;
+    protected LdapConfiguration externalLdapConfiguration;
 
     public Class<?> getSessionType() {
         return WritableIdentityProvider.class;
     }
 
     public Session openSession() {
-        return new KcellIdentityProviderSession(ldapConfiguration);
+        return new KcellIdentityProviderSession(ldapConfiguration,externalLdapConfiguration);
     }
 
     public LdapConfiguration getLdapConfiguration() {
+        return ldapConfiguration;
+    }
+
+    public LdapConfiguration getExternalLdapConfiguration() {
         return ldapConfiguration;
     }
 
@@ -25,4 +30,7 @@ public class KcellIdentityProviderFactory implements SessionFactory {
         this.ldapConfiguration = ldapConfiguration;
     }
 
+    public void setExternalLdapConfiguration(LdapConfiguration ldapConfiguration) {
+        this.externalLdapConfiguration = externalLdapConfiguration;
+    }
 }
