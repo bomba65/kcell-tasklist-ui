@@ -59,8 +59,8 @@ public class CamundaMailerDelegate implements JavaDelegate {
             workbook.write(out);
             out.close();
             ByteArrayInputStream is = new ByteArrayInputStream(out.toByteArray());
-            DataSource source = new ByteArrayDataSource(is, "application/src.main.resources.instruction.instruction.pptx");
-            helper.addAttachment("instruction.pptx", source);
+            DataSource source = new ByteArrayDataSource(is, "application/src.main.resources.instruction.instruction.pdf");
+            helper.addAttachment("instruction.pdf", source);
         }
 
         helper.setTo(separateEmails(addresses));
