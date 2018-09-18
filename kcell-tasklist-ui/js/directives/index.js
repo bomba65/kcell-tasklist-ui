@@ -16,5 +16,6 @@ define([
 	'./PBX/vpnTunnel',
 	'./uatProcess',
 	'./demand/index',
-	'./richText'
+	'./richText',
+	'./leasingDetail'
 	], function(){});
