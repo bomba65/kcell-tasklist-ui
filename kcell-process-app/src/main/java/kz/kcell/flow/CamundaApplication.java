@@ -127,7 +127,7 @@ public class CamundaApplication extends SpringBootProcessApplication {
     public ExternalIdentityProviderPlugin externalIdentityProviderPlugin() {
         ExternalIdentityProviderPlugin plugin = new ExternalIdentityProviderPlugin();
         // Set some defaults
-        plugin.setServerUrl("ldaps://ldap.ext.kcell.kz:636");
+        plugin.setServerUrl("ldaps://vkc-extdc1.ext.kcell.kz");
         plugin.setAcceptUntrustedCertificates(true);
         plugin.setManagerDn("CN=camunda,OU=Service_Accounts,OU=EXTKCELL,DC=ext,DC=kcell,DC=kz");
         plugin.setBaseDn("DC=ext,DC=kcell,DC=kz");
