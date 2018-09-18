@@ -31,6 +31,6 @@ public class KcellIdentityProviderFactory implements SessionFactory {
     }
 
     public void setExternalLdapConfiguration(LdapConfiguration ldapConfiguration) {
-        this.externalLdapConfiguration = externalLdapConfiguration;
+        this.externalLdapConfiguration = ldapConfiguration;
     }
 }

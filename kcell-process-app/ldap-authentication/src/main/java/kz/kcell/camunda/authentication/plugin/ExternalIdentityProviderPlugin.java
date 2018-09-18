@@ -27,6 +27,11 @@ public class ExternalIdentityProviderPlugin extends LdapConfiguration implements
 
         KcellIdentityProviderFactory kcellIdentityProvider = (KcellIdentityProviderFactory) processEngineConfiguration.getIdentityProviderSessionFactory();
         kcellIdentityProvider.setExternalLdapConfiguration(this);
+
+        if(kcellIdentityProvider.getLdapConfiguration()!=null){
+            LOG.log(Level.INFO, "PLUGIN getLdapConfiguration() is not null");
+        }
+
         processEngineConfiguration.setIdentityProviderSessionFactory(kcellIdentityProvider);
     }
 
