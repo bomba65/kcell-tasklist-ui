@@ -135,52 +135,57 @@ define(['./../module', 'xlsx'], function(module){
 								cost: (!sheet[r]['N'] || sheet[r]['N'] == 'n/a') ? null : sheet[r]['N'],
 								purchasing: (!sheet[r]['V'] || sheet[r]['V'] == 'n/a') ? null : sheet[r]['V'],
 								contract: (!sheet[r]['Y'] || sheet[r]['Y'] == 'n/a') ? null : sheet[r]['Y'],
+								contractAdd: (!sheet[r]['Z'] || sheet[r]['Z'] == 'n/a') ? null : sheet[r]['Z'],
 								startDate: (!sheet[r]['AA'] || sheet[r]['AA'] == 'n/a') ? null : sheet[r]['AA'],
 								endDate: (!sheet[r]['AB'] || sheet[r]['AB'] == 'n/a') ? null : sheet[r]['AB'],
 								amount: (!sheet[r]['AD'] || sheet[r]['AD'] == 'n/a') ? null : sheet[r]['AD'],
 								depCode: (!sheet[r]['AI'] || sheet[r]['AI'] == 'n/a') ? null : sheet[r]['AI'],
 								year: {
-									1: sheet[r]['AK'],
-									2: sheet[r]['AX'],
-									3: sheet[r]['BK'],
-									4: sheet[r]['BL'],
-									5: sheet[r]['BM']
+									1: parseFloat(sheet[r]['AK'])?parseFloat(sheet[r]['AK']):0,
+									2: parseFloat(sheet[r]['AX'])?parseFloat(sheet[r]['AX']):0,
+									3: parseFloat(sheet[r]['BK'])?parseFloat(sheet[r]['BK']):0,
+									4: parseFloat(sheet[r]['BL'])?parseFloat(sheet[r]['BL']):0,
+									5: parseFloat(sheet[r]['BM'])?parseFloat(sheet[r]['BM']):0
 								},
 								month: {1: {}, 2: {
-									'Jan': sheet[r]['AY'],
-									'Feb': sheet[r]['AZ']
+									'Jan': parseFloat(sheet[r]['AY'])?parseFloat(sheet[r]['AY']):0,
+									'Feb': parseFloat(sheet[r]['AZ'])?parseFloat(sheet[r]['AZ']):0
 								}, 3: {}, 4: {}, 5: {}}
 							};
 							for (var c = 76; c < 88; c++) {
-								cashFlowRow.month[1][scope.months[c - 76]] = sheet[r]['A' + String.fromCharCode(c)];
+								var cellVal = sheet[r]['A' + String.fromCharCode(c)];
+								cashFlowRow.month[1][scope.months[c - 76]] = parseFloat(cellVal)?parseFloat(cellVal):0;
 							}
 							for (var c = 65; c < 75; c++) {
-								cashFlowRow.month[2][scope.months[c - 63]] = sheet[r]['B' + String.fromCharCode(c)];
+								var cellVal = sheet[r]['B' + String.fromCharCode(c)];
+								cashFlowRow.month[2][scope.months[c - 63]] = parseFloat(cellVal)?parseFloat(cellVal):0;
 							}
 							// ACCURALS
 							var accuralsRow = {
 								lineName: sheet[r]['AH'],
 								year: {
-									1: (!parseFloat(sheet[r]['CW'])?sheet[r]['BO']:sheet[r]['CW']),
-									2: (!parseFloat(sheet[r]['DJ'])?sheet[r]['BP']:sheet[r]['DJ']),
-									3: (!parseFloat(sheet[r]['DW'])?sheet[r]['BQ']:sheet[r]['DW']),
-									4: (!parseFloat(sheet[r]['DX'])?sheet[r]['BR']:sheet[r]['DX']),
-									5: (!parseFloat(sheet[r]['DY'])?sheet[r]['BS']:sheet[r]['DY'])
+									1: parseFloat(sheet[r]['CW'])?parseFloat(sheet[r]['CW']):(parseFloat(sheet[r]['BO'])?parseFloat(sheet[r]['BO']):0),
+									2: parseFloat(sheet[r]['DJ'])?parseFloat(sheet[r]['DJ']):(parseFloat(sheet[r]['BP'])?parseFloat(sheet[r]['BP']):0),
+									3: parseFloat(sheet[r]['DW'])?parseFloat(sheet[r]['DW']):(parseFloat(sheet[r]['BQ'])?parseFloat(sheet[r]['BQ']):0),
+									4: parseFloat(sheet[r]['DX'])?parseFloat(sheet[r]['DX']):(parseFloat(sheet[r]['BR'])?parseFloat(sheet[r]['BR']):0),
+									5: parseFloat(sheet[r]['DY'])?parseFloat(sheet[r]['DY']):(parseFloat(sheet[r]['BS'])?parseFloat(sheet[r]['BS']):0)
 								},
 								month: {1: {
-									'Jan': (!parseFloat(sheet[r]['CX'])?sheet[r]['BW']:sheet[r]['CX']),
-									'Feb': (!parseFloat(sheet[r]['CY'])?sheet[r]['BX']:sheet[r]['CY']),
-									'Mar': (!parseFloat(sheet[r]['CZ'])?sheet[r]['BY']:sheet[r]['CZ']),
-									'Apr': (!parseFloat(sheet[r]['DA'])?sheet[r]['BZ']:sheet[r]['DA'])
+									'Jan': parseFloat(sheet[r]['CX'])?parseFloat(sheet[r]['CX']):(parseFloat(sheet[r]['BW'])?parseFloat(sheet[r]['BW']):0),
+									'Feb': parseFloat(sheet[r]['CY'])?parseFloat(sheet[r]['CY']):(parseFloat(sheet[r]['BX'])?parseFloat(sheet[r]['BX']):0),
+									'Mar': parseFloat(sheet[r]['CZ'])?parseFloat(sheet[r]['CZ']):(parseFloat(sheet[r]['BY'])?parseFloat(sheet[r]['BY']):0),
+									'Apr': parseFloat(sheet[r]['DA'])?parseFloat(sheet[r]['DA']):(parseFloat(sheet[r]['BZ'])?parseFloat(sheet[r]['BZ']):0)
 								}, 2: {}, 3: {}, 4: {}, 5: {}}
 							};
 							for (var c = 66; c < 74; c++) {
 								var val = sheet[r]['D' + String.fromCharCode(c)];
-								accuralsRow.month[1][scope.months[c - 62]] = !parseFloat(val)?sheet[r]['C' + String.fromCharCode(c - 1)]:val;
+								var val1 = sheet[r]['C' + String.fromCharCode(c - 1)];
+								accuralsRow.month[1][scope.months[c - 62]] = parseFloat(val)?parseFloat(val):(parseFloat(val1)?parseFloat(val1):0);
 							}
 							for (var c = 75; c < 87; c++) {
 								var val = sheet[r]['D' + String.fromCharCode(c)];
-								accuralsRow.month[2][scope.months[c - 75]] = !parseFloat(val)?sheet[r]['C' + String.fromCharCode(c - 1)]:val;
+								var val1 = sheet[r]['C' + String.fromCharCode(c - 1)];
+								accuralsRow.month[2][scope.months[c - 75]] = parseFloat(val)?parseFloat(val):(parseFloat(val1)?parseFloat(val1):0);
 							}
 							if (sheet[r]['AG']) {
 								if (sheet[r]['AG'].toLowerCase().startsWith('revenue')) {
