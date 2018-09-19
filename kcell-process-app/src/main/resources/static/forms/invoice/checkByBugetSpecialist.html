@@ -66,22 +66,38 @@
                                 });
                             });
                         }
+                    } else if (el === 'selectedRevisions') {
+                        $scope[el] = camForm.variableManager.variables[el];
+                        var arrayList = _.values($scope.selectedRevisions.value);
+                        $q.all(arrayList.map(function (arr) {
+                            return $http.get("/camunda/api/engine/engine/default/process-instance/" + arr.processInstanceId + "/variables/workPrices?deserializeValue=false");
+                        })).then(function (results) {
+                            results.forEach(function (e, index) {
+                                $scope.selectedRevisions.value[arrayList[index].processInstanceId].workPrices = JSON.parse(e.data.value);
+                            });
+                        });
+                        angular.forEach($scope.selectedRevisions.value, function (value, key) {
+                            $http.get("/camunda/api/engine/engine/default/process-instance/" + key + "/variables/sapPRNo?deserializeValue=false").then(function (result){
+                                $scope.selectedRevisions.value[key].sapPRNo = result.data.value;
+                            }, function (error) {
+                                console.log(error.data);
+                            });
+                            $http.get("/camunda/api/engine/engine/default/process-instance/" + key + "/variables/sapPONo?deserializeValue=false").then(function (result){
+                                $scope.selectedRevisions.value[key].sapPONo = result.data.value;
+                            }, function (error) {
+                                console.log(error.data);
+                            });
+                        });
                     } else {
                         $scope.invoice[el] = camForm.variableManager.variables[el];
                     }
-                    $scope[el] = camForm.variableManager.variables[el].value;
+                    if(el !== 'selectedRevisions'){
+                        $scope[el] = camForm.variableManager.variables[el].value;
+                    }
                 });
-                for(var propt in $scope.selectedRevisions){
-                    $http.get("/camunda/api/engine/engine/default/process-instance/"+propt+"/variables/workPrices?deserializeValue=false").then(function (result) {
-                        $scope.selectedRevisions[propt].workPrices = JSON.parse(result.data.value);
-                    },function(error){ console.log(error.data); });
-                    $http.get("/camunda/api/engine/engine/default/process-instance/"+propt+"/variables/sapPRNo?deserializeValue=false").then(function (result) {
-                        $scope.selectedRevisions[propt].sapPRNo = result.data.value;
-                    },function(error){ console.log(error.data); });
-                    $http.get("/camunda/api/engine/engine/default/process-instance/"+propt+"/variables/sapPONo?deserializeValue=false").then(function (result) {
-                        $scope.selectedRevisions[propt].sapPONo = result.data.value;
-                    },function(error){ console.log(error.data); });
-                }
+                $timeout(function(){
+                    $scope.invoice.selectedRevisions = $scope.selectedRevisions;
+                }, 1000);
             });
 
             camForm.on('submit', function () {
@@ -100,6 +116,8 @@
                 }
                 $scope.invoice.resolutions.push({processInstanceId: $scope.processInstanceId, assignee: $rootScope.authentication.name, assigneeName: $rootScope.authentication.assigneeName, position: 'Buget specialist', resolution: $scope.budgetSpecialistTaskResult, comment: $scope.bugetSpecialistComment, taskId: camForm.taskId, visibility: visibility});
                 camForm.variableManager.variableValue('resolutions', $scope.invoice.resolutions);
+
+                camForm.variableManager.variableValue('selectedRevisions', angular.copy($scope.selectedRevisions.value));
             });
 
             camForm.on('store', function() {

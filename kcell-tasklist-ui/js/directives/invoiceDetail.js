@@ -1,6 +1,6 @@
 define(['./module'], function(module){
 	'use strict';
-	module.directive('invoiceDetail', function ($rootScope, $http) {
+	module.directive('invoiceDetail', function ($rootScope, $http, $timeout) {
 		return {
 			restrict: 'E',
 			scope: {
@@ -56,7 +56,9 @@ define(['./module'], function(module){
 	                        console.log(error.data);
 	                    }
 	                );
-                    transformToArray();
+                    $timeout(function(){
+                        transformToArray();
+                    }, 1500);
 				}
 
                 scope.calculateBasePriceByQuantity = function(work){
