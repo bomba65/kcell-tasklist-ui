@@ -116,9 +116,9 @@ if (reason == '2') {
     jobWorksObj.each { w ->
         w.relatedSites.each { r ->
             yieldUnescaped '' + documentType + '\t' + w.costType + '\t' + jrNumber + '\tapproved\t' + requestDate + '\t' + w.definition.vendor + '\t' + 
-                  '7\tY\tinstallation service ' + r.site_name + '\t' + w.contractorNo + '\t' + w.definition.sapServiceNumber + '\t' + w.price.unitWorkQuantityPerSite + '\t' +
+                  '7\tY\tinstallation service ' + r.site_name + '\t' + w.contractorNo + '\t' + w.definition.sapServiceNumber + '\t' + w.price.quantity + '\t' +
                   yearEndDate + '\t' + w.wbsElement + '\t' + jrNumber + '\t' + tnuSiteLocations[r.id].siteLocation + '\t' + (tnuSiteLocations[r.id].fixedAssetNumber!=null?tnuSiteLocations[r.id].fixedAssetNumber:'DUMMY') + '\t' +
-                  w.costCenter + '\t' + w.controllingArea + '\t' + w.activityServiceNumber + '\t' + w.price.unitWorkPricePlusTx + '\t' +
+                  w.costCenter + '\t' + w.controllingArea + '\t' + w.activityServiceNumber + '\t' + w.price.unitWorkPricePerSite + '\t' +
                   subcontructerName + '\t131\t' + requestedBy + '\t' +
                   '1.Purchase description: Revision works for site ' + r.site_name + ' JR# ' + jrNumber + ' dated ' + requestDate + ' ' +
                   '2.Budgeted or not: yes ' + w.definition.spp + ' ' +
