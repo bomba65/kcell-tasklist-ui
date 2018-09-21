@@ -1,5 +1,5 @@
 -- отчет для Семенова
-select distinct
+select
   substring(pi.business_key_ from '^[^-]+') as region,
   sitename.text_ as sitename,
   pi.business_key_ as "JR No",
@@ -26,7 +26,7 @@ select distinct
   acceptPlan.value_ as "Accept by Work Planning",
   acceptanceDate.value_ as "Acceptance Date",
   -- сюда еще нужно состав работ разбитый на строки
-  worksPriceListJson.value->>'title' as "Job Description",
+  title.value_ as "Job Description",
   worksJson.value ->>'quantity' as "Quantity",
   explanation.text_ as "Comments",
   case materialsRequired.text_
@@ -74,7 +74,6 @@ from act_hi_procinst pi
                            and ti.task_def_key_ in ('accept_work_planning_group'))
     as acceptPlan
     on acceptPlan.value_ > acceptReturn.value_
-
   left join act_hi_varinst acceptance
     on pi.id_ = acceptance.proc_inst_id_
        and acceptance.name_ = 'acceptPerformedJob'
@@ -98,12 +97,17 @@ from act_hi_procinst pi
   left join json_array_elements(CAST(convert_from(jobWorksBytes.bytes_, 'UTF8') AS json)) as worksJson
     on true
 
-  left join act_hi_varinst worksPriceList
-    on pi.id_ = worksPriceList.proc_inst_id_ and worksPriceList.name_ = 'worksPriceList'
-  left join act_ge_bytearray worksPriceListBytes
-    on worksPriceList.bytearray_id_ = worksPriceListBytes.id_
-  left join json_array_elements(CAST(convert_from(worksPriceListBytes.bytes_, 'UTF8') AS json)) as worksPriceListJson
-    on true and worksJson.value->>'sapServiceNumber' = worksPriceListJson.value->>'sapServiceNumber'
+  left join lateral (
+    select distinct worksPriceListJson.value->>'title' as value_
+      from act_hi_varinst worksPriceList
+        inner join act_ge_bytearray worksPriceListBytes
+          on worksPriceList.bytearray_id_ = worksPriceListBytes.id_
+        inner join json_array_elements(CAST(convert_from(worksPriceListBytes.bytes_, 'UTF8') AS json)) as worksPriceListJson
+          on true and worksJson.value->>'sapServiceNumber' = worksPriceListJson.value->>'sapServiceNumber'
+      where pi.id_ = worksPriceList.proc_inst_id_ and worksPriceList.name_ = 'worksPriceList'
+  )
+  as title
+  on true
 
   left join act_hi_varinst explanation
     on pi.id_ = explanation.proc_inst_id_ and explanation.name_ = 'explanation'
