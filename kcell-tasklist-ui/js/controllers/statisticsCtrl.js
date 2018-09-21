@@ -815,7 +815,7 @@ define(['./module','jquery'], function(app,$){
         }
 
         $scope.downloadFinancialReport = function(){
-            if($rootScope.authentication.name === 'demo' /*|| $rootScope.authentication.name === 'Evgeniy.Semenov@kcell.kz' || $rootScope.authentication.name === 'Yernaz.Kalingarayev@kcell.kz'*/){
+            if($rootScope.authentication.name === 'demo' || $rootScope.authentication.name === 'Yernaz.Kalingarayev@kcell.kz' || $rootScope.authentication.name === 'Gulzhan.Imandosova@kcell.kz'){
                 $http.get('/camunda/reports/financialreport').then(function(response) {
                     var data = response.data;
 
@@ -847,7 +847,7 @@ define(['./module','jquery'], function(app,$){
             }
         }
         $scope.downloadExtendedByJobsReport = function(){
-            if($rootScope.authentication.name === 'demo' /*|| $rootScope.authentication.name === 'Evgeniy.Semenov@kcell.kz' || $rootScope.authentication.name === 'Yernaz.Kalingarayev@kcell.kz'*/){
+            if($rootScope.authentication.name === 'demo' || $rootScope.authentication.name === 'Evgeniy.Semenov@kcell.kz' || $rootScope.authentication.name === 'Yernaz.Kalingarayev@kcell.kz' || $rootScope.authentication.name === 'Gulzhan.Imandosova@kcell.kz'){
                 $http.get('/camunda/reports/extended-report-by-jobs').then(function(response) {
                     var data = response.data;
 
