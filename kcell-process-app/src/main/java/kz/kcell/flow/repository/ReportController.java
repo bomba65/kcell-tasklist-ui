@@ -2,6 +2,7 @@ package kz.kcell.flow.repository;
 
 import kz.kcell.flow.repository.custom.ReportRepository;
 import kz.kcell.flow.repository.dto.FinancialReportDto;
+import kz.kcell.flow.repository.dto.ExtendedReportByJobsDto;
 import kz.kcell.flow.repository.dto.ReportDto;
 import lombok.extern.java.Log;
 import org.camunda.bpm.engine.IdentityService;
@@ -63,4 +64,22 @@ public class ReportController {
         return ResponseEntity.ok(reportDtos);
     }
 
+
+    @RequestMapping(value = "/extended-report-by-jobs", method = RequestMethod.GET)
+    @ResponseBody
+    public ResponseEntity<List<ExtendedReportByJobsDto>> getExtendedReportByJobs(){
+
+        if (identityService.getCurrentAuthentication() == null || identityService.getCurrentAuthentication().getUserId() == null) {
+            log.warning("No user logged in");
+            return ResponseEntity.ok(new ArrayList<ExtendedReportByJobsDto>());
+        }
+
+        InputStream fis = ReportController.class.getResourceAsStream("/reports/extended-financial-report-by-job.sql");
+        Scanner s = new Scanner(fis).useDelimiter("\\A");
+        String query = s.hasNext() ? s.next() : "";
+
+        List<ExtendedReportByJobsDto> reportDtos = reportRepository.extendedReportByJobs(query);
+
+        return ResponseEntity.ok(reportDtos);
+    }
 }

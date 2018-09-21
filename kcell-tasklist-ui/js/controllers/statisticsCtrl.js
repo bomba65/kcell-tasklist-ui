@@ -826,22 +826,55 @@ define(['./module','jquery'], function(app,$){
                         d[13] =  $filter('date')(d[13], "yyyy-MM-dd");
                         d[14] =  $filter('date')(d[14], "yyyy-MM-dd");
                         d[15] =  $filter('date')(d[15], "yyyy-MM-dd");
-                        d[33] =  $filter('date')(d[33], "yyyy-MM-dd");
-                        d[33] =  $filter('date')(d[33], "yyyy-MM-dd");
-                        d[36] =  $filter('date')(d[36], "yyyy-MM-dd");
+                        d[16] =  $filter('date')(d[16], "yyyy-MM-dd");
+                        d[34] =  $filter('date')(d[34], "yyyy-MM-dd");
+                        //d[34] =  $filter('date')(d[34], "yyyy-MM-dd");
+                        d[37] =  $filter('date')(d[37], "yyyy-MM-dd");
                     });
 
-                    data.splice(0, 0, ["Year", "Month", "Region", "Sitename", "JR No", "JR To", "JR Reason", "Requested Date", "Requested By", "Validity Date", "Related to the", "Project", "Material List Signing Date"
-                        , "Accept by Work Maintenance", "Accept by Work Planning", "Acceptance Date", "Job Description", "Quantity", "Job reason", "Type of expenses", "Comments", "Customer Material"
-                        , "Process State", "JR Status", "Detailed status", "Reason", "Price (without transportation)", "Price (with transportation)", "Monthly act #", "JO#", "PR#", "PR Total Value"
-                        , "PR Status", "PR Approval date", "PO#", "Invoice No", "Invoice date"]);
+                    data.splice(0, 0, ["Year", "Month", "Region", "Sitename", "JR No", "JR To", "JR Reason", "Requested Date", "Requested By", "Validity Date", "Related to the", "Project"
+                        , "Material List Signing Date", "Accept by Initiator", "Accept by Work Maintenance", "Accept by Work Planning", "Acceptance Date", "Job Description", "Quantity"
+                        , "Job reason", "Type of expenses", "Comments", "Customer Material", "Process State", "JR Status", "Detailed status", "Reason", "Price (without transportation)"
+                        , "Price (with transportation)", "Monthly act #", "JO#", "PR#", "PR Total Value", "PR Status", "PR Approval date", "PO#", "Invoice No", "Invoice date"]);
 
                     var ws = XLSX.utils.json_to_sheet(response.data, {skipHeader:true});
 
                     var wb = XLSX.utils.book_new();
                     XLSX.utils.book_append_sheet(wb, ws, 'New Sheet Name 1');
 
-                    return XLSX.writeFile(wb, 'financial-report.xlsx');
+                    return XLSX.writeFile(wb, 'extended-report-by-works.xlsx');
+                });
+            }
+        }
+        $scope.downloadExtendedByJobsReport = function(){
+            if($rootScope.authentication.name === 'demo' /*|| $rootScope.authentication.name === 'Evgeniy.Semenov@kcell.kz' || $rootScope.authentication.name === 'Yernaz.Kalingarayev@kcell.kz'*/){
+                $http.get('/camunda/reports/extended-report-by-jobs').then(function(response) {
+                    var data = response.data;
+
+                    angular.forEach(data, function(d){
+                        d[7] =  $filter('date')(d[7], "yyyy-MM-dd");
+                        d[9] =  $filter('date')(d[9], "yyyy-MM-dd");
+                        d[12] =  $filter('date')(d[12], "yyyy-MM-dd");
+                        d[13] =  $filter('date')(d[13], "yyyy-MM-dd");
+                        d[14] =  $filter('date')(d[14], "yyyy-MM-dd");
+                        d[15] =  $filter('date')(d[15], "yyyy-MM-dd");
+                        d[16] =  $filter('date')(d[16], "yyyy-MM-dd");
+                        d[34] =  $filter('date')(d[34], "yyyy-MM-dd");
+                        //d[34] =  $filter('date')(d[34], "yyyy-MM-dd");
+                        d[37] =  $filter('date')(d[37], "yyyy-MM-dd");
+                    });
+
+                    data.splice(0, 0, ["Year", "Month", "Region", "Sitename", "JR No", "JR To", "JR Reason", "Requested Date", "Requested By", "Validity Date", "Related to the", "Project"
+                        , "Material List Signing Date", "Accept by Initiator", "Accept by Work Maintenance", "Accept by Work Planning", "Acceptance Date", "Job Description", "Quantity"
+                        , "Job reason", "Type of expenses", "Comments", "Customer Material", "Process State", "JR Status", "Detailed status", "Reason", "Price (without transportation)"
+                        , "Price (with transportation)", "Monthly act #", "JO#", "PR#", "PR Total Value", "PR Status", "PR Approval date", "PO#", "Invoice No", "Invoice date"]);
+
+                    var ws = XLSX.utils.json_to_sheet(response.data, {skipHeader:true});
+
+                    var wb = XLSX.utils.book_new();
+                    XLSX.utils.book_append_sheet(wb, ws, 'New Sheet Name 1');
+
+                    return XLSX.writeFile(wb, 'extended-report-by-jobs.xlsx');
                 });
             }
         }

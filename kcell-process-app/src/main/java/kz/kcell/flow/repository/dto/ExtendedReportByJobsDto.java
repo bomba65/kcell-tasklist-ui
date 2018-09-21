@@ -2,7 +2,7 @@ package kz.kcell.flow.repository.dto;
 
 import java.util.Date;
 
-public class FinancialReportDto {
+public class ExtendedReportByJobsDto {
 
     public String year;
     public String month;

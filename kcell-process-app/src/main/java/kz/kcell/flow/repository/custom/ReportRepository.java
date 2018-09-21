@@ -2,6 +2,7 @@ package kz.kcell.flow.repository.custom;
 
 import kz.kcell.flow.repository.dto.FinancialReportDto;
 import kz.kcell.flow.repository.dto.ReportDto;
+import kz.kcell.flow.repository.dto.ExtendedReportByJobsDto;
 
 import javax.persistence.EntityManager;
 import javax.persistence.PersistenceContext;
@@ -17,6 +18,10 @@ public class ReportRepository {
     }
 
     public List<FinancialReportDto> financialReport(String query){
+        return em.createNativeQuery(query).getResultList();
+    }
+
+    public List<ExtendedReportByJobsDto> extendedReportByJobs(String query){
         return em.createNativeQuery(query).getResultList();
     }
 }
