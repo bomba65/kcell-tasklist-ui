@@ -1,6 +1,6 @@
 define(['./../module', 'xlsx'], function(module){
 	'use strict';
-	module.directive('demandBusinessCase', function ($rootScope, $http) {
+	module.directive('demandBusinessCase', function ($rootScope, $http, $timeout) {
 		return {
 			restrict: 'E',
 			scope: {
@@ -35,7 +35,7 @@ define(['./../module', 'xlsx'], function(module){
 						if (!scope.data.benchmark) {
 							scope.data.benchmark = {
 								minPP: 0.8,
-								maxROI: 0.94,
+								maxROI: 94,
 								maxNPV: 8205418520.33,
 								maxPL: 2420366789.82,
 								maxCF: 2420366789.82,
@@ -109,16 +109,12 @@ define(['./../module', 'xlsx'], function(module){
 
 					// Define impact on operational activities
 					if (sheet.length > 27 && sheet[27]['G'] && sheet[27]['G'] != 'n/a') {
-						if (sheet[27]['G'].startsWith('A')) scope.data.opActivitiesImpact = 'No impact';
-						else if (sheet[27]['G'].startsWith('B')) scope.data.opActivitiesImpact = 'Impacts';
-						else scope.data.opActivitiesImpact = 'Significantly hinder';
+						scope.data.opActivitiesImpact = sheet[27]['G'][0];
 					}
 
 					// Define business priority
 					if (sheet.length > 29 && sheet[29]['G'] && sheet[29]['G'] != 'n/a') {
-						if (sheet[29]['G'].startsWith('A')) scope.data.businessPriority = 'No impact';
-						else if (sheet[29]['G'].startsWith('B')) scope.data.businessPriority = 'Impacts';
-						else scope.data.businessPriority = 'Would stop';
+						scope.data.businessPriority = sheet[29]['G'][0];
 					}
 
 					// TABLE
@@ -141,15 +137,15 @@ define(['./../module', 'xlsx'], function(module){
 								amount: (!sheet[r]['AD'] || sheet[r]['AD'] == 'n/a') ? null : sheet[r]['AD'],
 								depCode: (!sheet[r]['AI'] || sheet[r]['AI'] == 'n/a') ? null : sheet[r]['AI'],
 								year: {
-									1: parseFloat(sheet[r]['AK'])?parseFloat(sheet[r]['AK']):0,
-									2: parseFloat(sheet[r]['AX'])?parseFloat(sheet[r]['AX']):0,
-									3: parseFloat(sheet[r]['BK'])?parseFloat(sheet[r]['BK']):0,
-									4: parseFloat(sheet[r]['BL'])?parseFloat(sheet[r]['BL']):0,
-									5: parseFloat(sheet[r]['BM'])?parseFloat(sheet[r]['BM']):0
+									1: parseFloat(sheet[r]['AK'])?parseFloat(sheet[r]['AK']):0.0,
+									2: parseFloat(sheet[r]['AX'])?parseFloat(sheet[r]['AX']):0.0,
+									3: parseFloat(sheet[r]['BK'])?parseFloat(sheet[r]['BK']):0.0,
+									4: parseFloat(sheet[r]['BL'])?parseFloat(sheet[r]['BL']):0.0,
+									5: parseFloat(sheet[r]['BM'])?parseFloat(sheet[r]['BM']):0.0
 								},
 								month: {1: {}, 2: {
-									'Jan': parseFloat(sheet[r]['AY'])?parseFloat(sheet[r]['AY']):0,
-									'Feb': parseFloat(sheet[r]['AZ'])?parseFloat(sheet[r]['AZ']):0
+									'Jan': parseFloat(sheet[r]['AY'])?parseFloat(sheet[r]['AY']):0.0,
+									'Feb': parseFloat(sheet[r]['AZ'])?parseFloat(sheet[r]['AZ']):0.0
 								}, 3: {}, 4: {}, 5: {}}
 							};
 							for (var c = 76; c < 88; c++) {
@@ -164,30 +160,38 @@ define(['./../module', 'xlsx'], function(module){
 							var accuralsRow = {
 								lineName: sheet[r]['AH'],
 								year: {
-									1: parseFloat(sheet[r]['CW'])?parseFloat(sheet[r]['CW']):(parseFloat(sheet[r]['BO'])?parseFloat(sheet[r]['BO']):0),
-									2: parseFloat(sheet[r]['DJ'])?parseFloat(sheet[r]['DJ']):(parseFloat(sheet[r]['BP'])?parseFloat(sheet[r]['BP']):0),
-									3: parseFloat(sheet[r]['DW'])?parseFloat(sheet[r]['DW']):(parseFloat(sheet[r]['BQ'])?parseFloat(sheet[r]['BQ']):0),
-									4: parseFloat(sheet[r]['DX'])?parseFloat(sheet[r]['DX']):(parseFloat(sheet[r]['BR'])?parseFloat(sheet[r]['BR']):0),
-									5: parseFloat(sheet[r]['DY'])?parseFloat(sheet[r]['DY']):(parseFloat(sheet[r]['BS'])?parseFloat(sheet[r]['BS']):0)
+									1: parseFloat(sheet[r]['CW'])?parseFloat(sheet[r]['CW']):(parseFloat(sheet[r]['BO'])?parseFloat(sheet[r]['BO']):0.0),
+									2: parseFloat(sheet[r]['DJ'])?parseFloat(sheet[r]['DJ']):(parseFloat(sheet[r]['BP'])?parseFloat(sheet[r]['BP']):0.0),
+									3: parseFloat(sheet[r]['DW'])?parseFloat(sheet[r]['DW']):(parseFloat(sheet[r]['BQ'])?parseFloat(sheet[r]['BQ']):0.0),
+									4: parseFloat(sheet[r]['DX'])?parseFloat(sheet[r]['DX']):(parseFloat(sheet[r]['BR'])?parseFloat(sheet[r]['BR']):0.0),
+									5: parseFloat(sheet[r]['DY'])?parseFloat(sheet[r]['DY']):(parseFloat(sheet[r]['BS'])?parseFloat(sheet[r]['BS']):0.0)
 								},
 								month: {1: {
-									'Jan': parseFloat(sheet[r]['CX'])?parseFloat(sheet[r]['CX']):(parseFloat(sheet[r]['BW'])?parseFloat(sheet[r]['BW']):0),
-									'Feb': parseFloat(sheet[r]['CY'])?parseFloat(sheet[r]['CY']):(parseFloat(sheet[r]['BX'])?parseFloat(sheet[r]['BX']):0),
-									'Mar': parseFloat(sheet[r]['CZ'])?parseFloat(sheet[r]['CZ']):(parseFloat(sheet[r]['BY'])?parseFloat(sheet[r]['BY']):0),
-									'Apr': parseFloat(sheet[r]['DA'])?parseFloat(sheet[r]['DA']):(parseFloat(sheet[r]['BZ'])?parseFloat(sheet[r]['BZ']):0)
+									'Jan': parseFloat(sheet[r]['CX'])?parseFloat(sheet[r]['CX']):(parseFloat(sheet[r]['BW'])?parseFloat(sheet[r]['BW']):0.0),
+									'Feb': parseFloat(sheet[r]['CY'])?parseFloat(sheet[r]['CY']):(parseFloat(sheet[r]['BX'])?parseFloat(sheet[r]['BX']):0.0),
+									'Mar': parseFloat(sheet[r]['CZ'])?parseFloat(sheet[r]['CZ']):(parseFloat(sheet[r]['BY'])?parseFloat(sheet[r]['BY']):0.0),
+									'Apr': parseFloat(sheet[r]['DA'])?parseFloat(sheet[r]['DA']):(parseFloat(sheet[r]['BZ'])?parseFloat(sheet[r]['BZ']):0.0)
 								}, 2: {}, 3: {}, 4: {}, 5: {}}
 							};
 							for (var c = 66; c < 74; c++) {
 								var val = sheet[r]['D' + String.fromCharCode(c)];
 								var val1 = sheet[r]['C' + String.fromCharCode(c - 1)];
-								accuralsRow.month[1][scope.months[c - 62]] = parseFloat(val)?parseFloat(val):(parseFloat(val1)?parseFloat(val1):0);
+								accuralsRow.month[1][scope.months[c - 62]] = parseFloat(val)?parseFloat(val):(parseFloat(val1)?parseFloat(val1):0.0);
 							}
 							for (var c = 75; c < 87; c++) {
 								var val = sheet[r]['D' + String.fromCharCode(c)];
 								var val1 = sheet[r]['C' + String.fromCharCode(c - 1)];
-								accuralsRow.month[2][scope.months[c - 75]] = parseFloat(val)?parseFloat(val):(parseFloat(val1)?parseFloat(val1):0);
+								accuralsRow.month[2][scope.months[c - 75]] = parseFloat(val)?parseFloat(val):(parseFloat(val1)?parseFloat(val1):0.0);
 							}
 							if (sheet[r]['AG']) {
+								var yearsTotal = 0;
+								for (var i = 1; i < 6; i++) yearsTotal += cashFlowRow.year[i] + accuralsRow.year[i];
+								if (yearsTotal == 0) {
+									for (var m = 1; m < 3; m++)
+										for (var i = 0; i < 12; i++)
+											yearsTotal += cashFlowRow.month[m][scope.months[i]] + accuralsRow.month[m][scope.months[i]];
+									if (yearsTotal == 0) continue;
+								}
 								if (sheet[r]['AG'].toLowerCase().startsWith('revenue')) {
 									scope.data.cashFlow.revenues.push(cashFlowRow);
 									scope.data.accurals.revenues.push(accuralsRow);
@@ -201,7 +205,8 @@ define(['./../module', 'xlsx'], function(module){
 									scope.data.cashFlow.cogs.push(cashFlowRow);
 									scope.data.accurals.cogs.push(accuralsRow);
 								}
-							} else if (sheet[r]['AH'] && sheet[r]['AH'].toLowerCase().startsWith('income')) {								scope.data.cashFlow.income.push({									
+							} else if (sheet[r]['AH'] && sheet[r]['AH'].toLowerCase().startsWith('income')) {
+								scope.data.cashFlow.income.push({									
 									year: cashFlowRow.year,
 									month: cashFlowRow.month
 								});
@@ -296,7 +301,7 @@ define(['./../module', 'xlsx'], function(module){
 									+ scope.data.cashFlow.cogsYear[i]
 									+ scope.data.cashFlow.incomeYear[i]) * discount[i];
 						}
-						scope.data.roi = scope.data.npv / Math.abs(caps);
+						scope.data.roi = scope.data.npv / Math.abs(caps) * 100.0;
 					}
 
 					// Payback period
@@ -371,5 +376,45 @@ define(['./../module', 'xlsx'], function(module){
 	        },
 			templateUrl: './js/directives/demand/businessCase.html'
 		};
+	});
+
+	module.directive('demandNumberFormat', function ($filter) {
+        'use strict';
+
+        return {
+			restrict: 'A',
+			require: '?ngModel',
+			scope: {
+				demandNumberFormat: '=',
+                formatAddon: '='
+			},
+            link: function (scope, elem, attrs, ctrl) {
+				if (!ctrl) return;
+
+                ctrl.$formatters.unshift(function () {
+					var fractionSize = 0;
+					if (scope.demandNumberFormat) fractionSize = scope.demandNumberFormat;
+					var view = $filter('number')(ctrl.$modelValue, fractionSize);
+					if (ctrl.$modelValue == 0.0) view = '0';
+					if (view && scope.formatAddon && scope.formatAddon.length) view += scope.formatAddon;
+                    return view;
+                });
+
+                ctrl.$parsers.unshift(function (viewValue) {
+					var fractionSize = 0;
+					var plainNumber = viewValue.replace(/,/g, '');
+					if (scope.formatAddon) plainNumber = plainNumber.replace(scope.formatAddon, '');
+					if (scope.demandNumberFormat) fractionSize = scope.demandNumberFormat;
+
+					plainNumber = parseFloat(plainNumber);
+					var view = $filter('number')(plainNumber, fractionSize);
+					if (plainNumber == 0.0) view = '0';
+					if (scope.formatAddon && scope.formatAddon.length) view += scope.formatAddon;
+                    elem.val(view);
+
+                    return plainNumber;
+                });
+            }
+        };
 	});
 });
