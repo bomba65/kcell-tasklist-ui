@@ -391,6 +391,15 @@
                 '4': 'SAO'
             };
 
+            $scope.jobWorkReasons = [
+                {id: 'installation', expenseType: 'CAPEX', name: 'Installation (Монтаж - установка нового оборудования)'},
+                {id: 'modernization', expenseType: 'CAPEX', name: 'Modernization (Модернизация - замена оборудования на более производительное)'},
+                {id: 'change_prevention', expenseType: 'OPEХ', name: 'Change (Замена - восстановление вышедшего из строя оборудования/OC для поддержания их в рабочем состоянии  с целью их профилактики )'},
+                {id: 'change_improve', expenseType: 'CAPEX', name: 'Change (Замена - восстановление вышедшего из строя оборудования/ОС для улучшения состояния объекта, повышающего его первоначально оцененные нормативные показатели: срок службы, производственную мощность и т. д )'},
+                {id: 'replacement', expenseType: 'OPEХ', name: 'Replacement (Перемещение - в пределах одного сайта)'},
+                {id: 'removal', expenseType: 'OPEХ', name: 'Removal (Демонтаж - снятие оборудования)'}
+            ];
+
             $scope.requestedDate = new Date();
 
             var currentDate = new Date();
@@ -622,6 +631,14 @@
                 for(var i=0;i<$scope.works.length;i++){
                     if($scope.jobWorks[index].sapServiceNumber === $scope.works[i].sapServiceNumber){
                         $scope.jobWorks[index].materialUnit = $scope.works[i].units;
+                    }
+                }
+            };
+
+            $scope.defineExpenseType = function(index){
+                for(var i=0;i<$scope.jobWorkReasons.length;i++){
+                    if($scope.jobWorks[index].reason === $scope.jobWorkReasons[i].id){
+                        $scope.jobWorks[index].expenseType = $scope.jobWorkReasons[i].expenseType;
                     }
                 }
             };
@@ -976,35 +993,54 @@
                     <th width="10%"></th>
                 </tr>
                 </thead>
-                <tbody>
-                <tr ng-repeat="jobWork in jobWorks">
-                    <td>
-                        <select ng-model="jobWork.sapServiceNumber" name="sapServiceNumber{{$index}}" required class="form-control" ng-change="getUnits($index)">
-                            <option ng-repeat="work in works" ng-selected="{{work.sapServiceNumber == jobWork.sapServiceNumber}}" value="{{work.sapServiceNumber}}">{{work.displayServiceName}}</option>
-                        </select>
-                        <label class="error" ng-if="kcell_form['sapServiceNumber'+$index].$error.required && ( kcell_form['sapServiceNumber'+$index].$touched || view.submitted)">Required field</label>
-                    </td>
-                    <td>
-                        <input type="number" class="form-control" name="quantity{{$index}}" required ng-model="jobWork.quantity" min="1"/>
-                        <label class="error" ng-if="kcell_form['quantity'+$index].$error.required && ( kcell_form['quantity'+$index].$touched || view.submitted)">Required field</label>
-                    </td>
-                    <td>
-                        <div class="input-group">
-                            <input type="number" class="form-control" name="materialQuantity{{$index}}" required ng-model="jobWork.materialQuantity" min="0" style="min-width: 55px;" />
-                            <span class="input-group-addon">{{jobWork.materialUnit}}</span>
-                        </div>
-                        <label class="error" ng-if="kcell_form['materialQuantity'+$index].$error.required && ( kcell_form['materialQuantity'+$index].$touched || view.submitted)">Required field</label>
-                    </td>
-                    <td>
-                        <span ng-repeat="rs in jobWork.relatedSites" class="my-tag" ng-class="{'main-site':rs.site_name===site_name}"><span ng-if="rs.site_name===site_name">Main Site: </span>{{rs.site_name}} <a ng-click="removeRelatedSite($parent.$index, $index)">&times;</a></span>
-                        <input type="text" ng-model="tempSite.name" style="display: inline-block; width:100px;" name="tempSiteName" typeahead="site as sites.site_name for sites in getSite($viewValue) | filter:$viewValue" typeahead-on-select="workSiteSelected($item, $index); tempSite={};" class="form-control" autocomplete="off" placeholder="Add Site">
-                    </td>
-                    <td><div class="col-md-1"><button type="button" class="btn btn-sm btn-warning" ng-if="$index !== 0" ng-click="removeWork($index)"><i class="glyphicon glyphicon-trash"></i> Remove</button></div></td>
-                </tr>
-                <tr>
-                    <td colspan="5"><button type="button" class="btn btn-sm btn-primary" style="margin-top: 10px;" ng-click="addJobWork()"><i class="glyphicon glyphicon-plus"></i> Add work</button></td>
-                </tr>
+                <tbody ng-repeat="jobWork in jobWorks">
+                    <tr>
+                        <td>
+                            <select ng-model="jobWork.sapServiceNumber" name="sapServiceNumber{{$index}}" required class="form-control" ng-change="getUnits($index)">
+                                <option ng-repeat="work in works" ng-selected="{{work.sapServiceNumber == jobWork.sapServiceNumber}}" value="{{work.sapServiceNumber}}">{{work.displayServiceName}}</option>
+                            </select>
+                            <label class="error" ng-if="kcell_form['sapServiceNumber'+$index].$error.required && ( kcell_form['sapServiceNumber'+$index].$touched || view.submitted)">Required field</label>
+                        </td>
+                        <td>
+                            <input type="number" class="form-control" name="quantity{{$index}}" required ng-model="jobWork.quantity" min="1"/>
+                            <label class="error" ng-if="kcell_form['quantity'+$index].$error.required && ( kcell_form['quantity'+$index].$touched || view.submitted)">Required field</label>
+                        </td>
+                        <td>
+                            <div class="input-group">
+                                <input type="number" class="form-control" name="materialQuantity{{$index}}" required ng-model="jobWork.materialQuantity" min="0" style="min-width: 55px;" />
+                                <span class="input-group-addon">{{jobWork.materialUnit}}</span>
+                            </div>
+                            <label class="error" ng-if="kcell_form['materialQuantity'+$index].$error.required && ( kcell_form['materialQuantity'+$index].$touched || view.submitted)">Required field</label>
+                        </td>
+                        <td>
+                            <span ng-repeat="rs in jobWork.relatedSites" class="my-tag" ng-class="{'main-site':rs.site_name===site_name}"><span ng-if="rs.site_name===site_name">Main Site: </span>{{rs.site_name}} <a ng-click="removeRelatedSite($parent.$index, $index)">&times;</a></span>
+                            <input type="text" ng-model="tempSite.name" style="display: inline-block; width:100px;" name="tempSiteName" typeahead="site as sites.site_name for sites in getSite($viewValue) | filter:$viewValue" typeahead-on-select="workSiteSelected($item, $index); tempSite={};" class="form-control" autocomplete="off" placeholder="Add Site">
+                        </td>
+                        <td><div class="col-md-1"><button type="button" class="btn btn-sm btn-warning" ng-if="$index !== 0" ng-click="removeWork($index)"><i class="glyphicon glyphicon-trash"></i> Remove</button></div></td>
+                    </tr>
+                    <tr>
+                        <td colspan="6">
+                            <table>
+                                <tr>
+                                    <td>
+                                        Work request reason:
+                                    </td>
+                                    <td>
+                                        <select ng-model="jobWork.reason" name="reason{{$index}}" required class="form-control" ng-change="defineExpenseType($index)">
+                                            <option ng-repeat="reason in jobWorkReasons" ng-selected="{{reason.id == jobWork.reason}}" value="{{reason.id}}">{{reason.name}}</option>
+                                        </select>
+                                        <label class="error" ng-if="kcell_form['reason'+$index].$error.required && ( kcell_form['reason'+$index].$touched || view.submitted)">Required field</label>
+                                    </td>
+                                </tr>
+                            </table>
+                        </td>
+                    </tr>
                 </tbody>
+                <tfoot>
+                    <tr>
+                        <td colspan="5"><button type="button" class="btn btn-sm btn-primary" style="margin-top: 10px;" ng-click="addJobWork()"><i class="glyphicon glyphicon-plus"></i> Add work</button></td>
+                    </tr>
+                </tfoot>
             </table>
         </div>
         <div class="row">
