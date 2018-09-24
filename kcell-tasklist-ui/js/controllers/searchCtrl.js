@@ -67,11 +67,12 @@ define(['./module','jquery', 'moment', 'camundaSDK'], function(app, $, moment, C
         $scope.$watchGroup(['selectedProject', 'selectedProcess'], function(newValues, oldValues, scope) {
 			if((newValues[0].key !== oldValues[0].key || newValues[1].key !== oldValues[1].key)){
 				$scope.piIndex = undefined;
-				if((!$rootScope.isProcessAvailable('Revision') || !$rootScope.isProcessVisible('Revision')) 
-					&& (!$rootScope.isProjectAvailable('DeliveryPortal') && !$rootScope.isProjectVisible('DeliveryPortal'))
-				){
+
+				if(!($rootScope.isProcessAvailable('Revision') && $rootScope.isProcessVisible('Revision'))
+			    && !($rootScope.isProjectAvailable('DeliveryPortal') && $rootScope.isProjectVisible('DeliveryPortal'))){
 					$state.go('tasks');
                 }
+
             }
 		}, true);
 
