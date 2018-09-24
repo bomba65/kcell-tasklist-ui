@@ -135,16 +135,21 @@ select
   -- canceled, accepted, in progress, количество работ
   left join LATERAL (
       select works.proc_inst_id_,
-             string_agg(works.title, ', ')                   as title,         --"Job Description",
-             sum(cast(works.quantity as int))                as quantity,
+             --string_agg(works.title, ', ')                   as title,         --"Job Description",
+             --sum(cast(works.quantity as int))                as quantity,
+             string_agg( (case rownum when 1 then works.title end), chr(10) order by works.sapServiceNumber)  as title,         --"Job Description",
+             string_agg( (case rownum when 1 then cast(works.totalQuantityPerWorkType as char) end), chr(10) order by works.sapServiceNumber)  as quantity,
              sum(cast(works.unitWorkPrice as numeric))       as unitWorkPrice, --"Price without transport",
              sum(cast(works.unitWorkPricePlusTx as numeric)) as unitWorkPricePlusTx --"Price with transport"
       from (
-              select distinct
+              select --distinct
                      jobWorks.proc_inst_id_ as proc_inst_id_,
                      -- сюда еще нужно состав работ разбитый на строки
                      worksPriceListJson.value->>'title' as title, --"Job Description",
-                     worksJson.value ->>'quantity' as quantity, --"Quantity",
+                     --worksJson.value ->>'quantity' as quantity, --"Quantity",
+                     row_number() OVER (PARTITION BY worksPriceListJson.value->>'title' order by worksPriceListBytes.id_) as rownum,
+                     cast(worksJson.value->>'sapServiceNumber' as int) as sapServiceNumber,
+                     sum(cast(worksJson.value ->>'quantity' as int)) OVER (PARTITION BY worksJson.value->>'sapServiceNumber') as totalQuantityPerWorkType,
                      workPricesJson.value ->>'unitWorkPrice' as unitWorkPrice, --"Price without transport",
                      workPricesJson.value ->>'unitWorkPricePlusTx' as unitWorkPricePlusTx --"Price with transport"
                 from act_hi_varinst jobWorks
