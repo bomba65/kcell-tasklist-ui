@@ -18,7 +18,8 @@ define('app',[
 	'angular-local-storage',
 	'angularjs-dropdown-multiselect',
 	'moment',
-	'daterangepicker'
+	'daterangepicker',
+	'bootstrap'
 ], function(ng){
 	'use strict';
 	var app =  ng.module('app', [

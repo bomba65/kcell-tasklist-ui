@@ -35,7 +35,8 @@ require.config({
          'simple-hotkeys': './node_modules/simple-hotkeys/lib/hotkeys',
          'simple-uploader': './node_modules/simple-uploader/lib/uploader',
          'moment': './node_modules/moment/min/moment.min',
-         'daterangepicker': './node_modules/daterangepicker/daterangepicker'
+         'daterangepicker': './node_modules/daterangepicker/daterangepicker',
+         'bootstrap': './node_modules/bootstrap/dist/js/bootstrap.min'
      },
  
      // angular не поддерживает AMD из коробки, поэтому экспортируем перменную angular в глобальную область
@@ -55,7 +56,8 @@ require.config({
          'ng-file-upload': ['angular'],
          'angularjs-dropdown-multiselect': ['angular'],
          'angular-translate-storage-local': ['translate'],
-         'angular-translate-storage-cookie': ['translate']
+         'angular-translate-storage-cookie': ['translate'],
+         'bootstrap':['jquery']
      },
  
      // запустить приложение
