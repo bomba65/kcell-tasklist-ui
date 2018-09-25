@@ -3,8 +3,32 @@
 .table-borderless > tbody > tr > th {
     border: none;
 }
+
+
+/* Fixed Headers magic */
+.fixed-header-table-container .table thead th {
+  text-align: left;
+}
+.fixed-header-table-container .table thead span {
+  position: absolute;
+  top: 0;
+  background-color: #fff;
+  padding: 5px;
+  word-wrap: 'break-word';
+  margin-left: -8px;
+}
+.fixed-header-table-container {
+  height: 300px;
+  position: relative;
+  overflow: hidden;
+}
+.fixed-header-table-container-inner {
+  overflow-y: auto;
+  height: 100%;
+}
+
 </style>
-<div class="col-sm-12">
+<div class="col-sm-12" ng-if="!disabled">
     <div class="form-group">
         <label class="col-sm-3 control-label">Выберите эксел файл</label>
         <div class="col-sm-9">
@@ -276,1014 +300,1138 @@
 
 <div class="col-sm-12" style="max-width: 100%; overflow: scroll;">
     <label class="col-sm-12">Financial Information</label>
-    <div class="col-sm-12" style="border: 1px solid #ccc; border-radius: 10px; padding-top: 10px; margin-bottom: 10px;" ng-style="{'min-width': (2500 + (collapse.cashFlow1?750:0) + (collapse.cashFlow2?750:0)) + 'px'}">
+    <div class="col-sm-12" style="border: 1px solid #ccc; border-radius: 10px; padding-top: 10px; margin-bottom: 10px;" ng-style="{'min-width': (2500 + ((collapse.cashFlow1 || collapse.accurals1) + (collapse.cashFlow2 || collapse.accurals2)) * 750) + 'px'}">
         <label class="col-sm-12">Cash flow</label>
-        <div class="col-sm-12" style="overflow-y: scroll; max-height: 500px;">
-            <table class="table table-borderless">
-                <thead>
-                    <tr>
-                        <th class="text-center">ROC name</th>
-                        <th class="text-center">WBS/Budget line name</th>
-                        <th class="text-center">Cost executor (cost planning)</th>
-                        <th class="text-center">Purchasing group</th>
-                        <th class="text-center">CM contract</th>
-                        <th class="text-center">CM contract add</th>
-                        <th class="text-center">Agreement start date</th>
-                        <th class="text-center">Agreement end date</th>
-                        <th class="text-center">total contract amount</th>
-                        <th class="text-center" style="border-right: 2px solid #555;">Dep. code</th>
+        <div class="col-sm-12" style="border: 1px solid #ccc; border-radius: 10px; padding-top: 10px; margin-bottom: 10px;">
+            <div class="fixed-header-table-container">
+            <div class="fixed-header-table-container-inner">
+                <table class="table table-borderless">
+                    <thead>
+                        <tr>
+                            <th class="text-center"><span>ROC name</span><i style="visibility:hidden;">ROC name</i></th>
+                            <th class="text-center"><span>WBS/Budget line name</span><i style="visibility:hidden;">WBS/Budget line name</i></th>
+                            <th class="text-center"><span>Cost executor (cost planning)</span><i style="visibility:hidden;">Cost executor (cost planning)</span></th>
+                            <th class="text-center"><span>Purchasing group</span><i style="visibility:hidden;">Purchasing group</i></th>
+                            <th class="text-center"><span>CM contract</span><i style="visibility:hidden;">CM contract</i></th>
+                            <th class="text-center"><span>CM contract add</span><i style="visibility:hidden;">CM contract add</i></th>
+                            <th class="text-center"><span>Agreement start date</span><i style="visibility:hidden;">Agreement start date</i></th>
+                            <th class="text-center"><span>Agreement end date</span><i style="visibility:hidden;">Agreement end date</i></th>
+                            <th class="text-center"><span>total contract amount</span><i style="visibility:hidden;">total contract amount</i></th>
+                            <th class="text-center" style="border-right: 2px solid #555;"><span>Dep. code</span><i style="visibility:hidden;">Dep. code</i></th>
 
-                        <th ng-if="!collapse.cashFlow1">
-                            <span ng-if="disabled">
-                                <a href="#" ng-click="toggleCollapse('cashFlow1')">
-                                    <span class="glyphicon glyphicon-collapse-{{collapse.cashFlow1?'up':'down'}}"></span>
-                                    {{data.firstYear}}
-                                </a>
-                            </span>
-                            <span ng-if="!disabled">
-                                <div class="col-sm-2">
+                            <th ng-if="!collapse.cashFlow1">
+                                <span ng-if="disabled">
                                     <a href="#" ng-click="toggleCollapse('cashFlow1')">
-                                        <span class="glyphicon glyphicon-collapse-{{collapse.cashFlow1?'up':'down'}}"></span>
+                                        <i class="glyphicon glyphicon-collapse-{{collapse.cashFlow1?'up':'down'}}"></i>
+                                        {{data.firstYear}}
                                     </a>
-                                </div>
-                                <div class="col-sm-10">
-                                    <input type="number" class="form-control" ng-model="data.firstYear">
-                                </div>
-                            </span>
-                        </th>
-                        <th ng-if="collapse.cashFlow1" ng-repeat="m in months track by $index" class="text-center">
-                            <a href="#" ng-click="toggleCollapse('cashFlow1')" ng-if="$index == 0">
-                                <span class="glyphicon glyphicon-collapse-{{collapse.cashFlow1?'up':'down'}}">
-                                    <span style="font-size: 14px; font-weight: bold;">{{data.firstYear}}</span>
                                 </span>
-                                <br/>
-                            </a>
-                            {{m}}
-                        </th>
-
-                        <th ng-if="!collapse.cashFlow2">
-                            <a href="#" ng-click="toggleCollapse('cashFlow2')">
-                                <span class="glyphicon glyphicon-collapse-{{collapse.cashFlow2?'up':'down'}}"></span>
-                                {{data.firstYear + 1}}
-                            </a>
-                        </th>
-                        <th ng-if="collapse.cashFlow2" ng-repeat="m in months track by $index" class="text-center">
-                            <a href="#" ng-click="toggleCollapse('cashFlow2')" ng-if="$index == 0">
-                                <span class="glyphicon glyphicon-collapse-{{collapse.cashFlow2?'up':'down'}}">
-                                    <span style="font-size: 14px; font-weight: bold;">{{data.firstYear + 1}}</span>
+                                <i ng-if="disabled" style="visibility:hidden;">
+                                    <a href="#" ng-click="toggleCollapse('cashFlow1')">
+                                        <i class="glyphicon glyphicon-collapse-{{collapse.cashFlow1?'up':'down'}}"></i>
+                                        {{data.firstYear}}
+                                    </a>
+                                </i>
+                                <span ng-if="!disabled">
+                                    <div class="col-sm-2">
+                                        <a href="#" ng-click="toggleCollapse('cashFlow1')">
+                                            <i class="glyphicon glyphicon-collapse-{{collapse.cashFlow1?'up':'down'}}"></i>
+                                        </a>
+                                    </div>
+                                    <div class="col-sm-8">
+                                        <input type="number" class="form-control" ng-model="data.firstYear">
+                                    </div>
                                 </span>
-                                <br/>
-                            </a>
-                            {{m}}
-                        </th>
+                                <i ng-if="!disabled" style="visibility:hidden;">
+                                    <div class="col-sm-2">
+                                        <a href="#" ng-click="toggleCollapse('cashFlow1')">
+                                            <i class="glyphicon glyphicon-collapse-{{collapse.cashFlow1?'up':'down'}}"></i>
+                                        </a>
+                                    </div>
+                                    <div class="col-sm-8">
+                                        <input type="number" class="form-control" ng-model="data.firstYear">
+                                    </div>
+                                </i>
+                            </th>
+                            <th ng-if="collapse.cashFlow1" ng-repeat="m in months track by $index" class="text-center">
+                                <span>
+                                    <a href="#" ng-click="toggleCollapse('cashFlow1')" ng-if="$index == 0">
+                                        <i class="glyphicon glyphicon-collapse-{{collapse.cashFlow2?'up':'down'}}"></i>{{data.firstYear}}
+                                    </a>
+                                    {{m}}
+                                </span>
+                                <i style="visibility:hidden;">
+                                    <a href="#" ng-click="toggleCollapse('cashFlow1')" ng-if="$index == 0">
+                                        <i class="glyphicon glyphicon-collapse-{{collapse.cashFlow2?'up':'down'}}"></i>{{data.firstYear}}
+                                    </a>
+                                    {{m}}
+                                </i>
+                            </th>
 
-                        <th ng-repeat="i in [2, 3, 4]" class="text-center">
-                            <span ng-if="data.firstYear">{{data.firstYear + i}}</span>
-                        </th>
-                        <th class="text-center">Source</th>
-                        <th class="text-center" ng-if="!disabled"></th>
-                    </tr>
-                </thead>
-                <tbody>
-                    <tr>
-                        <td colspan="10" style="border-right: 2px solid #555;"><label>Revenue</label></td>
-                        <td colspan="{{collapse.cashFlow1?12:1}}">{{data.cashFlow.revenuesYear[1] | number: 0}}</td>
-                        <td colspan="{{collapse.cashFlow2?12:1}}">{{data.cashFlow.revenuesYear[2] | number: 0}}</td>
-                        <td ng-repeat="y in [3, 4, 5]">
-                            {{data.cashFlow.revenuesYear[y] | number: 0}}
-                            <!-- <span ng-if="disabled">{{data.cashFlow.revenuesYear[y]}}</span>
-                            <span ng-if="!disabled && data.cashFlow.revenues.length > 0">
-                                <input type="number" class="form-control" ng-model="data.cashFlow.revenuesYear[y]" ng-change="onChange()">
-                            </span> -->
-                        </td>
-                        <td></td>
-                        <td ng-if="!disabled" class="text-center">
-                            <a style="font-size: 25px;" ng-click="addItem('revenues')">
-                                <span class="glyphicon glyphicon-plus-sign"></span>
-                            </a>
-                        </td>
-                    </tr>
-                    <tr ng-repeat="i in data.cashFlow.revenues track by $index">
-                        <td>
-                            <span ng-if="disabled">{{i.rocName}}</span>
-                            <span ng-if="!disabled">
-                                <input type="text" class="form-control" ng-model="i.rocName">
-                            </span>
-                        </td>
-                        <td>
-                            <span ng-if="disabled">{{i.wbs}}</span>
-                            <span ng-if="!disabled">
-                                <input type="text" class="form-control" ng-model="i.wbs">
-                            </span>
-                        </td>
-                        <td>
-                            <span ng-if="disabled">{{i.cost}}</span>
-                            <span ng-if="!disabled">
-                                <input type="text" class="form-control" ng-model="i.cost">
-                            </span>
-                        </td>
-                        <td>
-                            <span ng-if="disabled">{{i.purchasing}}</span>
-                            <span ng-if="!disabled">
-                                <input type="text" class="form-control" ng-model="i.purchasing">
-                            </span>
-                        </td>
-                        <td>
-                            <span ng-if="disabled">{{i.contract}}</span>
-                            <span ng-if="!disabled">
-                                <input type="text" class="form-control" ng-model="i.contract">
-                            </span>
-                        </td>
-                        <td>
-                            <span ng-if="disabled">{{i.contractAdd}}</span>
-                            <span ng-if="!disabled">
-                                <input type="text" class="form-control" ng-model="i.contractAdd">
-                            </span>
-                        </td>
-                        <td>
-                            <span ng-if="disabled">{{i.startDate}}</span>
-                            <span ng-if="!disabled">
-                                <input type="text" class="form-control" ng-model="i.startDate">
-                            </span>
-                        </td>
-                        <td>
-                            <span ng-if="disabled">{{i.endDate}}</span>
-                            <span ng-if="!disabled">
-                                <input type="text" class="form-control" ng-model="i.endDate">
-                            </span>
-                        </td>
-                        <td>
-                            <span ng-if="disabled">{{i.amount}}</span>
-                            <span ng-if="!disabled">
-                                <input type="text" class="form-control" ng-model="i.amount">
-                            </span>
-                        </td>
-                        <td style="border-right: 2px solid #555;">
-                            <span ng-if="disabled">{{i.depCode}}</span>
-                            <span ng-if="!disabled">
-                                <input type="text" class="form-control" ng-model="i.depCode">
-                            </span>
-                        </td>
-                        <td ng-if="!collapse.cashFlow1">
-                            <span ng-if="disabled">{{i.year[1] | number: 0}}</span>
-                            <span ng-if="!disabled">
-                                <input type="text" class="form-control" ng-model="i.year[1]" ng-change="onChange()" demand-number-format='0'>
-                            </span>
-                        </td>
-                        <td ng-repeat="m in months" ng-if="collapse.cashFlow1">
-                            <span ng-if="disabled">{{i.month[1][m] | number: 0}}</span>
-                            <span ng-if="!disabled">
-                                <input type="text" class="form-control" ng-model="i.month[1][m]" ng-change="onChange()" demand-number-format='0'>
-                            </span>
-                        </td>                        
-                        <td ng-if="!collapse.cashFlow2">
-                            <span ng-if="disabled">{{i.year[2] | number: 0}}</span>
-                            <span ng-if="!disabled">
-                                <input type="text" class="form-control" ng-model="i.year[2]" ng-change="onChange()" demand-number-format='0'>
-                            </span>
-                        </td>
-                        <td ng-repeat="m in months" ng-if="collapse.cashFlow2">
-                            <span ng-if="disabled">{{i.month[2][m] | number: 0}}</span>
-                            <span ng-if="!disabled">
-                                <input type="text" class="form-control" ng-model="i.month[2][m]" ng-change="onChange()" demand-number-format='0'>
-                            </span>
-                        </td>
-                        <td ng-repeat="y in [3, 4, 5]">
-                            <span ng-if="disabled">{{i.year[y] | number: 0}}</span>
-                            <span ng-if="!disabled">
-                                <input type="text" class="form-control" ng-model="i.year[y]" ng-change="onChange()" demand-number-format='0'>
-                            </span>
-                        </td>
-                        <td>
-                            <span ng-if="disabled">{{i.source}}</span>
-                            <span ng-if="!disabled">
-                                <select class="form-control" ng-model="i.source">
-                                    <option value="Direct">Direct</option>
-                                    <option value="Potential">Potential</option>
-                                </select>
-                            </span>
-                        </td>
-                        <td ng-if="!disabled" class="text-center">
-                            <button type="button" class="btn btn-default" ng-click="deleteItem($index, 'revenues')">Delete</button>
-                        </td>
-                    </tr>
-                    <!--OPEX-->
-                    <tr style="border-top: 2px solid #555">
-                        <td colspan="10" style="border-right: 2px solid #555;"><label>Opex</label></td>
-                        <td colspan="{{collapse.cashFlow1?12:1}}">{{data.cashFlow.opexesYear[1] | number: 0}}</td>
-                        <td colspan="{{collapse.cashFlow2?12:1}}">{{data.cashFlow.opexesYear[2] | number: 0}}</td>
-                        <td ng-repeat="y in [3, 4, 5]">
-                            {{data.cashFlow.opexesYear[y] | number: 0}}
-                            <!-- <span ng-if="disabled">{{data.cashFlow.opexesYear[y]}}</span>
-                            <span ng-if="!disabled && data.cashFlow.opexes.length > 0">
-                                <input type="number" class="form-control" ng-model="data.cashFlow.opexesYear[y]" ng-change="onChange()">
-                            </span> -->
-                        </td>
-                        <td></td>
-                        <td ng-if="!disabled" class="text-center">
-                            <a style="font-size: 25px;" ng-click="addItem('opexes')">
-                                <span class="glyphicon glyphicon-plus-sign"></span>
-                            </a>
-                        </td>
-                    </tr>
-                    <tr ng-repeat="i in data.cashFlow.opexes track by $index">
-                        <td>
-                            <span ng-if="disabled">{{i.rocName}}</span>
-                            <span ng-if="!disabled">
-                                <input type="text" class="form-control" ng-model="i.rocName">
-                            </span>
-                        </td>
-                        <td>
-                            <span ng-if="disabled">{{i.wbs}}</span>
-                            <span ng-if="!disabled">
-                                <input type="text" class="form-control" ng-model="i.wbs">
-                            </span>
-                        </td>
-                        <td>
-                            <span ng-if="disabled">{{i.cost}}</span>
-                            <span ng-if="!disabled">
-                                <input type="text" class="form-control" ng-model="i.cost">
-                            </span>
-                        </td>
-                        <td>
-                            <span ng-if="disabled">{{i.purchasing}}</span>
-                            <span ng-if="!disabled">
-                                <input type="text" class="form-control" ng-model="i.purchasing">
-                            </span>
-                        </td>
-                        <td>
-                            <span ng-if="disabled">{{i.contract}}</span>
-                            <span ng-if="!disabled">
-                                <input type="text" class="form-control" ng-model="i.contract">
-                            </span>
-                        </td>
-                        <td>
-                            <span ng-if="disabled">{{i.contractAdd}}</span>
-                            <span ng-if="!disabled">
-                                <input type="text" class="form-control" ng-model="i.contractAdd">
-                            </span>
-                        </td>
-                        <td>
-                            <span ng-if="disabled">{{i.startDate}}</span>
-                            <span ng-if="!disabled">
-                                <input type="text" class="form-control" ng-model="i.startDate">
-                            </span>
-                        </td>
-                        <td>
-                            <span ng-if="disabled">{{i.endDate}}</span>
-                            <span ng-if="!disabled">
-                                <input type="text" class="form-control" ng-model="i.endDate">
-                            </span>
-                        </td>
-                        <td>
-                            <span ng-if="disabled">{{i.amount}}</span>
-                            <span ng-if="!disabled">
-                                <input type="text" class="form-control" ng-model="i.amount">
-                            </span>
-                        </td>
-                        <td style="border-right: 2px solid #555;">
-                            <span ng-if="disabled">{{i.depCode}}</span>
-                            <span ng-if="!disabled">
-                                <input type="text" class="form-control" ng-model="i.depCode">
-                            </span>
-                        </td>
-                        <td ng-if="!collapse.cashFlow1">
-                            <span ng-if="disabled">{{i.year[1] | number: 0}}</span>
-                            <span ng-if="!disabled">
-                                <input type="text" class="form-control" ng-model="i.year[1]" ng-change="onChange()" demand-number-format='0'>
-                            </span>
-                        </td>
-                        <td ng-repeat="m in months" ng-if="collapse.cashFlow1">
-                            <span ng-if="disabled">{{i.month[1][m] | number: 0}}</span>
-                            <span ng-if="!disabled">
-                                <input type="text" class="form-control" ng-model="i.month[1][m]" ng-change="onChange()" demand-number-format='0'>
-                            </span>
-                        </td>                        
-                        <td ng-if="!collapse.cashFlow2">
-                            <span ng-if="disabled">{{i.year[2] | number: 0}}</span>
-                            <span ng-if="!disabled">
-                                <input type="text" class="form-control" ng-model="i.year[2]" ng-change="onChange()" demand-number-format='0'>
-                            </span>
-                        </td>
-                        <td ng-repeat="m in months" ng-if="collapse.cashFlow2">
-                            <span ng-if="disabled">{{i.month[2][m] | number: 0}}</span>
-                            <span ng-if="!disabled">
-                                <input type="text" class="form-control" ng-model="i.month[2][m]" ng-change="onChange()" demand-number-format='0'>
-                            </span>
-                        </td>
-                        <td ng-repeat="y in [3, 4, 5]">
-                            <span ng-if="disabled">{{i.year[y] | number: 0}}</span>
-                            <span ng-if="!disabled">
-                                <input type="text" class="form-control" ng-model="i.year[y]" ng-change="onChange()" demand-number-format='0'>
-                            </span>
-                        </td>
-                        <td>
-                            <span ng-if="disabled">{{i.source}}</span>
-                            <span ng-if="!disabled">
-                                <select class="form-control" ng-model="i.source">
-                                    <option value="Direct">Direct</option>
-                                    <option value="Potential">Potential</option>
-                                </select>
-                            </span>
-                        </td>
-                        <td ng-if="!disabled" class="text-center">
-                            <button type="button" class="btn btn-default" ng-click="deleteItem($index, 'opexes')">Delete</button>
-                        </td>
-                    </tr>
-                    <!--CAPEX-->
-                    <tr style="border-top: 2px solid #555">
-                        <td colspan="10" style="border-right: 2px solid #555;"><label>Capex</label></td>
-                        <td colspan="{{collapse.cashFlow1?12:1}}">{{data.cashFlow.capexesYear[1] | number: 0}}</td>
-                        <td colspan="{{collapse.cashFlow2?12:1}}">{{data.cashFlow.capexesYear[2] | number: 0}}</td>
-                        <td ng-repeat="y in [3, 4, 5]">
-                            {{data.cashFlow.capexesYear[y] | number: 0}}
-                            <!-- <span ng-if="disabled">{{data.cashFlow.capexesYear[y]}}</span>
-                            <span ng-if="!disabled && data.cashFlow.capexes.length > 0">
-                                <input type="number" class="form-control" ng-model="data.cashFlow.capexesYear[y]" ng-change="onChange()">
-                            </span> -->
-                        </td>
-                        <td></td>
-                        <td ng-if="!disabled" class="text-center">
-                            <a style="font-size: 25px;" ng-click="addItem('capexes')">
-                                <span class="glyphicon glyphicon-plus-sign"></span>
-                            </a>
-                        </td>
-                    </tr>
-                    <tr ng-repeat="i in data.cashFlow.capexes track by $index">
-                        <td>
-                            <span ng-if="disabled">{{i.rocName}}</span>
-                            <span ng-if="!disabled">
-                                <input type="text" class="form-control" ng-model="i.rocName">
-                            </span>
-                        </td>
-                        <td>
-                            <span ng-if="disabled">{{i.wbs}}</span>
-                            <span ng-if="!disabled">
-                                <input type="text" class="form-control" ng-model="i.wbs">
-                            </span>
-                        </td>
-                        <td>
-                            <span ng-if="disabled">{{i.cost}}</span>
-                            <span ng-if="!disabled">
-                                <input type="text" class="form-control" ng-model="i.cost">
-                            </span>
-                        </td>
-                        <td>
-                            <span ng-if="disabled">{{i.purchasing}}</span>
-                            <span ng-if="!disabled">
-                                <input type="text" class="form-control" ng-model="i.purchasing">
-                            </span>
-                        </td>
-                        <td>
-                            <span ng-if="disabled">{{i.contract}}</span>
-                            <span ng-if="!disabled">
-                                <input type="text" class="form-control" ng-model="i.contract">
-                            </span>
-                        </td>
-                        <td>
-                            <span ng-if="disabled">{{i.contractAdd}}</span>
-                            <span ng-if="!disabled">
-                                <input type="text" class="form-control" ng-model="i.contractAdd">
-                            </span>
-                        </td>
-                        <td>
-                            <span ng-if="disabled">{{i.startDate}}</span>
-                            <span ng-if="!disabled">
-                                <input type="text" class="form-control" ng-model="i.startDate">
-                            </span>
-                        </td>
-                        <td>
-                            <span ng-if="disabled">{{i.endDate}}</span>
-                            <span ng-if="!disabled">
-                                <input type="text" class="form-control" ng-model="i.endDate">
-                            </span>
-                        </td>
-                        <td>
-                            <span ng-if="disabled">{{i.amount}}</span>
-                            <span ng-if="!disabled">
-                                <input type="text" class="form-control" ng-model="i.amount">
-                            </span>
-                        </td>
-                        <td style="border-right: 2px solid #555;">
-                            <span ng-if="disabled">{{i.depCode}}</span>
-                            <span ng-if="!disabled">
-                                <input type="text" class="form-control" ng-model="i.depCode">
-                            </span>
-                        </td>
-                        <td ng-if="!collapse.cashFlow1">
-                            <span ng-if="disabled">{{i.year[1] | number: 0}}</span>
-                            <span ng-if="!disabled">
-                                <input type="text" class="form-control" ng-model="i.year[1]" ng-change="onChange()" demand-number-format='0'>
-                            </span>
-                        </td>
-                        <td ng-repeat="m in months" ng-if="collapse.cashFlow1">
-                            <span ng-if="disabled">{{i.month[1][m] | number: 0}}</span>
-                            <span ng-if="!disabled">
-                                <input type="text" class="form-control" ng-model="i.month[1][m]" ng-change="onChange()" demand-number-format='0'>
-                            </span>
-                        </td>                        
-                        <td ng-if="!collapse.cashFlow2">
-                            <span ng-if="disabled">{{i.year[2] | number: 0}}</span>
-                            <span ng-if="!disabled">
-                                <input type="text" class="form-control" ng-model="i.year[2]" ng-change="onChange()" demand-number-format='0'>
-                            </span>
-                        </td>
-                        <td ng-repeat="m in months" ng-if="collapse.cashFlow2">
-                            <span ng-if="disabled">{{i.month[2][m] | number: 0}}</span>
-                            <span ng-if="!disabled">
-                                <input type="text" class="form-control" ng-model="i.month[2][m]" ng-change="onChange()" demand-number-format='0'>
-                            </span>
-                        </td>
-                        <td ng-repeat="y in [3, 4, 5]">
-                            <span ng-if="disabled">{{i.year[y] | number: 0}}</span>
-                            <span ng-if="!disabled">
-                                <input type="text" class="form-control" ng-model="i.year[y]" ng-change="onChange()" demand-number-format='0'>
-                            </span>
-                        </td>
-                        <td>
-                            <span ng-if="disabled">{{i.source}}</span>
-                            <span ng-if="!disabled">
-                                <select class="form-control" ng-model="i.source">
-                                    <option value="Direct">Direct</option>
-                                    <option value="Potential">Potential</option>
-                                </select>
-                            </span>
-                        </td>
-                        <td ng-if="!disabled" class="text-center">
-                            <button type="button" class="btn btn-default" ng-click="deleteItem($index, 'capexes')">Delete</button>
-                        </td>
-                    </tr>
-                    <!--COGS-->
-                    <tr style="border-top: 2px solid #555">
-                        <td colspan="10" style="border-right: 2px solid #555;"><label>Cogs</label></td>
-                        <td colspan="{{collapse.cashFlow1?12:1}}">{{data.cashFlow.cogsYear[1] | number: 0}}</td>
-                        <td colspan="{{collapse.cashFlow2?12:1}}">{{data.cashFlow.cogsYear[2] | number: 0}}</td>
-                        <td ng-repeat="y in [3, 4, 5]">
-                            {{data.cashFlow.cogsYear[y] | number: 0}}
-                            <!-- <span ng-if="disabled">{{data.cashFlow.capexesYear[y]}}</span>
-                            <span ng-if="!disabled && data.cashFlow.capexes.length > 0">
-                                <input type="number" class="form-control" ng-model="data.cashFlow.cogsYear[y]" ng-change="onChange()">
-                            </span> -->
-                        </td>
-                        <td></td>
-                        <td ng-if="!disabled" class="text-center">
-                            <a style="font-size: 25px;" ng-click="addItem('cogs')">
-                                <span class="glyphicon glyphicon-plus-sign"></span>
-                            </a>
-                        </td>
-                    </tr>
-                    <tr ng-repeat="i in data.cashFlow.cogs track by $index">
-                        <td>
-                            <span ng-if="disabled">{{i.rocName}}</span>
-                            <span ng-if="!disabled">
-                                <input type="text" class="form-control" ng-model="i.rocName">
-                            </span>
-                        </td>
-                        <td>
-                            <span ng-if="disabled">{{i.wbs}}</span>
-                            <span ng-if="!disabled">
-                                <input type="text" class="form-control" ng-model="i.wbs">
-                            </span>
-                        </td>
-                        <td>
-                            <span ng-if="disabled">{{i.cost}}</span>
-                            <span ng-if="!disabled">
-                                <input type="text" class="form-control" ng-model="i.cost">
-                            </span>
-                        </td>
-                        <td>
-                            <span ng-if="disabled">{{i.purchasing}}</span>
-                            <span ng-if="!disabled">
-                                <input type="text" class="form-control" ng-model="i.purchasing">
-                            </span>
-                        </td>
-                        <td>
-                            <span ng-if="disabled">{{i.contract}}</span>
-                            <span ng-if="!disabled">
-                                <input type="text" class="form-control" ng-model="i.contract">
-                            </span>
-                        </td>
-                        <td>
-                            <span ng-if="disabled">{{i.contractAdd}}</span>
-                            <span ng-if="!disabled">
-                                <input type="text" class="form-control" ng-model="i.contractAdd">
-                            </span>
-                        </td>
-                        <td>
-                            <span ng-if="disabled">{{i.startDate}}</span>
-                            <span ng-if="!disabled">
-                                <input type="text" class="form-control" ng-model="i.startDate">
-                            </span>
-                        </td>
-                        <td>
-                            <span ng-if="disabled">{{i.endDate}}</span>
-                            <span ng-if="!disabled">
-                                <input type="text" class="form-control" ng-model="i.endDate">
-                            </span>
-                        </td>
-                        <td>
-                            <span ng-if="disabled">{{i.amount}}</span>
-                            <span ng-if="!disabled">
-                                <input type="text" class="form-control" ng-model="i.amount">
-                            </span>
-                        </td>
-                        <td style="border-right: 2px solid #555;">
-                            <span ng-if="disabled">{{i.depCode}}</span>
-                            <span ng-if="!disabled">
-                                <input type="text" class="form-control" ng-model="i.depCode">
-                            </span>
-                        </td>
-                        <td ng-if="!collapse.cashFlow1">
-                            <span ng-if="disabled">{{i.year[1] | number: 0}}</span>
-                            <span ng-if="!disabled">
-                                <input type="text" class="form-control" ng-model="i.year[1]" ng-change="onChange()" demand-number-format='0'>
-                            </span>
-                        </td>
-                        <td ng-repeat="m in months" ng-if="collapse.cashFlow1">
-                            <span ng-if="disabled">{{i.month[1][m] | number: 0}}</span>
-                            <span ng-if="!disabled">
-                                <input type="text" class="form-control" ng-model="i.month[1][m]" ng-change="onChange()" demand-number-format='0'>
-                            </span>
-                        </td>                        
-                        <td ng-if="!collapse.cashFlow2">
-                            <span ng-if="disabled">{{i.year[2] | number: 0}}</span>
-                            <span ng-if="!disabled">
-                                <input type="text" class="form-control" ng-model="i.year[2]" ng-change="onChange()" demand-number-format='0'>
-                            </span>
-                        </td>
-                        <td ng-repeat="m in months" ng-if="collapse.cashFlow2">
-                            <span ng-if="disabled">{{i.month[2][m] | number: 0}}</span>
-                            <span ng-if="!disabled">
-                                <input type="text" class="form-control" ng-model="i.month[2][m]" ng-change="onChange()" demand-number-format='0'>
-                            </span>
-                        </td>
-                        <td ng-repeat="y in [3, 4, 5]">
-                            <span ng-if="disabled">{{i.year[y] | number: 0}}</span>
-                            <span ng-if="!disabled">
-                                <input type="text" class="form-control" ng-model="i.year[y]" ng-change="onChange()" demand-number-format='0'>
-                            </span>
-                        </td>
-                        <td>
-                            <span ng-if="disabled">{{i.source}}</span>
-                            <span ng-if="!disabled">
-                                <select class="form-control" ng-model="i.source">
-                                    <option value="Direct">Direct</option>
-                                    <option value="Potential">Potential</option>
-                                </select>
-                            </span>
-                        </td>
-                        <td ng-if="!disabled" class="text-center">
-                            <button type="button" class="btn btn-default" ng-click="deleteItem($index, 'cogs')">Delete</button>
-                        </td>
-                    </tr>
-                    <!--INCOME-->
-                    <tr style="border-top: 2px solid #555">
-                        <td colspan="10" style="border-right: 2px solid #555;"><label>Income tax</label></td>
-                        <td colspan="{{collapse.cashFlow1?12:1}}">{{data.cashFlow.incomeYear[1] | number: 0}}</td>
-                        <td colspan="{{collapse.cashFlow2?12:1}}">{{data.cashFlow.incomeYear[2] | number: 0}}</td>
-                        <td ng-repeat="y in [3, 4, 5]">
-                            {{data.cashFlow.incomeYear[y] | number: 0}}
-                            <!-- <span ng-if="disabled">{{data.cashFlow.capexesYear[y]}}</span>
-                            <span ng-if="!disabled && data.cashFlow.capexes.length > 0">
-                                <input type="number" class="form-control" ng-model="data.cashFlow.cogsYear[y]" ng-change="onChange()">
-                            </span> -->
-                        </td>
-                        <td></td>
-                        <td ng-if="!disabled" class="text-center">
-                        </td>
-                    </tr>
-                    <tr ng-repeat="i in data.cashFlow.income track by $index">
-                        <td colspan="10" style="border-right: 2px solid #555;"></td>
-                        <td ng-if="!collapse.cashFlow1">
-                            <span ng-if="disabled">{{i.year[1] | number: 0}}</span>
-                            <span ng-if="!disabled">
-                                <input type="text" class="form-control" ng-model="i.year[1]" ng-change="onChange()" demand-number-format='0'>
-                            </span>
-                        </td>
-                        <td ng-repeat="m in months" ng-if="collapse.cashFlow1">
-                            <span ng-if="disabled">{{i.month[1][m] | number: 0}}</span>
-                            <span ng-if="!disabled">
-                                <input type="text" class="form-control" ng-model="i.month[1][m]" ng-change="onChange()" demand-number-format='0'>
-                            </span>
-                        </td>                        
-                        <td ng-if="!collapse.cashFlow2">
-                            <span ng-if="disabled">{{i.year[2] | number: 0}}</span>
-                            <span ng-if="!disabled">
-                                <input type="text" class="form-control" ng-model="i.year[2]" ng-change="onChange()" demand-number-format='0'>
-                            </span>
-                        </td>
-                        <td ng-repeat="m in months" ng-if="collapse.cashFlow2">
-                            <span ng-if="disabled">{{i.month[2][m] | number: 0}}</span>
-                            <span ng-if="!disabled">
-                                <input type="text" class="form-control" ng-model="i.month[2][m]" ng-change="onChange()" demand-number-format='0'>
-                            </span>
-                        </td>
-                        <td ng-repeat="y in [3, 4, 5]">
-                            <span ng-if="disabled">{{i.year[y] | number: 0}}</span>
-                            <span ng-if="!disabled">
-                                <input type="text" class="form-control" ng-model="i.year[y]" ng-change="onChange()" demand-number-format='0'>
-                            </span>
-                        </td>
-                        <td>
-                            <span ng-if="disabled">{{i.source}}</span>
-                            <span ng-if="!disabled">
-                                <select class="form-control" ng-model="i.source">
-                                    <option value="Direct">Direct</option>
-                                    <option value="Potential">Potential</option>
-                                </select>
-                            </span>
-                        </td>
-                        <td ng-if="!disabled" class="text-center">
-                        </td>
-                    </tr>
-                </tbody>
-            </table>
+                            <th ng-if="!collapse.cashFlow2">
+                                <span>
+                                    <a href="#" ng-click="toggleCollapse('cashFlow2')">
+                                        <i class="glyphicon glyphicon-collapse-{{collapse.cashFlow2?'up':'down'}}"></i>{{data.firstYear + 1}}
+                                    </a>
+                                </span>
+                                <i style="visibility:hidden; all: none;">
+                                    <a href="#" ng-click="toggleCollapse('cashFlow2')">
+                                        <i class="glyphicon glyphicon-collapse-{{collapse.cashFlow2?'up':'down'}}"></i>{{data.firstYear + 1}}
+                                    </a>
+                                </i>
+                            </th>
+                            <th ng-if="collapse.cashFlow2" ng-repeat="m in months track by $index" class="text-center">
+                                <span>
+                                    <a href="#" ng-click="toggleCollapse('cashFlow2')" ng-if="$index == 0">
+                                        <i class="glyphicon glyphicon-collapse-{{collapse.cashFlow2?'up':'down'}}"></i>{{data.firstYear + 1}}
+                                    </a>
+                                    {{m}}
+                                </span>
+                                <i style="visibility:hidden;">
+                                    <a href="#" ng-click="toggleCollapse('cashFlow2')" ng-if="$index == 0">
+                                        <i class="glyphicon glyphicon-collapse-{{collapse.cashFlow2?'up':'down'}}"></i>{{data.firstYear + 1}}
+                                    </a>
+                                    {{m}}
+                                </i>
+                            </th>
+
+                            <th ng-repeat="i in [2, 3, 4]" class="text-center">
+                                <span ng-if="data.firstYear">{{data.firstYear + i}}</span>
+                                <i ng-if="data.firstYear" style="visibility:hidden;">{{data.firstYear + i}}</i>
+                            </th>
+                            <th class="text-center"><span>Source</span><i style="visibility:hidden;">Source</i></th>
+                            <th class="text-center" ng-if="!disabled"><span></span><i style="visibility:hidden;"></i></th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr>
+                            <td colspan="10" style="border-right: 2px solid #555;"><label>Revenue</label></td>
+                            <td ng-if="!collapse.cashFlow1">
+                                {{data.cashFlow.revenuesTotal.year[1] | number: 0}}
+                            </td>
+                            <td ng-if="collapse.cashFlow1" ng-repeat="m in months track by $index">
+                                {{data.cashFlow.revenuesTotal.month[1][m] | number: 0}}
+                            </td>
+                            <td ng-if="!collapse.cashFlow2">
+                                {{data.cashFlow.revenuesTotal.year[2] | number: 0}}
+                            </td>
+                            <td ng-if="collapse.cashFlow2" ng-repeat="m in months track by $index">
+                                {{data.cashFlow.revenuesTotal.month[2][m] | number: 0}}
+                            </td>
+                            <td ng-repeat="y in [3, 4, 5]">
+                                {{data.cashFlow.revenuesTotal.year[y] | number: 0}}
+                            </td>
+                            <td></td>
+                            <td ng-if="!disabled" class="text-center">
+                                <a style="font-size: 25px;" ng-click="addItem('revenues')">
+                                    <span class="glyphicon glyphicon-plus-sign"></span>
+                                </a>
+                            </td>
+                        </tr>
+                        <tr ng-repeat="i in data.cashFlow.revenues track by $index">
+                            <td>
+                                <span ng-if="disabled">{{i.rocName}}</span>
+                                <span ng-if="!disabled">
+                                    <input type="text" class="form-control" ng-model="i.rocName">
+                                </span>
+                            </td>
+                            <td>
+                                <span ng-if="disabled">{{i.wbs}}</span>
+                                <span ng-if="!disabled">
+                                    <input type="text" class="form-control" ng-model="i.wbs">
+                                </span>
+                            </td>
+                            <td>
+                                <span ng-if="disabled">{{i.cost}}</span>
+                                <span ng-if="!disabled">
+                                    <input type="text" class="form-control" ng-model="i.cost">
+                                </span>
+                            </td>
+                            <td>
+                                <span ng-if="disabled">{{i.purchasing}}</span>
+                                <span ng-if="!disabled">
+                                    <input type="text" class="form-control" ng-model="i.purchasing">
+                                </span>
+                            </td>
+                            <td>
+                                <span ng-if="disabled">{{i.contract}}</span>
+                                <span ng-if="!disabled">
+                                    <input type="text" class="form-control" ng-model="i.contract">
+                                </span>
+                            </td>
+                            <td>
+                                <span ng-if="disabled">{{i.contractAdd}}</span>
+                                <span ng-if="!disabled">
+                                    <input type="text" class="form-control" ng-model="i.contractAdd">
+                                </span>
+                            </td>
+                            <td>
+                                <span ng-if="disabled">{{i.startDate}}</span>
+                                <span ng-if="!disabled">
+                                    <input type="text" class="form-control" ng-model="i.startDate">
+                                </span>
+                            </td>
+                            <td>
+                                <span ng-if="disabled">{{i.endDate}}</span>
+                                <span ng-if="!disabled">
+                                    <input type="text" class="form-control" ng-model="i.endDate">
+                                </span>
+                            </td>
+                            <td>
+                                <span ng-if="disabled">{{i.amount}}</span>
+                                <span ng-if="!disabled">
+                                    <input type="text" class="form-control" ng-model="i.amount">
+                                </span>
+                            </td>
+                            <td style="border-right: 2px solid #555;">
+                                <span ng-if="disabled">{{i.depCode}}</span>
+                                <span ng-if="!disabled">
+                                    <input type="text" class="form-control" ng-model="i.depCode">
+                                </span>
+                            </td>
+                            <td ng-if="!collapse.cashFlow1">
+                                <span ng-if="disabled">{{i.year[1] | number: 0}}</span>
+                                <span ng-if="!disabled">
+                                    <input type="text" class="form-control" ng-model="i.year[1]" ng-change="onChange()" demand-number-format='0'>
+                                </span>
+                            </td>
+                            <td ng-repeat="m in months" ng-if="collapse.cashFlow1">
+                                <span ng-if="disabled">{{i.month[1][m] | number: 0}}</span>
+                                <span ng-if="!disabled">
+                                    <input type="text" class="form-control" ng-model="i.month[1][m]" ng-change="onChange()" demand-number-format='0'>
+                                </span>
+                            </td>                        
+                            <td ng-if="!collapse.cashFlow2">
+                                <span ng-if="disabled">{{i.year[2] | number: 0}}</span>
+                                <span ng-if="!disabled">
+                                    <input type="text" class="form-control" ng-model="i.year[2]" ng-change="onChange()" demand-number-format='0'>
+                                </span>
+                            </td>
+                            <td ng-repeat="m in months" ng-if="collapse.cashFlow2">
+                                <span ng-if="disabled">{{i.month[2][m] | number: 0}}</span>
+                                <span ng-if="!disabled">
+                                    <input type="text" class="form-control" ng-model="i.month[2][m]" ng-change="onChange()" demand-number-format='0'>
+                                </span>
+                            </td>
+                            <td ng-repeat="y in [3, 4, 5]">
+                                <span ng-if="disabled">{{i.year[y] | number: 0}}</span>
+                                <span ng-if="!disabled">
+                                    <input type="text" class="form-control" ng-model="i.year[y]" ng-change="onChange()" demand-number-format='0'>
+                                </span>
+                            </td>
+                            <td>
+                                <span ng-if="disabled">{{i.source}}</span>
+                                <span ng-if="!disabled">
+                                    <select class="form-control" ng-model="i.source">
+                                        <option value="Direct">Direct</option>
+                                        <option value="Potential">Potential</option>
+                                    </select>
+                                </span>
+                            </td>
+                            <td ng-if="!disabled" class="text-center">
+                                <button type="button" class="btn btn-default" ng-click="deleteItem($index, 'revenues')">Delete</button>
+                            </td>
+                        </tr>
+                        <!--OPEX-->
+                        <tr style="border-top: 2px solid #555">
+                            <td colspan="10" style="border-right: 2px solid #555;"><label>Opex</label></td>
+                            <td ng-if="!collapse.cashFlow1">
+                                {{data.cashFlow.opexesTotal.year[1] | number: 0}}
+                            </td>
+                            <td ng-if="collapse.cashFlow1" ng-repeat="m in months track by $index">
+                                {{data.cashFlow.opexesTotal.month[1][m] | number: 0}}
+                            </td>
+                            <td ng-if="!collapse.cashFlow2">
+                                {{data.cashFlow.opexesTotal.year[2] | number: 0}}
+                            </td>
+                            <td ng-if="collapse.cashFlow2" ng-repeat="m in months track by $index">
+                                {{data.cashFlow.opexesTotal.month[2][m] | number: 0}}
+                            </td>
+                            <td ng-repeat="y in [3, 4, 5]">
+                                {{data.cashFlow.opexesTotal.year[y] | number: 0}}
+                            </td>
+                            <td></td>
+                            <td ng-if="!disabled" class="text-center">
+                                <a style="font-size: 25px;" ng-click="addItem('opexes')">
+                                    <span class="glyphicon glyphicon-plus-sign"></span>
+                                </a>
+                            </td>
+                        </tr>
+                        <tr ng-repeat="i in data.cashFlow.opexes track by $index">
+                            <td>
+                                <span ng-if="disabled">{{i.rocName}}</span>
+                                <span ng-if="!disabled">
+                                    <input type="text" class="form-control" ng-model="i.rocName">
+                                </span>
+                            </td>
+                            <td>
+                                <span ng-if="disabled">{{i.wbs}}</span>
+                                <span ng-if="!disabled">
+                                    <input type="text" class="form-control" ng-model="i.wbs">
+                                </span>
+                            </td>
+                            <td>
+                                <span ng-if="disabled">{{i.cost}}</span>
+                                <span ng-if="!disabled">
+                                    <input type="text" class="form-control" ng-model="i.cost">
+                                </span>
+                            </td>
+                            <td>
+                                <span ng-if="disabled">{{i.purchasing}}</span>
+                                <span ng-if="!disabled">
+                                    <input type="text" class="form-control" ng-model="i.purchasing">
+                                </span>
+                            </td>
+                            <td>
+                                <span ng-if="disabled">{{i.contract}}</span>
+                                <span ng-if="!disabled">
+                                    <input type="text" class="form-control" ng-model="i.contract">
+                                </span>
+                            </td>
+                            <td>
+                                <span ng-if="disabled">{{i.contractAdd}}</span>
+                                <span ng-if="!disabled">
+                                    <input type="text" class="form-control" ng-model="i.contractAdd">
+                                </span>
+                            </td>
+                            <td>
+                                <span ng-if="disabled">{{i.startDate}}</span>
+                                <span ng-if="!disabled">
+                                    <input type="text" class="form-control" ng-model="i.startDate">
+                                </span>
+                            </td>
+                            <td>
+                                <span ng-if="disabled">{{i.endDate}}</span>
+                                <span ng-if="!disabled">
+                                    <input type="text" class="form-control" ng-model="i.endDate">
+                                </span>
+                            </td>
+                            <td>
+                                <span ng-if="disabled">{{i.amount}}</span>
+                                <span ng-if="!disabled">
+                                    <input type="text" class="form-control" ng-model="i.amount">
+                                </span>
+                            </td>
+                            <td style="border-right: 2px solid #555;">
+                                <span ng-if="disabled">{{i.depCode}}</span>
+                                <span ng-if="!disabled">
+                                    <input type="text" class="form-control" ng-model="i.depCode">
+                                </span>
+                            </td>
+                            <td ng-if="!collapse.cashFlow1">
+                                <span ng-if="disabled">{{i.year[1] | number: 0}}</span>
+                                <span ng-if="!disabled">
+                                    <input type="text" class="form-control" ng-model="i.year[1]" ng-change="onChange()" demand-number-format='0'>
+                                </span>
+                            </td>
+                            <td ng-repeat="m in months" ng-if="collapse.cashFlow1">
+                                <span ng-if="disabled">{{i.month[1][m] | number: 0}}</span>
+                                <span ng-if="!disabled">
+                                    <input type="text" class="form-control" ng-model="i.month[1][m]" ng-change="onChange()" demand-number-format='0'>
+                                </span>
+                            </td>                        
+                            <td ng-if="!collapse.cashFlow2">
+                                <span ng-if="disabled">{{i.year[2] | number: 0}}</span>
+                                <span ng-if="!disabled">
+                                    <input type="text" class="form-control" ng-model="i.year[2]" ng-change="onChange()" demand-number-format='0'>
+                                </span>
+                            </td>
+                            <td ng-repeat="m in months" ng-if="collapse.cashFlow2">
+                                <span ng-if="disabled">{{i.month[2][m] | number: 0}}</span>
+                                <span ng-if="!disabled">
+                                    <input type="text" class="form-control" ng-model="i.month[2][m]" ng-change="onChange()" demand-number-format='0'>
+                                </span>
+                            </td>
+                            <td ng-repeat="y in [3, 4, 5]">
+                                <span ng-if="disabled">{{i.year[y] | number: 0}}</span>
+                                <span ng-if="!disabled">
+                                    <input type="text" class="form-control" ng-model="i.year[y]" ng-change="onChange()" demand-number-format='0'>
+                                </span>
+                            </td>
+                            <td>
+                                <span ng-if="disabled">{{i.source}}</span>
+                                <span ng-if="!disabled">
+                                    <select class="form-control" ng-model="i.source">
+                                        <option value="Direct">Direct</option>
+                                        <option value="Potential">Potential</option>
+                                    </select>
+                                </span>
+                            </td>
+                            <td ng-if="!disabled" class="text-center">
+                                <button type="button" class="btn btn-default" ng-click="deleteItem($index, 'opexes')">Delete</button>
+                            </td>
+                        </tr>
+                        <!--CAPEX-->
+                        <tr style="border-top: 2px solid #555">
+                            <td colspan="10" style="border-right: 2px solid #555;"><label>Capex</label></td>
+                            <td ng-if="!collapse.cashFlow1">
+                                {{data.cashFlow.capexesTotal.year[1] | number: 0}}
+                            </td>
+                            <td ng-if="collapse.cashFlow1" ng-repeat="m in months track by $index">
+                                {{data.cashFlow.capexesTotal.month[1][m] | number: 0}}
+                            </td>
+                            <td ng-if="!collapse.cashFlow2">
+                                {{data.cashFlow.capexesTotal.year[2] | number: 0}}
+                            </td>
+                            <td ng-if="collapse.cashFlow2" ng-repeat="m in months track by $index">
+                                {{data.cashFlow.capexesTotal.month[2][m] | number: 0}}
+                            </td>
+                            <td ng-repeat="y in [3, 4, 5]">
+                                {{data.cashFlow.capexesTotal.year[y] | number: 0}}
+                            </td>
+                            <td></td>
+                            <td ng-if="!disabled" class="text-center">
+                                <a style="font-size: 25px;" ng-click="addItem('capexes')">
+                                    <span class="glyphicon glyphicon-plus-sign"></span>
+                                </a>
+                            </td>
+                        </tr>
+                        <tr ng-repeat="i in data.cashFlow.capexes track by $index">
+                            <td>
+                                <span ng-if="disabled">{{i.rocName}}</span>
+                                <span ng-if="!disabled">
+                                    <input type="text" class="form-control" ng-model="i.rocName">
+                                </span>
+                            </td>
+                            <td>
+                                <span ng-if="disabled">{{i.wbs}}</span>
+                                <span ng-if="!disabled">
+                                    <input type="text" class="form-control" ng-model="i.wbs">
+                                </span>
+                            </td>
+                            <td>
+                                <span ng-if="disabled">{{i.cost}}</span>
+                                <span ng-if="!disabled">
+                                    <input type="text" class="form-control" ng-model="i.cost">
+                                </span>
+                            </td>
+                            <td>
+                                <span ng-if="disabled">{{i.purchasing}}</span>
+                                <span ng-if="!disabled">
+                                    <input type="text" class="form-control" ng-model="i.purchasing">
+                                </span>
+                            </td>
+                            <td>
+                                <span ng-if="disabled">{{i.contract}}</span>
+                                <span ng-if="!disabled">
+                                    <input type="text" class="form-control" ng-model="i.contract">
+                                </span>
+                            </td>
+                            <td>
+                                <span ng-if="disabled">{{i.contractAdd}}</span>
+                                <span ng-if="!disabled">
+                                    <input type="text" class="form-control" ng-model="i.contractAdd">
+                                </span>
+                            </td>
+                            <td>
+                                <span ng-if="disabled">{{i.startDate}}</span>
+                                <span ng-if="!disabled">
+                                    <input type="text" class="form-control" ng-model="i.startDate">
+                                </span>
+                            </td>
+                            <td>
+                                <span ng-if="disabled">{{i.endDate}}</span>
+                                <span ng-if="!disabled">
+                                    <input type="text" class="form-control" ng-model="i.endDate">
+                                </span>
+                            </td>
+                            <td>
+                                <span ng-if="disabled">{{i.amount}}</span>
+                                <span ng-if="!disabled">
+                                    <input type="text" class="form-control" ng-model="i.amount">
+                                </span>
+                            </td>
+                            <td style="border-right: 2px solid #555;">
+                                <span ng-if="disabled">{{i.depCode}}</span>
+                                <span ng-if="!disabled">
+                                    <input type="text" class="form-control" ng-model="i.depCode">
+                                </span>
+                            </td>
+                            <td ng-if="!collapse.cashFlow1">
+                                <span ng-if="disabled">{{i.year[1] | number: 0}}</span>
+                                <span ng-if="!disabled">
+                                    <input type="text" class="form-control" ng-model="i.year[1]" ng-change="onChange()" demand-number-format='0'>
+                                </span>
+                            </td>
+                            <td ng-repeat="m in months" ng-if="collapse.cashFlow1">
+                                <span ng-if="disabled">{{i.month[1][m] | number: 0}}</span>
+                                <span ng-if="!disabled">
+                                    <input type="text" class="form-control" ng-model="i.month[1][m]" ng-change="onChange()" demand-number-format='0'>
+                                </span>
+                            </td>                        
+                            <td ng-if="!collapse.cashFlow2">
+                                <span ng-if="disabled">{{i.year[2] | number: 0}}</span>
+                                <span ng-if="!disabled">
+                                    <input type="text" class="form-control" ng-model="i.year[2]" ng-change="onChange()" demand-number-format='0'>
+                                </span>
+                            </td>
+                            <td ng-repeat="m in months" ng-if="collapse.cashFlow2">
+                                <span ng-if="disabled">{{i.month[2][m] | number: 0}}</span>
+                                <span ng-if="!disabled">
+                                    <input type="text" class="form-control" ng-model="i.month[2][m]" ng-change="onChange()" demand-number-format='0'>
+                                </span>
+                            </td>
+                            <td ng-repeat="y in [3, 4, 5]">
+                                <span ng-if="disabled">{{i.year[y] | number: 0}}</span>
+                                <span ng-if="!disabled">
+                                    <input type="text" class="form-control" ng-model="i.year[y]" ng-change="onChange()" demand-number-format='0'>
+                                </span>
+                            </td>
+                            <td>
+                                <span ng-if="disabled">{{i.source}}</span>
+                                <span ng-if="!disabled">
+                                    <select class="form-control" ng-model="i.source">
+                                        <option value="Direct">Direct</option>
+                                        <option value="Potential">Potential</option>
+                                    </select>
+                                </span>
+                            </td>
+                            <td ng-if="!disabled" class="text-center">
+                                <button type="button" class="btn btn-default" ng-click="deleteItem($index, 'capexes')">Delete</button>
+                            </td>
+                        </tr>
+                        <!--COGS-->
+                        <tr style="border-top: 2px solid #555">
+                            <td colspan="10" style="border-right: 2px solid #555;"><label>Cogs</label></td>
+                            <td ng-if="!collapse.cashFlow1">
+                                {{data.cashFlow.cogsTotal.year[1] | number: 0}}
+                            </td>
+                            <td ng-if="collapse.cashFlow1" ng-repeat="m in months track by $index">
+                                {{data.cashFlow.cogsTotal.month[1][m] | number: 0}}
+                            </td>
+                            <td ng-if="!collapse.cashFlow2">
+                                {{data.cashFlow.cogsTotal.year[2] | number: 0}}
+                            </td>
+                            <td ng-if="collapse.cashFlow2" ng-repeat="m in months track by $index">
+                                {{data.cashFlow.cogsTotal.month[2][m] | number: 0}}
+                            </td>
+                            <td ng-repeat="y in [3, 4, 5]">
+                                {{data.cashFlow.cogsTotal.year[y] | number: 0}}
+                            </td>
+                            <td></td>
+                            <td ng-if="!disabled" class="text-center">
+                                <a style="font-size: 25px;" ng-click="addItem('cogs')">
+                                    <span class="glyphicon glyphicon-plus-sign"></span>
+                                </a>
+                            </td>
+                        </tr>
+                        <tr ng-repeat="i in data.cashFlow.cogs track by $index">
+                            <td>
+                                <span ng-if="disabled">{{i.rocName}}</span>
+                                <span ng-if="!disabled">
+                                    <input type="text" class="form-control" ng-model="i.rocName">
+                                </span>
+                            </td>
+                            <td>
+                                <span ng-if="disabled">{{i.wbs}}</span>
+                                <span ng-if="!disabled">
+                                    <input type="text" class="form-control" ng-model="i.wbs">
+                                </span>
+                            </td>
+                            <td>
+                                <span ng-if="disabled">{{i.cost}}</span>
+                                <span ng-if="!disabled">
+                                    <input type="text" class="form-control" ng-model="i.cost">
+                                </span>
+                            </td>
+                            <td>
+                                <span ng-if="disabled">{{i.purchasing}}</span>
+                                <span ng-if="!disabled">
+                                    <input type="text" class="form-control" ng-model="i.purchasing">
+                                </span>
+                            </td>
+                            <td>
+                                <span ng-if="disabled">{{i.contract}}</span>
+                                <span ng-if="!disabled">
+                                    <input type="text" class="form-control" ng-model="i.contract">
+                                </span>
+                            </td>
+                            <td>
+                                <span ng-if="disabled">{{i.contractAdd}}</span>
+                                <span ng-if="!disabled">
+                                    <input type="text" class="form-control" ng-model="i.contractAdd">
+                                </span>
+                            </td>
+                            <td>
+                                <span ng-if="disabled">{{i.startDate}}</span>
+                                <span ng-if="!disabled">
+                                    <input type="text" class="form-control" ng-model="i.startDate">
+                                </span>
+                            </td>
+                            <td>
+                                <span ng-if="disabled">{{i.endDate}}</span>
+                                <span ng-if="!disabled">
+                                    <input type="text" class="form-control" ng-model="i.endDate">
+                                </span>
+                            </td>
+                            <td>
+                                <span ng-if="disabled">{{i.amount}}</span>
+                                <span ng-if="!disabled">
+                                    <input type="text" class="form-control" ng-model="i.amount">
+                                </span>
+                            </td>
+                            <td style="border-right: 2px solid #555;">
+                                <span ng-if="disabled">{{i.depCode}}</span>
+                                <span ng-if="!disabled">
+                                    <input type="text" class="form-control" ng-model="i.depCode">
+                                </span>
+                            </td>
+                            <td ng-if="!collapse.cashFlow1">
+                                <span ng-if="disabled">{{i.year[1] | number: 0}}</span>
+                                <span ng-if="!disabled">
+                                    <input type="text" class="form-control" ng-model="i.year[1]" ng-change="onChange()" demand-number-format='0'>
+                                </span>
+                            </td>
+                            <td ng-repeat="m in months" ng-if="collapse.cashFlow1">
+                                <span ng-if="disabled">{{i.month[1][m] | number: 0}}</span>
+                                <span ng-if="!disabled">
+                                    <input type="text" class="form-control" ng-model="i.month[1][m]" ng-change="onChange()" demand-number-format='0'>
+                                </span>
+                            </td>                        
+                            <td ng-if="!collapse.cashFlow2">
+                                <span ng-if="disabled">{{i.year[2] | number: 0}}</span>
+                                <span ng-if="!disabled">
+                                    <input type="text" class="form-control" ng-model="i.year[2]" ng-change="onChange()" demand-number-format='0'>
+                                </span>
+                            </td>
+                            <td ng-repeat="m in months" ng-if="collapse.cashFlow2">
+                                <span ng-if="disabled">{{i.month[2][m] | number: 0}}</span>
+                                <span ng-if="!disabled">
+                                    <input type="text" class="form-control" ng-model="i.month[2][m]" ng-change="onChange()" demand-number-format='0'>
+                                </span>
+                            </td>
+                            <td ng-repeat="y in [3, 4, 5]">
+                                <span ng-if="disabled">{{i.year[y] | number: 0}}</span>
+                                <span ng-if="!disabled">
+                                    <input type="text" class="form-control" ng-model="i.year[y]" ng-change="onChange()" demand-number-format='0'>
+                                </span>
+                            </td>
+                            <td>
+                                <span ng-if="disabled">{{i.source}}</span>
+                                <span ng-if="!disabled">
+                                    <select class="form-control" ng-model="i.source">
+                                        <option value="Direct">Direct</option>
+                                        <option value="Potential">Potential</option>
+                                    </select>
+                                </span>
+                            </td>
+                            <td ng-if="!disabled" class="text-center">
+                                <button type="button" class="btn btn-default" ng-click="deleteItem($index, 'cogs')">Delete</button>
+                            </td>
+                        </tr>
+                        <!--INCOME-->
+                        <tr style="border-top: 2px solid #555">
+                            <td colspan="10" style="border-right: 2px solid #555;"><label>Income tax</label></td>
+                            <td ng-if="!collapse.cashFlow1">
+                                {{data.cashFlow.incomeTotal.year[1] | number: 0}}
+                            </td>
+                            <td ng-if="collapse.cashFlow1" ng-repeat="m in months track by $index">
+                                {{data.cashFlow.incomeTotal.month[1][m] | number: 0}}
+                            </td>
+                            <td ng-if="!collapse.cashFlow2">
+                                {{data.cashFlow.incomeTotal.year[2] | number: 0}}
+                            </td>
+                            <td ng-if="collapse.cashFlow2" ng-repeat="m in months track by $index">
+                                {{data.cashFlow.incomeTotal.month[2][m] | number: 0}}
+                            </td>
+                            <td ng-repeat="y in [3, 4, 5]">
+                                {{data.cashFlow.incomeTotal.year[y] | number: 0}}
+                            </td>
+                            <td></td>
+                            <td ng-if="!disabled" class="text-center">
+                            </td>
+                        </tr>
+                        <tr ng-repeat="i in data.cashFlow.income track by $index">
+                            <td colspan="10" style="border-right: 2px solid #555;"></td>
+                            <td ng-if="!collapse.cashFlow1">
+                                <span ng-if="disabled">{{i.year[1] | number: 0}}</span>
+                                <span ng-if="!disabled">
+                                    <input type="text" class="form-control" ng-model="i.year[1]" ng-change="onChange()" demand-number-format='0'>
+                                </span>
+                            </td>
+                            <td ng-repeat="m in months" ng-if="collapse.cashFlow1">
+                                <span ng-if="disabled">{{i.month[1][m] | number: 0}}</span>
+                                <span ng-if="!disabled">
+                                    <input type="text" class="form-control" ng-model="i.month[1][m]" ng-change="onChange()" demand-number-format='0'>
+                                </span>
+                            </td>                        
+                            <td ng-if="!collapse.cashFlow2">
+                                <span ng-if="disabled">{{i.year[2] | number: 0}}</span>
+                                <span ng-if="!disabled">
+                                    <input type="text" class="form-control" ng-model="i.year[2]" ng-change="onChange()" demand-number-format='0'>
+                                </span>
+                            </td>
+                            <td ng-repeat="m in months" ng-if="collapse.cashFlow2">
+                                <span ng-if="disabled">{{i.month[2][m] | number: 0}}</span>
+                                <span ng-if="!disabled">
+                                    <input type="text" class="form-control" ng-model="i.month[2][m]" ng-change="onChange()" demand-number-format='0'>
+                                </span>
+                            </td>
+                            <td ng-repeat="y in [3, 4, 5]">
+                                <span ng-if="disabled">{{i.year[y] | number: 0}}</span>
+                                <span ng-if="!disabled">
+                                    <input type="text" class="form-control" ng-model="i.year[y]" ng-change="onChange()" demand-number-format='0'>
+                                </span>
+                            </td>
+                            <td>
+                                <span ng-if="disabled">{{i.source}}</span>
+                                <span ng-if="!disabled">
+                                    <select class="form-control" ng-model="i.source">
+                                        <option value="Direct">Direct</option>
+                                        <option value="Potential">Potential</option>
+                                    </select>
+                                </span>
+                            </td>
+                            <td ng-if="!disabled" class="text-center">
+                            </td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+            </div>
         </div>
 
         <label class="col-sm-12" style="margin-top: 15px;">Accruals</label>
-        <div class="col-sm-12" style="overflow-y: scroll; max-height: 500px;">
-            <table class="table table-borderless">
-                <thead>
-                    <tr>
-                        <th></th>
+        <div class="col-sm-12" style="border: 1px solid #ccc; border-radius: 10px; padding-top: 10px; margin-bottom: 10px;">
+            <div class="fixed-header-table-container">
+            <div class="fixed-header-table-container-inner">
+                <table class="table table-borderless">
+                    <thead>
+                        <tr>
+                            <th><span></span><i style="visibility:hidden;"></i></th>
 
-                        <th ng-if="!collapse.accurals1">
-                            <a href="#" ng-click="toggleCollapse('accurals1')">
-                                <span class="glyphicon glyphicon-collapse-{{collapse.accurals1?'up':'down'}}"></span>
-                                {{data.firstYear}}
-                            </a>
-                        </th>
-                        <th ng-if="collapse.accurals1" ng-repeat="m in months track by $index" class="text-center">
-                            <a href="#" ng-click="toggleCollapse('accurals1')" ng-if="$index == 0">
-                                <span class="glyphicon glyphicon-collapse-{{collapse.accurals1?'up':'down'}}">
-                                    <span style="font-size: 14px; font-weight: bold;">{{data.firstYear + 1}}</span>
+                            <th ng-if="!collapse.accurals1">
+                                <span>
+                                    <a href="#" ng-click="toggleCollapse('accurals1')">
+                                        <i class="glyphicon glyphicon-collapse-{{collapse.accurals1?'up':'down'}}"></i>{{data.firstYear}}
+                                    </a>
                                 </span>
-                                <br/>
-                            </a>
-                            {{m}}
-                        </th>
-
-                        <th ng-if="!collapse.accurals2">
-                            <a href="#" ng-click="toggleCollapse('accurals2')">
-                                <span class="glyphicon glyphicon-collapse-{{collapse.accurals2?'up':'down'}}"></span>
-                                {{data.firstYear + 1}}
-                            </a>
-                        </th>
-                        <th ng-if="collapse.accurals2" ng-repeat="m in months track by $index" class="text-center">
-                            <a href="#" ng-click="toggleCollapse('accurals2')" ng-if="$index == 0">
-                                <span class="glyphicon glyphicon-collapse-{{collapse.accurals2?'up':'down'}}">
-                                    <span style="font-size: 14px; font-weight: bold;">{{data.firstYear + 1}}</span>
+                                <i style="visibility:hidden;">
+                                    <a href="#" ng-click="toggleCollapse('accurals1')">
+                                        <i class="glyphicon glyphicon-collapse-{{collapse.accurals1?'up':'down'}}"></i>{{data.firstYear}}
+                                    </a>
+                                </i>
+                            </th>
+                            <th ng-if="collapse.accurals1" ng-repeat="m in months track by $index" class="text-center">
+                                <span>
+                                    <a href="#" ng-click="toggleCollapse('accurals1')" ng-if="$index == 0">
+                                        <i class="glyphicon glyphicon-collapse-{{collapse.accurals1?'up':'down'}}"></i>{{data.firstYear + 1}}
+                                    </a>
+                                    {{m}}
                                 </span>
-                                <br/>
-                            </a>
-                            {{m}}
-                        </th>
+                                <i style="visibility:hidden;">
+                                    <a href="#" ng-click="toggleCollapse('accurals1')" ng-if="$index == 0">
+                                        <i class="glyphicon glyphicon-collapse-{{collapse.accurals1?'up':'down'}}"></i>{{data.firstYear + 1}}
+                                    </a>
+                                    {{m}}
+                                </i>
+                            </th>
 
-                        <th ng-repeat="i in [2, 3, 4]" class="text-center">
-                            <span ng-if="data.firstYear">{{data.firstYear + i}}</span>
-                        </th>
-                        <th class="text-center">Source</th>
-                        <th class="text-center" ng-if="!disabled"></th>
-                    </tr>
-                </thead>
-                <tbody>
-                    <tr>
-                        <td style="border-right: 2px solid #555;"><label>Revenue</label></td>
-                        <td colspan="{{collapse.accurals1?12:1}}">{{data.accurals.revenuesYear[1] | number: 0}}</td>
-                        <td colspan="{{collapse.accurals2?12:1}}">{{data.accurals.revenuesYear[2] | number: 0}}</td>
-                        <td ng-repeat="y in [3, 4, 5]">
-                            {{data.accurals.revenuesYear[y] | number: 0}}
-                            <!-- <span ng-if="disabled">{{data.accurals.revenuesYear[y]}}</span>
-                            <span ng-if="!disabled && data.accurals.revenues.length > 0">
-                                <input type="number" class="form-control" ng-model="data.accurals.revenuesYear[y]" ng-change="onChange()">
-                            </span> -->
-                        </td>
-                        <td></td>
-                        <td ng-if="!disabled" class="text-center">
-                            <a style="font-size: 25px;" ng-click="addItem('revenues')">
-                                <span class="glyphicon glyphicon-plus-sign"></span>
-                            </a>
-                        </td>
-                    </tr>
-                    <tr ng-repeat="i in data.accurals.revenues track by $index">
-                        <td style="border-right: 2px solid #555;">
-                            <span ng-if="disabled">{{i.lineName}}</span>
-                            <span ng-if="!disabled">
-                                <input type="text" class="form-control" ng-model="i.lineName">
-                            </span>
-                        </td>
-                        <td ng-if="!collapse.accurals1">
-                            <span ng-if="disabled">{{i.year[1] | number: 0}}</span>
-                            <span ng-if="!disabled">
-                                <input type="number" class="form-control" ng-model="i.year[1]" ng-change="onChange()" demand-number-format='0'>
-                            </span>
-                        </td>
-                        <td ng-repeat="m in months" ng-if="collapse.accurals1">
-                            <span ng-if="disabled">{{i.month[1][m] | number: 0}}</span>
-                            <span ng-if="!disabled">
-                                <input type="number" class="form-control" ng-model="i.month[1][m]" ng-change="onChange()" demand-number-format='0'>
-                            </span>
-                        </td>                        
-                        <td ng-if="!collapse.accurals2">
-                            <span ng-if="disabled">{{i.year[2] | number: 0}}</span>
-                            <span ng-if="!disabled">
-                                <input type="number" class="form-control" ng-model="i.year[2]" ng-change="onChange()" demand-number-format='0'>
-                            </span>
-                        </td>
-                        <td ng-repeat="m in months" ng-if="collapse.accurals2">
-                            <span ng-if="disabled">{{i.month[2][m] | number: 0}}</span>
-                            <span ng-if="!disabled">
-                                <input type="number" class="form-control" ng-model="i.month[2][m]" ng-change="onChange()" demand-number-format='0'>
-                            </span>
-                        </td>
-                        <td ng-repeat="y in [3, 4, 5]">
-                            <span ng-if="disabled">{{i.year[y] | number: 0}}</span>
-                            <span ng-if="!disabled">
-                                <input type="number" class="form-control" ng-model="i.year[y]" ng-change="onChange()" demand-number-format='0'>
-                            </span>
-                        </td>
-                        <td>
-                            <span ng-if="disabled">{{i.source}}</span>
-                            <span ng-if="!disabled">
-                                <select class="form-control" ng-model="i.source">
-                                    <option value="Direct">Direct</option>
-                                    <option value="Potential">Potential</option>
-                                </select>
-                            </span>
-                        </td>
-                        <td ng-if="!disabled" class="text-center">
-                            <button type="button" class="btn btn-default" ng-click="deleteItem($index, 'revenues')">Delete</button>
-                        </td>
-                    </tr>
-                    <!--OPEX-->
-                    <tr style="border-top: 2px solid #555">
-                        <td style="border-right: 2px solid #555;"><label>Opex</label></td>
-                        <td colspan="{{collapse.accurals1?12:1}}">{{data.accurals.opexesYear[1] | number: 0}}</td>
-                        <td colspan="{{collapse.accurals2?12:1}}">{{data.accurals.opexesYear[2] | number: 0}}</td>
-                        <td ng-repeat="y in [3, 4, 5]">
-                            {{data.accurals.opexesYear[y] | number: 0}}
-                            <!-- <span ng-if="disabled">{{data.accurals.opexesYear[y]}}</span>
-                            <span ng-if="!disabled && data.accurals.opexes.length > 0">
-                                <input type="number" class="form-control" ng-model="data.accurals.opexesYear[y]" ng-change="onChange()">
-                            </span> -->
-                        </td>
-                        <td></td>
-                        <td ng-if="!disabled" class="text-center">
-                            <a style="font-size: 25px;" ng-click="addItem('opexes')">
-                                <span class="glyphicon glyphicon-plus-sign"></span>
-                            </a>
-                        </td>
-                    </tr>
-                    <tr ng-repeat="i in data.accurals.opexes track by $index">
-                        <td style="border-right: 2px solid #555;">
-                            <span ng-if="disabled">{{i.lineName}}</span>
-                            <span ng-if="!disabled">
-                                <input type="text" class="form-control" ng-model="i.lineName">
-                            </span>
-                        </td>
-                        <td ng-if="!collapse.accurals1">
-                            <span ng-if="disabled">{{i.year[1] | number: 0}}</span>
-                            <span ng-if="!disabled">
-                                <input type="text" class="form-control" ng-model="i.year[1]" ng-change="onChange()" demand-number-format='0'>
-                            </span>
-                        </td>
-                        <td ng-repeat="m in months" ng-if="collapse.accurals1">
-                            <span ng-if="disabled">{{i.month[1][m] | number: 0}}</span>
-                            <span ng-if="!disabled">
-                                <input type="text" class="form-control" ng-model="i.month[1][m]" ng-change="onChange()" demand-number-format='0'>
-                            </span>
-                        </td>                        
-                        <td ng-if="!collapse.accurals2">
-                            <span ng-if="disabled">{{i.year[2] | number: 0}}</span>
-                            <span ng-if="!disabled">
-                                <input type="text" class="form-control" ng-model="i.year[2]" ng-change="onChange()" demand-number-format='0'>
-                            </span>
-                        </td>
-                        <td ng-repeat="m in months" ng-if="collapse.accurals2">
-                            <span ng-if="disabled">{{i.month[2][m] | number: 0}}</span>
-                            <span ng-if="!disabled">
-                                <input type="text" class="form-control" ng-model="i.month[2][m]" ng-change="onChange()" demand-number-format='0'>
-                            </span>
-                        </td>
-                        <td ng-repeat="y in [3, 4, 5]">
-                            <span ng-if="disabled">{{i.year[y] | number: 0}}</span>
-                            <span ng-if="!disabled">
-                                <input type="text" class="form-control" ng-model="i.year[y]" ng-change="onChange()" demand-number-format='0'>
-                            </span>
-                        </td>
-                        <td>
-                            <span ng-if="disabled">{{i.source}}</span>
-                            <span ng-if="!disabled">
-                                <select class="form-control" ng-model="i.source">
-                                    <option value="Direct">Direct</option>
-                                    <option value="Potential">Potential</option>
-                                </select>
-                            </span>
-                        </td>
-                        <td ng-if="!disabled" class="text-center">
-                            <button type="button" class="btn btn-default" ng-click="deleteItem($index, 'opexes')">Delete</button>
-                        </td>
-                    </tr>
-                    <!--CAPEX-->
-                    <tr style="border-top: 2px solid #555">
-                        <td style="border-right: 2px solid #555;"><label>Capex</label></td>
-                        <td colspan="{{collapse.accurals1?12:1}}">{{data.accurals.capexesYear[1] | number: 0}}</td>
-                        <td colspan="{{collapse.accurals2?12:1}}">{{data.accurals.capexesYear[2] | number: 0}}</td>
-                        <td ng-repeat="y in [3, 4, 5]">
-                            {{data.accurals.capexesYear[y] | number: 0}}
-                            <!-- <span ng-if="disabled">{{data.accurals.capexesYear[y]}}</span>
-                            <span ng-if="!disabled && data.accurals.capexes.length > 0">
-                                <input type="number" class="form-control" ng-model="data.accurals.capexesYear[y]" ng-change="onChange()">
-                            </span> -->
-                        </td>
-                        <td></td>
-                        <td ng-if="!disabled" class="text-center">
-                            <a style="font-size: 25px;" ng-click="addItem('capexes')">
-                                <span class="glyphicon glyphicon-plus-sign"></span>
-                            </a>
-                        </td>
-                    </tr>
-                    <tr ng-repeat="i in data.accurals.capexes track by $index">
-                        <td style="border-right: 2px solid #555;">
-                            <span ng-if="disabled">{{i.lineName}}</span>
-                            <span ng-if="!disabled">
-                                <input type="text" class="form-control" ng-model="i.lineName">
-                            </span>
-                        </td>
-                        <td ng-if="!collapse.accurals1">
-                            <span ng-if="disabled">{{i.year[1] | number: 0}}</span>
-                            <span ng-if="!disabled">
-                                <input type="text" class="form-control" ng-model="i.year[1]" ng-change="onChange()" demand-number-format='0'>
-                            </span>
-                        </td>
-                        <td ng-repeat="m in months" ng-if="collapse.accurals1">
-                            <span ng-if="disabled">{{i.month[1][m] | number: 0}}</span>
-                            <span ng-if="!disabled">
-                                <input type="text" class="form-control" ng-model="i.month[1][m]" ng-change="onChange()" demand-number-format='0'>
-                            </span>
-                        </td>                        
-                        <td ng-if="!collapse.accurals2">
-                            <span ng-if="disabled">{{i.year[2] | number: 0}}</span>
-                            <span ng-if="!disabled">
-                                <input type="text" class="form-control" ng-model="i.year[2]" ng-change="onChange()" demand-number-format='0'>
-                            </span>
-                        </td>
-                        <td ng-repeat="m in months" ng-if="collapse.accurals2">
-                            <span ng-if="disabled">{{i.month[2][m] | number: 0}}</span>
-                            <span ng-if="!disabled">
-                                <input type="text" class="form-control" ng-model="i.month[2][m]" ng-change="onChange()" demand-number-format='0'>
-                            </span>
-                        </td>
-                        <td ng-repeat="y in [3, 4, 5]">
-                            <span ng-if="disabled">{{i.year[y] | number: 0}}</span>
-                            <span ng-if="!disabled">
-                                <input type="text" class="form-control" ng-model="i.year[y]" ng-change="onChange()" demand-number-format='0'>
-                            </span>
-                        </td>
-                        <td>
-                            <span ng-if="disabled">{{i.source}}</span>
-                            <span ng-if="!disabled">
-                                <select class="form-control" ng-model="i.source">
-                                    <option value="Direct">Direct</option>
-                                    <option value="Potential">Potential</option>
-                                </select>
-                            </span>
-                        </td>
-                        <td ng-if="!disabled" class="text-center">
-                            <button type="button" class="btn btn-default" ng-click="deleteItem($index, 'capexes')">Delete</button>
-                        </td>
-                    </tr>
-                    <!--COGS-->
-                    <tr style="border-top: 2px solid #555">
-                        <td style="border-right: 2px solid #555;"><label>Cogs</label></td>
-                        <td colspan="{{collapse.accurals1?12:1}}">{{data.accurals.cogsYear[1] | number: 0}}</td>
-                        <td colspan="{{collapse.accurals2?12:1}}">{{data.accurals.cogsYear[2] | number: 0}}</td>
-                        <td ng-repeat="y in [3, 4, 5]">
-                            {{data.accurals.cogsYear[y] | number: 0}}
-                            <!-- <span ng-if="disabled">{{data.accurals.capexesYear[y]}}</span>
-                            <span ng-if="!disabled && data.accurals.capexes.length > 0">
-                                <input type="number" class="form-control" ng-model="data.accurals.cogsYear[y]" ng-change="onChange()">
-                            </span> -->
-                        </td>
-                        <td></td>
-                        <td ng-if="!disabled" class="text-center">
-                            <a style="font-size: 25px;" ng-click="addItem('cogs')">
-                                <span class="glyphicon glyphicon-plus-sign"></span>
-                            </a>
-                        </td>
-                    </tr>
-                    <tr ng-repeat="i in data.accurals.cogs track by $index">
-                        <td style="border-right: 2px solid #555;">
-                            <span ng-if="disabled">{{i.lineName}}</span>
-                            <span ng-if="!disabled">
-                                <input type="text" class="form-control" ng-model="i.lineName">
-                            </span>
-                        </td>
-                        <td ng-if="!collapse.accurals1">
-                            <span ng-if="disabled">{{i.year[1] | number: 0}}</span>
-                            <span ng-if="!disabled">
-                                <input type="text" class="form-control" ng-model="i.year[1]" ng-change="onChange()" demand-number-format='0'>
-                            </span>
-                        </td>
-                        <td ng-repeat="m in months" ng-if="collapse.accurals1">
-                            <span ng-if="disabled">{{i.month[1][m] | number: 0}}</span>
-                            <span ng-if="!disabled">
-                                <input type="text" class="form-control" ng-model="i.month[1][m]" ng-change="onChange()" demand-number-format='0'>
-                            </span>
-                        </td>                        
-                        <td ng-if="!collapse.accurals2">
-                            <span ng-if="disabled">{{i.year[2] | number: 0}}</span>
-                            <span ng-if="!disabled">
-                                <input type="text" class="form-control" ng-model="i.year[2]" ng-change="onChange()" demand-number-format='0'>
-                            </span>
-                        </td>
-                        <td ng-repeat="m in months" ng-if="collapse.accurals2">
-                            <span ng-if="disabled">{{i.month[2][m] | number: 0}}</span>
-                            <span ng-if="!disabled">
-                                <input type="text" class="form-control" ng-model="i.month[2][m]" ng-change="onChange()" demand-number-format='0'>
-                            </span>
-                        </td>
-                        <td ng-repeat="y in [3, 4, 5]">
-                            <span ng-if="disabled">{{i.year[y] | number: 0}}</span>
-                            <span ng-if="!disabled">
-                                <input type="text" class="form-control" ng-model="i.year[y]" ng-change="onChange()" demand-number-format='0'>
-                            </span>
-                        </td>
-                        <td>
-                            <span ng-if="disabled">{{i.source}}</span>
-                            <span ng-if="!disabled">
-                                <select class="form-control" ng-model="i.source">
-                                    <option value="Direct">Direct</option>
-                                    <option value="Potential">Potential</option>
-                                </select>
-                            </span>
-                        </td>
-                        <td ng-if="!disabled" class="text-center">
-                            <button type="button" class="btn btn-default" ng-click="deleteItem($index, 'cogs')">Delete</button>
-                        </td>
-                    </tr>
-                    <!--INCOME-->
-                    <tr style="border-top: 2px solid #555">
-                        <td style="border-right: 2px solid #555;"><label>Income tax</label></td>
-                        <td colspan="{{collapse.accurals1?12:1}}">{{data.accurals.incomeYear[1] | number: 0}}</td>
-                        <td colspan="{{collapse.accurals2?12:1}}">{{data.accurals.incomeYear[2] | number: 0}}</td>
-                        <td ng-repeat="y in [3, 4, 5]">
-                            {{data.accurals.incomeYear[y] | number: 0}}
-                            <!-- <span ng-if="disabled">{{data.accurals.capexesYear[y]}}</span>
-                            <span ng-if="!disabled && data.accurals.capexes.length > 0">
-                                <input type="number" class="form-control" ng-model="data.accurals.cogsYear[y]" ng-change="onChange()">
-                            </span> -->
-                        </td>
-                        <td></td>
-                        <td ng-if="!disabled" class="text-center">
-                        </td>
-                    </tr>
-                    <tr ng-repeat="i in data.accurals.income track by $index">
-                        <td style="border-right: 2px solid #555;"></td>
-                        <td ng-if="!collapse.accurals1">
-                            <span ng-if="disabled">{{i.year[1] | number: 0}}</span>
-                            <span ng-if="!disabled">
-                                <input type="text" class="form-control" ng-model="i.year[1]" ng-change="onChange()" demand-number-format='0'>
-                            </span>
-                        </td>
-                        <td ng-repeat="m in months" ng-if="collapse.accurals1">
-                            <span ng-if="disabled">{{i.month[1][m] | number: 0}}</span>
-                            <span ng-if="!disabled">
-                                <input type="text" class="form-control" ng-model="i.month[1][m]" ng-change="onChange()" demand-number-format='0'>
-                            </span>
-                        </td>                        
-                        <td ng-if="!collapse.accurals2">
-                            <span ng-if="disabled">{{i.year[2] | number: 0}}</span>
-                            <span ng-if="!disabled">
-                                <input type="text" class="form-control" ng-model="i.year[2]" ng-change="onChange()" demand-number-format='0'>
-                            </span>
-                        </td>
-                        <td ng-repeat="m in months" ng-if="collapse.accurals2">
-                            <span ng-if="disabled">{{i.month[2][m] | number: 0}}</span>
-                            <span ng-if="!disabled">
-                                <input type="text" class="form-control" ng-model="i.month[2][m]" ng-change="onChange()" demand-number-format='0'>
-                            </span>
-                        </td>
-                        <td ng-repeat="y in [3, 4, 5]">
-                            <span ng-if="disabled">{{i.year[y] | number: 0}}</span>
-                            <span ng-if="!disabled">
-                                <input type="text" class="form-control" ng-model="i.year[y]" ng-change="onChange()" demand-number-format='0'>
-                            </span>
-                        </td>
-                        <td>
-                            <span ng-if="disabled">{{i.source}}</span>
-                            <span ng-if="!disabled">
-                                <select class="form-control" ng-model="i.source">
-                                    <option value="Direct">Direct</option>
-                                    <option value="Potential">Potential</option>
-                                </select>
-                            </span>
-                        </td>
-                        <td ng-if="!disabled" class="text-center">
-                        </td>
-                    </tr>
-                </tbody>
-            </table>
+                            <th ng-if="!collapse.accurals2">
+                                <span>
+                                    <a href="#" ng-click="toggleCollapse('accurals2')">
+                                        <i class="glyphicon glyphicon-collapse-{{collapse.accurals2?'up':'down'}}"></i>{{data.firstYear + 1}}
+                                    </a>
+                                </span>
+                                <i style="visibility:hidden;">
+                                    <a href="#" ng-click="toggleCollapse('accurals2')">
+                                        <i class="glyphicon glyphicon-collapse-{{collapse.accurals2?'up':'down'}}"></i>{{data.firstYear + 1}}
+                                    </a>
+                                </i>
+                            </th>
+                            <th ng-if="collapse.accurals2" ng-repeat="m in months track by $index" class="text-center">
+                                <span>
+                                    <a href="#" ng-click="toggleCollapse('accurals2')" ng-if="$index == 0">
+                                        <i class="glyphicon glyphicon-collapse-{{collapse.accurals2?'up':'down'}}"></i>{{data.firstYear + 1}}
+                                    </a>
+                                    {{m}}
+                                </span>
+                                <i style="visibility:hidden;">
+                                    <a href="#" ng-click="toggleCollapse('accurals2')" ng-if="$index == 0">
+                                        <i class="glyphicon glyphicon-collapse-{{collapse.accurals2?'up':'down'}}"></i>{{data.firstYear + 1}}
+                                    </a>
+                                    {{m}}
+                                </i>
+                            </th>
+
+                            <th ng-repeat="i in [2, 3, 4]" class="text-center">
+                                <span ng-if="data.firstYear">{{data.firstYear + i}}</span>
+                                <i ng-if="data.firstYear" style="visibility:hidden;">{{data.firstYear + i}}</i>
+                            </th>
+                            <th class="text-center"><span>Source</span><i style="visibility:hidden;">Source</i></th>
+                            <th class="text-center" ng-if="!disabled"><span></span><i style="visibility:hidden;"></i></th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr>
+                            <td style="border-right: 2px solid #555;"><label>Revenue</label></td>
+                            <td ng-if="!collapse.accurals1">
+                                {{data.accurals.revenuesTotal.year[1] | number: 0}}
+                            </td>
+                            <td ng-if="collapse.accurals1" ng-repeat="m in months track by $index">
+                                {{data.accurals.revenuesTotal.month[1][m] | number: 0}}
+                            </td>
+                            <td ng-if="!collapse.accurals2">
+                                {{data.accurals.revenuesTotal.year[2] | number: 0}}
+                            </td>
+                            <td ng-if="collapse.accurals2" ng-repeat="m in months track by $index">
+                                {{data.accurals.revenuesTotal.month[2][m] | number: 0}}
+                            </td>
+                            <td ng-repeat="y in [3, 4, 5]">
+                                {{data.accurals.revenuesTotal.year[y] | number: 0}}
+                            </td>
+                            <td></td>
+                            <td ng-if="!disabled" class="text-center">
+                                <a style="font-size: 25px;" ng-click="addItem('revenues')">
+                                    <span class="glyphicon glyphicon-plus-sign"></span>
+                                </a>
+                            </td>
+                        </tr>
+                        <tr ng-repeat="i in data.accurals.revenues track by $index">
+                            <td style="border-right: 2px solid #555;">
+                                <span ng-if="disabled">{{i.lineName}}</span>
+                                <span ng-if="!disabled">
+                                    <input type="text" class="form-control" ng-model="i.lineName">
+                                </span>
+                            </td>
+                            <td ng-if="!collapse.accurals1">
+                                <span ng-if="disabled">{{i.year[1] | number: 0}}</span>
+                                <span ng-if="!disabled">
+                                    <input type="text" class="form-control" ng-model="i.year[1]" ng-change="onChange()" demand-number-format='0'>
+                                </span>
+                            </td>
+                            <td ng-repeat="m in months" ng-if="collapse.accurals1">
+                                <span ng-if="disabled">{{i.month[1][m] | number: 0}}</span>
+                                <span ng-if="!disabled">
+                                    <input type="text" class="form-control" ng-model="i.month[1][m]" ng-change="onChange()" demand-number-format='0'>
+                                </span>
+                            </td>                        
+                            <td ng-if="!collapse.accurals2">
+                                <span ng-if="disabled">{{i.year[2] | number: 0}}</span>
+                                <span ng-if="!disabled">
+                                    <input type="text" class="form-control" ng-model="i.year[2]" ng-change="onChange()" demand-number-format='0'>
+                                </span>
+                            </td>
+                            <td ng-repeat="m in months" ng-if="collapse.accurals2">
+                                <span ng-if="disabled">{{i.month[2][m] | number: 0}}</span>
+                                <span ng-if="!disabled">
+                                    <input type="text" class="form-control" ng-model="i.month[2][m]" ng-change="onChange()" demand-number-format='0'>
+                                </span>
+                            </td>
+                            <td ng-repeat="y in [3, 4, 5]">
+                                <span ng-if="disabled">{{i.year[y] | number: 0}}</span>
+                                <span ng-if="!disabled">
+                                    <input type="text" class="form-control" ng-model="i.year[y]" ng-change="onChange()" demand-number-format='0'>
+                                </span>
+                            </td>
+                            <td>
+                                <span ng-if="disabled">{{i.source}}</span>
+                                <span ng-if="!disabled">
+                                    <select class="form-control" ng-model="i.source">
+                                        <option value="Direct">Direct</option>
+                                        <option value="Potential">Potential</option>
+                                    </select>
+                                </span>
+                            </td>
+                            <td ng-if="!disabled" class="text-center">
+                                <button type="button" class="btn btn-default" ng-click="deleteItem($index, 'revenues')">Delete</button>
+                            </td>
+                        </tr>
+                        <!--OPEX-->
+                        <tr style="border-top: 2px solid #555">
+                            <td style="border-right: 2px solid #555;"><label>Opex</label></td>
+                            <td ng-if="!collapse.accurals1">
+                                {{data.accurals.opexesTotal.year[1] | number: 0}}
+                            </td>
+                            <td ng-if="collapse.accurals1" ng-repeat="m in months track by $index">
+                                {{data.accurals.opexesTotal.month[1][m] | number: 0}}
+                            </td>
+                            <td ng-if="!collapse.accurals2">
+                                {{data.accurals.opexesTotal.year[2] | number: 0}}
+                            </td>
+                            <td ng-if="collapse.accurals2" ng-repeat="m in months track by $index">
+                                {{data.accurals.opexesTotal.month[2][m] | number: 0}}
+                            </td>
+                            <td ng-repeat="y in [3, 4, 5]">
+                                {{data.accurals.opexesTotal.year[y] | number: 0}}
+                            </td>
+                            <td></td>
+                            <td ng-if="!disabled" class="text-center">
+                                <a style="font-size: 25px;" ng-click="addItem('opexes')">
+                                    <span class="glyphicon glyphicon-plus-sign"></span>
+                                </a>
+                            </td>
+                        </tr>
+                        <tr ng-repeat="i in data.accurals.opexes track by $index">
+                            <td style="border-right: 2px solid #555;">
+                                <span ng-if="disabled">{{i.lineName}}</span>
+                                <span ng-if="!disabled">
+                                    <input type="text" class="form-control" ng-model="i.lineName">
+                                </span>
+                            </td>
+                            <td ng-if="!collapse.accurals1">
+                                <span ng-if="disabled">{{i.year[1] | number: 0}}</span>
+                                <span ng-if="!disabled">
+                                    <input type="text" class="form-control" ng-model="i.year[1]" ng-change="onChange()" demand-number-format='0'>
+                                </span>
+                            </td>
+                            <td ng-repeat="m in months" ng-if="collapse.accurals1">
+                                <span ng-if="disabled">{{i.month[1][m] | number: 0}}</span>
+                                <span ng-if="!disabled">
+                                    <input type="text" class="form-control" ng-model="i.month[1][m]" ng-change="onChange()" demand-number-format='0'>
+                                </span>
+                            </td>                        
+                            <td ng-if="!collapse.accurals2">
+                                <span ng-if="disabled">{{i.year[2] | number: 0}}</span>
+                                <span ng-if="!disabled">
+                                    <input type="text" class="form-control" ng-model="i.year[2]" ng-change="onChange()" demand-number-format='0'>
+                                </span>
+                            </td>
+                            <td ng-repeat="m in months" ng-if="collapse.accurals2">
+                                <span ng-if="disabled">{{i.month[2][m] | number: 0}}</span>
+                                <span ng-if="!disabled">
+                                    <input type="text" class="form-control" ng-model="i.month[2][m]" ng-change="onChange()" demand-number-format='0'>
+                                </span>
+                            </td>
+                            <td ng-repeat="y in [3, 4, 5]">
+                                <span ng-if="disabled">{{i.year[y] | number: 0}}</span>
+                                <span ng-if="!disabled">
+                                    <input type="text" class="form-control" ng-model="i.year[y]" ng-change="onChange()" demand-number-format='0'>
+                                </span>
+                            </td>
+                            <td>
+                                <span ng-if="disabled">{{i.source}}</span>
+                                <span ng-if="!disabled">
+                                    <select class="form-control" ng-model="i.source">
+                                        <option value="Direct">Direct</option>
+                                        <option value="Potential">Potential</option>
+                                    </select>
+                                </span>
+                            </td>
+                            <td ng-if="!disabled" class="text-center">
+                                <button type="button" class="btn btn-default" ng-click="deleteItem($index, 'opexes')">Delete</button>
+                            </td>
+                        </tr>
+                        <!--CAPEX-->
+                        <tr style="border-top: 2px solid #555">
+                            <td style="border-right: 2px solid #555;"><label>Capex</label></td>
+                            <td ng-if="!collapse.accurals1">
+                                {{data.accurals.capexesTotal.year[1] | number: 0}}
+                            </td>
+                            <td ng-if="collapse.accurals1" ng-repeat="m in months track by $index">
+                                {{data.accurals.capexesTotal.month[1][m] | number: 0}}
+                            </td>
+                            <td ng-if="!collapse.accurals2">
+                                {{data.accurals.capexesTotal.year[2] | number: 0}}
+                            </td>
+                            <td ng-if="collapse.accurals2" ng-repeat="m in months track by $index">
+                                {{data.accurals.capexesTotal.month[2][m] | number: 0}}
+                            </td>
+                            <td ng-repeat="y in [3, 4, 5]">
+                                {{data.accurals.capexesTotal.year[y] | number: 0}}
+                            </td>
+                            <td></td>
+                            <td ng-if="!disabled" class="text-center">
+                                <a style="font-size: 25px;" ng-click="addItem('capexes')">
+                                    <span class="glyphicon glyphicon-plus-sign"></span>
+                                </a>
+                            </td>
+                        </tr>
+                        <tr ng-repeat="i in data.accurals.capexes track by $index">
+                            <td style="border-right: 2px solid #555;">
+                                <span ng-if="disabled">{{i.lineName}}</span>
+                                <span ng-if="!disabled">
+                                    <input type="text" class="form-control" ng-model="i.lineName">
+                                </span>
+                            </td>
+                            <td ng-if="!collapse.accurals1">
+                                <span ng-if="disabled">{{i.year[1] | number: 0}}</span>
+                                <span ng-if="!disabled">
+                                    <input type="text" class="form-control" ng-model="i.year[1]" ng-change="onChange()" demand-number-format='0'>
+                                </span>
+                            </td>
+                            <td ng-repeat="m in months" ng-if="collapse.accurals1">
+                                <span ng-if="disabled">{{i.month[1][m] | number: 0}}</span>
+                                <span ng-if="!disabled">
+                                    <input type="text" class="form-control" ng-model="i.month[1][m]" ng-change="onChange()" demand-number-format='0'>
+                                </span>
+                            </td>                        
+                            <td ng-if="!collapse.accurals2">
+                                <span ng-if="disabled">{{i.year[2] | number: 0}}</span>
+                                <span ng-if="!disabled">
+                                    <input type="text" class="form-control" ng-model="i.year[2]" ng-change="onChange()" demand-number-format='0'>
+                                </span>
+                            </td>
+                            <td ng-repeat="m in months" ng-if="collapse.accurals2">
+                                <span ng-if="disabled">{{i.month[2][m] | number: 0}}</span>
+                                <span ng-if="!disabled">
+                                    <input type="text" class="form-control" ng-model="i.month[2][m]" ng-change="onChange()" demand-number-format='0'>
+                                </span>
+                            </td>
+                            <td ng-repeat="y in [3, 4, 5]">
+                                <span ng-if="disabled">{{i.year[y] | number: 0}}</span>
+                                <span ng-if="!disabled">
+                                    <input type="text" class="form-control" ng-model="i.year[y]" ng-change="onChange()" demand-number-format='0'>
+                                </span>
+                            </td>
+                            <td>
+                                <span ng-if="disabled">{{i.source}}</span>
+                                <span ng-if="!disabled">
+                                    <select class="form-control" ng-model="i.source">
+                                        <option value="Direct">Direct</option>
+                                        <option value="Potential">Potential</option>
+                                    </select>
+                                </span>
+                            </td>
+                            <td ng-if="!disabled" class="text-center">
+                                <button type="button" class="btn btn-default" ng-click="deleteItem($index, 'capexes')">Delete</button>
+                            </td>
+                        </tr>
+                        <!--COGS-->
+                        <tr style="border-top: 2px solid #555">
+                            <td style="border-right: 2px solid #555;"><label>Cogs</label></td>
+                            <td ng-if="!collapse.accurals1">
+                                {{data.accurals.cogsTotal.year[1] | number: 0}}
+                            </td>
+                            <td ng-if="collapse.accurals1" ng-repeat="m in months track by $index">
+                                {{data.accurals.cogsTotal.month[1][m] | number: 0}}
+                            </td>
+                            <td ng-if="!collapse.accurals2">
+                                {{data.accurals.cogsTotal.year[2] | number: 0}}
+                            </td>
+                            <td ng-if="collapse.accurals2" ng-repeat="m in months track by $index">
+                                {{data.accurals.cogsTotal.month[2][m] | number: 0}}
+                            </td>
+                            <td ng-repeat="y in [3, 4, 5]">
+                                {{data.accurals.cogsTotal.year[y] | number: 0}}
+                            </td>
+                            <td></td>
+                            <td ng-if="!disabled" class="text-center">
+                                <a style="font-size: 25px;" ng-click="addItem('cogs')">
+                                    <span class="glyphicon glyphicon-plus-sign"></span>
+                                </a>
+                            </td>
+                        </tr>
+                        <tr ng-repeat="i in data.accurals.cogs track by $index">
+                            <td style="border-right: 2px solid #555;">
+                                <span ng-if="disabled">{{i.lineName}}</span>
+                                <span ng-if="!disabled">
+                                    <input type="text" class="form-control" ng-model="i.lineName">
+                                </span>
+                            </td>
+                            <td ng-if="!collapse.accurals1">
+                                <span ng-if="disabled">{{i.year[1] | number: 0}}</span>
+                                <span ng-if="!disabled">
+                                    <input type="text" class="form-control" ng-model="i.year[1]" ng-change="onChange()" demand-number-format='0'>
+                                </span>
+                            </td>
+                            <td ng-repeat="m in months" ng-if="collapse.accurals1">
+                                <span ng-if="disabled">{{i.month[1][m] | number: 0}}</span>
+                                <span ng-if="!disabled">
+                                    <input type="text" class="form-control" ng-model="i.month[1][m]" ng-change="onChange()" demand-number-format='0'>
+                                </span>
+                            </td>                        
+                            <td ng-if="!collapse.accurals2">
+                                <span ng-if="disabled">{{i.year[2] | number: 0}}</span>
+                                <span ng-if="!disabled">
+                                    <input type="text" class="form-control" ng-model="i.year[2]" ng-change="onChange()" demand-number-format='0'>
+                                </span>
+                            </td>
+                            <td ng-repeat="m in months" ng-if="collapse.accurals2">
+                                <span ng-if="disabled">{{i.month[2][m] | number: 0}}</span>
+                                <span ng-if="!disabled">
+                                    <input type="text" class="form-control" ng-model="i.month[2][m]" ng-change="onChange()" demand-number-format='0'>
+                                </span>
+                            </td>
+                            <td ng-repeat="y in [3, 4, 5]">
+                                <span ng-if="disabled">{{i.year[y] | number: 0}}</span>
+                                <span ng-if="!disabled">
+                                    <input type="text" class="form-control" ng-model="i.year[y]" ng-change="onChange()" demand-number-format='0'>
+                                </span>
+                            </td>
+                            <td>
+                                <span ng-if="disabled">{{i.source}}</span>
+                                <span ng-if="!disabled">
+                                    <select class="form-control" ng-model="i.source">
+                                        <option value="Direct">Direct</option>
+                                        <option value="Potential">Potential</option>
+                                    </select>
+                                </span>
+                            </td>
+                            <td ng-if="!disabled" class="text-center">
+                                <button type="button" class="btn btn-default" ng-click="deleteItem($index, 'cogs')">Delete</button>
+                            </td>
+                        </tr>
+                        <!--INCOME-->
+                        <tr style="border-top: 2px solid #555">
+                            <td style="border-right: 2px solid #555;"><label>Income tax</label></td>
+                            <td ng-if="!collapse.accurals1">
+                                {{data.accurals.incomeTotal.year[1] | number: 0}}
+                            </td>
+                            <td ng-if="collapse.accurals1" ng-repeat="m in months track by $index">
+                                {{data.accurals.incomeTotal.month[1][m] | number: 0}}
+                            </td>
+                            <td ng-if="!collapse.accurals2">
+                                {{data.accurals.incomeTotal.year[2] | number: 0}}
+                            </td>
+                            <td ng-if="collapse.accurals2" ng-repeat="m in months track by $index">
+                                {{data.accurals.incomeTotal.month[2][m] | number: 0}}
+                            </td>
+                            <td ng-repeat="y in [3, 4, 5]">
+                                {{data.accurals.incomeTotal.year[y] | number: 0}}
+                            </td>
+                            <td></td>
+                            <td ng-if="!disabled" class="text-center">
+                            </td>
+                        </tr>
+                        <tr ng-repeat="i in data.accurals.income track by $index">
+                            <td style="border-right: 2px solid #555;"></td>
+                            <td ng-if="!collapse.accurals1">
+                                <span ng-if="disabled">{{i.year[1] | number: 0}}</span>
+                                <span ng-if="!disabled">
+                                    <input type="text" class="form-control" ng-model="i.year[1]" ng-change="onChange()" demand-number-format='0'>
+                                </span>
+                            </td>
+                            <td ng-repeat="m in months" ng-if="collapse.accurals1">
+                                <span ng-if="disabled">{{i.month[1][m] | number: 0}}</span>
+                                <span ng-if="!disabled">
+                                    <input type="text" class="form-control" ng-model="i.month[1][m]" ng-change="onChange()" demand-number-format='0'>
+                                </span>
+                            </td>                        
+                            <td ng-if="!collapse.accurals2">
+                                <span ng-if="disabled">{{i.year[2] | number: 0}}</span>
+                                <span ng-if="!disabled">
+                                    <input type="text" class="form-control" ng-model="i.year[2]" ng-change="onChange()" demand-number-format='0'>
+                                </span>
+                            </td>
+                            <td ng-repeat="m in months" ng-if="collapse.accurals2">
+                                <span ng-if="disabled">{{i.month[2][m] | number: 0}}</span>
+                                <span ng-if="!disabled">
+                                    <input type="text" class="form-control" ng-model="i.month[2][m]" ng-change="onChange()" demand-number-format='0'>
+                                </span>
+                            </td>
+                            <td ng-repeat="y in [3, 4, 5]">
+                                <span ng-if="disabled">{{i.year[y] | number: 0}}</span>
+                                <span ng-if="!disabled">
+                                    <input type="text" class="form-control" ng-model="i.year[y]" ng-change="onChange()" demand-number-format='0'>
+                                </span>
+                            </td>
+                            <td>
+                                <span ng-if="disabled">{{i.source}}</span>
+                                <span ng-if="!disabled">
+                                    <select class="form-control" ng-model="i.source">
+                                        <option value="Direct">Direct</option>
+                                        <option value="Potential">Potential</option>
+                                    </select>
+                                </span>
+                            </td>
+                            <td ng-if="!disabled" class="text-center">
+                            </td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+            </div>
         </div>
     </div>
 </div>

@@ -10,6 +10,18 @@ define(['./../module', 'xlsx'], function(module){
                 disabled: '='
 			},
 			link: function(scope, element, attrs) {
+
+				var correctHeaderWidth = function() {
+					$timeout(function() {
+						$('.fixed-header-table-container th').each(function() {
+							$(this).find('span').first().width($(this).width() + 10);
+						});
+						scope.$apply();
+					});
+				};
+
+				correctHeaderWidth();
+
 				scope.$watch('data', function(value) {
 					if (value) {
 						if (!scope.data) scope.data = {};
@@ -219,6 +231,7 @@ define(['./../module', 'xlsx'], function(module){
 						}
 						scope.onChange();
 						scope.$apply();
+						correctHeaderWidth();
 					}
 				};
 				
@@ -233,6 +246,7 @@ define(['./../module', 'xlsx'], function(module){
 
 				scope.toggleCollapse = function(name) {
 					scope.collapse[name] = !scope.collapse[name];
+					correctHeaderWidth();
 				};
 
 				scope.addItem = function(name) {
@@ -242,32 +256,44 @@ define(['./../module', 'xlsx'], function(module){
 						scope.data.cashFlow.income.push({month: {1: {}, 2: {}, 3: {}, 4: {}, 5: {}}, year: {}});
 						scope.data.accurals.income.push({month: {1: {}, 2: {}, 3: {}, 4: {}, 5: {}}, year: {}});
 					}
+					correctHeaderWidth();
 				};
 				scope.deleteItem = function(index, name) {
 					scope.data.cashFlow[name].splice(index, 1);
 					scope.data.accurals[name].splice(index, 1);
+					correctHeaderWidth();
 				};
 
 				scope.onChange = function() {
 					$('#loaderDiv').show();
 					for (var table of ['cashFlow', 'accurals']) {
 						for (var name of ['revenues', 'capexes', 'opexes', 'cogs', 'income']) {
-							scope.data[table][name+'Year'] = {1: 0, 2: 0, 3: 0, 4: 0, 5: 0};
-							for (var i = 0; i < scope.data[table][name].length; i++) {
-								for (var y = 1; y < 6; y++) {
-									var months = null;
-									for (var m in scope.data[table][name][i]['month'][y]) {
-										if (months == null) months = 0;
-										months += scope.data[table][name][i]['month'][y][m];
-									}
-									if (months != null) scope.data[table][name][i]['year'][y] = months;
-									if (scope.data[table][name][i]['year'][y])
-										scope.data[table][name+'Year'][y] += scope.data[table][name][i]['year'][y];
+							scope.data[table][name+'Total'] = {year:{1: 0, 2: 0, 3: 0, 4: 0, 5: 0}, month: {1: {}, 2: {}, 3: {}, 4: {}, 5: {}}};
+							scope.data[table][name+'Total'] = {year:{}, month: {}};
+							for (var i = 1; i < 6; i++) {
+								scope.data[table][name+'Total'].year[i] = 0;
+								scope.data[table][name+'Total'].month[i] = {};
+								if (i < 3) {
+									for (var m of scope.months)
+										scope.data[table][name+'Total'].month[i][m] = 0;
 								}
 							}
-							for (var y = 1; y < 6; y++) 
+							for (var i = 0; i < scope.data[table][name].length; i++) {
+								for (var y = 1; y < 6; y++) {
+									var monthsTotal = null;
+									for (var m in scope.data[table][name][i]['month'][y]) {
+										if (monthsTotal == null) monthsTotal = 0;
+										monthsTotal += scope.data[table][name][i]['month'][y][m];
+										scope.data[table][name+'Total'].month[y][m] += scope.data[table][name][i]['month'][y][m];
+									}
+									if (monthsTotal != null) scope.data[table][name][i]['year'][y] = monthsTotal;
+									if (scope.data[table][name][i]['year'][y])
+										scope.data[table][name+'Total'].year[y] += scope.data[table][name][i]['year'][y];
+								}
+							}
+							/*for (var y = 1; y < 6; y++) 
 								if (!scope.data[table][name+'Year'][y])
-									scope.data[table][name+'Year'][y] = null;
+									scope.data[table][name+'Year'][y] = null;*/
 						}
 					}
 					calcQuantitative();
@@ -284,11 +310,11 @@ define(['./../module', 'xlsx'], function(module){
 					// NPV
 					scope.data.npv = 0.0;
 					for (var i = 1; i < 6; i++) {
-						scope.data.npv += (scope.data.cashFlow.revenuesYear[i]
-										+ scope.data.cashFlow.capexesYear[i]
-										+ scope.data.cashFlow.opexesYear[i]
-										+ scope.data.cashFlow.cogsYear[i]
-										+ scope.data.cashFlow.incomeYear[i]) * discount[i];
+						scope.data.npv += (scope.data.cashFlow.revenuesTotal.year[i]
+										+ scope.data.cashFlow.capexesTotal.year[i]
+										+ scope.data.cashFlow.opexesTotal.year[i]
+										+ scope.data.cashFlow.cogsTotal.year[i]
+										+ scope.data.cashFlow.incomeTotal.year[i]) * discount[i];
 					}
 
 					// ROI
@@ -296,10 +322,10 @@ define(['./../module', 'xlsx'], function(module){
 					if (scope.data.npv > 0.0) {
 						var caps = 0;
 						for (var i = 1; i < 6; i++) {
-							caps += (scope.data.cashFlow.capexesYear[i]
-									+ scope.data.cashFlow.opexesYear[i]
-									+ scope.data.cashFlow.cogsYear[i]
-									+ scope.data.cashFlow.incomeYear[i]) * discount[i];
+							caps += (scope.data.cashFlow.capexesTotal.year[i]
+									+ scope.data.cashFlow.opexesTotal.year[i]
+									+ scope.data.cashFlow.cogsTotal.year[i]
+									+ scope.data.cashFlow.incomeTotal.year[i]) * discount[i];
 						}
 						scope.data.roi = scope.data.npv / Math.abs(caps) * 100.0;
 					}
@@ -308,30 +334,30 @@ define(['./../module', 'xlsx'], function(module){
 					scope.data.paybackPeriod = 0.0;
 					var ppsum = 0.0;
 					for (var i = 1; i < 6; i++) {
-						ppsum += (scope.data.cashFlow.revenuesYear[i]
-										+ scope.data.cashFlow.cogsYear[i]
-										+ scope.data.cashFlow.opexesYear[i]
-										+ scope.data.cashFlow.incomeYear[i]
-										+ scope.data.cashFlow.capexesYear[i]) * discount[i];
+						ppsum += (scope.data.cashFlow.revenuesTotal.year[i]
+										+ scope.data.cashFlow.cogsTotal.year[i]
+										+ scope.data.cashFlow.opexesTotal.year[i]
+										+ scope.data.cashFlow.incomeTotal.year[i]
+										+ scope.data.cashFlow.capexesTotal.year[i]) * discount[i];
 						if (ppsum > 0) {
-							scope.data.paybackPeriod = (i>1?i:0.0) + 1.0 - (ppsum / (ppsum - (scope.data.cashFlow.capexesYear[i] * discount[i])));
+							scope.data.paybackPeriod = (i>1?i:0.0) + 1.0 - (ppsum / (ppsum - (scope.data.cashFlow.capexesTotal.year[i] * discount[i])));
 							break;
 						}
 					}
 
 					// P&L effect first year
-					scope.data.plEffect = (scope.data.accurals.revenuesYear[1]
-										+ scope.data.accurals.capexesYear[1]
-										+ scope.data.accurals.opexesYear[1]
-										+ scope.data.accurals.cogsYear[1]
-										+ scope.data.accurals.incomeYear[1]);
+					scope.data.plEffect = (scope.data.accurals.revenuesTotal.year[1]
+										+ scope.data.accurals.capexesTotal.year[1]
+										+ scope.data.accurals.opexesTotal.year[1]
+										+ scope.data.accurals.cogsTotal.year[1]
+										+ scope.data.accurals.incomeTotal.year[1]);
 					
 					// CF effect first year
-					scope.data.cfEffect = (scope.data.cashFlow.revenuesYear[1]
-										+ scope.data.cashFlow.capexesYear[1]
-										+ scope.data.cashFlow.opexesYear[1])
-										+ scope.data.cashFlow.cogsYear[1]
-										+ scope.data.cashFlow.incomeYear[1];
+					scope.data.cfEffect = (scope.data.cashFlow.revenuesTotal.year[1]
+										+ scope.data.cashFlow.capexesTotal.year[1]
+										+ scope.data.cashFlow.opexesTotal.year[1])
+										+ scope.data.cashFlow.cogsTotal.year[1]
+										+ scope.data.cashFlow.incomeTotal.year[1];
 
 					scope.calcScoring();
 				};
