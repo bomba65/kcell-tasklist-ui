@@ -870,10 +870,8 @@ define(['./module','jquery'], function(app,$){
                         , "Price (with transportation)", "Monthly act #", "JO#", "PR#", "PR Total Value", "PR Status", "PR Approval date", "PO#", "Invoice No", "Invoice date"]);
 
                     var ws = XLSX.utils.json_to_sheet(response.data, {skipHeader:true});
-
                     var wb = XLSX.utils.book_new();
                     XLSX.utils.book_append_sheet(wb, ws, 'New Sheet Name 1');
-
                     return XLSX.writeFile(wb, 'extended-report-by-jobs.xlsx');
                 });
             }

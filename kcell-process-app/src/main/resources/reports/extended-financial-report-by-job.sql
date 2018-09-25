@@ -21,7 +21,7 @@ select
   end as "JR Reason",
   pi.start_time_ as "Requested Date",
   pi.start_user_id_ as "Requested By",
-  validityDate.text_ as "Validity Date",
+  to_timestamp(validityDate.long_/1000) as "Validity Date",
   relatedTo.text_ as "Related to the",
   project.text_ as "Project",
   mtListSignDate.value_ as "Material List Signing Date",
@@ -137,8 +137,8 @@ select
       select works.proc_inst_id_,
              --string_agg(works.title, ', ')                   as title,         --"Job Description",
              --sum(cast(works.quantity as int))                as quantity,
-             string_agg( (case rownum when 1 then works.title end), chr(10) order by works.sapServiceNumber)  as title,         --"Job Description",
-             string_agg( (case rownum when 1 then cast(works.totalQuantityPerWorkType as char) end), chr(10) order by works.sapServiceNumber)  as quantity,
+             string_agg( (case rownum when 1 then works.title end), ', ' order by works.sapServiceNumber)  as title,         --"Job Description",
+             string_agg( (case rownum when 1 then cast(works.totalQuantityPerWorkType as char) end), ', ' order by works.sapServiceNumber)  as quantity,
              sum(cast(works.unitWorkPrice as numeric))       as unitWorkPrice, --"Price without transport",
              sum(cast(works.unitWorkPricePlusTx as numeric)) as unitWorkPricePlusTx --"Price with transport"
       from (
