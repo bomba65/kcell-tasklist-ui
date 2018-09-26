@@ -48,7 +48,8 @@
                 'planningFiles',
                 'priority',
                 'performDate',
-                'mlApprovalAdditionalInfoFile'
+                'mlApprovalAdditionalInfoFile',
+                'delayInfo'
             ];
             $scope.jobModel = {};
             var workFiles = [];
@@ -90,6 +91,7 @@
                     type: 'String',
                     value: ''
                 });
+
                 $http.get("/camunda/api/engine/engine/default/user/" + $rootScope.authentication.name+ "/profile").then(function(result){
                     $rootScope.authentication.assigneeName = (result.data.firstName ? result.data.firstName : "") + " " + (result.data.lastName ? result.data.lastName : "");
                 });
@@ -147,6 +149,9 @@
                 if(!$scope.initiatorFiles.value){
                     $scope.initiatorFiles.value = [];
                 }
+                if(!$scope.delayInfo.type){
+                    $scope.delayInfo.type = 'Integer';
+                }
             });
 
             camForm.on('submit', function () {
@@ -177,6 +182,8 @@
                 }
                 $scope.jobModel.resolutions.push({processInstanceId: $scope.processInstanceId, assignee: $rootScope.authentication.name, assigneeName: $rootScope.authentication.assigneeName, resolution: $scope.acceptAndSignByInitiatorTaskResult, comment: $scope.acceptAndSignByInitiatorComment, taskId: camForm.taskId, visibility: visibility, files:newFiles});
                 camForm.variableManager.variableValue('resolutions', $scope.jobModel.resolutions);
+
+                camForm.variableManager.variableValue('delayInfo', $scope.delayInfo.value);
             });
 
             camForm.on('store', function() {
@@ -286,6 +293,14 @@
             </div>
         </div>
         <input type="file" class="form-control" id="initiator_file_{{initiatorFiles.value.length}}" name="initiator_file_{{initiatorFiles.value.length}}" ng-model="file.file" onchange="angular.element(this).scope().fileSelected(this)"/>
+    </div>
+
+    <div class="form-group">
+        <label class="col-sm-4 control-label">Please, add delay info</label>
+        <div class="col-sm-8">
+            <input class="form-control" type="number" ng-model="delayInfo.value" required min="0" name="delayInfo">
+            <label class="error" ng-show="kcell_form.delayInfo.$error.required && ( kcell_form.delayInfo.$touched || view.submitted)">Required field</label>
+        </div>
     </div>
 
     <div class="form-group">
