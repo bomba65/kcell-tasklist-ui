@@ -404,12 +404,12 @@
       </bpmn:sequenceFlow>
     </bpmn:subProcess>
     <bpmn:subProcess id="SubProcess_0a0tcem" name="Execute Works">
-      <bpmn:incoming>SequenceFlow_1lwdiem</bpmn:incoming>
-      <bpmn:incoming>SequenceFlow_0jvqwqj</bpmn:incoming>
       <bpmn:incoming>SequenceFlow_0d3icf7</bpmn:incoming>
       <bpmn:incoming>SequenceFlow_0yytnh6</bpmn:incoming>
       <bpmn:incoming>SequenceFlow_15t5z9i</bpmn:incoming>
       <bpmn:incoming>SequenceFlow_0tbefms</bpmn:incoming>
+      <bpmn:incoming>SequenceFlow_0imk01i</bpmn:incoming>
+      <bpmn:incoming>SequenceFlow_1dt5wuz</bpmn:incoming>
       <bpmn:outgoing>SequenceFlow_1hw1xm0</bpmn:outgoing>
       <bpmn:outgoing>SequenceFlow_05vqen4</bpmn:outgoing>
       <bpmn:outgoing>SequenceFlow_1sfkegw</bpmn:outgoing>
@@ -1237,7 +1237,7 @@
     <bpmn:sequenceFlow id="SequenceFlow_1p8u37f" name="materials are not available" sourceRef="SubProcess_0eah6dm" targetRef="SubProcess_04dekrg">
       <bpmn:conditionExpression xsi:type="bpmn:tFormalExpression">${materialsNotAvailable==true}</bpmn:conditionExpression>
     </bpmn:sequenceFlow>
-    <bpmn:sequenceFlow id="SequenceFlow_1lwdiem" name="rejected job" sourceRef="SubProcess_0v7hq1m" targetRef="SubProcess_0a0tcem">
+    <bpmn:sequenceFlow id="SequenceFlow_1lwdiem" name="rejected job" sourceRef="SubProcess_0v7hq1m" targetRef="IntermediateThrowEvent_return_acceptance">
       <bpmn:conditionExpression xsi:type="bpmn:tFormalExpression">${acceptPerformedJob== 'rejected'}</bpmn:conditionExpression>
     </bpmn:sequenceFlow>
     <bpmn:sequenceFlow id="SequenceFlow_0b217tv" name="modify works" sourceRef="SubProcess_04dekrg" targetRef="SubProcess_0cd7y34">
@@ -1249,7 +1249,7 @@
     <bpmn:sequenceFlow id="SequenceFlow_1hw1xm0" name="cannot perform works" sourceRef="SubProcess_0a0tcem" targetRef="SubProcess_0cd7y34">
       <bpmn:conditionExpression xsi:type="bpmn:tFormalExpression">${fillAppliedChangesInfoByContractorTaskResult=='cannotPerform'}</bpmn:conditionExpression>
     </bpmn:sequenceFlow>
-    <bpmn:sequenceFlow id="SequenceFlow_0jvqwqj" name="not approved, request corrections" sourceRef="SubProcess_1okaxp7" targetRef="SubProcess_0a0tcem">
+    <bpmn:sequenceFlow id="SequenceFlow_0jvqwqj" name="not approved, request corrections" sourceRef="SubProcess_1okaxp7" targetRef="IntermediateThrowEvent_return_permit_unit">
       <bpmn:conditionExpression xsi:type="bpmn:tFormalExpression">${revisionPrepare == 'notApproved'}</bpmn:conditionExpression>
     </bpmn:sequenceFlow>
     <bpmn:sequenceFlow id="SequenceFlow_05vqen4" name="materials not available" sourceRef="SubProcess_0a0tcem" targetRef="SubProcess_04dekrg">
@@ -1381,14 +1381,14 @@
     </bpmn:endEvent>
     <bpmn:sequenceFlow id="SequenceFlow_05an1kf" sourceRef="extprocess_prepare_permit_docs" targetRef="endevt_parallel_permitdocs" />
     <bpmn:sequenceFlow id="SequenceFlow_0hpzq8v" name="invoiced" sourceRef="intermediate_wait_invoiced" targetRef="IntermediateThrowEvent_invoiced" />
-    <bpmn:intermediateCatchEvent id="intermediate_wait_invoiced" name="Accepted but not invoiced">
+    <bpmn:intermediateCatchEvent id="intermediate_wait_invoiced" name="Final Accepted, waitng prep. Fin act">
       <bpmn:extensionElements>
         <camunda:executionListener delegateExpression="${statusListener}" event="start">
           <camunda:field name="statusId">
             <camunda:string>intermediate_wait_invoiced</camunda:string>
           </camunda:field>
           <camunda:field name="statusName">
-            <camunda:string>Accepted but not invoiced</camunda:string>
+            <camunda:string>Final Accepted, waiting prep. Fin act</camunda:string>
           </camunda:field>
           <camunda:field name="returnStatus">
             <camunda:string>false</camunda:string>
@@ -1978,6 +1978,48 @@
       <bpmn:outgoing>SequenceFlow_0q66iqs</bpmn:outgoing>
     </bpmn:intermediateThrowEvent>
     <bpmn:sequenceFlow id="SequenceFlow_0q66iqs" sourceRef="IntermediateThrowEvent_invoiced" targetRef="endevt_revision" />
+    <bpmn:sequenceFlow id="SequenceFlow_0imk01i" sourceRef="IntermediateThrowEvent_return_acceptance" targetRef="SubProcess_0a0tcem" />
+    <bpmn:intermediateThrowEvent id="IntermediateThrowEvent_return_acceptance" name="Returned for correction from Acceptance">
+      <bpmn:extensionElements>
+        <camunda:executionListener delegateExpression="${statusListener}" event="start">
+          <camunda:field name="statusId">
+            <camunda:string>return_acceptance</camunda:string>
+          </camunda:field>
+          <camunda:field name="statusName">
+            <camunda:string>Returned for correction from Acceptance</camunda:string>
+          </camunda:field>
+          <camunda:field name="returnStatus">
+            <camunda:string>true</camunda:string>
+          </camunda:field>
+          <camunda:field name="parentStatus">
+            <camunda:string>JR Open but not performed</camunda:string>
+          </camunda:field>
+        </camunda:executionListener>
+      </bpmn:extensionElements>
+      <bpmn:incoming>SequenceFlow_1lwdiem</bpmn:incoming>
+      <bpmn:outgoing>SequenceFlow_0imk01i</bpmn:outgoing>
+    </bpmn:intermediateThrowEvent>
+    <bpmn:intermediateThrowEvent id="IntermediateThrowEvent_return_permit_unit" name="Returned for correction from Permits Unit">
+      <bpmn:extensionElements>
+        <camunda:executionListener delegateExpression="${statusListener}" event="start">
+          <camunda:field name="statusId">
+            <camunda:string>return_permit_unit</camunda:string>
+          </camunda:field>
+          <camunda:field name="statusName">
+            <camunda:string>Returned for correction from Permits Unit</camunda:string>
+          </camunda:field>
+          <camunda:field name="returnStatus">
+            <camunda:string>true</camunda:string>
+          </camunda:field>
+          <camunda:field name="parentStatus">
+            <camunda:string>JR Open but not performed</camunda:string>
+          </camunda:field>
+        </camunda:executionListener>
+      </bpmn:extensionElements>
+      <bpmn:incoming>SequenceFlow_0jvqwqj</bpmn:incoming>
+      <bpmn:outgoing>SequenceFlow_1dt5wuz</bpmn:outgoing>
+    </bpmn:intermediateThrowEvent>
+    <bpmn:sequenceFlow id="SequenceFlow_1dt5wuz" sourceRef="IntermediateThrowEvent_return_permit_unit" targetRef="SubProcess_0a0tcem" />
     <bpmn:textAnnotation id="TextAnnotation_189rkq0">
       <bpmn:text>Infrormation is taken from step "Fill Applied Changes Info by Contractor"</bpmn:text>
     </bpmn:textAnnotation>
@@ -2470,9 +2512,8 @@
         </bpmndi:BPMNLabel>
       </bpmndi:BPMNEdge>
       <bpmndi:BPMNEdge id="SequenceFlow_1lwdiem_di" bpmnElement="SequenceFlow_1lwdiem">
-        <di:waypoint x="3908" y="-45" />
-        <di:waypoint x="2504" y="-45" />
-        <di:waypoint x="2504" y="-201" />
+        <di:waypoint x="3908" y="-39" />
+        <di:waypoint x="3487" y="-36" />
         <bpmndi:BPMNLabel>
           <dc:Bounds x="3672" y="-87" width="57" height="13" />
         </bpmndi:BPMNLabel>
@@ -2586,8 +2627,7 @@
       <bpmndi:BPMNEdge id="SequenceFlow_0jvqwqj_di" bpmnElement="SequenceFlow_0jvqwqj">
         <di:waypoint x="3023" y="-739" />
         <di:waypoint x="3023" y="-793" />
-        <di:waypoint x="2296" y="-793" />
-        <di:waypoint x="2296" y="-690" />
+        <di:waypoint x="2729" y="-793" />
         <bpmndi:BPMNLabel>
           <dc:Bounds x="3032" y="-776" width="68" height="38" />
         </bpmndi:BPMNLabel>
@@ -3625,7 +3665,7 @@
       <bpmndi:BPMNShape id="IntermediateCatchEvent_1sf1gqm_di" bpmnElement="intermediate_wait_invoiced">
         <dc:Bounds x="6295" y="-310" width="36" height="36" />
         <bpmndi:BPMNLabel>
-          <dc:Bounds x="6273" y="-272" width="83" height="25" />
+          <dc:Bounds x="6281" y="-272" width="79" height="38" />
         </bpmndi:BPMNLabel>
       </bpmndi:BPMNShape>
       <bpmndi:BPMNShape id="SubProcess_1asnndj_di" bpmnElement="SubProcess_1asnndj" isExpanded="true">
@@ -4810,6 +4850,34 @@
           <dc:Bounds x="6104" y="837" width="67" height="25" />
         </bpmndi:BPMNLabel>
       </bpmndi:BPMNShape>
+      <bpmndi:BPMNEdge id="SequenceFlow_0imk01i_di" bpmnElement="SequenceFlow_0imk01i">
+        <di:waypoint x="3451" y="-36" />
+        <di:waypoint x="2504" y="-45" />
+        <di:waypoint x="2504" y="-201" />
+        <bpmndi:BPMNLabel>
+          <dc:Bounds x="2977.5" y="-62" width="0" height="13" />
+        </bpmndi:BPMNLabel>
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNShape id="IntermediateThrowEvent_02siixt_di" bpmnElement="IntermediateThrowEvent_return_acceptance">
+        <dc:Bounds x="3451" y="-53" width="36" height="36" />
+        <bpmndi:BPMNLabel>
+          <dc:Bounds x="3432" y="-15" width="74" height="38" />
+        </bpmndi:BPMNLabel>
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="IntermediateThrowEvent_1c6arme_di" bpmnElement="IntermediateThrowEvent_return_permit_unit">
+        <dc:Bounds x="2693" y="-811" width="36" height="36" />
+        <bpmndi:BPMNLabel>
+          <dc:Bounds x="2674" y="-772" width="74" height="38" />
+        </bpmndi:BPMNLabel>
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNEdge id="SequenceFlow_1dt5wuz_di" bpmnElement="SequenceFlow_1dt5wuz">
+        <di:waypoint x="2693" y="-793" />
+        <di:waypoint x="2296" y="-793" />
+        <di:waypoint x="2296" y="-690" />
+        <bpmndi:BPMNLabel>
+          <dc:Bounds x="2494.5" y="-815" width="0" height="13" />
+        </bpmndi:BPMNLabel>
+      </bpmndi:BPMNEdge>
     </bpmndi:BPMNPlane>
   </bpmndi:BPMNDiagram>
 </bpmn:definitions>

@@ -672,10 +672,6 @@ define(['./module','jquery', 'camundaSDK'], function(app, $, CamSDK){
 			});
         };
 
-        $scope.getStatus = function(state, value){
-			return (state == 'COMPLETED' || state == 'EXTERNALLY_TERMINATED')? 'Closed': (value == 'accepted'?'Accepted & waiting scan attach':(value == 'scan attached'?'Accepted & waiting invoice':'In progress'))
-        };
-
         $scope.hasPermissionToViewAll = function(processDefinitionKey){
 			if (processDefinitionKey === 'Revision') {
 				return $scope.hasOneOfListedGroup(['revision_managers','revision_audit']);
