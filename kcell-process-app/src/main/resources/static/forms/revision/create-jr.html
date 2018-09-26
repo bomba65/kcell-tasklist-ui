@@ -95,20 +95,24 @@
             var permitWorks = ['3', '4', '5', '6', '7', '8', '9', '10', '35', '36', '37', '38', '39', '40', '41', '42', '43', '44', '65', '66', '67', '68', '69', '70', '71', '72', '73', '74', '75', '76', '77', '78', '86', '87', '91', '94', '95', '96', '155', '156', '157', '158', '159', '160'];
 
             $scope.jobWorkReasons = [
-                {id: 'installation', expenseType: 'CAPEX', name: 'Installation (Монтаж - установка нового оборудования)'},
-                {id: 'modernization', expenseType: 'CAPEX', name: 'Modernization (Модернизация - замена оборудования на более производительное)'},
-                {id: 'change_prevention', expenseType: 'OPEХ', name: 'Change (Замена - восстановление вышедшего из строя оборудования/OC для поддержания их в рабочем состоянии  с целью их профилактики )'},
-                {id: 'change_improve', expenseType: 'CAPEX', name: 'Change (Замена - восстановление вышедшего из строя оборудования/ОС для улучшения состояния объекта, повышающего его первоначально оцененные нормативные показатели: срок службы, производственную мощность и т. д )'},
-                {id: 'replacement', expenseType: 'OPEХ', name: 'Replacement (Перемещение - в пределах одного сайта)'},
-                {id: 'removal', expenseType: 'OPEХ', name: 'Removal (Демонтаж - снятие оборудования)'}
+                {id: 'installation', expenseType: 'CAPEX', name: 'Installation', detail: 'Монтаж - установка нового оборудования'},
+                {id: 'modernization', expenseType: 'CAPEX', name: 'Modernization', detail: 'Модернизация - замена оборудования на более производительное'},
+                {id: 'change_support', expenseType: 'OPEХ', name: 'Change for support', detail: 'Замена - восстановление вышедшего из строя оборудования/OC для поддержания их в рабочем состоянии  с целью их профилактики'},
+                {id: 'change_improvement', expenseType: 'CAPEX', name: 'Change for improvement', detail: 'Замена - восстановление вышедшего из строя оборудования/ОС для улучшения состояния объекта, повышающего его первоначально оцененные нормативные показатели: срок службы, производственную мощность и т. д'},
+                {id: 'replacement', expenseType: 'OPEХ', name: 'Replacement', detail: 'Перемещение - в пределах одного сайта'},
+                {id: 'removal', expenseType: 'OPEХ', name: 'Removal', detail: 'Демонтаж - снятие оборудования'}
             ];
 
             $scope.defineExpenseType = function(index){
                 for(var i=0;i<$scope.jobWorkReasons.length;i++){
                     if($scope.jobWorks[index].reason === $scope.jobWorkReasons[i].id){
                         $scope.jobWorks[index].expenseType = $scope.jobWorkReasons[i].expenseType;
+                        $scope.jobWorks[index].reasonDetail = $scope.jobWorkReasons[i].detail;
                     }
                 }
+                $(function () {
+                    $('[data-toggle="tooltip"]').tooltip('fixTitle');
+                });
             };
 
             $http.get('/camunda/api/engine/engine/default/task/' + camForm.taskId).then(
@@ -244,6 +248,9 @@
                 );
                 $http.get("/camunda/api/engine/engine/default/user/" + $rootScope.authentication.name+ "/profile").then(function(result){
                     $rootScope.authentication.assigneeName = (result.data.firstName ? result.data.firstName : "") + " " + (result.data.lastName ? result.data.lastName : "");
+                });
+                $(function () {
+                    $('[data-toggle="tooltip"]').tooltip('fixTitle');
                 });
             });
 
@@ -985,20 +992,37 @@
                             </ng-form>
                         </tr>
                         <tr>
-                            <td colspan="6">
-                                <table>
-                                    <tr>
-                                        <td>
-                                            Work request reason:
-                                        </td>
-                                        <td>
-                                            <select ng-model="jobWork.reason" name="reason{{$index}}" required class="form-control" ng-change="defineExpenseType($index)">
-                                                <option ng-repeat="reason in jobWorkReasons" ng-selected="{{reason.id == jobWork.reason}}" value="{{reason.id}}">{{reason.name}}</option>
-                                            </select>
-                                            <label class="error" ng-if="kcell_form['reason'+$index].$error.required && ( kcell_form['reason'+$index].$touched || view.submitted)">Required field</label>
-                                        </td>
-                                    </tr>
-                                </table>
+                            <td>
+                                <div class="input-group">
+                                <span class="input-group-addon">
+                                    Work Request Reason
+                                    <a role="button" data-toggle="collapse" href="#collapseReasonGeneralInfo" aria-expanded="false" aria-controls="collapseReasonGeneralInfo">
+                                        <i class="glyphicon glyphicon-question-sign"></i>
+                                    </a>
+                                </span>
+                                    <select ng-model="jobWork.reason" name="reason{{$index}}" required class="form-control" ng-change="defineExpenseType($index)">
+                                        <option value="">Select work request reason</option>
+                                        <option ng-repeat="reason in jobWorkReasons" ng-selected="{{reason.id == jobWork.reason}}" value="{{reason.id}}">{{reason.name}}</option>
+                                    </select>
+                                </div>
+                                <label class="error" ng-if="kcell_form['reason'+$index].$error.required && ( kcell_form['reason'+$index].$touched || view.submitted)">Required field</label>
+                            </td>
+                            <td colspan="4">
+                                <i ng-show="jobWork.reasonDetail" class="glyphicon glyphicon-info-sign" data-toggle="tooltip" data-placement="right" title="{{jobWork.reasonDetail}}"></i>
+                            </td>
+                        </tr>
+                        <tr>
+                            <td style="border-width: 0px" colspan="4">
+                                <div class="collapse" id="collapseReasonGeneralInfo">
+                                    <div class="well">
+                                        <b>Installation</b> Монтаж - установка нового оборудования <br />
+                                        <b>Modernization</b> Модернизация - замена оборудования на более производительное <br />
+                                        <b>Change for support</b> Замена - восстановление вышедшего из строя оборудования/OC для поддержания их в рабочем состоянии  с целью их профилактики <br />
+                                        <b>Change for improvement</b> Замена - восстановление вышедшего из строя оборудования/ОС для улучшения состояния объекта, повышающего его первоначально оцененные нормативные показатели: срок службы, производственную мощность и т. д<br />
+                                        <b>Replacement</b> Перемещение - в пределах одного сайта<br />
+                                        <b>Removal</b> Демонтаж - снятие оборудования
+                                    </div>
+                                </div>
                             </td>
                         </tr>
                     </tbody>
