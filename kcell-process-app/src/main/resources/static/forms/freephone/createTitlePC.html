@@ -52,12 +52,27 @@
                         if (camForm.variableManager.variables[el].value) {
                             $scope.resolutions = angular.copy(camForm.variableManager.variables[el].value);
                             $q.all($scope.resolutions.map(function (resolution) {
+                                if (resolution.assigneeName === undefined) {
+                                    return $http.get("/camunda/api/engine/engine/default/user/" + resolution.assignee + "/profile");
+                                } else {
+                                    return {data:{}};
+                                }
+                            })).then(function (profiles) {
+                                profiles.forEach(function (e, index) {
+                                    if ( $scope.resolutions[index].assigneeName === undefined) {
+                                        $scope.resolutions[index].assigneeName = (e.data.firstName ? e.data.firstName : "") + " " + (e.data.lastName ? e.data.lastName : "");
+                                    }
+                                });
+                            });
+                            /*
+                            $q.all($scope.resolutions.map(function (resolution) {
                                 return $http.get("/camunda/api/engine/engine/default/user/" + resolution.assignee + "/profile");
                             })).then(function (profiles) {
                                 profiles.forEach(function (e, index) {
                                     $scope.resolutions[index].assigneeName = (e.data.firstName ? e.data.firstName : "") + " " + (e.data.lastName ? e.data.lastName : "");
                                 });
                             });
+                            */
                             $q.all($scope.resolutions.map(function (resolution) {
                                 return $http.get("/camunda/api/engine/engine/default/history/task?processInstanceId=" + resolution.processInstanceId + "&taskId=" + resolution.taskId);
                             })).then(function (tasks) {
@@ -88,6 +103,9 @@
                         $scope.freephoneInfo[el] = camForm.variableManager.variables[el].value;
                     }
                 });
+                $http.get("/camunda/api/engine/engine/default/user/" + $rootScope.authentication.name+ "/profile").then(function(result){
+                    $rootScope.authentication.assigneeName = (result.data.firstName ? result.data.firstName : "") + " " + (result.data.lastName ? result.data.lastName : "");
+                });
                 $scope.freephoneInfo.showTarif = true;
                 console.log($scope.freephoneInfo);
                 console.log($scope.freephoneInfo.files);
@@ -114,7 +132,7 @@
                 }
                 camForm.variableManager.variableValue('createTitlePCTaskResult', $scope.createTitlePCTaskResult);
                 camForm.variableManager.variableValue('createTitlePCTaskComment', $scope.createTitlePCTaskComment);
-                $scope.resolutions.push({processInstanceId: $scope.processInstanceId, assignee: $rootScope.authentication.name, resolution: $scope.createTitlePCTaskResult, comment: $scope.createTitlePCTaskComment, taskId: camForm.taskId});
+                $scope.resolutions.push({processInstanceId: $scope.processInstanceId, assignee: $rootScope.authentication.name, assigneeName: $rootScope.authentication.assigneeName, resolution: $scope.createTitlePCTaskResult, comment: $scope.createTitlePCTaskComment, taskId: camForm.taskId});
                 camForm.variableManager.variableValue('resolutions', $scope.resolutions);
             });
         }]);

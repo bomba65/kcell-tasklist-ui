@@ -629,7 +629,7 @@ define(['./module','jquery', 'moment', 'camundaSDK'], function(app, $, moment, C
 			            	function(result){
 			            		var workFiles = [];
 			            		result.data.forEach(function(el){
-			            			$scope.jobModel[el.name] = el;
+									$scope.jobModel[el.name] = el;
 			            			if(el.type === 'File' || el.type === 'Bytes'){
 			            				$scope.jobModel[el.name].contentUrl = baseUrl+'/history/variable-instance/'+el.id+'/data';
 			            			}
@@ -769,10 +769,45 @@ define(['./module','jquery', 'moment', 'camundaSDK'], function(app, $, moment, C
 		$scope.processInstancesDPPages = 0;
 		$scope.sortedProcessInstancesDP = [];
 
+		var excludeTasksMap = {
+			'PBX': [
+				'checkQuestionnaire'
+			],
+			'freephone': [
+				'UserTask_0a7shjt',
+				'Task_09uj6n6',
+				'UserTask_0woyg7k',
+				'UserTask_1xsquz3',
+				'Task_1iyjmab',
+				'UserTask_14t2lw4',
+				'UserTask_1jrkuqn'
+			],
+			'bulksmsConnectionKAE': [
+				'Task_0km85gh',
+				'Task_1cagjud',
+				'Task_1a4tell',
+				'Task_0807llk',
+				'Task_0zconst',
+				'Task_1ffdpes',
+				'Task_1q0yosd',
+				'Task_0gv08f6',
+				'Task_1uz37wa',
+				'Task_065funq',
+				'UserTask_1nk8ri5',
+				'UserTask_1xq5pie',
+				'UserTask_012elxb',
+				'UserTask_01gopqr',
+				'UserTask_18jefcx',
+				'UserTask_1iy9zim',
+				'Task_1qswlt4',
+				'SendTask_1wfg3ue',
+				'Task_1257fik',
+				'Task_0d7igwz'
+			]
+		};
+
 		var startDate;
 		var endDate;
-		//var startDate = moment();
-		//var endDate = moment();
 
 		$('input[name="multipleDate"]').daterangepicker({
 			startDate: startDate,
@@ -872,7 +907,11 @@ define(['./module','jquery', 'moment', 'camundaSDK'], function(app, $, moment, C
 						var domParser = new DOMParser();
 						var xml = domParser.parseFromString(response.data.bpmn20Xml, 'application/xml');
 						var userTasks = getUserTasks(xml);
-						var userTasksMap = _.keyBy(userTasks, 'id');
+						var excludeTasks = excludeTasksMap[def.value];
+						var includedUserTasks = _.filter(userTasks, function(task) {
+							return excludeTasks.indexOf(task.id) === -1;
+						});
+						var userTasksMap = _.keyBy(includedUserTasks, 'id');
 						$scope.userTasksMapDP[def.value] = userTasksMap;
 					}
 				})
@@ -1392,7 +1431,7 @@ define(['./module','jquery', 'moment', 'camundaSDK'], function(app, $, moment, C
             return [];
         };
 
-		$scope.toggleProcessViewDB = function(rowIndex, processDefinitionKey){
+		$scope.toggleProcessViewDP = function(rowIndex, processDefinitionKey){
 			$scope.showDiagramView = false;
 			$scope.diagram = {};
 			var index = ($scope.filterDP.page-1)*$scope.filterDP.maxResults+rowIndex;
@@ -1436,7 +1475,6 @@ define(['./module','jquery', 'moment', 'camundaSDK'], function(app, $, moment, C
 							}
 							$http.get(baseUrl+'/history/variable-instance?deserializeValues=false&processInstanceId='+$scope.processInstancesDP[index].id).then(
 								function(result){
-									var workFiles = [];
 									result.data.forEach(function(el){
 										$scope.jobModel[el.name] = el;
 					            		if(el.type !== 'Json' && (el.value || el.value === "" || el.type === 'Boolean')) {
@@ -1450,7 +1488,7 @@ define(['./module','jquery', 'moment', 'camundaSDK'], function(app, $, moment, C
 					            		}
 					            		if(el.type === 'Json' && el.name !== 'resolutions'){
 					            			$scope.jobModel[el.name] = JSON.parse(el.value);	
-					            		}
+										}
 									});
 									//console.log('jobModel', $scope.jobModel);
 									if($scope.jobModel.resolutions && $scope.jobModel.resolutions.value){
