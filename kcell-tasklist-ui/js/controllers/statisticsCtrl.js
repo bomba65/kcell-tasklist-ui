@@ -787,7 +787,7 @@ define(['./module','jquery'], function(app,$){
         }
 
         $scope.downloadTechnicalReport = function(){
-            if($rootScope.authentication.name === 'demo' || $rootScope.authentication.name === 'Evgeniy.Semenov@kcell.kz' || $rootScope.authentication.name === 'Yernaz.Kalingarayev@kcell.kz'){
+            if($rootScope.authentication.name === 'demo' || $rootScope.authentication.name === 'Yernaz.Kalingarayev@kcell.kz' || $rootScope.authentication.name === 'Evgeniy.Semenov@kcell.kz'){
                 $http.get('/camunda/reports/report').then(function(response) {
                     var data = response.data;
 
@@ -798,9 +798,10 @@ define(['./module','jquery'], function(app,$){
                         d[9] =  $filter('date')(d[9], "yyyy-MM-dd");
                         d[10] =  $filter('date')(d[10], "yyyy-MM-dd");
                         d[11] =  $filter('date')(d[11], "yyyy-MM-dd");
+                        d[12] =  $filter('date')(d[12], "yyyy-MM-dd");
                     });
 
-                    data.splice(0, 0, ["Region", "Sitename", "JR No", "JR To", "JR Reason", "Requested Date", "Requested By", "Validity Date", "Material List Signing Date"
+                    data.splice(0, 0, ["Region", "Sitename", "JR No", "JR To", "JR Reason", "Requested Date", "Requested By", "Validity Date", "Material List Signing Date", "Accept by Initiator"
                         , "Accept by Work Maintenance", "Accept by Work Planning", "Acceptance Date", "Job Description", "Quantity", "Comments", "Customer Material"
                         , "Process State", "JR Status", "Detailed status", "Reason"]);
 
@@ -809,7 +810,36 @@ define(['./module','jquery'], function(app,$){
                     var wb = XLSX.utils.book_new();
                     XLSX.utils.book_append_sheet(wb, ws, 'New Sheet Name 1');
 
-                    return XLSX.writeFile(wb, 'technical-report.xlsx');
+                    return XLSX.writeFile(wb, 'technical-report-by-works.xlsx');
+                });
+            }
+        }
+
+        $scope.downloadTechnicalByJobsReport = function(){
+            if($rootScope.authentication.name === 'demo' || $rootScope.authentication.name === 'Yernaz.Kalingarayev@kcell.kz' || $rootScope.authentication.name === 'Evgeniy.Semenov@kcell.kz'){
+                $http.get('/camunda/reports/technical-report-by-jobs').then(function(response) {
+                    var data = response.data;
+
+                    angular.forEach(data, function(d){
+                        d[5] =  $filter('date')(d[5], "yyyy-MM-dd");
+                        d[7] =  $filter('date')(d[7], "yyyy-MM-dd");
+                        d[8] =  $filter('date')(d[8], "yyyy-MM-dd");
+                        d[9] =  $filter('date')(d[9], "yyyy-MM-dd");
+                        d[10] =  $filter('date')(d[10], "yyyy-MM-dd");
+                        d[11] =  $filter('date')(d[11], "yyyy-MM-dd");
+                        d[12] =  $filter('date')(d[12], "yyyy-MM-dd");
+                    });
+
+                    data.splice(0, 0, ["Region", "Sitename", "JR No", "JR To", "JR Reason", "Requested Date", "Requested By", "Validity Date", "Material List Signing Date", "Accept by Initiator"
+                        , "Accept by Work Maintenance", "Accept by Work Planning", "Acceptance Date", "Job Description", "Quantity", "Comments", "Customer Material"
+                        , "Process State", "JR Status", "Detailed status", "Reason"]);
+
+                    var ws = XLSX.utils.json_to_sheet(response.data, {skipHeader:true});
+
+                    var wb = XLSX.utils.book_new();
+                    XLSX.utils.book_append_sheet(wb, ws, 'New Sheet Name 1');
+
+                    return XLSX.writeFile(wb, 'technical-report-by-jobs.xlsx');
                 });
             }
         }
@@ -847,7 +877,7 @@ define(['./module','jquery'], function(app,$){
             }
         }
         $scope.downloadExtendedByJobsReport = function(){
-            if($rootScope.authentication.name === 'demo' || $rootScope.authentication.name === 'Evgeniy.Semenov@kcell.kz' || $rootScope.authentication.name === 'Yernaz.Kalingarayev@kcell.kz' || $rootScope.authentication.name === 'Gulzhan.Imandosova@kcell.kz'){
+            if($rootScope.authentication.name === 'demo' || $rootScope.authentication.name === 'Yernaz.Kalingarayev@kcell.kz' || $rootScope.authentication.name === 'Gulzhan.Imandosova@kcell.kz'){
                 $http.get('/camunda/reports/extended-report-by-jobs').then(function(response) {
                     var data = response.data;
 

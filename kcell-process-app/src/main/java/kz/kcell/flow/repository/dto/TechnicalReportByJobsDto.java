@@ -2,7 +2,7 @@ package kz.kcell.flow.repository.dto;
 
 import java.util.Date;
 
-public class ReportDto {
+public class TechnicalReportByJobsDto {
 
     public String region;
     public String sitename;
@@ -22,4 +22,5 @@ public class ReportDto {
     public String quantity;
     public String comments;
     public String customerMaterial;
+
 }

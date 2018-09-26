@@ -4,6 +4,7 @@ import kz.kcell.flow.repository.custom.ReportRepository;
 import kz.kcell.flow.repository.dto.FinancialReportDto;
 import kz.kcell.flow.repository.dto.ExtendedReportByJobsDto;
 import kz.kcell.flow.repository.dto.ReportDto;
+import kz.kcell.flow.repository.dto.TechnicalReportByJobsDto;
 import lombok.extern.java.Log;
 import org.camunda.bpm.engine.IdentityService;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -41,6 +42,25 @@ public class ReportController {
         String query = s.hasNext() ? s.next() : "";
 
         List<ReportDto> reportDtos = reportRepository.report(query);
+
+        return ResponseEntity.ok(reportDtos);
+    }
+
+
+    @RequestMapping(value = "/technical-report-by-jobs", method = RequestMethod.GET)
+    @ResponseBody
+    public ResponseEntity<List<TechnicalReportByJobsDto>> getTechnicalReportByJobs(){
+
+        if (identityService.getCurrentAuthentication() == null || identityService.getCurrentAuthentication().getUserId() == null) {
+            log.warning("No user logged in");
+            return ResponseEntity.ok(new ArrayList<TechnicalReportByJobsDto>());
+        }
+
+        InputStream fis = ReportController.class.getResourceAsStream("/reports/semyonov-report-by-job.sql");
+        Scanner s = new Scanner(fis).useDelimiter("\\A");
+        String query = s.hasNext() ? s.next() : "";
+
+        List<TechnicalReportByJobsDto> reportDtos = reportRepository.technicalReportByJobs(query);
 
         return ResponseEntity.ok(reportDtos);
     }

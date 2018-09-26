@@ -1,4 +1,3 @@
--- отчет для Семенова
 select
   substring(pi.business_key_ from '^[^-]+') as region,
   sitename.text_ as sitename,
@@ -26,9 +25,8 @@ select
   acceptMaint.value_ as "Accept by Work Maintenance",
   acceptPlan.value_ as "Accept by Work Planning",
   acceptanceDate.value_ as "Acceptance Date",
-  -- сюда еще нужно состав работ разбитый на строки
-  title.value_ as "Job Description",
-  worksJson.value ->>'quantity' as "Quantity",
+  aggregatedWorks.title as "Job Description",
+  aggregatedWorks.quantity as "Quantity",
   explanation.text_ as "Comments",
   case materialsRequired.text_
   when 'Yes' then 'required'
@@ -41,7 +39,7 @@ select
   CAST(convert_from(statusBytes.bytes_, 'UTF8') AS json)->>'parentStatus' as "JR Status",
   CAST(convert_from(statusBytes.bytes_, 'UTF8') AS json)->>'statusName' as "Detailed status",
   CAST(convert_from(statusBytes.bytes_, 'UTF8') AS json)->>'comment' as "Return reason"
-from act_hi_procinst pi
+  from act_hi_procinst pi
   left join act_hi_varinst sitename
     on pi.id_ = sitename.proc_inst_id_ and sitename.name_ = 'site_name'
   left join act_hi_varinst contractor
@@ -75,6 +73,7 @@ from act_hi_procinst pi
                            and ti.task_def_key_ in ('accept_work_planning_group'))
     as acceptPlan
     on acceptPlan.value_ > acceptReturn.value_
+
   left join act_hi_varinst acceptance
     on pi.id_ = acceptance.proc_inst_id_
        and acceptance.name_ = 'acceptPerformedJob'
@@ -88,27 +87,48 @@ from act_hi_procinst pi
     as acceptanceDate
     on acceptance.text_ in ('accepted','scan attached','invoiced')
     and acceptAndSignByRegionHeadTaskResult.text_ = 'approved'
-
+  -------------------------------------------------------------
   -- canceled, accepted, in progress, количество работ
-
-  left join act_hi_varinst jobWorks
-    on pi.id_ = jobWorks.proc_inst_id_ and jobWorks.name_ = 'jobWorks'
-  left join act_ge_bytearray jobWorksBytes
-    on jobWorks.bytearray_id_ = jobWorksBytes.id_
-  left join json_array_elements(CAST(convert_from(jobWorksBytes.bytes_, 'UTF8') AS json)) as worksJson
-    on true
-
-  left join lateral (
-    select distinct worksPriceListJson.value->>'title' as value_
-      from act_hi_varinst worksPriceList
-        inner join act_ge_bytearray worksPriceListBytes
-          on worksPriceList.bytearray_id_ = worksPriceListBytes.id_
-        inner join json_array_elements(CAST(convert_from(worksPriceListBytes.bytes_, 'UTF8') AS json)) as worksPriceListJson
-          on true and worksJson.value->>'sapServiceNumber' = worksPriceListJson.value->>'sapServiceNumber'
-      where pi.id_ = worksPriceList.proc_inst_id_ and worksPriceList.name_ = 'worksPriceList'
-  )
-  as title
-  on true
+  left join LATERAL (
+      select works.proc_inst_id_,
+             string_agg( (case rownum when 1 then works.title end), ', ' order by works.sapServiceNumber)  as title,         --"Job Description",
+             string_agg( (case rownum when 1 then cast(works.totalQuantityPerWorkType as char) end), ', ' order by works.sapServiceNumber)  as quantity,
+             sum(cast(works.unitWorkPrice as numeric))       as unitWorkPrice, --"Price without transport",
+             sum(cast(works.unitWorkPricePlusTx as numeric)) as unitWorkPricePlusTx --"Price with transport"
+      from (
+              select --distinct
+                     jobWorks.proc_inst_id_ as proc_inst_id_,
+                     worksPriceListJson.value->>'title' as title, --"Job Description",
+                     row_number() OVER (PARTITION BY worksPriceListJson.value->>'title' order by worksPriceListBytes.id_) as rownum,
+                     cast(worksJson.value->>'sapServiceNumber' as int) as sapServiceNumber,
+                     sum(cast(worksJson.value ->>'quantity' as int)) OVER (PARTITION BY worksJson.value->>'sapServiceNumber') as totalQuantityPerWorkType,
+                     workPricesJson.value ->>'unitWorkPrice' as unitWorkPrice, --"Price without transport",
+                     workPricesJson.value ->>'unitWorkPricePlusTx' as unitWorkPricePlusTx --"Price with transport"
+                from act_hi_varinst jobWorks
+                left join act_ge_bytearray jobWorksBytes
+                  on jobWorks.bytearray_id_ = jobWorksBytes.id_
+                left join json_array_elements(CAST(convert_from(jobWorksBytes.bytes_, 'UTF8') AS json)) as worksJson
+                  on true
+                ---------------------------------
+                left join act_hi_varinst workPrices
+                  on workPrices.proc_inst_id_ = pi.id_ and workPrices.name_ = 'workPrices'
+                left join act_ge_bytearray workPricesBytes
+                  on workPrices.bytearray_id_ = workPricesBytes.id_
+                left join json_array_elements(CAST(convert_from(workPricesBytes.bytes_, 'UTF8') AS json)) as workPricesJson
+                  on true and worksJson.value->>'sapServiceNumber' = workPricesJson.value->>'sapServiceNumber'
+                ---------------------------------
+                left join act_hi_varinst worksPriceList
+                  on worksPriceList.proc_inst_id_ = pi.id_ and worksPriceList.name_ = 'worksPriceList'
+                left join act_ge_bytearray worksPriceListBytes
+                  on worksPriceList.bytearray_id_ = worksPriceListBytes.id_
+                left join json_array_elements(CAST(convert_from(worksPriceListBytes.bytes_, 'UTF8') AS json)) as worksPriceListJson
+                  on true and worksJson.value->>'sapServiceNumber' = worksPriceListJson.value->>'sapServiceNumber'
+                ---------------------------------
+              where jobWorks.proc_inst_id_ = pi.id_
+                and jobWorks.name_ = 'jobWorks'
+         ) works
+    group by works.proc_inst_id_
+    ) aggregatedWorks on true
 
   left join act_hi_varinst acceptAndSignByInitiatorTaskResult
     on pi.id_ = acceptAndSignByInitiatorTaskResult.proc_inst_id_
