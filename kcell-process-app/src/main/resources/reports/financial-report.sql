@@ -21,7 +21,7 @@ select
   end as "JR Reason",
   pi.start_time_ as "Requested Date",
   pi.start_user_id_ as "Requested By",
-  validityDate.text_ as "Validity Date",
+  to_timestamp(validityDate.long_/1000) as "Validity Date",
   relatedTo.text_ as "Related to the",
   project.text_ as "Project",
   mtListSignDate.value_ as "Material List Signing Date",
