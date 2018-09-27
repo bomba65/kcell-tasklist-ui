@@ -27,10 +27,12 @@ define(['./../module'], function(module){
                         }
                     }
                 });
+                
                 scope.deleteItem = function(index) {
                     scope.data.splice(index, 1);
                     scope.countTotalSum();
-                }
+                };
+
                 scope.addItem = function() {
                     scope.data.push({
                         department: null,
@@ -47,21 +49,30 @@ define(['./../module'], function(module){
                             fio: scope.responsible
                         }
                     });
-                }
+                };
+                
                 scope.calcSumm = function(index) {
                     if (!scope.data[index].quantity) return;
                     if (!scope.data[index].labor) return;
                     if (!scope.data[index].pprice) return;
                     scope.data[index].summ = scope.data[index].quantity * scope.data[index].labor * scope.data[index].pprice;
                     scope.countTotalSum();
-                }
+                    scope.setResponsible(index);
+                };
+
+                scope.setResponsible = function(index) {
+                    scope.data[index].responsible = {
+                        name: $rootScope.authentication.name,
+                        fio: scope.responsible
+                    };
+                };
 
                 scope.countTotalSum = function() {
                     scope.totalSumm = 0;
                     for (var d of scope.data) {
                         scope.totalSumm += d.summ;
                     }
-                }
+                };
 	        },
 			templateUrl: './js/directives/demand/resources.html'
 		};

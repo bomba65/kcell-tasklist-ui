@@ -15,6 +15,7 @@ define(['./../module', 'xlsx'], function(module){
 					$timeout(function() {
 						$('.fixed-header-table-container th').each(function() {
 							$(this).find('span').first().width($(this).width() + 10);
+							$(this).find('span').first().height($(this).height());
 						});
 						scope.$apply();
 					});
