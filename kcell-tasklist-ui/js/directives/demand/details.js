@@ -63,6 +63,7 @@ define(['./../module'], function(module){
 					if (!scope.data.productNames[index].version)
 						scope.data.productNames[index].version = 1.0;
 					scope.filteredProductNames[index] = null;
+					console.log("asdasddddddddd");
 				}
 
 				// ------ Product offer name ------

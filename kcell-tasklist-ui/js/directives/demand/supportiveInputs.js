@@ -35,7 +35,7 @@ define(['./../module'], function(module){
 				};
 				scope.optionList = [
 					{unit: 'Technology Department', form: 'Other'},
-					{unit: 'Human Resource Department', form: 'HR'},
+					{unit: 'Human Resources Department', form: 'HR'},
 					{unit: 'Infrasturcture Procurement Section', form: 'CPD'},
 					{unit: 'Operational Procurement Section', form: 'CPD'},
 					{unit: 'Products and Services Procurement Section', form: 'CPD'},
