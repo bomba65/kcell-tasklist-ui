@@ -1039,12 +1039,12 @@ define(['./module','jquery', 'moment', 'camundaSDK'], function(app, $, moment, C
 			var filter = {
 				processDefinitionKey: $scope.filterDP.processDefinitionKey,
 				activeActivityIdIn: [],
-				variables: [],
-				//processInstanceBusinessKeyLike:'%-%'
+				variables: []
 			}
-			
+
 			if($scope.filterDP.businessKey){
-				filter.processInstanceBusinessKey = $scope.filterDP.businessKey;
+				//filter.processInstanceBusinessKey = $scope.filterDP.businessKey;
+				filter.processInstanceBusinessKeyLike = '%' + $scope.filterDP.businessKey + '%';
 			}
 			if($scope.filterDP.unfinished){
 				filter.unfinished = true;
@@ -1070,6 +1070,8 @@ define(['./module','jquery', 'moment', 'camundaSDK'], function(app, $, moment, C
 			}
 			if($scope.filterDP.bin){
 				filter.variables.push({"name": "clientBIN", "operator": "eq", "value": $scope.filterDP.bin.toString()});
+			} else if( $('#bin').val() ) {
+				filter.variables.push({"name": "clientBIN", "operator": "like", "value": "%" + $('#bin').val() + "%"});
 			}
 			if ($scope.filterDP.initiator) {
 				if($scope.filterDP.participation === 'initiator'){
@@ -1088,8 +1090,19 @@ define(['./module','jquery', 'moment', 'camundaSDK'], function(app, $, moment, C
 						}
 					);
 				} else {
-					$scope.lastSearchParams = filter;
-					getProcessInstancesDP(filter, 'processInstancesDP');
+					$http.post(baseUrl+'/history/task',{taskAssignee: $scope.filterDP.initiator.id}).then(
+						function(result){
+							filter.processInstanceIds = _.map(result.data, 'processInstanceId');
+							filter.startedBy = $scope.filterDP.initiator.id;
+							$scope.lastSearchParams = filter;
+							getProcessInstancesDP(filter, 'processInstancesDP');
+						},
+						function(error){
+							console.log(error.data)
+						}
+					);
+					//$scope.lastSearchParams = filter;
+					//getProcessInstancesDP(filter, 'processInstancesDP');
 				}
 			} else {
 				$scope.lastSearchParams = filter;
@@ -1107,11 +1120,12 @@ define(['./module','jquery', 'moment', 'camundaSDK'], function(app, $, moment, C
 			$scope.filterDP.initiator = undefined;
 			$scope.filterDP.initiatorId = undefined;
 			$scope.filterDP.activityId = undefined;
-			$scope.filterDP.businessKeyFilterType = 'eq';
+			//$scope.filterDP.businessKeyFilterType = 'eq';
 			$scope.filterDP.processDefinitionKey = undefined;
 			$scope.filterDP.processDefinitionActivities = {};
 			$scope.filterDP.unfinished = false;
 			$('input[name="multipleDate"]').val('');
+			$('#bin').val('');
 		}
 
 		$scope.getXlsxProcessInstancesDP = function(){
@@ -1121,9 +1135,8 @@ define(['./module','jquery', 'moment', 'camundaSDK'], function(app, $, moment, C
 		function getProcessInstancesDP(filter, processInstancesDP){
 			var defs = $scope.filterDP.processDefinitions.filter(def => filter.processDefinitionKey ? filter.processDefinitionKey === def.value : true);
 			var instanceCount = 0;
-
+			var result = [];
 			//console.log('filter', filter);
-
 			function mapOrder (array, key) {
 				var order = {};  
 				array.sort( function (a, b) {
@@ -1257,7 +1270,7 @@ define(['./module','jquery', 'moment', 'camundaSDK'], function(app, $, moment, C
 				e1createRequestTCF: 36
 			}
 
-			//console.log('filter', filter);
+			/*
 			$q.all(defs.map(def => {
 				return $http({
 					method: 'POST',
@@ -1276,9 +1289,49 @@ define(['./module','jquery', 'moment', 'camundaSDK'], function(app, $, moment, C
 				$scope[processInstancesDP + 'Total'] = instanceCount;
 				$scope[processInstancesDP + 'Pages'] = Math.floor(instanceCount / $scope.filterDP.maxResults) + ((instanceCount % $scope.filterDP.maxResults) > 0 ? 1 : 0);
 			});
-
+			*/
 			$scope[processInstancesDP] = [];
-			$q.all(defs.map(def => {
+			if (filter.startedBy !== undefined & filter.processInstanceIds !== undefined) {
+				var processInstanceList = defs.reduce((r, e) => r.push(
+					$http({
+						method: 'POST',
+						headers:{'Accept':'application/hal+json, application/json; q=0.5'},
+						data: {
+							...filter,
+							processInstanceIds: undefined,
+							...{ processDefinitionKey: e.value/*def.value*/ }
+						},
+						url: baseUrl+'/history/process-instance/'
+					}),
+					$http({
+						method: 'POST',
+						headers:{'Accept':'application/hal+json, application/json; q=0.5'},
+						data: {
+							...filter,
+							startedBy: undefined,
+							...{ processDefinitionKey: e.value /*def.value*/}
+						},
+						url: baseUrl+'/history/process-instance/'
+					})
+				) && r,
+				[])
+			} else {
+				var processInstanceList = defs.reduce((r, e) => r.push(
+					$http({
+						method: 'POST',
+						headers:{'Accept':'application/hal+json, application/json; q=0.5'},
+						data: {
+							...filter,
+							...{ processDefinitionKey: e.value /*def.value*/ }
+						},
+						url: baseUrl+'/history/process-instance'
+					})
+				) && r,
+				[])
+			}
+			//console.log('processInstanceList', processInstanceList);
+
+			/*$q.all(defs.map(def => {
 				return $http({
 					method: 'POST',
 					headers:{'Accept':'application/hal+json, application/json; q=0.5'},
@@ -1288,14 +1341,22 @@ define(['./module','jquery', 'moment', 'camundaSDK'], function(app, $, moment, C
 					},
 					url: baseUrl+'/history/process-instance'
 				});
+			}))*/
+			$q.all(processInstanceList.map(def => {
+				return def;
 			}))
-			.then(result => {
-				result.forEach(r => {
-					if(!$scope[processInstancesDP]){
-						$scope[processInstancesDP] = [];
-					}
-					$scope[processInstancesDP].push(...r.data);
+			.then(responseResult => {
+				//console.log('responseResult', responseResult);
+				responseResult.forEach(r => {
+					result.push(...r.data);
 				});
+				//console.log('result', result);
+				$scope[processInstancesDP] = result.filter((obj, index, self) => index === self.findIndex((t) => t.id === obj.id ) );
+				instanceCount = $scope[processInstancesDP].length;
+				//console.log('instanceCount', instanceCount);
+				$scope[processInstancesDP + 'Total'] = instanceCount;
+				$scope[processInstancesDP + 'Pages'] = Math.floor(instanceCount / $scope.filterDP.maxResults) + ((instanceCount % $scope.filterDP.maxResults) > 0 ? 1 : 0);
+
 				if($scope[processInstancesDP].length > 0){
 					var activeProcessInstancesDP = _.filter($scope[processInstancesDP], function(pi) { return pi.state === 'ACTIVE'; });
 					var taskSearchParams = {processInstanceBusinessKeyIn: _.map(activeProcessInstancesDP, 'businessKey'), active: true};
@@ -1307,7 +1368,7 @@ define(['./module','jquery', 'moment', 'camundaSDK'], function(app, $, moment, C
 					}).then(
 						function(tasks){
 							$scope[processInstancesDP].forEach(function(el) {
-								var f =  _.filter(tasks.data, function(t) {
+								var f = _.filter(tasks.data, function(t) {
 									return t.processInstanceId === el.id; 
 								});
 								if(f && f.length>0){
@@ -1332,40 +1393,69 @@ define(['./module','jquery', 'moment', 'camundaSDK'], function(app, $, moment, C
 							console.log(error.data);
 						}					
 					);
-					// fetch short number
+
 					$scope[processInstancesDP].forEach(instance => {
 						if ( ['freephone', 'bulksmsConnectionKAE'].indexOf(instance.processDefinitionKey) > -1 ) {
+							$http.get(baseUrl+'/history/variable-instance?deserializeValues=false&processInstanceId='+instance.id).then(
+								function(result){
+									result.data.forEach(function(el){
+										if(el.name === 'clientBIN'){
+											instance.bin = el.value;
+										}
+										if(el.name === 'identifiers'){
+											instance.identifiers = JSON.parse(el.value).map(identifier => identifier.title).toString();
+										}
+									});
+								},
+								function(error){
+									console.log(error.data);
+								}
+							);
+							/*
 							$http.get(baseUrl+'/process-instance/'+instance.id+'/variables/clientBIN')
 								.then( response => {
 									instance.bin = response.data.value;
 								})
 								.catch(e => null);
-							/*
 							// finalIDs
-							$http.get(baseUrl+'/process-instance/'+instance.id+'/variables/finalIDs?deserializeValue=false')
-								.then( response => {
-									console.log(instance.processDefinitionKey, instance.id, 'finalIDs', response.data);
-									if (response.data.type === "Json")
-										//instance.finalIDs = JSON.parse(response.data.value).toString();
-										instance.finalIDs = JSON.parse(response.data.value).toString();
-									else {
-										instance.finalIDs = response.data.value;
-									}
-								})
-								.catch(e => null);
-							*/
+							//$http.get(baseUrl+'/process-instance/'+instance.id+'/variables/finalIDs?deserializeValue=false')
+							//	.then( response => {
+							//		console.log(instance.processDefinitionKey, instance.id, 'finalIDs', response.data);
+							//		if (response.data.type === "Json")
+							//			//instance.finalIDs = JSON.parse(response.data.value).toString();
+							//			instance.finalIDs = JSON.parse(response.data.value).toString();
+							//		else {
+							//			instance.finalIDs = response.data.value;
+							//		}
+							//	})
+							//	.catch(e => null);
 							// identifiers
 							$http.get(baseUrl+'/process-instance/'+instance.id+'/variables/identifiers?deserializeValue=false')
 								.then( response => {
 									instance.identifiers = JSON.parse(response.data.value).map(identifier => identifier.title).toString();
 								})
 								.catch(e => null);
+							*/
 						} else if (instance.processDefinitionKey === 'PBX') {
+							/*
 							$http.get(baseUrl+'/process-instance/'+instance.id+'/variables/customerInformation?deserializeValue=false')
 								.then( response => {
 									instance.bin = JSON.parse(response.data.value).bin;
 								})
 								.catch(e => null);
+							*/
+							$http.get(baseUrl+'/history/variable-instance?deserializeValues=false&processInstanceId='+instance.id).then(
+								function(result){
+									result.data.forEach(function(el){
+										if(el.name === 'customerInformation'){
+											instance.bin = JSON.parse(el.value).bin;
+										}
+									});
+								},
+								function(error){
+									console.log(error.data);
+								}
+							);
 						}
 					});
 				}
@@ -1374,7 +1464,7 @@ define(['./module','jquery', 'moment', 'camundaSDK'], function(app, $, moment, C
 				console.log(error.data);
 			});
 		}
-		
+
 		$scope.nextPageDP = function(){
 			$scope.filterDP.page++;
 			//$scope.searchDP(false);
