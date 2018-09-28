@@ -287,19 +287,25 @@ define(['./module','jquery', 'camundaSDK'], function(app, $, CamSDK){
 					            	function(result){
 					            		var workFiles = [];
 					            		result.data.forEach(function(el){
-					            			$scope.jobModel[el.name] = el;
-					            			if(el.value || el.value === "" || el.type === 'Boolean') {
-					            				$scope.jobModel[el.name] = el.value;
-					            			}
+											$scope.jobModel[el.name] = el;
+											if(el.type !== 'Json' && (el.value || el.value === "" || el.type === 'Boolean')) {
+												$scope.jobModel[el.name] = el.value;
+											}
 					            			if(el.type === 'File' || el.type === 'Bytes'){
 					            				$scope.jobModel[el.name].contentUrl = baseUrl+'/history/variable-instance/'+el.id+'/data';
-					            			}
-					            			if(el.name === 'resolutions'){
-					            				$scope.jobModel[el.name] = JSON.parse(el.value);
-					            			}
-					            			if(el.type === 'Json' && el.name !== 'resolutions'){
-					            				$scope.jobModel[el.name] = JSON.parse(el.value);	
-					            			}
+											}
+											if(el.type === 'Json'){
+												if(el.name === 'resolutions'){
+													$scope.jobModel[el.name].value = JSON.parse(el.value);
+												} else if(['contractScanCopyFileName', 'applicationScanCopyFileName'].indexOf(el.name) > -1) {
+													if (!$scope.jobModel.files) {
+														$scope.jobModel.files = [];
+													}
+													$scope.jobModel.files.push(JSON.parse(el.value));
+												} else {
+													$scope.jobModel[el.name] = JSON.parse(el.value);
+												}
+											}
 					            		});
 					            		console.log($scope.jobModel);
     								if($scope.jobModel.resolutions && $scope.jobModel.resolutions.value){
