@@ -10,15 +10,6 @@ define(['./../module', 'xlsx'], function(module){
                 disabled: '='
 			},
 			link: function(scope, element, attrs) {
-
-				scope.test = function() {
-					console.log("clicked");
-					scope.selectToggle = !scope.selectToggle;
-					if (scope.selectToggle) {
-						$('#testId').trigger('mousedown');
-					}
-				};
-
 				var correctHeaderWidth = function() {
 					$('.fixed-header-table-container th').each(function() {
 						$(this).find('span').first().width($(this).width() + 10);
@@ -61,6 +52,8 @@ define(['./../module', 'xlsx'], function(module){
 								wacc: 13.6
 							};
 						}
+
+						$timeout(correctHeaderWidth);
 					}
 				});
 
