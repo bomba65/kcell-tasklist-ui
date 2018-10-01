@@ -10,6 +10,52 @@ define(['./../module', 'xlsx'], function(module){
                 disabled: '='
 			},
 			link: function(scope, element, attrs) {
+				scope.selects = {
+					ipmDecision: {
+						visible: false,
+						options: [
+							'Идея оценена - не реализуется',
+							'Проект утвержден и реализуется',
+							'Проект реализован есть результаты'
+						]
+					},
+					strategyFit: {
+						visible: false,
+						options: [
+							'Values throug superior network connectivity',
+							'Customer loyalty through convergence',
+							'Competitive operations',
+							'Growth in adjacencies',
+							'Regular expenses'
+						]
+					},
+					businessPriority: {
+						visible: false,
+						options: [
+							'A - Delayed project realization would have no impact on the business processes.',
+							'B - The delayed project realization would affect the business processes.',
+							'C - The delayed project realization would stop the business processes.'
+						]
+					},
+					opActivitiesImpact: {
+						visible: false,
+						options: [
+							'A - The delayed project realization would not affect the daily operational activities.',
+							'B - The delayed project realization would affect the daily operational activities.',
+							'C - The delayed project realization would significantly hinder important daily operational activities.'
+						]
+					}
+				};
+
+				scope.toggleSelect = function(name) {
+					scope.selects[name].visible = !scope.selects[name].visible;
+				};
+
+				scope.selectOption = function(name, option) {
+					scope.data[name] = option;
+					scope.toggleSelect(name);
+				}
+
 				var correctHeaderWidth = function() {
 					$('.fixed-header-table-container th').each(function() {
 						$(this).find('span').first().width($(this).width() + 10);
@@ -52,12 +98,17 @@ define(['./../module', 'xlsx'], function(module){
 								wacc: 13.6
 							};
 						}
+						for (var field of ['ipmDecision', 'strategyFit', 'businessPriority', 'opActivitiesImpact'])
+							if (!scope.data[field])
+								scope.data[field] = scope.selects[field].options[0];
 
 						$timeout(correctHeaderWidth);
 					}
 				});
 
 				var strategyFitPercentage = function() {
+					if (!scope.data.strategyFit) return 0;
+
 					if (scope.data.strategyFit.startsWith('Values')) return 1;
 					else if (scope.data.strategyFit.startsWith('Customer')) return 1;
 					else if (scope.data.strategyFit.startsWith('Competitive')) return 1;
@@ -66,14 +117,18 @@ define(['./../module', 'xlsx'], function(module){
 				};
 
 				var businessPriorityPercentage = function() {
-					if (scope.data.businessPriority.startsWith('Would')) return 1;
-					else if (scope.data.businessPriority.startsWith('Impacts')) return 0.5;
+					if (!scope.data.businessPriority) return 0;
+					
+					if (scope.data.businessPriority.startsWith('C')) return 1;
+					else if (scope.data.businessPriority.startsWith('B')) return 0.5;
 					else return 0;
 				};
 
 				var operationalActivityPercentage = function() {
-					if (scope.data.opActivitiesImpact.startsWith('Significantly')) return 1;
-					else if (scope.data.opActivitiesImpact.startsWith('Impacts')) return 0.5;
+					if (!scope.data.opActivitiesImpact) return 0;
+					
+					if (scope.data.opActivitiesImpact.startsWith('C')) return 1;
+					else if (scope.data.opActivitiesImpact.startsWith('B')) return 0.5;
 					else return 0;
 				}
 
@@ -121,12 +176,16 @@ define(['./../module', 'xlsx'], function(module){
 
 					// Define impact on operational activities
 					if (sheet.length > 27 && sheet[27]['G'] && sheet[27]['G'] != 'n/a') {
-						scope.data.opActivitiesImpact = sheet[27]['G'][0];
+						if (sheet[27]['G'][0] == 'A') scope.data.opActivitiesImpact = scope.selects.opActivitiesImpact.options[0];
+						else if (sheet[27]['G'][0] == 'B') scope.data.opActivitiesImpact = scope.selects.opActivitiesImpact.options[1];
+						else scope.data.opActivitiesImpact = scope.selects.opActivitiesImpact.options[2];
 					}
 
 					// Define business priority
 					if (sheet.length > 29 && sheet[29]['G'] && sheet[29]['G'] != 'n/a') {
-						scope.data.businessPriority = sheet[29]['G'][0];
+						if (sheet[29]['G'][0] == 'A') scope.data.businessPriority = scope.selects.businessPriority.options[0];
+						else if (sheet[29]['G'][0] == 'B') scope.data.businessPriority = scope.selects.businessPriority.options[1];
+						else scope.data.businessPriority = scope.selects.businessPriority.options[2];
 					}
 
 					// TABLE
