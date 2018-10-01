@@ -78,14 +78,14 @@ public class CheckJOFile implements JavaDelegate {
                         }
                     );
                     template.remove(errorFilePath);
+                    delegateExecution.setVariable("joFileCheckResult", "error");
                 } else {
                     delegateExecution.setVariable("joFileCheckError", "JO result files not found");
                 }
             } else {
                 delegateExecution.setVariable("joFileCheckError", "JO files not found in bucket");
             }
-
-            delegateExecution.setVariable("joFileCheckResult", "error");
+            delegateExecution.setVariable("joFileCheckResult", "notFound");
         }
     }
 }

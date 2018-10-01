@@ -51,7 +51,7 @@ public class CheckPrStatusesSchedule {
     private static final DateTimeFormatter timeFormatter = DateTimeFormatter.ofPattern("HH:mm:ss");
     private static final SimpleDateFormat simpleDateFormat = new SimpleDateFormat("yyyyMMdd");
 
-    @Scheduled(cron = "0 0 0-23 * * 1-7")
+    @Scheduled(cron = "0 0 0-23 * * 1-5")
 //    @Scheduled(cron = "0 0 0-23 * * 2")
     public void checkPrStatuses() {
 

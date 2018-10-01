@@ -46,10 +46,10 @@ public class SftpConfig {
     private String sftpUser;
 
     @Value("${sftp.password:#{null}}")
-    private String sftpPasword;
+    private String sftpPassword;
 
-    @Value("${sftp.remote.directory.to.jojr:/home/KWMS/JR_JO_Creation/Sap JO File}")
-    private String sftpRemoteDirectoryToJoJr;
+    @Value("${sftp.remote.directory.to.fa:/home/KWMS/FA_Geting/Get_Fixed_Asset}")
+    private String sftpRemoteDirectoryToFa;
 
     @Value("${sftp.remote.directory.to.pr:/home/KWMS/CIP_PR_Creation/PR_Waiting}")
     private String sftpRemoteDirectoryToPr;
@@ -57,10 +57,10 @@ public class SftpConfig {
     @Value("${sftp.remote.directory.jojr:/home/KWMS/JR_JO_Creation/Sap JO File}")
     private String sftpRemoteDirectoryJoJr;
 
-    @Value("${sftp.remote.directory.to.pr.status:/home/KWMS/CIP_PR_Creation/PR_Status}")
+    @Value("${sftp.remote.directory.pr.status:/home/KWMS/CIP_PR_Creation/PR_Status}")
     private String sftpRemoteDirectoryPrStatus;
 
-    @Value("${sftp.remote.directory.to.pr.status:/home/KWMS/CIP_PR_Creation/PR_status_processed}")
+    @Value("${sftp.remote.directory.pr.status.processed:/home/KWMS/CIP_PR_Creation/PR_status_processed}")
     private String sftpRemoteDirectoryPrStatusProcessed;
 
     public SessionFactory<ChannelSftp.LsEntry> sftpSessionFactory() {
@@ -68,7 +68,7 @@ public class SftpConfig {
         factory.setHost(sftpHost);
         factory.setPort(sftpPort);
         factory.setUser(sftpUser);
-        factory.setPassword(sftpPasword);
+        factory.setPassword(sftpPassword);
         factory.setAllowUnknownKeys(true);
         factory.setTimeout(60000);
         return new CachingSessionFactory<>(factory);
@@ -85,7 +85,7 @@ public class SftpConfig {
                 if (message.getPayload() instanceof File) {
 
                     SftpRemoteFileTemplate template = (SftpRemoteFileTemplate) template();
-                    String successFilePath = sftpRemoteDirectoryToJoJr + "/" + ((File) message.getPayload()).getName();
+                    String successFilePath = sftpRemoteDirectoryJoJr + "/" + ((File) message.getPayload()).getName();
                     Boolean successResult = template.exists(successFilePath);
                     if(successResult){
                         template.remove(successFilePath);
@@ -127,6 +127,32 @@ public class SftpConfig {
     }
 
     @Bean
+    @ServiceActivator(inputChannel = "toFaChannel")
+    public MessageHandler toFaSftpMessageHandler() {
+        SftpMessageHandler handler = new SftpMessageHandler(sftpSessionFactory());
+        handler.setRemoteDirectoryExpression(new LiteralExpression(sftpRemoteDirectoryToFa));
+        handler.setFileNameGenerator(new FileNameGenerator() {
+            @Override
+            public String generateFileName(Message<?> message) {
+                if (message.getPayload() instanceof File) {
+
+                    SftpRemoteFileTemplate template = (SftpRemoteFileTemplate) template();
+                    String successFilePath = sftpRemoteDirectoryToFa + "/" + ((File) message.getPayload()).getName();
+                    Boolean successResult = template.exists(successFilePath);
+                    if(successResult){
+                        template.remove(successFilePath);
+                    }
+
+                    return ((File) message.getPayload()).getName();
+                } else {
+                    throw new IllegalArgumentException("fa file expected as payload.");
+                }
+            }
+        });
+        return handler;
+    }
+
+    @Bean
     @ServiceActivator(inputChannel = "toPrStatusProcessedChannel")
     public MessageHandler toPrStatusSftpMessageHandler() {
         SftpMessageHandler handler = new SftpMessageHandler(sftpSessionFactory());
@@ -157,6 +183,9 @@ public class SftpConfig {
 
         @Gateway(requestChannel = "toPrChannel")
         void uploadPr(File file);
+
+        @Gateway(requestChannel = "toFaChannel")
+        void uploadFa(File file);
 
         @Gateway(requestChannel = "toPrStatusProcessedChannel")
         void uploadPrStatusProcessed(File file);

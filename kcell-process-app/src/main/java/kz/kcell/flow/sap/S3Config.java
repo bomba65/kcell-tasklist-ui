@@ -35,6 +35,9 @@ public class S3Config {
     @Value("${sftp.bucket.pr:prfiles}")
     private String prBucketName;
 
+    @Value("${s3.bucket.fa:fafiles}")
+    private String faBucketName;
+
     @EventListener
     protected void makeBucket(ApplicationReadyEvent event) {
         if(!amazonS3.doesBucketExistV2(jojrBucketName)){
@@ -42,6 +45,9 @@ public class S3Config {
         }
         if(!amazonS3.doesBucketExistV2(prBucketName)){
             amazonS3.createBucket(prBucketName);
+        }
+        if(!amazonS3.doesBucketExist(faBucketName)){
+            amazonS3.createBucket(faBucketName);
         }
     }
 
@@ -55,6 +61,12 @@ public class S3Config {
     @ServiceActivator(inputChannel = "toPrChannel")
     public MessageHandler toPrS3MessageHandler() {
         return new S3MessageHandler(amazonS3, prBucketName);
+    }
+
+    @Bean
+    @ServiceActivator(inputChannel = "toFaChannel")
+    public MessageHandler toFaS3MessageHandler() {
+        return new S3MessageHandler(amazonS3, faBucketName);
     }
 
     @Bean
@@ -76,6 +88,9 @@ public class S3Config {
 
         @Gateway(requestChannel = "toPrChannel")
         void uploadPr(File file);
+
+        @Gateway(requestChannel = "toFaChannel")
+        void uploadFa(File file);
 
         @Gateway(requestChannel = "toPrStatusProcessedChannel")
         void uploadPrStatusProcessed(File file);

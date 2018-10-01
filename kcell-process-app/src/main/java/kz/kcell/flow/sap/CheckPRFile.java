@@ -68,17 +68,18 @@ public class CheckPRFile implements JavaDelegate {
                             String result = s.hasNext() ? s.next() : "";
 
                             delegateExecution.setVariable("prFileCheckError", result);
+                            delegateExecution.setVariable("prFileCheckResult", "error");
                         }
                     );
                     template.remove(errorFilePath);
                 } else {
                     delegateExecution.setVariable("prFileCheckError", "Pr result files not found");
+                    delegateExecution.setVariable("prFileCheckResult", "notFound");
                 }
             } else {
                 delegateExecution.setVariable("prFileCheckError", "PR files not found in bucket");
+                delegateExecution.setVariable("prFileCheckResult", "notFound");
             }
-
-            delegateExecution.setVariable("prFileCheckResult", "error");
         }
     }
 }

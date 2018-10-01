@@ -39,7 +39,9 @@
                 'priority',
                 'sloc',
                 'mlApprovalAdditionalInfoFile',
-                'tnuSiteLocations'
+                'tnuSiteLocations',
+                'sapFaList',
+                'workDefinitionMap'
             ];
 
             $scope.jobModel = {};
@@ -57,12 +59,6 @@
                         function (result) {
                             angular.extend($scope, result.data);
                             angular.extend($scope.jobModel, result.data);
-
-                            if($scope.jobWorks){
-                                $scope.jobWorks.forEach(function (jobWork) {
-                                    jobWork.definition = _.find(result.data.works, function(r) { return r.sapServiceNumber === jobWork.sapServiceNumber });
-                                });
-                            }
                         },
                         function (error) {
                             console.log(error.data);
@@ -101,20 +97,14 @@
                         });
                     } else if(el === 'workPrices'){
                         $scope.jobModel[el] = JSON.parse(camForm.variableManager.variables[el].originalValue);
-                    } else if(el === 'tnuSiteLocations'){
+                    } else if(el === 'tnuSiteLocations' || el === 'sapFaList'){
                         $scope[el] = camForm.variableManager.variables[el].value;
                     } else {
                         $scope.jobModel[el] = camForm.variableManager.variables[el];
                     }
 
-                    if(el === 'jobWorks'){
+                    if(el === 'jobWorks' || el === 'workDefinitionMap'){
                         $scope[el] = camForm.variableManager.variables[el].value;
-
-                        if($scope.works){
-                            $scope.jobWorks.forEach(function (jobWork) {
-                                jobWork.definition = _.find($scope.works, function(r) { return r.sapServiceNumber === jobWork.sapServiceNumber });
-                            });
-                        }
                     }
                 });
                 $http.get("/camunda/api/engine/engine/default/user/" + $rootScope.authentication.name+ "/profile").then(function(result){
@@ -152,6 +142,14 @@
             $scope.hasComment = function () {
                 return $scope.enterSapFAComment && $rootScope.hasGroup('kcellUsers');
             }
+
+            $scope.getSapFilledFa = function(sloc, faClass){
+                angular.forEach($scope.sapFaList, function (fa) {
+                    if(fa.sloc === sloc && fa.faClass === faClass){
+                        return fa.faNumber;
+                    }
+                });
+            }
         }]);
     </script>
 
@@ -175,12 +173,15 @@
                     <td>{{tnuSiteLocations[r.id].siteLocation}}</td>
                     <td>
                         <span ng-if="work.expenseType == 'OPEX'">No need to fill for Opex</span>
-                        <span ng-if="work.expenseType == 'CAPEX'">{{work.definition.faClass}}</span>
+                        <span ng-if="work.expenseType == 'CAPEX'">{{workDefinitionMap[work.sapServiceNumber].faClass}}</span>
                     </td>
-                    <td><input type="text" value="{{work.expenseType == 'CAPEX'?'Y':'K'}}" disabled="disabled" readonly="readonly"></td>
+                    <td>{{work.expenseType == 'CAPEX'?'Y':'K'}}</td>
                     <td>
                         <span ng-if="work.expenseType == 'OPEX'">No need to fill for Opex</span>
-                        <input type="text" ng-model="tnuSiteLocations[r.id].fixedAssetNumber" name="fixedAssetNumber{{$parent.$index+$index}}" required ng-if = "work.expenseType == 'CAPEX'">
+                        <span ng-if="work.expenseType !== 'OPEX'">
+                            <span ng-if="getSapFilledFa(tnuSiteLocations[r.id].siteLocation,workDefinitionMap[work.sapServiceNumber].faClass)">{{getSapFilledFa(tnuSiteLocations[r.id].siteLocation,workDefinitionMap[work.sapServiceNumber].faClass)}}</span>
+                        </span>
+                        <input type="text" ng-model="tnuSiteLocations[r.id].fixedAssetNumber" name="fixedAssetNumber{{$parent.$index+$index}}" required ng-if = "work.expenseType == 'CAPEX' && !getSapFilledFa(tnuSiteLocations[r.id].siteLocation,workDefinitionMap[work.sapServiceNumber].faClass)">
                         <label class="error" ng-if="kcell_form['fixedAssetNumber'+($parent.$index+$index)].$error.required && ( kcell_form['fixedAssetNumber'+($parent.$index+$index)].$touched || view.submitted)">Required field</label>
                     </td>
                 </tr>
@@ -198,15 +199,18 @@
                 <tbody>
                 <tr ng-repeat="work in jobWorks track by $index">
                     <td>{{jobModel.worksTitle[work.sapServiceNumber]}}</td>
-                    <td><input type="text" value="{{jobModel.sloc.value}}" disabled="disabled" readonly="readonly"></td>
+                    <td>{{jobModel.sloc.value}}</td>
                     <td>
-                        <span ng-if="work.expenseType == 'OPEX'">No need to fill for Opex</span>
-                        <span ng-if="work.expenseType == 'CAPEX'">{{work.definition.faClass}}</span>
+                        <span ng-if="work.expenseType === 'OPEX'">No need to fill for Opex</span>
+                        <span ng-if="work.expenseType === 'CAPEX'">{{workDefinitionMap[work.sapServiceNumber].faClass}}</span>
                     </td>
-                    <td><input type="text" value="{{work.expenseType == 'CAPEX'?'Y':'K'}}" disabled="disabled" readonly="readonly"></td>
+                    <td>{{work.expenseType == 'CAPEX'?'Y':'K'}}</td>
                     <td>
                         <span ng-if="work.expenseType == 'OPEX'">No need to fill for Opex</span>
-                        <input type="text" ng-model="work.fixedAssetNumber" name="fixedAssetNumber{{$index}}" required ng-if = "work.expenseType == 'CAPEX'">
+                        <span ng-if="work.expenseType !== 'OPEX'">
+                            <span ng-if="getSapFilledFa(jobModel.sloc.value, workDefinitionMap[work.sapServiceNumber].faClass)">{{getSapFilledFa(jobModel.sloc.value, workDefinitionMap[work.sapServiceNumber].faClass)}}</span>
+                        </span>
+                        <input type="text" ng-model="work.fixedAssetNumber" name="fixedAssetNumber{{$index}}" required ng-if = "work.expenseType == 'CAPEX' && !getSapFilledFa(jobModel.sloc.value, workDefinitionMap[work.sapServiceNumber].faClass)">
                         <label class="error" ng-if="kcell_form['fixedAssetNumber'+$index].$error.required && ( kcell_form['fixedAssetNumber'+$index].$touched || view.submitted)">Required field</label>
                     </td>
                 </tr>

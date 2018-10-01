@@ -9,14 +9,14 @@ import org.springframework.stereotype.Service;
 
 import java.io.ByteArrayInputStream;
 
-@Service("createJOFile")
+@Service("createFAFile")
 @Log
-public class CreateJOFile implements JavaDelegate {
+public class CreateFAFile implements JavaDelegate {
 
     private Minio minioClient;
 
     @Autowired
-    public CreateJOFile(Minio minioClient) {
+    public CreateFAFile(Minio minioClient) {
         this.minioClient = minioClient;
     }
 
@@ -25,17 +25,19 @@ public class CreateJOFile implements JavaDelegate {
         String content = String.valueOf(delegateExecution.getVariableLocal("content"));
         ByteArrayInputStream is = new ByteArrayInputStream(content.getBytes("utf-8"));
 
-        log.info("JoJr content is: " + content);
+        log.info("FA content is: " + content);
 
-        String name = delegateExecution.getVariable("jrNumber") + "_JoJr.txt";
+        String name = delegateExecution.getVariable("jrNumber") + "_FA.txt";
         String path = delegateExecution.getProcessInstanceId() + "/" + name;
 
         minioClient.saveFile(path, is, "text/plain");
-        log.info("Saved to Minio JoJr file: " + name);
+        log.info("Saved to Minio FA file: " + name);
         is.close();
 
         String json = "{\"name\" : \"" + name + "\",\"path\" : \"" + path + "\"}";
-        delegateExecution.setVariable("joJrFile", SpinValues.jsonValue(json));
-        log.info(" JoJr variable added with content: " + json);
+        delegateExecution.setVariable("faFile", SpinValues.jsonValue(json));
+        log.info(" FA variable added with content: " + json);
+
+
     }
 }

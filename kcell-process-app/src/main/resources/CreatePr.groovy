@@ -6,7 +6,7 @@ import java.text.SimpleDateFormat
 /*
 def jrNumber = "Alm-LSE-P&O-17-5267"
 def requestedDate = new Date()
-def jobWorks = '[{"relatedSites":[{"name":"00SITE1","id":"1","site_name":"00SITE1","$$hashKey":"object:1976"}],"sapServiceNumber":"8","materialUnit":"site/сайт","quantity":2,"materialQuantity":1,"expenseType":"CAPEX","definition":{"id":8,","contractor":{"id":5,"name":"JSC Kcell"},"region":{"id":7,"name":"Almaty"},"service":{"id":2,"name":"Rollout","sapCode":"Y"},"sapServiceNumber":"8","sapPOServiceName":"8.Site chge/repl (All equips)","displayServiceName":"8.Site change/replacement (All equipments, RF &TR& Infrastructure including packaging according Kcell required) / Замена/перемещение  сайта (все оборудование, RF &TR& Infrastructure, включая упаковку согласно стандартам Kcell)","currency":"KZT","faClass":"29403422","materialGroup":"STD0021","year":2016,"spp":"RN-0502-33-0067","createDate":1496599200000,"units":"site/сайт","vendor":"280209"},"fixedAssetClass":"234234234","fixedAssetNumber":"234234234","costCenter":1,"controllingArea":2},{"relatedSites":[{"name":"00SITE1","id":"1","site_name":"00SITE1","$$hashKey":"object:1979"}],"sapServiceNumber":"12","materialUnit":"pc/шт","quantity":2,"materialQuantity":1,"definition":{"id":12,"costType":"CAPEX","contractor":{"id":5,"name":"JSC Kcell"},"region":{"id":7,"name":"Almaty"},"service":{"id":2,"name":"Rollout","sapCode":"Y"},"sapServiceNumber":"12","sapPOServiceName":"12.BattBackSys chg/repl on-air (^2 sets)","displayServiceName":"12.Battery Backup System change/replacement with on-air if required ( up to 2 sets) / Замена/перемещение системы резервных батарей с активацией, если необходимо (до 2 комплектов).","currency":"KZT","faClass":"29403422","materialGroup":"STD0025","year":2016,"spp":"RN-0502-33-0067","createDate":1496599200000,"units":"pc/шт","vendor":"280209"},"fixedAssetClass":"2342342","fixedAssetNumber":"234234234","costCenter":3,"controllingArea":4}]';
+def jobWorks = '[{"relatedSites":[{"name":"00SITE1","id":"1","site_name":"00SITE1"}],"sapServiceNumber":"8","materialUnit":"site/сайт","quantity":2,"materialQuantity":1,"expenseType":"CAPEX","fixedAssetClass":"234234234","fixedAssetNumber":"234234234","costCenter":1,"controllingArea":2},{"relatedSites":[{"name":"00SITE1","id":"1","site_name":"00SITE1","$$hashKey":"object:1979"}],"sapServiceNumber":"12","materialUnit":"pc/шт","quantity":2,"materialQuantity":1,"definition":{"id":12,"costType":"CAPEX","contractor":{"id":5,"name":"JSC Kcell"},"region":{"id":7,"name":"Almaty"},"service":{"id":2,"name":"Rollout","sapCode":"Y"},"sapServiceNumber":"12","sapPOServiceName":"12.BattBackSys chg/repl on-air (^2 sets)","displayServiceName":"12.Battery Backup System change/replacement with on-air if required ( up to 2 sets) / Замена/перемещение системы резервных батарей с активацией, если необходимо (до 2 комплектов).","currency":"KZT","faClass":"29403422","materialGroup":"STD0025","year":2016,"spp":"RN-0502-33-0067","createDate":1496599200000,"units":"pc/шт","vendor":"280209"},"fixedAssetClass":"2342342","fixedAssetNumber":"234234234","costCenter":3,"controllingArea":4}]';
 def contractor = 4
 def sloc = 'S333'
 def workPrices = '[{"relatedSites":[{"name":"00SITE1","id":"1","site_name":"00SITE1"}],"sapServiceNumber":"8","materialUnit":"site/сайт","quantity":2,"materialQuantity":1,"unitWorkPricePerSite":"669468.24","netWorkPricePerSite":"1338936.48","unitWorkPrice":"619878.00","unitWorkPricePlusTx":"669468.24","basePriceByQuantity":"1239756.00","total":"1338936.48","basePrice":"619878.00"},{"relatedSites":[{"name":"00SITE1","id":"1","site_name":"00SITE1"}],"sapServiceNumber":"12","materialUnit":"pc/шт","quantity":2,"materialQuantity":1,"unitWorkPricePerSite":"69337.79","netWorkPricePerSite":"138675.57","unitWorkPrice":"64201.65","unitWorkPricePlusTx":"69337.79","basePriceByQuantity":"128403.30","total":"138675.57","basePrice":"64201.65"}]';
@@ -14,6 +14,8 @@ def reason = "1";
 def siteRegion = "alm";
 def site_name = "00SITE1";
 def jobWorksTotal = "70134.76";
+def sapFaList = '[{"faClass":"31231","sloc":"K207","faNumber":"111222"}]'
+def workDefinitionMap = '{"8":{"id":8,"contractor":{"id":5,"name":"JSC Kcell"},"region":{"id":7,"name":"Almaty"},"service":{"id":2,"name":"Rollout","sapCode":"Y"},"sapServiceNumber":"8","sapPOServiceName":"8.Site chge/repl (All equips)","displayServiceName":"8.Site change/replacement (All equipments, RF &TR& Infrastructure including packaging according Kcell required) / Замена/перемещение  сайта (все оборудование, RF &TR& Infrastructure, включая упаковку согласно стандартам Kcell)","currency":"KZT","faClass":"29403422","materialGroup":"STD0021","year":2016,"spp":"RN-0502-33-0067","createDate":1496599200000,"units":"site/сайт","vendor":"280209"}}'
 */
 
 def cal = Calendar.instance
@@ -23,6 +25,7 @@ def formatDate = new SimpleDateFormat("dd.MM.yyyy")
 def jobWorksObj = new JsonSlurper().parseText(jobWorks.toString())
 def workPricesObj = new JsonSlurper().parseText(workPrices.toString())
 def requestDateObj = formatDate.format(requestedDate)
+def sapFaListObj = new JsonSlurper().parseText(sapFaList.toString())
 def contractorsTitle = new JsonSlurper().parseText(this.getClass().getResource("/dictionary/contractor.json").text)
 def subcontractorsTitle = new JsonSlurper().parseText(this.getClass().getResource("/dictionary/subcontractor.json").text)
 def subcontructerName = (subcontractorsTitle[reason] != null ? subcontractorsTitle[reason].responsible : "-")
@@ -34,6 +37,7 @@ def tnuSiteLocationsObj = new JsonSlurper();
 if('2' == reason){
     tnuSiteLocationsObj = new JsonSlurper().parseText(tnuSiteLocations.toString())
 }
+def workDefinitionMapObj = new JsonSlurper().parseText(workDefinitionMap.toString())
 
 jobWorksObj.each { work ->
     if ('CAPEX' == work.expenseType){
@@ -61,6 +65,22 @@ jobWorksObj.each { work ->
     }
     work.contractorNo = contractorsTitle[contractor.toString()].contract.service
     work.costCenter = '25510'
+
+    if(reason == '2'){
+        relatedSites.each { rs ->
+            sapFaListObj.each { fa ->
+                if(fa.faClass == workDefinitionMapObj[work.sapServiceNumber].faClass && fa.sloc == tnuSiteLocationsObj[rs.id].siteLocation){
+                    tnuSiteLocationsObj[rs.id].fixedAssetNumber = fa.faNumber
+                }
+            }
+        }
+    } else {
+        sapFaListObj.each { fa ->
+            if(fa.faClass == workDefinitionMapObj[work.sapServiceNumber].faClass && fa.sloc == sloc){
+                work.fixedAssetNumber = fa.faNumber
+            }
+        }
+    }
 }
 
 jobWorksObj.each { work ->
@@ -72,7 +92,7 @@ jobWorksObj.each { work ->
 def binding = ["documentType": documentType[reason],"jobWorksObj":jobWorksObj, "workPricesObj": workPricesObj, "jrNumber":jrNumber,
                "requestDate": requestDateObj, "yearEndDate":yearEndDate, "sloc":sloc, "subcontructerName":subcontructerName,
                "site_name":site_name, "requestedBy":requestedBy, "reason": reason, "tnuSiteLocations":tnuSiteLocationsObj,
-               "jobWorksTotal": jobWorksTotal]
+               "jobWorksTotal": jobWorksTotal, "sapFaList": sapFaListObj, "workDefinitionMap":workDefinitionMapObj]
 
 /*
 FIELD DESCRIPTION	 For FA PRs (CAPEX)	    For Service PRs (OPEX)	Примечание
@@ -115,13 +135,13 @@ def template = '''\
 if (reason == '2') {
     jobWorksObj.each { w ->
         w.relatedSites.each { r ->
-            yieldUnescaped '' + documentType + '\t' + w.costType + '\t' + jrNumber + '\tapproved\t' + requestDate + '\t' + w.definition.vendor + '\t' + 
-                  '7\tY\tinstallation service ' + r.site_name + '\t' + w.contractorNo + '\t' + w.definition.sapServiceNumber + '\t' + w.price.quantity + '\t' +
+            yieldUnescaped '' + documentType + '\t' + w.costType + '\t' + jrNumber + '\tapproved\t' + requestDate + '\t' + workDefinitionMap[w.sapServiceNumber].vendor + '\t' + 
+                  '7\tY\tinstallation service ' + r.site_name + '\t' + w.contractorNo + '\t' + workDefinitionMap[w.sapServiceNumber].sapServiceNumber + '\t' + w.price.quantity + '\t' +
                   yearEndDate + '\t' + w.wbsElement + '\t' + jrNumber + '\t' + tnuSiteLocations[r.id].siteLocation + '\t' + (tnuSiteLocations[r.id].fixedAssetNumber!=null?tnuSiteLocations[r.id].fixedAssetNumber:'DUMMY') + '\t' +
                   w.costCenter + '\t' + w.controllingArea + '\t' + w.activityServiceNumber + '\t' + w.price.unitWorkPricePerSite + '\t' +
                   subcontructerName + '\t131\t' + requestedBy + '\t' +
                   '1.Purchase description: Revision works for site ' + r.site_name + ' JR# ' + jrNumber + ' dated ' + requestDate + ' ' +
-                  '2.Budgeted or not: yes ' + w.definition.spp + ' ' +
+                  '2.Budgeted or not: yes ' + workDefinitionMap[w.sapServiceNumber].spp + ' ' +
                   '3.Main project for Fintur: revision works ' +
                   '4.Describe the need of this purchase for this year: necessary for revision works ' +
                   '5.Contact person: ' + subcontructerName + ' ' +
@@ -132,13 +152,13 @@ if (reason == '2') {
     }
 } else {
     jobWorksObj.each { w ->
-        yieldUnescaped '' + documentType + '\t' + w.costType + '\t' + jrNumber + '\tapproved\t' + requestDate + '\t' + w.definition.vendor + '\t' + 
-              '7\tY\tinstallation service ' + site_name + '\t' + w.contractorNo + '\t' + w.definition.sapServiceNumber + '\t' + w.quantity + '\t' +
+        yieldUnescaped '' + documentType + '\t' + w.costType + '\t' + jrNumber + '\tapproved\t' + requestDate + '\t' + workDefinitionMap[w.sapServiceNumber].vendor + '\t' + 
+              '7\tY\tinstallation service ' + site_name + '\t' + w.contractorNo + '\t' + workDefinitionMap[w.sapServiceNumber].sapServiceNumber + '\t' + w.quantity + '\t' +
               yearEndDate + '\t' + w.wbsElement + '\t' + jrNumber + '\t' + sloc + '\t' + (w.fixedAssetNumber!=null?w.fixedAssetNumber:'DUMMY') + '\t' + 
               w.costCenter + '\t' + w.controllingArea + '\t' + w.activityServiceNumber + '\t' + w.price.unitWorkPricePlusTx + '\t' + 
               subcontructerName + '\t131\t' + requestedBy + '\t' +
               '1.Purchase description: Revision works for site ' + site_name + ' JR# ' + jrNumber + ' dated ' + requestDate + ' ' +
-              '2.Budgeted or not: yes ' + w.definition.spp + ' ' +
+              '2.Budgeted or not: yes ' + workDefinitionMap[w.sapServiceNumber].spp + ' ' +
               '3.Main project for Fintur: revision works ' +
               '4.Describe the need of this purchase for this year: necessary for revision works ' +
               '5.Contact person: ' + subcontructerName + ' ' +
