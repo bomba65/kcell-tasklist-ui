@@ -66,6 +66,10 @@ define(['./../module', 'xlsx'], function(module){
 
 				$timeout(correctHeaderWidth);
 
+				scope.$on('tab-selected', function(e, tabName) {
+					if (tabName == 'BC') $timeout(correctHeaderWidth);
+				});
+
 				scope.$watch('data', function(value) {
 					if (value) {
 						if (!scope.data) scope.data = {};
