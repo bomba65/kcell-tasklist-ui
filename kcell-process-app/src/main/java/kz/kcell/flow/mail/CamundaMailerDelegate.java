@@ -1,6 +1,8 @@
 package kz.kcell.flow.mail;
 
+import kz.kcell.flow.repository.ReportController;
 import org.apache.commons.codec.CharEncoding;
+import org.apache.commons.io.IOUtils;
 import org.apache.poi.xssf.usermodel.XSSFWorkbook;
 import org.camunda.bpm.engine.delegate.DelegateExecution;
 import org.camunda.bpm.engine.delegate.JavaDelegate;
@@ -14,6 +16,7 @@ import javax.mail.internet.MimeMessage;
 import javax.mail.util.ByteArrayDataSource;
 import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
+import java.io.InputStream;
 
 public class CamundaMailerDelegate implements JavaDelegate {
 
@@ -54,12 +57,11 @@ public class CamundaMailerDelegate implements JavaDelegate {
         MimeMessageHelper helper = new MimeMessageHelper(message, true);
 
         if (sendInstruction.equals("send")) {
-            XSSFWorkbook workbook = new XSSFWorkbook();
-            ByteArrayOutputStream out = new ByteArrayOutputStream();
-            workbook.write(out);
-            out.close();
-            ByteArrayInputStream is = new ByteArrayInputStream(out.toByteArray());
-            DataSource source = new ByteArrayDataSource(is, "application/src.main.resources.instruction.instruction.pdf");
+            InputStream fis = CamundaMailerDelegate.class.getResourceAsStream("/instruction/instruction.pdf");
+            byte[] bytes = IOUtils.toByteArray(fis);
+
+            ByteArrayInputStream is = new ByteArrayInputStream(bytes);
+            DataSource source = new ByteArrayDataSource(is, "application/pdf");
             helper.addAttachment("instruction.pdf", source);
         }
 
