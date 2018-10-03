@@ -1548,7 +1548,7 @@ define(['./module','jquery', 'moment', 'camundaSDK'], function(app, $, moment, C
 										if(el.type === 'Json'){
 											if(el.name === 'resolutions'){
 												$scope.jobModel[el.name].value = JSON.parse(el.value);
-											} else if(['contractScanCopyFileName', 'applicationScanCopyFileName'].indexOf(el.name) > -1) {
+											} else if(['contractScanCopyFileName', 'applicationScanCopyFileName', 'vpnQuestionnaireFileName'].indexOf(el.name) > -1) {
 												if (!$scope.jobModel.files) {
 													$scope.jobModel.files = [];
 												}

@@ -8,7 +8,8 @@
                 'transmitNumber',
                 'ipNumber',
                 'applicationScanCopyFileName',
-                'vpnQuestionnaireFileName',
+                'contractScanCopyFileName',
+                //'vpnQuestionnaireFileName',
                 'abonentTarif',
                 'description',
                 'contractNumber',
@@ -97,7 +98,7 @@
                                 value: ''
                             });
                         }
-                    } else if (el === 'applicationScanCopyFileName' || el === 'vpnQuestionnaireFileName') {
+                    } else if (el === 'applicationScanCopyFileName' || el === 'contractScanCopyFileName') {
                         $scope[el] = camForm.variableManager.variables[el].value;
                         $scope.freephoneInfo.files.push(camForm.variableManager.variables[el].value);
                     } else {
@@ -111,6 +112,12 @@
                 $scope.freephoneInfo.showTarif = true;
                 console.log($scope.freephoneInfo);
                 console.log($scope.freephoneInfo.files);
+
+                camForm.variableManager.createVariable({
+                    name: 'vpnQuestionnaireFileName',
+                    value: undefined,
+                    type: 'Json'
+                });
 
                 camForm.variableManager.createVariable({
                     name: 'confirmCompleteVPNchannelBuildTaskResult',
@@ -132,15 +139,22 @@
                 if(!$scope.resolutions){
                     $scope.resolutions = [];
                 }
+
+                var attachedFiles = [];
+                if($scope.vpnQuestionnaireFileName) {
+                    attachedFiles.push($scope.vpnQuestionnaireFileName.name);
+                    camForm.variableManager.variableValue('vpnQuestionnaireFileName', $scope.vpnQuestionnaireFileName);
+                }
+
                 camForm.variableManager.variableValue('confirmCompleteVPNchannelBuildTaskResult', $scope.confirmCompleteVPNchannelBuildTaskResult);
                 camForm.variableManager.variableValue('confirmCompleteVPNchannelBuildTaskComment', $scope.confirmCompleteVPNchannelBuildTaskComment);
-                $scope.resolutions.push({processInstanceId: $scope.processInstanceId, assignee: $rootScope.authentication.name, assigneeName: $rootScope.authentication.assigneeName, resolution: $scope.confirmCompleteVPNchannelBuildTaskResult, comment: $scope.confirmCompleteVPNchannelBuildTaskComment, taskId: camForm.taskId});
+                $scope.resolutions.push({processInstanceId: $scope.processInstanceId, assignee: $rootScope.authentication.name, assigneeName: $rootScope.authentication.assigneeName, resolution: $scope.confirmCompleteVPNchannelBuildTaskResult, comment: $scope.confirmCompleteVPNchannelBuildTaskComment, taskId: camForm.taskId, files: attachedFiles});
                 camForm.variableManager.variableValue('resolutions', $scope.resolutions);
             });
 
             $scope.download = function (file) {
                 console.log(file);
-                $http({method: 'GET', url: '/camunda/uploads/tmp/get/' + file.path, transformResponse: [] }).
+                $http({method: 'GET', url: '/camunda/uploads/get/' + file.path, transformResponse: [] }).
                 success(function(data, status, headers, config) {
                     document.getElementById('fileDownloadIframe').src = data;
                 }).
@@ -165,9 +179,10 @@
             function uploadFileToMinio(file, fileName) {
                 var fileValue = {
                     name: file.name,
-                    path: uuid + '/' + file.name
+                    // path: uuid + '/' + file.name
+                    path: $scope.processInstanceId + '/' + camForm.taskId + '/' + file.name
                 };
-                $http({method: 'GET', url: '/camunda/uploads/tmp/put/' + fileValue.path, transformResponse: [] }).
+                $http({method: 'GET', url: '/camunda/uploads/put/' + fileValue.path, transformResponse: [] }).
                 success(function(data, status, headers, config) {
                     $http.put(data, file, {headers: {'Content-Type': undefined}}).then(
                             function () {
