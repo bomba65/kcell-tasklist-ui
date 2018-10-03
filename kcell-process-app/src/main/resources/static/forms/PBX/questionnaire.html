@@ -170,6 +170,43 @@
               }
       );
     }
+    $scope.ci.foundClientCRM = false;
+
+    $scope.$watch('ci.bin', function(clientBIN){
+      if (clientBIN && clientBIN.length === 12){
+        $http({method: 'GET', url: '/camunda/crm/client/bin/'+clientBIN, transformResponse: [] })
+	      .success(function(data, status, headers, config) {
+			//console.log(data);
+			var clientCRM = JSON.parse(data);
+
+			$scope.ci.legalName = clientCRM.accountName;
+            $scope.ci.salesRepresentative = clientCRM.salesExecutiveUser.username;
+            //$http.get("/camunda/api/engine/engine/default/user/" + clientCRM.salesExecutiveUser.username + "/profile").then(function(response){
+            //    //console.log('profile', response.data);
+            //    $scope.ci.salesRepresentative = {'id': response.data.id, 'name': response.data.firstName + ' ' + response.data.lastName, 'email': response.data.email };
+            //});
+
+            $scope.ci.companyRegistrationCity = clientCRM.city.nameEn;
+            $scope.ci.mainTypeActivityCustomer = clientCRM.dicSectorEconomics;
+            $scope.ci.foundClientCRM = true;
+
+	      })
+	      .error (function(data, status, headers, config) {
+	        console.log(data, status, headers, config);
+	        $scope.ci.legalName = undefined;
+            $scope.ci.salesRepresentative = undefined;
+            $scope.ci.companyRegistrationCity = undefined;
+            $scope.ci.mainTypeActivityCustomer = undefined;
+            $scope.ci.foundClientCRM = false;
+          });
+      } else {
+        $scope.ci.legalName = undefined;
+        $scope.ci.salesRepresentative = undefined;
+        $scope.ci.companyRegistrationCity = undefined;
+        $scope.ci.mainTypeActivityCustomer = undefined;
+        $scope.ci.foundClientCRM = false;
+      }
+    }, true);
   }]);
 
   </script>
