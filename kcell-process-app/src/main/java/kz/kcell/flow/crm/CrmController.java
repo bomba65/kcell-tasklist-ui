@@ -78,70 +78,138 @@ public class CrmController {
         } else {
 
             ObjectMapper mapper = new ObjectMapper();
-
             ObjectNode fakeContent = mapper.createObjectNode();
-            fakeContent.put("id", 80607);
-            fakeContent.put("accountName", "Тестовый Клиент");
-            fakeContent.put("accountTyp", "Prospect");
-            fakeContent.put("bin", "111222333444");
-            //fakeContent.put("cugId", null);
-            //fakeContent.put("incugId", null);
-            //fakeContent.put("categoryAbc", null);
-
             ObjectNode kcellRegion = mapper.createObjectNode();
-            kcellRegion.put("id", 1);
-            kcellRegion.put("name", "Almaty Region");
-            //kcellRegion.put("status", null);
-            kcellRegion.put("lastUpdateDate", "2017-08-01T17:05:52");
-            fakeContent.put("kcellRegion", kcellRegion);
-
             ObjectNode dicChannel = mapper.createObjectNode();
-            dicChannel.put("id", 3);
-            dicChannel.put("name", "B2B LA");
-            //dicChannel.put("status", null);
-            //dicChannel.put("lastUpdateDate", null);
-            fakeContent.put("dicChannel", dicChannel);
-
             ObjectNode salesExecutiveUser = mapper.createObjectNode();
-            salesExecutiveUser.put("usersId", 10241);
-            salesExecutiveUser.put("username", "RUSLAN.ZHOLDYBAYEV");
-            salesExecutiveUser.put("firstName", "Руслан");
-            salesExecutiveUser.put("lastName", "Жолдыбаев");
-            salesExecutiveUser.put("middleName", "Сагатович");
-            fakeContent.put("salesExecutiveUser", salesExecutiveUser);
-
             ObjectNode city = mapper.createObjectNode();
-            city.put("id", 50000);
-            city.put("nameRu", "Алматы");
-            city.put("nameKz", "Алматы");
-            city.put("nameEn", "Almaty");
-            fakeContent.put("city", city);
-
-            //fakeContent.put("dicSectorEconomics", null);
-
+            ObjectNode dicSectorEconomics = mapper.createObjectNode();
             ObjectNode servManagerUser = mapper.createObjectNode();
-            servManagerUser.put("usersId", 10241);
-            servManagerUser.put("username", "RUSLAN.ZHOLDYBAYEV");
-            servManagerUser.put("firstName", "Руслан");
-            servManagerUser.put("lastName", "Жолдыбаев");
-            servManagerUser.put("middleName", "Сагатович");
-            fakeContent.put("servManagerUser", servManagerUser);
-
             ObjectNode supervisorUser = mapper.createObjectNode();
-            supervisorUser.put("usersId", 24132);
-            supervisorUser.put("username", "VACANCY");
-            supervisorUser.put("firstName", "vacancy");
-            supervisorUser.put("lastName", "-");
-            //supervisorUser.put("middleName", null);
-            fakeContent.put("supervisorUser", supervisorUser);
-
             ObjectNode regionalHeadUser = mapper.createObjectNode();
-            regionalHeadUser.put("usersId", 24132);
-            regionalHeadUser.put("username", "VACANCY");
-            regionalHeadUser.put("firstName", "vacancy");
-            regionalHeadUser.put("lastName", "-");
-            //regionalHeadUser.put("middleName", null);
-            fakeContent.put("regionalHeadUser", regionalHeadUser);
+
+            if (clientBIN.equals("000000000000")) {
+
+                fakeContent.put("id", 17494);
+                fakeContent.put("accountName", "ТОО для обучения и тестирования");
+                fakeContent.put("accountTyp", "Prospect");
+                fakeContent.put("bin", "000000000000");
+                fakeContent.put("cugId", "1");
+                fakeContent.put("incugId", "3");
+                fakeContent.put("categoryAbc", "C");
+
+                kcellRegion.put("id", 1);
+                kcellRegion.put("name", "Almaty Region");
+                //kcellRegion.put("status", null);
+                kcellRegion.put("lastUpdateDate", "2017-08-01T17:05:52");
+                fakeContent.put("kcellRegion", kcellRegion);
+
+                dicChannel.put("id", 4);
+                dicChannel.put("name", "GA Community");
+                //dicChannel.put("status", null);
+                //dicChannel.put("lastUpdateDate", null);
+                fakeContent.put("dicChannel", dicChannel);
+
+                salesExecutiveUser.put("usersId", 25881);
+                salesExecutiveUser.put("username", "BAKHYT.IBRAGIMOVA");
+                salesExecutiveUser.put("firstName", "Бахыт");
+                salesExecutiveUser.put("lastName", "Ибрагимова");
+                salesExecutiveUser.put("middleName", "Паттеевна");
+                fakeContent.put("salesExecutiveUser", salesExecutiveUser);
+
+                city.put("id", 70000);
+                city.put("nameRu", "Усть-Каменогорск");
+                city.put("nameKz", "Өскемен");
+                city.put("nameEn", "Ust-Kamenogorsk");
+                fakeContent.put("city", city);
+
+                dicSectorEconomics.put("id", 27);
+                dicSectorEconomics.put("name", "ПРАВИТЕЛЬСТВЕННЫЕ И ГОСУДАРСТВЕННЫЕ ОРГАНЫ");
+                //dicSectorEconomics.put("status", null);
+                fakeContent.put("dicSectorEconomics", dicSectorEconomics);
+
+                servManagerUser.put("usersId", 10673);
+                servManagerUser.put("username", "GALIYA.KOZGAMBAEVA");
+                servManagerUser.put("firstName", "Галия");
+                servManagerUser.put("lastName", "Козгамбаева");
+                servManagerUser.put("middleName", "Джалбековна");
+                fakeContent.put("servManagerUser", servManagerUser);
+
+                supervisorUser.put("usersId", 10543);
+                supervisorUser.put("username", "ELENA.SHEVELEVA");
+                supervisorUser.put("firstName", "Елена");
+                supervisorUser.put("lastName", "Шевелева");
+                supervisorUser.put("middleName", "Николаевна");
+                fakeContent.put("supervisorUser", supervisorUser);
+
+                regionalHeadUser.put("usersId", 10543);
+                regionalHeadUser.put("username", "ELENA.SHEVELEVA");
+                regionalHeadUser.put("firstName", "Елена");
+                regionalHeadUser.put("lastName", "Шевелева");
+                regionalHeadUser.put("middleName", "Николаевна");
+                fakeContent.put("regionalHeadUser", regionalHeadUser);
+            }
+
+            if (clientBIN.equals("111222333444")) {
+                fakeContent.put("id", 80607);
+                fakeContent.put("accountName", "Тестовый Клиент");
+                fakeContent.put("accountTyp", "Prospect");
+                fakeContent.put("bin", "111222333444");
+                //fakeContent.put("cugId", null);
+                //fakeContent.put("incugId", null);
+                //fakeContent.put("categoryAbc", null);
+
+
+                kcellRegion.put("id", 1);
+                kcellRegion.put("name", "Almaty Region");
+                //kcellRegion.put("status", null);
+                kcellRegion.put("lastUpdateDate", "2017-08-01T17:05:52");
+                fakeContent.put("kcellRegion", kcellRegion);
+
+
+                dicChannel.put("id", 3);
+                dicChannel.put("name", "B2B LA");
+                //dicChannel.put("status", null);
+                //dicChannel.put("lastUpdateDate", null);
+                fakeContent.put("dicChannel", dicChannel);
+
+
+                salesExecutiveUser.put("usersId", 10241);
+                salesExecutiveUser.put("username", "RUSLAN.ZHOLDYBAYEV");
+                salesExecutiveUser.put("firstName", "Руслан");
+                salesExecutiveUser.put("lastName", "Жолдыбаев");
+                salesExecutiveUser.put("middleName", "Сагатович");
+                fakeContent.put("salesExecutiveUser", salesExecutiveUser);
+
+                city.put("id", 50000);
+                city.put("nameRu", "Алматы");
+                city.put("nameKz", "Алматы");
+                city.put("nameEn", "Almaty");
+                fakeContent.put("city", city);
+
+                //fakeContent.put("dicSectorEconomics", null);
+
+                servManagerUser.put("usersId", 10241);
+                servManagerUser.put("username", "RUSLAN.ZHOLDYBAYEV");
+                servManagerUser.put("firstName", "Руслан");
+                servManagerUser.put("lastName", "Жолдыбаев");
+                servManagerUser.put("middleName", "Сагатович");
+                fakeContent.put("servManagerUser", servManagerUser);
+
+                supervisorUser.put("usersId", 24132);
+                supervisorUser.put("username", "VACANCY");
+                supervisorUser.put("firstName", "vacancy");
+                supervisorUser.put("lastName", "-");
+                //supervisorUser.put("middleName", null);
+                fakeContent.put("supervisorUser", supervisorUser);
+
+                regionalHeadUser.put("usersId", 24132);
+                regionalHeadUser.put("username", "VACANCY");
+                regionalHeadUser.put("firstName", "vacancy");
+                regionalHeadUser.put("lastName", "-");
+                //regionalHeadUser.put("middleName", null);
+                fakeContent.put("regionalHeadUser", regionalHeadUser);
+            }
 
             return ResponseEntity.ok(fakeContent.toString());
         }
