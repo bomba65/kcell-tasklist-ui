@@ -8,7 +8,8 @@ define(['./../module'], function(module){
                 form: '=',
                 view: '=',
                 disabled: '=',
-                editprice: '='
+                editprice: '=',
+                showprice: '='
 			},
 			link: function(scope, element, attrs) {
                 scope.$watch('data', function(value) {
@@ -72,6 +73,17 @@ define(['./../module'], function(module){
                     for (var d of scope.data) {
                         scope.totalSumm += d.summ;
                     }
+                };
+
+                scope.onDepartmentChange = function(index) {
+                    scope.setResponsible(index);
+                    scope.data[index].position = null;
+                    scope.data[index].description = null;
+                };
+
+                scope.onPositionChange = function(index) {
+                    scope.setResponsible(index);
+                    scope.data[index].description = null;
                 };
 	        },
 			templateUrl: './js/directives/demand/resources.html'

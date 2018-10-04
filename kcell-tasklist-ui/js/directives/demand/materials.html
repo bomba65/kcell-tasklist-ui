@@ -1,133 +1,135 @@
-<div class="col-sm-12">
-    <table class="table">
-        <thead>
-            <tr>
-                <th>Dept.</th>
-                <th>Material type</th>
-                <th>Description</th>
-                <th>Purchase group</th>
-                <th>Quantity</th>
-                <th>Measure</th>
-                <th>Existing on Wirehouse?</th>
-                <th>Currency</th>
-                <th>Price, Without VAT</th>
-                <th>Amount, Without VAT</th>
-                <th>Responsible</th>
-                <th ng-if="!disabled">
-                    <a href="#" ng-click="addItem()" style="font-size: 25px;">
-                        <span class="glyphicon glyphicon-plus-sign"></span>
-                    </a>
-                </th>
-            </tr>
-        </thead>
-        <tbody>
-            <tr ng-repeat="r in data track by $index">
-                <td>
-                    <span ng-if="disabled">{{r.department}}</span>
-                    <span ng-if="!disabled">
-                        <select class="form-control" ng-model="r.department" name="materials_{{$index}}_department" ng-change="setResponsible($index)" required>
-                            <option value="TD">TD</option>
-                            <option value="CCD">CCD</option>
-                            <option value="CPD">CPD</option>
-                            <option value="FD">FD</option>
-                        </select>
-                        <span class="has-error" ng-if="form['materials_'+$index+'_department'].$error.required && ( form['materials_'+$index+'_department'].$touched || view.submitted)">Required field</span>
-                    </span>
-                </td>
-                <td>
-                    <span ng-if="disabled">{{r.materialType}}</span>
-                    <span ng-if="!disabled">
-                        <select class="form-control" ng-model="r.materialType" name="materials_{{$index}}_type" ng-change="setResponsible($index)" required>
-                            <option value="Server">Server</option>
-                            <option value="Platform">Platform</option>
-                            <option value="License and Software">License and Software</option>
-                            <option value="Equipment (parts)">Equipment (parts)</option>
-                            <option value="New Equipment">New Equipment</option>
-                        </select>
-                        <span class="has-error" ng-if="form['materials_'+$index+'_type'].$error.required && ( form['materials_'+$index+'_type'].$touched || view.submitted)">Required field</span>
-                    </span>
-                </td>
-                <td>
-                    <span ng-if="disabled">{{r.description}}</span>
-                    <span ng-if="!disabled">
-                        <input type="text" class="form-control" ng-model="r.description" name="materials_{{$index}}_description" ng-change="setResponsible($index)" ng-required="r.materialType == 'New Equipment'" ng-disabled="r.materialType != 'New Equipment'">
-                        <span class="has-error" ng-if="form['materials_'+$index+'_description'].$error.required && ( form['materials_'+$index+'_description'].$touched || view.submitted)">Required field</span>
-                    </span>
-                </td>
-                <td>
-                    <span ng-if="disabled">{{r.purchaseGroup}}</span>
-                    <span ng-if="!disabled">
-                        <select class="form-control" ng-model="r.purchaseGroup" name="materials_{{$index}}_purchaseGroup" ng-change="setResponsible($index)" required>
-                            <option value="123">123</option>
-                            <option value="456">456</option>
-                        </select>
-                        <span class="has-error" ng-if="form['materials_'+$index+'_purchaseGroup'].$error.required && ( form['materials_'+$index+'_purchaseGroup'].$touched || view.submitted)">Required field</span>
-                    </span>
-                </td>
-                <td>
-                    <span ng-if="disabled">{{r.quantity}}</span>
-                    <span ng-if="!disabled">
-                        <input type="number" class="form-control" ng-model="r.quantity" name="materials_{{$index}}_quantity" ng-change="calcSumm($index)" required>
-                        <span class="has-error" ng-if="form['materials_'+$index+'_quantity'].$error.required && ( form['materials_'+$index+'_quantity'].$touched || view.submitted)">Required field</span>
-                    </span>
-                </td>
-                <td>
-                    <span ng-if="disabled">{{r.measure}}</span>
-                    <span ng-if="!disabled">
-                        <select class="form-control" ng-model="r.measure" name="materials_{{$index}}_measure" ng-change="setResponsible($index)" required>
-                            <option value="Pcs">Pcs</option>
-                            <option value="Bundle">Bundle</option>
-                            <option value="Kit">Kit</option>
-                        </select>
-                        <span class="has-error" ng-if="form['materials_'+$index+'_measure'].$error.required && ( form['materials_'+$index+'_measure'].$touched || view.submitted)">Required field</span>
-                    </span>
-                </td>
-                <td>
-                    <input type="checkbox" ng-model="r.existing" ng-change="setResponsible($index)" ng-disabled="disabled && !editprice">
-                </td>
-                <td>
-                    <span ng-if="!editprice">{{r.currency}}</span>
-                    <span ng-if="editprice">
-                        <select class="form-control" ng-model="r.currency" name="materials_{{$index}}_currency" ng-change="setResponsible($index)" required>
-                            <option value="KZT">KZT</option>
-                            <option value="USD">USD</option>
-                            <option value="EUR">EUR</option>
-                            <option value="GBP">GBP</option>
-                            <option value="RUB">RUR</option>
-                        </select>
-                        <span class="has-error" ng-if="form['materials_'+$index+'_currency'].$error.required && ( form['materials_'+$index+'_currency'].$touched || view.submitted)">Required field</span>
-                    </span>
-                </td>
-                <td>
-                    <span ng-if="!editprice">{{r.pprice}}</span>
-                    <span ng-if="editprice">
-                        <input type="number" class="form-control" ng-model="r.pprice" name="materials_{{$index}}_pprice" ng-change="calcSumm($index)" required>
-                        <span class="has-error" ng-if="form['materials_'+$index+'_pprice'].$error.required && ( form['materials_'+$index+'_pprice'].$touched || view.submitted)">Required field</span>
-                    </span>
-                </td>
-                <td>
-                    {{r.summ}}
-                    <!--<span ng-if="disabled">{{r.summ}}</span>
-                    <span ng-if="!disabled">
-                        <input type="number" class="form-control" ng-model="r.summ">
-                        <span class="has-error" ng-if="r.summ == null && view.submitted">Required field</span>
-                    </span>-->
-                </td>
-                <td>
-                    {{r.responsible.fio}}
-                </td>
-                <td ng-if="!disabled">
-                    <button type="button" class="btn btn-default" ng-click="deleteItem($index)">Delete</button>
-                </td>
-            </tr>
-        </tbody>
-    </table>
-    <!--<div class="col-sm-12" ng-if="data.length > 0">
-        <div class="col-sm-5 pull-right form-group">
-            <label class="col-sm-5 control-label">Total Summ</label>
-            <div class="col-sm-7">
-                <input type="text" class="form-control" ng-model="totalSumm" disabled>
+<div class="col-sm-12" style="overflow: auto;">
+    <div class="col-sm-12" ng-style="{'min-width': (disabled?(editprice?'1200px':'100%'):'1300px')}">
+        <table class="table">
+            <thead>
+                <tr>
+                    <th ng-style="{'width': (disabled?'auto':'8%')}">Dept.</th>
+                    <th ng-style="{'width': (disabled?'auto':'14%')}">Material type</th>
+                    <th ng-style="{'width': (disabled?'auto':'12%')}">Description</th>
+                    <th ng-style="{'width': (disabled?'auto':'7%')}">Purchase group</th>
+                    <th ng-style="{'width': (disabled?'auto':'7%')}">Quantity</th>
+                    <th ng-style="{'width': (disabled?'auto':'10%')}">Measure</th>
+                    <th ng-style="{'width': (disabled?'auto':'6%')}">Existing on Wirehouse?</th>
+                    <th ng-style="{'width': (disabled?(editprice?'8%':'auto'):'6%')}">Currency</th>
+                    <th ng-style="{'width': (disabled?(editprice?'10%':'auto'):'8%')}">Price, Without VAT</th>
+                    <th ng-style="{'width': (disabled?'auto':'8%')}">Amount, Without VAT</th>
+                    <th ng-style="{'width': (disabled?'auto':'10%')}">Responsible</th>
+                    <th ng-style="{'width': (disabled?'auto':'4%')}" ng-if="!disabled">
+                        <a href="#" ng-click="addItem()" style="font-size: 25px;">
+                            <span class="glyphicon glyphicon-plus-sign"></span>
+                        </a>
+                    </th>
+                </tr>
+            </thead>
+            <tbody>
+                <tr ng-repeat="r in data track by $index">
+                    <td>
+                        <span ng-if="disabled">{{r.department}}</span>
+                        <span ng-if="!disabled">
+                            <select class="form-control" ng-model="r.department" name="materials_{{$index}}_department" ng-change="onDepartmentChange($index)" required>
+                                <option value="TD">TD</option>
+                                <option value="CCD">CCD</option>
+                                <option value="CPD">CPD</option>
+                                <option value="FD">FD</option>
+                            </select>
+                            <span class="has-error" ng-if="form['materials_'+$index+'_department'].$error.required && ( form['materials_'+$index+'_department'].$touched || view.submitted)">Required field</span>
+                        </span>
+                    </td>
+                    <td>
+                        <span ng-if="disabled">{{r.materialType}}</span>
+                        <span ng-if="!disabled">
+                            <select class="form-control" ng-model="r.materialType" name="materials_{{$index}}_type" ng-change="onMaterialTypeChange($index)" required>
+                                <option value="Server">Server</option>
+                                <option value="Platform">Platform</option>
+                                <option value="License and Software">License and Software</option>
+                                <option value="Equipment (parts)">Equipment (parts)</option>
+                                <option value="New Equipment">New Equipment</option>
+                            </select>
+                            <span class="has-error" ng-if="form['materials_'+$index+'_type'].$error.required && ( form['materials_'+$index+'_type'].$touched || view.submitted)">Required field</span>
+                        </span>
+                    </td>
+                    <td>
+                        <span ng-if="disabled || r.materialType != 'New Equipment'">{{r.description}}</span>
+                        <span ng-if="!disabled && r.materialType == 'New Equipment'">
+                            <textarea rows="1" elastic-textarea class="form-control" ng-model="r.description" name="materials_{{$index}}_description" ng-change="setResponsible($index)" required></textarea>
+                            <span class="has-error" ng-if="form['materials_'+$index+'_description'].$error.required && ( form['materials_'+$index+'_description'].$touched || view.submitted)">Required field</span>
+                        </span>
+                    </td>
+                    <td>
+                        <span ng-if="disabled">{{r.purchaseGroup}}</span>
+                        <span ng-if="!disabled">
+                            <select class="form-control" ng-model="r.purchaseGroup" name="materials_{{$index}}_purchaseGroup" ng-change="setResponsible($index)" required>
+                                <option value="123">123</option>
+                                <option value="456">456</option>
+                            </select>
+                            <span class="has-error" ng-if="form['materials_'+$index+'_purchaseGroup'].$error.required && ( form['materials_'+$index+'_purchaseGroup'].$touched || view.submitted)">Required field</span>
+                        </span>
+                    </td>
+                    <td>
+                        <span ng-if="disabled">{{r.quantity}}</span>
+                        <span ng-if="!disabled">
+                            <input type="number" class="form-control" ng-model="r.quantity" name="materials_{{$index}}_quantity" ng-change="calcSumm($index)" required>
+                            <span class="has-error" ng-if="form['materials_'+$index+'_quantity'].$error.required && ( form['materials_'+$index+'_quantity'].$touched || view.submitted)">Required field</span>
+                        </span>
+                    </td>
+                    <td>
+                        <span ng-if="disabled">{{r.measure}}</span>
+                        <span ng-if="!disabled">
+                            <select class="form-control" ng-model="r.measure" name="materials_{{$index}}_measure" ng-change="setResponsible($index)" required>
+                                <option value="Pcs">Pcs</option>
+                                <option value="Bundle">Bundle</option>
+                                <option value="Kit">Kit</option>
+                            </select>
+                            <span class="has-error" ng-if="form['materials_'+$index+'_measure'].$error.required && ( form['materials_'+$index+'_measure'].$touched || view.submitted)">Required field</span>
+                        </span>
+                    </td>
+                    <td>
+                        <input type="checkbox" ng-model="r.existing" ng-change="setResponsible($index)" ng-disabled="disabled && !editprice">
+                    </td>
+                    <td>
+                        <span ng-if="!editprice">{{r.currency}}</span>
+                        <span ng-if="editprice">
+                            <select class="form-control" ng-model="r.currency" name="materials_{{$index}}_currency" ng-change="setResponsible($index)" required>
+                                <option value="KZT">KZT</option>
+                                <option value="USD">USD</option>
+                                <option value="EUR">EUR</option>
+                                <option value="GBP">GBP</option>
+                                <option value="RUB">RUR</option>
+                            </select>
+                            <span class="has-error" ng-if="form['materials_'+$index+'_currency'].$error.required && ( form['materials_'+$index+'_currency'].$touched || view.submitted)">Required field</span>
+                        </span>
+                    </td>
+                    <td>
+                        <span ng-if="!editprice">{{r.pprice}}</span>
+                        <span ng-if="editprice">
+                            <input type="number" class="form-control" ng-model="r.pprice" name="materials_{{$index}}_pprice" ng-change="calcSumm($index)" required>
+                            <span class="has-error" ng-if="form['materials_'+$index+'_pprice'].$error.required && ( form['materials_'+$index+'_pprice'].$touched || view.submitted)">Required field</span>
+                        </span>
+                    </td>
+                    <td>
+                        {{r.summ}}
+                        <!--<span ng-if="disabled">{{r.summ}}</span>
+                        <span ng-if="!disabled">
+                            <input type="number" class="form-control" ng-model="r.summ">
+                            <span class="has-error" ng-if="r.summ == null && view.submitted">Required field</span>
+                        </span>-->
+                    </td>
+                    <td>
+                        {{r.responsible.fio}}
+                    </td>
+                    <td ng-if="!disabled">
+                        <button type="button" class="btn btn-default" ng-click="deleteItem($index)">Delete</button>
+                    </td>
+                </tr>
+            </tbody>
+        </table>
+        <!--<div class="col-sm-12" ng-if="data.length > 0">
+            <div class="col-sm-5 pull-right form-group">
+                <label class="col-sm-5 control-label">Total Summ</label>
+                <div class="col-sm-7">
+                    <input type="text" class="form-control" ng-model="totalSumm" disabled>
+                </div>
             </div>
-        </div>
-    </div>-->
+        </div>-->
+    </div>
 </div>

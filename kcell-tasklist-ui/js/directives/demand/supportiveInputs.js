@@ -12,6 +12,11 @@ define(['./../module'], function(module){
 				onitemdeselect: '='
 			},
 			link: function(scope, element, attrs) {
+                scope.$watch('data', function(value) {
+                    if (value) {
+                        if (!scope.data || !(scope.data instanceof Array)) scope.data = [];
+                    }
+                });
 				scope.multiselectEvents = {
 					onItemSelect: function(item) {
 						var elt = scope.data.find(function(e) {return e.unit == item.unit});
@@ -22,13 +27,19 @@ define(['./../module'], function(module){
 					onItemDeselect: function(item) {
 						var elt = scope.optionList.find(function(e) {return e.unit == item.unit;});
 						if (scope.onitemdeselect) scope.onitemdeselect(elt);
+					},
+					onDeselectAll: function() {
+						for (var item of scope.data) {
+							var elt = scope.optionList.find(function(e) {return e.unit == item.unit;});
+							if (scope.onitemdeselect) scope.onitemdeselect(elt);
+						}
 					}
 				};
 				scope.multiselectSettings = {
 					enableSearch: true,
 					smartButtonMaxItems: 1,
 					showCheckAll: false,
-					showUncheckAll: false,
+					showUncheckAll: true,
 					displayProp: 'unit',
 					idProp: 'unit',
 					externalIdProp: 'unit'
@@ -90,11 +101,6 @@ define(['./../module'], function(module){
 					{unit: 'Technical Planning Section', form: 'Other'},
 					{unit: 'West Region Section', form: 'Other'}
 				];
-                scope.$watch('data', function(value) {
-                    if (value) {
-                        if (!scope.data || !(scope.data instanceof Array)) scope.data = [];
-                    }
-                });
 	        },
 			templateUrl: './js/directives/demand/supportiveInputs.html'
 		};

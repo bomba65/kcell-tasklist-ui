@@ -73,6 +73,17 @@ define(['./../module'], function(module){
                         scope.totalSumm += d.summ;
                     }
                 };
+
+                scope.onDepartmentChange = function(index) {
+                    scope.setResponsible(index);
+                    scope.data[index].materialType = null;
+                    scope.data[index].description = null;
+                };
+
+                scope.onMaterialTypeChange = function(index) {
+                    scope.setResponsible(index);
+                    scope.data[index].description = null;
+                };
 	        },
 			templateUrl: './js/directives/demand/materials.html'
 		};
