@@ -327,6 +327,7 @@ define(['./../module', 'xlsx'], function(module){
 				scope.deleteItem = function(index, name) {
 					scope.data.cashFlow[name].splice(index, 1);
 					scope.data.accurals[name].splice(index, 1);
+					scope.onChange();
 
 					$timeout(correctHeaderWidth);
 				};
