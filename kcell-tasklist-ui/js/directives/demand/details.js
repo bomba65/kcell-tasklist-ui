@@ -7,7 +7,8 @@ define(['./../module'], function(module){
                 data: '=',
                 form: '=',
                 view: '=',
-                disabled: '='
+				disabled: '=',
+				editdescription: '='
 			},
 			link: function(scope, element, attrs) {
 				scope.$watch('data', function(value) {
@@ -63,7 +64,6 @@ define(['./../module'], function(module){
 					if (!scope.data.productNames[index].version)
 						scope.data.productNames[index].version = 1.0;
 					scope.filteredProductNames[index] = null;
-					console.log("asdasddddddddd");
 				}
 
 				// ------ Product offer name ------

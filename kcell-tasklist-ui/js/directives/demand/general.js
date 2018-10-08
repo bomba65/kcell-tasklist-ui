@@ -7,7 +7,9 @@ define(['./../module'], function(module){
                 data: '=',
                 form: '=',
                 view: '=',
-                disabled: '='
+                disabled: '=',
+                editresposnible: '=',
+                edittechnical: '='
 			},
 			link: function(scope, element, attrs) {
                 scope.datePickerMinDate = new Date();

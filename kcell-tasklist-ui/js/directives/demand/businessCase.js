@@ -7,7 +7,9 @@ define(['./../module', 'xlsx'], function(module){
                 data: '=',
                 form: '=',
                 view: '=',
-                disabled: '='
+				disabled: '=',
+				showBanchmark: '=',
+				onExcelImport: '='
 			},
 			link: function(scope, element, attrs) {
 				scope.selects = {
@@ -137,6 +139,7 @@ define(['./../module', 'xlsx'], function(module){
 				}
 
 				scope.xlsxSelected = function(el) {
+					if (scope.onExcelImport) scope.onExcelImport(el);
 					$('#loaderDiv').show();
 					var reader = new FileReader();
 					reader.onload = function(e) {
@@ -466,6 +469,56 @@ define(['./../module', 'xlsx'], function(module){
 					// SCORE
 					scope.data.score = scope.data.qualitativeScore + scope.data.quantitativeScore;
 					$('#loaderDiv').hide();
+				};
+
+				scope.getUser = function(val) {
+					scope.data.networkEconomicsId = null;
+					var users = $http.get('/camunda/api/engine/engine/default/user?firstNameLike=%'+val+'%').then(
+						function(response){
+						  var usersByFirstName = _.flatMap(response.data, function(s){
+							if(s.id){
+							  return s.id.split(',').map(function(user){
+								return {
+								  id: s.id,
+								  email: (s.email?s.email.substring(s.email.lastIndexOf('/')+1):s.email),
+								  firstName: s.firstName,
+								  lastName: s.lastName,
+								  name: s.firstName + ' ' + s.lastName
+								};
+							  })
+							} else {
+							  return [];
+							}
+						  });
+						  //return usersByFirstName;
+						  return $http.get('/camunda/api/engine/engine/default/user?lastNameLike=%'+val+'%').then(
+							  function(response){
+								var usersByLastName = _.flatMap(response.data, function(s){
+								  if(s.id){
+									return s.id.split(',').map(function(user){
+									  return {
+										id: s.id,
+										email: s.email.substring(s.email.lastIndexOf('/')+1),
+										firstName: s.firstName,
+										lastName: s.lastName,
+										name: s.firstName + ' ' + s.lastName
+									  };
+									})
+								  } else {
+									return [];
+								  }
+								});
+								return _.unionWith(usersByFirstName, usersByLastName, _.isEqual);
+							  }
+						  );
+						}
+					);
+					return users;
+				};
+
+				scope.userSelected = function(item){
+					scope.data.networkEconomicsId = item.id;
+					scope.data.networkEconomics = item.name;
 				};
 	        },
 			templateUrl: './js/directives/demand/businessCase.html'
