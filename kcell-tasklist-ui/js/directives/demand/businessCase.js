@@ -539,22 +539,25 @@ define(['./../module', 'xlsx'], function(module){
 				if (!ctrl) return;
 
                 ctrl.$formatters.unshift(function () {
-					var fractionSize = 0;
-					if (scope.demandNumberFormat) fractionSize = scope.demandNumberFormat;
-					var view = $filter('number')(ctrl.$modelValue, fractionSize);
+					var fractionSize = -1, view = ctrl.$modelValue;
+					if (!isNaN(scope.demandNumberFormat)) fractionSize = scope.demandNumberFormat;
+					if (fractionSize != -1) view = $filter('number')(ctrl.$modelValue, fractionSize);
+					else  view = $filter('number')(ctrl.$modelValue);
 					if (ctrl.$modelValue == 0.0) view = '0';
 					if (view && scope.formatAddon && scope.formatAddon.length) view += scope.formatAddon;
                     return view;
                 });
 
                 ctrl.$parsers.unshift(function (viewValue) {
-					var fractionSize = 0;
+					var fractionSize = -1;
 					var plainNumber = viewValue.replace(/,/g, '');
 					if (scope.formatAddon) plainNumber = plainNumber.replace(scope.formatAddon, '');
-					if (scope.demandNumberFormat) fractionSize = scope.demandNumberFormat;
+					if (!isNaN(scope.demandNumberFormat)) fractionSize = scope.demandNumberFormat;
 
 					plainNumber = parseFloat(plainNumber);
-					var view = $filter('number')(plainNumber, fractionSize);
+					var view = plainNumber;
+					if (fractionSize != -1) view = $filter('number')(plainNumber, fractionSize);
+					else view = $filter('number')(plainNumber);
 					if (plainNumber == 0.0) view = '0';
 					if (scope.formatAddon && scope.formatAddon.length) view += scope.formatAddon;
                     elem.val(view);

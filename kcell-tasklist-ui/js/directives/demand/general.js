@@ -32,6 +32,56 @@ define(['./../module'], function(module){
                         }
                     }
                 });
+
+				scope.getUser = function(val) {
+					scope.data.demandSupervisorId = null;
+					var users = $http.get('/camunda/api/engine/engine/default/user?firstNameLike=%'+val+'%').then(
+						function(response){
+						  var usersByFirstName = _.flatMap(response.data, function(s){
+							if(s.id){
+							  return s.id.split(',').map(function(user){
+								return {
+								  id: s.id,
+								  email: (s.email?s.email.substring(s.email.lastIndexOf('/')+1):s.email),
+								  firstName: s.firstName,
+								  lastName: s.lastName,
+								  name: s.firstName + ' ' + s.lastName
+								};
+							  })
+							} else {
+							  return [];
+							}
+						  });
+						  //return usersByFirstName;
+						  return $http.get('/camunda/api/engine/engine/default/user?lastNameLike=%'+val+'%').then(
+							  function(response){
+								var usersByLastName = _.flatMap(response.data, function(s){
+								  if(s.id){
+									return s.id.split(',').map(function(user){
+									  return {
+										id: s.id,
+										email: s.email.substring(s.email.lastIndexOf('/')+1),
+										firstName: s.firstName,
+										lastName: s.lastName,
+										name: s.firstName + ' ' + s.lastName
+									  };
+									})
+								  } else {
+									return [];
+								  }
+								});
+								return _.unionWith(usersByFirstName, usersByLastName, _.isEqual);
+							  }
+						  );
+						}
+					);
+					return users;
+				};
+
+				scope.userSelected = function(item){
+					scope.data.demandSupervisorId = item.id;
+					scope.data.demandSupervisor = item.name;
+				};
 	        },
 			templateUrl: './js/directives/demand/general.html'
 		};
