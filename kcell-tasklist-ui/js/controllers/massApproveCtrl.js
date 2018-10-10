@@ -148,8 +148,8 @@ define(['./module', 'lodash', 'big-js'], function(module, _, Big){
                             value: new Date($scope.closeDate),
                             type: "Date"
                         };
-
-                        $http.post(baseUrl+"/task/"+instance.taskId+"/complete", {variables: variables}).then(function() {
+                        //$http.post(baseUrl+"/task/"+instance.taskId+"/complete", {variables: variables}).then(function() {
+                        $http.post(baseUrl+"/task/"+instance.taskId+"/submit-form", {variables: variables}).then(function() {
                             waiting--;
                             refreshPage();
                         });
