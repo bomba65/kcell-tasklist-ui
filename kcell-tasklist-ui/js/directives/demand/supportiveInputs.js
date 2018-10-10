@@ -16,23 +16,59 @@ define(['./../module'], function(module){
                     if (value) {
                         if (!scope.data || !(scope.data instanceof Array)) scope.data = [];
                     }
-                });
+				});
+				var sortOptions = function() {
+					/*scope.optionList = _.map(optionsCopy, _.clone);
+					console.log("==> ", optionsCopy);
+					scope.optionList.sort(function(a, b) {
+						var aChecked = scope.data.find(function(e) {return e.unit == a.unit;});
+						var bChecked = scope.data.find(function(e) {return e.unit == b.unit;});
+						if ((aChecked && bChecked) || (!aChecked && !bChecked)) {
+							return scope.optionList.indexOf(a) < scope.optionList.indexOf(b) ? -1 : 1;
+						}
+						if (aChecked) return -1;
+						return 1;
+					});*/
+				};
 				scope.multiselectEvents = {
 					onItemSelect: function(item) {
-						var elt = scope.data.find(function(e) {return e.unit == item.unit});
+						var elt = scope.data.find(function(e) {return e.unit == item.unit;});
 						var opt = scope.optionList.find(function(e) {return e.unit == item.unit;});
 						if (elt && opt) angular.copy(opt, elt);
 						if (scope.onitemselect) scope.onitemselect(elt);
+						var ind = scope.optionList.indexOf(opt), ind1 = -1, ind2 = 1;
+						scope.optionList.splice(ind, 1);
+						for (var i = 0; i < scope.data.length; i++) {
+							ind1 = optionsCopy.findIndex(function(e) {return e.unit == scope.optionList[i].unit;});
+							ind2 = optionsCopy.findIndex(function(e) {return e.unit == opt.unit;});
+							if (ind1 > ind2) {
+								scope.optionList.splice(i, 0, opt);
+								break;
+							}
+						}
+						if (ind1 < ind2) scope.optionList.splice(scope.data.length - 1, 0, opt);
 					},
 					onItemDeselect: function(item) {
 						var elt = scope.optionList.find(function(e) {return e.unit == item.unit;});
 						if (scope.onitemdeselect) scope.onitemdeselect(elt);
+						var ind = scope.optionList.indexOf(elt), ind1 = -1, ind2 = 1;
+						scope.optionList.splice(ind, 1);
+						for (var i = scope.data.length; i < scope.optionList.length; i++) {
+							ind1 = optionsCopy.findIndex(function(e) {return e.unit == scope.optionList[i].unit;});
+							ind2 = optionsCopy.findIndex(function(e) {return e.unit == elt.unit;});
+							if (ind1 > ind2) {
+								scope.optionList.splice(i, 0, elt);
+								break;
+							}
+						}
+						if (ind1 < ind2) scope.optionList.push(elt);
 					},
 					onDeselectAll: function() {
 						for (var item of scope.data) {
 							var elt = scope.optionList.find(function(e) {return e.unit == item.unit;});
 							if (scope.onitemdeselect) scope.onitemdeselect(elt);
 						}
+						scope.optionList = _.map(optionsCopy, _.clone);
 					}
 				};
 				scope.multiselectSettings = {
@@ -101,6 +137,8 @@ define(['./../module'], function(module){
 					{unit: 'Technical Planning Section', form: 'Other'},
 					{unit: 'West Region Section', form: 'Other'}
 				];
+
+                var optionsCopy = _.map(scope.optionList, _.clone);
 	        },
 			templateUrl: './js/directives/demand/supportiveInputs.html'
 		};

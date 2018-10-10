@@ -14,12 +14,12 @@ define(['./../module'], function(module){
 				scope.$watch('data', function(value) {
 					if (value) {
 						if (!scope.data) scope.data = {};
-                        if (!scope.data.requestType) scope.data.requestType = 'Consulting';
-                        if (!scope.data.dataType) scope.data.dataType = 'Kcell';
-                        if (!scope.data.fromPeriod) scope.data.fromPeriod = new Date();
-                        else scope.data.fromPeriod = new Date(scope.data.fromPeriod);
-                        if (!scope.data.toPeriod) scope.data.toPeriod = new Date();
-                        else scope.data.toPeriod = new Date(scope.data.toPeriod);
+                        // if (!scope.data.requestType) scope.data.requestType = 'Consulting';
+                        // if (!scope.data.dataType) scope.data.dataType = 'Kcell';
+                        // if (!scope.data.fromPeriod) scope.data.fromPeriod = new Date();
+                        if (scope.data.fromPeriod) scope.data.fromPeriod = new Date(scope.data.fromPeriod);
+                        // if (!scope.data.toPeriod) scope.data.toPeriod = new Date();
+                        if(scope.data.toPeriod) scope.data.toPeriod = new Date(scope.data.toPeriod);
 					}
 				});
 	        },
