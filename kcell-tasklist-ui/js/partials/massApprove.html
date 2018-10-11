@@ -21,13 +21,15 @@
                 <tr ng-repeat="instance in definition.tasks track by $index">
                     <td>{{$index+1}}</td>
                     <td><a ng-click="openTask(instance.taskId)">{{instance.processBusinessKey}}</a></td>
-                    <!--td ng-repeat="field in definition.configs.table.fields">{{massTableField(instance,field)}}</td-->
                     <td ng-repeat="field in definition.configs.table.fields">
-                        <p ng-show="definition.configs.table.readOnly[field] && !definition.configs.table.date[field]">{{massTableField(instance,field)}}</p>
-                        <p ng-show="definition.configs.table.date[field] && definition.configs.table.readOnly[field]">{{massTableField(instance,field) | date:"dd.MM.yyyy" }}</p>
-                        <textarea class="form-control" ng-show="!definition.configs.table.readOnly[field]" ng-model="instance[field]" style="resize:none" ng-readonly="definition.configs.table.readOnly[field]"></textarea>
+                        <p ng-show="field.readOnly && ( field.type === 'date' || field.type === 'text' )">{{field.type === 'date' ? ( massTableField(instance,field.name) | date:"dd.MM.yyyy" ) : massTableField(instance,field.name)}}</p>
+                        <select name="field.name" id="{{field.name}}" ng-model="taskData[instance.taskId][field.name]" ng-show="field.type === 'select'" ng-change="onSelect(field, instance)">
+                            <option ng-repeat="option in field.selectOptions" value="{{option.name}}">{{option.name}}</option>
+                        </select>
+                        <textarea class="form-control" ng-show="!field.readOnly && field.type === 'text'" ng-model="instance[field.name]" style="resize:none" ng-readonly="field.readOnly"></textarea>
+                        <label class="error" ng-show="field.notNull && !field.readOnly && instance.resolution && !(taskData[instance.taskId][field.name] || massTableField(instance,field.name))">Required field</label>
                     </td>
-                    <td>
+                    <td ng-hide="override(definition.configs.table.fields, 'comment')">
                         <textarea class="form-control" ng-model="instance.comment" style="resize:none"></textarea>
                     </td>
                     <td>

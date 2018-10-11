@@ -5,9 +5,45 @@ define(['./module', 'lodash', 'big-js'], function(module, _, Big){
         const defKey = $stateParams.defKey;
         if (!defKey) return;
 
+        $http.get("/camunda/api/engine/engine/default/user/" + $rootScope.authentication.name+ "/profile").then(function(result){
+            $rootScope.authentication.assigneeName = (result.data.firstName ? result.data.firstName : "") + " " + (result.data.lastName ? result.data.lastName : "");
+        });
+
+        $scope.override = function(fields, fieldToOverRide) {
+            return fields.filter(f=>f.name === fieldToOverRide && f.override).length > 0;
+        }
+
+        $scope.onSelect = function(field, instance){
+            if(field.name === "inAndOut") {
+                if (field.dependants && field.dependants.length>0 && $scope.taskData[instance.taskId][field.name]){
+                    field.dependants.forEach(function(dependant){
+                        if(dependant.fieldName === "identifierServiceName" && instance[dependant.fieldName]){
+                            if(!$scope.taskData[instance.taskId][dependant.fieldName]) {
+                                $scope.taskData[instance.taskId][dependant.fieldName] = instance[dependant.fieldName];
+                            }
+                            console.log($scope.taskData[instance.taskId][field.name], $scope.taskData[instance.taskId][dependant.fieldName])
+                            instance[dependant.fieldName] = $scope.taskData[instance.taskId][field.name] + ' ' + $scope.taskData[instance.taskId][dependant.fieldName];
+                        } else if(dependant.fieldName === "abonentTarif" && instance[dependant.fieldName]) {
+                            if(!$scope.taskData[instance.taskId][dependant.fieldName]) {
+                                $scope.taskData[instance.taskId][dependant.fieldName] = instance[dependant.fieldName];
+                            }
+                            if($scope.taskData[instance.taskId][field.name] === "Incoming") {
+                                instance[dependant.fieldName] = '0';
+                            }
+                            if($scope.taskData[instance.taskId][field.name] === "Outgoing") {
+                                instance[dependant.fieldName] = $scope.taskData[instance.taskId][dependant.fieldName];
+                            }
+                        }
+                    })
+                }
+            }
+            /*if(field.name === "comment"){}*/
+        };
+
         $http.post(baseUrl + "/task", {taskDefinitionKey: defKey, active: true}).then(function (response) {
             if (response.data && response.data.length) {
                 $scope.definitions = [];
+                $scope.taskData = {};
                 const groupedByDefs = _.groupBy(response.data, "processDefinitionId");
                 _.forOwn(groupedByDefs, function(val, key) {
                     if (!val.length) return;
@@ -27,6 +63,7 @@ define(['./module', 'lodash', 'big-js'], function(module, _, Big){
                             pid: v.processInstanceId,
                             taskId: v.id
                         });
+                        $scope.taskData[v.id] = {};
                     });
                     $scope.definitions.push(definition);
                 });
@@ -91,9 +128,17 @@ define(['./module', 'lodash', 'big-js'], function(module, _, Big){
             waiting = 0;
             for (var i = 0; i < $scope.definitions.length; i++) {
                 const definition = $scope.definitions[i];
+                var mandatoryFields = definition.configs.table.fields.filter(function(field){return field.notNull});
                 for (var j = 0; j < definition.tasks.length; j++) {
                     const instance = $scope.definitions[i].tasks[j];
                     if (!instance.resolution) continue;
+
+                    var emptyFields = mandatoryFields.filter(function(field) {
+                        return instance[field.name] ? false : $scope.taskData[instance.taskId][field.name] ?  false : true;
+                    });
+                    console.log(emptyFields, mandatoryFields);
+                    if(emptyFields.length>0) continue;
+
                     waiting++;
                     // Insert resolution
                     var resName = defKey + "TaskResult";
@@ -114,18 +159,24 @@ define(['./module', 'lodash', 'big-js'], function(module, _, Big){
                         }
                         if (instance.comment && instance.comment.length) {
                             comValue = instance.comment;
+                        } else {
+                            comValue = $scope.taskData[instance.taskId]['comment'];
                         }
+
                         variables[comName] = {
                             value: comValue,
                             type: "String"
                         };
 
-                        definition.configs.table.fields.filter(field => !definition.configs.table.readOnly[field]).forEach(fieldName=>{
-                            variables[fieldName] = {
-                                value: instance[fieldName],
+                        definition.configs.table.fields.filter(field => !field.override).forEach(field=>{
+                            variables[field.name] = {
+                                value: instance[field.name], // || $scope.taskData[instance.taskId][field.name],
                                 type: "String"
                             };
                         });
+
+                        console.log('variables',variables);
+                        console.log('instance',instance);
 
                         // Update or Insert resolutions
                         let ressName = "resolutions";
@@ -136,7 +187,7 @@ define(['./module', 'lodash', 'big-js'], function(module, _, Big){
                         if (instance[ressName]) {
                             resolutions = instance[ressName];
                         }
-                        resolutions.push({processInstanceId: instance.pid, assignee: $rootScope.authentication.name, resolution: instance.resolution, comment: instance.comment, taskId: instance.taskId});
+                        resolutions.push({processInstanceId: instance.pid, assignee: $rootScope.authentication.name, assigneeName: $rootScope.authentication.assigneeName, resolution: instance.resolution, comment: instance.comment || comValue, taskId: instance.taskId});
                         variables[ressName] = {
                             value: JSON.stringify(resolutions),
                             type: "Json"
@@ -159,14 +210,20 @@ define(['./module', 'lodash', 'big-js'], function(module, _, Big){
         }
 
         $scope.massTableField =  function(instance,f){
+            //console.log('massTableField', instance,f);
             if(f.indexOf(':') !== -1) {
                 var result = undefined;
                 while(f.indexOf(':') !== -1){
-                var property = f.substring(0,f.indexOf(':'));
-                f = f.substring(f.indexOf(':')+1,f.length);
-                if (instance.hasOwnProperty(property)) result = instance[property];
-                } if (result && result.hasOwnProperty(f)) return result[f];     
-            } else return instance[f];           
+                    var property = f.substring(0,f.indexOf(':'));
+                    f = f.substring(f.indexOf(':')+1,f.length);
+                    if (instance.hasOwnProperty(property)) result = instance[property];
+                } 
+                if (result && result.hasOwnProperty(f)) {
+                    return result[f];
+                }
+            } else {
+                return instance[f];
+            }
         }
 
         function refreshPage() {

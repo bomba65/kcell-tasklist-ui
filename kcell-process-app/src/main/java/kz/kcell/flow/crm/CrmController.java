@@ -210,8 +210,8 @@ public class CrmController {
                 //regionalHeadUser.put("middleName", null);
                 fakeContent.put("regionalHeadUser", regionalHeadUser);
             } else {
-                //return ResponseEntity.status(HttpStatus.BAD_REQUEST).body("{\"timestamp\":\"2018-10-04T15:19:17.655\",\"status\":500,\"code\":\"ERR0007\",\"subCode\":\"INTERNAL_ERROR\",\"message\":\"Corp client profile with bin 888999888999 doesn't exist\",\"path\":\"/corp_client_profile/bin/888999888999\",\"requestId\":\"20181004_151917_537_N9o\"}");
-                return ResponseEntity.ok("{\"timestamp\":\"2018-10-04T15:19:17.655\",\"status\":500,\"code\":\"ERR0007\",\"subCode\":\"INTERNAL_ERROR\",\"message\":\"Corp client profile with bin 888999888999 doesn't exist\",\"path\":\"/corp_client_profile/bin/888999888999\",\"requestId\":\"20181004_151917_537_N9o\"}");
+                //return ResponseEntity.status(HttpStatus.BAD_REQUEST).body("{\"timestamp\":\"2018-10-04T15:19:17.655\",\"status\":500,\"code\":\"ERR0007\",\"subCode\":\"INTERNAL_ERROR\",\"message\":\"Corp client profile with bin " + clientBIN + " doesn't exist\",\"path\":\"/corp_client_profile/bin/" + clientBIN + "\",\"requestId\":\"20181004_151917_537_N9o\"}");
+                return ResponseEntity.ok("{\"timestamp\":\"2018-10-04T15:19:17.655\",\"status\":500,\"code\":\"ERR0007\",\"subCode\":\"INTERNAL_ERROR\",\"message\":\"Corp client profile with bin " + clientBIN + " doesn't exist\",\"path\":\"/corp_client_profile/bin/" + clientBIN + "\",\"requestId\":\"20181004_151917_537_N9o\"}");
             }
 
             return ResponseEntity.ok(fakeContent.toString());
