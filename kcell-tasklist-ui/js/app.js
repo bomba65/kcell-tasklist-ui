@@ -69,7 +69,7 @@ define('app',[
 				},
 				{
 					"key" : "DemandUAT",
-					"name" : "Demand & UAT",
+					"name" : "Demand Management",
 					"processes" : [
 						{key:'UAT', name:'UAT protocol', group:'demand_uat_users'}
 					]
