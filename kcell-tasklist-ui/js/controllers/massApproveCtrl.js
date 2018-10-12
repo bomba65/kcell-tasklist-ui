@@ -149,9 +149,11 @@ define(['./module', 'lodash', 'big-js'], function(module, _, Big){
                     if (instance.resolution && instance.resolution.length) {
                         resValue = instance.resolution;
                     }
-                    console.log(baseUrl+"/task/"+instance.taskId+"/variables/"+resName);
-                    $http.put(baseUrl+"/task/"+instance.taskId+"/variables/"+resName, {value: resValue, type: "String"}).then(function() {
+                    console.log(baseUrl+"/task/"+instance.taskId+"/variables/"+resName, resValue);
+                    //$http.put(baseUrl+"/task/"+instance.taskId+"/variables/"+resName, {value: resValue, type: "String"}).then(function() {
                         var variables = {};
+                        variables[resName] = {value: resValue, type: "String"};
+
                         var comName = defKey + "TaskComment";
                         var comValue = "";
                         if (definition.configs.commentVariable && definition.configs.commentVariable.length) {
@@ -168,7 +170,7 @@ define(['./module', 'lodash', 'big-js'], function(module, _, Big){
                             type: "String"
                         };
 
-                        definition.configs.table.fields.filter(field => !field.override).forEach(field=>{
+                        definition.configs.table.fields.filter(field => !field.override && !field.readOnly).forEach(field=>{
                             variables[field.name] = {
                                 value: instance[field.name], // || $scope.taskData[instance.taskId][field.name],
                                 type: "String"
@@ -204,13 +206,12 @@ define(['./module', 'lodash', 'big-js'], function(module, _, Big){
                             waiting--;
                             refreshPage();
                         });
-                    });
+                    //});
                 }
             }
         }
 
         $scope.massTableField =  function(instance,f){
-            //console.log('massTableField', instance,f);
             if(f.indexOf(':') !== -1) {
                 var result = undefined;
                 while(f.indexOf(':') !== -1){
