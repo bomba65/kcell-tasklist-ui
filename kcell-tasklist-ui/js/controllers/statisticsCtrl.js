@@ -568,20 +568,30 @@ define(['./module','jquery'], function(app,$){
                         'approve_jr', //approve_jr
                         'update_leasing_status_general', //update_leasing_status_general
                         'update_leasing_status_special', //update_leasing_status_special
-                        //'Task_0s5v6wl',
                         'approve_material_list_region', //approve_material_list_region
                         'approve_material_list_center', //approve_material_list_center
                         'approve_material_list_center1',
                         'validate_tr', //validate_tr
                         'set_materials_dispatch_status', //set_materials_dispatch_status
                         'verify_works', //verify_works
-                        //'UserTask_0xsau1t',
                         'accept_work_initiator', //accept_work_initiator
                         'accept_work_maintenance_group', //accept_work_maintenance_group
                         'accept_work_planning_group', //accept_work_planning_group
                         'sign_region_head', //accept_work_planning_group
-                        'attach-scan-copy-of-acceptance-form'],
-                     'invoice-open-tasks': [
+                        'attach-scan-copy-of-acceptance-form',
+                        'approve_material_list_tnu_region',
+                        'validate_tr_bycenter',
+                        'attach_additional_material_list_contractor',
+                        'approve_additional_material_list_region',
+                        'approve_additional_material_list_tnu_region',
+                        'approve_additional_material_list_center1',
+                        'approve_additional_material_list_center',
+                        'upload_additional_tr_contractor',
+                        'validate_additional_tr',
+                        'validate_additional_tr_bycenter',
+                        'set_additional_materials_dispatch_status'
+                    ],
+                        'invoice-open-tasks': [
                         'ma_check_region',
                         'ma_sign_region_head',
                         'ma_sign_region_manager',
