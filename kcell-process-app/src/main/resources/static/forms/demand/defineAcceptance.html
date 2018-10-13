@@ -17,11 +17,7 @@
                 interfaces: {},
                 reportsStatistics: ''
             };
-            $scope.CACData = {
-                resources: [],
-                materials: [],
-                acceptCrits: []
-            };
+            $scope.acceptanceCriterias = [];
             $scope.resolutions = [];
             $scope.attachments = [];
             var processInstanceId = null;
@@ -45,33 +41,67 @@
             camForm.on('form-loaded', function () {
                 camForm.variableManager.fetchVariable('generalData');
                 camForm.variableManager.fetchVariable('BRDData');
-                camForm.variableManager.fetchVariable('CACData');
+                camForm.variableManager.fetchVariable('acceptanceCriterias');
                 camForm.variableManager.fetchVariable('resolutions');
                 camForm.variableManager.fetchVariable('attachments');
+                camForm.variableManager.fetchVariable('supportiveInputs');
             });
 
             camForm.on('variables-fetched', function () {
                 $scope.generalData = camForm.variableManager.variableValue('generalData');
                 $scope.BRDData = camForm.variableManager.variableValue('BRDData');
-                $scope.CACData = camForm.variableManager.variableValue('CACData');
+                $scope.acceptanceCriterias = camForm.variableManager.variableValue('acceptanceCriterias');
                 $scope.resolutions = camForm.variableManager.variableValue('resolutions');
                 $scope.attachments = camForm.variableManager.variableValue('attachments');
+                $scope.supportiveInputs = camForm.variableManager.variableValue('supportiveInputs');
                 if (!$scope.attachments) $scope.attachments = [];
-                if (!$scope.CACData) {
-                    $scope.CACData = {
-                        resources: [],
-                        materials: [],
-                        acceptCrits: []
-                    };
+                if (!$scope.acceptanceCriterias) $scope.acceptanceCriterias = [];
+                if (!$scope.supportiveInputs) $scope.supportiveInputs = [];
+                var elt = $scope.supportiveInputs.find(function(e) {return e.unit == 'Human Resources Department';});
+                if (!elt) {
+                    $scope.supportiveInputs.push({
+                        unit: 'Human Resources Department',
+                        form: 'HR',
+                        value: [],
+                        checked: false,
+                        inputReceived: false
+                    });
+                }
+                elt = $scope.supportiveInputs.find(function(e) {return e.unit == 'Infrasturcture Procurement Section';});
+                if (!elt) {
+                    $scope.supportiveInputs.push({
+                        unit: 'Infrasturcture Procurement Section',
+                        form: 'CPD',
+                        value: [],
+                        checked: false,
+                        inputReceived: false
+                    });
+                }
+                elt = $scope.supportiveInputs.find(function(e) {return e.unit == 'Technology Department';});
+                if (!elt) {
+                    $scope.supportiveInputs.push({
+                        unit: 'Technology Department',
+                        form: 'TD',
+                        value: [],
+                        checked: false,
+                        inputReceived: false
+                    });
                 }
             });
 
             camForm.on('submit', function (event) {
-                camForm.variableManager.destroyVariable('CACData');
+                camForm.variableManager.destroyVariable('supportiveInputs');
                 camForm.variableManager.createVariable({
-                    name: 'CACData',
+                  name: 'supportiveInputs',
+                  type: 'json',
+                  value: $scope.supportiveInputs,
+                  store: true
+                });
+                camForm.variableManager.destroyVariable('acceptanceCriterias');
+                camForm.variableManager.createVariable({
+                    name: 'acceptanceCriterias',
                     type: 'Json',
-                    value: $scope.CACData
+                    value: $scope.acceptanceCriterias
                 });
                 camForm.variableManager.destroyVariable('attachments');
                 camForm.variableManager.createVariable({
@@ -140,27 +170,38 @@
 
             $scope.saveFillForm = function () {
                 var success = 0;
-                var json = JSON.stringify($scope.CACData, function( key, value ) {
+                var json = JSON.stringify($scope.acceptanceCriterias, function( key, value ) {
                     if( key === "$$hashKey" ) return undefined;
                     return value;
                 });
-                $http.put('/camunda/api/engine/engine/default/process-instance/'+processInstanceId+'/variables/CACData',{"type":"Json","value": json}).then(
-                        function() {
-                            success++;
-                            if (success == 2) toasty.success( "Данные успешно сохранены!");
-                        },
-                        function(error) {toasty.error(error.data.message);}
+                $http.put('/camunda/api/engine/engine/default/process-instance/'+processInstanceId+'/variables/acceptanceCriterias',{"type":"Json","value": json}).then(
+                    function() {
+                        success++;
+                        if (success == 3) toasty.success( "Данные успешно сохранены!");
+                    },
+                    function(error) {toasty.error(error.data.message);}
+                );
+                var json = JSON.stringify($scope.supportiveInputs, function( key, value ) {
+                    if( key === "$$hashKey" ) return undefined;
+                    return value;
+                });
+                $http.put('/camunda/api/engine/engine/default/process-instance/'+processInstanceId+'/variables/supportiveInputs',{"type":"Json","value": json}).then(
+                    function() {
+                        success++;
+                        if (success == 3) toasty.success( "Данные успешно сохранены!");
+                    },
+                    function(error) {toasty.error(error.data.message);}
                 );
                 json = JSON.stringify($scope.attachments, function( key, value ) {
                     if( key === "$$hashKey" ) return undefined;
                     return value;
                 });
                 $http.put('/camunda/api/engine/engine/default/process-instance/'+processInstanceId+'/variables/attachments',{"type":"Json","value": json}).then(
-                        function() {
-                            success++;
-                            if (success == 2) toasty.success( "Данные успешно сохранены!");
-                        },
-                        function(error) {toasty.error(error.data.message);}
+                    function() {
+                        success++;
+                        if (success == 3) toasty.success( "Данные успешно сохранены!");
+                    },
+                    function(error) {toasty.error(error.data.message);}
                 );
             };
         }]);
@@ -247,20 +288,20 @@
         <tab active="true">
             <tab-heading> Costs and Acceptance Criterias </tab-heading>
             <div style="margin-bottom: 20px;">
-                <accordion>
+                <accordion ng-repeat="i in supportiveInputs" ng-if="i.form == 'HR'">
                     <accordion-group is-open="true">
                         <accordion-heading>
                             Resources <i class="pull-right glyphicon" ng-class="{'glyphicon-chevron-up': status.isCustomHeaderOpen, 'glyphicon-chevron-down': !status.isCustomHeaderOpen}"></i>
                         </accordion-heading>
-                        <demand-resources data="CACData.resources" form="kcell_form" view="view" disabled="false" editprice="false"></demand-resources>
+                        <demand-resources data="i.value" form="kcell_form" view="view" disabled="false" editprice="false"></demand-resources>
                     </accordion-group>
                 </accordion>
-                <accordion>
+                <accordion ng-repeat="i in supportiveInputs" ng-if="i.form == 'CPD'">
                     <accordion-group is-open="true">
                         <accordion-heading>
                             Materials <i class="pull-right glyphicon" ng-class="{'glyphicon-chevron-up': status.isCustomHeaderOpen, 'glyphicon-chevron-down': !status.isCustomHeaderOpen}"></i>
                         </accordion-heading>
-                        <demand-materials data="CACData.materials" form="kcell_form" view="view" disabled="false" editprice="false"></demand-materials>
+                        <demand-materials data="i.value" form="kcell_form" view="view" disabled="false" editprice="false" editexisting="true"></demand-materials>
                     </accordion-group>
                 </accordion>
                 <accordion>
@@ -275,21 +316,21 @@
                                         <th style="border:none; width: 1%;">#</th>
                                         <th style="border:none; width: 98%;">Description</th>
                                         <th style="border:none; width: 1%;">
-                                            <a href="#" ng-click="CACData.acceptCrits.push({v:''})" style="font-size: 25px; margin-left: 20px;">
+                                            <a href="#" ng-click="acceptanceCriterias.push({v:''})" style="font-size: 25px; margin-left: 20px;">
                                                 <span class="glyphicon glyphicon-plus-sign"></span>
                                             </a>
                                         </th>
                                     </tr>
                                 </thead>
                                 <tbody>
-                                    <tr ng-repeat="d in CACData.acceptCrits track by $index">
+                                    <tr ng-repeat="d in acceptanceCriterias track by $index">
                                         <td>{{$index + 1}}.</td>
                                         <td>                                            
                                             <textarea rows="1" elastic-textarea class="form-control" ng-model="d.v" required></textarea>
                                             <span class="has-error" ng-if="(!d.v || d.v.length == 0) && view.submitted">Required field</span>
                                         </td>
                                         <td>
-                                            <button type="button" class="btn btn-default" ng-click="CACData.acceptCrits.splice($index, 1)">Delete</button>
+                                            <button type="button" class="btn btn-default" ng-click="acceptanceCriterias.splice($index, 1)">Delete</button>
                                         </td>
                                     </tr>
                                 </tbody>

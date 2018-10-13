@@ -8,7 +8,8 @@ define(['./../module'], function(module){
                 form: '=',
                 view: '=',
                 disabled: '=',
-                editprice: '='
+                editprice: '=',
+                editexisting: '='
 			},
 			link: function(scope, element, attrs) {
                 scope.$watch('data', function(value) {

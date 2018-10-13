@@ -17,17 +17,14 @@
                 interfaces: {},
                 reportsStatistics: ''
             };
-            $scope.CACData = {
-                resources: [],
-                materials: [],
-                acceptCrits: []
-            };
             $scope.supportiveInputs = [];
             $scope.currentSupportiveInput = [];
             var supportiveInputName = null;
             var processInstanceId = null;
             var taskName = null;
             var assigneeName = $rootScope.authentication.name;
+            $scope.resources = [];
+            $scope.materials = [];
 
             $http.get("/camunda/api/engine/engine/default/user/" + $rootScope.authentication.name+ "/profile").then(function(result){
                 assigneeName = (result.data.firstName ? result.data.firstName : "") + " " + (result.data.lastName ? result.data.lastName : "");
@@ -46,9 +43,9 @@
                 camForm.variableManager.fetchVariable('resolutions');
                 camForm.variableManager.fetchVariable('generalData');
                 camForm.variableManager.fetchVariable('BRDData');
-                camForm.variableManager.fetchVariable('CACData');
+                camForm.variableManager.fetchVariable('supportiveInputs');
                 camForm.variableManager.fetchVariable('attachments');
-                camForm.variableManager.fetchVariable('acceptanceSupportiveInputs');
+                camForm.variableManager.fetchVariable('acceptanceCriterias');
                 camForm.variableManager.fetchVariable('supportiveInputName');
             });
 
@@ -56,20 +53,24 @@
                 $scope.resolutions = camForm.variableManager.variableValue('resolutions');
                 $scope.generalData = camForm.variableManager.variableValue('generalData');
                 $scope.BRDData = camForm.variableManager.variableValue('BRDData');
-                $scope.CACData = camForm.variableManager.variableValue('CACData');
+                $scope.supportiveInputs = camForm.variableManager.variableValue('supportiveInputs');
                 $scope.attachments = camForm.variableManager.variableValue('attachments');
-                $scope.supportiveInputs = camForm.variableManager.variableValue('acceptanceSupportiveInputs');
+                $scope.acceptanceCriterias = camForm.variableManager.variableValue('acceptanceCriterias');
                 supportiveInputName = camForm.variableManager.variableValue('supportiveInputName');
                 if (!$scope.resolutions) $scope.resolutions = [];
                 if (!$scope.attachments) $scope.attachments = [];
                 if (!$scope.supportiveInputs) $scope.supportiveInputs = [];
                 var elt = $scope.supportiveInputs.find(function(e) {return e.unit == supportiveInputName});
                 if (elt) $scope.currentSupportiveInput.push(elt);
+                for (var i of $scope.supportiveInputs) {
+                    if (i.form == 'HR') $scope.resources = $scope.resources.concat(i.value);
+                    else if (i.form == 'CPD') $scope.materials = $scope.materials.concat(i.value);
+                }
             });
 
             $scope.preSubmit = function() {
                 return $q.all([
-                    $http.get('/camunda/api/engine/engine/default/process-instance/'+processInstanceId+'/variables/acceptanceSupportiveInputs?deserializeValue=false'),
+                    $http.get('/camunda/api/engine/engine/default/process-instance/'+processInstanceId+'/variables/supportiveInputs?deserializeValue=false'),
                     $http.get('/camunda/api/engine/engine/default/process-instance/'+processInstanceId+'/variables/resolutions?deserializeValue=false'),
                     $http.get('/camunda/api/engine/engine/default/process-instance/'+processInstanceId+'/variables/attachments?deserializeValue=false')
                 ]).then(function (results) {
@@ -116,9 +117,9 @@
                 if (supportiveInputName) {
                     var elt = $scope.supportiveInputs.find(function(e) {return e.unit == supportiveInputName});
                     if (elt) elt.inputReceived = true;
-                    camForm.variableManager.destroyVariable('acceptanceSupportiveInputs');
+                    camForm.variableManager.destroyVariable('supportiveInputs');
                     camForm.variableManager.createVariable({
-                        name: 'acceptanceSupportiveInputs',
+                        name: 'supportiveInputs',
                         type: 'Json',
                         value: $scope.supportiveInputs
                     });
@@ -170,30 +171,16 @@
             }
 
             $scope.saveFillForm = function () {
-                $http.get('/camunda/api/engine/engine/default/process-instance/'+processInstanceId+'/variables/attachments?deserializeValue=false').then(
-                    function(result) {
-                        var lastAttachments = JSON.parse(result.data.value);
-                        for (var attachment of $scope.attachments) {
-                            if (!lastAttachments.find(function(e) {return e.path == attachment.path;})) {
-                                lastAttachments.push(attachment);
-                            }
-                        }
-                        $scope.attachments = lastAttachments;
-                        var json = JSON.stringify($scope.attachments, function( key, value ) {
-                            if( key === "$$hashKey" ) {
-                                return undefined;
-                            }
-                            return value;
-                        });
-                        $http.put('/camunda/api/engine/engine/default/process-instance/'+processInstanceId+'/variables/attachments',{"type":"Json","value": json}).then(
-                            function() {toasty.success( "Данные успешно сохранены!");},
-                            function(error) {toasty.error(error.data.message);}
-                        );
-                    },
-                    function(error){
-                        toasty.error(error.data.message);
-                    }
-                );
+                $scope.preSubmit().then(function() {
+                    var json = JSON.stringify($scope.attachments, function( key, value ) {
+                        if( key === "$$hashKey" ) return undefined;
+                        return value;
+                    });
+                    $http.put('/camunda/api/engine/engine/default/process-instance/'+processInstanceId+'/variables/attachments',{"type":"Json","value": json}).then(
+                        function() {toasty.success( "Данные успешно сохранены!");},
+                        function(error) {toasty.error(error.data.message);}
+                    );
+                });
             };
         }]);
     </script>
@@ -290,7 +277,7 @@
                     <accordion-heading>
                         Resources <i class="pull-right glyphicon" ng-class="{'glyphicon-chevron-up': status.isCustomHeaderOpen, 'glyphicon-chevron-down': !status.isCustomHeaderOpen}"></i>
                     </accordion-heading>
-                    <demand-resources data="CACData.resources" form="kcell_form" view="view" disabled="true" editprice="false"></demand-resources>
+                    <demand-resources data="resources" form="kcell_form" view="view" disabled="true" editprice="false"></demand-resources>
                 </accordion-group>
             </accordion>
             <accordion>
@@ -298,7 +285,7 @@
                     <accordion-heading>
                         Materials <i class="pull-right glyphicon" ng-class="{'glyphicon-chevron-up': status.isCustomHeaderOpen, 'glyphicon-chevron-down': !status.isCustomHeaderOpen}"></i>
                     </accordion-heading>
-                    <demand-materials data="CACData.materials" form="kcell_form" view="view" disabled="true" editprice="false"></demand-materials>
+                    <demand-materials data="materials" form="kcell_form" view="view" disabled="true" editprice="false"></demand-materials>
                 </accordion-group>
             </accordion>
             <accordion>
@@ -307,12 +294,20 @@
                         Acceptance criterias <i class="pull-right glyphicon" ng-class="{'glyphicon-chevron-up': status.isCustomHeaderOpen, 'glyphicon-chevron-down': !status.isCustomHeaderOpen}"></i>
                     </accordion-heading>
                     <div class="col-sm-12">
-                        <label class="col-sm-1"></label>
-                        <label class="col-sm-11">Description</label>
-                        <div class="form-group" ng-repeat="d in CACData.acceptCrits track by $index">
-                            <div class="col-sm-1 text-right">{{$index+1}}.</div>
-                            <div class="col-sm-11 disabled-element">{{d.v}}</div>
-                        </div>
+                        <table class="table table-borderless">
+                            <thead>
+                                <tr>
+                                    <th style="border:none;">#</th>
+                                    <th style="border:none;">Description</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                <tr ng-repeat="d in acceptanceCriterias track by $index">
+                                    <td>{{$index + 1}}.</td>
+                                    <td><div class="disabled-element">{{d.v}}</div></td>
+                                </tr>
+                            </tbody>
+                        </table>
                     </div>
                 </accordion-group>
             </accordion>

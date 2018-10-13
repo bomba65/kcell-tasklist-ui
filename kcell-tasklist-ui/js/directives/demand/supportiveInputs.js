@@ -14,22 +14,23 @@ define(['./../module'], function(module){
 			link: function(scope, element, attrs) {
                 scope.$watch('data', function(value) {
                     if (value) {
-                        if (!scope.data || !(scope.data instanceof Array)) scope.data = [];
+						if (!scope.data || !(scope.data instanceof Array)) scope.data = [];
+						for (var elt of scope.data) {
+							var opt = scope.optionList.find(function(e) {return e.unit == elt.unit;});
+							var ind = scope.optionList.indexOf(opt), ind1 = -1, ind2 = 1;
+							scope.optionList.splice(ind, 1);
+							for (var i = 0; i < scope.data.length; i++) {
+								ind1 = optionsCopy.findIndex(function(e) {return e.unit == scope.optionList[i].unit;});
+								ind2 = optionsCopy.findIndex(function(e) {return e.unit == opt.unit;});
+								if (ind1 > ind2) {
+									scope.optionList.splice(i, 0, opt);
+									break;
+								}
+							}
+							if (ind1 < ind2) scope.optionList.splice(scope.data.length - 1, 0, opt);
+						}
                     }
 				});
-				var sortOptions = function() {
-					/*scope.optionList = _.map(optionsCopy, _.clone);
-					console.log("==> ", optionsCopy);
-					scope.optionList.sort(function(a, b) {
-						var aChecked = scope.data.find(function(e) {return e.unit == a.unit;});
-						var bChecked = scope.data.find(function(e) {return e.unit == b.unit;});
-						if ((aChecked && bChecked) || (!aChecked && !bChecked)) {
-							return scope.optionList.indexOf(a) < scope.optionList.indexOf(b) ? -1 : 1;
-						}
-						if (aChecked) return -1;
-						return 1;
-					});*/
-				};
 				scope.multiselectEvents = {
 					onItemSelect: function(item) {
 						var elt = scope.data.find(function(e) {return e.unit == item.unit;});
@@ -81,12 +82,12 @@ define(['./../module'], function(module){
 					externalIdProp: 'unit'
 				};
 				scope.optionList = [
-					{unit: 'Technology Department', form: 'Other'},
+					{unit: 'Technology Department', form: 'TD'},
 					{unit: 'Human Resources Department', form: 'HR'},
 					{unit: 'Infrasturcture Procurement Section', form: 'CPD'},
 					{unit: 'Operational Procurement Section', form: 'CPD'},
 					{unit: 'Products and Services Procurement Section', form: 'CPD'},
-					{unit: 'Warehouse and Logistics Section', form: 'CPD'},
+					{unit: 'Warehouse and Logistics Section', form: 'WH'},
 					{unit: 'Consumer Marketing Section', form: 'CPD'},
 					{unit: 'Digital Marketing Section', form: 'CPD'},
 					{unit: 'Enterprise Marketing Section', form: 'CPD'},

@@ -28,9 +28,9 @@
             var supportiveInputList = {
                 CPD: false, CPDs: [],
                 HR: false, HRs: [],
-                Other: false, Others: []
+                TD: false, TDs: []
             };
-            $scope.requestInfoCount = 0;
+            $scope.supportiveInputsCount = 0;
             var processInstanceId = null;
             var taskName = null;
             var assigneeName = $rootScope.authentication.name;
@@ -52,32 +52,33 @@
             camForm.on('form-loaded', function () {
                 camForm.variableManager.fetchVariable('generalData');
                 camForm.variableManager.fetchVariable('BRDData');
-                camForm.variableManager.fetchVariable('CACData');
+                camForm.variableManager.fetchVariable('acceptanceCriterias');
                 camForm.variableManager.fetchVariable('resolutions');
                 camForm.variableManager.fetchVariable('resolution');
                 camForm.variableManager.fetchVariable('attachments');
-                camForm.variableManager.fetchVariable('acceptanceSupportiveInputs');
+                camForm.variableManager.fetchVariable('supportiveInputs');
                 camForm.variableManager.fetchVariable('supportiveInputList');
             });
 
             camForm.on('variables-fetched', function () {
                 $scope.generalData = camForm.variableManager.variableValue('generalData');
                 $scope.BRDData = camForm.variableManager.variableValue('BRDData');
-                $scope.CACData = camForm.variableManager.variableValue('CACData');
+                $scope.acceptanceCriterias = camForm.variableManager.variableValue('acceptanceCriterias');
                 $scope.resolutions = camForm.variableManager.variableValue('resolutions');
                 $scope.attachments = camForm.variableManager.variableValue('attachments');
-                $scope.supportiveInputs = camForm.variableManager.variableValue('acceptanceSupportiveInputs');
+                $scope.supportiveInputs = camForm.variableManager.variableValue('supportiveInputs');
+                $scope.supportiveInputList = camForm.variableManager.variableValue('supportiveInputList');
                 if (!$scope.attachments) $scope.attachments = [];
                 if (!$scope.supportiveInputs) {
                     $scope.supportiveInputs = [
-                        {unit: 'Human Resources Department', form: 'HR'},
-                        {unit: 'Infrasturcture Procurement Section', form: 'CPD'},
-                        {unit: 'Technology Department', form: 'Other'}
+                        {unit: 'Human Resources Department', form: 'HR', value: [], checked: false},
+                        {unit: 'Infrasturcture Procurement Section', form: 'CPD', value: [], checked: false},
+                        {unit: 'Technology Department', form: 'TD', value: {}, checked: false}
                     ];
                 } else {
                     for (var s of $scope.supportiveInputs)
-                        if (s.needInput)
-                            $scope.requestInfoCount++;
+                        if (s.checked)
+                            $scope.supportiveInputsCount++;
                 }
             });
 
@@ -103,16 +104,16 @@
 
                 if ($scope.supportiveInputs && $scope.supportiveInputs.length) {
                     for (var v of $scope.supportiveInputs) {
-                        if (!v.needInput) continue;
+                        if (!v.checked) continue;
                         supportiveInputList[v.form] = true;
                         if (!supportiveInputList[v.form+'s']) supportiveInputList[v.form+'s'] = [];
                         supportiveInputList[v.form+'s'].push(v.unit);
                     }
                 }
 
-                camForm.variableManager.destroyVariable("acceptanceSupportiveInputs");
+                camForm.variableManager.destroyVariable("supportiveInputs");
                 camForm.variableManager.createVariable({
-                    name: 'acceptanceSupportiveInputs',
+                    name: 'supportiveInputs',
                     type: 'Json',
                     value: $scope.supportiveInputs
                 });
@@ -136,8 +137,8 @@
             }
 
             $scope.needInputClicked = function(selected) {
-                $scope.requestInfoCount += (selected ? 1 : -1);
-                if (!$scope.requestInfoCount && scope.resolution == 'Request Info') $scope.resolution = 'Modify';
+                $scope.supportiveInputsCount += (selected ? 1 : -1);
+                if (!$scope.supportiveInputsCount && scope.resolution == 'Request Info') $scope.resolution = 'Modify';
             }
         }]);
     </script>
@@ -223,20 +224,20 @@
         <tab active="true">
             <tab-heading> Costs and Acceptance Criterias </tab-heading>
             <div style="margin-bottom: 20px;">
-                <accordion>
+                <accordion ng-repeat="i in supportiveInputs" ng-if="i.form == 'HR'">
                     <accordion-group is-open="true">
                         <accordion-heading>
                             Resources <i class="pull-right glyphicon" ng-class="{'glyphicon-chevron-up': status.isCustomHeaderOpen, 'glyphicon-chevron-down': !status.isCustomHeaderOpen}"></i>
                         </accordion-heading>
-                        <demand-resources data="CACData.resources" form="kcell_form" view="view" disabled="true" editprice="false"></demand-resources>
+                        <demand-resources data="i.value" form="kcell_form" view="view" disabled="true" editprice="false"></demand-resources>
                     </accordion-group>
                 </accordion>
-                <accordion>
+                <accordion ng-repeat="i in supportiveInputs" ng-if="i.form == 'CPD'">
                     <accordion-group is-open="true">
                         <accordion-heading>
                             Materials <i class="pull-right glyphicon" ng-class="{'glyphicon-chevron-up': status.isCustomHeaderOpen, 'glyphicon-chevron-down': !status.isCustomHeaderOpen}"></i>
                         </accordion-heading>
-                        <demand-materials data="CACData.materials" form="kcell_form" view="view" disabled="true" editprice="false"></demand-materials>
+                        <demand-materials data="i.value" form="kcell_form" view="view" disabled="true" editprice="false"></demand-materials>
                     </accordion-group>
                 </accordion>
                 <accordion>
@@ -253,7 +254,7 @@
                                     </tr>
                                 </thead>
                                 <tbody>
-                                    <tr ng-repeat="d in CACData.acceptCrits track by $index">
+                                    <tr ng-repeat="d in acceptanceCriterias track by $index">
                                         <td>{{$index + 1}}.</td>
                                         <td><div class="disabled-element">{{d.v}}</div></td>
                                     </tr>
@@ -292,13 +293,13 @@
                     <tbody>
                         <tr ng-repeat="r in supportiveInputs">
                             <td class="text-center">
-                                <input type="checkbox" ng-model="r.needInput" ng-click="needInputClicked(r.needInput)">
+                                <input type="checkbox" ng-model="r.checked" ng-click="needInputClicked(r.checked)">
                             </td>
                             <td class="text-center">
                                 <input type="text" class="form-control" ng-model="r.unit" disabled>
                             </td>
                             <td class="text-center">
-                                <textarea rows="1" elastic-textarea class="form-control" ng-model="r.description" name="reqinfo_{{$index}}_description" ng-required="r.needInput"></textarea>
+                                <textarea rows="1" elastic-textarea class="form-control" ng-model="r.description" name="reqinfo_{{$index}}_description" ng-required="r.checked"></textarea>
                                 <span class="has-error" ng-if="kcell_form['reqinfo_'+$index+'_description'].$error.required && ( kcell_form['reqinfo_'+$index+'_description'].$touched || view.submitted)">Required field</span>
                             </td>
                             <td class="text-center">
@@ -350,7 +351,7 @@
                 <input type="radio" ng-model="resolution" name="resolution" value="Modify" required> Modify
             </label>
             <label class="radio-inline">
-                <input type="radio" ng-model="resolution" name="resolution" value="Request Info" required ng-disabled="!requestInfoCount"> Request Info
+                <input type="radio" ng-model="resolution" name="resolution" value="Request Info" required ng-disabled="!supportiveInputsCount"> Request Info
             </label>
             <label class="error" ng-show="kcell_form.resolution.$error.required && ( kcell_form.resolution.$touched || view.submitted)">Required field</label>
         </div>
