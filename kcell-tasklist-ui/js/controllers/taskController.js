@@ -251,7 +251,27 @@ define(['./module','camundaSDK', 'lodash', 'big-js'], function(module, CamSDK, _
 		}
 
 		$scope.highlightTask = function() {
-			$scope.control.highlight($scope.diagram.task.taskDefinitionKey);
+			if ($scope.selectedProject.key === "DeliveryPortal" && ['All','freephone','bulksmsConnectionKAE'].indexOf($scope.selectedProcess.key)>-1) {
+				$http({
+					method: 'GET',
+					headers:{'Accept':'application/hal+json, application/json; q=0.5'},
+					url: baseUrl+'/task?processInstanceId='+$scope.processInstanceId
+				}).then(
+					function(tasks){
+						var processInstanceTasks = tasks.data._embedded.task;
+						if(processInstanceTasks && processInstanceTasks.length > 0){
+							processInstanceTasks.forEach((task=>{
+								$scope.control.highlight(task.taskDefinitionKey);
+							}));
+						}
+					},
+					function(error) {
+						console.log(error.data);
+					}
+				);
+			} else {
+				$scope.control.highlight($scope.diagram.task.taskDefinitionKey);
+			}
 		};
 
 		$scope.assignLinkEnabled = function(processDefinitionKey) {

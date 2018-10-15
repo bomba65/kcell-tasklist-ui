@@ -17,13 +17,11 @@ define(['./module', 'lodash', 'big-js'], function(module, _, Big){
             if(field.name === "inAndOut") {
                 if (field.dependants && field.dependants.length>0 && $scope.taskData[instance.taskId][field.name]){
                     field.dependants.forEach(function(dependant){
-                        //if(dependant.fieldName === "identifierServiceName" && instance[dependant.fieldName]){
                         if((dependant.fieldName === "identifierServiceName_amdocs" && instance[dependant.fieldName]) || (dependant.fieldName === "identifierServiceName_orga" && instance[dependant.fieldName])){
                             if(!$scope.taskData[instance.taskId][dependant.fieldName]) {
                                 $scope.taskData[instance.taskId][dependant.fieldName] = instance[dependant.fieldName];
                             }
                             instance[dependant.fieldName] = $scope.taskData[instance.taskId][field.name] + ' ' + $scope.taskData[instance.taskId][dependant.fieldName].replace("Incoming ", "").replace("Outgoing ", "");
-                        //} else if(dependant.fieldName === "abonentTarif" && instance[dependant.fieldName]) {
                         } else if((dependant.fieldName === "abonentTarif_amdocs" && instance[dependant.fieldName]) || (dependant.fieldName === "abonentTarif_orga" && instance[dependant.fieldName])) {
                             if(!$scope.taskData[instance.taskId][dependant.fieldName]) {
                                 $scope.taskData[instance.taskId][dependant.fieldName] = instance[dependant.fieldName];
@@ -92,7 +90,6 @@ define(['./module', 'lodash', 'big-js'], function(module, _, Big){
 
                 var tids = _.flatMap(response.data, function (v) { return v.id; });
                 var counter =0;
-                // $scope.closeDate = new Date();
                 $scope.closeDate = new Date();
                 tids.forEach(function(tid) {
                     $http.get(baseUrl + "/task/" + tid + "/form-variables?deserializeValues=false").then(function (response) {
@@ -174,13 +171,10 @@ define(['./module', 'lodash', 'big-js'], function(module, _, Big){
 
                         definition.configs.table.fields.filter(field => !field.override && (!field.readOnly || field.save)).forEach(field=>{
                             variables[field.name] = {
-                                value: instance[field.name], // || $scope.taskData[instance.taskId][field.name],
+                                value: instance[field.name],
                                 type: "String"
                             };
                         });
-                        //console.log('variables',variables);
-                        //console.log('instance',instance);
-
                         // Update or Insert resolutions
                         let ressName = "resolutions";
                         if (definition.configs.historyVariable && definition.configs.historyVariable.length) {
@@ -202,7 +196,6 @@ define(['./module', 'lodash', 'big-js'], function(module, _, Big){
                             value: new Date($scope.closeDate),
                             type: "Date"
                         };
-                        //$http.post(baseUrl+"/task/"+instance.taskId+"/complete", {variables: variables}).then(function() {
                         $http.post(baseUrl+"/task/"+instance.taskId+"/submit-form", {variables: variables}).then(function() {
                             waiting--;
                             refreshPage();
