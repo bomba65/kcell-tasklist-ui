@@ -21,18 +21,18 @@
             $scope.currentSupportiveInput = [];
             var supportiveInputName = null;
             var processInstanceId = null;
-            var taskName = null;
-            var assigneeName = $rootScope.authentication.name;
+            $scope.assigneeName = $rootScope.authentication.name;
             $scope.resources = [];
             $scope.materials = [];
+            var createdDate = new Date();
 
             $http.get("/camunda/api/engine/engine/default/user/" + $rootScope.authentication.name+ "/profile").then(function(result){
-                assigneeName = (result.data.firstName ? result.data.firstName : "") + " " + (result.data.lastName ? result.data.lastName : "");
+                $scope.assigneeName = (result.data.firstName ? result.data.firstName : "") + " " + (result.data.lastName ? result.data.lastName : "");
             });
             $http.get('/camunda/api/engine/engine/default/task/' + camForm.taskId).then(
                 function(result){
                     processInstanceId = result.data.processInstanceId;
-                    taskName = result.data.name;
+                    if (result.data.created) createdDate = new Date(result.data.created);
                 },
                 function (error) {
                     console.log(error.data);
@@ -105,7 +105,7 @@
                 });
 
                 var submitDate = new Date ();
-                $scope.resolutions.push({processInstanceId: processInstanceId, assignee: assigneeName, resolution: 'Completed', comment: $scope.comment, taskId: camForm.taskId, taskEndDate: submitDate, taskName: taskName});
+                $scope.resolutions.push({processInstanceId: processInstanceId, assignee: $scope.assigneeName, resolution: 'Completed', comment: $scope.comment, taskId: camForm.taskId, taskEndDate: submitDate, taskName: 'Technical input', dateOfAssign: createdDate});
                 camForm.variableManager.destroyVariable('resolutions');
                 camForm.variableManager.createVariable({
                     name: 'resolutions',
@@ -153,7 +153,7 @@
                     name: file.name,
                     path: processInstanceId + '/' + camForm.taskId + '/' + file.name,
                     created: new Date(),
-                    createdBy: assigneeName
+                    createdBy: $scope.assigneeName
                 };
                 $http({method: 'GET', url: '/camunda/uploads/put/' + fileToUpload.path, transformResponse: [] }).success(function(data, status, headers, config) {
                     $http.put(data, file, {headers: {'Content-Type': undefined}}).then(
@@ -353,7 +353,7 @@
                             <td><a ng-click="downloadFile(file)">{{file.name}}</a></td>
                             <td>{{file.created | date: 'dd.MM.yyyy HH:mm'}}</td>
                             <td>{{file.createdBy}}</td>
-                            <td><a ng-click="clearFile($index)"><i class="glyphicon glyphicon-trash"></i></a></td>
+                            <td><a ng-click="clearFile($index)" ng-if="file.createdBy == assigneeName"><i class="glyphicon glyphicon-trash"></i></a></td>
                         </tr>
                         </tbody>
                     </table>
@@ -388,6 +388,7 @@
                     <th>Activity</th>
                     <th>Assignee</th>
                     <th>Resolution</th>
+                    <th>Date of assign</th>
                     <th>Date</th>
                     <th>Comment</th>
                 </tr>
@@ -397,6 +398,7 @@
                     <td>{{resolution.taskName}}</td>
                     <td>{{resolution.assignee}}</td>
                     <td>{{resolution.resolution}}</td>
+                    <td>{{resolution.dateOfAssign | date: 'dd.MM.yyyy HH:mm'}}</td>
                     <td>{{resolution.taskEndDate | date: 'dd.MM.yyyy HH:mm'}}</td>
                     <td>{{resolution.comment}}</td>
                 </tr>
