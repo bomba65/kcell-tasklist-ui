@@ -102,52 +102,52 @@ public class CrmController {
                 kcellRegion.put("name", "Almaty Region");
                 //kcellRegion.put("status", null);
                 kcellRegion.put("lastUpdateDate", "2017-08-01T17:05:52");
-                fakeContent.put("kcellRegion", kcellRegion);
+                fakeContent.set("kcellRegion", kcellRegion);
 
                 dicChannel.put("id", 4);
                 dicChannel.put("name", "GA Community");
                 //dicChannel.put("status", null);
                 //dicChannel.put("lastUpdateDate", null);
-                fakeContent.put("dicChannel", dicChannel);
+                fakeContent.set("dicChannel", dicChannel);
 
                 salesExecutiveUser.put("usersId", 25881);
                 salesExecutiveUser.put("username", "BAKHYT.IBRAGIMOVA");
                 salesExecutiveUser.put("firstName", "Бахыт");
                 salesExecutiveUser.put("lastName", "Ибрагимова");
                 salesExecutiveUser.put("middleName", "Паттеевна");
-                fakeContent.put("salesExecutiveUser", salesExecutiveUser);
+                fakeContent.set("salesExecutiveUser", salesExecutiveUser);
 
                 city.put("id", 70000);
                 city.put("nameRu", "Усть-Каменогорск");
                 city.put("nameKz", "Өскемен");
                 city.put("nameEn", "Ust-Kamenogorsk");
-                fakeContent.put("city", city);
+                fakeContent.set("city", city);
 
                 dicSectorEconomics.put("id", 27);
                 dicSectorEconomics.put("name", "ПРАВИТЕЛЬСТВЕННЫЕ И ГОСУДАРСТВЕННЫЕ ОРГАНЫ");
                 //dicSectorEconomics.put("status", null);
-                fakeContent.put("dicSectorEconomics", dicSectorEconomics);
+                fakeContent.set("dicSectorEconomics", dicSectorEconomics);
 
                 servManagerUser.put("usersId", 10673);
                 servManagerUser.put("username", "GALIYA.KOZGAMBAEVA");
                 servManagerUser.put("firstName", "Галия");
                 servManagerUser.put("lastName", "Козгамбаева");
                 servManagerUser.put("middleName", "Джалбековна");
-                fakeContent.put("servManagerUser", servManagerUser);
+                fakeContent.set("servManagerUser", servManagerUser);
 
                 supervisorUser.put("usersId", 10543);
                 supervisorUser.put("username", "ELENA.SHEVELEVA");
                 supervisorUser.put("firstName", "Елена");
                 supervisorUser.put("lastName", "Шевелева");
                 supervisorUser.put("middleName", "Николаевна");
-                fakeContent.put("supervisorUser", supervisorUser);
+                fakeContent.set("supervisorUser", supervisorUser);
 
                 regionalHeadUser.put("usersId", 10543);
                 regionalHeadUser.put("username", "ELENA.SHEVELEVA");
                 regionalHeadUser.put("firstName", "Елена");
                 regionalHeadUser.put("lastName", "Шевелева");
                 regionalHeadUser.put("middleName", "Николаевна");
-                fakeContent.put("regionalHeadUser", regionalHeadUser);
+                fakeContent.set("regionalHeadUser", regionalHeadUser);
 
             } else if (clientBIN.equals("111222333444")) {
 
@@ -164,14 +164,14 @@ public class CrmController {
                 kcellRegion.put("name", "Almaty Region");
                 //kcellRegion.put("status", null);
                 kcellRegion.put("lastUpdateDate", "2017-08-01T17:05:52");
-                fakeContent.put("kcellRegion", kcellRegion);
+                fakeContent.set("kcellRegion", kcellRegion);
 
 
                 dicChannel.put("id", 3);
                 dicChannel.put("name", "B2B LA");
                 //dicChannel.put("status", null);
                 //dicChannel.put("lastUpdateDate", null);
-                fakeContent.put("dicChannel", dicChannel);
+                fakeContent.set("dicChannel", dicChannel);
 
 
                 salesExecutiveUser.put("usersId", 10241);
@@ -179,13 +179,13 @@ public class CrmController {
                 salesExecutiveUser.put("firstName", "Руслан");
                 salesExecutiveUser.put("lastName", "Жолдыбаев");
                 salesExecutiveUser.put("middleName", "Сагатович");
-                fakeContent.put("salesExecutiveUser", salesExecutiveUser);
+                fakeContent.set("salesExecutiveUser", salesExecutiveUser);
 
                 city.put("id", 50000);
                 city.put("nameRu", "Алматы");
                 city.put("nameKz", "Алматы");
                 city.put("nameEn", "Almaty");
-                fakeContent.put("city", city);
+                fakeContent.set("city", city);
 
                 //fakeContent.put("dicSectorEconomics", null);
 
@@ -194,21 +194,21 @@ public class CrmController {
                 servManagerUser.put("firstName", "Руслан");
                 servManagerUser.put("lastName", "Жолдыбаев");
                 servManagerUser.put("middleName", "Сагатович");
-                fakeContent.put("servManagerUser", servManagerUser);
+                fakeContent.set("servManagerUser", servManagerUser);
 
                 supervisorUser.put("usersId", 24132);
                 supervisorUser.put("username", "VACANCY");
                 supervisorUser.put("firstName", "vacancy");
                 supervisorUser.put("lastName", "-");
                 //supervisorUser.put("middleName", null);
-                fakeContent.put("supervisorUser", supervisorUser);
+                fakeContent.set("supervisorUser", supervisorUser);
 
                 regionalHeadUser.put("usersId", 24132);
                 regionalHeadUser.put("username", "VACANCY");
                 regionalHeadUser.put("firstName", "vacancy");
                 regionalHeadUser.put("lastName", "-");
                 //regionalHeadUser.put("middleName", null);
-                fakeContent.put("regionalHeadUser", regionalHeadUser);
+                fakeContent.set("regionalHeadUser", regionalHeadUser);
             } else {
                 //return ResponseEntity.status(HttpStatus.BAD_REQUEST).body("{\"timestamp\":\"2018-10-04T15:19:17.655\",\"status\":500,\"code\":\"ERR0007\",\"subCode\":\"INTERNAL_ERROR\",\"message\":\"Corp client profile with bin " + clientBIN + " doesn't exist\",\"path\":\"/corp_client_profile/bin/" + clientBIN + "\",\"requestId\":\"20181004_151917_537_N9o\"}");
                 return ResponseEntity.ok("{\"timestamp\":\"2018-10-04T15:19:17.655\",\"status\":500,\"code\":\"ERR0007\",\"subCode\":\"INTERNAL_ERROR\",\"message\":\"Corp client profile with bin " + clientBIN + " doesn't exist\",\"path\":\"/corp_client_profile/bin/" + clientBIN + "\",\"requestId\":\"20181004_151917_537_N9o\"}");

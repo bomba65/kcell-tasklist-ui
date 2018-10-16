@@ -14,18 +14,22 @@ public class ReportRepository {
     @PersistenceContext
     EntityManager em;
 
+    @SuppressWarnings("unchecked")
     public List<ReportDto> report(String query){
         return em.createNativeQuery(query).getResultList();
     }
 
+    @SuppressWarnings("unchecked")
     public List<TechnicalReportByJobsDto> technicalReportByJobs(String query){
         return em.createNativeQuery(query).getResultList();
     }
 
+    @SuppressWarnings("unchecked")
     public List<FinancialReportDto> financialReport(String query){
         return em.createNativeQuery(query).getResultList();
     }
 
+    @SuppressWarnings("unchecked")
     public List<ExtendedReportByJobsDto> extendedReportByJobs(String query){
         return em.createNativeQuery(query).getResultList();
     }
