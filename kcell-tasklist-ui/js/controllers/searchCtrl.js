@@ -731,7 +731,7 @@ define(['./module','jquery', 'moment', 'camundaSDK'], function(app, $, moment, C
 						$scope.$apply(function(){
 							$scope.diagram = {
 								xml: result.data.bpmn20Xml,
-								task: ($scope.jobModel.tasks && $scope.jobModel.tasks.length > 0) ? $scope.jobModel.tasks[0]:undefined
+								tasks: ($scope.jobModel.tasks && $scope.jobModel.tasks.length > 0) ? $scope.jobModel.tasks : undefined
 							};
 						});
 					});
@@ -743,7 +743,9 @@ define(['./module','jquery', 'moment', 'camundaSDK'], function(app, $, moment, C
 		}
 
 		$scope.highlightTask = function() {
-			$scope.control.highlight($scope.diagram.task.taskDefinitionKey);
+			$scope.diagram.tasks.forEach((task=>{
+				$scope.control.highlight(task.taskDefinitionKey);
+			}));
 		};
 
         $scope.showHistory = function(resolutions){
