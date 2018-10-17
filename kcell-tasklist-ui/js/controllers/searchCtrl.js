@@ -1,16 +1,5 @@
 define(['./module','jquery', 'moment', 'camundaSDK'], function(app, $, moment, CamSDK){
 	'use strict';
-	app.directive("limitTo", [function() {
-		return {
-			restrict: "A",
-			link: function(scope, elem, attrs) {
-				var limit = parseInt(attrs.limitTo);
-				angular.element(elem).on("keypress", function(e) {
-					if (this.value.length == limit) e.preventDefault();
-				});
-			}
-		}
-	}]);
 	return app.controller('searchCtrl', ['$scope', '$rootScope', '$http', '$routeParams', '$q', '$location', '$timeout', 'AuthenticationService', 'exModal', '$state',
 			                         function($scope, $rootScope, $http, $routeParams, $q, $location, $timeout, AuthenticationService, exModal, $state) {
 

@@ -17,5 +17,7 @@ define([
 	'./uatProcess',
 	'./demand/index',
 	'./richText',
-	'./leasingDetail'
+	'./leasingDetail',
+	'./limitTo',
+	'./numbersOnly'
 	], function(){});
