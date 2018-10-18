@@ -56,7 +56,7 @@ define(['./../module', 'xlsx'], function(module){
 				scope.selectOption = function(name, option) {
 					scope.data[name] = option;
 					scope.toggleSelect(name);
-				}
+				};
 
 				var correctHeaderWidth = function() {
 					$('.fixed-header-table-container th').each(function() {
