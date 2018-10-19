@@ -148,11 +148,150 @@
                 });
             });
 
+            $scope.preSubmit = function() {
+                var changeDate = new Date();
+                var productCatalogShortNumber = {
+                    //company name: $scope.officialClientCompanyName,
+                    bin: $scope.clientBIN,
+                    desc_ru: $scope.description,
+                    desc_en: $scope.description,
+                    desc_kz: $scope.description,
+                    vas_service_type_id: 13,
+                    business_name_ru: 'sms',
+                    business_name_en: 'sms',
+                    business_name_kz: 'sms',
+
+                    //contract number: $scope.contractNumber,
+                    cost_per_subscriber: $scope.abonentTarif,
+                    tariff_plan_comment: 54,
+                    //msggw_account: $scope.,
+                    type: 210,
+                    //start_date: $scope.,
+                    connection_type_new: $scope.connectionType === 'rest' ? 3 : ($scope.connectionType === 'smpp' ? 2 : 21),
+                    //offnet_provider_name: $scope.,
+                    //offnet_provider_bin: $scope.,
+                    revenue_sharing: 61,
+                    brand: 'B',
+                    short_number_state: 'A',
+                    alphanumerics: 'Y',
+                    bulk: 'Y',
+                    business_group: 1,
+                    subdirection: 1,
+                    operator_service_cost: 100,
+                    vas_charging_interval_id: null,
+                    change_username: $rootScope.authentication.name,
+                    change_date: changeDate.toString(),
+                    exceptions: 25
+
+                    //vas_short_number_id: $scope.,
+                    //sap_number: $scope.,
+                    //vas_content_provider_id: $scope.,
+                    //phone_index: $scope.,
+                    //technical_service_name: $scope.,
+                    //root_service: $scope.,
+                    //main_service: $scope.,
+                    //adm_line_revenue: $scope.,
+                    //service_cost: $scope.,
+                    //charging_mo_cost: $scope.,
+                    //users_id: $scope.,
+                    //changed_date: $scope.,
+                    //last_dt: $scope.,
+                    //start_date: $scope.,
+                    //finish_date: $scope.,
+                    //vas_direction: $scope.,
+                    //promotion: $scope.,
+                    //free_10_sec: $scope.,
+
+                    //connection_type: $scope.,
+                    //ct_number: $scope.,
+                    //sms_logic_type: $scope.,
+                    //sms_logic_parameter: $scope.,
+                    //sms_logic_reset: $scope.
+                };
+
+                if ($scope.identifierType === 'alfanumeric'){
+                    _.forEach($scope.identifiers, function(id) {
+                        _.forEach(id.operators, function(op) {
+                            if(op.id === 'kcell' && op.isAvailable){
+                                productCatalogShortNumber.short_number = op.title;
+                                productCatalogShortNumber.monthly_fee = op.priceAP;
+                                //productCatalogShortNumber.onetime_payment = op.priceEP;
+                            }
+                            if(op.id === 'beeline' && op.isAvailable){
+                                productCatalogShortNumber.short_number_beeline = op.title;
+                                productCatalogShortNumber.monthly_fee_beeline = op.priceAP;
+                                //productCatalogShortNumber.onetime_payment_beeline = op.priceEP;
+                            }
+                            if(op.id === 'tele2' && op.isAvailable){
+                                productCatalogShortNumber.short_number_tele2 = op.title;
+                                productCatalogShortNumber.monthly_fee_tele2 = op.priceAP;
+                                //productCatalogShortNumber.onetime_payment_tele2 = op.priceEP;
+                            }
+                            if(op.id === 'altel' && op.isAvailable){
+                                productCatalogShortNumber.short_number_altel = op.title;
+                                productCatalogShortNumber.monthly_fee_altel = op.priceAP;
+                                //productCatalogShortNumber.onetime_payment_altel = op.priceEP;
+                            }
+                        })
+                    });
+                } else {
+                    _.forEach($scope.identifiers, function(id) {
+                        _.forEach(id.operators, function(op) {
+                            if(op.id === 'kcell' && (op.isAvailable && (!$scope.previouslyBought && $scope.operatorType === 'offnet' ? op.checked : true))){
+                                productCatalogShortNumber.short_number = id.title;
+                                productCatalogShortNumber.monthly_fee = op.priceAP;
+                                productCatalogShortNumber.onetime_payment = op.priceEP;
+                            }
+                            if(op.id === 'beeline' && (op.isAvailable && (!$scope.previouslyBought && $scope.operatorType === 'offnet' ? op.checked : true))){
+                                productCatalogShortNumber.short_number_beeline = id.title;
+                                productCatalogShortNumber.monthly_fee_beeline = op.priceAP;
+                                productCatalogShortNumber.onetime_payment_beeline = op.priceEP;
+                            }
+                            if(op.id === 'tele2' && (op.isAvailable && (!$scope.previouslyBought && $scope.operatorType === 'offnet' ? op.checked : true))){
+                                productCatalogShortNumber.short_number_tele2 = id.title;
+                                productCatalogShortNumber.monthly_fee_tele2 = op.priceAP;
+                                productCatalogShortNumber.onetime_payment_tele2 = op.priceEP;
+                            }
+                            if(op.id === 'altel' && (op.isAvailable && (!$scope.previouslyBought && $scope.operatorType === 'offnet' ? op.checked : true))){
+                                productCatalogShortNumber.short_number_altel = id.title;
+                                productCatalogShortNumber.monthly_fee_altel = op.priceAP;
+                                productCatalogShortNumber.onetime_payment_altel = op.priceEP;
+                            }
+                        })
+                    });
+                }
+
+                console.log('request body', productCatalogShortNumber);
+                var deferred = $q.defer();
+
+                if(productCatalogShortNumber.short_number || productCatalogShortNumber.short_number_beeline || productCatalogShortNumber.short_number_tele2 || productCatalogShortNumber.short_number_altel){
+                    return $http.post("/camunda/product-catalog/", productCatalogShortNumber).then(
+                        function (response) {
+                            console.log('response.data', response.data);
+                            if (response.data) {
+                               if(response.data.short_number || response.data.short_number_beeline || response.data.short_number_tele2 || response.data.short_number_altel){
+                                   deferred.resolve('Successfully sent short number');
+                               } else {
+                                   deferred.reject('Product Catalog did not respond with short number');
+                               }
+                            } else {
+                                deferred.reject('Product Catalog response is empty');
+                            }
+                            return deferred.promise;
+                        },
+                        function (error) {
+                           console.log(error);
+                        }
+                    );
+                } else {
+                    deferred.reject('No short number is selected!');
+                    return deferred.promise;
+                }
+            };
 
             camForm.on('submit', function (evt) {
                 //evt.submitPrevented = true;
                 $scope.createApplicationToConnectionTaskResult = 'Completed';
-
                 if(!$scope.resolutions){
                     $scope.resolutions = [];
                 }

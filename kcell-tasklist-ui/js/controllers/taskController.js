@@ -40,7 +40,7 @@ define(['./module','camundaSDK', 'lodash', 'big-js'], function(module, CamSDK, _
 							function(result){
 								camForm.submit(function (err) {
 									if (err) {
-										$(this).removeAttr('disabled');
+										$submitBtn.removeAttr('disabled');
 										toasty.error({title: "Could not complete task", msg: err});
 										e.preventDefault();
 										throw err;
@@ -55,7 +55,7 @@ define(['./module','camundaSDK', 'lodash', 'big-js'], function(module, CamSDK, _
 								});
 							},
 							function(err){
-								$(this).removeAttr('disabled');
+								$submitBtn.removeAttr('disabled');
 								toasty.error({title: "Could not complete task", msg: err});
 								e.preventDefault();
 								throw err;
@@ -64,7 +64,7 @@ define(['./module','camundaSDK', 'lodash', 'big-js'], function(module, CamSDK, _
 					} else {
 						camForm.submit(function (err) {
 							if (err) {
-								$(this).removeAttr('disabled');
+								$submitBtn.removeAttr('disabled');
 								toasty.error({title: "Could not complete task", msg: err});
 								e.preventDefault();
 								throw err;
