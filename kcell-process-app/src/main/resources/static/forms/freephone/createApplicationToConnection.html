@@ -138,6 +138,94 @@
 
             $scope.preSubmit = function() {
                 var changeDate = new Date();
+
+                var productCatalogShortNumber = {
+                    //company name: $scope.officialClientCompanyName,
+                    bin: $scope.clientBIN,
+                    descRu: $scope.description,
+                    descEn: $scope.description,
+                    descKz: $scope.description,
+                    //vas_service_type_id: 177,
+                    "vasServiceType": {
+                        "id": 177,
+                        "name": null
+                    },
+                    businessNameRu: 'ivr',
+                    businessNameEn: 'ivr',
+                    businessNameKz: 'ivr',
+
+                    ctNumber: $scope.contractNumber, //contract number: $scope.contractNumber,
+                    costPerSubscriber: $scope.abonentTarif,
+                    tariffPlanComment: 49,
+                    //msggwAccount: $scope.,
+                    type: 210,
+                    //startSate: $scope.,
+                    connectionTypeNew: $scope.connectionType === 'SIP_SBC' ? 22 : ($scope.connectionType === 'E1' ? 24 : 23),
+                    //offnetProviderName: $scope.,
+                    //offnetProviderBin: $scope.,
+                    revenueSharing: 61,
+                    brand: 'B',
+                    shortNumberState: 'A',
+                    alphanumerics: 'N',
+                    bulk: 'N',
+                    businessGroup: 2,
+                    subdirection: 1,
+                    operatorServiceCost: 100,
+                    vasChargingIntervalId: 60,
+                    changeUsername: $rootScope.authentication.name,
+                    changedDate: changeDate.getFullYear() + "-" + (changeDate.getMonth()+1) + "-" + changeDate.getDate() + "T" + changeDate.getHours() + ":" + changeDate.getMinutes() + ":" + changeDate.getSeconds(), //changeDate.toString(),
+                    exceptions: 25,
+                    vasContentProviderId: "null",
+
+                    //vasShortNumberId: $scope.,
+                    //sapNumber: $scope.,
+
+                    //phoneIndex: $scope.,
+                    //technicalServiceName: $scope.,
+                    //rootService: $scope.,
+                    //mainService: $scope.,
+                    //admLineRevenue: $scope.,
+                    //serviceCost: $scope.,
+                    //chargingMoCost: $scope.,
+                    //usersId: $scope.,
+                    //lastDt: $scope.,
+                    //startDate: $scope.,
+                    //finishDate: $scope.,
+                    //vasDirection: $scope.,
+                    //promotion: $scope.,
+                    //free10sec: $scope.,
+                    //connectionType: $scope.,
+                    //smsLogicType: $scope.,
+                    //smsLogicParameter: $scope.,
+                    //smsLogicReset: $scope.
+                };
+
+                _.forEach($scope.identifiers, function(id) {
+                    _.forEach(id.operators, function(op) {
+                        if(op.id === 'kcell' && (op.isAvailable && (!$scope.previouslyBought && $scope.operatorType === 'offnet' ? op.checked : true))){
+                            productCatalogShortNumber.shortNumber = id.title;
+                            productCatalogShortNumber.monthlyFee = op.priceAP;
+                            productCatalogShortNumber.onetimePayment = op.priceEP;
+                        }
+                        if(op.id === 'beeline' && (op.isAvailable && (!$scope.previouslyBought && $scope.operatorType === 'offnet' ? op.checked : true))){
+                            productCatalogShortNumber.shortNumberBeeline = id.title;
+                            productCatalogShortNumber.monthlyFeeBeeline = op.priceAP;
+                            productCatalogShortNumber.onetimePaymentBeeline = op.priceEP;
+                        }
+                        if(op.id === 'tele2' && (op.isAvailable && (!$scope.previouslyBought && $scope.operatorType === 'offnet' ? op.checked : true))){
+                            productCatalogShortNumber.shortNumberTele2 = id.title;
+                            productCatalogShortNumber.monthlyFeeTele2 = op.priceAP;
+                            productCatalogShortNumber.onetimePaymentTele2 = op.priceEP;
+                        }
+                        if(op.id === 'altel' && (op.isAvailable && (!$scope.previouslyBought && $scope.operatorType === 'offnet' ? op.checked : true))){
+                            productCatalogShortNumber.shortNumberAtel = id.title;
+                            productCatalogShortNumber.monthlyFeeAltel = op.priceAP;
+                            productCatalogShortNumber.onetimePaymentAltel = op.priceEP;
+                        }
+                    })
+                });
+
+                /*
                 var productCatalogShortNumber = {
                     //company name: $scope.officialClientCompanyName,
                     bin: $scope.clientBIN,
@@ -169,11 +257,12 @@
                     vas_charging_interval_id: 60,
                     change_username: $rootScope.authentication.name,
                     change_date: changeDate.toString(),
-                    exceptions: 25
+                    exceptions: 25,
+                    vas_content_provider_id: "null",
 
                     //vas_short_number_id: $scope.,
                     //sap_number: $scope.,
-                    //vas_content_provider_id: $scope.,
+
                     //phone_index: $scope.,
                     //technical_service_name: $scope.,
                     //root_service: $scope.,
@@ -220,16 +309,17 @@
                         }
                     })
                 });
+                */
 
                 console.log('request body',productCatalogShortNumber);
                 var deferred = $q.defer();
 
-                if(productCatalogShortNumber.short_number || productCatalogShortNumber.short_number_beeline || productCatalogShortNumber.short_number_tele2 || productCatalogShortNumber.short_number_altel){
+                if(productCatalogShortNumber.shortNumber || productCatalogShortNumber.shortNumberBeeline || productCatalogShortNumber.shortNumberTele2 || productCatalogShortNumber.shortNumberAltel){
                     return $http.post("/camunda/product-catalog/", productCatalogShortNumber).then(
                         function (response) {
                             console.log('response.data', response.data);
                             if (response.data) {
-                               if(response.data.short_number || response.data.short_number_beeline || response.data.short_number_tele2 || response.data.short_number_altel){
+                               if(response.data.shortNumber || response.data.shortNumberBeeline || response.data.shortNumberTele2 || response.data.shortNumberAltel){
                                    deferred.resolve('Successfully sent short number');
                                } else {
                                    deferred.reject('Product Catalog did not respond with short number');
@@ -517,7 +607,6 @@
             $scope.userSelected = function($item, varName){
                 $scope[varName] = {'id': $item.id, 'name': $item.name, 'email': $item.email };
             };
-
         }]);
 
     </script>
