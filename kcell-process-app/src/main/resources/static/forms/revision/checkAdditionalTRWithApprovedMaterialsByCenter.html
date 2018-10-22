@@ -43,7 +43,8 @@
                 'priority',
                 'checkTRMaterialsResult',
                 'nrOfCompletedInstances',
-                'mlApprovalAdditionalInfoFile'
+                'mlApprovalAdditionalInfoFile',
+                'additionalTr'
             ];
             $scope.jobModel = {
                 hideSAPPRNO: true
@@ -71,16 +72,16 @@
                         }
                 );
                 camForm.variableManager.createVariable({
-                    name: 'checkTRMaterialsByCenterTaskResult',
+                    name: 'checkAdditionalTRMaterialsByCenterTaskResult',
                     type: 'String',
                     value: ''
                 });
             });
             camForm.on('variables-fetched', function () {
                 variables.forEach(function (el) {
-                    if(el == 'trFilesName'){
+                    if(el == 'trAdditionalFilesName'){
                         $scope[el] = camForm.variableManager.variables[el];
-                        $scope.trFilesName.type = 'Json';
+                        $scope.trAdditionalFilesName.type = 'Json';
                     }
 
                     if(el === 'resolutions'){
@@ -117,40 +118,40 @@
                 if($scope.nrOfCompletedInstances === 0){
                     $scope.checkTRMaterialsResult = undefined;
                 }
-                $scope.checkTRMaterialsByCenterTaskResult = undefined;
+                $scope.checkAdditionalTRMaterialsByCenterTaskResult = undefined;
             });
 
             camForm.on('submit', function () {
-                camForm.variableManager.variableValue('checkTRMaterialsByCenterTaskResult', $scope.checkTRMaterialsByCenterTaskResult);
+                camForm.variableManager.variableValue('checkAdditionalTRMaterialsByCenterTaskResult', $scope.checkAdditionalTRMaterialsByCenterTaskResult);
 
-                if ($scope.checkTRMaterialsByCenterTaskResult === 'doesNotMatch') {
+                if ($scope.checkAdditionalTRMaterialsByCenterTaskResult === 'doesNotMatch') {
                     $scope.checkTRMaterialsResult = 'doesNotMatch';
                 } else if($scope.checkTRMaterialsResult === undefined) {
                     $scope.checkTRMaterialsResult = 'match';
                 }
 
-                if(camForm.variableManager.variables['trFilesName']){
-                    camForm.variableManager.variableValue('trFilesName', $scope.trFilesName.value);
+                if(camForm.variableManager.variables['trAdditionalFilesName']){
+                    camForm.variableManager.variableValue('trAdditionalFilesName', $scope.trAdditionalFilesName.value);
                 } else {
-                    camForm.variableManager.createVariable($scope.trFilesName);
+                    camForm.variableManager.createVariable($scope.trAdditionalFilesName);
                 }
 
-                var warehouseRegions = [];
-                if($scope.trFilesName.value){
-                    angular.forEach($scope.trFilesName.value, function(trFile){
+                var warehouseAdditionalRegions = [];
+                if($scope.trAdditionalFilesName.value){
+                    angular.forEach($scope.trAdditionalFilesName.value, function(trFile){
                         var warehouse = _.find($scope.jobModel.warehouses, function(warehouse){
                             return warehouse.id === trFile.warehouse;
                         });
-                        if(warehouseRegions.indexOf(warehouse.region) === -1){
-                            warehouseRegions.push(warehouse.region);
+                        if(warehouseAdditionalRegions.indexOf(warehouse.region) === -1){
+                            warehouseAdditionalRegions.push(warehouse.region);
                         }
                     });
                 }
 
                 camForm.variableManager.createVariable({
-                    name: 'warehouseRegions',
+                    name: 'warehouseAdditionalRegions',
                     type: 'Json',
-                    value: warehouseRegions
+                    value: warehouseAdditionalRegions
                 });
 
                 if($scope.checkTRMaterialsResult){
@@ -167,15 +168,15 @@
                 }
 
                 var visibility = 'all';
-                if($scope.checkTRMaterialsByCenterComment && $scope.checkTRMaterialsByCenterCommentVisibility){
-                    visibility = $scope.checkTRMaterialsByCenterCommentVisibility;
+                if($scope.checkAdditionalTRMaterialsByCenterComment && $scope.checkAdditionalTRMaterialsByCenterCommentVisibility){
+                    visibility = $scope.checkAdditionalTRMaterialsByCenterCommentVisibility;
                 }
-                $scope.jobModel.resolutions.push({processInstanceId: $scope.processInstanceId, assignee: $rootScope.authentication.name, assigneeName: $rootScope.authentication.assigneeName, resolution: $scope.checkTRMaterialsByCenterTaskResult, comment: $scope.checkTRMaterialsByCenterComment, taskId: camForm.taskId, visibility: visibility});
+                $scope.jobModel.resolutions.push({processInstanceId: $scope.processInstanceId, assignee: $rootScope.authentication.name, assigneeName: $rootScope.authentication.assigneeName, resolution: $scope.checkAdditionalTRMaterialsByCenterTaskResult, comment: $scope.checkAdditionalTRMaterialsByCenterComment, taskId: camForm.taskId, visibility: visibility});
                 camForm.variableManager.variableValue('resolutions', $scope.jobModel.resolutions);
             });
 
             camForm.on('store', function() {
-                camForm.variableManager.variableValue('checkTRMaterialsByCenterTaskResult', $scope.checkTRMaterialsByCenterTaskResult);
+                camForm.variableManager.variableValue('checkAdditionalTRMaterialsByCenterTaskResult', $scope.checkAdditionalTRMaterialsByCenterTaskResult);
             });
 
             $scope.isVisible = function (resolution) {
@@ -183,14 +184,14 @@
             }
 
             $scope.hasComment = function () {
-                return $scope.checkTRMaterialsByCenterComment && $rootScope.hasGroup('kcellUsers');
+                return $scope.checkAdditionalTRMaterialsByCenterComment && $rootScope.hasGroup('kcellUsers');
             }
         }]);
     </script>
     <job-request job-model="jobModel"></job-request>
     <iframe id="fileDownloadIframe" style="display:none;"></iframe>
 
-    <div ng-repeat="trfile in trFilesName.value">
+    <div ng-repeat="trfile in trAdditionalFilesName.value">
         <div>
             <div class="form-group">
                 <label class="col-sm-4 control-label">SAP Transport Request File # {{$index+1}}:</label>
@@ -221,33 +222,33 @@
         <label class="col-sm-4 control-label">Resolution</label>
         <div class="col-sm-8">
             <label class="radio-inline">
-                <input type="radio" ng-model="checkTRMaterialsByCenterTaskResult" name="checkTRMaterialsByCenterTaskResult" value="match" required> TR match with material list
+                <input type="radio" ng-model="checkAdditionalTRMaterialsByCenterTaskResult" name="checkAdditionalTRMaterialsByCenterTaskResult" value="match" required> TR match with material list
             </label>
             <label class="radio-inline">
-                <input type="radio" ng-model="checkTRMaterialsByCenterTaskResult" name="checkTRMaterialsByCenterTaskResult" value="doesNotMatch" required> TR doesn't match with material list
+                <input type="radio" ng-model="checkAdditionalTRMaterialsByCenterTaskResult" name="checkAdditionalTRMaterialsByCenterTaskResult" value="doesNotMatch" required> TR doesn't match with material list
             </label>
-            <label class="error" ng-show="kcell_form.checkTRMaterialsByCenterTaskResult.$error.required && ( kcell_form.checkTRMaterialsByCenterTaskResult.$touched || view.submitted)">Required field</label>
+            <label class="error" ng-show="kcell_form.checkAdditionalTRMaterialsByCenterTaskResult.$error.required && ( kcell_form.checkAdditionalTRMaterialsByCenterTaskResult.$touched || view.submitted)">Required field</label>
         </div>
     </div>
     <div class="form-group">
         <label class="col-sm-4 control-label">Comments</label>
         <div class="col-sm-8">
-            <textarea class="form-control" rows="4" maxlength="500" ng-model="checkTRMaterialsByCenterComment" name="checkTRMaterialsByCenterComment" ng-required="checkTRMaterialsByCenterTaskResult == 'doesNotMatch'"></textarea>
-            <label class="error" ng-show="kcell_form.checkTRMaterialsByCenterComment.$error.required && ( kcell_form.checkTRMaterialsByCenterComment.$touched || view.submitted)">Required field</label>
+            <textarea class="form-control" rows="4" maxlength="500" ng-model="checkAdditionalTRMaterialsByCenterComment" name="checkAdditionalTRMaterialsByCenterComment" ng-required="checkAdditionalTRMaterialsByCenterTaskResult == 'doesNotMatch'"></textarea>
+            <label class="error" ng-show="kcell_form.checkAdditionalTRMaterialsByCenterComment.$error.required && ( kcell_form.checkAdditionalTRMaterialsByCenterComment.$touched || view.submitted)">Required field</label>
         </div>
     </div>
     <div class="form-group" ng-show="hasComment()">
         <label class="col-sm-4 control-label">Comments visibility</label>
         <div class="col-sm-8">
             <label class="radio-inline">
-                <input type="radio" name="checkTRMaterialsByCenterCommentVisibility"
-                       ng-model="checkTRMaterialsByCenterCommentVisibility" value="all" ng-required="hasComment()"> Visible for all
+                <input type="radio" name="checkAdditionalTRMaterialsByCenterCommentVisibility"
+                       ng-model="checkAdditionalTRMaterialsByCenterCommentVisibility" value="all" ng-required="hasComment()"> Visible for all
             </label>
             <label class="radio-inline">
-                <input type="radio" name="checkTRMaterialsByCenterCommentVisibility"
-                       ng-model="checkTRMaterialsByCenterCommentVisibility" value="kcell" ng-required="hasComment()"> Kcell staff only
+                <input type="radio" name="checkAdditionalTRMaterialsByCenterCommentVisibility"
+                       ng-model="checkAdditionalTRMaterialsByCenterCommentVisibility" value="kcell" ng-required="hasComment()"> Kcell staff only
             </label>
-            <label class="error" ng-show="kcell_form.checkTRMaterialsByCenterCommentVisibility.$error.required && ( kcell_form.checkTRMaterialsByCenterCommentVisibility.$touched || view.submitted)">Required field</label>
+            <label class="error" ng-show="kcell_form.checkAdditionalTRMaterialsByCenterCommentVisibility.$error.required && ( kcell_form.checkAdditionalTRMaterialsByCenterCommentVisibility.$touched || view.submitted)">Required field</label>
         </div>
     </div>
     <accordion>
