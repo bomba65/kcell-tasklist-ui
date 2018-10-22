@@ -14,7 +14,7 @@
 
                 $scope.dictionary.regions = [
                     {id: 'almaty', name: 'Almaty'},
-                    {id: 'astana', name: 'Astana', value: 'Astana'},
+                    {id: 'astana', name: 'Astana'},
                     {id: 'nc', name: 'North and Center'},
                     {id: 'east', name: 'East'},
                     {id: 'south', name: 'South'},
@@ -134,10 +134,36 @@
                 })
             }, true);
 
+            $scope.$watch('ncpID', function (ncpID) {
+                if(ncpID && ncpID.length === 5){
+                    var firstElement = ncpID.charAt(0);
+                    var secondElement = ncpID.charAt(0);
+                    if(firstElement === '0'){
+                        $scope.region = 'almaty';
+                    } else if(firstElement === '1' && secondElement === '1'){
+                        $scope.region = 'astana';
+                    } else if(firstElement === '1' || firstElement === '2'){
+                        $scope.region = 'nc';
+                    } else if(firstElement === '3'){
+                        $scope.region = 'east';
+                    } else if(firstElement === '4'){
+                        $scope.region = 'south';
+                    } else if(firstElement === '5' || firstElement === '6' || firstElement === '7'  || firstElement === '8'){
+                        $scope.region = 'west';
+                    } else if(firstElement === '9'){
+                        $scope.region = undefined;
+                    }
+
+                    if(firstElement !== '9'){
+                        $scope.regionSelected($scope.region);
+                    }
+                }
+            }, true);
+
             $scope.regionSelected = function(region){
                 $scope.regionName = _.find($scope.dictionary.regions, function (r) {
                     return r.id === region;
-                }).value;
+                }).name;
             }
         }]);
 
@@ -147,9 +173,9 @@
     </div>
 
     <div class="form-group">
-        <label class="col-sm-4 control-label">NCP   ID:</label>
+        <label class="col-sm-4 control-label">NCP ID:</label>
         <div class="col-sm-4">
-            <input class="form-control" id="ncpID" name="ncpID" required ng-model="ncpID" cam-variable-name="ncpID" cam-variable-type="String">
+            <input class="form-control" id="ncpID" name="ncpID" required ng-model="ncpID" cam-variable-name="ncpID" cam-variable-type="String" limit-to="5" numbers-only>
             <label class="error" ng-show="kcell_form.ncpID.$error.required && ( kcell_form.ncpID.$touched || view.submitted)">Required field</label>
         </div>
     </div>
@@ -162,7 +188,6 @@
                     required>
                 <option ng-repeat="type in dictionary.siteType">{{type}}</option>
             </select>
-            <!--<input class="form-control" id="type" name="type" required ng-model="type" cam-variable-name="type" cam-variable-type="String">-->
             <label class="error" ng-show="kcell_form.siteType.$error.required && ( kcell_form.siteType.$touched || view.submitted)">Required field</label>
         </div>
     </div>
@@ -173,7 +198,7 @@
                     cam-variable-name="region" cam-variable-type="String"
                     ng-model="region"
                     ng-change="regionSelected(region)"
-                    required>
+                    required ng-disabled="!ncpID.startsWith('9')">
                 <option value="{{r.id}}" ng-repeat="r in dictionary.regions" ng-selected="{{r.id == region}}">{{r.name}}</option>
             </select>
             <label class="error" ng-show="kcell_form.region.$error.required && ( kcell_form.region.$touched || view.submitted)">Required field</label>
