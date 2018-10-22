@@ -11,6 +11,15 @@
                 console.log($scope.years)
                 $scope.dictionary.siteType = ['HopPoint', 'Mobile', 'SItes', 'Repeater', '2GSite', '32GSite', '4GSite', '42GSite', '43GSite', '432GSite'];
                 $scope.dictionary.initiators = ['Beeline','Commercial Block','Commercial Block 2','Commercial Block 3','Kcell +','VIP'];
+
+                $scope.dictionary.regions = [
+                    {id: 'almaty', name: 'Almaty'},
+                    {id: 'astana', name: 'Astana', value: 'Astana'},
+                    {id: 'nc', name: 'North and Center'},
+                    {id: 'east', name: 'East'},
+                    {id: 'south', name: 'South'},
+                    {id: 'west', name: 'West'}
+                ];
                 $scope.dictionary.projects = [
                     {'initiator':'Beeline','project':['AlmatyNetCo', 'LTE 2017']},
                     {'initiator':'Commercial Block','project':['2016 E// co sites', '2016 ZTE 200 sites', '2016 SWAP 3000 to 6000', '2016 ZTE 75 new sites', '2016 E// 94 new sites', '1.Comm Block New Coverage', '1.Comm Block Quality', '1.Corporate Client', '3G license', '1.Indoor (old)']},
@@ -82,6 +91,11 @@
                     type: 'Json'
                 });
 
+                camForm.variableManager.createVariable({
+                    name: 'regionName',
+                    value: '',
+                    type: 'String'
+                });
             });
 
 
@@ -93,7 +107,7 @@
                 // var businessKey = 'IVR_' + $scope.id[0].title + '_' + ("0" + date.getDate().toString()).slice(-2) + ("0" + (date.getMonth() + 1)).toString().slice(-2) + date.getFullYear().toString();
                 // camForm.businessKey = businessKey;
                 // camForm.variableManager.variableValue('identifiers', $scope.id);
-
+                camForm.variableManager.variableValue('regionName', $scope.regionName);
             });
 
             $scope.$watch('bands', function (bands) {
@@ -120,6 +134,11 @@
                 })
             }, true);
 
+            $scope.regionSelected = function(region){
+                $scope.regionName = _.find($scope.dictionary.regions, function (r) {
+                    return r.id === region;
+                }).value;
+            }
         }]);
 
     </script>
@@ -150,8 +169,14 @@
     <div class="form-group">
         <label class="col-sm-4 control-label">Region name:</label>
         <div class="col-sm-4">
-            <input class="form-control" id="regionName" name="regionName" required ng-model="regionName" cam-variable-name="regionName" cam-variable-type="String">
-            <label class="error" ng-show="kcell_form.regionName.$error.required && ( kcell_form.regionName.$touched || view.submitted)">Required field</label>
+            <select class="form-control" id="region" name="region"
+                    cam-variable-name="region" cam-variable-type="String"
+                    ng-model="region"
+                    ng-change="regionSelected(region)"
+                    required>
+                <option value="{{r.id}}" ng-repeat="r in dictionary.regions" ng-selected="{{r.id == region}}">{{r.name}}</option>
+            </select>
+            <label class="error" ng-show="kcell_form.region.$error.required && ( kcell_form.region.$touched || view.submitted)">Required field</label>
         </div>
     </div>
     <div class="form-group">
