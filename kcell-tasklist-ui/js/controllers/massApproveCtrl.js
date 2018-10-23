@@ -114,6 +114,65 @@ define(['./module', 'lodash', 'big-js'], function(module, _, Big){
                         }
                         counter++;
                         if (counter === tids.length) {
+                            //console.log($scope.definitions);
+                            var defMap = {};
+                            var noDuplicateDefs = [];
+                            Object.assign(noDuplicateDefs, $scope.definitions);
+
+                            for(var i=0; i<noDuplicateDefs.length; i++){
+                                if (noDuplicateDefs[i]) {
+                                    defMap[noDuplicateDefs[i].id] = [];
+                                    for(var j=i+1; j<noDuplicateDefs.length; j++) {
+                                        if (noDuplicateDefs[j]) {
+                                            var fieldsA = JSON.parse(JSON.stringify(noDuplicateDefs[i].configs.table.fields));
+                                            var fieldsB = JSON.parse(JSON.stringify(noDuplicateDefs[j].configs.table.fields));
+                                            var headersA = noDuplicateDefs[i].configs.table.headers;
+                                            var headersB = noDuplicateDefs[j].configs.table.headers;
+                                            if( _.isEqual(fieldsA, fieldsB)
+                                                && headersA.length === headersB.length && headersA.every((value, index) => value === headersB[index])
+                                            ) {
+                                                console.log('equal', fieldsA, fieldsB);
+                                                defMap[noDuplicateDefs[i].id].push(noDuplicateDefs[j].id);
+                                                //noDuplicateDefs.splice(j, 1);
+                                                noDuplicateDefs[j]=undefined;
+                                            } else {
+                                                console.log('UNEQUAL', fieldsA, fieldsB);
+                                            }
+                                        }
+                                    }
+                                }
+                            }
+
+                            var arr = []
+                            Object.keys(defMap).forEach(defId=>{
+                                console.log(defId);
+                                var defObj = {}
+                                $scope.definitions.forEach(def=>{
+                                    if(def.id === defId){
+                                        Object.assign(defObj, def);
+                                        if(defMap[defId].length>0){
+                                            //console.log('defMap[defId].length',defMap[defId].length);
+                                            defMap[defId].forEach(sourceDefId=>{
+                                                //console.log('sourceDefId', sourceDefId);
+                                                $scope.definitions.forEach(targetDef=>{
+                                                    if(sourceDefId === targetDef.id){
+                                                        //console.log('targetDef', targetDef);
+                                                        defObj.tasks = defObj.tasks.concat(targetDef.tasks);
+                                                        defObj.instances = defObj.instances.concat(targetDef.instances);
+                                                    }
+                                                })
+                                            })
+                                        }
+                                    }
+                                })
+                                arr.push(defObj);
+                            });
+
+                            console.log('$scope.definitions', $scope.definitions);
+                            console.log('arr', arr);
+                            console.log('defMap', defMap);
+                            $scope.definitions = arr;
+
                             $scope.allVariablesAssign = true;
                         }
                     });
