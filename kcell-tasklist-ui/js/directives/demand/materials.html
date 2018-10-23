@@ -1,3 +1,37 @@
+<style>
+    .list-group {
+        border: 1px solid #428bca;
+        position: absolute;
+        z-index: 100;
+        width: 100%;
+        border-radius: 4px;
+    }
+    .list-group-input {
+        border: 1px solid #ccc;
+        border-radius: 4px;
+        padding: 6px 12px;
+        color: #555;
+    }
+    .list-group-input-active {
+        border-color: #9b5fb9;
+    }
+    .list-group-input:hover,
+    .list-group-input:focus {
+        border-color: #9b5fb9;
+    }
+    .list-group-item {
+        border: none;
+        border-radius: 0;
+        text-align: center;
+    }
+    .list-group-item:hover,
+    .list-group-item:focus {
+        color: #fff !important;
+        background-color: #428bca !important;
+        cursor: pointer;
+        text-decoration: none;
+    }
+</style>
 <div class="col-sm-12" style="overflow: auto;">
     <div class="col-sm-12" ng-style="{'min-width': (disabled?(editprice?'1200px':'100%'):'1300px')}">
         <table class="table">
@@ -43,19 +77,13 @@
                     <td>
                         <span ng-if="disabled">{{r.materialType}}</span>
                         <span ng-if="!disabled">
-                            <select class="form-control" ng-model="r.materialType" name="materials_{{$index}}_type" ng-change="onMaterialTypeChange($index)" required>
-                                <option value="Server">Server</option>
-                                <option value="Platform">Platform</option>
-                                <option value="License and Software">License and Software</option>
-                                <option value="Equipment (parts)">Equipment (parts)</option>
-                                <option value="New Equipment">New Equipment</option>
-                            </select>
-                            <span class="has-error" ng-if="form['materials_'+$index+'_type'].$error.required && ( form['materials_'+$index+'_type'].$touched || view.submitted)">Required field</span>
+                            <div ng-dropdown-multiselect="" options="options.materialType" selected-model="r.materialType" extra-settings="multiselectSettings" events="multiselectEvents"></div>
+                            <span class="has-error" ng-if="(!r.materialType || !r.materialType.v) && view.submitted">Required field</span>
                         </span>
                     </td>
                     <td>
-                        <span ng-if="disabled || r.materialType != 'New Equipment'">{{r.description}}</span>
-                        <span ng-if="!disabled && r.materialType == 'New Equipment'">
+                        <span ng-if="disabled || r.materialType.v != 'New Equipment'">{{r.description}}</span>
+                        <span ng-if="!disabled && r.materialType.v == 'New Equipment'">
                             <textarea rows="1" elastic-textarea class="form-control" ng-model="r.description" name="materials_{{$index}}_description" ng-change="setResponsible($index)" required></textarea>
                             <span class="has-error" ng-if="form['materials_'+$index+'_description'].$error.required && ( form['materials_'+$index+'_description'].$touched || view.submitted)">Required field</span>
                         </span>
@@ -63,16 +91,18 @@
                     <td>
                         <span ng-if="disabled">{{r.purchaseGroup}}</span>
                         <span ng-if="!disabled">
-                            <select class="form-control" ng-model="r.purchaseGroup" name="materials_{{$index}}_purchaseGroup" ng-change="setResponsible($index)" required>
-                                <option value="100">100</option>
-                                <option value="110">110</option>
-                                <option value="120">120</option>
-                                <option value="130">130</option>
-                                <option value="131">131</option>
-                                <option value="140">140</option>
-                                <option value="150">150</option>
-                                <option value="170">170</option>
-                            </select>
+                            <div ng-click="toggleSelect($index)" class="col-sm-12 list-group-input" ng-class="{'list-group-input-active':isOpen[$index]}">
+                                {{r.purchaseGroup?r.purchaseGroup:'&nbsp;'}}
+                                <span class="caret" style="position: absolute; right: 5px; top: 45%; font-size: 10px;"></span>
+                            </div>
+                            <div class="col-sm-12" style="padding: 0;" ng-show="isOpen[$index]">
+                                <ul class="list-group">
+                                    <li class="list-group-item" title="{{option.t}}" ng-click="selectOption($parent.$index, option.v)" ng-repeat="option in options.purchaseGroup">
+                                        {{option.v}}
+                                    </li>
+                                </ul>
+                            </div>
+                            <input type="hidden" ng-model="r.purchaseGroup" name="materials_{{$index}}_purchaseGroup" ng-change="setResponsible($index)" required>
                             <span class="has-error" ng-if="form['materials_'+$index+'_purchaseGroup'].$error.required && ( form['materials_'+$index+'_purchaseGroup'].$touched || view.submitted)">Required field</span>
                         </span>
                     </td>

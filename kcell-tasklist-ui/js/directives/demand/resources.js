@@ -31,13 +31,15 @@ define(['./../module'], function(module){
 
                 scope.deleteItem = function (index) {
                     scope.data.splice(index, 1);
+                    scope.isOpen.splice(index, 1);
+                    scope.positionOptions.splice(index, 1);
                     scope.countTotalSum();
                 };
 
                 scope.addItem = function () {
                     scope.data.push({
                         department: null,
-                        position: null,
+                        position: {},
                         description: null,
                         quantity: null,
                         labor: null,
@@ -50,6 +52,9 @@ define(['./../module'], function(module){
                             fio: scope.responsible
                         }
                     });
+
+                    scope.isOpen.push(false);
+                    scope.positionOptions.push([]);
                 };
 
                 scope.calcSumm = function (index) {
@@ -82,14 +87,51 @@ define(['./../module'], function(module){
 
 
                 scope.onDepartmentChange = function (index) {
-                    scope.data[index].position = null;
+                    scope.data[index].position = {};
                     scope.onPositionChange(index);
-
+                    scope.positionOptions[index] = [];
+                    if (scope.data[index].emplType && scope.data[index].department) {
+                        for (var c of scope.catalogs[scope.data[index].emplType][scope.data[index].department])
+                            scope.positionOptions[index].push({v: c});
+                        scope.positionOptions[index].push({v: 'New position'});
+                    }
                 };
 
                 scope.onPositionChange = function (index) {
                     scope.data[index].description = null;
                     scope.setResponsible(index);
+                };
+
+                scope.toggleSelect = function(index) {
+                    scope.isOpen[index] = !scope.isOpen[index];
+                };
+
+                scope.selectOption = function(index, option) {
+                    scope.data[index].purchaseGroup = option;
+                    scope.toggleSelect(index);
+                    scope.setResponsible(index);
+                };
+
+                scope.isOpen = [];
+                scope.positionOptions = [];
+
+                scope.multiselectSettings = {
+                    enableSearch: true,
+                    smartButtonMaxItems: 1,
+                    selectionLimit: 1,
+                    showCheckAll: false,
+                    showUncheckAll: false,
+                    displayProp: 'v',
+                    idProp: 'v',
+                    externalIdProp: 'v',
+                    showAllSelectedText: true
+                };
+                scope.multiselectEvents = {
+                    onItemSelect: function(item) {
+                        for (var i = 0; i < scope.data.length; i++)
+                            if (scope.data[i].position.v == item.v)
+                                scope.onPositionChange(i);
+                    }
                 };
 
                 scope.catalogs = {

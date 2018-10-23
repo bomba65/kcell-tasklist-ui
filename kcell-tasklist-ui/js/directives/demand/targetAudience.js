@@ -20,8 +20,15 @@ define(['./../module'], function(module){
 					externalIdProp: 'v'
 				};
 				scope.audienceOptions = [
-					{v: 'Technology'},
-					{v: 'CCD'}
+					{v: "B2B"},
+					{v: "B2C"},
+					{v: "CCD"},
+					{v: "CEO"},
+					{v: "CPD"},
+					{v: "FD"},
+					{v: "HR"},
+					{v: "LD"},
+					{v: "TD"}
 				];
 				scope.roumingOptions = [
 					{v: 'Almaty'},

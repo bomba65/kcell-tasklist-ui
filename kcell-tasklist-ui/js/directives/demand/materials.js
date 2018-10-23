@@ -31,13 +31,14 @@ define(['./../module'], function(module){
 
                 scope.deleteItem = function(index) {
                     scope.data.splice(index, 1);
+                    scope.isOpen.splice(index, 1);
                     scope.countTotalSum();
                 };
 
                 scope.addItem = function() {
                     scope.data.push({
                         department: null,
-                        materialType: null,
+                        materialType: {},
                         description: null,
                         purchaseGroup: null,
                         quantity: null,
@@ -51,6 +52,8 @@ define(['./../module'], function(module){
                             fio: scope.responsible
                         }
                     });
+
+                    scope.isOpen.push(false);
                 };
 
                 scope.calcSumm = function(index) {
@@ -76,15 +79,64 @@ define(['./../module'], function(module){
                 };
 
                 scope.onDepartmentChange = function(index) {
-                    scope.setResponsible(index);
-                    scope.data[index].materialType = null;
-                    scope.data[index].description = null;
+                    scope.data[index].materialType = {};
+                    scope.onMaterialTypeChange(index);
                 };
 
                 scope.onMaterialTypeChange = function(index) {
                     scope.setResponsible(index);
                     scope.data[index].description = null;
                 };
+
+                scope.toggleSelect = function(index) {
+                    scope.isOpen[index] = !scope.isOpen[index];
+                };
+
+                scope.selectOption = function(index, option) {
+                    scope.data[index].purchaseGroup = option;
+                    scope.toggleSelect(index);
+                    scope.setResponsible(index);
+                };
+
+                scope.isOpen = [];
+
+                scope.multiselectSettings = {
+                    enableSearch: true,
+                    smartButtonMaxItems: 1,
+                    selectionLimit: 1,
+                    showCheckAll: false,
+                    showUncheckAll: false,
+                    displayProp: 'v',
+                    idProp: 'v',
+                    externalIdProp: 'v'
+                };
+                scope.multiselectEvents = {
+                    onItemSelect: function(item) {
+                        for (var i = 0; i < scope.data.length; i++)
+                            if (scope.data[i].materialType.v == item.v)
+                                scope.onMaterialTypeChange(i);
+                    }
+                };
+
+                scope.options = {
+                    purchaseGroup: [
+                        {v: 100, t: "100 - Инфраструктура: Радио и Инфраструктура"},
+                        {v: 110, t: "110 - Инфраструктура: Information Technology and Support Services"},
+                        {v: 120, t: "120 - Инфраструктура: Коммутация и передача данных"},
+                        {v: 130, t: "130 - Инфраструктура: Information Technology and Support Services"},
+                        {v: 131, t: "131 - Операционный закуп"},
+                        {v: 140, t: "140 - Продукты и услуги: Терминалы и SIM карты"},
+                        {v: 150, t: "150 - Продукты и услуги: Маркетинг"},
+                        {v: 170, t: "170 - Продукты и услуги: корпоративные продукты и услуги"}
+                    ],
+                    materialType: [
+                        {v: "Server"},
+                        {v: "Platform"},
+                        {v: "License and Software"},
+                        {v: "Equipment (parts)"},
+                        {v: "New Equipment"}
+                    ]
+                }
 	        },
 			templateUrl: './js/directives/demand/materials.html'
 		};

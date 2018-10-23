@@ -9,7 +9,7 @@ require.config({
          'domReady': './node_modules/requirejs-domready/domReady',
          'angular': './node_modules/angular/angular',
          'jquery': './node_modules/jquery/dist/jquery',
-         'bootstrap': './node_modules/dist/js/bootstrap',
+         'bootstrap': './node_modules/bootstrap/dist/js/bootstrap',
          'ngRoute': './node_modules/angular-route/angular-route',
          'ngCookies': './node_modules/angular-cookies/angular-cookies',
          'simpleApp': './simpleApp',
@@ -32,7 +32,8 @@ require.config({
          'simple-module': './node_modules/simple-module/lib/module',
          'simple-hotkeys': './node_modules/simple-hotkeys/lib/hotkeys',
          'simple-uploader': './node_modules/simple-uploader/lib/uploader',
-         'xlsx': './node_modules/xlsx/dist/xlsx.full.min'
+         'xlsx': './node_modules/xlsx/dist/xlsx.full.min',
+         'summernote':'./summernote.min',
      },
  
      // angular не поддерживает AMD из коробки, поэтому экспортируем перменную angular в глобальную область
@@ -49,6 +50,7 @@ require.config({
          'angular-ui-router': ['angular'],
          'angular-ui-bootstrap': ['angular'],
          'ng-file-upload': ['angular'],
+         'summernote': ['bootstrap'],
          'angularjs-dropdown-multiselect': ['angular'],
          'angular-translate-storage-local': ['translate'],
          'angular-translate-storage-cookie': ['translate']

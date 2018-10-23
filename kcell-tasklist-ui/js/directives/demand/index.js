@@ -9,5 +9,6 @@ define([
 	'./materials',
 	'./supportiveInputs',
 	'./businessCase',
-	'./businessIntelligence'
+	'./businessIntelligence',
+	'./demandRichText'
 	], function(){});
