@@ -17,6 +17,34 @@
             var assigneeName = $rootScope.authentication.name;
             var createdDate = new Date();
 
+            var getDetailsCatalogs = function() {
+                var lastFillFormActivity = {
+                    "activityId": "fillForm",
+                    "processDefinitionKey": "Demand",
+                    "finished": true,
+                    "sorting": [
+                        {
+                            "sortBy": "endTime",
+                            "sortOrder": "desc"
+                        }
+                    ]
+                };
+                return $http.post("/camunda/api/engine/engine/default/history/activity-instance?maxResults=1", lastFillFormActivity).then(function(response) {
+                    if (response.data && response.data.length && response.data[0].processInstanceId) {
+                        var pcVariable = {
+                            "variableName": "detailsCatalogs",
+                            "processInstanceId": response.data[0].processInstanceId
+                        };
+                        $http.post("/camunda/api/engine/engine/default/history/variable-instance?deserializeValues=false", pcVariable).then(function(result) {
+                            if (result.data && result.data.length && result.data[0].value) {
+                                $scope.detailsCatalogs = JSON.parse(result.data[0].value);
+                            }
+                        });
+                    }
+                });
+            }
+            getDetailsCatalogs();
+
             $http.get("/camunda/api/engine/engine/default/user/" + $rootScope.authentication.name+ "/profile").then(function(result){
                 assigneeName = (result.data.firstName ? result.data.firstName : "") + " " + (result.data.lastName ? result.data.lastName : "");
             });
@@ -33,6 +61,7 @@
             camForm.on('form-loaded', function () {
                 camForm.variableManager.fetchVariable('generalData');
                 camForm.variableManager.fetchVariable('resolutions');
+                camForm.variableManager.fetchVariable('detailsCatalogs');
             });
 
             camForm.on('variables-fetched', function () {
@@ -47,6 +76,10 @@
                 }
 
             });
+
+            $scope.preSubmit = function() {
+                return getDetailsCatalogs();
+            };
 
             camForm.on('submit', function (event) {
                 camForm.variableManager.destroyVariable('generalData');
@@ -67,6 +100,42 @@
                     type: 'Json',
                     value: $scope.resolutions
                 });
+
+                if ($scope.generalData.demandDetails) {
+                    if (!$scope.detailsCatalogs) $scope.detailsCatalogs = {products: [], offers: []};
+                    if ($scope.generalData.demandDetails.productName) {
+                        var elt = $scope.detailsCatalogs.products.find(function(e) { return e.name === $scope.generalData.demandDetails.productName; });
+                        if (elt) {
+                            elt.version++;
+                            $scope.generalData.demandDetails.productVersion = elt.version;
+                        } else {
+                            $scope.detailsCatalogs.products.push({name: $scope.generalData.demandDetails.productName, version: 1});
+                        }
+                    }
+                    if ($scope.generalData.demandDetails.productOffers) {
+                        for (var offer of $scope.generalData.demandDetails.productOffers) {
+                            var elt = $scope.detailsCatalogs.offers.find(function(e) { return e.name === offer.name; });
+                            if (elt) {
+                                elt.version++;
+                                var version = elt.version + '';
+                                if ($scope.generalData.demandDetails.productVersion)
+                                    version = $scope.generalData.demandDetails.productVersion + '.' + version;
+                                offer.version = version;
+                            } else {
+                                $scope.detailsCatalogs.offers.push({name: offer.name, description: offer.description, version: 1});
+                            }
+                        }
+                    }
+                }
+                
+                if ($scope.detailsCatalogs) {
+                    camForm.variableManager.destroyVariable('detailsCatalogs');
+                    camForm.variableManager.createVariable({
+                        name: 'detailsCatalogs',
+                        type: 'Json',
+                        value: $scope.detailsCatalogs
+                    });
+                }
             });
 
             $scope.saveFillForm = function () {
@@ -125,7 +194,7 @@
             <div style="margin-bottom: 20px;">
                 <div class="col-sm-6">
                     <h4>General</h4>
-                    <demand-general data="generalData.general" form="kcell_form" view="view" edittechnical="true"  disabled="!generalData.general.technicalAnalysis"  && editresposnible="!generalData.general.technicalAnalysis"></demand-general>
+                    <demand-general data="generalData.general" form="kcell_form" view="view" edittechnical="true"  disabled="!generalData.general.technicalAnalysis" editresposnible="!generalData.general.technicalAnalysis"></demand-general>
                 </div>
                 <div class="col-sm-6">
                     <h4>Target Audience:</h4>
@@ -134,7 +203,7 @@
                 <br>
                 <div class="col-sm-12">
                     <h4>Demand Details</h4>
-                    <demand-details data="generalData.demandDetails" form="kcell_form" view="view" disabled="!generalData.general.technicalAnalysis"  && editdescription="!generalData.general.technicalAnalysis"></demand-details>
+                    <demand-details data="generalData.demandDetails" catalog="detailsCatalogs" form="kcell_form" view="view" disabled="!generalData.general.technicalAnalysis" editdescription="!generalData.general.technicalAnalysis"></demand-details>
                 </div>
             </div>
         </tab>
