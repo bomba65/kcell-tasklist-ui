@@ -1,14 +1,37 @@
 define(['./../module', 'summernote'], function(module){
     'use strict';
-    module.directive('demandRichText', function ($rootScope) {
+    module.directive('demandRichText', function ($rootScope, $http) {
         return {
             restrict: 'E',
             scope: {
                 data: '=',
                 disabled: '=',
-                minHeight: '='
+                minHeight: '=',
+                processId: '=',
+                taskId: '='
             },
             link: function(scope, element, attrs) {
+                var uuid = new Date().getTime();
+                var uploadImage = function(file, path, tmp) {
+                    $http({method: 'GET', url: '/camunda/uploads/' + tmp + 'put/' + path, transformResponse: [] }).success(function(data, status, headers, config) {
+                        $http.put(data, file, {headers: {'Content-Type': undefined}}).then(
+                            function () {
+                                $http({method: 'GET', url: '/camunda/uploads/' + tmp + 'get/' + path, transformResponse: [] }).success(function(data, status, headers, config) {
+                                    var image = $('<img>').attr('src', data);
+                                    element.summernote("insertNode", image[0]);
+                                }).error (function(data, status, headers, config) {
+                                    console.log(data);
+                                });
+                            },
+                            function (error) {
+                                console.log(error.data);
+                            }
+                        );
+                    }).error (function(data, status, headers, config) {
+                        console.log(data);
+                    });
+                };
+
                 element.summernote({
                     focus: true,
                     disableResizeEditor: true,
@@ -20,11 +43,18 @@ define(['./../module', 'summernote'], function(module){
                                 scope.$apply();
                             }
                         },
-                        /*onImageUpload: function (files, editor, editable) {
-                            console.log('image upload:', files);
-                            console.log('image upload\'s editor:', editor);
-                            console.log('image upload\'s editable:', editable);
-                        }*/
+                        onImageUpload: function (files) {
+                            for (var file of files) {
+                                if (scope.processId && scope.taskId) {
+                                    uploadImage(file, scope.processId + '/' + scope.taskId + '/' + file.name, '');
+                                } else {
+                                    uploadImage(file, uuid + '/' + file.name, 'tmp/');
+                                }
+                            }
+                        },
+                        onMediaDelete: function(target) {
+                            console.log("deleted => ", target);
+                        }
                     }
                 });
 
@@ -32,29 +62,11 @@ define(['./../module', 'summernote'], function(module){
 
                 scope.$watch('data', function (value) {
                     if (value && value.length) {
-                        // scope.trustedHTML = $sce.trustAsHtml(value);
                         if (value !== element.summernote('code')) {
                             element.summernote('code', value);
                         }
                     }
                 }, true);
-
-                /*scope.onChange = function(contents) {
-                    scope.data = scope.html.code;
-                };
-
-                scope.options = {
-                    focus: true,
-                    disableResizeEditor: true,
-                    minHeight: (scope.minHeight?scope.minHeight:300)
-                };
-
-                scope.imageUpload = function(files) {
-                    console.log('image upload:', files);
-                    console.log('image upload\'s editor:', scope.editor);
-                    console.log('image upload\'s editable:', scope.editable);
-                    console.log(" ==> ", scope.editor);
-                }*/
             }
         };
     });

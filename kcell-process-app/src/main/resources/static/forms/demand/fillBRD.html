@@ -3,12 +3,6 @@
         .well {
             color: #333;
         }
-        .note-toolbar {
-            z-index: auto;
-        }
-        .dropdown-menu {
-            z-index: 1000 !important;
-        }
 
         .content-visible-accordion .panel {
             overflow: visible;
@@ -28,7 +22,8 @@
                     reportsStatistics: ''
                 };
                 $scope.resolutions = [];
-                var processInstanceId = null;
+                $scope.processInstanceId = null;
+                $scope.taskId = camForm.taskId;
                 var taskName = null;
                 var assigneeName = $rootScope.authentication.name;
                 var createdDate = new Date();
@@ -39,7 +34,7 @@
     
                 $http.get('/camunda/api/engine/engine/default/task/' + camForm.taskId).then(
                     function(result){
-                        processInstanceId = result.data.processInstanceId;
+                        $scope.processInstanceId = result.data.processInstanceId;
                         taskName = result.data.name;
                         if (result.data.created) createdDate = new Date(result.data.created);
                     },
@@ -80,7 +75,7 @@
                     if(!$scope.resolutions){
                         $scope.resolutions = [];
                     }
-                    $scope.resolutions.unshift({processInstanceId: processInstanceId, assignee: assigneeName, resolution: 'Completed', comment: $scope.comment, taskId: camForm.taskId, taskEndDate: submitDate, taskName: taskName, dateOfAssign: createdDate});
+                    $scope.resolutions.unshift({processInstanceId: $scope.processInstanceId, assignee: assigneeName, resolution: 'Completed', comment: $scope.comment, taskId: camForm.taskId, taskEndDate: submitDate, taskName: taskName, dateOfAssign: createdDate});
                     camForm.variableManager.destroyVariable('resolutions');
                     camForm.variableManager.createVariable({
                         name: 'resolutions',
@@ -94,7 +89,7 @@
                         if( key === "$$hashKey" ) return undefined;
                         return value;
                     });
-                    $http.put('/camunda/api/engine/engine/default/process-instance/'+processInstanceId+'/variables/BRDData',{"type":"Json","value": json}).then(
+                    $http.put('/camunda/api/engine/engine/default/process-instance/'+$scope.processInstanceId+'/variables/BRDData',{"type":"Json","value": json}).then(
                             function() {toasty.success( "Данные успешно сохранены!");},
                             function(error) {toasty.error(error.data.message);}
                     );
@@ -149,7 +144,7 @@
                             <accordion-heading>
                                 Functional Requirements <i class="pull-right glyphicon" ng-class="{'glyphicon-chevron-up': status.isCustomHeaderOpen, 'glyphicon-chevron-down': !status.isCustomHeaderOpen}"></i>
                             </accordion-heading>
-                            <demand-func-requirements data="BRDData.funcRequirements" form="kcell_form" view="view" disabled="false"></demand-func-requirements>
+                            <demand-func-requirements data="BRDData.funcRequirements" form="kcell_form" view="view" disabled="false" process-id="processInstanceId" task-id="taskId"></demand-func-requirements>
                         </accordion-group>
                     </accordion>
                     <accordion class="content-visible-accordion">
@@ -165,7 +160,7 @@
                             <accordion-heading>
                                 Interfaces <i class="pull-right glyphicon" ng-class="{'glyphicon-chevron-up': status.isCustomHeaderOpen, 'glyphicon-chevron-down': !status.isCustomHeaderOpen}"></i>
                             </accordion-heading>
-                            <demand-interfaces data="BRDData.interfaces" form="kcell_form" view="view" disabled="false"></demand-interfaces>
+                            <demand-interfaces data="BRDData.interfaces" form="kcell_form" view="view" disabled="false" process-id="processInstanceId" task-id="taskId"></demand-interfaces>
                         </accordion-group>
                     </accordion>
                     <accordion class="content-visible-accordion">
@@ -174,7 +169,7 @@
                                 Reports and Statistics <i class="pull-right glyphicon" ng-class="{'glyphicon-chevron-up': status.isCustomHeaderOpen, 'glyphicon-chevron-down': !status.isCustomHeaderOpen}"></i>
                             </accordion-heading>
                             <div class="col-sm-12">
-                                <demand-rich-text data="BRDData.reportsStatistics" min-height="100"></demand-rich-text>
+                                <demand-rich-text data="BRDData.reportsStatistics" min-height="100" process-id="processInstanceId" task-id="taskId"></demand-rich-text>
                                 <!--<span class="has-error" ng-if="(!BRDData.reportsStatistics.length || !BRDData.reportsStatistics.length) && view.submitted">Required field</span>-->
                             </div>
                         </accordion-group>

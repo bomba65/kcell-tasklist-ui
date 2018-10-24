@@ -7,7 +7,9 @@ define(['./../module'], function(module){
                 data: '=',
                 form: '=',
                 view: '=',
-                disabled: '='
+                disabled: '=',
+                processId: '=',
+                taskId: '='
 			},
 			link: function(scope, element, attrs) {
                 scope.$watch('data', function(value) {
