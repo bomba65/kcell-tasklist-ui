@@ -115,6 +115,7 @@ public class CrmController {
                 salesExecutiveUser.put("firstName", "Бахыт");
                 salesExecutiveUser.put("lastName", "Ибрагимова");
                 salesExecutiveUser.put("middleName", "Паттеевна");
+                salesExecutiveUser.put("email", "[Bakhyt.Ibragimova@kcell.kz|mailto:Bakhyt.Ibragimova@kcell.kz]");
                 fakeContent.set("salesExecutiveUser", salesExecutiveUser);
 
                 city.put("id", 70000);
@@ -179,6 +180,7 @@ public class CrmController {
                 salesExecutiveUser.put("firstName", "Руслан");
                 salesExecutiveUser.put("lastName", "Жолдыбаев");
                 salesExecutiveUser.put("middleName", "Сагатович");
+                salesExecutiveUser.put("email", "[Ruslan.Zholdybayev@kcell.kz|mailto:Ruslan.Zholdybayev@kcell.kz]");
                 fakeContent.set("salesExecutiveUser", salesExecutiveUser);
 
                 city.put("id", 50000);
