@@ -35,6 +35,7 @@
             var taskName = null;
             var assigneeName = $rootScope.authentication.name;
             var createdDate = new Date();
+            $scope.pricesFilled = true;
 
             $http.get("/camunda/api/engine/engine/default/user/" + $rootScope.authentication.name+ "/profile").then(function(result){
                 assigneeName = (result.data.firstName ? result.data.firstName : "") + " " + (result.data.lastName ? result.data.lastName : "");
@@ -78,9 +79,17 @@
                         {unit: 'Technology Department', form: 'TD', value: {}, checked: false}
                     ];
                 } else {
-                    for (var s of $scope.supportiveInputs)
+                    for (var s of $scope.supportiveInputs) {
                         if (s.checked)
                             $scope.supportiveInputsCount++;
+
+                        if ($scope.pricesFilled && (s.unit == 'Human Resources Department' || s.unit == 'Infrasturcture Procurement Section'))
+                            for (var r of s.value)
+                                if (!r.pprice) {
+                                    $scope.pricesFilled = false;
+                                    break;
+                                }
+                    }
                 }
             });
 
@@ -113,6 +122,13 @@
                         }
                     }
                 }
+
+                if ($scope.resolution == 'Approve')
+                    for (var i of $scope.supportiveInputs) {
+                        i.inputReceived = false;
+                        i.description = null;
+                        //i.checked = false;
+                    }
 
                 camForm.variableManager.destroyVariable("supportiveInputs");
                 camForm.variableManager.createVariable({
@@ -227,7 +243,7 @@
         <tab active="true">
             <tab-heading> Costs and Acceptance Criterias </tab-heading>
             <div style="margin-bottom: 20px;">
-                <accordion ng-repeat="i in supportiveInputs" ng-if="i.form == 'HR'">
+                <accordion ng-repeat="i in supportiveInputs" ng-if="i.unit == 'Human Resources Department'">
                     <accordion-group is-open="true">
                         <accordion-heading>
                             Resources <i class="pull-right glyphicon" ng-class="{'glyphicon-chevron-up': status.isCustomHeaderOpen, 'glyphicon-chevron-down': !status.isCustomHeaderOpen}"></i>
@@ -272,7 +288,7 @@
             <tab-heading> Business Case </tab-heading>
         </tab>
         <tab disabled="true">
-            <tab-heading> Product passport\Approvement list</tab-heading>
+            <tab-heading> SDD </tab-heading>
         </tab>
     </tabset>
 
@@ -348,7 +364,7 @@
         <label class="col-sm-2 control-label">Resolution</label>
         <div class="col-sm-8">
             <label class="radio-inline">
-                <input type="radio" ng-model="resolution" name="resolution" value="Approve" required> Approve
+                <input type="radio" ng-model="resolution" name="resolution" value="Approve" required ng-disabled="!pricesFilled"> Approve
             </label>
             <label class="radio-inline">
                 <input type="radio" ng-model="resolution" name="resolution" value="Modify" required> Modify

@@ -1,6 +1,6 @@
 define(['./../module'], function(module){
 	'use strict';
-	module.directive('demandMaterials', function ($rootScope, $http) {
+	module.directive('demandMaterials', function ($rootScope, $http, $timeout) {
 		return {
 			restrict: 'E',
 			scope: {
@@ -11,7 +11,21 @@ define(['./../module'], function(module){
                 editprice: '=',
                 editexisting: '='
 			},
-			link: function(scope, element, attrs) {
+			link: function(scope, el, attrs) {
+
+                var setHeight = function() {
+                    var element = el[0].querySelector('.materials-container');
+                    element.style.height = 'auto';
+                    element.style.height = (element.scrollHeight) + 'px';
+                };
+
+                if (!scope.disabled) {
+                    $(document).bind('click', function (e) {
+                        if (el === e.target || el[0].contains(e.target))
+                            $timeout(setHeight);
+                    });
+                }
+
                 scope.$watch('data', function(value) {
                     if (value) {
                         if (!scope.data || !(scope.data instanceof Array)) scope.data = [];
@@ -42,6 +56,7 @@ define(['./../module'], function(module){
                     scope.isOpen.splice(index, 1);
                     scope.searchVal.splice(index, 1);
                     scope.countTotalSum();
+                    $timeout(setHeight);
                 };
 
                 scope.addItem = function() {

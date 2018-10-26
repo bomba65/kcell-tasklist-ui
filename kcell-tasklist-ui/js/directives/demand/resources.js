@@ -1,6 +1,6 @@
 define(['./../module'], function(module){
 	'use strict';
-	module.directive('demandResources', function ($rootScope, $http) {
+	module.directive('demandResources', function ($rootScope, $http, $timeout) {
 		return {
 			restrict: 'E',
 			scope: {
@@ -11,7 +11,21 @@ define(['./../module'], function(module){
                 editprice: '=',
                 showprice: '='
 			},
-			link: function(scope, element, attrs) {
+			link: function(scope, el, attrs) {
+
+			    var setHeight = function() {
+                    var element = el[0].querySelector('.resources-container');
+                    element.style.height = 'auto';
+                    element.style.height = (element.scrollHeight) + 'px';
+                };
+
+			    if (!scope.disabled) {
+                    $(document).bind('click', function (e) {
+                        if (el === e.target || el[0].contains(e.target))
+                            $timeout(setHeight);
+                    });
+                }
+
                 scope.$watch('data', function (value) {
                     if (value) {
                         if (!scope.data || !(scope.data instanceof Array)) scope.data = [];
@@ -41,6 +55,7 @@ define(['./../module'], function(module){
                     scope.isOpen.splice(index, 1);
                     scope.searchVal.splice(index, 1);
                     scope.countTotalSum();
+                    $timeout(setHeight);
                 };
 
                 scope.addItem = function () {
@@ -49,8 +64,8 @@ define(['./../module'], function(module){
                         position: null,
                         description: null,
                         quantity: null,
-                        labor: null,
-                        rate: null,
+                        hours: null,
+                        period: null,
                         existing: null,
                         pprice: null,
                         summ: null,
@@ -66,9 +81,10 @@ define(['./../module'], function(module){
 
                 scope.calcSumm = function (index) {
                     if (!scope.data[index].quantity) return;
-                    if (!scope.data[index].labor) return;
+                    if (!scope.data[index].hours) return;
+                    if (!scope.data[index].period) return;
                     if (!scope.data[index].pprice) return;
-                    scope.data[index].summ = scope.data[index].quantity * scope.data[index].labor * scope.data[index].pprice;
+                    scope.data[index].summ = scope.data[index].quantity * scope.data[index].hours * scope.data[index].period * scope.data[index].pprice;
                     scope.countTotalSum();
                     scope.setResponsible(index);
                 };

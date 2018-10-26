@@ -14,12 +14,18 @@ define(['./../module'], function(module){
                 index: '='
             },
             link: function(scope, el, attrs) {
+
+                //TODO: position ul-list by js (so it didn't depend on overflow)
+
+
                 scope.$watch('ngModel', function (value) {
                     scope.theModel = scope.ngModel;
                 }, true);
+
                 scope.theModel = null;
                 scope.isOpen = false;
                 scope.searchVal = '';
+
                 $(document).bind('click', function(e){
                     if (el !== e.target && !el[0].contains(e.target)) {
                         scope.$apply(function () {
@@ -30,8 +36,11 @@ define(['./../module'], function(module){
 
                 var setWidth = function() {
                     var element = el[0].querySelector('.list-group');
-                    $(element).css('width', 'auto');
-                    $(element).css('width', ($(element).innerWidth()) + 'px');
+                    var curWidth = element.offsetWidth, scrollWidth;
+                    element.style.width = 'auto';
+                    scrollWidth = element.scrollWidth;
+                    if (scrollWidth > curWidth) element.style.width = scrollWidth + 'px';
+                    else element.style.width = curWidth + 'px';
                 };
 
                 scope.toggleSelect = function() {

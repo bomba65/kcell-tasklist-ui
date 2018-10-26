@@ -42,6 +42,7 @@
             var taskName = null;
             var assigneeName = $rootScope.authentication.name;
             var createdDate = new Date();
+            $scope.pricesFilled = true;
 
             $http.get("/camunda/api/engine/engine/default/user/" + $rootScope.authentication.name+ "/profile").then(function(result){
                 assigneeName = (result.data.firstName ? result.data.firstName : "") + " " + (result.data.lastName ? result.data.lastName : "");
@@ -278,10 +279,9 @@
             $scope.supportiveInputDeselect = function(item) {
                 var ind = $scope.supportiveInputs.findIndex(function(e) {return e.unit == item.unit;});
                 if (ind !== -1) {
-                    if (!$scope.supportiveInputs[ind].inputReceived && !$scope.supportiveInputs[ind].value.length) $scope.supportiveInputs.splice(ind, 1);
-                    else $scope.supportiveInputs[ind].checked = false;
+                    if ($scope.supportiveInputs[ind].inputReceived || $scope.supportiveInputs[ind].value.length) $scope.supportiveInputs[ind].checked = false;
+                    else $scope.supportiveInputs.splice(ind, 1);
                 }
-                if (!$scope.supportiveInputs.length) $scope.resolution = 'Submit';
             };
 
             $scope.$watch('supportiveInputs', function(value) {
@@ -293,6 +293,24 @@
                         else if (i.form == 'CPD') $scope.materials = $scope.materials.concat(i.value);
                     }
                 }
+
+                $scope.pricesFilled = true;
+
+                for (var r of $scope.resources)
+                    if (!r.pprice) {
+                        $scope.pricesFilled = false;
+                        break;
+                    }
+
+                if ($scope.pricesFilled)
+                    for (var m of $scope.materials)
+                        if (!m.pprice) {
+                            $scope.pricesFilled = false;
+                            break;
+                        }
+
+                if (!$scope.pricesFilled && $scope.resolution == 'Submit') $scope.resolution = null;
+                if (!$scope.supportiveRequests.length && $scope.resolution == 'Request info') $scope.resolution = null;
             }, true);
         }]);
     </script>
@@ -435,7 +453,7 @@
             </div>
         </tab>
         <tab disabled="true">
-            <tab-heading> Product passport\Approvement list</tab-heading>
+            <tab-heading> SDD </tab-heading>
         </tab>
     </tabset>
 
@@ -542,10 +560,10 @@
         <label class="col-sm-2 control-label">Resolution</label>
         <div class="col-sm-8">
             <label class="radio-inline">
-                <input type="radio" ng-model="resolution" name="resolution" value="Submit" required> Submit
+                <input type="radio" ng-model="resolution" name="resolution" value="Submit" required ng-disabled="!pricesFilled"> Submit
             </label>
             <label class="radio-inline">
-                <input type="radio" ng-model="resolution" name="resolution" value="Request info" required ng-disabled="!supportiveInputs.length"> Request info
+                <input type="radio" ng-model="resolution" name="resolution" value="Request info" required ng-disabled="!supportiveRequests.length"> Request info
             </label>
             <label class="error" ng-show="kcell_form.resolution.$error.required && ( kcell_form.resolution.$touched || view.submitted)">Required field</label>
         </div>
