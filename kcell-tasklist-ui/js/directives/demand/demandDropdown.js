@@ -1,0 +1,58 @@
+define(['./../module'], function(module){
+    'use strict';
+    module.directive('demandDropdown', ['$http', '$timeout', function ($http, $timeout) {
+        return {
+            restrict: 'E',
+            scope: {
+                ngModel: '=',
+                options: '=',
+                onItemSelect: '=',
+                searchField: '=',
+                objectList: '=',
+                displayProp: '=',
+                titleProp: '=',
+                index: '='
+            },
+            link: function(scope, el, attrs) {
+                scope.$watch('ngModel', function (value) {
+                    scope.theModel = scope.ngModel;
+                }, true);
+                scope.theModel = null;
+                scope.isOpen = false;
+                scope.searchVal = '';
+                $(document).bind('click', function(e){
+                    if (el !== e.target && !el[0].contains(e.target)) {
+                        scope.$apply(function () {
+                            scope.isOpen = false;
+                        });
+                    }
+                });
+
+                var setWidth = function() {
+                    var element = el[0].querySelector('.list-group');
+                    $(element).css('width', 'auto');
+                    $(element).css('width', ($(element).innerWidth()) + 'px');
+                };
+
+                scope.toggleSelect = function() {
+                    scope.isOpen = !scope.isOpen;
+                    scope.searchVal = '';
+
+                    if (scope.isOpen) $timeout(setWidth);
+                };
+
+                scope.selectOption = function(option) {
+                    scope.toggleSelect();
+                    scope.theModel = option;
+                    if (scope.onItemSelect) scope.onItemSelect(scope.index, option);
+                };
+
+                scope.filterFunc = function (value, index, array) {
+                    if (!scope.objectList) return (value + '').toLowerCase().includes(scope.searchVal.toLowerCase());
+                    return (value[scope.displayProp] + '').toLowerCase().includes(scope.searchVal.toLowerCase());
+                };
+            },
+            templateUrl: './js/directives/demand/demandDropdown.html'
+        };
+    }]);
+});

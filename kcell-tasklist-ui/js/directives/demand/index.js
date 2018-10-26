@@ -10,5 +10,6 @@ define([
 	'./supportiveInputs',
 	'./businessCase',
 	'./businessIntelligence',
-	'./demandRichText'
+	'./demandRichText',
+	'./demandDropdown'
 	], function(){});

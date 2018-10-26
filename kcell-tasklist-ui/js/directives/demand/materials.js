@@ -18,6 +18,14 @@ define(['./../module'], function(module){
                         
                         scope.countTotalSum();
 
+                        scope.isOpen = [];
+                        scope.searchVal = [];
+                        for (var i = 0; i < scope.data.length; i++) {
+                            scope.isOpen.push({materialType: false, purchaseGroup: false});
+                            scope.searchVal.push('');
+                        }
+
+
                         if (!scope.responsible) {
                             scope.responsible = $rootScope.authentication.name;
                             $http.get("/camunda/api/engine/engine/default/user/" + $rootScope.authentication.name+ "/profile").then(function(result) {
@@ -32,13 +40,14 @@ define(['./../module'], function(module){
                 scope.deleteItem = function(index) {
                     scope.data.splice(index, 1);
                     scope.isOpen.splice(index, 1);
+                    scope.searchVal.splice(index, 1);
                     scope.countTotalSum();
                 };
 
                 scope.addItem = function() {
                     scope.data.push({
                         department: null,
-                        materialType: {},
+                        materialType: null,
                         description: null,
                         purchaseGroup: null,
                         quantity: null,
@@ -53,7 +62,8 @@ define(['./../module'], function(module){
                         }
                     });
 
-                    scope.isOpen.push(false);
+                    scope.isOpen.push({materialType: false, purchaseGroup: false});
+                    scope.searchVal.push('');
                 };
 
                 scope.calcSumm = function(index) {
@@ -79,44 +89,34 @@ define(['./../module'], function(module){
                 };
 
                 scope.onDepartmentChange = function(index) {
-                    scope.data[index].materialType = {};
+                    scope.data[index].materialType = null;
                     scope.onMaterialTypeChange(index);
                 };
 
-                scope.onMaterialTypeChange = function(index) {
+                scope.onMaterialTypeChange = function(index, option) {
                     scope.setResponsible(index);
                     scope.data[index].description = null;
+                    scope.data[index].materialType = option;
                 };
 
-                scope.toggleSelect = function(index) {
-                    scope.isOpen[index] = !scope.isOpen[index];
-                };
-
-                scope.selectOption = function(index, option) {
+                scope.onPurchaseGroupChange = function(index, option) {
+                    scope.setResponsible(index);
                     scope.data[index].purchaseGroup = option;
+                };
+
+                scope.toggleSelect = function(index, key) {
+                    scope.isOpen[index][key] = !scope.isOpen[index][key];
+                    if (key === 'materialType') scope.searchVal[index] = '';
+                };
+
+                scope.selectOption = function(index, option, key) {
+                    scope.data[index][key] = option;
                     scope.toggleSelect(index);
                     scope.setResponsible(index);
+                    if (key === 'materialType') scope.onMaterialTypeChange(index)
                 };
 
                 scope.isOpen = [];
-
-                scope.multiselectSettings = {
-                    enableSearch: true,
-                    smartButtonMaxItems: 1,
-                    selectionLimit: 1,
-                    showCheckAll: false,
-                    showUncheckAll: false,
-                    displayProp: 'v',
-                    idProp: 'v',
-                    externalIdProp: 'v'
-                };
-                scope.multiselectEvents = {
-                    onItemSelect: function(item) {
-                        for (var i = 0; i < scope.data.length; i++)
-                            if (scope.data[i].materialType.v == item.v)
-                                scope.onMaterialTypeChange(i);
-                    }
-                };
 
                 scope.options = {
                     purchaseGroup: [
@@ -130,11 +130,11 @@ define(['./../module'], function(module){
                         {v: 170, t: "170 - Продукты и услуги: корпоративные продукты и услуги"}
                     ],
                     materialType: [
-                        {v: "Server"},
-                        {v: "Platform"},
-                        {v: "License and Software"},
-                        {v: "Equipment (parts)"},
-                        {v: "New Equipment"}
+                        "Server",
+                        "Platform",
+                        "License and Software",
+                        "Equipment (parts)",
+                        "New Equipment"
                     ]
                 }
 	        },
