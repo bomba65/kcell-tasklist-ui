@@ -9,12 +9,14 @@ import org.apache.http.HttpResponse;
 import org.apache.http.client.HttpClient;
 import org.apache.http.client.methods.HttpGet;
 import org.apache.http.client.methods.HttpPost;
+import org.apache.http.client.methods.HttpPut;
 import org.apache.http.entity.ContentType;
 import org.apache.http.entity.StringEntity;
 import org.apache.http.impl.client.CloseableHttpClient;
 import org.apache.http.impl.client.HttpClients;
 import org.apache.http.util.EntityUtils;
 import org.camunda.bpm.engine.IdentityService;
+import org.camunda.bpm.engine.impl.util.json.JSONObject;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.core.env.Environment;
@@ -47,7 +49,7 @@ public class ProductCatalog {
         this.productCatalogAuth = productCatalogAuth;
     }
 
-    @RequestMapping(value = "/", method = RequestMethod.POST, produces={"application/json"}, consumes="application/json")
+    @RequestMapping(value = "/vas_short_numbers", method = RequestMethod.POST, produces={"application/json"}, consumes="application/json")
     @ResponseBody
     public ResponseEntity<String> setShortNumber(@RequestBody String shortNumber/*, HttpServletRequest request*/) throws Exception {
 
@@ -72,6 +74,53 @@ public class ProductCatalog {
                 HttpClient shortNumberHttpClient = HttpClients.createDefault();
 
                 HttpResponse shortNumberResponse = shortNumberHttpClient.execute(shortNumberPost);
+
+                HttpEntity entity = shortNumberResponse.getEntity();
+                String content = EntityUtils.toString(entity);
+
+                /////EntityUtils.consume(content);
+                //shortNumberHttpClient.close();
+
+                return ResponseEntity.ok(content);
+
+            } catch (Exception e) {
+                e.printStackTrace();
+            }
+
+        } else {
+            JSONObject shortNumberJSON = new JSONObject(shortNumber);
+            shortNumberJSON.put("id", 12345);
+
+            return ResponseEntity.ok(shortNumberJSON.toString());
+        }
+        return null;
+    }
+
+    @RequestMapping(value = "/vas_short_numbers/{shortNumberId}", method = RequestMethod.PUT, produces={"application/json"}, consumes="application/json")
+    @ResponseBody
+    public ResponseEntity<String> updateShortNumber(@PathVariable("shortNumberId") String shortNumberId, @RequestBody String shortNumber) throws Exception {
+
+        Boolean isSftp = Arrays.stream(environment.getActiveProfiles()).anyMatch(env -> (env.equalsIgnoreCase("sftp")));
+
+        if (identityService.getCurrentAuthentication() == null || identityService.getCurrentAuthentication().getUserId() == null) {
+            log.warning("No user logged in");
+            return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body("No user logged in");
+        }
+
+        if (isSftp) {
+            try {
+                String encoding = Base64.getEncoder().encodeToString((productCatalogAuth).getBytes("UTF-8"));
+
+                StringEntity shortNumberData = new StringEntity(shortNumber, ContentType.APPLICATION_JSON);
+                HttpPut shortNumberPut = new HttpPut(new URI(productCatalogUrl+"/"+shortNumberId));
+                shortNumberPut.setHeader("Authorization", "Basic " + encoding);
+                shortNumberPut.addHeader("Content-Type", "application/json;charset=UTF-8");
+
+                shortNumberPut.setEntity(shortNumberData);
+
+                HttpClient shortNumberHttpClient = HttpClients.createDefault();
+
+                HttpResponse shortNumberResponse = shortNumberHttpClient.execute(shortNumberPut);
 
                 HttpEntity entity = shortNumberResponse.getEntity();
                 String content = EntityUtils.toString(entity);
