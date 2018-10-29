@@ -58,6 +58,10 @@ define(['./../module', 'xlsx'], function(module){
 					scope.toggleSelect(name);
 				};
 
+				scope.onStrategicGoalChange = function(index, option) {
+					scope.data.strategicGoal = option;
+				};
+
 				var correctHeaderWidth = function() {
 					$('.fixed-header-table-container th').each(function() {
 						$(this).find('span').first().width($(this).width() + 10);

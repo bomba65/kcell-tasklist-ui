@@ -11,7 +11,8 @@ define(['./../module'], function(module){
                 objectList: '=',
                 displayProp: '=',
                 titleProp: '=',
-                index: '='
+                index: '=',
+                disabled: '='
             },
             link: function(scope, el, attrs) {
 
