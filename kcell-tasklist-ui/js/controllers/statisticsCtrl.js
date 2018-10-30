@@ -581,29 +581,21 @@ define(['./module','jquery'], function(app,$){
                         'attach-scan-copy-of-acceptance-form',
                         'approve_material_list_tnu_region',
                         'validate_tr_bycenter',
-                        'attach_additional_material_list_contractor',
                         'approve_additional_material_list_region',
                         'approve_additional_material_list_tnu_region',
                         'approve_additional_material_list_center1',
                         'approve_additional_material_list_center',
-                        'upload_additional_tr_contractor',
                         'validate_additional_tr',
                         'validate_additional_tr_bycenter',
                         'set_additional_materials_dispatch_status'
                     ],
                         'invoice-open-tasks': [
-                        'ma_check_region',
                         'ma_sign_region_head',
                         'ma_sign_region_manager',
-                        'ma_check_budget',
-                        'ma_check_centralgroup_tech',
-                        'ma_sign_budget',
-                        'ma_check_centralgroup',
-                        'ma_sign_head1',
-                        'ma_sign_head2',
-                        'ma_sign_manager',
-                        'ma_sign_cto',
+                        'ma_sign_central_group_specialist',
                         'ma_print_version',
+                        'ma_print_version_tnu',
+                        'ma_print_version1',
                         'ma_invoice_number'
                     ]
                 };
@@ -611,7 +603,9 @@ define(['./module','jquery'], function(app,$){
                 $scope.contractorTasks = {
                     'revision-open-tasks':[
                         'upload_tr_contractor', //upload_tr_contractor
+                        'upload_additional_tr_contractor',
                         'attach_material_list_contractor', //attach_material_list_contractor
+                        'attach_additional_material_list_contractor',
                         'fill_applied_changes_info' //fill_applied_changes_info
                     ],
                     'invoice-open-tasks': [
