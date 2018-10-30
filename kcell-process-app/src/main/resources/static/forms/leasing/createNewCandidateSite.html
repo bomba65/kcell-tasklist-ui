@@ -15,7 +15,8 @@
                 'plannedCabinetType',
                 'targetCoverage',
                 'rbsType',
-                'bands'
+                'bands',
+                'newCandidateRRFiles'
             ];
 
             var variablesToCreate = [
@@ -530,6 +531,11 @@
                         });
                     }
                 });
+                if(!$scope.newCandidateRRFiles){
+                    $scope.newCandidateRRFiles = [];
+                }
+
+
                 camForm.variableManager.createVariable({
                     name: 'createNewCandidateSiteTaskResult',
                     type: 'String',
@@ -716,57 +722,48 @@
             };
 
             $scope.fileSelected = function (el, fileName) {
-                if (el.files[0]) {
-                    $timeout(function () {
-                        $scope.$apply(function () {
-                            uploadFileToMinio(el.files[0], fileName);
-                        });
-                    })
-                } else {
+                $timeout(function () {
                     $scope.$apply(function () {
-                        $scope[fileName] = undefined;
+                        uploadFileToMinio(el.files[0], fileName);
                     });
-                }
+                })
             };
 
             function uploadFileToMinio(file, fileName) {
+                var fileIndex = $scope[fileName].length;
+
                 var fileToUpload = {
-                    name: fileName,
-                    type: 'Json',
-                    value: {
-                        name: file.name.replace(/[/\\?%*:|"<>]/g, '-'),
-                        isNew: true,
-                        path: $scope.processInstanceId + '/' + camForm.taskId + '/' + file.name.replace(/[/\\?%*:|"<>]/g, '-')
-                    }
+                    name: file.name.replace(/[/\\?%*:|"<>]/g, '-'),
+                    isNew: true,
+                    path: $scope.processInstanceId + '/' + camForm.taskId + '/' + file.name.replace(/[/\\?%*:|"<>]/g, '-')
                 };
                 $http({
                     method: 'GET',
-                    url: '/camunda/uploads/put/' + fileToUpload.value.path,
+                    url: '/camunda/uploads/put/' + fileToUpload.path,
                     transformResponse: []
                 }).success(function (data, status, headers, config) {
                     $http.put(data, file, {headers: {'Content-Type': undefined}}).then(
-                            function () {
-                                $scope[fileName] = fileToUpload;
-                                angular.element(document.querySelector('#' + fileName)).val(null);
-                            },
-                            function (error) {
-                                console.log(error.data);
-                            }
+                        function () {
+                            $scope[fileName].push(fileToUpload);
+                            angular.element(document.querySelector('#' + fileName + '_' + fileIndex)).val(null);
+                        },
+                        function (error) {
+                            console.log(error.data);
+                        }
                     );
                 }).error(function (data, status, headers, config) {
                     console.log(data);
                 });
             }
 
-            $scope.clearFile = function (filename) {
-                delete $scope[filename];
-            };
+            $scope.clearFile = function (list, fileIndex) {
+                $scope[list].splice(fileIndex, 1);
+            }
 
-            $scope.download = function (file) {
-                console.log(file);
+            $scope.fileDownload = function (file) {
                 $http({
                     method: 'GET',
-                    url: '/camunda/uploads/get/' + file.value.path,
+                    url: '/camunda/uploads/get/' + file.path,
                     transformResponse: []
                 }).success(function (data, status, headers, config) {
                     document.getElementById('fileDownloadIframe').src = data;
@@ -1137,17 +1134,17 @@
                         <label class="error" ng-show="kcell_form.closestPublic10.$error.required && ( kcell_form.closestPublic10.$touched || view.submitted)">Required field</label>
                     </div>
                 </div>
-                <div class="form-group" ng-show="newCandidateRRFiles.value.name">
+                <div class="form-group">
                     <label class="col-md-3 control-label">Download RR:</label>
-                    <div class="col-sm-4">
-                        <a ng-click="download(newCandidateRRFiles)">{{newCandidateRRFiles.value.name}}</a> | <a ng-click="clearFile('newCandidateRRFiles')"><i class="glyphicon glyphicon-trash"></i></a>
-                    </div>
                 </div>
-                <div class="form-group" ng-hide="newCandidateRRFiles.value.name">
+                <div class="form-group">
                     <label class="col-md-3 control-label">Upload RR:</label>
-                    <div class="col-sm-4">
-                        <input type="file" class="form-control" id="newCandidateRRFiles"
-                               name="newCandidateRRFiles" ng-model="newCandidateRRFiles" onchange="angular.element(this).scope().fileSelected(this, 'newCandidateRRFiles')"/>
+                    <div class="col-sm-8">
+                        <div ng-show="newCandidateRRFiles.length > 0" class="input-group" ng-repeat="file in newCandidateRRFiles">
+                            {{$index + 1}}.
+                            <a ng-click="fileDownload(file)">{{file.name}}</a> | <a ng-click="clearFile('newCandidateRRFiles', $index)"><i class="glyphicon glyphicon-trash"></i></a>
+                        </div>
+                        <input type="file" class="form-control" id="newCandidateRRFiles_{{newCandidateRRFiles.value.length}}" name="newCandidateRRFiles_{{newCandidateRRFiles.value.length}}" ng-model="file.file" onchange="angular.element(this).scope().fileSelected(this, 'newCandidateRRFiles')"/>
                     </div>
                 </div>
                 <div class="form-group">
