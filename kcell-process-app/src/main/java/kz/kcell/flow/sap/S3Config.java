@@ -37,10 +37,10 @@ public class S3Config {
 
     @EventListener
     protected void makeBucket(ApplicationReadyEvent event) {
-        if(!amazonS3.doesBucketExist(jojrBucketName)){
+        if(!amazonS3.doesBucketExistV2(jojrBucketName)){
             amazonS3.createBucket(jojrBucketName);
         }
-        if(!amazonS3.doesBucketExist(prBucketName)){
+        if(!amazonS3.doesBucketExistV2(prBucketName)){
             amazonS3.createBucket(prBucketName);
         }
     }
