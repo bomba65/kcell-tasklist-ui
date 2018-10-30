@@ -60,11 +60,6 @@
                     value: ''
                 },
                 {
-                    name: 'newCandidateAdditionalInfo',
-                    type: 'String',
-                    value: ''
-                },
-                {
                     name: 'cellAntenna',
                     type: 'Json',
                     value: {}
@@ -117,6 +112,7 @@
                 $scope.renterCompany = {};
                 $scope.powerSource = {};
                 $scope.dictionary = {};
+                $scope.transmissionAntenna = {};
                 $scope.availableBands = [{'title': 'G900', 'value': false}, {
                     'title': 'G1800',
                     'value': false
@@ -130,7 +126,15 @@
                 $scope.rbsLocation = $scope.dictionary.rbsLocation = [{'title': 'Room'}, {'title': 'Container'}, {'title': 'Other'}, {'title': 'Outdoor'}];
                 $scope.dictionary.constructionType = ['Beeline', 'Kcell', 'New', 'Tower', 'Other'];
                 $scope.dictionary.equipmentType = ['-', 'FH', 'FH XC', 'MLE', 'MLHC', 'ML/TN', 'Our cable', 'Rented Channel', 'Satellite', 'TN2P', 'TN20P', 'TN6P'];
-                $scope.dictionary.antennaDiameter = ['-', '0,3', '0,6', '1,2', '1,8', '2,4', '3,0', '3,7'];
+                $scope.dictionary.antennaDiameter = [
+                    {'diameter':'0,3', 'weight':'13'},
+                    {'diameter':'0,6', 'weight':'15'},
+                    {'diameter':'1,2', 'weight':'65'},
+                    {'diameter':'1,8', 'weight':'95'},
+                    {'diameter':'2,4', 'weight':'158'},
+                    {'diameter':'3,0', 'weight':'188'},
+                    {'diameter':'3,7', 'weight':''}];
+
                 $scope.antennasList = $scope.dictionary.antennas = [{
                     'antenna': 'ADU4518R10',
                     'description': 'LTE',
@@ -456,7 +460,14 @@
                         'weight': '6'
                     }, {'antenna': '732448', 'description': '', 'dimension': '', 'weight': ''},
                     {'antenna': '735-727', 'description': '', 'dimension': '492x992x190', 'weight': '10'}];
-                $scope.dictionary.antennaType = ['-', 'ML 0.3', 'ML 0.6', 'ML 1.2', 'ML 1.8', 'ML 2.4', 'ML 3.0', 'ML 3.7'];
+                $scope.dictionary.antennaType = [
+                    {'name':'ML 0.3', 'diameter':'0,3', 'weight':'13'},
+                    {'name':'ML 0.6', 'diameter':'0,6', 'weight':'15'},
+                    {'name':'ML 1.2', 'diameter':'1,2', 'weight':'65'},
+                    {'name':'ML 1.8', 'diameter':'1,8', 'weight':'95'},
+                    {'name':'ML 2.4', 'diameter':'2,4', 'weight':'158'},
+                    {'name':'ML 3.0', 'diameter':'3,0', 'weight':'188'},
+                    {'name':'ML 3.7', 'diameter':'3,7', 'weight':''}];
                 $scope.cableLayingType = $scope.dictionary.cableLayingType = [{'title': 'Airline'}, {'title': 'By the poles'}, {'title': 'By the walls'}, {'title': 'Under ground'}, {'title': 'Other'}];
                 $scope.dictionary.legalType = ['КСК', 'ИП', 'ТОО', 'АО', 'OO', 'СПК', 'Национальный оператор  АО  "Казахтелеком"', 'Национальный оператор  АО "Казтелерадио"',
                             'Национальный оператор  АО "Казпочта"', 'Общественный фонд', 'Представительство (foreign)', 'ЭСО', 'Терком', 'Собственность Кселл',
@@ -677,6 +688,92 @@
                 }
                 return deferred.promise;
             }
+
+            $scope.defineByAntennaType = function (antennaType) {
+                if(antennaType){
+                    angular.forEach($scope.dictionary.antennaType, function (type) {
+                        if(type.name === antennaType){
+                            $scope.transmissionAntenna.diameter = type.diameter;
+                            $scope.transmissionAntenna.weight = type.weight;
+                        }
+                    });
+                } else {
+                    $scope.transmissionAntenna.diameter = undefined;
+                    $scope.transmissionAntenna.weight = undefined;
+                }
+            };
+
+            $scope.defineWeightByAntennaDiameter = function (antennaDiameter) {
+                if(antennaDiameter){
+                    angular.forEach($scope.dictionary.antennaDiameter, function (d) {
+                        if(d.diameter === antennaDiameter){
+                            $scope.newFe.weight = d.weight;
+                        }
+                    });
+                } else {
+                    $scope.newFe.weight = undefined;
+                }
+            };
+
+            $scope.fileSelected = function (el, fileName) {
+                if (el.files[0]) {
+                    $timeout(function () {
+                        $scope.$apply(function () {
+                            uploadFileToMinio(el.files[0], fileName);
+                        });
+                    })
+                } else {
+                    $scope.$apply(function () {
+                        $scope[fileName] = undefined;
+                    });
+                }
+            };
+
+            function uploadFileToMinio(file, fileName) {
+                var fileToUpload = {
+                    name: fileName,
+                    type: 'Json',
+                    value: {
+                        name: file.name.replace(/[/\\?%*:|"<>]/g, '-'),
+                        isNew: true,
+                        path: $scope.processInstanceId + '/' + camForm.taskId + '/' + file.name.replace(/[/\\?%*:|"<>]/g, '-')
+                    }
+                };
+                $http({
+                    method: 'GET',
+                    url: '/camunda/uploads/put/' + fileToUpload.value.path,
+                    transformResponse: []
+                }).success(function (data, status, headers, config) {
+                    $http.put(data, file, {headers: {'Content-Type': undefined}}).then(
+                            function () {
+                                $scope[fileName] = fileToUpload;
+                                angular.element(document.querySelector('#' + fileName)).val(null);
+                            },
+                            function (error) {
+                                console.log(error.data);
+                            }
+                    );
+                }).error(function (data, status, headers, config) {
+                    console.log(data);
+                });
+            }
+
+            $scope.clearFile = function (filename) {
+                delete $scope[filename];
+            };
+
+            $scope.download = function (file) {
+                console.log(file);
+                $http({
+                    method: 'GET',
+                    url: '/camunda/uploads/get/' + file.value.path,
+                    transformResponse: []
+                }).success(function (data, status, headers, config) {
+                    document.getElementById('fileDownloadIframe').src = data;
+                }).error(function (data, status, headers, config) {
+                    console.log(data);
+                });
+            }
         }]);
     </script>
     <leasing-detail leasing-info="leasingInfo"></leasing-detail>
@@ -802,19 +899,34 @@
                     </div>
                 </div>
                 <div class="form-group">
-                    <label class="col-sm-3 control-label">Dimensions:</label>
+                    <label class="col-sm-3 control-label">Dimensions And Weight:</label>
                     <div class="col-sm-8">
-                        <!--input class="form-control" id="dimensions" name="dimensions" ng-model="cellAntenna.dimensions"-->
-                        <span ng-repeat="a in cellAntenna.selectedAntennas" ng-show="a.dimension"><{{a.dimension }}>{{!$last?',':''}} </span>
-                        <label class="error" ng-show="kcell_form.dimensions.$error.required && ( kcell_form.dimensions.$touched || view.submitted)">Required field</label>
-                    </div>
-                </div>
-                <div class="form-group">
-                    <label class="col-sm-3 control-label">Weight:</label>
-                    <div class="col-sm-8">
-                        <!--input class="form-control" id="weight" name="weight" ng-model="cellAntenna.weight"-->
-                        <span ng-repeat="a in cellAntenna.selectedAntennas" ng-show="a.weight"><{{a.weight }}>{{!$last?',':''}} </span>
-                        <label class="error" ng-show="kcell_form.weight.$error.required && ( kcell_form.weight.$touched || view.submitted)">Required field</label>
+                        <table class="table table-condensed" ng-show="cellAntenna.selectedAntennas && cellAntenna.selectedAntennas.length>0">
+                            <thead>
+                                <tr>
+                                    <td>Antenna name</td>
+                                    <td>Dimensions</td>
+                                    <td>Weigth</td>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                <tr ng-repeat="s in cellAntenna.selectedAntennas">
+                                    <td>{{s.antenna}}</td>
+                                    <td ng-show="s.dimension">
+                                        {{s.dimension}}
+                                    </td>
+                                    <td ng-hide="s.dimension">
+                                        <input class="form-control" id="dimensions_{{$index}}" name="dimensions_{{$index}}" ng-model="s.newDimension" placeholder="1000x100x100">
+                                    </td>
+                                    <td ng-show="s.weight">
+                                        {{s.weight}}
+                                    </td>
+                                    <td ng-hide="s.weight">
+                                        <input class="form-control" id="weight_{{$index}}" name="weight_{{$index}}" ng-model="s.newWeight" placeholder="10">
+                                    </td>
+                                </tr>
+                            </tbody>
+                        </table>
                     </div>
                 </div>
                 <div class="form-group">
@@ -893,20 +1005,19 @@
                 </div>
                 <div class="form-group">
                     <label class="col-sm-3 control-label">Contract Person:</label>
-                    <div class="col-sm-8">
-                        <input class="form-control" id="contractPerson" name="contractPerson"  ng-model="renterCompany.contractPerson" >
-                        <label class="error" ng-show="kcell_form.contractPerson.$error.required && ( kcell_form.contractPerson.$touched || view.submitted)">Required field</label>
-                    </div>
+                    <div class="col-sm-8"></div>
                 </div>
                 <div class="form-group">
-                    <label class="col-sm-3 control-label">Name:</label>
+                    <label class="col-sm-2 control-label"></label>
+                    <label class="col-sm-1 control-label">Name:</label>
                     <div class="col-sm-8">
                         <input class="form-control" id="name" name="name"  ng-model="renterCompany.name" >
                         <label class="error" ng-show="kcell_form.name.$error.required && ( kcell_form.name.$touched || view.submitted)">Required field</label>
                     </div>
                 </div>
                 <div class="form-group">
-                    <label class="col-sm-3 control-label">Position:</label>
+                    <label class="col-sm-2 control-label"></label>
+                    <label class="col-sm-1 control-label">Position:</label>
                     <div class="col-sm-8">
                         <input class="form-control" id="position" name="position"  ng-model="renterCompany.position" >
                         <label class="error" ng-show="kcell_form.position.$error.required && ( kcell_form.position.$touched || view.submitted)">Required field</label>
@@ -924,8 +1035,10 @@
                     <label class="col-sm-3 control-label">TR Antenna type:</label>
                     <div class="col-sm-8">
                         <select class="form-control" id="antennaType" name="antennaType"
-                                ng-model="transmissionAntenna.antennaType">
-                            <option ng-repeat="a in dictionary.antennaType">{{a}}</option>
+                                ng-model="transmissionAntenna.antennaType"
+                                ng-change="defineByAntennaType(transmissionAntenna.antennaType)">
+                            <option value="">-</option>
+                            <option ng-repeat="a in dictionary.antennaType" value="{{a.name}}">{{a.name}}</option>
                         </select>
                         <label class="error" ng-show="kcell_form.antennaType.$error.required && ( kcell_form.antennaType.$touched || view.submitted)">Required field</label>
                     </div>
@@ -946,17 +1059,11 @@
                 </div>
                 <div class="form-group">
                     <label class="col-sm-3 control-label">Diameter:</label>
-                    <div class="col-sm-8">
-                        <input class="form-control" id="TRDiameter" name="TRDiameter"  ng-model="transmissionAntenna.diameter">
-                        <label class="error" ng-show="kcell_form.TRDiameter.$error.required && ( kcell_form.TRDiameter.$touched || view.submitted)">Required field</label>
-                    </div>
+                    <div class="col-sm-8">{{transmissionAntenna.diameter}}</div>
                 </div>
                 <div class="form-group">
                     <label class="col-sm-3 control-label">Weight:</label>
-                    <div class="col-sm-8">
-                        <input class="form-control" id="TRWeight" name="TRWeight"  ng-model="transmissionAntenna.weight" >
-                        <label class="error" ng-show="kcell_form.TRWeight.$error.required && ( kcell_form.TRWeight.$touched || view.submitted)">Required field</label>
-                    </div>
+                    <div class="col-sm-8">{{transmissionAntenna.weight}}</div>
                 </div>
                 <div class="form-group">
                     <label class="col-sm-3 control-label">Suspension height of antennas:</label>
@@ -1030,10 +1137,24 @@
                         <label class="error" ng-show="kcell_form.closestPublic10.$error.required && ( kcell_form.closestPublic10.$touched || view.submitted)">Required field</label>
                     </div>
                 </div>
+                <div class="form-group" ng-show="newCandidateRRFiles.value.name">
+                    <label class="col-md-3 control-label">Download RR:</label>
+                    <div class="col-sm-4">
+                        <a ng-click="download(newCandidateRRFiles)">{{newCandidateRRFiles.value.name}}</a> | <a ng-click="clearFile('newCandidateRRFiles')"><i class="glyphicon glyphicon-trash"></i></a>
+                    </div>
+                </div>
+                <div class="form-group" ng-hide="newCandidateRRFiles.value.name">
+                    <label class="col-md-3 control-label">Upload RR:</label>
+                    <div class="col-sm-4">
+                        <input type="file" class="form-control" id="newCandidateRRFiles"
+                               name="newCandidateRRFiles" ng-model="newCandidateRRFiles" onchange="angular.element(this).scope().fileSelected(this, 'newCandidateRRFiles')"/>
+                    </div>
+                </div>
                 <div class="form-group">
-                    <label class="col-sm-3 control-label">Additional Info:</label>
+                    <label class="col-sm-3 control-label">Comments related to New Candidate:</label>
                     <div class="col-sm-8">
-                        <textarea class="form-control" ng-model="newCandidateAdditionalInfo" name="newCandidateAdditionalInfo" maxlength="500" rows="4" style="resize:none"></textarea>
+                        <textarea class="form-control" ng-model="newCandidateComments" name="newCandidateComments" maxlength="500" rows="4" style="resize:none"
+                                  cam-variable-name="newCandidateComments" cam-variable-type="String"></textarea>
                     </div>
                 </div>
             </div>
@@ -1084,7 +1205,7 @@
                             </div>
                         </div>
                         <div class="form-group">
-                            <label class="col-sm-3 control-label">Contract Information:</label>
+                            <label class="col-sm-3 control-label">Contact Information:</label>
                             <div class="col-sm-8">
                                 <input class="form-control" id="contractInformation" name="contractInformation"  ng-model="newFe.contractInformation" >
                                 <label class="error" ng-show="form.fe_form.contractInformation.$error.required && ( form.fe_form.contractInformation.$touched || newFe.submitted)">Required field</label>
@@ -1118,8 +1239,9 @@
                             <label class="col-sm-3 control-label">Antenna diameter:</label>
                             <div class="col-sm-8">
                                 <select class="form-control" id="antennaDiameter" name="antennaDiameter"
-                                        ng-model="newFe.antennaDiameter">
-                                    <option ng-repeat="d in dictionary.antennaDiameter">{{d}}</option>
+                                        ng-model="newFe.antennaDiameter" 
+                                        ng-change="defineWeightByAntennaDiameter(newFe.antennaDiameter)">
+                                    <option ng-repeat="d in dictionary.antennaDiameter" value="{{d.diameter}}">{{d.diameter}}</option>
                                 </select>
                                 <label class="error" ng-show="form.fe_form.antennaDiameter.$error.required && ( form.fe_form.antennaDiameter.$touched || newFe.submitted)">Required field</label>
                             </div>
@@ -1127,8 +1249,7 @@
                         <div class="form-group">
                             <label class="col-sm-3 control-label">Weight:</label>
                             <div class="col-sm-8">
-                                <input class="form-control" id="FeWeight" name="FeWeight"  ng-model="newFe.weight" >
-                                <label class="error" ng-show="form.fe_form.FeWeight.$error.required && ( form.fe_form.FeWeight.$touched || newFe.submitted)">Required field</label>
+                                {{newFe.weight}}
                             </div>
                         </div>
                         <div class="form-group">
@@ -1271,9 +1392,10 @@
                             </div>
                         </div>
                         <div class="form-group">
-                            <label class="col-sm-3 control-label">Additional Info:</label>
+                            <label class="col-sm-3 control-label">Far End Comments:</label>
                             <div class="col-sm-8">
-                                <textarea class="form-control" ng-model="newFe.additionalInfo" name="newFe_additionalInfo" maxlength="500" rows="4" style="resize:none"></textarea>
+                                <textarea class="form-control" ng-model="farEndComments" name="farEndComments" maxlength="500" rows="4" style="resize:none"
+                                          cam-variable-name="farEndComments" cam-variable-type="String"></textarea>
                             </div>
                         </div>
                         <button type="submit" class="btn btn-success btn-sm" ng-click="saveFE(currentFE);">Done</button>
@@ -1286,7 +1408,7 @@
     </tabset>
 
     <div class="form-group">
-        <label class="col-sm-3 control-label">Comments</label>
+        <label class="col-sm-3 control-label">Task Comments</label>
         <div class="col-sm-9">
             <textarea class="form-control" ng-model="createNewCandidateSiteTaskComment" name="createNewCandidateSiteTaskComment" placeholder="Comments..." maxlength="500" rows="4" style="resize:none"></textarea>
             <label class="error" ng-show="kcell_form.createNewCandidateSiteTaskComment.$error.required && ( kcell_form.createNewCandidateSiteTaskComment.$touched || view.submitted)">Required field</label>
