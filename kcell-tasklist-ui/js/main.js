@@ -33,7 +33,8 @@ require.config({
          'simple-hotkeys': './node_modules/simple-hotkeys/lib/hotkeys',
          'simple-uploader': './node_modules/simple-uploader/lib/uploader',
          'xlsx': './node_modules/xlsx/dist/xlsx.full.min',
-         'summernote':'./summernote.min',
+         'summernote': './summernote/summernote.min',
+         'summernote-ext-template': './summernote/summernote-ext-template'
      },
  
      // angular не поддерживает AMD из коробки, поэтому экспортируем перменную angular в глобальную область
@@ -51,6 +52,7 @@ require.config({
          'angular-ui-bootstrap': ['angular'],
          'ng-file-upload': ['angular'],
          'summernote': ['bootstrap'],
+         'summernote-ext-template': ['summernote'],
          'angularjs-dropdown-multiselect': ['angular'],
          'angular-translate-storage-local': ['translate'],
          'angular-translate-storage-cookie': ['translate']

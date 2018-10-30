@@ -16,6 +16,7 @@
             var taskName = null;
             var assigneeName = $rootScope.authentication.name;
             var createdDate = new Date();
+            var demandDetailsCopy = {};
 
             var getDetailsCatalogs = function() {
                 var lastFillFormActivity = {
@@ -74,7 +75,7 @@
                         demandDetails: {}
                     };
                 }
-
+                demandDetailsCopy = JSON.parse(JSON.stringify($scope.generalData.demandDetails));
             });
 
             $scope.preSubmit = function() {
@@ -103,7 +104,7 @@
 
                 if ($scope.generalData.demandDetails) {
                     if (!$scope.detailsCatalogs) $scope.detailsCatalogs = {products: [], offers: []};
-                    if ($scope.generalData.demandDetails.productName) {
+                    if ($scope.generalData.demandDetails.productName && $scope.generalData.demandDetails.productName !== demandDetailsCopy.productName) {
                         var elt = $scope.detailsCatalogs.products.find(function(e) { return e.name === $scope.generalData.demandDetails.productName; });
                         if (elt) {
                             elt.version++;
@@ -114,15 +115,20 @@
                     }
                     if ($scope.generalData.demandDetails.productOffers) {
                         for (var offer of $scope.generalData.demandDetails.productOffers) {
-                            var elt = $scope.detailsCatalogs.offers.find(function(e) { return e.name === offer.name; });
-                            if (elt) {
-                                elt.version++;
-                                var version = elt.version + '';
-                                if ($scope.generalData.demandDetails.productVersion)
-                                    version = $scope.generalData.demandDetails.productVersion + '.' + version;
-                                offer.version = version;
-                            } else {
-                                $scope.detailsCatalogs.offers.push({name: offer.name, description: offer.description, version: 1});
+                            var elt = null;
+                            if (demandDetailsCopy.productOffers && demandDetailsCopy.productOffers.length)
+                                elt  = demandDetailsCopy.productOffers.find(function(e) { return e.name == offer.name; });
+                            if (!elt) {
+                                elt = $scope.detailsCatalogs.offers.find(function(e) { return e.name === offer.name; });
+                                if (elt) {
+                                    elt.version++;
+                                    var version = elt.version + '';
+                                    if ($scope.generalData.demandDetails.productVersion)
+                                        version = $scope.generalData.demandDetails.productVersion + '.' + version;
+                                    offer.version = version;
+                                } else {
+                                    $scope.detailsCatalogs.offers.push({name: offer.name, description: offer.description, version: 1});
+                                }
                             }
                         }
                     }

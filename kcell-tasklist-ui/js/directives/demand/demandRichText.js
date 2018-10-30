@@ -1,4 +1,4 @@
-define(['./../module', 'summernote'], function(module){
+define(['./../module', 'summernote', 'summernote-ext-template'], function(module){
     'use strict';
     module.directive('demandRichText', function ($rootScope, $http) {
         return {
@@ -54,6 +54,27 @@ define(['./../module', 'summernote'], function(module){
                         },
                         onMediaDelete: function(target) {
                             console.log("deleted => ", target);
+                        }
+                    },
+                    toolbar: [
+                        ['style', ['style']],
+                        ['font', ['bold', 'italic', 'underline', 'strikethrough', 'subscript', 'superscript']],
+                        ['fontname', ['fontsize', 'fontname']],
+                        ['color', ['color']],
+                        ['para', ['ul', 'ol', 'paragraph', 'height']],
+                        ['table', ['table']],
+                        ['insert', ['link', 'picture', 'video', 'template']],
+                        ['view', ['fullscreen', 'codeview', 'help']],
+                    ],
+                    template: {
+                        path: '/summernote-templates',
+                        list: {
+                            'resume': 'Resume',
+                            'resume_cover_letter': 'Resume cover letter',
+                            'business_letter': 'Business letter',
+                            'flow': 'Flow',
+                            'personal_letterhead': 'Personal letterhead',
+                            'retrospect': 'Retrospect'
                         }
                     }
                 });
