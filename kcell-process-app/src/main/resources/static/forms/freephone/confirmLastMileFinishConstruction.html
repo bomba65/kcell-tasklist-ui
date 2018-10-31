@@ -29,7 +29,8 @@
                 'channelKLM',
                 'operatorType',
                 'responsibleB2BDelivery',
-                'responsibleB2BSales'
+                'responsibleB2BSales',
+                'freephoneClientResponse'
             ];
 
             camForm.on('form-loaded', function () {
@@ -127,11 +128,60 @@
                 $scope.confirmLastMileFinishConstructionTaskResult = '';
             });
 
+            $scope.preSubmit = function() {
+
+                if($scope.connectionType === 'E1'){
+                    $scope.freephoneClientResponse.term_point = $scope.terminationPoint;
+                    $scope.freephoneClientResponse.hope_point = $scope.hopPoint;
+                    $scope.freephoneClientResponse.site_name = $scope.siteName;
+                    $scope.freephoneClientResponse.port = $scope.lastMilePor;
+
+                    //$scope.freephoneClientResponse.region = $scope.;
+                    //$scope.freephoneClientResponse.voice_platform = $scope.;
+                    //$scope.freephoneClientResponse. = $scope.trNodeIP;
+                }
+
+                console.log('freephoneClientResponse request', $scope.freephoneClientResponse);
+
+                var deferred = $q.defer();
+
+                if($scope.freephoneClientResponse.short_number){
+                    console.log('freephoneClientResponse', $scope.freephoneClientResponse)
+                    if($scope.freephoneClientResponse && ($scope.freephoneClientResponse.id || $scope.freephoneClientResponse.fk_client)) {
+                        return $http.post("/camunda/sao/apis/FreephoneClientCreateUpdate", $scope.freephoneClientResponse).then(
+                            function (response) {
+                                console.log('response.data', response.data);
+                                if (response.data) {
+                                    if(response.data.id || response.data.fk_client || response.data.short_number){
+                                        $scope.freephoneClientResponse = response.data;
+                                        deferred.resolve('Successfully updated Freephone Client at SAO');
+                                    } else {
+                                        deferred.reject('SAO did not respond with short number or id');
+                                    }
+                                } else {
+                                    deferred.reject('SAO response is empty');
+                                }
+                                return deferred.promise;
+                            },
+                            function (error) {
+                                console.log(error);
+                                deferred.reject('error:' + error.data.error + ', message:' + error.data.message + ', path:' + error.data.path + ', status:' + error.data.status);
+                                return deferred.promise;
+                            }
+                        );
+                    }
+                } else {
+                    deferred.reject('SAO Freephone Client info is empty!');
+                    return deferred.promise;
+                }
+            }
+
             camForm.on('submit', function () {
                 $scope.confirmLastMileFinishConstructionTaskResult = 'Completed';
                 if(!$scope.resolutions){
                     $scope.resolutions = [];
                 }
+                camForm.variableManager.variableValue('freephoneClientResponse', $scope.freephoneClientResponse);
                 camForm.variableManager.variableValue('confirmLastMileFinishConstructionTaskResult', $scope.confirmLastMileFinishConstructionTaskResult);
                 camForm.variableManager.variableValue('confirmLastMileFinishConstructionTaskComment', $scope.confirmLastMileFinishConstructionTaskComment);
                 $scope.resolutions.push({processInstanceId: $scope.processInstanceId, assignee: $rootScope.authentication.name, assigneeName: $rootScope.authentication.assigneeName, resolution: $scope.confirmLastMileFinishConstructionTaskResult, comment: $scope.confirmLastMileFinishConstructionTaskComment, taskId: camForm.taskId});

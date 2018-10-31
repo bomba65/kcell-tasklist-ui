@@ -1,5 +1,8 @@
 <form role="form" class="form-horizontal" name="kcell_form" novalidate>
-    <script cam-script type="text/form-script">
+    <iframe id="fileDownloadIframe" style="display:none;"></iframe>
+    <div class="form-check">
+        <input type="checkbox" ng-model="critical" class="form-check-input" id="check1">
+        <script cam-script type="text/form-script">
         inject(['$scope', '$http', 'Uri', '$rootScope', '$q', '$timeout', '$filter', function ($scope, $http, Uri, $rootScope, $q, $timeout, $filter) {
             var uuid = new Date().getTime();
             var variables = [
@@ -138,6 +141,11 @@
                     value: undefined,
                     type: 'Json'
                 });
+                camForm.variableManager.createVariable({
+                    name: 'freephoneClientResponse',
+                    value: undefined,
+                    type: 'Json'
+                });
             });
 
             $scope.preSubmit = function() {
@@ -250,33 +258,114 @@
                     })
                 });
 
-                console.log('request body',productCatalogShortNumber);
-                var deferred = $q.defer();
+                console.log('productCatalogShortNumber request',productCatalogShortNumber);
 
-                if(productCatalogShortNumber.shortNumber || productCatalogShortNumber.shortNumberBeeline || productCatalogShortNumber.shortNumberTele2 || productCatalogShortNumber.shortNumberAltel){
-                    return $http.post("/camunda/product-catalog/vas_short_numbers", productCatalogShortNumber).then(
-                        function (response) {
-                            console.log('response.data', response.data);
-                            if (response.data) {
-                               if(response.data.shortNumber || response.data.shortNumberBeeline || response.data.shortNumberTele2 || response.data.shortNumberAltel){
-                                   $scope.productCatalogResponse = response.data;
-                                   deferred.resolve('Successfully sent short number');
-                               } else {
-                                   deferred.reject('Product Catalog did not respond with short number');
-                               }
-                            } else {
-                                deferred.reject('Product Catalog response is empty');
-                            }
+                var sendShortNumberToProductCatalog = function(){
+                    var deferred = $q.defer();
+
+                    if(productCatalogShortNumber.shortNumber || productCatalogShortNumber.shortNumberBeeline || productCatalogShortNumber.shortNumberTele2 || productCatalogShortNumber.shortNumberAltel){
+                        if($scope.productCatalogResponse && $scope.productCatalogResponse.id) {
+                            deferred.resolve('Short number has already been sent to Product Catalog');
                             return deferred.promise;
-                        },
-                        function (error) {
-                           console.log(error);
+                        } else {
+                            return $http.post("/camunda/product-catalog/vas_short_numbers", productCatalogShortNumber).then(
+                                function (response) {
+                                    console.log('response.data', response.data);
+                                    if (response.data) {
+                                       if(response.data.shortNumber || response.data.shortNumberBeeline || response.data.shortNumberTele2 || response.data.shortNumberAltel){
+                                           $scope.productCatalogResponse = response.data;
+                                           deferred.resolve('Successfully sent short number');
+                                       } else {
+                                           deferred.reject('Product Catalog did not respond with short number');
+                                       }
+                                    } else {
+                                        deferred.reject('Product Catalog response is empty');
+                                    }
+                                    return deferred.promise;
+                                },
+                                function (error) {
+                                   console.log(error);
+                                   deferred.reject('error:' + error.data.error + ', message:' + error.data.message + ', path:' + error.data.path + ', status:' + error.data.status);
+                                   return deferred.promise;
+                                }
+                            );
                         }
-                    );
-                } else {
-                    deferred.reject('No short number is selected!');
-                    return deferred.promise;
+                    } else {
+                        deferred.reject('No short number is selected!');
+                        return deferred.promise;
+                    }
                 }
+
+                var freephoneClient = {
+                    fk_client: 0,
+                    client_name: $scope.officialClientCompanyName,
+                    bin: $scope.clientBIN,
+                    report: null,
+                    short_number: productCatalogShortNumber.shortNumber || productCatalogShortNumber.shortNumberBeeline || productCatalogShortNumber.shortNumberTele2 || productCatalogShortNumber.shortNumberAltel,
+                    provider: null,
+                    technology: null,
+                    type_conn: $scope.connectionType,
+                    forward_num: null,
+                    ip: null
+
+                    //exchange: null,
+                    //mgw: null,
+                    //rtdma: null,
+                    //klm: null,
+                    //term_point: null,
+                    //hope_point: null,
+                    //site_name: null,
+                    //region: null,
+                    //voice_platform: null
+                };
+
+                if($scope.connectionType === 'SIP_SBC'){
+                    freephoneClient.ip = $scope.ipNumber;
+                } else if($scope.connectionType === 'transmit'){
+                    freephoneClient.forward_num = $scope.transmitNumber;
+                }
+
+                console.log('freephoneClient request', freephoneClient);
+
+                var freephoneClientCreateUpdate = function(){
+                    var deferred = $q.defer();
+
+                    if(freephoneClient.short_number){
+                        console.log('freephoneClientResponse', $scope.freephoneClientResponse)
+                        if($scope.freephoneClientResponse && ($scope.freephoneClientResponse.id || $scope.freephoneClientResponse.fk_client)) {
+                            deferred.resolve('Freephone Client has already been created at SAO');
+                            return deferred.promise;
+                        } else {
+                            return $http.post("/camunda/sao/apis/FreephoneClientCreateUpdate", freephoneClient).then(
+                                function (response) {
+                                    console.log('response.data', response.data);
+                                    if (response.data) {
+                                       if(response.data.id || response.data.fk_client || response.data.short_number){
+                                           $scope.freephoneClientResponse = response.data;
+                                           deferred.resolve('Successfully created Freephone Client at SAO');
+                                       } else {
+                                           deferred.reject('SAO did not respond with short number or id');
+                                       }
+                                    } else {
+                                        deferred.reject('SAO response is empty');
+                                    }
+                                    return deferred.promise;
+                                },
+                                function (error) {
+                                   console.log(error);
+                                   deferred.reject('error:' + error.data.error + ', message:' + error.data.message + ', path:' + error.data.path + ', status:' + error.data.status);
+                                   return deferred.promise;
+                                }
+                            );
+                        }
+                    } else {
+                        deferred.reject('No short number is selected!');
+                        return deferred.promise;
+                    }
+
+                }
+                var deferred = $q.defer();
+                return $q.all([sendShortNumberToProductCatalog(), freephoneClientCreateUpdate()]);
             }
 
             camForm.on('submit', function (evt) {
@@ -291,6 +380,7 @@
                 if(!$scope.resolutions){
                     $scope.resolutions = [];
                 }
+                camForm.variableManager.variableValue('freephoneClientResponse', $scope.freephoneClientResponse);
                 camForm.variableManager.variableValue('productCatalogResponse', $scope.productCatalogResponse);
                 camForm.variableManager.variableValue('responsibleB2BDelivery', $scope.responsibleB2BDelivery);
                 camForm.variableManager.variableValue('responsibleB2BSales', $scope.responsibleB2BSales);
@@ -552,9 +642,6 @@
         }]);
 
     </script>
-    <iframe id="fileDownloadIframe" style="display:none;"></iframe>
-    <div class="form-check">
-        <input type="checkbox" ng-model="critical" class="form-check-input" id="check1">
         <label class="form-check-label" for="check1">Критично</label>
     </div>
     <div class="form-group" ng-repeat="id in identifiers" ng-if="operatorType === 'onnet' || (previouslyBought && operatorType === 'offnet')">
