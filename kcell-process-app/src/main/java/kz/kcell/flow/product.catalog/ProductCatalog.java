@@ -65,7 +65,7 @@ public class ProductCatalog {
                 String encoding = Base64.getEncoder().encodeToString((productCatalogAuth).getBytes("UTF-8"));
 
                 StringEntity shortNumberData = new StringEntity(shortNumber, ContentType.APPLICATION_JSON);
-                HttpPost shortNumberPost = new HttpPost(new URI(productCatalogUrl));
+                HttpPost shortNumberPost = new HttpPost(new URI(productCatalogUrl+"/vas_short_numbers"));
                 shortNumberPost.setHeader("Authorization", "Basic " + encoding);
                 shortNumberPost.addHeader("Content-Type", "application/json;charset=UTF-8");
 
@@ -112,7 +112,7 @@ public class ProductCatalog {
                 String encoding = Base64.getEncoder().encodeToString((productCatalogAuth).getBytes("UTF-8"));
 
                 StringEntity shortNumberData = new StringEntity(shortNumber, ContentType.APPLICATION_JSON);
-                HttpPut shortNumberPut = new HttpPut(new URI(productCatalogUrl+"/"+shortNumberId));
+                HttpPut shortNumberPut = new HttpPut(new URI(productCatalogUrl+"/vas_short_numbers/"+shortNumberId));
                 shortNumberPut.setHeader("Authorization", "Basic " + encoding);
                 shortNumberPut.addHeader("Content-Type", "application/json;charset=UTF-8");
 
