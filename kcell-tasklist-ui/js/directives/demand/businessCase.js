@@ -49,17 +49,9 @@ define(['./../module', 'xlsx'], function(module){
 					}
 				};
 
-				scope.toggleSelect = function(name) {
-					scope.selects[name].visible = !scope.selects[name].visible;
-				};
-
-				scope.selectOption = function(name, option) {
-					scope.data[name] = option;
-					scope.toggleSelect(name);
-				};
-
-				scope.onStrategicGoalChange = function(index, option) {
-					scope.data.strategicGoal = option;
+				scope.onItemSelect = function(index, option) {
+					scope.data[index] = option;
+                    calcQuantitative();
 				};
 
 				var correctHeaderWidth = function() {

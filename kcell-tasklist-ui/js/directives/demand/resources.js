@@ -19,12 +19,10 @@ define(['./../module'], function(module){
                     element.style.height = (element.scrollHeight) + 'px';
                 };
 
-			    if (!scope.disabled) {
-                    $(document).bind('click', function (e) {
-                        if (el === e.target || el[0].contains(e.target))
-                            $timeout(setHeight);
-                    });
-                }
+                $(document).bind('click', function (e) {
+                    if (el === e.target || el[0].contains(e.target))
+                        $timeout(setHeight);
+                });
 
                 scope.$watch('data', function (value) {
                     if (value) {

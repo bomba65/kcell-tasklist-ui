@@ -312,6 +312,59 @@
                 if (!$scope.pricesFilled && $scope.resolution == 'Submit') $scope.resolution = null;
                 if (!$scope.supportiveRequests.length && $scope.resolution == 'Request info') $scope.resolution = null;
             }, true);
+
+            $scope.exportCosts = function() {
+                var resData = [
+                    [],
+                    ['Resources'],
+                    [],
+                    ['Empl. type', 'Dept.', 'Position', 'Description', 'Empl. Quantity', 'Man\Hours in Mounth', 'Period, Mounth', 'Existing?', 'Rate per Hour, KZT Gross', 'Amount, KZT Gross', 'Responsible']
+                ];
+                var totalSumm = 0;
+                for (var r of $scope.resources) {
+                    totalSumm += r.summ;
+                    resData.push([r.emplType, r.department, r.position, r.description, r.quantity, r.hours, r.period, r.existing?'yes':'no', (r.pprice?'Conf.':'Empt.'), (r.summ?'Conf.':'Empt.'), r.responsible.fio]);
+                }
+                resData.push([]);
+                resData.push([null, null, null, null, null, null, null, null, 'Total amount, KZT Gross', totalSumm]);
+
+                var matData = [
+                    [], [], [],
+                    ['Materials'],
+                    [],
+                    ['Dept.', 'Material type', 'Description', 'Purchase group', 'Quantity', 'Measure', 'Exists on Warehouse?', 'Currency', 'Price, Without VAT', 'Amount, Without VAT', 'Responsible']
+                ];
+                for (var m of $scope.materials) {
+                    matData.push([m.department, m.materialType, m.description, m.purchaseGroup.v, m.quantity, m.measure, m.existing?'yes':'no', m.currency, m.pprice, m.summ, m.responsible.fio]);
+                }
+
+                var wb = XLSX.utils.book_new();
+                var data = resData.concat(matData);
+                var ws = XLSX.utils.aoa_to_sheet(data);
+                var width = [];
+                for (var row of data) {
+                    for (var i = 0; i < row.length; i++) {
+                        if (i >= width.length) width.push({wch:0});
+                        if (('' + row[i]).length > width[i].wch) width[i].wch = ('' + row[i]).length;
+                    }
+                }
+                ws['!cols'] = [
+                    {wch: 'Empl. type'.length},
+                    {wch: 'Material type'.length},
+                    {wch: 'Description'.length},
+                    {wch: 'Purchase group'.length},
+                    {wch: 'Empl. Quantity'.length},
+                    {wch: 'Man\Hours in Mounth'.length},
+                    {wch: 'Exists on Warehouse?'.length},
+                    {wch: 'Existing?'.length},
+                    {wch: 'Rate per Hour, KZT Gross'.length},
+                    {wch: 'Amount, Without VAT'.length},
+                    {wch: 'Responsible'.length}
+                ];
+                XLSX.utils.book_append_sheet(wb, ws, 'Sheet1');
+                XLSX.writeFile(wb, 'costs.xlsx');
+            };
+
         }]);
     </script>
     <div class="form-group">
@@ -549,10 +602,9 @@
         </div>
     </div>
 
-    <div class="row">
-        <div class="col-md-2" style="margin-top: 20px;">
-            <button type="button" ng-click="saveFillForm()" class="btn btn-success" style="padding: 6px 28px">Save</button>
-        </div>
+    <div class="row" style="margin-top: 20px; padding-left: 20px">
+        <button type="button" ng-click="saveFillForm()" class="btn btn-success" style="padding: 6px 28px; margin-right: 20px;">Save</button>
+        <button type="button" ng-click="exportCosts()" class="btn btn-info">Export Costs to Excel (Resources and Materials)</button>
     </div>
     <hr>
 

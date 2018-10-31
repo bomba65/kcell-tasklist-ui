@@ -12,7 +12,8 @@ define(['./../module'], function(module){
                 displayProp: '=',
                 titleProp: '=',
                 index: '=',
-                disabled: '='
+                disabled: '=',
+                nowrap: '='
             },
             link: function(scope, el, attrs) {
 
