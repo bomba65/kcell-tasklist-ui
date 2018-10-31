@@ -44,7 +44,7 @@ public class ProductCatalog {
     private Environment environment;
 
     @Autowired
-    public ProductCatalog(@Value("${product.catalog.preprod.url:http://ldb-al-preprod.kcell.kz/vas_short_numbers}") String productCatalogUrl, @Value("${product.catalog.auth:app.camunda.user:Asd123Qwerty!}") String productCatalogAuth) {
+    public ProductCatalog(@Value("${product.catalog.url:http://ldb-al-preprod.kcell.kz}") String productCatalogUrl, @Value("${product.catalog.auth:app.camunda.user:Asd123Qwerty!}") String productCatalogAuth) {
         this.productCatalogUrl = productCatalogUrl;
         this.productCatalogAuth = productCatalogAuth;
     }
