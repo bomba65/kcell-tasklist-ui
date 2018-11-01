@@ -131,4 +131,51 @@ public class SaoController {
         return null;
     }
 
+    @RequestMapping(value = "/apis/PbxClientUpdate", method = RequestMethod.POST, produces={"application/json"}, consumes="application/json")
+    @ResponseBody
+    public ResponseEntity<String> PbxClientUpdate(@RequestBody String saoRequestBody) throws Exception {
+
+        Boolean isSftp = Arrays.stream(environment.getActiveProfiles()).anyMatch(env -> (env.equalsIgnoreCase("sftp")));
+
+        if (identityService.getCurrentAuthentication() == null || identityService.getCurrentAuthentication().getUserId() == null) {
+            log.warning("No user logged in");
+            return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body("No user logged in");
+        }
+        // Add check for auth in SAO
+
+        if (isSftp) {
+            try {
+                //String encoding = Base64.getEncoder().encodeToString((productCatalogAuth).getBytes("UTF-8"));
+
+                StringEntity PBXClientData = new StringEntity(saoRequestBody, ContentType.APPLICATION_JSON);
+                HttpPost PBXClientPost = new HttpPost(new URI(saoApiUrl+"/PbxClientUpdate"));
+                //PBXClientPost.setHeader("Authorization", "Basic " + encoding);
+                PBXClientPost.addHeader("Content-Type", "application/json;charset=UTF-8");
+
+                PBXClientPost.setEntity(PBXClientData);
+
+                HttpClient PBXClientHttpClient = HttpClients.createDefault();
+
+                HttpResponse PBXClientResponse = PBXClientHttpClient.execute(PBXClientPost);
+
+                HttpEntity entity = PBXClientResponse.getEntity();
+                String content = EntityUtils.toString(entity);
+
+                return ResponseEntity.ok(content);
+
+            } catch (Exception e) {
+                e.printStackTrace();
+            }
+
+        } else {
+            JSONObject saoTestResponseJSON = new JSONObject(saoRequestBody);
+            if(saoTestResponseJSON.getInt("fk_client") == 0) {
+                saoTestResponseJSON.put("fk_client", 12345);
+            }
+            return ResponseEntity.ok(saoTestResponseJSON.toString());
+            //return ResponseEntity.ok(saoRequestBody);
+        }
+        return null;
+    }
+
 }
