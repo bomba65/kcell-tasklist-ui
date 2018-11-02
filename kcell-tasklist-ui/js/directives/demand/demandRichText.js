@@ -69,6 +69,7 @@ define(['./../module', 'summernote', 'summernote-ext-template'], function(module
                     template: {
                         path: '/summernote-templates',
                         list: {
+                            'general_product_definition':'General Product Definition',
                             'resume': 'Resume',
                             'resume_cover_letter': 'Resume cover letter',
                             'business_letter': 'Business letter',

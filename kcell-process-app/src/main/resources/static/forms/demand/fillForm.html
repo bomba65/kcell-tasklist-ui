@@ -6,6 +6,7 @@
 </style>
 <script cam-script type="text/form-script">
         inject(['$scope', '$http', 'Uri', '$rootScope', '$q', 'toasty', '$timeout', function ($scope, $http, Uri, $rootScope, $q, toasty, $timeout) {
+            $scope.isStartForm = false;
             $scope.generalData = {
                 general: {},
                 targetAudience: {},
@@ -50,14 +51,20 @@
                 assigneeName = (result.data.firstName ? result.data.firstName : "") + " " + (result.data.lastName ? result.data.lastName : "");
             });
 
-            $http.get('/camunda/api/engine/engine/default/task/' + camForm.taskId).then(
-                function(result){
-                    processInstanceId = result.data.processInstanceId;
-                    taskName = result.data.name;
-                    if (result.data.created) createdDate = new Date(result.data.created);
-                },
-                function (error) { console.log(error.data); }
-            );
+
+            if (camForm.taskId) {
+                $http.get('/camunda/api/engine/engine/default/task/' + camForm.taskId).then(
+                    function(result){
+                        processInstanceId = result.data.processInstanceId;
+                        taskName = result.data.name;
+                        if (result.data.created) createdDate = new Date(result.data.created);
+                    },
+                    function (error) { console.log(error.data); }
+                );
+            } else {
+                $scope.isStartForm = true;
+                taskName = 'Fill form';
+            }
 
             camForm.on('form-loaded', function () {
                 camForm.variableManager.fetchVariable('generalData');
@@ -167,12 +174,7 @@
             };
         }]);
     </script>
-    <div class="form-group">
-        <label class="col-sm-12 control-label"> Demand Name:</label>
-        <div class="col-sm-12">
-        </div>
-    </div>
-    <div class="form-group">
+    <div class="form-group" ng-if="!isStartForm">
         <label style="width: 8%; float: left; padding-left: 15px; padding-top: 7px; font-weight: 500;"> Business Key:</label>
         <div class="col-sm-2">
             <input rows="1" class="form-control" cam-variable-name="businessKey" cam-variable-type="String" disabled>
@@ -187,8 +189,9 @@
         </div>
     </div>
     <div class="form-group">
-        <label style="width: 8%; float: left; padding-left: 15px; padding-top: 7px; font-weight: 500;"> Demand Name:</label>
-        <div class="col-sm-11">
+        <label ng-if="!isStartForm" style="width: 8%; float: left; padding-left: 15px; padding-top: 7px; font-weight: 500;"> Demand Name:</label>
+        <label ng-if="isStartForm" class="col-sm-2 control-label">Demand Name:</label>
+        <div class="col-sm-{{isStartForm?10:11}}">
             <input rows="1" class="form-control" name="demandName" ng-model="demandName" cam-variable-name="demandName" cam-variable-type="String" required/>
             <label class="error" ng-show="kcell_form.demandName.$error.required && ( kcell_form.demandName.$touched || view.submitted)">Required field</label>
         </div>
