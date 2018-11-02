@@ -169,8 +169,9 @@ public class SaoController {
 
         } else {
             JSONObject saoTestResponseJSON = new JSONObject(saoRequestBody);
-            if(saoTestResponseJSON.getInt("fk_client") == 0) {
-                saoTestResponseJSON.put("fk_client", 12345);
+            if(saoTestResponseJSON.getInt("id") == 0) {
+                saoTestResponseJSON.put("id", 2234);
+                saoTestResponseJSON.put("status", "Created New PBX Client");
             }
             return ResponseEntity.ok(saoTestResponseJSON.toString());
             //return ResponseEntity.ok(saoRequestBody);
