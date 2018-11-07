@@ -580,7 +580,8 @@ define(['./module','camundaSDK', 'lodash', 'big-js'], function(module, CamSDK, _
             $scope.site_name = $item.site_name;
         };
 
-        $scope.taskIds = [{id:'all', label:'All'},{id:'attach_material_list_contractor', label:'Attach Material List'},{id:'upload_tr_contractor', label:'Upload TR'},{id:'fill_applied_changes_info', label:'Fill Applied Changes Info'}];
+        $scope.taskIds = [{id:'all', label:'All'},{id:'attach_material_list_contractor', label:'Attach Material List'},{id:'upload_tr_contractor', label:'Upload TR'},{id:'fill_applied_changes_info', label:'Fill Applied Changes Info'},
+        					{id:'attach_additional_material_list_contractor', label:'Attach Additional Material List'},{id:'upload_additional_tr_contractor', label:'Upload Additional TR'}];
         $scope.searchTasks =  function(){
         	var queryParams = {};
 			if($scope.site && $scope.site_name){
