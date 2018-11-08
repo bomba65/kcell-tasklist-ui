@@ -16,10 +16,12 @@
                 'monthActNumber',
                 'formalPeriod',
                 'monthOfFormalPeriod',
-                'yearOfFormalPeriod'
+                'yearOfFormalPeriod',
+                'signedScanCopyFileName'
             ];
 
-            $scope.invoice = {};
+            $scope.invoice = {showFinanceInfo:true};
+            $scope.invoice.files = [];
             $http.get('/camunda/api/engine/engine/default/task/' + camForm.taskId).then(
                     function(result){
                         $scope.processInstanceId = result.data.processInstanceId;
@@ -72,17 +74,23 @@
                                 });
                             });
                         }
+                    } else if (el === 'signedScanCopyFileName') {
+                        $scope[el] = camForm.variableManager.variables[el].value;
+                        $scope.invoice.files.push(camForm.variableManager.variables[el].value);
+                    } else if(el === 'attachInvoiceFileName') {
+                        $scope[el] = camForm.variableManager.variables[el];
+                        $scope[el].type = 'Json';
                     } else {
                         $scope.invoice[el] = camForm.variableManager.variables[el];
                     }
-                    if(el === 'attachInvoiceFileName') {
+                    /*if(el === 'attachInvoiceFileName') {
                         $scope[el] = camForm.variableManager.variables[el];
                         $scope[el].type = 'Json';
                     }
-                    $scope[el] = camForm.variableManager.variables[el].value;
+                    $scope[el] = camForm.variableManager.variables[el].value;*/
                 });
             });
-                console.log($scope.invoice);
+            console.log($scope.invoice);
             camForm.on('submit', function () {
                 var files = [];
                 $scope.enterInvoiceNumberTaskResult = 'accept';
@@ -96,14 +104,17 @@
                     delete $scope.attachInvoiceFileName.value.isNew;
                 }
 
+                var attachedFiles = [];
                 if(camForm.variableManager.variables['attachInvoiceFileName']){
                     if($scope.attachInvoiceFileName){
                         camForm.variableManager.variableValue('attachInvoiceFileName', $scope.attachInvoiceFileName.value);
+                        attachedFiles.push($scope.attachInvoiceFileName.name);
                     } else{
                         camForm.variableManager.variableValue('attachInvoiceFileName', null);
                     }
                 } else if($scope.attachInvoiceFileName) {
                     camForm.variableManager.createVariable($scope.attachInvoiceFileName);
+                    attachedFiles.push($scope.attachInvoiceFileName.value.name);
                 }
                 
                 var invoiceDate = new Date($scope.invoiceDate);
@@ -114,11 +125,10 @@
                     camForm.variableManager.variableValue('enterInvoiceNumberCommentVisibility', $scope.enterInvoiceNumberCommentVisibility);
                     visibility = $scope.acceptAndSignByInitiatorCommentVisibility;
                 }
-
                 if(!$scope.invoice.resolutions){
                     $scope.invoice.resolutions = [];
                 }
-                $scope.invoice.resolutions.push({processInstanceId: $scope.processInstanceId, assignee: $rootScope.authentication.name, assigneeName: $rootScope.authentication.assigneeName, resolution: $scope.enterInvoiceNumberTaskResult, comment: $scope.enterInvoiceNumberComment, taskId: camForm.taskId, visibility: visibility});
+                $scope.invoice.resolutions.push({processInstanceId: $scope.processInstanceId, assignee: $rootScope.authentication.name, assigneeName: $rootScope.authentication.assigneeName, resolution: $scope.enterInvoiceNumberTaskResult, comment: $scope.enterInvoiceNumberComment, taskId: camForm.taskId, visibility: visibility, files: attachedFiles});
                 camForm.variableManager.variableValue('resolutions', $scope.invoice.resolutions);
             });
 
@@ -163,9 +173,9 @@
                     name: 'attachInvoiceFileName',
                     type: 'Json',
                     value: {
-                        name: file.name,
+                        name: file.name.replace(/[/\\?%*:|"<>]/g, '-'),
                         isNew : true,
-                        path: $scope.processInstanceId + '/' + camForm.taskId + '/' + file.name
+                        path: $scope.processInstanceId + '/' + camForm.taskId + '/' + file.name.replace(/[/\\?%*:|"<>]/g, '-')
                     }
                 };
                 $http({method: 'GET', url: '/camunda/uploads/put/' + fileToUpload.value.path, transformResponse: [] }).

@@ -11,6 +11,7 @@
 		<link href="css/kcell.css" rel="stylesheet" type="text/css" />
 		<link href="js/node_modules/simditor/styles/simditor.css" rel="stylesheet" type="text/css" />
 		<link href="css/summernote/summernote.css" rel="stylesheet" type="text/css" />
+		<link href="js/node_modules/daterangepicker/daterangepicker.css" rel="stylesheet" type="text/css" />
 	</head>
 	<body>
 		<nav class="navbar navbar-default app-header" ng-cloak>
@@ -27,14 +28,30 @@
 					<li ng-class="{active: $root.currentPage.name === 'processes'}">
 						<a href="#/processes">Processes</a>
 					</li>
-					<li ng-if="hasGroup('kcellUsers')" ng-class="{active: $root.currentPage.name === 'statistics'}">
+					<li ng-if="hasGroup('kcellUsers') && $root.isProjectAvailable('NetworkInfrastructure') && $root.isProjectVisible('NetworkInfrastructure')" ng-class="{active: $root.currentPage.name === 'statistics'}">
 						<a href="#/statistics">Statistics</a>
 					</li>
-					<li ng-if="hasGroup('kcellUsers')" ng-class="{active: $root.currentPage.name === 'search'}" >
+					<li ng-if="hasGroup('kcellUsers') && ( ($root.isProcessAvailable('Revision') && $root.isProcessVisible('Revision') ) || ($root.isProjectAvailable('DeliveryPortal') && $root.isProjectVisible('DeliveryPortal') ) )" ng-class="{active: $root.currentPage.name === 'search'}" >
 						<a href="#/search">Search</a>
 					</li>
 				</ul>
-				<ul class="nav navbar-nav navbar-right">
+				<ul class="nav navbar-nav navbar-right" ng-show="$root.authUser">
+					<li class="dropdown" dropdown>
+						<a class="dropdown-toggle" dropdown-toggle>Project: {{$root.selectedProject.name}}<span class="caret"></span></a>
+						<ul class="dropdown-menu" dropdown>
+							<li ng-repeat="project in $root.projects">
+								<a class="app-name" ng-show="$root.selectedProject.key !== project.key" ng-click="$root.updateSelectedProject(project)">{{project.name}}</a></li>
+							</li>
+						</ul>
+					</li>
+					<li class="dropdown" dropdown ng-show="$root.authUser && $root.selectedProject && $root.selectedProject.name!=='All'">
+						<a class="dropdown-toggle" dropdown-toggle>Process: {{$root.selectedProcess.name}}<span class="caret"></span></a>
+						<ul class="dropdown-menu" dropdown>
+							<li ng-repeat="process in $root.selectedProject.processes">
+								<a class="app-name" ng-click="$root.updateSelectedProcess(process)">{{process.name}}</a></li>
+							</li>
+						</ul>
+					</li>
 					<li class="dropdown" dropdown ng-if="$root.authUser">
 						<a class="dropdown-toggle" dropdown-toggle>{{$root.authUser.firstName}} {{$root.authUser.lastName}}<span class="caret"></span></a>
 						<ul class="dropdown-menu" dropdown>

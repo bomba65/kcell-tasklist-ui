@@ -3,6 +3,7 @@ package kz.kcell.flow.sap;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.node.ArrayNode;
+import com.fasterxml.jackson.databind.node.ObjectNode;
 import lombok.extern.java.Log;
 import org.apache.commons.lang.StringUtils;
 import org.apache.http.HttpEntity;
@@ -20,6 +21,8 @@ import org.apache.http.ssl.SSLContextBuilder;
 import org.apache.http.util.EntityUtils;
 import org.camunda.bpm.engine.delegate.DelegateExecution;
 import org.camunda.bpm.engine.delegate.JavaDelegate;
+import org.camunda.spin.SpinList;
+import org.camunda.spin.impl.SpinListImpl;
 import org.camunda.spin.json.SpinJsonNode;
 import org.camunda.spin.plugin.variable.SpinValues;
 import org.camunda.spin.plugin.variable.value.JsonValue;
@@ -49,12 +52,10 @@ public class CheckSlocExistance implements JavaDelegate {
 
         ObjectMapper mapper = new ObjectMapper();
 
-        String siteRegion = String.valueOf(delegateExecution.getVariable("siteRegion"));
-        String contractor = String.valueOf(delegateExecution.getVariable("contractor"));
         String reason = String.valueOf(delegateExecution.getVariable("reason"));
         String jrNumber = String.valueOf(delegateExecution.getVariable("jrNumber"));
 
-        String site = delegateExecution.getVariable("site").toString();
+        String site_name = delegateExecution.getVariable("site_name").toString();
 
         if("2".equals(reason)) {
             String hasSloc = "yes";
@@ -69,19 +70,19 @@ public class CheckSlocExistance implements JavaDelegate {
                 if (work.get("relatedSites").size()>0) {
                     ArrayNode relatedSites = (ArrayNode) work.get("relatedSites");
                     for (JsonNode relatedSite : relatedSites) {
-                        if (tnuSiteLocations.hasProp(relatedSite.get("id").asText())){
-                            SpinJsonNode value = tnuSiteLocations.prop(relatedSite.get("id").asText());
+                        if (tnuSiteLocations.hasProp(relatedSite.get("site_name").asText())){
+                            SpinJsonNode value = tnuSiteLocations.prop(relatedSite.get("site_name").asText());
                             if(StringUtils.isEmpty(value.prop("siteLocation").stringValue()) && StringUtils.isNotEmpty((value.prop("filledSiteLocation").stringValue()))){
 
-                                String tnuSiteLocation = getSiteLocations(relatedSite.get("id").asText());
+                                String tnuSiteLocation = getSiteLocations(relatedSite.get("site_name").asText());
                                 if (tnuSiteLocation == null){
-                                    setSiteLocation(relatedSite.get("id").asText(), value.prop("filledSiteLocation").stringValue());
-                                    tnuSiteLocation = getSiteLocations(relatedSite.get("id").asText());
+                                    setSiteLocation(relatedSite.get("site_name").asText(), value.prop("filledSiteLocation").stringValue());
+                                    tnuSiteLocation = getSiteLocations(relatedSite.get("site_name").asText());
                                 }
 
                                 if(tnuSiteLocation!=null){
                                     value.prop("siteLocation", tnuSiteLocation);
-                                    if(site.equals(relatedSite.get("id").asText())){
+                                    if(site_name.equals(relatedSite.get("site_name").asText())){
                                         delegateExecution.setVariable("sloc", tnuSiteLocation);
                                     }
                                 } else {
@@ -90,13 +91,13 @@ public class CheckSlocExistance implements JavaDelegate {
                                 }
                             }
                         } else {
-                            String tnuSiteLocation = getSiteLocations(relatedSite.get("id").asText());
+                            String tnuSiteLocation = getSiteLocations(relatedSite.get("site_name").asText());
 
                             SpinJsonNode value = SpinValues.jsonValue("{}").create().getValue();
 
                             if(tnuSiteLocation!=null){
                                 value.prop("siteLocation", tnuSiteLocation);
-                                if(site.equals(relatedSite.get("id").asText())){
+                                if(site_name.equals(relatedSite.get("site_name").asText())){
                                     delegateExecution.setVariable("sloc", tnuSiteLocation);
                                 }
                             } else {
@@ -105,7 +106,7 @@ public class CheckSlocExistance implements JavaDelegate {
                             }
                             value.prop("siteId", relatedSite.get("name").asText());
                             value.prop("siteName", relatedSite.get("site_name").asText());
-                            tnuSiteLocations.prop(relatedSite.get("id").asText(),value);
+                            tnuSiteLocations.prop(relatedSite.get("site_name").asText(),value);
                         }
                     }
                 }
@@ -122,11 +123,11 @@ public class CheckSlocExistance implements JavaDelegate {
 
             log.info("jrNumber: " + jrNumber + " siteLocationName:" + siteLocationName);
 
-            String siteLocation = getSiteLocations(site);
+            String siteLocation = getSiteLocations(site_name);
 
             if(StringUtils.isNotEmpty(siteLocationName) && siteLocation == null){
-                setSiteLocation(String.valueOf(delegateExecution.getVariable("site")), siteLocationName);
-                siteLocation = getSiteLocations(site);
+                setSiteLocation(String.valueOf(delegateExecution.getVariable("site_name")), siteLocationName);
+                siteLocation = getSiteLocations(site_name);
             }
             if(siteLocation!=null){
                 delegateExecution.setVariable("sloc", siteLocation);
@@ -135,9 +136,11 @@ public class CheckSlocExistance implements JavaDelegate {
                 delegateExecution.setVariable("hasSloc", "no");
             }
         }
+
+        fetchWorksDefinitions(delegateExecution);
     }
 
-    private String getSiteLocations(String site) throws Exception{
+    private String getSiteLocations(String site_name) throws Exception{
         SSLContextBuilder builder = new SSLContextBuilder();
         builder.loadTrustMaterial(null, new TrustSelfSignedStrategy());
         SSLConnectionSocketFactory sslsf = new SSLConnectionSocketFactory(
@@ -145,7 +148,7 @@ public class CheckSlocExistance implements JavaDelegate {
         CloseableHttpClient httpclient = HttpClients.custom().setSSLSocketFactory(
             sslsf).build();
 
-        HttpGet httpGet = new HttpGet(baseUri + "/asset-management/api/locations/search/findBySite?siteId=" + site);
+        HttpGet httpGet = new HttpGet(baseUri + "/asset-management/api/locations/search/findBySiteName?sitename=" + site_name);
         HttpResponse httpResponse = httpclient.execute(httpGet);
 
         HttpEntity entity = httpResponse.getEntity();
@@ -156,7 +159,7 @@ public class CheckSlocExistance implements JavaDelegate {
         httpclient.close();
 
         JSONArray locations = obj.getJSONObject("_embedded").getJSONArray("locations");
-        log.info("site id: " + site + " locations.length(): " + locations.length());
+        log.info("site name: " + site_name + " locations.length(): " + locations.length());
 
         if(locations.length()>0){
             log.info("locations.get(0): " + locations.get(0));
@@ -175,7 +178,7 @@ public class CheckSlocExistance implements JavaDelegate {
 
     }
 
-    private void setSiteLocation(String siteId, String siteLocationName) throws Exception{
+    private void setSiteLocation(String site_name, String siteLocationName) throws Exception{
         SSLContextBuilder builder = new SSLContextBuilder();
         builder.loadTrustMaterial(null, new TrustSelfSignedStrategy());
         SSLConnectionSocketFactory sslsf = new SSLConnectionSocketFactory(
@@ -184,11 +187,10 @@ public class CheckSlocExistance implements JavaDelegate {
             sslsf).build();
 
         String locationUrl = baseUri + "/asset-management/api/locations";
-        String siteUrl = baseUri + "/asset-management/api/sites/" + siteId;
 
-        log.info("{\"params\":{}, \"name\":\"" + siteLocationName + "\",\"site\": \"" + siteUrl + "\"}");
+        log.info("{\"params\":{}, \"name\":\"" + siteLocationName + "\",\"sitename\": \"" + site_name + "\"}");
 
-        StringEntity locationInputData = new StringEntity("{\"params\":\"{}\", \"name\":\"" + siteLocationName + "\",\"site\": \"" + siteUrl + "\"}", "UTF-8");
+        StringEntity locationInputData = new StringEntity("{\"params\":\"{}\", \"name\":\"" + siteLocationName + "\",\"sitename\": \"" + site_name + "\"}", "UTF-8");
 
         HttpPost locationHttpPost = new HttpPost(new URI(locationUrl));
         locationHttpPost.addHeader("Content-Type", "application/json;charset=UTF-8");
@@ -199,5 +201,50 @@ public class CheckSlocExistance implements JavaDelegate {
 
         EntityUtils.consume(locationResponse.getEntity());
         httpclient.close();
+    }
+
+    private void fetchWorksDefinitions(DelegateExecution delegateExecution) throws Exception{
+        SSLContextBuilder builder = new SSLContextBuilder();
+        builder.loadTrustMaterial(null, new TrustSelfSignedStrategy());
+        SSLConnectionSocketFactory sslsf = new SSLConnectionSocketFactory(
+            builder.build());
+        CloseableHttpClient httpclient = HttpClients.custom().setSSLSocketFactory(
+            sslsf).build();
+
+        HttpGet httpGet = new HttpGet(baseUri + "/api/catalogs?force=1");
+        httpGet.addHeader("Content-Type", "application/json;charset=UTF-8");
+        HttpResponse httpResponse = httpclient.execute(httpGet);
+
+        HttpEntity entity = httpResponse.getEntity();
+        String content = EntityUtils.toString(entity);
+
+        JSONObject obj = new JSONObject(content);
+        EntityUtils.consume(httpResponse.getEntity());
+        httpclient.close();
+
+        JSONArray definitions = obj.getJSONArray("works");
+
+        JsonValue jobWorksObj = delegateExecution.<JsonValue>getVariableTyped( "jobWorks");
+        SpinList<SpinJsonNode> jobWorks = jobWorksObj.getValue().elements();
+
+        ObjectMapper mapper = new ObjectMapper();
+        ObjectNode workDefinitionMap = mapper.createObjectNode();
+
+        for (SpinJsonNode work:jobWorks){
+            for(int i=0; i<definitions.length();i++){
+                JSONObject def = (JSONObject) definitions.get(i);
+
+                if(work.prop("sapServiceNumber").toString().replace("\"","").equals(def.getString("sapServiceNumber"))){
+                    if(!workDefinitionMap.has(def.getString("sapServiceNumber"))){
+                        workDefinitionMap.set(def.getString("sapServiceNumber"), mapper.readTree(def.toString()));
+                    }
+                    break;
+                }
+            }
+        }
+        JsonValue jsonValue = SpinValues.jsonValue(workDefinitionMap.toString()).create();
+        delegateExecution.setVariable("workDefinitionMap", jsonValue);
+
+        log.info(workDefinitionMap.toString());
     }
 }

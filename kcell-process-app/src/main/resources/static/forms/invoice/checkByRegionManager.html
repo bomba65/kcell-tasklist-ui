@@ -21,7 +21,7 @@
 
             $scope.invoice = {};
             $http.get('/camunda/api/engine/engine/default/task/' + camForm.taskId).then(
-                    function(result){
+                    function (result) {
                         $scope.processInstanceId = result.data.processInstanceId;
                     },
                     function (error) {
@@ -42,24 +42,24 @@
                     type: 'String',
                     value: ''
                 });
-                $http.get("/camunda/api/engine/engine/default/user/" + $rootScope.authentication.name+ "/profile").then(function(result){
+                $http.get("/camunda/api/engine/engine/default/user/" + $rootScope.authentication.name + "/profile").then(function (result) {
                     $rootScope.authentication.assigneeName = (result.data.firstName ? result.data.firstName : "") + " " + (result.data.lastName ? result.data.lastName : "");
                 });
             });
             camForm.on('variables-fetched', function () {
                 variables.forEach(function (el) {
-                    if(el === 'resolutions'){
-                        if(camForm.variableManager.variables[el] && camForm.variableManager.variables[el].value){
+                    if (el === 'resolutions') {
+                        if (camForm.variableManager.variables[el] && camForm.variableManager.variables[el].value) {
                             $scope.invoice.resolutions = angular.copy(camForm.variableManager.variables[el].value);
                             $q.all($scope.invoice.resolutions.map(function (resolution) {
-                                return $http.get("/camunda/api/engine/engine/default/history/task?processInstanceId="+resolution.processInstanceId+"&taskId=" + resolution.taskId);
+                                return $http.get("/camunda/api/engine/engine/default/history/task?processInstanceId=" + resolution.processInstanceId + "&taskId=" + resolution.taskId);
                             })).then(function (tasks) {
                                 tasks.forEach(function (e, index) {
-                                    if(e.data.length > 0){
+                                    if (e.data.length > 0) {
                                         $scope.invoice.resolutions[index].taskName = e.data[0].name;
                                         try {
                                             $scope.invoice.resolutions[index].taskEndDate = new Date(e.data[0].endTime);
-                                        } catch(e){
+                                        } catch (e) {
                                             console.log(e);
                                         }
                                     }
@@ -71,40 +71,65 @@
                     }
                     $scope[el] = camForm.variableManager.variables[el].value;
                 });
-
-                angular.forEach($scope.selectedRevisions, function(value, key){
-                    $http.get("/camunda/api/engine/engine/default/process-instance/"+key+"/variables/workPrices?deserializeValue=false").then(function (result) {
-                        $scope.selectedRevisions[key].workPrices = JSON.parse(result.data.value);
-                        console.log($scope.selectedRevisions);
-                    },function(error){ console.log(error.data); });
-                    $http.get("/camunda/api/engine/engine/default/process-instance/"+key+"/variables/sapPRNo?deserializeValue=false").then(function (result) {
-                        $scope.selectedRevisions[key].sapPRNo = result.data.value;
-                    },function(error){ console.log(error.data); });
-                    $http.get("/camunda/api/engine/engine/default/process-instance/"+key+"/variables/sapPONo?deserializeValue=false").then(function (result) {
-                        $scope.selectedRevisions[key].sapPONo = result.data.value;
-                    },function(error){ console.log(error.data); });
+                angular.forEach($scope.selectedRevisions, function (value, key) {
+                    if (!value.workPrices) {
+                        $http.get("/camunda/api/engine/engine/default/process-instance/" + key + "/variables/workPrices?deserializeValue=false").then(function (result) {
+                            $scope.selectedRevisions[key].workPrices = JSON.parse(result.data.value);
+                            console.log($scope.selectedRevisions);
+                        }, function (error) {
+                            console.log(error.data);
+                        });
+                    }
+                    if (!value.sapPRNo) {
+                        $http.get("/camunda/api/engine/engine/default/process-instance/" + key + "/variables/sapPRNo?deserializeValue=false").then(function (result) {
+                            $scope.selectedRevisions[key].sapPRNo = result.data.value;
+                        }, function (error) {
+                            console.log(error.data);
+                        });
+                    }
+                    if (!value.sapPONo) {
+                        $http.get("/camunda/api/engine/engine/default/process-instance/" + key + "/variables/sapPONo?deserializeValue=false").then(function (result) {
+                            $scope.selectedRevisions[key].sapPONo = result.data.value;
+                        }, function (error) {
+                            console.log(error.data);
+                        });
+                    }
                 });
+                $timeout(function(){
+                    $scope.invoice.selectedRevisions.value = $scope.selectedRevisions;
+                }, 1000);
             });
 
             camForm.on('submit', function (event) {
                 camForm.variableManager.variableValue('regionManagerTaskResult', $scope.regionManagerTaskResult);
-                if($scope.regionManagerComment){
+                if ($scope.regionManagerComment) {
                     camForm.variableManager.variableValue('regionManagerComment', $scope.regionManagerComment);
                 }
                 var visibility = 'all';
-                if($scope.regionManagerCommentVisibility){
+                if ($scope.regionManagerCommentVisibility) {
                     camForm.variableManager.variableValue('regionManagerCommentVisibility', $scope.regionManagerCommentVisibility);
                     visibility = $scope.acceptAndSignByInitiatorCommentVisibility;
                 }
 
-                if(!$scope.invoice.resolutions){
+                if (!$scope.invoice.resolutions) {
                     $scope.invoice.resolutions = [];
                 }
-                $scope.invoice.resolutions.push({processInstanceId: $scope.processInstanceId, assignee: $rootScope.authentication.name, assigneeName: $rootScope.authentication.assigneeName, position: 'Region Manager', resolution: $scope.regionManagerTaskResult, comment: $scope.regionManagerComment, taskId: camForm.taskId, visibility: visibility});
+                $scope.invoice.resolutions.push({
+                    processInstanceId: $scope.processInstanceId,
+                    assignee: $rootScope.authentication.name,
+                    assigneeName: $rootScope.authentication.assigneeName,
+                    position: 'Region Manager',
+                    resolution: $scope.regionManagerTaskResult,
+                    comment: $scope.regionManagerComment,
+                    taskId: camForm.taskId,
+                    visibility: visibility
+                });
                 camForm.variableManager.variableValue('resolutions', $scope.invoice.resolutions);
+
+                camForm.variableManager.variableValue('selectedRevisions', angular.copy($scope.selectedRevisions));
             });
 
-            camForm.on('store', function() {
+            camForm.on('store', function () {
                 camForm.variableManager.variableValue('regionManagerTaskResult', $scope.regionManagerTaskResult);
             });
 

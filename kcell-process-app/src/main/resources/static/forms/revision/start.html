@@ -204,7 +204,7 @@
                 });
 
                 $scope.soaComplaintIdCorrect = false;
-                $http.get('/api/catalogs').then(
+                $http.get('/api/catalogs?force=1').then(
                         function(result){
                             angular.extend($scope, result.data);
                             $scope.conts = [];
@@ -326,6 +326,11 @@
                 } else {
                     camForm.variableManager.destroyVariable('supplementaryFiles');
                 }
+                if($scope.reason === '2'){
+                    camForm.variableManager.variableValue('worksBelongsTo', 'Yes');
+                } else {
+                    camForm.variableManager.variableValue('worksBelongsTo', $scope.worksBelongsTo);
+                }
             });
 
             $scope.open = open;
@@ -390,6 +395,15 @@
                 '3': 'S&FM',
                 '4': 'SAO'
             };
+
+            $scope.jobWorkReasons = [
+                {id: 'installation', expenseType: 'CAPEX', name: 'Installation', detail: 'Монтаж - установка нового оборудования'},
+                {id: 'modernization', expenseType: 'CAPEX', name: 'Modernization', detail: 'Модернизация - замена оборудования на более производительное'},
+                {id: 'change_support', expenseType: 'OPEX', name: 'Change for support', detail: 'Замена - восстановление вышедшего из строя оборудования/OC для поддержания их в рабочем состоянии  с целью их профилактики'},
+                {id: 'change_improvement', expenseType: 'CAPEX', name: 'Change for improvement', detail: 'Замена - восстановление вышедшего из строя оборудования/ОС для улучшения состояния объекта, повышающего его первоначально оцененные нормативные показатели: срок службы, производственную мощность и т. д'},
+                {id: 'replacement', expenseType: 'OPEX', name: 'Replacement', detail: 'Перемещение - в пределах одного сайта'},
+                {id: 'removal', expenseType: 'OPEX', name: 'Removal', detail: 'Демонтаж - снятие оборудования'}
+            ];
 
             $scope.requestedDate = new Date();
 
@@ -508,8 +522,8 @@
 
             function uploadFileToMinio(file) {
                 var fileValue = {
-                    name: file.name,
-                    path: uuid + '/' + file.name
+                    name: file.name.replace(/[/\\?%*:|"<>]/g, '-'),
+                    path: uuid + '/' + file.name.replace(/[/\\?%*:|"<>]/g, '-')
                 };
                 $http({method: 'GET', url: '/camunda/uploads/tmp/put/' + fileValue.path, transformResponse: [] }).
                 success(function(data, status, headers, config) {
@@ -624,6 +638,18 @@
                         $scope.jobWorks[index].materialUnit = $scope.works[i].units;
                     }
                 }
+            };
+
+            $scope.defineExpenseType = function(index){
+                for(var i=0;i<$scope.jobWorkReasons.length;i++){
+                    if($scope.jobWorks[index].reason === $scope.jobWorkReasons[i].id){
+                        $scope.jobWorks[index].expenseType = $scope.jobWorkReasons[i].expenseType;
+                        $scope.jobWorks[index].reasonDetail = $scope.jobWorkReasons[i].detail;
+                    }
+                }
+                $(function () {
+                    $('[data-toggle="tooltip"]').tooltip('fixTitle');
+                });
             };
 
             $scope.getSite = function(val) {
@@ -774,7 +800,7 @@
         </div>
     </div>
     <div class="form-group">
-        <label class="col-sm-3 control-label">Site: {{siteObject}}</label>
+        <label class="col-sm-3 control-label">Site:</label>
         <div class="col-sm-3">
             <input type="text" ng-model="site_name" name="site_name" typeahead="site as sites.site_name for sites in getSite($viewValue) | filter:$viewValue" typeahead-on-select="siteSelected($item,$model,$label)" class="form-control" required autocomplete="off" placeholder="Site Name">
             <input type="hidden" ng-model="site" name="siteId" required/>
@@ -835,13 +861,23 @@
         <div class="col-sm-3">
             <select cam-variable-name="project" name="project" cam-variable-type="String" class="form-control" required>
                 <option value="N/A">N/A</option>
-                <option value="Astana Expo 2017">Astana Expo 2017</option>
+                <option value="4G Sharing">4G Sharing</option>
                 <option ng-if="reason === '2'" value="Other - (Re-routing, re-planning, etc.)">Other - (Re-routing, re-planning, etc.)</option>
                 <option ng-if="reason === '2'" value="Transmission FIX/IPVPN">Transmission FIX/IPVPN</option>
                 <option ng-if="reason === '2'" value="Transmission PBX">Transmission PBX</option>
                 <option ng-if="reason === '2'" value="Transmission 1+1">Transmission 1+1</option>
                 <option ng-if="reason === '2'" value="Transmission Upgrades">Transmission Upgrades</option>
                 <option ng-if="reason === '2'" value="Transmission Revision LTE">Transmission Revision LTE</option>
+                <option ng-if="reason === '3'" value="Power system planned modernization 40 sites(ZTE B121)">Power system planned modernization 40 sites(ZTE B121)</option>
+                <option ng-if="reason === '3'" value="Air conditioner planned installation 1+1 for transmission (53 sites)">Air conditioner planned installation 1+1 for transmission (53 sites)</option>
+                <option ng-if="reason === '3'" value="Termobox installation for «4G sharing» project">Termobox installation for «4G sharing» project</option>
+                <option ng-if="reason === '3'" value="Termobox installation for transmission (TN)">Termobox installation for transmission (TN)</option>
+                <option ng-if="reason === '3'" value="Termobox installation for «rollout»">Termobox installation for «rollout»</option>
+                <option ng-if="reason === '1'" value="ZTE SWAP">ZTE SWAP</option>
+                <option ng-if="reason === '1'" value="CA_LTE1800">CA_LTE1800</option>
+                <option ng-if="reason === '1'" value="3CCA_LTE2100">3CCA_LTE2100</option>
+                <option ng-if="reason === '1'" value="MIMO 4x4">MIMO 4x4</option>
+                <option ng-if="reason === '1'" value="CEM">CEM</option>
             </select>
             <label class="error" ng-if="kcell_form.project.$error.required && ( kcell_form.project.$touched || view.submitted)">Required field</label>
         </div>
@@ -970,39 +1006,72 @@
                     <th width="10%"></th>
                 </tr>
                 </thead>
-                <tbody>
-                <tr ng-repeat="jobWork in jobWorks">
-                    <td>
-                        <select ng-model="jobWork.sapServiceNumber" name="sapServiceNumber{{$index}}" required class="form-control" ng-change="getUnits($index)">
-                            <option ng-repeat="work in works" ng-selected="{{work.sapServiceNumber == jobWork.sapServiceNumber}}" value="{{work.sapServiceNumber}}">{{work.displayServiceName}}</option>
-                        </select>
-                        <label class="error" ng-if="kcell_form['sapServiceNumber'+$index].$error.required && ( kcell_form['sapServiceNumber'+$index].$touched || view.submitted)">Required field</label>
-                    </td>
-                    <td>
-                        <input type="number" class="form-control" name="quantity{{$index}}" required ng-model="jobWork.quantity" min="1"/>
-                        <label class="error" ng-if="kcell_form['quantity'+$index].$error.required && ( kcell_form['quantity'+$index].$touched || view.submitted)">Required field</label>
-                    </td>
-                    <td>
-                        <div class="input-group">
-                            <input type="number" class="form-control" name="materialQuantity{{$index}}" required ng-model="jobWork.materialQuantity" min="0" style="min-width: 55px;" />
-                            <span class="input-group-addon">{{jobWork.materialUnit}}</span>
-                        </div>
-                        <label class="error" ng-if="kcell_form['materialQuantity'+$index].$error.required && ( kcell_form['materialQuantity'+$index].$touched || view.submitted)">Required field</label>
-                    </td>
-                    <td>
-                        <span ng-repeat="rs in jobWork.relatedSites" class="my-tag" ng-class="{'main-site':rs.site_name===site_name}"><span ng-if="rs.site_name===site_name">Main Site: </span>{{rs.site_name}} <a ng-click="removeRelatedSite($parent.$index, $index)">&times;</a></span>
-                        <input type="text" ng-model="tempSite.name" style="display: inline-block; width:100px;" name="tempSiteName" typeahead="site as sites.site_name for sites in getSite($viewValue) | filter:$viewValue" typeahead-on-select="workSiteSelected($item, $index); tempSite={};" class="form-control" autocomplete="off" placeholder="Add Site">
-                    </td>
-                    <td><div class="col-md-1"><button type="button" class="btn btn-sm btn-warning" ng-if="$index !== 0" ng-click="removeWork($index)"><i class="glyphicon glyphicon-trash"></i> Remove</button></div></td>
-                </tr>
-                <tr>
-                    <td colspan="5"><button type="button" class="btn btn-sm btn-primary" style="margin-top: 10px;" ng-click="addJobWork()"><i class="glyphicon glyphicon-plus"></i> Add work</button></td>
-                </tr>
+                <tbody ng-repeat="jobWork in jobWorks">
+                    <tr>
+                        <td>
+                            <select ng-model="jobWork.sapServiceNumber" name="sapServiceNumber{{$index}}" required class="form-control" ng-change="getUnits($index)">
+                                <option ng-repeat="work in works" ng-selected="{{work.sapServiceNumber == jobWork.sapServiceNumber}}" value="{{work.sapServiceNumber}}">{{work.displayServiceName}}</option>
+                            </select>
+                            <label class="error" ng-if="kcell_form['sapServiceNumber'+$index].$error.required && ( kcell_form['sapServiceNumber'+$index].$touched || view.submitted)">Required field</label>
+                        </td>
+                        <td>
+                            <input type="number" class="form-control" name="quantity{{$index}}" required ng-model="jobWork.quantity" min="1"/>
+                            <label class="error" ng-if="kcell_form['quantity'+$index].$error.required && ( kcell_form['quantity'+$index].$touched || view.submitted)">Required field</label>
+                        </td>
+                        <td>
+                            <div class="input-group">
+                                <input type="number" class="form-control" name="materialQuantity{{$index}}" required ng-model="jobWork.materialQuantity" min="0" style="min-width: 55px;" />
+                                <span class="input-group-addon">{{jobWork.materialUnit}}</span>
+                            </div>
+                            <label class="error" ng-if="kcell_form['materialQuantity'+$index].$error.required && ( kcell_form['materialQuantity'+$index].$touched || view.submitted)">Required field</label>
+                        </td>
+                        <td>
+                            <span ng-repeat="rs in jobWork.relatedSites" class="my-tag" ng-class="{'main-site':rs.site_name===site_name}"><span ng-if="rs.site_name===site_name">Main Site: </span>{{rs.site_name}} <a ng-click="removeRelatedSite($parent.$index, $index)">&times;</a></span>
+                            <input type="text" ng-model="tempSite.name" style="display: inline-block; width:100px;" name="tempSiteName" typeahead="site as sites.site_name for sites in getSite($viewValue) | filter:$viewValue" typeahead-on-select="workSiteSelected($item, $index); tempSite={};" class="form-control" autocomplete="off" placeholder="Add Site">
+                        </td>
+                        <td><div class="col-md-1"><button type="button" class="btn btn-sm btn-warning" ng-if="$index !== 0" ng-click="removeWork($index)"><i class="glyphicon glyphicon-trash"></i> Remove</button></div></td>
+                    </tr>
+                    <tr>
+                        <td>
+                            <div class="input-group">
+                                <span class="input-group-addon">
+                                    Work Request Reason
+                                    <a role="button" data-toggle="collapse" href="#collapseReasonGeneralInfo" aria-expanded="false" aria-controls="collapseReasonGeneralInfo">
+                                        <i class="glyphicon glyphicon-question-sign"></i>
+                                    </a>
+                                </span>
+                                <select ng-model="jobWork.reason" name="reason{{$index}}" required class="form-control" ng-change="defineExpenseType($index)">
+                                    <option value="">Select work request reason</option>
+                                    <option ng-repeat="reason in jobWorkReasons" ng-selected="{{reason.id == jobWork.reason}}" value="{{reason.id}}">{{reason.name}}</option>
+                                </select>
+                            </div>
+                            <label class="error" ng-if="kcell_form['reason'+$index].$error.required && ( kcell_form['reason'+$index].$touched || view.submitted)">Required field</label>
+                        </td>
+                        <td colspan="4">
+                            <i ng-show="jobWork.reasonDetail" class="glyphicon glyphicon-info-sign" data-toggle="tooltip" data-placement="right" title="{{jobWork.reasonDetail}}"></i>
+                        </td>
+                    </tr>
+                    <tr>
+                        <td style="border-width: 0px" colspan="4">
+                            <div class="collapse" id="collapseReasonGeneralInfo">
+                                <div class="well">
+                                    <b>Installation</b> Монтаж - установка нового оборудования <br />
+                                    <b>Modernization</b> Модернизация - замена оборудования на более производительное <br />
+                                    <b>Change for support</b> Замена - восстановление вышедшего из строя оборудования/OC для поддержания их в рабочем состоянии  с целью их профилактики <br />
+                                    <b>Change for improvement</b> Замена - восстановление вышедшего из строя оборудования/ОС для улучшения состояния объекта, повышающего его первоначально оцененные нормативные показатели: срок службы, производственную мощность и т. д<br />
+                                    <b>Replacement</b> Перемещение - в пределах одного сайта<br />
+                                    <b>Removal</b> Демонтаж - снятие оборудования
+                                </div>
+                            </div>
+                        </td>
+                    </tr>
                 </tbody>
+                <tfoot>
+                    <tr>
+                        <td colspan="5"><button type="button" class="btn btn-sm btn-primary" style="margin-top: 10px;" ng-click="addJobWork()"><i class="glyphicon glyphicon-plus"></i> Add work</button></td>
+                    </tr>
+                </tfoot>
             </table>
-        </div>
-        <div class="row">
-
         </div>
     </div>
     <div class="form-group">

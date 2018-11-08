@@ -1,5 +1,5 @@
 -- отчет для Семенова
-select distinct
+select
   substring(pi.business_key_ from '^[^-]+') as region,
   sitename.text_ as sitename,
   pi.business_key_ as "JR No",
@@ -18,31 +18,29 @@ select distinct
   when '4' then 'Operation works'
   else null
   end as "JR Reason",
-  case pi.state_
-  when 'ACTIVE' then 'Open/In progress JR'
-  else case pi.end_act_id_
-       when 'EndEvent_1fo49fj' then 'Rejected JR'
-       when 'endevt_create_jr_rejected' then 'Rejected JR'
-       when 'endevt_createjr_cancelled' then 'Cancelled JR'
-       when 'endevt_revision' then 'Completed JR'
-       else 'Closed JR (' || pi.end_act_id_ || ')'
-       end
-  end as "JR Status",
   pi.start_time_ as "Requested Date",
   pi.start_user_id_ as "Requested By",
-  validityDate.text_ as "Validity Date",
+  to_timestamp(validityDate.long_/1000) as "Validity Date",
   mtListSignDate.value_ as "Material List Signing Date",
+  acceptanceByInitiatorDate.value_ as "Accept by Initiator",
   acceptMaint.value_ as "Accept by Work Maintenance",
   acceptPlan.value_ as "Accept by Work Planning",
   acceptanceDate.value_ as "Acceptance Date",
   -- сюда еще нужно состав работ разбитый на строки
-  worksPriceListJson.value->>'title' as "Job Description",
+  title.value_ as "Job Description",
   worksJson.value ->>'quantity' as "Quantity",
   explanation.text_ as "Comments",
   case materialsRequired.text_
   when 'Yes' then 'required'
   else 'not required'
-  end as "Customer Material"
+  end as "Customer Material",
+  case pi.state_
+  when 'ACTIVE' then 'In progress'
+  else 'Closed'
+  end as "Process State",
+  CAST(convert_from(statusBytes.bytes_, 'UTF8') AS json)->>'parentStatus' as "JR Status",
+  CAST(convert_from(statusBytes.bytes_, 'UTF8') AS json)->>'statusName' as "Detailed status",
+  CAST(convert_from(statusBytes.bytes_, 'UTF8') AS json)->>'comment' as "Return reason"
 from act_hi_procinst pi
   left join act_hi_varinst sitename
     on pi.id_ = sitename.proc_inst_id_ and sitename.name_ = 'site_name'
@@ -77,16 +75,19 @@ from act_hi_procinst pi
                            and ti.task_def_key_ in ('accept_work_planning_group'))
     as acceptPlan
     on acceptPlan.value_ > acceptReturn.value_
-
   left join act_hi_varinst acceptance
     on pi.id_ = acceptance.proc_inst_id_
        and acceptance.name_ = 'acceptPerformedJob'
+  left join act_hi_varinst acceptAndSignByRegionHeadTaskResult
+    on pi.id_ = acceptAndSignByRegionHeadTaskResult.proc_inst_id_
+       and acceptAndSignByRegionHeadTaskResult.name_ = 'acceptAndSignByRegionHeadTaskResult'
   left join lateral (select max(ai.end_time_) as value_
                      from act_hi_actinst ai
                      where pi.id_ = ai.proc_inst_id_
                            and ai.act_id_ = 'SubProcess_0v7hq1m')
     as acceptanceDate
-    on acceptance.text_ = 'accepted'
+    on acceptance.text_ in ('accepted','scan attached','invoiced')
+    and acceptAndSignByRegionHeadTaskResult.text_ = 'approved'
 
   -- canceled, accepted, in progress, количество работ
 
@@ -97,17 +98,38 @@ from act_hi_procinst pi
   left join json_array_elements(CAST(convert_from(jobWorksBytes.bytes_, 'UTF8') AS json)) as worksJson
     on true
 
-  left join act_hi_varinst worksPriceList
-    on pi.id_ = worksPriceList.proc_inst_id_ and worksPriceList.name_ = 'worksPriceList'
-  left join act_ge_bytearray worksPriceListBytes
-    on worksPriceList.bytearray_id_ = worksPriceListBytes.id_
-  left join json_array_elements(CAST(convert_from(worksPriceListBytes.bytes_, 'UTF8') AS json)) as worksPriceListJson
-    on true and worksJson.value->>'sapServiceNumber' = worksPriceListJson.value->>'sapServiceNumber'
+  left join lateral (
+    select distinct worksPriceListJson.value->>'title' as value_
+      from act_hi_varinst worksPriceList
+        inner join act_ge_bytearray worksPriceListBytes
+          on worksPriceList.bytearray_id_ = worksPriceListBytes.id_
+        inner join json_array_elements(CAST(convert_from(worksPriceListBytes.bytes_, 'UTF8') AS json)) as worksPriceListJson
+          on true and worksJson.value->>'sapServiceNumber' = worksPriceListJson.value->>'sapServiceNumber'
+      where pi.id_ = worksPriceList.proc_inst_id_ and worksPriceList.name_ = 'worksPriceList'
+  )
+  as title
+  on true
+
+  left join act_hi_varinst acceptAndSignByInitiatorTaskResult
+    on pi.id_ = acceptAndSignByInitiatorTaskResult.proc_inst_id_
+       and acceptAndSignByInitiatorTaskResult.name_ = 'acceptAndSignByInitiatorTaskResult'
+  left join lateral (select max(ti.end_time_) as value_
+                     from act_hi_taskinst ti
+                     where pi.id_ = ti.proc_inst_id_
+                           and ti.task_def_key_ in ('accept_work_initiator')
+  ) as acceptanceByInitiatorDate
+    on acceptance.text_ in ('accepted','scan attached','invoiced')
+   and acceptAndSignByInitiatorTaskResult.text_ = 'approved'
 
   left join act_hi_varinst explanation
     on pi.id_ = explanation.proc_inst_id_ and explanation.name_ = 'explanation'
   left join act_hi_varinst materialsRequired
     on pi.id_ = materialsRequired.proc_inst_id_ and materialsRequired.name_ = 'materialsRequired'
+
+  left join act_hi_varinst status
+    on pi.id_ = status.proc_inst_id_ and status.name_ = 'status'
+  left join act_ge_bytearray statusBytes
+    on status.bytearray_id_ = statusBytes.id_
+
 where pi.proc_def_key_ = 'Revision' and pi.state_ <> 'EXTERNALLY_TERMINATED'
 order by "Requested Date", "Job Description"
---limit 5

@@ -14,6 +14,7 @@
                 'regularDelay',
                 'emergencyDelay',
                 'monthActNumber',
+                'invoiceNumber',
                 'formalPeriod',
                 'monthOfFormalPeriod',
                 'yearOfFormalPeriod'
@@ -114,6 +115,11 @@
                     }
 
                 });
+                camForm.variableManager.createVariable({
+                    name: 'signedScanCopyFileName',
+                    value: undefined,
+                    type: 'Json'
+                });
             });
 
             camForm.on('submit', function () {
@@ -131,8 +137,17 @@
                 if(!$scope.invoice.resolutions){
                     $scope.invoice.resolutions = [];
                 }
-                $scope.invoice.resolutions.push({processInstanceId: $scope.processInstanceId, assignee: $rootScope.authentication.name, assigneeName: $rootScope.authentication.assigneeName, resolution: $scope.createDocsPrintVersionTaskResult, comment: $scope.createDocsPrintVersionTaskComment, taskId: camForm.taskId, visibility: visibility});
+
+                var attachedFiles = [];
+                if($scope.signedScanCopyFileName) {
+                    attachedFiles.push($scope.signedScanCopyFileName.name);
+                    camForm.variableManager.variableValue('signedScanCopyFileName', $scope.signedScanCopyFileName);
+                }
+
+                $scope.invoice.resolutions.push({processInstanceId: $scope.processInstanceId, assignee: $rootScope.authentication.name, assigneeName: $rootScope.authentication.assigneeName, resolution: $scope.createDocsPrintVersionTaskResult, comment: $scope.createDocsPrintVersionTaskComment, taskId: camForm.taskId, visibility: visibility, files: attachedFiles});
                 camForm.variableManager.variableValue('resolutions', $scope.invoice.resolutions);
+
+
             });
 
             camForm.on('store', function() {
@@ -147,6 +162,56 @@
                 return $scope.createDocsPrintVersionTaskComment && $rootScope.hasGroup('kcellUsers');
             }
 
+            $scope.download = function (file) {
+                console.log(file);
+                $http({method: 'GET', url: '/camunda/uploads/get/' + file.path, transformResponse: [] }).
+                success(function(data, status, headers, config) {
+                    document.getElementById('fileDownloadIframe').src = data;
+                }).
+                error (function(data, status, headers, config) {
+                    console.log(data);
+                });
+            };
+
+            $scope.fileSelected = function(el, fileName){
+                if(el.files[0]){
+                    $timeout(function () {
+                        $scope.$apply(function () {
+                            uploadFileToMinio(el.files[0], fileName);
+                        });
+                    })                } else {
+                    $scope.$apply(function(){
+                        $scope[fileName] = undefined;
+                    });
+                }
+            };
+
+            function uploadFileToMinio(file, fileName) {
+                var fileValue = {
+                    name: file.name.replace(/[/\\?%*:|"<>]/g, '-'),
+                    // path: uuid + '/' + file.name
+                    path: $scope.processInstanceId + '/' + camForm.taskId + '/' + file.name.replace(/[/\\?%*:|"<>]/g, '-')
+                };
+                $http({method: 'GET', url: '/camunda/uploads/put/' + fileValue.path, transformResponse: [] }).
+                success(function(data, status, headers, config) {
+                    $http.put(data, file, {headers: {'Content-Type': undefined}}).then(
+                            function () {
+                                $scope[fileName] = fileValue;
+                                angular.element(document.querySelector('#'+fileName)).val(null);
+                            },
+                            function (error) {
+                                console.log(error.data);
+                            }
+                    );
+                }).
+                error (function(data, status, headers, config) {
+                    console.log(data);
+                });
+            };
+
+            $scope.clearFile = function(filename){
+                delete $scope[filename];
+            };
 
             $scope.toggleProcessView = function(index){
                 if($scope.piIndex === index){
@@ -267,6 +332,26 @@
             <label class="error" ng-show="kcell_form.createDocsPrintVersionTaskResult.$error.required && ( kcell_form.createDocsPrintVersionTaskResult.$touched || view.submitted)">Required field</label>
         </div>
     </div>-->
+    <div style="border: black 1px solid; padding-top: 10px;  padding-left: 5px;">
+        <p ng-if="workType.value !== '2'">
+            <b>Please, print form, sign and stamp hard copy. Then scan it and attach</b>
+        </p>
+        <p ng-if="workType.value === '2'">
+            <b>Please, print form, sign and stamp hard copy. Then send it to Central office</b>
+        </p>
+    </div>
+    <div style="margin-bottom: 20px;"></div>
+    <div class="form-group" ng-if="workType.value !== '2'">
+        <label class="col-sm-4 control-label">Attach scan copy of signed docs:</label>
+        <div class="col-sm-8">
+            <div ng-show="signedScanCopyFileName.name">
+                <a ng-click="download(signedScanCopyFileName)">{{signedScanCopyFileName.name}}</a> | <a ng-click="clearFile('signedScanCopyFileName')"><i class="glyphicon glyphicon-trash"></i></a>
+            </div>
+            <input ng-hide="signedScanCopyFileName.name" type="file" class="form-control" id="signedScanCopyFileName" name="signedScanCopyFileName" ng-model="signedScanCopyFileName"
+                   onchange="angular.element(this).scope().fileSelected(this, 'signedScanCopyFileName')"/>
+            <label class="has-error" ng-show="kcell_form.signedScanCopyFileName.$error.validFile && ( kcell_form.signedScanCopyFileName.$touched || view.submitted)">File is required</label>
+        </div>
+    </div>
     <div class="form-group">
         <label class="col-sm-4 control-label">Comments</label>
         <div class="col-sm-8">
@@ -352,6 +437,17 @@
                     min-height: 0;
                 }
 
+                .table {
+                    border: 1px solid #ddd;
+                }
+
+                .table thead tr th {
+                    border-right: 1px solid #ddd;
+                }
+
+                .table tbody tr td {
+                    border-right: 1px solid #ddd;
+                }
             }
         </style>
         <div class="form-horizontal" style="margin: 10px; width: 1500px; padding: 40px;">
@@ -360,6 +456,7 @@
                 <tr id="pageHeader">
                     <th>
                         <div class="header" style="padding-bottom: 70px">
+                            <h4>{{invoiceNumber.value}}</h4>
                             <h4>Monthly Act #{{monthActNumber.value}} of accepted {{invoice.workTypeLabel.value}} according to "Contract Agreement for Revision Works Performing" between АО "Кселл"/Kcell JSC and "Line System Engineering" LLP/ТОО "Line System Engineering" for {{formalPeriod.value}}. </h4>
                             <span class="text pull-right" style="margin: 10px">{{processInstanceId}}</span>
                         </div>
@@ -396,9 +493,41 @@
                             </tr>
                             </tbody>
                         </table>
-                        <div class="wizard-content notBreak">
-                            <p><b>_______________________________________________________</b></p>
-                            <p><b>Director of Technology Department                     <span style="margin-left:5em">Signature</b></p>
+                        <div class="wizard-content notBreak" ng-if="workType.value === '1'">
+                            <p><b>____________________________________________________________________</b></p>
+                            <p><b>Head of Access Network Unit                                <span style="margin-left:15em">Signature</b></p>
+                            <p><b>____________________________________________________________________</b></p>
+                            <p><b>Deputy Director on Network Development and Operation       <span style="margin-left:2em">Signature</b></p>
+                            <p><b>____________________________________________________________________</b></p>
+                            <p><b>Director of Technology Department                          <span style="margin-left:12em">Signature</b></p>
+                        </div>
+                        <div class="wizard-content notBreak" ng-if="workType.value === '2'">
+                            <p><b>_________________________________________________________________________</b></p>
+                            <p><b>Supervisor of Transmission Product and Service Control Team<span style="margin-left:2em">Signature</b></p>
+                            <p><b>_________________________________________________________________________</b></p>
+                            <p><b>Head of Transmission Network Unit                          <span style="margin-left:14em">Signature</b></p>
+                            <p><b>_________________________________________________________________________</b></p>
+                            <p><b>Deputy Director on Network Development and Operation       <span style="margin-left:4em">Signature</b></p>
+                            <p><b>_________________________________________________________________________</b></p>
+                            <p><b>Director of Technology Department                          <span style="margin-left:14em">Signature</b></p>
+                        </div>
+                        <div class="wizard-content notBreak" ng-if="workType.value === '3'">
+                            <p><b>____________________________________________________________________</b></p>
+                            <p><b>Head of Site and Facility Management Unit                  <span style="margin-left:9em">Signature</b></p>
+                            <p><b>____________________________________________________________________</b></p>
+                            <p><b>Deputy Director on Network Development and Operation       <span style="margin-left:2em">Signature</b></p>
+                            <p><b>____________________________________________________________________</b></p>
+                            <p><b>Director of Technology Department                          <span style="margin-left:12em">Signature</b></p>
+                        </div>
+                        <div class="wizard-content notBreak" ng-if="workType.value === '4'">
+                            <p><b>____________________________________________________________________</b></p>
+                            <p><b>Head of Network Operation Unit                             <span style="margin-left:13em">Signature</b></p>
+                            <p><b>____________________________________________________________________</b></p>
+                            <p><b>Manager of Network and Infrastructure Section              <span style="margin-left:6em">Signature</b></p>
+                            <p><b>____________________________________________________________________</b></p>
+                            <p><b>Deputy Director on Network Development and Operation       <span style="margin-left:2em">Signature</b></p>
+                            <p><b>____________________________________________________________________</b></p>
+                            <p><b>Director of Technology Department                          <span style="margin-left:12em">Signature</b></p>
                         </div>
                     </td>
                 </tr>

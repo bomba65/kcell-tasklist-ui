@@ -1,0 +1,283 @@
+<style>
+    .well {
+        color: #333;
+    }
+</style>
+<form role="form" class="form-horizontal" name="kcell_form" novalidate>
+    <script cam-script type="text/form-script">
+        inject(['$scope', '$http', 'Uri', '$rootScope', '$q', function ($scope, $http, Uri, $rootScope, $q) {
+            var variables = [
+                'requestedDate',
+                'jrNumber',
+                'initiatorFull',
+                'validityDate',
+                'soaComplaintId',
+                'site',
+                'siteName',
+                'site_name',
+                'reason',
+                'contract',
+                'contractor',
+                'materialsRequired',
+                'leasingRequired',
+                'powerRequired',
+                'project',
+                'supplementaryFiles',
+                'explanation',
+                'jobWorks',
+                'sapPRFileXLS',
+                'sapPRNo',
+                'kcellWarehouseMaterialsList',
+                'sapTransferRequestFile',
+                'resolutions',
+                'contractorZIPWarehouseMaterialsList',
+                'kcellWarehouseMaterialsListName',
+                'kcellWarehouseMaterialsAdditionalList',
+                'contractorZIPWarehouseMaterialsListName',
+                'jrBlank',
+                'tssrssidFile',
+                'tssrssidFileName',
+                'trFilesName',
+                'trAdditionalFilesName',
+                'trFiles',
+                'priority',
+                'checkTRMaterialsResult',
+                'nrOfCompletedInstances',
+                'mlApprovalAdditionalInfoFile',
+                'additionalTr'
+            ];
+            $scope.jobModel = {
+                hideSAPPRNO: true
+            };
+            $http.get('/camunda/api/engine/engine/default/task/' + camForm.taskId).then(
+                    function(result){
+                        $scope.processInstanceId = result.data.processInstanceId;
+                    },
+                    function (error) {
+                        console.log(error.data);
+                    }
+            );
+            camForm.on('form-loaded', function () {
+                variables.forEach(function (el) {
+                    camForm.variableManager.fetchVariable(el);
+                });
+
+                $http.get('/api/catalogs?force=true').then(
+                        function (result) {
+                            angular.extend($scope, result.data);
+                            angular.extend($scope.jobModel, result.data);
+                        },
+                        function (error) {
+                            console.log(error.data);
+                        }
+                );
+                camForm.variableManager.createVariable({
+                    name: 'checkAdditionalTRMaterialsByCenterTaskResult',
+                    type: 'String',
+                    value: ''
+                });
+            });
+            camForm.on('variables-fetched', function () {
+                variables.forEach(function (el) {
+                    if(el == 'trAdditionalFilesName'){
+                        $scope[el] = camForm.variableManager.variables[el];
+                        $scope.trAdditionalFilesName.type = 'Json';
+                    }
+
+                    if(el === 'resolutions'){
+                        $scope.jobModel.resolutions = angular.copy(camForm.variableManager.variables[el].value);
+                        $scope.jobModel.currentTask = $scope.currentTask;
+                        $q.all($scope.jobModel.resolutions.map(function (resolution) {
+                            return $http.get("/camunda/api/engine/engine/default/history/task?processInstanceId="+resolution.processInstanceId+"&taskId=" + resolution.taskId);
+                        })).then(function (tasks) {
+                            tasks.forEach(function (e, index) {
+                                if(e.data.length > 0){
+                                    $scope.jobModel.resolutions[index].taskName = e.data[0].name;
+                                    try {
+                                        $scope.jobModel.resolutions[index].taskEndDate = new Date(e.data[0].endTime);
+                                    } catch(e){
+                                        console.log(e);
+                                    }
+                                }
+                            });
+                        });
+                    } else {
+                        $scope.jobModel[el] = camForm.variableManager.variables[el];
+                    }
+                    if(el === 'checkTRMaterialsResult' && camForm.variableManager.variables[el].value){
+                        $scope[el] = camForm.variableManager.variables[el].value;
+                    }
+                    if(el === 'nrOfCompletedInstances'){
+                        $scope[el] = camForm.variableManager.variables[el].value;
+                    }
+                });
+                $http.get("/camunda/api/engine/engine/default/user/" + $rootScope.authentication.name+ "/profile").then(function(result){
+                    $rootScope.authentication.assigneeName = (result.data.firstName ? result.data.firstName : "") + " " + (result.data.lastName ? result.data.lastName : "");
+                });
+
+                if($scope.nrOfCompletedInstances === 0){
+                    $scope.checkTRMaterialsResult = undefined;
+                }
+                $scope.checkAdditionalTRMaterialsByCenterTaskResult = undefined;
+            });
+
+            camForm.on('submit', function () {
+                camForm.variableManager.variableValue('checkAdditionalTRMaterialsByCenterTaskResult', $scope.checkAdditionalTRMaterialsByCenterTaskResult);
+
+                if ($scope.checkAdditionalTRMaterialsByCenterTaskResult === 'doesNotMatch') {
+                    $scope.checkTRMaterialsResult = 'doesNotMatch';
+                } else if($scope.checkTRMaterialsResult === undefined) {
+                    $scope.checkTRMaterialsResult = 'match';
+                }
+
+                if(camForm.variableManager.variables['trAdditionalFilesName']){
+                    camForm.variableManager.variableValue('trAdditionalFilesName', $scope.trAdditionalFilesName.value);
+                } else {
+                    camForm.variableManager.createVariable($scope.trAdditionalFilesName);
+                }
+
+                var warehouseAdditionalRegions = [];
+                if($scope.trAdditionalFilesName.value){
+                    angular.forEach($scope.trAdditionalFilesName.value, function(trFile){
+                        var warehouse = _.find($scope.jobModel.warehouses, function(warehouse){
+                            return warehouse.id === trFile.warehouse;
+                        });
+                        if(warehouseAdditionalRegions.indexOf(warehouse.region) === -1){
+                            warehouseAdditionalRegions.push(warehouse.region);
+                        }
+                    });
+                }
+
+                camForm.variableManager.createVariable({
+                    name: 'warehouseAdditionalRegions',
+                    type: 'Json',
+                    value: warehouseAdditionalRegions
+                });
+
+                if($scope.checkTRMaterialsResult){
+                    if(camForm.variableManager.variables['checkTRMaterialsResult'] && camForm.variableManager.variables['checkTRMaterialsResult'].type){
+                        camForm.variableManager.variableValue('checkTRMaterialsResult', $scope.checkTRMaterialsResult);
+                    } else {
+                        camForm.variableManager.destroyVariable('checkTRMaterialsResult');
+                        camForm.variableManager.createVariable({
+                            name: 'checkTRMaterialsResult',
+                            type: 'String',
+                            value: $scope.checkTRMaterialsResult
+                        });
+                    }
+                }
+
+                var visibility = 'all';
+                if($scope.checkAdditionalTRMaterialsByCenterComment && $scope.checkAdditionalTRMaterialsByCenterCommentVisibility){
+                    visibility = $scope.checkAdditionalTRMaterialsByCenterCommentVisibility;
+                }
+                $scope.jobModel.resolutions.push({processInstanceId: $scope.processInstanceId, assignee: $rootScope.authentication.name, assigneeName: $rootScope.authentication.assigneeName, resolution: $scope.checkAdditionalTRMaterialsByCenterTaskResult, comment: $scope.checkAdditionalTRMaterialsByCenterComment, taskId: camForm.taskId, visibility: visibility});
+                camForm.variableManager.variableValue('resolutions', $scope.jobModel.resolutions);
+            });
+
+            camForm.on('store', function() {
+                camForm.variableManager.variableValue('checkAdditionalTRMaterialsByCenterTaskResult', $scope.checkAdditionalTRMaterialsByCenterTaskResult);
+            });
+
+            $scope.isVisible = function (resolution) {
+               return !resolution.visibility || resolution.visibility === 'all' || (resolution.visibility === 'kcell' && $rootScope.hasGroup('kcellUsers'));
+            }
+
+            $scope.hasComment = function () {
+                return $scope.checkAdditionalTRMaterialsByCenterComment && $rootScope.hasGroup('kcellUsers');
+            }
+        }]);
+    </script>
+    <job-request job-model="jobModel"></job-request>
+    <iframe id="fileDownloadIframe" style="display:none;"></iframe>
+
+    <div ng-repeat="trfile in trAdditionalFilesName.value">
+        <div>
+            <div class="form-group">
+                <label class="col-sm-4 control-label">SAP Transport Request File # {{$index+1}}:</label>
+                <div class="col-sm-8">
+                    <a ng-click="download(trfile)">{{trfile.name}}</a>
+                </div>
+            </div>
+            <div class="form-group">
+                <label class="col-sm-4 control-label">SAP Transport Request ID # {{$index+1}}:</label>
+                <div class="col-sm-8">
+                    <span>{{trfile.description}}</span>
+                </div>
+            </div>
+            <div class="form-group">
+                <label class="col-sm-4 control-label">Warehouse # {{$index+1}}:</label>
+                <div class="col-sm-8">
+                    <select class="form-control" ng-model="trfile.warehouse" name="trfile_{{$index}}_warehouse" ng-required="trfile.name && !trfile.warehouse">
+                        <option value="">select warehouse</option>
+                        <option value="{{w.id}}" ng-repeat="w in warehouses" ng-selected="{{w.id == trfile.warehouse}}">{{w.id}}: {{w.name}}</option>
+                    </select>
+                    <label class="error" ng-show="kcell_form['trfile_'+$index+'_warehouse'].$error.required && ( kcell_form['trfile_'+$index+'_warehouse'].$touched || view.submitted)">Required field</label>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="form-group">
+        <label class="col-sm-4 control-label">Resolution</label>
+        <div class="col-sm-8">
+            <label class="radio-inline">
+                <input type="radio" ng-model="checkAdditionalTRMaterialsByCenterTaskResult" name="checkAdditionalTRMaterialsByCenterTaskResult" value="match" required> TR match with material list
+            </label>
+            <label class="radio-inline">
+                <input type="radio" ng-model="checkAdditionalTRMaterialsByCenterTaskResult" name="checkAdditionalTRMaterialsByCenterTaskResult" value="doesNotMatch" required> TR doesn't match with material list
+            </label>
+            <label class="error" ng-show="kcell_form.checkAdditionalTRMaterialsByCenterTaskResult.$error.required && ( kcell_form.checkAdditionalTRMaterialsByCenterTaskResult.$touched || view.submitted)">Required field</label>
+        </div>
+    </div>
+    <div class="form-group">
+        <label class="col-sm-4 control-label">Comments</label>
+        <div class="col-sm-8">
+            <textarea class="form-control" rows="4" maxlength="500" ng-model="checkAdditionalTRMaterialsByCenterComment" name="checkAdditionalTRMaterialsByCenterComment" ng-required="checkAdditionalTRMaterialsByCenterTaskResult == 'doesNotMatch'"></textarea>
+            <label class="error" ng-show="kcell_form.checkAdditionalTRMaterialsByCenterComment.$error.required && ( kcell_form.checkAdditionalTRMaterialsByCenterComment.$touched || view.submitted)">Required field</label>
+        </div>
+    </div>
+    <div class="form-group" ng-show="hasComment()">
+        <label class="col-sm-4 control-label">Comments visibility</label>
+        <div class="col-sm-8">
+            <label class="radio-inline">
+                <input type="radio" name="checkAdditionalTRMaterialsByCenterCommentVisibility"
+                       ng-model="checkAdditionalTRMaterialsByCenterCommentVisibility" value="all" ng-required="hasComment()"> Visible for all
+            </label>
+            <label class="radio-inline">
+                <input type="radio" name="checkAdditionalTRMaterialsByCenterCommentVisibility"
+                       ng-model="checkAdditionalTRMaterialsByCenterCommentVisibility" value="kcell" ng-required="hasComment()"> Kcell staff only
+            </label>
+            <label class="error" ng-show="kcell_form.checkAdditionalTRMaterialsByCenterCommentVisibility.$error.required && ( kcell_form.checkAdditionalTRMaterialsByCenterCommentVisibility.$touched || view.submitted)">Required field</label>
+        </div>
+    </div>
+    <accordion>
+        <accordion-group is-open="isHistoryOpen">
+            <accordion-heading>
+                History <i class="pull-right glyphicon" ng-class="{'glyphicon-chevron-up': status.isCustomHeaderOpen, 'glyphicon-chevron-down': !status.isCustomHeaderOpen}"></i>
+            </accordion-heading>
+            <table class="table">
+                <thead>
+                <tr>
+                    <th>Activity</th>
+                    <th>Assignee</th>
+                    <th>Resolution</th>
+                    <th>Date</th>
+                    <th>Comment</th>
+                    <th ng-if="hasGroup('kcellUsers')">Attached files</th>
+                </tr>
+                </thead>
+                <tbody>
+                <tr ng-repeat="resolution in jobModel.resolutions">
+                    <td>{{resolution.taskName}}</td>
+                    <td>{{resolution.assigneeName || resolution.assignee}}</td>
+                    <td>{{'task.resolution.'+resolution.resolution | translate}}</td>
+                    <td>{{resolution.taskEndDate | date: 'dd.MM.yyyy HH:mm'}}</td>
+                    <td>{{isVisible(resolution)? resolution.comment : ''}}</td>
+                    <td ng-if="hasGroup('kcellUsers')">{{resolution.files.join(', ')}}</td>
+                </tr>
+                </tbody>
+            </table>
+        </accordion-group>
+    </accordion>
+</form>

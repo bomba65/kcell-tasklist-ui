@@ -13,10 +13,20 @@ define(['./module','camundaSDK', 'lodash', 'big-js'], function(module, CamSDK, _
 			angular.extend(this, data);
 		}
 		init();
+
+		$scope.$watchGroup(['selectedProject', 'selectedProcess'], function(newValues, oldValues, scope) {
+			if((newValues[0].key !== oldValues[0].key || newValues[1].key !== oldValues[1].key)){
+				if($scope.processDefinitionKey && !_.some($rootScope.getCurrentProcesses(), function(pd){ return pd.key === $scope.processDefinitionKey})){
+					$state.go('tasks');
+				}
+			}
+		}, true);
+
 		function disableForm(){
 			$("[name=kcell_form]").css("pointer-events", "none");
 			$("[name=kcell_form]").css("opacity", "0.4");
 		}
+
 		function addFormButton(err, camForm, evt) {
 			if (err) {
 				throw err;
@@ -30,7 +40,7 @@ define(['./module','camundaSDK', 'lodash', 'big-js'], function(module, CamSDK, _
 							function(result){
 								camForm.submit(function (err) {
 									if (err) {
-										$(this).removeAttr('disabled');
+										$submitBtn.removeAttr('disabled');
 										toasty.error({title: "Could not complete task", msg: err});
 										e.preventDefault();
 										throw err;
@@ -45,7 +55,7 @@ define(['./module','camundaSDK', 'lodash', 'big-js'], function(module, CamSDK, _
 								});
 							},
 							function(err){
-								$(this).removeAttr('disabled');
+								$submitBtn.removeAttr('disabled');
 								toasty.error({title: "Could not complete task", msg: err});
 								e.preventDefault();
 								throw err;
@@ -54,7 +64,7 @@ define(['./module','camundaSDK', 'lodash', 'big-js'], function(module, CamSDK, _
 					} else {
 						camForm.submit(function (err) {
 							if (err) {
-								$(this).removeAttr('disabled');
+								$submitBtn.removeAttr('disabled');
 								toasty.error({title: "Could not complete task", msg: err});
 								e.preventDefault();
 								throw err;
@@ -241,7 +251,33 @@ define(['./module','camundaSDK', 'lodash', 'big-js'], function(module, CamSDK, _
 		}
 
 		$scope.highlightTask = function() {
-			$scope.control.highlight($scope.diagram.task.taskDefinitionKey);
+			$http({
+				method: 'GET',
+				headers:{'Accept':'application/hal+json, application/json; q=0.5'},
+				url: baseUrl+'/task?processInstanceId='+$scope.processInstanceId
+			}).then(
+				function(tasks){
+					var processInstanceTasks = tasks.data._embedded.task;
+					if(processInstanceTasks && processInstanceTasks.length > 0){
+						processInstanceTasks.forEach((task=>{
+							$scope.control.highlight(task.taskDefinitionKey);
+						}));
+					} else {
+						$scope.control.highlight($scope.diagram.task.taskDefinitionKey);
+					}
+				},
+				function(error) {
+					console.log(error.data);
+				}
+			);
+		};
+
+		$scope.assignLinkEnabled = function(processDefinitionKey) {
+			if(processDefinitionKey === 'Revision'){
+				return $scope.hasGroup('revision_managers');
+			} else if(processDefinitionKey === 'Invoice'){
+				return $scope.hasGroup('monthly_act_managers');
+			}
 		};
 	}]);
 });

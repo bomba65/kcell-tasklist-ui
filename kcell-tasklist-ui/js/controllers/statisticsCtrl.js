@@ -1,13 +1,15 @@
 define(['./module','jquery'], function(app,$){
 	'use strict';
-	return app.controller('statisticsCtrl', ['$scope', '$rootScope', '$http', '$state', '$stateParams', '$q', '$location', 'AuthenticationService',
-			                         function($scope,   $rootScope,   $http, $state,  $stateParams,   $q, $location, AuthenticationService) {
+	return app.controller('statisticsCtrl', ['$scope', '$rootScope', '$filter', '$http', '$state', '$stateParams', '$q', '$location', 'AuthenticationService',
+			                         function($scope,   $rootScope, $filter, $http, $state,  $stateParams,   $q, $location, AuthenticationService) {
+
 		$rootScope.currentPage = {
 			name: 'statistics'
 		};
 
         if(window.require){
             $scope.ExcellentExport = require('excellentexport');
+            $scope.XSLX = require('xlsx');
         }
 
 		$scope._ = window._;
@@ -18,43 +20,13 @@ define(['./module','jquery'], function(app,$){
 			});
 		}
 
-        $rootScope.hasGroup = function(group){
-            if($rootScope.authUser && $rootScope.authUser.groups){
-                return _.some($rootScope.authUser.groups, function(value){
-                    return value.id === group;
-                });
-            } else {
-                return false;
-            }
-        }
-
 		$scope.baseUrl = '/camunda/api/engine/engine/default';
-		// $scope.baseUrl = "https://test-flow.kcell.kz/engine-rest/engine/default";
         $scope.report_ready = false;
 
-        if($rootScope.authentication){
-            $http.get($scope.baseUrl+'/user/'+$rootScope.authentication.name+'/profile').then(
-                function(userProfile){
-                    $rootScope.authUser = userProfile.data;
-                    $http.get($scope.baseUrl+'/group?member='+$rootScope.authUser.id).then(
-                        function(groups){
-                            $rootScope.authUser.groups = groups.data;
-                        },
-                        function(error){
-                            console.log(error.data);
-                        }
-                    );
-                },
-                function(error){
-                    console.log(error.data);
-                }
-            );
-        }
-
 		$scope.reportsMap = {
-            'revision-open-tasks': {name: 'Revision open tasks'},
-            'invoice-open-tasks': {name: 'Monthly Act open tasks'},
-            '4gSharing-open-tasks': {name: '4G Site Sharing open tasks'}
+            'revision-open-tasks': {name: 'Revision open tasks', process: 'Revision'},
+            'invoice-open-tasks': {name: 'Monthly Act open tasks', process: 'Invoice'},
+            '4gSharing-open-tasks': {name: '4G Site Sharing open tasks', process: 'SiteSharingTopProcess'}
         };
 
         $scope.reports = [
@@ -62,8 +34,16 @@ define(['./module','jquery'], function(app,$){
             'invoice-open-tasks',
             '4gSharing-open-tasks'
         ];
+        
+        $scope.$watchGroup(['selectedProject', 'selectedProcess'], function(newValues, oldValues, scope) {
+            if((newValues[0].key !== oldValues[0].key || newValues[1].key !== oldValues[1].key)){
+                if(!$rootScope.isProjectAvailable('NetworkInfrastructure') || !$rootScope.isProjectVisible('NetworkInfrastructure')){
+                    $state.go('tasks');
+                }
+            }
+        }, true);
 
-        $scope.currentReport = $stateParams.report || 'revision-open-tasks';
+        $scope.currentReport = $stateParams.report;
 
         $scope.task = $stateParams.task;
         $scope.filter = {};
@@ -575,7 +555,7 @@ define(['./module','jquery'], function(app,$){
                     $scope.tasks = tasks;
                 });
 
-            } else {
+            } else if($scope.currentReport) {
                 $scope.updateTaskDefinitions();
 
                 $scope.kcellTasks = {
@@ -588,32 +568,34 @@ define(['./module','jquery'], function(app,$){
                         'approve_jr', //approve_jr
                         'update_leasing_status_general', //update_leasing_status_general
                         'update_leasing_status_special', //update_leasing_status_special
-                        //'Task_0s5v6wl',
                         'approve_material_list_region', //approve_material_list_region
                         'approve_material_list_center', //approve_material_list_center
                         'approve_material_list_center1',
                         'validate_tr', //validate_tr
                         'set_materials_dispatch_status', //set_materials_dispatch_status
                         'verify_works', //verify_works
-                        //'UserTask_0xsau1t',
                         'accept_work_initiator', //accept_work_initiator
                         'accept_work_maintenance_group', //accept_work_maintenance_group
                         'accept_work_planning_group', //accept_work_planning_group
                         'sign_region_head', //accept_work_planning_group
-                        'attach-scan-copy-of-acceptance-form'],
-                     'invoice-open-tasks': [
-                        'ma_check_region',
+                        'attach-scan-copy-of-acceptance-form',
+                        'approve_material_list_tnu_region',
+                        'validate_tr_bycenter',
+                        'approve_additional_material_list_region',
+                        'approve_additional_material_list_tnu_region',
+                        'approve_additional_material_list_center1',
+                        'approve_additional_material_list_center',
+                        'validate_additional_tr',
+                        'validate_additional_tr_bycenter',
+                        'set_additional_materials_dispatch_status'
+                    ],
+                        'invoice-open-tasks': [
                         'ma_sign_region_head',
                         'ma_sign_region_manager',
-                        'ma_check_budget',
-                        'ma_check_centralgroup_tech',
-                        'ma_sign_budget',
-                        'ma_check_centralgroup',
-                        'ma_sign_head1',
-                        'ma_sign_head2',
-                        'ma_sign_manager',
-                        'ma_sign_cto',
+                        'ma_sign_central_group_specialist',
                         'ma_print_version',
+                        'ma_print_version_tnu',
+                        'ma_print_version1',
                         'ma_invoice_number'
                     ]
                 };
@@ -621,7 +603,9 @@ define(['./module','jquery'], function(app,$){
                 $scope.contractorTasks = {
                     'revision-open-tasks':[
                         'upload_tr_contractor', //upload_tr_contractor
+                        'upload_additional_tr_contractor',
                         'attach_material_list_contractor', //attach_material_list_contractor
+                        'attach_additional_material_list_contractor',
                         'fill_applied_changes_info' //fill_applied_changes_info
                     ],
                     'invoice-open-tasks': [
@@ -806,16 +790,124 @@ define(['./module','jquery'], function(app,$){
             }
         }
 
-        $scope.downloadReport = function(){
-            if($scope.report_ready){
-                return $scope.ExcellentExport.convert({anchor: 'reportClick',format: 'xlsx',filename: 'report'}, [{name: 'Sheet Name Here 1',from: {table: 'reportTable'}}]);
-            } else {
-                if($rootScope.authentication.name === 'demo' || $rootScope.authentication.name === 'Evgeniy.Semenov@kcell.kz' || $rootScope.authentication.name === 'Yernaz.Kalingarayev@kcell.kz'){
-                    $http.get('/camunda/reports/report').then(function(response) {
-                        $scope.reportList = response.data;
-                        $scope.report_ready = true;
+        $scope.downloadTechnicalReport = function(){
+            if($rootScope.authentication.name === 'demo' || $rootScope.authentication.name === 'Yernaz.Kalingarayev@kcell.kz' || $rootScope.authentication.name === 'Evgeniy.Semenov@kcell.kz'){
+                $http.get('/camunda/reports/report').then(function(response) {
+                    var data = response.data;
+
+                    angular.forEach(data, function(d){
+                        d[5] =  $filter('date')(d[5], "yyyy-MM-dd");
+                        d[7] =  $filter('date')(d[7], "yyyy-MM-dd");
+                        d[8] =  $filter('date')(d[8], "yyyy-MM-dd");
+                        d[9] =  $filter('date')(d[9], "yyyy-MM-dd");
+                        d[10] =  $filter('date')(d[10], "yyyy-MM-dd");
+                        d[11] =  $filter('date')(d[11], "yyyy-MM-dd");
+                        d[12] =  $filter('date')(d[12], "yyyy-MM-dd");
                     });
-                } 
+
+                    data.splice(0, 0, ["Region", "Sitename", "JR No", "JR To", "JR Reason", "Requested Date", "Requested By", "Validity Date", "Material List Signing Date", "Accept by Initiator"
+                        , "Accept by Work Maintenance", "Accept by Work Planning", "Acceptance Date", "Job Description", "Quantity", "Comments", "Customer Material"
+                        , "Process State", "JR Status", "Detailed status", "Reason"]);
+
+                    var ws = XLSX.utils.json_to_sheet(response.data, {skipHeader:true});
+
+                    var wb = XLSX.utils.book_new();
+                    XLSX.utils.book_append_sheet(wb, ws, 'New Sheet Name 1');
+
+                    return XLSX.writeFile(wb, 'technical-report-by-works.xlsx');
+                });
+            }
+        }
+
+        $scope.downloadTechnicalByJobsReport = function(){
+            if($rootScope.authentication.name === 'demo' || $rootScope.authentication.name === 'Yernaz.Kalingarayev@kcell.kz' || $rootScope.authentication.name === 'Evgeniy.Semenov@kcell.kz'){
+                $http.get('/camunda/reports/technical-report-by-jobs').then(function(response) {
+                    var data = response.data;
+
+                    angular.forEach(data, function(d){
+                        d[5] =  $filter('date')(d[5], "yyyy-MM-dd");
+                        d[7] =  $filter('date')(d[7], "yyyy-MM-dd");
+                        d[8] =  $filter('date')(d[8], "yyyy-MM-dd");
+                        d[9] =  $filter('date')(d[9], "yyyy-MM-dd");
+                        d[10] =  $filter('date')(d[10], "yyyy-MM-dd");
+                        d[11] =  $filter('date')(d[11], "yyyy-MM-dd");
+                        d[12] =  $filter('date')(d[12], "yyyy-MM-dd");
+                    });
+
+                    data.splice(0, 0, ["Region", "Sitename", "JR No", "JR To", "JR Reason", "Requested Date", "Requested By", "Validity Date", "Material List Signing Date", "Accept by Initiator"
+                        , "Accept by Work Maintenance", "Accept by Work Planning", "Acceptance Date", "Job Description", "Quantity", "Comments", "Customer Material"
+                        , "Process State", "JR Status", "Detailed status", "Reason"]);
+
+                    var ws = XLSX.utils.json_to_sheet(response.data, {skipHeader:true});
+
+                    var wb = XLSX.utils.book_new();
+                    XLSX.utils.book_append_sheet(wb, ws, 'New Sheet Name 1');
+
+                    return XLSX.writeFile(wb, 'technical-report-by-jobs.xlsx');
+                });
+            }
+        }
+
+        $scope.downloadFinancialReport = function(){
+            if($rootScope.authentication.name === 'demo' || $rootScope.authentication.name === 'Yernaz.Kalingarayev@kcell.kz' || $rootScope.authentication.name === 'Gulzhan.Imandosova@kcell.kz'){
+                $http.get('/camunda/reports/financialreport').then(function(response) {
+                    var data = response.data;
+
+                    angular.forEach(data, function(d){
+                        d[7] =  $filter('date')(d[7], "yyyy-MM-dd");
+                        d[9] =  $filter('date')(d[9], "yyyy-MM-dd");
+                        d[12] =  $filter('date')(d[12], "yyyy-MM-dd");
+                        d[13] =  $filter('date')(d[13], "yyyy-MM-dd");
+                        d[14] =  $filter('date')(d[14], "yyyy-MM-dd");
+                        d[15] =  $filter('date')(d[15], "yyyy-MM-dd");
+                        d[16] =  $filter('date')(d[16], "yyyy-MM-dd");
+                        d[34] =  $filter('date')(d[34], "yyyy-MM-dd");
+                        //d[34] =  $filter('date')(d[34], "yyyy-MM-dd");
+                        d[37] =  $filter('date')(d[37], "yyyy-MM-dd");
+                    });
+
+                    data.splice(0, 0, ["Year", "Month", "Region", "Sitename", "JR No", "JR To", "JR Reason", "Requested Date", "Requested By", "Validity Date", "Related to the", "Project"
+                        , "Material List Signing Date", "Accept by Initiator", "Accept by Work Maintenance", "Accept by Work Planning", "Acceptance Date", "Job Description", "Quantity"
+                        , "Job reason", "Type of expenses", "Comments", "Customer Material", "Process State", "JR Status", "Detailed status", "Reason", "Price (without transportation)"
+                        , "Price (with transportation)", "Monthly act #", "JO#", "PR#", "PR Total Value", "PR Status", "PR Approval date", "PO#", "Invoice No", "Invoice date"]);
+
+                    var ws = XLSX.utils.json_to_sheet(response.data, {skipHeader:true});
+
+                    var wb = XLSX.utils.book_new();
+                    XLSX.utils.book_append_sheet(wb, ws, 'New Sheet Name 1');
+
+                    return XLSX.writeFile(wb, 'extended-report-by-works.xlsx');
+                });
+            }
+        }
+        $scope.downloadExtendedByJobsReport = function(){
+            if($rootScope.authentication.name === 'demo' || $rootScope.authentication.name === 'Yernaz.Kalingarayev@kcell.kz' || $rootScope.authentication.name === 'Gulzhan.Imandosova@kcell.kz'){
+                $http.get('/camunda/reports/extended-report-by-jobs').then(function(response) {
+                    var data = response.data;
+
+                    angular.forEach(data, function(d){
+                        d[7] =  $filter('date')(d[7], "yyyy-MM-dd");
+                        d[9] =  $filter('date')(d[9], "yyyy-MM-dd");
+                        d[12] =  $filter('date')(d[12], "yyyy-MM-dd");
+                        d[13] =  $filter('date')(d[13], "yyyy-MM-dd");
+                        d[14] =  $filter('date')(d[14], "yyyy-MM-dd");
+                        d[15] =  $filter('date')(d[15], "yyyy-MM-dd");
+                        d[16] =  $filter('date')(d[16], "yyyy-MM-dd");
+                        d[34] =  $filter('date')(d[34], "yyyy-MM-dd");
+                        //d[34] =  $filter('date')(d[34], "yyyy-MM-dd");
+                        d[37] =  $filter('date')(d[37], "yyyy-MM-dd");
+                    });
+
+                    data.splice(0, 0, ["Year", "Month", "Region", "Sitename", "JR No", "JR To", "JR Reason", "Requested Date", "Requested By", "Validity Date", "Related to the", "Project"
+                        , "Material List Signing Date", "Accept by Initiator", "Accept by Work Maintenance", "Accept by Work Planning", "Acceptance Date", "Job Description", "Quantity"
+                        , "Job reason", "Type of expenses", "Comments", "Customer Material", "Process State", "JR Status", "Detailed status", "Reason", "Price (without transportation)"
+                        , "Price (with transportation)", "Monthly act #", "JO#", "PR#", "PR Total Value", "PR Status", "PR Approval date", "PO#", "Invoice No", "Invoice date"]);
+
+                    var ws = XLSX.utils.json_to_sheet(response.data, {skipHeader:true});
+                    var wb = XLSX.utils.book_new();
+                    XLSX.utils.book_append_sheet(wb, ws, 'New Sheet Name 1');
+                    return XLSX.writeFile(wb, 'extended-report-by-jobs.xlsx');
+                });
             }
         }
 	}]);

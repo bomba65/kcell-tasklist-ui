@@ -14,6 +14,7 @@ public class ReportDto {
     public String requestedBy;
     public Date validityDate;
     public Date materialListSigningDate;
+    public Date acceptByInitiator;
     public Date acceptByWorkMaintenance;
     public Date acceptByWorkPlanning;
     public Date acceptanceDate;

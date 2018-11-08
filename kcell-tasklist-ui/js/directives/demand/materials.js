@@ -1,17 +1,17 @@
 define(['./../module'], function(module){
-	'use strict';
-	module.directive('demandMaterials', function ($rootScope, $http, $timeout) {
-		return {
-			restrict: 'E',
-			scope: {
+    'use strict';
+    module.directive('demandMaterials', function ($rootScope, $http, $timeout) {
+        return {
+            restrict: 'E',
+            scope: {
                 data: '=',
                 form: '=',
                 view: '=',
                 disabled: '=',
                 editprice: '=',
                 editexisting: '='
-			},
-			link: function(scope, el, attrs) {
+            },
+            link: function(scope, el, attrs) {
 
                 var setHeight = function() {
                     var element = el[0].querySelector('.materials-container');
@@ -27,7 +27,7 @@ define(['./../module'], function(module){
                 scope.$watch('data', function(value) {
                     if (value) {
                         if (!scope.data || !(scope.data instanceof Array)) scope.data = [];
-                        
+
                         scope.countTotalSum();
 
                         scope.isOpen = [];
@@ -150,8 +150,8 @@ define(['./../module'], function(module){
                         "New Equipment"
                     ]
                 }
-	        },
-			templateUrl: './js/directives/demand/materials.html'
-		};
-	});
+            },
+            templateUrl: './js/directives/demand/materials.html'
+        };
+    });
 });

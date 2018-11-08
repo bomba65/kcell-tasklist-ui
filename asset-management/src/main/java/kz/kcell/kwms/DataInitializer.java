@@ -133,7 +133,7 @@ public class DataInitializer {
         Location location1 = locationRepository.save(Location.builder()
                 .name("M595")
                 .params("{\"type\":\"SITE\",\"contractor\":\"ERICSSON\"}")
-                .site(site1)
+                .sitename("00SITE1")
                 .build());
 
         Plan plan1 = planRepository.save(Plan.builder()

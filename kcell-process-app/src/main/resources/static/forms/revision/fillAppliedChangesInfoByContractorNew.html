@@ -44,6 +44,7 @@
                 'kcellWarehouseMaterialsList',
                 'contractorZIPWarehouseMaterialsList',
                 'kcellWarehouseMaterialsListName',
+                'kcellWarehouseMaterialsAdditionalList',
                 'contractorZIPWarehouseMaterialsListName',
                 'sapTransferRequestFile',
                 'resolutions',
@@ -52,6 +53,7 @@
                 'actOfMaterialsDispatchingFiles',
                 'jrBlank',
                 'trFilesName',
+                'trAdditionalFilesName',
                 'trFiles',
                 'tssrssidFile',
                 'tssrssidFileName',
@@ -128,7 +130,7 @@
                     camForm.variableManager.fetchVariable(el);
                 });
 
-                $http.get('/api/catalogs').then(
+                $http.get('/api/catalogs?force=1').then(
                         function (result) {
                             angular.extend($scope, result.data);
                             angular.extend($scope.jobModel, result.data);
@@ -296,6 +298,7 @@
                 }
                 $scope.jobModel.resolutions.push({processInstanceId: $scope.processInstanceId, assignee: $rootScope.authentication.name, assigneeName: $rootScope.authentication.assigneeName, resolution: $scope.fillAppliedChangesInfoByContractorTaskResult, comment: $scope.fillAppliedChangesByContractorComment, taskId: camForm.taskId, visibility: visibility, files:files});
                 camForm.variableManager.variableValue('resolutions', $scope.jobModel.resolutions);
+                camForm.variableManager.variableValue('jobWorks', $scope.sitesWorks);
             });
 
             camForm.on('store', function () {
@@ -1448,9 +1451,9 @@
                     name: 'tssrssidFileName',
                     type: 'Json',
                     value: {
-                        name: file.name,
+                        name: file.name.replace(/[/\\?%*:|"<>]/g, '-'),
                         isNew: true,
-                        path: $scope.processInstanceId + '/' + camForm.taskId + '/' + file.name
+                        path: $scope.processInstanceId + '/' + camForm.taskId + '/' + file.name.replace(/[/\\?%*:|"<>]/g, '-')
                     }
                 };
                 $http({method: 'GET', url: '/camunda/uploads/put/' + fileToUpload.value.path, transformResponse: [] }).

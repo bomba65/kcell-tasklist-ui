@@ -1,0 +1,131 @@
+package kz.kcell.flow.sharing;
+
+import io.minio.errors.*;
+import lombok.extern.java.Log;
+import org.apache.http.HttpEntity;
+import org.apache.http.HttpResponse;
+import org.apache.http.client.methods.HttpGet;
+import org.apache.http.conn.ssl.SSLConnectionSocketFactory;
+import org.apache.http.conn.ssl.TrustSelfSignedStrategy;
+import org.apache.http.impl.client.CloseableHttpClient;
+import org.apache.http.impl.client.HttpClients;
+import org.apache.http.ssl.SSLContextBuilder;
+import org.apache.http.util.EntityUtils;
+import org.camunda.bpm.engine.HistoryService;
+import org.camunda.bpm.engine.RuntimeService;
+import org.camunda.bpm.engine.TaskService;
+import org.camunda.bpm.engine.impl.util.json.JSONArray;
+import org.camunda.bpm.engine.impl.util.json.JSONObject;
+import org.camunda.bpm.engine.runtime.ProcessInstance;
+import org.camunda.spin.plugin.variable.SpinValues;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
+import org.springframework.http.ResponseEntity;
+import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestMethod;
+import org.springframework.web.bind.annotation.ResponseBody;
+import org.springframework.web.bind.annotation.RestController;
+import org.xmlpull.v1.XmlPullParserException;
+
+import javax.servlet.http.HttpServletRequest;
+import java.io.IOException;
+import java.security.InvalidKeyException;
+import java.security.KeyManagementException;
+import java.security.KeyStoreException;
+import java.security.NoSuchAlgorithmException;
+import java.util.HashMap;
+import java.util.Map;
+
+@RestController
+@Log
+// baseUri + /camunda/startProcess/sharing
+@RequestMapping("/startProcess")
+public class StartProcessController {
+
+    @Autowired
+    TaskService taskService;
+
+    @Autowired
+    RuntimeService runtimeService;
+
+    @Autowired
+    HistoryService historyService;
+
+    private final String baseUri;
+
+    @Autowired
+    public StartProcessController(@Value("${mail.message.baseurl:http://localhost}") String baseUri) {
+        this.baseUri = baseUri;
+    }
+
+    @RequestMapping(value = "/sharing", method = RequestMethod.GET)
+    @ResponseBody
+    public ResponseEntity<String> startSharing(HttpServletRequest request) throws NoSuchAlgorithmException, InsufficientDataException, IOException,
+        InvalidKeyException, NoResponseException, XmlPullParserException, ErrorResponseException,
+        InternalException, InvalidEndpointException, InvalidPortException,
+        InvalidArgumentException, KeyStoreException, KeyManagementException {
+
+
+        HttpGet httpGet = new HttpGet(baseUri + "/directory-management/networkinfrastructure/plan/findCurrentToStartPlanSites");
+        SSLContextBuilder builder = new SSLContextBuilder();
+        builder.loadTrustMaterial(null, new TrustSelfSignedStrategy());
+        SSLConnectionSocketFactory sslsf = new SSLConnectionSocketFactory(
+            builder.build());
+        CloseableHttpClient httpClient = HttpClients.custom().setSSLSocketFactory(
+            sslsf).build();
+
+        HttpResponse response = httpClient.execute(httpGet);
+        HttpEntity entity = response.getEntity();
+        String responseString = EntityUtils.toString(entity, "UTF-8");
+
+        JSONArray plans = new JSONArray(responseString);
+
+        for (int i=0; i < plans.length(); i++) {
+            JSONObject plan = (JSONObject) plans.get(i);
+            JSONObject params = plan.getJSONObject("params");
+            String host = params.get("host").toString();
+            String positionNumber = plan.get("position_number").toString();
+            String sharingPlanStatus = plan.get("status").toString();
+            String site = params.get("infrastructure_owner").toString();
+            String isSpecialSite = params.get("isSpecialSite").toString();
+
+            // Определение региона по site_id:
+            String siteRegion = "";
+            if ( params.get("site_id").toString().startsWith("0")) {
+                siteRegion = "Almaty";
+            } else if ( params.get("site_id").toString().startsWith("1") || params.get("site_id").toString().startsWith("2") ) {
+                if (params.get("site_id").toString().startsWith("11")) {
+                    siteRegion ="Astana";
+                } else {
+                    siteRegion = "North";
+                }
+            }   else if ( params.get("site_id").toString().startsWith("3")) {
+                siteRegion = "East";
+            }   else if ( params.get("site_id").toString().startsWith("4")) {
+                siteRegion = "South";
+            }   else {  siteRegion ="West"; }
+            // -------------
+
+            if ( host.equals("Kcell") ) {
+                log.info("Process starting");
+                Map<String, Object> variables = new HashMap<String,Object>();
+                variables.put("host", host);
+                variables.put("site", site);
+                variables.put("sharingType", "sharing");
+                variables.put("sharingPlan", SpinValues.jsonValue(params.toString()));
+                variables.put("isSpecialSite", isSpecialSite);
+                variables.put("positionNumber", positionNumber);
+                variables.put("siteRegion", siteRegion);
+                variables.put("sharingPlanStatus", sharingPlanStatus);
+
+                String businessKey = params.get("site_id").toString() + '_' + params.get("site_name").toString();
+
+                ProcessInstance instance = runtimeService.startProcessInstanceByKey("SiteSharingTopProcess", businessKey, variables);
+                System.out.println("instance:");
+                System.out.println(instance.getBusinessKey());
+            }
+        }
+
+        return ResponseEntity.ok("Success");
+    }
+}

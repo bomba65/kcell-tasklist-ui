@@ -1,0 +1,190 @@
+<form role="form" class="form-horizontal" name="kcell_form" novalidate>
+	<style type="text/css">
+		.tr-selected{
+			background-color: #5f3e72;
+			color: #fff;
+		}
+	</style>
+	<script cam-script type="text/form-script">
+		inject(['$scope', '$http', 'Uri', '$rootScope', '$q', function ($scope, $http, Uri, $rootScope, $q) {
+			$scope.searchProcessInstance = function (){
+				var proessQuery = {
+					"finished":true,
+					"variables": [
+				    {
+				      "name": "finalID",
+				      "operator": "like",
+				      "value": "%|" + $scope.identificator + "|%"
+				      }
+				  ],
+				  
+				  "sorting":[
+				    {
+				      "sortBy": "businessKey",
+				      "sortOrder": "asc"
+				    },
+				    {
+				      "sortBy": "startTime",
+				      "sortOrder": "desc"
+				    }
+				  ]
+				}
+
+				var testQuery = {
+					"variables": [
+				    {
+				      "name": "finalID",
+				      "operator": "like",
+				      "value": "%5555%"
+				      }
+				  ],
+				  
+				  "sorting":[
+				    {
+				      "sortBy": "businessKey",
+				      "sortOrder": "asc"
+				    },
+				    {
+				      "sortBy": "startTime",
+				      "sortOrder": "desc"
+				    }
+				  ]
+				}
+            $http.post('/camunda/api/engine/engine/default/history/process-instance',proessQuery).then(
+                function(result){
+                    $scope.history = result.data;
+                    console.log($scope.history);
+                },
+                function (error) {
+                    console.log(error.data);
+                }
+            );
+        }
+		
+		$scope.searchVariableInstance = function (id){
+			if (id !== null && id !== '') {
+				var variablesQuery = {
+					"processDefinitionKey": "connectionProcess",
+					"processInstanceId": id
+				};
+				$http.post('/camunda/api/engine/engine/default/history/variable-instance',variablesQuery).then(
+	                function(result){
+	                	console.log(result);
+	                	for(let data of result.data) {
+	                		switch (data.name) {
+							    case 'connectionType':
+							        $scope.connectionType = data.value;
+							        break;
+							    case 'smsServiceType':
+							        $scope.smsServiceType = data.value;
+							        break;
+							    case 'connectionMethod':
+							        $scope.connectionMethod = data.value;
+							        break;
+							    
+							}
+	                	}
+	                    console.log('connectionType: ' + $scope.connectionType);
+	                    console.log('smsServiceType: ' + $scope.smsServiceType);
+	                    console.log('connectionMethod: ' + $scope.connectionMethod);
+	                },
+	                function (error) {
+	                    console.log(error.data);
+	                }
+	            );
+			} else {
+			console.log('identificator is null');}	
+		} 
+        }]);
+
+        
+
+		/*camForm.on('submit', function(event) {
+			var isMO = $scope.isMO;
+			//console.log(isMO);
+			//event.submitPrevented = true;
+			camForm.variableManager.createVariable({
+      			name: 'isMO',
+      			type: 'Boolean',
+     			value: isMO
+  			  });
+    	});*/
+	//style="background-color:#cdc"
+	</script>
+	<h4>Найти процесс подключения</h4>
+	<div class="form-group">
+		<label class="col-sm-4 control-label">Идентификатор</label>
+		<div class="col-sm-4">
+			<input class="form-control"
+			ng-model="identificator"/>
+		</div>
+		<div class="col-sm-4">
+			<button type="button" class="btn btn-outline-secondary" ng-click="searchProcessInstance()">Найти</button>
+		</div>
+	</div>
+	<div class="form-group">
+		<table class="table table-bordered" ng-show="history && history.length !== 0">
+			<th class="text-center">Инициатор</th>
+			<th class="text-center">Дата начала</th>
+			<th class="text-center">Дата закрытия</th>
+			<th></th>
+			<tr ng-repeat="process in history" class="text-center" ng-class="{'tr-selected': process.selected}">
+				<td>{{process.startUserId}}</td>
+				<td>{{process.startTime}}</td>
+				<td>{{process.endTime}}</td>
+				<td><button type="button" class="btn btn-outline-secondary btn-xs" ng-click="searchVariableInstance(process.id)">Выбрать</button></td>
+			</tr>
+		</table>
+	</div>
+	<h4>Начните процесс отключения</h4>
+	<div class="form-group">
+		<label class="col-sm-4 control-label">Способ подключения*:</label>
+		<div class="col-sm-4">
+			<select class="form-control" id="sel1"
+	  		cam-variable-name="connectionMethod"
+			cam-variable-type="String"
+			ng-model="connectionMethod" required>
+		    	<option value="web">Web interface</option>
+		    	<option value="rest">REST</option>
+		    	<option value="smpp">SMPP</option>
+	  		</select>
+		</div>
+	</div>
+	<div class="form-group"> 
+		<label class="col-sm-4 control-label">Тип подключения*:</label>
+		<div class="col-sm-4">
+			<select class="form-control" id="sel2"
+				cam-variable-name="connectionType"
+				cam-variable-type="String"
+				ng-model="connectionType"
+				placeholder="Укажите тип подключения" required>
+				<option value="onnet">Onnet</option>
+				<option value="offnet">Offnet\Onnet</option>
+			</select>
+		</div>
+	</div>
+	<div class="form-group"> 
+		<label class="col-sm-4 control-label">Тип СМС услуги*:</label>
+		<div class="col-sm-4">
+			<select class="form-control" id="sel3"
+				cam-variable-name="smsServiceType"
+				cam-variable-type="String"
+				ng-model="smsServiceType"
+				placeholder="Тип СМС услуги*" required>
+				<option value="MO">MO</option>
+				<option value="MT">MT</option>
+			</select>
+		</div>
+	</div>
+	<div class="form-group hidden">
+		<div class="col-sm-4">
+			<input class="form-control hidden"
+			cam-variable-name="identificator"
+			cam-variable-type="String"
+			ng-model="identificator"/>
+		</div>
+	</div>
+</form>
+
+
+

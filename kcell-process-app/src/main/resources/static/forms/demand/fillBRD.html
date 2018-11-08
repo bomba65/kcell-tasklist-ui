@@ -27,11 +27,11 @@
                 var taskName = null;
                 var assigneeName = $rootScope.authentication.name;
                 var createdDate = new Date();
-    
+
                 $http.get("/camunda/api/engine/engine/default/user/" + $rootScope.authentication.name+ "/profile").then(function(result){
                     assigneeName = (result.data.firstName ? result.data.firstName : "") + " " + (result.data.lastName ? result.data.lastName : "");
                 });
-    
+
                 $http.get('/camunda/api/engine/engine/default/task/' + camForm.taskId).then(
                     function(result){
                         $scope.processInstanceId = result.data.processInstanceId;
@@ -42,13 +42,13 @@
                         console.log(error.data);
                     }
                 );
-    
+
                 camForm.on('form-loaded', function () {
                     camForm.variableManager.fetchVariable('generalData');
                     camForm.variableManager.fetchVariable('BRDData');
                     camForm.variableManager.fetchVariable('resolutions');
                 });
-    
+
                 camForm.on('variables-fetched', function () {
                     $scope.generalData = camForm.variableManager.variableValue('generalData');
                     $scope.BRDData = camForm.variableManager.variableValue('BRDData');
@@ -62,7 +62,7 @@
                         };
                     }
                 });
-    
+
                 camForm.on('submit', function (event) {
                     camForm.variableManager.destroyVariable('BRDData');
                     camForm.variableManager.createVariable({
@@ -70,7 +70,7 @@
                         type: 'Json',
                         value: $scope.BRDData
                     });
-    
+
                     var submitDate = new Date ();
                     if(!$scope.resolutions){
                         $scope.resolutions = [];
@@ -83,7 +83,7 @@
                         value: $scope.resolutions
                     });
                 });
-    
+
                 $scope.saveFillForm = function () {
                     var json = JSON.stringify($scope.BRDData, function( key, value ) {
                         if( key === "$$hashKey" ) return undefined;
@@ -96,141 +96,141 @@
                 };
             }]);
         </script>
-        <div class="form-group">
-            <label style="width: 8%; float: left; padding-left: 15px; padding-top: 7px; font-weight: 500;"> Business Key:</label>
-            <div class="col-sm-2">
-                <input rows="1" class="form-control" cam-variable-name="businessKey" cam-variable-type="String" disabled>
-            </div>
-            <label style="width: 10%; float: left; padding-left: 15px; padding-top: 7px; font-weight: 500;"> Demand Status:</label>
-            <div class="col-sm-2">
-                <label rows="1" class="form-control" disabled>Active </label>
-            </div>
-            <label style="width: 6.6%; float: left; padding-left: 15px; padding-top: 7px; font-weight: 500;"> Activity:</label>
-            <div class="col-sm-5">
-                <label rows="1" class="form-control" disabled> Fill BRD </label>
-            </div>
+    <div class="form-group">
+        <label style="width: 8%; float: left; padding-left: 15px; padding-top: 7px; font-weight: 500;"> Business Key:</label>
+        <div class="col-sm-2">
+            <input rows="1" class="form-control" cam-variable-name="businessKey" cam-variable-type="String" disabled>
         </div>
-        <div class="form-group">
-            <label style="width: 8%; float: left; padding-left: 15px; padding-top: 7px; font-weight: 500;"> Demand Name:</label>
-            <div class="col-sm-11">
-                <input rows="1" class="form-control" cam-variable-name="demandName" cam-variable-type="String" disabled/>
-            </div>
+        <label style="width: 10%; float: left; padding-left: 15px; padding-top: 7px; font-weight: 500;"> Demand Status:</label>
+        <div class="col-sm-2">
+            <label rows="1" class="form-control" disabled>Active </label>
         </div>
-        <hr>
-        <tabset class="my-tab-head my-tab" justified="true" id="jobRequestId">
-            <tab>
-                <tab-heading> General </tab-heading>
-                <div style="margin-bottom: 20px;">
-                    <div class="col-sm-6">
-                        <h4>General</h4>
-                        <demand-general data="generalData.general" form="kcell_form" view="view" disabled="true"></demand-general>
-                    </div>
-                    <div class="col-sm-6">
-                        <h4>Target Audience:</h4>
-                        <demand-target-audience data="generalData.targetAudience" form="kcell_form" view="view" disabled="true"></demand-target-audience>
-                    </div>
-                    <br>
-                    <div class="col-sm-12">
-                        <h4>Demand Details</h4>
-                        <demand-details data="generalData.demandDetails" form="kcell_form" view="view" disabled="true"></demand-details>
-                    </div>
+        <label style="width: 6.6%; float: left; padding-left: 15px; padding-top: 7px; font-weight: 500;"> Activity:</label>
+        <div class="col-sm-5">
+            <label rows="1" class="form-control" disabled> Fill BRD </label>
+        </div>
+    </div>
+    <div class="form-group">
+        <label style="width: 8%; float: left; padding-left: 15px; padding-top: 7px; font-weight: 500;"> Demand Name:</label>
+        <div class="col-sm-11">
+            <input rows="1" class="form-control" cam-variable-name="demandName" cam-variable-type="String" disabled/>
+        </div>
+    </div>
+    <hr>
+    <tabset class="my-tab-head my-tab" justified="true" id="jobRequestId">
+        <tab>
+            <tab-heading> General </tab-heading>
+            <div style="margin-bottom: 20px;">
+                <div class="col-sm-6">
+                    <h4>General</h4>
+                    <demand-general data="generalData.general" form="kcell_form" view="view" disabled="true"></demand-general>
                 </div>
-            </tab>
-            <tab active="true">
-                <tab-heading> BRD </tab-heading>
-                <div style="margin-bottom: 20px;">
-                    <accordion class="content-visible-accordion">
-                        <accordion-group is-open="true">
-                            <accordion-heading>
-                                Functional Requirements <i class="pull-right glyphicon" ng-class="{'glyphicon-chevron-up': status.isCustomHeaderOpen, 'glyphicon-chevron-down': !status.isCustomHeaderOpen}"></i>
-                            </accordion-heading>
-                            <demand-func-requirements data="BRDData.funcRequirements" form="kcell_form" view="view" disabled="false" process-id="processInstanceId" task-id="taskId"></demand-func-requirements>
-                        </accordion-group>
-                    </accordion>
-                    <accordion class="content-visible-accordion">
-                        <accordion-group is-open="true">
-                            <accordion-heading>
-                                Non-Functional Requirements <i class="pull-right glyphicon" ng-class="{'glyphicon-chevron-up': status.isCustomHeaderOpen, 'glyphicon-chevron-down': !status.isCustomHeaderOpen}"></i>
-                            </accordion-heading>
-                            <demand-non-func-requirements data="BRDData.nonFuncRequirements" form="kcell_form" view="view" disabled="false"></demand-non-func-requirements>
-                        </accordion-group>
-                    </accordion>
-                    <accordion class="content-visible-accordion">
-                        <accordion-group is-open="true">
-                            <accordion-heading>
-                                Interfaces <i class="pull-right glyphicon" ng-class="{'glyphicon-chevron-up': status.isCustomHeaderOpen, 'glyphicon-chevron-down': !status.isCustomHeaderOpen}"></i>
-                            </accordion-heading>
-                            <demand-interfaces data="BRDData.interfaces" form="kcell_form" view="view" disabled="false" process-id="processInstanceId" task-id="taskId"></demand-interfaces>
-                        </accordion-group>
-                    </accordion>
-                    <accordion class="content-visible-accordion">
-                        <accordion-group is-open="true">
-                            <accordion-heading>
-                                Reports and Statistics <i class="pull-right glyphicon" ng-class="{'glyphicon-chevron-up': status.isCustomHeaderOpen, 'glyphicon-chevron-down': !status.isCustomHeaderOpen}"></i>
-                            </accordion-heading>
-                            <div class="col-sm-12">
-                                <demand-rich-text data="BRDData.reportsStatistics" min-height="100" process-id="processInstanceId" task-id="taskId"></demand-rich-text>
-                                <!--<span class="has-error" ng-if="(!BRDData.reportsStatistics.length || !BRDData.reportsStatistics.length) && view.submitted">Required field</span>-->
-                            </div>
-                        </accordion-group>
-                    </accordion>
+                <div class="col-sm-6">
+                    <h4>Target Audience:</h4>
+                    <demand-target-audience data="generalData.targetAudience" form="kcell_form" view="view" disabled="true"></demand-target-audience>
                 </div>
-            </tab>
-            <tab disabled="true">
-                <tab-heading> Costs and Acceptance Criterias </tab-heading>
-            </tab>
-            <tab disabled="true">
-                <tab-heading> Business Case </tab-heading>
-            </tab>
-            <tab disabled="true">
-                <tab-heading> SDD </tab-heading>
-            </tab>
-        </tabset>
+                <br>
+                <div class="col-sm-12">
+                    <h4>Demand Details</h4>
+                    <demand-details data="generalData.demandDetails" form="kcell_form" view="view" disabled="true"></demand-details>
+                </div>
+            </div>
+        </tab>
+        <tab active="true">
+            <tab-heading> BRD </tab-heading>
+            <div style="margin-bottom: 20px;">
+                <accordion class="content-visible-accordion">
+                    <accordion-group is-open="true">
+                        <accordion-heading>
+                            Functional Requirements <i class="pull-right glyphicon" ng-class="{'glyphicon-chevron-up': status.isCustomHeaderOpen, 'glyphicon-chevron-down': !status.isCustomHeaderOpen}"></i>
+                        </accordion-heading>
+                        <demand-func-requirements data="BRDData.funcRequirements" form="kcell_form" view="view" disabled="false" process-id="processInstanceId" task-id="taskId"></demand-func-requirements>
+                    </accordion-group>
+                </accordion>
+                <accordion class="content-visible-accordion">
+                    <accordion-group is-open="true">
+                        <accordion-heading>
+                            Non-Functional Requirements <i class="pull-right glyphicon" ng-class="{'glyphicon-chevron-up': status.isCustomHeaderOpen, 'glyphicon-chevron-down': !status.isCustomHeaderOpen}"></i>
+                        </accordion-heading>
+                        <demand-non-func-requirements data="BRDData.nonFuncRequirements" form="kcell_form" view="view" disabled="false"></demand-non-func-requirements>
+                    </accordion-group>
+                </accordion>
+                <accordion class="content-visible-accordion">
+                    <accordion-group is-open="true">
+                        <accordion-heading>
+                            Interfaces <i class="pull-right glyphicon" ng-class="{'glyphicon-chevron-up': status.isCustomHeaderOpen, 'glyphicon-chevron-down': !status.isCustomHeaderOpen}"></i>
+                        </accordion-heading>
+                        <demand-interfaces data="BRDData.interfaces" form="kcell_form" view="view" disabled="false" process-id="processInstanceId" task-id="taskId"></demand-interfaces>
+                    </accordion-group>
+                </accordion>
+                <accordion class="content-visible-accordion">
+                    <accordion-group is-open="true">
+                        <accordion-heading>
+                            Reports and Statistics <i class="pull-right glyphicon" ng-class="{'glyphicon-chevron-up': status.isCustomHeaderOpen, 'glyphicon-chevron-down': !status.isCustomHeaderOpen}"></i>
+                        </accordion-heading>
+                        <div class="col-sm-12">
+                            <demand-rich-text data="BRDData.reportsStatistics" min-height="100" process-id="processInstanceId" task-id="taskId"></demand-rich-text>
+                            <!--<span class="has-error" ng-if="(!BRDData.reportsStatistics.length || !BRDData.reportsStatistics.length) && view.submitted">Required field</span>-->
+                        </div>
+                    </accordion-group>
+                </accordion>
+            </div>
+        </tab>
+        <tab disabled="true">
+            <tab-heading> Costs and Acceptance Criterias </tab-heading>
+        </tab>
+        <tab disabled="true">
+            <tab-heading> Business Case </tab-heading>
+        </tab>
+        <tab disabled="true">
+            <tab-heading> SDD </tab-heading>
+        </tab>
+    </tabset>
 
-        <div class="col-sm-12" style="margin-top: 20px;"><hr style="border-top: 2px solid #aaa;" /></div>
-    
-        <div class="row">
-            <div class="col-md-2" style="margin-top: 20px;">
-                <button type="button" ng-click="saveFillForm()" class="btn btn-success" style="padding: 6px 28px">Save</button>
-            </div>
+    <div class="col-sm-12" style="margin-top: 20px;"><hr style="border-top: 2px solid #aaa;" /></div>
+
+    <div class="row">
+        <div class="col-md-2" style="margin-top: 20px;">
+            <button type="button" ng-click="saveFillForm()" class="btn btn-success" style="padding: 6px 28px">Save</button>
         </div>
-        <hr>
-        
-        <div class="form-group">
-            <label class="col-sm-2 control-label">Comment</label>
-            <div class="col-sm-10">
-                <textarea class="form-control" rows="4" maxlength="500" ng-model="comment" name="comment" required></textarea>
-                <label class="error" ng-show="kcell_form.comment.$error.required && ( kcell_form.comment.$touched || view.submitted)">Required field</label>
-            </div>
+    </div>
+    <hr>
+
+    <div class="form-group">
+        <label class="col-sm-2 control-label">Comment</label>
+        <div class="col-sm-10">
+            <textarea class="form-control" rows="4" maxlength="500" ng-model="comment" name="comment" required></textarea>
+            <label class="error" ng-show="kcell_form.comment.$error.required && ( kcell_form.comment.$touched || view.submitted)">Required field</label>
         </div>
-    
-        <accordion>
-            <accordion-group is-open="isHistoryOpen">
-                <accordion-heading>
-                    History <i class="pull-right glyphicon" ng-class="{'glyphicon-chevron-up': status.isCustomHeaderOpen, 'glyphicon-chevron-down': !status.isCustomHeaderOpen}"></i>
-                </accordion-heading>
-                <table class="table">
-                    <thead>
-                    <tr>
-                        <th>Activity</th>
-                        <th>Assignee</th>
-                        <th>Resolution</th>
-                        <th>Date of assign</th>
-                        <th>Date</th>
-                        <th>Comment</th>
-                    </tr>
-                    </thead>
-                    <tbody>
-                    <tr ng-repeat="resolution in resolutions track by $index">
-                        <td>{{resolution.taskName}}</td>
-                        <td>{{resolution.assignee}}</td>
-                        <td>{{resolution.resolution}}</td>
-                        <td>{{resolution.dateOfAssign | date: 'dd.MM.yyyy HH:mm'}}</td>
-                        <td>{{resolution.taskEndDate | date: 'dd.MM.yyyy HH:mm'}}</td>
-                        <td>{{resolution.comment}}</td>
-                    </tr>
-                    </tbody>
-                </table>
-            </accordion-group>
-        </accordion>
-    </form>
+    </div>
+
+    <accordion>
+        <accordion-group is-open="isHistoryOpen">
+            <accordion-heading>
+                History <i class="pull-right glyphicon" ng-class="{'glyphicon-chevron-up': status.isCustomHeaderOpen, 'glyphicon-chevron-down': !status.isCustomHeaderOpen}"></i>
+            </accordion-heading>
+            <table class="table">
+                <thead>
+                <tr>
+                    <th>Activity</th>
+                    <th>Assignee</th>
+                    <th>Resolution</th>
+                    <th>Date of assign</th>
+                    <th>Date</th>
+                    <th>Comment</th>
+                </tr>
+                </thead>
+                <tbody>
+                <tr ng-repeat="resolution in resolutions track by $index">
+                    <td>{{resolution.taskName}}</td>
+                    <td>{{resolution.assignee}}</td>
+                    <td>{{resolution.resolution}}</td>
+                    <td>{{resolution.dateOfAssign | date: 'dd.MM.yyyy HH:mm'}}</td>
+                    <td>{{resolution.taskEndDate | date: 'dd.MM.yyyy HH:mm'}}</td>
+                    <td>{{resolution.comment}}</td>
+                </tr>
+                </tbody>
+            </table>
+        </accordion-group>
+    </accordion>
+</form>

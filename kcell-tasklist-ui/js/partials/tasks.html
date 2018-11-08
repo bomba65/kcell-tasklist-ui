@@ -1,3 +1,11 @@
+<style type="text/css">
+th.sortable {
+	cursor: pointer;
+}
+th.sortable:hover {
+	background: #EEE;
+}
+</style>
 <div class="row layout-row">
 	<div class="col-md-2 no-float left">
 		<div class="left-wrapper">
@@ -5,7 +13,7 @@
 			<ul id="filters">
 				<li ng-repeat="filter in filters" ng-class="{active: filter.id == currentFilter.id}">
 					<a ng-click="selectFilter(filter)">{{filter.name}} ({{filter.itemCount}})</a>
-					<ul id="{{filter.id}}_regions" ng-if="hasGroup('head_kcell_users') && filter.id == currentFilter.id">
+					<ul id="{{filter.id}}_regions" ng-if="isRegionFiltersVisible() && filter.id == currentFilter.id">
 						<li ng-repeat="region in regionFilters | orderBy: 'name'" ng-class="{active: region.id == currentRegionFilter.id}">
 							<a ng-click="selectRegionFilter(filter, region)">{{region.name}} ({{region.itemCount}})</a>
 						</li>
@@ -18,14 +26,14 @@
 			<span ng-if="processDefinitions && processDefinitions.length > 0">
 				<h4>Processes</h4>
 				<ul id="definitions">
-					<li ng-repeat="pd in processDefinitions">
+					<li ng-repeat="pd in processDefinitions" ng-show="$root.isProcessVisible(pd.key)">
 						<a ng-click="startProcess(pd.id)">Start <b>{{pd.name}}</b> process</a>
 					</li>
 				</ul>
 			</span>
 			<h4>Tasks</h4>
-			<div class="scrollcontainer" ng-if="!searchSelected">
-				<div  class="scrollable">
+			<div class="scrollcontainer">
+				<!--div class="scrollable">
 					<ul id="tasks">
 						<li ng-repeat="task in tasks" ui-sref="tasks.task({id:task.id})" ng-class="{active: task.id == currentTask.id}" 
 						style="{{task.priority == 100? 'background-color: #fb8784;':''}}">
@@ -43,6 +51,23 @@
 						<br/>
 						<a ng-click="prevTasks()" ng-disabled="view.page <= 1" class="btn btn-xs btn-default">Previous</a> <a ng-click="nextTasks()" ng-disabled="!tasks.length || tasks.length < view.maxResults" class="btn btn-xs btn-default">Next</a>
 					</div>
+				</div-->				
+				<div class="scrollable">
+					<ul id="taskProcesses">
+						<li ng-repeat="process in currentProcesses">
+							<h5 ng-click="setSelectedProcessKey(process.key)">
+								<i class="glyphicon" ng-class="process.key == selectedProcessKey?'glyphicon-minus-sign':'glyphicon-plus-sign'"></i> 
+								{{process.name}} ({{process.taskCount}})
+							</h5>
+							<ul id="taskDefinitions" ng-show="selectedProcessKey == process.key">
+								<li ng-repeat="taskGroup in process.taskGroups" ng-class="{active: taskGroup.name == currentTaskGroup.name}">
+									<h5 ng-click="setSelectedTaskGroupName(taskGroup, process.name)">
+										{{taskGroup.name}} ({{taskGroup.tasks.length}})
+									</h5>
+								</li>
+							</ul>
+						</li>
+					</ul>					
 				</div>
 			</div>
 		</div>
@@ -51,8 +76,10 @@
 		<div class="currentTask">
 			<div class="scrollcontainer">
 				<div  class="scrollable">
-					<div ui-view ng-show="!searchSelected"></div>
-					<div ng-show="searchSelected">
+					<div ng-show="selectedView == 'task' || selectedView == 'massapprove'">
+						<div ui-view></div>
+					</div>
+					<div ng-show="selectedView == 'search'">
 					    <h4>Task Search</h4>
 					    <div class="col-sm-12">
 					        <div class="row">
@@ -120,6 +147,54 @@
 					            </table>
 					        </div>
 					    </div>
+					</div>
+					<div ng-show="selectedView == 'tasks' && selectedProcessKey && currentTaskGroup">
+						<h4>Project: {{getCurrentProjectDisplay()}}</h4>
+						<h4>Process: {{currentTaskGroup.selectedProcessDisplay}}</h4>
+						<h4>Task: {{currentTaskGroup.name}}</h4>
+			            <table class="table table-bordered">
+			                <thead>
+			                	<tr>
+			                    	<th>#</th>
+									<th class="sortable">Bussiness key 
+										<i ng-click="orderByFieldName('processBusinessKey')" class="glyphicon" ng-class="fieldName != 'processBusinessKey' ? 'glyphicon-sort' : reverseOrder?'glyphicon-chevron-down':'glyphicon-chevron-up'"></i>
+										<span class="pull-right">
+											<input type="text" ng-model="fieldFilter['processBusinessKey']" ng-show="visibilityFilter['processBusinessKey']">
+											<i ng-click="setVisibilityFilter('processBusinessKey')" class="glyphicon" ng-class="visibilityFilter['processBusinessKey']?'glyphicon-remove':'glyphicon-filter'"></i>
+										</span>
+									</th>
+									<th ng-if="selectedProcessKey === 'Revision'" class="sortable">Site name
+										<i ng-click="orderByFieldName('site_name')" class="glyphicon" ng-class="fieldName != 'site_name' ? 'glyphicon-sort' : reverseOrder?'glyphicon-chevron-down':'glyphicon-chevron-up'"></i>
+										<span class="pull-right">
+											<input type="text" ng-model="fieldFilter['site_name']" ng-show="visibilityFilter['site_name']">
+											<i ng-click="setVisibilityFilter('site_name')" class="glyphicon" ng-class="visibilityFilter['site_name']?'glyphicon-remove':'glyphicon-filter'"></i>
+										</span>
+									</th>
+									<th class="sortable">Initiator
+										<i ng-click="orderByFieldName('processStartUserId')" class="glyphicon" ng-class="fieldName != 'processStartUserId' ? 'glyphicon-sort' : reverseOrder?'glyphicon-chevron-down':'glyphicon-chevron-up'"></i>
+										<span class="pull-right">
+											<input type="text" ng-model="fieldFilter['processStartUserId']" ng-show="visibilityFilter['processStartUserId']">
+											<i ng-click="setVisibilityFilter('processStartUserId')" class="glyphicon" ng-class="visibilityFilter['processStartUserId']?'glyphicon-remove':'glyphicon-filter'"></i>
+										</span>
+									</th>
+									<th class="sortable">Date
+										<i ng-click="orderByFieldName('processStartTime')" class="glyphicon" ng-class="fieldName != 'processStartTime' ? 'glyphicon-sort' : reverseOrder?'glyphicon-chevron-down':'glyphicon-chevron-up'"></i></th>
+									<th class="sortable">Priority
+										<i ng-click="orderByFieldName('priority')" class="glyphicon" ng-class="fieldName != 'priority' ? 'glyphicon-sort' : reverseOrder?'glyphicon-chevron-down':'glyphicon-chevron-up'"></i>
+									</th>
+			                	</tr>
+			             	</thead>
+			             	<tbody>
+								<tr ng-repeat="task in currentTaskGroup.tasks | filter : filterByFields() | orderBy : fieldName : reverseOrder">
+			             			<td><a ng-click="openTask(task.id)">{{$index+1}}</a></td>
+			             			<td><a ng-click="openTask(task.id)">{{task.processBusinessKey}}</a></td>
+			             			<td ng-if="selectedProcessKey === 'Revision'"><a ng-click="openTask(task.id)">{{task.site_name}}</a></td>
+			             			<td><a ng-click="openTask(task.id)">{{task.processStartUserId}}</a></td>
+			             			<td><a ng-click="openTask(task.id)">{{task.processStartTime | date: 'dd.MM.yyyy HH:mm'}}</a></td>
+									<td><a ng-click="openTask(task.id)">{{task.priority == 100 ? 'Emergency' : 'Regular'}}</a></td>
+			             		</tr>
+			             	</tbody>
+			             </table>
 					</div>
 				</div>
 			</div>

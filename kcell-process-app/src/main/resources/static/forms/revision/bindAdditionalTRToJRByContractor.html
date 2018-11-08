@@ -1,0 +1,332 @@
+<style>
+    .well {
+        color: #333;
+    }
+</style>
+<form role="form" class="form-horizontal" name="kcell_form" novalidate>
+    <script cam-script type="text/form-script">
+        inject(['$scope', '$http', 'Uri', '$rootScope', '$q', '$timeout', function ($scope, $http, Uri, $rootScope, $q, $timeout) {
+            var variables = [
+                'requestedDate',
+                'jrNumber',
+                'initiatorFull',
+                'validityDate',
+                'soaComplaintId',
+                'site',
+                'siteName',
+                'site_name',
+                'reason',
+                'contract',
+                'contractor',
+                'materialsRequired',
+                'leasingRequired',
+                'powerRequired',
+                'project',
+                'supplementaryFiles',
+                'explanation',
+                'jobWorks',
+                'sapPRFileXLS',
+                'sapPRNo',
+                'kcellWarehouseMaterialsList',
+                'kcellWarehouseMaterialsAdditionalList',
+                'kcellWarehouseMaterialsListName',
+                'resolutions',
+                'contractorZIPWarehouseMaterialsList',
+                'contractorZIPWarehouseMaterialsListName',
+                'jrBlank',
+                'tssrssidFile',
+                'tssrssidFileName',
+                'trFilesName',
+                'trAdditionalFilesName',
+                'trFiles',
+                'priority',
+                'mlApprovalAdditionalInfoFile'
+            ];
+            $scope.jobModel = {};
+            $scope.trNewFile = {};
+            var newFiles = [];
+            $http.get('/camunda/api/engine/engine/default/task/' + camForm.taskId).then(
+                function(result){
+                    $scope.processInstanceId = result.data.processInstanceId;
+                },
+                function (error) {
+                    console.log(error.data);
+                }
+            );
+            camForm.on('form-loaded', function () {
+                variables.forEach(function (el) {
+                    camForm.variableManager.fetchVariable(el);
+                });
+
+                $http.get('/api/catalogs?force=true').then(
+                        function (result) {
+                            angular.extend($scope, result.data);
+                            angular.extend($scope.jobModel, result.data);
+                        },
+                        function (error) {
+                            console.log(error.data);
+                        }
+                );
+                camForm.variableManager.createVariable({
+                    name: 'bindAdditionalTRToJRByContractorTaskResult',
+                    type: 'String',
+                    value: ''
+                });
+                camForm.variableManager.createVariable({
+                    name: 'modifyWorks',
+                    type: 'Boolean',
+                    value: undefined
+                });
+                camForm.variableManager.createVariable({
+                    name: 'trMatch',
+                    type: 'String',
+                    value: undefined
+                });
+            });
+            camForm.on('variables-fetched', function () {
+                variables.forEach(function (el) {
+                    if(el === 'trAdditionalFilesName'){
+                        $scope[el] = camForm.variableManager.variables[el];
+                        $scope[el].type = 'Json';
+                        if(!$scope[el].value){
+                            $scope[el].value = [];
+                        }
+                    }
+
+                    if(el === 'resolutions'){
+                        $scope.jobModel.resolutions = angular.copy(camForm.variableManager.variables[el].value);
+                        $q.all($scope.jobModel.resolutions.map(function (resolution) {
+                            return $http.get("/camunda/api/engine/engine/default/history/task?processInstanceId="+resolution.processInstanceId+"&taskId=" + resolution.taskId);
+                        })).then(function (tasks) {
+                            tasks.forEach(function (e, index) {
+                                if(e.data.length > 0){
+                                    $scope.jobModel.resolutions[index].taskName = e.data[0].name;
+                                    try {
+                                        $scope.jobModel.resolutions[index].taskEndDate = new Date(e.data[0].endTime);
+                                    } catch(e){
+                                        console.log(e);
+                                    }
+                                }
+                            });
+                        });
+                    } else {
+                        $scope.jobModel[el] = camForm.variableManager.variables[el];
+                    }
+                });
+                $http.get("/camunda/api/engine/engine/default/user/" + $rootScope.authentication.name+ "/profile").then(function(result){
+                    $rootScope.authentication.assigneeName = (result.data.firstName ? result.data.firstName : "") + " " + (result.data.lastName ? result.data.lastName : "");
+                });
+            });
+
+            camForm.on('submit', function () {
+                camForm.variableManager.variableValue('trMatch', $scope.trMatch);
+                camForm.variableManager.variableValue('bindAdditionalTRToJRByContractorTaskResult', $scope.bindAdditionalTRToJRByContractorTaskResult);
+                if ($scope.bindAdditionalTRToJRByContractorTaskResult === 'attached') {
+                    camForm.variableManager.variableValue('modifyWorks', false);
+
+                    $scope.trAdditionalFilesName.value.forEach(function (f, i) {
+                        if(f.isNew){
+                            newFiles.push(f.name);
+                            delete $scope.trAdditionalFilesName.value[i].isNew;
+                        }
+                    });
+
+                    if(camForm.variableManager.variables['trAdditionalFilesName']){
+                        camForm.variableManager.variableValue('trAdditionalFilesName', $scope.trAdditionalFilesName.value);
+                    } else {
+                        camForm.variableManager.createVariable($scope.trAdditionalFilesName);
+                    }
+                }
+                else{
+                    camForm.variableManager.variableValue('modifyWorks', true);
+                    for (var i = 0; i < camForm.fields.length; i++) {
+                        if (camForm.fields[i].variableName == 'sapTransferRequestFile') {
+                            if (camForm.fields[i].element.context.value == '') {
+                                camForm.fields.splice(i, 1);
+                                camForm.variableManager.destroyVariable('sapTransferRequestFile');
+                            }
+                        }
+                    }
+                }
+                var visibility = 'all';
+                if($scope.bindAdditionalTRToJRByContractorComment && $scope.bindAdditionalTRToJRByContractorCommentVisibility){
+                    visibility = $scope.bindAdditionalTRToJRByContractorCommentVisibility;
+                }
+                $scope.jobModel.resolutions.push({processInstanceId: $scope.processInstanceId, assignee: $rootScope.authentication.name, assigneeName: $rootScope.authentication.assigneeName, resolution: $scope.bindAdditionalTRToJRByContractorTaskResult, comment: $scope.bindAdditionalTRToJRByContractorComment, taskId: camForm.taskId, visibility: visibility, files:newFiles});
+                camForm.variableManager.variableValue('resolutions', $scope.jobModel.resolutions);
+            });
+
+            camForm.on('store', function() {
+                camForm.variableManager.variableValue('bindAdditionalTRToJRByContractorTaskResult', $scope.bindAdditionalTRToJRByContractorTaskResult);
+                camForm.variableManager.variableValue('trMatch', $scope.trMatch);
+            });
+
+            camForm.on('variables-restored', function() {
+                $scope.bindAdditionalTRToJRByContractorTaskResult = camForm.variableManager.variableValue('bindAdditionalTRToJRByContractorTaskResult');
+                $scope.trMatch = camForm.variableManager.variableValue('trMatch');
+            });
+
+            $scope.fileSelected = function(el){
+                if(el.files[0]){
+                    $timeout(function () {
+                        $scope.$apply(function () {
+                            uploadFileToMinio(el.files[0], el.value);
+                        });
+                    })
+                } else {
+                    console.log("el.files[0] is empty");
+                }
+            };
+
+            function uploadFileToMinio(file, value) {
+                var index = $scope.trAdditionalFilesName.value.length;
+
+                var fileToUpload = {
+                    description: value.replace(/^.*[\\\/]/, '').replace(/\.[^/.]+$/, ""),
+                    isNew : true,
+                    name: file.name.replace(/[/\\?%*:|"<>]/g, '-'),
+                    path: $scope.processInstanceId + '/' + camForm.taskId + '/' + file.name.replace(/[/\\?%*:|"<>]/g, '-')
+                };
+
+                $http({method: 'GET', url: '/camunda/uploads/put/' + fileToUpload.path, transformResponse: [] }).
+                success(function(data, status, headers, config) {
+                    $http.put(data, file, {headers: {'Content-Type': undefined}}).then(
+                        function () {
+                            $scope.trAdditionalFilesName.value.push(fileToUpload);
+                            angular.element(document.querySelector('#trNewFile')).val(null);
+                            $scope.trNewFile = {};
+                        },
+                        function (error) {
+                            console.log(error.data);
+                        }
+                    );
+                }).
+                error (function(data, status, headers, config) {
+                    console.log(data);
+                });
+            }
+
+            $scope.clearFile = function (fileIndex) {
+                $scope.trAdditionalFilesName.value.splice(fileIndex, 1);
+            }
+
+            $scope.download = function (file) {
+                $http({method: 'GET', url: '/camunda/uploads/get/' + file.path, transformResponse: [] }).
+                success(function(data, status, headers, config) {
+                    document.getElementById('fileDownloadIframe').src = data;
+                }).
+                error (function(data, status, headers, config) {
+                    console.log(data);
+                });
+            }
+
+            $scope.isVisible = function (resolution) {
+               return !resolution.visibility || resolution.visibility === 'all' || (resolution.visibility === 'kcell' && $rootScope.hasGroup('kcellUsers'));
+            }
+
+            $scope.hasComment = function () {
+                return $scope.bindAdditionalTRToJRByContractorComment && $rootScope.hasGroup('kcellUsers');
+            }
+        }]);
+    </script>
+    <job-request job-model="jobModel"></job-request>
+    <iframe id="fileDownloadIframe" style="display:none;"></iframe>
+    <div ng-repeat="trfile in trAdditionalFilesName.value">
+        <div>
+            <div class="form-group">
+                <label class="col-sm-4 control-label">SAP Transport Request File # {{$index+1}}:</label>
+                <div class="col-sm-8">
+                    <a ng-click="download(trfile)">{{trfile.name}}</a><a ng-click="clearFile($index)">| <i class="glyphicon glyphicon-trash"></i></a>
+                </div>
+            </div>
+            <div class="form-group">
+                <label class="col-sm-4 control-label">SAP Transport Request ID # {{$index+1}}:</label>
+                <div class="col-sm-8">
+                    <input type="text" class="form-control" name="trfile_{{$index}}" ng-model="trfile.description" ng-required="trfile.name && !trfile.description" />
+                    <label class="error" ng-show="kcell_form['trfile_'+$index].$error.required && ( kcell_form['trfile_'+$index].$touched || view.submitted)">Required field</label>
+                </div>
+            </div>
+            <div class="form-group">
+                <label class="col-sm-4 control-label">Warehouse # {{$index+1}}:</label>
+                <div class="col-sm-8">
+                    <select class="form-control" ng-model="trfile.warehouse" name="trfile_{{$index}}_warehouse" ng-required="trfile.name && !trfile.warehouse">
+                        <option value="">select warehouse</option>
+                        <option value="{{w.id}}" ng-repeat="w in warehouses" ng-selected="{{w.id == trfile.warehouse}}">{{w.id}}: {{w.name}}</option>
+                    </select>
+                    <label class="error" ng-show="kcell_form['trfile_'+$index+'_warehouse'].$error.required && ( kcell_form['trfile_'+$index+'_warehouse'].$touched || view.submitted)">Required field</label>
+                </div>
+            </div>
+        </div>
+    </div>
+    <div class="form-group">
+        <label class="col-sm-4 control-label">SAP Transport Request File # {{trAdditionalFilesName.value.length+1}}:</label>
+        <div class="col-sm-8">
+            <ng-form name="trfilesform">
+                <input type="file" class="form-control" id="trNewFile" name="trNewFile" ng-model="trNewFile" required-file="bindAdditionalTRToJRByContractorTaskResult === 'attached' && !trAdditionalFilesName.value[0].name" onchange="angular.element(this).scope().fileSelected(this)"/>
+                <label class="has-error" ng-show="trfilesform.trNewFile.$error.validFile">File is required</label>
+            </ng-form>
+        </div>
+    </div>
+    <div class="form-group">
+        <label class="col-sm-4 control-label">Resolution</label>
+        <div class="col-sm-8">
+            <label class="radio-inline">
+                <input type="radio" name="bindAdditionalTRToJRByContractorTaskResult" ng-model="bindAdditionalTRToJRByContractorTaskResult" value="attached" required> Save and continue
+            </label>
+            <label class="radio-inline">
+                <input type="radio" name="bindAdditionalTRToJRByContractorTaskResult" ng-model="bindAdditionalTRToJRByContractorTaskResult" value="notAvailable" required> Materials not Available
+            </label>
+            <label class="error" ng-show="kcell_form.bindAdditionalTRToJRByContractorTaskResult.$error.required && ( kcell_form.bindAdditionalTRToJRByContractorTaskResult.$touched || view.submitted)">Required field</label>
+        </div>
+    </div>
+    <div class="form-group">
+        <label class="col-sm-4 control-label">Comments</label>
+        <div class="col-sm-8">
+            <textarea class="form-control" rows="4" maxlength="500" cam-variable-name="bindAdditionalTRToJRByContractorComment" name="bindAdditionalTRToJRByContractorComment" ng-required="bindAdditionalTRToJRByContractorTaskResult == 'notAvailable'" cam-variable-type="String"></textarea>
+            <label class="error" ng-show="kcell_form.bindAdditionalTRToJRByContractorComment.$error.required && ( kcell_form.bindAdditionalTRToJRByContractorComment.$touched || view.submitted)">Required field</label>
+        </div>
+    </div>
+    <div class="form-group" ng-show="hasComment()">
+        <label class="col-sm-4 control-label">Comments visibility</label>
+        <div class="col-sm-8">
+            <label class="radio-inline">
+                <input type="radio" name="bindAdditionalTRToJRByContractorCommentVisibility"
+                       ng-model="bindAdditionalTRToJRByContractorCommentVisibility" value="all" ng-required="hasComment()"> Visible for all
+            </label>
+            <label class="radio-inline">
+                <input type="radio" name="bindAdditionalTRToJRByContractorCommentVisibility"
+                       ng-model="bindAdditionalTRToJRByContractorCommentVisibility" value="kcell" ng-required="hasComment()"> Kcell staff only
+            </label>
+            <label class="error" ng-show="kcell_form.bindAdditionalTRToJRByContractorCommentVisibility.$error.required && ( kcell_form.bindAdditionalTRToJRByContractorCommentVisibility.$touched || view.submitted)">Required field</label>
+        </div>
+    </div>
+    <accordion>
+        <accordion-group is-open="isHistoryOpen">
+            <accordion-heading>
+                History <i class="pull-right glyphicon" ng-class="{'glyphicon-chevron-up': status.isCustomHeaderOpen, 'glyphicon-chevron-down': !status.isCustomHeaderOpen}"></i>
+            </accordion-heading>
+            <table class="table">
+                <thead>
+                <tr>
+                    <th>Activity</th>
+                    <th>Assignee</th>
+                    <th>Resolution</th>
+                    <th>Date</th>
+                    <th>Comment</th>
+                    <th ng-if="hasGroup('kcellUsers')">Attached files</th>
+                </tr>
+                </thead>
+                <tbody>
+                <tr ng-repeat="resolution in jobModel.resolutions">
+                    <td>{{resolution.taskName}}</td>
+                    <td>{{resolution.assigneeName || resolution.assignee}}</td>
+                    <td>{{'task.resolution.'+resolution.resolution | translate}}</td>
+                    <td>{{resolution.taskEndDate | date: 'dd.MM.yyyy HH:mm'}}</td>
+                    <td>{{isVisible(resolution)? resolution.comment : ''}}</td>
+                    <td ng-if="hasGroup('kcellUsers')">{{resolution.files.join(', ')}}</td>
+                </tr>
+                </tbody>
+            </table>
+        </accordion-group>
+    </accordion>
+</form>

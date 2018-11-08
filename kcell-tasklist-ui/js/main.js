@@ -1,6 +1,6 @@
 require.config({
      //  псевдонимы и пути используемых библиотек и плагинов
-     waitSeconds: 60,
+     waitSeconds : 60,
      map: {
      		'lodash/*': './node_modules/lodash/index'
      	}
@@ -25,8 +25,10 @@ require.config({
          'bpmn-navigated-viewer': './camunda/bpmn-navigated-viewer',
          'big-js': './node_modules/big.js/big.min',
          'excellentexport': './node_modules/excellentexport/dist/excellentexport',
+         'xlsx': './node_modules/xlsx/dist/xlsx.full.min',
          'angular-ui-router': './node_modules/angular-ui-router/release/angular-ui-router.min',
          'ng-file-upload': './node_modules/ng-file-upload/dist/ng-file-upload-all.min',
+         'angular-local-storage': './node_modules/angular-local-storage/dist/angular-local-storage.min',
          'angularjs-dropdown-multiselect': './node_modules/angularjs-dropdown-multiselect/dist/angularjs-dropdown-multiselect.min',
          'simditor': './node_modules/simditor/lib/simditor',
          'simple-module': './node_modules/simple-module/lib/module',
@@ -34,7 +36,10 @@ require.config({
          'simple-uploader': './node_modules/simple-uploader/lib/uploader',
          'xlsx': './node_modules/xlsx/dist/xlsx.full.min',
          'summernote': './summernote/summernote.min',
-         'summernote-ext-template': './summernote/summernote-ext-template'
+         'summernote-ext-template': './summernote/summernote-ext-template',
+         'moment': './node_modules/moment/min/moment.min',
+         'daterangepicker': './node_modules/daterangepicker/daterangepicker',
+         'bootstrap': './node_modules/bootstrap/dist/js/bootstrap.min'
      },
  
      // angular не поддерживает AMD из коробки, поэтому экспортируем перменную angular в глобальную область
@@ -48,6 +53,7 @@ require.config({
          'toasty' : ['angular'],
          'camundaSDK' : ['angular'],
          'translate' : ['angular'],
+         'angular-local-storage': ['angular'],
          'angular-ui-router': ['angular'],
          'angular-ui-bootstrap': ['angular'],
          'ng-file-upload': ['angular'],
@@ -55,10 +61,11 @@ require.config({
          'summernote-ext-template': ['summernote'],
          'angularjs-dropdown-multiselect': ['angular'],
          'angular-translate-storage-local': ['translate'],
-         'angular-translate-storage-cookie': ['translate']
+         'angular-translate-storage-cookie': ['translate'],
+         'bootstrap':['jquery']
      },
  
      // запустить приложение
      deps: ['./bootstrapAngular'],
-     urlArgs: "bust=" + (new Date()).getTime()
+     urlArgs: "bust=" + Math.floor((new Date()).getTime()/(24*60*60*1000))
 });

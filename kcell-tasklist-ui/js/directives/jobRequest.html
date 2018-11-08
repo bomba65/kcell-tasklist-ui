@@ -32,6 +32,13 @@
     <div class="row" ng-if="jobModel.processTechnicalUpdates.value">
         <div class="col-md-12"><b>Technical updates</b>: {{jobModel.processTechnicalUpdates.value}}</div>
     </div>
+    <div class="row" ng-if="jobModel.delayInfo.value">
+        <div class="col-xs-4 col-md-4"><b>Delay</b>: {{jobModel.delayInfo.value}} (days) 
+            <a ng-show="jobModel.showDelayHint" role="button" data-toggle="collapse" href="#collapseDelayInfo" aria-expanded="false" aria-controls="collapseDelayInfo">
+                <i class="glyphicon glyphicon-question-sign"></i>
+            </a>
+        </div>
+    </div>
     
     <br/>
     <div class="row">
@@ -42,7 +49,8 @@
     <br/>
     <div class="row">
         <div class="col-md-12"><b>Works</b>:</div>
-        <div class="col-md-12" ng-repeat="work in jobModel.jobWorks.value track by $index">&nbsp;&nbsp;&nbsp;&nbsp;{{jobModel.worksTitle[work.sapServiceNumber]}}, works qty: {{work.quantity}}, materials qty: {{work.materialQuantity}} {{work.materialUnit}}<span ng-if="work.relatedSites.length > 0">, on sites: <ul class="site-list"><li ng-repeat="rs in work.relatedSites">{{rs.site_name}}</li></ul></span>
+        <div class="col-md-12" ng-repeat="work in jobModel.jobWorks.value track by $index">&nbsp;&nbsp;&nbsp;&nbsp;{{jobModel.worksTitle[work.sapServiceNumber]}}, works qty: {{work.quantity}}, materials qty: {{work.materialQuantity}} {{work.materialUnit}}<span ng-if="work.relatedSites.length > 0">, on sites: <ul class="site-list"><li ng-repeat="rs in work.relatedSites">{{rs.site_name}}</li></ul>,</span>
+        <span ng-if="work.reason">work request reason: {{jobModel.jobReasonTitleShort[work.reason]}}</span>
             <div class="col-md-12" ng-repeat="file in work.files">
                 <div class="col-md-12" ng-if="file.valueInfo">&nbsp;&nbsp;&nbsp;&nbsp;{{$index+1}}.<a href="/camunda/api/engine/engine/default/{{jobModel.state && jobModel.state == 'COMPLETED'?'history/':''}}variable-instance/{{file.id}}/data">{{file.valueInfo.filename}} (Old version, read only)</a></div>
                 <div class="col-md-12" ng-if="file.value">&nbsp;&nbsp;&nbsp;&nbsp;{{$index+1}}.<a ng-click="download(file.value)">{{file.value.name}}</a></div>
@@ -68,8 +76,18 @@
     <div class="row" ng-if="jobModel.kcellWarehouseMaterialsListName.value.name && isFileVisible(jobModel.kcellWarehouseMaterialsListName.value)">
         <div class="col-md-12"><b>Kcell Warehouse Materials List:</b> <a ng-click="download(jobModel.kcellWarehouseMaterialsListName.value)">{{jobModel.kcellWarehouseMaterialsListName.value.name}}</a></div>
     </div>
+    <div class="row" ng-if="jobModel.kcellWarehouseMaterialsListName.value && jobModel.kcellWarehouseMaterialsListName.value.length > 0">
+        <div class="col-md-12"><b>Kcell Warehouse Materials List:</b> 
+            <a ng-if="isFileVisible(file)" ng-repeat="file in jobModel.kcellWarehouseMaterialsListName.value" ng-click="download(file)">{{file.name}}{{$last?'':', '}}</a>
+        </div>
+    </div>
     <div class="row" ng-if="jobModel.kcellWarehouseMaterialsList.contentUrl">
         <div class="col-md-12"><a href="{{jobModel.kcellWarehouseMaterialsList.contentUrl}}">Kcell Warehouse Materials List: <i>{{jobModel.kcellWarehouseMaterialsList.valueInfo.filename}}</i> (Old version, read only)</a></div>
+    </div>
+    <div class="row" ng-if="jobModel.kcellWarehouseMaterialsAdditionalList.value && jobModel.kcellWarehouseMaterialsAdditionalList.value.length>0">
+        <div class="col-md-12"><b>Kcell Warehouse Additional Materials List:</b> 
+            <a ng-if="isFileVisible(file)" ng-repeat="file in jobModel.kcellWarehouseMaterialsAdditionalList.value" ng-click="download(file)">{{file.name}}{{$last?'':', '}}</a>
+        </div>
     </div>
     <div class="row" ng-if="jobModel.contractorZIPWarehouseMaterialsListName.value.name && isFileVisible(jobModel.contractorZIPWarehouseMaterialsListName.value)">
         <div class="col-md-12"><b>Contractor ZIP Warehouse Materials List:</b> <a ng-click="download(jobModel.contractorZIPWarehouseMaterialsListName.value)">{{jobModel.contractorZIPWarehouseMaterialsListName.value.name}}</a></div>
@@ -110,30 +128,151 @@
             </div>
         </div>
     </div>
+    <div ng-if="jobModel.trAdditionalFilesName.value && jobModel.trAdditionalFilesName.value.length > 0">
+        <div class="row" ng-repeat="trFile in jobModel.trAdditionalFilesName.value">
+            <div class="col-md-12">
+                <b>TR Additional File #{{trFile.description}}</b>
+                <a ng-if="isFileVisible(trFile)" ng-click="download(trFile)">{{trFile.name}}</a>
+                <b> Warehouse:</b> {{getDictNameById(jobModel.warehouses,trFile.warehouse).name}}
+            </div>
+        </div>
+    </div>
     <div class="row" ng-if="jobModel.actOfMaterialsDispatchingFile.contentUrl">
         <div class="col-md-12"><a href="{{jobModel.actOfMaterialsDispatchingFile.contentUrl}}">Act of Materials Dispatching file: <i>{{jobModel.actOfMaterialsDispatchingFile.valueInfo.filename}}</i> (Old version, read only)</a></div>
     </div>
     <div class="row" ng-if="jobModel.actOfMaterialsDispatchingFileName.value.name && isFileVisible(jobModel.actOfMaterialsDispatchingFileName.value)">
         <div class="col-md-12"><b>Act of Materials Dispatching file: </b><a ng-click="download(jobModel.actOfMaterialsDispatchingFileName.value)">{{jobModel.actOfMaterialsDispatchingFileName.value.name}}</a></div>
     </div>
+    <div ng-if="jobModel.actOfMaterialsDispatchingFiles.value">
+        <div class="row" ng-repeat="file in jobModel.actOfMaterialsDispatchingFiles.value">
+            <div class="col-md-12">
+                <b>Act of Materials Dispatching file [{{file.uploader}}]: </b>
+                <a ng-if="isFileVisible(file)" ng-click="download(file)">
+                    {{file.name}}
+                </a>
+            </div>
+        </div>
+    </div>
     <div class="row" ng-if="jobModel.initiatorFiles.value && jobModel.initiatorFiles.value.length>0">
         <div class="col-md-12"><b>Initiator file(s):</b> 
-            <a ng-if="isFileVisible(file.value)" ng-repeat="file in jobModel.initiatorFiles.value" ng-click="download(file.value)">{{file.value.name}} {{$last?'':','}}</a>
+            <a ng-if="isFileVisible(file.value)" ng-repeat="file in jobModel.initiatorFiles.value" ng-click="download(file.value)">{{file.value.name}}{{$last?'':', '}}</a>
         </div>
     </div>
     <div class="row" ng-if="jobModel.maintananceFiles.value && jobModel.maintananceFiles.value.length>0">
         <div class="col-md-12"><b>Maintanance file(s):</b> 
-            <a ng-if="isFileVisible(file.value)" ng-repeat="file in jobModel.maintananceFiles.value" ng-click="download(file.value)">{{file.value.name}} {{$last?'':','}}</a>
+            <a ng-if="isFileVisible(file.value)" ng-repeat="file in jobModel.maintananceFiles.value" ng-click="download(file.value)">{{file.value.name}}{{$last?'':', '}}</a>
         </div>
     </div>
     <div class="row" ng-if="jobModel.planningFiles.value && jobModel.planningFiles.value.length>0">
         <div class="col-md-12"><b>Planning file(s):</b> 
-            <a ng-if="isFileVisible(file.value)" ng-repeat="file in jobModel.planningFiles.value" ng-click="download(file.value)">{{file.value.name}} {{$last?'':','}}</a>
+            <a ng-if="isFileVisible(file.value)" ng-repeat="file in jobModel.planningFiles.value" ng-click="download(file.value)">{{file.value.name}}{{$last?'':', '}}</a>
         </div>
     </div>
-    <div class="row" ng-if="jobModel.scanCopyFile && jobModel.scanCopyFile.value && jobModel.scanCopyFile.value.length > 0">
-        <div class="col-md-12"><b>Attached scan copy</b>:</div>
-        <div class="col-md-12" ng-repeat="file in jobModel.scanCopyFile.value track by $index"><a ng-if="isFileVisible(file)" ng-click="download(file)">{{file.name}}</a></div>
+    <div class="row" ng-if="jobModel.scanCopyFile && jobModel.scanCopyFile.value">
+        <div class="col-md-12"><b>Attached scan copy:</b>
+            <a ng-click="download(jobModel.scanCopyFile.value.value)">{{jobModel.scanCopyFile.value.value.name}}</a>
+        </div>
     </div>
+</div>
 
+<div class="collapse" id="collapseDelayInfo">
+    <div class="well">
+        <h4>Delay Info Calculations</h4>
+        <table class="table table-bordered">
+            <tbody>
+                <tr>
+                    <td><b>Revision</b></td>
+                    <td></td>
+                </tr>
+                <tr>
+                    <td><b>Region</b></td>
+                    <td><b>Calculation</b></td>
+                </tr>
+                <tr>
+                    <td><b>Conditions:</b></td>
+                    <td><b>Alarms elimination require</b></td>
+                </tr>
+                <tr>
+                    <td>Almaty</td>
+                    <td>Delay = Job Acceptance Date - Job Request Date - (8 business day + holidays)</td>
+                </tr>
+                <tr>
+                    <td>South</td>
+                    <td>Delay = Job Acceptance Date - Job Request Date - (8 business day + holidays)</td>
+                </tr>
+                <tr>
+                    <td>North</td>
+                    <td>Delay = Job Acceptance Date - Job Request Date - (8 business day + holidays)</td>
+                </tr>
+                <tr>
+                    <td>West</td>
+                    <td>Delay = Job Acceptance Date - Job Request Date - (8 business day + holidays)</td>
+                </tr>
+                <tr>
+                    <td></td>
+                    <td></td>
+                </tr>
+                <tr>
+                    <td><b>Region</b></td>
+                    <td><b>Calculation</b></td>
+                </tr>
+                <tr>
+                    <td><b>Conditions:</b></td>
+                    <td><b>Alarms elimination not require + with Mterials from customer</b></td>
+                </tr>
+                <tr>
+                    <td>Almaty</td>
+                    <td>Delay = Job Acceptance Date - Material List signed Date - (7 business days + holidays)</td>
+                </tr>
+                <tr>
+                    <td>South</td>
+                    <td>Delay = Job Acceptance Date - Material List signed Date - (10 business days + holidays)</td>
+                </tr>
+                <tr>
+                    <td>North</td>
+                    <td>Delay = Job Acceptance Date - Material List signed Date - (10 business days + holidays)</td>
+                </tr>
+                <tr>
+                    <td>East</td>
+                    <td>Delay = Job Acceptance Date - Material List signed Date - (13 business days + holidays)</td>
+                </tr>
+                <tr>
+                    <td>West</td>
+                    <td>Delay = Job Acceptance Date - Material List signed Date - (15 business days + holidays)</td>
+                </tr>
+                <tr>
+                    <td></td>
+                    <td></td>
+                </tr>
+                <tr>
+                    <td><b>Region</b></td>
+                    <td><b>Calculation</b></td>
+                </tr>
+                <tr>
+                    <td><b>Conditions:</b></td>
+                    <td><b>Alarms elimination not require + w/o Mterials from customer</b></td>
+                </tr>
+                <tr>
+                    <td>Almaty</td>
+                    <td>Delay = Job Acceptance Date - Job Request Date - (5 business days + holidays)</td>
+                </tr>
+                <tr>
+                    <td>South</td>
+                    <td>Delay = Job Acceptance Date - Job Request Date - (5 business days + holidays)</td>
+                </tr>
+                <tr>
+                    <td>North</td>
+                    <td>Delay = Job Acceptance Date - Job Request Date - (5 business days + holidays)</td>
+                </tr>
+                <tr>
+                    <td>East</td>
+                    <td>Delay = Job Acceptance Date - Job Request Date - (5 business days + holidays)</td>
+                </tr>
+                <tr>
+                    <td>West</td>
+                    <td>Delay = Job Acceptance Date - Job Request Date - (5 business days + holidays)</td>
+                </tr>
+            </tbody>
+        </table>
+    </div>
 </div>

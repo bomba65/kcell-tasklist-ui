@@ -4,5 +4,7 @@ define([
 	'./statisticsCtrl',
 	'./taskController',
 	'./processesCtrl',
-	'./searchCtrl'
+	'./searchCtrl',
+	'./minioCtrl',
+	'./massApproveCtrl'
 	], function(){});

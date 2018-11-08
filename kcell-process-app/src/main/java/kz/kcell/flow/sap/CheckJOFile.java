@@ -59,7 +59,7 @@ public class CheckJOFile implements JavaDelegate {
                     }
                 );
             }
-            delegateExecution.setVariable("joFileCheckResult", "succes");
+            delegateExecution.setVariable("joFileCheckResult", "success");
         } else {
             if(isSftp){
                 String errorFilePath = sftpRemoteDirectoryJoJrError + "/" + name;

@@ -1,0 +1,321 @@
+<form role="form" class="form-horizontal" name="kcell_form" novalidate>
+    <script cam-script type="text/form-script">
+        inject(['$scope', '$http', 'Uri', '$rootScope', '$q', '$timeout', function ($scope, $http, Uri, $rootScope, $q, $timeout) {
+            camForm.on('form-loaded', function () {
+                var currentDate = new Date();
+                $scope.finalBands = {};
+                $scope.bands = [ {'title':'G900', 'value': false}, {'title':'G1800', 'value': false}, {'title':'U900', 'value': false}, {'title':'U2100', 'value': false}, {'title':'L800', 'value': false}, {'title':'L1800', 'value': false}, {'title':'L2100', 'value': false}, {'title':'L2600', 'value': false} ];
+                $scope.dictionary = {};
+                $scope.project = '';
+                $scope.years = [currentDate.getFullYear(), currentDate.getFullYear()-1, currentDate.getFullYear()-2, currentDate.getFullYear()-3, currentDate.getFullYear()-4];
+                console.log($scope.years)
+                $scope.dictionary.siteType = ['HopPoint', 'Mobile', 'SItes', 'Repeater', '2GSite', '32GSite', '4GSite', '42GSite', '43GSite', '432GSite'];
+                $scope.dictionary.initiators = ['Beeline','Commercial Block','Commercial Block 2','Commercial Block 3','Kcell +','RND', 'VIP'];
+
+                $scope.dictionary.regions = [
+                    {id: 'almaty', name: 'Almaty'},
+                    {id: 'astana', name: 'Astana'},
+                    {id: 'nc', name: 'North and Center'},
+                    {id: 'east', name: 'East'},
+                    {id: 'south', name: 'South'},
+                    {id: 'west', name: 'West'}
+                ];
+                $scope.dictionary.projects = [
+                    {'initiator':'Beeline','project':['AlmatyNetCo', 'LTE 2017']},
+                    {'initiator':'Commercial Block','project':['2016 E// co sites', '2016 ZTE 200 sites', '2016 SWAP 3000 to 6000', '2016 ZTE 75 new sites', '2016 E// 94 new sites', '1.Comm Block New Coverage', '1.Comm Block Quality', '1.Corporate Client', '3G license', '1.Indoor (old)']},
+                    {'initiator':'Commercial Block 2','project':['2016 E// co sites', '2016 ZTE 200 sites', '2016 SWAP 3000 to 6000', '2016 ZTE 75 new sites', '2016 E// 94 new sites', '1.Comm Block New Coverage', '1.Comm Block Quality', '1.Corporate Client', '3G license']},
+                    {'initiator':'Commercial Block 3','project':['LTE 2018', '2016 E// co sites', '2016 ZTE 200 sites', '2016 SWAP 3000 to 6000', '2016 ZTE 75 new sites', '2016 E// 94 new sites', '1.Comm Block New Coverage', '1.Comm Block Quality', '1.Corporate Client']},
+                    {'initiator':'RND','project':['VIP', 'LTE 2018', 'AlmatyNetCo', 'Revision', '2G+3G Roll-out 2017', 'EXPO-2017', '2017 West SWAP', 'LTE 2017', 'TaldykNetCo', 'LTE 2016', 'LTE Golden Cluster', '2016 E// co sites', '2016 ZTE 200 sites', '2016 SWAP 3000 to 6000', '2016 ZTE 75 new sites', '2016 E// 94 new sites', 'RBS 3000 SWAP', 'Tower Exchange/ RND', '1.RND', '3G license', '1.Alternative to Dismantled Site', '1.Indoor (old)', '1.License settlement']},
+                    {'initiator':'VIP','project':['2016 E// 94 new sites']}
+                ];
+                $scope.dictionary.reasons = [
+                    {'reason':'1.Capacity', 'project':['1.RND', '1.Comm Block Quality', 'AlmatyNetCo', '2G+3G Roll-out 2017', '1.Corporate Client', '2016 ZTE 200 sites', '2016 E// co sites', 'LTE 2017', '2016 E// 94 new sites', '2016 ZTE 75 new sites', 'TaldykNetCo', '1.Indoor (old)', '2017 West SWAP', '2016 SWAP 3000 to 6000', 'LTE 2018']},
+                    {'reason':'1.New Coverage', 'project':['1.RND', '1.Comm Block New Coverage', 'LTE Golden Cluster', '2G+3G Roll-out 2017', '1.Corporate Client', '3G license', '2016 ZTE 200 sites', '2016 E// co sites', 'LTE 2016', 'LTE 2017', '2016 E// 94 new sites', '2016 ZTE 75 new sites', 'TaldykNetCo', '1.License settlement', '1.Alternative to Dismantled Site', '2017 West SWAP', 'LTE 2018']},
+                    {'reason':'1.Quality', 'project':[ 'EXPO-2017', '1.RND', '1.Comm Block Quality', 'Revision', 'Tower Exchange/ RND', '2G+3G Roll-out 2017', '1.Corporate Client', '2016 ZTE 200 sites', '2016 E// co sites', 'LTE 2017', '2016 E// 94 new sites', '2016 ZTE 75 new sites', 'TaldykNetCo', '1.Indoor (old)', '1.Alternative to Dismantled Site', '2017 West SWAP', '2016 SWAP 3000 to 6000', 'LTE 2018']},
+                    {'reason':'Indoor design site', 'project':['2G+3G Roll-out 2017', '1.Corporate Client', '2016 E// 94 new sites', '2016 ZTE 75 new sites']},
+                    {'reason':'SWAP', 'project':['RBS 3000 SWAP', '2016 SWAP 3000 to 6000']},
+                    {'reason':'VIP request', 'project':['VIP']}
+                ];
+                $scope.dictionary.rbsType = [
+                    {'siteType':'2GSite', 'rbsType':'2202'},
+                    {'siteType':'2GSite', 'rbsType':'2206'},
+                    {'siteType':'2GSite', 'rbsType':'2302'},
+                    {'siteType':'2GSite', 'rbsType':'2111'},
+                    {'siteType':'2GSite', 'rbsType':'2116'},
+                    {'siteType':'2GSite', 'rbsType':'2216'},
+                    {'siteType':'2GSite', 'rbsType':'2409'},
+                    {'siteType':'2GSite', 'rbsType':'2308'},
+                    {'siteType':'3GSite', 'rbsType':'6101'},
+                    {'siteType':'3GSite', 'rbsType':'6601'},
+                    {'siteType':'3GSite', 'rbsType':'6501'},
+                    {'siteType':'3GSite', 'rbsType':'6202'},
+                    {'siteType':'3GSite', 'rbsType':'3216'},
+                    {'siteType':'3GSite', 'rbsType':'3308'},
+                    {'siteType':'3GSite', 'rbsType':'3106'},
+                    {'siteType':'3GSite', 'rbsType':'3206'},
+                    {'siteType':'3GSite', 'rbsType':'3418'},
+                    {'siteType':'3GSite', 'rbsType':'3518'},
+                    {'siteType':'4GSite', 'rbsType':'6201'},
+                    {'siteType':'4GSite', 'rbsType':'6501'},
+                    {'siteType':'4GSite', 'rbsType':'6601'},
+                    {'siteType':'4GSite', 'rbsType':'6101'},
+                    {'siteType':'4GSite', 'rbsType':'6202'},
+                    {'siteType':'4GSite', 'rbsType':'6102'},
+                    {'siteType':'432GSite', 'rbsType':'6102'},
+                    {'siteType':'432GSite', 'rbsType':'6201'},
+                    {'siteType':'432GSite', 'rbsType':'6101'},
+                    {'siteType':'432GSite', 'rbsType':'6601'},
+                    {'siteType':'42GSite', 'rbsType':'6601'},
+                    {'siteType':'42GSite', 'rbsType':'6201'},
+                    {'siteType':'42GSite', 'rbsType':'6102'},
+                    {'siteType':'42GSite', 'rbsType':'6101'},
+                    {'siteType':'43GSite', 'rbsType':'6101'},
+                    {'siteType':'43GSite', 'rbsType':'6102'},
+                    {'siteType':'43GSite', 'rbsType':'6201'},
+                    {'siteType':'43GSite', 'rbsType':'6601'},
+                    {'siteType':'32GSite', 'rbsType':'6601'},
+                    {'siteType':'32GSite', 'rbsType':'6501'},
+                    {'siteType':'32GSite', 'rbsType':'8800'},
+                    {'siteType':'32GSite', 'rbsType':'8900'},
+                    {'siteType':'32GSite', 'rbsType':'6102'},
+                    {'siteType':'32GSite', 'rbsType':'8700'},
+                    {'siteType':'32GSite', 'rbsType':'6101'},
+                    {'siteType':'32GSite', 'rbsType':'6000'},
+                    {'siteType':'32GSite', 'rbsType':'8X00'},
+                    {'siteType':'32GSite', 'rbsType':'6201'}
+                ];
+
+                camForm.variableManager.createVariable({
+                    name: 'bands',
+                    value: [],
+                    type: 'Json'
+                });
+
+                camForm.variableManager.createVariable({
+                    name: 'regionName',
+                    value: '',
+                    type: 'String'
+                });
+            });
+
+
+
+            camForm.on('submit', function (evt) {
+                camForm.variableManager.variableValue('bands', $scope.selectedBands);
+                // evt.submitPrevented = true;
+                //var date = new Date();
+                // var businessKey = 'IVR_' + $scope.id[0].title + '_' + ("0" + date.getDate().toString()).slice(-2) + ("0" + (date.getMonth() + 1)).toString().slice(-2) + date.getFullYear().toString();
+                // camForm.businessKey = businessKey;
+                // camForm.variableManager.variableValue('identifiers', $scope.id);
+                camForm.variableManager.variableValue('regionName', $scope.regionName);
+            });
+
+            $scope.$watch('bands', function (bands) {
+                $scope.selectedBands = [];
+                bands.forEach(function(b){
+                    if (b.value) {
+                        $scope.selectedBands.push(b)
+                    }
+                })
+            }, true);
+
+            $scope.$watch('initiator', function (initiator) {
+                $scope.projectsByInitiator = {};
+                $scope.reasonsByProject = [];
+                $scope.projectsByInitiator = _.find($scope.dictionary.projects, function (p) {
+                    return p.initiator === initiator;
+                })
+            }, true);
+
+            $scope.$watch('project', function (project) {
+                $scope.reasonsByProject = [];
+                $scope.reasonsByProject = _.filter($scope.dictionary.reasons, function (r) {
+                    if (_.find(r.project, function (p) {return p === project; }) ) { return true} else return false;
+                })
+            }, true);
+
+            $scope.$watch('ncpID', function (ncpID) {
+                if(ncpID && ncpID.length === 5){
+                    var firstElement = ncpID.charAt(0);
+                    var secondElement = ncpID.charAt(0);
+                    if(firstElement === '0'){
+                        $scope.region = 'almaty';
+                    } else if(firstElement === '1' && secondElement === '1'){
+                        $scope.region = 'astana';
+                    } else if(firstElement === '1' || firstElement === '2'){
+                        $scope.region = 'nc';
+                    } else if(firstElement === '3'){
+                        $scope.region = 'east';
+                    } else if(firstElement === '4'){
+                        $scope.region = 'south';
+                    } else if(firstElement === '5' || firstElement === '6' || firstElement === '7'  || firstElement === '8'){
+                        $scope.region = 'west';
+                    } else if(firstElement === '9'){
+                        $scope.region = undefined;
+                    }
+
+                    if(firstElement !== '9'){
+                        $scope.regionSelected($scope.region);
+                    }
+                }
+            }, true);
+
+            $scope.regionSelected = function(region){
+                $scope.regionName = _.find($scope.dictionary.regions, function (r) {
+                    return r.id === region;
+                }).name;
+            }
+        }]);
+
+    </script>
+    <div class="form-group">
+        <h4>Create NCP</h4>
+    </div>
+
+    <div class="form-group">
+        <label class="col-sm-4 control-label">NCP ID:</label>
+        <div class="col-sm-4">
+            <input class="form-control" id="ncpID" name="ncpID" required ng-model="ncpID" cam-variable-name="ncpID" cam-variable-type="String" limit-to="5" numbers-only>
+            <label class="error" ng-show="kcell_form.ncpID.$error.required && ( kcell_form.ncpID.$touched || view.submitted)">Required field</label>
+        </div>
+    </div>
+    <div class="form-group">
+        <label class="col-sm-4 control-label">Type:</label>
+        <div class="col-sm-4">
+            <select class="form-control" id="siteType" name="siteType"
+                    cam-variable-name="siteType" cam-variable-type="String"
+                    ng-model="siteType"
+                    required>
+                <option ng-repeat="type in dictionary.siteType">{{type}}</option>
+            </select>
+            <label class="error" ng-show="kcell_form.siteType.$error.required && ( kcell_form.siteType.$touched || view.submitted)">Required field</label>
+        </div>
+    </div>
+    <div class="form-group">
+        <label class="col-sm-4 control-label">Region name:</label>
+        <div class="col-sm-4">
+            <select class="form-control" id="region" name="region"
+                    cam-variable-name="region" cam-variable-type="String"
+                    ng-model="region"
+                    ng-change="regionSelected(region)"
+                    required ng-disabled="!ncpID.startsWith('9')">
+                <option value="{{r.id}}" ng-repeat="r in dictionary.regions" ng-selected="{{r.id == region}}">{{r.name}}</option>
+            </select>
+            <label class="error" ng-show="kcell_form.region.$error.required && ( kcell_form.region.$touched || view.submitted)">Required field</label>
+        </div>
+    </div>
+    <div class="form-group">
+        <label class="col-sm-4 control-label">Latitude:</label>
+        <div class="col-sm-4">
+            <input class="form-control" id="latitude" name="latitude" required ng-model="latitude" cam-variable-name="latitude" cam-variable-type="String">
+            <label class="error" ng-show="kcell_form.latitude.$error.required && ( kcell_form.latitude.$touched || view.submitted)">Required field</label>
+        </div>
+        <label class="col-sm-4 control-label">E.g. "N 12 34 56,7" or "N 12,345678"</label>
+    </div>
+    <div class="form-group">
+        <label class="col-sm-4 control-label">Longitude:</label>
+        <div class="col-sm-4">
+            <input class="form-control" id="longitude" name="longitude" required ng-model="longitude" cam-variable-name="longitude" cam-variable-type="String">
+            <label class="error" ng-show="kcell_form.longitude.$error.required && ( kcell_form.longitude.$touched || view.submitted)">Required field</label>
+        </div>
+        <label class="col-sm-4 control-label">E.g. "E 12 34 56,7" or "E 12,345678"</label>
+    </div>
+    <div class="form-group">
+        <label class="col-sm-4 control-label">Initiator:</label>
+        <div class="col-sm-4">
+            <select class="form-control" id="initiator" name="initiator"
+                    cam-variable-name="initiator" cam-variable-type="String"
+                    ng-model="initiator"
+                    required>
+                <option ng-repeat="i in dictionary.initiators">{{i}}</option>
+            </select>
+            <label class="error" ng-show="kcell_form.initiator.$error.required && ( kcell_form.initiator.$touched || view.submitted)">Required field</label>
+        </div>
+    </div>
+
+    <div class="form-group">
+        <label class="col-sm-4 control-label">Project:</label>
+        <div class="col-sm-4">
+            <select class="form-control" id="project" name="project"
+                    cam-variable-name="project" cam-variable-type="String"
+                    ng-disabled="!projectsByInitiator"
+                    ng-model="project"
+                    ng-required="projectsByInitiator">
+                <option ng-repeat="pr in projectsByInitiator.project">{{pr}}</option>
+            </select>
+            <label class="error" ng-show="kcell_form.project.$error.required && ( kcell_form.project.$touched || view.submitted)">Required field</label>
+        </div>
+    </div>
+
+    <div class="form-group">
+        <label class="col-sm-4 control-label">Reason:</label>
+        <div class="col-sm-4">
+            <select class="form-control" id="reason" name="reason"
+                    cam-variable-name="reason" cam-variable-type="String"
+                    ng-disabled="!reasonsByProject || reasonsByProject.length == 0"
+                    ng-required="reasonsByProject && reasonsByProject.length !== 0"
+                    ng-model="reason"
+                    required>
+                <option ng-repeat="r in reasonsByProject">{{r.reason}}</option>
+            </select>
+            <label class="error" ng-show="kcell_form.reason.$error.required && ( kcell_form.reason.$touched || view.submitted)">Required field</label>
+        </div>
+    </div>
+
+    <div class="form-group">
+        <label class="col-sm-4 control-label">Part:</label>
+        <div class="col-sm-4">
+            <select class="form-control" id="part" name="part"
+                    cam-variable-name="part" cam-variable-type="String"
+                    ng-model="part"
+                    required>
+                <option ng-repeat="y in years">{{y}}</option>
+            </select>
+            <label class="error" ng-show="kcell_form.part.$error.required && ( kcell_form.part.$touched || view.submitted)">Required field</label>
+        </div>
+    </div>
+
+    <div class="form-group">
+        <label class="control-label col-sm-4">Target Coverage</label>
+        <div class="col-sm-4" style="margin-top: 5px">
+            <textarea style="resize:vertical;"  class="form-control" rows="4" maxlength="500" name="targetCoverage" cam-variable-name="targetCoverage" cam-variable-type="String" ng-model="targetCoverage"></textarea>
+        </div>
+    </div>
+
+    <div class="form-group">
+        <label class="col-sm-4 control-label">Planned cabinet type:</label>
+        <div class="col-sm-4">
+            <select class="form-control" id="plannedCabinetType" name="plannedCabinetType"
+                    ng-model="plannedCabinetType"
+                    cam-variable-name="plannedCabinetType" cam-variable-type="String"
+                    required>
+                <option value="Indoor">Indoor</option>
+                <option value="Outdoor">Outdoor</option>
+            </select>
+            <label class="error" ng-show="kcell_form.plannedCabinetType.$error.required && ( kcell_form.plannedCabinetType.$touched || view.submitted)">Required field</label>
+        </div>
+    </div>
+
+    <div class="form-group">
+        <label class="col-sm-4 control-label">RBS type:</label>
+        <div class="col-sm-4">
+            <select class="form-control" id="rbsType" name="rbsType"
+                    cam-variable-name="rbsType" cam-variable-type="String"
+                    ng-model="rbsType" required>
+                <option ng-repeat="r in dictionary.rbsType">{{r.rbsType}}</option>
+            </select>
+            <label class="error" ng-show="kcell_form.rbsType.$error.required && ( kcell_form.rbsType.$touched || view.submitted)">Required field</label>
+        </div>
+    </div>
+    <div class="form-group">
+        <label class="col-sm-4 control-label">Bands:</label>
+        <div class="col-sm-4">
+            <div class="form-check col-sm-6" ng-repeat="band in bands track by $index">
+                <input type="checkbox" name="bandValues" ng-model="band.value" class="form-check-input" id="{{'check' + $index}}" ng-required="!selectedBands || selectedBands.length==0">
+                <label class="form-check-label" for="{{'check' + $index}}">{{ band.title }}</label>
+            </div>
+            <label class="error" ng-show="kcell_form.bandValues.$error.required && ( kcell_form.bandValues.$touched || view.submitted)">Required field</label>
+        </div>
+    </div>
+    <label class="col-sm-8 control-label pull-left">Selected bands: <span ng-repeat="band in selectedBands" >{{$index == 0?' ': ' + ' }}{{band.title}}</span></label>
+</form>

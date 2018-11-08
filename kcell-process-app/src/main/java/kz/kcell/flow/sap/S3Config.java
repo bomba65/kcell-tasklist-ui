@@ -29,9 +29,6 @@ public class S3Config {
     @Autowired
     private AmazonS3 amazonS3;
 
-    @Autowired
-    private Environment environment;
-
     @Value("${s3.bucket.jojr:jojr}")
     private String jojrBucketName;
 
@@ -40,10 +37,10 @@ public class S3Config {
 
     @EventListener
     protected void makeBucket(ApplicationReadyEvent event) {
-        if(!amazonS3.doesBucketExist(jojrBucketName)){
+        if(!amazonS3.doesBucketExistV2(jojrBucketName)){
             amazonS3.createBucket(jojrBucketName);
         }
-        if(!amazonS3.doesBucketExist(prBucketName)){
+        if(!amazonS3.doesBucketExistV2(prBucketName)){
             amazonS3.createBucket(prBucketName);
         }
     }
@@ -61,6 +58,12 @@ public class S3Config {
     }
 
     @Bean
+    @ServiceActivator(inputChannel = "toPrStatusProcessedChannel")
+    public MessageHandler toPrStatusProcessedS3MessageHandler() {
+        return new S3MessageHandler(amazonS3, prBucketName + "/" + "PR_status_processed");
+    }
+
+    @Bean
     public RemoteFileTemplate template() {
         return new S3RemoteFileTemplate(amazonS3);
     }
@@ -73,5 +76,8 @@ public class S3Config {
 
         @Gateway(requestChannel = "toPrChannel")
         void uploadPr(File file);
+
+        @Gateway(requestChannel = "toPrStatusProcessedChannel")
+        void uploadPrStatusProcessed(File file);
     }
 }

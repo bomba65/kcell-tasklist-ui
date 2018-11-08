@@ -13,7 +13,10 @@ import java.util.Comparator;
 @Entity
 @Table(
         name = "location",
-        uniqueConstraints = @UniqueConstraint(name = "location_unique_name", columnNames = "name")
+        uniqueConstraints = {
+            @UniqueConstraint(name = "location_unique_name", columnNames = "name"),
+            @UniqueConstraint(name = "location_unique_sitename", columnNames = "sitename")
+        }
 )
 public  @Data @Builder @NoArgsConstructor @AllArgsConstructor
 @EqualsAndHashCode(exclude = {"version"})
@@ -26,8 +29,8 @@ class Location implements Comparable<Location> {
     @Size(min = 4)
     String name;
 
-    @OneToOne
-    Site site;
+    @Size(min = 5)
+    String sitename;
 
     @NotBlank
     @JsonRawValue

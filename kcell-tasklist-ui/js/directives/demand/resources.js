@@ -1,19 +1,19 @@
 define(['./../module'], function(module){
-	'use strict';
-	module.directive('demandResources', function ($rootScope, $http, $timeout) {
-		return {
-			restrict: 'E',
-			scope: {
+    'use strict';
+    module.directive('demandResources', function ($rootScope, $http, $timeout) {
+        return {
+            restrict: 'E',
+            scope: {
                 data: '=',
                 form: '=',
                 view: '=',
                 disabled: '=',
                 editprice: '=',
                 showprice: '='
-			},
-			link: function(scope, el, attrs) {
+            },
+            link: function(scope, el, attrs) {
 
-			    var setHeight = function() {
+                var setHeight = function() {
                     var element = el[0].querySelector('.resources-container');
                     element.style.height = 'auto';
                     element.style.height = (element.scrollHeight) + 'px';
@@ -549,7 +549,7 @@ define(['./../module'], function(module){
                     }
                 };
             },
-			templateUrl: './js/directives/demand/resources.html'
-		};
-	});
+            templateUrl: './js/directives/demand/resources.html'
+        };
+    });
 });

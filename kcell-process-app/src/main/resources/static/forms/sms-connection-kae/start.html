@@ -1,0 +1,179 @@
+<form role="form" class="form-horizontal" name="kcell_form" novalidate>
+    <script cam-script type="text/form-script">
+        inject(['$scope', '$http', 'Uri', '$rootScope', '$q', '$timeout', function ($scope, $http, Uri, $rootScope, $q, $timeout) {
+            camForm.on('form-loaded', function () {
+                camForm.variableManager.createVariable({
+                    name: 'operatorType',
+                    value: '',
+                    type: 'String'
+                });
+                camForm.variableManager.createVariable({
+                    name: 'provider',
+                    value: '',
+                    type: 'String'
+                });
+                camForm.variableManager.createVariable({
+                    name: 'identifierType',
+                    value: '',
+                    type: 'String'
+                });
+                camForm.variableManager.createVariable({
+                    name: 'identifiers',
+                    type: 'json',
+                    value: ''
+                });
+                camForm.variableManager.createVariable({
+                    name: 'finalIDs',
+                    value: '',
+                    type: 'String'
+                });
+                camForm.variableManager.createVariable({
+                    name: 'operators',
+                    type: 'json',
+                    value: ''
+                });
+                $scope.identifier = [];
+                $scope.id = [];
+                $scope.requestedDate = new Date();
+                $scope.offnetOperators = [
+                    {id: 'kcell', name: 'Kcell', isAvailable: true},
+                    {id: 'beeline', name: 'Beeline'},
+                    {id: 'tele2', name: 'Tele2'},
+                    {id: 'altel', name: 'Altel'}
+                ];
+                $scope.onnetOperators = [
+                    {id: 'kcell', name: 'Kcell'}
+                ];
+            });
+
+            camForm.on('submit', function (evt) {
+                var date = new Date();
+                //var businessKey = 'SMS_' + ("0" + date.getDate().toString()).slice(-2) + ("0" + (date.getMonth() + 1)).toString().slice(-2) + date.getFullYear().toString() + '_' + ("0" + date.getHours()).toString().slice(-2) + ("0" + date.getMinutes()).toString().slice(-2) + ("0" + date.getSeconds()).toString().slice(-2);
+                // evt.submitPrevented = true;
+                camForm.variableManager.variableValue('operatorType', $scope.operatorType);
+                camForm.variableManager.variableValue('identifierType', $scope.identifierType);
+                if ($scope.identifier) {
+                    $scope.id.push({'title': $scope.identifier, 'operators': []});
+                }
+                var finalIDs = '';
+                _.forEach($scope.id, function(i) {
+                    finalIDs = finalIDs + (finalIDs ? ',' : '') + i.title
+                });
+                camForm.variableManager.variableValue('finalIDs', finalIDs);
+                if ($scope.operatorType === 'offnet') {
+                    camForm.variableManager.variableValue('provider', $scope.provider);
+                    camForm.variableManager.variableValue('operators', $scope.offnetOperators);
+                    _.forEach($scope.id, function(id) {
+                        id.operators = $scope.offnetOperators;
+                    });
+                } else {
+                    camForm.variableManager.destroyVariable('provider');
+                    camForm.variableManager.variableValue('operators', $scope.onnetOperators);
+                    _.forEach($scope.id, function(id) {
+                        id.operators = $scope.onnetOperators;
+                    });
+                }
+                var businessKey = 'SMS_' + $scope.id[0].title + '_' + ("0" + date.getDate().toString()).slice(-2) + ("0" + (date.getMonth() + 1)).toString().slice(-2) + date.getFullYear().toString();
+                camForm.businessKey = businessKey;
+                camForm.variableManager.variableValue('identifiers', $scope.id);
+
+            });
+
+            $scope.addIdentifier = function(identifier) {
+                if (identifier) {
+                    if(!_.find($scope.identifier, function (id) { return id.title === identifier; })) {
+                        $scope.identifier.push({'title': identifier, 'operators': []});
+                   }
+                   $scope.newIdentifier = '';
+                }
+            }
+
+            $scope.deleteIdentifier = function(index) {
+                $scope.identifier.splice(index, 1);
+            }
+
+            // $scope.$watch('identifier', function (identifier) {
+            //     if (identifier && identifier.length) {
+            //         $scope.kcell_form.newIdentifier.$setValidity('length', true);
+            //     } else {
+            //         $scope.kcell_form.newIdentifier.$setValidity('length', false);
+            //     }
+            // }, true);
+
+
+        }]);
+
+    </script>
+    <div class="form-group">
+        <h4>Начните процесс подключения</h4>
+        <h5>Перед тем как начать процесс подключения, убедитесь в том что номер доступен в Product Catalog</h5>
+    </div>
+    <div class="form-group">
+        <label class="col-sm-4 control-label">Тип идентификатора:</label>
+        <div class="col-sm-4">
+            <select class="form-control" id="identifierType"
+                    ng-model="identifierType"
+                    placeholder="Укажите тип идентификатора">
+                <option value="alfanumeric">Альфанумерик</option>
+                <option value="digital">Цифровой</option>
+            </select>
+        </div>
+    </div>
+    <div class="form-group">
+        <label class="col-sm-4 control-label">Тип трафика:</label>
+        <div class="col-sm-4">
+            <select class="form-control" id="operatorType" name="operatorType"
+                    ng-model="operatorType"
+                    placeholder="Укажите тип подключения" required>
+                <option value="onnet">Onnet</option>
+                <option value="offnet">Offnet\Onnet</option>
+            </select>
+            <label class="error" ng-show="kcell_form.operatorType.$error.required && ( kcell_form.operatorType.$touched || view.submitted)">Required field</label>
+        </div>
+    </div>
+    <!--<div class="form-group">-->
+        <!--<label class="col-sm-4 control-label">Идентификатор:</label>-->
+        <!--<div class="col-sm-4">-->
+            <!--<div  class="input-group" ng-submit="addIdentifier()">-->
+                <!--<input class="form-control" placeholder="Идентификатор" type="text" name="newIdentifier" ng-model="newIdentifier"/>-->
+                <!--<span class="input-group-btn">-->
+                    <!--<button class="btn btn-secondary" type="button" ng-click="addIdentifier(newIdentifier)">Добавить</button>-->
+                <!--</span>-->
+            <!--</div>-->
+            <!--<label class="error" ng-show="kcell_form.newIdentifier.$error.length && (kcell_form.iin.$touched || view.submitted)">Добавьте хотя бы 1 идентификатор</label>-->
+        <!--</div>-->
+    <!--</div>-->
+
+    <!--<div class="form-group" ng-show="identifier">-->
+        <!--<label class="col-sm-4 control-label"></label>-->
+        <!--<div class="col-sm-8">-->
+            <!--<span class="label label-primary mr-1" ng-repeat="id in identifier">-->
+                <!--{{id.title}}-->
+                <!--<span class="glyphicon glyphicon-remove" ng-click="deleteIdentifier($index)"></span>-->
+            <!--</span>-->
+        <!--</div>-->
+    <!--</div>-->
+    <div class="form-group">
+        <label class="col-sm-4 control-label">Идентификатор:</label>
+        <div class="col-sm-4">
+            <input class="form-control" type="{{identifierType === 'digital'?'number':'text'}}" id="identifier" name="identifier" required ng-model="identifier">
+            <label class="error" ng-show="kcell_form.identifier.$error.required && ( kcell_form.identifier.$touched || view.submitted)">Required field</label>
+        </div>
+    </div>
+    <div class="form-group" ng-show="operatorType === 'offnet' && !previouslyBought">
+        <label class="col-sm-4 control-label">Провайдер:</label>
+        <div class="col-sm-4">
+            <select class="form-control" id="provider" name="provider" ng-required="identifierType === 'digital && !previouslyBought'"
+                    ng-model="provider">
+                <option value="SMS Consult">SMS Consult</option>
+                <option value="MMS">MMS</option>
+                <option value="KIT">KIT</option>
+            </select>
+            <label class="error" ng-show="kcell_form.provider.$error.required && ( kcell_form.provider.$touched || view.submitted)">Required field</label>
+        </div>
+    </div>
+    <div class="form-check">
+        <input type="checkbox" ng-model="previouslyBought" class="form-check-input" id="check1" cam-variable-type="Boolean" cam-variable-name="previouslyBought">
+        <label class="form-check-label" for="check1">Ранее выкуплен</label>
+    </div>
+</form>

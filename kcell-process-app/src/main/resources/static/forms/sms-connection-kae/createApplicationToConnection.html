@@ -1,0 +1,983 @@
+<form role="form" class="form-horizontal" name="kcell_form" novalidate>
+    <script cam-script type="text/form-script">
+        inject(['$scope', '$http', 'Uri', '$rootScope', '$q', '$timeout', '$filter', function ($scope, $http, Uri, $rootScope, $q, $timeout, $filter) {
+            var uuid = new Date().getTime();
+            var variables = [
+                'identifiers',
+                'identifierType',
+                'operatorType',
+                'operators',
+                'resolutions',
+                'previouslyBought',
+                'finalIDs'
+            ];
+
+            camForm.on('form-loaded', function () {
+                variables.forEach(function (el) {
+                    camForm.variableManager.fetchVariable(el);
+                });
+                $http.get('/camunda/api/engine/engine/default/task/' + camForm.taskId).then(
+                        function(result){
+                            $scope.processInstanceId = result.data.processInstanceId;
+                        },
+                        function (error) {
+                            console.log(error.data);
+                        }
+                );
+                $scope.freephoneInfo = [];
+                $scope.freephoneInfo.files = [];
+            });
+
+            camForm.on('variables-fetched', function () {
+                variables.forEach(function (el) {
+                    if (el === 'resolutions') {
+                        if (camForm.variableManager.variables[el].value) {
+                            $scope.resolutions = angular.copy(camForm.variableManager.variables[el].value);
+                            $q.all($scope.resolutions.map(function (resolution) {
+                                if (resolution.assigneeName === undefined) {
+                                    return $http.get("/camunda/api/engine/engine/default/user/" + resolution.assignee + "/profile");
+                                } else {
+                                    return {data:{}};
+                                }
+                            })).then(function (profiles) {
+                                profiles.forEach(function (e, index) {
+                                    if ( $scope.resolutions[index].assigneeName === undefined) {
+                                        $scope.resolutions[index].assigneeName = (e.data.firstName ? e.data.firstName : "") + " " + (e.data.lastName ? e.data.lastName : "");
+                                    }
+                                });
+                            });
+                            /*
+                            $q.all($scope.resolutions.map(function (resolution) {
+                                return $http.get("/camunda/api/engine/engine/default/user/" + resolution.assignee + "/profile");
+                            })).then(function (profiles) {
+                                profiles.forEach(function (e, index) {
+                                    $scope.resolutions[index].assigneeName = (e.data.firstName ? e.data.firstName : "") + " " + (e.data.lastName ? e.data.lastName : "");
+                                });
+                            });
+                            */
+                            $q.all($scope.resolutions.map(function (resolution) {
+                                return $http.get("/camunda/api/engine/engine/default/history/task?processInstanceId=" + resolution.processInstanceId + "&taskId=" + resolution.taskId);
+                            })).then(function (tasks) {
+                                tasks.forEach(function (e, index) {
+                                    if (e.data.length > 0) {
+                                        $scope.resolutions[index].taskName = e.data[0].name;
+                                        try {
+                                            $scope.resolutions[index].taskEndDate = new Date(e.data[0].endTime);
+                                        } catch (e) {
+                                            console.log(e);
+                                        }
+                                    }
+                                });
+                            });
+                        } else {
+                            camForm.variableManager.destroyVariable('resolutions');
+                            camForm.variableManager.createVariable({
+                                name: 'resolutions',
+                                type: 'Json',
+                                value: ''
+                            });
+                        }
+                    } else {
+                        $scope[el] = camForm.variableManager.variables[el].value;
+                    }
+                });
+                $http.get("/camunda/api/engine/engine/default/user/" + $rootScope.authentication.name+ "/profile").then(function(result){
+                    $rootScope.authentication.assigneeName = (result.data.firstName ? result.data.firstName : "") + " " + (result.data.lastName ? result.data.lastName : "");
+                });
+
+                camForm.variableManager.createVariable({
+                    name: 'createApplicationToConnectionTaskResult',
+                    type: 'String',
+                    value: ''
+                });
+
+                camForm.variableManager.createVariable({
+                    name: 'createApplicationToConnectionTaskComment',
+                    type: 'String',
+                    value: ''
+                });
+                camForm.variableManager.createVariable({
+                    name: 'startDate',
+                    value: '',
+                    type: 'String'
+                });
+                camForm.variableManager.createVariable({
+                    name: 'contractScanCopyFileName',
+                    value: undefined,
+                    type: 'Json'
+                });
+                camForm.variableManager.createVariable({
+                    name: 'MSGGWaccount',
+                    value: undefined,
+                    type: 'String'
+                });
+                camForm.variableManager.createVariable({
+                    name: 'applicationScanCopyFileName',
+                    value: undefined,
+                    type: 'Json'
+                });
+                camForm.variableManager.createVariable({
+                    name: 'connectionType',
+                    value: '',
+                    type: 'String'
+                });
+                camForm.variableManager.createVariable({
+                    name: 'priority',
+                    value: '',
+                    type: 'String'
+                });
+                camForm.variableManager.createVariable({
+                    name: 'billing',
+                    value: '',
+                    type: 'String'
+                });
+                camForm.variableManager.createVariable({
+                    name: 'deliveryReport',
+                    value: '',
+                    type: 'String'
+                });
+                camForm.variableManager.createVariable({
+                    name: 'responsibleB2BSales',
+                    value: undefined,
+                    type: 'Json'
+                });
+                camForm.variableManager.createVariable({
+                    name: 'responsibleB2BDelivery',
+                    value: undefined,
+                    type: 'Json'
+                });
+                camForm.variableManager.createVariable({
+                    name: 'productCatalogResponse',
+                    value: undefined,
+                    type: 'Json'
+                });
+            });
+
+            $scope.preSubmit = function() {
+                var changedDate = new Date();
+
+                var productCatalogShortNumber = {
+                    //company name: $scope.officialClientCompanyName,
+                    bin: $scope.clientBIN,
+                    descRu: $scope.description,
+                    descEn: $scope.description,
+                    descKz: $scope.description,
+                    //vas_service_type_id: 13,
+                    "vasServiceType": {
+                        "id": 13,
+                        "name": null
+                    },
+                    businessNameRu: 'sms',
+                    businessNameEn: 'sms',
+                    businessNameKz: 'sms',
+                    shortNumberState: 'A',
+                    alphanumerics: 'Y',
+                    //tariffPlanComment: '54',
+                    bulk: 'Y',
+                    operatorServiceCost: 100,
+                    changeUsername: $rootScope.authentication.name,
+                    type: 210,
+                    subdirection: '1',
+                    businessGroup: '1',
+                    costPerSubscriber: $scope.abonentTarif,
+                    connectionTypeNew: $scope.connectionType === 'rest' ? '3' : ($scope.connectionType === 'smpp' ? '2' : '21'),
+                    revenueSharing: '61',
+                    brand: 'B',
+                    vasChargingIntervalId: null,
+
+                    changedDate: $filter('date')(changedDate, 'yyyy-MM-ddTHH:mm:ss'),
+                    lastDt: $filter('date')(changedDate, 'yyyy-MM-ddTHH:mm:ss'),
+                    startDate: $filter('date')($scope.startDate, 'yyyy-MM-ddTHH:mm:ss'),
+
+                    exceptions: '25',
+                    contractDetail: $scope.contractNumber,
+
+                    //offnetProviderName: $scope.,
+                    //offnetProviderBin: $scope.,
+                    //vas_content_provider_id: "null",
+                    //vas_short_number_id: $scope.,
+                    //sapNumber: $scope.,
+                    //phoneIndex: $scope.,
+                    //technicalServiceName: $scope.,
+                    //rootService: $scope.,
+                    //mainService: $scope.,
+                    //admLineRevenue: $scope.,
+                    //serviceCost: $scope.,
+                    //chargingMoCost: $scope.,
+                    //usersId: $scope.,
+                    //changedDate: $scope.,
+                    //finishDate: $scope.,
+                    //vasDirection: $scope.,
+                    //promotion: $scope.,
+                    //free10Sec: $scope.,
+                    //connectionType: $scope.,
+                    //smsLogicType: $scope.,
+                    //smsLogicParameter: $scope.,
+                    //smsLogicReset: $scope.
+                };
+
+                if($scope.connectionType === 'web') {
+                    productCatalogShortNumber.msggwAccount = $scope.MSGGWaccount;
+                } else if($scope.connectionType === 'rest' || $scope.connectionType === 'smpp') {
+                    if($scope.MSGGWaccount){
+                        productCatalogShortNumber.moAccount = $scope.MSGGWaccount;
+                    } else {
+                        productCatalogShortNumber.moAccount = null;
+                    }
+                }
+
+                if($scope.tarifPlane === '1'){
+                    productCatalogShortNumber.tariffPlanComment = '54';
+                } else if($scope.tarifPlane === '2'){
+                    productCatalogShortNumber.tariffPlanComment = '52';
+                }
+
+                if ($scope.identifierType === 'alfanumeric'){
+                    _.forEach($scope.identifiers, function(id) {
+                        _.forEach(id.operators, function(op) {
+                            if(op.id === 'kcell' && op.isAvailable){
+                                productCatalogShortNumber.shortNumber = op.title;
+                                productCatalogShortNumber.monthlyFee = op.priceAP;
+                                //productCatalogShortNumber.onetimePayment = op.priceEP;
+                            }
+                            if(op.id === 'beeline' && op.isAvailable){
+                                productCatalogShortNumber.shortNumberBeeline = op.title;
+                                productCatalogShortNumber.monthlyFeeBeeline = op.priceAP;
+                                //productCatalogShortNumber.onetimePaymentBeeline = op.priceEP;
+                            }
+                            if(op.id === 'tele2' && op.isAvailable){
+                                productCatalogShortNumber.shortNumberTele2 = op.title;
+                                productCatalogShortNumber.monthlyFeeTele2 = op.priceAP;
+                                //productCatalogShortNumber.onetimePaymentTele2 = op.priceEP;
+                            }
+                            if(op.id === 'altel' && op.isAvailable){
+                                productCatalogShortNumber.shortNumberAltel = op.title;
+                                productCatalogShortNumber.monthlyFeeAltel = op.priceAP;
+                                //productCatalogShortNumber.onetimePaymentAltel = op.priceEP;
+                            }
+                        })
+                    });
+                } else {
+                    _.forEach($scope.identifiers, function(id) {
+                        _.forEach(id.operators, function(op) {
+                            if(op.id === 'kcell' && (op.isAvailable && (!$scope.previouslyBought && $scope.operatorType === 'offnet' ? op.checked : true))){
+                                productCatalogShortNumber.shortNumber = id.title;
+                                productCatalogShortNumber.monthlyFee = op.priceAP;
+                                productCatalogShortNumber.onetimePayment = op.priceEP;
+                            }
+                            if(op.id === 'beeline' && (op.isAvailable && (!$scope.previouslyBought && $scope.operatorType === 'offnet' ? op.checked : true))){
+                                productCatalogShortNumber.shortNumberBeeline = id.title;
+                                productCatalogShortNumber.monthlyFeeBeeline = op.priceAP;
+                                productCatalogShortNumber.onetimePaymentBeeline = op.priceEP;
+                            }
+                            if(op.id === 'tele2' && (op.isAvailable && (!$scope.previouslyBought && $scope.operatorType === 'offnet' ? op.checked : true))){
+                                productCatalogShortNumber.shortNumberTele2 = id.title;
+                                productCatalogShortNumber.monthlyFeeTele2 = op.priceAP;
+                                productCatalogShortNumber.onetimePaymentTele2 = op.priceEP;
+                            }
+                            if(op.id === 'altel' && (op.isAvailable && (!$scope.previouslyBought && $scope.operatorType === 'offnet' ? op.checked : true))){
+                                productCatalogShortNumber.shortNumberAltel = id.title;
+                                productCatalogShortNumber.monthlyFeeAltel = op.priceAP;
+                                productCatalogShortNumber.onetimePaymentAltel = op.priceEP;
+                            }
+                        })
+                    });
+                }
+
+                console.log('request body', productCatalogShortNumber);
+                var deferred = $q.defer();
+
+                if(productCatalogShortNumber.shortNumber || productCatalogShortNumber.shortNumberBeeline || productCatalogShortNumber.shortNumberTele2 || productCatalogShortNumber.shortNumberAltel){
+                    return $http.post("/camunda/product-catalog/vas_short_numbers", productCatalogShortNumber).then(
+                        function (response) {
+                            console.log('response.data', response.data);
+                            if (response.data) {
+                               if(response.data.shortNumber || response.data.shortNumberBeeline || response.data.shortNumberTele2 || response.data.shortNumberAltel){
+                                   $scope.productCatalogResponse = response.data;
+                                   deferred.resolve('Successfully sent short number');
+                               } else {
+                                   deferred.reject('Product Catalog did not respond with short number');
+                               }
+                            } else {
+                                deferred.reject('Product Catalog response is empty');
+                            }
+                            return deferred.promise;
+                        },
+                        function (error) {
+                           console.log(error);
+                        }
+                    );
+                } else {
+                    deferred.reject('No short number is selected!');
+                    return deferred.promise;
+                }
+            };
+
+            camForm.on('submit', function (evt) {
+                //evt.submitPrevented = true;
+                $scope.createApplicationToConnectionTaskResult = 'Completed';
+                if(!$scope.resolutions){
+                    $scope.resolutions = [];
+                }
+                camForm.variableManager.variableValue('productCatalogResponse', $scope.productCatalogResponse);
+                camForm.variableManager.variableValue('responsibleB2BDelivery', $scope.responsibleB2BDelivery);
+                camForm.variableManager.variableValue('responsibleB2BSales', $scope.responsibleB2BSales);
+                camForm.variableManager.variableValue('operatorType', $scope.operatorType);
+                camForm.variableManager.variableValue('billing', $scope.billing);
+                camForm.variableManager.variableValue('createApplicationToConnectionTaskResult', $scope.createApplicationToConnectionTaskResult);
+                camForm.variableManager.variableValue('createApplicationToConnectionTaskComment', $scope.createApplicationToConnectionTaskComment);
+                var attachedFiles = [];
+                if($scope.contractScanCopyFileName) {
+                    attachedFiles.push($scope.contractScanCopyFileName.name);
+                    camForm.variableManager.variableValue('contractScanCopyFileName', $scope.contractScanCopyFileName);
+                }
+                if($scope.applicationScanCopyFileName) {
+                    attachedFiles.push($scope.applicationScanCopyFileName.name);
+                    camForm.variableManager.variableValue('applicationScanCopyFileName', $scope.applicationScanCopyFileName);
+                }
+                var startDate = new Date($scope.startDate);
+                camForm.variableManager.variableValue('startDate', startDate);
+                camForm.variableManager.variableValue('connectionType', $scope.connectionType);
+
+                if ($scope.connectionType === 'rest') {
+                    camForm.variableManager.variableValue('deliveryReport', $scope.deliveryReport);
+                } else {
+                    camForm.variableManager.destroyVariable('deliveryReport');
+                }
+
+                $scope.resolutions.push({processInstanceId: $scope.processInstanceId, assignee: $rootScope.authentication.name, assigneeName: $rootScope.authentication.assigneeName, resolution: $scope.createApplicationToConnectionTaskResult, comment: $scope.createApplicationToConnectionTaskComment, taskId: camForm.taskId, files: attachedFiles});
+                camForm.variableManager.variableValue('resolutions', $scope.resolutions);
+
+                //----------итоговые идентификаторы после создания заявки-----------
+                var finalIDs = '';
+                if ($scope.operatorType === 'onnet') {
+                    _.forEach($scope.identifiers, function(id) {
+                        finalIDs = finalIDs + (finalIDs ? ',' : '') + id.title
+                    })
+                } else {
+                    _.forEach($scope.identifiers, function(id) {
+                        if ($scope.identifierType === 'alfanumeric' || $scope.previouslyBought) {
+                            _.forEach(id.operators, function(o) {
+                                o.checked = o.isAvailable;
+                            })
+                        }
+                        if (_.find(id.operators, 'checked')) {
+                            finalIDs = finalIDs + (finalIDs ? ',' : '') + id.title
+                        }
+                    })
+                }
+                camForm.variableManager.variableValue('finalIDs', finalIDs);
+                camForm.variableManager.variableValue('MSGGWaccount', $scope.MSGGWaccount);
+
+                var providerTitles = [];
+                angular.forEach($scope.identifiers, function(value, key){
+                    var titles = value.operators.filter(function(operator) {
+                        return operator.id !== 'kcell' && operator.hasOwnProperty("title") && ['MESSAGE','KiT_Notify'].indexOf(operator.title) === -1
+                    });
+                    if (titles.length>0){
+                        providerTitles.push(...titles);
+                    }
+                });
+                camForm.variableManager.createVariable({
+                    name: 'isRecipientProvider',
+                    value: providerTitles.length>0?true:false,
+                    type: 'Boolean'
+                });
+                camForm.variableManager.variableValue('identifiers', $scope.identifiers);
+                //-------------------------------------------------------------------
+                var identifierServiceName = $scope.identifiers[0].title + ' ' + $scope.clientCompanyLatName;
+                var identifierCounter = '1 SMS';
+                if ($scope.amdocsBilling) {
+                    camForm.variableManager.createVariable({
+                        name: 'identifierServiceName_amdocs',
+                        value: identifierServiceName,
+                        type: 'String'
+                    });
+                    camForm.variableManager.createVariable({
+                        name: 'abonentTarif_amdocs',
+                        value: $scope.abonentTarif,
+                        type: 'String'
+                    });
+                }
+                if ($scope.orgaBilling) {
+                    camForm.variableManager.createVariable({
+                        name: 'identifierServiceName_orga',
+                        value: identifierServiceName,
+                        type: 'String'
+                    });
+                    camForm.variableManager.createVariable({
+                        name: 'abonentTarif_orga',
+                        value: $scope.abonentTarif,
+                        type: 'String'
+                    });
+                }
+                camForm.variableManager.createVariable({
+                    name: 'identifierServiceName',
+                    value: identifierServiceName,
+                    type: 'String'
+                });
+                camForm.variableManager.createVariable({
+                    name: 'identifierCounter',
+                    value: identifierCounter,
+                    type: 'String'
+                });
+                camForm.variableManager.createVariable({
+                    name: 'inAndOut',
+                    value: '',
+                    type: 'String'
+                });
+            });
+
+            $scope.download = function (file) {
+                console.log(file);
+                $http({method: 'GET', url: '/camunda/uploads/get/' + file.path, transformResponse: [] }).
+                success(function(data, status, headers, config) {
+                    document.getElementById('fileDownloadIframe').src = data;
+                }).
+                error (function(data, status, headers, config) {
+                    console.log(data);
+                });
+            }
+
+            $scope.fileSelected = function(el, fileName){
+                if(el.files[0]){
+                    $timeout(function () {
+                        $scope.$apply(function () {
+                            uploadFileToMinio(el.files[0], fileName);
+                        });
+                    })                } else {
+                    $scope.$apply(function(){
+                        $scope[fileName] = undefined;
+                    });
+                }
+            };
+
+            function uploadFileToMinio(file, fileName) {
+                var fileValue = {
+                    name: file.name.replace(/[/\\?%*:|"<>]/g, '-'),
+                    // path: uuid + '/' + file.name
+                    path: $scope.processInstanceId + '/' + camForm.taskId + '/' + file.name.replace(/[/\\?%*:|"<>]/g, '-')
+                };
+                $http({method: 'GET', url: '/camunda/uploads/put/' + fileValue.path, transformResponse: [] }).
+                success(function(data, status, headers, config) {
+                    $http.put(data, file, {headers: {'Content-Type': undefined}}).then(
+                            function () {
+                                $scope[fileName] = fileValue;
+                                angular.element(document.querySelector('#'+fileName)).val(null);
+                            },
+                            function (error) {
+                                console.log(error.data);
+                            }
+                    );
+                }).
+                error (function(data, status, headers, config) {
+                    console.log(data);
+                });
+            }
+
+            $scope.clearFile = function(filename){
+                delete $scope[filename];
+            };
+
+            $scope.clearPrices = function(operator){
+                operator.priceAP = '';
+                operator.priceEP = '';
+            };
+
+            $scope.open = open;
+
+            var currentDate = new Date();
+
+            $scope.startDate = currentDate;
+            $scope.datepickerOptions = {
+                minDate: currentDate
+            };
+
+            $scope.deleteIdentifier = function(index) {
+                $scope.identifiers.splice(index, 1);
+            }
+
+            function open($event) {
+                $event.preventDefault();
+                $event.stopPropagation();
+                $scope.dateFieldOpened = true;
+            };
+
+
+            $scope.$watch('responsibleB2BSales', function (responsibleB2BSales) {
+                if (responsibleB2BSales && responsibleB2BSales.id) {
+                    $scope.kcell_form.responsibleB2BSales.$setValidity('valid', true);
+                } else {
+                    $scope.kcell_form.responsibleB2BSales.$setValidity('valid', false);
+                }
+            }, true);
+
+            $scope.$watch('responsibleB2BDelivery', function (responsibleB2BDelivery) {
+                if (responsibleB2BDelivery && responsibleB2BDelivery.id) {
+                    $scope.kcell_form.responsibleB2BDelivery.$setValidity('valid', true);
+                } else {
+                    $scope.kcell_form.responsibleB2BDelivery.$setValidity('valid', false);
+                }
+            }, true);
+
+            $scope.$watch('identifiers', function (identifiers) {
+                if ($scope.operatorType === 'offnet') {
+                    identifiers.some( function (id) {
+                        if ( $scope.identifierType === 'digital' && !$scope.previouslyBought && _.filter(id.operators, function(o) { return o.checked && o.id !== 'kcell'; }).length > 0  ) {
+                            $scope.kcell_form.createApplicationToConnectionTaskComment.$setValidity('validIdentifiers', true);
+                            return true;
+                        } else if (($scope.identifierType === 'alfanumeric' || $scope.previouslyBought) && _.filter(id.operators, function(o) { return o.isAvailable && o.id !== 'kcell'; }).length > 0 ) {
+                            $scope.kcell_form.createApplicationToConnectionTaskComment.$setValidity('validIdentifiers', true);
+                            return true;
+                        } else { return $scope.kcell_form.createApplicationToConnectionTaskComment.$setValidity('validIdentifiers', false); return false;};
+                    });
+                } else {
+                    $scope.kcell_form.createApplicationToConnectionTaskComment.$setValidity('validIdentifiers', true);
+                }
+            }, true);
+
+            $scope.foundClientCRM = false;
+
+            $scope.$watch('clientBIN', function(clientBIN){
+                if (clientBIN){
+                    $http({method: 'GET', url: '/camunda/crm/client/bin/'+clientBIN, transformResponse: [] })
+	                .success(function(data, status, headers, config) {
+						//console.log(data);
+						var clientCRM = JSON.parse(data);
+
+                        if (Object.keys(clientCRM).length > 0) {
+                            if (clientCRM.accountName) {
+                                $scope.officialClientCompanyName = clientCRM.accountName;
+
+                                if(clientCRM.salesExecutiveUser && clientCRM.salesExecutiveUser.username) {
+                                    //var camundaUserID = clientCRM.salesExecutiveUser.username.split('.').map(val=>val.charAt(0).toUpperCase() + val.substr(1).toLowerCase()).join('.').concat('@kcell.kz');
+                                    var camundaUserID = clientCRM.salesExecutiveUser.email.replace('[','').replace(']','').split('|')[0];
+                                    $http.get("/camunda/api/engine/engine/default/user/" + camundaUserID + "/profile").then(function(response){
+                                        //console.log('profile', response.data);
+                                        $scope.responsibleB2BSales = {'id': response.data.id, 'name': response.data.firstName + ' ' + response.data.lastName, 'email': response.data.email };
+                                    }).catch(function(error){
+                                        console.log(error);
+                                        $scope.responsibleB2BSales = {'id': clientCRM.salesExecutiveUser.username, 'name': clientCRM.salesExecutiveUser.username, 'email': camundaUserID};
+                                    });
+                                    $scope.kcell_form.responsibleB2BSales.$setValidity('valid', true);
+                                }
+
+                                //$scope.companyRegCity = clientCRM.city.nameEn;
+
+                                if(clientCRM.dicChannel && clientCRM.dicChannel.name) {
+                                    $scope.channel = clientCRM.dicChannel.name;
+                                }
+                                if(clientCRM.kcellRegion && clientCRM.kcellRegion.name){
+                                    $scope.region = clientCRM.kcellRegion.name;
+                                }
+                                $scope.foundClientCRM = true;
+                            }
+                        }
+	                })
+	                .error (function(data, status, headers, config) {
+	                    console.log(data, status, headers, config);
+	                    $scope.officialClientCompanyName = undefined;
+                        $scope.responsibleB2BSales = undefined;
+                        // $scope.companyRegCity = undefined;
+                        $scope.channel = undefined;
+                        $scope.region = undefined;
+                        $scope.foundClientCRM = false;
+	                });
+                } else {
+                    $scope.kcell_form.clientBIN.$error.required = true;
+                    $scope.officialClientCompanyName = undefined;
+                    $scope.responsibleB2BSales = undefined;
+                    // $scope.companyRegCity = undefined;
+                    $scope.channel = undefined;
+                    $scope.region = undefined;
+                    $scope.foundClientCRM = false;
+                }
+            }, true);
+
+            $scope.getUsers = function(val, group) {
+                var users = $http.get('/camunda/api/engine/engine/default/user?memberOfGroup='+ group +'&firstNameLike=%'+val+'%').then(
+                        function(response){
+                            var usersByFirstName = _.flatMap(response.data, function(s){
+                                if(s.id){
+                                    return s.id.split(',').map(function(user){
+                                        return {
+                                            id: s.id,
+                                            email: s.email.substring(s.email.lastIndexOf('/')+1),
+                                            firstName: s.firstName,
+                                            lastName: s.lastName,
+                                            name: s.firstName + ' ' + s.lastName
+                                        };
+                                    })
+                                } else {
+                                    return [];
+                                }
+                            });
+                            //return usersByFirstName;
+                            return $http.get('/camunda/api/engine/engine/default/user?memberOfGroup='+ group +'&lastNameLike=%'+val+'%').then(
+                                    function(response){
+                                        var usersByLastName = _.flatMap(response.data, function(s){
+                                            if(s.id){
+                                                return s.id.split(',').map(function(user){
+                                                    return {
+                                                        id: s.id,
+                                                        email: s.email.substring(s.email.lastIndexOf('/')+1),
+                                                        firstName: s.firstName,
+                                                        lastName: s.lastName,
+                                                        name: s.firstName + ' ' + s.lastName
+                                                    };
+                                                })
+                                            } else {
+                                                return [];
+                                            }
+                                        });
+                                        return _.unionWith(usersByFirstName, usersByLastName, _.isEqual);
+                                    }
+                            );
+                        }
+                );
+                return users;
+            };
+            $scope.binPattern = /^[0-9]{12}$/;
+
+            $scope.userSelected = function($item, varName){
+                $scope[varName] = {'id': $item.id, 'name': $item.name, 'email': $item.email };
+            };
+            //---MSGGWaccount change---
+            $scope.$watchGroup(['connectionType', 'smsServiceType'], function(newValues, oldValues, scope) {
+                if(newValues[0] !== oldValues[0] || newValues[1] !== oldValues[1]){
+                    if (newValues[0] === 'web'){
+                        $scope.MSGGWaccount = 'kitalf27.ID:3751';
+                    } else if (newValues[0] === 'rest' && newValues[1] === 'MO'){
+                        $scope.MSGGWaccount = 'sg2_msggw_mo';
+                    } else if (newValues[0] === 'smpp' && newValues[1] === 'MO') {
+                        $scope.MSGGWaccount = 'sg2_smpp_mo';
+                    } else { $scope.MSGGWaccount = ''}
+                }
+            }, true);
+            //-------------------------
+
+        }]);
+
+    </script>
+    <iframe id="fileDownloadIframe" style="display:none;"></iframe>
+    <h4 ng-if="!(operatorType === 'offnet' && identifierType === 'digital')">Выберите операторов и укажите цены</h4>
+    <label class="error" ng-show="kcell_form.createApplicationToConnectionTaskComment.$error.validIdentifiers && view.submitted">Выберите хотя бы 1 offnet оператор</label>
+    <div class="form-group" ng-repeat="id in identifiers" ng-if="!(operatorType === 'offnet' && identifierType === 'digital' && !previouslyBought)">
+        <label class="control-label pull-left"/>Идентификатор - {{id.title}}
+        <span class="glyphicon glyphicon-remove pull-right" ng-click="deleteIdentifier($index)"></span>
+        <div class="col-sm-12" style="border-left: solid; border-left-width: 1px; margin-left: 2vh">
+            <div class="form-group">
+                <div class="col-sm-1">
+                    <p>&nbsp;</p>
+                    <div class="input">
+                        <label for="operator.id">АП</label>
+                    </div>
+                    <br>
+                    <div class="input" ng-show="identifierType === 'digital'">
+                        <label for="operator.id">ЕП</label>
+                    </div>
+                    <div class="input" ng-show="identifierType === 'alfanumeric'">
+                        <label for="operator.id">Идентификатор</label>
+                    </div>
+                </div>
+                <div class="col-sm-10">
+                    <div class="col-sm-3" ng-repeat="operator in id.operators">
+                        <label for="operator.id"><input type="checkbox" ng-model="operator.isAvailable" ng-change="clearPrices(operator)"> {{operator.name}}</label>
+                        <div class="input" id="operator.id" >
+                            <input ng-model="operator.priceAP" name="{{operator.id + 'AP' + id.title}}" class="form-control"  placeholder="{{operator.isAvailable?'Цена':'Не доступен'}}" ng-disabled="!operator.isAvailable" ng-required="operator.isAvailable"/>
+                            <label class="error" ng-show="kcell_form.{{operator.id + 'AP' + id.title}}.$error.required && ( kcell_form.{{operator.id + 'AP'}}.$touched || view.submitted)">Required field</label>
+                        </div>
+                        <br>
+                        <div class="input" ng-show="identifierType === 'digital'">
+                            <input ng-model="operator.priceEP" name="{{operator.id + 'EP' + id.title}}" class="form-control"  placeholder="{{operator.isAvailable?'Цена':'Не доступен'}}" ng-disabled="!operator.isAvailable" ng-required="operator.isAvailable && identifierType === 'digital'"/>
+                            <label class="error" ng-show="kcell_form.{{operator.id + 'EP' + id.title}}.$error.required && ( kcell_form.{{operator.id + 'EP'}}.$touched || view.submitted)">Required field</label>
+                        </div>
+                        <div class="input" ng-show="identifierType === 'alfanumeric'">
+                            <select ng-model="operator.title" name="{{operator.id + 'Title' +  id.title}}" class="form-control" ng-disabled="!operator.isAvailable" required="true" ng-required="operator.isAvailable && identifierType === 'alfanumeric'">
+                                <option value="{{id.title}}">{{id.title}}</option>
+                                <option value="MESSAGE">MESSAGE</option>
+                                <option value="KiT_Notify">KiT_Notify</option>
+                            </select>
+                            <label class="error" ng-show="kcell_form.{{operator.id + 'Title' +  id.title}}.$error.required && ( kcell_form.{{operator.id + 'Title' +  id.title}}.$touched || view.submitted)">Required field</label>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="form-group">
+                <div class="col-sm-2">
+                </div>
+                <div class="col-sm-5">
+                    <label>АП -­ Абонентский платёж</label>
+                </div>
+                <div class="col-sm-5" ng-show="identifierType === 'digital'">
+                    <label>ЕП -­ Единовременный платёж</label>
+                </div>
+            </div>
+        </div>
+    </div>
+    <div class="form-group" ng-repeat="id in identifiers" ng-if="operatorType === 'offnet' && identifierType === 'digital' && !previouslyBought">
+        <label class="control-label pull-left"/>Идентификатор - {{id.title}}
+        <span class="glyphicon glyphicon-remove pull-right" ng-click="deleteIdentifier($index)"></span>
+        <div class="col-sm-12" style="border-left: solid; border-left-width: 1px; margin-left: 2vh">
+            <table class="table">
+                <thead>
+                <tr>
+                    <th scope="col">Оператор</th>
+                    <th scope="col">Статус</th>
+                    <th scope="col">Цена АП</th>
+                    <th scope="col">Цена ЕП</th>
+                    <!--<th scope="col">Выбрать</th>-->
+                </tr>
+                </thead>
+                <tbody>
+                <tr ng-repeat="o in id.operators" ng-if="o.checked">
+                    <th scope="row">{{o.name}}</th>
+                    <td>{{o.isAvailable?'Доступен':'Не доступен'}}</td>
+                    <td>{{o.priceAP}}</td>
+                    <td>{{o.priceEP}}</td>
+                    <!--<td>-->
+                    <!--<input type="checkbox" ng-show="o.isAvailable" ng-model="o.checked">-->
+                    <!--</td>-->
+                </tr>
+                </tbody>
+            </table>
+        </div>
+    </div>
+    <div class="form-group">
+        <label class="col-sm-12 control-label"><H4><b>Информация о клиенте:</b></H4></label>
+    </div>
+    <div class="form-group">
+        <label class="col-sm-4 control-label">* БИН:</label>
+        <div class="col-sm-3">
+            <input type="text" limit-to="12" numbers-only name="clientBIN" id="clientBIN" cam-variable-name="clientBIN" cam-variable-type="String" class="form-control" placeholder="БИН*" ng-pattern="binPattern" required>
+            <label class="error" ng-show="kcell_form.clientBIN.$error.required && ( kcell_form.clientBIN.$touched || view.submitted)">Required field</label>
+            <label class="error" ng-show="kcell_form.clientBIN.$error.pattern && ( kcell_form.clientBIN.$touched || view.submitted)">Неверный формат БИН</label>
+        </div>
+        <label class="col-sm-2 control-label">Номер договора:</label>
+        <div class="col-sm-3">
+            <input type="text" name="contractNumber" id='contractNumber' cam-variable-name="contractNumber" cam-variable-type="String" class="form-control" placeholder="Номер договора">
+        </div>
+    </div>
+    <div class="form-group">
+        <label class="col-sm-4 control-label">* Наименование компании на латинице:</label>
+        <div class="col-sm-8">
+            <input type="text" name="clientCompanyLatName" id='clientCompanyLatName' cam-variable-name="clientCompanyLatName" cam-variable-type="String" class="form-control" placeholder="Наименование компании на латинице" required>
+            <label class="error" ng-show="kcell_form.clientCompanyLatName.$error.required && ( kcell_form.clientCompanyLatName.$touched || view.submitted)">Required field</label>
+        </div>
+    </div>
+    <div class="form-group">
+        <label class="col-sm-4 control-label">* Юридическое наименование компании:</label>
+        <div class="col-sm-8">
+            <input type="text" name="officialClientCompanyName" id='officialClientCompanyName' cam-variable-name="officialClientCompanyName" cam-variable-type="String" class="form-control" placeholder="Юридическое наименование компании" required ng-disabled="foundClientCRM">
+            <label class="error" ng-show="kcell_form.officialClientCompanyName.$error.required && ( kcell_form.officialClientCompanyName.$touched || view.submitted)">Required field</label>
+        </div>
+    </div>
+    <div class="form-group">
+        <label class="col-sm-4 control-label">* Описание сервиса:</label>
+        <div class="col-sm-8">
+            <input class="form-control" maxlength="500" cam-variable-name="description" name="description" required cam-variable-type="String">
+            <label class="error" ng-show="kcell_form.description.$error.required && ( kcell_form.description.$touched || view.submitted)">Required field</label>
+        </div>
+    </div>
+    <div class="form-group">
+        <label class="col-sm-4 control-label">* Тип подключения:</label>
+        <div class="col-sm-8">
+            <select ng-model="connectionType" name="connectionType" class="form-control" required="true">
+                <option value="web">Web interface</option>
+                <option value="rest">REST</option>
+                <option value="smpp">SMPP</option>
+            </select>
+            <label class="error" ng-show="kcell_form.connectionType.$error.required && ( kcell_form.connectionType.$touched || view.submitted)">Required field</label>
+        </div>
+    </div>
+    <div class="form-check" ng-show="connectionType === 'rest' ">
+        <input type="checkbox" ng-model="deliveryReport" class="form-check-input" id="deliveryReport">
+        <label class="form-check-label" for="deliveryReport">Получать отчет о доставке</label>
+    </div>
+    <div class="form-group" ng-show="connectionType !== 'web'">
+        <label class="col-sm-4 control-label">* Тип СМС услуги:</label>
+        <div class="col-sm-8">
+            <select class="form-control" id="sel1"
+                    cam-variable-name="smsServiceType"
+                    cam-variable-type="String"
+                    ng-model="smsServiceType" ng-required="connectionType !== 'web'">
+                <option value="MO">MO (Использовать функцию входящих сообщений на короткий номер)</option>
+                <option value="MT" selected="selected">MT (Не использовать функцию входящих сообщений на короткий номер)</option>
+            </select>
+        </div>
+    </div>
+    <div class="form-group" ng-show="connectionType === 'web' || ((connectionType === 'rest' || connectionType === 'smpp') && smsServiceType == 'MO') ">
+        <label class="col-sm-4 control-label">* Аккаунт на MSGGW:</label>
+        <div class="col-sm-8">
+            <input class="form-control" maxlength="500" ng-model="MSGGWaccount" name="MSGGWaccount">
+
+            <label class="error" ng-show="kcell_form.MSGGWaccount.$error.required && ( kcell_form.MSGGWaccount.$touched || view.submitted)">Required field</label>
+        </div>
+    </div>
+    <div class="form-group" ng-show="connectionType === 'smpp' ">
+        <label class="col-sm-4 control-label">* IP адрес клиента:</label>
+        <div class="col-sm-8">
+            <input class="form-control" maxlength="500" cam-variable-name="ipNumber" name="ipNumber"  ng-required="connectionType === 'smpp' " cam-variable-type="String">
+            <label class="error" ng-show="kcell_form.ipNumber.$error.required && ( kcell_form.ipNumber.$touched || view.submitted)">Required field</label>
+        </div>
+    </div>
+    <div class="form-group" ng-show="connectionType === 'smpp' || connectionType === 'rest' ">
+        <label class="col-sm-4 control-label">* Тестовый номер:</label>
+        <div class="col-sm-8">
+            <input class="form-control" maxlength="500" cam-variable-name="testNumber" name="testNumber"  ng-required="connectionType === 'smpp' || connectionType === 'rest'" cam-variable-type="String">
+            <label class="error" ng-show="kcell_form.testNumber.$error.required && ( kcell_form.testNumber.$touched || view.submitted)">Required field</label>
+        </div>
+    </div>
+    <div class="form-group" ng-show="connectionType === 'rest' && deliveryReport">
+        <label class="col-sm-4 control-label">Адрес и порт принимающего сервера клиента:</label>
+        <div class="col-sm-8">
+            <input class="form-control" maxlength="500" cam-variable-name="receivingServerAddress" name="receivingServerAddress" cam-variable-type="String">
+            <label class="error" ng-show="kcell_form.receivingServerAddress.$error.required && ( kcell_form.receivingServerAddress.$touched || view.submitted)">Required field</label>
+        </div>
+    </div>
+    <div class="form-group" ng-show="connectionType === 'rest' && deliveryReport">
+        <label class="col-sm-4 control-label">Логин/пароль принимающего сервера клиента:</label>
+        <div class="col-sm-4">
+            <input class="form-control" maxlength="500" cam-variable-name="receivingServerLogin" name="receivingServerLogin" cam-variable-type="String" placeholder="Логин">
+            <label class="error" ng-show="kcell_form.receivingServerLogin.$error.required && ( kcell_form.receivingServerLogin.$touched || view.submitted)">Required field</label>
+        </div>
+        <div class="col-sm-4">
+            <input class="form-control" maxlength="500" cam-variable-name="receivingServerPass" name="receivingServerPass" cam-variable-type="String" placeholder="Пароль">
+            <label class="error" ng-show="kcell_form.receivingServerPass.$error.required && ( kcell_form.receivingServerPass.$touched || view.submitted)">Required field</label>
+        </div>
+    </div>
+    <div class="form-group" ng-show="connectionType === 'rest' && smsServiceType">
+        <label class="col-sm-4 control-label">Адрес и порт MO сервера клиента:</label>
+        <div class="col-sm-8">
+            <input class="form-control" maxlength="500" cam-variable-name="addressServerMO" name="addressServerMO" cam-variable-type="String">
+            <label class="error" ng-show="kcell_form.addressServerMO.$error.required && ( kcell_form.addressServerMO.$touched || view.submitted)">Required field</label>
+        </div>
+    </div>
+    <div class="form-group">
+        <label class="col-sm-4 control-label">* Дата предполагаемого запуска:</label>
+        <div class="col-sm-8">
+            <div class="input-group">
+                <input type="text" ng-model="startDate" name="startDate" required class="form-control" datepicker-popup="dd.MM.yyyy" is-open="dateFieldOpened" id="startDate" min-date="datepickerOptions.minDate" />
+                <span class="input-group-btn">
+                    <button type="button" class="btn btn-default" ng-click="open($event)">
+                        <i class="glyphicon glyphicon-calendar"></i>
+                    </button>
+                </span>
+            </div>
+        </div>
+    </div>
+    <div class="form-group" ng-hide="connectionType === 'web'">
+        <label class="col-sm-4 control-label">* Тариф для абонента:</label>
+        <div class="col-sm-8">
+            <input class="form-control" maxlength="500" cam-variable-name="abonentTarif" name="abonentTarif" ng-required="connectionType !== 'web'" cam-variable-type="String">
+            <label class="error" ng-show="kcell_form.abonentTarif.$error.required && ( kcell_form.abonentTarif.$touched || view.submitted)">Required field</label>
+        </div>
+    </div>
+    <div class="form-group">
+        <label class="col-sm-4 control-label">Тарифный план:</label>
+        <div class="col-sm-8">
+            <select class="form-control" id="sel12"
+                    cam-variable-name="tarifPlane"
+                    cam-variable-type="String"
+                    ng-model="tarifPlane">
+                <option value="1">1</option>
+                <option value="2" selected="selected" >2</option>
+            </select>
+        </div>
+    </div>
+    <div class="form-group" ng-hide="identifierType === 'alfanumeric' || connectionType === 'web'">
+        <label class="col-sm-4 control-label">Билинг</label>
+        <div class="col-sm-8">
+            <label class="radio-inline">
+                <input type="checkbox" name="billing" ng-model="amdocsBilling" cam-variable-type="Boolean" cam-variable-name="amdocsBilling"> Amdocs
+            </label>
+            <label class="radio-inline">
+                <input type="checkbox" name="billing" ng-model="orgaBilling" cam-variable-type="Boolean" cam-variable-name="orgaBilling"> Orga
+            </label>
+            <label class="error" ng-show="kcell_form.billing.$error.required && ( kcell_form.billing.$touched || view.submitted)">Required field</label>
+        </div>
+    </div>
+    <div class="form-group">
+        <label class="col-sm-12 control-label"><H4><b>Технический специалист:</b></H4></label>
+    </div>
+    <div class="form-group">
+        <label class="col-sm-4 control-label">* ФИО:</label>
+        <div class="col-sm-8">
+            <input class="form-control" maxlength="500" cam-variable-name="techSpecFIO" name="techSpecFIO" required cam-variable-type="String">
+            <label class="error" ng-show="kcell_form.techSpecFIO.$error.required && ( kcell_form.techSpecFIO.$touched || view.submitted)">Required field</label>
+        </div>
+    </div>
+    <div class="form-group">
+        <label class="col-sm-4 control-label">* Телефон:</label>
+        <div class="col-sm-3">
+            <input class="form-control" maxlength="500" cam-variable-name="techSpecNumber" name="techSpecNumber" required cam-variable-type="String">
+            <label class="error" ng-show="kcell_form.techSpecNumber.$error.required && ( kcell_form.techSpecNumber.$touched || view.submitted)">Required field</label>
+        </div>
+        <label class="col-sm-1 control-label">* Email:</label>
+        <div class="col-sm-4">
+            <input class="form-control" maxlength="500" cam-variable-name="techSpecEmail" name="techSpecEmail" required cam-variable-type="String">
+            <label class="error" ng-show="kcell_form.techSpecEmail.$error.required && ( kcell_form.techSpecEmail.$touched || view.submitted)">Required field</label>
+        </div>
+    </div>
+    <div class="form-group">
+        <label class="col-sm-4 control-label">Вложите скан. договора:</label>
+        <div class="col-sm-8">
+            <div ng-show="contractScanCopyFileName.name">
+                <a ng-click="download(contractScanCopyFileName)">{{contractScanCopyFileName.name}}</a> | <a ng-click="clearFile('contractScanCopyFileName')"><i class="glyphicon glyphicon-trash"></i></a>
+            </div>
+            <input ng-hide="contractScanCopyFileName.name" type="file" class="form-control" id="contractScanCopyFileName" name="contractScanCopyFileName" ng-model="contractScanCopyFileName"
+                   onchange="angular.element(this).scope().fileSelected(this, 'contractScanCopyFileName')"/>
+            <label class="has-error" ng-show="kcell_form.contractScanCopyFileName.$error.validFile && ( kcell_form.contractScanCopyFileName.$touched || view.submitted)">File is required</label>
+        </div>
+    </div>
+    <div class="form-group">
+        <label class="col-sm-4 control-label">Вложите скан. Заявки:</label>
+        <div class="col-sm-8">
+            <div ng-show="applicationScanCopyFileName.name">
+                <a ng-click="download(applicationScanCopyFileName)">{{applicationScanCopyFileName.name}}</a> | <a ng-click="clearFile('applicationScanCopyFileName')"><i class="glyphicon glyphicon-trash"></i></a>
+            </div>
+            <input ng-hide="applicationScanCopyFileName.name" type="file" class="form-control" id="applicationScanCopyFileName" name="applicationScanCopyFileName" ng-model="applicationScanCopyFileName"
+                   onchange="angular.element(this).scope().fileSelected(this, 'applicationScanCopyFileName')"/>
+            <label class="has-error" ng-show="kcell_form.applicationScanCopyFileName.$error.validFile && ( kcell_form.applicationScanCopyFileName.$touched || view.submitted)">File is required</label>
+        </div>
+    </div>
+    <div class="form-group">
+        <label class="col-sm-4 control-label">Ответственный B2B Delivery:</label>
+        <div class="col-sm-8">
+            <input type="text" ng-model="responsibleB2BDelivery" name="responsibleB2BDelivery" typeahead="name as users.name for users in getUsers($viewValue, 'delivery_sms_ivr_b2b_delivery') | filter:$viewValue" typeahead-on-select="userSelected($item,'responsibleB2BDelivery')" class="form-control" required autocomplete="off">
+            <!--<input type="hidden" ng-model="userIDValidate" name="userIDValidate" required/>-->
+            <!--<label class="error" ng-if="kcell_form.site_name.$error.required && ( kcell_form.site_name.$touched || view.submitted)">Required field</label>-->
+            <label class="error" ng-if="kcell_form.responsibleB2BDelivery.$error.valid && view.submitted">Необходимо выбрать пользователя</label>
+        </div>
+    </div>
+    <div class="form-group">
+        <label class="col-sm-4 control-label">Ответственный B2B Sales:</label>
+        <div class="col-sm-8">
+            <input type="text" ng-model="responsibleB2BSales" name="responsibleB2BSales" typeahead="name as users.name for users in getUsers($viewValue, 'delivery_sms_ivr_b2b_sales') | filter:$viewValue" typeahead-on-select="userSelected($item,'responsibleB2BSales')" class="form-control" required autocomplete="off" ng-disabled="foundClientCRM">
+            <!--<input type="hidden" ng-model="userIDValidate" name="userIDValidate" required/>-->
+            <!--<label class="error" ng-if="kcell_form.site_name.$error.required && ( kcell_form.site_name.$touched || view.submitted)">Required field</label>-->
+            <label class="error" ng-if="kcell_form.responsibleB2BSales.$error.valid && view.submitted">Необходимо выбрать пользователя</label>
+        </div>
+    </div>
+    <div class="form-group">
+        <label class="col-sm-4 control-label">Канал:</label>
+        <div class="col-sm-8">
+            <input class="form-control" maxlength="100" cam-variable-name="channel" name="channel" cam-variable-type="String" disabled>
+            <label class="error" ng-show="kcell_form.channel.$error.required && ( kcell_form.channel.$touched || view.submitted)">Required field</label>
+        </div>
+    </div>
+    <div class="form-group">
+        <label class="col-sm-4 control-label">Регион:</label>
+        <div class="col-sm-8">
+            <input class="form-control" maxlength="100" cam-variable-name="region" name="region" cam-variable-type="String" disabled>
+            <label class="error" ng-show="kcell_form.region.$error.required && ( kcell_form.region.$touched || view.submitted)">Required field</label>
+        </div>
+    </div>
+    <div class="form-group">
+        <label class="col-sm-4 control-label">Комментарии:</label>
+        <div class="col-sm-8">
+            <textarea class="form-control" ng-model="createApplicationToConnectionTaskComment" name="createApplicationToConnectionTaskComment" placeholder="Comments..." maxlength="500" rows="4" style="resize:none"></textarea>
+            <label class="error" ng-show="kcell_form.createApplicationToConnectionTaskComment.$error.required && ( kcell_form.createApplicationToConnectionTaskComment.$touched || view.submitted)">Required field</label>
+        </div>
+    </div>
+</form>

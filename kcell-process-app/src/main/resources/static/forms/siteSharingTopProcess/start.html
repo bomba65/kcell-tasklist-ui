@@ -23,6 +23,11 @@
                     type: 'String'
                 });
                 camForm.variableManager.createVariable({
+                    name: 'positionNumber',
+                    value: undefined,
+                    type: 'String'
+                });
+                camForm.variableManager.createVariable({
                     name: 'siteRegion',
                     value: '',
                     type: 'String'
@@ -52,12 +57,28 @@
                     value: undefined,
                     type: 'String'
                 });
+
+                console.log('hasGroup kcellUsers')
+                console.log($rootScope.hasGroup('kcellUsers'))
+                console.log($rootScope.hasGroup('provider_users'))
+
             });
 
-            $http.get('/asset-management/api/plans/search/findCurrentToStartPlanSites').then(
+            $http.get('/directory-management/networkinfrastructure/plan/findCurrentToStartPlanSites').then(
                     function (result) {
-                        $scope.sharingSites = result.data._embedded.plans;
-                        console.log($scope.sharingSites);
+                        let sharingSites = result.data;
+                        console.log(sharingSites);
+                        if ($rootScope.hasGroup('kcellUsers')) {
+                            $scope.sharingSites = _.filter(sharingSites, function (p) {
+                                console.log(p.params.host)
+                                return p.params.host === 'Kcell';
+                            })
+                        } else if ($rootScope.hasGroup('provider_users')) {
+                            console.log('hasGroup kcellUsers')
+                            $scope.sharingSites = _.filter(sharingSites, function (p) {
+                                return p.params.host === 'Beeline';
+                            })
+                        }
                     },
                     function (error) {
                     }
@@ -66,7 +87,7 @@
 
             $scope.planSelected = function(){
                 $scope.sharingSites.forEach(function(e){
-                    if(parseInt(e.params.shared_bs_id) === parseInt($scope.sharingPlanId)){
+                    if(parseInt(e.position_number) === parseInt($scope.sharingPlanId)){
                         $timeout(function(){
                             $scope.$apply(function () {
                                 console.log(e);
@@ -79,40 +100,6 @@
                     }
                 });
             };
-
-            // $scope.siteSelected = function(){
-            //     $http.get('/asset-management/api/plans/search/findBySite?siteId=' + $scope.sharingPlanId).then(
-            //             function (result) {
-            //                 result.data._embedded.plans.forEach(function(e){
-            //                     if(e.params){
-            //                         $timeout(function(){
-            //                             $scope.$apply(function () {
-            //                                 console.log(e);
-            //                                 $scope.sharingPlan = e.params;
-            //                                 $scope.sharingPlanStatus = e.status;
-            //                                 $scope.sharingPlan.status = e.status;
-            //                                 $scope.sharingPlanVersion = e.version;
-            //                             });
-            //                         });
-            //                     }
-            //                 });
-            //                 //$scope.sharingSites = result.data._embedded.sites
-            //                 //$scope.sharingPlan = result.data._embedded.plans.params;
-            //             },
-            //             function (error) {
-            //             }
-            //     );
-                //console.log($scope.sharingPlanId.substring($scope.sharingPlanId.lastIndexOf("/") + 1));
-                // $scope.sharingSites.forEach(function(e){
-                //     if(parseInt(e.params.shared_bs_id) === parseInt($scope.sharingPlanId)){
-                //         $timeout(function(){
-                //             $scope.$apply(function () {
-                //                 $scope.sharingPlan = e.params;
-                //             });
-                //         });
-                //     }
-                // });
-            //};
 
             camForm.on('submit', function (event) {
                 //event.submitPrevented = true;
@@ -137,27 +124,27 @@
                 camForm.variableManager.variableValue('isSpecialSite', $scope.sharingPlan.isSpecialSite);
                 camForm.variableManager.variableValue('host', $scope.sharingPlan.host);
                 camForm.variableManager.variableValue('site', $scope.sharingPlan.infrastructure_owner);
-                camForm.variableManager.variableValue('siteId', $scope.sharingPlanId);
-                console.log(camForm.variableManager.variableValue('siteId'));
+                camForm.variableManager.variableValue('positionNumber', $scope.sharingPlanId);
+                console.log(camForm.variableManager.variableValue('positionNumber'));
                 camForm.variableManager.variableValue('sharingPlanStatus', $scope.sharingPlanStatus);
             });
         }]);
 
     </script>
-        <div class="form-group">
-            <label class="col-sm-3 control-label">Requested date</label>
-            <div class="col-sm-3">
-                <div class="form-control">{{requestedDate | date: 'dd.MM.yyyy HH:mm'}}</div>
-            </div>
+    <div class="form-group">
+        <label class="col-sm-3 control-label">Requested date</label>
+        <div class="col-sm-3">
+            <div class="form-control">{{requestedDate | date: 'dd.MM.yyyy HH:mm'}}</div>
         </div>
-        <div class="form-group">
-            <label class="col-sm-3 control-label">Shared Site in Address Plan</label>
-            <div class="col-sm-3">
-                <select ng-model="sharingPlanId" name="sharingPlanId" class="form-control" ng-change="planSelected()" required="true">
-                    <option value="{{plan.site_id}}" ng-repeat="plan in sharingSites">{{plan.params.site_name}}</option>
-                </select>
-                <label class="error" ng-show="kcell_form.sharingPlanId.$error.required && ( kcell_form.sharingPlanId.$touched || view.submitted)">Required field</label>
-            </div>
+    </div>
+    <div class="form-group">
+        <label class="col-sm-3 control-label">Shared Site in Address Plan</label>
+        <div class="col-sm-3">
+            <select ng-model="sharingPlanId" name="sharingPlanId" class="form-control" ng-change="planSelected()" required="true">
+                <option value="{{plan.position_number}}" ng-repeat="plan in sharingSites">{{plan.params.site_name}}</option>
+            </select>
+            <label class="error" ng-show="kcell_form.sharingPlanId.$error.required && ( kcell_form.sharingPlanId.$touched || view.submitted)">Required field</label>
         </div>
-        <shared-site-plan plan-model="sharingPlan"></shared-site-plan>
+    </div>
+    <shared-site-plan plan-model="sharingPlan"></shared-site-plan>
 </form>

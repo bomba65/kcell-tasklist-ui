@@ -1,0 +1,474 @@
+<form role="form" class="form-horizontal" name="kcell_form" novalidate>
+  <script cam-script type="text/form-script">
+    inject([ '$scope', '$http', '$rootScope', '$q', '$timeout', function($scope, $http, $rootScope, $q, $timeout) {
+    $scope.ci = {};
+    $scope.ts = {};
+    $scope.sip = {};
+    $scope.e1 = {};
+    $scope.dir = {};
+    var processInstanceId = null;
+    var assigneeName = $rootScope.authentication.name;
+    var taskKey = camForm.taskId;
+
+    $http.get("/camunda/api/engine/engine/default/user/" + $rootScope.authentication.name + "/profile").then(function(result){
+      assigneeName = (result.data.firstName ? result.data.firstName : "") + " " + (result.data.lastName ? result.data.lastName : "");
+    });
+
+    $scope.downloadFile = function (file) {
+      $http({method: 'GET', url: '/camunda/uploads/' + (file.path.split('/').length === 2 ? 'tmp/' : '') + 'get/' + file.path, transformResponse: [] }).
+      success(function(data, status, headers, config) {
+        document.getElementById('fileDownloadIframe').src = data;
+      }).
+      error (function(data, status, headers, config) {
+        console.log(data);
+      });
+    }
+
+    $scope.clearFile = function(fileIndex) {
+      $scope.attachments.splice(fileIndex, 1);
+    }
+    
+    $scope.fileSelected = function(el ){
+      $timeout(function () {
+        $scope.$apply(function () {
+          uploadFileToMinio(el.files[0]);
+        });
+      })
+    };
+
+    function uploadFileToMinio(file) {
+      var fileToUpload = {
+        name: file.name.replace(/[/\\?%*:|"<>]/g, '-'),
+        path: processInstanceId + '/' + camForm.taskId + '/' + file.name.replace(/[/\\?%*:|"<>]/g, '-'),
+        created: new Date(),
+        createdBy: assigneeName
+      };
+      $http({method: 'GET', url: '/camunda/uploads/put/' + fileToUpload.path, transformResponse: [] }).success(function(data, status, headers, config) {
+        $http.put(data, file, {headers: {'Content-Type': undefined}}).then(
+          function () {
+            $scope.attachments.push(fileToUpload);
+            angular.element(document.querySelector('#attachments')).val(null);
+          },
+          function (error) {
+            console.log(error.data);
+          }
+        );
+      }).error (function(data, status, headers, config) {
+        console.log(data);
+      });
+    }
+
+    camForm.on('form-loaded', function () {
+      camForm.variableManager.fetchVariable('clientPriority');
+      camForm.variableManager.fetchVariable('customerInformation');
+      camForm.variableManager.fetchVariable('technicalSpecifications');
+      camForm.variableManager.fetchVariable('sipProtocol');
+      camForm.variableManager.fetchVariable('e1Protocol');
+      camForm.variableManager.fetchVariable('sipDirectProtocol');
+      camForm.variableManager.fetchVariable('attachments');
+      camForm.variableManager.fetchVariable('resolutions');
+      camForm.variableManager.fetchVariable('poiMessage');
+      camForm.variableManager.fetchVariable('flow1NextTaskAssignee');
+      camForm.variableManager.fetchVariable('tariff');
+    
+      $http.get('/camunda/api/engine/engine/default/task/' + camForm.taskId).then(
+        function (result) {
+          processInstanceId = result.data.processInstanceId;
+          taskKey = result.data.taskDefinitionKey;
+          camForm.variableManager.fetchVariable(taskKey + 'Resolution');
+          configureViews();
+        },
+        function (error) {
+          console.log(error.data);
+        }
+      );
+    });
+
+    camForm.on('variables-fetched', function () {
+      $scope.clientPriority = camForm.variableManager.variableValue('clientPriority');
+      $scope.ci = camForm.variableManager.variableValue('customerInformation');
+      $scope.ts = camForm.variableManager.variableValue('technicalSpecifications');
+      $scope.sip = camForm.variableManager.variableValue('sipProtocol');
+      $scope.e1 = camForm.variableManager.variableValue('e1Protocol');
+      $scope.dir = camForm.variableManager.variableValue('sipDirectProtocol');
+      $scope.attachments = camForm.variableManager.variableValue('attachments');
+      $scope.resolution = camForm.variableManager.variableValue(taskKey + 'Resolution');
+      $scope.resolutions = camForm.variableManager.variableValue('resolutions');
+      $scope.poiMessage = camForm.variableManager.variableValue('poiMessage');
+      $scope.tariff = camForm.variableManager.variableValue('tariff');
+      if (!$scope.attachments) {
+        $scope.attachments = [];
+      }
+      if (!$scope.resolution) {
+        $scope.resolution = 'Accepted';
+        //if ($scope.showView.resolution) $scope.resolution = 'Rejected';
+      }
+      if ($scope.resolutions) {
+        $q.all($scope.resolutions.map(function (resolution) {
+          return $http.get("/camunda/api/engine/engine/default/history/task?processInstanceId="+resolution.processInstanceId+"&taskId=" + resolution.taskId);
+        })).then(function (tasks) {
+          tasks.forEach(function (t, index) {
+            if (t.data.length > 0) {
+              $scope.resolutions[index].taskName = t.data[0].name;
+              try {
+                $scope.resolutions[index].taskEndDate = new Date(t.data[0].endTime);
+              } catch(e){
+                console.log(e);
+              }
+            }
+          });
+        });
+      } else {
+        $scope.resolutions = [];
+      }
+    });
+
+    camForm.on('submit', function() {
+      camForm.variableManager.destroyVariable('poiMessage');
+      if (taskKey === 'confirmReturn') {
+        $scope.resolution = $scope.resolution === 'Accepted' ? 'ROI=6 month' : 'ROI>6 month';
+        camForm.variableManager.createVariable({
+          name: 'poiMessage',
+          type: 'String',
+          value: $scope.resolution,
+          store: true
+        });
+      }
+      if ($scope.showView.resolution) {
+        camForm.variableManager.destroyVariable(taskKey + 'Resolution');
+        camForm.variableManager.createVariable({
+          name: taskKey + 'Resolution',
+          type: 'String',
+          value: $scope.resolution,
+          store: true
+        });
+      } else {
+        $scope.resolution = null;
+      }
+      $scope.resolutions.push({
+        processInstanceId: processInstanceId,
+        taskId: camForm.taskId,
+        assigneeName: assigneeName,
+        resolution: $scope.resolution,
+        comment: $scope.comment
+      });
+      camForm.variableManager.destroyVariable('resolutions');
+      camForm.variableManager.createVariable({
+        name: 'resolutions',
+        type: 'json',
+        value: $scope.resolutions,
+        store: true
+      });
+      camForm.variableManager.destroyVariable('attachments');
+      camForm.variableManager.createVariable({
+        name: 'attachments',
+        type: 'json',
+        value: $scope.attachments,
+        store: true
+      });
+      
+      var flow1NextTaskAssignee;
+      if ((taskKey === 'confirmAdditionIP' || taskKey === 'confirmTestingSuccess') && $scope.sip && $scope.ts) {
+        flow1NextTaskAssignee = 'starter';
+        if ($scope.ts.connectionPoint == 'SIP Proxy') flow1NextTaskAssignee = 'KCELL Technologies-P&S-B2BPM';
+        else if ($scope.sip.authorizationType == 'SIP-авторизация(доступ по стат. IP c лог/пар)'
+                && $scope.ts.connectionPoint == 'Asterisk') flow1NextTaskAssignee = 'Technologies-IT-EIT-ETS';
+      }
+      if ($scope.sip && $scope.ts
+          && (taskKey === 'modifyConnectionSettings'
+          || (taskKey == 'modifyConnectionSettings' && $scope.resolution == $scope.resolutionAcceptMsg))) {
+        flow1NextTaskAssignee = 'starter';
+        if ($scope.ts.connectionPoint == 'SIP Proxy') flow1NextTaskAssignee = 'KCELL Technologies-P&S-B2BPM';
+        else {
+          if ($scope.sip.authorizationType == 'SIP-транк(доступ по стат. IP)'
+              && $scope.ts.connectionPoint == 'SBC') flow1NextTaskAssignee = 'KCELL Technologies-SA&OS-NO-TNO';
+          else if ($scope.sip.authorizationType == 'SIP-авторизация(доступ по стат. IP c лог/пар)'
+              && $scope.ts.connectionPoint == 'Asterisk') flow1NextTaskAssignee = 'KCELL Technologies-IT-EIT-ETS';
+        }
+      }
+      camForm.variableManager.destroyVariable('flow1NextTaskAssignee');
+      if (flow1NextTaskAssignee) {
+        camForm.variableManager.createVariable({
+          name: 'flow1NextTaskAssignee',
+          type: 'String',
+          value: flow1NextTaskAssignee,
+          store: true
+        });
+      }
+      camForm.variableManager.variableValue('tariff', $scope.tariff);
+    });
+
+    $scope.resolutionAcceptMsg = 'Yes';
+    $scope.resolutionRejectMsg = 'No'
+    $scope.showView = {
+      ci: false,
+      ts: false,
+      attachments: false,
+      resolution: false,
+      pbxNumbers: false,
+      isntWork: false,
+      poi: false,
+      risk: false,
+      fileModify: false,
+      dangerResolution: false,
+      rootForCMMBGW: false,
+      tariff: false
+    };
+    $scope.legalInfo = false;
+    $scope.readonlyMode = true;
+    function configureViews() {
+      switch(taskKey) {
+        case 'confirmCheckingTSScheme':
+          $scope.readonlyMode = false;
+          $scope.showView = {ts: true, resolution: true, attachments: true, fileModify: true};
+          break;
+        case 'confirmAgreementTSScheme':
+          $scope.showView = {ts: true, attachments: true, resolution: true};
+          break;
+        case 'confirmSendingTest':
+        case 'confirmTestingSuccess':
+          $scope.showView = {ts: true, pbxNumbers: true};
+          break;
+        case 'confirmStartService':
+          $scope.showView = {ts: true, attachments: true, fileModify: true, tariff: true, pbxNumbers: true};
+          break;
+        case 'confirmAdditionIP':
+        case 'confirmCommercialService':
+        case 'e1confirmTestingBilling':
+        case 'e1createRequestTCF':
+          $scope.showView = {ts: true, pbxNumbers: true};
+          break;
+        case 'confirmLegalInformation':
+        case 'e1confirmLegalInformation':
+          $scope.showView = {ci: true, attachments: true, resolution: true};
+          $scope.legalInfo = true;
+          break;
+        case 'confirmCreatedRoot':
+          $scope.showView = {ci: true, attachments: true, pbxNumbers: true, rootForCMMBGW: true};
+          $scope.legalInfo = true;
+          $scope.readonlyMode = false;
+          break;
+        case 'confirmInTIC':
+        case 'confirmCreatedPOI':
+          $scope.showView = {ci: true, attachments: true, pbxNumbers: true, rootForCMMBGW: true};
+          $scope.legalInfo = true;
+          break;
+        case 'confirmNumbersInTIC':
+        case 'e1confirmCreatedRoot':
+        case 'e1confirmInTIC':
+        case 'e1confirmCreatedPOI':
+        case 'e1confirmNumbersInTIC':
+          $scope.showView = {ci: true, attachments: true, pbxNumbers: true};
+          $scope.legalInfo = true;
+          break;
+        case 'e1confirmCheckingTSScheme':
+          $scope.showView = {ts: true, instWork: true};
+          break;
+        case 'confirmReturn':
+          $scope.showView = {ts: true, resolution: true};
+          $scope.resolutionAcceptMsg = 'ROI=6 month';
+          $scope.resolutionRejectMsg = 'ROI>6 month';
+          break;
+        case 'confirmPaybackRisk':
+          $scope.showView = {ts: true, resolution: true, poi: true};
+          break;
+        case 'e1confirmAgreementTUScheme':
+          $scope.showView = {ts: true, resolution: true, poi: true, risk: true};
+          break;
+        case 'confirmTheEnd':
+        case 'confirmTheChannel':
+          $scope.showView = {ts: true, poi: true, risk: true};
+          break;
+
+        case 'modifyConnectionSettings':
+          $scope.readonlyMode = false;
+          $scope.resolutionAcceptMsg = 'No need';
+          $scope.resolutionRejectMsg = 'Modify connection settings';
+          $scope.showView = {ci: true, attachments: true, ts: true, resolution: true, dangerResolution: true};
+          $scope.legalInfo = true;
+          break;
+        case 'confirmContractReceiption':
+          $scope.readonlyMode = false;
+          $scope.legalInfo = true;
+          $scope.showView = {ci: true, attachments: true, fileModify: true, resolution: true};
+      }
+    }
+    
+   }]);
+
+  </script>
+
+  <div class="col-sm-12">
+    <div class="form-group">
+      <label class="col-sm-4">Number request:</label>
+      <div class="col-sm-8"><span class="text-primary">TODO</span></div>
+    </div>
+    <div class="form-group">
+      <label class="col-sm-4">Client:</label>
+      <div class="col-sm-8">{{ci.legalName}} {{ci.bin}}</div>
+    </div>
+    <div class="form-group">
+      <label class="col-sm-4">Priority:</label>
+      <div class="col-sm-8"><span class="{{clientPriority == 'High'?'text-danger':''}} ">{{clientPriority}}</span></div>
+    </div>
+    <div class="form-group">
+      <label class="col-sm-4">Labels:</label>
+      <div class="col-sm-6">
+        <span ng-if="ci != null">{{ci.companyRegistrationCity}}</span> <span ng-if="ts != null">{{ts.connectionType}} {{ts.connectionPoint}}</span>
+      </div>
+      <div class="col-sm-2 pull-right" ng-if="ci && ci.salesRepresentative"><b>KAE:</b> {{ci.salesRepresentative}}</div>
+    </div>
+
+    <div class="col-sm-12">&#8203;</div>
+  </div>
+
+  <div class="col-sm-12 well">
+    <div ng-show="showView.ci">
+      <customer-information ci="ci" form="kcell_form" view="view" readonly="readonlyMode" legal="legalInfo"></customer-information>
+      <div class="col-sm-12"><hr /></div>
+    </div>
+    
+    <div ng-show="showView.ts" class="col-sm-12">
+      <technical-specifications ts="ts" form="kcell_form" view="view" readonly="readonlyMode"></technical-specifications>
+      <div class="col-sm-12"><hr /></div>
+    </div>
+
+    <div ng-show="showView.ts" class="col-sm-12">
+      <sip-protocol sip="sip" form="kcell_form" view="view" readonly="readonlyMode" ng-if="ts.connectionType == 'SIP over internet'"></sip-protocol>
+      <e1-protocol e1="e1" form="kcell_form" view="view" readonly="readonlyMode" ng-if="ts.connectionType == 'E1'"></e1-protocol>
+      <sip-direct-protocol dir="dir" form="kcell_form" readonly="readonlyMode" view="view" ng-if="ts.connectionType == 'SIP cable direct'"></sip-direct-protocol>
+      <div class="col-sm-12"><hr /></div>
+
+      <div ng-show="sip.vpnTuning === 'Yes'">
+        <vpn-tunnel></vpn-tunnel>
+        <div class="col-sm-12"><hr /></div>
+      </div>
+    </div>
+  </div>
+
+  <div class="col-sm-12" ng-show="showView.rootForCMMBGW">
+    <div class="form-group">
+      <label class="col-sm-4">Root for CMM/BGW:</label>
+      <div class="col-sm-8">
+        <input type="text" class="form-control" cam-variable-name="rootForCMMBGW" cam-variable-type="String">
+      </div>
+    </div>
+  </div>
+
+  <div class="col-sm-12" ng-show="showView.attachments">
+    <iframe id="fileDownloadIframe" style="display:none;"></iframe>
+    <div class="form-group">
+      <label class="col-sm-4 control-label">Attachments</label>
+      <div class="col-sm-8">
+        <input type="file" ng-if="showView.fileModify" class="form-control" id="attachments" name="attachments" onchange="angular.element(this).scope().fileSelected(this)"/>
+        <div class="col-sm-12">
+          <table class="table table-bordered">
+              <thead>
+                <tr>
+                  <th>File Name</th>
+                  <th>Created</th>
+                  <th>Created By</th>
+                  <th ng-if="showView.fileModify">Delete</th>
+                </tr>
+              </thead>
+              <tbody>
+                <tr ng-repeat="file in attachments track by $index">
+                  <td><a ng-click="downloadFile(file)">{{file.name}}</a></td>
+                  <td>{{file.created | date: 'dd.MM.yyyy HH:mm'}}</td>
+                  <td>{{file.createdBy}}</td>
+                  <td ng-if="showView.fileModify"><a ng-click="clearFile($index)"><i class="glyphicon glyphicon-trash"></i></a></td>
+                </tr>
+              </tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+    <div class="col-sm-12"><hr /></div>
+  </div>
+
+  <div class="col-sm-12" ng-show="showView.tariff">
+    <div class="form-group">
+      <label class="col-sm-4 control-label">Tariff: <span class="text-danger glyphicon-asterisk"></span></label>
+      <div class="col-sm-8">
+        <select class="form-control" ng-model="tariff">
+          <option value="Стартовый 5">Стартовый 5</option>
+          <option value="Стартовый 10">Стартовый 10</option>
+          <option value="Бизнес пакет 30">Бизнес пакет 30</option>
+          <option value="Бизнес пакет 50">Бизнес пакет 50</option>
+          <option value="нестандартный тариф">нестандартный тариф</option>
+        </select>
+        <input type="text" ng-show="tariff == 'нестандартный тариф'" class="form-control" cam-variable-name="tariffExtra" cam-variable-type="String" placeholder="Укажите тариф">
+      </div>
+    </div>
+  </div>
+
+  <div class="col-sm-12" ng-show="showView.pbxNumbers">
+    <div class="form-group">
+      <label class="col-sm-12">Numbers PBX:</label>
+      <div class="col-sm-12">
+        <textarea class="form-control" ng-model="ts.pbxNumbers" disabled></textarea>
+      </div>
+    </div>
+  </div>
+
+  <div class="col-sm-12" ng-show="showView.poi">
+    <div class="form-group">
+      <label class="col-sm-4">Period of return on investments of the connection</label>
+      <b class="col-sm-8">{{poiMessage}}</b>
+    </div>
+    <div class="form-group" ng-if="showView.risk && poiMessage=='ROI>6 month'">
+      <label class="col-sm-4">Connection with payback risk</label>
+      <b class="col-sm-8">Confirmed</b>
+    </div>
+  </div>
+
+  <div class="form-group" ng-show="showView.resolution">
+    <label class="col-sm-4 control-label">Confirm:</label>
+    <div class="col-sm-8">
+      <label class="radio-inline"><input type="radio" name="resolution" value="Accepted" ng-model="resolution"> {{resolutionAcceptMsg}}</label>
+      <label class="radio-inline"><input type="radio" name="resolution" value="Rejected" ng-model="resolution"> {{resolutionRejectMsg}}</label>
+      <label class="radio-inline" ng-show="showView.dangerResolution"><input type="radio" name="resolution" value="Cancel connection" ng-model="resolution">Cancel connection</label>
+    </div>
+  </div>
+  <div class="form-group" ng-show="showView.instWork">
+    <label class="col-sm-12 control-label">Installation work:</label>
+    <div class="col-sm-12">
+      <textarea class="form-control" name="instWork" cam-variable-name="instWork" cam-variable-type="String"></textarea>
+    </div>
+  </div>
+  <div class="form-group">
+    <label class="col-sm-12 control-label">Comments: <span class="text-danger glyphicon-asterisk" ng-show="resolution == 'Rejected'"></span></label>
+    <div class="col-sm-12">
+      <textarea class="form-control" name="comment" ng-model="comment" ng-required="resolution == 'Rejected'"></textarea>
+      <span class="has-error" ng-if="kcell_form.comment.$error.required && (kcell_form.comment.$touched || view.submitted)">Required field</span>
+    </div>
+  </div>
+  <accordion>
+    <accordion-group is-open="isHistoryOpen">
+      <accordion-heading>
+        History <i class="pull-right glyphicon" ng-class="{'glyphicon-chevron-up': status.isCustomHeaderOpen, 'glyphicon-chevron-down': !status.isCustomHeaderOpen}"></i>
+      </accordion-heading>
+      <table class="table">
+        <thead>
+          <tr>
+            <th>Activity</th>
+            <th>Assignee</th>
+            <th>Resolution</th>
+            <th>Date</th>
+            <th>Comment</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr ng-repeat="resolution in resolutions; track by $index">
+            <td>{{resolution.taskName}}</td>
+            <td>{{resolution.assigneeName}}</td>
+            <td>{{resolution.resolution}}</td>
+            <td>{{resolution.taskEndDate | date: 'dd.MM.yyyy HH:mm'}}</td>
+            <td>{{resolution.comment}}</td>
+          </tr>
+        </tbody>
+      </table>
+    </accordion-group>
+  </accordion>
+  
+</form>

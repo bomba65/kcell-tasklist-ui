@@ -276,7 +276,7 @@
                             });
 
                             if($scope.jobRequests.length > 0){
-                                _.forEach(['site_name', 'priority', 'materialsRequired'], function(variable) {
+                                _.forEach(['site_name', 'priority', 'materialsRequired', 'performDate', 'delayInfo'], function(variable) {
                                     var varSearchParams = {processInstanceIdIn: _.map($scope.jobRequests, 'processInstanceId'), variableName: variable};
                                     $http({
                                         method: 'POST',
@@ -306,7 +306,7 @@
 
                                 $scope.jobRequests.forEach(function (request) {
                                     var taskParams = {
-                                        taskDefinitionKeyIn:['fill_applied_changes_info','validate_tr','accept_work_initiator','UserTask_0rj3nbv','Task_0jxwgbt','UserTask_1i7na4a'],
+                                        taskDefinitionKeyIn:['fill_applied_changes_info','set_materials_dispatch_status','accept_work_initiator','UserTask_0rj3nbv','UserTask_1g0uit4','UserTask_1i7na4a'],
                                         processInstanceBusinessKey: request.businessKey
                                     };
 
@@ -325,8 +325,8 @@
                                         }
 
                                         var validateTr = _.maxBy(_.filter(res.data, function(task){
-                                            return task.taskDefinitionKey === 'validate_tr' || task.taskDefinitionKey === 'Task_0jxwgbt';
-                                        }), function(o) { return o.endTime; });
+                                            return task.taskDefinitionKey === 'set_materials_dispatch_status' || task.taskDefinitionKey === 'UserTask_1g0uit4';
+                                        }), function(o) { return o.startTime; });
 
                                         if(validateTr){
                                             request.validateTr = validateTr.endTime;
@@ -515,6 +515,12 @@
                         if(!selectedWorksMap[work.sapServiceNumber]){
                             selectedWorksMap[work.sapServiceNumber] = [processDetailCopy];
                         } else {
+                            var alreadyDelayInfoShown = false;
+                            angular.forEach(selectedWorksMap[work.sapServiceNumber], function (process) {
+                                if(process.processInstanceId === propt && !processDetailCopy.alreadyDelayInfoShown){
+                                    processDetailCopy.alreadyDelayInfoShown = true;
+                                }
+                            });
                             selectedWorksMap[work.sapServiceNumber].push(processDetailCopy);
                         }
                     });
@@ -751,7 +757,10 @@
                         <tr ng-repeat="w in work.value">
                             <td ng-if="$first" rowspan="{{work.value.length}}">{{worksTitle[work.key]}}</td>
                             <td>{{w.quantity}}</td>
-                            <td><span ng-repeat="rs in w.relatedSites">{{rs.site_name}}<br ng-if="!$last"/></span></td>
+                            <td>
+                                <span ng-if="w.relatedSites && w.relatedSites.length>0" ng-repeat="rs in w.relatedSites">{{rs.site_name}}<br ng-if="!$last"/></span>
+                                <span ng-if="!w.relatedSites || w.relatedSites.length==0">{{w.site_name}}</span>
+                            </td>
                             <td><a ng-click="toggleProcessView(w.processInstanceId, 'table', work.key)">{{w.businessKey}}</a> <a class="glyphicon glyphicon-trash" aria-hidden="true" ng-click="removeJobRequest(w.processInstanceId)"></a></td>
                             <td>{{w.fillAppliedChanges | date:'dd.MM.yyyy'}}</td>
                             <td>{{w.validateTr | date:'dd.MM.yyyy'}}</td>
@@ -760,25 +769,33 @@
                             <td>{{w.priority == 'emergency'?'Emergency':'Regular'}}</td>
                             <td>{{w.materialsRequired}}</td>
                             <td>
-                                <div class="input-group">
+                                <div class="input-group" ng-if="w.delayInfo===undefined">
                                     <input type="number" ng-model="emergencyDelay[w.processInstanceId+':'+work.key]" min="0" name="emergencyDelay{{$index}}-{{$parent.$index}}" style="width: 50px;" required>
+                                    <label class="error" ng-if="kcell_form['emergencyDelay' + $index + '-' + $parent.$index].$error.required && ( kcell_form['emergencyDelay' + $index + '-' + $parent.$index].$touched || view.submitted)">Required field</label>
                                 </div>
-                                <label class="error" ng-if="kcell_form['emergencyDelay' + $index + '-' + $parent.$index].$error.required && ( kcell_form['emergencyDelay' + $index + '-' + $parent.$index].$touched || view.submitted)">Required field</label>
+                                <div class="input-group" ng-if="w.delayInfo!==undefined && w.priority === 'emergency' && !w.alreadyDelayInfoShown">
+                                    {{w.delayInfo}}
+                                </div>
                             </td>
                             <td>
-                                <div class="input-group">
+                                <div class="input-group" ng-if="w.delayInfo===undefined">
                                     <input type="number" ng-model="regularDelay[w.processInstanceId+':'+work.key]" min="0" name="regularDelay{{$index}}-{{$parent.$index}}" style="width: 50px;" required>
+                                    <label class="error" ng-if="kcell_form['regularDelay' + $index + '-' + $parent.$index].$error.required && ( kcell_form['regularDelay' + $index + '-' + $parent.$index].$touched || view.submitted)">Required field</label>
                                 </div>
-                                <label class="error" ng-if="kcell_form['regularDelay' + $index + '-' + $parent.$index].$error.required && ( kcell_form['regularDelay' + $index + '-' + $parent.$index].$touched || view.submitted)">Required field</label>
+                                <div class="input-group" ng-if="w.delayInfo!==undefined && w.priority !== 'emergency' && !w.alreadyDelayInfoShown">
+                                    {{w.delayInfo}}
+                                </div>
                             </td>
                             <td>
-                                <div ng-show="!jrCommentEditable">
-                                    <a class="glyphicon" ng-class="{'glyphicon-comment': workComments[w.processInstanceId + ':' + work.key], 'glyphicon-plus': !workComments[w.processInstanceId + ':' + work.key] }" placement="left" tooltip="{{workComments[w.processInstanceId + ':' + work.key]}}" aria-hidden="true" ng-click="jrCommentEditable = !jrCommentEditable"></a>
+                                <div ng-if="w.delayInfo===undefined">
+                                    <div ng-show="!jrCommentEditable">
+                                        <a class="glyphicon" ng-class="{'glyphicon-comment': workComments[w.processInstanceId + ':' + work.key], 'glyphicon-plus': !workComments[w.processInstanceId + ':' + work.key] }" placement="left" tooltip="{{workComments[w.processInstanceId + ':' + work.key]}}" aria-hidden="true" ng-click="jrCommentEditable = !jrCommentEditable"></a>
+                                    </div>
+                                    <div ng-show="jrCommentEditable" class="input-group">
+                                        <input type="text" ng-model="workComments[w.processInstanceId + ':' + work.key]" name="jrComment{{$index}}" style="width: 50px;">
+                                    </div>
+                                    <label class="error" ng-if="kcell_form['jrComment' + $index].$error.required && ( kcell_form['jrComment' + $index].$touched || view.submitted) && jrCommentEditable">Required field</label>
                                 </div>
-                                <div ng-show="jrCommentEditable" class="input-group">
-                                    <input type="text" ng-model="workComments[w.processInstanceId + ':' + work.key]" name="jrComment{{$index}}" style="width: 50px;">
-                                </div>
-                                <label class="error" ng-if="kcell_form['jrComment' + $index].$error.required && ( kcell_form['jrComment' + $index].$touched || view.submitted) && jrCommentEditable">Required field</label>
                             </td>
                         </tr>
                         <tr ng-if="pkey === work.key && jobModel && selectedView === 'table'">

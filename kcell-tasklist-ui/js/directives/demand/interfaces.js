@@ -1,17 +1,17 @@
 define(['./../module'], function(module){
-	'use strict';
-	module.directive('demandInterfaces', function ($rootScope, $http) {
-		return {
-			restrict: 'E',
-			scope: {
+    'use strict';
+    module.directive('demandInterfaces', function ($rootScope, $http) {
+        return {
+            restrict: 'E',
+            scope: {
                 data: '=',
                 form: '=',
                 view: '=',
                 disabled: '=',
                 processId: '=',
                 taskId: '='
-			},
-			link: function(scope, element, attrs) {
+            },
+            link: function(scope, element, attrs) {
                 scope.$watch('data', function(value) {
                     if (value) {
                         if (!scope.data) scope.data = {};
@@ -25,8 +25,8 @@ define(['./../module'], function(module){
                 scope.toggleCollapse = function(section) {
                     scope.collapse[section] = !scope.collapse[section];
                 }
-	        },
-			templateUrl: './js/directives/demand/interfaces.html'
-		};
-	});
+            },
+            templateUrl: './js/directives/demand/interfaces.html'
+        };
+    });
 });

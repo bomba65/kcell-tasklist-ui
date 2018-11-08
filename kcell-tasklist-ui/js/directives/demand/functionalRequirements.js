@@ -1,17 +1,17 @@
 define(['./../module'], function(module){
-	'use strict';
-	module.directive('demandFuncRequirements', function ($rootScope, $http) {
-		return {
-			restrict: 'E',
-			scope: {
+    'use strict';
+    module.directive('demandFuncRequirements', function ($rootScope, $http) {
+        return {
+            restrict: 'E',
+            scope: {
                 data: '=',
                 form: '=',
                 view: '=',
                 disabled: '=',
                 processId: '=',
                 taskId: '='
-			},
-			link: function(scope, element, attrs) {
+            },
+            link: function(scope, element, attrs) {
                 scope.$watch('data', function(value) {
                     if (value) {
                         if (!scope.data) scope.data = {};
@@ -49,8 +49,8 @@ define(['./../module'], function(module){
                     scope.data.useCases.push({name: '', text: ''});
                     scope.collapse.useCases[scope.data.useCases.length - 1] = false;
                 }
-	        },
-			templateUrl: './js/directives/demand/functionalRequirements.html'
-		};
-	});
+            },
+            templateUrl: './js/directives/demand/functionalRequirements.html'
+        };
+    });
 });

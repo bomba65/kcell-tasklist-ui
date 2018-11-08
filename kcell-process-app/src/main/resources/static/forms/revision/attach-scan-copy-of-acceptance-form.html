@@ -30,6 +30,7 @@
                 'kcellWarehouseMaterialsList',
                 'contractorZIPWarehouseMaterialsList',
                 'kcellWarehouseMaterialsListName',
+                'kcellWarehouseMaterialsAdditionalList',
                 'contractorZIPWarehouseMaterialsListName',
                 'sapTransferRequestFile',
                 'resolutions',
@@ -40,6 +41,7 @@
                 'tssrssidFile',
                 'tssrssidFileName',
                 'trFilesName',
+                'trAdditionalFilesName',
                 'trFiles',
                 'siteWorksFiles',
                 'initiatorFiles',
@@ -48,7 +50,8 @@
                 'priority',
                 'acceptPerformedJob',
                 'performDate',
-                'mlApprovalAdditionalInfoFile'
+                'mlApprovalAdditionalInfoFile',
+                'delayInfo'
             ];
             $scope.jobModel = {};
             var workFiles = [];
@@ -67,7 +70,7 @@
                     camForm.variableManager.fetchVariable(el);
                 });
 
-                $http.get('/api/catalogs').then(
+                $http.get('/api/catalogs?force=1').then(
                         function (result) {
                             angular.extend($scope, result.data);
                             angular.extend($scope.jobModel, result.data);
@@ -88,8 +91,6 @@
                 });
             });
             camForm.on('variables-fetched', function () {
-                console.log("FETCHED VARIABLES");
-                console.log(variables);
                 variables.forEach(function (el) {
                     if(el === 'resolutions'){
                         $scope.jobModel.resolutions = angular.copy(camForm.variableManager.variables[el].value);
@@ -150,6 +151,7 @@
                     submit: true,
                     store: true
                 });
+                $scope.jobModel.showDelayHint = true;
             });
 
             camForm.on('submit', function (event) {
@@ -240,9 +242,9 @@
                     name: 'scanCopyFile',
                     type: 'Json',
                     value: {
-                        name: file.name,
+                        name: file.name.replace(/[/\\?%*:|"<>]/g, '-'),
                         isNew : true,
-                        path: $scope.processInstanceId + '/' + camForm.taskId + '/' + file.name
+                        path: $scope.processInstanceId + '/' + camForm.taskId + '/' + file.name.replace(/[/\\?%*:|"<>]/g, '-')
                     }
                 };
                 $http({method: 'GET', url: '/camunda/uploads/put/' + fileToUpload.value.path, transformResponse: [] }).

@@ -1,0 +1,384 @@
+<form role="form" class="form-horizontal" name="kcell_form" novalidate>
+    <script cam-script type="text/form-script">
+        inject(['$scope', '$http', 'Uri', '$rootScope', '$q', '$timeout', function ($scope, $http, Uri, $rootScope, $q, $timeout) {
+            var uuid = new Date().getTime();
+            camForm.on('form-loaded', function () {
+                $http.get("/camunda/api/engine/engine/default/user/" + $rootScope.authentication.name+ "/profile").then(function(result){
+                    $rootScope.authentication.assigneeName = (result.data.firstName ? result.data.firstName : "") + " " + (result.data.lastName ? result.data.lastName : "");
+                });
+
+                camForm.variableManager.createVariable({
+                    name: 'resolutions',
+                    type: 'Json',
+                    value: ''
+                });
+
+                camForm.variableManager.createVariable({
+                    name: 'CreateApplicationTaskResult',
+                    type: 'String',
+                    value: ''
+                });
+
+                camForm.variableManager.createVariable({
+                    name: 'CreateApplicationTaskComment',
+                    type: 'String',
+                    value: ''
+                });
+
+                camForm.variableManager.createVariable({
+                    name: 'connectionType',
+                    value: '',
+                    type: 'String'
+                });
+                camForm.variableManager.createVariable({
+                    name: 'VPNconnection',
+                    value: '',
+                    type: 'String'
+                });
+                camForm.variableManager.createVariable({
+                    name: 'provider',
+                    value: '',
+                    type: 'String'
+                });
+                camForm.variableManager.createVariable({
+                    name: 'startDate',
+                    value: '',
+                    type: 'String'
+                });
+                camForm.variableManager.createVariable({
+                    name: 'prices',
+                    value: undefined,
+                    type: 'Json'
+                });
+                camForm.variableManager.createVariable({
+                    name: 'contractScanCopyFileName',
+                    value: undefined,
+                    type: 'Json'
+                });
+                camForm.variableManager.createVariable({
+                    name: 'applicationScanCopyFileName',
+                    value: undefined,
+                    type: 'Json'
+                });
+                camForm.variableManager.createVariable({
+                    name: 'operatorType',
+                    value: '',
+                    type: 'String'
+                });
+                $scope.requestedDate = new Date();
+                $scope.operators = [
+                    {id: 'kcell', name: 'Kcell'},
+                    {id: 'beeline', name: 'Beeline'},
+                    {id: 'tele2', name: 'Tele2'},
+                    {id: 'altel', name: 'Altel'},
+                ];
+
+                $scope.CreateApplicationTaskResult = '';
+
+            });
+
+            camForm.on('submit', function (evt) {
+                //evt.submitPrevented = true;
+                $scope.CreateApplicationTaskResult = 'Complete';
+
+                if(!$scope.resolutions){
+                    $scope.resolutions = [];
+                }
+                camForm.variableManager.variableValue('operatorType', $scope.operatorType);
+                camForm.variableManager.variableValue('CreateApplicationTaskResult', $scope.CreateApplicationTaskResult);
+                camForm.variableManager.variableValue('CreateApplicationTaskComment', $scope.CreateApplicationTaskComment);
+                if($scope.VPNconnection) {
+                    camForm.variableManager.variableValue('VPNconnection', 'yes');
+                } else {
+                    camForm.variableManager.variableValue('VPNconnection', 'no');
+                }
+
+                if($scope.contractScanCopyFileName) {
+                    camForm.variableManager.variableValue('contractScanCopyFileName', $scope.contractScanCopyFileName);
+                }
+                if($scope.applicationScanCopyFileName) {
+                    camForm.variableManager.variableValue('applicationScanCopyFileName', $scope.applicationScanCopyFileName);
+                }
+                console.log(camForm.variableManager.variableValue('contractScanCopyFileName'));
+
+                camForm.variableManager.variableValue('prices', $scope.operators);
+                var startDate = new Date($scope.startDate);
+                camForm.variableManager.variableValue('startDate', startDate);
+                camForm.variableManager.variableValue('connectionType', $scope.connectionType);
+
+                if ($scope.provider) {
+                    camForm.variableManager.variableValue('provider', $scope.provider);
+                } else {
+                    camForm.variableManager.destroyVariable('provider');
+                }
+
+                $scope.resolutions.push({taskEndDate: new Date(), assignee: $rootScope.authentication.name, assigneeName: $rootScope.authentication.assigneeName, resolution: $scope.CreateApplicationTaskResult, comment: $scope.CreateApplicationTaskComment, taskName: 'Стартовая форма'});
+                camForm.variableManager.variableValue('resolutions', $scope.resolutions);
+
+            });
+
+            $scope.download = function (file) {
+                console.log(file);
+                $http({method: 'GET', url: '/camunda/uploads/tmp/get/' + file.path, transformResponse: [] }).
+                success(function(data, status, headers, config) {
+                    document.getElementById('fileDownloadIframe').src = data;
+                }).
+                error (function(data, status, headers, config) {
+                    console.log(data);
+                });
+            }
+
+            $scope.fileSelected = function(el, fileName){
+                if(el.files[0]){
+                    $timeout(function () {
+                        $scope.$apply(function () {
+                            uploadFileToMinio(el.files[0], fileName);
+                        });
+                    })                } else {
+                    $scope.$apply(function(){
+                        $scope[fileName] = undefined;
+                    });
+                }
+            };
+
+            function uploadFileToMinio(file, fileName) {
+                var fileValue = {
+                    name: file.name.replace(/[/\\?%*:|"<>]/g, '-'),
+                    path: uuid + '/' + file.name.replace(/[/\\?%*:|"<>]/g, '-')
+                };
+                $http({method: 'GET', url: '/camunda/uploads/tmp/put/' + fileValue.path, transformResponse: [] }).
+                success(function(data, status, headers, config) {
+                    $http.put(data, file, {headers: {'Content-Type': undefined}}).then(
+                            function () {
+                                $scope[fileName] = fileValue;
+                                angular.element(document.querySelector('#'+fileName)).val(null);
+                            },
+                            function (error) {
+                                console.log(error.data);
+                            }
+                    );
+                }).
+                error (function(data, status, headers, config) {
+                    console.log(data);
+                });
+            }
+
+            $scope.clearFile = function(filename){
+                delete $scope[filename];
+            };
+
+            $scope.clearPrices = function(operator){
+                operator.priceAP = '';
+                operator.priceEP = '';
+            };
+
+            $scope.open = open;
+
+            var currentDate = new Date();
+
+            $scope.startDate = currentDate;
+            $scope.datepickerOptions = {
+                minDate: currentDate
+            };
+
+            function open($event) {
+                $event.preventDefault();
+                $event.stopPropagation();
+                $scope.dateFieldOpened = true;
+            };
+        }]);
+
+    </script>
+    <div class="form-group">
+        <label class="col-sm-12 control-label"><H4><b>Заявка на подключение услуги</b></H4></label>
+    </div>
+    <iframe id="fileDownloadIframe" style="display:none;"></iframe>
+    <div class="form-group">
+        <label class="col-sm-2 control-label">БИН*:</label>
+        <div class="col-sm-4">
+            <input type="number" name="clientBIN" id='clientBIN' cam-variable-name="clientBIN" cam-variable-type="String" class="form-control" placeholder="БИН*" ng-pattern="/^(?:\d{12}|\w+@\w+\.\w{2,3})$/" required>
+            <label class="error" ng-show="kcell_form.clientBIN.$error.required && ( kcell_form.clientBIN.$touched || view.submitted)">Required field</label>
+            <label class="error" ng-show="kcell_form.clientBIN.$error.pattern && ( kcell_form.clientBIN.$touched || view.submitted)">Неверный формат БИН</label>
+        </div>
+        <label class="col-sm-2 control-label">Идентификатор*:</label>
+        <div class="col-sm-4">
+            <input class="form-control" cam-variable-name="identificator" name="identificator" required cam-variable-type="String">
+            <label class="error" ng-show="kcell_form.identificator.$error.required && ( kcell_form.identificator.$touched || view.submitted)">Required field</label>
+        </div>
+    </div>
+    <div class="form-group">
+        <label class="col-sm-4 control-label">Клиент*:</label>
+        <div class="col-sm-8">
+            <input type="text" name="ClientName" id='ClientName' cam-variable-name="ClientName" cam-variable-type="String" class="form-control" placeholder="Юридическое название*" required>
+            <label class="error" ng-show="kcell_form.ClientName.$error.required && ( kcell_form.ClientName.$touched || view.submitted)">Required field</label>
+        </div>
+    </div>
+    <div class="well well-sm">
+        <div class="form-group">
+            <label class="col-sm-12 control-label"><H4><b>&nbsp;&nbsp;Укажите цены*:</b></H4></label>
+        </div>
+        <div class="form-group">
+            <div class="col-sm-1">
+                <p>&nbsp;</p>
+                <div class="input">
+                    <label for="operator.id">АП</label>
+                </div>
+                <br>
+                <div class="input">
+                    <label for="operator.id">ЕП</label>
+                </div>
+            </div>
+            <div class="col-sm-10">
+                <div class="col-sm-3" ng-repeat="operator in operators">
+                    <label for="operator.id"><input type="checkbox" ng-model="operator.isAvailable" ng-change="clearPrices(operator)"> {{operator.name}}</label>
+                    <div class="input" id="operator.id" >
+                        <input ng-model="operator.priceAP" name="{{operator.id + 'AP'}}" class="form-control"  placeholder="{{operator.isAvailable?'Цена':'Не доступен'}}" ng-disabled="!operator.isAvailable" ng-required="operator.isAvailable"/>
+                        <label class="error" ng-show="kcell_form.{{operator.id + 'AP'}}.$error.required && ( kcell_form.{{operator.id + 'AP'}}.$touched || view.submitted)">Required field</label>
+                    </div>
+                    <br>
+                    <div class="input">
+                        <input ng-model="operator.priceEP" name="{{operator.id + 'EP'}}" class="form-control"  placeholder="{{operator.isAvailable?'Цена':'Не доступен'}}" ng-disabled="!operator.isAvailable" ng-required="operator.isAvailable"/>
+                        <label class="error" ng-show="kcell_form.{{operator.id + 'EP'}}.$error.required && ( kcell_form.{{operator.id + 'EP'}}.$touched || view.submitted)">Required field</label>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div class="form-group">
+            <div class="col-sm-2">
+            </div>
+            <div class="col-sm-5">
+                <label>АП -­ Абонентский платёж</label>
+            </div>
+            <div class="col-sm-5">
+                <label>ЕП -­ Единовременный платёж</label>
+            </div>
+        </div>
+    </div>
+    <div class="form-group">
+        <label class="col-sm-4 control-label">Описание сервиса*:</label>
+        <div class="col-sm-8">
+            <input class="form-control" maxlength="500" cam-variable-name="description" name="description" required cam-variable-type="String">
+            <label class="error" ng-show="kcell_form.description.$error.required && ( kcell_form.description.$touched || view.submitted)">Required field</label>
+        </div>
+    </div>
+    <div class="form-group">
+        <label class="col-sm-4 control-label">Тип подключения*:</label>
+        <div class="col-sm-8">
+            <select ng-model="connectionType" name="connectionType" class="form-control" required="true">
+                <option value="SIP">SIP</option>
+                <option value="transmit">ПЕРЕАДРЕСАЦИЯ</option>
+                <option value="E1">E1</option>
+            </select>
+            <label class="error" ng-show="kcell_form.connectionType.$error.required && ( kcell_form.connectionType.$touched || view.submitted)">Required field</label>
+        </div>
+    </div>
+    <div class="form-group">
+        <label class="col-sm-4 control-label">Тип оператора*:</label>
+        <div class="col-sm-8">
+            <select ng-model="operatorType" name="operatorType" class="form-control" required="true">
+                <option value="Onnet">On-Net</option>
+                <option value="Offnet">On-Net + Off-Net</option>
+            </select>
+            <label class="error" ng-show="kcell_form.operatorType.$error.required && ( kcell_form.operatorType.$touched || view.submitted)">Required field</label>
+        </div>
+    </div>
+    <div class="form-group" ng-show="connectionType === 'transmit' ">
+        <label class="col-sm-4 control-label">Номер переадресации*:</label>
+        <div class="col-sm-8">
+            <input class="form-control" maxlength="500" cam-variable-name="transmitNumber" name="transmitNumber" ng-required="connectionMethod === 'transmit' " cam-variable-type="String">
+            <label class="error" ng-show="kcell_form.transmitNumber.$error.required && ( kcell_form.transmitNumber.$touched || view.submitted)">Required field</label>
+        </div>
+    </div>
+    <div class="form-group" ng-show="connectionType === 'SIP' ">
+        <label class="col-sm-4 control-label">IP*:</label>
+        <div class="col-sm-8">
+            <input class="form-control" maxlength="500" cam-variable-name="ipNumber" name="ipNumber"  ng-required="connectionMethod === 'SIP' " cam-variable-type="String">
+            <label class="error" ng-show="kcell_form.ipNumber.$error.required && ( kcell_form.ipNumber.$touched || view.submitted)">Required field</label>
+        </div>
+    </div>
+    <div class="form-group">
+        <label class="col-sm-4 control-label">Дата предполагаемого запуска*:</label>
+        <div class="col-sm-8">
+            <div class="input-group">
+                <input type="text" ng-model="startDate" name="startDate" required class="form-control" datepicker-popup="dd.MM.yyyy" is-open="dateFieldOpened" id="startDate" min-date="datepickerOptions.minDate" />
+                <span class="input-group-btn">
+                    <button type="button" class="btn btn-default" ng-click="open($event)">
+                        <i class="glyphicon glyphicon-calendar"></i>
+                    </button>
+                </span>
+            </div>
+        </div>
+    </div>
+    <div class="form-group">
+        <label class="col-sm-4 control-label">Тариф для абонента*:</label>
+        <div class="col-sm-8">
+            <input class="form-control" maxlength="500" cam-variable-name="abonentTarif" name="abonentTarif" required cam-variable-type="String">
+            <label class="error" ng-show="kcell_form.abonentTarif.$error.required && ( kcell_form.abonentTarif.$touched || view.submitted)">Required field</label>
+        </div>
+    </div>
+    <div class="form-group" ng-show="operatorType === 'Offnet'">
+        <label class="col-sm-4 control-label">Провайдер*:</label>
+        <div class="col-sm-8">
+            <select ng-model="provider" name="provider" class="form-control" ng-required="operatorType === 'Offnet'">
+                <option value="SMS-Consult">SMS-Consult</option>
+                <option value="MMS">MMS</option>
+            </select>
+            <label class="error" ng-show="kcell_form.provider.$error.required && ( kcell_form.provider.$touched || view.submitted)">Required field</label>
+        </div>
+    </div>
+    <div class="form-check">
+        <input type="checkbox" ng-model="VPNconnection" class="form-check-input" id="check1">
+        <label class="form-check-label" for="check1">Нужно VPN подключение</label>
+    </div>
+    <div class="form-group">
+        <label class="col-sm-12 control-label"><H4><b>Технический специалист:</b></H4></label>
+    </div>
+    <div class="form-group">
+        <label class="col-sm-4 control-label">ФИО*:</label>
+        <div class="col-sm-8">
+            <input class="form-control" maxlength="500" cam-variable-name="techSpecFIO" name="techSpecFIO" required cam-variable-type="String">
+            <label class="error" ng-show="kcell_form.techSpecFIO.$error.required && ( kcell_form.techSpecFIO.$touched || view.submitted)">Required field</label>
+        </div>
+    </div>
+    <div class="form-group">
+        <label class="col-sm-4 control-label">Телефон*:</label>
+        <div class="col-sm-3">
+            <input class="form-control" maxlength="500" cam-variable-name="techSpecNumber" name="techSpecNumber" required cam-variable-type="String">
+            <label class="error" ng-show="kcell_form.techSpecNumber.$error.required && ( kcell_form.techSpecNumber.$touched || view.submitted)">Required field</label>
+        </div>
+        <label class="col-sm-1 control-label">Email*:</label>
+        <div class="col-sm-4">
+            <input class="form-control" maxlength="500" cam-variable-name="techSpecEmail" name="techSpecEmail" required cam-variable-type="String">
+            <label class="error" ng-show="kcell_form.techSpecEmail.$error.required && ( kcell_form.techSpecEmail.$touched || view.submitted)">Required field</label>
+        </div>
+    </div>
+    <div class="form-group">
+        <label class="col-sm-4 control-label">Вложите скан. договора:</label>
+        <div class="col-sm-8">
+            <div ng-show="contractScanCopyFileName.name">
+                <a ng-click="download(contractScanCopyFileName)">{{contractScanCopyFileName.name}}</a> | <a ng-click="clearFile('contractScanCopyFileName')"><i class="glyphicon glyphicon-trash"></i></a>
+            </div>
+            <input ng-hide="contractScanCopyFileName.name" type="file" class="form-control" id="contractScanCopyFileName" name="contractScanCopyFileName" ng-model="contractScanCopyFileName"
+                   onchange="angular.element(this).scope().fileSelected(this, 'contractScanCopyFileName')"/>
+            <label class="has-error" ng-show="kcell_form.contractScanCopyFileName.$error.validFile && ( kcell_form.contractScanCopyFileName.$touched || view.submitted)">File is required</label>
+        </div>
+    </div>
+    <div class="form-group">
+        <label class="col-sm-4 control-label">Вложите скан. Заявки:</label>
+        <div class="col-sm-8">
+            <div ng-show="applicationScanCopyFileName.name">
+                <a ng-click="download(applicationScanCopyFileName)">{{applicationScanCopyFileName.name}}</a> | <a ng-click="clearFile('applicationScanCopyFileName')"><i class="glyphicon glyphicon-trash"></i></a>
+            </div>
+            <input ng-hide="applicationScanCopyFileName.name" type="file" class="form-control" id="applicationScanCopyFileName" name="applicationScanCopyFileName" ng-model="applicationScanCopyFileName"
+                   onchange="angular.element(this).scope().fileSelected(this, 'applicationScanCopyFileName')"/>
+            <label class="has-error" ng-show="kcell_form.applicationScanCopyFileName.$error.validFile && ( kcell_form.applicationScanCopyFileName.$touched || view.submitted)">File is required</label>
+        </div>
+    </div>
+    <div class="form-group">
+        <label class="col-sm-4 control-label">Комментарии:</label>
+        <div class="col-sm-8">
+            <textarea class="form-control" ng-model="CreateApplicationTaskComment" name="CreateApplicationTaskComment" placeholder="Comments..." maxlength="500" rows="4" style="resize:none"></textarea>
+            <label class="error" ng-show="kcell_form.CreateApplicationTaskComment.$error.required && ( kcell_form.CreateApplicationTaskComment.$touched || view.submitted)">Required field</label>
+        </div>
+    </div>
+</form>
