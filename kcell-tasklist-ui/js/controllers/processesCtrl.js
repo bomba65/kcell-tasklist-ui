@@ -698,5 +698,9 @@ define(['./module','jquery', 'camundaSDK'], function(app, $, CamSDK){
 			} else 
 				return false;
 		}
+
+		$scope.hasAccessViewTaskDetail = function(pi){
+			return $rootScope.hasGroup('kcellUsers') || ($scope.currentPD === 'Invoice' && pi.startUserId === $rootScope.authUser.id);
+		}
 	}]);
 });
