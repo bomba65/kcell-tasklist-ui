@@ -1,0 +1,264 @@
+<form role="form" class="form-horizontal" name="kcell_form" novalidate>
+    <style>
+        .background-yellow-accordion .panel-body {
+            background-color: #ffffcc;
+            border: 1px solid #b3b3b3;
+            color: #333;
+        }
+    </style>
+    <script cam-script type="text/form-script">
+        inject(['$scope', '$http', 'Uri', '$rootScope', '$q', 'toasty', '$timeout', function ($scope, $http, Uri, $rootScope, $q, toasty, $timeout) {
+            $scope.legalInfo = {};
+            $scope.techSpecs = {connectionType:'SIP over internet', sip: {}};
+            $scope.resolutions = [];
+            $scope.attachments = [];
+            var processInstanceId = null;
+            var taskName = null;
+            var assigneeName = $rootScope.authentication.name;
+
+            $http.get("/camunda/api/engine/engine/default/user/" + $rootScope.authentication.name+ "/profile").then(function(result){
+                assigneeName = (result.data.firstName ? result.data.firstName : "") + " " + (result.data.lastName ? result.data.lastName : "");
+            });
+
+            $http.get('/camunda/api/engine/engine/default/task/' + camForm.taskId).then(
+                function(result){
+                    processInstanceId = result.data.processInstanceId;
+                    taskName = result.data.name;
+                },
+                function (error) { console.log(error.data);}
+            );
+
+            camForm.on('submit', function (event) {
+                camForm.variableManager.createVariable({
+                    name: 'legalInfo',
+                    type: 'Json',
+                    value: $scope.legalInfo
+                });
+                camForm.variableManager.createVariable({
+                    name: 'techSpecs',
+                    type: 'Json',
+                    value: $scope.techSpecs
+                });
+                camForm.variableManager.createVariable({
+                    name: 'attachments',
+                    type: 'json',
+                    value: $scope.attachments,
+                    store: true
+                });
+
+                var submitDate = new Date ();
+                if(!$scope.resolutions){
+                    $scope.resolutions = [];
+                }
+                $scope.resolutions.unshift({processInstanceId: processInstanceId, assignee: assigneeName, resolution: 'Completed', comment: $scope.comment, taskId: camForm.taskId, taskEndDate: submitDate, taskName: taskName});
+                camForm.variableManager.destroyVariable('resolutions');
+                camForm.variableManager.createVariable({
+                    name: 'resolutions',
+                    type: 'Json',
+                    value: $scope.resolutions
+                });
+            });
+
+            $scope.downloadFile = function (file) {
+                $http({method: 'GET', url: '/camunda/uploads/' + (file.path.split('/').length === 2 ? 'tmp/' : '') + 'get/' + file.path, transformResponse: [] }).success(function(data, status, headers, config) {
+                    document.getElementById('fileDownloadIframe').src = data;
+                }).error (function(data, status, headers, config) {
+                    console.log(data);
+                });
+            }
+
+            $scope.clearFile = function(fileIndex) {
+                $scope.attachments.splice(fileIndex, 1);
+            }
+
+            $scope.fileSelected = function(el) {
+                $timeout(function () {
+                    $scope.$apply(function () {
+                        uploadFileToMinio(el.files[0]);
+                    });
+                });
+            };
+
+            var uuid = new Date().getTime();
+
+            function uploadFileToMinio(file) {
+                var fileToUpload = {
+                    name: file.name.replace(/[/\\?%*:|"<>]/g, '-'),
+                    path: uuid + '/' + file.name.replace(/[/\\?%*:|"<>]/g, '-'),
+                    created: new Date(),
+                    createdBy: assigneeName
+                };
+                $http({method: 'GET', url: '/camunda/uploads/tmp/put/' + fileToUpload.path, transformResponse: [] }).success(function(data, status, headers, config) {
+                    $http.put(data, file, {headers: {'Content-Type': undefined}}).then(
+                        function () {
+                            $scope.attachments.push(fileToUpload);
+                            angular.element(document.querySelector('#attachments')).val(null);
+                        },
+                        function (error) {
+                            console.log(error.data);
+                        }
+                    );
+                }).error (function(data, status, headers, config) {
+                    console.log(data);
+                });
+            }
+        }]);
+    </script>
+
+    <tabset class="my-tab-head my-tab" justified="true">
+        <tab>
+            <tab-heading> Legal information </tab-heading>
+            <accordion>
+                <accordion-group is-open="true">
+                    <accordion-heading>
+                        Legal information <i class="pull-right glyphicon" ng-class="{'glyphicon-chevron-up': status.isCustomHeaderOpen, 'glyphicon-chevron-down': !status.isCustomHeaderOpen}"></i>
+                    </accordion-heading>
+                    <aftersales-legal-information data="legalInfo" form="kcell_form" view="view" disabled="false"></aftersales-legal-information>
+                </accordion-group>
+            </accordion>
+            <div class="col-sm-12">
+                <div class="form-group">
+                    <label class="col-sm-5 control-label">Actual tariff plan: <span class="text-danger glyphicon-asterisk"></span></label>
+                    <div class="col-sm-7">
+                        <select class="form-control" name="tariffPlan" cam-variable-name="tariffPlan" cam-variable-type="String" required>
+                            <option value="Тендер">Тендер</option>
+                            <option value="Ценовое предложение">Ценовое предложение</option>
+                            <option value="Из одного источника">Из одного источника</option>
+                        </select>
+                        <span class="has-error" ng-if="kcell_form.tariffPlan.$error.required && (kcell_form.tariffPlan.$touched || view.submitted)">Required field</span>
+                        <div class="col-sm-12" style="padding-left: 0;">
+                            <div class="checkbox">
+                                <label><input type="checkbox" cam-variable-name="needBillingTest" cam-variable-type="Boolean">Need Billing test</label>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <div class="form-group">
+                    <div class="col-sm-12">
+                        <div class="checkbox">
+                            <label style="font-weight: bold;"><input type="checkbox" cam-variable-name="changeNumbers" cam-variable-type="Boolean">Change numbers</label>
+                        </div>
+                        <div class="checkbox">
+                            <label><input type="checkbox" cam-variable-name="changeIP" cam-variable-type="Boolean">Change IP, ports, protocols</label>
+                        </div>
+                        <div class="checkbox">
+                            <label style="font-weight: bold;"><input type="checkbox" ng-model="changeConnection" cam-variable-name="changeConnection" cam-variable-type="Boolean">Change connection point</label>
+                        </div>
+                        <div class="checkbox">
+                            <label><input type="checkbox" cam-variable-name="changeCodecs" cam-variable-type="Boolean">Change number of sessions, codecs</label>
+                        </div>
+                        <div class="checkbox">
+                            <label style="font-weight: bold;"><input type="checkbox" ng-model="newTrunk" cam-variable-name="newTrunk" cam-variable-type="Boolean">New trunk addition</label>
+                        </div>
+                        <div class="checkbox">
+                            <label><input type="checkbox" cam-variable-name="changeVPN" cam-variable-type="Boolean">Addition/change VPN settings</label>
+                        </div>
+                        <div class="checkbox">
+                            <label style="font-weight: bold;"><input type="checkbox" cam-variable-name="deleteTICName" cam-variable-type="Boolean">Change in legal person with deleting TIC name in Personal Account</label>
+                        </div>
+                        <div class="checkbox">
+                            <label><input type="checkbox" cam-variable-name="leaveTICName" cam-variable-type="Boolean">Change in legal person without deleting TIC name in Personal Account</label>
+                        </div>
+                        <div class="checkbox">
+                            <label style="font-weight: bold;"><input type="checkbox" cam-variable-name="changeStandard" cam-variable-type="Boolean">Change Tariff (standard)</label>
+                        </div>
+                        <div class="checkbox">
+                            <label><input type="checkbox" cam-variable-name="changeCustom" cam-variable-type="Boolean">Change Tariff (custom)</label>
+                        </div>
+                        <div class="checkbox">
+                            <label style="font-weight: bold;"><input type="checkbox" cam-variable-name="changeInvoice" cam-variable-type="Boolean">Change invoice details/contacts</label>
+                        </div>
+                        <div class="checkbox">
+                            <label><input type="checkbox" cam-variable-name="agreementTermination" cam-variable-type="Boolean">Termination of an agreement</label>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </tab>
+        <tab>
+            <tab-heading> Technical specification </tab-heading>
+            <accordion>
+                <accordion-group is-open="true">
+                    <accordion-heading>
+                        Technical specification <i class="pull-right glyphicon" ng-class="{'glyphicon-chevron-up': status.isCustomHeaderOpen, 'glyphicon-chevron-down': !status.isCustomHeaderOpen}"></i>
+                    </accordion-heading>
+                    <aftersales-technical-specifications data="techSpecs" form="kcell_form" view="view" disabled="false" cp-required="newTrunk || changeConnection"></aftersales-technical-specifications>
+                </accordion-group>
+            </accordion>
+            <accordion ng-if="techSpecs.connectionType" class="background-yellow-accordion">
+                <accordion-group is-open="true">
+                    <accordion-heading>
+                        {{techSpecs.connectionType == 'SIP over internet' ? 'Connection via Internet channel by SIP protocol' : (techSpecs.connectionType == 'E1' ? 'Direct connection by E1 (30 channels)' : 'Direct connection by SIP Direct Protocols')}} <i class="pull-right glyphicon" ng-class="{'glyphicon-chevron-up': status.isCustomHeaderOpen, 'glyphicon-chevron-down': !status.isCustomHeaderOpen}"></i>
+                    </accordion-heading>
+                    <aftersales-sip-protocol ng-if="techSpecs.connectionType == 'SIP over internet'" data="techSpecs.sip" form="kcell_form" view="view" disabled="false" show-new-fields="newTrunk || changeConnection"></aftersales-sip-protocol>
+                    <!--<aftersales-e1-protocol ng-if="techSpecs.connectionType == 'E1'" e1="techSpecs.sip" form="kcell_form" view="view" disabled="false"></aftersales-e1-protocol>-->
+                    <!--<aftersales-direct-protocol ng-if="techSpecs.connectionType == 'SIP cable direct'" dir="techSpecs.sip" form="kcell_form" view="view" disabled="false"></aftersales-direct-protocol>-->
+                </accordion-group>
+            </accordion>
+        </tab>
+    </tabset>
+    <div class="col-sm-12"><hr /></div>
+
+    <iframe id="fileDownloadIframe" style="display:none;"></iframe>
+    <div class="form-group">
+        <label class="col-sm-2 control-label">Attachments</label>
+        <div class="col-sm-10">
+            <input type="file" class="form-control" id="attachments" name="attachments" onchange="angular.element(this).scope().fileSelected(this)"/>
+            <div class="col-sm-12" style="padding: 0;">
+                <table class="table table-bordered">
+                    <thead>
+                    <tr>
+                        <th>File Name</th>
+                        <th>Created</th>
+                        <th>Created By</th>
+                        <th>Delete</th>
+                    </tr>
+                    </thead>
+                    <tbody>
+                    <tr ng-repeat="file in attachments track by $index">
+                        <td><a ng-click="downloadFile(file)">{{file.name}}</a></td>
+                        <td>{{file.created | date: 'dd.MM.yyyy HH:mm'}}</td>
+                        <td>{{file.createdBy}}</td>
+                        <td><a ng-click="clearFile($index)"><i class="glyphicon glyphicon-trash"></i></a></td>
+                    </tr>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+
+    <div class="form-group">
+        <label class="col-sm-2 control-label">Comment</label>
+        <div class="col-sm-10">
+            <textarea class="form-control" rows="4" ng-model="comment"></textarea>
+        </div>
+    </div>
+
+    <accordion>
+        <accordion-group is-open="isHistoryOpen">
+            <accordion-heading>
+                History <i class="pull-right glyphicon" ng-class="{'glyphicon-chevron-up': status.isCustomHeaderOpen, 'glyphicon-chevron-down': !status.isCustomHeaderOpen}"></i>
+            </accordion-heading>
+            <table class="table">
+                <thead>
+                <tr>
+                    <th>Activity</th>
+                    <th>Assignee</th>
+                    <th>Resolution</th>
+                    <th>Date</th>
+                    <th>Comment</th>
+                </tr>
+                </thead>
+                <tbody>
+                <tr ng-repeat="resolution in resolutions track by $index">
+                    <td>{{resolution.taskName}}</td>
+                    <td>{{resolution.assignee}}</td>
+                    <td>{{resolution.resolution}}</td>
+                    <td>{{resolution.taskEndDate | date: 'dd.MM.yyyy HH:mm'}}</td>
+                    <td>{{resolution.comment}}</td>
+                </tr>
+                </tbody>
+            </table>
+        </accordion-group>
+    </accordion>
+</form>

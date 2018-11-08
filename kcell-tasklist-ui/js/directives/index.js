@@ -23,6 +23,7 @@ define([
 	'./leasing/farEndInfo',
 	'./limitTo',
 	'./numbersOnly',
-	'./demandProcess',
-	'./infoAftersales'
+	'./infoAftersales',
+  './aftersalesPBX/index',
+	'./demandProcess'
 	], function(){});
