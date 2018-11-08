@@ -12,7 +12,6 @@ INSERT INTO act_id_user (id_, rev_, first_, last_, email_, pwd_, picture_id_) VA
 INSERT INTO act_id_user (id_, rev_, first_, last_, email_, pwd_, picture_id_) VALUES ('Alexandr.Varfolomeyev@kcell.kz', 1, 'Alexandr', 'Varfolomeyev', 'Alexandr.Varfolomeyev@kcell.kz', '{SHA}ieSV55Qc+eQOaYDRSha/AjzNTJE=', NULL);
 INSERT INTO act_id_user (id_, rev_, first_, last_, email_, pwd_, picture_id_) VALUES ('Rustambek.Kebirov@kcell.kz', 1, 'Rustambek', 'Kebirov', 'Rustambek.Kebirov@kcell.kz', '{SHA}ieSV55Qc+eQOaYDRSha/AjzNTJE=', NULL);
 INSERT INTO act_id_user (id_, rev_, first_, last_, email_, pwd_, picture_id_) VALUES ('Anel.Udanova@kcell.kz', 1, 'Anel', 'Udanova', 'Anel.Udanova@kcell.kz', '{SHA}ieSV55Qc+eQOaYDRSha/AjzNTJE=', NULL);
-INSERT INTO act_id_user (id_, rev_, first_, last_, email_, pwd_, picture_id_) VALUES ('Yuliya.Luchshikova@kcell.kz', 1, 'Yuliya', 'Luchshikova', 'Yuliya.Luchshikova@kcell.kz', '{SHA}ieSV55Qc+eQOaYDRSha/AjzNTJE=', NULL);
 INSERT INTO act_id_user (id_, rev_, first_, last_, email_, pwd_, picture_id_) VALUES ('Stepan.Kipel@kcell.kz', 1, 'Stepan', 'Kipel', 'Stepan.Kipel@kcell.kz', '{SHA}ieSV55Qc+eQOaYDRSha/AjzNTJE=', NULL);
 INSERT INTO act_id_user (id_, rev_, first_, last_, email_, pwd_, picture_id_) VALUES ('Valentin.Lissassin@kcell.kz', 1, 'Valentin', 'Lissassin', 'Valentin.Lissassin@kcell.kz', '{SHA}ieSV55Qc+eQOaYDRSha/AjzNTJE=', NULL);
 
@@ -45,7 +44,6 @@ INSERT INTO act_id_membership (user_id_, group_id_) VALUES ('Akmaral.Aldasheva@k
 INSERT INTO act_id_membership (user_id_, group_id_) VALUES ('Alexandr.Varfolomeyev@kcell.kz', 'kcellUsers');
 INSERT INTO act_id_membership (user_id_, group_id_) VALUES ('Rustambek.Kebirov@kcell.kz', 'kcellUsers');
 INSERT INTO act_id_membership (user_id_, group_id_) VALUES ('Anel.Udanova@kcell.kz', 'kcellUsers');
-INSERT INTO act_id_membership (user_id_, group_id_) VALUES ('Yuliya.Luchshikova@kcell.kz', 'kcellUsers');
 INSERT INTO act_id_membership (user_id_, group_id_) VALUES ('Stepan.Kipel@kcell.kz', 'kcellUsers');
 INSERT INTO act_id_membership (user_id_, group_id_) VALUES ('Valentin.Lissassin@kcell.kz', 'kcellUsers');
 INSERT INTO act_id_membership (user_id_, group_id_) VALUES ('Damir.Auezov@kcell.kz', 'delivery_pbx_users');

@@ -88,8 +88,19 @@
             });
 
             $scope.preSubmit = function() {
-                return getDetailsCatalogs();
-            };
+                if ($scope.isStartForm) {
+                    return $http.get('/camunda/api/engine/engine/default/history/process-instance/count?processDefinitionKey=Demand').then(
+                        function(result) {
+                            var countPID = result.data.count + 1;
+                            camForm.businessKey = 'DMAOP-' + countPID;
+                            return getDetailsCatalogs();
+                        },
+                        function(error) {}
+                    );
+                } else {
+                    return getDetailsCatalogs();
+                }
+            }
 
             camForm.on('submit', function (event) {
                 camForm.variableManager.destroyVariable('generalData');
@@ -149,6 +160,15 @@
                         name: 'detailsCatalogs',
                         type: 'Json',
                         value: $scope.detailsCatalogs
+                    });
+                }
+
+                if ($scope.isStartForm) {
+                    camForm.variableManager.destroyVariable('businessKey');
+                    camForm.variableManager.createVariable({
+                        name: 'businessKey',
+                        type: 'String',
+                        value: camForm.businessKey
                     });
                 }
             });
