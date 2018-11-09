@@ -145,7 +145,6 @@ class GenerateActOfAcceptance implements TaskListener {
     static String render (Map binding ) {
         def template = '''\
             yieldUnescaped '<!DOCTYPE html>'
-            
             html(lang:'en') {
                 head {
                     meta('http-equiv':'"Content-Type" content="text/html; charset=utf-8"')
@@ -241,8 +240,10 @@ class GenerateActOfAcceptance implements TaskListener {
                         tr {
                             td ("Емкость арендуемого ресурса транспортной сети у Владельца транспорта:")
                             td {
-                                yield sharingPlanObj.transmission_channel_volume_granted_to_partner
-                                yield ' Мбит'
+                                yield (sharingPlanObj.transmission_channel_volume_granted_to_partner != null ?
+                                sharingPlanObj.transmission_channel_volume_granted_to_partner : '')
+                                yield (sharingPlanObj.transmission_channel_volume_granted_to_partner != null ?
+                                ' Мбит\' : '')
                             }
                             td(colspan:colspan)
                         }
@@ -440,6 +441,9 @@ class GenerateActOfAcceptance implements TaskListener {
         def sharingPlan = execution.getVariable("sharingPlan")
         def checkingByGuestResult = execution.getVariable("checkingByGuestResult")
         def sharingPlanObj = new JsonSlurper().parseText(sharingPlan.toString())
+
+        //sharingPlanObj = sharingPlanObj.value;
+
         def colspan = sharingPlanObj.shared_sectors.size()
         def taskSubmitDate = new Date()
 

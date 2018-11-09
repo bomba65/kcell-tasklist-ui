@@ -31,13 +31,6 @@
                         if (camForm.variableManager.variables[el].value) {
                             $scope.resolutions = angular.copy(camForm.variableManager.variables[el].value);
                             $q.all($scope.resolutions.map(function (resolution) {
-                                return $http.get("/camunda/api/engine/engine/default/user/" + resolution.assignee + "/profile");
-                            })).then(function (profiles) {
-                                profiles.forEach(function (e, index) {
-                                    $scope.resolutions[index].assigneeName = (e.data.firstName ? e.data.firstName : "") + " " + (e.data.lastName ? e.data.lastName : "");
-                                });
-                            });
-                            $q.all($scope.resolutions.map(function (resolution) {
                                 return $http.get("/camunda/api/engine/engine/default/history/task?processInstanceId=" + resolution.processInstanceId + "&taskId=" + resolution.taskId);
                             })).then(function (tasks) {
                                 tasks.forEach(function (e, index) {
@@ -66,7 +59,9 @@
                         $scope[el] = camForm.variableManager.variables[el].value;
                     }
                 });
-
+                $http.get("/camunda/api/engine/engine/default/user/" + $rootScope.authentication.name+ "/profile").then(function(result){
+                    $rootScope.authentication.assigneeName = (result.data.firstName ? result.data.firstName : "") + " " + (result.data.lastName ? result.data.lastName : "");
+                });
                 if($scope.sharingPlan){
                     $scope.sharingPlan.ssidtssrFiles = angular.copy($scope.ssidtssrFiles);
                     $scope.sharingPlan.currentTask = {id:camForm.taskId};
@@ -92,7 +87,7 @@
                 $scope.setTechnicalLaunchStatusForHostResult = "Completed";
                 camForm.variableManager.variableValue('setTechnicalLaunchStatusForHostResult', $scope.setTechnicalLaunchStatusForHostResult);
                 camForm.variableManager.variableValue('replanStatus', "notreplan");
-                $scope.resolutions.push({processInstanceId: $scope.processInstanceId, assignee: $rootScope.authentication.name, resolution: $scope.setTechnicalLaunchStatusForHostResult, comment: $scope.setTechnicalLaunchStatusForHostComment, taskId: camForm.taskId});
+                $scope.resolutions.push({processInstanceId: $scope.processInstanceId, assignee: $rootScope.authentication.name, assigneeName: $rootScope.authentication.assigneeName, resolution: $scope.setTechnicalLaunchStatusForHostResult, comment: $scope.setTechnicalLaunchStatusForHostComment, taskId: camForm.taskId});
                 camForm.variableManager.variableValue('resolutions', $scope.resolutions);
             });
         }]);
