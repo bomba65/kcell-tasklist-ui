@@ -21,11 +21,16 @@ define(['./module'], function(module){
                 scope.totalPrice = Big('0.0');
                 function transformToArray(){
                     for(var propt in scope.invoice.selectedRevisions.value){
-                        _.forEach(scope.invoice.selectedRevisions.value[propt].works, function (work) {
+                        _.forEach(scope.invoice.selectedRevisions.value[propt].works, function (work, key) {
                             var processDetailCopy = angular.copy(scope.invoice.selectedRevisions.value[propt]);
                             processDetailCopy.quantity = work.quantity;
                             processDetailCopy.relatedSites = work.relatedSites;
                             delete processDetailCopy.works;
+
+                            if(key > 0){
+                                processDetailCopy.alreadyDelayInfoShown = true;
+                            }
+
                             if(scope.invoice.selectedRevisions.value[propt].workPrices){
                                 var prices = _.find(scope.invoice.selectedRevisions.value[propt].workPrices, function(price){
                                     return price.sapServiceNumber === work.sapServiceNumber;
