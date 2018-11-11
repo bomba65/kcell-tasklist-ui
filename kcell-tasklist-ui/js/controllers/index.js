@@ -6,5 +6,6 @@ define([
 	'./processesCtrl',
 	'./searchCtrl',
 	'./minioCtrl',
+	'./testCtrl',
 	'./massApproveCtrl'
 	], function(){});

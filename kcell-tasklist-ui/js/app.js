@@ -151,7 +151,8 @@ define('app',[
 			return [];
 		}
     }
-	app.config(['$urlRouterProvider', '$httpProvider', '$stateProvider', function($urlRouterProvider, $httpProvider, $stateProvider){
+	app.config(['$urlRouterProvider', '$httpProvider', '$stateProvider','$locationProvider', function($urlRouterProvider, $httpProvider, $stateProvider,$locationProvider){
+		$locationProvider.hashPrefix('');
 		$httpProvider.interceptors.push('httpInterceptor');
 		$urlRouterProvider.otherwise("/tasks");
 
@@ -200,6 +201,12 @@ define('app',[
 	    	url: "/minio",
 	    	templateUrl: "js/partials/minio.html",
 	    	controller: "minioCtrl",
+	    	authenticate: true,
+	    	resolve: resolve
+	    }).state("test", {
+	    	url: "/test",
+	    	templateUrl: "js/partials/test.html",
+	    	controller: "testCtrl",
 	    	authenticate: true,
 	    	resolve: resolve
 	    });
