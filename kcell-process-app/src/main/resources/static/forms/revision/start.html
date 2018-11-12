@@ -526,8 +526,8 @@
                     path: uuid + '/' + file.name.replace(/[/\\?%*:|"<>]/g, '-')
                 };
                 $http({method: 'GET', url: '/camunda/uploads/tmp/put/' + fileValue.path, transformResponse: [] }).
-                success(function(data, status, headers, config) {
-                    $http.put(data, file, {headers: {'Content-Type': undefined}}).then(
+                then(function(response) {
+                    $http.put(response.data, file, {headers: {'Content-Type': undefined}}).then(
                         function () {
                             if(!$scope.supplementaryFiles){
                                 $scope.supplementaryFiles = [];
@@ -539,9 +539,8 @@
                             console.log(error.data);
                         }
                     );
-                }).
-                error (function(data, status, headers, config) {
-                    console.log(data);
+                }, function(error){
+                    console.log(error.data);
                 });
             }
 
@@ -551,11 +550,10 @@
 
             function download(file) {
                 $http({method: 'GET', url: '/camunda/uploads/tmp/get/' + file.path, transformResponse: [] }).
-                success(function(data, status, headers, config) {
-                    document.getElementById('fileDownloadIframe').src = data;
-                }).
-                error (function(data, status, headers, config) {
-                    console.log(data);
+                then(function(response) {
+                    document.getElementById('fileDownloadIframe').src = response.data;
+                }, function(error){
+                    console.log(error.data);
                 });
             };
 
@@ -802,13 +800,13 @@
     <div class="form-group">
         <label class="col-sm-3 control-label">Site:</label>
         <div class="col-sm-3">
-            <input type="text" ng-model="site_name" name="site_name" typeahead="site as sites.site_name for sites in getSite($viewValue) | filter:$viewValue" typeahead-on-select="siteSelected($item,$model,$label)" class="form-control" required autocomplete="off" placeholder="Site Name">
+            <input type="text" ng-model="site_name" name="site_name" typeahead="site as sites.site_name for sites in getSite($viewValue)" typeahead-on-select="siteSelected($item,$model,$label)" class="form-control" required autocomplete="off" placeholder="Site Name">
             <input type="hidden" ng-model="site" name="siteId" required/>
             <label class="error" ng-if="kcell_form.site_name.$error.required && ( kcell_form.site_name.$touched || view.submitted)">Required field</label>
             <label class="error" ng-if="kcell_form.siteId.$error.required && ( kcell_form.siteName.$touched || view.submitted)">Необходимо выбрать сайт из списка</label>
         </div>
     </div>
-    <div class="form-group" ng-show="siteName.startsWith('9')">
+    <div class="form-group" >
         <label class="col-sm-3 control-label">Site region:</label>
         <div class="col-sm-3">
             <select class="form-control" ng-model="siteRegion" name="siteRegion" ng-change="regionSelected(siteRegion)" required="true">
@@ -1027,7 +1025,7 @@
                         </td>
                         <td>
                             <span ng-repeat="rs in jobWork.relatedSites" class="my-tag" ng-class="{'main-site':rs.site_name===site_name}"><span ng-if="rs.site_name===site_name">Main Site: </span>{{rs.site_name}} <a ng-click="removeRelatedSite($parent.$index, $index)">&times;</a></span>
-                            <input type="text" ng-model="tempSite.name" style="display: inline-block; width:100px;" name="tempSiteName" typeahead="site as sites.site_name for sites in getSite($viewValue) | filter:$viewValue" typeahead-on-select="workSiteSelected($item, $index); tempSite={};" class="form-control" autocomplete="off" placeholder="Add Site">
+                            <input type="text" ng-model="tempSite.name" style="display: inline-block; width:100px;" name="tempSiteName" typeahead="site as sites.site_name for sites in getSite($viewValue)" typeahead-on-select="workSiteSelected($item, $index); tempSite={};" class="form-control" autocomplete="off" placeholder="Add Site">
                         </td>
                         <td><div class="col-md-1"><button type="button" class="btn btn-sm btn-warning" ng-if="$index !== 0" ng-click="removeWork($index)"><i class="glyphicon glyphicon-trash"></i> Remove</button></div></td>
                     </tr>

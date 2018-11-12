@@ -13,22 +13,22 @@ define(['./../module', 'summernote', 'summernote-ext-template'], function(module
             link: function(scope, element, attrs) {
                 var uuid = new Date().getTime();
                 var uploadImage = function(file, path, tmp) {
-                    $http({method: 'GET', url: '/camunda/uploads/' + tmp + 'put/' + path, transformResponse: [] }).success(function(data, status, headers, config) {
-                        $http.put(data, file, {headers: {'Content-Type': undefined}}).then(
+                    $http({method: 'GET', url: '/camunda/uploads/' + tmp + 'put/' + path, transformResponse: [] }).then(function(response) {
+                        $http.put(response.data, file, {headers: {'Content-Type': undefined}}).then(
                             function () {
-                                $http({method: 'GET', url: '/camunda/uploads/' + tmp + 'get/' + path, transformResponse: [] }).success(function(data, status, headers, config) {
-                                    var image = $('<img>').attr('src', data);
+                                $http({method: 'GET', url: '/camunda/uploads/' + tmp + 'get/' + path, transformResponse: [] }).then(function(response) {
+                                    var image = $('<img>').attr('src', response.data);
                                     element.summernote("insertNode", image[0]);
-                                }).error (function(data, status, headers, config) {
-                                    console.log(data);
+                                }, function(error){
+                                    console.log(error.data);
                                 });
                             },
                             function (error) {
                                 console.log(error.data);
                             }
                         );
-                    }).error (function(data, status, headers, config) {
-                        console.log(data);
+                    }, function(error){
+                        console.log(error.data);
                     });
                 };
 

@@ -11,11 +11,10 @@ define(['./module'], function(module){
 			link: function(scope, element, attrs) {
 	            scope.download = function(file) {
 	                $http({method: 'GET', url: '/camunda/uploads/get/' + file.path, transformResponse: [] }).
-	                success(function(data, status, headers, config) {
-	                    document.getElementById('fileDownloadIframe').src = data;
-	                }).
-	                error (function(data, status, headers, config) {
-	                    console.log(data);
+	                then(function(response) {
+	                    document.getElementById('fileDownloadIframe').src = response.data;
+	                }, function(error){
+	                    console.log(error);
 	                });
                	};
 	            scope.isFileVisible = function(file) {

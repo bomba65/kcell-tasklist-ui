@@ -165,11 +165,10 @@
             $scope.download = function (file) {
                 console.log(file);
                 $http({method: 'GET', url: '/camunda/uploads/get/' + file.path, transformResponse: [] }).
-                success(function(data, status, headers, config) {
-                    document.getElementById('fileDownloadIframe').src = data;
-                }).
-                error (function(data, status, headers, config) {
-                    console.log(data);
+                then(function(response) {
+                    document.getElementById('fileDownloadIframe').src = response.data;
+                }, function(error){
+                    console.log(error.data);
                 });
             };
 
@@ -193,8 +192,8 @@
                     path: $scope.processInstanceId + '/' + camForm.taskId + '/' + file.name.replace(/[/\\?%*:|"<>]/g, '-')
                 };
                 $http({method: 'GET', url: '/camunda/uploads/put/' + fileValue.path, transformResponse: [] }).
-                success(function(data, status, headers, config) {
-                    $http.put(data, file, {headers: {'Content-Type': undefined}}).then(
+                then(function(response) {
+                    $http.put(response.data, file, {headers: {'Content-Type': undefined}}).then(
                             function () {
                                 $scope[fileName] = fileValue;
                                 angular.element(document.querySelector('#'+fileName)).val(null);
@@ -203,9 +202,8 @@
                                 console.log(error.data);
                             }
                     );
-                }).
-                error (function(data, status, headers, config) {
-                    console.log(data);
+                }, function(error){
+                    console.log(error.data);
                 });
             };
 

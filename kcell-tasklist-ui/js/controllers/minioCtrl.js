@@ -28,8 +28,8 @@ define(['./module','camundaSDK', 'lodash', 'big-js'], function(module, CamSDK, _
             function uploadFileToMinio(file) {
                 if ($scope.pathToFile.length > 1) {
 	                $http({method: 'GET', url: '/camunda/uploads/admin/put/' + $scope.pathToFile + '/' + file.name, transformResponse: [] })
-	                .success(function(data, status, headers, config) {
-	                    $http.put(data, file, {headers: {'Content-Type': undefined }}).then(
+	                .then(function(response) {
+	                    $http.put(response.data, file, {headers: {'Content-Type': undefined }}).then(
 	                        function () {
 	                            $scope.clearFile();
                 				$scope.touchedFile = false;
@@ -42,9 +42,8 @@ define(['./module','camundaSDK', 'lodash', 'big-js'], function(module, CamSDK, _
 	                            alert(`Could not upload ${file.name} to ${$scope.pathToFile}`);
 	                        }
 	                    );
-	                })
-	                .error (function(data, status, headers, config) {
-	                    console.log(data, status, headers, config);
+	                }, function(error){
+	                    console.log(error.data);
 	                    alert('No such file ' + file.name);
 	                });
                 }                

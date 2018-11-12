@@ -44,19 +44,19 @@
             var createdDate = new Date();
             $scope.pricesFilled = true;
 
-            $http.get("/camunda/api/engine/engine/default/user/" + $rootScope.authentication.name+ "/profile").then(function(result){
+            $http.get("/camunda/api/engine/engine/default/user/" + $rootScope.authentication.name + "/profile").then(function (result) {
                 assigneeName = (result.data.firstName ? result.data.firstName : "") + " " + (result.data.lastName ? result.data.lastName : "");
             });
 
             $http.get('/camunda/api/engine/engine/default/task/' + camForm.taskId).then(
-                function(result){
-                    processInstanceId = result.data.processInstanceId;
-                    taskName = result.data.name;
-                    if (result.data.created) createdDate = new Date(result.data.created);
-                },
-                function (error) {
-                    console.log(error.data);
-                }
+                    function (result) {
+                        processInstanceId = result.data.processInstanceId;
+                        taskName = result.data.name;
+                        if (result.data.created) createdDate = new Date(result.data.created);
+                    },
+                    function (error) {
+                        console.log(error.data);
+                    }
             );
 
             camForm.on('form-loaded', function () {
@@ -116,11 +116,20 @@
                     store: true
                 });
 
-                var submitDate = new Date ();
-                if(!$scope.resolutions){
+                var submitDate = new Date();
+                if (!$scope.resolutions) {
                     $scope.resolutions = [];
                 }
-                $scope.resolutions.unshift({processInstanceId: processInstanceId, assignee: assigneeName, resolution: $scope.resolution, comment: $scope.comment, taskId: camForm.taskId, taskEndDate: submitDate, taskName: taskName, dateOfAssign: createdDate});
+                $scope.resolutions.unshift({
+                    processInstanceId: processInstanceId,
+                    assignee: assigneeName,
+                    resolution: $scope.resolution,
+                    comment: $scope.comment,
+                    taskId: camForm.taskId,
+                    taskEndDate: submitDate,
+                    taskName: taskName,
+                    dateOfAssign: createdDate
+                });
                 camForm.variableManager.destroyVariable('resolutions');
                 camForm.variableManager.createVariable({
                     name: 'resolutions',
@@ -145,12 +154,14 @@
                 if ($scope.supportiveInputs && $scope.supportiveInputs.length) {
                     var elt = null;
                     for (var v of $scope.supportiveInputs) {
-                        elt = $scope.supportiveRequests.find(function(e) {return e.unit == v.unit;});
+                        elt = $scope.supportiveRequests.find(function (e) {
+                            return e.unit == v.unit;
+                        });
                         if (elt) v.description = elt.description;
                         if (!v.checked) continue;
                         supportiveInputList[v.form] = true;
-                        if (!supportiveInputList[v.form+'s']) supportiveInputList[v.form+'s'] = [];
-                        supportiveInputList[v.form+'s'].push(v.unit);
+                        if (!supportiveInputList[v.form + 's']) supportiveInputList[v.form + 's'] = [];
+                        supportiveInputList[v.form + 's'].push(v.unit);
                     }
                 }
 
@@ -170,20 +181,22 @@
             });
 
             $scope.downloadFile = function (file) {
-                $http({method: 'GET', url: '/camunda/uploads/get/' + file.path, transformResponse: [] }).
-                success(function(data, status, headers, config) {
-                    document.getElementById('fileDownloadIframe').src = data;
-                }).
-                error (function(data, status, headers, config) {
-                    console.log(data);
+                $http({
+                    method: 'GET',
+                    url: '/camunda/uploads/get/' + file.path,
+                    transformResponse: []
+                }).then(function (response) {
+                    document.getElementById('fileDownloadIframe').src = response.data;
+                }, function(error){
+                    console.log(error.data);
                 });
             }
 
-            $scope.clearFile = function(fileIndex) {
+            $scope.clearFile = function (fileIndex) {
                 $scope.attachments.splice(fileIndex, 1);
             }
 
-            $scope.fileSelected = function(el ){
+            $scope.fileSelected = function (el) {
                 $timeout(function () {
                     $scope.$apply(function () {
                         uploadFileToMinio(el.files[0]);
@@ -198,18 +211,22 @@
                     created: new Date(),
                     createdBy: assigneeName
                 };
-                $http({method: 'GET', url: '/camunda/uploads/put/' + fileToUpload.path, transformResponse: [] }).success(function(data, status, headers, config) {
-                    $http.put(data, file, {headers: {'Content-Type': undefined}}).then(
-                        function () {
-                            $scope.attachments.push(fileToUpload);
-                            angular.element(document.querySelector('#attachments')).val(null);
-                        },
-                        function (error) {
-                            console.log(error.data);
-                        }
+                $http({
+                    method: 'GET',
+                    url: '/camunda/uploads/put/' + fileToUpload.path,
+                    transformResponse: []
+                }).then(function (response) {
+                    $http.put(response.data, file, {headers: {'Content-Type': undefined}}).then(
+                            function () {
+                                $scope.attachments.push(fileToUpload);
+                                angular.element(document.querySelector('#attachments')).val(null);
+                            },
+                            function (error) {
+                                console.log(error.data);
+                            }
                     );
-                }).error (function(data, status, headers, config) {
-                    console.log(data);
+                }, function(error){
+                    console.log(error.data);
                 });
             }
 
@@ -217,49 +234,68 @@
                 if ($scope.supportiveInputs && $scope.supportiveInputs.length) {
                     var elt = null;
                     for (var v of $scope.supportiveInputs) {
-                        elt = $scope.supportiveRequests.find(function(e) {return e.unit == v.unit;});
+                        elt = $scope.supportiveRequests.find(function (e) {
+                            return e.unit == v.unit;
+                        });
                         if (elt) v.description = elt.description;
                     }
                 }
 
                 var success = 0;
-                var json = JSON.stringify($scope.BCData, function( key, value ) {
-                    if( key === "$$hashKey" ) return undefined;
+                var json = JSON.stringify($scope.BCData, function (key, value) {
+                    if (key === "$$hashKey") return undefined;
                     return value;
                 });
-                $http.put('/camunda/api/engine/engine/default/process-instance/'+processInstanceId+'/variables/BCData',{"type":"Json","value": json}).then(
-                    function() {
-                        success++;
-                        if (success == 3) toasty.success( "Данные успешно сохранены!");
-                    },
-                    function(error) {toasty.error(error.data.message);}
+                $http.put('/camunda/api/engine/engine/default/process-instance/' + processInstanceId + '/variables/BCData', {
+                    "type": "Json",
+                    "value": json
+                }).then(
+                        function () {
+                            success++;
+                            if (success == 3) toasty.success("Данные успешно сохранены!");
+                        },
+                        function (error) {
+                            toasty.error(error.data.message);
+                        }
                 );
-                json = JSON.stringify($scope.attachments, function( key, value ) {
-                    if( key === "$$hashKey" ) return undefined;
+                json = JSON.stringify($scope.attachments, function (key, value) {
+                    if (key === "$$hashKey") return undefined;
                     return value;
                 });
-                $http.put('/camunda/api/engine/engine/default/process-instance/'+processInstanceId+'/variables/attachments',{"type":"Json","value": json}).then(
-                    function() {
-                        success++;
-                        if (success == 3) toasty.success( "Данные успешно сохранены!");
-                    },
-                    function(error) {toasty.error(error.data.message);}
+                $http.put('/camunda/api/engine/engine/default/process-instance/' + processInstanceId + '/variables/attachments', {
+                    "type": "Json",
+                    "value": json
+                }).then(
+                        function () {
+                            success++;
+                            if (success == 3) toasty.success("Данные успешно сохранены!");
+                        },
+                        function (error) {
+                            toasty.error(error.data.message);
+                        }
                 );
-                json = JSON.stringify($scope.supportiveInputs, function( key, value ) {
-                    if( key === "$$hashKey" ) return undefined;
+                json = JSON.stringify($scope.supportiveInputs, function (key, value) {
+                    if (key === "$$hashKey") return undefined;
                     return value;
                 });
-                $http.put('/camunda/api/engine/engine/default/process-instance/'+processInstanceId+'/variables/supportiveInputs',{"type":"Json","value": json}).then(
-                    function() {
-                        success++;
-                        if (success == 3) toasty.success( "Данные успешно сохранены!");
-                    },
-                    function(error) {toasty.error(error.data.message);}
+                $http.put('/camunda/api/engine/engine/default/process-instance/' + processInstanceId + '/variables/supportiveInputs', {
+                    "type": "Json",
+                    "value": json
+                }).then(
+                        function () {
+                            success++;
+                            if (success == 3) toasty.success("Данные успешно сохранены!");
+                        },
+                        function (error) {
+                            toasty.error(error.data.message);
+                        }
                 );
             };
 
-            $scope.supportiveInputSelect = function(item) {
-                var elt = $scope.supportiveInputs.find(function(e) {return e.unit == item.unit;});
+            $scope.supportiveInputSelect = function (item) {
+                var elt = $scope.supportiveInputs.find(function (e) {
+                    return e.unit == item.unit;
+                });
                 if (elt) {
                     elt.checked = true;
                     item.inputReceived = elt.inputReceived;
@@ -269,22 +305,24 @@
                     $scope.supportiveInputs.push({
                         unit: item.unit,
                         form: item.form,
-                        value: (item.form == 'HR' || item.form == 'CPD')?[]:(item.form == 'LD'?'':{}),
+                        value: (item.form == 'HR' || item.form == 'CPD') ? [] : (item.form == 'LD' ? '' : {}),
                         checked: true,
                         inputReceived: false
                     });
                 }
             };
 
-            $scope.supportiveInputDeselect = function(item) {
-                var ind = $scope.supportiveInputs.findIndex(function(e) {return e.unit == item.unit;});
+            $scope.supportiveInputDeselect = function (item) {
+                var ind = $scope.supportiveInputs.findIndex(function (e) {
+                    return e.unit == item.unit;
+                });
                 if (ind !== -1) {
                     if ($scope.supportiveInputs[ind].inputReceived || $scope.supportiveInputs[ind].value.length) $scope.supportiveInputs[ind].checked = false;
                     else $scope.supportiveInputs.splice(ind, 1);
                 }
             };
 
-            $scope.$watch('supportiveInputs', function(value) {
+            $scope.$watch('supportiveInputs', function (value) {
                 if (value) {
                     $scope.resources = [];
                     $scope.materials = [];
@@ -313,7 +351,7 @@
                 if (!$scope.supportiveRequests.length && $scope.resolution == 'Request info') $scope.resolution = null;
             }, true);
 
-            $scope.exportCosts = function() {
+            $scope.exportCosts = function () {
                 var resData = [
                     [],
                     ['Resources'],
@@ -323,7 +361,7 @@
                 var totalSumm = 0;
                 for (var r of $scope.resources) {
                     totalSumm += r.summ;
-                    resData.push([r.emplType, r.department, r.position, r.description, r.quantity, r.hours, r.period, r.existing?'yes':'no', (r.pprice?'Conf.':'Empt.'), (r.summ?'Conf.':'Empt.'), r.responsible.fio]);
+                    resData.push([r.emplType, r.department, r.position, r.description, r.quantity, r.hours, r.period, r.existing ? 'yes' : 'no', (r.pprice ? 'Conf.' : 'Empt.'), (r.summ ? 'Conf.' : 'Empt.'), r.responsible.fio]);
                 }
                 resData.push([]);
                 resData.push([null, null, null, null, null, null, null, null, 'Total amount, KZT Gross', totalSumm]);
@@ -335,7 +373,7 @@
                     ['Dept.', 'Material type', 'Description', 'Purchase group', 'Quantity', 'Measure', 'Exists on Warehouse?', 'Currency', 'Price, Without VAT', 'Amount, Without VAT', 'Responsible']
                 ];
                 for (var m of $scope.materials) {
-                    matData.push([m.department, m.materialType, m.description, m.purchaseGroup.v, m.quantity, m.measure, m.existing?'yes':'no', m.currency, m.pprice, m.summ, m.responsible.fio]);
+                    matData.push([m.department, m.materialType, m.description, m.purchaseGroup.v, m.quantity, m.measure, m.existing ? 'yes' : 'no', m.currency, m.pprice, m.summ, m.responsible.fio]);
                 }
 
                 var wb = XLSX.utils.book_new();
@@ -344,7 +382,7 @@
                 var width = [];
                 for (var row of data) {
                     for (var i = 0; i < row.length; i++) {
-                        if (i >= width.length) width.push({wch:0});
+                        if (i >= width.length) width.push({wch: 0});
                         if (('' + row[i]).length > width[i].wch) width[i].wch = ('' + row[i]).length;
                     }
                 }

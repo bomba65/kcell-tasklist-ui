@@ -141,11 +141,10 @@ define(['./module'], function(module){
                 };
                 scope.download = function(path) {
 	                $http({method: 'GET', url: '/camunda/uploads/get/' + path, transformResponse: [] }).
-	                success(function(data, status, headers, config) {
-	                    document.getElementById('fileDownloadIframe').src = data;
-	                }).
-	                error (function(data, status, headers, config) {
-	                    console.log(data);
+	                then(function(response) {
+	                    document.getElementById('fileDownloadIframe').src = response.data;
+	                }, function(error){
+	                    console.log(error.data);
 	                });
                	};
 	        },

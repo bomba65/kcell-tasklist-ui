@@ -37,11 +37,10 @@
 
     $scope.downloadFile = function (file) {
       $http({method: 'GET', url: '/camunda/uploads/' + (file.path.split('/').length === 2 ? 'tmp/' : '') + 'get/' + file.path, transformResponse: [] }).
-      success(function(data, status, headers, config) {
-        document.getElementById('fileDownloadIframe').src = data;
-      }).
-      error (function(data, status, headers, config) {
-        console.log(data);
+      then(function(response) {
+        document.getElementById('fileDownloadIframe').src = response.data;
+      }, function(error){
+        console.log(error.data);
       });
     }
 
@@ -66,8 +65,8 @@
         created: new Date(),
         createdBy: assigneeName
       };
-      $http({method: 'GET', url: '/camunda/uploads/tmp/put/' + fileToUpload.path, transformResponse: [] }).success(function(data, status, headers, config) {
-        $http.put(data, file, {headers: {'Content-Type': undefined}}).then(
+      $http({method: 'GET', url: '/camunda/uploads/tmp/put/' + fileToUpload.path, transformResponse: [] }).then(function(response) {
+        $http.put(response.data, file, {headers: {'Content-Type': undefined}}).then(
           function () {
             $scope.attachments.push(fileToUpload);
             angular.element(document.querySelector('#attachments')).val(null);
@@ -76,8 +75,8 @@
             console.log(error.data);
           }
         );
-      }).error (function(data, status, headers, config) {
-        console.log(data);
+      }, function(error){
+        console.log(error.data);
       });
     }
 
@@ -254,9 +253,9 @@
     $scope.$watch('ci.bin', function(clientBIN){
       if (clientBIN && clientBIN.length === 12){
         $http({method: 'GET', url: '/camunda/crm/client/bin/'+clientBIN, transformResponse: [] })
-	      .success(function(data, status, headers, config) {
-			//console.log(data);
-			var clientCRM = JSON.parse(data);
+	      .then(function(response) {
+			//console.log(response.data);
+			var clientCRM = JSON.parse(response.data);
             //console.log(clientCRM);
 
             if (Object.keys(clientCRM).length > 0) {
@@ -288,9 +287,8 @@
               }
             }
 
-	      })
-	      .error (function(data, status, headers, config) {
-	        console.log(data, status, headers, config);
+          }, function(error){
+	        console.log(error.data);
 	        $scope.ci.legalName = undefined;
             $scope.ci.salesRepresentative = undefined;
             $scope.ci.companyRegistrationCity = undefined;

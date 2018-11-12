@@ -431,11 +431,10 @@
             $scope.download = function (file) {
                 console.log(file);
                 $http({method: 'GET', url: '/camunda/uploads/get/' + file.path, transformResponse: [] }).
-                success(function(data, status, headers, config) {
-                    document.getElementById('fileDownloadIframe').src = data;
-                }).
-                error (function(data, status, headers, config) {
-                    console.log(data);
+                then(function(response) {
+                    document.getElementById('fileDownloadIframe').src = response.data;
+                }, function(error){
+                    console.log(error.data);
                 });
             }
 
@@ -459,8 +458,8 @@
                     path: $scope.processInstanceId + '/' + camForm.taskId + '/' + file.name.replace(/[/\\?%*:|"<>]/g, '-')
                 };
                 $http({method: 'GET', url: '/camunda/uploads/put/' + fileValue.path, transformResponse: [] }).
-                success(function(data, status, headers, config) {
-                    $http.put(data, file, {headers: {'Content-Type': undefined}}).then(
+                then(function(response) {
+                    $http.put(response.data, file, {headers: {'Content-Type': undefined}}).then(
                             function () {
                                 $scope[fileName] = fileValue;
                                 angular.element(document.querySelector('#'+fileName)).val(null);
@@ -469,9 +468,8 @@
                                 console.log(error.data);
                             }
                     );
-                }).
-                error (function(data, status, headers, config) {
-                    console.log(data);
+                }, function(error){
+                    console.log(error.data);
                 });
             }
 
@@ -541,9 +539,9 @@
             $scope.$watch('clientBIN', function(clientBIN){
                 if (clientBIN){
                     $http({method: 'GET', url: '/camunda/crm/client/bin/'+clientBIN, transformResponse: [] })
-	                .success(function(data, status, headers, config) {
+	                .then(function(response) {
 						//console.log(data);
-						var clientCRM = JSON.parse(data);
+						var clientCRM = JSON.parse(response.data);
 
                         if (Object.keys(clientCRM).length > 0) {
                             if (clientCRM.accountName) {
@@ -573,9 +571,8 @@
                                 $scope.foundClientCRM = true;
                             }
                         }
-	                })
-	                .error (function(data, status, headers, config) {
-	                    console.log(data, status, headers, config);
+                    }, function(error){
+	                    console.log(error.data);
 	                    $scope.officialClientCompanyName = undefined;
                         $scope.responsibleB2BSales = undefined;
                         // $scope.companyRegCity = undefined;
