@@ -212,6 +212,8 @@ define('app',[
 	    });
 	}]).config(['localStorageServiceProvider', function (localStorageServiceProvider) {
 		localStorageServiceProvider.setPrefix('flow');
+	}]).config(['$qProvider', function ($qProvider) {
+   		$qProvider.errorOnUnhandledRejections(false);
 	}]).provider('Uri',  function() {
 		var TEMPLATES_PATTERN = /[\w]+:\/\/|:[\w]+/g;
 		var replacements = {};
