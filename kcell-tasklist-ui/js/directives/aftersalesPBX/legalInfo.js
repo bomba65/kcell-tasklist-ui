@@ -16,6 +16,7 @@ define(['./../module'], function(module){
                         else scope.data.companyDate = new Date(scope.data.companyDate);
                         if (!scope.data.termContract) scope.data.termContract = new Date();
                         else scope.data.termContract = new Date(scope.data.termContract);
+                        if (!scope.data.clientPriority) scope.data.clientPriority = 'Normal';
                     }
                 });
 

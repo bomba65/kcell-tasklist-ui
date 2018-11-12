@@ -98,13 +98,13 @@
       <bpmn:sequenceFlow id="SequenceFlow_0r9z1km" sourceRef="UserTask_04m8ro1" targetRef="InclusiveGateway_09p41j2" />
       <bpmn:sequenceFlow id="SequenceFlow_0uq77j6" sourceRef="UserTask_0e491bb" targetRef="ExclusiveGateway_12houie" />
       <bpmn:sequenceFlow id="SequenceFlow_16slblj" name="New trunk addition" sourceRef="InclusiveGateway_0cd8v63" targetRef="UserTask_125r2zs">
-        <bpmn:conditionExpression xsi:type="bpmn:tFormalExpression">${newTrunk}</bpmn:conditionExpression>
+        <bpmn:conditionExpression xsi:type="bpmn:tFormalExpression">${action.prop("newTrunk").boolValue()}</bpmn:conditionExpression>
       </bpmn:sequenceFlow>
       <bpmn:sequenceFlow id="SequenceFlow_16ie7p1" name="Change connection point" sourceRef="InclusiveGateway_0cd8v63" targetRef="UserTask_0e491bb">
-        <bpmn:conditionExpression xsi:type="bpmn:tFormalExpression">${changeConnection}</bpmn:conditionExpression>
+        <bpmn:conditionExpression xsi:type="bpmn:tFormalExpression">${action.prop("changeConnection").boolValue()}</bpmn:conditionExpression>
       </bpmn:sequenceFlow>
       <bpmn:sequenceFlow id="SequenceFlow_1ucdmb2" name="Change numbers" sourceRef="InclusiveGateway_0cd8v63" targetRef="UserTask_04m8ro1">
-        <bpmn:conditionExpression xsi:type="bpmn:tFormalExpression">${changeNumbers}</bpmn:conditionExpression>
+        <bpmn:conditionExpression xsi:type="bpmn:tFormalExpression">${action.prop("changeNumbers").boolValue()}</bpmn:conditionExpression>
       </bpmn:sequenceFlow>
       <bpmn:sequenceFlow id="SequenceFlow_0mv5vmd" sourceRef="InclusiveGateway_09p41j2" targetRef="ParallelGateway_1bun4wb" />
       <bpmn:sequenceFlow id="SequenceFlow_0ncurj3" sourceRef="ExclusiveGateway_12houie" targetRef="Task_1t81adt" />
@@ -112,7 +112,7 @@
       <bpmn:sequenceFlow id="SequenceFlow_0uyabch" sourceRef="ParallelGateway_1eqgbp0" targetRef="ParallelGateway_1bun4wb" />
       <bpmn:sequenceFlow id="SequenceFlow_0z71xko" sourceRef="ParallelGateway_0fq6zn0" targetRef="InclusiveGateway_0cd8v63" />
       <bpmn:sequenceFlow id="SequenceFlow_1wi0qki" name="New trunk addition/ Change connection point" sourceRef="InclusiveGateway_0cd8v63" targetRef="UserTask_19p491f">
-        <bpmn:conditionExpression xsi:type="bpmn:tFormalExpression">${newTrunk || changeConnection}</bpmn:conditionExpression>
+        <bpmn:conditionExpression xsi:type="bpmn:tFormalExpression">${action.prop("newTrunk").boolValue() || action.prop("changeConnection").boolValue()}</bpmn:conditionExpression>
       </bpmn:sequenceFlow>
     </bpmn:subProcess>
     <bpmn:subProcess id="tcf_subprocess" name="TCF">
@@ -343,36 +343,38 @@
       <bpmn:outgoing>SequenceFlow_0mqr9h4</bpmn:outgoing>
     </bpmn:callActivity>
     <bpmn:sequenceFlow id="SequenceFlow_0mqr9h4" sourceRef="Task_138d8gt" targetRef="ExclusiveGateway_0ofhzs7" />
-    <bpmn:userTask id="Task_0amltms" name="Delete personal account in TIC">
+    <bpmn:userTask id="Task_0amltms" name="Delete personal account in TIC" camunda:formKey="embedded:app:forms/aftersalesPBX/deletePersonal.html">
+      <bpmn:documentation>Delete personal account in TIC</bpmn:documentation>
       <bpmn:incoming>SequenceFlow_0kfex4d</bpmn:incoming>
       <bpmn:outgoing>SequenceFlow_0k9f80c</bpmn:outgoing>
     </bpmn:userTask>
-    <bpmn:userTask id="Task_1i4wx12" name="Delete root in BGW &#38; deactivate the numbers">
+    <bpmn:userTask id="Task_1i4wx12" name="Delete root in BGW &#38; deactivate the numbers" camunda:formKey="embedded:app:forms/aftersalesPBX/deleteRoot.html">
+      <bpmn:documentation>Delete root in BGW &amp; deactivate the numbers</bpmn:documentation>
       <bpmn:incoming>SequenceFlow_1ivd5fw</bpmn:incoming>
       <bpmn:outgoing>SequenceFlow_0do35u4</bpmn:outgoing>
     </bpmn:userTask>
-    <bpmn:userTask id="Task_17qo2e5" name="Remove trunk and numbers">
+    <bpmn:userTask id="Task_17qo2e5" name="Remove trunk and numbers (${techSpecs.prop(&#34;connectionPoint&#34;). stringValue()})" camunda:formKey="embedded:app:forms/aftersalesPBX/removeTrunk.html">
+      <bpmn:documentation>Remove trunk and numbers (${techSpecs.prop("connectionPoint"). stringValue()})</bpmn:documentation>
       <bpmn:incoming>SequenceFlow_0id7nwe</bpmn:incoming>
       <bpmn:outgoing>SequenceFlow_13ukx83</bpmn:outgoing>
     </bpmn:userTask>
     <bpmn:sequenceFlow id="SequenceFlow_03cp3x6" name="New trunk addition / Change numbers / Change connection point" sourceRef="ExclusiveGateway_1oi9j76" targetRef="UserTask_1g50okp">
-      <bpmn:conditionExpression xsi:type="bpmn:tFormalExpression">${newTrunk || changeNumbers || changeConnection}</bpmn:conditionExpression>
+      <bpmn:conditionExpression xsi:type="bpmn:tFormalExpression">${action.prop("newTrunk").boolValue() || action.prop("changeNumbers").boolValue() || action.prop("changeConnection").boolValue()}</bpmn:conditionExpression>
     </bpmn:sequenceFlow>
-    <bpmn:userTask id="UserTask_139tdf0" name="Stop service providing on SBC/Asterisk/SIP Proxy">
+    <bpmn:userTask id="UserTask_139tdf0" name="Stop service providing on ${techSpecs.prop(&#34;connectionPoint&#34;). stringValue()}&#10;" camunda:formKey="embedded:app:forms/aftersalesPBX/stopService.html">
+      <bpmn:documentation>Stop service providing on ${techSpecs.prop("connectionPoint"). stringValue()}</bpmn:documentation>
       <bpmn:incoming>SequenceFlow_1vqu0bw</bpmn:incoming>
       <bpmn:incoming>SequenceFlow_16t254m</bpmn:incoming>
       <bpmn:incoming>SequenceFlow_0yq0k89</bpmn:incoming>
       <bpmn:outgoing>SequenceFlow_0tt0p6s</bpmn:outgoing>
     </bpmn:userTask>
-    <bpmn:exclusiveGateway id="ExclusiveGateway_07uuk3o" default="SequenceFlow_0euukbw">
+    <bpmn:exclusiveGateway id="ExclusiveGateway_07uuk3o" default="SequenceFlow_0ob3tde">
       <bpmn:incoming>SequenceFlow_0tt0p6s</bpmn:incoming>
       <bpmn:outgoing>SequenceFlow_0ob3tde</bpmn:outgoing>
       <bpmn:outgoing>SequenceFlow_0euukbw</bpmn:outgoing>
     </bpmn:exclusiveGateway>
     <bpmn:sequenceFlow id="SequenceFlow_0tt0p6s" sourceRef="UserTask_139tdf0" targetRef="ExclusiveGateway_07uuk3o" />
-    <bpmn:sequenceFlow id="SequenceFlow_0ob3tde" name="Need modify" sourceRef="ExclusiveGateway_07uuk3o" targetRef="Task_0pl4kzn">
-      <bpmn:conditionExpression xsi:type="bpmn:tFormalExpression">${false}</bpmn:conditionExpression>
-    </bpmn:sequenceFlow>
+    <bpmn:sequenceFlow id="SequenceFlow_0ob3tde" name="Need modify" sourceRef="ExclusiveGateway_07uuk3o" targetRef="Task_0pl4kzn" />
     <bpmn:exclusiveGateway id="ExclusiveGateway_0nzclxg" default="SequenceFlow_1vqu0bw">
       <bpmn:incoming>SequenceFlow_0cgqaex</bpmn:incoming>
       <bpmn:outgoing>SequenceFlow_0q66go7</bpmn:outgoing>
@@ -380,14 +382,15 @@
     </bpmn:exclusiveGateway>
     <bpmn:sequenceFlow id="SequenceFlow_0cgqaex" sourceRef="Task_0pl4kzn" targetRef="ExclusiveGateway_0nzclxg" />
     <bpmn:sequenceFlow id="SequenceFlow_0q66go7" name="Cancel task" sourceRef="ExclusiveGateway_0nzclxg" targetRef="EndEvent_0dub1dk">
-      <bpmn:conditionExpression xsi:type="bpmn:tFormalExpression">${false}</bpmn:conditionExpression>
+      <bpmn:conditionExpression xsi:type="bpmn:tFormalExpression">${resolution == 'Cancel task'}</bpmn:conditionExpression>
     </bpmn:sequenceFlow>
     <bpmn:sequenceFlow id="SequenceFlow_0x3xo4x" sourceRef="Task_0oqvb9d" targetRef="Task_0n2q5bd" />
-    <bpmn:userTask id="Task_0oqvb9d" name="Confirm changes in personal account in TIC">
+    <bpmn:userTask id="Task_0oqvb9d" name="Confirm changes in personal account in TIC" camunda:formKey="embedded:app:forms/aftersalesPBX/confirmChanges.html">
+      <bpmn:documentation>Confirm changes in personal account in TIC</bpmn:documentation>
       <bpmn:incoming>SequenceFlow_0pgkwed</bpmn:incoming>
       <bpmn:outgoing>SequenceFlow_0x3xo4x</bpmn:outgoing>
     </bpmn:userTask>
-    <bpmn:userTask id="Task_0pl4kzn" name="Modify form">
+    <bpmn:userTask id="Task_0pl4kzn" name="Modify form" camunda:formKey="embedded:app:forms/aftersalesPBX/modifyForm.html">
       <bpmn:incoming>SequenceFlow_0ob3tde</bpmn:incoming>
       <bpmn:outgoing>SequenceFlow_0cgqaex</bpmn:outgoing>
     </bpmn:userTask>
@@ -509,7 +512,7 @@
       <bpmn:outgoing>SequenceFlow_0qjqpjl</bpmn:outgoing>
     </bpmn:sendTask>
     <bpmn:sequenceFlow id="SequenceFlow_095inv9" name="Change connection point" sourceRef="ExclusiveGateway_0ofhzs7" targetRef="Task_0z3gnw8">
-      <bpmn:conditionExpression xsi:type="bpmn:tFormalExpression">${changeConnection}</bpmn:conditionExpression>
+      <bpmn:conditionExpression xsi:type="bpmn:tFormalExpression">${action.prop("changeConnection").boolValue()}</bpmn:conditionExpression>
     </bpmn:sequenceFlow>
     <bpmn:exclusiveGateway id="ExclusiveGateway_03s4356" default="SequenceFlow_0astk1e">
       <bpmn:incoming>SequenceFlow_0ec2acu</bpmn:incoming>
@@ -542,7 +545,7 @@
       <bpmn:outgoing>SequenceFlow_1nlu1jc</bpmn:outgoing>
     </bpmn:inclusiveGateway>
     <bpmn:sequenceFlow id="SequenceFlow_1nlu1jc" name="Change numbers" sourceRef="ExclusiveGateway_0ofhzs7" targetRef="UserTask_0hccya3">
-      <bpmn:conditionExpression xsi:type="bpmn:tFormalExpression">${changeNumbers}</bpmn:conditionExpression>
+      <bpmn:conditionExpression xsi:type="bpmn:tFormalExpression">${action.prop("changeNumbers").boolValue()}</bpmn:conditionExpression>
     </bpmn:sequenceFlow>
     <bpmn:sequenceFlow id="SequenceFlow_045gmkj" sourceRef="SendTask_1w1p3s9" targetRef="ExclusiveGateway_13v71yb" />
     <bpmn:userTask id="Task_1gn0mec" name="Confirm completed settings to Firewall rules">
@@ -568,7 +571,7 @@
       <bpmn:outgoing>SequenceFlow_1w716n3</bpmn:outgoing>
     </bpmn:exclusiveGateway>
     <bpmn:sequenceFlow id="SequenceFlow_0id7nwe" name="Termination of an agreement" sourceRef="ExclusiveGateway_06s3bgv" targetRef="Task_17qo2e5">
-      <bpmn:conditionExpression xsi:type="bpmn:tFormalExpression">${false}</bpmn:conditionExpression>
+      <bpmn:conditionExpression xsi:type="bpmn:tFormalExpression">${action.prop("agreementTermination").boolValue()}</bpmn:conditionExpression>
     </bpmn:sequenceFlow>
     <bpmn:sequenceFlow id="SequenceFlow_1w716n3" name="Change in legal information with deleting Personal Account" sourceRef="ExclusiveGateway_06s3bgv" targetRef="SendTask_02gub83" />
     <bpmn:sendTask id="SendTask_02gub83" name="Notification to delete client data (B2B delivery)" camunda:expression="${false}">
@@ -627,9 +630,12 @@
       <bpmn:incoming>SequenceFlow_0euukbw</bpmn:incoming>
       <bpmn:outgoing>SequenceFlow_011jkls</bpmn:outgoing>
     </bpmn:callActivity>
-    <bpmn:sequenceFlow id="SequenceFlow_0euukbw" name="Complete" sourceRef="ExclusiveGateway_07uuk3o" targetRef="CallActivity_0is474l" />
+    <bpmn:sequenceFlow id="SequenceFlow_0euukbw" name="Complete" sourceRef="ExclusiveGateway_07uuk3o" targetRef="CallActivity_0is474l">
+      <bpmn:conditionExpression xsi:type="bpmn:tFormalExpression">${resolution == 'Complete'}</bpmn:conditionExpression>
+    </bpmn:sequenceFlow>
     <bpmn:sequenceFlow id="SequenceFlow_011jkls" sourceRef="CallActivity_0is474l" targetRef="ParallelGateway_0awhqja" />
-    <bpmn:userTask id="UserTask_1dnazy2" name="Confirm inoice/contact information  changes in personal account in TIC">
+    <bpmn:userTask id="UserTask_1dnazy2" name="Confirm inoice/contact information  changes in personal account in TIC" camunda:formKey="embedded:app:forms/aftersalesPBX/confirmChanges.html">
+      <bpmn:documentation>Confirm inoice/contact information  changes in personal account in TIC</bpmn:documentation>
       <bpmn:incoming>SequenceFlow_0uan8sr</bpmn:incoming>
       <bpmn:outgoing>SequenceFlow_0shz7ef</bpmn:outgoing>
     </bpmn:userTask>
@@ -693,29 +699,29 @@
     <bpmn:sequenceFlow id="SequenceFlow_0ndy069" sourceRef="Task_0fja85e" targetRef="ExclusiveGateway_18c96rs" />
     <bpmn:sequenceFlow id="SequenceFlow_1x3te4t" sourceRef="Task_0n2q5bd" targetRef="ExclusiveGateway_18c96rs" />
     <bpmn:sequenceFlow id="SequenceFlow_0pgkwed" name="Change in legal person without deleting Personal Account" sourceRef="ExclusiveGateway_1oi9j76" targetRef="Task_0oqvb9d">
-      <bpmn:conditionExpression xsi:type="bpmn:tFormalExpression">${leaveTICName}</bpmn:conditionExpression>
+      <bpmn:conditionExpression xsi:type="bpmn:tFormalExpression">${action.prop("leaveTICName").boolValue()}</bpmn:conditionExpression>
     </bpmn:sequenceFlow>
     <bpmn:sequenceFlow id="SequenceFlow_0uan8sr" name=" Change invoice details/contacts  " sourceRef="ExclusiveGateway_1oi9j76" targetRef="UserTask_1dnazy2">
-      <bpmn:conditionExpression xsi:type="bpmn:tFormalExpression">${changeInvoice}</bpmn:conditionExpression>
+      <bpmn:conditionExpression xsi:type="bpmn:tFormalExpression">${action.prop("changeInvoice").boolValue()}</bpmn:conditionExpression>
     </bpmn:sequenceFlow>
     <bpmn:sequenceFlow id="SequenceFlow_0m7dxfg" name="Change tariff (custom)" sourceRef="ExclusiveGateway_1oi9j76" targetRef="Task_1y2p6rj">
-      <bpmn:conditionExpression xsi:type="bpmn:tFormalExpression">${changeCustom}</bpmn:conditionExpression>
+      <bpmn:conditionExpression xsi:type="bpmn:tFormalExpression">${action.prop("changeCustom").boolValue()}</bpmn:conditionExpression>
     </bpmn:sequenceFlow>
     <bpmn:sequenceFlow id="SequenceFlow_1vqu0bw" sourceRef="ExclusiveGateway_0nzclxg" targetRef="UserTask_139tdf0" />
     <bpmn:sequenceFlow id="SequenceFlow_16t254m" name="Change in legal person with deleting Personal Account" sourceRef="ExclusiveGateway_1oi9j76" targetRef="UserTask_139tdf0">
-      <bpmn:conditionExpression xsi:type="bpmn:tFormalExpression">${deleteTICName}</bpmn:conditionExpression>
+      <bpmn:conditionExpression xsi:type="bpmn:tFormalExpression">${action.prop("deleteTICName").boolValue()}</bpmn:conditionExpression>
     </bpmn:sequenceFlow>
     <bpmn:sequenceFlow id="SequenceFlow_0yq0k89" name="Termination of an agreement" sourceRef="ExclusiveGateway_1oi9j76" targetRef="UserTask_139tdf0">
-      <bpmn:conditionExpression xsi:type="bpmn:tFormalExpression">${agreementTermination}</bpmn:conditionExpression>
+      <bpmn:conditionExpression xsi:type="bpmn:tFormalExpression">${action.prop("agreementTermination").boolValue()}</bpmn:conditionExpression>
     </bpmn:sequenceFlow>
     <bpmn:sequenceFlow id="SequenceFlow_1s0q5sq" name="Addition/change VPN settings" sourceRef="ExclusiveGateway_1oi9j76" targetRef="SubProcess_1jjkq8u">
-      <bpmn:conditionExpression xsi:type="bpmn:tFormalExpression">${changeVPN}</bpmn:conditionExpression>
+      <bpmn:conditionExpression xsi:type="bpmn:tFormalExpression">${action.prop("changeVPN").boolValue()}</bpmn:conditionExpression>
     </bpmn:sequenceFlow>
     <bpmn:sequenceFlow id="SequenceFlow_1l2ab80" name="Change tariff (standard)" sourceRef="ExclusiveGateway_1oi9j76" targetRef="UserTask_1yyix4n">
-      <bpmn:conditionExpression xsi:type="bpmn:tFormalExpression">${changeStandard}</bpmn:conditionExpression>
+      <bpmn:conditionExpression xsi:type="bpmn:tFormalExpression">${action.prop("changeStandard").boolValue()}</bpmn:conditionExpression>
     </bpmn:sequenceFlow>
     <bpmn:sequenceFlow id="SequenceFlow_08e6lv6" name="Need Billing test" sourceRef="ExclusiveGateway_13buygz" targetRef="Task_0pmnh5f">
-      <bpmn:conditionExpression xsi:type="bpmn:tFormalExpression">${needBillingTest}</bpmn:conditionExpression>
+      <bpmn:conditionExpression xsi:type="bpmn:tFormalExpression">${action.prop("needBillingTest").boolValue()}</bpmn:conditionExpression>
     </bpmn:sequenceFlow>
     <bpmn:exclusiveGateway id="ExclusiveGateway_13buygz" default="SequenceFlow_1nrap6j">
       <bpmn:incoming>SequenceFlow_0addwrn</bpmn:incoming>
@@ -724,10 +730,10 @@
     </bpmn:exclusiveGateway>
     <bpmn:sequenceFlow id="SequenceFlow_0addwrn" sourceRef="SubProcess_0mvu854" targetRef="ExclusiveGateway_13buygz" />
     <bpmn:sequenceFlow id="SequenceFlow_0s8u1ro" sourceRef="ExclusiveGateway_1oi9j76" targetRef="ExclusiveGateway_0ifxv4a">
-      <bpmn:conditionExpression xsi:type="bpmn:tFormalExpression">${changeIP || changeCodecs}</bpmn:conditionExpression>
+      <bpmn:conditionExpression xsi:type="bpmn:tFormalExpression">${action.prop("changeIP").boolValue() || action.prop("changeCodecs").boolValue()}</bpmn:conditionExpression>
     </bpmn:sequenceFlow>
     <bpmn:sequenceFlow id="SequenceFlow_0u8tp01" name="Change IP, ports, protocols" sourceRef="ExclusiveGateway_0ifxv4a" targetRef="Task_1gn0mec">
-      <bpmn:conditionExpression xsi:type="bpmn:tFormalExpression">${changeIP}</bpmn:conditionExpression>
+      <bpmn:conditionExpression xsi:type="bpmn:tFormalExpression">${action.prop("changeIP").boolValue()}</bpmn:conditionExpression>
     </bpmn:sequenceFlow>
     <bpmn:exclusiveGateway id="ExclusiveGateway_0ifxv4a" default="SequenceFlow_06e6hcl">
       <bpmn:incoming>SequenceFlow_0s8u1ro</bpmn:incoming>

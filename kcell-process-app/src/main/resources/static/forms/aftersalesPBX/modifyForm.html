@@ -12,22 +12,7 @@
             $scope.techSpecs = {connectionType:'SIP over internet', sip: {}};
             $scope.resolutions = [];
             $scope.attachments = [];
-
-            $scope.action = {
-                changeNumbers: false,
-                changeIP: false,
-                changeConnection: false,
-                changeCodecs: false,
-                newTrunk: false,
-                changeVPN: false,
-                deleteTICName: false,
-                leaveTICName: false,
-                changeStandard: false,
-                changeCustom: false,
-                changeInvoice: false,
-                agreementTermination: false,
-                needBillingTest: false
-            };
+            $scope.action = {};
 
             var processInstanceId = null;
             var taskName = null;
@@ -37,42 +22,66 @@
                 assigneeName = (result.data.firstName ? result.data.firstName : "") + " " + (result.data.lastName ? result.data.lastName : "");
             });
 
-            $scope.preSubmit = function() {
-                return $http.get('/camunda/api/engine/engine/default/history/process-instance/count?processDefinitionKey=AftersalesPBX').then(
-                    function(result) {
-                        var countPID = result.data.count + 1;
-                        camForm.businessKey = countPID;
-                    },
-                    function(error) {}
-                );
-            }
+            $http.get('/camunda/api/engine/engine/default/task/' + camForm.taskId).then(
+                function(result){
+                    processInstanceId = result.data.processInstanceId;
+                    taskName = result.data.name;
+                    $http.get('/camunda/api/engine/engine/default/process-instance/' + processInstanceId).then(
+                        function(result){
+                            $scope.businessKey = result.data.businessKey;
+                        },
+                        function (error) {console.log(error.data);}
+                    );
+                },
+                function (error) { console.log(error.data);}
+            );
+
+            camForm.on('form-loaded', function () {
+                camForm.variableManager.fetchVariable('legalInfo');
+                camForm.variableManager.fetchVariable('tariffPlan');
+                camForm.variableManager.fetchVariable('techSpecs');
+                camForm.variableManager.fetchVariable('resolutions');
+                camForm.variableManager.fetchVariable('attachments');
+                camForm.variableManager.fetchVariable('resolution');
+                camForm.variableManager.fetchVariable('action');
+            });
+
+            camForm.on('variables-fetched', function () {
+                $scope.legalInfo = camForm.variableManager.variableValue('legalInfo');
+                $scope.tariffPlan = camForm.variableManager.variableValue('tariffPlan');
+                $scope.techSpecs = camForm.variableManager.variableValue('techSpecs');
+                $scope.resolutions = camForm.variableManager.variableValue('resolutions');
+                $scope.attachments = camForm.variableManager.variableValue('attachments');
+                $scope.resolution = camForm.variableManager.variableValue('resolution');
+                $scope.action = camForm.variableManager.variableValue('action');
+                if (!$scope.legalInfo) $scope.legalInfo = {};
+                if (!$scope.techSpecs) $scope.techSpecs = {connectionType:'SIP over internet', sip: {}};
+            });
 
             camForm.on('submit', function (event) {
+                camForm.variableManager.destroyVariable('legalInfo');
                 camForm.variableManager.createVariable({
                     name: 'legalInfo',
                     type: 'Json',
                     value: $scope.legalInfo
                 });
+                camForm.variableManager.destroyVariable('tariffPlan');
                 camForm.variableManager.createVariable({
                     name: 'tariffPlan',
                     type: 'String',
                     value: $scope.tariffPlan
                 });
+                camForm.variableManager.destroyVariable('techSpecs');
                 camForm.variableManager.createVariable({
                     name: 'techSpecs',
                     type: 'Json',
                     value: $scope.techSpecs
                 });
+                camForm.variableManager.destroyVariable('attachments');
                 camForm.variableManager.createVariable({
                     name: 'attachments',
                     type: 'json',
                     value: $scope.attachments,
-                    store: true
-                });
-                camForm.variableManager.createVariable({
-                    name: 'action',
-                    type: 'Json',
-                    value: $scope.action,
                     store: true
                 });
 
@@ -80,11 +89,19 @@
                 if(!$scope.resolutions) {
                     $scope.resolutions = [];
                 }
-                $scope.resolutions.unshift({assignee: assigneeName, resolution: 'Completed', comment: $scope.comment, taskId: camForm.taskId, taskEndDate: submitDate, taskName: 'Filling of changes for Aftersales proccess'});
+                $scope.resolutions.unshift({processInstanceId: processInstanceId, assignee: assigneeName, resolution: $scope.resolution, comment: $scope.comment, taskId: camForm.taskId, taskEndDate: submitDate, taskName: taskName});
+                camForm.variableManager.destroyVariable('resolutions');
                 camForm.variableManager.createVariable({
                     name: 'resolutions',
                     type: 'Json',
                     value: $scope.resolutions
+                });
+
+                camForm.variableManager.destroyVariable('resolution');
+                camForm.variableManager.createVariable({
+                    name: 'resolution',
+                    type: 'Json',
+                    value: $scope.resolution
                 });
             });
 
@@ -113,11 +130,11 @@
             function uploadFileToMinio(file) {
                 var fileToUpload = {
                     name: file.name.replace(/[/\\?%*:|"<>]/g, '-'),
-                    path: uuid + '/' + file.name.replace(/[/\\?%*:|"<>]/g, '-'),
+                    path: processInstanceId + '/' + camForm.taskId + '/' + file.name.replace(/[/\\?%*:|"<>]/g, '-'),
                     created: new Date(),
                     createdBy: assigneeName
                 };
-                $http({method: 'GET', url: '/camunda/uploads/tmp/put/' + fileToUpload.path, transformResponse: [] }).success(function(data, status, headers, config) {
+                $http({method: 'GET', url: '/camunda/uploads/put/' + fileToUpload.path, transformResponse: [] }).success(function(data, status, headers, config) {
                     $http.put(data, file, {headers: {'Content-Type': undefined}}).then(
                         function () {
                             $scope.attachments.push(fileToUpload);
@@ -133,6 +150,21 @@
             }
         }]);
     </script>
+
+    <div class="form-group">
+        <label class="col-sm-4 control-label">Number request:</label>
+        <div class="col-sm-8">{{businessKey}}</div>
+    </div>
+    <div class="form-group">
+        <label class="col-sm-4 control-label">Client:</label>
+        <div class="col-sm-8">{{legalInfo.legalName}} {{legalInfo.BIN}}</div>
+    </div>
+    <div class="form-group">
+        <label class="col-sm-4 control-label">Priority:</label>
+        <div class="col-sm-8">{{legalInfo.clientPriority}}</div>
+    </div>
+
+    <div class="col-sm-12"><hr /></div>
 
     <tabset class="my-tab-head my-tab" justified="true">
         <tab>
@@ -159,46 +191,6 @@
                             <div class="checkbox">
                                 <label><input type="checkbox" ng-model="action.needBillingTest">Need Billing test</label>
                             </div>
-                        </div>
-                    </div>
-                </div>
-                <div class="form-group">
-                    <div class="col-sm-12">
-                        <div class="checkbox">
-                            <label style="font-weight: bold;"><input type="checkbox" ng-model="action.changeNumbers">Change numbers</label>
-                        </div>
-                        <div class="checkbox">
-                            <label><input type="checkbox" ng-model="action.changeIP">Change IP, ports, protocols</label>
-                        </div>
-                        <div class="checkbox">
-                            <label style="font-weight: bold;"><input type="checkbox" ng-model="action.changeConnection">Change connection point</label>
-                        </div>
-                        <div class="checkbox">
-                            <label><input type="checkbox" ng-model="action.changeCodecs">Change number of sessions, codecs</label>
-                        </div>
-                        <div class="checkbox">
-                            <label style="font-weight: bold;"><input type="checkbox" ng-model="action.newTrunk">New trunk addition</label>
-                        </div>
-                        <div class="checkbox">
-                            <label><input type="checkbox" ng-model="action.changeVPN">Addition/change VPN settings</label>
-                        </div>
-                        <div class="checkbox">
-                            <label style="font-weight: bold;"><input type="checkbox" ng-model="action.deleteTICName">Change in legal person with deleting TIC name in Personal Account</label>
-                        </div>
-                        <div class="checkbox">
-                            <label><input type="checkbox" ng-model="action.leaveTICName">Change in legal person without deleting TIC name in Personal Account</label>
-                        </div>
-                        <div class="checkbox">
-                            <label style="font-weight: bold;"><input type="checkbox" ng-model="action.changeStandard">Change Tariff (standard)</label>
-                        </div>
-                        <div class="checkbox">
-                            <label><input type="checkbox" ng-model="action.changeCustom">Change Tariff (custom)</label>
-                        </div>
-                        <div class="checkbox">
-                            <label style="font-weight: bold;"><input type="checkbox" ng-model="action.changeInvoice">Change invoice details/contacts</label>
-                        </div>
-                        <div class="checkbox">
-                            <label><input type="checkbox" ng-model="action.agreementTermination">Termination of an agreement</label>
                         </div>
                     </div>
                 </div>
@@ -255,6 +247,19 @@
     </div>
 
     <div class="col-sm-12"><hr /></div>
+
+    <div class="form-group">
+        <label class="col-sm-2 control-label">Resolution</label>
+        <div class="col-sm-8">
+            <label class="radio-inline">
+                <input type="radio" ng-model="resolution" name="resolution" value="Stop service" required> Stop service
+            </label>
+            <label class="radio-inline">
+                <input type="radio" ng-model="resolution" name="resolution" value="Cancel task" required> Cancel task
+            </label>
+            <label class="error" ng-show="kcell_form.resolution.$error.required && ( kcell_form.resolution.$touched || view.submitted)">Required field</label>
+        </div>
+    </div>
 
     <div class="form-group">
         <label class="col-sm-2 control-label">Comment</label>
