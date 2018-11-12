@@ -128,13 +128,15 @@ define(['./module','jquery', 'moment', 'camundaSDK'], function(app, $, moment, C
             'Task_1m2xspc',
             'Task_1mb15j2',
             'Task_1mocj2s',
-            'Task_1gjdn28'
+            'Task_1gjdn28',
+            'IntermediateThrowEvent_wait_po_pr_creation'
 			];
 
             var userTasks = getUserTasks(xml);
             var includedUserTasks = _.filter(userTasks, function(task) {
 			    return excludeTasks.indexOf(task.id) === -1;
 			});
+            $scope.includedUserTasks = includedUserTasks;
             var userTasksMap = _.keyBy(includedUserTasks, 'id');
             $scope.userTasksMap = userTasksMap;
         });
@@ -856,6 +858,7 @@ define(['./module','jquery', 'moment', 'camundaSDK'], function(app, $, moment, C
 			maxResults: 20
 		};
 
+		$scope.userTasksDP = {};
 		$scope.userTasksMapDP = {};
 		$scope.clientBINMap = {};
 		$scope.binPattern = /^(?:\d{12}|\w+@\w+\.\w{2,3})$/;
@@ -902,6 +905,7 @@ define(['./module','jquery', 'moment', 'camundaSDK'], function(app, $, moment, C
 						var includedUserTasks = _.filter(userTasks, function(task) {
 							return excludeTasks.indexOf(task.id) === -1;
 						});
+						$scope.userTasksDP[def.value] = includedUserTasks;				
 						var userTasksMap = _.keyBy(includedUserTasks, 'id');
 						$scope.userTasksMapDP[def.value] = userTasksMap;
 					}
