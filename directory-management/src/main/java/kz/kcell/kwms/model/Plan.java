@@ -37,6 +37,10 @@ class Plan implements Comparable<Plan> {
 
     @Version long version;
 
+    String acceptance_date;
+
+    Boolean start_and_finish;
+
     public static Comparator<Plan> compareById = Comparator.comparing(Plan::getId);
 
     @Override

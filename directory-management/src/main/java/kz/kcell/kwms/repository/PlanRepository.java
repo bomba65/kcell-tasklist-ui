@@ -32,6 +32,13 @@ public interface PlanRepository extends PagingAndSortingRepository<Plan, Long> {
     @Query("select l from Plan l where l.is_current = true and l.status = 'candidate_sharing'")
     List<Plan> findCurrentToStartPlanSites();
 
+    @Query("select l from Plan l where l.is_current = true and l.status = 'site_sharing_complete' and l.acceptance_date is not null and l.start_and_finish = true")
+    List<Plan> findCurrentToStartAndFinishPlanSites();
+
+    @Modifying
+    @Query("update Plan l set l.start_and_finish = false where l.position_number = ?1 and l.start_and_finish = true")
+    void setStartedAndFinished(@Param("position_number") Integer position_number);
+
     @Modifying
     @Query("update Plan l set l.is_current = false where l.position_number = ?1 and l.is_current = true")
     void changePrevCurrentStatus(@Param("position_number") Integer position_number);

@@ -79,6 +79,22 @@ public class NetworkInfrastructureController {
         return ResponseEntity.ok(plans);
     }
 
+    @RequestMapping(value = "/plan/findCurrentToStartAndFinishPlanSites", method = RequestMethod.GET)
+    @ResponseBody
+    public ResponseEntity<List<Plan>> findCurrentToStartAndFinishPlanSites(){
+
+        List<Plan> plans = planRepository.findCurrentToStartAndFinishPlanSites();
+
+        return ResponseEntity.ok(plans);
+    }
+
+    @RequestMapping(value = "/plan/setStartedAndFinished/{position_number}", method = RequestMethod.GET)
+    @ResponseBody
+    public void setStartedAndFinished(@PathVariable("position_number") Integer position_number){
+        planRepository.setStartedAndFinished(position_number);
+        log.info("GET REQUEST /plan/setStartedAndFinished/" + position_number);
+    }
+
     @RequestMapping(value = "/currency/rate", method = RequestMethod.GET)
     @ResponseBody
     public ResponseEntity<Double> getCurrentExchangeRate(){

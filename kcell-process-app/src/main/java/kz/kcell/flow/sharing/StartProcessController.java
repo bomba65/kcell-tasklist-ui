@@ -33,6 +33,9 @@ import java.security.InvalidKeyException;
 import java.security.KeyManagementException;
 import java.security.KeyStoreException;
 import java.security.NoSuchAlgorithmException;
+import java.text.ParseException;
+import java.text.SimpleDateFormat;
+import java.util.Date;
 import java.util.HashMap;
 import java.util.Map;
 
@@ -60,10 +63,7 @@ public class StartProcessController {
 
     @RequestMapping(value = "/sharing", method = RequestMethod.GET)
     @ResponseBody
-    public ResponseEntity<String> startSharing(HttpServletRequest request) throws NoSuchAlgorithmException, InsufficientDataException, IOException,
-        InvalidKeyException, NoResponseException, XmlPullParserException, ErrorResponseException,
-        InternalException, InvalidEndpointException, InvalidPortException,
-        InvalidArgumentException, KeyStoreException, KeyManagementException {
+    public ResponseEntity<String> startSharing(HttpServletRequest request) throws NoSuchAlgorithmException, IOException,KeyStoreException, KeyManagementException, ParseException {
 
 
         HttpGet httpGet = new HttpGet(baseUri + "/directory-management/networkinfrastructure/plan/findCurrentToStartPlanSites");
@@ -123,6 +123,96 @@ public class StartProcessController {
                 ProcessInstance instance = runtimeService.startProcessInstanceByKey("SiteSharingTopProcess", businessKey, variables);
                 System.out.println("instance:");
                 System.out.println(instance.getBusinessKey());
+            }
+        }
+
+        return ResponseEntity.ok("Success");
+    }
+
+    @RequestMapping(value = "/completed-sharing", method = RequestMethod.GET)
+    @ResponseBody
+    public ResponseEntity<String> startAndFinishSharing(HttpServletRequest request) throws NoSuchAlgorithmException, IOException,KeyStoreException, KeyManagementException, ParseException {
+
+
+        HttpGet httpGet = new HttpGet(baseUri + "/directory-management/networkinfrastructure/plan/findCurrentToStartAndFinishPlanSites");
+        SSLContextBuilder builder = new SSLContextBuilder();
+        builder.loadTrustMaterial(null, new TrustSelfSignedStrategy());
+        SSLConnectionSocketFactory sslsf = new SSLConnectionSocketFactory(
+            builder.build());
+        CloseableHttpClient httpClient = HttpClients.custom().setSSLSocketFactory(
+            sslsf).build();
+
+        HttpResponse response = httpClient.execute(httpGet);
+        HttpEntity entity = response.getEntity();
+        String responseString = EntityUtils.toString(entity, "UTF-8");
+
+        JSONArray plans = new JSONArray(responseString);
+
+        for (int i=0; i < plans.length(); i++) {
+            JSONObject plan = (JSONObject) plans.get(i);
+
+            System.out.println("StartProcessController position_number: " + plan.get("position_number").toString() + ", acceptance_date: " + plan.get("acceptance_date").toString() + ", status: " + plan.get("status").toString());
+
+            if(plan.has("acceptance_date") && !plan.get("acceptance_date").equals(null)) {
+                JSONObject params = plan.getJSONObject("params");
+                String host = params.get("host").toString();
+                String positionNumber = plan.get("position_number").toString();
+
+                String acceptanceDateString = plan.get("acceptance_date").toString();
+
+                Boolean startAndFinish = (Boolean) plan.get("start_and_finish");
+
+                System.out.println("StartProcessController startAndFinish: " + startAndFinish);
+                SimpleDateFormat sdf = new SimpleDateFormat("dd/MM/yyyy");
+                Date acceptanceDate = sdf.parse(acceptanceDateString);
+                System.out.println("StartProcessControlleracceptanceDate: " + acceptanceDate);
+
+
+                String sharingPlanStatus = plan.get("status").toString();
+                String site = params.get("infrastructure_owner").toString();
+                String isSpecialSite = params.get("isSpecialSite").toString();
+
+                // Определение региона по site_id:
+                String siteRegion = "";
+                if (params.get("site_id").toString().startsWith("0")) {
+                    siteRegion = "Almaty";
+                } else if (params.get("site_id").toString().startsWith("1") || params.get("site_id").toString().startsWith("2")) {
+                    if (params.get("site_id").toString().startsWith("11")) {
+                        siteRegion = "Astana";
+                    } else {
+                        siteRegion = "North";
+                    }
+                } else if (params.get("site_id").toString().startsWith("3")) {
+                    siteRegion = "East";
+                } else if (params.get("site_id").toString().startsWith("4")) {
+                    siteRegion = "South";
+                } else {
+                    siteRegion = "West";
+                }
+                // -------------
+
+                if (host.equals("Kcell")) {
+                    log.info("Process starting");
+                    Map<String, Object> variables = new HashMap<String, Object>();
+                    variables.put("host", host);
+                    variables.put("site", site);
+                    variables.put("sharingType", "sharing");
+                    variables.put("sharingPlan", SpinValues.jsonValue(params.toString()));
+                    variables.put("isSpecialSite", isSpecialSite);
+                    variables.put("positionNumber", positionNumber);
+                    variables.put("siteRegion", siteRegion);
+                    variables.put("sharingPlanStatus", sharingPlanStatus);
+
+                    variables.put("replanStatus", "notreplan");
+                    variables.put("acceptanceDate", acceptanceDate);
+                    variables.put("startAndFinish", startAndFinish);
+
+                    String businessKey = params.get("site_id").toString() + '_' + params.get("site_name").toString();
+
+                    ProcessInstance instance = runtimeService.startProcessInstanceByKey("SiteSharingTopProcess", businessKey, variables);
+                    System.out.println("instance:");
+                    System.out.println(instance.getBusinessKey());
+                }
             }
         }
 

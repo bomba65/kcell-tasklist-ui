@@ -3,29 +3,27 @@ package kz.kcell.flow.sharing;
 import lombok.extern.java.Log;
 import org.apache.commons.lang.StringUtils;
 import org.apache.http.HttpResponse;
-import org.apache.http.client.HttpClient;
 import org.apache.http.client.methods.HttpGet;
+import org.apache.http.conn.ssl.SSLConnectionSocketFactory;
+import org.apache.http.conn.ssl.TrustSelfSignedStrategy;
+import org.apache.http.impl.client.CloseableHttpClient;
 import org.apache.http.impl.client.HttpClients;
+import org.apache.http.ssl.SSLContextBuilder;
 import org.camunda.bpm.engine.delegate.DelegateExecution;
 import org.camunda.bpm.engine.delegate.JavaDelegate;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
-import org.apache.http.conn.ssl.SSLConnectionSocketFactory;
-import org.apache.http.conn.ssl.TrustSelfSignedStrategy;
-import org.apache.http.ssl.SSLContextBuilder;
-import org.apache.http.impl.client.CloseableHttpClient;
-import org.apache.http.impl.client.HttpClients;
 
 
-@Service("changePlanStatusToInstallationDone")
+@Service("setPlanStartedAndFinished")
 @Log
-public class changePlanStatusToInstallationDone implements JavaDelegate {
+public class setPlanStartedAndFinished implements JavaDelegate {
 
     private final String baseUri;
 
     @Autowired
-    public changePlanStatusToInstallationDone(@Value("${mail.message.baseurl:http://localhost}") String baseUri) {
+    public setPlanStartedAndFinished(@Value("${mail.message.baseurl:http://localhost}") String baseUri) {
         this.baseUri = baseUri;
     }
 
@@ -34,12 +32,12 @@ public class changePlanStatusToInstallationDone implements JavaDelegate {
 
         String positionNumber = String.valueOf(delegateExecution.getVariable("positionNumber"));
         String sharingPlanStatus = String.valueOf(delegateExecution.getVariable("sharingPlanStatus"));
-        String newStatus = String.valueOf(delegateExecution.getVariableLocal("newStatus"));
+        Boolean startAndFinish = Boolean.parseBoolean(delegateExecution.getVariable("startAndFinish").toString());
 
-        System.out.println("position_number: " + positionNumber + ", status: " + sharingPlanStatus);
+        System.out.println("setPlanStartedAndFinished position_number: " + positionNumber + ", status: " + sharingPlanStatus + ", startAndFinish: " + startAndFinish);
 
-        if(StringUtils.isNotEmpty(positionNumber) && !sharingPlanStatus.equals("site_sharing_complete")){
-            HttpGet httpGet = new HttpGet(baseUri + "/directory-management/networkinfrastructure//plan/changePlanStatus/" + newStatus + "/" + positionNumber);
+        if(StringUtils.isNotEmpty(positionNumber) && sharingPlanStatus.equals("site_sharing_complete")){
+            HttpGet httpGet = new HttpGet(baseUri + "/directory-management/networkinfrastructure//plan/setStartedAndFinished/" + positionNumber);
             SSLContextBuilder builder = new SSLContextBuilder();
             builder.loadTrustMaterial(null, new TrustSelfSignedStrategy());
             SSLConnectionSocketFactory sslsf = new SSLConnectionSocketFactory(
@@ -47,7 +45,7 @@ public class changePlanStatusToInstallationDone implements JavaDelegate {
             CloseableHttpClient httpClient = HttpClients.custom().setSSLSocketFactory(
                 sslsf).build();
             HttpResponse httpResponse = httpClient.execute(httpGet);
-            delegateExecution.setVariable("sharingPlanStatus", newStatus);
+            delegateExecution.setVariable("startAndFinish", false);
             //log.info("plan change current status Response: " + httpResponse.getStatusLine().getStatusCode());
         }
     }
