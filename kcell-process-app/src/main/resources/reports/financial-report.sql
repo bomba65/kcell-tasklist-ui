@@ -56,7 +56,49 @@ select
   to_timestamp(sapPRApproveDate.long_/1000) as "PR Approval date",
   sapPONo.text_ as "PO#",
   invoiceNumber.text_ as "Invoice #",
-  to_timestamp(invoiceDate.long_/1000) as "Invoice date"
+  to_timestamp(invoiceDate.long_/1000) as "Invoice date",
+  rejectedByRegionHead.value_ as "rejected by region head",
+  rejectedByRegionHeadCount.value_ as "qty of rejects1",
+  rejectedByPowerEngineerHead.value_ as "rejected by power engineer",
+  rejectedByPowerEngineerHeadCount.value_ as "qty of rejects2",
+  rejectedByCenterHead.value_ as "rejected by center",
+  rejectedByCenterHeadCount.value_ as "qty of rejects3",
+  rejectedByLeasingGroup.value_ as "rejected by leasing group",
+  rejectedByLeasingGroupCount.value_ as "qty of rejects4",
+  materialListRejectedByRegion.value_ as "Material list rejected by region",
+  materialListRejectedByRegionCount.value_ as "qty of rejects5",
+  materialListRejectedByCenter.value_ as "Material list rejected by center",
+  materialListRejectedByCenterCount.value_ as "qty of rejects6",
+  materialListRejectedByRegionTNU.value_ as "Material list rejected by region TNU",
+  materialListRejectedByRegionTNUCount.value_ as "qty of rejects7",
+  materialListRejectedByCenterPO.value_ as "Material list rejected by Center group P&O",
+  materialListRejectedByCenterPOCount.value_ as "qty of rejects8",
+  materialListRejectedByCenterSAO.value_ as "Material list rejected by Center group SAO",
+  materialListRejectedByCenterSAOCount.value_ as "qty of rejects9",
+  materialListRejectedByCenterTNU.value_ as "Material list rejected by Center group TNU",
+  materialListRejectedByCenterTNUCount.value_ as "qty of rejects10",
+  materialListRejectedByCenterSFM.value_ as "Material list rejected by Center group S&FM",
+  materialListRejectedByCenterSFMCount.value_ as "qty of rejects11",
+  trRejectedByRegion.value_ as "TR rejected by region",
+  trRejectedByRegionCount.value_ as "qty of rejects12",
+  trRejectedByCenterGroupPO.value_ as "TR rejected by Center group P&O",
+  trRejectedByCenterGroupPOCount.value_ as "qty of rejects13",
+  trRejectedByCenterGroupSAO.value_ as "TR rejected by Center group SAO",
+  trRejectedByCenterGroupSAOCount.value_ as "qty of rejects14",
+  trRejectedByCenterGroupTNU.value_ as "TR rejected by Center group TNU",
+  trRejectedByCenterGroupTNUCount.value_ as "qty of rejects15",
+  trRejectedByCenterGroupSFM.value_ as "TR rejected by Center group S&FM",
+  trRejectedByCenterGroupSFMCount.value_ as "qty of rejects16",
+  acceptanceRejectedByPermitTeam.value_ as "Acceptance rejected by Permit team",
+  acceptanceRejectedByPermitTeamCount.value_ as "qty of rejects17",
+  acceptanceRejectedByInitiator.value_ as "Acceptance rejected by Initiator",
+  acceptanceRejectedByInitiatorCount.value_ as "qty of rejects18",
+  acceptanceRejectedByMaintenanceGroup.value_ as "Acceptance rejected by maintenance group",
+  acceptanceRejectedByMaintenanceGroupCount.value_ as "qty of rejects19",
+  acceptanceRejectedByPlanningGroup.value_ as "Acceptance rejected by planning group",
+  acceptanceRejectedByPlanningGroupCount.value_ as "qty of rejects20",
+  acceptanceRejectedByRegionHead.value_ as "Acceptance rejected by region Head",
+  acceptanceRejectedByRegionHeadCount.value_ as "qty of rejects21"
   from act_hi_procinst pi
   left join act_hi_varinst sitename
     on pi.id_ = sitename.proc_inst_id_ and sitename.name_ = 'site_name'
@@ -179,6 +221,533 @@ select
     on pi.id_ = status.proc_inst_id_ and status.name_ = 'status'
   left join act_ge_bytearray statusBytes
     on status.bytearray_id_ = statusBytes.id_
+
+    ------------------------------------------------------------------
+    -- Reject details and counts
+    left join lateral (select string_agg( coalesce(il.group_id_, 'without group')||':'||u.first_|| ' ' ||u.last_ ,', ') as value_
+                      from act_hi_varinst vi
+                        inner join act_ge_bytearray ba on vi.bytearray_id_ = ba.id_
+                        inner join json_array_elements(CAST(convert_from(ba.bytes_, 'UTF8') AS json)) as resolutionsJson
+                        on true and resolutionsJson.value->>'resolution' = 'rejected'
+                        inner join act_hi_taskinst ti on ti.id_ = resolutionsJson.value->>'taskId' and ti.task_def_key_ in ('approve_jr_regions','UserTask_11b2osi')
+                        inner join act_id_user u on u.id_ = resolutionsJson.value->>'assignee'
+                        left outer join act_hi_identitylink il on il.task_id_ = ti.id_ and il.group_id_ is not null and type_ = 'candidate'
+                      where pi.id_ = vi.proc_inst_id_
+                      and vi.name_ = 'resolutions'
+      )
+    as rejectedByRegionHead
+    on true
+    left join lateral (select count(resolutionsJson.value->>'taskId') as value_
+                          from act_hi_varinst vi
+                            inner join act_ge_bytearray ba on vi.bytearray_id_ = ba.id_
+                            inner join json_array_elements(CAST(convert_from(ba.bytes_, 'UTF8') AS json)) as resolutionsJson
+                            on true and resolutionsJson.value->>'resolution' = 'rejected'
+                            inner join act_hi_taskinst ti on ti.id_ = resolutionsJson.value->>'taskId' and ti.task_def_key_ in ('approve_jr_regions','UserTask_11b2osi')
+                          where pi.id_ = vi.proc_inst_id_
+                          and vi.name_ = 'resolutions'
+      )
+    as rejectedByRegionHeadCount
+    on true
+
+    left join lateral (select string_agg( coalesce(il.group_id_, 'without group') || ':' ||u.first_|| ' ' ||u.last_,', ') as value_
+                      from act_hi_varinst vi
+                        inner join act_ge_bytearray ba on vi.bytearray_id_ = ba.id_
+                        inner join json_array_elements(CAST(convert_from(ba.bytes_, 'UTF8') AS json)) as resolutionsJson
+                        on true and resolutionsJson.value->>'resolution' = 'rejected'
+                        inner join act_hi_taskinst ti on ti.id_ = resolutionsJson.value->>'taskId' and ti.task_def_key_ in ('check_power','Task_1xhzfxw')
+                        inner join act_id_user u on u.id_ = resolutionsJson.value->>'assignee'
+                        left outer join act_hi_identitylink il on il.task_id_ = ti.id_ and il.group_id_ is not null and type_ = 'candidate'
+                      where pi.id_ = vi.proc_inst_id_
+                      and vi.name_ = 'resolutions'
+      )
+    as rejectedByPowerEngineerHead
+    on true
+    left join lateral (select count(resolutionsJson.value->>'taskId') as value_
+                          from act_hi_varinst vi
+                            inner join act_ge_bytearray ba on vi.bytearray_id_ = ba.id_
+                            inner join json_array_elements(CAST(convert_from(ba.bytes_, 'UTF8') AS json)) as resolutionsJson
+                            on true and resolutionsJson.value->>'resolution' = 'rejected'
+                            inner join act_hi_taskinst ti on ti.id_ = resolutionsJson.value->>'taskId' and ti.task_def_key_ in ('check_power','Task_1xhzfxw')
+                          where pi.id_ = vi.proc_inst_id_
+                          and vi.name_ = 'resolutions'
+      )
+    as rejectedByPowerEngineerHeadCount
+    on true
+
+    left join lateral (select string_agg( coalesce(il.group_id_, 'without group') || ':' ||u.first_|| ' ' ||u.last_,', ') as value_
+                      from act_hi_varinst vi
+                        inner join act_ge_bytearray ba on vi.bytearray_id_ = ba.id_
+                        inner join json_array_elements(CAST(convert_from(ba.bytes_, 'UTF8') AS json)) as resolutionsJson
+                        on true and resolutionsJson.value->>'resolution' = 'rejected'
+                        inner join act_hi_taskinst ti on ti.id_ = resolutionsJson.value->>'taskId' and ti.task_def_key_ in ('approve_jr','UserTask_1qf7rmc')
+                        inner join act_id_user u on u.id_ = resolutionsJson.value->>'assignee'
+                        left outer join act_hi_identitylink il on il.task_id_ = ti.id_ and il.group_id_ is not null and type_ = 'candidate'
+                      where pi.id_ = vi.proc_inst_id_
+                      and vi.name_ = 'resolutions'
+      )
+    as rejectedByCenterHead
+    on true
+    left join lateral (select count(resolutionsJson.value->>'taskId') as value_
+                          from act_hi_varinst vi
+                            inner join act_ge_bytearray ba on vi.bytearray_id_ = ba.id_
+                            inner join json_array_elements(CAST(convert_from(ba.bytes_, 'UTF8') AS json)) as resolutionsJson
+                            on true and resolutionsJson.value->>'resolution' = 'rejected'
+                            inner join act_hi_taskinst ti on ti.id_ = resolutionsJson.value->>'taskId' and ti.task_def_key_ in ('approve_jr','UserTask_1qf7rmc')
+                          where pi.id_ = vi.proc_inst_id_
+                          and vi.name_ = 'resolutions'
+      )
+    as rejectedByCenterHeadCount
+    on true
+
+    left join lateral (select string_agg( coalesce(il.group_id_, 'without group') || ':' ||u.first_|| ' ' ||u.last_,', ') as value_
+                      from act_hi_varinst vi
+                        inner join act_ge_bytearray ba on vi.bytearray_id_ = ba.id_
+                        inner join json_array_elements(CAST(convert_from(ba.bytes_, 'UTF8') AS json)) as resolutionsJson
+                        on true and resolutionsJson.value->>'resolution' = 'impossible'
+                        inner join act_hi_taskinst ti on ti.id_ = resolutionsJson.value->>'taskId' and ti.task_def_key_ in ('update_leasing_status_general','update_leasing_status_special','UserTask_1uw9qzb','Task_0euindd')
+                        inner join act_id_user u on u.id_ = resolutionsJson.value->>'assignee'
+                        left outer join act_hi_identitylink il on il.task_id_ = ti.id_ and il.group_id_ is not null and type_ = 'candidate'
+                      where pi.id_ = vi.proc_inst_id_
+                      and vi.name_ = 'resolutions'
+      )
+    as rejectedByLeasingGroup
+    on true
+    left join lateral (select count(resolutionsJson.value->>'taskId') as value_
+                          from act_hi_varinst vi
+                            inner join act_ge_bytearray ba on vi.bytearray_id_ = ba.id_
+                            inner join json_array_elements(CAST(convert_from(ba.bytes_, 'UTF8') AS json)) as resolutionsJson
+                            on true and resolutionsJson.value->>'resolution' = 'impossible'
+                            inner join act_hi_taskinst ti on ti.id_ = resolutionsJson.value->>'taskId' and ti.task_def_key_ in ('update_leasing_status_general','update_leasing_status_special','UserTask_1uw9qzb','Task_0euindd')
+                          where pi.id_ = vi.proc_inst_id_
+                          and vi.name_ = 'resolutions'
+      )
+    as rejectedByLeasingGroupCount
+    on true
+
+    left join lateral (select string_agg( coalesce(il.group_id_, 'without group') || ':' ||u.first_|| ' ' ||u.last_,', ') as value_
+                      from act_hi_varinst vi
+                        inner join act_ge_bytearray ba on vi.bytearray_id_ = ba.id_
+                        inner join json_array_elements(CAST(convert_from(ba.bytes_, 'UTF8') AS json)) as resolutionsJson
+                        on true and resolutionsJson.value->>'resolution' = 'rejected'
+                        inner join act_hi_taskinst ti on ti.id_ = resolutionsJson.value->>'taskId' and ti.task_def_key_ in ('approve_material_list_region','UserTask_12n8eyi')
+                        inner join act_id_user u on u.id_ = resolutionsJson.value->>'assignee'
+                        left outer join act_hi_identitylink il on il.task_id_ = ti.id_ and il.group_id_ is not null and type_ = 'candidate'
+                      where pi.id_ = vi.proc_inst_id_
+                      and vi.name_ = 'resolutions'
+      )
+    as materialListRejectedByRegion
+    on true
+    left join lateral (select count(resolutionsJson.value->>'taskId') as value_
+                          from act_hi_varinst vi
+                            inner join act_ge_bytearray ba on vi.bytearray_id_ = ba.id_
+                            inner join json_array_elements(CAST(convert_from(ba.bytes_, 'UTF8') AS json)) as resolutionsJson
+                            on true and resolutionsJson.value->>'resolution' = 'rejected'
+                            inner join act_hi_taskinst ti on ti.id_ = resolutionsJson.value->>'taskId' and ti.task_def_key_ in ('approve_material_list_region','UserTask_12n8eyi')
+                          where pi.id_ = vi.proc_inst_id_
+                          and vi.name_ = 'resolutions'
+      )
+    as materialListRejectedByRegionCount
+    on true
+
+    left join lateral (select string_agg( coalesce(il.group_id_, 'without group') || ':' ||u.first_|| ' ' ||u.last_,', ') as value_
+                      from act_hi_varinst vi
+                        inner join act_ge_bytearray ba on vi.bytearray_id_ = ba.id_
+                        inner join json_array_elements(CAST(convert_from(ba.bytes_, 'UTF8') AS json)) as resolutionsJson
+                        on true and resolutionsJson.value->>'resolution' = 'return'
+                        inner join act_hi_taskinst ti on ti.id_ = resolutionsJson.value->>'taskId' and ti.name_ = 'Approve Material List by Center'
+                        inner join act_id_user u on u.id_ = resolutionsJson.value->>'assignee'
+                        left outer join act_hi_identitylink il on il.task_id_ = ti.id_ and il.group_id_ is not null and type_ = 'candidate'
+                      where pi.id_ = vi.proc_inst_id_
+                      and vi.name_ = 'resolutions'
+      )
+    as materialListRejectedByCenter
+    on true
+    left join lateral (select count(resolutionsJson.value->>'taskId') as value_
+                          from act_hi_varinst vi
+                            inner join act_ge_bytearray ba on vi.bytearray_id_ = ba.id_
+                            inner join json_array_elements(CAST(convert_from(ba.bytes_, 'UTF8') AS json)) as resolutionsJson
+                            on true and resolutionsJson.value->>'resolution' = 'return'
+                            inner join act_hi_taskinst ti on ti.id_ = resolutionsJson.value->>'taskId' and ti.name_ = 'Approve Material List by Center'
+                          where pi.id_ = vi.proc_inst_id_
+                          and vi.name_ = 'resolutions'
+      )
+    as materialListRejectedByCenterCount
+    on true
+
+    left join lateral (select string_agg( coalesce(il.group_id_, 'without group') || ':' ||u.first_|| ' ' ||u.last_,', ') as value_
+                      from act_hi_varinst vi
+                        inner join act_ge_bytearray ba on vi.bytearray_id_ = ba.id_
+                        inner join json_array_elements(CAST(convert_from(ba.bytes_, 'UTF8') AS json)) as resolutionsJson
+                        on true and resolutionsJson.value->>'resolution' = 'return'
+                        inner join act_hi_taskinst ti on ti.id_ = resolutionsJson.value->>'taskId' and ti.task_def_key_ = 'approve_material_list_tnu_region'
+                        inner join act_id_user u on u.id_ = resolutionsJson.value->>'assignee'
+                        left outer join act_hi_identitylink il on il.task_id_ = ti.id_ and il.group_id_ is not null and type_ = 'candidate'
+                      where pi.id_ = vi.proc_inst_id_
+                      and vi.name_ = 'resolutions'
+      )
+    as materialListRejectedByRegionTNU
+    on true
+    left join lateral (select count(resolutionsJson.value->>'taskId') as value_
+                          from act_hi_varinst vi
+                            inner join act_ge_bytearray ba on vi.bytearray_id_ = ba.id_
+                            inner join json_array_elements(CAST(convert_from(ba.bytes_, 'UTF8') AS json)) as resolutionsJson
+                            on true and resolutionsJson.value->>'resolution' = 'return'
+                            inner join act_hi_taskinst ti on ti.id_ = resolutionsJson.value->>'taskId' and ti.task_def_key_ = 'approve_material_list_tnu_region'
+                          where pi.id_ = vi.proc_inst_id_
+                          and vi.name_ = 'resolutions'
+      )
+    as materialListRejectedByRegionTNUCount
+    on true
+
+    left join lateral (select string_agg( coalesce(il.group_id_, 'without group') || ':' ||u.first_|| ' ' ||u.last_,', ') as value_
+                      from act_hi_varinst vi
+                        inner join act_ge_bytearray ba on vi.bytearray_id_ = ba.id_
+                        inner join json_array_elements(CAST(convert_from(ba.bytes_, 'UTF8') AS json)) as resolutionsJson
+                        on true and resolutionsJson.value->>'resolution' = 'return'
+                        inner join act_hi_taskinst ti on ti.id_ = resolutionsJson.value->>'taskId' and ti.name_ = 'Approve Material List by "P&O"'
+                        inner join act_id_user u on u.id_ = resolutionsJson.value->>'assignee'
+                        left outer join act_hi_identitylink il on il.task_id_ = ti.id_ and il.group_id_ is not null and type_ = 'candidate'
+                      where pi.id_ = vi.proc_inst_id_
+                      and vi.name_ = 'resolutions'
+      )
+    as materialListRejectedByCenterPO
+    on true
+    left join lateral (select count(resolutionsJson.value->>'taskId') as value_
+                          from act_hi_varinst vi
+                            inner join act_ge_bytearray ba on vi.bytearray_id_ = ba.id_
+                            inner join json_array_elements(CAST(convert_from(ba.bytes_, 'UTF8') AS json)) as resolutionsJson
+                            on true and resolutionsJson.value->>'resolution' = 'return'
+                            inner join act_hi_taskinst ti on ti.id_ = resolutionsJson.value->>'taskId' and ti.name_ = 'Approve Material List by "P&O"'
+                          where pi.id_ = vi.proc_inst_id_
+                          and vi.name_ = 'resolutions'
+      )
+    as materialListRejectedByCenterPOCount
+    on true
+
+    left join lateral (select string_agg( coalesce(il.group_id_, 'without group') || ':' ||u.first_|| ' ' ||u.last_,', ') as value_
+                      from act_hi_varinst vi
+                        inner join act_ge_bytearray ba on vi.bytearray_id_ = ba.id_
+                        inner join json_array_elements(CAST(convert_from(ba.bytes_, 'UTF8') AS json)) as resolutionsJson
+                        on true and resolutionsJson.value->>'resolution' = 'return'
+                        inner join act_hi_taskinst ti on ti.id_ = resolutionsJson.value->>'taskId' and ti.name_ = 'Approve Material List by "Operation"'
+                        inner join act_id_user u on u.id_ = resolutionsJson.value->>'assignee'
+                        left outer join act_hi_identitylink il on il.task_id_ = ti.id_ and il.group_id_ is not null and type_ = 'candidate'
+                      where pi.id_ = vi.proc_inst_id_
+                      and vi.name_ = 'resolutions'
+      )
+    as materialListRejectedByCenterSAO
+    on true
+    left join lateral (select count(resolutionsJson.value->>'taskId') as value_
+                          from act_hi_varinst vi
+                            inner join act_ge_bytearray ba on vi.bytearray_id_ = ba.id_
+                            inner join json_array_elements(CAST(convert_from(ba.bytes_, 'UTF8') AS json)) as resolutionsJson
+                            on true and resolutionsJson.value->>'resolution' = 'return'
+                            inner join act_hi_taskinst ti on ti.id_ = resolutionsJson.value->>'taskId' and ti.name_ = 'Approve Material List by "Operation"'
+                          where pi.id_ = vi.proc_inst_id_
+                          and vi.name_ = 'resolutions'
+      )
+    as materialListRejectedByCenterSAOCount
+    on true
+
+    left join lateral (select string_agg( coalesce(il.group_id_, 'without group') || ':' ||u.first_|| ' ' ||u.last_,', ') as value_
+                      from act_hi_varinst vi
+                        inner join act_ge_bytearray ba on vi.bytearray_id_ = ba.id_
+                        inner join json_array_elements(CAST(convert_from(ba.bytes_, 'UTF8') AS json)) as resolutionsJson
+                        on true and resolutionsJson.value->>'resolution' = 'return'
+                        inner join act_hi_taskinst ti on ti.id_ = resolutionsJson.value->>'taskId' and ti.name_ = 'Approve Material List by "Transmission"'
+                        inner join act_id_user u on u.id_ = resolutionsJson.value->>'assignee'
+                        left outer join act_hi_identitylink il on il.task_id_ = ti.id_ and il.group_id_ is not null and type_ = 'candidate'
+                      where pi.id_ = vi.proc_inst_id_
+                      and vi.name_ = 'resolutions'
+      )
+    as materialListRejectedByCenterTNU
+    on true
+    left join lateral (select count(resolutionsJson.value->>'taskId') as value_
+                          from act_hi_varinst vi
+                            inner join act_ge_bytearray ba on vi.bytearray_id_ = ba.id_
+                            inner join json_array_elements(CAST(convert_from(ba.bytes_, 'UTF8') AS json)) as resolutionsJson
+                            on true and resolutionsJson.value->>'resolution' = 'return'
+                            inner join act_hi_taskinst ti on ti.id_ = resolutionsJson.value->>'taskId' and ti.name_ = 'Approve Material List by "Transmission"'
+                          where pi.id_ = vi.proc_inst_id_
+                          and vi.name_ = 'resolutions'
+      )
+    as materialListRejectedByCenterTNUCount
+    on true
+
+    left join lateral (select string_agg( coalesce(il.group_id_, 'without group') || ':' ||u.first_|| ' ' ||u.last_,', ') as value_
+                      from act_hi_varinst vi
+                        inner join act_ge_bytearray ba on vi.bytearray_id_ = ba.id_
+                        inner join json_array_elements(CAST(convert_from(ba.bytes_, 'UTF8') AS json)) as resolutionsJson
+                        on true and resolutionsJson.value->>'resolution' = 'return'
+                        inner join act_hi_taskinst ti on ti.id_ = resolutionsJson.value->>'taskId' and ti.name_ = 'Approve Material List by "S&FM"'
+                        inner join act_id_user u on u.id_ = resolutionsJson.value->>'assignee'
+                        left outer join act_hi_identitylink il on il.task_id_ = ti.id_ and il.group_id_ is not null and type_ = 'candidate'
+                      where pi.id_ = vi.proc_inst_id_
+                      and vi.name_ = 'resolutions'
+      )
+    as materialListRejectedByCenterSFM
+    on true
+    left join lateral (select count(resolutionsJson.value->>'taskId') as value_
+                          from act_hi_varinst vi
+                            inner join act_ge_bytearray ba on vi.bytearray_id_ = ba.id_
+                            inner join json_array_elements(CAST(convert_from(ba.bytes_, 'UTF8') AS json)) as resolutionsJson
+                            on true and resolutionsJson.value->>'resolution' = 'return'
+                            inner join act_hi_taskinst ti on ti.id_ = resolutionsJson.value->>'taskId' and ti.name_ = 'Approve Material List by "S&FM"'
+                          where pi.id_ = vi.proc_inst_id_
+                          and vi.name_ = 'resolutions'
+      )
+    as materialListRejectedByCenterSFMCount
+    on true
+
+    left join lateral (select string_agg( coalesce(il.group_id_, 'without group') || ':' ||u.first_|| ' ' ||u.last_,', ') as value_
+                      from act_hi_varinst vi
+                        inner join act_ge_bytearray ba on vi.bytearray_id_ = ba.id_
+                        inner join json_array_elements(CAST(convert_from(ba.bytes_, 'UTF8') AS json)) as resolutionsJson
+                        on true and resolutionsJson.value->>'resolution' = 'return'
+                        inner join act_hi_taskinst ti on ti.id_ = resolutionsJson.value->>'doesNotMatch' and ti.task_def_key_ in ('validate_tr','Task_0jxwgbt')
+                        inner join act_id_user u on u.id_ = resolutionsJson.value->>'assignee'
+                        left outer join act_hi_identitylink il on il.task_id_ = ti.id_ and il.group_id_ is not null and type_ = 'candidate'
+                      where pi.id_ = vi.proc_inst_id_
+                      and vi.name_ = 'resolutions'
+      )
+    as trRejectedByRegion
+    on true
+    left join lateral (select count(resolutionsJson.value->>'taskId') as value_
+                          from act_hi_varinst vi
+                            inner join act_ge_bytearray ba on vi.bytearray_id_ = ba.id_
+                            inner join json_array_elements(CAST(convert_from(ba.bytes_, 'UTF8') AS json)) as resolutionsJson
+                            on true and resolutionsJson.value->>'resolution' = 'doesNotMatch'
+                            inner join act_hi_taskinst ti on ti.id_ = resolutionsJson.value->>'taskId' and ti.task_def_key_ in ('validate_tr','Task_0jxwgbt')
+                          where pi.id_ = vi.proc_inst_id_
+                          and vi.name_ = 'resolutions'
+      )
+    as trRejectedByRegionCount
+    on true
+
+    left join lateral (select string_agg( coalesce(il.group_id_, 'without group') || ':' ||u.first_|| ' ' ||u.last_,', ') as value_
+                      from act_hi_varinst vi
+                        inner join act_ge_bytearray ba on vi.bytearray_id_ = ba.id_
+                        inner join json_array_elements(CAST(convert_from(ba.bytes_, 'UTF8') AS json)) as resolutionsJson
+                        on true and resolutionsJson.value->>'resolution' = 'doesNotMatch'
+                        inner join act_hi_taskinst ti on ti.id_ = resolutionsJson.value->>'taskId' and ti.name_ = 'Validate TR by Center by "P&O"'
+                        inner join act_id_user u on u.id_ = resolutionsJson.value->>'assignee'
+                        left outer join act_hi_identitylink il on il.task_id_ = ti.id_ and il.group_id_ is not null and type_ = 'candidate'
+                      where pi.id_ = vi.proc_inst_id_
+                      and vi.name_ = 'resolutions'
+      )
+    as trRejectedByCenterGroupPO
+    on true
+    left join lateral (select count(resolutionsJson.value->>'taskId') as value_
+                          from act_hi_varinst vi
+                            inner join act_ge_bytearray ba on vi.bytearray_id_ = ba.id_
+                            inner join json_array_elements(CAST(convert_from(ba.bytes_, 'UTF8') AS json)) as resolutionsJson
+                            on true and resolutionsJson.value->>'resolution' = 'doesNotMatch'
+                            inner join act_hi_taskinst ti on ti.id_ = resolutionsJson.value->>'taskId' and ti.name_ = 'Validate TR by Center by "P&O"'
+                          where pi.id_ = vi.proc_inst_id_
+                          and vi.name_ = 'resolutions'
+      )
+    as trRejectedByCenterGroupPOCount
+    on true
+
+    left join lateral (select string_agg( coalesce(il.group_id_, 'without group') || ':' ||u.first_|| ' ' ||u.last_,', ') as value_
+                      from act_hi_varinst vi
+                        inner join act_ge_bytearray ba on vi.bytearray_id_ = ba.id_
+                        inner join json_array_elements(CAST(convert_from(ba.bytes_, 'UTF8') AS json)) as resolutionsJson
+                        on true and resolutionsJson.value->>'resolution' = 'doesNotMatch'
+                        inner join act_hi_taskinst ti on ti.id_ = resolutionsJson.value->>'taskId' and ti.name_ = 'Validate TR by Center by "Operation"'
+                        inner join act_id_user u on u.id_ = resolutionsJson.value->>'assignee'
+                        left outer join act_hi_identitylink il on il.task_id_ = ti.id_ and il.group_id_ is not null and type_ = 'candidate'
+                      where pi.id_ = vi.proc_inst_id_
+                      and vi.name_ = 'resolutions'
+      )
+    as trRejectedByCenterGroupSAO
+    on true
+    left join lateral (select count(resolutionsJson.value->>'taskId') as value_
+                          from act_hi_varinst vi
+                            inner join act_ge_bytearray ba on vi.bytearray_id_ = ba.id_
+                            inner join json_array_elements(CAST(convert_from(ba.bytes_, 'UTF8') AS json)) as resolutionsJson
+                            on true and resolutionsJson.value->>'resolution' = 'doesNotMatch'
+                            inner join act_hi_taskinst ti on ti.id_ = resolutionsJson.value->>'taskId' and ti.name_ = 'Validate TR by Center by "Operation"'
+                          where pi.id_ = vi.proc_inst_id_
+                          and vi.name_ = 'resolutions'
+      )
+    as trRejectedByCenterGroupSAOCount
+    on true
+
+    left join lateral (select string_agg( coalesce(il.group_id_, 'without group') || ':' ||u.first_|| ' ' ||u.last_,', ') as value_
+                      from act_hi_varinst vi
+                        inner join act_ge_bytearray ba on vi.bytearray_id_ = ba.id_
+                        inner join json_array_elements(CAST(convert_from(ba.bytes_, 'UTF8') AS json)) as resolutionsJson
+                        on true and resolutionsJson.value->>'resolution' = 'doesNotMatch'
+                        inner join act_hi_taskinst ti on ti.id_ = resolutionsJson.value->>'taskId' and ti.name_ = 'Validate TR by Center by "Transmission"'
+                        inner join act_id_user u on u.id_ = resolutionsJson.value->>'assignee'
+                        left outer join act_hi_identitylink il on il.task_id_ = ti.id_ and il.group_id_ is not null and type_ = 'candidate'
+                      where pi.id_ = vi.proc_inst_id_
+                      and vi.name_ = 'resolutions'
+      )
+    as trRejectedByCenterGroupTNU
+    on true
+    left join lateral (select count(resolutionsJson.value->>'taskId') as value_
+                          from act_hi_varinst vi
+                            inner join act_ge_bytearray ba on vi.bytearray_id_ = ba.id_
+                            inner join json_array_elements(CAST(convert_from(ba.bytes_, 'UTF8') AS json)) as resolutionsJson
+                            on true and resolutionsJson.value->>'resolution' = 'doesNotMatch'
+                            inner join act_hi_taskinst ti on ti.id_ = resolutionsJson.value->>'taskId' and ti.name_ = 'Validate TR by Center by "Transmission"'
+                          where pi.id_ = vi.proc_inst_id_
+                          and vi.name_ = 'resolutions'
+      )
+    as trRejectedByCenterGroupTNUCount
+    on true
+
+    left join lateral (select string_agg( coalesce(il.group_id_, 'without group') || ':' ||u.first_|| ' ' ||u.last_,', ') as value_
+                      from act_hi_varinst vi
+                        inner join act_ge_bytearray ba on vi.bytearray_id_ = ba.id_
+                        inner join json_array_elements(CAST(convert_from(ba.bytes_, 'UTF8') AS json)) as resolutionsJson
+                        on true and resolutionsJson.value->>'resolution' = 'doesNotMatch'
+                        inner join act_hi_taskinst ti on ti.id_ = resolutionsJson.value->>'taskId' and ti.name_ = 'Validate TR by Center by "S&FM"'
+                        inner join act_id_user u on u.id_ = resolutionsJson.value->>'assignee'
+                        left outer join act_hi_identitylink il on il.task_id_ = ti.id_ and il.group_id_ is not null and type_ = 'candidate'
+                      where pi.id_ = vi.proc_inst_id_
+                      and vi.name_ = 'resolutions'
+      )
+    as trRejectedByCenterGroupSFM
+    on true
+    left join lateral (select count(resolutionsJson.value->>'taskId') as value_
+                          from act_hi_varinst vi
+                            inner join act_ge_bytearray ba on vi.bytearray_id_ = ba.id_
+                            inner join json_array_elements(CAST(convert_from(ba.bytes_, 'UTF8') AS json)) as resolutionsJson
+                            on true and resolutionsJson.value->>'resolution' = 'doesNotMatch'
+                            inner join act_hi_taskinst ti on ti.id_ = resolutionsJson.value->>'taskId' and ti.name_ = 'Validate TR by Center by "S&FM"'
+                          where pi.id_ = vi.proc_inst_id_
+                          and vi.name_ = 'resolutions'
+      )
+    as trRejectedByCenterGroupSFMCount
+    on true
+
+    left join lateral (select string_agg( coalesce(il.group_id_, 'without group') || ':' ||u.first_|| ' ' ||u.last_,', ') as value_
+                      from act_hi_varinst vi
+                        inner join act_ge_bytearray ba on vi.bytearray_id_ = ba.id_
+                        inner join json_array_elements(CAST(convert_from(ba.bytes_, 'UTF8') AS json)) as resolutionsJson
+                        on true and resolutionsJson.value->>'resolution' = 'notApproved'
+                        inner join act_hi_taskinst ti on ti.id_ = resolutionsJson.value->>'taskId' and ti.task_def_key_ in ('verify_works','UserTask_0ib18ut')
+                        inner join act_id_user u on u.id_ = resolutionsJson.value->>'assignee'
+                        left outer join act_hi_identitylink il on il.task_id_ = ti.id_ and il.group_id_ is not null and type_ = 'candidate'
+                      where pi.id_ = vi.proc_inst_id_
+                      and vi.name_ = 'resolutions'
+      )
+    as acceptanceRejectedByPermitTeam
+    on true
+    left join lateral (select count(resolutionsJson.value->>'taskId') as value_
+                          from act_hi_varinst vi
+                            inner join act_ge_bytearray ba on vi.bytearray_id_ = ba.id_
+                            inner join json_array_elements(CAST(convert_from(ba.bytes_, 'UTF8') AS json)) as resolutionsJson
+                            on true and resolutionsJson.value->>'resolution' = 'notApproved'
+                            inner join act_hi_taskinst ti on ti.id_ = resolutionsJson.value->>'taskId' and ti.task_def_key_ in ('verify_works','UserTask_0ib18ut')
+                          where pi.id_ = vi.proc_inst_id_
+                          and vi.name_ = 'resolutions'
+      )
+    as acceptanceRejectedByPermitTeamCount
+    on true
+
+    left join lateral (select string_agg( coalesce(il.group_id_, 'without group') || ':' ||u.first_|| ' ' ||u.last_,', ') as value_
+                      from act_hi_varinst vi
+                        inner join act_ge_bytearray ba on vi.bytearray_id_ = ba.id_
+                        inner join json_array_elements(CAST(convert_from(ba.bytes_, 'UTF8') AS json)) as resolutionsJson
+                        on true and resolutionsJson.value->>'resolution' = 'rejected'
+                        inner join act_hi_taskinst ti on ti.id_ = resolutionsJson.value->>'taskId' and ti.task_def_key_ = 'accept_work_initiator'
+                        inner join act_id_user u on u.id_ = resolutionsJson.value->>'assignee'
+                        left outer join act_hi_identitylink il on il.task_id_ = ti.id_ and il.group_id_ is not null and type_ = 'candidate'
+                      where pi.id_ = vi.proc_inst_id_
+                      and vi.name_ = 'resolutions'
+      )
+    as acceptanceRejectedByInitiator
+    on true
+    left join lateral (select count(resolutionsJson.value->>'taskId') as value_
+                          from act_hi_varinst vi
+                            inner join act_ge_bytearray ba on vi.bytearray_id_ = ba.id_
+                            inner join json_array_elements(CAST(convert_from(ba.bytes_, 'UTF8') AS json)) as resolutionsJson
+                            on true and resolutionsJson.value->>'resolution' = 'rejected'
+                            inner join act_hi_taskinst ti on ti.id_ = resolutionsJson.value->>'taskId' and ti.task_def_key_ = 'accept_work_initiator'
+                          where pi.id_ = vi.proc_inst_id_
+                          and vi.name_ = 'resolutions'
+      )
+    as acceptanceRejectedByInitiatorCount
+    on true
+
+    left join lateral (select string_agg( coalesce(il.group_id_, 'without group') || ':' ||u.first_|| ' ' ||u.last_,', ') as value_
+                      from act_hi_varinst vi
+                        inner join act_ge_bytearray ba on vi.bytearray_id_ = ba.id_
+                        inner join json_array_elements(CAST(convert_from(ba.bytes_, 'UTF8') AS json)) as resolutionsJson
+                        on true and resolutionsJson.value->>'resolution' = 'rejected'
+                        inner join act_hi_taskinst ti on ti.id_ = resolutionsJson.value->>'taskId' and ti.task_def_key_ = 'accept_work_maintenance_group'
+                        inner join act_id_user u on u.id_ = resolutionsJson.value->>'assignee'
+                        left outer join act_hi_identitylink il on il.task_id_ = ti.id_ and il.group_id_ is not null and type_ = 'candidate'
+                      where pi.id_ = vi.proc_inst_id_
+                      and vi.name_ = 'resolutions'
+      )
+    as acceptanceRejectedByMaintenanceGroup
+    on true
+    left join lateral (select count(resolutionsJson.value->>'taskId') as value_
+                          from act_hi_varinst vi
+                            inner join act_ge_bytearray ba on vi.bytearray_id_ = ba.id_
+                            inner join json_array_elements(CAST(convert_from(ba.bytes_, 'UTF8') AS json)) as resolutionsJson
+                            on true and resolutionsJson.value->>'resolution' = 'rejected'
+                            inner join act_hi_taskinst ti on ti.id_ = resolutionsJson.value->>'taskId' and ti.task_def_key_ = 'accept_work_maintenance_group'
+                          where pi.id_ = vi.proc_inst_id_
+                          and vi.name_ = 'resolutions'
+      )
+    as acceptanceRejectedByMaintenanceGroupCount
+    on true
+
+    left join lateral (select string_agg( coalesce(il.group_id_, 'without group') || ':' ||u.first_|| ' ' ||u.last_,', ') as value_
+                      from act_hi_varinst vi
+                        inner join act_ge_bytearray ba on vi.bytearray_id_ = ba.id_
+                        inner join json_array_elements(CAST(convert_from(ba.bytes_, 'UTF8') AS json)) as resolutionsJson
+                        on true and resolutionsJson.value->>'resolution' = 'rejected'
+                        inner join act_hi_taskinst ti on ti.id_ = resolutionsJson.value->>'taskId' and ti.task_def_key_ = 'accept_work_planning_group'
+                        inner join act_id_user u on u.id_ = resolutionsJson.value->>'assignee'
+                        left outer join act_hi_identitylink il on il.task_id_ = ti.id_ and il.group_id_ is not null and type_ = 'candidate'
+                      where pi.id_ = vi.proc_inst_id_
+                      and vi.name_ = 'resolutions'
+      )
+    as acceptanceRejectedByPlanningGroup
+    on true
+    left join lateral (select count(resolutionsJson.value->>'taskId') as value_
+                          from act_hi_varinst vi
+                            inner join act_ge_bytearray ba on vi.bytearray_id_ = ba.id_
+                            inner join json_array_elements(CAST(convert_from(ba.bytes_, 'UTF8') AS json)) as resolutionsJson
+                            on true and resolutionsJson.value->>'resolution' = 'rejected'
+                            inner join act_hi_taskinst ti on ti.id_ = resolutionsJson.value->>'taskId' and ti.task_def_key_ = 'accept_work_planning_group'
+                          where pi.id_ = vi.proc_inst_id_
+                          and vi.name_ = 'resolutions'
+      )
+    as acceptanceRejectedByPlanningGroupCount
+    on true
+
+    left join lateral (select string_agg( coalesce(il.group_id_, 'without group') || ':' ||u.first_|| ' ' ||u.last_,', ') as value_
+                      from act_hi_varinst vi
+                        inner join act_ge_bytearray ba on vi.bytearray_id_ = ba.id_
+                        inner join json_array_elements(CAST(convert_from(ba.bytes_, 'UTF8') AS json)) as resolutionsJson
+                        on true and resolutionsJson.value->>'resolution' = 'rejected'
+                        inner join act_hi_taskinst ti on ti.id_ = resolutionsJson.value->>'taskId' and ti.task_def_key_ = 'sign_region_head'
+                        inner join act_id_user u on u.id_ = resolutionsJson.value->>'assignee'
+                        left outer join act_hi_identitylink il on il.task_id_ = ti.id_ and il.group_id_ is not null and type_ = 'candidate'
+                      where pi.id_ = vi.proc_inst_id_
+                      and vi.name_ = 'resolutions'
+      )
+    as acceptanceRejectedByRegionHead
+    on true
+    left join lateral (select count(resolutionsJson.value->>'taskId') as value_
+                          from act_hi_varinst vi
+                            inner join act_ge_bytearray ba on vi.bytearray_id_ = ba.id_
+                            inner join json_array_elements(CAST(convert_from(ba.bytes_, 'UTF8') AS json)) as resolutionsJson
+                            on true and resolutionsJson.value->>'resolution' = 'rejected'
+                            inner join act_hi_taskinst ti on ti.id_ = resolutionsJson.value->>'taskId' and ti.task_def_key_ = 'sign_region_head'
+                          where pi.id_ = vi.proc_inst_id_
+                          and vi.name_ = 'resolutions'
+      )
+    as acceptanceRejectedByRegionHeadCount
+    on true
 
 where pi.proc_def_key_ = 'Revision' and pi.state_ <> 'EXTERNALLY_TERMINATED'
 order by "Requested Date", "Job Description"
