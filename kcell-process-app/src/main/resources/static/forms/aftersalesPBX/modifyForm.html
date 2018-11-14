@@ -38,7 +38,6 @@
 
             camForm.on('form-loaded', function () {
                 camForm.variableManager.fetchVariable('legalInfo');
-                camForm.variableManager.fetchVariable('tariffPlan');
                 camForm.variableManager.fetchVariable('techSpecs');
                 camForm.variableManager.fetchVariable('resolutions');
                 camForm.variableManager.fetchVariable('attachments');
@@ -48,7 +47,6 @@
 
             camForm.on('variables-fetched', function () {
                 $scope.legalInfo = camForm.variableManager.variableValue('legalInfo');
-                $scope.tariffPlan = camForm.variableManager.variableValue('tariffPlan');
                 $scope.techSpecs = camForm.variableManager.variableValue('techSpecs');
                 $scope.resolutions = camForm.variableManager.variableValue('resolutions');
                 $scope.attachments = camForm.variableManager.variableValue('attachments');
@@ -65,11 +63,11 @@
                     type: 'Json',
                     value: $scope.legalInfo
                 });
-                camForm.variableManager.destroyVariable('tariffPlan');
+                camForm.variableManager.destroyVariable('action');
                 camForm.variableManager.createVariable({
-                    name: 'tariffPlan',
-                    type: 'String',
-                    value: $scope.tariffPlan
+                    name: 'action',
+                    type: 'Json',
+                    value: $scope.action
                 });
                 camForm.variableManager.destroyVariable('techSpecs');
                 camForm.variableManager.createVariable({
@@ -80,7 +78,7 @@
                 camForm.variableManager.destroyVariable('attachments');
                 camForm.variableManager.createVariable({
                     name: 'attachments',
-                    type: 'json',
+                    type: 'Json',
                     value: $scope.attachments,
                     store: true
                 });
@@ -100,7 +98,7 @@
                 camForm.variableManager.destroyVariable('resolution');
                 camForm.variableManager.createVariable({
                     name: 'resolution',
-                    type: 'Json',
+                    type: 'String',
                     value: $scope.resolution
                 });
             });
@@ -124,9 +122,6 @@
                     });
                 });
             };
-
-            var uuid = new Date().getTime();
-
             function uploadFileToMinio(file) {
                 var fileToUpload = {
                     name: file.name.replace(/[/\\?%*:|"<>]/g, '-'),
@@ -152,16 +147,16 @@
     </script>
 
     <div class="form-group">
-        <label class="col-sm-4 control-label">Number request:</label>
-        <div class="col-sm-8">{{businessKey}}</div>
+        <label class="col-sm-3 control-label">Number request:</label>
+        <div class="col-sm-9">{{businessKey}}</div>
     </div>
     <div class="form-group">
-        <label class="col-sm-4 control-label">Client:</label>
-        <div class="col-sm-8">{{legalInfo.legalName}} {{legalInfo.BIN}}</div>
+        <label class="col-sm-3 control-label">Client:</label>
+        <div class="col-sm-9">{{legalInfo.legalName}} {{legalInfo.BIN}}</div>
     </div>
     <div class="form-group">
-        <label class="col-sm-4 control-label">Priority:</label>
-        <div class="col-sm-8">{{legalInfo.clientPriority}}</div>
+        <label class="col-sm-3 control-label">Priority:</label>
+        <div class="col-sm-9">{{legalInfo.clientPriority}}</div>
     </div>
 
     <div class="col-sm-12"><hr /></div>
@@ -181,7 +176,7 @@
                 <div class="form-group">
                     <label class="col-sm-5 control-label">Actual tariff plan: <span class="text-danger glyphicon-asterisk"></span></label>
                     <div class="col-sm-7">
-                        <select class="form-control" name="tariffPlan" ng-model="tariffPlan" required>
+                        <select class="form-control" name="tariffPlan" ng-model="action.tariffPlan" required>
                             <option value="Тендер">Тендер</option>
                             <option value="Ценовое предложение">Ценовое предложение</option>
                             <option value="Из одного источника">Из одного источника</option>
@@ -250,7 +245,7 @@
 
     <div class="form-group">
         <label class="col-sm-2 control-label">Resolution</label>
-        <div class="col-sm-8">
+        <div class="col-sm-10">
             <label class="radio-inline">
                 <input type="radio" ng-model="resolution" name="resolution" value="Stop service" required> Stop service
             </label>
@@ -264,7 +259,8 @@
     <div class="form-group">
         <label class="col-sm-2 control-label">Comment</label>
         <div class="col-sm-10">
-            <textarea elastic-textarea class="form-control" rows="4" ng-model="comment"></textarea>
+            <textarea elastic-textarea class="form-control" rows="4" name="comment" ng-model="comment" ng-required="resolution == 'Cancel task'"></textarea>
+            <label class="error" ng-show="kcell_form.comment.$error.required && ( kcell_form.comment.$touched || view.submitted)">Required field</label>
         </div>
     </div>
 

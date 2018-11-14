@@ -9,9 +9,12 @@
     <script cam-script type="text/form-script">
         inject(['$scope', '$http', 'Uri', '$rootScope', '$q', 'toasty', '$timeout', function ($scope, $http, Uri, $rootScope, $q, toasty, $timeout) {
             $scope.legalInfo = {};
-            $scope.techSpecs = {connectionType:'SIP over internet', sip: {}};
             $scope.resolutions = [];
             $scope.attachments = [];
+            $scope.vpnAccessRules = [
+                {source: null, destination: null, service: null},
+                {source: null, destination: null, service: null}
+            ];
             var processInstanceId = null;
             var taskName = null;
             var assigneeName = $rootScope.authentication.name;
@@ -36,21 +39,23 @@
 
             camForm.on('form-loaded', function () {
                 camForm.variableManager.fetchVariable('legalInfo');
-                camForm.variableManager.fetchVariable('techSpecs');
                 camForm.variableManager.fetchVariable('resolutions');
                 camForm.variableManager.fetchVariable('attachments');
             });
 
             camForm.on('variables-fetched', function () {
                 $scope.legalInfo = camForm.variableManager.variableValue('legalInfo');
-                $scope.techSpecs = camForm.variableManager.variableValue('techSpecs');
                 $scope.resolutions = camForm.variableManager.variableValue('resolutions');
                 $scope.attachments = camForm.variableManager.variableValue('attachments');
                 if (!$scope.legalInfo) $scope.legalInfo = {};
-                if (!$scope.techSpecs) $scope.techSpecs = {connectionType:'SIP over internet', sip: {}};
             });
 
             camForm.on('submit', function (event) {
+                camForm.variableManager.createVariable({
+                    name: 'vpnAccessRules',
+                    type: 'Json',
+                    value: $scope.vpnAccessRules
+                });
                 var submitDate = new Date ();
                 if(!$scope.resolutions){
                     $scope.resolutions = [];
@@ -86,27 +91,41 @@
         <label class="col-sm-3 control-label">Priority:</label>
         <div class="col-sm-9">{{legalInfo.clientPriority}}</div>
     </div>
+    <div class="form-group">
+        <label class="col-sm-3 control-label">Service:</label>
+        <div class="col-sm-9">PBX</div>
+    </div>
 
     <div class="col-sm-12"><hr /></div>
 
-    <accordion>
-        <accordion-group is-open="true">
-            <accordion-heading>
-                Legal information <i class="pull-right glyphicon" ng-class="{'glyphicon-chevron-up': status.isCustomHeaderOpen, 'glyphicon-chevron-down': !status.isCustomHeaderOpen}"></i>
-            </accordion-heading>
-            <aftersales-legal-information data="legalInfo" form="kcell_form" view="view" disabled="true"></aftersales-legal-information>
-        </accordion-group>
-    </accordion>
-
     <div class="form-group">
-        <label class="col-sm-3 control-label">Root for CMM/BGW:</label>
-        <div class="col-sm-9">{{rootForCMMBGW}}</div>
-    </div>
-
-    <div class="form-group">
-        <label class="col-sm-12 control-label">Numbers PBX:</label>
+        <div class="col-sm-12 control-label">New VPN access rules:</div>
         <div class="col-sm-12">
-            <textarea style="resize: vertical;" class="form-control" ng-model="techSpecs.pbxNumbers" disabled></textarea>
+            <table class="table table-bordered" style="background: #ffffcc; color: #333; border: 1px solid #b3b3b3">
+                <thead>
+                    <tr>
+                        <th>Source (IP address or Network)</th>
+                        <th>Destination (IP address or Network)</th>
+                        <th>Service and ports</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr ng-repeat="r in vpnAccessRules track by $index">
+                        <td>
+                            <textarea elastic-textarea class="form-control" ng-model="r.source" name="vpn_source_{{$index}}" required></textarea>
+                            <span class="error" ng-show="kcell_form['vpn_source_' + $index].$error.required && ( kcell_form['vpn_source_' + $index].$touched || view.submitted)">Required field</span>
+                        </td>
+                        <td>
+                            <textarea elastic-textarea class="form-control" ng-model="r.destination" name="vpn_destination_{{$index}}" required></textarea>
+                            <span class="error" ng-show="kcell_form['vpn_destination_' + $index].$error.required && ( kcell_form['vpn_destination_' + $index].$touched || view.submitted)">Required field</span>
+                        </td>
+                        <td>
+                            <textarea elastic-textarea class="form-control" ng-model="r.service" name="vpn_service_{{$index}}" required></textarea>
+                            <span class="error" ng-show="kcell_form['vpn_service_' + $index].$error.required && ( kcell_form['vpn_service_' + $index].$touched || view.submitted)">Required field</span>
+                        </td>
+                    </tr>
+                </tbody>
+            </table>
         </div>
     </div>
 

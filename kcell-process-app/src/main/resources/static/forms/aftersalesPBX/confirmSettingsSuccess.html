@@ -12,6 +12,11 @@
             $scope.techSpecs = {connectionType:'SIP over internet', sip: {}};
             $scope.resolutions = [];
             $scope.attachments = [];
+            $scope.action = {};
+            $scope.vpnAccessRules = [
+                {source: null, destination: null, service: null},
+                {source: null, destination: null, service: null}
+            ];
             var processInstanceId = null;
             var taskName = null;
             var assigneeName = $rootScope.authentication.name;
@@ -39,6 +44,8 @@
                 camForm.variableManager.fetchVariable('techSpecs');
                 camForm.variableManager.fetchVariable('resolutions');
                 camForm.variableManager.fetchVariable('attachments');
+                camForm.variableManager.fetchVariable('action');
+                camForm.variableManager.fetchVariable('vpnAccessRules');
             });
 
             camForm.on('variables-fetched', function () {
@@ -46,6 +53,8 @@
                 $scope.techSpecs = camForm.variableManager.variableValue('techSpecs');
                 $scope.resolutions = camForm.variableManager.variableValue('resolutions');
                 $scope.attachments = camForm.variableManager.variableValue('attachments');
+                $scope.action = camForm.variableManager.variableValue('action');
+                $scope.vpnAccessRules = camForm.variableManager.variableValue('vpnAccessRules');
                 if (!$scope.legalInfo) $scope.legalInfo = {};
                 if (!$scope.techSpecs) $scope.techSpecs = {connectionType:'SIP over internet', sip: {}};
             });
@@ -92,21 +101,39 @@
     <accordion>
         <accordion-group is-open="true">
             <accordion-heading>
-                Legal information <i class="pull-right glyphicon" ng-class="{'glyphicon-chevron-up': status.isCustomHeaderOpen, 'glyphicon-chevron-down': !status.isCustomHeaderOpen}"></i>
+                Technical specification <i class="pull-right glyphicon" ng-class="{'glyphicon-chevron-up': status.isCustomHeaderOpen, 'glyphicon-chevron-down': !status.isCustomHeaderOpen}"></i>
             </accordion-heading>
-            <aftersales-legal-information data="legalInfo" form="kcell_form" view="view" disabled="true"></aftersales-legal-information>
+            <aftersales-technical-specifications data="techSpecs" form="kcell_form" view="view" disabled="true" cp-required="false"></aftersales-technical-specifications>
+        </accordion-group>
+    </accordion>
+    <accordion ng-if="techSpecs.connectionType" class="background-yellow-accordion">
+        <accordion-group is-open="true">
+            <accordion-heading>
+                {{techSpecs.connectionType == 'SIP over internet' ? 'Connection via Internet channel by SIP protocol' : (techSpecs.connectionType == 'E1' ? 'Direct connection by E1 (30 channels)' : 'Direct connection by SIP Direct Protocols')}} <i class="pull-right glyphicon" ng-class="{'glyphicon-chevron-up': status.isCustomHeaderOpen, 'glyphicon-chevron-down': !status.isCustomHeaderOpen}"></i>
+            </accordion-heading>
+            <aftersales-sip-protocol ng-if="techSpecs.connectionType == 'SIP over internet'" data="techSpecs.sip" form="kcell_form" view="view" disabled="true" show-new-fields="action.newTrunk || action.changeConnection"></aftersales-sip-protocol>
         </accordion-group>
     </accordion>
 
     <div class="form-group">
-        <label class="col-sm-3 control-label">Root for CMM/BGW:</label>
-        <div class="col-sm-9">{{rootForCMMBGW}}</div>
-    </div>
-
-    <div class="form-group">
-        <label class="col-sm-12 control-label">Numbers PBX:</label>
+        <div class="col-sm-12 control-label">New VPN access rules:</div>
         <div class="col-sm-12">
-            <textarea style="resize: vertical;" class="form-control" ng-model="techSpecs.pbxNumbers" disabled></textarea>
+            <table class="table table-bordered" style="background: #ffffcc; color: #333; border: 1px solid #b3b3b3">
+                <thead>
+                <tr>
+                    <th>Source (IP address or Network)</th>
+                    <th>Destination (IP address or Network)</th>
+                    <th>Service and ports</th>
+                </tr>
+                </thead>
+                <tbody>
+                <tr ng-repeat="r in vpnAccessRules track by $index">
+                    <td>{{r.source}}</td>
+                    <td>{{r.destination}}</td>
+                    <td>{{r.service}}</td>
+                </tr>
+                </tbody>
+            </table>
         </div>
     </div>
 

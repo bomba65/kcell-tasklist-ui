@@ -9,10 +9,12 @@
     <script cam-script type="text/form-script">
         inject(['$scope', '$http', 'Uri', '$rootScope', '$q', 'toasty', '$timeout', function ($scope, $http, Uri, $rootScope, $q, toasty, $timeout) {
             $scope.legalInfo = {};
-            $scope.techSpecs = {connectionType:'SIP over internet', sip: {}};
             $scope.resolutions = [];
             $scope.attachments = [];
-            var processInstanceId = null;
+            $scope.tcf = {deadline: new Date(), richText: null};
+            $scope.taskId = camForm.taskId;
+
+            $scope.processInstanceId = null;
             var taskName = null;
             var assigneeName = $rootScope.authentication.name;
 
@@ -22,9 +24,9 @@
 
             $http.get('/camunda/api/engine/engine/default/task/' + camForm.taskId).then(
                 function(result){
-                    processInstanceId = result.data.processInstanceId;
+                    $scope.processInstanceId = result.data.processInstanceId;
                     taskName = result.data.name;
-                    $http.get('/camunda/api/engine/engine/default/process-instance/' + processInstanceId).then(
+                    $http.get('/camunda/api/engine/engine/default/process-instance/' + $scope.processInstanceId).then(
                         function(result){
                             $scope.businessKey = result.data.businessKey;
                         },
@@ -36,31 +38,41 @@
 
             camForm.on('form-loaded', function () {
                 camForm.variableManager.fetchVariable('legalInfo');
-                camForm.variableManager.fetchVariable('techSpecs');
                 camForm.variableManager.fetchVariable('resolutions');
                 camForm.variableManager.fetchVariable('attachments');
+                camForm.variableManager.fetchVariable('tcf');
+                camForm.variableManager.fetchVariable('resolution');
             });
 
             camForm.on('variables-fetched', function () {
                 $scope.legalInfo = camForm.variableManager.variableValue('legalInfo');
-                $scope.techSpecs = camForm.variableManager.variableValue('techSpecs');
                 $scope.resolutions = camForm.variableManager.variableValue('resolutions');
                 $scope.attachments = camForm.variableManager.variableValue('attachments');
+                $scope.resolution = camForm.variableManager.variableValue('resolution');
+                $scope.tcf = camForm.variableManager.variableValue('tcf');
                 if (!$scope.legalInfo) $scope.legalInfo = {};
-                if (!$scope.techSpecs) $scope.techSpecs = {connectionType:'SIP over internet', sip: {}};
+                if (!$scope.tcf) $scope.tcf = {deadline: new Date(), richText: null};
+                else $scope.tcf.deadline = new Date($scope.tcf.deadline);
             });
 
             camForm.on('submit', function (event) {
                 var submitDate = new Date ();
-                if(!$scope.resolutions){
+                if(!$scope.resolutions) {
                     $scope.resolutions = [];
                 }
-                $scope.resolutions.unshift({processInstanceId: processInstanceId, assignee: assigneeName, resolution: 'Complete', comment: $scope.comment, taskId: camForm.taskId, taskEndDate: submitDate, taskName: taskName});
+                $scope.resolutions.unshift({processInstanceId: $scope.processInstanceId, assignee: assigneeName, resolution: $scope.resolution, comment: $scope.comment, taskId: camForm.taskId, taskEndDate: submitDate, taskName: taskName});
                 camForm.variableManager.destroyVariable('resolutions');
                 camForm.variableManager.createVariable({
                     name: 'resolutions',
                     type: 'Json',
                     value: $scope.resolutions
+                });
+                camForm.variableManager.destroyVariable('resolution');
+                camForm.variableManager.createVariable({
+                    name: 'resolution',
+                    type: 'String',
+                    value: $scope.resolution,
+                    store: true
                 });
             });
 
@@ -89,24 +101,20 @@
 
     <div class="col-sm-12"><hr /></div>
 
-    <accordion>
-        <accordion-group is-open="true">
-            <accordion-heading>
-                Legal information <i class="pull-right glyphicon" ng-class="{'glyphicon-chevron-up': status.isCustomHeaderOpen, 'glyphicon-chevron-down': !status.isCustomHeaderOpen}"></i>
-            </accordion-heading>
-            <aftersales-legal-information data="legalInfo" form="kcell_form" view="view" disabled="true"></aftersales-legal-information>
-        </accordion-group>
-    </accordion>
-
     <div class="form-group">
-        <label class="col-sm-3 control-label">Root for CMM/BGW:</label>
-        <div class="col-sm-9">{{rootForCMMBGW}}</div>
+        <label class="col-sm-3 control-label">Subject (TIC name):</label>
+        <div class="col-sm-9">{{legalInfo.ticName}}</div>
     </div>
 
     <div class="form-group">
-        <label class="col-sm-12 control-label">Numbers PBX:</label>
+        <label class="col-sm-3 control-label">Deadline:</label>
+        <div class="col-sm-9">{{tcf.deadline | date: 'dd.MM.yyyy'}}</div>
+    </div>
+
+    <div class="form-group">
+        <label class="col-sm-12 control-label">TCF:</label>
         <div class="col-sm-12">
-            <textarea style="resize: vertical;" class="form-control" ng-model="techSpecs.pbxNumbers" disabled></textarea>
+            <aftersales-rich-text data="tcf.richText" min-height="100" disabled="true" process-id="processInstanceId" task-id="taskId"></aftersales-rich-text>
         </div>
     </div>
 
@@ -136,6 +144,19 @@
     </div>
 
     <div class="col-sm-12"><hr /></div>
+
+    <div class="form-group">
+        <label class="col-sm-2 control-label">Confirm TCF request:</label>
+        <div class="col-sm-10">
+            <label class="radio-inline">
+                <input type="radio" ng-model="resolution" name="resolution" value="Approve" required> Approve
+            </label>
+            <label class="radio-inline">
+                <input type="radio" ng-model="resolution" name="resolution" value="Need modify" required> Need modify
+            </label>
+            <label class="error" ng-show="kcell_form.resolution.$error.required && ( kcell_form.resolution.$touched || view.submitted)">Required field</label>
+        </div>
+    </div>
 
     <div class="form-group">
         <label class="col-sm-2 control-label">Comment</label>

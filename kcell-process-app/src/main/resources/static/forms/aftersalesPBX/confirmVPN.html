@@ -12,6 +12,7 @@
             $scope.techSpecs = {connectionType:'SIP over internet', sip: {}};
             $scope.resolutions = [];
             $scope.attachments = [];
+            $scope.action = {};
             var processInstanceId = null;
             var taskName = null;
             var assigneeName = $rootScope.authentication.name;
@@ -39,6 +40,8 @@
                 camForm.variableManager.fetchVariable('techSpecs');
                 camForm.variableManager.fetchVariable('resolutions');
                 camForm.variableManager.fetchVariable('attachments');
+                camForm.variableManager.fetchVariable('resolution');
+                camForm.variableManager.fetchVariable('action');
             });
 
             camForm.on('variables-fetched', function () {
@@ -46,27 +49,74 @@
                 $scope.techSpecs = camForm.variableManager.variableValue('techSpecs');
                 $scope.resolutions = camForm.variableManager.variableValue('resolutions');
                 $scope.attachments = camForm.variableManager.variableValue('attachments');
+                $scope.resolution = camForm.variableManager.variableValue('resolution');
+                $scope.action = camForm.variableManager.variableValue('action');
                 if (!$scope.legalInfo) $scope.legalInfo = {};
                 if (!$scope.techSpecs) $scope.techSpecs = {connectionType:'SIP over internet', sip: {}};
             });
 
             camForm.on('submit', function (event) {
+                camForm.variableManager.destroyVariable('attachments');
+                camForm.variableManager.createVariable({
+                    name: 'attachments',
+                    type: 'Json',
+                    value: $scope.attachments
+                });
                 var submitDate = new Date ();
                 if(!$scope.resolutions){
                     $scope.resolutions = [];
                 }
-                $scope.resolutions.unshift({processInstanceId: processInstanceId, assignee: assigneeName, resolution: 'Complete', comment: $scope.comment, taskId: camForm.taskId, taskEndDate: submitDate, taskName: taskName});
+                $scope.resolutions.unshift({processInstanceId: processInstanceId, assignee: assigneeName, resolution: $scope.resolution, comment: $scope.comment, taskId: camForm.taskId, taskEndDate: submitDate, taskName: taskName});
                 camForm.variableManager.destroyVariable('resolutions');
                 camForm.variableManager.createVariable({
                     name: 'resolutions',
                     type: 'Json',
                     value: $scope.resolutions
                 });
+                camForm.variableManager.destroyVariable('resolution');
+                camForm.variableManager.createVariable({
+                    name: 'resolution',
+                    type: 'String',
+                    value: $scope.resolution
+                });
             });
 
             $scope.downloadFile = function (file) {
                 $http({method: 'GET', url: '/camunda/uploads/' + (file.path.split('/').length === 2 ? 'tmp/' : '') + 'get/' + file.path, transformResponse: [] }).success(function(data, status, headers, config) {
                     document.getElementById('fileDownloadIframe').src = data;
+                }).error (function(data, status, headers, config) {
+                    console.log(data);
+                });
+            }
+
+            $scope.clearFile = function(fileIndex) {
+                $scope.attachments.splice(fileIndex, 1);
+            }
+
+            $scope.fileSelected = function(el) {
+                $timeout(function () {
+                    $scope.$apply(function () {
+                        uploadFileToMinio(el.files[0]);
+                    });
+                });
+            };
+            function uploadFileToMinio(file) {
+                var fileToUpload = {
+                    name: file.name.replace(/[/\\?%*:|"<>]/g, '-'),
+                    path: processInstanceId + '/' + camForm.taskId + '/' + file.name.replace(/[/\\?%*:|"<>]/g, '-'),
+                    created: new Date(),
+                    createdBy: assigneeName
+                };
+                $http({method: 'GET', url: '/camunda/uploads/put/' + fileToUpload.path, transformResponse: [] }).success(function(data, status, headers, config) {
+                    $http.put(data, file, {headers: {'Content-Type': undefined}}).then(
+                        function () {
+                            $scope.attachments.push(fileToUpload);
+                            angular.element(document.querySelector('#attachments')).val(null);
+                        },
+                        function (error) {
+                            console.log(error.data);
+                        }
+                    );
                 }).error (function(data, status, headers, config) {
                     console.log(data);
                 });
@@ -86,34 +136,35 @@
         <label class="col-sm-3 control-label">Priority:</label>
         <div class="col-sm-9">{{legalInfo.clientPriority}}</div>
     </div>
+    <div class="form-group">
+        <label class="col-sm-3 control-label">Service:</label>
+        <div class="col-sm-9">PBX</div>
+    </div>
 
     <div class="col-sm-12"><hr /></div>
 
     <accordion>
         <accordion-group is-open="true">
             <accordion-heading>
-                Legal information <i class="pull-right glyphicon" ng-class="{'glyphicon-chevron-up': status.isCustomHeaderOpen, 'glyphicon-chevron-down': !status.isCustomHeaderOpen}"></i>
+                Technical specification <i class="pull-right glyphicon" ng-class="{'glyphicon-chevron-up': status.isCustomHeaderOpen, 'glyphicon-chevron-down': !status.isCustomHeaderOpen}"></i>
             </accordion-heading>
-            <aftersales-legal-information data="legalInfo" form="kcell_form" view="view" disabled="true"></aftersales-legal-information>
+            <aftersales-technical-specifications data="techSpecs" form="kcell_form" view="view" disabled="true" cp-required="false"></aftersales-technical-specifications>
         </accordion-group>
     </accordion>
-
-    <div class="form-group">
-        <label class="col-sm-3 control-label">Root for CMM/BGW:</label>
-        <div class="col-sm-9">{{rootForCMMBGW}}</div>
-    </div>
-
-    <div class="form-group">
-        <label class="col-sm-12 control-label">Numbers PBX:</label>
-        <div class="col-sm-12">
-            <textarea style="resize: vertical;" class="form-control" ng-model="techSpecs.pbxNumbers" disabled></textarea>
-        </div>
-    </div>
+    <accordion ng-if="techSpecs.connectionType" class="background-yellow-accordion">
+        <accordion-group is-open="true">
+            <accordion-heading>
+                {{techSpecs.connectionType == 'SIP over internet' ? 'Connection via Internet channel by SIP protocol' : (techSpecs.connectionType == 'E1' ? 'Direct connection by E1 (30 channels)' : 'Direct connection by SIP Direct Protocols')}} <i class="pull-right glyphicon" ng-class="{'glyphicon-chevron-up': status.isCustomHeaderOpen, 'glyphicon-chevron-down': !status.isCustomHeaderOpen}"></i>
+            </accordion-heading>
+            <aftersales-sip-protocol ng-if="techSpecs.connectionType == 'SIP over internet'" data="techSpecs.sip" form="kcell_form" view="view" disabled="true" show-new-fields="action.newTrunk || action.changeConnection"></aftersales-sip-protocol>
+        </accordion-group>
+    </accordion>
 
     <iframe id="fileDownloadIframe" style="display:none;"></iframe>
     <div class="form-group">
         <label class="col-sm-2 control-label">Attachments</label>
         <div class="col-sm-10">
+            <input type="file" class="form-control" id="attachments" name="attachments" onchange="angular.element(this).scope().fileSelected(this)"/>
             <div class="col-sm-12" style="padding: 0;">
                 <table class="table table-bordered">
                     <thead>
@@ -121,6 +172,7 @@
                         <th>File Name</th>
                         <th>Created</th>
                         <th>Created By</th>
+                        <th>Delete</th>
                     </tr>
                     </thead>
                     <tbody>
@@ -128,6 +180,7 @@
                         <td><a ng-click="downloadFile(file)">{{file.name}}</a></td>
                         <td>{{file.created | date: 'dd.MM.yyyy HH:mm'}}</td>
                         <td>{{file.createdBy}}</td>
+                        <td><a ng-click="clearFile($index)"><i class="glyphicon glyphicon-trash"></i></a></td>
                     </tr>
                     </tbody>
                 </table>
@@ -138,9 +191,23 @@
     <div class="col-sm-12"><hr /></div>
 
     <div class="form-group">
+        <label class="col-sm-2 control-label">Resolution</label>
+        <div class="col-sm-10">
+            <label class="radio-inline">
+                <input type="radio" ng-model="resolution" name="resolution" value="Complete" required> Complete
+            </label>
+            <label class="radio-inline">
+                <input type="radio" ng-model="resolution" name="resolution" value="Modify VPN questionnaire" required> Modify VPN questionnaire
+            </label>
+            <label class="error" ng-show="kcell_form.resolution.$error.required && ( kcell_form.resolution.$touched || view.submitted)">Required field</label>
+        </div>
+    </div>
+
+    <div class="form-group">
         <label class="col-sm-2 control-label">Comment</label>
         <div class="col-sm-10">
-            <textarea elastic-textarea class="form-control" rows="4" ng-model="comment"></textarea>
+            <textarea elastic-textarea class="form-control" rows="4" name="comment" ng-model="comment" ng-required="resolution == 'Modify VPN questionnaire'"></textarea>
+            <label class="error" ng-show="kcell_form.comment.$error.required && ( kcell_form.comment.$touched || view.submitted)">Required field</label>
         </div>
     </div>
 
