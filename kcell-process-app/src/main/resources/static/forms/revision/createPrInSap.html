@@ -1,0 +1,362 @@
+<style>
+    .well {
+        color: #333;
+    }
+</style>
+<form role="form" class="form-horizontal" name="kcell_form" novalidate>
+    <script cam-script type="text/form-script">
+        inject(['$scope', '$http', 'Uri', '$rootScope', '$q', '$timeout', function ($scope, $http, Uri, $rootScope, $q, $timeout) {
+            var variables = [
+                'requestedDate',
+                'jrNumber',
+                'initiatorFull',
+                'validityDate',
+                'soaComplaintId',
+                'site',
+                'siteName',
+                'site_name',
+                'reason',
+                'contract',
+                'contractor',
+                'materialsRequired',
+                'leasingRequired',
+                'powerRequired',
+                'project',
+                'supplementaryFiles',
+                'explanation',
+                'resolutions',
+                'workPrices',
+                'jobWorksTotal',
+                'jobWorks',
+                'jrBlank',
+                'tssrssidFile',
+                'tssrssidFileName',
+                'kcellWarehouseMaterialsList',
+                'contractorZIPWarehouseMaterialsList',
+                'kcellWarehouseMaterialsListName',
+                'kcellWarehouseMaterialsAdditionalList',
+                'contractorZIPWarehouseMaterialsListName',
+                'priority',
+                'prFile',
+                'sloc',
+                'siteRegion',
+                'sapJrNumber',
+                'mlApprovalAdditionalInfoFile',
+                'tnuSiteLocations'
+            ];
+
+            $scope.jobModel = {};
+            $scope.currentDate = new Date();
+
+            $scope.documentType = {1:"ZK73-02", 2:"ZK73-03", 3:"ZK73-04", 4:"ZK73-01"};
+
+            $http.get('/camunda/api/engine/engine/default/task/' + camForm.taskId).then(
+                    function(result){
+                        $scope.processInstanceId = result.data.processInstanceId;
+                    },
+                    function (error) {
+                        console.log(error.data);
+                    }
+            );
+            camForm.on('form-loaded', function () {
+                variables.forEach(function (el) {
+                    camForm.variableManager.fetchVariable(el);
+                });
+
+                $http.get('/api/catalogs?force=1').then(
+                        function (result) {
+                            angular.extend($scope, result.data);
+                            angular.extend($scope.jobModel, result.data);
+                        },
+                        function (error) {
+                            console.log(error.data);
+                        }
+                );
+                camForm.variableManager.createVariable({
+                    name: 'createPrInSapTaskResult',
+                    type: 'String',
+                    value: ''
+                });
+                $scope.createPrInSapTaskResult = '';
+                camForm.variableManager.variableValue('createPrInSapTaskResult', $scope.createPrInSapTaskResult);
+            });
+            camForm.on('variables-fetched', function () {
+                variables.forEach(function (el) {
+                    if(el === 'resolutions'){
+                        $scope.jobModel.resolutions = angular.copy(camForm.variableManager.variables[el].value);
+                        $q.all($scope.jobModel.resolutions.map(function (resolution) {
+                            return $http.get("/camunda/api/engine/engine/default/history/task?processInstanceId="+resolution.processInstanceId+"&taskId=" + resolution.taskId);
+                        })).then(function (tasks) {
+                            tasks.forEach(function (e, index) {
+                                if(e.data.length > 0){
+                                    $scope.jobModel.resolutions[index].taskName = e.data[0].name;
+                                    try {
+                                        $scope.jobModel.resolutions[index].taskEndDate = new Date(e.data[0].endTime);
+                                    } catch(e){
+                                        console.log(e);
+                                    }
+                                }
+                            });
+                        });
+                    } else if(el === 'workPrices'){
+                        $scope.jobModel[el] = JSON.parse(camForm.variableManager.variables[el].originalValue);
+                    } else if(el === 'tnuSiteLocations'){
+                        $scope[el] = camForm.variableManager.variables[el].value;
+                    } else {
+                        $scope.jobModel[el] = camForm.variableManager.variables[el];
+                    }
+
+                    if(el === 'jobWorks'){
+                        $scope.jobWorksValue = angular.copy(camForm.variableManager.variables[el].value);
+                    }
+                });
+                $http.get("/camunda/api/engine/engine/default/user/" + $rootScope.authentication.name+ "/profile").then(function(result){
+                    $rootScope.authentication.assigneeName = (result.data.firstName ? result.data.firstName : "") + " " + (result.data.lastName ? result.data.lastName : "");
+                });
+                $scope.jobWorksValue.forEach(function(work){
+                    work.price = _.find($scope.jobModel.workPrices, function(p){
+                        return work.sapServiceNumber === p.sapServiceNumber
+                    });
+                    if(work.expenseType=='CAPEX'){
+                        work.activityServiceNumber = 'DUMMY';
+                        if($scope.jobModel.reason.value === '2'){
+                            work.wbsElement = 'TN-0502-48-0067';
+                        } else {
+                            work.wbsElement = 'RN-0502-33-0067';
+                        }
+                        work.controllingArea = 'DUMMY';
+                    } else if(work.expenseType=='OPEX'){
+                        if($scope.jobModel.reason.value === '2'){
+                            work.activityServiceNumber = '7016046';
+                        } else {
+                            work.activityServiceNumber = '7016045';
+                        }
+                        if($scope.jobModel.reason.value === '4'){
+                            work.wbsElement = '252-70160-1';
+                        } else {
+                            work.wbsElement = '251-70160-1';
+                        }
+                        work.controllingArea = '3020';
+                    }
+                    work.costCenter = '25510'
+                });
+            });
+
+            camForm.on('submit', function (e) {
+                camForm.variableManager.variableValue('createPrInSapTaskResult', $scope.createPrInSapTaskResult);
+
+                var visibility = 'all';
+                if($scope.createPrInSapComment && $scope.createPrInSapCommentVisibility){
+                    visibility = $scope.createPrInSapCommentVisibility;
+                }
+                $scope.jobModel.resolutions.push({processInstanceId: $scope.processInstanceId, assignee: $rootScope.authentication.name, assigneeName: $rootScope.authentication.assigneeName, resolution: $scope.createPrInSapTaskResult, comment: $scope.createPrInSapComment, taskId: camForm.taskId, visibility: visibility});
+                camForm.variableManager.variableValue('resolutions', $scope.jobModel.resolutions);
+            });
+
+            camForm.on('store', function() {
+                camForm.variableManager.variableValue('createPrInSapTaskResult', $scope.createPrInSapTaskResult);
+            });
+
+            camForm.on('variables-restored', function() {
+                $scope.createPrInSapTaskResult = camForm.variableManager.variableValue('createPrInSapTaskResult');
+            });
+
+            $scope.isVisible = function (resolution) {
+                return !resolution.visibility || resolution.visibility === 'all' || (resolution.visibility === 'kcell' && $rootScope.hasGroup('kcellUsers'));
+            }
+
+            $scope.hasComment = function () {
+                return $scope.createPrInSapComment && $rootScope.hasGroup('kcellUsers');
+            }
+
+            $scope.download = function (file) {
+                $http({method: 'GET', url: '/camunda/uploads/get/' + file.value.path, transformResponse: [] }).
+                success(function(data, status, headers, config) {
+                    document.getElementById('fileDownloadIframe').src = data;
+                }).
+                error (function(data, status, headers, config) {
+                    console.log(data);
+                });
+            }
+
+            $scope.getNumber = function(num) {
+                return new Array(num);
+            }
+        }]);
+    </script>
+
+    <h4>Get necessary data</h4>
+
+    <job-request job-model="jobModel"></job-request>
+
+    <div style="overflow: scroll">
+        <table class="table table-condensed">
+            <thead>
+            <tr>
+                <th>#</th>
+                <th>PR document type</th>
+                <th>Cost Type</th>
+                <th>KWMS Number</th>
+                <th>KWMS Status</th>
+                <th>KWMS Reuqest date</th>
+                <th>Vendor</th>
+                <th>Region</th>
+                <th>Service Type</th>
+                <th>PR Item text</th>
+                <th>CM Contract no</th>
+                <th>Service number</th>
+                <th>Quantity</th>
+                <th>Delivery Date</th>
+                <th>WBS Element</th>
+                <th>Job Order no</th>
+                <th>Storage Location</th>
+                <th>FA number</th>
+                <th>Cost center</th>
+                <th>Controlling Area</th>
+                <th>Activity Service Number</th>
+                <th>Amount</th>
+                <th>KWMS PR Req name</th>
+                <th>Purchase group</th>
+                <th>Requested by</th>
+                <th>Header Note</th>
+            </tr>
+            </thead>
+            <tbody ng-repeat="w in jobWorksValue track by $index">
+            <tr ng-if="jobModel.reason.value == '2'" ng-repeat="r in w.relatedSites">
+                <td>{{$parent.$index + $index+1}}</td>
+                <td>{{documentType[jobModel.reason.value]}}</td>
+                <td>{{w.expenseType=='CAPEX'?'Y':(w.expenseType=='OPEX'?'K':'')}}</td>
+                <td nowrap>{{jobModel.jrNumber.value}}</td>
+                <td>approved</td>
+                <td>{{jobModel.requestedDate.value | date:'dd.MM.yyyy'}}</td>
+                <td>{{w.definition.vendor}}</td>
+                <td>7</td>
+                <td>Y</td>
+                <td nowrap>installation service {{r.site_name}}</td>
+                <td>{{contractorsService[jobModel.contractor.value].contract.service}}</td>
+                <td>{{w.definition.sapServiceNumber}}</td>
+                <td>{{w.quantity}}</td>
+                <td>31.12.{{currentDate | date:'yyyy'}}</td>
+                <td nowrap>{{w.wbsElement}}</td>
+                <td nowrap>{{jobModel.jrNumber.value}}</td>
+                <td>{{tnuSiteLocations[r.id].siteLocation}}</td>
+                <td>{{tnuSiteLocations[r.id].fixedAssetNumber!=null?tnuSiteLocations[r.id].fixedAssetNumber:'DUMMY'}}</td>
+                <td>{{w.costCenter}}</td>
+                <td>{{w.controllingArea}}</td>
+                <td>{{w.activityServiceNumber}}</td>
+                <td>{{w.price.unitWorkPricePerSite.replace('.',',')}}</td>
+                <td nowrap>{{reasonsSubcontractorResponsible[jobModel.reason.value].responsible}}</td>
+                <td>131</td>
+                <td>{{jobModel.reason.value == '4' ? '252' : '251'}}</td>
+                <td style="min-width: 720px;">
+                    1.Purchase description: Revision works for site {{r.site_name}} JR# {{jobModel.jrNumber.value}} dated {{jobModel.requestedDate.value | date:'dd.MM.yyyy'}}<br />
+                    2.Budgeted or not: yes {{w.wbsElement}}<br />
+                    3.Main project for Fintur: revision works<br />
+                    4.Describe the need of this purchase for this year: necessary for revision works<br />
+                    5.Contact person: {{reasonsSubcontractorResponsible[jobModel.reason.value].responsible}}<br />
+                    6. Vendor: Line System Engineering LLP<br />
+                    8. Total sum: {{jobModel.jobWorksTotal.value.replace('.',',')}}<br />
+                </td>
+            </tr>
+            <tr ng-if="jobModel.reason.value != '2'">
+                <td>{{$index+1}}</td>
+                <td>{{documentType[jobModel.reason.value]}}</td>
+                <td>{{w.expenseType=='CAPEX'?'Y':(w.expenseType=='OPEX'?'K':'')}}</td>
+                <td nowrap>{{jobModel.jrNumber.value}}</td>
+                <td>approved</td>
+                <td>{{jobModel.requestedDate.value | date:'dd.MM.yyyy'}}</td>
+                <td>{{w.definition.vendor}}</td>
+                <td>7</td>
+                <td>Y</td>
+                <td nowrap>installation service {{r.site_name}}</td>
+                <td>{{contractorsService[jobModel.contractor.value].contract.service}}</td>
+                <td>{{w.definition.sapServiceNumber}}</td>
+                <td>{{w.quantity}}</td>
+                <td>31.12.{{currentDate | date:'yyyy'}}</td>
+                <td nowrap>{{w.wbsElement}}</td>
+                <td nowrap>{{jobModel.jrNumber.value}}</td>
+                <td>{{jobModel.sloc.value}}</td>
+                <td>{{work.fixedAssetNumber!=null?work.fixedAssetNumber:'DUMMY'}}</td>
+                <td>{{w.costCenter}}</td>
+                <td>{{w.controllingArea}}</td>
+                <td>{{w.activityServiceNumber}}</td>
+                <td>{{w.price.unitWorkPricePlusTx.replace('.',',')}}</td>
+                <td nowrap>{{reasonsSubcontractorResponsible[jobModel.reason.value].responsible}}</td>
+                <td>131</td>
+                <td>{{jobModel.reason.value == '4' ? '252' : '251'}}</td>
+                <td style="min-width: 720px;">
+                    1.Purchase description: Revision works for site {{r.site_name}} JR# {{jobModel.jrNumber.value}} dated {{jobModel.requestedDate.value | date:'dd.MM.yyyy'}}<br />
+                    2.Budgeted or not: yes {{w.wbsElement}}<br />
+                    3.Main project for Fintur: revision works<br />
+                    4.Describe the need of this purchase for this year: necessary for revision works<br />
+                    5.Contact person: {{reasonsSubcontractorResponsible[jobModel.reason.value].responsible}}<br />
+                    6. Vendor: Line System Engineering LLP<br />
+                    8. Total sum: {{jobModel.jobWorksTotal.value.replace('.',',')}}<br />
+                </td>
+            </tr>
+            </tbody>
+        </table>
+    </div>
+
+    <div style="border: black 1px solid;">
+        <p>
+            <b>Please open SAP system and use ZKWMS_TC01 transaction, select  file and click “Create PR” button.</b>
+        </p>
+        <p>
+            <b>Then please press "Complete" button.</b>
+        </p>
+    </div>
+
+    <div style="margin-bottom: 20px;"></div>
+
+    <div class="form-group">
+        <label class="col-sm-4 control-label">Comments:</label>
+        <div class="col-sm-8">
+            <textarea class="form-control" rows="4" maxlength="500" cam-variable-name="createPrInSapComment" name="createPrInSapComment" cam-variable-type="String"></textarea>
+            <label class="error" ng-show="kcell_form.createPrInSapComment.$error.required && ( kcell_form.createPrInSapComment.$touched || view.submitted)">Required field</label>
+        </div>
+    </div>
+    <div class="form-group" ng-show="hasComment()">
+        <label class="col-sm-4 control-label">Comments visibility</label>
+        <div class="col-sm-8">
+            <label class="radio-inline">
+                <input type="radio" name="createPrInSapCommentVisibility"
+                       ng-model="createPrInSapCommentVisibility" value="all" ng-required="hasComment()"> Visible for all
+            </label>
+            <label class="radio-inline">
+                <input type="radio" name="createPrInSapCommentVisibility"
+                       ng-model="createPrInSapCommentVisibility" value="kcell" ng-required="hasComment()"> Kcell staff only
+            </label>
+            <label class="error" ng-show="kcell_form.createPrInSapCommentVisibility.$error.required && ( kcell_form.createPrInSapCommentVisibility.$touched || view.submitted)">Required field</label>
+        </div>
+    </div>
+    <accordion>
+        <accordion-group is-open="isHistoryOpen">
+            <accordion-heading>
+                History <i class="pull-right glyphicon" ng-class="{'glyphicon-chevron-up': status.isCustomHeaderOpen, 'glyphicon-chevron-down': !status.isCustomHeaderOpen}"></i>
+            </accordion-heading>
+            <table class="table">
+                <thead>
+                <tr>
+                    <th>Activity</th>
+                    <th>Assignee</th>
+                    <th>Resolution</th>
+                    <th>Date</th>
+                    <th>Comment</th>
+                    <th ng-if="hasGroup('kcellUsers')">Attached files</th>
+                </tr>
+                </thead>
+                <tbody>
+                <tr ng-repeat="resolution in jobModel.resolutions">
+                    <td>{{resolution.taskName}}</td>
+                    <td>{{resolution.assigneeName || resolution.assignee}}</td>
+                    <td>{{'task.resolution.'+resolution.resolution | translate}}</td>
+                    <td>{{resolution.taskEndDate | date: 'dd.MM.yyyy HH:mm'}}</td>
+                    <td>{{isVisible(resolution)? resolution.comment : ''}}</td>
+                    <td ng-if="hasGroup('kcellUsers')">{{resolution.files.join(', ')}}</td>
+                </tr>
+                </tbody>
+            </table>
+        </accordion-group>
+    </accordion>
+</form>
