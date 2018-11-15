@@ -17,7 +17,7 @@ class GenerateActOfAcceptance implements TaskListener {
     private Minio minio;
 
     public static void main(String[] args) {
-        def sharingPlanObj = [
+        /*def sharingPlanObj = [
                 "shared_bs_id": 103,
                 "status": 1,
                 "accepted_date": 42935,
@@ -139,7 +139,7 @@ class GenerateActOfAcceptance implements TaskListener {
                 "checkingByGuestResult": "approved",
                 "taskSubmitDate": new Date()
         ])
-        println(result)
+        println(result)*/
     }
 
     static String render (Map binding ) {
@@ -441,8 +441,6 @@ class GenerateActOfAcceptance implements TaskListener {
         def sharingPlan = execution.getVariable("sharingPlan")
         def checkingByGuestResult = execution.getVariable("checkingByGuestResult")
         def sharingPlanObj = new JsonSlurper().parseText(sharingPlan.toString())
-
-        //sharingPlanObj = sharingPlanObj.value;
 
         def colspan = sharingPlanObj.shared_sectors.size()
         def taskSubmitDate = new Date()

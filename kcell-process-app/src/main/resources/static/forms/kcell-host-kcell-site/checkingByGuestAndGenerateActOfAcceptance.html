@@ -4,13 +4,13 @@
             var variables = [
                 'sharingPlan',
                 'resolutions',
-                'acceptanceDocFiles',
+                //'acceptanceDocFiles',
                 'actOfAcceptanceDocument',
                 'signedAgreementListFileName',
                 'sharingPlanStatus'
             ];
 
-            var fileActions = [];
+            //var fileActions = [];
 
             camForm.on('form-loaded', function () {
                 variables.forEach(function (el) {
@@ -56,7 +56,7 @@
                 $http.get("/camunda/api/engine/engine/default/user/" + $rootScope.authentication.name+ "/profile").then(function(result){
                     $rootScope.authentication.assigneeName = (result.data.firstName ? result.data.firstName : "") + " " + (result.data.lastName ? result.data.lastName : "");
                 });
-                if ($scope.acceptanceDocFiles) {
+                /*if ($scope.acceptanceDocFiles) {
                     $scope.acceptanceDocFiles.forEach(function (e, index) {
                         $http.get('/camunda/uploads/get/' + e.path).then(
                             function (result) {
@@ -75,10 +75,10 @@
                         name: 'acceptanceDocFiles',
                         type: 'Json'
                     });
-                }
+                }*/
                 if ($scope.sharingPlan) {
                     $scope.sharingPlan.currentTask = {id: camForm.taskId};
-                    $scope.sharingPlan.acceptanceDocFiles = angular.copy($scope.acceptanceDocFiles);
+                    //$scope.sharingPlan.acceptanceDocFiles = angular.copy($scope.acceptanceDocFiles);
                 }
 
                 camForm.variableManager.createVariable({
@@ -108,14 +108,22 @@
                 } else {
                     camForm.variableManager.variableValue('replanStatus', 'replan');
                 }
+
+                var attachedFiles = [];
+                if ($scope.actOfAcceptanceDocument) {
+                    attachedFiles.push($scope.actOfAcceptanceDocument.valueInfo.filename);
+                }
+
                 $scope.resolutions.push({
                     processInstanceId: $scope.processInstanceId,
                     assignee: $rootScope.authentication.name,
                     assigneeName: $rootScope.authentication.assigneeName,
                     resolution: $scope.checkingByGuestResult,
                     comment: $scope.checkingByGuestComment,
-                    taskId: camForm.taskId
+                    taskId: camForm.taskId,
+                    files: attachedFiles
                 });
+                /*
                 if(fileActions.length > 0){
                     $scope.resolutions.push({
                         processInstanceId: $scope.processInstanceId,
@@ -129,6 +137,7 @@
                    return _.pick(e, ['name','path']);
                 });
                 camForm.variableManager.variableValue('acceptanceDocFiles', acceptanceDocFiles);
+                */
                 camForm.variableManager.variableValue('resolutions', $scope.resolutions);
             });
             $scope.download = function (file) {
@@ -151,11 +160,11 @@
             <a href="{{actOfAcceptanceDocument.contentUrl}}">{{actOfAcceptanceDocument.valueInfo.filename}}</a>
         </div>
     </div>
-    <div ng-repeat="acceptanceDocFile in acceptanceDocFiles" class="form-group">
+    <!--div ng-repeat="acceptanceDocFile in acceptanceDocFiles" class="form-group">
         <div class="col-sm-12">
             <a href="{{acceptanceDocFile.url}}">{{acceptanceDocFile.name}}</a> | <a ng-click="clearFile($index)"><i class="glyphicon glyphicon-trash"></i></a>
         </div>
-    </div>
+    </div-->
     <div class="form-group">
         <label class="col-sm-4 control-label">Approval Status:</label>
         <div class="col-sm-8">
