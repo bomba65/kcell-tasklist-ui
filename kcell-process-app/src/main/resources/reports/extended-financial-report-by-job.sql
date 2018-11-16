@@ -192,8 +192,8 @@ select
                      row_number() OVER (PARTITION BY worksPriceListJson.value->>'title' order by worksPriceListBytes.id_) as rownum,
                      cast(worksJson.value->>'sapServiceNumber' as int) as sapServiceNumber,
                      sum(cast(worksJson.value ->>'quantity' as int)) OVER (PARTITION BY worksJson.value->>'sapServiceNumber') as totalQuantityPerWorkType,
-                     workPricesJson.value ->>'unitWorkPrice' as unitWorkPrice, --"Price without transport",
-                     workPricesJson.value ->>'unitWorkPricePlusTx' as unitWorkPricePlusTx --"Price with transport"
+                     workPricesJson.value ->>'basePriceByQuantity' as unitWorkPrice, --"Price without transport",
+                     workPricesJson.value ->>'netWorkPricePerSite' as unitWorkPricePlusTx --"Price with transport"
                 from act_hi_varinst jobWorks
                 left join act_ge_bytearray jobWorksBytes
                   on jobWorks.bytearray_id_ = jobWorksBytes.id_
