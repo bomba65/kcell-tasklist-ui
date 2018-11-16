@@ -443,12 +443,13 @@
                                 });
 
                                 // attach_material_list_contractor, fill_applied_changes_info - task, first date
+                                // modify_jr - last date
                                 // validate_tr - task, approved last date
                                 // accept_work_initiator - task, approved last date
 
                                 angular.forEach($scope.jobRequests, function (request) {
                                     var taskParams = {
-                                        taskDefinitionKeyIn: ['attach_material_list_contractor','UserTask_1wkrl5k','fill_applied_changes_info','set_materials_dispatch_status','accept_work_initiator','UserTask_0rj3nbv','UserTask_1g0uit4','UserTask_1i7na4a'],
+                                        taskDefinitionKeyIn: ['attach_material_list_contractor','UserTask_1wkrl5k','fill_applied_changes_info','set_materials_dispatch_status','accept_work_initiator','UserTask_0rj3nbv','UserTask_1g0uit4','UserTask_1i7na4a', 'modify_jr'],
                                         processInstanceBusinessKey: request.businessKey
                                     };
 
@@ -458,8 +459,12 @@
                                         data: taskParams,
                                         url: '/camunda/api/engine/engine/default/history/task'
                                     }).then(function (res) {
+                                        var modifyJR = _.maxBy(_.filter(res.data, function(task){
+                                            return task.taskDefinitionKey === 'modify_jr';
+                                        }), function(o) { return o.endTime; });
+
                                         var attachMaterialList = _.minBy(_.filter(res.data, function(task){
-                                            return task.taskDefinitionKey === 'attach_material_list_contractor' || task.taskDefinitionKey === 'UserTask_1wkrl5k';
+                                            return (task.taskDefinitionKey === 'attach_material_list_contractor' || task.taskDefinitionKey === 'UserTask_1wkrl5k') && (!modifyJR || (modifyJR && modifyJR.endTime < task.startTime));
                                         }), function(o) { return o.startTime; });
 
                                         if(attachMaterialList){
@@ -467,7 +472,7 @@
                                         }
 
                                         var fillAppliedChanges = _.minBy(_.filter(res.data, function(task){
-                                            return task.taskDefinitionKey === 'fill_applied_changes_info' || task.taskDefinitionKey === 'UserTask_0rj3nbv';
+                                            return (task.taskDefinitionKey === 'fill_applied_changes_info' || task.taskDefinitionKey === 'UserTask_0rj3nbv') && (!modifyJR || (modifyJR && modifyJR.endTime < task.startTime));
                                         }), function(o) { return o.startTime; });
 
                                         if(fillAppliedChanges){
@@ -952,7 +957,7 @@
     </div>
 
     <tabset class="my-tab-head my-tab" justified="true" id="jobRequestId">
-        <tab>
+        <tab style="float: left; width: 50%">
             <tab-heading><span class="glyphicon glyphicon-check"></span> Filter ({{jobRequests.length}}) </tab-heading>
             <div style="margin-bottom: 20px;"></div>
             <div class="row" ng-show="jobRequests && jobRequests.length">
@@ -994,7 +999,7 @@
                 </div>
             </div>
         </tab>
-        <tab>
+        <tab style="float: right; width: 50%">
             <tab-heading ng-class="{error: kcell_form.$invalid && view.submitted}">
                 <span class="glyphicon glyphicon-list" ng-class="{error: kcell_form.$invalid && view.submitted}"></span> Selected for monthly act ({{countSelected()}})
             </tab-heading>
