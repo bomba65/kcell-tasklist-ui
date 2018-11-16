@@ -1,0 +1,177 @@
+<form role="form" class="form-horizontal" name="kcell_form" novalidate>
+    <style>
+        .background-yellow-accordion .panel-body {
+            background-color: #ffffcc;
+            border: 1px solid #b3b3b3;
+            color: #333;
+        }
+    </style>
+    <script cam-script type="text/form-script">
+        inject(['$scope', '$http', 'Uri', '$rootScope', '$q', 'toasty', '$timeout', function ($scope, $http, Uri, $rootScope, $q, toasty, $timeout) {
+            $scope.legalInfo = {};
+            $scope.techSpecs = {connectionType:'SIP over internet', sip: {}};
+            $scope.resolutions = [];
+            $scope.callData = {date: new Date()};
+
+            $scope.processInstanceId = null;
+            $scope.taskId = camForm.taskId;
+            var taskName = null;
+            var assigneeName = $rootScope.authentication.name;
+
+            $http.get("/camunda/api/engine/engine/default/user/" + $rootScope.authentication.name+ "/profile").then(function(result){
+                assigneeName = (result.data.firstName ? result.data.firstName : "") + " " + (result.data.lastName ? result.data.lastName : "");
+            });
+
+            $http.get('/camunda/api/engine/engine/default/task/' + camForm.taskId).then(
+                function(result){
+                    $scope.processInstanceId = result.data.processInstanceId;
+                    taskName = result.data.name;
+                    $http.get('/camunda/api/engine/engine/default/process-instance/' + $scope.processInstanceId).then(
+                        function(result){
+                            $scope.businessKey = result.data.businessKey;
+                        },
+                        function (error) {console.log(error.data);}
+                    );
+                },
+                function (error) { console.log(error.data);}
+            );
+
+            camForm.on('form-loaded', function () {
+                camForm.variableManager.fetchVariable('legalInfo');
+                camForm.variableManager.fetchVariable('techSpecs');
+                camForm.variableManager.fetchVariable('resolutions');
+                camForm.variableManager.fetchVariable('callData');
+            });
+
+            camForm.on('variables-fetched', function () {
+                $scope.legalInfo = camForm.variableManager.variableValue('legalInfo');
+                $scope.techSpecs = camForm.variableManager.variableValue('techSpecs');
+                $scope.resolutions = camForm.variableManager.variableValue('resolutions');
+                $scope.callData = camForm.variableManager.variableValue('callData');
+                if (!$scope.legalInfo) $scope.legalInfo = {};
+                if (!$scope.techSpecs) $scope.techSpecs = {connectionType:'SIP over internet', sip: {}};
+                if (!$scope.callData) $scope.callData = {date: new Date()};
+                if (!$scope.callData.date) $scope.callData.date = new Date();
+                else $scope.callData.date = new Date($scope.callDate.date);
+            });
+
+            camForm.on('submit', function (event) {
+                camForm.variableManager.destroyVariable('callData');
+                camForm.variableManager.createVariable({
+                    name: 'callData',
+                    type: 'Json',
+                    value: $scope.callData
+                });
+                var submitDate = new Date ();
+                if(!$scope.resolutions){
+                    $scope.resolutions = [];
+                }
+                $scope.resolutions.unshift({processInstanceId: $scope.processInstanceId, assignee: assigneeName, resolution: 'Complete', comment: $scope.comment, taskId: camForm.taskId, taskEndDate: submitDate, taskName: taskName});
+                camForm.variableManager.destroyVariable('resolutions');
+                camForm.variableManager.createVariable({
+                    name: 'resolutions',
+                    type: 'Json',
+                    value: $scope.resolutions
+                });
+            });
+        }]);
+    </script>
+
+    <div class="form-group">
+        <label class="col-sm-3 control-label">Number request:</label>
+        <div class="col-sm-9">{{businessKey}}</div>
+    </div>
+    <div class="form-group">
+        <label class="col-sm-3 control-label">Client:</label>
+        <div class="col-sm-9">{{legalInfo.legalName}} {{legalInfo.BIN}}</div>
+    </div>
+    <div class="form-group">
+        <label class="col-sm-3 control-label">Priority:</label>
+        <div class="col-sm-9">{{legalInfo.clientPriority}}</div>
+    </div>
+
+    <div class="col-sm-12"><hr /></div>
+
+    <div class="form-group">
+        <div class="col-sm-12 control-label">Test call data:</div>
+        <div class="col-sm-12">
+            <table class="table table-bordered" style="background: #ffffcc; color: #333; border: 1px solid #b3b3b3">
+                <thead>
+                <tr>
+                    <th>Date</th>
+                    <th>Time</th>
+                    <th>Duration</th>
+                    <th>A number:</th>
+                    <th>B number:</th>
+                </tr>
+                </thead>
+                <tbody>
+                <tr>
+                    <td>{{callData.date | date: 'dd.MM.yyyy HH:mm'}}</td>
+                    <td>{{callData.time}}</td>
+                    <td>{{callData.duration}}</td>
+                    <td>{{callData.numberA}}</td>
+                    <td>{{callData.numberB}}<span class="error" ng-show="kcell_form['call_numberB_' + $index].$error.required && ( kcell_form['call_numberB_' + $index].$touched || view.submitted)">Required field</span>
+                    </td>
+                </tr>
+                </tbody>
+            </table>
+        </div>
+    </div>
+
+    <div class="form-group">
+        <label class="col-sm-3 control-label">Root for CMM/BGW:</label>
+        <div class="col-sm-9">{{rootForCMMBGW}}</div>
+    </div>
+
+    <div class="form-group">
+        <label class="col-sm-12 control-label">Result of test:</label>
+        <div class="col-sm-12">
+            <aftersales-rich-text data="callData.result" min-height="100" disabled="false" process-id="processInstanceId" task-id="taskId"></aftersales-rich-text>
+        </div>
+    </div>
+
+    <div class="form-group">
+        <label class="col-sm-12 control-label">Numbers PBX:</label>
+        <div class="col-sm-12">
+            <textarea style="resize: vertical;" class="form-control" ng-model="techSpecs.pbxNumbers" disabled></textarea>
+        </div>
+    </div>
+
+    <div class="col-sm-12"><hr /></div>
+
+    <div class="form-group">
+        <label class="col-sm-2 control-label">Comment</label>
+        <div class="col-sm-10">
+            <textarea elastic-textarea class="form-control" rows="4" ng-model="comment"></textarea>
+        </div>
+    </div>
+
+    <accordion>
+        <accordion-group is-open="isHistoryOpen">
+            <accordion-heading>
+                History <i class="pull-right glyphicon" ng-class="{'glyphicon-chevron-up': status.isCustomHeaderOpen, 'glyphicon-chevron-down': !status.isCustomHeaderOpen}"></i>
+            </accordion-heading>
+            <table class="table">
+                <thead>
+                <tr>
+                    <th>Activity</th>
+                    <th>Assignee</th>
+                    <th>Resolution</th>
+                    <th>Date</th>
+                    <th>Comment</th>
+                </tr>
+                </thead>
+                <tbody>
+                <tr ng-repeat="resolution in resolutions track by $index">
+                    <td>{{resolution.taskName}}</td>
+                    <td>{{resolution.assignee}}</td>
+                    <td>{{resolution.resolution}}</td>
+                    <td>{{resolution.taskEndDate | date: 'dd.MM.yyyy HH:mm'}}</td>
+                    <td>{{resolution.comment}}</td>
+                </tr>
+                </tbody>
+            </table>
+        </accordion-group>
+    </accordion>
+</form>

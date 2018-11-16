@@ -9,8 +9,10 @@
     <script cam-script type="text/form-script">
         inject(['$scope', '$http', 'Uri', '$rootScope', '$q', 'toasty', '$timeout', function ($scope, $http, Uri, $rootScope, $q, toasty, $timeout) {
             $scope.legalInfo = {};
+            $scope.techSpecs = {connectionType:'SIP over internet', sip: {}};
             $scope.resolutions = [];
             $scope.attachments = [];
+            $scope.action = {};
 
             var processInstanceId = null;
             var taskName = null;
@@ -36,28 +38,42 @@
 
             camForm.on('form-loaded', function () {
                 camForm.variableManager.fetchVariable('legalInfo');
-                camForm.variableManager.fetchVariable('action');
+                camForm.variableManager.fetchVariable('techSpecs');
                 camForm.variableManager.fetchVariable('resolutions');
                 camForm.variableManager.fetchVariable('attachments');
                 camForm.variableManager.fetchVariable('resolution');
+                camForm.variableManager.fetchVariable('action');
             });
 
             camForm.on('variables-fetched', function () {
                 $scope.legalInfo = camForm.variableManager.variableValue('legalInfo');
-                $scope.action = camForm.variableManager.variableValue('action');
+                $scope.techSpecs = camForm.variableManager.variableValue('techSpecs');
                 $scope.resolutions = camForm.variableManager.variableValue('resolutions');
                 $scope.attachments = camForm.variableManager.variableValue('attachments');
                 $scope.resolution = camForm.variableManager.variableValue('resolution');
+                $scope.action = camForm.variableManager.variableValue('action');
                 if (!$scope.legalInfo) $scope.legalInfo = {};
+                if (!$scope.techSpecs) $scope.techSpecs = {connectionType:'SIP over internet', sip: {}};
             });
 
             camForm.on('submit', function (event) {
+                camForm.variableManager.destroyVariable('legalInfo');
+                camForm.variableManager.createVariable({
+                    name: 'legalInfo',
+                    type: 'Json',
+                    value: $scope.legalInfo
+                });
                 camForm.variableManager.destroyVariable('action');
                 camForm.variableManager.createVariable({
                     name: 'action',
                     type: 'Json',
-                    value: $scope.action,
-                    store: true
+                    value: $scope.action
+                });
+                camForm.variableManager.destroyVariable('techSpecs');
+                camForm.variableManager.createVariable({
+                    name: 'techSpecs',
+                    type: 'Json',
+                    value: $scope.techSpecs
                 });
                 camForm.variableManager.destroyVariable('attachments');
                 camForm.variableManager.createVariable({
@@ -106,7 +122,6 @@
                     });
                 });
             };
-
             function uploadFileToMinio(file) {
                 var fileToUpload = {
                     name: file.name.replace(/[/\\?%*:|"<>]/g, '-'),
@@ -146,29 +161,59 @@
 
     <div class="col-sm-12"><hr /></div>
 
-    <accordion>
-        <accordion-group is-open="true">
-            <accordion-heading>
-                Legal information <i class="pull-right glyphicon" ng-class="{'glyphicon-chevron-up': status.isCustomHeaderOpen, 'glyphicon-chevron-down': !status.isCustomHeaderOpen}"></i>
-            </accordion-heading>
-            <aftersales-legal-information data="legalInfo" form="kcell_form" view="view" disabled="true"></aftersales-legal-information>
-        </accordion-group>
-    </accordion>
-    <div class="col-sm-12">
-        <div class="form-group">
-            <label class="col-sm-5 control-label">Actual tariff plan: </label>
-            <div class="col-sm-7">
-                <select class="form-control" name="tariffPlan" ng-model="action.tariffPlan" required>
-                    <option value="Стартовый 5">Стартовый 5</option>
-                    <option value="Стартовый 10">Стартовый 10</option>
-                    <option value="Бизнес пакет 30">Бизнес пакет 30</option>
-                    <option value="Бизнес пакет 50">Бизнес пакет 50</option>
-                    <option value="Другой">Другой</option>
-                </select>
-                <span class="has-error" ng-if="kcell_form.tariffPlan.$error.required && (kcell_form.tariffPlan.$touched || view.submitted)">Required field</span>
+    <tabset class="my-tab-head my-tab" justified="true">
+        <tab>
+            <tab-heading> Legal information </tab-heading>
+            <accordion>
+                <accordion-group is-open="true">
+                    <accordion-heading>
+                        Legal information <i class="pull-right glyphicon" ng-class="{'glyphicon-chevron-up': status.isCustomHeaderOpen, 'glyphicon-chevron-down': !status.isCustomHeaderOpen}"></i>
+                    </accordion-heading>
+                    <aftersales-legal-information data="legalInfo" form="kcell_form" view="view" disabled="false"></aftersales-legal-information>
+                </accordion-group>
+            </accordion>
+            <div class="col-sm-12">
+                <div class="form-group">
+                    <label class="col-sm-5 control-label">Actual tariff plan: <span class="text-danger glyphicon-asterisk"></span></label>
+                    <div class="col-sm-7">
+                        <select class="form-control" name="tariffPlan" ng-model="action.tariffPlan" required>
+                            <option value="Стартовый 5">Стартовый 5</option>
+                            <option value="Стартовый 10">Стартовый 10</option>
+                            <option value="Бизнес пакет 30">Бизнес пакет 30</option>
+                            <option value="Бизнес пакет 50">Бизнес пакет 50</option>
+                            <option value="Другой">Другой</option>
+                        </select>
+                        <span class="has-error" ng-if="kcell_form.tariffPlan.$error.required && (kcell_form.tariffPlan.$touched || view.submitted)">Required field</span>
+                        <div class="col-sm-12" style="padding-left: 0;">
+                            <div class="checkbox">
+                                <label><input type="checkbox" ng-model="action.needBillingTest">Need Billing test</label>
+                            </div>
+                        </div>
+                    </div>
+                </div>
             </div>
-        </div>
-    </div>
+        </tab>
+        <tab>
+            <tab-heading> Technical specification </tab-heading>
+            <accordion>
+                <accordion-group is-open="true">
+                    <accordion-heading>
+                        Technical specification <i class="pull-right glyphicon" ng-class="{'glyphicon-chevron-up': status.isCustomHeaderOpen, 'glyphicon-chevron-down': !status.isCustomHeaderOpen}"></i>
+                    </accordion-heading>
+                    <aftersales-technical-specifications data="techSpecs" form="kcell_form" view="view" disabled="false" cp-required="action.newTrunk || action.changeConnection"></aftersales-technical-specifications>
+                </accordion-group>
+            </accordion>
+            <accordion ng-if="techSpecs.connectionType" class="background-yellow-accordion">
+                <accordion-group is-open="true">
+                    <accordion-heading>
+                        {{techSpecs.connectionType == 'SIP over internet' ? 'Connection via Internet channel by SIP protocol' : (techSpecs.connectionType == 'E1' ? 'Direct connection by E1 (30 channels)' : 'Direct connection by SIP Direct Protocols')}} <i class="pull-right glyphicon" ng-class="{'glyphicon-chevron-up': status.isCustomHeaderOpen, 'glyphicon-chevron-down': !status.isCustomHeaderOpen}"></i>
+                    </accordion-heading>
+                    <aftersales-sip-protocol ng-if="techSpecs.connectionType == 'SIP over internet'" data="techSpecs.sip" form="kcell_form" view="view" disabled="false" show-new-fields="action.newTrunk || action.changeConnection"></aftersales-sip-protocol>
+                </accordion-group>
+            </accordion>
+        </tab>
+    </tabset>
+    <div class="col-sm-12"><hr /></div>
 
     <iframe id="fileDownloadIframe" style="display:none;"></iframe>
     <div class="form-group">

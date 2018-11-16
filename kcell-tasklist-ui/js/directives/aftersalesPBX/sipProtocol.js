@@ -8,7 +8,8 @@ define(['./../module'], function(module){
                 form: '=',
                 view: '=',
                 disabled: '=',
-                showNewFields: '='
+                showNewFields: '=',
+                modifyConnection: '='
             },
             link: function(scope, element, attrs) {
             },

@@ -11,6 +11,7 @@
             $scope.legalInfo = {};
             $scope.resolutions = [];
             $scope.attachments = [];
+            $scope.serviceStartDate = new Date();
 
             var processInstanceId = null;
             var taskName = null;
@@ -39,7 +40,6 @@
                 camForm.variableManager.fetchVariable('action');
                 camForm.variableManager.fetchVariable('resolutions');
                 camForm.variableManager.fetchVariable('attachments');
-                camForm.variableManager.fetchVariable('resolution');
             });
 
             camForm.on('variables-fetched', function () {
@@ -47,18 +47,10 @@
                 $scope.action = camForm.variableManager.variableValue('action');
                 $scope.resolutions = camForm.variableManager.variableValue('resolutions');
                 $scope.attachments = camForm.variableManager.variableValue('attachments');
-                $scope.resolution = camForm.variableManager.variableValue('resolution');
                 if (!$scope.legalInfo) $scope.legalInfo = {};
             });
 
             camForm.on('submit', function (event) {
-                camForm.variableManager.destroyVariable('action');
-                camForm.variableManager.createVariable({
-                    name: 'action',
-                    type: 'Json',
-                    value: $scope.action,
-                    store: true
-                });
                 camForm.variableManager.destroyVariable('attachments');
                 camForm.variableManager.createVariable({
                     name: 'attachments',
@@ -71,19 +63,12 @@
                 if(!$scope.resolutions) {
                     $scope.resolutions = [];
                 }
-                $scope.resolutions.unshift({processInstanceId: processInstanceId, assignee: assigneeName, resolution: $scope.resolution, comment: $scope.comment, taskId: camForm.taskId, taskEndDate: submitDate, taskName: taskName});
+                $scope.resolutions.unshift({processInstanceId: processInstanceId, assignee: assigneeName, resolution: 'Complete', comment: $scope.comment, taskId: camForm.taskId, taskEndDate: submitDate, taskName: taskName});
                 camForm.variableManager.destroyVariable('resolutions');
                 camForm.variableManager.createVariable({
                     name: 'resolutions',
                     type: 'Json',
                     value: $scope.resolutions
-                });
-
-                camForm.variableManager.destroyVariable('resolution');
-                camForm.variableManager.createVariable({
-                    name: 'resolution',
-                    type: 'String',
-                    value: $scope.resolution
                 });
             });
 
@@ -106,7 +91,6 @@
                     });
                 });
             };
-
             function uploadFileToMinio(file) {
                 var fileToUpload = {
                     name: file.name.replace(/[/\\?%*:|"<>]/g, '-'),
@@ -154,19 +138,31 @@
             <aftersales-legal-information data="legalInfo" form="kcell_form" view="view" disabled="true"></aftersales-legal-information>
         </accordion-group>
     </accordion>
+    <accordion ng-if="techSpecs.connectionType" class="background-yellow-accordion">
+        <accordion-group is-open="true">
+            <accordion-heading>
+                {{techSpecs.connectionType == 'SIP over internet' ? 'Connection via Internet channel by SIP protocol' : (techSpecs.connectionType == 'E1' ? 'Direct connection by E1 (30 channels)' : 'Direct connection by SIP Direct Protocols')}} <i class="pull-right glyphicon" ng-class="{'glyphicon-chevron-up': status.isCustomHeaderOpen, 'glyphicon-chevron-down': !status.isCustomHeaderOpen}"></i>
+            </accordion-heading>
+            <aftersales-sip-protocol ng-if="techSpecs.connectionType == 'SIP over internet'" data="techSpecs.sip" form="kcell_form" view="view" disabled="true" show-new-fields="action.newTrunk || action.changeConnection"></aftersales-sip-protocol>
+        </accordion-group>
+    </accordion>
+
     <div class="col-sm-12">
         <div class="form-group">
-            <label class="col-sm-5 control-label">Actual tariff plan: </label>
-            <div class="col-sm-7">
-                <select class="form-control" name="tariffPlan" ng-model="action.tariffPlan" required>
-                    <option value="Стартовый 5">Стартовый 5</option>
-                    <option value="Стартовый 10">Стартовый 10</option>
-                    <option value="Бизнес пакет 30">Бизнес пакет 30</option>
-                    <option value="Бизнес пакет 50">Бизнес пакет 50</option>
-                    <option value="Другой">Другой</option>
-                </select>
-                <span class="has-error" ng-if="kcell_form.tariffPlan.$error.required && (kcell_form.tariffPlan.$touched || view.submitted)">Required field</span>
+            <label class="col-sm-5 control-label">Actual tariff plan: </lab
+                <option value="Стартовый 5">Стартовый 5</option>
+                <option value="Стартовый 10">Стартовый 10</option>
+                <option value="Бизнес пакет 30">Бизнес пакет 30</option>
+                <option value="Бизнес пакет 50">Бизнес пакет 50</option>
+                <option value="Другой">Другой</option>
             </div>
+        </div>
+    </div>
+
+    <div class="form-group">
+        <label class="col-sm-12 control-label">Numbers PBX:</label>
+        <div class="col-sm-12">
+            <textarea style="resize: vertical;" class="form-control" ng-model="techSpecs.pbxNumbers" disabled></textarea>
         </div>
     </div>
 
@@ -198,26 +194,26 @@
         </div>
     </div>
 
-    <div class="col-sm-12"><hr /></div>
-
     <div class="form-group">
-        <label class="col-sm-2 control-label">Resolution</label>
-        <div class="col-sm-10">
-            <label class="radio-inline">
-                <input type="radio" ng-model="resolution" name="resolution" value="Modified" required> Modified
-            </label>
-            <label class="radio-inline">
-                <input type="radio" ng-model="resolution" name="resolution" value="Cancel task" required> Cancel task
-            </label>
-            <label class="error" ng-show="kcell_form.resolution.$error.required && ( kcell_form.resolution.$touched || view.submitted)">Required field</label>
+        <label class="col-sm-3 control-label">Date of commercial starting service:</label>
+        <div class="col-sm-3">
+            <div class="input-group">
+                <input type="text" ng-model="serviceStartDate" class="form-control" datepicker-popup="dd.MM.yyyy" is-open="startDateFieldOpened"/>
+                <span class="input-group-btn">
+                    <button type="button" class="btn btn-default" ng-click="startDateFieldOpened = true">
+                        <i class="glyphicon glyphicon-calendar"></i>
+                    </button>
+                </span>
+            </div>
         </div>
     </div>
+
+    <div class="col-sm-12"><hr /></div>
 
     <div class="form-group">
         <label class="col-sm-2 control-label">Comment</label>
         <div class="col-sm-10">
-            <textarea elastic-textarea class="form-control" rows="4" name="comment" ng-model="comment" ng-required="resolution == 'Cancel task'"></textarea>
-            <label class="error" ng-show="kcell_form.comment.$error.required && ( kcell_form.comment.$touched || view.submitted)">Required field</label>
+            <textarea elastic-textarea class="form-control" rows="4" ng-model="comment"></textarea>
         </div>
     </div>
 
