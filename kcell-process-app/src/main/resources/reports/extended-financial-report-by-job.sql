@@ -2,7 +2,15 @@ select
   to_char(pi.start_time_, 'YYYY') as "Year",
   to_char(pi.start_time_, 'month') as "Month",
   substring(pi.business_key_ from '^[^-]+') as region,
-  sitename.text_ as sitename,
+  case
+    when relatedSites.site_names is not null then
+      case
+          when position(sitename.text_ in relatedSites.site_names) > 0 then relatedSites.site_names
+          else sitename.text_ || ', ' || relatedSites.site_names
+    end
+  else
+    sitename.text_
+  end as sitename,
   pi.business_key_ as "JR No",
   case contractor.text_
   when '1' then 'avrora'
@@ -177,18 +185,13 @@ select
   -- canceled, accepted, in progress, количество работ
   left join LATERAL (
       select works.proc_inst_id_,
-             --string_agg(works.title, ', ')                   as title,         --"Job Description",
-             --sum(cast(works.quantity as int))                as quantity,
              string_agg( (case rownum when 1 then works.title end), ', ' order by works.sapServiceNumber)  as title,         --"Job Description",
              string_agg( (case rownum when 1 then cast(works.totalQuantityPerWorkType as char) end), ', ' order by works.sapServiceNumber)  as quantity,
              sum(cast(works.unitWorkPrice as numeric))       as unitWorkPrice, --"Price without transport",
              sum(cast(works.unitWorkPricePlusTx as numeric)) as unitWorkPricePlusTx --"Price with transport"
       from (
-              select --distinct
-                     jobWorks.proc_inst_id_ as proc_inst_id_,
-                     -- сюда еще нужно состав работ разбитый на строки
+              select jobWorks.proc_inst_id_ as proc_inst_id_,
                      worksPriceListJson.value->>'title' as title, --"Job Description",
-                     --worksJson.value ->>'quantity' as quantity, --"Quantity",
                      row_number() OVER (PARTITION BY worksPriceListJson.value->>'title' order by worksPriceListBytes.id_) as rownum,
                      cast(worksJson.value->>'sapServiceNumber' as int) as sapServiceNumber,
                      sum(cast(worksJson.value ->>'quantity' as int)) OVER (PARTITION BY worksJson.value->>'sapServiceNumber') as totalQuantityPerWorkType,
@@ -219,6 +222,20 @@ select
          ) works
     group by works.proc_inst_id_
     ) aggregatedWorks on true
+  -------------------------------------------------------------
+  -- relatedSites
+  left join LATERAL (
+              select string_agg(distinct sites.value->>'site_name',', ') as site_names
+                from act_hi_varinst jobWorks
+                left join act_ge_bytearray jobWorksBytes
+                  on jobWorks.bytearray_id_ = jobWorksBytes.id_
+                left join json_array_elements(CAST(convert_from(jobWorksBytes.bytes_, 'UTF8') AS json)) as worksJson
+                  on true
+                left join json_array_elements(worksJson.value->'relatedSites') as sites
+                  on true
+              where jobWorks.proc_inst_id_ = pi.id_
+                and jobWorks.name_ = 'jobWorks'
+    ) relatedSites on true
 
   left join act_hi_varinst acceptAndSignByInitiatorTaskResult
     on pi.id_ = acceptAndSignByInitiatorTaskResult.proc_inst_id_
