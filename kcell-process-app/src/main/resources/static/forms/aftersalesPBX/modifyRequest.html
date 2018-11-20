@@ -51,6 +51,29 @@
                 if (!$scope.legalInfo) $scope.legalInfo = {};
             });
 
+            $scope.preSubmit = function() {
+                return $q.all([
+                    $http.get('/camunda/api/engine/engine/default/process-instance/'+processInstanceId+'/variables/resolutions?deserializeValue=false'),
+                    $http.get('/camunda/api/engine/engine/default/process-instance/'+processInstanceId+'/variables/attachments?deserializeValue=false')
+                ]).then(function (results) {
+                    if (results[0] && results[0].data) {
+                        $scope.resolutions = JSON.parse(results[0].data.value);
+                    }
+                    if (results[1] && results[1].data) {
+                        var lastAttachments = JSON.parse(results[1].data.value);
+                        for (var attachment of $scope.attachments) {
+                            if (!lastAttachments.find(function(e) {return e.path == attachment.path;})) {
+                                lastAttachments.push(attachment);
+                            }
+                        }
+                        $scope.attachments = lastAttachments;
+                    }
+                },
+                function(error){
+                    toasty.error(error.data.message);
+                });
+            };
+
             camForm.on('submit', function (event) {
                 camForm.variableManager.destroyVariable('action');
                 camForm.variableManager.createVariable({
