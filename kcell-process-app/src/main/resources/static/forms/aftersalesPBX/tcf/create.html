@@ -36,21 +36,39 @@
                 function (error) { console.log(error.data);}
             );
 
+            var x = 0;
+
             camForm.on('form-loaded', function () {
                 camForm.variableManager.fetchVariable('legalInfo');
                 camForm.variableManager.fetchVariable('resolutions');
                 camForm.variableManager.fetchVariable('attachments');
-                camForm.variableManager.fetchVariable('tcf');
+                camForm.variableManager.fetchVariable('tcfName');
             });
 
             camForm.on('variables-fetched', function () {
                 $scope.legalInfo = camForm.variableManager.variableValue('legalInfo');
                 $scope.resolutions = camForm.variableManager.variableValue('resolutions');
                 $scope.attachments = camForm.variableManager.variableValue('attachments');
-                $scope.tcf = camForm.variableManager.variableValue('tcf');
+                $scope.tcfName = camForm.variableManager.variableValue('tcfName');
+
                 if (!$scope.legalInfo) $scope.legalInfo = {};
-                if (!$scope.tcf) $scope.tcf = {deadline: new Date(), richText: null};
-                else $scope.tcf.deadline = new Date($scope.tcf.deadline);
+
+                if ($scope.tcfName) {
+                    $http.get('/camunda/api/engine/engine/default/process-instance/' + $scope.processInstanceId + '/variables/'+$scope.tcfName+'?deserializeValue=false').then(
+                        function(result){
+                            $scope.tcf = JSON.parse(result.data.value);
+                            if (!$scope.tcf.deadline) $scope.tcf.deadline = new Date();
+                            else $scope.tcf.deadline = new Date($scope.tcf.deadline);
+                            camForm.variableManager.destroyVariable($scope.tcfName);
+                        },
+                        function (error) {
+                            $scope.tcf = {deadline: new Date(), richText: null};
+                        }
+                    );
+                } else {
+                    $scope.tcfName = 'tcf';
+                    $scope.tcf = {deadline: new Date(), richText: null};
+                }
             });
 
             camForm.on('submit', function (event) {
@@ -61,9 +79,8 @@
                     value: $scope.attachments,
                     store: true
                 });
-                camForm.variableManager.destroyVariable('tcf');
                 camForm.variableManager.createVariable({
-                    name: 'tcf',
+                    name: $scope.tcfName,
                     type: 'Json',
                     value: $scope.tcf,
                     store: true
