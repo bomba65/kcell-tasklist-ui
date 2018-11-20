@@ -9,6 +9,7 @@
     <script cam-script type="text/form-script">
         inject(['$scope', '$http', 'Uri', '$rootScope', '$q', 'toasty', '$timeout', function ($scope, $http, Uri, $rootScope, $q, toasty, $timeout) {
             $scope.legalInfo = {};
+            $scope.techSpecs = {connectionType:'SIP over internet', sip: {}};
             $scope.resolutions = [];
             $scope.attachments = [];
             $scope.serviceStartDate = new Date();
@@ -37,6 +38,7 @@
 
             camForm.on('form-loaded', function () {
                 camForm.variableManager.fetchVariable('legalInfo');
+                camForm.variableManager.fetchVariable('techSpecs');
                 camForm.variableManager.fetchVariable('action');
                 camForm.variableManager.fetchVariable('resolutions');
                 camForm.variableManager.fetchVariable('attachments');
@@ -44,6 +46,7 @@
 
             camForm.on('variables-fetched', function () {
                 $scope.legalInfo = camForm.variableManager.variableValue('legalInfo');
+                $scope.techSpecs = camForm.variableManager.variableValue('techSpecs');
                 $scope.action = camForm.variableManager.variableValue('action');
                 $scope.resolutions = camForm.variableManager.variableValue('resolutions');
                 $scope.attachments = camForm.variableManager.variableValue('attachments');
@@ -51,6 +54,12 @@
             });
 
             camForm.on('submit', function (event) {
+                camForm.variableManager.createVariable({
+                    name: 'serviceStartDate',
+                    type: 'String',
+                    value: $scope.serviceStartDate.toISOString(),
+                    store: true
+                });
                 camForm.variableManager.destroyVariable('attachments');
                 camForm.variableManager.createVariable({
                     name: 'attachments',
@@ -147,22 +156,23 @@
         </accordion-group>
     </accordion>
 
-    <div class="col-sm-12">
-        <div class="form-group">
-            <label class="col-sm-5 control-label">Actual tariff plan: </lab
+    <div class="form-group">
+        <label class="col-sm-5 control-label">Actual tariff plan: </label>
+        <div class="col-sm-7">
+            <select class="form-control" ng-model="action.tariffPlan" disabled>
                 <option value="Стартовый 5">Стартовый 5</option>
                 <option value="Стартовый 10">Стартовый 10</option>
                 <option value="Бизнес пакет 30">Бизнес пакет 30</option>
                 <option value="Бизнес пакет 50">Бизнес пакет 50</option>
                 <option value="Другой">Другой</option>
-            </div>
+            </select>
         </div>
     </div>
 
     <div class="form-group">
         <label class="col-sm-12 control-label">Numbers PBX:</label>
         <div class="col-sm-12">
-            <textarea style="resize: vertical;" class="form-control" ng-model="techSpecs.pbxNumbers" disabled></textarea>
+            <textarea style="resize: vertical;" class="form-control" ng-model="techSpecs.pbxNumbers" disabled>{{tech}}</textarea>
         </div>
     </div>
 
