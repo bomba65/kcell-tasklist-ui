@@ -469,7 +469,7 @@ define(['./../module', 'xlsx'], function(module){
 
                 scope.getUser = function(val) {
                     scope.data.networkEconomicsId = null;
-                    var users = $http.get('/camunda/api/engine/engine/default/user?firstNameLike=%'+val+'%').then(
+                    var users = $http.get('/camunda/api/engine/engine/default/user?firstNameLike='+encodeURIComponent('%'+val+'%')).then(
                         function(response){
                             var usersByFirstName = _.flatMap(response.data, function(s){
                                 if(s.id){
@@ -487,7 +487,7 @@ define(['./../module', 'xlsx'], function(module){
                                 }
                             });
                             //return usersByFirstName;
-                            return $http.get('/camunda/api/engine/engine/default/user?lastNameLike=%'+val+'%').then(
+                            return $http.get('/camunda/api/engine/engine/default/user?lastNameLike='+encodeURIComponent('%'+val+'%')).then(
                                 function(response){
                                     var usersByLastName = _.flatMap(response.data, function(s){
                                         if(s.id){
