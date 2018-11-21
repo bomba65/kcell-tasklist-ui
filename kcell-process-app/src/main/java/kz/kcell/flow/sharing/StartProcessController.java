@@ -191,7 +191,7 @@ public class StartProcessController {
                 }
                 // -------------
 
-                if (host.equals("Kcell")) {
+                //if (host.equals("Kcell")) {
                     log.info("Process starting");
                     Map<String, Object> variables = new HashMap<String, Object>();
                     variables.put("host", host);
@@ -212,7 +212,7 @@ public class StartProcessController {
                     ProcessInstance instance = runtimeService.startProcessInstanceByKey("SiteSharingTopProcess", businessKey, variables);
                     System.out.println("instance:");
                     System.out.println(instance.getBusinessKey());
-                }
+                //}
             }
         }
 
