@@ -25,9 +25,9 @@ define(['./../module'], function(module){
                     if (sip.ipSignaling) scope.data.curSignalingIP = sip.ipSignaling;
                     if (sip.transportLayerProtocol) scope.data.transProtocol = sip.transportLayerProtocol;
                     if (sip.signalingPort) scope.data.signalingPort = sip.signalingPort;
-                    if (sip.sessionCount) scope.data.sessionsCount = parseInt(sip.sessionCount);
-                    if (sip.voiceTrafficPortStart) scope.data.voicePortStart = parseInt(sip.voiceTrafficPortStart);
-                    if (sip.voiceTrafficPortEnd) scope.data.voicePortEnd = parseInt(sip.voiceTrafficPortEnd);
+                    if (sip.sessionCount) scope.data.sessionsCount = sip.sessionCount;
+                    if (sip.voiceTrafficPortStart) scope.data.voicePortStart = sip.voiceTrafficPortStart;
+                    if (sip.voiceTrafficPortEnd) scope.data.voicePortEnd = sip.voiceTrafficPortEnd;
                     if (sip.preferredCoding) scope.data.coding = sip.preferredCoding;
                 }
             },

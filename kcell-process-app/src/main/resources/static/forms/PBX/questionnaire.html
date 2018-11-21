@@ -36,12 +36,12 @@
     // );
 
     $scope.downloadFile = function (file) {
-      $http({method: 'GET', url: '/camunda/uploads/' + (file.path.split('/').length === 2 ? 'tmp/' : '') + 'get/' + file.path, transformResponse: [] }).
-      then(function(response) {
-        document.getElementById('fileDownloadIframe').src = response.data;
-      }, function(error){
-        console.log(error.data);
-      });
+      $http({method: 'GET', url: '/camunda/uploads/' + (file.path.split('/').length === 2 ? 'tmp/' : '') + 'get/' + file.path, transformResponse: [] }).then(
+        function(response) {
+          document.getElementById('fileDownloadIframe').src = response.data;
+        },
+        function(response) { console.log(response.data); }
+      );
     }
 
     $scope.clearFile = function(fileIndex) {
@@ -65,19 +65,20 @@
         created: new Date(),
         createdBy: assigneeName
       };
-      $http({method: 'GET', url: '/camunda/uploads/tmp/put/' + fileToUpload.path, transformResponse: [] }).then(function(response) {
-        $http.put(response.data, file, {headers: {'Content-Type': undefined}}).then(
-          function () {
-            $scope.attachments.push(fileToUpload);
-            angular.element(document.querySelector('#attachments')).val(null);
-          },
-          function (error) {
-            console.log(error.data);
-          }
-        );
-      }, function(error){
-        console.log(error.data);
-      });
+      $http({method: 'GET', url: '/camunda/uploads/tmp/put/' + fileToUpload.path, transformResponse: [] }).then(
+        function(response) {
+          $http.put(response.data, file, {headers: {'Content-Type': undefined}}).then(
+            function () {
+              $scope.attachments.push(fileToUpload);
+              angular.element(document.querySelector('#attachments')).val(null);
+            },
+            function (error) {
+              console.log(error.data);
+            }
+          );
+        },
+        function(response) { console.log(response.data); }
+      );
     }
 
     camForm.on('submit', function(event) {
@@ -157,25 +158,99 @@
     });
 
     $scope.preSubmit = function(){
-      return $http.get('/camunda/api/engine/engine/default/history/process-instance/count?processDefinitionKey=PBX').then(
-              function(result){
-                var countPID = result.data.count;
-                var date = new Date();
-                $scope.businessKey = 'PBX_' + ("0" + date.getDate().toString()).slice(-2) + ("0" + (date.getMonth() + 1)).toString().slice(-2)
-                        + date.getFullYear().toString() + '_' + $scope.ci.bin + '_' + $scope.ci.ticName + '_' + countPID;
-                console.log($scope.businessKey);
-                camForm.businessKey = $scope.businessKey;
-              }
-      );
+      var getBusinessKey = function(){
+        var deferred = $q.defer();
+        return $http.get('/camunda/api/engine/engine/default/history/process-instance/count?processDefinitionKey=PBX').then(
+          function(result){
+            var countPID = result.data.count;
+            var date = new Date();
+            $scope.businessKey = 'PBX_' + ("0" + date.getDate().toString()).slice(-2) + ("0" + (date.getMonth() + 1)).toString().slice(-2) + date.getFullYear().toString() + '_' + $scope.ci.bin + '_' + $scope.ci.ticName + '_' + countPID;
+            console.log($scope.businessKey);
+            camForm.businessKey = $scope.businessKey;
+            deferred.resolve('Successfully created Business Key');
+            return deferred.promise;
+          }
+        );
+      }
+
+      var PBXClientData = {
+        id: 0,
+        fk_client: 0,
+        tic_name: $scope.ci.ticName,
+        comp_name: $scope.ci.legalName,
+        bin_client: $scope.ci.bin,
+        corp_city: $scope.ci.companyRegistrationCity,
+        conn_type: $scope.ts.connectionType
+
+        //status: ,
+        //fk_region: ,
+        //kase: ,
+        //region_head: ,
+        //reten: ,
+        //reten_super: ,
+        //channel: ,
+        //capacity: ,
+        //ter_point: ,
+        //hope_point: ,
+        //exchanges: ,
+        //mgw: ,
+        //rtdma: ,
+        //klm: ,
+        //ips: ,
+        //channel_type: ,
+        //voice_platform: ,
+        //clt_number:
+      };
+
+      var pbxClientUpdate = function(){
+        var deferred = $q.defer();
+
+        if(PBXClientData.tic_name){
+            console.log('PBXClientResponse', $scope.PBXClientResponse)
+            if($scope.PBXClientResponse && $scope.PBXClientResponse.id && $scope.PBXClientResponse.status) { //  && $scope.PBXClientResponse.fk_client > 0
+                deferred.resolve('PBX Client has already been created at SAO');
+                return deferred.promise;
+            } else {
+                return $http.post("/camunda/sao/apis/PbxClientUpdate", PBXClientData).then(
+                    function (response) {
+                        console.log('response.data', response.data);
+                        if (response.data) {
+                            if(response.data.id && response.data.status ){
+                                $scope.PBXClientResponse = response.data;
+                                deferred.resolve(response.data.status);
+                            } else {
+                                deferred.reject('SAO did not respond with id');
+                            }
+                        } else {
+                            deferred.reject('SAO response is empty');
+                        }
+                        return deferred.promise;
+                    },
+                    function (error) {
+                        console.log(error);
+                        deferred.reject('error:' + error.data.error + ', message:' + error.data.message + ', path:' + error.data.path + ', status:' + error.data.status);
+                        return deferred.promise;
+                    }
+                );
+            }
+        } else {
+            deferred.reject('No short number is selected!');
+            return deferred.promise;
+        }
+
+      }
+
+      var deferred = $q.defer();
+      return $q.all([getBusinessKey(), pbxClientUpdate()]);
     }
 
     $scope.ci.foundClientCRM = false;
 
     $scope.$watch('ci.bin', function(clientBIN){
       if (clientBIN && clientBIN.length === 12){
-        $http({method: 'GET', url: '/camunda/crm/client/bin/'+clientBIN, transformResponse: [] })
-	      .then(function(response) {
-			//console.log(response.data);
+        $http({method: 'GET', url: '/camunda/crm/client/bin/'+clientBIN, transformResponse: [] }).then(
+          function(response) {
+			//console.log(data);
 			var clientCRM = JSON.parse(response.data);
             //console.log(clientCRM);
 
@@ -209,15 +284,16 @@
                 $scope.ci.foundClientCRM = true;
               }
             }
-
-          }, function(error){
-	        console.log(error.data);
+	      },
+	      function(data) {
+	        console.log(response.data);
 	        $scope.ci.legalName = undefined;
             $scope.ci.salesRepresentative = undefined;
             $scope.ci.companyRegistrationCity = undefined;
             $scope.ci.mainTypeActivityCustomer = undefined;
             $scope.ci.foundClientCRM = false;
-          });
+          }
+        );
       } else {
         $scope.ci.legalName = undefined;
         $scope.ci.salesRepresentative = undefined;

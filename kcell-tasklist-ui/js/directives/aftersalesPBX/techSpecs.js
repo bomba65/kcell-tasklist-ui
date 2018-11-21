@@ -33,7 +33,7 @@ define(['./../module'], function(module){
                     if (ts.pbxLocation) scope.data.pbxLocation = ts.pbxLocation;
                     if (ts.pbxCity) scope.data.equipmentCity = ts.pbxCity;
                     if (ts.pbxAddress) scope.data.equipmentAddress = ts.pbxAddress;
-                    if (ts.virtualNumbersCount) scope.data.pbxQuantity = parseInt(ts.virtualNumbersCount);
+                    if (ts.virtualNumbersCount) scope.data.pbxQuantity = ts.virtualNumbersCount;
                     if (ts.pbxNumbers) scope.data.pbxNumbers = ts.pbxNumbers;
                     if (ts.inOutCallAccess) scope.data.callsAccess = ts.inOutCallAccess;
                     if (ts.intenationalCallAccess) scope.data.iCallAccess = ts.intenationalCallAccess;
