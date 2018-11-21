@@ -12,6 +12,24 @@ define(['./../module'], function(module){
                 modifyConnection: '='
             },
             link: function(scope, element, attrs) {
+
+                scope.$on("aftersalesPBXBINCheck", function(e, result) {
+                    if (!result) return;
+                    if (result.sip) parseFromPBX(JSON.parse(result.sip));
+                });
+
+                function parseFromPBX(sip) {
+                    if (!sip) return;
+                    if (sip.authorizationType) scope.data.authorizationType = sip.authorizationType;
+                    if (sip.ipVoiceTraffic) scope.data.curPublicVoiceIP = sip.ipVoiceTraffic;
+                    if (sip.ipSignaling) scope.data.curSignalingIP = sip.ipSignaling;
+                    if (sip.transportLayerProtocol) scope.data.transProtocol = sip.transportLayerProtocol;
+                    if (sip.signalingPort) scope.data.signalingPort = sip.signalingPort;
+                    if (sip.sessionCount) scope.data.sessionsCount = parseInt(sip.sessionCount);
+                    if (sip.voiceTrafficPortStart) scope.data.voicePortStart = parseInt(sip.voiceTrafficPortStart);
+                    if (sip.voiceTrafficPortEnd) scope.data.voicePortEnd = parseInt(sip.voiceTrafficPortEnd);
+                    if (sip.preferredCoding) scope.data.coding = sip.preferredCoding;
+                }
             },
             templateUrl: './js/directives/aftersalesPBX/sipProtocol.html'
         };

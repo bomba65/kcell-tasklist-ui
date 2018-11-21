@@ -22,50 +22,41 @@ define(['./../module'], function(module){
 
                 scope.checkBIN = function() {
                     if (scope.data.BIN && scope.data.BIN.length === 12) {
-                        $http({method: 'GET', url: '/camunda/crm/client/bin/' + scope.data.BIN, transformResponse: [] }).success(function(data) {
-                            var result = JSON.parse(data);
-
-                            if (result.status != 200) {
-                                toasty.error(result.message);
-                                return;
-                            } else {}
-
-                            if (Object.keys(clientCRM).length > 0) {
-                                if (clientCRM.accountName) {
-                                    $scope.ci.legalName = clientCRM.accountName;
-
-                                    if(clientCRM.salesExecutiveUser && clientCRM.salesExecutiveUser.username) {
-                                        //var camundaUserID = clientCRM.salesExecutiveUser.username.split('.').map(val=>val.charAt(0).toUpperCase() + val.substr(1).toLowerCase()).join('.').concat('@kcell.kz');
-                                        var camundaUserID = clientCRM.salesExecutiveUser.email.replace('[','').replace(']','').split('|')[0];
-                                        $http.get("/camunda/api/engine/engine/default/user/" + camundaUserID + "/profile").then(function(response){
-                                            //console.log('profile', response.data);
-                                            $scope.ci.salesRepresentative = response.data.firstName + ' ' + response.data.lastName;
-                                        }).catch(function(error){
-                                            console.log('error',error);
-                                            console.log(camundaUserID, clientCRM.salesExecutiveUser.username, clientCRM.salesExecutiveUser.email);
-                                            $scope.ci.salesRepresentative = clientCRM.salesExecutiveUser.username;
-                                        });
-                                    }
-
-                                    if (clientCRM.city && clientCRM.city.nameEn) {
-                                        $scope.ci.companyRegistrationCity = clientCRM.city.nameEn;
-                                    }
-
-                                    if (clientCRM.dicSectorEconomics && clientCRM.dicSectorEconomics.name) {
-                                        $scope.ci.mainTypeActivityCustomer = clientCRM.dicSectorEconomics.name;
-                                    }
-
-                                    $scope.ci.foundClientCRM = true;
-                                }
-                            }
-
-                        }).error (function(data) {
-                            toasty.error(data);
-                        });
-                    } else {
-                        toasty.error('BIN must have length 12!');
-                    }
+                        $http({method: 'GET', url: '/camunda/aftersales/pbx/bin/' + scope.data.BIN, transformResponse: [] }).then(
+                            function(response) {
+                                var result = JSON.parse(response.data);
+                                if (result.legalInfo) parseFromPBX(JSON.parse(result.legalInfo));
+                                if (result.clientPriority) scope.data.clientPriority = result.clientPriority;
+                                $rootScope.$broadcast('aftersalesPBXBINCheck', result);
+                            },
+                            function(response) { toasty.error(response.data);});
+                    } else toasty.error('BIN must have length 12!');
                 };
+
+                function parseFromPBX(li) {
+                    if (!li) return;
+                    if (li.legalName) scope.data.legalName = li.legalName;
+                    if (li.companyRegistrationCity) scope.data.companyCity = li.companyRegistrationCity;
+                    if (li.purchaseType) scope.data.purchaseType = li.purchaseType;
+                    if (li.salesRepresentative) scope.data.salesRepr = li.salesRepresentative;
+                    if (li.legalAddress) scope.data.legalAddress = li.legalAddress;
+                    if (li.mailingAddress) scope.data.mailingAddress = li.mailingAddress;
+                    if (li.email) scope.data.email = li.email;
+                    if (li.companyRegistrationDate) scope.data.companyDate = new Date(li.companyRegistrationDate);
+                    if (li.accountant) scope.data.accountant = li.accountant;
+                    if (li.accountantNumber) scope.data.accountantNumber = li.accountantNumber;
+                    if (li.ticName) scope.data.ticName = li.ticName;
+                    if (li.mainTypeActivityCustomer) scope.data.mainType = li.mainTypeActivityCustomer;
+                    if (li.providerName) scope.data.providerName = li.providerName;
+                    if (li.providerBin) scope.data.providerBIN = li.providerBin;
+                    if (li.vatCertificate) scope.data.vatCert = li.vatCertificate;
+                    if (li.iban) scope.data.iban = li.iban;
+                    if (li.bankName) scope.data.bankName = li.bankName;
+                    if (li.swift) scope.data.swift = li.swift;
+                    if (li.kbe) scope.data.kbe = li.kbe;
+                    if (li.termContract) scope.data.termContract = new Date(li.termContract);
+                    if (li.termContractEnd) scope.data.termContractEnd = li.termContractEnd;
+                }
             },
             templateUrl: './js/directives/aftersalesPBX/legalInfo.html'
         };

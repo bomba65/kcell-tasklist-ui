@@ -71,6 +71,12 @@
                     value: $scope.action,
                     store: true
                 });
+                camForm.variableManager.createVariable({
+                    name: 'rootForCMMBGW',
+                    type: 'String',
+                    value: $scope.rootForCMMBGW,
+                    store: true
+                });
 
                 var submitDate = new Date ();
                 if(!$scope.resolutions) {
@@ -85,11 +91,12 @@
             });
 
             $scope.downloadFile = function (file) {
-                $http({method: 'GET', url: '/camunda/uploads/' + (file.path.split('/').length === 2 ? 'tmp/' : '') + 'get/' + file.path, transformResponse: [] }).success(function(data, status, headers, config) {
-                    document.getElementById('fileDownloadIframe').src = data;
-                }).error (function(data, status, headers, config) {
-                    console.log(data);
-                });
+                $http({method: 'GET', url: '/camunda/uploads/' + (file.path.split('/').length === 2 ? 'tmp/' : '') + 'get/' + file.path, transformResponse: [] }).then(
+                    function(response) {
+                        document.getElementById('fileDownloadIframe').src = response.data;
+                    },
+                    function(response) {console.log(response.data);}
+                );
             }
 
             $scope.clearFile = function(fileIndex) {
@@ -113,20 +120,27 @@
                     created: new Date(),
                     createdBy: assigneeName
                 };
-                $http({method: 'GET', url: '/camunda/uploads/tmp/put/' + fileToUpload.path, transformResponse: [] }).success(function(data, status, headers, config) {
-                    $http.put(data, file, {headers: {'Content-Type': undefined}}).then(
-                        function () {
-                            $scope.attachments.push(fileToUpload);
-                            angular.element(document.querySelector('#attachments')).val(null);
-                        },
-                        function (error) {
-                            console.log(error.data);
-                        }
-                    );
-                }).error (function(data, status, headers, config) {
-                    console.log(data);
-                });
+                $http({method: 'GET', url: '/camunda/uploads/tmp/put/' + fileToUpload.path, transformResponse: [] }).then(
+                    function(response) {
+                        $http.put(response.data, file, {headers: {'Content-Type': undefined}}).then(
+                            function () {
+                                $scope.attachments.push(fileToUpload);
+                                angular.element(document.querySelector('#attachments')).val(null);
+                            },
+                            function (error) {
+                                console.log(error.data);
+                            }
+                        );
+                    },
+                    function(response) { console.log(response.data); }
+                );
             }
+
+            $scope.$on("aftersalesPBXBINCheck", function(e, result) {
+                if (!result) return;
+                if (result.tariff) $scope.action.tariffPlan = result.tariff;
+                if (result.rootForCMMBGW) $scope.rootForCMMBGW = result.rootForCMMBGW;
+            });
         }]);
     </script>
 
@@ -146,11 +160,11 @@
                     <label class="col-sm-5 control-label">Actual tariff plan: <span class="text-danger glyphicon-asterisk"></span></label>
                     <div class="col-sm-7">
                         <select class="form-control" name="tariffPlan" ng-model="action.tariffPlan" required>
-                            <option value="Стартовый 5">Стартовый 5</option>
-                            <option value="Стартовый 10">Стартовый 10</option>
+                            <option value="Стартовый 5">Стартовый 5</option>
+                            <option value="Стартовый 10">Стартовый 10</option>
                             <option value="Бизнес пакет 30">Бизнес пакет 30</option>
                             <option value="Бизнес пакет 50">Бизнес пакет 50</option>
-                            <option value="Другой">Другой</option>
+                            <option value="Другой">Другой</option>
                         </select>
                         <span class="has-error" ng-if="kcell_form.tariffPlan.$error.required && (kcell_form.tariffPlan.$touched || view.submitted)">Required field</span>
                         <div class="col-sm-12" style="padding-left: 0;">
