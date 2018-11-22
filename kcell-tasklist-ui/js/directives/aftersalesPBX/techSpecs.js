@@ -31,7 +31,7 @@ define(['./../module'], function(module){
                     if (!ts) return;
                     if (ts.technicalPerson) scope.data.contactPerson = ts.technicalPerson;
                     if (ts.technicalNumber) scope.data.contactNumber = ts.technicalNumber;
-                    if (ts.technicalEmail) scope.data.contactNumber = ts.technicalEmail;
+                    if (ts.technicalEmail) scope.data.contactEmail = ts.technicalEmail;
                     if (ts.pbxType) scope.data.equipmentType = ts.pbxType;
                     if (ts.pbxVendor) scope.data.pbxVendor = ts.pbxVendor;
                     if (ts.pbxModel) scope.data.pbxModel = ts.pbxModel;
