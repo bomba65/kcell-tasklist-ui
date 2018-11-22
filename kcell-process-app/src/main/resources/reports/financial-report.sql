@@ -54,8 +54,8 @@ select
   CAST(convert_from(statusBytes.bytes_, 'UTF8') AS json)->>'parentStatus' as "JR Status",
   CAST(convert_from(statusBytes.bytes_, 'UTF8') AS json)->>'statusName' as "Detailed status",
   CAST(convert_from(statusBytes.bytes_, 'UTF8') AS json)->>'comment' as "Return reason",
-  workPricesJson.value ->>'basePriceByQuantity' as "Price without transport",
-  workPricesJson.value ->>'netWorkPricePerSite' as "Price with transport",
+  totalWorkPrice.basePriceByQuantity as "Price without transport",
+  totalWorkPrice.netWorkPricePerSite as "Price with transport",
   monthlyAct.text_ as "Monthly act #",
   jrNumber.text_ as "JO#",
   sapPRNo.text_ as "PR#",
@@ -190,14 +190,20 @@ select
     on jobWorks.bytearray_id_ = jobWorksBytes.id_
   left join json_array_elements(CAST(convert_from(jobWorksBytes.bytes_, 'UTF8') AS json)) as worksJson
     on true
-
-  left join act_hi_varinst workPrices
-    on pi.id_ = workPrices.proc_inst_id_ and workPrices.name_ = 'workPrices'
-  left join act_ge_bytearray workPricesBytes
-    on workPrices.bytearray_id_ = workPricesBytes.id_
-  left join json_array_elements(CAST(convert_from(workPricesBytes.bytes_, 'UTF8') AS json)) as workPricesJson
-    on true and worksJson.value->>'sapServiceNumber' = workPricesJson.value->>'sapServiceNumber'
-
+  left join lateral (
+                    select distinct workPricesJson.value->>'sapServiceNumber' as sapServiceNumber,
+                                    workPricesJson.value->>'quantity' as quantity,
+                                    workPricesJson.value->>'basePriceByQuantity' as basePriceByQuantity,
+                                    workPricesJson.value->>'netWorkPricePerSite' as netWorkPricePerSite
+                               from act_hi_varinst workPrices
+                               left join act_ge_bytearray workPricesBytes
+                                 on workPrices.bytearray_id_ = workPricesBytes.id_
+                               left join json_array_elements(CAST(convert_from(workPricesBytes.bytes_, 'UTF8') AS json)) as workPricesJson
+                                 on true
+                              where pi.id_ = workPrices.proc_inst_id_ and workPrices.name_ = 'workPrices'
+  ) as totalWorkPrice
+    on worksJson.value->>'sapServiceNumber' = totalWorkPrice.sapServiceNumber
+   and worksJson.value->>'quantity' = totalWorkPrice.quantity
   left join lateral (
     select distinct worksPriceListJson.value->>'title' as value_
       from act_hi_varinst worksPriceList
