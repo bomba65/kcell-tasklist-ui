@@ -9,9 +9,15 @@ define(['./../module'], function(module){
                 view: '=',
                 disabled: '=',
                 showNewFields: '=',
-                modifyConnection: '='
+                modifyConnection: '=',
+                pbxData: "="
             },
             link: function(scope, element, attrs) {
+
+                scope.$watch('pbxData', function (value) {
+                    if (!scope.pbxData) scope.pbxData = {};
+                });
+
 
                 scope.$on("aftersalesPBXBINCheck", function(e, result) {
                     if (!result) return;
@@ -29,6 +35,9 @@ define(['./../module'], function(module){
                     if (sip.voiceTrafficPortStart) scope.data.voicePortStart = sip.voiceTrafficPortStart;
                     if (sip.voiceTrafficPortEnd) scope.data.voicePortEnd = sip.voiceTrafficPortEnd;
                     if (sip.preferredCoding) scope.data.coding = sip.preferredCoding;
+
+                    scope.pbxData = JSON.parse(JSON.stringify(scope.data));
+                    scope.pbxData.fetched = true;
                 }
             },
             templateUrl: './js/directives/aftersalesPBX/sipProtocol.html'

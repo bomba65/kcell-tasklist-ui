@@ -13,6 +13,7 @@
             $scope.resolutions = [];
             $scope.attachments = [];
             $scope.serviceStartDate = new Date();
+            $scope.pbxData = {};
 
             var processInstanceId = null;
             var taskName = null;
@@ -42,6 +43,7 @@
                 camForm.variableManager.fetchVariable('action');
                 camForm.variableManager.fetchVariable('resolutions');
                 camForm.variableManager.fetchVariable('attachments');
+                camForm.variableManager.fetchVariable('pbxData');
             });
 
             camForm.on('variables-fetched', function () {
@@ -50,6 +52,7 @@
                 $scope.action = camForm.variableManager.variableValue('action');
                 $scope.resolutions = camForm.variableManager.variableValue('resolutions');
                 $scope.attachments = camForm.variableManager.variableValue('attachments');
+                $scope.pbxData = camForm.variableManager.variableValue('pbxData');
                 if (!$scope.legalInfo) $scope.legalInfo = {};
             });
 
@@ -169,7 +172,7 @@
             <accordion-heading>
                 Legal information <i class="pull-right glyphicon" ng-class="{'glyphicon-chevron-up': status.isCustomHeaderOpen, 'glyphicon-chevron-down': !status.isCustomHeaderOpen}"></i>
             </accordion-heading>
-            <aftersales-legal-information data="legalInfo" form="kcell_form" view="view" disabled="true"></aftersales-legal-information>
+            <aftersales-legal-information data="legalInfo" pbx-data="pbxData.legalInfo" form="kcell_form" view="view" disabled="true"></aftersales-legal-information>
         </accordion-group>
     </accordion>
     <accordion ng-if="techSpecs.connectionType" class="background-yellow-accordion">
@@ -177,14 +180,14 @@
             <accordion-heading>
                 {{techSpecs.connectionType == 'SIP over internet' ? 'Connection via Internet channel by SIP protocol' : (techSpecs.connectionType == 'E1' ? 'Direct connection by E1 (30 channels)' : 'Direct connection by SIP Direct Protocols')}} <i class="pull-right glyphicon" ng-class="{'glyphicon-chevron-up': status.isCustomHeaderOpen, 'glyphicon-chevron-down': !status.isCustomHeaderOpen}"></i>
             </accordion-heading>
-            <aftersales-sip-protocol ng-if="techSpecs.connectionType == 'SIP over internet'" data="techSpecs.sip" form="kcell_form" view="view" disabled="true" show-new-fields="action.newTrunk || action.changeConnection"></aftersales-sip-protocol>
+            <aftersales-sip-protocol ng-if="techSpecs.connectionType == 'SIP over internet'" data="techSpecs.sip" pbx-data="pbxData.sip" form="kcell_form" view="view" disabled="true" show-new-fields="action.newTrunk || action.changeConnection"></aftersales-sip-protocol>
         </accordion-group>
     </accordion>
 
     <div class="form-group">
         <label class="col-sm-5 control-label">Actual tariff plan: </label>
         <div class="col-sm-7">
-            <select class="form-control" ng-model="action.tariffPlan" disabled>
+            <select class="form-control" ng-model="action.tariffPlan" disabled ng-style="{'border-color': ((pbxData.fetched && pbxData.tariffPlan !== action.tariffPlan) ? '#f0ad4e' : null)}">
                 <option value="Стартовый 5">Стартовый 5</option>
                 <option value="Стартовый 10">Стартовый 10</option>
                 <option value="Бизнес пакет 30">Бизнес пакет 30</option>
@@ -192,14 +195,14 @@
                 <option value="нестандартный тариф">нестандартный тариф</option>
             </select>
 
-            <input type="text" ng-show="action.tariffPlan == 'нестандартный тариф'" class="form-control" style="margin-top: 3px;" ng-model="action.tariffExtra" placeholder="Укажите тариф" disabled>
+            <input type="text" ng-show="action.tariffPlan == 'нестандартный тариф'" class="form-control" style="margin-top: 3px;" ng-model="action.tariffExtra" placeholder="Укажите тариф" disabled ng-style="{'border-color': ((pbxData.fetched && pbxData.tariffExtra !== action.tariffExtra) ? '#f0ad4e' : null)}">
         </div>
     </div>
 
     <div class="form-group">
         <label class="col-sm-12 control-label">Numbers PBX:</label>
         <div class="col-sm-12">
-            <textarea style="resize: vertical;" class="form-control" ng-model="techSpecs.pbxNumbers" disabled>{{tech}}</textarea>
+            <textarea style="resize: vertical;" class="form-control" ng-model="techSpecs.pbxNumbers" disabled ng-style="{'border-color': ((pbxData.techSpecs.fetched && pbxData.techSpecs.pbxNumbers !== techSpecs.pbxNumbers) ? '#f0ad4e' : null)}"></textarea>
         </div>
     </div>
 

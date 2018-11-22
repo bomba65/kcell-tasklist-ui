@@ -7,7 +7,8 @@ define(['./../module'], function(module){
                 data: '=',
                 form: '=',
                 view: '=',
-                disabled: "="
+                disabled: "=",
+                pbxData: "="
             },
             link: function(scope, element, attrs) {
                 scope.$watch('data', function (value) {
@@ -20,13 +21,17 @@ define(['./../module'], function(module){
                     }
                 });
 
+                scope.$watch('pbxData', function (value) {
+                    if (!scope.pbxData) scope.pbxData = {};
+                });
+
                 scope.checkBIN = function() {
                     if (scope.data.BIN && scope.data.BIN.length === 12) {
                         $http({method: 'GET', url: '/camunda/aftersales/pbx/bin/' + scope.data.BIN, transformResponse: [] }).then(
                             function(response) {
                                 var result = JSON.parse(response.data);
-                                if (result.legalInfo) parseFromPBX(JSON.parse(result.legalInfo));
                                 if (result.clientPriority) scope.data.clientPriority = result.clientPriority;
+                                if (result.legalInfo) parseFromPBX(JSON.parse(result.legalInfo));
                                 $rootScope.$broadcast('aftersalesPBXBINCheck', result);
                             },
                             function(response) { toasty.error(response.data);});
@@ -55,7 +60,13 @@ define(['./../module'], function(module){
                     if (li.swift) scope.data.swift = li.swift;
                     if (li.kbe) scope.data.kbe = li.kbe;
                     if (li.termContract) scope.data.termContract = new Date(li.termContract);
-                    if (li.termContractEnd) scope.data.termContractEnd = li.termContractEnd;
+                    scope.data.termContractEnd = li.termContractEnd;
+                    if (scope.data.termContractEnd === null || scope.data.termContractEnd === undefined) scope.data.termContractEnd = false;
+
+                    scope.pbxData = JSON.parse(JSON.stringify(scope.data));
+                    if (scope.pbxData.companyDate) scope.pbxData.companyDate = new Date(scope.pbxData.companyDate);
+                    if (scope.pbxData.termContract) scope.pbxData.termContract = new Date(scope.pbxData.termContract);
+                    scope.pbxData.fetched = true;
                 }
             },
             templateUrl: './js/directives/aftersalesPBX/legalInfo.html'

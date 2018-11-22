@@ -13,6 +13,7 @@
             $scope.resolutions = [];
             $scope.attachments = [];
             $scope.action = {};
+            $scope.pbxData = {};
 
             var processInstanceId = null;
             var taskName = null;
@@ -43,6 +44,7 @@
                 camForm.variableManager.fetchVariable('attachments');
                 camForm.variableManager.fetchVariable('modifyFormResolution');
                 camForm.variableManager.fetchVariable('action');
+                camForm.variableManager.fetchVariable('pbxData');
             });
 
             camForm.on('variables-fetched', function () {
@@ -52,6 +54,7 @@
                 $scope.attachments = camForm.variableManager.variableValue('attachments');
                 $scope.resolution = camForm.variableManager.variableValue('modifyFormResolution');
                 $scope.action = camForm.variableManager.variableValue('action');
+                $scope.pbxData = camForm.variableManager.variableValue('pbxData');
                 if (!$scope.legalInfo) $scope.legalInfo = {};
                 if (!$scope.techSpecs) $scope.techSpecs = {connectionType:'SIP over internet', sip: {}};
             });
@@ -194,14 +197,14 @@
                     <accordion-heading>
                         Legal information <i class="pull-right glyphicon" ng-class="{'glyphicon-chevron-up': status.isCustomHeaderOpen, 'glyphicon-chevron-down': !status.isCustomHeaderOpen}"></i>
                     </accordion-heading>
-                    <aftersales-legal-information data="legalInfo" form="kcell_form" view="view" disabled="false"></aftersales-legal-information>
+                    <aftersales-legal-information data="legalInfo" pbx-data="pbxData.legalInfo" form="kcell_form" view="view" disabled="false"></aftersales-legal-information>
                 </accordion-group>
             </accordion>
             <div class="col-sm-12">
                 <div class="form-group">
                     <label class="col-sm-5 control-label">Actual tariff plan: <span class="text-danger glyphicon-asterisk"></span></label>
                     <div class="col-sm-7">
-                        <select class="form-control" name="tariffPlan" ng-model="action.tariffPlan" required>
+                        <select class="form-control" name="tariffPlan" ng-model="action.tariffPlan" required ng-style="{'border-color': ((pbxData.fetched && pbxData.tariffPlan !== action.tariffPlan) ? '#f0ad4e' : null)}">
                             <option value="Стартовый 5">Стартовый 5</option>
                             <option value="Стартовый 10">Стартовый 10</option>
                             <option value="Бизнес пакет 30">Бизнес пакет 30</option>
@@ -210,7 +213,7 @@
                         </select>
                         <span class="has-error" ng-if="kcell_form.tariffPlan.$error.required && (kcell_form.tariffPlan.$touched || view.submitted)">Required field</span>
 
-                        <input type="text" ng-show="action.tariffPlan == 'нестандартный тариф'" class="form-control" style="margin-top: 3px;" name="tariffExtra" ng-model="action.tariffExtra" placeholder="Укажите тариф" ng-required="action.tariffPlan == 'нестандартный тариф'">
+                        <input type="text" ng-show="action.tariffPlan == 'нестандартный тариф'" class="form-control" style="margin-top: 3px;" name="tariffExtra" ng-model="action.tariffExtra" placeholder="Укажите тариф" ng-required="action.tariffPlan == 'нестандартный тариф'" ng-style="{'border-color': ((pbxData.fetched && pbxData.tariffExtra !== action.tariffExtra) ? '#f0ad4e' : null)}">
                         <span class="has-error" ng-if="kcell_form.tariffExtra.$error.required && (kcell_form.tariffExtra.$touched || view.submitted)">Required field</span>
 
                         <div class="col-sm-12" style="padding-left: 0;">
@@ -229,7 +232,7 @@
                     <accordion-heading>
                         Technical specification <i class="pull-right glyphicon" ng-class="{'glyphicon-chevron-up': status.isCustomHeaderOpen, 'glyphicon-chevron-down': !status.isCustomHeaderOpen}"></i>
                     </accordion-heading>
-                    <aftersales-technical-specifications data="techSpecs" form="kcell_form" view="view" disabled="false" cp-required="action.newTrunk || action.changeConnection"></aftersales-technical-specifications>
+                    <aftersales-technical-specifications data="techSpecs" pbx-data="pbxData.techSpecs" form="kcell_form" view="view" disabled="false" cp-required="action.newTrunk || action.changeConnection"></aftersales-technical-specifications>
                 </accordion-group>
             </accordion>
             <accordion ng-if="techSpecs.connectionType" class="background-yellow-accordion">
@@ -237,7 +240,7 @@
                     <accordion-heading>
                         {{techSpecs.connectionType == 'SIP over internet' ? 'Connection via Internet channel by SIP protocol' : (techSpecs.connectionType == 'E1' ? 'Direct connection by E1 (30 channels)' : 'Direct connection by SIP Direct Protocols')}} <i class="pull-right glyphicon" ng-class="{'glyphicon-chevron-up': status.isCustomHeaderOpen, 'glyphicon-chevron-down': !status.isCustomHeaderOpen}"></i>
                     </accordion-heading>
-                    <aftersales-sip-protocol ng-if="techSpecs.connectionType == 'SIP over internet'" data="techSpecs.sip" form="kcell_form" view="view" disabled="false" show-new-fields="action.newTrunk || action.changeConnection"></aftersales-sip-protocol>
+                    <aftersales-sip-protocol ng-if="techSpecs.connectionType == 'SIP over internet'" data="techSpecs.sip" pbx-data="pbxData.sip" form="kcell_form" view="view" disabled="false" show-new-fields="action.newTrunk || action.changeConnection"></aftersales-sip-protocol>
                 </accordion-group>
             </accordion>
         </tab>

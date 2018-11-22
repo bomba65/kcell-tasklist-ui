@@ -8,13 +8,18 @@ define(['./../module'], function(module){
                 form: '=',
                 view: '=',
                 disabled: '=',
-                cpRequired: '='
+                cpRequired: '=',
+                pbxData: "="
             },
             link: function(scope, element, attrs) {
                 scope.$watch('data', function (value) {
                     if (value) {
                         if (!scope.data.iCallAccess) scope.data.iCallAccess = 'No';
                     }
+                });
+
+                scope.$watch('pbxData', function (value) {
+                    if (!scope.pbxData) scope.pbxData = {};
                 });
 
                 scope.$on("aftersalesPBXBINCheck", function(e, result) {
@@ -39,6 +44,9 @@ define(['./../module'], function(module){
                     if (ts.intenationalCallAccess) scope.data.iCallAccess = ts.intenationalCallAccess;
                     if (ts.connectionType) scope.data.connectionType = ts.connectionType;
                     if (ts.connectionPoint) scope.data.connectionPoint = ts.connectionPoint;
+
+                    scope.pbxData = JSON.parse(JSON.stringify(scope.data));
+                    scope.pbxData.fetched = true;
                 }
             },
             templateUrl: './js/directives/aftersalesPBX/techSpecs.html'
