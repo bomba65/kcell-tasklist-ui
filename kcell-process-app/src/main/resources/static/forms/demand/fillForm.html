@@ -21,25 +21,26 @@
 
             var getDetailsCatalogs = function() {
                 var lastFillFormActivity = {
-                    "activityId": "fillForm",
-                    "processDefinitionKey": "Demand",
-                    "finished": true,
-                    "sorting": [
+                    activityName: "Fill form",
+                    processDefinitionKey: "Demand",
+                    finished: true,
+                    sorting: [
                         {
-                            "sortBy": "endTime",
-                            "sortOrder": "desc"
+                            sortBy: "endTime",
+                            sortOrder: "desc"
                         }
                     ]
                 };
                 return $http.post("/camunda/api/engine/engine/default/history/activity-instance?maxResults=1", lastFillFormActivity).then(function(response) {
                     if (response.data && response.data.length && response.data[0].processInstanceId) {
                         var pcVariable = {
-                            "variableName": "detailsCatalogs",
-                            "processInstanceId": response.data[0].processInstanceId
+                            variableName: "detailsCatalogs",
+                            processInstanceId: response.data[0].processInstanceId
                         };
                         $http.post("/camunda/api/engine/engine/default/history/variable-instance?deserializeValues=false", pcVariable).then(function(result) {
                             if (result.data && result.data.length && result.data[0].value) {
                                 $scope.detailsCatalogs = JSON.parse(result.data[0].value);
+                                console.log("==> ", $scope.detailsCatalogs);
                             }
                         });
                     }
@@ -223,18 +224,18 @@
         <tab>
             <tab-heading> General </tab-heading>
             <div style="margin-bottom: 20px;">
-                <div class="col-sm-6">
+                <div class="col-sm-{{generalData.general.technicalAnalysis?'6':'12'}}">
                     <h4>General</h4>
-                    <demand-general data="generalData.general" form="kcell_form" view="view" edittechnical="true"  disabled="!generalData.general.technicalAnalysis" editresposnible="!generalData.general.technicalAnalysis"></demand-general>
+                    <demand-general data="generalData.general" form="kcell_form" view="view" disabled="false" technical="generalData.general.technicalAnalysis"></demand-general>
                 </div>
-                <div class="col-sm-6">
+                <div class="col-sm-6" ng-if="generalData.general.technicalAnalysis">
                     <h4>Target Audience:</h4>
-                    <demand-target-audience data="generalData.targetAudience" form="kcell_form" view="view" disabled="!generalData.general.technicalAnalysis"></demand-target-audience>
+                    <demand-target-audience data="generalData.targetAudience" form="kcell_form" view="view" disabled="false"></demand-target-audience>
                 </div>
                 <br>
-                <div class="col-sm-12">
+                <div class="col-sm-12" ng-if="generalData.general.technicalAnalysis">
                     <h4>Demand Details</h4>
-                    <demand-details data="generalData.demandDetails" catalog="detailsCatalogs" form="kcell_form" view="view" disabled="!generalData.general.technicalAnalysis" editdescription="!generalData.general.technicalAnalysis"></demand-details>
+                    <demand-details data="generalData.demandDetails" catalog="detailsCatalogs" form="kcell_form" view="view" disabled="false"></demand-details>
                 </div>
             </div>
         </tab>
@@ -242,7 +243,7 @@
             <tab-heading> BRD </tab-heading>
         </tab>
         <tab disabled="true">
-            <tab-heading> Costs and Acceptance Criterias </tab-heading>
+            <tab-heading> Costs and Acceptance criteria </tab-heading>
         </tab>
         <tab disabled="true">
             <tab-heading> Business Case </tab-heading>

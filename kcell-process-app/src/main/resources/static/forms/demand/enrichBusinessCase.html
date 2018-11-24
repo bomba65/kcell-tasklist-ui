@@ -38,7 +38,8 @@
                 WH: false, WHs: []
             };
 
-            var processInstanceId = null;
+            $scope.processInstanceId = null;
+            $scope.taskId = camForm.taskId;
             var taskName = null;
             var assigneeName = $rootScope.authentication.name;
             var createdDate = new Date();
@@ -50,7 +51,7 @@
 
             $http.get('/camunda/api/engine/engine/default/task/' + camForm.taskId).then(
                     function (result) {
-                        processInstanceId = result.data.processInstanceId;
+                        $scope.processInstanceId = result.data.processInstanceId;
                         taskName = result.data.name;
                         if (result.data.created) createdDate = new Date(result.data.created);
                     },
@@ -121,7 +122,7 @@
                     $scope.resolutions = [];
                 }
                 $scope.resolutions.unshift({
-                    processInstanceId: processInstanceId,
+                    processInstanceId: $scope.processInstanceId,
                     assignee: assigneeName,
                     resolution: $scope.resolution,
                     comment: $scope.comment,
@@ -207,7 +208,7 @@
             function uploadFileToMinio(file) {
                 var fileToUpload = {
                     name: file.name,
-                    path: processInstanceId + '/' + camForm.taskId + '/' + file.name,
+                    path: $scope.processInstanceId + '/' + camForm.taskId + '/' + file.name,
                     created: new Date(),
                     createdBy: assigneeName
                 };
@@ -246,7 +247,7 @@
                     if (key === "$$hashKey") return undefined;
                     return value;
                 });
-                $http.put('/camunda/api/engine/engine/default/process-instance/' + processInstanceId + '/variables/BCData', {
+                $http.put('/camunda/api/engine/engine/default/process-instance/' + $scope.processInstanceId + '/variables/BCData', {
                     "type": "Json",
                     "value": json
                 }).then(
@@ -262,7 +263,7 @@
                     if (key === "$$hashKey") return undefined;
                     return value;
                 });
-                $http.put('/camunda/api/engine/engine/default/process-instance/' + processInstanceId + '/variables/attachments', {
+                $http.put('/camunda/api/engine/engine/default/process-instance/' + $scope.processInstanceId + '/variables/attachments', {
                     "type": "Json",
                     "value": json
                 }).then(
@@ -278,7 +279,7 @@
                     if (key === "$$hashKey") return undefined;
                     return value;
                 });
-                $http.put('/camunda/api/engine/engine/default/process-instance/' + processInstanceId + '/variables/supportiveInputs', {
+                $http.put('/camunda/api/engine/engine/default/process-instance/' + $scope.processInstanceId + '/variables/supportiveInputs', {
                     "type": "Json",
                     "value": json
                 }).then(
@@ -430,16 +431,16 @@
         <tab>
             <tab-heading> General </tab-heading>
             <div style="margin-bottom: 20px;">
-                <div class="col-sm-6">
+                <div class="col-sm-{{generalData.general.technicalAnalysis?'6':'12'}}">
                     <h4>General</h4>
-                    <demand-general data="generalData.general" form="kcell_form" view="view" disabled="true"></demand-general>
+                    <demand-general data="generalData.general" form="kcell_form" view="view" disabled="true" technical="generalData.general.technicalAnalysis"></demand-general>
                 </div>
-                <div class="col-sm-6">
+                <div class="col-sm-6" ng-if="generalData.general.technicalAnalysis">
                     <h4>Target Audience:</h4>
                     <demand-target-audience data="generalData.targetAudience" form="kcell_form" view="view" disabled="true"></demand-target-audience>
                 </div>
                 <br>
-                <div class="col-sm-12">
+                <div class="col-sm-12" ng-if="generalData.general.technicalAnalysis">
                     <h4>Demand Details</h4>
                     <demand-details data="generalData.demandDetails" form="kcell_form" view="view" disabled="true"></demand-details>
                 </div>
@@ -482,10 +483,20 @@
                         </div>
                     </accordion-group>
                 </accordion>
+                <accordion>
+                    <accordion-group is-open="true">
+                        <accordion-heading>
+                            Dependencies and Assumptions <i class="pull-right glyphicon" ng-class="{'glyphicon-chevron-up': status.isCustomHeaderOpen, 'glyphicon-chevron-down': !status.isCustomHeaderOpen}"></i>
+                        </accordion-heading>
+                        <div class="col-sm-12">
+                            <demand-rich-text data="BRDData.dependencies" disabled="true" min-height="100"></demand-rich-text>
+                        </div>
+                    </accordion-group>
+                </accordion>
             </div>
         </tab>
         <tab>
-            <tab-heading> Costs and Acceptance Criterias </tab-heading>
+            <tab-heading> Costs and Acceptance criteria </tab-heading>
             <div style="margin-bottom: 20px;">
                 <accordion>
                     <accordion-group is-open="true">
@@ -510,7 +521,7 @@
                 <accordion>
                     <accordion-group is-open="true">
                         <accordion-heading>
-                            Acceptance criterias <i class="pull-right glyphicon" ng-class="{'glyphicon-chevron-up': status.isCustomHeaderOpen, 'glyphicon-chevron-down': !status.isCustomHeaderOpen}"></i>
+                            Acceptance criteria <i class="pull-right glyphicon" ng-class="{'glyphicon-chevron-up': status.isCustomHeaderOpen, 'glyphicon-chevron-down': !status.isCustomHeaderOpen}"></i>
                         </accordion-heading>
                         <div class="col-sm-12">
                             <table class="table table-borderless">
@@ -576,10 +587,9 @@
 
     <div class="col-sm-12" style="border: 1px solid #ccc; border-radius: 10px; padding-top: 10px; margin: 20px 0;">
         <div class="form-group">
-            <label class="col-sm-12">Order</label>
+            <label class="col-sm-12">Order draft</label>
             <div class="col-sm-12">
-                <textarea elastic-textarea class="form-control" name="orderLD" rows="8" cam-variable-name="orderLD" cam-variable-type="String" required></textarea>
-                <label class="error" ng-show="kcell_form.orderLD.$error.required && ( kcell_form.orderLD.$touched || view.submitted)">Required field</label>
+                <demand-rich-text data="BCData.orderDraft" min-height="100" process-id="processInstanceId" task-id="taskId"></demand-rich-text>
             </div>
         </div>
     </div>

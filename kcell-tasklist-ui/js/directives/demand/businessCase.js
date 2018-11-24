@@ -9,7 +9,8 @@ define(['./../module', 'xlsx'], function(module){
                 view: '=',
                 disabled: '=',
                 showBanchmark: '=',
-                onExcelImport: '='
+                onExcelImport: '=',
+                editableQualitative: '='
             },
             link: function(scope, element, attrs) {
                 scope.selects = {
