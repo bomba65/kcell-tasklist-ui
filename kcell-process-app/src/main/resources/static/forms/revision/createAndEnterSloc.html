@@ -136,6 +136,46 @@
             $scope.hasComment = function () {
                 return $scope.createAndEnterSlocComment && $rootScope.hasGroup('kcellUsers');
             }
+
+            $scope.checkSiteLocationExistance = function () {
+                $scope.siteLocationNameIsValid = true;
+                if($scope.siteLocationName){
+                    $scope.notValidMessage = "";
+                    if($scope.siteLocationName.length > 3){
+                        $http.get('/asset-management/api/locations/search/getByName?name=' + $scope.siteLocationName).then(
+                                function (result) {
+                                    if(result.data && result.data._embedded.locations.length > 0){
+                                        angular.forEach(result.data._embedded.locations, function (l) {
+                                            if(l.siteId !== $scope.jobModel.siteName.value){
+                                                $scope.siteLocationNameIsValid = false;
+                                                $scope.notValidMessage = "Another site has this Site Location siteId:" +l.siteId + " siteName: " + l.sitename
+                                            }
+                                        })
+                                    }
+                                },
+                                function (error) {
+                                    $scope.siteLocationNameIsValid = false;
+                                    $scope.notValidMessage = "Error checking Site Location Existance"
+                                    console.log(error.data);
+                                }
+                        );
+                    } else {
+                        $scope.siteLocationNameIsValid = false;
+                        $scope.notValidMessage = "Site Location length should be at least 4"
+                    }
+                }
+            }
+
+            $scope.preSubmit = function(){
+                var deferred = $q.defer();
+
+                if(!$scope.siteLocationNameIsValid){
+                    deferred.reject('Site Location field has error');
+                } else {
+                    deferred.resolve();
+                }
+                return deferred.promise;
+            };
         }]);
     </script>
 
@@ -165,8 +205,9 @@
         <div class="form-group">
             <label class="col-sm-4 control-label">Site Location (Name in SAP):</label>
             <div class="col-sm-8">
-                <input type="text" class="form-control" cam-variable-name="siteLocationName" name="siteLocationName" required cam-variable-type="String" placeholder="Ex: M595"></input>
+                <input type="text" class="form-control" cam-variable-name="siteLocationName" name="siteLocationName" required cam-variable-type="String" placeholder="Ex: M595" ng-change="checkSiteLocationExistance()"></input>
                 <label class="error" ng-show="kcell_form.siteLocationName.$error.required && ( kcell_form.siteLocationName.$touched || view.submitted)">Required field</label>
+                <label class="error" ng-show="siteLocationName && !siteLocationNameIsValid && ( kcell_form.siteLocationName.$touched || view.submitted)">{{notValidMessage}}</label>
             </div>
         </div>
     </div>

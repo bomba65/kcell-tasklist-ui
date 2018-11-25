@@ -76,7 +76,7 @@ public class CheckSlocExistance implements JavaDelegate {
 
                                 String tnuSiteLocation = getSiteLocations(relatedSite.get("site_name").asText());
                                 if (tnuSiteLocation == null){
-                                    setSiteLocation(relatedSite.get("site_name").asText(), value.prop("filledSiteLocation").stringValue());
+                                    setSiteLocation(relatedSite.get("site_name").asText(), relatedSite.get("name").asText(), value.prop("filledSiteLocation").stringValue());
                                     tnuSiteLocation = getSiteLocations(relatedSite.get("site_name").asText());
                                 }
 
@@ -126,7 +126,7 @@ public class CheckSlocExistance implements JavaDelegate {
             String siteLocation = getSiteLocations(site_name);
 
             if(StringUtils.isNotEmpty(siteLocationName) && siteLocation == null){
-                setSiteLocation(String.valueOf(delegateExecution.getVariable("site_name")), siteLocationName);
+                setSiteLocation(String.valueOf(delegateExecution.getVariable("site_name")), String.valueOf(delegateExecution.getVariable("siteName")), siteLocationName);
                 siteLocation = getSiteLocations(site_name);
             }
             if(siteLocation!=null){
@@ -178,7 +178,7 @@ public class CheckSlocExistance implements JavaDelegate {
 
     }
 
-    private void setSiteLocation(String site_name, String siteLocationName) throws Exception{
+    private void setSiteLocation(String site_name, String siteId, String siteLocationName) throws Exception{
         SSLContextBuilder builder = new SSLContextBuilder();
         builder.loadTrustMaterial(null, new TrustSelfSignedStrategy());
         SSLConnectionSocketFactory sslsf = new SSLConnectionSocketFactory(
@@ -188,9 +188,9 @@ public class CheckSlocExistance implements JavaDelegate {
 
         String locationUrl = baseUri + "/asset-management/api/locations";
 
-        log.info("{\"params\":{}, \"name\":\"" + siteLocationName + "\",\"sitename\": \"" + site_name + "\"}");
+        log.info("{\"params\":{}, \"name\":\"" + siteLocationName + "\",\"sitename\": \"" + site_name + "\",\"siteId\": \"" + siteId + "\"}");
 
-        StringEntity locationInputData = new StringEntity("{\"params\":\"{}\", \"name\":\"" + siteLocationName + "\",\"sitename\": \"" + site_name + "\"}", "UTF-8");
+        StringEntity locationInputData = new StringEntity("{\"params\":\"{}\", \"name\":\"" + siteLocationName + "\",\"sitename\": \"" + site_name + "\",\"siteId\": \"" + siteId + "\"}", "UTF-8");
 
         HttpPost locationHttpPost = new HttpPost(new URI(locationUrl));
         locationHttpPost.addHeader("Content-Type", "application/json;charset=UTF-8");
