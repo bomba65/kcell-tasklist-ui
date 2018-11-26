@@ -9,7 +9,7 @@ require.config({
          'domReady': './node_modules/requirejs-domready/domReady',
          'angular': './node_modules/angular/angular',
          'jquery': './node_modules/jquery/dist/jquery',
-         'bootstrap': './node_modules/bootstrap/dist/js/bootstrap',
+         'bootstrap': './bootstrap/dist/js/bootstrap',
          'ngRoute': './node_modules/angular-route/angular-route',
          'ngCookies': './node_modules/angular-cookies/angular-cookies',
          'simpleApp': './simpleApp',
@@ -38,8 +38,7 @@ require.config({
          'summernote': './summernote/summernote.min',
          'summernote-ext-template': './summernote/summernote-ext-template',
          'moment': './node_modules/moment/min/moment.min',
-         'daterangepicker': './node_modules/daterangepicker/daterangepicker',
-         'bootstrap': './node_modules/bootstrap/dist/js/bootstrap.min'
+         'daterangepicker': './node_modules/daterangepicker/daterangepicker'
      },
  
      // angular не поддерживает AMD из коробки, поэтому экспортируем перменную angular в глобальную область
