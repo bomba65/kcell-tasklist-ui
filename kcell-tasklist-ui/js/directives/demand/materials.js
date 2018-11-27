@@ -9,7 +9,8 @@ define(['./../module'], function(module){
                 view: '=',
                 disabled: '=',
                 editprice: '=',
-                editexisting: '='
+                editexisting: '=',
+                purchaser: "="
             },
             link: function(scope, el, attrs) {
 
@@ -27,16 +28,7 @@ define(['./../module'], function(module){
                 scope.$watch('data', function(value) {
                     if (value) {
                         if (!scope.data || !(scope.data instanceof Array)) scope.data = [];
-
                         scope.countTotalSum();
-
-                        scope.isOpen = [];
-                        scope.searchVal = [];
-                        for (var i = 0; i < scope.data.length; i++) {
-                            scope.isOpen.push({materialType: false, purchaseGroup: false});
-                            scope.searchVal.push('');
-                        }
-
 
                         if (!scope.responsible) {
                             scope.responsible = $rootScope.authentication.name;
@@ -51,17 +43,16 @@ define(['./../module'], function(module){
 
                 scope.deleteItem = function(index) {
                     scope.data.splice(index, 1);
-                    scope.isOpen.splice(index, 1);
-                    scope.searchVal.splice(index, 1);
                     scope.countTotalSum();
                     $timeout(setHeight);
                 };
 
                 scope.addItem = function() {
                     scope.data.push({
-                        department: null,
-                        materialType: null,
-                        description: null,
+                        cat1: null,
+                        cat2: null,
+                        cat3: null,
+                        specification: null,
                         purchaseGroup: null,
                         quantity: null,
                         measure: null,
@@ -69,14 +60,8 @@ define(['./../module'], function(module){
                         currency: null,
                         pprice: null,
                         summ: null,
-                        responsible: {
-                            name: $rootScope.authentication.name,
-                            fio: scope.responsible
-                        }
+                        responsible: null
                     });
-
-                    scope.isOpen.push({materialType: false, purchaseGroup: false});
-                    scope.searchVal.push('');
                 };
 
                 scope.calcSumm = function(index) {
@@ -84,7 +69,6 @@ define(['./../module'], function(module){
                     if (!scope.data[index].pprice) return;
                     scope.data[index].summ = scope.data[index].quantity * scope.data[index].pprice;
                     scope.countTotalSum();
-                    scope.setResponsible(index);
                 };
 
                 scope.setResponsible = function(index) {
@@ -92,6 +76,7 @@ define(['./../module'], function(module){
                         name: $rootScope.authentication.name,
                         fio: scope.responsible
                     };
+                    scope.calcSumm(index);
                 };
 
                 scope.countTotalSum = function() {
@@ -101,35 +86,40 @@ define(['./../module'], function(module){
                     }
                 };
 
-                scope.onDepartmentChange = function(index) {
-                    scope.data[index].materialType = null;
-                    scope.onMaterialTypeChange(index);
-                };
-
-                scope.onMaterialTypeChange = function(index, option) {
-                    scope.setResponsible(index);
-                    scope.data[index].description = null;
-                    scope.data[index].materialType = option;
-                };
-
                 scope.onPurchaseGroupChange = function(index, option) {
                     scope.setResponsible(index);
                     scope.data[index].purchaseGroup = option;
                 };
 
-                scope.toggleSelect = function(index, key) {
-                    scope.isOpen[index][key] = !scope.isOpen[index][key];
-                    if (key === 'materialType') scope.searchVal[index] = '';
+                scope.onCat1Change = function(index, option) {
+                    scope.data[index].cat1 = option;
+                    scope.data[index].cat2 = null;
+                    scope.data[index].cat3 = null;
+                    scope.data[index].purchaser = null;
                 };
 
-                scope.selectOption = function(index, option, key) {
-                    scope.data[index][key] = option;
-                    scope.toggleSelect(index);
-                    scope.setResponsible(index);
-                    if (key === 'materialType') scope.onMaterialTypeChange(index)
+                scope.onCat2Change = function(index, option) {
+                    scope.data[index].cat2 = option;
+                    scope.data[index].cat3 = null;
+                    scope.data[index].purchaser = option.purchaser;
+                    setPurchaserId(index, option.purchaser);
                 };
 
-                scope.isOpen = [];
+                scope.onCat3Change = function(index, option) {
+                    scope.data[index].cat3 = option;
+                };
+
+                var setPurchaserId = function (index, purchaser) {
+                    if (!purchaser || !purchaser.firstName || !purchaser.lastName) return;
+                    $http.get("/camunda/api/engine/engine/default/user?firstName=" + purchaser.firstName  + "&lastName=" + purchaser.lastName).then(
+                        function(result) {
+                            if (result.data && result.data[0].id) {
+                                scope.data[index].purchaser.id = result.data[0].id;
+                            }
+                        },
+                        function (error) { toasty.error(error.data); }
+                    );
+                };
 
                 scope.options = {
                     purchaseGroup: [
@@ -142,12 +132,99 @@ define(['./../module'], function(module){
                         {v: 150, t: "150 - Продукты и услуги: Маркетинг"},
                         {v: 170, t: "170 - Продукты и услуги: корпоративные продукты и услуги"}
                     ],
-                    materialType: [
-                        "Server",
-                        "Platform",
-                        "License and Software",
-                        "Equipment (parts)",
-                        "New Equipment"
+                    cat1: [
+                        {
+                            v: "RAN",
+                            cat2: [
+                                {
+                                    v: "RBS HW",
+                                    purchaser: {
+                                        firstName: "Natalya",
+                                        lastName: "Oleinik"
+                                    },
+                                    cat3: []
+                                },
+                                {
+                                    v: "RBS SW",
+                                    purchaser: {
+                                        firstName: "Natalya",
+                                        lastName: "Oleinik"
+                                    },
+                                    cat3: []
+                                },
+                                {
+                                    v: "RBS INSTAL MAT FROM VENDOR",
+                                    purchaser: {
+                                        firstName: "Natalya",
+                                        lastName: "Oleinik"
+                                    },
+                                    cat3: []
+                                },
+                                {
+                                    v: "RBS SPARE PARTS",
+                                    purchaser: {
+                                        firstName: "Natalya",
+                                        lastName: "Oleinik"
+                                    },
+                                    cat3: []
+                                },
+                                {
+                                    v: "BSC/RNC HW",
+                                    purchaser: {
+                                        firstName: "Sanzhar",
+                                        lastName: "Abdygapparov"
+                                    },
+                                    cat3: []
+                                },
+                                {
+                                    v: "BSC/RNC SW (capacity licence, features, HWAC)",
+                                    purchaser: {
+                                        firstName: "Sanzhar",
+                                        lastName: "Abdygapparov"
+                                    },
+                                    cat3: []
+                                },
+                                {
+                                    v: "ANTENNAS",
+                                    purchaser: {
+                                        firstName: "Demo",
+                                        lastName: "Demo"
+                                    },
+                                    cat3: [
+                                        "ANTENNAS COMPONENTS - SPLITTER, MCM, CABLE",
+                                        "FEEDER",
+                                        "CONNECTORS",
+                                        "CABLE & ACCESSORIES"
+                                    ]
+                                }
+                            ]
+                        },
+                        {
+                            v: "INSTALLATION MATERIALS",
+                            cat2: [
+                                {
+                                    v: "CABLE MATERIALS",
+                                    purchaser: {
+                                        firstName: "Abai",
+                                        lastName: "Shapagatin"
+                                    },
+                                    cat3: [
+                                        "CABLE",
+                                        "CABLE LUG",
+                                        "CABLE TIE&STRIP"
+                                    ]
+                                },
+                                {v: "FEATURED INSTALLATION MATERIALS", purchaser: "", cat3: []},
+                                {v: "PIPES", purchaser: "", cat3: []},
+                                {v: "FIXING MATERIALS", purchaser: "", cat3: []},
+                                {v: "ISOLATION MATERIALS", purchaser: "", cat3: []},
+                                {v: "HOSE & ACCESSORIES", purchaser: "", cat3: []},
+                                {v: "LADDERS", purchaser: "", cat3: []},
+                                {v: "SENSORS", purchaser: "", cat3: []},
+                                {v: "LOCKS", purchaser: "", cat3: []},
+                                {v: "TOOLS FOR CIVIL WORKS", purchaser: "", cat3: []}
+                            ]
+                        }
                     ]
                 }
             },

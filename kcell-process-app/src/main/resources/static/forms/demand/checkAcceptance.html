@@ -75,7 +75,7 @@
                 if (!$scope.supportiveInputs) {
                     $scope.supportiveInputs = [
                         {unit: 'Human Resources Department', form: 'HR', value: [], checked: false},
-                        {unit: 'Infrasturcture Procurement Section', form: 'CPD', value: [], checked: false},
+                        {unit: 'Centralized Procurement Department', form: 'CPD', value: [], checked: false},
                         {unit: 'Technology Department', form: 'TD', value: {}, checked: false}
                     ];
                 } else {
@@ -83,7 +83,7 @@
                         if (s.checked)
                             $scope.supportiveInputsCount++;
 
-                        if ($scope.pricesFilled && (s.unit == 'Human Resources Department' || s.unit == 'Infrasturcture Procurement Section'))
+                        if ($scope.pricesFilled && (s.unit == 'Human Resources Department' || s.unit == 'Centralized Procurement Department'))
                             for (var r of s.value)
                                 if (!r.pprice) {
                                     $scope.pricesFilled = false;
@@ -115,10 +115,17 @@
 
                 if ($scope.supportiveInputs && $scope.supportiveInputs.length) {
                     for (var v of $scope.supportiveInputs) {
-                        if (v.checked && (v.unit == 'Human Resources Department' || v.unit == 'Infrasturcture Procurement Section' || v.unit == 'Technology Department')) {
+                        if (v.checked && (v.unit == 'Human Resources Department' || v.unit == 'Technology Department')) {
                             supportiveInputList[v.form] = true;
                             if (!supportiveInputList[v.form+'s']) supportiveInputList[v.form+'s'] = [];
                             supportiveInputList[v.form+'s'].push(v.unit);
+                        } else if (v.checked && v.unit == 'Centralized Procurement Department') {
+                            supportiveInputList[v.form] = true;
+                            if (!supportiveInputList[v.form+'s']) supportiveInputList[v.form+'s'] = [];
+                            for (var m of v.value) {
+                                if (!m.purchaser || !m.purchaser.id) continue;
+                                supportiveInputList[v.form+'s'].push({SUName: v.unit, purchaser: m.purchaser.id});
+                            }
                         }
                     }
                 }
@@ -260,7 +267,7 @@
                         <demand-resources data="i.value" form="kcell_form" view="view" disabled="true" editprice="false"></demand-resources>
                     </accordion-group>
                 </accordion>
-                <accordion ng-repeat="i in supportiveInputs" ng-if="i.unit == 'Infrasturcture Procurement Section'">
+                <accordion ng-repeat="i in supportiveInputs" ng-if="i.unit == 'Centralized Procurement Department'">
                     <accordion-group is-open="true">
                         <accordion-heading>
                             Materials <i class="pull-right glyphicon" ng-class="{'glyphicon-chevron-up': status.isCustomHeaderOpen, 'glyphicon-chevron-down': !status.isCustomHeaderOpen}"></i>
@@ -319,7 +326,7 @@
                     </tr>
                     </thead>
                     <tbody>
-                    <tr ng-repeat="r in supportiveInputs" ng-if="r.unit == 'Human Resources Department' || r.unit == 'Infrasturcture Procurement Section' || r.unit == 'Technology Department'">
+                    <tr ng-repeat="r in supportiveInputs" ng-if="r.unit == 'Human Resources Department' || r.unit == 'Centralized Procurement Department' || r.unit == 'Technology Department'">
                         <td class="text-center">
                             <input type="checkbox" ng-model="r.checked" ng-click="needInputClicked(r.checked)">
                         </td>

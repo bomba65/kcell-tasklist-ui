@@ -67,10 +67,7 @@ define(['./../module'], function(module){
                         existing: null,
                         pprice: null,
                         summ: null,
-                        responsible: {
-                            name: $rootScope.authentication.name,
-                            fio: scope.responsible
-                        }
+                        responsible: null
                     });
 
                     scope.isOpen.push(false);
@@ -84,7 +81,6 @@ define(['./../module'], function(module){
                     if (!scope.data[index].pprice) return;
                     scope.data[index].summ = scope.data[index].quantity * scope.data[index].hours * scope.data[index].period * scope.data[index].pprice;
                     scope.countTotalSum();
-                    scope.setResponsible(index);
                 };
 
                 scope.setResponsible = function (index) {
@@ -92,6 +88,7 @@ define(['./../module'], function(module){
                         name: $rootScope.authentication.name,
                         fio: scope.responsible
                     };
+                    scope.calcSumm(index);
                 };
 
                 scope.countTotalSum = function () {
@@ -115,7 +112,6 @@ define(['./../module'], function(module){
                 scope.onPositionChange = function (index, option) {
                     scope.data[index].position = option;
                     scope.data[index].description = null;
-                    scope.setResponsible(index);
                 };
 
                 scope.toggleSelect = function(index) {
@@ -193,9 +189,7 @@ define(['./../module'], function(module){
                             "Public Relations Senior Specialist",
                             "Senior Specialist",
                             "Chief Executive Officer",
-                            "Corporate Secretary",
-                            "Expert",
-                            "Manager"
+                            "Corporate Secretary"
                         ],
                         "B2C": [
                             "Activ Marketing Communication Expert",

@@ -52,7 +52,7 @@ define(['./../module', 'xlsx'], function(module){
 
                 scope.onItemSelect = function(index, option) {
                     scope.data[index] = option;
-                    calcQuantitative();
+                    scope.onChange();
                 };
 
                 var correctHeaderWidth = function() {
@@ -133,7 +133,7 @@ define(['./../module', 'xlsx'], function(module){
                     if (scope.data.opActivitiesImpact.startsWith('C')) return 1;
                     else if (scope.data.opActivitiesImpact.startsWith('B')) return 0.5;
                     else return 0;
-                }
+                };
 
                 scope.xlsxSelected = function(el) {
                     if (scope.onExcelImport) scope.onExcelImport(el);

@@ -22,6 +22,7 @@
             $scope.supportiveInputName = null;
             var processInstanceId = null;
             $scope.assigneeName = $rootScope.authentication.name;
+            $scope.purchaserId = $rootScope.authentication.name;
             var createdDate = new Date();
 
             $http.get("/camunda/api/engine/engine/default/user/" + $rootScope.authentication.name+ "/profile").then(function(result){
@@ -56,7 +57,7 @@
                 if (!$scope.resolutions) $scope.resolutions = [];
                 if (!$scope.attachments) $scope.attachments = [];
                 if (!$scope.supportiveInputs) $scope.supportiveInputs = [];
-                var elt = $scope.supportiveInputs.find(function(e) {return e.unit == $scope.supportiveInputName});
+                var elt = $scope.supportiveInputs.find(function(e) {return e.unit == $scope.supportiveInputName.SUName});
                 if (elt) $scope.currentSupportiveInput.push(elt);
 
             });
@@ -69,12 +70,14 @@
                 ]).then(function (results) {
                     if (results[0] && results[0].data) {
                         var lastSupportiveInputs = JSON.parse(results[0].data.value);
-                        var ind = lastSupportiveInputs.findIndex(function(e) {return e .unit == $scope.supportiveInputName;});
+                        var ind = lastSupportiveInputs.findIndex(function(e) {return e.unit == $scope.supportiveInputName.SUName;});
                         for (var i = 0; i < lastSupportiveInputs[ind].value.length; i++) {
-                            lastSupportiveInputs[ind].value[i].currency = $scope.supportiveInputs[ind].value[i].currency;
-                            lastSupportiveInputs[ind].value[i].pprice = $scope.supportiveInputs[ind].value[i].pprice;
-                            lastSupportiveInputs[ind].value[i].summ = $scope.supportiveInputs[ind].value[i].summ;
-                            lastSupportiveInputs[ind].value[i].responsible = $scope.supportiveInputs[ind].value[i].responsible;
+                            if (!$scope.purchaserId || !lastSupportiveInputs[ind].value[i].purchaser || lastSupportiveInputs[ind].value[i].purchaser.id === $scope.purchaserId) {
+                                lastSupportiveInputs[ind].value[i].currency = $scope.supportiveInputs[ind].value[i].currency;
+                                lastSupportiveInputs[ind].value[i].pprice = $scope.supportiveInputs[ind].value[i].pprice;
+                                lastSupportiveInputs[ind].value[i].summ = $scope.supportiveInputs[ind].value[i].summ;
+                                lastSupportiveInputs[ind].value[i].responsible = $scope.supportiveInputs[ind].value[i].responsible;
+                            }
                         }
                         $scope.supportiveInputs = lastSupportiveInputs;
                     }
@@ -115,7 +118,7 @@
                 });
 
                 if ($scope.supportiveInputName) {
-                    var elt = $scope.supportiveInputs.find(function(e) {return e.unit == $scope.supportiveInputName});
+                    var elt = $scope.supportiveInputs.find(function(e) {return e.unit == $scope.supportiveInputName.SUName});
                     if (elt) elt.inputReceived = true;
                     camForm.variableManager.destroyVariable('supportiveInputs');
                     camForm.variableManager.createVariable({
@@ -292,12 +295,12 @@
         <tab active="true">
             <tab-heading> Costs and Acceptance criteria </tab-heading>
             <div style="margin-bottom: 20px;">
-                <accordion ng-repeat="i in supportiveInputs" ng-if="i.unit == supportiveInputName">
+                <accordion ng-repeat="i in supportiveInputs" ng-if="i.unit == supportiveInputName.SUName">
                     <accordion-group is-open="true">
                         <accordion-heading>
                             Materials <i class="pull-right glyphicon" ng-class="{'glyphicon-chevron-up': status.isCustomHeaderOpen, 'glyphicon-chevron-down': !status.isCustomHeaderOpen}"></i>
                         </accordion-heading>
-                        <demand-materials data="i.value" form="kcell_form" view="view" disabled="true" editprice="true"></demand-materials>
+                        <demand-materials data="i.value" form="kcell_form" view="view" disabled="true" editprice="true" purchaser="purchaserId"></demand-materials>
                     </accordion-group>
                 </accordion>
             </div>
