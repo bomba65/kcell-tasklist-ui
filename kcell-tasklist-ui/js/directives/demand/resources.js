@@ -20,7 +20,7 @@ define(['./../module'], function(module){
                 };
 
                 $(document).bind('click', function (e) {
-                    if (el === e.target || el[0].contains(e.target))
+                    // if (el === e.target || el[0].contains(e.target))
                         $timeout(setHeight);
                 });
 
