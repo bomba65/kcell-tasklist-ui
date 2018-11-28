@@ -114,18 +114,6 @@ define(['./../module'], function(module){
                     scope.data[index].description = null;
                 };
 
-                scope.toggleSelect = function(index) {
-                    scope.isOpen[index] = !scope.isOpen[index];
-                    scope.searchVal[index] = '';
-                };
-
-                scope.selectOption = function(index, option) {
-                    scope.data[index].position = option;
-                    scope.toggleSelect(index);
-                    scope.setResponsible(index);
-                    scope.onPositionChange(index);
-                };
-
                 scope.isOpen = [];
                 scope.searchVal = [];
 

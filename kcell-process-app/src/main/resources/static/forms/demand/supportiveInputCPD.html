@@ -25,9 +25,12 @@
             $scope.supportiveInputName = null;
             var processInstanceId = null;
             $scope.assigneeName = $rootScope.authentication.name;
-            $scope.purchaserId = $rootScope.authentication.name;
+            $scope.userGroups;
             var createdDate = new Date();
 
+            $http.get("/camunda/api/engine/engine/default/group?member=" + $rootScope.authentication.name).then(function(result) {
+                if (result.data && result.data.length) $scope.userGroups = result.data.map(function (e) { return e.id; });
+            });
             $http.get("/camunda/api/engine/engine/default/user/" + $rootScope.authentication.name+ "/profile").then(function(result){
                 $scope.assigneeName = (result.data.firstName ? result.data.firstName : "") + " " + (result.data.lastName ? result.data.lastName : "");
             });
@@ -77,7 +80,7 @@
                         var lastSupportiveInputs = JSON.parse(results[0].data.value);
                         var ind = lastSupportiveInputs.findIndex(function(e) {return e.unit == $scope.supportiveInputName.SUName;});
                         for (var i = 0; i < lastSupportiveInputs[ind].value.length; i++) {
-                            if (!$scope.purchaserId || !lastSupportiveInputs[ind].value[i].purchaser || lastSupportiveInputs[ind].value[i].purchaser.id === $scope.purchaserId) {
+                            if (!$scope.userGroups || !lastSupportiveInputs[ind].value[i].purchaser || $scope.userGroups.includes(lastSupportiveInputs[ind].value[i].purchaser.id)) {
                                 lastSupportiveInputs[ind].value[i].currency = $scope.supportiveInputs[ind].value[i].currency;
                                 lastSupportiveInputs[ind].value[i].pprice = $scope.supportiveInputs[ind].value[i].pprice;
                                 lastSupportiveInputs[ind].value[i].summ = $scope.supportiveInputs[ind].value[i].summ;
@@ -305,7 +308,7 @@
                         <accordion-heading>
                             Materials <i class="pull-right glyphicon" ng-class="{'glyphicon-chevron-up': status.isCustomHeaderOpen, 'glyphicon-chevron-down': !status.isCustomHeaderOpen}"></i>
                         </accordion-heading>
-                        <demand-materials data="i.value" form="kcell_form" view="view" disabled="true" editprice="true" purchaser="purchaserId"></demand-materials>
+                        <demand-materials data="i.value" form="kcell_form" view="view" disabled="true" editprice="true" purchaser-groups="userGroups"></demand-materials>
                     </accordion-group>
                 </accordion>
             </div>

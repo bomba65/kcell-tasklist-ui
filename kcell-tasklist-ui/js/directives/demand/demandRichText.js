@@ -33,7 +33,7 @@ define(['./../module', 'summernote', 'summernote-ext-template'], function(module
                 };
 
                 element.summernote({
-                    focus: true,
+                    focus: false,
                     disableResizeEditor: true,
                     minHeight: (scope.minHeight?scope.minHeight:300),
                     callbacks: {

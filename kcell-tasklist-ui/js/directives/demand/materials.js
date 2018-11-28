@@ -10,7 +10,7 @@ define(['./../module'], function(module){
                 disabled: '=',
                 editprice: '=',
                 editexisting: '=',
-                purchaser: "="
+                purchaserGroups: "="
             },
             link: function(scope, el, attrs) {
 
@@ -87,7 +87,6 @@ define(['./../module'], function(module){
                 };
 
                 scope.onPurchaseGroupChange = function(index, option) {
-                    scope.setResponsible(index);
                     scope.data[index].purchaseGroup = option;
                 };
 
@@ -102,22 +101,21 @@ define(['./../module'], function(module){
                     scope.data[index].cat2 = option;
                     scope.data[index].cat3 = null;
                     scope.data[index].purchaser = option.purchaser;
-                    setPurchaserId(index, option.purchaser);
+                    setPurchaserName(index, option.purchaser);
                 };
 
                 scope.onCat3Change = function(index, option) {
                     scope.data[index].cat3 = option;
                 };
 
-                var setPurchaserId = function (index, purchaser) {
-                    if (!purchaser || !purchaser.firstName || !purchaser.lastName) return;
-                    $http.get("/camunda/api/engine/engine/default/user?firstName=" + purchaser.firstName  + "&lastName=" + purchaser.lastName).then(
+                var setPurchaserName = function (index, purchaser) {
+                    if (!purchaser || !purchaser.id) return;
+
+                    $http.get("/camunda/api/engine/engine/default/group/" + purchaser.id).then(
                         function(result) {
-                            if (result.data && result.data[0].id) {
-                                scope.data[index].purchaser.id = result.data[0].id;
-                            }
+                            if (result.data) scope.data[index].purchaser.name = result.data.name;
                         },
-                        function (error) { toasty.error(error.data); }
+                        function(error) { toasty.error(error.data); }
                     );
                 };
 
@@ -137,58 +135,9 @@ define(['./../module'], function(module){
                             v: "RAN",
                             cat2: [
                                 {
-                                    v: "RBS HW",
-                                    purchaser: {
-                                        firstName: "Natalya",
-                                        lastName: "Oleinik"
-                                    },
-                                    cat3: []
-                                },
-                                {
-                                    v: "RBS SW",
-                                    purchaser: {
-                                        firstName: "Natalya",
-                                        lastName: "Oleinik"
-                                    },
-                                    cat3: []
-                                },
-                                {
-                                    v: "RBS INSTAL MAT FROM VENDOR",
-                                    purchaser: {
-                                        firstName: "Natalya",
-                                        lastName: "Oleinik"
-                                    },
-                                    cat3: []
-                                },
-                                {
-                                    v: "RBS SPARE PARTS",
-                                    purchaser: {
-                                        firstName: "Natalya",
-                                        lastName: "Oleinik"
-                                    },
-                                    cat3: []
-                                },
-                                {
-                                    v: "BSC/RNC HW",
-                                    purchaser: {
-                                        firstName: "Sanzhar",
-                                        lastName: "Abdygapparov"
-                                    },
-                                    cat3: []
-                                },
-                                {
-                                    v: "BSC/RNC SW (capacity licence, features, HWAC)",
-                                    purchaser: {
-                                        firstName: "Sanzhar",
-                                        lastName: "Abdygapparov"
-                                    },
-                                    cat3: []
-                                },
-                                {
                                     v: "ANTENNAS",
                                     purchaser: {
-                                        firstName: "Demo",
-                                        lastName: "Demo"
+                                        id: "DEMAND_CPD_L2_ANTENNAS"
                                     },
                                     cat3: [
                                         "ANTENNAS COMPONENTS - SPLITTER, MCM, CABLE",
@@ -205,24 +154,14 @@ define(['./../module'], function(module){
                                 {
                                     v: "CABLE MATERIALS",
                                     purchaser: {
-                                        firstName: "Abai",
-                                        lastName: "Shapagatin"
+                                        id: "DEMAND_CPD_L2_CABLE_MATERIALS"
                                     },
                                     cat3: [
                                         "CABLE",
                                         "CABLE LUG",
                                         "CABLE TIE&STRIP"
                                     ]
-                                },
-                                {v: "FEATURED INSTALLATION MATERIALS", purchaser: "", cat3: []},
-                                {v: "PIPES", purchaser: "", cat3: []},
-                                {v: "FIXING MATERIALS", purchaser: "", cat3: []},
-                                {v: "ISOLATION MATERIALS", purchaser: "", cat3: []},
-                                {v: "HOSE & ACCESSORIES", purchaser: "", cat3: []},
-                                {v: "LADDERS", purchaser: "", cat3: []},
-                                {v: "SENSORS", purchaser: "", cat3: []},
-                                {v: "LOCKS", purchaser: "", cat3: []},
-                                {v: "TOOLS FOR CIVIL WORKS", purchaser: "", cat3: []}
+                                }
                             ]
                         }
                     ]
