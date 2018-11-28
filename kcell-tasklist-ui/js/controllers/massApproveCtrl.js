@@ -131,13 +131,13 @@ define(['./module', 'lodash', 'big-js'], function(module, _, Big){
                                             if( _.isEqual(fieldsA, fieldsB)
                                                 && headersA.length === headersB.length && headersA.every((value, index) => value === headersB[index])
                                             ) {
-                                                console.log('equal', fieldsA, fieldsB);
+                                                //console.log('equal', fieldsA, fieldsB);
                                                 defMap[noDuplicateDefs[i].id].push(noDuplicateDefs[j].id);
                                                 //noDuplicateDefs.splice(j, 1);
                                                 noDuplicateDefs[j]=undefined;
-                                            } else {
+                                            } /*else {
                                                 console.log('UNEQUAL', fieldsA, fieldsB);
-                                            }
+                                            }*/
                                         }
                                     }
                                 }
@@ -145,7 +145,7 @@ define(['./module', 'lodash', 'big-js'], function(module, _, Big){
 
                             var arr = []
                             Object.keys(defMap).forEach(defId=>{
-                                console.log(defId);
+                                //console.log(defId);
                                 var defObj = {}
                                 $scope.definitions.forEach(def=>{
                                     if(def.id === defId){
@@ -168,9 +168,9 @@ define(['./module', 'lodash', 'big-js'], function(module, _, Big){
                                 arr.push(defObj);
                             });
 
-                            console.log('$scope.definitions', $scope.definitions);
-                            console.log('arr', arr);
-                            console.log('defMap', defMap);
+                            //console.log('$scope.definitions', $scope.definitions);
+                            //console.log('arr', arr);
+                            //console.log('defMap', defMap);
                             $scope.definitions = arr;
 
                             $scope.allVariablesAssign = true;
@@ -194,7 +194,7 @@ define(['./module', 'lodash', 'big-js'], function(module, _, Big){
                     var emptyFields = mandatoryFields.filter(function(field) {
                         return instance[field.name] ? false : $scope.taskData[instance.taskId][field.name] ?  false : true;
                     });
-                    console.log(emptyFields, mandatoryFields);
+                    //console.log(emptyFields, mandatoryFields);
                     if(emptyFields.length>0) continue;
 
                     waiting++;
@@ -207,7 +207,7 @@ define(['./module', 'lodash', 'big-js'], function(module, _, Big){
                     if (instance.resolution && instance.resolution.length) {
                         resValue = instance.resolution;
                     }
-                    console.log(baseUrl+"/task/"+instance.taskId+"/variables/"+resName, resValue);
+                    //console.log(baseUrl+"/task/"+instance.taskId+"/variables/"+resName, resValue);
                     //$http.put(baseUrl+"/task/"+instance.taskId+"/variables/"+resName, {value: resValue, type: "String"}).then(function() {
                         var variables = {};
                         variables[resName] = {value: resValue, type: "String"};
@@ -249,8 +249,8 @@ define(['./module', 'lodash', 'big-js'], function(module, _, Big){
                             type: "Json"
                         };
                         var dateName = defKey + "TaskCloseDate";
-                        console.log('$scope.closeDate')
-                        console.log($scope.closeDate)
+                        //console.log('$scope.closeDate')
+                        //console.log($scope.closeDate)
                         variables[dateName] = {
                             value: new Date($scope.closeDate),
                             type: "Date"
