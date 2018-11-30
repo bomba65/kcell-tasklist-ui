@@ -16,7 +16,7 @@ define(['./module','jquery', 'moment', 'camundaSDK'], function(app, $, moment, C
 		};
 
         if(window.require){
-            $scope.ExcellentExport = require('excellentexport');
+            $scope.XLSX = require('xlsx');
         }
 
 		$scope._ = window._;
@@ -351,7 +351,13 @@ define(['./module','jquery', 'moment', 'camundaSDK'], function(app, $, moment, C
 
 		$scope.getXlsxProcessInstances = function(){
 			if($scope.xlsxPrepared){
-				return $scope.ExcellentExport.convert({anchor: 'xlsxClick',format: 'xlsx',filename: 'revisions'}, [{name: 'Sheet Name Here 1',from: {table: 'xlsxRevisionsTable'}}]);
+				var tbl = document.getElementById('xlsxRevisionsTable');
+				var ws = XLSX.utils.table_to_sheet(tbl, {dateNF:'DD.MM.YYYY'});
+
+                var wb = XLSX.utils.book_new();
+                XLSX.utils.book_append_sheet(wb, ws, 'New Sheet Name 1');
+
+                return XLSX.writeFile(wb, 'revision-search-result.xlsx');
 			} else {
 				getProcessInstances($scope.lastSearchParams, 'xlsxProcessInstances');
 				$scope.xlsxPrepared = true;
@@ -378,9 +384,16 @@ define(['./module','jquery', 'moment', 'camundaSDK'], function(app, $, moment, C
 			}).then(
 			function(result){
 				$scope[processInstances] = result.data;
+				var variables = ['siteRegion','site_name', 'contractor', 'reason', 'requestedDate', 'validityDate', 'jobWorks', 'explanation'];
 
 				if($scope[processInstances].length > 0){
-					$scope[processInstances].forEach(function(el) {
+					angular.forEach($scope[processInstances], function(el) {
+						if(el.durationInMillis){
+							el['executionTime'] = Math.floor(el.durationInMillis / (1000*60*60*24));
+						} else {
+							var startTime = new Date(el.startTime);
+							el['executionTime'] = Math.floor(((new Date().getTime()) - startTime.getTime()) / (1000*60*60*24));
+						}
 						if(!$scope.profiles[el.startUserId]){
 					        $http.get(baseUrl+'/user/' + el.startUserId + '/profile').then(
 					            function (result) {
@@ -391,15 +404,9 @@ define(['./module','jquery', 'moment', 'camundaSDK'], function(app, $, moment, C
 					            }
 					        );
 						}
-						if(el.durationInMillis){
-							el['executionTime'] = Math.floor(el.durationInMillis / (1000*60*60*24));
-						} else {
-							var startTime = new Date(el.startTime);
-							el['executionTime'] = Math.floor(((new Date().getTime()) - startTime.getTime()) / (1000*60*60*24));
-						}	
 					});
 
-					_.forEach(['siteRegion','site_name', 'contractor', 'reason', 'requestedDate', 'validityDate', 'jobWorks', 'explanation'], function(variable) {
+					_.forEach(variables, function(variable) {
 						var varSearchParams = {processInstanceIdIn: _.map($scope[processInstances], 'id'), variableName: variable};
 						$http({
 							method: 'POST',
@@ -435,7 +442,7 @@ define(['./module','jquery', 'moment', 'camundaSDK'], function(app, $, moment, C
 						url: baseUrl+'/task'
 					}).then(
 						function(tasks){
-							$scope[processInstances].forEach(function(el) {
+							angular.forEach($scope[processInstances], function(el) {
 								var f =  _.filter(tasks.data, function(t) {
 									return t.processInstanceId === el.id; 
 								});
@@ -460,7 +467,7 @@ define(['./module','jquery', 'moment', 'camundaSDK'], function(app, $, moment, C
 							console.log(error.data);
 						}					
 					);
-					_.forEach(activeProcessInstances, function(pi) {
+					angular.forEach(activeProcessInstances, function(pi) {
 				        $http.get(baseUrl+'/process-instance/' + pi.id + '/activity-instances').then(
 				            function (result) {
 				            	pi.otherActivities = [];

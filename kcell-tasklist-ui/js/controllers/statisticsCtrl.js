@@ -8,8 +8,7 @@ define(['./module','jquery'], function(app,$){
 		};
 
         if(window.require){
-            $scope.ExcellentExport = require('excellentexport');
-            $scope.XSLX = require('xlsx');
+            $scope.XLSX = require('xlsx');
         }
 
 		$scope._ = window._;
