@@ -1,7 +1,6 @@
 package kz.kcell.flow.sharepoint;
 
 import lombok.extern.java.Log;
-import org.apache.commons.lang.StringUtils;
 import org.apache.http.HttpEntity;
 import org.apache.http.HttpResponse;
 import org.apache.http.client.methods.HttpGet;
@@ -17,11 +16,9 @@ import org.camunda.bpm.engine.impl.util.json.JSONObject;
 import org.jsoup.Jsoup;
 import org.jsoup.nodes.Document;
 import org.jsoup.nodes.Element;
-import org.jsoup.select.Elements;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.core.env.Environment;
-import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
 import org.camunda.bpm.engine.delegate.Expression;
 
@@ -77,11 +74,13 @@ public class GetTCFForm implements JavaDelegate {
             HttpEntity entity = response.getEntity();
             String responseString = EntityUtils.toString(entity, "UTF-8");
 
+            delegateExecution.setVariable(billingTCF + "GetResponseBodyTCF", responseString);
+
             JSONObject responseSharepointJSON = new JSONObject(responseString);
             JSONObject tcf = responseSharepointJSON.getJSONObject("d");
             //String Id = tcf.get("Id").toString();
 
-            String htmlTable = tcf.get("Requirments").toString(); //"<table><tr><td>Hello World!</td></tr></table>";
+            String htmlTable = tcf.get("Requirments").toString();
             Document doc = Jsoup.parse(htmlTable);
             Element table = doc.select("table").get(0);
 
