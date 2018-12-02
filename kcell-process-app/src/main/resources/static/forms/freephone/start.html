@@ -43,6 +43,59 @@
                 ];
             });
 
+            $scope.preSubmit = function() {
+
+                var deferred = $q.defer();
+
+                if($scope.identifier){
+                    return $http.get("/camunda/product-catalog/vas_short_numbers/" + $scope.identifier + "/service_type_id/177").then(
+                        function(response){
+                            console.log('vas_short_numbers', response.data);
+                            if(response.data) {
+                                if (response.data.shortNumberState) {
+                                    $scope.shortNumberState = response.data.shortNumberState;
+                                    if ($scope.shortNumberState === 'A') {
+                                        deferred.reject('Identifier ' + $scope.identifier + ' already exists and is ACTIVE in Product Catalog for Freephone');
+                                    } else if($scope.shortNumberState === 'D') {
+
+                                        if (response.data.id) {
+                                            $scope.shortNumberId = response.data.id;
+                                            $http.put("/camunda/api/engine/engine/default/task/"+camForm.taskId+"/variables/shortNumberId", {value: $scope.shortNumberId, type: "String"})
+                                               .then(function(result) {
+                                                    console.log('Identifier ' + $scope.identifier + ' already exists in Product Catalog and is NOT ACTIVE for Freephone');
+                                                    deferred.resolve('Identifier ' + $scope.identifier + ' already exists in Product Catalog and is NOT ACTIVE for Freephone');
+                                                });
+
+                                        } else {
+                                            deferred.reject('Identifier ' + $scope.identifier + ' has no Id in Product Catalog');
+                                        }
+                                    } else {
+                                        deferred.reject('Unknown shortNumberState ' + $scope.shortNumberState);
+                                    }
+                                } else {
+                                    if (response.data.status === 404) {
+                                        console.log('Identifier ' + $scope.identifier + ' DOES NOT exist in Product Catalog and can be used for Freephone');
+                                        deferred.resolve('Identifier ' + $scope.identifier + ' DOES NOT exist in Product Catalog and can be used for Freephone');
+                                    } else {
+                                        deferred.reject('Unknown shortNumberState ' + $scope.shortNumberState);
+                                    }
+                                }
+                            } else {
+                                deferred.reject('Undefined Response Data from Product Catalog Request');
+                            }
+                            return deferred.promise;
+                        },
+                        function (error) {
+                            console.log(error);
+                            deferred.reject('error:' + error.data.error + ', message:' + error.data.message + ', path:' + error.data.path + ', status:' + error.data.status);
+                            return deferred.promise;
+                        });
+                } else {
+                    deferred.reject('Identifier is not defined ' + $scope.identifier);
+                    return deferred.promise;
+                }
+            }
+
             camForm.on('submit', function (evt) {
                 // evt.submitPrevented = true;
                 var date = new Date();
