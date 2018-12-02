@@ -8,7 +8,8 @@ define(['./../module'], function(module){
                 form: '=',
                 view: '=',
                 disabled: '=',
-                technical: '='
+                technical: '=',
+                actualLaunch: '='
             },
             link: function(scope, element, attrs) {
                 scope.datePickerMinDate = new Date();
@@ -18,6 +19,8 @@ define(['./../module'], function(module){
 
                         if (!scope.data.plannedLaunch) scope.data.plannedLaunch = new Date();
                         else scope.data.plannedLaunch = new Date(scope.data.plannedLaunch);
+
+                        if (scope.data.actualLaunch) scope.data.actualLaunch = new Date(scope.data.actualLaunch);
 
                         if (!scope.data.technicalAnalysis) scope.data.technicalAnalysis = false;
 

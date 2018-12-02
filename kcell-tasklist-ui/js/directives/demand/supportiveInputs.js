@@ -89,7 +89,7 @@ define(['./../module'], function(module){
                     {unit: 'Consumer Marketing Section', form: 'Other'},
                     {unit: 'Digital Marketing Section', form: 'Other'},
                     {unit: 'Enterprise Marketing Section', form: 'Other'},
-                    {unit: 'Real Estate Section', form: 'CPD'},
+                    {unit: 'Real Estate Section', form: 'Other'},
                     {unit: 'Business Intelligence - CCD', form: 'BI'},
                     {unit: 'Business Intelligence - B2C', form: 'BI'},
                     {unit: 'Business Intelligence - B2B', form: 'BI'},

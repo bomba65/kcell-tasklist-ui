@@ -101,11 +101,13 @@ define(['./../module', 'xlsx'], function(module){
                                 wacc: 13.6
                             };
                         }
+                        if (!scope.data.strategicGoal) scope.data.strategicGoal = 'strategicGoal growth';
                         for (var field of ['ipmDecision', 'strategyFit', 'businessPriority', 'opActivitiesImpact'])
                             if (!scope.data[field])
                                 scope.data[field] = scope.selects[field].options[0];
 
                         $timeout(correctHeaderWidth);
+                        scope.onChange();
                     }
                 });
 
