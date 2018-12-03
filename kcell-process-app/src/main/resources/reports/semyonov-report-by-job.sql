@@ -100,7 +100,8 @@ select
   left join LATERAL (
       select works.proc_inst_id_,
              string_agg( (case rownum when 1 then works.title end), ', ' order by works.sapServiceNumber)  as title,         --"Job Description",
-             string_agg( (case rownum when 1 then cast(works.totalQuantityPerWorkType as char) end), ', ' order by works.sapServiceNumber)  as quantity
+             --string_agg( (case rownum when 1 then cast(works.totalQuantityPerWorkType as char) end), ', ' order by works.sapServiceNumber)  as quantity
+             string_agg( (case rownum when 1 then works.totalQuantityPerWorkType\:\:text end), ', ' order by works.sapServiceNumber)  as quantity
       from (
               select jobWorks.proc_inst_id_ as proc_inst_id_,
                      worksPriceListJson.value->>'title' as title, --"Job Description",

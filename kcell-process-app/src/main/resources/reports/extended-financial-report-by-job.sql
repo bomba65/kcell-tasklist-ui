@@ -186,17 +186,26 @@ select
   left join LATERAL (
       select works.proc_inst_id_,
              string_agg( (case rownum when 1 then works.title end), ', ' order by works.sapServiceNumber)  as title,         --"Job Description",
-             string_agg( (case rownum when 1 then cast(works.totalQuantityPerWorkType as char) end), ', ' order by works.sapServiceNumber)  as quantity,
-             sum(cast(works.unitWorkPrice as numeric))       as unitWorkPrice, --"Price without transport",
-             sum(cast(works.unitWorkPricePlusTx as numeric)) as unitWorkPricePlusTx --"Price with transport"
+             --string_agg( (case rownum when 1 then cast(works.totalQuantityPerWorkType as char) end), ', ' order by works.sapServiceNumber)  as quantity,
+             --sum(cast(works.unitWorkPrice as numeric))       as unitWorkPrice, --"Price without transport",
+             --sum(cast(works.unitWorkPricePlusTx as numeric)) as unitWorkPricePlusTx --"Price with transport"
+             --------------------------------
+             string_agg( (case rownum when 1 then works.totalQuantityPerWorkType\:\:text end), ', ' order by works.sapServiceNumber)  as quantity,
+             sum(works.unitWorkPrice)             as unitWorkPrice,                     --"Price without transport",
+             sum(works.unitWorkPricePlusTx)       as unitWorkPricePlusTx                --"Price with transport"
+             --------------------------------
       from (
               select jobWorks.proc_inst_id_ as proc_inst_id_,
                      worksPriceListJson.value->>'title' as title, --"Job Description",
                      row_number() OVER (PARTITION BY worksPriceListJson.value->>'title' order by worksPriceListBytes.id_) as rownum,
                      cast(worksJson.value->>'sapServiceNumber' as int) as sapServiceNumber,
                      sum(cast(worksJson.value ->>'quantity' as int)) OVER (PARTITION BY worksJson.value->>'sapServiceNumber') as totalQuantityPerWorkType,
-                     workPricesJson.value ->>'basePriceByQuantity' as unitWorkPrice, --"Price without transport",
-                     workPricesJson.value ->>'netWorkPricePerSite' as unitWorkPricePlusTx --"Price with transport"
+                     --workPricesJson.value ->>'basePriceByQuantity' as unitWorkPrice, --"Price without transport",
+                     --workPricesJson.value ->>'netWorkPricePerSite' as unitWorkPricePlusTx --"Price with transport"
+                     --------------------------------
+                     cast(workPricesJson.value ->>'unitWorkPrice' as numeric) * cast(worksJson.value ->>'quantity' as int) as unitWorkPrice,            --"Price without transport",
+                     cast(workPricesJson.value ->>'unitWorkPricePlusTx' as numeric) * cast(worksJson.value ->>'quantity' as int) as unitWorkPricePlusTx --"Price with transport"
+                     --------------------------------
                 from act_hi_varinst jobWorks
                 left join act_ge_bytearray jobWorksBytes
                   on jobWorks.bytearray_id_ = jobWorksBytes.id_

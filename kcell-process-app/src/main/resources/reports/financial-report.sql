@@ -54,8 +54,8 @@ select
   CAST(convert_from(statusBytes.bytes_, 'UTF8') AS json)->>'parentStatus' as "JR Status",
   CAST(convert_from(statusBytes.bytes_, 'UTF8') AS json)->>'statusName' as "Detailed status",
   CAST(convert_from(statusBytes.bytes_, 'UTF8') AS json)->>'comment' as "Return reason",
-  totalWorkPrice.basePriceByQuantity as "Price without transport",
-  totalWorkPrice.netWorkPricePerSite as "Price with transport",
+  totalWorkPrice.unitWorkPrice as "Price without transport",
+  totalWorkPrice.unitWorkPricePlusTx as "Price with transport",
   monthlyAct.text_ as "Monthly act #",
   jrNumber.text_ as "JO#",
   sapPRNo.text_ as "PR#",
@@ -193,8 +193,10 @@ select
   left join lateral (
                     select distinct workPricesJson.value->>'sapServiceNumber' as sapServiceNumber,
                                     workPricesJson.value->>'quantity' as quantity,
-                                    workPricesJson.value->>'basePriceByQuantity' as basePriceByQuantity,
-                                    workPricesJson.value->>'netWorkPricePerSite' as netWorkPricePerSite
+                                    --workPricesJson.value->>'basePriceByQuantity' as basePriceByQuantity,
+                                    --workPricesJson.value->>'netWorkPricePerSite' as netWorkPricePerSite
+                                    cast(workPricesJson.value ->>'unitWorkPrice' as numeric) * cast(worksJson.value ->>'quantity' as int) as unitWorkPrice,            --"Price without transport",
+                                    cast(workPricesJson.value ->>'unitWorkPricePlusTx' as numeric) * cast(worksJson.value ->>'quantity' as int) as unitWorkPricePlusTx --"Price with transport"
                                from act_hi_varinst workPrices
                                left join act_ge_bytearray workPricesBytes
                                  on workPrices.bytearray_id_ = workPricesBytes.id_
