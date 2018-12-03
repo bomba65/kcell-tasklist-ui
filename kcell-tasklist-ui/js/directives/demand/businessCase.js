@@ -25,7 +25,7 @@ define(['./../module', 'xlsx'], function(module){
                     strategyFit: {
                         visible: false,
                         options: [
-                            'Values throug superior network connectivity',
+                            'Values through superior network connectivity',
                             'Customer loyalty through convergence',
                             'Competitive operations',
                             'Growth in adjacencies',
@@ -169,7 +169,7 @@ define(['./../module', 'xlsx'], function(module){
                     // Strategy Fit
                     if (sheet.length > 23 && sheet[23]['G'] && sheet[23]['G'] != 'n/a') {
                         if (sheet[23]['G'].startsWith('A'))
-                            scope.data.strategyFit = 'Values throug superior network connectivity';
+                            scope.data.strategyFit = 'Values through superior network connectivity';
                         else if (sheet[23]['G'].startsWith('B'))
                             scope.data.strategyFit = 'Customer loyalty through convergence';
                         else if (sheet[23]['G'].startsWith('C'))

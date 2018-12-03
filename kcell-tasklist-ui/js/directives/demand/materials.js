@@ -101,7 +101,9 @@ define(['./../module'], function(module){
                     scope.data[index].cat2 = option;
                     scope.data[index].cat3 = null;
                     scope.data[index].purchaser = option.purchaser;
+                    scope.data[index].expert = option.expert;
                     setPurchaserName(index, option.purchaser);
+                    setExpertName(index, option.expert);
                 };
 
                 scope.onCat3Change = function(index, option) {
@@ -113,10 +115,20 @@ define(['./../module'], function(module){
 
                     $http.get("/camunda/api/engine/engine/default/group/" + purchaser.id).then(
                         function(result) {
-                            if (result.data) scope.data[index].purchaser.name = result.data.name;
+                            if (result.data) scope.data[index].purchaser.fio = result.data.name;
                         },
                         function(error) { toasty.error(error.data); }
                     );
+                };
+
+                var setExpertName = function (index, expert) {
+                    if (!expert || !expert.id) return;
+
+                    $http.get("/camunda/api/engine/engine/default/user/" + expert.id + "/profile").then(function (result) {
+                        if (result.data && result.data.firstName && result.data.lastName) {
+                            scope.data[index].expert.fio = result.data.firstName + " " + result.data.lastName;
+                        }
+                    });
                 };
 
                 scope.options = {
@@ -139,6 +151,7 @@ define(['./../module'], function(module){
                                     purchaser: {
                                         id: "DEMAND_CPD_L2_ANTENNAS"
                                     },
+                                    expert: {id: "demo"},
                                     cat3: [
                                         "ANTENNAS COMPONENTS - SPLITTER, MCM, CABLE",
                                         "FEEDER",
@@ -156,6 +169,7 @@ define(['./../module'], function(module){
                                     purchaser: {
                                         id: "DEMAND_CPD_L2_CABLE_MATERIALS"
                                     },
+                                    expert: {id: "demo"},
                                     cat3: [
                                         "CABLE",
                                         "CABLE LUG",

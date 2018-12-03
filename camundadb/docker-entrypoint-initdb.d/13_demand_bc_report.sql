@@ -2,7 +2,34 @@ create view bc_report as
 	select t.proc_id as proc_id,
 			(t.j->'businessKey'->>'val')::text as business_key,
 			(t.j->'demandName'->>'val')::text as demand_name,
-			(t.j->'BCData'->>'val')::json as business_case,
+			(t.j->'BCData'->'val'->'data'->>'cashFlow')::json as cash_flow,
+			(t.j->'BCData'->'val'->'data'->>'accurals')::json as accurals,
+			(t.j->'BCData'->'val'->'data'->>'firstYear')::json as first_year,
+			json_build_object(
+			    'networkEconomics', (t.j->'BCData'->'val'->'data'->>'networkEconomics'),
+			    'ipmDecision', (t.j->'BCData'->'val'->'data'->>'ipmDecision')
+			)::json as general,
+			json_build_object(
+			    'benchmark', (t.j->'BCData'->'val'->'data'->>'benchmark')::json,
+			    'npv', (t.j->'BCData'->'val'->'data'->>'npv'),
+			    'roi', (t.j->'BCData'->'val'->'data'->>'roi'),
+			    'paybackPeriod', (t.j->'BCData'->'val'->'data'->>'paybackPeriod'),
+			    'plEffect', (t.j->'BCData'->'val'->'data'->>'plEffect'),
+			    'cfEffect', (t.j->'BCData'->'val'->'data'->>'cfEffect')
+			)::json as quantitative,
+			json_build_object(
+			    'strategicGoal', (t.j->'BCData'->'val'->'data'->>'strategicGoal'),
+			    'strategyFit', (t.j->'BCData'->'val'->'data'->>'strategyFit'),
+			    'businessPriority', (t.j->'BCData'->'val'->'data'->>'businessPriority'),
+			    'opActivitiesImpact', (t.j->'BCData'->'val'->'data'->>'opActivitiesImpact')
+			)::json as qualitative,
+			json_build_object(
+			    'quantitativeScore', (t.j->'BCData'->'val'->'data'->>'quantitativeScore'),
+			    'qualitativeScore', (t.j->'BCData'->'val'->'data'->>'qualitativeScore'),
+			    'strategyFitScore', (t.j->'BCData'->'val'->'data'->>'strategyFitScore'),
+			    'businessPriorityScore', (t.j->'BCData'->'val'->'data'->>'businessPriorityScore'),
+			    'score', (t.j->'BCData'->'val'->'data'->>'score')
+			)::json as scoring,
 			(t.j->'supportiveInputs'->>'val')::json as support_requests,
 			(t.j->'riskData'->>'val')::json as risks
 	from (
