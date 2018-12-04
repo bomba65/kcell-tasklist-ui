@@ -93,7 +93,7 @@ public class CheckFAFile implements JavaDelegate {
                 delegateExecution.setVariable("faFileCheckResult", "error");
             }
         } else {
-            delegateExecution.setVariable("joFileCheckResult", "notFound");
+            delegateExecution.setVariable("faFileCheckResult", "notFound");
         }
     }
 }
