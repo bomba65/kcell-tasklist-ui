@@ -364,6 +364,16 @@ define(['./module','jquery', 'moment', 'camundaSDK'], function(app, $, moment, C
 			}
 		}
 
+		$scope.getpreparedXlsxProcessInstances = function(){
+				var tbl = document.getElementById('revisionsTable');
+				var ws = XLSX.utils.table_to_sheet(tbl, {dateNF:'DD.MM.YYYY'});
+
+                var wb = XLSX.utils.book_new();
+                XLSX.utils.book_append_sheet(wb, ws, 'New Sheet Name 1');
+
+                return XLSX.writeFile(wb, 'revision-search-result.xlsx');			
+		}
+
 		function getProcessInstances(filter, processInstances){
 			$http({
 				method: 'POST',
