@@ -143,7 +143,7 @@ public class ProductCatalog {
         return null;
     }
 
-    @RequestMapping(value = "/vas_short_numbers/{shortNumber}/service_type_id/{serviceTypeId}", method = RequestMethod.GET)
+    @RequestMapping(value = "/vas_short_numbers/short_number/{shortNumber}/service_type_id/{serviceTypeId}", method = RequestMethod.GET)
     @ResponseBody
     public ResponseEntity<String> checkShortNumber(@PathVariable("shortNumber") String shortNumber, @PathVariable("serviceTypeId") String serviceTypeId, HttpServletRequest request) throws Exception {
 
@@ -160,7 +160,7 @@ public class ProductCatalog {
 
                 CloseableHttpClient httpclient = HttpClients.custom().build();
 
-                HttpGet httpGet = new HttpGet(productCatalogUrl + "/vas_short_numbers/" + shortNumber + "/service_type_id/" + serviceTypeId);
+                HttpGet httpGet = new HttpGet(productCatalogUrl + "/vas_short_numbers/short_number/" + shortNumber + "/service_type_id/" + serviceTypeId);
                 httpGet.setHeader("Authorization", "Basic " + encoding);
 
                 HttpResponse httpResponse = httpclient.execute(httpGet);
