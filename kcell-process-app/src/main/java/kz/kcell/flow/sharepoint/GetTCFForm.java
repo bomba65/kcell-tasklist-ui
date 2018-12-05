@@ -79,42 +79,47 @@ public class GetTCFForm implements JavaDelegate {
             JSONObject responseSharepointJSON = new JSONObject(responseString);
             JSONObject tcf = responseSharepointJSON.getJSONObject("d");
             //String Id = tcf.get("Id").toString();
+            String Status = tcf.get("Status").toString();
 
-            String htmlTable = tcf.get("Requirments").toString();
-            Document doc = Jsoup.parse(htmlTable);
-            Element table = doc.select("table").get(0);
+            if("Completed".equals(Status)){
+                String htmlTable = tcf.get("Requirments").toString();
+                Document doc = Jsoup.parse(htmlTable);
+                Element table = doc.select("table").get(0);
 
-            ////////////////////// PARSE HTML /////////////////////////
-            /*
-            /////// WITHOUT NESTED TABLE ///////////
-            Element row = table.select("tr").get(3);
-            Element td = row.select("td").get(4);
-            String identifierTCFID = td.text();
-            */
+                ////////////////////// PARSE HTML /////////////////////////
+                /*
+                /////// WITHOUT NESTED TABLE ///////////
+                Element row = table.select("tr").get(3);
+                Element td = row.select("td").get(4);
+                String identifierTCFID = td.text();
+                */
 
-            /////// WITH NESTED TABLE ///////////
-            Element row = table.select("tr").get(4);
-            Element td = row.select("td").get(4);
-            Element nestedTable = td.getElementsByTag("table").get(0);
-            Element nestedTableRow = nestedTable.select("tr").get(0);
-            Element nestedTableRowTd = nestedTableRow.select("td").get(0);
-            String identifierTCFID = nestedTableRowTd.text();
+                /////// WITH NESTED TABLE ///////////
+                Element row = table.select("tr").get(4);
+                Element td = row.select("td").get(4);
+                Element nestedTable = td.getElementsByTag("table").get(0);
+                Element nestedTableRow = nestedTable.select("tr").get(0);
+                Element nestedTableRowTd = nestedTableRow.select("td").get(0);
+                String identifierTCFID = nestedTableRowTd.text();
+                ///////////////////////////////////////////////////////////
+                if("amdocs".equals(billingTCF)){
+                    delegateExecution.setVariable("identifierAmdocsID", identifierTCFID);
+                    delegateExecution.setVariable("amdocsTcfIdReceived", true);
+                }
 
-            ///////////////////////////////////////////////////////////
-
-            if("amdocs".equals(billingTCF)){
-                delegateExecution.setVariable("identifierAmdocsID", identifierTCFID);
-                delegateExecution.setVariable("amdocsTcfIdReceived", true);
+                if("orga".equals(billingTCF)){
+                    delegateExecution.setVariable("identifierOrgaID", identifierTCFID);
+                    delegateExecution.setVariable("orgaTcfIdReceived", true);
+                }
             } else {
-                delegateExecution.setVariable("amdocsTcfIdReceived", false);
+                if("amdocs".equals(billingTCF)){
+                    delegateExecution.setVariable("amdocsTcfIdReceived", false);
+                }
+                if("orga".equals(billingTCF)){
+                    delegateExecution.setVariable("orgaTcfIdReceived", false);
+                }
             }
 
-            if("orga".equals(billingTCF)){
-                delegateExecution.setVariable("identifierOrgaID", identifierTCFID);
-                delegateExecution.setVariable("orgaTcfIdReceived", true);
-            } else {
-                delegateExecution.setVariable("orgaTcfIdReceived", false);
-            }
 
         } else {
 
