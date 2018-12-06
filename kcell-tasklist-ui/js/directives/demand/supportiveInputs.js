@@ -133,7 +133,7 @@ define(['./../module'], function(module){
                     {unit: 'Products and Services Section', form: 'Other'},
                     {unit: 'Service Assurance and Operations Section', form: 'Other'},
                     {unit: 'South Region Section', form: 'Other'},
-                    {unit: 'Technical Planning Section', form: 'Other'},
+                    {unit: 'Network Economics', form: 'Other'},
                     {unit: 'West Region Section', form: 'Other'}
                 ];
 
