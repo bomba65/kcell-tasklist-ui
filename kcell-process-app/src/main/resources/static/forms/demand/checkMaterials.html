@@ -22,10 +22,14 @@
             var processInstanceId = null;
             $scope.assigneeName = $rootScope.authentication.name;
             $scope.assigneeId = $rootScope.authentication.name;
-            var createdDate = new Date();
+            $scope.userGroups;
             var CPDList = [];
             $scope.materials = [];
+            var createdDate = new Date();
 
+            $http.get("/camunda/api/engine/engine/default/group?member=" + $rootScope.authentication.name).then(function(result) {
+                if (result.data && result.data.length) $scope.userGroups = result.data.map(function (e) { return e.id; });
+            });
             $http.get("/camunda/api/engine/engine/default/user/" + $rootScope.authentication.name+ "/profile").then(function(result){
                 $scope.assigneeName = (result.data.firstName ? result.data.firstName : "") + " " + (result.data.lastName ? result.data.lastName : "");
             });
@@ -65,7 +69,9 @@
                 var ind = $scope.supportiveInputs.findIndex(function(e) {return e.unit == $scope.supportiveInputName.SUName;});
                 if (ind !== -1) {
                     for (var i = 0; i < $scope.supportiveInputs[ind].value.length; i++) {
-                        if ($scope.assigneeId && $scope.supportiveInputs[ind].value[i].expert && $scope.assigneeId == $scope.supportiveInputs[ind].value[i].expert.id) {
+                        if ($scope.userGroups && $scope.supportiveInputs[ind].value[i].expert && $scope.userGroups.includes($scope.supportiveInputs[ind].value[i].expert.groupId)) {
+                            $scope.supportiveInputs[ind].value[i].expert.id = $scope.assigneeId;
+                            $scope.supportiveInputs[ind].value[i].expert.fio = $scope.assigneeName;
                             $scope.materials.push($scope.supportiveInputs[ind].value[i]);
                         }
                     }
@@ -86,7 +92,7 @@
                         var lastSupportiveInputs = JSON.parse(results[1].data.value);
                         var ind = lastSupportiveInputs.findIndex(function(e) {return e.unit == $scope.supportiveInputName.SUName;});
                         for (var i = 0; i < lastSupportiveInputs[ind].value.length; i++) {
-                            if ($scope.assigneeId && lastSupportiveInputs[ind].value[i].expert && $scope.assigneeId == lastSupportiveInputs[ind].value[i].expert.id) {
+                            if ($scope.userGroups && lastSupportiveInputs[ind].value[i].expert && $scope.userGroups.includes(lastSupportiveInputs[ind].value[i].expert.groupId)) {
                                 lastSupportiveInputs[ind].value[i] = $scope.supportiveInputs[ind].value[i];
                                 lastSupportiveInputs[ind].value.splice(i, 1);
                                 i--;
@@ -123,7 +129,7 @@
                 });
 
                 var submitDate = new Date ();
-                $scope.resolutions.unshift({processInstanceId: processInstanceId, assignee: $scope.assigneeName, resolution: 'Completed', comment: $scope.comment, taskId: camForm.taskId, taskEndDate: submitDate, taskName: 'Fill material costs', dateOfAssign: createdDate});
+                $scope.resolutions.unshift({processInstanceId: processInstanceId, assignee: $scope.assigneeName, resolution: 'Completed', comment: $scope.comment, taskEndDate: submitDate, taskName: 'Check materials', dateOfAssign: createdDate});
                 camForm.variableManager.destroyVariable('resolutions');
                 camForm.variableManager.createVariable({
                     name: 'resolutions',
@@ -146,8 +152,8 @@
                     for (var i = 0; i < $scope.materials.length; i++) {
                         var m = $scope.materials[i];
                         $scope.supportiveInputs
-                        if (!m.purchaser || !m.purchaser.id || CPDList.find(function(e) { return e.purchaser === m.purchaser.id; })) continue;
-                        CPDList.push({SUName: $scope.supportiveInputName.SUName, purchaser: m.purchaser.id});
+                        if (!m.purchaser || !m.purchaser.groupId || CPDList.find(function(e) { return e.purchaser === m.purchaser.groupId; })) continue;
+                        CPDList.push({SUName: $scope.supportiveInputName.SUName, purchaser: m.purchaser.groupId});
                     }
                 }
 
@@ -243,7 +249,7 @@
         </div>
         <label style="width: 6.6%; float: left; padding-left: 15px; padding-top: 7px; font-weight: 500;"> Activity:</label>
         <div class="col-sm-5">
-            <label rows="1" class="form-control" disabled> Fill material costs </label>
+            <label rows="1" class="form-control" disabled> Check materials </label>
         </div>
     </div>
     <div class="form-group">
@@ -387,7 +393,8 @@
     <div class="form-group">
         <label class="col-sm-2 control-label">Comments</label>
         <div class="col-sm-10">
-            <textarea class="form-control" rows="4" maxlength="500" ng-model="comment" name="comment"></textarea>
+            <textarea class="form-control" rows="4" maxlength="500" ng-model="comment" name="comment" required></textarea>
+            <label class="error" ng-show="kcell_form.comment.$error.required && ( kcell_form.comment.$touched || view.submitted)">Required field</label>
         </div>
     </div>
 

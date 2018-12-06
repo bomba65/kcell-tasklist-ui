@@ -30,14 +30,18 @@ define(['./../module'], function(module){
                         if (!scope.data || !(scope.data instanceof Array)) scope.data = [];
                         scope.countTotalSum();
 
-                        if (!scope.responsible) {
-                            scope.responsible = $rootScope.authentication.name;
+                        if (!scope.userFIO) {
+                            scope.userFIO = $rootScope.authentication.name;
                             $http.get("/camunda/api/engine/engine/default/user/" + $rootScope.authentication.name+ "/profile").then(function(result) {
                                 if (result.data && result.data.firstName && result.data.lastName) {
-                                    scope.responsible = result.data.firstName + " " + result.data.lastName;
+                                    scope.userFIO = result.data.firstName + " " + result.data.lastName;
                                 }
                             });
                         }
+
+                        if (scope.isMaterialCheck)
+                            for (var i = 0; i < scope.data.length; i++)
+                                scope.setExpert(i);
                     }
                 });
 
@@ -60,9 +64,10 @@ define(['./../module'], function(module){
                         existing: null,
                         currency: null,
                         pprice: null,
-                        summ: null,
-                        responsible: null
+                        summ: null
                     });
+
+                    if (scope.isMaterialCheck) scope.setExpert(scope.data.length - 1);
                 };
 
                 scope.calcSumm = function(index) {
@@ -70,14 +75,6 @@ define(['./../module'], function(module){
                     if (!scope.data[index].pprice) return;
                     scope.data[index].summ = scope.data[index].quantity * scope.data[index].pprice;
                     scope.countTotalSum();
-                };
-
-                scope.setResponsible = function(index) {
-                    scope.data[index].responsible = {
-                        name: $rootScope.authentication.name,
-                        fio: scope.responsible
-                    };
-                    scope.calcSumm(index);
                 };
 
                 scope.countTotalSum = function() {
@@ -103,33 +100,47 @@ define(['./../module'], function(module){
                     scope.data[index].cat3 = null;
                     scope.data[index].purchaser = option.purchaser;
                     scope.data[index].expert = option.expert;
-                    setPurchaserName(index, option.purchaser);
-                    setExpertName(index, option.expert);
+                    setPurchaserGroupName(index, option.purchaser);
+                    setExpertGroupName(index, option.expert);
                 };
 
                 scope.onCat3Change = function(index, option) {
                     scope.data[index].cat3 = option;
                 };
 
-                var setPurchaserName = function (index, purchaser) {
-                    if (!purchaser || !purchaser.id) return;
+                var setPurchaserGroupName = function (index, purchaser) {
+                    if (!purchaser || !purchaser.groupId) return;
 
-                    $http.get("/camunda/api/engine/engine/default/group/" + purchaser.id).then(
+                    $http.get("/camunda/api/engine/engine/default/group/" + purchaser.groupId).then(
                         function(result) {
-                            if (result.data) scope.data[index].purchaser.fio = result.data.name;
+                            if (result.data) scope.data[index].purchaser.groupName = result.data.name;
                         },
                         function(error) { toasty.error(error.data); }
                     );
                 };
 
-                var setExpertName = function (index, expert) {
-                    if (!expert || !expert.id) return;
+                scope.setPurchaser = function(index) {
+                    scope.data[index].purchaser.id = $rootScope.authentication.name;
+                    scope.data[index].purchaser.fio = scope.userFIO;
+                    scope.calcSumm(index);
+                };
 
-                    $http.get("/camunda/api/engine/engine/default/user/" + expert.id + "/profile").then(function (result) {
-                        if (result.data && result.data.firstName && result.data.lastName) {
-                            scope.data[index].expert.fio = result.data.firstName + " " + result.data.lastName;
-                        }
-                    });
+                var setExpertGroupName = function (index, expert) {
+                    if (!expert || !expert.groupId) return;
+
+                    $http.get("/camunda/api/engine/engine/default/group/" + expert.groupId).then(
+                        function(result) {
+                            if (result.data) scope.data[index].expert.groupName = result.data.name;
+                        },
+                        function(error) { toasty.error(error.data); }
+                    );
+                };
+
+                scope.setExpert = function(index) {
+                    console.log("===> ", scope.userFIO);
+                    scope.data[index].expert.id = $rootScope.authentication.name;
+                    scope.data[index].expert.fio = scope.userFIO;
+                    scope.calcSumm(index);
                 };
 
                 scope.options = {
@@ -150,9 +161,11 @@ define(['./../module'], function(module){
                                 {
                                     v: "ANTENNAS",
                                     purchaser: {
-                                        id: "DEMAND_CPD_L2_ANTENNAS"
+                                        groupId: "DEMAND_CPD_L2_ANTENNAS"
                                     },
-                                    expert: {id: "demo"},
+                                    expert: {
+                                        groupId: "DEMAND_CPD_L2_ANTENNAS"
+                                    },
                                     cat3: [
                                         "ANTENNAS COMPONENTS - SPLITTER, MCM, CABLE",
                                         "FEEDER",
@@ -168,9 +181,11 @@ define(['./../module'], function(module){
                                 {
                                     v: "CABLE MATERIALS",
                                     purchaser: {
-                                        id: "DEMAND_CPD_L2_CABLE_MATERIALS"
+                                        groupId: "DEMAND_CPD_L2_CABLE_MATERIALS"
                                     },
-                                    expert: {id: "Abai.Shapagatin@kcell.kz"},
+                                    expert: {
+                                        groupId: "DEMAND_CPD_L2_CABLE_MATERIALS"
+                                    },
                                     cat3: [
                                         "CABLE",
                                         "CABLE LUG",

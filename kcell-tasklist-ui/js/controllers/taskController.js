@@ -275,8 +275,10 @@ define(['./module','camundaSDK', 'lodash', 'big-js'], function(module, CamSDK, _
 		$scope.assignLinkEnabled = function(processDefinitionKey) {
 			if(processDefinitionKey === 'Revision'){
 				return $scope.hasGroup('revision_managers');
-			} else if(processDefinitionKey === 'Invoice'){
+			} else if(processDefinitionKey === 'Invoice') {
 				return $scope.hasGroup('monthly_act_managers');
+			} else if(processDefinitionKey === 'Demand') {
+                return $scope.hasGroup('monthly_act_managers');
 			}
 		};
 	}]);
