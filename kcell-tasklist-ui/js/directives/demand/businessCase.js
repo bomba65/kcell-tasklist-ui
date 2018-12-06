@@ -206,12 +206,19 @@ define(['./../module', 'xlsx'], function(module){
                                 rocName: (!sheet[r]['AH'] || sheet[r]['AH'] == 'n/a') ? null : sheet[r]['AH'],
                                 wbs: (!sheet[r]['AJ'] || sheet[r]['AJ'] == 'n/a') ? null : sheet[r]['AJ'],
                                 cost: (!sheet[r]['N'] || sheet[r]['N'] == 'n/a') ? null : sheet[r]['N'],
+                                hyperion: (!sheet[r]['R'] || sheet[r]['R'] == 'n/a') ? null : sheet[r]['R'],
+                                investment1: (!sheet[r]['S'] || sheet[r]['S'] == 'n/a') ? null : sheet[r]['S'],
+                                investment2: (!sheet[r]['T'] || sheet[r]['T'] == 'n/a') ? null : sheet[r]['T'],
                                 purchasing: (!sheet[r]['V'] || sheet[r]['V'] == 'n/a') ? null : sheet[r]['V'],
+                                vendorName: (!sheet[r]['W'] || sheet[r]['W'] == 'n/a') ? null : sheet[r]['W'],
+                                vendorCode: (!sheet[r]['X'] || sheet[r]['X'] == 'n/a') ? null : sheet[r]['X'],
                                 contract: (!sheet[r]['Y'] || sheet[r]['Y'] == 'n/a') ? null : sheet[r]['Y'],
                                 contractAdd: (!sheet[r]['Z'] || sheet[r]['Z'] == 'n/a') ? null : sheet[r]['Z'],
                                 startDate: (!sheet[r]['AA'] || sheet[r]['AA'] == 'n/a') ? null : sheet[r]['AA'],
                                 endDate: (!sheet[r]['AB'] || sheet[r]['AB'] == 'n/a') ? null : sheet[r]['AB'],
                                 amount: (!sheet[r]['AD'] || sheet[r]['AD'] == 'n/a') ? null : sheet[r]['AD'],
+                                contractAmount: (!sheet[r]['AE'] || sheet[r]['AE'] == 'n/a') ? null : sheet[r]['AE'],
+                                currency: (!sheet[r]['AF'] || sheet[r]['AF'] == 'n/a') ? null : sheet[r]['AF'],
                                 depCode: (!sheet[r]['AI'] || sheet[r]['AI'] == 'n/a') ? null : sheet[r]['AI'],
                                 year: {
                                     1: parseFloat(sheet[r]['AK'])?parseFloat(sheet[r]['AK']):0.0,
@@ -248,7 +255,8 @@ define(['./../module', 'xlsx'], function(module){
                                         'Feb': parseFloat(sheet[r]['CY'])?parseFloat(sheet[r]['CY']):(parseFloat(sheet[r]['BX'])?parseFloat(sheet[r]['BX']):0.0),
                                         'Mar': parseFloat(sheet[r]['CZ'])?parseFloat(sheet[r]['CZ']):(parseFloat(sheet[r]['BY'])?parseFloat(sheet[r]['BY']):0.0),
                                         'Apr': parseFloat(sheet[r]['DA'])?parseFloat(sheet[r]['DA']):(parseFloat(sheet[r]['BZ'])?parseFloat(sheet[r]['BZ']):0.0)
-                                    }, 2: {}, 3: {}, 4: {}, 5: {}}
+                                    }, 2: {}, 3: {}, 4: {}, 5: {}},
+                                incremental: sheet[r]['EJ']
                             };
                             for (var c = 66; c < 74; c++) {
                                 var val = sheet[r]['D' + String.fromCharCode(c)];
