@@ -3,10 +3,6 @@
         .well {
             color: #333;
         }
-
-        .content-visible-accordion .panel {
-            overflow: visible;
-        }
     </style>
     <script cam-script type="text/form-script">
         inject(['$scope', '$http', 'Uri', '$rootScope', '$q', 'toasty', '$timeout', function ($scope, $http, Uri, $rootScope, $q, toasty, $timeout) {
@@ -22,9 +18,13 @@
                 reportsStatistics: ''
             };
             $scope.supportiveInputs = [];
+            $scope.supportiveInputName = null;
             var processInstanceId = null;
             $scope.assigneeName = $rootScope.authentication.name;
+            $scope.assigneeId = $rootScope.authentication.name;
             var createdDate = new Date();
+            var CPDList = [];
+            $scope.materials = [];
 
             $http.get("/camunda/api/engine/engine/default/user/" + $rootScope.authentication.name+ "/profile").then(function(result){
                 $scope.assigneeName = (result.data.firstName ? result.data.firstName : "") + " " + (result.data.lastName ? result.data.lastName : "");
@@ -45,6 +45,8 @@
                 camForm.variableManager.fetchVariable('BRDData');
                 camForm.variableManager.fetchVariable('attachments');
                 camForm.variableManager.fetchVariable('supportiveInputs');
+                camForm.variableManager.fetchVariable('supportiveInputName');
+                camForm.variableManager.fetchVariable('CPDList');
             });
 
             camForm.on('variables-fetched', function () {
@@ -53,32 +55,51 @@
                 $scope.BRDData = camForm.variableManager.variableValue('BRDData');
                 $scope.attachments = camForm.variableManager.variableValue('attachments');
                 $scope.supportiveInputs = camForm.variableManager.variableValue('supportiveInputs');
+                $scope.supportiveInputName = camForm.variableManager.variableValue('supportiveInputName');
+                CPDList = camForm.variableManager.variableValue('CPDList');
                 if (!$scope.resolutions) $scope.resolutions = [];
                 if (!$scope.attachments) $scope.attachments = [];
                 if (!$scope.supportiveInputs) $scope.supportiveInputs = [];
+                if (!CPDList) CPDList = [];
 
+                var ind = $scope.supportiveInputs.findIndex(function(e) {return e.unit == $scope.supportiveInputName.SUName;});
+                if (ind !== -1) {
+                    for (var i = 0; i < $scope.supportiveInputs[ind].value.length; i++) {
+                        if ($scope.assigneeId && $scope.supportiveInputs[ind].value[i].expert && $scope.assigneeId == $scope.supportiveInputs[ind].value[i].expert.id) {
+                            $scope.materials.push($scope.supportiveInputs[ind].value[i]);
+                        }
+                    }
+                }
             });
 
             $scope.preSubmit = function() {
                 return $q.all([
+                    $http.get('/camunda/api/engine/engine/default/process-instance/'+processInstanceId+'/variables/CPDList?deserializeValue=false'),
                     $http.get('/camunda/api/engine/engine/default/process-instance/'+processInstanceId+'/variables/supportiveInputs?deserializeValue=false'),
                     $http.get('/camunda/api/engine/engine/default/process-instance/'+processInstanceId+'/variables/resolutions?deserializeValue=false'),
                     $http.get('/camunda/api/engine/engine/default/process-instance/'+processInstanceId+'/variables/attachments?deserializeValue=false')
                 ]).then(function (results) {
                     if (results[0] && results[0].data) {
-                        var lastSupportiveInputs = JSON.parse(results[0].data.value);
-                        for (var i = 0; i < lastSupportiveInputs.length; i++) {
-                            if (lastSupportiveInputs[i].unit == 'Centralized Procurement Department') {
-                                lastSupportiveInputs[i].value = $scope.supportiveInputs[i].value;
+                        CPDList = JSON.parse(results[0].data.value);
+                    }
+                    if (results[1] && results[1].data) {
+                        var lastSupportiveInputs = JSON.parse(results[1].data.value);
+                        var ind = lastSupportiveInputs.findIndex(function(e) {return e.unit == $scope.supportiveInputName.SUName;});
+                        for (var i = 0; i < lastSupportiveInputs[ind].value.length; i++) {
+                            if ($scope.assigneeId && lastSupportiveInputs[ind].value[i].expert && $scope.assigneeId == lastSupportiveInputs[ind].value[i].expert.id) {
+                                lastSupportiveInputs[ind].value[i] = $scope.supportiveInputs[ind].value[i];
+                                lastSupportiveInputs[ind].value.splice(i, 1);
+                                i--;
                             }
                         }
                         $scope.supportiveInputs = lastSupportiveInputs;
-                    }
-                    if (results[1] && results[1].data) {
-                        $scope.resolutions = JSON.parse(results[1].data.value);
+                        for (var i = 0; i < $scope.materials.length; i++) $scope.supportiveInputs[ind].value.push($scope.materials[i]);
                     }
                     if (results[2] && results[2].data) {
-                        var lastAttachments = JSON.parse(results[2].data.value);
+                        $scope.resolutions = JSON.parse(results[2].data.value);
+                    }
+                    if (results[3] && results[3].data) {
+                        var lastAttachments = JSON.parse(results[3].data.value);
                         for (var attachment of $scope.attachments) {
                             if (!lastAttachments.find(function(e) {return e.path == attachment.path;})) {
                                 lastAttachments.push(attachment);
@@ -110,12 +131,33 @@
                     value: $scope.resolutions
                 });
 
-                camForm.variableManager.destroyVariable('supportiveInputs');
+                if ($scope.supportiveInputName) {
+                    var elt = $scope.supportiveInputs.find(function(e) {return e.unit == $scope.supportiveInputName.SUName});
+                    if (elt) elt.inputReceived = true;
+                    camForm.variableManager.destroyVariable('supportiveInputs');
+                    camForm.variableManager.createVariable({
+                        name: 'supportiveInputs',
+                        type: 'Json',
+                        value: $scope.supportiveInputs
+                    });
+                }
+
+                if ($scope.materials && $scope.materials.length) {
+                    for (var i = 0; i < $scope.materials.length; i++) {
+                        var m = $scope.materials[i];
+                        $scope.supportiveInputs
+                        if (!m.purchaser || !m.purchaser.id || CPDList.find(function(e) { return e.purchaser === m.purchaser.id; })) continue;
+                        CPDList.push({SUName: $scope.supportiveInputName.SUName, purchaser: m.purchaser.id});
+                    }
+                }
+
+                camForm.variableManager.destroyVariable('CPDList');
                 camForm.variableManager.createVariable({
-                    name: 'supportiveInputs',
-                    type: 'Json',
-                    value: $scope.supportiveInputs
+                    name: 'CPDList',
+                    type: 'json',
+                    value: CPDList
                 });
+
             });
 
             $scope.downloadFile = function (file) {
@@ -201,7 +243,7 @@
         </div>
         <label style="width: 6.6%; float: left; padding-left: 15px; padding-top: 7px; font-weight: 500;"> Activity:</label>
         <div class="col-sm-5">
-            <label rows="1" class="form-control" disabled> Check materials </label>
+            <label rows="1" class="form-control" disabled> Fill material costs </label>
         </div>
     </div>
     <div class="form-group">
@@ -284,12 +326,12 @@
         <tab active="true">
             <tab-heading> Costs and Acceptance criteria </tab-heading>
             <div style="margin-bottom: 20px;">
-                <accordion ng-repeat="i in supportiveInputs" ng-if="i.unit == 'Centralized Procurement Department'" class="content-visible-accordion">
+                <accordion>
                     <accordion-group is-open="true">
                         <accordion-heading>
                             Materials <i class="pull-right glyphicon" ng-class="{'glyphicon-chevron-up': status.isCustomHeaderOpen, 'glyphicon-chevron-down': !status.isCustomHeaderOpen}"></i>
                         </accordion-heading>
-                        <demand-materials data="i.value" form="kcell_form" view="view" disabled="false"></demand-materials>
+                        <demand-materials data="materials" form="kcell_form" view="view" disabled="false" editprice="false"></demand-materials>
                     </accordion-group>
                 </accordion>
             </div>

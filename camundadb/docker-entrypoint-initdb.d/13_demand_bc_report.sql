@@ -1,3 +1,4 @@
+drop view if exists bc_report;
 create view bc_report as
 	select t.proc_id as proc_id,
 			(t.j->'businessKey'->>'val')::text as business_key,

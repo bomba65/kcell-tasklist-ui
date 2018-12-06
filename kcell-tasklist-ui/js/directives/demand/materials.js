@@ -53,6 +53,7 @@ define(['./../module'], function(module){
                         cat2: null,
                         cat3: null,
                         specification: null,
+                        expert: null,
                         purchaseGroup: null,
                         quantity: null,
                         measure: null,
@@ -169,7 +170,7 @@ define(['./../module'], function(module){
                                     purchaser: {
                                         id: "DEMAND_CPD_L2_CABLE_MATERIALS"
                                     },
-                                    expert: {id: "demo"},
+                                    expert: {id: "Abai.Shapagatin@kcell.kz"},
                                     cat3: [
                                         "CABLE",
                                         "CABLE LUG",
