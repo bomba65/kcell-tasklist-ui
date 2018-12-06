@@ -26,6 +26,8 @@
             var CPDList = [];
             $scope.materials = [];
             var createdDate = new Date();
+            var CPDList = [];
+            $scope.materials = [];
 
             $http.get("/camunda/api/engine/engine/default/group?member=" + $rootScope.authentication.name).then(function(result) {
                 if (result.data && result.data.length) userGroups = result.data.map(function (e) { return e.id; });
@@ -65,7 +67,6 @@
                 if (!$scope.attachments) $scope.attachments = [];
                 if (!$scope.supportiveInputs) $scope.supportiveInputs = [];
                 if (!CPDList) CPDList = [];
-
                 var ind = $scope.supportiveInputs.findIndex(function(e) {return e.unit == $scope.supportiveInputItem.unit;});
                 if (ind !== -1) {
                     for (var i = 0; i < $scope.supportiveInputs[ind].value.length; i++) {
@@ -138,11 +139,31 @@
                     value: $scope.resolutions
                 });
 
-                camForm.variableManager.destroyVariable('supportiveInputs');
+                if ($scope.supportiveInputName) {
+                    var elt = $scope.supportiveInputs.find(function(e) {return e.unit == $scope.supportiveInputName.SUName});
+                    if (elt) elt.inputReceived = true;
+                    camForm.variableManager.destroyVariable('supportiveInputs');
+                    camForm.variableManager.createVariable({
+                        name: 'supportiveInputs',
+                        type: 'Json',
+                        value: $scope.supportiveInputs
+                    });
+                }
+
+                if ($scope.materials && $scope.materials.length) {
+                    for (var i = 0; i < $scope.materials.length; i++) {
+                        var m = $scope.materials[i];
+                        $scope.supportiveInputs
+                        if (!m.purchaser || !m.purchaser.id || CPDList.find(function(e) { return e.purchaser === m.purchaser.id; })) continue;
+                        CPDList.push({SUName: $scope.supportiveInputName.SUName, purchaser: m.purchaser.id});
+                    }
+                }
+
+                camForm.variableManager.destroyVariable('CPDList');
                 camForm.variableManager.createVariable({
-                    name: 'supportiveInputs',
-                    type: 'Json',
-                    value: $scope.supportiveInputs
+                    name: 'CPDList',
+                    type: 'json',
+                    value: CPDList
                 });
 
                 if ($scope.materials && $scope.materials.length) {
@@ -160,7 +181,6 @@
                     type: 'json',
                     value: CPDList
                 });
-
             });
 
             $scope.downloadFile = function (file) {
@@ -246,7 +266,7 @@
         </div>
         <label style="width: 6.6%; float: left; padding-left: 15px; padding-top: 7px; font-weight: 500;"> Activity:</label>
         <div class="col-sm-5">
-            <label rows="1" class="form-control" disabled> Check materials </label>
+            <label rows="1" class="form-control" disabled> Fill material costs </label>
         </div>
     </div>
     <div class="form-group">
