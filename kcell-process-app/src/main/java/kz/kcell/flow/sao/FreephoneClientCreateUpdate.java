@@ -157,7 +157,7 @@ public class FreephoneClientCreateUpdate implements JavaDelegate {
                 saoResponse.put(operatorJSON.get("name").toString(), responseJSON);
 
                 if(responseJSON.has("success")) {
-                    long responseStatusCode = (long) responseJSON.get("success");
+                    Integer responseStatusCode = (Integer) responseJSON.get("success");
                     if(responseStatusCode != 1) {
                         saoSuccessfulResponse = false;
                     }

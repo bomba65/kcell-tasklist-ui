@@ -30,7 +30,8 @@
                 'previouslyBought',
                 'operatorType',
                 'responsibleB2BDelivery',
-                'responsibleB2BSales'
+                'responsibleB2BSales',
+                'VPNchannel'
             ];
 
             camForm.on('form-loaded', function () {
@@ -67,15 +68,7 @@
                                     }
                                 });
                             });
-                            /*
-                            $q.all($scope.resolutions.map(function (resolution) {
-                                return $http.get("/camunda/api/engine/engine/default/user/" + resolution.assignee + "/profile");
-                            })).then(function (profiles) {
-                                profiles.forEach(function (e, index) {
-                                    $scope.resolutions[index].assigneeName = (e.data.firstName ? e.data.firstName : "") + " " + (e.data.lastName ? e.data.lastName : "");
-                                });
-                            });
-                            */
+
                             $q.all($scope.resolutions.map(function (resolution) {
                                 return $http.get("/camunda/api/engine/engine/default/history/task?processInstanceId=" + resolution.processInstanceId + "&taskId=" + resolution.taskId);
                             })).then(function (tasks) {
@@ -101,6 +94,17 @@
                     } else if (el === 'applicationScanCopyFileName' || el === 'contractScanCopyFileName' || el === 'vpnQuestionnaireFileName') {
                         $scope[el] = camForm.variableManager.variables[el].value;
                         $scope.freephoneInfo.files.push(camForm.variableManager.variables[el].value);
+                    } else if (el === 'VPNchannel') {
+                        if (camForm.variableManager.variables[el].value) {
+                            $scope[el] = camForm.variableManager.variables[el].value;
+                        } else {
+                            camForm.variableManager.destroyVariable('VPNchannel');
+                            camForm.variableManager.createVariable({
+                                name: 'VPNchannel',
+                                value: '',
+                                type: 'String'
+                            });
+                        }
                     } else {
                         $scope[el] = camForm.variableManager.variables[el].value;
                         $scope.freephoneInfo[el] = camForm.variableManager.variables[el].value;
@@ -130,11 +134,7 @@
 
             camForm.on('submit', function () {
                 var VPNchannel = $scope.buildVPN?'build':'not-build';
-                camForm.variableManager.createVariable({
-                    name: 'VPNchannel',
-                    type: 'String',
-                    value: VPNchannel
-                });
+                camForm.variableManager.variableValue('VPNchannel', VPNchannel);
                 $scope.confirmSuccessOfTestsWithVPNTaskResult = 'Completed';
                 if(!$scope.resolutions){
                     $scope.resolutions = [];
