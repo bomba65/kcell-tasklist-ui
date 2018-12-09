@@ -84,12 +84,15 @@ public class CheckPrStatusesSchedule {
                     Scanner s = new Scanner(inputStream).useDelimiter("\\A");
                     String result = s.hasNext() ? s.next() : "";
 
-                    String[] statuses = result.split("\n");
-                    for(String status:statuses){
+                    StringTokenizer byNewLine = new StringTokenizer(result, "\n");
+
+                    while(byNewLine.hasMoreTokens()){
+                        String status = byNewLine.nextToken();
                         log.info("fetching " + status);
 
-                        String[] status_parts = status.split("\t");
-                        String key = status_parts[1];
+                        StringTokenizer byTab = new StringTokenizer(status, "\t");
+
+                        String key = byTab.nextToken();
 
                         String k = key.substring(0, key.indexOf("-"));
                         switch (k) {
@@ -122,13 +125,15 @@ public class CheckPrStatusesSchedule {
                             if(processInstances.size() > 0){
                                 log.info("ProcessInstance with bussiness key " + key + " found");
 
-                                runtimeService.setVariable(processInstances.get(0).getId(),"sapPRNo", status_parts[2]);
-                                runtimeService.setVariable(processInstances.get(0).getId(),"sapPRTotalValue", Double.valueOf(status_parts[3]));
-                                runtimeService.setVariable(processInstances.get(0).getId(),"sapPRStatus", status_parts[4]);
+                                runtimeService.setVariable(processInstances.get(0).getId(),"sapPRNo", byTab.nextToken());
+                                runtimeService.setVariable(processInstances.get(0).getId(),"sapPRTotalValue", Double.valueOf(byTab.nextToken()));
+                                runtimeService.setVariable(processInstances.get(0).getId(),"sapPRStatus", byTab.nextToken());
+
+                                String sapPRApproveDate = byTab.nextToken();
                                 try {
-                                    runtimeService.setVariable(processInstances.get(0).getId(),"sapPRApproveDate", simpleDateFormat.parse(status_parts[5]));
+                                    runtimeService.setVariable(processInstances.get(0).getId(),"sapPRApproveDate", simpleDateFormat.parse(sapPRApproveDate));
                                 } catch (ParseException e){
-                                    log.warning("Date " + status_parts[5] + " parse exception");
+                                    log.warning("Date " + sapPRApproveDate + " parse exception");
                                 }
 
                                 usedBussinessKeyList.add(key);

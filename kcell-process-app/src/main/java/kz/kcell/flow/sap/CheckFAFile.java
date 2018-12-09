@@ -18,6 +18,7 @@ import org.springframework.stereotype.Service;
 
 import java.util.Arrays;
 import java.util.Scanner;
+import java.util.StringTokenizer;
 
 @Service("checkFAFile")
 @Log
@@ -62,22 +63,29 @@ public class CheckFAFile implements JavaDelegate {
                         Scanner s = new Scanner(inputStream).useDelimiter("\\A");
                         String result = s.hasNext() ? s.next() : "";
 
-                        log.info("Remote succes file for Fa " + delegateExecution.getVariable("jrNumber").toString() + " is: " + result);
+                        log.info("Remote succes file for Fa " + delegateExecution.getVariable("jrNumber").toString() + " is: ");
+                        log.info(result);
 
-                        String[] faResults = result.split("/n");
-                        for(String faResult: faResults){
-                            String[] faDataRow = faResult.split("/t");
+                        StringTokenizer byNewLine = new StringTokenizer(result,"\n");
+                        int newLineTokenLength = byNewLine.countTokens();
+
+                        log.info("faResults length: " + newLineTokenLength);
+
+                        for(int i=0; i<newLineTokenLength; i++){
+                            StringTokenizer byTab = new StringTokenizer(byNewLine.nextToken(),"\t");
+                            int tabTokenLength = byTab.countTokens();
+
+                            log.info("faDataRow length: " + tabTokenLength);
+
                             ObjectMapper mapper = new ObjectMapper();
                             ObjectNode sapFa = mapper.createObjectNode();
-                            sapFa.put("faClass", faDataRow[0]);
-                            sapFa.put("sloc", faDataRow[1]);
-                            sapFa.put("faNumber", faDataRow[2]);
-                            if(faDataRow.length>3 && "Absent!".equals(faDataRow[3])){
+                            sapFa.put("faClass", byTab.nextToken());
+                            sapFa.put("sloc", byTab.nextToken());
+                            sapFa.put("faNumber", byTab.nextToken());
+                            if(tabTokenLength>3 && "Absent!".equals(byTab.nextToken())){
                                 sapFa.put("absent", true);
                                 success = false;
                             }
-                            JsonValue jsonValue = SpinValues.jsonValue(sapFa.toString()).create();
-                            sapFaList.add(jsonValue.getValue());
                         }
                         if(success){
                             delegateExecution.setVariable("faFileCheckResult", "success");
