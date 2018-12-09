@@ -21,44 +21,9 @@
 
             var variablesToCreate = [
                 {
-                    name: 'siteName',
-                    type: 'String',
-                    value: ''
-                },
-                {
-                    name: 'dateOfVisit',
-                    type: Date,
-                    value: undefined
-                },
-                {
-                    name: 'constructionType',
-                    type: 'String',
-                    value: ''
-                },
-                {
-                    name: 'BSC',
-                    type: 'String',
-                    value: ''
-                },
-                {
-                    name: 'square',
-                    type: 'String',
-                    value: ''
-                },
-                {
-                    name: 'rbsType',
-                    type: 'String',
-                    value: ''
-                },
-                {
-                    name: 'bands',
+                    name: 'candidate',
                     type: 'Json',
-                    value: []
-                },
-                {
-                    name: 'rbsLocation',
-                    type: 'String',
-                    value: ''
+                    value: {}
                 },
                 {
                     name: 'cellAntenna',
@@ -87,6 +52,7 @@
                 }
             ];
 
+            $scope.candidate = {};
             $scope.form = {};
             $scope.editableForm = false;
             $scope.newFe = {};
@@ -124,7 +90,7 @@
                     'title': 'L2600',
                     'value': false
                 }];
-                $scope.rbsLocation = $scope.dictionary.rbsLocation = [{'title': 'Room'}, {'title': 'Container'}, {'title': 'Other'}, {'title': 'Outdoor'}];
+                $scope.candidate.rbsLocation = $scope.dictionary.rbsLocation = [{'title': 'Room'}, {'title': 'Container'}, {'title': 'Other'}, {'title': 'Outdoor'}];
                 $scope.dictionary.constructionType = ['Beeline', 'Kcell New Tower', 'Other'];
                 $scope.dictionary.equipmentType = ['-', 'FH', 'FH XC', 'MLE', 'MLHC', 'ML/TN', 'Our cable', 'Rented Channel', 'Satellite', 'TN2P', 'TN20P', 'TN6P'];
                 $scope.dictionary.antennaDiameter = [
@@ -533,7 +499,6 @@
                     $scope.newCandidateRRFiles = [];
                 }
 
-
                 camForm.variableManager.createVariable({
                     name: 'createNewCandidateSiteTaskResult',
                     type: 'String',
@@ -547,6 +512,8 @@
                 });
 
                 $scope.createNewCandidateSiteTaskResult = 'Completed';
+                $scope.candidate.longitude = $scope.longitude;
+                $scope.candidate.latitude = $scope.latitude;
             });
 
             camForm.on('submit', function () {
@@ -556,7 +523,7 @@
                     }
                     camForm.variableManager.variableValue('createNewCandidateSiteTaskResult', $scope.createNewCandidateSiteTaskResult);
                     camForm.variableManager.variableValue('createNewCandidateSiteTaskComment', $scope.createNewCandidateSiteTaskComment);
-                    camForm.variableManager.variableValue('lattitude', $scope.lattitude);
+                    camForm.variableManager.variableValue('latitude', $scope.latitude);
                     camForm.variableManager.variableValue('longitude', $scope.longitude);
 
                     $scope.resolutions.push({
@@ -584,10 +551,10 @@
             });
 
             $scope.$watch('availableBands', function (availableBands) {
-                $scope.selectedBands = [];
+                $scope.candidate.selectedBands = [];
                 availableBands.forEach(function (b) {
                     if (b.value) {
-                        $scope.selectedBands.push(b)
+                        $scope.candidate.selectedBands.push(b);
                     }
                 })
             }, true);
@@ -772,25 +739,143 @@
 
             $scope.downloadRRfile = function(){
                 //before create it!
+
                 var data = {
                     processInstanceId: $scope.processInstanceId,
                     taskId: camForm.taskId,
                     ncpID: $scope.ncpID,
-                    siteName: $scope.siteName,
-                    dateOfVisit: $scope.dateOfVisit,
-                    cellAntennaAddress:cellAntenna.address,
-                    contactInfo: renterCompany.contactInfo + '' + renterCompany.contactName
+                    cellAntennaAddress:$scope.cellAntenna.address? $scope.cellAntenna.address: '',
+                    contactName: $scope.renterCompany.contactName?$scope.renterCompany.contactName:'',
+                    contactPosition: $scope.renterCompany.contactPosition? $scope.renterCompany.contactPosition: '',
+                    contactInfo: $scope.renterCompany.contactInfo? $scope.renterCompany.contactInfo: '',
+                    newCandidateComments:$scope.newCandidateComments?$scope.newCandidateComments:'',
+                    rcLegalName:$scope.renterCompany.legalName?$scope.renterCompany.legalName:'',
+                    rcLegalAddress:$scope.renterCompany.legalAddress?$scope.renterCompany.legalAddress:'',
+                    rcTelFax: $scope.renterCompany.telFax?$scope.renterCompany.telFax:'',
+                    rcFirstLeaderName:$scope.renterCompany.firstLeaderName?$scope.renterCompany.firstLeaderName:'',
+                    rcFirstLeaderPos:$scope.renterCompany.firstLeaderPos?$scope.renterCompany.firstLeaderPos:'',
+                    rcEmail:$scope.renterCompany.email?$scope.renterCompany.email:''
                 };
-                $http.post('/camunda/leasing/rrfile/create',data).then(function (response) {
+
+                if($scope.candidate){
+                    data.siteName = $scope.candidate.siteName? $scope.candidate.siteName : '';
+                    data.latitude = $scope.candidate.latitude?$scope.candidate.latitude:'';
+                    data.longitude = $scope.candidate.longitude?$scope.candidate.longitude:'';
+                    data.constructionType = $scope.candidate.constructionType?$scope.candidate.constructionType:'';
+                    data.square = $scope.candidate.square?$scope.candidate.square:'';
+                    data.rbsType = $scope.candidate.rbsType?$scope.candidate.rbsType:'';
+
+                    if($scope.candidate.dateOfVisit){
+                        var dateOfVisit = new Date($scope.candidate.dateOfVisit);
+                        data.dateOfVisit = (dateOfVisit.getDate()>9?dateOfVisit.getDate():'0'+dateOfVisit.getDate()) + '-' + (dateOfVisit.getMonth()>9?dateOfVisit.getMonth()+1:'0'+(dateOfVisit.getMonth()+1)) + '-' + dateOfVisit.getFullYear();
+                    }
+                    if ($scope.candidate.selectedBands){
+                        var selectedBands = '';
+                        angular.forEach($scope.candidate.selectedBands, function (b) {
+                            selectedBands += (selectedBands===''?b.title:'+'+b.title);
+                        });
+                        data.selectedBands = selectedBands;
+                    }
+                    if($scope.candidate.rbsLocation){
+                        var rbsLocation = '';
+                        angular.forEach($scope.candidate.rbsLocation, function (l) {
+                            if(l.value){
+                                rbsLocation += (rbsLocation===''?l.title:', '+l.title);
+                            }
+                        });
+                        data.rbsLocation = rbsLocation;
+                    }
+                }
+                if($scope.cellAntenna){
+                    if($scope.cellAntenna.selectedAntennas){
+                        var selectedCellAntennas = '';
+                        var selectedCellAntennaDimensions = '';
+                        var selectedCellAntennaWeight = '';
+
+                        angular.forEach($scope.cellAntenna.selectedAntennas, function (a) {
+                            selectedCellAntennas += (selectedCellAntennas===''?a.antenna:', '+a.antenna);
+                            if(a.dimension){
+                                selectedCellAntennaDimensions += (selectedCellAntennas===''?a.dimension:', '+a.dimension);
+                            }
+                            if(a.dimension){
+                                selectedCellAntennaWeight += (selectedCellAntennas===''?a.weight:', '+a.weight);
+                            }
+                        });
+                        data.selectedCellAntennas=selectedCellAntennas;
+                        data.cellAntennaDimensions=selectedCellAntennaDimensions;
+                        data.cellAntennaWeight=selectedCellAntennaWeight;
+                    }
+                    data.cellAntennaQuantity = $scope.cellAntenna.quantity?$scope.cellAntenna.quantity:'';
+                    data.cellAntennaSuspensionHeight = $scope.cellAntenna.suspensionHeight?$scope.cellAntenna.suspensionHeight:'';
+                    data.cellAntennaAzimuth = $scope.cellAntenna.azimuth?$scope.cellAntenna.azimuth:'';
+                }
+                if($scope.transmissionAntenna){
+                    data.transmissionAntennaAntennaType = $scope.transmissionAntenna.antennaType?$scope.transmissionAntenna.antennaType:'';
+                    data.transmissionAntennaAntennaQuantity = $scope.transmissionAntenna.antennaQuantity?$scope.transmissionAntenna.antennaQuantity:'';
+                    data.transmissionAntennaAntennaFrequencyBand = $scope.transmissionAntenna.frequencyBand?$scope.transmissionAntenna.frequencyBand:'';
+                    data.transmissionAntennaAntennaDiameter = $scope.transmissionAntenna.diameter?$scope.transmissionAntenna.diameter:'';
+                    data.transmissionAntennaAntennaWeight = $scope.transmissionAntenna.weight?$scope.transmissionAntenna.weight:'';
+                    data.transmissionAntennaAntennaSuspensionHeight = $scope.transmissionAntenna.suspensionHeight?$scope.transmissionAntenna.suspensionHeight:'';
+                    data.transmissionAntennaAntennaAzimuth = $scope.transmissionAntenna.azimuth?$scope.transmissionAntenna.azimuth:'';
+                }
+                if($scope.powerSource){
+                    data.landlord = $scope.powerSource.provideUs3Phase?$scope.powerSource.provideUs3Phase:'';
+                    data.cableLength = $scope.powerSource.cableLength?$scope.powerSource.cableLength:'';
+                    data.monthlyPC = $scope.powerSource.agreeToReceiveMonthlyPayment?$scope.powerSource.agreeToReceiveMonthlyPayment:'';
+                    data.res4 = $scope.powerSource.closestPublic04?$scope.powerSource.closestPublic04:'';
+                    data.res10 = $scope.powerSource.closestPublic10?$scope.powerSource.closestPublic10:'';
+                }
+                var cableLayingType = '';
+                angular.forEach($scope.cableLayingType, function (t) {
+                    if(t.value){
+                        cableLayingType += (cableLayingType===''?t.title:', '+t.title);
+                    }
+                });
+                data.cableLayingType = cableLayingType;
+                if($scope.farEndInformation && $scope.farEndInformation.length > 0){
+                    data.farEndSitename = $scope.farEndInformation[0].farEndName?$scope.farEndInformation[0].farEndName:'';
+                    data.farEndAdress = $scope.farEndInformation[0].farEndAddress?$scope.farEndInformation[0].farEndAddress:'';
+                    data.farEndContact = $scope.farEndInformation[0].contractInformation?$scope.farEndInformation[0].contractInformation:'';
+                    data.farEndSquare = $scope.farEndInformation[0].square?$scope.farEndInformation[0].square:'';
+                    data.farEndEquipment = $scope.farEndInformation[0].equipmentType?$scope.farEndInformation[0].equipmentType:'';
+                    data.farEndAntennasQuantity = $scope.farEndInformation[0].antennasQuantity?$scope.farEndInformation[0].antennasQuantity:'';
+                    data.farEndAntennaDiameter = $scope.farEndInformation[0].antennaDiameter?$scope.farEndInformation[0].antennaDiameter:'';
+                    data.farEndTXFrequency = $scope.farEndInformation[0].TXFrequency?$scope.farEndInformation[0].TXFrequency:'';
+                    data.farEndRXFrequency = $scope.farEndInformation[0].RXFrequency?$scope.farEndInformation[0].RXFrequency:'';
+                    data.farEndWeight = $scope.farEndInformation[0].weight?$scope.farEndInformation[0].weight:'';
+                    data.farEndSuspensionHeight = $scope.farEndInformation[0].suspensionHeight?$scope.farEndInformation[0].suspensionHeight:'';
+                    data.farEndAzimuth = $scope.farEndInformation[0].azimuth?$scope.farEndInformation[0].azimuth:'';
+                    data.farEndConstructionType = $scope.farEndInformation[0].constructionType?$scope.farEndInformation[0].constructionType:'';
+                    data.farEndComments = $scope.farEndInformation[0].comments?$scope.farEndInformation[0].comments:'';
+                    data.farEndResultsOfVisit = $scope.farEndInformation[0].resultsOfVisit?$scope.farEndInformation[0].resultsOfVisit:'';
+                    //newFe.surveyDate
+
+                    if($scope.farEndInformation[0].renterCompany){
+                        data.farEndRcLegalName = $scope.farEndInformation[0].renterCompany.legalName?$scope.farEndInformation[0].renterCompany.legalName:'';
+                        data.farEndRcLegalAddress = $scope.farEndInformation[0].renterCompany.legalAddress?$scope.farEndInformation[0].renterCompany.legalAddress:'';
+                        data.farEndRcTelFax = $scope.farEndInformation[0].renterCompany.telFax?$scope.farEndInformation[0].renterCompany.telFax:'';
+                        data.farEndRcFirstLeaderName = $scope.farEndInformation[0].renterCompany.firstLeaderName?$scope.farEndInformation[0].renterCompany.firstLeaderName:'';
+                        data.farEndRcFirstLeaderPosition = $scope.farEndInformation[0].renterCompany.firstLeaderPosition?$scope.farEndInformation[0].renterCompany.firstLeaderPosition:'';
+                        data.farEndRcEmail = $scope.farEndInformation[0].renterCompany.email?$scope.farEndInformation[0].renterCompany.email:'';
+                        data.farEndRcContactName = $scope.farEndInformation[0].renterCompany.name?$scope.farEndInformation[0].renterCompany.name:'';
+                        data.farEndRcContactPosition = $scope.farEndInformation[0].renterCompany.position?$scope.farEndInformation[0].renterCompany.position:'';
+                        data.farEndRcContactInformation = $scope.farEndInformation[0].renterCompany.contactInformation?$scope.farEndInformation[0].renterCompany.contactInformation:'';
+                    }
+                }
+
+                $http.post('/camunda/leasing/rrfile/create',data).then(function (res) {
+                    console.log(res.data);
                     $http({
                         method: 'GET',
-                        url: '/camunda/uploads/get/' + $scope.processInstanceId + '/' + camForm.taskId + '/rrFile.docx',
+                        url: '/camunda/uploads/get/' + res.data,
                         transformResponse: []
                     }).then(function (response) {
                         document.getElementById('fileDownloadIframe').src = response.data;
                     }, function(error){
                         console.log(error.data);
                     });
+                }, function (error) {
+                    console.log(error);
                 });
             }
         }]);
@@ -805,7 +890,7 @@
                 <div class="form-group">
                     <label class="col-sm-3 control-label">*Site name:</label>
                     <div class="col-sm-8">
-                        <input class="form-control" id="siteName" name="siteName" required ng-model="siteName" cam-variable-name="siteName" cam-variable-type="String">
+                        <input class="form-control" id="siteName" name="siteName" required ng-model="siteName" cam-variable-name="candidate.siteName" cam-variable-type="String">
                         <label class="error" ng-show="kcell_form.siteName.$error.required && ( kcell_form.siteName.$touched || view.submitted)">Required field</label>
                     </div>
                 </div>
@@ -813,7 +898,7 @@
                     <label class="col-sm-3 control-label">Date of Visit:</label>
                     <div class="col-sm-4">
                         <div class="input-group">
-                            <input required type="text" ng-model="dateOfVisit" name="dateOfVisit" class="form-control" datepicker-popup="dd.MM.yyyy" is-open="dateOfVisitFieldOpened" id="dateOfVisit" />
+                            <input type="text" ng-model="candidate.dateOfVisit" name="dateOfVisit" class="form-control" datepicker-popup="dd.MM.yyyy" is-open="dateOfVisitFieldOpened" id="dateOfVisit" required />
                             <span class="input-group-btn">
                                 <button type="button" class="btn btn-default" ng-click="dateOfVisitFieldOpened = true">
                                     <i class="glyphicon glyphicon-calendar"></i>
@@ -826,7 +911,7 @@
                 <div class="form-group">
                     <label class="col-sm-3 control-label">*Latitude:</label>
                     <div class="col-sm-4">
-                        <input class="form-control" id="latitude" name="latitude" required ng-model="latitude">
+                        <input class="form-control" id="latitude" name="latitude" required ng-model="candidate.latitude">
                         <label class="error" ng-show="kcell_form.latitude.$error.required && ( kcell_form.latitude.$touched || view.submitted)">Required field</label>
                     </div>
                     <label class="col-sm-4 control-label">E.g. "N 12 34 56,7" or "N 12,345678"</label>
@@ -834,7 +919,7 @@
                 <div class="form-group">
                     <label class="col-sm-3 control-label">*Longitude:</label>
                     <div class="col-sm-4">
-                        <input class="form-control" id="longitude" name="longitude" required ng-model="longitude">
+                        <input class="form-control" id="longitude" name="longitude" required ng-model="candidate.longitude">
                         <label class="error" ng-show="kcell_form.longitude.$error.required && ( kcell_form.longitude.$touched || view.submitted)">Required field</label>
                     </div>
                     <label class="col-sm-4 control-label">E.g. "E 12 34 56,7" or "E 12,345678"</label>
@@ -843,8 +928,7 @@
                     <label class="col-sm-3 control-label">*Сonstruction type:</label>
                     <div class="col-sm-8">
                         <select class="form-control" id="constructionType" name="constructionType"
-                                cam-variable-name="constructionType" cam-variable-type="String"
-                                ng-model="constructionType"
+                                ng-model="candidate.constructionType"
                                 required>
                             <option ng-repeat="c in dictionary.constructionType">{{c}}</option>
                         </select>
@@ -854,14 +938,14 @@
                 <div class="form-group">
                     <label class="col-sm-3 control-label">BSC:</label>
                     <div class="col-sm-8">
-                        <input type="text" ng-model="BSC" typeahead="s for s in dictionary.BSC | filter:$viewValue" class="form-control" placeholder="Start typing...">
+                        <input type="text" ng-model="candidate.BSC" typeahead="s for s in dictionary.BSC | filter:$viewValue" class="form-control" placeholder="Start typing...">
                         <label class="error" ng-show="kcell_form.BSC.$error.required && ( kcell_form.BSC.$touched || view.submitted)">Required field</label>
                     </div>
                 </div>
                 <div class="form-group">
                     <label class="col-sm-3 control-label">Square:</label>
                     <div class="col-sm-8">
-                        <input class="form-control" id="square" name="square" ng-model="square" cam-variable-name="square" cam-variable-type="String">
+                        <input class="form-control" id="square" name="square" ng-model="candidate.square" cam-variable-name="square" cam-variable-type="String">
                         <label class="error" ng-show="kcell_form.square.$error.required && ( kcell_form.square.$touched || view.submitted)">Required field</label>
                     </div>
                 </div>
@@ -875,14 +959,14 @@
                 <div class="form-group">
                     <label class="col-sm-3 control-label">Bands:</label>
                     <div class="col-sm-8">
-                        <span ng-repeat="band in selectedBands">{{$index == 0?' ': ' + ' }}{{band.title}}</span>
+                        <span ng-repeat="band in candidate.selectedBands">{{$index == 0?' ': ' + ' }}{{band.title}}</span>
                     </div>
                 </div>
 
                 <div class="form-group">
                     <label class="col-sm-3 control-label">RBS Location:</label>
                     <div class="col-sm-8">
-                        <div class="form-check col-sm-6" ng-repeat="l in rbsLocation track by $index">
+                        <div class="form-check col-sm-6" ng-repeat="l in candidate.rbsLocation track by $index">
                             <input type="checkbox" ng-model="l.value" class="form-check-input" id="{{'check' + $index}}">
                             <label class="form-check-label" for="{{'check' + $index}}">{{ l.title }}</label>
                         </div>
@@ -1043,7 +1127,8 @@
                     </div>
                 </div>
                 <div class="form-group">
-                    <label class="col-sm-3 control-label">Contact Information:</label>
+                    <label class="col-sm-1 control-label"></label>
+                    <label class="col-sm-2 control-label">Contact Information:</label>
                     <div class="col-sm-8">
                         <input class="form-control" id="contractInfo" name="contractInfo"  ng-model="renterCompany.contactInfo" >
                         <label class="error" ng-show="kcell_form.contractInfo.$error.required && ( kcell_form.contractInfo.$touched || view.submitted)">Required field</label>
@@ -1314,7 +1399,7 @@
                         <div class="form-group">
                             <label class="col-sm-3 control-label">Results of visit of objects:</label>
                             <div class="col-sm-8">
-                                <input class="form-control" id="ResultsOfVisit" name="ResultsOfVisit"  ng-model="newFe.ResultsOfVisit" >
+                                <input class="form-control" id="ResultsOfVisit" name="ResultsOfVisit"  ng-model="newFe.resultsOfVisit" >
                                 <label class="error" ng-show="form.fe_form.ResultsOfVisit.$error.required && ( form.fe_form.ResultsOfVisit.$touched || newFe.submitted)">Required field</label>
                             </div>
                         </div>
@@ -1385,30 +1470,30 @@
                             </div>
                         </div>
                         <div class="form-group">
-                            <label class="col-sm-3 control-label">Contract Person:</label>
-                            <div class="col-sm-8">
-                                <input class="form-control" id="FERC_ContractPerson" name="FERC_ContractPerson"  ng-model="newFe.FERC_ContractPerson.contractPerson" >
-                                <label class="error" ng-show="form.fe_form.FERC_ContractPerson.$error.required && ( form.fe_form.FERC_ContractPerson.$touched || newFe.submitted)">Required field</label>
-                            </div>
+                            <label class="col-sm-3 control-label">Contact Person:</label>
+                            <div class="col-sm-8"></div>
                         </div>
                         <div class="form-group">
-                            <label class="col-sm-3 control-label">Name:</label>
+                            <label class="col-sm-2 control-label"></label>
+                            <label class="col-sm-1 control-label">Name:</label>
                             <div class="col-sm-8">
                                 <input class="form-control" id="FERC_Name" name="FERC_Name"  ng-model="newFe.renterCompany.name" >
                                 <label class="error" ng-show="form.fe_form.FERC_Name.$error.required && ( form.fe_form.FERC_Name.$touched || newFe.submitted)">Required field</label>
                             </div>
                         </div>
                         <div class="form-group">
-                            <label class="col-sm-3 control-label">Position:</label>
+                            <label class="col-sm-2 control-label"></label>
+                            <label class="col-sm-1 control-label">Position:</label>
                             <div class="col-sm-8">
                                 <input class="form-control" id="FERC_Position" name="FERC_Position"  ng-model="newFe.renterCompany.position" >
                                 <label class="error" ng-show="form.fe_form.FERC_Position.$error.required && ( form.fe_form.FERC_Position.$touched || newFe.submitted)">Required field</label>
                             </div>
                         </div>
                         <div class="form-group">
-                            <label class="col-sm-3 control-label">Contact Information:</label>
+                            <label class="col-sm-1 control-label"></label>
+                            <label class="col-sm-2 control-label">Contact Information:</label>
                             <div class="col-sm-8">
-                                <input class="form-control" id="FERC_ContractInformation" name="FERC_ContractInformation"  ng-model="newFe.renterCompany.contractInformation" >
+                                <input class="form-control" id="FERC_ContractInformation" name="FERC_ContractInformation"  ng-model="newFe.renterCompany.contactInformation" >
                                 <label class="error" ng-show="form.fe_form.FERC_ContractInformation.$error.required && ( form.fe_form.FERC_ContractInformation.$touched || newFe.submitted )">Required field</label>
                             </div>
                         </div>
