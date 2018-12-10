@@ -510,6 +510,9 @@
                         var processDetailCopy = angular.copy($scope.selectedRevisions[propt]);
                         processDetailCopy.quantity = work.quantity;
                         processDetailCopy.relatedSites = work.relatedSites;
+                        angular.forEach(work.relatedSites, function (rs) {
+                            processDetailCopy.relatedSitesNames = processDetailCopy.relatedSitesNames?', ' + rs.site_name:rs.site_name;
+                        });
                         delete processDetailCopy.works;
                         if(key > 0){
                             processDetailCopy.alreadyDelayInfoShown = true;
@@ -553,6 +556,15 @@
 
             $scope.orderWorks = function(work){
                 return Number(work.key);
+            }
+
+            $scope.orderYear = function(w){
+                var substring = w.businessKey.substr(0, w.businessKey.lastIndexOf("-"));
+                return Number(substring.substr(substring.lastIndexOf("-")+1, substring.length));
+            }
+
+            $scope.orderBusinessKey = function(w){
+                return Number(w.businessKey.substr(w.businessKey.lastIndexOf("-")+1, w.businessKey.length));
             }
 
             function checkMonthlyActs(){
@@ -605,6 +617,16 @@
                     deferred.resolve();
                     return deferred.promise;
                 }
+            }
+
+            $scope.exportToExcel = function(){
+                var tbl = document.getElementById('xlsxWorks');
+                var ws = XLSX.utils.table_to_sheet(tbl, {dateNF:'DD.MM.YYYY'});
+
+                var wb = XLSX.utils.book_new();
+                XLSX.utils.book_append_sheet(wb, ws, 'New Sheet Name 1');
+
+                return XLSX.writeFile(wb, 'monthlyAct.xlsx');
             }
         }]);
     </script>
@@ -724,7 +746,7 @@
                     <h4>Monthly Act #{{monthActNumber}} of accepted {{workTypeLabel}} according to "Contract Agreement for Revision Works Performing" between АО "Кселл"/Kcell JSC and "Line System Engineering" LLP/ТОО "Line System Engineering" for {{monthOfFormalPeriod}} {{yearOfFormalPeriod}}. </h4>
                     <div style="margin-bottom: 20px;"></div>
 
-                    <a style="float: right" ng-if="selectedWorks.length > 0" download="monthlyAct.xlsx" id="xlsxClick" href="#" onclick="return angular.element(this).scope().ExcellentExport.convert({anchor: 'xlsxClick',format: 'xlsx',filename: 'monthlyAct'}, [{name: 'Sheet Name Here 1',from: {table: 'works'}}])">Export to Excel</a>
+                    <a style="float: right" ng-if="selectedWorks.length > 0" id="xlsxClick" ng-click="exportToExcel()">Export to Excel</a>
 
                     <table class="table table-condensed" class="form-group" name="works" id="works">
                         <thead>
@@ -751,12 +773,11 @@
                         </tr>
                         </thead>
                         <tbody ng-repeat="work in selectedWorks | orderBy: orderWorks">
-                        <tr ng-repeat="w in work.value">
+                        <tr ng-repeat="w in work.value | orderBy: [orderYear,orderBusinessKey]">
                             <td ng-if="$first" rowspan="{{work.value.length}}">{{worksTitle[work.key]}}</td>
                             <td>{{w.quantity}}</td>
                             <td>
-                                <span ng-if="w.relatedSites && w.relatedSites.length>0" ng-repeat="rs in w.relatedSites">{{rs.site_name}}<br ng-if="!$last"/></span>
-                                <span ng-if="!w.relatedSites || w.relatedSites.length==0">{{w.site_name}}</span>
+                                {{(w.relatedSites && w.relatedSites.length>0)? w.relatedSitesNames : w.site_name}}
                             </td>
                             <td><a ng-click="toggleProcessView(w.processInstanceId, 'table', work.key)">{{w.businessKey}}</a> <a class="glyphicon glyphicon-trash" aria-hidden="true" ng-click="removeJobRequest(w.processInstanceId)"></a></td>
                             <td>{{w.fillAppliedChanges | date:'dd.MM.yyyy'}}</td>
@@ -806,6 +827,56 @@
             </div>
         </tab>
     </tabset>
+
+    <!--- Do not delete, this is for excel-->
+    <table class="table table-condensed" class="form-group" name="xlsxWorks" id="xlsxWorks" style="display: none;">
+        <thead>
+        <tr>
+            <th colspan="2">Requested Job Info</th>
+            <th>Site Info</th>
+            <th colspan="7">Job Request Info</th>
+            <th colspan="2">
+                Delay Info
+            </th>
+        </tr>
+        <tr>
+            <th>Ordered work</th>
+            <th>Q-ty</th>
+            <th>Sitename</th>
+            <th>JR number</th>
+            <th>Job Request ordered date</th>
+            <th>Material list approval date</th>
+            <th>Job Request Perform date</th>
+            <th>Job Request Acceptance date</th>
+            <th>Emergency JR</th>
+            <th>Customer's material</th>
+            <th>Emergency JR</th>
+            <th>Regular JR</th>
+        </tr>
+        </thead>
+        <tbody ng-repeat="work in selectedWorks | orderBy: orderWorks">
+        <tr ng-repeat="w in work.value  | orderBy: [orderYear,orderBusinessKey]">
+            <td ng-if="$first" rowspan="{{work.value.length}}">{{worksTitle[work.key]}}</td>
+            <td>{{w.quantity}}</td>
+            <td>
+                {{(w.relatedSites && w.relatedSites.length>0)? w.relatedSitesNames : w.site_name}}
+            </td>
+            <td>{{w.businessKey}}</td>
+            <td>{{(w.attachMaterialList!=null ? w.attachMaterialList : w.fillAppliedChanges) | date:'dd MMM yyyy'}}</td>
+            <td>{{w.validateTr | date:'dd MMM yyyy'}}</td>
+            <td>{{w.acceptWorkStartTime | date:'dd MMM yyyy'}}</td>
+            <td>{{w.acceptWorkEndTime | date:'dd MMM yyyy'}}</td>
+            <td>{{w.priority == 'emergency'?'Emergency':'Regular'}}</td>
+            <td>{{w.materialsRequired}}</td>
+            <td>
+                {{(w.delayInfo!==undefined && w.priority === 'emergency' && !w.alreadyDelayInfoShown)?w.delayInfo:emergencyDelay[w.processInstanceId+':'+work.key]}}
+            </td>
+            <td>
+                {{(w.delayInfo!==undefined && w.priority !== 'emergency' && !w.alreadyDelayInfoShown)?w.delayInfo:regularDelay[w.processInstanceId+':'+work.key]}}
+            </td>
+        </tr>
+        </tbody>
+    </table>
 
     <div style="margin-bottom: 20px;"></div>
 
