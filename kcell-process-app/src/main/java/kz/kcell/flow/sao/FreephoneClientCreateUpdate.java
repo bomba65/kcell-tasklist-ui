@@ -230,7 +230,7 @@ public class FreephoneClientCreateUpdate implements JavaDelegate {
                 CloseableHttpClient client = HttpClients.createDefault();
                 HttpPost httpPost = new HttpPost(new URI(baseUri+"/FreephoneClientCreateUpdate"));
 
-                httpPost.setEntity(new UrlEncodedFormEntity(params));
+                httpPost.setEntity(new UrlEncodedFormEntity(params,"UTF-8"));
                 CloseableHttpResponse response = client.execute(httpPost);
                 HttpEntity entity = response.getEntity();
                 String responseString = EntityUtils.toString(entity, "UTF-8");
