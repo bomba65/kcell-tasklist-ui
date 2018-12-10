@@ -147,6 +147,13 @@ define(['./module'], function(module){
 	                    console.log(error.data);
 	                });
                	};
+                scope.orderYear = function(w){
+                    var substring = w.businessKey.substr(0, w.businessKey.lastIndexOf("-"));
+                    return Number(substring.substr(substring.lastIndexOf("-")+1, substring.length));
+                }
+                scope.orderBusinessKey = function(w){
+                    return Number(w.businessKey.substr(w.businessKey.lastIndexOf("-")+1, w.businessKey.length));
+                }
 	        },
 			templateUrl: './js/directives/invoiceDetail.html'
 		};
