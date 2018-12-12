@@ -37,14 +37,16 @@ public class PBXClientUpdate implements JavaDelegate {
     private Environment environment;
 
     private final String saoUrl;
-    private final String productCatalogUrl;
-    private final String productCatalogAuth;
+    private final String b2bCRMurl;
+    private final String b2bCRMauth;
 
     @Autowired
-    public PBXClientUpdate(@Value("${sao.api.url:http://sao.kcell.kz/apis}") String saoUrl, @Value("${product.catalog.url:http://ldb-al-preprod.kcell.kz}") String productCatalogUrl, @Value("${product.catalog.auth:app.camunda.user:Asd123Qwerty!}") String productCatalogAuth) {
+    public PBXClientUpdate(@Value("${sao.api.url:http://sao.kcell.kz/apis}") String saoUrl,
+                           @Value("${b2b.crm.url:http://ldb-al.kcell.kz/corp_client_profile/bin/}") String b2bCRMurl,
+                           @Value("${b2b.crm.auth:app.camunda.user:Asd123Qwerty!}") String b2bCRMauth) {
         this.saoUrl = saoUrl;
-        this.productCatalogUrl = productCatalogUrl;
-        this.productCatalogAuth = productCatalogAuth;
+        this.b2bCRMurl = b2bCRMurl;
+        this.b2bCRMauth = b2bCRMauth;
     }
 
     @Override
@@ -59,11 +61,11 @@ public class PBXClientUpdate implements JavaDelegate {
         JSONObject saoRequest = new JSONObject();
 
         if (isSftp) {
-            String encoding = Base64.getEncoder().encodeToString((productCatalogAuth).getBytes("UTF-8"));
+            String encoding = Base64.getEncoder().encodeToString((b2bCRMauth).getBytes("UTF-8"));
 
             CloseableHttpClient productCatalogHttpClient = HttpClients.custom().build();
 
-            HttpGet httpGet = new HttpGet(productCatalogUrl + "/corp_client_profile/bin/" + customerInformationJSON.get("bin").toString());
+            HttpGet httpGet = new HttpGet(b2bCRMurl + customerInformationJSON.get("bin").toString());
             httpGet.setHeader("Authorization", "Basic " + encoding);
 
             HttpResponse httpResponse = productCatalogHttpClient.execute(httpGet);
