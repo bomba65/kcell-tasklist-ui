@@ -70,8 +70,6 @@
                 if (ind !== -1) {
                     for (var i = 0; i < $scope.supportiveInputs[ind].value.length; i++) {
                         if ($scope.userGroups && $scope.supportiveInputs[ind].value[i].expert && $scope.userGroups.includes($scope.supportiveInputs[ind].value[i].expert.groupId)) {
-                            $scope.supportiveInputs[ind].value[i].expert.id = $scope.assigneeId;
-                            $scope.supportiveInputs[ind].value[i].expert.fio = $scope.assigneeName;
                             $scope.materials.push($scope.supportiveInputs[ind].value[i]);
                         }
                     }
@@ -93,13 +91,16 @@
                         var ind = lastSupportiveInputs.findIndex(function(e) {return e.unit == $scope.supportiveInputName.SUName;});
                         for (var i = 0; i < lastSupportiveInputs[ind].value.length; i++) {
                             if ($scope.userGroups && lastSupportiveInputs[ind].value[i].expert && $scope.userGroups.includes(lastSupportiveInputs[ind].value[i].expert.groupId)) {
-                                lastSupportiveInputs[ind].value[i] = $scope.supportiveInputs[ind].value[i];
                                 lastSupportiveInputs[ind].value.splice(i, 1);
                                 i--;
                             }
                         }
                         $scope.supportiveInputs = lastSupportiveInputs;
-                        for (var i = 0; i < $scope.materials.length; i++) $scope.supportiveInputs[ind].value.push($scope.materials[i]);
+                        for (var i = 0; i < $scope.materials.length; i++) {
+                            $scope.materials[i].expert.id = $scope.assigneeId;
+                            $scope.materials[i].expert.fio = $scope.assigneeName;
+                            $scope.supportiveInputs[ind].value.push($scope.materials[i]);
+                        }
                     }
                     if (results[2] && results[2].data) {
                         $scope.resolutions = JSON.parse(results[2].data.value);
@@ -137,16 +138,12 @@
                     value: $scope.resolutions
                 });
 
-                if ($scope.supportiveInputName) {
-                    var elt = $scope.supportiveInputs.find(function(e) {return e.unit == $scope.supportiveInputName.SUName});
-                    if (elt) elt.inputReceived = true;
-                    camForm.variableManager.destroyVariable('supportiveInputs');
-                    camForm.variableManager.createVariable({
-                        name: 'supportiveInputs',
-                        type: 'Json',
-                        value: $scope.supportiveInputs
-                    });
-                }
+                camForm.variableManager.destroyVariable('supportiveInputs');
+                camForm.variableManager.createVariable({
+                    name: 'supportiveInputs',
+                    type: 'Json',
+                    value: $scope.supportiveInputs
+                });
 
                 if ($scope.materials && $scope.materials.length) {
                     for (var i = 0; i < $scope.materials.length; i++) {

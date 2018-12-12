@@ -38,10 +38,6 @@ define(['./../module'], function(module){
                                 }
                             });
                         }
-
-                        if (scope.isMaterialCheck)
-                            for (var i = 0; i < scope.data.length; i++)
-                                scope.setExpert(i);
                     }
                 });
 
@@ -66,8 +62,6 @@ define(['./../module'], function(module){
                         pprice: null,
                         summ: null
                     });
-
-                    if (scope.isMaterialCheck) scope.setExpert(scope.data.length - 1);
                 };
 
                 scope.calcSumm = function(index) {
@@ -93,6 +87,7 @@ define(['./../module'], function(module){
                     scope.data[index].cat2 = null;
                     scope.data[index].cat3 = null;
                     scope.data[index].purchaser = null;
+                  scope.data[index].expert = null;
                 };
 
                 scope.onCat2Change = function(index, option) {
@@ -137,7 +132,6 @@ define(['./../module'], function(module){
                 };
 
                 scope.setExpert = function(index) {
-                    console.log("===> ", scope.userFIO);
                     scope.data[index].expert.id = $rootScope.authentication.name;
                     scope.data[index].expert.fio = scope.userFIO;
                     scope.calcSumm(index);

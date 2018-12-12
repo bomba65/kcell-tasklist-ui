@@ -116,27 +116,39 @@
 
                 if ($scope.supportiveInputs && $scope.supportiveInputs.length) {
                     for (var v of $scope.supportiveInputs) {
-                        if (v.checked && (v.unit == 'Human Resources Department' || v.unit == 'Technology Department')) {
+                        if (!v.checked) continue;
+                        if (v.unit == 'Human Resources Department') {
                             supportiveInputList[v.form] = true;
                             if (!supportiveInputList[v.form+'s']) supportiveInputList[v.form+'s'] = [];
                             supportiveInputList[v.form+'s'].push(v.unit);
-                        } else if (v.checked && v.unit == 'Centralized Procurement Department') {
+
+                            if (!supportiveInputList['checkResources']) supportiveInputList['checkResources'] = [];
+                            for (var m of v.value) {
+                                if (!m.role || !m.role.needCheck || !m.role.expert || !m.role.expert.groupId || supportiveInputList['checkResources'].find(function(e) { return e.expert === m.role.expert.groupId; })) continue;
+                                supportiveInputList['checkResources'].push({SUName: v.unit, expert: m.role.expert.groupId});
+                            }
+                        } else if (v.unit == 'Centralized Procurement Department') {
                             supportiveInputList[v.form] = true;
                             if (!supportiveInputList[v.form+'s']) supportiveInputList[v.form+'s'] = [];
                             for (var m of v.value) {
                                 if (!m.expert || !m.expert.groupId || supportiveInputList[v.form+'s'].find(function(e) { return e.expert === m.expert.groupId; })) continue;
                                 supportiveInputList[v.form+'s'].push({SUName: v.unit, expert: m.expert.groupId});
                             }
+                        } else if (v.unit == 'Technology Department') {
+                            supportiveInputList[v.form] = true;
+                            if (!supportiveInputList[v.form+'s']) supportiveInputList[v.form+'s'] = [];
+                            supportiveInputList[v.form+'s'].push(v.unit);
                         }
                     }
                 }
 
-                if ($scope.resolution == 'Approve')
+                if ($scope.resolution == 'Approve') {
                     for (var i of $scope.supportiveInputs) {
                         i.inputReceived = false;
                         i.description = null;
                         i.checked = false;
                     }
+                }
 
                 camForm.variableManager.destroyVariable("supportiveInputs");
                 camForm.variableManager.createVariable({
