@@ -1,6 +1,6 @@
 define(['./../module'], function(module){
     'use strict';
-    module.directive('aftersalesTechnicalSpecifications', function ($rootScope, $http) {
+    module.directive('aftersalesTechnicalSpecifications', function ($rootScope, $http, $timeout) {
         return {
             restrict: 'E',
             scope: {
@@ -27,7 +27,17 @@ define(['./../module'], function(module){
                     if (result.techSpecs) parseFromPBX(JSON.parse(result.techSpecs));
                 });
 
-                function parseFromPBX(ts) {
+                scope.$on('tab-selected', function(e, tabName) {
+                    if (tabName === 'techSpec') {
+                        var tmp = scope.data.pbxNumbers;
+                        scope.data.pbxNumbers = 'this is because of tabset';
+                        $timeout(function () {
+                            scope.data.pbxNumbers = tmp;
+                        });
+                    }
+                });
+
+              function parseFromPBX(ts) {
                     if (!ts) return;
                     if (ts.technicalPerson) scope.data.contactPerson = ts.technicalPerson;
                     if (ts.technicalNumber) scope.data.contactNumber = ts.technicalNumber;

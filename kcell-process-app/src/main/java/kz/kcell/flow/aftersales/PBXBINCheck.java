@@ -69,6 +69,7 @@ public class PBXBINCheck {
                 else if (v.getName().equals("clientPriority")) response.put("clientPriority", v.getValue());
                 else if (v.getName().equals("rootForCMMBGW")) response.put("rootForCMMBGW", v.getValue());
                 else if (v.getName().equals("tariffExtra")) response.put("tariffExtra", v.getValue());
+                else if (v.getName().equals("attachments")) response.put("attachments", v.getValue());
             }
 
             return ResponseEntity.ok(response.toString());

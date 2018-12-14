@@ -44,17 +44,21 @@
                 assigneeName = (result.data.firstName ? result.data.firstName : "") + " " + (result.data.lastName ? result.data.lastName : "");
             });
 
-            $scope.preSubmit = function() {
+            /*$scope.preSubmit = function() {
                 return $http.get('/camunda/api/engine/engine/default/history/process-instance/count?processDefinitionKey=AftersalesPBX').then(
                     function(result) {
                         var countPID = result.data.count + 1;
-                        camForm.businessKey = countPID;
+                        var date = new Date();
+                        camForm.businessKey = 'AFTERSLSPBX_' + ("0" + date.getDate().toString()).slice(-2) + ("0" + (date.getMonth() + 1)).toString().slice(-2) + date.getFullYear().toString() + '_' + $scope.legalInfo.BIN + '_' + $scope.legalInfo.ticName + '_' + countPID;
                     },
                     function(error) {}
                 );
-            }
+            }*/
 
             camForm.on('submit', function (event) {
+                var date = new Date();
+                camForm.businessKey = 'AFTERSLSPBX_' + ("0" + date.getDate().toString()).slice(-2) + ("0" + (date.getMonth() + 1)).toString().slice(-2) + date.getFullYear().toString() + '_' + $scope.legalInfo.BIN + '_' + $scope.legalInfo.ticName;
+
                 camForm.variableManager.createVariable({
                     name: 'legalInfo',
                     type: 'Json',
@@ -110,6 +114,15 @@
                     name: 'pbxData',
                     type: 'Json',
                     value: $scope.pbxData,
+                    store: true
+                });
+
+                var createTSNameConName = '';
+                if (($scope.techSpecs.connectionPoint === "SIP Proxy" && $scope.action.changeNumbers) || ($scope.techSpecs.connectionPointNew === "SIP Proxy" && ($scope.action.changeConnection || $scope.action.newTrunk))) createTSNameConName = "(SIP Proxy)"
+                camForm.variableManager.createVariable({
+                    name: 'createTSNameConName',
+                    type: 'String',
+                    value: createTSNameConName,
                     store: true
                 });
             });
@@ -175,7 +188,15 @@
                     $scope.rootForCMMBGW = result.rootForCMMBGW;
                     $scope.pbxData.rootForCMMBGW = $scope.rootForCMMBGW;
                 }
+                if (result.attachments) {
+                    $scope.attachments = JSON.parse(result.attachments);
+                }
             });
+
+            $scope.onActionCheck = function() {
+                if ($scope.action.changeConnection || $scope.action.newTrunk) $scope.action.needBillingTest = true;
+                else if (!$scope.action.changeConnection && !$scope.action.newTrunk) $scope.action.needBillingTest = false;
+            };
         }]);
     </script>
 
@@ -199,16 +220,16 @@
                             <option value="Стартовый 10">Стартовый 10</option>
                             <option value="Бизнес пакет 30">Бизнес пакет 30</option>
                             <option value="Бизнес пакет 50">Бизнес пакет 50</option>
-                            <option value="нестандартный тариф">нестандартный тариф</option>
+                            <option value="Нестандартный тариф">Нестандартный тариф</option>
                         </select>
                         <span class="has-error" ng-if="kcell_form.tariffPlan.$error.required && (kcell_form.tariffPlan.$touched || view.submitted)">Required field</span>
 
-                        <input type="text" ng-show="action.tariffPlan == 'нестандартный тариф'" class="form-control" style="margin-top: 3px;" name="tariffExtra" ng-model="action.tariffExtra" placeholder="Укажите тариф" ng-required="action.tariffPlan == 'нестандартный тариф'" ng-style="{'border-color': ((pbxData.fetched && pbxData.tariffExtra !== action.tariffExtra) ? '#f0ad4e' : null)}">
+                        <input type="text" ng-show="action.tariffPlan == 'Нестандартный тариф'" class="form-control" style="margin-top: 3px;" name="tariffExtra" ng-model="action.tariffExtra" placeholder="Укажите тариф" ng-required="action.tariffPlan == 'Нестандартный тариф'" ng-style="{'border-color': ((pbxData.fetched && pbxData.tariffExtra !== action.tariffExtra) ? '#f0ad4e' : null)}">
                         <span class="has-error" ng-if="kcell_form.tariffExtra.$error.required && (kcell_form.tariffExtra.$touched || view.submitted)">Required field</span>
 
                         <div class="col-sm-12" style="padding-left: 0;">
                             <div class="checkbox">
-                                <label><input type="checkbox" ng-model="action.needBillingTest">Need Billing test</label>
+                                <label><input type="checkbox" ng-model="action.needBillingTest" ng-disabled="!action.changeNumbers && !action.changeConnection && !action.newTrunk">Need Billing test</label>
                             </div>
                         </div>
                     </div>
@@ -222,13 +243,13 @@
                             <label><input type="checkbox" ng-model="action.changeIP">Change IP, ports, protocols</label>
                         </div>
                         <div class="checkbox">
-                            <label style="font-weight: bold;"><input type="checkbox" ng-model="action.changeConnection">Change connection point</label>
+                            <label style="font-weight: bold;"><input type="checkbox" ng-model="action.changeConnection" ng-change="onActionCheck()">Change connection point</label>
                         </div>
                         <div class="checkbox">
                             <label><input type="checkbox" ng-model="action.changeCodecs">Change number of sessions, codecs</label>
                         </div>
                         <div class="checkbox">
-                            <label style="font-weight: bold;"><input type="checkbox" ng-model="action.newTrunk">New trunk addition</label>
+                            <label style="font-weight: bold;"><input type="checkbox" ng-model="action.newTrunk" ng-change="onActionCheck()">New trunk addition</label>
                         </div>
                         <div class="checkbox">
                             <label><input type="checkbox" ng-model="action.changeVPN">Addition/change VPN settings</label>
@@ -255,7 +276,7 @@
                 </div>
             </div>
         </tab>
-        <tab>
+        <tab select="$broadcast('tab-selected', 'techSpec')">
             <tab-heading> Technical specification </tab-heading>
             <accordion>
                 <accordion-group is-open="true">
@@ -270,7 +291,7 @@
                     <accordion-heading>
                         {{techSpecs.connectionType == 'SIP over internet' ? 'Connection via Internet channel by SIP protocol' : (techSpecs.connectionType == 'E1' ? 'Direct connection by E1 (30 channels)' : 'Direct connection by SIP Direct Protocols')}} <i class="pull-right glyphicon" ng-class="{'glyphicon-chevron-up': status.isCustomHeaderOpen, 'glyphicon-chevron-down': !status.isCustomHeaderOpen}"></i>
                     </accordion-heading>
-                    <aftersales-sip-protocol ng-if="techSpecs.connectionType == 'SIP over internet'" data="techSpecs.sip" pbx-data="pbxData.sip" form="kcell_form" view="view" disabled="false" show-new-fields="action.newTrunk || action.changeConnection"></aftersales-sip-protocol>
+                    <aftersales-sip-protocol ng-if="techSpecs.connectionType == 'SIP over internet'" data="techSpecs.sip" pbx-data="pbxData.sip" form="kcell_form" view="view" disabled="false" show-new-fields="action.newTrunk || action.changeConnection || action.changeIP"></aftersales-sip-protocol>
                 </accordion-group>
             </accordion>
         </tab>

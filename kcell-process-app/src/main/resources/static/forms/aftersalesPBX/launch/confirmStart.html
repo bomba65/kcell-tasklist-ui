@@ -71,6 +71,12 @@
                                 lastAttachments.push(attachment);
                             }
                         }
+                        for (var i = 0; i < lastAttachments.length; i++) {
+                            if (!$scope.attachments.find(function(e) {return e.path == lastAttachments[i].path;})) {
+                                lastAttachments.splice(i, 1);
+                                i--;
+                            }
+                        }
                         $scope.attachments = lastAttachments;
                     }
                 },
@@ -80,6 +86,7 @@
             };
 
             camForm.on('submit', function (event) {
+                $scope.serviceStartDate.setHours(0, 5, 0, 0);
                 camForm.variableManager.createVariable({
                     name: 'serviceStartDate',
                     type: 'String',
@@ -153,36 +160,60 @@
     </script>
 
     <div class="form-group">
-        <label class="col-sm-3 control-label">Number request:</label>
+        <label class="col-sm-3 control-label" style="padding-top: 0">Number request:</label>
         <div class="col-sm-9">{{businessKey}}</div>
     </div>
     <div class="form-group">
-        <label class="col-sm-3 control-label">Client:</label>
+        <label class="col-sm-3 control-label" style="padding-top: 0">Client:</label>
         <div class="col-sm-9">{{legalInfo.legalName}} {{legalInfo.BIN}}</div>
     </div>
     <div class="form-group">
-        <label class="col-sm-3 control-label">Priority:</label>
+        <label class="col-sm-3 control-label" style="padding-top: 0">Priority:</label>
         <div class="col-sm-9">{{legalInfo.clientPriority}}</div>
+    </div>
+    <div class="form-group">
+        <label class="col-sm-3 control-label" style="padding-top: 0">Service:</label>
+        <div class="col-sm-9">PBX</div>
+    </div>
+    <div class="form-group">
+        <label class="col-sm-3 control-label" style="padding-top: 0">Type of work:</label>
+        <div class="col-sm-9">TODO</div>
     </div>
 
     <div class="col-sm-12"><hr /></div>
 
-    <accordion>
-        <accordion-group is-open="true">
-            <accordion-heading>
-                Legal information <i class="pull-right glyphicon" ng-class="{'glyphicon-chevron-up': status.isCustomHeaderOpen, 'glyphicon-chevron-down': !status.isCustomHeaderOpen}"></i>
-            </accordion-heading>
-            <aftersales-legal-information data="legalInfo" pbx-data="pbxData.legalInfo" form="kcell_form" view="view" disabled="true"></aftersales-legal-information>
-        </accordion-group>
-    </accordion>
-    <accordion ng-if="techSpecs.connectionType" class="background-yellow-accordion">
-        <accordion-group is-open="true">
-            <accordion-heading>
-                {{techSpecs.connectionType == 'SIP over internet' ? 'Connection via Internet channel by SIP protocol' : (techSpecs.connectionType == 'E1' ? 'Direct connection by E1 (30 channels)' : 'Direct connection by SIP Direct Protocols')}} <i class="pull-right glyphicon" ng-class="{'glyphicon-chevron-up': status.isCustomHeaderOpen, 'glyphicon-chevron-down': !status.isCustomHeaderOpen}"></i>
-            </accordion-heading>
-            <aftersales-sip-protocol ng-if="techSpecs.connectionType == 'SIP over internet'" data="techSpecs.sip" pbx-data="pbxData.sip" form="kcell_form" view="view" disabled="true" show-new-fields="action.newTrunk || action.changeConnection"></aftersales-sip-protocol>
-        </accordion-group>
-    </accordion>
+    <tabset class="my-tab-head my-tab" justified="true">
+        <tab>
+            <tab-heading> Legal information </tab-heading>
+            <accordion class="content-visible-accordion">
+                <accordion-group is-open="true">
+                    <accordion-heading>
+                        Legal information <i class="pull-right glyphicon" ng-class="{'glyphicon-chevron-up': status.isCustomHeaderOpen, 'glyphicon-chevron-down': !status.isCustomHeaderOpen}"></i>
+                    </accordion-heading>
+                    <aftersales-legal-information data="legalInfo" pbx-data="pbxData.legalInfo" form="kcell_form" view="view" disabled="true"></aftersales-legal-information>
+                </accordion-group>
+            </accordion>
+        </tab>
+        <tab>
+            <tab-heading> Technical specification </tab-heading>
+            <accordion>
+                <accordion-group is-open="true">
+                    <accordion-heading>
+                        Technical specification <i class="pull-right glyphicon" ng-class="{'glyphicon-chevron-up': status.isCustomHeaderOpen, 'glyphicon-chevron-down': !status.isCustomHeaderOpen}"></i>
+                    </accordion-heading>
+                    <aftersales-technical-specifications data="techSpecs" pbx-data="pbxData.techSpecs" form="kcell_form" view="view" disabled="true" cp-required="action.newTrunk || action.changeConnection"></aftersales-technical-specifications>
+                </accordion-group>
+            </accordion>
+            <accordion ng-if="techSpecs.connectionType" class="background-yellow-accordion">
+                <accordion-group is-open="true">
+                    <accordion-heading>
+                        {{techSpecs.connectionType == 'SIP over internet' ? 'Connection via Internet channel by SIP protocol' : (techSpecs.connectionType == 'E1' ? 'Direct connection by E1 (30 channels)' : 'Direct connection by SIP Direct Protocols')}} <i class="pull-right glyphicon" ng-class="{'glyphicon-chevron-up': status.isCustomHeaderOpen, 'glyphicon-chevron-down': !status.isCustomHeaderOpen}"></i>
+                    </accordion-heading>
+                    <aftersales-sip-protocol ng-if="techSpecs.connectionType == 'SIP over internet'" data="techSpecs.sip" pbx-data="pbxData.sip" form="kcell_form" view="view" disabled="true" show-new-fields="action.newTrunk || action.changeConnection || action.changeIP"></aftersales-sip-protocol>
+                </accordion-group>
+            </accordion>
+        </tab>
+    </tabset>
 
     <div class="form-group">
         <label class="col-sm-5 control-label">Actual tariff plan: </label>
@@ -192,17 +223,17 @@
                 <option value="Стартовый 10">Стартовый 10</option>
                 <option value="Бизнес пакет 30">Бизнес пакет 30</option>
                 <option value="Бизнес пакет 50">Бизнес пакет 50</option>
-                <option value="нестандартный тариф">нестандартный тариф</option>
+                <option value="Нестандартный тариф">Нестандартный тариф</option>
             </select>
 
-            <input type="text" ng-show="action.tariffPlan == 'нестандартный тариф'" class="form-control" style="margin-top: 3px;" ng-model="action.tariffExtra" placeholder="Укажите тариф" disabled ng-style="{'border-color': ((pbxData.fetched && pbxData.tariffExtra !== action.tariffExtra) ? '#f0ad4e' : null)}">
+            <input type="text" ng-show="action.tariffPlan == 'Нестандартный тариф'" class="form-control" style="margin-top: 3px;" ng-model="action.tariffExtra" placeholder="Укажите тариф" disabled ng-style="{'border-color': ((pbxData.fetched && pbxData.tariffExtra !== action.tariffExtra) ? '#f0ad4e' : null)}">
         </div>
     </div>
 
     <div class="form-group">
         <label class="col-sm-12 control-label">Numbers PBX:</label>
         <div class="col-sm-12">
-            <textarea style="resize: vertical;" class="form-control" ng-model="techSpecs.pbxNumbers" disabled ng-style="{'border-color': ((pbxData.techSpecs.fetched && pbxData.techSpecs.pbxNumbers !== techSpecs.pbxNumbers) ? '#f0ad4e' : null)}"></textarea>
+            <div class="disabled-element" ng-style="{'border-color': ((pbxData.techSpecs.fetched && pbxData.techSpecs.pbxNumbers !== techSpecs.pbxNumbers) ? '#f0ad4e' : null)}">{{techSpecs.pbxNumbers}}</div>
         </div>
     </div>
 

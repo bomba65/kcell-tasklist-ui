@@ -13,8 +13,10 @@ define(['./module'], function(module){
                 });
 
                 scope.$watch(function() {return el[0].value;}, function(value) {
+                  $timeout(function() {
                     el[0].style.height = 'auto';
                     el[0].style.height = (el[0].scrollHeight) + 'px';
+                  });
                 }, true);
             }
         };
