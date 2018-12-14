@@ -29,6 +29,7 @@ import org.springframework.web.bind.annotation.*;
 
 import javax.servlet.http.HttpServletRequest;
 import java.net.URI;
+import java.net.URLEncoder;
 import java.util.Arrays;
 import java.util.Base64;
 
@@ -160,7 +161,7 @@ public class ProductCatalog {
 
                 CloseableHttpClient httpclient = HttpClients.custom().build();
 
-                HttpGet httpGet = new HttpGet(productCatalogUrl + "/vas_short_numbers/short_number/" + shortNumber + "/service_type_id/" + serviceTypeId);
+                HttpGet httpGet = new HttpGet(productCatalogUrl + "/vas_short_numbers/short_number/" + URLEncoder.encode(shortNumber, "UTF-8") + "/service_type_id/" + serviceTypeId);
                 httpGet.setHeader("Authorization", "Basic " + encoding);
 
                 HttpResponse httpResponse = httpclient.execute(httpGet);
