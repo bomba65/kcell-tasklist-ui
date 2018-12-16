@@ -35,6 +35,7 @@ import org.springframework.integration.config.EnableIntegration;
 import javax.script.ScriptEngineManager;
 
 import static org.camunda.bpm.engine.delegate.TaskListener.EVENTNAME_ASSIGNMENT;
+import static org.camunda.bpm.engine.delegate.TaskListener.EVENTNAME_COMPLETE;
 import static org.camunda.bpm.engine.delegate.TaskListener.EVENTNAME_CREATE;
 
 @SpringBootApplication
@@ -45,6 +46,9 @@ public class CamundaApplication extends SpringBootProcessApplication {
 
     @Autowired
     TaskNotificationListener taskNotificationListener;
+
+    @Autowired
+    TaskHistoryListener taskHistoryListener;
 
     public static void main(String[] args) {
         JacksonConfigurator.setDateFormatString("yyyy-MM-dd'T'HH:mm:ss.SSSXX");
@@ -62,6 +66,10 @@ public class CamundaApplication extends SpringBootProcessApplication {
 
             if (EVENTNAME_CREATE.equals(eventName) || EVENTNAME_ASSIGNMENT.equals(eventName)) {
                 taskNotificationListener.notify(delegateTask);
+            }
+
+            if(EVENTNAME_COMPLETE.equals(eventName)) {
+                taskHistoryListener.notify(delegateTask);
             }
         };
     }

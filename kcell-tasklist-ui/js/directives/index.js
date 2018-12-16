@@ -19,6 +19,7 @@ define([
 	'./demand/index',
 	'./richText',
 	'./leasingDetail',
+	'./leasingCandidate',
 	'./limitTo',
 	'./numbersOnly',
 	'./demandProcess'

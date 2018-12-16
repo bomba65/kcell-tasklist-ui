@@ -15,7 +15,15 @@
                 'plannedCabinetType',
                 'targetCoverage',
                 'rbsType',
-                'bands'
+                'bands',
+                'rrFile',
+                'newCandidateRRFiles',
+                'candidate',
+                'cellAntenna',
+                'renterCompany',
+                'transmissionAntenna',
+                'powerSource',
+                'farEndInformation'
             ];
 
             camForm.on('form-loaded', function () {
@@ -30,61 +38,70 @@
                             console.log(error.data);
                         }
                 );
-                $scope.leasingInfo = [];
-                $scope.leasingInfo.files = [];
+                $scope.leasingCandidate = {};
             });
 
             camForm.on('variables-fetched', function () {
                 variables.forEach(function (el) {
-                    if (el === 'applicationScanCopyFileName' || el === 'contractScanCopyFileName') {
-                        $scope[el] = camForm.variableManager.variables[el].value;
-                        $scope.leasingInfo.files.push(camForm.variableManager.variables[el].value);
-                    } else {
-                        $scope[el] = camForm.variableManager.variables[el].value;
-                        $scope.leasingInfo[el] = camForm.variableManager.variables[el].value;
-                    }
+                    $scope[el] = camForm.variableManager.variables[el].value;
+                    $scope.leasingCandidate[el] = camForm.variableManager.variables[el].value;
                 });
                 camForm.variableManager.createVariable({
-                    name: 'addOutToRollOutTaskResult',
+                    name: 'centralAssignPerformerTaskResult',
                     type: 'String',
                     value: ''
                 });
 
                 camForm.variableManager.createVariable({
-                    name: 'addOutToRollOutTaskComment',
+                    name: 'centralAssignPerformerTaskComment',
                     type: 'String',
                     value: ''
                 });
 
-                $scope.addOutToRollOutTaskResult = '';
+                $scope.centralAssignPerformerTaskResult = '';
             });
 
             camForm.on('submit', function () {
-                camForm.variableManager.variableValue('addOutToRollOutTaskResult', $scope.addOutToRollOutTaskResult);
-                camForm.variableManager.variableValue('addOutToRollOutTaskComment', $scope.addOutToRollOutTaskComment);
+                camForm.variableManager.variableValue('centralAssignPerformerTaskResult', $scope.centralAssignPerformerTaskResult);
+                camForm.variableManager.variableValue('centralAssignPerformerTaskComment', $scope.centralAssignPerformerTaskComment);
             });
+
+            $scope.download = function (file) {
+                $http({method: 'GET', url: '/camunda/uploads/get/' + file.path, transformResponse: [] }).
+                then(function(response) {
+                    document.getElementById('fileDownloadIframe').src = response.data;
+                }, function(error){
+                    console.log(error.data);
+                });
+            }
         }]);
 
     </script>
-    <leasing-detail leasing-info="leasingInfo"></leasing-detail>
+    <leasing-candidate leasing-candidate="leasingCandidate"></leasing-candidate>
+
+    <iframe id="fileDownloadIframe" style="display:none;"></iframe>
+
     <div class="form-group">
-        <label class="col-sm-4 control-label"></label>
+        <label class="col-md-4 control-label">Generated RR file:</label>
         <div class="col-sm-8">
-            <label class="radio-inline">
-                <input type="radio" name="addOutToRollOutTaskResult" ng-model="addOutToRollOutTaskResult" value="approved" required> Roll Out
-            </label>
-            <label class="radio-inline">
-                <input type="radio" name="addOutToRollOutTaskResult" ng-model="addOutToRollOutTaskResult" value="rejected" required> Out of Roll Out
-            </label>
-            <label class="error" ng-show="kcell_form.addOutToRollOutTaskResult.$error.required && ( kcell_form.addOutToRollOutTaskResult.$touched || view.submitted)">Required field</label>
+            <a ng-click="download(rrFile)">{{rrFile.name}}</a>
+        </div>
+    </div>
+    <div class="form-group">
+        <label class="col-md-4 control-label">Uploaded RR files:</label>
+        <div class="col-sm-8">
+            <div ng-show="newCandidateRRFiles.length > 0" class="input-group" ng-repeat="file in newCandidateRRFiles">
+                {{$index + 1}}.
+                <a ng-click="download(file)">{{file.name}}</a>
+            </div>
         </div>
     </div>
 
     <div class="form-group">
         <label class="col-sm-3 control-label">Комментарии</label>
         <div class="col-sm-9">
-            <textarea class="form-control" ng-model="addOutToRollOutTaskComment" name="addOutToRollOutTaskComment" placeholder="Comments..." maxlength="500" rows="4" style="resize:none"></textarea>
-            <label class="error" ng-show="kcell_form.addOutToRollOutTaskComment.$error.required && ( kcell_form.addOutToRollOutTaskComment.$touched || view.submitted)">Required field</label>
+            <textarea class="form-control" ng-model="centralAssignPerformerTaskComment" name="centralAssignPerformerTaskComment" placeholder="Comments..." maxlength="500" rows="4" style="resize:none"></textarea>
+            <label class="error" ng-show="kcell_form.centralAssignPerformerTaskComment.$error.required && ( kcell_form.centralAssignPerformerTaskComment.$touched || view.submitted)">Required field</label>
         </div>
     </div>
     <accordion>

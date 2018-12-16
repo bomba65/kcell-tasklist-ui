@@ -4,6 +4,9 @@ import kz.kcell.flow.files.Minio;
 import lombok.extern.java.Log;
 import org.camunda.bpm.engine.IdentityService;
 import org.camunda.bpm.engine.RuntimeService;
+import org.camunda.bpm.engine.TaskService;
+import org.camunda.bpm.engine.runtime.Execution;
+import org.camunda.spin.plugin.variable.SpinValues;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -13,6 +16,7 @@ import javax.script.*;
 import java.io.ByteArrayInputStream;
 import java.io.InputStream;
 import java.io.UnsupportedEncodingException;
+import java.util.List;
 import java.util.Scanner;
 
 @RestController
@@ -27,6 +31,9 @@ public class LeasingController {
 
     @Autowired
     RuntimeService runtimeService;
+
+    @Autowired
+    private TaskService taskService;
 
     private Minio minioClient;
 
@@ -47,6 +54,21 @@ public class LeasingController {
         if (identityService.getCurrentAuthentication() == null || identityService.getCurrentAuthentication().getUserId() == null) {
             log.warning("No user logged in");
             return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body("No user logged in");
+        }
+
+        if (rrFileData.processInstanceId == null || rrFileData.taskId == null) {
+            log.warning("No Process Instance or Task specified");
+            return ResponseEntity.status(HttpStatus.BAD_REQUEST).body("No Process Instance or Task specified");
+        }
+
+        boolean taskBelongsToProcessInstance = taskService.createTaskQuery()
+            .taskId(rrFileData.taskId)
+            .processInstanceId(rrFileData.processInstanceId)
+            .count() > 0;
+
+        if (!taskBelongsToProcessInstance) {
+            log.warning("The Task not found or does not belong to the Process Instance");
+            return ResponseEntity.status(HttpStatus.BAD_REQUEST).body("The Task not found or does not belong to the Process Instance");
         }
 
         String path = rrFileData.processInstanceId + "/" + rrFileData.taskId + "/rrFile.rtf";
@@ -129,6 +151,11 @@ public class LeasingController {
             InputStream is = new ByteArrayInputStream(content.getBytes("UTF-8"));
 
             minioClient.saveFile(path, is, "text/rtf");
+
+            String name = "rrFile.rtf";
+            String json = "{\"name\" : \"" + name + "\",\"path\" : \"" + path + "\"}";
+
+            runtimeService.setVariable(rrFileData.processInstanceId, "rrFile", SpinValues.jsonValue(json));
 
         } catch (UnsupportedEncodingException e) {
             throw new RuntimeException(e.getMessage());

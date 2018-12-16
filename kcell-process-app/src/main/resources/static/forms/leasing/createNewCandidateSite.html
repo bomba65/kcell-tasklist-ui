@@ -15,8 +15,7 @@
                 'plannedCabinetType',
                 'targetCoverage',
                 'rbsType',
-                'bands',
-                'newCandidateRRFiles'
+                'bands'
             ];
 
             var variablesToCreate = [
@@ -47,6 +46,16 @@
                 },
                 {
                     name: 'farEndInformation',
+                    type: 'Json',
+                    value: []
+                },
+                {
+                    name: 'siteObjectType',
+                    type: 'String',
+                    value: ''
+                },
+                {
+                    name: 'newCandidateRRFiles',
                     type: 'Json',
                     value: []
                 }
@@ -432,10 +441,10 @@
                     {'name':'ML 2.4', 'diameter':'2,4', 'weight':'158'},
                     {'name':'ML 3.0', 'diameter':'3,0', 'weight':'188'},
                     {'name':'ML 3.7', 'diameter':'3,7', 'weight':''}];
-                $scope.cableLayingType = $scope.dictionary.cableLayingType = [{'title': 'Airline'}, {'title': 'By the poles'}, {'title': 'By the walls'}, {'title': 'Under ground'}, {'title': 'Other'}];
-                $scope.dictionary.legalType = ['КСК', 'ИП', 'ТОО', 'АО', 'OO', 'СПК', 'Национальный оператор  АО  "Казахтелеком"', 'Национальный оператор  АО "Казтелерадио"',
-                            'Национальный оператор  АО "Казпочта"', 'Общественный фонд', 'Представительство (foreign)', 'ЭСО', 'Терком', 'Собственность Кселл',
-                            'ГПК', 'Beeline', 'Физическое лицо', 'Tele2'];
+                $scope.powerSource.cableLayingType = $scope.dictionary.cableLayingType = [{'title': 'Airline'}, {'title': 'By the poles'}, {'title': 'By the walls'}, {'title': 'Under ground'}, {'title': 'Other'}];
+                $scope.dictionary.legalType = [{id:'ksk', desc:'КСК'},{id:'ip', desc:'ИП'},{id:'too', desc:'ТОО'},{id:'ao', desc:'АО'},{id:'oo', desc:'OO'},{id:'spk', desc:'СПК'},{id:'national_kazakhtelecom', desc:'Национальный оператор  АО  "Казахтелеком"'},{id:'national_kazteleradio', desc:'Национальный оператор  АО "Казтелерадио"'},
+                    {id:'national_kazpost', desc:'Национальный оператор  АО "Казпочта"'}, {id:'public_fund', desc:'Общественный фонд'}, {id:'foreign', desc:'Представительство (foreign)'}, {id:'esso', desc:'ЭСО'}, {id:'tercom', desc:'Терком'}, {id:'own_kcell', desc:'Собственность Кселл'},
+                    {id:'gpk', desc:'ГПК'},{id:'beeline', desc:'Beeline'}, {id:'individual', desc:'Физическое лицо'}, {id:'tele2', desc:'Tele2'}];
                 $scope.dictionary.BSC = ['AKTA_B1', 'AKTA_B2', 'AKTB_B1', 'AKTO_B1', 'AKTO_B2', 'AKTZ_B1', 'AKTZ_B2', 'ALMA_B1', 'ALMA_B2', 'ALMA_B3', 'ALMA_B4', 'ALMA_B5', 'ALMA_B6', 'ALMA_B7', 'ALMA_B8',
                     'ALMA_B9', 'ALM_B10', 'ASTA_B1', 'ASTA_B2', 'ASTA_B3', 'ASTA_B4', 'ASTA_B5', 'ATYR_B1', 'ATYR_B2', 'ATYR_B3', 'ATYR_B4', 'CHIM_B1', 'CHIM_B2', 'CHIM_B3', 'CHIM_B4', 'CHIM_B5', 'CHIM_B6',
                     'EKIB_B1', 'Ekib_b1', 'EKIB_B2', 'KARA_B1', 'KARA_B3', 'KARG_B1', 'KARG_B2', 'KARG_B3', 'KOKBSC2', 'KOKS_B1', 'KOST_B1', 'KOST_B2', 'KOST_B3', 'KZYL_B1', 'KZYL_B2',
@@ -447,45 +456,8 @@
 
             camForm.on('variables-fetched', function () {
                 variables.forEach(function (el) {
-                    if (el === 'resolutions') {
-                        if (camForm.variableManager.variables[el].value) {
-                            $scope.resolutions = angular.copy(camForm.variableManager.variables[el].value);
-                            $q.all($scope.resolutions.map(function (resolution) {
-                                return $http.get("/camunda/api/engine/engine/default/user/" + resolution.assignee + "/profile");
-                            })).then(function (profiles) {
-                                profiles.forEach(function (e, index) {
-                                    $scope.resolutions[index].assigneeName = (e.data.firstName ? e.data.firstName : "") + " " + (e.data.lastName ? e.data.lastName : "");
-                                });
-                            });
-                            $q.all($scope.resolutions.map(function (resolution) {
-                                return $http.get("/camunda/api/engine/engine/default/history/task?processInstanceId=" + resolution.processInstanceId + "&taskId=" + resolution.taskId);
-                            })).then(function (tasks) {
-                                tasks.forEach(function (e, index) {
-                                    if (e.data.length > 0) {
-                                        $scope.resolutions[index].taskName = e.data[0].name;
-                                        try {
-                                            $scope.resolutions[index].taskEndDate = new Date(e.data[0].endTime);
-                                        } catch (e) {
-                                            console.log(e);
-                                        }
-                                    }
-                                });
-                            });
-                        } else {
-                            camForm.variableManager.destroyVariable('resolutions');
-                            camForm.variableManager.createVariable({
-                                name: 'resolutions',
-                                type: 'Json',
-                                value: ''
-                            });
-                        }
-                    } else if (el === 'applicationScanCopyFileName' || el === 'contractScanCopyFileName') {
-                        $scope[el] = camForm.variableManager.variables[el].value;
-                        $scope.leasingInfo.files.push(camForm.variableManager.variables[el].value);
-                    } else {
-                        $scope[el] = camForm.variableManager.variables[el].value;
-                        $scope.leasingInfo[el] = camForm.variableManager.variables[el].value;
-                    }
+                    $scope[el] = camForm.variableManager.variables[el].value;
+                    $scope.leasingInfo[el] = camForm.variableManager.variables[el].value;
 
                     if ($scope.bands) {
                         angular.forEach($scope.availableBands, function (b) {
@@ -514,40 +486,22 @@
                 $scope.createNewCandidateSiteTaskResult = 'Completed';
                 $scope.candidate.longitude = $scope.longitude;
                 $scope.candidate.latitude = $scope.latitude;
+                $scope.candidate.rbsType = $scope.rbsType;
             });
 
             camForm.on('submit', function () {
-                try {
-                    if (!$scope.resolutions) {
-                        $scope.resolutions = [];
-                    }
-                    camForm.variableManager.variableValue('createNewCandidateSiteTaskResult', $scope.createNewCandidateSiteTaskResult);
-                    camForm.variableManager.variableValue('createNewCandidateSiteTaskComment', $scope.createNewCandidateSiteTaskComment);
-                    camForm.variableManager.variableValue('latitude', $scope.latitude);
-                    camForm.variableManager.variableValue('longitude', $scope.longitude);
+                camForm.variableManager.variableValue('createNewCandidateSiteTaskResult', $scope.createNewCandidateSiteTaskResult);
+                camForm.variableManager.variableValue('createNewCandidateSiteTaskComment', $scope.createNewCandidateSiteTaskComment);
 
-                    $scope.resolutions.push({
-                        processInstanceId: $scope.processInstanceId,
-                        assignee: $rootScope.authentication.name,
-                        resolution: $scope.createNewCandidateSiteTaskResult,
-                        comment: $scope.createNewCandidateSiteTaskComment,
-                        taskId: camForm.taskId
+                angular.forEach(variablesToCreate, function (el) {
+                    console.log(el, $scope[el.name]);
+
+                    camForm.variableManager.createVariable({
+                        name: el.name,
+                        type: el.type,
+                        value: $scope[el.name]
                     });
-                    camForm.variableManager.variableValue('resolutions', $scope.resolutions);
-
-                    angular.forEach(variablesToCreate, function (el) {
-                        camForm.variableManager.createVariable({
-                            name: el.name,
-                            type: el.type,
-                            value: $scope[el]
-                        });
-                    });
-
-
-                } catch (e){
-                    console.log(e);
-                }
-                console.log('submitted');
+                });
             });
 
             $scope.$watch('availableBands', function (availableBands) {
@@ -560,10 +514,7 @@
             }, true);
 
             $scope.addFE = function () {
-                // if ($scope.farEndInformation.length == 0 || $scope.farEndInformation[$scope.farEndInformation.length - 1].saved ) {
-                //     $scope.farEndInformation.push({});
-                //     $scope.currentFE = $scope.farEndInformation.length - 1;
-                // }
+
                 $scope.newFe = {};
                 $scope.currentFE = $scope.farEndInformation.length;
                 $scope.editableForm = true;
@@ -581,8 +532,6 @@
                 $scope.farEndInformation.splice(index, 1);
             };
             $scope.saveFE = function (index) {
-                console.log('test: ' + $scope.form.fe_form);
-
                 if ($scope.form.fe_form.$valid) {
                     delete $scope.newFe.submitted;
                     $scope.farEndInformation[index] = $scope.newFe;
@@ -650,16 +599,6 @@
                 $scope.newFe.farEndSequence = $item.id;
             };
 
-            $scope.preSubmit = function () {
-                var deferred = $q.defer();
-                if($scope.farEndInformation && $scope.farEndInformation.length < 3){
-                    deferred.reject('At least 3 Far End Information should be added!!!');
-                } else {
-                    deferred.resolve();
-                }
-                return deferred.promise;
-            }
-
             $scope.defineByAntennaType = function (antennaType) {
                 if(antennaType){
                     angular.forEach($scope.dictionary.antennaType, function (type) {
@@ -710,7 +649,7 @@
                     $http.put(response.data, file, {headers: {'Content-Type': undefined}}).then(
                         function () {
                             $scope[fileName].push(fileToUpload);
-                            angular.element(document.querySelector('#' + fileName + '_' + fileIndex)).val(null);
+                            angular.element(document.querySelector('#' + fileName)).val(null);
                         },
                         function (error) {
                             console.log(error.data);
@@ -737,9 +676,7 @@
                 });
             }
 
-            $scope.downloadRRfile = function(){
-                //before create it!
-
+            function prepareRRCreatedata(){
                 var data = {
                     processInstanceId: $scope.processInstanceId,
                     taskId: camForm.taskId,
@@ -748,7 +685,6 @@
                     contactName: $scope.renterCompany.contactName?$scope.renterCompany.contactName:'',
                     contactPosition: $scope.renterCompany.contactPosition? $scope.renterCompany.contactPosition: '',
                     contactInfo: $scope.renterCompany.contactInfo? $scope.renterCompany.contactInfo: '',
-                    newCandidateComments:$scope.newCandidateComments?$scope.newCandidateComments:'',
                     rcLegalName:$scope.renterCompany.legalName?$scope.renterCompany.legalName:'',
                     rcLegalAddress:$scope.renterCompany.legalAddress?$scope.renterCompany.legalAddress:'',
                     rcTelFax: $scope.renterCompany.telFax?$scope.renterCompany.telFax:'',
@@ -764,6 +700,7 @@
                     data.constructionType = $scope.candidate.constructionType?$scope.candidate.constructionType:'';
                     data.square = $scope.candidate.square?$scope.candidate.square:'';
                     data.rbsType = $scope.candidate.rbsType?$scope.candidate.rbsType:'';
+                    data.newCandidateComments:$scope.candidate.comments?$scope.candidate.comments:'';
 
                     if($scope.candidate.dateOfVisit){
                         var dateOfVisit = new Date($scope.candidate.dateOfVisit);
@@ -824,14 +761,14 @@
                     data.monthlyPC = $scope.powerSource.agreeToReceiveMonthlyPayment?$scope.powerSource.agreeToReceiveMonthlyPayment:'';
                     data.res4 = $scope.powerSource.closestPublic04?$scope.powerSource.closestPublic04:'';
                     data.res10 = $scope.powerSource.closestPublic10?$scope.powerSource.closestPublic10:'';
+                    var cableLayingType = '';
+                    angular.forEach($scope.powerSource.cableLayingType, function (t) {
+                        if(t.value){
+                            cableLayingType += (cableLayingType===''?t.title:', '+t.title);
+                        }
+                    });
+                    data.cableLayingType = cableLayingType;
                 }
-                var cableLayingType = '';
-                angular.forEach($scope.cableLayingType, function (t) {
-                    if(t.value){
-                        cableLayingType += (cableLayingType===''?t.title:', '+t.title);
-                    }
-                });
-                data.cableLayingType = cableLayingType;
                 if($scope.farEndInformation && $scope.farEndInformation.length > 0){
                     data.farEndSitename = $scope.farEndInformation[0].farEndName?$scope.farEndInformation[0].farEndName:'';
                     data.farEndAdress = $scope.farEndInformation[0].farEndAddress?$scope.farEndInformation[0].farEndAddress:'';
@@ -863,8 +800,11 @@
                     }
                 }
 
-                $http.post('/camunda/leasing/rrfile/create',data).then(function (res) {
-                    console.log(res.data);
+                return data;
+            }
+
+            $scope.downloadRRfile = function(){
+                $http.post('/camunda/leasing/rrfile/create',prepareRRCreatedata()).then(function (res) {
                     $http({
                         method: 'GET',
                         url: '/camunda/uploads/get/' + res.data,
@@ -878,6 +818,29 @@
                     console.log(error);
                 });
             }
+
+            $scope.defineSiteObjectType = function () {
+                if($scope.renterCompany && ($scope.renterCompany.legalType === 'national_kazakhtelecom' || $scope.renterCompany.legalType === 'national_kazteleradio' || $scope.renterCompany.legalType === 'national_kazpost')){
+                    $scope.siteObjectType = 'national';
+                } else {
+                    $scope.siteObjectType = 'other';
+                }
+            }
+
+            $scope.preSubmit = function() {
+                var deferred = $q.defer();
+                if($scope.farEndInformation && $scope.farEndInformation.length < 3){
+                    deferred.reject('At least 3 Far End Information should be added!!!');
+                    return deferred.promise;
+                } else {
+                    return $http.post('/camunda/leasing/rrfile/create',prepareRRCreatedata()).then(function (results) {
+                        console.log('RR file Updated');
+                    },
+                    function(error){
+                        toasty.error(error.data.message);
+                    });
+                }
+            };
         }]);
     </script>
     <leasing-detail leasing-info="leasingInfo"></leasing-detail>
@@ -890,7 +853,7 @@
                 <div class="form-group">
                     <label class="col-sm-3 control-label">*Site name:</label>
                     <div class="col-sm-8">
-                        <input class="form-control" id="siteName" name="siteName" required ng-model="siteName" cam-variable-name="candidate.siteName" cam-variable-type="String">
+                        <input class="form-control" id="siteName" name="siteName" required ng-model="candidate.siteName">
                         <label class="error" ng-show="kcell_form.siteName.$error.required && ( kcell_form.siteName.$touched || view.submitted)">Required field</label>
                     </div>
                 </div>
@@ -938,21 +901,21 @@
                 <div class="form-group">
                     <label class="col-sm-3 control-label">BSC:</label>
                     <div class="col-sm-8">
-                        <input type="text" ng-model="candidate.BSC" typeahead="s for s in dictionary.BSC | filter:$viewValue" class="form-control" placeholder="Start typing...">
+                        <input type="text" ng-model="candidate.bsc" typeahead="s for s in dictionary.BSC | filter:$viewValue" class="form-control" placeholder="Start typing...">
                         <label class="error" ng-show="kcell_form.BSC.$error.required && ( kcell_form.BSC.$touched || view.submitted)">Required field</label>
                     </div>
                 </div>
                 <div class="form-group">
                     <label class="col-sm-3 control-label">Square:</label>
                     <div class="col-sm-8">
-                        <input class="form-control" id="square" name="square" ng-model="candidate.square" cam-variable-name="square" cam-variable-type="String">
+                        <input class="form-control" id="square" name="square" ng-model="candidate.square">
                         <label class="error" ng-show="kcell_form.square.$error.required && ( kcell_form.square.$touched || view.submitted)">Required field</label>
                     </div>
                 </div>
                 <div class="form-group">
                     <label class="col-sm-3 control-label">RBS Type:</label>
                     <div class="col-sm-8">
-                        {{rbsType}}
+                        {{candidate.rbsType}}
                         <label class="error" ng-show="kcell_form.rbsType.$error.required && ( kcell_form.rbsType.$touched || view.submitted)">Required field</label>
                     </div>
                 </div>
@@ -1058,8 +1021,7 @@
                     <label class="col-sm-3 control-label">Legal type:</label>
                     <div class="col-sm-8">
                         <select class="form-control" id="legalType" name="legalType"
-                                ng-model="renterCompany.legalType">
-                            <option ng-repeat="l in dictionary.legalType">{{l}}</option>
+                                ng-model="renterCompany.legalType" ng-options="type.id as type.desc for type in dictionary.legalType" ng-selected="defineSiteObjectType()" required>
                         </select>
                         <label class="error" ng-show="kcell_form.legalType.$error.required && ( kcell_form.legalType.$touched || view.submitted)">Required field</label>
                     </div>
@@ -1114,8 +1076,8 @@
                     <label class="col-sm-2 control-label"></label>
                     <label class="col-sm-1 control-label">Name:</label>
                     <div class="col-sm-8">
-                        <input class="form-control" id="name" name="name"  ng-model="renterCompany.contactName" >
-                        <label class="error" ng-show="kcell_form.name.$error.required && ( kcell_form.name.$touched || view.submitted)">Required field</label>
+                        <input class="form-control" id="contactName" name="contactName"  ng-model="renterCompany.contactName" >
+                        <label class="error" ng-show="kcell_form.contactName.$error.required && ( kcell_form.contactName.$touched || view.submitted)">Required field</label>
                     </div>
                 </div>
                 <div class="form-group">
@@ -1206,7 +1168,7 @@
                 <div class="form-group">
                     <label class="col-sm-3 control-label">Cable laying type:</label>
                     <div class="col-sm-8">
-                        <div class="form-check col-sm-6" ng-repeat="t in cableLayingType track by $index">
+                        <div class="form-check col-sm-6" ng-repeat="t in powerSource.cableLayingType track by $index">
                             <input type="checkbox" ng-model="t.value" class="form-check-input" id="{{'check' + $index}}">
                             <label class="form-check-label" for="{{'check' + $index}}">{{ t.title }}</label>
                         </div>
@@ -1254,14 +1216,13 @@
                             {{$index + 1}}.
                             <a ng-click="fileDownload(file)">{{file.name}}</a> | <a ng-click="clearFile('newCandidateRRFiles', $index)"><i class="glyphicon glyphicon-trash"></i></a>
                         </div>
-                        <input type="file" class="form-control" id="newCandidateRRFiles_{{newCandidateRRFiles.value.length}}" name="newCandidateRRFiles_{{newCandidateRRFiles.value.length}}" ng-model="file.file" onchange="angular.element(this).scope().fileSelected(this, 'newCandidateRRFiles')"/>
+                        <input type="file" class="form-control" id="newCandidateRRFiles" name="newCandidateRRFiles" ng-model="file.file" onchange="angular.element(this).scope().fileSelected(this, 'newCandidateRRFiles')"/>
                     </div>
                 </div>
                 <div class="form-group">
                     <label class="col-sm-3 control-label">Comments related to New Candidate:</label>
                     <div class="col-sm-8">
-                        <textarea class="form-control" ng-model="newCandidateComments" name="newCandidateComments" maxlength="500" rows="4" style="resize:none"
-                                  cam-variable-name="newCandidateComments" cam-variable-type="String"></textarea>
+                        <textarea class="form-control" ng-model="candidate.comments" name="newCandidateComments" maxlength="500" rows="4" style="resize:none"></textarea>
                     </div>
                 </div>
             </div>
