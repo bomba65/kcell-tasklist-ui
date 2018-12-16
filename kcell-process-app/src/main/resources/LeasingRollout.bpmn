@@ -72,7 +72,7 @@
       <bpmn:outgoing>SequenceFlow_18th46u</bpmn:outgoing>
     </bpmn:userTask>
     <bpmn:endEvent id="EndEvent_last">
-      <bpmn:incoming>SequenceFlow_1jzi617</bpmn:incoming>
+      <bpmn:incoming>SequenceFlow_0h6eiux</bpmn:incoming>
     </bpmn:endEvent>
     <bpmn:sequenceFlow id="SequenceFlow_14s3lkq" sourceRef="StartEvent_first" targetRef="ExclusiveGateway_0goepbc" />
     <bpmn:sequenceFlow id="SequenceFlow_0ae089u" sourceRef="ExclusiveGateway_0k6tbyl" targetRef="createNewCandidateSite" />
@@ -130,13 +130,47 @@
       <bpmn:conditionExpression xsi:type="bpmn:tFormalExpression">${siteObjectType == 'national'}</bpmn:conditionExpression>
     </bpmn:sequenceFlow>
     <bpmn:exclusiveGateway id="ExclusiveGateway_1qorery">
-      <bpmn:incoming>SequenceFlow_0rbdmyg</bpmn:incoming>
       <bpmn:incoming>SequenceFlow_05g0u94</bpmn:incoming>
+      <bpmn:incoming>SequenceFlow_1sdn7jc</bpmn:incoming>
       <bpmn:outgoing>SequenceFlow_1jzi617</bpmn:outgoing>
     </bpmn:exclusiveGateway>
-    <bpmn:sequenceFlow id="SequenceFlow_0rbdmyg" sourceRef="regionalAssignPerformer" targetRef="ExclusiveGateway_1qorery" />
+    <bpmn:sequenceFlow id="SequenceFlow_0rbdmyg" sourceRef="regionalAssignPerformer" targetRef="negotiationsWithLandlord" />
     <bpmn:sequenceFlow id="SequenceFlow_05g0u94" sourceRef="centralAssignPerformer" targetRef="ExclusiveGateway_1qorery" />
-    <bpmn:sequenceFlow id="SequenceFlow_1jzi617" sourceRef="ExclusiveGateway_1qorery" targetRef="EndEvent_last" />
+    <bpmn:sequenceFlow id="SequenceFlow_1jzi617" sourceRef="ExclusiveGateway_1qorery" targetRef="ExclusiveGateway_0wi0wbj" />
+    <bpmn:userTask id="negotiationsWithLandlord" name="Negotiations with landlord" camunda:formKey="embedded:app:forms/leasing/negotiationsWithLandlord.html">
+      <bpmn:documentation>Negotiations with landlord</bpmn:documentation>
+      <bpmn:incoming>SequenceFlow_0rbdmyg</bpmn:incoming>
+      <bpmn:outgoing>SequenceFlow_1sdn7jc</bpmn:outgoing>
+    </bpmn:userTask>
+    <bpmn:sequenceFlow id="SequenceFlow_1sdn7jc" sourceRef="negotiationsWithLandlord" targetRef="ExclusiveGateway_1qorery" />
+    <bpmn:exclusiveGateway id="ExclusiveGateway_0wi0wbj" default="SequenceFlow_0h6eiux">
+      <bpmn:incoming>SequenceFlow_1jzi617</bpmn:incoming>
+      <bpmn:outgoing>SequenceFlow_0h6eiux</bpmn:outgoing>
+      <bpmn:outgoing>SequenceFlow_1l71kk9</bpmn:outgoing>
+    </bpmn:exclusiveGateway>
+    <bpmn:sequenceFlow id="SequenceFlow_0h6eiux" sourceRef="ExclusiveGateway_0wi0wbj" targetRef="EndEvent_last" />
+    <bpmn:endEvent id="EndEvent_1n4kixg">
+      <bpmn:incoming>SequenceFlow_080fjob</bpmn:incoming>
+    </bpmn:endEvent>
+    <bpmn:sequenceFlow id="SequenceFlow_1l71kk9" sourceRef="ExclusiveGateway_0wi0wbj" targetRef="Task_0bha4n0">
+      <bpmn:conditionExpression xsi:type="bpmn:tFormalExpression">${negotiationsWithLandlordTaskResult=='notAgree'}</bpmn:conditionExpression>
+    </bpmn:sequenceFlow>
+    <bpmn:sequenceFlow id="SequenceFlow_080fjob" sourceRef="Task_0bha4n0" targetRef="EndEvent_1n4kixg" />
+    <bpmn:serviceTask id="Task_0bha4n0" name="Set Rent Request Status to Refusal" camunda:class="kz.kcell.bpm.leasing.ExecutionSetStatus">
+      <bpmn:extensionElements>
+        <camunda:field name="variable">
+          <camunda:string>rentRequestStatus</camunda:string>
+        </camunda:field>
+        <camunda:field name="value">
+          <camunda:string>refusal</camunda:string>
+        </camunda:field>
+        <camunda:field name="label">
+          <camunda:string>Refusal</camunda:string>
+        </camunda:field>
+      </bpmn:extensionElements>
+      <bpmn:incoming>SequenceFlow_1l71kk9</bpmn:incoming>
+      <bpmn:outgoing>SequenceFlow_080fjob</bpmn:outgoing>
+    </bpmn:serviceTask>
     <bpmn:textAnnotation id="TextAnnotation_1afyvrl">
       <bpmn:text>Central Planner group</bpmn:text>
     </bpmn:textAnnotation>
@@ -185,6 +219,18 @@
     </bpmn:textAnnotation>
     <bpmn:association id="Association_10hz3oa" sourceRef="centralAssignPerformer" targetRef="TextAnnotation_00sk0sg" />
     <bpmn:association id="Association_1ghhsze" sourceRef="centralAssignPerformer" targetRef="TextAnnotation_1w69e6m" />
+    <bpmn:textAnnotation id="TextAnnotation_0wn7bdp">
+      <bpmn:text>Site Regional Leasing</bpmn:text>
+    </bpmn:textAnnotation>
+    <bpmn:textAnnotation id="TextAnnotation_1rmri3g">
+      <bpmn:text>На форме добавить выбор значений: "Арендодатель не согласен на установку БС" или  "Арендодатель согласен на установку БС"</bpmn:text>
+    </bpmn:textAnnotation>
+    <bpmn:textAnnotation id="TextAnnotation_1m60i4i">
+      <bpmn:text>Проведение переговоров с арендодателем</bpmn:text>
+    </bpmn:textAnnotation>
+    <bpmn:association id="Association_0p1pgsv" sourceRef="negotiationsWithLandlord" targetRef="TextAnnotation_0wn7bdp" />
+    <bpmn:association id="Association_0wv2ob3" sourceRef="negotiationsWithLandlord" targetRef="TextAnnotation_1rmri3g" />
+    <bpmn:association id="Association_0ds1fis" sourceRef="negotiationsWithLandlord" targetRef="TextAnnotation_1m60i4i" />
   </bpmn:process>
   <bpmndi:BPMNDiagram id="BPMNDiagram_1">
     <bpmndi:BPMNPlane id="BPMNPlane_1" bpmnElement="leasing">
@@ -249,7 +295,7 @@
         <dc:Bounds x="403" y="610" width="100" height="56" />
       </bpmndi:BPMNShape>
       <bpmndi:BPMNShape id="EndEvent_14i3agh_di" bpmnElement="EndEvent_last">
-        <dc:Bounds x="1367" y="512" width="36" height="36" />
+        <dc:Bounds x="2219" y="512" width="36" height="36" />
         <bpmndi:BPMNLabel>
           <dc:Bounds x="861" y="659" width="0" height="13" />
         </bpmndi:BPMNLabel>
@@ -397,22 +443,71 @@
         </bpmndi:BPMNLabel>
       </bpmndi:BPMNEdge>
       <bpmndi:BPMNShape id="ExclusiveGateway_1qorery_di" bpmnElement="ExclusiveGateway_1qorery" isMarkerVisible="true">
-        <dc:Bounds x="1273" y="505" width="50" height="50" />
+        <dc:Bounds x="1786" y="505" width="50" height="50" />
       </bpmndi:BPMNShape>
       <bpmndi:BPMNEdge id="SequenceFlow_0rbdmyg_di" bpmnElement="SequenceFlow_0rbdmyg">
         <di:waypoint x="1165" y="350" />
-        <di:waypoint x="1298" y="350" />
-        <di:waypoint x="1298" y="505" />
+        <di:waypoint x="1433" y="350" />
       </bpmndi:BPMNEdge>
       <bpmndi:BPMNEdge id="SequenceFlow_05g0u94_di" bpmnElement="SequenceFlow_05g0u94">
         <di:waypoint x="1165" y="825" />
-        <di:waypoint x="1298" y="825" />
-        <di:waypoint x="1298" y="555" />
+        <di:waypoint x="1811" y="825" />
+        <di:waypoint x="1811" y="555" />
       </bpmndi:BPMNEdge>
       <bpmndi:BPMNEdge id="SequenceFlow_1jzi617_di" bpmnElement="SequenceFlow_1jzi617">
-        <di:waypoint x="1323" y="530" />
-        <di:waypoint x="1367" y="530" />
+        <di:waypoint x="1836" y="530" />
+        <di:waypoint x="2002" y="530" />
       </bpmndi:BPMNEdge>
+      <bpmndi:BPMNShape id="UserTask_1g3bao8_di" bpmnElement="negotiationsWithLandlord">
+        <dc:Bounds x="1433" y="310" width="100" height="80" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="TextAnnotation_0wn7bdp_di" bpmnElement="TextAnnotation_0wn7bdp">
+        <dc:Bounds x="1433" y="226" width="100" height="42" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="TextAnnotation_1rmri3g_di" bpmnElement="TextAnnotation_1rmri3g">
+        <dc:Bounds x="1557" y="431" width="211" height="83" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="TextAnnotation_1m60i4i_di" bpmnElement="TextAnnotation_1m60i4i">
+        <dc:Bounds x="1335" y="404" width="136" height="56" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNEdge id="Association_0p1pgsv_di" bpmnElement="Association_0p1pgsv">
+        <di:waypoint x="1483" y="310" />
+        <di:waypoint x="1483" y="268" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Association_0wv2ob3_di" bpmnElement="Association_0wv2ob3">
+        <di:waypoint x="1532" y="383" />
+        <di:waypoint x="1600" y="431" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Association_0ds1fis_di" bpmnElement="Association_0ds1fis">
+        <di:waypoint x="1444" y="390" />
+        <di:waypoint x="1430" y="404" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="SequenceFlow_1sdn7jc_di" bpmnElement="SequenceFlow_1sdn7jc">
+        <di:waypoint x="1533" y="350" />
+        <di:waypoint x="1811" y="350" />
+        <di:waypoint x="1811" y="505" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNShape id="ExclusiveGateway_0wi0wbj_di" bpmnElement="ExclusiveGateway_0wi0wbj" isMarkerVisible="true">
+        <dc:Bounds x="2002" y="505" width="50" height="50" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNEdge id="SequenceFlow_0h6eiux_di" bpmnElement="SequenceFlow_0h6eiux">
+        <di:waypoint x="2052" y="530" />
+        <di:waypoint x="2219" y="530" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNShape id="EndEvent_1n4kixg_di" bpmnElement="EndEvent_1n4kixg">
+        <dc:Bounds x="2009" y="324" width="36" height="36" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNEdge id="SequenceFlow_1l71kk9_di" bpmnElement="SequenceFlow_1l71kk9">
+        <di:waypoint x="2027" y="505" />
+        <di:waypoint x="2027" y="472" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="SequenceFlow_080fjob_di" bpmnElement="SequenceFlow_080fjob">
+        <di:waypoint x="2027" y="392" />
+        <di:waypoint x="2027" y="360" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNShape id="ServiceTask_1q61xwn_di" bpmnElement="Task_0bha4n0">
+        <dc:Bounds x="1977" y="392" width="100" height="80" />
+      </bpmndi:BPMNShape>
     </bpmndi:BPMNPlane>
   </bpmndi:BPMNDiagram>
 </bpmn:definitions>
