@@ -44,11 +44,9 @@
         </camunda:executionListener>
       </bpmn:extensionElements>
       <bpmn:incoming>SequenceFlow_0ae089u</bpmn:incoming>
+      <bpmn:incoming>SequenceFlow_177s6zs</bpmn:incoming>
       <bpmn:outgoing>SequenceFlow_18vmkgb</bpmn:outgoing>
     </bpmn:userTask>
-    <bpmn:sendTask id="SendTask_0b0922h" name="Send notification to centrall planner" camunda:expression="${true}">
-      <bpmn:outgoing>SequenceFlow_0qpdfp3</bpmn:outgoing>
-    </bpmn:sendTask>
     <bpmn:userTask id="addOutToRollOut" name="Add/Out NCP to Roll Out" camunda:formKey="embedded:app:forms/leasing/addOutToRollOut.html">
       <bpmn:documentation>Внесите/Удалите NCP в Roll Out</bpmn:documentation>
       <bpmn:incoming>SequenceFlow_0dwuda0</bpmn:incoming>
@@ -67,8 +65,9 @@
     <bpmn:endEvent id="EndEvent_rejected">
       <bpmn:incoming>SequenceFlow_0o254nu</bpmn:incoming>
     </bpmn:endEvent>
-    <bpmn:userTask id="UserTask_1m1f9sq" name="Rejected NCP">
-      <bpmn:incoming>SequenceFlow_0qpdfp3</bpmn:incoming>
+    <bpmn:userTask id="rejectedNCP" name="Rejected NCP" camunda:formKey="embedded:app:forms/leasing/rejectedNCP.html">
+      <bpmn:documentation>Rejected NCP</bpmn:documentation>
+      <bpmn:incoming>SequenceFlow_0dzanlk</bpmn:incoming>
       <bpmn:outgoing>SequenceFlow_18th46u</bpmn:outgoing>
     </bpmn:userTask>
     <bpmn:endEvent id="EndEvent_last">
@@ -77,14 +76,13 @@
     <bpmn:sequenceFlow id="SequenceFlow_14s3lkq" sourceRef="StartEvent_first" targetRef="ExclusiveGateway_0goepbc" />
     <bpmn:sequenceFlow id="SequenceFlow_0ae089u" sourceRef="ExclusiveGateway_0k6tbyl" targetRef="createNewCandidateSite" />
     <bpmn:sequenceFlow id="SequenceFlow_18vmkgb" sourceRef="createNewCandidateSite" targetRef="ExclusiveGateway_184lbll" />
-    <bpmn:sequenceFlow id="SequenceFlow_0qpdfp3" sourceRef="SendTask_0b0922h" targetRef="UserTask_1m1f9sq" />
     <bpmn:sequenceFlow id="SequenceFlow_0dwuda0" sourceRef="ExclusiveGateway_0goepbc" targetRef="addOutToRollOut" />
     <bpmn:sequenceFlow id="SequenceFlow_0sd78le" sourceRef="addOutToRollOut" targetRef="ExclusiveGateway_0k6tbyl" />
-    <bpmn:sequenceFlow id="SequenceFlow_18th46u" sourceRef="UserTask_1m1f9sq" targetRef="ExclusiveGateway_0goepbc" />
+    <bpmn:sequenceFlow id="SequenceFlow_18th46u" sourceRef="rejectedNCP" targetRef="ExclusiveGateway_0goepbc" />
     <bpmn:sequenceFlow id="SequenceFlow_0o254nu" name="Out of Roll Out" sourceRef="ExclusiveGateway_0k6tbyl" targetRef="EndEvent_rejected">
       <bpmn:conditionExpression xsi:type="bpmn:tFormalExpression">${addOutToRollOutTaskResult == "rejected"}</bpmn:conditionExpression>
     </bpmn:sequenceFlow>
-    <bpmn:userTask id="regionalAssignPerformer" name="Assign performer" camunda:formKey="embedded:app:forms/leasing/regionalAssignPerformer.html" camunda:candidateGroups="RegionalLeasingGroupHeadSpecialist">
+    <bpmn:userTask id="regionalAssignPerformer" name="Assign performer" camunda:formKey="embedded:app:forms/leasing/regionalAssignPerformer.html" camunda:candidateGroups="LeasingRegionalGroupHeadSpecialist">
       <bpmn:documentation>Assign Performer</bpmn:documentation>
       <bpmn:extensionElements>
         <camunda:taskListener class="kz.kcell.bpm.leasing.TaskSetStatus" event="assignment">
@@ -108,7 +106,7 @@
       <bpmn:outgoing>SequenceFlow_0f8j0gi</bpmn:outgoing>
     </bpmn:exclusiveGateway>
     <bpmn:sequenceFlow id="SequenceFlow_12sbzd9" name="простой объект сайта" sourceRef="ExclusiveGateway_184lbll" targetRef="regionalAssignPerformer" />
-    <bpmn:userTask id="centralAssignPerformer" name="Assign performer" camunda:formKey="embedded:app:forms/leasing/centralAssignPerformer.html" camunda:candidateGroups="CentralLeasingGroupHeadSpecialist">
+    <bpmn:userTask id="centralAssignPerformer" name="Assign performer" camunda:formKey="embedded:app:forms/leasing/centralAssignPerformer.html" camunda:candidateGroups="LeasingCentralGroupHeadSpecialist">
       <bpmn:documentation>Assign Performer</bpmn:documentation>
       <bpmn:extensionElements>
         <camunda:taskListener class="kz.kcell.bpm.leasing.TaskSetStatus" event="assignment">
@@ -148,13 +146,10 @@
       <bpmn:outgoing>SequenceFlow_1l71kk9</bpmn:outgoing>
     </bpmn:exclusiveGateway>
     <bpmn:sequenceFlow id="SequenceFlow_0h6eiux" sourceRef="ExclusiveGateway_0wi0wbj" targetRef="EndEvent_last" />
-    <bpmn:endEvent id="EndEvent_1n4kixg">
-      <bpmn:incoming>SequenceFlow_080fjob</bpmn:incoming>
-    </bpmn:endEvent>
     <bpmn:sequenceFlow id="SequenceFlow_1l71kk9" sourceRef="ExclusiveGateway_0wi0wbj" targetRef="setRentRequestStatusRefusal">
       <bpmn:conditionExpression xsi:type="bpmn:tFormalExpression">${rentApprovalResult=='refused'}</bpmn:conditionExpression>
     </bpmn:sequenceFlow>
-    <bpmn:sequenceFlow id="SequenceFlow_080fjob" sourceRef="setRentRequestStatusRefusal" targetRef="EndEvent_1n4kixg" />
+    <bpmn:sequenceFlow id="SequenceFlow_080fjob" sourceRef="setRentRequestStatusRefusal" targetRef="modifyCandidateSite" />
     <bpmn:exclusiveGateway id="ExclusiveGateway_1famvzv">
       <bpmn:incoming>SequenceFlow_1nvhxyd</bpmn:incoming>
       <bpmn:outgoing>SequenceFlow_1bcz0ka</bpmn:outgoing>
@@ -196,24 +191,84 @@
       <bpmn:incoming>SequenceFlow_1g3vjnk</bpmn:incoming>
       <bpmn:outgoing>SequenceFlow_0gg63c6</bpmn:outgoing>
     </bpmn:userTask>
-    <bpmn:scriptTask id="setRentRequestStatusRefusal" name="Set Rent Request Status to Refusal">
+    <bpmn:userTask id="modifyCandidateSite" name="Modify candidate site " camunda:formKey="embedded:app:forms/leasing/modifyCandidateSite.html" camunda:candidateGroups="LeasingRegionalPlanningGroup">
+      <bpmn:documentation>Modify candidate site </bpmn:documentation>
+      <bpmn:incoming>SequenceFlow_080fjob</bpmn:incoming>
+      <bpmn:outgoing>SequenceFlow_074l9qe</bpmn:outgoing>
+    </bpmn:userTask>
+    <bpmn:serviceTask id="setRentRequestStatusRefusal" name="Set Rent Request Status to Refusal" camunda:class="kz.kcell.bpm.leasing.DelegateSetStatus">
       <bpmn:extensionElements>
-        <camunda:executionListener class="kz.kcell.bpm.leasing.ExecutionSetStatus" event="start">
-          <camunda:field name="variable">
-            <camunda:string>rentRequestStatus</camunda:string>
-          </camunda:field>
-          <camunda:field name="value">
-            <camunda:string>refusal</camunda:string>
-          </camunda:field>
-          <camunda:field name="label">
-            <camunda:string>Refusal</camunda:string>
-          </camunda:field>
-        </camunda:executionListener>
+        <camunda:field name="variable">
+          <camunda:string>rentRequestStatus</camunda:string>
+        </camunda:field>
+        <camunda:field name="value">
+          <camunda:string>refusal</camunda:string>
+        </camunda:field>
+        <camunda:field name="label">
+          <camunda:string>Refusal</camunda:string>
+        </camunda:field>
       </bpmn:extensionElements>
       <bpmn:incoming>SequenceFlow_1l71kk9</bpmn:incoming>
       <bpmn:outgoing>SequenceFlow_080fjob</bpmn:outgoing>
-      <bpmn:script>${}</bpmn:script>
-    </bpmn:scriptTask>
+    </bpmn:serviceTask>
+    <bpmn:sendTask id="SendTask_1j6miqc" name="Send notification to centrall planner" camunda:asyncBefore="true" camunda:delegateExpression="${camundaMailer}">
+      <bpmn:extensionElements>
+        <camunda:inputOutput>
+          <camunda:inputParameter name="to">
+            <camunda:script scriptFormat="groovy" resource="leasing/CentralPlanningGroup.groovy" />
+          </camunda:inputParameter>
+          <camunda:inputParameter name="subject">Request to cancel NCP</camunda:inputParameter>
+          <camunda:inputParameter name="html">Request Cancelled</camunda:inputParameter>
+        </camunda:inputOutput>
+      </bpmn:extensionElements>
+      <bpmn:incoming>SequenceFlow_0wknysl</bpmn:incoming>
+      <bpmn:outgoing>SequenceFlow_0dzanlk</bpmn:outgoing>
+    </bpmn:sendTask>
+    <bpmn:exclusiveGateway id="ExclusiveGateway_07g3n5r">
+      <bpmn:incoming>SequenceFlow_074l9qe</bpmn:incoming>
+      <bpmn:outgoing>SequenceFlow_0l3jhg6</bpmn:outgoing>
+      <bpmn:outgoing>SequenceFlow_0ipket2</bpmn:outgoing>
+    </bpmn:exclusiveGateway>
+    <bpmn:sequenceFlow id="SequenceFlow_0l3jhg6" name="rejected" sourceRef="ExclusiveGateway_07g3n5r" targetRef="ScriptTask_1h3xnpi">
+      <bpmn:conditionExpression xsi:type="bpmn:tFormalExpression">${modifyCandidateSiteTaskResult == 'rejectCandidate'}</bpmn:conditionExpression>
+    </bpmn:sequenceFlow>
+    <bpmn:sequenceFlow id="SequenceFlow_0wknysl" sourceRef="ScriptTask_0oahxxa" targetRef="SendTask_1j6miqc" />
+    <bpmn:sequenceFlow id="SequenceFlow_0ipket2" name="Request to cancel NCP" sourceRef="ExclusiveGateway_07g3n5r" targetRef="ScriptTask_0oahxxa">
+      <bpmn:conditionExpression xsi:type="bpmn:tFormalExpression">${modifyCandidateSiteTaskResult == 'requestCancelNCP'}</bpmn:conditionExpression>
+    </bpmn:sequenceFlow>
+    <bpmn:sequenceFlow id="SequenceFlow_074l9qe" sourceRef="modifyCandidateSite" targetRef="ExclusiveGateway_07g3n5r" />
+    <bpmn:sequenceFlow id="SequenceFlow_177s6zs" sourceRef="ScriptTask_1h3xnpi" targetRef="createNewCandidateSite" />
+    <bpmn:sequenceFlow id="SequenceFlow_0dzanlk" sourceRef="SendTask_1j6miqc" targetRef="rejectedNCP" />
+    <bpmn:serviceTask id="ScriptTask_1h3xnpi" name="Set Candidate Status to &#34;Rejected Candidate&#34;" camunda:class="kz.kcell.bpm.leasing.DelegateSetStatus">
+      <bpmn:extensionElements>
+        <camunda:field name="variable">
+          <camunda:string>candidateStatus</camunda:string>
+        </camunda:field>
+        <camunda:field name="value">
+          <camunda:string>rejectedCandidate</camunda:string>
+        </camunda:field>
+        <camunda:field name="label">
+          <camunda:string>Rejected Candidate</camunda:string>
+        </camunda:field>
+      </bpmn:extensionElements>
+      <bpmn:incoming>SequenceFlow_0l3jhg6</bpmn:incoming>
+      <bpmn:outgoing>SequenceFlow_177s6zs</bpmn:outgoing>
+    </bpmn:serviceTask>
+    <bpmn:serviceTask id="ScriptTask_0oahxxa" name="Set Candidate Status to &#34;Request to cancel NCP&#34;" camunda:class="kz.kcell.bpm.leasing.DelegateSetStatus">
+      <bpmn:extensionElements>
+        <camunda:field name="variable">
+          <camunda:string>candidateStatus</camunda:string>
+        </camunda:field>
+        <camunda:field name="value">
+          <camunda:string>requestCancelNCP</camunda:string>
+        </camunda:field>
+        <camunda:field name="label">
+          <camunda:string>Request to cancel NCP</camunda:string>
+        </camunda:field>
+      </bpmn:extensionElements>
+      <bpmn:incoming>SequenceFlow_0ipket2</bpmn:incoming>
+      <bpmn:outgoing>SequenceFlow_0wknysl</bpmn:outgoing>
+    </bpmn:serviceTask>
     <bpmn:textAnnotation id="TextAnnotation_1afyvrl">
       <bpmn:text>Central Planner group</bpmn:text>
     </bpmn:textAnnotation>
@@ -245,7 +300,7 @@
     <bpmn:association id="Association_0oys91e" sourceRef="createNewCandidateSite" targetRef="TextAnnotation_0z3uf63" />
     <bpmn:association id="Association_1n63nrm" sourceRef="addOutToRollOut" targetRef="TextAnnotation_1vxzw9x" />
     <bpmn:association id="Association_19humkg" sourceRef="addOutToRollOut" targetRef="TextAnnotation_1h4y5vo" />
-    <bpmn:association id="Association_13rvcvn" sourceRef="UserTask_1m1f9sq" targetRef="TextAnnotation_0c9yr06" />
+    <bpmn:association id="Association_13rvcvn" sourceRef="rejectedNCP" targetRef="TextAnnotation_0c9yr06" />
     <bpmn:textAnnotation id="TextAnnotation_13s89kv">
       <bpmn:text>Site Regional Leasing _Head</bpmn:text>
     </bpmn:textAnnotation>
@@ -298,6 +353,10 @@
     <bpmn:association id="Association_1nj4mlg" sourceRef="receivingContractPSD" targetRef="TextAnnotation_12pqtlm" />
     <bpmn:association id="Association_1w8a0p6" sourceRef="receivingApprovalFromTheLandlord" targetRef="TextAnnotation_18nokzz" />
     <bpmn:association id="Association_1ehs9cb" sourceRef="receivingApprovalFromTheLandlord" targetRef="TextAnnotation_0rg6210" />
+    <bpmn:textAnnotation id="TextAnnotation_1a26i1r">
+      <bpmn:text>Regional Planner group</bpmn:text>
+    </bpmn:textAnnotation>
+    <bpmn:association id="Association_096390i" sourceRef="modifyCandidateSite" targetRef="TextAnnotation_1a26i1r" />
   </bpmn:process>
   <bpmndi:BPMNDiagram id="BPMNDiagram_1">
     <bpmndi:BPMNPlane id="BPMNPlane_1" bpmnElement="leasing">
@@ -309,9 +368,6 @@
       </bpmndi:BPMNShape>
       <bpmndi:BPMNShape id="UserTask_1sy64bs_di" bpmnElement="createNewCandidateSite">
         <dc:Bounds x="689" y="487" width="100" height="80" />
-      </bpmndi:BPMNShape>
-      <bpmndi:BPMNShape id="SendTask_0b0922h_di" bpmnElement="SendTask_0b0922h">
-        <dc:Bounds x="700" y="49" width="100" height="80" />
       </bpmndi:BPMNShape>
       <bpmndi:BPMNShape id="UserTask_1p5xvey_di" bpmnElement="addOutToRollOut">
         <dc:Bounds x="418" y="487" width="100" height="80" />
@@ -334,8 +390,8 @@
           <dc:Bounds x="567" y="758" width="0" height="13" />
         </bpmndi:BPMNLabel>
       </bpmndi:BPMNShape>
-      <bpmndi:BPMNShape id="UserTask_1m1f9sq_di" bpmnElement="UserTask_1m1f9sq">
-        <dc:Bounds x="523" y="49" width="100" height="80" />
+      <bpmndi:BPMNShape id="UserTask_1m1f9sq_di" bpmnElement="rejectedNCP">
+        <dc:Bounds x="534" y="-96" width="100" height="80" />
       </bpmndi:BPMNShape>
       <bpmndi:BPMNShape id="TextAnnotation_1afyvrl_di" bpmnElement="TextAnnotation_1afyvrl">
         <dc:Bounds x="188" y="414" width="100" height="42" />
@@ -356,7 +412,7 @@
         <dc:Bounds x="403" y="418" width="100" height="41" />
       </bpmndi:BPMNShape>
       <bpmndi:BPMNShape id="TextAnnotation_0c9yr06_di" bpmnElement="TextAnnotation_0c9yr06">
-        <dc:Bounds x="523" y="-46" width="100" height="41" />
+        <dc:Bounds x="534" y="-191" width="100" height="41" />
       </bpmndi:BPMNShape>
       <bpmndi:BPMNShape id="TextAnnotation_1h4y5vo_di" bpmnElement="TextAnnotation_1h4y5vo">
         <dc:Bounds x="403" y="610" width="100" height="56" />
@@ -408,13 +464,6 @@
         <di:waypoint x="739" y="567" />
         <di:waypoint x="739" y="635" />
       </bpmndi:BPMNEdge>
-      <bpmndi:BPMNEdge id="SequenceFlow_0qpdfp3_di" bpmnElement="SequenceFlow_0qpdfp3">
-        <di:waypoint x="700" y="89" />
-        <di:waypoint x="623" y="89" />
-        <bpmndi:BPMNLabel>
-          <dc:Bounds x="617.5" y="68" width="0" height="13" />
-        </bpmndi:BPMNLabel>
-      </bpmndi:BPMNEdge>
       <bpmndi:BPMNEdge id="SequenceFlow_0dwuda0_di" bpmnElement="SequenceFlow_0dwuda0">
         <di:waypoint x="345" y="527" />
         <di:waypoint x="418" y="527" />
@@ -438,8 +487,8 @@
         <di:waypoint x="458" y="610" />
       </bpmndi:BPMNEdge>
       <bpmndi:BPMNEdge id="SequenceFlow_18th46u_di" bpmnElement="SequenceFlow_18th46u">
-        <di:waypoint x="523" y="89" />
-        <di:waypoint x="321" y="89" />
+        <di:waypoint x="534" y="-56" />
+        <di:waypoint x="321" y="-56" />
         <di:waypoint x="321" y="501" />
         <bpmndi:BPMNLabel>
           <dc:Bounds x="377" y="68" width="0" height="13" />
@@ -453,8 +502,8 @@
         </bpmndi:BPMNLabel>
       </bpmndi:BPMNEdge>
       <bpmndi:BPMNEdge id="Association_13rvcvn_di" bpmnElement="Association_13rvcvn">
-        <di:waypoint x="573" y="49" />
-        <di:waypoint x="573" y="-5" />
+        <di:waypoint x="584" y="-96" />
+        <di:waypoint x="584" y="-150" />
       </bpmndi:BPMNEdge>
       <bpmndi:BPMNShape id="UserTask_0ucd0u3_di" bpmnElement="regionalAssignPerformer">
         <dc:Bounds x="1065" y="310" width="100" height="80" />
@@ -556,16 +605,14 @@
         <di:waypoint x="2052" y="530" />
         <di:waypoint x="2219" y="530" />
       </bpmndi:BPMNEdge>
-      <bpmndi:BPMNShape id="EndEvent_1n4kixg_di" bpmnElement="EndEvent_1n4kixg">
-        <dc:Bounds x="2009" y="85" width="36" height="36" />
-      </bpmndi:BPMNShape>
       <bpmndi:BPMNEdge id="SequenceFlow_1l71kk9_di" bpmnElement="SequenceFlow_1l71kk9">
         <di:waypoint x="2027" y="505" />
         <di:waypoint x="2027" y="390" />
       </bpmndi:BPMNEdge>
       <bpmndi:BPMNEdge id="SequenceFlow_080fjob_di" bpmnElement="SequenceFlow_080fjob">
         <di:waypoint x="2027" y="310" />
-        <di:waypoint x="2027" y="121" />
+        <di:waypoint x="2027" y="81" />
+        <di:waypoint x="1940" y="81" />
       </bpmndi:BPMNEdge>
       <bpmndi:BPMNShape id="ExclusiveGateway_1famvzv_di" bpmnElement="ExclusiveGateway_1famvzv" isMarkerVisible="true">
         <dc:Bounds x="1259" y="800" width="50" height="50" />
@@ -672,8 +719,60 @@
       <bpmndi:BPMNShape id="UserTask_0hiy2ih_di" bpmnElement="receivingApprovalFromTheLandlord">
         <dc:Bounds x="1433" y="1071" width="100" height="80" />
       </bpmndi:BPMNShape>
-      <bpmndi:BPMNShape id="ScriptTask_074xrmd_di" bpmnElement="setRentRequestStatusRefusal">
+      <bpmndi:BPMNShape id="UserTask_0wh6fbl_di" bpmnElement="modifyCandidateSite">
+        <dc:Bounds x="1840" y="41" width="100" height="80" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="TextAnnotation_1a26i1r_di" bpmnElement="TextAnnotation_1a26i1r">
+        <dc:Bounds x="1818" y="178" width="100" height="41" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNEdge id="Association_096390i_di" bpmnElement="Association_096390i">
+        <di:waypoint x="1868" y="121" />
+        <di:waypoint x="1868" y="178" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNShape id="ServiceTask_10xwjz2_di" bpmnElement="setRentRequestStatusRefusal">
         <dc:Bounds x="1977" y="310" width="100" height="80" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="SendTask_1j6miqc_di" bpmnElement="SendTask_1j6miqc">
+        <dc:Bounds x="689" y="-96" width="100" height="80" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="ExclusiveGateway_07g3n5r_di" bpmnElement="ExclusiveGateway_07g3n5r" isMarkerVisible="true">
+        <dc:Bounds x="895" y="56" width="50" height="50" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNEdge id="SequenceFlow_0l3jhg6_di" bpmnElement="SequenceFlow_0l3jhg6">
+        <di:waypoint x="895" y="81" />
+        <di:waypoint x="789" y="81" />
+        <bpmndi:BPMNLabel>
+          <dc:Bounds x="823" y="60" width="40" height="14" />
+        </bpmndi:BPMNLabel>
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="SequenceFlow_0wknysl_di" bpmnElement="SequenceFlow_0wknysl">
+        <di:waypoint x="870" y="-56" />
+        <di:waypoint x="789" y="-56" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="SequenceFlow_0ipket2_di" bpmnElement="SequenceFlow_0ipket2">
+        <di:waypoint x="920" y="56" />
+        <di:waypoint x="920" y="-16" />
+        <bpmndi:BPMNLabel>
+          <dc:Bounds x="929" y="14" width="59" height="27" />
+        </bpmndi:BPMNLabel>
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="SequenceFlow_074l9qe_di" bpmnElement="SequenceFlow_074l9qe">
+        <di:waypoint x="1840" y="81" />
+        <di:waypoint x="945" y="81" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="SequenceFlow_177s6zs_di" bpmnElement="SequenceFlow_177s6zs">
+        <di:waypoint x="739" y="121" />
+        <di:waypoint x="739" y="487" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="SequenceFlow_0dzanlk_di" bpmnElement="SequenceFlow_0dzanlk">
+        <di:waypoint x="689" y="-56" />
+        <di:waypoint x="634" y="-56" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNShape id="ServiceTask_1nvr4oc_di" bpmnElement="ScriptTask_1h3xnpi">
+        <dc:Bounds x="689" y="41" width="100" height="80" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="ServiceTask_0h8hfby_di" bpmnElement="ScriptTask_0oahxxa">
+        <dc:Bounds x="870" y="-96" width="100" height="80" />
       </bpmndi:BPMNShape>
     </bpmndi:BPMNPlane>
   </bpmndi:BPMNDiagram>

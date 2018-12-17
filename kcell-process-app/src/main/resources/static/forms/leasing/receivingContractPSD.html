@@ -58,12 +58,19 @@
                     value: ''
                 });
 
+                camForm.variableManager.createVariable({
+                    name: 'receivingContractPSDFiles',
+                    type: 'Json',
+                    value: []
+                });
+
                 $scope.receivingContractPSDTaskResult = '';
+                $scope.receivingContractPSDFiles = [];
             });
 
             camForm.on('submit', function () {
                 camForm.variableManager.variableValue('receivingContractPSDTaskResult', $scope.receivingContractPSDTaskResult);
-                if($scope.receivingTSForCandiateSiteTaskResult == 'notReceived') {
+                if($scope.receivingContractPSDTaskResult === 'notReceived') {
                     camForm.variableManager.createVariable({
                         name: 'rentApprovalResult',
                         type: 'String',
@@ -71,6 +78,7 @@
                     });
                 }
                 camForm.variableManager.variableValue('receivingContractPSDTaskComment', $scope.receivingContractPSDTaskComment);
+                camForm.variableManager.variableValue('receivingContractPSDFiles', $scope.receivingContractPSDFiles);
             });
 
             $scope.fileSelected = function (el, fileName) {
@@ -131,13 +139,13 @@
     <iframe id="fileDownloadIframe" style="display:none;"></iframe>
 
     <div class="form-group">
-        <label class="col-md-4 control-label">Generated RR file:</label>
+        <label class="col-md-4 control-label">Download RR:</label>
         <div class="col-sm-8">
             <a ng-click="download(rrFile)">{{rrFile.name}}</a>
         </div>
     </div>
     <div class="form-group">
-        <label class="col-md-4 control-label">Uploaded RR files:</label>
+        <label class="col-md-4 control-label">RR files:</label>
         <div class="col-sm-8">
             <div ng-show="newCandidateRRFiles.length > 0" class="input-group" ng-repeat="file in newCandidateRRFiles">
                 {{$index + 1}}.
@@ -158,7 +166,7 @@
     </div>
 
     <div class="form-group">
-        <label class="col-sm-4 control-label"></label>
+        <label class="col-sm-4 control-label">Contract a PSD for candidate site</label>
         <div class="col-sm-8">
             <label class="radio-inline">
                 <input type="radio" name="receivingContractPSDTaskResult" ng-model="receivingContractPSDTaskResult" value="received" required> Received
@@ -171,8 +179,8 @@
     </div>
 
     <div class="form-group">
-        <label class="col-sm-3 control-label">Comments</label>
-        <div class="col-sm-9">
+        <label class="col-sm-4 control-label">Comments</label>
+        <div class="col-sm-8">
             <textarea class="form-control" ng-model="receivingContractPSDTaskComment" name="receivingContractPSDTaskComment" placeholder="Comments..." maxlength="500" rows="4" style="resize:none"
                       ng-required="receivingContractPSDTaskResult == 'notReceived'"></textarea>
             <label class="error" ng-show="kcell_form.receivingContractPSDTaskComment.$error.required && ( kcell_form.receivingContractPSDTaskComment.$touched || view.submitted)">Required field</label>
@@ -194,7 +202,7 @@
                 </tr>
                 </thead>
                 <tbody>
-                <tr ng-repeat="resolution in resolutions">
+                <tr ng-repeat="resolution in resolutions track by $index">
                     <td>{{resolution.taskName}}</td>
                     <td>{{resolution.assigneeName}}</td>
                     <td>{{'task.resolution.'+resolution.resolution | translate}}</td>

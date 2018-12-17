@@ -5,17 +5,18 @@ import com.fasterxml.jackson.databind.node.ObjectNode;
 import org.camunda.bpm.engine.delegate.DelegateExecution;
 import org.camunda.bpm.engine.delegate.ExecutionListener;
 import org.camunda.bpm.engine.delegate.Expression;
+import org.camunda.bpm.engine.delegate.JavaDelegate;
 import org.camunda.spin.plugin.variable.SpinValues;
 import org.camunda.spin.plugin.variable.value.JsonValue;
 
-public class ExecutionSetStatus implements ExecutionListener {
+public class DelegateSetStatus implements JavaDelegate {
 
     Expression variable;
     Expression value;
     Expression label;
 
     @Override
-    public void notify(DelegateExecution delegateExecution) {
+    public void execute(DelegateExecution delegateExecution) throws Exception {
 
         String variable = this.variable.getValue(delegateExecution).toString();
         String value = this.value.getValue(delegateExecution).toString();

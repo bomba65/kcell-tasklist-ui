@@ -47,31 +47,28 @@
                     $scope.leasingCandidate[el] = camForm.variableManager.variables[el].value;
                 });
                 camForm.variableManager.createVariable({
-                    name: 'negotiationsWithLandlordTaskResult',
+                    name: 'modifyCandidateSiteTaskResult',
                     type: 'String',
                     value: ''
                 });
-
                 camForm.variableManager.createVariable({
-                    name: 'negotiationsWithLandlordTaskComment',
+                    name: 'modifyCandidateSiteTaskComment',
                     type: 'String',
                     value: ''
                 });
+                camForm.variableManager.createVariable({
+                    name: 'modifyCandidateRRFiles',
+                    type: 'Json',
+                    value: []
+                });
 
-                $scope.negotiationsWithLandlordTaskResult = '';
+                $scope.modifyCandidateRRFiles = [];
+                $scope.modifyCandidateSiteTaskResult = '';
             });
 
             camForm.on('submit', function () {
-                camForm.variableManager.variableValue('negotiationsWithLandlordTaskResult', $scope.negotiationsWithLandlordTaskResult);
-                if($scope.negotiationsWithLandlordTaskResult == 'notAgree') {
-                    camForm.variableManager.createVariable({
-                        name: 'rentApprovalResult',
-                        type: 'String',
-                        value: 'refused'
-                    });
-                }
-
-                camForm.variableManager.variableValue('negotiationsWithLandlordTaskComment', $scope.negotiationsWithLandlordTaskComment);
+                camForm.variableManager.variableValue('modifyCandidateSiteTaskResult', $scope.modifyCandidateSiteTaskResult);
+                camForm.variableManager.variableValue('modifyCandidateSiteTaskComment', $scope.modifyCandidateSiteTaskComment);
             });
 
             $scope.download = function (file) {
@@ -81,6 +78,45 @@
                 }, function(error){
                     console.log(error.data);
                 });
+            }
+
+            $scope.fileSelected = function (el, fileName) {
+                $timeout(function () {
+                    $scope.$apply(function () {
+                        uploadFileToMinio(el.files[0], fileName);
+                    });
+                })
+            };
+
+            function uploadFileToMinio(file, fileName) {
+                var fileIndex = $scope[fileName].length;
+
+                var fileToUpload = {
+                    name: file.name.replace(/[/\\?%*:|"<>]/g, '-'),
+                    isNew: true,
+                    path: $scope.processInstanceId + '/' + camForm.taskId + '/' + file.name.replace(/[/\\?%*:|"<>]/g, '-')
+                };
+                $http({
+                    method: 'GET',
+                    url: '/camunda/uploads/put/' + fileToUpload.path,
+                    transformResponse: []
+                }).then(function (response) {
+                    $http.put(response.data, file, {headers: {'Content-Type': undefined}}).then(
+                            function () {
+                                $scope[fileName].push(fileToUpload);
+                                angular.element(document.querySelector('#' + fileName)).val(null);
+                            },
+                            function (error) {
+                                console.log(error.data);
+                            }
+                    );
+                }, function(error){
+                    console.log(error.data);
+                });
+            }
+
+            $scope.clearFile = function (list, fileIndex) {
+                $scope[list].splice(fileIndex, 1);
             }
         }]);
 
@@ -104,26 +140,36 @@
             </div>
         </div>
     </div>
+    <div class="form-group">
+        <label class="col-md-4 control-label">Upload RR:</label>
+        <div class="col-sm-8">
+            <div ng-show="modifyCandidateRRFiles.length > 0" class="input-group" ng-repeat="file in modifyCandidateRRFiles">
+                {{$index + 1}}.
+                <a ng-click="fileDownload(file)">{{file.name}}</a> | <a ng-click="clearFile('modifyCandidateRRFiles', $index)"><i class="glyphicon glyphicon-trash"></i></a>
+            </div>
+            <input type="file" class="form-control" id="modifyCandidateRRFiles" name="modifyCandidateRRFiles" ng-model="file.file" onchange="angular.element(this).scope().fileSelected(this, 'modifyCandidateRRFiles')"/>
+        </div>
+    </div>
 
     <div class="form-group">
-        <label class="col-sm-4 control-label">Agreement  landlord  for installation of BS</label>
+        <label class="col-sm-4 control-label">Select an action</label>
         <div class="col-sm-8">
             <label class="radio-inline">
-                <input type="radio" name="negotiationsWithLandlordTaskResult" ng-model="negotiationsWithLandlordTaskResult" value="agree" required> Agree
+                <input type="radio" name="modifyCandidateSiteTaskResult" ng-model="modifyCandidateSiteTaskResult" value="rejectCandidate" required> Reject Candidate
             </label>
             <label class="radio-inline">
-                <input type="radio" name="negotiationsWithLandlordTaskResult" ng-model="negotiationsWithLandlordTaskResult" value="notAgree" required> Not Agree
+                <input type="radio" name="modifyCandidateSiteTaskResult" ng-model="modifyCandidateSiteTaskResult" value="requestCancelNCP" required> Request to cancel NCP
             </label>
-            <label class="error" ng-show="kcell_form.negotiationsWithLandlordTaskResult.$error.required && ( kcell_form.negotiationsWithLandlordTaskResult.$touched || view.submitted)">Required field</label>
+            <label class="error" ng-show="kcell_form.modifyCandidateSiteTaskResult.$error.required && ( kcell_form.modifyCandidateSiteTaskResult.$touched || view.submitted)">Required field</label>
         </div>
     </div>
 
     <div class="form-group">
         <label class="col-sm-4 control-label">Comments</label>
         <div class="col-sm-8">
-            <textarea class="form-control" ng-model="negotiationsWithLandlordTaskComment" name="negotiationsWithLandlordTaskComment" placeholder="Comments..." maxlength="500" rows="4" style="resize:none"
-            ng-required="negotiationsWithLandlordTaskResult == 'notAgree'"></textarea>
-            <label class="error" ng-show="kcell_form.negotiationsWithLandlordTaskComment.$error.required && ( kcell_form.negotiationsWithLandlordTaskComment.$touched || view.submitted)">Required field</label>
+            <textarea class="form-control" ng-model="modifyCandidateSiteTaskComment" name="modifyCandidateSiteTaskComment" placeholder="Comments..." maxlength="500" rows="4" style="resize:none"
+                      ng-required="modifyCandidateSiteTaskResult == 'notAgree'"></textarea>
+            <label class="error" ng-show="kcell_form.modifyCandidateSiteTaskComment.$error.required && ( kcell_form.modifyCandidateSiteTaskComment.$touched || view.submitted)">Required field</label>
         </div>
     </div>
     <accordion>
