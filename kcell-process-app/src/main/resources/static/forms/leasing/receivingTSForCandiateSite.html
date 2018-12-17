@@ -1,0 +1,239 @@
+<form role="form" class="form-horizontal" name="kcell_form" novalidate>
+    <script cam-script type="text/form-script">
+        inject(['$scope', '$http', 'Uri', '$rootScope', '$q', '$timeout', function ($scope, $http, Uri, $rootScope, $q, $timeout) {
+            var variables = [
+                'resolutions',
+                'ncpID',
+                'siteType',
+                'regionName',
+                'latitude',
+                'longitude',
+                'initiator',
+                'project',
+                'reason',
+                'part',
+                'plannedCabinetType',
+                'targetCoverage',
+                'rbsType',
+                'bands',
+                'rrFile',
+                'newCandidateRRFiles',
+                'candidate',
+                'cellAntenna',
+                'renterCompany',
+                'transmissionAntenna',
+                'powerSource',
+                'farEndInformation'
+            ];
+
+            camForm.on('form-loaded', function () {
+                variables.forEach(function (el) {
+                    camForm.variableManager.fetchVariable(el);
+                });
+                $http.get('/camunda/api/engine/engine/default/task/' + camForm.taskId).then(
+                        function(result){
+                            $scope.processInstanceId = result.data.processInstanceId;
+                        },
+                        function (error) {
+                            console.log(error.data);
+                        }
+                );
+                $scope.leasingCandidate = {};
+            });
+
+            camForm.on('variables-fetched', function () {
+                variables.forEach(function (el) {
+                    $scope[el] = camForm.variableManager.variables[el].value;
+                    $scope.leasingCandidate[el] = camForm.variableManager.variables[el].value;
+                });
+                camForm.variableManager.createVariable({
+                    name: 'receivingTSForCandiateSiteTaskResult',
+                    type: 'String',
+                    value: ''
+                });
+
+                camForm.variableManager.createVariable({
+                    name: 'receivingTSForCandiateSiteTaskComment',
+                    type: 'String',
+                    value: ''
+                });
+
+                $scope.receivingTSForCandiateSiteTaskResult = '';
+            });
+
+            camForm.on('submit', function () {
+                camForm.variableManager.variableValue('receivingTSForCandiateSiteTaskResult', $scope.receivingTSForCandiateSiteTaskResult);
+                if($scope.receivingTSForCandiateSiteTaskResult == 'notReceived') {
+                    camForm.variableManager.createVariable({
+                        name: 'rentApprovalResult',
+                        type: 'String',
+                        value: 'refused'
+                    });
+                }
+                camForm.variableManager.variableValue('receivingTSForCandiateSiteTaskComment', $scope.receivingTSForCandiateSiteTaskComment);
+            });
+
+            $scope.fileSelected = function (el, fileName) {
+                $timeout(function () {
+                    $scope.$apply(function () {
+                        uploadFileToMinio(el.files[0], fileName);
+                    });
+                })
+            };
+
+            function uploadFileToMinio(file, fileName) {
+                var fileIndex = $scope[fileName].length;
+
+                var fileToUpload = {
+                    name: file.name.replace(/[/\\?%*:|"<>]/g, '-'),
+                    isNew: true,
+                    path: $scope.processInstanceId + '/' + camForm.taskId + '/' + file.name.replace(/[/\\?%*:|"<>]/g, '-')
+                };
+                $http({
+                    method: 'GET',
+                    url: '/camunda/uploads/put/' + fileToUpload.path,
+                    transformResponse: []
+                }).then(function (response) {
+                    $http.put(response.data, file, {headers: {'Content-Type': undefined}}).then(
+                            function () {
+                                $scope[fileName].push(fileToUpload);
+                                angular.element(document.querySelector('#' + fileName)).val(null);
+                            },
+                            function (error) {
+                                console.log(error.data);
+                            }
+                    );
+                }, function(error){
+                    console.log(error.data);
+                });
+            }
+
+            $scope.clearFile = function (list, fileIndex) {
+                $scope[list].splice(fileIndex, 1);
+            }
+
+            $scope.fileDownload = function (file) {
+                $http({
+                    method: 'GET',
+                    url: '/camunda/uploads/get/' + file.path,
+                    transformResponse: []
+                }).then(function (response) {
+                    document.getElementById('fileDownloadIframe').src = response.data;
+                }, function(error){
+                    console.log(error.data);
+                });
+            }
+        }]);
+
+    </script>
+    <leasing-candidate leasing-candidate="leasingCandidate"></leasing-candidate>
+
+    <iframe id="fileDownloadIframe" style="display:none;"></iframe>
+
+    <div class="form-group">
+        <label class="col-md-4 control-label">Generated RR file:</label>
+        <div class="col-sm-8">
+            <a ng-click="download(rrFile)">{{rrFile.name}}</a>
+        </div>
+    </div>
+    <div class="form-group">
+        <label class="col-md-4 control-label">Uploaded RR files:</label>
+        <div class="col-sm-8">
+            <div ng-show="newCandidateRRFiles.length > 0" class="input-group" ng-repeat="file in newCandidateRRFiles">
+                {{$index + 1}}.
+                <a ng-click="download(file)">{{file.name}}</a>
+            </div>
+        </div>
+    </div>
+
+    <div class="form-group">
+        <label class="col-sm-4 control-label">Start Date:</label>
+        <div class="col-sm-8">
+            <div class="input-group">
+                <input type="text" ng-model="receivingTSStartDate" name="receivingTSStartDate" class="form-control" datepicker-popup="dd.MM.yyyy" is-open="receivingTSStartDateFieldOpened" id="receivingTSStartDate" required />
+                <span class="input-group-btn">
+                    <button type="button" class="btn btn-default" ng-click="receivingTSStartDateFieldOpened = true">
+                        <i class="glyphicon glyphicon-calendar"></i>
+                    </button>
+                </span>
+            </div>
+            <label class="error" ng-show="form.fe_form.receivingTSStartDate.$error.required && ( form.fe_form.receivingTSStartDate.$touched || newFe.submitted)">Required field</label>
+        </div>
+    </div>
+
+    <div class="form-group">
+        <label class="col-sm-4 control-label">End Date:</label>
+        <div class="col-sm-8">
+            <div class="input-group">
+                <input type="text" ng-model="receivingTSEndDate" name="receivingTSEndDate" class="form-control" datepicker-popup="dd.MM.yyyy" is-open="receivingTSEndDateFieldOpened" id="receivingTSEndDate" required />
+                <span class="input-group-btn">
+                    <button type="button" class="btn btn-default" ng-click="receivingTSEndDateFieldOpened = true">
+                        <i class="glyphicon glyphicon-calendar"></i>
+                    </button>
+                </span>
+            </div>
+            <label class="error" ng-show="form.fe_form.receivingTSEndDate.$error.required && ( form.fe_form.receivingTSEndDate.$touched || newFe.submitted)">Required field</label>
+        </div>
+    </div>
+
+    <div class="form-group">
+        <label class="col-md-4 control-label">Upload files:</label>
+        <div class="col-sm-8">
+            <div ng-show="receivingTSForCandiateSiteFiles.length > 0" class="input-group" ng-repeat="file in receivingTSForCandiateSiteFiles">
+                {{$index + 1}}.
+                <a ng-click="fileDownload(file)">{{file.name}}</a> | <a ng-click="clearFile('receivingTSForCandiateSiteFiles', $index)"><i class="glyphicon glyphicon-trash"></i></a>
+            </div>
+            <input type="file" class="form-control" id="receivingTSForCandiateSiteFiles" name="receivingTSForCandiateSiteFiles" ng-model="file.file" onchange="angular.element(this).scope().fileSelected(this, 'receivingTSForCandiateSiteFiles')"/>
+        </div>
+    </div>
+
+
+    <div class="form-group">
+        <label class="col-sm-4 control-label"></label>
+        <div class="col-sm-8">
+            <label class="radio-inline">
+                <input type="radio" name="receivingTSForCandiateSiteTaskResult" ng-model="receivingTSForCandiateSiteTaskResult" value="received" required> Received
+            </label>
+            <label class="radio-inline">
+                <input type="radio" name="receivingTSForCandiateSiteTaskResult" ng-model="receivingTSForCandiateSiteTaskResult" value="notReceived" required> Not received
+            </label>
+            <label class="error" ng-show="kcell_form.receivingTSForCandiateSiteTaskResult.$error.required && ( kcell_form.receivingTSForCandiateSiteTaskResult.$touched || view.submitted)">Required field</label>
+        </div>
+    </div>
+
+    <div class="form-group">
+        <label class="col-sm-3 control-label">Comments</label>
+        <div class="col-sm-9">
+            <textarea class="form-control" ng-model="receivingTSForCandiateSiteTaskComment" name="receivingTSForCandiateSiteTaskComment" placeholder="Comments..." maxlength="500" rows="4" style="resize:none"
+                      ng-required="receivingTSForCandiateSiteTaskResult == 'notReceived'"></textarea>
+            <label class="error" ng-show="kcell_form.receivingTSForCandiateSiteTaskComment.$error.required && ( kcell_form.receivingTSForCandiateSiteTaskComment.$touched || view.submitted)">Required field</label>
+        </div>
+    </div>
+    <accordion>
+        <accordion-group is-open="isHistoryOpen">
+            <accordion-heading>
+                History <i class="pull-right glyphicon" ng-class="{'glyphicon-chevron-up': status.isCustomHeaderOpen, 'glyphicon-chevron-down': !status.isCustomHeaderOpen}"></i>
+            </accordion-heading>
+            <table class="table">
+                <thead>
+                <tr>
+                    <th>Activity</th>
+                    <th>Assignee</th>
+                    <th>Resolution</th>
+                    <th>Date</th>
+                    <th>Comment</th>
+                </tr>
+                </thead>
+                <tbody>
+                <tr ng-repeat="resolution in resolutions">
+                    <td>{{resolution.taskName}}</td>
+                    <td>{{resolution.assigneeName}}</td>
+                    <td>{{'task.resolution.'+resolution.resolution | translate}}</td>
+                    <td>{{resolution.taskEndDate | date: 'dd.MM.yyyy HH:mm'}}</td>
+                    <td>{{resolution.comment}}</td>
+                </tr>
+                </tbody>
+            </table>
+        </accordion-group>
+    </accordion>
+</form>

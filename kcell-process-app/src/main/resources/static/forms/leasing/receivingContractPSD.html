@@ -47,36 +47,77 @@
                     $scope.leasingCandidate[el] = camForm.variableManager.variables[el].value;
                 });
                 camForm.variableManager.createVariable({
-                    name: 'negotiationsWithLandlordTaskResult',
+                    name: 'receivingContractPSDTaskResult',
                     type: 'String',
                     value: ''
                 });
 
                 camForm.variableManager.createVariable({
-                    name: 'negotiationsWithLandlordTaskComment',
+                    name: 'receivingContractPSDTaskComment',
                     type: 'String',
                     value: ''
                 });
 
-                $scope.negotiationsWithLandlordTaskResult = '';
+                $scope.receivingContractPSDTaskResult = '';
             });
 
             camForm.on('submit', function () {
-                camForm.variableManager.variableValue('negotiationsWithLandlordTaskResult', $scope.negotiationsWithLandlordTaskResult);
-                if($scope.negotiationsWithLandlordTaskResult == 'notAgree') {
+                camForm.variableManager.variableValue('receivingContractPSDTaskResult', $scope.receivingContractPSDTaskResult);
+                if($scope.receivingTSForCandiateSiteTaskResult == 'notReceived') {
                     camForm.variableManager.createVariable({
                         name: 'rentApprovalResult',
                         type: 'String',
                         value: 'refused'
                     });
                 }
-
-                camForm.variableManager.variableValue('negotiationsWithLandlordTaskComment', $scope.negotiationsWithLandlordTaskComment);
+                camForm.variableManager.variableValue('receivingContractPSDTaskComment', $scope.receivingContractPSDTaskComment);
             });
 
-            $scope.download = function (file) {
-                $http({method: 'GET', url: '/camunda/uploads/get/' + file.path, transformResponse: [] }).
-                then(function(response) {
+            $scope.fileSelected = function (el, fileName) {
+                $timeout(function () {
+                    $scope.$apply(function () {
+                        uploadFileToMinio(el.files[0], fileName);
+                    });
+                })
+            };
+
+            function uploadFileToMinio(file, fileName) {
+                var fileIndex = $scope[fileName].length;
+
+                var fileToUpload = {
+                    name: file.name.replace(/[/\\?%*:|"<>]/g, '-'),
+                    isNew: true,
+                    path: $scope.processInstanceId + '/' + camForm.taskId + '/' + file.name.replace(/[/\\?%*:|"<>]/g, '-')
+                };
+                $http({
+                    method: 'GET',
+                    url: '/camunda/uploads/put/' + fileToUpload.path,
+                    transformResponse: []
+                }).then(function (response) {
+                    $http.put(response.data, file, {headers: {'Content-Type': undefined}}).then(
+                            function () {
+                                $scope[fileName].push(fileToUpload);
+                                angular.element(document.querySelector('#' + fileName)).val(null);
+                            },
+                            function (error) {
+                                console.log(error.data);
+                            }
+                    );
+                }, function(error){
+                    console.log(error.data);
+                });
+            }
+
+            $scope.clearFile = function (list, fileIndex) {
+                $scope[list].splice(fileIndex, 1);
+            }
+
+            $scope.fileDownload = function (file) {
+                $http({
+                    method: 'GET',
+                    url: '/camunda/uploads/get/' + file.path,
+                    transformResponse: []
+                }).then(function (response) {
                     document.getElementById('fileDownloadIframe').src = response.data;
                 }, function(error){
                     console.log(error.data);
@@ -106,24 +147,35 @@
     </div>
 
     <div class="form-group">
-        <label class="col-sm-4 control-label">Agreement  landlord  for installation of BS</label>
+        <label class="col-md-4 control-label">Upload files:</label>
         <div class="col-sm-8">
-            <label class="radio-inline">
-                <input type="radio" name="negotiationsWithLandlordTaskResult" ng-model="negotiationsWithLandlordTaskResult" value="agree" required> Agree
-            </label>
-            <label class="radio-inline">
-                <input type="radio" name="negotiationsWithLandlordTaskResult" ng-model="negotiationsWithLandlordTaskResult" value="notAgree" required> Not Agree
-            </label>
-            <label class="error" ng-show="kcell_form.negotiationsWithLandlordTaskResult.$error.required && ( kcell_form.negotiationsWithLandlordTaskResult.$touched || view.submitted)">Required field</label>
+            <div ng-show="receivingContractPSDFiles.length > 0" class="input-group" ng-repeat="file in receivingContractPSDFiles">
+                {{$index + 1}}.
+                <a ng-click="fileDownload(file)">{{file.name}}</a> | <a ng-click="clearFile('receivingContractPSDFiles', $index)"><i class="glyphicon glyphicon-trash"></i></a>
+            </div>
+            <input type="file" class="form-control" id="receivingContractPSDFiles" name="receivingContractPSDFiles" ng-model="file.file" onchange="angular.element(this).scope().fileSelected(this, 'receivingContractPSDFiles')"/>
         </div>
     </div>
 
     <div class="form-group">
-        <label class="col-sm-4 control-label">Comments</label>
+        <label class="col-sm-4 control-label"></label>
         <div class="col-sm-8">
-            <textarea class="form-control" ng-model="negotiationsWithLandlordTaskComment" name="negotiationsWithLandlordTaskComment" placeholder="Comments..." maxlength="500" rows="4" style="resize:none"
-            ng-required="negotiationsWithLandlordTaskResult == 'notAgree'"></textarea>
-            <label class="error" ng-show="kcell_form.negotiationsWithLandlordTaskComment.$error.required && ( kcell_form.negotiationsWithLandlordTaskComment.$touched || view.submitted)">Required field</label>
+            <label class="radio-inline">
+                <input type="radio" name="receivingContractPSDTaskResult" ng-model="receivingContractPSDTaskResult" value="received" required> Received
+            </label>
+            <label class="radio-inline">
+                <input type="radio" name="receivingContractPSDTaskResult" ng-model="receivingContractPSDTaskResult" value="notReceived" required> Not received
+            </label>
+            <label class="error" ng-show="kcell_form.receivingContractPSDTaskResult.$error.required && ( kcell_form.receivingContractPSDTaskResult.$touched || view.submitted)">Required field</label>
+        </div>
+    </div>
+
+    <div class="form-group">
+        <label class="col-sm-3 control-label">Comments</label>
+        <div class="col-sm-9">
+            <textarea class="form-control" ng-model="receivingContractPSDTaskComment" name="receivingContractPSDTaskComment" placeholder="Comments..." maxlength="500" rows="4" style="resize:none"
+                      ng-required="receivingContractPSDTaskResult == 'notReceived'"></textarea>
+            <label class="error" ng-show="kcell_form.receivingContractPSDTaskComment.$error.required && ( kcell_form.receivingContractPSDTaskComment.$touched || view.submitted)">Required field</label>
         </div>
     </div>
     <accordion>
