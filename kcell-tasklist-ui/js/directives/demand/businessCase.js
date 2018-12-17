@@ -55,20 +55,6 @@ define(['./../module', 'xlsx'], function(module){
                     scope.onChange();
                 };
 
-                var correctHeaderWidth = function() {
-                    $('.fixed-header-table-container th').each(function() {
-                        $(this).find('span').first().width($(this).width() + 10);
-                        $(this).find('span').first().height($(this).height());
-                    });
-                    scope.$apply();
-                };
-
-                $timeout(correctHeaderWidth);
-
-                scope.$on('tab-selected', function(e, tabName) {
-                    if (tabName == 'BC') $timeout(correctHeaderWidth);
-                });
-
                 scope.$watch('data', function(value) {
                     if (value) {
                         if (!scope.data) scope.data = {};
@@ -106,7 +92,6 @@ define(['./../module', 'xlsx'], function(module){
                             if (!scope.data[field])
                                 scope.data[field] = scope.selects[field].options[0];
 
-                        $timeout(correctHeaderWidth);
                         scope.onChange();
                     }
                 });
@@ -304,8 +289,6 @@ define(['./../module', 'xlsx'], function(module){
                         }
                         scope.onChange();
                         scope.$apply();
-
-                        $timeout(correctHeaderWidth);
                     }
                 };
 
@@ -320,8 +303,6 @@ define(['./../module', 'xlsx'], function(module){
 
                 scope.toggleCollapse = function(name) {
                     scope.collapse[name] = !scope.collapse[name];
-
-                    $timeout(correctHeaderWidth);
                 };
 
                 scope.addItem = function(name) {
@@ -331,15 +312,11 @@ define(['./../module', 'xlsx'], function(module){
                         scope.data.cashFlow.income.push({month: {1: {}, 2: {}, 3: {}, 4: {}, 5: {}}, year: {}});
                         scope.data.accurals.income.push({month: {1: {}, 2: {}, 3: {}, 4: {}, 5: {}}, year: {}});
                     }
-
-                    $timeout(correctHeaderWidth);
                 };
                 scope.deleteItem = function(index, name) {
                     scope.data.cashFlow[name].splice(index, 1);
                     scope.data.accurals[name].splice(index, 1);
                     scope.onChange();
-
-                    $timeout(correctHeaderWidth);
                 };
 
                 scope.onChange = function() {

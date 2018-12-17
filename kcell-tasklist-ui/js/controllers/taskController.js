@@ -278,7 +278,7 @@ define(['./module','camundaSDK', 'lodash', 'big-js'], function(module, CamSDK, _
 			} else if(processDefinitionKey === 'Invoice') {
 				return $scope.hasGroup('monthly_act_managers');
 			} else if(processDefinitionKey === 'Demand') {
-                return $scope.hasGroup('monthly_act_managers');
+                return true;
 			}
 		};
 	}]);
