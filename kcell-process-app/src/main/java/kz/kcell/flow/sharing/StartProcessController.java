@@ -17,6 +17,7 @@ import org.camunda.bpm.engine.TaskService;
 import org.camunda.bpm.engine.history.HistoricProcessInstance;
 import org.camunda.bpm.engine.impl.util.json.JSONArray;
 import org.camunda.bpm.engine.impl.util.json.JSONObject;
+import org.camunda.bpm.engine.runtime.Execution;
 import org.camunda.bpm.engine.runtime.ProcessInstance;
 import org.camunda.spin.plugin.variable.SpinValues;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -86,44 +87,50 @@ public class StartProcessController {
             JSONObject plan = (JSONObject) plans.get(i);
             JSONObject params = plan.getJSONObject("params");
             String host = params.get("host").toString();
-            String positionNumber = plan.get("position_number").toString();
-            String sharingPlanStatus = plan.get("status").toString();
-            String site = params.get("infrastructure_owner").toString();
-            String isSpecialSite = params.get("isSpecialSite").toString();
-
-            // Определение региона по site_id:
-            String siteRegion = "";
-            if ( params.get("site_id").toString().startsWith("0")) {
-                siteRegion = "Almaty";
-            } else if ( params.get("site_id").toString().startsWith("1") || params.get("site_id").toString().startsWith("2") ) {
-                if (params.get("site_id").toString().startsWith("11")) {
-                    siteRegion ="Astana";
-                } else {
-                    siteRegion = "North";
-                }
-            }   else if ( params.get("site_id").toString().startsWith("3")) {
-                siteRegion = "East";
-            }   else if ( params.get("site_id").toString().startsWith("4")) {
-                siteRegion = "South";
-            }   else {  siteRegion ="West"; }
-            // -------------
 
             if ( host.equals("Kcell") ) {
-                log.info("Process starting");
-                Map<String, Object> variables = new HashMap<String,Object>();
-                variables.put("host", host);
-                variables.put("site", site);
-                variables.put("sharingType", "sharing");
-                variables.put("sharingPlan", SpinValues.jsonValue(params.toString()));
-                variables.put("isSpecialSite", isSpecialSite);
-                variables.put("positionNumber", positionNumber);
-                variables.put("siteRegion", siteRegion);
-                variables.put("sharingPlanStatus", sharingPlanStatus);
                 String businessKey = params.get("site_id").toString() + '_' + params.get("site_name").toString();
+                List<Execution> executions = runtimeService.createExecutionQuery().processDefinitionKey("SiteSharingTopProcess").processInstanceBusinessKey(businessKey).list();
 
-                ProcessInstance instance = runtimeService.startProcessInstanceByKey("SiteSharingTopProcess", businessKey, variables);
-                log.info("instance:");
-                log.info(instance.getBusinessKey());
+                if (executions.isEmpty()) {
+                    String positionNumber = plan.get("position_number").toString();
+                    String sharingPlanStatus = plan.get("status").toString();
+                    String site = params.get("infrastructure_owner").toString();
+                    String isSpecialSite = params.get("isSpecialSite").toString();
+
+                    // Определение региона по site_id:
+                    String siteRegion = "";
+                    if ( params.get("site_id").toString().startsWith("0")) {
+                        siteRegion = "Almaty";
+                    } else if ( params.get("site_id").toString().startsWith("1") || params.get("site_id").toString().startsWith("2") ) {
+                        if (params.get("site_id").toString().startsWith("11")) {
+                            siteRegion ="Astana";
+                        } else {
+                            siteRegion = "North";
+                        }
+                    }   else if ( params.get("site_id").toString().startsWith("3")) {
+                        siteRegion = "East";
+                    }   else if ( params.get("site_id").toString().startsWith("4")) {
+                        siteRegion = "South";
+                    }   else {  siteRegion ="West"; }
+
+                    log.info("Process starting");
+                    Map<String, Object> variables = new HashMap<String,Object>();
+                    variables.put("host", host);
+                    variables.put("site", site);
+                    variables.put("sharingType", "sharing");
+                    variables.put("sharingPlan", SpinValues.jsonValue(params.toString()));
+                    variables.put("isSpecialSite", isSpecialSite);
+                    variables.put("positionNumber", positionNumber);
+                    variables.put("siteRegion", siteRegion);
+                    variables.put("sharingPlanStatus", sharingPlanStatus);
+
+                    ProcessInstance instance = runtimeService.startProcessInstanceByKey("SiteSharingTopProcess", businessKey, variables);
+                    log.info("instance:");
+                    log.info(instance.getBusinessKey());
+                } else {
+                    log.info("Process instance with Business Key " + businessKey + " exists in History");
+                }
             }
         }
 
@@ -149,12 +156,7 @@ public class StartProcessController {
 
         JSONArray plans = new JSONArray(responseString);
 
-        List<HistoricProcessInstance> processInstances = historyService.createHistoricProcessInstanceQuery().finished().processDefinitionKey("SiteSharingTopProcess").list();
-
         for (int i=0; i < plans.length(); i++) {
-
-            Boolean businessKeyExists = false;
-
             JSONObject plan = (JSONObject) plans.get(i);
 
             log.info("StartProcessController position_number: " + plan.get("position_number").toString() + ", acceptance_date: " + plan.get("acceptance_date").toString() + ", status: " + plan.get("status").toString());
@@ -164,14 +166,9 @@ public class StartProcessController {
                 String host = params.get("host").toString();
                 // Perhaps Rollout should be added to Business Key to be able to add next time(next roll out)
                 String businessKey = params.get("site_id").toString() + '_' + params.get("site_name").toString();
+                List<HistoricProcessInstance> processInstances = historyService.createHistoricProcessInstanceQuery().finished().processDefinitionKey("SiteSharingTopProcess").processInstanceBusinessKey(businessKey).list();
 
-                for (HistoricProcessInstance hp: processInstances){
-                    if(businessKey.equals(hp.getBusinessKey())){
-                        businessKeyExists = true;
-                        break;
-                    }
-                }
-                if (!businessKeyExists) {
+                if (processInstances.isEmpty()) {
                     String positionNumber = plan.get("position_number").toString();
                     String acceptanceDateString = plan.get("acceptance_date").toString();
                     Boolean startAndFinish = (Boolean) plan.get("start_and_finish");
