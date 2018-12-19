@@ -13,11 +13,15 @@ define(['./../module'], function(module){
                 titleProp: '=',
                 index: '=',
                 disabled: '=',
-                nowrap: '='
+                nowrap: '=',
+                fieldName: '=',
+                isRequired: '='
             },
             link: function(scope, el, attrs) {
 
                 //TODO: position ul-list by js (so it didn't depend on overflow)
+
+              console.log("===> ", scope.fieldName, scope.isRequired);
 
 
                 scope.$watch('ngModel', function (value) {

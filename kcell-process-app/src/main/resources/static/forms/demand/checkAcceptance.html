@@ -81,15 +81,7 @@
                     ];
                 } else {
                     for (var s of $scope.supportiveInputs) {
-                        if (s.checked)
-                            $scope.supportiveInputsCount++;
-
-                        if ($scope.pricesFilled && (s.unit == 'Human Resources Department' || s.unit == 'Centralized Procurement Department'))
-                            for (var r of s.value)
-                                if (!r.pprice) {
-                                    $scope.pricesFilled = false;
-                                    break;
-                                }
+                        if (s.checked) $scope.supportiveInputsCount++;
                     }
                 }
             });
@@ -137,7 +129,7 @@
                         } else if (v.unit == 'Technology Department') {
                             supportiveInputList[v.form] = true;
                             if (!supportiveInputList[v.form+'s']) supportiveInputList[v.form+'s'] = [];
-                            supportiveInputList[v.form+'s'].push(v.unit);
+                            supportiveInputList[v.form+'s'].push({SUName: v.unit, responsible: v.responsible});
                         }
                     }
                 }
@@ -179,12 +171,81 @@
                 }, function(error){
                     console.log(error.data);
                 });
-            }
+            };
 
             $scope.needInputClicked = function(selected) {
                 $scope.supportiveInputsCount += (selected ? 1 : -1);
                 if (!$scope.supportiveInputsCount && scope.resolution == 'Request Info') $scope.resolution = 'Send to modify';
-            }
+            };
+
+
+            $scope.getUser = function(val, index) {
+                $scope.supportiveInputs[index].responsible = null;
+                $scope.kcell_form['reqinfo_'+index+'_responsible'].$setValidity('not_selected', false);
+                var users = $http.get('/camunda/api/engine/engine/default/user?firstNameLike='+encodeURIComponent('%'+val+'%')).then(
+                    function(response){
+                      var usersByFirstName = _.flatMap(response.data, function(s){
+                        if(s.id){
+                          return s.id.split(',').map(function(user){
+                            return {
+                              id: s.id,
+                              email: (s.email?s.email.substring(s.email.lastIndexOf('/')+1):s.email),
+                              firstName: s.firstName,
+                              lastName: s.lastName,
+                              name: s.firstName + ' ' + s.lastName
+                            };
+                          })
+                        } else {
+                          return [];
+                        }
+                      });
+
+                      return $http.get('/camunda/api/engine/engine/default/user?lastNameLike='+encodeURIComponent('%'+val+'%')).then(
+                          function(response){
+                            var usersByLastName = _.flatMap(response.data, function(s){
+                              if(s.id){
+                                return s.id.split(',').map(function(user){
+                                  return {
+                                    id: s.id,
+                                    email: s.email.substring(s.email.lastIndexOf('/')+1),
+                                    firstName: s.firstName,
+                                    lastName: s.lastName,
+                                    name: s.firstName + ' ' + s.lastName
+                                  };
+                                })
+                              } else {
+                                return [];
+                              }
+                            });
+                            return _.unionWith(usersByFirstName, usersByLastName, _.isEqual);
+                          }
+                      );
+                    }
+                );
+                return users;
+            };
+
+            $scope.userSelected = function($item, index){
+                $scope.supportiveInputs[index].responsible = $item.id;
+                $scope.supportiveInputs[index].responsibleName = $item.name;
+                $scope.kcell_form['reqinfo_'+index+'_responsible'].$setValidity('not_selected', true);
+            };
+
+            $scope.$watch('supportiveInputs', function (value) {
+                $scope.pricesFilled = true;
+                for (var i of $scope.supportiveInputs) {
+                    if (i.form == 'HR' || i.form == 'CPD') {
+                        for (var r of i.value) {
+                            if (!r.pprice) {
+                                $scope.pricesFilled = false;
+                                break;
+                            }
+                        }
+                    }
+                }
+                if (!$scope.pricesFilled && $scope.resolution == 'Approve') $scope.resolution = null;
+
+            }, true);
         }]);
     </script>
     <div class="form-group">
@@ -284,7 +345,7 @@
                         <accordion-heading>
                             Resources <i class="pull-right glyphicon" ng-class="{'glyphicon-chevron-up': status.isCustomHeaderOpen, 'glyphicon-chevron-down': !status.isCustomHeaderOpen}"></i>
                         </accordion-heading>
-                        <demand-resources data="i.value" form="kcell_form" view="view" disabled="true" editprice="false"></demand-resources>
+                        <demand-resources data="i.value" form="kcell_form" view="view" disabled="false" editprice="false"></demand-resources>
                     </accordion-group>
                 </accordion>
                 <accordion ng-repeat="i in supportiveInputs" ng-if="i.unit == 'Centralized Procurement Department'">
@@ -292,7 +353,7 @@
                         <accordion-heading>
                             Materials <i class="pull-right glyphicon" ng-class="{'glyphicon-chevron-up': status.isCustomHeaderOpen, 'glyphicon-chevron-down': !status.isCustomHeaderOpen}"></i>
                         </accordion-heading>
-                        <demand-materials data="i.value" form="kcell_form" view="view" disabled="true" editprice="false"></demand-materials>
+                        <demand-materials data="i.value" form="kcell_form" view="view" disabled="false" editprice="false" editexisting="false"></demand-materials>
                     </accordion-group>
                 </accordion>
                 <accordion>
@@ -340,8 +401,9 @@
                     <thead>
                     <tr>
                         <th class="text-center col-sm-1">Need input</th>
-                        <th class="text-center col-sm-4">Supportive unit</th>
-                        <th class="text-center col-sm-6">Request description</th>
+                        <th class="text-center col-sm-3">Supportive unit</th>
+                        <th class="text-center col-sm-4">Request description</th>
+                        <th class="text-center col-sm-3">Responsible</th>
                         <th class="text-center col-sm-1">Input received</th>
                     </tr>
                     </thead>
@@ -356,6 +418,11 @@
                         <td class="text-center">
                             <textarea rows="1" elastic-textarea class="form-control" ng-model="r.description" name="reqinfo_{{$index}}_description" ng-required="r.checked"></textarea>
                             <span class="has-error" ng-if="kcell_form['reqinfo_'+$index+'_description'].$error.required && ( kcell_form['reqinfo_'+$index+'_description'].$touched || view.submitted)">Required field</span>
+                        </td>
+                        <td class="text-center">
+                            <input type="text" ng-model="r.responsibleName" name="reqinfo_{{$index}}_responsible" typeahead="name as users.name for users in getUser($viewValue, $index)" typeahead-on-select="userSelected($item, $index)" class="form-control" autocomplete="off" required ng-if="r.unit === 'Technology Department'">
+                            <span class="has-error" ng-if="kcell_form['reqinfo_'+$index+'_responsible'].$error.required && (kcell_form['reqinfo_'+$index+'_responsible'].$touched || view.submitted)">Required field</span>
+                            <span class="has-error" ng-if="!kcell_form['reqinfo_'+$index+'_responsible'].$error.required && kcell_form['reqinfo_'+$index+'_responsible'].$error.not_selected && (kcell_form['reqinfo_'+$index+'_responsible'].$touched || view.submitted)">User must be selected from the list</span>
                         </td>
                         <td class="text-center">
                             <input type="checkbox" ng-model="r.inputReceived" disabled>
