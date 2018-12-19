@@ -86,6 +86,8 @@ public class CheckFAFile implements JavaDelegate {
                                 sapFa.put("absent", true);
                                 success = false;
                             }
+                            JsonValue jsonValue = SpinValues.jsonValue(sapFa.toString()).create();
+                            sapFaList.add(jsonValue.getValue());
                         }
                         if(success){
                             delegateExecution.setVariable("faFileCheckResult", "success");
