@@ -31,7 +31,7 @@
                     camForm.variableManager.fetchVariable(el);
                 });
                 $http.get('/camunda/api/engine/engine/default/task/' + camForm.taskId).then(
-                        function(result){
+                        function (result) {
                             $scope.processInstanceId = result.data.processInstanceId;
                         },
                         function (error) {
@@ -47,53 +47,90 @@
                     $scope.leasingCandidate[el] = camForm.variableManager.variables[el].value;
                 });
                 camForm.variableManager.createVariable({
-                    name: 'negotiationsWithLandlordTaskResult',
+                    name: 'checkAndApproveFETaskResult',
                     type: 'String',
                     value: ''
                 });
-
                 camForm.variableManager.createVariable({
-                    name: 'negotiationsWithLandlordTaskComment',
+                    name: 'checkAndApproveFETaskComment',
                     type: 'String',
                     value: ''
                 });
 
-                $scope.negotiationsWithLandlordTaskResult = '';
+                $scope.checkAndApproveFETaskResult = '';
             });
 
             camForm.on('submit', function () {
-                camForm.variableManager.variableValue('negotiationsWithLandlordTaskResult', $scope.negotiationsWithLandlordTaskResult);
-                if($scope.negotiationsWithLandlordTaskResult == 'notAgree') {
-                    camForm.variableManager.createVariable({
-                        name: 'rentApprovalResult',
-                        type: 'String',
-                        value: 'refused'
-                    });
-                } else {
-                    camForm.variableManager.createVariable({
-                        name: 'rentApprovalResult',
-                        type: 'String',
-                        value: 'approved'
-                    });
-                }
+                camForm.variableManager.variableValue('checkAndApproveFETaskResult', $scope.checkAndApproveFETaskResult);
+                camForm.variableManager.variableValue('checkAndApproveFETaskComment', $scope.checkAndApproveFETaskComment);
 
-                camForm.variableManager.variableValue('negotiationsWithLandlordTaskComment', $scope.negotiationsWithLandlordTaskComment);
+                if ($scope.allValuesDoesNotFit()){
+                    $scope.feApproved = 'no';
+                } else {
+                    $scope.feApproved = 'yes';
+                }
             });
 
-            $scope.download = function (file) {
-                $http({method: 'GET', url: '/camunda/uploads/get/' + file.path, transformResponse: [] }).
-                then(function(response) {
+            $scope.fileDownload = function (file) {
+                $http({
+                    method: 'GET',
+                    url: '/camunda/uploads/get/' + file.path,
+                    transformResponse: []
+                }).then(function (response) {
                     document.getElementById('fileDownloadIframe').src = response.data;
-                }, function(error){
+                }, function (error) {
                     console.log(error.data);
                 });
             }
+
+            $scope.allValuesDoesNotFit = function () {
+                return !_.some($scope.farEndInformation, function(fe){
+                    return !fe.transmissionStatus || fe.transmissionStatus === 'approved';
+                });
+            }
+
+            $scope.preSubmit = function () {
+                var deferred = $q.defer();
+                deferred.reject('Wait!!!');
+                return deferred.promise;
+            };
         }]);
 
     </script>
     <leasing-candidate leasing-candidate="leasingCandidate"></leasing-candidate>
 
     <iframe id="fileDownloadIframe" style="display:none;"></iframe>
+
+    <div class="form-group">
+        <div class="col-md-12">
+            <table class="table table-bordered">
+                <thead>
+                    <td width="10%">#</td>
+                    <td width="50%">Far End Name</td>
+                    <td width="30%">Transmission status</td>
+                    <td width="10%">Priority</td>
+                </thead>
+                <tbody>
+                <tr ng-repeat="fe in farEndInformation">
+                    <td>{{ $index + 1 }}</td>
+                    <td>{{ fe.farEndName}}</td>
+                    <td>
+                        <label class="radio-inline">
+                            <input type="radio" name="{{'transmissionStatus'+$index}}" ng-model="fe.transmissionStatus" value="approved" required> Approved
+                        </label>
+                        <label class="radio-inline">
+                            <input type="radio" name="{{'transmissionStatus'+$index}}" ng-model="fe.transmissionStatus" value="doesNotFit" required> FE does not fit
+                        </label>
+                        <label class="error" ng-if="kcell_form['transmissionStatus'+$index].$error.required && ( kcell_form['transmissionStatus'+$index].$touched || view.submitted)">Required field</label>
+                    </td>
+                    <td>
+                        <input type="checkbox" name="{{'priority'+$index}}" ng-model="fe.priority">
+                    </td>
+                </tr>
+                </tbody>
+            </table>
+        </div>
+    </div>
 
     <div class="form-group">
         <label class="col-md-4 control-label">Download RR:</label>
@@ -112,26 +149,14 @@
     </div>
 
     <div class="form-group">
-        <label class="col-sm-4 control-label">Agreement  landlord  for installation of BS</label>
+        <label class="col-sm-4 control-label">Comments</label>
         <div class="col-sm-8">
-            <label class="radio-inline">
-                <input type="radio" name="negotiationsWithLandlordTaskResult" ng-model="negotiationsWithLandlordTaskResult" value="agree" required> Agree
-            </label>
-            <label class="radio-inline">
-                <input type="radio" name="negotiationsWithLandlordTaskResult" ng-model="negotiationsWithLandlordTaskResult" value="notAgree" required> Not Agree
-            </label>
-            <label class="error" ng-show="kcell_form.negotiationsWithLandlordTaskResult.$error.required && ( kcell_form.negotiationsWithLandlordTaskResult.$touched || view.submitted)">Required field</label>
+            <textarea class="form-control" ng-model="checkAndApproveFETaskComment" name="checkAndApproveFETaskComment" placeholder="Comments..." maxlength="500" rows="4" style="resize:none"
+                ng-required="allValuesDoesNotFit()"></textarea>
+            <label class="error" ng-show="kcell_form.checkAndApproveFETaskComment.$error.required && ( kcell_form.checkAndApproveFETaskComment.$touched || view.submitted)">Required field</label>
         </div>
     </div>
 
-    <div class="form-group">
-        <label class="col-sm-4 control-label">Comments</label>
-        <div class="col-sm-8">
-            <textarea class="form-control" ng-model="negotiationsWithLandlordTaskComment" name="negotiationsWithLandlordTaskComment" placeholder="Comments..." maxlength="500" rows="4" style="resize:none"
-            ng-required="negotiationsWithLandlordTaskResult == 'notAgree'"></textarea>
-            <label class="error" ng-show="kcell_form.negotiationsWithLandlordTaskComment.$error.required && ( kcell_form.negotiationsWithLandlordTaskComment.$touched || view.submitted)">Required field</label>
-        </div>
-    </div>
     <accordion>
         <accordion-group is-open="isHistoryOpen">
             <accordion-heading>

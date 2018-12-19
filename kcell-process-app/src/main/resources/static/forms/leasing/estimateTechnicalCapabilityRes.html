@@ -47,45 +47,47 @@
                     $scope.leasingCandidate[el] = camForm.variableManager.variables[el].value;
                 });
                 camForm.variableManager.createVariable({
-                    name: 'receivingContractPSDTaskResult',
+                    name: 'estimateTechnicalCapabilityResTaskResult',
                     type: 'String',
                     value: ''
                 });
-
                 camForm.variableManager.createVariable({
-                    name: 'receivingContractPSDTaskComment',
+                    name: 'estimateTechnicalCapabilityResTaskComment',
                     type: 'String',
                     value: ''
                 });
-
                 camForm.variableManager.createVariable({
-                    name: 'receivingContractPSDFiles',
+                    name: 'estimateTechnicalCapabilityResFiles',
                     type: 'Json',
                     value: []
                 });
+                camForm.variableManager.createVariable({
+                    name: 'connectionPossibleFromRES',
+                    type: 'String',
+                    value: ''
+                });
+                camForm.variableManager.createVariable({
+                    name: 'connectionPossibleFromLandlordNetwork',
+                    type: 'String',
+                    value: ''
+                });
 
-                $scope.receivingContractPSDTaskResult = '';
-                $scope.receivingContractPSDFiles = [];
+                $scope.estimateTechnicalCapabilityResTaskResult = '';
+                $scope.estimateTechnicalCapabilityResFiles = [];
+                $scope.connectionPossibleFromRES = '';
+                $scope.connectionPossibleFromLandlordNetwork = '';
             });
 
             camForm.on('submit', function () {
-                camForm.variableManager.variableValue('receivingContractPSDTaskResult', $scope.receivingContractPSDTaskResult);
-                if($scope.receivingContractPSDTaskResult === 'notReceived') {
-                    camForm.variableManager.createVariable({
-                        name: 'rentApprovalResult',
-                        type: 'String',
-                        value: 'refused'
-                    });
+                camForm.variableManager.variableValue('estimateTechnicalCapabilityResTaskResult', $scope.estimateTechnicalCapabilityResTaskResult);
+                camForm.variableManager.variableValue('estimateTechnicalCapabilityResTaskComment', $scope.estimateTechnicalCapabilityResTaskComment);
+                camForm.variableManager.variableValue('connectionPossibleFromRES', $scope.connectionPossibleFromRES);
+                camForm.variableManager.variableValue('connectionPossibleFromLandlordNetwork', $scope.connectionPossibleFromLandlordNetwork);
+                if($scope.connectionPossibleFromRES === 'no' && $scope.connectionPossibleFromLandlordNetwork === 'no'){
+                    $scope.hasTechnicalCapability = 'no';
                 } else {
-                    camForm.variableManager.createVariable({
-                        name: 'rentApprovalResult',
-                        type: 'String',
-                        value: 'approved'
-                    });
+                    $scope.hasTechnicalCapability = 'yes';
                 }
-
-                camForm.variableManager.variableValue('receivingContractPSDTaskComment', $scope.receivingContractPSDTaskComment);
-                camForm.variableManager.variableValue('receivingContractPSDFiles', $scope.receivingContractPSDFiles);
             });
 
             $scope.fileSelected = function (el, fileName) {
@@ -164,33 +166,46 @@
     <div class="form-group">
         <label class="col-md-4 control-label">Upload files:</label>
         <div class="col-sm-8">
-            <div ng-show="receivingContractPSDFiles.length > 0" class="input-group" ng-repeat="file in receivingContractPSDFiles">
+            <div ng-show="estimateTechnicalCapabilityResFiles.length > 0" class="input-group" ng-repeat="file in estimateTechnicalCapabilityResFiles">
                 {{$index + 1}}.
-                <a ng-click="fileDownload(file)">{{file.name}}</a> | <a ng-click="clearFile('receivingContractPSDFiles', $index)"><i class="glyphicon glyphicon-trash"></i></a>
+                <a ng-click="fileDownload(file)">{{file.name}}</a> | <a ng-click="clearFile('estimateTechnicalCapabilityResFiles', $index)"><i class="glyphicon glyphicon-trash"></i></a>
             </div>
-            <input type="file" class="form-control" id="receivingContractPSDFiles" name="receivingContractPSDFiles" ng-model="file.file" onchange="angular.element(this).scope().fileSelected(this, 'receivingContractPSDFiles')"/>
+            <input type="file" class="form-control" id="estimateTechnicalCapabilityResFiles" name="estimateTechnicalCapabilityResFiles" ng-model="file.file" onchange="angular.element(this).scope().fileSelected(this, 'estimateTechnicalCapabilityResFiles')"/>
         </div>
     </div>
 
     <div class="form-group">
-        <label class="col-sm-4 control-label">Contract a PSD for candidate site</label>
+        <label class="col-sm-4 control-label">Сonnection possible from RES</label>
         <div class="col-sm-8">
             <label class="radio-inline">
-                <input type="radio" name="receivingContractPSDTaskResult" ng-model="receivingContractPSDTaskResult" value="received" required> Received
+                <input type="radio" name="connectionPossibleFromRES" ng-model="connectionPossibleFromRES" value="yes" required> Yes
             </label>
             <label class="radio-inline">
-                <input type="radio" name="receivingContractPSDTaskResult" ng-model="receivingContractPSDTaskResult" value="notReceived" required> Not received
+                <input type="radio" name="connectionPossibleFromRES" ng-model="connectionPossibleFromRES" value="no" required> No
             </label>
-            <label class="error" ng-show="kcell_form.receivingContractPSDTaskResult.$error.required && ( kcell_form.receivingContractPSDTaskResult.$touched || view.submitted)">Required field</label>
+            <label class="error" ng-show="kcell_form.connectionPossibleFromRES.$error.required && ( kcell_form.connectionPossibleFromRES.$touched || view.submitted)">Required field</label>
+        </div>
+    </div>
+
+    <div class="form-group" ng-show="connectionPossibleFromRES == 'no'">
+        <label class="col-sm-4 control-label">Сonnection possible from landlord network</label>
+        <div class="col-sm-8">
+            <label class="radio-inline">
+                <input type="radio" name="connectionPossibleFromLandlordNetwork" ng-model="connectionPossibleFromLandlordNetwork" value="yes" ng-required = "connectionPossibleFromRES == 'no'"> Yes
+            </label>
+            <label class="radio-inline">
+                <input type="radio" name="connectionPossibleFromLandlordNetwork" ng-model="connectionPossibleFromLandlordNetwork" value="no"  ng-required = "connectionPossibleFromRES == 'no'"> No
+            </label>
+            <label class="error" ng-show="connectionPossibleFromRES == 'no' && kcell_form.connectionPossibleFromLandlordNetwork.$error.required && ( kcell_form.connectionPossibleFromLandlordNetwork.$touched || view.submitted)">Required field</label>
         </div>
     </div>
 
     <div class="form-group">
         <label class="col-sm-4 control-label">Comments</label>
         <div class="col-sm-8">
-            <textarea class="form-control" ng-model="receivingContractPSDTaskComment" name="receivingContractPSDTaskComment" placeholder="Comments..." maxlength="500" rows="4" style="resize:none"
-                      ng-required="receivingContractPSDTaskResult == 'notReceived'"></textarea>
-            <label class="error" ng-show="kcell_form.receivingContractPSDTaskComment.$error.required && ( kcell_form.receivingContractPSDTaskComment.$touched || view.submitted)">Required field</label>
+            <textarea class="form-control" ng-model="estimateTechnicalCapabilityResTaskComment" name="estimateTechnicalCapabilityResTaskComment" placeholder="Comments..." maxlength="500" rows="4" style="resize:none"
+                      ng-required="connectionPossibleFromRES == 'no' && connectionPossibleFromLandlordNetwork == 'no'"></textarea>
+            <label class="error" ng-show="kcell_form.estimateTechnicalCapabilityResTaskComment.$error.required && ( kcell_form.estimateTechnicalCapabilityResTaskComment.$touched || view.submitted)">Required field</label>
         </div>
     </div>
     <accordion>
