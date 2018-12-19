@@ -53,26 +53,46 @@ public class PBXBINCheck {
         }
 
 
-        List<HistoricProcessInstance> processes = historyService.createHistoricProcessInstanceQuery().processDefinitionKey("PBX").variableValueEquals("clientBIN", pbxBIN).orderByProcessInstanceStartTime().desc().list();
+        List<HistoricProcessInstance> processes = historyService.createHistoricProcessInstanceQuery().processDefinitionKey("AftersalesPBX").variableValueEquals("BIN", pbxBIN).orderByProcessInstanceStartTime().desc().list();
         HistoricProcessInstance process = null;
         if (!processes.isEmpty()) process = processes.get(0);
 
         if (process != null && process.getId() != null) {
-            List<HistoricVariableInstance> vars = historyService.createHistoricVariableInstanceQuery().processInstanceId(process.getId()).list();
+                List<HistoricVariableInstance> vars = historyService.createHistoricVariableInstanceQuery().processInstanceId(process.getId()).list();
 
-            JSONObject response = new JSONObject();
-            for (HistoricVariableInstance v : vars) {
-                if (v.getName().equals("customerInformation")) response.put("legalInfo", v.getValue());
-                else if (v.getName().equals("technicalSpecifications")) response.put("techSpecs", v.getValue());
-                else if (v.getName().equals("sipProtocol")) response.put("sip", v.getValue());
-                else if (v.getName().equals("tariff")) response.put("tariff", v.getValue());
-                else if (v.getName().equals("clientPriority")) response.put("clientPriority", v.getValue());
-                else if (v.getName().equals("rootForCMMBGW")) response.put("rootForCMMBGW", v.getValue());
-                else if (v.getName().equals("tariffExtra")) response.put("tariffExtra", v.getValue());
-                else if (v.getName().equals("attachments")) response.put("attachments", v.getValue());
+                JSONObject response = new JSONObject();
+                response.put("aftersales", true);
+                for (HistoricVariableInstance v : vars) {
+                    if (v.getName().equals("legalInfo")) response.put("legalInfo", v.getValue());
+                    else if (v.getName().equals("techSpecs")) response.put("techSpecs", v.getValue());
+                    else if (v.getName().equals("action")) response.put("action", v.getValue());
+                    else if (v.getName().equals("rootForCMMBGW")) response.put("rootForCMMBGW", v.getValue());
+                    else if (v.getName().equals("attachments")) response.put("attachments", v.getValue());
+                }
+
+                return ResponseEntity.ok(response.toString());
+        } else {
+            processes = historyService.createHistoricProcessInstanceQuery().processDefinitionKey("PBX").variableValueEquals("clientBIN", pbxBIN).orderByProcessInstanceStartTime().desc().list();
+            process = null;
+            if (!processes.isEmpty()) process = processes.get(0);
+
+            if (process != null && process.getId() != null) {
+                List<HistoricVariableInstance> vars = historyService.createHistoricVariableInstanceQuery().processInstanceId(process.getId()).list();
+
+                JSONObject response = new JSONObject();
+                for (HistoricVariableInstance v : vars) {
+                    if (v.getName().equals("customerInformation")) response.put("legalInfo", v.getValue());
+                    else if (v.getName().equals("technicalSpecifications")) response.put("techSpecs", v.getValue());
+                    else if (v.getName().equals("sipProtocol")) response.put("sip", v.getValue());
+                    else if (v.getName().equals("tariff")) response.put("tariff", v.getValue());
+                    else if (v.getName().equals("clientPriority")) response.put("clientPriority", v.getValue());
+                    else if (v.getName().equals("rootForCMMBGW")) response.put("rootForCMMBGW", v.getValue());
+                    else if (v.getName().equals("tariffExtra")) response.put("tariffExtra", v.getValue());
+                    else if (v.getName().equals("attachments")) response.put("attachments", v.getValue());
+                }
+
+                return ResponseEntity.ok(response.toString());
             }
-
-            return ResponseEntity.ok(response.toString());
         }
         return ResponseEntity.status(HttpStatus.BAD_REQUEST).body("No PBX process with such BIN found!");
     }

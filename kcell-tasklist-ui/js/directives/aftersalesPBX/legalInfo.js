@@ -31,7 +31,10 @@ define(['./../module'], function(module){
                             function(response) {
                                 var result = JSON.parse(response.data);
                                 if (result.clientPriority) scope.data.clientPriority = result.clientPriority;
-                                if (result.legalInfo) parseFromPBX(JSON.parse(result.legalInfo));
+                                if (result.legalInfo) {
+                                    if (result.aftersales) scope.data = JSON.parse(result.legalInfo);
+                                    else parseFromPBX(JSON.parse(result.legalInfo));
+                                }
                                 $rootScope.$broadcast('aftersalesPBXBINCheck', result);
                             },
                             function(response) { toasty.error(response.data);});

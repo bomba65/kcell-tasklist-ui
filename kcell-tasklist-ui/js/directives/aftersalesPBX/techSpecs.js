@@ -24,7 +24,10 @@ define(['./../module'], function(module){
 
                 scope.$on("aftersalesPBXBINCheck", function(e, result) {
                     if (!result) return;
-                    if (result.techSpecs) parseFromPBX(JSON.parse(result.techSpecs));
+                    if (result.techSpecs) {
+                      if (result.aftersales) scope.data = JSON.parse(result.techSpecs);
+                      else parseFromPBX(JSON.parse(result.techSpecs));
+                    }
                 });
 
                 scope.$on('tab-selected', function(e, tabName) {
