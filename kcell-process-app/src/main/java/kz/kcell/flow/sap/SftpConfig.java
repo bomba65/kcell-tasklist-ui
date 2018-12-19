@@ -54,8 +54,14 @@ public class SftpConfig {
     @Value("${sftp.remote.directory.to.pr:/home/KWMS/CIP_PR_Creation/PR_Waiting}")
     private String sftpRemoteDirectoryToPr;
 
+    @Value("${sftp.remote.directory.pr.error:/home/KWMS/CIP_PR_Creation/PR_Didnt_Created}")
+    private String sftpRemoteDirectoryPrError;
+
     @Value("${sftp.remote.directory.jojr:/home/KWMS/JR_JO_Creation/Sap JO File}")
     private String sftpRemoteDirectoryJoJr;
+
+    @Value("${sftp.remote.directory.jojr.error:/home/KWMS/JR_JO_Creation/JO Creation Errors}")
+    private String sftpRemoteDirectoryJoJrError;
 
     @Value("${sftp.remote.directory.pr.status:/home/KWMS/CIP_PR_Creation/PR_Status}")
     private String sftpRemoteDirectoryPrStatus;
@@ -91,6 +97,12 @@ public class SftpConfig {
                         template.remove(successFilePath);
                     }
 
+                    String errorFilePath = sftpRemoteDirectoryJoJrError + "/" + ((File) message.getPayload()).getName();
+                    Boolean errorResult = template.exists(errorFilePath);
+                    if(errorResult){
+                        template.remove(errorFilePath);
+                    }
+
                     return ((File) message.getPayload()).getName();
                 } else {
                     throw new IllegalArgumentException("joJr file expected as payload.");
@@ -115,6 +127,12 @@ public class SftpConfig {
                     Boolean successResult = template.exists(successFilePath);
                     if(successResult){
                         template.remove(successFilePath);
+                    }
+
+                    String errorFilePath = sftpRemoteDirectoryPrError + "/" + ((File) message.getPayload()).getName();
+                    Boolean errorResult = template.exists(errorFilePath);
+                    if(errorResult){
+                        template.remove(errorFilePath);
                     }
 
                     return ((File) message.getPayload()).getName();

@@ -67,7 +67,7 @@ jobWorksObj.each { work ->
     work.costCenter = '25510'
 
     if(reason == '2'){
-        relatedSites.each { rs ->
+        work.relatedSites.each { rs ->
             sapFaListObj.each { fa ->
                 if(fa.faClass == workDefinitionMapObj[work.sapServiceNumber].faClass && fa.sloc == tnuSiteLocationsObj[rs.id].siteLocation){
                     tnuSiteLocationsObj[rs.id].fixedAssetNumber = fa.faNumber
