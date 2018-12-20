@@ -26,6 +26,8 @@
                 'farEndInformation'
             ];
 
+            $scope.selectedIndex = undefined;
+
             camForm.on('form-loaded', function () {
                 variables.forEach(function (el) {
                     camForm.variableManager.fetchVariable(el);
@@ -69,6 +71,8 @@
                 } else {
                     $scope.feApproved = 'yes';
                 }
+
+                camForm.variableManager.variableValue('farEndInformation', $scope.farEndInformation);
             });
 
             $scope.fileDownload = function (file) {
@@ -89,11 +93,13 @@
                 });
             }
 
-            $scope.preSubmit = function () {
-                var deferred = $q.defer();
-                deferred.reject('Wait!!!');
-                return deferred.promise;
-            };
+            $scope.selectIndex = function(index){
+                if($scope.selectedIndex == index){
+                    $scope.selectedIndex = undefined;
+                } else {
+                    $scope.selectedIndex = index;
+                }
+            }
         }]);
 
     </script>
@@ -110,23 +116,62 @@
                     <td width="30%">Transmission status</td>
                     <td width="10%">Priority</td>
                 </thead>
-                <tbody>
-                <tr ng-repeat="fe in farEndInformation">
-                    <td>{{ $index + 1 }}</td>
-                    <td>{{ fe.farEndName}}</td>
-                    <td>
-                        <label class="radio-inline">
-                            <input type="radio" name="{{'transmissionStatus'+$index}}" ng-model="fe.transmissionStatus" value="approved" required> Approved
-                        </label>
-                        <label class="radio-inline">
-                            <input type="radio" name="{{'transmissionStatus'+$index}}" ng-model="fe.transmissionStatus" value="doesNotFit" required> FE does not fit
-                        </label>
-                        <label class="error" ng-if="kcell_form['transmissionStatus'+$index].$error.required && ( kcell_form['transmissionStatus'+$index].$touched || view.submitted)">Required field</label>
-                    </td>
-                    <td>
-                        <input type="checkbox" name="{{'priority'+$index}}" ng-model="fe.priority">
-                    </td>
-                </tr>
+                <tbody ng-repeat="fe in farEndInformation">
+                    <tr>
+                        <td>{{ $index + 1 }}</td>
+                        <td><a ng-click="selectIndex($index)">{{ fe.farEndName}}</a></td>
+                        <td>
+                            <label class="radio-inline">
+                                <input type="radio" name="{{'transmissionStatus'+$index}}" ng-model="fe.transmissionStatus" value="approved" required> Approved
+                            </label>
+                            <label class="radio-inline">
+                                <input type="radio" name="{{'transmissionStatus'+$index}}" ng-model="fe.transmissionStatus" value="doesNotFit" required> FE does not fit
+                            </label>
+                            <label class="error" ng-if="kcell_form['transmissionStatus'+$index].$error.required && ( kcell_form['transmissionStatus'+$index].$touched || view.submitted)">Required field</label>
+                        </td>
+                        <td>
+                            <input type="checkbox" name="{{'priority'+$index}}" ng-model="fe.priority">
+                        </td>
+                    </tr>
+                    <tr ng-show = "selectedIndex == $index">
+                        <td colspan="4">
+                            <div class="well">
+                                <div class="row">
+                                    <div class="col-md-6">
+                                        <div class="col-sm-12"><b>Far End Name</b>: {{fe.farEndName}}</div>
+                                        <div class="col-sm-12"><b>Far End Address</b>: {{fe.farEndAddress}}</div>
+                                        <div class="col-sm-12"><b>Contract Information</b>: {{fe.contractInformation}}</div>
+                                        <div class="col-sm-12"><b>Square</b>: {{fe.square}}</div>
+                                        <div class="col-sm-12"><b>Equipment type</b>: {{fe.equipmentType}}</div>
+                                        <div class="col-sm-12"><b>Antennas quantity</b>: {{fe.antennasQuantity}}</div>
+                                        <div class="col-sm-12"><b>Antenna diameter</b>: {{fe.antennaDiameter}}</div>
+                                        <div class="col-sm-12"><b>Weight</b>: {{fe.weight}}</div>
+                                        <div class="col-sm-12"><b>TX Frequency</b>: {{fe.TXFrequency}}</div>
+                                        <div class="col-sm-12"><b>RX Frequency</b>: {{fe.RXFrequency}}</div>
+                                        <div class="col-sm-12"><b>Suspension height of antennas</b>: {{fe.suspensionHeight}}</div>
+                                        <div class="col-sm-12"><b>Azimuth</b>: {{fe.azimuth}}</div>
+                                        <div class="col-sm-12"><b>Сonstruction type</b>: {{fe.constructionType}}</div>
+                                        <div class="col-sm-12"><b>Results of visit of objects</b>: {{fe.resultsOfVisit}}</div>
+                                        <div class="col-sm-12"><b>Survey Date</b>: {{fe.surveyDate | date:'dd.MM.yyyy'}}</div>
+                                        <div class="col-sm-12"><b>Comments</b>: {{fe.comments}}</div>
+                                    </div>
+                                    <div class="col-md-6">
+                                        <h4><b>Far End Renter Company</b></h4>
+
+                                        <div class="col-sm-12"><b>Legal name</b>: {{fe.renterCompany.legalName}}</div>
+                                        <div class="col-sm-12"><b>Legal address</b>: {{fe.renterCompany.legalAddress}}</div>
+                                        <div class="col-sm-12"><b>Tel./Fax</b>: {{fe.renterCompany.telFax}}</div>
+                                        <div class="col-sm-12"><b>Name of the 1st Leader</b>: {{fe.renterCompany.firstLeaderName}}</div>
+                                        <div class="col-sm-12"><b>Position of the 1st Leader</b>: {{fe.renterCompany.firstLeaderPosition}}</div>
+                                        <div class="col-sm-12"><b>Email</b>: {{fe.renterCompany.email}}</div>
+                                        <div class="col-sm-12"><b>Contact Person Name</b>: {{fe.renterCompany.name}}</div>
+                                        <div class="col-sm-12"><b>Contact Person Position</b>: {{fe.renterCompany.position}}</div>
+                                        <div class="col-sm-12"><b>Contact Information</b>: {{fe.renterCompany.contactInformation}}</div>
+                                    </div>
+                                </div>
+                            </div>
+                        </td>
+                    </tr>
                 </tbody>
             </table>
         </div>
