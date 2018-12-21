@@ -26,6 +26,7 @@
             $scope.resources = [];
             $scope.currentSupportiveInput = [];
             var createdDate = new Date();
+            var HRList = [];
 
             $http.get("/camunda/api/engine/engine/default/group?member=" + $rootScope.authentication.name).then(function(result) {
                 if (result.data && result.data.length) $scope.userGroups = result.data.map(function (e) { return e.id; });
@@ -50,6 +51,7 @@
                 camForm.variableManager.fetchVariable('attachments');
                 camForm.variableManager.fetchVariable('supportiveInputs');
                 camForm.variableManager.fetchVariable('supportiveInputName');
+                camForm.variableManager.fetchVariable('HRList');
             });
 
             camForm.on('variables-fetched', function () {
@@ -59,9 +61,11 @@
                 $scope.attachments = camForm.variableManager.variableValue('attachments');
                 $scope.supportiveInputs = camForm.variableManager.variableValue('supportiveInputs');
                 $scope.supportiveInputName = camForm.variableManager.variableValue('supportiveInputName');
+                HRList = camForm.variableManager.variableValue('HRList');
                 if (!$scope.resolutions) $scope.resolutions = [];
                 if (!$scope.attachments) $scope.attachments = [];
                 if (!$scope.supportiveInputs) $scope.supportiveInputs = [];
+                if (!HRList) HRList = [];
                 var elt = $scope.supportiveInputs.find(function(e) {return e.unit == $scope.supportiveInputName.SUName});
                 if (elt) $scope.currentSupportiveInput.push(elt);
 
@@ -79,7 +83,8 @@
                 return $q.all([
                     $http.get('/camunda/api/engine/engine/default/process-instance/'+processInstanceId+'/variables/supportiveInputs?deserializeValue=false'),
                     $http.get('/camunda/api/engine/engine/default/process-instance/'+processInstanceId+'/variables/resolutions?deserializeValue=false'),
-                    $http.get('/camunda/api/engine/engine/default/process-instance/'+processInstanceId+'/variables/attachments?deserializeValue=false')
+                    $http.get('/camunda/api/engine/engine/default/process-instance/'+processInstanceId+'/variables/attachments?deserializeValue=false'),
+                    $http.get('/camunda/api/engine/engine/default/process-instance/'+processInstanceId+'/variables/HRList?deserializeValue=false')
                 ]).then(function (results) {
                     if (results[0] && results[0].data) {
                         var lastSupportiveInputs = JSON.parse(results[0].data.value);
@@ -108,6 +113,9 @@
                             }
                         }
                         $scope.attachments = lastAttachments;
+                    }
+                    if (results[3] && results[3].data) {
+                        HRList = JSON.parse(results[3].data.value);
                     }
                 },
                 function(error){
@@ -138,6 +146,17 @@
                     name: 'supportiveInputs',
                     type: 'Json',
                     value: $scope.supportiveInputs
+                });
+
+                if ($scope.resources && $scope.resources.length && HRList.indexOf($scope.supportiveInputName.SUName) === -1) {
+                  HRList.push($scope.supportiveInputName.SUName);
+                }
+
+                camForm.variableManager.destroyVariable('HRList');
+                camForm.variableManager.createVariable({
+                    name: 'HRList',
+                    type: 'json',
+                    value: HRList
                 });
             });
 

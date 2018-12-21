@@ -72,6 +72,7 @@
                 camForm.variableManager.fetchVariable('attachments');
                 camForm.variableManager.fetchVariable('supportiveInputList');
                 camForm.variableManager.fetchVariable('CPDList');
+                camForm.variableManager.fetchVariable('HRList');
             });
 
             camForm.on('variables-fetched', function () {
@@ -171,12 +172,9 @@
                         } else if (v.unit == 'Human Resources Department') {
                             supportiveInputList[v.form] = true;
                             if (!supportiveInputList[v.form+'s']) supportiveInputList[v.form+'s'] = [];
-                            supportiveInputList[v.form+'s'].push(v.unit);
-
-                            if (!supportiveInputList['checkResources']) supportiveInputList['checkResources'] = [];
                             for (var m of v.value) {
-                                if (!m.role || !m.role.needCheck || !m.role.expert || !m.role.expert.groupId || supportiveInputList['checkResources'].find(function(e) { return e.expert === m.role.expert.groupId; })) continue;
-                                supportiveInputList['checkResources'].push({SUName: v.unit, expert: m.role.expert.groupId});
+                                if (!m.role || !m.role.needCheck || !m.role.expert || !m.role.expert.groupId || supportiveInputList[v.form+'s'].find(function(e) { return e.expert === m.role.expert.groupId; })) continue;
+                                supportiveInputList[v.form+'s'].push({SUName: v.unit, expert: m.role.expert.groupId});
                             }
                         } else {
                             supportiveInputList[v.form] = true;
@@ -203,7 +201,14 @@
                 camForm.variableManager.destroyVariable('CPDList');
                 camForm.variableManager.createVariable({
                     name: 'CPDList',
-                    type: 'String',
+                    type: 'Json',
+                    value: []
+                });
+
+                camForm.variableManager.destroyVariable('HRList');
+                camForm.variableManager.createVariable({
+                    name: 'HRList',
+                    type: 'Json',
                     value: []
                 });
             });
@@ -384,7 +389,7 @@
                     [],
                     ['Resources'],
                     [],
-                    ['Empl. type', 'Dept.', 'Position', 'Description', 'Empl. Quantity', 'Man\Hours in Mounth', 'Period, Mounth', 'Existing?', 'Rate per Hour, KZT Gross', 'Amount, KZT Gross', 'Responsible']
+                    ['Empl. type', 'Dept.', 'Position', 'Description', 'Empl. Quantity', 'Man\Hours in Month', 'Period, Month', 'Existing?', 'Rate per Hour, KZT Gross', 'Amount, KZT Gross', 'Responsible']
                 ];
                 var totalSumm = 0;
                 for (var r of $scope.resources) {
@@ -420,7 +425,7 @@
                     {wch: 'Description'.length},
                     {wch: 'Purchase group'.length},
                     {wch: 'Empl. Quantity'.length},
-                    {wch: 'Man\Hours in Mounth'.length},
+                    {wch: 'Man\Hours in Month'.length},
                     {wch: 'Exists on Warehouse?'.length},
                     {wch: 'Existing?'.length},
                     {wch: 'Rate per Hour, KZT Gross'.length},
@@ -589,6 +594,15 @@
     <div class="col-sm-12" style="margin-top: 20px;"><hr style="border-top: 2px solid #aaa;" /></div>
 
     <div class="col-sm-12" style="border: 1px solid #ccc; border-radius: 10px; padding-top: 10px; margin: 20px 0;">
+        <div class="form-group">
+            <label class="col-sm-12">Order draft</label>
+            <div class="col-sm-12">
+                <demand-rich-text data="BCData.orderDraft" min-height="100" process-id="processInstanceId" task-id="taskId"></demand-rich-text>
+            </div>
+        </div>
+    </div>
+
+    <div class="col-sm-12" style="border: 1px solid #ccc; border-radius: 10px; padding-top: 10px; margin: 20px 0;">
         <demand-supportive-inputs data="supportiveRequests" form="kcell_form" view="view" disabled="false" onitemselect="supportiveInputSelect" onitemdeselect="supportiveInputDeselect"></demand-supportive-inputs>
 
         <span ng-repeat="i in supportiveInputs" ng-if="i.form == 'HR'">
@@ -610,15 +624,6 @@
                 <demand-business-intelligence data="i.value" form="kcell_form" view="view" disabled="!i.checked" biname="form.unit"></demand-business-intelligence>
             </div>
         </span>
-    </div>
-
-    <div class="col-sm-12" style="border: 1px solid #ccc; border-radius: 10px; padding-top: 10px; margin: 20px 0;">
-        <div class="form-group">
-            <label class="col-sm-12">Order draft</label>
-            <div class="col-sm-12">
-                <demand-rich-text data="BCData.orderDraft" min-height="100" process-id="processInstanceId" task-id="taskId"></demand-rich-text>
-            </div>
-        </div>
     </div>
 
     <div class="col-sm-12" style="border: 1px solid #ccc; border-radius: 10px; padding-top: 10px; margin: 20px 0;">
@@ -685,7 +690,7 @@
     <div class="form-group">
         <label class="col-sm-2 control-label">Resolution</label>
         <div class="col-sm-8">
-            <label class="radio-inline" title="Подтвердить ввод данных \ Confirm data input">
+            <label class="radio-inline" title="{{pricesFilled?'Подтвердить ввод данных \ Confirm data input':'Должны быть заполнены поля &quot;Rate per Hour, KZT Gross&quot; и &quot;Price, Without VAT&quot; для добавленных позиций в Resources и Materials'}}">
                 <input type="radio" ng-model="resolution" name="resolution" value="Submit" required ng-disabled="!pricesFilled"> Submit
             </label>
             <label class="radio-inline" title="Запросить экспертизу \ Request Supportive input">

@@ -82,6 +82,7 @@ define(['./../module'], function(module){
                     externalIdProp: 'unit'
                 };
                 scope.optionList = [
+                    {unit: 'Network Economics', form: 'Other'},
                     {unit: 'Technology Department', form: 'TD'},
                     {unit: 'Human Resources Department', form: 'HR'},
                     {unit: 'Centralized Procurement Department', form: 'CPD'},
@@ -133,7 +134,6 @@ define(['./../module'], function(module){
                     {unit: 'Products and Services Section', form: 'Other'},
                     {unit: 'Service Assurance and Operations Section', form: 'Other'},
                     {unit: 'South Region Section', form: 'Other'},
-                    {unit: 'Network Economics', form: 'Other'},
                     {unit: 'West Region Section', form: 'Other'},
                     {unit: 'Physical and Economical Security Unit', form: 'Other'},
                     {unit: 'Health and Safety Unit', form: 'Other'}

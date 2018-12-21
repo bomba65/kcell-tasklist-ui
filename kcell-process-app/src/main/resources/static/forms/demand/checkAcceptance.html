@@ -62,6 +62,7 @@
                 camForm.variableManager.fetchVariable('supportiveInputs');
                 camForm.variableManager.fetchVariable('supportiveInputList');
                 camForm.variableManager.fetchVariable('CPDList');
+                camForm.variableManager.fetchVariable('HRList');
             });
 
             camForm.on('variables-fetched', function () {
@@ -112,12 +113,9 @@
                         if (v.unit == 'Human Resources Department') {
                             supportiveInputList[v.form] = true;
                             if (!supportiveInputList[v.form+'s']) supportiveInputList[v.form+'s'] = [];
-                            supportiveInputList[v.form+'s'].push(v.unit);
-
-                            if (!supportiveInputList['checkResources']) supportiveInputList['checkResources'] = [];
                             for (var m of v.value) {
-                                if (!m.role || !m.role.needCheck || !m.role.expert || !m.role.expert.groupId || supportiveInputList['checkResources'].find(function(e) { return e.expert === m.role.expert.groupId; })) continue;
-                                supportiveInputList['checkResources'].push({SUName: v.unit, expert: m.role.expert.groupId});
+                                if (!m.role || !m.role.needCheck || !m.role.expert || !m.role.expert.groupId || supportiveInputList[v.form+'s'].find(function(e) { return e.expert === m.role.expert.groupId; })) continue;
+                                supportiveInputList[v.form+'s'].push({SUName: v.unit, expert: m.role.expert.groupId});
                             }
                         } else if (v.unit == 'Centralized Procurement Department') {
                             supportiveInputList[v.form] = true;
@@ -159,7 +157,14 @@
                 camForm.variableManager.destroyVariable('CPDList');
                 camForm.variableManager.createVariable({
                     name: 'CPDList',
-                    type: 'String',
+                    type: 'Json',
+                    value: []
+                });
+
+                camForm.variableManager.destroyVariable('HRList');
+                camForm.variableManager.createVariable({
+                    name: 'HRList',
+                    type: 'Json',
                     value: []
                 });
             });
@@ -420,7 +425,7 @@
                             <span class="has-error" ng-if="kcell_form['reqinfo_'+$index+'_description'].$error.required && ( kcell_form['reqinfo_'+$index+'_description'].$touched || view.submitted)">Required field</span>
                         </td>
                         <td class="text-center">
-                            <input type="text" ng-model="r.responsibleName" name="reqinfo_{{$index}}_responsible" typeahead="name as users.name for users in getUser($viewValue, $index)" typeahead-on-select="userSelected($item, $index)" class="form-control" autocomplete="off" required ng-if="r.unit === 'Technology Department'">
+                            <input type="text" ng-model="r.responsibleName" name="reqinfo_{{$index}}_responsible" typeahead="name as users.name for users in getUser($viewValue, $index)" typeahead-on-select="userSelected($item, $index)" class="form-control" autocomplete="off" required ng-if="r.unit === 'Technology Department' && r.checked">
                             <span class="has-error" ng-if="kcell_form['reqinfo_'+$index+'_responsible'].$error.required && (kcell_form['reqinfo_'+$index+'_responsible'].$touched || view.submitted)">Required field</span>
                             <span class="has-error" ng-if="!kcell_form['reqinfo_'+$index+'_responsible'].$error.required && kcell_form['reqinfo_'+$index+'_responsible'].$error.not_selected && (kcell_form['reqinfo_'+$index+'_responsible'].$touched || view.submitted)">User must be selected from the list</span>
                         </td>
@@ -466,7 +471,7 @@
     <div class="form-group">
         <label class="col-sm-2 control-label">Resolution</label>
         <div class="col-sm-8">
-            <label class="radio-inline" title="Утвердить запрос \ Approve request">
+            <label class="radio-inline" title="{{pricesFilled?'Утвердить запрос \ Approve request':'Должны быть заполнены поля &quot;Rate per Hour, KZT Gross&quot; и &quot;Price, Without VAT&quot; для добавленных позиций в Resources и Materials'}}">
                 <input type="radio" ng-model="resolution" name="resolution" value="Approve" required ng-disabled="!pricesFilled"> Approve
             </label>
             <label class="radio-inline" title="Вернуть запрос на доработку \ Send request to edit">

@@ -1,0 +1,592 @@
+<form role="form" class="form-horizontal" name="kcell_form" novalidate>
+  <style>
+    .well {
+      color: #333;
+    }
+  </style>
+  <script cam-script type="text/form-script">
+        inject(['$scope', '$http', 'Uri', '$rootScope', '$q', 'toasty', '$timeout', function ($scope, $http, Uri, $rootScope, $q, toasty, $timeout) {
+            $scope.generalData = {
+                general: {},
+                targetAudience: {},
+                demandDetails: {}
+            };
+            $scope.BRDData = {
+                funcRequirements: {},
+                nonFuncRequirements: {},
+                interfaces: {},
+                reportsStatistics: ''
+            };
+            $scope.BCData = {
+                data: {}
+            };
+            $scope.riskData = [];
+            $scope.resolutions = [];
+            $scope.attachments = [];
+            $scope.supportiveInputs = [];
+            $scope.acceptanceCriterias = [];
+            $scope.resources = [];
+            $scope.materials = [];
+
+            var processInstanceId = null;
+            var taskName = null;
+            var assigneeName = $rootScope.authentication.name;
+            var createdDate = new Date();
+
+            $http.get("/camunda/api/engine/engine/default/user/" + $rootScope.authentication.name+ "/profile").then(function(result){
+                assigneeName = (result.data.firstName ? result.data.firstName : "") + " " + (result.data.lastName ? result.data.lastName : "");
+            });
+
+            $http.get('/camunda/api/engine/engine/default/task/' + camForm.taskId).then(
+                function(result){
+                    processInstanceId = result.data.processInstanceId;
+                    taskName = result.data.name;
+                    if (result.data.created) createdDate = new Date(result.data.created);
+                },
+                function (error) {
+                    console.log(error.data);
+                }
+            );
+
+            camForm.on('form-loaded', function () {
+                camForm.variableManager.fetchVariable('generalData');
+                camForm.variableManager.fetchVariable('BRDData');
+                camForm.variableManager.fetchVariable('acceptanceCriterias');
+                camForm.variableManager.fetchVariable('BCData');
+                camForm.variableManager.fetchVariable('riskData');
+                camForm.variableManager.fetchVariable('supportiveInputs');
+                camForm.variableManager.fetchVariable('resolutions');
+                camForm.variableManager.fetchVariable('resolution');
+                camForm.variableManager.fetchVariable('attachments');
+                camForm.variableManager.fetchVariable('projectName');
+                camForm.variableManager.fetchVariable('projectId');
+            });
+
+            camForm.on('variables-fetched', function () {
+                $scope.generalData = camForm.variableManager.variableValue('generalData');
+                $scope.BRDData = camForm.variableManager.variableValue('BRDData');
+                $scope.acceptanceCriterias = camForm.variableManager.variableValue('acceptanceCriterias');
+                $scope.BCData = camForm.variableManager.variableValue('BCData');
+                $scope.riskData = camForm.variableManager.variableValue('riskData');
+                $scope.supportiveInputs = camForm.variableManager.variableValue('supportiveInputs');
+                $scope.resolutions = camForm.variableManager.variableValue('resolutions');
+                $scope.attachments = camForm.variableManager.variableValue('attachments');
+                $scope.projectName = camForm.variableManager.variableValue('projectName');
+                $scope.projectId = camForm.variableManager.variableValue('projectId');
+                if (!$scope.attachments) $scope.attachments = [];
+                if (!$scope.supportiveInputs) $scope.supportiveInputs = [];
+                if (!$scope.BCData) {
+                    $scope.BCData = {
+                        data: {}
+                    };
+                }
+                if (!$scope.riskData) $scope.riskData = [];
+                for (var i of $scope.supportiveInputs) {
+                    if (i.form == 'HR') $scope.resources = $scope.resources.concat(i.value);
+                    else if (i.form == 'CPD') $scope.materials = $scope.materials.concat(i.value);
+                }
+
+            });
+
+            camForm.on('submit', function (event) {
+                camForm.variableManager.destroyVariable('BCData');
+                camForm.variableManager.createVariable({
+                    name: 'BCData',
+                    type: 'Json',
+                    value: $scope.BCData
+                });
+                camForm.variableManager.destroyVariable('projectName');
+                camForm.variableManager.createVariable({
+                    name: 'projectName',
+                    type: 'String',
+                    value: $scope.projectName
+                });
+                camForm.variableManager.destroyVariable('projectId');
+                camForm.variableManager.createVariable({
+                    name: 'projectId',
+                    type: 'String',
+                    value: $scope.projectId
+                });
+                var submitDate = new Date ();
+                if(!$scope.resolutions){
+                    $scope.resolutions = [];
+                }
+                $scope.resolutions.unshift({processInstanceId: processInstanceId, assignee: assigneeName, resolution: $scope.resolution, comment: $scope.comment, taskId: camForm.taskId, taskEndDate: submitDate, taskName: taskName, dateOfAssign: createdDate});
+                camForm.variableManager.destroyVariable('resolutions');
+                camForm.variableManager.createVariable({
+                    name: 'resolutions',
+                    type: 'Json',
+                    value: $scope.resolutions
+                });
+
+                if ($scope.resolution.startsWith('Approve')) $scope.resolution = 'Approve';
+                camForm.variableManager.destroyVariable('resolution');
+                camForm.variableManager.createVariable({
+                    name: 'resolution',
+                    type: 'String',
+                    value: $scope.resolution
+                });
+            });
+
+            $scope.downloadFile = function (file) {
+                $http({method: 'GET', url: '/camunda/uploads/get/' + file.path, transformResponse: [] }).
+                then(function(response) {
+                    document.getElementById('fileDownloadIframe').src = response.data;
+                }, function(error){
+                    console.log(error.data);
+                });
+            }
+
+            $scope.projectNameOptions = [
+                "CPD regular",
+                "Cellebrite",
+                "CCD Quality Control",
+                "NPS",
+                "Free Wi-Fi KC/KS",
+                "Self service",
+                "Biometrics",
+                "Электронные ценники",
+                "Artificial intelligence",
+                "Motivation",
+                "CR events",
+                "HR Regular",
+                "Existing Staff",
+                "Company events",
+                "CPD Carpool",
+                "IVMS HW",
+                "Safety systems renewal",
+                "CCD Regular",
+                "Call-Center",
+                "Travel",
+                "220818 Telia Sonera AB/CM",
+                "Ad-hoc investigations",
+                "BI Centralization",
+                "Board Expenses",
+                "Bond issue",
+                "Brand advertising",
+                "CEO Regular",
+                "CEO WORKSHOPS",
+                "Charity",
+                "Consultancy",
+                "Disaster recovery site for SAP",
+                "ERM, BCM, IA automation system",
+                "Kcell HUB",
+                "Lanteria addition",
+                "PR reactive product advertising",
+                "Purchase Speak-up line/DD",
+                "Sponsorship",
+                "Training",
+                "FD Regular",
+                "Knox",
+                "fixed internet (new)",
+                "Fixed internet (current)",
+                "VPN (new)",
+                "VPN (current)",
+                "Automonitoring",
+                "PBX",
+                "Digital delivery",
+                "FCO",
+                "Bulk SMS+DM",
+                "Top ups",
+                "OTT",
+                "B2B core",
+                "B2B core Marketing",
+                "API",
+                "Freephone (current)",
+                "Freephone (new)",
+                "DDOS",
+                "SIP",
+                "VPBX",
+                "FOCL IRU",
+                "CSP",
+                "WTTx",
+                "FOCL intercity",
+                "Business View",
+                "CRM",
+                "Scoring",
+                "B2B Regular",
+                "OMNI Channel",
+                "MFS",
+                "Kazminerals",
+                "MEGA",
+                "Checkpoint",
+                "Security Regular",
+                "Existings access network (N&I and SA&O)",
+                "Existing Core (SA&O)",
+                "Existing internet capacity (SA&O & N&I)",
+                "Existing VAS",
+                "IT expenses",
+                "Kpay AOP 2019",
+                "SEP Big Data, Data lake",
+                "NCOC handset rent",
+                "LD regular",
+                "Existing own kcell stores",
+                "Dealer stores",
+                "Online store",
+                "B2B handsets",
+                "Existing kcell centers",
+                "Access Control System",
+                "Physical Security (Service)",
+                "Video Monitoring Systems",
+                "IBM I2",
+                "FOCL incity",
+                "New Internet Capacity",
+                "Convergent Billing (Achilles)",
+                "End of Life",
+                "Regulatory (SAO part)",
+                "TD regular",
+                "Kcell stores new",
+                "New Businesses - IoT stream",
+                "TM Forum",
+                "Emergency Container",
+                "Seismic installation pre works",
+                "Mobile bonus",
+                "B2C Core Activ",
+                "B2C Core Kcell",
+                "Non-exclusive PoS",
+                "International calls",
+                "Existing premises",
+                "Promo PoS",
+                "Wifi Roaming",
+                "Network partners",
+                "Activ Office&SiS",
+                "A2P",
+                "Renewal of existing premises",
+                "Repair of HQ",
+                "B2C Roaming",
+                "3G Roll out",
+                "4G Roll-out 2019",
+                "Swap",
+                "ENIQ",
+                "IMS",
+                "Innovation Lab Projects",
+                "Robotics Process Automation",
+                "Servers Pool 2019",
+                "TD Below 20 M KZT",
+                "Demand workflow",
+                "Becnhmarking tool Nemo Invex II",
+                "Veritas/Symantec Tech support (Capex part)",
+                "B2B portal",
+                "500+",
+                "4G Routers",
+                "Network Function Virtualization Infrastructure (NFVi)",
+                "Archive storage",
+                "SDS Archive Storage",
+                "EMC",
+                "Storage Strategy Storage systems renewal",
+                "New private cloud",
+                "New scoring system for sale of handsets",
+                "L2100",
+                "Inhouse FLM",
+                "jFLM",
+                "B2C Product marketing Activ",
+                "B2C Product marketing Kcell",
+                "B2C Market research",
+                "Digital Marketing",
+                "B2C regular",
+                "Ekassir",
+                "Coriant library subscription",
+                "САС Институт",
+                "Bloomberg subscription"
+            ];
+
+            $scope.onProjectNameSelect = function(index, item) {
+                $scope.projectName = item;
+            };
+
+            $scope.onProjectIdChange = function() {
+                if ($scope.projectId === undefined || $scope.projectId === null || isNaN(parseInt($scope.projectId))) {
+                    $scope.projectId = null;
+                    return;
+                }
+                $scope.projectId = parseInt($scope.projectId);
+                if ($scope.projectId < 0) $scope.projectId = 0;
+                else if ($scope.projectId > 9999) $scope.projectId /= 10;
+                $scope.projectId = Math.floor($scope.projectId);
+            };
+        }]);
+    </script>
+  <div class="form-group">
+    <label style="width: 8%; float: left; padding-left: 15px; padding-top: 7px; font-weight: 500;"> Business Key:</label>
+    <div class="col-sm-2">
+      <input rows="1" class="form-control" cam-variable-name="businessKey" cam-variable-type="String" disabled>
+    </div>
+    <label style="width: 10%; float: left; padding-left: 15px; padding-top: 7px; font-weight: 500;"> Demand Status:</label>
+    <div class="col-sm-2">
+      <label rows="1" class="form-control" disabled>Active </label>
+    </div>
+    <label style="width: 6.6%; float: left; padding-left: 15px; padding-top: 7px; font-weight: 500;"> Activity:</label>
+    <div class="col-sm-5">
+      <label rows="1" class="form-control" disabled> Follow-up </label>
+    </div>
+  </div>
+  <div class="form-group">
+    <label style="width: 8%; float: left; padding-left: 15px; padding-top: 7px; font-weight: 500;"> Demand Name:</label>
+    <div class="col-sm-11">
+      <input rows="1" class="form-control" cam-variable-name="demandName" cam-variable-type="String" disabled/>
+    </div>
+  </div>
+  <div class="form-group">
+    <label style="width: 8%; float: left; padding-left: 15px; padding-top: 7px; font-weight: 500;"> Project name:</label>
+    <div class="col-sm-4">
+      <demand-dropdown ng-model="projectName" options="projectNameOptions" on-item-select="onProjectNameSelect" search-field="true"></demand-dropdown>
+    </div>
+  </div>
+  <div class="form-group">
+    <label style="width: 8%; float: left; padding-left: 15px; padding-top: 7px; font-weight: 500;"> Project ID:</label>
+    <div class="col-sm-2">
+      <input type="text" ng-change="onProjectIdChange()" class="form-control" ng-model="projectId"/>
+    </div>
+  </div>
+  <hr>
+  <tabset class="my-tab-head my-tab" justified="true" id="jobRequestId">
+    <tab>
+      <tab-heading> General </tab-heading>
+      <div style="margin-bottom: 20px;">
+        <div class="col-sm-{{generalData.general.technicalAnalysis?'6':'12'}}">
+          <h4>General</h4>
+          <demand-general data="generalData.general" form="kcell_form" view="view" disabled="true" technical="generalData.general.technicalAnalysis"></demand-general>
+        </div>
+        <div class="col-sm-6" ng-if="generalData.general.technicalAnalysis">
+          <h4>Target Audience:</h4>
+          <demand-target-audience data="generalData.targetAudience" form="kcell_form" view="view" disabled="true"></demand-target-audience>
+        </div>
+        <br>
+        <div class="col-sm-12" ng-if="generalData.general.technicalAnalysis">
+          <h4>Demand Details</h4>
+          <demand-details data="generalData.demandDetails" form="kcell_form" view="view" disabled="true"></demand-details>
+        </div>
+      </div>
+    </tab>
+    <tab>
+      <tab-heading> BRD </tab-heading>
+      <div style="margin-bottom: 20px;">
+        <accordion>
+          <accordion-group is-open="true">
+            <accordion-heading>
+              Functional Requirements <i class="pull-right glyphicon" ng-class="{'glyphicon-chevron-up': status.isCustomHeaderOpen, 'glyphicon-chevron-down': !status.isCustomHeaderOpen}"></i>
+            </accordion-heading>
+            <demand-func-requirements data="BRDData.funcRequirements" form="kcell_form" view="view" disabled="true"></demand-func-requirements>
+          </accordion-group>
+        </accordion>
+        <accordion>
+          <accordion-group is-open="true">
+            <accordion-heading>
+              Non-Functional Requirements <i class="pull-right glyphicon" ng-class="{'glyphicon-chevron-up': status.isCustomHeaderOpen, 'glyphicon-chevron-down': !status.isCustomHeaderOpen}"></i>
+            </accordion-heading>
+            <demand-non-func-requirements data="BRDData.nonFuncRequirements" form="kcell_form" view="view" disabled="true"></demand-non-func-requirements>
+          </accordion-group>
+        </accordion>
+        <accordion>
+          <accordion-group is-open="true">
+            <accordion-heading>
+              Interfaces <i class="pull-right glyphicon" ng-class="{'glyphicon-chevron-up': status.isCustomHeaderOpen, 'glyphicon-chevron-down': !status.isCustomHeaderOpen}"></i>
+            </accordion-heading>
+            <demand-interfaces data="BRDData.interfaces" form="kcell_form" view="view" disabled="true"></demand-interfaces>
+          </accordion-group>
+        </accordion>
+        <accordion>
+          <accordion-group is-open="true">
+            <accordion-heading>
+              Reports and Statistics <i class="pull-right glyphicon" ng-class="{'glyphicon-chevron-up': status.isCustomHeaderOpen, 'glyphicon-chevron-down': !status.isCustomHeaderOpen}"></i>
+            </accordion-heading>
+            <div class="col-sm-12">
+              <demand-rich-text data="BRDData.reportsStatistics" disabled="true" min-height="100"></demand-rich-text>
+            </div>
+          </accordion-group>
+        </accordion>
+        <accordion>
+          <accordion-group is-open="true">
+            <accordion-heading>
+              Dependencies and Assumptions <i class="pull-right glyphicon" ng-class="{'glyphicon-chevron-up': status.isCustomHeaderOpen, 'glyphicon-chevron-down': !status.isCustomHeaderOpen}"></i>
+            </accordion-heading>
+            <div class="col-sm-12">
+              <demand-rich-text data="BRDData.dependencies" disabled="true" min-height="100"></demand-rich-text>
+            </div>
+          </accordion-group>
+        </accordion>
+      </div>
+    </tab>
+    <tab>
+      <tab-heading> Costs and Acceptance criteria </tab-heading>
+      <div style="margin-bottom: 20px;">
+        <accordion>
+          <accordion-group is-open="true">
+            <accordion-heading>
+              Resources <i class="pull-right glyphicon" ng-class="{'glyphicon-chevron-up': status.isCustomHeaderOpen, 'glyphicon-chevron-down': !status.isCustomHeaderOpen}"></i>
+            </accordion-heading>
+            <div class="col-sm-12" style="border: 1px solid #ccc; border-radius: 10px; padding-top: 10px; margin: 20px 0;">
+              <demand-resources data="resources" form="kcell_form" view="view" disabled="true" editprice="false"></demand-resources>
+            </div>
+          </accordion-group>
+        </accordion>
+        <accordion>
+          <accordion-group is-open="true">
+            <accordion-heading>
+              Materials <i class="pull-right glyphicon" ng-class="{'glyphicon-chevron-up': status.isCustomHeaderOpen, 'glyphicon-chevron-down': !status.isCustomHeaderOpen}"></i>
+            </accordion-heading>
+            <div class="col-sm-12" style="border: 1px solid #ccc; border-radius: 10px; padding-top: 10px; margin: 20px 0;">
+              <demand-materials data="materials" form="kcell_form" view="view" disabled="true" editprice="false"></demand-materials>
+            </div>
+          </accordion-group>
+        </accordion>
+        <accordion>
+          <accordion-group is-open="true">
+            <accordion-heading>
+              Acceptance criteria <i class="pull-right glyphicon" ng-class="{'glyphicon-chevron-up': status.isCustomHeaderOpen, 'glyphicon-chevron-down': !status.isCustomHeaderOpen}"></i>
+            </accordion-heading>
+            <div class="col-sm-12">
+              <table class="table table-borderless">
+                <thead>
+                <tr>
+                  <th style="border:none;">#</th>
+                  <th style="border:none;">Description</th>
+                </tr>
+                </thead>
+                <tbody>
+                <tr ng-repeat="d in acceptanceCriterias track by $index">
+                  <td>{{$index + 1}}.</td>
+                  <td><div class="disabled-element">{{d.v}}</div></td>
+                </tr>
+                </tbody>
+              </table>
+            </div>
+          </accordion-group>
+        </accordion>
+      </div>
+    </tab>
+    <tab active="true">
+      <tab-heading> Business Case </tab-heading>
+      <div style="margin-bottom: 20px;">
+        <div class="col-sm-12">
+          <label style="margin-left: 20px;">Business Case</label>
+          <div class="col-sm-12" style="border: 1px solid #ccc; border-radius: 10px; padding-top: 10px;">
+            <demand-business-case data="BCData.data" form="kcell_form" view="view" disabled="false" show-banchmark="true" editable-qualitative="true"></demand-business-case>
+          </div>
+        </div>
+      </div>
+    </tab>
+    <tab disabled="true">
+      <tab-heading> SDD </tab-heading>
+    </tab>
+  </tabset>
+
+  <div class="col-sm-12" style="margin-top: 20px;"><hr style="border-top: 2px solid #aaa;" /></div>
+
+  <div class="col-sm-12" style="border: 1px solid #ccc; border-radius: 10px; padding-top: 10px; margin: 20px 0;">
+    <div class="form-group">
+      <label class="col-sm-12">Order draft</label>
+      <div class="col-sm-12">
+        <demand-rich-text data="BCData.orderDraft" min-height="100" disabled="true"></demand-rich-text>
+      </div>
+    </div>
+  </div>
+
+  <div class="col-sm-12" style="border: 1px solid #ccc; border-radius: 10px; padding-top: 10px; margin: 20px 0;">
+    <label style="margin-bottom: 20px;">Risks</label>
+    <div class="col-sm-12">
+      <table class="table table-bordered">
+        <thead>
+        <tr>
+          <th>Supportive Unit name</th>
+          <th>Responsible</th>
+          <th>Risk</th>
+        </tr>
+        </thead>
+        <tbody>
+        <tr ng-repeat="risk in riskData">
+          <td>{{risk.unit}}</td>
+          <td>{{risk.responsible}}</td>
+          <td>{{risk.level}}</td>
+        </tr>
+        </tbody>
+      </table>
+    </div>
+  </div>
+
+  <div class="col-sm-12" style="border: 1px solid #ccc; border-radius: 10px; padding-top: 10px; margin: 20px 0;">
+    <iframe id="fileDownloadIframe" style="display:none;"></iframe>
+    <div class="form-group">
+      <div class="col-sm-12">
+        <div class="col-sm-12" style="margin-bottom: 10px;">
+          <label class="col-sm-12">Attachments</label>
+        </div>
+        <div class="col-sm-12">
+          <table class="table table-bordered">
+            <thead>
+            <tr>
+              <th>File Name</th>
+              <th>Created</th>
+              <th>Created By</th>
+            </tr>
+            </thead>
+            <tbody>
+            <tr ng-repeat="file in attachments track by $index">
+              <td><a ng-click="downloadFile(file)">{{file.name}}</a></td>
+              <td>{{file.created | date: 'dd.MM.yyyy HH:mm'}}</td>
+              <td>{{file.createdBy}}</td>
+            </tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+  </div>
+  <hr>
+
+  <div class="form-group">
+    <label class="col-sm-2 control-label">Resolution</label>
+    <div class="col-sm-8">
+      <label class="radio-inline" title="Close the Order">
+        <input type="radio" ng-model="resolution" name="resolution" value="Finish" required> Finish
+      </label>
+      <label class="radio-inline" title="Send request to Enrich Business case">
+        <input type="radio" ng-model="resolution" name="resolution" value="Send to modify" required> Send to modify
+      </label>
+      <label class="radio-inline" title="Вернуть запрос на доработку на Fill form \ Sent request to edit to Fill form">
+        <input type="radio" ng-model="resolution" name="resolution" value="Send to Fill form" required> Send to Fill form
+      </label>
+      <label class="radio-inline" title="Отменить запрос \ Cancel request">
+        <input type="radio" ng-model="resolution" name="resolution" value="Cancel" required> Cancel
+      </label>
+      <label class="error" ng-show="kcell_form.resolution.$error.required && ( kcell_form.resolution.$touched || view.submitted)">Required field</label>
+    </div>
+  </div>
+  <div class="form-group">
+    <label class="col-sm-2 control-label">Comment<span class="text-danger glyphicon-asterisk"></span></label>
+    <div class="col-sm-10">
+      <textarea class="form-control" rows="4" maxlength="500" ng-model="comment" name="comment" required></textarea>
+      <label class="error" ng-show="kcell_form.comment.$error.required && ( kcell_form.comment.$touched || view.submitted)">Required field</label>
+    </div>
+  </div>
+
+  <accordion>
+    <accordion-group is-open="isHistoryOpen">
+      <accordion-heading>
+        History <i class="pull-right glyphicon" ng-class="{'glyphicon-chevron-up': status.isCustomHeaderOpen, 'glyphicon-chevron-down': !status.isCustomHeaderOpen}"></i>
+      </accordion-heading>
+      <table class="table">
+        <thead>
+        <tr>
+          <th>Activity</th>
+          <th>Assignee</th>
+          <th>Resolution</th>
+          <th>Date of assign</th>
+          <th>Date</th>
+          <th>Comment</th>
+        </tr>
+        </thead>
+        <tbody>
+        <tr ng-repeat="resolution in resolutions track by $index">
+          <td>{{resolution.taskName}}</td>
+          <td>{{resolution.assignee}}</td>
+          <td>{{resolution.resolution}}</td>
+          <td>{{resolution.dateOfAssign | date: 'dd.MM.yyyy HH:mm'}}</td>
+          <td>{{resolution.taskEndDate | date: 'dd.MM.yyyy HH:mm'}}</td>
+          <td>{{resolution.comment}}</td>
+        </tr>
+        </tbody>
+      </table>
+    </accordion-group>
+  </accordion>
+</form>
