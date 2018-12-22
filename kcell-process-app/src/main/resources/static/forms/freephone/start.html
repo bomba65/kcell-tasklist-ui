@@ -46,54 +46,132 @@
                     value: '',
                     type: 'String'
                 });
+                camForm.variableManager.createVariable({
+                    name: 'offnetProviderName',
+                    value: undefined,
+                    type: 'String'
+                });
+                camForm.variableManager.createVariable({
+                    name: 'offnetProviderBin',
+                    value: undefined,
+                    type: 'String'
+                });
             });
 
             $scope.preSubmit = function() {
+                /*
+                */
+                var getProductCatalogShortNumber = function() {
+                    var deferred = $q.defer();
 
-                var deferred = $q.defer();
+                    if($scope.identifier){
+                        return $http.get("/camunda/product-catalog/vas_short_numbers/short_number/" + $scope.identifier + "/service_type_id/177").then(
+                            function(response){
+                                console.log('vas_short_numbers', response.data);
+                                if(response.data) {
+                                    if (response.data.shortNumberState) {
+                                        $scope.shortNumberState = response.data.shortNumberState;
+                                        if($scope.shortNumberState === 'A' || $scope.shortNumberState === 'D') {
+                                            if (response.data.id) {
+                                                $scope.shortNumberId = response.data.id;
 
-                if($scope.identifier){
-                    return $http.get("/camunda/product-catalog/vas_short_numbers/short_number/" + $scope.identifier + "/service_type_id/177").then(
-                        function(response){
-                            console.log('vas_short_numbers', response.data);
-                            if(response.data) {
-                                if (response.data.shortNumberState) {
-                                    $scope.shortNumberState = response.data.shortNumberState;
-                                    if($scope.shortNumberState === 'A' || $scope.shortNumberState === 'D') {
-                                        if (response.data.id) {
-                                            $scope.shortNumberId = response.data.id;
+                                                console.log('Identifier ' + $scope.identifier + ' already exists in Product Catalog and can be used for Freephone');
+                                                deferred.resolve('Identifier ' + $scope.identifier + ' already exists in Product Catalog and can be used for Freephone');
 
-                                            console.log('Identifier ' + $scope.identifier + ' already exists in Product Catalog and can be used for Freephone');
-                                            deferred.resolve('Identifier ' + $scope.identifier + ' already exists in Product Catalog and can be used for Freephone');
-
+                                            } else {
+                                                deferred.reject('Identifier ' + $scope.identifier + ' has no Id in Product Catalog');
+                                            }
                                         } else {
-                                            deferred.reject('Identifier ' + $scope.identifier + ' has no Id in Product Catalog');
+                                            deferred.reject('Unknown shortNumberState ' + $scope.shortNumberState);
                                         }
                                     } else {
-                                        deferred.reject('Unknown shortNumberState ' + $scope.shortNumberState);
+                                        if (response.data.status === 404) {
+                                            console.log('Identifier ' + $scope.identifier + ' DOES NOT exist in Product Catalog and can be used for Freephone');
+                                            deferred.resolve('Identifier ' + $scope.identifier + ' DOES NOT exist in Product Catalog and can be used for Freephone');
+                                        } else {
+                                            deferred.reject('Unknown shortNumberState ' + $scope.shortNumberState);
+                                        }
                                     }
                                 } else {
-                                    if (response.data.status === 404) {
-                                        console.log('Identifier ' + $scope.identifier + ' DOES NOT exist in Product Catalog and can be used for Freephone');
-                                        deferred.resolve('Identifier ' + $scope.identifier + ' DOES NOT exist in Product Catalog and can be used for Freephone');
-                                    } else {
-                                        deferred.reject('Unknown shortNumberState ' + $scope.shortNumberState);
-                                    }
+                                    deferred.reject('Undefined Response Data from Product Catalog Request');
                                 }
-                            } else {
-                                deferred.reject('Undefined Response Data from Product Catalog Request');
-                            }
-                            return deferred.promise;
-                        },
-                        function (error) {
-                            console.log(error);
-                            deferred.reject('error:' + error.data.error + ', message:' + error.data.message + ', path:' + error.data.path + ', status:' + error.data.status);
-                            return deferred.promise;
-                        });
-                } else {
-                    deferred.reject('Identifier is not defined ' + $scope.identifier);
-                    return deferred.promise;
+                                return deferred.promise;
+                            },
+                            function (error) {
+                                console.log(error);
+                                deferred.reject('error:' + error.data.error + ', message:' + error.data.message + ', path:' + error.data.path + ', status:' + error.data.status);
+                                return deferred.promise;
+                            });
+                    } else {
+                        deferred.reject('Identifier is not defined ' + $scope.identifier);
+                        return deferred.promise;
+                    }
+                };
+
+                var getOffnetOperatorBin = function() {
+                    var deferredOffnet = $q.defer();
+
+                    console.log('provider', $scope.provider, 'operatorType', $scope.operatorType);
+
+                    if ($scope.provider && $scope.operatorType === 'offnet') {
+
+                        var clientBIN = $scope.provider === "SMS Consult" ? "090940007540" : ( $scope.provider === "MMS" ? "120140013485" : ($scope.provider === "KIT" ? "080240011284" : "") );
+
+                        console.log('clientBIN', clientBIN);
+
+                        if (clientBIN && clientBIN.length > 0) {
+
+                            return $http({method: 'GET', url: '/camunda/crm/client/bin/'+clientBIN, transformResponse: [] }).then(
+                                function(response) {
+
+                                    console.log('response', response.data);
+
+                                    if (response.data) {
+
+                                        var clientCRM = JSON.parse(response.data);
+
+                                        if(clientCRM.id && clientCRM.bin) {
+                                            $scope.offnetProviderName = clientCRM.id;
+                                            $scope.offnetProviderBin = clientCRM.bin;
+
+                                            console.log('Successfully get Offnet Provider ID and BIN');
+
+                                            deferredOffnet.resolve('Successfully get Offnet Provider ID and BIN');
+                                        } else {
+                                            console.log('Could not get Offnet Provider ID or BIN');
+                                            deferredOffnet.reject('Could not get Offnet Provider ID or BIN');
+                                        }
+                                    } else {
+
+                                        console.log('Could not get response data');
+
+                                        deferredOffnet.reject('Could not get response data');
+                                    }
+                                    console.log('return promise');
+                                    return deferredOffnet.promise;
+
+                                },
+                                function (error) {
+                                    console.log(error);
+                                    deferredOffnet.reject('error:' + error.data.error + ', message:' + error.data.message + ', path:' + error.data.path + ', status:' + error.data.status);
+                                    return deferredOffnet.promise;
+                                }
+                            );
+                        } else {
+                            console.log('Offnet Provider BIN is not valid');
+
+                            deferredOffnet.reject('Offnet Provider BIN is not valid');
+                            return deferredOffnet.promise;
+                        }
+                    } else {
+                        console.log('Onnet Provider');
+
+                        deferredOffnet.resolve('Onnet Provider');
+                        return deferredOffnet.promise;
+                    }
                 }
+                var deferred = $q.defer();
+                return $q.all( [ getProductCatalogShortNumber(), getOffnetOperatorBin() ] );
             }
 
             camForm.on('submit', function (evt) {
@@ -132,7 +210,12 @@
                 if ($scope.shortNumberId) {
                     camForm.variableManager.variableValue('shortNumberId', $scope.shortNumberId);
                 }
-
+                if($scope.offnetProviderName){
+                    camForm.variableManager.variableValue('offnetProviderName', $scope.offnetProviderName);
+                }
+                if($scope.offnetProviderBin){
+                    camForm.variableManager.variableValue('offnetProviderBin', $scope.offnetProviderBin);
+                }
             });
 
             $scope.addIdentifier = function(identifier) {

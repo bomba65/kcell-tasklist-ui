@@ -12,7 +12,9 @@
                 'operators',
                 'resolutions',
                 'previouslyBought',
-                'finalIDs'
+                'finalIDs',
+                'offnetProviderName',
+                'offnetProviderBin'
             ];
 
             camForm.on('form-loaded', function () {
@@ -102,6 +104,11 @@
                 $http.get("/camunda/api/engine/engine/default/user/" + $rootScope.authentication.name+ "/profile").then(function(result){
                     $rootScope.authentication.assigneeName = (result.data.firstName ? result.data.firstName : "") + " " + (result.data.lastName ? result.data.lastName : "");
                 });
+                /*camForm.variableManager.createVariable({
+                    name: 'productCatalogResponse',
+                    value: undefined,
+                    type: 'Json'
+                });*/
 
                 camForm.variableManager.createVariable({
                     name: 'createApplicationToConnectionTaskResult',
@@ -172,66 +179,22 @@
                     //console.log('contentProviderProductCatalog', $scope.contentProviderId, $scope.contentProviderBIN, $scope.productCatalogShortNumber.bin, $scope.clientBIN);
                     var deferred = $q.defer();
                     if($scope.contentProviderId && $scope.contentProviderBIN === $scope.clientBIN){
-                        console.log('Client with Id ' + $scope.contentProviderId + ' already exists or has been created just before in Product Catalog');
-                        deferred.resolve('Client with Id ' + $scope.contentProviderId + ' already exists or has been created just before in Product Catalog');
+                        var existingContentProvider = {
+                            id: $scope.contentProviderId,
+                            bin: $scope.contentProviderBIN,
+                            new: false
+                        };
+                        console.log('Client already exists or has been created just before in Product Catalog', existingContentProvider);
+                        deferred.resolve( { data: existingContentProvider } );
+
                         return deferred.promise;
                     } else if($scope.clientBIN){
-                        return $http.get("/camunda/product-catalog/vas_content_providers/bin/" + $scope.clientBIN).then(
-                            function(response){
-                                console.log('GET Content Provider with BIN ' + $scope.clientBIN, response.data);
-                                if(response.data) {
-                                    if (response.data.id) {
-                                        console.log('GET Content Provider with Id  ' + response.data.id + ' was fetched from Product Catalog');
-                                        $scope.contentProviderId = response.data.id;
-                                        $scope.contentProviderBIN = response.data.bin;
-                                        deferred.resolve('GET Content Provider with Id  ' + response.data.id + ' was fetched from Product Catalog');
-                                    } else {
-                                        if (response.data.status && response.data.status === 404) {
-                                            var newContentProvider = {
-                                                bin: $scope.clientBIN,
-                                                name: $scope.officialClientCompanyName,
-                                                contentProviderState: 'A'
-                                            };
-                                            $http.post("/camunda/product-catalog/vas_content_providers", newContentProvider).then(
-                                                function(response){
-                                                    console.log('CREATE Content Provider with BIN ' + $scope.clientBIN, response.data);
-                                                    if(response.data){
-                                                        if(response.data.id){
-                                                            $scope.contentProviderId = response.data.id;
-                                                            $scope.contentProviderBIN = response.data.bin;
-                                                            deferred.resolve('NEW Content Provider with Id ' + response.data.id + ' was created in Product Catalog');
-                                                        } else {
-                                                            deferred.reject('NEW Content Provider with BIN ' + $scope.clientBIN + ' was not created in Product Catalog');
-                                                        }
-                                                    } else {
-                                                        deferred.reject('CREATE Content Provider with BIN ' + $scope.clientBIN + ', RESPONSE Data is undefined');
-                                                    }
-                                                },
-                                                function(error){
-                                                    console.log(error);
-                                                    deferred.reject('error:' + error.data.error + ', message:' + error.data.message + ', path:' + error.data.path + ', status:' + error.data.status);
-                                                }
-                                            );
-
-                                        } else {
-                                            deferred.reject('Unknown Content Provider Response');
-                                        }
-                                    }
-                                } else {
-                                    deferred.reject('Undefined Response Data from Product Catalog Request');
-                                }
-                                return deferred.promise;
-                            },
-                            function (error) {
-                                console.log(error);
-                                deferred.reject('error:' + error.data.error + ', message:' + error.data.message + ', path:' + error.data.path + ', status:' + error.data.status);
-                                return deferred.promise;
-                            });
+                        return $http.get("/camunda/product-catalog/vas_content_providers/bin/" + $scope.clientBIN);
                     } else {
                         deferred.reject('No BIN is provided!');
                         return deferred.promise;
                     }
-                }
+                };
 
                 $scope.productCatalogShortNumber = {
                     //company name: $scope.officialClientCompanyName,
@@ -261,16 +224,14 @@
                     revenueSharing: '61',
                     brand: 'B',
                     vasChargingIntervalId: null,
-
                     changedDate: $filter('date')(changedDate, 'yyyy-MM-ddTHH:mm:ss'),
                     lastDt: $filter('date')(changedDate, 'yyyy-MM-ddTHH:mm:ss'),
                     startDate: $filter('date')($scope.startDate, 'yyyy-MM-ddTHH:mm:ss'),
-
                     exceptions: '25',
                     contractDetail: $scope.contractNumber,
+                    offnetProviderName: $scope.offnetProviderName,
+                    offnetProviderBin: $scope.offnetProviderBin,
 
-                    //offnetProviderName: $scope.,
-                    //offnetProviderBin: $scope.,
                     //vas_content_provider_id: "null",
                     //vas_short_number_id: $scope.,
                     //sapNumber: $scope.,
@@ -362,82 +323,126 @@
                 }
 
                 console.log('request body', $scope.productCatalogShortNumber);
-                var deferred = $q.defer();
+                var deferredGlobal = $q.defer();
 
                 if($scope.productCatalogShortNumber.shortNumber || $scope.productCatalogShortNumber.shortNumberBeeline || $scope.productCatalogShortNumber.shortNumberTele2 || $scope.productCatalogShortNumber.shortNumberAltel){
-                        return contentProviderProductCatalog().then(function(){
-                            //console.log('$scope.contentProviderId', $scope.contentProviderId);
-                            $scope.productCatalogShortNumber.vasContentProvider = {id: $scope.contentProviderId};
-                            console.log('productCatalogShortNumber Request', $scope.productCatalogShortNumber);
-
-                            /*
-                            if($scope.productCatalogResponse && $scope.productCatalogResponse.id) {
-                                console.log('Short number has already been sent to Product Catalog');
-                                deferred.resolve('Short number has already been sent to Product Catalog');
+                    return contentProviderProductCatalog()
+                        .then(
+                            function(response){
+                                var deferred = $q.defer();
+                                console.log('GET Content Provider with BIN ' + $scope.clientBIN, response);
+                                if(response.data) {
+                                    if (response.data.id) {
+                                        console.log('GET Content Provider with Id  ' + response.data.id + ' was fetched from Product Catalog');
+                                        var existingContentProvider = {
+                                            id: response.data.id,
+                                            bin: response.data.bin,
+                                            new: false
+                                        };
+                                        deferred.resolve(existingContentProvider);
+                                    } else {
+                                        if (response.data.status && response.data.status === 404) {
+                                            var newContentProvider = {
+                                                bin: $scope.clientBIN,
+                                                name: $scope.officialClientCompanyName,
+                                                contentProviderState: 'A',
+                                                new: true
+                                            };
+                                            deferred.resolve(newContentProvider);
+                                        } else {
+                                            deferred.reject('Unknown Content Provider Response');
+                                        }
+                                    }
+                                } else {
+                                    deferred.reject('Undefined Response Data from Product Catalog Request');
+                                }
                                 return deferred.promise;
-                            } else {
-                            */  if($scope.shortNumberId) {
+                            }
+                        ).then(
+                            function(contentProvider){
+                                console.log('POST content provider', contentProvider);
+                                if(contentProvider.new){
+                                    console.log('CREATE Content Provider with BIN ' + $scope.clientBIN, contentProvider);
+                                    return $http.post("/camunda/product-catalog/vas_content_providers", contentProvider);
+                                } else {
+                                    console.log('Content Provider with BIN ' + $scope.clientBIN + ' exists', contentProvider);
+                                    var deferred = $q.defer();
+                                    deferred.resolve({data: contentProvider});
+                                    return deferred.promise;
+                                }
+                            }
+                        ).then(
+                            function(response){
+                                var deferred = $q.defer();
+                                console.log('CREATE/UPDATE Content Provider with BIN ' + $scope.clientBIN, response.data);
+                                if(response.data){
+                                    if(response.data.id){
+
+                                        $scope.contentProviderId = response.data.id;
+                                        $scope.contentProviderBIN = response.data.bin;
+                                        console.log('NEW Content Provider with Id ' + response.data.id + ' was created in Product Catalog');
+                                        deferred.resolve('NEW Content Provider with Id ' + response.data.id + ' was created in Product Catalog');
+
+                                    } else {
+                                        deferred.reject('NEW Content Provider with BIN ' + $scope.clientBIN + ' was not created in Product Catalog');
+                                    }
+                                } else {
+                                    deferred.reject('CREATE Content Provider with BIN ' + $scope.clientBIN + ', RESPONSE Data is undefined');
+                                }
+                                return deferred.promise;
+                            }
+                        ).then(
+                            function(){
+                                if($scope.shortNumberId) {
                                     $scope.productCatalogShortNumber.id = $scope.shortNumberId;
                                     console.log('UPDATE productCatalogShortNumber Request', $scope.productCatalogShortNumber);
-                                    $http.put("/camunda/product-catalog/vas_short_numbers/" + $scope.shortNumberId, $scope.productCatalogShortNumber).then(
-                                        function (response) {
-                                            console.log('UPDATE productCatalogShortNumber Response', response.data);
-                                            if (response.data) {
-                                                if(response.data.shortNumber || response.data.shortNumberBeeline || response.data.shortNumberTele2 || response.data.shortNumberAltel){
-                                                    $scope.productCatalogResponse = response.data;
-                                                    console.log('UPDATED successfully short number in Product Catalog');
-                                                    deferred.resolve('UPDATED successfully short number in Product Catalog');
-                                                } else {
-                                                    console.log('UPDATE Product Catalog did not respond with short number');
-                                                    deferred.reject('UPDATE Product Catalog did not respond with short number');
-                                                }
-                                            } else {
-                                                console.log('UPDATE Product Catalog response is empty');
-                                                deferred.reject('UPDATE Product Catalog response is empty');
-                                            }
-                                            return deferred.promise;
-                                        },
-                                        function (error) {
-                                            console.log(error);
-                                            deferred.reject('error:' + error.data.error + ', message:' + error.data.message + ', path:' + error.data.path + ', status:' + error.data.status);
-                                            return deferred.promise;
-                                        }
-                                    );
+                                    return $http.put("/camunda/product-catalog/vas_short_numbers/" + $scope.shortNumberId, $scope.productCatalogShortNumber);
                                 } else {
                                     console.log('CREATE productCatalogShortNumber Request', $scope.productCatalogShortNumber);
-                                    $http.post("/camunda/product-catalog/vas_short_numbers", $scope.productCatalogShortNumber).then(
-                                        function (response) {
-                                            console.log('CREATE  productCatalogShortNumber Response', response.data);
-                                            if (response.data) {
-                                                if(response.data.shortNumber || response.data.shortNumberBeeline || response.data.shortNumberTele2 || response.data.shortNumberAltel){
-                                                    $scope.productCatalogResponse = response.data;
-                                                    console.log('CREATED successfully short number in Product Catalog');
-                                                    deferred.resolve('CREATED successfully short number in Product Catalog');
-                                                } else {
-                                                    console.log('CREATE Product Catalog did not respond with short number');
-                                                    deferred.reject('CREATE Product Catalog did not respond with short number');
-                                                }
-                                            } else {
-                                                console.log('CREATE Product Catalog response is empty');
-                                                deferred.reject('CREATE Product Catalog response is empty');
-                                            }
-                                            return deferred.promise;
-                                        },
-                                        function (error) {
-                                            console.log(error);
-                                            deferred.reject('error:' + error.data.error + ', message:' + error.data.message + ', path:' + error.data.path + ', status:' + error.data.status);
-                                            return deferred.promise;
-                                        }
-                                    );
+                                    return $http.post("/camunda/product-catalog/vas_short_numbers", $scope.productCatalogShortNumber);
                                 }
-                            /*
                             }
-                            */
-                        });
-                    } else {
-                        deferred.reject('No short number is selected!');
-                        return deferred.promise;
-                    }
+                        ).then(
+                            function(response){
+                                console.log('CREATE productCatalogShortNumber Response', response.data);
+                                var deferred = $q.defer();
+                                if (response.data) {
+                                    if(response.data.shortNumber || response.data.shortNumberBeeline || response.data.shortNumberTele2 || response.data.shortNumberAltel){
+                                        console.log('Successfully sent short number to Product Catalog');
+                                        return $http.put("/camunda/api/engine/engine/default/task/"+camForm.taskId+"/variables/productCatalogResponse", {value: JSON.stringify(response.data), type: "Json"})
+                                    } else {
+                                        console.log('Product Catalog did not respond with short number');
+                                        deferred.reject('Product Catalog did not respond with short number');
+                                    }
+                                } else {
+                                    console.log('Product Catalog response is empty');
+                                    deferred.reject('Product Catalog response is empty');
+                                }
+                                return deferred.promise;
+                            }
+                        ).then(
+                            function(response){
+                                var deferred = $q.defer();
+                                if (response) {
+                                    console.log('Product Catalog Response is saved')
+                                    deferred.resolve('Product Catalog Response is saved');
+                                } else {
+                                    console.log('Product Catalog Response was not saved');
+                                    deferred.reject('Product Catalog Response was not saved');
+                                }
+                                return deferred.promise;
+                            }
+                        ).catch(
+                            function(error){
+                                console.log(error);
+                                deferredGlobal.reject(error);
+                                return deferredGlobal.promise;
+                            }
+                        );
+                } else {
+                    deferredGlobal.reject('No short number is selected!');
+                    return deferredGlobal.promise;
+                }
             };
 
             camForm.on('submit', function (evt) {
@@ -447,7 +452,8 @@
                     $scope.resolutions = [];
                 }
                 camForm.variableManager.variableValue('productCatalogShortNumber', $scope.productCatalogShortNumber);
-                camForm.variableManager.variableValue('productCatalogResponse', $scope.productCatalogResponse);
+                //camForm.variableManager.variableValue('productCatalogResponse', JSON.stringify($scope.productCatalogResponse));
+
                 camForm.variableManager.variableValue('responsibleB2BDelivery', $scope.responsibleB2BDelivery);
                 camForm.variableManager.variableValue('responsibleB2BSales', $scope.responsibleB2BSales);
                 camForm.variableManager.variableValue('operatorType', $scope.operatorType);
@@ -655,7 +661,10 @@
                         } else if (($scope.identifierType === 'alfanumeric' || $scope.previouslyBought) && _.filter(id.operators, function(o) { return o.isAvailable && o.id !== 'kcell'; }).length > 0 ) {
                             $scope.kcell_form.createApplicationToConnectionTaskComment.$setValidity('validIdentifiers', true);
                             return true;
-                        } else { return $scope.kcell_form.createApplicationToConnectionTaskComment.$setValidity('validIdentifiers', false); return false;};
+                        } else {
+                            $scope.kcell_form.createApplicationToConnectionTaskComment.$setValidity('validIdentifiers', false);
+                            return false;
+                        };
                     });
                 } else {
                     $scope.kcell_form.createApplicationToConnectionTaskComment.$setValidity('validIdentifiers', true);
@@ -670,7 +679,7 @@
                 if (clientBIN){
                     $http({method: 'GET', url: '/camunda/crm/client/bin/'+clientBIN, transformResponse: [] })
 	                .then(function(response) {
-						//console.log(data);
+						console.log('response',response.data);
 						var clientCRM = JSON.parse(response.data);
 
                         if (Object.keys(clientCRM).length > 0) {

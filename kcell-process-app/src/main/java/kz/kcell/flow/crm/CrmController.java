@@ -88,7 +88,20 @@ public class CrmController {
             ObjectNode supervisorUser = mapper.createObjectNode();
             ObjectNode regionalHeadUser = mapper.createObjectNode();
 
-            if (clientBIN.equals("000000000000")) {
+            if (clientBIN.equals("090940007540")) {
+                fakeContent.put("id", 33777);
+                fakeContent.put("accountName", "ТОО Provider - SMS Consult");
+                fakeContent.put("bin", clientBIN.toString());
+            } else if (clientBIN.equals("120140013485")) {
+                fakeContent.put("id", 33778);
+                fakeContent.put("accountName", "ТОО Provider - MMS");
+                fakeContent.put("bin", clientBIN.toString());
+            } else if (clientBIN.equals("080240011284")) {
+                fakeContent.put("id", 33779);
+                fakeContent.put("accountName", "ТОО Provider - KIT");
+                fakeContent.put("bin", clientBIN.toString());
+            }
+            else if (clientBIN.equals("000000000000")) {
 
                 fakeContent.put("id", 17494);
                 fakeContent.put("accountName", "ТОО для обучения и тестирования");
