@@ -68,7 +68,7 @@ public class TaskHistoryListener implements TaskListener {
                 resolution.put("assigneeName", users.get(0).getFirstName() + " " + users.get(0).getLastName());
             }
             resolution.put("resolution", delegateTask.getVariable(delegateTask.getTaskDefinitionKey() + "TaskResult") !=null ? String.valueOf(delegateTask.getVariable(delegateTask.getTaskDefinitionKey() + "TaskResult")) : "");
-            resolution.put("comment", delegateTask.getVariable(delegateTask.getTaskDefinitionKey() + "TaskTaskComment")!=null ? String.valueOf(delegateTask.getVariable(delegateTask.getTaskDefinitionKey() + "TaskTaskComment")) : "");
+            resolution.put("comment", delegateTask.getVariable(delegateTask.getTaskDefinitionKey() + "TaskComment")!=null ? String.valueOf(delegateTask.getVariable(delegateTask.getTaskDefinitionKey() + "TaskComment")) : "");
             resolution.put("taskId", delegateTask.getId());
             resolution.put("taskName", delegateTask.getName());
             resolution.put("taskEndDate", new SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss.SSSXX").format(new Date()));
