@@ -22,14 +22,14 @@
             var processInstanceId = null;
             $scope.assigneeName = $rootScope.authentication.name;
             $scope.assigneeId = $rootScope.authentication.name;
-            $scope.userGroups;
+            var userGroups = [];
             $scope.resources = [];
             $scope.currentSupportiveInput = [];
             var createdDate = new Date();
             var HRList = [];
 
             $http.get("/camunda/api/engine/engine/default/group?member=" + $rootScope.authentication.name).then(function(result) {
-                if (result.data && result.data.length) $scope.userGroups = result.data.map(function (e) { return e.id; });
+                if (result.data && result.data.length) userGroups = result.data.map(function (e) { return e.id; });
             });
             $http.get("/camunda/api/engine/engine/default/user/" + $rootScope.authentication.name+ "/profile").then(function(result){
                 $scope.assigneeName = (result.data.firstName ? result.data.firstName : "") + " " + (result.data.lastName ? result.data.lastName : "");
@@ -72,7 +72,7 @@
                 var ind = $scope.supportiveInputs.findIndex(function(e) {return e.unit == $scope.supportiveInputName.SUName;});
                 if (ind !== -1) {
                     for (var i = 0; i < $scope.supportiveInputs[ind].value.length; i++) {
-                        if ($scope.userGroups && $scope.supportiveInputs[ind].value[i].role && $scope.userGroups.includes($scope.supportiveInputs[ind].value[i].role.expert.groupId)) {
+                        if (userGroups && $scope.supportiveInputs[ind].value[i].role && $scope.supportiveInputs[ind].value[i].role.expert.groupId == $scope.supportiveInputName.expert && userGroups.includes($scope.supportiveInputs[ind].value[i].role.expert.groupId)) {
                             $scope.resources.push($scope.supportiveInputs[ind].value[i]);
                         }
                     }
@@ -90,7 +90,7 @@
                         var lastSupportiveInputs = JSON.parse(results[0].data.value);
                         var ind = lastSupportiveInputs.findIndex(function(e) {return e.unit == $scope.supportiveInputName.SUName;});
                         for (var i = 0; i < lastSupportiveInputs[ind].value.length; i++) {
-                            if ($scope.userGroups && lastSupportiveInputs[ind].value[i].role && $scope.userGroups.includes(lastSupportiveInputs[ind].value[i].role.expert.groupId)) {
+                            if (userGroups && lastSupportiveInputs[ind].value[i].role && lastSupportiveInputs[ind].value[i].role.expert.groupId == $scope.supportiveInputName.expert && userGroups.includes(lastSupportiveInputs[ind].value[i].role.expert.groupId)) {
                                 lastSupportiveInputs[ind].value.splice(i, 1);
                                 i--;
                             }

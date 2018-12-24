@@ -10,7 +10,7 @@ define(['./../module'], function(module){
                 disabled: '=',
                 editprice: '=',
                 editexisting: '=',
-                purchaserGroups: "="
+                purchaserGroup: "="
             },
             link: function(scope, el, attrs) {
 
