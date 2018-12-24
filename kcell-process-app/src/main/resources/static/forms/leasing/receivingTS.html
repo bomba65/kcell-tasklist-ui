@@ -23,7 +23,13 @@
                 'renterCompany',
                 'transmissionAntenna',
                 'powerSource',
-                'farEndInformation'
+                'farEndInformation',
+                'receivingTSForCandiateSiteFiles',
+                'receivingContractPSDFiles',
+                'receivingApprovalFromTheLandlordFiles',
+                'modifyCandidateRRFiles',
+                'estimateTechnicalCapabilityResFiles',
+                'requestTechnicalParametersKTFiles'
             ];
 
             camForm.on('form-loaded', function () {
@@ -47,42 +53,39 @@
                     $scope.leasingCandidate[el] = camForm.variableManager.variables[el].value;
                 });
                 camForm.variableManager.createVariable({
-                    name: 'receivingApprovalFromTheLandlordTaskResult',
+                    name: 'receivingTSTaskResult',
                     type: 'String',
                     value: ''
                 });
                 camForm.variableManager.createVariable({
-                    name: 'receivingApprovalFromTheLandlordTaskComment',
+                    name: 'receivingTSTaskComment',
                     type: 'String',
                     value: ''
                 });
                 camForm.variableManager.createVariable({
-                    name: 'receivingApprovalFromTheLandlordFiles',
+                    name: 'receivingTSFiles',
                     type: 'Json',
                     value: []
                 });
+                camForm.variableManager.createVariable({
+                    name: 'leasingProceduresStatus',
+                    type: 'String',
+                    value: ''
+                });
 
-                $scope.receivingApprovalFromTheLandlordTaskResult = '';
-                $scope.receivingApprovalFromTheLandlordFiles = [];
+                $scope.receivingTSTaskResult = '';
+                $scope.receivingTSFiles = [];
             });
 
             camForm.on('submit', function () {
-                camForm.variableManager.variableValue('receivingApprovalFromTheLandlordTaskResult', $scope.receivingApprovalFromTheLandlordTaskResult);
-                if($scope.receivingApprovalFromTheLandlordTaskResult == 'notApproved') {
-                    camForm.variableManager.createVariable({
-                        name: 'rentApprovalResult',
-                        type: 'String',
-                        value: 'refused'
-                    });
-                } else {
-                    camForm.variableManager.createVariable({
-                        name: 'rentApprovalResult',
-                        type: 'String',
-                        value: 'approved'
-                    });
+                camForm.variableManager.variableValue('receivingTSTaskResult', $scope.receivingTSTaskResult);
+                if($scope.receivingTSTaskResult === 'additionalAgreementAfterInstallation'){
+                    camForm.variableManager.variableValue('leasingProceduresStatus', 'waitContract');
+                } else if($scope.receivingTSTaskResult === 'reject') {
+                    camForm.variableManager.variableValue('leasingProceduresStatus', 'refusal');
                 }
-                camForm.variableManager.variableValue('receivingApprovalFromTheLandlordTaskComment', $scope.receivingApprovalFromTheLandlordTaskComment);
-                camForm.variableManager.variableValue('receivingApprovalFromTheLandlordFiles', $scope.receivingApprovalFromTheLandlordFiles);
+                camForm.variableManager.variableValue('receivingTSTaskComment', $scope.receivingTSTaskComment);
+                camForm.variableManager.variableValue('receivingTSFiles', $scope.receivingTSFiles);
             });
 
             $scope.fileSelected = function (el, fileName) {
@@ -159,35 +162,62 @@
     </div>
 
     <div class="form-group">
-        <label class="col-md-4 control-label">Upload files:</label>
+        <label class="col-md-4 control-label">Download files:</label>
         <div class="col-sm-8">
-            <div ng-show="receivingApprovalFromTheLandlordFiles.length > 0" class="input-group" ng-repeat="file in receivingApprovalFromTheLandlordFiles">
-                {{$index + 1}}.
-                <a ng-click="fileDownload(file)">{{file.name}}</a> | <a ng-click="clearFile('receivingApprovalFromTheLandlordFiles', $index)"><i class="glyphicon glyphicon-trash"></i></a>
+            <div ng-show="receivingTSForCandiateSiteFiles.length > 0" class="input-group" ng-repeat="file in receivingTSForCandiateSiteFiles">
+                <a ng-click="download(file)">{{file.name}}</a>
             </div>
-            <input type="file" class="form-control" id="receivingApprovalFromTheLandlordFiles" name="receivingApprovalFromTheLandlordFiles" ng-model="file.file" onchange="angular.element(this).scope().fileSelected(this, 'receivingApprovalFromTheLandlordFiles')"/>
+            <div ng-show="receivingContractPSDFiles.length > 0" class="input-group" ng-repeat="file in receivingContractPSDFiles">
+                <a ng-click="download(file)">{{file.name}}</a>
+            </div>
+            <div ng-show="receivingApprovalFromTheLandlordFiles.length > 0" class="input-group" ng-repeat="file in receivingApprovalFromTheLandlordFiles">
+                <a ng-click="download(file)">{{file.name}}</a>
+            </div>
+            <div ng-show="modifyCandidateRRFiles.length > 0" class="input-group" ng-repeat="file in modifyCandidateRRFiles">
+                <a ng-click="download(file)">{{file.name}}</a>
+            </div>
+            <div ng-show="estimateTechnicalCapabilityResFiles.length > 0" class="input-group" ng-repeat="file in estimateTechnicalCapabilityResFiles">
+                <a ng-click="download(file)">{{file.name}}</a>
+            </div>
+            <div ng-show="requestTechnicalParametersKTFiles.length > 0" class="input-group" ng-repeat="file in requestTechnicalParametersKTFiles">
+                <a ng-click="download(file)">{{file.name}}</a>
+            </div>
         </div>
     </div>
 
     <div class="form-group">
-        <label class="col-sm-4 control-label">Approval status from the landlord</label>
+        <label class="col-md-4 control-label">Upload files:</label>
+        <div class="col-sm-8">
+            <div ng-show="receivingTSFiles.length > 0" class="input-group" ng-repeat="file in receivingTSFiles">
+                {{$index + 1}}.
+                <a ng-click="fileDownload(file)">{{file.name}}</a> | <a ng-click="clearFile('receivingTSFiles', $index)"><i class="glyphicon glyphicon-trash"></i></a>
+            </div>
+            <ng-form name="kcell_material_file_form">
+                <input type="file" class="form-control" id="receivingTSFiles" name="receivingTSFiles" ng-model="file.file" onchange="angular.element(this).scope().fileSelected(this, 'receivingTSFiles')"/>
+            </ng-form>
+        </div>
+    </div>
+
+    <div class="form-group">
+        <label class="col-sm-4 control-label">Approval Status</label>
         <div class="col-sm-8">
             <label class="radio-inline">
-                <input type="radio" name="receivingApprovalFromTheLandlordTaskResult" ng-model="receivingApprovalFromTheLandlordTaskResult" value="approved" required> Approved
+                <input type="radio" name="receivingTSTaskResult" ng-model="receivingTSTaskResult" value="additionalAgreementBeforeInstallation" required>Signing of an additional agreement before the start of installation
             </label>
             <label class="radio-inline">
-                <input type="radio" name="receivingApprovalFromTheLandlordTaskResult" ng-model="receivingApprovalFromTheLandlordTaskResult" value="notApproved" required> Not approved
+                <input type="radio" name="receivingTSTaskResult" ng-model="receivingTSTaskResult" value="additionalAgreementAfterInstallation" required>Signing of an additional agreement after installation
             </label>
-            <label class="error" ng-show="kcell_form.receivingApprovalFromTheLandlordTaskResult.$error.required && ( kcell_form.receivingApprovalFromTheLandlordTaskResult.$touched || view.submitted)">Required field</label>
+            <label class="radio-inline">
+                <input type="radio" name="receivingTSTaskResult" ng-model="receivingTSTaskResult" value="reject" required>Reject
+            </label>
+            <label class="error" ng-show="kcell_form.receivingTSTaskResult.$error.required && ( kcell_form.receivingTSTaskResult.$touched || view.submitted)">Required field</label>
         </div>
     </div>
 
     <div class="form-group">
         <label class="col-sm-4 control-label">Comments</label>
         <div class="col-sm-8">
-            <textarea class="form-control" ng-model="receivingApprovalFromTheLandlordTaskComment" name="receivingApprovalFromTheLandlordTaskComment" placeholder="Comments..." maxlength="500" rows="4" style="resize:none"
-                      ng-required="receivingApprovalFromTheLandlordTaskResult == 'notApproved'"></textarea>
-            <label class="error" ng-show="kcell_form.receivingApprovalFromTheLandlordTaskComment.$error.required && ( kcell_form.receivingApprovalFromTheLandlordTaskComment.$touched || view.submitted)">Required field</label>
+            <textarea class="form-control" ng-model="receivingTSTaskComment" name="receivingTSTaskComment" placeholder="Comments..." maxlength="500" rows="4" style="resize:none"></textarea>
         </div>
     </div>
     <accordion>
