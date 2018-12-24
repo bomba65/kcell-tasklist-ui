@@ -405,6 +405,28 @@ public class ProductCatalog {
             }
 
         } else {
+            if ("090940007540".equals(clientBIN)) {
+                String responseBodyString = "{\n" +
+                    "  \"id\" : 33777,\n" +
+                    "  \"bin\" : \"090940007540\",\n" +
+                    "  \"contentProviderState\" : \"A\"\n" +
+                    "}";
+                return ResponseEntity.ok(responseBodyString);
+            } else if ("120140013485".equals(clientBIN)) {
+                String responseBodyString = "{\n" +
+                    "  \"id\" : 33778,\n" +
+                    "  \"bin\" : \"120140013485\",\n" +
+                    "  \"contentProviderState\" : \"A\"\n" +
+                    "}";
+                return ResponseEntity.ok(responseBodyString);
+            } else if ("080240011284".equals(clientBIN)) {
+                String responseBodyString = "{\n" +
+                    "  \"id\" : 33779,\n" +
+                    "  \"bin\" : \"080240011284\",\n" +
+                    "  \"contentProviderState\" : \"A\"\n" +
+                    "}";
+                return ResponseEntity.ok(responseBodyString);
+            }
             if ("111222333444".equals(clientBIN)) {
                 String responseBodyString = "{\n" +
                     "  \"id\" : 8888,\n" +
