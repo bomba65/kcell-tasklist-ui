@@ -19,7 +19,7 @@
             };
             $scope.supportiveInputs = [];
             $scope.currentSupportiveInput = [];
-            $scope.supportiveInputName = null;
+            $scope.supportiveInputItem = null;
             var processInstanceId = null;
             $scope.assigneeName = $rootScope.authentication.name;
             var userGroups = [];
@@ -47,7 +47,7 @@
                 camForm.variableManager.fetchVariable('BRDData');
                 camForm.variableManager.fetchVariable('attachments');
                 camForm.variableManager.fetchVariable('supportiveInputs');
-                camForm.variableManager.fetchVariable('supportiveInputName');
+                camForm.variableManager.fetchVariable('supportiveInputItem');
             });
 
             camForm.on('variables-fetched', function () {
@@ -56,11 +56,11 @@
                 $scope.BRDData = camForm.variableManager.variableValue('BRDData');
                 $scope.attachments = camForm.variableManager.variableValue('attachments');
                 $scope.supportiveInputs = camForm.variableManager.variableValue('supportiveInputs');
-                $scope.supportiveInputName = camForm.variableManager.variableValue('supportiveInputName');
+                $scope.supportiveInputItem = camForm.variableManager.variableValue('supportiveInputItem');
                 if (!$scope.resolutions) $scope.resolutions = [];
                 if (!$scope.attachments) $scope.attachments = [];
                 if (!$scope.supportiveInputs) $scope.supportiveInputs = [];
-                var elt = $scope.supportiveInputs.find(function(e) {return e.unit == $scope.supportiveInputName.SUName});
+                var elt = $scope.supportiveInputs.find(function(e) {return e.unit == $scope.supportiveInputItem.unit});
                 if (elt) $scope.currentSupportiveInput.push(elt);
 
             });
@@ -73,9 +73,9 @@
                 ]).then(function (results) {
                     if (results[0] && results[0].data) {
                         var lastSupportiveInputs = JSON.parse(results[0].data.value);
-                        var ind = lastSupportiveInputs.findIndex(function(e) {return e.unit == $scope.supportiveInputName.SUName;});
+                        var ind = lastSupportiveInputs.findIndex(function(e) {return e.unit == $scope.supportiveInputItem.unit;});
                         for (var i = 0; i < lastSupportiveInputs[ind].value.length; i++) {
-                            if (userGroups && lastSupportiveInputs[ind].value[i].purchaser && lastSupportiveInputs[ind].value[i].purchaser.groupId == $scope.supportiveInputName.purchaser && userGroups.includes(lastSupportiveInputs[ind].value[i].purchaser.groupId)) {
+                            if (userGroups && lastSupportiveInputs[ind].value[i].purchaser && lastSupportiveInputs[ind].value[i].purchaser.groupId == $scope.supportiveInputItem.groupId && userGroups.includes(lastSupportiveInputs[ind].value[i].purchaser.groupId)) {
                                 lastSupportiveInputs[ind].value[i].currency = $scope.supportiveInputs[ind].value[i].currency;
                                 lastSupportiveInputs[ind].value[i].pprice = $scope.supportiveInputs[ind].value[i].pprice;
                                 lastSupportiveInputs[ind].value[i].summ = $scope.supportiveInputs[ind].value[i].summ;
@@ -120,8 +120,8 @@
                     value: $scope.resolutions
                 });
 
-                if ($scope.supportiveInputName) {
-                    var elt = $scope.supportiveInputs.find(function(e) {return e.unit == $scope.supportiveInputName.SUName});
+                if ($scope.supportiveInputItem) {
+                    var elt = $scope.supportiveInputs.find(function(e) {return e.unit == $scope.supportiveInputItem.unit});
                     if (elt) elt.inputReceived = true;
                     camForm.variableManager.destroyVariable('supportiveInputs');
                     camForm.variableManager.createVariable({
@@ -298,12 +298,12 @@
         <tab active="true">
             <tab-heading> Costs and Acceptance criteria </tab-heading>
             <div style="margin-bottom: 20px;">
-                <accordion ng-repeat="i in supportiveInputs" ng-if="i.unit == supportiveInputName.SUName">
+                <accordion ng-repeat="i in supportiveInputs" ng-if="i.unit == supportiveInputItem.unit">
                     <accordion-group is-open="true">
                         <accordion-heading>
                             Materials <i class="pull-right glyphicon" ng-class="{'glyphicon-chevron-up': status.isCustomHeaderOpen, 'glyphicon-chevron-down': !status.isCustomHeaderOpen}"></i>
                         </accordion-heading>
-                        <demand-materials data="i.value" form="kcell_form" view="view" disabled="true" editprice="true" purchaser-group="supportiveInputName.purchaser"></demand-materials>
+                        <demand-materials data="i.value" form="kcell_form" view="view" disabled="true" editprice="true" purchaser-group="supportiveInputItem.groupId"></demand-materials>
                     </accordion-group>
                 </accordion>
             </div>

@@ -19,7 +19,7 @@
             };
             $scope.supportiveInputs = [];
             $scope.currentSupportiveInput = [];
-            $scope.supportiveInputName = null;
+            $scope.supportiveInputItem = null;
             var processInstanceId = null;
             $scope.assigneeName = $rootScope.authentication.name;
             var createdDate = new Date();
@@ -43,7 +43,7 @@
                 camForm.variableManager.fetchVariable('BRDData');
                 camForm.variableManager.fetchVariable('attachments');
                 camForm.variableManager.fetchVariable('supportiveInputs');
-                camForm.variableManager.fetchVariable('supportiveInputName');
+                camForm.variableManager.fetchVariable('supportiveInputItem');
             });
 
             camForm.on('variables-fetched', function () {
@@ -52,11 +52,13 @@
                 $scope.BRDData = camForm.variableManager.variableValue('BRDData');
                 $scope.attachments = camForm.variableManager.variableValue('attachments');
                 $scope.supportiveInputs = camForm.variableManager.variableValue('supportiveInputs');
-                $scope.supportiveInputName = camForm.variableManager.variableValue('supportiveInputName');
+                $scope.supportiveInputItem = camForm.variableManager.variableValue('supportiveInputItem');
+                console.log("===> ", $scope.supportiveInputItem);
                 if (!$scope.resolutions) $scope.resolutions = [];
                 if (!$scope.attachments) $scope.attachments = [];
                 if (!$scope.supportiveInputs) $scope.supportiveInputs = [];
-                var elt = $scope.supportiveInputs.find(function(e) {return e.unit == $scope.supportiveInputName});
+                var elt = $scope.supportiveInputs.find(function(e) {return e.unit == $scope.supportiveInputItem.unit});
+                console.log("===> ", $scope.supportiveInputs);
                 if (elt) $scope.currentSupportiveInput.push(elt);
 
             });
@@ -69,7 +71,7 @@
                 ]).then(function (results) {
                     if (results[0] && results[0].data) {
                         var lastSupportiveInputs = JSON.parse(results[0].data.value);
-                        var ind = lastSupportiveInputs.findIndex(function(e) {return e .unit == $scope.supportiveInputName;});
+                        var ind = lastSupportiveInputs.findIndex(function(e) {return e.unit == $scope.supportiveInputItem.unit;});
                         lastSupportiveInputs[ind].value = $scope.supportiveInputs[ind].value;
                         $scope.supportiveInputs = lastSupportiveInputs;
                     }
@@ -110,8 +112,8 @@
                     store: true
                 });
 
-                if ($scope.supportiveInputName) {
-                    var elt = $scope.supportiveInputs.find(function(e) {return e.unit == $scope.supportiveInputName});
+                if ($scope.supportiveInputItem) {
+                    var elt = $scope.supportiveInputs.find(function(e) {return e.unit == $scope.supportiveInputItem.unit});
                     if (elt) elt.inputReceived = true;
                     camForm.variableManager.destroyVariable('supportiveInputs');
                     camForm.variableManager.createVariable({
@@ -288,7 +290,7 @@
         <tab active="true">
             <tab-heading> Costs and Acceptance criteria </tab-heading>
             <div style="margin-bottom: 20px;">
-                <accordion ng-repeat="i in supportiveInputs" ng-if="i.unit == supportiveInputName">
+                <accordion ng-repeat="i in supportiveInputs" ng-if="i.unit == supportiveInputItem.unit">
                     <accordion-group is-open="true">
                         <accordion-heading>
                             Resources <i class="pull-right glyphicon" ng-class="{'glyphicon-chevron-up': status.isCustomHeaderOpen, 'glyphicon-chevron-down': !status.isCustomHeaderOpen}"></i>

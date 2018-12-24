@@ -21,9 +21,6 @@ define(['./../module'], function(module){
 
                 //TODO: position ul-list by js (so it didn't depend on overflow)
 
-              console.log("===> ", scope.fieldName, scope.isRequired);
-
-
                 scope.$watch('ngModel', function (value) {
                     scope.theModel = scope.ngModel;
                 }, true);

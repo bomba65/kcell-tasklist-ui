@@ -28,7 +28,8 @@ define(['./../module'], function(module){
 					{v: "FD"},
 					{v: "HR"},
 					{v: "LD"},
-					{v: "TD"}
+					{v: "TD"},
+					{v: "NB"}
 				];
 				scope.roumingOptions = [
 					{v: 'Almaty'},

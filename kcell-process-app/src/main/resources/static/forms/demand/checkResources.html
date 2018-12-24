@@ -18,7 +18,7 @@
                 reportsStatistics: ''
             };
             $scope.supportiveInputs = [];
-            $scope.supportiveInputName = null;
+            $scope.supportiveInputItem = null;
             var processInstanceId = null;
             $scope.assigneeName = $rootScope.authentication.name;
             $scope.assigneeId = $rootScope.authentication.name;
@@ -50,7 +50,7 @@
                 camForm.variableManager.fetchVariable('BRDData');
                 camForm.variableManager.fetchVariable('attachments');
                 camForm.variableManager.fetchVariable('supportiveInputs');
-                camForm.variableManager.fetchVariable('supportiveInputName');
+                camForm.variableManager.fetchVariable('supportiveInputItem');
                 camForm.variableManager.fetchVariable('HRList');
             });
 
@@ -60,19 +60,19 @@
                 $scope.BRDData = camForm.variableManager.variableValue('BRDData');
                 $scope.attachments = camForm.variableManager.variableValue('attachments');
                 $scope.supportiveInputs = camForm.variableManager.variableValue('supportiveInputs');
-                $scope.supportiveInputName = camForm.variableManager.variableValue('supportiveInputName');
+                $scope.supportiveInputItem = camForm.variableManager.variableValue('supportiveInputItem');
                 HRList = camForm.variableManager.variableValue('HRList');
                 if (!$scope.resolutions) $scope.resolutions = [];
                 if (!$scope.attachments) $scope.attachments = [];
                 if (!$scope.supportiveInputs) $scope.supportiveInputs = [];
                 if (!HRList) HRList = [];
-                var elt = $scope.supportiveInputs.find(function(e) {return e.unit == $scope.supportiveInputName.SUName});
+                var elt = $scope.supportiveInputs.find(function(e) {return e.unit == $scope.supportiveInputItem.unit});
                 if (elt) $scope.currentSupportiveInput.push(elt);
 
-                var ind = $scope.supportiveInputs.findIndex(function(e) {return e.unit == $scope.supportiveInputName.SUName;});
+                var ind = $scope.supportiveInputs.findIndex(function(e) {return e.unit == $scope.supportiveInputItem.unit;});
                 if (ind !== -1) {
                     for (var i = 0; i < $scope.supportiveInputs[ind].value.length; i++) {
-                        if (userGroups && $scope.supportiveInputs[ind].value[i].role && $scope.supportiveInputs[ind].value[i].role.expert.groupId == $scope.supportiveInputName.expert && userGroups.includes($scope.supportiveInputs[ind].value[i].role.expert.groupId)) {
+                        if (userGroups && $scope.supportiveInputs[ind].value[i].role && $scope.supportiveInputs[ind].value[i].role.expert.groupId == $scope.supportiveInputItem.groupId && userGroups.includes($scope.supportiveInputs[ind].value[i].role.expert.groupId)) {
                             $scope.resources.push($scope.supportiveInputs[ind].value[i]);
                         }
                     }
@@ -88,9 +88,9 @@
                 ]).then(function (results) {
                     if (results[0] && results[0].data) {
                         var lastSupportiveInputs = JSON.parse(results[0].data.value);
-                        var ind = lastSupportiveInputs.findIndex(function(e) {return e.unit == $scope.supportiveInputName.SUName;});
+                        var ind = lastSupportiveInputs.findIndex(function(e) {return e.unit == $scope.supportiveInputItem.unit;});
                         for (var i = 0; i < lastSupportiveInputs[ind].value.length; i++) {
-                            if (userGroups && lastSupportiveInputs[ind].value[i].role && lastSupportiveInputs[ind].value[i].role.expert.groupId == $scope.supportiveInputName.expert && userGroups.includes(lastSupportiveInputs[ind].value[i].role.expert.groupId)) {
+                            if (userGroups && lastSupportiveInputs[ind].value[i].role && lastSupportiveInputs[ind].value[i].role.expert.groupId == $scope.supportiveInputItem.groupId && userGroups.includes(lastSupportiveInputs[ind].value[i].role.expert.groupId)) {
                                 lastSupportiveInputs[ind].value.splice(i, 1);
                                 i--;
                             }
@@ -148,8 +148,8 @@
                     value: $scope.supportiveInputs
                 });
 
-                if ($scope.resources && $scope.resources.length && HRList.indexOf($scope.supportiveInputName.SUName) === -1) {
-                  HRList.push($scope.supportiveInputName.SUName);
+                if ($scope.resources && $scope.resources.length && HRList.indexOf($scope.supportiveInputItem.unit) === -1) {
+                  HRList.push({unit: $scope.supportiveInputItem.unit, groupId: $scope.supportiveInputItem.groupId);
                 }
 
                 camForm.variableManager.destroyVariable('HRList');

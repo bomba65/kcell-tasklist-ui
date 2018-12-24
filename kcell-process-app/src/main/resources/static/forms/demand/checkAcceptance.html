@@ -61,8 +61,6 @@
                 camForm.variableManager.fetchVariable('attachments');
                 camForm.variableManager.fetchVariable('supportiveInputs');
                 camForm.variableManager.fetchVariable('supportiveInputList');
-                camForm.variableManager.fetchVariable('CPDList');
-                camForm.variableManager.fetchVariable('HRList');
             });
 
             camForm.on('variables-fetched', function () {
@@ -76,13 +74,16 @@
                 if (!$scope.attachments) $scope.attachments = [];
                 if (!$scope.supportiveInputs) {
                     $scope.supportiveInputs = [
-                        {unit: 'Human Resources Department', form: 'HR', value: [], checked: false},
+                        {unit: 'Human Resources Department', form: 'HR', value: [], checked: false, groupId: 'Demand_Supportive_Human_Resources_Department'},
                         {unit: 'Centralized Procurement Department', form: 'CPD', value: [], checked: false},
                         {unit: 'Technology Department', form: 'TD', value: {}, checked: false}
                     ];
                 } else {
                     for (var s of $scope.supportiveInputs) {
                         if (s.checked) $scope.supportiveInputsCount++;
+                    }
+                    if ($scope.supportiveInputs.findIndex(function(e) { return e.unit === 'Technology Department'}) === -1) {
+                        $scope.supportiveInputs.push({unit: 'Technology Department', form: 'TD', value: {}, checked: false});
                     }
                 }
             });
@@ -110,24 +111,21 @@
                 if ($scope.supportiveInputs && $scope.supportiveInputs.length) {
                     for (var v of $scope.supportiveInputs) {
                         if (!v.checked) continue;
-                        if (v.unit == 'Human Resources Department') {
+                        if (v.unit === 'Human Resources Department') {
+                            supportiveInputList[v.form] = true;
+                            if (!supportiveInputList[v.form+'s']) supportiveInputList[v.form+'s'] = [];
+                            supportiveInputList[v.form+'s'].push({unit: v.unit, groupId: v.groupId});
+                        } else if (v.unit === 'Centralized Procurement Department') {
                             supportiveInputList[v.form] = true;
                             if (!supportiveInputList[v.form+'s']) supportiveInputList[v.form+'s'] = [];
                             for (var m of v.value) {
-                                if (!m.role || !m.role.needCheck || !m.role.expert || !m.role.expert.groupId || supportiveInputList[v.form+'s'].find(function(e) { return e.expert === m.role.expert.groupId; })) continue;
-                                supportiveInputList[v.form+'s'].push({SUName: v.unit, expert: m.role.expert.groupId});
+                                if (!m.purchaser || !m.purchaser.groupId || supportiveInputList[v.form+'s'].find(function(e) { return e.groupId === m.purchaser.groupId; })) continue;
+                                supportiveInputList[v.form+'s'].push({unit: v.unit, groupId: m.purchaser.groupId});
                             }
-                        } else if (v.unit == 'Centralized Procurement Department') {
+                        } else if (v.unit === 'Technology Department') {
                             supportiveInputList[v.form] = true;
                             if (!supportiveInputList[v.form+'s']) supportiveInputList[v.form+'s'] = [];
-                            for (var m of v.value) {
-                                if (!m.expert || !m.expert.groupId || supportiveInputList[v.form+'s'].find(function(e) { return e.expert === m.expert.groupId; })) continue;
-                                supportiveInputList[v.form+'s'].push({SUName: v.unit, expert: m.expert.groupId});
-                            }
-                        } else if (v.unit == 'Technology Department') {
-                            supportiveInputList[v.form] = true;
-                            if (!supportiveInputList[v.form+'s']) supportiveInputList[v.form+'s'] = [];
-                            supportiveInputList[v.form+'s'].push({SUName: v.unit, responsible: v.responsible});
+                            supportiveInputList[v.form+'s'].push({unit: v.unit, responsible: v.responsible});
                         }
                     }
                 }
@@ -152,20 +150,6 @@
                     name: 'supportiveInputList',
                     type: 'Json',
                     value: supportiveInputList
-                });
-
-                camForm.variableManager.destroyVariable('CPDList');
-                camForm.variableManager.createVariable({
-                    name: 'CPDList',
-                    type: 'Json',
-                    value: []
-                });
-
-                camForm.variableManager.destroyVariable('HRList');
-                camForm.variableManager.createVariable({
-                    name: 'HRList',
-                    type: 'Json',
-                    value: []
                 });
             });
 

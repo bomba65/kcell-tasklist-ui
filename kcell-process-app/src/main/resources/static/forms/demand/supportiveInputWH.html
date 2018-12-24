@@ -22,7 +22,7 @@
             };
             $scope.supportiveInputs = [];
             $scope.currentSupportiveInput = [];
-            $scope.supportiveInputName = null;
+            $scope.supportiveInputItem = null;
             var processInstanceId = null;
             $scope.assigneeName = $rootScope.authentication.name;
             $scope.materials = [];
@@ -48,7 +48,7 @@
                 camForm.variableManager.fetchVariable('BCData');
                 camForm.variableManager.fetchVariable('attachments');
                 camForm.variableManager.fetchVariable('supportiveInputs');
-                camForm.variableManager.fetchVariable('supportiveInputName');
+                camForm.variableManager.fetchVariable('supportiveInputItem');
             });
 
             camForm.on('variables-fetched', function () {
@@ -58,11 +58,11 @@
                 $scope.BCData = camForm.variableManager.variableValue('BCData');
                 $scope.attachments = camForm.variableManager.variableValue('attachments');
                 $scope.supportiveInputs = camForm.variableManager.variableValue('supportiveInputs');
-                $scope.supportiveInputName = camForm.variableManager.variableValue('supportiveInputName');
+                $scope.supportiveInputItem = camForm.variableManager.variableValue('supportiveInputItem');
                 if (!$scope.resolutions) $scope.resolutions = [];
                 if (!$scope.attachments) $scope.attachments = [];
                 if (!$scope.supportiveInputs) $scope.supportiveInputs = [];
-                var elt = $scope.supportiveInputs.find(function(e) {return e.unit == $scope.supportiveInputName});
+                var elt = $scope.supportiveInputs.find(function(e) {return e.unit == $scope.supportiveInputItem.unit});
                 if (elt) $scope.currentSupportiveInput.push(elt);
                 for (var i of $scope.supportiveInputs) {
                     if (i.form == 'CPD') $scope.materials = $scope.materials.concat(i.value);
@@ -113,7 +113,7 @@
                 });
 
                 var submitDate = new Date ();
-                $scope.resolutions.unshift({processInstanceId: processInstanceId, assignee: $scope.assigneeName, resolution: 'Completed', comment: $scope.comment, taskId: camForm.taskId, taskEndDate: submitDate, taskName: $scope.supportiveInputName, dateOfAssign: createdDate});
+                $scope.resolutions.unshift({processInstanceId: processInstanceId, assignee: $scope.assigneeName, resolution: 'Completed', comment: $scope.comment, taskId: camForm.taskId, taskEndDate: submitDate, taskName: $scope.supportiveInputItem.unit, dateOfAssign: createdDate});
                 camForm.variableManager.destroyVariable('resolutions');
                 camForm.variableManager.createVariable({
                     name: 'resolutions',
@@ -121,8 +121,8 @@
                     value: $scope.resolutions
                 });
 
-                if ($scope.supportiveInputName) {
-                    var elt = $scope.supportiveInputs.find(function(e) {return e.unit == $scope.supportiveInputName});
+                if ($scope.supportiveInputItem) {
+                    var elt = $scope.supportiveInputs.find(function(e) {return e.unit == $scope.supportiveInputItem.unit});
                     if (elt) elt.inputReceived = true;
                     camForm.variableManager.destroyVariable('supportiveInputs');
                     camForm.variableManager.createVariable({
@@ -216,7 +216,7 @@
         </div>
         <label style="width: 6.6%; float: left; padding-left: 15px; padding-top: 7px; font-weight: 500;"> Activity:</label>
         <div class="col-sm-5">
-            <label rows="1" class="form-control" disabled> {{supportiveInputName}} </label>
+            <label rows="1" class="form-control" disabled> {{supportiveInputItem.unit}} </label>
         </div>
     </div>
     <div class="form-group">
