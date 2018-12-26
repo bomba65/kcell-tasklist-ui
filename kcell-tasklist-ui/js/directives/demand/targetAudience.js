@@ -32,9 +32,19 @@ define(['./../module'], function(module){
 					{v: "NB"}
 				];
 				scope.roumingOptions = [
-					{v: 'Almaty'},
-					{v: 'Astana'},
-					{v: 'X3'}
+					{v:'Astana and Akmola region'},
+					{v:'Almaty and Almaty region'},
+					{v:'Taraz and Zhambyl region'},
+					{v:'Kyzylorda and Kyzylorda region'},
+					{v:'Shymkent and Turkestan region'},
+					{v:'Oskemen and East-Kazakhstan region'},
+					{v:'Kostanai and Kostanai region'},
+					{v:'Pavlodar and Pavlodar region'},
+					{v:'Petropavlovsk and North-Kazakhstan region'},
+					{v:'Aktau and Mangystau region'},
+					{v:'Aktobe and Aktobe region'},
+					{v:'Uralsk and West-Kazakhstan region'},
+					{v:'Karagandy and Karagangdy region'}
 				];
 				scope.$watch('data', function(value) {
 					if (value) {
