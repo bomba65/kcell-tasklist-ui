@@ -11,8 +11,6 @@ def getSubject(DelegateExecution execution) {
     else if (resolution == 'Cancel') resolution = 'Canceled'
     else resolution = 'Approved conditionally'
     subject += resolution + " on " + lastResolution.get("taskName").asText()
-    println("subject ======>")
-    println(subject)
     subject
 }
 

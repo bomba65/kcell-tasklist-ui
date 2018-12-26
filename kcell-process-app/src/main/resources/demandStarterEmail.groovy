@@ -10,8 +10,6 @@ def getStarterEmails(DelegateExecution execution) {
             .collect(Collectors.toSet())
 
     def result = starterEmails.stream().collect(Collectors.joining(","))
-    println("startEmails =====> ")
-    println(result)
     result
 }
 

@@ -39,6 +39,4 @@ config.setAutoIndent(true)
 def engine = new MarkupTemplateEngine(config)
 def result = engine.createTemplate(template).make(binding).toString()
 
-println(result)
-
 result
