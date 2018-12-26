@@ -24,6 +24,7 @@
                 $http.get('/camunda/api/engine/engine/default/task/' + camForm.taskId).then(
                         function(result){
                             $scope.processInstanceId = result.data.processInstanceId;
+                            //$scope.executionId = result.data.executionId;
                         },
                         function (error) {
                             console.log(error.data);
@@ -104,11 +105,6 @@
                 $http.get("/camunda/api/engine/engine/default/user/" + $rootScope.authentication.name+ "/profile").then(function(result){
                     $rootScope.authentication.assigneeName = (result.data.firstName ? result.data.firstName : "") + " " + (result.data.lastName ? result.data.lastName : "");
                 });
-                /*camForm.variableManager.createVariable({
-                    name: 'productCatalogResponse',
-                    value: undefined,
-                    type: 'Json'
-                });*/
 
                 camForm.variableManager.createVariable({
                     name: 'createApplicationToConnectionTaskResult',
@@ -377,13 +373,11 @@
                                 console.log('CREATE/UPDATE Content Provider with BIN ' + $scope.clientBIN, response.data);
                                 if(response.data){
                                     if(response.data.id){
-
                                         $scope.contentProviderId = response.data.id;
                                         $scope.contentProviderBIN = response.data.bin;
                                         $scope.productCatalogShortNumber.vasContentProvider = {id: $scope.contentProviderId};
                                         console.log('NEW Content Provider with Id ' + response.data.id + ' was created in Product Catalog');
                                         deferred.resolve('NEW Content Provider with Id ' + response.data.id + ' was created in Product Catalog');
-
                                     } else {
                                         deferred.reject('NEW Content Provider with BIN ' + $scope.clientBIN + ' was not created in Product Catalog');
                                     }
@@ -408,28 +402,25 @@
                                 console.log('CREATE productCatalogShortNumber Response', response.data);
                                 var deferred = $q.defer();
                                 if (response.data) {
-                                    if(response.data.shortNumber || response.data.shortNumberBeeline || response.data.shortNumberTele2 || response.data.shortNumberAltel){
-                                        console.log('Successfully received response from Product Catalog');
-                                        return $http.put("/camunda/api/engine/engine/default/task/"+camForm.taskId+"/variables/productCatalogResponse", {value: JSON.stringify(response.data), type: "Json"})
+                                    if (response.data.id) {
+                                        if (!$scope.shortNumberId) {
+                                            $scope.shortNumberId = response.data.id;
+                                        }
+                                        if(response.data.shortNumber || response.data.shortNumberBeeline || response.data.shortNumberTele2 || response.data.shortNumberAltel){
+                                            $scope.productCatalogResponse = response.data;
+                                            console.log('Successfully received response from Product Catalog', $scope.productCatalogResponse);
+                                            deferred.resolve('Successfully received response from Product Catalog');
+                                        } else {
+                                            console.log('Product Catalog did not respond with short number', $scope.productCatalogResponse);
+                                            deferred.reject('Product Catalog did not respond with short number');
+                                        }
                                     } else {
-                                        console.log('Product Catalog did not respond with short number');
-                                        deferred.reject('Product Catalog did not respond with short number');
+                                        console.log('Product Catalog did not respond with id');
+                                        deferred.reject('Product Catalog did not respond with id');
                                     }
                                 } else {
                                     console.log('Product Catalog response is empty');
                                     deferred.reject('Product Catalog response is empty');
-                                }
-                                return deferred.promise;
-                            }
-                        ).then(
-                            function(response){
-                                var deferred = $q.defer();
-                                if (response) {
-                                    console.log('Product Catalog Response is saved')
-                                    deferred.resolve('Product Catalog Response is saved');
-                                } else {
-                                    console.log('Product Catalog Response was not saved');
-                                    deferred.reject('Product Catalog Response was not saved');
                                 }
                                 return deferred.promise;
                             }
@@ -453,8 +444,10 @@
                     $scope.resolutions = [];
                 }
                 camForm.variableManager.variableValue('productCatalogShortNumber', $scope.productCatalogShortNumber);
-                //camForm.variableManager.variableValue('productCatalogResponse', JSON.stringify($scope.productCatalogResponse));
-
+                camForm.variableManager.variableValue('productCatalogResponse', $scope.productCatalogResponse);
+                if($scope.shortNumberId){
+                    camForm.variableManager.variableValue('shortNumberId', $scope.shortNumberId);
+                }
                 camForm.variableManager.variableValue('responsibleB2BDelivery', $scope.responsibleB2BDelivery);
                 camForm.variableManager.variableValue('responsibleB2BSales', $scope.responsibleB2BSales);
                 camForm.variableManager.variableValue('operatorType', $scope.operatorType);

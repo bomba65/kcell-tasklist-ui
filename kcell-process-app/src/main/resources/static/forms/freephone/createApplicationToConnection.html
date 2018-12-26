@@ -2,7 +2,9 @@
     <iframe id="fileDownloadIframe" style="display:none;"></iframe>
     <div class="form-check">
         <input type="checkbox" ng-model="critical" class="form-check-input" id="check1">
-        <script cam-script type="text/form-script">
+        <label class="form-check-label" for="check1">Критично</label>
+    </div>
+    <script cam-script type="text/form-script">
         inject(['$scope', '$http', 'Uri', '$rootScope', '$q', '$timeout', '$filter', function ($scope, $http, Uri, $rootScope, $q, $timeout, $filter) {
             var uuid = new Date().getTime();
             var variables = [
@@ -349,19 +351,14 @@
                             */  if($scope.shortNumberId) {
                                     $scope.productCatalogShortNumber.id = $scope.shortNumberId;
                                     console.log('UPDATE productCatalogShortNumber Request', $scope.productCatalogShortNumber);
-                                    $http.put("/camunda/product-catalog/vas_short_numbers/" + $scope.shortNumberId, $scope.productCatalogShortNumber).then(
+                                    return $http.put("/camunda/product-catalog/vas_short_numbers/" + $scope.shortNumberId, $scope.productCatalogShortNumber).then(
                                         function (response) {
                                             console.log('UPDATE productCatalogShortNumber Response', response.data);
                                             if (response.data) {
                                                 if(response.data.shortNumber || response.data.shortNumberBeeline || response.data.shortNumberTele2 || response.data.shortNumberAltel){
                                                     $scope.productCatalogResponse = response.data;
-
-                                                    $http.put("/camunda/api/engine/engine/default/task/"+camForm.taskId+"/variables/productCatalogResponse", {value: JSON.stringify($scope.productCatalogResponse), type: "Json"})
-                                                        .then(function(result) {
-                                                            console.log('UPDATED successfully short number in Product Catalog');
-                                                            deferred.resolve('UPDATED successfully short number in Product Catalog');
-                                                    });
-
+                                                    console.log('UPDATED successfully short number in Product Catalog', $scope.productCatalogResponse);
+                                                    deferred.resolve('UPDATED successfully short number in Product Catalog');
                                                 } else {
                                                     console.log('UPDATE Product Catalog did not respond with short number');
                                                     deferred.reject('UPDATE Product Catalog did not respond with short number');
@@ -380,19 +377,14 @@
                                     );
                                 } else {
                                     console.log('CREATE productCatalogShortNumber Request', $scope.productCatalogShortNumber);
-                                    $http.post("/camunda/product-catalog/vas_short_numbers", $scope.productCatalogShortNumber).then(
+                                    return $http.post("/camunda/product-catalog/vas_short_numbers", $scope.productCatalogShortNumber).then(
                                         function (response) {
                                             console.log('CREATE  productCatalogShortNumber Response', response.data);
                                             if (response.data) {
                                                 if(response.data.shortNumber || response.data.shortNumberBeeline || response.data.shortNumberTele2 || response.data.shortNumberAltel){
                                                     $scope.productCatalogResponse = response.data;
-
-                                                    $http.put("/camunda/api/engine/engine/default/task/"+camForm.taskId+"/variables/productCatalogResponse", {value: JSON.stringify($scope.productCatalogResponse), type: "Json"})
-                                                        .then(function(result) {
-                                                            console.log('CREATED successfully short number in Product Catalog');
-                                                            deferred.resolve('CREATED successfully short number in Product Catalog');
-                                                    });
-
+                                                    console.log('CREATED successfully short number in Product Catalog', $scope.productCatalogResponse);
+                                                    deferred.resolve('CREATED successfully short number in Product Catalog');
                                                 } else {
                                                     console.log('CREATE Product Catalog did not respond with short number');
                                                     deferred.reject('CREATE Product Catalog did not respond with short number');
@@ -442,7 +434,7 @@
                 camForm.variableManager.variableValue('operatorType', $scope.operatorType);
                 camForm.variableManager.variableValue('createApplicationToConnectionTaskResult', $scope.createApplicationToConnectionTaskResult);
                 camForm.variableManager.variableValue('createApplicationToConnectionTaskComment', $scope.createApplicationToConnectionTaskComment);
-                //camForm.variableManager.variableValue('productCatalogResponse', $scope.productCatalogResponse);
+                camForm.variableManager.variableValue('productCatalogResponse', $scope.productCatalogResponse);
                 camForm.variableManager.variableValue('productCatalogShortNumber', $scope.productCatalogShortNumber);
 
                 var attachedFiles = [];
@@ -698,8 +690,6 @@
         }]);
 
     </script>
-        <label class="form-check-label" for="check1">Критично</label>
-    </div>
     <div class="form-group" ng-repeat="id in identifiers" ng-if="operatorType === 'onnet' || (previouslyBought && operatorType === 'offnet')">
         <label class="control-label pull-left"/>Идентификатор - {{id.title}} - {{$index}}
         <span class="glyphicon glyphicon-remove pull-right" ng-click="deleteIdentifier($index)"></span>
