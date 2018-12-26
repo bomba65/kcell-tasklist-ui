@@ -208,22 +208,66 @@ define(['./module','camundaSDK', 'lodash', 'big-js'], function(module, CamSDK, _
 		$scope.dispayAssignField = function() {
 			$scope.assignmentInProgress = true;
 		}
-		$scope.assign = function(keyCode, userId, task) {
+
+    $scope.getUser = function(val) {
+      $scope.newAssigneeId = null;
+      var users = $http.get('/camunda/api/engine/engine/default/user?firstNameLike='+encodeURIComponent('%'+val+'%')).then(
+        function(response){
+          var usersByFirstName = _.flatMap(response.data, function(s){
+            if(s.id){
+              return s.id.split(',').map(function(user){
+                return {
+                  id: s.id,
+                  email: (s.email?s.email.substring(s.email.lastIndexOf('/')+1):s.email),
+                  firstName: s.firstName,
+                  lastName: s.lastName,
+                  name: s.firstName + ' ' + s.lastName
+                };
+              })
+            } else {
+              return [];
+            }
+          });
+
+          return $http.get('/camunda/api/engine/engine/default/user?lastNameLike='+encodeURIComponent('%'+val+'%')).then(
+            function(response){
+              var usersByLastName = _.flatMap(response.data, function(s){
+                if(s.id){
+                  return s.id.split(',').map(function(user){
+                    return {
+                      id: s.id,
+                      email: s.email.substring(s.email.lastIndexOf('/')+1),
+                      firstName: s.firstName,
+                      lastName: s.lastName,
+                      name: s.firstName + ' ' + s.lastName
+                    };
+                  })
+                } else {
+                  return [];
+                }
+              });
+              return _.unionWith(usersByFirstName, usersByLastName, _.isEqual);
+            }
+          );
+        }
+      );
+      return users;
+    };
+
+		$scope.assign = function(userId, task) {
 			$scope.assignmentInProgress = false;
-			if(keyCode === 13){
-				$http.post(baseUrl+'/task/'+task.id+'/claim', {userId: userId}).then(
-					function(){
-						$scope.tryToOpen = {};
-						$scope.$parent.getTaskList();
-						task.assigneeObject = $rootScope.authUser;
-						task.assignee = $rootScope.authentication.name;
-						init();
-					},
-					function(error){
-						console.log(error.data);
-					}
-				);
-			}
+			$http.post(baseUrl+'/task/'+task.id+'/claim', {userId: userId}).then(
+				function(){
+					$scope.tryToOpen = {};
+					$scope.$parent.getTaskList();
+					task.assigneeObject = $rootScope.authUser;
+					task.assignee = $rootScope.authentication.name;
+					init();
+				},
+				function(error){
+					console.log(error.data);
+				}
+			);
 		}
 		$scope.selectedTab = 'form';
 		$scope.selectTab = function(tab){
@@ -278,7 +322,7 @@ define(['./module','camundaSDK', 'lodash', 'big-js'], function(module, CamSDK, _
 			} else if(processDefinitionKey === 'Invoice') {
 				return $scope.hasGroup('monthly_act_managers');
 			} else if(processDefinitionKey === 'Demand') {
-                return true;
+        return $scope.hasGroup('demand_uat_users');
 			}
 		};
 	}]);
