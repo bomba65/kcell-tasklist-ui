@@ -475,7 +475,127 @@ define(['./module','jquery', 'camundaSDK'], function(app, $, CamSDK){
 					}
 				);	            
             }
-		} else {
+		} else if (processDefinitionKey === 'Demand') {
+      $scope.showDiagramView = false;
+      $scope.diagram = {};
+      if($scope.piIndex === index){
+        $scope.piIndex = undefined;
+      } else {
+        $scope.piIndex = index;
+        $scope.jobModel = {state: $scope.processInstances[index].state};
+        $http.get(baseUrl+'/process-instance?superProcessInstance='+$scope.processInstances[index].id+'&active=true').then(
+          function(result){
+            if (result.data.length > 0) {
+              $scope.currentPI[index] = result.data[0];
+              console.log($scope.currentPI)
+            } else {
+              $scope.currentPI[index] = $scope.processInstances[index];
+            }
+            $http({
+              method: 'GET',
+              headers:{'Accept':'application/hal+json, application/json; q=0.5'},
+              url: baseUrl+'/task?processInstanceId='+$scope.currentPI[index].id,
+            }).then(
+              function(tasks){
+                var processInstanceTasks = tasks.data._embedded.task;
+                if(processInstanceTasks && processInstanceTasks.length > 0){
+                  processInstanceTasks.forEach(function(e){
+                    if(e.assignee && tasks.data._embedded.assignee){
+                      for(var i=0;i<tasks.data._embedded.assignee.length;i++){
+                        if(tasks.data._embedded.assignee[i].id === e.assignee){
+                          e.assigneeObject = tasks.data._embedded.assignee[i];
+                        }
+                      }
+                    }
+                    $http({
+                      method: 'GET',
+                      headers:{'Accept':'application/hal+json, application/json; q=0.5'},
+                      url: baseUrl+'/task/'+e.id
+                    }).then(
+                      function(taskResult){
+                        if(taskResult.data._embedded && taskResult.data._embedded.group){
+                          e.group = taskResult.data._embedded.group[0].id;
+                        }
+                      },
+                      function(error){
+                        console.log(error.data);
+                      }
+                    );
+                  });
+                }
+                $http.get(baseUrl+'/history/variable-instance?deserializeValues=false&processInstanceId='+$scope.currentPI[index].id).then(
+                  function(result){
+                    var workFiles = [];
+                    result.data.forEach(function(el){
+                      $scope.jobModel[el.name] = el;
+                      if(el.type === 'File' || el.type === 'Bytes'){
+                        $scope.jobModel[el.name].contentUrl = baseUrl+'/history/variable-instance/'+el.id+'/data';
+                      }
+                      if(el.type === 'Json'){
+                        $scope.jobModel[el.name].value = JSON.parse(el.value);
+                      }
+                      if(el.name.startsWith('works_') && el.name.includes('_file_')){
+                        workFiles.push(el);
+                      }
+                    });
+                    workFiles.forEach(function(file){
+                      var workIndex = file.name.split('_')[1];
+                      if (!$scope.jobModel.jobWorks.value[workIndex].files) {
+                        $scope.jobModel.jobWorks.value[workIndex].files = [];
+                      }
+                      $scope.jobModel.jobWorks.value[workIndex].files.push(file);
+                    });
+
+                    $http.get(baseUrl+'/history/process-instance/'+$scope.currentPI[index].id).then(function(pi) {
+                      if (pi.data.startTime) $scope.jobModel.startTime = {value: new Date(pi.data.startTime)};
+                      if (pi.data.endTime) $scope.jobModel.endTime = {value: new Date(pi.data.endTime)};
+                    });
+
+                    if($scope.jobModel.resolutions && $scope.jobModel.resolutions.value){
+                      $q.all($scope.jobModel.resolutions.value.map(function (resolution) {
+                        return $http.get("/camunda/api/engine/engine/default/user/" + resolution.assignee + "/profile");
+                      })).then(function (profiles) {
+                        profiles.forEach(function (e, index) {
+                          // $scope.jobModel.resolutions[index].assigneeName = (e.data.firstName ? e.data.firstName : "") + " " + (e.data.lastName ? e.data.lastName : "");
+                          $scope.jobModel.resolutions.value[index].assigneeName = (e.data.firstName ? e.data.firstName : "") + " " + (e.data.lastName ? e.data.lastName : "");
+                        });
+                      });
+
+                      $q.all($scope.jobModel.resolutions.value.map(function (resolution) {
+                        return $http.get("/camunda/api/engine/engine/default/history/task?processInstanceId="+resolution.processInstanceId+"&taskId=" + resolution.taskId);
+                      })).then(function (tasks) {
+                        tasks.forEach(function (e, index) {
+                          if(e.data.length > 0){
+                            $scope.jobModel.resolutions.value[index].taskName = e.data[0].name;
+                            try {
+                              $scope.jobModel.resolutions.value[index].taskEndDate = new Date(e.data[0].endTime);
+                            } catch(e){
+                              console.log(e);
+                            }
+                          }
+                        });
+                      });
+                    }
+                    $scope.jobModel.tasks = processInstanceTasks;
+                    console.log("===> ", $scope.jobModel);
+                  },
+                  function(error){
+                    console.log(error.data);
+                  }
+                );
+
+              },
+              function(error){
+                console.log(error.data);
+              }
+            );
+          },
+          function(error){
+            console.log(error.data);
+          }
+        );
+      }
+    } else {
 			$scope.showDiagramView = false;
             $scope.diagram = {};
 			if($scope.piIndex === index){

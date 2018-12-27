@@ -20,5 +20,6 @@ define([
 	'./richText',
 	'./leasingDetail',
 	'./limitTo',
-	'./numbersOnly'
+	'./numbersOnly',
+	'./demandProcess'
 	], function(){});
