@@ -22,11 +22,11 @@
             $scope.supportiveInputItem = null;
             var processInstanceId = null;
             $scope.assigneeName = $rootScope.authentication.name;
-            var userGroups = [];
+            $scope.userGroups = [];
             var createdDate = new Date();
 
             $http.get("/camunda/api/engine/engine/default/group?member=" + $rootScope.authentication.name).then(function(result) {
-                if (result.data && result.data.length) userGroups = result.data.map(function (e) { return e.id; });
+                if (result.data && result.data.length) $scope.userGroups = result.data.map(function (e) { return e.id; });
             });
             $http.get("/camunda/api/engine/engine/default/user/" + $rootScope.authentication.name+ "/profile").then(function(result){
                 $scope.assigneeName = (result.data.firstName ? result.data.firstName : "") + " " + (result.data.lastName ? result.data.lastName : "");
@@ -75,7 +75,7 @@
                         var lastSupportiveInputs = JSON.parse(results[0].data.value);
                         var ind = lastSupportiveInputs.findIndex(function(e) {return e.unit == $scope.supportiveInputItem.unit;});
                         for (var i = 0; i < lastSupportiveInputs[ind].value.length; i++) {
-                            if (userGroups && lastSupportiveInputs[ind].value[i].purchaser && lastSupportiveInputs[ind].value[i].purchaser.groupId == $scope.supportiveInputItem.groupId && userGroups.includes(lastSupportiveInputs[ind].value[i].purchaser.groupId)) {
+                            if ($scope.userGroups && lastSupportiveInputs[ind].value[i].purchaser && lastSupportiveInputs[ind].value[i].purchaser.groupId == $scope.supportiveInputItem.groupId && $scope.userGroups.includes(lastSupportiveInputs[ind].value[i].purchaser.groupId)) {
                                 lastSupportiveInputs[ind].value[i].currency = $scope.supportiveInputs[ind].value[i].currency;
                                 lastSupportiveInputs[ind].value[i].pprice = $scope.supportiveInputs[ind].value[i].pprice;
                                 lastSupportiveInputs[ind].value[i].summ = $scope.supportiveInputs[ind].value[i].summ;
@@ -298,7 +298,7 @@
         <tab active="true">
             <tab-heading> Costs and Acceptance criteria </tab-heading>
             <div style="margin-bottom: 20px;">
-                <accordion ng-repeat="i in supportiveInputs" ng-if="i.unit == supportiveInputItem.unit">
+                <accordion ng-repeat="i in supportiveInputs" ng-if="i.unit == supportiveInputItem.unit && userGroups.includes(supportiveInputItem.groupId)">
                     <accordion-group is-open="true">
                         <accordion-heading>
                             Materials <i class="pull-right glyphicon" ng-class="{'glyphicon-chevron-up': status.isCustomHeaderOpen, 'glyphicon-chevron-down': !status.isCustomHeaderOpen}"></i>

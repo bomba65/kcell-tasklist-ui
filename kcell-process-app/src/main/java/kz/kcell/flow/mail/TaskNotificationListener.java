@@ -119,12 +119,12 @@ public class TaskNotificationListener implements TaskListener {
     }
 
     private static Collection<String> getAssigneeAddresses(DelegateTask delegateTask) {
-        Authentication currentAuthentication = delegateTask.getProcessEngineServices().getIdentityService().getCurrentAuthentication();
+        // Authentication currentAuthentication = delegateTask.getProcessEngineServices().getIdentityService().getCurrentAuthentication();
 
         IdentityService identityService = delegateTask.getProcessEngineServices().getIdentityService();
 
         return Stream.of(delegateTask.getAssignee())
-            .filter(userId -> currentAuthentication != null && !userId.equals(currentAuthentication.getUserId()))
+            // .filter(userId -> currentAuthentication != null && !userId.equals(currentAuthentication.getUserId()))
             .flatMap(userId -> identityService.createUserQuery().userId(userId).list().stream())
             .map(User::getEmail)
             .filter(TaskNotificationListener::validEmail)
