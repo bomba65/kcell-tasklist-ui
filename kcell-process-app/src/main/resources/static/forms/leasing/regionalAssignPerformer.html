@@ -39,6 +39,14 @@
                         }
                 );
                 $scope.leasingCandidate = {};
+                $http.get('/camunda/api/engine/engine/default/user?memberOfGroup=LeasingGroup').then(
+                        function(result){
+                            $scope.regionalPerformers = result.data;
+                        },
+                        function (error) {
+                            console.log(error.data);
+                        }
+                );
             });
 
             camForm.on('variables-fetched', function () {
@@ -57,13 +65,20 @@
                     type: 'String',
                     value: ''
                 });
+                camForm.variableManager.createVariable({
+                    name: 'regionalPerformer',
+                    type: 'String',
+                    value: ''
+                });
 
                 $scope.regionalAssignPerformerTaskResult = '';
+                $scope.regionalPerformer = '';
             });
 
             camForm.on('submit', function () {
                 camForm.variableManager.variableValue('regionalAssignPerformerTaskResult', $scope.regionalAssignPerformerTaskResult);
                 camForm.variableManager.variableValue('regionalAssignPerformerTaskComment', $scope.regionalAssignPerformerTaskComment);
+                camForm.variableManager.variableValue('regionalPerformer', $scope.regionalPerformer);
             });
 
             $scope.download = function (file) {
@@ -96,7 +111,16 @@
             </div>
         </div>
     </div>
-
+    <div class="form-group">
+        <label class="col-sm-4 control-label">Назначить ответственного исполнителя</label>
+        <div class="col-sm-8">
+            <select class="form-control" id="regionalPerformer" name="regionalPerformer"
+                    ng-model="regionalPerformer"
+                    ng-options="cp.id as cp.firstName + ' ' + cp.lastName for cp in regionalPerformers"
+                    required></select>
+                <label class="error" ng-show="kcell_form.regionalPerformer.$error.required && ( kcell_form.regionalPerformer.$touched || view.submitted)">Required field</label>
+        </div>
+    </div>
     <div class="form-group">
         <label class="col-sm-4 control-label">Comments</label>
         <div class="col-sm-8">
