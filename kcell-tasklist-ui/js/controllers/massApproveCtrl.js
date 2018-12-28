@@ -13,6 +13,118 @@ define(['./module', 'lodash', 'big-js'], function(module, _, Big){
             return fields.filter(f=>f.name === fieldToOverRide && f.override).length > 0;
         }
 
+        $scope.getString = function(val){
+            return typeof val === 'string' ? val : ( typeof val !== 'undefined' ? val.toString() : val );
+        }
+
+        $scope.initTextValue = function(val, field) {
+            var result = typeof field.value === 'undefined' ? $scope.getString(val) : $scope.getString(field.value);
+
+            /*if(["abonentTarif_amdocs_incoming", "abonentTarif_amdocs_outgoing"].indexOf(field.name) > -1){
+                console.log(result, typeof result, val, typeof val, field.value, typeof field.value);
+            }*/
+
+            if(typeof result !== 'undefined') {
+                if(field.prefixValue && result.indexOf(field.prefixValue) === -1) {
+                    result = field.prefixValue + result;
+                }
+                if(field.postfixValue && result.indexOf(field.postfixValue) === -1) {
+                    result = result + field.postfixValue;
+                }
+            }
+            return result;
+        }
+
+        $scope.tcfChangeHandler = function(tcfId, definition){
+            angular.forEach(definition.tasks, function(instance){
+                if(defKey === 'massApprove_bulkSMS_confirmAndWriteAmdocsTCF') {
+                    instance.identifierAmdocsID = tcfId;
+                } else if(defKey === 'massApprove_bulkSMS_confirmAndWriteOrgaTCF') {
+                    instance.identifierOrgaID = tcfId;
+                }
+            });
+        }
+
+        $scope.commentChangeHandler = function(commentPC, definition){
+            angular.forEach(definition.tasks, function(instance){
+                if(defKey === 'massApprove_bulkSMS_addedShortNumberForAmdocsNew') {
+                    instance.comment = commentPC;
+                } else if(defKey === 'massApprove_bulkSMS_addedShortNumberForOrgaNew') {
+                    instance.comment = commentPC;
+                }
+            });
+        }
+
+        $scope.toggleAllTasks = function(definition) {
+            // Since toggling has ONLY 2 possible states(input type = "checkbox") - checked and unchecked
+            // DO NOT USE THIS FOR RESOLUTIONS THAT HAVE MORE THAN 2 POSSIBLE VARIABLES! 
+            // Something like "APPROVE" or "REJECT" is the right way
+            // FOR CASES when resolutions have > 2 possible values USE: radio button or select option, but not for checkboxes
+            
+            definition.allTasksSelected = !definition.allTasksSelected ? true : false;
+            if(definition.configs.resolutions && definition.configs.resolutions.length>0) {
+                if(typeof definition.radioSelectedIndex === 'undefined') {
+                    definition.radioSelectedIndex = 0;
+                    definition.radioSelectedValue = definition.configs.resolutions[definition.radioSelectedIndex].variable;
+                    definition.radioSelectedText = definition.configs.resolutions[definition.radioSelectedIndex].text;
+                    angular.forEach(definition.tasks, function(instance){ 
+                        instance.resolution = definition.radioSelectedValue;
+                    });
+                } else {
+                    definition.radioSelectedIndex = undefined;
+                    definition.radioSelectedValue = undefined;
+                    definition.radioSelectedText = undefined;
+                    angular.forEach(definition.tasks, function(instance){ 
+                        instance.resolution = null;
+                    });
+                    /*
+                    // Use this part if you use something other than checkbox, which has only 2 values(checked and unchecked)
+                    if(definition.radioSelectedIndex < definition.configs.resolutions.length-1){
+                        console.log(definition.radioSelectedIndex, definition.configs.resolutions.length);
+                        definition.radioSelectedIndex++;
+                        definition.radioSelectedValue = definition.configs.resolutions[definition.radioSelectedIndex].variable;
+                        definition.radioSelectedText = definition.configs.resolutions[definition.radioSelectedIndex].text;
+                        angular.forEach(definition.tasks, function(instance){ 
+                            instance.resolution = definition.radioSelectedValue;
+                        });
+                    } else {
+                        console.log(definition.radioSelectedIndex, definition.configs.resolutions.length);
+                        definition.radioSelectedIndex = undefined;
+                        definition.radioSelectedValue = undefined;
+                        definition.radioSelectedText = undefined;
+                        angular.forEach(definition.tasks, function(instance){ 
+                            instance.resolution = null;
+                        });
+                    }
+                    */
+                }
+            }
+        }
+
+        $scope.clearResolution = function(definition, instance){
+            definition.allTasksSelected = false;
+            instance.resolution = null;
+            definition.radioSelectedIndex = undefined;
+            definition.radioSelectedValue = undefined;
+            definition.radioSelectedText = undefined;
+        }
+
+        $scope.changeResolution = function(selectedValue, definition){
+            if(definition.configs.resolutions[0].variable === selectedValue) {
+                if(definition.tasks.length === definition.tasks.filter(instance=>selectedValue === instance.resolution).length){
+                    definition.allTasksSelected = true;
+                    definition.radioSelectedIndex = 0;
+                    definition.radioSelectedValue = definition.configs.resolutions[definition.radioSelectedIndex].variable;
+                    definition.radioSelectedText = definition.configs.resolutions[definition.radioSelectedIndex].text;
+                }
+            } else {
+                definition.allTasksSelected = false;
+                definition.radioSelectedIndex = undefined;
+                definition.radioSelectedValue = undefined;
+                definition.radioSelectedText = undefined;
+            }
+        }
+
         $scope.onSelect = function(field, instance){
             if(field.name === "inAndOut") {
                 if (field.dependants && field.dependants.length>0 && $scope.taskData[instance.taskId][field.name]){
@@ -52,7 +164,8 @@ define(['./module', 'lodash', 'big-js'], function(module, _, Big){
                         name: val[0].name,
                         instances: [],
                         tasks: [],
-                        configs: {}
+                        configs: {},
+                        allTasksSelected: false
                     };
                     _.each(val, function(v) {
                         definition.instances.push({
@@ -91,6 +204,9 @@ define(['./module', 'lodash', 'big-js'], function(module, _, Big){
                 var tids = _.flatMap(response.data, function (v) { return v.id; });
                 var counter =0;
                 $scope.closeDate = new Date();
+                $scope.tcfId = "";
+                $scope.commentPC = "";
+
                 tids.forEach(function(tid) {
                     $http.get(baseUrl + "/task/" + tid + "/form-variables?deserializeValues=false").then(function (response) {
                         var procFields = [];
@@ -114,49 +230,66 @@ define(['./module', 'lodash', 'big-js'], function(module, _, Big){
                         }
                         counter++;
                         if (counter === tids.length) {
-                            //console.log($scope.definitions);
+                            /*
+                            console.log('definitions', $scope.definitions);
                             var defMap = {};
                             var noDuplicateDefs = [];
                             Object.assign(noDuplicateDefs, $scope.definitions);
-
+                            
+                            console.log('noDuplicateDefs', noDuplicateDefs.length, noDuplicateDefs);
+                            
                             for(var i=0; i<noDuplicateDefs.length; i++){
+                                console.log('i = ' + i);
                                 if (noDuplicateDefs[i]) {
+
+                                    console.log('length = ' + noDuplicateDefs.length, 'i = ' + i, noDuplicateDefs[i]);
+                                    
                                     defMap[noDuplicateDefs[i].id] = [];
+                                    
                                     for(var j=i+1; j<noDuplicateDefs.length; j++) {
-                                        if (noDuplicateDefs[j]) {
-                                            var fieldsA = JSON.parse(JSON.stringify(noDuplicateDefs[i].configs.table.fields));
-                                            var fieldsB = JSON.parse(JSON.stringify(noDuplicateDefs[j].configs.table.fields));
-                                            var headersA = noDuplicateDefs[i].configs.table.headers;
-                                            var headersB = noDuplicateDefs[j].configs.table.headers;
-                                            if( _.isEqual(fieldsA, fieldsB)
-                                                && headersA.length === headersB.length && headersA.every((value, index) => value === headersB[index])
-                                            ) {
-                                                //console.log('equal', fieldsA, fieldsB);
-                                                defMap[noDuplicateDefs[i].id].push(noDuplicateDefs[j].id);
-                                                //noDuplicateDefs.splice(j, 1);
-                                                noDuplicateDefs[j]=undefined;
-                                            } /*else {
-                                                console.log('UNEQUAL', fieldsA, fieldsB);
-                                            }*/
-                                        }
+
+                                        console.log('j = ' + j);
+
+                                        //if(noDuplicateDefs[i].configs.table.rows){
+
+                                            console.log('rows = ' + noDuplicateDefs[i].configs.table.rows.length);
+
+                                            for(var k=0; k<noDuplicateDefs[i].configs.table.rows.length; k++){
+                                                var fieldsA = JSON.parse(JSON.stringify(noDuplicateDefs[i].configs.table.rows[k].fields));
+                                                var fieldsB = JSON.parse(JSON.stringify(noDuplicateDefs[j].configs.table.rows[k].fields));
+                                                var headersA = noDuplicateDefs[i].configs.table.headers;
+                                                var headersB = noDuplicateDefs[j].configs.table.headers;
+                                                if( _.isEqual(fieldsA, fieldsB)
+                                                    && headersA.length === headersB.length && headersA.every((value, index) => value === headersB[index])
+                                                ) {
+                                                    console.log('equal', fieldsA, fieldsB);
+                                                    defMap[noDuplicateDefs[i].id].push(noDuplicateDefs[j].id);
+                                                    //noDuplicateDefs.splice(j, 1);
+                                                    noDuplicateDefs[j]=undefined;
+                                                }
+                                            }
+                                        //}                               
                                     }
                                 }
                             }
 
                             var arr = []
+
+                            console.log('defMap', defMap);
+
                             Object.keys(defMap).forEach(defId=>{
-                                //console.log(defId);
+                                console.log('defId', defId);
                                 var defObj = {}
                                 $scope.definitions.forEach(def=>{
                                     if(def.id === defId){
                                         Object.assign(defObj, def);
                                         if(defMap[defId].length>0){
-                                            //console.log('defMap[defId].length',defMap[defId].length);
+                                            console.log('defMap[defId].length',defMap[defId].length);
                                             defMap[defId].forEach(sourceDefId=>{
-                                                //console.log('sourceDefId', sourceDefId);
+                                                console.log('sourceDefId', sourceDefId);
                                                 $scope.definitions.forEach(targetDef=>{
                                                     if(sourceDefId === targetDef.id){
-                                                        //console.log('targetDef', targetDef);
+                                                        console.log('targetDef', targetDef);
                                                         defObj.tasks = defObj.tasks.concat(targetDef.tasks);
                                                         defObj.instances = defObj.instances.concat(targetDef.instances);
                                                     }
@@ -168,11 +301,11 @@ define(['./module', 'lodash', 'big-js'], function(module, _, Big){
                                 arr.push(defObj);
                             });
 
-                            //console.log('$scope.definitions', $scope.definitions);
-                            //console.log('arr', arr);
-                            //console.log('defMap', defMap);
+                            console.log('$scope.definitions', $scope.definitions);
+                            console.log('arr', arr);
+                            console.log('defMap', defMap);
                             $scope.definitions = arr;
-
+                            */
                             $scope.allVariablesAssign = true;
                         }
                     });
@@ -186,7 +319,14 @@ define(['./module', 'lodash', 'big-js'], function(module, _, Big){
             waiting = 0;
             for (var i = 0; i < $scope.definitions.length; i++) {
                 const definition = $scope.definitions[i];
-                var mandatoryFields = definition.configs.table.fields.filter(function(field){return field.notNull});
+                //var mandatoryFields = definition.configs.table.fields.filter(function(field){return field.notNull});
+                
+                var mandatoryFields = [];
+                angular.forEach(definition.configs.table.rows, function(row){
+                    //mandatoryFields.push()
+                    Object.assign(mandatoryFields, row.fields.filter(function(field){return field.notNull}));
+                });
+
                 for (var j = 0; j < definition.tasks.length; j++) {
                     const instance = $scope.definitions[i].tasks[j];
                     if (!instance.resolution) continue;
@@ -228,11 +368,22 @@ define(['./module', 'lodash', 'big-js'], function(module, _, Big){
                             type: "String"
                         };
 
+                        /*
                         definition.configs.table.fields.filter(field => !field.override && (!field.readOnly || field.save)).forEach(field=>{
                             variables[field.name] = {
                                 value: instance[field.name],
                                 type: "String"
                             };
+                        });
+                        */
+                        angular.forEach(definition.configs.table.rows, function(row){
+                            //Object.assign(variables, row.filter(function(field){return field.notNull}));
+                            row.fields.filter(field => !field.override && (!field.readOnly || field.save)).forEach(field=>{
+                                variables[field.name] = {
+                                    value: instance[field.name],
+                                    type: "String"
+                                };
+                            });
                         });
                         // Update or Insert resolutions
                         let ressName = "resolutions";
@@ -265,6 +416,7 @@ define(['./module', 'lodash', 'big-js'], function(module, _, Big){
         }
 
         $scope.massTableField =  function(instance,f){
+            //console.log(f, instance);
             if(f.indexOf(':') !== -1) {
                 var result = undefined;
                 while(f.indexOf(':') !== -1){
