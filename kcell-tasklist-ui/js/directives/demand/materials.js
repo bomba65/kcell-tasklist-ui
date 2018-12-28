@@ -87,12 +87,13 @@ define(['./../module'], function(module){
                     scope.data[index].cat2 = null;
                     scope.data[index].cat3 = null;
                     scope.data[index].purchaser = null;
-                  scope.data[index].expert = null;
+                    scope.data[index].expert = null;
                 };
 
                 scope.onCat2Change = function(index, option) {
                     scope.data[index].cat2 = option;
                     scope.data[index].cat3 = null;
+                    option = scope.options.levels[scope.data[index].cat1][option];
                     scope.data[index].purchaser = option.purchaser;
                     scope.data[index].expert = option.expert;
                     setPurchaserGroupName(index, option.purchaser);
@@ -148,1711 +149,1713 @@ define(['./../module'], function(module){
                         {v: 150, t: "150 - Продукты и услуги: Маркетинг"},
                         {v: 170, t: "170 - Продукты и услуги: корпоративные продукты и услуги"}
                     ],
-                  "cat1": [
-                    {
-                      "v": "DEVICES",
-                      "cat2": [
-                        {
-                          "v": "ACCESSORIES",
+                    "levels": {
+                      "_list": [
+                        "DEVICES",
+                        "MOBILE PHONES",
+                        "INFRASTRUCTURE & CIVIL WORKS",
+                        "POWER MATERIALS",
+                        "IT",
+                        "RAN",
+                        "PRODUCTION",
+                        "PROFESSIONAL SERVICES",
+                        "B2B PRODUCTS",
+                        "LI (COPM)",
+                        "SUPPORT",
+                        "CREATIVE",
+                        "MARKETING COMMUNICATION CHANNELS",
+                        "REAL ESTATE& FACILITY MANAGEMENT",
+                        "INSTALLATION MATERIALS",
+                        "FLEET MANAGEMENT",
+                        "LOGISTICS",
+                        "BSS",
+                        "OSS",
+                        "CORE NETWORK",
+                        "SECURITY",
+                        "TRANSPORT NETWORK",
+                        "EVENTS",
+                        "TRAVEL",
+                        "HR",
+                        "IP ROUTERS/SWITCHES",
+                        "PR",
+                        "SIM& STRATCH CARDS",
+                        "SW DEVELOPMENT",
+                        "VAS"
+                      ],
+                      "DEVICES": {
+                        "_list": [
+                          "ACCESSORIES",
+                          "AFTER SALES_DEVICES",
+                          "MOBILE DATA COLLECTORS/TERMINALS",
+                          "MOBILE ROUTERS",
+                          "MPOS TERMINALS",
+                          "SET-TO-BOX"
+                        ],
+                        "ACCESSORIES": {
+                          "_list": [],
                           "purchaser": {
                             "groupId": "demand_supportive_cpd_l2_accessories"
                           },
                           "expert": {
                             "groupId": null
-                          },
-                          "cat3": []
+                          }
                         },
-                        {
-                          "v": "AFTER SALES_DEVICES",
+                        "AFTER SALES_DEVICES": {
+                          "_list": [],
                           "purchaser": {
                             "groupId": "demand_supportive_cpd_l2_after_sales_devices"
                           },
                           "expert": {
                             "groupId": null
-                          },
-                          "cat3": []
+                          }
                         },
-                        {
-                          "v": "MOBILE DATA COLLECTORS/TERMINALS",
+                        "MOBILE DATA COLLECTORS/TERMINALS": {
+                          "_list": [],
                           "purchaser": {
                             "groupId": "demand_supportive_cpd_l2_mobile_data_collectors_terminals"
                           },
                           "expert": {
                             "groupId": null
-                          },
-                          "cat3": []
+                          }
                         },
-                        {
-                          "v": "MOBILE ROUTERS",
+                        "MOBILE ROUTERS": {
+                          "_list": [],
                           "purchaser": {
                             "groupId": "demand_supportive_cpd_l2_mobile_routers"
                           },
                           "expert": {
                             "groupId": null
-                          },
-                          "cat3": []
+                          }
                         },
-                        {
-                          "v": "MPOS TERMINALS",
+                        "MPOS TERMINALS": {
+                          "_list": [],
                           "purchaser": {
                             "groupId": "demand_supportive_cpd_l2_mpos_terminals"
                           },
                           "expert": {
                             "groupId": null
-                          },
-                          "cat3": []
+                          }
                         },
-                        {
-                          "v": "SET-TO-BOX",
+                        "SET-TO-BOX": {
+                          "_list": [],
                           "purchaser": {
                             "groupId": "demand_supportive_cpd_l2_set_to_box"
                           },
                           "expert": {
                             "groupId": null
-                          },
-                          "cat3": []
+                          }
                         }
-                      ]
-                    },
-                    {
-                      "v": "MOBILE PHONES",
-                      "cat2": [
-                        {
-                          "v": "AFTER SALES_MOBILE PHONES",
+                      },
+                      "MOBILE PHONES": {
+                        "_list": [
+                          "AFTER SALES_MOBILE PHONES",
+                          "MOBILE PHONES"
+                        ],
+                        "AFTER SALES_MOBILE PHONES": {
+                          "_list": [],
                           "purchaser": {
                             "groupId": "demand_supportive_cpd_l2_after_sales_mobile_phones"
                           },
                           "expert": {
                             "groupId": null
-                          },
-                          "cat3": []
+                          }
                         },
-                        {
-                          "v": "MOBILE PHONES",
+                        "MOBILE PHONES": {
+                          "_list": [],
                           "purchaser": {
                             "groupId": "demand_supportive_cpd_l2_mobile_phones"
                           },
                           "expert": {
                             "groupId": null
-                          },
-                          "cat3": []
+                          }
                         }
-                      ]
-                    },
-                    {
-                      "v": "INFRASTRUCTURE & CIVIL WORKS",
-                      "cat2": [
-                        {
-                          "v": "AIR CONDITIONING",
-                          "purchaser": {
-                            "groupId": "demand_supportive_cpd_l2_air_conditioning"
-                          },
-                          "expert": {
-                            "groupId": null
-                          },
-                          "cat3": [
+                      },
+                      "INFRASTRUCTURE & CIVIL WORKS": {
+                        "_list": [
+                          "AIR CONDITIONING",
+                          "ANTIVANDAL CONSTRUCTION",
+                          "CAMUFLAGE ",
+                          "CONTAINER",
+                          "FENCES",
+                          "INFRASTRUCTURE CONSTRUCTION SERVICES",
+                          "PROJECT SERVICES",
+                          "TOWER",
+                          "TOWER SERVICES"
+                        ],
+                        "AIR CONDITIONING": {
+                          "_list": [
                             "AIR CONDITIONERS",
                             "AIR CONDITIONERS SPARE PARTS",
                             "AIR CONDITIONERS CONSUMABLES - FREON",
                             "AIR CONDITIONERS TOOLS",
                             "HEATERS"
-                          ]
+                          ],
+                          "purchaser": {
+                            "groupId": "demand_supportive_cpd_l2_air_conditioning"
+                          },
+                          "expert": {
+                            "groupId": null
+                          }
                         },
-                        {
-                          "v": "ANTIVANDAL CONSTRUCTION",
+                        "ANTIVANDAL CONSTRUCTION": {
+                          "_list": [],
                           "purchaser": {
                             "groupId": "demand_supportive_cpd_l2_antivandal_construction"
                           },
                           "expert": {
                             "groupId": null
-                          },
-                          "cat3": []
+                          }
                         },
-                        {
-                          "v": "CAMUFLAGE ",
+                        "CAMUFLAGE ": {
+                          "_list": [],
                           "purchaser": {
                             "groupId": "demand_supportive_cpd_l2_camuflage"
                           },
                           "expert": {
                             "groupId": null
-                          },
-                          "cat3": []
+                          }
                         },
-                        {
-                          "v": "CONTAINER",
+                        "CONTAINER": {
+                          "_list": [],
                           "purchaser": {
                             "groupId": "demand_supportive_cpd_l2_container"
                           },
                           "expert": {
                             "groupId": null
-                          },
-                          "cat3": []
+                          }
                         },
-                        {
-                          "v": "FENCES",
+                        "FENCES": {
+                          "_list": [],
                           "purchaser": {
                             "groupId": "demand_supportive_cpd_l2_fences"
                           },
                           "expert": {
                             "groupId": null
-                          },
-                          "cat3": []
+                          }
                         },
-                        {
-                          "v": "INFRASTRUCTURE CONSTRUCTION SERVICES",
+                        "INFRASTRUCTURE CONSTRUCTION SERVICES": {
+                          "_list": [],
                           "purchaser": {
                             "groupId": "demand_supportive_cpd_l2_infrastructure_construction_services"
                           },
                           "expert": {
                             "groupId": null
-                          },
-                          "cat3": []
+                          }
                         },
-                        {
-                          "v": "PROJECT SERVICES",
+                        "PROJECT SERVICES": {
+                          "_list": [],
                           "purchaser": {
                             "groupId": "demand_supportive_cpd_l2_project_services"
                           },
                           "expert": {
                             "groupId": null
-                          },
-                          "cat3": []
+                          }
                         },
-                        {
-                          "v": "TOWER",
+                        "TOWER": {
+                          "_list": [],
                           "purchaser": {
                             "groupId": "demand_supportive_cpd_l2_tower"
                           },
                           "expert": {
                             "groupId": null
-                          },
-                          "cat3": []
+                          }
                         },
-                        {
-                          "v": "TOWER SERVICES",
+                        "TOWER SERVICES": {
+                          "_list": [
+                            "TOWER INFRASTRUCTURE SERVICES",
+                            "TOWER MATERIALS - LAMP",
+                            "TOWER MATERIALS INSTALLATION SERVICES",
+                            "EXPERTIZE SERVICES"
+                          ],
                           "purchaser": {
                             "groupId": "demand_supportive_cpd_l2_tower_services"
                           },
                           "expert": {
                             "groupId": null
-                          },
-                          "cat3": [
-                            "TOWER INFRASTRUCTURE SERVICES",
-                            "TOWER MATERIALS - LAMP",
-                            "TOWER MATERIALS INSTALLATION SERVICES",
-                            "EXPERTIZE SERVICES"
-                          ]
+                          }
                         }
-                      ]
-                    },
-                    {
-                      "v": "POWER MATERIALS",
-                      "cat2": [
-                        {
-                          "v": "ALTERNATIVE ENERGY SOURCES",
+                      },
+                      "POWER MATERIALS": {
+                        "_list": [
+                          "ALTERNATIVE ENERGY SOURCES",
+                          "BATTERIES",
+                          "CIRCUIT BREAKER",
+                          "COUNTERS",
+                          "DC POWER SYSTEM",
+                          "DC POWER SYSTEM INSTALLATION SERVICES",
+                          "DG",
+                          "DG INSTALLATION WORKS",
+                          "INVERTOR",
+                          "OTHER POWER MATERIALS (SOCKETS",
+                          "STABILISATOR",
+                          "UPS"
+                        ],
+                        "ALTERNATIVE ENERGY SOURCES": {
+                          "_list": [],
                           "purchaser": {
                             "groupId": "demand_supportive_cpd_l2_other_power_materials"
                           },
                           "expert": {
                             "groupId": null
-                          },
-                          "cat3": []
+                          }
                         },
-                        {
-                          "v": "BATTERIES",
+                        "BATTERIES": {
+                          "_list": [],
                           "purchaser": {
                             "groupId": "demand_supportive_cpd_l2_batteries"
                           },
                           "expert": {
                             "groupId": null
-                          },
-                          "cat3": []
+                          }
                         },
-                        {
-                          "v": "CIRCUIT BREAKER",
+                        "CIRCUIT BREAKER": {
+                          "_list": [],
                           "purchaser": {
                             "groupId": "demand_supportive_cpd_l2_circuit_breaker"
                           },
                           "expert": {
                             "groupId": null
-                          },
-                          "cat3": []
+                          }
                         },
-                        {
-                          "v": "COUNTERS",
+                        "COUNTERS": {
+                          "_list": [],
                           "purchaser": {
                             "groupId": "demand_supportive_cpd_l2_counters"
                           },
                           "expert": {
                             "groupId": null
-                          },
-                          "cat3": []
+                          }
                         },
-                        {
-                          "v": "DC POWER SYSTEM",
+                        "DC POWER SYSTEM": {
+                          "_list": [],
                           "purchaser": {
                             "groupId": "demand_supportive_cpd_l2_dc_power_system"
                           },
                           "expert": {
                             "groupId": null
-                          },
-                          "cat3": []
+                          }
                         },
-                        {
-                          "v": "DC POWER SYSTEM INSTALLATION SERVICES",
+                        "DC POWER SYSTEM INSTALLATION SERVICES": {
+                          "_list": [],
                           "purchaser": {
                             "groupId": "demand_supportive_cpd_l2_dc_power_system_installation_services"
                           },
                           "expert": {
                             "groupId": null
-                          },
-                          "cat3": []
+                          }
                         },
-                        {
-                          "v": "DG",
+                        "DG": {
+                          "_list": [],
                           "purchaser": {
                             "groupId": "demand_supportive_cpd_l2_dg"
                           },
                           "expert": {
                             "groupId": null
-                          },
-                          "cat3": []
+                          }
                         },
-                        {
-                          "v": "DG INSTALLATION WORKS",
+                        "DG INSTALLATION WORKS": {
+                          "_list": [],
                           "purchaser": {
                             "groupId": "demand_supportive_cpd_l2_other_power_materials"
                           },
                           "expert": {
                             "groupId": null
-                          },
-                          "cat3": []
+                          }
                         },
-                        {
-                          "v": "INVERTOR",
+                        "INVERTOR": {
+                          "_list": [],
                           "purchaser": {
                             "groupId": "demand_supportive_cpd_l2_invertor"
                           },
                           "expert": {
                             "groupId": null
-                          },
-                          "cat3": []
+                          }
                         },
-                        {
-                          "v": "OTHER POWER MATERIALS (SOCKETS",
+                        "OTHER POWER MATERIALS (SOCKETS": {
+                          "_list": [
+                            " RECLOSER"
+                          ],
                           "purchaser": {
                             "groupId": "demand_supportive_cpd_l2_other_power_materials"
                           },
                           "expert": {
                             "groupId": null
-                          },
-                          "cat3": [
-                            " RECLOSER"
-                          ]
+                          }
                         },
-                        {
-                          "v": "STABILISATOR",
+                        "STABILISATOR": {
+                          "_list": [],
                           "purchaser": {
                             "groupId": "demand_supportive_cpd_l2_stabilisator"
                           },
                           "expert": {
                             "groupId": null
-                          },
-                          "cat3": []
+                          }
                         },
-                        {
-                          "v": "UPS",
+                        "UPS": {
+                          "_list": [],
                           "purchaser": {
                             "groupId": "demand_supportive_cpd_l2_ups"
                           },
                           "expert": {
                             "groupId": null
-                          },
-                          "cat3": []
+                          }
                         }
-                      ]
-                    },
-                    {
-                      "v": "IT",
-                      "cat2": [
-                        {
-                          "v": "ANALYTICS/STATISTICS/BIG DATA",
+                      },
+                      "IT": {
+                        "_list": [
+                          "ANALYTICS/STATISTICS/BIG DATA",
+                          "DB LISENCES",
+                          "ERP",
+                          "HW",
+                          "INFORMATION SECURITY SYSTEM",
+                          "MOBILE FINACIAL SERVICES",
+                          "NFVI",
+                          "OMNI-CHANNEL (CONTACT CENTER)",
+                          "PLATFORMS",
+                          "WORKSPACE SW"
+                        ],
+                        "ANALYTICS/STATISTICS/BIG DATA": {
+                          "_list": [
+                            "BI",
+                            "NPS"
+                          ],
                           "purchaser": {
                             "groupId": "demand_supportive_cpd_l2_analytics_statistics_big_data"
                           },
                           "expert": {
                             "groupId": null
-                          },
-                          "cat3": [
-                            "BI",
-                            "NPS"
-                          ]
+                          }
                         },
-                        {
-                          "v": "DB LISENCES",
+                        "DB LISENCES": {
+                          "_list": [],
                           "purchaser": {
                             "groupId": "demand_supportive_cpd_l2_db_lisences"
                           },
                           "expert": {
                             "groupId": null
-                          },
-                          "cat3": []
+                          }
                         },
-                        {
-                          "v": "ERP",
+                        "ERP": {
+                          "_list": [],
                           "purchaser": {
                             "groupId": "demand_supportive_cpd_l2_erp"
                           },
                           "expert": {
                             "groupId": null
-                          },
-                          "cat3": []
+                          }
                         },
-                        {
-                          "v": "HW",
+                        "HW": {
+                          "_list": [
+                            "Workspace",
+                            "Servers",
+                            "Storages"
+                          ],
                           "purchaser": {
                             "groupId": "demand_supportive_cpd_l2_hw"
                           },
                           "expert": {
                             "groupId": null
-                          },
-                          "cat3": [
-                            "Workspace",
-                            "Servers",
-                            "Storages"
-                          ]
+                          }
                         },
-                        {
-                          "v": "INFORMATION SECURITY SYSTEM",
+                        "INFORMATION SECURITY SYSTEM": {
+                          "_list": [],
                           "purchaser": {
                             "groupId": "demand_supportive_cpd_l2_information_security_system"
                           },
                           "expert": {
                             "groupId": null
-                          },
-                          "cat3": []
+                          }
                         },
-                        {
-                          "v": "MOBILE FINACIAL SERVICES",
+                        "MOBILE FINACIAL SERVICES": {
+                          "_list": [],
                           "purchaser": {
                             "groupId": "demand_supportive_cpd_l2_mobile_finacial_services"
                           },
                           "expert": {
                             "groupId": null
-                          },
-                          "cat3": []
+                          }
                         },
-                        {
-                          "v": "NFVI",
+                        "NFVI": {
+                          "_list": [
+                            "Virtualization layer",
+                            "SDN"
+                          ],
                           "purchaser": {
                             "groupId": "demand_supportive_cpd_l2_nfvi"
                           },
                           "expert": {
                             "groupId": null
-                          },
-                          "cat3": [
-                            "Virtualization layer",
-                            "SDN"
-                          ]
+                          }
                         },
-                        {
-                          "v": "OMNI-CHANNEL (CONTACT CENTER)",
+                        "OMNI-CHANNEL (CONTACT CENTER)": {
+                          "_list": [
+                            "IVR",
+                            "CHATBOT"
+                          ],
                           "purchaser": {
                             "groupId": "demand_supportive_cpd_l2_omni_channel"
                           },
                           "expert": {
                             "groupId": null
-                          },
-                          "cat3": [
-                            "IVR",
-                            "CHATBOT"
-                          ]
+                          }
                         },
-                        {
-                          "v": "PLATFORMS",
+                        "PLATFORMS": {
+                          "_list": [],
                           "purchaser": {
                             "groupId": "demand_supportive_cpd_l2_platforms"
                           },
                           "expert": {
                             "groupId": null
-                          },
-                          "cat3": []
+                          }
                         },
-                        {
-                          "v": "WORKSPACE SW",
+                        "WORKSPACE SW": {
+                          "_list": [],
                           "purchaser": {
                             "groupId": "demand_supportive_cpd_l2_workspace_sw"
                           },
                           "expert": {
                             "groupId": null
-                          },
-                          "cat3": []
+                          }
                         }
-                      ]
-                    },
-                    {
-                      "v": "RAN",
-                      "cat2": [
-                        {
-                          "v": "ANTENNAS",
+                      },
+                      "RAN": {
+                        "_list": [
+                          "ANTENNAS",
+                          "BSC/RNC HW",
+                          "BSC/RNC SW (capacity licence",
+                          "NETWORK MEASUREMENT",
+                          "NETWORK PLANNING ",
+                          "OPTIMIZATION SERVICES",
+                          "RBS HW",
+                          "RBS INSTAL MAT FROM VENDOR",
+                          "RBS SPARE PARTS",
+                          "RBS SW",
+                          "ROLLOUT SERVICES"
+                        ],
+                        "ANTENNAS": {
+                          "_list": [
+                            "ANTENNAS COMPONENTS - SPLITTER",
+                            "CABLE & ACCESSORIES",
+                            "CONNECTORS",
+                            "FEEDER"
+                          ],
                           "purchaser": {
                             "groupId": "demand_supportive_cpd_l2_antennas"
                           },
                           "expert": {
                             "groupId": null
-                          },
-                          "cat3": [
-                            "ANTENNAS COMPONENTS - SPLITTER",
-                            "CABLE & ACCESSORIES",
-                            "CONNECTORS",
-                            "FEEDER"
-                          ]
+                          }
                         },
-                        {
-                          "v": "BSC/RNC HW",
+                        "BSC/RNC HW": {
+                          "_list": [],
                           "purchaser": {
                             "groupId": "demand_supportive_cpd_l2_bsc_rnc_hw"
                           },
                           "expert": {
                             "groupId": null
-                          },
-                          "cat3": []
+                          }
                         },
-                        {
-                          "v": "BSC/RNC SW (capacity licence",
+                        "BSC/RNC SW (capacity licence": {
+                          "_list": [
+                            " features"
+                          ],
                           "purchaser": {
                             "groupId": "demand_supportive_cpd_l2_bsc_rnc_sw"
                           },
                           "expert": {
                             "groupId": null
-                          },
-                          "cat3": [
-                            " features"
-                          ]
+                          }
                         },
-                        {
-                          "v": "NETWORK MEASUREMENT",
-                          "purchaser": {
-                            "groupId": "demand_supportive_cpd_l2_network_measurement"
-                          },
-                          "expert": {
-                            "groupId": null
-                          },
-                          "cat3": [
+                        "NETWORK MEASUREMENT": {
+                          "_list": [
                             "INSTALLATION&IMPLEMENTATION SERVICES",
                             "MEASUREMENT HW",
                             "MEASUREMENT TOOL HW&SW&LISENCES - DRIVE TESTS",
                             "MEASUREMENT TOOL UPGRADE - DRIVE TESTS",
                             "OTHER MEASUREMENT TOOLS"
-                          ]
+                          ],
+                          "purchaser": {
+                            "groupId": "demand_supportive_cpd_l2_network_measurement"
+                          },
+                          "expert": {
+                            "groupId": null
+                          }
                         },
-                        {
-                          "v": "NETWORK PLANNING ",
+                        "NETWORK PLANNING ": {
+                          "_list": [
+                            "DIGITAL MAPS",
+                            "INSTALLATION&IMPLEMENTATION SERVICES",
+                            "PLANNING TOOL HW&SW&LISENCES",
+                            "PLANNING TOOL UPGRADE"
+                          ],
                           "purchaser": {
                             "groupId": "demand_supportive_cpd_l2_network_planning"
                           },
                           "expert": {
                             "groupId": null
-                          },
-                          "cat3": [
-                            "DIGITAL MAPS",
-                            "INSTALLATION&IMPLEMENTATION SERVICES",
-                            "PLANNING TOOL HW&SW&LISENCES",
-                            "PLANNING TOOL UPGRADE"
-                          ]
+                          }
                         },
-                        {
-                          "v": "OPTIMIZATION SERVICES",
+                        "OPTIMIZATION SERVICES": {
+                          "_list": [],
                           "purchaser": {
                             "groupId": "demand_supportive_cpd_l2_optimization_services"
                           },
                           "expert": {
                             "groupId": null
-                          },
-                          "cat3": []
+                          }
                         },
-                        {
-                          "v": "RBS HW",
+                        "RBS HW": {
+                          "_list": [],
                           "purchaser": {
                             "groupId": "demand_supportive_cpd_l2_rbs_hw"
                           },
                           "expert": {
                             "groupId": null
-                          },
-                          "cat3": []
+                          }
                         },
-                        {
-                          "v": "RBS INSTAL MAT FROM VENDOR",
+                        "RBS INSTAL MAT FROM VENDOR": {
+                          "_list": [],
                           "purchaser": {
                             "groupId": "demand_supportive_cpd_l2_rbs_instal_mat_from_vendor"
                           },
                           "expert": {
                             "groupId": null
-                          },
-                          "cat3": []
+                          }
                         },
-                        {
-                          "v": "RBS SPARE PARTS",
+                        "RBS SPARE PARTS": {
+                          "_list": [],
                           "purchaser": {
                             "groupId": "demand_supportive_cpd_l2_rbs_spare_parts"
                           },
                           "expert": {
                             "groupId": null
-                          },
-                          "cat3": []
+                          }
                         },
-                        {
-                          "v": "RBS SW",
+                        "RBS SW": {
+                          "_list": [],
                           "purchaser": {
                             "groupId": "demand_supportive_cpd_l2_rbs_sw"
                           },
                           "expert": {
                             "groupId": null
-                          },
-                          "cat3": []
+                          }
                         },
-                        {
-                          "v": "ROLLOUT SERVICES",
+                        "ROLLOUT SERVICES": {
+                          "_list": [
+                            "REVISION",
+                            "ROLLOUT",
+                            "BSC/RNC"
+                          ],
                           "purchaser": {
                             "groupId": "demand_supportive_cpd_l2_rollout_services"
                           },
                           "expert": {
                             "groupId": null
-                          },
-                          "cat3": [
-                            "REVISION",
-                            "ROLLOUT",
-                            "BSC/RNC"
-                          ]
+                          }
                         }
-                      ]
-                    },
-                    {
-                      "v": "PRODUCTION",
-                      "cat2": [
-                        {
-                          "v": "Audio record",
+                      },
+                      "PRODUCTION": {
+                        "_list": [
+                          "Audio record",
+                          "Branding",
+                          "Commercial Print",
+                          "Marketing production",
+                          "Photo Video production",
+                          "Souvenirs"
+                        ],
+                        "Audio record": {
+                          "_list": [],
                           "purchaser": {
                             "groupId": "demand_supportive_cpd_l2_audio_record"
                           },
                           "expert": {
                             "groupId": null
-                          },
-                          "cat3": []
+                          }
                         },
-                        {
-                          "v": "Branding",
+                        "Branding": {
+                          "_list": [],
                           "purchaser": {
                             "groupId": "demand_supportive_cpd_l2_branding"
                           },
                           "expert": {
                             "groupId": null
-                          },
-                          "cat3": []
+                          }
                         },
-                        {
-                          "v": "Commercial Print",
+                        "Commercial Print": {
+                          "_list": [],
                           "purchaser": {
                             "groupId": "demand_supportive_cpd_l2_commercial_print"
                           },
                           "expert": {
                             "groupId": null
-                          },
-                          "cat3": []
+                          }
                         },
-                        {
-                          "v": "Marketing production",
+                        "Marketing production": {
+                          "_list": [],
                           "purchaser": {
                             "groupId": "demand_supportive_cpd_l2_marketing_production"
                           },
                           "expert": {
                             "groupId": null
-                          },
-                          "cat3": []
+                          }
                         },
-                        {
-                          "v": "Photo Video production",
+                        "Photo Video production": {
+                          "_list": [],
                           "purchaser": {
                             "groupId": "demand_supportive_cpd_l2_photo_video_production"
                           },
                           "expert": {
                             "groupId": null
-                          },
-                          "cat3": []
+                          }
                         },
-                        {
-                          "v": "Souvenirs",
+                        "Souvenirs": {
+                          "_list": [],
                           "purchaser": {
                             "groupId": "demand_supportive_cpd_l2_souvenirs"
                           },
                           "expert": {
                             "groupId": null
-                          },
-                          "cat3": []
+                          }
                         }
-                      ]
-                    },
-                    {
-                      "v": "PROFESSIONAL SERVICES",
-                      "cat2": [
-                        {
-                          "v": "AUDIT",
+                      },
+                      "PROFESSIONAL SERVICES": {
+                        "_list": [
+                          "AUDIT",
+                          "CONSULTANCY",
+                          "FINANCIAL SERVICES",
+                          "Insurances",
+                          "Research",
+                          "Stardardization & certification",
+                          "TESTING SERVICES_OTHER"
+                        ],
+                        "AUDIT": {
+                          "_list": [],
                           "purchaser": {
                             "groupId": "demand_supportive_cpd_l2_audit"
                           },
                           "expert": {
                             "groupId": null
-                          },
-                          "cat3": []
+                          }
                         },
-                        {
-                          "v": "CONSULTANCY",
+                        "CONSULTANCY": {
+                          "_list": [],
                           "purchaser": {
                             "groupId": "demand_supportive_cpd_l2_consultancy"
                           },
                           "expert": {
                             "groupId": null
-                          },
-                          "cat3": []
+                          }
                         },
-                        {
-                          "v": "FINANCIAL SERVICES",
+                        "FINANCIAL SERVICES": {
+                          "_list": [],
                           "purchaser": {
                             "groupId": "demand_supportive_cpd_l2_financial_services"
                           },
                           "expert": {
                             "groupId": null
-                          },
-                          "cat3": []
+                          }
                         },
-                        {
-                          "v": "Insurances",
+                        "Insurances": {
+                          "_list": [],
                           "purchaser": {
                             "groupId": "demand_supportive_cpd_l2_insurances"
                           },
                           "expert": {
                             "groupId": null
-                          },
-                          "cat3": []
+                          }
                         },
-                        {
-                          "v": "Research",
+                        "Research": {
+                          "_list": [],
                           "purchaser": {
                             "groupId": "demand_supportive_cpd_l2_research"
                           },
                           "expert": {
                             "groupId": null
-                          },
-                          "cat3": []
+                          }
                         },
-                        {
-                          "v": "Stardardization & certification",
+                        "Stardardization & certification": {
+                          "_list": [],
                           "purchaser": {
                             "groupId": "demand_supportive_cpd_l2_stardardization_certification"
                           },
                           "expert": {
                             "groupId": null
-                          },
-                          "cat3": []
+                          }
                         },
-                        {
-                          "v": "TESTING SERVICES_OTHER",
+                        "TESTING SERVICES_OTHER": {
+                          "_list": [],
                           "purchaser": {
                             "groupId": "demand_supportive_cpd_l2_testing_services_other"
                           },
                           "expert": {
                             "groupId": null
-                          },
-                          "cat3": []
+                          }
                         }
-                      ]
-                    },
-                    {
-                      "v": "B2B PRODUCTS",
-                      "cat2": [
-                        {
-                          "v": "AUTOMONITORING",
+                      },
+                      "B2B PRODUCTS": {
+                        "_list": [
+                          "AUTOMONITORING",
+                          "B2B products - COGS"
+                        ],
+                        "AUTOMONITORING": {
+                          "_list": [],
                           "purchaser": {
                             "groupId": "demand_supportive_cpd_l2_automonitoring"
                           },
                           "expert": {
                             "groupId": null
-                          },
-                          "cat3": []
+                          }
                         },
-                        {
-                          "v": "B2B products - COGS",
+                        "B2B products - COGS": {
+                          "_list": [],
                           "purchaser": {
                             "groupId": "demand_supportive_cpd_l2_b2b_products_cogs"
                           },
                           "expert": {
                             "groupId": null
-                          },
-                          "cat3": []
+                          }
                         }
-                      ]
-                    },
-                    {
-                      "v": "LI (COPM)",
-                      "cat2": [
-                        {
-                          "v": "BILLING",
+                      },
+                      "LI (COPM)": {
+                        "_list": [
+                          "BILLING",
+                          "DATA",
+                          "SMS",
+                          "VOICE"
+                        ],
+                        "BILLING": {
+                          "_list": [],
                           "purchaser": {
                             "groupId": "demand_supportive_cpd_l2_billing"
                           },
                           "expert": {
                             "groupId": null
-                          },
-                          "cat3": []
+                          }
                         },
-                        {
-                          "v": "DATA",
+                        "DATA": {
+                          "_list": [],
                           "purchaser": {
                             "groupId": "demand_supportive_cpd_l2_data"
                           },
                           "expert": {
                             "groupId": null
-                          },
-                          "cat3": []
+                          }
                         },
-                        {
-                          "v": "SMS",
+                        "SMS": {
+                          "_list": [],
                           "purchaser": {
                             "groupId": "demand_supportive_cpd_l2_sms"
                           },
                           "expert": {
                             "groupId": null
-                          },
-                          "cat3": []
+                          }
                         },
-                        {
-                          "v": "VOICE",
+                        "VOICE": {
+                          "_list": [],
                           "purchaser": {
                             "groupId": "demand_supportive_cpd_l2_voice"
                           },
                           "expert": {
                             "groupId": null
-                          },
-                          "cat3": []
+                          }
                         }
-                      ]
-                    },
-                    {
-                      "v": "SUPPORT",
-                      "cat2": [
-                        {
-                          "v": "BILLING",
+                      },
+                      "SUPPORT": {
+                        "_list": [
+                          "BILLING",
+                          "CORE_SUPPORT",
+                          "FIELD ",
+                          "IT_SUPPORT",
+                          "LI (SORM)",
+                          "OSS",
+                          "RAN",
+                          "SECURITY",
+                          "TR",
+                          "VAS"
+                        ],
+                        "BILLING": {
+                          "_list": [],
                           "purchaser": {
                             "groupId": "demand_supportive_cpd_l2_billing_support"
                           },
                           "expert": {
                             "groupId": null
-                          },
-                          "cat3": []
+                          }
                         },
-                        {
-                          "v": "CORE_SUPPORT",
+                        "CORE_SUPPORT": {
+                          "_list": [],
                           "purchaser": {
                             "groupId": "demand_supportive_cpd_l2_core_support"
                           },
                           "expert": {
                             "groupId": null
-                          },
-                          "cat3": []
+                          }
                         },
-                        {
-                          "v": "FIELD ",
+                        "FIELD ": {
+                          "_list": [],
                           "purchaser": {
                             "groupId": "demand_supportive_cpd_l2_field_support"
                           },
                           "expert": {
                             "groupId": null
-                          },
-                          "cat3": []
+                          }
                         },
-                        {
-                          "v": "IT_SUPPORT",
+                        "IT_SUPPORT": {
+                          "_list": [],
                           "purchaser": {
                             "groupId": "demand_supportive_cpd_l2_it_support"
                           },
                           "expert": {
                             "groupId": null
-                          },
-                          "cat3": []
+                          }
                         },
-                        {
-                          "v": "LI (SORM)",
+                        "LI (SORM)": {
+                          "_list": [],
                           "purchaser": {
                             "groupId": "demand_supportive_cpd_l2_li_sorm_support"
                           },
                           "expert": {
                             "groupId": null
-                          },
-                          "cat3": []
+                          }
                         },
-                        {
-                          "v": "OSS",
+                        "OSS": {
+                          "_list": [],
                           "purchaser": {
                             "groupId": "demand_supportive_cpd_l2_oss_support"
                           },
                           "expert": {
                             "groupId": null
-                          },
-                          "cat3": []
+                          }
                         },
-                        {
-                          "v": "RAN",
+                        "RAN": {
+                          "_list": [],
                           "purchaser": {
                             "groupId": "demand_supportive_cpd_l2_ran_support"
                           },
                           "expert": {
                             "groupId": null
-                          },
-                          "cat3": []
+                          }
                         },
-                        {
-                          "v": "SECURITY",
+                        "SECURITY": {
+                          "_list": [],
                           "purchaser": {
                             "groupId": "demand_supportive_cpd_l2_securitys_support"
                           },
                           "expert": {
                             "groupId": null
-                          },
-                          "cat3": []
+                          }
                         },
-                        {
-                          "v": "TR",
+                        "TR": {
+                          "_list": [],
                           "purchaser": {
                             "groupId": "demand_supportive_cpd_l2_tr_support"
                           },
                           "expert": {
                             "groupId": null
-                          },
-                          "cat3": []
+                          }
                         },
-                        {
-                          "v": "VAS",
+                        "VAS": {
+                          "_list": [],
                           "purchaser": {
                             "groupId": "demand_supportive_cpd_l2_vas_support"
                           },
                           "expert": {
                             "groupId": null
-                          },
-                          "cat3": []
+                          }
                         }
-                      ]
-                    },
-                    {
-                      "v": "CREATIVE",
-                      "cat2": [
-                        {
-                          "v": "Brand and product creative service",
+                      },
+                      "CREATIVE": {
+                        "_list": [
+                          "Brand and product creative service",
+                          "Web/Digital creative"
+                        ],
+                        "Brand and product creative service": {
+                          "_list": [],
                           "purchaser": {
                             "groupId": "demand_supportive_cpd_l2_brand_and_product_creative_service"
                           },
                           "expert": {
                             "groupId": null
-                          },
-                          "cat3": []
+                          }
                         },
-                        {
-                          "v": "Web/Digital creative",
+                        "Web/Digital creative": {
+                          "_list": [],
                           "purchaser": {
                             "groupId": "demand_supportive_cpd_l2_web_digital_creative"
                           },
                           "expert": {
                             "groupId": null
-                          },
-                          "cat3": []
+                          }
                         }
-                      ]
-                    },
-                    {
-                      "v": "MARKETING COMMUNICATION CHANNELS",
-                      "cat2": [
-                        {
-                          "v": "BTL",
+                      },
+                      "MARKETING COMMUNICATION CHANNELS": {
+                        "_list": [
+                          "BTL",
+                          "Digital",
+                          "direct mail",
+                          "Newspapers/Magazines",
+                          "OOH",
+                          "Radio",
+                          "TV"
+                        ],
+                        "BTL": {
+                          "_list": [],
                           "purchaser": {
                             "groupId": "demand_supportive_cpd_l2_btl"
                           },
                           "expert": {
                             "groupId": null
-                          },
-                          "cat3": []
+                          }
                         },
-                        {
-                          "v": "Digital",
+                        "Digital": {
+                          "_list": [],
                           "purchaser": {
                             "groupId": "demand_supportive_cpd_l2_digital"
                           },
                           "expert": {
                             "groupId": null
-                          },
-                          "cat3": []
+                          }
                         },
-                        {
-                          "v": "direct mail",
+                        "direct mail": {
+                          "_list": [],
                           "purchaser": {
                             "groupId": "demand_supportive_cpd_l2_direct_mail"
                           },
                           "expert": {
                             "groupId": null
-                          },
-                          "cat3": []
+                          }
                         },
-                        {
-                          "v": "Newspapers/Magazines",
+                        "Newspapers/Magazines": {
+                          "_list": [],
                           "purchaser": {
                             "groupId": "demand_supportive_cpd_l2_newspapers_magazines"
                           },
                           "expert": {
                             "groupId": null
-                          },
-                          "cat3": []
+                          }
                         },
-                        {
-                          "v": "OOH",
+                        "OOH": {
+                          "_list": [],
                           "purchaser": {
                             "groupId": "demand_supportive_cpd_l2_ooh"
                           },
                           "expert": {
                             "groupId": null
-                          },
-                          "cat3": []
+                          }
                         },
-                        {
-                          "v": "Radio",
+                        "Radio": {
+                          "_list": [],
                           "purchaser": {
                             "groupId": "demand_supportive_cpd_l2_radio"
                           },
                           "expert": {
                             "groupId": null
-                          },
-                          "cat3": []
+                          }
                         },
-                        {
-                          "v": "TV",
+                        "TV": {
+                          "_list": [],
                           "purchaser": {
                             "groupId": "demand_supportive_cpd_l2_tv"
                           },
                           "expert": {
                             "groupId": null
-                          },
-                          "cat3": []
+                          }
                         }
-                      ]
-                    },
-                    {
-                      "v": "REAL ESTATE& FACILITY MANAGEMENT",
-                      "cat2": [
-                        {
-                          "v": "Building maintenance",
+                      },
+                      "REAL ESTATE& FACILITY MANAGEMENT": {
+                        "_list": [
+                          "Building maintenance",
+                          "Construction & repair",
+                          "Furniture",
+                          "Office supply",
+                          "Shop supply",
+                          "Stationary"
+                        ],
+                        "Building maintenance": {
+                          "_list": [],
                           "purchaser": {
                             "groupId": "demand_supportive_cpd_l2_building_maintenance"
                           },
                           "expert": {
                             "groupId": null
-                          },
-                          "cat3": []
+                          }
                         },
-                        {
-                          "v": "Construction & repair",
+                        "Construction & repair": {
+                          "_list": [],
                           "purchaser": {
                             "groupId": "demand_supportive_cpd_l2_construction_repair"
                           },
                           "expert": {
                             "groupId": null
-                          },
-                          "cat3": []
+                          }
                         },
-                        {
-                          "v": "Furniture",
+                        "Furniture": {
+                          "_list": [],
                           "purchaser": {
                             "groupId": "demand_supportive_cpd_l2_furniture"
                           },
                           "expert": {
                             "groupId": null
-                          },
-                          "cat3": []
+                          }
                         },
-                        {
-                          "v": "Office supply",
+                        "Office supply": {
+                          "_list": [],
                           "purchaser": {
                             "groupId": "demand_supportive_cpd_l2_office_supply"
                           },
                           "expert": {
                             "groupId": null
-                          },
-                          "cat3": []
+                          }
                         },
-                        {
-                          "v": "Shop supply",
+                        "Shop supply": {
+                          "_list": [],
                           "purchaser": {
                             "groupId": "demand_supportive_cpd_l2_shop_supply"
                           },
                           "expert": {
                             "groupId": null
-                          },
-                          "cat3": []
+                          }
                         },
-                        {
-                          "v": "Stationary",
+                        "Stationary": {
+                          "_list": [],
                           "purchaser": {
                             "groupId": "demand_supportive_cpd_l2_stationary"
                           },
                           "expert": {
                             "groupId": null
-                          },
-                          "cat3": []
+                          }
                         }
-                      ]
-                    },
-                    {
-                      "v": "INSTALLATION MATERIALS",
-                      "cat2": [
-                        {
-                          "v": "CABLE MATERIALS",
+                      },
+                      "INSTALLATION MATERIALS": {
+                        "_list": [
+                          "CABLE MATERIALS",
+                          "FEATURED INSTALLATION MATERIALS",
+                          "FIXING MATERIALS",
+                          "HOSE & ACCESSORIES",
+                          "ISOLATION MATERIALS",
+                          "LADDERS",
+                          "LOCKS",
+                          "PIPES",
+                          "SENSORS",
+                          "TOOLS FOR CIVIL WORKS"
+                        ],
+                        "CABLE MATERIALS": {
+                          "_list": [
+                            "CABLE",
+                            "CABLE LUG",
+                            "CABLE TIE&STRIP"
+                          ],
                           "purchaser": {
                             "groupId": "demand_supportive_cpd_l2_cable_materials"
                           },
                           "expert": {
                             "groupId": null
-                          },
-                          "cat3": [
-                            "CABLE",
-                            "CABLE LUG",
-                            "CABLE TIE&STRIP"
-                          ]
+                          }
                         },
-                        {
-                          "v": "FEATURED INSTALLATION MATERIALS",
+                        "FEATURED INSTALLATION MATERIALS": {
+                          "_list": [],
                           "purchaser": {
                             "groupId": "demand_supportive_cpd_l2_featured_installation_materials"
                           },
                           "expert": {
                             "groupId": null
-                          },
-                          "cat3": []
+                          }
                         },
-                        {
-                          "v": "FIXING MATERIALS",
+                        "FIXING MATERIALS": {
+                          "_list": [],
                           "purchaser": {
                             "groupId": "demand_supportive_cpd_l2_fixing_materials"
                           },
                           "expert": {
                             "groupId": null
-                          },
-                          "cat3": []
+                          }
                         },
-                        {
-                          "v": "HOSE & ACCESSORIES",
+                        "HOSE & ACCESSORIES": {
+                          "_list": [],
                           "purchaser": {
                             "groupId": "demand_supportive_cpd_l2_hose_accessories"
                           },
                           "expert": {
                             "groupId": null
-                          },
-                          "cat3": []
+                          }
                         },
-                        {
-                          "v": "ISOLATION MATERIALS",
+                        "ISOLATION MATERIALS": {
+                          "_list": [],
                           "purchaser": {
                             "groupId": "demand_supportive_cpd_l2_isolation_materials"
                           },
                           "expert": {
                             "groupId": null
-                          },
-                          "cat3": []
+                          }
                         },
-                        {
-                          "v": "LADDERS",
+                        "LADDERS": {
+                          "_list": [],
                           "purchaser": {
                             "groupId": "demand_supportive_cpd_l2_ladders"
                           },
                           "expert": {
                             "groupId": null
-                          },
-                          "cat3": []
+                          }
                         },
-                        {
-                          "v": "LOCKS",
+                        "LOCKS": {
+                          "_list": [],
                           "purchaser": {
                             "groupId": "demand_supportive_cpd_l2_locks"
                           },
                           "expert": {
                             "groupId": null
-                          },
-                          "cat3": []
+                          }
                         },
-                        {
-                          "v": "PIPES",
+                        "PIPES": {
+                          "_list": [],
                           "purchaser": {
                             "groupId": "demand_supportive_cpd_l2_pipes"
                           },
                           "expert": {
                             "groupId": null
-                          },
-                          "cat3": []
+                          }
                         },
-                        {
-                          "v": "SENSORS",
+                        "SENSORS": {
+                          "_list": [],
                           "purchaser": {
                             "groupId": "demand_supportive_cpd_l2_sensors"
                           },
                           "expert": {
                             "groupId": null
-                          },
-                          "cat3": []
+                          }
                         },
-                        {
-                          "v": "TOOLS FOR CIVIL WORKS",
+                        "TOOLS FOR CIVIL WORKS": {
+                          "_list": [],
                           "purchaser": {
                             "groupId": "demand_supportive_cpd_l2_tools_for_civil_works"
                           },
                           "expert": {
                             "groupId": null
-                          },
-                          "cat3": []
+                          }
                         }
-                      ]
-                    },
-                    {
-                      "v": "FLEET MANAGEMENT",
-                      "cat2": [
-                        {
-                          "v": "Car maitenance",
+                      },
+                      "FLEET MANAGEMENT": {
+                        "_list": [
+                          "Car maitenance",
+                          "Cars",
+                          "Spare parts"
+                        ],
+                        "Car maitenance": {
+                          "_list": [],
                           "purchaser": {
                             "groupId": "demand_supportive_cpd_l2_car_maitenance"
                           },
                           "expert": {
                             "groupId": null
-                          },
-                          "cat3": []
+                          }
                         },
-                        {
-                          "v": "Cars",
+                        "Cars": {
+                          "_list": [],
                           "purchaser": {
                             "groupId": "demand_supportive_cpd_l2_cars"
                           },
                           "expert": {
                             "groupId": null
-                          },
-                          "cat3": []
+                          }
                         },
-                        {
-                          "v": "Spare parts",
+                        "Spare parts": {
+                          "_list": [],
                           "purchaser": {
                             "groupId": "demand_supportive_cpd_l2_spare_parts"
                           },
                           "expert": {
                             "groupId": null
-                          },
-                          "cat3": []
+                          }
                         }
-                      ]
-                    },
-                    {
-                      "v": "LOGISTICS",
-                      "cat2": [
-                        {
-                          "v": "Courier services",
+                      },
+                      "LOGISTICS": {
+                        "_list": [
+                          "Courier services",
+                          "Logistic services",
+                          "Transportation",
+                          "Warehousing"
+                        ],
+                        "Courier services": {
+                          "_list": [],
                           "purchaser": {
                             "groupId": "demand_supportive_cpd_l2_courier_services"
                           },
                           "expert": {
                             "groupId": null
-                          },
-                          "cat3": []
+                          }
                         },
-                        {
-                          "v": "Logistic services",
+                        "Logistic services": {
+                          "_list": [],
                           "purchaser": {
                             "groupId": "demand_supportive_cpd_l2_logistic_services"
                           },
                           "expert": {
                             "groupId": null
-                          },
-                          "cat3": []
+                          }
                         },
-                        {
-                          "v": "Transportation",
+                        "Transportation": {
+                          "_list": [],
                           "purchaser": {
                             "groupId": "demand_supportive_cpd_l2_transportation"
                           },
                           "expert": {
                             "groupId": null
-                          },
-                          "cat3": []
+                          }
                         },
-                        {
-                          "v": "Warehousing",
+                        "Warehousing": {
+                          "_list": [],
                           "purchaser": {
                             "groupId": "demand_supportive_cpd_l2_warehousing"
                           },
                           "expert": {
                             "groupId": null
-                          },
-                          "cat3": []
+                          }
                         }
-                      ]
-                    },
-                    {
-                      "v": "BSS",
-                      "cat2": [
-                        {
-                          "v": "CRM",
+                      },
+                      "BSS": {
+                        "_list": [
+                          "CRM",
+                          "TESTING_BSS"
+                        ],
+                        "CRM": {
+                          "_list": [],
                           "purchaser": {
                             "groupId": "demand_supportive_cpd_l2_crm"
                           },
                           "expert": {
                             "groupId": null
-                          },
-                          "cat3": []
+                          }
                         },
-                        {
-                          "v": "TESTING_BSS",
+                        "TESTING_BSS": {
+                          "_list": [],
                           "purchaser": {
                             "groupId": "demand_supportive_cpd_l2_testing_bss"
                           },
                           "expert": {
                             "groupId": null
-                          },
-                          "cat3": []
+                          }
                         }
-                      ]
-                    },
-                    {
-                      "v": "OSS",
-                      "cat2": [
-                        {
-                          "v": "CS",
+                      },
+                      "OSS": {
+                        "_list": [
+                          "CS",
+                          "IT",
+                          "PS",
+                          "RAN",
+                          "TN"
+                        ],
+                        "CS": {
+                          "_list": [],
                           "purchaser": {
                             "groupId": "demand_supportive_cpd_l2_cs"
                           },
                           "expert": {
                             "groupId": null
-                          },
-                          "cat3": []
+                          }
                         },
-                        {
-                          "v": "IT",
+                        "IT": {
+                          "_list": [],
                           "purchaser": {
                             "groupId": "demand_supportive_cpd_l2_it_oss"
                           },
                           "expert": {
                             "groupId": null
-                          },
-                          "cat3": []
+                          }
                         },
-                        {
-                          "v": "PS",
+                        "PS": {
+                          "_list": [],
                           "purchaser": {
                             "groupId": "demand_supportive_cpd_l2_ps"
                           },
                           "expert": {
                             "groupId": null
-                          },
-                          "cat3": []
+                          }
                         },
-                        {
-                          "v": "RAN",
+                        "RAN": {
+                          "_list": [],
                           "purchaser": {
                             "groupId": "demand_supportive_cpd_l2_ran"
                           },
                           "expert": {
                             "groupId": null
-                          },
-                          "cat3": []
+                          }
                         },
-                        {
-                          "v": "TN",
+                        "TN": {
+                          "_list": [],
                           "purchaser": {
                             "groupId": "demand_supportive_cpd_l2_tn"
                           },
                           "expert": {
                             "groupId": null
-                          },
-                          "cat3": []
+                          }
                         }
-                      ]
-                    },
-                    {
-                      "v": "CORE NETWORK",
-                      "cat2": [
-                        {
-                          "v": "CS CORE",
+                      },
+                      "CORE NETWORK": {
+                        "_list": [
+                          "CS CORE",
+                          "PS CORE"
+                        ],
+                        "CS CORE": {
+                          "_list": [
+                            "CUDB",
+                            "MSS",
+                            "MGW",
+                            "IMS"
+                          ],
                           "purchaser": {
                             "groupId": "demand_supportive_cpd_l2_cs_core"
                           },
                           "expert": {
                             "groupId": null
-                          },
-                          "cat3": [
-                            "CUDB",
-                            "MSS",
-                            "MGW",
-                            "IMS"
-                          ]
+                          }
                         },
-                        {
-                          "v": "PS CORE",
+                        "PS CORE": {
+                          "_list": [
+                            "EPC (MME",
+                            "SGSN-GGSN ",
+                            "PCRF",
+                            "CGNAT/FIREWALL"
+                          ],
                           "purchaser": {
                             "groupId": "demand_supportive_cpd_l2_ps_core"
                           },
                           "expert": {
                             "groupId": null
-                          },
-                          "cat3": [
-                            "EPC (MME",
-                            "SGSN-GGSN ",
-                            "PCRF",
-                            "CGNAT/FIREWALL"
-                          ]
+                          }
                         }
-                      ]
-                    },
-                    {
-                      "v": "SECURITY",
-                      "cat2": [
-                        {
-                          "v": "DEVICES",
+                      },
+                      "SECURITY": {
+                        "_list": [
+                          "DEVICES",
+                          "FACILITY",
+                          "FINANCIAL  ",
+                          "IT",
+                          "PHYSICAL"
+                        ],
+                        "DEVICES": {
+                          "_list": [],
                           "purchaser": {
                             "groupId": "demand_supportive_cpd_l2_devices"
                           },
                           "expert": {
                             "groupId": null
-                          },
-                          "cat3": []
+                          }
                         },
-                        {
-                          "v": "FACILITY",
+                        "FACILITY": {
+                          "_list": [],
                           "purchaser": {
                             "groupId": "demand_supportive_cpd_l2_facility"
                           },
                           "expert": {
                             "groupId": null
-                          },
-                          "cat3": []
+                          }
                         },
-                        {
-                          "v": "FINANCIAL  ",
+                        "FINANCIAL  ": {
+                          "_list": [],
                           "purchaser": {
                             "groupId": "demand_supportive_cpd_l2_financial"
                           },
                           "expert": {
                             "groupId": null
-                          },
-                          "cat3": []
+                          }
                         },
-                        {
-                          "v": "IT",
+                        "IT": {
+                          "_list": [],
                           "purchaser": {
                             "groupId": "demand_supportive_cpd_l2_it_security"
                           },
                           "expert": {
                             "groupId": null
-                          },
-                          "cat3": []
+                          }
                         },
-                        {
-                          "v": "PHYSICAL",
+                        "PHYSICAL": {
+                          "_list": [],
                           "purchaser": {
                             "groupId": "demand_supportive_cpd_l2_physical"
                           },
                           "expert": {
                             "groupId": null
-                          },
-                          "cat3": []
+                          }
                         }
-                      ]
-                    },
-                    {
-                      "v": "TRANSPORT NETWORK",
-                      "cat2": [
-                        {
-                          "v": "DIGITAL CHANNELS RENT",
+                      },
+                      "TRANSPORT NETWORK": {
+                        "_list": [
+                          "DIGITAL CHANNELS RENT",
+                          "INTERNET",
+                          "MICROWAVE",
+                          "OPTIC NETWORK",
+                          "SATELLITE CHANNELS RENT"
+                        ],
+                        "DIGITAL CHANNELS RENT": {
+                          "_list": [],
                           "purchaser": {
                             "groupId": "demand_supportive_cpd_l2_digital_channels_rent"
                           },
                           "expert": {
                             "groupId": null
-                          },
-                          "cat3": []
+                          }
                         },
-                        {
-                          "v": "INTERNET",
+                        "INTERNET": {
+                          "_list": [],
                           "purchaser": {
                             "groupId": "demand_supportive_cpd_l2_internet"
                           },
                           "expert": {
                             "groupId": null
-                          },
-                          "cat3": []
+                          }
                         },
-                        {
-                          "v": "MICROWAVE",
+                        "MICROWAVE": {
+                          "_list": [
+                            "MW VENDOR HW",
+                            "MW VENDOR SW"
+                          ],
                           "purchaser": {
                             "groupId": "demand_supportive_cpd_l2_microwave"
                           },
                           "expert": {
                             "groupId": null
-                          },
-                          "cat3": [
-                            "MW VENDOR HW",
-                            "MW VENDOR SW"
-                          ]
+                          }
                         },
-                        {
-                          "v": "OPTIC NETWORK",
+                        "OPTIC NETWORK": {
+                          "_list": [
+                            "FOCL",
+                            "PTN HW",
+                            "OPTIC MATERIALS",
+                            "DWDM"
+                          ],
                           "purchaser": {
                             "groupId": "demand_supportive_cpd_l2_optic_network"
                           },
                           "expert": {
                             "groupId": null
-                          },
-                          "cat3": [
-                            "FOCL",
-                            "PTN HW",
-                            "OPTIC MATERIALS",
-                            "DWDM"
-                          ]
+                          }
                         },
-                        {
-                          "v": "SATELLITE CHANNELS RENT",
+                        "SATELLITE CHANNELS RENT": {
+                          "_list": [],
                           "purchaser": {
                             "groupId": "demand_supportive_cpd_l2_satellite_channels_rent"
                           },
                           "expert": {
                             "groupId": null
-                          },
-                          "cat3": []
+                          }
                         }
-                      ]
-                    },
-                    {
-                      "v": "EVENTS",
-                      "cat2": [
-                        {
-                          "v": "Event activities ",
+                      },
+                      "EVENTS": {
+                        "_list": [
+                          "Event activities ",
+                          "Rent of premises and catering"
+                        ],
+                        "Event activities ": {
+                          "_list": [],
                           "purchaser": {
                             "groupId": "demand_supportive_cpd_l2_event_activities"
                           },
                           "expert": {
                             "groupId": null
-                          },
-                          "cat3": []
+                          }
                         },
-                        {
-                          "v": "Rent of premises and catering",
+                        "Rent of premises and catering": {
+                          "_list": [],
                           "purchaser": {
                             "groupId": "demand_supportive_cpd_l2_rent_of_premises_catering"
                           },
                           "expert": {
                             "groupId": null
-                          },
-                          "cat3": []
+                          }
                         }
-                      ]
-                    },
-                    {
-                      "v": "TRAVEL",
-                      "cat2": [
-                        {
-                          "v": "Hotel services",
+                      },
+                      "TRAVEL": {
+                        "_list": [
+                          "Hotel services",
+                          "Travel agency services"
+                        ],
+                        "Hotel services": {
+                          "_list": [],
                           "purchaser": {
                             "groupId": "demand_supportive_cpd_l2_hotel_services"
                           },
                           "expert": {
                             "groupId": null
-                          },
-                          "cat3": []
+                          }
                         },
-                        {
-                          "v": "Travel agency services",
+                        "Travel agency services": {
+                          "_list": [],
                           "purchaser": {
                             "groupId": "demand_supportive_cpd_l2_travel_agency_services"
                           },
                           "expert": {
                             "groupId": null
-                          },
-                          "cat3": []
+                          }
                         }
-                      ]
-                    },
-                    {
-                      "v": "HR",
-                      "cat2": [
-                        {
-                          "v": "HR services",
+                      },
+                      "HR": {
+                        "_list": [
+                          "HR services",
+                          "Outstaff",
+                          "Recruitment",
+                          "Trainings"
+                        ],
+                        "HR services": {
+                          "_list": [],
                           "purchaser": {
                             "groupId": "demand_supportive_cpd_l2_hr_services"
                           },
                           "expert": {
                             "groupId": null
-                          },
-                          "cat3": []
+                          }
                         },
-                        {
-                          "v": "Outstaff",
+                        "Outstaff": {
+                          "_list": [],
                           "purchaser": {
                             "groupId": "demand_supportive_cpd_l2_outstaff"
                           },
                           "expert": {
                             "groupId": null
-                          },
-                          "cat3": []
+                          }
                         },
-                        {
-                          "v": "Recruitment",
+                        "Recruitment": {
+                          "_list": [],
                           "purchaser": {
                             "groupId": "demand_supportive_cpd_l2_recruitment"
                           },
                           "expert": {
                             "groupId": null
-                          },
-                          "cat3": []
+                          }
                         },
-                        {
-                          "v": "Trainings",
+                        "Trainings": {
+                          "_list": [],
                           "purchaser": {
                             "groupId": "demand_supportive_cpd_l2_trainings"
                           },
                           "expert": {
                             "groupId": null
-                          },
-                          "cat3": []
+                          }
                         }
-                      ]
-                    },
-                    {
-                      "v": "IP ROUTERS/SWITCHES",
-                      "cat2": [
-                        {
-                          "v": "L2 SWITCHES",
+                      },
+                      "IP ROUTERS/SWITCHES": {
+                        "_list": [
+                          "L2 SWITCHES",
+                          "L3 SWITCHES",
+                          "ROUTERS"
+                        ],
+                        "L2 SWITCHES": {
+                          "_list": [],
                           "purchaser": {
                             "groupId": "demand_supportive_cpd_l2_l2_switches"
                           },
                           "expert": {
                             "groupId": null
-                          },
-                          "cat3": []
+                          }
                         },
-                        {
-                          "v": "L3 SWITCHES",
+                        "L3 SWITCHES": {
+                          "_list": [],
                           "purchaser": {
                             "groupId": "demand_supportive_cpd_l2_l3_switches"
                           },
                           "expert": {
                             "groupId": null
-                          },
-                          "cat3": []
+                          }
                         },
-                        {
-                          "v": "ROUTERS",
+                        "ROUTERS": {
+                          "_list": [
+                            "DATA CENTRE",
+                            "CORE NETWORK"
+                          ],
                           "purchaser": {
                             "groupId": "demand_supportive_cpd_l2_routers"
                           },
                           "expert": {
                             "groupId": null
-                          },
-                          "cat3": [
-                            "DATA CENTRE",
-                            "CORE NETWORK"
-                          ]
+                          }
                         }
-                      ]
-                    },
-                    {
-                      "v": "PR",
-                      "cat2": [
-                        {
-                          "v": "PR service",
+                      },
+                      "PR": {
+                        "_list": [
+                          "PR service",
+                          "Sponsorship"
+                        ],
+                        "PR service": {
+                          "_list": [],
                           "purchaser": {
                             "groupId": "demand_supportive_cpd_l2_pr_service"
                           },
                           "expert": {
                             "groupId": null
-                          },
-                          "cat3": []
+                          }
                         },
-                        {
-                          "v": "Sponsorship",
+                        "Sponsorship": {
+                          "_list": [],
                           "purchaser": {
                             "groupId": "demand_supportive_cpd_l2_sponsorship"
                           },
                           "expert": {
                             "groupId": null
-                          },
-                          "cat3": []
+                          }
                         }
-                      ]
-                    },
-                    {
-                      "v": "SIM& STRATCH CARDS",
-                      "cat2": [
-                        {
-                          "v": "Scratch cards",
+                      },
+                      "SIM& STRATCH CARDS": {
+                        "_list": [
+                          "Scratch cards",
+                          "SIM card packaging",
+                          "SIM cards"
+                        ],
+                        "Scratch cards": {
+                          "_list": [],
                           "purchaser": {
                             "groupId": "demand_supportive_cpd_l2_scratch_cards"
                           },
                           "expert": {
                             "groupId": null
-                          },
-                          "cat3": []
+                          }
                         },
-                        {
-                          "v": "SIM card packaging",
+                        "SIM card packaging": {
+                          "_list": [],
                           "purchaser": {
                             "groupId": "demand_supportive_cpd_l2_sim_card_packaging"
                           },
                           "expert": {
                             "groupId": null
-                          },
-                          "cat3": []
+                          }
                         },
-                        {
-                          "v": "SIM cards",
+                        "SIM cards": {
+                          "_list": [],
                           "purchaser": {
                             "groupId": "demand_supportive_cpd_l2_sim_cards"
                           },
                           "expert": {
                             "groupId": null
-                          },
-                          "cat3": []
+                          }
                         }
-                      ]
-                    },
-                    {
-                      "v": "SW DEVELOPMENT",
-                      "cat2": [
-                        {
-                          "v": "SW DEVELOPMENT",
+                      },
+                      "SW DEVELOPMENT": {
+                        "_list": [
+                          "SW DEVELOPMENT"
+                        ],
+                        "SW DEVELOPMENT": {
+                          "_list": [],
                           "purchaser": {
                             "groupId": "demand_supportive_cpd_l2_sw_development"
                           },
                           "expert": {
                             "groupId": null
-                          },
-                          "cat3": []
+                          }
                         }
-                      ]
-                    },
-                    {
-                      "v": "VAS",
-                      "cat2": [
-                        {
-                          "v": "VAS",
+                      },
+                      "VAS": {
+                        "_list": [
+                          "VAS"
+                        ],
+                        "VAS": {
+                          "_list": [],
                           "purchaser": {
                             "groupId": "demand_supportive_cpd_l2_vas"
                           },
                           "expert": {
                             "groupId": null
-                          },
-                          "cat3": []
+                          }
                         }
-                      ]
+                      }
                     }
-                  ]
                 }
             },
             templateUrl: './js/directives/demand/materials.html'
