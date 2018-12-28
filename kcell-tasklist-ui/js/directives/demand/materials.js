@@ -439,7 +439,7 @@ define(['./../module'], function(module){
                           "cat3": []
                         },
                         {
-                          "v": "\"OTHER POWER MATERIALS (SOCKETS",
+                          "v": "OTHER POWER MATERIALS (SOCKETS",
                           "purchaser": {
                             "groupId": "demand_supportive_cpd_l2_other_power_materials"
                           },
@@ -602,7 +602,7 @@ define(['./../module'], function(module){
                             "groupId": null
                           },
                           "cat3": [
-                            "\"ANTENNAS COMPONENTS - SPLITTER",
+                            "ANTENNAS COMPONENTS - SPLITTER",
                             "CABLE & ACCESSORIES",
                             "CONNECTORS",
                             "FEEDER"
@@ -619,7 +619,7 @@ define(['./../module'], function(module){
                           "cat3": []
                         },
                         {
-                          "v": "\"BSC/RNC SW (capacity licence",
+                          "v": "BSC/RNC SW (capacity licence",
                           "purchaser": {
                             "groupId": "demand_supportive_cpd_l2_bsc_rnc_sw"
                           },
@@ -640,7 +640,7 @@ define(['./../module'], function(module){
                           },
                           "cat3": [
                             "INSTALLATION&IMPLEMENTATION SERVICES",
-                            "\"MEASUREMENT HW",
+                            "MEASUREMENT HW",
                             "MEASUREMENT TOOL HW&SW&LISENCES - DRIVE TESTS",
                             "MEASUREMENT TOOL UPGRADE - DRIVE TESTS",
                             "OTHER MEASUREMENT TOOLS"
@@ -1503,7 +1503,7 @@ define(['./../module'], function(module){
                             "groupId": null
                           },
                           "cat3": [
-                            "\"EPC (MME",
+                            "EPC (MME",
                             "SGSN-GGSN ",
                             "PCRF",
                             "CGNAT/FIREWALL"
