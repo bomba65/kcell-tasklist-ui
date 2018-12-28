@@ -56,10 +56,11 @@ public class TaskNotificationListener implements TaskListener {
     @Override
     public void notify(DelegateTask delegateTask) {
         final Set<String> recipientEmails = new HashSet<>();
-        if (delegateTask.getAssignee()!=null && TaskListener.EVENTNAME_ASSIGNMENT.equals(delegateTask.getEventName())) {
-            recipientEmails.addAll(getAssigneeAddresses(delegateTask));
-        } else if(delegateTask.getAssignee()==null && TaskListener.EVENTNAME_CREATE.equals(delegateTask.getEventName())) {
-            recipientEmails.addAll(getCandidateAddresses(delegateTask));
+        if (TaskListener.EVENTNAME_CREATE.equals(delegateTask.getEventName())) {
+            if (delegateTask.getAssignee() != null) recipientEmails.addAll(getAssigneeAddresses(delegateTask, true));
+            else recipientEmails.addAll(getCandidateAddresses(delegateTask));
+        } else if (delegateTask.getAssignee() != null && TaskListener.EVENTNAME_ASSIGNMENT.equals(delegateTask.getEventName())) {
+            recipientEmails.addAll(getAssigneeAddresses(delegateTask, false));
         }
 
         if (recipientEmails.size() > 0) {
@@ -118,13 +119,13 @@ public class TaskNotificationListener implements TaskListener {
         }
     }
 
-    private static Collection<String> getAssigneeAddresses(DelegateTask delegateTask) {
-        // Authentication currentAuthentication = delegateTask.getProcessEngineServices().getIdentityService().getCurrentAuthentication();
+    private static Collection<String> getAssigneeAddresses(DelegateTask delegateTask, boolean onlyCurrentUser) {
+        Authentication currentAuthentication = delegateTask.getProcessEngineServices().getIdentityService().getCurrentAuthentication();
 
         IdentityService identityService = delegateTask.getProcessEngineServices().getIdentityService();
 
         return Stream.of(delegateTask.getAssignee())
-            // .filter(userId -> currentAuthentication != null && !userId.equals(currentAuthentication.getUserId()))
+            .filter(userId -> currentAuthentication != null && userId.equals(currentAuthentication.getUserId()) == onlyCurrentUser)
             .flatMap(userId -> identityService.createUserQuery().userId(userId).list().stream())
             .map(User::getEmail)
             .filter(TaskNotificationListener::validEmail)

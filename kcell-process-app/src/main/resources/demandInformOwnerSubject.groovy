@@ -9,6 +9,7 @@ def getSubject(DelegateExecution execution) {
     def resolution = lastResolution.get("resolution").asText()
     if (resolution == 'Approve') resolution = 'Approved'
     else if (resolution == 'Cancel') resolution = 'Canceled'
+    else if (resolution == 'Finish') resolution = 'Finished'
     else resolution = 'Approved conditionally'
     subject += resolution + " on " + lastResolution.get("taskName").asText()
     subject
