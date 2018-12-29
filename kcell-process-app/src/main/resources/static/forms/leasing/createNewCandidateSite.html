@@ -15,7 +15,13 @@
                 'plannedCabinetType',
                 'targetCoverage',
                 'rbsType',
-                'bands'
+                'bands',
+                'candidate',
+                'cellAntenna',
+                'renterCompany',
+                'transmissionAntenna',
+                'powerSource',
+                'farEndInformation'
             ];
 
             var variablesToCreate = [
@@ -77,12 +83,12 @@
                     camForm.variableManager.fetchVariable(el);
                 });
                 $http.get('/camunda/api/engine/engine/default/task/' + camForm.taskId).then(
-                        function (result) {
-                            $scope.processInstanceId = result.data.processInstanceId;
-                        },
-                        function (error) {
-                            console.log(error.data);
-                        }
+                    function (result) {
+                        $scope.processInstanceId = result.data.processInstanceId;
+                    },
+                    function (error) {
+                        console.log(error.data);
+                    }
                 );
                 $scope.leasingInfo = [];
                 $scope.leasingInfo.files = [];
@@ -94,23 +100,14 @@
                 $scope.powerSource = {};
                 $scope.dictionary = {};
                 $scope.transmissionAntenna = {};
-                $scope.availableBands = [{'title': 'G900', 'value': false}, {
-                    'title': 'G1800',
-                    'value': false
-                }, {'title': 'U900', 'value': false}, {'title': 'U2100', 'value': false}, {
-                    'title': 'L800',
-                    'value': false
-                }, {'title': 'L1800', 'value': false}, {'title': 'L2100', 'value': false}, {
-                    'title': 'L2600',
-                    'value': false
-                }];
 
-                $http.get('/api/leasingCatalogs').then(
+                $http.get('/api/leasingCatalogs?version=1').then(
                     function(result){
                         angular.extend($scope.dictionary, result.data);
                         $scope.candidate.rbsLocation = $scope.dictionary.rbsLocation;
                         $scope.antennasList = $scope.dictionary.antennas;
                         $scope.powerSource.cableLayingType = $scope.dictionary.cableLayingType;
+                        $scope.availableBands = $scope.dictionary.bands;
                     },
                     function(error){
                         console.log(error);
@@ -121,8 +118,10 @@
 
             camForm.on('variables-fetched', function () {
                 variables.forEach(function (el) {
-                    $scope[el] = camForm.variableManager.variables[el].value;
-                    $scope.leasingInfo[el] = camForm.variableManager.variables[el].value;
+                    if(camForm.variableManager.variables[el].value){
+                        $scope[el] = camForm.variableManager.variables[el].value;
+                        $scope.leasingInfo[el] = camForm.variableManager.variables[el].value;
+                    }
 
                     if ($scope.bands) {
                         angular.forEach($scope.availableBands, function (b) {
@@ -159,21 +158,27 @@
                 camForm.variableManager.variableValue('createNewCandidateSiteTaskComment', $scope.createNewCandidateSiteTaskComment);
 
                 angular.forEach(variablesToCreate, function (el) {
-                    camForm.variableManager.createVariable({
-                        name: el.name,
-                        type: el.type,
-                        value: $scope[el.name]
-                    });
+                    if(camForm.variableManager.variables[el].type){
+                        camForm.variableManager.variableValue(el.name, $scope[el.name]);
+                    } else {
+                        camForm.variableManager.createVariable({
+                            name: el.name,
+                            type: el.type,
+                            value: $scope[el.name]
+                        });
+                    }
                 });
             });
 
             $scope.$watch('availableBands', function (availableBands) {
                 $scope.candidate.selectedBands = [];
-                availableBands.forEach(function (b) {
-                    if (b.value) {
-                        $scope.candidate.selectedBands.push(b);
-                    }
-                })
+                if (availableBands){
+                    availableBands.forEach(function (b) {
+                        if (b.value) {
+                            $scope.candidate.selectedBands.push(b);
+                        }
+                    })
+                }
             }, true);
 
             $scope.addFE = function () {
@@ -900,6 +905,12 @@
                     </div>
                 </div>
                 <div class="form-group">
+                    <label class="col-sm-3 control-label">Goals:</label>
+                    <div class="col-sm-8">
+                        <textarea class="form-control" ng-model="candidate.goals" name="newCandidateGoals" maxlength="200" rows="2" style="resize:none"></textarea>
+                    </div>
+                </div>
+                <div class="form-group">
                     <label class="col-sm-3 control-label">Comments related to New Candidate:</label>
                     <div class="col-sm-8">
                         <textarea class="form-control" ng-model="candidate.comments" name="newCandidateComments" maxlength="500" rows="4" style="resize:none"></textarea>
@@ -944,6 +955,15 @@
                                 <input type="hidden" ng-model="newFe.farEndId" name="farEndId" required/>
                                 <label class="error" ng-if="form.fe_form.farEndName.$error.required && ( form.fe_form.farEndName.$touched || newFe.submitted)">Required field</label>
                                 <label class="error" ng-if="form.fe_form.farEndId.$error.required && ( form.fe_form.farEndName.$touched || newFe.submitted)">Please select from list</label>
+                            </div>
+                        </div>
+                        <div class="form-group">
+                            <label class="col-sm-3 control-label">Legal type:</label>
+                            <div class="col-sm-8">
+                                <select class="form-control" id="farEndLegalType" name="farEndLegalType"
+                                        ng-model="newFe.legalType" ng-options="type.id as type.desc for type in dictionary.legalType" required>
+                                </select>
+                                <label class="error" ng-show="kcell_form.farEndLegalType.$error.required && ( kcell_form.farEndLegalType.$touched || view.submitted)">Required field</label>
                             </div>
                         </div>
                         <div class="form-group-lg">
