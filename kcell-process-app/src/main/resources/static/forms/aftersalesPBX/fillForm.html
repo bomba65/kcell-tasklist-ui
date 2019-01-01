@@ -44,21 +44,22 @@
                 assigneeName = (result.data.firstName ? result.data.firstName : "") + " " + (result.data.lastName ? result.data.lastName : "");
             });
 
-            /*$scope.preSubmit = function() {
+            $scope.preSubmit = function() {
                 return $http.get('/camunda/api/engine/engine/default/history/process-instance/count?processDefinitionKey=AftersalesPBX').then(
                     function(result) {
                         var countPID = result.data.count + 1;
-                        var date = new Date();
-                        camForm.businessKey = 'AFTERSLSPBX_' + ("0" + date.getDate().toString()).slice(-2) + ("0" + (date.getMonth() + 1)).toString().slice(-2) + date.getFullYear().toString() + '_' + $scope.legalInfo.BIN + '_' + $scope.legalInfo.ticName + '_' + countPID;
+                        var orderNumber = '';
+                        if (countPID < 1000) orderNumber += '0';
+                        if (countPID < 100) orderNumber += '0';
+                        if (countPID < 10) orderNumber += '0';
+                        orderNumber += countPID;
+                        camForm.businessKey = 'AFTERSLSPBX_' + $scope.legalInfo.BIN + '_' + $scope.legalInfo.ticName + '_' + orderNumber;
                     },
                     function(error) {}
                 );
-            }*/
+            }
 
             camForm.on('submit', function (event) {
-                var date = new Date();
-                camForm.businessKey = 'AFTERSLSPBX_' + ("0" + date.getDate().toString()).slice(-2) + ("0" + (date.getMonth() + 1)).toString().slice(-2) + date.getFullYear().toString() + '_' + $scope.legalInfo.BIN + '_' + $scope.legalInfo.ticName;
-
                 camForm.variableManager.createVariable({
                     name: 'legalInfo',
                     type: 'Json',
@@ -229,6 +230,23 @@
                     $scope.action.tariffExtra = actionTMP.tariffExtra;
                     $scope.pbxData.tariffExtra = $scope.action.tariffExtra;
                 }
+                if (result.aftersales) {
+                    if (result.legalInfo) {
+                        $scope.legalInfo = JSON.parse(result.legalInfo);
+                        if ($scope.legalInfo.companyDate) $scope.legalInfo.companyDate = new Date($scope.legalInfo.companyDate);
+                        if ($scope.legalInfo.termContract) $scope.legalInfo.termContract = new Date($scope.legalInfo.termContract);
+                        $scope.pbxData.legalInfo = JSON.parse(JSON.stringify($scope.legalInfo));
+                        $scope.pbxData.legalInfo.fetched = true;
+                    }
+                    if (result.techSpecs) {
+                        $scope.techSpecs = JSON.parse(result.techSpecs);
+                        scope.pbxData.techSpecs = JSON.parse(JSON.stringify($scope.techSpecs));
+                        scope.pbxData.techSpecs.fetched = true;
+
+                        scope.pbxData.sip = JSON.parse(JSON.stringify($scope.techSpecs.sip));
+                        scope.pbxData.sip.fetched = true;
+                    }
+                }
             });
 
             $scope.onActionCheck = function() {
@@ -320,7 +338,7 @@
                     <accordion-heading>
                         Technical specification <i class="pull-right glyphicon" ng-class="{'glyphicon-chevron-up': status.isCustomHeaderOpen, 'glyphicon-chevron-down': !status.isCustomHeaderOpen}"></i>
                     </accordion-heading>
-                    <aftersales-technical-specifications data="techSpecs" pbx-data="pbxData.techSpecs" form="kcell_form" view="view" disabled="false" cp-required="action.newTrunk || action.changeConnection"></aftersales-technical-specifications>
+                    <aftersales-technical-specifications data="techSpecs" pbx-data="pbxData.techSpecs" form="kcell_form" view="view" disabled="false" cp-required="action.newTrunk || action.changeConnection" edit-conn-point="true"></aftersales-technical-specifications>
                 </accordion-group>
             </accordion>
             <accordion ng-if="techSpecs.connectionType" class="background-yellow-accordion">

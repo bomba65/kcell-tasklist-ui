@@ -20,7 +20,7 @@ define(['./../module'], function(module){
 
 
                 scope.$on("aftersalesPBXBINCheck", function(e, result) {
-                    if (!result) return;
+                    if (!result || result.aftersales) return;
                     if (result.sip) parseFromPBX(JSON.parse(result.sip));
                 });
 

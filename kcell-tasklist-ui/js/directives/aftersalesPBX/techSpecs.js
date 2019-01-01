@@ -9,7 +9,8 @@ define(['./../module'], function(module){
                 view: '=',
                 disabled: '=',
                 cpRequired: '=',
-                pbxData: "="
+                pbxData: '=',
+                editConnPoint: '='
             },
             link: function(scope, element, attrs) {
                 scope.$watch('data', function (value) {
@@ -23,11 +24,8 @@ define(['./../module'], function(module){
                 });
 
                 scope.$on("aftersalesPBXBINCheck", function(e, result) {
-                    if (!result) return;
-                    if (result.techSpecs) {
-                      if (result.aftersales) scope.data = JSON.parse(result.techSpecs);
-                      else parseFromPBX(JSON.parse(result.techSpecs));
-                    }
+                    if (!result || result.aftersales) return;
+                    if (result.techSpecs) parseFromPBX(JSON.parse(result.techSpecs));
                 });
 
                 scope.$on('tab-selected', function(e, tabName) {
