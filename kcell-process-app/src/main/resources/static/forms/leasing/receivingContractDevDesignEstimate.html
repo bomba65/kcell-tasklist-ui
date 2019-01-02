@@ -1,0 +1,232 @@
+<form role="form" class="form-horizontal" name="kcell_form" novalidate>
+    <script cam-script type="text/form-script">
+        inject(['$scope', '$http', 'Uri', '$rootScope', '$q', '$timeout', function ($scope, $http, Uri, $rootScope, $q, $timeout) {
+            var variables = [
+                'resolutions',
+                'ncpID',
+                'siteType',
+                'regionName',
+                'latitude',
+                'longitude',
+                'initiator',
+                'project',
+                'reason',
+                'part',
+                'plannedCabinetType',
+                'targetCoverage',
+                'rbsType',
+                'bands',
+                'rrFile',
+                'newCandidateRRFiles',
+                'candidate',
+                'cellAntenna',
+                'renterCompany',
+                'transmissionAntenna',
+                'powerSource',
+                'farEndInformation',
+                'receivingTSForCandiateSiteFiles',
+                'receivingContractPSDFiles',
+                'receivingApprovalFromTheLandlordFiles',
+                'modifyCandidateRRFiles',
+                'estimateTechnicalCapabilityResFiles',
+                'requestTechnicalParametersKTFiles',
+                'receivingTSFiles',
+                'reqKZTRwithTechEquipmentParamsFiles'
+            ];
+
+            camForm.on('form-loaded', function () {
+                variables.forEach(function (el) {
+                    camForm.variableManager.fetchVariable(el);
+                });
+                $http.get('/camunda/api/engine/engine/default/task/' + camForm.taskId).then(
+                        function(result){
+                            $scope.processInstanceId = result.data.processInstanceId;
+                        },
+                        function (error) {
+                            console.log(error.data);
+                        }
+                );
+                $scope.leasingCandidate = {};
+            });
+
+            camForm.on('variables-fetched', function () {
+                variables.forEach(function (el) {
+                    $scope[el] = camForm.variableManager.variables[el].value;
+                    $scope.leasingCandidate[el] = camForm.variableManager.variables[el].value;
+                });
+                camForm.variableManager.createVariable({
+                    name: 'receivingContractDevDesignEstimateTaskResult',
+                    type: 'String',
+                    value: ''
+                });
+                camForm.variableManager.createVariable({
+                    name: 'receivingContractDevDesignEstimateTaskComment',
+                    type: 'String',
+                    value: ''
+                });
+                camForm.variableManager.createVariable({
+                    name: 'receivingContractDevDesignEstimateFiles',
+                    type: 'Json',
+                    value: []
+                });
+
+                $scope.receivingContractDevDesignEstimateTaskResult = '';
+                $scope.receivingContractDevDesignEstimateFiles = [];
+            });
+
+            camForm.on('submit', function () {
+                camForm.variableManager.variableValue('receivingContractDevDesignEstimateTaskResult', $scope.receivingContractDevDesignEstimateTaskResult);
+                camForm.variableManager.variableValue('receivingContractDevDesignEstimateTaskComment', $scope.receivingContractDevDesignEstimateTaskComment);
+                camForm.variableManager.variableValue('receivingContractDevDesignEstimateFiles', $scope.receivingContractDevDesignEstimateFiles);
+            });
+
+            $scope.fileSelected = function (el, fileName) {
+                $timeout(function () {
+                    $scope.$apply(function () {
+                        uploadFileToMinio(el.files[0], fileName);
+                    });
+                })
+            };
+
+            function uploadFileToMinio(file, fileName) {
+                var fileIndex = $scope[fileName].length;
+
+                var fileToUpload = {
+                    name: file.name.replace(/[/\\?%*:|"<>]/g, '-'),
+                    isNew: true,
+                    path: $scope.processInstanceId + '/' + camForm.taskId + '/' + file.name.replace(/[/\\?%*:|"<>]/g, '-')
+                };
+                $http({
+                    method: 'GET',
+                    url: '/camunda/uploads/put/' + fileToUpload.path,
+                    transformResponse: []
+                }).then(function (response) {
+                    $http.put(response.data, file, {headers: {'Content-Type': undefined}}).then(
+                            function () {
+                                $scope[fileName].push(fileToUpload);
+                                angular.element(document.querySelector('#' + fileName)).val(null);
+                            },
+                            function (error) {
+                                console.log(error.data);
+                            }
+                    );
+                }, function(error){
+                    console.log(error.data);
+                });
+            }
+
+            $scope.clearFile = function (list, fileIndex) {
+                $scope[list].splice(fileIndex, 1);
+            }
+
+            $scope.fileDownload = function (file) {
+                $http({
+                    method: 'GET',
+                    url: '/camunda/uploads/get/' + file.path,
+                    transformResponse: []
+                }).then(function (response) {
+                    document.getElementById('fileDownloadIframe').src = response.data;
+                }, function(error){
+                    console.log(error.data);
+                });
+            }
+        }]);
+
+    </script>
+    <leasing-candidate leasing-candidate="leasingCandidate"></leasing-candidate>
+
+    <iframe id="fileDownloadIframe" style="display:none;"></iframe>
+
+    <div class="form-group">
+        <label class="col-md-4 control-label">Download RR:</label>
+        <div class="col-sm-8">
+            <a ng-click="download(rrFile)">{{rrFile.name}}</a>
+        </div>
+    </div>
+    <div class="form-group">
+        <label class="col-md-4 control-label">RR files:</label>
+        <div class="col-sm-8">
+            <div ng-show="newCandidateRRFiles.length > 0" class="input-group" ng-repeat="file in newCandidateRRFiles">
+                {{$index + 1}}.
+                <a ng-click="download(file)">{{file.name}}</a>
+            </div>
+        </div>
+    </div>
+
+    <div class="form-group">
+        <label class="col-md-4 control-label">Download files:</label>
+        <div class="col-sm-8">
+            <div ng-show="receivingTSForCandiateSiteFiles.length > 0" class="input-group" ng-repeat="file in receivingTSForCandiateSiteFiles">
+                <a ng-click="download(file)">{{file.name}}</a>
+            </div>
+            <div ng-show="receivingContractPSDFiles.length > 0" class="input-group" ng-repeat="file in receivingContractPSDFiles">
+                <a ng-click="download(file)">{{file.name}}</a>
+            </div>
+            <div ng-show="receivingApprovalFromTheLandlordFiles.length > 0" class="input-group" ng-repeat="file in receivingApprovalFromTheLandlordFiles">
+                <a ng-click="download(file)">{{file.name}}</a>
+            </div>
+            <div ng-show="modifyCandidateRRFiles.length > 0" class="input-group" ng-repeat="file in modifyCandidateRRFiles">
+                <a ng-click="download(file)">{{file.name}}</a>
+            </div>
+            <div ng-show="estimateTechnicalCapabilityResFiles.length > 0" class="input-group" ng-repeat="file in estimateTechnicalCapabilityResFiles">
+                <a ng-click="download(file)">{{file.name}}</a>
+            </div>
+            <div ng-show="requestTechnicalParametersKTFiles.length > 0" class="input-group" ng-repeat="file in requestTechnicalParametersKTFiles">
+                <a ng-click="download(file)">{{file.name}}</a>
+            </div>
+            <div ng-show="receivingTSFiles.length > 0" class="input-group" ng-repeat="file in receivingTSFiles">
+                <a ng-click="download(file)">{{file.name}}</a>
+            </div>
+            <div ng-show="reqKZTRwithTechEquipmentParamsFiles.length > 0" class="input-group" ng-repeat="file in reqKZTRwithTechEquipmentParamsFiles">
+                <a ng-click="download(file)">{{file.name}}</a>
+            </div>
+        </div>
+    </div>
+
+    <div class="form-group">
+        <label class="col-md-4 control-label">Upload files:</label>
+        <div class="col-sm-8">
+            <div ng-show="receivingContractDevDesignEstimateFiles.length > 0" class="input-group" ng-repeat="file in receivingContractDevDesignEstimateFiles">
+                {{$index + 1}}.
+                <a ng-click="fileDownload(file)">{{file.name}}</a> | <a ng-click="clearFile('receivingContractDevDesignEstimateFiles', $index)"><i class="glyphicon glyphicon-trash"></i></a>
+            </div>
+            <ng-form name="kcell_material_file_form">
+                <input type="file" class="form-control" id="receivingContractDevDesignEstimateFiles" name="receivingContractDevDesignEstimateFiles" ng-model="file.file" onchange="angular.element(this).scope().fileSelected(this, 'receivingContractDevDesignEstimateFiles')"/>
+            </ng-form>
+        </div>
+    </div>
+
+    <div class="form-group">
+        <label class="col-sm-4 control-label">Comments</label>
+        <div class="col-sm-8">
+            <textarea class="form-control" ng-model="receivingContractDevDesignEstimateTaskComment" name="receivingContractDevDesignEstimateTaskComment" placeholder="Comments..." maxlength="500" rows="4" style="resize:none"></textarea>
+        </div>
+    </div>
+    <accordion>
+        <accordion-group is-open="isHistoryOpen">
+            <accordion-heading>
+                History <i class="pull-right glyphicon" ng-class="{'glyphicon-chevron-up': status.isCustomHeaderOpen, 'glyphicon-chevron-down': !status.isCustomHeaderOpen}"></i>
+            </accordion-heading>
+            <table class="table">
+                <thead>
+                <tr>
+                    <th>Activity</th>
+                    <th>Assignee</th>
+                    <th>Resolution</th>
+                    <th>Date</th>
+                    <th>Comment</th>
+                </tr>
+                </thead>
+                <tbody>
+                <tr ng-repeat="resolution in resolutions track by $index">
+                    <td>{{resolution.taskName}}</td>
+                    <td>{{resolution.assigneeName}}</td>
+                    <td>{{'task.resolution.'+resolution.resolution | translate}}</td>
+                    <td>{{resolution.taskEndDate | date: 'dd.MM.yyyy HH:mm'}}</td>
+                    <td>{{resolution.comment}}</td>
+                </tr>
+                </tbody>
+            </table>
+        </accordion-group>
+    </accordion>
+</form>
