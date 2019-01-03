@@ -19,11 +19,6 @@ define(['./module', 'lodash', 'big-js'], function(module, _, Big){
 
         $scope.initTextValue = function(val, field) {
             var result = typeof field.value === 'undefined' ? $scope.getString(val) : $scope.getString(field.value);
-
-            /*if(["abonentTarif_amdocs_incoming", "abonentTarif_amdocs_outgoing"].indexOf(field.name) > -1){
-                console.log(result, typeof result, val, typeof val, field.value, typeof field.value);
-            }*/
-
             if(typeof result !== 'undefined') {
                 if(field.prefixValue && result.indexOf(field.prefixValue) === -1) {
                     result = field.prefixValue + result;
@@ -41,6 +36,10 @@ define(['./module', 'lodash', 'big-js'], function(module, _, Big){
                     instance.identifierAmdocsID = tcfId;
                 } else if(defKey === 'massApprove_bulkSMS_confirmAndWriteOrgaTCF') {
                     instance.identifierOrgaID = tcfId;
+                } else if(defKey === 'massApprove_confirmAndWriteAmdocsTCF') {
+                    instance.identifierAmdocsID = tcfId;
+                } else if(defKey === 'massApprove_confirmAndWriteOrgaTCF') {
+                    instance.identifierOrgaID = tcfId;
                 }
             });
         }
@@ -50,6 +49,10 @@ define(['./module', 'lodash', 'big-js'], function(module, _, Big){
                 if(defKey === 'massApprove_bulkSMS_addedShortNumberForAmdocsNew') {
                     instance.comment = commentPC;
                 } else if(defKey === 'massApprove_bulkSMS_addedShortNumberForOrgaNew') {
+                    instance.comment = commentPC;
+                } else if(defKey === 'massApprove_addedShortNumberForAmdocsNew') {
+                    instance.comment = commentPC;
+                } else if(defKey === 'massApprove_addedShortNumberForOrgaNew') {
                     instance.comment = commentPC;
                 }
             });
@@ -319,11 +322,9 @@ define(['./module', 'lodash', 'big-js'], function(module, _, Big){
             waiting = 0;
             for (var i = 0; i < $scope.definitions.length; i++) {
                 const definition = $scope.definitions[i];
-                //var mandatoryFields = definition.configs.table.fields.filter(function(field){return field.notNull});
-                
+
                 var mandatoryFields = [];
                 angular.forEach(definition.configs.table.rows, function(row){
-                    //mandatoryFields.push()
                     Object.assign(mandatoryFields, row.fields.filter(function(field){return field.notNull}));
                 });
 
