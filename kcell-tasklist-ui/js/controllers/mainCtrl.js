@@ -1,6 +1,6 @@
 define(['./module','camundaSDK', 'lodash', 'big-js'], function(module, CamSDK, _, Big){
 	'use strict';
-	return module.controller('mainCtrl', ['$scope', '$rootScope', 'toasty', 'AuthenticationService', '$routeParams', '$timeout', '$location', 'exModal', '$http', '$state', function($scope, $rootScope, toasty, AuthenticationService, $routeParams, $timeout, $location, exModal, $http, $state) {
+	return module.controller('mainCtrl', ['$scope', '$rootScope', 'toasty', 'AuthenticationService', '$routeParams', '$timeout', '$location', 'exModal', '$http', '$state', 'StartProcessService', function($scope, $rootScope, toasty, AuthenticationService, $routeParams, $timeout, $location, exModal, $http, $state, StartProcessService) {
 		$rootScope.currentPage = {
 			name: 'tasks'
 		};
@@ -176,8 +176,10 @@ define(['./module','camundaSDK', 'lodash', 'big-js'], function(module, CamSDK, _
 			$scope.selectedView = 'task';
 			$state.go('tasks.task', {id:taskId});
 		}
-
 		$scope.startProcess = function(id){
+			StartProcessService(id);
+		}
+		/*$scope.startProcess = function(id){
 			$http.get(baseUrl+'/process-definition/'+id+'/startForm').then(
 				function(startFormInfo){
 					if(startFormInfo.data.key){
@@ -308,7 +310,7 @@ define(['./module','camundaSDK', 'lodash', 'big-js'], function(module, CamSDK, _
 					$("#modal-footer").append($submitBtn);
 				}
 			}
-		}
+		}*/
 		$rootScope.logout = function(){
 			AuthenticationService.logout().then(function(){
 				$scope.authentication = null;

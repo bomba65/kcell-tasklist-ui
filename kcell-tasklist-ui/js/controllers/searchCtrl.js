@@ -1,7 +1,7 @@
 define(['./module','jquery', 'moment', 'camundaSDK'], function(app, $, moment, CamSDK){
 	'use strict';
-	return app.controller('searchCtrl', ['$scope', '$rootScope', '$http', '$routeParams', '$q', '$location', '$timeout', 'AuthenticationService', 'exModal', '$state',
-			                         function($scope, $rootScope, $http, $routeParams, $q, $location, $timeout, AuthenticationService, exModal, $state) {
+	return app.controller('searchCtrl', ['$scope', '$rootScope', '$http', '$routeParams', '$q', '$location', '$timeout', 'AuthenticationService', 'exModal', '$state', 'StartProcessService', 'SearchCurrentSelectedProcessService',
+			                         function($scope, $rootScope, $http, $routeParams, $q, $location, $timeout, AuthenticationService, exModal, $state, StartProcessService, SearchCurrentSelectedProcessService) {
 
 		var camClient = new CamSDK.Client({
 		  mock: false,
@@ -1302,6 +1302,15 @@ define(['./module','jquery', 'moment', 'camundaSDK'], function(app, $, moment, C
 				$scope[processInstancesDP + 'Pages'] = Math.floor(instanceCount / $scope.filterDP.maxResults) + ((instanceCount % $scope.filterDP.maxResults) > 0 ? 1 : 0);
 			});
 			*/
+			$scope.afterSalesIvrSmsDefinitionId = undefined;
+			$http.get(baseUrl+'/process-definition/key/after-sales-ivr-sms').then(function(response){
+				if(response && response.data){
+					if(response.data.id){
+						$scope.afterSalesIvrSmsDefinitionId = response.data.id;
+					}
+				}
+			});
+
 			$scope[processInstancesDP] = [];
 			if (filter.startedBy !== undefined & filter.processInstanceIds !== undefined) {
 				var processInstanceList = defs.reduce((r, e) => r.push(
@@ -1515,6 +1524,7 @@ define(['./module','jquery', 'moment', 'camundaSDK'], function(app, $, moment, C
 				} else {
 					$scope.piIndex = index;
 					$scope.jobModel = {state: $scope.processInstancesDP[index].state, processDefinitionKey: processDefinitionKey};
+					$scope.currentProcessInstance = SearchCurrentSelectedProcessService($scope.processInstancesDP[index]);
 					$http({
 						method: 'GET',
 						headers:{'Accept':'application/hal+json, application/json; q=0.5'},
@@ -1603,6 +1613,9 @@ define(['./module','jquery', 'moment', 'camundaSDK'], function(app, $, moment, C
 					);
 				}
 			}
+		};
+		$scope.startProcess = function(id){
+			StartProcessService(id);
 		};
     }]);
 });

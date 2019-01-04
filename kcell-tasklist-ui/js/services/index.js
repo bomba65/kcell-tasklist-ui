@@ -1,5 +1,7 @@
 define([
 	'./authService',
 	'./translateWithDefault',
-	'./debounce'
+	'./debounce',
+	'./startProcessService',
+	'./searchCurrentSelectedProcessService'
 	], function(){});
