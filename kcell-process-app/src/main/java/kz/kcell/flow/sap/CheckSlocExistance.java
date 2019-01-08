@@ -149,6 +149,7 @@ public class CheckSlocExistance implements JavaDelegate {
             sslsf).build();
 
         HttpGet httpGet = new HttpGet(baseUri + "/asset-management/api/locations/search/findBySiteName?sitename=" + site_name);
+        httpGet.addHeader("Referer", baseUri);
         HttpResponse httpResponse = httpclient.execute(httpGet);
 
         HttpEntity entity = httpResponse.getEntity();
@@ -194,6 +195,7 @@ public class CheckSlocExistance implements JavaDelegate {
 
         HttpPost locationHttpPost = new HttpPost(new URI(locationUrl));
         locationHttpPost.addHeader("Content-Type", "application/json;charset=UTF-8");
+        locationHttpPost.addHeader("Referer", baseUri);
         locationHttpPost.setEntity(locationInputData);
 
         CloseableHttpResponse locationResponse = httpclient.execute(locationHttpPost);

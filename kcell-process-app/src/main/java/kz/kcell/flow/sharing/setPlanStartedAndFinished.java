@@ -38,6 +38,8 @@ public class setPlanStartedAndFinished implements JavaDelegate {
 
         if(StringUtils.isNotEmpty(positionNumber) && sharingPlanStatus.equals("site_sharing_complete")){
             HttpGet httpGet = new HttpGet(baseUri + "/directory-management/networkinfrastructure//plan/setStartedAndFinished/" + positionNumber);
+            httpGet.addHeader("Referer", baseUri);
+
             SSLContextBuilder builder = new SSLContextBuilder();
             builder.loadTrustMaterial(null, new TrustSelfSignedStrategy());
             SSLConnectionSocketFactory sslsf = new SSLConnectionSocketFactory(

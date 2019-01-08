@@ -45,6 +45,8 @@ public class createNewPlanVersion implements JavaDelegate {
         //log.info("sharingPlanStatus:" + sharingPlanStatus);
 
         HttpGet httpGet = new HttpGet(baseUri + "/directory-management/networkinfrastructure/plan/changePrevCurrentStatus/" + positionNumber);
+        httpGet.addHeader("Referer", baseUri);
+
         SSLContextBuilder builder = new SSLContextBuilder();
         builder.loadTrustMaterial(null, new TrustSelfSignedStrategy());
         SSLConnectionSocketFactory sslsf = new SSLConnectionSocketFactory(
@@ -62,6 +64,7 @@ public class createNewPlanVersion implements JavaDelegate {
 
             HttpPost planHttpPost = new HttpPost(new URI(plansUrl));
             planHttpPost.addHeader("Content-Type", "application/json;charset=UTF-8");
+            planHttpPost.addHeader("Referer", baseUri);
             planHttpPost.setEntity(planInputData);
 
             //CloseableHttpClient planHttpClient = HttpClients.createDefault();

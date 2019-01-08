@@ -70,6 +70,8 @@ public class StartProcessController {
 
 
         HttpGet httpGet = new HttpGet(baseUri + "/directory-management/networkinfrastructure/plan/findCurrentToStartPlanSites");
+        httpGet.addHeader("Referer", baseUri);
+
         SSLContextBuilder builder = new SSLContextBuilder();
         builder.loadTrustMaterial(null, new TrustSelfSignedStrategy());
         SSLConnectionSocketFactory sslsf = new SSLConnectionSocketFactory(
@@ -143,6 +145,8 @@ public class StartProcessController {
 
 
         HttpGet httpGet = new HttpGet(baseUri + "/directory-management/networkinfrastructure/plan/findCurrentToStartAndFinishPlanSites");
+        httpGet.addHeader("Referer", baseUri);
+
         SSLContextBuilder builder = new SSLContextBuilder();
         builder.loadTrustMaterial(null, new TrustSelfSignedStrategy());
         SSLConnectionSocketFactory sslsf = new SSLConnectionSocketFactory(

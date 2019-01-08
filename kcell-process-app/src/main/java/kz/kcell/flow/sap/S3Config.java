@@ -46,7 +46,7 @@ public class S3Config {
         if(!amazonS3.doesBucketExistV2(prBucketName)){
             amazonS3.createBucket(prBucketName);
         }
-        if(!amazonS3.doesBucketExist(faBucketName)){
+        if(!amazonS3.doesBucketExistV2(faBucketName)){
             amazonS3.createBucket(faBucketName);
         }
     }

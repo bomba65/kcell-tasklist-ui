@@ -44,6 +44,7 @@ public class CalculateWorksTotalLimit implements JavaDelegate {
             sslsf).build();
 
         HttpGet httpGet = new HttpGet(baseUri + "/directory-management/networkinfrastructure/currency/rate");
+        httpGet.addHeader("Referer", baseUri);
         HttpResponse httpResponse = httpclient.execute(httpGet);
 
         HttpEntity entity = httpResponse.getEntity();
