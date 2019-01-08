@@ -44,7 +44,7 @@ public class TaskHistoryListener implements TaskListener {
     @Override
     public void notify(DelegateTask delegateTask) {
 
-        long isEnabledBackendResolution =
+        boolean isEnabledBackendResolution =
             delegateTask
                 .getProcessEngineServices()
                 .getRepositoryService()
@@ -53,9 +53,10 @@ public class TaskHistoryListener implements TaskListener {
                 .list()
                 .stream()
                 .filter(e-> enabledProcesses.contains(e.getKey()))
-                .count();
+                .findAny()
+                .isPresent();
 
-        if(isEnabledBackendResolution > 0L){
+        if(isEnabledBackendResolution){
             SpinList<SpinJsonNode> resolutions = delegateTask.<JsonValue>getVariableTyped("resolutions").getValue().elements();
 
             ObjectMapper mapper = new ObjectMapper();
@@ -67,8 +68,8 @@ public class TaskHistoryListener implements TaskListener {
             if(users.size()>0){
                 resolution.put("assigneeName", users.get(0).getFirstName() + " " + users.get(0).getLastName());
             }
-            resolution.put("resolution", delegateTask.getVariable(delegateTask.getTaskDefinitionKey() + "TaskResult") !=null ? String.valueOf(delegateTask.getVariable(delegateTask.getTaskDefinitionKey() + "TaskResult")) : "");
-            resolution.put("comment", delegateTask.getVariable(delegateTask.getTaskDefinitionKey() + "TaskComment")!=null ? String.valueOf(delegateTask.getVariable(delegateTask.getTaskDefinitionKey() + "TaskComment")) : "");
+            resolution.put("resolution", delegateTask.hasVariable(delegateTask.getTaskDefinitionKey() + "TaskResult") ? String.valueOf(delegateTask.getVariable(delegateTask.getTaskDefinitionKey() + "TaskResult")) : "");
+            resolution.put("comment", delegateTask.hasVariable(delegateTask.getTaskDefinitionKey() + "TaskComment") ? String.valueOf(delegateTask.getVariable(delegateTask.getTaskDefinitionKey() + "TaskComment")) : "");
             resolution.put("taskId", delegateTask.getId());
             resolution.put("taskName", delegateTask.getName());
             resolution.put("taskEndDate", new SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss.SSSXX").format(new Date()));

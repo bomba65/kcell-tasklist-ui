@@ -35,7 +35,7 @@ public class LeasingController {
 
     @Autowired
     public LeasingController(ScriptEngineManager manager, Minio minioClient) {
-        InputStream fis = LeasingController.class.getResourceAsStream("/template/leasing/rent_request_source.rtf");
+        InputStream fis = LeasingController.class.getResourceAsStream("/leasing/rent_request_source.rtf");
         Scanner s = new Scanner(fis, "UTF-8").useDelimiter("\\A");
         this.template = s.hasNext() ? s.next() : "";
 
