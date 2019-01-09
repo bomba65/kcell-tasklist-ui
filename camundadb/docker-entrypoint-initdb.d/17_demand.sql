@@ -1691,7 +1691,7 @@ INSERT INTO act_id_group (id_, rev_, name_, type_) VALUES ('demand_supportive_td
 INSERT INTO act_id_group (id_, rev_, name_, type_) VALUES ('demand_supportive_hr', 1, 'Demand Supportive - HR', 'WORKFLOW') ON CONFLICT(id_) DO NOTHING;
 INSERT INTO act_id_group (id_, rev_, name_, type_) VALUES ('demand_supportive_warehouse_and_logistics_section', 1, 'Demand Supportive - Warehouse and Logistics Section', 'WORKFLOW') ON CONFLICT(id_) DO NOTHING;
 INSERT INTO act_id_group (id_, rev_, name_, type_) VALUES ('demand_supportive_ccd_business_intelligence', 1, 'Demand Supportive - CCD - Business Intelligence', 'WORKFLOW') ON CONFLICT(id_) DO NOTHING;
-INSERT INTO act_id_group (id_, rev_, name_, type_) VALUES ('demand_supportive_b2c_business_intelligence_', 1, 'Demand Supportive - B2C - Business Intelligence', 'WORKFLOW') ON CONFLICT(id_) DO NOTHING;
+INSERT INTO act_id_group (id_, rev_, name_, type_) VALUES ('demand_supportive_b2c_business_intelligence', 1, 'Demand Supportive - B2C - Business Intelligence', 'WORKFLOW') ON CONFLICT(id_) DO NOTHING;
 INSERT INTO act_id_group (id_, rev_, name_, type_) VALUES ('demand_supportive_b2b_business_intelligence', 1, 'Demand Supportive - B2B - Business Intelligence', 'WORKFLOW') ON CONFLICT(id_) DO NOTHING;
 INSERT INTO act_id_group (id_, rev_, name_, type_) VALUES ('demand_supportive_td_business_analytics_solutions_unit', 1, 'Demand Supportive - TD - Business Analytics Solutions Unit', 'WORKFLOW') ON CONFLICT(id_) DO NOTHING;
 INSERT INTO act_id_group (id_, rev_, name_, type_) VALUES ('demand_supportive_ld_government_relations_unit', 1, 'Demand Supportive - LD - Government Relations Unit', 'WORKFLOW') ON CONFLICT(id_) DO NOTHING;
@@ -5408,9 +5408,9 @@ INSERT INTO act_id_membership (user_id_, group_id_) VALUES ('Zhanar.Zhylgeldinov
 INSERT INTO act_id_membership (user_id_, group_id_) VALUES ('Maral.Amantay@kcell.kz', 'demand_supportive_warehouse_and_logistics_section') ON CONFLICT(user_id_, group_id_) DO NOTHING;
 INSERT INTO act_id_membership (user_id_, group_id_) VALUES ('Murat.Nuralin@kcell.kz', 'demand_supportive_warehouse_and_logistics_section') ON CONFLICT(user_id_, group_id_) DO NOTHING;
 INSERT INTO act_id_membership (user_id_, group_id_) VALUES ('Anatoliy.Piskunov@kcell.kz', 'demand_supportive_ccd_business_intelligence') ON CONFLICT(user_id_, group_id_) DO NOTHING;
-INSERT INTO act_id_membership (user_id_, group_id_) VALUES ('Vyacheslav.Starchikov@kcell.kz', 'demand_supportive_b2c_business_intelligence_') ON CONFLICT(user_id_, group_id_) DO NOTHING;
-INSERT INTO act_id_membership (user_id_, group_id_) VALUES ('Almas.Stambekov@kcell.kz', 'demand_supportive_b2c_business_intelligence_') ON CONFLICT(user_id_, group_id_) DO NOTHING;
-INSERT INTO act_id_membership (user_id_, group_id_) VALUES ('Ainur.Augambayeva@kcell.kz', 'demand_supportive_b2c_business_intelligence_') ON CONFLICT(user_id_, group_id_) DO NOTHING;
+INSERT INTO act_id_membership (user_id_, group_id_) VALUES ('Vyacheslav.Starchikov@kcell.kz', 'demand_supportive_b2c_business_intelligence') ON CONFLICT(user_id_, group_id_) DO NOTHING;
+INSERT INTO act_id_membership (user_id_, group_id_) VALUES ('Almas.Stambekov@kcell.kz', 'demand_supportive_b2c_business_intelligence') ON CONFLICT(user_id_, group_id_) DO NOTHING;
+INSERT INTO act_id_membership (user_id_, group_id_) VALUES ('Ainur.Augambayeva@kcell.kz', 'demand_supportive_b2c_business_intelligence') ON CONFLICT(user_id_, group_id_) DO NOTHING;
 INSERT INTO act_id_membership (user_id_, group_id_) VALUES ('Olga.Kozubova@kcell.kz', 'demand_supportive_b2b_business_intelligence') ON CONFLICT(user_id_, group_id_) DO NOTHING;
 INSERT INTO act_id_membership (user_id_, group_id_) VALUES ('E.Almagambetova@kcell.kz', 'demand_supportive_td_business_analytics_solutions_unit') ON CONFLICT(user_id_, group_id_) DO NOTHING;
 INSERT INTO act_id_membership (user_id_, group_id_) VALUES ('Aiman.Madakhmetova@kcell.kz', 'demand_supportive_ld_government_relations_unit') ON CONFLICT(user_id_, group_id_) DO NOTHING;
