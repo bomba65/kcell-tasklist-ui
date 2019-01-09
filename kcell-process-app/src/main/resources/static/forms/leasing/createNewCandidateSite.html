@@ -158,14 +158,17 @@
                 camForm.variableManager.variableValue('createNewCandidateSiteTaskComment', $scope.createNewCandidateSiteTaskComment);
 
                 angular.forEach(variablesToCreate, function (el) {
-                    if(camForm.variableManager.variables[el].type){
-                        camForm.variableManager.variableValue(el.name, $scope[el.name]);
-                    } else {
+                    if(!camForm.variableManager.variables[el.name] || (camForm.variableManager.variables[el.name] && !camForm.variableManager.variables[el.name].type)){
+                        if(camForm.variableManager.variables[el.name] && !camForm.variableManager.variables[el.name].type){
+                            camForm.variableManager.destroyVariable(el.name);
+                        }
                         camForm.variableManager.createVariable({
                             name: el.name,
                             type: el.type,
                             value: $scope[el.name]
                         });
+                    } else {
+                        camForm.variableManager.variableValue(el.name, $scope[el.name]);
                     }
                 });
             });
@@ -505,16 +508,16 @@
 
             $scope.preSubmit = function() {
                 var deferred = $q.defer();
-                if($scope.farEndInformation && $scope.farEndInformation.length < 3){
+                if($scope.farEndInformation.length < 3){
                     deferred.reject('At least 3 Far End Information should be added!!!');
                     return deferred.promise;
                 } else {
-                    return $http.post('/camunda/leasing/rrfile/create',prepareRRCreatedata()).then(function (results) {
-                        console.log('RR file Updated');
-                    },
-                    function(error){
-                        toasty.error(error.data.message);
-                    });
+                    return $http.post('/camunda/leasing/rrfile/create',prepareRRCreatedata()).then(function (result) {
+                            console.log(result.data);
+                        },
+                        function(error){
+                            toasty.error(error.data.message);
+                        });
                 }
             };
 
@@ -963,7 +966,7 @@
                                 <select class="form-control" id="farEndLegalType" name="farEndLegalType"
                                         ng-model="newFe.legalType" ng-options="type.id as type.desc for type in dictionary.legalType" required>
                                 </select>
-                                <label class="error" ng-show="kcell_form.farEndLegalType.$error.required && ( kcell_form.farEndLegalType.$touched || view.submitted)">Required field</label>
+                                <label class="error" ng-show="form.fe_form.farEndLegalType.$error.required && ( form.fe_form.farEndLegalType.$touched || newFe.submitted)">Required field</label>
                             </div>
                         </div>
                         <div class="form-group-lg">

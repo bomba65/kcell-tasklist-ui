@@ -68,8 +68,8 @@ public class TaskHistoryListener implements TaskListener {
             if(users.size()>0){
                 resolution.put("assigneeName", users.get(0).getFirstName() + " " + users.get(0).getLastName());
             }
-            resolution.put("resolution", delegateTask.hasVariable(delegateTask.getTaskDefinitionKey() + "TaskResult") ? String.valueOf(delegateTask.getVariable(delegateTask.getTaskDefinitionKey() + "TaskResult")) : "");
-            resolution.put("comment", delegateTask.hasVariable(delegateTask.getTaskDefinitionKey() + "TaskComment") ? String.valueOf(delegateTask.getVariable(delegateTask.getTaskDefinitionKey() + "TaskComment")) : "");
+            resolution.put("resolution", checkVariable(delegateTask,delegateTask.getTaskDefinitionKey() + "TaskResult") ? String.valueOf(delegateTask.getVariable(delegateTask.getTaskDefinitionKey() + "TaskResult")) : "");
+            resolution.put("comment", checkVariable(delegateTask,delegateTask.getTaskDefinitionKey() + "TaskComment") ? String.valueOf(delegateTask.getVariable(delegateTask.getTaskDefinitionKey() + "TaskComment")) : "");
             resolution.put("taskId", delegateTask.getId());
             resolution.put("taskName", delegateTask.getName());
             resolution.put("taskEndDate", new SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss.SSSXX").format(new Date()));
@@ -80,5 +80,9 @@ public class TaskHistoryListener implements TaskListener {
 
             delegateTask.setVariable("resolutions", SpinValues.jsonValue(resolutions.toString()));
         }
+    }
+
+    private boolean checkVariable(DelegateTask delegateTask, String variable){
+        return delegateTask.hasVariable(delegateTask.getTaskDefinitionKey() + "TaskResult") && delegateTask.getVariable(delegateTask.getTaskDefinitionKey() + "TaskResult")!=null;
     }
 }
