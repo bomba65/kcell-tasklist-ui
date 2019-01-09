@@ -53,7 +53,7 @@ public class PBXBINCheck {
         }
 
 
-        List<HistoricProcessInstance> processes = historyService.createHistoricProcessInstanceQuery().processDefinitionKey("AftersalesPBX").variableValueEquals("BIN", pbxBIN).orderByProcessInstanceStartTime().desc().list();
+        List<HistoricProcessInstance> processes = historyService.createHistoricProcessInstanceQuery().processDefinitionKey("AftersalesPBX").variableValueEquals("BIN", pbxBIN).variableValueEquals("finalResolution", "Approve").finished().orderByProcessInstanceEndTime().desc().list();
         HistoricProcessInstance process = null;
         if (!processes.isEmpty()) process = processes.get(0);
 
