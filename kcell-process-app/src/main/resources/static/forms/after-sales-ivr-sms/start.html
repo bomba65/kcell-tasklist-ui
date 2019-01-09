@@ -35,20 +35,49 @@
                     value: undefined,
                     type: 'Json'
                 });
+                camForm.variableManager.createVariable({
+                    name: 'connectionType',
+                    value: '',
+                    type: 'String'
+                });
+                camForm.variableManager.createVariable({
+                    name: 'operatorType',
+                    value: '',
+                    type: 'String'
+                });
             });
 
             $scope.preSubmit = function() {
+                var baseUrl = '/camunda/api/engine/engine/default';
                 var deferred = $q.defer();
                 $scope.relatedProcessInstanceVariables = {};
-                $http.get('/camunda/api/engine/engine/default/history/variable-instance?deserializeValues=false&processInstanceId='+$scope.relatedProcessInstance.id).then(
-                    function(result){
-                        result.data.forEach(function(el){
-                            if (el.type === "Json") {
-                                $scope.relatedProcessInstanceVariables[el.name] = JSON.parse(el.value);
-                            } else {
-                                $scope.relatedProcessInstanceVariables[el.name] = el.value;
-                            }
+                console.log('preSubmit');
+				return $http.get(baseUrl + '/history/variable-instance?deserializeValues=false&processInstanceId='+$scope.relatedProcessInstance.id).then(
+				    function(result){
+				        result.data.forEach(function(el){
+				            $scope.relatedProcessInstanceVariables[el.name] = el;
+							if(el.type !== 'Json' && (el.value || el.value === "" || el.type === 'Boolean')) {
+					        	$scope.relatedProcessInstanceVariables[el.name] = el.value;
+					        }
+					        if(el.type === 'File' || el.type === 'Bytes'){
+								$scope.relatedProcessInstanceVariables[el.name].contentUrl = baseUrl+'/history/variable-instance/'+el.id+'/data';
+							}
+							if(el.type === 'Json'){
+								if(el.name === 'resolutions'){
+									$scope.relatedProcessInstanceVariables[el.name].value = JSON.parse(el.value);
+								} else if(['contractScanCopyFileName', 'applicationScanCopyFileName', 'vpnQuestionnaireFileName'].indexOf(el.name) > -1) {
+									if (!$scope.relatedProcessInstanceVariables.files) {
+										$scope.relatedProcessInstanceVariables.files = [];
+									}
+									$scope.relatedProcessInstanceVariables.files.push(JSON.parse(el.value));
+								} else {
+									$scope.relatedProcessInstanceVariables[el.name] = JSON.parse(el.value);
+								}
+							}
 						});
+
+						//$scope.relatedProcessInstanceVariables.showTarif = true;
+
 						console.log('relatedProcessInstanceVariables', $scope.relatedProcessInstanceVariables);
 						deferred.resolve('fetched vars');
 						return deferred.promise;
@@ -62,6 +91,7 @@
             };
 
             camForm.on('submit', function (evt) {
+                console.log('Submit');
                 // evt.submitPrevented = true;
                 //var date = new Date();
                 //var businessKey = 'IVR_' + $scope.id[0].title + '_' + ("0" + date.getDate().toString()).slice(-2) + ("0" + (date.getMonth() + 1)).toString().slice(-2) + date.getFullYear().toString();
@@ -73,6 +103,8 @@
                 camForm.variableManager.variableValue('relatedProcessDefinitionKey', $scope.relatedProcessInstance.processDefinitionKey);
                 camForm.variableManager.variableValue('relatedProcessBusinessKey', $scope.relatedProcessInstance.businessKey);
                 camForm.variableManager.variableValue('relatedProcessInstanceVariables', $scope.relatedProcessInstanceVariables);
+                camForm.variableManager.variableValue('connectionType', $scope.relatedProcessInstanceVariables.connectionType);
+                camForm.variableManager.variableValue('operatorType', $scope.relatedProcessInstanceVariables.operatorType);
 
             });
         }]);
