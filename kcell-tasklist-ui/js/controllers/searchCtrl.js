@@ -1141,7 +1141,14 @@ define(['./module','jquery', 'moment', 'camundaSDK'], function(app, $, moment, C
 		}
 
 		$scope.getXlsxProcessInstancesDP = function(){
-			return $scope.ExcellentExport.convert({anchor: 'xlsxClick',format: 'xlsx',filename: 'delivery-portal'}, [{name: 'Process Instances',from: {table: 'xlsxDeliveryPortalTable'}}]);
+			//return $scope.ExcellentExport.convert({anchor: 'xlsxClick',format: 'xlsx',filename: 'delivery-portal'}, [{name: 'Process Instances',from: {table: 'xlsxDeliveryPortalTable'}}]);
+			var tbl = document.getElementById('xlsxDeliveryPortalTable');
+			var ws = XLSX.utils.table_to_sheet(tbl, {dateNF:'DD.MM.YYYY'});
+
+            var wb = XLSX.utils.book_new();
+            XLSX.utils.book_append_sheet(wb, ws, 'New Sheet Name 1');
+
+            return XLSX.writeFile(wb, 'delivery-portal-search-result.xlsx');
 		}
 
 		function getProcessInstancesDP(filter, processInstancesDP){
