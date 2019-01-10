@@ -83,6 +83,6 @@ public class TaskHistoryListener implements TaskListener {
     }
 
     private boolean checkVariable(DelegateTask delegateTask, String variable){
-        return delegateTask.hasVariable(delegateTask.getTaskDefinitionKey() + "TaskResult") && delegateTask.getVariable(delegateTask.getTaskDefinitionKey() + "TaskResult")!=null;
+        return delegateTask.hasVariable(variable) && delegateTask.getVariable(variable)!=null;
     }
 }
