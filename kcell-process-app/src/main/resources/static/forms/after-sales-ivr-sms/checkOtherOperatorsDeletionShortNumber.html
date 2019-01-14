@@ -3,6 +3,7 @@
         inject(['$scope', '$http', 'Uri', '$rootScope', '$q', '$timeout', function ($scope, $http, Uri, $rootScope, $q, $timeout) {
             var variables = [
                 'resolutions',
+                'identifiers',
                 'relatedProcessInstanceId',
                 'relatedProcessInstanceVariables'
             ];
@@ -65,89 +66,48 @@
                         }
                     } else {
                         $scope[el] = camForm.variableManager.variables[el].value;
-                        $scope.bulksmsInfo[el] = camForm.variableManager.variables[el].value;
+                        //$scope.bulksmsInfo[el] = camForm.variableManager.variables[el].value;
                     }
                 });
                 $http.get("/camunda/api/engine/engine/default/user/" + $rootScope.authentication.name+ "/profile").then(function(result){
                     $rootScope.authentication.assigneeName = (result.data.firstName ? result.data.firstName : "") + " " + (result.data.lastName ? result.data.lastName : "");
                 });
-                $scope.identifiers = angular.copy($scope.relatedProcessInstanceVariables.identifiers);
                 $scope.bulksmsInfo = angular.copy($scope.relatedProcessInstanceVariables);
                 $scope.bulksmsInfo.showTarif = true;
                 $scope.bulksmsInfo.newIdentifiers = $scope.identifiers;
+
                 console.log($scope.bulksmsInfo);
-                //console.log($scope.bulksmsInfo.files);
+                console.log($scope.identifiers);
 
                 camForm.variableManager.createVariable({
-                    name: 'identifiers',
-                    type: 'Json',
-                    value: undefined
-                });
-
-                camForm.variableManager.createVariable({
-                    name: 'confirmOtherOperatorsChangeShortNumberTaskResult',
+                    name: 'checkOtherOperatorsChangeShortNumberTaskResult',
                     type: 'String',
                     value: ''
                 });
 
                 camForm.variableManager.createVariable({
-                    name: 'confirmOtherOperatorsChangeShortNumberTaskComment',
+                    name: 'checkOtherOperatorsChangeShortNumberTaskComment',
                     type: 'String',
                     value: ''
                 });
 
-                //$scope.confirmOtherOperatorsChangeShortNumberTaskResult = '';
+                $scope.checkOtherOperatorsChangeShortNumberTaskResult = '';
             });
 
             camForm.on('submit', function () {
-                $scope.confirmOtherOperatorsChangeShortNumberTaskResult = 'Completed';
+                $scope.checkOtherOperatorsChangeShortNumberTaskResult = 'Completed';
                 if(!$scope.resolutions){
                     $scope.resolutions = [];
                 }
-                camForm.variableManager.variableValue('confirmOtherOperatorsChangeShortNumberTaskResult', $scope.confirmOtherOperatorsChangeShortNumberTaskResult);
-                camForm.variableManager.variableValue('confirmOtherOperatorsChangeShortNumberTaskComment', $scope.confirmOtherOperatorsChangeShortNumberTaskComment);
-
-                //if($scope.identifiers){
-                    camForm.variableManager.variableValue('identifiers', $scope.identifiers);
-                //}
-
-                $scope.resolutions.push({processInstanceId: $scope.processInstanceId, assignee: $rootScope.authentication.name, assigneeName: $rootScope.authentication.assigneeName, resolution: $scope.confirmOtherOperatorsChangeShortNumberTaskResult, comment: $scope.confirmOtherOperatorsChangeShortNumberTaskComment, taskId: camForm.taskId});
+                camForm.variableManager.variableValue('checkOtherOperatorsChangeShortNumberTaskResult', $scope.checkOtherOperatorsChangeShortNumberTaskResult);
+                camForm.variableManager.variableValue('checkOtherOperatorsChangeShortNumberTaskComment', $scope.checkOtherOperatorsChangeShortNumberTaskComment);
+                $scope.resolutions.push({processInstanceId: $scope.processInstanceId, assignee: $rootScope.authentication.name, assigneeName: $rootScope.authentication.assigneeName, resolution: $scope.checkOtherOperatorsChangeShortNumberTaskResult, comment: $scope.checkOtherOperatorsChangeShortNumberTaskComment, taskId: camForm.taskId});
                 camForm.variableManager.variableValue('resolutions', $scope.resolutions);
-
             });
-
-            $scope.dateFieldOpened = [];
-            $scope.open = function open(identifier, operator) {
-                console.log('open', identifier.title, operator.title, operator.dateFieldOpened);
-                operator.dateFieldOpened = true;
-            };
-            $scope.addToNetwork = function(identifier, operator) {
-                console.log('check', identifier.title, operator.title, operator.addedToNetwork);
-
-                if(!operator.oldTitle){
-                    operator.oldTitle = operator.title;
-                }
-
-                if(!operator.addedToNetwork){
-                    delete operator.addedToNetworkDate;
-                    operator.title = operator.oldTitle;
-                }
-
-            };
-            $scope.setNetworkDate = function(identifier, operator){
-                console.log('select', identifier.title, operator.title, operator.addedToNetworkDate);
-                if(operator.addedToNetworkDate){
-                    operator.title = identifier.title;
-                } else {
-                    operator.title = operator.oldTitle;
-                }
-            };
         }]);
 
     </script>
     <info-bulksms bulksms-info="bulksmsInfo"></info-bulksms>
-    {{identifiers[0].operators[2]}}<br/>
-    {{identifiers[0].operators[3]}}
     <div class="form-group" ng-repeat="id in identifiers">
         <label class="col-sm-12 control-label"/>Идентификатор - {{id.title}}
         <div class="col-sm-12" style="border-left: solid; border-left-width: 1px; margin-left: 2vh">
@@ -156,30 +116,14 @@
                 <tr>
                     <th scope="col">Оператор</th>
                     <th scope="col">Дата заведения короткого номера</th>
-                    <th scope="col">Добавить</th>
+                    <th scope="col">Статус</th>
                 </tr>
                 </thead>
                 <tbody>
-                <tr ng-repeat="o in id.operators" ng-if="o.isAvailable && o.checked && o.id !== 'kcell' && (['MESSAGE','KiT_Notify'].indexOf(o.title) > -1 || ['MESSAGE','KiT_Notify'].indexOf(o.oldTitle) > -1)">
-                    <th scope="row" style="width: 40%">{{o.name}}</th>
-                    <td style="width: 40%">
-                        <div class="input-group">
-                            <input type="text" ng-change="setNetworkDate(id, o)" ng-model="o.addedToNetworkDate" name="{{'addedToNetworkDate' + id.title + o.id}}" ng-disabled="!o.addedToNetwork" ng-required="o.addedToNetwork" class="form-control" datepicker-popup="dd.MM.yyyy" is-open="o.dateFieldOpened" id="{{'addedToNetworkDate' + id.title + o.id}}" min-date="datepickerOptions.minDate" />
-                            <!--input type="text" ng-model="o.addedToNetworkDate" name="{{'addedToNetworkDate' + id.title + o.id}}" ng-disabled="!o.addedToNetwork" ng-required="o.addedToNetwork" class="form-control" datepicker-popup="dd.MM.yyyy" id="{{'addedToNetworkDate' + id.title + o.id}}" min-date="datepickerOptions.minDate" /-->
-                            <span class="input-group-btn">
-                                <!--button type="button" class="btn btn-default" ng-disabled="!o.addedToNetwork" ng-click="open($event, $index, id.title, o.id)"-->
-                                <button type="button" class="btn btn-default" ng-disabled="!o.addedToNetwork" ng-click="open(id, o)">
-                                    <i class="glyphicon glyphicon-calendar"></i>
-                                </button>
-                            </span>
-                        </div>
-                        <label class="error" ng-show="kcell_form['addedToNetworkDate' + id.title + o.id].$error.required && view.submitted">Required field</label>
-                    </td>
-                    <td style="width: 20%">
-                        <!--input type="checkbox" ng-model="o.addedToNetwork" ng-change="check($event, $index, id.title, o.id)"-->
-                        <!--input type="checkbox" ng-model="o.addedToNetwork" ng-change="check(id.title, o.id)"-->
-                        <input type="checkbox" ng-model="o.addedToNetwork" ng-change="addToNetwork(id, o)">
-                    </td>
+                <tr ng-repeat="o in id.operators" ng-if="o.deleted">
+                    <td scope="row">{{o.name}}</td>
+                    <td scope="row">{{o.deletedDate | date: 'dd.MM.yyyy'}}</td>
+                    <td scope="row">{{o.deleted?'Отключен':'Без изменений'}}</td>
                 </tr>
                 </tbody>
             </table>
@@ -188,8 +132,8 @@
     <div class="form-group">
         <label class="col-sm-3 control-label">Комментарии</label>
         <div class="col-sm-9">
-            <textarea class="form-control" ng-model="confirmOtherOperatorsChangeShortNumberTaskComment" name="confirmOtherOperatorsChangeShortNumberTaskComment" ng-required="true" placeholder="Comments..." maxlength="500" rows="4" style="resize:none"></textarea>
-            <label class="error" ng-show="kcell_form.confirmOtherOperatorsChangeShortNumberTaskComment.$error.required && view.submitted">Required field</label>
+            <textarea class="form-control" ng-model="checkOtherOperatorsChangeShortNumberTaskComment" name="checkOtherOperatorsChangeShortNumberTaskComment" ng-required="true" placeholder="Comments..." maxlength="500" rows="4" style="resize:none"></textarea>
+            <label class="error" ng-show="kcell_form.checkOtherOperatorsChangeShortNumberTaskComment.$error.required && view.submitted">Required field</label>
         </div>
     </div>
     <accordion>

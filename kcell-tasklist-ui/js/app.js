@@ -67,7 +67,8 @@ define('app',[
 						{key:'PBX', name:'PBX', group:'delivery_pbx_users'},
 						{key:'bulksmsConnectionKAE', name:'Bulk SMS through KAE', group:'delivery_sms_users'},
 						{key:'ConnectSMSPartners', name:'Подключение клиента', group:'delivery_sms_partner_users'},
-						{key:'DisconnectSMSPartners', name:'Отключение клиента', group:'delivery_sms_partner_users'}
+						{key:'DisconnectSMSPartners', name:'Отключение клиента', group:'delivery_sms_partner_users'},
+						{key:'after-sales-ivr-sms', name:'After Sales IVR SMS', group:'delivery_sms_ivr_b2b_delivery'},
 					]
 				},
 				{

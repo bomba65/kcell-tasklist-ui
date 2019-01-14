@@ -4,29 +4,8 @@
             var variables = [
                 'resolutions',
                 'identifiers',
-                'connectionType',
-                'transmitNumber',
-                'ipNumber',
-                'applicationScanCopyFileName',
-                'contractScanCopyFileName',
-                'abonentTarif',
-                'description',
-                'techSpecNumber',
-                'techSpecFIO',
-                'officialClientCompanyName',
-                'clientCompanyLatName',
-                'addressATS',
-                'coordinates',
-                'startDate',
-                'priority',
-                'provider',
-                'clientBIN',
-                'techSpecEmail',
-                'contractNumber',
-                'finalIDs',
-                'operatorType',
-                'responsibleB2BDelivery',
-                'responsibleB2BSales'
+                'relatedProcessInstanceId',
+                'relatedProcessInstanceVariables'
             ];
 
             camForm.on('form-loaded', function () {
@@ -85,46 +64,45 @@
                                 value: ''
                             });
                         }
-                    } else if (el === 'applicationScanCopyFileName' || el === 'contractScanCopyFileName') {
-                        $scope[el] = camForm.variableManager.variables[el].value;
-                        $scope.bulksmsInfo.files.push(camForm.variableManager.variables[el].value);
                     } else {
                         $scope[el] = camForm.variableManager.variables[el].value;
-                        $scope.bulksmsInfo[el] = camForm.variableManager.variables[el].value;
+                        //$scope.bulksmsInfo[el] = camForm.variableManager.variables[el].value;
                     }
                 });
                 $http.get("/camunda/api/engine/engine/default/user/" + $rootScope.authentication.name+ "/profile").then(function(result){
                     $rootScope.authentication.assigneeName = (result.data.firstName ? result.data.firstName : "") + " " + (result.data.lastName ? result.data.lastName : "");
                 });
+                $scope.bulksmsInfo = angular.copy($scope.relatedProcessInstanceVariables);
                 $scope.bulksmsInfo.showTarif = true;
+                $scope.bulksmsInfo.newIdentifiers = $scope.identifiers;
+
                 console.log($scope.bulksmsInfo);
-                console.log($scope.bulksmsInfo.files);
+                console.log($scope.identifiers);
 
                 camForm.variableManager.createVariable({
-                    name: 'checkOtherOperatorsCreationShortNumberTaskResult',
+                    name: 'checkOtherOperatorsChangeShortNumberTaskResult',
                     type: 'String',
                     value: ''
                 });
 
                 camForm.variableManager.createVariable({
-                    name: 'checkOtherOperatorsCreationShortNumberTaskComment',
+                    name: 'checkOtherOperatorsChangeShortNumberTaskComment',
                     type: 'String',
                     value: ''
                 });
 
-                $scope.checkOtherOperatorsCreationShortNumberTaskResult = '';
+                $scope.checkOtherOperatorsChangeShortNumberTaskResult = '';
             });
 
             camForm.on('submit', function () {
-                $scope.checkOtherOperatorsCreationShortNumberTaskResult = 'Completed';
+                $scope.checkOtherOperatorsChangeShortNumberTaskResult = 'Completed';
                 if(!$scope.resolutions){
                     $scope.resolutions = [];
                 }
-                camForm.variableManager.variableValue('checkOtherOperatorsCreationShortNumberTaskResult', $scope.checkOtherOperatorsCreationShortNumberTaskResult);
-                camForm.variableManager.variableValue('checkOtherOperatorsCreationShortNumberTaskComment', $scope.checkOtherOperatorsCreationShortNumberTaskComment);
-                $scope.resolutions.push({processInstanceId: $scope.processInstanceId, assignee: $rootScope.authentication.name, assigneeName: $rootScope.authentication.assigneeName, resolution: $scope.checkOtherOperatorsCreationShortNumberTaskResult, comment: $scope.checkOtherOperatorsCreationShortNumberTaskComment, taskId: camForm.taskId});
+                camForm.variableManager.variableValue('checkOtherOperatorsChangeShortNumberTaskResult', $scope.checkOtherOperatorsChangeShortNumberTaskResult);
+                camForm.variableManager.variableValue('checkOtherOperatorsChangeShortNumberTaskComment', $scope.checkOtherOperatorsChangeShortNumberTaskComment);
+                $scope.resolutions.push({processInstanceId: $scope.processInstanceId, assignee: $rootScope.authentication.name, assigneeName: $rootScope.authentication.assigneeName, resolution: $scope.checkOtherOperatorsChangeShortNumberTaskResult, comment: $scope.checkOtherOperatorsChangeShortNumberTaskComment, taskId: camForm.taskId});
                 camForm.variableManager.variableValue('resolutions', $scope.resolutions);
-                camForm.variableManager.variableValue('identifiers', $scope.identifiers);
             });
         }]);
 
@@ -142,10 +120,10 @@
                 </tr>
                 </thead>
                 <tbody>
-                <tr ng-repeat="o in id.operators" ng-if="o.isAvailable && o.checked && o.id !== 'kcell'">
+                <tr ng-repeat="o in id.operators" ng-if="o.isAvailable && o.checked && o.id !== 'kcell' && (['MESSAGE','KiT_Notify'].indexOf(o.title) > -1 || o.addedToNetwork)">
                     <td scope="row">{{o.name}}</td>
                     <td scope="row">{{o.addedToNetworkDate | date: 'dd.MM.yyyy'}}</td>
-                    <td scope="row">{{o.addedToNetwork?'Добавлен':'Не добавлен'}}</td>
+                    <td scope="row">{{o.addedToNetwork?'Изменен':'Без изменений'}}</td>
                 </tr>
                 </tbody>
             </table>
@@ -154,8 +132,8 @@
     <div class="form-group">
         <label class="col-sm-3 control-label">Комментарии</label>
         <div class="col-sm-9">
-            <textarea class="form-control" ng-model="checkOtherOperatorsCreationShortNumberTaskComment" name="checkOtherOperatorsCreationShortNumberTaskComment" placeholder="Comments..." maxlength="500" rows="4" style="resize:none"></textarea>
-            <label class="error" ng-show="kcell_form.checkOtherOperatorsCreationShortNumberTaskComment.$error.required && ( kcell_form.checkOtherOperatorsCreationShortNumberTaskComment.$touched || view.submitted)">Required field</label>
+            <textarea class="form-control" ng-model="checkOtherOperatorsChangeShortNumberTaskComment" name="checkOtherOperatorsChangeShortNumberTaskComment" ng-required="true" placeholder="Comments..." maxlength="500" rows="4" style="resize:none"></textarea>
+            <label class="error" ng-show="kcell_form.checkOtherOperatorsChangeShortNumberTaskComment.$error.required && view.submitted">Required field</label>
         </div>
     </div>
     <accordion>

@@ -4,31 +4,8 @@
             var variables = [
                 'resolutions',
                 'identifiers',
-                'identifierType',
-                'clientBIN',
-                'officialClientCompanyName',
-                'clientCompanyLatName',
-                'description',
-                'connectionType',
-                'smsServiceType',
-                'MSGGWaccount',
-                'smsServiceLogin',
-                'startDate',
-                'ipNumber',
-                'applicationScanCopyFileName',
-                'contractScanCopyFileName',
-                'contractNumber',
-                'abonentTarif',
-                'techSpecNumber',
-                'techSpecFIO',
-                'techSpecEmail',
-                'tarifPlane',
-                'billing',
-                'provider',
-                'finalIDs',
-                'operatorType',
-                'responsibleB2BDelivery',
-                'responsibleB2BSales'
+                'relatedProcessInstanceId',
+                'relatedProcessInstanceVariables'
             ];
 
             camForm.on('form-loaded', function () {
@@ -87,18 +64,17 @@
                                 value: ''
                             });
                         }
-                    } else if (el === 'applicationScanCopyFileName' || el === 'contractScanCopyFileName') {
-                        $scope[el] = camForm.variableManager.variables[el].value;
-                        $scope.bulksmsInfo.files.push(camForm.variableManager.variables[el].value);
                     } else {
                         $scope[el] = camForm.variableManager.variables[el].value;
-                        $scope.bulksmsInfo[el] = camForm.variableManager.variables[el].value;
                     }
                 });
                 $http.get("/camunda/api/engine/engine/default/user/" + $rootScope.authentication.name+ "/profile").then(function(result){
                     $rootScope.authentication.assigneeName = (result.data.firstName ? result.data.firstName : "") + " " + (result.data.lastName ? result.data.lastName : "");
                 });
+                $scope.bulksmsInfo = angular.copy($scope.relatedProcessInstanceVariables);
                 $scope.bulksmsInfo.showTarif = true;
+                $scope.bulksmsInfo.newIdentifiers = $scope.identifiers;
+
                 console.log($scope.bulksmsInfo);
                 console.log($scope.bulksmsInfo.files);
 
@@ -135,24 +111,20 @@
     <div class="form-group">
         <label class="col-sm-2 control-label">Логин:</label>
         <div class="col-sm-4">
-            <input ng-required="true" class="form-control"
-                   cam-variable-name="smsbulkLogin"
-                   cam-variable-type="String"
-                   placeholder="Логин"/>
+            <input ng-required="true" class="form-control" name="smsbulkLogin" cam-variable-name="smsbulkLogin" cam-variable-type="String" placeholder="Логин"/>
+            <label class="error" ng-show="kcell_form.smsbulkLogin.$error.required && view.submitted">Required field</label>
         </div>
         <label class="col-sm-2 control-label">Пароль:</label>
         <div class="col-sm-4">
-            <input ng-required="true" class="form-control"
-                   cam-variable-name="smsbulkPass"
-                   cam-variable-type="String"
-                   placeholder="Пароль"/>
+            <input ng-required="true" class="form-control" name="smsbulkPass" cam-variable-name="smsbulkPass" cam-variable-type="String" placeholder="Пароль"/>
+            <label class="error" ng-show="kcell_form.smsbulkPass.$error.required && view.submitted">Required field</label>
         </div>
     </div>
     <div class="form-group">
         <label class="col-sm-3 control-label">Комментарии</label>
         <div class="col-sm-9">
-            <textarea class="form-control" ng-model="smsbulkAccountInfoTaskComment" name="smsbulkAccountInfoTaskComment" placeholder="Comments..." maxlength="500" rows="4" style="resize:none"></textarea>
-            <label class="error" ng-show="kcell_form.smsbulkAccountInfoTaskComment.$error.required && ( kcell_form.smsbulkAccountInfoTaskComment.$touched || view.submitted)">Required field</label>
+            <textarea class="form-control" ng-model="smsbulkAccountInfoTaskComment" name="smsbulkAccountInfoTaskComment" ng-required="true" placeholder="Comments..." maxlength="500" rows="4" style="resize:none"></textarea>
+            <label class="error" ng-show="kcell_form.smsbulkAccountInfoTaskComment.$error.required && view.submitted">Required field</label>
         </div>
     </div>
     <accordion>
