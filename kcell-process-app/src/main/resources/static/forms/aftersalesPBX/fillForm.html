@@ -247,13 +247,28 @@
                         scope.pbxData.sip.fetched = true;
                     }
                 }
+                if (!$scope.action.newTrunk && !$scope.action.changeConnection) $scope.techSpecs.connectionPointNew = null;
             });
+
 
             $scope.onActionCheck = function() {
                 if ($scope.action.changeConnection || $scope.action.newTrunk) $scope.action.needBillingTest = true;
                 else if (!$scope.action.changeConnection && !$scope.action.newTrunk) $scope.action.needBillingTest = false;
                 if (!$scope.action.newTrunk && !$scope.action.changeConnection) $scope.techSpecs.connectionPointNew = null;
             };
+
+            $scope.kcell_form.comment.$setValidity('actionList', false);
+            $scope.$watch('action', function (data) {
+                var any = false;
+                for (var i in $scope.action) {
+                    if (i === 'tariffPlan' || i === 'tariffExtra' || i === 'needBillingTest') continue;
+                    if ($scope.action[i]) {
+                        any = true;
+                        break;
+                    }
+                }
+                $scope.kcell_form.comment.$setValidity('actionList', any);
+            }, true);
         }]);
     </script>
     <tabset class="my-tab-head my-tab" justified="true">
@@ -329,6 +344,7 @@
                         <div class="checkbox">
                             <label><input type="checkbox" ng-model="action.agreementTermination" ng-disabled="action.deleteTICName">Termination of an agreement</label>
                         </div>
+                        <span class="has-error" ng-if="kcell_form.comment.$error.actionList && (kcell_form.comment.$touched || view.submitted)">Please choose an action</span>
                     </div>
                 </div>
             </div>
@@ -388,7 +404,7 @@
     <div class="form-group">
         <label class="col-sm-2 control-label">Comment</label>
         <div class="col-sm-10">
-            <textarea elastic-textarea class="form-control" rows="4" ng-model="comment"></textarea>
+            <textarea elastic-textarea class="form-control" rows="4" ng-model="comment" name="comment"></textarea>
         </div>
     </div>
 
