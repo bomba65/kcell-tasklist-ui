@@ -3,5 +3,6 @@ define([
 	'./translateWithDefault',
 	'./debounce',
 	'./startProcessService',
-	'./searchCurrentSelectedProcessService'
+	'./searchCurrentSelectedProcessService',
+	'./disconnectSelectedProcessService'
 	], function(){});

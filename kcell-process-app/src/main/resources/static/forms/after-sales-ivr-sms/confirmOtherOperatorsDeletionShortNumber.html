@@ -3,6 +3,7 @@
         inject(['$scope', '$http', 'Uri', '$rootScope', '$q', '$timeout', function ($scope, $http, Uri, $rootScope, $q, $timeout) {
             var variables = [
                 'resolutions',
+                'identifiers',
                 'relatedProcessInstanceId',
                 'relatedProcessInstanceVariables'
             ];
@@ -19,8 +20,8 @@
                             console.log(error.data);
                         }
                 );
-                $scope.bulksmsInfo = [];
-                $scope.bulksmsInfo.files = [];
+                $scope.aftersalesInfo = [];
+                $scope.aftersalesInfo.files = [];
             });
 
             camForm.on('variables-fetched', function () {
@@ -65,23 +66,17 @@
                         }
                     } else {
                         $scope[el] = camForm.variableManager.variables[el].value;
-                        //$scope.bulksmsInfo[el] = camForm.variableManager.variables[el].value;
+                        //$scope.aftersalesInfo[el] = camForm.variableManager.variables[el].value;
                     }
                 });
                 $http.get("/camunda/api/engine/engine/default/user/" + $rootScope.authentication.name+ "/profile").then(function(result){
                     $rootScope.authentication.assigneeName = (result.data.firstName ? result.data.firstName : "") + " " + (result.data.lastName ? result.data.lastName : "");
                 });
-                camForm.variableManager.createVariable({
-                    name: 'identifiers',
-                    type: 'Json',
-                    value: ''
-                });
-                $scope.identifiers = angular.copy($scope.relatedProcessInstanceVariables.identifiers);
-                $scope.bulksmsInfo = angular.copy($scope.relatedProcessInstanceVariables);
-                $scope.bulksmsInfo.showTarif = true;
-                //$scope.bulksmsInfo.newIdentifiers = $scope.identifiers;
-                console.log($scope.bulksmsInfo);
-                //console.log($scope.bulksmsInfo.files);
+
+                $scope.aftersalesInfo = angular.copy($scope.relatedProcessInstanceVariables);
+                $scope.aftersalesInfo.identifiers = $scope.identifiers;
+                $scope.aftersalesInfo.showTarif = true;
+                //console.log($scope.aftersalesInfo);
 
                 camForm.variableManager.createVariable({
                     name: 'confirmOtherOperatorsDeletionShortNumberTaskResult',
@@ -95,7 +90,6 @@
                     value: ''
                 });
 
-                //$scope.confirmOtherOperatorsDeletionShortNumberTaskResult = '';
             });
 
             camForm.on('submit', function () {
@@ -106,9 +100,7 @@
                 camForm.variableManager.variableValue('confirmOtherOperatorsDeletionShortNumberTaskResult', $scope.confirmOtherOperatorsDeletionShortNumberTaskResult);
                 camForm.variableManager.variableValue('confirmOtherOperatorsDeletionShortNumberTaskComment', $scope.confirmOtherOperatorsDeletionShortNumberTaskComment);
 
-                //if($scope.identifiers){
-                    camForm.variableManager.variableValue('identifiers', $scope.identifiers);
-                //}
+                camForm.variableManager.variableValue('identifiers', $scope.identifiers);
 
                 $scope.resolutions.push({processInstanceId: $scope.processInstanceId, assignee: $rootScope.authentication.name, assigneeName: $rootScope.authentication.assigneeName, resolution: $scope.confirmOtherOperatorsDeletionShortNumberTaskResult, comment: $scope.confirmOtherOperatorsDeletionShortNumberTaskComment, taskId: camForm.taskId});
                 camForm.variableManager.variableValue('resolutions', $scope.resolutions);
@@ -117,11 +109,11 @@
 
             $scope.dateFieldOpened = [];
             $scope.open = function open(identifier, operator) {
-                console.log('open', identifier.title, operator.title, operator.dateFieldOpened);
+                console.log('open', identifier.title, operator.deleted, operator.deletedDate, operator.dateFieldOpened);
                 operator.dateFieldOpened = true;
             };
             $scope.deleteOp = function(identifier, operator) {
-                console.log('check', identifier.title, operator.title, operator.deleted);
+                console.log('check', identifier.title, operator.deleted, operator.deletedDate, operator.dateFieldOpened);
 
                 if(!operator.deleted){
                     delete operator.deletedDate;
@@ -131,7 +123,7 @@
         }]);
 
     </script>
-    <info-bulksms bulksms-info="bulksmsInfo"></info-bulksms>
+    <info-aftersales aftersales-info="aftersalesInfo"></info-aftersales>
     <div class="form-group" ng-repeat="id in identifiers">
         <label class="col-sm-12 control-label"/>Идентификатор - {{id.title}}
         <div class="col-sm-12" style="border-left: solid; border-left-width: 1px; margin-left: 2vh">

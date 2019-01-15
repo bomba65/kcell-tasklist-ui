@@ -1,7 +1,7 @@
 define(['./module','jquery', 'moment', 'camundaSDK'], function(app, $, moment, CamSDK){
 	'use strict';
-	return app.controller('searchCtrl', ['$scope', '$rootScope', '$http', '$routeParams', '$q', '$location', '$timeout', 'AuthenticationService', 'exModal', '$state', 'StartProcessService', 'SearchCurrentSelectedProcessService',
-			                         function($scope, $rootScope, $http, $routeParams, $q, $location, $timeout, AuthenticationService, exModal, $state, StartProcessService, SearchCurrentSelectedProcessService) {
+	return app.controller('searchCtrl', ['$scope', '$rootScope', '$http', '$routeParams', '$q', '$location', '$timeout', 'AuthenticationService', 'exModal', '$state', 'StartProcessService', 'SearchCurrentSelectedProcessService', 'disconnectSelectedProcessService',
+			                         function($scope, $rootScope, $http, $routeParams, $q, $location, $timeout, AuthenticationService, exModal, $state, StartProcessService, SearchCurrentSelectedProcessService, disconnectSelectedProcessService) {
 
 		var camClient = new CamSDK.Client({
 		  mock: false,
@@ -1622,6 +1622,11 @@ define(['./module','jquery', 'moment', 'camundaSDK'], function(app, $, moment, C
 			}
 		};
 		$scope.startProcess = function(id){
+			disconnectSelectedProcessService(false);
+			StartProcessService(id);
+		};
+		$scope.startDisconnectProcess = function(id){
+			disconnectSelectedProcessService(true);
 			StartProcessService(id);
 		};
     }]);

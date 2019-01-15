@@ -22,5 +22,6 @@ define([
 	'./leasingCandidate',
 	'./limitTo',
 	'./numbersOnly',
-	'./demandProcess'
+	'./demandProcess',
+	'./infoAftersales'
 	], function(){});

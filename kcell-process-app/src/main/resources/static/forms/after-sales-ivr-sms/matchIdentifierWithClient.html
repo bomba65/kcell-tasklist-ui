@@ -3,8 +3,9 @@
         inject(['$scope', '$http', 'Uri', '$rootScope', '$q', '$timeout', function ($scope, $http, Uri, $rootScope, $q, $timeout) {
             var variables = [
                 'identifiers',
-                'operatorType',
-                'operators',
+                'relatedProcessInstanceVariables',
+                //'operatorType',
+                //'operators',
                 'resolutions'
             ];
 
@@ -20,8 +21,8 @@
                             console.log(error.data);
                         }
                 );
-                $scope.freephoneInfo = [];
-                $scope.freephoneInfo.files = [];
+                $scope.aftersalesInfo = [];
+                $scope.aftersalesInfo.files = [];
             });
 
             camForm.on('variables-fetched', function () {
@@ -72,6 +73,11 @@
                     $rootScope.authentication.assigneeName = (result.data.firstName ? result.data.firstName : "") + " " + (result.data.lastName ? result.data.lastName : "");
                 });
 
+                $scope.aftersalesInfo = angular.copy($scope.relatedProcessInstanceVariables);
+                $scope.aftersalesInfo.identifiers = $scope.identifiers;
+                $scope.aftersalesInfo.showTarif = true;
+                //console.log($scope.aftersalesInfo);
+
                 camForm.variableManager.createVariable({
                     name: 'matchIdentifierWithClientTaskResult',
                     type: 'String',
@@ -94,6 +100,7 @@
                 if(!$scope.resolutions){
                     $scope.resolutions = [];
                 }
+                $scope.matchIdentifierWithClientTaskResult = "Completed";
                 camForm.variableManager.variableValue('matchIdentifierWithClientTaskResult', $scope.matchIdentifierWithClientTaskResult);
                 camForm.variableManager.variableValue('matchIdentifierWithClientTaskComment', $scope.matchIdentifierWithClientTaskComment);
                 $scope.resolutions.push({processInstanceId: $scope.processInstanceId, assignee: $rootScope.authentication.name, assigneeName: $rootScope.authentication.assigneeName, resolution: $scope.matchIdentifierWithClientTaskResult, comment: $scope.matchIdentifierWithClientTaskComment, taskId: camForm.taskId});
@@ -112,6 +119,7 @@
         }]);
 
     </script>
+    <info-aftersales aftersales-info="aftersalesInfo"></info-aftersales>
     <p>Добавьте информацию по статусам и ценам за короткий номер</p>
 
     <div class="form-group" ng-repeat="id in identifiers">
@@ -142,21 +150,6 @@
             </table>
         </div>
     </div>
-
-    <div class="form-group">
-        <label class="col-sm-3 control-label">Решение</label>
-        <div class="col-sm-9">
-            <label class="radio-inline">
-                <input type="radio" name="matchIdentifierWithClientTaskResult" ng-model="matchIdentifierWithClientTaskResult" value="approved" required> Approve
-            </label>
-            <label class="radio-inline">
-                <input type="radio" name="matchIdentifierWithClientTaskResult" ng-model="matchIdentifierWithClientTaskResult" value="rejected" required> Reject
-            </label>
-            <label class="error" ng-show="kcell_form.matchIdentifierWithClientTaskResult.$error.required && ( kcell_form.matchIdentifierWithClientTaskResult.$touched || view.submitted)">Required field</label>
-        </div>
-    </div>
-
-    <!--<info-freephone freephone-info="freephoneInfo"></info-freephone>-->
     <div class="form-group">
         <label class="col-sm-3 control-label">Комментарии</label>
         <div class="col-sm-9">

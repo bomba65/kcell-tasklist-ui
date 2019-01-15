@@ -1,8 +1,9 @@
 <form role="form" class="form-horizontal" name="kcell_form" novalidate>
     <script cam-script type="text/form-script">
-        inject(['$scope', '$http', 'Uri', '$rootScope', '$q', '$timeout', 'SearchCurrentSelectedProcessService', function ($scope, $http, Uri, $rootScope, $q, $timeout, SearchCurrentSelectedProcessService) {
+        inject(['$scope', '$http', 'Uri', '$rootScope', '$q', '$timeout', 'SearchCurrentSelectedProcessService', 'disconnectSelectedProcessService', function ($scope, $http, Uri, $rootScope, $q, $timeout, SearchCurrentSelectedProcessService, disconnectSelectedProcessService) {
             camForm.on('form-loaded', function () {
                 $scope.relatedProcessInstance = SearchCurrentSelectedProcessService();
+                $scope.isDisconnectProcess = disconnectSelectedProcessService();
                 console.log('$scope', $scope);
 
                 camForm.variableManager.createVariable({
@@ -44,6 +45,16 @@
                     name: 'operatorType',
                     value: '',
                     type: 'String'
+                });
+                camForm.variableManager.createVariable({
+                    name: 'identifiers',
+                    type: 'json',
+                    value: ''
+                });
+                camForm.variableManager.createVariable({
+                    name: 'disconnectProcess',
+                    type: 'Boolean',
+                    value: false
                 });
             });
 
@@ -105,14 +116,18 @@
                 camForm.variableManager.variableValue('relatedProcessInstanceVariables', $scope.relatedProcessInstanceVariables);
                 camForm.variableManager.variableValue('connectionType', $scope.relatedProcessInstanceVariables.connectionType);
                 camForm.variableManager.variableValue('operatorType', $scope.relatedProcessInstanceVariables.operatorType);
-
+                camForm.variableManager.variableValue('identifiers', $scope.relatedProcessInstanceVariables.identifiers);
+                camForm.variableManager.variableValue('disconnectProcess', $scope.isDisconnectProcess);
             });
         }]);
 
     </script>
     <div>
         <!--button ng-click="preSubmit()">PRE SUBMIT</button-->
-        <div class="row">
+        <div ng-show="isDisconnectProcess">
+            <p>Start Disconnection Process</p>
+        </div>
+        <div class="row" ng-show="!isDisconnectProcess">
             <div class="col-md-7">
                 <div class="form-check">
                     <div class="col-sm-12">
