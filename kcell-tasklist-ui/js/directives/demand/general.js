@@ -27,7 +27,7 @@ define(['./../module'], function(module){
                         if (!scope.data.demandOwner) {
                             scope.data.demandOwner = $rootScope.authentication.name;
                             $http.get("/camunda/api/engine/engine/default/user/" + $rootScope.authentication.name+ "/profile").then(function(result) {
-                                if (result.data && result.data.firstName && result.data.lastName) {
+                                if (result.data && result.data.firstName && result.data.lastName && scope.data.demandOwner === $rootScope.authentication.name) {
                                     scope.data.demandOwner = result.data.firstName + " " + result.data.lastName;
                                 }
                             });

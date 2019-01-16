@@ -79,7 +79,8 @@ define(['./../module'], function(module){
                     showUncheckAll: true,
                     displayProp: 'unit',
                     idProp: 'unit',
-                    externalIdProp: 'unit'
+                    externalIdProp: 'unit',
+                    template: `{{getPropertyForObject(option, settings.displayProp)}} <span ng-if="option.form == 'HR' || option.form == 'CPD' || option.form == 'WH'" title="Необходимо заполнить форму для {{option.form == 'HR'?'ресурсов':'материалов'}} Supportive request form for {{option.unit}}" style="color: #682d86" class="glyphicon glyphicon-question-sign"></span>`
                 };
                 scope.optionList = [
                   {form: "TD",	unit: "TD - Network Economics Unit", groupId: "demand_supportive_td_network_economics_unit"},

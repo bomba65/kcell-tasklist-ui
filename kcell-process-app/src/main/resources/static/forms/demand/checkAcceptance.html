@@ -36,6 +36,8 @@
             var assigneeName = $rootScope.authentication.name;
             var createdDate = new Date();
             $scope.pricesFilled = true;
+            $scope.hrInput = {checked: false, value: []};
+            $scope.cpdInput = {checked: false, value: []};
 
             $http.get("/camunda/api/engine/engine/default/user/" + $rootScope.authentication.name+ "/profile").then(function(result){
                 assigneeName = (result.data.firstName ? result.data.firstName : "") + " " + (result.data.lastName ? result.data.lastName : "");
@@ -81,6 +83,8 @@
                 } else {
                     for (var s of $scope.supportiveInputs) {
                         if (s.checked) $scope.supportiveInputsCount++;
+                        if (s.form == 'HR') $scope.hrInput = s;
+                        else if (s.form == 'CPD') $scope.cpdInput = s;
                     }
                     if ($scope.supportiveInputs.findIndex(function(e) { return e.unit === 'Technology Department'}) === -1) {
                         $scope.supportiveInputs.push({unit: 'Technology Department', form: 'TD', value: {}, checked: false});
@@ -332,7 +336,7 @@
                 <accordion ng-repeat="i in supportiveInputs" ng-if="i.unit == 'Human Resources Department'">
                     <accordion-group is-open="true">
                         <accordion-heading>
-                            Resources <i class="pull-right glyphicon" ng-class="{'glyphicon-chevron-up': status.isCustomHeaderOpen, 'glyphicon-chevron-down': !status.isCustomHeaderOpen}"></i>
+                            Resources <span class="text-danger" ng-if="i.checked && !i.value.length">(Не должно быть пусто)</span> <i class="pull-right glyphicon" ng-class="{'glyphicon-chevron-up': status.isCustomHeaderOpen, 'glyphicon-chevron-down': !status.isCustomHeaderOpen}"></i>
                         </accordion-heading>
                         <demand-resources data="i.value" form="kcell_form" view="view" disabled="false" editprice="false"></demand-resources>
                     </accordion-group>
@@ -340,7 +344,7 @@
                 <accordion ng-repeat="i in supportiveInputs" ng-if="i.unit == 'Centralized Procurement Department'">
                     <accordion-group is-open="true">
                         <accordion-heading>
-                            Materials <i class="pull-right glyphicon" ng-class="{'glyphicon-chevron-up': status.isCustomHeaderOpen, 'glyphicon-chevron-down': !status.isCustomHeaderOpen}"></i>
+                            Materials <span class="text-danger" ng-if="i.checked && !i.value.length">(Не должно быть пусто)</span> <i class="pull-right glyphicon" ng-class="{'glyphicon-chevron-up': status.isCustomHeaderOpen, 'glyphicon-chevron-down': !status.isCustomHeaderOpen}"></i>
                         </accordion-heading>
                         <demand-materials data="i.value" form="kcell_form" view="view" disabled="false" editprice="false" editexisting="false"></demand-materials>
                     </accordion-group>
@@ -460,7 +464,7 @@
                 <input type="radio" ng-model="resolution" name="resolution" value="Send to modify" required> Send to modify
             </label>
             <label class="radio-inline" title="Запросить экспертизу \ Request Supportive input">
-                <input type="radio" ng-model="resolution" name="resolution" value="Request Info" required ng-disabled="!supportiveInputsCount"> Request Info
+                <input type="radio" ng-model="resolution" name="resolution" value="Request Info" required ng-disabled="!supportiveInputsCount || (hrInput.checked && !hrInput.value.length) || (cpdInput.checked && !cpdInput.value.length)"> Request Info
             </label>
             <label class="error" ng-show="kcell_form.resolution.$error.required && ( kcell_form.resolution.$touched || view.submitted)">Required field</label>
         </div>

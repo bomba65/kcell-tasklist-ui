@@ -44,6 +44,8 @@
             var assigneeName = $rootScope.authentication.name;
             var createdDate = new Date();
             $scope.pricesFilled = true;
+            $scope.hrInput = {checked: false, value: []};
+            $scope.cpdInput = {checked: false, value: []};
 
             $http.get("/camunda/api/engine/engine/default/user/" + $rootScope.authentication.name + "/profile").then(function (result) {
                 assigneeName = (result.data.firstName ? result.data.firstName : "") + " " + (result.data.lastName ? result.data.lastName : "");
@@ -96,8 +98,14 @@
                 }
                 $scope.supportiveRequests = supInputData;
                 for (var i of $scope.supportiveInputs) {
-                    if (i.form == 'HR') $scope.resources = $scope.resources.concat(i.value);
-                    else if (i.form == 'CPD') $scope.materials = $scope.materials.concat(i.value);
+                    if (i.form == 'HR') {
+                        $scope.resources = $scope.resources.concat(i.value);
+                        $scope.hrInput = i;
+                    } else if (i.form == 'CPD') {
+                        $scope.materials = $scope.materials.concat(i.value);
+                        $scope.cpdInput = i;
+                    }
+                    i.checked = false;
                 }
 
             });
@@ -585,13 +593,13 @@
 
         <span ng-repeat="i in supportiveInputs" ng-if="i.form == 'HR'">
             <div class="col-sm-12" style="border: 1px solid #ccc; border-radius: 10px; padding-top: 10px; margin: 20px 0;">
-                <label style="margin-bottom: 20px;">Supportive request form for {{i.unit}}</label>
+                <label style="margin-bottom: 20px;">Supportive request form for {{i.unit}} <span title="Для редактирования формы с ресурсами необходимо выбрать Human Resources Department в выпадающем списке в блоке Supportive inputs" style="color: #682d86" class="glyphicon glyphicon-question-sign"></span> <span class="text-danger" ng-if="i.checked && !i.value.length">(Не должно быть пусто)</span></label>
                 <demand-resources data="i.value" form="kcell_form" view="view" disabled="!i.checked" editprice="false"></demand-resources>
             </div>
         </span>
         <span ng-repeat="i in supportiveInputs" ng-if="i.form == 'CPD'">
             <div class="col-sm-12" style="border: 1px solid #ccc; border-radius: 10px; padding-top: 10px; margin: 20px 0;">
-                <label style="margin-bottom: 20px;">Supportive request form for {{i.unit}}</label>
+                <label style="margin-bottom: 20px;">Supportive request form for {{i.unit}} <span title="Для редактирования формы с материалами необходимо выбрать Centralized Procurement Department в выпадающем списке в блоке Supportive inputs" style="color: #682d86" class="glyphicon glyphicon-question-sign"></span> <span class="text-danger" ng-if="i.checked && !i.value.length">(Не должно быть пусто)</span></label>
                 <demand-materials data="i.value" form="kcell_form" view="view" disabled="!i.checked" editprice="false"></demand-materials>
             </div>
         </span>
@@ -672,7 +680,7 @@
                 <input type="radio" ng-model="resolution" name="resolution" value="Submit" required ng-disabled="!pricesFilled"> Submit
             </label>
             <label class="radio-inline" title="Запросить экспертизу \ Request Supportive input">
-                <input type="radio" ng-model="resolution" name="resolution" value="Request Info" required ng-disabled="!supportiveRequests.length"> Request Info
+                <input type="radio" ng-model="resolution" name="resolution" value="Request Info" required ng-disabled="!supportiveRequests.length || (hrInput.checked && !hrInput.value.length) || (cpdInput.checked && !cpdInput.value.length)"> Request Info
             </label>
             <label class="error" ng-show="kcell_form.resolution.$error.required && ( kcell_form.resolution.$touched || view.submitted)">Required field</label>
         </div>
