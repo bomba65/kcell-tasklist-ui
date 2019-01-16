@@ -29,9 +29,9 @@
                 'receivingApprovalFromTheLandlordFiles',
                 'modifyCandidateRRFiles',
                 'estimateTechnicalCapabilityResFiles',
-                'requestTechnicalParametersKTFiles',
-                'receivingTSFiles',
-                'reqKZTRwithTechEquipmentParamsFiles'
+                'requestTechnicalParametersKTForFEFiles',
+                'receivingTSForFEFiles',
+                'signingLeaseContractAddAgreementForFEFiles'
             ];
 
             camForm.on('form-loaded', function () {
@@ -50,7 +50,7 @@
             });
 
             camForm.on('variables-fetched', function () {
-                $scope.reqKZTRwithTechEquipmentParamsFiles = [];
+                $scope.signingLeaseContractAddAgreementForFEFiles = [];
                 variables.forEach(function (el) {
                     if(camForm.variableManager.variables[el].value){
                         $scope[el] = camForm.variableManager.variables[el].value;
@@ -58,33 +58,42 @@
                     }
                 });
                 camForm.variableManager.createVariable({
-                    name: 'reqKZTRwithTechEquipmentParamsTaskResult',
+                    name: 'signingLeaseContractAddAgreementForFETaskResult',
                     type: 'String',
                     value: ''
                 });
                 camForm.variableManager.createVariable({
-                    name: 'reqKZTRwithTechEquipmentParamsTaskComment',
+                    name: 'signingLeaseContractAddAgreementForFETaskComment',
+                    type: 'String',
+                    value: ''
+                });
+                camForm.variableManager.createVariable({
+                    name: 'leasingProceduresStatus',
                     type: 'String',
                     value: ''
                 });
 
-                $scope.reqKZTRwithTechEquipmentParamsTaskResult = '';
+                $scope.signingLeaseContractAddAgreementForFETaskResult = '';
             });
 
             camForm.on('submit', function () {
-                camForm.variableManager.variableValue('reqKZTRwithTechEquipmentParamsTaskResult', $scope.reqKZTRwithTechEquipmentParamsTaskResult);
-                camForm.variableManager.variableValue('reqKZTRwithTechEquipmentParamsTaskComment', $scope.reqKZTRwithTechEquipmentParamsTaskComment);
+                camForm.variableManager.variableValue('signingLeaseContractAddAgreementForFETaskResult', $scope.signingLeaseContractAddAgreementForFETaskResult);
+                if($scope.signingLeaseContractAddAgreementForFETaskResult === 'approve'){
+                    camForm.variableManager.variableValue('leasingProceduresStatus', 'waitContract');
+                } else if($scope.signingLeaseContractAddAgreementForFETaskResult === 'reject') {
+                    camForm.variableManager.variableValue('leasingProceduresStatus', 'refusal');
+                }
+                camForm.variableManager.variableValue('signingLeaseContractAddAgreementForFETaskComment', $scope.signingLeaseContractAddAgreementForFETaskComment);
 
-
-                if(!camForm.variableManager.variables['reqKZTRwithTechEquipmentParamsFiles'].type){
-                    camForm.variableManager.destroyVariable('reqKZTRwithTechEquipmentParamsFiles');
+                if(!camForm.variableManager.variables['signingLeaseContractAddAgreementForFEFiles'].type){
+                    camForm.variableManager.destroyVariable('signingLeaseContractAddAgreementForFEFiles');
                     camForm.variableManager.createVariable({
-                        name: 'reqKZTRwithTechEquipmentParamsFiles',
+                        name: 'signingLeaseContractAddAgreementForFEFiles',
                         type: 'Json',
-                        value: $scope.reqKZTRwithTechEquipmentParamsFiles
+                        value: $scope.signingLeaseContractAddAgreementForFEFiles
                     });
                 } else {
-                    camForm.variableManager.variableValue('reqKZTRwithTechEquipmentParamsFiles', $scope.reqKZTRwithTechEquipmentParamsFiles);
+                    camForm.variableManager.variableValue('signingLeaseContractAddAgreementForFEFiles', $scope.signingLeaseContractAddAgreementForFEFiles);
                 }
             });
 
@@ -110,13 +119,13 @@
                     transformResponse: []
                 }).then(function (response) {
                     $http.put(response.data, file, {headers: {'Content-Type': undefined}}).then(
-                            function () {
-                                $scope[fileName].push(fileToUpload);
-                                angular.element(document.querySelector('#' + fileName)).val(null);
-                            },
-                            function (error) {
-                                console.log(error.data);
-                            }
+                        function () {
+                            $scope[fileName].push(fileToUpload);
+                            angular.element(document.querySelector('#' + fileName)).val(null);
+                        },
+                        function (error) {
+                            console.log(error.data);
+                        }
                     );
                 }, function(error){
                     console.log(error.data);
@@ -179,10 +188,10 @@
             <div ng-show="estimateTechnicalCapabilityResFiles.length > 0" class="input-group" ng-repeat="file in estimateTechnicalCapabilityResFiles">
                 <a ng-click="download(file)">{{file.name}}</a>
             </div>
-            <div ng-show="requestTechnicalParametersKTFiles.length > 0" class="input-group" ng-repeat="file in requestTechnicalParametersKTFiles">
+            <div ng-show="requestTechnicalParametersKTForFEFiles.length > 0" class="input-group" ng-repeat="file in requestTechnicalParametersKTForFEFiles">
                 <a ng-click="download(file)">{{file.name}}</a>
             </div>
-            <div ng-show="receivingTSFiles.length > 0" class="input-group" ng-repeat="file in receivingTSFiles">
+            <div ng-show="receivingTSForFEFiles.length > 0" class="input-group" ng-repeat="file in receivingTSForFEFiles">
                 <a ng-click="download(file)">{{file.name}}</a>
             </div>
         </div>
@@ -191,20 +200,33 @@
     <div class="form-group">
         <label class="col-md-4 control-label">Upload files:</label>
         <div class="col-sm-8">
-            <div ng-show="reqKZTRwithTechEquipmentParamsFiles.length > 0" class="input-group" ng-repeat="file in reqKZTRwithTechEquipmentParamsFiles">
+            <div ng-show="signingLeaseContractAddAgreementForFEFiles.length > 0" class="input-group" ng-repeat="file in signingLeaseContractAddAgreementForFEFiles">
                 {{$index + 1}}.
-                <a ng-click="fileDownload(file)">{{file.name}}</a> | <a ng-click="clearFile('reqKZTRwithTechEquipmentParamsFiles', $index)"><i class="glyphicon glyphicon-trash"></i></a>
+                <a ng-click="fileDownload(file)">{{file.name}}</a> | <a ng-click="clearFile('signingLeaseContractAddAgreementForFEFiles', $index)"><i class="glyphicon glyphicon-trash"></i></a>
             </div>
             <ng-form name="kcell_material_file_form">
-                <input type="file" class="form-control" id="reqKZTRwithTechEquipmentParamsFiles" name="reqKZTRwithTechEquipmentParamsFiles" ng-model="file.file" onchange="angular.element(this).scope().fileSelected(this, 'reqKZTRwithTechEquipmentParamsFiles')"/>
+                <input type="file" class="form-control" id="signingLeaseContractAddAgreementForFEFiles" name="signingLeaseContractAddAgreementForFEFiles" ng-model="file.file" onchange="angular.element(this).scope().fileSelected(this, 'signingLeaseContractAddAgreementForFEFiles')"/>
             </ng-form>
+        </div>
+    </div>
+
+    <div class="form-group">
+        <label class="col-sm-4 control-label">Approval Status</label>
+        <div class="col-sm-8">
+            <label class="radio-inline">
+                <input type="radio" name="signingLeaseContractAddAgreementForFETaskResult" ng-model="signingLeaseContractAddAgreementForFETaskResult" value="approve" required>Approve
+            </label>
+            <label class="radio-inline">
+                <input type="radio" name="signingLeaseContractAddAgreementForFETaskResult" ng-model="signingLeaseContractAddAgreementForFETaskResult" value="reject" required>Reject
+            </label>
+            <label class="error" ng-show="kcell_form.signingLeaseContractAddAgreementForFETaskResult.$error.required && ( kcell_form.signingLeaseContractAddAgreementForFETaskResult.$touched || view.submitted)">Required field</label>
         </div>
     </div>
 
     <div class="form-group">
         <label class="col-sm-4 control-label">Comments</label>
         <div class="col-sm-8">
-            <textarea class="form-control" ng-model="reqKZTRwithTechEquipmentParamsTaskComment" name="reqKZTRwithTechEquipmentParamsTaskComment" placeholder="Comments..." maxlength="500" rows="4" style="resize:none"></textarea>
+            <textarea class="form-control" ng-model="signingLeaseContractAddAgreementForFETaskComment" name="signingLeaseContractAddAgreementForFETaskComment" placeholder="Comments..." maxlength="500" rows="4" style="resize:none"></textarea>
         </div>
     </div>
     <accordion>

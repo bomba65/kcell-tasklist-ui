@@ -34,7 +34,8 @@
                 'reqKZTRwithTechEquipmentParamsFiles',
                 'receivingContractDevDesignEstimateFiles',
                 'registrationCommercialOfferFiles',
-                'confirmReceiptEstimateFiles'
+                'confirmReceiptEstimateFiles',
+                'receivingContractInstallationWorksFiles'
             ];
 
             camForm.on('form-loaded', function () {
@@ -53,9 +54,12 @@
             });
 
             camForm.on('variables-fetched', function () {
+                $scope.receivingContractInstallationWorksFiles = [];
                 variables.forEach(function (el) {
-                    $scope[el] = camForm.variableManager.variables[el].value;
-                    $scope.leasingCandidate[el] = camForm.variableManager.variables[el].value;
+                    if(camForm.variableManager.variables[el].value){
+                        $scope[el] = camForm.variableManager.variables[el].value;
+                        $scope.leasingCandidate[el] = camForm.variableManager.variables[el].value;
+                    }
                 });
                 camForm.variableManager.createVariable({
                     name: 'receivingContractInstallationWorksTaskResult',
@@ -68,18 +72,12 @@
                     value: ''
                 });
                 camForm.variableManager.createVariable({
-                    name: 'receivingContractInstallationWorksFiles',
-                    type: 'Json',
-                    value: []
-                });
-                camForm.variableManager.createVariable({
                     name: 'leasingProceduresStatus',
                     type: 'String',
                     value: ''
                 });
 
                 $scope.receivingContractInstallationWorksTaskResult = '';
-                $scope.receivingContractInstallationWorksFiles = [];
             });
 
             camForm.on('submit', function () {
@@ -90,7 +88,17 @@
                     camForm.variableManager.variableValue('leasingProceduresStatus', 'refusal');
                 }
                 camForm.variableManager.variableValue('receivingContractInstallationWorksTaskComment', $scope.receivingContractInstallationWorksTaskComment);
-                camForm.variableManager.variableValue('receivingContractInstallationWorksFiles', $scope.receivingContractInstallationWorksFiles);
+
+                if(!camForm.variableManager.variables['receivingContractInstallationWorksFiles'].type){
+                    camForm.variableManager.destroyVariable('receivingContractInstallationWorksFiles');
+                    camForm.variableManager.createVariable({
+                        name: 'receivingContractInstallationWorksFiles',
+                        type: 'Json',
+                        value: $scope.receivingContractInstallationWorksFiles
+                    });
+                } else {
+                    camForm.variableManager.variableValue('receivingContractInstallationWorksFiles', $scope.receivingContractInstallationWorksFiles);
+                }
             });
 
             $scope.fileSelected = function (el, fileName) {

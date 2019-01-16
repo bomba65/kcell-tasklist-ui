@@ -23,7 +23,8 @@
                 'renterCompany',
                 'transmissionAntenna',
                 'powerSource',
-                'farEndInformation'
+                'farEndInformation',
+                'receivingApprovalFromTheLandlordFiles'
             ];
 
             camForm.on('form-loaded', function () {
@@ -42,9 +43,12 @@
             });
 
             camForm.on('variables-fetched', function () {
+                $scope.receivingApprovalFromTheLandlordFiles = [];
                 variables.forEach(function (el) {
-                    $scope[el] = camForm.variableManager.variables[el].value;
-                    $scope.leasingCandidate[el] = camForm.variableManager.variables[el].value;
+                    if(camForm.variableManager.variables[el].value){
+                        $scope[el] = camForm.variableManager.variables[el].value;
+                        $scope.leasingCandidate[el] = camForm.variableManager.variables[el].value;
+                    }
                 });
                 camForm.variableManager.createVariable({
                     name: 'receivingApprovalFromTheLandlordTaskResult',
@@ -56,14 +60,8 @@
                     type: 'String',
                     value: ''
                 });
-                camForm.variableManager.createVariable({
-                    name: 'receivingApprovalFromTheLandlordFiles',
-                    type: 'Json',
-                    value: []
-                });
 
                 $scope.receivingApprovalFromTheLandlordTaskResult = '';
-                $scope.receivingApprovalFromTheLandlordFiles = [];
             });
 
             camForm.on('submit', function () {
@@ -82,7 +80,17 @@
                     });
                 }
                 camForm.variableManager.variableValue('receivingApprovalFromTheLandlordTaskComment', $scope.receivingApprovalFromTheLandlordTaskComment);
-                camForm.variableManager.variableValue('receivingApprovalFromTheLandlordFiles', $scope.receivingApprovalFromTheLandlordFiles);
+
+                if(!camForm.variableManager.variables['receivingApprovalFromTheLandlordFiles'].type){
+                    camForm.variableManager.destroyVariable('receivingApprovalFromTheLandlordFiles');
+                    camForm.variableManager.createVariable({
+                        name: 'receivingApprovalFromTheLandlordFiles',
+                        type: 'Json',
+                        value: $scope.receivingApprovalFromTheLandlordFiles
+                    });
+                } else {
+                    camForm.variableManager.variableValue('receivingApprovalFromTheLandlordFiles', $scope.receivingApprovalFromTheLandlordFiles);
+                }
             });
 
             $scope.fileSelected = function (el, fileName) {

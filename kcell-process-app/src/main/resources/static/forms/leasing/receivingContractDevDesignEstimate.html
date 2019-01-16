@@ -31,7 +31,8 @@
                 'estimateTechnicalCapabilityResFiles',
                 'requestTechnicalParametersKTFiles',
                 'receivingTSFiles',
-                'reqKZTRwithTechEquipmentParamsFiles'
+                'reqKZTRwithTechEquipmentParamsFiles',
+                'receivingContractDevDesignEstimateFiles'
             ];
 
             camForm.on('form-loaded', function () {
@@ -50,9 +51,12 @@
             });
 
             camForm.on('variables-fetched', function () {
+                $scope.receivingContractDevDesignEstimateFiles = [];
                 variables.forEach(function (el) {
-                    $scope[el] = camForm.variableManager.variables[el].value;
-                    $scope.leasingCandidate[el] = camForm.variableManager.variables[el].value;
+                    if(camForm.variableManager.variables[el].value){
+                        $scope[el] = camForm.variableManager.variables[el].value;
+                        $scope.leasingCandidate[el] = camForm.variableManager.variables[el].value;
+                    }
                 });
                 camForm.variableManager.createVariable({
                     name: 'receivingContractDevDesignEstimateTaskResult',
@@ -64,20 +68,23 @@
                     type: 'String',
                     value: ''
                 });
-                camForm.variableManager.createVariable({
-                    name: 'receivingContractDevDesignEstimateFiles',
-                    type: 'Json',
-                    value: []
-                });
 
                 $scope.receivingContractDevDesignEstimateTaskResult = '';
-                $scope.receivingContractDevDesignEstimateFiles = [];
             });
 
             camForm.on('submit', function () {
                 camForm.variableManager.variableValue('receivingContractDevDesignEstimateTaskResult', $scope.receivingContractDevDesignEstimateTaskResult);
                 camForm.variableManager.variableValue('receivingContractDevDesignEstimateTaskComment', $scope.receivingContractDevDesignEstimateTaskComment);
-                camForm.variableManager.variableValue('receivingContractDevDesignEstimateFiles', $scope.receivingContractDevDesignEstimateFiles);
+                if(!camForm.variableManager.variables['receivingContractDevDesignEstimateFiles'].type){
+                    camForm.variableManager.destroyVariable('receivingContractDevDesignEstimateFiles');
+                    camForm.variableManager.createVariable({
+                        name: 'receivingContractDevDesignEstimateFiles',
+                        type: 'Json',
+                        value: $scope.receivingContractDevDesignEstimateFiles
+                    });
+                } else {
+                    camForm.variableManager.variableValue('receivingContractDevDesignEstimateFiles', $scope.receivingContractDevDesignEstimateFiles);
+                }
             });
 
             $scope.fileSelected = function (el, fileName) {

@@ -24,6 +24,7 @@
                 'transmissionAntenna',
                 'powerSource',
                 'farEndInformation',
+                'receivingTSFiles',
                 'receivingTSForCandiateSiteFiles',
                 'receivingContractPSDFiles',
                 'receivingApprovalFromTheLandlordFiles',
@@ -48,9 +49,12 @@
             });
 
             camForm.on('variables-fetched', function () {
+                $scope.receivingTSFiles = [];
                 variables.forEach(function (el) {
-                    $scope[el] = camForm.variableManager.variables[el].value;
-                    $scope.leasingCandidate[el] = camForm.variableManager.variables[el].value;
+                    if(camForm.variableManager.variables[el].value){
+                        $scope[el] = camForm.variableManager.variables[el].value;
+                        $scope.leasingCandidate[el] = camForm.variableManager.variables[el].value;
+                    }
                 });
                 camForm.variableManager.createVariable({
                     name: 'receivingTSTaskResult',
@@ -63,18 +67,12 @@
                     value: ''
                 });
                 camForm.variableManager.createVariable({
-                    name: 'receivingTSFiles',
-                    type: 'Json',
-                    value: []
-                });
-                camForm.variableManager.createVariable({
                     name: 'leasingProceduresStatus',
                     type: 'String',
                     value: ''
                 });
 
                 $scope.receivingTSTaskResult = '';
-                $scope.receivingTSFiles = [];
             });
 
             camForm.on('submit', function () {
@@ -85,7 +83,17 @@
                     camForm.variableManager.variableValue('leasingProceduresStatus', 'refusal');
                 }
                 camForm.variableManager.variableValue('receivingTSTaskComment', $scope.receivingTSTaskComment);
-                camForm.variableManager.variableValue('receivingTSFiles', $scope.receivingTSFiles);
+
+                if(!camForm.variableManager.variables['receivingTSFiles'].type){
+                    camForm.variableManager.destroyVariable('receivingTSFiles');
+                    camForm.variableManager.createVariable({
+                        name: 'receivingTSFiles',
+                        type: 'Json',
+                        value: $scope[el.name]
+                    });
+                } else {
+                    camForm.variableManager.variableValue('receivingTSFiles', $scope.receivingTSFiles);
+                }
             });
 
             $scope.fileSelected = function (el, fileName) {

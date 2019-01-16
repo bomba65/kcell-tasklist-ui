@@ -32,7 +32,8 @@
                 'requestTechnicalParametersKTFiles',
                 'receivingTSFiles',
                 'reqKZTRwithTechEquipmentParamsFiles',
-                'receivingContractDevDesignEstimateFiles'
+                'receivingContractDevDesignEstimateFiles',
+                'registrationCommercialOfferFiles'
             ];
 
             camForm.on('form-loaded', function () {
@@ -51,9 +52,12 @@
             });
 
             camForm.on('variables-fetched', function () {
+                $scope.registrationCommercialOfferFiles = [];
                 variables.forEach(function (el) {
-                    $scope[el] = camForm.variableManager.variables[el].value;
-                    $scope.leasingCandidate[el] = camForm.variableManager.variables[el].value;
+                    if(camForm.variableManager.variables[el].value){
+                        $scope[el] = camForm.variableManager.variables[el].value;
+                        $scope.leasingCandidate[el] = camForm.variableManager.variables[el].value;
+                    }
                 });
                 camForm.variableManager.createVariable({
                     name: 'registrationCommercialOfferTaskResult',
@@ -65,20 +69,24 @@
                     type: 'String',
                     value: ''
                 });
-                camForm.variableManager.createVariable({
-                    name: 'registrationCommercialOfferFiles',
-                    type: 'Json',
-                    value: []
-                });
 
                 $scope.registrationCommercialOfferTaskResult = '';
-                $scope.registrationCommercialOfferFiles = [];
             });
 
             camForm.on('submit', function () {
                 camForm.variableManager.variableValue('registrationCommercialOfferTaskResult', $scope.registrationCommercialOfferTaskResult);
                 camForm.variableManager.variableValue('registrationCommercialOfferTaskComment', $scope.registrationCommercialOfferTaskComment);
-                camForm.variableManager.variableValue('registrationCommercialOfferFiles', $scope.registrationCommercialOfferFiles);
+
+                if(!camForm.variableManager.variables['registrationCommercialOfferFiles'].type){
+                    camForm.variableManager.destroyVariable('registrationCommercialOfferFiles');
+                    camForm.variableManager.createVariable({
+                        name: 'registrationCommercialOfferFiles',
+                        type: 'Json',
+                        value: $scope.registrationCommercialOfferFiles
+                    });
+                } else {
+                    camForm.variableManager.variableValue('registrationCommercialOfferFiles', $scope.registrationCommercialOfferFiles);
+                }
             });
 
             $scope.fileSelected = function (el, fileName) {

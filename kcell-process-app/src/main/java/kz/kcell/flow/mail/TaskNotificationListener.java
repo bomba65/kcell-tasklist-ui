@@ -88,7 +88,7 @@ public class TaskNotificationListener implements TaskListener {
                 bindings.put("templateName", templateName);
                 String htmlMessage = String.valueOf(template.eval(bindings));
                 String businessKey = delegateTask.getExecution().getProcessBusinessKey();
-                String subject = String.format("%s, %s", businessKey, delegateTask.getName());
+                String subject = businessKey!=null?String.format("%s, %s", businessKey, delegateTask.getName()):delegateTask.getName();
 
                 mailSender.send(mimeMessage -> {
                     MimeMessageHelper helper = new MimeMessageHelper(mimeMessage);

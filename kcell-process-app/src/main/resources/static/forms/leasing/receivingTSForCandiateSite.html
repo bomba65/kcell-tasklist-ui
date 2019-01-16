@@ -23,7 +23,8 @@
                 'renterCompany',
                 'transmissionAntenna',
                 'powerSource',
-                'farEndInformation'
+                'farEndInformation',
+                'receivingTSForCandiateSiteFiles'
             ];
 
             var variablesToCreate = [
@@ -70,17 +71,27 @@
             });
 
             camForm.on('variables-fetched', function () {
+                $scope.receivingTSForCandiateSiteFiles = [];
                 variables.forEach(function (el) {
-                    $scope[el] = camForm.variableManager.variables[el].value;
-                    $scope.leasingCandidate[el] = camForm.variableManager.variables[el].value;
+                    if(camForm.variableManager.variables[el].value){
+                        $scope[el] = camForm.variableManager.variables[el].value;
+                        $scope.leasingCandidate[el] = camForm.variableManager.variables[el].value;
+                    }
                 });
 
                 angular.forEach(variablesToCreate, function (el) {
-                    camForm.variableManager.createVariable({
-                        name: el.name,
-                        type: el.type,
-                        value: $scope[el.name]
-                    });
+                    if(!camForm.variableManager.variables[el.name] || (camForm.variableManager.variables[el.name] && !camForm.variableManager.variables[el.name].type)){
+                        if(camForm.variableManager.variables[el.name] && !camForm.variableManager.variables[el.name].type){
+                            camForm.variableManager.destroyVariable(el.name);
+                        }
+                        camForm.variableManager.createVariable({
+                            name: el.name,
+                            type: el.type,
+                            value: $scope[el.name]
+                        });
+                    } else {
+                        camForm.variableManager.variableValue(el.name, $scope[el.name]);
+                    }
                 });
             });
 
@@ -106,7 +117,6 @@
                     });
                 }
                 camForm.variableManager.variableValue('receivingTSForCandiateSiteTaskComment', $scope.receivingTSForCandiateSiteTaskComment);
-                camForm.variableManager.variableValue('receivingTSForCandiateSiteFiles', $scope.receivingTSForCandiateSiteFiles);
             });
 
             camForm.on('variables-restored', function() {

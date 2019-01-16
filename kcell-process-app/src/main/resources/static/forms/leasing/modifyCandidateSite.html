@@ -23,7 +23,8 @@
                 'renterCompany',
                 'transmissionAntenna',
                 'powerSource',
-                'farEndInformation'
+                'farEndInformation',
+                'modifyCandidateRRFiles'
             ];
 
             camForm.on('form-loaded', function () {
@@ -42,9 +43,12 @@
             });
 
             camForm.on('variables-fetched', function () {
+                $scope.modifyCandidateRRFiles = [];
                 variables.forEach(function (el) {
-                    $scope[el] = camForm.variableManager.variables[el].value;
-                    $scope.leasingCandidate[el] = camForm.variableManager.variables[el].value;
+                    if(camForm.variableManager.variables[el].value){
+                        $scope[el] = camForm.variableManager.variables[el].value;
+                        $scope.leasingCandidate[el] = camForm.variableManager.variables[el].value;
+                    }
                 });
                 camForm.variableManager.createVariable({
                     name: 'modifyCandidateSiteTaskResult',
@@ -56,20 +60,24 @@
                     type: 'String',
                     value: ''
                 });
-                camForm.variableManager.createVariable({
-                    name: 'modifyCandidateRRFiles',
-                    type: 'Json',
-                    value: []
-                });
 
-                $scope.modifyCandidateRRFiles = [];
                 $scope.modifyCandidateSiteTaskResult = '';
             });
 
             camForm.on('submit', function () {
                 camForm.variableManager.variableValue('modifyCandidateSiteTaskResult', $scope.modifyCandidateSiteTaskResult);
                 camForm.variableManager.variableValue('modifyCandidateSiteTaskComment', $scope.modifyCandidateSiteTaskComment);
-                camForm.variableManager.variableValue('modifyCandidateRRFiles', $scope.modifyCandidateRRFiles);
+
+                if(!camForm.variableManager.variables['modifyCandidateRRFiles'].type){
+                    camForm.variableManager.destroyVariable('modifyCandidateRRFiles');
+                    camForm.variableManager.createVariable({
+                        name: 'modifyCandidateRRFiles',
+                        type: 'Json',
+                        value: $scope.modifyCandidateRRFiles
+                    });
+                } else {
+                    camForm.variableManager.variableValue('modifyCandidateRRFiles', $scope.modifyCandidateRRFiles);
+                }
             });
 
             $scope.download = function (file) {

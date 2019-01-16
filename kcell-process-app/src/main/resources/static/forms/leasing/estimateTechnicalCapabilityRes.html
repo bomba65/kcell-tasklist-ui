@@ -23,7 +23,8 @@
                 'renterCompany',
                 'transmissionAntenna',
                 'powerSource',
-                'farEndInformation'
+                'farEndInformation',
+                'estimateTechnicalCapabilityResFiles'
             ];
 
             camForm.on('form-loaded', function () {
@@ -42,9 +43,12 @@
             });
 
             camForm.on('variables-fetched', function () {
+                $scope.estimateTechnicalCapabilityResFiles = [];
                 variables.forEach(function (el) {
-                    $scope[el] = camForm.variableManager.variables[el].value;
-                    $scope.leasingCandidate[el] = camForm.variableManager.variables[el].value;
+                    if(camForm.variableManager.variables[el].value){
+                        $scope[el] = camForm.variableManager.variables[el].value;
+                        $scope.leasingCandidate[el] = camForm.variableManager.variables[el].value;
+                    }
                 });
                 camForm.variableManager.createVariable({
                     name: 'estimateTechnicalCapabilityResTaskResult',
@@ -55,11 +59,6 @@
                     name: 'estimateTechnicalCapabilityResTaskComment',
                     type: 'String',
                     value: ''
-                });
-                camForm.variableManager.createVariable({
-                    name: 'estimateTechnicalCapabilityResFiles',
-                    type: 'Json',
-                    value: []
                 });
                 camForm.variableManager.createVariable({
                     name: 'connectionPossibleFromRES',
@@ -78,7 +77,6 @@
                 });
 
                 $scope.estimateTechnicalCapabilityResTaskResult = '';
-                $scope.estimateTechnicalCapabilityResFiles = [];
                 $scope.connectionPossibleFromRES = '';
                 $scope.connectionPossibleFromLandlordNetwork = '';
             });
@@ -93,7 +91,17 @@
                 } else {
                     camForm.variableManager.variableValue('hasTechnicalCapability', 'yes');
                 }
-                camForm.variableManager.variableValue('estimateTechnicalCapabilityResFiles', $scope.estimateTechnicalCapabilityResFiles);
+
+                if(!camForm.variableManager.variables['estimateTechnicalCapabilityResFiles'].type){
+                    camForm.variableManager.destroyVariable('estimateTechnicalCapabilityResFiles');
+                    camForm.variableManager.createVariable({
+                        name: 'estimateTechnicalCapabilityResFiles',
+                        type: 'Json',
+                        value: $scope.estimateTechnicalCapabilityResFiles
+                    });
+                } else {
+                    camForm.variableManager.variableValue('estimateTechnicalCapabilityResFiles', $scope.estimateTechnicalCapabilityResFiles);
+                }
             });
 
             $scope.fileSelected = function (el, fileName) {

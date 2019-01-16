@@ -30,7 +30,8 @@
                 'modifyCandidateRRFiles',
                 'estimateTechnicalCapabilityResFiles',
                 'requestTechnicalParametersKTFiles',
-                'receivingTSFiles'
+                'receivingTSFiles',
+                'signingLeaseContractAddAgreementFiles'
             ];
 
             camForm.on('form-loaded', function () {
@@ -49,9 +50,12 @@
             });
 
             camForm.on('variables-fetched', function () {
+                $scope.signingLeaseContractAddAgreementFiles = [];
                 variables.forEach(function (el) {
-                    $scope[el] = camForm.variableManager.variables[el].value;
-                    $scope.leasingCandidate[el] = camForm.variableManager.variables[el].value;
+                    if(camForm.variableManager.variables[el].value){
+                        $scope[el] = camForm.variableManager.variables[el].value;
+                        $scope.leasingCandidate[el] = camForm.variableManager.variables[el].value;
+                    }
                 });
                 camForm.variableManager.createVariable({
                     name: 'signingLeaseContractAddAgreementTaskResult',
@@ -64,18 +68,12 @@
                     value: ''
                 });
                 camForm.variableManager.createVariable({
-                    name: 'signingLeaseContractAddAgreementFiles',
-                    type: 'Json',
-                    value: []
-                });
-                camForm.variableManager.createVariable({
                     name: 'leasingProceduresStatus',
                     type: 'String',
                     value: ''
                 });
 
                 $scope.signingLeaseContractAddAgreementTaskResult = '';
-                $scope.signingLeaseContractAddAgreementFiles = [];
             });
 
             camForm.on('submit', function () {
@@ -86,7 +84,18 @@
                     camForm.variableManager.variableValue('leasingProceduresStatus', 'refusal');
                 }
                 camForm.variableManager.variableValue('signingLeaseContractAddAgreementTaskComment', $scope.signingLeaseContractAddAgreementTaskComment);
-                camForm.variableManager.variableValue('signingLeaseContractAddAgreementFiles', $scope.signingLeaseContractAddAgreementFiles);
+
+
+                if(!camForm.variableManager.variables['signingLeaseContractAddAgreementFiles'].type){
+                    camForm.variableManager.destroyVariable('signingLeaseContractAddAgreementFiles');
+                    camForm.variableManager.createVariable({
+                        name: 'signingLeaseContractAddAgreementFiles',
+                        type: 'Json',
+                        value: $scope.signingLeaseContractAddAgreementFiles
+                    });
+                } else {
+                    camForm.variableManager.variableValue('signingLeaseContractAddAgreementFiles', $scope.signingLeaseContractAddAgreementFiles);
+                }
             });
 
             $scope.fileSelected = function (el, fileName) {

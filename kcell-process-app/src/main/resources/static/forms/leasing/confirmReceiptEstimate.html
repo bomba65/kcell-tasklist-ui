@@ -24,6 +24,7 @@
                 'transmissionAntenna',
                 'powerSource',
                 'farEndInformation',
+                'confirmReceiptEstimateFiles',
                 'receivingTSForCandiateSiteFiles',
                 'receivingContractPSDFiles',
                 'receivingApprovalFromTheLandlordFiles',
@@ -52,9 +53,12 @@
             });
 
             camForm.on('variables-fetched', function () {
+                $scope.confirmReceiptEstimateFiles = [];
                 variables.forEach(function (el) {
-                    $scope[el] = camForm.variableManager.variables[el].value;
-                    $scope.leasingCandidate[el] = camForm.variableManager.variables[el].value;
+                    if(camForm.variableManager.variables[el].value){
+                        $scope[el] = camForm.variableManager.variables[el].value;
+                        $scope.leasingCandidate[el] = camForm.variableManager.variables[el].value;
+                    }
                 });
                 camForm.variableManager.createVariable({
                     name: 'confirmReceiptEstimateTaskResult',
@@ -66,20 +70,24 @@
                     type: 'String',
                     value: ''
                 });
-                camForm.variableManager.createVariable({
-                    name: 'confirmReceiptEstimateFiles',
-                    type: 'Json',
-                    value: []
-                });
 
                 $scope.confirmReceiptEstimateTaskResult = '';
-                $scope.confirmReceiptEstimateFiles = [];
             });
 
             camForm.on('submit', function () {
                 camForm.variableManager.variableValue('confirmReceiptEstimateTaskResult', $scope.confirmReceiptEstimateTaskResult);
                 camForm.variableManager.variableValue('confirmReceiptEstimateTaskComment', $scope.confirmReceiptEstimateTaskComment);
-                camForm.variableManager.variableValue('confirmReceiptEstimateFiles', $scope.confirmReceiptEstimateFiles);
+
+                if(!camForm.variableManager.variables['confirmReceiptEstimateFiles'].type){
+                    camForm.variableManager.destroyVariable('confirmReceiptEstimateFiles');
+                    camForm.variableManager.createVariable({
+                        name: 'confirmReceiptEstimateFiles',
+                        type: 'Json',
+                        value: $scope.confirmReceiptEstimateFiles
+                    });
+                } else {
+                    camForm.variableManager.variableValue('confirmReceiptEstimateFiles', $scope.confirmReceiptEstimateFiles);
+                }
             });
 
             $scope.fileSelected = function (el, fileName) {

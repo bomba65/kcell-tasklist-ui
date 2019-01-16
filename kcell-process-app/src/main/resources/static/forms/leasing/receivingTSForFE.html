@@ -24,14 +24,13 @@
                 'transmissionAntenna',
                 'powerSource',
                 'farEndInformation',
+                'receivingTSForFEFiles',
                 'receivingTSForCandiateSiteFiles',
                 'receivingContractPSDFiles',
                 'receivingApprovalFromTheLandlordFiles',
                 'modifyCandidateRRFiles',
                 'estimateTechnicalCapabilityResFiles',
-                'requestTechnicalParametersKTFiles',
-                'receivingTSFiles',
-                'reqKZTRwithTechEquipmentParamsFiles'
+                'requestTechnicalParametersKTForFEFiles'
             ];
 
             camForm.on('form-loaded', function () {
@@ -39,18 +38,18 @@
                     camForm.variableManager.fetchVariable(el);
                 });
                 $http.get('/camunda/api/engine/engine/default/task/' + camForm.taskId).then(
-                        function(result){
-                            $scope.processInstanceId = result.data.processInstanceId;
-                        },
-                        function (error) {
-                            console.log(error.data);
-                        }
+                    function(result){
+                        $scope.processInstanceId = result.data.processInstanceId;
+                    },
+                    function (error) {
+                        console.log(error.data);
+                    }
                 );
                 $scope.leasingCandidate = {};
             });
 
             camForm.on('variables-fetched', function () {
-                $scope.reqKZTRwithTechEquipmentParamsFiles = [];
+                $scope.receivingTSForFEFiles = [];
                 variables.forEach(function (el) {
                     if(camForm.variableManager.variables[el].value){
                         $scope[el] = camForm.variableManager.variables[el].value;
@@ -58,33 +57,37 @@
                     }
                 });
                 camForm.variableManager.createVariable({
-                    name: 'reqKZTRwithTechEquipmentParamsTaskResult',
+                    name: 'receivingTSForFETaskResult',
                     type: 'String',
                     value: ''
                 });
                 camForm.variableManager.createVariable({
-                    name: 'reqKZTRwithTechEquipmentParamsTaskComment',
+                    name: 'receivingTSForFETaskComment',
                     type: 'String',
                     value: ''
                 });
+                camForm.variableManager.createVariable({
+                    name: 'receivingTSForFEFiles',
+                    type: 'Json',
+                    value: []
+                });
 
-                $scope.reqKZTRwithTechEquipmentParamsTaskResult = '';
+                $scope.receivingTSForFETaskResult = '';
             });
 
             camForm.on('submit', function () {
-                camForm.variableManager.variableValue('reqKZTRwithTechEquipmentParamsTaskResult', $scope.reqKZTRwithTechEquipmentParamsTaskResult);
-                camForm.variableManager.variableValue('reqKZTRwithTechEquipmentParamsTaskComment', $scope.reqKZTRwithTechEquipmentParamsTaskComment);
+                camForm.variableManager.variableValue('receivingTSForFETaskResult', $scope.receivingTSForFETaskResult);
+                camForm.variableManager.variableValue('receivingTSForFETaskComment', $scope.receivingTSForFETaskComment);
 
-
-                if(!camForm.variableManager.variables['reqKZTRwithTechEquipmentParamsFiles'].type){
-                    camForm.variableManager.destroyVariable('reqKZTRwithTechEquipmentParamsFiles');
+                if(!camForm.variableManager.variables['receivingTSForFEFiles'].type){
+                    camForm.variableManager.destroyVariable('receivingTSForFEFiles');
                     camForm.variableManager.createVariable({
-                        name: 'reqKZTRwithTechEquipmentParamsFiles',
+                        name: 'receivingTSForFEFiles',
                         type: 'Json',
-                        value: $scope.reqKZTRwithTechEquipmentParamsFiles
+                        value: $scope[el.name]
                     });
                 } else {
-                    camForm.variableManager.variableValue('reqKZTRwithTechEquipmentParamsFiles', $scope.reqKZTRwithTechEquipmentParamsFiles);
+                    camForm.variableManager.variableValue('receivingTSForFEFiles', $scope.receivingTSForFEFiles);
                 }
             });
 
@@ -179,10 +182,7 @@
             <div ng-show="estimateTechnicalCapabilityResFiles.length > 0" class="input-group" ng-repeat="file in estimateTechnicalCapabilityResFiles">
                 <a ng-click="download(file)">{{file.name}}</a>
             </div>
-            <div ng-show="requestTechnicalParametersKTFiles.length > 0" class="input-group" ng-repeat="file in requestTechnicalParametersKTFiles">
-                <a ng-click="download(file)">{{file.name}}</a>
-            </div>
-            <div ng-show="receivingTSFiles.length > 0" class="input-group" ng-repeat="file in receivingTSFiles">
+            <div ng-show="requestTechnicalParametersKTForFEFiles.length > 0" class="input-group" ng-repeat="file in requestTechnicalParametersKTForFEFiles">
                 <a ng-click="download(file)">{{file.name}}</a>
             </div>
         </div>
@@ -191,20 +191,36 @@
     <div class="form-group">
         <label class="col-md-4 control-label">Upload files:</label>
         <div class="col-sm-8">
-            <div ng-show="reqKZTRwithTechEquipmentParamsFiles.length > 0" class="input-group" ng-repeat="file in reqKZTRwithTechEquipmentParamsFiles">
+            <div ng-show="receivingTSForFEFiles.length > 0" class="input-group" ng-repeat="file in receivingTSForFEFiles">
                 {{$index + 1}}.
-                <a ng-click="fileDownload(file)">{{file.name}}</a> | <a ng-click="clearFile('reqKZTRwithTechEquipmentParamsFiles', $index)"><i class="glyphicon glyphicon-trash"></i></a>
+                <a ng-click="fileDownload(file)">{{file.name}}</a> | <a ng-click="clearFile('receivingTSForFEFiles', $index)"><i class="glyphicon glyphicon-trash"></i></a>
             </div>
             <ng-form name="kcell_material_file_form">
-                <input type="file" class="form-control" id="reqKZTRwithTechEquipmentParamsFiles" name="reqKZTRwithTechEquipmentParamsFiles" ng-model="file.file" onchange="angular.element(this).scope().fileSelected(this, 'reqKZTRwithTechEquipmentParamsFiles')"/>
+                <input type="file" class="form-control" id="receivingTSForFEFiles" name="receivingTSForFEFiles" ng-model="file.file" onchange="angular.element(this).scope().fileSelected(this, 'receivingTSForFEFiles')"/>
             </ng-form>
+        </div>
+    </div>
+
+    <div class="form-group">
+        <label class="col-sm-4 control-label">Approval Status</label>
+        <div class="col-sm-8">
+            <label class="radio-inline">
+                <input type="radio" name="receivingTSForFETaskResult" ng-model="receivingTSForFETaskResult" value="additionalAgreementBeforeInstallation" required>Signing of an additional agreement before the start of installation
+            </label>
+            <label class="radio-inline">
+                <input type="radio" name="receivingTSForFETaskResult" ng-model="receivingTSForFETaskResult" value="additionalAgreementAfterInstallation" required>Signing of an additional agreement after installation
+            </label>
+            <label class="radio-inline">
+                <input type="radio" name="receivingTSForFETaskResult" ng-model="receivingTSForFETaskResult" value="reject" required>Reject
+            </label>
+            <label class="error" ng-show="kcell_form.receivingTSForFETaskResult.$error.required && ( kcell_form.receivingTSForFETaskResult.$touched || view.submitted)">Required field</label>
         </div>
     </div>
 
     <div class="form-group">
         <label class="col-sm-4 control-label">Comments</label>
         <div class="col-sm-8">
-            <textarea class="form-control" ng-model="reqKZTRwithTechEquipmentParamsTaskComment" name="reqKZTRwithTechEquipmentParamsTaskComment" placeholder="Comments..." maxlength="500" rows="4" style="resize:none"></textarea>
+            <textarea class="form-control" ng-model="receivingTSForFETaskComment" name="receivingTSForFETaskComment" placeholder="Comments..." maxlength="500" rows="4" style="resize:none"></textarea>
         </div>
     </div>
     <accordion>

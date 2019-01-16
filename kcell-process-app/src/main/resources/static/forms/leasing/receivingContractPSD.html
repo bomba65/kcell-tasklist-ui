@@ -23,7 +23,8 @@
                 'renterCompany',
                 'transmissionAntenna',
                 'powerSource',
-                'farEndInformation'
+                'farEndInformation',
+                'receivingContractPSDFiles'
             ];
 
             camForm.on('form-loaded', function () {
@@ -42,9 +43,12 @@
             });
 
             camForm.on('variables-fetched', function () {
+                $scope.receivingContractPSDFiles = [];
                 variables.forEach(function (el) {
-                    $scope[el] = camForm.variableManager.variables[el].value;
-                    $scope.leasingCandidate[el] = camForm.variableManager.variables[el].value;
+                    if(camForm.variableManager.variables[el].value){
+                        $scope[el] = camForm.variableManager.variables[el].value;
+                        $scope.leasingCandidate[el] = camForm.variableManager.variables[el].value;
+                    }
                 });
                 camForm.variableManager.createVariable({
                     name: 'receivingContractPSDTaskResult',
@@ -58,14 +62,7 @@
                     value: ''
                 });
 
-                camForm.variableManager.createVariable({
-                    name: 'receivingContractPSDFiles',
-                    type: 'Json',
-                    value: []
-                });
-
                 $scope.receivingContractPSDTaskResult = '';
-                $scope.receivingContractPSDFiles = [];
             });
 
             camForm.on('submit', function () {
@@ -85,7 +82,17 @@
                 }
 
                 camForm.variableManager.variableValue('receivingContractPSDTaskComment', $scope.receivingContractPSDTaskComment);
-                camForm.variableManager.variableValue('receivingContractPSDFiles', $scope.receivingContractPSDFiles);
+
+                if(!camForm.variableManager.variables['receivingContractPSDFiles'].type){
+                    camForm.variableManager.destroyVariable('receivingContractPSDFiles');
+                    camForm.variableManager.createVariable({
+                        name: 'receivingContractPSDFiles',
+                        type: 'Json',
+                        value: $scope[el.name]
+                    });
+                } else {
+                    camForm.variableManager.variableValue('receivingContractPSDFiles', $scope.receivingContractPSDFiles);
+                }
             });
 
             $scope.fileSelected = function (el, fileName) {

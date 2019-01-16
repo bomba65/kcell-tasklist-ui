@@ -28,7 +28,8 @@
                 'receivingContractPSDFiles',
                 'receivingApprovalFromTheLandlordFiles',
                 'modifyCandidateRRFiles',
-                'estimateTechnicalCapabilityResFiles'
+                'estimateTechnicalCapabilityResFiles',
+                'requestTechnicalParametersKTFiles'
             ];
 
             camForm.on('form-loaded', function () {
@@ -47,9 +48,12 @@
             });
 
             camForm.on('variables-fetched', function () {
+                $scope.requestTechnicalParametersKTFiles = [];
                 variables.forEach(function (el) {
-                    $scope[el] = camForm.variableManager.variables[el].value;
-                    $scope.leasingCandidate[el] = camForm.variableManager.variables[el].value;
+                    if(camForm.variableManager.variables[el].value){
+                        $scope[el] = camForm.variableManager.variables[el].value;
+                        $scope.leasingCandidate[el] = camForm.variableManager.variables[el].value;
+                    }
                 });
                 camForm.variableManager.createVariable({
                     name: 'requestTechnicalParametersKTTaskResult',
@@ -61,20 +65,24 @@
                     type: 'String',
                     value: ''
                 });
-                camForm.variableManager.createVariable({
-                    name: 'requestTechnicalParametersKTFiles',
-                    type: 'Json',
-                    value: []
-                });
 
                 $scope.requestTechnicalParametersKTTaskResult = '';
-                $scope.requestTechnicalParametersKTFiles = [];
             });
 
             camForm.on('submit', function () {
                 camForm.variableManager.variableValue('requestTechnicalParametersKTTaskResult', $scope.requestTechnicalParametersKTTaskResult);
                 camForm.variableManager.variableValue('requestTechnicalParametersKTTaskComment', $scope.requestTechnicalParametersKTTaskComment);
-                camForm.variableManager.variableValue('requestTechnicalParametersKTFiles', $scope.requestTechnicalParametersKTFiles);
+
+                if(!camForm.variableManager.variables['requestTechnicalParametersKTFiles'].type){
+                    camForm.variableManager.destroyVariable('requestTechnicalParametersKTFiles');
+                    camForm.variableManager.createVariable({
+                        name: 'requestTechnicalParametersKTFiles',
+                        type: 'Json',
+                        value: $scope.requestTechnicalParametersKTFiles
+                    });
+                } else {
+                    camForm.variableManager.variableValue('requestTechnicalParametersKTFiles', $scope.requestTechnicalParametersKTFiles);
+                }
             });
 
             $scope.fileSelected = function (el, fileName) {
