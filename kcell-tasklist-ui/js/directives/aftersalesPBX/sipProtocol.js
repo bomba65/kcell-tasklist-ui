@@ -1,6 +1,6 @@
 define(['./../module'], function(module){
     'use strict';
-    module.directive('aftersalesSipProtocol', function ($rootScope, $http) {
+    module.directive('aftersalesSipProtocol', function ($rootScope, $http, $timeout) {
         return {
             restrict: 'E',
             scope: {
@@ -23,6 +23,16 @@ define(['./../module'], function(module){
                     if (!result || result.aftersales) return;
                     if (result.sip) parseFromPBX(JSON.parse(result.sip));
                 });
+
+                  scope.$on('tab-selected', function(e, tabName) {
+                    if (tabName === 'techSpec') {
+                      var tmp = scope.data.description;
+                      scope.data.description = 'this is because of tabset';
+                      $timeout(function () {
+                        scope.data.description = tmp;
+                      });
+                    }
+                  });
 
                 function parseFromPBX(sip) {
                     if (!sip) return;

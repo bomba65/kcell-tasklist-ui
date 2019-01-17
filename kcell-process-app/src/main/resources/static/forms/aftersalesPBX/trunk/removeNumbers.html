@@ -1,0 +1,204 @@
+<form role="form" class="form-horizontal" name="kcell_form" novalidate>
+  <style>
+    .background-yellow-accordion .panel-body {
+      background-color: #ffffcc;
+      border: 1px solid #b3b3b3;
+      color: #333;
+    }
+  </style>
+  <script cam-script type="text/form-script">
+        inject(['$scope', '$http', 'Uri', '$rootScope', '$q', 'toasty', '$timeout', function ($scope, $http, Uri, $rootScope, $q, toasty, $timeout) {
+            $scope.legalInfo = {};
+            $scope.techSpecs = {connectionType:'SIP over internet', sip: {}};
+            $scope.resolutions = [];
+            $scope.action = {};
+            $scope.pbxData = {};
+
+            var processInstanceId = null;
+            var taskName = null;
+            var assigneeName = $rootScope.authentication.name;
+
+            $http.get("/camunda/api/engine/engine/default/user/" + $rootScope.authentication.name+ "/profile").then(function(result){
+                assigneeName = (result.data.firstName ? result.data.firstName : "") + " " + (result.data.lastName ? result.data.lastName : "");
+            });
+
+            $http.get('/camunda/api/engine/engine/default/task/' + camForm.taskId).then(
+                function(result){
+                    processInstanceId = result.data.processInstanceId;
+                    taskName = result.data.name;
+                    $http.get('/camunda/api/engine/engine/default/process-instance/' + processInstanceId).then(
+                        function(result){
+                            $scope.businessKey = result.data.businessKey;
+                        },
+                        function (error) {console.log(error.data);}
+                    );
+                },
+                function (error) { console.log(error.data);}
+            );
+
+            camForm.on('form-loaded', function () {
+                camForm.variableManager.fetchVariable('legalInfo');
+                camForm.variableManager.fetchVariable('techSpecs');
+                camForm.variableManager.fetchVariable('resolutions');
+                camForm.variableManager.fetchVariable('resolution');
+                camForm.variableManager.fetchVariable('action');
+                camForm.variableManager.fetchVariable('pbxData');
+                camForm.variableManager.fetchVariable('workType');
+            });
+
+            camForm.on('variables-fetched', function () {
+                $scope.legalInfo = camForm.variableManager.variableValue('legalInfo');
+                $scope.techSpecs = camForm.variableManager.variableValue('techSpecs');
+                $scope.resolutions = camForm.variableManager.variableValue('resolutions');
+                $scope.resolution = camForm.variableManager.variableValue('resolution');
+                $scope.action = camForm.variableManager.variableValue('action');
+                $scope.pbxData = camForm.variableManager.variableValue('pbxData');
+                $scope.workType = camForm.variableManager.variableValue('workType');
+                if (!$scope.legalInfo) $scope.legalInfo = {};
+                if (!$scope.techSpecs) $scope.techSpecs = {connectionType:'SIP over internet', sip: {}};
+            });
+
+            $scope.preSubmit = function() {
+                return $http.get('/camunda/api/engine/engine/default/process-instance/'+processInstanceId+'/variables/resolutions?deserializeValue=false').then(
+                    function (result) {
+                        if (result && result.data) $scope.resolutions = JSON.parse(result.data.value);
+                    },
+                    function(error) { toasty.error(error.data.message); }
+                );
+            };
+
+            camForm.on('submit', function (event) {
+                var submitDate = new Date ();
+                if(!$scope.resolutions){
+                    $scope.resolutions = [];
+                }
+                $scope.resolutions.unshift({processInstanceId: processInstanceId, assignee: assigneeName, resolution: 'Complete', comment: $scope.comment, taskId: camForm.taskId, taskEndDate: submitDate, taskName: taskName});
+                camForm.variableManager.destroyVariable('resolutions');
+                camForm.variableManager.createVariable({
+                    name: 'resolutions',
+                    type: 'Json',
+                    value: $scope.resolutions
+                });
+                camForm.variableManager.destroyVariable('resolution');
+                camForm.variableManager.createVariable({
+                    name: 'resolution',
+                    type: 'String',
+                    value: $scope.resolution
+                });
+            });
+        }]);
+    </script>
+
+  <div class="form-group">
+    <label class="col-sm-3 control-label" style="padding-top: 0">Number request:</label>
+    <div class="col-sm-9">{{businessKey}}</div>
+  </div>
+  <div class="form-group">
+    <label class="col-sm-3 control-label" style="padding-top: 0">Client:</label>
+    <div class="col-sm-9">{{legalInfo.legalName}} {{legalInfo.BIN}}</div>
+  </div>
+  <div class="form-group">
+    <label class="col-sm-3 control-label" style="padding-top: 0">Priority:</label>
+    <div class="col-sm-9">{{legalInfo.clientPriority}}</div>
+  </div>
+  <div class="form-group">
+    <label class="col-sm-3 control-label" style="padding-top: 0">Service:</label>
+    <div class="col-sm-9">PBX</div>
+  </div>
+  <div class="form-group">
+    <label class="col-sm-3 control-label" style="padding-top: 0">Type of work:</label>
+    <div class="col-sm-9"><div ng-repeat="wt in workType track by $index">{{wt}}</div></div>
+  </div>
+
+  <div class="col-sm-12"><hr /></div>
+
+  <accordion class="background-yellow-accordion">
+    <accordion-group is-open="true">
+      <accordion-heading>
+        Technical specification <i class="pull-right glyphicon" ng-class="{'glyphicon-chevron-up': status.isCustomHeaderOpen, 'glyphicon-chevron-down': !status.isCustomHeaderOpen}"></i>
+      </accordion-heading>
+      <div class="col-sm-12">
+        <div class="form-group">
+          <label class="col-sm-4 control-label">Connection type: </label>
+          <div class="col-sm-8">
+            <div class="disabled-element">{{techSpecs.connectionType}}</div>
+          </div>
+        </div>
+        <div class="form-group">
+          <label class="col-sm-4 control-label">Current connection point: </label>
+          <div class="col-sm-8">
+            <div class="disabled-element" ng-style="{'border-color': ((pbxData.fetched && pbxData.techSpecs.connectionPoint !== techSpecs.connectionPoint) ? '#f0ad4e' : null)}">{{techSpecs.connectionPoint}}</div>
+          </div>
+        </div>
+        <div class="form-group">
+          <label class="col-sm-4 control-label">Authorization type: </label>
+          <div class="col-sm-8">
+            <div class="disabled-element" ng-style="{'border-color': ((pbxData.fetched && pbxData.sip.authorizationType !== techSpecs.sip.authorizationType) ? '#f0ad4e' : null)}">{{techSpecs.sip.authorizationType}}</div>
+          </div>
+        </div>
+        <div class="form-group">
+          <label class="col-sm-4 control-label">Current public static IP for voice traffic: </label>
+          <div class="col-sm-8">
+            <div class="disabled-element" ng-style="{'border-color': ((pbxData.fetched && pbxData.sip.curPublicVoiceIP !== techSpecs.sip.curPublicVoiceIP) ? '#f0ad4e' : null)}">{{techSpecs.sip.curPublicVoiceIP}}</div>
+          </div>
+        </div>
+        <div class="form-group">
+          <label class="col-sm-4 control-label">Current public static IP for signaling: </label>
+          <div class="col-sm-8">
+            <div class="disabled-element" ng-style="{'border-color': ((pbxData.fetched && pbxData.sip.curSignalingIP !== techSpecs.sip.curSignalingIP) ? '#f0ad4e' : null)}">{{techSpecs.sip.curSignalingIP}}</div>
+          </div>
+        </div>
+        <div class="form-group">
+          <label class="col-sm-12 control-label">Removal numbers:: </label>
+          <div class="col-sm-12">
+            <div class="disabled-element" ng-style="{'border-color': ((pbxData.fetched && pbxData.techSpecs.removalNumbers !== techSpecs.removalNumbers) ? '#f0ad4e' : null)}">{{techSpecs.removalNumbers && techSpecs.removalNumbers.length?techSpecs.removalNumbers:'&nbsp;'}}</div>
+          </div>
+        </div>
+        <div class="form-group">
+          <label class="col-sm-4 control-label">Description: </label>
+          <div class="col-sm-8">
+            <div class="disabled-element" ng-style="{'border-color': ((pbxData.fetched && pbxData.sip.description !== techSpecs.sip.description) ? '#f0ad4e' : null)}">{{techSpecs.sip.description && techSpecs.sip.description.length?techSpecs.sip.description:'&nbsp;'}}</div>
+          </div>
+        </div>
+      </div>
+    </accordion-group>
+  </accordion>
+
+  <div class="col-sm-12"><hr /></div>
+
+  <div class="form-group">
+    <label class="col-sm-2 control-label">Comment</label>
+    <div class="col-sm-10">
+      <textarea elastic-textarea class="form-control" rows="4" name="comment" ng-model="comment" ng-required="resolution == 'Need modify'"></textarea>
+      <label class="error" ng-show="kcell_form.comment.$error.required && ( kcell_form.comment.$touched || view.submitted)">Required field</label>
+    </div>
+  </div>
+
+  <accordion>
+    <accordion-group is-open="isHistoryOpen">
+      <accordion-heading>
+        History <i class="pull-right glyphicon" ng-class="{'glyphicon-chevron-up': status.isCustomHeaderOpen, 'glyphicon-chevron-down': !status.isCustomHeaderOpen}"></i>
+      </accordion-heading>
+      <table class="table">
+        <thead>
+        <tr>
+          <th>Activity</th>
+          <th>Assignee</th>
+          <th>Resolution</th>
+          <th>Date</th>
+          <th>Comment</th>
+        </tr>
+        </thead>
+        <tbody>
+        <tr ng-repeat="resolution in resolutions track by $index">
+          <td>{{resolution.taskName}}</td>
+          <td>{{resolution.assignee}}</td>
+          <td>{{resolution.resolution}}</td>
+          <td>{{resolution.taskEndDate | date: 'dd.MM.yyyy HH:mm'}}</td>
+          <td>{{resolution.comment}}</td>
+        </tr>
+        </tbody>
+      </table>
+    </accordion-group>
+  </accordion>
+</form>
