@@ -9,7 +9,8 @@ define(['./../module'], function(module){
                 view: '=',
                 disabled: '=',
                 onitemselect: '=',
-                onitemdeselect: '='
+                onitemdeselect: '=',
+                hintText: '='
             },
             link: function(scope, element, attrs) {
                 scope.$watch('data', function(value) {
