@@ -6,8 +6,9 @@
                 'relatedProcessDefinitionKey',
                 'relatedProcessInstanceId',
                 'relatedProcessInstanceVariables',
-                'identifiers'
-                //'operatorType',
+                'identifiers',
+                'operatorType',
+                'identifierType'
                 //'operators'
             ];
 
@@ -76,6 +77,13 @@
                     $rootScope.authentication.assigneeName = (result.data.firstName ? result.data.firstName : "") + " " + (result.data.lastName ? result.data.lastName : "");
                 });
 
+                $scope.identifiers.forEach(function(id){
+                    id.operators = id.operators.map(function(op){
+                        op.disabled = !!op.checked;
+                        return op;
+                    });
+                });
+
                 $scope.aftersalesInfo = angular.copy($scope.relatedProcessInstanceVariables);
                 $scope.aftersalesInfo.identifiers = $scope.identifiers;
                 $scope.aftersalesInfo.showTarif = true;
@@ -90,7 +98,6 @@
                     {id: 'tele2', name: 'Tele2'},
                     {id: 'altel', name: 'Altel'}
                 ];
-
 
                 //$scope.identifiers = [];
                 //$scope.identifiers.push({'title': $scope.relatedProcessInstanceVariables.identifiers[0].title, 'operators': angular.copy($scope.offnetOperators)});
@@ -145,8 +152,8 @@
 
     </script>
     <info-aftersales aftersales-info="aftersalesInfo"></info-aftersales>
-    <p>Добавьте информацию по статусам и ценам за короткий номер</p>
-    <div class="form-group" ng-repeat="id in identifiers">
+    <p ng-if="operatorType === 'offnet' && identifierType === 'digital'">Добавьте информацию по статусам и ценам за короткий номер</p>
+    <div class="form-group" ng-repeat="id in identifiers" ng-if="operatorType === 'offnet' && identifierType === 'digital'">
         <label class="col-sm-12 control-label">Идентификатор - {{id.title}}</label>
         <div class="col-sm-12" style="border-left: solid; border-left-width: 1px; margin-left: 2vh">
             <div class="form-group">
@@ -162,14 +169,14 @@
                 </div>
                 <div class="col-sm-10">
                     <div class="col-sm-3" ng-repeat="operator in id.operators">
-                        <label for="operator.id"><input type="checkbox" ng-model="operator.isAvailable" ng-change="clearPrices(operator)"> {{operator.name}}</label>
+                        <label for="operator.id"><input type="checkbox" ng-model="operator.isAvailable" ng-change="clearPrices(operator)" ng-disabled="operator.disabled"> {{operator.name}}</label>
                         <div class="input" id="operator.id" >
-                            <input ng-model="operator.priceAP" name="{{operator.id + 'AP' + id.title}}" class="form-control"  placeholder="{{operator.isAvailable?'Цена':'Не доступен'}}" ng-disabled="!operator.isAvailable" ng-required="operator.isAvailable"/>
+                            <input ng-model="operator.priceAP" name="{{operator.id + 'AP' + id.title}}" class="form-control"  placeholder="{{operator.isAvailable?'Цена':'Не доступен'}}" ng-disabled="operator.disabled || !operator.isAvailable" ng-required="operator.isAvailable"/>
                             <label class="error" ng-show="kcell_form.{{operator.id + 'AP' + id.title}}.$error.required && ( kcell_form.{{operator.id + 'AP'}}.$touched || view.submitted)">Required field</label>
                         </div>
                         <br>
                         <div class="input">
-                            <input ng-model="operator.priceEP" name="{{operator.id + 'EP' + id.title}}" class="form-control"  placeholder="{{operator.isAvailable?'Цена':'Не доступен'}}" ng-disabled="!operator.isAvailable" ng-required="operator.isAvailable"/>
+                            <input ng-model="operator.priceEP" name="{{operator.id + 'EP' + id.title}}" class="form-control"  placeholder="{{operator.isAvailable?'Цена':'Не доступен'}}" ng-disabled="operator.disabled || !operator.isAvailable" ng-required="operator.isAvailable"/>
                             <label class="error" ng-show="kcell_form.{{operator.id + 'EP' + id.title}}.$error.required && ( kcell_form.{{operator.id + 'EP'}}.$touched || view.submitted)">Required field</label>
                         </div>
                     </div>
@@ -187,6 +194,62 @@
             </div>
         </div>
     </div>
+
+    <!--h4 ng-if="!(operatorType === 'offnet' && identifierType === 'digital')">Выберите операторов и укажите цены</h4>
+    <div-- class="form-group" ng-repeat="id in identifiers" ng-if="!(operatorType === 'offnet' && identifierType === 'digital' && !previouslyBought)">
+        <label class="control-label pull-left"/>Идентификатор - {{id.title}}
+        <span class="glyphicon glyphicon-remove pull-right" ng-click="deleteIdentifier($index)"></span>
+        <div class="col-sm-12" style="border-left: solid; border-left-width: 1px; margin-left: 2vh">
+            <div class="form-group">
+                <div class="col-sm-1">
+                    <p>&nbsp;</p>
+                    <div class="input">
+                        <label for="operator.id">АП</label>
+                    </div>
+                    <br>
+                    <div class="input" ng-show="identifierType === 'digital'">
+                        <label for="operator.id">ЕП</label>
+                    </div>
+                    <div class="input" ng-show="identifierType === 'alfanumeric'">
+                        <label for="operator.id">Идентификатор</label>
+                    </div>
+                </div>
+                <div class="col-sm-10">
+                    <div class="col-sm-3" ng-repeat="operator in id.operators">
+                        <label for="operator.id"><input type="checkbox" ng-model="operator.isAvailable" ng-change="clearPrices(operator)"> {{operator.name}}</label>
+                        <div class="input" id="operator.id" >
+                            <input ng-model="operator.priceAP" name="{{operator.id + 'AP'}}" class="form-control"  placeholder="{{operator.isAvailable?'Цена':'Не доступен'}}" ng-disabled="!operator.isAvailable" ng-required="operator.isAvailable"/>
+                            <label class="error" ng-show="kcell_form.{{operator.id + 'AP'}}.$error.required && ( kcell_form.{{operator.id + 'AP'}}.$touched || view.submitted)">Required field</label>
+                        </div>
+                        <br>
+                        <div class="input" ng-show="identifierType === 'digital'">
+                            <input ng-model="operator.priceEP" name="{{operator.id + 'EP'}}" class="form-control"  placeholder="{{operator.isAvailable?'Цена':'Не доступен'}}" ng-disabled="!operator.isAvailable" ng-required="operator.isAvailable && identifierType === 'digital'"/>
+                            <label class="error" ng-show="kcell_form.{{operator.id + 'EP'}}.$error.required && ( kcell_form.{{operator.id + 'EP'}}.$touched || view.submitted)">Required field</label>
+                        </div>
+                        <div class="input" ng-show="identifierType === 'alfanumeric'">
+                            <select ng-model="operator.title" name="{{operator.id + 'Title'}}" class="form-control" ng-disabled="!operator.isAvailable" required="true" ng-required="operator.isAvailable && identifierType === 'alfanumeric'">
+                                <option value="{{id.title}}">{{id.title}}</option>
+                                <option value="MESSAGE">MESSAGE</option>
+                                <option value="KiT_Notify">KiT_Notify</option>
+                            </select>
+                            <label class="error" ng-show="kcell_form.{{operator.id + 'Title'}}.$error.required && ( kcell_form.{{operator.id + 'Title'}}.$touched || view.submitted)">Required field</label>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="form-group">
+                <div class="col-sm-2">
+                </div>
+                <div class="col-sm-5">
+                    <label>АП -­ Абонентский платёж</label>
+                </div>
+                <div class="col-sm-5" ng-show="identifierType === 'digital'">
+                    <label>ЕП -­ Единовременный платёж</label>
+                </div>
+            </div>
+        </div>
+    </div-->
+
     <div class="form-group">
         <label class="col-sm-3 control-label">Комментарии</label>
         <div class="col-sm-9">
