@@ -194,11 +194,11 @@ define(['./module','jquery', 'moment', 'camundaSDK'], function(app, $, moment, C
 		};
 
         $scope.currentDate = new Date();
-        $scope.filter.beginYear = $scope.currentDate.getFullYear();
+        $scope.filter.beginYear = $scope.currentDate.getFullYear()-1;
         $scope.filter.endYear = $scope.currentDate.getFullYear();
         $scope.years = [];
 
-        for(var year=2017;year<=$scope.filter.beginYear;year++){
+        for(var year=2017;year<=$scope.filter.endYear;year++){
 			$scope.years.push(year);
         }
 
