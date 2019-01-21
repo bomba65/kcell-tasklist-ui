@@ -1,4 +1,4 @@
-define(['./module'], function(module){
+define(['./../module'], function(module){
 	'use strict';
 	module.directive('leasingCandidate', ['$http', '$timeout', function ($http, $timeout) {
 		return {
@@ -33,7 +33,7 @@ define(['./module'], function(module){
 	                }               		
                	}
 			},
-			templateUrl: './js/directives/leasingCandidate.html'
+			templateUrl: './js/directives/leasing/leasingCandidate.html'
 		};
 	}]);
 });

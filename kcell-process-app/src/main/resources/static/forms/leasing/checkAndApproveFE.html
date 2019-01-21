@@ -65,6 +65,21 @@
                     type: 'String',
                     value: ''
                 });
+                camForm.variableManager.createVariable({
+                    name: 'approvedFEWithHighPriority',
+                    type: 'Json',
+                    value: {}
+                });
+                camForm.variableManager.createVariable({
+                    name: 'feObjectType',
+                    type: 'String',
+                    value: ''
+                });
+                camForm.variableManager.createVariable({
+                    name: 'feLegalType',
+                    type: 'String',
+                    value: ''
+                });
 
                 $scope.checkAndApproveFETaskResult = '';
             });
@@ -78,6 +93,29 @@
                 } else {
                     camForm.variableManager.variableValue('checkAndApproveFETaskResult', 'approved');
                     camForm.variableManager.variableValue('feApproved', 'yes');
+
+                    var approvedFEList = [];
+                    angular.forEach($scope.farEndInformation, function (fe) {
+                        if(fe.transmissionStatus === 'approved'){
+                            approvedFEList.push(fe);
+                        }
+                    });
+                    var approvedFEWithHighPriority = undefined;
+                    angular.forEach(approvedFEList, function (approvedFE) {
+                        if(approvedFE.priority === true){
+                            approvedFEWithHighPriority = approvedFE;
+                        }
+                    });
+                    if(!approvedFEWithHighPriority){
+                        approvedFEWithHighPriority = approvedFEList[0];
+                    }
+                    camForm.variableManager.variableValue('approvedFEWithHighPriority', approvedFEWithHighPriority);
+                    camForm.variableManager.variableValue('feLegalType', approvedFEWithHighPriority.legalType);
+                    if(approvedFEWithHighPriority && (approvedFEWithHighPriority.legalType === 'national_kazakhtelecom' || approvedFEWithHighPriority.legalType === 'national_kazteleradio' || approvedFEWithHighPriority.legalType === 'national_kazpost')){
+                        camForm.variableManager.variableValue('feObjectType', 'national');
+                    } else {
+                        camForm.variableManager.variableValue('feObjectType', 'other');
+                    }
                 }
 
                 camForm.variableManager.variableValue('farEndInformation', $scope.farEndInformation);
