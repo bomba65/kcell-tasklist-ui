@@ -1,6 +1,6 @@
 define(['./module','camundaSDK'], function(module, CamSDK){
 	'use strict';
-	return module.service('StartProcessService', ['$rootScope', '$timeout', '$location', 'exModal', '$http', function($rootScope, $timeout, $location, exModal, $http) {
+	return module.service('StartProcessService', ['$rootScope', 'toasty', '$timeout', '$location', 'exModal', '$http', function($rootScope, toasty, $timeout, $location, exModal, $http) {
 		var camClient = new CamSDK.Client({
 			mock: false,
 			apiUri: '/camunda/api/engine/'

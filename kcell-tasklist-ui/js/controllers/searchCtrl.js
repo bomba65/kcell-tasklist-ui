@@ -1519,7 +1519,20 @@ define(['./module','jquery', 'moment', 'camundaSDK'], function(app, $, moment, C
 				);
             }
             return [];
-        };
+		};
+		
+		$scope.mapChangeType = {
+			changeOfficialClientCompanyName: "Изменение Юридического наименования компании",
+			changeContractNumber: "Изменение номера договора",
+			disconnectOperator: "Отключение оператора",
+			connectOperator: "Добавление оператора",
+			changeConnectionType: "Изменение типа подключения",
+			changeIpNumber: "Добавление/Изменение IP адреса",
+			changeIdentifier: "Изменение заголовка",
+			changeSmsServiceType: "Подключение МО",
+			changeProvider: "Смена провайдера",
+			changeTransmitNumber: "Смена номера переадресации"
+		}
 
 		$scope.toggleProcessViewDP = function(rowIndex, processDefinitionKey){
 			$scope.showDiagramView = false;
@@ -1619,49 +1632,53 @@ define(['./module','jquery', 'moment', 'camundaSDK'], function(app, $, moment, C
 									method: 'POST',
 									headers:{'Accept':'application/hal+json, application/json; q=0.5'},
 									data: {
+										sorting:[{sortBy: "startTime",sortOrder: "desc"}],
 										variables: [{"name": "relatedProcessInstanceId", "operator": "eq", "value": $scope.processInstancesDP[index].id}],
 										processDefinitionKey:  'after-sales-ivr-sms'
 									},
 									url: baseUrl+'/history/process-instance'
 								}).then(function(response){
-									console.log('aftersales response');
+									console.log('aftersales response data', response.data);
 									if (response && response.data) {
 										$scope.processInstancesAftersales = angular.copy(response.data);
-
-										$scope.processInstancesAftersales.forEach(instance => {
-											//instance.toggle = false;
-											$http.get(baseUrl+'/history/variable-instance?deserializeValues=false&processInstanceId='+instance.id).then(
-												function(result){
-													result.data.forEach(function(el){
-														//instance[el.name] = el.value;
-
-														instance[el.name] = el;
-														if(el.type !== 'Json' && (el.value || el.value === "" || el.type === 'Boolean')) {
-															instance[el.name] = el.value;
-														}
-														if(el.type === 'File' || el.type === 'Bytes'){
-															instance[el.name].contentUrl = baseUrl+'/history/variable-instance/'+el.id+'/data';
-														}
-														if(el.type === 'Json'){
-															if(el.name === 'resolutions'){
-																instance.value = JSON.parse(el.value);
-															} else if(['contractScanCopyFileName', 'applicationScanCopyFileName', 'vpnQuestionnaireFileName'].indexOf(el.name) > -1) {
-																if (!instance.files) {
-																	instance.files = [];
-																}
-																instance.files.push(JSON.parse(el.value));
+										if($scope.processInstancesAftersales.length>0){
+											$scope.disableAftersalesStart = $scope.processInstancesAftersales.filter(function(pi){return ['EXTERNALLY_TERMINATED','COMPLETED'].indexOf(pi.state) === -1}).length > 0;
+											$scope.processInstancesAftersales.forEach(function(instance) {
+												$http.get(baseUrl+'/history/variable-instance?deserializeValues=false&processInstanceId='+instance.id).then(
+													function(result){
+														instance.changeTypes = [];
+														result.data.forEach(function(el){
+															if(el.name === 'relatedProcessInstanceVariables'){
+																var relPiVars = JSON.parse(el.value);
+																Object.keys(relPiVars).forEach(function(name){
+																	if(name !== "identifiers"){
+																		instance[name] = relPiVars[name];
+																	}
+																});
 															} else {
-																instance[el.name] = JSON.parse(el.value);
+																//if(el.name == "identifiers"){
+																if(el.type == "Json"){
+																	instance[el.name] = JSON.parse(el.value);
+																} else {
+																	instance[el.name] = el.value;
+																}
+															}															
+															if(["changeOfficialClientCompanyName","changeContractNumber","disconnectOperator","connectOperator","changeConnectionType","changeIpNumber","changeIdentifier","changeSmsServiceType","changeProvider","changeTransmitNumber"].indexOf(el.name)>-1){
+																if(el.value){
+																	instance.changeTypes.push($scope.mapChangeType[el.name]);
+																}
 															}
-														}
-
-													});
-												},
-												function(error){
-													console.log(error.data);
-												}
-											);
-										});
+														});
+													},
+													function(error){
+														console.log(error.data);
+													}
+												)
+												});
+										} else {
+											$scope.disableAftersalesStart = false;
+											console.log(2, $scope.disableAftersalesStart);
+										}
 									}
 								},
 								function(error){
@@ -1679,6 +1696,9 @@ define(['./module','jquery', 'moment', 'camundaSDK'], function(app, $, moment, C
 				}
 			}
 		};
+		/*$scope.getStartStatus = function(processInstances){
+			return processInstances.filter(function(pi){return ['EXTERNALLY_TERMINATED','COMPLETED'].indexOf(pi.state)>-1}).length > 0;
+		}*/
 		$scope.startProcess = function(id){
 			disconnectSelectedProcessService(false);
 			StartProcessService(id);
@@ -1690,10 +1710,8 @@ define(['./module','jquery', 'moment', 'camundaSDK'], function(app, $, moment, C
 		$scope.toggleIndexAftersales = undefined;
 		$scope.toggleProcessViewAftersales = function(index){
 			if($scope.toggleIndexAftersales === index){
-				console.log('if');
 				$scope.toggleIndexAftersales = undefined;
 			} else {
-				console.log('else');
 				$scope.toggleIndexAftersales = index;
 				$scope.toggleInfoAftersales = $scope.processInstancesAftersales[index];
 			}
