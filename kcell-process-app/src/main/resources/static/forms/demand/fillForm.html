@@ -3,6 +3,11 @@
         .well {
             color: #333;
         }
+        .demand-name {
+            width: 89%;
+            float: left;
+            padding: 0 5px;
+        }
     </style>
     <script cam-script type="text/form-script">
         inject(['$scope', '$http', 'Uri', '$rootScope', '$q', 'toasty', '$timeout', function ($scope, $http, Uri, $rootScope, $q, toasty, $timeout) {
@@ -75,12 +80,16 @@
                 camForm.variableManager.fetchVariable('cvpReviewGroup');
                 camForm.variableManager.fetchVariable('requirementCheckGroup');
                 camForm.variableManager.fetchVariable('defineAcceptanceGroup');
+                camForm.variableManager.fetchVariable('status');
+                camForm.variableManager.fetchVariable('state');
             });
 
             camForm.on('variables-fetched', function () {
                 $scope.generalData = camForm.variableManager.variableValue('generalData');
                 $scope.resolutions = camForm.variableManager.variableValue('resolutions');
                 $scope.businessKey = camForm.variableManager.variableValue('businessKey');
+                $scope.status = camForm.variableManager.variableValue('status');
+                $scope.state = camForm.variableManager.variableValue('state');
                 if (!$scope.generalData) {
                     $scope.generalData = {
                         general: {},
@@ -198,6 +207,24 @@
                     type: 'String',
                     value: 'demand_solution_council_' + group
                 });
+
+                var status = 'Order modified';
+                var state = 'Active';
+                if ($scope.isStartForm) status = 'New order';
+
+                camForm.variableManager.destroyVariable('status');
+                camForm.variableManager.createVariable({
+                    name: 'status',
+                    type: 'String',
+                    value: status
+                });
+
+                camForm.variableManager.destroyVariable('state');
+                camForm.variableManager.createVariable({
+                    name: 'state',
+                    type: 'String',
+                    value: state
+                });
             });
 
             $scope.saveFillForm = function () {
@@ -224,24 +251,28 @@
         }]);
     </script>
     <div class="form-group" ng-if="!isStartForm">
-        <label style="width: 8%; float: left; padding-left: 15px; padding-top: 7px; font-weight: 500;"> Business Key:</label>
-        <div class="col-sm-2">
-            <input rows="1" class="form-control" ng-model="businessKey" disabled>
+        <label style="width: 11%; float: left; padding: 7px 5px 0 15px; font-weight: 500;"> Business Key:</label>
+        <div style="width: 10%; float: left; padding: 0 5px;">
+            <input class="form-control" cam-variable-name="businessKey" cam-variable-type="String" disabled>
         </div>
-        <label style="width: 10%; float: left; padding-left: 15px; padding-top: 7px; font-weight: 500;"> Demand Status:</label>
-        <div class="col-sm-2">
-            <label rows="1" class="form-control" disabled>Created </label>
+        <label style="width: 6%; float: left; padding: 7px 0px 0 10px; font-weight: 500;"> Status:</label>
+        <div style="width: 22%; float: left; padding: 0 5px;">
+            <div class="disabled-element">{{status}} </div>
         </div>
-        <label style="width: 6.6%; float: left; padding-left: 15px; padding-top: 7px; font-weight: 500;"> Activity:</label>
-        <div class="col-sm-5">
-            <label rows="1" class="form-control" disabled> Fill Form </label>
+        <label style="width: 6%; float: left; padding: 7px 0px 0 10px; font-weight: 500;"> State:</label>
+        <div style="width: 10%; float: left; padding: 0 5px;">
+            <div class="disabled-element">{{state}} </div>
+        </div>
+        <label style="width: 6%; float: left; padding: 7px 0px 0 5px; font-weight: 500;"> Activity:</label>
+        <div style="width: 29%; float: left; padding: 0 5px;">
+            <div class="disabled-element"> Fill Form </div>
         </div>
     </div>
     <div class="form-group">
-        <label ng-if="!isStartForm" style="width: 8%; float: left; padding-left: 15px; padding-top: 7px; font-weight: 500;"> Demand Name:</label>
         <label ng-if="isStartForm" class="col-sm-2 control-label">Demand Name:<span class="text-danger glyphicon-asterisk"></span></label>
-        <div class="col-sm-{{isStartForm?10:11}}">
-            <input rows="1" class="form-control" name="demandName" ng-model="demandName" cam-variable-name="demandName" cam-variable-type="String" required/>
+        <label ng-if="!isStartForm" style="width: 11%; float: left; padding: 7px 5px 0 15px; font-weight: 500;"> Demand Name:</label>
+        <div ng-class="{'col-sm-10': isStartForm, 'demand-name': !isStartForm}">
+            <input class="form-control" name="demandName" ng-model="demandName" cam-variable-name="demandName" cam-variable-type="String" required/>
             <label class="error" ng-show="kcell_form.demandName.$error.required && ( kcell_form.demandName.$touched || view.submitted)">Required field</label>
         </div>
     </div>
