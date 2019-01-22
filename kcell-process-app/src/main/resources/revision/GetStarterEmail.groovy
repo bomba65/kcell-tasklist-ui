@@ -1,3 +1,5 @@
+package revision
+
 import org.camunda.bpm.engine.delegate.DelegateExecution
 
 def getUserEmail(DelegateExecution execution, String userId) {

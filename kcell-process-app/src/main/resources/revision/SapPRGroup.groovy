@@ -1,17 +1,24 @@
+package revision
+
 import org.camunda.bpm.engine.delegate.DelegateExecution
 import org.camunda.bpm.engine.impl.identity.Authentication
 
-import java.util.function.Supplier
 import java.util.stream.Collectors
 
 def getUserEmail(DelegateExecution execution) {
     def identityService = execution.processEngineServices.identityService
-    String siteRegion = execution.getVariable("siteRegion").toString()
-    String contractor = execution.getVariable("contractor").toString()
+    String reason = execution.getVariable("reason").toString()
+    def groupName = "";
 
-    def contractorsTitle = ["1": "avrora","2": "aicom", "3": "spectr", "4": "lse", "5": "kcell"]
-
-    def groupName = ("nc".equals(siteRegion)?"astana":siteRegion) + "_contractor_" + contractorsTitle.get(contractor)
+    if(reason.equals("1")){
+        groupName = "hq_sap_specialist_optimization"
+    } else if(reason.equals("2")){
+        groupName = "hq_sap_specialist_transmission"
+    } else if(reason.equals("3")){
+        groupName = "hq_sap_specialist_infrastructure"
+    } else if(reason.equals("4")){
+        groupName = "hq_sap_specialist_operation"
+    }
 
     def userList = identityService.createUserQuery().memberOfGroup(groupName).list().stream()
             .map{it.getEmail()}

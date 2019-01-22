@@ -1,9 +1,11 @@
+package revision
+
 import groovy.text.markup.MarkupTemplateEngine
 import groovy.text.markup.TemplateConfiguration
 
 def jrNumberObj = (jrNumber != null ? jrNumber : '########')
 
-def binding = ["jrNumber" : jrNumberObj, "contractorAttachesMaterialListComment" : contractorAttachesMaterialListComment]
+def binding = ["jrNumber" : jrNumberObj]
 
 def template = '''\
 yieldUnescaped '<!DOCTYPE html>'
@@ -15,9 +17,9 @@ html(lang:'en') {
     }
     newLine()
     body {
-        p('Уважаемый коллега!')
+        p('Уважаемые коллеги!')
         newLine()
-        p('Примите во внимание, что в рамках процесса одобрения материалов по вашей заявке JR # ' + jrNumber + ' на этапе Attach Material List подрядчик выбрал действие - материал не требуется. Комментарии следующие: ' + contractorAttachesMaterialListComment)
+        p('Примите во внимание, что в рамках процесса одобрения материалов по заявке JR # ' + jrNumber + ' материалы и TR были одобрены и переданы на склад для дальнейшей обработки. Просим связаться со складом и согласовать дату и время выдачи материалов.')
         newLine()
         p('С Уважением,')
         newLine()

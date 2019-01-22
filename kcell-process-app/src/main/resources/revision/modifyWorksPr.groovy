@@ -1,10 +1,11 @@
+package revision
+
 import groovy.text.markup.MarkupTemplateEngine
 import groovy.text.markup.TemplateConfiguration
 
 def jrNumberObj = (jrNumber != null ? jrNumber : '########')
-def regionGroupHeadApprovalCommentObj = (regionGroupHeadApprovalComment != null ? regionGroupHeadApprovalComment : '(No comment)')
 
-def binding = ["jrNumber" : jrNumberObj, "regionGroupHeadApprovalComment" : regionGroupHeadApprovalCommentObj]
+def binding = ["jrNumber" : jrNumberObj, "cancelPrComment" : cancelPrComment]
 
 def template = '''\
 yieldUnescaped '<!DOCTYPE html>'
@@ -16,18 +17,23 @@ html(lang:'en') {
     }
     newLine()
     body {
-        p('Hi,')
+        p('Уважаемые коллеги!')
         newLine()
-        p('Job Request ' + jrNumber + ' is impossible to execute!')
+        p('Примите во внимание, что набор работ в  JR ' + jrNumber + ' был изменен в системе Workflow')
+        newLine()        
+        p('JR был изменен с таким комментарием: ' + cancelPrComment)
+        newLine()        
+        p('Просим проверить был ли создан PR по данному JR, и, в случае необходимости, произвести отмену.')
+        newLine()        
+        p('С Уважением,')
         newLine()
-        p('Request was rejected with comment: ' + regionGroupHeadApprovalComment)
-        newLine()
+        p('Kcell Flow')
         br()
         p {
             yield 'Пройдя по следующей ссылке на страницу в HUB.Kcell.kz, вы можете оставить в поле комментариев свои замечания и/или пожелания относительно функционала и интерфейса системы:\'
             a(href : 'https://hub.kcell.kz/x/kYNoAg', 'https://hub.kcell.kz/x/kYNoAg')
         }
-        p ('Greetings,<br>Kcell Flow')
+        p ('Greetings,<br>Kcell Flow')        
     }
 }
 '''
@@ -40,4 +46,3 @@ def engine = new MarkupTemplateEngine(config)
 def result = engine.createTemplate(template).make(binding).toString()
 
 result
-

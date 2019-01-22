@@ -85,7 +85,7 @@ public class SendGeneratedJRBlank implements JavaDelegate {
         try {
             if (worksTitle.size() == 0) {
                 ObjectMapper mapper = new ObjectMapper();
-                InputStream fis = SetPricesDelegate.class.getResourceAsStream("/workPrice.json");
+                InputStream fis = SetPricesDelegate.class.getResourceAsStream("/revision/workPrice.json");
                 InputStreamReader reader = new InputStreamReader(fis, "utf-8");
                 ArrayNode json = (ArrayNode) mapper.readTree(reader);
                 for (JsonNode workPrice : json) {

@@ -26,7 +26,7 @@ public class StartRevisionProcess implements ExecutionListener {
         Map<String, String> worksPriceMap = new HashMap<>();
         Map<String, String> worksTitleMap = new HashMap<>();
 
-        InputStream fis = SetPricesDelegate.class.getResourceAsStream("/workPrice.json");
+        InputStream fis = SetPricesDelegate.class.getResourceAsStream("/revision/workPrice.json");
 
         StringBuilder workTitlesForSearch = new StringBuilder("");
         InputStreamReader reader = new InputStreamReader(fis, "utf-8");
