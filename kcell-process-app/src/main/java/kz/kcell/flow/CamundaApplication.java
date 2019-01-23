@@ -21,6 +21,7 @@ import org.camunda.bpm.engine.impl.cfg.ProcessEnginePlugin;
 import org.camunda.bpm.engine.rest.mapper.JacksonConfigurator;
 import org.camunda.bpm.engine.spring.SpringProcessEngineConfiguration;
 import org.camunda.bpm.spring.boot.starter.SpringBootProcessApplication;
+import org.camunda.bpm.spring.boot.starter.annotation.EnableProcessApplication;
 import org.camunda.bpm.spring.boot.starter.util.SpringBootProcessEnginePlugin;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
@@ -29,6 +30,7 @@ import org.springframework.boot.autoconfigure.SpringBootApplication;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.boot.context.properties.ConfigurationProperties;
 import org.springframework.context.annotation.Bean;
+import org.springframework.context.annotation.Primary;
 import org.springframework.integration.annotation.IntegrationComponentScan;
 import org.springframework.integration.config.EnableIntegration;
 
@@ -42,6 +44,7 @@ import static org.camunda.bpm.engine.delegate.TaskListener.EVENTNAME_CREATE;
 @ProcessApplication
 @IntegrationComponentScan
 @EnableIntegration
+@Primary
 public class CamundaApplication extends SpringBootProcessApplication {
 
     @Autowired
@@ -73,7 +76,6 @@ public class CamundaApplication extends SpringBootProcessApplication {
             }
         };
     }
-
     @Bean
     public ProcessEnginePlugin processApplicationEventListenerPlugin() {
         return new ProcessApplicationEventListenerPlugin();
