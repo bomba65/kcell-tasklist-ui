@@ -14,7 +14,7 @@ define(['./module', 'lodash', 'big-js'], function(module, _, Big){
         }
 
         $scope.getString = function(val){
-            return typeof val === 'string' ? val : ( typeof val !== 'undefined' ? val.toString() : val );
+            return typeof val !== 'undefined' && val !== null ? (typeof val === 'string' ? val : val.toString()) : undefined;
         }
 
         $scope.initTextValue = function(val, field) {
@@ -335,6 +335,11 @@ define(['./module', 'lodash', 'big-js'], function(module, _, Big){
                     var emptyFields = mandatoryFields.filter(function(field) {
                         return instance[field.name] ? false : $scope.taskData[instance.taskId][field.name] ?  false : true;
                     });
+
+                    if (!(definition.configs.comment ? definition.configs.comment.overrideRowComment : false) && !instance.comment){
+                        emptyFields.push({name: "comment",notNull: true,readOnly:false,save:true,type:"text"});
+                    };
+
                     //console.log(emptyFields, mandatoryFields);
                     if(emptyFields.length>0) continue;
 
