@@ -208,7 +208,15 @@ public class PostTCFForm implements ExecutionListener {
             delegateExecution.setVariable(billingTCF + "PostRequestBodyTCF", requestBodyJSON.toString());
 
             if (isSftp) {
-
+                if("amdocs".equals(billingTCF)) {
+                    delegateExecution.setVariable("amdocsTcfFormId", 1);
+                    delegateExecution.setVariable("amdocsTcfFormIdReceived", true);
+                }
+                if("orga".equals(billingTCF)) {
+                    delegateExecution.setVariable("orgaTcfFormId", 2);
+                    delegateExecution.setVariable("orgaTcfFormIdReceived", true);
+                }
+                /*
                 StringEntity TCFData = new StringEntity(requestBodyJSON.toString(), ContentType.APPLICATION_JSON);
 
                 HttpPost httpPostTCF = new HttpPost(new URI(baseUri+"/getbytitle('ICTD%20TCF')"));
@@ -255,6 +263,7 @@ public class PostTCFForm implements ExecutionListener {
                         delegateExecution.setVariable("orgaTcfFormIdReceived", false);
                     }
                 }
+                */
             } else {
                 if("amdocs".equals(billingTCF)) {
                     delegateExecution.setVariable("amdocsTcfFormId", 1111);
