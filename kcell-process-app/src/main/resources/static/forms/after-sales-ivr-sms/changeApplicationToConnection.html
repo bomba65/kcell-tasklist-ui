@@ -3,13 +3,57 @@
         inject(['$scope', '$http', 'Uri', '$rootScope', '$q', '$timeout', '$filter', function ($scope, $http, Uri, $rootScope, $q, $timeout, $filter) {
             var uuid = new Date().getTime();
             var variables = [
-                'resolutions',
+                //'relatedProcessInstanceVariables',
+
+                'changeOfficialClientCompanyName',
+                'changeContractNumber',
+                'disconnectOperator',
+                'connectOperator',
+                'changeConnectionType',
+                'changeIpNumber',
+                'changeIdentifier',
+                'changeSmsServiceType',
+                'changeProvider',
+                'changeTransmitNumber',
                 'relatedProcessDefinitionKey',
                 'relatedProcessInstanceId',
-                'relatedProcessInstanceVariables',
                 'identifiers',
+                'previouslyBought',
                 'operatorType',
-                'identifierType'
+                'connectionType',
+                'clientBIN',
+                'contractNumber',
+                'clientCompanyLatName',
+                'officialClientCompanyName',
+                'description',
+                'ipNumber',
+                'startDate',
+                'abonentTarif',
+                'amdocsBilling',
+                'orgaBilling',
+                'techSpecFIO',
+                'techSpecNumber',
+                'techSpecEmail',
+                'contractScanCopyFileName',
+                'applicationScanCopyFileName',
+                'responsibleB2BDelivery',
+                'responsibleB2BSales',
+                'channel',
+                'region',
+                'transmitNumber',
+                'coordinates',
+                'addressATS',
+                'VPNchannel',
+                'identifierType',
+                'deliveryReport',
+                'smsServiceType',
+                'MSGGWaccount',
+                'testNumber',
+                'receivingServerAddress',
+                'receivingServerLogin',
+                'receivingServerPass',
+                'addressServerMO',
+                'tarifPlane'
             ];
 
             camForm.on('form-loaded', function () {
@@ -34,21 +78,6 @@
                     if (el === 'resolutions') {
                         if (camForm.variableManager.variables[el].value) {
                             $scope.resolutions = angular.copy(camForm.variableManager.variables[el].value);
-                            /*
-                            $q.all($scope.resolutions.map(function (resolution) {
-                                if (resolution.assigneeName === undefined) {
-                                    return $http.get("/camunda/api/engine/engine/default/user/" + resolution.assignee + "/profile");
-                                } else {
-                                    return {data:{}};
-                                }
-                            })).then(function (profiles) {
-                                profiles.forEach(function (e, index) {
-                                    if ( $scope.resolutions[index].assigneeName === undefined) {
-                                        $scope.resolutions[index].assigneeName = (e.data.firstName ? e.data.firstName : "") + " " + (e.data.lastName ? e.data.lastName : "");
-                                    }
-                                });
-                            });
-                            */
                             $q.all($scope.resolutions.map(function (resolution) {
                                 return $http.get("/camunda/api/engine/engine/default/history/task?processInstanceId=" + resolution.processInstanceId + "&taskId=" + resolution.taskId);
                             })).then(function (tasks) {
@@ -84,62 +113,12 @@
                     type: 'String',
                     value: ''
                 });
-
                 camForm.variableManager.createVariable({
                     name: 'changeApplicationToConnectionTaskComment',
                     type: 'String',
                     value: ''
                 });
-                camForm.variableManager.createVariable({
-                    name: 'startDate',
-                    value: '',
-                    type: 'String'
-                });
-                camForm.variableManager.createVariable({
-                    name: 'contractScanCopyFileName',
-                    value: undefined,
-                    type: 'Json'
-                });
-                camForm.variableManager.createVariable({
-                    name: 'MSGGWaccount',
-                    value: undefined,
-                    type: 'String'
-                });
-                camForm.variableManager.createVariable({
-                    name: 'applicationScanCopyFileName',
-                    value: undefined,
-                    type: 'Json'
-                });
-                camForm.variableManager.createVariable({
-                    name: 'connectionType',
-                    value: '',
-                    type: 'String'
-                });
-                camForm.variableManager.createVariable({
-                    name: 'priority',
-                    value: '',
-                    type: 'String'
-                });
-                camForm.variableManager.createVariable({
-                    name: 'billing',
-                    value: '',
-                    type: 'String'
-                });
-                camForm.variableManager.createVariable({
-                    name: 'deliveryReport',
-                    value: '',
-                    type: 'String'
-                });
-                camForm.variableManager.createVariable({
-                    name: 'responsibleB2BSales',
-                    value: undefined,
-                    type: 'Json'
-                });
-                camForm.variableManager.createVariable({
-                    name: 'responsibleB2BDelivery',
-                    value: undefined,
-                    type: 'Json'
-                });
+                $scope.changeApplicationToConnectionTaskComment = '';
             });
 
             /*
@@ -577,7 +556,6 @@
             function uploadFileToMinio(file, fileName) {
                 var fileValue = {
                     name: file.name.replace(/[/\\?%*:|"<>]/g, '-'),
-                    // path: uuid + '/' + file.name
                     path: $scope.processInstanceId + '/' + camForm.taskId + '/' + file.name.replace(/[/\\?%*:|"<>]/g, '-')
                 };
                 $http({method: 'GET', url: '/camunda/uploads/put/' + fileValue.path, transformResponse: [] }).
@@ -788,9 +766,9 @@
 
     </script>
     <iframe id="fileDownloadIframe" style="display:none;"></iframe>
-    <h4 ng-if="!(operatorType === 'offnet' && identifierType === 'digital')">Выберите операторов и укажите цены</h4>
-    <label class="error" ng-show="kcell_form.changeApplicationToConnectionTaskComment.$error.validIdentifiers && view.submitted">Выберите хотя бы 1 offnet оператор</label>
-    <div class="form-group" ng-repeat="id in identifiers" ng-if="!(operatorType === 'offnet' && identifierType === 'digital' && !previouslyBought)">
+    <h4 ng-if="relatedProcessDefinitionKey === 'bulksmsConnectionKAE' && (disconnectOperator || connectOperator || changeIdentifier) && !(operatorType === 'offnet' && identifierType === 'digital')">Выберите операторов и укажите цены</h4>
+    <label class="error" ng-show="relatedProcessDefinitionKey === 'bulksmsConnectionKAE' && (disconnectOperator || connectOperator || changeIdentifier) && kcell_form.changeApplicationToConnectionTaskComment.$error.validIdentifiers && view.submitted">Выберите хотя бы 1 offnet оператор</label>
+    <div class="form-group" ng-repeat="id in identifiers" ng-if="relatedProcessDefinitionKey === 'bulksmsConnectionKAE' && (disconnectOperator || connectOperator || changeIdentifier)">
         <label class="control-label pull-left"/>Идентификатор - {{id.title}}
         <span class="glyphicon glyphicon-remove pull-right" ng-click="deleteIdentifier($index)"></span>
         <div class="col-sm-12" style="border-left: solid; border-left-width: 1px; margin-left: 2vh">
@@ -843,68 +821,82 @@
             </div>
         </div>
     </div>
-    <!--button ng-click="preSubmit()">PRE SUBMIT</button-->
-    <div class="form-group" ng-repeat="id in identifiers" ng-if="operatorType === 'offnet' && identifierType === 'digital' && !previouslyBought">
-        <label class="control-label pull-left"/>Идентификатор - {{id.title}}
+    <div class="form-group" ng-repeat="id in identifiers" ng-if="relatedProcessDefinitionKey === 'freephone'">
+        <label class="control-label pull-left"/>Идентификатор - {{id.title}} - {{$index}}
         <span class="glyphicon glyphicon-remove pull-right" ng-click="deleteIdentifier($index)"></span>
         <div class="col-sm-12" style="border-left: solid; border-left-width: 1px; margin-left: 2vh">
-            <table class="table">
-                <thead>
-                <tr>
-                    <th scope="col">Оператор</th>
-                    <th scope="col">Статус</th>
-                    <th scope="col">Цена АП</th>
-                    <th scope="col">Цена ЕП</th>
-                    <!--<th scope="col">Выбрать</th>-->
-                </tr>
-                </thead>
-                <tbody>
-                <tr ng-repeat="o in id.operators" ng-if="o.checked">
-                    <th scope="row">{{o.name}}</th>
-                    <td>{{o.isAvailable?'Доступен':'Не доступен'}}</td>
-                    <td>{{o.priceAP}}</td>
-                    <td>{{o.priceEP}}</td>
-                    <!--<td>-->
-                    <!--<input type="checkbox" ng-show="o.isAvailable" ng-model="o.checked">-->
-                    <!--</td>-->
-                </tr>
-                </tbody>
-            </table>
+            <div class="form-group">
+                <div class="col-sm-1">
+                    <p>&nbsp;</p>
+                    <div class="input">
+                        <label for="operator.id">АП</label>
+                    </div>
+                    <br>
+                    <div class="input">
+                        <label for="operator.id">ЕП</label>
+                    </div>
+                </div>
+                <div class="col-sm-10">
+                    <div class="col-sm-3" ng-repeat="operator in id.operators">
+                        <label for="operator.id"><input type="checkbox" ng-model="operator.isAvailable" ng-change="clearPrices(operator)"> {{operator.name}}</label>
+                        <div class="input" id="operator.id" >
+                            <input ng-model="operator.priceAP" name="{{operator.id + 'AP' + id.title}}" class="form-control"  placeholder="{{operator.isAvailable?'Цена':'Не доступен'}}" ng-disabled="!operator.isAvailable" ng-required="operator.isAvailable"/>
+                            <label class="error" ng-show="kcell_form.{{operator.id + 'AP' + id.title}}.$error.required && ( kcell_form.{{operator.id + 'AP'}}.$touched || view.submitted)">Required field</label>
+                        </div>
+                        <br>
+                        <div class="input">
+                            <input ng-model="operator.priceEP" name="{{operator.id + 'EP' + id.title}}" class="form-control"  placeholder="{{operator.isAvailable?'Цена':'Не доступен'}}" ng-disabled="!operator.isAvailable" ng-required="operator.isAvailable"/>
+                            <label class="error" ng-show="kcell_form.{{operator.id + 'EP' + id.title}}.$error.required && ( kcell_form.{{operator.id + 'EP'}}.$touched || view.submitted)">Required field</label>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="form-group">
+                <div class="col-sm-2">
+                </div>
+                <div class="col-sm-5">
+                    <label>АП -­ Абонентский платёж</label>
+                </div>
+                <div class="col-sm-5">
+                    <label>ЕП -­ Единовременный платёж</label>
+                </div>
+            </div>
         </div>
     </div>
+    <!--button ng-click="preSubmit()">PRE SUBMIT</button-->
     <div class="form-group">
         <label class="col-sm-12 control-label"><H4><b>Информация о клиенте:</b></H4></label>
     </div>
     <div class="form-group">
         <label class="col-sm-4 control-label">* БИН:</label>
         <div class="col-sm-3">
-            <input type="text" limit-to="12" numbers-only name="clientBIN" id="clientBIN" cam-variable-name="clientBIN" cam-variable-type="String" class="form-control" placeholder="БИН*" ng-pattern="binPattern" required>
+            <input type="text" limit-to="12" numbers-only ng-model="clientBIN" name="clientBIN" id="clientBIN" class="form-control" placeholder="БИН*" ng-pattern="binPattern" required>
             <label class="error" ng-show="kcell_form.clientBIN.$error.required && ( kcell_form.clientBIN.$touched || view.submitted)">Required field</label>
             <label class="error" ng-show="kcell_form.clientBIN.$error.pattern && ( kcell_form.clientBIN.$touched || view.submitted)">Неверный формат БИН</label>
         </div>
         <label class="col-sm-2 control-label">Номер договора:</label>
         <div class="col-sm-3">
-            <input type="text" name="contractNumber" id='contractNumber' cam-variable-name="contractNumber" cam-variable-type="String" class="form-control" placeholder="Номер договора">
+            <input type="text" name="contractNumber" id='contractNumber' ng-model="contractNumber" class="form-control" placeholder="Номер договора">
         </div>
     </div>
     <div class="form-group">
         <label class="col-sm-4 control-label">* Наименование компании на латинице:</label>
         <div class="col-sm-8">
-            <input type="text" name="clientCompanyLatName" id='clientCompanyLatName' cam-variable-name="clientCompanyLatName" cam-variable-type="String" class="form-control" placeholder="Наименование компании на латинице" required>
+            <input type="text" name="clientCompanyLatName" id='clientCompanyLatName' ng-model="clientCompanyLatName" class="form-control" placeholder="Наименование компании на латинице" required>
             <label class="error" ng-show="kcell_form.clientCompanyLatName.$error.required && ( kcell_form.clientCompanyLatName.$touched || view.submitted)">Required field</label>
         </div>
     </div>
     <div class="form-group">
         <label class="col-sm-4 control-label">* Юридическое наименование компании:</label>
         <div class="col-sm-8">
-            <input type="text" name="officialClientCompanyName" id='officialClientCompanyName' cam-variable-name="officialClientCompanyName" cam-variable-type="String" class="form-control" placeholder="Юридическое наименование компании" required ng-disabled="foundClientCRM">
+            <input type="text" name="officialClientCompanyName" id='officialClientCompanyName' ng-model="officialClientCompanyName" class="form-control" placeholder="Юридическое наименование компании" required ng-disabled="foundClientCRM">
             <label class="error" ng-show="kcell_form.officialClientCompanyName.$error.required && ( kcell_form.officialClientCompanyName.$touched || view.submitted)">Required field</label>
         </div>
     </div>
     <div class="form-group">
         <label class="col-sm-4 control-label">* Описание сервиса:</label>
         <div class="col-sm-8">
-            <input class="form-control" maxlength="500" cam-variable-name="description" name="description" required cam-variable-type="String">
+            <input class="form-control" maxlength="500" ng-model="description" name="description" required>
             <label class="error" ng-show="kcell_form.description.$error.required && ( kcell_form.description.$touched || view.submitted)">Required field</label>
         </div>
     </div>
@@ -927,8 +919,7 @@
         <label class="col-sm-4 control-label">* Тип СМС услуги:</label>
         <div class="col-sm-8">
             <select class="form-control" id="sel1"
-                    cam-variable-name="smsServiceType"
-                    cam-variable-type="String"
+                    ng-model="smsServiceType"
                     ng-model="smsServiceType" ng-required="connectionType !== 'web'">
                 <option value="MO">MO (Использовать функцию входящих сообщений на короткий номер)</option>
                 <option value="MT" selected="selected">MT (Не использовать функцию входящих сообщений на короткий номер)</option>
@@ -946,39 +937,39 @@
     <div class="form-group" ng-show="connectionType === 'smpp' ">
         <label class="col-sm-4 control-label">* IP адрес клиента:</label>
         <div class="col-sm-8">
-            <input class="form-control" maxlength="500" cam-variable-name="ipNumber" name="ipNumber"  ng-required="connectionType === 'smpp' " cam-variable-type="String">
+            <input class="form-control" maxlength="500" ng-model="ipNumber" name="ipNumber"  ng-required="connectionType === 'smpp' ">
             <label class="error" ng-show="kcell_form.ipNumber.$error.required && ( kcell_form.ipNumber.$touched || view.submitted)">Required field</label>
         </div>
     </div>
     <div class="form-group" ng-show="connectionType === 'smpp' || connectionType === 'rest' ">
         <label class="col-sm-4 control-label">* Тестовый номер:</label>
         <div class="col-sm-8">
-            <input class="form-control" maxlength="500" cam-variable-name="testNumber" name="testNumber"  ng-required="connectionType === 'smpp' || connectionType === 'rest'" cam-variable-type="String">
+            <input class="form-control" maxlength="500" ng-model="testNumber" name="testNumber"  ng-required="connectionType === 'smpp' || connectionType === 'rest'">
             <label class="error" ng-show="kcell_form.testNumber.$error.required && ( kcell_form.testNumber.$touched || view.submitted)">Required field</label>
         </div>
     </div>
     <div class="form-group" ng-show="connectionType === 'rest' && deliveryReport">
         <label class="col-sm-4 control-label">Адрес и порт принимающего сервера клиента:</label>
         <div class="col-sm-8">
-            <input class="form-control" maxlength="500" cam-variable-name="receivingServerAddress" name="receivingServerAddress" cam-variable-type="String">
+            <input class="form-control" maxlength="500" ng-model="receivingServerAddress" name="receivingServerAddress">
             <label class="error" ng-show="kcell_form.receivingServerAddress.$error.required && ( kcell_form.receivingServerAddress.$touched || view.submitted)">Required field</label>
         </div>
     </div>
     <div class="form-group" ng-show="connectionType === 'rest' && deliveryReport">
         <label class="col-sm-4 control-label">Логин/пароль принимающего сервера клиента:</label>
         <div class="col-sm-4">
-            <input class="form-control" maxlength="500" cam-variable-name="receivingServerLogin" name="receivingServerLogin" cam-variable-type="String" placeholder="Логин">
+            <input class="form-control" maxlength="500" ng-model="receivingServerLogin" name="receivingServerLogin" placeholder="Логин">
             <label class="error" ng-show="kcell_form.receivingServerLogin.$error.required && ( kcell_form.receivingServerLogin.$touched || view.submitted)">Required field</label>
         </div>
         <div class="col-sm-4">
-            <input class="form-control" maxlength="500" cam-variable-name="receivingServerPass" name="receivingServerPass" cam-variable-type="String" placeholder="Пароль">
+            <input class="form-control" maxlength="500" ng-model="receivingServerPass" name="receivingServerPass" placeholder="Пароль">
             <label class="error" ng-show="kcell_form.receivingServerPass.$error.required && ( kcell_form.receivingServerPass.$touched || view.submitted)">Required field</label>
         </div>
     </div>
     <div class="form-group" ng-show="connectionType === 'rest' && smsServiceType">
         <label class="col-sm-4 control-label">Адрес и порт MO сервера клиента:</label>
         <div class="col-sm-8">
-            <input class="form-control" maxlength="500" cam-variable-name="addressServerMO" name="addressServerMO" cam-variable-type="String">
+            <input class="form-control" maxlength="500" ng-model="addressServerMO" name="addressServerMO">
             <label class="error" ng-show="kcell_form.addressServerMO.$error.required && ( kcell_form.addressServerMO.$touched || view.submitted)">Required field</label>
         </div>
     </div>
@@ -998,7 +989,7 @@
     <div class="form-group" ng-hide="connectionType === 'web'">
         <label class="col-sm-4 control-label">* Тариф для абонента:</label>
         <div class="col-sm-8">
-            <input class="form-control" maxlength="500" cam-variable-name="abonentTarif" name="abonentTarif" ng-required="connectionType !== 'web'" cam-variable-type="String">
+            <input class="form-control" maxlength="500" ng-model="abonentTarif" name="abonentTarif" ng-required="connectionType !== 'web'">
             <label class="error" ng-show="kcell_form.abonentTarif.$error.required && ( kcell_form.abonentTarif.$touched || view.submitted)">Required field</label>
         </div>
     </div>
@@ -1006,8 +997,6 @@
         <label class="col-sm-4 control-label">Тарифный план:</label>
         <div class="col-sm-8">
             <select class="form-control" id="sel12"
-                    cam-variable-name="tarifPlane"
-                    cam-variable-type="String"
                     ng-model="tarifPlane">
                 <option value="1">1</option>
                 <option value="2" selected="selected" >2</option>
@@ -1018,10 +1007,10 @@
         <label class="col-sm-4 control-label">Билинг</label>
         <div class="col-sm-8">
             <label class="radio-inline">
-                <input type="checkbox" name="billing" ng-model="amdocsBilling" cam-variable-type="Boolean" cam-variable-name="amdocsBilling"> Amdocs
+                <input type="checkbox" name="billing" ng-model="amdocsBilling"> Amdocs
             </label>
             <label class="radio-inline">
-                <input type="checkbox" name="billing" ng-model="orgaBilling" cam-variable-type="Boolean" cam-variable-name="orgaBilling"> Orga
+                <input type="checkbox" name="billing" ng-model="orgaBilling"> Orga
             </label>
             <label class="error" ng-show="kcell_form.billing.$error.required && ( kcell_form.billing.$touched || view.submitted)">Required field</label>
         </div>
@@ -1032,19 +1021,19 @@
     <div class="form-group">
         <label class="col-sm-4 control-label">* ФИО:</label>
         <div class="col-sm-8">
-            <input class="form-control" maxlength="500" cam-variable-name="techSpecFIO" name="techSpecFIO" required cam-variable-type="String">
+            <input class="form-control" maxlength="500" ng-model="techSpecFIO" name="techSpecFIO" required>
             <label class="error" ng-show="kcell_form.techSpecFIO.$error.required && ( kcell_form.techSpecFIO.$touched || view.submitted)">Required field</label>
         </div>
     </div>
     <div class="form-group">
         <label class="col-sm-4 control-label">* Телефон:</label>
         <div class="col-sm-3">
-            <input class="form-control" maxlength="500" cam-variable-name="techSpecNumber" name="techSpecNumber" required cam-variable-type="String">
+            <input class="form-control" maxlength="500" ng-model="techSpecNumber" name="techSpecNumber" required>
             <label class="error" ng-show="kcell_form.techSpecNumber.$error.required && ( kcell_form.techSpecNumber.$touched || view.submitted)">Required field</label>
         </div>
         <label class="col-sm-1 control-label">* Email:</label>
         <div class="col-sm-4">
-            <input class="form-control" maxlength="500" cam-variable-name="techSpecEmail" name="techSpecEmail" required cam-variable-type="String">
+            <input class="form-control" maxlength="500" ng-model="techSpecEmail" name="techSpecEmail" required>
             <label class="error" ng-show="kcell_form.techSpecEmail.$error.required && ( kcell_form.techSpecEmail.$touched || view.submitted)">Required field</label>
         </div>
     </div>
@@ -1091,14 +1080,14 @@
     <div class="form-group">
         <label class="col-sm-4 control-label">Канал:</label>
         <div class="col-sm-8">
-            <input class="form-control" maxlength="100" cam-variable-name="channel" name="channel" cam-variable-type="String" disabled>
+            <input class="form-control" maxlength="100" ng-model="channel" name="channel" disabled>
             <label class="error" ng-show="kcell_form.channel.$error.required && ( kcell_form.channel.$touched || view.submitted)">Required field</label>
         </div>
     </div>
     <div class="form-group">
         <label class="col-sm-4 control-label">Регион:</label>
         <div class="col-sm-8">
-            <input class="form-control" maxlength="100" cam-variable-name="region" name="region" cam-variable-type="String" disabled>
+            <input class="form-control" maxlength="100" ng-model="region" name="region" disabled>
             <label class="error" ng-show="kcell_form.region.$error.required && ( kcell_form.region.$touched || view.submitted)">Required field</label>
         </div>
     </div>

@@ -97,6 +97,7 @@ define(['./module','camundaSDK'], function(module, CamSDK){
 									if(scope.preSubmit){
 										scope.preSubmit().then(
 											function(result){
+												///////////////////
 												camForm.submit(function (err,results) {
 													if (err) {
 														$submitBtn.removeAttr('disabled');
@@ -108,6 +109,30 @@ define(['./module','camundaSDK'], function(module, CamSDK){
 														scope.$close(results);
 													}
 												});
+												/*
+												try {
+													camForm.submit(function (err) {
+														if (err) {
+															console.log('+++++++++++++++++++++++++++++++++');
+															$submitBtn.removeAttr('disabled');
+															toasty.error({title: "Could not complete task", msg: err});
+															e.preventDefault();
+															throw err;
+													 	} else {
+															console.log('---------------------------------');
+															scope.preSubmit = undefined;
+															$('#taskElement').html('');
+															scope.currentTask = undefined;
+															scope.$parent.getTaskList();
+															$location.search({});
+															scope.submitted = false;
+													 	}
+													});
+												} catch(e){
+													console.log(e);
+												}
+												*/
+												///////////////////
 											},
 											function(err){
 												$submitBtn.removeAttr('disabled');

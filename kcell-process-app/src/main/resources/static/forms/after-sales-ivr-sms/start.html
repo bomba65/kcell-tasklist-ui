@@ -5,7 +5,45 @@
                 $scope.relatedProcessInstance = SearchCurrentSelectedProcessService();
                 $scope.isDisconnectProcess = disconnectSelectedProcessService();
                 $scope.baseUrl = '/camunda/api/engine/engine/default';
-                $scope.variableList = ['relatedProcessInstanceId','relatedProcessDefinitionId','relatedProcessDefinitionKey','relatedProcessBusinessKey','relatedProcessInstance','relatedProcessInstanceVariables','connectionType','operatorType','identifierType','previouslyBought','identifiers'];
+                $scope.variableList = [
+                    'identifiers',
+                    'previouslyBought',
+                    'operatorType',
+                    'connectionType',
+                    'clientBIN',
+                    'contractNumber',
+                    'clientCompanyLatName',
+                    'officialClientCompanyName',
+                    'description',
+                    'ipNumber',
+                    'startDate',
+                    'abonentTarif',
+                    'amdocsBilling',
+                    'orgaBilling',
+                    'techSpecFIO',
+                    'techSpecNumber',
+                    'techSpecEmail',
+                    'contractScanCopyFileName',
+                    'applicationScanCopyFileName',
+                    'responsibleB2BDelivery',
+                    'responsibleB2BSales',
+                    'channel',
+                    'region',
+                    'transmitNumber',
+                    'coordinates',
+                    'addressATS',
+                    'VPNchannel',
+                    'identifierType',
+                    'deliveryReport',
+                    'smsServiceType',
+                    'MSGGWaccount',
+                    'testNumber',
+                    'receivingServerAddress',
+                    'receivingServerLogin',
+                    'receivingServerPass',
+                    'addressServerMO',
+                    'tarifPlane'
+                ];
 
                 $http({
                     method: 'POST',
@@ -34,7 +72,7 @@
                                         $http.get($scope.baseUrl+'/history/variable-instance?deserializeValues=false&processInstanceId='+$scope.aftersalesInstance.id).then(
                                             function(result){
                                                 result.data.forEach(function(el){
-                                                    if(variableList.indexOf(el.name)>-1){
+                                                    if($scope.variableList.indexOf(el.name)>-1){
                                                         if(el.type === 'Json'){
                                                             $scope[el.name] = JSON.parse(el.value);
                                                         } else {
@@ -55,27 +93,30 @@
                             if($scope.processInstancesAftersales.length = 0 || !$scope.aftersalesInstance) {
                                 $http.get($scope.baseUrl + '/history/variable-instance?deserializeValues=false&processInstanceId='+$scope.relatedProcessInstance.id).then(
                                     function(result){
-                                        $scope.relatedProcessInstanceVariables = {};
-                                        var relatedPiVarsResponse = angular.copy(result.data);
-                                        angular.forEach(relatedPiVarsResponse, function(el, index){
+                                        var relatedProcessInstanceVariables = angular.copy(result.data);
+                                        angular.forEach(relatedProcessInstanceVariables, function(el, index){
                                             try {
-                                                $scope.relatedProcessInstanceVariables[el.name] = el;
-                                                if(el.type !== 'Json' && (el.value || el.value === "" || el.type === 'Boolean')) {
-                                                    $scope.relatedProcessInstanceVariables[el.name] = el.value;
-                                                }
-                                                if(el.type === 'File' || el.type === 'Bytes'){
-                                                    $scope.relatedProcessInstanceVariables[el.name].contentUrl = $scope.baseUrl+'/history/variable-instance/'+el.id+'/data';
-                                                }
-                                                if(el.type === 'Json'){
-                                                    if(el.name === 'resolutions'){
-                                                        $scope.relatedProcessInstanceVariables[el.name].value = JSON.parse(el.value);
-                                                    } else if(['contractScanCopyFileName', 'applicationScanCopyFileName', 'vpnQuestionnaireFileName'].indexOf(el.name) > -1) {
-                                                        if (!$scope.relatedProcessInstanceVariables.files) {
-                                                            $scope.relatedProcessInstanceVariables.files = [];
+                                                if($scope.variableList.indexOf(el.name)>-1){
+                                                    $scope[el.name] = el;
+                                                    if(el.type === 'File' || el.type === 'Bytes'){
+                                                        $scope[el.name].contentUrl = $scope.baseUrl+'/history/variable-instance/'+el.id+'/data';
+                                                    } else if(el.type === 'Json'){
+                                                        if(['contractScanCopyFileName', 'applicationScanCopyFileName', 'vpnQuestionnaireFileName'].indexOf(el.name) > -1) {
+                                                            if (!$scope.files) {
+                                                                $scope.files = [];
+                                                            }
+                                                            $scope.files.push(JSON.parse(el.value));
+                                                        } else {
+                                                            $scope[el.name] = JSON.parse(el.value);
                                                         }
-                                                        $scope.relatedProcessInstanceVariables.files.push(JSON.parse(el.value));
-                                                    } else {
-                                                        $scope.relatedProcessInstanceVariables[el.name] = JSON.parse(el.value);
+                                                    } else if(el.type === 'Date' && (el.value || el.value === "")) {
+                                                        $scope[el.name] = new Date(el.value);
+                                                    } else if(el.value || el.value === "" || el.type === 'Boolean') {
+                                                        if(el.name === 'VPNchannel'){
+                                                            $scope.buildVPN = (el.value === 'build' ? true : false);
+                                                        } else {
+                                                            $scope[el.name] = el.value;
+                                                        }
                                                     }
                                                 }
                                             }
@@ -84,7 +125,6 @@
                                             }
                                         });
                                         $scope.allowToStart = true;
-                                        console.log('relatedProcessInstanceVariables', $scope.relatedProcessInstanceVariables);
                                     },
                                     function(error){
                                         console.log(error.data);
@@ -126,22 +166,12 @@
                     type: 'Json'
                 });
                 camForm.variableManager.createVariable({
-                    name: 'relatedProcessInstanceVariables',
-                    value: undefined,
-                    type: 'Json'
-                });
-                camForm.variableManager.createVariable({
                     name: 'connectionType',
                     value: '',
                     type: 'String'
                 });
                 camForm.variableManager.createVariable({
                     name: 'operatorType',
-                    value: '',
-                    type: 'String'
-                });
-                camForm.variableManager.createVariable({
-                    name: 'identifierType',
                     value: '',
                     type: 'String'
                 });
@@ -160,6 +190,174 @@
                     type: 'Boolean',
                     value: false
                 });
+                camForm.variableManager.createVariable({
+                    name: 'startDate',
+                    value: '',
+                    type: 'Date'
+                });
+                camForm.variableManager.createVariable({
+                    name: 'contractScanCopyFileName',
+                    value: undefined,
+                    type: 'Json'
+                });
+                camForm.variableManager.createVariable({
+                    name: 'applicationScanCopyFileName',
+                    value: undefined,
+                    type: 'Json'
+                });
+                camForm.variableManager.createVariable({
+                    name: 'responsibleB2BSales',
+                    value: undefined,
+                    type: 'Json'
+                });
+                camForm.variableManager.createVariable({
+                    name: 'responsibleB2BDelivery',
+                    value: undefined,
+                    type: 'Json'
+                });
+                camForm.variableManager.createVariable({
+                    name: 'clientBIN',
+                    value: '',
+                    type: 'String'
+                });
+                camForm.variableManager.createVariable({
+                    name: 'contractNumber',
+                    value: '',
+                    type: 'String'
+                });
+                camForm.variableManager.createVariable({
+                    name: 'clientCompanyLatName',
+                    value: '',
+                    type: 'String'
+                });
+                camForm.variableManager.createVariable({
+                    name: 'officialClientCompanyName',
+                    value: '',
+                    type: 'String'
+                });
+                camForm.variableManager.createVariable({
+                    name: 'description',
+                    value: '',
+                    type: 'String'
+                });
+                camForm.variableManager.createVariable({
+                    name: 'ipNumber',
+                    value: '',
+                    type: 'String'
+                });
+                camForm.variableManager.createVariable({
+                    name: 'abonentTarif',
+                    value: '',
+                    type: 'String'
+                });
+                camForm.variableManager.createVariable({
+                    name: 'amdocsBilling',
+                    value: false,
+                    type: 'Boolean'
+                });
+                camForm.variableManager.createVariable({
+                    name: 'orgaBilling',
+                    value: false,
+                    type: 'Boolean'
+                });
+                camForm.variableManager.createVariable({
+                    name: 'techSpecFIO',
+                    value: '',
+                    type: 'String'
+                });
+                camForm.variableManager.createVariable({
+                    name: 'techSpecNumber',
+                    value: '',
+                    type: 'String'
+                });
+                camForm.variableManager.createVariable({
+                    name: 'techSpecEmail',
+                    value: '',
+                    type: 'String'
+                });
+                camForm.variableManager.createVariable({
+                    name: 'channel',
+                    value: '',
+                    type: 'String'
+                });
+                camForm.variableManager.createVariable({
+                    name: 'region',
+                    value: '',
+                    type: 'String'
+                });
+                if($scope.relatedProcessInstance.processDefinitionKey === 'freephone'){
+                    camForm.variableManager.createVariable({
+                        name: 'transmitNumber',
+                        value: '',
+                        type: 'String'
+                    });
+                    camForm.variableManager.createVariable({
+                        name: 'coordinates',
+                        value: '',
+                        type: 'String'
+                    });
+                    camForm.variableManager.createVariable({
+                        name: 'addressATS',
+                        value: '',
+                        type: 'String'
+                    });
+                    camForm.variableManager.createVariable({
+                        name: 'VPNchannel',
+                        value: '',
+                        type: 'String'
+                    });
+                } else if($scope.relatedProcessInstance.processDefinitionKey === 'bulksmsConnectionKAE') {
+                    camForm.variableManager.createVariable({
+                        name: 'identifierType',
+                        value: '',
+                        type: 'String'
+                    });
+                    camForm.variableManager.createVariable({
+                        name: 'deliveryReport',
+                        value: '',
+                        type: 'String'
+                    });
+                    camForm.variableManager.createVariable({
+                        name: 'smsServiceType',
+                        value: '',
+                        type: 'String'
+                    });
+                    camForm.variableManager.createVariable({
+                        name: 'MSGGWaccount',
+                        value: '',
+                        type: 'String'
+                    });
+                    camForm.variableManager.createVariable({
+                        name: 'testNumber',
+                        value: '',
+                        type: 'String'
+                    });
+                    camForm.variableManager.createVariable({
+                        name: 'receivingServerAddress',
+                        value: '',
+                        type: 'String'
+                    });
+                    camForm.variableManager.createVariable({
+                        name: 'receivingServerLogin',
+                        value: '',
+                        type: 'String'
+                    });
+                    camForm.variableManager.createVariable({
+                        name: 'receivingServerPass',
+                        value: '',
+                        type: 'String'
+                    });
+                    camForm.variableManager.createVariable({
+                        name: 'addressServerMO',
+                        value: '',
+                        type: 'String'
+                    });
+                    camForm.variableManager.createVariable({
+                        name: 'tarifPlane',
+                        value: '',
+                        type: 'String'
+                    });
+                };
             });
 
             $scope.preSubmit = function() {
@@ -201,7 +399,7 @@
 
             camForm.on('submit', function (evt) {
                 var date = new Date();
-                var businessKey = 'AFTERSALES_' + $scope.relatedProcessInstanceVariables.identifiers[0].title + '_' + ("0" + date.getDate().toString()).slice(-2) + ("0" + (date.getMonth() + 1)).toString().slice(-2) + date.getFullYear().toString();
+                var businessKey = 'AFTERSALES_' + $scope.identifiers[0].title + '_' + ("0" + date.getDate().toString()).slice(-2) + ("0" + (date.getMonth() + 1)).toString().slice(-2) + date.getFullYear().toString();
                 camForm.businessKey = businessKey;
 
                 camForm.variableManager.variableValue('relatedProcessInstance', $scope.relatedProcessInstance);
@@ -209,28 +407,53 @@
                 camForm.variableManager.variableValue('relatedProcessDefinitionId', $scope.relatedProcessInstance.processDefinitionId);
                 camForm.variableManager.variableValue('relatedProcessDefinitionKey', $scope.relatedProcessInstance.processDefinitionKey);
                 camForm.variableManager.variableValue('relatedProcessBusinessKey', $scope.relatedProcessInstance.businessKey);
-                camForm.variableManager.variableValue('relatedProcessInstanceVariables', $scope.relatedProcessInstanceVariables);
                 camForm.variableManager.variableValue('disconnectProcess', $scope.isDisconnectProcess);
+                camForm.variableManager.variableValue('connectionType', $scope.connectionType);
+                camForm.variableManager.variableValue('operatorType', $scope.operatorType);
+                camForm.variableManager.variableValue('previouslyBought', $scope.previouslyBought);
+                camForm.variableManager.variableValue('identifiers', $scope.identifiers);
+                camForm.variableManager.variableValue('clientBIN', $scope.clientBIN);
+                camForm.variableManager.variableValue('contractNumber', $scope.contractNumber);
+                camForm.variableManager.variableValue('clientCompanyLatName', $scope.clientCompanyLatName);
+                camForm.variableManager.variableValue('officialClientCompanyName', $scope.officialClientCompanyName);
+                camForm.variableManager.variableValue('description', $scope.description);
+                camForm.variableManager.variableValue('ipNumber', $scope.ipNumber);
+                camForm.variableManager.variableValue('startDate', $scope.startDate instanceof Date ? $scope.startDate : new Date($scope.startDate));
+                camForm.variableManager.variableValue('abonentTarif', $scope.abonentTarif);
+                camForm.variableManager.variableValue('amdocsBilling', $scope.amdocsBilling);
+                camForm.variableManager.variableValue('orgaBilling', $scope.orgaBilling);
+                camForm.variableManager.variableValue('techSpecFIO', $scope.techSpecFIO);
+                camForm.variableManager.variableValue('techSpecNumber', $scope.techSpecNumber);
+                camForm.variableManager.variableValue('techSpecEmail', $scope.techSpecEmail);
+                camForm.variableManager.variableValue('contractScanCopyFileName', $scope.contractScanCopyFileName);
+                camForm.variableManager.variableValue('applicationScanCopyFileName', $scope.applicationScanCopyFileName);
+                camForm.variableManager.variableValue('responsibleB2BDelivery', $scope.responsibleB2BDelivery);
+                camForm.variableManager.variableValue('responsibleB2BSales', $scope.responsibleB2BSales);
+                camForm.variableManager.variableValue('channel', $scope.channel);
+                camForm.variableManager.variableValue('region', $scope.region);
 
-                if($scope.relatedAftersalesProcess){
-                    camForm.variableManager.variableValue('connectionType', $scope.connectionType);
-                    camForm.variableManager.variableValue('operatorType', $scope.operatorType);
+                if($scope.relatedProcessInstance.processDefinitionKey === 'freephone'){
+                    camForm.variableManager.variableValue('transmitNumber', $scope.transmitNumber);
+                    camForm.variableManager.variableValue('coordinates', $scope.coordinates);
+                    camForm.variableManager.variableValue('addressATS', $scope.addressATS);
+                    camForm.variableManager.variableValue('VPNchannel', $scope.buildVPN?'build':'not-build');
+                } else if($scope.relatedProcessInstance.processDefinitionKey === 'bulksmsConnectionKAE') {
                     camForm.variableManager.variableValue('identifierType', $scope.identifierType);
-                    camForm.variableManager.variableValue('previouslyBought', $scope.previouslyBought);
-                    camForm.variableManager.variableValue('identifiers', $scope.identifiers);
-                } else {
-                    camForm.variableManager.variableValue('connectionType', $scope.relatedProcessInstanceVariables.connectionType);
-                    camForm.variableManager.variableValue('operatorType', $scope.relatedProcessInstanceVariables.operatorType);
-                    camForm.variableManager.variableValue('identifierType', $scope.relatedProcessInstanceVariables.identifierType);
-                    camForm.variableManager.variableValue('previouslyBought', $scope.relatedProcessInstanceVariables.previouslyBought);
-                    camForm.variableManager.variableValue('identifiers', $scope.relatedProcessInstanceVariables.identifiers);
-                }
+                    camForm.variableManager.variableValue('deliveryReport', $scope.deliveryReport);
+                    camForm.variableManager.variableValue('smsServiceType', $scope.smsServiceType);
+                    camForm.variableManager.variableValue('MSGGWaccount', $scope.MSGGWaccount);
+                    camForm.variableManager.variableValue('testNumber', $scope.testNumber);
+                    camForm.variableManager.variableValue('receivingServerAddress', $scope.receivingServerAddress);
+                    camForm.variableManager.variableValue('receivingServerLogin', $scope.receivingServerLogin);
+                    camForm.variableManager.variableValue('receivingServerPass', $scope.receivingServerPass);
+                    camForm.variableManager.variableValue('addressServerMO', $scope.addressServerMO);
+                    camForm.variableManager.variableValue('tarifPlane', $scope.tarifPlane);
+                };
             });
         }]);
 
     </script>
     <div>
-        <!--button ng-click="preSubmit()">PRE SUBMIT</button-->
         <div ng-show="isDisconnectProcess">
             <p>Start Disconnection Process</p>
         </div>
