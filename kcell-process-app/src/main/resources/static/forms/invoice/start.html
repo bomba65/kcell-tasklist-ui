@@ -418,7 +418,7 @@
                             });
 
                             if($scope.jobRequests.length > 0){
-                                _.forEach(['site_name', 'priority', 'materialsRequired', 'performDate', 'delayInfo'], function(variable) {
+                                _.forEach(['site_name', 'priority', 'materialsRequired', 'performDate', 'delayInfo', 'contractorJobAssignedDate'], function(variable) {
                                     var varSearchParams = {processInstanceIdIn: _.map($scope.jobRequests, 'processInstanceId'), variableName: variable};
                                     $http({
                                         method: 'POST',
@@ -463,20 +463,24 @@
                                             return task.taskDefinitionKey === 'modify_jr';
                                         }), function(o) { return o.endTime; });
 
-                                        var attachMaterialList = _.minBy(_.filter(res.data, function(task){
-                                            return (task.taskDefinitionKey === 'attach_material_list_contractor' || task.taskDefinitionKey === 'UserTask_1wkrl5k') && (!modifyJR || (modifyJR && modifyJR.endTime < task.startTime));
-                                        }), function(o) { return o.startTime; });
+                                        if(request.contractorJobAssignedDate){
+                                            request.attachMaterialList = request.contractorJobAssignedDate;
+                                        } else {
+                                            var attachMaterialList = _.minBy(_.filter(res.data, function(task){
+                                                return (task.taskDefinitionKey === 'attach_material_list_contractor' || task.taskDefinitionKey === 'UserTask_1wkrl5k') && (!modifyJR || (modifyJR && modifyJR.endTime < task.startTime));
+                                            }), function(o) { return o.startTime; });
 
-                                        if(attachMaterialList){
-                                            request.attachMaterialList = attachMaterialList.startTime;
-                                        }
+                                            if(attachMaterialList){
+                                                request.attachMaterialList = attachMaterialList.startTime;
+                                            }
 
-                                        var fillAppliedChanges = _.minBy(_.filter(res.data, function(task){
-                                            return (task.taskDefinitionKey === 'fill_applied_changes_info' || task.taskDefinitionKey === 'UserTask_0rj3nbv') && (!modifyJR || (modifyJR && modifyJR.endTime < task.startTime));
-                                        }), function(o) { return o.startTime; });
+                                            var fillAppliedChanges = _.minBy(_.filter(res.data, function(task){
+                                                return (task.taskDefinitionKey === 'fill_applied_changes_info' || task.taskDefinitionKey === 'UserTask_0rj3nbv') && (!modifyJR || (modifyJR && modifyJR.endTime < task.startTime));
+                                            }), function(o) { return o.startTime; });
 
-                                        if(fillAppliedChanges){
-                                            request.fillAppliedChanges = fillAppliedChanges.startTime;
+                                            if(fillAppliedChanges){
+                                                request.fillAppliedChanges = fillAppliedChanges.startTime;
+                                            }
                                         }
 
                                         var validateTr = _.maxBy(_.filter(res.data, function(task){
