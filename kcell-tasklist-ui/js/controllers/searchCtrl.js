@@ -1662,7 +1662,8 @@ define(['./module','jquery', 'moment', 'camundaSDK'], function(app, $, moment, C
 																} else {
 																	instance[el.name] = el.value;
 																}
-															}															
+															};
+															instance.showTarif = true;
 															if(["changeOfficialClientCompanyName","changeContractNumber","disconnectOperator","connectOperator","changeConnectionType","changeIpNumber","changeIdentifier","changeSmsServiceType","changeProvider","changeTransmitNumber"].indexOf(el.name)>-1){
 																if(el.value){
 																	instance.changeTypes.push($scope.mapChangeType[el.name]);

@@ -3,8 +3,58 @@
         inject(['$scope', '$http', 'Uri', '$rootScope', '$q', '$timeout', function ($scope, $http, Uri, $rootScope, $q, $timeout) {
             var variables = [
                 'resolutions',
+                //'relatedProcessInstanceVariables',
+
+                'changeOfficialClientCompanyName',
+                'changeContractNumber',
+                'disconnectOperator',
+                'connectOperator',
+                'changeConnectionType',
+                'changeIpNumber',
+                'changeIdentifier',
+                'changeSmsServiceType',
+                'changeProvider',
+                'changeTransmitNumber',
+                'relatedProcessDefinitionKey',
                 'relatedProcessInstanceId',
-                'relatedProcessInstanceVariables'
+                'identifiers',
+                'previouslyBought',
+                'operatorType',
+                'connectionType',
+                'clientBIN',
+                'contractNumber',
+                'clientCompanyLatName',
+                'officialClientCompanyName',
+                'description',
+                'ipNumber',
+                //'startDate',
+                'abonentTarif',
+                'amdocsBilling',
+                'orgaBilling',
+                'techSpecFIO',
+                'techSpecNumber',
+                'techSpecEmail',
+                'contractScanCopyFileName',
+                'applicationScanCopyFileName',
+                'responsibleB2BDelivery',
+                'responsibleB2BSales',
+                'channel',
+                'region',
+                'transmitNumber',
+                'coordinates',
+                'addressATS',
+                'VPNchannel',
+                'identifierType',
+                'deliveryReport',
+                'smsServiceType',
+                'MSGGWaccount',
+                'testNumber',
+                'receivingServerAddress',
+                'receivingServerLogin',
+                'receivingServerPass',
+                'addressServerMO',
+                'tarifPlane',
+                'provider'
             ];
 
             camForm.on('form-loaded', function () {
@@ -19,7 +69,7 @@
                             console.log(error.data);
                         }
                 );
-                $scope.aftersalesInfo = [];
+                $scope.aftersalesInfo = {};
                 $scope.aftersalesInfo.files = [];
             });
 
@@ -65,21 +115,17 @@
                         }
                     } else {
                         $scope[el] = camForm.variableManager.variables[el].value;
+                        $scope.aftersalesInfo[el] = camForm.variableManager.variables[el].value;
                     }
                 });
                 $http.get("/camunda/api/engine/engine/default/user/" + $rootScope.authentication.name+ "/profile").then(function(result){
                     $rootScope.authentication.assigneeName = (result.data.firstName ? result.data.firstName : "") + " " + (result.data.lastName ? result.data.lastName : "");
                 });
-                $scope.aftersalesInfo = angular.copy($scope.relatedProcessInstanceVariables);
-                $scope.aftersalesInfo.identifiers = $scope.identifiers;
+                //$scope.aftersalesInfo = angular.copy($scope.relatedProcessInstanceVariables);
+                //$scope.aftersalesInfo.identifiers = $scope.identifiers;
                 $scope.aftersalesInfo.showTarif = true;
                 //console.log($scope.aftersalesInfo);
 
-                camForm.variableManager.createVariable({
-                    name: 'identifiers',
-                    type: 'Json',
-                    value: undefined
-                });
 
                 camForm.variableManager.createVariable({
                     name: 'confirmOtherOperatorsChangeShortNumberTaskResult',
@@ -104,9 +150,7 @@
                 camForm.variableManager.variableValue('confirmOtherOperatorsChangeShortNumberTaskResult', $scope.confirmOtherOperatorsChangeShortNumberTaskResult);
                 camForm.variableManager.variableValue('confirmOtherOperatorsChangeShortNumberTaskComment', $scope.confirmOtherOperatorsChangeShortNumberTaskComment);
 
-                //if($scope.identifiers){
-                    camForm.variableManager.variableValue('identifiers', $scope.identifiers);
-                //}
+                camForm.variableManager.variableValue('identifiers', $scope.identifiers);
 
                 $scope.resolutions.push({processInstanceId: $scope.processInstanceId, assignee: $rootScope.authentication.name, assigneeName: $rootScope.authentication.assigneeName, resolution: $scope.confirmOtherOperatorsChangeShortNumberTaskResult, comment: $scope.confirmOtherOperatorsChangeShortNumberTaskComment, taskId: camForm.taskId});
                 camForm.variableManager.variableValue('resolutions', $scope.resolutions);
@@ -155,7 +199,7 @@
                 </tr>
                 </thead>
                 <tbody>
-                <tr ng-repeat="o in id.operators" ng-if="o.isAvailable && o.checked && o.id !== 'kcell' && (['MESSAGE','KiT_Notify'].indexOf(o.title) > -1 || ['MESSAGE','KiT_Notify'].indexOf(o.oldTitle) > -1)">
+                <tr ng-repeat="o in id.operators" ng-if="o.changed && (['MESSAGE','KiT_Notify'].indexOf(o.title) > -1 || ['MESSAGE','KiT_Notify'].indexOf(o.oldTitle) > -1)">
                     <th scope="row" style="width: 40%">{{o.name}}</th>
                     <td style="width: 40%">
                         <div class="input-group">
