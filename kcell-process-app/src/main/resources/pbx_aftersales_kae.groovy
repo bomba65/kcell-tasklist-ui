@@ -18,6 +18,7 @@ html(lang:'en') {
         p(bin)
         newLine()
         p('Настройки клиенту отправлены.')
+        newLine()
     }
 }
 """

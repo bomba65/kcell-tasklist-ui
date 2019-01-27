@@ -8,8 +8,7 @@ def getITEmils(DelegateExecution execution) {
             .filter{it != null && !it.empty}
             .collect(Collectors.toSet())
 
-    def result = emails.stream().collect(Collectors.joining(","))
-    result
+    emails.stream().collect(Collectors.joining(","))
 }
 
 getITEmils(execution)

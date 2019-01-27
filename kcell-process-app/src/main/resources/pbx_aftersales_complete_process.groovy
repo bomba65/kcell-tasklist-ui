@@ -1,14 +1,14 @@
 import groovy.text.markup.MarkupTemplateEngine
 import groovy.text.markup.TemplateConfiguration
 
-def ts = techSpecs.unwrap()
+def workTypeJson = workType.unwrap()
+def workType = ''
+for (int i = 0; i < workTypeJson.size(); i++) {
+    if (i > 0) workType += ', '
+    workType += workTypeJson[i].asText()
+}
 
-def binding = [
-        "legalName": legalInfo.unwrap().get('legalName').asText(),
-        "bin": BIN,
-        "connectionPoint" : ts.get('connectionPoint').asText(),
-        "pbxNumbers"      : ts.get('pbxNumbers').asText()
-]
+def binding = ["legalName": legalInfo.unwrap().get('legalName').asText(), "bin": BIN, "workType": workType]
 
 def template = """
 yieldUnescaped '<!DOCTYPE html>'
@@ -24,10 +24,9 @@ html(lang:'en') {
         newLine()
         p(bin)
         newLine()
-        p('Ваш запрос на расформирование старой нумерации на ' + connectionPoint + ' выполнен.')
+        p('Тип услуги: "Бизнес-телефония".')
         newLine()
-        p('<b>Нумерация:</b> ' + pbxNumbers)
-        newLine()
+        p('Процесс ' + workType + ' успешно завершен.')
     }
 }
 """

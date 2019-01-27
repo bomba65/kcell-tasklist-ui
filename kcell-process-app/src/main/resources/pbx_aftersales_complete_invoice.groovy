@@ -1,14 +1,7 @@
 import groovy.text.markup.MarkupTemplateEngine
 import groovy.text.markup.TemplateConfiguration
 
-def ts = techSpecs.unwrap()
-
-def binding = [
-        "legalName": legalInfo.unwrap().get('legalName').asText(),
-        "bin": BIN,
-        "connectionPoint" : ts.get('connectionPoint').asText(),
-        "pbxNumbers"      : ts.get('pbxNumbers').asText()
-]
+def binding = ["legalName": legalInfo.unwrap().get('legalName').asText(), "bin": BIN]
 
 def template = """
 yieldUnescaped '<!DOCTYPE html>'
@@ -24,9 +17,7 @@ html(lang:'en') {
         newLine()
         p(bin)
         newLine()
-        p('Ваш запрос на расформирование старой нумерации на ' + connectionPoint + ' выполнен.')
-        newLine()
-        p('<b>Нумерация:</b> ' + pbxNumbers)
+        p('Ваш запрос на изменение реквизитов/контактов выполнен.')
         newLine()
     }
 }

@@ -4,9 +4,10 @@ import groovy.text.markup.TemplateConfiguration
 def ts = techSpecs.unwrap()
 
 def binding = [
-        "legalName"       : legalInfo.unwrap().get('legalName').asText(),
-        "bin"             : BIN,
-        "pbxNumbers"      : ts.get('pbxNumbers').asText()
+        "legalName"             : legalInfo.unwrap().get('legalName').asText(),
+        "bin"                   : BIN,
+        "connectionPointNew"    : ts.get('connectionPointNew').asText(),
+        "pbxNumbers"            : ts.get('pbxNumbers').asText()
 ]
 
 def template = """
@@ -23,9 +24,10 @@ html(lang:'en') {
         newLine()
         p(bin)
         newLine()
-        p('Ваш запрос на открытие коммерческого доступа на PBX выполнен.')
+        p('Ваш запрос на открытие коммерческого доступа на ' + connectionPointNew + ' выполнен.')
         newLine()
-        p(pbxNumbers)
+        p('<b>Нумерация:</b> ' + pbxNumbers)
+        newLine()
     }
 }
 """

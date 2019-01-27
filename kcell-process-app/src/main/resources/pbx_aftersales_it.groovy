@@ -26,13 +26,12 @@ html(lang:'en') {
         newLine()
         p(bin)
         newLine()
-        p('Транк на PBX расформирован.')
+        p('Транк на ' + connectionPoint + ' расформирован.')
         newLine()
-        p(pbxNumbers)
+        p('<b>Нумерация:</b> ' + pbxNumbers)
         newLine()
-        p(connectionPoint)
+        p('<b>IP:</b> ' + curPublicVoiceIP + ', ' + curSignalingIP)
         newLine()
-        p(curPublicVoiceIP + ', ' + curSignalingIP)
     }
 }
 """
