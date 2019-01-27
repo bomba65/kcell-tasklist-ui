@@ -10,6 +10,8 @@ define(['./../module'], function(module){
                 disabled: '='
 			},
 			link: function(scope, element, attrs) {
+        scope.audienceHidden = null;
+        scope.roumingHidden = null;
 				scope.multiselectSettings = {
 					enableSearch: true,
 					smartButtonMaxItems: 3,
@@ -51,9 +53,13 @@ define(['./../module'], function(module){
 						if (!scope.data) scope.data = {};
 						if (!scope.data.audience) scope.data.audience = [];
 						if (!scope.data.rouming) scope.data.rouming = [];
+            scope.audienceHidden = 'something';
+            if (!scope.data.audience.length) scope.audienceHidden = null;
+            scope.roumingHidden = 'something';
+            if (!scope.data.rouming.length) scope.roumingHidden = null;
 					}
-				});
-	        },
+				}, true);
+	    },
 			templateUrl: './js/directives/demand/targetAudience.html'
 		};
 	});
