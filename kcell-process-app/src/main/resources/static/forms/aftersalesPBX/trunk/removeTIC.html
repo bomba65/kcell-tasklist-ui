@@ -40,6 +40,7 @@
                 camForm.variableManager.fetchVariable('legalInfo');
                 camForm.variableManager.fetchVariable('techSpecs');
                 camForm.variableManager.fetchVariable('resolutions');
+                camForm.variableManager.fetchVariable('attachments');
                 camForm.variableManager.fetchVariable('resolution');
                 camForm.variableManager.fetchVariable('action');
                 camForm.variableManager.fetchVariable('pbxData');
@@ -50,6 +51,7 @@
                 $scope.legalInfo = camForm.variableManager.variableValue('legalInfo');
                 $scope.techSpecs = camForm.variableManager.variableValue('techSpecs');
                 $scope.resolutions = camForm.variableManager.variableValue('resolutions');
+                $scope.attachments = camForm.variableManager.variableValue('attachments');
                 $scope.resolution = camForm.variableManager.variableValue('resolution');
                 $scope.action = camForm.variableManager.variableValue('action');
                 $scope.pbxData = camForm.variableManager.variableValue('pbxData');
@@ -86,6 +88,15 @@
                     value: $scope.resolution
                 });
             });
+
+            $scope.downloadFile = function (file) {
+                $http({method: 'GET', url: '/camunda/uploads/' + (file.path.split('/').length === 2 ? 'tmp/' : '') + 'get/' + file.path, transformResponse: [] }).then(
+                    function(response) {
+                        document.getElementById('fileDownloadIframe').src = response.data;
+                    },
+                    function(response) {console.log(response.data);}
+                );
+            }
         }]);
     </script>
 
@@ -115,37 +126,13 @@
   <accordion class="background-yellow-accordion">
     <accordion-group is-open="true">
       <accordion-heading>
-        Technical specification <i class="pull-right glyphicon" ng-class="{'glyphicon-chevron-up': status.isCustomHeaderOpen, 'glyphicon-chevron-down': !status.isCustomHeaderOpen}"></i>
+        <i class="pull-right glyphicon" ng-class="{'glyphicon-chevron-up': status.isCustomHeaderOpen, 'glyphicon-chevron-down': !status.isCustomHeaderOpen}"></i>
       </accordion-heading>
       <div class="col-sm-12">
         <div class="form-group">
-          <label class="col-sm-4 control-label">Connection type: </label>
+          <label class="col-sm-4 control-label">TIC Name: </label>
           <div class="col-sm-8">
-            <div class="disabled-element">{{techSpecs.connectionType}}</div>
-          </div>
-        </div>
-        <div class="form-group">
-          <label class="col-sm-4 control-label">Current connection point: </label>
-          <div class="col-sm-8">
-            <div class="disabled-element" ng-style="{'border-color': ((pbxData.fetched && pbxData.techSpecs.connectionPoint !== techSpecs.connectionPoint) ? '#f0ad4e' : null)}">{{techSpecs.connectionPoint}}</div>
-          </div>
-        </div>
-        <div class="form-group">
-          <label class="col-sm-4 control-label">Authorization type: </label>
-          <div class="col-sm-8">
-            <div class="disabled-element" ng-style="{'border-color': ((pbxData.fetched && pbxData.sip.authorizationType !== techSpecs.sip.authorizationType) ? '#f0ad4e' : null)}">{{techSpecs.sip.authorizationType}}</div>
-          </div>
-        </div>
-        <div class="form-group">
-          <label class="col-sm-4 control-label">Current public static IP for voice traffic: </label>
-          <div class="col-sm-8">
-            <div class="disabled-element" ng-style="{'border-color': ((pbxData.fetched && pbxData.sip.curPublicVoiceIP !== techSpecs.sip.curPublicVoiceIP) ? '#f0ad4e' : null)}">{{techSpecs.sip.curPublicVoiceIP}}</div>
-          </div>
-        </div>
-        <div class="form-group">
-          <label class="col-sm-4 control-label">Current public static IP for signaling: </label>
-          <div class="col-sm-8">
-            <div class="disabled-element" ng-style="{'border-color': ((pbxData.fetched && pbxData.sip.curSignalingIP !== techSpecs.sip.curSignalingIP) ? '#f0ad4e' : null)}">{{techSpecs.sip.curSignalingIP}}</div>
+            <div class="disabled-element" ng-style="{'border-color': ((pbxData.fetched && pbxData.legalInfo.ticName !== legalInfo.ticName) ? '#f0ad4e' : null)}">{{legalInfo.ticName}}</div>
           </div>
         </div>
         <div class="form-group">
@@ -163,6 +150,32 @@
       </div>
     </accordion-group>
   </accordion>
+
+  <iframe id="fileDownloadIframe" style="display:none;"></iframe>
+  <div class="form-group">
+    <label class="col-sm-2 control-label">Attachments</label>
+    <div class="col-sm-10">
+      <div class="col-sm-12" style="padding: 0;">
+        <table class="table table-bordered">
+          <thead>
+          <tr>
+            <th>File Name</th>
+            <th>Created</th>
+            <th>Created By</th>
+          </tr>
+          </thead>
+          <tbody>
+          <tr ng-repeat="file in attachments track by $index">
+            <td><a ng-click="downloadFile(file)">{{file.name}}</a></td>
+            <td>{{file.created | date: 'dd.MM.yyyy HH:mm'}}</td>
+            <td>{{file.createdBy}}</td>
+          </tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+  </div>
+
 
   <div class="col-sm-12"><hr /></div>
 
