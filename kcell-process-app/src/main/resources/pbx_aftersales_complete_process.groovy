@@ -20,9 +20,9 @@ html(lang:'en') {
     }
     newLine()
     body {
-        p(legalName)
+        p('<b>Клиент:</b> ' + legalName)
         newLine()
-        p(bin)
+        p('<b>БИН:</b> ' + bin)
         newLine()
         p('Тип услуги: "Бизнес-телефония".')
         newLine()

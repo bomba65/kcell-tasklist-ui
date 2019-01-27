@@ -27,7 +27,7 @@ define(['./../module'], function(module){
 
         scope.getUser = function(val) {
           scope.ci.salesRepresentativeId = null;
-          var users = $http.get('/camunda/api/engine/engine/default/user?memberOfGroup=demand_uat_users&firstNameLike='+encodeURIComponent('%'+val+'%')).then(
+          var users = $http.get('/camunda/api/engine/engine/default/user?firstNameLike='+encodeURIComponent('%'+val+'%')).then(
             function(response){
               var usersByFirstName = _.flatMap(response.data, function(s){
                 if(s.id){
@@ -45,7 +45,7 @@ define(['./../module'], function(module){
                 }
               });
 
-              return $http.get('/camunda/api/engine/engine/default/user?memberOfGroup=demand_uat_users&lastNameLike='+encodeURIComponent('%'+val+'%')).then(
+              return $http.get('/camunda/api/engine/engine/default/user?lastNameLike='+encodeURIComponent('%'+val+'%')).then(
                 function(response){
                   var usersByLastName = _.flatMap(response.data, function(s){
                     if(s.id){

@@ -35,9 +35,9 @@ html(lang:'en') {
     }
     newLine()
     body {
-        p(legalName)
+        p('<b>Клиент:</b> ' + legalName)
         newLine()
-        p(bin)
+        p('<b>БИН:</b> ' + bin)
         newLine()
         p('Ваш запрос на изменение настроек транспортного уровня на ' + connectionPoint + ' выполнен.')
         newLine()

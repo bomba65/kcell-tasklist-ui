@@ -13,9 +13,9 @@ html(lang:'en') {
     }
     newLine()
     body {
-        p(legalName)
+        p('<b>Клиент:</b> ' + legalName)
         newLine()
-        p(bin)
+        p('<b>БИН: </b>' + bin)
         newLine()
         p('Ваш запрос на полное изменение реквизитов без удаления лицевого счета выполнен.')
         newLine()
