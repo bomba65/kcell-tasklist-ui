@@ -1,6 +1,6 @@
 define(['./../module', 'summernote', 'summernote-ext-template'], function(module){
     'use strict';
-    module.directive('aftersalesRichText', function ($rootScope, $http) {
+    module.directive('aftersalesRichText', function ($rootScope, $http, $timeout) {
         return {
             restrict: 'E',
             scope: {
@@ -56,6 +56,17 @@ define(['./../module', 'summernote', 'summernote-ext-template'], function(module
                         },
                         onMediaDelete: function(target) {
                             console.log("deleted => ", target);
+                        },
+                        onPaste: function(event) {
+                            // Workaround for copying tables from Microsoft Excel
+                            $timeout(function() {
+                              var html = document.createElement('div');
+                              html.innerHTML = element.summernote('code');
+                              html.querySelectorAll('table').forEach(function (table) {
+                                $(table).addClass('table-bordered');
+                              });
+                              element.summernote('code', html.innerHTML);
+                            });
                         }
                     },
                     toolbar: [

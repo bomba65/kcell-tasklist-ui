@@ -12,6 +12,7 @@
             $scope.resolutions = [];
             $scope.attachments = [];
             $scope.tcf = {deadline: new Date(), richText: null};
+            $scope.richTextChecker = null;
 
             $scope.processInstanceId = null;
             $scope.taskId = camForm.taskId;
@@ -59,6 +60,7 @@
                     $http.get('/camunda/api/engine/engine/default/process-instance/' + $scope.processInstanceId + '/variables/'+$scope.tcfName+'?deserializeValue=false').then(
                         function(result){
                             $scope.tcf = JSON.parse(result.data.value);
+                            $scope.richTextChecker = $scope.tcf.richText;
                             if (!$scope.tcf.deadline) $scope.tcf.deadline = new Date();
                             else $scope.tcf.deadline = new Date($scope.tcf.deadline);
                             camForm.variableManager.destroyVariable($scope.tcfName);
@@ -153,7 +155,7 @@
             function uploadFileToMinio(file) {
                 var fileToUpload = {
                     name: file.name.replace(/[/\\?%*:|"<>]/g, '-'),
-                    path: processInstanceId + '/' + camForm.taskId + '/' + file.name.replace(/[/\\?%*:|"<>]/g, '-'),
+                    path: $scope.processInstanceId + '/' + camForm.taskId + '/' + file.name.replace(/[/\\?%*:|"<>]/g, '-'),
                     created: new Date(),
                     createdBy: assigneeName
                 };
@@ -172,6 +174,10 @@
                     function(response) { console.log(response.data); }
                 );
             }
+            $scope.$watch('tcf.richText', function(v) {
+                $scope.richTextChecker = $scope.tcf.richText;
+                if ($scope.tcf.richText === '<p><br></p>') $scope.richTextChecker = null;
+            }, true);
         }]);
     </script>
 
@@ -221,7 +227,7 @@
         <label class="col-sm-12 control-label">TCF: <span class="has-error" ng-if="kcell_form.tcfRichText.$error.required && (kcell_form.tcfRichText.$touched || view.submitted)">(Required field)</span></label>
         <div class="col-sm-12">
             <aftersales-rich-text data="tcf.richText" min-height="100" disabled="false" process-id="processInstanceId" task-id="taskId"></aftersales-rich-text>
-            <input type="hidden" name="tcfRichText" style="width: 0; height: 0" ng-model="tcf.richText" required />
+            <input type="hidden" name="tcfRichText" style="width: 0; height: 0" ng-model="richTextChecker" required />
         </div>
     </div>
 

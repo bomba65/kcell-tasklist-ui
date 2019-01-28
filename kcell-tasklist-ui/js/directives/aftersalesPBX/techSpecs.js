@@ -10,7 +10,8 @@ define(['./../module'], function(module){
                 disabled: '=',
                 cpRequired: '=',
                 pbxData: '=',
-                editConnPoint: '='
+                editConnPoint: '=',
+                removeNumbers: '='
             },
             link: function(scope, element, attrs) {
                 scope.$watch('data', function (value) {
