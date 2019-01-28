@@ -2,11 +2,35 @@
     <script cam-script type="text/form-script">
         inject(['$scope', '$http', 'Uri', '$rootScope', '$q', '$timeout', function ($scope, $http, Uri, $rootScope, $q, $timeout) {
             var variables = [
+                'relatedProcessDefinitionKey',
+                'relatedProcessInstanceId',
+                'resolutions',
                 'identifiers',
-                'relatedProcessInstanceVariables',
-                //'operatorType',
-                //'operators',
-                'resolutions'
+                'identifierType',
+                'abonentTarif',
+                'description',
+                'officialClientCompanyName',
+                'clientCompanyLatName',
+                'startDate',
+                'contractNumber',
+                'connectionType',
+                'previouslyBought',
+                'clientBIN',
+                'responsibleB2BDelivery',
+                'responsibleB2BSales',
+                'smsServiceType',
+                'MSGGWaccount',
+                'smsServiceLogin',
+                'ipNumber',
+                'applicationScanCopyFileName',
+                'contractScanCopyFileName',
+                'techSpecNumber',
+                'techSpecFIO',
+                'techSpecEmail',
+                'tarifPlane',
+                'billing',
+                'provider',
+                'operatorType'
             ];
 
             camForm.on('form-loaded', function () {
@@ -65,16 +89,20 @@
                                 value: ''
                             });
                         }
+                    } else if (el === 'applicationScanCopyFileName' || el === 'contractScanCopyFileName') {
+                        $scope[el] = camForm.variableManager.variables[el].value;
+                        $scope.aftersalesInfo.files.push(camForm.variableManager.variables[el].value);
                     } else {
                         $scope[el] = camForm.variableManager.variables[el].value;
+                        $scope.aftersalesInfo[el] = camForm.variableManager.variables[el].value;
                     }
                 });
                 $http.get("/camunda/api/engine/engine/default/user/" + $rootScope.authentication.name+ "/profile").then(function(result){
                     $rootScope.authentication.assigneeName = (result.data.firstName ? result.data.firstName : "") + " " + (result.data.lastName ? result.data.lastName : "");
                 });
 
-                $scope.aftersalesInfo = angular.copy($scope.relatedProcessInstanceVariables);
-                $scope.aftersalesInfo.identifiers = $scope.identifiers;
+                //$scope.aftersalesInfo = angular.copy($scope.relatedProcessInstanceVariables);
+                //$scope.aftersalesInfo.identifiers = $scope.identifiers;
                 $scope.aftersalesInfo.showTarif = true;
                 //console.log($scope.aftersalesInfo);
 
@@ -120,6 +148,10 @@
 
     </script>
     <info-aftersales aftersales-info="aftersalesInfo"></info-aftersales>
+    {{identifiers[0].operators[0]}}<br/>
+    {{identifiers[0].operators[1]}}<br/>
+    {{identifiers[0].operators[2]}}<br/>
+    {{identifiers[0].operators[3]}}<br/>
     <p>Добавьте информацию по статусам и ценам за короткий номер</p>
 
     <div class="form-group" ng-repeat="id in identifiers">
@@ -136,7 +168,7 @@
                 </tr>
                 </thead>
                 <tbody>
-                <tr ng-repeat="o in id.operators" ng-if="o.isAvailable">
+                <tr ng-repeat="o in id.operators" ng-if="o.connected">
                     <th scope="row">{{o.name}}</th>
                     <td>{{o.isAvailable?'Доступен':'Не доступен'}}</td>
                     <td>

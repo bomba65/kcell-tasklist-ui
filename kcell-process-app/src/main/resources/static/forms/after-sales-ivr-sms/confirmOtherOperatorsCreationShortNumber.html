@@ -2,10 +2,35 @@
     <script cam-script type="text/form-script">
         inject(['$scope', '$http', 'Uri', '$rootScope', '$q', '$timeout', function ($scope, $http, Uri, $rootScope, $q, $timeout) {
             var variables = [
+                'relatedProcessDefinitionKey',
+                'relatedProcessInstanceId',
                 'resolutions',
                 'identifiers',
-                'relatedProcessInstanceId',
-                'relatedProcessInstanceVariables'
+                'identifierType',
+                'abonentTarif',
+                'description',
+                'officialClientCompanyName',
+                'clientCompanyLatName',
+                'startDate',
+                'contractNumber',
+                'connectionType',
+                'previouslyBought',
+                'clientBIN',
+                'responsibleB2BDelivery',
+                'responsibleB2BSales',
+                'smsServiceType',
+                'MSGGWaccount',
+                'smsServiceLogin',
+                'ipNumber',
+                'applicationScanCopyFileName',
+                'contractScanCopyFileName',
+                'techSpecNumber',
+                'techSpecFIO',
+                'techSpecEmail',
+                'tarifPlane',
+                'billing',
+                'provider',
+                'operatorType'
             ];
 
             camForm.on('form-loaded', function () {
@@ -64,17 +89,20 @@
                                 value: ''
                             });
                         }
+                    } else if (el === 'applicationScanCopyFileName' || el === 'contractScanCopyFileName') {
+                        $scope[el] = camForm.variableManager.variables[el].value;
+                        $scope.aftersalesInfo.files.push(camForm.variableManager.variables[el].value);
                     } else {
                         $scope[el] = camForm.variableManager.variables[el].value;
-                        //$scope.bulksmsInfo[el] = camForm.variableManager.variables[el].value;
+                        $scope.aftersalesInfo[el] = camForm.variableManager.variables[el].value;
                     }
                 });
                 $http.get("/camunda/api/engine/engine/default/user/" + $rootScope.authentication.name+ "/profile").then(function(result){
                     $rootScope.authentication.assigneeName = (result.data.firstName ? result.data.firstName : "") + " " + (result.data.lastName ? result.data.lastName : "");
                 });
 
-                $scope.aftersalesInfo = angular.copy($scope.relatedProcessInstanceVariables);
-                $scope.aftersalesInfo.identifiers = $scope.identifiers;
+                //$scope.aftersalesInfo = angular.copy($scope.relatedProcessInstanceVariables);
+                //$scope.aftersalesInfo.identifiers = $scope.identifiers;
                 $scope.aftersalesInfo.showTarif = true;
                 //console.log($scope.aftersalesInfo);
 
@@ -127,6 +155,10 @@
 
     </script>
     <info-aftersales aftersales-info="aftersalesInfo"></info-aftersales>
+    {{identifiers[0].operators[0]}}<br/>
+    {{identifiers[0].operators[1]}}<br/>
+    {{identifiers[0].operators[2]}}<br/>
+    {{identifiers[0].operators[3]}}<br/>
     <div class="form-group" ng-repeat="id in identifiers">
         <label class="col-sm-12 control-label"/>Идентификатор - {{id.title}}
         <div class="col-sm-12" style="border-left: solid; border-left-width: 1px; margin-left: 2vh">
@@ -139,7 +171,7 @@
                 </tr>
                 </thead>
                 <tbody>
-                <tr ng-repeat="o in id.operators" ng-if="o.isAvailable">
+                <tr ng-repeat="o in id.operators" ng-if="o.connected">
                     <th scope="row" style="width: 40%">{{o.name}}</th>
                     <td style="width: 40%">
                         <div class="input-group">
@@ -150,7 +182,7 @@
                                 </button>
                             </span>
                         </div>
-                        <label class="error" ng-show="kcell_form['addedToNetworkDate' + id.title + o.id].$error.required && view.submitted">Required field</label>
+                        <label class="error" ng-show="(kcell_form['addedToNetworkDate' + id.title + o.id].$error.required || (o.checked && !o.addedToNetwork)) && view.submitted">Required field</label>
                     </td>
                     <td style="width: 20%">
                         <input type="checkbox" ng-model="o.checked" ng-change="addToNetwork(id, o)">
