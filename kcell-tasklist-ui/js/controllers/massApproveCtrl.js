@@ -33,13 +33,17 @@ define(['./module', 'lodash', 'big-js'], function(module, _, Big){
         $scope.tcfChangeHandler = function(tcfId, definition){
             angular.forEach(definition.tasks, function(instance){
                 if(defKey === 'massApprove_bulkSMS_confirmAndWriteAmdocsTCF') {
-                    instance.identifierAmdocsID = tcfId;
+                    //instance.identifierAmdocsID = tcfId;
+                    instance.amdocsTcfId = tcfId;
                 } else if(defKey === 'massApprove_bulkSMS_confirmAndWriteOrgaTCF') {
-                    instance.identifierOrgaID = tcfId;
+                    //instance.identifierOrgaID = tcfId;
+                    instance.orgaTcfId = tcfId;
                 } else if(defKey === 'massApprove_confirmAndWriteAmdocsTCF') {
-                    instance.identifierAmdocsID = tcfId;
+                    //instance.identifierAmdocsID = tcfId;
+                    instance.amdocsTcfId = tcfId;
                 } else if(defKey === 'massApprove_confirmAndWriteOrgaTCF') {
-                    instance.identifierOrgaID = tcfId;
+                    //instance.identifierOrgaID = tcfId;
+                    instance.orgaTcfId = tcfId;
                 }
             });
         }
@@ -391,6 +395,22 @@ define(['./module', 'lodash', 'big-js'], function(module, _, Big){
                                 };
                             });
                         });
+
+                        if (definition.configs.showTCFID){
+                            if(instance.amdocsTcfId){
+                                variables['amdocsTcfId'] = {
+                                    value: instance.amdocsTcfId,
+                                    type: "String"
+                                };
+                            }
+                            if(instance.orgaTcfId){
+                                variables['orgaTcfId'] = {
+                                    value: instance.orgaTcfId,
+                                    type: "String"
+                                };
+                            }
+                        }
+
                         // Update or Insert resolutions
                         let ressName = "resolutions";
                         if (definition.configs.historyVariable && definition.configs.historyVariable.length) {
