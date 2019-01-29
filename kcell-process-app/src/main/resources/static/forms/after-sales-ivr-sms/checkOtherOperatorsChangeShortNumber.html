@@ -3,9 +3,58 @@
         inject(['$scope', '$http', 'Uri', '$rootScope', '$q', '$timeout', function ($scope, $http, Uri, $rootScope, $q, $timeout) {
             var variables = [
                 'resolutions',
-                'identifiers',
+                //'relatedProcessInstanceVariables',
+
+                'changeOfficialClientCompanyName',
+                'changeContractNumber',
+                'disconnectOperator',
+                'connectOperator',
+                'changeConnectionType',
+                'changeIpNumber',
+                'changeIdentifier',
+                'changeSmsServiceType',
+                'changeProvider',
+                'changeTransmitNumber',
+                'relatedProcessDefinitionKey',
                 'relatedProcessInstanceId',
-                'relatedProcessInstanceVariables'
+                'identifiers',
+                'previouslyBought',
+                'operatorType',
+                'connectionType',
+                'clientBIN',
+                'contractNumber',
+                'clientCompanyLatName',
+                'officialClientCompanyName',
+                'description',
+                'ipNumber',
+                //'startDate',
+                'abonentTarif',
+                'amdocsBilling',
+                'orgaBilling',
+                'techSpecFIO',
+                'techSpecNumber',
+                'techSpecEmail',
+                'contractScanCopyFileName',
+                'applicationScanCopyFileName',
+                'responsibleB2BDelivery',
+                'responsibleB2BSales',
+                'channel',
+                'region',
+                'transmitNumber',
+                'coordinates',
+                'addressATS',
+                'VPNchannel',
+                'identifierType',
+                'deliveryReport',
+                'smsServiceType',
+                'MSGGWaccount',
+                'testNumber',
+                'receivingServerAddress',
+                'receivingServerLogin',
+                'receivingServerPass',
+                'addressServerMO',
+                'tarifPlane',
+                'provider'
             ];
 
             camForm.on('form-loaded', function () {
@@ -20,7 +69,7 @@
                             console.log(error.data);
                         }
                 );
-                $scope.aftersalesInfo = [];
+                $scope.aftersalesInfo = {};
                 $scope.aftersalesInfo.files = [];
             });
 
@@ -64,19 +113,19 @@
                                 value: ''
                             });
                         }
+                    } else if (el === 'applicationScanCopyFileName' || el === 'contractScanCopyFileName') {
+                        $scope[el] = camForm.variableManager.variables[el].value;
+                        $scope.aftersalesInfo.files.push(camForm.variableManager.variables[el].value);
                     } else {
                         $scope[el] = camForm.variableManager.variables[el].value;
-                        //$scope.bulksmsInfo[el] = camForm.variableManager.variables[el].value;
+                        $scope.aftersalesInfo[el] = camForm.variableManager.variables[el].value;
                     }
                 });
                 $http.get("/camunda/api/engine/engine/default/user/" + $rootScope.authentication.name+ "/profile").then(function(result){
                     $rootScope.authentication.assigneeName = (result.data.firstName ? result.data.firstName : "") + " " + (result.data.lastName ? result.data.lastName : "");
                 });
 
-                $scope.aftersalesInfo = angular.copy($scope.relatedProcessInstanceVariables);
-                $scope.aftersalesInfo.identifiers = $scope.identifiers;
                 $scope.aftersalesInfo.showTarif = true;
-                //console.log($scope.aftersalesInfo);
 
                 camForm.variableManager.createVariable({
                     name: 'checkOtherOperatorsChangeShortNumberTaskResult',
@@ -114,12 +163,12 @@
                 <thead>
                 <tr>
                     <th scope="col">Оператор</th>
-                    <th scope="col">Дата заведения короткого номера</th>
+                    <th scope="col">Дата изменения короткого номера</th>
                     <th scope="col">Статус</th>
                 </tr>
                 </thead>
                 <tbody>
-                <tr ng-repeat="o in id.operators" ng-if="o.isAvailable && o.checked && o.id !== 'kcell' && (['MESSAGE','KiT_Notify'].indexOf(o.title) > -1 || o.addedToNetwork)">
+                <tr ng-repeat="o in id.operators" ng-if="o.isAvailable && o.changed">
                     <td scope="row">{{o.name}}</td>
                     <td scope="row">{{o.addedToNetworkDate | date: 'dd.MM.yyyy'}}</td>
                     <td scope="row">{{o.addedToNetwork?'Изменен':'Без изменений'}}</td>

@@ -1658,7 +1658,14 @@ define(['./module','jquery', 'moment', 'camundaSDK'], function(app, $, moment, C
 															} else {
 																//if(el.name == "identifiers"){
 																if(el.type == "Json"){
-																	instance[el.name] = JSON.parse(el.value);
+																	if(['contractScanCopyFileName', 'applicationScanCopyFileName'].indexOf(el.name) > -1) {
+																		if (!instance.files) {
+																			instance.files = [];
+																		}
+																		instance.files.push(JSON.parse(el.value));
+																	} else {
+																		instance[el.name] = JSON.parse(el.value);
+																	}
 																} else {
 																	instance[el.name] = el.value;
 																}

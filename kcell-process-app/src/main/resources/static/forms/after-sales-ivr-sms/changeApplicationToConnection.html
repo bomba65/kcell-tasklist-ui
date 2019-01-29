@@ -4,8 +4,7 @@
             var uuid = new Date().getTime();
             var variables = [
                 'resolutions',
-                //'relatedProcessInstanceVariables',
-
+                'disconnectProcess',
                 'changeOfficialClientCompanyName',
                 'changeContractNumber',
                 'disconnectOperator',
@@ -71,7 +70,7 @@
                             console.log(error.data);
                         }
                 );
-                //$scope.aftersalesInfo = [];
+                //$scope.aftersalesInfo = {};
                 //$scope.aftersalesInfo.files = [];
             });
 
@@ -111,12 +110,11 @@
                         $scope[el] = camForm.variableManager.variables[el].value;
                         //$scope.aftersalesInfo[el] = camForm.variableManager.variables[el].value;
                     }
+                    console.log(el, camForm.variableManager.variables[el].value);
                 });
                 $http.get("/camunda/api/engine/engine/default/user/" + $rootScope.authentication.name+ "/profile").then(function(result){
                     $rootScope.authentication.assigneeName = (result.data.firstName ? result.data.firstName : "") + " " + (result.data.lastName ? result.data.lastName : "");
                 });
-
-                console.log('startDate', $scope.startDate);
 
                 _.forEach($scope.identifiers, function(identifier){
                     _.forEach(identifier.operators, function(operator){
@@ -441,9 +439,9 @@
                     camForm.variableManager.variableValue('officialClientCompanyName', $scope.officialClientCompanyName);
                 };
                 //----------итоговые идентификаторы после создания заявки-----------
-                var operatorWasChanged = false;
-                var operatorWasConnected = false;
-                var operatorWasDisconnected = false;
+                $scope.operatorWasChanged = false;
+                $scope.operatorWasConnected = false;
+                $scope.operatorWasDisconnected = false;
 
                 _.forEach($scope.identifiers, function(id) {
                     _.forEach(id.operators, function(o) {
@@ -453,11 +451,11 @@
                         // Since "connectOperator" and "disconnectOperator" are supposed to be only for digital identifiers according to mockups in DP-113
                         if($scope.identifierType === 'digital'){
                             if(o.wasAvailable && !o.isAvailable){
-                                operatorWasDisconnected = true;
+                                $scope.operatorWasDisconnected = true;
                                 o.disconnected = true;
                             }
                             if(!o.wasAvailable && o.isAvailable){
-                                operatorWasConnected = true;
+                                $scope.operatorWasConnected = true;
                                 o.connected = true;
                             }
                         }
@@ -467,39 +465,42 @@
                         if($scope.identifierType === 'digital'){
                             if(o.wasAvailable && o.isAvailable && (o.oldPriceEP !== o.priceEP || o.oldPriceEP !== o.priceEP)){
                                 o.changed = true;
-                                operatorWasChanged = true;
+                                $scope.operatorWasChanged = true;
                             }
                         }
                         */
                         if($scope.identifierType === 'alfanumeric'){
-                            if(o.wasAvailable && o.isAvailable && o.oldTitle !== o.title){
+                            //if(o.wasAvailable && o.isAvailable && o.oldTitle !== o.title){
+                            if(o.wasAvailable !== o.isAvailable || o.oldTitle !== o.title){
                                 o.changed = true;
-                                operatorWasChanged = true;
+                                $scope.operatorWasChanged = true;
                             }
                         }
                     });
                 });
+
+
+                console.log('identifierType: ' + $scope.identifierType + ', relatedProcessDefinitionKey: ' + $scope.relatedProcessDefinitionKey);
+                console.log('disconnectOperator: ' + $scope.disconnectOperator + ', operatorWasDisconnected: ' + $scope.operatorWasDisconnected  + ', connectOperator: ' + $scope.connectOperator + ', operatorWasConnected: ' + $scope.operatorWasConnected + ', changeIdentifier: ' + $scope.changeIdentifier + ', operatorWasChanged: ' + $scope.operatorWasChanged);
+
+
+
                 camForm.variableManager.variableValue('identifiers', $scope.identifiers);
                 camForm.variableManager.createVariable({
                     name: 'operatorWasChanged',
-                    value: operatorWasChanged,
+                    value: $scope.operatorWasChanged,
                     type: 'Boolean'
                 });
                 camForm.variableManager.createVariable({
                     name: 'operatorWasConnected',
-                    value: operatorWasConnected,
+                    value: $scope.operatorWasConnected,
                     type: 'Boolean'
                 });
                 camForm.variableManager.createVariable({
                     name: 'operatorWasDisconnected',
-                    value: operatorWasDisconnected,
+                    value: $scope.operatorWasDisconnected,
                     type: 'Boolean'
                 });
-
-
-                console.log('disconnectOperator: ' + $scope.disconnectOperator + ', operatorWasDisconnected: ' + $scope.operatorWasDisconnected + ', $scope.identifierType: ' + identifierType + ', relatedProcessDefinitionKey: ' + $scope.relatedProcessDefinitionKey);
-
-
 
                 /*
                 var finalIDs = '';
@@ -874,10 +875,6 @@
         }]);
 
     </script>
-    {{identifiers[0].operators[0]}}<br/>
-    {{identifiers[0].operators[1]}}<br/>
-    {{identifiers[0].operators[2]}}<br/>
-    {{identifiers[0].operators[3]}}<br/>
     <iframe id="fileDownloadIframe" style="display:none;"></iframe>
     <h4 ng-if="relatedProcessDefinitionKey === 'bulksmsConnectionKAE' && (disconnectOperator || connectOperator || changeIdentifier) && !(operatorType === 'offnet' && identifierType === 'digital')">Выберите операторов и укажите цены</h4>
     <label class="error" ng-show="relatedProcessDefinitionKey === 'bulksmsConnectionKAE' && (disconnectOperator || connectOperator || changeIdentifier) && kcell_form.changeApplicationToConnectionTaskComment.$error.validIdentifiers && view.submitted">Выберите хотя бы 1 offnet оператор</label>
@@ -1006,7 +1003,7 @@
             <label class="error" ng-show="kcell_form.officialClientCompanyName.$error.required && ( kcell_form.officialClientCompanyName.$touched || view.submitted)">Required field</label>
         </div>
     </div>
-    <!--div class="form-group">
+    <div class="form-group">
         <label class="col-sm-4 control-label">* Описание сервиса:</label>
         <div class="col-sm-8">
             <input class="form-control" maxlength="500" ng-model="description" name="description" ng-disabled="true" ng-required="true">
@@ -1084,7 +1081,7 @@
             <input class="form-control" maxlength="500" ng-model="addressServerMO" name="addressServerMO" ng-disabled="true">
             <label class="error" ng-show="kcell_form.addressServerMO.$error.required && ( kcell_form.addressServerMO.$touched || view.submitted)">Required field</label>
         </div>
-    </div-->
+    </div>
     <!--div class="form-group">
         <label class="col-sm-4 control-label">* Дата предполагаемого запуска:</label>
         <div class="col-sm-8">
@@ -1098,7 +1095,7 @@
             </div>
         </div>
     </div-->
-    <!--div class="form-group" ng-hide="connectionType === 'web'">
+    <div class="form-group" ng-hide="connectionType === 'web'">
         <label class="col-sm-4 control-label">* Тариф для абонента:</label>
         <div class="col-sm-8">
             <input class="form-control" maxlength="500" ng-model="abonentTarif" name="abonentTarif" ng-required="connectionType !== 'web'" ng-disabled="true">
@@ -1181,7 +1178,7 @@
     <div class="form-group">
         <label class="col-sm-4 control-label">Ответственный B2B Sales:</label>
         <div class="col-sm-8">
-            <input type="text" ng-model="responsibleB2BSales" name="responsibleB2BSales" typeahead="name as users.name for users in getUsers($viewValue, 'delivery_sms_ivr_b2b_sales')" typeahead-on-select="userSelected($item,'responsibleB2BSales')" class="form-control" required autocomplete="off" ng-disabled="true">
+            <input type="text" ng-model="responsibleB2BSales" name="responsibleB2BSales" typeahead="name as users.name for users in getUsers($viewValue, 'delivery_sms_ivr_b2b_sales')" typeahead-on-select="userSelected($item,'responsibleB2BSales')" class="form-control" required autocomplete="off" ng-disabled="!disconnectProcess">
             <label class="error" ng-if="kcell_form.responsibleB2BSales.$error.valid && view.submitted">Необходимо выбрать пользователя</label>
         </div>
     </div>
@@ -1210,7 +1207,7 @@
             </select>
             <label class="error" ng-show="kcell_form.provider.$error.required && ( kcell_form.provider.$touched || view.submitted)">Required field</label>
         </div>
-    </div-->
+    </div>
     <div class="form-group">
         <label class="col-sm-4 control-label">Комментарии:</label>
         <div class="col-sm-8">
