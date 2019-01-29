@@ -1522,6 +1522,7 @@ define(['./module','jquery', 'moment', 'camundaSDK'], function(app, $, moment, C
 		};
 		
 		$scope.mapChangeType = {
+			disconnectProcess: "Процесс отключения услуги",
 			changeOfficialClientCompanyName: "Изменение Юридического наименования компании",
 			changeContractNumber: "Изменение номера договора",
 			disconnectOperator: "Отключение оператора",
@@ -1671,7 +1672,7 @@ define(['./module','jquery', 'moment', 'camundaSDK'], function(app, $, moment, C
 																}
 															};
 															instance.showTarif = true;
-															if(["changeOfficialClientCompanyName","changeContractNumber","disconnectOperator","connectOperator","changeConnectionType","changeIpNumber","changeIdentifier","changeSmsServiceType","changeProvider","changeTransmitNumber"].indexOf(el.name)>-1){
+															if(["disconnectProcess","changeOfficialClientCompanyName","changeContractNumber","disconnectOperator","connectOperator","changeConnectionType","changeIpNumber","changeIdentifier","changeSmsServiceType","changeProvider","changeTransmitNumber"].indexOf(el.name)>-1){
 																if(el.value){
 																	instance.changeTypes.push($scope.mapChangeType[el.name]);
 																}
