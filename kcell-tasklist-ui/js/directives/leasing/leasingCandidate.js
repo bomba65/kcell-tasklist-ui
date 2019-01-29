@@ -4,10 +4,12 @@ define(['./../module'], function(module){
 		return {
 			restrict: 'E',
 			scope: {
-				leasingCandidate: '='
+				leasingCandidate: '=',
+				farEnd: '='
 			},
 			link: function(scope, el, attrs){
 				scope.dictionary = {};
+				scope.selectedIndex = -1;
                 $http.get('/api/leasingCatalogs').then(
                     function(result){
                         angular.extend(scope.dictionary, result.data);
