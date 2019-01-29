@@ -276,7 +276,7 @@
                             });
 
                             if($scope.jobRequests.length > 0){
-                                _.forEach(['site_name', 'priority', 'materialsRequired', 'performDate', 'delayInfo'], function(variable) {
+                                _.forEach(['site_name', 'priority', 'materialsRequired', 'performDate', 'delayInfo', 'contractorJobAssignedDate', 'acceptanceDate'], function(variable) {
                                     var varSearchParams = {processInstanceIdIn: _.map($scope.jobRequests, 'processInstanceId'), variableName: variable};
                                     $http({
                                         method: 'POST',
@@ -304,9 +304,9 @@
                                 // validate_tr - task, approved last date
                                 // accept_work_initiator - task, approved last date
 
-                                $scope.jobRequests.forEach(function (request) {
+                                angular.forEach($scope.jobRequests, function (request) {
                                     var taskParams = {
-                                        taskDefinitionKeyIn:['fill_applied_changes_info','set_materials_dispatch_status','accept_work_initiator','UserTask_0rj3nbv','UserTask_1g0uit4','UserTask_1i7na4a'],
+                                        taskDefinitionKeyIn:['attach_material_list_contractor','UserTask_1wkrl5k','fill_applied_changes_info','set_materials_dispatch_status','accept_work_initiator','UserTask_0rj3nbv','UserTask_1g0uit4','UserTask_1i7na4a', 'modify_jr'],
                                         processInstanceBusinessKey: request.businessKey
                                     };
 
@@ -316,12 +316,28 @@
                                         data: taskParams,
                                         url: '/camunda/api/engine/engine/default/history/task'
                                     }).then(function (res) {
-                                        var fillAppliedChanges = _.minBy(_.filter(res.data, function(task){
-                                            return task.taskDefinitionKey === 'fill_applied_changes_info' || task.taskDefinitionKey === 'UserTask_0rj3nbv';
-                                        }), function(o) { return o.startTime; });
+                                        var modifyJR = _.maxBy(_.filter(res.data, function(task){
+                                            return task.taskDefinitionKey === 'modify_jr';
+                                        }), function(o) { return o.endTime; });
 
-                                        if(fillAppliedChanges){
-                                            request.fillAppliedChanges = fillAppliedChanges.startTime;
+                                        if(request.contractorJobAssignedDate){
+                                            request.attachMaterialList = request.contractorJobAssignedDate;
+                                        } else {
+                                            var attachMaterialList = _.minBy(_.filter(res.data, function(task){
+                                                return (task.taskDefinitionKey === 'attach_material_list_contractor' || task.taskDefinitionKey === 'UserTask_1wkrl5k') && (!modifyJR || (modifyJR && modifyJR.endTime < task.startTime));
+                                            }), function(o) { return o.startTime; });
+
+                                            if(attachMaterialList){
+                                                request.attachMaterialList = attachMaterialList.startTime;
+                                            }
+
+                                            var fillAppliedChanges = _.minBy(_.filter(res.data, function(task){
+                                                return (task.taskDefinitionKey === 'fill_applied_changes_info' || task.taskDefinitionKey === 'UserTask_0rj3nbv') && (!modifyJR || (modifyJR && modifyJR.endTime < task.startTime));
+                                            }), function(o) { return o.startTime; });
+
+                                            if(fillAppliedChanges){
+                                                request.fillAppliedChanges = fillAppliedChanges.startTime;
+                                            }
                                         }
 
                                         var validateTr = _.maxBy(_.filter(res.data, function(task){
@@ -329,23 +345,31 @@
                                         }), function(o) { return o.startTime; });
 
                                         if(validateTr){
-                                            request.validateTr = validateTr.endTime;
+                                            request.validateTr = validateTr.startTime;
                                         }
 
-                                        var acceptWorkInitiator = _.maxBy(_.filter(res.data, function(task){
-                                            return task.taskDefinitionKey === 'accept_work_initiator' || task.taskDefinitionKey === 'UserTask_1i7na4a';
-                                        }), function(o) { return o.startTime; });
+                                        if(request.performDate){
+                                            request.acceptWorkStartTime = request.performDate;
+                                        } else {
+                                            var acceptWorkInitiator = _.maxBy(_.filter(res.data, function(task){
+                                                return task.taskDefinitionKey === 'accept_work_initiator' || task.taskDefinitionKey === 'UserTask_1i7na4a';
+                                            }), function(o) { return o.startTime; });
 
-                                        if(acceptWorkInitiator){
-                                            request.acceptWorkStartTime = acceptWorkInitiator.startTime;
+                                            if(acceptWorkInitiator){
+                                                request.acceptWorkStartTime = acceptWorkInitiator.startTime;
+                                            }
                                         }
 
-                                        var acceptWorkInitiator = _.maxBy(_.filter(res.data, function(task){
-                                            return task.taskDefinitionKey === 'accept_work_initiator' || task.taskDefinitionKey === 'UserTask_1i7na4a';
-                                        }), function(o) { return o.endTime; });
+                                        if(request.acceptanceDate){
+                                            request.acceptWorkEndTime = request.acceptanceDate;
+                                        } else {
+                                            var acceptWorkInitiator = _.maxBy(_.filter(res.data, function(task){
+                                                return task.taskDefinitionKey === 'accept_work_initiator' || task.taskDefinitionKey === 'UserTask_1i7na4a';
+                                            }), function(o) { return o.endTime; });
 
-                                        if(acceptWorkInitiator){
-                                            request.acceptWorkEndTime = acceptWorkInitiator.endTime;
+                                            if(acceptWorkInitiator){
+                                                request.acceptWorkEndTime = acceptWorkInitiator.endTime;
+                                            }
                                         }
                                     });
                                 });
@@ -689,6 +713,108 @@
         </div>
     </div>
 
+    <div class="collapse" id="collapseDelayInfo">
+        <div class="well">
+            <h4>Delay Info Calculations</h4>
+            <table class="table table-bordered">
+                <tbody>
+                <tr>
+                    <td><b>Revision</b></td>
+                    <td></td>
+                </tr>
+                <tr>
+                    <td><b>Region</b></td>
+                    <td><b>Calculation</b></td>
+                </tr>
+                <tr>
+                    <td><b>Conditions:</b></td>
+                    <td><b>Alarms elimination require</b></td>
+                </tr>
+                <tr>
+                    <td>Almaty</td>
+                    <td>Delay = Job Acceptance Date - Job Request Date - (8 business day + holidays)</td>
+                </tr>
+                <tr>
+                    <td>South</td>
+                    <td>Delay = Job Acceptance Date - Job Request Date - (8 business day + holidays)</td>
+                </tr>
+                <tr>
+                    <td>North</td>
+                    <td>Delay = Job Acceptance Date - Job Request Date - (8 business day + holidays)</td>
+                </tr>
+                <tr>
+                    <td>West</td>
+                    <td>Delay = Job Acceptance Date - Job Request Date - (8 business day + holidays)</td>
+                </tr>
+                <tr>
+                    <td></td>
+                    <td></td>
+                </tr>
+                <tr>
+                    <td><b>Region</b></td>
+                    <td><b>Calculation</b></td>
+                </tr>
+                <tr>
+                    <td><b>Conditions:</b></td>
+                    <td><b>Alarms elimination not require + with Mterials from customer</b></td>
+                </tr>
+                <tr>
+                    <td>Almaty</td>
+                    <td>Delay = Job Acceptance Date - Material List signed Date - (7 business days + holidays)</td>
+                </tr>
+                <tr>
+                    <td>South</td>
+                    <td>Delay = Job Acceptance Date - Material List signed Date - (10 business days + holidays)</td>
+                </tr>
+                <tr>
+                    <td>North</td>
+                    <td>Delay = Job Acceptance Date - Material List signed Date - (10 business days + holidays)</td>
+                </tr>
+                <tr>
+                    <td>East</td>
+                    <td>Delay = Job Acceptance Date - Material List signed Date - (13 business days + holidays)</td>
+                </tr>
+                <tr>
+                    <td>West</td>
+                    <td>Delay = Job Acceptance Date - Material List signed Date - (15 business days + holidays)</td>
+                </tr>
+                <tr>
+                    <td></td>
+                    <td></td>
+                </tr>
+                <tr>
+                    <td><b>Region</b></td>
+                    <td><b>Calculation</b></td>
+                </tr>
+                <tr>
+                    <td><b>Conditions:</b></td>
+                    <td><b>Alarms elimination not require + w/o Mterials from customer</b></td>
+                </tr>
+                <tr>
+                    <td>Almaty</td>
+                    <td>Delay = Job Acceptance Date - Job Request Date - (5 business days + holidays)</td>
+                </tr>
+                <tr>
+                    <td>South</td>
+                    <td>Delay = Job Acceptance Date - Job Request Date - (5 business days + holidays)</td>
+                </tr>
+                <tr>
+                    <td>North</td>
+                    <td>Delay = Job Acceptance Date - Job Request Date - (5 business days + holidays)</td>
+                </tr>
+                <tr>
+                    <td>East</td>
+                    <td>Delay = Job Acceptance Date - Job Request Date - (5 business days + holidays)</td>
+                </tr>
+                <tr>
+                    <td>West</td>
+                    <td>Delay = Job Acceptance Date - Job Request Date - (5 business days + holidays)</td>
+                </tr>
+                </tbody>
+            </table>
+        </div>
+    </div>
+
     <div class="form-group" ng-if="previousInvoiceCount > 0">
         <label class="col-sm-6 control-label error">Identical monthly acts are found, please change region, type of work or period</label>
     </div>
@@ -754,7 +880,12 @@
                             <th colspan="2">Requested Job Info</th>
                             <th>Site Info</th>
                             <th colspan="7">Job Request Info</th>
-                            <th colspan="2">Delay Info</th>
+                            <th colspan="2">
+                                Delay Info
+                                <a role="button" data-toggle="collapse" href="#collapseDelayInfo" aria-expanded="false" aria-controls="collapseDelayInfo">
+                                    <i class="glyphicon glyphicon-question-sign"></i>
+                                </a>
+                            </th>
                         </tr>
                         <tr>
                             <th>Ordered work</th>
@@ -780,7 +911,7 @@
                                 {{(w.relatedSites && w.relatedSites.length>0)? w.relatedSitesNames : w.site_name}}
                             </td>
                             <td><a ng-click="toggleProcessView(w.processInstanceId, 'table', work.key)">{{w.businessKey}}</a> <a class="glyphicon glyphicon-trash" aria-hidden="true" ng-click="removeJobRequest(w.processInstanceId)"></a></td>
-                            <td>{{w.fillAppliedChanges | date:'dd.MM.yyyy'}}</td>
+                            <td>{{(w.attachMaterialList!=null ? w.attachMaterialList : w.fillAppliedChanges) | date:'dd MMM yyyy'}}</td>
                             <td>{{w.validateTr | date:'dd.MM.yyyy'}}</td>
                             <td>{{w.acceptWorkStartTime | date:'dd.MM.yyyy'}}</td>
                             <td>{{w.acceptWorkEndTime | date:'dd.MM.yyyy'}}</td>

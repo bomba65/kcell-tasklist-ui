@@ -51,6 +51,7 @@
                 'performDate',
                 'mlApprovalAdditionalInfoFile',
                 'delayInfo',
+                'acceptanceDate',
                 'contractorJobAssignedDate'
             ];
             $scope.jobModel = {};
@@ -154,6 +155,9 @@
                 if(!$scope.delayInfo.type){
                     $scope.delayInfo.type = 'Integer';
                 }
+                if(!$scope.acceptanceDate.type){
+                    $scope.acceptanceDate.type = 'Date';
+                }
                 $scope.jobModel.showDelayHint = true;
             });
 
@@ -187,6 +191,7 @@
                 camForm.variableManager.variableValue('resolutions', $scope.jobModel.resolutions);
 
                 camForm.variableManager.variableValue('delayInfo', $scope.delayInfo.value);
+                camForm.variableManager.variableValue('acceptanceDate', $scope.acceptanceDate.value);
             });
 
             camForm.on('store', function() {
@@ -266,6 +271,12 @@
             $scope.hasComment = function () {
                 return $scope.acceptAndSignByInitiatorComment && $rootScope.hasGroup('kcellUsers');
             }
+
+            $scope.open = function($event) {
+                $event.preventDefault();
+                $event.stopPropagation();
+                $scope.dateFieldOpened = true;
+            };
         }]);
     </script>
     <job-request job-model="jobModel"></job-request>
@@ -297,6 +308,20 @@
     </div>
 
     <div class="form-group">
+        <label class="col-sm-4 control-label">Please, add Acceptance Date*</label>
+        <div class="col-sm-8">
+            <div class="input-group">
+                <input type="text" ng-model="acceptanceDate" name="acceptanceDate.value" required class="form-control" datepicker-popup="dd.MM.yyyy" is-open="dateFieldOpened" id="acceptanceDate" min-date="datepickerOptions.minDate"  ng-required="acceptAndSignByInitiatorTaskResult == 'approved'" />
+                <span class="input-group-btn">
+                    <button type="button" class="btn btn-default" ng-click="open($event)">
+                        <i class="glyphicon glyphicon-calendar"></i>
+                    </button>
+                </span>
+            </div>
+            <label class="error" ng-show="kcell_form.acceptanceDate.$error.required && ( kcell_form.acceptanceDate.$touched || view.submitted)">Required field</label>
+        </div>
+    </div>
+    <div class="form-group">
         <label class="col-sm-4 control-label">
             Please, add delay info (days)
             <a role="button" data-toggle="collapse" href="#collapseDelayInfo" aria-expanded="false" aria-controls="collapseDelayInfo">
@@ -307,6 +332,12 @@
             <input class="form-control" type="number" ng-model="delayInfo.value" ng-required="acceptAndSignByInitiatorTaskResult == 'approved'" min="0" name="delayInfo">
             <label class="error" ng-show="kcell_form.delayInfo.$error.required && ( kcell_form.delayInfo.$touched || view.submitted)">Required field</label>
         </div>
+    </div>
+
+    <div style="border: black 1px solid; padding: 4px;">
+        <p>
+            *Важно: Даты Job Request date и Acceptance Date должны совпадать с датами, проставляемыми в подписываемой Acceptance форме
+        </p>
     </div>
 
     <div class="form-group">

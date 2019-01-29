@@ -418,7 +418,7 @@
                             });
 
                             if($scope.jobRequests.length > 0){
-                                _.forEach(['site_name', 'priority', 'materialsRequired', 'performDate', 'delayInfo', 'contractorJobAssignedDate'], function(variable) {
+                                _.forEach(['site_name', 'priority', 'materialsRequired', 'performDate', 'delayInfo', 'contractorJobAssignedDate', 'acceptanceDate'], function(variable) {
                                     var varSearchParams = {processInstanceIdIn: _.map($scope.jobRequests, 'processInstanceId'), variableName: variable};
                                     $http({
                                         method: 'POST',
@@ -503,12 +503,16 @@
                                             }
                                         }
 
-                                        var acceptWorkInitiator = _.maxBy(_.filter(res.data, function(task){
-                                            return task.taskDefinitionKey === 'accept_work_initiator' || task.taskDefinitionKey === 'UserTask_1i7na4a';
-                                        }), function(o) { return o.endTime; });
+                                        if(request.acceptanceDate){
+                                            request.acceptWorkEndTime = request.acceptanceDate;
+                                        } else {
+                                            var acceptWorkInitiator = _.maxBy(_.filter(res.data, function(task){
+                                                return task.taskDefinitionKey === 'accept_work_initiator' || task.taskDefinitionKey === 'UserTask_1i7na4a';
+                                            }), function(o) { return o.endTime; });
 
-                                        if(acceptWorkInitiator){
-                                            request.acceptWorkEndTime = acceptWorkInitiator.endTime;
+                                            if(acceptWorkInitiator){
+                                                request.acceptWorkEndTime = acceptWorkInitiator.endTime;
+                                            }
                                         }
                                     });
                                 });
