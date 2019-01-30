@@ -389,72 +389,76 @@ define(['./module','camundaSDK', 'lodash', 'big-js'], function(module, CamSDK, _
 				url: baseUrl+'/filter/'+$scope.currentFilter.id+'/list'
 			}).then(
 				function(results){
-					$scope.tasks = results.data._embedded.task;
-					var selectedTask;
+					try {
+						$scope.tasks = results.data._embedded.task;
+						var selectedTask;
 
-					if($scope.tasks && $scope.tasks.length > 0){
-						console.log($scope.tasks)
-						$scope.tasks.forEach(function(e){
-							var processId = e.processDefinitionId.substring(0,e.processDefinitionId.indexOf(':'));
-							if(subprocessToParent[processId]){
-								processId = subprocessToParent[processId];
-							}
-							if(!currentProcesses[processId].taskGroups[e.name]){
-								currentProcesses[processId].taskGroups[e.name] = {tasks:[], taskDefinitionKey: e.taskDefinitionKey};
-							}
-							currentProcesses[processId].taskGroups[e.name].tasks.push(e);
+						if($scope.tasks && $scope.tasks.length > 0){
+							console.log($scope.tasks)
+							$scope.tasks.forEach(function(e){
+								var processId = e.processDefinitionId.substring(0,e.processDefinitionId.indexOf(':'));
+								if(subprocessToParent[processId]){
+									processId = subprocessToParent[processId];
+								}
+								if(!currentProcesses[processId].taskGroups[e.name]){
+									currentProcesses[processId].taskGroups[e.name] = {tasks:[], taskDefinitionKey: e.taskDefinitionKey};
+								}
+								currentProcesses[processId].taskGroups[e.name].tasks.push(e);
 
-							if(e.assignee){
-								for(var i=0;i<results.data._embedded.assignee.length;i++){
-									if(results.data._embedded.assignee[i].id === e.assignee){
-										e.assigneeObject = results.data._embedded.assignee[i];
+								if(e.assignee){
+									for(var i=0;i<results.data._embedded.assignee.length;i++){
+										if(results.data._embedded.assignee[i].id === e.assignee){
+											e.assigneeObject = results.data._embedded.assignee[i];
+										}
 									}
 								}
-							}
-							if($scope.tryToOpen && e.assignee === $rootScope.authentication.name && e.processInstanceId === $scope.tryToOpen.id){
-								selectedTask = e;
-							}
-						});
-						$scope.currentProcesses = [];
-						for(var propt in currentProcesses){
-							var currentProcess = angular.copy(currentProcesses[propt]);
-							delete currentProcess.taskGroups;
-							currentProcess.taskGroups = [];
-							currentProcess.taskCount = 0;
-
-							for(var taskPropt in currentProcesses[propt].taskGroups){
-								var taskGroup = angular.copy(currentProcesses[propt].taskGroups[taskPropt]);
-								taskGroup.name = taskPropt;
-								currentProcess.taskGroups.push(taskGroup);
-								currentProcess.taskCount+=taskGroup.tasks.length;
-							}
-							$scope.currentProcesses.push(currentProcess);
-						}
-					}
-					if(selectedTask){
-						$state.go('tasks.task', {id:selectedTask.id});
-					} else if($scope.tryToOpen){
-						$http.get(baseUrl+'/task/'+$scope.tryToOpen.id).then(
-							function(taskResult){
-								$scope.tryToOpen = undefined;
-								if(taskResult.data.assignee){
-									$http.get(baseUrl+'/user/'+taskResult.data.assignee+'/profile').then(
-										function(userResult){
-											taskResult.data.assigneeObject = userResult.data;
-											$state.go('tasks.task', {id:taskResult.data.id});
-										},
-										function(error){
-											console.log(error.data);
-										}
-									);
-								} else{
-									$state.go('tasks.task', {id:taskResult.data.id});
+								if($scope.tryToOpen && e.assignee === $rootScope.authentication.name && e.processInstanceId === $scope.tryToOpen.id){
+									selectedTask = e;
 								}
-							},
-							function(error){
-								console.log(error.data);
+							});
+							$scope.currentProcesses = [];
+							for(var propt in currentProcesses){
+								var currentProcess = angular.copy(currentProcesses[propt]);
+								delete currentProcess.taskGroups;
+								currentProcess.taskGroups = [];
+								currentProcess.taskCount = 0;
+
+								for(var taskPropt in currentProcesses[propt].taskGroups){
+									var taskGroup = angular.copy(currentProcesses[propt].taskGroups[taskPropt]);
+									taskGroup.name = taskPropt;
+									currentProcess.taskGroups.push(taskGroup);
+									currentProcess.taskCount+=taskGroup.tasks.length;
+								}
+								$scope.currentProcesses.push(currentProcess);
 							}
-						);
+						}
+						if(selectedTask){
+							$state.go('tasks.task', {id:selectedTask.id});
+						} else if($scope.tryToOpen){
+							$http.get(baseUrl+'/task/'+$scope.tryToOpen.id).then(
+								function(taskResult){
+									$scope.tryToOpen = undefined;
+									if(taskResult.data.assignee){
+										$http.get(baseUrl+'/user/'+taskResult.data.assignee+'/profile').then(
+											function(userResult){
+												taskResult.data.assigneeObject = userResult.data;
+												$state.go('tasks.task', {id:taskResult.data.id});
+											},
+											function(error){
+												console.log(error.data);
+											}
+										);
+									} else{
+										$state.go('tasks.task', {id:taskResult.data.id});
+									}
+								},
+								function(error){
+									console.log(error.data);
+								}
+							);
+						}
+					} catch(e) {
+						console.log(e);
 					}
 				},
 				function(error){
