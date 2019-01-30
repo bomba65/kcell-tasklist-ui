@@ -3,14 +3,12 @@ import java.util.stream.Collectors
 
 def getStarterEmails(DelegateExecution execution) {
     def identityService = execution.processEngineServices.identityService
-
-    starterEmails = identityService.createUserQuery().userId(starter).list().stream()
+    def emails = identityService.createUserQuery().userId(starter).list().stream()
             .map{it.email}
             .filter{it != null && !it.empty}
             .collect(Collectors.toSet())
 
-    def result = starterEmails.stream().collect(Collectors.joining(","))
-    result
+    emails.stream().collect(Collectors.joining(","))
 }
 
 getStarterEmails(execution)

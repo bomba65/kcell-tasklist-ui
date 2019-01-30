@@ -11,13 +11,16 @@ define(['./../module'], function(module){
                 disabled: '='
             },
             link: function(scope, element, attrs) {
+                scope.deliverableHidden = null;
                 scope.$watch('data', function(value) {
                     if (value) {
                         if (!scope.data) scope.data = {};
                         if (!scope.data.productOffers) scope.data.productOffers = [];
                         if (!scope.data.deliverable) scope.data.deliverable = [];
+                        scope.deliverableHidden = 'something';
+                        if (!scope.data.deliverable.length) scope.deliverableHidden = null;
                     }
-                });
+                }, true);
 
                 scope.multiselectSettings = {
                     enableSearch: true,

@@ -5482,7 +5482,7 @@ INSERT INTO act_id_membership (user_id_, group_id_) VALUES ('Marat.Sadykov@kcell
 
 
 -- PROCESS DEFINITION AUTHORIZATION (READ, READ_TASK, READ_INSTANCE, READ_HISTORY)
-INSERT INTO act_ru_authorization (id_, rev_, type_, group_id_, user_id_, resource_type_, resource_id_, perms_) VALUES (uuid_generate_v4(), 1, 1, 'demand_uat_users', NULL, 6, 'Demand', 37698) ON CONFLICT ON CONSTRAINT ACT_UNIQ_AUTH_GROUP DO NOTHING;
-INSERT INTO act_ru_authorization (id_, rev_, type_, group_id_, user_id_, resource_type_, resource_id_, perms_) VALUES (uuid_generate_v4(), 1, 1, 'demand_uat_users', NULL, 6, 'UAT', 37698) ON CONFLICT ON CONSTRAINT ACT_UNIQ_AUTH_GROUP DO NOTHING;
+INSERT INTO act_ru_authorization (id_, rev_, type_, group_id_, user_id_, resource_type_, resource_id_, perms_) VALUES (uuid_generate_v4(), 1, 1, 'demand_uat_users', NULL, 6, 'Demand', 38722) ON CONFLICT ON CONSTRAINT ACT_UNIQ_AUTH_GROUP DO NOTHING;
+INSERT INTO act_ru_authorization (id_, rev_, type_, group_id_, user_id_, resource_type_, resource_id_, perms_) VALUES (uuid_generate_v4(), 1, 1, 'demand_uat_users', NULL, 6, 'UAT', 38722) ON CONFLICT ON CONSTRAINT ACT_UNIQ_AUTH_GROUP DO NOTHING;
 
 commit;

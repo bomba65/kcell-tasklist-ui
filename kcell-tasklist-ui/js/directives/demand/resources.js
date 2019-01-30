@@ -13,10 +13,21 @@ define(['./../module'], function(module){
             },
             link: function(scope, el, attrs) {
 
+                var lastScrollHeight = 0;
+
                 var setHeight = function() {
                     var element = el[0].querySelector('.resources-container');
-                    element.style.height = 'auto';
-                    element.style.height = (element.scrollHeight) + 'px';
+                    element.style.paddingBottom = '0';
+                    element.style.marginBottom = '0';
+                    var height = element.scrollHeight;
+                    if (height > lastScrollHeight) {
+                      element.style.overflow = 'hidden';
+                      element.style.paddingBottom = height + 'px';
+                      element.style.marginBottom = '-' + height + 'px';
+                    } else {
+                      element.style.overflow = 'scroll';
+                    }
+                    lastScrollHeight = height;
                 };
 
                 $(document).bind('click', function (e) {
