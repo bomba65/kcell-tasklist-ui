@@ -168,7 +168,7 @@ define(['./module','jquery', 'moment', 'camundaSDK'], function(app, $, moment, C
 			);
 		}
 
-        $http.get('/api/catalogs?force=2').then(
+        $http.get('/api/catalogs?force=4').then(
             function (result) {
                 angular.extend($scope, result.data);
                 angular.extend(catalogs, result.data);

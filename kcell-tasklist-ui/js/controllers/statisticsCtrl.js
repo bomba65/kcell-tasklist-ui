@@ -51,7 +51,7 @@ define(['./module','jquery'], function(app,$){
         }
         $scope.region = $stateParams.region;
 
-        $http.get('/api/catalogs?force=2').then(
+        $http.get('/api/catalogs?force=4').then(
             function (result) {
                 angular.extend($scope, result.data);
             },
