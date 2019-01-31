@@ -176,10 +176,15 @@ define(['./module','camundaSDK', 'lodash', 'big-js'], function(module, CamSDK, _
 			$scope.selectedView = 'task';
 			$state.go('tasks.task', {id:taskId});
 		}
+
+		$scope.$on('getTaskListEvent', function(event, data){
+			getTaskList();
+		});
 		$scope.startProcess = function(id){
 			StartProcessService(id);
 		}
-		/*$scope.startProcess = function(id){
+		/*
+		$scope.startProcess = function(id){
 			$http.get(baseUrl+'/process-definition/'+id+'/startForm').then(
 				function(startFormInfo){
 					if(startFormInfo.data.key){

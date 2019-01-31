@@ -7,7 +7,6 @@ define(['./module','camundaSDK'], function(module, CamSDK){
 		});
 		var baseUrl = '/camunda/api/engine/engine/default';
 		return function(id){
-			//console.log('startProcessService');
 			$http.get(baseUrl+'/process-definition/'+id+'/startForm').then(
 				function(startFormInfo){
 					if(startFormInfo.data.key){
@@ -36,7 +35,7 @@ define(['./module','camundaSDK'], function(module, CamSDK){
 									if (task.assignee === $rootScope.authUser.id) {
 										$rootScope.tryToOpen = task;
 									}
-									getTaskList();
+									$rootScope.$broadcast('getTaskListEvent');
 								},
 								function(error){
 									console.log(error.data);
@@ -53,7 +52,7 @@ define(['./module','camundaSDK'], function(module, CamSDK){
 										} else {
 											$rootScope.tryToOpen = results.data
 										}
-										getTaskList();
+										$rootScope.$broadcast('getTaskListEvent');
 									},
 									function(error){
 										console.log(error.data);
