@@ -37,6 +37,7 @@
 
             camForm.on('form-loaded', function () {
                 camForm.variableManager.fetchVariable('legalInfo');
+                camForm.variableManager.fetchVariable('techSpecs');
                 camForm.variableManager.fetchVariable('action');
                 camForm.variableManager.fetchVariable('resolutions');
                 camForm.variableManager.fetchVariable('attachments');
@@ -47,6 +48,7 @@
 
             camForm.on('variables-fetched', function () {
                 $scope.legalInfo = camForm.variableManager.variableValue('legalInfo');
+                $scope.techSpecs = camForm.variableManager.variableValue('techSpecs');
                 $scope.action = camForm.variableManager.variableValue('action');
                 $scope.resolutions = camForm.variableManager.variableValue('resolutions');
                 $scope.attachments = camForm.variableManager.variableValue('attachments');
@@ -112,6 +114,31 @@
                     type: 'String',
                     value: $scope.resolution
                 });
+
+                if ($scope.resolution == 'Approve') {
+                    if ($scope.action.changeConnection) {
+                        $scope.techSpecs.connectionPoint = $scope.techSpecs.connectionPointNew;
+                        $scope.techSpecs.connectionPointNew = null;
+                    }
+                    if ($scope.techSpecs.sip) {
+                        if ($scope.action.changeConnection || $scope.action.changeNumbers) {
+                            $scope.techSpecs.sip.curPublicVoiceIP = $scope.techSpecs.sip.newPublicVoiceIP;
+                            $scope.techSpecs.sip.curSignalingIP = $scope.techSpecs.sip.newSignalingIP;
+                        }
+                        $scope.techSpecs.sip.newPublicVoiceIP = null;
+                        $scope.techSpecs.sip.newSignalingIP = null;
+                        $scope.techSpecs.sip.description = null;
+                    }
+                    $scope.techSpecs.removalRequired = null;
+                    $scope.techSpecs.removalNumbers = null;
+
+                    camForm.variableManager.destroyVariable('techSpecs');
+                    camForm.variableManager.createVariable({
+                        name: 'techSpecs',
+                        type: 'Json',
+                        value: $scope.techSpecs
+                    });
+                }
             });
 
             $scope.downloadFile = function (file) {
@@ -235,7 +262,7 @@
     </div>
 
     <div class="form-group">
-        <label class="col-sm-2 control-label">Comment</label>
+        <label class="col-sm-2 control-label">Comment <span class="text-danger glyphicon-asterisk" ng-if="resolution == 'Reject'"></span></label>
         <div class="col-sm-10">
             <textarea elastic-textarea class="form-control" rows="4" name="comment" ng-model="comment" ng-required="resolution == 'Reject'"></textarea>
             <label class="error" ng-show="kcell_form.comment.$error.required && ( kcell_form.comment.$touched || view.submitted)">Required field</label>

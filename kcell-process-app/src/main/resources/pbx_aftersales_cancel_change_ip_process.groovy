@@ -39,7 +39,7 @@ html(lang:'en') {
         newLine()
         p('<b>БИН:</b> ' + bin)
         newLine()
-        p('Ваш запрос на изменение настроек транспортного уровня на ' + connectionPoint + ' выполнен.')
+        p('Процесс по изменению настроек транспортного уровня на ' + connectionPoint + ' был принудительно завершен.')
         newLine()
         p('<b>Прежний IP:</b> ' + curPublicVoiceIP + ', ' + curSignalingIP)
         newLine()

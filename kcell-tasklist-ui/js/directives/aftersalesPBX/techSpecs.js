@@ -8,7 +8,7 @@ define(['./../module'], function(module){
                 form: '=',
                 view: '=',
                 disabled: '=',
-                cpRequired: '=',
+                showCpNew: '=',
                 pbxData: '=',
                 editConnPoint: '=',
                 removeNumbers: '='
@@ -31,10 +31,13 @@ define(['./../module'], function(module){
 
                 scope.$on('tab-selected', function(e, tabName) {
                     if (tabName === 'techSpec') {
-                        var tmp = scope.data.pbxNumbers;
+                        var pbxTmp = scope.data.pbxNumbers;
                         scope.data.pbxNumbers = 'this is because of tabset';
+                        var removalTmp = scope.data.removalNumbers;
+                        scope.data.removalNumbers = 'this is because of tabset';
                         $timeout(function () {
-                            scope.data.pbxNumbers = tmp;
+                            scope.data.pbxNumbers = pbxTmp;
+                            scope.data.removalNumbers = removalTmp;
                         });
                     }
                 });
