@@ -146,6 +146,29 @@
                     $scope.selectedIndex = index;
                 }
             }
+
+            $scope.uncheckOthers = function(index){
+                angular.forEach($scope.farEndInformation, function (fe, i) {
+                    if(i !== index){
+                        fe.priority = false;
+                    }
+                })
+            }
+
+            $scope.preSubmit = function() {
+                var deferred = $q.defer();
+                var oneChecked =  _.some($scope.farEndInformation, function(fe){
+                    return fe.priority || fe.priority === true;
+                });
+
+                if(!oneChecked){
+                    deferred.reject('At least 1 Far End Information should be checked at Priority field!');
+                    return deferred.promise;
+                } else {
+                    deferred.resolve();
+                    return deferred.promise;
+                }
+            };
         }]);
 
     </script>
@@ -176,7 +199,7 @@
                             <label class="error" ng-if="kcell_form['transmissionStatus'+$index].$error.required && ( kcell_form['transmissionStatus'+$index].$touched || view.submitted)">Required field</label>
                         </td>
                         <td>
-                            <input type="checkbox" name="{{'priority'+$index}}" ng-model="fe.priority">
+                            <input type="checkbox" name="{{'priority'+$index}}" ng-model="fe.priority" ng-change="uncheckOthers($index)">
                         </td>
                     </tr>
                     <tr ng-show = "selectedIndex == $index">
