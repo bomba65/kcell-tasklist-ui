@@ -1628,7 +1628,6 @@ define(['./module','jquery', 'moment', 'camundaSDK'], function(app, $, moment, C
 							);
 							/// aftersales start
 							if (processDefinitionKey === 'freephone' || processDefinitionKey === 'bulksmsConnectionKAE'){
-								console.log('aftersales request');
 								$http({
 									method: 'POST',
 									headers:{'Accept':'application/hal+json, application/json; q=0.5'},
@@ -1639,11 +1638,10 @@ define(['./module','jquery', 'moment', 'camundaSDK'], function(app, $, moment, C
 									},
 									url: baseUrl+'/history/process-instance'
 								}).then(function(response){
-									console.log('aftersales response data', response.data);
 									if (response && response.data) {
 										$scope.processInstancesAftersales = angular.copy(response.data);
 										if($scope.processInstancesAftersales.length>0){
-											$scope.disableAftersalesStart = $scope.processInstancesAftersales.filter(function(pi){return ['EXTERNALLY_TERMINATED','COMPLETED'].indexOf(pi.state) === -1}).length > 0;
+											$scope.disableAftersalesStart = $scope.processInstancesAftersales.filter(function(pi){return ['EXTERNALLY_TERMINATED','INTERNALLY_TERMINATED','COMPLETED'].indexOf(pi.state) === -1}).length > 0;
 											$scope.processInstancesAftersales.forEach(function(instance) {
 												$http.get(baseUrl+'/history/variable-instance?deserializeValues=false&processInstanceId='+instance.id).then(
 													function(result){
@@ -1686,7 +1684,6 @@ define(['./module','jquery', 'moment', 'camundaSDK'], function(app, $, moment, C
 												});
 										} else {
 											$scope.disableAftersalesStart = false;
-											console.log(2, $scope.disableAftersalesStart);
 										}
 									}
 								},
