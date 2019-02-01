@@ -174,10 +174,10 @@
     <bpmn:sequenceFlow id="SequenceFlow_1euf1xl" sourceRef="Task_0zx2ow4" targetRef="Task_01e2w8k" />
     <bpmn:sequenceFlow id="SequenceFlow_1fx9cmp" sourceRef="ExclusiveGateway_0p32h2j" targetRef="ExclusiveGateway_0i4p3rk" />
     <bpmn:sequenceFlow id="SequenceFlow_08tfii1" sourceRef="UserTask_0surxib" targetRef="ExclusiveGateway_08uanbo" />
-    <bpmn:sequenceFlow id="SequenceFlow_1h9flvd" name="(BULK SMS) Подключение MO" sourceRef="ExclusiveGateway_1afcbpq" targetRef="Task_199d67a">
+    <bpmn:sequenceFlow id="SequenceFlow_1h9flvd" name="(BULK SMS) Подключение MO" sourceRef="ExclusiveGateway_1afcbpq" targetRef="createDisconnectionForm">
       <bpmn:conditionExpression xsi:type="bpmn:tFormalExpression">${relatedProcessDefinitionKey=='bulksmsConnectionKAE' &amp;&amp; changeSmsServiceType==true}</bpmn:conditionExpression>
     </bpmn:sequenceFlow>
-    <bpmn:sequenceFlow id="SequenceFlow_1u0bx01" sourceRef="Task_199d67a" targetRef="ExclusiveGateway_08uanbo" />
+    <bpmn:sequenceFlow id="SequenceFlow_1u0bx01" sourceRef="createDisconnectionForm" targetRef="ExclusiveGateway_08uanbo" />
     <bpmn:sequenceFlow id="SequenceFlow_0ybt862" name="Free Phone" sourceRef="ExclusiveGateway_1y5n9qq" targetRef="Task_185705u">
       <bpmn:conditionExpression xsi:type="bpmn:tFormalExpression">${relatedProcessDefinitionKey=='freephone'}</bpmn:conditionExpression>
     </bpmn:sequenceFlow>
@@ -257,21 +257,21 @@
     <bpmn:sequenceFlow id="SequenceFlow_1wfb0ue" name="Добавление оператора" sourceRef="ExclusiveGateway_1h75kkm" targetRef="addCostAndStatusOfNumbers">
       <bpmn:conditionExpression xsi:type="bpmn:tFormalExpression">${connectOperator==true &amp;&amp; operatorWasConnected==true &amp;&amp; identifierType=='digital'}</bpmn:conditionExpression>
     </bpmn:sequenceFlow>
-    <bpmn:userTask id="UserTask_1pcpoy5" name="Подтвердите настройку номера на MSS" camunda:candidateGroups="delivery_voice_network">
+    <bpmn:userTask id="setMMSpreferences" name="Подтвердите настройку номера на MSS" camunda:formKey="embedded:app:forms/after-sales-ivr-sms/setMMSpreferences.html" camunda:candidateGroups="delivery_voice_network">
       <bpmn:documentation>Подтвердите настройку номера на MSS</bpmn:documentation>
       <bpmn:incoming>SequenceFlow_03pwvei</bpmn:incoming>
       <bpmn:outgoing>SequenceFlow_0lwb1gb</bpmn:outgoing>
     </bpmn:userTask>
-    <bpmn:userTask id="UserTask_07fao26" name="Потдтвердить успешность проведения тестов" camunda:candidateGroups="delivery_sms_ivr_b2b_delivery">
+    <bpmn:userTask id="confirmSuccessOfTestsWithTransmit" name="Потдтвердить успешность проведения тестов" camunda:formKey="embedded:app:forms/after-sales-ivr-sms/confirmSuccessOfTestsWithTransmit.html" camunda:candidateGroups="delivery_sms_ivr_b2b_delivery">
       <bpmn:documentation>Потдтвердить успешность проведения тестов</bpmn:documentation>
       <bpmn:incoming>SequenceFlow_0lwb1gb</bpmn:incoming>
       <bpmn:outgoing>SequenceFlow_00gmmhj</bpmn:outgoing>
     </bpmn:userTask>
-    <bpmn:sequenceFlow id="SequenceFlow_0lwb1gb" sourceRef="UserTask_1pcpoy5" targetRef="UserTask_07fao26" />
-    <bpmn:sequenceFlow id="SequenceFlow_03pwvei" name="Смена номера переадресации для Freephone" sourceRef="ExclusiveGateway_1afcbpq" targetRef="UserTask_1pcpoy5">
-      <bpmn:conditionExpression xsi:type="bpmn:tFormalExpression">${changeTransmitNumber==true}</bpmn:conditionExpression>
+    <bpmn:sequenceFlow id="SequenceFlow_0lwb1gb" sourceRef="setMMSpreferences" targetRef="confirmSuccessOfTestsWithTransmit" />
+    <bpmn:sequenceFlow id="SequenceFlow_03pwvei" name="Смена номера переадресации для Freephone" sourceRef="ExclusiveGateway_1afcbpq" targetRef="setMMSpreferences">
+      <bpmn:conditionExpression xsi:type="bpmn:tFormalExpression">${relatedProcessDefinitionKey=='freephone' &amp;&amp; changeTransmitNumber==true}</bpmn:conditionExpression>
     </bpmn:sequenceFlow>
-    <bpmn:sequenceFlow id="SequenceFlow_00gmmhj" sourceRef="UserTask_07fao26" targetRef="ExclusiveGateway_08uanbo" />
+    <bpmn:sequenceFlow id="SequenceFlow_00gmmhj" sourceRef="confirmSuccessOfTestsWithTransmit" targetRef="ExclusiveGateway_08uanbo" />
     <bpmn:userTask id="confirmOtherOperatorsDeletionShortNumber" name="Подтвердите отключение идентификатора на сети других операторов" camunda:formKey="embedded:app:forms/after-sales-ivr-sms/confirmOtherOperatorsDeletionShortNumber.html">
       <bpmn:documentation>Подтвердите отключение идентификатора на сети других операторов</bpmn:documentation>
       <bpmn:incoming>SequenceFlow_11rjgnl</bpmn:incoming>
@@ -372,7 +372,7 @@
       <bpmn:incoming>SequenceFlow_0pavi5o</bpmn:incoming>
       <bpmn:outgoing>SequenceFlow_1euf1xl</bpmn:outgoing>
     </bpmn:userTask>
-    <bpmn:userTask id="Task_199d67a" name="SERVICE NUMBER DISCONNECTION FORMS" camunda:formKey="embedded:app:forms/after-sales-ivr-sms/createDisconnectionForm.html" camunda:candidateGroups="delivery_tech_sao_so_cvo">
+    <bpmn:userTask id="createDisconnectionForm" name="SERVICE NUMBER DISCONNECTION FORMS" camunda:formKey="embedded:app:forms/after-sales-ivr-sms/createDisconnectionForm.html" camunda:candidateGroups="delivery_tech_sao_so_cvo">
       <bpmn:documentation>SERVICE NUMBER DISCONNECTION FORMS</bpmn:documentation>
       <bpmn:incoming>SequenceFlow_1h9flvd</bpmn:incoming>
       <bpmn:outgoing>SequenceFlow_1u0bx01</bpmn:outgoing>
@@ -582,7 +582,7 @@
     <bpmn:textAnnotation id="TextAnnotation_0ilx7i2">
       <bpmn:text>TECH-SAO-SO-CVO</bpmn:text>
     </bpmn:textAnnotation>
-    <bpmn:association id="Association_18gb197" sourceRef="Task_199d67a" targetRef="TextAnnotation_0ilx7i2" />
+    <bpmn:association id="Association_18gb197" sourceRef="createDisconnectionForm" targetRef="TextAnnotation_0ilx7i2" />
     <bpmn:textAnnotation id="TextAnnotation_0elg5zj">
       <bpmn:text>В мокапах реализовать возможность добавления/удаления оператора</bpmn:text>
     </bpmn:textAnnotation>
@@ -641,9 +641,9 @@
     <bpmn:textAnnotation id="TextAnnotation_0wt6cw3">
       <bpmn:text>B2B Delivery</bpmn:text>
     </bpmn:textAnnotation>
-    <bpmn:association id="Association_0aalnad" sourceRef="UserTask_1pcpoy5" targetRef="TextAnnotation_0qfrm0s" />
-    <bpmn:association id="Association_008b0v0" sourceRef="UserTask_1pcpoy5" targetRef="TextAnnotation_1nidz3p" />
-    <bpmn:association id="Association_1nmrcwo" sourceRef="UserTask_07fao26" targetRef="TextAnnotation_0wt6cw3" />
+    <bpmn:association id="Association_0aalnad" sourceRef="setMMSpreferences" targetRef="TextAnnotation_0qfrm0s" />
+    <bpmn:association id="Association_008b0v0" sourceRef="setMMSpreferences" targetRef="TextAnnotation_1nidz3p" />
+    <bpmn:association id="Association_1nmrcwo" sourceRef="confirmSuccessOfTestsWithTransmit" targetRef="TextAnnotation_0wt6cw3" />
     <bpmn:textAnnotation id="TextAnnotation_1qjeu0b">
       <bpmn:text>провайдер</bpmn:text>
     </bpmn:textAnnotation>
@@ -1217,7 +1217,7 @@
         <di:waypoint x="237" y="2506" />
         <di:waypoint x="393" y="2506" />
         <bpmndi:BPMNLabel>
-          <dc:Bounds x="241" y="2532" width="66" height="53" />
+          <dc:Bounds x="264" y="2443" width="66" height="53" />
         </bpmndi:BPMNLabel>
       </bpmndi:BPMNEdge>
       <bpmndi:BPMNShape id="ExclusiveGateway_0rd9wxj_di" bpmnElement="ExclusiveGateway_0rd9wxj" isMarkerVisible="true">
@@ -1446,13 +1446,13 @@
       <bpmndi:BPMNShape id="TextAnnotation_0qfrm0s_di" bpmnElement="TextAnnotation_0qfrm0s">
         <dc:Bounds x="561" y="2850" width="100" height="27" />
       </bpmndi:BPMNShape>
-      <bpmndi:BPMNShape id="UserTask_1pcpoy5_di" bpmnElement="UserTask_1pcpoy5">
+      <bpmndi:BPMNShape id="UserTask_1pcpoy5_di" bpmnElement="setMMSpreferences">
         <dc:Bounds x="561" y="2929" width="100" height="80" />
       </bpmndi:BPMNShape>
       <bpmndi:BPMNShape id="TextAnnotation_1nidz3p_di" bpmnElement="TextAnnotation_1nidz3p">
         <dc:Bounds x="493" y="3085" width="236" height="56" />
       </bpmndi:BPMNShape>
-      <bpmndi:BPMNShape id="UserTask_07fao26_di" bpmnElement="UserTask_07fao26">
+      <bpmndi:BPMNShape id="UserTask_07fao26_di" bpmnElement="confirmSuccessOfTestsWithTransmit">
         <dc:Bounds x="788" y="2929" width="100" height="80" />
       </bpmndi:BPMNShape>
       <bpmndi:BPMNShape id="TextAnnotation_0wt6cw3_di" bpmnElement="TextAnnotation_0wt6cw3">
@@ -1482,7 +1482,7 @@
         <di:waypoint x="237" y="2969" />
         <di:waypoint x="561" y="2969" />
         <bpmndi:BPMNLabel>
-          <dc:Bounds x="351" y="2682" width="80" height="40" />
+          <dc:Bounds x="270" y="2915" width="80" height="40" />
         </bpmndi:BPMNLabel>
       </bpmndi:BPMNEdge>
       <bpmndi:BPMNEdge id="SequenceFlow_00gmmhj_di" bpmnElement="SequenceFlow_00gmmhj">
@@ -1674,7 +1674,7 @@
       <bpmndi:BPMNShape id="UserTask_1bosw9x_di" bpmnElement="Task_0zx2ow4">
         <dc:Bounds x="781" y="1186" width="100" height="80" />
       </bpmndi:BPMNShape>
-      <bpmndi:BPMNShape id="UserTask_0tc88sp_di" bpmnElement="Task_199d67a">
+      <bpmndi:BPMNShape id="UserTask_0tc88sp_di" bpmnElement="createDisconnectionForm">
         <dc:Bounds x="561" y="1974" width="100" height="80" />
       </bpmndi:BPMNShape>
       <bpmndi:BPMNShape id="UserTask_04z24fz_di" bpmnElement="Task_1x8hjpu">

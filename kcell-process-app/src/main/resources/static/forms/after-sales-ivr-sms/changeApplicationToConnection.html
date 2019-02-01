@@ -141,6 +141,9 @@
                     type: 'String',
                     value: ''
                 });
+                if($scope.changeTransmitNumber && $scope.relatedProcessDefinitionKey === 'freephone'){
+                    $scope.oldTransmitNumber = $scope.transmitNumber;
+                }
                 $scope.changeApplicationToConnectionTaskComment = '';
             });
 
@@ -484,7 +487,14 @@
                 console.log('disconnectOperator: ' + $scope.disconnectOperator + ', operatorWasDisconnected: ' + $scope.operatorWasDisconnected  + ', connectOperator: ' + $scope.connectOperator + ', operatorWasConnected: ' + $scope.operatorWasConnected + ', changeIdentifier: ' + $scope.changeIdentifier + ', operatorWasChanged: ' + $scope.operatorWasChanged);
 
 
-
+                if($scope.changeTransmitNumber && $scope.relatedProcessDefinitionKey === 'freephone'){
+                    camForm.variableManager.createVariable({
+                        name: 'oldTransmitNumber',
+                        type: 'String',
+                        value: $scope.oldTransmitNumber
+                    });
+                    camForm.variableManager.variableValue('transmitNumber', $scope.transmitNumber);
+                }
                 camForm.variableManager.variableValue('identifiers', $scope.identifiers);
                 camForm.variableManager.createVariable({
                     name: 'operatorWasChanged',
@@ -501,6 +511,11 @@
                     value: $scope.operatorWasDisconnected,
                     type: 'Boolean'
                 });
+
+                $scope.resolutions.push({processInstanceId: $scope.processInstanceId, assignee: $rootScope.authentication.name, assigneeName: $rootScope.authentication.assigneeName, resolution: $scope.changeApplicationToConnectionTaskResult, comment: $scope.changeApplicationToConnectionTaskComment, taskId: camForm.taskId});
+                camForm.variableManager.variableValue('resolutions', $scope.resolutions);
+                camForm.variableManager.variableValue('changeApplicationToConnectionTaskResult', $scope.changeApplicationToConnectionTaskResult);
+                camForm.variableManager.variableValue('changeApplicationToConnectionTaskComment', $scope.changeApplicationToConnectionTaskComment);
 
                 /*
                 var finalIDs = '';
@@ -542,11 +557,6 @@
                 */
 
                 //-------------------------------------------------------------------
-
-                $scope.resolutions.push({processInstanceId: $scope.processInstanceId, assignee: $rootScope.authentication.name, assigneeName: $rootScope.authentication.assigneeName, resolution: $scope.changeApplicationToConnectionTaskResult, comment: $scope.changeApplicationToConnectionTaskComment, taskId: camForm.taskId});
-                camForm.variableManager.variableValue('resolutions', $scope.resolutions);
-                camForm.variableManager.variableValue('changeApplicationToConnectionTaskResult', $scope.changeApplicationToConnectionTaskResult);
-                camForm.variableManager.variableValue('changeApplicationToConnectionTaskComment', $scope.changeApplicationToConnectionTaskComment);
 
                 /*
                 camForm.variableManager.variableValue('productCatalogShortNumber', $scope.productCatalogShortNumber);
@@ -860,14 +870,16 @@
             };
             //---MSGGWaccount change---
             $scope.$watchGroup(['connectionType', 'smsServiceType'], function(newValues, oldValues, scope) {
-                if(newValues[0] !== oldValues[0] || newValues[1] !== oldValues[1]){
-                    if (newValues[0] === 'web'){
-                        $scope.MSGGWaccount = 'kitalf27.ID:3751';
-                    } else if (newValues[0] === 'rest' && newValues[1] === 'MO'){
-                        $scope.MSGGWaccount = 'sg2_msggw_mo';
-                    } else if (newValues[0] === 'smpp' && newValues[1] === 'MO') {
-                        $scope.MSGGWaccount = 'sg2_smpp_mo';
-                    } else { $scope.MSGGWaccount = ''}
+                if($scope.relatedProcessDefinitionKey === 'bulksmsConnectionKAE'){
+                    if(newValues[0] !== oldValues[0] || newValues[1] !== oldValues[1]){
+                        if (newValues[0] === 'web'){
+                            $scope.MSGGWaccount = 'kitalf27.ID:3751';
+                        } else if (newValues[0] === 'rest' && newValues[1] === 'MO'){
+                            $scope.MSGGWaccount = 'sg2_msggw_mo';
+                        } else if (newValues[0] === 'smpp' && newValues[1] === 'MO') {
+                            $scope.MSGGWaccount = 'sg2_smpp_mo';
+                        } else { $scope.MSGGWaccount = ''}
+                    }
                 }
             }, true);
             //-------------------------
@@ -1010,7 +1022,7 @@
             <label class="error" ng-show="kcell_form.description.$error.required && ( kcell_form.description.$touched || view.submitted)">Required field</label>
         </div>
     </div>
-    <div class="form-group">
+    <div class="form-group" ng-if="relatedProcessDefinitionKey === 'bulksmsConnectionKAE'">
         <label class="col-sm-4 control-label">* Тип подключения:</label>
         <div class="col-sm-8">
             <select ng-model="connectionType" name="connectionType" class="form-control" ng-disabled="true" ng-required="true">
@@ -1021,6 +1033,24 @@
             <label class="error" ng-show="kcell_form.connectionType.$error.required && ( kcell_form.connectionType.$touched || view.submitted)">Required field</label>
         </div>
     </div-->
+    <div class="form-group" ng-if="relatedProcessDefinitionKey === 'freephone'">
+        <label class="col-sm-4 control-label">* Тип подключения:</label>
+        <div class="col-sm-8">
+            <select ng-model="connectionType" name="connectionType" class="form-control" ng-disabled="true">
+                <option value="SIP_SBC">SIP_SBC</option>
+                <option value="transmit">ПЕРЕАДРЕСАЦИЯ</option>
+                <option value="E1">E1</option>
+            </select>
+            <label class="error" ng-show="kcell_form.connectionType.$error.required && ( kcell_form.connectionType.$touched || view.submitted)">Required field</label>
+        </div>
+    </div>
+    <div class="form-group" ng-show="relatedProcessDefinitionKey === 'freephone' && connectionType === 'transmit'">
+        <label class="col-sm-4 control-label">* Номер переадресации:</label>
+        <div class="col-sm-8">
+            <input class="form-control" maxlength="500" ng-model="transmitNumber" name="transmitNumber" ng-required="changeTransmitNumber" ng-disabled="!changeTransmitNumber">
+            <label class="error" ng-show="kcell_form.transmitNumber.$error.required && ( kcell_form.transmitNumber.$touched || view.submitted)">Required field</label>
+        </div>
+    </div>
     <div class="form-check" ng-if="relatedProcessDefinitionKey === 'bulksmsConnectionKAE' && connectionType === 'rest' ">
         <input type="checkbox" ng-model="deliveryReport" class="form-check-input" id="deliveryReport" ng-disabled="true">
         <label class="form-check-label" for="deliveryReport">Получать отчет о доставке</label>
