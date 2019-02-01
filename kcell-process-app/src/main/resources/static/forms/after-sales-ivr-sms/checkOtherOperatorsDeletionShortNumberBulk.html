@@ -3,58 +3,36 @@
         inject(['$scope', '$http', 'Uri', '$rootScope', '$q', '$timeout', function ($scope, $http, Uri, $rootScope, $q, $timeout) {
             var variables = [
                 'resolutions',
-                'changeOfficialClientCompanyName',
-                'changeContractNumber',
-                'disconnectOperator',
-                'connectOperator',
-                'changeConnectionType',
-                'changeIpNumber',
-                'changeIdentifier',
-                'changeSmsServiceType',
-                'changeProvider',
-                'changeTransmitNumber',
-                'relatedProcessDefinitionKey',
-                'relatedProcessInstanceId',
                 'identifiers',
-                'previouslyBought',
-                'operatorType',
-                'connectionType',
-                'clientBIN',
-                'contractNumber',
-                'clientCompanyLatName',
-                'officialClientCompanyName',
-                'description',
-                'ipNumber',
-                //'startDate',
+                'identifierType',
                 'abonentTarif',
-                'amdocsBilling',
-                'orgaBilling',
-                'techSpecFIO',
-                'techSpecNumber',
-                'techSpecEmail',
-                'contractScanCopyFileName',
-                'applicationScanCopyFileName',
+                'description',
+                'officialClientCompanyName',
+                'clientCompanyLatName',
+                'startDate',
+                'contractNumber',
+                'connectionType',
+                'previouslyBought',
+                'clientBIN',
                 'responsibleB2BDelivery',
                 'responsibleB2BSales',
-                'channel',
-                'region',
-                'transmitNumber',
-                'coordinates',
-                'addressATS',
-                'VPNchannel',
-                'identifierType',
-                'deliveryReport',
+                'relatedProcessInstanceId',
                 'smsServiceType',
                 'MSGGWaccount',
-                'testNumber',
-                'receivingServerAddress',
-                'receivingServerLogin',
-                'receivingServerPass',
-                'addressServerMO',
+                'smsServiceLogin',
+                'ipNumber',
+                'applicationScanCopyFileName',
+                'contractScanCopyFileName',
+                'techSpecNumber',
+                'techSpecFIO',
+                'techSpecEmail',
                 'tarifPlane',
+                'billing',
                 'provider',
+                'operatorType',
                 'oldTransmitNumber',
-                'oldProvider'
+                'oldProvider',
+                'changeProvider'
             ];
 
             camForm.on('form-loaded', function () {
@@ -62,12 +40,12 @@
                     camForm.variableManager.fetchVariable(el);
                 });
                 $http.get('/camunda/api/engine/engine/default/task/' + camForm.taskId).then(
-                    function(result){
-                        $scope.processInstanceId = result.data.processInstanceId;
-                    },
-                    function (error) {
-                        console.log(error.data);
-                    }
+                        function(result){
+                            $scope.processInstanceId = result.data.processInstanceId;
+                        },
+                        function (error) {
+                            console.log(error.data);
+                        }
                 );
                 $scope.aftersalesInfo = {};
                 $scope.aftersalesInfo.files = [];
@@ -128,39 +106,60 @@
                 $scope.aftersalesInfo.showTarif = true;
 
                 camForm.variableManager.createVariable({
-                    name: 'changeShortNumberOnSMSGWTaskResult',
+                    name: 'checkOtherOperatorsDeletionShortNumberBulkTaskResult',
                     type: 'String',
                     value: ''
                 });
 
                 camForm.variableManager.createVariable({
-                    name: 'changeShortNumberOnSMSGWTaskComment',
+                    name: 'checkOtherOperatorsDeletionShortNumberBulkTaskComment',
                     type: 'String',
                     value: ''
                 });
 
-                //$scope.changeShortNumberOnSMSGWTaskResult = '';
+                $scope.checkOtherOperatorsDeletionShortNumberBulkTaskResult = '';
             });
 
             camForm.on('submit', function () {
-                $scope.changeShortNumberOnSMSGWTaskResult = 'Completed';
+                $scope.checkOtherOperatorsDeletionShortNumberBulkTaskResult = 'Completed';
                 if(!$scope.resolutions){
                     $scope.resolutions = [];
                 }
-                camForm.variableManager.variableValue('changeShortNumberOnSMSGWTaskResult', $scope.changeShortNumberOnSMSGWTaskResult);
-                camForm.variableManager.variableValue('changeShortNumberOnSMSGWTaskComment', $scope.changeShortNumberOnSMSGWTaskComment);
-                $scope.resolutions.push({processInstanceId: $scope.processInstanceId, assignee: $rootScope.authentication.name, assigneeName: $rootScope.authentication.assigneeName, resolution: $scope.changeShortNumberOnSMSGWTaskResult, comment: $scope.changeShortNumberOnSMSGWTaskComment, taskId: camForm.taskId});
+                camForm.variableManager.variableValue('checkOtherOperatorsDeletionShortNumberBulkTaskResult', $scope.checkOtherOperatorsDeletionShortNumberBulkTaskResult);
+                camForm.variableManager.variableValue('checkOtherOperatorsDeletionShortNumberBulkTaskComment', $scope.checkOtherOperatorsDeletionShortNumberBulkTaskComment);
+                $scope.resolutions.push({processInstanceId: $scope.processInstanceId, assignee: $rootScope.authentication.name, assigneeName: $rootScope.authentication.assigneeName, resolution: $scope.checkOtherOperatorsDeletionShortNumberBulkTaskResult, comment: $scope.checkOtherOperatorsDeletionShortNumberBulkTaskComment, taskId: camForm.taskId});
                 camForm.variableManager.variableValue('resolutions', $scope.resolutions);
             });
         }]);
 
     </script>
     <info-aftersales aftersales-info="aftersalesInfo"></info-aftersales>
+    <div class="form-group" ng-repeat="id in identifiers">
+        <label class="col-sm-12 control-label"/>Идентификатор - {{id.title}}
+        <div class="col-sm-12" style="border-left: solid; border-left-width: 1px; margin-left: 2vh">
+            <table class="table">
+                <thead>
+                <tr>
+                    <th scope="col">Оператор</th>
+                    <th scope="col">Дата заведения короткого номера</th>
+                    <th scope="col">Статус</th>
+                </tr>
+                </thead>
+                <tbody>
+                <tr ng-repeat="o in id.operators" ng-if="o.deleted">
+                    <td scope="row">{{o.name}}</td>
+                    <td scope="row">{{o.deletedDate | date: 'dd.MM.yyyy'}}</td>
+                    <td scope="row">{{o.deleted?'Отключен':'Без изменений'}}</td>
+                </tr>
+                </tbody>
+            </table>
+        </div>
+    </div>
     <div class="form-group">
         <label class="col-sm-3 control-label">Комментарии</label>
         <div class="col-sm-9">
-            <textarea class="form-control" ng-model="changeShortNumberOnSMSGWTaskComment" name="changeShortNumberOnSMSGWTaskComment" ng-required="true" placeholder="Comments..." maxlength="500" rows="4" style="resize:none"></textarea>
-            <label class="error" ng-show="kcell_form.changeShortNumberOnSMSGWTaskComment.$error.required && view.submitted">Required field</label>
+            <textarea class="form-control" ng-model="checkOtherOperatorsDeletionShortNumberBulkTaskComment" name="checkOtherOperatorsDeletionShortNumberBulkTaskComment" ng-required="true" placeholder="Comments..." maxlength="500" rows="4" style="resize:none"></textarea>
+            <label class="error" ng-show="kcell_form.checkOtherOperatorsDeletionShortNumberBulkTaskComment.$error.required && view.submitted">Required field</label>
         </div>
     </div>
     <accordion>

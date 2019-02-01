@@ -40,7 +40,7 @@
       <bpmn:outgoing>SequenceFlow_1p957j3</bpmn:outgoing>
     </bpmn:userTask>
     <bpmn:sequenceFlow id="SequenceFlow_0ziw3gz" name="Bulk SMS" sourceRef="ExclusiveGateway_1ml1j0t" targetRef="ExclusiveGateway_0a4i3ki">
-      <bpmn:conditionExpression xsi:type="bpmn:tFormalExpression">${changeIdentifier==true &amp;&amp; relatedProcessDefinitionKey=='bulksmsConnectionKAE'  &amp;&amp; identifierType=='alfanumeric' &amp;&amp; operatorWasChanged==true}</bpmn:conditionExpression>
+      <bpmn:conditionExpression xsi:type="bpmn:tFormalExpression">${changeIdentifier==true &amp;&amp; relatedProcessDefinitionKey=='bulksmsConnectionKAE'}</bpmn:conditionExpression>
     </bpmn:sequenceFlow>
     <bpmn:sequenceFlow id="SequenceFlow_0n6tfha" name="Web Interface" sourceRef="ExclusiveGateway_0a4i3ki" targetRef="changeSmsbulkAccountInfo">
       <bpmn:conditionExpression xsi:type="bpmn:tFormalExpression">${connectionType=='web'}</bpmn:conditionExpression>
@@ -62,7 +62,7 @@
       <bpmn:outgoing>SequenceFlow_13zd7n4</bpmn:outgoing>
     </bpmn:sendTask>
     <bpmn:sequenceFlow id="SequenceFlow_032pccu" name="Изменение Идентификатора" sourceRef="ExclusiveGateway_1afcbpq" targetRef="ExclusiveGateway_1ts399b">
-      <bpmn:conditionExpression xsi:type="bpmn:tFormalExpression">${operatorType=='offnet' &amp;&amp; (changeIdentifier==true || disconnectOperator==true || connectOperator==true)}</bpmn:conditionExpression>
+      <bpmn:conditionExpression xsi:type="bpmn:tFormalExpression">${changeIdentifier==true || disconnectOperator==true || connectOperator==true}</bpmn:conditionExpression>
     </bpmn:sequenceFlow>
     <bpmn:sequenceFlow id="SequenceFlow_0dbzexv" sourceRef="Task_1y1vkx8" targetRef="ExclusiveGateway_08uanbo" />
     <bpmn:userTask id="addCostAndStatusOfNumbers" name="Добавьте информацию по статусам и ценам  за короткий номер" camunda:formKey="embedded:app:forms/after-sales-ivr-sms/addCostAndStatusOfNumbers.html">
@@ -192,31 +192,14 @@
       <bpmn:outgoing>SequenceFlow_160xjmc</bpmn:outgoing>
     </bpmn:userTask>
     <bpmn:sequenceFlow id="SequenceFlow_160xjmc" sourceRef="confirmSuccessOfTests" targetRef="ExclusiveGateway_0f91eoq" />
-    <bpmn:sequenceFlow id="SequenceFlow_1fx1bxk" name="(Пока только BULK SMS) Смена провайдера" sourceRef="ExclusiveGateway_1afcbpq" targetRef="ExclusiveGateway_0rd9wxj">
-      <bpmn:conditionExpression xsi:type="bpmn:tFormalExpression">${changeProvider==true}</bpmn:conditionExpression>
+    <bpmn:sequenceFlow id="SequenceFlow_1fx1bxk" name="(Пока только BULK SMS) Смена провайдера" sourceRef="ExclusiveGateway_1afcbpq" targetRef="confirmOtherOperatorsDeletionShortNumberBulk">
+      <bpmn:conditionExpression xsi:type="bpmn:tFormalExpression">${changeProvider==true &amp;&amp; relatedProcessDefinitionKey=='bulksmsConnectionKAE'}</bpmn:conditionExpression>
     </bpmn:sequenceFlow>
-    <bpmn:exclusiveGateway id="ExclusiveGateway_0rd9wxj">
-      <bpmn:incoming>SequenceFlow_1fx1bxk</bpmn:incoming>
-      <bpmn:outgoing>SequenceFlow_1h6aczj</bpmn:outgoing>
-      <bpmn:outgoing>SequenceFlow_0pjndd8</bpmn:outgoing>
-    </bpmn:exclusiveGateway>
-    <bpmn:sequenceFlow id="SequenceFlow_1h6aczj" sourceRef="ExclusiveGateway_0rd9wxj" targetRef="Task_1x8hjpu">
-      <bpmn:conditionExpression xsi:type="bpmn:tFormalExpression">${newProvider==true}</bpmn:conditionExpression>
-    </bpmn:sequenceFlow>
-    <bpmn:sequenceFlow id="SequenceFlow_0pjndd8" sourceRef="ExclusiveGateway_0rd9wxj" targetRef="Task_12r2lhk">
-      <bpmn:conditionExpression xsi:type="bpmn:tFormalExpression">${newProvider==false}</bpmn:conditionExpression>
-    </bpmn:sequenceFlow>
-    <bpmn:sequenceFlow id="SequenceFlow_1jxu88g" sourceRef="Task_12r2lhk" targetRef="Task_0xfdhtp" />
-    <bpmn:exclusiveGateway id="ExclusiveGateway_14i5vyz">
-      <bpmn:incoming>SequenceFlow_0szrj7f</bpmn:incoming>
-      <bpmn:incoming>SequenceFlow_0qajs8o</bpmn:incoming>
-      <bpmn:outgoing>SequenceFlow_07voxg2</bpmn:outgoing>
-    </bpmn:exclusiveGateway>
-    <bpmn:sequenceFlow id="SequenceFlow_0tvq6wj" sourceRef="Task_1x8hjpu" targetRef="Task_1sk84yj" />
-    <bpmn:sequenceFlow id="SequenceFlow_0szrj7f" sourceRef="Task_0xfdhtp" targetRef="ExclusiveGateway_14i5vyz" />
-    <bpmn:sequenceFlow id="SequenceFlow_07voxg2" sourceRef="ExclusiveGateway_14i5vyz" targetRef="Task_06v2wm9" />
-    <bpmn:sequenceFlow id="SequenceFlow_0x8drcv" sourceRef="Task_06v2wm9" targetRef="Task_1ydktvg" />
-    <bpmn:sequenceFlow id="SequenceFlow_1r88f74" sourceRef="Task_1ydktvg" targetRef="ExclusiveGateway_08uanbo" />
+    <bpmn:sequenceFlow id="SequenceFlow_1jxu88g" sourceRef="confirmOtherOperatorsCreationShortNumberBulk" targetRef="checkOtherOperatorsCreationShortNumberBulk" />
+    <bpmn:sequenceFlow id="SequenceFlow_0tvq6wj" sourceRef="confirmOtherOperatorsDeletionShortNumberBulk" targetRef="checkOtherOperatorsDeletionShortNumberBulk" />
+    <bpmn:sequenceFlow id="SequenceFlow_0szrj7f" sourceRef="checkOtherOperatorsCreationShortNumberBulk" targetRef="changeConfigOnSMSGW" />
+    <bpmn:sequenceFlow id="SequenceFlow_0x8drcv" sourceRef="changeConfigOnSMSGW" targetRef="testWithClientSMSGW" />
+    <bpmn:sequenceFlow id="SequenceFlow_1r88f74" sourceRef="testWithClientSMSGW" targetRef="ExclusiveGateway_08uanbo" />
     <bpmn:sequenceFlow id="SequenceFlow_07tc3jb" name="Добавление/изменение IP адреса" sourceRef="ExclusiveGateway_1afcbpq" targetRef="Task_13ov7zk">
       <bpmn:conditionExpression xsi:type="bpmn:tFormalExpression">${changeIpNumber==true}</bpmn:conditionExpression>
     </bpmn:sequenceFlow>
@@ -255,7 +238,7 @@
     </bpmn:inclusiveGateway>
     <bpmn:sequenceFlow id="SequenceFlow_0pcg79g" sourceRef="Task_13ov7zk" targetRef="ExclusiveGateway_08uanbo" />
     <bpmn:sequenceFlow id="SequenceFlow_1wfb0ue" name="Добавление оператора" sourceRef="ExclusiveGateway_1h75kkm" targetRef="addCostAndStatusOfNumbers">
-      <bpmn:conditionExpression xsi:type="bpmn:tFormalExpression">${connectOperator==true &amp;&amp; operatorWasConnected==true &amp;&amp; identifierType=='digital'}</bpmn:conditionExpression>
+      <bpmn:conditionExpression xsi:type="bpmn:tFormalExpression">${connectOperator==true &amp;&amp; operatorWasConnected==true &amp;&amp; identifierType=='digital' &amp;&amp; operatorType=='offnet'}</bpmn:conditionExpression>
     </bpmn:sequenceFlow>
     <bpmn:userTask id="setMMSpreferences" name="Подтвердите настройку номера на MSS" camunda:formKey="embedded:app:forms/after-sales-ivr-sms/setMMSpreferences.html" camunda:candidateGroups="delivery_voice_network">
       <bpmn:documentation>Подтвердите настройку номера на MSS</bpmn:documentation>
@@ -279,7 +262,7 @@
     </bpmn:userTask>
     <bpmn:sequenceFlow id="SequenceFlow_013egey" sourceRef="confirmOtherOperatorsDeletionShortNumber" targetRef="checkOtherOperatorsDeletionShortNumber" />
     <bpmn:sequenceFlow id="SequenceFlow_0cwntju" sourceRef="checkOtherOperatorsDeletionShortNumber" targetRef="ExclusiveGateway_0jotlk3" />
-    <bpmn:sequenceFlow id="SequenceFlow_0qajs8o" sourceRef="Task_1sk84yj" targetRef="ExclusiveGateway_14i5vyz" />
+    <bpmn:sequenceFlow id="SequenceFlow_0qajs8o" sourceRef="checkOtherOperatorsDeletionShortNumberBulk" targetRef="confirmOtherOperatorsCreationShortNumberBulk" />
     <bpmn:sequenceFlow id="SequenceFlow_1piwhf4" name="Отключение" sourceRef="ExclusiveGateway_1afcbpq" targetRef="ExclusiveGateway_12kiez4">
       <bpmn:conditionExpression xsi:type="bpmn:tFormalExpression">${disconnectProcess==true}</bpmn:conditionExpression>
     </bpmn:sequenceFlow>
@@ -377,32 +360,32 @@
       <bpmn:incoming>SequenceFlow_1h9flvd</bpmn:incoming>
       <bpmn:outgoing>SequenceFlow_1u0bx01</bpmn:outgoing>
     </bpmn:userTask>
-    <bpmn:userTask id="Task_1x8hjpu" name="Подтвердите отключение идентификатора на сети других операторов">
+    <bpmn:userTask id="confirmOtherOperatorsDeletionShortNumberBulk" name="Подтвердите отключение идентификатора на сети других операторов" camunda:formKey="embedded:app:forms/after-sales-ivr-sms/confirmOtherOperatorsDeletionShortNumberBulk.html">
       <bpmn:documentation>Подтвердите отключение идентификатора на сети других операторов</bpmn:documentation>
-      <bpmn:incoming>SequenceFlow_1h6aczj</bpmn:incoming>
+      <bpmn:incoming>SequenceFlow_1fx1bxk</bpmn:incoming>
       <bpmn:outgoing>SequenceFlow_0tvq6wj</bpmn:outgoing>
     </bpmn:userTask>
-    <bpmn:userTask id="Task_1sk84yj" name="Проверить отключение идентификатора на сети других операторов" camunda:candidateGroups="delivery_sms_ivr_b2b_delivery">
+    <bpmn:userTask id="checkOtherOperatorsDeletionShortNumberBulk" name="Проверить отключение идентификатора на сети других операторов" camunda:formKey="embedded:app:forms/after-sales-ivr-sms/checkOtherOperatorsDeletionShortNumberBulk.html" camunda:candidateGroups="delivery_sms_ivr_b2b_delivery">
       <bpmn:documentation>Проверить отключение идентификатора на сети других операторов</bpmn:documentation>
       <bpmn:incoming>SequenceFlow_0tvq6wj</bpmn:incoming>
       <bpmn:outgoing>SequenceFlow_0qajs8o</bpmn:outgoing>
     </bpmn:userTask>
-    <bpmn:userTask id="Task_06v2wm9" name="Изменение настроек на SMS GW" camunda:candidateGroups="delivery_it_delivery">
+    <bpmn:userTask id="changeConfigOnSMSGW" name="Изменение настроек на SMS GW" camunda:formKey="embedded:app:forms/after-sales-ivr-sms/changeConfigOnSMSGW.html" camunda:candidateGroups="delivery_it_delivery">
       <bpmn:documentation>Изменение настроек на SMS GW</bpmn:documentation>
-      <bpmn:incoming>SequenceFlow_07voxg2</bpmn:incoming>
+      <bpmn:incoming>SequenceFlow_0szrj7f</bpmn:incoming>
       <bpmn:outgoing>SequenceFlow_0x8drcv</bpmn:outgoing>
     </bpmn:userTask>
-    <bpmn:userTask id="Task_12r2lhk" name="Подтвердите заведение идентификатора на сети других операторов">
+    <bpmn:userTask id="confirmOtherOperatorsCreationShortNumberBulk" name="Подтвердите заведение идентификатора на сети других операторов" camunda:formKey="embedded:app:forms/after-sales-ivr-sms/confirmOtherOperatorsCreationShortNumberBulk.html">
       <bpmn:documentation>Подтвердите заведение идентификатора на сети других операторов</bpmn:documentation>
-      <bpmn:incoming>SequenceFlow_0pjndd8</bpmn:incoming>
+      <bpmn:incoming>SequenceFlow_0qajs8o</bpmn:incoming>
       <bpmn:outgoing>SequenceFlow_1jxu88g</bpmn:outgoing>
     </bpmn:userTask>
-    <bpmn:userTask id="Task_0xfdhtp" name="Проверить создание идентификатора на сети других операторов" camunda:candidateGroups="delivery_sms_ivr_b2b_delivery">
+    <bpmn:userTask id="checkOtherOperatorsCreationShortNumberBulk" name="Проверить создание идентификатора на сети других операторов" camunda:formKey="embedded:app:forms/after-sales-ivr-sms/checkOtherOperatorsCreationShortNumberBulk.html" camunda:candidateGroups="delivery_sms_ivr_b2b_delivery">
       <bpmn:documentation>Проверить создание идентификатора на сети других операторов</bpmn:documentation>
       <bpmn:incoming>SequenceFlow_1jxu88g</bpmn:incoming>
       <bpmn:outgoing>SequenceFlow_0szrj7f</bpmn:outgoing>
     </bpmn:userTask>
-    <bpmn:userTask id="Task_1ydktvg" name="Проведите тесты с клиентом" camunda:candidateGroups="delivery_it_delivery">
+    <bpmn:userTask id="testWithClientSMSGW" name="Проведите тесты с клиентом" camunda:formKey="embedded:app:forms/after-sales-ivr-sms/testWithClientSMSGW.html" camunda:candidateGroups="delivery_it_delivery">
       <bpmn:documentation>Проведите тесты с клиентом</bpmn:documentation>
       <bpmn:incoming>SequenceFlow_0x8drcv</bpmn:incoming>
       <bpmn:outgoing>SequenceFlow_1r88f74</bpmn:outgoing>
@@ -456,7 +439,7 @@
       <bpmn:outgoing>SequenceFlow_0s1y4sh</bpmn:outgoing>
     </bpmn:exclusiveGateway>
     <bpmn:sequenceFlow id="SequenceFlow_11rjgnl" name="Отключение оператора" sourceRef="ExclusiveGateway_1ts399b" targetRef="confirmOtherOperatorsDeletionShortNumber">
-      <bpmn:conditionExpression xsi:type="bpmn:tFormalExpression">${disconnectOperator==true &amp;&amp; operatorWasDisconnected==true &amp;&amp; identifierType=='digital'}</bpmn:conditionExpression>
+      <bpmn:conditionExpression xsi:type="bpmn:tFormalExpression">${disconnectOperator==true &amp;&amp; operatorWasDisconnected==true &amp;&amp; identifierType=='digital' &amp;&amp; operatorType=='offnet'}</bpmn:conditionExpression>
     </bpmn:sequenceFlow>
     <bpmn:exclusiveGateway id="ExclusiveGateway_0jotlk3">
       <bpmn:incoming>SequenceFlow_0cwntju</bpmn:incoming>
@@ -602,27 +585,27 @@
     <bpmn:textAnnotation id="TextAnnotation_108fty4">
       <bpmn:text>Новый провайдер</bpmn:text>
     </bpmn:textAnnotation>
-    <bpmn:association id="Association_0ylr1d9" sourceRef="Task_12r2lhk" targetRef="TextAnnotation_108fty4" />
+    <bpmn:association id="Association_0ylr1d9" sourceRef="confirmOtherOperatorsCreationShortNumberBulk" targetRef="TextAnnotation_108fty4" />
     <bpmn:textAnnotation id="TextAnnotation_0etgc3g">
       <bpmn:text>Старый провайдер</bpmn:text>
     </bpmn:textAnnotation>
-    <bpmn:association id="Association_19agldx" sourceRef="Task_1x8hjpu" targetRef="TextAnnotation_0etgc3g" />
+    <bpmn:association id="Association_19agldx" sourceRef="confirmOtherOperatorsDeletionShortNumberBulk" targetRef="TextAnnotation_0etgc3g" />
     <bpmn:textAnnotation id="TextAnnotation_1llmvay">
       <bpmn:text>B2B Delivery</bpmn:text>
     </bpmn:textAnnotation>
-    <bpmn:association id="Association_132c86e" sourceRef="Task_0xfdhtp" targetRef="TextAnnotation_1llmvay" />
+    <bpmn:association id="Association_132c86e" sourceRef="checkOtherOperatorsCreationShortNumberBulk" targetRef="TextAnnotation_1llmvay" />
     <bpmn:textAnnotation id="TextAnnotation_07xbs0d">
       <bpmn:text>IT Delivery</bpmn:text>
     </bpmn:textAnnotation>
-    <bpmn:association id="Association_0a5zy87" sourceRef="Task_06v2wm9" targetRef="TextAnnotation_07xbs0d" />
+    <bpmn:association id="Association_0a5zy87" sourceRef="changeConfigOnSMSGW" targetRef="TextAnnotation_07xbs0d" />
     <bpmn:textAnnotation id="TextAnnotation_1f28xto">
       <bpmn:text>В мокапах: отобразить инфу об изменении провайдера</bpmn:text>
     </bpmn:textAnnotation>
-    <bpmn:association id="Association_0if1ljl" sourceRef="Task_06v2wm9" targetRef="TextAnnotation_1f28xto" />
+    <bpmn:association id="Association_0if1ljl" sourceRef="changeConfigOnSMSGW" targetRef="TextAnnotation_1f28xto" />
     <bpmn:textAnnotation id="TextAnnotation_1f3fmdd">
       <bpmn:text>IT Delivery</bpmn:text>
     </bpmn:textAnnotation>
-    <bpmn:association id="Association_1tjpdvg" sourceRef="Task_1ydktvg" targetRef="TextAnnotation_1f3fmdd" />
+    <bpmn:association id="Association_1tjpdvg" sourceRef="testWithClientSMSGW" targetRef="TextAnnotation_1f3fmdd" />
     <bpmn:textAnnotation id="TextAnnotation_0u5b0sk">
       <bpmn:text>SMSGW_admin</bpmn:text>
     </bpmn:textAnnotation>
@@ -655,7 +638,7 @@
     <bpmn:textAnnotation id="TextAnnotation_0mzmbiu">
       <bpmn:text>B2B Delivery</bpmn:text>
     </bpmn:textAnnotation>
-    <bpmn:association id="Association_08fs1uz" sourceRef="Task_1sk84yj" targetRef="TextAnnotation_0mzmbiu" />
+    <bpmn:association id="Association_08fs1uz" sourceRef="checkOtherOperatorsDeletionShortNumberBulk" targetRef="TextAnnotation_0mzmbiu" />
   </bpmn:process>
   <bpmndi:BPMNDiagram id="BPMNDiagram_1">
     <bpmndi:BPMNPlane id="BPMNPlane_1" bpmnElement="after-sales-ivr-sms">
@@ -746,18 +729,18 @@
         <dc:Bounds x="3397" y="246" width="100" height="80" />
       </bpmndi:BPMNShape>
       <bpmndi:BPMNShape id="TextAnnotation_0s4vlhj_di" bpmnElement="TextAnnotation_0s4vlhj">
-        <dc:Bounds x="3443" y="143" width="100" height="28" />
+        <dc:Bounds x="3397" y="163" width="100" height="28" />
       </bpmndi:BPMNShape>
       <bpmndi:BPMNEdge id="Association_02vkroy_di" bpmnElement="Association_02vkroy">
-        <di:waypoint x="3461" y="246" />
-        <di:waypoint x="3488" y="171" />
+        <di:waypoint x="3447" y="246" />
+        <di:waypoint x="3447" y="191" />
       </bpmndi:BPMNEdge>
       <bpmndi:BPMNShape id="TextAnnotation_0bev1ma_di" bpmnElement="TextAnnotation_0bev1ma">
-        <dc:Bounds x="3289" y="178" width="100" height="30" />
+        <dc:Bounds x="3213" y="162" width="100" height="30" />
       </bpmndi:BPMNShape>
       <bpmndi:BPMNEdge id="Association_15992qj_di" bpmnElement="Association_15992qj">
-        <di:waypoint x="3298" y="246" />
-        <di:waypoint x="3328" y="208" />
+        <di:waypoint x="3266" y="246" />
+        <di:waypoint x="3264" y="192" />
       </bpmndi:BPMNEdge>
       <bpmndi:BPMNShape id="UserTask_0ilwaod_di" bpmnElement="changeSmsbulkAccountInfo">
         <dc:Bounds x="3213" y="460" width="100" height="80" />
@@ -778,11 +761,11 @@
         </bpmndi:BPMNLabel>
       </bpmndi:BPMNEdge>
       <bpmndi:BPMNShape id="TextAnnotation_02vwfyb_di" bpmnElement="TextAnnotation_02vwfyb">
-        <dc:Bounds x="3218" y="379" width="100" height="30" />
+        <dc:Bounds x="3213" y="379" width="100" height="30" />
       </bpmndi:BPMNShape>
       <bpmndi:BPMNEdge id="Association_0nbmnsk_di" bpmnElement="Association_0nbmnsk">
-        <di:waypoint x="3263" y="460" />
-        <di:waypoint x="3263" y="411" />
+        <di:waypoint x="3258" y="460" />
+        <di:waypoint x="3258" y="409" />
       </bpmndi:BPMNEdge>
       <bpmndi:BPMNEdge id="SequenceFlow_1p957j3_di" bpmnElement="SequenceFlow_1p957j3">
         <di:waypoint x="3313" y="500" />
@@ -866,8 +849,8 @@
         <dc:Bounds x="3121" y="14" width="198" height="121" />
       </bpmndi:BPMNShape>
       <bpmndi:BPMNEdge id="Association_1scnh4v_di" bpmnElement="Association_1scnh4v">
-        <di:waypoint x="3259" y="246" />
-        <di:waypoint x="3234" y="135" />
+        <di:waypoint x="3236" y="246" />
+        <di:waypoint x="3165" y="138" />
       </bpmndi:BPMNEdge>
       <bpmndi:BPMNEdge id="SequenceFlow_0jtpqnv_di" bpmnElement="SequenceFlow_0jtpqnv">
         <di:waypoint x="4221" y="286" />
@@ -1202,8 +1185,8 @@
         <dc:Bounds x="3740" y="165" width="100" height="30" />
       </bpmndi:BPMNShape>
       <bpmndi:BPMNEdge id="Association_1hun5pb_di" bpmnElement="Association_1hun5pb">
-        <di:waypoint x="3790" y="246" />
-        <di:waypoint x="3792" y="195" />
+        <di:waypoint x="3788" y="246" />
+        <di:waypoint x="3788" y="195" />
       </bpmndi:BPMNEdge>
       <bpmndi:BPMNEdge id="SequenceFlow_160xjmc_di" bpmnElement="SequenceFlow_160xjmc">
         <di:waypoint x="3840" y="286" />
@@ -1215,112 +1198,76 @@
       <bpmndi:BPMNEdge id="SequenceFlow_1fx1bxk_di" bpmnElement="SequenceFlow_1fx1bxk">
         <di:waypoint x="237" y="311" />
         <di:waypoint x="237" y="2506" />
-        <di:waypoint x="393" y="2506" />
+        <di:waypoint x="368" y="2506" />
         <bpmndi:BPMNLabel>
-          <dc:Bounds x="264" y="2443" width="66" height="53" />
-        </bpmndi:BPMNLabel>
-      </bpmndi:BPMNEdge>
-      <bpmndi:BPMNShape id="ExclusiveGateway_0rd9wxj_di" bpmnElement="ExclusiveGateway_0rd9wxj" isMarkerVisible="true">
-        <dc:Bounds x="393" y="2481" width="50" height="50" />
-        <bpmndi:BPMNLabel>
-          <dc:Bounds x="527" y="2730" width="90" height="12" />
-        </bpmndi:BPMNLabel>
-      </bpmndi:BPMNShape>
-      <bpmndi:BPMNEdge id="SequenceFlow_1h6aczj_di" bpmnElement="SequenceFlow_1h6aczj">
-        <di:waypoint x="418" y="2481" />
-        <di:waypoint x="418" y="2373" />
-        <di:waypoint x="561" y="2373" />
-        <bpmndi:BPMNLabel>
-          <dc:Bounds x="591.5" y="2756" width="90" height="12" />
-        </bpmndi:BPMNLabel>
-      </bpmndi:BPMNEdge>
-      <bpmndi:BPMNEdge id="SequenceFlow_0pjndd8_di" bpmnElement="SequenceFlow_0pjndd8">
-        <di:waypoint x="418" y="2531" />
-        <di:waypoint x="418" y="2664" />
-        <di:waypoint x="561" y="2664" />
-        <bpmndi:BPMNLabel>
-          <dc:Bounds x="542" y="2881.5" width="90" height="12" />
+          <dc:Bounds x="255" y="2443" width="66" height="53" />
         </bpmndi:BPMNLabel>
       </bpmndi:BPMNEdge>
       <bpmndi:BPMNShape id="TextAnnotation_108fty4_di" bpmnElement="TextAnnotation_108fty4">
-        <dc:Bounds x="561" y="2534" width="100" height="40" />
+        <dc:Bounds x="788" y="2606" width="100" height="40" />
       </bpmndi:BPMNShape>
       <bpmndi:BPMNEdge id="Association_0ylr1d9_di" bpmnElement="Association_0ylr1d9">
-        <di:waypoint x="606" y="2624" />
-        <di:waypoint x="606" y="2574" />
+        <di:waypoint x="838" y="2548" />
+        <di:waypoint x="838" y="2606" />
       </bpmndi:BPMNEdge>
       <bpmndi:BPMNShape id="TextAnnotation_0etgc3g_di" bpmnElement="TextAnnotation_0etgc3g">
-        <dc:Bounds x="561" y="2256" width="100" height="40" />
+        <dc:Bounds x="368" y="2389" width="100" height="40" />
       </bpmndi:BPMNShape>
       <bpmndi:BPMNEdge id="Association_19agldx_di" bpmnElement="Association_19agldx">
-        <di:waypoint x="611" y="2333" />
-        <di:waypoint x="611" y="2296" />
+        <di:waypoint x="418" y="2466" />
+        <di:waypoint x="418" y="2429" />
       </bpmndi:BPMNEdge>
       <bpmndi:BPMNShape id="TextAnnotation_1llmvay_di" bpmnElement="TextAnnotation_1llmvay">
-        <dc:Bounds x="781" y="2539" width="100" height="30" />
+        <dc:Bounds x="965" y="2611" width="100" height="30" />
       </bpmndi:BPMNShape>
       <bpmndi:BPMNEdge id="Association_132c86e_di" bpmnElement="Association_132c86e">
-        <di:waypoint x="831" y="2624" />
-        <di:waypoint x="831" y="2569" />
+        <di:waypoint x="1015" y="2546" />
+        <di:waypoint x="1015" y="2611" />
       </bpmndi:BPMNEdge>
       <bpmndi:BPMNEdge id="SequenceFlow_1jxu88g_di" bpmnElement="SequenceFlow_1jxu88g">
-        <di:waypoint x="661" y="2664" />
-        <di:waypoint x="781" y="2664" />
+        <di:waypoint x="888" y="2506" />
+        <di:waypoint x="965" y="2506" />
         <bpmndi:BPMNLabel>
           <dc:Bounds x="781" y="2952" width="90" height="12" />
         </bpmndi:BPMNLabel>
       </bpmndi:BPMNEdge>
-      <bpmndi:BPMNShape id="ExclusiveGateway_14i5vyz_di" bpmnElement="ExclusiveGateway_14i5vyz" isMarkerVisible="true">
-        <dc:Bounds x="953" y="2481" width="50" height="50" />
-        <bpmndi:BPMNLabel>
-          <dc:Bounds x="1074" y="2730" width="0" height="12" />
-        </bpmndi:BPMNLabel>
-      </bpmndi:BPMNShape>
       <bpmndi:BPMNEdge id="SequenceFlow_0tvq6wj_di" bpmnElement="SequenceFlow_0tvq6wj">
-        <di:waypoint x="661" y="2373" />
-        <di:waypoint x="781" y="2373" />
+        <di:waypoint x="468" y="2506" />
+        <di:waypoint x="561" y="2506" />
         <bpmndi:BPMNLabel>
           <dc:Bounds x="781.5" y="2756" width="90" height="12" />
         </bpmndi:BPMNLabel>
       </bpmndi:BPMNEdge>
       <bpmndi:BPMNEdge id="SequenceFlow_0szrj7f_di" bpmnElement="SequenceFlow_0szrj7f">
-        <di:waypoint x="881" y="2664" />
-        <di:waypoint x="978" y="2664" />
-        <di:waypoint x="978" y="2531" />
+        <di:waypoint x="1065" y="2506" />
+        <di:waypoint x="1242" y="2506" />
         <bpmndi:BPMNLabel>
           <dc:Bounds x="985.5" y="2952" width="90" height="12" />
         </bpmndi:BPMNLabel>
       </bpmndi:BPMNEdge>
-      <bpmndi:BPMNEdge id="SequenceFlow_07voxg2_di" bpmnElement="SequenceFlow_07voxg2">
-        <di:waypoint x="1003" y="2506" />
-        <di:waypoint x="1100" y="2506" />
-        <bpmndi:BPMNLabel>
-          <dc:Bounds x="1144.5" y="2756" width="0" height="12" />
-        </bpmndi:BPMNLabel>
-      </bpmndi:BPMNEdge>
       <bpmndi:BPMNEdge id="SequenceFlow_0x8drcv_di" bpmnElement="SequenceFlow_0x8drcv">
-        <di:waypoint x="1200" y="2506" />
-        <di:waypoint x="1266" y="2506" />
+        <di:waypoint x="1342" y="2506" />
+        <di:waypoint x="1452" y="2506" />
         <bpmndi:BPMNLabel>
           <dc:Bounds x="1383.5" y="2756" width="0" height="12" />
         </bpmndi:BPMNLabel>
       </bpmndi:BPMNEdge>
       <bpmndi:BPMNShape id="TextAnnotation_07xbs0d_di" bpmnElement="TextAnnotation_07xbs0d">
-        <dc:Bounds x="1056" y="2379" width="100" height="30" />
+        <dc:Bounds x="1242" y="2379" width="100" height="30" />
       </bpmndi:BPMNShape>
       <bpmndi:BPMNEdge id="Association_0a5zy87_di" bpmnElement="Association_0a5zy87">
-        <di:waypoint x="1134" y="2466" />
-        <di:waypoint x="1112" y="2409" />
+        <di:waypoint x="1292" y="2466" />
+        <di:waypoint x="1292" y="2409" />
       </bpmndi:BPMNEdge>
       <bpmndi:BPMNShape id="TextAnnotation_1f28xto_di" bpmnElement="TextAnnotation_1f28xto">
-        <dc:Bounds x="1165" y="2262" width="100" height="83" />
+        <dc:Bounds x="1351" y="2262" width="100" height="83" />
       </bpmndi:BPMNShape>
       <bpmndi:BPMNEdge id="Association_0if1ljl_di" bpmnElement="Association_0if1ljl">
-        <di:waypoint x="1163" y="2466" />
-        <di:waypoint x="1201" y="2345" />
+        <di:waypoint x="1313" y="2466" />
+        <di:waypoint x="1378" y="2345" />
       </bpmndi:BPMNEdge>
       <bpmndi:BPMNEdge id="SequenceFlow_1r88f74_di" bpmnElement="SequenceFlow_1r88f74">
-        <di:waypoint x="1366" y="2506" />
+        <di:waypoint x="1552" y="2506" />
         <di:waypoint x="4453" y="2506" />
         <di:waypoint x="4453" y="311" />
         <bpmndi:BPMNLabel>
@@ -1328,11 +1275,11 @@
         </bpmndi:BPMNLabel>
       </bpmndi:BPMNEdge>
       <bpmndi:BPMNShape id="TextAnnotation_1f3fmdd_di" bpmnElement="TextAnnotation_1f3fmdd">
-        <dc:Bounds x="1266" y="2379" width="100" height="30" />
+        <dc:Bounds x="1452" y="2379" width="100" height="30" />
       </bpmndi:BPMNShape>
       <bpmndi:BPMNEdge id="Association_1tjpdvg_di" bpmnElement="Association_1tjpdvg">
-        <di:waypoint x="1316" y="2466" />
-        <di:waypoint x="1316" y="2409" />
+        <di:waypoint x="1502" y="2466" />
+        <di:waypoint x="1502" y="2409" />
       </bpmndi:BPMNEdge>
       <bpmndi:BPMNEdge id="SequenceFlow_07tc3jb_di" bpmnElement="SequenceFlow_07tc3jb">
         <di:waypoint x="237" y="311" />
@@ -1525,16 +1472,15 @@
         </bpmndi:BPMNLabel>
       </bpmndi:BPMNEdge>
       <bpmndi:BPMNShape id="TextAnnotation_0mzmbiu_di" bpmnElement="TextAnnotation_0mzmbiu">
-        <dc:Bounds x="791" y="2262" width="100" height="28" />
+        <dc:Bounds x="561" y="2395" width="100" height="28" />
       </bpmndi:BPMNShape>
       <bpmndi:BPMNEdge id="Association_08fs1uz_di" bpmnElement="Association_08fs1uz">
-        <di:waypoint x="831" y="2333" />
-        <di:waypoint x="831" y="2290" />
+        <di:waypoint x="611" y="2466" />
+        <di:waypoint x="611" y="2423" />
       </bpmndi:BPMNEdge>
       <bpmndi:BPMNEdge id="SequenceFlow_0qajs8o_di" bpmnElement="SequenceFlow_0qajs8o">
-        <di:waypoint x="881" y="2373" />
-        <di:waypoint x="978" y="2373" />
-        <di:waypoint x="978" y="2481" />
+        <di:waypoint x="661" y="2506" />
+        <di:waypoint x="788" y="2506" />
         <bpmndi:BPMNLabel>
           <dc:Bounds x="1013" y="2756" width="0" height="12" />
         </bpmndi:BPMNLabel>
@@ -1677,23 +1623,23 @@
       <bpmndi:BPMNShape id="UserTask_0tc88sp_di" bpmnElement="createDisconnectionForm">
         <dc:Bounds x="561" y="1974" width="100" height="80" />
       </bpmndi:BPMNShape>
-      <bpmndi:BPMNShape id="UserTask_04z24fz_di" bpmnElement="Task_1x8hjpu">
-        <dc:Bounds x="561" y="2333" width="100" height="80" />
+      <bpmndi:BPMNShape id="UserTask_04z24fz_di" bpmnElement="confirmOtherOperatorsDeletionShortNumberBulk">
+        <dc:Bounds x="368" y="2466" width="100" height="80" />
       </bpmndi:BPMNShape>
-      <bpmndi:BPMNShape id="UserTask_09q6juq_di" bpmnElement="Task_1sk84yj">
-        <dc:Bounds x="781" y="2333" width="100" height="80" />
+      <bpmndi:BPMNShape id="UserTask_09q6juq_di" bpmnElement="checkOtherOperatorsDeletionShortNumberBulk">
+        <dc:Bounds x="561" y="2466" width="100" height="80" />
       </bpmndi:BPMNShape>
-      <bpmndi:BPMNShape id="UserTask_0dvu2gl_di" bpmnElement="Task_06v2wm9">
-        <dc:Bounds x="1100" y="2466" width="100" height="80" />
+      <bpmndi:BPMNShape id="UserTask_0dvu2gl_di" bpmnElement="changeConfigOnSMSGW">
+        <dc:Bounds x="1242" y="2466" width="100" height="80" />
       </bpmndi:BPMNShape>
-      <bpmndi:BPMNShape id="UserTask_0good3w_di" bpmnElement="Task_12r2lhk">
-        <dc:Bounds x="561" y="2624" width="100" height="80" />
+      <bpmndi:BPMNShape id="UserTask_0good3w_di" bpmnElement="confirmOtherOperatorsCreationShortNumberBulk">
+        <dc:Bounds x="788" y="2466" width="100" height="80" />
       </bpmndi:BPMNShape>
-      <bpmndi:BPMNShape id="UserTask_0mccazm_di" bpmnElement="Task_0xfdhtp">
-        <dc:Bounds x="781" y="2624" width="100" height="80" />
+      <bpmndi:BPMNShape id="UserTask_0mccazm_di" bpmnElement="checkOtherOperatorsCreationShortNumberBulk">
+        <dc:Bounds x="965" y="2466" width="100" height="80" />
       </bpmndi:BPMNShape>
-      <bpmndi:BPMNShape id="UserTask_1medr73_di" bpmnElement="Task_1ydktvg">
-        <dc:Bounds x="1266" y="2466" width="100" height="80" />
+      <bpmndi:BPMNShape id="UserTask_1medr73_di" bpmnElement="testWithClientSMSGW">
+        <dc:Bounds x="1452" y="2466" width="100" height="80" />
       </bpmndi:BPMNShape>
       <bpmndi:BPMNEdge id="SequenceFlow_0bu5mt4_di" bpmnElement="SequenceFlow_0bu5mt4">
         <di:waypoint x="863" y="-382" />
