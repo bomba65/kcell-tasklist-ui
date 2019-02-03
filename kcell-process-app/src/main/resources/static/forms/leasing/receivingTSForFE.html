@@ -75,12 +75,23 @@
                     type: 'Json',
                     value: []
                 });
+                camForm.variableManager.createVariable({
+                    name: 'leasingProceduresStatusFE',
+                    type: 'String',
+                    value: ''
+                });
 
                 $scope.receivingTSForFETaskResult = '';
             });
 
             camForm.on('submit', function () {
                 camForm.variableManager.variableValue('receivingTSForFETaskResult', $scope.receivingTSForFETaskResult);
+                if($scope.receivingTSForFETaskResult === 'additionalAgreementAfterInstallation'){
+                    camForm.variableManager.variableValue('leasingProceduresStatusFE', 'waitContract');
+                } else if($scope.receivingTSForFETaskResult === 'reject') {
+                    camForm.variableManager.variableValue('leasingProceduresStatusFE', 'refusal');
+                }
+
                 camForm.variableManager.variableValue('receivingTSForFETaskComment', $scope.receivingTSForFETaskComment);
 
                 if(!camForm.variableManager.variables['receivingTSForFEFiles'].type){
@@ -108,7 +119,6 @@
 
                 var fileToUpload = {
                     name: file.name.replace(/[/\\?%*:|"<>]/g, '-'),
-                    isNew: true,
                     path: $scope.processInstanceId + '/' + camForm.taskId + '/' + file.name.replace(/[/\\?%*:|"<>]/g, '-')
                 };
                 $http({
