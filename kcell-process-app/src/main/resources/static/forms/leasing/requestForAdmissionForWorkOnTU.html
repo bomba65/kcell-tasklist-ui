@@ -44,7 +44,10 @@
                 'uploadSignedOwnerLeaseContractFiles',
                 'connectionFromOwnerNetworksFiles',
                 'receingTSFromRESFiles',
-                'requestForAdmissionForWorkOnTUFiles'
+                'requestForAdmissionForWorkOnTUFiles',
+                'requestForAdmissionForWorkOnTUSignedContract',
+                'connectionFromOwnerNetworksSignedContract',
+                'requestForAdmissionForWorkOnTUSignedContract'
             ];
 
             camForm.on('form-loaded', function () {
@@ -98,6 +101,17 @@
                 } else {
                     camForm.variableManager.variableValue('requestForAdmissionForWorkOnTUFiles', $scope.requestForAdmissionForWorkOnTUFiles);
                 }
+
+                if(!camForm.variableManager.variables['requestForAdmissionForWorkOnTUSignedContract'].type){
+                    camForm.variableManager.destroyVariable('requestForAdmissionForWorkOnTUSignedContract');
+                    camForm.variableManager.createVariable({
+                        name: 'requestForAdmissionForWorkOnTUSignedContract',
+                        type: 'Json',
+                        value: $scope.requestForAdmissionForWorkOnTUSignedContract
+                    });
+                } else {
+                    camForm.variableManager.variableValue('requestForAdmissionForWorkOnTUSignedContract', $scope.requestForAdmissionForWorkOnTUSignedContract);
+                }
             });
 
             $scope.fileSelected = function (el, fileName) {
@@ -135,8 +149,44 @@
                 });
             }
 
+            $scope.singleFileSelected = function (el, fileName) {
+                $timeout(function () {
+                    $scope.$apply(function () {
+                        uploadSingleFileToMinio(el.files[0], fileName);
+                    });
+                })
+            };
+
+            function uploadSingleFileToMinio(file, fileName) {
+                var fileToUpload = {
+                    name: file.name.replace(/[/\\?%*:|"<>]/g, '-'),
+                    path: $scope.processInstanceId + '/' + camForm.taskId + '/' + file.name.replace(/[/\\?%*:|"<>]/g, '-')
+                };
+                $http({
+                    method: 'GET',
+                    url: '/camunda/uploads/put/' + fileToUpload.path,
+                    transformResponse: []
+                }).then(function (response) {
+                    $http.put(response.data, file, {headers: {'Content-Type': undefined}}).then(
+                            function () {
+                                $scope[fileName] = fileToUpload;
+                                angular.element(document.querySelector('#' + fileName)).val(null);
+                            },
+                            function (error) {
+                                console.log(error.data);
+                            }
+                    );
+                }, function(error){
+                    console.log(error.data);
+                });
+            }
+
             $scope.clearFile = function (list, fileIndex) {
                 $scope[list].splice(fileIndex, 1);
+            }
+
+            $scope.clearSingleFile = function (list) {
+                $scope[clearSingleFile] = undefined;
             }
 
             $scope.fileDownload = function (file) {
@@ -233,6 +283,25 @@
             <div ng-show="connectionFromOwnerNetworksFiles.length > 0" class="input-group" ng-repeat="file in connectionFromOwnerNetworksFiles">
                 <a ng-click="download(file)">{{file.name}}</a>
             </div>
+            <div ng-show="requestForAdmissionForWorkOnTUSignedContract" class="input-group">
+                <a ng-click="download(requestForAdmissionForWorkOnTUSignedContract)">{{requestForAdmissionForWorkOnTUSignedContract.name}}</a>
+            </div>
+            <div ng-show="connectionFromOwnerNetworksSignedContract" class="input-group">
+                <a ng-click="download(connectionFromOwnerNetworksSignedContract)">{{connectionFromOwnerNetworksSignedContract.name}}</a>
+            </div>
+        </div>
+    </div>
+    
+    <div class="form-group">
+        <label class="col-md-4 control-label">Signed contract:</label>
+        <div class="col-sm-8">
+            <div ng-show="requestForAdmissionForWorkOnTUSignedContract" class="input-group">
+                {{$index + 1}}.
+                <a ng-click="fileDownload(requestForAdmissionForWorkOnTUSignedContract)">{{requestForAdmissionForWorkOnTUSignedContract.name}}</a> | <a ng-click="clearSingleFile('requestForAdmissionForWorkOnTUSignedContract')"><i class="glyphicon glyphicon-trash"></i></a>
+            </div>
+            <input type="file" ng-hide="requestForAdmissionForWorkOnTUSignedContract" class="form-control" id="requestForAdmissionForWorkOnTUSignedContract" name="requestForAdmissionForWorkOnTUSignedContract"
+                   required-file="true" ng-model="file.file" onchange="angular.element(this).scope().singleFileSelected('requestForAdmissionForWorkOnTUSignedContract')"/>
+            <label class="has-error" ng-show="kcell_form.requestForAdmissionForWorkOnTUSignedContract.$error.validFile">File is required</label>
         </div>
     </div>
 
