@@ -15,7 +15,8 @@ define(['./../module'], function(module){
                 disabled: '=',
                 nowrap: '=',
                 fieldName: '=',
-                isRequired: '='
+                isRequired: '=',
+                toggleCallback: '='
             },
             link: function(scope, el, attrs) {
 
@@ -30,9 +31,10 @@ define(['./../module'], function(module){
                 scope.searchVal = '';
 
                 $(document).bind('click', function(e){
-                    if (el !== e.target && !el[0].contains(e.target)) {
+                    if (el !== e.target && e.target.classList.contains('page-disabler') && scope.isOpen) {
                         scope.$apply(function () {
                             scope.isOpen = false;
+                            if (scope.toggleCallback) scope.toggleCallback(scope.isOpen);
                         });
                     }
                 });
@@ -51,6 +53,7 @@ define(['./../module'], function(module){
                     scope.searchVal = '';
 
                     if (scope.isOpen) $timeout(setWidth);
+                    if (scope.toggleCallback) scope.toggleCallback(scope.isOpen);
                 };
 
                 scope.selectOption = function(option) {

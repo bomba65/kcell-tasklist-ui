@@ -12,28 +12,18 @@ define(['./../module'], function(module){
                 showprice: '='
             },
             link: function(scope, el, attrs) {
-
-                var lastScrollHeight = 0;
-
-                var setHeight = function() {
+                scope.dropdownToggle = function(isOpen) {
+                  $timeout(function() {
                     var element = el[0].querySelector('.resources-container');
                     element.style.paddingBottom = '0';
                     element.style.marginBottom = '0';
                     var height = element.scrollHeight;
-                    if (height > lastScrollHeight) {
-                      element.style.overflow = 'hidden';
+                    if (isOpen) {
                       element.style.paddingBottom = height + 'px';
                       element.style.marginBottom = '-' + height + 'px';
-                    } else {
-                      element.style.overflow = 'scroll';
                     }
-                    lastScrollHeight = height;
+                  });
                 };
-
-                $(document).bind('click', function (e) {
-                    // if (el === e.target || el[0].contains(e.target))
-                        $timeout(setHeight);
-                });
 
                 scope.$watch('data', function (value) {
                     if (value) {
