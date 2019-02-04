@@ -8,6 +8,6 @@ public class DeleteAcceptanceDate implements TaskListener {
     @Override
     public void notify(DelegateTask delegateTask) {
 
-        delegateTask.removeVariable("acceptanceDate");
+        delegateTask.removeVariable("contractorJobAssignedDate");
     }
 }
