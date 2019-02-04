@@ -147,9 +147,15 @@
                 if($scope.changeProvider && $scope.relatedProcessDefinitionKey === 'bulksmsConnectionKAE'){
                     $scope.oldProvider = $scope.provider;
                 }
-
-                console.log(1, $scope.oldProvider, $scope.provider);
-
+                if($scope.changeConnectionType && $scope.relatedProcessDefinitionKey === 'bulksmsConnectionKAE' && ($scope.connectionType === 'rest' || $scope.connectionType === 'smpp')){
+                    if($scope.connectionType === 'rest'){
+                        $scope.oldConnectionType = 'rest';
+                        $scope.connectionType = 'smpp';
+                    } else if($scope.connectionType === 'smpp') {
+                        $scope.oldConnectionType = 'smpp';
+                        $scope.connectionType = 'rest';
+                    }
+                }
                 $scope.changeApplicationToConnectionTaskComment = '';
             });
 
@@ -502,8 +508,6 @@
                     camForm.variableManager.variableValue('transmitNumber', $scope.transmitNumber);
                 }
 
-                console.log(2, $scope.oldProvider, $scope.provider);
-
                 if($scope.changeProvider && $scope.relatedProcessDefinitionKey === 'bulksmsConnectionKAE'){
                     camForm.variableManager.createVariable({
                         name: 'oldProvider',
@@ -512,6 +516,16 @@
                     });
                     camForm.variableManager.variableValue('provider', $scope.provider);
                 }
+
+                if($scope.changeConnectionType && $scope.relatedProcessDefinitionKey === 'bulksmsConnectionKAE' && ($scope.oldConnectionType === 'rest' || $scope.oldConnectionType === 'smpp')){
+                    camForm.variableManager.createVariable({
+                        name: 'oldConnectionType',
+                        type: 'String',
+                        value: $scope.oldConnectionType
+                    });
+                    camForm.variableManager.variableValue('connectionType', $scope.connectionType);
+                }
+
                 camForm.variableManager.variableValue('identifiers', $scope.identifiers);
                 camForm.variableManager.createVariable({
                     name: 'operatorWasChanged',
@@ -1038,7 +1052,7 @@
             <input class="form-control" maxlength="500" ng-model="description" name="description" ng-disabled="true" ng-required="true">
             <label class="error" ng-show="kcell_form.description.$error.required && ( kcell_form.description.$touched || view.submitted)">Required field</label>
         </div>
-    </div>
+    </div-->
     <div class="form-group" ng-if="relatedProcessDefinitionKey === 'bulksmsConnectionKAE'">
         <label class="col-sm-4 control-label">* Тип подключения:</label>
         <div class="col-sm-8">
@@ -1049,7 +1063,7 @@
             </select>
             <label class="error" ng-show="kcell_form.connectionType.$error.required && ( kcell_form.connectionType.$touched || view.submitted)">Required field</label>
         </div>
-    </div-->
+    </div>
     <div class="form-group" ng-if="relatedProcessDefinitionKey === 'freephone'">
         <label class="col-sm-4 control-label">* Тип подключения:</label>
         <div class="col-sm-8">
@@ -1090,10 +1104,17 @@
             <label class="error" ng-show="kcell_form.MSGGWaccount.$error.required && ( kcell_form.MSGGWaccount.$touched || view.submitted)">Required field</label>
         </div>
     </div>
-    <div class="form-group" ng-if="connectionType === 'smpp' ">
+    <div class="form-group" ng-if="relatedProcessDefinitionKey === 'bulksmsConnectionKAE' && connectionType === 'smpp' ">
         <label class="col-sm-4 control-label">* IP адрес клиента:</label>
         <div class="col-sm-8">
-            <input class="form-control" maxlength="500" ng-model="ipNumber" name="ipNumber"  ng-required="connectionType === 'smpp'" ng-disabled="true">
+            <input class="form-control" maxlength="500" ng-model="ipNumber" name="ipNumber" ng-required="connectionType === 'smpp'" ng-disabled="connectionType != 'smpp'">
+            <label class="error" ng-show="kcell_form.ipNumber.$error.required && ( kcell_form.ipNumber.$touched || view.submitted)">Required field</label>
+        </div>
+    </div>
+    <div class="form-group" ng-show="relatedProcessDefinitionKey === 'freephone' && connectionType === 'SIP_SBC' ">
+        <label class="col-sm-4 control-label">* IP адрес клиента:</label>
+        <div class="col-sm-8">
+            <input class="form-control" maxlength="500" ng-model="ipNumber" name="ipNumber" ng-required="connectionType === 'SIP_SBC' " ng-disabled="connectionType != 'SIP_SBC'">
             <label class="error" ng-show="kcell_form.ipNumber.$error.required && ( kcell_form.ipNumber.$touched || view.submitted)">Required field</label>
         </div>
     </div>

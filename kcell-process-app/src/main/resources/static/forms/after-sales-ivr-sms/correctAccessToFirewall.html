@@ -63,12 +63,12 @@
                     camForm.variableManager.fetchVariable(el);
                 });
                 $http.get('/camunda/api/engine/engine/default/task/' + camForm.taskId).then(
-                    function(result){
-                        $scope.processInstanceId = result.data.processInstanceId;
-                    },
-                    function (error) {
-                        console.log(error.data);
-                    }
+                        function(result){
+                            $scope.processInstanceId = result.data.processInstanceId;
+                        },
+                        function (error) {
+                            console.log(error.data);
+                        }
                 );
                 $scope.aftersalesInfo = {};
                 $scope.aftersalesInfo.files = [];
@@ -122,6 +122,7 @@
                         $scope.aftersalesInfo[el] = camForm.variableManager.variables[el].value;
                     }
                 });
+
                 $http.get("/camunda/api/engine/engine/default/user/" + $rootScope.authentication.name+ "/profile").then(function(result){
                     $rootScope.authentication.assigneeName = (result.data.firstName ? result.data.firstName : "") + " " + (result.data.lastName ? result.data.lastName : "");
                 });
@@ -129,40 +130,58 @@
                 $scope.aftersalesInfo.showTarif = true;
 
                 camForm.variableManager.createVariable({
-                    name: 'disconnectOffnetSettingsSMSGWTaskResult',
+                    name: 'correctAccessToFirewallTaskResult',
                     type: 'String',
                     value: ''
                 });
 
                 camForm.variableManager.createVariable({
-                    name: 'disconnectOffnetSettingsSMSGWTaskComment',
+                    name: 'correctAccessToFirewallTaskComment',
                     type: 'String',
                     value: ''
                 });
-
-                //$scope.disconnectOffnetSettingsSMSGWTaskResult = '';
             });
 
             camForm.on('submit', function () {
-                $scope.disconnectOffnetSettingsSMSGWTaskResult = 'Completed';
+                $scope.correctAccessToFirewallTaskResult = 'Completed';
                 if(!$scope.resolutions){
                     $scope.resolutions = [];
                 }
-                camForm.variableManager.variableValue('disconnectOffnetSettingsSMSGWTaskResult', $scope.disconnectOffnetSettingsSMSGWTaskResult);
-                camForm.variableManager.variableValue('disconnectOffnetSettingsSMSGWTaskComment', $scope.disconnectOffnetSettingsSMSGWTaskComment);
-                $scope.resolutions.push({processInstanceId: $scope.processInstanceId, assignee: $rootScope.authentication.name, assigneeName: $rootScope.authentication.assigneeName, resolution: $scope.disconnectOffnetSettingsSMSGWTaskResult, comment: $scope.disconnectOffnetSettingsSMSGWTaskComment, taskId: camForm.taskId});
+                camForm.variableManager.variableValue('correctAccessToFirewallTaskResult', $scope.correctAccessToFirewallTaskResult);
+                camForm.variableManager.variableValue('correctAccessToFirewallTaskComment', $scope.correctAccessToFirewallTaskComment);
+                $scope.resolutions.push({processInstanceId: $scope.processInstanceId, assignee: $rootScope.authentication.name, assigneeName: $rootScope.authentication.assigneeName, resolution: $scope.correctAccessToFirewallTaskResult, comment: $scope.correctAccessToFirewallTaskComment, taskId: camForm.taskId});
                 camForm.variableManager.variableValue('resolutions', $scope.resolutions);
             });
         }]);
 
     </script>
     <info-aftersales aftersales-info="aftersalesInfo"></info-aftersales>
-
+    <div class="form-group">
+        <label class="col-sm-4 control-label">Откуда:</label>
+        <div class="col-sm-8">
+            <input type="text" name="buildingOwner" id='ipNumber' cam-variable-name="ipNumber" cam-variable-type="String" class="form-control" required>
+            <label class="error" ng-show="kcell_form.ipNumber.$error.required && ( kcell_form.ipNumber.$touched || view.submitted)">Required field</label>
+        </div>
+    </div>
+    <div class="form-group">
+        <label class="col-sm-4 control-label">Куда:</label>
+        <div class="col-sm-8">
+            <input type="text" name="channelKLM" id='toIP' cam-variable-name="toIP" cam-variable-type="String" class="form-control" required placeholder="195.47.255.119">
+            <label class="error" ng-show="kcell_form.toIP.$error.required && ( kcell_form.toIP.$touched || view.submitted)">Required field</label>
+        </div>
+    </div>
+    <div class="form-group">
+        <label class="col-sm-4 control-label">Порт:</label>
+        <div class="col-sm-8">
+            <input type="text" name="channelKLM" id='toPort' cam-variable-name="toPort" cam-variable-type="String" class="form-control" required placeholder="5060 (SIP)">
+            <label class="error" ng-show="kcell_form.toPort.$error.required && ( kcell_form.toPort.$touched || view.submitted)">Required field</label>
+        </div>
+    </div>
     <div class="form-group">
         <label class="col-sm-3 control-label">Комментарии</label>
         <div class="col-sm-9">
-            <textarea class="form-control" ng-model="disconnectOffnetSettingsSMSGWTaskComment" name="disconnectOffnetSettingsSMSGWTaskComment" ng-required="true" placeholder="Comments..." maxlength="500" rows="4" style="resize:none"></textarea>
-            <label class="error" ng-show="kcell_form.disconnectOffnetSettingsSMSGWTaskComment.$error.required && view.submitted">Required field</label>
+            <textarea class="form-control" ng-model="correctAccessToFirewallTaskComment" name="correctAccessToFirewallTaskComment" placeholder="Comments..." maxlength="500" rows="4" style="resize:none"></textarea>
+            <label class="error" ng-show="kcell_form.correctAccessToFirewallTaskComment.$error.required && ( kcell_form.correctAccessToFirewallTaskComment.$touched || view.submitted)">Required field</label>
         </div>
     </div>
     <accordion>
