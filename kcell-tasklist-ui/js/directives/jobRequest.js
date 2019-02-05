@@ -25,6 +25,10 @@ define(['./module'], function(module){
 						return dict.id === id;
 					});
 				}
+				scope.compareDate = new Date('2019-02-05T06:00:00.000');
+				scope.$watch('jobModel.requestedDate.value', function (value) {
+					scope.requestedDate = new Date(value);
+				});
 	        },
 			templateUrl: './js/directives/jobRequest.html'
 		};
