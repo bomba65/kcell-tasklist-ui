@@ -156,6 +156,10 @@
                         $scope.connectionType = 'rest';
                     }
                 }
+                if($scope.changeConnectionType && $scope.relatedProcessDefinitionKey === 'freephone'){
+                    $scope.oldConnectionType = $scope.connectionType;
+                    console.log('oldConnectionType', $scope.oldConnectionType);
+                }
                 $scope.changeApplicationToConnectionTaskComment = '';
             });
 
@@ -518,6 +522,15 @@
                 }
 
                 if($scope.changeConnectionType && $scope.relatedProcessDefinitionKey === 'bulksmsConnectionKAE' && ($scope.oldConnectionType === 'rest' || $scope.oldConnectionType === 'smpp')){
+                    camForm.variableManager.createVariable({
+                        name: 'oldConnectionType',
+                        type: 'String',
+                        value: $scope.oldConnectionType
+                    });
+                    camForm.variableManager.variableValue('connectionType', $scope.connectionType);
+                }
+                if($scope.changeConnectionType && $scope.relatedProcessDefinitionKey === 'freephone'){
+                    console.log('oldConnectionType', $scope.oldConnectionType, 'connectionType', $scope.connectionType);
                     camForm.variableManager.createVariable({
                         name: 'oldConnectionType',
                         type: 'String',
@@ -1053,7 +1066,7 @@
             <label class="error" ng-show="kcell_form.description.$error.required && ( kcell_form.description.$touched || view.submitted)">Required field</label>
         </div>
     </div-->
-    <div class="form-group" ng-if="relatedProcessDefinitionKey === 'bulksmsConnectionKAE'">
+    <div class="form-group" ng-show="relatedProcessDefinitionKey === 'bulksmsConnectionKAE'">
         <label class="col-sm-4 control-label">* Тип подключения:</label>
         <div class="col-sm-8">
             <select ng-model="connectionType" name="connectionType" class="form-control" ng-disabled="true" ng-required="true">
@@ -1064,10 +1077,10 @@
             <label class="error" ng-show="kcell_form.connectionType.$error.required && ( kcell_form.connectionType.$touched || view.submitted)">Required field</label>
         </div>
     </div>
-    <div class="form-group" ng-if="relatedProcessDefinitionKey === 'freephone'">
+    <div class="form-group" ng-show="relatedProcessDefinitionKey === 'freephone'">
         <label class="col-sm-4 control-label">* Тип подключения:</label>
         <div class="col-sm-8">
-            <select ng-model="connectionType" name="connectionType" class="form-control" ng-disabled="true">
+            <select ng-model="connectionType" name="connectionType" class="form-control" ng-disabled="!changeConnectionType">
                 <option value="SIP_SBC">SIP_SBC</option>
                 <option value="transmit">ПЕРЕАДРЕСАЦИЯ</option>
                 <option value="E1">E1</option>
