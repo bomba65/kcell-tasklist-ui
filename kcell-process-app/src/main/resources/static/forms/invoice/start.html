@@ -418,7 +418,9 @@
                             });
 
                             if($scope.jobRequests.length > 0){
-                                _.forEach(['site_name', 'priority', 'materialsRequired', 'performDate', 'delayInfo', 'contractorJobAssignedDate', 'acceptanceDate'], function(variable) {
+                                var counter = 0;
+                                var variables = ['site_name', 'priority', 'materialsRequired', 'performDate', 'delayInfo', 'contractorJobAssignedDate', 'acceptanceDate'];
+                                _.forEach(variables, function(variable) {
                                     var varSearchParams = {processInstanceIdIn: _.map($scope.jobRequests, 'processInstanceId'), variableName: variable};
                                     $http({
                                         method: 'POST',
@@ -435,6 +437,80 @@
                                                         el[variable] = f[0].value;
                                                     }
                                                 });
+                                                counter++;
+
+                                                //ждем пока отработают все запросы с variables
+                                                if(variables.length === counter){
+                                                    angular.forEach($scope.jobRequests, function (request) {
+                                                        var taskParams = {
+                                                            taskDefinitionKeyIn: ['attach_material_list_contractor','UserTask_1wkrl5k','fill_applied_changes_info','set_materials_dispatch_status','accept_work_initiator','UserTask_0rj3nbv','UserTask_1g0uit4','UserTask_1i7na4a', 'modify_jr'],
+                                                            processInstanceBusinessKey: request.businessKey
+                                                        };
+
+                                                        $http({
+                                                            method: 'POST',
+                                                            headers: {'Accept': 'application/hal+json, application/json; q=0.5'},
+                                                            data: taskParams,
+                                                            url: '/camunda/api/engine/engine/default/history/task'
+                                                        }).then(function (res) {
+                                                            var modifyJR = _.maxBy(_.filter(res.data, function(task){
+                                                                return task.taskDefinitionKey === 'modify_jr';
+                                                            }), function(o) { return o.endTime; });
+
+                                                            if(request.contractorJobAssignedDate){
+                                                                request.attachMaterialList = request.contractorJobAssignedDate;
+                                                            } else {
+                                                                var attachMaterialList = _.minBy(_.filter(res.data, function(task){
+                                                                    return (task.taskDefinitionKey === 'attach_material_list_contractor' || task.taskDefinitionKey === 'UserTask_1wkrl5k') && (!modifyJR || (modifyJR && modifyJR.endTime < task.startTime));
+                                                                }), function(o) { return o.startTime; });
+
+                                                                if(attachMaterialList){
+                                                                    request.attachMaterialList = attachMaterialList.startTime;
+                                                                }
+
+                                                                var fillAppliedChanges = _.minBy(_.filter(res.data, function(task){
+                                                                    return (task.taskDefinitionKey === 'fill_applied_changes_info' || task.taskDefinitionKey === 'UserTask_0rj3nbv') && (!modifyJR || (modifyJR && modifyJR.endTime < task.startTime));
+                                                                }), function(o) { return o.startTime; });
+
+                                                                if(fillAppliedChanges){
+                                                                    request.fillAppliedChanges = fillAppliedChanges.startTime;
+                                                                }
+                                                            }
+
+                                                            var validateTr = _.maxBy(_.filter(res.data, function(task){
+                                                                return task.taskDefinitionKey === 'set_materials_dispatch_status' || task.taskDefinitionKey === 'UserTask_1g0uit4';
+                                                            }), function(o) { return o.startTime; });
+
+                                                            if(validateTr){
+                                                                request.validateTr = validateTr.startTime;
+                                                            }
+
+                                                            if(request.performDate){
+                                                                request.acceptWorkStartTime = request.performDate;
+                                                            } else {
+                                                                var acceptWorkInitiator = _.maxBy(_.filter(res.data, function(task){
+                                                                    return task.taskDefinitionKey === 'accept_work_initiator' || task.taskDefinitionKey === 'UserTask_1i7na4a';
+                                                                }), function(o) { return o.startTime; });
+
+                                                                if(acceptWorkInitiator){
+                                                                    request.acceptWorkStartTime = acceptWorkInitiator.startTime;
+                                                                }
+                                                            }
+
+                                                            if(request.acceptanceDate){
+                                                                request.acceptWorkEndTime = request.acceptanceDate;
+                                                            } else {
+                                                                var acceptWorkInitiator = _.maxBy(_.filter(res.data, function(task){
+                                                                    return task.taskDefinitionKey === 'accept_work_initiator' || task.taskDefinitionKey === 'UserTask_1i7na4a';
+                                                                }), function(o) { return o.endTime; });
+
+                                                                if(acceptWorkInitiator){
+                                                                    request.acceptWorkEndTime = acceptWorkInitiator.endTime;
+                                                                }
+                                                            }
+                                                        });
+                                                    });
+                                                }
                                             },
                                             function(error){
                                                 console.log(error.data);
@@ -446,76 +522,6 @@
                                 // modify_jr - last date
                                 // validate_tr - task, approved last date
                                 // accept_work_initiator - task, approved last date
-
-                                angular.forEach($scope.jobRequests, function (request) {
-                                    var taskParams = {
-                                        taskDefinitionKeyIn: ['attach_material_list_contractor','UserTask_1wkrl5k','fill_applied_changes_info','set_materials_dispatch_status','accept_work_initiator','UserTask_0rj3nbv','UserTask_1g0uit4','UserTask_1i7na4a', 'modify_jr'],
-                                        processInstanceBusinessKey: request.businessKey
-                                    };
-
-                                    $http({
-                                        method: 'POST',
-                                        headers: {'Accept': 'application/hal+json, application/json; q=0.5'},
-                                        data: taskParams,
-                                        url: '/camunda/api/engine/engine/default/history/task'
-                                    }).then(function (res) {
-                                        var modifyJR = _.maxBy(_.filter(res.data, function(task){
-                                            return task.taskDefinitionKey === 'modify_jr';
-                                        }), function(o) { return o.endTime; });
-
-                                        if(request.contractorJobAssignedDate){
-                                            request.attachMaterialList = request.contractorJobAssignedDate;
-                                        } else {
-                                            var attachMaterialList = _.minBy(_.filter(res.data, function(task){
-                                                return (task.taskDefinitionKey === 'attach_material_list_contractor' || task.taskDefinitionKey === 'UserTask_1wkrl5k') && (!modifyJR || (modifyJR && modifyJR.endTime < task.startTime));
-                                            }), function(o) { return o.startTime; });
-
-                                            if(attachMaterialList){
-                                                request.attachMaterialList = attachMaterialList.startTime;
-                                            }
-
-                                            var fillAppliedChanges = _.minBy(_.filter(res.data, function(task){
-                                                return (task.taskDefinitionKey === 'fill_applied_changes_info' || task.taskDefinitionKey === 'UserTask_0rj3nbv') && (!modifyJR || (modifyJR && modifyJR.endTime < task.startTime));
-                                            }), function(o) { return o.startTime; });
-
-                                            if(fillAppliedChanges){
-                                                request.fillAppliedChanges = fillAppliedChanges.startTime;
-                                            }
-                                        }
-
-                                        var validateTr = _.maxBy(_.filter(res.data, function(task){
-                                            return task.taskDefinitionKey === 'set_materials_dispatch_status' || task.taskDefinitionKey === 'UserTask_1g0uit4';
-                                        }), function(o) { return o.startTime; });
-
-                                        if(validateTr){
-                                            request.validateTr = validateTr.startTime;
-                                        }
-
-                                        if(request.performDate){
-                                            request.acceptWorkStartTime = request.performDate;
-                                        } else {
-                                            var acceptWorkInitiator = _.maxBy(_.filter(res.data, function(task){
-                                                return task.taskDefinitionKey === 'accept_work_initiator' || task.taskDefinitionKey === 'UserTask_1i7na4a';
-                                            }), function(o) { return o.startTime; });
-
-                                            if(acceptWorkInitiator){
-                                                request.acceptWorkStartTime = acceptWorkInitiator.startTime;
-                                            }
-                                        }
-
-                                        if(request.acceptanceDate){
-                                            request.acceptWorkEndTime = request.acceptanceDate;
-                                        } else {
-                                            var acceptWorkInitiator = _.maxBy(_.filter(res.data, function(task){
-                                                return task.taskDefinitionKey === 'accept_work_initiator' || task.taskDefinitionKey === 'UserTask_1i7na4a';
-                                            }), function(o) { return o.endTime; });
-
-                                            if(acceptWorkInitiator){
-                                                request.acceptWorkEndTime = acceptWorkInitiator.endTime;
-                                            }
-                                        }
-                                    });
-                                });
                             }
                         });
                     });
