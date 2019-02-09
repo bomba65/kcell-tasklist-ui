@@ -10,7 +10,7 @@
         }
     </style>
     <script cam-script type="text/form-script">
-        inject(['$scope', '$http', 'Uri', '$rootScope', '$q', 'toasty', '$timeout', function ($scope, $http, Uri, $rootScope, $q, toasty, $timeout) {
+        inject(['$scope', '$http', 'Uri', '$rootScope', '$q', 'toasty', '$timeout', '$filter', function ($scope, $http, Uri, $rootScope, $q, toasty, $timeout, $filter) {
             $scope.isStartForm = false;
             $scope.generalData = {
                 general: {},
@@ -82,6 +82,7 @@
                 camForm.variableManager.fetchVariable('defineAcceptanceGroup');
                 camForm.variableManager.fetchVariable('status');
                 camForm.variableManager.fetchVariable('state');
+                camForm.variableManager.fetchVariable('oldStatus');
             });
 
             camForm.on('variables-fetched', function () {
@@ -184,6 +185,11 @@
                         type: 'String',
                         value: camForm.businessKey
                     });
+                    camForm.variableManager.createVariable({
+                        name: 'processCreateDate',
+                        type: 'String',
+                        value: $filter('date')(new Date(), 'dd.MM.yyyy HH:mm')
+                    });
                 }
 
                 camForm.variableManager.destroyVariable('cvpReviewGroup');
@@ -208,9 +214,13 @@
                     value: 'demand_solution_council_' + group
                 });
 
+                var oldStatus = $scope.status;
                 var status = 'Order modified';
                 var state = 'Active';
-                if ($scope.isStartForm) status = 'New order';
+                if ($scope.isStartForm) {
+                    oldStatus = 'New order';
+                    status = 'New order';
+                }
 
                 camForm.variableManager.destroyVariable('status');
                 camForm.variableManager.createVariable({
@@ -224,6 +234,13 @@
                     name: 'state',
                     type: 'String',
                     value: state
+                });
+
+                camForm.variableManager.destroyVariable('oldStatus');
+                camForm.variableManager.createVariable({
+                    name: 'oldStatus',
+                    type: 'String',
+                    value: oldStatus
                 });
             });
 
