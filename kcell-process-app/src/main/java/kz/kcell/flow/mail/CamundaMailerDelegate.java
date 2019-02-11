@@ -65,12 +65,15 @@ public class CamundaMailerDelegate implements JavaDelegate {
             helper.addAttachment("instruction.pdf", source);
         }
 
-        helper.setTo(separateEmails(addresses));
-        helper.setSubject(subject);
-        helper.setText(String.valueOf(delegateExecution.getVariableLocal("html")), true);
-        helper.setFrom(sender);
+        String[] emails = separateEmails(addresses);
+        if (emails.length > 0) {
+            helper.setTo(emails);
+            helper.setSubject(subject);
+            helper.setText(String.valueOf(delegateExecution.getVariableLocal("html")), true);
+            helper.setFrom(sender);
 
-        mailSender.send(message);
+            mailSender.send(message);
+        }
     }
 
     private String[] separateEmails(String addresses){

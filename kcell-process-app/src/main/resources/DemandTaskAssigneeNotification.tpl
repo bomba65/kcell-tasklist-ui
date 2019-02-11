@@ -1,6 +1,9 @@
 yieldUnescaped '<!DOCTYPE html>'
 
-def businessKey = delegateTask.getVariable('businessKey')
+def processName = delegateTask.getProcessEngineServices().getRepositoryService().getProcessDefinition(delegateTask.getProcessDefinitionId()).getName()
+edf procInst = delegateTask.getProcessEngineServices().getHistoryService().createHistoricProcessInstanceQuery().processInstanceId(delegateTask.getProcessInstanceId()).singleResult()
+def startTime = new Date()
+if (procInst != null) startTime = procInst.getStartTime()
 def general = delegateTask.getVariable('generalData').unwrap().get('general')
 
 html(lang:'en') {
@@ -8,7 +11,7 @@ html(lang:'en') {
         meta('http-equiv':'"Content-Type" content="text/html; charset=utf-8"')
     }
     body {
-        p('В рамках процесса рассмотрения заявок по Demand, в системе Kcell Workflow на Вас назначена активность ' + delegateTask.getName() + ' по заявке # ' + businessKey + ', ожидающая Вашего участия.')
+        p('В рамках процесса рассмотрения заявок по <b>' + processName + '</b>, в системе <b>Kcell Workflow</b> на Вас назначена активность <b>' + delegateTask.getName() + '</b> по заявке # <b>' + businessKey + '</b>, ожидающая Вашего участия.')
         newLine()
         p {
             yield 'Для просмотра заявки Вам необходимо пройти по следующей '
@@ -16,19 +19,37 @@ html(lang:'en') {
             yield '.'
         }
         newLine()
-        p('<b>Процесс:</b> Demand')
+        table {
+            tr {
+                td('<b>Процесс:</b> ')
+                td(processName)
+            }
+            tr {
+                td('<b>Номер заявки:</b> ')
+                td(businessKey)
+            }
+            tr {
+                td('<b>Статус:</b> ')
+                td(delegateTask.getVariable('status'))
+            }
+            tr {
+                td('<b>Инициатор:</b> ')
+                td(general.get('demandOwner').asText())
+            }
+            tr {
+                td('<b>Дата создания:</b> ')
+                td(startTime.format('dd.MM.yyyy HH:mm'))
+            }
+            tr {
+                td('<b>Имя заявки:</b> ')
+                td(delegateTask.getVariable('demandName'))
+            }
+            tr {
+                td('<b>Описание:</b> ')
+                td(general.get('description').asText())
+            }
+        }
         newLine()
-        p('<b>Номер заявки:</b> ' + businessKey)
-        newLine()
-        p('<b>Статус:</b> ' + delegateTask.getVariable('status'))
-        newLine()
-        p('<b>Инициатор:</b> ' + general.get('demandOwner').asText())
-        newLine()
-        p('<b>Дата создания:</b> ' + delegateTask.getVariable('processCreateDate'))
-        newLine()
-        p('<b>Имя заявки:</b> ' + delegateTask.getVariable('demandName'))
-        newLine()
-        p('<b>Описание:</b> ' + general.get('description').asText())
 
         hr()
 
@@ -49,7 +70,7 @@ html(lang:'en') {
         p {
             yield 'При возникновении каких-либо проблем при работе с системой, а также, пожеланий и предложений, отправьте пожалуйста письмо в '
             b {
-                a(href: 'mailto:support_flow@kcell.kz', 'support_flow@kcell.kz')
+                a(href: 'mailto:support_flow@kcell.kz?subject='+subject, 'support_flow@kcell.kz')
             }
             yield ' с описанием.'
         }

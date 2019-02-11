@@ -11,6 +11,7 @@ import org.camunda.bpm.engine.task.IdentityLink;
 import org.camunda.bpm.model.bpmn.instance.Process;
 import org.camunda.bpm.model.bpmn.instance.camunda.CamundaProperties;
 import org.camunda.bpm.model.bpmn.instance.camunda.CamundaProperty;
+import org.camunda.bpm.model.xml.ModelInstance;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.mail.javamail.JavaMailSender;
@@ -36,6 +37,7 @@ public class TaskNotificationListener implements TaskListener {
     private String baseUrl;
     private JavaMailSender mailSender;
     private final CompiledScript template;
+    private ScriptEngine groovyEngine;
 
     @Autowired
     public TaskNotificationListener(
@@ -49,6 +51,8 @@ public class TaskNotificationListener implements TaskListener {
         this.mailSender = mailSender;
 
         ScriptEngine groovy = manager.getEngineByName("groovy");
+        this.groovyEngine = groovy;
+
         InputStreamReader reader = new InputStreamReader(TaskListener.class.getResourceAsStream("/TaskAssigneeNotificationTemplate.groovy"));
         this.template = ((Compilable)groovy).compile(reader);
     }
@@ -66,12 +70,14 @@ public class TaskNotificationListener implements TaskListener {
         if (recipientEmails.size() > 0) {
 
             try {
-                String templateName = delegateTask
+                Collection<Process> processes = delegateTask
                     .getExecution()
                     .getProcessEngineServices()
                     .getRepositoryService()
                     .getBpmnModelInstance(delegateTask.getProcessDefinitionId())
-                    .getModelElementsByType(Process.class)
+                    .getModelElementsByType(Process.class);
+
+                String templateName = processes
                     .stream()
                     .map(Process::getExtensionElements)
                     .filter(Objects::nonNull)
@@ -82,13 +88,32 @@ public class TaskNotificationListener implements TaskListener {
                     .findAny()
                     .orElse("/TaskAssigneeNotificationTemplate.tpl");
 
-                Bindings bindings = template.getEngine().createBindings();
+                String subjectScript = processes
+                    .stream()
+                    .map(Process::getExtensionElements)
+                    .filter(Objects::nonNull)
+                    .flatMap(e -> e.getElementsQuery().filterByType(CamundaProperties.class).list().stream())
+                    .flatMap(e -> e.getCamundaProperties().stream())
+                    .filter(e -> e.getCamundaName().equals("taskNotificationSubjectScript"))
+                    .map(CamundaProperty::getCamundaValue)
+                    .findAny()
+                    .orElse("default");
+
+
+                Bindings bindings = groovyEngine.createBindings();
                 bindings.put("delegateTask", delegateTask);
+                String subject;
+                if (subjectScript.equals("default")) {
+                    String businessKey = delegateTask.getExecution().getProcessBusinessKey();
+                    subject = businessKey!=null?String.format("%s, %s", businessKey, delegateTask.getName()):delegateTask.getName();
+                } else {
+                    InputStreamReader reader = new InputStreamReader(TaskListener.class.getResourceAsStream(subjectScript));
+                    subject = String.valueOf(((Compilable)groovyEngine).compile(reader).eval(bindings));
+                }
                 bindings.put("baseUrl", baseUrl);
                 bindings.put("templateName", templateName);
+                bindings.put("subject", subject);
                 String htmlMessage = String.valueOf(template.eval(bindings));
-                String businessKey = delegateTask.getExecution().getProcessBusinessKey();
-                String subject = businessKey!=null?String.format("%s, %s", businessKey, delegateTask.getName()):delegateTask.getName();
 
                 mailSender.send(mimeMessage -> {
                     MimeMessageHelper helper = new MimeMessageHelper(mimeMessage);

@@ -1,24 +1,31 @@
 import groovy.text.markup.MarkupTemplateEngine
 import groovy.text.markup.TemplateConfiguration
 
-import java.text.SimpleDateFormat
-
+def processName = execution.getProcessEngineServices().getRepositoryService().getProcessDefinition(execution.getProcessDefinitionId()).getName()
+def procInst = execution.getProcessEngineServices().getHistoryService().createHistoricProcessInstanceQuery().processInstanceId(execution.getProcessInstanceId()).singleResult()
+def startTime = new Date()
+if (procInst != null) startTime = procInst.getStartTime()
 def lastResolution = resolutions.unwrap()[0]
-def formatter = new SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss")
 def assignee = lastResolution.get('assignee').asText()
 def taskName = lastResolution.get('taskName').asText()
 def general = generalData.unwrap().get('general')
 
+
+def subject = "Demand - " + businessKey + " - Order status changed to " + status + " on " + taskName
+if (status == "New order") subject = "Demand - " + businessKey + " - Order created"
+
 def binding = [
+        "processName": processName,
         "businessKey": businessKey,
         "oldStatus": oldStatus,
         "status": status,
         "assignee" : assignee,
         "taskName" : taskName,
         "demandOwner": general.get('demandOwner').asText(),
-        "createDate": processCreateDate,
+        "createDate": startTime.format('dd.MM.yyyy HH:mm'),
         "demandName" : demandName,
         "description": general.get('description').asText(),
+        "subject": subject
 ]
 
 def template = '''\
@@ -33,24 +40,42 @@ html(lang:'en') {
     body {
 '''
 
-if (status == "New order") template += '''p('В рамках процесса рассмотрения заявок по Demand, в системе Kcell Workflow пользователь ' + demandOwner + ' создал(а) заявку # ' + businessKey + '.')'''
-else template += '''p('В рамках процесса рассмотрения заявок по Demand, в системе Kcell Workflow статус заявки # ' + businessKey + ' изменен с ' + oldStatus + ' на ' + status + ' пользователем ' + assignee + ' в активности ' + taskName + '.')'''
+if (status == "New order") template += '''p('В рамках процесса рассмотрения заявок по <b>' + processName + '</b>, в системе <b>Kcell Workflow</b> пользователь <b>' + demandOwner + '</b> создал(а) заявку # <b>' + businessKey + '</b>.')'''
+else template += '''p('В рамках процесса рассмотрения заявок по <b>' + processName + '</b>, в системе <b>Kcell Workflow</b> статус заявки # <b>' + businessKey + '</b> изменен с <b>' + oldStatus + '</b> на <b>' + status + '</b> пользователем <b>' + assignee + '</b> в активности <b>' + taskName + '</b>.')'''
 
 template += '''\
         newLine()
-        p('<b>Процесс:</b> Demand')
+        table {
+            tr {
+                td('<b>Процесс:</b> ')
+                td(processName)
+            }
+            tr {
+                td('<b>Номер заявки:</b> ')
+                td(businessKey)
+            }
+            tr {
+                td('<b>Статус:</b> ')
+                td(status)
+            }
+            tr {
+                td('<b>Инициатор:</b> ')
+                td(demandOwner)
+            }
+            tr {
+                td('<b>Дата создания:</b> ')
+                td(createDate)
+            }
+            tr {
+                td('<b>Имя заявки:</b> ')
+                td(demandName)
+            }
+            tr {
+                td('<b>Описание:</b> ')
+                td(description)
+            }
+        }
         newLine()
-        p('<b>Номер заявки:</b> ' + businessKey)
-        newLine()
-        p('<b>Статус:</b> ' + status)
-        newLine()
-        p('<b>Инициатор:</b> ' + demandOwner)
-        newLine()
-        p('<b>Дата создания:</b> ' + createDate)
-        newLine()
-        p('<b>Имя заявки:</b> ' + demandName)
-        newLine()
-        p('<b>Описание:</b> ' + description)
         
         hr()
         
@@ -71,7 +96,7 @@ template += '''\
         p {
             yield 'При возникновении каких-либо проблем при работе с системой, а также, пожеланий и предложений, отправьте пожалуйста письмо в '
             b {
-                a(href: 'mailto:support_flow@kcell.kz', 'support_flow@kcell.kz')
+                a(href: 'mailto:support_flow@kcell.kz?subject='+subject, 'support_flow@kcell.kz')
             }
             yield ' с описанием.'
         }
