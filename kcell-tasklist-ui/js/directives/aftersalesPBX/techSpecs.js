@@ -11,12 +11,14 @@ define(['./../module'], function(module){
                 showCpNew: '=',
                 pbxData: '=',
                 editConnPoint: '=',
-                removeNumbers: '='
+                removeNumbers: '=',
+                hiddenFields: '='
             },
             link: function(scope, element, attrs) {
                 scope.$watch('data', function (value) {
                     if (value) {
                         if (!scope.data.iCallAccess) scope.data.iCallAccess = 'No';
+                        if (!scope.data.removalRequired) scope.data.removalRequired = false;
                     }
                 });
 

@@ -10,14 +10,13 @@ define(['./../module'], function(module){
                 disabled: '=',
                 showNewFields: '=',
                 modifyConnection: '=',
-                pbxData: "="
+                pbxData: "=",
+                hiddenFields: "="
             },
             link: function(scope, element, attrs) {
-
                 scope.$watch('pbxData', function (value) {
                     if (!scope.pbxData) scope.pbxData = {};
                 });
-
 
                 scope.$on("aftersalesPBXBINCheck", function(e, result) {
                     if (!result || result.aftersales) return;
