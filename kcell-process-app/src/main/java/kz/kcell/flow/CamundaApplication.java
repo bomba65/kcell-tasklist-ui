@@ -8,8 +8,8 @@ import com.amazonaws.auth.BasicAWSCredentials;
 import com.amazonaws.client.builder.AwsClientBuilder;
 import com.amazonaws.services.s3.AmazonS3;
 import com.amazonaws.services.s3.AmazonS3ClientBuilder;
-//import kz.kcell.camunda.authentication.plugin.ExternalIdentityProviderPlugin;
-//import kz.kcell.camunda.authentication.plugin.KcellIdentityProviderPlugin;
+import kz.kcell.camunda.authentication.plugin.ExternalIdentityProviderPlugin;
+import kz.kcell.camunda.authentication.plugin.KcellIdentityProviderPlugin;
 import kz.kcell.flow.mail.CamundaMailerDelegate;
 import kz.kcell.flow.mail.TaskNotificationListener;
 import kz.kcell.flow.repository.custom.ReportRepository;
@@ -100,7 +100,7 @@ public class CamundaApplication extends SpringBootProcessApplication {
     public ReportRepository reportRepository() {
         return new ReportRepository();
     }
-/*
+
     @Bean
     @ConfigurationProperties(prefix="kcell.ldap")
     @ConditionalOnProperty(prefix = "kcell.ldap", name = "enabled")
@@ -158,7 +158,7 @@ public class CamundaApplication extends SpringBootProcessApplication {
 
         return plugin;
     }
-*/
+
     @Bean
     public ScriptEngineManager scriptEngineManager() {
         return new ScriptEngineManager();
