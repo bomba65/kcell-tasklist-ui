@@ -429,7 +429,7 @@ define(['./module', 'lodash', 'big-js'], function(module, _, Big){
                         //console.log('$scope.closeDate')
                         //console.log($scope.closeDate)
                         variables[dateName] = {
-                            value: new Date($scope.closeDate),
+                            value: $scope.closeDate,
                             type: "Date"
                         };
                         $http.post(baseUrl+"/task/"+instance.taskId+"/submit-form", {variables: variables}).then(function() {

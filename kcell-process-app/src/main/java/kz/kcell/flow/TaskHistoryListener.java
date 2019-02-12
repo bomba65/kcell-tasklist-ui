@@ -1,5 +1,6 @@
 package kz.kcell.flow;
 
+import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.node.ObjectNode;
 import lombok.extern.java.Log;
@@ -9,6 +10,8 @@ import org.camunda.bpm.engine.delegate.Expression;
 import org.camunda.bpm.engine.delegate.TaskListener;
 import org.camunda.bpm.engine.identity.User;
 import org.camunda.bpm.engine.impl.identity.Authentication;
+import org.camunda.bpm.engine.impl.util.json.JSONArray;
+import org.camunda.bpm.engine.impl.util.json.JSONObject;
 import org.camunda.bpm.engine.rest.mapper.JacksonConfigurator;
 import org.camunda.bpm.engine.task.IdentityLink;
 import org.camunda.bpm.model.bpmn.instance.Process;
@@ -39,7 +42,7 @@ public class TaskHistoryListener implements TaskListener {
     @Autowired
     IdentityService identityService;
 
-    private final List<String> enabledProcesses = Arrays.asList("leasing");
+    private final List<String> enabledProcesses = Arrays.asList("leasing", "freephone");
 
     @Override
     public void notify(DelegateTask delegateTask) {
@@ -73,6 +76,11 @@ public class TaskHistoryListener implements TaskListener {
             resolution.put("taskId", delegateTask.getId());
             resolution.put("taskName", delegateTask.getName());
             resolution.put("taskEndDate", new SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss.SSSXX").format(new Date()));
+
+            if(checkVariable(delegateTask,delegateTask.getTaskDefinitionKey() + "Files")) {
+                JSONArray filesJSONArray = new JSONArray(String.valueOf(delegateTask.getVariable(delegateTask.getTaskDefinitionKey() + "Files")));
+                resolution.putPOJO("files", filesJSONArray);
+            }
 
             JsonValue jsonValue = SpinValues.jsonValue(resolution.toString()).create();
 
