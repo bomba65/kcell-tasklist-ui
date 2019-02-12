@@ -327,16 +327,7 @@ define(['./module','camundaSDK', 'lodash', 'big-js'], function(module, CamSDK, _
 					$scope.processDefinitions = [];
 					results.data.forEach(function(e){
 						if($rootScope.isProcessAvailable(e.key)){
-							$http.get(baseUrl+'/authorization/check?permissionName=CREATE_INSTANCE&permissionValue=256&resourceName=Process Definition&resourceType=6&resourceId=' + e.key).then(
-								function(result){
-									if(result && result.data && result.data.authorized){
-										$scope.processDefinitions.push(e);
-									}
-								},
-								function(error){
-									console.log(error.data);
-								}
-							);
+							$scope.processDefinitions.push(e);
 						}
 					});
 				},

@@ -75,6 +75,7 @@ public class CamundaApplication extends SpringBootProcessApplication {
             }
         };
     }
+
     @Bean
     public ProcessEnginePlugin processApplicationEventListenerPlugin() {
         return new ProcessApplicationEventListenerPlugin();
@@ -87,6 +88,8 @@ public class CamundaApplication extends SpringBootProcessApplication {
             public void preInit(SpringProcessEngineConfiguration processEngineConfiguration) {
                 processEngineConfiguration.setDefaultUserPermissionForTask(Permissions.TASK_WORK);
                 processEngineConfiguration.setRestrictUserOperationLogToAuthenticatedUsers(false);
+                processEngineConfiguration.setLoginMaxAttempts(100);
+                processEngineConfiguration.setLoginDelayBase(1);
             }
         };
     }

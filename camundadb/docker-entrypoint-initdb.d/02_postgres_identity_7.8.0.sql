@@ -88,3 +88,9 @@ alter table ACT_ID_TENANT_MEMBER
     add constraint ACT_FK_TENANT_MEMB_GROUP
     foreign key (GROUP_ID_)
     references ACT_ID_GROUP (ID_);
+
+ALTER TABLE ACT_ID_USER
+  ADD LOCK_EXP_TIME_ timestamp;
+
+ALTER TABLE ACT_ID_USER
+  ADD ATTEMPTS_ integer;
