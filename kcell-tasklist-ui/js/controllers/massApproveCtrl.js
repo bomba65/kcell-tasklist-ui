@@ -7,7 +7,20 @@ define(['./module', 'lodash', 'big-js'], function(module, _, Big){
 
         $http.get("/camunda/api/engine/engine/default/user/" + $rootScope.authentication.name+ "/profile").then(function(result){
             $rootScope.authentication.assigneeName = (result.data.firstName ? result.data.firstName : "") + " " + (result.data.lastName ? result.data.lastName : "");
+            $rootScope.authentication.id = result.data.id;
         });
+
+        $scope.$watchGroup(['selectedProject', 'selectedProcess'], function(newValues, oldValues, scope) {
+            if((newValues[0].key !== oldValues[0].key || newValues[1].key !== oldValues[1].key)){
+                if($scope.selectedProcessKey && !_.some($rootScope.getCurrentProcesses(), function(pd){ return pd.key === $scope.selectedProcessKey})){
+                    $scope.selectedProcessKey = undefined;
+                    $scope.currentTaskGroup = undefined;
+                    $scope.currentFilter = undefined;
+                }
+                $state.go("tasks", {}, {reload: true});
+            }
+        }, true);
+        
 
         $scope.override = function(fields, fieldToOverRide) {
             return fields.filter(f=>f.name === fieldToOverRide && f.override).length > 0;
@@ -359,7 +372,7 @@ define(['./module', 'lodash', 'big-js'], function(module, _, Big){
                     }
                     //console.log(baseUrl+"/task/"+instance.taskId+"/variables/"+resName, resValue);
                     //$http.put(baseUrl+"/task/"+instance.taskId+"/variables/"+resName, {value: resValue, type: "String"}).then(function() {
-                        var variables = {};
+                        let variables = {};
                         variables[resName] = {value: resValue, type: "String"};
 
                         var comName = defKey + "TaskComment";
@@ -411,28 +424,15 @@ define(['./module', 'lodash', 'big-js'], function(module, _, Big){
                             }
                         }
 
-                        // Update or Insert resolutions
-                        let ressName = "resolutions";
-                        if (definition.configs.historyVariable && definition.configs.historyVariable.length) {
-                            ressName = definition.configs.historyVariable;
-                        }
-                        var resolutions = [];
-                        if (instance[ressName]) {
-                            resolutions = instance[ressName];
-                        }
-                        resolutions.push({processInstanceId: instance.pid, assignee: $rootScope.authentication.name, assigneeName: $rootScope.authentication.assigneeName, resolution: instance.resolution, comment: instance.comment || comValue, taskId: instance.taskId});
-                        variables[ressName] = {
-                            value: JSON.stringify(resolutions),
-                            type: "Json"
-                        };
                         var dateName = defKey + "TaskCloseDate";
-                        //console.log('$scope.closeDate')
-                        //console.log($scope.closeDate)
                         variables[dateName] = {
-                            value: $scope.closeDate,
+                            value: new Date(),
                             type: "Date"
                         };
-                        $http.post(baseUrl+"/task/"+instance.taskId+"/submit-form", {variables: variables}).then(function() {
+
+                        $http.post(baseUrl+"/task/"+instance.taskId+"/assignee", {userId: $rootScope.authentication.id}).then(function() {
+                            return $http.post(baseUrl+"/task/"+instance.taskId+"/submit-form", {variables: variables});
+                        }).then(function() {
                             waiting--;
                             refreshPage();
                         });
