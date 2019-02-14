@@ -1,4 +1,4 @@
-package kz.kcell.flow.authorization;
+package kz.kcell.flow.invoice;
 
 import lombok.extern.java.Log;
 import org.camunda.bpm.engine.AuthorizationService;

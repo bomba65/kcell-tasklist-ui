@@ -1,4 +1,4 @@
-package kz.kcell.flow.sap;
+package kz.kcell.flow.revision.sap;
 
 import lombok.extern.java.Log;
 import org.apache.http.HttpEntity;
@@ -12,7 +12,6 @@ import org.apache.http.ssl.SSLContextBuilder;
 import org.apache.http.util.EntityUtils;
 import org.camunda.bpm.engine.delegate.DelegateExecution;
 import org.camunda.bpm.engine.delegate.JavaDelegate;
-import org.json.JSONObject;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;

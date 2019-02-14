@@ -1,4 +1,4 @@
-package kz.kcell.flow.sap;
+package kz.kcell.flow.revision.sap;
 
 import lombok.extern.java.Log;
 import org.camunda.bpm.engine.delegate.DelegateExecution;
@@ -23,7 +23,7 @@ public class CheckPrCreated implements JavaDelegate {
     @Autowired
     private Environment environment;
 
-    @Value("${sftp.remote.directory.to.pr:/home/KWMS/CIP_PR_Creation/PR_Waiting}")
+    @Value("${sftp.remote.directory.to.pr:/uploads/test/CIP_PR_Creation/PR_Waiting}")
     private String sftpRemoteDirectoryToPr;
 
     @Value("${s3.bucket.pr:prfiles}")

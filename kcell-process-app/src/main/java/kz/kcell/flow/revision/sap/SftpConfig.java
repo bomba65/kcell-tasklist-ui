@@ -1,34 +1,25 @@
-package kz.kcell.flow.sap;
+package kz.kcell.flow.revision.sap;
 
 import com.jcraft.jsch.ChannelSftp;
 import lombok.extern.java.Log;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.context.annotation.Profile;
 import org.springframework.expression.common.LiteralExpression;
 import org.springframework.integration.annotation.Gateway;
-import org.springframework.integration.annotation.InboundChannelAdapter;
 import org.springframework.integration.annotation.MessagingGateway;
 import org.springframework.integration.annotation.ServiceActivator;
-import org.springframework.integration.core.MessageSource;
 import org.springframework.integration.file.FileNameGenerator;
-import org.springframework.integration.file.filters.AcceptOnceFileListFilter;
 import org.springframework.integration.file.remote.RemoteFileTemplate;
 import org.springframework.integration.file.remote.session.CachingSessionFactory;
 import org.springframework.integration.file.remote.session.SessionFactory;
-import org.springframework.integration.sftp.filters.SftpSimplePatternFileListFilter;
-import org.springframework.integration.sftp.inbound.SftpInboundFileSynchronizer;
-import org.springframework.integration.sftp.inbound.SftpInboundFileSynchronizingMessageSource;
 import org.springframework.integration.sftp.outbound.SftpMessageHandler;
 import org.springframework.integration.sftp.session.DefaultSftpSessionFactory;
 import org.springframework.integration.sftp.session.SftpRemoteFileTemplate;
 import org.springframework.messaging.Message;
 import org.springframework.messaging.MessageHandler;
-import org.springframework.messaging.MessagingException;
 
-import javax.annotation.Resource;
 import java.io.File;
 
 @Configuration
@@ -48,25 +39,25 @@ public class SftpConfig {
     @Value("${sftp.password:#{null}}")
     private String sftpPassword;
 
-    @Value("${sftp.remote.directory.to.fa:/home/KWMS/FA_Geting/Get_Fixed_Asset}")
+    @Value("${sftp.remote.directory.to.fa:/uploads/test/FA_Geting/Get_Fixed_Asset}")
     private String sftpRemoteDirectoryToFa;
 
-    @Value("${sftp.remote.directory.to.pr:/home/KWMS/CIP_PR_Creation/PR_Waiting}")
+    @Value("${sftp.remote.directory.to.pr:/uploads/test/CIP_PR_Creation/PR_Waiting}")
     private String sftpRemoteDirectoryToPr;
 
-    @Value("${sftp.remote.directory.pr.error:/home/KWMS/CIP_PR_Creation/PR_Didnt_Created}")
+    @Value("${sftp.remote.directory.pr.error:/uploads/test/CIP_PR_Creation/PR_Didnt_Created}")
     private String sftpRemoteDirectoryPrError;
 
-    @Value("${sftp.remote.directory.jojr:/home/KWMS/JR_JO_Creation/Sap JO File}")
+    @Value("${sftp.remote.directory.jojr:/uploads/test/JR_JO_Creation/Sap JO File}")
     private String sftpRemoteDirectoryJoJr;
 
-    @Value("${sftp.remote.directory.jojr.error:/home/KWMS/JR_JO_Creation/JO Creation Errors}")
+    @Value("${sftp.remote.directory.jojr.error:/uploads/test/JR_JO_Creation/JO Creation Errors}")
     private String sftpRemoteDirectoryJoJrError;
 
-    @Value("${sftp.remote.directory.pr.status:/home/KWMS/CIP_PR_Creation/PR_Status}")
+    @Value("${sftp.remote.directory.pr.status:/uploads/test/CIP_PR_Creation/PR_Status}")
     private String sftpRemoteDirectoryPrStatus;
 
-    @Value("${sftp.remote.directory.pr.status.processed:/home/KWMS/CIP_PR_Creation/PR_status_processed}")
+    @Value("${sftp.remote.directory.pr.status.processed:/uploads/test/CIP_PR_Creation/PR_Status_Processed}")
     private String sftpRemoteDirectoryPrStatusProcessed;
 
     public SessionFactory<ChannelSftp.LsEntry> sftpSessionFactory() {

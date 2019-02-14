@@ -1,4 +1,4 @@
-package kz.kcell.flow.sap;
+package kz.kcell.flow.revision.sap;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.node.ObjectNode;
@@ -33,7 +33,7 @@ public class CheckFAFile implements JavaDelegate {
     @Autowired
     private Environment environment;
 
-    @Value("${sftp.remote.directory.from.fa:/home/KWMS/FA_Geting/Fixed_Asset}")
+    @Value("${sftp.remote.directory.from.fa:/uploads/test/FA_Geting/Fixed_Asset}")
     private String sftpRemoteDirectoryFromFa;
 
     @Value("${s3.bucket.fa:fafiles}")

@@ -1,4 +1,4 @@
-package kz.kcell.flow.sap;
+package kz.kcell.flow.revision.sap;
 
 import kz.kcell.flow.files.Minio;
 import lombok.extern.java.Log;
@@ -14,15 +14,15 @@ import java.io.File;
 import java.io.FileOutputStream;
 import java.io.InputStream;
 
-@Service("transferPRFile")
+@Service("transferJOFile")
 @Log
-public class TransferPRFile implements JavaDelegate {
+public class TransferJOFile implements JavaDelegate {
 
     private Minio minioClient;
     private SftpConfig.UploadGateway gateway;
 
     @Autowired
-    public TransferPRFile(Minio minioClient, SftpConfig.UploadGateway gateway) {
+    public TransferJOFile(Minio minioClient, SftpConfig.UploadGateway gateway) {
         this.minioClient = minioClient;
         this.gateway = gateway;
     }
@@ -30,13 +30,13 @@ public class TransferPRFile implements JavaDelegate {
     @Override
     public void execute(DelegateExecution delegateExecution) throws Exception {
 
-        SpinJsonNode prFile =  delegateExecution.<JsonValue>getVariableTyped("prFile").getValue();
-        String name = prFile.prop("name").stringValue();
+        SpinJsonNode joJrFile =  delegateExecution.<JsonValue>getVariableTyped("joJrFile").getValue();
+        String name = joJrFile.prop("name").stringValue();
 
         String tmpDir = System.getProperty("java.io.tmpdir");
         File file = new File(tmpDir+ "/" + name);
 
-        String path = prFile.prop("path").stringValue();
+        String path = joJrFile.prop("path").stringValue();
         InputStream is = minioClient.getObject(path);
 
         FileOutputStream fos = new FileOutputStream(file);
@@ -44,8 +44,8 @@ public class TransferPRFile implements JavaDelegate {
         fos.close();
         is.close();
 
-        gateway.uploadPr(file);
-        log.info("Pr " + name + " uploaded to remote server");
+        gateway.uploadJrJo(file);
+        log.info("JoJr " + name + " uploaded to remote server");
 
         file.delete();
     }

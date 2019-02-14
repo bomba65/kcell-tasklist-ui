@@ -1,4 +1,4 @@
-package kz.kcell.flow.sap;
+package kz.kcell.flow.revision.sap;
 
 import com.amazonaws.services.s3.AmazonS3;
 import lombok.extern.java.Log;
@@ -9,7 +9,6 @@ import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.context.annotation.Profile;
 import org.springframework.context.event.EventListener;
-import org.springframework.core.env.Environment;
 import org.springframework.integration.annotation.Gateway;
 import org.springframework.integration.annotation.MessagingGateway;
 import org.springframework.integration.annotation.ServiceActivator;
@@ -19,7 +18,6 @@ import org.springframework.integration.file.remote.RemoteFileTemplate;
 import org.springframework.messaging.MessageHandler;
 
 import java.io.File;
-import java.util.Arrays;
 
 @Configuration
 @Profile("!sftp")

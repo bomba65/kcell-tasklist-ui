@@ -1,5 +1,6 @@
-package kz.kcell.flow.files;
+package kz.kcell.flow.revision.sap;
 
+import kz.kcell.flow.files.Minio;
 import lombok.extern.java.Log;
 import org.camunda.bpm.engine.delegate.DelegateExecution;
 import org.camunda.bpm.engine.delegate.JavaDelegate;

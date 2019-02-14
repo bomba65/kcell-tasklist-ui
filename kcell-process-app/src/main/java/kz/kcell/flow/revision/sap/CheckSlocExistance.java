@@ -1,4 +1,4 @@
-package kz.kcell.flow.sap;
+package kz.kcell.flow.revision.sap;
 
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
@@ -8,7 +8,6 @@ import lombok.extern.java.Log;
 import org.apache.commons.lang.StringUtils;
 import org.apache.http.HttpEntity;
 import org.apache.http.HttpResponse;
-import org.apache.http.client.HttpClient;
 import org.apache.http.client.methods.CloseableHttpResponse;
 import org.apache.http.client.methods.HttpGet;
 import org.apache.http.client.methods.HttpPost;
@@ -22,7 +21,6 @@ import org.apache.http.util.EntityUtils;
 import org.camunda.bpm.engine.delegate.DelegateExecution;
 import org.camunda.bpm.engine.delegate.JavaDelegate;
 import org.camunda.spin.SpinList;
-import org.camunda.spin.impl.SpinListImpl;
 import org.camunda.spin.json.SpinJsonNode;
 import org.camunda.spin.plugin.variable.SpinValues;
 import org.camunda.spin.plugin.variable.value.JsonValue;
@@ -33,8 +31,6 @@ import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 
 import java.net.URI;
-import java.util.HashMap;
-import java.util.Map;
 
 @Service("checkSlocExistance")
 @Log
