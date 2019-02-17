@@ -8,7 +8,8 @@ def binding = [
         "bin"             : BIN,
         "curPublicVoiceIP": ts.get('sip').get('curPublicVoiceIP').asText(),
         "curSignalingIP"  : ts.get('sip').get('curSignalingIP').asText(),
-        "connectionPoint" : ts.get('connectionPoint').asText()
+        "connectionPoint" : ts.get('connectionPoint').asText(),
+        "description"     : ts.get('sip').get('description').asText()
 ]
 
 def template = """
@@ -25,14 +26,14 @@ html(lang:'en') {
         newLine()
         p('<b>БИН: </b>' + bin)
         newLine()
-        p('Ваш запрос на расформирование нумерации и удаление подключения на PBX выполнен.')
+        p('Ваш запрос на расформирование нумерации и удаление подключения на ' + connectionPoint + ' выполнен.')
         newLine()
-        p(curPublicVoiceIP)
+        p('<b>IP: </b>' + curPublicVoiceIP + '; ' + curSignalingIP)
         newLine()
-        p(curSignalingIP)
-        newLine()
-        p(connectionPoint)
-        newLine()
+        if (description != 'null') {
+            p('<b>Описание: </b>' + description)
+            newLine()
+        }
     }
 }
 """

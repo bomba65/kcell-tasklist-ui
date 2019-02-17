@@ -14,7 +14,8 @@ def binding = [
         "voicePortEnd"    : ts.get('sip').get('voicePortEnd').asText(),
         "sessionsCount"   : ts.get('sip').get('sessionsCount').asText(),
         "coding"          : ts.get('sip').get('coding').asText(),
-        "connectionPoint" : ts.get('connectionPoint').asText()
+        "connectionPoint" : ts.get('connectionPoint').asText(),
+        "description"     : ts.get('sip').get('description').asText()
 ]
 
 if (ts.get('sip').get('newPublicVoiceIP') != null) {
@@ -53,6 +54,10 @@ html(lang:'en') {
         newLine()
         p('<b>Кодек:</b> ' + coding)
         newLine()
+        if (description != 'null') {
+            p('<b>Описание: </b>' + description)
+            newLine()
+        }
     }
 }
 """

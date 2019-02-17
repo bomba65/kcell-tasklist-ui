@@ -8,7 +8,14 @@ for (int i = 0; i < workTypeJson.size(); i++) {
     workType += workTypeJson[i].asText()
 }
 
-def binding = ["legalName": legalInfo.unwrap().get('legalName').asText(), "bin": BIN, "workType": workType]
+def ts = techSpecs.unwrap()
+
+def binding = [
+        "legalName"     : legalInfo.unwrap().get('legalName').asText(),
+        "bin"           : BIN,
+        "workType"      : workType,
+        "description"   : ts.get('sip').get('description').asText()
+]
 
 def template = """
 yieldUnescaped '<!DOCTYPE html>'
@@ -25,6 +32,11 @@ html(lang:'en') {
         p('<b>БИН:</b> ' + bin)
         newLine()
         p('Процесс по ' + workType + ' был принудительно завершен.')
+        newLine()
+        if (description != 'null') {
+            p('<b>Описание: </b>' + description)
+            newLine()
+        }
     }
 }
 """

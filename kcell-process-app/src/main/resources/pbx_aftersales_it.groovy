@@ -9,7 +9,8 @@ def binding = [
         "curPublicVoiceIP": ts.get('sip').get('curPublicVoiceIP').asText(),
         "curSignalingIP"  : ts.get('sip').get('curSignalingIP').asText(),
         "connectionPoint" : ts.get('connectionPoint').asText(),
-        "pbxNumbers"      : ts.get('pbxNumbers').asText()
+        "pbxNumbers"      : ts.get('pbxNumbers').asText(),
+        "description"     : ts.get('sip').get('description').asText()
 ]
 
 def template = """
@@ -32,6 +33,10 @@ html(lang:'en') {
         newLine()
         p('<b>IP:</b> ' + curPublicVoiceIP + ', ' + curSignalingIP)
         newLine()
+        if (description != 'null') {
+            p('<b>Описание: </b>' + description)
+            newLine()
+        }
     }
 }
 """

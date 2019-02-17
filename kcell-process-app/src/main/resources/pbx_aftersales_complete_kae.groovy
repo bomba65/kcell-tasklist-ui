@@ -8,8 +8,9 @@ def binding = [
         "legalName"       : legalInfo.unwrap().get('legalName').asText(),
         "bin"             : BIN,
         "connectionPoint" : ts.get('connectionPoint').asText(),
-        "ip1" : vpn[0].get('source').asText(),
-        "ip2" : vpn[1].get('source').asText()
+        "ip1"             : vpn[0].get('source').asText(),
+        "ip2"             : vpn[1].get('source').asText(),
+        "description"     : ts.get('sip').get('description').asText()
 ]
 
 def template = """
@@ -32,6 +33,10 @@ html(lang:'en') {
         newLine()
         p('<b>PBX:</b> ' + connectionPoint)
         newLine()
+        if (description != 'null') {
+            p('<b>Описание: </b>' + description)
+            newLine()
+        }
     }
 }
 """
