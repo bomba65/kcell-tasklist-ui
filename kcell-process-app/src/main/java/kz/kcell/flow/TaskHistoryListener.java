@@ -12,6 +12,7 @@ import org.camunda.bpm.engine.identity.User;
 import org.camunda.bpm.engine.impl.identity.Authentication;
 import org.camunda.bpm.engine.impl.util.json.JSONArray;
 import org.camunda.bpm.engine.impl.util.json.JSONObject;
+import org.camunda.bpm.engine.repository.ProcessDefinition;
 import org.camunda.bpm.engine.rest.mapper.JacksonConfigurator;
 import org.camunda.bpm.engine.task.IdentityLink;
 import org.camunda.bpm.model.bpmn.instance.Process;
@@ -37,25 +38,36 @@ import java.util.stream.Stream;
 import static java.util.stream.Collectors.toList;
 
 @Service
+@Log
 public class TaskHistoryListener implements TaskListener {
 
     @Autowired
     IdentityService identityService;
 
-    private final List<String> enabledProcesses = Arrays.asList("leasing", "freephone", "bulksmsConnectionKAE");
+    private final List<String> enabledProcesses = Arrays.asList("leasing", "freephone", "bulksmsConnectionKAE", "AftersalesPBX");
+
+    private final List<String> extraFieldsProcesses = Arrays.asList("AftersalesPBX");
 
     @Override
     public void notify(DelegateTask delegateTask) {
 
-        boolean isEnabledBackendResolution =
+        List<ProcessDefinition> definitions =
             delegateTask
                 .getProcessEngineServices()
                 .getRepositoryService()
                 .createProcessDefinitionQuery()
                 .processDefinitionId(delegateTask.getProcessDefinitionId())
-                .list()
-                .stream()
+                .list();
+
+        boolean isEnabledBackendResolution =
+                definitions.stream()
                 .filter(e-> enabledProcesses.contains(e.getKey()))
+                .findAny()
+                .isPresent();
+
+        boolean isExtraFields =
+                definitions.stream()
+                .filter(e-> extraFieldsProcesses.contains(e.getKey()))
                 .findAny()
                 .isPresent();
 
@@ -80,6 +92,26 @@ public class TaskHistoryListener implements TaskListener {
             if(checkVariable(delegateTask,delegateTask.getTaskDefinitionKey() + "Files")) {
                 JSONArray filesJSONArray = new JSONArray(String.valueOf(delegateTask.getVariable(delegateTask.getTaskDefinitionKey() + "Files")));
                 resolution.putPOJO("files", filesJSONArray);
+            }
+
+            if (isExtraFields) {
+                Date assignDate = new Date();
+                Date claimDate = new Date();
+                if (checkVariable(delegateTask,delegateTask.getTaskDefinitionKey() + "TaskAssignDate")) {
+                    assignDate = (Date) delegateTask.getVariable(delegateTask.getTaskDefinitionKey() + "TaskAssignDate");
+                    delegateTask.removeVariable(delegateTask.getTaskDefinitionKey() + "TaskAssignDate");
+                }
+                if (checkVariable(delegateTask,delegateTask.getTaskDefinitionKey() + "TaskClaimDate")) {
+                    claimDate = (Date) delegateTask.getVariable(delegateTask.getTaskDefinitionKey() + "TaskClaimDate");
+                    delegateTask.removeVariable(delegateTask.getTaskDefinitionKey() + "TaskClaimDate");
+                }
+                resolution.put("assignDate", new SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss.SSSXX").format(assignDate));
+                resolution.put("claimDate", new SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss.SSSXX").format(claimDate));
+
+                if (checkVariable(delegateTask,delegateTask.getTaskDefinitionKey() + "TaskAttachments")) {
+                    resolution.putPOJO("attachments", delegateTask.getVariable(delegateTask.getTaskDefinitionKey() + "TaskAttachments"));
+                    delegateTask.removeVariable(delegateTask.getTaskDefinitionKey() + "TaskAttachments");
+                }
             }
 
             JsonValue jsonValue = SpinValues.jsonValue(resolution.toString()).create();

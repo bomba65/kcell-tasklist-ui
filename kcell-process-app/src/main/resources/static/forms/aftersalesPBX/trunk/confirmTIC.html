@@ -14,18 +14,9 @@
             $scope.attachments = [];
             $scope.pbxData = {};
 
-            var processInstanceId = null;
-            var taskName = null;
-            var assigneeName = $rootScope.authentication.name;
-
-            $http.get("/camunda/api/engine/engine/default/user/" + $rootScope.authentication.name+ "/profile").then(function(result){
-                assigneeName = (result.data.firstName ? result.data.firstName : "") + " " + (result.data.lastName ? result.data.lastName : "");
-            });
-
             $http.get('/camunda/api/engine/engine/default/task/' + camForm.taskId).then(
                 function(result){
-                    processInstanceId = result.data.processInstanceId;
-                    taskName = result.data.name;
+                    var processInstanceId = result.data.processInstanceId;
                     $http.get('/camunda/api/engine/engine/default/process-instance/' + processInstanceId).then(
                         function(result){
                             $scope.businessKey = result.data.businessKey;
@@ -54,29 +45,23 @@
                 $scope.workType = camForm.variableManager.variableValue('workType');
                 if (!$scope.legalInfo) $scope.legalInfo = {};
                 if (!$scope.techSpecs) $scope.techSpecs = {connectionType:'SIP over internet', sip: {}};
+
+                camForm.variableManager.createVariable({
+                    name: 'trunkConfirmTICTaskResult',
+                    type: 'String',
+                    value: ''
+                });
+
+                camForm.variableManager.createVariable({
+                    name: 'trunkConfirmTICTaskComment',
+                    type: 'String',
+                    value: ''
+                });
             });
 
-            $scope.preSubmit = function() {
-                return $http.get('/camunda/api/engine/engine/default/process-instance/'+processInstanceId+'/variables/resolutions?deserializeValue=false').then(
-                    function (result) {
-                        if (result && result.data) $scope.resolutions = JSON.parse(result.data.value);
-                    },
-                    function(error) { toasty.error(error.data.message); }
-                );
-            };
-
             camForm.on('submit', function (event) {
-                var submitDate = new Date ();
-                if(!$scope.resolutions){
-                    $scope.resolutions = [];
-                }
-                $scope.resolutions.unshift({processInstanceId: processInstanceId, assignee: assigneeName, resolution: 'Complete', comment: $scope.comment, taskId: camForm.taskId, taskEndDate: submitDate, taskName: taskName});
-                camForm.variableManager.destroyVariable('resolutions');
-                camForm.variableManager.createVariable({
-                    name: 'resolutions',
-                    type: 'Json',
-                    value: $scope.resolutions
-                });
+                camForm.variableManager.variableValue('trunkConfirmTICTaskResult', 'Complete');
+                camForm.variableManager.variableValue('trunkConfirmTICTaskComment', $scope.comment);
             });
 
             $scope.downloadFile = function (file) {
@@ -185,18 +170,27 @@
                 <tr>
                     <th>Activity</th>
                     <th>Assignee</th>
+                    <th>Assigned date</th>
+                    <th>Claimed date</th>
+                    <th>Resolution date</th>
                     <th>Resolution</th>
-                    <th>Date</th>
                     <th>Comment</th>
+                    <th>Attachments</th>
                 </tr>
                 </thead>
                 <tbody>
-                <tr ng-repeat="resolution in resolutions track by $index">
+                <tr ng-repeat="resolution in resolutions | orderBy:'-' track by $index">
                     <td>{{resolution.taskName}}</td>
-                    <td>{{resolution.assignee}}</td>
-                    <td>{{resolution.resolution}}</td>
+                    <td>{{resolution.assigneeName}}</td>
+                    <td>{{resolution.assignDate | date: 'dd.MM.yyyy HH:mm'}}</td>
+                    <td>{{resolution.claimDate | date: 'dd.MM.yyyy HH:mm'}}</td>
                     <td>{{resolution.taskEndDate | date: 'dd.MM.yyyy HH:mm'}}</td>
+                    <td>{{resolution.resolution}}</td>
                     <td>{{resolution.comment}}</td>
+                    <td>
+                        <p ng-repeat="file in resolution.attachments.added">{{file}}</p>
+                        <p ng-repeat="file in resolution.attachments.removed" class="text-danger">{{file}}</p>
+                    </td>
                 </tr>
                 </tbody>
             </table>

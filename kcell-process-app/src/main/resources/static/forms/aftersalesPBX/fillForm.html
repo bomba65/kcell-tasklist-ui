@@ -12,6 +12,8 @@
     </style>
     <script cam-script type="text/form-script">
         inject(['$scope', '$http', 'Uri', '$rootScope', '$q', 'toasty', '$timeout', function ($scope, $http, Uri, $rootScope, $q, toasty, $timeout) {
+            var createDate = new Date();
+
             $scope.legalInfo = {};
             $scope.techSpecs = {connectionType:'SIP over internet', sip: {}};
             $scope.resolutions = [];
@@ -95,10 +97,12 @@
                 });
 
                 var submitDate = new Date ();
+                var attachmentsChanges = {added: [], removed: []}
+                for (var attachment of $scope.attachments) attachmentsChanges.added.push(attachment.name);
                 if(!$scope.resolutions) {
                     $scope.resolutions = [];
                 }
-                $scope.resolutions.unshift({assignee: assigneeName, resolution: 'Complete', comment: $scope.comment, taskId: camForm.taskId, taskEndDate: submitDate, taskName: 'Filling of changes for Aftersales proccess'});
+                $scope.resolutions.push({assignee: $rootScope.authentication.name, assigneeName: assigneeName, resolution: 'Complete', comment: $scope.comment, taskId: camForm.taskId, taskEndDate: submitDate, taskName: 'Filling of changes for Aftersales proccess', assignDate: createDate, claimDate: createDate, attachments: attachmentsChanges});
                 camForm.variableManager.createVariable({
                     name: 'resolutions',
                     type: 'Json',
@@ -447,18 +451,27 @@
                 <tr>
                     <th>Activity</th>
                     <th>Assignee</th>
+                    <th>Assigned date</th>
+                    <th>Claimed date</th>
+                    <th>Resolution date</th>
                     <th>Resolution</th>
-                    <th>Date</th>
                     <th>Comment</th>
+                    <th>Attachments</th>
                 </tr>
                 </thead>
                 <tbody>
-                <tr ng-repeat="resolution in resolutions track by $index">
+                <tr ng-repeat="resolution in resolutions | orderBy:'-' track by $index">
                     <td>{{resolution.taskName}}</td>
-                    <td>{{resolution.assignee}}</td>
-                    <td>{{resolution.resolution}}</td>
+                    <td>{{resolution.assigneeName}}</td>
+                    <td>{{resolution.assignDate | date: 'dd.MM.yyyy HH:mm'}}</td>
+                    <td>{{resolution.claimDate | date: 'dd.MM.yyyy HH:mm'}}</td>
                     <td>{{resolution.taskEndDate | date: 'dd.MM.yyyy HH:mm'}}</td>
+                    <td>{{resolution.resolution}}</td>
                     <td>{{resolution.comment}}</td>
+                    <td>
+                        <p ng-repeat="file in resolution.attachments.added">{{file}}</p>
+                        <p ng-repeat="file in resolution.attachments.removed" class="text-danger">{{file}}</p>
+                    </td>
                 </tr>
                 </tbody>
             </table>

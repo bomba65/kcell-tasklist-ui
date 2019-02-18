@@ -14,9 +14,10 @@
             $scope.tcf = {deadline: new Date(), richText: null};
             $scope.richTextChecker = null;
 
+            var attachmentsChanges = {added: [], removed: []};
+
             $scope.processInstanceId = null;
             $scope.taskId = camForm.taskId;
-            var taskName = null;
             var assigneeName = $rootScope.authentication.name;
 
             $http.get("/camunda/api/engine/engine/default/user/" + $rootScope.authentication.name+ "/profile").then(function(result){
@@ -26,7 +27,6 @@
             $http.get('/camunda/api/engine/engine/default/task/' + camForm.taskId).then(
                 function(result){
                     $scope.processInstanceId = result.data.processInstanceId;
-                    taskName = result.data.name;
                     $http.get('/camunda/api/engine/engine/default/process-instance/' + $scope.processInstanceId).then(
                         function(result){
                             $scope.businessKey = result.data.businessKey;
@@ -77,25 +77,39 @@
                     $scope.tcfName = 'tcf';
                     $scope.tcf = {deadline: new Date(), richText: null};
                 }
+
+                camForm.variableManager.createVariable({
+                    name: $scope.tcfName+'CreateTaskResult',
+                    type: 'String',
+                    value: ''
+                });
+
+                camForm.variableManager.createVariable({
+                    name: $scope.tcfName+'CreateTaskComment',
+                    type: 'String',
+                    value: ''
+                });
+
+                camForm.variableManager.createVariable({
+                    name: $scope.tcfName+'CreateTaskAttachments',
+                    type: 'Json',
+                    value: {}
+                });
             });
 
             $scope.preSubmit = function() {
-                return $q.all([
-                    $http.get('/camunda/api/engine/engine/default/process-instance/'+$scope.processInstanceId+'/variables/resolutions?deserializeValue=false'),
-                    $http.get('/camunda/api/engine/engine/default/process-instance/'+$scope.processInstanceId+'/variables/attachments?deserializeValue=false')
-                ]).then(function (results) {
-                    if (results[0] && results[0].data) {
-                        $scope.resolutions = JSON.parse(results[0].data.value);
-                    }
-                    if (results[1] && results[1].data) {
-                        var lastAttachments = JSON.parse(results[1].data.value);
+                return $http.get('/camunda/api/engine/engine/default/process-instance/'+$scope.processInstanceId+'/variables/attachments?deserializeValue=false').then(function (result) {
+                    if (result && result.data) {
+                        var lastAttachments = JSON.parse(result.data.value);
                         for (var attachment of $scope.attachments) {
                             if (!lastAttachments.find(function(e) {return e.path == attachment.path;})) {
                                 lastAttachments.push(attachment);
+                                attachmentsChanges.added.push(attachment.name);
                             }
                         }
                         for (var i = 0; i < lastAttachments.length; i++) {
                             if (!$scope.attachments.find(function(e) {return e.path == lastAttachments[i].path;})) {
+                                attachmentsChanges.removed.push(lastAttachments[i].name);
                                 lastAttachments.splice(i, 1);
                                 i--;
                             }
@@ -129,18 +143,9 @@
                     value: $scope.tcf,
                     store: true
                 });
-
-                var submitDate = new Date ();
-                if(!$scope.resolutions) {
-                    $scope.resolutions = [];
-                }
-                $scope.resolutions.unshift({processInstanceId: $scope.processInstanceId, assignee: assigneeName, resolution: 'Complete', comment: $scope.comment, taskId: camForm.taskId, taskEndDate: submitDate, taskName: taskName});
-                camForm.variableManager.destroyVariable('resolutions');
-                camForm.variableManager.createVariable({
-                    name: 'resolutions',
-                    type: 'Json',
-                    value: $scope.resolutions
-                });
+                camForm.variableManager.variableValue($scope.tcfName+'CreateTaskResult', 'Complete');
+                camForm.variableManager.variableValue($scope.tcfName+'CreateTaskComment', $scope.comment);
+                camForm.variableManager.variableValue($scope.tcfName+'CreateTaskAttachments', attachmentsChanges);
             });
 
             $scope.downloadFile = function (file) {
@@ -304,18 +309,27 @@
                 <tr>
                     <th>Activity</th>
                     <th>Assignee</th>
+                    <th>Assigned date</th>
+                    <th>Claimed date</th>
+                    <th>Resolution date</th>
                     <th>Resolution</th>
-                    <th>Date</th>
                     <th>Comment</th>
+                    <th>Attachments</th>
                 </tr>
                 </thead>
                 <tbody>
-                <tr ng-repeat="resolution in resolutions track by $index">
+                <tr ng-repeat="resolution in resolutions | orderBy:'-' track by $index">
                     <td>{{resolution.taskName}}</td>
-                    <td>{{resolution.assignee}}</td>
-                    <td>{{resolution.resolution}}</td>
+                    <td>{{resolution.assigneeName}}</td>
+                    <td>{{resolution.assignDate | date: 'dd.MM.yyyy HH:mm'}}</td>
+                    <td>{{resolution.claimDate | date: 'dd.MM.yyyy HH:mm'}}</td>
                     <td>{{resolution.taskEndDate | date: 'dd.MM.yyyy HH:mm'}}</td>
+                    <td>{{resolution.resolution}}</td>
                     <td>{{resolution.comment}}</td>
+                    <td>
+                        <p ng-repeat="file in resolution.attachments.added">{{file}}</p>
+                        <p ng-repeat="file in resolution.attachments.removed" class="text-danger">{{file}}</p>
+                    </td>
                 </tr>
                 </tbody>
             </table>

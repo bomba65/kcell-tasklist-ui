@@ -20,10 +20,7 @@ import org.springframework.stereotype.Service;
 
 import javax.script.*;
 import java.io.InputStreamReader;
-import java.util.Collection;
-import java.util.HashSet;
-import java.util.Objects;
-import java.util.Set;
+import java.util.*;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
@@ -38,6 +35,8 @@ public class TaskNotificationListener implements TaskListener {
     private JavaMailSender mailSender;
     private final CompiledScript template;
     private ScriptEngine groovyEngine;
+
+    private final List<String> claimAssignDateEnabledProcesses = Arrays.asList("AftersalesPBX");
 
     @Autowired
     public TaskNotificationListener(
@@ -59,11 +58,25 @@ public class TaskNotificationListener implements TaskListener {
 
     @Override
     public void notify(DelegateTask delegateTask) {
+        boolean isEnabledClaimAssignDate =
+            delegateTask
+                .getProcessEngineServices()
+                .getRepositoryService()
+                .createProcessDefinitionQuery()
+                .processDefinitionId(delegateTask.getProcessDefinitionId())
+                .list()
+                .stream()
+                .filter(e-> claimAssignDateEnabledProcesses.contains(e.getKey()))
+                .findAny()
+                .isPresent();
+
         final Set<String> recipientEmails = new HashSet<>();
         if (TaskListener.EVENTNAME_CREATE.equals(delegateTask.getEventName())) {
+            if (isEnabledClaimAssignDate) delegateTask.setVariable(delegateTask.getTaskDefinitionKey() + "TaskAssignDate", new Date());
             if (delegateTask.getAssignee() != null) recipientEmails.addAll(getAssigneeAddresses(delegateTask, true));
             else recipientEmails.addAll(getCandidateAddresses(delegateTask));
         } else if (delegateTask.getAssignee() != null && TaskListener.EVENTNAME_ASSIGNMENT.equals(delegateTask.getEventName())) {
+            if (isEnabledClaimAssignDate) delegateTask.setVariable(delegateTask.getTaskDefinitionKey() + "TaskClaimDate", new Date());
             recipientEmails.addAll(getAssigneeAddresses(delegateTask, false));
         }
 
