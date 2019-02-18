@@ -170,7 +170,7 @@ public class MinioController {
     @ResponseBody
     public ResponseEntity<String> getAdminPresignedPutObjectUrl(@PathVariable("processId") String processId, @PathVariable("taskId") String taskId, @PathVariable("fileName") String fileName, HttpServletRequest request) throws InvalidEndpointException, InvalidPortException, InvalidKeyException, InvalidBucketNameException, NoSuchAlgorithmException, InsufficientDataException, NoResponseException, ErrorResponseException, InternalException, InvalidExpiresRangeException, IOException, XmlPullParserException{
 
-        if (identityService.getCurrentAuthentication() == null || !identityService.getCurrentAuthentication().getUserId().equals("demo")) {
+        if (identityService.getCurrentAuthentication() == null || !(identityService.getCurrentAuthentication().getUserId().equals("demo") || identityService.createGroupQuery().groupId("revisionAdmin").groupMember(identityService.getCurrentAuthentication().getUserId()).count() > 0)) {
             log.warning("Not demo user or not logged in");
             return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body("Not demo user or not logged in");
         }
