@@ -23,7 +23,11 @@ def configure(DelegateExecution execution) {
     techSpecs.putAt('removalRequired', null)
     techSpecs.putAt('removalNumbers', null)
 
-    execution.setVariable("techSpecs", techSpecs.toString())
+    if (action.get('agreementTermination').asBoolean()) {
+        execution.removeVariable("techSpecs");
+    } else {
+        execution.setVariable("techSpecs", techSpecs.toString())
+    }
     execution.setVariable("finalResolution", "Approve")
 }
 
