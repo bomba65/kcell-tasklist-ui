@@ -252,11 +252,14 @@ public class PostTCFForm implements ExecutionListener {
 
                 CloseableHttpClient httpClient1 = HttpClients.custom().setSSLSocketFactory(sslsf1).build();
 
+                //Protocol myhttps = new Protocol("https", new MySSLSocketFactory(), 443);
+
                 CredentialsProvider credsProvider = new BasicCredentialsProvider();
                 credsProvider.setCredentials(AuthScope.ANY,
-                    new NTCredentials(username, pwd, "myworkstation", "https://sp.kcell.kz"));
+                    new NTCredentials(username, pwd, "myworkstation", "sp.kcell.kz"));
 
-                HttpHost target = new HttpHost(baseUri + "/Lists/getbytitle('TCF_test')/items", 443, "http");
+                HttpHost target = new HttpHost("https://sp.kcell.kz", 443, "https");
+                //HttpHost target = new HttpHost("https://sp.kcell.kz", 443, myhttps);
 
                 // Make sure the same context is used to execute logically related requests
                 HttpClientContext context = HttpClientContext.create();
@@ -315,7 +318,7 @@ public class PostTCFForm implements ExecutionListener {
                 */
 
 
-                StringEntity TCFData = new StringEntity(requestBodyJSON.toString(), ContentType.APPLICATION_JSON);
+                /*StringEntity TCFData = new StringEntity(requestBodyJSON.toString(), ContentType.APPLICATION_JSON);
 
                 HttpPost httpPostTCF = new HttpPost(new URI(baseUri+"/Lists/getbytitle('TCF_test')/items"));
                 httpPostTCF.addHeader("Content-Type", "application/json;charset=UTF-8");
@@ -363,6 +366,7 @@ public class PostTCFForm implements ExecutionListener {
                         delegateExecution.setVariable("orgaTcfFormIdReceived", false);
                     }
                 }
+                */
 
             } else {
                 if("amdocs".equals(billingTCF)) {
