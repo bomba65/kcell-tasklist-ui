@@ -1,6 +1,7 @@
 package kz.kcell.flow.sharepoint;
 
 import lombok.extern.java.Log;
+import okhttp3.Protocol;
 import org.apache.http.HttpEntity;
 import org.apache.http.HttpHost;
 import org.apache.http.HttpResponse;
@@ -34,6 +35,23 @@ import org.springframework.core.env.Environment;
 import org.springframework.stereotype.Service;
 import org.camunda.bpm.engine.delegate.Expression;
 
+import lombok.extern.java.Log;
+import org.springframework.http.ResponseEntity;
+import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestMethod;
+import org.springframework.web.bind.annotation.ResponseBody;
+import org.springframework.web.bind.annotation.RestController;
+
+import java.io.BufferedReader;
+import java.io.IOException;
+import java.io.InputStream;
+import java.io.InputStreamReader;
+import java.net.Authenticator;
+import java.net.HttpURLConnection;
+import java.net.PasswordAuthentication;
+import java.net.URL;
+
+import java.io.IOException;
 import java.net.URI;
 import java.text.DateFormat;
 import java.text.SimpleDateFormat;
@@ -58,7 +76,7 @@ public class PostTCFForm implements ExecutionListener {
     RepositoryService repositoryService;
 
     @Autowired
-    public PostTCFForm(@Value("${sharepoint.forms.url:https://sp.kcell.kz/forms/_api/Lists}") String baseUri, @Value("${sharepoint.forms.username}") String username, @Value("${sharepoint.forms.password}") String pwd) {
+    public PostTCFForm(@Value("${sharepoint.forms.url:https://sp.kcell.kz/forms/_api}") String baseUri, @Value("${sharepoint.forms.username}") String username, @Value("${sharepoint.forms.password}") String pwd) {
         this.baseUri = baseUri;
         this.username = username;
         this.pwd = pwd;
@@ -66,6 +84,37 @@ public class PostTCFForm implements ExecutionListener {
 
     //@Override
     //public void execute(DelegateExecution delegateExecution) throws Exception {
+
+    private static String getAuthenticatedResponse(final String urlStr, final String domain, final String userName, final String password) throws IOException {
+
+        StringBuilder response = new StringBuilder();
+
+        Authenticator.setDefault(new Authenticator() {
+
+            @Override
+            public PasswordAuthentication getPasswordAuthentication() {
+                return new PasswordAuthentication(
+                    domain + "\\" + userName, password.toCharArray());
+            }
+        });
+
+        URL urlRequest = new URL(urlStr);
+        HttpURLConnection conn = (HttpURLConnection) urlRequest.openConnection();
+        conn.setDoOutput(true);
+        conn.setDoInput(true);
+        conn.setRequestMethod("GET");
+        conn.setRequestProperty("Accept", "*/*");
+
+        InputStream stream = conn.getInputStream();
+        BufferedReader in = new BufferedReader(new InputStreamReader(stream));
+        String str = "";
+        while ((str = in.readLine()) != null) {
+            response.append(str);
+        }
+        in.close();
+
+        return response.toString();
+    }
 
     @Override
     public void notify(DelegateExecution delegateExecution) throws Exception {
@@ -76,6 +125,7 @@ public class PostTCFForm implements ExecutionListener {
             return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body("No user logged in");
         }
         */
+
 
         String processKey = repositoryService.createProcessDefinitionQuery().processDefinitionId(delegateExecution.getProcessDefinitionId()).list().get(0).getKey();
         String billingTCF = this.billingTCF.getValue(delegateExecution).toString();
@@ -244,79 +294,38 @@ public class PostTCFForm implements ExecutionListener {
 
             if (isSftp) {
 
-                //HttpGet httpGet = new HttpGet(baseUri + "/Lists/getbytitle('TCF_test')/items");
-
-                SSLContextBuilder builder1 = new SSLContextBuilder();
-                builder1.loadTrustMaterial(null, new TrustSelfSignedStrategy());
-                SSLConnectionSocketFactory sslsf1 = new SSLConnectionSocketFactory(builder1.build());
-
-                CloseableHttpClient httpClient1 = HttpClients.custom().setSSLSocketFactory(sslsf1).build();
-
-                //Protocol myhttps = new Protocol("https", new MySSLSocketFactory(), 443);
-
-                CredentialsProvider credsProvider = new BasicCredentialsProvider();
-                credsProvider.setCredentials(AuthScope.ANY,
-                    new NTCredentials(username, pwd, "myworkstation", "sp.kcell.kz"));
-
-                HttpHost target = new HttpHost("https://sp.kcell.kz", 443, "https");
-                //HttpHost target = new HttpHost("https://sp.kcell.kz", 443, myhttps);
-
-                // Make sure the same context is used to execute logically related requests
-                HttpClientContext context = HttpClientContext.create();
-                context.setCredentialsProvider(credsProvider);
-
-                HttpGet httpGet = new HttpGet(baseUri + "/Lists/getbytitle('TCF_test')/items");
-
-                /*
-                HttpResponse response1 = httpClient1.execute(httpGet);
-                HttpEntity entity1 = response1.getEntity();
-                */
-
-                CloseableHttpResponse response1 = httpClient1.execute(target, httpGet, context);
+                String result = "error";
                 try {
-                    HttpEntity entity1 = response1.getEntity();
-                    String responseString1 = EntityUtils.toString(entity1, "UTF-8");
-                    delegateExecution.setVariable(billingTCF + "GetResponseBodyTCF", responseString1);
-
-                    JSONObject responseSharepointJSON1 = new JSONObject(responseString1);
-                    JSONObject tcf = responseSharepointJSON1.getJSONObject("d");
-                } finally {
-                    response1.close();
+                    //String responseText = getAuthenticatedResponse("https://sp.kcell.kz/forms/_api/Lists/getbytitle('TCF_test')/items", "kcell.kz", "camunda_sharepoint", "Bn12#Qaz");
+                    String responseText = getAuthenticatedResponse(baseUri + "/Lists/getbytitle('TCF_test')/items", "kcell.kz", username, pwd);
+                    result = responseText;
+                }catch(Exception e){
+                    e.printStackTrace();
                 }
 
-                /*
-                +CloseableHttpClient httpclient = <...>
+                JSONObject responseSharepointJSON = new JSONObject(result);
+                if("amdocs".equals(billingTCF)){
 
-                CredentialsProvider credsProvider = new BasicCredentialsProvider();
-                credsProvider.setCredentials(AuthScope.ANY,
-                        new NTCredentials("user", "pwd", "myworkstation", "microsoft.com"));
-
-                HttpHost target = new HttpHost("www.microsoft.com", 80, "http");
-
-                // Make sure the same context is used to execute logically related requests
-                HttpClientContext context = HttpClientContext.create();
-                context.setCredentialsProvider(credsProvider);
-
-                // Execute a cheap method first. This will trigger NTLM authentication
-                HttpGet httpget = new HttpGet("/ntlm-protected/info");
-                CloseableHttpResponse response1 = httpclient.execute(target, httpget, context);
-                try {
-                    HttpEntity entity1 = response1.getEntity();
-                } finally {
-                    response1.close();
+                    //delegateExecution.setVariable("amdocsTcfFormStatus", Status);
+                    //if("Completed".equals(Status)){
+                    if(responseSharepointJSON.has("Id")){
+                        delegateExecution.setVariable("amdocsTcfFormId", responseSharepointJSON.get("Id").toString());
+                        delegateExecution.setVariable("amdocsTcfFormIdReceived", true);
+                    } else {
+                        delegateExecution.setVariable("amdocsTcfFormIdReceived", false);
+                    }
                 }
+                if("orga".equals(billingTCF)){
 
-                // Execute an expensive method next reusing the same context (and connection)
-                HttpPost httppost = new HttpPost("/ntlm-protected/form");
-                httppost.setEntity(new StringEntity("lots and lots of data"));
-                CloseableHttpResponse response2 = httpclient.execute(target, httppost, context);
-                try {
-                    HttpEntity entity2 = response2.getEntity();
-                } finally {
-                    response2.close();
+                    //delegateExecution.setVariable("orgaTcfFormStatus", Status);
+                    //if("Completed".equals(Status)){
+                    if(responseSharepointJSON.has("Id")){
+                        delegateExecution.setVariable("orgaTcfFormId", responseSharepointJSON.get("Id").toString());
+                        delegateExecution.setVariable("orgaTcfFormIdReceived", true);
+                    } else {
+                        delegateExecution.setVariable("orgaTcfFormIdReceived", false);
+                    }
                 }
-                */
-
 
                 /*StringEntity TCFData = new StringEntity(requestBodyJSON.toString(), ContentType.APPLICATION_JSON);
 
