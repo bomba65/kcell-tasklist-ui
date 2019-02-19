@@ -2,12 +2,20 @@ package kz.kcell.flow.sharepoint;
 
 import lombok.extern.java.Log;
 import org.apache.http.HttpEntity;
+import org.apache.http.HttpHost;
 import org.apache.http.HttpResponse;
+import org.apache.http.auth.AuthScope;
+import org.apache.http.auth.NTCredentials;
+import org.apache.http.client.CredentialsProvider;
+import org.apache.http.client.methods.CloseableHttpResponse;
+import org.apache.http.client.methods.HttpGet;
 import org.apache.http.client.methods.HttpPost;
+import org.apache.http.client.protocol.HttpClientContext;
 import org.apache.http.conn.ssl.SSLConnectionSocketFactory;
 import org.apache.http.conn.ssl.TrustSelfSignedStrategy;
 import org.apache.http.entity.ContentType;
 import org.apache.http.entity.StringEntity;
+import org.apache.http.impl.client.BasicCredentialsProvider;
 import org.apache.http.impl.client.CloseableHttpClient;
 import org.apache.http.impl.client.HttpClients;
 import org.apache.http.ssl.SSLContextBuilder;
@@ -15,6 +23,7 @@ import org.apache.http.util.EntityUtils;
 import org.camunda.bpm.engine.RepositoryService;
 import org.camunda.bpm.engine.delegate.DelegateExecution;
 import org.camunda.bpm.engine.delegate.ExecutionListener;
+import org.camunda.bpm.engine.impl.util.json.JSONArray;
 import org.camunda.bpm.engine.impl.util.json.JSONObject;
 import org.camunda.bpm.engine.variable.value.DateValue;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -38,6 +47,8 @@ import java.util.Date;
 @Log
 public class PostTCFForm implements ExecutionListener {
     private final String baseUri;
+    private final String username;
+    private final String pwd;
     Expression billingTCF;
 
     @Autowired
@@ -47,8 +58,10 @@ public class PostTCFForm implements ExecutionListener {
     RepositoryService repositoryService;
 
     @Autowired
-    public PostTCFForm(@Value("${sharepoint.forms.url:https://sp.kcell.kz/forms/_api/Lists}") String baseUri) {
+    public PostTCFForm(@Value("${sharepoint.forms.url:https://sp.kcell.kz/forms/_api/Lists}") String baseUri, @Value("${sharepoint.forms.username}") String username, @Value("${sharepoint.forms.password}") String pwd) {
         this.baseUri = baseUri;
+        this.username = username;
+        this.pwd = pwd;
     }
 
     //@Override
@@ -149,20 +162,38 @@ public class PostTCFForm implements ExecutionListener {
             String headerBillingId = "";
 
             JSONObject requestBodyJSON = new JSONObject();
+            JSONObject metadataBodyJSON = new JSONObject("{\"type\": \"SP.Data.TCF_x005f_testListItem\"}");
+            JSONObject operatorBodyJSON = new JSONObject();
+            JSONObject billingTypeBodyJSON = new JSONObject();
+            JSONArray operatorResultsJSONArray = new JSONArray();
+            JSONArray billingTypeResultsJSONArray = new JSONArray();
+
+            requestBodyJSON.put("__metadata", metadataBodyJSON);
 
             if("amdocs".equals(billingTCF)){
                 headerBillingName = "Amdocs";
                 headerBillingId = "Amdocs ID";
-                requestBodyJSON.put("Operator", "Kcell");
-                requestBodyJSON.put("BillingType", "CBOSS");
+
+                operatorResultsJSONArray.put("Kcell");
+                billingTypeResultsJSONArray.put("CBOSS");
+                operatorBodyJSON.put("results", operatorResultsJSONArray);
+                billingTypeBodyJSON.put("results", billingTypeResultsJSONArray);
+
+                requestBodyJSON.put("Operator", operatorBodyJSON);
+                requestBodyJSON.put("BillingType", billingTypeBodyJSON);
             }
 
             if("orga".equals(billingTCF)){
                 headerBillingName = "Orga";
                 headerBillingId = "Orga ID";
-                requestBodyJSON.put("Operator", "Activ");
-                requestBodyJSON.put("BillingType", "Orga");
 
+                operatorResultsJSONArray.put("Activ");
+                billingTypeResultsJSONArray.put("Orga");
+                operatorBodyJSON.put("results", operatorResultsJSONArray);
+                billingTypeBodyJSON.put("results", billingTypeResultsJSONArray);
+
+                requestBodyJSON.put("Operator", operatorBodyJSON);
+                requestBodyJSON.put("BillingType", billingTypeBodyJSON);
             }
 
             requestBodyJSON.put("InitiatorDepartment", "B2B");
@@ -176,50 +207,117 @@ public class PostTCFForm implements ExecutionListener {
             requestBodyJSON.put("ServiceNameRUS", ServiceNameRUS);
             requestBodyJSON.put("ServiceNameENG", ServiceNameENG);
             requestBodyJSON.put("ServiceNameKAZ", ServiceNameKAZ);
-            requestBodyJSON.put("Status", "Approved by Department Manager");
+            //requestBodyJSON.put("Status", "Approved by Department Manager");
+            requestBodyJSON.put("Created", df.format(new Date()));
 
-            String htmlTemplateTCF = "<table>\n" +
-                "<tbody>\n" +
-                " <tr>\n" +
-                "  <td rowspan=2> Service Name </td>\n" +
-                "  <td rowspan=2>Short Number</td>\n" +
-                "  <td colspan=3>" + headerBillingName + "</td>\n" +
-                "  <td rowspan=2>Дата поставки</td> \n" +
-                "  <td rowspan=2>Comments for ICTD</td> \n" +
-                " </tr>\n" +
-                " <tr>\n" +
-                "  <td>Counter</td>\n" +
-                "  <td>Price per counter</td>\n" +
-                "  <td>" + headerBillingId + "</td>\n" +
-                " </tr>\n" +
-                " <tr> \n" +
-                "  <td>" + serviceNameValue + "</td>\n" +
-                "  <td>" + shortNumberValue + "</td>\n" +
-                "  <td>" + counterValue + "</td>\n" +
-                "  <td>" + pricePerCounterValue + "</td>\n" +
-                "  <td> </td>\n" +
-                "  <td>" + tcfDateValue + "</td>\n" +
-                "  <td>" + commentValue + "</td>\n" +
-                " </tr>\n" +
-                "</tbody>\n" +
-                "</table>";
+            String htmlTemplateTCF = "<div>\n" +
+                "    <p></p>\n" +
+                "    <table border=\"0\" cellpadding=\"0\" cellspacing=\"0\" style=\"border: 1px dotted\n" +
+                "        #d3d3d3;color:#333333;background-color:#ffffff;width:500px;\">\n" +
+                "        <tbody>\n" +
+                "            <tr>\n" +
+                "                <td rowspan=\"2\" style=\"border: 1px dotted #d3d3d3;height: 54px; width: 120px\">Service Name</td>\n" +
+                "                <td rowspan=\"2\" style=\"border: 1px dotted #d3d3d3; width: 60px\">Short Number</td>\n" +
+                "                <td colspan=\"3\" style=\"border: 1px dotted #d3d3d3; width: 220px\">" + headerBillingName + "</td>\n" +
+                "                <td rowspan=\"2\" style=\"border: 1px dotted #d3d3d3; width: 100px\">Comments for ICTD</td>\n" +
+                "            </tr>\n" +
+                "            <tr>\n" +
+                "                <td style=\"border: 1px dotted #d3d3d3; width: 66px\">Counter</td>\n" +
+                "                <td style=\"border: 1px dotted #d3d3d3; width: 66px\">Price per counter</td>\n" +
+                "                <td style=\"border: 1px dotted #d3d3d3;\">" + headerBillingId + "</td>\n" +
+                "            </tr>\n" +
+                "            <tr>\n" +
+                "                <td style=\"border: 1px dotted #d3d3d3;\">" + serviceNameValue + "<br></td>\n" +
+                "                <td style=\"border: 1px dotted #d3d3d3;\">" + shortNumberValue + "<br></td>\n" +
+                "                <td style=\"border: 1px dotted #d3d3d3;\">" + counterValue + "</td>\n" +
+                "                <td style=\"border: 1px dotted #d3d3d3;\">" + pricePerCounterValue + "</td>\n" +
+                "                <td style=\"border: 1px dotted #d3d3d3;\"><br></td>\n" +
+                "                <td style=\"border: 1px dotted #d3d3d3;\">" + commentValue + "<br></td>\n" +
+                "            </tr>\n" +
+                "        </tbody>\n" +
+                "    </table>\n" +
+                "    <p><br></p>\n" +
+                "</div>";
 
             requestBodyJSON.put("Requirments", htmlTemplateTCF);
             delegateExecution.setVariable(billingTCF + "PostRequestBodyTCF", requestBodyJSON.toString());
 
             if (isSftp) {
-                if("amdocs".equals(billingTCF)) {
-                    delegateExecution.setVariable("amdocsTcfFormId", 1);
-                    delegateExecution.setVariable("amdocsTcfFormIdReceived", true);
-                }
-                if("orga".equals(billingTCF)) {
-                    delegateExecution.setVariable("orgaTcfFormId", 2);
-                    delegateExecution.setVariable("orgaTcfFormIdReceived", true);
-                }
+
+                //HttpGet httpGet = new HttpGet(baseUri + "/Lists/getbytitle('TCF_test')/items");
+
+                SSLContextBuilder builder1 = new SSLContextBuilder();
+                builder1.loadTrustMaterial(null, new TrustSelfSignedStrategy());
+                SSLConnectionSocketFactory sslsf1 = new SSLConnectionSocketFactory(builder1.build());
+
+                CloseableHttpClient httpClient1 = HttpClients.custom().setSSLSocketFactory(sslsf1).build();
+
+                CredentialsProvider credsProvider = new BasicCredentialsProvider();
+                credsProvider.setCredentials(AuthScope.ANY,
+                    new NTCredentials(username, pwd, "myworkstation", "https://sp.kcell.kz"));
+
+                HttpHost target = new HttpHost(baseUri + "/Lists/getbytitle('TCF_test')/items", 443, "http");
+
+                // Make sure the same context is used to execute logically related requests
+                HttpClientContext context = HttpClientContext.create();
+                context.setCredentialsProvider(credsProvider);
+
+                HttpGet httpGet = new HttpGet(baseUri + "/Lists/getbytitle('TCF_test')/items");
+
                 /*
+                HttpResponse response1 = httpClient1.execute(httpGet);
+                HttpEntity entity1 = response1.getEntity();
+                */
+
+                CloseableHttpResponse response1 = httpClient1.execute(target, httpGet, context);
+                try {
+                    HttpEntity entity1 = response1.getEntity();
+                    String responseString1 = EntityUtils.toString(entity1, "UTF-8");
+                    delegateExecution.setVariable(billingTCF + "GetResponseBodyTCF", responseString1);
+
+                    JSONObject responseSharepointJSON1 = new JSONObject(responseString1);
+                    JSONObject tcf = responseSharepointJSON1.getJSONObject("d");
+                } finally {
+                    response1.close();
+                }
+
+                /*
+                +CloseableHttpClient httpclient = <...>
+
+                CredentialsProvider credsProvider = new BasicCredentialsProvider();
+                credsProvider.setCredentials(AuthScope.ANY,
+                        new NTCredentials("user", "pwd", "myworkstation", "microsoft.com"));
+
+                HttpHost target = new HttpHost("www.microsoft.com", 80, "http");
+
+                // Make sure the same context is used to execute logically related requests
+                HttpClientContext context = HttpClientContext.create();
+                context.setCredentialsProvider(credsProvider);
+
+                // Execute a cheap method first. This will trigger NTLM authentication
+                HttpGet httpget = new HttpGet("/ntlm-protected/info");
+                CloseableHttpResponse response1 = httpclient.execute(target, httpget, context);
+                try {
+                    HttpEntity entity1 = response1.getEntity();
+                } finally {
+                    response1.close();
+                }
+
+                // Execute an expensive method next reusing the same context (and connection)
+                HttpPost httppost = new HttpPost("/ntlm-protected/form");
+                httppost.setEntity(new StringEntity("lots and lots of data"));
+                CloseableHttpResponse response2 = httpclient.execute(target, httppost, context);
+                try {
+                    HttpEntity entity2 = response2.getEntity();
+                } finally {
+                    response2.close();
+                }
+                */
+
+
                 StringEntity TCFData = new StringEntity(requestBodyJSON.toString(), ContentType.APPLICATION_JSON);
 
-                HttpPost httpPostTCF = new HttpPost(new URI(baseUri+"/getbytitle('ICTD%20TCF')"));
+                HttpPost httpPostTCF = new HttpPost(new URI(baseUri+"/Lists/getbytitle('TCF_test')/items"));
                 httpPostTCF.addHeader("Content-Type", "application/json;charset=UTF-8");
                 httpPostTCF.setEntity(TCFData);
 
@@ -238,15 +336,16 @@ public class PostTCFForm implements ExecutionListener {
                 // What is the format of returned response from POST method?
                 JSONObject responseSharepointJSON = new JSONObject(responseString);
                 //String Id = responseSharepointJSON.get("Id").toString();
-                String Status = responseSharepointJSON.get("Status").toString();
+                //String Status = responseSharepointJSON.get("Status").toString();
 
                 //JSONObject tcf = responseSharepointJSON.getJSONObject("d");
                 //String Id = tcf.get("Id").toString();
 
                 if("amdocs".equals(billingTCF)){
 
-                    delegateExecution.setVariable("amdocsTcfFormStatus", Status);
-                    if("Completed".equals(Status)){
+                    //delegateExecution.setVariable("amdocsTcfFormStatus", Status);
+                    //if("Completed".equals(Status)){
+                    if(responseSharepointJSON.has("Id")){
                         delegateExecution.setVariable("amdocsTcfFormId", responseSharepointJSON.get("Id").toString());
                         delegateExecution.setVariable("amdocsTcfFormIdReceived", true);
                     } else {
@@ -255,15 +354,16 @@ public class PostTCFForm implements ExecutionListener {
                 }
                 if("orga".equals(billingTCF)){
 
-                    delegateExecution.setVariable("orgaTcfFormStatus", Status);
-                    if("Completed".equals(Status)){
+                    //delegateExecution.setVariable("orgaTcfFormStatus", Status);
+                    //if("Completed".equals(Status)){
+                    if(responseSharepointJSON.has("Id")){
                         delegateExecution.setVariable("orgaTcfFormId", responseSharepointJSON.get("Id").toString());
                         delegateExecution.setVariable("orgaTcfFormIdReceived", true);
                     } else {
                         delegateExecution.setVariable("orgaTcfFormIdReceived", false);
                     }
                 }
-                */
+
             } else {
                 if("amdocs".equals(billingTCF)) {
                     delegateExecution.setVariable("amdocsTcfFormId", 1111);
