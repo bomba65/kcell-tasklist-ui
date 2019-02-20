@@ -51,12 +51,11 @@ public class NtlmCheckController {
     @RequestMapping(value = "/items", method = RequestMethod.POST)
     @ResponseBody
     public ResponseEntity<String> postNtlmItem(@RequestBody String requestBody) {
-        StringEntity requestBodyData = new StringEntity(requestBody, ContentType.APPLICATION_JSON);
-        JSONObject reqObj = new JSONObject(requestBodyData.toString());
+        JSONObject reqObj = new JSONObject(requestBody);
 
         String result = "error";
         try {
-            String responseText = postItemsResponse("https://sp.kcell.kz/forms/_api/contextinfo", "kcell.kz", "camunda_sharepoint", "Bn12#Qaz", reqObj.get("FormDigestValue").toString());
+            String responseText = postItemsResponse("https://sp.kcell.kz/forms/_api/Lists/getbytitle('TCF_test')/items", "kcell.kz", "camunda_sharepoint", "Bn12#Qaz", reqObj.get("FormDigestValue").toString());
             result = responseText;
         }catch(Exception e){
             e.printStackTrace();
