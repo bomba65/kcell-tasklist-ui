@@ -24,6 +24,7 @@ define(['./module','camundaSDK', 'lodash', 'big-js'], function(module, CamSDK, _
 			$scope.foundProcesses = [];
 			$scope.scanCopyFileValue = undefined;
 			$scope.processTechnicalUpdates = "";
+			var businessKey = "businessKey";
 
 			$scope.changeSelected = function (selected){
 				$scope.selected = selected;
@@ -81,7 +82,11 @@ define(['./module','camundaSDK', 'lodash', 'big-js'], function(module, CamSDK, _
             };
 
             $scope.searchBusinessKey = function(){
-				$http.post(baseUrl+'/process-instance',{businessKey: $scope.businessKey, processDefinitionKey: 'Revision',
+            	if($scope.businessKey && $scope.businessKey !== ''){
+	            	businessKey = $scope.businessKey;
+            	}
+
+				$http.post(baseUrl+'/process-instance',{businessKey: businessKey, processDefinitionKey: 'Revision',
 					active: true, activityIdIn: ['intermediate_wait_invoiced']}).then(
 					function(result){
 						if(result.data.length > 0){
@@ -156,6 +161,7 @@ define(['./module','camundaSDK', 'lodash', 'big-js'], function(module, CamSDK, _
 										$scope.scanCopyFileValue = undefined;										
 										$scope.selectedFile = undefined;
 										$scope.businessKey = undefined;
+										businessKey = 'businessKey';
 										$scope.comment = undefined;
 										$scope.processTechnicalUpdates = "";
 						            	angular.element(document.querySelector('#attachedAcceptanceFile')).val(null);
