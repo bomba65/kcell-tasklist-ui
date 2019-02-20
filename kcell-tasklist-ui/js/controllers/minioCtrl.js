@@ -23,6 +23,7 @@ define(['./module','camundaSDK', 'lodash', 'big-js'], function(module, CamSDK, _
 			$scope.selected = 'scanCopy';
 			$scope.foundProcesses = [];
 			$scope.scanCopyFileValue = undefined;
+			$scope.processTechnicalUpdates = "";
 
 			$scope.changeSelected = function (selected){
 				$scope.selected = selected;
@@ -97,6 +98,15 @@ define(['./module','camundaSDK', 'lodash', 'big-js'], function(module, CamSDK, _
 									console.log(error.data)
 								}
 							);
+							$http.post(baseUrl+'/history/variable-instance?deserializeValues=false', {processInstanceIdIn:processInstanceIds, 
+								variableName: "processTechnicalUpdates"}).then(
+								function(varResult){
+									$scope.processTechnicalUpdates = varResult.data[0].value;
+								},
+								function(error){
+									console.log(error.data)
+								}
+							);
 						}
 					},
 					function(error){
@@ -130,9 +140,14 @@ define(['./module','camundaSDK', 'lodash', 'big-js'], function(module, CamSDK, _
 	                        	$scope.scanCopyFileValue.value.path = path  + '/' + file.name;
 	                        	$scope.scanCopyFileValue.value.name = file.name;
 
+	                        	var processTechnicalUpdates = ($scope.processTechnicalUpdates === "") ? $scope.comment : ($scope.processTechnicalUpdates + " " + $scope.comment);
+
 								$http.post(baseUrl+'/process-instance/' + $scope.foundProcesses[0].id + '/variables', 
 									{"modifications":
-									    {"scanCopyFile": {"value": JSON.stringify($scope.scanCopyFileValue), type:'Json'}}
+									    {
+									    	"scanCopyFile": {"value": JSON.stringify($scope.scanCopyFileValue), type:'Json'},
+									    	"processTechnicalUpdates": {"value": processTechnicalUpdates, type:'String'},
+									    }
 									}
 								).then(
 									function(result){
@@ -141,10 +156,13 @@ define(['./module','camundaSDK', 'lodash', 'big-js'], function(module, CamSDK, _
 										$scope.scanCopyFileValue = undefined;										
 										$scope.selectedFile = undefined;
 										$scope.businessKey = undefined;
+										$scope.comment = undefined;
+										$scope.processTechnicalUpdates = "";
 						            	angular.element(document.querySelector('#attachedAcceptanceFile')).val(null);
 									},
 									function(error){
 										console.log(error.data)
+										toasty.success( error.data);
 									}
 								);
 	                        },
