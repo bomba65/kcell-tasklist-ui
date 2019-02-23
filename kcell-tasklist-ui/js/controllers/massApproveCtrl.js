@@ -651,7 +651,8 @@ define(['./module', 'lodash', 'big-js'], function(module, _, Big){
                                             status.name = "amdocsTcfFormStatus";
                                             status.type = "String";
                                             status.value = responseData.Status;
-                                            if(status.value.indexOf("Approved") > -1){
+                                            //if(status.value.indexOf("Approved") > -1){
+                                            if(responseData.Id !== undefined && responseData.Id !== null){
                                                 formId.name = "amdocsTcfFormId";
                                                 formId.type = "String";
                                                 formId.value = responseData.Id;
@@ -669,7 +670,8 @@ define(['./module', 'lodash', 'big-js'], function(module, _, Big){
                                             status.type = "String";
                                             status.value = responseData.Status;
                                             console.log('status', status.value);
-                                            if(status.value.indexOf("Approved") > -1){
+                                            //if(status.value.indexOf("Approved") > -1){
+                                            if(responseData.Id !== undefined && responseData.Id !== null){
                                                 formId.name = "orgaTcfFormId";
                                                 formId.type = "String";
                                                 formId.value = responseData.Id;
