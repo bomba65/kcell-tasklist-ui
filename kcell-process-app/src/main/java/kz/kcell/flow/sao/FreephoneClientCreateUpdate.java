@@ -73,7 +73,7 @@ public class FreephoneClientCreateUpdate implements JavaDelegate {
                 params.add(new BasicNameValuePair("bin", String.valueOf(delegateExecution.getVariable("clientBIN"))));
                 params.add(new BasicNameValuePair("technology", "IVR"));
                 params.add(new BasicNameValuePair("short_number", title));
-                params.add(new BasicNameValuePair("type_conn", connectionType));
+                //params.add(new BasicNameValuePair("type_conn", connectionType));
 
                 if("onnet".equals(operatorType)){
                     params.add(new BasicNameValuePair("provider", "Kcell"));
@@ -81,15 +81,22 @@ public class FreephoneClientCreateUpdate implements JavaDelegate {
                     if("Kcell".equals(operatorJSON.get("name").toString())) {
                         params.add(new BasicNameValuePair("provider", "Kcell"));
                     } else {
-                        params.add(new BasicNameValuePair("provider", String.valueOf(delegateExecution.getVariable("provider"))));
+                        String provider = String.valueOf(delegateExecution.getVariable("provider"));
+                        if("SMS Consult".equals(provider)){
+                            provider = "SMS-Consult";
+                        }
+                        params.add(new BasicNameValuePair("provider", provider));
                     }
                 }
 
                 if("SIP_SBC".equals(connectionType)){
+                    params.add(new BasicNameValuePair("type_conn", connectionType));
                     params.add(new BasicNameValuePair("ip", String.valueOf(delegateExecution.getVariable("ipNumber"))));
                 } else if("transmit".equals(connectionType)){
+                    params.add(new BasicNameValuePair("type_conn", "Call forwarding"));
                     params.add(new BasicNameValuePair("forward_num", String.valueOf(delegateExecution.getVariable("transmitNumber"))));
                 } else if("E1".equals(connectionType)){
+                    params.add(new BasicNameValuePair("type_conn", connectionType));
                     params.add(new BasicNameValuePair("term_point", String.valueOf(delegateExecution.getVariable("terminationPoint"))));
                     params.add(new BasicNameValuePair("hope_point", String.valueOf(delegateExecution.getVariable("hopPoint"))));
                     params.add(new BasicNameValuePair("site_name", String.valueOf(delegateExecution.getVariable("siteName"))));

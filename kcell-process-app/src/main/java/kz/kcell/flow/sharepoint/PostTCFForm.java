@@ -37,15 +37,9 @@ import org.camunda.bpm.engine.delegate.Expression;
 
 import lombok.extern.java.Log;
 import org.springframework.http.ResponseEntity;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RequestMethod;
-import org.springframework.web.bind.annotation.ResponseBody;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.*;
 
-import java.io.BufferedReader;
-import java.io.IOException;
-import java.io.InputStream;
-import java.io.InputStreamReader;
+import java.io.*;
 import java.net.Authenticator;
 import java.net.HttpURLConnection;
 import java.net.PasswordAuthentication;
@@ -82,12 +76,49 @@ public class PostTCFForm implements ExecutionListener {
         this.pwd = pwd;
     }
 
-    //@Override
-    //public void execute(DelegateExecution delegateExecution) throws Exception {
+    private static String postAuthenticatedResponse(
+        final String urlStr, final String domain,
+        final String userName, final String password) throws IOException {
 
-    private static String getAuthenticatedResponse(final String urlStr, final String domain, final String userName, final String password) throws IOException {
+        Authenticator.setDefault(new Authenticator() {
 
-        StringBuilder response = new StringBuilder();
+            @Override
+            public PasswordAuthentication getPasswordAuthentication() {
+                return new PasswordAuthentication(
+                    domain + "\\" + userName, password.toCharArray());
+            }
+        });
+
+        String jsonRequestBody = "{}";
+        URL urlRequest = new URL(urlStr);
+        HttpURLConnection conn = (HttpURLConnection) urlRequest.openConnection();
+        conn.setConnectTimeout(5000);
+        conn.setRequestProperty("Accept", "application/json;odata=verbose");
+        conn.setRequestProperty("Content-Type", "application/json;odata=verbose");
+        conn.setDoOutput(true);
+        conn.setDoInput(true);
+        conn.setRequestMethod("POST");
+
+        OutputStream os = conn.getOutputStream();
+        os.write(jsonRequestBody.getBytes("UTF-8"));
+        os.close();
+
+        // read the response
+        InputStream in = new BufferedInputStream(conn.getInputStream());
+        String result = org.apache.commons.io.IOUtils.toString(in, "UTF-8");
+        JSONObject jsonObject = new JSONObject(result);
+
+
+        in.close();
+        conn.disconnect();
+
+        return jsonObject.toString();
+    }
+
+    private static String postItemsResponse(
+        final String urlStr, final String domain,
+        final String userName, final String password,
+        final String formDigestValueStr, final String requestBodyStr) throws IOException {
 
         Authenticator.setDefault(new Authenticator() {
 
@@ -100,32 +131,31 @@ public class PostTCFForm implements ExecutionListener {
 
         URL urlRequest = new URL(urlStr);
         HttpURLConnection conn = (HttpURLConnection) urlRequest.openConnection();
+        conn.setConnectTimeout(5000);
+        conn.setRequestProperty("X-requestDigest", formDigestValueStr);
+        conn.setRequestProperty("Accept", "application/json;odata=verbose");
+        conn.setRequestProperty("Content-Type", "application/json;odata=verbose");
         conn.setDoOutput(true);
         conn.setDoInput(true);
-        conn.setRequestMethod("GET");
-        conn.setRequestProperty("Accept", "*/*");
+        conn.setRequestMethod("POST");
 
-        InputStream stream = conn.getInputStream();
-        BufferedReader in = new BufferedReader(new InputStreamReader(stream));
-        String str = "";
-        while ((str = in.readLine()) != null) {
-            response.append(str);
-        }
+        OutputStream os = conn.getOutputStream();
+        os.write(requestBodyStr.getBytes("UTF-8"));
+        os.close();
+
+        // read the response
+        InputStream in = new BufferedInputStream(conn.getInputStream());
+        String result = org.apache.commons.io.IOUtils.toString(in, "UTF-8");
+        JSONObject jsonObject = new JSONObject(result);
+
         in.close();
+        conn.disconnect();
 
-        return response.toString();
+        return jsonObject.toString();
     }
 
     @Override
     public void notify(DelegateExecution delegateExecution) throws Exception {
-
-        /*
-        if (identityService.getCurrentAuthentication() == null || identityService.getCurrentAuthentication().getUserId() == null) {
-            log.warning("No user logged in");
-            return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body("No user logged in");
-        }
-        */
-
 
         String processKey = repositoryService.createProcessDefinitionQuery().processDefinitionId(delegateExecution.getProcessDefinitionId()).list().get(0).getKey();
         String billingTCF = this.billingTCF.getValue(delegateExecution).toString();
@@ -294,21 +324,35 @@ public class PostTCFForm implements ExecutionListener {
 
             if (isSftp) {
 
-                String result = "error";
+                String resultContexninfo = "error";
+                String resultItems = "error";
                 try {
-                    //String responseText = getAuthenticatedResponse("https://sp.kcell.kz/forms/_api/Lists/getbytitle('TCF_test')/items", "kcell.kz", "camunda_sharepoint", "Bn12#Qaz");
-                    String responseText = getAuthenticatedResponse(baseUri + "/Lists/getbytitle('TCF_test')/items", "kcell.kz", username, pwd);
-                    result = responseText;
+                    String responseText = postAuthenticatedResponse("https://sp.kcell.kz/forms/_api/contextinfo", "kcell.kz", "camunda_sharepoint", "Bn12#Qaz");
+                    resultContexninfo = responseText;
                 }catch(Exception e){
                     e.printStackTrace();
                 }
 
-                JSONObject responseSharepointJSON = new JSONObject(result);
+                if(!"error".equals(resultContexninfo)){
+                    JSONObject contextinfoJSON = new JSONObject(resultContexninfo);
+                    if(contextinfoJSON.has("FormDigestValue")){
+                        try {
+                            String responseText = postItemsResponse("https://sp.kcell.kz/forms/_api/Lists/getbytitle('TCF_test')/items", "kcell.kz", "camunda_sharepoint", "Bn12#Qaz", contextinfoJSON.get("FormDigestValue").toString(), requestBodyJSON.toString());
+                            resultItems = responseText;
+                        }catch(Exception e){
+                            e.printStackTrace();
+                        }
+                    }
+                }
+
+                JSONObject responseSharepointJSON = new JSONObject(resultItems);
+                String Status = responseSharepointJSON.get("Status").toString();
+
                 if("amdocs".equals(billingTCF)){
 
-                    //delegateExecution.setVariable("amdocsTcfFormStatus", Status);
+                    delegateExecution.setVariable("amdocsTcfFormStatus", Status);
                     //if("Completed".equals(Status)){
-                    if(responseSharepointJSON.has("Id")){
+                    if(Status.indexOf("Approved") > -1){
                         delegateExecution.setVariable("amdocsTcfFormId", responseSharepointJSON.get("Id").toString());
                         delegateExecution.setVariable("amdocsTcfFormIdReceived", true);
                     } else {
@@ -317,9 +361,9 @@ public class PostTCFForm implements ExecutionListener {
                 }
                 if("orga".equals(billingTCF)){
 
-                    //delegateExecution.setVariable("orgaTcfFormStatus", Status);
+                    delegateExecution.setVariable("orgaTcfFormStatus", Status);
                     //if("Completed".equals(Status)){
-                    if(responseSharepointJSON.has("Id")){
+                    if(Status.indexOf("Approved") > -1){
                         delegateExecution.setVariable("orgaTcfFormId", responseSharepointJSON.get("Id").toString());
                         delegateExecution.setVariable("orgaTcfFormIdReceived", true);
                     } else {

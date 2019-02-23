@@ -35,8 +35,8 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
 import javax.servlet.http.HttpServletRequest;
-import java.io.IOException;
-import java.net.URI;
+import java.io.*;
+import java.net.*;
 import java.security.KeyManagementException;
 import java.security.KeyStoreException;
 import java.security.NoSuchAlgorithmException;
@@ -60,38 +60,31 @@ public class SharepointController {
     private Environment environment;
 
     private final String baseUri;
+    private final String username;
+    private final String pwd;
 
     @Autowired
-    public SharepointController(@Value("${sharepoint.forms.url:https://sp.kcell.kz/forms/_api/Lists}") String baseUri) {
+    public SharepointController(@Value("${sharepoint.forms.url:https://sp.kcell.kz/forms/_api}") String baseUri, @Value("${sharepoint.forms.username}") String username, @Value("${sharepoint.forms.password}") String pwd) {
         this.baseUri = baseUri;
+        this.username = username;
+        this.pwd = pwd;
     }
 
-    @RequestMapping(value = "/forms/tcf/{tcfFormId}", method = RequestMethod.GET)
+    @RequestMapping(value = "/getbytitle/items/{itemId}", method = RequestMethod.GET)
     @ResponseBody
-    public ResponseEntity<String> getTCF(@PathVariable("tcfFormId") String tcfFormId, HttpServletRequest request) throws NoSuchAlgorithmException, IOException,KeyStoreException, KeyManagementException, ParseException {
+    public ResponseEntity<String> getTCF(@PathVariable("itemId") String itemId, HttpServletRequest request) throws NoSuchAlgorithmException, IOException,KeyStoreException, KeyManagementException, ParseException {
 
         Boolean isSftp = Arrays.stream(environment.getActiveProfiles()).anyMatch(env -> (env.equalsIgnoreCase("sftp")));
-
-        /*if (identityService.getCurrentAuthentication() == null || identityService.getCurrentAuthentication().getUserId() == null) {
-            log.warning("No user logged in");
-            return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body("No user logged in");
-        }*/
-
+        String result = "error";
         if (isSftp) {
             try {
-                HttpGet httpGet = new HttpGet(baseUri + "/getbytitle('ICTD%20TCF')/items("+tcfFormId+")");
+                String responseText = getAuthenticatedResponse(baseUri + "/Lists/getbytitle('TCF_test')/items("+ itemId +")", "kcell.kz", this.username, this.pwd);
+                //result = responseText;
 
-                SSLContextBuilder builder = new SSLContextBuilder();
-                builder.loadTrustMaterial(null, new TrustSelfSignedStrategy());
-                SSLConnectionSocketFactory sslsf = new SSLConnectionSocketFactory(builder.build());
+                ////////////////////
+                //String responseString = EntityUtils.toString(entity, "UTF-8");
 
-                CloseableHttpClient httpClient = HttpClients.custom().setSSLSocketFactory(sslsf).build();
-
-                HttpResponse response = httpClient.execute(httpGet);
-                HttpEntity entity = response.getEntity();
-                String responseString = EntityUtils.toString(entity, "UTF-8");
-
-                JSONObject responseSharepointJSON = new JSONObject(responseString);
+                JSONObject responseSharepointJSON = new JSONObject(responseText.toString());
                 JSONObject tcf = responseSharepointJSON.getJSONObject("d");
 
                 String Id = tcf.get("Id").toString();
@@ -101,19 +94,17 @@ public class SharepointController {
                 Element table = doc.select("table").get(0);
 
                 ////////////////////// PARSE HTML /////////////////////////
-                /*
                 /////// WITHOUT NESTED TABLE ///////////
-                Element row = table.select("tr").get(3);
-                Element td = row.select("td").get(4);
-                String identifierTCFID = td.text();
-                JSONObject responseJSON = new JSONObject();
-                responseJSON.put("tcfFormId", tcfFormId);
-                responseJSON.put("Id", Id);
-                responseJSON.put("identifierTCFID", identifierTCFID);
-                responseJSON.put("table", table.toString());
-                responseJSON.put("row", row.toString());
-                responseJSON.put("td", td.toString());
-                */
+                //Element row = table.select("tr").get(3);
+                //Element td = row.select("td").get(4);
+                //String identifierTCFID = td.text();
+                //JSONObject responseJSON = new JSONObject();
+                //responseJSON.put("itemId", itemId);
+                //responseJSON.put("Id", Id);
+                //responseJSON.put("identifierTCFID", identifierTCFID);
+                //responseJSON.put("table", table.toString());
+                //responseJSON.put("row", row.toString());
+                //responseJSON.put("td", td.toString());
 
                 /////// WITH NESTED TABLE ///////////
                 Element row = table.select("tr").get(4);
@@ -123,7 +114,7 @@ public class SharepointController {
                 Element nestedTableRowTd = nestedTableRow.select("td").get(0);
                 String identifierTCFID = nestedTableRowTd.text();
                 JSONObject responseJSON = new JSONObject();
-                responseJSON.put("tcfFormId", tcfFormId);
+                responseJSON.put("itemId", itemId);
                 responseJSON.put("Id", Id);
                 responseJSON.put("identifierTCFID", identifierTCFID);
                 responseJSON.put("table", table.toString());
@@ -136,10 +127,13 @@ public class SharepointController {
                 ///////////////////////////////////////////////////////////
 
                 return ResponseEntity.ok(responseJSON.toString());
+                ////////////////////
 
             } catch (Exception e) {
                 e.printStackTrace();
             }
+
+            //return ResponseEntity.ok(result);
 
         } else {
 
@@ -314,7 +308,7 @@ public class SharepointController {
             Element td = row.select("td").get(4);
             String identifierTCFID = td.text();
             JSONObject responseJSON = new JSONObject();
-            responseJSON.put("tcfFormId", tcfFormId);
+            responseJSON.put("itemId", itemId);
             responseJSON.put("Id", Id);
             responseJSON.put("identifierTCFID", identifierTCFID);
             responseJSON.put("table", table.toString());
@@ -330,7 +324,7 @@ public class SharepointController {
             Element nestedTableRowTd = nestedTableRow.select("td").get(0);
             String identifierTCFID = nestedTableRowTd.text();
             JSONObject responseJSON = new JSONObject();
-            responseJSON.put("tcfFormId", tcfFormId);
+            responseJSON.put("itemId", itemId);
             responseJSON.put("Id", Id);
             responseJSON.put("identifierTCFID", identifierTCFID);
             responseJSON.put("table", table.toString());
@@ -347,6 +341,315 @@ public class SharepointController {
 
         }
         return null;
+    }
+
+    @RequestMapping(value = "/contextinfo", method = RequestMethod.POST)
+    @ResponseBody
+    public ResponseEntity<String> postNtlmAuth() {
+        Boolean isSftp = Arrays.stream(environment.getActiveProfiles()).anyMatch(env -> (env.equalsIgnoreCase("sftp")));
+        String result = "error";
+        if (isSftp) {
+            try {
+                String responseText = postAuthenticatedResponse(baseUri + "/contextinfo", "kcell.kz", this.username, this.pwd);
+                result = responseText;
+            } catch (Exception e) {
+                e.printStackTrace();
+            }
+
+            return ResponseEntity.ok(result);
+        } else {
+            String responseString = "{\n" +
+                "    \"d\": {\n" +
+                "        \"GetContextWebInformation\": {\n" +
+                "            \"__metadata\": {\n" +
+                "                \"type\": \"SP.ContextWebInformation\"\n" +
+                "            },\n" +
+                "            \"FormDigestTimeoutSeconds\": 1800,\n" +
+                "            \"FormDigestValue\": \"0x922140642AAA754D46D74E9608EB072E93AA387D808026D4BD8DFE1B3FBE5339ECFA8A0FE7786DC24EA6484D475C6F28CAA9BC9DF4D178F9BC25264650EB300A,22 Feb 2019 09:44:01 -0000\",\n" +
+                "            \"LibraryVersion\": \"15.0.5085.1000\",\n" +
+                "            \"SiteFullUrl\": \"https://sp.kcell.kz/forms\",\n" +
+                "            \"SupportedSchemaVersions\": {\n" +
+                "                \"__metadata\": {\n" +
+                "                    \"type\": \"Collection(Edm.String)\"\n" +
+                "                },\n" +
+                "                \"results\": [\n" +
+                "                    \"14.0.0.0\",\n" +
+                "                    \"15.0.0.0\"\n" +
+                "                ]\n" +
+                "            },\n" +
+                "            \"WebFullUrl\": \"https://sp.kcell.kz/forms\"\n" +
+                "        }\n" +
+                "    }\n" +
+                "}";
+            return ResponseEntity.ok(responseString);
+        }
+    }
+
+    @RequestMapping(value = "/items", method = RequestMethod.POST)
+    @ResponseBody
+    public ResponseEntity<String> postNtlmItem(@RequestBody String requestBody) {
+        Boolean isSftp = Arrays.stream(environment.getActiveProfiles()).anyMatch(env -> (env.equalsIgnoreCase("sftp")));
+        String result = "error";
+        if (isSftp) {
+            try {
+                String responseText = postItemsResponse(baseUri + "/Lists/getbytitle('TCF_test')/items", "kcell.kz", this.username, this.pwd, requestBody);
+                result = responseText;
+            }catch(Exception e){
+                e.printStackTrace();
+            }
+            return ResponseEntity.ok(result);
+        } else {
+            String responseString = "{\n" +
+                "    \"d\": {\n" +
+                "        \"__metadata\": {\n" +
+                "            \"id\": \"Web/Lists(guid'2e16f18e-95d2-4d38-bc31-a6be2ceadfe5')/Items(7)\",\n" +
+                "            \"uri\": \"https://sp.kcell.kz/forms/_api/Web/Lists(guid'2e16f18e-95d2-4d38-bc31-a6be2ceadfe5')/Items(7)\",\n" +
+                "            \"etag\": \"\\\"1\\\"\",\n" +
+                "            \"type\": \"SP.Data.TCF_x005f_testListItem\"\n" +
+                "        },\n" +
+                "        \"FirstUniqueAncestorSecurableObject\": {\n" +
+                "            \"__deferred\": {\n" +
+                "                \"uri\": \"https://sp.kcell.kz/forms/_api/Web/Lists(guid'2e16f18e-95d2-4d38-bc31-a6be2ceadfe5')/Items(7)/FirstUniqueAncestorSecurableObject\"\n" +
+                "            }\n" +
+                "        },\n" +
+                "        \"RoleAssignments\": {\n" +
+                "            \"__deferred\": {\n" +
+                "                \"uri\": \"https://sp.kcell.kz/forms/_api/Web/Lists(guid'2e16f18e-95d2-4d38-bc31-a6be2ceadfe5')/Items(7)/RoleAssignments\"\n" +
+                "            }\n" +
+                "        },\n" +
+                "        \"AttachmentFiles\": {\n" +
+                "            \"__deferred\": {\n" +
+                "                \"uri\": \"https://sp.kcell.kz/forms/_api/Web/Lists(guid'2e16f18e-95d2-4d38-bc31-a6be2ceadfe5')/Items(7)/AttachmentFiles\"\n" +
+                "            }\n" +
+                "        },\n" +
+                "        \"ContentType\": {\n" +
+                "            \"__deferred\": {\n" +
+                "                \"uri\": \"https://sp.kcell.kz/forms/_api/Web/Lists(guid'2e16f18e-95d2-4d38-bc31-a6be2ceadfe5')/Items(7)/ContentType\"\n" +
+                "            }\n" +
+                "        },\n" +
+                "        \"FieldValuesAsHtml\": {\n" +
+                "            \"__deferred\": {\n" +
+                "                \"uri\": \"https://sp.kcell.kz/forms/_api/Web/Lists(guid'2e16f18e-95d2-4d38-bc31-a6be2ceadfe5')/Items(7)/FieldValuesAsHtml\"\n" +
+                "            }\n" +
+                "        },\n" +
+                "        \"FieldValuesAsText\": {\n" +
+                "            \"__deferred\": {\n" +
+                "                \"uri\": \"https://sp.kcell.kz/forms/_api/Web/Lists(guid'2e16f18e-95d2-4d38-bc31-a6be2ceadfe5')/Items(7)/FieldValuesAsText\"\n" +
+                "            }\n" +
+                "        },\n" +
+                "        \"FieldValuesForEdit\": {\n" +
+                "            \"__deferred\": {\n" +
+                "                \"uri\": \"https://sp.kcell.kz/forms/_api/Web/Lists(guid'2e16f18e-95d2-4d38-bc31-a6be2ceadfe5')/Items(7)/FieldValuesForEdit\"\n" +
+                "            }\n" +
+                "        },\n" +
+                "        \"File\": {\n" +
+                "            \"__deferred\": {\n" +
+                "                \"uri\": \"https://sp.kcell.kz/forms/_api/Web/Lists(guid'2e16f18e-95d2-4d38-bc31-a6be2ceadfe5')/Items(7)/File\"\n" +
+                "            }\n" +
+                "        },\n" +
+                "        \"Folder\": {\n" +
+                "            \"__deferred\": {\n" +
+                "                \"uri\": \"https://sp.kcell.kz/forms/_api/Web/Lists(guid'2e16f18e-95d2-4d38-bc31-a6be2ceadfe5')/Items(7)/Folder\"\n" +
+                "            }\n" +
+                "        },\n" +
+                "        \"ParentList\": {\n" +
+                "            \"__deferred\": {\n" +
+                "                \"uri\": \"https://sp.kcell.kz/forms/_api/Web/Lists(guid'2e16f18e-95d2-4d38-bc31-a6be2ceadfe5')/Items(7)/ParentList\"\n" +
+                "            }\n" +
+                "        },\n" +
+                "        \"FileSystemObjectType\": 0,\n" +
+                "        \"Id\": 7,\n" +
+                "        \"ContentTypeId\": \"0x0100638A26D33783534981A5A47693AF4307\",\n" +
+                "        \"Title\": null,\n" +
+                "        \"InitiatorId\": null,\n" +
+                "        \"InitiatorDepartment\": \"B2B\",\n" +
+                "        \"Subject\": \"B2B Short Numbers\",\n" +
+                "        \"DateDeadline\": \"2019-02-20T18:00:00Z\",\n" +
+                "        \"OldTS\": null,\n" +
+                "        \"NewTS\": null,\n" +
+                "        \"Operator\": {\n" +
+                "            \"__metadata\": {\n" +
+                "                \"type\": \"Collection(Edm.String)\"\n" +
+                "            },\n" +
+                "            \"results\": [\n" +
+                "                \"Kcell\"\n" +
+                "            ]\n" +
+                "        },\n" +
+                "        \"BillingType\": {\n" +
+                "            \"__metadata\": {\n" +
+                "                \"type\": \"Collection(Edm.String)\"\n" +
+                "            },\n" +
+                "            \"results\": [\n" +
+                "                \"CBOSS\"\n" +
+                "            ]\n" +
+                "        },\n" +
+                "        \"Service\": \"Products/Tariffs\",\n" +
+                "        \"RelationWithThirdParty\": false,\n" +
+                "        \"Requirments\": \"<div class=\\\"ExternalClass13053E1C48BA42E3B105B9FE030144BB\\\">\\n<table border=\\\"0\\\" cellpadding=\\\"0\\\" cellspacing=\\\"0\\\" style=\\\"width&#58;493px;\\\">\\n\\t<tbody>\\n\\t\\t<tr>\\n\\t\\t\\t<td rowspan=\\\"2\\\" style=\\\"width&#58;99px;height&#58;20px;\\\">\\n\\t\\t\\t<p><strong>ervice Name </strong></p>\\n\\t\\t\\t</td>\\n\\t\\t\\t<td rowspan=\\\"2\\\" style=\\\"width&#58;64px;height&#58;20px;\\\">\\n\\t\\t\\t<p><strong>Short Number</strong></p>\\n\\t\\t\\t</td>\\n\\t\\t\\t<td colspan=\\\"3\\\" style=\\\"width&#58;192px;height&#58;20px;\\\">\\n\\t\\t\\t<p><strong>Orga</strong></p>\\n\\t\\t\\t</td>\\n\\t\\t\\t<td rowspan=\\\"2\\\" style=\\\"width&#58;139px;height&#58;20px;\\\">\\n\\t\\t\\t<p><strong>Comments for ICTD</strong></p>\\n\\t\\t\\t</td>\\n\\t\\t</tr>\\n\\t\\t<tr>\\n\\t\\t\\t<td style=\\\"width&#58;64px;height&#58;34px;\\\">\\n\\t\\t\\t<p><strong>Counter</strong></p>\\n\\t\\t\\t</td>\\n\\t\\t\\t<td style=\\\"width&#58;64px;height&#58;34px;\\\">\\n\\t\\t\\t<p><strong>Price per counter</strong></p>\\n\\t\\t\\t</td>\\n\\t\\t\\t<td style=\\\"width&#58;64px;height&#58;34px;\\\">\\n\\t\\t\\t<p><strong>Orga ID</strong></p>\\n\\t\\t\\t</td>\\n\\t\\t</tr>\\n\\t\\t<tr>\\n\\t\\t\\t<td style=\\\"width&#58;99px;height&#58;60px;\\\">\\n\\t\\t\\t<p><strong>Create new name and tariff</strong></p>\\n\\t\\t\\t</td>\\n\\t\\t\\t<td colspan=\\\"5\\\" style=\\\"width&#58;395px;height&#58;60px;\\\">\\n\\t\\t\\t<p>&#160;</p>\\n\\t\\t\\t</td>\\n\\t\\t</tr>\\n\\t\\t<tr>\\n\\t\\t\\t<td style=\\\"width&#58;99px;height&#58;34px;\\\">\\n\\t\\t\\t<p>Outgoing SMS Resmi 3775</p>\\n\\t\\t\\t</td>\\n\\t\\t\\t<td style=\\\"width&#58;64px;height&#58;34px;\\\">\\n\\t\\t\\t<p>3775</p>\\n\\t\\t\\t</td>\\n\\t\\t\\t<td style=\\\"width&#58;64px;height&#58;34px;\\\">\\n\\t\\t\\t<p>1 sms</p>\\n\\t\\t\\t</td>\\n\\t\\t\\t<td style=\\\"width&#58;64px;height&#58;34px;\\\">\\n\\t\\t\\t<p>7 tg</p>\\n\\t\\t\\t</td>\\n\\t\\t\\t<td style=\\\"width&#58;64px;height&#58;34px;\\\">\\n\\t\\t\\t<p>VASSMSO_3775_91616</p>\\n\\t\\t\\t</td>\\n\\t\\t\\t<td style=\\\"width&#58;139px;height&#58;34px;\\\">\\n\\t\\t\\t<p>Please change&#160; tariff.</p>\\n\\t\\t\\t</td>\\n\\t\\t</tr>\\n\\t\\t<tr>\\n\\t\\t\\t<td style=\\\"width&#58;99px;height&#58;51px;\\\">\\n\\t\\t\\t<p>Outgoing SMS<br>\\n\\t\\t\\tSMS Concult<br>\\n\\t\\t\\t5190</p>\\n\\t\\t\\t</td>\\n\\t\\t\\t<td style=\\\"width&#58;64px;height&#58;51px;\\\">\\n\\t\\t\\t<p>5190</p>\\n\\t\\t\\t</td>\\n\\t\\t\\t<td style=\\\"width&#58;64px;height&#58;51px;\\\">\\n\\t\\t\\t<p>1 sms</p>\\n\\t\\t\\t</td>\\n\\t\\t\\t<td style=\\\"width&#58;64px;height&#58;51px;\\\">\\n\\t\\t\\t<p>0 tg</p>\\n\\t\\t\\t</td>\\n\\t\\t\\t<td style=\\\"width&#58;64px;height&#58;51px;\\\">\\n\\t\\t\\t<p>&#160;</p>\\n\\n\\t\\t\\t<table border=\\\"0\\\" cellpadding=\\\"0\\\" cellspacing=\\\"0\\\" style=\\\"width&#58;145px;\\\">\\n\\t\\t\\t\\t<tbody>\\n\\t\\t\\t\\t\\t<tr>\\n\\t\\t\\t\\t\\t\\t<td style=\\\"width&#58;145px;height&#58;19px;\\\">VASSMSO_5190_91693</td>\\n\\t\\t\\t\\t\\t</tr>\\n\\t\\t\\t\\t\\t<tr>\\n\\t\\t\\t\\t\\t\\t<td style=\\\"height&#58;19px;\\\">&#160;</td>\\n\\t\\t\\t\\t\\t</tr>\\n\\t\\t\\t\\t</tbody>\\n\\t\\t\\t</table>\\n\\n\\t\\t\\t<p>&#160;</p>\\n\\t\\t\\t</td>\\n\\t\\t\\t<td style=\\\"width&#58;139px;height&#58;51px;\\\">\\n\\t\\t\\t<p>Please&#160; create new name and tariff.</p>\\n\\t\\t\\t</td>\\n\\t\\t</tr>\\n\\t\\t<tr>\\n\\t\\t\\t<td style=\\\"width&#58;99px;height&#58;51px;\\\">\\n\\t\\t\\t<p>Incoming SMS<br>\\n\\t\\t\\tSMS Concult 5190</p>\\n\\t\\t\\t</td>\\n\\t\\t\\t<td style=\\\"width&#58;64px;height&#58;51px;\\\">\\n\\t\\t\\t<p>5190</p>\\n\\t\\t\\t</td>\\n\\t\\t\\t<td style=\\\"width&#58;64px;height&#58;51px;\\\">\\n\\t\\t\\t<p>1 sms</p>\\n\\t\\t\\t</td>\\n\\t\\t\\t<td style=\\\"width&#58;64px;height&#58;51px;\\\">\\n\\t\\t\\t<p>0 tg</p>\\n\\t\\t\\t</td>\\n\\t\\t\\t<td style=\\\"width&#58;64px;height&#58;51px;\\\">\\n\\t\\t\\t<p>VASSMSI_5190_91694</p>\\n\\t\\t\\t</td>\\n\\t\\t\\t<td style=\\\"width&#58;139px;height&#58;51px;\\\">\\n\\t\\t\\t<p>Please&#160; create new name and tariff.</p>\\n\\t\\t\\t</td>\\n\\t\\t</tr>\\n\\t\\t<tr>\\n\\t\\t\\t<td style=\\\"width&#58;99px;height&#58;51px;\\\">\\n\\t\\t\\t<p>Outgoing SMS<br>\\n\\t\\t\\tPhilip Morris<br>\\n\\t\\t\\t2121</p>\\n\\t\\t\\t</td>\\n\\t\\t\\t<td style=\\\"width&#58;64px;height&#58;51px;\\\">\\n\\t\\t\\t<p>2121</p>\\n\\t\\t\\t</td>\\n\\t\\t\\t<td style=\\\"width&#58;64px;height&#58;51px;\\\">\\n\\t\\t\\t<p>1 sms</p>\\n\\t\\t\\t</td>\\n\\t\\t\\t<td style=\\\"width&#58;64px;height&#58;51px;\\\">\\n\\t\\t\\t<p>0 tg</p>\\n\\t\\t\\t</td>\\n\\t\\t\\t<td style=\\\"width&#58;64px;height&#58;51px;\\\">\\n\\t\\t\\t<p>TuanTuan_2121_3304</p>\\n\\t\\t\\t</td>\\n\\t\\t\\t<td style=\\\"width&#58;139px;height&#58;51px;\\\">\\n\\t\\t\\t<p>Please change&#160; tariff.</p>\\n\\t\\t\\t</td>\\n\\t\\t</tr>\\n\\t\\t<tr>\\n\\t\\t\\t<td style=\\\"width&#58;99px;height&#58;85px;\\\">\\n\\t\\t\\t<p>Outgoing IVR 1355 Karagandinskaya Sluzhba Spaseniya</p>\\n\\t\\t\\t</td>\\n\\t\\t\\t<td style=\\\"width&#58;64px;height&#58;85px;\\\">\\n\\t\\t\\t<p>1355</p>\\n\\t\\t\\t</td>\\n\\t\\t\\t<td style=\\\"width&#58;64px;height&#58;85px;\\\">\\n\\t\\t\\t<p>60 sec</p>\\n\\t\\t\\t</td>\\n\\t\\t\\t<td style=\\\"width&#58;64px;height&#58;85px;\\\">\\n\\t\\t\\t<p>0 tg</p>\\n\\t\\t\\t</td>\\n\\t\\t\\t<td style=\\\"width&#58;64px;height&#58;85px;\\\">\\n\\t\\t\\t<p>VASIVR_1355_91692</p>\\n\\t\\t\\t</td>\\n\\t\\t\\t<td style=\\\"width&#58;139px;height&#58;85px;\\\">\\n\\t\\t\\t<p>Please change tariff from 01.07.2018</p>\\n\\t\\t\\t</td>\\n\\t\\t</tr>\\n\\t\\t<tr>\\n\\t\\t\\t<td style=\\\"width&#58;99px;height&#58;68px;\\\">\\n\\t\\t\\t<p>Incoming SMS<br>\\n\\t\\t\\t7111&#160; Kazkomerts bank</p>\\n\\t\\t\\t</td>\\n\\t\\t\\t<td style=\\\"width&#58;64px;height&#58;68px;\\\">\\n\\t\\t\\t<p>7111</p>\\n\\t\\t\\t</td>\\n\\t\\t\\t<td style=\\\"width&#58;64px;height&#58;68px;\\\">\\n\\t\\t\\t<p>1 sms</p>\\n\\t\\t\\t</td>\\n\\t\\t\\t<td style=\\\"width&#58;64px;height&#58;68px;\\\">\\n\\t\\t\\t<p>0 tg</p>\\n\\t\\t\\t</td>\\n\\t\\t\\t<td style=\\\"width&#58;64px;height&#58;68px;\\\">\\n\\t\\t\\t<p>Timwe_7111_3621</p>\\n\\t\\t\\t</td>\\n\\t\\t\\t<td style=\\\"width&#58;139px;height&#58;68px;\\\">\\n\\t\\t\\t<p>Please&#160; create new name and tariff.</p>\\n\\t\\t\\t</td>\\n\\t\\t</tr>\\n\\t\\t<tr>\\n\\t\\t\\t<td style=\\\"width&#58;99px;height&#58;68px;\\\">\\n\\t\\t\\t<p>Outgoing SMS<br>\\n\\t\\t\\t7111&#160; Kazkomerts bank</p>\\n\\t\\t\\t</td>\\n\\t\\t\\t<td style=\\\"width&#58;64px;height&#58;68px;\\\">\\n\\t\\t\\t<p>7111</p>\\n\\t\\t\\t</td>\\n\\t\\t\\t<td style=\\\"width&#58;64px;height&#58;68px;\\\">\\n\\t\\t\\t<p>1 sms</p>\\n\\t\\t\\t</td>\\n\\t\\t\\t<td style=\\\"width&#58;64px;height&#58;68px;\\\">\\n\\t\\t\\t<p>0 tg</p>\\n\\t\\t\\t</td>\\n\\t\\t\\t<td style=\\\"width&#58;64px;height&#58;68px;\\\">\\n\\t\\t\\t<p>Timwe_7111_3620</p>\\n\\t\\t\\t</td>\\n\\t\\t\\t<td style=\\\"width&#58;139px;height&#58;68px;\\\">\\n\\t\\t\\t<p>Please&#160; create new name and tariff.</p>\\n\\t\\t\\t</td>\\n\\t\\t</tr>\\n\\t\\t<tr>\\n\\t\\t\\t<td style=\\\"width&#58;99px;height&#58;68px;\\\">\\n\\t\\t\\t<p>Outgoing IVR 9595 Kazkomerts bank</p>\\n\\t\\t\\t</td>\\n\\t\\t\\t<td style=\\\"width&#58;64px;height&#58;68px;\\\">\\n\\t\\t\\t<p>9595</p>\\n\\t\\t\\t</td>\\n\\t\\t\\t<td style=\\\"width&#58;64px;height&#58;68px;\\\">\\n\\t\\t\\t<p>60 sec</p>\\n\\t\\t\\t</td>\\n\\t\\t\\t<td style=\\\"width&#58;64px;height&#58;68px;\\\">\\n\\t\\t\\t<p>0 tg</p>\\n\\t\\t\\t</td>\\n\\t\\t\\t<td style=\\\"width&#58;64px;height&#58;68px;\\\">\\n\\t\\t\\t<p>VASIVR_9595_91695</p>\\n\\t\\t\\t</td>\\n\\t\\t\\t<td style=\\\"width&#58;139px;height&#58;68px;\\\">\\n\\t\\t\\t<p>Please&#160; create new name and tariff.</p>\\n\\t\\t\\t</td>\\n\\t\\t</tr>\\n\\t\\t<tr>\\n\\t\\t\\t<td style=\\\"width&#58;99px;height&#58;34px;\\\">\\n\\t\\t\\t<p>Outgoing IVR 2777 Bazis A</p>\\n\\t\\t\\t</td>\\n\\t\\t\\t<td style=\\\"width&#58;64px;height&#58;34px;\\\">\\n\\t\\t\\t<p>2777</p>\\n\\t\\t\\t</td>\\n\\t\\t\\t<td style=\\\"width&#58;64px;height&#58;34px;\\\">\\n\\t\\t\\t<p>60 sec</p>\\n\\t\\t\\t</td>\\n\\t\\t\\t<td style=\\\"width&#58;64px;height&#58;34px;\\\">\\n\\t\\t\\t<p>0 tg</p>\\n\\t\\t\\t</td>\\n\\t\\t\\t<td style=\\\"width&#58;64px;height&#58;34px;\\\">\\n\\t\\t\\t<p>VASIVR_2777_90633</p>\\n\\t\\t\\t</td>\\n\\t\\t\\t<td style=\\\"width&#58;139px;height&#58;34px;\\\">\\n\\t\\t\\t<p>Please&#160; create new name and tariff.</p>\\n\\t\\t\\t</td>\\n\\t\\t</tr>\\n\\t\\t<tr>\\n\\t\\t\\t<td style=\\\"width&#58;99px;height&#58;51px;\\\">\\n\\t\\t\\t<p>Outgoing IVR 1450 Adal Su</p>\\n\\t\\t\\t</td>\\n\\t\\t\\t<td style=\\\"width&#58;64px;height&#58;51px;\\\">\\n\\t\\t\\t<p>1450</p>\\n\\t\\t\\t</td>\\n\\t\\t\\t<td style=\\\"width&#58;64px;height&#58;51px;\\\">\\n\\t\\t\\t<p>60 sec</p>\\n\\t\\t\\t</td>\\n\\t\\t\\t<td style=\\\"width&#58;64px;height&#58;51px;\\\">\\n\\t\\t\\t<p>15 tg</p>\\n\\t\\t\\t</td>\\n\\t\\t\\t<td style=\\\"width&#58;64px;height&#58;51px;\\\">\\n\\t\\t\\t<p>VASIVR_1450_9944</p>\\n\\t\\t\\t</td>\\n\\t\\t\\t<td style=\\\"width&#58;139px;height&#58;51px;\\\">\\n\\t\\t\\t<p>Please change tariff. First 10 sec free of charge</p>\\n\\t\\t\\t</td>\\n\\t\\t</tr>\\n\\t\\t<tr>\\n\\t\\t\\t<td style=\\\"width&#58;99px;height&#58;51px;\\\">\\n\\t\\t\\t<p>Outgoing IVR 1515 &quot;ITS Security Group&quot;</p>\\n\\t\\t\\t</td>\\n\\t\\t\\t<td style=\\\"width&#58;64px;height&#58;51px;\\\">\\n\\t\\t\\t<p>1515</p>\\n\\t\\t\\t</td>\\n\\t\\t\\t<td style=\\\"width&#58;64px;height&#58;51px;\\\">\\n\\t\\t\\t<p>60 sec</p>\\n\\t\\t\\t</td>\\n\\t\\t\\t<td style=\\\"width&#58;64px;height&#58;51px;\\\">\\n\\t\\t\\t<p>0 tg</p>\\n\\t\\t\\t</td>\\n\\t\\t\\t<td style=\\\"width&#58;64px;height&#58;51px;\\\">\\n\\t\\t\\t<p>VASIVR_1515_91696</p>\\n\\t\\t\\t</td>\\n\\t\\t\\t<td style=\\\"width&#58;139px;height&#58;51px;\\\">\\n\\t\\t\\t<p>Please&#160; create new name and tariff.</p>\\n\\t\\t\\t</td>\\n\\t\\t</tr>\\n\\t</tbody>\\n</table>\\n</div>\\n\",\n" +
+                "        \"StartDate\": null,\n" +
+                "        \"EndDate\": null,\n" +
+                "        \"ProductName\": null,\n" +
+                "        \"ProductComponents\": null,\n" +
+                "        \"BalancesPocketsAccums\": null,\n" +
+                "        \"Status\": \"Approved by Department Manager\",\n" +
+                "        \"Waiting_x0020_forId\": null,\n" +
+                "        \"InterconnectPhonesTesting\": null,\n" +
+                "        \"InterconnectDateTestStart\": null,\n" +
+                "        \"InterconnectDateTestEnd\": null,\n" +
+                "        \"CBOSSPhonesTesting\": null,\n" +
+                "        \"CBOSSDateTestStart\": null,\n" +
+                "        \"CBOSSDateTestEnd\": null,\n" +
+                "        \"ORGAPhonesTesting\": null,\n" +
+                "        \"ORGADateTestStart\": null,\n" +
+                "        \"ORGADateTestEnd\": null,\n" +
+                "        \"TICPhonesTesting\": null,\n" +
+                "        \"TICDateTestStart\": null,\n" +
+                "        \"TICDateTestEnd\": null,\n" +
+                "        \"RoamingPhonesTesting\": null,\n" +
+                "        \"RoamingDateTestStart\": null,\n" +
+                "        \"RoamingDateTestEnd\": null,\n" +
+                "        \"Comments\": null,\n" +
+                "        \"DepartmentManagerId\": null,\n" +
+                "        \"FD_x002d_BRS_x002d_ExpertId\": null,\n" +
+                "        \"FD_x002d_IBS_x002d_IT_x0020_SupeId\": null,\n" +
+                "        \"ICTD_x002d_SNS_x002d_BCOU_x002d_Id\": null,\n" +
+                "        \"ICTD_x0020_SpecialistsId\": null,\n" +
+                "        \"DepartmentSpecialistId\": null,\n" +
+                "        \"MassApprove\": null,\n" +
+                "        \"TCF_CREATE\": null,\n" +
+                "        \"TypeForm\": \"\\u0418\\u0437\\u043c\\u0435\\u043d\\u0435\\u043d\\u0438\\u0435 \\u0442\\u0430\\u0440\\u0438\\u0444\\u0430 \\u043d\\u0430 \\u0441\\u0443\\u0449\\u0435\\u0441\\u0442\\u0432\\u0443\\u044e\\u0449\\u0438\\u0439 \\u0441\\u0435\\u0440\\u0432\\u0438\\u0441 (New service TCF)\",\n" +
+                "        \"ServiceNameRUS\": \"Free Phone / Bulk sms\",\n" +
+                "        \"ServiceNameENG\": \"Free Phone / Bulk sms\",\n" +
+                "        \"ServiceNameKAZ\": \"Free Phone / Bulk sms\",\n" +
+                "        \"OData__x0031_23\": null,\n" +
+                "        \"ID\": 7,\n" +
+                "        \"Modified\": \"2019-02-22T09:45:18Z\",\n" +
+                "        \"Created\": \"2019-02-22T09:45:18Z\",\n" +
+                "        \"AuthorId\": 4599,\n" +
+                "        \"EditorId\": 4599,\n" +
+                "        \"OData__UIVersionString\": \"1.0\",\n" +
+                "        \"Attachments\": false,\n" +
+                "        \"GUID\": \"52948b46-9ab6-4131-82b3-fcd2719d14c5\"\n" +
+                "    }\n" +
+                "}";
+            return ResponseEntity.ok(responseString);
+        }
+    }
+
+    private static String getAuthenticatedResponse(
+        final String urlStr, final String domain,
+        final String userName, final String password) throws IOException {
+
+        StringBuilder response = new StringBuilder();
+
+        Authenticator.setDefault(new Authenticator() {
+
+            @Override
+            public PasswordAuthentication getPasswordAuthentication() {
+                return new PasswordAuthentication(
+                    domain + "\\" + userName, password.toCharArray());
+            }
+        });
+
+        URL urlRequest = new URL(urlStr);
+        HttpURLConnection conn = (HttpURLConnection) urlRequest.openConnection();
+        conn.setDoOutput(true);
+        conn.setDoInput(true);
+        conn.setRequestMethod("GET");
+        conn.setRequestProperty("Accept", "application/json;odata=verbose");
+
+        InputStream stream = conn.getInputStream();
+        BufferedReader in = new BufferedReader(new InputStreamReader(stream));
+        String str = "";
+        while ((str = in.readLine()) != null) {
+            response.append(str);
+        }
+        in.close();
+
+        return response.toString();
+    }
+
+    private static String postAuthenticatedResponse(
+        final String urlStr, final String domain,
+        final String userName, final String password) throws IOException {
+
+        Authenticator.setDefault(new Authenticator() {
+
+            @Override
+            public PasswordAuthentication getPasswordAuthentication() {
+                return new PasswordAuthentication(
+                    domain + "\\" + userName, password.toCharArray());
+            }
+        });
+
+        String jsonRequestBody = "{}";
+
+        URL urlRequest = new URL(urlStr);
+        HttpURLConnection conn = (HttpURLConnection) urlRequest.openConnection();
+        conn.setConnectTimeout(5000);
+        conn.setRequestProperty("Accept", "application/json;odata=verbose");
+        conn.setRequestProperty("Content-Type", "application/json;odata=verbose");
+        conn.setDoOutput(true);
+        conn.setDoInput(true);
+        conn.setRequestMethod("POST");
+
+        OutputStream os = conn.getOutputStream();
+        os.write(jsonRequestBody.getBytes("UTF-8"));
+        os.close();
+
+        // read the response
+        InputStream in = new BufferedInputStream(conn.getInputStream());
+        String result = org.apache.commons.io.IOUtils.toString(in, "UTF-8");
+        JSONObject jsonObject = new JSONObject(result);
+
+        in.close();
+        conn.disconnect();
+
+        return jsonObject.toString();
+    }
+
+    private static String postItemsResponse(
+        final String urlStr, final String domain,
+        final String userName, final String password,
+        final String requestBodyStr) throws IOException {
+
+        JSONObject reqObj = new JSONObject(requestBodyStr);
+        String formDigetValueStr = reqObj.get("FormDigestValue").toString();
+        reqObj.remove("FormDigestValue");
+        String jsonRequestBody = reqObj.toString();
+
+        Authenticator.setDefault(new Authenticator() {
+
+            @Override
+            public PasswordAuthentication getPasswordAuthentication() {
+                return new PasswordAuthentication(
+                    domain + "\\" + userName, password.toCharArray());
+            }
+        });
+
+        URL urlRequest = new URL(urlStr);
+        HttpURLConnection conn = (HttpURLConnection) urlRequest.openConnection();
+        conn.setConnectTimeout(5000);
+        conn.setRequestProperty("X-requestDigest", formDigetValueStr);
+        conn.setRequestProperty("Accept", "application/json;odata=verbose");
+        conn.setRequestProperty("Content-Type", "application/json;odata=verbose");
+        conn.setDoOutput(true);
+        conn.setDoInput(true);
+        conn.setRequestMethod("POST");
+
+        OutputStream os = conn.getOutputStream();
+        os.write(jsonRequestBody.getBytes("UTF-8"));
+        os.close();
+
+        // read the response
+        InputStream in = new BufferedInputStream(conn.getInputStream());
+        String result = org.apache.commons.io.IOUtils.toString(in, "UTF-8");
+        JSONObject jsonObject = new JSONObject(result);
+
+        in.close();
+        conn.disconnect();
+
+        return jsonObject.toString();
     }
 
     @RequestMapping(value = "/forms/tcf", method = RequestMethod.POST, produces={"application/json"}, consumes="application/json")

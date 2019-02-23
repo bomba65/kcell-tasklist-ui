@@ -1,6 +1,6 @@
 define(['./module', 'lodash', 'big-js'], function(module, _, Big){
 	'use strict';
-	return module.controller('MassApproveCtrl', ['$scope', '$rootScope', 'toasty', 'AuthenticationService', '$stateParams', '$timeout', '$location', 'exModal', '$http', '$state', function($scope, $rootScope, toasty, AuthenticationService, $stateParams, $timeout, $location, exModal, $http, $state) {
+	return module.controller('MassApproveCtrl', ['$scope', '$rootScope', 'toasty', 'AuthenticationService', '$stateParams', '$timeout', '$location', 'exModal', '$http', '$state', '$q', '$filter', function($scope, $rootScope, toasty, AuthenticationService, $stateParams, $timeout, $location, exModal, $http, $state, $q, $filter) {
         const baseUrl = '/camunda/api/engine/engine/default';
         const defKey = $stateParams.defKey;
         if (!defKey) return;
@@ -333,17 +333,128 @@ define(['./module', 'lodash', 'big-js'], function(module, _, Big){
             }
         });
 
-        var waiting = 0;
+        var preSubmitTasks = {
+            TCFPost: {
+                tasks: ["massApprove_checkFormAmdocsTCF","massApprove_checkFormOrgaTCF","massApprove_bulkSMS_checkFormAmdocsTCF","massApprove_bulkSMS_checkFormOrgaTCF"],
+                fire: function(reqBodyTCF){
+                    console.log('request Body TCF', reqBodyTCF);
+                    return $http.post("/camunda/sharepoint/contextinfo", {}).then(
+                        function(response){
+                            console.log('response Body TCF', response);
+                            if (response && response.data){
+                                var contextinfo = response.data.d.GetContextWebInformation.FormDigestValue;
+                                reqBodyTCF["FormDigestValue"] = contextinfo;
+                                console.log('contextinfo', contextinfo);
+                                return $http.post("/camunda/sharepoint/items", reqBodyTCF);
+                            }
+                        }
+                    )
+                }
+            }
+        };
 
         $scope.submitThem = function() {
-            waiting = 0;
+            var tasks2submit = [];
             for (var i = 0; i < $scope.definitions.length; i++) {
                 const definition = $scope.definitions[i];
-
                 var mandatoryFields = [];
                 angular.forEach(definition.configs.table.rows, function(row){
                     Object.assign(mandatoryFields, row.fields.filter(function(field){return field.notNull}));
                 });
+
+                if(preSubmitTasks['TCFPost'].tasks.indexOf(defKey) > -1){
+                    var processKey = definition.id.substring(0,definition.id.indexOf(':'));
+                    console.log('processKey', processKey);
+                    var billingTCF = "";
+                    var headerBillingName = "";
+                    var headerBillingId = "";
+                    var ServiceNameRUS = "";
+                    var ServiceNameENG = "";
+                    var ServiceNameKAZ = "";
+                    var commentsTCF = "";
+                    var countApproved = 0;
+                    var htmlTemplateRow = "";
+                    var htmlTemplateHeader = '<div>' +
+                        '<p></p>' +
+                        '<table border="0" cellpadding="0" cellspacing="0" style="border: 1px dotted #d3d3d3;color:#333333;background-color:#ffffff;width:500px;">' +
+                        '<tbody>' +
+                        '<tr>' +
+                        '<td rowspan="2" style="border: 1px dotted #d3d3d3;height: 54px; width: 120px">Service Name</td>' +
+                        '<td rowspan="2" style="border: 1px dotted #d3d3d3; width: 60px">Short Number</td>' +
+                        '<td colspan="3" style="border: 1px dotted #d3d3d3; width: 220px">' + headerBillingName + '</td>' +
+                        '<td rowspan="2" style="border: 1px dotted #d3d3d3; width: 100px">Comments for ICTD</td>' +
+                        '</tr>' +
+                        '<tr>' +
+                        '<td style="border: 1px dotted #d3d3d3; width: 66px">Counter</td>' +
+                        '<td style="border: 1px dotted #d3d3d3; width: 66px">Price per counter</td>' +
+                        '<td style="border: 1px dotted #d3d3d3;">' + headerBillingId + '</td>' +
+                        '</tr>';
+                    var htmlTemplateFooter = '</tbody></table><p><br></p></div>';
+
+                    var requestBodyJSON = {};
+                    var metadataBodyJSON = {type: "SP.Data.TCF_x005f_testListItem"};
+                    var operatorBodyJSON = {};
+                    var billingTypeBodyJSON = {};
+                    var operatorResultsJSONArray = [];
+                    var billingTypeResultsJSONArray = [];
+
+                    requestBodyJSON["__metadata"] = metadataBodyJSON;
+
+                    if(["massApprove_checkFormAmdocsTCF","massApprove_bulkSMS_checkFormAmdocsTCF"].indexOf(defKey) > -1){
+                        billingTCF = "amdocs";
+                    } else if(["massApprove_checkFormOrgaTCF","massApprove_bulkSMS_checkFormOrgaTCF"].indexOf(defKey) > -1){
+                        billingTCF = "orga";
+                    };
+
+                    if (processKey === "bulksmsConnectionKAE") {
+                        ServiceNameRUS = "Bulk sms";
+                        ServiceNameENG = "Bulk sms";
+                        ServiceNameKAZ = "Bulk sms";
+                    }
+
+                    if (processKey === "freephone") {
+                        ServiceNameRUS = "Free Phone";
+                        ServiceNameENG = "Free Phone";
+                        ServiceNameKAZ = "Free Phone";
+                    }
+
+                    if(billingTCF === "amdocs"){
+                        commentsTCF = "Проверить корректность заполнения TCF Amdocs";
+                        headerBillingName = "Amdocs";
+                        headerBillingId = "Amdocs ID";
+                        operatorResultsJSONArray.push("Kcell");
+                        billingTypeResultsJSONArray.push("CBOSS");
+                        operatorBodyJSON["results"] = operatorResultsJSONArray;
+                        billingTypeBodyJSON["results"] = billingTypeResultsJSONArray;
+                        requestBodyJSON["Operator"] = operatorBodyJSON;
+                        requestBodyJSON["BillingType"] = billingTypeBodyJSON;
+                    }
+
+                    if(billingTCF === "orga"){
+                        commentsTCF = "Проверить корректность заполнения TCF Orga";
+                        headerBillingName = "Orga";
+                        headerBillingId = "Orga ID";
+                        operatorResultsJSONArray.push("Activ");
+                        billingTypeResultsJSONArray.push("Orga");
+                        operatorBodyJSON["results"] = operatorResultsJSONArray;
+                        billingTypeBodyJSON["results"] = billingTypeResultsJSONArray;
+                        requestBodyJSON["Operator"] = operatorBodyJSON;
+                        requestBodyJSON["BillingType"] = billingTypeBodyJSON;
+                    }
+
+                    requestBodyJSON["InitiatorDepartment"] = "B2B";
+                    requestBodyJSON["Subject"] = "B2B short numbers";
+                    //requestBodyJSON["DateDeadline"] = tcfDateValue;
+                    requestBodyJSON["Service"] = "Products / Tariffs";
+                    requestBodyJSON["RelationWithThirdParty"] = false;
+                    requestBodyJSON["TypeForm"] = "Изменение тарифа на существующий сервис (New service TCF)";
+                    requestBodyJSON["Comments"] = commentsTCF;
+                    requestBodyJSON["ServiceNameRUS"] = ServiceNameRUS;
+                    requestBodyJSON["ServiceNameENG"] = ServiceNameENG;
+                    requestBodyJSON["ServiceNameKAZ"] = ServiceNameKAZ;
+                    //requestBodyJSON["Status", "Approved by Department Manager");
+                    requestBodyJSON["Created"] = $filter('date')(new Date(), 'yyyy-MM-ddTHH:mm:ss');
+                }
 
                 for (var j = 0; j < definition.tasks.length; j++) {
                     const instance = $scope.definitions[i].tasks[j];
@@ -360,7 +471,6 @@ define(['./module', 'lodash', 'big-js'], function(module, _, Big){
                     //console.log(emptyFields, mandatoryFields);
                     if(emptyFields.length>0) continue;
 
-                    waiting++;
                     // Insert resolution
                     var resName = defKey + "TaskResult";
                     var resValue = "";
@@ -371,72 +481,236 @@ define(['./module', 'lodash', 'big-js'], function(module, _, Big){
                         resValue = instance.resolution;
                     }
                     //console.log(baseUrl+"/task/"+instance.taskId+"/variables/"+resName, resValue);
-                    //$http.put(baseUrl+"/task/"+instance.taskId+"/variables/"+resName, {value: resValue, type: "String"}).then(function() {
-                        let variables = {};
-                        variables[resName] = {value: resValue, type: "String"};
 
-                        var comName = defKey + "TaskComment";
-                        var comValue = "";
-                        if (definition.configs.commentVariable && definition.configs.commentVariable.length) {
-                            comName = definition.configs.commentVariable;
-                        }
-                        if (instance.comment && instance.comment.length) {
-                            comValue = instance.comment;
-                        } else {
-                            comValue = $scope.taskData[instance.taskId]['comment'];
-                        }
+                    let variables = {};
+                    variables[resName] = {value: resValue, type: "String"};
 
-                        variables[comName] = {
-                            value: comValue,
-                            type: "String"
-                        };
+                    var comName = defKey + "TaskComment";
+                    var comValue = "";
+                    if (definition.configs.commentVariable && definition.configs.commentVariable.length) {
+                        comName = definition.configs.commentVariable;
+                    }
+                    if (instance.comment && instance.comment.length) {
+                        comValue = instance.comment;
+                    } else {
+                        comValue = $scope.taskData[instance.taskId]['comment'];
+                    }
 
-                        /*
-                        definition.configs.table.fields.filter(field => !field.override && (!field.readOnly || field.save)).forEach(field=>{
+                    variables[comName] = {
+                        value: comValue,
+                        type: "String"
+                    };
+
+                    //definition.configs.table.fields.filter(field => !field.override && (!field.readOnly || field.save)).forEach(field=>{
+                    //    variables[field.name] = {
+                    //        value: instance[field.name],
+                    //        type: "String"
+                    //    };
+                    //});
+
+                    angular.forEach(definition.configs.table.rows, function(row){
+                        //Object.assign(variables, row.filter(function(field){return field.notNull}));
+                        row.fields.filter(field => !field.override && (!field.readOnly || field.save)).forEach(field=>{
                             variables[field.name] = {
                                 value: instance[field.name],
                                 type: "String"
                             };
                         });
-                        */
-                        angular.forEach(definition.configs.table.rows, function(row){
-                            //Object.assign(variables, row.filter(function(field){return field.notNull}));
-                            row.fields.filter(field => !field.override && (!field.readOnly || field.save)).forEach(field=>{
-                                variables[field.name] = {
-                                    value: instance[field.name],
-                                    type: "String"
-                                };
-                            });
-                        });
+                    });
+                    if (definition.configs.showTCFID){
+                        if(instance.amdocsTcfId){
+                            variables['amdocsTcfId'] = {
+                                value: instance.amdocsTcfId,
+                                type: "String"
+                            };
+                        }
+                        if(instance.orgaTcfId){
+                            variables['orgaTcfId'] = {
+                                value: instance.orgaTcfId,
+                                type: "String"
+                            };
+                        }
+                    }
+                    var dateName = defKey + "TaskCloseDate";
+                    variables[dateName] = {
+                        value: $scope.closeDate || new Date(),
+                        type: "Date"
+                    };
 
-                        if (definition.configs.showTCFID){
-                            if(instance.amdocsTcfId){
-                                variables['amdocsTcfId'] = {
-                                    value: instance.amdocsTcfId,
-                                    type: "String"
-                                };
+                    if(preSubmitTasks['TCFPost'].tasks.indexOf(defKey) > -1){
+                        var taskResolutionResult = "";
+                        var tcfDateValue = "";
+                        var commentValue = "";
+
+                        if (processKey === "bulksmsConnectionKAE") {
+                            if(billingTCF === "amdocs"){
+                                taskResolutionResult = variables["massApprove_bulkSMS_checkFormAmdocsTCFTaskResult"].value;
+                                commentValue = variables["massApprove_bulkSMS_checkFormAmdocsTCFTaskComment"].value;
+
+                                var closeDate = instance["massApprove_bulkSMS_confirmAmdocsTCFTaskCloseDate"];
+                                tcfDateValue = $filter('date')(closeDate, 'yyyy-MM-ddTHH:mm:ss');
                             }
-                            if(instance.orgaTcfId){
-                                variables['orgaTcfId'] = {
-                                    value: instance.orgaTcfId,
-                                    type: "String"
-                                };
+                            if(billingTCF === "orga"){
+                                taskResolutionResult = variables["massApprove_bulkSMS_checkFormOrgaTCFTaskResult"].value;
+                                commentValue = variables["massApprove_bulkSMS_checkFormOrgaTCFTaskComment"].value;
+
+                                var closeDate = instance["massApprove_bulkSMS_confirmOrgaTCFTaskCloseDate"];
+                                tcfDateValue = $filter('date')(closeDate, 'yyyy-MM-ddTHH:mm:ss');
                             }
+
+                        }
+                        if (processKey === "freephone") {
+                            if(billingTCF === "amdocs"){
+                                taskResolutionResult = variables["massApprove_checkFormAmdocsTCFTaskResult"].value;
+                                commentValue = variables["massApprove_checkFormAmdocsTCFTaskComment"].value;
+
+                                var closeDate = instance["massApprove_confirmAmdocsTCFTaskCloseDate"];
+                                tcfDateValue = $filter('date')(closeDate, 'yyyy-MM-ddTHH:mm:ss');
+                            }
+                            if(billingTCF === "orga"){
+                                taskResolutionResult = variables["massApprove_checkFormOrgaTCFTaskResult"].value;
+                                commentValue = variables["massApprove_checkFormOrgaTCFTaskComment"].value;
+
+                                var closeDate = instance["massApprove_confirmOrgaTCFTaskCloseDate"];
+                                tcfDateValue = $filter('date')(closeDate, 'yyyy-MM-ddTHH:mm:ss');
+                            }
+
                         }
 
-                        var dateName = defKey + "TaskCloseDate";
-                        variables[dateName] = {
-                            value: new Date(),
-                            type: "Date"
-                        };
+                        if (taskResolutionResult !== "rejected") {
+                            countApproved++;
+                            var shortNumberValue = $scope.massTableField(instance,"identifier:title");
+                            var serviceNameValue = instance["identifierServiceName"];
+                            var counterValue = instance["identifierCounter"];
+                            var pricePerCounterValue = instance["abonentTarif"];
 
-                        $http.post(baseUrl+"/task/"+instance.taskId+"/assignee", {userId: $rootScope.authentication.id}).then(function() {
+                            requestBodyJSON["DateDeadline"] = tcfDateValue;
+                            htmlTemplateRow = htmlTemplateRow.concat("<tr>" +
+                                '<td style="border: 1px dotted #d3d3d3;">' + serviceNameValue + '<br></td>' +
+                                '<td style="border: 1px dotted #d3d3d3;">' + shortNumberValue + '<br></td>' +
+                                '<td style="border: 1px dotted #d3d3d3;">' + counterValue + '</td>' +
+                                '<td style="border: 1px dotted #d3d3d3;">' + pricePerCounterValue + '</td>' +
+                                '<td style="border: 1px dotted #d3d3d3;"><br></td>' +
+                                '<td style="border: 1px dotted #d3d3d3;">' + commentValue + '<br></td>' +
+                                '</tr>'
+                            );
+                        }
+                    }
+
+                    tasks2submit.push(function(formId, status, isReceived){
+                        return $http.post(baseUrl+"/task/"+instance.taskId+"/assignee", {userId: $rootScope.authentication.id}).then(function() {
+                            console.log(111, formId, status, isReceived);
+                            if(formId){
+                                variables[formId.name] = {
+                                    value: formId.value,
+                                    type: formId.type
+                                };
+                            }
+
+                            if(status){
+                                variables[status.name] = {
+                                    value: status.value,
+                                    type: status.type
+                                };
+                            }
+
+                            if(isReceived){
+                                variables[isReceived.name] = {
+                                    value: isReceived.value,
+                                    type: isReceived.type
+                                };
+                            }
+
                             return $http.post(baseUrl+"/task/"+instance.taskId+"/submit-form", {variables: variables});
-                        }).then(function() {
-                            waiting--;
-                            refreshPage();
+                        })
+                    });
+                };
+
+                if(preSubmitTasks['TCFPost'].tasks.indexOf(defKey) > -1){
+                    console.log('countApproved', countApproved);
+                    if(countApproved>0){
+                        var htmlTemplateTCF = htmlTemplateHeader + htmlTemplateRow + htmlTemplateFooter;
+                        requestBodyJSON["Requirments"] = htmlTemplateTCF;
+
+                        //console.log(requestBodyJSON);
+                        console.log(JSON.stringify(requestBodyJSON));
+
+                        preSubmitTasks['TCFPost'].fire(requestBodyJSON).then(
+                            function(response){
+                                console.log('fire response', response.data.d);
+                                if(response && response.data){
+
+                                    console.log('Id', response.data.d.Id);
+                                    if (response.data.d && response.data.d.Id){
+                                        var responseData = angular.copy(response.data.d);
+                                        var formId = {};
+                                        var status = {};
+                                        var isReceived = {};
+
+                                        if(billingTCF === "amdocs"){
+                                            status.name = "amdocsTcfFormStatus";
+                                            status.type = "String";
+                                            status.value = responseData.Status;
+                                            if(status.value.indexOf("Approved") > -1){
+                                                formId.name = "amdocsTcfFormId";
+                                                formId.type = "String";
+                                                formId.value = responseData.Id;
+                                                isReceived.name = "amdocsTcfFormIdReceived";
+                                                isReceived.type = "Boolean";
+                                                isReceived.value = true;
+                                            } else {
+                                                isReceived.name = "amdocsTcfFormIdReceived";
+                                                isReceived.type = "Boolean";
+                                                isReceived.value = false;
+                                            }
+                                        }
+                                        if(billingTCF === "orga"){
+                                            status.name = "orgaTcfFormStatus";
+                                            status.type = "String";
+                                            status.value = responseData.Status;
+                                            console.log('status', status.value);
+                                            if(status.value.indexOf("Approved") > -1){
+                                                formId.name = "orgaTcfFormId";
+                                                formId.type = "String";
+                                                formId.value = responseData.Id;
+                                                isReceived.name = "orgaTcfFormIdReceived";
+                                                isReceived.type = "Boolean";
+                                                isReceived.value = true;
+                                            } else {
+                                                isReceived.name = "orgaTcfFormIdReceived";
+                                                isReceived.type = "Boolean";
+                                                isReceived.value = false;
+                                            }
+                                        }
+
+                                        $q.all(tasks2submit.map(
+                                            function(taskListener){
+                                                console.log('tasks2submit listener',formId, status, isReceived);
+                                                return taskListener(formId, status, isReceived)
+                                        })).then(
+                                            function(){
+                                                $state.go("tasks", {}, {reload: true});
+                                            }
+                                        );
+                                    }
+                                }
+                            }
+                        );
+                    } else {
+                        $q.all(tasks2submit.map(
+                            function(taskListener){
+                                return taskListener()
+                        })).then(function(){
+                            $state.go("tasks", {}, {reload: true});
                         });
-                    //});
+                    }
+                } else {
+                    $q.all(tasks2submit.map(
+                        function(taskListener){
+                            return taskListener()
+                    })).then(function(){
+                        $state.go("tasks", {}, {reload: true});
+                    });
                 }
             }
         }
@@ -455,12 +729,6 @@ define(['./module', 'lodash', 'big-js'], function(module, _, Big){
                 }
             } else {
                 return instance[f];
-            }
-        }
-
-        function refreshPage() {
-            if (waiting == 0) {
-                $state.go("tasks", {}, {reload: true});
             }
         }
 	}]);

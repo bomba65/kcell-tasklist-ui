@@ -102,8 +102,6 @@ public class NtlmCheckController {
         final String urlStr, final String domain,
         final String userName, final String password) throws IOException {
 
-        //StringBuilder response = new StringBuilder();
-
         Authenticator.setDefault(new Authenticator() {
 
             @Override
@@ -240,6 +238,5 @@ public class NtlmCheckController {
         conn.disconnect();
 
         return jsonObject.toString();
-
     }
 }

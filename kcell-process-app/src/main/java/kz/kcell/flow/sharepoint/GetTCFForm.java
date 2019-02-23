@@ -22,6 +22,13 @@ import org.springframework.core.env.Environment;
 import org.springframework.stereotype.Service;
 import org.camunda.bpm.engine.delegate.Expression;
 
+import java.io.BufferedReader;
+import java.io.InputStream;
+import java.io.InputStreamReader;
+import java.net.Authenticator;
+import java.net.HttpURLConnection;
+import java.net.PasswordAuthentication;
+import java.net.URL;
 import java.util.Arrays;
 
 
@@ -33,21 +40,20 @@ public class GetTCFForm implements JavaDelegate {
     private Environment environment;
 
     private final String baseUri;
+    private final String username;
+    private final String pwd;
     Expression billingTCF;
 
     @Autowired
-    public GetTCFForm(@Value("${sharepoint.forms.url:https://sp.kcell.kz/forms/_api/Lists}") String baseUri) {
+    public GetTCFForm(@Value("${sharepoint.forms.url:https://sp.kcell.kz/forms/_api}") String baseUri, @Value("${sharepoint.forms.username}") String username, @Value("${sharepoint.forms.password}") String pwd) {
         this.baseUri = baseUri;
+        this.username = username;
+        this.pwd = pwd;
     }
 
     @Override
     public void execute(DelegateExecution delegateExecution) throws Exception {
-        /*
-        if (identityService.getCurrentAuthentication() == null || identityService.getCurrentAuthentication().getUserId() == null) {
-            log.warning("No user logged in");
-            return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body("No user logged in");
-        }
-        */
+
         Boolean isSftp = Arrays.stream(environment.getActiveProfiles()).anyMatch(env -> (env.equalsIgnoreCase("sftp")));
         //String billingTCF = this.billingTCF.getValue(delegateExecution).toString();
         String billingTCF = String.valueOf(delegateExecution.getVariableLocal("billingTCF"));
@@ -62,6 +68,7 @@ public class GetTCFForm implements JavaDelegate {
                 tcfFormId = delegateExecution.getVariable("orgaTcfFormId").toString();
             }
 
+            /*
             HttpGet httpGet = new HttpGet(baseUri + "/getbytitle('ICTD%20TCF')/items("+tcfFormId+")");
 
             SSLContextBuilder builder = new SSLContextBuilder();
@@ -73,10 +80,37 @@ public class GetTCFForm implements JavaDelegate {
             HttpResponse response = httpClient.execute(httpGet);
             HttpEntity entity = response.getEntity();
             String responseString = EntityUtils.toString(entity, "UTF-8");
+            */
+            StringBuilder response = new StringBuilder();
 
-            delegateExecution.setVariable(billingTCF + "GetResponseBodyTCF", responseString);
+            Authenticator.setDefault(new Authenticator() {
 
-            JSONObject responseSharepointJSON = new JSONObject(responseString);
+                @Override
+                public PasswordAuthentication getPasswordAuthentication() {
+                    return new PasswordAuthentication(
+                        "kcell.kz\\" + username, pwd.toCharArray());
+                }
+            });
+
+            URL urlRequest = new URL(baseUri + "/Lists/getbytitle('TCF_test')/items(" + tcfFormId + ")");
+            HttpURLConnection conn = (HttpURLConnection) urlRequest.openConnection();
+            conn.setDoOutput(true);
+            conn.setDoInput(true);
+            conn.setRequestMethod("GET");
+            conn.setRequestProperty("Accept", "application/json;odata=verbose");
+
+            InputStream stream = conn.getInputStream();
+            BufferedReader in = new BufferedReader(new InputStreamReader(stream));
+            String str = "";
+            while ((str = in.readLine()) != null) {
+                response.append(str);
+            }
+            in.close();
+
+            delegateExecution.setVariable(billingTCF + "GetResponseBodyTCF", response.toString());
+
+
+            JSONObject responseSharepointJSON = new JSONObject(response.toString());
             JSONObject tcf = responseSharepointJSON.getJSONObject("d");
             //String Id = tcf.get("Id").toString();
             String Status = tcf.get("Status").toString();
