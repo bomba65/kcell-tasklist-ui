@@ -90,6 +90,7 @@ public class CamundaApplication extends SpringBootProcessApplication {
                 processEngineConfiguration.setRestrictUserOperationLogToAuthenticatedUsers(false);
                 processEngineConfiguration.setLoginMaxAttempts(100);
                 processEngineConfiguration.setLoginDelayBase(1);
+                processEngineConfiguration.setGeneralResourceWhitelistPattern(".+");
             }
         };
     }
