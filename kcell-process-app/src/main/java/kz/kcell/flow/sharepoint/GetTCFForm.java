@@ -55,17 +55,25 @@ public class GetTCFForm implements JavaDelegate {
     public void execute(DelegateExecution delegateExecution) throws Exception {
 
         Boolean isSftp = Arrays.stream(environment.getActiveProfiles()).anyMatch(env -> (env.equalsIgnoreCase("sftp")));
-        //String billingTCF = this.billingTCF.getValue(delegateExecution).toString();
         String billingTCF = String.valueOf(delegateExecution.getVariableLocal("billingTCF"));
         String tcfFormId = "";
+        String identifierServiceName_amdocs_incoming = "";
+        String identifierServiceName_amdocs_outgoing = "";
+        String identifierServiceName_orga_incoming = "";
+        String identifierServiceName_orga_outgoing = "";
+        String[] rejectStatusByTCF = { "Canceled", "Rejected by ICTD-SNS-BCOU-BCST Supervisor", "Rejected by ICTD Specialists" };
 
         if (isSftp) {
 
             if("amdocs".equals(billingTCF)){
                 tcfFormId = delegateExecution.getVariable("amdocsTcfFormId").toString();
+                identifierServiceName_amdocs_incoming = delegateExecution.getVariable("identifierServiceName_amdocs_incoming").toString();
+                identifierServiceName_amdocs_outgoing = delegateExecution.getVariable("identifierServiceName_amdocs_outgoing").toString();
             }
             if("orga".equals(billingTCF)){
                 tcfFormId = delegateExecution.getVariable("orgaTcfFormId").toString();
+                identifierServiceName_orga_incoming = delegateExecution.getVariable("identifierServiceName_orga_incoming").toString();
+                identifierServiceName_orga_outgoing = delegateExecution.getVariable("identifierServiceName_orga_outgoing").toString();
             }
 
             /*
@@ -115,20 +123,57 @@ public class GetTCFForm implements JavaDelegate {
             //String Id = tcf.get("Id").toString();
             String Status = tcf.get("Status").toString();
 
-            if("Completed".equals(Status)){
+            if("Completed".equals(Status)) {
                 String htmlTable = tcf.get("Requirments").toString();
                 Document doc = Jsoup.parse(htmlTable);
                 Element table = doc.select("table").get(0);
 
                 ////////////////////// PARSE HTML /////////////////////////
-                /*
                 /////// WITHOUT NESTED TABLE ///////////
-                Element row = table.select("tr").get(3);
-                Element td = row.select("td").get(4);
-                String identifierTCFID = td.text();
-                */
+                long trCount = table.select("tr").size();
+                for (int i = 3; i < trCount; i++) {
+                    System.out.println("i = " + i);
+                    String identifierTCFID = "";
+                    Element row = table.select("tr").get(i);
+                    Element tdServiceName = row.select("td").get(0);
+
+                    if ("amdocs".equals(billingTCF)) {
+                        if (identifierServiceName_amdocs_incoming != null && identifierServiceName_amdocs_incoming.equals(tdServiceName)) {
+                            Element tdTCFId = row.select("td").get(4);
+                            identifierTCFID = tdTCFId.text();
+                            delegateExecution.setVariable("identifierAmdocsID_incoming", identifierTCFID);
+                            delegateExecution.setVariable("amdocsTcfIdReceived", true);
+                        }
+                        if (identifierServiceName_amdocs_outgoing != null && identifierServiceName_amdocs_outgoing.equals(tdServiceName)) {
+                            Element tdTCFId = row.select("td").get(4);
+                            identifierTCFID = tdTCFId.text();
+                            delegateExecution.setVariable("identifierAmdocsID_outgoing", identifierTCFID);
+                            delegateExecution.setVariable("amdocsTcfIdReceived", true);
+                        }
+                    }
+                    if ("orga".equals(billingTCF)) {
+                        if (identifierServiceName_orga_incoming != null && identifierServiceName_orga_incoming.equals(tdServiceName)) {
+                            Element tdTCFId = row.select("td").get(4);
+                            identifierTCFID = tdTCFId.text();
+                            delegateExecution.setVariable("identifierOrgaID_incoming", identifierTCFID);
+                            delegateExecution.setVariable("orgaTcfIdReceived", true);
+                        }
+                        if (identifierServiceName_orga_outgoing != null && identifierServiceName_orga_outgoing.equals(tdServiceName)) {
+                            Element tdTCFId = row.select("td").get(4);
+                            identifierTCFID = tdTCFId.text();
+                            delegateExecution.setVariable("identifierOrgaID_outgoing", identifierTCFID);
+                            delegateExecution.setVariable("orgaTcfIdReceived", true);
+                        }
+                    }
+
+                }
+                /*
+                //Element row = table.select("tr").get(4);
+                //Element td = row.select("td").get(4);
+                //String identifierTCFID = td.text();
 
                 /////// WITH NESTED TABLE ///////////
+
                 Element row = table.select("tr").get(4);
                 Element td = row.select("td").get(4);
                 Element nestedTable = td.getElementsByTag("table").get(0);
@@ -136,6 +181,7 @@ public class GetTCFForm implements JavaDelegate {
                 Element nestedTableRowTd = nestedTableRow.select("td").get(0);
                 String identifierTCFID = nestedTableRowTd.text();
                 ///////////////////////////////////////////////////////////
+
                 if("amdocs".equals(billingTCF)){
                     delegateExecution.setVariable("identifierAmdocsID", identifierTCFID);
                     delegateExecution.setVariable("amdocsTcfIdReceived", true);
@@ -144,6 +190,14 @@ public class GetTCFForm implements JavaDelegate {
                 if("orga".equals(billingTCF)){
                     delegateExecution.setVariable("identifierOrgaID", identifierTCFID);
                     delegateExecution.setVariable("orgaTcfIdReceived", true);
+                }
+                */
+            } else if(Arrays.asList(rejectStatusByTCF).contains(Status)){
+                if("amdocs".equals(billingTCF)){
+                    delegateExecution.setVariable("amdocsRejectedFromTCF", true);
+                }
+                if("orga".equals(billingTCF)){
+                    delegateExecution.setVariable("orgaRejectedFromTCF", true);
                 }
             } else {
                 if("amdocs".equals(billingTCF)){

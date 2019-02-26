@@ -374,21 +374,7 @@ define(['./module', 'lodash', 'big-js'], function(module, _, Big){
                     var commentsTCF = "";
                     var countApproved = 0;
                     var htmlTemplateRow = "";
-                    var htmlTemplateHeader = '<div>' +
-                        '<p></p>' +
-                        '<table border="0" cellpadding="0" cellspacing="0" style="border: 1px dotted #d3d3d3;color:#333333;background-color:#ffffff;width:500px;">' +
-                        '<tbody>' +
-                        '<tr>' +
-                        '<td rowspan="2" style="border: 1px dotted #d3d3d3;height: 54px; width: 120px">Service Name</td>' +
-                        '<td rowspan="2" style="border: 1px dotted #d3d3d3; width: 60px">Short Number</td>' +
-                        '<td colspan="3" style="border: 1px dotted #d3d3d3; width: 220px">' + headerBillingName + '</td>' +
-                        '<td rowspan="2" style="border: 1px dotted #d3d3d3; width: 100px">Comments for ICTD</td>' +
-                        '</tr>' +
-                        '<tr>' +
-                        '<td style="border: 1px dotted #d3d3d3; width: 66px">Counter</td>' +
-                        '<td style="border: 1px dotted #d3d3d3; width: 66px">Price per counter</td>' +
-                        '<td style="border: 1px dotted #d3d3d3;">' + headerBillingId + '</td>' +
-                        '</tr>';
+                    var htmlTemplateHeader = "";
                     var htmlTemplateFooter = '</tbody></table><p><br></p></div>';
 
                     var requestBodyJSON = {};
@@ -441,6 +427,22 @@ define(['./module', 'lodash', 'big-js'], function(module, _, Big){
                         requestBodyJSON["Operator"] = operatorBodyJSON;
                         requestBodyJSON["BillingType"] = billingTypeBodyJSON;
                     }
+
+                    htmlTemplateHeader = '<div>' +
+                        '<p></p>' +
+                        '<table border="0" cellpadding="0" cellspacing="0" style="border: 1px dotted #d3d3d3;color:#333333;background-color:#ffffff;width:500px;">' +
+                        '<tbody>' +
+                        '<tr>' +
+                        '<td rowspan="2" style="border: 1px dotted #d3d3d3;height: 54px; width: 120px">Service Name</td>' +
+                        '<td rowspan="2" style="border: 1px dotted #d3d3d3; width: 60px">Short Number</td>' +
+                        '<td colspan="3" style="border: 1px dotted #d3d3d3; width: 220px">' + headerBillingName + '</td>' +
+                        '<td rowspan="2" style="border: 1px dotted #d3d3d3; width: 100px">Comments for ICTD</td>' +
+                        '</tr>' +
+                        '<tr>' +
+                        '<td style="border: 1px dotted #d3d3d3; width: 66px">Counter</td>' +
+                        '<td style="border: 1px dotted #d3d3d3; width: 66px">Price per counter</td>' +
+                        '<td style="border: 1px dotted #d3d3d3;">' + headerBillingId + '</td>' +
+                        '</tr>';
 
                     requestBodyJSON["InitiatorDepartment"] = "B2B";
                     requestBodyJSON["Subject"] = "B2B short numbers";
@@ -542,6 +544,11 @@ define(['./module', 'lodash', 'big-js'], function(module, _, Big){
                         var tcfDateValue = "";
                         var commentValue = "";
 
+                        var serviceNameOutgoingValue = "";
+                        var serviceNameIncomingValue = "";
+                        var pricePerCounterOutgoingValue = "";
+                        var pricePerCounterIncomingValue = "";
+
                         if (processKey === "bulksmsConnectionKAE") {
                             if(billingTCF === "amdocs"){
                                 taskResolutionResult = variables["massApprove_bulkSMS_checkFormAmdocsTCFTaskResult"].value;
@@ -549,6 +556,11 @@ define(['./module', 'lodash', 'big-js'], function(module, _, Big){
 
                                 var closeDate = instance["massApprove_bulkSMS_confirmAmdocsTCFTaskCloseDate"];
                                 tcfDateValue = $filter('date')(closeDate, 'yyyy-MM-ddTHH:mm:ss');
+
+                                serviceNameOutgoingValue = instance["identifierServiceName_amdocs_outgoing"];
+                                serviceNameIncomingValue = instance["identifierServiceName_amdocs_incoming"];
+                                pricePerCounterOutgoingValue = instance["abonentTarif_amdocs_outgoing"];
+                                pricePerCounterIncomingValue = instance["abonentTarif_amdocs_incoming"];
                             }
                             if(billingTCF === "orga"){
                                 taskResolutionResult = variables["massApprove_bulkSMS_checkFormOrgaTCFTaskResult"].value;
@@ -556,8 +568,12 @@ define(['./module', 'lodash', 'big-js'], function(module, _, Big){
 
                                 var closeDate = instance["massApprove_bulkSMS_confirmOrgaTCFTaskCloseDate"];
                                 tcfDateValue = $filter('date')(closeDate, 'yyyy-MM-ddTHH:mm:ss');
-                            }
 
+                                serviceNameOutgoingValue = instance["identifierServiceName_orga_outgoing"];
+                                serviceNameIncomingValue = instance["identifierServiceName_orga_incoming"];
+                                pricePerCounterOutgoingValue = instance["abonentTarif_orga_outgoing"];
+                                pricePerCounterIncomingValue = instance["abonentTarif_orga_incoming"];
+                            }
                         }
                         if (processKey === "freephone") {
                             if(billingTCF === "amdocs"){
@@ -566,6 +582,9 @@ define(['./module', 'lodash', 'big-js'], function(module, _, Big){
 
                                 var closeDate = instance["massApprove_confirmAmdocsTCFTaskCloseDate"];
                                 tcfDateValue = $filter('date')(closeDate, 'yyyy-MM-ddTHH:mm:ss');
+
+                                serviceNameOutgoingValue = instance["identifierServiceName_amdocs_outgoing"];
+                                pricePerCounterOutgoingValue = instance["abonentTarif_amdocs_outgoing"];
                             }
                             if(billingTCF === "orga"){
                                 taskResolutionResult = variables["massApprove_checkFormOrgaTCFTaskResult"].value;
@@ -573,27 +592,72 @@ define(['./module', 'lodash', 'big-js'], function(module, _, Big){
 
                                 var closeDate = instance["massApprove_confirmOrgaTCFTaskCloseDate"];
                                 tcfDateValue = $filter('date')(closeDate, 'yyyy-MM-ddTHH:mm:ss');
-                            }
 
+                                serviceNameOutgoingValue = instance["identifierServiceName_orga_outgoing"];
+                                pricePerCounterOutgoingValue = instance["abonentTarif_orga_outgoing"];
+                            }
                         }
+
+                        console.log('serviceNameOutgoingValue', serviceNameOutgoingValue);
+                        console.log('serviceNameIncomingValue', serviceNameIncomingValue);
+                        console.log('pricePerCounterOutgoingValue', pricePerCounterOutgoingValue);
+                        console.log('pricePerCounterIncomingValue', pricePerCounterIncomingValue);
 
                         if (taskResolutionResult !== "rejected") {
                             countApproved++;
                             var shortNumberValue = $scope.massTableField(instance,"identifier:title");
-                            var serviceNameValue = instance["identifierServiceName"];
                             var counterValue = instance["identifierCounter"];
-                            var pricePerCounterValue = instance["abonentTarif"];
+
+                            /*
+                            var serviceNameOutgoingValue = "";
+                            var serviceNameIncomingValue = "";
+                            var pricePerCounterOutgoingValue = "";
+                            var pricePerCounterIncomingValue = "";
+
+                            if (processKey === "bulksmsConnectionKAE") {
+                                serviceNameOutgoingValue = instance["identifierServiceName"];
+                                serviceNameIncomingValue = instance["identifierServiceName"];
+                            } else if(processKey === "freephone"){
+                                serviceNameOutgoingValue = instance["identifierServiceName"];
+                            }
+
+                            if (processKey === "bulksmsConnectionKAE") {
+                                pricePerCounterOutgoingValue = instance["abonentTarif"];
+                                pricePerCounterIncomingValue = instance["abonentTarif"];
+                            } else if(processKey === "freephone"){
+                                pricePerCounterOutgoingValue = instance["abonentTarif"];
+                            }
+                            */
 
                             requestBodyJSON["DateDeadline"] = tcfDateValue;
-                            htmlTemplateRow = htmlTemplateRow.concat("<tr>" +
-                                '<td style="border: 1px dotted #d3d3d3;">' + serviceNameValue + '<br></td>' +
-                                '<td style="border: 1px dotted #d3d3d3;">' + shortNumberValue + '<br></td>' +
-                                '<td style="border: 1px dotted #d3d3d3;">' + counterValue + '</td>' +
-                                '<td style="border: 1px dotted #d3d3d3;">' + pricePerCounterValue + '</td>' +
-                                '<td style="border: 1px dotted #d3d3d3;"><br></td>' +
-                                '<td style="border: 1px dotted #d3d3d3;">' + commentValue + '<br></td>' +
-                                '</tr>'
-                            );
+                            if (processKey === "freephone") {
+                                htmlTemplateRow = htmlTemplateRow.concat("<tr>" +
+                                    '<td style="border: 1px dotted #d3d3d3;">' + serviceNameOutgoingValue + '<br></td>' +
+                                    '<td style="border: 1px dotted #d3d3d3;">' + shortNumberValue + '<br></td>' +
+                                    '<td style="border: 1px dotted #d3d3d3;">' + counterValue + '</td>' +
+                                    '<td style="border: 1px dotted #d3d3d3;">' + pricePerCounterOutgoingValue + '</td>' +
+                                    '<td style="border: 1px dotted #d3d3d3;"><br></td>' +
+                                    '<td style="border: 1px dotted #d3d3d3;">' + commentValue + '<br></td>' +
+                                    '</tr>'
+                                );
+                            } else if (processKey === "bulksmsConnectionKAE") {
+                                htmlTemplateRow = htmlTemplateRow.concat("<tr>" +
+                                    '<td style="border: 1px dotted #d3d3d3;">' + serviceNameOutgoingValue + '<br></td>' +
+                                    '<td style="border: 1px dotted #d3d3d3;">' + shortNumberValue + '<br></td>' +
+                                    '<td style="border: 1px dotted #d3d3d3;">' + counterValue + '</td>' +
+                                    '<td style="border: 1px dotted #d3d3d3;">' + pricePerCounterOutgoingValue + '</td>' +
+                                    '<td style="border: 1px dotted #d3d3d3;"><br></td>' +
+                                    '<td style="border: 1px dotted #d3d3d3;">' + commentValue + '<br></td>' +
+                                    '</tr><tr>' + 
+                                    '<td style="border: 1px dotted #d3d3d3;">' + serviceNameIncomingValue + '<br></td>' +
+                                    '<td style="border: 1px dotted #d3d3d3;">' + shortNumberValue + '<br></td>' +
+                                    '<td style="border: 1px dotted #d3d3d3;">' + counterValue + '</td>' +
+                                    '<td style="border: 1px dotted #d3d3d3;">' + pricePerCounterIncomingValue + '</td>' +
+                                    '<td style="border: 1px dotted #d3d3d3;"><br></td>' +
+                                    '<td style="border: 1px dotted #d3d3d3;">' + commentValue + '<br></td>' +
+                                    '</tr>'
+                                );
+                            }
                         }
                     }
 
