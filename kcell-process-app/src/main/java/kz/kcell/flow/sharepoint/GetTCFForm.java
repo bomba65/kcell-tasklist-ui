@@ -134,7 +134,7 @@ public class GetTCFForm implements JavaDelegate {
                 ////////////////////// PARSE HTML /////////////////////////
                 /////// WITHOUT NESTED TABLE ///////////
                 long trCount = table.select("tr").size();
-                for (int i = 3; i < trCount; i++) {
+                for (int i = 2; i < trCount; i++) {
                     System.out.println("i = " + i);
                     String identifierTCFID = "";
                     Element row = table.select("tr").get(i);
