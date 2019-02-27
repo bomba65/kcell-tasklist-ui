@@ -405,7 +405,7 @@ define(['./module', 'lodash', 'big-js'], function(module, _, Big){
                     }
 
                     if(billingTCF === "amdocs"){
-                        commentsTCF = "Проверить корректность заполнения TCF Amdocs";
+                        //commentsTCF = "Проверить корректность заполнения TCF Amdocs";
                         headerBillingName = "Amdocs";
                         headerBillingId = "Amdocs ID";
                         operatorResultsJSONArray.push("Kcell");
@@ -417,7 +417,7 @@ define(['./module', 'lodash', 'big-js'], function(module, _, Big){
                     }
 
                     if(billingTCF === "orga"){
-                        commentsTCF = "Проверить корректность заполнения TCF Orga";
+                        //commentsTCF = "Проверить корректность заполнения TCF Orga";
                         headerBillingName = "Orga";
                         headerBillingId = "Orga ID";
                         operatorResultsJSONArray.push("Activ");
@@ -450,11 +450,11 @@ define(['./module', 'lodash', 'big-js'], function(module, _, Big){
                     requestBodyJSON["Service"] = "Products / Tariffs";
                     requestBodyJSON["RelationWithThirdParty"] = false;
                     requestBodyJSON["TypeForm"] = "Изменение тарифа на существующий сервис (New service TCF)";
-                    requestBodyJSON["Comments"] = commentsTCF;
+                    //requestBodyJSON["Comments"] = commentsTCF;
                     requestBodyJSON["ServiceNameRUS"] = ServiceNameRUS;
                     requestBodyJSON["ServiceNameENG"] = ServiceNameENG;
                     requestBodyJSON["ServiceNameKAZ"] = ServiceNameKAZ;
-                    //requestBodyJSON["Status", "Approved by Department Manager");
+                    requestBodyJSON["Status"] = "Approved by Department Manager";
                     requestBodyJSON["Created"] = $filter('date')(new Date(), 'yyyy-MM-ddTHH:mm:ss');
                 }
 
@@ -552,7 +552,7 @@ define(['./module', 'lodash', 'big-js'], function(module, _, Big){
                         if (processKey === "bulksmsConnectionKAE") {
                             if(billingTCF === "amdocs"){
                                 taskResolutionResult = variables["massApprove_bulkSMS_checkFormAmdocsTCFTaskResult"].value;
-                                commentValue = variables["massApprove_bulkSMS_checkFormAmdocsTCFTaskComment"].value;
+                                commentValue = instance["massApprove_bulkSMS_confirmAmdocsTCFTaskComment"];
 
                                 var closeDate = instance["massApprove_bulkSMS_confirmAmdocsTCFTaskCloseDate"];
                                 tcfDateValue = $filter('date')(closeDate, 'yyyy-MM-ddTHH:mm:ss');
@@ -564,7 +564,7 @@ define(['./module', 'lodash', 'big-js'], function(module, _, Big){
                             }
                             if(billingTCF === "orga"){
                                 taskResolutionResult = variables["massApprove_bulkSMS_checkFormOrgaTCFTaskResult"].value;
-                                commentValue = variables["massApprove_bulkSMS_checkFormOrgaTCFTaskComment"].value;
+                                commentValue = instance["massApprove_bulkSMS_confirmOrgaTCFTaskComment"];
 
                                 var closeDate = instance["massApprove_bulkSMS_confirmOrgaTCFTaskCloseDate"];
                                 tcfDateValue = $filter('date')(closeDate, 'yyyy-MM-ddTHH:mm:ss');
@@ -578,7 +578,7 @@ define(['./module', 'lodash', 'big-js'], function(module, _, Big){
                         if (processKey === "freephone") {
                             if(billingTCF === "amdocs"){
                                 taskResolutionResult = variables["massApprove_checkFormAmdocsTCFTaskResult"].value;
-                                commentValue = variables["massApprove_checkFormAmdocsTCFTaskComment"].value;
+                                commentValue = instance["massApprove_confirmAmdocsTCFTaskComment"];
 
                                 var closeDate = instance["massApprove_confirmAmdocsTCFTaskCloseDate"];
                                 tcfDateValue = $filter('date')(closeDate, 'yyyy-MM-ddTHH:mm:ss');
@@ -588,7 +588,7 @@ define(['./module', 'lodash', 'big-js'], function(module, _, Big){
                             }
                             if(billingTCF === "orga"){
                                 taskResolutionResult = variables["massApprove_checkFormOrgaTCFTaskResult"].value;
-                                commentValue = variables["massApprove_checkFormOrgaTCFTaskComment"].value;
+                                commentValue = instance["massApprove_confirmOrgaTCFTaskComment"];
 
                                 var closeDate = instance["massApprove_confirmOrgaTCFTaskCloseDate"];
                                 tcfDateValue = $filter('date')(closeDate, 'yyyy-MM-ddTHH:mm:ss');
@@ -598,6 +598,7 @@ define(['./module', 'lodash', 'big-js'], function(module, _, Big){
                             }
                         }
 
+                        console.log('commentValue', commentValue);
                         console.log('serviceNameOutgoingValue', serviceNameOutgoingValue);
                         console.log('serviceNameIncomingValue', serviceNameIncomingValue);
                         console.log('pricePerCounterOutgoingValue', pricePerCounterOutgoingValue);
@@ -607,27 +608,6 @@ define(['./module', 'lodash', 'big-js'], function(module, _, Big){
                             countApproved++;
                             var shortNumberValue = $scope.massTableField(instance,"identifier:title");
                             var counterValue = instance["identifierCounter"];
-
-                            /*
-                            var serviceNameOutgoingValue = "";
-                            var serviceNameIncomingValue = "";
-                            var pricePerCounterOutgoingValue = "";
-                            var pricePerCounterIncomingValue = "";
-
-                            if (processKey === "bulksmsConnectionKAE") {
-                                serviceNameOutgoingValue = instance["identifierServiceName"];
-                                serviceNameIncomingValue = instance["identifierServiceName"];
-                            } else if(processKey === "freephone"){
-                                serviceNameOutgoingValue = instance["identifierServiceName"];
-                            }
-
-                            if (processKey === "bulksmsConnectionKAE") {
-                                pricePerCounterOutgoingValue = instance["abonentTarif"];
-                                pricePerCounterIncomingValue = instance["abonentTarif"];
-                            } else if(processKey === "freephone"){
-                                pricePerCounterOutgoingValue = instance["abonentTarif"];
-                            }
-                            */
 
                             requestBodyJSON["DateDeadline"] = tcfDateValue;
                             if (processKey === "freephone") {
