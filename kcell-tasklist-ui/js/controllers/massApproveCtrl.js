@@ -612,29 +612,29 @@ define(['./module', 'lodash', 'big-js'], function(module, _, Big){
                             requestBodyJSON["DateDeadline"] = tcfDateValue;
                             if (processKey === "freephone") {
                                 htmlTemplateRow = htmlTemplateRow.concat("<tr>" +
-                                    '<td style="border: 1px dotted #d3d3d3;">' + serviceNameOutgoingValue + '<br></td>' +
-                                    '<td style="border: 1px dotted #d3d3d3;">' + shortNumberValue + '<br></td>' +
+                                    '<td style="border: 1px dotted #d3d3d3;">' + serviceNameOutgoingValue + '</td>' +
+                                    '<td style="border: 1px dotted #d3d3d3;">' + shortNumberValue + '</td>' +
                                     '<td style="border: 1px dotted #d3d3d3;">' + counterValue + '</td>' +
                                     '<td style="border: 1px dotted #d3d3d3;">' + pricePerCounterOutgoingValue + '</td>' +
-                                    '<td style="border: 1px dotted #d3d3d3;"><br></td>' +
-                                    '<td style="border: 1px dotted #d3d3d3;">' + commentValue + '<br></td>' +
+                                    '<td style="border: 1px dotted #d3d3d3;"></td>' +
+                                    '<td style="border: 1px dotted #d3d3d3;">' + commentValue + '</td>' +
                                     '</tr>'
                                 );
                             } else if (processKey === "bulksmsConnectionKAE") {
                                 htmlTemplateRow = htmlTemplateRow.concat("<tr>" +
-                                    '<td style="border: 1px dotted #d3d3d3;">' + serviceNameOutgoingValue + '<br></td>' +
-                                    '<td style="border: 1px dotted #d3d3d3;">' + shortNumberValue + '<br></td>' +
+                                    '<td style="border: 1px dotted #d3d3d3;">' + serviceNameOutgoingValue + '</td>' +
+                                    '<td style="border: 1px dotted #d3d3d3;">' + shortNumberValue + '</td>' +
                                     '<td style="border: 1px dotted #d3d3d3;">' + counterValue + '</td>' +
                                     '<td style="border: 1px dotted #d3d3d3;">' + pricePerCounterOutgoingValue + '</td>' +
-                                    '<td style="border: 1px dotted #d3d3d3;"><br></td>' +
-                                    '<td style="border: 1px dotted #d3d3d3;">' + commentValue + '<br></td>' +
+                                    '<td style="border: 1px dotted #d3d3d3;"></td>' +
+                                    '<td style="border: 1px dotted #d3d3d3;">' + commentValue + '</td>' +
                                     '</tr><tr>' + 
-                                    '<td style="border: 1px dotted #d3d3d3;">' + serviceNameIncomingValue + '<br></td>' +
-                                    '<td style="border: 1px dotted #d3d3d3;">' + shortNumberValue + '<br></td>' +
+                                    '<td style="border: 1px dotted #d3d3d3;">' + serviceNameIncomingValue + '</td>' +
+                                    '<td style="border: 1px dotted #d3d3d3;">' + shortNumberValue + '</td>' +
                                     '<td style="border: 1px dotted #d3d3d3;">' + counterValue + '</td>' +
                                     '<td style="border: 1px dotted #d3d3d3;">' + pricePerCounterIncomingValue + '</td>' +
-                                    '<td style="border: 1px dotted #d3d3d3;"><br></td>' +
-                                    '<td style="border: 1px dotted #d3d3d3;">' + commentValue + '<br></td>' +
+                                    '<td style="border: 1px dotted #d3d3d3;"></td>' +
+                                    '<td style="border: 1px dotted #d3d3d3;">' + commentValue + '</td>' +
                                     '</tr>'
                                 );
                             }

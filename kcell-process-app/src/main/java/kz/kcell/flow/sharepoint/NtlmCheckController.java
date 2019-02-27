@@ -4,6 +4,9 @@ import lombok.extern.java.Log;
 import org.apache.http.entity.ContentType;
 import org.apache.http.entity.StringEntity;
 import org.camunda.bpm.engine.impl.util.json.JSONObject;
+import org.jsoup.Jsoup;
+import org.jsoup.nodes.Document;
+import org.jsoup.nodes.Element;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
@@ -12,6 +15,7 @@ import java.net.Authenticator;
 import java.net.HttpURLConnection;
 import java.net.PasswordAuthentication;
 import java.net.URL;
+import java.util.Arrays;
 
 @Log
 @RestController
@@ -48,6 +52,22 @@ public class NtlmCheckController {
         return ResponseEntity.ok(result);
     }
 
+    @RequestMapping(value = "/testhtml", method = RequestMethod.POST)
+    @ResponseBody
+    public ResponseEntity<String> postTestHtml(@RequestBody String requestBody) {
+        JSONObject reqObj = new JSONObject(requestBody);
+
+        String result = "error";
+        try {
+            String responseText = postTestHtmlResponse(requestBody);
+            result = responseText;
+        }catch(Exception e){
+            e.printStackTrace();
+        }
+
+        return ResponseEntity.ok(result);
+    }
+
     @RequestMapping(value = "/items", method = RequestMethod.POST)
     @ResponseBody
     public ResponseEntity<String> postNtlmItem(@RequestBody String requestBody) {
@@ -63,7 +83,6 @@ public class NtlmCheckController {
 
         return ResponseEntity.ok(result);
     }
-
 
     private static String getAuthenticatedResponse(
         final String urlStr, final String domain,
@@ -136,40 +155,6 @@ public class NtlmCheckController {
         conn.disconnect();
 
         return jsonObject.toString();
-
-        /*
-        URL urlRequest = new URL(urlStr);
-        Map<String,Object> params = new LinkedHashMap<>();
-        params.put("name", "Freddie the Fish");
-        params.put("email", "fishie@seamail.example.com");
-        params.put("reply_to_thread", 10394);
-        params.put("message", "Shark attacks in Botany Bay have gotten out of control. We need more defensive dolphins to protect the schools here, but Mayor Porpoise is too busy stuffing his snout with lobsters. He's so shellfish.");
-
-        StringBuilder postData = new StringBuilder();
-        for (Map.Entry<String,Object> param : params.entrySet()) {
-            if (postData.length() != 0) postData.append('&');
-            postData.append(URLEncoder.encode(param.getKey(), "UTF-8"));
-            postData.append('=');
-            postData.append(URLEncoder.encode(String.valueOf(param.getValue()), "UTF-8"));
-        }
-        byte[] postDataBytes = postData.toString().getBytes("UTF-8");
-
-        HttpURLConnection conn = (HttpURLConnection)url.openConnection();
-        conn.setRequestMethod("POST");
-        //conn.setRequestProperty("Content-Type", "application/x-www-form-urlencoded");
-        conn.setRequestProperty("Accept", "application/json;odata=verbose");
-        conn.setRequestProperty("Content-Type", "application/json;odata=verbose");
-        conn.setRequestProperty("Content-Length", String.valueOf(postDataBytes.length));
-        conn.setDoOutput(true);
-        conn.getOutputStream().write(postDataBytes);
-
-        Reader in = new BufferedReader(new InputStreamReader(conn.getInputStream(), "UTF-8"));
-
-        for (int c; (c = in.read()) >= 0;)
-            response.append((char)c);
-
-        return response.toString();
-        */
     }
 
     private static String postItemsResponse(
@@ -236,6 +221,44 @@ public class NtlmCheckController {
 
         in.close();
         conn.disconnect();
+
+        return jsonObject.toString();
+    }
+
+    private static String postTestHtmlResponse(
+        final String sharepointResponseBody) throws IOException {
+
+        String[] rejectStatusByTCF = { "Canceled", "Rejected by ICTD-SNS-BCOU-BCST Supervisor", "Rejected by ICTD Specialists" };
+
+        JSONObject responseSharepointJSON = new JSONObject(sharepointResponseBody);
+        JSONObject jsonObject = new JSONObject();
+        JSONObject tcf = responseSharepointJSON.getJSONObject("d");
+        //String Id = tcf.get("Id").toString();
+        String Status = tcf.get("Status").toString();
+
+        if("Completed".equals(Status)) {
+            String htmlTable = tcf.get("Requirments").toString();
+            Document doc = Jsoup.parse(htmlTable);
+            Element table = doc.select("table").get(0);
+
+            ////////////////////// PARSE HTML /////////////////////////
+            /////// WITHOUT NESTED TABLE ///////////
+            long trCount = table.select("tr").size();
+            for (int i = 2; i < trCount; i++) {
+                System.out.println("i = " + i);
+                String identifierTCFID = "";
+                Element row = table.select("tr").get(i);
+                Element tdServiceElem = row.select("td").get(0);
+                String tdServiceName = tdServiceElem.text();
+
+                Element tdTCFId = row.select("td").get(4);
+                identifierTCFID = tdTCFId.text();
+
+                jsonObject.put(tdServiceName, identifierTCFID);
+
+            }
+
+        }
 
         return jsonObject.toString();
     }

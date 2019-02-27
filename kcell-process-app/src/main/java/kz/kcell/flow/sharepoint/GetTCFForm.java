@@ -138,7 +138,8 @@ public class GetTCFForm implements JavaDelegate {
                     System.out.println("i = " + i);
                     String identifierTCFID = "";
                     Element row = table.select("tr").get(i);
-                    Element tdServiceName = row.select("td").get(0);
+                    Element tdServiceElem = row.select("td").get(0);
+                    String tdServiceName = tdServiceElem.text();
 
                     if("bulksmsConnectionKAE".equals(processDefinitionKey)) {
                         if ("amdocs".equals(billingTCF)) {
