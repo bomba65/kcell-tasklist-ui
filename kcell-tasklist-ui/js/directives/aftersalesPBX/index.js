@@ -2,5 +2,6 @@ define([
     './legalInfo',
     './techSpecs',
     './sipProtocol',
-    './aftersalesRichText'
+    './aftersalesRichText',
+    './infoAftersalesPBX'
 ], function(){});

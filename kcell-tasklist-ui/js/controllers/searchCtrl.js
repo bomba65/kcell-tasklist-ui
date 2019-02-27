@@ -54,6 +54,10 @@ define(['./module','jquery', 'moment', 'camundaSDK'], function(app, $, moment, C
         }
 
         $scope.$watchGroup(['selectedProject', 'selectedProcess'], function(newValues, oldValues, scope) {
+        	$scope.clearFiltersDP();
+          $scope.processInstancesDP = [];
+          $scope.processInstancesDPTotal = 0;
+          $scope.processInstancesDPPages = 0;
 			if((newValues[0].key !== oldValues[0].key || newValues[1].key !== oldValues[1].key)){
 				$scope.piIndex = undefined;
 
@@ -756,11 +760,12 @@ define(['./module','jquery', 'moment', 'camundaSDK'], function(app, $, moment, C
 			}));
 		};
 
-        $scope.showHistory = function(resolutions){
+        $scope.showHistory = function(resolutions, procDef){
 			exModal.open({
 				scope: {
 					resolutions: resolutions, //resolutions.value,
-					isKcellStaff: $rootScope.hasGroup('kcellUsers')
+					isKcellStaff: $rootScope.hasGroup('kcellUsers'),
+          procDef: procDef
 				},
 				templateUrl: './js/partials/resolutions.html',
 				size: 'lg'
@@ -813,6 +818,8 @@ define(['./module','jquery', 'moment', 'camundaSDK'], function(app, $, moment, C
 				'SendTask_1wfg3ue',
 				'Task_1257fik',
 				'Task_0d7igwz'
+			],
+			'AftersalesPBX': [
 			]
 		};
 
@@ -864,7 +871,7 @@ define(['./module','jquery', 'moment', 'camundaSDK'], function(app, $, moment, C
 
 		$scope.filterDP = {
 			processDefinitionKey: '',
-			processDefinitions: [{name: 'PBX', value: 'PBX'}, {name: 'Подключение IVR', value: 'freephone'}, {name: 'BulkSMS', value: 'bulksmsConnectionKAE'}],
+			processDefinitions: [{name: 'PBX', value: 'PBX'}, {name: 'Подключение IVR', value: 'freephone'}, {name: 'BulkSMS', value: 'bulksmsConnectionKAE'}, {name:'Aftersales PBX', value:'AftersalesPBX'}],
 			processDefinitionActivities: {},
 			activityId: '',
 			businessKey: '',
@@ -882,6 +889,7 @@ define(['./module','jquery', 'moment', 'camundaSDK'], function(app, $, moment, C
 
 		if ($rootScope.selectedProject.key === "DeliveryPortal"){
 			$scope.clientBINs = [];
+			$scope.aftersalesClientBINs = [];
 			//if ($scope.clientBINs.length == 0) { // Initial load only; if previously between project switches did not load bins
 				// since processDefinitionKey is available in Camunda only from version 7.9, which is not our current version
 				// omitted looping through processDefinitionKeys and passing down to each request in a loop
@@ -896,7 +904,11 @@ define(['./module','jquery', 'moment', 'camundaSDK'], function(app, $, moment, C
 					//$scope.clientBINs = [];
 					response.data.forEach(r => {
 						//$scope.clientBINMap[r.value] = true;
-						$scope.clientBINs.push(Number(r.value));
+						let bin = Number(r.value);
+						if ($scope.clientBINs.indexOf(bin) === -1) $scope.clientBINs.push(bin);
+						if (r.processDefinitionKey === 'AftersalesPBX' && $scope.aftersalesClientBINs.indexOf(bin) === -1) {
+							$scope.aftersalesClientBINs.push(bin);
+            }
 					});
 					//$scope.clientBINs = Object.keys($scope.clientBINMap);
 				}).catch(e => null);
@@ -904,12 +916,13 @@ define(['./module','jquery', 'moment', 'camundaSDK'], function(app, $, moment, C
 		}
 
 		$scope.getBIN = function(val) {
-			return $scope.clientBINs;
+			if ($rootScope.selectedProcess.key !== 'AftersalesPBX') return $scope.clientBINs;
+			else return $scope.aftersalesClientBINs;
 		};
 
 		$scope.handleProcessDefintionChange = function() {
 			$scope.filterDP.activityId = undefined;			
-		}
+		};
 		
 		$scope.filterDP.processDefinitions.forEach(def => {
 			$http.get(baseUrl + '/process-definition/key/'+def.value+'/xml')
@@ -927,7 +940,7 @@ define(['./module','jquery', 'moment', 'camundaSDK'], function(app, $, moment, C
 						$scope.userTasksMapDP[def.value] = userTasksMap;
 					}
 				})
-				.catch(e => null);			
+				.catch(e => console.log("error: ", e));
 		});
 
 		function getUserTasks(xml) {
@@ -986,7 +999,7 @@ define(['./module','jquery', 'moment', 'camundaSDK'], function(app, $, moment, C
 		}
 
 		$scope.getUsers = function(val) {
-			var users = $http.get('/camunda/api/engine/engine/default/user?firstNameLike=%'+val+'%').then(
+			var users = $http.get('/camunda/api/engine/engine/default/user?firstNameLike=' + encodeURIComponent('%'+val+'%')).then(
 				function(response){
 					var usersByFirstName = _.flatMap(response.data, function(s){
 						if(s.id){
@@ -1004,7 +1017,7 @@ define(['./module','jquery', 'moment', 'camundaSDK'], function(app, $, moment, C
 						}
 					});
 					//return usersByFirstName;
-					return $http.get('/camunda/api/engine/engine/default/user?lastNameLike=%'+val+'%').then(
+					return $http.get('/camunda/api/engine/engine/default/user?lastNameLike=' + encodeURIComponent('%'+val+'%')).then(
 							function(response){
 								var usersByLastName = _.flatMap(response.data, function(s){
 									if(s.id){
@@ -1052,7 +1065,11 @@ define(['./module','jquery', 'moment', 'camundaSDK'], function(app, $, moment, C
 				processDefinitionKey: $scope.filterDP.processDefinitionKey,
 				activeActivityIdIn: [],
 				variables: []
-			}
+			};
+			if ($rootScope.selectedProcess.key === 'AftersalesPBX') {
+				filter.processDefinitionKey = 'AftersalesPBX';
+        $scope.filterDP.initiator = {id: $rootScope.authentication.name};
+      }
 
 			if($scope.filterDP.businessKey){
 				//filter.processInstanceBusinessKey = $scope.filterDP.businessKey;
@@ -1060,9 +1077,8 @@ define(['./module','jquery', 'moment', 'camundaSDK'], function(app, $, moment, C
 			}
 			if($scope.filterDP.unfinished){
 				filter.unfinished = true;
-			} else {
-				delete filter.unfinished;
 			}
+
 			if($scope.filterDP.startDate){
 				filter.startedAfter = $scope.filterDP.startDate;
 				//console.log('startDate', $scope.filterDP.startDate);
@@ -1136,20 +1152,26 @@ define(['./module','jquery', 'moment', 'camundaSDK'], function(app, $, moment, C
 			$scope.filterDP.processDefinitionKey = undefined;
 			$scope.filterDP.processDefinitionActivities = {};
 			$scope.filterDP.unfinished = false;
+			$scope.filterDP.ticName = undefined;
+			$scope.filterDP.salesRepr = undefined;
+			$scope.filterDP.ip = undefined;
+			$scope.filterDP.connectionPoint = undefined;
+			$scope.filterDP.pbxNumbers = undefined;
 			$('input[name="multipleDate"]').val('');
 			$('#bin').val('');
 		}
 
 		$scope.getXlsxProcessInstancesDP = function(){
 			//return $scope.ExcellentExport.convert({anchor: 'xlsxClick',format: 'xlsx',filename: 'delivery-portal'}, [{name: 'Process Instances',from: {table: 'xlsxDeliveryPortalTable'}}]);
+
 			var tbl = document.getElementById('xlsxDeliveryPortalTable');
 			var ws = XLSX.utils.table_to_sheet(tbl, {dateNF:'DD.MM.YYYY'});
 
-            var wb = XLSX.utils.book_new();
-            XLSX.utils.book_append_sheet(wb, ws, 'New Sheet Name 1');
+			var wb = XLSX.utils.book_new();
+			XLSX.utils.book_append_sheet(wb, ws, 'New Sheet Name 1');
 
-            return XLSX.writeFile(wb, 'delivery-portal-search-result.xlsx');
-		}
+			return XLSX.writeFile(wb, 'delivery-portal-search-result.xlsx');
+		};
 
 		function getProcessInstancesDP(filter, processInstancesDP){
 			var defs = $scope.filterDP.processDefinitions.filter(def => filter.processDefinitionKey ? filter.processDefinitionKey === def.value : true);
@@ -1381,92 +1403,146 @@ define(['./module','jquery', 'moment', 'camundaSDK'], function(app, $, moment, C
 				//console.log('result', result);
 				// exclude duplicates, since user can be as initiator and as participant of the same process instances: this is the case when it duplicates
 				$scope[processInstancesDP] = result.filter((obj, index, self) => index === self.findIndex((t) => t.id === obj.id ) );
+
 				// order by by startTime descending
 				$scope[processInstancesDP] = $scope[processInstancesDP].sort(function(a,b){
 					return new Date(b.startTime) - new Date(a.startTime);
 				});
 
-				instanceCount = $scope[processInstancesDP].length;
-				//console.log('instanceCount', instanceCount);
-				$scope[processInstancesDP + 'Total'] = instanceCount;
-				$scope[processInstancesDP + 'Pages'] = Math.floor(instanceCount / $scope.filterDP.maxResults) + ((instanceCount % $scope.filterDP.maxResults) > 0 ? 1 : 0);
+        if($scope[processInstancesDP].length > 0) {
+          var activeProcessInstancesDP = _.filter($scope[processInstancesDP], function (pi) {
+            return pi.state === 'ACTIVE';
+          });
 
-				if($scope[processInstancesDP].length > 0){
-					var activeProcessInstancesDP = _.filter($scope[processInstancesDP], function(pi) { return pi.state === 'ACTIVE'; });
-					var taskSearchParams = {processInstanceBusinessKeyIn: _.map(activeProcessInstancesDP, 'businessKey'), active: true};
-					$http({
-						method: 'POST',
-						headers:{'Accept':'application/hal+json, application/json; q=0.5'},
-						data: taskSearchParams,
-						url: baseUrl+'/task'
-					}).then(
-						function(tasks){
-							$scope[processInstancesDP].forEach(function(el) {
-								var f = _.filter(tasks.data, function(t) {
-									return t.processInstanceId === el.id; 
+          var taskSearchParams = {
+            processInstanceBusinessKeyIn: _.map(activeProcessInstancesDP, 'businessKey'),
+            active: true
+          };
+          $http({
+            method: 'POST',
+            headers: {'Accept': 'application/hal+json, application/json; q=0.5'},
+            data: taskSearchParams,
+            url: baseUrl + '/task'
+          }).then(
+            function (tasks) {
+              $scope[processInstancesDP].forEach(function (el) {
+                var f = _.filter(tasks.data, function (t) {
+                  return t.processInstanceId === el.id;
+                });
+                if (f && f.length > 0) {
+                  //el['tasks'] = f;
+                  el['tasks'] = mapOrder(f, 'taskDefinitionKey');
+                  _.forEach(el.tasks, function (task) {
+                    if (task.assignee && !$scope.profiles[task.assignee]) {
+                      $http.get(baseUrl + '/user/' + task.assignee + '/profile').then(
+                        function (result) {
+                          $scope.profiles[task.assignee] = result.data;
+                        },
+                        function (error) {
+                          console.log(error.data);
+                        }
+                      );
+                    }
+                  });
+                }
+              });
+            },
+            function (error) {
+              console.log(error.data);
+            }
+          );
+        }
+
+				if ($rootScope.selectedProcess.key === 'AftersalesPBX') {
+          $q.all($scope[processInstancesDP].map(instance => {
+						return $http.get(baseUrl+'/history/variable-instance?deserializeValues=false&processInstanceId='+instance.id);
+          })).then(allResponses => {
+          	var responses = [];
+            allResponses.forEach(r => responses.push(...r.data));
+            responses = _.groupBy(responses, r => r.processInstanceId);
+            for (let r in responses) {
+            	let instance = $scope[processInstancesDP].find(e => e.id === r);
+            	if (instance) {
+            		responses[r].forEach(v => {
+            			if (v.name === 'legalInfo') instance.legalInfo = JSON.parse(v.value);
+            			else if (v.name === 'techSpecs') instance.techSpecs = JSON.parse(v.value);
+            			else if (v.name === 'clientBIN') instance.bin = v.value;
 								});
-								if(f && f.length>0){
-									//el['tasks'] = f;
-									el['tasks'] = mapOrder(f, 'taskDefinitionKey');
-									_.forEach(el.tasks, function(task){
-										if(task.assignee && !$scope.profiles[task.assignee]){
-									        $http.get(baseUrl+'/user/' + task.assignee + '/profile').then(
-									            function (result) {
-									            	$scope.profiles[task.assignee] = result.data;
-									            },
-									            function (error) {
-									                console.log(error.data);
-									            }
-									        );
-										}
-									});
-								}
-							});
-						},
-						function(error){
-							console.log(error.data);
-						}					
-					);
+            		if (!instance.techSpecs) instance.techSpecs = {};
+            		if (!instance.techSpecs.sip) instance.techSpecs.sip = {};
+            		var ok = true;
+            		if ($scope.filterDP.ticName && (!instance.legalInfo.ticName || !instance.legalInfo.ticName.includes($scope.filterDP.ticName))) ok = false;
+            		if ($scope.filterDP.pbxNumbers && (!instance.techSpecs.pbxNumbers || !instance.techSpecs.pbxNumbers.includes($scope.filterDP.pbxNumbers))) ok = false;
+            		if ($scope.filterDP.salesRepr && $scope.filterDP.salesRepr.id !== instance.legalInfo.salesReprId) ok = false;
+            		if ($scope.filterDP.connectionPoint
+									&& $scope.filterDP.connectionPoint !== instance.techSpecs.connectionPoint
+									&& $scope.filterDP.connectionPoint !== instance.techSpecs.connectionPointNew) ok = false;
+            		if ($scope.filterDP.ip
+									&& (!instance.techSpecs.sip.curPublicVoiceIP || !instance.techSpecs.sip.curPublicVoiceIP.includes($scope.filterDP.ip))
+									&& (!instance.techSpecs.sip.newPublicVoiceIP || !instance.techSpecs.sip.newPublicVoiceIP.includes($scope.filterDP.ip))
+									&& (!instance.techSpecs.sip.curSignalingIP || !instance.techSpecs.sip.curSignalingIP.includes($scope.filterDP.ip))
+										&& (!instance.techSpecs.sip.newSignalingIP || !instance.techSpecs.sip.newSignalingIP.includes($scope.filterDP.ip))) ok = false;
 
-					$scope[processInstancesDP].forEach(instance => {
-						if ( ['freephone', 'bulksmsConnectionKAE'].indexOf(instance.processDefinitionKey) > -1 ) {
-							$http.get(baseUrl+'/history/variable-instance?deserializeValues=false&processInstanceId='+instance.id).then(
-								function(result){
-									result.data.forEach(function(el){
-										if(el.name === 'clientBIN'){
-											instance.bin = el.value;
-										}
-										if(el.name === 'identifiers'){
-											instance.identifiers = JSON.parse(el.value).map(identifier => identifier.title).toString();
-										}
-										//if(el.name === 'finalIDs'){
-										//	if (el.type === "Json") {
-										//		instance.finalIDs = JSON.parse(el.value).map(identifier => identifier.title).toString();
-										//	} else {
-										//		instance.finalIDs = el.value;
-										//	}
-										//}
-									});
-								},
-								function(error){
-									console.log(error.data);
-								}
-							);
-						} else if (instance.processDefinitionKey === 'PBX') {
-							$http.get(baseUrl+'/history/variable-instance?deserializeValues=false&processInstanceId='+instance.id).then(
-								function(result){
-									result.data.forEach(function(el){
-										if(el.name === 'customerInformation'){
-											instance.bin = JSON.parse(el.value).bin;
-										}
-									});
-								},
-								function(error){
-									console.log(error.data);
-								}
-							);
+            		instance.isOk = ok;
+							}
 						}
+
+            $scope[processInstancesDP] = $scope[processInstancesDP].filter(e => e.isOk);
+
+            instanceCount = $scope[processInstancesDP].length;
+            //console.log('instanceCount', instanceCount);
+            $scope[processInstancesDP + 'Total'] = instanceCount;
+            $scope[processInstancesDP + 'Pages'] = Math.floor(instanceCount / $scope.filterDP.maxResults) + ((instanceCount % $scope.filterDP.maxResults) > 0 ? 1 : 0);
 					});
+				}
+				else {
+
+					instanceCount = $scope[processInstancesDP].length;
+					//console.log('instanceCount', instanceCount);
+					$scope[processInstancesDP + 'Total'] = instanceCount;
+					$scope[processInstancesDP + 'Pages'] = Math.floor(instanceCount / $scope.filterDP.maxResults) + ((instanceCount % $scope.filterDP.maxResults) > 0 ? 1 : 0);
+
+					if($scope[processInstancesDP].length > 0) {
+						$scope[processInstancesDP].forEach(instance => {
+							if (['freephone', 'bulksmsConnectionKAE', 'AftersalesPBX'].indexOf(instance.processDefinitionKey) > -1) {
+								$http.get(baseUrl + '/history/variable-instance?deserializeValues=false&processInstanceId=' + instance.id).then(
+									function (result) {
+										result.data.forEach(function (el) {
+											if (el.name === 'clientBIN') {
+												instance.bin = el.value;
+											}
+											if (el.name === 'identifiers') {
+												instance.identifiers = JSON.parse(el.value).map(identifier => identifier.title).toString();
+											}
+											//if(el.name === 'finalIDs'){
+											//	if (el.type === "Json") {
+											//		instance.finalIDs = JSON.parse(el.value).map(identifier => identifier.title).toString();
+											//	} else {
+											//		instance.finalIDs = el.value;
+											//	}
+											//}
+										});
+									},
+									function (error) {
+										console.log(error.data);
+									}
+								);
+							} else if (instance.processDefinitionKey === 'PBX') {
+								$http.get(baseUrl + '/history/variable-instance?deserializeValues=false&processInstanceId=' + instance.id).then(
+									function (result) {
+										result.data.forEach(function (el) {
+											if (el.name === 'customerInformation') {
+												instance.bin = JSON.parse(el.value).bin;
+											}
+										});
+									},
+									function (error) {
+										console.log(error.data);
+									}
+								);
+							}
+						});
+        	}
 				}
 			},
 			function(error){
@@ -1539,7 +1615,7 @@ define(['./module','jquery', 'moment', 'camundaSDK'], function(app, $, moment, C
 			$scope.showDiagramView = false;
 			$scope.diagram = {};
 			var index = ($scope.filterDP.page-1)*$scope.filterDP.maxResults+rowIndex;
-			if (processDefinitionKey === 'freephone' || processDefinitionKey === 'bulksmsConnectionKAE' || processDefinitionKey === 'PBX'){
+			if (processDefinitionKey === 'freephone' || processDefinitionKey === 'bulksmsConnectionKAE' || processDefinitionKey === 'PBX' || processDefinitionKey === 'AftersalesPBX'){
 				if($scope.piIndex === index){
 					$scope.piIndex = undefined;
 				} else {
