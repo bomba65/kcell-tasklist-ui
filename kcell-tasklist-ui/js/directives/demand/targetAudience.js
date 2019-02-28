@@ -14,7 +14,6 @@ define(['./../module'], function(module){
         scope.roumingHidden = null;
 				scope.multiselectSettings = {
 					enableSearch: true,
-					smartButtonMaxItems: 3,
 					showCheckAll: false,
 					showUncheckAll: false,
 					displayProp: 'v',

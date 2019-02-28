@@ -24,7 +24,6 @@ define(['./../module'], function(module){
 
                 scope.multiselectSettings = {
                     enableSearch: true,
-                    smartButtonMaxItems: 3,
                     showCheckAll: false,
                     showUncheckAll: false,
                     displayProp: 'v',
@@ -45,7 +44,7 @@ define(['./../module'], function(module){
                 scope.productNameChange = function() {
                     scope.data.productVersion = 1;
                     if (scope.catalog && scope.catalog.products && scope.catalog.products.length) {
-                        var elt = scope.catalog.products.find(function(e) {return e.name === scope.data.productName});
+                        var elt = scope.catalog.products.find(function(e) {return e.name === scope.data.productName;});
                         if (elt) scope.productNameSelected(elt);
                     }
                     scope.data.productOffers = [];
@@ -58,30 +57,56 @@ define(['./../module'], function(module){
                 scope.productOfferAdd = function() {
                     var version = '1';
                     if (scope.data.productVersion) version = scope.data.productVersion + '.' + version;
-                    scope.data.productOffers.push({
+                    scope.cpo = {
+                        index: -1,
                         name: '',
                         description: '',
                         version: version
-                    });
+                    };
+                };
+                scope.productOfferEdit = function(index) {
+                    scope.cpo = {
+                        index: index,
+                        name: scope.data.productOffers[index].name,
+                        description: scope.data.productOffers[index].description,
+                        version: scope.data.productOffers[index].version
+                    };
                 };
                 scope.productOfferDelete = function(index) {
                     scope.data.productOffers.splice(index, 1);
                 };
-                scope.productOfferChange = function(index) {
+                scope.productOfferChange = function() {
                     var version = '1';
                     if (scope.data.productVersion) version = scope.data.productVersion + '.' + version;
-                    scope.data.productOffers[index].version = version;
+                    scope.cpo.version = version;
                     if (scope.catalog && scope.catalog.offers && scope.catalog.offers.length) {
-                        var elt = scope.catalog.offers.find(function(e) {return e.name === scope.data.productOffers[index].name});
-                        if (elt) scope.productOfferSelected(index, elt);
+                        var elt = scope.catalog.offers.find(function(e) {return e.name === scope.cpo.name;});
+                        if (elt) scope.productOfferSelected(elt);
                     }
                 };
-                scope.productOfferSelected = function(index, option) {
+                scope.productOfferSelected = function(option) {
                     var version = (option.version + 1) + '';
                     if (scope.data.productVersion) version = scope.data.productVersion + '.' + version;
-                    scope.data.productOffers[index].name = option.name;
-                    scope.data.productOffers[index].description = option.description;
-                    scope.data.productOffers[index].version = version;
+                    scope.cpo.name = option.name;
+                    scope.cpo.description = option.description;
+                    scope.cpo.version = version;
+                };
+                scope.saveCPO = function() {
+                    if (scope.cpo.index !== -1) {
+                        scope.data.productOffers[scope.cpo.index].name = scope.cpo.name;
+                        scope.data.productOffers[scope.cpo.index].description = scope.cpo.description;
+                        scope.data.productOffers[scope.cpo.index].version = scope.cpo.version;
+                    } else {
+                        scope.data.productOffers.push({
+                          name: scope.cpo.name,
+                          description: scope.cpo.description,
+                          version: scope.cpo.version
+                        });
+                    }
+                    scope.cpo = null;
+                };
+                scope.cancelCPO = function() {
+                    scope.cpo = null;
                 };
             },
             templateUrl: './js/directives/demand/details.html'
