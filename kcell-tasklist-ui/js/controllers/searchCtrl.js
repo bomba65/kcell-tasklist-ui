@@ -1068,7 +1068,9 @@ define(['./module','jquery', 'moment', 'camundaSDK'], function(app, $, moment, C
 			};
 			if ($rootScope.selectedProcess.key === 'AftersalesPBX') {
 				filter.processDefinitionKey = 'AftersalesPBX';
-        if ($scope.filterDP.participation !== 'all') $scope.filterDP.initiator = {id: $rootScope.authentication.name};
+        if ($scope.filterDP.participation && $scope.filterDP.participation.length && $scope.filterDP.participation !== 'all') {
+        	$scope.filterDP.initiator = {id: $rootScope.authentication.name};
+        } else $scope.filterDP.initiator = undefined;
       }
 
 			if($scope.filterDP.businessKey){
