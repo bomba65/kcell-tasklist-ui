@@ -48,7 +48,13 @@
                 'requestForAdmissionForWorkOnTUFiles',
                 'startingInstallationWorksFiles',
                 'installationWorksDoneFiles',
-                'actOfPerformanceTechnicalConditionsFiles'
+                'receivingTSFromRESSignedContract',
+                'connectionFromOwnerNetworksSignedContract',
+                'requestForAdmissionForWorkOnTUSignedContract',
+                'startingInstallationWorksSignedContract',
+                'installationWorksDoneSignedContract',
+                'actOfPerformanceTechnicalConditionsSignedContract',
+                'actOfPerformanceTechnicalConditionsFiles',
             ];
 
             camForm.on('form-loaded', function () {
@@ -102,6 +108,17 @@
                 } else {
                     camForm.variableManager.variableValue('actOfPerformanceTechnicalConditionsFiles', $scope.actOfPerformanceTechnicalConditionsFiles);
                 }
+
+                if(!camForm.variableManager.variables['actOfPerformanceTechnicalConditionsSignedContract'].type){
+                    camForm.variableManager.destroyVariable('actOfPerformanceTechnicalConditionsSignedContract');
+                    camForm.variableManager.createVariable({
+                        name: 'actOfPerformanceTechnicalConditionsSignedContract',
+                        type: 'Json',
+                        value: $scope.actOfPerformanceTechnicalConditionsSignedContract
+                    });
+                } else {
+                    camForm.variableManager.variableValue('actOfPerformanceTechnicalConditionsSignedContract', $scope.actOfPerformanceTechnicalConditionsSignedContract);
+                }
             });
 
             $scope.fileSelected = function (el, fileName) {
@@ -138,8 +155,44 @@
                 });
             }
 
+            $scope.singleFileSelected = function (el, fileName) {
+                $timeout(function () {
+                    $scope.$apply(function () {
+                        uploadSingleFileToMinio(el.files[0], fileName);
+                    });
+                })
+            };
+
+            function uploadSingleFileToMinio(file, fileName) {
+                var fileToUpload = {
+                    name: file.name.replace(/[/\\?%*:|"<>]/g, '-'),
+                    path: $scope.processInstanceId + '/' + camForm.taskId + '/' + file.name.replace(/[/\\?%*:|"<>]/g, '-')
+                };
+                $http({
+                    method: 'GET',
+                    url: '/camunda/uploads/put/' + fileToUpload.path,
+                    transformResponse: []
+                }).then(function (response) {
+                    $http.put(response.data, file, {headers: {'Content-Type': undefined}}).then(
+                            function () {
+                                $scope[fileName] = fileToUpload;
+                                angular.element(document.querySelector('#' + fileName)).val(null);
+                            },
+                            function (error) {
+                                console.log(error.data);
+                            }
+                    );
+                }, function(error){
+                    console.log(error.data);
+                });
+            }
+
             $scope.clearFile = function (list, fileIndex) {
                 $scope[list].splice(fileIndex, 1);
+            }
+
+            $scope.clearSingleFile = function (list) {
+                $scope[list] = undefined;
             }
 
             $scope.fileDownload = function (file) {
@@ -245,6 +298,21 @@
             <div ng-show="installationWorksDoneFiles.length > 0" class="input-group" ng-repeat="file in installationWorksDoneFiles">
                 <a ng-click="download(file)">{{file.name}}</a>
             </div>
+            <div ng-show="receivingTSFromRESSignedContract" class="input-group">
+                <a ng-click="download(receivingTSFromRESSignedContract)">{{receivingTSFromRESSignedContract.name}}</a>
+            </div>
+            <div ng-show="connectionFromOwnerNetworksSignedContract" class="input-group">
+                <a ng-click="download(connectionFromOwnerNetworksSignedContract)">{{connectionFromOwnerNetworksSignedContract.name}}</a>
+            </div>
+            <div ng-show="requestForAdmissionForWorkOnTUSignedContract" class="input-group">
+                <a ng-click="download(requestForAdmissionForWorkOnTUSignedContract)">{{requestForAdmissionForWorkOnTUSignedContract.name}}</a>
+            </div>
+            <div ng-show="startingInstallationWorksSignedContract" class="input-group">
+                <a ng-click="download(startingInstallationWorksSignedContract)">{{startingInstallationWorksSignedContract.name}}</a>
+            </div>
+            <div ng-show="installationWorksDoneSignedContract" class="input-group">
+                <a ng-click="download(installationWorksDoneSignedContract)">{{installationWorksDoneSignedContract.name}}</a>
+            </div>
         </div>
     </div>
 
@@ -258,6 +326,18 @@
             <ng-form name="kcell_material_file_form">
                 <input type="file" class="form-control" id="actOfPerformanceTechnicalConditionsFiles" name="actOfPerformanceTechnicalConditionsFiles" ng-model="file.file" onchange="angular.element(this).scope().fileSelected(this, 'actOfPerformanceTechnicalConditionsFiles')"/>
             </ng-form>
+        </div>
+    </div>
+
+    <div class="form-group">
+        <label class="col-md-4 control-label">Signed contract:</label>
+        <div class="col-sm-8">
+            <div ng-show="actOfPerformanceTechnicalConditionsSignedContract" class="input-group">
+                <a ng-click="fileDownload(actOfPerformanceTechnicalConditionsSignedContract)">{{actOfPerformanceTechnicalConditionsSignedContract.name}}</a> | <a ng-click="clearSingleFile('actOfPerformanceTechnicalConditionsSignedContract')"><i class="glyphicon glyphicon-trash"></i></a>
+            </div>
+            <input type="file" ng-hide="actOfPerformanceTechnicalConditionsSignedContract" class="form-control" id="actOfPerformanceTechnicalConditionsSignedContract" name="actOfPerformanceTechnicalConditionsSignedContract"
+                   required-file="true" ng-model="file.file" onchange="angular.element(this).scope().singleFileSelected(this, 'actOfPerformanceTechnicalConditionsSignedContract')"/>
+            <label class="has-error" ng-show="kcell_form.actOfPerformanceTechnicalConditionsSignedContract.$error.validFile">File is required</label>
         </div>
     </div>
 

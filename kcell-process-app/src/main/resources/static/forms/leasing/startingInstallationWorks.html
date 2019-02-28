@@ -46,7 +46,11 @@
                 'receingTSFromRESFiles',
                 'preperationSSIDorTSSRProjectFiles',
                 'requestForAdmissionForWorkOnTUFiles',
-                'startingInstallationWorksFiles'
+                'startingInstallationWorksFiles',
+                'receivingTSFromRESSignedContract',
+                'connectionFromOwnerNetworksSignedContract',
+                'requestForAdmissionForWorkOnTUSignedContract',
+                'startingInstallationWorksSignedContract'
             ];
 
             camForm.on('form-loaded', function () {
@@ -82,13 +86,20 @@
                     type: 'String',
                     value: ''
                 });
+                camForm.variableManager.createVariable({
+                    name: 'startingInstallationWorksProblem',
+                    type: 'String',
+                    value: ''
+                });
 
                 $scope.startingInstallationWorksTaskResult = '';
+                $scope.startingInstallationWorksProblem = '';
             });
 
             camForm.on('submit', function () {
                 camForm.variableManager.variableValue('startingInstallationWorksTaskResult', $scope.startingInstallationWorksTaskResult);
                 camForm.variableManager.variableValue('startingInstallationWorksTaskComment', $scope.startingInstallationWorksTaskComment);
+                camForm.variableManager.variableValue('startingInstallationWorksProblem', $scope.startingInstallationWorksProblem);
 
                 if(!camForm.variableManager.variables['startingInstallationWorksFiles'].type){
                     camForm.variableManager.destroyVariable('startingInstallationWorksFiles');
@@ -99,6 +110,17 @@
                     });
                 } else {
                     camForm.variableManager.variableValue('startingInstallationWorksFiles', $scope.startingInstallationWorksFiles);
+                }
+
+                if(!camForm.variableManager.variables['startingInstallationWorksSignedContract'].type){
+                    camForm.variableManager.destroyVariable('startingInstallationWorksSignedContract');
+                    camForm.variableManager.createVariable({
+                        name: 'startingInstallationWorksSignedContract',
+                        type: 'Json',
+                        value: $scope.startingInstallationWorksSignedContract
+                    });
+                } else {
+                    camForm.variableManager.variableValue('startingInstallationWorksSignedContract', $scope.startingInstallationWorksSignedContract);
                 }
             });
 
@@ -136,8 +158,44 @@
                 });
             }
 
+            $scope.singleFileSelected = function (el, fileName) {
+                $timeout(function () {
+                    $scope.$apply(function () {
+                        uploadSingleFileToMinio(el.files[0], fileName);
+                    });
+                })
+            };
+
+            function uploadSingleFileToMinio(file, fileName) {
+                var fileToUpload = {
+                    name: file.name.replace(/[/\\?%*:|"<>]/g, '-'),
+                    path: $scope.processInstanceId + '/' + camForm.taskId + '/' + file.name.replace(/[/\\?%*:|"<>]/g, '-')
+                };
+                $http({
+                    method: 'GET',
+                    url: '/camunda/uploads/put/' + fileToUpload.path,
+                    transformResponse: []
+                }).then(function (response) {
+                    $http.put(response.data, file, {headers: {'Content-Type': undefined}}).then(
+                            function () {
+                                $scope[fileName] = fileToUpload;
+                                angular.element(document.querySelector('#' + fileName)).val(null);
+                            },
+                            function (error) {
+                                console.log(error.data);
+                            }
+                    );
+                }, function(error){
+                    console.log(error.data);
+                });
+            }
+
             $scope.clearFile = function (list, fileIndex) {
                 $scope[list].splice(fileIndex, 1);
+            }
+
+            $scope.clearSingleFile = function (list) {
+                $scope[list] = undefined;
             }
 
             $scope.fileDownload = function (file) {
@@ -240,6 +298,15 @@
             <div ng-show="requestForAdmissionForWorkOnTUFiles.length > 0" class="input-group" ng-repeat="file in requestForAdmissionForWorkOnTUFiles">
                 <a ng-click="download(file)">{{file.name}}</a>
             </div>
+            <div ng-show="receivingTSFromRESSignedContract" class="input-group">
+                <a ng-click="download(receivingTSFromRESSignedContract)">{{receivingTSFromRESSignedContract.name}}</a>
+            </div>
+            <div ng-show="connectionFromOwnerNetworksSignedContract" class="input-group">
+                <a ng-click="download(connectionFromOwnerNetworksSignedContract)">{{connectionFromOwnerNetworksSignedContract.name}}</a>
+            </div>
+            <div ng-show="requestForAdmissionForWorkOnTUSignedContract" class="input-group">
+                <a ng-click="download(requestForAdmissionForWorkOnTUSignedContract)">{{requestForAdmissionForWorkOnTUSignedContract.name}}</a>
+            </div>
         </div>
     </div>
 
@@ -253,6 +320,31 @@
             <ng-form name="kcell_material_file_form">
                 <input type="file" class="form-control" id="startingInstallationWorksFiles" name="startingInstallationWorksFiles" ng-model="file.file" onchange="angular.element(this).scope().fileSelected(this, 'startingInstallationWorksFiles')"/>
             </ng-form>
+        </div>
+    </div>
+
+    <div class="form-group">
+        <label class="col-md-4 control-label">Signed contract:</label>
+        <div class="col-sm-8">
+            <div ng-show="startingInstallationWorksSignedContract" class="input-group">
+                <a ng-click="fileDownload(startingInstallationWorksSignedContract)">{{startingInstallationWorksSignedContract.name}}</a> | <a ng-click="clearSingleFile('startingInstallationWorksSignedContract')"><i class="glyphicon glyphicon-trash"></i></a>
+            </div>
+            <input type="file" ng-hide="startingInstallationWorksSignedContract" class="form-control" id="startingInstallationWorksSignedContract" name="startingInstallationWorksSignedContract"
+                   required-file="true" ng-model="file.file" onchange="angular.element(this).scope().singleFileSelected(this, 'startingInstallationWorksSignedContract')"/>
+            <label class="has-error" ng-show="kcell_form.startingInstallationWorksSignedContract.$error.validFile">File is required</label>
+        </div>
+    </div>
+
+    <div class="form-group">
+        <label class="col-sm-4 control-label">There are problems during installation</label>
+        <div class="col-sm-8">
+            <label class="radio-inline">
+                <input type="radio" name="startingInstallationWorksProblem" ng-model="startingInstallationWorksProblem" value="yes" required> Yes
+            </label>
+            <label class="radio-inline">
+                <input type="radio" name="startingInstallationWorksProblem" ng-model="startingInstallationWorksProblem" value="no" required> No
+            </label>
+            <label class="error" ng-show="kcell_form.startingInstallationWorksProblem.$error.required && ( kcell_form.startingInstallationWorksProblem.$touched || view.submitted)">Required field</label>
         </div>
     </div>
 
