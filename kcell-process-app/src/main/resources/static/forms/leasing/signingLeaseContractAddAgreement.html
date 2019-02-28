@@ -31,7 +31,25 @@
                 'estimateTechnicalCapabilityResFiles',
                 'requestTechnicalParametersKTFiles',
                 'receivingTSFiles',
-                'signingLeaseContractAddAgreementFiles'
+                'signingLeaseContractAddAgreementFiles',
+                'reqKZTRwithTechEquipmentParamsFiles',
+                'receivingContractDevDesignEstimateFiles',
+                'registrationCommercialOfferFiles',
+                'receivingContractInstallationWorksFiles',
+                'confirmReceiptEstimateFiles',
+                'contractRentLoadingSAPFiles',
+                'approvalContractRentInSAPFiles',
+                'powerContractLoadingInSAPFiles',
+                'approvalPowerContractInSAPFiles',
+                'uploadSignedOwnerLeaseContractFiles',
+                'connectionFromOwnerNetworksFiles',
+                'receingTSFromRESFiles',
+                'preperationSSIDorTSSRProjectFiles',
+                'requestForAdmissionForWorkOnTUFiles',
+                'startingInstallationWorksFiles',
+                'installationWorksDoneFiles',
+                'actOfPerformanceTechnicalConditionsFiles',
+                'singningLeaseContractAddAgreementFiles'
             ];
 
             camForm.on('form-loaded', function () {
@@ -50,7 +68,7 @@
             });
 
             camForm.on('variables-fetched', function () {
-                $scope.signingLeaseContractAddAgreementFiles = [];
+                $scope.singningLeaseContractAddAgreementFiles = [];
                 variables.forEach(function (el) {
                     if(camForm.variableManager.variables[el].value){
                         $scope[el] = camForm.variableManager.variables[el].value;
@@ -58,44 +76,34 @@
                     }
                 });
                 camForm.variableManager.createVariable({
-                    name: 'signingLeaseContractAddAgreementTaskResult',
+                    name: 'singningLeaseContractAddAgreementTaskResult',
                     type: 'String',
                     value: ''
                 });
                 camForm.variableManager.createVariable({
-                    name: 'signingLeaseContractAddAgreementTaskComment',
-                    type: 'String',
-                    value: ''
-                });
-                camForm.variableManager.createVariable({
-                    name: 'leasingProceduresStatus',
+                    name: 'singningLeaseContractAddAgreementTaskComment',
                     type: 'String',
                     value: ''
                 });
 
-                $scope.signingLeaseContractAddAgreementTaskResult = '';
+                $scope.singningLeaseContractAddAgreementTaskResult = '';
             });
 
             camForm.on('submit', function () {
-                camForm.variableManager.variableValue('signingLeaseContractAddAgreementTaskResult', $scope.signingLeaseContractAddAgreementTaskResult);
-                if($scope.signingLeaseContractAddAgreementTaskResult === 'approve'){
-                    camForm.variableManager.variableValue('leasingProceduresStatus', 'waitContract');
-                } else if($scope.signingLeaseContractAddAgreementTaskResult === 'reject') {
-                    camForm.variableManager.variableValue('leasingProceduresStatus', 'refusal');
-                }
-                camForm.variableManager.variableValue('signingLeaseContractAddAgreementTaskComment', $scope.signingLeaseContractAddAgreementTaskComment);
+                camForm.variableManager.variableValue('singningLeaseContractAddAgreementTaskResult', $scope.singningLeaseContractAddAgreementTaskResult);
+                camForm.variableManager.variableValue('singningLeaseContractAddAgreementTaskComment', $scope.singningLeaseContractAddAgreementTaskComment);
 
-
-                if(!camForm.variableManager.variables['signingLeaseContractAddAgreementFiles'].type){
-                    camForm.variableManager.destroyVariable('signingLeaseContractAddAgreementFiles');
+                if(!camForm.variableManager.variables['singningLeaseContractAddAgreementFiles'].type){
+                    camForm.variableManager.destroyVariable('singningLeaseContractAddAgreementFiles');
                     camForm.variableManager.createVariable({
-                        name: 'signingLeaseContractAddAgreementFiles',
+                        name: 'singningLeaseContractAddAgreementFiles',
                         type: 'Json',
-                        value: $scope.signingLeaseContractAddAgreementFiles
+                        value: $scope.singningLeaseContractAddAgreementFiles
                     });
                 } else {
-                    camForm.variableManager.variableValue('signingLeaseContractAddAgreementFiles', $scope.signingLeaseContractAddAgreementFiles);
+                    camForm.variableManager.variableValue('singningLeaseContractAddAgreementFiles', $scope.singningLeaseContractAddAgreementFiles);
                 }
+                camForm.variableManager.destroyVariable('resolutions');
             });
 
             $scope.fileSelected = function (el, fileName) {
@@ -132,8 +140,44 @@
                 });
             }
 
+            $scope.singleFileSelected = function (el, fileName) {
+                $timeout(function () {
+                    $scope.$apply(function () {
+                        uploadSingleFileToMinio(el.files[0], fileName);
+                    });
+                })
+            };
+
+            function uploadSingleFileToMinio(file, fileName) {
+                var fileToUpload = {
+                    name: file.name.replace(/[/\\?%*:|"<>]/g, '-'),
+                    path: $scope.processInstanceId + '/' + camForm.taskId + '/' + file.name.replace(/[/\\?%*:|"<>]/g, '-')
+                };
+                $http({
+                    method: 'GET',
+                    url: '/camunda/uploads/put/' + fileToUpload.path,
+                    transformResponse: []
+                }).then(function (response) {
+                    $http.put(response.data, file, {headers: {'Content-Type': undefined}}).then(
+                            function () {
+                                $scope[fileName] = fileToUpload;
+                                angular.element(document.querySelector('#' + fileName)).val(null);
+                            },
+                            function (error) {
+                                console.log(error.data);
+                            }
+                    );
+                }, function(error){
+                    console.log(error.data);
+                });
+            }
+
             $scope.clearFile = function (list, fileIndex) {
                 $scope[list].splice(fileIndex, 1);
+            }
+
+            $scope.clearSingleFile = function (list) {
+                $scope[list] = undefined;
             }
 
             $scope.fileDownload = function (file) {
@@ -194,39 +238,80 @@
             <div ng-show="receivingTSFiles.length > 0" class="input-group" ng-repeat="file in receivingTSFiles">
                 <a ng-click="download(file)">{{file.name}}</a>
             </div>
+            <div ng-show="signingLeaseContractAddAgreementFiles.length > 0" class="input-group" ng-repeat="file in signingLeaseContractAddAgreementFiles">
+                <a ng-click="download(file)">{{file.name}}</a>
+            </div>
+            <div ng-show="reqKZTRwithTechEquipmentParamsFiles.length > 0" class="input-group" ng-repeat="file in reqKZTRwithTechEquipmentParamsFiles">
+                <a ng-click="download(file)">{{file.name}}</a>
+            </div>
+            <div ng-show="receivingContractDevDesignEstimateFiles.length > 0" class="input-group" ng-repeat="file in receivingContractDevDesignEstimateFiles">
+                <a ng-click="download(file)">{{file.name}}</a>
+            </div>
+            <div ng-show="registrationCommercialOfferFiles.length > 0" class="input-group" ng-repeat="file in registrationCommercialOfferFiles">
+                <a ng-click="download(file)">{{file.name}}</a>
+            </div>
+            <div ng-show="receivingContractInstallationWorksFiles.length > 0" class="input-group" ng-repeat="file in receivingContractInstallationWorksFiles">
+                <a ng-click="download(file)">{{file.name}}</a>
+            </div>
+            <div ng-show="contractRentLoadingSAPFiles.length > 0" class="input-group" ng-repeat="file in contractRentLoadingSAPFiles">
+                <a ng-click="download(file)">{{file.name}}</a>
+            </div>
+            <div ng-show="approvalContractRentInSAPFiles.length > 0" class="input-group" ng-repeat="file in approvalContractRentInSAPFiles">
+                <a ng-click="download(file)">{{file.name}}</a>
+            </div>
+            <div ng-show="powerContractLoadingInSAPFiles.length > 0" class="input-group" ng-repeat="file in powerContractLoadingInSAPFiles">
+                <a ng-click="download(file)">{{file.name}}</a>
+            </div>
+            <div ng-show="approvalPowerContractInSAPFiles.length > 0" class="input-group" ng-repeat="file in approvalPowerContractInSAPFiles">
+                <a ng-click="download(file)">{{file.name}}</a>
+            </div>
+            <div ng-show="receingTSFromRESFiles.length > 0" class="input-group" ng-repeat="file in receingTSFromRESFiles">
+                <a ng-click="download(file)">{{file.name}}</a>
+            </div>
+            <div ng-show="connectionFromOwnerNetworksFiles.length > 0" class="input-group" ng-repeat="file in connectionFromOwnerNetworksFiles">
+                <a ng-click="download(file)">{{file.name}}</a>
+            </div>
+            <div ng-show="singningLeaseContractAddAgreementFiles.length > 0" class="input-group" ng-repeat="file in singningLeaseContractAddAgreementFiles">
+                <a ng-click="download(file)">{{file.name}}</a>
+            </div>
+            <div ng-show="requestForAdmissionForWorkOnTUFiles.length > 0" class="input-group" ng-repeat="file in requestForAdmissionForWorkOnTUFiles">
+                <a ng-click="download(file)">{{file.name}}</a>
+            </div>
+            <div ng-show="installationWorksDoneFiles.length > 0" class="input-group" ng-repeat="file in installationWorksDoneFiles">
+                <a ng-click="download(file)">{{file.name}}</a>
+            </div>
+            <div ng-show="actOfPerformanceTechnicalConditionsFiles.length > 0" class="input-group" ng-repeat="file in actOfPerformanceTechnicalConditionsFiles">
+                <a ng-click="download(file)">{{file.name}}</a>
+            </div>
         </div>
     </div>
 
     <div class="form-group">
         <label class="col-md-4 control-label">Upload files:</label>
         <div class="col-sm-8">
-            <div ng-show="signingLeaseContractAddAgreementFiles.length > 0" class="input-group" ng-repeat="file in signingLeaseContractAddAgreementFiles">
+            <div ng-show="singningLeaseContractAddAgreementFiles.length > 0" class="input-group" ng-repeat="file in singningLeaseContractAddAgreementFiles">
                 {{$index + 1}}.
-                <a ng-click="fileDownload(file)">{{file.name}}</a> | <a ng-click="clearFile('signingLeaseContractAddAgreementFiles', $index)"><i class="glyphicon glyphicon-trash"></i></a>
+                <a ng-click="fileDownload(file)">{{file.name}}</a> | <a ng-click="clearFile('singningLeaseContractAddAgreementFiles', $index)"><i class="glyphicon glyphicon-trash"></i></a>
             </div>
             <ng-form name="kcell_material_file_form">
-                <input type="file" class="form-control" id="signingLeaseContractAddAgreementFiles" name="signingLeaseContractAddAgreementFiles" ng-model="file.file" onchange="angular.element(this).scope().fileSelected(this, 'signingLeaseContractAddAgreementFiles')"/>
+                <input type="file" class="form-control" id="singningLeaseContractAddAgreementFiles" name="singningLeaseContractAddAgreementFiles" ng-model="file.file" onchange="angular.element(this).scope().fileSelected(this, 'singningLeaseContractAddAgreementFiles')"/>
             </ng-form>
         </div>
     </div>
 
     <div class="form-group">
-        <label class="col-sm-4 control-label">Approval Status</label>
+        <label class="col-md-4 control-label">Signed contract:</label>
         <div class="col-sm-8">
-            <label class="radio-inline">
-                <input type="radio" name="signingLeaseContractAddAgreementTaskResult" ng-model="signingLeaseContractAddAgreementTaskResult" value="approve" required>Approve
-            </label>
-            <label class="radio-inline">
-                <input type="radio" name="signingLeaseContractAddAgreementTaskResult" ng-model="signingLeaseContractAddAgreementTaskResult" value="reject" required>Reject
-            </label>
-            <label class="error" ng-show="kcell_form.signingLeaseContractAddAgreementTaskResult.$error.required && ( kcell_form.signingLeaseContractAddAgreementTaskResult.$touched || view.submitted)">Required field</label>
+            <div ng-show="uploadSignedOwnerLeaseContractFiles.length > 0" class="input-group" ng-repeat="file in uploadSignedOwnerLeaseContractFiles">
+                <a ng-click="download(file)">{{file.name}}</a>
+            </div>
         </div>
     </div>
 
     <div class="form-group">
         <label class="col-sm-4 control-label">Comments</label>
         <div class="col-sm-8">
-            <textarea class="form-control" ng-model="signingLeaseContractAddAgreementTaskComment" name="signingLeaseContractAddAgreementTaskComment" placeholder="Comments..." maxlength="500" rows="4" style="resize:none"></textarea>
+            <textarea class="form-control" ng-model="singningLeaseContractAddAgreementTaskComment" name="singningLeaseContractAddAgreementTaskComment" placeholder="Comments..." maxlength="500" rows="4" style="resize:none"></textarea>
         </div>
     </div>
     <accordion>
