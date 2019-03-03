@@ -999,6 +999,7 @@ define(['./module','jquery', 'moment', 'camundaSDK'], function(app, $, moment, C
 		}
 
 		$scope.getUsers = function(val) {
+			$scope.filterDP.salesReprId = undefined;
 			var users = $http.get('/camunda/api/engine/engine/default/user?firstNameLike=' + encodeURIComponent('%'+val+'%')).then(
 				function(response){
 					var usersByFirstName = _.flatMap(response.data, function(s){
@@ -1047,6 +1048,11 @@ define(['./module','jquery', 'moment', 'camundaSDK'], function(app, $, moment, C
 			$scope.initiatorId = $item.id;
 		};
 
+		$scope.salesReprSelected = function($item) {
+			$scope.filterDP.salesRepr = $item.name;
+			$scope.filterDP.salesReprId = $item.id;
+		};
+
 		$scope.binSelected = function($item){
 			$scope.filterDP.bin = $item;
 		};
@@ -1071,6 +1077,8 @@ define(['./module','jquery', 'moment', 'camundaSDK'], function(app, $, moment, C
         if ($scope.filterDP.participation && $scope.filterDP.participation.length && $scope.filterDP.participation !== 'all') {
         	$scope.filterDP.initiator = {id: $rootScope.authentication.name};
         } else $scope.filterDP.initiator = undefined;
+
+        if ($scope.filterDP.salesRepr && $scope.filterDP.salesRepr.length && !$scope.filterDP.salesReprId) return;
       }
 
 			if($scope.filterDP.businessKey){
@@ -1156,6 +1164,7 @@ define(['./module','jquery', 'moment', 'camundaSDK'], function(app, $, moment, C
 			$scope.filterDP.unfinished = false;
 			$scope.filterDP.ticName = undefined;
 			$scope.filterDP.salesRepr = undefined;
+			$scope.filterDP.salesReprId = undefined;
 			$scope.filterDP.ip = undefined;
 			$scope.filterDP.connectionPoint = undefined;
 			$scope.filterDP.pbxNumbers = undefined;
@@ -1475,7 +1484,7 @@ define(['./module','jquery', 'moment', 'camundaSDK'], function(app, $, moment, C
             		var ok = true;
             		if ($scope.filterDP.ticName && (!instance.legalInfo.ticName || !instance.legalInfo.ticName.includes($scope.filterDP.ticName))) ok = false;
             		if ($scope.filterDP.pbxNumbers && (!instance.techSpecs.pbxNumbers || !instance.techSpecs.pbxNumbers.includes($scope.filterDP.pbxNumbers))) ok = false;
-            		if ($scope.filterDP.salesRepr && $scope.filterDP.salesRepr.id !== instance.legalInfo.salesReprId) ok = false;
+            		if ($scope.filterDP.salesReprId && $scope.filterDP.salesReprId !== instance.legalInfo.salesReprId) ok = false;
             		if ($scope.filterDP.connectionPoint
 									&& $scope.filterDP.connectionPoint !== instance.techSpecs.connectionPoint
 									&& $scope.filterDP.connectionPoint !== instance.techSpecs.connectionPointNew) ok = false;
@@ -1678,6 +1687,17 @@ define(['./module','jquery', 'moment', 'camundaSDK'], function(app, $, moment, C
 												$scope.jobModel[el.name] = JSON.parse(el.value);
 											}
 										}
+										if (el.name === 'starter') {
+                      $scope.jobModel.starterName = el.value;
+                      $http.get('/camunda/api/engine/engine/default/user/' + el.value + '/profile').then(
+                        function (result) {
+                          $scope.jobModel.starterName = result.data.firstName + ' ' + result.data.lastName;
+                        },
+                        function (error) {
+                          console.log(error.data);
+                        }
+                      );
+                    }
 									});
 									//console.log('jobModel', $scope.jobModel);
 									if($scope.jobModel.resolutions && $scope.jobModel.resolutions.value){

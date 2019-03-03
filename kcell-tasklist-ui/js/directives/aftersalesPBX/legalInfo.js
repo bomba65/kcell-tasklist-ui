@@ -70,9 +70,13 @@ define(['./../module'], function(module){
                     scope.pbxData.fetched = true;
                 }
 
+                scope.onSalesReprChange = function() {
+                  if (!scope.data.salesRepr || !scope.data.salesRepr.length) scope.form.liSalesRepr.$setValidity('not_selected', true);
+                };
 
               scope.getUser = function(val) {
                 scope.data.salesReprId = null;
+                scope.form.liSalesRepr.$setValidity('not_selected', false);
                 var users = $http.get('/camunda/api/engine/engine/default/user?firstNameLike='+encodeURIComponent('%'+val+'%')).then(
                   function(response){
                     var usersByFirstName = _.flatMap(response.data, function(s){
@@ -119,6 +123,7 @@ define(['./../module'], function(module){
               scope.userSelected = function($item){
                 scope.data.salesReprId = $item.id;
                 scope.data.salesRepr = $item.name;
+                scope.form.liSalesRepr.$setValidity('not_selected', true);
               };
             },
             templateUrl: './js/directives/aftersalesPBX/legalInfo.html'

@@ -27,6 +27,7 @@ define(['./../module'], function(module){
 
         scope.getUser = function(val) {
           scope.ci.salesRepresentativeId = null;
+          scope.form.salesRepresentative.$setValidity('not_selected', false);
           var users = $http.get('/camunda/api/engine/engine/default/user?firstNameLike='+encodeURIComponent('%'+val+'%')).then(
             function(response){
               var usersByFirstName = _.flatMap(response.data, function(s){
@@ -73,6 +74,7 @@ define(['./../module'], function(module){
         scope.userSelected = function($item){
           scope.ci.salesRepresentativeId = $item.id;
           scope.ci.salesRepresentative = $item.name;
+          scope.form.salesRepresentative.$setValidity('not_selected', true);
         };
 	    	},
 			templateUrl: './js/directives/PBX/customerInformation.html'
