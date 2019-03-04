@@ -8,7 +8,7 @@ for (int i = 0; i < workTypeJson.size(); i++) {
     workType += workTypeJson[i].asText()
 }
 
-def binding = ["legalName": legalInfo.unwrap().get('legalName').asText(), "bin": BIN, "workType": workType]
+def binding = ["legalName": legalInfo.unwrap().get('legalName').asText(), "bin": clientBIN, "workType": workType]
 
 def template = """
 yieldUnescaped '<!DOCTYPE html>'

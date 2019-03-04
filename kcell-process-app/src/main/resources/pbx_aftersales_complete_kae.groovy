@@ -6,7 +6,7 @@ def vpn = vpnAccessRules.unwrap()
 
 def binding = [
         "legalName"       : legalInfo.unwrap().get('legalName').asText(),
-        "bin"             : BIN,
+        "bin"             : clientBIN,
         "connectionPoint" : ts.get('connectionPoint').asText(),
         "ip1"             : vpn[0].get('source').asText(),
         "ip2"             : vpn[1].get('source').asText(),

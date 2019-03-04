@@ -1,7 +1,7 @@
 import groovy.text.markup.MarkupTemplateEngine
 import groovy.text.markup.TemplateConfiguration
 
-def binding = ["legalName": legalInfo.unwrap().get('legalName').asText(), "bin": BIN]
+def binding = ["legalName": legalInfo.unwrap().get('legalName').asText(), "bin": clientBIN]
 
 def template = """
 yieldUnescaped '<!DOCTYPE html>'

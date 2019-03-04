@@ -5,7 +5,7 @@ def ts = techSpecs.unwrap()
 
 def binding = [
         "legalName"       : legalInfo.unwrap().get('legalName').asText(),
-        "bin"             : BIN,
+        "bin"             : clientBIN,
         "curPublicVoiceIP": ts.get('sip').get('curPublicVoiceIP').asText(),
         "curSignalingIP"  : ts.get('sip').get('curSignalingIP').asText(),
         "transProtocol"   : ts.get('sip').get('transProtocol').asText(),

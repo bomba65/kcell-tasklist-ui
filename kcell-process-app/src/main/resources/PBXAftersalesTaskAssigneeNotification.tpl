@@ -19,7 +19,7 @@ html(lang:'en') {
         p {
             yield 'Process: ' + processName
             br()
-            yield 'Client: ' + legalInfo.get('legalName').asText() + ' ' + delegateTask.getVariable("BIN")
+            yield 'Client: ' + legalInfo.get('legalName').asText() + ' ' + delegateTask.getVariable("clientBIN")
             br()
             yield 'Service: PBX'
             br()

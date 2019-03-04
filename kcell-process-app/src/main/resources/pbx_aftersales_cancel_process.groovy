@@ -12,7 +12,7 @@ def ts = techSpecs.unwrap()
 
 def binding = [
         "legalName"     : legalInfo.unwrap().get('legalName').asText(),
-        "bin"           : BIN,
+        "bin"           : clientBIN,
         "workType"      : workType,
         "description"   : ts.get('sip').get('description').asText()
 ]
