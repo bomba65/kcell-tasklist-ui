@@ -83,6 +83,11 @@
                 camForm.variableManager.fetchVariable('status');
                 camForm.variableManager.fetchVariable('state');
                 camForm.variableManager.fetchVariable('oldStatus');
+
+                camForm.variableManager.fetchVariable('searchDemandDescription');
+                camForm.variableManager.fetchVariable('searchPlannedLaunch');
+                camForm.variableManager.fetchVariable('searchActualLaunch');
+                camForm.variableManager.fetchVariable('searchTechnicalAnalysis');
             });
 
             camForm.on('variables-fetched', function () {
@@ -117,7 +122,10 @@
             }
 
             camForm.on('submit', function (event) {
-                if (!$scope.generalData.general.technicalAnalysis) $scope.generalData.general.plannedLaunch = null;
+                if (!$scope.generalData.general.technicalAnalysis) {
+                    $scope.generalData.general.plannedLaunch = null;
+                    $scope.generalData.general.description = '';
+                }
                 camForm.variableManager.destroyVariable('generalData');
                 camForm.variableManager.createVariable({
                     name: 'generalData',
@@ -237,6 +245,36 @@
                     type: 'String',
                     value: oldStatus
                 });
+
+                // ----- variables for search page -----
+                camForm.variableManager.destroyVariable('searchDemandDescription');
+                camForm.variableManager.createVariable({
+                    name: 'searchDemandDescription',
+                    type: 'String',
+                    value: $scope.generalData.general.description
+                });
+                var tmpTime = 0;
+                if ($scope.generalData.general.plannedLaunch) tmpTime = $scope.generalData.general.plannedLaunch.getTime();
+                camForm.variableManager.destroyVariable('searchPlannedLaunch');
+                camForm.variableManager.createVariable({
+                    name: 'searchPlannedLaunch',
+                    type: 'Long',
+                    value: tmpTime
+                });
+                tmpTime = 0;
+                if ($scope.generalData.general.actualLaunch) tmpTime = $scope.generalData.general.actualLaunch.getTime();
+                camForm.variableManager.destroyVariable('searchActualLaunch');
+                camForm.variableManager.createVariable({
+                    name: 'searchActualLaunch',
+                    type: 'Long',
+                    value: tmpTime
+                });
+                camForm.variableManager.destroyVariable('searchTechnicalAnalysis');
+                camForm.variableManager.createVariable({
+                    name: 'searchTechnicalAnalysis',
+                    type: 'Boolean',
+                    value: $scope.generalData.general.technicalAnalysis
+                });
             });
 
             $scope.saveFillForm = function () {
@@ -311,21 +349,21 @@
                         <div class="form-group">
                             <label class="col-sm-12 control-label">Demand description<span class="text-danger glyphicon-asterisk"></span></label>
                             <div class="col-sm-12">
-                                <textarea elastic-textarea style="resize:none" class="form-control" name="gDemandDescription" ng-model="generalData.general.description"  ng-required="!disabled || editdescription"></textarea>
+                                <textarea elastic-textarea style="resize:none" class="form-control" name="gDemandDescription" ng-model="generalData.general.description" required></textarea>
                                 <span class="has-error" ng-if="kcell_form.gDemandDescription.$error.required && (kcell_form.gDemandDescription.$touched || view.submitted)">Required field</span>
                             </div>
                         </div>
                         <div class="form-group">
                             <label class="col-sm-12 control-label">Customer benefits:<span class="text-danger glyphicon-asterisk"></span></label>
                             <div class="col-sm-12">
-                                <textarea elastic-textarea class="form-control" name="gCustomerBenefits" ng-model="generalData.general.customerBenefits"  ng-required="!disabled"></textarea>
+                                <textarea elastic-textarea class="form-control" name="gCustomerBenefits" ng-model="generalData.general.customerBenefits"  required></textarea>
                                 <span class="has-error" ng-if="kcell_form.gCustomerBenefits.$error.required && (kcell_form.gCustomerBenefits.$touched || view.submitted)">Required field</span>
                             </div>
                         </div>
                         <div class="form-group">
                             <label class="col-sm-12 control-label">Financial benefits:<span class="text-danger glyphicon-asterisk"></span></label>
                             <div class="col-sm-12">
-                                <textarea elastic-textarea class="form-control" name="gFinancialBenefits" ng-model="generalData.general.financialBenefits"  ng-required="!disabled"></textarea>
+                                <textarea elastic-textarea class="form-control" name="gFinancialBenefits" ng-model="generalData.general.financialBenefits"  required></textarea>
                                 <span class="has-error" ng-if="kcell_form.gFinancialBenefits.$error.required && (kcell_form.gFinancialBenefits.$touched || view.submitted)">Required field</span>
                             </div>
                         </div>

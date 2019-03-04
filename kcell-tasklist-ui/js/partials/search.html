@@ -824,6 +824,392 @@
 						</table>						
 					</div>
 				</div>
+
+				<div class="scrollable" ng-show="selectedProject.key==='DemandUAT'">
+					<div class="page-body container-fluid" ng-if="selectedProcess.key === 'All' || selectedProcess.key === 'UAT'">
+						<h3 ng-if="selectedProcess.key === 'All'" class="text-center">Please select a process</h3>
+						<h3 ng-if="selectedProcess.key === 'UAT'" class="text-center">UAT Process Search is not implemented yet</h3>
+					</div>
+					<div class="page-body container-fluid" ng-if="selectedProcess.key !== 'All' && selectedProcess.key !== 'UAT'">
+						<h3>{{selectedProcess.name}} Process Search</h3>
+						<div class="row">
+							<div class="form-group">
+								<div class="col-sm-8">
+									<h3>Filter</h3>
+								</div>
+								<div class="col-sm-4"></div>
+							</div>
+						</div>
+						<div ng-if="selectedProcess.key === 'Demand'">
+							<div class="row">
+								<div class="form-group col-sm-4">
+									<label class="col-sm-4 control-label">Business key:</label>
+									<div class="col-sm-8">
+										<input type="text" ng-model="filter.businessKey" class="form-control">
+									</div>
+								</div>
+								<div class="form-group col-sm-4">
+									<label class="col-sm-4 control-label">Demand owner:</label>
+									<div class="col-sm-8">
+										<input type="text" ng-model="filter.demandOwner" name="demandOwner" typeahead="users as users.name for users in getDemandOwnerUsers($viewValue)" typeahead-on-select="demandOwnerSelected($item)" typeahead-min-length="2" class="form-control" autocomplete="off">
+										<span class="has-error" ng-if="filter.demandOwner && filter.demandOwner.length && !filter.demandOwnerId">User must be selected from the list</span>
+									</div>
+								</div>
+								<div class="form-group col-sm-4">
+									<label class="col-sm-4 control-label">Assignee:</label>
+									<div class="col-sm-8">
+										<input type="text" ng-model="filter.assignee" name="assignee" typeahead="users as users.name for users in getDemandAssigneeUsers($viewValue)" typeahead-on-select="demandAssigneeSelected($item)" typeahead-min-length="2" class="form-control" autocomplete="off">
+										<span class="has-error" ng-if="filter.assignee && filter.assignee.length && !filter.assigneeId">User must be selected from the list</span>
+									</div>
+								</div>
+							</div>
+							<div class="row">
+								<div class="form-group col-sm-4">
+									<label class="col-sm-4 control-label">Demand name:</label>
+									<div class="col-sm-8">
+										<input type="text" ng-model="filter.demandName" class="form-control">
+									</div>
+								</div>
+								<div class="form-group col-sm-4">
+									<label class="col-sm-4 control-label">Activity:</label>
+									<div class="col-sm-8">
+										<select ng-model="filter.activityId" class="form-control">
+											<option ng-selected="true" value="">Select activity</option>
+											<option value="{{task.id}}" ng-repeat="task in demandTasks | orderBy: 'name'" >{{task.name}}</option>
+										</select>
+									</div>
+								</div>
+								<div class="form-group col-sm-4">
+									<label class="col-sm-4 control-label">Need Technology delivery\analysis:</label>
+									<div class="col-sm-8">
+										<input type="checkbox" value="true" ng-model="filter.technicalAnalysis"> Yes
+									</div>
+								</div>
+							</div>
+							<div class="row">
+								<div class="form-group col-sm-4">
+									<label class="col-sm-4 control-label">Demand descr.:</label>
+									<div class="col-sm-8">
+										<textarea rows="1" elastic-textarea ng-model="filter.demandDescription" class="form-control"></textarea>
+									</div>
+								</div>
+								<div class="form-group col-sm-4">
+									<label class="col-sm-4 control-label">Status:</label>
+									<div class="col-sm-8">
+										<select ng-model="filter.status" class="form-control">
+											<option ng-selected="true" value="">Select status</option>
+											<option value="{{status}}" ng-repeat="status in statusList">{{status}}</option>
+										</select>
+									</div>
+								</div>
+							</div>
+							<div class="row">
+								<div class="form-group col-sm-8">
+									<label class="col-sm-2 control-label">Created:</label>
+									<div class="col-sm-2">
+										<select ng-model="filter.createdOperator" class="form-control" ng-change="filter.createdStart = filter.createdEnd = undefined;">
+											<option ng-selected="true" value="">Options</option>
+											<option value="btw">Между</option>
+											<option value="gteq">Больше или равно</option>
+											<option value="lteq">Меньше или равно</option>
+										</select>
+									</div>
+									<div class="col-sm-4">
+										<div class="input-group">
+											<input type="text" class="form-control" ng-model="filter.createdStart" datepicker-popup="dd.MM.yyyy" is-open="createdStartDateFieldOpened" />
+											<span class="input-group-btn">
+                				<button type="button" class="btn btn-default" ng-click="createdStartDateFieldOpened = true">
+                    			<i class="glyphicon glyphicon-calendar"></i>
+                				</button>
+           			 			</span>
+										</div>
+									</div>
+									<div class="col-sm-4" ng-if="filter.createdOperator === 'btw' && filter.createdStart">
+										<div class="input-group">
+											<input type="text" class="form-control" ng-model="filter.createdEnd" datepicker-popup="dd.MM.yyyy" is-open="createdEndDateFieldOpened" min-date="filter.createdStart" />
+											<span class="input-group-btn">
+                				<button type="button" class="btn btn-default" ng-click="createdEndDateFieldOpened = true">
+                    			<i class="glyphicon glyphicon-calendar"></i>
+                				</button>
+           			 			</span>
+										</div>
+									</div>
+								</div>
+								<div class="form-group col-sm-8">
+									<label class="col-sm-2 control-label">Closed:</label>
+									<div class="col-sm-2">
+										<select ng-model="filter.closedOperator" class="form-control" ng-change="filter.closedStart = filter.closedEnd = undefined;">
+											<option ng-selected="true" value="">Options</option>
+											<option value="btw">Между</option>
+											<option value="gteq">Больше или равно</option>
+											<option value="lteq">Меньше или равно</option>
+										</select>
+									</div>
+									<div class="col-sm-4">
+										<div class="input-group">
+											<input type="text" class="form-control" ng-model="filter.closedStart" datepicker-popup="dd.MM.yyyy" is-open="closedStartDateFieldOpened" />
+											<span class="input-group-btn">
+                				<button type="button" class="btn btn-default" ng-click="closedStartDateFieldOpened = true">
+                    			<i class="glyphicon glyphicon-calendar"></i>
+                				</button>
+           			 			</span>
+										</div>
+									</div>
+									<div class="col-sm-4" ng-if="filter.closedOperator === 'btw' && filter.closedStart">
+										<div class="input-group">
+											<input type="text" class="form-control" ng-model="filter.closedEnd" datepicker-popup="dd.MM.yyyy" is-open="closedEndDateFieldOpened" min-date="filter.closedStart" />
+											<span class="input-group-btn">
+                				<button type="button" class="btn btn-default" ng-click="closedEndDateFieldOpened = true">
+                    			<i class="glyphicon glyphicon-calendar"></i>
+                				</button>
+           			 			</span>
+										</div>
+									</div>
+								</div>
+								<div class="form-group col-sm-8">
+									<label class="col-sm-2 control-label">Planned launch:</label>
+									<div class="col-sm-2">
+										<select ng-model="filter.plannedLaunchOperator" class="form-control" ng-change="filter.plannedLaunchStart = filter.plannedLaunchEnd = undefined;">
+											<option ng-selected="true" value="">Options</option>
+											<option value="eq">Равно</option>
+											<option value="btw">Между</option>
+											<option value="gteq">Больше или равно</option>
+											<option value="lteq">Меньше или равно</option>
+											<option value="neq">Не равно</option>
+										</select>
+									</div>
+									<div class="col-sm-4">
+										<div class="input-group">
+											<input type="text" class="form-control" ng-model="filter.plannedLaunchStart" datepicker-popup="dd.MM.yyyy" is-open="plannedLaunchStartDateFieldOpened" />
+											<span class="input-group-btn">
+                				<button type="button" class="btn btn-default" ng-click="plannedLaunchStartDateFieldOpened = true">
+                    			<i class="glyphicon glyphicon-calendar"></i>
+                				</button>
+           			 			</span>
+										</div>
+									</div>
+									<div class="col-sm-4" ng-if="filter.plannedLaunchOperator === 'btw' && filter.plannedLaunchStart">
+										<div class="input-group">
+											<input type="text" class="form-control" ng-model="filter.plannedLaunchEnd" datepicker-popup="dd.MM.yyyy" is-open="plannedLaunchEndDateFieldOpened" min-date="filter.plannedLaunchStart" />
+											<span class="input-group-btn">
+                				<button type="button" class="btn btn-default" ng-click="plannedLaunchEndDateFieldOpened = true">
+                    			<i class="glyphicon glyphicon-calendar"></i>
+                				</button>
+           			 			</span>
+										</div>
+									</div>
+								</div>
+								<div class="form-group col-sm-8">
+									<label class="col-sm-2 control-label">Actual launch:</label>
+									<div class="col-sm-2">
+										<select ng-model="filter.actualLaunchOperator" class="form-control" ng-change="filter.actualLaunchStart = filter.actualLaunchEnd = undefined;">
+											<option ng-selected="true" value="">Options</option>
+											<option value="eq">Равно</option>
+											<option value="btw">Между</option>
+											<option value="gteq">Больше или равно</option>
+											<option value="lteq">Меньше или равно</option>
+											<option value="neq">Не равно</option>
+										</select>
+									</div>
+									<div class="col-sm-4">
+										<div class="input-group">
+											<input type="text" class="form-control" ng-model="filter.actualLaunchStart" datepicker-popup="dd.MM.yyyy" is-open="actualLaunchStartDateFieldOpened" />
+											<span class="input-group-btn">
+                				<button type="button" class="btn btn-default" ng-click="actualLaunchStartDateFieldOpened = true">
+                    			<i class="glyphicon glyphicon-calendar"></i>
+                				</button>
+           			 			</span>
+										</div>
+									</div>
+									<div class="col-sm-4" ng-if="filter.actualLaunchOperator === 'btw' && filter.actualLaunchStart">
+										<div class="input-group">
+											<input type="text" class="form-control" ng-model="filter.actualLaunchEnd" datepicker-popup="dd.MM.yyyy" is-open="actualLaunchEndDateFieldOpened" min-date="filter.actualLaunchStart" />
+											<span class="input-group-btn">
+                				<button type="button" class="btn btn-default" ng-click="actualLaunchEndDateFieldOpened = true">
+                    			<i class="glyphicon glyphicon-calendar"></i>
+                				</button>
+           			 			</span>
+										</div>
+									</div>
+								</div>
+							</div>
+						</div>
+						<div class="row" style="margin-top: 20px;">
+							<div class="form-group col-sm-4"></div>
+							<div class="form-group col-sm-4">
+								<div class="col-sm-12">
+									<center>
+										<a class="btn btn-success" ng-click="clear()">clear</a>
+										<a class="btn btn-success" ng-click="search(true)"><i class="glyphicon glyphicon-search"></i> SEARCH ({{processInstancesTotal}})<i class="fa fa-search"></i></a>
+									</center>
+								</div>
+							</div>
+							<div class="form-group col-sm-4">
+								<div class="col-sm-12">
+									<a ng-if="processInstancesTotal > 0" class="btn btn-success" style="float: right" id="xlsxClick" ng-click="getDemandXlsx()">{{xlsxPrepared ? 'Export to Excel' : 'Prepare Excel'}}</a>
+								</div>
+							</div>
+						</div>
+
+						<div style="margin-bottom: 20px;"></div>
+
+						<table class="table table-condensed table-hover table-bordered" ng-if="processInstances" ng-if="selectedProcess.key === 'Demand'">
+							<thead>
+								<tr>
+									<th>#</th>
+									<th>Business Key</th>
+									<th>Demand name</th>
+									<th>Demand owner</th>
+									<th>Planned launch</th>
+									<th>Actual launch</th>
+									<th>Created date</th>
+									<th>Closed date</th>
+									<th>Status</th>
+									<th>Assignee</th>
+									<th>Activity</th>
+								</tr>
+							</thead>
+							<tbody ng-repeat="pi in processInstances track by $index">
+							<tr class="pi-{{pi.state == 'EXTERNALLY_TERMINATED'?'COMPLETED':pi.state}}">
+								<td>{{(filter.page-1)*filter.maxResults + $index + 1}}</td>
+								<td>
+									<a ng-click="toggleProcessView($index, pi.processDefinitionKey)">
+										{{pi.businessKey}}
+									</a>
+								</td>
+								<td>{{pi.demandName}}</td>
+								<td>{{pi.generalData.general.demandOwner}}</td>
+								<td>{{pi.generalData.general.plannedLaunch | date: 'dd.MM.yyyy'}}</td>
+								<td>{{pi.generalData.general.actualLaunch | date: 'dd.MM.yyyy'}}</td>
+								<td>{{pi.startTime | date:'dd MMM yyyy'}}</td>
+								<td>{{pi.endTime | date:'dd MMM yyyy'}}</td>
+								<td>{{pi.status}}</td>
+								<td>
+										<span ng-repeat="task in pi.tasks">
+											<span ng-if="task.assignee && profiles[task.assignee]">{{$index+1}}. {{profiles[task.assignee].firstName}} {{profiles[task.assignee].lastName}}</span>
+											<span ng-if="task.assignee && !profiles[task.assignee]">{{$index+1}}. {{task.assignee}}</span>
+											<span ng-if="!task.assignee">{{$index+1}}. No assignee</span>
+											<br/>
+										</span>
+								</td>
+								<td>
+										<span ng-repeat="task in pi.tasks">
+											{{$index+1}}. {{task.name}}<br/>
+										</span>
+								</td>
+							</tr>
+							<tr ng-if="piIndex === $index && jobModel">
+								<td colspan="11">
+									<table class="table table-condensed table-hover table-bordered" style="margin: 0;">
+										<tr>
+											<td style="width: 70%">
+												<demand-process data="jobModel"></demand-process>
+											</td>
+											<td style="height: 1px; width: 30%" rowspan="2">
+												<div class="left-wrapper" style="padding: 0">
+													<div class="scrollcontainer">
+														<div class="scrollable left" style="padding: 10px 0px; background: transparent;">
+															<div>
+																<div class="row" ng-if="jobModel.state">
+																	<div class="col-xs-8 col-md-8"><b>{{getStatus(jobModel.state, jobModel.acceptPerformedJob.value)}}</b>
+																	</div>
+																</div>
+															</div>
+															<div>
+																<a href="" class="btn btn-default" ng-click="showDiagram(pi.processDefinitionId)" class="ng-binding"><span class="glyphicon glyphicon-indent-left" aria-hidden="true"></span> Diagram</a>
+															</div>
+															<div style="margin-top: 10px;">
+																<a href="" class="btn btn-default" ng-click="showHistory(jobModel.resolutions.value, pi.processDefinitionKey)" class="ng-binding"><span class="glyphicon glyphicon-list-alt" aria-hidden="true"></span> History  </a>
+															</div>
+															<ul id="tasks">
+																<li ng-repeat="task in jobModel.tasks">
+																	<div class="task">
+																		<h5>
+																			<a ui-sref="tasks.task({id:task.id})" target="_blank">{{ (task.name || task.id) }}</a>
+																		</h5>
+																		<div ng-if="task.description"> {{ task.description }} </div>
+																		<small class="text-muted" ng-if="task.group">
+																			Group: <a ng-click="showGroupDetails(task.group)">{{task.group}}</a>
+																		</small>
+																		<br/>
+																		<small class="text-muted" ng-if="task.assignee">{{ task.assigneeObject.firstName }} {{ task.assigneeObject.lastName }}</small>
+																		<small class="text-muted" ng-if="!task.assignee">Unassigned</small>
+																	</div>
+																</li>
+															</ul>
+														</div>
+													</div>
+												</div>
+											</td>
+										</tr>
+									</table>
+								</td>
+							</tr>
+							</tbody>
+							<tbody>
+							<tr>
+								<td colspan="13" style="text-align: center">
+									<a ng-disabled="filter.page <= 1" ng-click="selectPage(1)" class="btn btn-success">First</a>
+									<a ng-disabled="filter.page <= 1" ng-click="prevPage()" class="btn btn-success">Previous</a>
+									<a ng-repeat="page in getPages()" ng-disabled="filter.page == page" ng-click="selectPage(page)" class="btn btn-success">{{page}}</a>
+									<a ng-disabled="filter.page >= processInstancesPages" ng-click="nextPage()" class="btn btn-success">Next</a>
+									<a ng-disabled="filter.page >= processInstancesPages" ng-click="selectPage(processInstancesPages)" class="btn btn-success">Last</a>
+								</td>
+							</tr>
+							</tbody>
+						</table>
+
+						<table id="xlsxDemandTable" style="display: none;">
+							<thead>
+							<thead>
+							<tr>
+								<th>#</th>
+								<th>Business Key</th>
+								<th>Demand name</th>
+								<th>Demand owner</th>
+								<th>Planned launch</th>
+								<th>Actual launch</th>
+								<th>Created date</th>
+								<th>Closed date</th>
+								<th>Status</th>
+								<th>Assignee</th>
+								<th>Activity</th>
+							</tr>
+							</thead>
+							<tbody ng-repeat="pi in processInstances track by $index">
+							<tr class="pi-{{pi.state == 'EXTERNALLY_TERMINATED'?'COMPLETED':pi.state}}">
+								<td>{{(filter.page-1)*filter.maxResults + $index + 1}}</td>
+								<td>
+									<a ng-click="toggleProcessView($index, pi.processDefinitionKey)">
+										{{pi.businessKey}}
+									</a>
+								</td>
+								<td>{{pi.demandName}}</td>
+								<td>{{pi.generalData.general.demandOwner}}</td>
+								<td>{{pi.generalData.general.plannedLaunch | date: 'dd.MM.yyyy'}}</td>
+								<td>{{pi.generalData.general.actualLaunch | date: 'dd.MM.yyyy'}}</td>
+								<td>{{pi.startTime | date:'dd MMM yyyy'}}</td>
+								<td>{{pi.endTime | date:'dd MMM yyyy'}}</td>
+								<td>{{pi.status}}</td>
+								<td>
+										<span ng-repeat="task in pi.tasks">
+											<span ng-if="task.assignee && profiles[task.assignee]">{{$index+1}}. {{profiles[task.assignee].firstName}} {{profiles[task.assignee].lastName}}</span>
+											<span ng-if="task.assignee && !profiles[task.assignee]">{{$index+1}}. {{task.assignee}}</span>
+											<span ng-if="!task.assignee">{{$index+1}}. No assignee</span>
+											<br/>
+										</span>
+								</td>
+								<td>
+										<span ng-repeat="task in pi.tasks">
+											{{$index+1}}. {{task.name}}<br/>
+										</span>
+								</td>
+							</tr>
+							</tbody>
+						</table>
+					</div>
+				</div>
+
 			</div>
 		</div>
 	</div>
