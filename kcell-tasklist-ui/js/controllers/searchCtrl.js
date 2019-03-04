@@ -1921,6 +1921,7 @@ define(['./module','jquery', 'moment', 'camundaSDK'], function(app, $, moment, C
           $scope.processInstancesTotal = 0;
           $scope.processInstancesPages = 0;
           $scope.processInstances = undefined;
+          $scope.lastSearchParams = undefined;
 				};
 
         $scope.search = (refresh) => {
@@ -2042,10 +2043,14 @@ define(['./module','jquery', 'moment', 'camundaSDK'], function(app, $, moment, C
             $http.post(baseUrl + '/history/task',{taskAssignee: $scope.filter.assigneeId, unfinished: true}).then(
               function(result) {
                 filter.processInstanceIds = _.map(result.data, 'processInstanceId');
+                $scope.lastSearchParams = filter;
                 getDemandProcessInstances(filter);
               }
             ).catch(e => console.log("error: ", e));
-					} else getDemandProcessInstances(filter);
+					} else {
+            $scope.lastSearchParams = filter;
+          	getDemandProcessInstances(filter);
+          }
         };
 
 
@@ -2136,7 +2141,7 @@ define(['./module','jquery', 'moment', 'camundaSDK'], function(app, $, moment, C
         };
 
         $scope.getDemandXlsx = () => {
-					if($scope.xlsxPrepared){
+					if($scope.xlsxPrepared) {
 						var tbl = document.getElementById('xlsxDemandTable');
 						var ws = XLSX.utils.table_to_sheet(tbl, {dateNF:'DD.MM.YYYY'});
 
@@ -2145,7 +2150,7 @@ define(['./module','jquery', 'moment', 'camundaSDK'], function(app, $, moment, C
 
 						return XLSX.writeFile(wb, 'demand-search-result.xlsx');
 					} else {
-            getDemandProcessInstances($scope.filter, true);
+            getDemandProcessInstances($scope.lastSearchParams, true);
 						$scope.xlsxPrepared = true;
 					}
 				};
