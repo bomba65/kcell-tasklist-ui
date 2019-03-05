@@ -64,7 +64,7 @@ select
   to_timestamp(sapPRApproveDate.long_/1000) as "PR Approval date",
   sapPONo.text_ as "PO#",
   invoiceNumber.text_ as "Invoice #",
-  to_timestamp(invoiceDate.long_/1000) as "Invoice date",
+  to_timestamp(invoiceDate.long_/1000) as "Invoice date"/*,
   rejectedByRegionHead.value_ as "rejected by region head",
   rejectedByRegionHeadCount.value_ as "qty of rejects1",
   rejectedByPowerEngineerHead.value_ as "rejected by power engineer",
@@ -107,7 +107,7 @@ select
   acceptanceRejectedByPlanningGroupCount.value_ as "qty of rejects20",
   acceptanceRejectedByRegionHead.value_ as "Acceptance rejected by region Head",
   acceptanceRejectedByRegionHeadCount.value_ as "qty of rejects21"
-  from act_hi_procinst pi
+*/  from act_hi_procinst pi
   left join act_hi_varinst sitename
     on pi.id_ = sitename.proc_inst_id_ and sitename.name_ = 'site_name'
   left join act_hi_varinst contractor
@@ -259,7 +259,7 @@ select
     ------------------------------------------------------------------
     -- Reject details and counts
         -- Reject details and counts
-    left join lateral (select string_agg( coalesce(il.group_id_, 'without group')||':'|| coalesce(resolutionsJson.value->>'assigneeName', resolutionsJson.value->>'assignee') ,', ') as value_
+/*    left join lateral (select string_agg( coalesce(il.group_id_, 'without group')||':'|| coalesce(resolutionsJson.value->>'assigneeName', resolutionsJson.value->>'assignee') ,', ') as value_
                           from act_hi_taskinst ti
                             inner join json_array_elements(CAST(convert_from(ba.bytes_, 'UTF8') AS json)) as resolutionsJson
                             on true and resolutionsJson.value->>'resolution' = 'rejected' and ti.id_ = resolutionsJson.value->>'taskId'
@@ -658,6 +658,6 @@ select
       )
     as acceptanceRejectedByRegionHeadCount
     on true
-
+*/
 where pi.proc_def_key_ = 'Revision' and pi.state_ <> 'EXTERNALLY_TERMINATED'
 order by "Requested Date", "Job Description"

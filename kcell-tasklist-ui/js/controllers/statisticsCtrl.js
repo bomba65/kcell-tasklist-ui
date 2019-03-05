@@ -869,14 +869,14 @@ define(['./module','jquery'], function(app,$){
                         , "Material List Signing Date", "Accept by Initiator", "Accept by Work Maintenance", "Accept by Work Planning", "Acceptance Date", "Job Description", "Quantity"
                         , "Job reason", "Type of expenses", "Comments", "Customer Material", "Process State", "JR Status", "Detailed status", "Reason", "Price (without transportation)"
                         , "Price (with transportation)", "Monthly act #", "JO#", "PR#", "PR Total Value", "PR Status", "PR Approval date", "PO#", "Invoice No", "Invoice date"
-                        , "Rejected by region head", "Qty of rejects", "Rejected by power engineer", "Qty of rejects", "Rejected by center", "Qty of rejects", "Rejected by leasing group"
+                        /*, "Rejected by region head", "Qty of rejects", "Rejected by power engineer", "Qty of rejects", "Rejected by center", "Qty of rejects", "Rejected by leasing group"
                         , "Qty of rejects", "Material list rejected by region", "Qty of rejects", "Material list rejected by center", "Qty of rejects", "Material list rejected by region TNU"
                         , "Qty of rejects", "Material list rejected by Center group P&O", "Qty of rejects", "Material list rejected by Center group SAO", "Qty of rejects"
                         , "Material list rejected by Center group TNU", "Qty of rejects", "Material list rejected by Center group S&FM", "Qty of rejects", "TR rejected by region"
                         , "Qty of rejects", "TR rejected by Center group P&O", "Qty of rejects", "TR rejected by Center group SAO", "Qty of rejects", "TR rejected by Center group TNU"
                         , "Qty of rejects", "TR rejected by Center group S&FM", "Qty of rejects", "Acceptance rejected by Permit team", "Qty of rejects", "Acceptance rejected by Initiator"
                         , "Qty of rejects", "Acceptance rejected by maintenance group", "Qty of rejects", "Acceptance rejected by planning group", "Qty of rejects"
-                        , "Acceptance rejected by region Head", "Qty of rejects"]);
+                        , "Acceptance rejected by region Head", "Qty of rejects"*/]);
 
 
                     var ws = XLSX.utils.json_to_sheet(response.data, {skipHeader:true});
@@ -910,14 +910,14 @@ define(['./module','jquery'], function(app,$){
                         , "Material List Signing Date", "Accept by Initiator", "Accept by Work Maintenance", "Accept by Work Planning", "Acceptance Date", "Job Description", "Quantity"
                         , "Job reason", "Type of expenses", "Comments", "Customer Material", "Process State", "JR Status", "Detailed status", "Reason", "Price (without transportation)"
                         , "Price (with transportation)", "Monthly act #", "JO#", "PR#", "PR Total Value", "PR Status", "PR Approval date", "PO#", "Invoice No", "Invoice date"
-                        , "Rejected by region head", "Qty of rejects", "Rejected by power engineer", "Qty of rejects", "Rejected by center", "Qty of rejects", "Rejected by leasing group"
+                        /*, "Rejected by region head", "Qty of rejects", "Rejected by power engineer", "Qty of rejects", "Rejected by center", "Qty of rejects", "Rejected by leasing group"
                         , "Qty of rejects", "Material list rejected by region", "Qty of rejects", "Material list rejected by center", "Qty of rejects", "Material list rejected by region TNU"
                         , "Qty of rejects", "Material list rejected by Center group P&O", "Qty of rejects", "Material list rejected by Center group SAO", "Qty of rejects"
                         , "Material list rejected by Center group TNU", "Qty of rejects", "Material list rejected by Center group S&FM", "Qty of rejects", "TR rejected by region"
                         , "Qty of rejects", "TR rejected by Center group P&O", "Qty of rejects", "TR rejected by Center group SAO", "Qty of rejects", "TR rejected by Center group TNU"
                         , "Qty of rejects", "TR rejected by Center group S&FM", "Qty of rejects", "Acceptance rejected by Permit team", "Qty of rejects", "Acceptance rejected by Initiator"
                         , "Qty of rejects", "Acceptance rejected by maintenance group", "Qty of rejects", "Acceptance rejected by planning group", "Qty of rejects"
-                        , "Acceptance rejected by region Head", "Qty of rejects"]);
+                        , "Acceptance rejected by region Head", "Qty of rejects"*/]);
 
                     var ws = XLSX.utils.json_to_sheet(response.data, {skipHeader:true});
                     var wb = XLSX.utils.book_new();

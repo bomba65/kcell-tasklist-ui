@@ -39,7 +39,7 @@ public class ExtendedReportByJobsDto {
     public String po;
     public String invoiceNumber;
     public Date invoiceDate;
-    public String rejectedByRegionHead;
+/*    public String rejectedByRegionHead;
     public String rejectedByRegionHeadCount;
     public String rejectedByPowerEngineerHead;
     public String rejectedByPowerEngineerHeadCount;
@@ -80,5 +80,5 @@ public class ExtendedReportByJobsDto {
     public String acceptanceRejectedByPlanningGroup;
     public String acceptanceRejectedByPlanningGroupCount;
     public String acceptanceRejectedByRegionHead;
-    public String acceptanceRejectedByRegionHeadCount;
+    public String acceptanceRejectedByRegionHeadCount;*/
 }
