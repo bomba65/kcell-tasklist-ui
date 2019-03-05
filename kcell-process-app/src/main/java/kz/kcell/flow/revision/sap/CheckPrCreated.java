@@ -23,7 +23,7 @@ public class CheckPrCreated implements JavaDelegate {
     @Autowired
     private Environment environment;
 
-    @Value("${sftp.remote.directory.to.pr:/uploads/test/CIP_PR_Creation/PR_Waiting}")
+    @Value("${sftp.remote.directory.to.pr:/KWMS_test/CIP_PR_Creation/PR_Waiting}")
     private String sftpRemoteDirectoryToPr;
 
     @Value("${s3.bucket.pr:prfiles}")

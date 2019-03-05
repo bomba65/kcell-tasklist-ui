@@ -39,25 +39,25 @@ public class SftpConfig {
     @Value("${sftp.password:#{null}}")
     private String sftpPassword;
 
-    @Value("${sftp.remote.directory.to.fa:/uploads/test/FA_Geting/Get_Fixed_Asset}")
+    @Value("${sftp.remote.directory.to.fa:/KWMS_test/FA_Geting/Get_Fixed_Asset}")
     private String sftpRemoteDirectoryToFa;
 
-    @Value("${sftp.remote.directory.to.pr:/uploads/test/CIP_PR_Creation/PR_Waiting}")
+    @Value("${sftp.remote.directory.to.pr:/KWMS_test/CIP_PR_Creation/PR_Waiting}")
     private String sftpRemoteDirectoryToPr;
 
-    @Value("${sftp.remote.directory.pr.error:/uploads/test/CIP_PR_Creation/PR_Didnt_Created}")
+    @Value("${sftp.remote.directory.pr.error:/KWMS_test/CIP_PR_Creation/PR_Didnt_Created}")
     private String sftpRemoteDirectoryPrError;
 
-    @Value("${sftp.remote.directory.jojr:/uploads/test/JR_JO_Creation/Sap JO File}")
+    @Value("${sftp.remote.directory.jojr:/KWMS_test/JR_JO_Creation/Sap JO File}")
     private String sftpRemoteDirectoryJoJr;
 
-    @Value("${sftp.remote.directory.jojr.error:/uploads/test/JR_JO_Creation/JO Creation Errors}")
+    @Value("${sftp.remote.directory.jojr.error:/KWMS_test/JR_JO_Creation/JO Creation Errors}")
     private String sftpRemoteDirectoryJoJrError;
 
-    @Value("${sftp.remote.directory.pr.status:/uploads/test/CIP_PR_Creation/PR_Status}")
+    @Value("${sftp.remote.directory.pr.status:/KWMS_test/CIP_PR_Creation/PR_Status}")
     private String sftpRemoteDirectoryPrStatus;
 
-    @Value("${sftp.remote.directory.pr.status.processed:/uploads/test/CIP_PR_Creation/PR_Status_Processed}")
+    @Value("${sftp.remote.directory.pr.status.processed:/KWMS_test/CIP_PR_Creation/PR_Status_Processed}")
     private String sftpRemoteDirectoryPrStatusProcessed;
 
     public SessionFactory<ChannelSftp.LsEntry> sftpSessionFactory() {

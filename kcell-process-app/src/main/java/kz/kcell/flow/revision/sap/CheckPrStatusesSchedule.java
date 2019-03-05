@@ -36,7 +36,7 @@ public class CheckPrStatusesSchedule {
     @Autowired
     private RuntimeService runtimeService;
 
-    @Value("${sftp.remote.directory.status:/uploads/test/CIP_PR_Creation/PR_Status}")
+    @Value("${sftp.remote.directory.status:/KWMS_test/CIP_PR_Creation/PR_Status}")
     private String sftpRemoteDirectoryPrStatus;
 
     @Value("${s3.bucket.pr:prfiles}")

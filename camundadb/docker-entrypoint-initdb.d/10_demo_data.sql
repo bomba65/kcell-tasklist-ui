@@ -256,10 +256,16 @@ INSERT INTO act_id_user (id_, rev_, first_, last_, email_, pwd_, picture_id_) VA
 INSERT INTO act_id_user (id_, rev_, first_, last_, email_, pwd_, picture_id_) VALUES ('Alexey.Pereverzev@kcell.kz', 1, 'Alexey', 'Pereverzev', 'Alexey.Pereverzev@kcell.kz', '{SHA}ieSV55Qc+eQOaYDRSha/AjzNTJE=', NULL);
 
 --groups
+INSERT INTO act_id_group (id_, rev_, name_, type_) VALUES ('infrastructure_revision_users', 1, 'infrastructure_revision_users', 'WORKFLOW');
+INSERT INTO act_id_group (id_, rev_, name_, type_) VALUES ('infrastructure_monthly_act_users', 1, 'infrastructure_monthly_act_users', 'WORKFLOW');
+
 INSERT INTO act_id_group (id_, rev_, name_, type_) VALUES ('b2bDelivery', 1, 'B2B Delivery', 'WORKFLOW');
 INSERT INTO act_id_group (id_, rev_, name_, type_) VALUES ('b2bSales', 1, 'B2B Sales', 'WORKFLOW');
 
 --memberships
+INSERT INTO act_id_membership (user_id_, group_id_) VALUES ('demo', 'infrastructure_revision_users');
+INSERT INTO act_id_membership (user_id_, group_id_) VALUES ('demo', 'infrastructure_monthly_act_users');
+
 INSERT INTO act_id_membership (user_id_, group_id_) VALUES ('Nazym.Muralimova@kcell.kz', 'b2bDelivery');
 INSERT INTO act_id_membership (user_id_, group_id_) VALUES ('Sagida.Adiyeva@kcell.kz', 'b2bDelivery');
 

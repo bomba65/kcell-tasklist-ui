@@ -27,10 +27,10 @@ public class CheckJOFile implements JavaDelegate {
     @Autowired
     private Environment environment;
 
-    @Value("${sftp.remote.directory.jojr.ok:/uploads/test/JR_JO_Creation/Processed_Sap_JO_File}")
+    @Value("${sftp.remote.directory.jojr.ok:/KWMS_test/JR_JO_Creation/Processed_Sap_JO_File}")
     private String sftpRemoteDirectoryJoJrOk;
 
-    @Value("${sftp.remote.directory.jojr.error:/uploads/test/JR_JO_Creation/JO_Creation_Errors}")
+    @Value("${sftp.remote.directory.jojr.error:/KWMS_test/JR_JO_Creation/JO_Creation_Errors}")
     private String sftpRemoteDirectoryJoJrError;
 
     @Value("${s3.bucket.jojr:jojr}")

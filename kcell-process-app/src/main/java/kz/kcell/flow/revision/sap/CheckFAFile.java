@@ -33,7 +33,7 @@ public class CheckFAFile implements JavaDelegate {
     @Autowired
     private Environment environment;
 
-    @Value("${sftp.remote.directory.from.fa:/uploads/test/FA_Geting/Fixed_Asset}")
+    @Value("${sftp.remote.directory.from.fa:/KWMS_test/FA_Geting/Fixed_Asset}")
     private String sftpRemoteDirectoryFromFa;
 
     @Value("${s3.bucket.fa:fafiles}")
