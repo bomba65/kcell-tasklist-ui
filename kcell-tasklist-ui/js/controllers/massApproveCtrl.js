@@ -642,7 +642,7 @@ define(['./module', 'lodash', 'big-js'], function(module, _, Big){
                     }
 
                     tasks2submit.push(function(formId, status, isReceived){
-                        return $http.post(baseUrl+"/task/"+instance.taskId+"/assignee", {userId: $rootScope.authentication.id}).then(function() {
+                        return $http.post(baseUrl+"/task/"+instance.taskId+"/claim", {userId: $rootScope.authentication.id}).then(function() {
                             console.log(111, formId, status, isReceived);
                             if(formId){
                                 variables[formId.name] = {
