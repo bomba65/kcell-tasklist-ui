@@ -93,6 +93,9 @@
                                 }
                             }
                             if($scope.processInstancesAftersales.length = 0 || !$scope.aftersalesInstance) {
+
+                                console.log('aftersalesInstance', $scope.aftersalesInstance);
+
                                 $http.get($scope.baseUrl + '/history/variable-instance?deserializeValues=false&processInstanceId='+$scope.relatedProcessInstance.id).then(
                                     function(result){
                                         var relatedProcessInstanceVariables = angular.copy(result.data);
@@ -143,6 +146,67 @@
                     }
                 );
 
+                $scope.changeOfficialClientCompanyName = false;
+                $scope.changeContractNumber = false;
+                $scope.disconnectOperator = false;
+                $scope.connectOperator = false;
+                $scope.changeConnectionType = false;
+                $scope.changeIpNumber = false;
+                $scope.changeIdentifier = false;
+                $scope.changeSmsServiceType = false;
+                $scope.changeProvider = false;
+                $scope.changeTransmitNumber = false;
+
+                camForm.variableManager.createVariable({
+                    name: 'changeOfficialClientCompanyName',
+                    value: $scope.changeOfficialClientCompanyName,
+                    type: 'Boolean'
+                });
+                camForm.variableManager.createVariable({
+                    name: 'changeContractNumber',
+                    value: $scope.changeContractNumber,
+                    type: 'Boolean'
+                });
+                camForm.variableManager.createVariable({
+                    name: 'disconnectOperator',
+                    value: $scope.disconnectOperator,
+                    type: 'Boolean'
+                });
+                camForm.variableManager.createVariable({
+                    name: 'connectOperator',
+                    value: $scope.connectOperator,
+                    type: 'Boolean'
+                });
+                camForm.variableManager.createVariable({
+                    name: 'changeConnectionType',
+                    value: $scope.changeConnectionType,
+                    type: 'Boolean'
+                });
+                camForm.variableManager.createVariable({
+                    name: 'changeIpNumber',
+                    value: $scope.changeIpNumber,
+                    type: 'Boolean'
+                });
+                camForm.variableManager.createVariable({
+                    name: 'changeIdentifier',
+                    value: $scope.changeIdentifier,
+                    type: 'Boolean'
+                });
+                camForm.variableManager.createVariable({
+                    name: 'changeSmsServiceType',
+                    value: $scope.changeSmsServiceType,
+                    type: 'Boolean'
+                });
+                camForm.variableManager.createVariable({
+                    name: 'changeProvider',
+                    value: $scope.changeProvider,
+                    type: 'Boolean'
+                });
+                camForm.variableManager.createVariable({
+                    name: 'changeTransmitNumber',
+                    value: $scope.changeTransmitNumber,
+                    type: 'Boolean'
+                });
                 camForm.variableManager.createVariable({
                     name: 'relatedProcessInstanceId',
                     value: '',
@@ -379,6 +443,34 @@
                 };
             });
 
+            $scope.disableProviderModification = false;
+            $scope.disableIdentifierModification = false;
+            $scope.disableConnectionTypeModification = false;
+            $scope.disableIpNumberModification = false;
+
+            $scope.$watchGroup(['disconnectOperator', 'connectOperator', 'changeIdentifier', 'changeProvider', 'changeConnectionType', 'changeIpNumber'], function(newValues, oldValues, scope) {
+                if(newValues[0] || newValues[1] || newValues[2]){
+                    $scope.disableProviderModification = true;
+                } else {
+                    $scope.disableProviderModification = false;
+                }
+                if(newValues[3]){
+                    $scope.disableIdentifierModification = true;
+                } else {
+                    $scope.disableIdentifierModification = false;
+                }
+                if(newValues[4]){
+                    $scope.disableIpNumberModification = true;
+                } else {
+                    $scope.disableIpNumberModification = false;
+                }
+                if(newValues[5]){
+                    $scope.disableConnectionTypeModification = true;
+                } else {
+                    $scope.disableConnectionTypeModification = false;
+                }
+            }, true);
+
             $scope.preSubmit = function() {
                 var checkForActiveAfterSalesProcessInstances = function() {
                     var deferred = $q.defer();
@@ -452,6 +544,17 @@
                 camForm.variableManager.variableValue('channel', $scope.channel);
                 camForm.variableManager.variableValue('region', $scope.region);
 
+                camForm.variableManager.variableValue('changeOfficialClientCompanyName', $scope.changeOfficialClientCompanyName);
+                camForm.variableManager.variableValue('changeContractNumber', $scope.changeContractNumber);
+                camForm.variableManager.variableValue('disconnectOperator', $scope.disconnectOperator);
+                camForm.variableManager.variableValue('connectOperator', $scope.connectOperator);
+                camForm.variableManager.variableValue('changeConnectionType', $scope.changeConnectionType);
+                camForm.variableManager.variableValue('changeIpNumber', $scope.changeIpNumber);
+                camForm.variableManager.variableValue('changeIdentifier', $scope.changeIdentifier);
+                camForm.variableManager.variableValue('changeSmsServiceType', $scope.changeSmsServiceType);
+                camForm.variableManager.variableValue('changeProvider', $scope.changeProvider);
+                camForm.variableManager.variableValue('changeTransmitNumber', $scope.changeTransmitNumber);
+
                 if($scope.relatedProcessInstance.processDefinitionKey === 'freephone'){
                     camForm.variableManager.variableValue('transmitNumber', $scope.transmitNumber);
                     camForm.variableManager.variableValue('coordinates', $scope.coordinates);
@@ -482,7 +585,7 @@
         <div ng-show="isDisconnectProcess">
             <p>Start Disconnection Process</p>
         </div>
-        <div class="row" ng-show="!isDisconnectProcess">
+        <!--div class="row" ng-show="!isDisconnectProcess">
             <div class="col-md-7">
                 <div class="form-check">
                     <div class="col-sm-12">
@@ -494,11 +597,11 @@
                         <label class="form-check-label" for="contractNumber">Изменение номера договора</label>
                     </div>
                     <div class="col-sm-12">
-                        <input type="checkbox" class="form-check-input" id="disconnectOperator" name="disconnectOperator" cam-variable-name="disconnectOperator" cam-variable-type="Boolean">
+                        <input type="checkbox" class="form-check-input" id="disconnectOperator" name="disconnectOperator" cam-variable-name="disconnectOperator" cam-variable-type="Boolean" ng-disabled="{{operatorType === 'onnet' || changeProvider === true}}">
                         <label class="form-check-label" for="disconnectOperator">Отключение оператора</label>
                     </div>
                     <div class="col-sm-12">
-                        <input type="checkbox" class="form-check-input" id="connectOperator" name="connectOperator" cam-variable-name="connectOperator" cam-variable-type="Boolean">
+                        <input type="checkbox" class="form-check-input" id="connectOperator" name="connectOperator" cam-variable-name="connectOperator" cam-variable-type="Boolean" ng-disabled="{{operatorType === 'onnet' || changeProvider === true}}">
                         <label class="form-check-label" for="connectOperator">Добавление оператора</label>
                     </div>
                     <div class="col-sm-12">
@@ -514,7 +617,7 @@
             <div class="col-md-5">
                 <div class="form-check">
                     <div class="col-sm-12">
-                        <input type="checkbox" class="form-check-input" id="identifier" name="identifier" cam-variable-name="changeIdentifier" cam-variable-type="Boolean">
+                        <input type="checkbox" class="form-check-input" id="identifier" name="identifier" cam-variable-name="changeIdentifier" cam-variable-type="Boolean" ng-disabled="{{operatorType === 'onnet' || changeProvider === true}}">
                         <label class="form-check-label" for="identifier">Изменение заголовка</label>
                     </div>
                     <div class="col-sm-12" ng-show="relatedProcessInstance.processDefinitionKey === 'bulksmsConnectionKAE'">
@@ -522,11 +625,61 @@
                         <label class="form-check-label" for="smsServiceType">Подключение МО</label>
                     </div>
                     <div class="col-sm-12">
-                        <input type="checkbox" class="form-check-input" id="provider" name="provider" cam-variable-name="changeProvider" cam-variable-type="Boolean">
+                        <input type="checkbox" class="form-check-input" id="provider" name="provider" cam-variable-name="changeProvider" cam-variable-type="Boolean" ng-disabled="{{operatorType === 'onnet' || changeIdentifier===true || connectOperator===true || disconnectOperator===true}}">
                         <label class="form-check-label" for="provider">Смена провайдера</label>
                     </div>
                     <div class="col-sm-12" ng-show="relatedProcessInstance.processDefinitionKey === 'freephone'">
                         <input type="checkbox" class="form-check-input" id="transmitNumber" name="transmitNumber" cam-variable-name="changeTransmitNumber" cam-variable-type="Boolean">
+                        <label class="form-check-label" for="transmitNumber">Смена номера переадресации</label>
+                    </div>
+                </div>
+            </div>
+        </div-->
+        <div class="row" ng-show="!isDisconnectProcess">
+            <div class="col-md-7">
+                <div class="form-check">
+                    <div class="col-sm-12">
+                        <input type="checkbox" class="form-check-input" id="officialClientCompanyName" name="officialClientCompanyName" ng-model="changeOfficialClientCompanyName">
+                        <label class="form-check-label" for="officialClientCompanyName">Изменение Юридического наименования компании</label>
+                    </div>
+                    <div class="col-sm-12">
+                        <input type="checkbox" class="form-check-input" id="contractNumber" name="contractNumber" ng-model="changeContractNumber">
+                        <label class="form-check-label" for="contractNumber">Изменение номера договора</label>
+                    </div>
+                    <div class="col-sm-12">
+                        <input type="checkbox" class="form-check-input" id="disconnectOperator" name="disconnectOperator" ng-model="disconnectOperator" ng-disabled="operatorType === 'onnet' || disableIdentifierModification">
+                        <label class="form-check-label" for="disconnectOperator">Отключение оператора</label>
+                    </div>
+                    <div class="col-sm-12">
+                        <input type="checkbox" class="form-check-input" id="connectOperator" name="connectOperator" ng-model="connectOperator" ng-disabled="operatorType === 'onnet' || disableIdentifierModification">
+                        <label class="form-check-label" for="connectOperator">Добавление оператора</label>
+                    </div>
+                    <div class="col-sm-12">
+                        <input type="checkbox" class="form-check-input" id="connectionType" name="connectionType" ng-model="changeConnectionType" ng-disabled="disableConnectionTypeModification">
+                        <label class="form-check-label" for="connectionType">Изменение типа подключения</label>
+                    </div>
+                    <div class="col-sm-12" ng-show="relatedProcessInstance.processDefinitionKey === 'freephone'">
+                        <input type="checkbox" class="form-check-input" id="ipNumber" name="ipNumber" ng-model="changeIpNumber" ng-disabled="disableIpNumberModification">
+                        <label class="form-check-label" for="ipNumber">Добавление/Изменение IP адреса</label>
+                    </div>
+                </div>
+            </div>
+            <div class="col-md-5">
+                <div class="form-check">
+                    <div class="col-sm-12" ng-show="relatedProcessInstance.processDefinitionKey === 'bulksmsConnectionKAE' && identifierType === 'alfanumeric'">
+                        <input type="checkbox" class="form-check-input" id="identifier" name="identifier" ng-model="changeIdentifier" ng-disabled="operatorType === 'onnet' || disableIdentifierModification">
+                        <label class="form-check-label" for="identifier">Изменение заголовка</label>
+                    </div>
+                    <div class="col-sm-12" ng-show="relatedProcessInstance.processDefinitionKey === 'bulksmsConnectionKAE'">
+                        <input type="checkbox" class="form-check-input" id="smsServiceType" name="smsServiceType" ng-model="changeSmsServiceType">
+                        <label class="form-check-label" for="smsServiceType">Подключение МО</label>
+                    </div>
+                    <div class="col-sm-12">
+                        <input type="checkbox" class="form-check-input" id="provider" name="provider" ng-model="changeProvider" ng-disabled="operatorType === 'onnet' || disableProviderModification">
+                        <label class="form-check-label" for="provider">Смена провайдера</label>
+                    </div>
+                    <div class="col-sm-12" ng-show="relatedProcessInstance.processDefinitionKey === 'freephone'">
+                        <input type="checkbox" class="form-check-input" id="transmitNumber" name="transmitNumber" ng-model="changeTransmitNumber">
                         <label class="form-check-label" for="transmitNumber">Смена номера переадресации</label>
                     </div>
                 </div>

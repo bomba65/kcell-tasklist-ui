@@ -119,15 +119,36 @@
 
                 _.forEach($scope.identifiers, function(identifier){
                     _.forEach(identifier.operators, function(operator){
-                        operator.wasAvailable = !!operator.isAvailable; // !!operator.isAvailable && !!operator.checked;
-                        operator.oldPriceAP = operator.priceAP;
 
-                        // this is valid for BulkSMS
-                        // TODO: Add logic for freephone
-                        if($scope.identifierType === 'digital'){
-                            operator.oldPriceEP = operator.priceEP;
-                        } else if($scope.identifierType === 'alfanumeric'){
-                            operator.oldTitle = operator.title;
+                        delete operator.wasAvailable;
+                        delete operator.oldPriceAP;
+                        delete operator.oldPriceEP;
+                        delete operator.oldTitle;
+                        delete operator.disconnected;
+                        delete operator.connected;
+                        delete operator.changed;
+                        delete operator.tmpPriceAP;
+                        delete operator.tmpPriceEP;
+                        delete operator.tmpTitle;
+                        delete operator.addedToNetwork;
+                        delete operator.dateFieldOpened;
+                        delete operator.addedToNetworkDate;
+
+                        if(!!operator.isAvailable) {
+                            operator.wasAvailable = !!operator.isAvailable; // !!operator.isAvailable && !!operator.checked;
+                            operator.oldPriceAP = operator.priceAP;
+
+                            // this is valid for BulkSMS
+                            // TODO: Add logic for freephone
+                            if($scope.identifierType === 'digital'){
+                                operator.oldPriceEP = operator.priceEP;
+                            } else if($scope.identifierType === 'alfanumeric'){
+                                operator.oldTitle = operator.title;
+                            }
+                        } else {
+                            delete operator.priceAP;
+                            delete operator.priceEP;
+                            delete operator.title;
                         }
                     });
                 });
@@ -465,6 +486,16 @@
 
                 _.forEach($scope.identifiers, function(id) {
                     _.forEach(id.operators, function(o) {
+                        delete o.tmpPriceAP;
+                        delete o.tmpPriceEP;
+                        delete o.tmpTitle;
+
+                        if(!o.isAvailable) {
+                            delete o.priceAP;
+                            delete o.priceEP;
+                            delete o.title;
+                        }
+
                         //o.checked = o.isAvailable;
                         // This is valid for BulkSMS
                         // TODO: Add logic for freephone
@@ -490,11 +521,32 @@
                         }
                         */
                         if($scope.identifierType === 'alfanumeric'){
+                            if(o.wasAvailable && !o.isAvailable){
+                                $scope.operatorWasDisconnected = true;
+                                o.disconnected = true;
+                            }
+                            if(!o.wasAvailable && o.isAvailable){
+                                $scope.operatorWasConnected = true;
+                                o.connected = true;
+                            }
+                            if(o.wasAvailable && o.isAvailable){
+                                if(o.oldTitle !== o.title || o.oldPriceAP !== o.priceAP){
+                                    o.changed = true;
+                                    $scope.operatorWasChanged = true;
+                                } else {
+                                    delete o.wasAvailable;
+                                    delete o.oldPriceAP;
+                                    delete o.oldPriceEP;
+                                    delete o.oldTitle;
+                                }
+                            }
+                            /*
                             //if(o.wasAvailable && o.isAvailable && o.oldTitle !== o.title){
                             if(o.wasAvailable !== o.isAvailable || o.oldTitle !== o.title){
                                 o.changed = true;
                                 $scope.operatorWasChanged = true;
                             }
+                            */
                         }
                     });
                 });
@@ -759,8 +811,21 @@
             };
 
             $scope.clearPrices = function(operator){
-                operator.priceAP = '';
-                operator.priceEP = '';
+                console.log('operator.isAvailable', operator.isAvailable);
+                if(!operator.isAvailable){
+                    operator.tmpPriceAP = operator.priceAP;
+                    operator.tmpPriceEP = operator.priceEP;
+                    operator.tmpTitle = operator.title;
+                    //operator.priceAP = '';
+                    //operator.priceEP = '';
+                    delete operator.title;
+                    delete operator.priceAP;
+                    delete operator.priceEP;
+                } else {
+                    operator.priceAP = operator.tmpPriceAP;
+                    operator.priceEP = operator.tmpPriceEP;
+                    operator.title = operator.tmpTitle;
+                }
             };
 
             $scope.open = open;
@@ -970,18 +1035,18 @@
                 </div>
                 <div class="col-sm-10">
                     <div class="col-sm-3" ng-repeat="operator in id.operators">
-                        <label for="operator.id"><input type="checkbox" ng-model="operator.isAvailable" ng-change="clearPrices(operator)"> {{operator.name}}</label>
+                        <label for="operator.id"><input type="checkbox" ng-model="operator.isAvailable" ng-change="clearPrices(operator)" ng-disabled="disconnectProcess || !((disconnectOperator && operator.wasAvailable) || (connectOperator && !operator.wasAvailable))"> {{operator.name}}</label>
                         <div class="input" id="operator.id" >
-                            <input ng-model="operator.priceAP" name="{{operator.id + 'AP'}}" class="form-control"  placeholder="{{operator.isAvailable?'Цена':'Не доступен'}}" ng-disabled="disconnectProcess || !operator.isAvailable" ng-required="operator.isAvailable"/>
+                            <input ng-model="operator.priceAP" name="{{operator.id + 'AP'}}" class="form-control"  placeholder="{{operator.isAvailable?'Цена':'Не доступен'}}" ng-disabled="disconnectProcess || !((changeIdentifier && identifierType === 'alfanumeric' && operator.isAvailable) || (connectOperator && operator.isAvailable && !operator.wasAvailable))" ng-required="operator.isAvailable"/>
                             <label class="error" ng-show="kcell_form.{{operator.id + 'AP'}}.$error.required && ( kcell_form.{{operator.id + 'AP'}}.$touched || view.submitted)">Required field</label>
                         </div>
                         <br>
                         <div class="input" ng-show="identifierType === 'digital'">
-                            <input ng-model="operator.priceEP" name="{{operator.id + 'EP'}}" class="form-control"  placeholder="{{operator.isAvailable?'Цена':'Не доступен'}}" ng-disabled="disconnectProcess || !operator.isAvailable" ng-required="operator.isAvailable && identifierType === 'digital'"/>
+                            <input ng-model="operator.priceEP" name="{{operator.id + 'EP'}}" class="form-control"  placeholder="{{operator.isAvailable?'Цена':'Не доступен'}}" ng-disabled="disconnectProcess || !(connectOperator && operator.isAvailable && !operator.wasAvailable)" ng-required="operator.isAvailable && identifierType === 'digital'"/>
                             <label class="error" ng-show="kcell_form.{{operator.id + 'EP'}}.$error.required && ( kcell_form.{{operator.id + 'EP'}}.$touched || view.submitted)">Required field</label>
                         </div>
                         <div class="input" ng-show="identifierType === 'alfanumeric'">
-                            <select ng-model="operator.title" name="{{operator.id + 'Title'}}" class="form-control" ng-disabled="disconnectProcess || !operator.isAvailable" required="true" ng-required="operator.isAvailable && identifierType === 'alfanumeric'">
+                            <select ng-model="operator.title" name="{{operator.id + 'Title'}}" class="form-control" ng-disabled="disconnectProcess || !((changeIdentifier && identifierType === 'alfanumeric' && operator.isAvailable) || (connectOperator && operator.isAvailable && !operator.wasAvailable))" required="true" ng-required="operator.isAvailable && identifierType === 'alfanumeric'">
                                 <option value="{{id.title}}">{{id.title}}</option>
                                 <option value="MESSAGE">MESSAGE</option>
                                 <option value="KiT_Notify">KiT_Notify</option>

@@ -144,14 +144,51 @@
             });
 
             camForm.on('submit', function () {
+                _.forEach($scope.identifiers, function(id) {
+                    _.forEach(id.operators, function(o) {
+                        if(!o.addedToNetwork || !o.addedToNetworkDate){
+                            if(o.changed || o.disconnected){
+
+                                if(o.disconnected){
+                                    o.isAvailable = true;
+                                }
+
+                                o.priceAP = o.oldPriceAP;
+                                o.priceEP = o.oldPriceEP;
+                                o.title = o.oldTitle;
+
+                                delete o.wasAvailable;
+                                delete o.oldPriceAP;
+                                delete o.oldPriceEP;
+                                delete o.oldTitle;
+
+                                delete o.changed;
+                                delete o.disconnected;
+                            }
+                            if(o.connected){
+                                delete o.isAvailable;
+                                delete o.priceAP;
+                                delete o.priceEP;
+                                delete o.title;
+                                delete o.connected;
+                            }
+                            delete o.addedToNetwork;
+                            delete o.addedToNetworkDate;
+                            delete o.dateFieldOpened;
+                        }
+                    });
+                });
+
+                camForm.variableManager.variableValue('identifiers', $scope.identifiers);
+
                 $scope.confirmOtherOperatorsChangeShortNumberTaskResult = 'Completed';
-                if(!$scope.resolutions){
-                    $scope.resolutions = [];
-                }
+
                 camForm.variableManager.variableValue('confirmOtherOperatorsChangeShortNumberTaskResult', $scope.confirmOtherOperatorsChangeShortNumberTaskResult);
                 camForm.variableManager.variableValue('confirmOtherOperatorsChangeShortNumberTaskComment', $scope.confirmOtherOperatorsChangeShortNumberTaskComment);
 
-                camForm.variableManager.variableValue('identifiers', $scope.identifiers);
+                if(!$scope.resolutions){
+                    $scope.resolutions = [];
+                }
 
                 $scope.resolutions.push({processInstanceId: $scope.processInstanceId, assignee: $rootScope.authentication.name, assigneeName: $rootScope.authentication.assigneeName, resolution: $scope.confirmOtherOperatorsChangeShortNumberTaskResult, comment: $scope.confirmOtherOperatorsChangeShortNumberTaskComment, taskId: camForm.taskId});
                 camForm.variableManager.variableValue('resolutions', $scope.resolutions);
@@ -188,6 +225,12 @@
 
     </script>
     <info-aftersales aftersales-info="aftersalesInfo"></info-aftersales>
+
+    {{identifiers[0].operators[0]}}<br/>
+    {{identifiers[0].operators[1]}}<br/>
+    {{identifiers[0].operators[2]}}<br/>
+    {{identifiers[0].operators[3]}}<br/>
+
     <div class="form-group" ng-repeat="id in identifiers">
         <label class="col-sm-12 control-label"/>Идентификатор - {{id.title}}
         <div class="col-sm-12" style="border-left: solid; border-left-width: 1px; margin-left: 2vh">
@@ -200,7 +243,8 @@
                 </tr>
                 </thead>
                 <tbody>
-                <tr ng-repeat="o in id.operators" ng-if="o.changed && o.isAvailable">
+                <tr ng-repeat="o in id.operators" ng-if="((o.changed || o.connected) && o.isAvailable) || (o.disconnected && o.wasAvailable  && !o.isAvailable)">
+                <!--tr ng-repeat="o in id.operators" ng-if="o.changed && o.isAvailable"-->
                     <th scope="row" style="width: 40%">{{o.name}}</th>
                     <td style="width: 40%">
                         <div class="input-group">
