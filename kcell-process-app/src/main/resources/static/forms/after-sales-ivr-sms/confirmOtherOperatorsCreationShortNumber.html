@@ -131,9 +131,41 @@
                 camForm.variableManager.variableValue('confirmOtherOperatorsCreationShortNumberTaskResult', $scope.confirmOtherOperatorsCreationShortNumberTaskResult);
                 camForm.variableManager.variableValue('confirmOtherOperatorsCreationShortNumberTaskComment', $scope.confirmOtherOperatorsCreationShortNumberTaskComment);
 
-                //if($scope.identifiers){
-                    camForm.variableManager.variableValue('identifiers', $scope.identifiers);
-                //}
+                _.forEach($scope.identifiers, function(id) {
+                    _.forEach(id.operators, function(o) {
+                        if(!o.checked || !o.addedToNetworkDate){
+                            if(o.disconnected){
+
+                                if(o.disconnected){
+                                    o.isAvailable = true;
+                                }
+
+                                o.priceAP = o.oldPriceAP;
+                                o.priceEP = o.oldPriceEP;
+                                o.title = o.oldTitle;
+
+                                delete o.wasAvailable;
+                                delete o.oldPriceAP;
+                                delete o.oldPriceEP;
+                                delete o.oldTitle;
+
+                                delete o.changed;
+                                delete o.disconnected;
+                            }
+                            if(o.connected){
+                                delete o.isAvailable;
+                                delete o.priceAP;
+                                delete o.priceEP;
+                                delete o.title;
+                                delete o.connected;
+                            }
+                            delete o.addedToNetwork;
+                            delete o.addedToNetworkDate;
+                            delete o.dateFieldOpened;
+                        }
+                    });
+                });
+                camForm.variableManager.variableValue('identifiers', $scope.identifiers);
 
                 $scope.resolutions.push({processInstanceId: $scope.processInstanceId, assignee: $rootScope.authentication.name, assigneeName: $rootScope.authentication.assigneeName, resolution: $scope.confirmOtherOperatorsCreationShortNumberTaskResult, comment: $scope.confirmOtherOperatorsCreationShortNumberTaskComment, taskId: camForm.taskId});
                 camForm.variableManager.variableValue('resolutions', $scope.resolutions);
@@ -142,13 +174,12 @@
 
             $scope.dateFieldOpened = [];
             $scope.open = function open(identifier, operator) {
-                console.log('open', identifier.title, operator.title, operator.dateFieldOpened);
+                //console.log('open', identifier.title, operator.title, operator.dateFieldOpened);
                 operator.dateFieldOpened = true;
             };
             $scope.addToNetwork = function(identifier, operator) {
-                console.log('check', identifier.title, operator.title, operator.checked);
-
-                if(!operator.checked){
+                //console.log('check', identifier.title, operator.title, operator.checked);
+                if(!operator.addedToNetwork){
                     delete operator.addedToNetworkDate;
                 }
 
@@ -165,12 +196,12 @@
                 <tr>
                     <th scope="col">Оператор</th>
                     <th scope="col">Дата заведения короткого номера</th>
-                    <th scope="col">Добавить</th>
+                    <th scope="col">Добавить/Отключить</th>
                 </tr>
                 </thead>
                 <tbody>
                 <!--<tr ng-repeat="o in id.operators" ng-if="o.connected">-->
-                <tr ng-repeat="o in id.operators" ng-if="o.connected || o.disconnected">
+                <tr ng-repeat="o in id.operators" ng-if="(o.connected && o.isAvailable) || (o.disconnected && o.wasAvailable && !o.isAvailable)">
                     <th scope="row" style="width: 40%">{{o.name}}</th>
                     <td style="width: 40%">
                         <div class="input-group">
@@ -184,9 +215,10 @@
                         <label class="error" ng-show="(kcell_form['addedToNetworkDate' + id.title + o.id].$error.required || (o.checked && !o.addedToNetwork)) && view.submitted">Required field</label>
                     </td>
                     <td style="width: 20%">
-                        <input type="checkbox" ng-model="o.checked" ng-change="addToNetwork(id, o)">
+                        <input type="checkbox" ng-model="o.addedToNetwork" ng-change="addToNetwork(id, o)">
                     </td>
                 </tr>
+
                 </tbody>
             </table>
         </div>

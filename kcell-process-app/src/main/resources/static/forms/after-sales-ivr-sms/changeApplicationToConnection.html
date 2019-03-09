@@ -117,6 +117,23 @@
                     $rootScope.authentication.assigneeName = (result.data.firstName ? result.data.firstName : "") + " " + (result.data.lastName ? result.data.lastName : "");
                 });
 
+                /*
+                var providerTitles = [];
+                angular.forEach($scope.identifiers, function(value, key){
+                    var titles = value.operators.filter(function(operator) {
+                        return operator.id !== 'kcell' && operator.hasOwnProperty("title") && ['MESSAGE','KiT_Notify'].indexOf(operator.title) === -1
+                    });
+                    if (titles.length>0){
+                        providerTitles.push(...titles);
+                    }
+                });
+                camForm.variableManager.createVariable({
+                    name: 'isRecipientProvider',
+                    value: $scope.identifierType === 'digital' ? true : providerTitles.length>0?true:false,
+                    type: 'Boolean'
+                });
+                */
+
                 _.forEach($scope.identifiers, function(identifier){
                     _.forEach(identifier.operators, function(operator){
 
@@ -134,8 +151,11 @@
                         delete operator.dateFieldOpened;
                         delete operator.addedToNetworkDate;
 
+                        //if(($scope.operatorType === 'offnet' ? (operator.isAvailable && operator.checked) : operator.isAvailable)){
                         if(!!operator.isAvailable) {
-                            operator.wasAvailable = !!operator.isAvailable; // !!operator.isAvailable && !!operator.checked;
+                            //console.log();
+                            operator.isAvailable = $scope.operatorType === 'offnet' ? operator.isAvailable && operator.checked : operator.isAvailable; //!!operator.isAvailable;
+                            operator.wasAvailable = operator.isAvailable;
                             operator.oldPriceAP = operator.priceAP;
 
                             // this is valid for BulkSMS
@@ -145,10 +165,10 @@
                             } else if($scope.identifierType === 'alfanumeric'){
                                 operator.oldTitle = operator.title;
                             }
-                        } else {
+                        /*} else {
                             delete operator.priceAP;
                             delete operator.priceEP;
-                            delete operator.title;
+                            delete operator.title;*/
                         }
                     });
                 });
@@ -166,7 +186,8 @@
                 if($scope.changeTransmitNumber && $scope.relatedProcessDefinitionKey === 'freephone'){
                     $scope.oldTransmitNumber = $scope.transmitNumber;
                 }
-                if($scope.changeProvider && $scope.relatedProcessDefinitionKey === 'bulksmsConnectionKAE'){
+                //if($scope.changeProvider && $scope.relatedProcessDefinitionKey === 'bulksmsConnectionKAE'){
+                if($scope.changeProvider && $scope.operatorType === 'offnet'){
                     $scope.oldProvider = $scope.provider;
                 }
                 if($scope.changeConnectionType && $scope.relatedProcessDefinitionKey === 'bulksmsConnectionKAE' && ($scope.connectionType === 'rest' || $scope.connectionType === 'smpp')){
@@ -580,7 +601,8 @@
                     camForm.variableManager.variableValue('transmitNumber', $scope.transmitNumber);
                 }
 
-                if($scope.changeProvider && $scope.relatedProcessDefinitionKey === 'bulksmsConnectionKAE'){
+                //if($scope.changeProvider && $scope.relatedProcessDefinitionKey === 'bulksmsConnectionKAE'){
+                if($scope.changeProvider && $scope.operatorType === 'offnet'){
                     camForm.variableManager.createVariable({
                         name: 'oldProvider',
                         type: 'String',
@@ -822,9 +844,15 @@
                     delete operator.priceAP;
                     delete operator.priceEP;
                 } else {
-                    operator.priceAP = operator.tmpPriceAP;
-                    operator.priceEP = operator.tmpPriceEP;
-                    operator.title = operator.tmpTitle;
+                    if(operator.tmpPriceAP){
+                        operator.priceAP = operator.tmpPriceAP;
+                    }
+                    if(operator.tmpPriceEP){
+                        operator.priceEP = operator.tmpPriceEP;
+                    }
+                    if(operator.tmpTitle){
+                        operator.title = operator.tmpTitle;
+                    }
                 }
             };
 

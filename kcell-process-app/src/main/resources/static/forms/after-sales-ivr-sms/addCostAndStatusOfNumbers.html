@@ -107,12 +107,14 @@
                     $rootScope.authentication.assigneeName = (result.data.firstName ? result.data.firstName : "") + " " + (result.data.lastName ? result.data.lastName : "");
                 });
 
+                /*
                 $scope.identifiers.forEach(function(id){
                     id.operators = id.operators.map(function(op){
                         op.disabled = !op.changed;
                         return op;
                     });
                 });
+                */
 
                 $scope.aftersalesInfo.showTarif = true;
 
@@ -173,18 +175,25 @@
                 camForm.variableManager.variableValue('addCostAndStatusOfNumbersTaskComment', $scope.addCostAndStatusOfNumbersTaskComment);
                 $scope.resolutions.push({processInstanceId: $scope.processInstanceId, assignee: $rootScope.authentication.name, assigneeName: $rootScope.authentication.assigneeName, resolution: $scope.addCostAndStatusOfNumbersTaskResult, comment: $scope.addCostAndStatusOfNumbersTaskComment, taskId: camForm.taskId});
                 camForm.variableManager.variableValue('resolutions', $scope.resolutions);
-                //camForm.variableManager.variableValue('identifiers', $scope.identifiers);
+
+                _.forEach($scope.identifiers, function(id) {
+                    _.forEach(id.operators, function(o) {
+                        if(o.connected){
+                            if(o.isAvailable){
+                                o.checked = true;
+                            } else {
+                                o.checked = false;
+                                o.connected = false; //delete o.connected
+                            }
+                        }
+                    })
+                });
+                camForm.variableManager.variableValue('identifiers', $scope.identifiers);
             });
         }]);
 
     </script>
     <info-aftersales aftersales-info="aftersalesInfo"></info-aftersales>
-<!--
-    {{identifiers[0].operators[0]}}<br/>
-    {{identifiers[0].operators[1]}}<br/>
-    {{identifiers[0].operators[2]}}<br/>
-    {{identifiers[0].operators[3]}}<br/>
--->
     <!--p ng-if="operatorType === 'offnet' && identifierType === 'digital'">Добавьте информацию по статусам и ценам за короткий номер</p>
     <div class="form-group" ng-repeat="id in identifiers" ng-if="operatorType === 'offnet' && identifierType === 'digital'"-->
     <p ng-if="operatorType === 'offnet'">Добавьте информацию по статусам и ценам за короткий номер</p>
@@ -204,14 +213,14 @@
                 </div>
                 <div class="col-sm-10">
                     <div class="col-sm-3" ng-repeat="operator in id.operators">
-                        <label for="operator.id"><input type="checkbox" ng-model="operator.isAvailable" ng-change="clearPrices(operator)" ng-disabled="operator.disabled"> {{operator.name}}</label>
+                        <label for="operator.id"><input type="checkbox" ng-model="operator.isAvailable" ng-change="clearPrices(operator)" ng-disabled="!operator.connected"> {{operator.name}}</label>
                         <div class="input" id="operator.id" >
-                            <input ng-model="operator.priceAP" name="{{operator.id + 'AP' + id.title}}" class="form-control"  placeholder="{{operator.isAvailable?'Цена':'Не доступен'}}" ng-disabled="operator.disabled || !operator.isAvailable" ng-required="operator.isAvailable"/>
+                            <input ng-model="operator.priceAP" name="{{operator.id + 'AP' + id.title}}" class="form-control"  placeholder="{{operator.isAvailable?'Цена':'Не доступен'}}" ng-disabled="!(operator.connected && operator.isAvailable)" ng-required="operator.isAvailable"/>
                             <label class="error" ng-show="kcell_form.{{operator.id + 'AP' + id.title}}.$error.required && ( kcell_form.{{operator.id + 'AP'}}.$touched || view.submitted)">Required field</label>
                         </div>
                         <br>
                         <div class="input">
-                            <input ng-model="operator.priceEP" name="{{operator.id + 'EP' + id.title}}" class="form-control"  placeholder="{{operator.isAvailable?'Цена':'Не доступен'}}" ng-disabled="operator.disabled || !operator.isAvailable" ng-required="operator.isAvailable"/>
+                            <input ng-model="operator.priceEP" name="{{operator.id + 'EP' + id.title}}" class="form-control"  placeholder="{{operator.isAvailable?'Цена':'Не доступен'}}" ng-disabled="!(operator.connected && operator.isAvailable)" ng-required="operator.isAvailable"/>
                             <label class="error" ng-show="kcell_form.{{operator.id + 'EP' + id.title}}.$error.required && ( kcell_form.{{operator.id + 'EP'}}.$touched || view.submitted)">Required field</label>
                         </div>
                     </div>
