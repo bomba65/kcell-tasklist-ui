@@ -35,7 +35,8 @@
                 'oldProvider',
                 'changeProvider',
                 'changeConnectionType',
-                'oldConnectionType'
+                'oldConnectionType',
+                'oldIpNumber'
             ];
 
             camForm.on('form-loaded', function () {
@@ -131,38 +132,9 @@
                 camForm.variableManager.variableValue('confirmOtherOperatorsCreationShortNumberTaskResult', $scope.confirmOtherOperatorsCreationShortNumberTaskResult);
                 camForm.variableManager.variableValue('confirmOtherOperatorsCreationShortNumberTaskComment', $scope.confirmOtherOperatorsCreationShortNumberTaskComment);
 
-                _.forEach($scope.identifiers, function(id) {
-                    _.forEach(id.operators, function(o) {
-                        if(!o.checked || !o.addedToNetworkDate){
-                            if(o.disconnected){
-
-                                if(o.disconnected){
-                                    o.isAvailable = true;
-                                }
-
-                                o.priceAP = o.oldPriceAP;
-                                o.priceEP = o.oldPriceEP;
-                                o.title = o.oldTitle;
-
-                                delete o.wasAvailable;
-                                delete o.oldPriceAP;
-                                delete o.oldPriceEP;
-                                delete o.oldTitle;
-
-                                delete o.changed;
-                                delete o.disconnected;
-                            }
-                            if(o.connected){
-                                delete o.isAvailable;
-                                delete o.priceAP;
-                                delete o.priceEP;
-                                delete o.title;
-                                delete o.connected;
-                            }
-                            delete o.addedToNetwork;
-                            delete o.addedToNetworkDate;
-                            delete o.dateFieldOpened;
-                        }
+                _.forEach($scope.identifiers, function(identifier){
+                    _.forEach(identifier.operators, function(operator){
+                        delete operator.dateFieldOpened;
                     });
                 });
                 camForm.variableManager.variableValue('identifiers', $scope.identifiers);
@@ -196,26 +168,27 @@
                 <tr>
                     <th scope="col">Оператор</th>
                     <th scope="col">Дата заведения короткого номера</th>
-                    <th scope="col">Добавить/Отключить</th>
+                    <th scope="col">Добавить</th>
                 </tr>
                 </thead>
                 <tbody>
                 <!--<tr ng-repeat="o in id.operators" ng-if="o.connected">-->
-                <tr ng-repeat="o in id.operators" ng-if="(o.connected && o.isAvailable) || (o.disconnected && o.wasAvailable && !o.isAvailable)">
+                <tr ng-repeat="o in id.operators" ng-if="o.isAvailable && o.wasAvailable">
                     <th scope="row" style="width: 40%">{{o.name}}</th>
                     <td style="width: 40%">
                         <div class="input-group">
                             <input type="text" ng-model="o.addedToNetworkDate" name="{{'addedToNetworkDate' + id.title + o.id}}" ng-disabled="!o.addedToNetwork" ng-required="o.addedToNetwork" class="form-control" datepicker-popup="dd.MM.yyyy" is-open="o.dateFieldOpened" id="{{'addedToNetworkDate' + id.title + o.id}}" min-date="datepickerOptions.minDate" />
                             <span class="input-group-btn">
-                                <button type="button" class="btn btn-default" ng-disabled="!o.checked" ng-click="open(id, o)">
+                                <button type="button" class="btn btn-default" ng-disabled="!o.addedToNetwork" ng-click="open(id, o)">
                                     <i class="glyphicon glyphicon-calendar"></i>
                                 </button>
                             </span>
                         </div>
-                        <label class="error" ng-show="(kcell_form['addedToNetworkDate' + id.title + o.id].$error.required || (o.checked && !o.addedToNetwork)) && view.submitted">Required field</label>
+                        <label class="error" ng-show="(kcell_form['addedToNetworkDate' + id.title + o.id].$error.required || !o.addedToNetwork) && view.submitted">Required field</label>
                     </td>
                     <td style="width: 20%">
-                        <input type="checkbox" ng-model="o.addedToNetwork" ng-change="addToNetwork(id, o)">
+                        <input type="checkbox" ng-model="o.addedToNetwork" name="{{'addedToNetwork' + id.title + o.id}}" ng-change="addToNetwork(id, o)" ng-required="true">
+                        <label class="error" ng-show="(kcell_form['addedToNetwork' + id.title + o.id].$error.required || !o.addedToNetwork) && view.submitted">Required field</label>
                     </td>
                 </tr>
 

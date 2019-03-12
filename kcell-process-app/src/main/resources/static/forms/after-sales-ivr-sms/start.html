@@ -99,6 +99,9 @@
                                 $http.get($scope.baseUrl + '/history/variable-instance?deserializeValues=false&processInstanceId='+$scope.relatedProcessInstance.id).then(
                                     function(result){
                                         var relatedProcessInstanceVariables = angular.copy(result.data);
+
+                                        console.log('relatedProcessInstanceVariables', relatedProcessInstanceVariables);
+
                                         angular.forEach(relatedProcessInstanceVariables, function(el, index){
                                             try {
                                                 if($scope.variableList.indexOf(el.name)>-1){
@@ -357,6 +360,12 @@
                     value: '',
                     type: 'String'
                 });
+                camForm.variableManager.createVariable({
+                    name: 'provider',
+                    value: '',
+                    type: 'String'
+                });
+
                 if($scope.relatedProcessInstance.processDefinitionKey === 'freephone'){
                     camForm.variableManager.createVariable({
                         name: 'transmitNumber',
@@ -435,13 +444,11 @@
                         value: '',
                         type: 'String'
                     });
-                    camForm.variableManager.createVariable({
-                        name: 'provider',
-                        value: '',
-                        type: 'String'
-                    });
                 };
             });
+
+
+            console.log('$scope.previouslyBought', $scope.previouslyBought);
 
             $scope.disableProviderModification = false;
             $scope.disableIdentifierModification = false;
@@ -554,6 +561,7 @@
                 camForm.variableManager.variableValue('changeSmsServiceType', $scope.changeSmsServiceType);
                 camForm.variableManager.variableValue('changeProvider', $scope.changeProvider);
                 camForm.variableManager.variableValue('changeTransmitNumber', $scope.changeTransmitNumber);
+                camForm.variableManager.variableValue('provider', $scope.provider);
 
                 if($scope.relatedProcessInstance.processDefinitionKey === 'freephone'){
                     camForm.variableManager.variableValue('transmitNumber', $scope.transmitNumber);
@@ -575,7 +583,6 @@
                     camForm.variableManager.variableValue('receivingServerPass', $scope.receivingServerPass);
                     camForm.variableManager.variableValue('addressServerMO', $scope.addressServerMO);
                     camForm.variableManager.variableValue('tarifPlane', $scope.tarifPlane);
-                    camForm.variableManager.variableValue('provider', $scope.provider);
                 };
             });
         }]);
@@ -607,13 +614,13 @@
                         <input type="checkbox" class="form-check-input" id="connectOperator" name="connectOperator" ng-model="connectOperator" ng-disabled="operatorType === 'onnet' || disableIdentifierModification">
                         <label class="form-check-label" for="connectOperator">Добавление оператора</label>
                     </div>
-                    <div class="col-sm-12">
+                    <div class="col-sm-12" ng-show="relatedProcessInstance.processDefinitionKey === 'freephone' || (relatedProcessInstance.processDefinitionKey === 'bulksmsConnectionKAE' && (connectionType === 'rest' || connectionType === 'smpp'))">
                         <input type="checkbox" class="form-check-input" id="connectionType" name="connectionType" ng-model="changeConnectionType" ng-disabled="disableConnectionTypeModification">
                         <label class="form-check-label" for="connectionType">Изменение типа подключения</label>
                     </div>
-                    <div class="col-sm-12" ng-show="relatedProcessInstance.processDefinitionKey === 'freephone'">
+                    <div class="col-sm-12" ng-show="relatedProcessInstance.processDefinitionKey === 'freephone' && connectionType === 'SIP_SBC'">
                         <input type="checkbox" class="form-check-input" id="ipNumber" name="ipNumber" ng-model="changeIpNumber" ng-disabled="disableIpNumberModification">
-                        <label class="form-check-label" for="ipNumber">Добавление/Изменение IP адреса</label>
+                        <label class="form-check-label" for="ipNumber">Изменение IP адреса</label>
                     </div>
                 </div>
             </div>
@@ -627,7 +634,7 @@
                         <input type="checkbox" class="form-check-input" id="smsServiceType" name="smsServiceType" ng-model="changeSmsServiceType">
                         <label class="form-check-label" for="smsServiceType">Подключение МО</label>
                     </div>
-                    <div class="col-sm-12">
+                    <div class="col-sm-12" ng-show="operatorType === 'offnet' && ((relatedProcessInstance.processDefinitionKey === 'bulksmsConnectionKAE' && !previouslyBought) || relatedProcessInstance.processDefinitionKey === 'freephone')">
                         <input type="checkbox" class="form-check-input" id="provider" name="provider" ng-model="changeProvider" ng-disabled="operatorType === 'onnet' || disableProviderModification">
                         <label class="form-check-label" for="provider">Смена провайдера</label>
                     </div>

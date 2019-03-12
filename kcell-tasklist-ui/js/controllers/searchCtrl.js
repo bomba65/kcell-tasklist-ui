@@ -1618,7 +1618,7 @@ define(['./module','jquery', 'moment', 'camundaSDK'], function(app, $, moment, C
 			disconnectOperator: "Отключение оператора",
 			connectOperator: "Добавление оператора",
 			changeConnectionType: "Изменение типа подключения",
-			changeIpNumber: "Добавление/Изменение IP адреса",
+			changeIpNumber: "Изменение IP адреса",
 			changeIdentifier: "Изменение заголовка",
 			changeSmsServiceType: "Подключение МО",
 			changeProvider: "Смена провайдера",

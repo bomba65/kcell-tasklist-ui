@@ -117,23 +117,6 @@
                     $rootScope.authentication.assigneeName = (result.data.firstName ? result.data.firstName : "") + " " + (result.data.lastName ? result.data.lastName : "");
                 });
 
-                /*
-                var providerTitles = [];
-                angular.forEach($scope.identifiers, function(value, key){
-                    var titles = value.operators.filter(function(operator) {
-                        return operator.id !== 'kcell' && operator.hasOwnProperty("title") && ['MESSAGE','KiT_Notify'].indexOf(operator.title) === -1
-                    });
-                    if (titles.length>0){
-                        providerTitles.push(...titles);
-                    }
-                });
-                camForm.variableManager.createVariable({
-                    name: 'isRecipientProvider',
-                    value: $scope.identifierType === 'digital' ? true : providerTitles.length>0?true:false,
-                    type: 'Boolean'
-                });
-                */
-
                 _.forEach($scope.identifiers, function(identifier){
                     _.forEach(identifier.operators, function(operator){
 
@@ -147,14 +130,25 @@
                         delete operator.tmpPriceAP;
                         delete operator.tmpPriceEP;
                         delete operator.tmpTitle;
-                        delete operator.addedToNetwork;
+
                         delete operator.dateFieldOpened;
+                        delete operator.addedToNetwork;
                         delete operator.addedToNetworkDate;
+                        delete operator.removedFromNetwork;
+                        delete operator.removedFromNetworkDate;
 
                         //if(($scope.operatorType === 'offnet' ? (operator.isAvailable && operator.checked) : operator.isAvailable)){
                         if(!!operator.isAvailable) {
                             //console.log();
-                            operator.isAvailable = $scope.operatorType === 'offnet' ? operator.isAvailable && operator.checked : operator.isAvailable; //!!operator.isAvailable;
+                            //operator.isAvailable = !!operator.isAvailable;
+
+                            if($scope.relatedProcessDefinitionKey === 'freephone'){
+                                operator.isAvailable = $scope.operatorType === 'offnet' && !$scope.previouslyBought ? operator.isAvailable && operator.checked : operator.isAvailable;
+                            }
+                            if($scope.relatedProcessDefinitionKey === 'bulksmsConnectionKAE'){
+                                operator.isAvailable = $scope.operatorType === 'offnet' && $scope.identifierType === 'digital' && !$scope.previouslyBought ? operator.isAvailable && operator.checked : operator.isAvailable;
+                            }
+
                             operator.wasAvailable = operator.isAvailable;
                             operator.oldPriceAP = operator.priceAP;
 
@@ -165,10 +159,13 @@
                             } else if($scope.identifierType === 'alfanumeric'){
                                 operator.oldTitle = operator.title;
                             }
-                        /*} else {
+                        /*
+                        } else {
                             delete operator.priceAP;
                             delete operator.priceEP;
-                            delete operator.title;*/
+                            delete operator.title;
+                        */
+
                         }
                     });
                 });
@@ -186,11 +183,15 @@
                 if($scope.changeTransmitNumber && $scope.relatedProcessDefinitionKey === 'freephone'){
                     $scope.oldTransmitNumber = $scope.transmitNumber;
                 }
-                //if($scope.changeProvider && $scope.relatedProcessDefinitionKey === 'bulksmsConnectionKAE'){
                 if($scope.changeProvider && $scope.operatorType === 'offnet'){
                     $scope.oldProvider = $scope.provider;
                 }
+                if($scope.changeIpNumber && $scope.relatedProcessDefinitionKey === 'freephone' && $scope.connectionType === 'SIP_SBC'){
+                    $scope.oldIpNumber = $scope.ipNumber;
+                }
+
                 if($scope.changeConnectionType && $scope.relatedProcessDefinitionKey === 'bulksmsConnectionKAE' && ($scope.connectionType === 'rest' || $scope.connectionType === 'smpp')){
+                    /*
                     if($scope.connectionType === 'rest'){
                         $scope.oldConnectionType = 'rest';
                         $scope.connectionType = 'smpp';
@@ -198,6 +199,9 @@
                         $scope.oldConnectionType = 'smpp';
                         $scope.connectionType = 'rest';
                     }
+                    */
+                    $scope.oldConnectionType = $scope.connectionType;
+                    console.log('oldConnectionType', $scope.oldConnectionType);
                 }
                 if($scope.changeConnectionType && $scope.relatedProcessDefinitionKey === 'freephone'){
                     $scope.oldConnectionType = $scope.connectionType;
@@ -521,7 +525,7 @@
                         // This is valid for BulkSMS
                         // TODO: Add logic for freephone
                         // Since "connectOperator" and "disconnectOperator" are supposed to be only for digital identifiers according to mockups in DP-113
-                        if($scope.identifierType === 'digital'){
+                        if($scope.identifierType === 'digital' || $scope.relatedProcessDefinitionKey === 'freephone'){
                             if(o.wasAvailable && !o.isAvailable){
                                 $scope.operatorWasDisconnected = true;
                                 o.disconnected = true;
@@ -571,85 +575,6 @@
                         }
                     });
                 });
-                /*
-                var finalIDs = '';
-                if ($scope.operatorType === 'onnet') {
-                    _.forEach($scope.identifiers, function(id) {
-                        finalIDs = finalIDs + (finalIDs ? ',' : '') + id.title
-                    })
-                } else {
-                    _.forEach($scope.identifiers, function(id) {
-                        if (_.find(id.operators, 'checked')) {
-                            finalIDs = finalIDs + (finalIDs ? ',' : '') + id.title
-                        }
-                    })
-                }
-                camForm.variableManager.variableValue('finalIDs', finalIDs);
-                */
-
-
-                console.log('identifierType: ' + $scope.identifierType + ', relatedProcessDefinitionKey: ' + $scope.relatedProcessDefinitionKey);
-                console.log('disconnectOperator: ' + $scope.disconnectOperator + ', operatorWasDisconnected: ' + $scope.operatorWasDisconnected  + ', connectOperator: ' + $scope.connectOperator + ', operatorWasConnected: ' + $scope.operatorWasConnected + ', changeIdentifier: ' + $scope.changeIdentifier + ', operatorWasChanged: ' + $scope.operatorWasChanged);
-
-
-                if($scope.changeTransmitNumber && $scope.relatedProcessDefinitionKey === 'freephone'){
-                    camForm.variableManager.createVariable({
-                        name: 'oldTransmitNumber',
-                        type: 'String',
-                        value: $scope.oldTransmitNumber
-                    });
-                    camForm.variableManager.variableValue('transmitNumber', $scope.transmitNumber);
-                }
-
-                //if($scope.changeProvider && $scope.relatedProcessDefinitionKey === 'bulksmsConnectionKAE'){
-                if($scope.changeProvider && $scope.operatorType === 'offnet'){
-                    camForm.variableManager.createVariable({
-                        name: 'oldProvider',
-                        type: 'String',
-                        value: $scope.oldProvider
-                    });
-                    camForm.variableManager.variableValue('provider', $scope.provider);
-                }
-
-                if($scope.changeConnectionType && $scope.relatedProcessDefinitionKey === 'bulksmsConnectionKAE' && ($scope.oldConnectionType === 'rest' || $scope.oldConnectionType === 'smpp')){
-                    camForm.variableManager.createVariable({
-                        name: 'oldConnectionType',
-                        type: 'String',
-                        value: $scope.oldConnectionType
-                    });
-                    camForm.variableManager.variableValue('connectionType', $scope.connectionType);
-                }
-                if($scope.changeConnectionType && $scope.relatedProcessDefinitionKey === 'freephone'){
-                    console.log('oldConnectionType', $scope.oldConnectionType, 'connectionType', $scope.connectionType);
-                    camForm.variableManager.createVariable({
-                        name: 'oldConnectionType',
-                        type: 'String',
-                        value: $scope.oldConnectionType
-                    });
-                    camForm.variableManager.variableValue('connectionType', $scope.connectionType);
-                }
-
-                camForm.variableManager.variableValue('identifiers', $scope.identifiers);
-                camForm.variableManager.createVariable({
-                    name: 'operatorWasChanged',
-                    value: $scope.operatorWasChanged,
-                    type: 'Boolean'
-                });
-                camForm.variableManager.createVariable({
-                    name: 'operatorWasConnected',
-                    value: $scope.operatorWasConnected,
-                    type: 'Boolean'
-                });
-                camForm.variableManager.createVariable({
-                    name: 'operatorWasDisconnected',
-                    value: $scope.operatorWasDisconnected,
-                    type: 'Boolean'
-                });
-
-                $scope.resolutions.push({processInstanceId: $scope.processInstanceId, assignee: $rootScope.authentication.name, assigneeName: $rootScope.authentication.assigneeName, resolution: $scope.changeApplicationToConnectionTaskResult, comment: $scope.changeApplicationToConnectionTaskComment, taskId: camForm.taskId});
-                camForm.variableManager.variableValue('resolutions', $scope.resolutions);
-                camForm.variableManager.variableValue('changeApplicationToConnectionTaskResult', $scope.changeApplicationToConnectionTaskResult);
-                camForm.variableManager.variableValue('changeApplicationToConnectionTaskComment', $scope.changeApplicationToConnectionTaskComment);
 
                 /*
                 var finalIDs = '';
@@ -689,6 +614,111 @@
                 camForm.variableManager.variableValue('finalIDs', finalIDs);
                 camForm.variableManager.variableValue('identifiers', $scope.identifiers);
                 */
+
+                /*
+                var finalIDs = '';
+                if ($scope.operatorType === 'onnet') {
+                    _.forEach($scope.identifiers, function(id) {
+                        finalIDs = finalIDs + (finalIDs ? ',' : '') + id.title
+                    })
+                } else {
+                    _.forEach($scope.identifiers, function(id) {
+                        if (_.find(id.operators, 'checked')) {
+                            finalIDs = finalIDs + (finalIDs ? ',' : '') + id.title
+                        }
+                    })
+                }
+                camForm.variableManager.variableValue('finalIDs', finalIDs);
+                */
+
+
+                console.log('identifierType: ' + $scope.identifierType + ', relatedProcessDefinitionKey: ' + $scope.relatedProcessDefinitionKey);
+                console.log('disconnectOperator: ' + $scope.disconnectOperator + ', operatorWasDisconnected: ' + $scope.operatorWasDisconnected  + ', connectOperator: ' + $scope.connectOperator + ', operatorWasConnected: ' + $scope.operatorWasConnected + ', changeIdentifier: ' + $scope.changeIdentifier + ', operatorWasChanged: ' + $scope.operatorWasChanged);
+
+                if($scope.changeContractNumber){
+                    camForm.variableManager.variableValue('contractNumber', $scope.contractNumber);
+                }
+
+                if($scope.changeTransmitNumber && $scope.relatedProcessDefinitionKey === 'freephone'){
+                    camForm.variableManager.createVariable({
+                        name: 'oldTransmitNumber',
+                        type: 'String',
+                        value: $scope.oldTransmitNumber
+                    });
+                    camForm.variableManager.variableValue('transmitNumber', $scope.transmitNumber);
+                }
+
+                if($scope.changeProvider && $scope.operatorType === 'offnet'){
+                    camForm.variableManager.createVariable({
+                        name: 'oldProvider',
+                        type: 'String',
+                        value: $scope.oldProvider
+                    });
+                }
+                camForm.variableManager.variableValue('provider', $scope.provider);
+
+                if($scope.changeConnectionType && $scope.relatedProcessDefinitionKey === 'bulksmsConnectionKAE' && ($scope.oldConnectionType === 'rest' || $scope.oldConnectionType === 'smpp')){
+                    camForm.variableManager.createVariable({
+                        name: 'oldConnectionType',
+                        type: 'String',
+                        value: $scope.oldConnectionType
+                    });
+                    camForm.variableManager.variableValue('connectionType', $scope.connectionType);
+                }
+                if($scope.changeConnectionType && $scope.relatedProcessDefinitionKey === 'freephone'){
+                    console.log('oldConnectionType', $scope.oldConnectionType, 'connectionType', $scope.connectionType);
+                    camForm.variableManager.createVariable({
+                        name: 'oldConnectionType',
+                        type: 'String',
+                        value: $scope.oldConnectionType
+                    });
+
+                    camForm.variableManager.variableValue('connectionType', $scope.connectionType);
+
+                    if($scope.connectionType === 'SIP_SBC'){
+                        camForm.variableManager.variableValue('ipNumber', $scope.ipNumber);
+                    } else if($scope.connectionType === 'transmit'){
+                        camForm.variableManager.variableValue('transmitNumber', $scope.transmitNumber);
+                    }
+
+                    if($scope.oldConnectionType === 'SIP_SBC'){
+                        camForm.variableManager.destroyVariable('ipNumber');
+                    } else if($scope.oldConnectionType === 'transmit'){
+                        camForm.variableManager.destroyVariable('transmitNumber');
+                    }
+                }
+                if($scope.changeIpNumber && $scope.relatedProcessDefinitionKey === 'freephone'){
+                    if($scope.connectionType === 'SIP_SBC'){
+                        camForm.variableManager.createVariable({
+                            name: 'oldIpNumber',
+                            type: 'String',
+                            value: $scope.oldIpNumber
+                        });
+                        camForm.variableManager.variableValue('ipNumber', $scope.ipNumber);
+                    }
+                }
+
+                camForm.variableManager.variableValue('identifiers', $scope.identifiers);
+                camForm.variableManager.createVariable({
+                    name: 'operatorWasChanged',
+                    value: $scope.operatorWasChanged,
+                    type: 'Boolean'
+                });
+                camForm.variableManager.createVariable({
+                    name: 'operatorWasConnected',
+                    value: $scope.operatorWasConnected,
+                    type: 'Boolean'
+                });
+                camForm.variableManager.createVariable({
+                    name: 'operatorWasDisconnected',
+                    value: $scope.operatorWasDisconnected,
+                    type: 'Boolean'
+                });
+
+                $scope.resolutions.push({processInstanceId: $scope.processInstanceId, assignee: $rootScope.authentication.name, assigneeName: $rootScope.authentication.assigneeName, resolution: $scope.changeApplicationToConnectionTaskResult, comment: $scope.changeApplicationToConnectionTaskComment, taskId: camForm.taskId});
+                camForm.variableManager.variableValue('resolutions', $scope.resolutions);
+                camForm.variableManager.variableValue('changeApplicationToConnectionTaskResult', $scope.changeApplicationToConnectionTaskResult);
+                camForm.variableManager.variableValue('changeApplicationToConnectionTaskComment', $scope.changeApplicationToConnectionTaskComment);
 
                 //-------------------------------------------------------------------
 
@@ -873,6 +903,26 @@
                 $event.stopPropagation();
                 $scope.dateFieldOpened = true;
             };
+
+            $scope.$watch('provider', function (provider) {
+                if($scope.changeProvider && !!provider){
+                    if (provider !== $scope.oldProvider) {
+                        $scope.kcell_form.provider.$setValidity('valid', true);
+                    } else {
+                        $scope.kcell_form.provider.$setValidity('valid', false);
+                    }
+                }
+            }, true);
+
+            $scope.$watch('connectionType', function (connectionType) {
+                if($scope.changeConnectionType && !!connectionType){
+                    if (connectionType !== $scope.oldConnectionType) {
+                        $scope.kcell_form.connectionType.$setValidity('valid', true);
+                    } else {
+                        $scope.kcell_form.connectionType.$setValidity('valid', false);
+                    }
+                }
+            }, true);
 
             /*
             $scope.$watch('responsibleB2BSales', function (responsibleB2BSales) {
@@ -1113,15 +1163,15 @@
                 </div>
                 <div class="col-sm-10">
                     <div class="col-sm-3" ng-repeat="operator in id.operators">
-                        <label for="operator.id"><input type="checkbox" ng-model="operator.isAvailable" ng-change="clearPrices(operator)"> {{operator.name}}</label>
+                        <label for="operator.id"><input type="checkbox" ng-model="operator.isAvailable" ng-change="clearPrices(operator)" ng-disabled="disconnectProcess || !((disconnectOperator && operator.wasAvailable) || (connectOperator && !operator.wasAvailable))"> {{operator.name}}</label>
                         <div class="input" id="operator.id" >
-                            <input ng-model="operator.priceAP" name="{{operator.id + 'AP' + id.title}}" class="form-control"  placeholder="{{operator.isAvailable?'Цена':'Не доступен'}}" ng-disabled="disconnectProcess || !operator.isAvailable" ng-required="operator.isAvailable"/>
-                            <label class="error" ng-show="kcell_form.{{operator.id + 'AP' + id.title}}.$error.required && ( kcell_form.{{operator.id + 'AP'}}.$touched || view.submitted)">Required field</label>
+                            <input ng-model="operator.priceAP" name="{{operator.id + 'AP'}}" class="form-control"  placeholder="{{operator.isAvailable?'Цена':'Не доступен'}}" ng-disabled="disconnectProcess || !(connectOperator && operator.isAvailable && !operator.wasAvailable)" ng-required="operator.isAvailable"/>
+                            <label class="error" ng-show="kcell_form.{{operator.id + 'AP'}}.$error.required && ( kcell_form.{{operator.id + 'AP'}}.$touched || view.submitted)">Required field</label>
                         </div>
                         <br>
                         <div class="input">
-                            <input ng-model="operator.priceEP" name="{{operator.id + 'EP' + id.title}}" class="form-control"  placeholder="{{operator.isAvailable?'Цена':'Не доступен'}}" ng-disabled="disconnectProcess || !operator.isAvailable" ng-required="operator.isAvailable"/>
-                            <label class="error" ng-show="kcell_form.{{operator.id + 'EP' + id.title}}.$error.required && ( kcell_form.{{operator.id + 'EP'}}.$touched || view.submitted)">Required field</label>
+                            <input ng-model="operator.priceEP" name="{{operator.id + 'EP'}}" class="form-control"  placeholder="{{operator.isAvailable?'Цена':'Не доступен'}}" ng-disabled="disconnectProcess || !(connectOperator && operator.isAvailable && !operator.wasAvailable)" ng-required="operator.isAvailable"/>
+                            <label class="error" ng-show="kcell_form.{{operator.id + 'EP'}}.$error.required && ( kcell_form.{{operator.id + 'EP'}}.$touched || view.submitted)">Required field</label>
                         </div>
                     </div>
                 </div>
@@ -1164,7 +1214,7 @@
     <div class="form-group">
         <label class="col-sm-4 control-label">* Юридическое наименование компании:</label>
         <div class="col-sm-8">
-            <input type="text" name="officialClientCompanyName" id='officialClientCompanyName' ng-model="officialClientCompanyName" class="form-control" placeholder="Юридическое наименование компании" ng-required="changeOfficialClientCompanyName" ng-disabled="foundClientCRM || !changeOfficialClientCompanyName">
+            <input type="text" name="officialClientCompanyName" id='officialClientCompanyName' ng-model="officialClientCompanyName" class="form-control" placeholder="Юридическое наименование компании" ng-required="changeOfficialClientCompanyName" ng-disabled="!changeOfficialClientCompanyName">
             <label class="error" ng-show="kcell_form.officialClientCompanyName.$error.required && ( kcell_form.officialClientCompanyName.$touched || view.submitted)">Required field</label>
         </div>
     </div>
@@ -1178,12 +1228,13 @@
     <div class="form-group" ng-show="relatedProcessDefinitionKey === 'bulksmsConnectionKAE'">
         <label class="col-sm-4 control-label">* Тип подключения:</label>
         <div class="col-sm-8">
-            <select ng-model="connectionType" name="connectionType" class="form-control" ng-disabled="true" ng-required="true">
-                <option value="web">Web interface</option>
+            <select ng-model="connectionType" name="connectionType" class="form-control" ng-disabled="!changeConnectionType">
+                <option value="web" disabled="changeConnectionType">Web interface</option>
                 <option value="rest">REST</option>
                 <option value="smpp">SMPP</option>
             </select>
             <label class="error" ng-show="kcell_form.connectionType.$error.required && ( kcell_form.connectionType.$touched || view.submitted)">Required field</label>
+            <label class="error" ng-show="kcell_form.connectionType.$invalid && view.submitted">New Connection Type is the same as the old Connection Type</label>
         </div>
     </div>
     <div class="form-group" ng-show="relatedProcessDefinitionKey === 'freephone'">
@@ -1195,12 +1246,13 @@
                 <option value="E1">E1</option>
             </select>
             <label class="error" ng-show="kcell_form.connectionType.$error.required && ( kcell_form.connectionType.$touched || view.submitted)">Required field</label>
+            <label class="error" ng-show="kcell_form.connectionType.$invalid && view.submitted">New Connection Type is the same as the old Connection Type</label>
         </div>
     </div>
     <div class="form-group" ng-show="relatedProcessDefinitionKey === 'freephone' && connectionType === 'transmit'">
         <label class="col-sm-4 control-label">* Номер переадресации:</label>
         <div class="col-sm-8">
-            <input class="form-control" maxlength="500" ng-model="transmitNumber" name="transmitNumber" ng-required="changeTransmitNumber" ng-disabled="!changeTransmitNumber">
+            <input class="form-control" maxlength="500" ng-model="transmitNumber" name="transmitNumber" ng-required="connectionType === 'transmit'" ng-disabled="!(changeTransmitNumber || connectionType === 'transmit')">
             <label class="error" ng-show="kcell_form.transmitNumber.$error.required && ( kcell_form.transmitNumber.$touched || view.submitted)">Required field</label>
         </div>
     </div>
@@ -1212,7 +1264,7 @@
         <label class="col-sm-4 control-label">* Тип СМС услуги:</label>
         <div class="col-sm-8">
             <select class="form-control" id="sel1"
-                    ng-model="smsServiceType" ng-required="connectionType !== 'web'" ng-disabled="true">
+                    ng-model="smsServiceType" ng-required="connectionType !== 'web'" ng-disabled="!(changeSmsServiceType || connectionType !== 'web')">
                 <option value="MO">MO (Использовать функцию входящих сообщений на короткий номер)</option>
                 <option value="MT" selected="selected">MT (Не использовать функцию входящих сообщений на короткий номер)</option>
             </select>
@@ -1243,14 +1295,14 @@
     <div class="form-group" ng-if="relatedProcessDefinitionKey === 'bulksmsConnectionKAE' && (connectionType === 'smpp' || connectionType === 'rest')">
         <label class="col-sm-4 control-label">* Тестовый номер:</label>
         <div class="col-sm-8">
-            <input class="form-control" maxlength="500" ng-model="testNumber" name="testNumber" ng-disabled="true" ng-required="connectionType === 'smpp' || connectionType === 'rest'">
+            <input class="form-control" maxlength="500" ng-model="testNumber" name="testNumber" ng-disabled="!(changeConnectionType && (connectionType === 'smpp' || connectionType === 'rest'))" ng-required="connectionType === 'smpp' || connectionType === 'rest'">
             <label class="error" ng-show="kcell_form.testNumber.$error.required && ( kcell_form.testNumber.$touched || view.submitted)">Required field</label>
         </div>
     </div>
     <div class="form-group" ng-if="relatedProcessDefinitionKey === 'bulksmsConnectionKAE' && connectionType === 'rest' && deliveryReport">
         <label class="col-sm-4 control-label">Адрес и порт принимающего сервера клиента:</label>
         <div class="col-sm-8">
-            <input class="form-control" maxlength="500" ng-model="receivingServerAddress" ng-disabled="true" name="receivingServerAddress">
+            <input class="form-control" maxlength="500" ng-model="receivingServerAddress" ng-disabled="!(changeConnectionType && connectionType === 'rest')" name="receivingServerAddress">
             <label class="error" ng-show="kcell_form.receivingServerAddress.$error.required && ( kcell_form.receivingServerAddress.$touched || view.submitted)">Required field</label>
         </div>
     </div>
@@ -1386,7 +1438,7 @@
             <label class="error" ng-show="kcell_form.region.$error.required && ( kcell_form.region.$touched || view.submitted)">Required field</label>
         </div>
     </div>
-    <div class="form-group" ng-show="relatedProcessDefinitionKey === 'bulksmsConnectionKAE' && operatorType === 'offnet' && !previouslyBought">
+    <div class="form-group" ng-show="operatorType === 'offnet' && ((relatedProcessDefinitionKey === 'bulksmsConnectionKAE' && !previouslyBought) || relatedProcessDefinitionKey === 'freephone' )">
         <label class="col-sm-4 control-label">Провайдер:</label>
         <div class="col-sm-4">
             <select class="form-control" id="provider" name="provider" ng-model="provider" ng-required="changeProvider" ng-disabled="!changeProvider">
@@ -1395,6 +1447,7 @@
                 <option value="KIT">KIT</option>
             </select>
             <label class="error" ng-show="kcell_form.provider.$error.required && ( kcell_form.provider.$touched || view.submitted)">Required field</label>
+            <label class="error" ng-show="kcell_form.provider.$invalid && view.submitted">New provider is the same as the old provider</label>
         </div>
     </div>
     <div class="form-group">

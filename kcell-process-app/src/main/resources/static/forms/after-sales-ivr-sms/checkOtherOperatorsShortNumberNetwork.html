@@ -2,59 +2,39 @@
     <script cam-script type="text/form-script">
         inject(['$scope', '$http', 'Uri', '$rootScope', '$q', '$timeout', function ($scope, $http, Uri, $rootScope, $q, $timeout) {
             var variables = [
-                'resolutions',
-                'changeOfficialClientCompanyName',
-                'changeContractNumber',
-                'disconnectOperator',
-                'connectOperator',
-                'changeConnectionType',
-                'changeIpNumber',
-                'changeIdentifier',
-                'changeSmsServiceType',
-                'changeProvider',
-                'changeTransmitNumber',
                 'relatedProcessDefinitionKey',
                 'relatedProcessInstanceId',
+                'resolutions',
                 'identifiers',
-                'previouslyBought',
-                'operatorType',
-                'connectionType',
-                'clientBIN',
-                'contractNumber',
-                'clientCompanyLatName',
-                'officialClientCompanyName',
-                'description',
-                'ipNumber',
-                //'startDate',
+                'identifierType',
                 'abonentTarif',
-                'amdocsBilling',
-                'orgaBilling',
-                'techSpecFIO',
-                'techSpecNumber',
-                'techSpecEmail',
-                'contractScanCopyFileName',
-                'applicationScanCopyFileName',
+                'description',
+                'officialClientCompanyName',
+                'clientCompanyLatName',
+                'startDate',
+                'contractNumber',
+                'connectionType',
+                'previouslyBought',
+                'clientBIN',
                 'responsibleB2BDelivery',
                 'responsibleB2BSales',
-                'channel',
-                'region',
-                'transmitNumber',
-                'coordinates',
-                'addressATS',
-                'VPNchannel',
-                'identifierType',
-                'deliveryReport',
                 'smsServiceType',
                 'MSGGWaccount',
-                'testNumber',
-                'receivingServerAddress',
-                'receivingServerLogin',
-                'receivingServerPass',
-                'addressServerMO',
+                'smsServiceLogin',
+                'ipNumber',
+                'applicationScanCopyFileName',
+                'contractScanCopyFileName',
+                'techSpecNumber',
+                'techSpecFIO',
+                'techSpecEmail',
                 'tarifPlane',
+                'billing',
                 'provider',
+                'operatorType',
                 'oldTransmitNumber',
                 'oldProvider',
+                'changeProvider',
+                'changeConnectionType',
                 'oldConnectionType',
                 'oldIpNumber'
             ];
@@ -64,12 +44,12 @@
                     camForm.variableManager.fetchVariable(el);
                 });
                 $http.get('/camunda/api/engine/engine/default/task/' + camForm.taskId).then(
-                    function(result){
-                        $scope.processInstanceId = result.data.processInstanceId;
-                    },
-                    function (error) {
-                        console.log(error.data);
-                    }
+                        function(result){
+                            $scope.processInstanceId = result.data.processInstanceId;
+                        },
+                        function (error) {
+                            console.log(error.data);
+                        }
                 );
                 $scope.aftersalesInfo = {};
                 $scope.aftersalesInfo.files = [];
@@ -130,39 +110,79 @@
                 $scope.aftersalesInfo.showTarif = true;
 
                 camForm.variableManager.createVariable({
-                    name: 'changeConfigOnSMSGWTaskResult',
+                    name: 'checkOtherOperatorsShortNumberNetworkTaskResult',
                     type: 'String',
                     value: ''
                 });
 
                 camForm.variableManager.createVariable({
-                    name: 'changeConfigOnSMSGWTaskComment',
+                    name: 'checkOtherOperatorsShortNumberNetworkTaskComment',
                     type: 'String',
                     value: ''
                 });
 
-                //$scope.changeConfigOnSMSGWTaskResult = '';
+                $scope.checkOtherOperatorsShortNumberNetworkTaskResult = '';
             });
 
             camForm.on('submit', function () {
-                $scope.changeConfigOnSMSGWTaskResult = 'Completed';
+                $scope.checkOtherOperatorsShortNumberNetworkTaskResult = 'Completed';
                 if(!$scope.resolutions){
                     $scope.resolutions = [];
                 }
-                camForm.variableManager.variableValue('changeConfigOnSMSGWTaskResult', $scope.changeConfigOnSMSGWTaskResult);
-                camForm.variableManager.variableValue('changeConfigOnSMSGWTaskComment', $scope.changeConfigOnSMSGWTaskComment);
-                $scope.resolutions.push({processInstanceId: $scope.processInstanceId, assignee: $rootScope.authentication.name, assigneeName: $rootScope.authentication.assigneeName, resolution: $scope.changeConfigOnSMSGWTaskResult, comment: $scope.changeConfigOnSMSGWTaskComment, taskId: camForm.taskId});
+                camForm.variableManager.variableValue('checkOtherOperatorsShortNumberNetworkTaskResult', $scope.checkOtherOperatorsShortNumberNetworkTaskResult);
+                camForm.variableManager.variableValue('checkOtherOperatorsShortNumberNetworkTaskComment', $scope.checkOtherOperatorsShortNumberNetworkTaskComment);
+                $scope.resolutions.push({processInstanceId: $scope.processInstanceId, assignee: $rootScope.authentication.name, assigneeName: $rootScope.authentication.assigneeName, resolution: $scope.checkOtherOperatorsShortNumberNetworkTaskResult, comment: $scope.checkOtherOperatorsShortNumberNetworkTaskComment, taskId: camForm.taskId});
                 camForm.variableManager.variableValue('resolutions', $scope.resolutions);
+
+                _.forEach($scope.identifiers, function(id) {
+                    _.forEach(id.operators, function(o) {
+                        delete o.dateFieldOpened;
+                    });
+                });
+                camForm.variableManager.variableValue('identifiers', $scope.identifiers);
             });
         }]);
 
     </script>
     <info-aftersales aftersales-info="aftersalesInfo"></info-aftersales>
+    <div class="form-group" ng-repeat="id in identifiers">
+        <label class="col-sm-12 control-label"/>Идентификатор - {{id.title}}
+        <div class="col-sm-12" style="border-left: solid; border-left-width: 1px; margin-left: 2vh">
+            <table class="table">
+                <thead>
+                <tr>
+                    <th scope="col">Оператор</th>
+                    <th scope="col">Дата отключения короткого номера у {{oldProvider}} провайдера</th>
+                    <th scope="col">Статус</th>
+                    <th scope="col">Дата заведения короткого номера у {{provider}} провайдера</th>
+                    <th scope="col">Статус</th>
+                </tr>
+                </thead>
+                <tbody>
+                <!--
+                <tr ng-repeat="o in id.operators" ng-if="!!o.addedToNetworkDate">
+                    <td scope="row">{{o.name}}</td>
+                    <td scope="row">{{o.addedToNetworkDate | date: 'dd.MM.yyyy'}}</td>
+                    <td scope="row">{{o.connected ? 'Добавлен' : o.disconnected ? 'Отключен' : 'Без изменений'}}</td>
+                </tr>
+                -->
+                <tr ng-repeat="o in id.operators" ng-if="!!o.addedToNetworkDate || !!o.removedFromNetworkDate">
+                    <td scope="row">{{o.name}}</td>
+                    <td scope="row">{{o.removedFromNetworkDate | date: 'dd.MM.yyyy'}}</td>
+                    <td scope="row">{{!!o.removedFromNetworkDate ? 'Отключен' : 'Без изменений'}}</td>
+                    <td scope="row">{{o.addedToNetworkDate | date: 'dd.MM.yyyy'}}</td>
+                    <td scope="row">{{!!o.addedToNetworkDate ? 'Добавлен' : 'Без изменений'}}</td>
+                </tr>
+
+                </tbody>
+            </table>
+        </div>
+    </div>
     <div class="form-group">
         <label class="col-sm-3 control-label">Комментарии</label>
         <div class="col-sm-9">
-            <textarea class="form-control" ng-model="changeConfigOnSMSGWTaskComment" name="changeConfigOnSMSGWTaskComment" ng-required="true" placeholder="Comments..." maxlength="500" rows="4" style="resize:none"></textarea>
-            <label class="error" ng-show="kcell_form.changeConfigOnSMSGWTaskComment.$error.required && view.submitted">Required field</label>
+            <textarea class="form-control" ng-model="checkOtherOperatorsShortNumberNetworkTaskComment" name="checkOtherOperatorsShortNumberNetworkTaskComment" ng-required="true" placeholder="Comments..." maxlength="500" rows="4" style="resize:none"></textarea>
+            <label class="error" ng-show="kcell_form.checkOtherOperatorsShortNumberNetworkTaskComment.$error.required && view.submitted">Required field</label>
         </div>
     </div>
     <accordion>

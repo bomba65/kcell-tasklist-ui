@@ -34,7 +34,8 @@
                 'oldProvider',
                 'changeProvider',
                 'changeConnectionType',
-                'oldConnectionType'
+                'oldConnectionType',
+                'oldIpNumber'
             ];
 
             camForm.on('form-loaded', function () {
@@ -131,6 +132,40 @@
                 camForm.variableManager.variableValue('checkOtherOperatorsDeletionShortNumberTaskComment', $scope.checkOtherOperatorsDeletionShortNumberTaskComment);
                 $scope.resolutions.push({processInstanceId: $scope.processInstanceId, assignee: $rootScope.authentication.name, assigneeName: $rootScope.authentication.assigneeName, resolution: $scope.checkOtherOperatorsDeletionShortNumberTaskResult, comment: $scope.checkOtherOperatorsDeletionShortNumberTaskComment, taskId: camForm.taskId});
                 camForm.variableManager.variableValue('resolutions', $scope.resolutions);
+
+                _.forEach($scope.identifiers, function(id) {
+                    _.forEach(id.operators, function(o) {
+                        if(!o.addedToNetworkDate){
+                            if(o.disconnected){
+
+                                o.isAvailable = true;
+
+                                o.priceAP = o.oldPriceAP;
+                                o.priceEP = o.oldPriceEP;
+                                o.title = o.oldTitle;
+
+                                delete o.wasAvailable;
+                                delete o.oldPriceAP;
+                                delete o.oldPriceEP;
+                                delete o.oldTitle;
+
+                                delete o.changed;
+                                delete o.disconnected;
+                            }
+                            if(o.connected){
+                                delete o.isAvailable;
+                                delete o.priceAP;
+                                delete o.priceEP;
+                                delete o.title;
+                                delete o.connected;
+                            }
+                            delete o.addedToNetwork;
+                            delete o.addedToNetworkDate;
+                            delete o.dateFieldOpened;
+                        }
+                    });
+                });
+                camForm.variableManager.variableValue('identifiers', $scope.identifiers);
             });
         }]);
 
@@ -148,10 +183,10 @@
                 </tr>
                 </thead>
                 <tbody>
-                <tr ng-repeat="o in id.operators" ng-if="o.deleted">
+                <tr ng-repeat="o in id.operators" ng-if="o.addedToNetworkDate">
                     <td scope="row">{{o.name}}</td>
-                    <td scope="row">{{o.deletedDate | date: 'dd.MM.yyyy'}}</td>
-                    <td scope="row">{{o.deleted?'Отключен':'Без изменений'}}</td>
+                    <td scope="row">{{o.addedToNetworkDate | date: 'dd.MM.yyyy'}}</td>
+                    <td scope="row">{{o.connected ? 'Добавлен' : o.disconnected ? 'Отключен' : 'Без изменений'}}</td>
                 </tr>
                 </tbody>
             </table>
