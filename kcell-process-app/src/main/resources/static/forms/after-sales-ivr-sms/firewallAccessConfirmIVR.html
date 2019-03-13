@@ -55,7 +55,8 @@
                 'provider',
                 'oldTransmitNumber',
                 'oldProvider',
-                'oldConnectionType'
+                'oldConnectionType',
+                'oldIpNumber'
             ];
 
             camForm.on('form-loaded', function () {
@@ -122,36 +123,33 @@
                         $scope.aftersalesInfo[el] = camForm.variableManager.variables[el].value;
                     }
                 });
+
                 $http.get("/camunda/api/engine/engine/default/user/" + $rootScope.authentication.name+ "/profile").then(function(result){
                     $rootScope.authentication.assigneeName = (result.data.firstName ? result.data.firstName : "") + " " + (result.data.lastName ? result.data.lastName : "");
                 });
+
                 $scope.aftersalesInfo.showTarif = true;
-                console.log($scope.aftersalesInfo);
-                console.log($scope.aftersalesInfo.files);
 
                 camForm.variableManager.createVariable({
-                    name: 'confirmSettingNumberOnMSSTaskResult',
+                    name: 'firewallAccessConfirmIVRTaskResult',
                     type: 'String',
                     value: ''
                 });
 
                 camForm.variableManager.createVariable({
-                    name: 'confirmSettingNumberOnMSSTaskComment',
+                    name: 'firewallAccessConfirmIVRTaskComment',
                     type: 'String',
                     value: ''
                 });
-
-                $scope.confirmSettingNumberOnMSSTaskResult = '';
             });
 
             camForm.on('submit', function () {
-                $scope.confirmSettingNumberOnMSSTaskResult = 'Completed';
                 if(!$scope.resolutions){
                     $scope.resolutions = [];
                 }
-                camForm.variableManager.variableValue('confirmSettingNumberOnMSSTaskResult', $scope.confirmSettingNumberOnMSSTaskResult);
-                camForm.variableManager.variableValue('confirmSettingNumberOnMSSTaskComment', $scope.confirmSettingNumberOnMSSTaskComment);
-                $scope.resolutions.push({processInstanceId: $scope.processInstanceId, assignee: $rootScope.authentication.name, assigneeName: $rootScope.authentication.assigneeName, resolution: $scope.confirmSettingNumberOnMSSTaskResult, comment: $scope.confirmSettingNumberOnMSSTaskComment, taskId: camForm.taskId});
+                camForm.variableManager.variableValue('firewallAccessConfirmIVRTaskResult', $scope.firewallAccessConfirmIVRTaskResult);
+                camForm.variableManager.variableValue('firewallAccessConfirmIVRTaskComment', $scope.firewallAccessConfirmIVRTaskComment);
+                $scope.resolutions.push({processInstanceId: $scope.processInstanceId, assignee: $rootScope.authentication.name, assigneeName: $rootScope.authentication.assigneeName, resolution: $scope.firewallAccessConfirmIVRTaskResult, comment: $scope.firewallAccessConfirmIVRTaskComment, taskId: camForm.taskId});
                 camForm.variableManager.variableValue('resolutions', $scope.resolutions);
             });
         }]);
@@ -159,10 +157,22 @@
     </script>
     <info-aftersales aftersales-info="aftersalesInfo"></info-aftersales>
     <div class="form-group">
+        <label class="col-sm-4 control-label">Подтвердите настроенный доступ в Firewall</label>
+        <div class="col-sm-8">
+            <label class="radio-inline">
+                <input type="radio" name="firewallAccessConfirmIVRTaskResult" ng-model="firewallAccessConfirmIVRTaskResult" value="approved" required> Approve
+            </label>
+            <label class="radio-inline">
+                <input type="radio" name="firewallAccessConfirmIVRTaskResult" ng-model="firewallAccessConfirmIVRTaskResult" value="rejected" required> Reject
+            </label>
+            <label class="error" ng-show="kcell_form.firewallAccessConfirmIVRTaskResult.$error.required && ( kcell_form.firewallAccessConfirmIVRTaskResult.$touched || view.submitted)">Required field</label>
+        </div>
+    </div>
+    <div class="form-group">
         <label class="col-sm-3 control-label">Комментарии</label>
         <div class="col-sm-9">
-            <textarea class="form-control" ng-model="confirmSettingNumberOnMSSTaskComment" name="confirmSettingNumberOnMSSTaskComment" placeholder="Comments..." maxlength="500" rows="4" style="resize:none"></textarea>
-            <label class="error" ng-show="kcell_form.confirmSettingNumberOnMSSTaskComment.$error.required && ( kcell_form.confirmSettingNumberOnMSSTaskComment.$touched || view.submitted)">Required field</label>
+            <textarea class="form-control" ng-model="firewallAccessConfirmIVRTaskComment" name="firewallAccessConfirmIVRTaskComment" placeholder="Comments..." maxlength="500" rows="4" style="resize:none"></textarea>
+            <label class="error" ng-show="kcell_form.firewallAccessConfirmIVRTaskComment.$error.required && ( kcell_form.firewallAccessConfirmIVRTaskComment.$touched || view.submitted)">Required field</label>
         </div>
     </div>
     <accordion>

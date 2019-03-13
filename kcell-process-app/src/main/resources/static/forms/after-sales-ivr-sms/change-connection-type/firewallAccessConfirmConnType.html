@@ -92,7 +92,6 @@
                                     }
                                 });
                             });
-
                             $q.all($scope.resolutions.map(function (resolution) {
                                 return $http.get("/camunda/api/engine/engine/default/history/task?processInstanceId=" + resolution.processInstanceId + "&taskId=" + resolution.taskId);
                             })).then(function (tasks) {
@@ -118,17 +117,6 @@
                     } else if (el === 'applicationScanCopyFileName' || el === 'contractScanCopyFileName' || el === 'vpnQuestionnaireFileName') {
                         $scope[el] = camForm.variableManager.variables[el].value;
                         $scope.aftersalesInfo.files.push(camForm.variableManager.variables[el].value);
-                    } else if (el === 'VPNchannel') {
-                        if (camForm.variableManager.variables[el].value) {
-                            $scope[el] = camForm.variableManager.variables[el].value;
-                        } else {
-                            camForm.variableManager.destroyVariable('VPNchannel');
-                            camForm.variableManager.createVariable({
-                                name: 'VPNchannel',
-                                value: '',
-                                type: 'String'
-                            });
-                        }
                     } else {
                         $scope[el] = camForm.variableManager.variables[el].value;
                         $scope.aftersalesInfo[el] = camForm.variableManager.variables[el].value;
@@ -137,62 +125,63 @@
                 $http.get("/camunda/api/engine/engine/default/user/" + $rootScope.authentication.name+ "/profile").then(function(result){
                     $rootScope.authentication.assigneeName = (result.data.firstName ? result.data.firstName : "") + " " + (result.data.lastName ? result.data.lastName : "");
                 });
+                if (!$scope.aftersalesInfo.toIP) {
+                    $scope.aftersalesInfo.toIP = '195.47.255.119';
+                }
+                if(!$scope.aftersalesInfo.toPort) {
+                    $scope.aftersalesInfo.toPort = '5060';
+                }
+                $scope.aftersalesInfo.firewalltask = true;
                 $scope.aftersalesInfo.showTarif = true;
                 console.log($scope.aftersalesInfo);
                 console.log($scope.aftersalesInfo.files);
 
                 camForm.variableManager.createVariable({
-                    name: 'confirmSuccessOfTestsWithVPNTaskResult',
+                    name: 'firewallAccessConfirmConnTypeTaskResult',
                     type: 'String',
                     value: ''
                 });
 
                 camForm.variableManager.createVariable({
-                    name: 'confirmSuccessOfTestsWithVPNTaskComment',
+                    name: 'firewallAccessConfirmConnTypeTaskComment',
                     type: 'String',
                     value: ''
                 });
 
-                $scope.confirmSuccessOfTestsWithVPNTaskResult = '';
+                $scope.firewallAccessConfirmConnTypeTaskResult = '';
             });
 
             camForm.on('submit', function () {
-                var VPNchannel = $scope.buildVPN?'build':'not-build';
-                camForm.variableManager.variableValue('VPNchannel', VPNchannel);
-                $scope.confirmSuccessOfTestsWithVPNTaskResult = 'Completed';
                 if(!$scope.resolutions){
                     $scope.resolutions = [];
                 }
-                camForm.variableManager.variableValue('confirmSuccessOfTestsWithVPNTaskResult', $scope.confirmSuccessOfTestsWithVPNTaskResult);
-                camForm.variableManager.variableValue('confirmSuccessOfTestsWithVPNTaskComment', $scope.confirmSuccessOfTestsWithVPNTaskComment);
-                $scope.resolutions.push({processInstanceId: $scope.processInstanceId, assignee: $rootScope.authentication.name, assigneeName: $rootScope.authentication.assigneeName, resolution: $scope.confirmSuccessOfTestsWithVPNTaskResult, comment: $scope.confirmSuccessOfTestsWithVPNTaskComment, taskId: camForm.taskId});
+                camForm.variableManager.variableValue('firewallAccessConfirmConnTypeTaskResult', $scope.firewallAccessConfirmConnTypeTaskResult);
+                camForm.variableManager.variableValue('firewallAccessConfirmConnTypeTaskComment', $scope.firewallAccessConfirmConnTypeTaskComment);
+                $scope.resolutions.push({processInstanceId: $scope.processInstanceId, assignee: $rootScope.authentication.name, assigneeName: $rootScope.authentication.assigneeName, resolution: $scope.firewallAccessConfirmConnTypeTaskResult, comment: $scope.firewallAccessConfirmConnTypeTaskComment, taskId: camForm.taskId});
                 camForm.variableManager.variableValue('resolutions', $scope.resolutions);
             });
         }]);
 
     </script>
     <info-aftersales aftersales-info="aftersalesInfo"></info-aftersales>
-    <!--<div class="form-check">-->
-        <!--<input type="checkbox" ng-model="buildVPN" class="form-check-input" id="check1">-->
-        <!--<label class="form-check-label" for="check1">Построение VPN канала</label>-->
-    <!--</div>-->
     <div class="form-group">
-        <label class="col-sm-3 control-label">Решение</label>
-        <div class="col-sm-9">
+        <label class="col-sm-4 control-label">Подтвердите настроенный доступ в Firewall</label>
+        <div class="col-sm-8">
             <label class="radio-inline">
-                <input type="radio" name="confirmSuccessOfTestsWithVPNTaskResult" ng-model="confirmSuccessOfTestsWithVPNTaskResult" value="Completed" required> Complete
+                <input type="radio" name="firewallAccessConfirmConnTypeTaskResult" ng-model="firewallAccessConfirmConnTypeTaskResult" value="approved" required> Approve
             </label>
             <label class="radio-inline">
-                <input type="radio" name="confirmSuccessOfTestsWithVPNTaskResult" ng-model="confirmSuccessOfTestsWithVPNTaskResult" value="rejected" required> Reject
+                <input type="radio" name="firewallAccessConfirmConnTypeTaskResult" ng-model="firewallAccessConfirmConnTypeTaskResult" value="rejected" required> Reject
             </label>
-            <label class="error" ng-show="kcell_form.confirmSuccessOfTestsWithVPNTaskResult.$error.required && ( kcell_form.confirmSuccessOfTestsWithVPNTaskResult.$touched || view.submitted)">Required field</label>
+            <label class="error" ng-show="kcell_form.firewallAccessConfirmConnTypeTaskResult.$error.required && ( kcell_form.firewallAccessConfirmConnTypeTaskResult.$touched || view.submitted)">Required field</label>
         </div>
     </div>
+
     <div class="form-group">
         <label class="col-sm-3 control-label">Комментарии</label>
         <div class="col-sm-9">
-            <textarea class="form-control" ng-model="confirmSuccessOfTestsWithVPNTaskComment" name="confirmSuccessOfTestsWithVPNTaskComment" placeholder="Comments..." maxlength="500" rows="4" style="resize:none"></textarea>
-            <label class="error" ng-show="kcell_form.confirmSuccessOfTestsWithVPNTaskComment.$error.required && ( kcell_form.confirmSuccessOfTestsWithVPNTaskComment.$touched || view.submitted)">Required field</label>
+            <textarea class="form-control" ng-model="firewallAccessConfirmConnTypeTaskComment" name="firewallAccessConfirmConnTypeTaskComment" placeholder="Comments..." maxlength="500" rows="4" style="resize:none"></textarea>
+            <label class="error" ng-show="kcell_form.firewallAccessConfirmConnTypeTaskComment.$error.required && ( kcell_form.firewallAccessConfirmConnTypeTaskComment.$touched || view.submitted)">Required field</label>
         </div>
     </div>
     <accordion>

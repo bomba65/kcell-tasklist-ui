@@ -55,7 +55,8 @@
                 'provider',
                 'oldTransmitNumber',
                 'oldProvider',
-                'oldConnectionType'
+                'oldConnectionType',
+                'oldIpNumber'
             ];
 
             camForm.on('form-loaded', function () {
@@ -122,121 +123,66 @@
                         $scope.aftersalesInfo[el] = camForm.variableManager.variables[el].value;
                     }
                 });
+
                 $http.get("/camunda/api/engine/engine/default/user/" + $rootScope.authentication.name+ "/profile").then(function(result){
                     $rootScope.authentication.assigneeName = (result.data.firstName ? result.data.firstName : "") + " " + (result.data.lastName ? result.data.lastName : "");
                 });
+
                 $scope.aftersalesInfo.showTarif = true;
-                console.log($scope.aftersalesInfo);
-                console.log($scope.aftersalesInfo.files);
 
                 camForm.variableManager.createVariable({
-                    name: 'vpnQuestionnaireFileName',
-                    value: undefined,
-                    type: 'Json'
-                });
-
-                camForm.variableManager.createVariable({
-                    name: 'confirmCompleteVPNchannelBuildTaskResult',
+                    name: 'correctAccessToFirewallIVRTaskResult',
                     type: 'String',
                     value: ''
                 });
 
                 camForm.variableManager.createVariable({
-                    name: 'confirmCompleteVPNchannelBuildTaskComment',
+                    name: 'correctAccessToFirewallIVRTaskComment',
                     type: 'String',
                     value: ''
                 });
-
-                $scope.confirmCompleteVPNchannelBuildTaskResult = '';
             });
 
             camForm.on('submit', function () {
-                $scope.confirmCompleteVPNchannelBuildTaskResult = 'Completed';
+                $scope.correctAccessToFirewallIVRTaskResult = 'Completed';
                 if(!$scope.resolutions){
                     $scope.resolutions = [];
                 }
-
-                var attachedFiles = [];
-                if($scope.vpnQuestionnaireFileName) {
-                    attachedFiles.push($scope.vpnQuestionnaireFileName.name);
-                    camForm.variableManager.variableValue('vpnQuestionnaireFileName', $scope.vpnQuestionnaireFileName);
-                }
-
-                camForm.variableManager.variableValue('confirmCompleteVPNchannelBuildTaskResult', $scope.confirmCompleteVPNchannelBuildTaskResult);
-                camForm.variableManager.variableValue('confirmCompleteVPNchannelBuildTaskComment', $scope.confirmCompleteVPNchannelBuildTaskComment);
-                $scope.resolutions.push({processInstanceId: $scope.processInstanceId, assignee: $rootScope.authentication.name, assigneeName: $rootScope.authentication.assigneeName, resolution: $scope.confirmCompleteVPNchannelBuildTaskResult, comment: $scope.confirmCompleteVPNchannelBuildTaskComment, taskId: camForm.taskId, files: attachedFiles});
+                camForm.variableManager.variableValue('correctAccessToFirewallIVRTaskResult', $scope.correctAccessToFirewallIVRTaskResult);
+                camForm.variableManager.variableValue('correctAccessToFirewallIVRTaskComment', $scope.correctAccessToFirewallIVRTaskComment);
+                $scope.resolutions.push({processInstanceId: $scope.processInstanceId, assignee: $rootScope.authentication.name, assigneeName: $rootScope.authentication.assigneeName, resolution: $scope.correctAccessToFirewallIVRTaskResult, comment: $scope.correctAccessToFirewallIVRTaskComment, taskId: camForm.taskId});
                 camForm.variableManager.variableValue('resolutions', $scope.resolutions);
             });
-
-            $scope.download = function (file) {
-                console.log(file);
-                $http({method: 'GET', url: '/camunda/uploads/get/' + file.path, transformResponse: [] }).
-                then(function(response) {
-                    document.getElementById('fileDownloadIframe').src = response.data;
-                }, function(error){
-                    console.log(error.data);
-                });
-            }
-
-            $scope.fileSelected = function(el, fileName){
-                if(el.files[0]){
-                    $timeout(function () {
-                        $scope.$apply(function () {
-                            uploadFileToMinio(el.files[0], fileName);
-                        });
-                    })                } else {
-                    $scope.$apply(function(){
-                        $scope[fileName] = undefined;
-                    });
-                }
-            };
-
-            function uploadFileToMinio(file, fileName) {
-                var fileValue = {
-                    name: file.name.replace(/[/\\?%*:|"<>]/g, '-'),
-                    // path: uuid + '/' + file.name
-                    path: $scope.processInstanceId + '/' + camForm.taskId + '/' + file.name.replace(/[/\\?%*:|"<>]/g, '-')
-                };
-                $http({method: 'GET', url: '/camunda/uploads/put/' + fileValue.path, transformResponse: [] }).
-                then(function(response) {
-                    $http.put(response.data, file, {headers: {'Content-Type': undefined}}).then(
-                            function () {
-                                $scope[fileName] = fileValue;
-                                angular.element(document.querySelector('#'+fileName)).val(null);
-                            },
-                            function (error) {
-                                console.log(error.data);
-                            }
-                    );
-                }, function(error){
-                    console.log(error.data);
-                });
-            }
-
-            $scope.clearFile = function(filename){
-                delete $scope[filename];
-            };
-
         }]);
 
     </script>
     <info-aftersales aftersales-info="aftersalesInfo"></info-aftersales>
     <div class="form-group">
-        <label class="col-sm-4 control-label">Опросник по VPN:</label>
+        <label class="col-sm-4 control-label">Откуда:</label>
         <div class="col-sm-8">
-            <div ng-show="vpnQuestionnaireFileName.name">
-                <a ng-click="download(vpnQuestionnaireFileName)">{{vpnQuestionnaireFileName.name}}</a> | <a ng-click="clearFile('vpnQuestionnaireFileName')"><i class="glyphicon glyphicon-trash"></i></a>
-            </div>
-            <input ng-hide="vpnQuestionnaireFileName.name" type="file" class="form-control" id="vpnQuestionnaireFileName" name="vpnQuestionnaireFileName" ng-model="vpnQuestionnaireFileName"
-            onchange="angular.element(this).scope().fileSelected(this, 'vpnQuestionnaireFileName')"/>
-            <label class="has-error" ng-show="kcell_form.vpnQuestionnaireFileName.$error.validFile && ( kcell_form.vpnQuestionnaireFileName.$touched || view.submitted)">File is required</label>
+            <input type="text" name="buildingOwner" id='ipNumber' cam-variable-name="ipNumber" cam-variable-type="String" class="form-control" required>
+            <label class="error" ng-show="kcell_form.ipNumber.$error.required && ( kcell_form.ipNumber.$touched || view.submitted)">Required field</label>
+        </div>
+    </div>
+    <div class="form-group">
+        <label class="col-sm-4 control-label">Куда:</label>
+        <div class="col-sm-8">
+            <input type="text" name="channelKLM" id='toIP' cam-variable-name="toIP" cam-variable-type="String" class="form-control" required placeholder="195.47.255.119">
+            <label class="error" ng-show="kcell_form.toIP.$error.required && ( kcell_form.toIP.$touched || view.submitted)">Required field</label>
+        </div>
+    </div>
+    <div class="form-group">
+        <label class="col-sm-4 control-label">Порт:</label>
+        <div class="col-sm-8">
+            <input type="text" name="channelKLM" id='toPort' cam-variable-name="toPort" cam-variable-type="String" class="form-control" required placeholder="5060 (SIP)">
+            <label class="error" ng-show="kcell_form.toPort.$error.required && ( kcell_form.toPort.$touched || view.submitted)">Required field</label>
         </div>
     </div>
     <div class="form-group">
         <label class="col-sm-3 control-label">Комментарии</label>
         <div class="col-sm-9">
-            <textarea class="form-control" ng-model="confirmCompleteVPNchannelBuildTaskComment" name="confirmCompleteVPNchannelBuildTaskComment" placeholder="Comments..." maxlength="500" rows="4" style="resize:none"></textarea>
-            <label class="error" ng-show="kcell_form.confirmCompleteVPNchannelBuildTaskComment.$error.required && ( kcell_form.confirmCompleteVPNchannelBuildTaskComment.$touched || view.submitted)">Required field</label>
+            <textarea class="form-control" ng-model="correctAccessToFirewallIVRTaskComment" name="correctAccessToFirewallIVRTaskComment" placeholder="Comments..." maxlength="500" rows="4" style="resize:none"></textarea>
+            <label class="error" ng-show="kcell_form.correctAccessToFirewallIVRTaskComment.$error.required && ( kcell_form.correctAccessToFirewallIVRTaskComment.$touched || view.submitted)">Required field</label>
         </div>
     </div>
     <accordion>
