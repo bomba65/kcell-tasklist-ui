@@ -530,6 +530,50 @@
                 camForm.variableManager.variableValue('finalIDs', $scope.finalIDs);
                 camForm.variableManager.variableValue('operatorType', $scope.operatorType);
                 camForm.variableManager.variableValue('previouslyBought', $scope.previouslyBought);
+
+                _.forEach($scope.identifiers, function(identifier){
+                    _.forEach(identifier.operators, function(operator){
+
+                        delete operator.wasAvailable;
+                        delete operator.oldPriceAP;
+                        delete operator.oldPriceEP;
+                        delete operator.oldTitle;
+                        delete operator.disconnected;
+                        delete operator.connected;
+                        delete operator.changed;
+                        delete operator.tmpPriceAP;
+                        delete operator.tmpPriceEP;
+                        delete operator.tmpTitle;
+
+                        delete operator.dateFieldOpened;
+                        delete operator.addedToNetwork;
+                        delete operator.addedToNetworkDate;
+                        delete operator.removedFromNetwork;
+                        delete operator.removedFromNetworkDate;
+
+                        if(!!operator.isAvailable) {
+                            if($scope.relatedProcessDefinitionKey === 'freephone'){
+                                operator.isAvailable = $scope.operatorType === 'offnet' && !$scope.previouslyBought ? operator.isAvailable && operator.checked : operator.isAvailable;
+                            }
+                            if($scope.relatedProcessDefinitionKey === 'bulksmsConnectionKAE'){
+                                operator.isAvailable = $scope.operatorType === 'offnet' && $scope.identifierType === 'digital' && !$scope.previouslyBought ? operator.isAvailable && operator.checked : operator.isAvailable;
+                            }
+
+                            operator.wasAvailable = operator.isAvailable;
+                            operator.oldPriceAP = operator.priceAP;
+
+                            // this is valid for BulkSMS
+                            // TODO: Add logic for freephone
+                            if($scope.identifierType === 'digital' || $scope.relatedProcessDefinitionKey === 'freephone'){
+                                operator.oldPriceEP = operator.priceEP;
+                            }
+                            if($scope.identifierType === 'alfanumeric'){
+                                operator.oldTitle = operator.title;
+                            }
+                        }
+                    });
+                });
+
                 camForm.variableManager.variableValue('identifiers', $scope.identifiers);
                 camForm.variableManager.variableValue('clientBIN', $scope.clientBIN);
                 camForm.variableManager.variableValue('contractNumber', $scope.contractNumber);
@@ -611,7 +655,7 @@
                         <label class="form-check-label" for="disconnectOperator">Отключение оператора</label>
                     </div>
                     <div class="col-sm-12">
-                        <input type="checkbox" class="form-check-input" id="connectOperator" name="connectOperator" ng-model="connectOperator" ng-disabled="operatorType === 'onnet' || disableIdentifierModification">
+                        <input type="checkbox" class="form-check-input" id="connectOperator" name="connectOperator" ng-model="connectOperator" ng-disabled="operatorType === 'onnet' || disableIdentifierModification || restrictAddingOperator">
                         <label class="form-check-label" for="connectOperator">Добавление оператора</label>
                     </div>
                     <div class="col-sm-12" ng-show="relatedProcessInstance.processDefinitionKey === 'freephone' || (relatedProcessInstance.processDefinitionKey === 'bulksmsConnectionKAE' && (connectionType === 'rest' || connectionType === 'smpp'))">

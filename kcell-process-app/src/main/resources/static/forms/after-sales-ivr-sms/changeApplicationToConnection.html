@@ -116,48 +116,6 @@
                     $rootScope.authentication.assigneeName = (result.data.firstName ? result.data.firstName : "") + " " + (result.data.lastName ? result.data.lastName : "");
                 });
 
-                _.forEach($scope.identifiers, function(identifier){
-                    _.forEach(identifier.operators, function(operator){
-
-                        delete operator.wasAvailable;
-                        delete operator.oldPriceAP;
-                        delete operator.oldPriceEP;
-                        delete operator.oldTitle;
-                        delete operator.disconnected;
-                        delete operator.connected;
-                        delete operator.changed;
-                        delete operator.tmpPriceAP;
-                        delete operator.tmpPriceEP;
-                        delete operator.tmpTitle;
-
-                        delete operator.dateFieldOpened;
-                        delete operator.addedToNetwork;
-                        delete operator.addedToNetworkDate;
-                        delete operator.removedFromNetwork;
-                        delete operator.removedFromNetworkDate;
-
-                        if(!!operator.isAvailable) {
-                            if($scope.relatedProcessDefinitionKey === 'freephone'){
-                                operator.isAvailable = $scope.operatorType === 'offnet' && !$scope.previouslyBought ? operator.isAvailable && operator.checked : operator.isAvailable;
-                            }
-                            if($scope.relatedProcessDefinitionKey === 'bulksmsConnectionKAE'){
-                                operator.isAvailable = $scope.operatorType === 'offnet' && $scope.identifierType === 'digital' && !$scope.previouslyBought ? operator.isAvailable && operator.checked : operator.isAvailable;
-                            }
-
-                            operator.wasAvailable = operator.isAvailable;
-                            operator.oldPriceAP = operator.priceAP;
-
-                            // this is valid for BulkSMS
-                            // TODO: Add logic for freephone
-                            if($scope.identifierType === 'digital'){
-                                operator.oldPriceEP = operator.priceEP;
-                            } else if($scope.identifierType === 'alfanumeric'){
-                                operator.oldTitle = operator.title;
-                            }
-                        }
-                    });
-                });
-
                 camForm.variableManager.createVariable({
                     name: 'changeApplicationToConnectionTaskResult',
                     type: 'String',
@@ -865,6 +823,7 @@
                 }
             }, true);
 
+
             /*
             $scope.$watch('responsibleB2BSales', function (responsibleB2BSales) {
                 if (responsibleB2BSales && responsibleB2BSales.id) {
@@ -879,25 +838,6 @@
                     $scope.kcell_form.responsibleB2BDelivery.$setValidity('valid', true);
                 } else {
                     $scope.kcell_form.responsibleB2BDelivery.$setValidity('valid', false);
-                }
-            }, true);
-
-            $scope.$watch('identifiers', function (identifiers) {
-                if ($scope.operatorType === 'offnet' && relatedProcessDefinitionKey === 'bulksmsConnectionKAE') {
-                    identifiers.some( function (id) {
-                        if ( $scope.identifierType === 'digital' && !$scope.previouslyBought && _.filter(id.operators, function(o) { return o.checked && o.id !== 'kcell'; }).length > 0  ) {
-                            $scope.kcell_form.changeApplicationToConnectionTaskComment.$setValidity('validIdentifiers', true);
-                            return true;
-                        } else if (($scope.identifierType === 'alfanumeric' || $scope.previouslyBought) && _.filter(id.operators, function(o) { return o.isAvailable && o.id !== 'kcell'; }).length > 0 ) {
-                            $scope.kcell_form.changeApplicationToConnectionTaskComment.$setValidity('validIdentifiers', true);
-                            return true;
-                        } else {
-                            $scope.kcell_form.changeApplicationToConnectionTaskComment.$setValidity('validIdentifiers', false);
-                            return false;
-                        };
-                    });
-                } else {
-                    $scope.kcell_form.changeApplicationToConnectionTaskComment.$setValidity('validIdentifiers', true);
                 }
             }, true);
             */
@@ -1027,16 +967,105 @@
                 }
             }, true);
             //-------------------------
+            $scope.errorMessageSMS = '';
+            $scope.errorMessageIVR = '';
+            $scope.fakeMessageSMS = 'LoremIpsum';
+            $scope.fakeMessageIVR = 'LoremIpsum';
 
+            $scope.$watch('identifiers', function (identifiers, oldIdentifiers) {
+                if($scope.relatedProcessDefinitionKey === 'bulksmsConnectionKAE'){
+                    if($scope.operatorType === 'offnet' && ($scope.disconnectOperator || $scope.connectOperator || $scope.changeIdentifier)){
+                        $scope.errorMessageSMS = '';
+                        _.forEach($scope.identifiers, function(id) {
+                            var connectedCount = 0;
+                            var disconnectedCount = 0;
+                            var changedCount = 0;
+                            _.forEach(id.operators, function(o) {
+                                if(o.wasAvailable && !o.isAvailable){
+                                    disconnectedCount++;
+                                }
+                                if(!o.wasAvailable && o.isAvailable){
+                                    connectedCount++;
+                                }
+                                if($scope.identifierType === 'alfanumeric'){
+                                    if(o.wasAvailable && o.isAvailable){
+                                        if(o.oldTitle !== o.title || o.oldPriceAP !== o.priceAP){
+                                            changedCount++;
+                                        }
+                                    }
+                                }
+                            });
+
+                            if(($scope.disconnectOperator && disconnectedCount === 0) || ($scope.connectOperator && connectedCount === 0) || ($scope.changeIdentifier && changedCount === 0)){
+                                if($scope.disconnectOperator && disconnectedCount === 0){
+                                    $scope.errorMessageSMS = $scope.errorMessageSMS + ($scope.errorMessageSMS ? ', ' : '') + 'отключите';
+                                }
+                                if($scope.connectOperator && connectedCount === 0){
+                                    $scope.errorMessageSMS = $scope.errorMessageSMS + ($scope.errorMessageSMS ? ', ' : '') + 'добавьте';
+                                }
+                                if($scope.changeIdentifier && changedCount === 0){
+                                    $scope.errorMessageSMS = $scope.errorMessageSMS + ($scope.errorMessageSMS ? ', ' : '') + 'измените';
+                                }
+                                if($scope.errorMessageSMS){
+                                    $scope.errorMessageSMS = $scope.errorMessageSMS.charAt(0).toUpperCase() + $scope.errorMessageSMS.slice(1) + ' offnet оператор';
+                                }
+
+                                $scope.kcell_form.smsIdentifiers.$setValidity('valid', false);
+
+                            } else {
+                                $scope.kcell_form.smsIdentifiers.$setValidity('valid', true);
+                                $scope.errorMessageSMS = '';
+                            }
+                        });
+                    }
+                }
+                if($scope.relatedProcessDefinitionKey === 'freephone'){
+                    if ($scope.disconnectOperator || $scope.connectOperator) {
+                        $scope.errorMessageIVR = '';
+                        _.forEach($scope.identifiers, function(id) {
+                            var connectedCount = 0;
+                            var disconnectedCount = 0;
+                            _.forEach(id.operators, function(o) {
+                                if(o.wasAvailable && !o.isAvailable){
+                                    disconnectedCount++;
+                                }
+                                if(!o.wasAvailable && o.isAvailable){
+                                    connectedCount++;
+                                }
+                            });
+                            if(($scope.disconnectOperator && disconnectedCount === 0) || ($scope.connectOperator && connectedCount === 0)){
+                                if($scope.disconnectOperator && disconnectedCount === 0){
+                                    $scope.errorMessageIVR = $scope.errorMessageIVR + ($scope.errorMessageIVR ? ', ' : '') + 'отключите';
+                                }
+                                if($scope.connectOperator && connectedCount === 0){
+                                    $scope.errorMessageIVR = $scope.errorMessageIVR + ($scope.errorMessageIVR ? ', ' : '') + 'добавьте';
+                                }
+                                if($scope.errorMessageIVR){
+                                    $scope.errorMessageIVR = $scope.errorMessageIVR.charAt(0).toUpperCase() + $scope.errorMessageIVR.slice(1) + ' offnet оператор';
+                                }
+                                $scope.kcell_form.ivrIdentifiers.$setValidity('valid', false);
+                            } else {
+                                $scope.kcell_form.ivrIdentifiers.$setValidity('valid', true);
+                                $scope.errorMessageIVR = '';
+                            }
+                        });
+                    }
+                }
+            }, true);
+
+            /*$scope.updateOperatorTitle = function(operator){
+                console.log('operator', operator, $scope.operatorTitles);
+                operator.title = $scope.operatorTitles[operator.id];
+            }*/
         }]);
 
     </script>
     <iframe id="fileDownloadIframe" style="display:none;"></iframe>
-    <h4 ng-if="relatedProcessDefinitionKey === 'bulksmsConnectionKAE' && (disconnectOperator || connectOperator || changeIdentifier) && !(operatorType === 'offnet' && identifierType === 'digital')">Выберите операторов и укажите цены</h4>
-    <label class="error" ng-show="relatedProcessDefinitionKey === 'bulksmsConnectionKAE' && (disconnectOperator || connectOperator || changeIdentifier) && kcell_form.changeApplicationToConnectionTaskComment.$error.validIdentifiers && view.submitted">Выберите хотя бы 1 offnet оператор</label>
+    <input type="text" ng-model="fakeMessageSMS" class="form-control" id="smsIdentifiers" name="smsIdentifiers" ng-show="false">
+    <label class="error" ng-show="relatedProcessDefinitionKey === 'bulksmsConnectionKAE' && operatorType === 'offnet' && (disconnectOperator || connectOperator || changeIdentifier) && kcell_form.smsIdentifiers.$invalid && view.submitted">{{errorMessageSMS}}</label>
     <div class="form-group" ng-repeat="id in identifiers" ng-if="relatedProcessDefinitionKey === 'bulksmsConnectionKAE'">
         <label class="control-label pull-left"/>Идентификатор - {{id.title}}
-        <span class="glyphicon glyphicon-remove pull-right" ng-click="deleteIdentifier($index)"></span>
+        <!--span class="glyphicon glyphicon-remove pull-right" ng-click="deleteIdentifier($index)"></span-->
         <div class="col-sm-12" style="border-left: solid; border-left-width: 1px; margin-left: 2vh">
             <div class="form-group">
                 <div class="col-sm-1">
@@ -1056,21 +1085,23 @@
                     <div class="col-sm-3" ng-repeat="operator in id.operators">
                         <label for="operator.id"><input type="checkbox" ng-model="operator.isAvailable" ng-change="clearPrices(operator)" ng-disabled="disconnectProcess || !((disconnectOperator && operator.wasAvailable) || (connectOperator && !operator.wasAvailable))"> {{operator.name}}</label>
                         <div class="input" id="operator.id" >
-                            <input ng-model="operator.priceAP" name="{{operator.id + 'AP'}}" class="form-control"  placeholder="{{operator.isAvailable?'Цена':'Не доступен'}}" ng-disabled="disconnectProcess || !((changeIdentifier && identifierType === 'alfanumeric' && operator.isAvailable) || (connectOperator && operator.isAvailable && !operator.wasAvailable))" ng-required="operator.isAvailable"/>
+                            <input ng-model="operator.priceAP" name="{{operator.id + 'AP'}}" class="form-control"  placeholder="{{operator.isAvailable?'Цена':'Не доступен'}}" ng-disabled="disconnectProcess || !((changeIdentifier && identifierType === 'alfanumeric' && operator.isAvailable) || (connectOperator && operator.isAvailable && !operator.wasAvailable))" ng-required="operator.isAvailable">
                             <label class="error" ng-show="kcell_form.{{operator.id + 'AP'}}.$error.required && ( kcell_form.{{operator.id + 'AP'}}.$touched || view.submitted)">Required field</label>
                         </div>
                         <br>
                         <div class="input" ng-show="identifierType === 'digital'">
-                            <input ng-model="operator.priceEP" name="{{operator.id + 'EP'}}" class="form-control"  placeholder="{{operator.isAvailable?'Цена':'Не доступен'}}" ng-disabled="disconnectProcess || !(connectOperator && operator.isAvailable && !operator.wasAvailable)" ng-required="operator.isAvailable && identifierType === 'digital'"/>
+                            <input ng-model="operator.priceEP" name="{{operator.id + 'EP'}}" class="form-control"  placeholder="{{operator.isAvailable?'Цена':'Не доступен'}}" ng-disabled="disconnectProcess || !(connectOperator && operator.isAvailable && !operator.wasAvailable)" ng-required="operator.isAvailable && identifierType === 'digital'">
                             <label class="error" ng-show="kcell_form.{{operator.id + 'EP'}}.$error.required && ( kcell_form.{{operator.id + 'EP'}}.$touched || view.submitted)">Required field</label>
                         </div>
+
                         <div class="input" ng-show="identifierType === 'alfanumeric'">
-                            <select ng-model="operator.title" name="{{operator.id + 'Title'}}" class="form-control" ng-disabled="disconnectProcess || !((changeIdentifier && identifierType === 'alfanumeric' && operator.isAvailable) || (connectOperator && operator.isAvailable && !operator.wasAvailable))" required="true" ng-required="operator.isAvailable && identifierType === 'alfanumeric'">
+                            <!--<select ng-model="operatorTitles[operator.id]" ng-change="updateOperatorTitle(operator)" name="{{operator.id + 'Title'}}" class="form-control" ng-disabled="disconnectProcess || !((changeIdentifier && identifierType === 'alfanumeric' && operator.isAvailable) || (connectOperator && operator.isAvailable && !operator.wasAvailable))" ng-required="operator.isAvailable && identifierType === 'alfanumeric'">-->
+                            <select ng-model="operator.title" name="{{operator.id + 'Title'}}" class="form-control" ng-disabled="disconnectProcess || !((changeIdentifier && identifierType === 'alfanumeric' && operator.isAvailable) || (connectOperator && operator.isAvailable && !operator.wasAvailable))" ng-required="operator.isAvailable && identifierType === 'alfanumeric'">
                                 <option value="{{id.title}}">{{id.title}}</option>
                                 <option value="MESSAGE">MESSAGE</option>
                                 <option value="KiT_Notify">KiT_Notify</option>
                             </select>
-                            <label class="error" ng-show="kcell_form.{{operator.id + 'Title'}}.$error.required && ( kcell_form.{{operator.id + 'Title'}}.$touched || view.submitted)">Required field</label>
+                            <label class="error" ng-show="kcell_form.{{operator.id + 'Title'}}.$error.required && ( kcell_form.{{operator.id + 'Title'}}.$touched || view.submitted )">Required field</label>
                         </div>
                     </div>
                 </div>
@@ -1087,9 +1118,12 @@
             </div>
         </div>
     </div>
+
+    <input type="text" class="form-control" name="ivrIdentifiers" ng-model="errorMessageIVR" ng-show="false"/>
+    <label class="error" ng-show="relatedProcessDefinitionKey === 'freephone' && operatorType === 'offnet' && (disconnectOperator || connectOperator) && kcell_form.ivrIdentifiers.$invalid && view.submitted">{{errorMessageIVR}}</label>
     <div class="form-group" ng-repeat="id in identifiers" ng-if="relatedProcessDefinitionKey === 'freephone'">
         <label class="control-label pull-left"/>Идентификатор - {{id.title}} - {{$index}}
-        <span class="glyphicon glyphicon-remove pull-right" ng-click="deleteIdentifier($index)"></span>
+        <!--span class="glyphicon glyphicon-remove pull-right" ng-click="deleteIdentifier($index)"></span-->
         <div class="col-sm-12" style="border-left: solid; border-left-width: 1px; margin-left: 2vh">
             <div class="form-group">
                 <div class="col-sm-1">
@@ -1129,7 +1163,7 @@
             </div>
         </div>
     </div>
-    <!--button ng-click="preSubmit()">PRE SUBMIT</button-->
+
     <div class="form-group">
         <label class="col-sm-12 control-label"><H4><b>Информация о клиенте:</b></H4></label>
     </div>
@@ -1137,8 +1171,6 @@
         <label class="col-sm-4 control-label">* БИН:</label>
         <div class="col-sm-3">
             <input type="text" limit-to="12" numbers-only ng-model="clientBIN" name="clientBIN" id="clientBIN" class="form-control" placeholder="БИН*" ng-pattern="binPattern" ng-disabled="true">
-            <!--label class="error" ng-show="kcell_form.clientBIN.$error.required && ( kcell_form.clientBIN.$touched || view.submitted)">Required field</label-->
-            <!--label class="error" ng-show="kcell_form.clientBIN.$error.pattern && ( kcell_form.clientBIN.$touched || view.submitted)">Неверный формат БИН</label-->
         </div>
         <label class="col-sm-2 control-label">Номер договора:</label>
         <div class="col-sm-3">
@@ -1159,6 +1191,7 @@
             <label class="error" ng-show="kcell_form.officialClientCompanyName.$error.required && ( kcell_form.officialClientCompanyName.$touched || view.submitted)">Required field</label>
         </div>
     </div>
+
     <!--div class="form-group">
         <label class="col-sm-4 control-label">* Описание сервиса:</label>
         <div class="col-sm-8">
@@ -1166,6 +1199,7 @@
             <label class="error" ng-show="kcell_form.description.$error.required && ( kcell_form.description.$touched || view.submitted)">Required field</label>
         </div>
     </div-->
+
     <div class="form-group" ng-show="relatedProcessDefinitionKey === 'bulksmsConnectionKAE'">
         <label class="col-sm-4 control-label">* Тип подключения:</label>
         <div class="col-sm-8">
@@ -1265,6 +1299,7 @@
             <label class="error" ng-show="kcell_form.addressServerMO.$error.required && ( kcell_form.addressServerMO.$touched || view.submitted)">Required field</label>
         </div>
     </div>
+
     <!--div class="form-group">
         <label class="col-sm-4 control-label">* Дата предполагаемого запуска:</label>
         <div class="col-sm-8">
@@ -1278,6 +1313,7 @@
             </div>
         </div>
     </div-->
+
     <div class="form-group" ng-if="!connectionType === 'web'">
         <label class="col-sm-4 control-label">* Тариф для абонента:</label>
         <div class="col-sm-8">
@@ -1329,6 +1365,7 @@
             <label class="error" ng-show="kcell_form.techSpecEmail.$error.required && ( kcell_form.techSpecEmail.$touched || view.submitted)">Required field</label>
         </div>
     </div>
+
     <!--div class="form-group">
         <label class="col-sm-4 control-label">Вложите скан. договора:</label>
         <div class="col-sm-8">
@@ -1351,6 +1388,7 @@
             <label class="has-error" ng-show="kcell_form.applicationScanCopyFileName.$error.validFile && ( kcell_form.applicationScanCopyFileName.$touched || view.submitted)">File is required</label>
         </div>
     </div-->
+
     <div class="form-group">
         <label class="col-sm-4 control-label">Ответственный B2B Delivery:</label>
         <div class="col-sm-8">
@@ -1391,6 +1429,7 @@
             <label class="error" ng-show="kcell_form.provider.$invalid && view.submitted">New provider is the same as the old provider</label>
         </div>
     </div>
+
     <div class="form-group">
         <label class="col-sm-4 control-label">Комментарии:</label>
         <div class="col-sm-8">
