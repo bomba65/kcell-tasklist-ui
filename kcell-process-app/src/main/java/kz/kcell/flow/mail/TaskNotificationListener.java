@@ -36,7 +36,7 @@ public class TaskNotificationListener implements TaskListener {
     private final CompiledScript template;
     private ScriptEngine groovyEngine;
 
-    private final List<String> claimAssignDateEnabledProcesses = Arrays.asList("AftersalesPBX");
+    private final List<String> claimAssignDateEnabledProcesses = Arrays.asList("AftersalesPBX", "revolvingNumbers");
 
     private final List<String> disabledProcesses = Arrays.asList("AftersalesPBX", "PBX");
 

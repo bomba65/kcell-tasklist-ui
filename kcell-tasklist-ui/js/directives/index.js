@@ -25,6 +25,7 @@ define([
 	'./numbersOnly',
 	'./infoAftersales',
   './aftersalesPBX/index',
+	'./revolvingNumbers/index',
 	'./demandProcess',
 	'./bulksmsRichText',
 	'./changeClassOnScroll',
