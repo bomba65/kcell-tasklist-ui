@@ -44,7 +44,7 @@
         </camunda:executionListener>
       </bpmn:extensionElements>
       <bpmn:incoming>SequenceFlow_0ae089u</bpmn:incoming>
-      <bpmn:incoming>SequenceFlow_177s6zs</bpmn:incoming>
+      <bpmn:incoming>SequenceFlow_1oldzoe</bpmn:incoming>
       <bpmn:outgoing>SequenceFlow_18vmkgb</bpmn:outgoing>
     </bpmn:userTask>
     <bpmn:userTask id="addOutToRollOut" name="Add/Out NCP to Roll Out" camunda:formKey="embedded:app:forms/leasing/addOutToRollOut.html">
@@ -267,6 +267,7 @@
       <bpmn:incoming>SequenceFlow_074l9qe</bpmn:incoming>
       <bpmn:outgoing>SequenceFlow_0l3jhg6</bpmn:outgoing>
       <bpmn:outgoing>SequenceFlow_0ipket2</bpmn:outgoing>
+      <bpmn:outgoing>SequenceFlow_1cdjol3</bpmn:outgoing>
     </bpmn:exclusiveGateway>
     <bpmn:sequenceFlow id="SequenceFlow_0l3jhg6" name="rejected" sourceRef="ExclusiveGateway_07g3n5r" targetRef="ScriptTask_1h3xnpi">
       <bpmn:conditionExpression xsi:type="bpmn:tFormalExpression">${modifyCandidateSiteTaskResult == 'rejectCandidate'}</bpmn:conditionExpression>
@@ -276,7 +277,7 @@
       <bpmn:conditionExpression xsi:type="bpmn:tFormalExpression">${modifyCandidateSiteTaskResult == 'requestCancelNCP'}</bpmn:conditionExpression>
     </bpmn:sequenceFlow>
     <bpmn:sequenceFlow id="SequenceFlow_074l9qe" sourceRef="modifyCandidateSite" targetRef="ExclusiveGateway_07g3n5r" />
-    <bpmn:sequenceFlow id="SequenceFlow_177s6zs" sourceRef="ScriptTask_1h3xnpi" targetRef="createNewCandidateSite" />
+    <bpmn:sequenceFlow id="SequenceFlow_177s6zs" sourceRef="ScriptTask_1h3xnpi" targetRef="ExclusiveGateway_15qce5o" />
     <bpmn:sequenceFlow id="SequenceFlow_0dzanlk" sourceRef="SendTask_1j6miqc" targetRef="rejectedNCP" />
     <bpmn:serviceTask id="ScriptTask_1h3xnpi" name="Set Candidate Status to &#34;Rejected Candidate&#34;" camunda:class="kz.kcell.bpm.leasing.DelegateSetStatus">
       <bpmn:extensionElements>
@@ -745,13 +746,13 @@
       <bpmn:outgoing>SequenceFlow_1oo6n65</bpmn:outgoing>
     </bpmn:exclusiveGateway>
     <bpmn:sequenceFlow id="SequenceFlow_1woqns0" name="Wait_CONTRACT" sourceRef="ExclusiveGateway_19ncicm" targetRef="InclusiveGateway_1a5egw8">
-      <bpmn:conditionExpression xsi:type="bpmn:tFormalExpression">${leasingProceduresStatus == 'waitContract' &amp;&amp; leasingProceduresStatusFE == 'waitContract'}</bpmn:conditionExpression>
+      <bpmn:conditionExpression xsi:type="bpmn:tFormalExpression">${leasingProceduresStatus == 'waitContract' &amp;&amp; leasingProceduresStatusFE == 'approve'}</bpmn:conditionExpression>
     </bpmn:sequenceFlow>
     <bpmn:sequenceFlow id="SequenceFlow_0xf304q" name="Verbal Agreement" sourceRef="ExclusiveGateway_19ncicm" targetRef="SubProcess_0d3hbrf">
-      <bpmn:conditionExpression xsi:type="bpmn:tFormalExpression">${leasingProceduresStatus == 'verbalAgreement'}</bpmn:conditionExpression>
+      <bpmn:conditionExpression xsi:type="bpmn:tFormalExpression">${leasingProceduresStatus == 'verbalAgreement' &amp;&amp; leasingProceduresStatusFE == 'approve'}</bpmn:conditionExpression>
     </bpmn:sequenceFlow>
     <bpmn:sequenceFlow id="SequenceFlow_1oo6n65" name="REFUSAL" sourceRef="ExclusiveGateway_19ncicm" targetRef="modifyCandidateSite">
-      <bpmn:conditionExpression xsi:type="bpmn:tFormalExpression">${leasingProceduresStatus == 'refusal' || leasingProceduresStatusFE == 'refusal'}</bpmn:conditionExpression>
+      <bpmn:conditionExpression xsi:type="bpmn:tFormalExpression">${leasingProceduresStatus == 'refusal' || leasingProceduresStatusFE == 'reject'}</bpmn:conditionExpression>
     </bpmn:sequenceFlow>
     <bpmn:userTask id="contractRentLoadingSAP" name="Contract rent loading in SAP contract management" camunda:formKey="embedded:app:forms/leasing/contractRentLoadingSAP.html" camunda:candidateGroups="LeasingCentralGroup">
       <bpmn:documentation>Contract rent loading in SAP contract management</bpmn:documentation>
@@ -1127,6 +1128,31 @@
       </bpmn:extensionElements>
       <bpmn:incoming>SequenceFlow_03bz2is</bpmn:incoming>
       <bpmn:outgoing>SequenceFlow_172xcl9</bpmn:outgoing>
+    </bpmn:serviceTask>
+    <bpmn:sequenceFlow id="SequenceFlow_1cdjol3" sourceRef="ExclusiveGateway_07g3n5r" targetRef="Task_0pemm8g">
+      <bpmn:conditionExpression xsi:type="bpmn:tFormalExpression">${modifyCandidateSiteTaskResult == 'rejectFarEnd'}</bpmn:conditionExpression>
+    </bpmn:sequenceFlow>
+    <bpmn:exclusiveGateway id="ExclusiveGateway_15qce5o">
+      <bpmn:incoming>SequenceFlow_177s6zs</bpmn:incoming>
+      <bpmn:incoming>SequenceFlow_0j1hzv7</bpmn:incoming>
+      <bpmn:outgoing>SequenceFlow_1oldzoe</bpmn:outgoing>
+    </bpmn:exclusiveGateway>
+    <bpmn:sequenceFlow id="SequenceFlow_1oldzoe" sourceRef="ExclusiveGateway_15qce5o" targetRef="createNewCandidateSite" />
+    <bpmn:sequenceFlow id="SequenceFlow_0j1hzv7" sourceRef="Task_0pemm8g" targetRef="ExclusiveGateway_15qce5o" />
+    <bpmn:serviceTask id="Task_0pemm8g" name="Set Far End Status to &#34;Rejected Far End&#34;" camunda:class="kz.kcell.bpm.leasing.DelegateSetStatus">
+      <bpmn:extensionElements>
+        <camunda:field name="variable">
+          <camunda:string>farEndStatus</camunda:string>
+        </camunda:field>
+        <camunda:field name="value">
+          <camunda:string>rejectedFarEnd</camunda:string>
+        </camunda:field>
+        <camunda:field name="label">
+          <camunda:string>Rejected Far End</camunda:string>
+        </camunda:field>
+      </bpmn:extensionElements>
+      <bpmn:incoming>SequenceFlow_1cdjol3</bpmn:incoming>
+      <bpmn:outgoing>SequenceFlow_0j1hzv7</bpmn:outgoing>
     </bpmn:serviceTask>
     <bpmn:textAnnotation id="TextAnnotation_1afyvrl">
       <bpmn:text>Central Planner group</bpmn:text>
@@ -1690,7 +1716,7 @@
       </bpmndi:BPMNEdge>
       <bpmndi:BPMNEdge id="SequenceFlow_177s6zs_di" bpmnElement="SequenceFlow_177s6zs">
         <di:waypoint x="739" y="121" />
-        <di:waypoint x="739" y="487" />
+        <di:waypoint x="739" y="183" />
       </bpmndi:BPMNEdge>
       <bpmndi:BPMNEdge id="SequenceFlow_0dzanlk_di" bpmnElement="SequenceFlow_0dzanlk">
         <di:waypoint x="689" y="-56" />
@@ -2941,6 +2967,24 @@
         <di:waypoint x="4248" y="1241" />
         <di:waypoint x="4390" y="1241" />
       </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="SequenceFlow_1cdjol3_di" bpmnElement="SequenceFlow_1cdjol3">
+        <di:waypoint x="920" y="106" />
+        <di:waypoint x="920" y="168" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNShape id="ExclusiveGateway_15qce5o_di" bpmnElement="ExclusiveGateway_15qce5o" isMarkerVisible="true">
+        <dc:Bounds x="714" y="183" width="50" height="50" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNEdge id="SequenceFlow_1oldzoe_di" bpmnElement="SequenceFlow_1oldzoe">
+        <di:waypoint x="739" y="233" />
+        <di:waypoint x="739" y="487" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="SequenceFlow_0j1hzv7_di" bpmnElement="SequenceFlow_0j1hzv7">
+        <di:waypoint x="870" y="208" />
+        <di:waypoint x="764" y="208" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNShape id="ServiceTask_1lfwcvo_di" bpmnElement="Task_0pemm8g">
+        <dc:Bounds x="870" y="168" width="100" height="80" />
+      </bpmndi:BPMNShape>
     </bpmndi:BPMNPlane>
   </bpmndi:BPMNDiagram>
 </bpmn:definitions>
