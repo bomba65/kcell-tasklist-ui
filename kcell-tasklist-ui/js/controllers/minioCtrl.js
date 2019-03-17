@@ -158,7 +158,7 @@ define(['./module','camundaSDK', 'lodash', 'big-js'], function(module, CamSDK, _
 									function(result){
 										toasty.success( "Данные успешно сохранены!");
 										$scope.foundProcesses = [];
-										$scope.scanCopyFileValue = undefined;										
+										$scope.scanCopyFileValue = undefined;
 										$scope.selectedFile = undefined;
 										$scope.businessKey = undefined;
 										businessKey = 'businessKey';
@@ -183,6 +183,149 @@ define(['./module','camundaSDK', 'lodash', 'big-js'], function(module, CamSDK, _
 	                    alert('No such file ' + file.name);
 	                });
                 }                
+            }
+
+            //----------------------------------------------------------- Change Activity --------------------------------------
+
+			 $scope.$watch('activityProcess', function (activityProcess) {
+			 	$scope.userTasksMap = [];
+			 	$scope.processInstanceId = undefined;
+			 	$scope.cancelActivities = {};
+			 	$scope.loadProcessDefinitionActivities();
+			 },true);
+
+
+			$scope.loadProcessDefinitionActivities = function (){
+				if($scope.activityProcess){
+					$http.get(baseUrl + '/process-definition/key/' + $scope.activityProcess + '/xml')
+			        .then(function(response) {
+			            var domParser = new DOMParser();
+
+			            var xml = domParser.parseFromString(response.data.bpmn20Xml, 'application/xml');
+
+			            function getUserTasks(xml) {
+			                var namespaces = {
+			                    bpmn: 'http://www.omg.org/spec/BPMN/20100524/MODEL'
+			                };
+
+			                var userTaskNodes = [
+			                	...getElementsByXPath(xml, '//bpmn:userTask', prefix => namespaces[prefix]),
+			                	...getElementsByXPath(xml, '//bpmn:intermediateCatchEvent', prefix => namespaces[prefix])
+			                ];
+
+			                function getElementsByXPath(doc, xpath, namespaceFn, parent) {
+			                    let results = [];
+			                    let query = doc.evaluate(xpath,
+			                        parent || doc,
+			                        namespaceFn,
+			                        XPathResult.ORDERED_NODE_SNAPSHOT_TYPE, null);
+			                    for (let i=0, length=query.snapshotLength; i<length; ++i) {
+			                        results.push(query.snapshotItem(i));
+			                    }
+			                    return results;
+			                }
+
+			                return userTaskNodes.map(node => {
+			                    var id = node.id;
+			                    var name = node.attributes["name"] && node.attributes["name"].textContent;
+			                    var description = getElementsByXPath(
+			                        xml,
+			                        'bpmn:documentation/text()',
+			                        prefix => namespaces[prefix],
+			                        node
+			                    )[0];
+
+			                    description = description && description.textContent;
+
+			                    return {
+			                        "id" : id,
+			                        "name" : name,
+			                        "description": description
+			                    };
+			                });
+			            }
+
+			            var userTasks = getUserTasks(xml);
+			            $scope.userTasksMap = userTasks;
+			        });				
+			    }
+			}
+
+            $scope.searchActivityBusinessKey = function(){
+            	var activityBusinessKey = 'businessKey';
+            	if($scope.activityBusinessKey && $scope.activityBusinessKey !== ''){
+	            	activityBusinessKey = $scope.activityBusinessKey;
+            	}
+
+				$http.post(baseUrl+'/process-instance',{businessKey: activityBusinessKey, processDefinitionKey: $scope.activityProcess,
+					active: true}).then(
+					function(result){
+						if(result.data.length > 0){
+							$scope.foundProcesses = result.data;
+							$scope.processInstanceId = $scope.foundProcesses[0].id;
+
+							$http.get(baseUrl+'/process-instance/' + $scope.processInstanceId + '/activity-instances').then(
+								function(activityResult){
+					            	$scope.activityProcessActivities = [];
+					            	_.forEach(activityResult.data.childActivityInstances, function(firstLevel) {
+					            		if(firstLevel.activityType === 'subProcess'){
+					            			_.forEach(firstLevel.childActivityInstances, function(secondLevel) {
+												if(secondLevel.activityType !== 'multiInstanceBody') {
+													$scope.activityProcessActivities.push(secondLevel);
+							            		}
+					            			});
+					            		} else if(firstLevel.activityType !== 'multiInstanceBody') {
+											$scope.activityProcessActivities.push(firstLevel);
+					            		}
+					            	});
+								},
+								function(error){
+									console.log(error.data)
+								}
+							);
+
+						}
+					},
+					function(error){
+						console.log(error.data)
+					}
+				);            	
+            }
+
+            $scope.moveToActivity = function(){
+            	var instructions = [];
+            	for (var property in $scope.cancelActivities) {
+            		if($scope.cancelActivities[property]){
+            			instructions.push({type:'cancel',activityInstanceId:property});
+            		}
+				}
+
+				if(instructions.length > 0){
+            		instructions.push({type:'startBeforeActivity',activityId:$scope.activityTask});	
+
+            		var modification = {
+						skipCustomListeners: false,
+						skipIoMappings: false,
+						instructions: instructions
+            		}
+            		console.log(modification);
+
+					$http.post(baseUrl+'/process-instance/' + $scope.processInstanceId + '/modification',modification).then(
+						function(result){
+						 	$scope.userTasksMap = [];
+						 	$scope.processInstanceId = undefined;
+						 	$scope.cancelActivities = {};
+						 	$scope.activityBusinessKey = undefined;
+							toasty.success('Process modified');
+						},
+			            function (error) {
+							toasty.error('Process modification error');
+			                console.log(error.data);
+			            }
+			        ); 
+				} else {
+					toasty.error('At least one cancel activity should be selected');
+				}
             }
 	}]);
 });
