@@ -191,6 +191,7 @@ define(['./module','camundaSDK', 'lodash', 'big-js'], function(module, CamSDK, _
 			 	$scope.userTasksMap = [];
 			 	$scope.processInstanceId = undefined;
 			 	$scope.cancelActivities = {};
+			 	$scope.activityProcessTechnicalUpdates = "";
 			 	$scope.loadProcessDefinitionActivities();
 			 },true);
 
@@ -283,7 +284,15 @@ define(['./module','camundaSDK', 'lodash', 'big-js'], function(module, CamSDK, _
 									console.log(error.data)
 								}
 							);
-
+							$http.post(baseUrl+'/history/variable-instance?deserializeValues=false', {processInstanceId:$scope.processInstanceId, 
+								variableName: "processTechnicalUpdates"}).then(
+								function(varResult){
+									$scope.activityProcessTechnicalUpdates = varResult.data[0].value;
+								},
+								function(error){
+									console.log(error.data)
+								}
+							);
 						}
 					},
 					function(error){
@@ -312,17 +321,34 @@ define(['./module','camundaSDK', 'lodash', 'big-js'], function(module, CamSDK, _
 
 					$http.post(baseUrl+'/process-instance/' + $scope.processInstanceId + '/modification',modification).then(
 						function(result){
-						 	$scope.userTasksMap = [];
-						 	$scope.processInstanceId = undefined;
-						 	$scope.cancelActivities = {};
-						 	$scope.activityBusinessKey = undefined;
-							toasty.success('Process modified');
+
+                        	var activityProcessTechnicalUpdates = ($scope.activityProcessTechnicalUpdates === "") ? $scope.activityComment : ($scope.activityProcessTechnicalUpdates + " " + $scope.activityComment);
+							$http.post(baseUrl+'/process-instance/' + $scope.processInstanceId + '/variables', 
+								{"modifications":
+								    {
+								    	"processTechnicalUpdates": {"value": activityProcessTechnicalUpdates, type:'String'}
+								    }
+								}
+							).then(
+								function(result){
+									$scope.activityComment = undefined;
+								 	$scope.userTasksMap = [];
+								 	$scope.processInstanceId = undefined;
+								 	$scope.cancelActivities = {};
+								 	$scope.activityBusinessKey = undefined;
+									toasty.success('Process successfully modified');
+								},
+								function(error){
+									console.log(error.data)
+									toasty.success( error.data);
+								}
+							);
 						},
 			            function (error) {
 							toasty.error('Process modification error');
 			                console.log(error.data);
 			            }
-			        ); 
+			        ); 			        
 				} else {
 					toasty.error('At least one cancel activity should be selected');
 				}
