@@ -5,15 +5,10 @@
       border: 1px solid #b3b3b3;
       color: #333;
     }
-
-    .content-visible-accordion .panel {
-      overflow: visible;
-    }
   </style>
   <script cam-script type="text/form-script">
         inject(['$scope', '$http', 'Uri', '$rootScope', '$q', 'toasty', '$timeout', function ($scope, $http, Uri, $rootScope, $q, toasty, $timeout) {
             $scope.legalInfo = {};
-            $scope.techSpecs = {};
             $scope.resolutions = [];
             $scope.attachments = [];
 
@@ -32,41 +27,39 @@
 
             camForm.on('form-loaded', function () {
                 camForm.variableManager.fetchVariable('legalInfo');
-                camForm.variableManager.fetchVariable('techSpecs');
                 camForm.variableManager.fetchVariable('resolutions');
                 camForm.variableManager.fetchVariable('attachments');
-                camForm.variableManager.fetchVariable('launchName');
+                camForm.variableManager.fetchVariable('exchName');
                 camForm.variableManager.fetchVariable('numbersAmount');
             });
 
             camForm.on('variables-fetched', function () {
                 $scope.legalInfo = camForm.variableManager.variableValue('legalInfo');
-                $scope.techSpecs = camForm.variableManager.variableValue('techSpecs');
                 $scope.resolutions = camForm.variableManager.variableValue('resolutions');
                 $scope.attachments = camForm.variableManager.variableValue('attachments');
-                $scope.launchName = camForm.variableManager.variableValue('launchName');
+                $scope.exchName = camForm.variableManager.variableValue('exchName');
                 $scope.numbersAmount = camForm.variableManager.variableValue('numbersAmount');
 
                 if (!$scope.legalInfo) $scope.legalInfo = {};
-                if (!$scope.techSpecs) $scope.techSpecs = {};
 
-                if (!$scope.launchName) $scope.launchName = 'launch';
+                if (!$scope.exchName) $scope.exchName = 'exch';
 
                 camForm.variableManager.createVariable({
-                    name: $scope.launchName+'ConfirmTaskResult',
+                    name: $scope.exchName+'SIPTaskResult',
                     type: 'String',
                     value: ''
                 });
 
                 camForm.variableManager.createVariable({
-                    name: $scope.launchName+'ConfirmTaskComment',
+                    name: $scope.exchName+'SIPTaskComment',
                     type: 'String',
                     value: ''
                 });
             });
+
             camForm.on('submit', function (event) {
-                camForm.variableManager.variableValue($scope.launchName+'ConfirmTaskResult', 'Complete');
-                camForm.variableManager.variableValue($scope.launchName+'ConfirmTaskComment', $scope.comment);
+                camForm.variableManager.variableValue($scope.exchName+'SIPTaskResult', 'Complete');
+                camForm.variableManager.variableValue($scope.exchName+'SIPTaskComment', $scope.comment);
             });
 
             $scope.downloadFile = function (file) {
@@ -103,10 +96,10 @@
 
   <div class="col-sm-12"><hr /></div>
 
-  <accordion class="background-yellow-accordion" ng-if="techSpecs.connectionType === 'SIP over internet'">
+  <accordion class="background-yellow-accordion">
     <accordion-group is-open="true">
       <accordion-heading>
-        Technical specification (SIP over internet) <i class="pull-right glyphicon" ng-class="{'glyphicon-chevron-up': status.isCustomHeaderOpen, 'glyphicon-chevron-down': !status.isCustomHeaderOpen}"></i>
+        Technical specification <i class="pull-right glyphicon" ng-class="{'glyphicon-chevron-up': status.isCustomHeaderOpen, 'glyphicon-chevron-down': !status.isCustomHeaderOpen}"></i>
       </accordion-heading>
       <div class="form-group">
         <label class="col-sm-4 control-label">Connection type: </label>
@@ -154,15 +147,6 @@
     </accordion-group>
   </accordion>
 
-  <accordion class="background-yellow-accordion" ng-if="techSpecs.connectionType === 'SIP direct'">
-    <accordion-group is-open="true">
-      <accordion-heading>
-        Technical specification (SIP direct) <i class="pull-right glyphicon" ng-class="{'glyphicon-chevron-up': status.isCustomHeaderOpen, 'glyphicon-chevron-down': !status.isCustomHeaderOpen}"></i>
-      </accordion-heading>
-      <revolving-direct-protocol data="techSpecs.direct" form="kcell_form" view="view" disabled="true"></revolving-direct-protocol>
-    </accordion-group>
-  </accordion>
-
   <iframe id="fileDownloadIframe" style="display:none;"></iframe>
   <div class="form-group">
     <label class="col-sm-2 control-label">Attachments</label>
@@ -180,6 +164,7 @@
           <tr ng-repeat="file in attachments track by $index">
             <td><a ng-click="downloadFile(file)">{{file.name}}</a></td>
             <td>{{file.created | date: 'dd.MM.yyyy HH:mm'}}</td>
+            <td>{{file.createdBy}}</td>
           </tr>
           </tbody>
         </table>
