@@ -1,7 +1,7 @@
 import groovy.text.markup.MarkupTemplateEngine
 import groovy.text.markup.TemplateConfiguration
 
-def binding = ["finalIDs" : finalIDs]
+def binding = ["finalIDs" : finalIDs, "connectionConfigParams" : connectionConfigParams]
 
 def template = '''\
 yieldUnescaped '<!DOCTYPE html>'
@@ -15,7 +15,9 @@ html(lang:'en') {
     body {
         p('Добрый день!')
         newLine()
-        p('В рамках заведения номера ' + finalIDs + ' создан новый аккаунт. Ниже параметры подключения к нашей платформе по протоколу SMPP 3.4)
+        p('В рамках заведения номера ' + finalIDs + ' создан новый аккаунт. Ниже параметры подключения к нашей платформе по протоколу SMPP 3.4')
+        p(connectionConfigParams)
+        newLine()
         p('С Уважением,')
         newLine()
         p('Kcell Flow')

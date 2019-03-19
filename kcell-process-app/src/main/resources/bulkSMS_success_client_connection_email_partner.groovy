@@ -1,6 +1,15 @@
 import org.camunda.bpm.engine.delegate.DelegateExecution
 import java.util.stream.Collectors
 
+def getStarterEmails(DelegateExecution execution) {
+    def identityService = execution.processEngineServices.identityService
+
+    identityService.createUserQuery().userId(starter).list().stream()
+            .map{it.email}
+            .filter{it != null && !it.empty}
+            .collect(Collectors.toSet())
+}
+
 def getPartnerAndDeliveryEmail(DelegateExecution execution) {
     def identityService = execution.processEngineServices.identityService
 
@@ -15,7 +24,7 @@ def getPartnerAndDeliveryEmail(DelegateExecution execution) {
     def partner = execution.getVariable("partnerEmail").toString()
     println (partner)
     def techSpec = execution.getVariable("techSpecEmail").toString()
-    println (partner)
+    println (techSpec)
     def starterEmails = getStarterEmails(execution)
     def result = starterEmails.stream().collect(Collectors.joining(",")) + ', ' + partner + ', ' + techSpec + ', ' + delivery
 

@@ -16,7 +16,8 @@
                 'responsibleB2BDelivery',
                 'responsibleB2BSales'
             ];
-
+            $scope.taskId = camForm.taskId;
+            $scope.richTextChecker = null;
             camForm.on('form-loaded', function () {
                 variables.forEach(function (el) {
                     camForm.variableManager.fetchVariable(el);
@@ -32,6 +33,7 @@
                 $scope.bulksmsInfo = {};
                 $scope.bulksmsInfo.files = [];
             });
+
 
             camForm.on('variables-fetched', function () {
                 variables.forEach(function (el) {
@@ -59,6 +61,13 @@
                     $rootScope.authentication.assigneeName = (result.data.firstName ? result.data.firstName : "") + " " + (result.data.lastName ? result.data.lastName : "");
                 });
                 $scope.bulksmsInfo.showTarif = true;
+                $scope.connectionConfigParams = undefined;
+
+                camForm.variableManager.createVariable({
+                    name: 'connectionConfigParams',
+                    type: 'String',
+                    value: ''
+                });
 
                 camForm.variableManager.createVariable({
                     name: 'createConnectionFormPartnerTaskResult',
@@ -77,13 +86,26 @@
 
             camForm.on('submit', function () {
                 $scope.createConnectionFormPartnerTaskResult = 'Completed';
+                camForm.variableManager.variableValue('connectionConfigParams', $scope.connectionConfigParams);
                 camForm.variableManager.variableValue('createConnectionFormPartnerTaskResult', $scope.createConnectionFormPartnerTaskResult);
                 camForm.variableManager.variableValue('createConnectionFormPartnerTaskComment', $scope.createConnectionFormPartnerTaskComment);
             });
+
+            $scope.$watch('connectionConfigParams', function(v) {
+                $scope.richTextChecker = $scope.connectionConfigParams;
+                if ($scope.connectionConfigParams === '<p><br></p>') $scope.richTextChecker = null;
+            }, true);
         }]);
 
     </script>
     <info-bulksms bulksms-info="bulksmsInfo"></info-bulksms>
+    <div class="form-group">
+        <label class="col-sm-12 control-label">Параметры настройки: <span class="has-error" ng-if="kcell_form.configParamsRichText.$error.required && (kcell_form.configParamsRichText.$touched || view.submitted)">(Required field)</span></label>
+        <div class="col-sm-12">
+            <bulksms-rich-text data="connectionConfigParams" min-height="100" disabled="false" process-id="processInstanceId" task-id="taskId"></bulksms-rich-text>
+            <input type="hidden" name="configParamsRichText" style="width: 0; height: 0" ng-model="richTextChecker" required />
+        </div>
+    </div>
     <div class="form-group">
         <label class="col-sm-3 control-label">Комментарии</label>
         <div class="col-sm-9">
