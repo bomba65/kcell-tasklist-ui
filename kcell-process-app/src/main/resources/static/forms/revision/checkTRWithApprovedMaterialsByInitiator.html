@@ -48,7 +48,7 @@
                 hideSAPPRNO: true
             };
             $http.get('/camunda/api/engine/engine/default/task/' + camForm.taskId).then(
-                    function(result){
+                    function (result) {
                         $scope.processInstanceId = result.data.processInstanceId;
                     },
                     function (error) {
@@ -82,23 +82,23 @@
             });
             camForm.on('variables-fetched', function () {
                 variables.forEach(function (el) {
-                    if(el == 'trFilesName'){
+                    if (el == 'trFilesName') {
                         $scope[el] = camForm.variableManager.variables[el];
                         $scope.trFilesName.type = 'Json';
                     }
 
-                    if(el === 'resolutions'){
+                    if (el === 'resolutions') {
                         $scope.jobModel.resolutions = angular.copy(camForm.variableManager.variables[el].value);
                         $scope.jobModel.currentTask = $scope.currentTask;
                         $q.all($scope.jobModel.resolutions.map(function (resolution) {
-                            return $http.get("/camunda/api/engine/engine/default/history/task?processInstanceId="+resolution.processInstanceId+"&taskId=" + resolution.taskId);
+                            return $http.get("/camunda/api/engine/engine/default/history/task?processInstanceId=" + resolution.processInstanceId + "&taskId=" + resolution.taskId);
                         })).then(function (tasks) {
                             tasks.forEach(function (e, index) {
-                                if(e.data.length > 0){
+                                if (e.data.length > 0) {
                                     $scope.jobModel.resolutions[index].taskName = e.data[0].name;
                                     try {
                                         $scope.jobModel.resolutions[index].taskEndDate = new Date(e.data[0].endTime);
-                                    } catch(e){
+                                    } catch (e) {
                                         console.log(e);
                                     }
                                 }
@@ -108,7 +108,7 @@
                         $scope.jobModel[el] = camForm.variableManager.variables[el];
                     }
                 });
-                $http.get("/camunda/api/engine/engine/default/user/" + $rootScope.authentication.name+ "/profile").then(function(result){
+                $http.get("/camunda/api/engine/engine/default/user/" + $rootScope.authentication.name + "/profile").then(function (result) {
                     $rootScope.authentication.assigneeName = (result.data.firstName ? result.data.firstName : "") + " " + (result.data.lastName ? result.data.lastName : "");
                 });
             });
@@ -116,34 +116,54 @@
             camForm.on('submit', function () {
                 camForm.variableManager.variableValue('checkTRMaterialsByInitiatorTaskResult', $scope.checkTRMaterialsByInitiatorTaskResult);
 
-                if(camForm.variableManager.variables['trFilesName']){
+                if (camForm.variableManager.variables['trFilesName']) {
                     camForm.variableManager.variableValue('trFilesName', $scope.trFilesName.value);
                 } else {
                     camForm.variableManager.createVariable($scope.trFilesName);
                 }
 
                 var visibility = 'all';
-                if($scope.checkTRMaterialsByInitiatorComment && $scope.checkTRMaterialsByInitiatorCommentVisibility){
+                if ($scope.checkTRMaterialsByInitiatorComment && $scope.checkTRMaterialsByInitiatorCommentVisibility) {
                     visibility = $scope.checkTRMaterialsByInitiatorCommentVisibility;
                 }
-                $scope.jobModel.resolutions.push({processInstanceId: $scope.processInstanceId, assignee: $rootScope.authentication.name, assigneeName: $rootScope.authentication.assigneeName, resolution: $scope.checkTRMaterialsByInitiatorTaskResult, comment: $scope.checkTRMaterialsByInitiatorComment, taskId: camForm.taskId, visibility: visibility});
+                $scope.jobModel.resolutions.push({
+                    processInstanceId: $scope.processInstanceId,
+                    assignee: $rootScope.authentication.name,
+                    assigneeName: $rootScope.authentication.assigneeName,
+                    resolution: $scope.checkTRMaterialsByInitiatorTaskResult,
+                    comment: $scope.checkTRMaterialsByInitiatorComment,
+                    taskId: camForm.taskId,
+                    visibility: visibility
+                });
                 camForm.variableManager.variableValue('resolutions', $scope.jobModel.resolutions);
             });
 
-            camForm.on('store', function() {
+            camForm.on('store', function () {
                 camForm.variableManager.variableValue('checkTRMaterialsByInitiatorTaskResult', $scope.checkTRMaterialsByInitiatorTaskResult);
             });
 
-            camForm.on('variables-restored', function() {
+            camForm.on('variables-restored', function () {
                 $scope.checkTRMaterialsByInitiatorTaskResult = camForm.variableManager.variableValue('checkTRMaterialsByInitiatorTaskResult');
             });
 
             $scope.isVisible = function (resolution) {
-               return !resolution.visibility || resolution.visibility === 'all' || (resolution.visibility === 'kcell' && $rootScope.hasGroup('kcellUsers'));
+                return !resolution.visibility || resolution.visibility === 'all' || (resolution.visibility === 'kcell' && $rootScope.hasGroup('kcellUsers'));
             }
 
             $scope.hasComment = function () {
                 return $scope.checkTRMaterialsByInitiatorComment && $rootScope.hasGroup('kcellUsers');
+            }
+
+            $scope.download = function (file) {
+                $http({
+                    method: 'GET',
+                    url: '/camunda/uploads/get/' + file.value.path,
+                    transformResponse: []
+                }).then(function (response) {
+                    document.getElementById('fileDownloadIframe').src = response.data;
+                }, function (error) {
+                    console.log(error.data);
+                });
             }
         }]);
     </script>

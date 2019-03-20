@@ -50,7 +50,7 @@
                 hideSAPPRNO: true
             };
             $http.get('/camunda/api/engine/engine/default/task/' + camForm.taskId).then(
-                    function(result){
+                    function (result) {
                         $scope.processInstanceId = result.data.processInstanceId;
                     },
                     function (error) {
@@ -79,23 +79,23 @@
             });
             camForm.on('variables-fetched', function () {
                 variables.forEach(function (el) {
-                    if(el == 'trFilesName'){
+                    if (el == 'trFilesName') {
                         $scope[el] = camForm.variableManager.variables[el];
                         $scope.trFilesName.type = 'Json';
                     }
 
-                    if(el === 'resolutions'){
+                    if (el === 'resolutions') {
                         $scope.jobModel.resolutions = angular.copy(camForm.variableManager.variables[el].value);
                         $scope.jobModel.currentTask = $scope.currentTask;
                         $q.all($scope.jobModel.resolutions.map(function (resolution) {
-                            return $http.get("/camunda/api/engine/engine/default/history/task?processInstanceId="+resolution.processInstanceId+"&taskId=" + resolution.taskId);
+                            return $http.get("/camunda/api/engine/engine/default/history/task?processInstanceId=" + resolution.processInstanceId + "&taskId=" + resolution.taskId);
                         })).then(function (tasks) {
                             tasks.forEach(function (e, index) {
-                                if(e.data.length > 0){
+                                if (e.data.length > 0) {
                                     $scope.jobModel.resolutions[index].taskName = e.data[0].name;
                                     try {
                                         $scope.jobModel.resolutions[index].taskEndDate = new Date(e.data[0].endTime);
-                                    } catch(e){
+                                    } catch (e) {
                                         console.log(e);
                                     }
                                 }
@@ -104,18 +104,18 @@
                     } else {
                         $scope.jobModel[el] = camForm.variableManager.variables[el];
                     }
-                    if(el === 'checkTRMaterialsResult' && camForm.variableManager.variables[el].value){
+                    if (el === 'checkTRMaterialsResult' && camForm.variableManager.variables[el].value) {
                         $scope[el] = camForm.variableManager.variables[el].value;
                     }
-                    if(el === 'nrOfCompletedInstances'){
+                    if (el === 'nrOfCompletedInstances') {
                         $scope[el] = camForm.variableManager.variables[el].value;
                     }
                 });
-                $http.get("/camunda/api/engine/engine/default/user/" + $rootScope.authentication.name+ "/profile").then(function(result){
+                $http.get("/camunda/api/engine/engine/default/user/" + $rootScope.authentication.name + "/profile").then(function (result) {
                     $rootScope.authentication.assigneeName = (result.data.firstName ? result.data.firstName : "") + " " + (result.data.lastName ? result.data.lastName : "");
                 });
 
-                if($scope.nrOfCompletedInstances === 0){
+                if ($scope.nrOfCompletedInstances === 0) {
                     $scope.checkTRMaterialsResult = undefined;
                 }
                 $scope.checkTRMaterialsByCenterTaskResult = undefined;
@@ -126,23 +126,23 @@
 
                 if ($scope.checkTRMaterialsByCenterTaskResult === 'doesNotMatch') {
                     $scope.checkTRMaterialsResult = 'doesNotMatch';
-                } else if($scope.checkTRMaterialsResult === undefined) {
+                } else if ($scope.checkTRMaterialsResult === undefined) {
                     $scope.checkTRMaterialsResult = 'match';
                 }
 
-                if(camForm.variableManager.variables['trFilesName']){
+                if (camForm.variableManager.variables['trFilesName']) {
                     camForm.variableManager.variableValue('trFilesName', $scope.trFilesName.value);
                 } else {
                     camForm.variableManager.createVariable($scope.trFilesName);
                 }
 
                 var warehouseRegions = [];
-                if($scope.trFilesName.value){
-                    angular.forEach($scope.trFilesName.value, function(trFile){
-                        var warehouse = _.find($scope.jobModel.warehouses, function(warehouse){
+                if ($scope.trFilesName.value) {
+                    angular.forEach($scope.trFilesName.value, function (trFile) {
+                        var warehouse = _.find($scope.jobModel.warehouses, function (warehouse) {
                             return warehouse.id === trFile.warehouse;
                         });
-                        if(warehouseRegions.indexOf(warehouse.region) === -1){
+                        if (warehouseRegions.indexOf(warehouse.region) === -1) {
                             warehouseRegions.push(warehouse.region);
                         }
                     });
@@ -154,8 +154,8 @@
                     value: warehouseRegions
                 });
 
-                if($scope.checkTRMaterialsResult){
-                    if(camForm.variableManager.variables['checkTRMaterialsResult'] && camForm.variableManager.variables['checkTRMaterialsResult'].type){
+                if ($scope.checkTRMaterialsResult) {
+                    if (camForm.variableManager.variables['checkTRMaterialsResult'] && camForm.variableManager.variables['checkTRMaterialsResult'].type) {
                         camForm.variableManager.variableValue('checkTRMaterialsResult', $scope.checkTRMaterialsResult);
                     } else {
                         camForm.variableManager.destroyVariable('checkTRMaterialsResult');
@@ -168,23 +168,43 @@
                 }
 
                 var visibility = 'all';
-                if($scope.checkTRMaterialsByCenterComment && $scope.checkTRMaterialsByCenterCommentVisibility){
+                if ($scope.checkTRMaterialsByCenterComment && $scope.checkTRMaterialsByCenterCommentVisibility) {
                     visibility = $scope.checkTRMaterialsByCenterCommentVisibility;
                 }
-                $scope.jobModel.resolutions.push({processInstanceId: $scope.processInstanceId, assignee: $rootScope.authentication.name, assigneeName: $rootScope.authentication.assigneeName, resolution: $scope.checkTRMaterialsByCenterTaskResult, comment: $scope.checkTRMaterialsByCenterComment, taskId: camForm.taskId, visibility: visibility});
+                $scope.jobModel.resolutions.push({
+                    processInstanceId: $scope.processInstanceId,
+                    assignee: $rootScope.authentication.name,
+                    assigneeName: $rootScope.authentication.assigneeName,
+                    resolution: $scope.checkTRMaterialsByCenterTaskResult,
+                    comment: $scope.checkTRMaterialsByCenterComment,
+                    taskId: camForm.taskId,
+                    visibility: visibility
+                });
                 camForm.variableManager.variableValue('resolutions', $scope.jobModel.resolutions);
             });
 
-            camForm.on('store', function() {
+            camForm.on('store', function () {
                 camForm.variableManager.variableValue('checkTRMaterialsByCenterTaskResult', $scope.checkTRMaterialsByCenterTaskResult);
             });
 
             $scope.isVisible = function (resolution) {
-               return !resolution.visibility || resolution.visibility === 'all' || (resolution.visibility === 'kcell' && $rootScope.hasGroup('kcellUsers'));
+                return !resolution.visibility || resolution.visibility === 'all' || (resolution.visibility === 'kcell' && $rootScope.hasGroup('kcellUsers'));
             }
 
             $scope.hasComment = function () {
                 return $scope.checkTRMaterialsByCenterComment && $rootScope.hasGroup('kcellUsers');
+            }
+
+            $scope.download = function (file) {
+                $http({
+                    method: 'GET',
+                    url: '/camunda/uploads/get/' + file.value.path,
+                    transformResponse: []
+                }).then(function (response) {
+                    document.getElementById('fileDownloadIframe').src = response.data;
+                }, function (error) {
+                    console.log(error.data);
+                });
             }
         }]);
     </script>
