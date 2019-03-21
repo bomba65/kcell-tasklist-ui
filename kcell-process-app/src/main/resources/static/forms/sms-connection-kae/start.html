@@ -1,7 +1,16 @@
 <form role="form" class="form-horizontal" name="kcell_form" novalidate>
     <script cam-script type="text/form-script">
         inject(['$scope', '$http', 'Uri', '$rootScope', '$q', '$timeout', function ($scope, $http, Uri, $rootScope, $q, $timeout) {
+
+            $scope.isPartner = false;
             camForm.on('form-loaded', function () {
+                $http.get('/camunda/api/engine/engine/default/group?id=delivery_sms_partner&member=' + $rootScope.authentication.name).then(function(response){
+                    if(response.data && response.data.length > 0){
+                        console.log('isPartner', response.data);
+                        $scope.operatorType = 'onnet';
+                        $scope.isPartner = true;
+                    }
+                });
                 camForm.variableManager.createVariable({
                     name: 'operatorType',
                     value: '',
@@ -31,6 +40,11 @@
                     name: 'operators',
                     type: 'json',
                     value: ''
+                });
+                camForm.variableManager.createVariable({
+                    name: 'isPartner',
+                    value: false,
+                    type: 'Boolean'
                 });
                 $scope.identifier = [];
                 $scope.id = [];
@@ -220,6 +234,7 @@
                     type: 'Json',
                     value: []
                 });
+                camForm.variableManager.variableValue('isPartner', $scope.isPartner);
             });
 
             $scope.addIdentifier = function(identifier) {
@@ -242,7 +257,6 @@
             //         $scope.kcell_form.newIdentifier.$setValidity('length', false);
             //     }
             // }, true);
-
 
         }]);
 
@@ -267,7 +281,9 @@
         <div class="col-sm-4">
             <select class="form-control" id="operatorType" name="operatorType"
                     ng-model="operatorType"
-                    placeholder="Укажите тип подключения" required>
+                    placeholder="Укажите тип подключения"
+                    ng-disabled="isPartner"
+                    required>
                 <option value="onnet">Onnet</option>
                 <option value="offnet">Offnet\Onnet</option>
             </select>

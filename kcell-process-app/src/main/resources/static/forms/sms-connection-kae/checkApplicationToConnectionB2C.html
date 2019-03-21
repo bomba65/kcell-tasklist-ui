@@ -3,19 +3,44 @@
         inject(['$scope', '$http', 'Uri', '$rootScope', '$q', '$timeout', '$filter', function ($scope, $http, Uri, $rootScope, $q, $timeout, $filter) {
             var uuid = new Date().getTime();
             var variables = [
+                'clientBIN',
+                'officialClientCompanyName',
+                'clientCompanyLatName',
+                'description',
+                'connectionType',
+                'smsServiceType',
+                'MSGGWaccount',
+
+                'startDate',
+                'ipNumber',
+                'applicationScanCopyFileName',
+                'contractScanCopyFileName',
+                'abonentTarif',
+                'techSpecNumber',
+                'techSpecFIO',
+                'techSpecEmail',
+                'tarifPlane',
+                'provider',
+                'contractNumber',
+
                 'shortNumberId',
                 'productCatalogShortNumber',
                 'productCatalogResponse',
                 'identifiers',
                 'identifierType',
                 'operatorType',
-                'operators',
+                //'operators',
                 'resolutions',
                 'previouslyBought',
                 'finalIDs',
                 'offnetProviderName',
                 'offnetProviderBin',
-                'isPartner'
+                'isGMSFW',
+                'isNewIP',
+                'isNewMSGGWaccount',
+                'isPartner',
+                'partner',
+                'partnerEmail'
             ];
 
             camForm.on('form-loaded', function () {
@@ -31,6 +56,8 @@
                             console.log(error.data);
                         }
                 );
+                $scope.bulksmsInfo = {};
+                $scope.bulksmsInfo.files = [];
             });
 
             camForm.on('variables-fetched', function () {
@@ -40,6 +67,9 @@
                             $scope.resolutions = angular.copy(camForm.variableManager.variables[el].value);
                             camForm.variableManager.destroyVariable(el);
                         }
+                    } else if (el === 'applicationScanCopyFileName' || el === 'contractScanCopyFileName') {
+                        $scope[el] = camForm.variableManager.variables[el].value;
+                        $scope.bulksmsInfo.files.push(camForm.variableManager.variables[el].value);
                     } else if (el === 'productCatalogShortNumber') {
                         console.log(el, camForm.variableManager.variables[el]);
                         if (camForm.variableManager.variables[el].value) {
@@ -64,85 +94,32 @@
                                 type: 'Json'
                             });
                         }
+                    } else if (el === 'startDate') {
+                        $scope.bulksmsInfo[el] = camForm.variableManager.variables[el].value;
+                        $scope[el] = new Date(camForm.variableManager.variables[el].value);
+                        $scope.datepickerOptions = {
+                            minDate: new Date()
+                        };
                     } else {
                         $scope[el] = camForm.variableManager.variables[el].value;
+                        $scope.bulksmsInfo[el] = camForm.variableManager.variables[el].value;
                     }
                 });
                 $http.get("/camunda/api/engine/engine/default/user/" + $rootScope.authentication.name+ "/profile").then(function(result){
                     $rootScope.authentication.assigneeName = (result.data.firstName ? result.data.firstName : "") + " " + (result.data.lastName ? result.data.lastName : "");
                 });
-                //$scope.isPartner = false;
-                $scope.partner = undefined;
-                $scope.isGMSFW = {value: false};
 
                 camForm.variableManager.createVariable({
-                    name: 'createApplicationToConnectionTaskResult',
+                    name: 'checkApplicationToConnectionB2CTaskResult',
                     type: 'String',
                     value: ''
                 });
 
                 camForm.variableManager.createVariable({
-                    name: 'createApplicationToConnectionTaskComment',
+                    name: 'checkApplicationToConnectionB2CTaskComment',
                     type: 'String',
                     value: ''
                 });
-                camForm.variableManager.createVariable({
-                    name: 'startDate',
-                    value: '',
-                    type: 'String'
-                });
-                camForm.variableManager.createVariable({
-                    name: 'contractScanCopyFileName',
-                    value: undefined,
-                    type: 'Json'
-                });
-                camForm.variableManager.createVariable({
-                    name: 'MSGGWaccount',
-                    value: undefined,
-                    type: 'String'
-                });
-                camForm.variableManager.createVariable({
-                    name: 'applicationScanCopyFileName',
-                    value: undefined,
-                    type: 'Json'
-                });
-                camForm.variableManager.createVariable({
-                    name: 'connectionType',
-                    value: '',
-                    type: 'String'
-                });
-                camForm.variableManager.createVariable({
-                    name: 'priority',
-                    value: '',
-                    type: 'String'
-                });
-                camForm.variableManager.createVariable({
-                    name: 'billing',
-                    value: '',
-                    type: 'String'
-                });
-                camForm.variableManager.createVariable({
-                    name: 'deliveryReport',
-                    value: '',
-                    type: 'String'
-                });
-                camForm.variableManager.createVariable({
-                    name: 'responsibleB2BSales',
-                    value: undefined,
-                    type: 'Json'
-                });
-                camForm.variableManager.createVariable({
-                    name: 'responsibleB2BDelivery',
-                    value: undefined,
-                    type: 'Json'
-                });
-                /*
-                camForm.variableManager.createVariable({
-                    name: 'isPartner',
-                    value: false,
-                    type: 'Boolean'
-                });
-                */
             });
 
             $scope.preSubmit = function() {
@@ -414,150 +391,45 @@
             };
 
             camForm.on('submit', function (evt) {
-                //evt.submitPrevented = true;
-                $scope.createApplicationToConnectionTaskResult = 'Completed';
+
+                console.log('form', $scope.kcell_form);
+
+                $scope.checkApplicationToConnectionB2CTaskResult = 'Completed';
+                camForm.variableManager.variableValue('checkApplicationToConnectionB2CTaskResult', $scope.checkApplicationToConnectionB2CTaskResult);
+                camForm.variableManager.variableValue('checkApplicationToConnectionB2CTaskComment', $scope.checkApplicationToConnectionB2CTaskComment);
                 camForm.variableManager.variableValue('productCatalogShortNumber', $scope.productCatalogShortNumber);
                 camForm.variableManager.variableValue('productCatalogResponse', $scope.productCatalogResponse);
                 if($scope.shortNumberId){
                     camForm.variableManager.variableValue('shortNumberId', $scope.shortNumberId);
                 }
-                camForm.variableManager.variableValue('responsibleB2BDelivery', $scope.responsibleB2BDelivery);
-                camForm.variableManager.variableValue('responsibleB2BSales', $scope.responsibleB2BSales);
-                camForm.variableManager.variableValue('operatorType', $scope.operatorType);
-                camForm.variableManager.variableValue('billing', $scope.billing);
-                camForm.variableManager.variableValue('createApplicationToConnectionTaskResult', $scope.createApplicationToConnectionTaskResult);
-                camForm.variableManager.variableValue('createApplicationToConnectionTaskComment', $scope.createApplicationToConnectionTaskComment);
-                var attachedFiles = [];
-                if($scope.contractScanCopyFileName) {
-                    attachedFiles.push($scope.contractScanCopyFileName.name);
-                    camForm.variableManager.variableValue('contractScanCopyFileName', $scope.contractScanCopyFileName);
-                }
-                if($scope.applicationScanCopyFileName) {
-                    attachedFiles.push($scope.applicationScanCopyFileName.name);
-                    camForm.variableManager.variableValue('applicationScanCopyFileName', $scope.applicationScanCopyFileName);
-                }
+                camForm.variableManager.variableValue('clientBIN', $scope.clientBIN);
+                camForm.variableManager.variableValue('officialClientCompanyName', $scope.officialClientCompanyName);
+                camForm.variableManager.variableValue('clientCompanyLatName', $scope.clientCompanyLatName);
+                camForm.variableManager.variableValue('description', $scope.description);
+                camForm.variableManager.variableValue('smsServiceType', $scope.smsServiceType);
+
                 var startDate = new Date($scope.startDate);
                 camForm.variableManager.variableValue('startDate', startDate);
+                //camForm.variableManager.variableValue('startDate', $scope.startDate);
+
+
+                camForm.variableManager.variableValue('ipNumber', $scope.ipNumber);
+                camForm.variableManager.variableValue('abonentTarif', $scope.abonentTarif);
+
+                camForm.variableManager.variableValue('tarifPlane', $scope.tarifPlane);
+                camForm.variableManager.variableValue('contractNumber', $scope.contractNumber);
                 camForm.variableManager.variableValue('connectionType', $scope.connectionType);
-
-                if ($scope.connectionType === 'rest') {
-                    camForm.variableManager.variableValue('deliveryReport', $scope.deliveryReport);
-                } else {
-                    camForm.variableManager.destroyVariable('deliveryReport');
-                }
-
-                //----------итоговые идентификаторы после создания заявки-----------
-                var finalIDs = '';
-                if ($scope.operatorType === 'onnet') {
-                    _.forEach($scope.identifiers, function(id) {
-                        finalIDs = finalIDs + (finalIDs ? ',' : '') + id.title
-                    })
-                } else {
-                    _.forEach($scope.identifiers, function(id) {
-                        if ($scope.identifierType === 'alfanumeric' || $scope.previouslyBought) {
-                            _.forEach(id.operators, function(o) {
-                                o.checked = o.isAvailable;
-                            })
-                        }
-                        if (_.find(id.operators, 'checked')) {
-                            finalIDs = finalIDs + (finalIDs ? ',' : '') + id.title
-                        }
-                    })
-                }
-                camForm.variableManager.variableValue('finalIDs', finalIDs);
                 camForm.variableManager.variableValue('MSGGWaccount', $scope.MSGGWaccount);
 
-                var providerTitles = [];
-                angular.forEach($scope.identifiers, function(value, key){
-                    var titles = value.operators.filter(function(operator) {
-                        return operator.id !== 'kcell' && operator.hasOwnProperty("title") && ['MESSAGE','KiT_Notify'].indexOf(operator.title) === -1
-                    });
-                    if (titles.length>0){
-                        providerTitles.push(...titles);
-                    }
-                });
-                camForm.variableManager.createVariable({
-                    name: 'isRecipientProvider',
-                    value: $scope.identifierType === 'digital' ? true : providerTitles.length>0?true:false,
-                    type: 'Boolean'
-                });
-                camForm.variableManager.variableValue('identifiers', $scope.identifiers);
-                //-------------------------------------------------------------------
-                var identifierServiceName = $scope.identifiers[0].title + ' ' + $scope.clientCompanyLatName;
-                var identifierCounter = '1 SMS';
-                if ($scope.amdocsBilling) {
-                    camForm.variableManager.createVariable({
-                        name: 'identifierServiceName_amdocs_incoming',
-                        value: identifierServiceName,
-                        type: 'String'
-                    });
-                    camForm.variableManager.createVariable({
-                        name: 'identifierServiceName_amdocs_outgoing',
-                        value: identifierServiceName,
-                        type: 'String'
-                    });
-                    camForm.variableManager.createVariable({
-                        name: 'abonentTarif_amdocs_incoming',
-                        value: $scope.abonentTarif,
-                        type: 'String'
-                    });
-                    camForm.variableManager.createVariable({
-                        name: 'abonentTarif_amdocs_outgoing',
-                        value: $scope.abonentTarif,
-                        type: 'String'
-                    });
-                }
-                if ($scope.orgaBilling) {
-                    camForm.variableManager.createVariable({
-                        name: 'identifierServiceName_orga_incoming',
-                        value: identifierServiceName,
-                        type: 'String'
-                    });
-                    camForm.variableManager.createVariable({
-                        name: 'identifierServiceName_orga_outgoing',
-                        value: identifierServiceName,
-                        type: 'String'
-                    });
-                    camForm.variableManager.createVariable({
-                        name: 'abonentTarif_orga_incoming',
-                        value: $scope.abonentTarif,
-                        type: 'String'
-                    });
-                    camForm.variableManager.createVariable({
-                        name: 'abonentTarif_orga_outgoing',
-                        value: $scope.abonentTarif,
-                        type: 'String'
-                    });
-                }
-                camForm.variableManager.createVariable({
-                    name: 'identifierServiceName',
-                    value: identifierServiceName,
-                    type: 'String'
-                });
-                camForm.variableManager.createVariable({
-                    name: 'identifierCounter',
-                    value: identifierCounter,
-                    type: 'String'
-                });
-                camForm.variableManager.createVariable({
-                    name: 'inAndOut',
-                    value: '',
-                    type: 'String'
-                });
-                //camForm.variableManager.variableValue('isPartner', $scope.isPartner);
-                console.log('isGMSFW', $scope.isGMSFW);
-                if($scope.isPartner){
-                    camForm.variableManager.createVariable({
-                        name: 'partner',
-                        value: JSON.parse($scope.partner),
-                        type: 'Json'
-                    });
-                    camForm.variableManager.createVariable({
-                        name: 'isGMSFW',
-                        value: $scope.isGMSFW,
-                        type: 'Json'
-                    });
-                }
+                camForm.variableManager.variableValue('techSpecFIO', $scope.techSpecFIO);
+                camForm.variableManager.variableValue('techSpecNumber', $scope.techSpecNumber);
+                camForm.variableManager.variableValue('techSpecEmail', $scope.techSpecEmail);
+
+                camForm.variableManager.variableValue('partner', $scope.partner);
+                camForm.variableManager.variableValue('partnerEmail', $scope.partnerEmail);
+                camForm.variableManager.variableValue('isGMSFW', $scope.isGMSFW);
+                camForm.variableManager.variableValue('isNewIP', $scope.isNewIP);
+                camForm.variableManager.variableValue('isNewMSGGWaccount', $scope.isNewMSGGWaccount);
             });
 
             $scope.download = function (file) {
@@ -633,46 +505,11 @@
                 $scope.dateFieldOpened = true;
             };
 
-            /*
-            $scope.$watch('responsibleB2BSales', function (responsibleB2BSales) {
-                if (responsibleB2BSales && responsibleB2BSales.id) {
-                    $scope.kcell_form.responsibleB2BSales.$setValidity('valid', true);
-                } else {
-                    $scope.kcell_form.responsibleB2BSales.$setValidity('valid', false);
-                }
-            }, true);
-            $scope.$watch('responsibleB2BDelivery', function (responsibleB2BDelivery) {
-                if (responsibleB2BDelivery && responsibleB2BDelivery.id) {
-                    $scope.kcell_form.responsibleB2BDelivery.$setValidity('valid', true);
-                } else {
-                    $scope.kcell_form.responsibleB2BDelivery.$setValidity('valid', false);
-                }
-            }, true);
-            */
-
-            $scope.$watch('identifiers', function (identifiers) {
-                if ($scope.operatorType === 'offnet') {
-                    identifiers.some( function (id) {
-                        if ( $scope.identifierType === 'digital' && !$scope.previouslyBought && _.filter(id.operators, function(o) { return o.checked && o.id !== 'kcell'; }).length > 0  ) {
-                            $scope.kcell_form.createApplicationToConnectionTaskComment.$setValidity('validIdentifiers', true);
-                            return true;
-                        } else if (($scope.identifierType === 'alfanumeric' || $scope.previouslyBought) && _.filter(id.operators, function(o) { return o.isAvailable && o.id !== 'kcell'; }).length > 0 ) {
-                            $scope.kcell_form.createApplicationToConnectionTaskComment.$setValidity('validIdentifiers', true);
-                            return true;
-                        } else {
-                            $scope.kcell_form.createApplicationToConnectionTaskComment.$setValidity('validIdentifiers', false);
-                            return false;
-                        };
-                    });
-                } else {
-                    $scope.kcell_form.createApplicationToConnectionTaskComment.$setValidity('validIdentifiers', true);
-                }
-            }, true);
-
             $scope.foundClientCRM = false;
             // Disable responsibleB2BSales if the current user is not member of group "delivery_CRM_info_admin" and "Sales Representative" is not null
             $scope.is_not_member_of_delivery_CRM_info_admin = !$rootScope.hasGroup('delivery_CRM_info_admin');
 
+            /*
             $scope.$watch('clientBIN', function(clientBIN){
                 if (clientBIN){
                     $http({method: 'GET', url: '/camunda/crm/client/bin/'+clientBIN, transformResponse: [] })
@@ -684,18 +521,16 @@
                             if (clientCRM.accountName) {
                                 $scope.officialClientCompanyName = clientCRM.accountName;
 
-                                if(clientCRM.salesExecutiveUser && clientCRM.salesExecutiveUser.username) {
-                                    //var camundaUserID = clientCRM.salesExecutiveUser.username.split('.').map(val=>val.charAt(0).toUpperCase() + val.substr(1).toLowerCase()).join('.').concat('@kcell.kz');
-                                    var camundaUserID = clientCRM.salesExecutiveUser.email.replace('[','').replace(']','').split('|')[0];
-                                    $http.get("/camunda/api/engine/engine/default/user/" + camundaUserID + "/profile").then(function(response){
-                                        //console.log('profile', response.data);
-                                        $scope.responsibleB2BSales = {'id': response.data.id, 'name': response.data.firstName + ' ' + response.data.lastName, 'email': response.data.email };
-                                    }).catch(function(error){
-                                        console.log(error);
-                                        $scope.responsibleB2BSales = {'id': clientCRM.salesExecutiveUser.username, 'name': clientCRM.salesExecutiveUser.username, 'email': camundaUserID};
-                                    });
-                                    $scope.kcell_form.responsibleB2BSales.$setValidity('valid', true);
-                                }
+                                //if(clientCRM.salesExecutiveUser && clientCRM.salesExecutiveUser.username) {
+                                //    var camundaUserID = clientCRM.salesExecutiveUser.email.replace('[','').replace(']','').split('|')[0];
+                                //    $http.get("/camunda/api/engine/engine/default/user/" + camundaUserID + "/profile").then(function(response){
+                                //        $scope.responsibleB2BSales = {'id': response.data.id, 'name': response.data.firstName + ' ' + response.data.lastName, 'email': response.data.email };
+                                //    }).catch(function(error){
+                                //        console.log(error);
+                                //        $scope.responsibleB2BSales = {'id': clientCRM.salesExecutiveUser.username, 'name': clientCRM.salesExecutiveUser.username, 'email': camundaUserID};
+                                //    });
+                                //    $scope.kcell_form.responsibleB2BSales.$setValidity('valid', true);
+                                //}
 
                                 //$scope.companyRegCity = clientCRM.city.nameEn;
 
@@ -712,8 +547,7 @@
                     }, function(error){
 	                    console.log(error.data);
 	                    $scope.officialClientCompanyName = undefined;
-                        $scope.responsibleB2BSales = undefined;
-                        // $scope.companyRegCity = undefined;
+                        //$scope.responsibleB2BSales = undefined;
                         $scope.channel = undefined;
                         $scope.region = undefined;
                         $scope.foundClientCRM = false;
@@ -722,63 +556,18 @@
                 } else {
                     $scope.kcell_form.clientBIN.$error.required = true;
                     $scope.officialClientCompanyName = undefined;
-                    $scope.responsibleB2BSales = undefined;
-                    // $scope.companyRegCity = undefined;
+                    //$scope.responsibleB2BSales = undefined;
                     $scope.channel = undefined;
                     $scope.region = undefined;
                     $scope.foundClientCRM = false;
                     $scope.is_not_member_of_delivery_CRM_info_admin = $scope.foundClientCRM && !$rootScope.hasGroup('delivery_CRM_info_admin');
                 }
             }, true);
+            */
 
-            $scope.getUsers = function(val, group) {
-                var users = $http.get('/camunda/api/engine/engine/default/user?memberOfGroup='+ group +'&firstNameLike=%'+val+'%').then(
-                        function(response){
-                            var usersByFirstName = _.flatMap(response.data, function(s){
-                                if(s.id){
-                                    return s.id.split(',').map(function(user){
-                                        return {
-                                            id: s.id,
-                                            email: s.email.substring(s.email.lastIndexOf('/')+1),
-                                            firstName: s.firstName,
-                                            lastName: s.lastName,
-                                            name: s.firstName + ' ' + s.lastName
-                                        };
-                                    })
-                                } else {
-                                    return [];
-                                }
-                            });
-                            //return usersByFirstName;
-                            return $http.get('/camunda/api/engine/engine/default/user?memberOfGroup='+ group +'&lastNameLike=%'+val+'%').then(
-                                    function(response){
-                                        var usersByLastName = _.flatMap(response.data, function(s){
-                                            if(s.id){
-                                                return s.id.split(',').map(function(user){
-                                                    return {
-                                                        id: s.id,
-                                                        email: s.email.substring(s.email.lastIndexOf('/')+1),
-                                                        firstName: s.firstName,
-                                                        lastName: s.lastName,
-                                                        name: s.firstName + ' ' + s.lastName
-                                                    };
-                                                })
-                                            } else {
-                                                return [];
-                                            }
-                                        });
-                                        return _.unionWith(usersByFirstName, usersByLastName, _.isEqual);
-                                    }
-                            );
-                        }
-                );
-                return users;
-            };
             $scope.binPattern = /^[0-9]{12}$/;
 
-            $scope.userSelected = function($item, varName){
-                $scope[varName] = {'id': $item.id, 'name': $item.name, 'email': $item.email };
-            };
+            /*
             //---MSGGWaccount change---
             $scope.$watchGroup(['connectionType', 'smsServiceType'], function(newValues, oldValues, scope) {
                 if(!$scope.isPartner){
@@ -793,10 +582,10 @@
                     }
                 }
             }, true);
+            */
             //-------------------------
 
             $scope.checkPartner= function(){
-                console.log('isPartner', $scope.isPartner);
                 if(!$scope.isPartner){
                     $scope.partner = undefined;
                     $scope.partnerEmail = undefined;
@@ -871,12 +660,10 @@
         }]);
 
     </script>
+    <info-bulksms bulksms-info="bulksmsInfo"></info-bulksms>
     <iframe id="fileDownloadIframe" style="display:none;"></iframe>
-    <h4 ng-if="!(operatorType === 'offnet' && identifierType === 'digital')">Выберите операторов и укажите цены</h4>
-    <label class="error" ng-show="kcell_form.createApplicationToConnectionTaskComment.$error.validIdentifiers && view.submitted">Выберите хотя бы 1 offnet оператор</label>
-    <div class="form-group" ng-repeat="id in identifiers" ng-if="!(operatorType === 'offnet' && identifierType === 'digital' && !previouslyBought)">
+    <div class="form-group" ng-repeat="id in identifiers">
         <label class="control-label pull-left"/>Идентификатор - {{id.title}}
-        <span class="glyphicon glyphicon-remove pull-right" ng-click="deleteIdentifier($index)"></span>
         <div class="col-sm-12" style="border-left: solid; border-left-width: 1px; margin-left: 2vh">
             <div class="form-group">
                 <div class="col-sm-1">
@@ -894,7 +681,7 @@
                 </div>
                 <div class="col-sm-10">
                     <div class="col-sm-3" ng-repeat="operator in id.operators">
-                        <label for="operator.id"><input type="checkbox" ng-model="operator.isAvailable" ng-change="clearPrices(operator)"> {{operator.name}}</label>
+                        <label for="operator.id"><input type="checkbox" ng-model="operator.isAvailable" ng-change="clearPrices(operator)" ng-disabled="operator.isAvailable"> {{operator.name}}</label>
                         <div class="input" id="operator.id" >
                             <input ng-model="operator.priceAP" name="{{operator.id + 'AP'}}" class="form-control"  placeholder="{{operator.isAvailable?'Цена':'Не доступен'}}" ng-disabled="!operator.isAvailable" ng-required="operator.isAvailable"/>
                             <label class="error" ng-show="kcell_form.{{operator.id + 'AP'}}.$error.required && ( kcell_form.{{operator.id + 'AP'}}.$touched || view.submitted)">Required field</label>
@@ -913,9 +700,9 @@
                             <label class="error" ng-show="kcell_form.{{operator.id + 'Title'}}.$error.required && ( kcell_form.{{operator.id + 'Title'}}.$touched || view.submitted)">Required field</label>
                         </div>
                     </div>
-                    <div class="col-sm-3" ng-if="isPartner">
+                    <div class="col-sm-3">
                         <input type="checkbox" class="form-check-input" id="isGMSFW" name="isGMSFW" ng-model="isGMSFW.value">
-                        <label ng-show="isPartner" class="form-check-label" for="isGMSFW">Заводить на GMS FW</label>
+                        <label class="form-check-label" for="isGMSFW">Заводить на GMS FW</label>
                     </div>
                 </div>
             </div>
@@ -932,52 +719,20 @@
         </div>
     </div>
     <!--button ng-click="preSubmit()">PRE SUBMIT</button-->
-    <div class="form-group" ng-repeat="id in identifiers" ng-if="operatorType === 'offnet' && identifierType === 'digital' && !previouslyBought">
-        <label class="control-label pull-left"/>Идентификатор - {{id.title}}
-        <span class="glyphicon glyphicon-remove pull-right" ng-click="deleteIdentifier($index)"></span>
-        <div class="col-sm-12" style="border-left: solid; border-left-width: 1px; margin-left: 2vh">
-            <table class="table">
-                <thead>
-                <tr>
-                    <th scope="col">Оператор</th>
-                    <th scope="col">Статус</th>
-                    <th scope="col">Цена АП</th>
-                    <th scope="col">Цена ЕП</th>
-                    <!--<th scope="col">Выбрать</th>-->
-                </tr>
-                </thead>
-                <tbody>
-                <tr ng-repeat="o in id.operators" ng-if="o.checked">
-                    <th scope="row">{{o.name}}</th>
-                    <td>{{o.isAvailable?'Доступен':'Не доступен'}}</td>
-                    <td>{{o.priceAP}}</td>
-                    <td>{{o.priceEP}}</td>
-                    <!--<td>-->
-                    <!--<input type="checkbox" ng-show="o.isAvailable" ng-model="o.checked">-->
-                    <!--</td>-->
-                </tr>
-                </tbody>
-            </table>
-        </div>
-    </div>
-    <!--<div class="form-check" ng-show="operatorType === 'onnet'">
-        <input type="checkbox" ng-model="isPartner" class="form-check-input" id="isPartner" ng-change="checkPartner()">
-        <label class="form-check-label" for="isPartner">Партнеры</label>
-    </div>-->
-    <div class="form-check" ng-show="isPartner">
+    <div class="form-check">
         <input type="checkbox" class="form-check-input" id="isPartner" ng-model="isPartner" ng-disabled="true">
         <label class="form-check-label" for="isPartner">Партнеры</label>
     </div>
-    <div class="form-group" ng-show="isPartner">
+    <div class="form-group">
         <div class="col-sm-6">
-            <select ng-model="partner" name="partner" class="form-control" ng-disabled="!isPartner" ng-required="isPartner">
-                <option ng-repeat="partner in partnerList" value="{{partner}}">{{partner.name}}</option>
+            <select ng-model="partner" name="partner" class="form-control" ng-required="isPartner" ng-disabled="!isPartner">
+                <option ng-repeat="p in partnerList" value="{{p}}" ng-selected="partner.name === p.name">{{p.name}}</option>
             </select>
             <label class="error" ng-show="kcell_form.partner.$error.required && ( kcell_form.partner.$touched || view.submitted)">Required field</label>
         </div>
         <label class="col-sm-2 control-label">* Partner email:</label>
         <div class="col-sm-4">
-            <input class="form-control" maxlength="500" name="partnerEmail" cam-variable-name="partnerEmail" cam-variable-type="String" ng-disabled="!isPartner" ng-required="isPartner">
+            <input class="form-control" maxlength="500" name="partnerEmail" ng-model="partnerEmail" ng-disabled="!isPartner" ng-required="isPartner">
             <label class="error" ng-show="kcell_form.partnerEmail.$error.required && ( kcell_form.partnerEmail.$touched || view.submitted)">Required field</label>
         </div>
     </div>
@@ -987,40 +742,40 @@
     <div class="form-group">
         <label class="col-sm-4 control-label">* БИН:</label>
         <div class="col-sm-3">
-            <input type="text" limit-to="12" numbers-only name="clientBIN" id="clientBIN" cam-variable-name="clientBIN" cam-variable-type="String" class="form-control" placeholder="БИН*" ng-pattern="binPattern" required>
+            <input type="text" limit-to="12" numbers-only name="clientBIN" id="clientBIN" ng-model="clientBIN" class="form-control" placeholder="БИН*" ng-pattern="binPattern" ng-required="true">
             <label class="error" ng-show="kcell_form.clientBIN.$error.required && ( kcell_form.clientBIN.$touched || view.submitted)">Required field</label>
             <label class="error" ng-show="kcell_form.clientBIN.$error.pattern && ( kcell_form.clientBIN.$touched || view.submitted)">Неверный формат БИН</label>
         </div>
         <label class="col-sm-2 control-label">Номер договора:</label>
         <div class="col-sm-3">
-            <input type="text" name="contractNumber" id='contractNumber' cam-variable-name="contractNumber" cam-variable-type="String" class="form-control" placeholder="Номер договора">
+            <input type="text" name="contractNumber" id='contractNumber' ng-model="contractNumber" class="form-control" placeholder="Номер договора">
         </div>
     </div>
     <div class="form-group">
         <label class="col-sm-4 control-label">* Наименование компании на латинице:</label>
         <div class="col-sm-8">
-            <input type="text" name="clientCompanyLatName" id='clientCompanyLatName' cam-variable-name="clientCompanyLatName" cam-variable-type="String" class="form-control" placeholder="Наименование компании на латинице" required>
+            <input type="text" name="clientCompanyLatName" id='clientCompanyLatName' ng-model="clientCompanyLatName" class="form-control" placeholder="Наименование компании на латинице" ng-required="true">
             <label class="error" ng-show="kcell_form.clientCompanyLatName.$error.required && ( kcell_form.clientCompanyLatName.$touched || view.submitted)">Required field</label>
         </div>
     </div>
     <div class="form-group">
         <label class="col-sm-4 control-label">* Юридическое наименование компании:</label>
         <div class="col-sm-8">
-            <input type="text" name="officialClientCompanyName" id='officialClientCompanyName' cam-variable-name="officialClientCompanyName" cam-variable-type="String" class="form-control" placeholder="Юридическое наименование компании" required ng-disabled="foundClientCRM">
+            <input type="text" name="officialClientCompanyName" id='officialClientCompanyName' ng-model="officialClientCompanyName" class="form-control" placeholder="Юридическое наименование компании" ng-required="true" ng-disabled="foundClientCRM">
             <label class="error" ng-show="kcell_form.officialClientCompanyName.$error.required && ( kcell_form.officialClientCompanyName.$touched || view.submitted)">Required field</label>
         </div>
     </div>
     <div class="form-group">
         <label class="col-sm-4 control-label">* Описание сервиса:</label>
         <div class="col-sm-8">
-            <input class="form-control" maxlength="500" cam-variable-name="description" name="description" required cam-variable-type="String">
+            <input class="form-control" maxlength="500" ng-model="description" name="description" ng-required="true">
             <label class="error" ng-show="kcell_form.description.$error.required && ( kcell_form.description.$touched || view.submitted)">Required field</label>
         </div>
     </div>
     <div class="form-group">
         <label class="col-sm-4 control-label">* Тип подключения:</label>
         <div class="col-sm-8">
-            <select ng-model="connectionType" name="connectionType" class="form-control" required="true">
+            <select ng-model="connectionType" name="connectionType" class="form-control" ng-required="true">
                 <option value="web" ng-disabled="isPartner">Web interface</option>
                 <option value="rest" ng-disabled="isPartner">REST</option>
                 <option value="smpp">SMPP</option>
@@ -1029,74 +784,36 @@
             <label class="error" ng-show="kcell_form.connectionType.$error.required && ( kcell_form.connectionType.$touched || view.submitted)">Required field</label>
         </div>
     </div>
-    <div class="form-check" ng-show="connectionType === 'rest' ">
-        <input type="checkbox" ng-model="deliveryReport" class="form-check-input" id="deliveryReport">
-        <label class="form-check-label" for="deliveryReport">Получать отчет о доставке</label>
-    </div>
-    <div class="form-group" ng-show="connectionType !== 'web'">
+    <div class="form-group">
         <label class="col-sm-4 control-label">* Тип СМС услуги:</label>
         <div class="col-sm-8">
             <select class="form-control" id="sel1"
-                    cam-variable-name="smsServiceType"
-                    cam-variable-type="String"
-                    ng-model="smsServiceType" ng-required="connectionType !== 'web'">
+                    ng-model="smsServiceType" ng-required="true">
                 <option value="MO">MO (Использовать функцию входящих сообщений на короткий номер)</option>
                 <option value="MT" selected="selected">MT (Не использовать функцию входящих сообщений на короткий номер)</option>
             </select>
         </div>
     </div>
-    <div class="form-group" ng-show="isPartner || connectionType === 'web' || ((connectionType === 'rest' || connectionType === 'smpp') && smsServiceType == 'MO') ">
+    <div class="form-group">
         <label class="col-sm-4 control-label">* Аккаунт на MSGGW:</label>
         <div class="col-sm-4">
-            <input class="form-control" maxlength="500" ng-model="MSGGWaccount" name="MSGGWaccount" ng-required="isPartner">
+            <input class="form-control" maxlength="500" ng-model="MSGGWaccount" name="MSGGWaccount" ng-required="true">
             <label class="error" ng-show="kcell_form.MSGGWaccount.$error.required && ( kcell_form.MSGGWaccount.$touched || view.submitted)">Required field</label>
         </div>
-        <div class="col-sm-4" ng-show="isPartner">
-            <input type="checkbox" class="form-check-input" id="isNewMSGGWaccount" name="isNewMSGGWaccount" ng-show="isPartner" ng-model="isNewMSGGWaccount" cam-variable-type="Boolean" cam-variable-name="isNewMSGGWaccount">
+        <div class="col-sm-4">
+            <input type="checkbox" class="form-check-input" id="isNewMSGGWaccount" name="isNewMSGGWaccount" ng-show="isPartner" ng-model="isNewMSGGWaccount">
             <label ng-show="isPartner" class="form-check-label" for="isNewMSGGWaccount">Новый</label>
         </div>
     </div>
-    <div class="form-group" ng-show="isPartner || connectionType === 'smpp'">
+    <div class="form-group">
         <label class="col-sm-4 control-label">* IP адрес клиента:</label>
         <div class="col-sm-4">
-            <input class="form-control" maxlength="500" id="ipNumber" name="ipNumber" ng-model="ipNumber" cam-variable-type="String" cam-variable-name="ipNumber" ng-required="connectionType === 'smpp'">
+            <input class="form-control" maxlength="500" id="ipNumber" name="ipNumber" ng-model="ipNumber" ng-required="true">
             <label class="error" ng-show="kcell_form.ipNumber.$error.required && ( kcell_form.ipNumber.$touched || view.submitted)">Required field</label>
         </div>
         <div class="col-sm-4">
-            <input type="checkbox" class="form-check-input" id="isNewIP" name="isNewIP" ng-show="isPartner" ng-model="isNewIP" cam-variable-type="Boolean" cam-variable-name="isNewIP">
+            <input type="checkbox" class="form-check-input" id="isNewIP" name="isNewIP" ng-show="isPartner" ng-model="isNewIP">
             <label ng-show="isPartner" class="form-check-label" for="isNewIP">Новый</label>
-        </div>
-    </div>
-    <div class="form-group" ng-show="!isPartner && (connectionType === 'smpp' || connectionType === 'rest')">
-        <label class="col-sm-4 control-label">* Тестовый номер:</label>
-        <div class="col-sm-8">
-            <input class="form-control" maxlength="500" name="testNumber" cam-variable-name="testNumber" cam-variable-type="String" ng-required="!isPartner && (connectionType === 'smpp' || connectionType === 'rest')">
-            <label class="error" ng-show="kcell_form.testNumber.$error.required && ( kcell_form.testNumber.$touched || view.submitted)">Required field</label>
-        </div>
-    </div>
-    <div class="form-group" ng-show="!isPartner && connectionType === 'rest' && deliveryReport">
-        <label class="col-sm-4 control-label">Адрес и порт принимающего сервера клиента:</label>
-        <div class="col-sm-8">
-            <input class="form-control" maxlength="500" name="receivingServerAddress" cam-variable-name="receivingServerAddress" cam-variable-type="String">
-            <label class="error" ng-show="kcell_form.receivingServerAddress.$error.required && (kcell_form.receivingServerAddress.$touched || view.submitted)">Required field</label>
-        </div>
-    </div>
-    <div class="form-group" ng-show="!isPartner && connectionType === 'rest' && deliveryReport">
-        <label class="col-sm-4 control-label">Логин/пароль принимающего сервера клиента:</label>
-        <div class="col-sm-4">
-            <input class="form-control" maxlength="500" cam-variable-name="receivingServerLogin" name="receivingServerLogin" cam-variable-type="String" placeholder="Логин">
-            <label class="error" ng-show="kcell_form.receivingServerLogin.$error.required && (kcell_form.receivingServerLogin.$touched || view.submitted)">Required field</label>
-        </div>
-        <div class="col-sm-4">
-            <input class="form-control" maxlength="500" cam-variable-name="receivingServerPass" name="receivingServerPass" cam-variable-type="String" placeholder="Пароль">
-            <label class="error" ng-show="kcell_form.receivingServerPass.$error.required && (kcell_form.receivingServerPass.$touched || view.submitted)">Required field</label>
-        </div>
-    </div>
-    <div class="form-group" ng-show="!isPartner && connectionType === 'rest' && smsServiceType">
-        <label class="col-sm-4 control-label">Адрес и порт MO сервера клиента:</label>
-        <div class="col-sm-8">
-            <input class="form-control" maxlength="500" cam-variable-name="addressServerMO" name="addressServerMO" cam-variable-type="String">
-            <label class="error" ng-show="kcell_form.addressServerMO.$error.required && (kcell_form.addressServerMO.$touched || view.submitted)">Required field</label>
         </div>
     </div>
     <div class="form-group">
@@ -1112,10 +829,10 @@
             </div>
         </div>
     </div>
-    <div class="form-group" ng-hide="connectionType === 'web'">
+    <div class="form-group">
         <label class="col-sm-4 control-label">* Тариф для абонента:</label>
         <div class="col-sm-8">
-            <input class="form-control" maxlength="500" cam-variable-name="abonentTarif" name="abonentTarif" ng-required="connectionType !== 'web'" cam-variable-type="String">
+            <input class="form-control" maxlength="500" ng-model="abonentTarif" name="abonentTarif" ng-required="true">
             <label class="error" ng-show="kcell_form.abonentTarif.$error.required && ( kcell_form.abonentTarif.$touched || view.submitted)">Required field</label>
         </div>
     </div>
@@ -1123,24 +840,10 @@
         <label class="col-sm-4 control-label">Тарифный план:</label>
         <div class="col-sm-8">
             <select class="form-control" id="sel12"
-                    cam-variable-name="tarifPlane"
-                    cam-variable-type="String"
                     ng-model="tarifPlane">
                 <option value="1">1</option>
                 <option value="2" selected="selected" >2</option>
             </select>
-        </div>
-    </div>
-    <div class="form-group" ng-hide="isPartner || identifierType === 'alfanumeric' || connectionType === 'web'">
-        <label class="col-sm-4 control-label">Билинг</label>
-        <div class="col-sm-8">
-            <label class="radio-inline">
-                <input type="checkbox" name="billing" ng-model="amdocsBilling" cam-variable-type="Boolean" cam-variable-name="amdocsBilling"> Amdocs
-            </label>
-            <label class="radio-inline">
-                <input type="checkbox" name="billing" ng-model="orgaBilling" cam-variable-type="Boolean" cam-variable-name="orgaBilling"> Orga
-            </label>
-            <label class="error" ng-show="kcell_form.billing.$error.required && ( kcell_form.billing.$touched || view.submitted)">Required field</label>
         </div>
     </div>
     <div class="form-group">
@@ -1149,79 +852,41 @@
     <div class="form-group">
         <label class="col-sm-4 control-label">* ФИО:</label>
         <div class="col-sm-8">
-            <input class="form-control" maxlength="500" cam-variable-name="techSpecFIO" name="techSpecFIO" required cam-variable-type="String">
+            <input class="form-control" maxlength="500" ng-model="techSpecFIO" name="techSpecFIO" ng-required="true">
             <label class="error" ng-show="kcell_form.techSpecFIO.$error.required && ( kcell_form.techSpecFIO.$touched || view.submitted)">Required field</label>
         </div>
     </div>
     <div class="form-group">
         <label class="col-sm-4 control-label">* Телефон:</label>
         <div class="col-sm-3">
-            <input class="form-control" maxlength="500" cam-variable-name="techSpecNumber" name="techSpecNumber" required cam-variable-type="String">
+            <input class="form-control" maxlength="500" ng-model="techSpecNumber" name="techSpecNumber" ng-required="true">
             <label class="error" ng-show="kcell_form.techSpecNumber.$error.required && ( kcell_form.techSpecNumber.$touched || view.submitted)">Required field</label>
         </div>
         <label class="col-sm-1 control-label">* Email:</label>
         <div class="col-sm-4">
-            <input class="form-control" maxlength="500" cam-variable-name="techSpecEmail" name="techSpecEmail" required cam-variable-type="String">
+            <input class="form-control" maxlength="500" ng-model="techSpecEmail" name="techSpecEmail" ng-required="true">
             <label class="error" ng-show="kcell_form.techSpecEmail.$error.required && ( kcell_form.techSpecEmail.$touched || view.submitted)">Required field</label>
-        </div>
-    </div>
-    <div class="form-group">
-        <label class="col-sm-4 control-label">Вложите скан. договора:</label>
-        <div class="col-sm-8">
-            <div ng-show="contractScanCopyFileName.name">
-                <a ng-click="download(contractScanCopyFileName)">{{contractScanCopyFileName.name}}</a> | <a ng-click="clearFile('contractScanCopyFileName')"><i class="glyphicon glyphicon-trash"></i></a>
-            </div>
-            <input ng-hide="contractScanCopyFileName.name" type="file" class="form-control" id="contractScanCopyFileName" name="contractScanCopyFileName" ng-model="contractScanCopyFileName"
-                   onchange="angular.element(this).scope().fileSelected(this, 'contractScanCopyFileName')"/>
-            <label class="has-error" ng-show="kcell_form.contractScanCopyFileName.$error.validFile && ( kcell_form.contractScanCopyFileName.$touched || view.submitted)">File is required</label>
-        </div>
-    </div>
-    <div class="form-group">
-        <label class="col-sm-4 control-label">Вложите скан. Заявки:</label>
-        <div class="col-sm-8">
-            <div ng-show="applicationScanCopyFileName.name">
-                <a ng-click="download(applicationScanCopyFileName)">{{applicationScanCopyFileName.name}}</a> | <a ng-click="clearFile('applicationScanCopyFileName')"><i class="glyphicon glyphicon-trash"></i></a>
-            </div>
-            <input ng-hide="applicationScanCopyFileName.name" type="file" class="form-control" id="applicationScanCopyFileName" name="applicationScanCopyFileName" ng-model="applicationScanCopyFileName"
-                   onchange="angular.element(this).scope().fileSelected(this, 'applicationScanCopyFileName')"/>
-            <label class="has-error" ng-show="kcell_form.applicationScanCopyFileName.$error.validFile && ( kcell_form.applicationScanCopyFileName.$touched || view.submitted)">File is required</label>
-        </div>
-    </div>
-    <div class="form-group" ng-show="!isPartner">
-        <label class="col-sm-4 control-label">Ответственный B2B Delivery:</label>
-        <div class="col-sm-8">
-            <input type="text" ng-model="responsibleB2BDelivery" name="responsibleB2BDelivery" typeahead="name as users.name for users in getUsers($viewValue, 'delivery_sms_b2b_delivery')" typeahead-on-select="userSelected($item,'responsibleB2BDelivery')" class="form-control" ng-required="!isPartner" autocomplete="off">
-            <!--<label class="error" ng-if="kcell_form.responsibleB2BDelivery.$error.valid && view.submitted">Необходимо выбрать пользователя</label>-->
-            <label class="error" ng-if="!isPartner && (!responsibleB2BDelivery || !responsibleB2BDelivery.id)  && ( kcell_form.responsibleB2BDelivery.$touched || view.submitted)">Необходимо выбрать пользователя</label>
-        </div>
-    </div>
-    <div class="form-group" ng-show="!isPartner">
-        <label class="col-sm-4 control-label">Ответственный B2B Sales:</label>
-        <div class="col-sm-8">
-            <input type="text" ng-model="responsibleB2BSales" name="responsibleB2BSales" typeahead="name as users.name for users in getUsers($viewValue, 'delivery_sms_ivr_b2b_sales')" typeahead-on-select="userSelected($item,'responsibleB2BSales')" class="form-control" ng-required="!isPartner" autocomplete="off" ng-disabled="is_not_member_of_delivery_CRM_info_admin">
-            <!--<label class="error" ng-if="kcell_form.responsibleB2BSales.$error.valid && view.submitted">Необходимо выбрать пользователя</label>-->
-            <label class="error" ng-if="!isPartner && (!responsibleB2BSales || !responsibleB2BSales.id)  && ( kcell_form.responsibleB2BSales.$touched || view.submitted)">Необходимо выбрать пользователя</label>
         </div>
     </div>
     <div class="form-group">
         <label class="col-sm-4 control-label">Канал:</label>
         <div class="col-sm-8">
-            <input class="form-control" maxlength="100" cam-variable-name="channel" name="channel" cam-variable-type="String" disabled>
-            <label class="error" ng-show="kcell_form.channel.$error.required && ( kcell_form.channel.$touched || view.submitted)">Required field</label>
+            <input class="form-control" maxlength="100" ng-model="channel" name="channel" ng-disabled="true">
+            <!--<label class="error" ng-show="kcell_form.channel.$error.required && ( kcell_form.channel.$touched || view.submitted)">Required field</label>-->
         </div>
     </div>
     <div class="form-group">
         <label class="col-sm-4 control-label">Регион:</label>
         <div class="col-sm-8">
-            <input class="form-control" maxlength="100" cam-variable-name="region" name="region" cam-variable-type="String" disabled>
-            <label class="error" ng-show="kcell_form.region.$error.required && ( kcell_form.region.$touched || view.submitted)">Required field</label>
+            <input class="form-control" maxlength="100" ng-model="region" name="region" ng-disabled="true">
+            <!--<label class="error" ng-show="kcell_form.region.$error.required && ( kcell_form.region.$touched || view.submitted)">Required field</label>-->
         </div>
     </div>
     <div class="form-group">
         <label class="col-sm-4 control-label">Комментарии:</label>
         <div class="col-sm-8">
-            <textarea class="form-control" ng-model="createApplicationToConnectionTaskComment" name="createApplicationToConnectionTaskComment" placeholder="Comments..." maxlength="500" rows="4" style="resize:none"></textarea>
-            <label class="error" ng-show="kcell_form.createApplicationToConnectionTaskComment.$error.required && ( kcell_form.createApplicationToConnectionTaskComment.$touched || view.submitted)">Required field</label>
+            <textarea class="form-control" ng-model="checkApplicationToConnectionB2CTaskComment" name="checkApplicationToConnectionB2CTaskComment" placeholder="Comments..." maxlength="500" rows="4" style="resize:none"></textarea>
+            <label class="error" ng-show="kcell_form.checkApplicationToConnectionB2CTaskComment.$error.required && ( kcell_form.checkApplicationToConnectionB2CTaskComment.$touched || view.submitted)">Required field</label>
         </div>
     </div>
     <accordion>
