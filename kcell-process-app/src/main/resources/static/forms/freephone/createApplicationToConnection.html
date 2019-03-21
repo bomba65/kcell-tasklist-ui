@@ -1,9 +1,4 @@
 <form role="form" class="form-horizontal" name="kcell_form" novalidate>
-    <iframe id="fileDownloadIframe" style="display:none;"></iframe>
-    <div class="form-check">
-        <input type="checkbox" ng-model="critical" class="form-check-input" id="check1">
-        <label class="form-check-label" for="check1">Критично</label>
-    </div>
     <script cam-script type="text/form-script">
         inject(['$scope', '$http', 'Uri', '$rootScope', '$q', '$timeout', '$filter', function ($scope, $http, Uri, $rootScope, $q, $timeout, $filter) {
             var uuid = new Date().getTime();
@@ -18,7 +13,8 @@
                 'productCatalogShortNumber',
                 'productCatalogResponse',
                 'offnetProviderName',
-                'offnetProviderBin'
+                'offnetProviderBin',
+                'isPartner'
             ];
 
             camForm.on('form-loaded', function () {
@@ -77,6 +73,16 @@
                 });
                 console.log($scope.freephoneInfo);
                 console.log($scope.freephoneInfo.files);
+
+                $scope.isExistingClient = {
+                    value:false
+                };
+                $scope.isExistingChannel = {
+                    value:false
+                };
+                $scope.configureOnSBC = {
+                    value:false
+                };
 
                 camForm.variableManager.createVariable({
                     name: 'createApplicationToConnectionTaskResult',
@@ -514,6 +520,23 @@
                     value: identifierCounter,
                     type: 'String'
                 });
+                if($scope.isPartner && $scope.isExistingClient.value){
+                    camForm.variableManager.createVariable({
+                        name: 'isExistingClient',
+                        value: $scope.isExistingClient.value,
+                        type: 'Boolean'
+                    });
+                    camForm.variableManager.createVariable({
+                        name: 'isExistingChannel',
+                        value: $scope.isExistingChannel.value,
+                        type: 'Boolean'
+                    });
+                    camForm.variableManager.createVariable({
+                        name: 'configureOnSBC',
+                        value: $scope.configureOnSBC.value,
+                        type: 'Boolean'
+                    });
+                }
             });
 
             $scope.download = function (file) {
@@ -590,6 +613,7 @@
                 $scope.dateFieldOpened = true;
             };
 
+            /*
             $scope.$watch('responsibleB2BSales', function (responsibleB2BSales) {
                 if (responsibleB2BSales && responsibleB2BSales.id) {
                     $scope.kcell_form.responsibleB2BSales.$setValidity('valid', true);
@@ -597,7 +621,6 @@
                     $scope.kcell_form.responsibleB2BSales.$setValidity('valid', false);
                 }
             }, true);
-
             $scope.$watch('responsibleB2BDelivery', function (responsibleB2BDelivery) {
                 if (responsibleB2BDelivery && responsibleB2BDelivery.id) {
                     $scope.kcell_form.responsibleB2BDelivery.$setValidity('valid', true);
@@ -605,6 +628,7 @@
                     $scope.kcell_form.responsibleB2BDelivery.$setValidity('valid', false);
                 }
             }, true);
+            */
 
             $scope.foundClientCRM = false;
             $scope.binPattern = /^[0-9]{12}$/;
@@ -718,6 +742,13 @@
         }]);
 
     </script>
+    <iframe id="fileDownloadIframe" style="display:none;"></iframe>
+    <div class="form-check">
+        <input type="checkbox" class="form-check-input" id="check1" ng-model="critical">
+        <label class="form-check-label" for="check1">Критично</label>
+        <input type="checkbox" class="form-check-input" id="isExistingClient" ng-model="isExistingClient.value">
+        <label class="form-check-label" for="isExistingClient">Существующий клиент</label>
+    </div>
     <div class="form-group" ng-repeat="id in identifiers" ng-if="operatorType === 'onnet' || (previouslyBought && operatorType === 'offnet')">
         <label class="control-label pull-left"/>Идентификатор - {{id.title}} - {{$index}}
         <span class="glyphicon glyphicon-remove pull-right" ng-click="deleteIdentifier($index)"></span>
@@ -836,6 +867,22 @@
             <label class="error" ng-show="kcell_form.connectionType.$error.required && ( kcell_form.connectionType.$touched || view.submitted)">Required field</label>
         </div>
     </div>
+
+    <div class="form-group" ng-show="isExistingClient.value && connectionType === 'SIP_SBC'">
+        <div class="col-sm-4"></div>
+        <div class="col-sm-8">
+            <input type="checkbox" class="form-check-input" id="isExistingChannel" ng-model="isExistingChannel.value">
+            <label class="form-check-label" for="isExistingChannel">Существующий канал</label>
+        </div>
+    </div>
+    <div class="form-group" ng-show="isExistingClient.value && connectionType === 'E1'">
+        <div class="col-sm-4"></div>
+        <div class="col-sm-8">
+            <input type="checkbox" class="form-check-input" id="configureOnSBC" ng-model="configureOnSBC.value">
+            <label class="form-check-label" for="configureOnSBC">Настраивать на SBC</label>
+        </div>
+    </div>
+
     <div class="form-group" ng-show="connectionType === 'transmit' ">
         <label class="col-sm-4 control-label">* Номер переадресации:</label>
         <div class="col-sm-8">
@@ -939,32 +986,34 @@
             <label class="has-error" ng-show="kcell_form.applicationScanCopyFileName.$error.validFile && ( kcell_form.applicationScanCopyFileName.$touched || view.submitted)">File is required</label>
         </div>
     </div>
-    <div class="form-group">
+    <div class="form-group" ng-show="!isExistingClient.value">
         <label class="col-sm-4 control-label">Ответственный B2B Delivery:</label>
         <div class="col-sm-8">
-            <input type="text" ng-model="responsibleB2BDelivery" name="responsibleB2BDelivery" typeahead="name as users.name for users in getUsers($viewValue, 'delivery_ivr_b2b_delivery')" typeahead-on-select="userSelected($item,'responsibleB2BDelivery')" class="form-control" required autocomplete="off">
+            <input type="text" ng-model="responsibleB2BDelivery" name="responsibleB2BDelivery" typeahead="name as users.name for users in getUsers($viewValue, 'delivery_ivr_b2b_delivery')" typeahead-on-select="userSelected($item,'responsibleB2BDelivery')" class="form-control" ng-required="!isExistingClient.value" autocomplete="off">
             <!--<input type="hidden" ng-model="userIDValidate" name="userIDValidate" required/>-->
             <!--<label class="error" ng-if="kcell_form.site_name.$error.required && ( kcell_form.site_name.$touched || view.submitted)">Required field</label>-->
-            <label class="error" ng-if="kcell_form.responsibleB2BDelivery.$error.valid && view.submitted">Необходимо выбрать пользователя</label>
+            <!--<label class="error" ng-if="kcell_form.responsibleB2BDelivery.$error.valid && view.submitted">Необходимо выбрать пользователя</label>-->
+            <label class="error" ng-if="!isPartner && (!responsibleB2BDelivery || !responsibleB2BDelivery.id)  && ( kcell_form.responsibleB2BDelivery.$touched || view.submitted)">Необходимо выбрать пользователя</label>
         </div>
     </div>
-    <div class="form-group">
+    <div class="form-group" ng-show="!isExistingClient.value">
         <label class="col-sm-4 control-label">Ответственный B2B Sales:</label>
         <div class="col-sm-8">
-            <input type="text" ng-model="responsibleB2BSales" name="responsibleB2BSales" typeahead="name as users.name for users in getUsers($viewValue, 'delivery_sms_ivr_b2b_sales')" typeahead-on-select="userSelected($item,'responsibleB2BSales')" class="form-control" required autocomplete="off" ng-disabled="is_not_member_of_delivery_CRM_info_admin">
+            <input type="text" ng-model="responsibleB2BSales" name="responsibleB2BSales" typeahead="name as users.name for users in getUsers($viewValue, 'delivery_sms_ivr_b2b_sales')" typeahead-on-select="userSelected($item,'responsibleB2BSales')" class="form-control" ng-required="!isExistingClient.value" autocomplete="off" ng-disabled="is_not_member_of_delivery_CRM_info_admin">
             <!--<input type="hidden" ng-model="userIDValidate" name="userIDValidate" required/>-->
             <!--<label class="error" ng-if="kcell_form.site_name.$error.required && ( kcell_form.site_name.$touched || view.submitted)">Required field</label>-->
-            <label class="error" ng-if="kcell_form.responsibleB2BSales.$error.valid && view.submitted">Необходимо выбрать пользователя</label>
+            <!--<label class="error" ng-if="kcell_form.responsibleB2BSales.$error.valid && view.submitted">Необходимо выбрать пользователя</label>-->
+            <label class="error" ng-if="!isPartner && (!responsibleB2BSales || !responsibleB2BSales.id)  && ( kcell_form.responsibleB2BDelivery.$touched || view.submitted)">Необходимо выбрать пользователя</label>
         </div>
     </div>
-    <div class="form-group">
+    <div class="form-group" ng-show="!isExistingClient.value">
         <label class="col-sm-4 control-label">Канал:</label>
         <div class="col-sm-8">
             <input class="form-control" maxlength="100" cam-variable-name="channel" name="channel" cam-variable-type="String" disabled>
             <label class="error" ng-show="kcell_form.channel.$error.required && ( kcell_form.channel.$touched || view.submitted)">Required field</label>
         </div>
     </div>
-    <div class="form-group">
+    <div class="form-group" ng-show="!isExistingClient.value">
         <label class="col-sm-4 control-label">Регион:</label>
         <div class="col-sm-8">
             <input class="form-control" maxlength="100" cam-variable-name="region" name="region" cam-variable-type="String" disabled>

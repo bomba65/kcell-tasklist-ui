@@ -1,0 +1,137 @@
+<form role="form" class="form-horizontal" name="kcell_form" novalidate>
+    <script cam-script type="text/form-script">
+        inject(['$scope', '$http', 'Uri', '$rootScope', '$q', '$timeout', function ($scope, $http, Uri, $rootScope, $q, $timeout) {
+            var variables = [
+                'resolutions',
+                'identifiers',
+                'connectionType',
+                'transmitNumber',
+                'ipNumber',
+                'applicationScanCopyFileName',
+                'contractScanCopyFileName',
+                'abonentTarif',
+                'description',
+                'techSpecNumber',
+                'techSpecFIO',
+                'officialClientCompanyName',
+                'clientCompanyLatName',
+                'addressATS',
+                'coordinates',
+                'contractNumber',
+                'startDate',
+                'priority',
+                'provider',
+                'clientBIN',
+                'techSpecEmail',
+                'previouslyBought',
+                'finalIDs',
+                'operatorType',
+                'responsibleB2BDelivery',
+                'responsibleB2BSales'
+            ];
+
+            camForm.on('form-loaded', function () {
+                variables.forEach(function (el) {
+                    camForm.variableManager.fetchVariable(el);
+                });
+                $http.get('/camunda/api/engine/engine/default/task/' + camForm.taskId).then(
+                        function(result){
+                            $scope.processInstanceId = result.data.processInstanceId;
+                        },
+                        function (error) {
+                            console.log(error.data);
+                        }
+                );
+                $scope.freephoneInfo = {};
+                $scope.freephoneInfo.files = [];
+            });
+
+            camForm.on('variables-fetched', function () {
+                variables.forEach(function (el) {
+                    if (el === 'resolutions') {
+                        if (camForm.variableManager.variables[el].value) {
+                            $scope.resolutions = angular.copy(camForm.variableManager.variables[el].value);
+                            camForm.variableManager.destroyVariable(el);
+                        }
+                    } else if (el === 'applicationScanCopyFileName' || el === 'contractScanCopyFileName') {
+                        $scope[el] = camForm.variableManager.variables[el].value;
+                        $scope.freephoneInfo.files.push(camForm.variableManager.variables[el].value);
+                    } else {
+                        $scope[el] = camForm.variableManager.variables[el].value;
+                        $scope.freephoneInfo[el] = camForm.variableManager.variables[el].value;
+                    }
+                });
+                $http.get("/camunda/api/engine/engine/default/user/" + $rootScope.authentication.name+ "/profile").then(function(result){
+                    $rootScope.authentication.assigneeName = (result.data.firstName ? result.data.firstName : "") + " " + (result.data.lastName ? result.data.lastName : "");
+                });
+                $scope.freephoneInfo.showTarif = true;
+                console.log($scope.freephoneInfo);
+                console.log($scope.freephoneInfo.files);
+
+                camForm.variableManager.createVariable({
+                    name: 'createTitlePCTaskResult',
+                    type: 'String',
+                    value: ''
+                });
+
+                camForm.variableManager.createVariable({
+                    name: 'createTitlePCTaskComment',
+                    type: 'String',
+                    value: ''
+                });
+
+                $scope.createTitlePCTaskResult = '';
+            });
+
+            camForm.on('submit', function () {
+                $scope.createTitlePCTaskResult = 'Completed';
+                camForm.variableManager.variableValue('createTitlePCTaskResult', $scope.createTitlePCTaskResult);
+                camForm.variableManager.variableValue('createTitlePCTaskComment', $scope.createTitlePCTaskComment);
+            });
+        }]);
+
+    </script>
+    <info-freephone freephone-info="freephoneInfo"></info-freephone>
+    <div class="form-group">
+        <label class="col-sm-4 control-label">Введите ссылку на добавленный идентификатор в Products Catalog:</label>
+        <div class="col-sm-8">
+            <input type="text" name="ProductsCatalogLink" id='ProductsCatalogLink' cam-variable-name="ProductsCatalogLink" cam-variable-type="String" class="form-control" required>
+            <label class="error" ng-show="kcell_form.ProductsCatalogLink.$error.required && ( kcell_form.ProductsCatalogLink.$touched || view.submitted)">Required field</label>
+        </div>
+    </div>
+
+    <div class="form-group">
+        <label class="col-sm-3 control-label">Комментарии</label>
+        <div class="col-sm-9">
+            <textarea class="form-control" ng-model="createTitlePCTaskComment" name="createTitlePCTaskComment" placeholder="Comments..." maxlength="500" rows="4" style="resize:none"></textarea>
+            <label class="error" ng-show="kcell_form.createTitlePCTaskComment.$error.required && ( kcell_form.createTitlePCTaskComment.$touched || view.submitted)">Required field</label>
+        </div>
+    </div>
+    <accordion>
+        <accordion-group is-open="isHistoryOpen">
+            <accordion-heading>
+                History <i class="pull-right glyphicon" ng-class="{'glyphicon-chevron-up': status.isCustomHeaderOpen, 'glyphicon-chevron-down': !status.isCustomHeaderOpen}"></i>
+            </accordion-heading>
+            <table class="table">
+                <thead>
+                <tr>
+                    <th>Activity</th>
+                    <th>Assignee</th>
+                    <th>Resolution</th>
+                    <th>Date</th>
+                    <th>Comment</th>
+                </tr>
+                </thead>
+                <tbody>
+                <tr ng-repeat="resolution in resolutions">
+                    <td>{{resolution.taskName}}</td>
+                    <td>{{resolution.assigneeName}}</td>
+                    <td>{{'task.resolution.'+resolution.resolution | translate}}</td>
+                    <td>{{resolution.taskEndDate | date: 'dd.MM.yyyy HH:mm'}}</td>
+                    <td>{{resolution.comment}}</td>
+                </tr>
+                </tbody>
+            </table>
+        </accordion-group>
+    </accordion>
+</form>
