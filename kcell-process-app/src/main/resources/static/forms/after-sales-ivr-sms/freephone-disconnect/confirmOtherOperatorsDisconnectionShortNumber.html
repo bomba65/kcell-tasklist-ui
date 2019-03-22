@@ -132,6 +132,7 @@
 
             });
 
+            /*
             $scope.dateFieldOpened = [];
             $scope.open = function open(identifier, operator) {
                 console.log('open', identifier.title, operator.deleted, operator.deletedDate, operator.dateFieldOpened);
@@ -152,12 +153,59 @@
                     delete operator.deletedDate;
                 }
             };
+            */
+            $scope.dateFieldOpened = [];
+            $scope.open = function open(identifier, operator) {
+                //console.log('open', identifier.title, operator.title, operator.dateFieldOpened);
+                operator.dateFieldOpened = true;
+            };
+            $scope.addToNetwork = function(identifier, operator) {
+                //console.log('check', identifier.title, operator.title, operator.checked);
+                if(!operator.addedToNetwork){
+                    delete operator.addedToNetworkDate;
+                }
+
+            };
         }]);
 
     </script>
     <info-aftersales aftersales-info="aftersalesInfo"></info-aftersales>
-
     <div class="form-group" ng-repeat="id in identifiers">
+        <label class="col-sm-12 control-label"/>Идентификатор - {{id.title}}
+        <div class="col-sm-12" style="border-left: solid; border-left-width: 1px; margin-left: 2vh">
+            <table class="table">
+                <thead>
+                <tr>
+                    <th scope="col">Оператор</th>
+                    <th scope="col">Дата отключения короткого номера</th>
+                    <th scope="col">Отключить</th>
+                </tr>
+                </thead>
+                <tbody>
+                <tr ng-repeat="o in id.operators" ng-if="o.isAvailable">
+                    <th scope="row" style="width: 40%">{{o.name}}</th>
+                    <td style="width: 40%">
+                        <div class="input-group">
+                            <input type="text" ng-model="o.addedToNetworkDate" name="{{'addedToNetworkDate' + id.title + o.id}}" ng-disabled="!o.addedToNetwork" ng-required="o.addedToNetwork" class="form-control" datepicker-popup="dd.MM.yyyy" is-open="o.dateFieldOpened" id="{{'addedToNetworkDate' + id.title + o.id}}" min-date="datepickerOptions.minDate" />
+                            <span class="input-group-btn">
+                                <button type="button" class="btn btn-default" ng-disabled="!o.addedToNetwork" ng-click="open(id, o)">
+                                    <i class="glyphicon glyphicon-calendar"></i>
+                                </button>
+                            </span>
+                        </div>
+                        <label class="error" ng-show="(kcell_form['addedToNetworkDate' + id.title + o.id].$error.required || !o.addedToNetwork) && view.submitted">Required field</label>
+                    </td>
+                    <td style="width: 20%">
+                        <input type="checkbox" ng-model="o.addedToNetwork" name="{{'addedToNetwork' + id.title + o.id}}" ng-change="addToNetwork(id, o)" ng-required="true">
+                        <label class="error" ng-show="(kcell_form['addedToNetwork' + id.title + o.id].$error.required || !o.addedToNetwork) && view.submitted">Required field</label>
+                    </td>
+                </tr>
+
+                </tbody>
+            </table>
+        </div>
+    </div>
+    <!--<div class="form-group" ng-repeat="id in identifiers">
         <label class="col-sm-12 control-label"/>Идентификатор - {{id.title}}
         <div class="col-sm-12" style="border-left: solid; border-left-width: 1px; margin-left: 2vh">
             <table class="table">
@@ -190,6 +238,7 @@
             </table>
         </div>
     </div>
+    -->
     <div class="form-group">
         <label class="col-sm-3 control-label">Комментарии</label>
         <div class="col-sm-9">
