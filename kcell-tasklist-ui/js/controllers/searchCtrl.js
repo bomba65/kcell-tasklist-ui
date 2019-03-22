@@ -1774,6 +1774,11 @@ define(['./module','jquery', 'moment', 'camundaSDK'], function(app, $, moment, C
 															if(["disconnectProcess","changeOfficialClientCompanyName","changeContractNumber","disconnectOperator","connectOperator","changeConnectionType","changeIpNumber","changeIdentifier","changeSmsServiceType","changeProvider","changeTransmitNumber"].indexOf(el.name)>-1){
 																if(el.value){
 																	instance.changeTypes.push($scope.mapChangeType[el.name]);
+																	if(el.name === "disconnectProcess"){
+																		if(instance.state === "COMPLETED"){
+																			$scope.disableAftersalesStart = true;
+																		}
+																	}
 																}
 															}
 														});
