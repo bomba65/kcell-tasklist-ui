@@ -6,13 +6,86 @@ html(lang:'en') {
     }
     body {
         p {
-            yield 'В рамках процесса одобрения заявок на проведение работ, в системе Kcell Workflow создана заявка, ожидающая вашего участия. Для просмотра заявки необходимо пройти по следующей ссылке:'
-            a(href: taskUrl, taskUrl)
+            yield 'В рамках рассмотрения заявок по '
+            b(processName)
+            yield ' в системе '
+            b('Kcell Workflow')
+            yield ' на вас назначена активность '
+            b(activity)
+            yield ' по заявке # '
+            b(businessKey)
+            yield ' ожидающая вашего участия.'
+           }
+        p {
+            yield 'Для просмотра заявки Вам необходимо пройти по следующей '
+            a(href: taskUrl, 'ссылкe.')
+        }
+        table {
+            tr {
+                td {
+                    yield 'Процесс: '
+                }
+                td {
+                    b(processName)
+                }
+             }
+            tr {
+             td {
+                 yield 'Номер заявки: '
+             }
+             td {
+                 b(businessKey)
+             }
+            }
+            tr {
+               td {
+                   yield 'Cтатус: '
+               }
+               td {
+                   b('')
+               }
+            }
+            tr {
+               td {
+                   yield 'Инициатор: '
+               }
+               td {
+                   b(delegateTask.getVariable("starter"))
+               }
+            }
+            tr {
+               td {
+                   yield 'Дата создания: '
+               }
+               td {
+                   b(startTime.format('dd.MM.yyyy HH:mm'))
+               }
+            }
+         }
+        newLine()
+
+        hr()
+        p {
+         yield 'Открыть Kcell Workflow Вы можете пройдя по следующей ссылке: '
+         b {
+             a(href: 'https://flow.kcell.kz', 'https://flow.kcell.kz')
+         }
         }
         p {
-            yield 'Пройдя по следующей ссылке на страницу в HUB.Kcell.kz, вы можете оставить в поле комментариев свои замечания и/или пожелания относительно функционала и интерфейса системы:'
-            a(href : 'https://hub.kcell.kz/x/kYNoAg', 'https://hub.kcell.kz/x/kYNoAg')
+            yield 'Для входа в систему используйте свой корпоративный логин (Name.Surname@kcell.kz)* и пароль.'
+            br()
+            yield '* имя и фамилия в логине начинается с заглавной буквы. Например: '
+            b {
+                a(href: 'mailto:Petr.Petrov@kcell.kz', 'Petr.Petrov@kcell.kz')
+            }
         }
-        p ('Greetings,<br>Kcell Flow')
+        p {
+            yield 'При возникновении каких-либо проблем при работе с системой, а также, пожеланий и предложений, отправьте пожалуйста письмо в '
+            b {
+                a(href: 'mailto:support_flow@kcell.kz?subject='+subject, 'support_flow@kcell.kz')
+            }
+            yield ' с описанием.'
+        }
+        p ('C уважением,<br>Kcell Flow')
     }
 }
