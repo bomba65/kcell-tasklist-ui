@@ -1,6 +1,7 @@
 import com.amazonaws.util.json.Jackson
 import org.camunda.bpm.engine.delegate.DelegateExecution
 import org.camunda.spin.impl.json.jackson.JacksonJsonNode
+import org.camunda.spin.Spin.*;
 
 def configure(DelegateExecution execution) {
 
@@ -24,9 +25,9 @@ def configure(DelegateExecution execution) {
     techSpecs.putAt('removalNumbers', null)
 
     if (action.get('agreementTermination').asBoolean()) {
-        execution.removeVariable("techSpecs");
+        execution.removeVariable("techSpecs")
     } else {
-        execution.setVariable("techSpecs", techSpecs.toString())
+        execution.setVariable("techSpecs", S(techSpecs.toString()))
     }
     execution.setVariable("finalResolution", "Approve")
 }

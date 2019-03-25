@@ -1679,6 +1679,9 @@ define(['./module','jquery', 'moment', 'camundaSDK'], function(app, $, moment, C
 					            		if(el.type === 'File' || el.type === 'Bytes'){
 											$scope.jobModel[el.name].contentUrl = baseUrl+'/history/variable-instance/'+el.id+'/data';
 										}
+										if (el.name === 'techSpecs' && el.type === 'String') {
+                      $scope.jobModel[el.name] = JSON.parse(el.value);
+                    }
 										if(el.type === 'Json'){
 											if(el.name === 'resolutions'){
 												$scope.jobModel[el.name].value = JSON.parse(el.value);
