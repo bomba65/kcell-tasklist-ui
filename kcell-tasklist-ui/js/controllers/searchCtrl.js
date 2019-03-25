@@ -64,8 +64,8 @@ define(['./module', 'jquery', 'moment', 'camundaSDK'], function (app, $, moment,
                     initDemandUAT();
 
                     if (!($rootScope.isProcessAvailable('Revision') && $rootScope.isProcessVisible('Revision'))
-                        && !($rootScope.isProjectAvailable('DeliveryPortal') && $rootScope.isProjectVisible('DeliveryPortal'))
-                        && !($rootScope.isProjectAvailable('DemandUAT') && $rootScope.isProjectVisible('DemandUAT'))) {
+                      && !($rootScope.isProjectAvailable('DeliveryPortal') && $rootScope.isProjectVisible('DeliveryPortal'))
+                      && !($rootScope.isProjectAvailable('DemandUAT') && $rootScope.isProjectVisible('DemandUAT'))) {
                         $state.go('tasks');
                     }
 
@@ -75,117 +75,117 @@ define(['./module', 'jquery', 'moment', 'camundaSDK'], function (app, $, moment,
             }, true);
 
             $http.get(baseUrl + '/process-definition/key/Revision/xml')
-                .then(function (response) {
-                    var domParser = new DOMParser();
+              .then(function (response) {
+                  var domParser = new DOMParser();
 
-                    var xml = domParser.parseFromString(response.data.bpmn20Xml, 'application/xml');
+                  var xml = domParser.parseFromString(response.data.bpmn20Xml, 'application/xml');
 
-                    function getUserTasks(xml) {
-                        var namespaces = {
-                            bpmn: 'http://www.omg.org/spec/BPMN/20100524/MODEL'
-                        };
+                  function getUserTasks(xml) {
+                      var namespaces = {
+                          bpmn: 'http://www.omg.org/spec/BPMN/20100524/MODEL'
+                      };
 
-                        var userTaskNodes = [
-                            ...getElementsByXPath(xml, '//bpmn:userTask', prefix => namespaces[prefix]),
-                            ...getElementsByXPath(xml, '//bpmn:intermediateCatchEvent', prefix => namespaces[prefix])
-                        ];
+                      var userTaskNodes = [
+                          ...getElementsByXPath(xml, '//bpmn:userTask', prefix => namespaces[prefix]),
+                          ...getElementsByXPath(xml, '//bpmn:intermediateCatchEvent', prefix => namespaces[prefix])
+                      ];
 
-                        function getElementsByXPath(doc, xpath, namespaceFn, parent) {
-                            let results = [];
-                            let query = doc.evaluate(xpath,
-                                parent || doc,
-                                namespaceFn,
-                                XPathResult.ORDERED_NODE_SNAPSHOT_TYPE, null);
-                            for (let i = 0, length = query.snapshotLength; i < length; ++i) {
-                                results.push(query.snapshotItem(i));
-                            }
-                            return results;
-                        }
+                      function getElementsByXPath(doc, xpath, namespaceFn, parent) {
+                          let results = [];
+                          let query = doc.evaluate(xpath,
+                            parent || doc,
+                            namespaceFn,
+                            XPathResult.ORDERED_NODE_SNAPSHOT_TYPE, null);
+                          for (let i = 0, length = query.snapshotLength; i < length; ++i) {
+                              results.push(query.snapshotItem(i));
+                          }
+                          return results;
+                      }
 
-                        return userTaskNodes.map(node => {
-                            var id = node.id;
-                            var name = node.attributes["name"] && node.attributes["name"].textContent;
-                            var description = getElementsByXPath(
-                                xml,
-                                'bpmn:documentation/text()',
-                                prefix => namespaces[prefix],
-                                node
-                            )[0];
+                      return userTaskNodes.map(node => {
+                          var id = node.id;
+                          var name = node.attributes["name"] && node.attributes["name"].textContent;
+                          var description = getElementsByXPath(
+                            xml,
+                            'bpmn:documentation/text()',
+                            prefix => namespaces[prefix],
+                            node
+                          )[0];
 
-                            description = description && description.textContent;
+                          description = description && description.textContent;
 
-                            return {
-                                "id": id,
-                                "name": name,
-                                "description": description
-                            };
-                        });
-                    }
+                          return {
+                              "id": id,
+                              "name": name,
+                              "description": description
+                          };
+                      });
+                  }
 
-                    var excludeTasks = [
-                        'signpr_by_center',
-                        'signpr_by_manager',
-                        'signpr_by_budgetowner',
-                        'signpr_by_cto',
-                        'signpr_by_cfo',
-                        'signpr_by_ceo',
-                        'Task_1ix12n7',
-                        'Task_1uvnb7n',
-                        'Task_12eq7hi',
-                        'Task_1wf6n5j',
-                        'Task_1puv0a9',
-                        'Task_1m2xspc',
-                        'Task_1mb15j2',
-                        'Task_1mocj2s',
-                        'Task_1gjdn28',
-                        'IntermediateThrowEvent_wait_po_pr_creation'
-                    ];
+                  var excludeTasks = [
+                      'signpr_by_center',
+                      'signpr_by_manager',
+                      'signpr_by_budgetowner',
+                      'signpr_by_cto',
+                      'signpr_by_cfo',
+                      'signpr_by_ceo',
+                      'Task_1ix12n7',
+                      'Task_1uvnb7n',
+                      'Task_12eq7hi',
+                      'Task_1wf6n5j',
+                      'Task_1puv0a9',
+                      'Task_1m2xspc',
+                      'Task_1mb15j2',
+                      'Task_1mocj2s',
+                      'Task_1gjdn28',
+                      'IntermediateThrowEvent_wait_po_pr_creation'
+                  ];
 
-                    var userTasks = getUserTasks(xml);
-                    var includedUserTasks = _.filter(userTasks, function (task) {
-                        return excludeTasks.indexOf(task.id) === -1;
-                    });
-                    $scope.includedUserTasks = includedUserTasks;
-                    var userTasksMap = _.keyBy(includedUserTasks, 'id');
-                    $scope.userTasksMap = userTasksMap;
-                });
+                  var userTasks = getUserTasks(xml);
+                  var includedUserTasks = _.filter(userTasks, function (task) {
+                      return excludeTasks.indexOf(task.id) === -1;
+                  });
+                  $scope.includedUserTasks = includedUserTasks;
+                  var userTasksMap = _.keyBy(includedUserTasks, 'id');
+                  $scope.userTasksMap = userTasksMap;
+              });
 
             if ($rootScope.authentication) {
                 $http.get(baseUrl + '/user/' + $rootScope.authentication.name + '/profile').then(
-                    function (userProfile) {
-                        $rootScope.authUser = userProfile.data;
-                        $http.get(baseUrl + '/group?member=' + $rootScope.authUser.id).then(
-                            function (groups) {
-                                $rootScope.authUser.groups = groups.data;
+                  function (userProfile) {
+                      $rootScope.authUser = userProfile.data;
+                      $http.get(baseUrl + '/group?member=' + $rootScope.authUser.id).then(
+                        function (groups) {
+                            $rootScope.authUser.groups = groups.data;
 
-                                if (!$rootScope.hasGroup('revision_managers') && !$rootScope.hasGroup('revision_audit')) {
-                                    _.forEach($rootScope.authUser.groups, function (group) {
-                                        if (regionGroupsMap[group.id]) {
-                                            $scope.filter.region = regionGroupsMap[group.id];
-                                        }
-                                    });
-                                }
-                            },
-                            function (error) {
-                                console.log(error.data);
+                            if (!$rootScope.hasGroup('revision_managers') && !$rootScope.hasGroup('revision_audit')) {
+                                _.forEach($rootScope.authUser.groups, function (group) {
+                                    if (regionGroupsMap[group.id]) {
+                                        $scope.filter.region = regionGroupsMap[group.id];
+                                    }
+                                });
                             }
-                        );
-                    },
-                    function (error) {
-                        console.log(error.data);
-                    }
+                        },
+                        function (error) {
+                            console.log(error.data);
+                        }
+                      );
+                  },
+                  function (error) {
+                      console.log(error.data);
+                  }
                 );
             }
 
             $http.get('/api/catalogs?force=7').then(
-                function (result) {
-                    angular.extend($scope, result.data);
-                    angular.extend(catalogs, result.data);
+              function (result) {
+                  angular.extend($scope, result.data);
+                  angular.extend(catalogs, result.data);
 
-                },
-                function (error) {
-                    console.log(error.data);
-                }
+              },
+              function (error) {
+                  console.log(error.data);
+              }
             );
 
             $rootScope.logout = function () {
@@ -231,40 +231,40 @@ define(['./module', 'jquery', 'moment', 'camundaSDK'], function (app, $, moment,
 
             $scope.getSite = function (val) {
                 return $http.get('/asset-management/api/sites/search/findByNameIgnoreCaseContaining?name=' + val).then(
-                    function (response) {
-                        var sites = _.flatMap(response.data._embedded.sites, function (s) {
-                            if (s.params.site_name) {
-                                return s.params.site_name.split(',').map(function (sitename) {
-                                    return {
-                                        name: s.name,
-                                        id: s._links.self.href.substring(s._links.self.href.lastIndexOf('/') + 1),
-                                        site_name: sitename
-                                    };
-                                })
-                            } else {
-                                return [];
-                            }
-                        });
-                        return sites;
-                    }
+                  function (response) {
+                      var sites = _.flatMap(response.data._embedded.sites, function (s) {
+                          if (s.params.site_name) {
+                              return s.params.site_name.split(',').map(function (sitename) {
+                                  return {
+                                      name: s.name,
+                                      id: s._links.self.href.substring(s._links.self.href.lastIndexOf('/') + 1),
+                                      site_name: sitename
+                                  };
+                              })
+                          } else {
+                              return [];
+                          }
+                      });
+                      return sites;
+                  }
                 );
             };
 
             $scope.getSiteId = function (val) {
                 return $http.get('/asset-management/api/sites/search/findByNameIgnoreCaseContaining?name=' + val).then(
-                    function (response) {
-                        var sites = _.flatMap(response.data._embedded.sites, function (s) {
-                            if (s.name) {
-                                return {
-                                    name: s.name,
-                                    id: s._links.self.href.substring(s._links.self.href.lastIndexOf('/') + 1)
-                                };
-                            } else {
-                                return [];
-                            }
-                        });
-                        return sites;
-                    }
+                  function (response) {
+                      var sites = _.flatMap(response.data._embedded.sites, function (s) {
+                          if (s.name) {
+                              return {
+                                  name: s.name,
+                                  id: s._links.self.href.substring(s._links.self.href.lastIndexOf('/') + 1)
+                              };
+                          } else {
+                              return [];
+                          }
+                      });
+                      return sites;
+                  }
                 );
             };
 
@@ -415,10 +415,10 @@ define(['./module', 'jquery', 'moment', 'camundaSDK'], function (app, $, moment,
                     data: filter,
                     url: baseUrl + '/history/process-instance/count'
                 }).then(
-                    function (result) {
-                        $scope[processInstances + 'Total'] = result.data.count;
-                        $scope[processInstances + 'Pages'] = Math.floor(result.data.count / $scope.filter.maxResults) + ((result.data.count % $scope.filter.maxResults) > 0 ? 1 : 0);
-                    }
+                  function (result) {
+                      $scope[processInstances + 'Total'] = result.data.count;
+                      $scope[processInstances + 'Pages'] = Math.floor(result.data.count / $scope.filter.maxResults) + ((result.data.count % $scope.filter.maxResults) > 0 ? 1 : 0);
+                  }
                 );
                 $http({
                     method: 'POST',
@@ -426,125 +426,125 @@ define(['./module', 'jquery', 'moment', 'camundaSDK'], function (app, $, moment,
                     data: filter,
                     url: baseUrl + '/history/process-instance?firstResult=' + (processInstances === 'processInstances' ? ($scope.filter.page - 1) * $scope.filter.maxResults + '&maxResults=' + $scope.filter.maxResults : '')
                 }).then(
-                    function (result) {
-                        $scope[processInstances] = result.data;
-                        var variables = ['siteRegion', 'site_name', 'contractor', 'reason', 'requestedDate', 'validityDate', 'jobWorks', 'explanation'];
+                  function (result) {
+                      $scope[processInstances] = result.data;
+                      var variables = ['siteRegion', 'site_name', 'contractor', 'reason', 'requestedDate', 'validityDate', 'jobWorks', 'explanation'];
 
-                        if ($scope[processInstances].length > 0) {
-                            angular.forEach($scope[processInstances], function (el) {
-                                if (el.durationInMillis) {
-                                    el['executionTime'] = Math.floor(el.durationInMillis / (1000 * 60 * 60 * 24));
-                                } else {
-                                    var startTime = new Date(el.startTime);
-                                    el['executionTime'] = Math.floor(((new Date().getTime()) - startTime.getTime()) / (1000 * 60 * 60 * 24));
-                                }
-                                if (!$scope.profiles[el.startUserId]) {
-                                    $http.get(baseUrl + '/user/' + el.startUserId + '/profile').then(
-                                        function (result) {
-                                            $scope.profiles[el.startUserId] = result.data;
-                                        },
-                                        function (error) {
-                                            console.log(error.data);
-                                        }
-                                    );
-                                }
-                            });
-
-                            _.forEach(variables, function (variable) {
-                                var varSearchParams = {
-                                    processInstanceIdIn: _.map($scope[processInstances], 'id'),
-                                    variableName: variable
-                                };
-                                $http({
-                                    method: 'POST',
-                                    headers: {'Accept': 'application/hal+json, application/json; q=0.5'},
-                                    data: varSearchParams,
-                                    url: baseUrl + '/history/variable-instance?deserializeValues=false'
-                                }).then(
-                                    function (vars) {
-                                        $scope[processInstances].forEach(function (el) {
-                                            var f = _.filter(vars.data, function (v) {
-                                                return v.processInstanceId === el.id;
-                                            });
-                                            if (f && f[0]) {
-                                                if (f[0].type === 'Json') {
-                                                    el[variable] = JSON.parse(f[0].value);
-                                                } else {
-                                                    el[variable] = f[0].value;
-                                                }
-                                            }
-                                        });
+                      if ($scope[processInstances].length > 0) {
+                          angular.forEach($scope[processInstances], function (el) {
+                              if (el.durationInMillis) {
+                                  el['executionTime'] = Math.floor(el.durationInMillis / (1000 * 60 * 60 * 24));
+                              } else {
+                                  var startTime = new Date(el.startTime);
+                                  el['executionTime'] = Math.floor(((new Date().getTime()) - startTime.getTime()) / (1000 * 60 * 60 * 24));
+                              }
+                              if (!$scope.profiles[el.startUserId]) {
+                                  $http.get(baseUrl + '/user/' + el.startUserId + '/profile').then(
+                                    function (result) {
+                                        $scope.profiles[el.startUserId] = result.data;
                                     },
                                     function (error) {
                                         console.log(error.data);
                                     }
-                                );
-                            });
-                            var activeProcessInstances = _.filter($scope[processInstances], function (pi) {
-                                return pi.state === 'ACTIVE';
-                            });
-                            var taskSearchParams = {
-                                processInstanceBusinessKeyIn: _.map(activeProcessInstances, 'businessKey'),
-                                active: true
-                            };
-                            $http({
-                                method: 'POST',
-                                headers: {'Accept': 'application/hal+json, application/json; q=0.5'},
-                                data: taskSearchParams,
-                                url: baseUrl + '/task'
-                            }).then(
-                                function (tasks) {
-                                    angular.forEach($scope[processInstances], function (el) {
-                                        var f = _.filter(tasks.data, function (t) {
-                                            return t.processInstanceId === el.id;
+                                  );
+                              }
+                          });
+
+                          _.forEach(variables, function (variable) {
+                              var varSearchParams = {
+                                  processInstanceIdIn: _.map($scope[processInstances], 'id'),
+                                  variableName: variable
+                              };
+                              $http({
+                                  method: 'POST',
+                                  headers: {'Accept': 'application/hal+json, application/json; q=0.5'},
+                                  data: varSearchParams,
+                                  url: baseUrl + '/history/variable-instance?deserializeValues=false'
+                              }).then(
+                                function (vars) {
+                                    $scope[processInstances].forEach(function (el) {
+                                        var f = _.filter(vars.data, function (v) {
+                                            return v.processInstanceId === el.id;
                                         });
-                                        if (f && f.length > 0) {
-                                            el['tasks'] = f;
-                                            _.forEach(el.tasks, function (task) {
-                                                if (task.assignee && !$scope.profiles[task.assignee]) {
-                                                    $http.get(baseUrl + '/user/' + task.assignee + '/profile').then(
-                                                        function (result) {
-                                                            $scope.profiles[task.assignee] = result.data;
-                                                        },
-                                                        function (error) {
-                                                            console.log(error.data);
-                                                        }
-                                                    );
-                                                }
-                                            });
+                                        if (f && f[0]) {
+                                            if (f[0].type === 'Json') {
+                                                el[variable] = JSON.parse(f[0].value);
+                                            } else {
+                                                el[variable] = f[0].value;
+                                            }
                                         }
                                     });
                                 },
                                 function (error) {
                                     console.log(error.data);
                                 }
-                            );
-                            angular.forEach(activeProcessInstances, function (pi) {
-                                $http.get(baseUrl + '/process-instance/' + pi.id + '/activity-instances').then(
-                                    function (result) {
-                                        pi.otherActivities = [];
-                                        _.forEach(result.data.childActivityInstances, function (firstLevel) {
-                                            if (firstLevel.activityType === 'subProcess') {
-                                                _.forEach(firstLevel.childActivityInstances, function (secondLevel) {
-                                                    if (secondLevel.activityType !== 'userTask' && secondLevel.activityType !== 'multiInstanceBody') {
-                                                        pi.otherActivities.push(secondLevel);
-                                                    }
-                                                });
-                                            } else if (firstLevel.activityType !== 'userTask' && firstLevel.activityType !== 'multiInstanceBody') {
-                                                pi.otherActivities.push(firstLevel);
+                              );
+                          });
+                          var activeProcessInstances = _.filter($scope[processInstances], function (pi) {
+                              return pi.state === 'ACTIVE';
+                          });
+                          var taskSearchParams = {
+                              processInstanceBusinessKeyIn: _.map(activeProcessInstances, 'businessKey'),
+                              active: true
+                          };
+                          $http({
+                              method: 'POST',
+                              headers: {'Accept': 'application/hal+json, application/json; q=0.5'},
+                              data: taskSearchParams,
+                              url: baseUrl + '/task'
+                          }).then(
+                            function (tasks) {
+                                angular.forEach($scope[processInstances], function (el) {
+                                    var f = _.filter(tasks.data, function (t) {
+                                        return t.processInstanceId === el.id;
+                                    });
+                                    if (f && f.length > 0) {
+                                        el['tasks'] = f;
+                                        _.forEach(el.tasks, function (task) {
+                                            if (task.assignee && !$scope.profiles[task.assignee]) {
+                                                $http.get(baseUrl + '/user/' + task.assignee + '/profile').then(
+                                                  function (result) {
+                                                      $scope.profiles[task.assignee] = result.data;
+                                                  },
+                                                  function (error) {
+                                                      console.log(error.data);
+                                                  }
+                                                );
                                             }
                                         });
-                                    },
-                                    function (error) {
-                                        console.log(error.data);
                                     }
-                                );
-                            });
-                        }
-                    },
-                    function (error) {
-                        console.log(error.data);
-                    });
+                                });
+                            },
+                            function (error) {
+                                console.log(error.data);
+                            }
+                          );
+                          angular.forEach(activeProcessInstances, function (pi) {
+                              $http.get(baseUrl + '/process-instance/' + pi.id + '/activity-instances').then(
+                                function (result) {
+                                    pi.otherActivities = [];
+                                    _.forEach(result.data.childActivityInstances, function (firstLevel) {
+                                        if (firstLevel.activityType === 'subProcess') {
+                                            _.forEach(firstLevel.childActivityInstances, function (secondLevel) {
+                                                if (secondLevel.activityType !== 'userTask' && secondLevel.activityType !== 'multiInstanceBody') {
+                                                    pi.otherActivities.push(secondLevel);
+                                                }
+                                            });
+                                        } else if (firstLevel.activityType !== 'userTask' && firstLevel.activityType !== 'multiInstanceBody') {
+                                            pi.otherActivities.push(firstLevel);
+                                        }
+                                    });
+                                },
+                                function (error) {
+                                    console.log(error.data);
+                                }
+                              );
+                          });
+                      }
+                  },
+                  function (error) {
+                      console.log(error.data);
+                  });
             }
 
             $scope.nextPage = function () {
@@ -619,20 +619,20 @@ define(['./module', 'jquery', 'moment', 'camundaSDK'], function (app, $, moment,
                     headers: {'Accept': 'application/hal+json, application/json; q=0.5'},
                     url: baseUrl + '/task/' + scope.task.id
                 }).then(
-                    function (result) {
-                        if (result.data._embedded && result.data._embedded.group && result.data._embedded.group.length > 0) {
-                            scope.task.group = result.data._embedded.group[0].id;
-                            $http({
-                                method: 'GET',
-                                headers: {'Accept': 'application/hal+json, application/json; q=0.5'},
-                                url: baseUrl + '/user?memberOfGroup=' + result.data._embedded.group[0].id
-                            }).then(
-                                function (r) {
-                                    scope.task.members = r.data;
-                                }
-                            );
-                        }
-                    }
+                  function (result) {
+                      if (result.data._embedded && result.data._embedded.group && result.data._embedded.group.length > 0) {
+                          scope.task.group = result.data._embedded.group[0].id;
+                          $http({
+                              method: 'GET',
+                              headers: {'Accept': 'application/hal+json, application/json; q=0.5'},
+                              url: baseUrl + '/user?memberOfGroup=' + result.data._embedded.group[0].id
+                          }).then(
+                            function (r) {
+                                scope.task.members = r.data;
+                            }
+                          );
+                      }
+                  }
                 );
             }
 
@@ -653,62 +653,50 @@ define(['./module', 'jquery', 'moment', 'camundaSDK'], function (app, $, moment,
                         headers: {'Accept': 'application/hal+json, application/json; q=0.5'},
                         url: baseUrl + '/task?processInstanceId=' + $scope.processInstances[index].id,
                     }).then(
-                        function (tasks) {
-                            var processInstanceTasks = tasks.data._embedded.task;
-                            if (processInstanceTasks && processInstanceTasks.length > 0) {
-                                processInstanceTasks.forEach(function (e) {
-                                    if (e.assignee && tasks.data._embedded.assignee) {
-                                        for (var i = 0; i < tasks.data._embedded.assignee.length; i++) {
-                                            if (tasks.data._embedded.assignee[i].id === e.assignee) {
-                                                e.assigneeObject = tasks.data._embedded.assignee[i];
-                                            }
+                      function (tasks) {
+                          var processInstanceTasks = tasks.data._embedded.task;
+                          if (processInstanceTasks && processInstanceTasks.length > 0) {
+                              processInstanceTasks.forEach(function (e) {
+                                  if (e.assignee && tasks.data._embedded.assignee) {
+                                      for (var i = 0; i < tasks.data._embedded.assignee.length; i++) {
+                                          if (tasks.data._embedded.assignee[i].id === e.assignee) {
+                                              e.assigneeObject = tasks.data._embedded.assignee[i];
+                                          }
+                                      }
+                                  }
+                                  $http({
+                                      method: 'GET',
+                                      headers: {'Accept': 'application/hal+json, application/json; q=0.5'},
+                                      url: baseUrl + '/task/' + e.id
+                                  }).then(
+                                    function (taskResult) {
+                                        if (taskResult.data._embedded && taskResult.data._embedded.group) {
+                                            e.group = taskResult.data._embedded.group[0].id;
                                         }
+                                    },
+                                    function (error) {
+                                        console.log(error.data);
                                     }
-                                    $http({
-                                        method: 'GET',
-                                        headers: {'Accept': 'application/hal+json, application/json; q=0.5'},
-                                        url: baseUrl + '/task/' + e.id
-                                    }).then(
-                                        function (taskResult) {
-                                            if (taskResult.data._embedded && taskResult.data._embedded.group) {
-                                                e.group = taskResult.data._embedded.group[0].id;
-                                            }
-                                        },
-                                        function (error) {
-                                            console.log(error.data);
-                                        }
-                                    );
+                                  );
+                              });
+                          }
+                          $http.get(baseUrl + '/history/variable-instance?deserializeValues=false&processInstanceId=' + $scope.processInstances[index].id).then(
+                            function (result) {
+                                var workFiles = [];
+                                result.data.forEach(function (el) {
+                                    $scope.jobModel[el.name] = el;
+                                    if (el.type === 'File' || el.type === 'Bytes') {
+                                        $scope.jobModel[el.name].contentUrl = baseUrl + '/history/variable-instance/' + el.id + '/data';
+                                    }
+                                    if (el.type === 'Json') {
+                                        $scope.jobModel[el.name].value = JSON.parse(el.value);
+                                    }
+                                    if (el.name.startsWith('works_') && el.name.includes('_file_')) {
+                                        workFiles.push(el);
+                                    }
                                 });
-                            }
-                            $http.get(baseUrl + '/history/variable-instance?deserializeValues=false&processInstanceId=' + $scope.processInstances[index].id).then(
-                                function (result) {
-                                    var workFiles = [];
-                                    result.data.forEach(function (el) {
-                                        $scope.jobModel[el.name] = el;
-                                        if (el.type === 'File' || el.type === 'Bytes') {
-                                            $scope.jobModel[el.name].contentUrl = baseUrl + '/history/variable-instance/' + el.id + '/data';
-                                        }
-                                        if (el.type === 'Json') {
-                                            $scope.jobModel[el.name].value = JSON.parse(el.value);
-                                        }
-                                        if (el.name.startsWith('works_') && el.name.includes('_file_')) {
-                                            workFiles.push(el);
-                                        }
-                                    });
-                                    if ($scope.jobModel['siteWorksFiles']) {
-                                        _.forEach($scope.jobModel['siteWorksFiles'].value, function (file) {
-                                            var workIndex = file.name.split('_')[1];
-                                            if (!$scope.jobModel.jobWorks.value[workIndex].files) {
-                                                $scope.jobModel.jobWorks.value[workIndex].files = [];
-                                            }
-                                            if (_.findIndex($scope.jobModel.jobWorks.value[workIndex].files, function (f) {
-                                                return f.name == file.name;
-                                            }) < 0) {
-                                                $scope.jobModel.jobWorks.value[workIndex].files.push(file);
-                                            }
-                                        });
-                                    }
-                                    _.forEach(workFiles, function (file) {
+                                if ($scope.jobModel['siteWorksFiles']) {
+                                    _.forEach($scope.jobModel['siteWorksFiles'].value, function (file) {
                                         var workIndex = file.name.split('_')[1];
                                         if (!$scope.jobModel.jobWorks.value[workIndex].files) {
                                             $scope.jobModel.jobWorks.value[workIndex].files = [];
@@ -719,36 +707,48 @@ define(['./module', 'jquery', 'moment', 'camundaSDK'], function (app, $, moment,
                                             $scope.jobModel.jobWorks.value[workIndex].files.push(file);
                                         }
                                     });
-                                    if ($scope.jobModel.resolutions && $scope.jobModel.resolutions.value) {
-                                        $q.all($scope.jobModel.resolutions.value.map(function (resolution) {
-                                            return $http.get("/camunda/api/engine/engine/default/history/task?processInstanceId=" + resolution.processInstanceId + "&taskId=" + resolution.taskId);
-                                        })).then(function (tasks) {
-                                            tasks.forEach(function (e, index) {
-                                                if (e.data.length > 0) {
-                                                    $scope.jobModel.resolutions.value[index].taskName = e.data[0].name;
-                                                    try {
-                                                        $scope.jobModel.resolutions.value[index].taskEndDate = new Date(e.data[0].endTime);
-                                                    } catch (e) {
-                                                        console.log(e);
-                                                    }
-                                                }
-                                            });
-                                        });
-                                    }
-
-                                    //$scope.jobModel.tasks = processInstanceTasks;
-                                    angular.extend($scope.jobModel, catalogs);
-                                    $scope.jobModel.tasks = processInstanceTasks;
-                                },
-                                function (error) {
-                                    console.log(error.data);
                                 }
-                            );
+                                _.forEach(workFiles, function (file) {
+                                    var workIndex = file.name.split('_')[1];
+                                    if (!$scope.jobModel.jobWorks.value[workIndex].files) {
+                                        $scope.jobModel.jobWorks.value[workIndex].files = [];
+                                    }
+                                    if (_.findIndex($scope.jobModel.jobWorks.value[workIndex].files, function (f) {
+                                        return f.name == file.name;
+                                    }) < 0) {
+                                        $scope.jobModel.jobWorks.value[workIndex].files.push(file);
+                                    }
+                                });
+                                if ($scope.jobModel.resolutions && $scope.jobModel.resolutions.value) {
+                                    $q.all($scope.jobModel.resolutions.value.map(function (resolution) {
+                                        return $http.get("/camunda/api/engine/engine/default/history/task?processInstanceId=" + resolution.processInstanceId + "&taskId=" + resolution.taskId);
+                                    })).then(function (tasks) {
+                                        tasks.forEach(function (e, index) {
+                                            if (e.data.length > 0) {
+                                                $scope.jobModel.resolutions.value[index].taskName = e.data[0].name;
+                                                try {
+                                                    $scope.jobModel.resolutions.value[index].taskEndDate = new Date(e.data[0].endTime);
+                                                } catch (e) {
+                                                    console.log(e);
+                                                }
+                                            }
+                                        });
+                                    });
+                                }
 
-                        },
-                        function (error) {
-                            console.log(error.data);
-                        }
+                                //$scope.jobModel.tasks = processInstanceTasks;
+                                angular.extend($scope.jobModel, catalogs);
+                                $scope.jobModel.tasks = processInstanceTasks;
+                            },
+                            function (error) {
+                                console.log(error.data);
+                            }
+                          );
+
+                      },
+                      function (error) {
+                          console.log(error.data);
+                      }
                     );
                 }
             };
@@ -759,19 +759,19 @@ define(['./module', 'jquery', 'moment', 'camundaSDK'], function (app, $, moment,
                     headers: {'Accept': 'application/hal+json, application/json; q=0.5'},
                     url: baseUrl + '/user?memberOfGroup=' + group
                 }).then(
-                    function (result) {
-                        exModal.open({
-                            scope: {
-                                members: result.data,
-                            },
-                            templateUrl: './js/partials/members.html',
-                            size: 'md'
-                        }).then(function (results) {
-                        });
-                    },
-                    function (error) {
-                        console.log(error.data);
-                    }
+                  function (result) {
+                      exModal.open({
+                          scope: {
+                              members: result.data,
+                          },
+                          templateUrl: './js/partials/members.html',
+                          size: 'md'
+                      }).then(function (results) {
+                      });
+                  },
+                  function (error) {
+                      console.log(error.data);
+                  }
                 );
             };
             $scope.getStatus = function (state, value) {
@@ -785,45 +785,47 @@ define(['./module', 'jquery', 'moment', 'camundaSDK'], function (app, $, moment,
 
             function getDiagram(processDefinitionId) {
                 $http.get(baseUrl + '/process-definition/' + processDefinitionId + '/xml').then(
-                    function (result) {
-                        $timeout(function () {
-                            $scope.$apply(function () {
-                                $scope.diagram = {
-                                    xml: result.data.bpmn20Xml,
-                                    tasks: ($scope.jobModel.tasks && $scope.jobModel.tasks.length > 0) ? $scope.jobModel.tasks : undefined
-                                };
-                            });
-                        });
-                    },
-                    function (error) {
-                        console.log(error.data);
-                    }
+                  function (result) {
+                      $timeout(function () {
+                          $scope.$apply(function () {
+                              $scope.diagram = {
+                                  xml: result.data.bpmn20Xml,
+                                  tasks: ($scope.jobModel.tasks && $scope.jobModel.tasks.length > 0) ? $scope.jobModel.tasks : undefined
+                              };
+                          });
+                      });
+                  },
+                  function (error) {
+                      console.log(error.data);
+                  }
                 );
             }
 
             $scope.highlightTask = function () {
-                $scope.diagram.tasks.forEach((task => {
-                    $scope.control.highlight(task.taskDefinitionKey);
-                }));
+                if ($scope.diagram.tasks && $scope.diagram.tasks.length) {
+                    $scope.diagram.tasks.forEach((task => {
+                        $scope.control.highlight(task.taskDefinitionKey);
+                    }));
+                }
             };
 
             $scope.showHistory = function(resolutions, procDef){
                 exModal.open({
-                  scope: {
-                    resolutions: resolutions, //resolutions.value,
-                    isKcellStaff: $rootScope.hasGroup('kcellUsers'),
-                    procDef: procDef,
-                    download: function(path) {
-                      $http({method: 'GET', url: '/camunda/uploads/get/' + path, transformResponse: [] }).
-                      then(function(response) {
-                          document.getElementById('fileDownloadIframe').src = response.data;
-                      }, function(error){
-                          console.log(error);
-                      });
-                    }
-                  },
-                  templateUrl: './js/partials/resolutions.html',
-                  size: 'lg'
+                    scope: {
+                        resolutions: resolutions, //resolutions.value,
+                        isKcellStaff: $rootScope.hasGroup('kcellUsers'),
+                        procDef: procDef,
+                        download: function(path) {
+                            $http({method: 'GET', url: '/camunda/uploads/get/' + path, transformResponse: [] }).
+                            then(function(response) {
+                                document.getElementById('fileDownloadIframe').src = response.data;
+                            }, function(error){
+                                console.log(error);
+                            });
+                        }
+                    },
+                    templateUrl: './js/partials/resolutions.html',
+                    size: 'lg'
                 }).then(function(results){
                 });
             };
@@ -874,7 +876,8 @@ define(['./module', 'jquery', 'moment', 'camundaSDK'], function (app, $, moment,
                     'Task_1257fik',
                     'Task_0d7igwz'
                 ],
-                'AftersalesPBX': []
+                'AftersalesPBX': [],
+                'revolvingNumbers': []
             };
 
             var startDate;
@@ -882,22 +885,22 @@ define(['./module', 'jquery', 'moment', 'camundaSDK'], function (app, $, moment,
 
             let setMultipleDatePicker = () => {
                 $('input[name="multipleDate"]').daterangepicker({
-                        startDate: startDate,
-                        endDate: endDate,
-                        autoUpdateInput: false,
-                        locale: {
-                            format: 'DD/MM/YYYY',
-                            cancelLabel: 'Clear'
-                        }
-                    }
-                    /*, function(start, end, label) {
-            //$(this).val(picker.startDate.format('MM/DD/YYYY') + ' - ' + picker.endDate.format('MM/DD/YYYY'));
-            console.log("Apply :: A new date selection was made: " + start.format('YYYY-MM-DD') + ' to ' + end.format('YYYY-MM-DD'));
-            $scope.$apply(function() {
-              $scope.startDate = start.toDate();
-              $scope.endDate = end.toDate();
-            });
-          }*/
+                      startDate: startDate,
+                      endDate: endDate,
+                      autoUpdateInput: false,
+                      locale: {
+                          format: 'DD/MM/YYYY',
+                          cancelLabel: 'Clear'
+                      }
+                  }
+                  /*, function(start, end, label) {
+          //$(this).val(picker.startDate.format('MM/DD/YYYY') + ' - ' + picker.endDate.format('MM/DD/YYYY'));
+          console.log("Apply :: A new date selection was made: " + start.format('YYYY-MM-DD') + ' to ' + end.format('YYYY-MM-DD'));
+          $scope.$apply(function() {
+            $scope.startDate = start.toDate();
+            $scope.endDate = end.toDate();
+          });
+        }*/
                 );
 
                 $('input[name="multipleDate"]').on('apply.daterangepicker', function (ev, picker) {
@@ -931,7 +934,7 @@ define(['./module', 'jquery', 'moment', 'camundaSDK'], function (app, $, moment,
                 processDefinitions: [{name: 'PBX', value: 'PBX'}, {
                     name: 'Подключение IVR',
                     value: 'freephone'
-                }, {name: 'BulkSMS', value: 'bulksmsConnectionKAE'}, {name: 'Aftersales PBX', value: 'AftersalesPBX'}],
+                }, {name: 'BulkSMS', value: 'bulksmsConnectionKAE'}, {name: 'Aftersales PBX', value: 'AftersalesPBX'}, {name:'PBX Revolving Numbers', value:'revolvingNumbers'}],
                 processDefinitionActivities: {},
                 activityId: '',
                 businessKey: '',
@@ -986,21 +989,21 @@ define(['./module', 'jquery', 'moment', 'camundaSDK'], function (app, $, moment,
 
             $scope.filterDP.processDefinitions.forEach(def => {
                 $http.get(baseUrl + '/process-definition/key/' + def.value + '/xml')
-                    .then(function (response) {
-                        if (response) {
-                            var domParser = new DOMParser();
-                            var xml = domParser.parseFromString(response.data.bpmn20Xml, 'application/xml');
-                            var userTasks = getUserTasks(xml);
-                            var excludeTasks = excludeTasksMap[def.value];
-                            var includedUserTasks = _.filter(userTasks, function (task) {
-                                return excludeTasks.indexOf(task.id) === -1;
-                            });
-                            $scope.userTasksDP[def.value] = includedUserTasks;
-                            var userTasksMap = _.keyBy(includedUserTasks, 'id');
-                            $scope.userTasksMapDP[def.value] = userTasksMap;
-                        }
-                    })
-                    .catch(e => console.log("error: ", e));
+                  .then(function (response) {
+                      if (response) {
+                          var domParser = new DOMParser();
+                          var xml = domParser.parseFromString(response.data.bpmn20Xml, 'application/xml');
+                          var userTasks = getUserTasks(xml);
+                          var excludeTasks = excludeTasksMap[def.value];
+                          var includedUserTasks = _.filter(userTasks, function (task) {
+                              return excludeTasks.indexOf(task.id) === -1;
+                          });
+                          $scope.userTasksDP[def.value] = includedUserTasks;
+                          var userTasksMap = _.keyBy(includedUserTasks, 'id');
+                          $scope.userTasksMapDP[def.value] = userTasksMap;
+                      }
+                  })
+                  .catch(e => console.log("error: ", e));
             });
 
             function getUserTasks(xml) {
@@ -1016,9 +1019,9 @@ define(['./module', 'jquery', 'moment', 'camundaSDK'], function (app, $, moment,
                 function getElementsByXPath(doc, xpath, namespaceFn, parent) {
                     let results = [];
                     let query = doc.evaluate(xpath,
-                        parent || doc,
-                        namespaceFn,
-                        XPathResult.ORDERED_NODE_SNAPSHOT_TYPE, null);
+                      parent || doc,
+                      namespaceFn,
+                      XPathResult.ORDERED_NODE_SNAPSHOT_TYPE, null);
                     for (let i = 0, length = query.snapshotLength; i < length; ++i) {
                         results.push(query.snapshotItem(i));
                     }
@@ -1031,10 +1034,10 @@ define(['./module', 'jquery', 'moment', 'camundaSDK'], function (app, $, moment,
                     var id = node.id;
                     var name = node.attributes["name"] && node.attributes["name"].textContent;
                     var description = getElementsByXPath(
-                        xml,
-                        'bpmn:documentation/text()',
-                        prefix => namespaces[prefix],
-                        node
+                      xml,
+                      'bpmn:documentation/text()',
+                      prefix => namespaces[prefix],
+                      node
                     )[0];
 
                     description = description && description.textContent;
@@ -1068,67 +1071,67 @@ define(['./module', 'jquery', 'moment', 'camundaSDK'], function (app, $, moment,
                     firstName = res[0];
                     lastName = res[1];
                     var users = $http.get('/camunda/api/engine/engine/default/user?firstNameLike=' + encodeURIComponent('%' + firstName + '%') + '&lastNameLike=' + encodeURIComponent('%' + lastName + '%')).then(
-                        function (response) {
-                            //console.log(response.data);
-                            var usersByFirstName = _.flatMap(response.data, function (s) {
-                                if (s.id) {
-                                    return s.id.split(',').map(function (user) {
-                                        return {
-                                            id: s.id,
-                                            email: s.email.substring(s.email.lastIndexOf('/') + 1),
-                                            firstName: s.firstName,
-                                            lastName: s.lastName,
-                                            name: s.firstName + ' ' + s.lastName
-                                        };
-                                    })
-                                } else {
-                                    return [];
-                                }
-                            });
-                            return usersByFirstName;
-                        }
+                      function (response) {
+                          //console.log(response.data);
+                          var usersByFirstName = _.flatMap(response.data, function (s) {
+                              if (s.id) {
+                                  return s.id.split(',').map(function (user) {
+                                      return {
+                                          id: s.id,
+                                          email: s.email.substring(s.email.lastIndexOf('/') + 1),
+                                          firstName: s.firstName,
+                                          lastName: s.lastName,
+                                          name: s.firstName + ' ' + s.lastName
+                                      };
+                                  })
+                              } else {
+                                  return [];
+                              }
+                          });
+                          return usersByFirstName;
+                      }
                     );
                     return users;
                 } else {
                     var users = $http.get('/camunda/api/engine/engine/default/user?firstNameLike=' + encodeURIComponent('%' + firstName + '%')).then(
-                        function (response) {
-                            var usersByFirstName = _.flatMap(response.data, function (s) {
-                                if (s.id) {
-                                    return s.id.split(',').map(function (user) {
-                                        return {
-                                            id: s.id,
-                                            email: s.email.substring(s.email.lastIndexOf('/') + 1),
-                                            firstName: s.firstName,
-                                            lastName: s.lastName,
-                                            name: s.firstName + ' ' + s.lastName
-                                        };
-                                    })
-                                } else {
-                                    return [];
-                                }
-                            });
-                            //return usersByFirstName;
-                            return $http.get('/camunda/api/engine/engine/default/user?lastNameLike=' + encodeURIComponent('%' + lastName + '%')).then(
-                                function (response) {
-                                    var usersByLastName = _.flatMap(response.data, function (s) {
-                                        if (s.id) {
-                                            return s.id.split(',').map(function (user) {
-                                                return {
-                                                    id: s.id,
-                                                    email: s.email.substring(s.email.lastIndexOf('/') + 1),
-                                                    firstName: s.firstName,
-                                                    lastName: s.lastName,
-                                                    name: s.firstName + ' ' + s.lastName
-                                                };
-                                            })
-                                        } else {
-                                            return [];
-                                        }
-                                    });
-                                    return _.unionWith(usersByFirstName, usersByLastName, _.isEqual);
-                                }
-                            );
-                        }
+                      function (response) {
+                          var usersByFirstName = _.flatMap(response.data, function (s) {
+                              if (s.id) {
+                                  return s.id.split(',').map(function (user) {
+                                      return {
+                                          id: s.id,
+                                          email: s.email.substring(s.email.lastIndexOf('/') + 1),
+                                          firstName: s.firstName,
+                                          lastName: s.lastName,
+                                          name: s.firstName + ' ' + s.lastName
+                                      };
+                                  })
+                              } else {
+                                  return [];
+                              }
+                          });
+                          //return usersByFirstName;
+                          return $http.get('/camunda/api/engine/engine/default/user?lastNameLike=' + encodeURIComponent('%' + lastName + '%')).then(
+                            function (response) {
+                                var usersByLastName = _.flatMap(response.data, function (s) {
+                                    if (s.id) {
+                                        return s.id.split(',').map(function (user) {
+                                            return {
+                                                id: s.id,
+                                                email: s.email.substring(s.email.lastIndexOf('/') + 1),
+                                                firstName: s.firstName,
+                                                lastName: s.lastName,
+                                                name: s.firstName + ' ' + s.lastName
+                                            };
+                                        })
+                                    } else {
+                                        return [];
+                                    }
+                                });
+                                return _.unionWith(usersByFirstName, usersByLastName, _.isEqual);
+                            }
+                          );
+                      }
                     );
                     return users;
 
@@ -1173,6 +1176,35 @@ define(['./module', 'jquery', 'moment', 'camundaSDK'], function (app, $, moment,
                     } else $scope.filterDP.initiator = undefined;
 
                     if ($scope.filterDP.salesRepr && $scope.filterDP.salesRepr.length && !$scope.filterDP.salesReprId) return;
+                }
+
+                if ($rootScope.selectedProcess.key === 'revolvingNumbers') {
+                    filter.processDefinitionKey = 'revolvingNumbers';
+                    if ($scope.filterDP.participation && $scope.filterDP.participation.length && $scope.filterDP.participation !== 'all') {
+                        $scope.filterDP.initiator = {id: $rootScope.authentication.name};
+                    } else $scope.filterDP.initiator = undefined;
+
+                    if ($scope.filterDP.salesRepr && $scope.filterDP.salesRepr.length && !$scope.filterDP.salesReprId) return;
+
+                    if ($scope.filterDP.salesReprId) {
+                        filter.variables.push({"name": "searchSalesReprId", "operator": "like", "value": "%" + $scope.filterDP.salesReprId + "%"});
+                    }
+
+                    if ($scope.filterDP.callerID) {
+                        filter.variables.push({"name": "searchCallerID", "operator": "like", "value": "%" + $scope.filterDP.callerID + "%"});
+                    }
+
+                    if ($scope.filterDP.connectionPoint) {
+                        filter.variables.push({"name": "searchConnectionPoint", "operator": "eq", "value": $scope.filterDP.connectionPoint});
+                    }
+
+                    if ($scope.filterDP.callbackNumber) {
+                        filter.variables.push({"name": "callbackNumber", "operator": "like", "value": "%" + $scope.filterDP.callbackNumber + "%"});
+                    }
+
+                    if ($scope.filterDP.pbxNumbers) {
+                        filter.variables.push({"name": "searchPbxNumbers", "operator": "like", "value": "%" + $scope.filterDP.pbxNumbers + "%"});
+                    }
                 }
 
                 if ($scope.filterDP.businessKey) {
@@ -1224,26 +1256,26 @@ define(['./module', 'jquery', 'moment', 'camundaSDK'], function (app, $, moment,
                         getProcessInstancesDP(filter, 'processInstancesDP');
                     } else if ($scope.filterDP.participation === 'participant') {
                         $http.post(baseUrl + '/history/task', {taskAssignee: $scope.filterDP.initiator.id}).then(
-                            function (result) {
-                                filter.processInstanceIds = _.map(result.data, 'processInstanceId');
-                                $scope.lastSearchParams = filter;
-                                getProcessInstancesDP(filter, 'processInstancesDP');
-                            },
-                            function (error) {
-                                console.log(error.data)
-                            }
+                          function (result) {
+                              filter.processInstanceIds = _.map(result.data, 'processInstanceId');
+                              $scope.lastSearchParams = filter;
+                              getProcessInstancesDP(filter, 'processInstancesDP');
+                          },
+                          function (error) {
+                              console.log(error.data)
+                          }
                         );
                     } else {
                         $http.post(baseUrl + '/history/task', {taskAssignee: $scope.filterDP.initiator.id}).then(
-                            function (result) {
-                                filter.processInstanceIds = _.map(result.data, 'processInstanceId');
-                                filter.startedBy = $scope.filterDP.initiator.id;
-                                $scope.lastSearchParams = filter;
-                                getProcessInstancesDP(filter, 'processInstancesDP');
-                            },
-                            function (error) {
-                                console.log(error.data)
-                            }
+                          function (result) {
+                              filter.processInstanceIds = _.map(result.data, 'processInstanceId');
+                              filter.startedBy = $scope.filterDP.initiator.id;
+                              $scope.lastSearchParams = filter;
+                              getProcessInstancesDP(filter, 'processInstancesDP');
+                          },
+                          function (error) {
+                              console.log(error.data)
+                          }
                         );
                         //$scope.lastSearchParams = filter;
                         //getProcessInstancesDP(filter, 'processInstancesDP');
@@ -1276,7 +1308,11 @@ define(['./module', 'jquery', 'moment', 'camundaSDK'], function (app, $, moment,
                 $scope.filterDP.pbxNumbers = undefined;
                 $('input[name="multipleDate"]').val('');
                 $('#bin').val('');
-            }
+                if ($rootScope.selectedProcess.key === 'revolvingNumbers') {
+                    $scope.filter.callerID = undefined;
+                    $scope.filter.callbackNumber = undefined;
+                }
+            };
 
             $scope.getXlsxProcessInstancesDP = function () {
                 //return $scope.ExcellentExport.convert({anchor: 'xlsxClick',format: 'xlsx',filename: 'delivery-portal'}, [{name: 'Process Instances',from: {table: 'xlsxDeliveryPortalTable'}}]);
@@ -1461,41 +1497,41 @@ define(['./module', 'jquery', 'moment', 'camundaSDK'], function (app, $, moment,
                 $scope[processInstancesDP] = [];
                 if (filter.startedBy !== undefined & filter.processInstanceIds !== undefined) {
                     var processInstanceList = defs.reduce((r, e) => r.push(
-                        $http({
-                            method: 'POST',
-                            headers: {'Accept': 'application/hal+json, application/json; q=0.5'},
-                            data: {
-                                ...filter,
-                                processInstanceIds: undefined,
-                                ...{processDefinitionKey: e.value}
-                            },
-                            url: baseUrl + '/history/process-instance/'
-                        }),
-                        $http({
-                            method: 'POST',
-                            headers: {'Accept': 'application/hal+json, application/json; q=0.5'},
-                            data: {
-                                ...filter,
-                                startedBy: undefined,
-                                ...{processDefinitionKey: e.value}
-                            },
-                            url: baseUrl + '/history/process-instance/'
-                        })
-                        ) && r,
-                        [])
+                      $http({
+                          method: 'POST',
+                          headers: {'Accept': 'application/hal+json, application/json; q=0.5'},
+                          data: {
+                              ...filter,
+                              processInstanceIds: undefined,
+                              ...{processDefinitionKey: e.value}
+                          },
+                          url: baseUrl + '/history/process-instance/'
+                      }),
+                      $http({
+                          method: 'POST',
+                          headers: {'Accept': 'application/hal+json, application/json; q=0.5'},
+                          data: {
+                              ...filter,
+                              startedBy: undefined,
+                              ...{processDefinitionKey: e.value}
+                          },
+                          url: baseUrl + '/history/process-instance/'
+                      })
+                      ) && r,
+                      [])
                 } else {
                     var processInstanceList = defs.reduce((r, e) => r.push(
-                        $http({
-                            method: 'POST',
-                            headers: {'Accept': 'application/hal+json, application/json; q=0.5'},
-                            data: {
-                                ...filter,
-                                ...{processDefinitionKey: e.value}
-                            },
-                            url: baseUrl + '/history/process-instance'
-                        })
-                        ) && r,
-                        [])
+                      $http({
+                          method: 'POST',
+                          headers: {'Accept': 'application/hal+json, application/json; q=0.5'},
+                          data: {
+                              ...filter,
+                              ...{processDefinitionKey: e.value}
+                          },
+                          url: baseUrl + '/history/process-instance'
+                      })
+                      ) && r,
+                      [])
                 }
                 //console.log('processInstanceList', processInstanceList);
 
@@ -1513,174 +1549,176 @@ define(['./module', 'jquery', 'moment', 'camundaSDK'], function (app, $, moment,
                 $q.all(processInstanceList.map(def => {
                     return def;
                 }))
-                    .then(responseResult => {
-                            //console.log('responseResult', responseResult);
-                            responseResult.forEach(r => {
-                                result.push(...r.data);
+                  .then(responseResult => {
+                        //console.log('responseResult', responseResult);
+                        responseResult.forEach(r => {
+                            result.push(...r.data);
+                        });
+                        //console.log('result', result);
+                        // exclude duplicates, since user can be as initiator and as participant of the same process instances: this is the case when it duplicates
+                        $scope[processInstancesDP] = result.filter((obj, index, self) => index === self.findIndex((t) => t.id === obj.id));
+
+                        // order by by startTime descending
+                        $scope[processInstancesDP] = $scope[processInstancesDP].sort(function (a, b) {
+                            return new Date(b.startTime) - new Date(a.startTime);
+                        });
+
+                        if ($scope[processInstancesDP].length > 0) {
+                            var activeProcessInstancesDP = _.filter($scope[processInstancesDP], function (pi) {
+                                return pi.state === 'ACTIVE';
                             });
-                            //console.log('result', result);
-                            // exclude duplicates, since user can be as initiator and as participant of the same process instances: this is the case when it duplicates
-                            $scope[processInstancesDP] = result.filter((obj, index, self) => index === self.findIndex((t) => t.id === obj.id));
 
-                            // order by by startTime descending
-                            $scope[processInstancesDP] = $scope[processInstancesDP].sort(function (a, b) {
-                                return new Date(b.startTime) - new Date(a.startTime);
-                            });
-
-                            if ($scope[processInstancesDP].length > 0) {
-                                var activeProcessInstancesDP = _.filter($scope[processInstancesDP], function (pi) {
-                                    return pi.state === 'ACTIVE';
-                                });
-
-                                var taskSearchParams = {
-                                    processInstanceBusinessKeyIn: _.map(activeProcessInstancesDP, 'businessKey'),
-                                    active: true
-                                };
-                                $http({
-                                    method: 'POST',
-                                    headers: {'Accept': 'application/hal+json, application/json; q=0.5'},
-                                    data: taskSearchParams,
-                                    url: baseUrl + '/task'
-                                }).then(
-                                    function (tasks) {
-                                        $scope[processInstancesDP].forEach(function (el) {
-                                            var f = _.filter(tasks.data, function (t) {
-                                                return t.processInstanceId === el.id;
-                                            });
-                                            if (f && f.length > 0) {
-                                                //el['tasks'] = f;
-                                                el['tasks'] = mapOrder(f, 'taskDefinitionKey');
-                                                _.forEach(el.tasks, function (task) {
-                                                    if (task.assignee && !$scope.profiles[task.assignee]) {
-                                                        $http.get(baseUrl + '/user/' + task.assignee + '/profile').then(
-                                                            function (result) {
-                                                                $scope.profiles[task.assignee] = result.data;
-                                                            },
-                                                            function (error) {
-                                                                console.log(error.data);
-                                                            }
-                                                        );
+                            var taskSearchParams = {
+                                processInstanceBusinessKeyIn: _.map(activeProcessInstancesDP, 'businessKey'),
+                                active: true
+                            };
+                            $http({
+                                method: 'POST',
+                                headers: {'Accept': 'application/hal+json, application/json; q=0.5'},
+                                data: taskSearchParams,
+                                url: baseUrl + '/task'
+                            }).then(
+                              function (tasks) {
+                                  $scope[processInstancesDP].forEach(function (el) {
+                                      var f = _.filter(tasks.data, function (t) {
+                                          return t.processInstanceId === el.id;
+                                      });
+                                      if (f && f.length > 0) {
+                                          //el['tasks'] = f;
+                                          el['tasks'] = mapOrder(f, 'taskDefinitionKey');
+                                          _.forEach(el.tasks, function (task) {
+                                              if (task.assignee && !$scope.profiles[task.assignee]) {
+                                                  $http.get(baseUrl + '/user/' + task.assignee + '/profile').then(
+                                                    function (result) {
+                                                        $scope.profiles[task.assignee] = result.data;
+                                                    },
+                                                    function (error) {
+                                                        console.log(error.data);
                                                     }
-                                                });
-                                            }
+                                                  );
+                                              }
+                                          });
+                                      }
+                                  });
+                              },
+                              function (error) {
+                                  console.log(error.data);
+                              }
+                            );
+                        }
+
+                        if ($rootScope.selectedProcess.key === 'AftersalesPBX') {
+                            $q.all($scope[processInstancesDP].map(instance => {
+                                return $http.get(baseUrl + '/history/variable-instance?deserializeValues=false&processInstanceId=' + instance.id);
+                            })).then(allResponses => {
+                                var responses = [];
+                                allResponses.forEach(r => responses.push(...r.data));
+                                responses = _.groupBy(responses, r => r.processInstanceId);
+                                for (let r in responses) {
+                                    let instance = $scope[processInstancesDP].find(e => e.id === r);
+                                    if (instance) {
+                                        responses[r].forEach(v => {
+                                            if (v.name === 'legalInfo') instance.legalInfo = JSON.parse(v.value);
+                                            else if (v.name === 'techSpecs') instance.techSpecs = JSON.parse(v.value);
+                                            else if (v.name === 'clientBIN') instance.bin = v.value;
                                         });
-                                    },
-                                    function (error) {
-                                        console.log(error.data);
+                                        if (!instance.techSpecs) instance.techSpecs = {};
+                                        if (!instance.techSpecs.sip) instance.techSpecs.sip = {};
+                                        var ok = true;
+                                        if ($scope.filterDP.ticName && (!instance.legalInfo.ticName || !instance.legalInfo.ticName.includes($scope.filterDP.ticName))) ok = false;
+                                        if ($scope.filterDP.pbxNumbers && (!instance.techSpecs.pbxNumbers || !instance.techSpecs.pbxNumbers.includes($scope.filterDP.pbxNumbers))) ok = false;
+                                        if ($scope.filterDP.salesReprId && $scope.filterDP.salesReprId !== instance.legalInfo.salesReprId) ok = false;
+                                        if ($scope.filterDP.connectionPoint
+                                          && $scope.filterDP.connectionPoint !== instance.techSpecs.connectionPoint
+                                          && $scope.filterDP.connectionPoint !== instance.techSpecs.connectionPointNew) ok = false;
+                                        if ($scope.filterDP.ip
+                                          && (!instance.techSpecs.sip.curPublicVoiceIP || !instance.techSpecs.sip.curPublicVoiceIP.includes($scope.filterDP.ip))
+                                          && (!instance.techSpecs.sip.newPublicVoiceIP || !instance.techSpecs.sip.newPublicVoiceIP.includes($scope.filterDP.ip))
+                                          && (!instance.techSpecs.sip.curSignalingIP || !instance.techSpecs.sip.curSignalingIP.includes($scope.filterDP.ip))
+                                          && (!instance.techSpecs.sip.newSignalingIP || !instance.techSpecs.sip.newSignalingIP.includes($scope.filterDP.ip))) ok = false;
+
+                                        instance.isOk = ok;
                                     }
-                                );
-                            }
+                                }
 
-                            if ($rootScope.selectedProcess.key === 'AftersalesPBX') {
-                                $q.all($scope[processInstancesDP].map(instance => {
-                                    return $http.get(baseUrl + '/history/variable-instance?deserializeValues=false&processInstanceId=' + instance.id);
-                                })).then(allResponses => {
-                                    var responses = [];
-                                    allResponses.forEach(r => responses.push(...r.data));
-                                    responses = _.groupBy(responses, r => r.processInstanceId);
-                                    for (let r in responses) {
-                                        let instance = $scope[processInstancesDP].find(e => e.id === r);
-                                        if (instance) {
-                                            responses[r].forEach(v => {
-                                                if (v.name === 'legalInfo') instance.legalInfo = JSON.parse(v.value);
-                                                else if (v.name === 'techSpecs') instance.techSpecs = JSON.parse(v.value);
-                                                else if (v.name === 'clientBIN') instance.bin = v.value;
-                                            });
-                                            if (!instance.techSpecs) instance.techSpecs = {};
-                                            if (!instance.techSpecs.sip) instance.techSpecs.sip = {};
-                                            var ok = true;
-                                            if ($scope.filterDP.ticName && (!instance.legalInfo.ticName || !instance.legalInfo.ticName.includes($scope.filterDP.ticName))) ok = false;
-                                            if ($scope.filterDP.pbxNumbers && (!instance.techSpecs.pbxNumbers || !instance.techSpecs.pbxNumbers.includes($scope.filterDP.pbxNumbers))) ok = false;
-                                            if ($scope.filterDP.salesReprId && $scope.filterDP.salesReprId !== instance.legalInfo.salesReprId) ok = false;
-                                            if ($scope.filterDP.connectionPoint
-                                                && $scope.filterDP.connectionPoint !== instance.techSpecs.connectionPoint
-                                                && $scope.filterDP.connectionPoint !== instance.techSpecs.connectionPointNew) ok = false;
-                                            if ($scope.filterDP.ip
-                                                && (!instance.techSpecs.sip.curPublicVoiceIP || !instance.techSpecs.sip.curPublicVoiceIP.includes($scope.filterDP.ip))
-                                                && (!instance.techSpecs.sip.newPublicVoiceIP || !instance.techSpecs.sip.newPublicVoiceIP.includes($scope.filterDP.ip))
-                                                && (!instance.techSpecs.sip.curSignalingIP || !instance.techSpecs.sip.curSignalingIP.includes($scope.filterDP.ip))
-                                                && (!instance.techSpecs.sip.newSignalingIP || !instance.techSpecs.sip.newSignalingIP.includes($scope.filterDP.ip))) ok = false;
-
-                                            instance.isOk = ok;
-                                        }
-                                    }
-
-                                    $scope[processInstancesDP] = $scope[processInstancesDP].filter(e => e.isOk);
-
-                                    instanceCount = $scope[processInstancesDP].length;
-                                    //console.log('instanceCount', instanceCount);
-                                    $scope[processInstancesDP + 'Total'] = instanceCount;
-                                    $scope[processInstancesDP + 'Pages'] = Math.floor(instanceCount / $scope.filterDP.maxResults) + ((instanceCount % $scope.filterDP.maxResults) > 0 ? 1 : 0);
-                                });
-                            } else {
+                                $scope[processInstancesDP] = $scope[processInstancesDP].filter(e => e.isOk);
 
                                 instanceCount = $scope[processInstancesDP].length;
                                 //console.log('instanceCount', instanceCount);
                                 $scope[processInstancesDP + 'Total'] = instanceCount;
                                 $scope[processInstancesDP + 'Pages'] = Math.floor(instanceCount / $scope.filterDP.maxResults) + ((instanceCount % $scope.filterDP.maxResults) > 0 ? 1 : 0);
+                            });
+                        } else {
 
-                                if ($scope[processInstancesDP].length > 0) {
-                                    $scope[processInstancesDP].forEach(instance => {
-                                        if (['freephone', 'bulksmsConnectionKAE', 'AftersalesPBX'].indexOf(instance.processDefinitionKey) > -1) {
-                                            $http.get(baseUrl + '/history/variable-instance?deserializeValues=false&processInstanceId=' + instance.id).then(
-                                                function (result) {
-                                                    result.data.forEach(function (el) {
-                                                        if (el.name === 'clientBIN') {
-                                                            instance.bin = el.value;
-                                                        }
-                                                        if (el.name === 'identifiers') {
-                                                            instance.identifiers = JSON.parse(el.value).map(identifier => identifier.title).toString();
-                                                        }
-                                                        //if(el.name === 'finalIDs'){
-                                                        //	if (el.type === "Json") {
-                                                        //		instance.finalIDs = JSON.parse(el.value).map(identifier => identifier.title).toString();
-                                                        //	} else {
-                                                        //		instance.finalIDs = el.value;
-                                                        //	}
-                                                        //}
-                                                    });
-                                                },
-                                                function (error) {
-                                                    console.log(error.data);
-                                                }
-                                            );
-                                        } else if (instance.processDefinitionKey === 'PBX') {
-                                            $http.get(baseUrl + '/history/variable-instance?deserializeValues=false&processInstanceId=' + instance.id).then(
-                                                function (result) {
-                                                    result.data.forEach(function (el) {
-                                                        if (el.name === 'customerInformation') {
-                                                            instance.bin = JSON.parse(el.value).bin;
-                                                        }
-                                                    });
-                                                },
-                                                function (error) {
-                                                    console.log(error.data);
-                                                }
-                                            );
-                                        }
-                                    });
-                                }
+                            instanceCount = $scope[processInstancesDP].length;
+                            //console.log('instanceCount', instanceCount);
+                            $scope[processInstancesDP + 'Total'] = instanceCount;
+                            $scope[processInstancesDP + 'Pages'] = Math.floor(instanceCount / $scope.filterDP.maxResults) + ((instanceCount % $scope.filterDP.maxResults) > 0 ? 1 : 0);
+
+                            if ($scope[processInstancesDP].length > 0) {
+                                $scope[processInstancesDP].forEach(instance => {
+                                    if (['freephone', 'bulksmsConnectionKAE', 'AftersalesPBX', 'revolvingNumbers'].indexOf(instance.processDefinitionKey) > -1) {
+                                        $http.get(baseUrl + '/history/variable-instance?deserializeValues=false&processInstanceId=' + instance.id).then(
+                                          function (result) {
+                                              if ($rootScope.selectedProcess.key === 'revolvingNumbers') {
+                                                  result.data.forEach(function (el) {
+                                                      if (el.name === 'clientBIN') instance.bin = el.value;
+                                                      else if (el.name === 'legalInfo') instance.legalInfo = JSON.parse(el.value);
+                                                      else if (el.name === 'techSpecs') instance.techSpecs = JSON.parse(el.value);
+                                                  });
+                                              }
+                                              else {
+                                                  result.data.forEach(function (el) {
+                                                      if (el.name === 'clientBIN') {
+                                                          instance.bin = el.value;
+                                                      }
+                                                      if (el.name === 'identifiers') {
+                                                          instance.identifiers = JSON.parse(el.value).map(identifier => identifier.title).toString();
+                                                      }
+                                                  });
+                                              }
+                                          },
+                                          function (error) {
+                                              console.log(error.data);
+                                          }
+                                        );
+                                    } else if (instance.processDefinitionKey === 'PBX') {
+                                        $http.get(baseUrl + '/history/variable-instance?deserializeValues=false&processInstanceId=' + instance.id).then(
+                                          function (result) {
+                                              result.data.forEach(function (el) {
+                                                  if (el.name === 'customerInformation') {
+                                                      instance.bin = JSON.parse(el.value).bin;
+                                                  }
+                                              });
+                                          },
+                                          function (error) {
+                                              console.log(error.data);
+                                          }
+                                        );
+                                    }
+                                });
                             }
-                        },
-                        function (error) {
-                            console.log(error.data);
-                        });
+                        }
+                    },
+                    function (error) {
+                        console.log(error.data);
+                    });
             }
 
             $scope.nextPageDP = function () {
                 $scope.filterDP.page++;
                 $scope.piIndex = undefined;
-            }
+            };
 
             $scope.prevPageDP = function () {
                 $scope.filterDP.page--;
                 $scope.piIndex = undefined;
-            }
+            };
 
             $scope.selectPageDP = function (page) {
                 $scope.filterDP.page = page;
                 $scope.piIndex = undefined;
-            }
+            };
 
             $scope.getPagesDP = function () {
                 var array = [];
@@ -1702,13 +1740,13 @@ define(['./module', 'jquery', 'moment', 'camundaSDK'], function (app, $, moment,
                     }
                 }
                 return array;
-            }
+            };
 
             $scope.getPageInstancesDP = function () {
                 if ($scope.processInstancesDP.length !== 0) {
                     return $scope.processInstancesDP.slice(
-                        ($scope.filterDP.page - 1) * $scope.filterDP.maxResults,
-                        $scope.filterDP.page * $scope.filterDP.maxResults
+                      ($scope.filterDP.page - 1) * $scope.filterDP.maxResults,
+                      $scope.filterDP.page * $scope.filterDP.maxResults
                     );
                 }
                 return [];
@@ -1732,7 +1770,7 @@ define(['./module', 'jquery', 'moment', 'camundaSDK'], function (app, $, moment,
                 $scope.showDiagramView = false;
                 $scope.diagram = {};
                 var index = ($scope.filterDP.page - 1) * $scope.filterDP.maxResults + rowIndex;
-                if (processDefinitionKey === 'freephone' || processDefinitionKey === 'bulksmsConnectionKAE' || processDefinitionKey === 'PBX' || processDefinitionKey === 'AftersalesPBX') {
+                if (processDefinitionKey === 'freephone' || processDefinitionKey === 'bulksmsConnectionKAE' || processDefinitionKey === 'PBX' || processDefinitionKey === 'AftersalesPBX' || processDefinitionKey === 'revolvingNumbers') {
                     if ($scope.piIndex === index) {
                         $scope.piIndex = undefined;
                     } else {
@@ -1747,180 +1785,180 @@ define(['./module', 'jquery', 'moment', 'camundaSDK'], function (app, $, moment,
                             headers: {'Accept': 'application/hal+json, application/json; q=0.5'},
                             url: baseUrl + '/task?processInstanceId=' + $scope.processInstancesDP[index].id,
                         }).then(
-                            function (tasks) {
-                                var processInstanceTasks = tasks.data._embedded.task;
-                                if (processInstanceTasks && processInstanceTasks.length > 0) {
-                                    processInstanceTasks.forEach(function (e) {
-                                        if (e.assignee && tasks.data._embedded.assignee) {
-                                            for (var i = 0; i < tasks.data._embedded.assignee.length; i++) {
-                                                if (tasks.data._embedded.assignee[i].id === e.assignee) {
-                                                    e.assigneeObject = tasks.data._embedded.assignee[i];
-                                                }
-                                            }
-                                        }
-                                        $http({
-                                            method: 'GET',
-                                            headers: {'Accept': 'application/hal+json, application/json; q=0.5'},
-                                            url: baseUrl + '/task/' + e.id
-                                        }).then(
-                                            function (taskResult) {
-                                                if (taskResult.data._embedded && taskResult.data._embedded.group) {
-                                                    e.group = taskResult.data._embedded.group[0].id;
-                                                }
-                                            },
-                                            function (error) {
-                                                console.log(error.data);
-                                            }
-                                        );
-                                    });
-                                }
-                                $http.get(baseUrl + '/history/variable-instance?deserializeValues=false&processInstanceId=' + $scope.processInstancesDP[index].id).then(
-                                    function (result) {
-                                        result.data.forEach(function (el) {
-                                            $scope.jobModel[el.name] = el;
-                                            //console.log(el.name, el.value);
-                                            if (el.type !== 'Json' && (el.value || el.value === "" || el.type === 'Boolean')) {
-                                                $scope.jobModel[el.name] = el.value;
-                                            }
-                                            if (el.type === 'File' || el.type === 'Bytes') {
-                                                $scope.jobModel[el.name].contentUrl = baseUrl + '/history/variable-instance/' + el.id + '/data';
-                                            }
-                                            if (el.name === 'techSpecs' && el.type === 'String') {
-                                                $scope.jobModel[el.name] = JSON.parse(el.value);
-                                            }
-                                            if (el.type === 'Json') {
-                                                if (el.name === 'resolutions') {
-                                                    $scope.jobModel[el.name].value = JSON.parse(el.value);
-                                                } else if (['contractScanCopyFileName', 'applicationScanCopyFileName', 'vpnQuestionnaireFileName'].indexOf(el.name) > -1) {
-                                                    if (!$scope.jobModel.files) {
-                                                        $scope.jobModel.files = [];
-                                                    }
-                                                    $scope.jobModel.files.push(JSON.parse(el.value));
-                                                } else {
-                                                    $scope.jobModel[el.name] = JSON.parse(el.value);
-                                                }
-                                            }
-                                            if (el.name === 'starter') {
-                                                $scope.jobModel.starterName = el.value;
-                                                $http.get('/camunda/api/engine/engine/default/user/' + el.value + '/profile').then(
-                                                    function (result) {
-                                                        $scope.jobModel.starterName = result.data.firstName + ' ' + result.data.lastName;
-                                                    },
-                                                    function (error) {
-                                                        console.log(error.data);
-                                                    }
-                                                );
-                                            }
-                                        });
-                                        //console.log('jobModel', $scope.jobModel);
-                                        if ($scope.jobModel.resolutions && $scope.jobModel.resolutions.value) {
-                                            $q.all($scope.jobModel.resolutions.value.map(function (resolution) {
-                                                return $http.get("/camunda/api/engine/engine/default/history/task?processInstanceId=" + resolution.processInstanceId + "&taskId=" + resolution.taskId);
-                                            })).then(function (tasks) {
-                                                tasks.forEach(function (e, index) {
-                                                    if (e.data.length > 0) {
-                                                        $scope.jobModel.resolutions.value[index].taskName = e.data[0].name;
-                                                        try {
-                                                            $scope.jobModel.resolutions.value[index].taskEndDate = new Date(e.data[0].endTime);
-                                                        } catch (e) {
-                                                            console.log(e);
-                                                        }
-                                                    }
-                                                });
-                                            });
-                                        }
-                                        angular.extend($scope.jobModel, catalogs);
-                                        $scope.jobModel.showTarif = true;
-                                        $scope.jobModel.tasks = processInstanceTasks;
-                                    },
-                                    function (error) {
-                                        console.log(error.data);
-                                    }
-                                );
-                                /// aftersales start
-                                if (processDefinitionKey === 'freephone' || processDefinitionKey === 'bulksmsConnectionKAE') {
-                                    $http({
-                                        method: 'POST',
-                                        headers: {'Accept': 'application/hal+json, application/json; q=0.5'},
-                                        data: {
-                                            sorting: [{sortBy: "startTime", sortOrder: "desc"}],
-                                            variables: [{
-                                                "name": "relatedProcessInstanceId",
-                                                "operator": "eq",
-                                                "value": $scope.processInstancesDP[index].id
-                                            }],
-                                            processDefinitionKey: 'after-sales-ivr-sms'
-                                        },
-                                        url: baseUrl + '/history/process-instance'
-                                    }).then(function (response) {
-                                            if (response && response.data) {
-                                                $scope.processInstancesAftersales = angular.copy(response.data);
-                                                if ($scope.processInstancesAftersales.length > 0) {
-                                                    $scope.disableAftersalesStart = $scope.processInstancesAftersales.filter(function (pi) {
-                                                        return ['EXTERNALLY_TERMINATED', 'INTERNALLY_TERMINATED', 'COMPLETED'].indexOf(pi.state) === -1
-                                                    }).length > 0;
-                                                    $scope.processInstancesAftersales.forEach(function (instance) {
-                                                        $http.get(baseUrl + '/history/variable-instance?deserializeValues=false&processInstanceId=' + instance.id).then(
-                                                            function (result) {
-                                                                instance.changeTypes = [];
-                                                                result.data.forEach(function (el) {
-                                                                    if (el.name === 'relatedProcessInstanceVariables') {
-                                                                        var relPiVars = JSON.parse(el.value);
-                                                                        Object.keys(relPiVars).forEach(function (name) {
-                                                                            if (name !== "identifiers") {
-                                                                                instance[name] = relPiVars[name];
-                                                                            }
-                                                                        });
-                                                                    } else {
-                                                                        //if(el.name == "identifiers"){
-                                                                        if (el.type == "Json") {
-                                                                            if (['contractScanCopyFileName', 'applicationScanCopyFileName'].indexOf(el.name) > -1) {
-                                                                                if (!instance.files) {
-                                                                                    instance.files = [];
-                                                                                }
-                                                                                instance.files.push(JSON.parse(el.value));
-                                                                            } else {
-                                                                                instance[el.name] = JSON.parse(el.value);
-                                                                            }
-                                                                        } else {
-                                                                            instance[el.name] = el.value;
-                                                                        }
-                                                                    }
-                                                                    ;
-                                                                    instance.showTarif = true;
-                                                                    if (["disconnectProcess", "changeOfficialClientCompanyName", "changeContractNumber", "disconnectOperator", "connectOperator", "changeConnectionType", "changeIpNumber", "changeIdentifier", "changeSmsServiceType", "changeProvider", "changeTransmitNumber"].indexOf(el.name) > -1) {
-                                                                        if (el.value) {
-                                                                            instance.changeTypes.push($scope.mapChangeType[el.name]);
-                                                                            if (el.name === "disconnectProcess") {
-                                                                                if (instance.state === "COMPLETED") {
-                                                                                    $scope.disableAftersalesStart = true;
-                                                                                }
-                                                                            }
-                                                                        }
-                                                                    }
-                                                                });
-                                                            },
-                                                            function (error) {
-                                                                console.log(error.data);
-                                                            }
-                                                        )
-                                                    });
-                                                } else {
-                                                    $scope.disableAftersalesStart = false;
-                                                }
+                          function (tasks) {
+                              var processInstanceTasks = tasks.data._embedded.task;
+                              if (processInstanceTasks && processInstanceTasks.length > 0) {
+                                  processInstanceTasks.forEach(function (e) {
+                                      if (e.assignee && tasks.data._embedded.assignee) {
+                                          for (var i = 0; i < tasks.data._embedded.assignee.length; i++) {
+                                              if (tasks.data._embedded.assignee[i].id === e.assignee) {
+                                                  e.assigneeObject = tasks.data._embedded.assignee[i];
+                                              }
+                                          }
+                                      }
+                                      $http({
+                                          method: 'GET',
+                                          headers: {'Accept': 'application/hal+json, application/json; q=0.5'},
+                                          url: baseUrl + '/task/' + e.id
+                                      }).then(
+                                        function (taskResult) {
+                                            if (taskResult.data._embedded && taskResult.data._embedded.group) {
+                                                e.group = taskResult.data._embedded.group[0].id;
                                             }
                                         },
                                         function (error) {
                                             console.log(error.data);
                                         }
-                                    );
+                                      );
+                                  });
+                              }
+                              $http.get(baseUrl + '/history/variable-instance?deserializeValues=false&processInstanceId=' + $scope.processInstancesDP[index].id).then(
+                                function (result) {
+                                    result.data.forEach(function (el) {
+                                        $scope.jobModel[el.name] = el;
+                                        //console.log(el.name, el.value);
+                                        if (el.type !== 'Json' && (el.value || el.value === "" || el.type === 'Boolean')) {
+                                            $scope.jobModel[el.name] = el.value;
+                                        }
+                                        if (el.type === 'File' || el.type === 'Bytes') {
+                                            $scope.jobModel[el.name].contentUrl = baseUrl + '/history/variable-instance/' + el.id + '/data';
+                                        }
+                                        if (el.name === 'techSpecs' && el.type === 'String') {
+                                            $scope.jobModel[el.name] = JSON.parse(el.value);
+                                        }
+                                        if (el.type === 'Json') {
+                                            if (el.name === 'resolutions') {
+                                                $scope.jobModel[el.name].value = JSON.parse(el.value);
+                                            } else if (['contractScanCopyFileName', 'applicationScanCopyFileName', 'vpnQuestionnaireFileName'].indexOf(el.name) > -1) {
+                                                if (!$scope.jobModel.files) {
+                                                    $scope.jobModel.files = [];
+                                                }
+                                                $scope.jobModel.files.push(JSON.parse(el.value));
+                                            } else {
+                                                $scope.jobModel[el.name] = JSON.parse(el.value);
+                                            }
+                                        }
+                                        if (el.name === 'starter') {
+                                            $scope.jobModel.starterName = el.value;
+                                            $http.get('/camunda/api/engine/engine/default/user/' + el.value + '/profile').then(
+                                              function (result) {
+                                                  $scope.jobModel.starterName = result.data.firstName + ' ' + result.data.lastName;
+                                              },
+                                              function (error) {
+                                                  console.log(error.data);
+                                              }
+                                            );
+                                        }
+                                    });
+                                    //console.log('jobModel', $scope.jobModel);
+                                    if ($scope.jobModel.resolutions && $scope.jobModel.resolutions.value) {
+                                        $q.all($scope.jobModel.resolutions.value.map(function (resolution) {
+                                            return $http.get("/camunda/api/engine/engine/default/history/task?processInstanceId=" + resolution.processInstanceId + "&taskId=" + resolution.taskId);
+                                        })).then(function (tasks) {
+                                            tasks.forEach(function (e, index) {
+                                                if (e.data.length > 0) {
+                                                    $scope.jobModel.resolutions.value[index].taskName = e.data[0].name;
+                                                    try {
+                                                        $scope.jobModel.resolutions.value[index].taskEndDate = new Date(e.data[0].endTime);
+                                                    } catch (e) {
+                                                        console.log(e);
+                                                    }
+                                                }
+                                            });
+                                        });
+                                    }
+                                    angular.extend($scope.jobModel, catalogs);
+                                    $scope.jobModel.showTarif = true;
+                                    $scope.jobModel.tasks = processInstanceTasks;
+                                },
+                                function (error) {
+                                    console.log(error.data);
                                 }
-                                /// aftersales end
+                              );
+                              /// aftersales start
+                              if (processDefinitionKey === 'freephone' || processDefinitionKey === 'bulksmsConnectionKAE') {
+                                  $http({
+                                      method: 'POST',
+                                      headers: {'Accept': 'application/hal+json, application/json; q=0.5'},
+                                      data: {
+                                          sorting: [{sortBy: "startTime", sortOrder: "desc"}],
+                                          variables: [{
+                                              "name": "relatedProcessInstanceId",
+                                              "operator": "eq",
+                                              "value": $scope.processInstancesDP[index].id
+                                          }],
+                                          processDefinitionKey: 'after-sales-ivr-sms'
+                                      },
+                                      url: baseUrl + '/history/process-instance'
+                                  }).then(function (response) {
+                                        if (response && response.data) {
+                                            $scope.processInstancesAftersales = angular.copy(response.data);
+                                            if ($scope.processInstancesAftersales.length > 0) {
+                                                $scope.disableAftersalesStart = $scope.processInstancesAftersales.filter(function (pi) {
+                                                    return ['EXTERNALLY_TERMINATED', 'INTERNALLY_TERMINATED', 'COMPLETED'].indexOf(pi.state) === -1
+                                                }).length > 0;
+                                                $scope.processInstancesAftersales.forEach(function (instance) {
+                                                    $http.get(baseUrl + '/history/variable-instance?deserializeValues=false&processInstanceId=' + instance.id).then(
+                                                      function (result) {
+                                                          instance.changeTypes = [];
+                                                          result.data.forEach(function (el) {
+                                                              if (el.name === 'relatedProcessInstanceVariables') {
+                                                                  var relPiVars = JSON.parse(el.value);
+                                                                  Object.keys(relPiVars).forEach(function (name) {
+                                                                      if (name !== "identifiers") {
+                                                                          instance[name] = relPiVars[name];
+                                                                      }
+                                                                  });
+                                                              } else {
+                                                                  //if(el.name == "identifiers"){
+                                                                  if (el.type == "Json") {
+                                                                      if (['contractScanCopyFileName', 'applicationScanCopyFileName'].indexOf(el.name) > -1) {
+                                                                          if (!instance.files) {
+                                                                              instance.files = [];
+                                                                          }
+                                                                          instance.files.push(JSON.parse(el.value));
+                                                                      } else {
+                                                                          instance[el.name] = JSON.parse(el.value);
+                                                                      }
+                                                                  } else {
+                                                                      instance[el.name] = el.value;
+                                                                  }
+                                                              }
+                                                              ;
+                                                              instance.showTarif = true;
+                                                              if (["disconnectProcess", "changeOfficialClientCompanyName", "changeContractNumber", "disconnectOperator", "connectOperator", "changeConnectionType", "changeIpNumber", "changeIdentifier", "changeSmsServiceType", "changeProvider", "changeTransmitNumber"].indexOf(el.name) > -1) {
+                                                                  if (el.value) {
+                                                                      instance.changeTypes.push($scope.mapChangeType[el.name]);
+                                                                      if (el.name === "disconnectProcess") {
+                                                                          if (instance.state === "COMPLETED") {
+                                                                              $scope.disableAftersalesStart = true;
+                                                                          }
+                                                                      }
+                                                                  }
+                                                              }
+                                                          });
+                                                      },
+                                                      function (error) {
+                                                          console.log(error.data);
+                                                      }
+                                                    )
+                                                });
+                                            } else {
+                                                $scope.disableAftersalesStart = false;
+                                            }
+                                        }
+                                    },
+                                    function (error) {
+                                        console.log(error.data);
+                                    }
+                                  );
+                              }
+                              /// aftersales end
 
-                            },
-                            function (error) {
-                                console.log(error.data);
-                            }
+                          },
+                          function (error) {
+                              console.log(error.data);
+                          }
                         );
                     }
                 }
@@ -1951,70 +1989,70 @@ define(['./module', 'jquery', 'moment', 'camundaSDK'], function (app, $, moment,
                         headers: {'Accept': 'application/hal+json, application/json; q=0.5'},
                         url: baseUrl + '/task?processInstanceId=' + $scope.processInstancesAftersales[index].id,
                     }).then(
-                        function (tasks) {
-                            var processInstanceTasks = tasks.data._embedded.task;
-                            if (processInstanceTasks && processInstanceTasks.length > 0) {
-                                processInstanceTasks.forEach(function (e) {
-                                    if (e.assignee && tasks.data._embedded.assignee) {
-                                        for (var i = 0; i < tasks.data._embedded.assignee.length; i++) {
-                                            if (tasks.data._embedded.assignee[i].id === e.assignee) {
-                                                e.assigneeObject = tasks.data._embedded.assignee[i];
-                                            }
+                      function (tasks) {
+                          var processInstanceTasks = tasks.data._embedded.task;
+                          if (processInstanceTasks && processInstanceTasks.length > 0) {
+                              processInstanceTasks.forEach(function (e) {
+                                  if (e.assignee && tasks.data._embedded.assignee) {
+                                      for (var i = 0; i < tasks.data._embedded.assignee.length; i++) {
+                                          if (tasks.data._embedded.assignee[i].id === e.assignee) {
+                                              e.assigneeObject = tasks.data._embedded.assignee[i];
+                                          }
+                                      }
+                                  }
+                                  $http({
+                                      method: 'GET',
+                                      headers: {'Accept': 'application/hal+json, application/json; q=0.5'},
+                                      url: baseUrl + '/task/' + e.id
+                                  }).then(
+                                    function (taskResult) {
+                                        if (taskResult.data._embedded && taskResult.data._embedded.group) {
+                                            e.group = taskResult.data._embedded.group[0].id;
                                         }
+                                    },
+                                    function (error) {
+                                        console.log(error.data);
                                     }
-                                    $http({
-                                        method: 'GET',
-                                        headers: {'Accept': 'application/hal+json, application/json; q=0.5'},
-                                        url: baseUrl + '/task/' + e.id
-                                    }).then(
-                                        function (taskResult) {
-                                            if (taskResult.data._embedded && taskResult.data._embedded.group) {
-                                                e.group = taskResult.data._embedded.group[0].id;
-                                            }
-                                        },
-                                        function (error) {
-                                            console.log(error.data);
-                                        }
-                                    );
+                                  );
+                              });
+                          }
+                          $http.get(baseUrl + '/history/variable-instance?deserializeValues=false&processInstanceId=' + $scope.processInstancesAftersales[index].id).then(
+                            function (result) {
+                                result.data.forEach(function (el) {
+                                    if (el.type === 'Json' && el.name === 'resolutions') {
+                                        $scope.toggleInfoAftersales[el.name] = el;
+                                        $scope.toggleInfoAftersales[el.name].value = JSON.parse(el.value);
+                                    }
                                 });
-                            }
-                            $http.get(baseUrl + '/history/variable-instance?deserializeValues=false&processInstanceId=' + $scope.processInstancesAftersales[index].id).then(
-                                function (result) {
-                                    result.data.forEach(function (el) {
-                                        if (el.type === 'Json' && el.name === 'resolutions') {
-                                            $scope.toggleInfoAftersales[el.name] = el;
-                                            $scope.toggleInfoAftersales[el.name].value = JSON.parse(el.value);
-                                        }
-                                    });
-                                    if ($scope.toggleInfoAftersales.resolutions && $scope.toggleInfoAftersales.resolutions.value) {
-                                        $q.all($scope.toggleInfoAftersales.resolutions.value.map(function (resolution) {
-                                            return $http.get("/camunda/api/engine/engine/default/history/task?processInstanceId=" + resolution.processInstanceId + "&taskId=" + resolution.taskId);
-                                        })).then(function (tasks) {
-                                            tasks.forEach(function (e, index) {
-                                                if (e.data.length > 0) {
-                                                    $scope.toggleInfoAftersales.resolutions.value[index].taskName = e.data[0].name;
-                                                    try {
-                                                        $scope.toggleInfoAftersales.resolutions.value[index].taskEndDate = new Date(e.data[0].endTime);
-                                                    } catch (e) {
-                                                        console.log(e);
-                                                    }
+                                if ($scope.toggleInfoAftersales.resolutions && $scope.toggleInfoAftersales.resolutions.value) {
+                                    $q.all($scope.toggleInfoAftersales.resolutions.value.map(function (resolution) {
+                                        return $http.get("/camunda/api/engine/engine/default/history/task?processInstanceId=" + resolution.processInstanceId + "&taskId=" + resolution.taskId);
+                                    })).then(function (tasks) {
+                                        tasks.forEach(function (e, index) {
+                                            if (e.data.length > 0) {
+                                                $scope.toggleInfoAftersales.resolutions.value[index].taskName = e.data[0].name;
+                                                try {
+                                                    $scope.toggleInfoAftersales.resolutions.value[index].taskEndDate = new Date(e.data[0].endTime);
+                                                } catch (e) {
+                                                    console.log(e);
                                                 }
-                                            });
+                                            }
                                         });
-                                    }
-                                    //angular.extend($scope.toggleInfoAftersales, catalogs);
-
-                                    //$scope.toggleInfoAftersales.tasks = processInstanceTasks;
-                                },
-                                function (error) {
-                                    console.log(error.data);
+                                    });
                                 }
-                            );
+                                //angular.extend($scope.toggleInfoAftersales, catalogs);
 
-                        },
-                        function (error) {
-                            console.log(error.data);
-                        }
+                                //$scope.toggleInfoAftersales.tasks = processInstanceTasks;
+                            },
+                            function (error) {
+                                console.log(error.data);
+                            }
+                          );
+
+                      },
+                      function (error) {
+                          console.log(error.data);
+                      }
                     );
 
 
@@ -2028,27 +2066,27 @@ define(['./module', 'jquery', 'moment', 'camundaSDK'], function (app, $, moment,
                 if ($rootScope.selectedProcess.key === 'Demand') {
                     $scope.demandTasks = [];
                     $http.get(baseUrl + '/process-definition/key/' + $rootScope.selectedProcess.key + '/xml').then(
-                        function (response) {
-                            if (response) {
-                                var domParser = new DOMParser();
-                                var xml = domParser.parseFromString(response.data.bpmn20Xml, 'application/xml');
-                                $scope.demandTasks = getUserTasks(xml);
-                                $scope.demandTasks = $scope.demandTasks.map(e => {
-                                    if (e.id === 'supportiveInputBI') e.name = 'Supportive input BI';
-                                    else if (e.id === 'supportiveInputBI') e.name = 'Supportive input BI';
-                                    else if (e.id === 'supportiveInputCPD') e.name = 'Supportive input CPD';
-                                    else if (e.id === 'supportiveInputHR') e.name = 'Supportive input HR';
-                                    else if (e.id === 'supportiveInputLD') e.name = 'Supportive input LD';
-                                    else if (e.id === 'supportiveInputTD') e.name = 'Supportive input TD';
-                                    else if (e.id === 'supportiveInputWH') e.name = 'Supportive input WH';
-                                    else if (e.id === 'supportiveInputOther') e.name = 'Supportive input Other';
-                                    else if (e.id === 'requestInfoCPD') e.name = 'Request info Centralized Procurement Department';
-                                    else if (e.id === 'requestInfoHR') e.name = 'Request info Human Resources Department';
-                                    else if (e.id === 'requestInfoOther') e.name = 'Request info Technology Department';
-                                    return e;
-                                });
-                            }
-                        }
+                      function (response) {
+                          if (response) {
+                              var domParser = new DOMParser();
+                              var xml = domParser.parseFromString(response.data.bpmn20Xml, 'application/xml');
+                              $scope.demandTasks = getUserTasks(xml);
+                              $scope.demandTasks = $scope.demandTasks.map(e => {
+                                  if (e.id === 'supportiveInputBI') e.name = 'Supportive input BI';
+                                  else if (e.id === 'supportiveInputBI') e.name = 'Supportive input BI';
+                                  else if (e.id === 'supportiveInputCPD') e.name = 'Supportive input CPD';
+                                  else if (e.id === 'supportiveInputHR') e.name = 'Supportive input HR';
+                                  else if (e.id === 'supportiveInputLD') e.name = 'Supportive input LD';
+                                  else if (e.id === 'supportiveInputTD') e.name = 'Supportive input TD';
+                                  else if (e.id === 'supportiveInputWH') e.name = 'Supportive input WH';
+                                  else if (e.id === 'supportiveInputOther') e.name = 'Supportive input Other';
+                                  else if (e.id === 'requestInfoCPD') e.name = 'Request info Centralized Procurement Department';
+                                  else if (e.id === 'requestInfoHR') e.name = 'Request info Human Resources Department';
+                                  else if (e.id === 'requestInfoOther') e.name = 'Request info Technology Department';
+                                  return e;
+                              });
+                          }
+                      }
                     ).catch(e => console.log("error: ", e));
                     $scope.demandOptions = [];
                     $scope.multiselectSettings = {};
@@ -2234,27 +2272,27 @@ define(['./module', 'jquery', 'moment', 'camundaSDK'], function (app, $, moment,
                         }
 
                         if ($scope.filter.initiativeDep) {
-                          filter.variables.push({
-                            name: "searchInitialDep",
-                            operator: "eq",
-                            value: $scope.filter.initiativeDep
-                          });
+                            filter.variables.push({
+                                name: "searchInitialDep",
+                                operator: "eq",
+                                value: $scope.filter.initiativeDep
+                            });
                         }
 
                         if ($scope.filter.productName) {
-                          filter.variables.push({
-                            name: "searchProductName",
-                            operator: "like",
-                            value: '%' + $scope.filter.productName.toLowerCase() + '%'
-                          });
+                            filter.variables.push({
+                                name: "searchProductName",
+                                operator: "like",
+                                value: '%' + $scope.filter.productName.toLowerCase() + '%'
+                            });
                         }
 
                         if ($scope.filter.productOffer) {
-                          filter.variables.push({
-                            name: "productOfferNames",
-                            operator: "like",
-                            value: '%' + $scope.filter.productOffer.toLowerCase() + '%'
-                          });
+                            filter.variables.push({
+                                name: "productOfferNames",
+                                operator: "like",
+                                value: '%' + $scope.filter.productOffer.toLowerCase() + '%'
+                            });
                         }
 
 
@@ -2333,11 +2371,11 @@ define(['./module', 'jquery', 'moment', 'camundaSDK'], function (app, $, moment,
                                 taskAssignee: $scope.filter.assigneeId,
                                 unfinished: true
                             }).then(
-                                function (result) {
-                                    filter.processInstanceIds = _.map(result.data, 'processInstanceId');
-                                    $scope.lastSearchParams = filter;
-                                    getDemandProcessInstances(filter);
-                                }
+                              function (result) {
+                                  filter.processInstanceIds = _.map(result.data, 'processInstanceId');
+                                  $scope.lastSearchParams = filter;
+                                  getDemandProcessInstances(filter);
+                              }
                             ).catch(e => console.log("error: ", e));
                         } else {
                             $scope.lastSearchParams = filter;
@@ -2353,10 +2391,10 @@ define(['./module', 'jquery', 'moment', 'camundaSDK'], function (app, $, moment,
                             data: filter,
                             url: baseUrl + '/history/process-instance/count'
                         }).then(
-                            function (result) {
-                                $scope.processInstancesTotal = result.data.count;
-                                $scope.processInstancesPages = Math.floor(result.data.count / $scope.filter.maxResults) + ((result.data.count % $scope.filter.maxResults) > 0 ? 1 : 0);
-                            }
+                          function (result) {
+                              $scope.processInstancesTotal = result.data.count;
+                              $scope.processInstancesPages = Math.floor(result.data.count / $scope.filter.maxResults) + ((result.data.count % $scope.filter.maxResults) > 0 ? 1 : 0);
+                          }
                         );
                         $http({
                             method: 'POST',
@@ -2364,76 +2402,76 @@ define(['./module', 'jquery', 'moment', 'camundaSDK'], function (app, $, moment,
                             data: filter,
                             url: baseUrl + '/history/process-instance' + (full ? '' : '?firstResult=' + ($scope.filter.page - 1) * $scope.filter.maxResults + '&maxResults=' + $scope.filter.maxResults)
                         }).then(
-                            function (result) {
-                                $scope.processInstances = result.data;
-                                if ($scope.processInstances.length) {
-                                    $scope.processInstances.forEach((e) => {
-                                        if (!$scope.profiles[e.startUserId]) {
-                                            $http.get(baseUrl + '/user/' + e.startUserId + '/profile').then(
-                                                function (result) {
-                                                    $scope.profiles[e.startUserId] = result.data;
-                                                }
-                                            ).catch(e => console.log("error: ", e));
-                                        }
-                                    });
-                                    let fetchVars = ['generalData', 'demandName', 'status'];
-                                    fetchVars.forEach((v) => {
-                                        $http({
-                                            method: 'POST',
-                                            headers: {'Accept': 'application/hal+json, application/json; q=0.5'},
-                                            data: {
-                                                processInstanceIdIn: _.map($scope.processInstances, 'id'),
-                                                variableName: v
-                                            },
-                                            url: baseUrl + '/history/variable-instance?deserializeValues=false'
-                                        }).then(
+                          function (result) {
+                              $scope.processInstances = result.data;
+                              if ($scope.processInstances.length) {
+                                  $scope.processInstances.forEach((e) => {
+                                      if (!$scope.profiles[e.startUserId]) {
+                                          $http.get(baseUrl + '/user/' + e.startUserId + '/profile').then(
                                             function (result) {
-                                                let variables = _.groupBy(result.data, 'processInstanceId');
-                                                $scope.processInstances.forEach((e) => {
-                                                    if (variables[e.id]) {
-                                                        variables[e.id].forEach((v) => {
-                                                            if (v.type === 'Json') e[v.name] = JSON.parse(v.value);
-                                                            else e[v.name] = v.value;
-                                                        });
-                                                    }
-                                                });
+                                                $scope.profiles[e.startUserId] = result.data;
                                             }
-                                        ).catch(e => console.log("error: ", e));
-                                    });
-                                    var activeProcessInstances = $scope.processInstances.filter((e) => {
-                                        return e.state === 'ACTIVE';
-                                    });
-                                    var taskSearchParams = {
-                                        processInstanceBusinessKeyIn: _.map(activeProcessInstances, 'businessKey'),
-                                        active: true
-                                    };
-                                    $http({
-                                        method: 'POST',
-                                        headers: {'Accept': 'application/hal+json, application/json; q=0.5'},
-                                        data: taskSearchParams,
-                                        url: baseUrl + '/task'
-                                    }).then(
+                                          ).catch(e => console.log("error: ", e));
+                                      }
+                                  });
+                                  let fetchVars = ['generalData', 'demandName', 'status'];
+                                  fetchVars.forEach((v) => {
+                                      $http({
+                                          method: 'POST',
+                                          headers: {'Accept': 'application/hal+json, application/json; q=0.5'},
+                                          data: {
+                                              processInstanceIdIn: _.map($scope.processInstances, 'id'),
+                                              variableName: v
+                                          },
+                                          url: baseUrl + '/history/variable-instance?deserializeValues=false'
+                                      }).then(
                                         function (result) {
-                                            let tasks = _.groupBy(result.data, 'processInstanceId');
+                                            let variables = _.groupBy(result.data, 'processInstanceId');
                                             $scope.processInstances.forEach((e) => {
-
-                                                if (tasks[e.id]) {
-                                                    e.tasks = tasks[e.id];
-                                                    e.tasks.forEach((t) => {
-                                                        if (t.assignee && !$scope.profiles[t.assignee]) {
-                                                            $http.get(baseUrl + '/user/' + t.assignee + '/profile').then(
-                                                                function (result) {
-                                                                    $scope.profiles[t.assignee] = result.data;
-                                                                }
-                                                            ).catch(e => console.log("error: ", e));
-                                                        }
+                                                if (variables[e.id]) {
+                                                    variables[e.id].forEach((v) => {
+                                                        if (v.type === 'Json') e[v.name] = JSON.parse(v.value);
+                                                        else e[v.name] = v.value;
                                                     });
                                                 }
                                             });
                                         }
-                                    ).catch(e => console.log("error: ", e));
-                                }
-                            }
+                                      ).catch(e => console.log("error: ", e));
+                                  });
+                                  var activeProcessInstances = $scope.processInstances.filter((e) => {
+                                      return e.state === 'ACTIVE';
+                                  });
+                                  var taskSearchParams = {
+                                      processInstanceBusinessKeyIn: _.map(activeProcessInstances, 'businessKey'),
+                                      active: true
+                                  };
+                                  $http({
+                                      method: 'POST',
+                                      headers: {'Accept': 'application/hal+json, application/json; q=0.5'},
+                                      data: taskSearchParams,
+                                      url: baseUrl + '/task'
+                                  }).then(
+                                    function (result) {
+                                        let tasks = _.groupBy(result.data, 'processInstanceId');
+                                        $scope.processInstances.forEach((e) => {
+
+                                            if (tasks[e.id]) {
+                                                e.tasks = tasks[e.id];
+                                                e.tasks.forEach((t) => {
+                                                    if (t.assignee && !$scope.profiles[t.assignee]) {
+                                                        $http.get(baseUrl + '/user/' + t.assignee + '/profile').then(
+                                                          function (result) {
+                                                              $scope.profiles[t.assignee] = result.data;
+                                                          }
+                                                        ).catch(e => console.log("error: ", e));
+                                                    }
+                                                });
+                                            }
+                                        });
+                                    }
+                                  ).catch(e => console.log("error: ", e));
+                              }
+                          }
                         ).catch(e => console.log("error: ", e));
                     };
 

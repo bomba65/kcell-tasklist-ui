@@ -2,5 +2,6 @@ define([
   './legalInfo',
   './techSpecs',
   './sipProtocol',
-  './directProtocol'
+  './directProtocol',
+  './info'
 ], function(){});
