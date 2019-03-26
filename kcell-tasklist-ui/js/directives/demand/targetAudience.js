@@ -21,6 +21,7 @@ define(['./../module'], function(module){
 					externalIdProp: 'v'
 				};
 				scope.audienceOptions = [
+					{v: "All"},
 					{v: "B2B"},
 					{v: "B2C"},
 					{v: "CCD"},
@@ -33,6 +34,7 @@ define(['./../module'], function(module){
 					{v: "NB"}
 				];
 				scope.roumingOptions = [
+					{v:'All'},
 					{v:'Astana and Akmola region'},
 					{v:'Almaty and Almaty region'},
 					{v:'Taraz and Zhambyl region'},
@@ -45,7 +47,8 @@ define(['./../module'], function(module){
 					{v:'Aktau and Mangystau region'},
 					{v:'Aktobe and Aktobe region'},
 					{v:'Uralsk and West-Kazakhstan region'},
-					{v:'Karagandy and Karagangdy region'}
+					{v:'Karagandy and Karagangdy region'},
+					{v:'Atyrau and Atyrau region'}
 				];
 				scope.$watch('data', function(value) {
 					if (value) {
