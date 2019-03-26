@@ -43,7 +43,7 @@ define('app',[
 			return '/camunda/api/engine/engine/default';
 		},
 		projects: function(baseUrl, $http){
-			$http.post(baseUrl+'/identity/verify',{username:'demo',password:'test'}).then(function(count){});
+			$http.get(baseUrl+'/version').then(function(version){});
 			return [
 				{
 					"key" : "NetworkInfrastructure",
