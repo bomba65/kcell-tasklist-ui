@@ -71,7 +71,11 @@
                 $http.get("/camunda/api/engine/engine/default/user/" + $rootScope.authentication.name+ "/profile").then(function(result){
                     $rootScope.authentication.assigneeName = (result.data.firstName ? result.data.firstName : "") + " " + (result.data.lastName ? result.data.lastName : "");
                 });
-                //$scope.isPartner = false;
+                if($scope.isPartner){
+                    $scope.isPartnerChecked = true;
+                } else {
+                    $scope.isPartnerChecked = false;
+                }
                 $scope.partner = undefined;
                 $scope.isGMSFW = {value: false};
 
@@ -136,279 +140,282 @@
                     value: undefined,
                     type: 'Json'
                 });
-                /*
                 camForm.variableManager.createVariable({
-                    name: 'isPartner',
+                    name: 'isPartnerChecked',
                     value: false,
                     type: 'Boolean'
                 });
-                */
             });
 
             $scope.preSubmit = function() {
-                var changedDate = new Date();
-                var contentProviderProductCatalog = function(){
-                    //console.log('contentProviderProductCatalog', $scope.contentProviderId, $scope.contentProviderBIN, $scope.productCatalogShortNumber.bin, $scope.clientBIN);
-                    var deferred = $q.defer();
-                    if($scope.contentProviderId && $scope.contentProviderBIN === $scope.clientBIN){
-                        var existingContentProvider = {
-                            id: $scope.contentProviderId,
-                            bin: $scope.contentProviderBIN,
-                            new: false
-                        };
-                        console.log('Client already exists or has been created just before in Product Catalog', existingContentProvider);
-                        deferred.resolve( { data: existingContentProvider } );
-
-                        return deferred.promise;
-                    } else if($scope.clientBIN){
-                        return $http.get("/camunda/product-catalog/vas_content_providers/bin/" + $scope.clientBIN);
-                    } else {
-                        deferred.reject('No BIN is provided!');
-                        return deferred.promise;
-                    }
-                };
-
-                $scope.productCatalogShortNumber = {
-                    //company name: $scope.officialClientCompanyName,
-                    bin: $scope.clientBIN,
-                    descRu: $scope.description,
-                    descEn: $scope.description,
-                    descKz: $scope.description,
-                    //vas_service_type_id: 13,
-                    "vasServiceType": {
-                        "id": 13,
-                        "name": null
-                    },
-                    businessNameRu: 'sms',
-                    businessNameEn: 'sms',
-                    businessNameKz: 'sms',
-                    shortNumberState: 'A',
-                    alphanumerics: 'Y',
-                    //tariffPlanComment: '54',
-                    bulk: 'Y',
-                    operatorServiceCost: 100,
-                    changeUsername: $rootScope.authentication.name,
-                    type: 210,
-                    subdirection: '1',
-                    businessGroup: '1',
-                    costPerSubscriber: $scope.abonentTarif,
-                    connectionTypeNew: $scope.connectionType === 'rest' ? '3' : ($scope.connectionType === 'smpp' ? '2' : '21'),
-                    revenueSharing: '61',
-                    brand: 'B',
-                    vasChargingIntervalId: null,
-                    changedDate: $filter('date')(changedDate, 'yyyy-MM-ddTHH:mm:ss'),
-                    lastDt: $filter('date')(changedDate, 'yyyy-MM-ddTHH:mm:ss'),
-                    startDate: $filter('date')($scope.startDate, 'yyyy-MM-ddTHH:mm:ss'),
-                    exceptions: '25',
-                    contractDetail: $scope.contractNumber,
-                    offnetProviderName: $scope.offnetProviderName,
-                    offnetProviderBin: $scope.offnetProviderBin,
-
-                    //vas_content_provider_id: "null",
-                    //vas_short_number_id: $scope.,
-                    //sapNumber: $scope.,
-                    //phoneIndex: $scope.,
-                    //technicalServiceName: $scope.,
-                    //rootService: $scope.,
-                    //mainService: $scope.,
-                    //admLineRevenue: $scope.,
-                    //serviceCost: $scope.,
-                    //chargingMoCost: $scope.,
-                    //usersId: $scope.,
-                    //changedDate: $scope.,
-                    //finishDate: $scope.,
-                    //vasDirection: $scope.,
-                    //promotion: $scope.,
-                    //free10Sec: $scope.,
-                    //connectionType: $scope.,
-                    //smsLogicType: $scope.,
-                    //smsLogicParameter: $scope.,
-                    //smsLogicReset: $scope.
-                };
-
-                if($scope.connectionType === 'web') {
-                    $scope.productCatalogShortNumber.msggwAccount = $scope.MSGGWaccount;
-                } else if($scope.connectionType === 'rest' || $scope.connectionType === 'smpp') {
-                    if($scope.MSGGWaccount){
-                        $scope.productCatalogShortNumber.moAccount = $scope.MSGGWaccount;
-                    } else {
-                        $scope.productCatalogShortNumber.moAccount = null;
-                    }
-                }
-
-                if($scope.tarifPlane === '1'){
-                    $scope.productCatalogShortNumber.tariffPlanComment = '54';
-                } else if($scope.tarifPlane === '2'){
-                    $scope.productCatalogShortNumber.tariffPlanComment = '52';
-                }
-
-                if ($scope.identifierType === 'alfanumeric'){
-                    _.forEach($scope.identifiers, function(id) {
-                        _.forEach(id.operators, function(op) {
-                            if(op.id === 'kcell' && op.isAvailable){
-                                $scope.productCatalogShortNumber.shortNumber = op.title;
-                                $scope.productCatalogShortNumber.monthlyFee = op.priceAP;
-                                //$scope.productCatalogShortNumber.onetimePayment = op.priceEP;
-                            }
-                            if(op.id === 'beeline' && op.isAvailable){
-                                $scope.productCatalogShortNumber.shortNumberBeeline = op.title;
-                                $scope.productCatalogShortNumber.monthlyFeeBeeline = op.priceAP;
-                                //$scope.productCatalogShortNumber.onetimePaymentBeeline = op.priceEP;
-                            }
-                            if(op.id === 'tele2' && op.isAvailable){
-                                $scope.productCatalogShortNumber.shortNumberTele2 = op.title;
-                                $scope.productCatalogShortNumber.monthlyFeeTele2 = op.priceAP;
-                                //$scope.productCatalogShortNumber.onetimePaymentTele2 = op.priceEP;
-                            }
-                            if(op.id === 'altel' && op.isAvailable){
-                                $scope.productCatalogShortNumber.shortNumberAltel = op.title;
-                                $scope.productCatalogShortNumber.monthlyFeeAltel = op.priceAP;
-                                //$scope.productCatalogShortNumber.onetimePaymentAltel = op.priceEP;
-                            }
-                        })
-                    });
-                } else {
-                    _.forEach($scope.identifiers, function(id) {
-                        _.forEach(id.operators, function(op) {
-                            if(op.id === 'kcell' && (op.isAvailable && (!$scope.previouslyBought && $scope.operatorType === 'offnet' ? op.checked : true))){
-                                $scope.productCatalogShortNumber.shortNumber = id.title;
-                                $scope.productCatalogShortNumber.monthlyFee = op.priceAP;
-                                $scope.productCatalogShortNumber.onetimePayment = op.priceEP;
-                            }
-                            if(op.id === 'beeline' && (op.isAvailable && (!$scope.previouslyBought && $scope.operatorType === 'offnet' ? op.checked : true))){
-                                $scope.productCatalogShortNumber.shortNumberBeeline = id.title;
-                                $scope.productCatalogShortNumber.monthlyFeeBeeline = op.priceAP;
-                                $scope.productCatalogShortNumber.onetimePaymentBeeline = op.priceEP;
-                            }
-                            if(op.id === 'tele2' && (op.isAvailable && (!$scope.previouslyBought && $scope.operatorType === 'offnet' ? op.checked : true))){
-                                $scope.productCatalogShortNumber.shortNumberTele2 = id.title;
-                                $scope.productCatalogShortNumber.monthlyFeeTele2 = op.priceAP;
-                                $scope.productCatalogShortNumber.onetimePaymentTele2 = op.priceEP;
-                            }
-                            if(op.id === 'altel' && (op.isAvailable && (!$scope.previouslyBought && $scope.operatorType === 'offnet' ? op.checked : true))){
-                                $scope.productCatalogShortNumber.shortNumberAltel = id.title;
-                                $scope.productCatalogShortNumber.monthlyFeeAltel = op.priceAP;
-                                $scope.productCatalogShortNumber.onetimePaymentAltel = op.priceEP;
-                            }
-                        })
-                    });
-                }
-
-                console.log('request body', $scope.productCatalogShortNumber);
                 var deferredGlobal = $q.defer();
+                if(!$scope.isPartner) {
+                    var changedDate = new Date();
+                    var contentProviderProductCatalog = function(){
+                        //console.log('contentProviderProductCatalog', $scope.contentProviderId, $scope.contentProviderBIN, $scope.productCatalogShortNumber.bin, $scope.clientBIN);
+                        var deferred = $q.defer();
+                        if($scope.contentProviderId && $scope.contentProviderBIN === $scope.clientBIN){
+                            var existingContentProvider = {
+                                id: $scope.contentProviderId,
+                                bin: $scope.contentProviderBIN,
+                                new: false
+                            };
+                            console.log('Client already exists or has been created just before in Product Catalog', existingContentProvider);
+                            deferred.resolve( { data: existingContentProvider } );
 
-                if($scope.productCatalogShortNumber.shortNumber || $scope.productCatalogShortNumber.shortNumberBeeline || $scope.productCatalogShortNumber.shortNumberTele2 || $scope.productCatalogShortNumber.shortNumberAltel){
-                    return contentProviderProductCatalog()
-                        .then(
-                            function(response){
-                                var deferred = $q.defer();
-                                console.log('GET Content Provider with BIN ' + $scope.clientBIN, response);
-                                if(response.data) {
-                                    if (response.data.id) {
-                                        console.log('GET Content Provider with Id  ' + response.data.id + ' was fetched from Product Catalog');
-                                        var existingContentProvider = {
-                                            id: response.data.id,
-                                            bin: response.data.bin,
-                                            new: false
-                                        };
-                                        deferred.resolve(existingContentProvider);
-                                    } else {
-                                        if (response.data.status && response.data.status === 404) {
-                                            var newContentProvider = {
-                                                bin: $scope.clientBIN,
-                                                name: $scope.officialClientCompanyName,
-                                                contentProviderState: 'A',
-                                                new: true
-                                            };
-                                            deferred.resolve(newContentProvider);
-                                        } else {
-                                            deferred.reject('Unknown Content Provider Response');
-                                        }
-                                    }
-                                } else {
-                                    deferred.reject('Undefined Response Data from Product Catalog Request');
+                            return deferred.promise;
+                        } else if($scope.clientBIN){
+                            return $http.get("/camunda/product-catalog/vas_content_providers/bin/" + $scope.clientBIN);
+                        } else {
+                            deferred.reject('No BIN is provided!');
+                            return deferred.promise;
+                        }
+                    };
+
+                    $scope.productCatalogShortNumber = {
+                        //company name: $scope.officialClientCompanyName,
+                        bin: $scope.clientBIN,
+                        descRu: $scope.description,
+                        descEn: $scope.description,
+                        descKz: $scope.description,
+                        //vas_service_type_id: 13,
+                        "vasServiceType": {
+                            "id": 13,
+                            "name": null
+                        },
+                        businessNameRu: 'sms',
+                        businessNameEn: 'sms',
+                        businessNameKz: 'sms',
+                        shortNumberState: 'A',
+                        alphanumerics: 'Y',
+                        //tariffPlanComment: '54',
+                        bulk: 'Y',
+                        operatorServiceCost: 100,
+                        changeUsername: $rootScope.authentication.name,
+                        type: 210,
+                        subdirection: '1',
+                        businessGroup: '1',
+                        costPerSubscriber: $scope.abonentTarif,
+                        connectionTypeNew: $scope.connectionType === 'rest' ? '3' : ($scope.connectionType === 'smpp' ? '2' : '21'),
+                        revenueSharing: '61',
+                        brand: 'B',
+                        vasChargingIntervalId: null,
+                        changedDate: $filter('date')(changedDate, 'yyyy-MM-ddTHH:mm:ss'),
+                        lastDt: $filter('date')(changedDate, 'yyyy-MM-ddTHH:mm:ss'),
+                        startDate: $filter('date')($scope.startDate, 'yyyy-MM-ddTHH:mm:ss'),
+                        exceptions: '25',
+                        contractDetail: $scope.contractNumber,
+                        offnetProviderName: $scope.offnetProviderName,
+                        offnetProviderBin: $scope.offnetProviderBin,
+
+                        //vas_content_provider_id: "null",
+                        //vas_short_number_id: $scope.,
+                        //sapNumber: $scope.,
+                        //phoneIndex: $scope.,
+                        //technicalServiceName: $scope.,
+                        //rootService: $scope.,
+                        //mainService: $scope.,
+                        //admLineRevenue: $scope.,
+                        //serviceCost: $scope.,
+                        //chargingMoCost: $scope.,
+                        //usersId: $scope.,
+                        //changedDate: $scope.,
+                        //finishDate: $scope.,
+                        //vasDirection: $scope.,
+                        //promotion: $scope.,
+                        //free10Sec: $scope.,
+                        //connectionType: $scope.,
+                        //smsLogicType: $scope.,
+                        //smsLogicParameter: $scope.,
+                        //smsLogicReset: $scope.
+                    };
+
+                    if($scope.connectionType === 'web') {
+                        $scope.productCatalogShortNumber.msggwAccount = $scope.MSGGWaccount;
+                    } else if($scope.connectionType === 'rest' || $scope.connectionType === 'smpp') {
+                        if($scope.MSGGWaccount){
+                            $scope.productCatalogShortNumber.moAccount = $scope.MSGGWaccount;
+                        } else {
+                            $scope.productCatalogShortNumber.moAccount = null;
+                        }
+                    }
+
+                    if($scope.tarifPlane === '1'){
+                        $scope.productCatalogShortNumber.tariffPlanComment = '54';
+                    } else if($scope.tarifPlane === '2'){
+                        $scope.productCatalogShortNumber.tariffPlanComment = '52';
+                    }
+
+                    if ($scope.identifierType === 'alfanumeric'){
+                        _.forEach($scope.identifiers, function(id) {
+                            _.forEach(id.operators, function(op) {
+                                if(op.id === 'kcell' && op.isAvailable){
+                                    $scope.productCatalogShortNumber.shortNumber = op.title;
+                                    $scope.productCatalogShortNumber.monthlyFee = op.priceAP;
+                                    //$scope.productCatalogShortNumber.onetimePayment = op.priceEP;
                                 }
-                                return deferred.promise;
-                            }
-                        ).then(
-                            function(contentProvider){
-                                console.log('POST content provider', contentProvider);
-                                if(contentProvider.new){
-                                    console.log('CREATE Content Provider with BIN ' + $scope.clientBIN, contentProvider);
-                                    return $http.post("/camunda/product-catalog/vas_content_providers", contentProvider);
-                                } else {
-                                    console.log('Content Provider with BIN ' + $scope.clientBIN + ' exists', contentProvider);
+                                if(op.id === 'beeline' && op.isAvailable){
+                                    $scope.productCatalogShortNumber.shortNumberBeeline = op.title;
+                                    $scope.productCatalogShortNumber.monthlyFeeBeeline = op.priceAP;
+                                    //$scope.productCatalogShortNumber.onetimePaymentBeeline = op.priceEP;
+                                }
+                                if(op.id === 'tele2' && op.isAvailable){
+                                    $scope.productCatalogShortNumber.shortNumberTele2 = op.title;
+                                    $scope.productCatalogShortNumber.monthlyFeeTele2 = op.priceAP;
+                                    //$scope.productCatalogShortNumber.onetimePaymentTele2 = op.priceEP;
+                                }
+                                if(op.id === 'altel' && op.isAvailable){
+                                    $scope.productCatalogShortNumber.shortNumberAltel = op.title;
+                                    $scope.productCatalogShortNumber.monthlyFeeAltel = op.priceAP;
+                                    //$scope.productCatalogShortNumber.onetimePaymentAltel = op.priceEP;
+                                }
+                            })
+                        });
+                    } else {
+                        _.forEach($scope.identifiers, function(id) {
+                            _.forEach(id.operators, function(op) {
+                                if(op.id === 'kcell' && (op.isAvailable && (!$scope.previouslyBought && $scope.operatorType === 'offnet' ? op.checked : true))){
+                                    $scope.productCatalogShortNumber.shortNumber = id.title;
+                                    $scope.productCatalogShortNumber.monthlyFee = op.priceAP;
+                                    $scope.productCatalogShortNumber.onetimePayment = op.priceEP;
+                                }
+                                if(op.id === 'beeline' && (op.isAvailable && (!$scope.previouslyBought && $scope.operatorType === 'offnet' ? op.checked : true))){
+                                    $scope.productCatalogShortNumber.shortNumberBeeline = id.title;
+                                    $scope.productCatalogShortNumber.monthlyFeeBeeline = op.priceAP;
+                                    $scope.productCatalogShortNumber.onetimePaymentBeeline = op.priceEP;
+                                }
+                                if(op.id === 'tele2' && (op.isAvailable && (!$scope.previouslyBought && $scope.operatorType === 'offnet' ? op.checked : true))){
+                                    $scope.productCatalogShortNumber.shortNumberTele2 = id.title;
+                                    $scope.productCatalogShortNumber.monthlyFeeTele2 = op.priceAP;
+                                    $scope.productCatalogShortNumber.onetimePaymentTele2 = op.priceEP;
+                                }
+                                if(op.id === 'altel' && (op.isAvailable && (!$scope.previouslyBought && $scope.operatorType === 'offnet' ? op.checked : true))){
+                                    $scope.productCatalogShortNumber.shortNumberAltel = id.title;
+                                    $scope.productCatalogShortNumber.monthlyFeeAltel = op.priceAP;
+                                    $scope.productCatalogShortNumber.onetimePaymentAltel = op.priceEP;
+                                }
+                            })
+                        });
+                    }
+
+                    console.log('request body', $scope.productCatalogShortNumber);
+
+                    if($scope.productCatalogShortNumber.shortNumber || $scope.productCatalogShortNumber.shortNumberBeeline || $scope.productCatalogShortNumber.shortNumberTele2 || $scope.productCatalogShortNumber.shortNumberAltel){
+                        return contentProviderProductCatalog()
+                            .then(
+                                function(response){
                                     var deferred = $q.defer();
-                                    deferred.resolve({data: contentProvider});
+                                    console.log('GET Content Provider with BIN ' + $scope.clientBIN, response);
+                                    if(response.data) {
+                                        if (response.data.id) {
+                                            console.log('GET Content Provider with Id  ' + response.data.id + ' was fetched from Product Catalog');
+                                            var existingContentProvider = {
+                                                id: response.data.id,
+                                                bin: response.data.bin,
+                                                new: false
+                                            };
+                                            deferred.resolve(existingContentProvider);
+                                        } else {
+                                            if (response.data.status && response.data.status === 404) {
+                                                var newContentProvider = {
+                                                    bin: $scope.clientBIN,
+                                                    name: $scope.officialClientCompanyName,
+                                                    contentProviderState: 'A',
+                                                    new: true
+                                                };
+                                                deferred.resolve(newContentProvider);
+                                            } else {
+                                                deferred.reject('Unknown Content Provider Response');
+                                            }
+                                        }
+                                    } else {
+                                        deferred.reject('Undefined Response Data from Product Catalog Request');
+                                    }
                                     return deferred.promise;
                                 }
-                            }
-                        ).then(
-                            function(response){
-                                var deferred = $q.defer();
-                                console.log('CREATE/UPDATE Content Provider with BIN ' + $scope.clientBIN, response.data);
-                                if(response.data){
-                                    if(response.data.id){
-                                        $scope.contentProviderId = response.data.id;
-                                        $scope.contentProviderBIN = response.data.bin;
-                                        $scope.productCatalogShortNumber.vasContentProvider = {id: $scope.contentProviderId};
-                                        console.log('NEW Content Provider with Id ' + response.data.id + ' was created in Product Catalog');
-                                        deferred.resolve('NEW Content Provider with Id ' + response.data.id + ' was created in Product Catalog');
+                            ).then(
+                                function(contentProvider){
+                                    console.log('POST content provider', contentProvider);
+                                    if(contentProvider.new){
+                                        console.log('CREATE Content Provider with BIN ' + $scope.clientBIN, contentProvider);
+                                        return $http.post("/camunda/product-catalog/vas_content_providers", contentProvider);
                                     } else {
-                                        deferred.reject('NEW Content Provider with BIN ' + $scope.clientBIN + ' was not created in Product Catalog');
+                                        console.log('Content Provider with BIN ' + $scope.clientBIN + ' exists', contentProvider);
+                                        var deferred = $q.defer();
+                                        deferred.resolve({data: contentProvider});
+                                        return deferred.promise;
                                     }
-                                } else {
-                                    deferred.reject('CREATE Content Provider with BIN ' + $scope.clientBIN + ', RESPONSE Data is undefined');
                                 }
-                                return deferred.promise;
-                            }
-                        ).then(
-                            function(){
-                                if($scope.shortNumberId) {
-                                    $scope.productCatalogShortNumber.id = $scope.shortNumberId;
-                                    console.log('UPDATE productCatalogShortNumber Request', $scope.productCatalogShortNumber);
-                                    return $http.put("/camunda/product-catalog/vas_short_numbers/" + $scope.shortNumberId, $scope.productCatalogShortNumber);
-                                } else {
-                                    console.log('CREATE productCatalogShortNumber Request', $scope.productCatalogShortNumber);
-                                    return $http.post("/camunda/product-catalog/vas_short_numbers", $scope.productCatalogShortNumber);
-                                }
-                            }
-                        ).then(
-                            function(response){
-                                console.log('CREATE productCatalogShortNumber Response', response.data);
-                                var deferred = $q.defer();
-                                if (response.data) {
-                                    if (response.data.id) {
-                                        if (!$scope.shortNumberId) {
-                                            $scope.shortNumberId = response.data.id;
-                                        }
-                                        if(response.data.shortNumber || response.data.shortNumberBeeline || response.data.shortNumberTele2 || response.data.shortNumberAltel){
-                                            $scope.productCatalogResponse = response.data;
-                                            console.log('Successfully received response from Product Catalog', $scope.productCatalogResponse);
-                                            deferred.resolve('Successfully received response from Product Catalog');
+                            ).then(
+                                function(response){
+                                    var deferred = $q.defer();
+                                    console.log('CREATE/UPDATE Content Provider with BIN ' + $scope.clientBIN, response.data);
+                                    if(response.data){
+                                        if(response.data.id){
+                                            $scope.contentProviderId = response.data.id;
+                                            $scope.contentProviderBIN = response.data.bin;
+                                            $scope.productCatalogShortNumber.vasContentProvider = {id: $scope.contentProviderId};
+                                            console.log('NEW Content Provider with Id ' + response.data.id + ' was created in Product Catalog');
+                                            deferred.resolve('NEW Content Provider with Id ' + response.data.id + ' was created in Product Catalog');
                                         } else {
-                                            console.log('Product Catalog did not respond with short number', $scope.productCatalogResponse);
-                                            deferred.reject('Product Catalog did not respond with short number');
+                                            deferred.reject('NEW Content Provider with BIN ' + $scope.clientBIN + ' was not created in Product Catalog');
                                         }
                                     } else {
-                                        console.log('Product Catalog did not respond with id');
-                                        deferred.reject('Product Catalog did not respond with id');
+                                        deferred.reject('CREATE Content Provider with BIN ' + $scope.clientBIN + ', RESPONSE Data is undefined');
                                     }
-                                } else {
-                                    console.log('Product Catalog response is empty');
-                                    deferred.reject('Product Catalog response is empty');
+                                    return deferred.promise;
                                 }
-                                return deferred.promise;
-                            }
-                        ).catch(
-                            function(error){
-                                console.log(error);
-                                deferredGlobal.reject(error);
-                                return deferredGlobal.promise;
-                            }
-                        );
+                            ).then(
+                                function(){
+                                    if($scope.shortNumberId) {
+                                        $scope.productCatalogShortNumber.id = $scope.shortNumberId;
+                                        console.log('UPDATE productCatalogShortNumber Request', $scope.productCatalogShortNumber);
+                                        return $http.put("/camunda/product-catalog/vas_short_numbers/" + $scope.shortNumberId, $scope.productCatalogShortNumber);
+                                    } else {
+                                        console.log('CREATE productCatalogShortNumber Request', $scope.productCatalogShortNumber);
+                                        return $http.post("/camunda/product-catalog/vas_short_numbers", $scope.productCatalogShortNumber);
+                                    }
+                                }
+                            ).then(
+                                function(response){
+                                    console.log('CREATE productCatalogShortNumber Response', response.data);
+                                    var deferred = $q.defer();
+                                    if (response.data) {
+                                        if (response.data.id) {
+                                            if (!$scope.shortNumberId) {
+                                                $scope.shortNumberId = response.data.id;
+                                            }
+                                            if(response.data.shortNumber || response.data.shortNumberBeeline || response.data.shortNumberTele2 || response.data.shortNumberAltel){
+                                                $scope.productCatalogResponse = response.data;
+                                                console.log('Successfully received response from Product Catalog', $scope.productCatalogResponse);
+                                                deferred.resolve('Successfully received response from Product Catalog');
+                                            } else {
+                                                console.log('Product Catalog did not respond with short number', $scope.productCatalogResponse);
+                                                deferred.reject('Product Catalog did not respond with short number');
+                                            }
+                                        } else {
+                                            console.log('Product Catalog did not respond with id');
+                                            deferred.reject('Product Catalog did not respond with id');
+                                        }
+                                    } else {
+                                        console.log('Product Catalog response is empty');
+                                        deferred.reject('Product Catalog response is empty');
+                                    }
+                                    return deferred.promise;
+                                }
+                            ).catch(
+                                function(error){
+                                    console.log(error);
+                                    deferredGlobal.reject(error);
+                                    return deferredGlobal.promise;
+                                }
+                            );
+                    } else {
+                        deferredGlobal.reject('No short number is selected!');
+                        return deferredGlobal.promise;
+                    }
                 } else {
-                    deferredGlobal.reject('No short number is selected!');
+                    deferredGlobal.resolve('This is partner, integration is on next step!');
                     return deferredGlobal.promise;
                 }
             };
@@ -485,7 +492,7 @@
                 //-------------------------------------------------------------------
                 var identifierServiceName = $scope.identifiers[0].title + ' ' + $scope.clientCompanyLatName;
                 var identifierCounter = '1 SMS';
-                if ($scope.amdocsBilling) {
+                //if ($scope.amdocsBilling) {
                     camForm.variableManager.createVariable({
                         name: 'identifierServiceName_amdocs_incoming',
                         value: identifierServiceName,
@@ -506,8 +513,8 @@
                         value: $scope.abonentTarif,
                         type: 'String'
                     });
-                }
-                if ($scope.orgaBilling) {
+                //}
+                //if ($scope.orgaBilling) {
                     camForm.variableManager.createVariable({
                         name: 'identifierServiceName_orga_incoming',
                         value: identifierServiceName,
@@ -528,7 +535,8 @@
                         value: $scope.abonentTarif,
                         type: 'String'
                     });
-                }
+                //}
+
                 camForm.variableManager.createVariable({
                     name: 'identifierServiceName',
                     value: identifierServiceName,
@@ -544,9 +552,9 @@
                     value: '',
                     type: 'String'
                 });
-                //camForm.variableManager.variableValue('isPartner', $scope.isPartner);
+                camForm.variableManager.variableValue('isPartnerChecked', $scope.isPartnerChecked);
                 console.log('isGMSFW', $scope.isGMSFW);
-                if($scope.isPartner){
+                if($scope.isPartnerChecked){
                     camForm.variableManager.createVariable({
                         name: 'partner',
                         value: JSON.parse($scope.partner),
@@ -781,7 +789,7 @@
             };
             //---MSGGWaccount change---
             $scope.$watchGroup(['connectionType', 'smsServiceType'], function(newValues, oldValues, scope) {
-                if(!$scope.isPartner){
+                if(!$scope.isPartnerChecked){
                     if(newValues[0] !== oldValues[0] || newValues[1] !== oldValues[1]){
                         if (newValues[0] === 'web'){
                             $scope.MSGGWaccount = 'kitalf27.ID:3751';
@@ -796,8 +804,8 @@
             //-------------------------
 
             $scope.checkPartner= function(){
-                console.log('isPartner', $scope.isPartner);
-                if(!$scope.isPartner){
+                console.log('isPartnerChecked', $scope.isPartnerChecked);
+                if(!$scope.isPartnerChecked){
                     $scope.partner = undefined;
                     $scope.partnerEmail = undefined;
                     $scope.isNewMSGGWaccount = false;
@@ -913,9 +921,9 @@
                             <label class="error" ng-show="kcell_form.{{operator.id + 'Title'}}.$error.required && ( kcell_form.{{operator.id + 'Title'}}.$touched || view.submitted)">Required field</label>
                         </div>
                     </div>
-                    <div class="col-sm-3" ng-if="isPartner">
+                    <div class="col-sm-3" ng-if="isPartnerChecked">
                         <input type="checkbox" class="form-check-input" id="isGMSFW" name="isGMSFW" ng-model="isGMSFW.value">
-                        <label ng-show="isPartner" class="form-check-label" for="isGMSFW">Заводить на GMS FW</label>
+                        <label ng-show="isPartnerChecked" class="form-check-label" for="isGMSFW">Заводить на GMS FW</label>
                     </div>
                 </div>
             </div>
@@ -961,23 +969,23 @@
         </div>
     </div>
     <!--<div class="form-check" ng-show="operatorType === 'onnet'">
-        <input type="checkbox" ng-model="isPartner" class="form-check-input" id="isPartner" ng-change="checkPartner()">
-        <label class="form-check-label" for="isPartner">Партнеры</label>
+        <input type="checkbox" ng-model="isPartnerChecked" class="form-check-input" id="isPartnerChecked" ng-change="checkPartner()">
+        <label class="form-check-label" for="isPartnerChecked">Партнеры</label>
     </div>-->
-    <div class="form-check" ng-show="isPartner">
-        <input type="checkbox" class="form-check-input" id="isPartner" ng-model="isPartner" ng-disabled="true">
-        <label class="form-check-label" for="isPartner">Партнеры</label>
+    <div class="form-check">
+        <input type="checkbox" class="form-check-input" id="isPartnerChecked" ng-model="isPartnerChecked" ng-disabled="isPartner">
+        <label class="form-check-label" for="isPartnerChecked">Партнеры</label>
     </div>
-    <div class="form-group" ng-show="isPartner">
+    <div class="form-group" ng-show="isPartnerChecked">
         <div class="col-sm-6">
-            <select ng-model="partner" name="partner" class="form-control" ng-disabled="!isPartner" ng-required="isPartner">
+            <select ng-model="partner" name="partner" class="form-control" ng-disabled="!isPartnerChecked" ng-required="isPartnerChecked">
                 <option ng-repeat="partner in partnerList" value="{{partner}}">{{partner.name}}</option>
             </select>
             <label class="error" ng-show="kcell_form.partner.$error.required && ( kcell_form.partner.$touched || view.submitted)">Required field</label>
         </div>
         <label class="col-sm-2 control-label">* Partner email:</label>
         <div class="col-sm-4">
-            <input class="form-control" maxlength="500" name="partnerEmail" cam-variable-name="partnerEmail" cam-variable-type="String" ng-disabled="!isPartner" ng-required="isPartner">
+            <input class="form-control" maxlength="500" name="partnerEmail" cam-variable-name="partnerEmail" cam-variable-type="String" ng-disabled="!isPartnerChecked" ng-required="isPartnerChecked">
             <label class="error" ng-show="kcell_form.partnerEmail.$error.required && ( kcell_form.partnerEmail.$touched || view.submitted)">Required field</label>
         </div>
     </div>
@@ -1021,10 +1029,10 @@
         <label class="col-sm-4 control-label">* Тип подключения:</label>
         <div class="col-sm-8">
             <select ng-model="connectionType" name="connectionType" class="form-control" required="true">
-                <option value="web" ng-disabled="isPartner">Web interface</option>
-                <option value="rest" ng-disabled="isPartner">REST</option>
+                <option value="web" ng-disabled="isPartnerChecked">Web interface</option>
+                <option value="rest" ng-disabled="isPartnerChecked">REST</option>
                 <option value="smpp">SMPP</option>
-                <option value="sigtran" ng-if="isPartner">SIGTRAN</option>
+                <option value="sigtran" ng-if="isPartnerChecked">SIGTRAN</option>
             </select>
             <label class="error" ng-show="kcell_form.connectionType.$error.required && ( kcell_form.connectionType.$touched || view.submitted)">Required field</label>
         </div>
@@ -1045,43 +1053,43 @@
             </select>
         </div>
     </div>
-    <div class="form-group" ng-show="isPartner || connectionType === 'web' || ((connectionType === 'rest' || connectionType === 'smpp') && smsServiceType == 'MO') ">
+    <div class="form-group" ng-show="isPartnerChecked || connectionType === 'web' || ((connectionType === 'rest' || connectionType === 'smpp') && smsServiceType == 'MO') ">
         <label class="col-sm-4 control-label">* Аккаунт на MSGGW:</label>
         <div class="col-sm-4">
-            <input class="form-control" maxlength="500" ng-model="MSGGWaccount" name="MSGGWaccount" ng-required="isPartner">
+            <input class="form-control" maxlength="500" ng-model="MSGGWaccount" name="MSGGWaccount" ng-required="isPartnerChecked">
             <label class="error" ng-show="kcell_form.MSGGWaccount.$error.required && ( kcell_form.MSGGWaccount.$touched || view.submitted)">Required field</label>
         </div>
-        <div class="col-sm-4" ng-show="isPartner">
-            <input type="checkbox" class="form-check-input" id="isNewMSGGWaccount" name="isNewMSGGWaccount" ng-show="isPartner" ng-model="isNewMSGGWaccount" cam-variable-type="Boolean" cam-variable-name="isNewMSGGWaccount">
-            <label ng-show="isPartner" class="form-check-label" for="isNewMSGGWaccount">Новый</label>
+        <div class="col-sm-4" ng-show="isPartnerChecked">
+            <input type="checkbox" class="form-check-input" id="isNewMSGGWaccount" name="isNewMSGGWaccount" ng-show="isPartnerChecked" ng-model="isNewMSGGWaccount" cam-variable-type="Boolean" cam-variable-name="isNewMSGGWaccount">
+            <label ng-show="isPartnerChecked" class="form-check-label" for="isNewMSGGWaccount">Новый</label>
         </div>
     </div>
-    <div class="form-group" ng-show="isPartner || connectionType === 'smpp'">
+    <div class="form-group" ng-show="isPartnerChecked || connectionType === 'smpp'">
         <label class="col-sm-4 control-label">* IP адрес клиента:</label>
         <div class="col-sm-4">
             <input class="form-control" maxlength="500" id="ipNumber" name="ipNumber" ng-model="ipNumber" cam-variable-type="String" cam-variable-name="ipNumber" ng-required="connectionType === 'smpp'">
             <label class="error" ng-show="kcell_form.ipNumber.$error.required && ( kcell_form.ipNumber.$touched || view.submitted)">Required field</label>
         </div>
         <div class="col-sm-4">
-            <input type="checkbox" class="form-check-input" id="isNewIP" name="isNewIP" ng-show="isPartner" ng-model="isNewIP" cam-variable-type="Boolean" cam-variable-name="isNewIP">
-            <label ng-show="isPartner" class="form-check-label" for="isNewIP">Новый</label>
+            <input type="checkbox" class="form-check-input" id="isNewIP" name="isNewIP" ng-show="isPartnerChecked" ng-model="isNewIP" cam-variable-type="Boolean" cam-variable-name="isNewIP">
+            <label ng-show="isPartnerChecked" class="form-check-label" for="isNewIP">Новый</label>
         </div>
     </div>
-    <div class="form-group" ng-show="!isPartner && (connectionType === 'smpp' || connectionType === 'rest')">
+    <div class="form-group" ng-show="!isPartnerChecked && (connectionType === 'smpp' || connectionType === 'rest')">
         <label class="col-sm-4 control-label">* Тестовый номер:</label>
         <div class="col-sm-8">
-            <input class="form-control" maxlength="500" name="testNumber" cam-variable-name="testNumber" cam-variable-type="String" ng-required="!isPartner && (connectionType === 'smpp' || connectionType === 'rest')">
+            <input class="form-control" maxlength="500" name="testNumber" cam-variable-name="testNumber" cam-variable-type="String" ng-required="!isPartnerChecked && (connectionType === 'smpp' || connectionType === 'rest')">
             <label class="error" ng-show="kcell_form.testNumber.$error.required && ( kcell_form.testNumber.$touched || view.submitted)">Required field</label>
         </div>
     </div>
-    <div class="form-group" ng-show="!isPartner && connectionType === 'rest' && deliveryReport">
+    <div class="form-group" ng-show="!isPartnerChecked && connectionType === 'rest' && deliveryReport">
         <label class="col-sm-4 control-label">Адрес и порт принимающего сервера клиента:</label>
         <div class="col-sm-8">
             <input class="form-control" maxlength="500" name="receivingServerAddress" cam-variable-name="receivingServerAddress" cam-variable-type="String">
             <label class="error" ng-show="kcell_form.receivingServerAddress.$error.required && (kcell_form.receivingServerAddress.$touched || view.submitted)">Required field</label>
         </div>
     </div>
-    <div class="form-group" ng-show="!isPartner && connectionType === 'rest' && deliveryReport">
+    <div class="form-group" ng-show="!isPartnerChecked && connectionType === 'rest' && deliveryReport">
         <label class="col-sm-4 control-label">Логин/пароль принимающего сервера клиента:</label>
         <div class="col-sm-4">
             <input class="form-control" maxlength="500" cam-variable-name="receivingServerLogin" name="receivingServerLogin" cam-variable-type="String" placeholder="Логин">
@@ -1092,7 +1100,7 @@
             <label class="error" ng-show="kcell_form.receivingServerPass.$error.required && (kcell_form.receivingServerPass.$touched || view.submitted)">Required field</label>
         </div>
     </div>
-    <div class="form-group" ng-show="!isPartner && connectionType === 'rest' && smsServiceType">
+    <div class="form-group" ng-show="!isPartnerChecked && connectionType === 'rest' && smsServiceType">
         <label class="col-sm-4 control-label">Адрес и порт MO сервера клиента:</label>
         <div class="col-sm-8">
             <input class="form-control" maxlength="500" cam-variable-name="addressServerMO" name="addressServerMO" cam-variable-type="String">
@@ -1131,7 +1139,7 @@
             </select>
         </div>
     </div>
-    <div class="form-group" ng-hide="isPartner || identifierType === 'alfanumeric' || connectionType === 'web'">
+    <div class="form-group" ng-hide="identifierType === 'alfanumeric' || connectionType === 'web'">
         <label class="col-sm-4 control-label">Билинг</label>
         <div class="col-sm-8">
             <label class="radio-inline">
@@ -1187,20 +1195,20 @@
             <label class="has-error" ng-show="kcell_form.applicationScanCopyFileName.$error.validFile && ( kcell_form.applicationScanCopyFileName.$touched || view.submitted)">File is required</label>
         </div>
     </div>
-    <div class="form-group" ng-show="!isPartner">
+    <div class="form-group" ng-show="!isPartnerChecked">
         <label class="col-sm-4 control-label">Ответственный B2B Delivery:</label>
         <div class="col-sm-8">
-            <input type="text" ng-model="responsibleB2BDelivery" name="responsibleB2BDelivery" typeahead="name as users.name for users in getUsers($viewValue, 'delivery_sms_b2b_delivery')" typeahead-on-select="userSelected($item,'responsibleB2BDelivery')" class="form-control" ng-required="!isPartner" autocomplete="off">
+            <input type="text" ng-model="responsibleB2BDelivery" name="responsibleB2BDelivery" typeahead="name as users.name for users in getUsers($viewValue, 'delivery_sms_b2b_delivery')" typeahead-on-select="userSelected($item,'responsibleB2BDelivery')" class="form-control" ng-required="!isPartnerChecked" autocomplete="off">
             <!--<label class="error" ng-if="kcell_form.responsibleB2BDelivery.$error.valid && view.submitted">Необходимо выбрать пользователя</label>-->
-            <label class="error" ng-if="!isPartner && (!responsibleB2BDelivery || !responsibleB2BDelivery.id)  && ( kcell_form.responsibleB2BDelivery.$touched || view.submitted)">Необходимо выбрать пользователя</label>
+            <label class="error" ng-if="!isPartnerChecked && (!responsibleB2BDelivery || !responsibleB2BDelivery.id)  && ( kcell_form.responsibleB2BDelivery.$touched || view.submitted)">Необходимо выбрать пользователя</label>
         </div>
     </div>
-    <div class="form-group" ng-show="!isPartner">
+    <div class="form-group" ng-show="!isPartnerChecked">
         <label class="col-sm-4 control-label">Ответственный B2B Sales:</label>
         <div class="col-sm-8">
-            <input type="text" ng-model="responsibleB2BSales" name="responsibleB2BSales" typeahead="name as users.name for users in getUsers($viewValue, 'delivery_sms_ivr_b2b_sales')" typeahead-on-select="userSelected($item,'responsibleB2BSales')" class="form-control" ng-required="!isPartner" autocomplete="off" ng-disabled="is_not_member_of_delivery_CRM_info_admin">
+            <input type="text" ng-model="responsibleB2BSales" name="responsibleB2BSales" typeahead="name as users.name for users in getUsers($viewValue, 'delivery_sms_ivr_b2b_sales')" typeahead-on-select="userSelected($item,'responsibleB2BSales')" class="form-control" ng-required="!isPartnerChecked" autocomplete="off" ng-disabled="is_not_member_of_delivery_CRM_info_admin">
             <!--<label class="error" ng-if="kcell_form.responsibleB2BSales.$error.valid && view.submitted">Необходимо выбрать пользователя</label>-->
-            <label class="error" ng-if="!isPartner && (!responsibleB2BSales || !responsibleB2BSales.id)  && ( kcell_form.responsibleB2BSales.$touched || view.submitted)">Необходимо выбрать пользователя</label>
+            <label class="error" ng-if="!isPartnerChecked && (!responsibleB2BSales || !responsibleB2BSales.id)  && ( kcell_form.responsibleB2BSales.$touched || view.submitted)">Необходимо выбрать пользователя</label>
         </div>
     </div>
     <div class="form-group">
