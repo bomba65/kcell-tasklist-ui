@@ -38,11 +38,13 @@ html(lang:'en') {
              }
             }
             tr {
+
                td {
                    yield 'Cтатус: '
                }
+
                td {
-                   b('')
+                   b(status)
                }
             }
             tr {
@@ -61,9 +63,19 @@ html(lang:'en') {
                    b(startTime.format('dd.MM.yyyy HH:mm'))
                }
             }
+for ( e in customVariables ) {
+            tr {
+                td {
+                    yield '' + e.key + ': '
+
+                }
+                td {
+                    b(e.value)
+                }
+            }
+}
          }
         newLine()
-
         hr()
         p {
          yield 'Открыть Kcell Workflow Вы можете пройдя по следующей ссылке: '
