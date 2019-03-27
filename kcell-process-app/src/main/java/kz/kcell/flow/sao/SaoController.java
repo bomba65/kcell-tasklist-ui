@@ -89,7 +89,7 @@ public class SaoController {
         return null;
     }
 
-    @RequestMapping(value = "/apis/FreephoneClientUpdate", method = RequestMethod.POST, produces={"application/json"}, consumes="application/json")
+    @RequestMapping(value = "/apis/FreephoneClientUpdate", method = RequestMethod.PUT, produces={"application/json"}, consumes="application/json")
     @ResponseBody
     public ResponseEntity<String> freephoneClientUpdate(@RequestBody String saoRequestBody) throws Exception {
 
@@ -106,15 +106,15 @@ public class SaoController {
                 //String encoding = Base64.getEncoder().encodeToString((productCatalogAuth).getBytes("UTF-8"));
 
                 StringEntity freephoneClientData = new StringEntity(saoRequestBody, ContentType.APPLICATION_JSON);
-                HttpPost freephoneClientPost = new HttpPost(new URI(saoApiUrl+"/FreephoneClientUpdate"));
-                //freephoneClientPost.setHeader("Authorization", "Basic " + encoding);
-                freephoneClientPost.addHeader("Content-Type", "application/json;charset=UTF-8");
+                HttpPut freephoneClientPut = new HttpPut(new URI(saoApiUrl+"/FreephoneClientUpdate"));
+                //freephoneClientPut.setHeader("Authorization", "Basic " + encoding);
+                freephoneClientPut.addHeader("Content-Type", "application/json;charset=UTF-8");
 
-                freephoneClientPost.setEntity(freephoneClientData);
+                freephoneClientPut.setEntity(freephoneClientData);
 
                 HttpClient freephoneClientHttpClient = HttpClients.createDefault();
 
-                HttpResponse freephoneClientResponse = freephoneClientHttpClient.execute(freephoneClientPost);
+                HttpResponse freephoneClientResponse = freephoneClientHttpClient.execute(freephoneClientPut);
 
                 HttpEntity entity = freephoneClientResponse.getEntity();
                 String content = EntityUtils.toString(entity);

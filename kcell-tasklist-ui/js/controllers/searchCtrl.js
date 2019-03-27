@@ -1672,6 +1672,7 @@ define(['./module','jquery', 'moment', 'camundaSDK'], function(app, $, moment, C
 								function(result){
 									result.data.forEach(function(el){
 										$scope.jobModel[el.name] = el;
+										//console.log(el.name, el.value);
 										if(el.type !== 'Json' && (el.value || el.value === "" || el.type === 'Boolean')) {
 					            			$scope.jobModel[el.name] = el.value;
 					            		}

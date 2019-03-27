@@ -55,7 +55,16 @@
                 'receivingServerPass',
                 'addressServerMO',
                 'tarifPlane',
-                'provider'
+                'provider',
+                'saoResponse',
+                'terminationPoint',
+                'hopPoint',
+                'siteName',
+                'lastMilePort',
+                'EXCHANGE',
+                'MGW',
+                'RTDMA',
+                'channelKLM'
             ];
 
             camForm.on('form-loaded', function () {
@@ -115,6 +124,8 @@
                 $http.get("/camunda/api/engine/engine/default/user/" + $rootScope.authentication.name+ "/profile").then(function(result){
                     $rootScope.authentication.assigneeName = (result.data.firstName ? result.data.firstName : "") + " " + (result.data.lastName ? result.data.lastName : "");
                 });
+                $scope.saoAftersalesRequest = {};
+                $scope.saoAftersalesResponse = {};
 
                 camForm.variableManager.createVariable({
                     name: 'changeApplicationToConnectionTaskResult',
@@ -152,275 +163,156 @@
                 $scope.changeApplicationToConnectionTaskComment = '';
             });
 
-            /*
             $scope.preSubmit = function() {
-                var changedDate = new Date();
-                var contentProviderProductCatalog = function(){
-                    //console.log('contentProviderProductCatalog', $scope.contentProviderId, $scope.contentProviderBIN, $scope.productCatalogShortNumber.bin, $scope.clientBIN);
+                ///////////////////////////////////////
+                var getProductCatalogShortNumber = function() {
                     var deferred = $q.defer();
-                    if($scope.contentProviderId && $scope.contentProviderBIN === $scope.clientBIN){
-                        var existingContentProvider = {
-                            id: $scope.contentProviderId,
-                            bin: $scope.contentProviderBIN,
-                            new: false
-                        };
-                        console.log('Client already exists or has been created just before in Product Catalog', existingContentProvider);
-                        deferred.resolve( { data: existingContentProvider } );
+                    var serviceTypeId = $scope.relatedProcessDefinitionKey === 'bulksmsConnectionKAE' ? 13 : 177;
+                    console.log('serviceTypeId', serviceTypeId, 'short_number', $scope.identifiers[0].title);
 
-                        return deferred.promise;
-                    } else if($scope.clientBIN){
-                        return $http.get("/camunda/product-catalog/vas_content_providers/bin/" + $scope.clientBIN);
-                    } else {
-                        deferred.reject('No BIN is provided!');
-                        return deferred.promise;
-                    }
+                    //return $http.get("/camunda/product-catalog/vas_short_numbers/short_number/" + $scope.identifiers[0].title + "/service_type_id/" + serviceTypeId).then(
+
+                    return $http.get("/camunda/product-catalog/vas_short_numbers/short_number/7800/service_type_id/" + serviceTypeId).then(
+
+                        function(response){
+                            console.log('vas_short_numbers', response.data);
+                            if(response.data) {
+                                if (response.data.id) {
+                                    console.log('Identifier ' + $scope.identifiers[0].title + ' with id ' + response.data.id + ' received from product catalog');
+                                    deferred.resolve( { data: response.data } );
+                                } else {
+                                    console.log('Short number ' + $scope.identifiers[0].title + ' is empty in Product Catalog response');
+                                    deferred.reject('Short number ' + $scope.identifiers[0].title + ' is empty in Product Catalog response');
+                                }
+                            } else {
+                                console.log('Undefined Response Data from Product Catalog Request');
+                                deferred.reject('Undefined Response Data from Product Catalog Request');
+                            }
+                            return deferred.promise;
+                        },
+                        function (error) {
+                            console.log(error);
+                            deferred.reject('error:' + error.data.error + ', message:' + error.data.message + ', path:' + error.data.path + ', status:' + error.data.status);
+                            return deferred.promise;
+                        });
                 };
 
-                $scope.productCatalogShortNumber = {
-                    //company name: $scope.officialClientCompanyName,
-                    bin: $scope.clientBIN,
-                    descRu: $scope.description,
-                    descEn: $scope.description,
-                    descKz: $scope.description,
-                    //vas_service_type_id: 13,
-                    "vasServiceType": {
-                        "id": 13,
-                        "name": null
-                    },
-                    businessNameRu: 'sms',
-                    businessNameEn: 'sms',
-                    businessNameKz: 'sms',
-                    shortNumberState: 'A',
-                    alphanumerics: 'Y',
-                    //tariffPlanComment: '54',
-                    bulk: 'Y',
-                    operatorServiceCost: 100,
-                    changeUsername: $rootScope.authentication.name,
-                    type: 210,
-                    subdirection: '1',
-                    businessGroup: '1',
-                    costPerSubscriber: $scope.abonentTarif,
-                    connectionTypeNew: $scope.connectionType === 'rest' ? '3' : ($scope.connectionType === 'smpp' ? '2' : '21'),
-                    revenueSharing: '61',
-                    brand: 'B',
-                    vasChargingIntervalId: null,
-                    changedDate: $filter('date')(changedDate, 'yyyy-MM-ddTHH:mm:ss'),
-                    lastDt: $filter('date')(changedDate, 'yyyy-MM-ddTHH:mm:ss'),
-                    startDate: $filter('date')($scope.startDate, 'yyyy-MM-ddTHH:mm:ss'),
-                    exceptions: '25',
-                    contractDetail: $scope.contractNumber,
-                    offnetProviderName: $scope.offnetProviderName,
-                    offnetProviderBin: $scope.offnetProviderBin,
-
-                    //vas_content_provider_id: "null",
-                    //vas_short_number_id: $scope.,
-                    //sapNumber: $scope.,
-                    //phoneIndex: $scope.,
-                    //technicalServiceName: $scope.,
-                    //rootService: $scope.,
-                    //mainService: $scope.,
-                    //admLineRevenue: $scope.,
-                    //serviceCost: $scope.,
-                    //chargingMoCost: $scope.,
-                    //usersId: $scope.,
-                    //changedDate: $scope.,
-                    //finishDate: $scope.,
-                    //vasDirection: $scope.,
-                    //promotion: $scope.,
-                    //free10Sec: $scope.,
-                    //connectionType: $scope.,
-                    //smsLogicType: $scope.,
-                    //smsLogicParameter: $scope.,
-                    //smsLogicReset: $scope.
-                };
-
-                if($scope.connectionType === 'web') {
-                    $scope.productCatalogShortNumber.msggwAccount = $scope.MSGGWaccount;
-                } else if($scope.connectionType === 'rest' || $scope.connectionType === 'smpp') {
-                    if($scope.MSGGWaccount){
-                        $scope.productCatalogShortNumber.moAccount = $scope.MSGGWaccount;
-                    } else {
-                        $scope.productCatalogShortNumber.moAccount = null;
-                    }
-                }
-
-                if($scope.tarifPlane === '1'){
-                    $scope.productCatalogShortNumber.tariffPlanComment = '54';
-                } else if($scope.tarifPlane === '2'){
-                    $scope.productCatalogShortNumber.tariffPlanComment = '52';
-                }
-
-                if ($scope.identifierType === 'alfanumeric'){
-                    _.forEach($scope.identifiers, function(id) {
-                        _.forEach(id.operators, function(op) {
-                            if(op.id === 'kcell' && op.isAvailable){
-                                $scope.productCatalogShortNumber.shortNumber = op.title;
-                                $scope.productCatalogShortNumber.monthlyFee = op.priceAP;
-                                //$scope.productCatalogShortNumber.onetimePayment = op.priceEP;
-                            }
-                            if(op.id === 'beeline' && op.isAvailable){
-                                $scope.productCatalogShortNumber.shortNumberBeeline = op.title;
-                                $scope.productCatalogShortNumber.monthlyFeeBeeline = op.priceAP;
-                                //$scope.productCatalogShortNumber.onetimePaymentBeeline = op.priceEP;
-                            }
-                            if(op.id === 'tele2' && op.isAvailable){
-                                $scope.productCatalogShortNumber.shortNumberTele2 = op.title;
-                                $scope.productCatalogShortNumber.monthlyFeeTele2 = op.priceAP;
-                                //$scope.productCatalogShortNumber.onetimePaymentTele2 = op.priceEP;
-                            }
-                            if(op.id === 'altel' && op.isAvailable){
-                                $scope.productCatalogShortNumber.shortNumberAltel = op.title;
-                                $scope.productCatalogShortNumber.monthlyFeeAltel = op.priceAP;
-                                //$scope.productCatalogShortNumber.onetimePaymentAltel = op.priceEP;
-                            }
-                        })
-                    });
-                } else {
-                    _.forEach($scope.identifiers, function(id) {
-                        _.forEach(id.operators, function(op) {
-                            if(op.id === 'kcell' && (op.isAvailable && (!$scope.previouslyBought && $scope.operatorType === 'offnet' ? op.checked : true))){
-                                $scope.productCatalogShortNumber.shortNumber = id.title;
-                                $scope.productCatalogShortNumber.monthlyFee = op.priceAP;
-                                $scope.productCatalogShortNumber.onetimePayment = op.priceEP;
-                            }
-                            if(op.id === 'beeline' && (op.isAvailable && (!$scope.previouslyBought && $scope.operatorType === 'offnet' ? op.checked : true))){
-                                $scope.productCatalogShortNumber.shortNumberBeeline = id.title;
-                                $scope.productCatalogShortNumber.monthlyFeeBeeline = op.priceAP;
-                                $scope.productCatalogShortNumber.onetimePaymentBeeline = op.priceEP;
-                            }
-                            if(op.id === 'tele2' && (op.isAvailable && (!$scope.previouslyBought && $scope.operatorType === 'offnet' ? op.checked : true))){
-                                $scope.productCatalogShortNumber.shortNumberTele2 = id.title;
-                                $scope.productCatalogShortNumber.monthlyFeeTele2 = op.priceAP;
-                                $scope.productCatalogShortNumber.onetimePaymentTele2 = op.priceEP;
-                            }
-                            if(op.id === 'altel' && (op.isAvailable && (!$scope.previouslyBought && $scope.operatorType === 'offnet' ? op.checked : true))){
-                                $scope.productCatalogShortNumber.shortNumberAltel = id.title;
-                                $scope.productCatalogShortNumber.monthlyFeeAltel = op.priceAP;
-                                $scope.productCatalogShortNumber.onetimePaymentAltel = op.priceEP;
-                            }
-                        })
-                    });
-                }
-
-                console.log('request body', $scope.productCatalogShortNumber);
-                var deferredGlobal = $q.defer();
-
-                if($scope.productCatalogShortNumber.shortNumber || $scope.productCatalogShortNumber.shortNumberBeeline || $scope.productCatalogShortNumber.shortNumberTele2 || $scope.productCatalogShortNumber.shortNumberAltel){
-                    return contentProviderProductCatalog()
+                if($scope.changeContractNumber || $scope.changeOfficialClientCompanyName){
+                    return getProductCatalogShortNumber()
+                        .then(
+                            function(response){
+                                var shortNumberData = {};
+                                console.log('short number response from PC', response.data);
+                                if(response.data){
+                                    shortNumberData = angular.copy(response.data);
+                                    console.log('$scope.changeOfficialClientCompanyName', $scope.changeOfficialClientCompanyName);
+                                    if($scope.changeOfficialClientCompanyName){
+                                        if(shortNumberData.vasContentProvider && shortNumberData.vasContentProvider.id){
+                                            shortNumberData.vasContentProvider.name = $scope.officialClientCompanyName;
+                                            return $http.put("/camunda/product-catalog/vas_content_providers/" + shortNumberData.vasContentProvider.id, shortNumberData.vasContentProvider)
+                                                .then(function(response){
+                                                    console.log('resolve changeOfficialClientCompanyName', $scope.changeOfficialClientCompanyName, response.data);
+                                                    return getProductCatalogShortNumber();
+                                                });
+                                        }
+                                    } else {
+                                        console.log('resolve changeOfficialClientCompanyName', $scope.changeOfficialClientCompanyName);
+                                        var deferred = $q.defer();
+                                        deferred.resolve({data: response.data});
+                                        return deferred.promise;
+                                    }
+                                }
+                            })
                         .then(
                             function(response){
                                 var deferred = $q.defer();
-                                console.log('GET Content Provider with BIN ' + $scope.clientBIN, response);
-                                if(response.data) {
-                                    if (response.data.id) {
-                                        console.log('GET Content Provider with Id  ' + response.data.id + ' was fetched from Product Catalog');
-                                        var existingContentProvider = {
-                                            id: response.data.id,
-                                            bin: response.data.bin,
-                                            new: false
-                                        };
-                                        deferred.resolve(existingContentProvider);
+                                if(response.data && response.data.id){
+                                    console.log('$scope.changeContractNumber', $scope.changeContractNumber);
+                                    if($scope.changeContractNumber){
+                                        var shortNumberData = angular.copy(response.data);
+                                        shortNumberData.contractDetail = contractNumber;
+                                        return $http.put("/camunda/product-catalog/vas_short_numbers/" + shortNumberData.id, shortNumberData);
                                     } else {
-                                        if (response.data.status && response.data.status === 404) {
-                                            var newContentProvider = {
-                                                bin: $scope.clientBIN,
-                                                name: $scope.officialClientCompanyName,
-                                                contentProviderState: 'A',
-                                                new: true
-                                            };
-                                            deferred.resolve(newContentProvider);
-                                        } else {
-                                            deferred.reject('Unknown Content Provider Response');
-                                        }
+                                        deferred.resolve({data: response.data});
                                     }
                                 } else {
-                                    deferred.reject('Undefined Response Data from Product Catalog Request');
+                                    console.log('empty response');
+                                    deferred.reject('empty response');
                                 }
                                 return deferred.promise;
                             }
-                        ).then(
-                            function(contentProvider){
-                                console.log('POST content provider', contentProvider);
-                                if(contentProvider.new){
-                                    console.log('CREATE Content Provider with BIN ' + $scope.clientBIN, contentProvider);
-                                    return $http.post("/camunda/product-catalog/vas_content_providers", contentProvider);
-                                } else {
-                                    console.log('Content Provider with BIN ' + $scope.clientBIN + ' exists', contentProvider);
-                                    var deferred = $q.defer();
-                                    deferred.resolve({data: contentProvider});
-                                    return deferred.promise;
-                                }
-                            }
-                        ).then(
+                        )
+                        .then(
                             function(response){
-                                var deferred = $q.defer();
-                                console.log('CREATE/UPDATE Content Provider with BIN ' + $scope.clientBIN, response.data);
-                                if(response.data){
-                                    if(response.data.id){
-                                        $scope.contentProviderId = response.data.id;
-                                        $scope.contentProviderBIN = response.data.bin;
-                                        $scope.productCatalogShortNumber.vasContentProvider = {id: $scope.contentProviderId};
-                                        console.log('NEW Content Provider with Id ' + response.data.id + ' was created in Product Catalog');
-                                        deferred.resolve('NEW Content Provider with Id ' + response.data.id + ' was created in Product Catalog');
-                                    } else {
-                                        deferred.reject('NEW Content Provider with BIN ' + $scope.clientBIN + ' was not created in Product Catalog');
-                                    }
-                                } else {
-                                    deferred.reject('CREATE Content Provider with BIN ' + $scope.clientBIN + ', RESPONSE Data is undefined');
-                                }
-                                return deferred.promise;
-                            }
-                        ).then(
-                            function(){
-                                if($scope.shortNumberId) {
-                                    $scope.productCatalogShortNumber.id = $scope.shortNumberId;
-                                    console.log('UPDATE productCatalogShortNumber Request', $scope.productCatalogShortNumber);
-                                    return $http.put("/camunda/product-catalog/vas_short_numbers/" + $scope.shortNumberId, $scope.productCatalogShortNumber);
-                                } else {
-                                    console.log('CREATE productCatalogShortNumber Request', $scope.productCatalogShortNumber);
-                                    return $http.post("/camunda/product-catalog/vas_short_numbers", $scope.productCatalogShortNumber);
-                                }
-                            }
-                        ).then(
-                            function(response){
-                                console.log('CREATE productCatalogShortNumber Response', response.data);
-                                var deferred = $q.defer();
-                                if (response.data) {
-                                    if (response.data.id) {
-                                        if (!$scope.shortNumberId) {
-                                            $scope.shortNumberId = response.data.id;
+                                if($scope.relatedProcessDefinitionKey === 'freephone'){
+                                    var operators = $scope.identifiers[0].operators.map(function(o){
+                                        console.log('SAO', $scope.saoResponse[o.name].fk_client);
+                                        var saoRequestBody = {
+                                            report: o.name,
+                                            fk_client: $scope.saoResponse[o.name].fk_client,
+                                            client_name: $scope.officialClientCompanyName,
+                                            bin: $scope.clientBIN,
+                                            technology: "IVR",
+                                            short_number: $scope.identifiers[0].title
                                         }
-                                        if(response.data.shortNumber || response.data.shortNumberBeeline || response.data.shortNumberTele2 || response.data.shortNumberAltel){
-                                            $scope.productCatalogResponse = response.data;
-                                            console.log('Successfully received response from Product Catalog', $scope.productCatalogResponse);
-                                            deferred.resolve('Successfully received response from Product Catalog');
+
+                                        if($scope.operatorType === "onnet"){
+                                            saoRequestBody.provider = "Kcell";
                                         } else {
-                                            console.log('Product Catalog did not respond with short number', $scope.productCatalogResponse);
-                                            deferred.reject('Product Catalog did not respond with short number');
+                                            if(o.name === "Kcell") {
+                                                saoRequestBody.provider = "Kcell";
+                                            } else {
+                                                saoRequestBody.provider = $scope.provider === "SMS Consult" ? "SMS-Consult" : $scope.provider;
+                                            }
                                         }
-                                    } else {
-                                        console.log('Product Catalog did not respond with id');
-                                        deferred.reject('Product Catalog did not respond with id');
-                                    }
-                                } else {
-                                    console.log('Product Catalog response is empty');
-                                    deferred.reject('Product Catalog response is empty');
+
+                                        if($scope.connectionType === "SIP_SBC"){
+                                            saoRequestBody.type_conn = $scope.connectionType;
+                                            saoRequestBody.ip = $scope.ipNumber;
+                                        } else if($scope.connectionType === "transmit"){
+                                            saoRequestBody.type_conn = "Call forwarding";
+                                            saoRequestBody.forward_num = $scope.transmitNumber;
+                                        } else if($scope.connectionType === "E1"){
+                                            saoRequestBody.type_conn = $scope.connectionType;
+                                            saoRequestBody.term_point = $scope.terminationPoint;
+                                            saoRequestBody.hope_point = $scope.hopPoint;
+                                            saoRequestBody.site_name = $scope.siteName;
+                                            saoRequestBody.port = $scope.lastMilePort;
+                                            saoRequestBody.exchange = $scope.EXCHANGE;
+                                            saoRequestBody.mgw = $scope.MGW;
+                                            saoRequestBody.rtdma = $scope.RTDMA;
+                                            saoRequestBody.klm = $scope.channelKLM;
+                                        }
+                                        $scope.saoAftersalesRequest[o.name] = angular.copy(saoRequestBody);
+
+                                        return $http.put("/camunda/sao/apis/FreephoneClientUpdate",  saoRequestBody)
+                                    });
+
+                                    //return $q.all(operators);
+                                    return $q.all(operators).then(function(response){
+                                        var deferred = $q.defer();
+                                        if(response && response.data){
+                                            console.log('sao response', response.data);
+                                            $scope.saoAftersalesResponse = response.data;
+                                            deferred.resolve('sao response');
+                                        } else {
+                                            console.log('empty response from sao', response);
+                                            $scope.saoAftersalesResponse = {error: 'empty response from sao'};
+                                            deferred.resolve('empty response from sao');
+                                        }
+                                        return deferred.promise;
+                                    });
                                 }
-                                return deferred.promise;
                             }
-                        ).catch(
+                        )
+                        .catch(
                             function(error){
                                 console.log(error);
-                                deferredGlobal.reject(error);
-                                return deferredGlobal.promise;
+                                return error;
                             }
                         );
-                } else {
-                    deferredGlobal.reject('No short number is selected!');
-                    return deferredGlobal.promise;
                 }
             };
-            */
 
             camForm.on('submit', function (evt) {
                 //evt.submitPrevented = true;
@@ -517,6 +409,19 @@
 
                 if($scope.changeContractNumber){
                     camForm.variableManager.variableValue('contractNumber', $scope.contractNumber);
+                }
+
+                if($scope.relatedProcessDefinitionKey === 'freephone'){
+                    camForm.variableManager.createVariable({
+                        name: 'saoAftersalesRequest',
+                        type: 'Json',
+                        value: $scope.saoAftersalesRequest
+                    });
+                    camForm.variableManager.createVariable({
+                        name: 'saoAftersalesResponse',
+                        type: 'Json',
+                        value: $scope.saoAftersalesResponse
+                    });
                 }
 
                 if($scope.changeTransmitNumber && $scope.relatedProcessDefinitionKey === 'freephone'){
@@ -1163,6 +1068,8 @@
             </div>
         </div>
     </div>
+
+    <button ng-click="preSubmit()">PRE SUBMIT</button>
 
     <div class="form-group">
         <label class="col-sm-12 control-label"><H4><b>Информация о клиенте:</b></H4></label>

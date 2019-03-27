@@ -489,4 +489,47 @@ public class ProductCatalog {
         }
         return null;
     }
+    @RequestMapping(value = "/vas_content_providers/{clientId}", method = RequestMethod.PUT, produces={"application/json"}, consumes="application/json")
+    @ResponseBody
+    public ResponseEntity<String> updateClient(@PathVariable("clientId") String clientId, @RequestBody String contentProvider) throws Exception {
+
+        Boolean isSftp = Arrays.stream(environment.getActiveProfiles()).anyMatch(env -> (env.equalsIgnoreCase("sftp")));
+
+        if (identityService.getCurrentAuthentication() == null || identityService.getCurrentAuthentication().getUserId() == null) {
+            log.warning("No user logged in");
+            return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body("No user logged in");
+        }
+
+        if (isSftp) {
+            try {
+                String encoding = Base64.getEncoder().encodeToString((productCatalogAuth).getBytes("UTF-8"));
+
+                StringEntity contentProviderData = new StringEntity(contentProvider, ContentType.APPLICATION_JSON);
+                HttpPut contentProviderPut = new HttpPut(new URI(productCatalogUrl+"/vas_content_providers")+URLEncoder.encode(clientId, "UTF-8"));
+                contentProviderPut.setHeader("Authorization", "Basic " + encoding);
+                contentProviderPut.addHeader("Content-Type", "application/json;charset=UTF-8");
+
+                contentProviderPut.setEntity(contentProviderData);
+
+                HttpClient contentProviderHttpClient = HttpClients.createDefault();
+
+                HttpResponse contentProviderResponse = contentProviderHttpClient.execute(contentProviderPut);
+
+                HttpEntity entity = contentProviderResponse.getEntity();
+                String content = EntityUtils.toString(entity);
+
+                return ResponseEntity.ok(content);
+
+            } catch (Exception e) {
+                e.printStackTrace();
+            }
+
+        } else {
+            JSONObject contentProviderJSON = new JSONObject(contentProvider);
+            contentProviderJSON.put("id", 99999);
+
+            return ResponseEntity.ok(contentProviderJSON.toString());
+        }
+        return null;
+    }
 }
