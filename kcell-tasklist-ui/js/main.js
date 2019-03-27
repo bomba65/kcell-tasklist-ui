@@ -34,7 +34,6 @@ require.config({
          'simple-module': './node_modules/simple-module/lib/module',
          'simple-hotkeys': './node_modules/simple-hotkeys/lib/hotkeys',
          'simple-uploader': './node_modules/simple-uploader/lib/uploader',
-         'xlsx': './node_modules/xlsx/dist/xlsx.full.min',
          'summernote': './summernote/summernote.min',
          'summernote-ext-template': './summernote/summernote-ext-template',
          'moment': './node_modules/moment/min/moment.min',

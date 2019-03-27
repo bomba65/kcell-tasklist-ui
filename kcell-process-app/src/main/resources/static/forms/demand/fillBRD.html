@@ -19,7 +19,8 @@
                     funcRequirements: {},
                     nonFuncRequirements: {},
                     interfaces: {},
-                    reportsStatistics: ''
+                    reportsStatistics: '',
+                    acceptanceCriteria: []
                 };
                 $scope.resolutions = [];
                 $scope.processInstanceId = null;
@@ -62,7 +63,8 @@
                             funcRequirements: {},
                             nonFuncRequirements: {},
                             interfaces: {},
-                            reportsStatistics: ''
+                            reportsStatistics: '',
+                            acceptanceCriteria: []
                         };
                     }
                 });
@@ -97,6 +99,15 @@
                             function() {toasty.success( "Данные успешно сохранены!");},
                             function(error) {toasty.error(error.data.message);}
                     );
+                };
+
+                $scope.acceptanceCriteriaAdd = function() {
+                    if (!$scope.BRDData.acceptanceCriteria) $scope.BRDData.acceptanceCriteria = [];
+                    $scope.BRDData.acceptanceCriteria.push({descirption: ''});
+                };
+
+                $scope.acceptanceCriteriaDelete = function(index) {
+                    $scope.BRDData.acceptanceCriteria.splice(index, 1);
                 };
             }]);
         </script>
@@ -198,7 +209,7 @@
         </tab>
         <tab active="true">
             <tab-heading> BRD </tab-heading>
-            <div style="margin-bottom: 20px;">
+            <div style="margin-bottom: 20px; margin-top: 20px;">
                 <accordion class="content-visible-accordion">
                     <accordion-group is-open="true">
                         <accordion-heading>
@@ -230,7 +241,8 @@
                         </accordion-heading>
                         <div class="col-sm-12">
                             <demand-rich-text data="BRDData.reportsStatistics" min-height="100" process-id="processInstanceId" task-id="taskId"></demand-rich-text>
-                            <!--<span class="has-error" ng-if="(!BRDData.reportsStatistics.length || !BRDData.reportsStatistics.length) && view.submitted">Required field</span>-->
+                            <input type="hidden" ng-model="BRDData.reportsStatistics" name="brdReportsStatistics" required>
+                            <span class="has-error" ng-if="kcell_form.brdReportsStatistics.$error.required && (kcell_form.brdReportsStatistics.$touched || view.submitted)">Required field</span>
                         </div>
                     </accordion-group>
                 </accordion>
@@ -241,7 +253,46 @@
                         </accordion-heading>
                         <div class="col-sm-12">
                             <demand-rich-text data="BRDData.dependencies" min-height="100" process-id="processInstanceId" task-id="taskId"></demand-rich-text>
-                            <!--<span class="has-error" ng-if="(!BRDData.reportsStatistics.length || !BRDData.reportsStatistics.length) && view.submitted">Required field</span>-->
+                            <input type="hidden" ng-model="BRDData.dependencies" name="brdDependencies" required>
+                            <span class="has-error" ng-if="kcell_form.brdDependencies.$error.required && (kcell_form.brdDependencies.$touched || view.submitted)">Required field</span>
+                        </div>
+                    </accordion-group>
+                </accordion>
+                <accordion class="content-visible-accordion">
+                    <accordion-group is-open="true">
+                        <accordion-heading>
+                            Acceptance criteria <i class="pull-right glyphicon" ng-class="{'glyphicon-chevron-up': status.isCustomHeaderOpen, 'glyphicon-chevron-down': !status.isCustomHeaderOpen}"></i>
+                        </accordion-heading>
+                        <div class="col-sm-12">
+                            <table class="table table-borderless">
+                                <thead>
+                                    <tr>
+                                        <th style="border:none; width: 1%;">#</th>
+                                        <th style="border:none; width: 98%;">Description</th>
+                                        <th style="border:none; width: 1%;">
+                                        </th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    <tr ng-repeat="ac in BRDData.acceptanceCriteria track by $index">
+                                        <td>
+                                            <div class="col-sm-12 control-label" style="padding-left: 0;">{{$index + 1}}</div>
+                                        </td>
+                                        <td>
+                                            <textarea rows="1" elastic-textarea class="form-control" name="ac_{{$index}}_description" ng-model="ac.descirption" required></textarea>
+                                            <span class="has-error" ng-if="kcell_form['ac_' + $index + '_description'].$error.required && (kcell_form['ac_' + $index + '_description'].$touched || view.submitted)">Required field</span>
+                                        </td>
+                                        <td>
+                                            <i class="pull-right glyphicon glyphicon-trash glyphicon-clickable" ng-click="acceptanceCriteriaDelete()"></i>
+                                        </td>
+                                    </tr>
+                                    <tr>
+                                        <td colspan="3">
+                                            <button type="button" class="btn btn-default pull-right" ng-click="acceptanceCriteriaAdd()">Add new Criteria</button>
+                                        </td>
+                                    </tr>
+                                </tbody>
+                            </table>
                         </div>
                     </accordion-group>
                 </accordion>

@@ -17,38 +17,24 @@ define(['./../module'], function(module){
                         if (!scope.data) scope.data = {};
                         // if (!scope.data.businessCases) scope.data.businessCases = [];
                         if (!scope.data.useCases) scope.data.useCases = [];
+                        if (!scope.useCaseCollapsed) scope.useCaseCollapsed = [];
                     }
                 });
-                scope.collapse = {
-                    // businessCase: false,
-                    // businessCases: {},
-                    useCase: false,
-                    useCases: {},
-                    actorProfiles: false,
-                    businessSchema: false,
-                    chargingRequirements: false
-                };
-                scope.toggleCollapse = function(section, index) {
-                    if (index !== -1) {
-                        scope.collapse[section][index] = !scope.collapse[section][index];
-                    } else {
-                        scope.collapse[section] = !scope.collapse[section];
-                    }
-                };
-                scope.deleteObject = function(section, index) {
-                    scope.data[section].splice(index, 1);
-                    delete scope.collapse[section][index];
-                };
-
-                /*scope.businessCaseAdd = function() {
-                    scope.data.businessCases.push({text: ''});
-                    scope.collapse.businessCases[scope.data.businessCases.length - 1] = false;
-                };*/
 
                 scope.useCaseAdd = function() {
-                    scope.data.useCases.push({name: '', text: ''});
-                    scope.collapse.useCases[scope.data.useCases.length - 1] = false;
-                }
+                    scope.data.useCases.push({name: '', description: ''});
+                    scope.useCaseCollapsed.push(false);
+                };
+
+                scope.useCaseDelete = function(index) {
+                    scope.data.useCases.splice(index, 1);
+                    scope.useCaseCollapsed.splice(index, 1);
+                };
+
+                scope.toggleUseCaseCollapse = function(el, index) {
+                    if (el.target.classList.contains('not-collapsable') || $(el.target).parents('.not-collapsable').length) return;
+                    scope.useCaseCollapsed[index] = !scope.useCaseCollapsed[index];
+                };
             },
             templateUrl: './js/directives/demand/functionalRequirements.html'
         };

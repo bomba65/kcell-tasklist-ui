@@ -4,27 +4,18 @@ define(['./../module'], function(module){
 		return {
 			restrict: 'E',
 			scope: {
-                data: '=',
-                form: '=',
-                view: '=',
-                disabled: '='
+          data: '=',
+          form: '=',
+          view: '=',
+          disabled: '='
 			},
 			link: function(scope, element, attrs) {
-                scope.$watch('data', function(value) {
-                    if (value) {
-                        if (!scope.data) scope.data = {};
-                    }
-                });
-                scope.collapse = {
-                    legalRequirements: false,
-                    securityRequirements: false,
-                    serviceAvailability: false,
-                    other: false
-                };
-                scope.toggleCollapse = function(section) {
-                    scope.collapse[section] = !scope.collapse[section];
-                }
-	        },
+          scope.$watch('data', function(value) {
+              if (value) {
+                  if (!scope.data) scope.data = {};
+              }
+          });
+        },
 			templateUrl: './js/directives/demand/nonFunctionalRequirements.html'
 		};
 	});

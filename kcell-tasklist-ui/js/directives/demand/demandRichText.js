@@ -1,6 +1,6 @@
 define(['./../module', 'summernote', 'summernote-ext-template'], function(module){
     'use strict';
-    module.directive('demandRichText', function ($rootScope, $http) {
+    module.directive('demandRichText', function ($rootScope, $http, $timeout) {
         return {
             restrict: 'E',
             scope: {
@@ -32,6 +32,19 @@ define(['./../module', 'summernote', 'summernote-ext-template'], function(module
                     });
                 };
 
+                let toolbarList = [
+                  ['style', ['style']],
+                  ['font', ['bold', 'italic', 'underline', 'strikethrough', 'subscript', 'superscript']],
+                  ['fontname', ['fontsize', 'fontname']],
+                  ['color', ['color']],
+                  ['para', ['ul', 'ol', 'paragraph', 'height']],
+                  ['table', ['table']],
+                  ['insert', ['link', 'picture', 'video', 'template']],
+                  ['view', ['fullscreen', 'codeview', 'help']],
+                ];
+
+                if (scope.disabled) toolbarList = [];
+
                 element.summernote({
                     focus: false,
                     disableResizeEditor: true,
@@ -56,16 +69,7 @@ define(['./../module', 'summernote', 'summernote-ext-template'], function(module
                             console.log("deleted => ", target);
                         }
                     },
-                    toolbar: [
-                        ['style', ['style']],
-                        ['font', ['bold', 'italic', 'underline', 'strikethrough', 'subscript', 'superscript']],
-                        ['fontname', ['fontsize', 'fontname']],
-                        ['color', ['color']],
-                        ['para', ['ul', 'ol', 'paragraph', 'height']],
-                        ['table', ['table']],
-                        ['insert', ['link', 'picture', 'video', 'template']],
-                        ['view', ['fullscreen', 'codeview', 'help']],
-                    ],
+                    toolbar: toolbarList,
                     template: {
                         path: '/summernote-templates',
                         list: {
@@ -79,8 +83,13 @@ define(['./../module', 'summernote', 'summernote-ext-template'], function(module
                         }
                     }
                 });
+                $('.note-statusbar').hide();
+                $('.note-status-output').hide();
 
-                if (scope.disabled) element.summernote('disable');
+                if (scope.disabled) {
+                    element.summernote('disable');
+                  $('.note-editing-area').css('background', '#eee');
+                }
 
                 scope.$watch('data', function (value) {
                     if (value && value.length) {

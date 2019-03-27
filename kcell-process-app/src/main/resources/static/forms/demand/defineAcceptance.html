@@ -19,9 +19,9 @@
                 funcRequirements: {},
                 nonFuncRequirements: {},
                 interfaces: {},
-                reportsStatistics: ''
+                reportsStatistics: '',
+                acceptanceCriteria: []
             };
-            $scope.acceptanceCriterias = [];
             $scope.resolutions = [];
             $scope.attachments = [];
             var processInstanceId = null;
@@ -47,7 +47,6 @@
             camForm.on('form-loaded', function () {
                 camForm.variableManager.fetchVariable('generalData');
                 camForm.variableManager.fetchVariable('BRDData');
-                camForm.variableManager.fetchVariable('acceptanceCriterias');
                 camForm.variableManager.fetchVariable('resolutions');
                 camForm.variableManager.fetchVariable('attachments');
                 camForm.variableManager.fetchVariable('supportiveInputs');
@@ -58,14 +57,12 @@
             camForm.on('variables-fetched', function () {
                 $scope.generalData = camForm.variableManager.variableValue('generalData');
                 $scope.BRDData = camForm.variableManager.variableValue('BRDData');
-                $scope.acceptanceCriterias = camForm.variableManager.variableValue('acceptanceCriterias');
                 $scope.resolutions = camForm.variableManager.variableValue('resolutions');
                 $scope.attachments = camForm.variableManager.variableValue('attachments');
                 $scope.supportiveInputs = camForm.variableManager.variableValue('supportiveInputs');
                 $scope.status = camForm.variableManager.variableValue('status');
                 $scope.state = camForm.variableManager.variableValue('state');
                 if (!$scope.attachments) $scope.attachments = [];
-                if (!$scope.acceptanceCriterias) $scope.acceptanceCriterias = [];
                 if (!$scope.supportiveInputs) $scope.supportiveInputs = [];
                 var elt = $scope.supportiveInputs.find(function(e) {return e.unit == 'Human Resources Department';});
                 if (!elt) {
@@ -119,12 +116,6 @@
                   type: 'json',
                   value: $scope.supportiveInputs,
                   store: true
-                });
-                camForm.variableManager.destroyVariable('acceptanceCriterias');
-                camForm.variableManager.createVariable({
-                    name: 'acceptanceCriterias',
-                    type: 'Json',
-                    value: $scope.acceptanceCriterias
                 });
                 camForm.variableManager.destroyVariable('attachments');
                 camForm.variableManager.createVariable({
@@ -192,17 +183,6 @@
 
             $scope.saveFillForm = function () {
                 var success = 0;
-                var json = JSON.stringify($scope.acceptanceCriterias, function( key, value ) {
-                    if( key === "$$hashKey" ) return undefined;
-                    return value;
-                });
-                $http.put('/camunda/api/engine/engine/default/process-instance/'+processInstanceId+'/variables/acceptanceCriterias',{"type":"Json","value": json}).then(
-                    function() {
-                        success++;
-                        if (success == 3) toasty.success( "Данные успешно сохранены!");
-                    },
-                    function(error) {toasty.error(error.data.message);}
-                );
                 var json = JSON.stringify($scope.supportiveInputs, function( key, value ) {
                     if( key === "$$hashKey" ) return undefined;
                     return value;
@@ -210,7 +190,7 @@
                 $http.put('/camunda/api/engine/engine/default/process-instance/'+processInstanceId+'/variables/supportiveInputs',{"type":"Json","value": json}).then(
                     function() {
                         success++;
-                        if (success == 3) toasty.success( "Данные успешно сохранены!");
+                        if (success == 2) toasty.success( "Данные успешно сохранены!");
                     },
                     function(error) {toasty.error(error.data.message);}
                 );
@@ -221,7 +201,7 @@
                 $http.put('/camunda/api/engine/engine/default/process-instance/'+processInstanceId+'/variables/attachments',{"type":"Json","value": json}).then(
                     function() {
                         success++;
-                        if (success == 3) toasty.success( "Данные успешно сохранены!");
+                        if (success == 2) toasty.success( "Данные успешно сохранены!");
                     },
                     function(error) {toasty.error(error.data.message);}
                 );
@@ -326,7 +306,7 @@
         </tab>
         <tab>
             <tab-heading> BRD </tab-heading>
-            <div style="margin-bottom: 20px;">
+            <div style="margin-bottom: 20px; margin-top: 20px;">
                 <accordion>
                     <accordion-group is-open="true">
                         <accordion-heading>
@@ -371,6 +351,33 @@
                         </div>
                     </accordion-group>
                 </accordion>
+                <accordion class="content-visible-accordion">
+                    <accordion-group is-open="true">
+                        <accordion-heading>
+                            Acceptance criteria <i class="pull-right glyphicon" ng-class="{'glyphicon-chevron-up': status.isCustomHeaderOpen, 'glyphicon-chevron-down': !status.isCustomHeaderOpen}"></i>
+                        </accordion-heading>
+                        <div class="col-sm-12">
+                            <table class="table table-borderless">
+                                <thead>
+                                <tr>
+                                    <th style="border:none; width: 2%;">#</th>
+                                    <th style="border:none; width: 98%;">Description</th>
+                                </tr>
+                                </thead>
+                                <tbody>
+                                <tr ng-repeat="ac in BRDData.acceptanceCriteria track by $index">
+                                    <td>
+                                        <div class="col-sm-12 control-label" style="padding-left: 0;">{{$index + 1}}</div>
+                                    </td>
+                                    <td>
+                                        <div class="disabled-element">{{ac.descirption}}</div>
+                                    </td>
+                                </tr>
+                                </tbody>
+                            </table>
+                        </div>
+                    </accordion-group>
+                </accordion>
             </div>
         </tab>
         <tab active="true">
@@ -390,40 +397,6 @@
                             Materials <i class="pull-right glyphicon" ng-class="{'glyphicon-chevron-up': status.isCustomHeaderOpen, 'glyphicon-chevron-down': !status.isCustomHeaderOpen}"></i>
                         </accordion-heading>
                         <demand-materials data="i.value" form="kcell_form" view="view" disabled="false" editprice="false" editexisting="false"></demand-materials>
-                    </accordion-group>
-                </accordion>
-                <accordion>
-                    <accordion-group is-open="true">
-                        <accordion-heading>
-                            Acceptance criteria <i class="pull-right glyphicon" ng-class="{'glyphicon-chevron-up': status.isCustomHeaderOpen, 'glyphicon-chevron-down': !status.isCustomHeaderOpen}"></i>
-                        </accordion-heading>
-                        <div class="col-sm-12">
-                            <table class="table table-borderless">
-                                <thead>
-                                <tr>
-                                    <th style="border:none; width: 1%;">#</th>
-                                    <th style="border:none; width: 98%;">Description</th>
-                                    <th style="border:none; width: 1%;">
-                                        <a ng-click="acceptanceCriterias.push({v:''})" style="font-size: 25px; margin-left: 20px;">
-                                            <span class="glyphicon glyphicon-plus-sign"></span>
-                                        </a>
-                                    </th>
-                                </tr>
-                                </thead>
-                                <tbody>
-                                <tr ng-repeat="d in acceptanceCriterias track by $index">
-                                    <td>{{$index + 1}}.</td>
-                                    <td>
-                                        <textarea rows="1" elastic-textarea class="form-control" ng-model="d.v" required></textarea>
-                                        <span class="has-error" ng-if="(!d.v || d.v.length == 0) && view.submitted">Required field</span>
-                                    </td>
-                                    <td>
-                                        <button type="button" class="btn btn-default" ng-click="acceptanceCriterias.splice($index, 1)">Delete</button>
-                                    </td>
-                                </tr>
-                                </tbody>
-                            </table>
-                        </div>
                     </accordion-group>
                 </accordion>
             </div>
