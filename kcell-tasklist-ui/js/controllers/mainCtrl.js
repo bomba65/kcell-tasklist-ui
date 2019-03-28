@@ -322,7 +322,7 @@ define(['./module','camundaSDK', 'lodash', 'big-js'], function(module, CamSDK, _
 			});
 		}
 		function loadProcessDefinitions(){
-			$http.get(baseUrl+'/process-definition?latest=true&active=true&firstResult=0&maxResults=30').then(
+			$http.get(baseUrl+'/process-definition?latest=true&active=true&firstResult=0&maxResults=30&startablePermissionCheck=true').then(
 				function(results){
 					$scope.processDefinitions = [];
 					results.data.forEach(function(e){
