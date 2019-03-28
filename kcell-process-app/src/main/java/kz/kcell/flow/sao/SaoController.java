@@ -3,12 +3,15 @@ package kz.kcell.flow.sao;
 import lombok.extern.java.Log;
 import org.apache.http.HttpEntity;
 import org.apache.http.HttpResponse;
+import org.apache.http.NameValuePair;
 import org.apache.http.client.HttpClient;
+import org.apache.http.client.entity.UrlEncodedFormEntity;
 import org.apache.http.client.methods.HttpPost;
 import org.apache.http.client.methods.HttpPut;
 import org.apache.http.entity.ContentType;
 import org.apache.http.entity.StringEntity;
 import org.apache.http.impl.client.HttpClients;
+import org.apache.http.message.BasicNameValuePair;
 import org.apache.http.util.EntityUtils;
 import org.camunda.bpm.engine.IdentityService;
 import org.camunda.bpm.engine.impl.util.json.JSONObject;
@@ -20,6 +23,7 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
 import java.net.URI;
+import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Base64;
 
@@ -57,9 +61,19 @@ public class SaoController {
         if (isSftp) {
             try {
                 //String encoding = Base64.getEncoder().encodeToString((productCatalogAuth).getBytes("UTF-8"));
-
+                ArrayList<NameValuePair> postParameters;
+                JSONObject saoRequestBodyJSON = new JSONObject(saoRequestBody);
                 StringEntity freephoneClientData = new StringEntity(saoRequestBody, ContentType.APPLICATION_JSON);
+
                 HttpPost freephoneClientPost = new HttpPost(new URI(saoApiUrl+"/FreephoneClientCreateUpdate"));
+
+
+                postParameters = new ArrayList<NameValuePair>();
+                postParameters.add(new BasicNameValuePair("fk_client", saoRequestBodyJSON.get("fk_client").toString()));
+                //postParameters.add(new BasicNameValuePair("param2", "param2_value"));
+
+                freephoneClientPost.setEntity(new UrlEncodedFormEntity(postParameters, "UTF-8"));
+
                 //freephoneClientPost.setHeader("Authorization", "Basic " + encoding);
                 freephoneClientPost.addHeader("Content-Type", "application/json;charset=UTF-8");
 
