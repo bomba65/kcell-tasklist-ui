@@ -164,7 +164,6 @@
             });
 
             $scope.preSubmit = function() {
-                ///////////////////////////////////////
                 var getProductCatalogShortNumber = function() {
                     var deferred = $q.defer();
                     var serviceTypeId = $scope.relatedProcessDefinitionKey === 'bulksmsConnectionKAE' ? 13 : 177;
@@ -241,71 +240,107 @@
                         )
                         .then(
                             function(response){
+                                console.log('response from changeContractNumber', response.data);
                                 if($scope.relatedProcessDefinitionKey === 'freephone'){
-                                    var operators = $scope.identifiers[0].operators.map(function(o){
-                                        console.log('SAO', $scope.saoResponse[o.name].fk_client);
-                                        var saoRequestBody = {
-                                            report: o.name,
-                                            fk_client: $scope.saoResponse[o.name].fk_client,
-                                            client_name: $scope.officialClientCompanyName,
-                                            bin: $scope.clientBIN,
-                                            technology: "IVR",
-                                            short_number: $scope.identifiers[0].title
-                                        }
-
-                                        if($scope.operatorType === "onnet"){
-                                            saoRequestBody.provider = "Kcell";
+                                    console.log('freephone', $scope.identifiers[0].operators);
+                                    var operatorsFromSAO = $scope.identifiers[0].operators.filter(function(o){
+                                        if($scope.saoResponse && $scope.saoResponse[o.name]){
+                                            return true;
                                         } else {
-                                            if(o.name === "Kcell") {
+                                            return false;
+                                        }
+                                    });
+                                    console.log('operatorsFromSAO', operatorsFromSAO);
+                                    var operatorPromises = operatorsFromSAO.map(function(o){
+                                        //console.log('SAO', $scope.saoResponse[o.name].fk_client);
+
+                                        // if($scope.saoResponse && $scope.saoResponse[o.name]){
+
+                                            var saoRequestBody = {
+                                                report: o.name,
+                                                fk_client: $scope.saoResponse[o.name].fk_client,
+                                                client_name: $scope.officialClientCompanyName,
+                                                bin: $scope.clientBIN,
+                                                technology: "IVR",
+                                                short_number: $scope.identifiers[0].title
+                                            }
+
+                                            if($scope.operatorType === "onnet"){
                                                 saoRequestBody.provider = "Kcell";
                                             } else {
-                                                saoRequestBody.provider = $scope.provider === "SMS Consult" ? "SMS-Consult" : $scope.provider;
+                                                if(o.name === "Kcell") {
+                                                    saoRequestBody.provider = "Kcell";
+                                                } else {
+                                                    saoRequestBody.provider = $scope.provider === "SMS Consult" ? "SMS-Consult" : $scope.provider;
+                                                }
                                             }
-                                        }
 
-                                        if($scope.connectionType === "SIP_SBC"){
-                                            saoRequestBody.type_conn = $scope.connectionType;
-                                            saoRequestBody.ip = $scope.ipNumber;
-                                        } else if($scope.connectionType === "transmit"){
-                                            saoRequestBody.type_conn = "Call forwarding";
-                                            saoRequestBody.forward_num = $scope.transmitNumber;
-                                        } else if($scope.connectionType === "E1"){
-                                            saoRequestBody.type_conn = $scope.connectionType;
-                                            saoRequestBody.term_point = $scope.terminationPoint;
-                                            saoRequestBody.hope_point = $scope.hopPoint;
-                                            saoRequestBody.site_name = $scope.siteName;
-                                            saoRequestBody.port = $scope.lastMilePort;
-                                            saoRequestBody.exchange = $scope.EXCHANGE;
-                                            saoRequestBody.mgw = $scope.MGW;
-                                            saoRequestBody.rtdma = $scope.RTDMA;
-                                            saoRequestBody.klm = $scope.channelKLM;
-                                        }
-                                        $scope.saoAftersalesRequest[o.name] = angular.copy(saoRequestBody);
+                                            if($scope.connectionType === "SIP_SBC"){
+                                                saoRequestBody.type_conn = $scope.connectionType;
+                                                saoRequestBody.ip = $scope.ipNumber;
+                                            } else if($scope.connectionType === "transmit"){
+                                                saoRequestBody.type_conn = "Call forwarding";
+                                                saoRequestBody.forward_num = $scope.transmitNumber;
+                                            } else if($scope.connectionType === "E1"){
+                                                saoRequestBody.type_conn = $scope.connectionType;
+                                                saoRequestBody.term_point = $scope.terminationPoint;
+                                                saoRequestBody.hope_point = $scope.hopPoint;
+                                                saoRequestBody.site_name = $scope.siteName;
+                                                saoRequestBody.port = $scope.lastMilePort;
+                                                saoRequestBody.exchange = $scope.EXCHANGE;
+                                                saoRequestBody.mgw = $scope.MGW;
+                                                saoRequestBody.rtdma = $scope.RTDMA;
+                                                saoRequestBody.klm = $scope.channelKLM;
+                                            }
+                                            $scope.saoAftersalesRequest[o.name] = angular.copy(saoRequestBody);
 
-                                        return $http.post("/camunda/sao/apis/FreephoneClientUpdate",  saoRequestBody)
-                                    });
-
-                                    //return $q.all(operators);
-                                    return $q.all(operators).then(function(response){
-                                        var deferred = $q.defer();
-                                        if(response && response.data && response.data.id){
-                                            console.log('sao response', response.data);
-                                            $scope.saoAftersalesResponse = response.data;
-                                            deferred.resolve('sao response');
+                                            return $http.post("/camunda/sao/apis/FreephoneClientUpdate",  saoRequestBody);
+                                        /*
                                         } else {
-                                            console.log('empty response from sao', response);
-                                            $scope.saoAftersalesResponse = {error: 'empty response from sao'};
-                                            deferred.reject('empty response from sao');
+                                            var deferred = $q.defer();
+                                            deferred.resolve('No such SAO response exists for ' + o.name + ' operator');
+                                            return deferred.promise;
                                         }
-                                        return deferred.promise;
+                                        */
                                     });
+
+                                    console.log('operatorPromises length', operatorPromises.length);
+
+                                    if(operatorPromises.length>0){
+                                        return $q.all(operatorPromises).then(
+                                            function(response){
+                                                var deferred = $q.defer();
+                                                if(response && response.data){
+                                                    //console.log('sao response', response.data);
+                                                    if(response.data.success && response.data.success == 1){
+                                                        console.log('successful response from sao', response.data);
+                                                        $scope.saoAftersalesResponse = response.data;
+                                                        deferred.resolve('successful response from sao');
+                                                    } else {
+                                                        console.log('unsuccessful response from sao', response.data);
+                                                        deferred.reject('unsuccessful response from sao');
+                                                    }
+                                                } else {
+                                                    console.log('empty response from sao', response);
+                                                    $scope.saoAftersalesResponse = {error: 'empty response from sao'};
+                                                    deferred.reject('empty response from sao');
+                                                }
+                                                return deferred.promise;
+                                            }
+                                        );
+                                    } else {
+                                        console.log('No such SAO response exists, nothing to update in SAO');
+                                        var deferred = $q.defer();
+                                        deferred.resolve('No such SAO response exists, nothing to update in SAO');
+                                        return deferred.promise;
+                                    }
+
+                                } else {
+                                    console.log('Success since no SAO integration with BulkSMS is needed');
+                                    var deferred = $q.defer();
+                                    deferred.resolve({data: response.data});
+                                    return deferred.promise;
                                 }
-                            }
-                        )
-                        .catch(
-                            function(error){
-                                //console.log(error);
-                                return error;
                             }
                         );
                 }
@@ -748,7 +783,7 @@
             // Disable responsibleB2BSales if the current user is not member of group "delivery_CRM_info_admin" and "Sales Representative" is not null
             $scope.is_not_member_of_delivery_CRM_info_admin = !$rootScope.hasGroup('delivery_CRM_info_admin');
 
-            $scope.$watch('clientBIN', function(clientBIN){
+            /*$scope.$watch('clientBIN', function(clientBIN){
                 if (clientBIN){
                     $http({method: 'GET', url: '/camunda/crm/client/bin/'+clientBIN, transformResponse: [] })
 	                .then(function(response) {
@@ -804,7 +839,7 @@
                     $scope.foundClientCRM = false;
                     $scope.is_not_member_of_delivery_CRM_info_admin = $scope.foundClientCRM && !$rootScope.hasGroup('delivery_CRM_info_admin');
                 }
-            }, true);
+            }, true);*/
 
             $scope.getUsers = function(val, group) {
                 var users = $http.get('/camunda/api/engine/engine/default/user?memberOfGroup='+ group +'&firstNameLike=%'+val+'%').then(
@@ -1065,9 +1100,7 @@
             </div>
         </div>
     </div>
-
-    <button ng-click="preSubmit()">PRE SUBMIT</button>
-
+    <!--<button ng-click="preSubmit()">PRE SUBMIT</button>-->
     <div class="form-group">
         <label class="col-sm-12 control-label"><H4><b>Информация о клиенте:</b></H4></label>
     </div>
