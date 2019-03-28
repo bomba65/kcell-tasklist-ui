@@ -505,7 +505,7 @@ public class ProductCatalog {
                 String encoding = Base64.getEncoder().encodeToString((productCatalogAuth).getBytes("UTF-8"));
 
                 StringEntity contentProviderData = new StringEntity(contentProvider, ContentType.APPLICATION_JSON);
-                HttpPut contentProviderPut = new HttpPut(new URI(productCatalogUrl+"/vas_content_providers")+URLEncoder.encode(clientId, "UTF-8"));
+                HttpPut contentProviderPut = new HttpPut(new URI(productCatalogUrl+"/vas_content_providers/"+clientId));
                 contentProviderPut.setHeader("Authorization", "Basic " + encoding);
                 contentProviderPut.addHeader("Content-Type", "application/json;charset=UTF-8");
 
