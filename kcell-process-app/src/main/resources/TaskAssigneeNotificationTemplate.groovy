@@ -11,13 +11,10 @@ def startTime = new Date()
 if (procInst != null) startTime = procInst.getStartTime()
 def status = ""
 statusObj = delegateTask.getVariable('status')
-if (statusObj!=null) {
+if (processName=="Revision") {
     statusObj = new JsonSlurper().parseText(statusObj.toString())
     status = statusObj.statusName
-}
-def siteName = delegateTask.getVariable('site_name')
-if (siteName!=null) {
-    customVariables."Cайт"=siteName
+    customVariables."Cайт"=delegateTask.getVariable('site_name')
 }
 def binding = ["processName": processName,
                 "activity": delegateTask.getName(),
