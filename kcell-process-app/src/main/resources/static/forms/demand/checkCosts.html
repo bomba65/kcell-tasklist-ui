@@ -22,12 +22,27 @@
                 reportsStatistics: '',
                 acceptanceCriteria: []
             };
+            $scope.CACData = {
+                resources: [],
+                materials: [],
+                acceptCrits: []
+            };
             $scope.resolutions = [];
             $scope.attachments = [];
+            $scope.supportiveInputs = [];
+            var supportiveInputList = {
+                CPD: false, CPDs: [],
+                HR: false, HRs: [],
+                TD: false, TDs: []
+            };
+            $scope.supportiveInputsCount = 0;
             var processInstanceId = null;
             var taskName = null;
             var assigneeName = $rootScope.authentication.name;
             var createdDate = new Date();
+            $scope.pricesFilled = true;
+            $scope.hrInput = {checked: false, value: []};
+            $scope.cpdInput = {checked: false, value: []};
 
             $http.get("/camunda/api/engine/engine/default/user/" + $rootScope.authentication.name+ "/profile").then(function(result){
                 assigneeName = (result.data.firstName ? result.data.firstName : "") + " " + (result.data.lastName ? result.data.lastName : "");
@@ -47,9 +62,12 @@
             camForm.on('form-loaded', function () {
                 camForm.variableManager.fetchVariable('generalData');
                 camForm.variableManager.fetchVariable('BRDData');
+                camForm.variableManager.fetchVariable('acceptanceCriterias');
                 camForm.variableManager.fetchVariable('resolutions');
+                camForm.variableManager.fetchVariable('resolution');
                 camForm.variableManager.fetchVariable('attachments');
                 camForm.variableManager.fetchVariable('supportiveInputs');
+                camForm.variableManager.fetchVariable('supportiveInputList');
                 camForm.variableManager.fetchVariable('status');
                 camForm.variableManager.fetchVariable('state');
             });
@@ -57,155 +75,179 @@
             camForm.on('variables-fetched', function () {
                 $scope.generalData = camForm.variableManager.variableValue('generalData');
                 $scope.BRDData = camForm.variableManager.variableValue('BRDData');
+                $scope.acceptanceCriterias = camForm.variableManager.variableValue('acceptanceCriterias');
                 $scope.resolutions = camForm.variableManager.variableValue('resolutions');
                 $scope.attachments = camForm.variableManager.variableValue('attachments');
                 $scope.supportiveInputs = camForm.variableManager.variableValue('supportiveInputs');
+                $scope.supportiveInputList = camForm.variableManager.variableValue('supportiveInputList');
                 $scope.status = camForm.variableManager.variableValue('status');
                 $scope.state = camForm.variableManager.variableValue('state');
                 if (!$scope.attachments) $scope.attachments = [];
-                if (!$scope.supportiveInputs) $scope.supportiveInputs = [];
-                var elt = $scope.supportiveInputs.find(function(e) {return e.unit == 'Human Resources Department';});
-                if (!elt) {
-                    $scope.supportiveInputs.push({
-                        unit: 'Human Resources Department',
-                        form: 'HR',
-                        value: [],
-                        checked: false,
-                        inputReceived: false,
-                        groupId: 'demand_supportive_hr'
-                    });
+                if (!$scope.supportiveInputs) {
+                    $scope.supportiveInputs = [
+                        {unit: 'Human Resources Department', form: 'HR', value: [], checked: false, groupId: 'Demand_Supportive_Human_Resources_Department'},
+                        {unit: 'Centralized Procurement Department', form: 'CPD', value: [], checked: false},
+                        {unit: 'Technology Department', form: 'TD', value: {}, checked: false}
+                    ];
                 } else {
-                    elt.inputReceived = false;
-                    elt.description = null;
-                    elt.checked = false;
-                }
-                elt = $scope.supportiveInputs.find(function(e) {return e.unit == 'Centralized Procurement Department';});
-                if (!elt) {
-                    $scope.supportiveInputs.push({
-                        unit: 'Centralized Procurement Department',
-                        form: 'CPD',
-                        value: [],
-                        checked: false,
-                        inputReceived: false
-                    });
-                } else {
-                    elt.inputReceived = false;
-                    elt.description = null;
-                    elt.checked = false;
-                }
-                elt = $scope.supportiveInputs.find(function(e) {return e.unit == 'Technology Department';});
-                if (!elt) {
-                    $scope.supportiveInputs.push({
-                        unit: 'Technology Department',
-                        form: 'TD',
-                        value: [],
-                        checked: false,
-                        inputReceived: false
-                    });
-                } else {
-                    elt.inputReceived = false;
-                    elt.description = null;
-                    elt.checked = false;
+                    for (var s of $scope.supportiveInputs) {
+                        if (s.checked) $scope.supportiveInputsCount++;
+                        if (s.form == 'HR') $scope.hrInput = s;
+                        else if (s.form == 'CPD') $scope.cpdInput = s;
+                    }
+                    if ($scope.supportiveInputs.findIndex(function(e) { return e.unit === 'Technology Department'}) === -1) {
+                        $scope.supportiveInputs.push({unit: 'Technology Department', form: 'TD', value: {}, checked: false});
+                    }
                 }
             });
 
             camForm.on('submit', function (event) {
-                camForm.variableManager.destroyVariable('supportiveInputs');
-                camForm.variableManager.createVariable({
-                  name: 'supportiveInputs',
-                  type: 'json',
-                  value: $scope.supportiveInputs,
-                  store: true
-                });
-                camForm.variableManager.destroyVariable('attachments');
-                camForm.variableManager.createVariable({
-                  name: 'attachments',
-                  type: 'json',
-                  value: $scope.attachments,
-                  store: true
-                });
-
                 var submitDate = new Date ();
                 if(!$scope.resolutions){
                     $scope.resolutions = [];
                 }
-                $scope.resolutions.unshift({processInstanceId: processInstanceId, assignee: assigneeName, resolution: 'Completed', comment: $scope.comment, taskId: camForm.taskId, taskEndDate: submitDate, taskName: taskName, dateOfAssign: createdDate});
+                $scope.resolutions.unshift({processInstanceId: processInstanceId, assignee: assigneeName, resolution: $scope.resolution, comment: $scope.comment, taskId: camForm.taskId, taskEndDate: submitDate, taskName: taskName, dateOfAssign: createdDate});
                 camForm.variableManager.destroyVariable('resolutions');
                 camForm.variableManager.createVariable({
                     name: 'resolutions',
                     type: 'Json',
                     value: $scope.resolutions
                 });
+
+                camForm.variableManager.destroyVariable('resolution');
+                camForm.variableManager.createVariable({
+                    name: 'resolution',
+                    type: 'String',
+                    value: $scope.resolution
+                });
+
+                if ($scope.supportiveInputs && $scope.supportiveInputs.length) {
+                    for (var v of $scope.supportiveInputs) {
+                        if (!v.checked) continue;
+                        if (v.unit === 'Human Resources Department') {
+                            supportiveInputList[v.form] = true;
+                            if (!supportiveInputList[v.form+'s']) supportiveInputList[v.form+'s'] = [];
+                            supportiveInputList[v.form+'s'].push({unit: v.unit, groupId: v.groupId});
+                        } else if (v.unit === 'Centralized Procurement Department') {
+                            supportiveInputList[v.form] = true;
+                            if (!supportiveInputList[v.form+'s']) supportiveInputList[v.form+'s'] = [];
+                            for (var m of v.value) {
+                                if (!m.purchaser || !m.purchaser.groupId || supportiveInputList[v.form+'s'].find(function(e) { return e.groupId === m.purchaser.groupId; })) continue;
+                                supportiveInputList[v.form+'s'].push({unit: v.unit, groupId: m.purchaser.groupId});
+                            }
+                        } else if (v.unit === 'Technology Department') {
+                            supportiveInputList[v.form] = true;
+                            if (!supportiveInputList[v.form+'s']) supportiveInputList[v.form+'s'] = [];
+                            supportiveInputList[v.form+'s'].push({unit: v.unit, responsible: v.responsible});
+                        }
+                    }
+                }
+
+                if ($scope.resolution == 'Approve') {
+                    for (var i of $scope.supportiveInputs) {
+                        i.inputReceived = false;
+                        i.description = null;
+                        i.checked = false;
+                    }
+                }
+
+                camForm.variableManager.destroyVariable("supportiveInputs");
+                camForm.variableManager.createVariable({
+                    name: 'supportiveInputs',
+                    type: 'Json',
+                    value: $scope.supportiveInputs
+                });
+
+                camForm.variableManager.destroyVariable("supportiveInputList");
+                camForm.variableManager.createVariable({
+                    name: 'supportiveInputList',
+                    type: 'Json',
+                    value: supportiveInputList
+                });
             });
 
             $scope.downloadFile = function (file) {
                 $http({method: 'GET', url: '/camunda/uploads/get/' + file.path, transformResponse: [] }).
                 then(function(response) {
-                  document.getElementById('fileDownloadIframe').src = response.data;
-                }, function(error){
-                  console.log(error.data);
-                });
-            }
-
-            $scope.clearFile = function(fileIndex) {
-                $scope.attachments.splice(fileIndex, 1);
-            }
-
-            $scope.fileSelected = function(el ){
-                $timeout(function () {
-                    $scope.$apply(function () {
-                        uploadFileToMinio(el.files[0]);
-                    });
-                })
-            };
-
-            function uploadFileToMinio(file) {
-                var fileToUpload = {
-                    name: file.name,
-                    path: processInstanceId + '/' + camForm.taskId + '/' + file.name,
-                    created: new Date(),
-                    createdBy: assigneeName
-                };
-                $http({method: 'GET', url: '/camunda/uploads/put/' + fileToUpload.path, transformResponse: [] }).then(function(response) {
-                    $http.put(response.data, file, {headers: {'Content-Type': undefined}}).then(
-                        function () {
-                            $scope.attachments.push(fileToUpload);
-                            angular.element(document.querySelector('#attachments')).val(null);
-                        },
-                        function (error) {
-                            console.log(error.data);
-                        }
-                    );
+                    document.getElementById('fileDownloadIframe').src = response.data;
                 }, function(error){
                     console.log(error.data);
                 });
-            }
-
-            $scope.saveFillForm = function () {
-                var success = 0;
-                var json = JSON.stringify($scope.supportiveInputs, function( key, value ) {
-                    if( key === "$$hashKey" ) return undefined;
-                    return value;
-                });
-                $http.put('/camunda/api/engine/engine/default/process-instance/'+processInstanceId+'/variables/supportiveInputs',{"type":"Json","value": json}).then(
-                    function() {
-                        success++;
-                        if (success == 2) toasty.success( "Данные успешно сохранены!");
-                    },
-                    function(error) {toasty.error(error.data.message);}
-                );
-                json = JSON.stringify($scope.attachments, function( key, value ) {
-                    if( key === "$$hashKey" ) return undefined;
-                    return value;
-                });
-                $http.put('/camunda/api/engine/engine/default/process-instance/'+processInstanceId+'/variables/attachments',{"type":"Json","value": json}).then(
-                    function() {
-                        success++;
-                        if (success == 2) toasty.success( "Данные успешно сохранены!");
-                    },
-                    function(error) {toasty.error(error.data.message);}
-                );
             };
+
+            $scope.needInputClicked = function(selected) {
+                $scope.supportiveInputsCount += (selected ? 1 : -1);
+                if (!$scope.supportiveInputsCount && scope.resolution == 'Request Info') $scope.resolution = 'Send to modify';
+            };
+
+
+            $scope.getUser = function(val, index) {
+                $scope.supportiveInputs[index].responsible = null;
+                $scope.kcell_form['reqinfo_'+index+'_responsible'].$setValidity('not_selected', false);
+                var users = $http.get('/camunda/api/engine/engine/default/user?memberOfGroup=demand_uat_users&firstNameLike='+encodeURIComponent('%'+val+'%')).then(
+                    function(response){
+                      var usersByFirstName = _.flatMap(response.data, function(s){
+                        if(s.id){
+                          return s.id.split(',').map(function(user){
+                            return {
+                              id: s.id,
+                              email: (s.email?s.email.substring(s.email.lastIndexOf('/')+1):s.email),
+                              firstName: s.firstName,
+                              lastName: s.lastName,
+                              name: s.firstName + ' ' + s.lastName
+                            };
+                          })
+                        } else {
+                          return [];
+                        }
+                      });
+
+                      return $http.get('/camunda/api/engine/engine/default/user?memberOfGroup=demand_uat_users&lastNameLike='+encodeURIComponent('%'+val+'%')).then(
+                          function(response){
+                            var usersByLastName = _.flatMap(response.data, function(s){
+                              if(s.id){
+                                return s.id.split(',').map(function(user){
+                                  return {
+                                    id: s.id,
+                                    email: s.email.substring(s.email.lastIndexOf('/')+1),
+                                    firstName: s.firstName,
+                                    lastName: s.lastName,
+                                    name: s.firstName + ' ' + s.lastName
+                                  };
+                                })
+                              } else {
+                                return [];
+                              }
+                            });
+                            return _.unionWith(usersByFirstName, usersByLastName, _.isEqual);
+                          }
+                      );
+                    }
+                );
+                return users;
+            };
+
+            $scope.userSelected = function($item, index){
+                $scope.supportiveInputs[index].responsible = $item.id;
+                $scope.supportiveInputs[index].responsibleName = $item.name;
+                $scope.kcell_form['reqinfo_'+index+'_responsible'].$setValidity('not_selected', true);
+            };
+
+            $scope.$watch('supportiveInputs', function (value) {
+                $scope.pricesFilled = true;
+                for (var i of $scope.supportiveInputs) {
+                    if (i.form == 'HR' || i.form == 'CPD') {
+                        for (var r of i.value) {
+                            if (!r.pprice) {
+                                $scope.pricesFilled = false;
+                                break;
+                            }
+                        }
+                    }
+                }
+                if (!$scope.pricesFilled && $scope.resolution == 'Approve') $scope.resolution = null;
+
+            }, true);
         }]);
     </script>
     <div class="form-group">
@@ -223,7 +265,7 @@
         </div>
         <label style="width: 6%; float: left; padding: 7px 0px 0 5px; font-weight: 500;"> Activity:</label>
         <div style="width: 29%; float: left; padding: 0 5px;">
-            <div class="disabled-element"> Assess costs and Define acceptance criteria </div>
+            <div class="disabled-element"> Check cost assessment </div>
         </div>
     </div>
     <div class="form-group">
@@ -370,7 +412,7 @@
                                         <div class="col-sm-12 control-label" style="padding-left: 0;">{{$index + 1}}</div>
                                     </td>
                                     <td>
-                                        <div class="disabled-element">{{ac.descirption}}</div>
+                                        <demand-rich-text data="ac.description" disabled="true" min-height="100"></demand-rich-text>
                                     </td>
                                 </tr>
                                 </tbody>
@@ -381,12 +423,12 @@
             </div>
         </tab>
         <tab active="true">
-            <tab-heading> Costs and Acceptance criteria </tab-heading>
+            <tab-heading> Costs </tab-heading>
             <div style="margin-bottom: 20px;">
                 <accordion ng-repeat="i in supportiveInputs" ng-if="i.unit == 'Human Resources Department'" class="content-visible-accordion">
                     <accordion-group is-open="true">
                         <accordion-heading>
-                            Resources <i class="pull-right glyphicon" ng-class="{'glyphicon-chevron-up': status.isCustomHeaderOpen, 'glyphicon-chevron-down': !status.isCustomHeaderOpen}"></i>
+                            Resources <span title='Для запроса стоимости ресурсов необходимо: 1. В блоке "Supportive inputs" выбрать "Human Resources Department". 2. Заполнить поле "Request description". 3. Выбрать "Resolution": "Request info". 4. Нажать кнопку "Complete"' style="color: #682d86" class="glyphicon glyphicon-question-sign"></span> <span class="text-danger" ng-if="i.checked && !i.value.length">(Не должно быть пусто)</span> <i class="pull-right glyphicon" ng-class="{'glyphicon-chevron-up': status.isCustomHeaderOpen, 'glyphicon-chevron-down': !status.isCustomHeaderOpen}"></i>
                         </accordion-heading>
                         <demand-resources data="i.value" form="kcell_form" view="view" disabled="false" editprice="false"></demand-resources>
                     </accordion-group>
@@ -394,9 +436,32 @@
                 <accordion ng-repeat="i in supportiveInputs" ng-if="i.unit == 'Centralized Procurement Department'" class="content-visible-accordion">
                     <accordion-group is-open="true">
                         <accordion-heading>
-                            Materials <i class="pull-right glyphicon" ng-class="{'glyphicon-chevron-up': status.isCustomHeaderOpen, 'glyphicon-chevron-down': !status.isCustomHeaderOpen}"></i>
+                            Materials <span title='Для запроса стоимости материалов необходимо: 1. В блоке "Supportive inputs" выбрать "Centralized Procurement Department". 2. Заполнить поле "Request description". 3. Выбрать "Resolution": "Request info". 4. Нажать кнопку "Complete"' style="color: #682d86" class="glyphicon glyphicon-question-sign"></span> <span class="text-danger" ng-if="i.checked && !i.value.length">(Не должно быть пусто)</span> <i class="pull-right glyphicon" ng-class="{'glyphicon-chevron-up': status.isCustomHeaderOpen, 'glyphicon-chevron-down': !status.isCustomHeaderOpen}"></i>
                         </accordion-heading>
                         <demand-materials data="i.value" form="kcell_form" view="view" disabled="false" editprice="false" editexisting="false"></demand-materials>
+                    </accordion-group>
+                </accordion>
+                <accordion>
+                    <accordion-group is-open="true">
+                        <accordion-heading>
+                            Acceptance criteria <i class="pull-right glyphicon" ng-class="{'glyphicon-chevron-up': status.isCustomHeaderOpen, 'glyphicon-chevron-down': !status.isCustomHeaderOpen}"></i>
+                        </accordion-heading>
+                        <div class="col-sm-12">
+                            <table class="table table-borderless">
+                                <thead>
+                                <tr>
+                                    <th style="border:none;">#</th>
+                                    <th style="border:none;">Description</th>
+                                </tr>
+                                </thead>
+                                <tbody>
+                                <tr ng-repeat="d in acceptanceCriterias track by $index">
+                                    <td>{{$index + 1}}.</td>
+                                    <td><div class="disabled-element">{{d.v}}</div></td>
+                                </tr>
+                                </tbody>
+                            </table>
+                        </div>
                     </accordion-group>
                 </accordion>
             </div>
@@ -412,14 +477,48 @@
     <div class="col-sm-12" style="margin-top: 20px;"><hr style="border-top: 2px solid #aaa;" /></div>
 
     <div class="col-sm-12" style="border: 1px solid #ccc; border-radius: 10px; padding-top: 10px; margin: 20px 0;">
+        <div class="col-sm-12">
+            <div class="form-group">
+                <label class="col-sm-2">Supportive Inputs <span title='Для экспертизы по HR, CPD, TD, необходимо: 1. В блоке "Supportive inputs" выбрать нужный департамент. 2. Заполнить поле "Request description". 3. Выбрать "Resolution": "Request info". 4. Нажать кнопку "Complete"' style="color: #682d86" class="glyphicon glyphicon-question-sign"></span></label>
+            </div>
+            <div class="col-sm-12">
+                <table class="table">
+                    <thead>
+                    <tr>
+                        <th class="text-center col-sm-1">Need input</th>
+                        <th class="col-sm-3">Supportive unit</th>
+                        <th class="text-center col-sm-5">Request description</th>
+                        <th class="text-center col-sm-3">Responsible <span title='Ответственный заполняется только для Technology Department' style="color: #682d86" class="glyphicon glyphicon-question-sign"></span></th>
+                    </tr>
+                    </thead>
+                    <tbody>
+                    <tr ng-repeat="r in supportiveInputs" ng-if="r.unit == 'Human Resources Department' || r.unit == 'Centralized Procurement Department' || r.unit == 'Technology Department'">
+                        <td class="text-center">
+                            <input type="checkbox" ng-model="r.checked" ng-click="needInputClicked(r.checked)">
+                        </td>
+                        <td>{{r.unit}}</td>
+                        <td class="text-center">
+                            <textarea rows="1" elastic-textarea class="form-control" ng-model="r.description" name="reqinfo_{{$index}}_description" ng-required="r.checked"></textarea>
+                            <span class="has-error" ng-if="kcell_form['reqinfo_'+$index+'_description'].$error.required && ( kcell_form['reqinfo_'+$index+'_description'].$touched || view.submitted)">Required field</span>
+                        </td>
+                        <td class="text-center">
+                            <input type="text" ng-model="r.responsibleName" name="reqinfo_{{$index}}_responsible" typeahead="name as users.name for users in getUser($viewValue, $index)" typeahead-on-select="userSelected($item, $index)" class="form-control" autocomplete="off" required ng-if="r.unit === 'Technology Department' && r.checked">
+                            <span class="has-error" ng-if="kcell_form['reqinfo_'+$index+'_responsible'].$error.required && (kcell_form['reqinfo_'+$index+'_responsible'].$touched || view.submitted)">Required field</span>
+                            <span class="has-error" ng-if="!kcell_form['reqinfo_'+$index+'_responsible'].$error.required && kcell_form['reqinfo_'+$index+'_responsible'].$error.not_selected && (kcell_form['reqinfo_'+$index+'_responsible'].$touched || view.submitted)">User must be selected from the list</span>
+                        </td>
+                    </tr>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+
+    <div class="col-sm-12" style="border: 1px solid #ccc; border-radius: 10px; padding-top: 10px; margin: 20px 0;">
         <iframe id="fileDownloadIframe" style="display:none;"></iframe>
         <div class="form-group">
             <div class="col-sm-12">
                 <div class="col-sm-12" style="margin-bottom: 10px;">
                     <label class="col-sm-12">Attachments</label>
-                </div>
-                <div class="col-sm-12" style="margin-bottom: 10px;">
-                    <input type="file" class="form-control" id="attachments" name="attachments" onchange="angular.element(this).scope().fileSelected(this)"/>
                 </div>
                 <div class="col-sm-12">
                     <table class="table table-bordered">
@@ -428,7 +527,6 @@
                             <th>File Name</th>
                             <th>Created</th>
                             <th>Created By</th>
-                            <th>Delete</th>
                         </tr>
                         </thead>
                         <tbody>
@@ -436,7 +534,6 @@
                             <td><a ng-click="downloadFile(file)">{{file.name}}</a></td>
                             <td>{{file.created | date: 'dd.MM.yyyy HH:mm'}}</td>
                             <td>{{file.createdBy}}</td>
-                            <td><a ng-click="clearFile($index)"><i class="glyphicon glyphicon-trash"></i></a></td>
                         </tr>
                         </tbody>
                     </table>
@@ -445,14 +542,25 @@
         </div>
     </div>
 
-    <div class="col-sm-12" style="margin-bottom: 20px;">
-        <button type="button" ng-click="saveFillForm()" class="btn btn-success" style="padding: 6px 28px">Save</button>
-    </div>
-
     <div class="form-group">
-        <label class="col-sm-2 control-label">Comment<span class="text-danger glyphicon-asterisk"></span></label>
+        <label class="col-sm-2 control-label">Resolution</label>
+        <div class="col-sm-8">
+            <label class="radio-inline" title="{{pricesFilled?'Утвердить запрос \ Approve request':'Должны быть заполнены поля &quot;Rate per Hour, KZT Gross&quot; и &quot;Price, Without VAT&quot; для добавленных позиций в Resources и Materials. Необходимо запросить Supportive input HR (для ресурсов) или CPD (для материалов)'}}">
+                <input type="radio" ng-model="resolution" name="resolution" value="Approve" required ng-disabled="!pricesFilled"> Approve
+            </label>
+            <label class="radio-inline" title="Вернуть запрос на доработку \ Send request to edit">
+                <input type="radio" ng-model="resolution" name="resolution" value="Send to modify" required> Send to modify
+            </label>
+            <label class="radio-inline" title="Запросить экспертизу \ Request Supportive input">
+                <input type="radio" ng-model="resolution" name="resolution" value="Request Info" required ng-disabled="!supportiveInputsCount || (hrInput.checked && !hrInput.value.length) || (cpdInput.checked && !cpdInput.value.length)"> Request Info
+            </label>
+            <label class="error" ng-show="kcell_form.resolution.$error.required && ( kcell_form.resolution.$touched || view.submitted)">Required field</label>
+        </div>
+    </div>
+    <div class="form-group">
+        <label class="col-sm-2 control-label">Comment<span ng-if="resolution == 'Send to modify'" class="text-danger glyphicon-asterisk"></span></label>
         <div class="col-sm-10">
-            <textarea class="form-control" rows="4" maxlength="500" ng-model="comment" name="comment" required></textarea>
+            <textarea class="form-control" rows="4" maxlength="500" ng-model="comment" name="comment" ng-required="resolution == 'Send to modify'"></textarea>
             <label class="error" ng-show="kcell_form.comment.$error.required && ( kcell_form.comment.$touched || view.submitted)">Required field</label>
         </div>
     </div>
