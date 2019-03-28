@@ -44,6 +44,9 @@ public class FreephoneClientCreateUpdate implements JavaDelegate {
     public void execute(DelegateExecution delegateExecution) throws Exception {
 
         Boolean isSftp = Arrays.stream(environment.getActiveProfiles()).anyMatch(env -> (env.equalsIgnoreCase("sftp")));
+
+        System.out.println("isSftp: " + isSftp);
+
         Boolean saoSuccessfulResponse = true;
 
         String connectionType = String.valueOf(delegateExecution.getVariable("connectionType"));
