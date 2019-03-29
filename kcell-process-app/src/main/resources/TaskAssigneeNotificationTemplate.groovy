@@ -16,6 +16,9 @@ if (processName=="Revision") {
     status = statusObj.statusName
     customVariables."Cайт"=delegateTask.getVariable('site_name')
 }
+// subject can contain ampersands ~ problematic
+subject = java.net.URLEncoder.encode(subject, "UTF-8")
+subject = subject.replaceAll('\\+', ' ')
 def binding = ["processName": processName,
                 "activity": delegateTask.getName(),
                 "taskUrl": taskUrl, "baseUrl": baseUrl,
