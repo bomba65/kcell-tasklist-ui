@@ -171,7 +171,11 @@
 
                     return $http.get("/camunda/product-catalog/vas_short_numbers/short_number/" + $scope.identifiers[0].title + "/service_type_id/" + serviceTypeId).then(
                         function(response){
-                            console.log('vas_short_numbers', response.data);
+                            //console.log('vas_short_numbers', response.data);
+                            //var data = JSON.parse(response.data);
+
+                            console.log('vas_short_numbers', response);
+
                             if(response.data) {
                                 if (response.data.id) {
                                     console.log('Identifier ' + $scope.identifiers[0].title + ' with id ' + response.data.id + ' received from product catalog');
@@ -185,12 +189,12 @@
                                 deferred.reject('Undefined Response Data from Product Catalog Request');
                             }
                             return deferred.promise;
-                        },
+                        }/*,
                         function (error) {
                             console.log(error);
                             deferred.reject('error:' + error.data.error + ', message:' + error.data.message + ', path:' + error.data.path + ', status:' + error.data.status);
                             return deferred.promise;
-                        });
+                        }*/);
                 };
 
                 if($scope.changeContractNumber || $scope.changeOfficialClientCompanyName){
@@ -198,7 +202,7 @@
                         .then(
                             function(response){
                                 var shortNumberData = {};
-                                console.log('short number response from PC', response.data);
+                                //console.log('short number response from PC', response.data);
                                 if(response.data){
                                     shortNumberData = angular.copy(response.data);
                                     console.log('$scope.changeOfficialClientCompanyName', $scope.changeOfficialClientCompanyName);
@@ -242,6 +246,7 @@
                             function(response){
                                 console.log('response from changeContractNumber', response.data);
                                 if($scope.relatedProcessDefinitionKey === 'freephone'){
+
                                     console.log('freephone', $scope.identifiers[0].operators);
                                     var operatorsFromSAO = $scope.identifiers[0].operators.filter(function(o){
                                         if($scope.saoResponse && $scope.saoResponse[o.name]){
@@ -255,7 +260,6 @@
                                         //console.log('Freephone SAO response', $scope.saoResponse);
 
                                         // if($scope.saoResponse && $scope.saoResponse[o.name]){
-
                                             var saoRequestBody = {
                                                 //report: o.name,
                                                 fk_client: $scope.saoResponse[o.name].id,
@@ -265,47 +269,11 @@
                                                 //short_number: $scope.identifiers[0].title
                                             }
 
-                                            /*
-                                            if($scope.operatorType === "onnet"){
-                                                saoRequestBody.provider = "Kcell";
-                                            } else {
-                                                if(o.name === "Kcell") {
-                                                    saoRequestBody.provider = "Kcell";
-                                                } else {
-                                                    saoRequestBody.provider = $scope.provider === "SMS Consult" ? "SMS-Consult" : $scope.provider;
-                                                }
-                                            }
-
-                                            if($scope.connectionType === "SIP_SBC"){
-                                                saoRequestBody.type_conn = $scope.connectionType;
-                                                saoRequestBody.ip = $scope.ipNumber;
-                                            } else if($scope.connectionType === "transmit"){
-                                                saoRequestBody.type_conn = "Call forwarding";
-                                                saoRequestBody.forward_num = $scope.transmitNumber;
-                                            } else if($scope.connectionType === "E1"){
-                                                saoRequestBody.type_conn = $scope.connectionType;
-                                                saoRequestBody.term_point = $scope.terminationPoint;
-                                                saoRequestBody.hope_point = $scope.hopPoint;
-                                                saoRequestBody.site_name = $scope.siteName;
-                                                saoRequestBody.port = $scope.lastMilePort;
-                                                saoRequestBody.exchange = $scope.EXCHANGE;
-                                                saoRequestBody.mgw = $scope.MGW;
-                                                saoRequestBody.rtdma = $scope.RTDMA;
-                                                saoRequestBody.klm = $scope.channelKLM;
-                                            }
-                                            */
                                             $scope.saoAftersalesRequest[o.name] = angular.copy(saoRequestBody);
                                             console.log('sao request', saoRequestBody);
 
                                             //return $http.post("/camunda/sao/apis/FreephoneClientUpdate", saoRequestBody);
                                             return $http.post("/camunda/sao/apis/FreephoneClientCreateUpdate", saoRequestBody);
-                                        /*
-                                        } else {
-                                            var deferred = $q.defer();
-                                            deferred.resolve('No such SAO response exists for ' + o.name + ' operator');
-                                            return deferred.promise;
-                                        }
-                                        */
                                     });
 
                                     console.log('operatorPromises length', operatorPromises.length);
@@ -333,10 +301,12 @@
                                             }
                                         );
                                     } else {
+
                                         console.log('No such SAO response exists, nothing to update in SAO');
                                         var deferred = $q.defer();
                                         deferred.resolve('No such SAO response exists, nothing to update in SAO');
                                         return deferred.promise;
+
                                     }
 
                                 } else {
@@ -347,6 +317,11 @@
                                 }
                             }
                         );
+                } else {
+                    console.log('No integration is needed');
+                    var deferred = $q.defer();
+                    deferred.resolve('No integration is needed');
+                    return deferred.promise;
                 }
             };
 
@@ -486,6 +461,11 @@
                             value: $scope.oldConnectionType
                         });
                         camForm.variableManager.variableValue('connectionType', $scope.connectionType);
+                        if($scope.connectionType === 'smpp'){
+                            camForm.variableManager.variableValue('ipNumber', $scope.ipNumber);
+                        } else if($scope.connectionType !== 'smpp' && $scope.oldConnectionType === 'smpp'){
+                            camForm.variableManager.destroyVariable('ipNumber');
+                        }
                     }
                     if($scope.oldSmsServiceType && $scope.oldSmsServiceType !== $scope.smsServiceType){
                         camForm.variableManager.createVariable({
@@ -1168,7 +1148,7 @@
     <div class="form-group" ng-show="relatedProcessDefinitionKey === 'freephone' && connectionType === 'transmit'">
         <label class="col-sm-4 control-label">* Номер переадресации:</label>
         <div class="col-sm-8">
-            <input class="form-control" maxlength="500" ng-model="transmitNumber" name="transmitNumber" ng-required="connectionType === 'transmit'" ng-disabled="!(changeTransmitNumber || connectionType === 'transmit')">
+            <input class="form-control" maxlength="500" ng-model="transmitNumber" name="transmitNumber" ng-required="connectionType === 'transmit'" ng-disabled="!(changeTransmitNumber || (changeConnectionType && connectionType === 'transmit'))">
             <label class="error" ng-show="kcell_form.transmitNumber.$error.required && ( kcell_form.transmitNumber.$touched || view.submitted)">Required field</label>
         </div>
     </div>
@@ -1204,7 +1184,7 @@
     <div class="form-group" ng-show="relatedProcessDefinitionKey === 'freephone' && connectionType === 'SIP_SBC' ">
         <label class="col-sm-4 control-label">* IP адрес клиента:</label>
         <div class="col-sm-8">
-            <input class="form-control" maxlength="500" ng-model="ipNumber" name="ipNumber" ng-required="connectionType === 'SIP_SBC' " ng-disabled="connectionType != 'SIP_SBC'">
+            <input class="form-control" maxlength="500" ng-model="ipNumber" name="ipNumber" ng-required="connectionType === 'SIP_SBC' " ng-disabled="!((changeConnectionType || changeIpNumber) && connectionType === 'SIP_SBC')">
             <label class="error" ng-show="kcell_form.ipNumber.$error.required && ( kcell_form.ipNumber.$touched || view.submitted)">Required field</label>
         </div>
     </div>

@@ -26,6 +26,7 @@ import java.net.URI;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Base64;
+import java.util.List;
 
 @RestController
 @RequestMapping("/sao")
@@ -65,15 +66,23 @@ public class SaoController {
 
                 JSONObject saoRequestBodyJSON = new JSONObject(saoRequestBody);
                 String fkClient = String.valueOf(saoRequestBodyJSON.get("fk_client"));
-                StringEntity freephoneClientData = new StringEntity(saoRequestBody, ContentType.APPLICATION_JSON);
+                StringEntity freephoneClientData = new StringEntity(saoRequestBody, "UTF-8");
+                /*
+                ArrayList<NameValuePair> postParameters;
+                postParameters = new ArrayList<NameValuePair>();
+                postParameters.add(new BasicNameValuePair("fk_client", fkClient));
+                */
+                HttpPost freephoneClientPost = new HttpPost(new URI(saoApiUrl+"/FreephoneClientCreateUpdate"));
+                List<NameValuePair> params = new ArrayList<NameValuePair>(1);
+                params.add(new BasicNameValuePair("fk_client", fkClient));
+                freephoneClientPost.setEntity(new UrlEncodedFormEntity(params, "UTF-8"));
 
-                //ArrayList<NameValuePair> postParameters;
-                //postParameters = new ArrayList<NameValuePair>();
-                //postParameters.add(new BasicNameValuePair("fk_client", fkClient));
 
-                HttpPost freephoneClientPost = new HttpPost(new URI(saoApiUrl+"/FreephoneClientCreateUpdate?fk_client="+fkClient));
-                //HttpPost freephoneClientPost = new HttpPost(new URI(saoApiUrl+"/FreephoneClientCreateUpdate"));
+                //HttpPost freephoneClientPost = new HttpPost(new URI(saoApiUrl+"/FreephoneClientCreateUpdate?fk_client="+fkClient));
+
                 //freephoneClientPost.setEntity(new UrlEncodedFormEntity(postParameters, "UTF-8"));
+
+
 
                 //freephoneClientPost.setHeader("Authorization", "Basic " + encoding);
                 freephoneClientPost.addHeader("Content-Type", "application/json;charset=UTF-8");
