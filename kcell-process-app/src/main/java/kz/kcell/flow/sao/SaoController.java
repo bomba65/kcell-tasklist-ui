@@ -60,27 +60,26 @@ public class SaoController {
 
         if (isSftp) {
             try {
+                System.out.println("saoRequestBody: " + saoRequestBody);
                 //String encoding = Base64.getEncoder().encodeToString((productCatalogAuth).getBytes("UTF-8"));
-                ArrayList<NameValuePair> postParameters;
+
                 JSONObject saoRequestBodyJSON = new JSONObject(saoRequestBody);
+                String fkClient = String.valueOf(saoRequestBodyJSON.get("fk_client"));
                 StringEntity freephoneClientData = new StringEntity(saoRequestBody, ContentType.APPLICATION_JSON);
 
-                HttpPost freephoneClientPost = new HttpPost(new URI(saoApiUrl+"/FreephoneClientCreateUpdate"));
+                //ArrayList<NameValuePair> postParameters;
+                //postParameters = new ArrayList<NameValuePair>();
+                //postParameters.add(new BasicNameValuePair("fk_client", fkClient));
 
-
-                postParameters = new ArrayList<NameValuePair>();
-                postParameters.add(new BasicNameValuePair("fk_client", saoRequestBodyJSON.get("fk_client").toString()));
-                //postParameters.add(new BasicNameValuePair("param2", "param2_value"));
-
-                freephoneClientPost.setEntity(new UrlEncodedFormEntity(postParameters, "UTF-8"));
+                HttpPost freephoneClientPost = new HttpPost(new URI(saoApiUrl+"/FreephoneClientCreateUpdate?fk_client="+fkClient));
+                //HttpPost freephoneClientPost = new HttpPost(new URI(saoApiUrl+"/FreephoneClientCreateUpdate"));
+                //freephoneClientPost.setEntity(new UrlEncodedFormEntity(postParameters, "UTF-8"));
 
                 //freephoneClientPost.setHeader("Authorization", "Basic " + encoding);
                 freephoneClientPost.addHeader("Content-Type", "application/json;charset=UTF-8");
-
                 freephoneClientPost.setEntity(freephoneClientData);
 
                 HttpClient freephoneClientHttpClient = HttpClients.createDefault();
-
                 HttpResponse freephoneClientResponse = freephoneClientHttpClient.execute(freephoneClientPost);
 
                 HttpEntity entity = freephoneClientResponse.getEntity();
