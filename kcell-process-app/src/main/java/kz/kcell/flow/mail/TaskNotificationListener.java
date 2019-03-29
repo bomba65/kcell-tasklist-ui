@@ -118,7 +118,12 @@ public class TaskNotificationListener implements TaskListener {
                 String subject;
                 if (subjectScript.equals("default")) {
                     String businessKey = delegateTask.getExecution().getProcessBusinessKey();
-                    subject = businessKey!=null?String.format("%s, %s", businessKey, delegateTask.getName()):delegateTask.getName();
+                    String processName = delegateTask
+                        .getProcessEngineServices()
+                        .getRepositoryService()
+                        .getProcessDefinition(delegateTask.getProcessDefinitionId())
+                        .getName();
+                    subject = businessKey!=null?String.format("%s - %s", processName, businessKey):processName;
                 } else {
                     InputStreamReader reader = new InputStreamReader(TaskListener.class.getResourceAsStream(subjectScript));
                     subject = String.valueOf(((Compilable)groovyEngine).compile(reader).eval(bindings));
