@@ -76,6 +76,31 @@ define(['./../module'], function(module){
           scope.data.salesRepr = $item.name;
           scope.form.liSalesRepr.$setValidity('not_selected', true);
         };
+
+        scope.$watch('data.BIN', function(clientBIN){
+          if (clientBIN && clientBIN.length === 12) {
+            $http({method: 'GET', url: '/camunda/crm/client/bin/'+clientBIN, transformResponse: [] }).then(function(response) {
+              var clientCRM = JSON.parse(response.data);
+              if (clientCRM.accountName) {
+                scope.data.legalName = clientCRM.accountName;
+
+                if(clientCRM.salesExecutiveUser && clientCRM.salesExecutiveUser.username) {
+                  scope.userSelected({id: clientCRM.salesExecutiveUser.email.replace('[','').replace(']','').split('|')[0]});
+                  $http.get("/camunda/api/engine/engine/default/user/" + scope.data.salesReprId + "/profile").then(function(userResponse) {
+                    scope.userSelected({
+                      id: scope.data.salesReprId,
+                      name: userResponse.data.firstName + ' ' + userResponse.data.lastName
+                    });
+                  });
+                }
+
+                if (clientCRM.city && clientCRM.city.nameEn) {
+                  scope.data.companyCity = clientCRM.city.nameEn;
+                }
+              }
+            });
+          }
+        }, true);
       },
       templateUrl: './js/directives/revolvingNumbers/legalInfo.html'
     };
