@@ -10,7 +10,7 @@ html(lang:'en') {
             b(processName)
             yield ' в системе '
             b('Kcell Workflow')
-            yield ' на вас назначена активность '
+            yield ' на Вас назначена активность '
             b(activity)
             yield ' по заявке # '
             b(businessKey)
