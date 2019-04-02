@@ -1,120 +1,141 @@
-<div class="col-sm-12 resources-container" style="overflow: scroll;">
-    <div class="col-sm-12" ng-style="{'min-width': (disabled?'100%':'1300px')}">
-        <table class="table">
-            <thead>
-            <tr>
-                <th ng-style="{'width': (disabled?'auto':'2%')}" ng-if="!disabled">
-                    <a ng-click="addItem()" style="font-size: 25px;">
-                        <span class="glyphicon glyphicon-plus-sign"></span>
-                    </a>
-                </th>
-                <th ng-style="{'width': (disabled?'auto':'8%')}">Empl. type</th>
-                <th ng-style="{'width': (disabled?'auto':'8%')}">Dept.</th>
-                <th ng-style="{'width': (disabled?'auto':'8%')}">Role</th>
-                <th ng-style="{'width': (disabled?'auto':'8%')}">Description</th>
-                <th ng-style="{'width': (disabled?'auto':'8%')}">Expert</th>
-                <th ng-style="{'width': (disabled?'auto':'8%')}">Empl. Quantity</th>
-                <th ng-style="{'width': (disabled?'auto':'8%')}">Man\Hours in Month</th>
-                <th ng-style="{'width': (disabled?'auto':'8%')}">Period, Month</th>
-                <th ng-style="{'width': (disabled?'auto':'5%')}">Existing?</th>
-                <th ng-style="{'width': (disabled?(editprice?'10%':'auto'):'8%')}">Rate per Hour, KZT Gross</th>
-                <th ng-style="{'width': (disabled?'auto':'8%')}">Amount, KZT Gross</th>
-                <th ng-style="{'width': (disabled?'auto':'10%')}">Responsible</th>
-                <th ng-style="{'width': (disabled?'auto':'3%')}" ng-if="!disabled"></th>
-            </tr>
-            </thead>
-            <tbody>
-            <tr ng-repeat="r in data track by $index">
-                <td ng-if="!disabled"></td>
-                <td>
-                    <span ng-if="disabled">{{r.emplType}}</span>
-                    <span ng-if="!disabled">
-                        <select class="form-control" ng-model="r.emplType" name="resources_{{$index}}_emplType" ng-change="onEmplTypeChange($index)" required>
-                            <option ng-repeat="(key, val) in catalogs" ng-value="key">{{key}}</option>
-                        </select>
-                        <span class="has-error" ng-if="form['resources_'+$index+'_emplType'].$error.required && ( form['resources_'+$index+'_emplType'].$touched || view.submitted)">Required field</span>
-                    </span>
-                </td>
-                <td>
-                    <span ng-if="disabled">{{r.department}}</span>
-                    <span ng-if="!disabled">
-                        <select class="form-control" ng-model="r.department" name="resources_{{$index}}_department" ng-change="onDepartmentChange($index)" required>
-                            <option ng-repeat="(key, val) in catalogs[r.emplType]" ng-value="key">{{key}}</option>
-                        </select>
-                        <span class="has-error" ng-if="form['resources_'+$index+'_department'].$error.required && ( form['resources_'+$index+'_department'].$touched || view.submitted)">Required field</span>
-                    </span>
-                </td>
-                <td>
-                    <span ng-if="disabled">{{r.role.v}}</span>
-                    <span ng-if="!disabled">
-                        <demand-dropdown ng-model="r.role" search-field="true" options="catalogs[r.emplType][r.department]" object-list="true" display-prop="'v'" on-item-select="onRoleChange" index="$index" nowrap="true" field-name="'resources_'+$index+'_role'" is-required="true" toggle-callback="dropdownToggle"></demand-dropdown>
-                        <span class="has-error" ng-if="form['resources_'+$index+'_role'].$error.required && ( form['resources_'+$index+'_role'].$touched || view.submitted)">Required field</span>
-                    </span>
-                </td>
-                <td>
-                    <span ng-if="disabled || r.role.v != 'New role'">{{r.description}}</span>
-                    <span ng-if="!disabled && r.role.v == 'New role' ">
-                        <textarea rows="1" elastic-textarea class="form-control" ng-model="r.description" name="resources_{{$index}}_description" required></textarea>
-                        <span class="has-error" ng-if="form['resources_'+$index+'_description'].$error.required && ( form['resources_'+$index+'_description'].$touched || view.submitted)">Required field</span>
-                    </span>
-                </td>
-                <td>
-                    {{r.role.expert.fio}}
-                </td>
-                <td>
-                    <span ng-if="disabled">{{r.quantity}}</span>
-                    <span ng-if="!disabled">
-                        <input type="number" class="form-control" ng-model="r.quantity" name="resources_{{$index}}_quantity" ng-change="calcSumm($index)" required>
-                        <span class="has-error" ng-if="form['resources_'+$index+'_quantity'].$error.required && ( form['resources_'+$index+'_quantity'].$touched || view.submitted)">Required field</span>
-                    </span>
-                </td>
-                <td>
-                    <span ng-if="disabled">{{r.hours}}</span>
-                    <span ng-if="!disabled">
-                        <input type="number" class="form-control" ng-model="r.hours" name="resources_{{$index}}_hours" ng-change="calcSumm($index)" required>
-                        <span class="has-error" ng-if="form['resources_'+$index+'_hours'].$error.required && ( form['resources_'+$index+'_hours'].$touched || view.submitted)">Required field</span>
-                    </span>
-                </td>
-                <td>
-                    <span ng-if="disabled">{{r.period}}</span>
-                    <span ng-if="!disabled">
-                        <input type="number" class="form-control" ng-model="r.period" name="resources_{{$index}}_period" required>
-                        <span class="has-error" ng-if="form['resources_'+$index+'_period'].$error.required && ( form['resources_'+$index+'_period'].$touched || view.submitted)">Required field</span>
-                    </span>
-                </td>
-                <td>
+<style>
+    .resource-box {
+        border: 1px solid #ccc;
+        border-radius: 10px;
+        padding-top: 5px;
+        margin-bottom: 10px;
+        background-color: #f5f5f5;
+    }
+    .resource-box:hover {
+        border-color: #682d86;
+    }
+    .no-padding-right {
+        padding-right: 0;
+    }
+</style>
+
+<div ng-repeat="r in data track by $index" class="col-sm-12 resource-box" ng-click="toggleCollapse($event, $index)">
+    <div class="pull-right" style="margin-right: 10px;" ng-if="!disabled" ng-click="deleteItem($index)">
+        <div class="form-group">
+            <i class="pull-right glyphicon glyphicon-trash control-label glyphicon-clickable"></i>
+        </div>
+    </div>
+    <div class="col-sm-2 no-padding-right">
+        <div class="form-group">
+            <label class="col-sm-12 control-label"><span class="not-collapsable">Employee type</span></label>
+            <div class="col-sm-12 not-collapsable">
+                <select class="form-control" ng-model="r.emplType" name="resources_{{$index}}_emplType" ng-change="onEmployeeTypeChange($index)" ng-required="!disabled" ng-disabled="disabled">
+                    <option ng-repeat="(key, val) in catalogs" ng-value="key">{{key}}</option>
+                </select>
+                <span class="has-error" ng-if="form['resources_'+$index+'_emplType'].$error.required && ( form['resources_'+$index+'_emplType'].$touched || view.submitted)">Required field</span>
+            </div>
+        </div>
+    </div>
+    <div class="col-sm-2 no-padding-right">
+        <div class="form-group">
+            <label class="col-sm-12 control-label"><span class="not-collapsable">Department</span></label>
+            <div class="col-sm-12 not-collapsable">
+                <select class="form-control" ng-model="r.department" name="resources_{{$index}}_department" ng-change="onDepartmentChange($index)" ng-required="!disabled" ng-disabled="disabled">
+                    <option ng-repeat="(key, val) in catalogs[r.emplType]" ng-value="key">{{key}}</option>
+                </select>
+                <span class="has-error" ng-if="form['resources_'+$index+'_department'].$error.required && ( form['resources_'+$index+'_department'].$touched || view.submitted)">Required field</span>
+            </div>
+        </div>
+    </div>
+    <div class="col-sm-4 no-padding-right">
+        <div class="form-group">
+            <label class="col-sm-12 control-label"><span class="not-collapsable">Role</span></label>
+            <div class="col-sm-12 not-collapsable">
+                <demand-dropdown ng-model="r.role" search-field="true" options="catalogs[r.emplType][r.department]" object-list="true" display-prop="'v'" on-item-select="onRoleChange" index="$index" nowrap="true" field-name="'resources_'+$index+'_role'" is-required="!disabled" disabled="disabled"></demand-dropdown>
+                <span class="has-error" ng-if="form['resources_'+$index+'_role'].$error.required && ( form['resources_'+$index+'_role'].$touched || view.submitted)">Required field</span>
+            </div>
+        </div>
+    </div>
+
+    <div class="col-sm-4"></div>
+
+    <div class="col-sm-12 no-padding-right" ng-if="!collapsed[$index]">
+        <div class="col-sm-2 no-padding-right">
+            <div class="form-group">
+                <label class="col-sm-12 control-label"><span class="not-collapsable">Employee quantity</span></label>
+                <div class="col-sm-12 not-collapsable">
+                    <input type="number" class="form-control" ng-model="r.quantity" name="resources_{{$index}}_quantity" ng-change="calcSumm($index)" ng-required="!disabled" ng-disabled="disabled">
+                    <span class="has-error" ng-if="form['resources_'+$index+'_quantity'].$error.required && ( form['resources_'+$index+'_quantity'].$touched || view.submitted)">Required field</span>
+                </div>
+            </div>
+        </div>
+        <div class="col-sm-2 no-padding-right">
+            <div class="form-group">
+                <label class="col-sm-12 control-label"><span class="not-collapsable">Man\Hours in Month</span></label>
+                <div class="col-sm-12 not-collapsable">
+                    <input type="number" class="form-control" ng-model="r.hours" name="resources_{{$index}}_hours" ng-change="calcSumm($index)" ng-required="!disabled" ng-disabled="disabled">
+                    <span class="has-error" ng-if="form['resources_'+$index+'_hours'].$error.required && ( form['resources_'+$index+'_hours'].$touched || view.submitted)">Required field</span>
+                </div>
+            </div>
+        </div>
+        <div class="col-sm-{{editprice?'1':'2'}} no-padding-right">
+            <div class="form-group">
+                <label class="col-sm-12 control-label"><span class="not-collapsable">Period, Month</span></label>
+                <div class="col-sm-12 not-collapsable">
+                    <input type="number" class="form-control" ng-model="r.period" name="resources_{{$index}}_period" ng-required="!disabled" ng-disabled="disabled">
+                    <span class="has-error" ng-if="form['resources_'+$index+'_period'].$error.required && ( form['resources_'+$index+'_period'].$touched || view.submitted)">Required field</span>
+                </div>
+            </div>
+        </div>
+        <div class="col-sm-2 no-padding-right" ng-if="editprice">
+            <div class="form-group">
+                <label class="col-sm-12 control-label"><span class="not-collapsable">Rate per Hour, KZT Gross</span></label>
+                <div class="col-sm-12 not-collapsable">
+                    <input type="text" class="form-control" ng-model="r.pprice" name="resources_{{$index}}_pprice" ng-change="setResponsible($index)" demand-number-format required>
+                    <span class="has-error" ng-if="form['resources_'+$index+'_pprice'].$error.required && ( form['resources_'+$index+'_pprice'].$touched || view.submitted)">Required field</span>
+                </div>
+            </div>
+        </div>
+        <div class="col-sm-2 no-padding-right">
+            <div class="form-group">
+                <label class="col-sm-12 control-label"><span class="not-collapsable">Amount, KZT Gross</span></label>
+                <div class="col-sm-12 not-collapsable">
+                    <div class="disabled-element" ng-if="editprice || showprice">{{r.summ | number}}</div>
+                    <div class="disabled-element" ng-if="!editprice && !showprice">{{r.summ?'Filled':'Not filled'}}</div>
+                </div>
+            </div>
+        </div>
+        <div class="col-sm-{{editprice?'1':'2'}} no-padding-right">
+            <div class="form-group">
+                <label class="col-sm-12 control-label" style="text-align: center !important;"><span class="not-collapsable">Existing?</span></label>
+                <div class="col-sm-12 not-collapsable text-center">
                     <input type="checkbox" ng-model="r.existing" ng-disabled="disabled && !editprice">
-                </td>
-                <td>
-                    <span ng-if="editprice">
-                        <input type="text" class="form-control" ng-model="r.pprice" name="resources_{{$index}}_pprice" ng-change="setResponsible($index)" demand-number-format required>
-                        <span class="has-error" ng-if="form['resources_'+$index+'_pprice'].$error.required && ( form['resources_'+$index+'_pprice'].$touched || view.submitted)">Required field</span>
-                    </span>
-                    <span ng-if="!editprice && !showprice">{{r.pprice?'Conf.':'Empt.'}}</span>
-                    <span ng-if="!editprice && showprice">
-                        {{r.pprice | number}}
-                    </span>
-                </td>
-                <td>
-                    <span ng-if="editprice || showprice">{{r.summ | number}}</span>
-                    <span ng-if="!editprice && !showprice">{{r.summ?'Conf.':'Empt.'}}</span>
-                </td>
-                <td>
-                    {{r.responsible.fio}}
-                </td>
-                <td ng-if="!disabled">
-                    <button type="button" class="btn btn-default" ng-click="deleteItem($index)">Delete</button>
-                </td>
-            </tr>
-            </tbody>
-        </table>
-        <div class="col-sm-12" ng-if="totalSumm">
-            <div class="col-sm-5 pull-right form-group" ng-if="data.length > 0">
-                <label class="col-sm-5">Total amount, KZT Gross</label>
-                <div class="col-sm-7">
-                    <div class="col-sm-12 disabled-element">{{totalSumm | number}}</div>
+                </div>
+            </div>
+        </div>
+        <div class="col-sm-2 no-padding-right">
+            <div class="form-group">
+                <label class="col-sm-12 control-label"><span class="not-collapsable">Responsible</span></label>
+                <div class="col-sm-12 not-collapsable">
+                    <div class="disabled-element">{{r.responsible.fio}}</div>
                 </div>
             </div>
         </div>
     </div>
+    <div class="col-sm-12 no-padding-right" ng-if="!collapsed[$index]">
+        <div class="col-sm-12 no-padding-right">
+            <div class="form-group">
+                <label class="col-sm-12 control-label"><span class="not-collapsable">Description</span></label>
+                <div class="col-sm-12 not-collapsable">
+                    <textarea rows="1" elastic-textarea class="form-control" ng-model="r.description" name="resources_{{$index}}_description" ng-required="!disabled && r.role.v == 'New role'" ng-disabled="disabled || r.role.v != 'New role'"></textarea>
+                    <span class="has-error" ng-if="form['resources_'+$index+'_description'].$error.required && ( form['resources_'+$index+'_description'].$touched || view.submitted)">Required field</span>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+<div class="col-sm-12 no-padding-right" ng-if="totalSumm" style="margin-top: 10px;">
+    <div class="pull-right" style="display: flex; align-items: center;">
+        <div style="margin-right: 20px;">Total amount, KZT Gross</div>
+        <div class="disabled-element">{{totalSumm | number}}</div>
+    </div>
+</div>
+
+<div class="col-sm-12 no-padding-right" ng-if="!disabled" style="margin-top: 20px;">
+    <button type="button" class="btn btn-default pull-right" ng-click="addItem()">Add new Resource</button>
 </div>

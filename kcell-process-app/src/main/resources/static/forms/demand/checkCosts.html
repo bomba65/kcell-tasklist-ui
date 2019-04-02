@@ -79,7 +79,6 @@
             camForm.on('form-loaded', function () {
                 camForm.variableManager.fetchVariable('generalData');
                 camForm.variableManager.fetchVariable('BRDData');
-                camForm.variableManager.fetchVariable('acceptanceCriterias');
                 camForm.variableManager.fetchVariable('resolutions');
                 camForm.variableManager.fetchVariable('resolution');
                 camForm.variableManager.fetchVariable('attachments');
@@ -92,7 +91,6 @@
             camForm.on('variables-fetched', function () {
                 $scope.generalData = camForm.variableManager.variableValue('generalData');
                 $scope.BRDData = camForm.variableManager.variableValue('BRDData');
-                $scope.acceptanceCriterias = camForm.variableManager.variableValue('acceptanceCriterias');
                 $scope.resolutions = camForm.variableManager.variableValue('resolutions');
                 $scope.attachments = camForm.variableManager.variableValue('attachments');
                 $scope.supportiveInputs = camForm.variableManager.variableValue('supportiveInputs');
@@ -458,29 +456,6 @@
                         <demand-materials data="i.value" form="kcell_form" view="view" disabled="false" editprice="false" editexisting="false"></demand-materials>
                     </accordion-group>
                 </accordion>
-                <accordion>
-                    <accordion-group is-open="true">
-                        <accordion-heading>
-                            Acceptance criteria <i class="pull-right glyphicon" ng-class="{'glyphicon-chevron-up': status.isCustomHeaderOpen, 'glyphicon-chevron-down': !status.isCustomHeaderOpen}"></i>
-                        </accordion-heading>
-                        <div class="col-sm-12">
-                            <table class="table table-borderless">
-                                <thead>
-                                <tr>
-                                    <th style="border:none;">#</th>
-                                    <th style="border:none;">Description</th>
-                                </tr>
-                                </thead>
-                                <tbody>
-                                <tr ng-repeat="d in acceptanceCriterias track by $index">
-                                    <td>{{$index + 1}}.</td>
-                                    <td><div class="disabled-element">{{d.v}}</div></td>
-                                </tr>
-                                </tbody>
-                            </table>
-                        </div>
-                    </accordion-group>
-                </accordion>
             </div>
         </tab>
         <tab disabled="true">
@@ -493,51 +468,53 @@
 
     <div class="col-sm-12" style="margin-top: 20px;"><hr style="border-top: 2px solid #aaa;" /></div>
 
-    <div class="col-sm-12" style="border: 1px solid #ccc; border-radius: 10px; padding-top: 10px; margin: 20px 0;">
-        <div class="col-sm-12">
-            <div class="form-group">
-                <label class="col-sm-2">Supportive Inputs <span title='Для экспертизы по HR, CPD, TD, необходимо: 1. В блоке "Supportive inputs" выбрать нужный департамент. 2. Заполнить поле "Request description". 3. Выбрать "Resolution": "Request info". 4. Нажать кнопку "Complete"' style="color: #682d86" class="glyphicon glyphicon-question-sign"></span></label>
-            </div>
-            <div class="col-sm-12">
-                <table class="table">
-                    <thead>
-                    <tr>
-                        <th class="text-center col-sm-1">Need input</th>
-                        <th class="col-sm-3">Supportive unit</th>
-                        <th class="text-center col-sm-5">Request description</th>
-                        <th class="text-center col-sm-3">Responsible <span title='Ответственный заполняется только для Technology Department' style="color: #682d86" class="glyphicon glyphicon-question-sign"></span></th>
-                    </tr>
-                    </thead>
-                    <tbody>
-                    <tr ng-repeat="r in supportiveInputs" ng-if="r.unit == 'Human Resources Department' || r.unit == 'Centralized Procurement Department' || r.unit == 'Technology Department'">
-                        <td class="text-center">
-                            <input type="checkbox" ng-model="r.checked" ng-click="needInputClicked(r.checked)">
-                        </td>
-                        <td>{{r.unit}}</td>
-                        <td class="text-center">
-                            <textarea rows="1" elastic-textarea class="form-control" ng-model="r.description" name="reqinfo_{{$index}}_description" ng-required="r.checked"></textarea>
-                            <span class="has-error" ng-if="kcell_form['reqinfo_'+$index+'_description'].$error.required && ( kcell_form['reqinfo_'+$index+'_description'].$touched || view.submitted)">Required field</span>
-                        </td>
-                        <td class="text-center">
-                            <input type="text" ng-model="r.responsibleName" name="reqinfo_{{$index}}_responsible" typeahead="name as users.name for users in getUser($viewValue, $index)" typeahead-on-select="userSelected($item, $index)" class="form-control" autocomplete="off" required ng-if="r.unit === 'Technology Department' && r.checked">
-                            <span class="has-error" ng-if="kcell_form['reqinfo_'+$index+'_responsible'].$error.required && (kcell_form['reqinfo_'+$index+'_responsible'].$touched || view.submitted)">Required field</span>
-                            <span class="has-error" ng-if="!kcell_form['reqinfo_'+$index+'_responsible'].$error.required && kcell_form['reqinfo_'+$index+'_responsible'].$error.not_selected && (kcell_form['reqinfo_'+$index+'_responsible'].$touched || view.submitted)">User must be selected from the list</span>
-                        </td>
-                    </tr>
-                    </tbody>
-                </table>
+    <div class="col-sm-12" style="padding: 0;">
+        <div class="panel-group custom-panel">
+            <div class="panel panel-default">
+                <div class="panel-heading">
+                    <h4 class="panel-title">Supportive Inputs <span title='Для экспертизы по HR, CPD, TD, необходимо: 1. В блоке "Supportive inputs" выбрать нужный департамент. 2. Заполнить поле "Request description". 3. Выбрать "Resolution": "Request info". 4. Нажать кнопку "Complete"' style="color: #682d86" class="glyphicon glyphicon-question-sign"></span></h4>
+                </div>
+                <div class="panel-body">
+                    <table class="table">
+                        <thead>
+                        <tr>
+                            <th class="text-center col-sm-1">Need input</th>
+                            <th class="col-sm-3">Supportive unit</th>
+                            <th class="text-center col-sm-5">Request description</th>
+                            <th class="text-center col-sm-3">Responsible <span title='Ответственный заполняется только для Technology Department' style="color: #682d86" class="glyphicon glyphicon-question-sign"></span></th>
+                        </tr>
+                        </thead>
+                        <tbody>
+                        <tr ng-repeat="r in supportiveInputs" ng-if="r.unit == 'Human Resources Department' || r.unit == 'Centralized Procurement Department' || r.unit == 'Technology Department'">
+                            <td class="text-center">
+                                <input type="checkbox" ng-model="r.checked" ng-click="needInputClicked(r.checked)">
+                            </td>
+                            <td>{{r.unit}}</td>
+                            <td class="text-center">
+                                <textarea rows="1" elastic-textarea class="form-control" ng-model="r.description" name="reqinfo_{{$index}}_description" ng-required="r.checked"></textarea>
+                                <span class="has-error" ng-if="kcell_form['reqinfo_'+$index+'_description'].$error.required && ( kcell_form['reqinfo_'+$index+'_description'].$touched || view.submitted)">Required field</span>
+                            </td>
+                            <td class="text-center">
+                                <input type="text" ng-model="r.responsibleName" name="reqinfo_{{$index}}_responsible" typeahead="name as users.name for users in getUser($viewValue, $index)" typeahead-on-select="userSelected($item, $index)" class="form-control" autocomplete="off" required ng-if="r.unit === 'Technology Department' && r.checked">
+                                <span class="has-error" ng-if="kcell_form['reqinfo_'+$index+'_responsible'].$error.required && (kcell_form['reqinfo_'+$index+'_responsible'].$touched || view.submitted)">Required field</span>
+                                <span class="has-error" ng-if="!kcell_form['reqinfo_'+$index+'_responsible'].$error.required && kcell_form['reqinfo_'+$index+'_responsible'].$error.not_selected && (kcell_form['reqinfo_'+$index+'_responsible'].$touched || view.submitted)">User must be selected from the list</span>
+                            </td>
+                        </tr>
+                        </tbody>
+                    </table>
+                </div>
             </div>
         </div>
     </div>
 
-    <div class="col-sm-12" style="border: 1px solid #ccc; border-radius: 10px; padding-top: 10px; margin: 20px 0;">
-        <iframe id="fileDownloadIframe" style="display:none;"></iframe>
-        <div class="form-group">
-            <div class="col-sm-12">
-                <div class="col-sm-12" style="margin-bottom: 10px;">
-                    <label class="col-sm-12">Attachments</label>
+    <div class="col-sm-12" style="padding: 0;">
+        <div class="panel-group custom-panel">
+            <div class="panel panel-default">
+                <div class="panel-heading">
+                    <h4 class="panel-title">Attachments</h4>
                 </div>
-                <div class="col-sm-12">
+                <div class="panel-body">
+                    <iframe id="fileDownloadIframe" style="display:none;"></iframe>
                     <table class="table table-bordered">
                         <thead>
                         <tr>

@@ -12,22 +12,11 @@ define(['./../module'], function(module){
                 showprice: '='
             },
             link: function(scope, el, attrs) {
-                scope.dropdownToggle = function(isOpen) {
-                  $timeout(function() {
-                    var element = el[0].querySelector('.resources-container');
-                    element.style.paddingBottom = '0';
-                    element.style.marginBottom = '0';
-                    var height = element.scrollHeight;
-                    if (isOpen) {
-                      element.style.paddingBottom = height + 'px';
-                      element.style.marginBottom = '-' + height + 'px';
-                    }
-                  });
-                };
 
                 scope.$watch('data', function (value) {
                     if (value) {
                         if (!scope.data || !(scope.data instanceof Array)) scope.data = [];
+                        if (!scope.collapsed || !(scope.collapsed instanceof Array)) scope.collapsed = [];
 
                         scope.countTotalSum();
 
@@ -42,10 +31,15 @@ define(['./../module'], function(module){
                     }
                 });
 
+                scope.toggleCollapse = function(el, index) {
+                    if (el.target.classList.contains('not-collapsable') || $(el.target).parents('.not-collapsable').length) return;
+                    scope.collapsed[index] = !scope.collapsed[index];
+                };
+
                 scope.deleteItem = function (index) {
                     scope.data.splice(index, 1);
+                    scope.collapsed.splice(index, 1);
                     scope.countTotalSum();
-                    $timeout(setHeight);
                 };
 
                 scope.addItem = function () {
@@ -61,6 +55,7 @@ define(['./../module'], function(module){
                         summ: null,
                         responsible: null
                     });
+                    scope.collapsed.push(false);
                 };
 
                 scope.calcSumm = function (index) {
@@ -87,11 +82,10 @@ define(['./../module'], function(module){
                     }
                 };
 
-                scope.onEmplTypeChange = function (index) {
+                scope.onEmployeeTypeChange = function (index) {
                     scope.data[index].department = null;
                     scope.onDepartmentChange(index);
                 };
-
 
                 scope.onDepartmentChange = function (index) {
                     scope.data[index].role = null;

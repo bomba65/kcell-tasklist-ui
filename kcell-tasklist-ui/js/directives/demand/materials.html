@@ -1,125 +1,154 @@
-<div class="col-sm-12 materials-container" style="overflow: auto;">
-    <div class="col-sm-12" ng-style="{'min-width': (disabled?(editprice?'1200px':'100%'):'1400px')}">
-        <table class="table">
-            <thead>
-            <tr>
-                <th ng-style="{'width': (disabled?'auto':'2%')}" ng-if="!disabled">
-                    <a ng-click="addItem()" style="font-size: 25px;">
-                        <span class="glyphicon glyphicon-plus-sign"></span>
-                    </a>
-                </th>
-                <th ng-style="{'width': (disabled?'auto':'8%')}">Cat. L1</th>
-                <th ng-style="{'width': (disabled?'auto':'8%')}">Cat. L2</th>
-                <th ng-style="{'width': (disabled?'auto':'9%')}">Cat. L3 <span title='Если выпадающий список Cat. L3 не доступен или не заполнен, означает, что в справочнике отсутствует параметр L3, привязанный к текущему параметру L2' style="color: #682d86" class="glyphicon glyphicon-question-sign"></span></th>
-                <th ng-style="{'width': (disabled?'auto':'8%')}">Specification</th>
-                <th ng-style="{'width': (disabled?'auto':'7%')}">Expert</th>
-                <th ng-style="{'width': (disabled?'auto':'8%')}">Purchaser <span title='Ответственный сотрудник CPD' style="color: #682d86" class="glyphicon glyphicon-question-sign"></span></th>
-                <!--<th ng-style="{'width': (disabled?'auto':'6%')}">Purchase group</th>-->
-                <th ng-style="{'width': (disabled?'auto':'6%')}">Quantity</th>
-                <th ng-style="{'width': (disabled?'auto':'7%')}">Measure</th>
-                <th ng-style="{'width': (disabled?'auto':'9%')}">Exists on Warehouse? <span title='Для актуализации данного поля необходимо запросить Supportive input - "Warehouse and Logistics section" в активности "Enrich Business case"' style="color: #682d86" class="glyphicon glyphicon-question-sign"></span></th>
-                <th ng-style="{'width': (disabled?(editprice?'8%':'auto'):'6%')}">Currency</th>
-                <th ng-style="{'width': (disabled?(editprice?'10%':'auto'):'8%')}">Price, Without VAT</th>
-                <th ng-style="{'width': (disabled?'auto':'7%')}">Amount, Without VAT</th>
-                <th ng-style="{'width': (disabled?'auto':'2%')}" ng-if="!disabled"></th>
-            </tr>
-            </thead>
-            <tbody>
-            <tr ng-repeat="r in data track by $index" ng-if="!purchaserGroup || !r.purchaser || purchaserGroup === r.purchaser.groupId">
-                <td ng-if="!disabled"></td>
-                <td>
-                    <span ng-if="disabled">{{r.cat1}}</span>
-                    <span ng-if="!disabled">
-                        <demand-dropdown ng-model="r.cat1" options="options.levels._list"on-item-select="onCat1Change" index="$index" nowrap="true" search-field="true" toggle-callback="dropdownToggle"></demand-dropdown>
-                        <span class="has-error" ng-if="(!r.cat1 || !r.cat1.v.length) && view.submitted">Required field</span>
-                    </span>
-                </td>
-                <td>
-                    <span ng-if="disabled">{{r.cat2}}</span>
-                    <span ng-if="!disabled">
-                        <demand-dropdown ng-model="r.cat2" options="options.levels[r.cat1]._list" on-item-select="onCat2Change" index="$index" nowrap="true" search-field="true" toggle-callback="dropdownToggle"></demand-dropdown>
-                        <span class="has-error" ng-if="(!r.cat2 || !r.cat2.v.length) && view.submitted">Required field</span>
-                    </span>
-                </td>
-                <td>
-                    <span ng-if="disabled">{{r.cat3}}</span>
-                    <span ng-if="!disabled">
-                        <demand-dropdown ng-model="r.cat3" options="options.levels[r.cat1][r.cat2]._list" on-item-select="onCat3Change" index="$index" nowrap="true" search-field="true" disabled="!options.levels[r.cat1][r.cat2]._list.length" toggle-callback="dropdownToggle"></demand-dropdown>
-                    </span>
-                </td>
-                <td>
-                    <span ng-if="disabled">{{r.specification}}</span>
-                    <span ng-if="!disabled">
-                        <textarea rows="1" elastic-textarea class="form-control" ng-model="r.specification" name="materials_{{$index}}_specification" required></textarea>
-                        <span class="has-error" ng-if="form['materials_'+$index+'_specification'].$error.required && ( form['materials_'+$index+'_specification'].$touched || view.submitted)">Required field</span>
-                    </span>
-                </td>
-                <td>
-                    {{r.expert.fio}}
-                </td>
-                <td>
-                    {{r.purchaser.fio}}
-                </td>
-                <!--<td>
-                    <span ng-if="disabled" title="{{r.purchaseGroup.t}}">{{r.purchaseGroup.v}}</span>
-                    <span ng-if="!disabled">
-                        <demand-dropdown ng-model="r.purchaseGroup" options="options.purchaseGroup" object-list="true" display-prop="'v'" title-prop="'t'" on-item-select="onPurchaseGroupChange" index="$index" nowrap="true"></demand-dropdown>
-                        <span class="has-error" ng-if="(!r.purchaseGroup || !r.purchaseGroup.v) && view.submitted">Required field</span>
-                    </span>
-                </td>-->
-                <td>
-                    <span ng-if="disabled">{{r.quantity}}</span>
-                    <span ng-if="!disabled">
-                        <input type="number" class="form-control" ng-model="r.quantity" name="materials_{{$index}}_quantity" ng-change="calcSumm($index)" required>
-                        <span class="has-error" ng-if="form['materials_'+$index+'_quantity'].$error.required && ( form['materials_'+$index+'_quantity'].$touched || view.submitted)">Required field</span>
-                    </span>
-                </td>
-                <td>
-                    <span ng-if="disabled">{{r.measure}}</span>
-                    <span ng-if="!disabled">
-                        <select class="form-control" ng-model="r.measure" name="materials_{{$index}}_measure" required>
-                            <option value="Piece">Piece</option>
-                            <option value="Bundle">Bundle</option>
-                            <option value="Kit">Kit</option>
-                            <option value="Package">Package</option>
-                            <option value="Meter">Meter</option>
-                            <option value="Liter">Liter</option>
-                            <option value="Kilogram">Kilogram</option>
-                        </select>
-                        <span class="has-error" ng-if="form['materials_'+$index+'_measure'].$error.required && ( form['materials_'+$index+'_measure'].$touched || view.submitted)">Required field</span>
-                    </span>
-                </td>
-                <td>
-                    <input type="checkbox" ng-model="r.existing" ng-disabled="!editexisting">
-                </td>
-                <td>
-                    <span ng-if="!editprice">{{r.currency}}</span>
-                    <span ng-if="editprice">
-                        <select class="form-control" ng-model="r.currency" name="materials_{{$index}}_currency" required>
-                            <option value="KZT">KZT</option>
-                            <option value="USD">USD</option>
-                            <option value="EUR">EUR</option>
-                            <option value="GBP">GBP</option>
-                            <option value="RUB">RUR</option>
-                        </select>
-                        <span class="has-error" ng-if="form['materials_'+$index+'_currency'].$error.required && ( form['materials_'+$index+'_currency'].$touched || view.submitted)">Required field</span>
-                    </span>
-                </td>
-                <td>
-                    <span ng-if="!editprice">{{r.pprice | number}}</span>
-                    <span ng-if="editprice">
-                        <input type="text" class="form-control" ng-model="r.pprice" name="materials_{{$index}}_pprice" ng-change="setPurchaser($index)" demand-number-format required>
-                        <span class="has-error" ng-if="form['materials_'+$index+'_pprice'].$error.required && ( form['materials_'+$index+'_pprice'].$touched || view.submitted)">Required field</span>
-                    </span>
-                </td>
-                <td>
-                    {{r.summ | number}}
-                </td>
-                <td ng-if="!disabled">
-                    <button type="button" class="btn btn-default" ng-click="deleteItem($index)">Delete</button>
-                </td>
-            </tr>
-            </tbody>
-        </table>
+<style>
+    .material-box {
+        border: 1px solid #ccc;
+        border-radius: 10px;
+        padding-top: 5px;
+        margin-bottom: 10px;
+        background-color: #f5f5f5;
+    }
+    .material-box:hover {
+        border-color: #682d86;
+    }
+    .no-padding-right {
+        padding-right: 0;
+    }
+    .ex-field-border {
+        border: 1px solid #000;
+        border-radius: 5px;
+    }
+</style>
+
+<div ng-repeat="r in data track by $index" class="col-sm-12 material-box" ng-click="toggleCollapse($event, $index)">
+    <div class="pull-right" style="margin-right: 10px;" ng-if="!disabled" ng-click="deleteItem($index)">
+        <div class="form-group">
+            <i class="pull-right glyphicon glyphicon-trash control-label glyphicon-clickable"></i>
+        </div>
     </div>
+    <div class="col-sm-2 no-padding-right">
+        <div class="form-group">
+            <label class="col-sm-12 control-label"><span class="not-collapsable">Category L1</span></label>
+            <div class="col-sm-12 not-collapsable">
+                <demand-dropdown ng-model="r.cat1" options="options.levels._list" on-item-select="onCat1Change" index="$index" nowrap="true" search-field="true" field-name="'material_'+$index+'_l1'" is-required="!disabled" disabled="disabled"></demand-dropdown>
+                <span class="has-error" ng-if="form['material_'+$index+'_l1'].$error.required && ( form['material_'+$index+'_l1'].$touched || view.submitted)">Required field</span>
+            </div>
+        </div>
+    </div>
+    <div class="col-sm-2 no-padding-right">
+        <div class="form-group">
+            <label class="col-sm-12 control-label"><span class="not-collapsable">Category L2</span></label>
+            <div class="col-sm-12 not-collapsable">
+                <demand-dropdown ng-model="r.cat2" options="options.levels[r.cat1]._list" on-item-select="onCat2Change" index="$index" nowrap="true" search-field="true" field-name="'material_'+$index+'_l2'" is-required="!disabled" disabled="disabled"></demand-dropdown>
+                <span class="has-error" ng-if="form['material_'+$index+'_l2'].$error.required && ( form['material_'+$index+'_l2'].$touched || view.submitted)">Required field</span>
+            </div>
+        </div>
+    </div>
+    <div class="col-sm-2 no-padding-right">
+        <div class="form-group">
+            <label class="col-sm-12 control-label"><span class="not-collapsable">Category L3 <span title='Если выпадающий список Cat. L3 не доступен или не заполнен, означает, что в справочнике отсутствует параметр L3, привязанный к текущему параметру L2' style="color: #682d86" class="glyphicon glyphicon-question-sign"></span></span></label>
+            <div class="col-sm-12 not-collapsable">
+                <demand-dropdown ng-model="r.cat3" options="options.levels[r.cat1][r.cat2]._list" on-item-select="onCat3Change" index="$index" nowrap="true" search-field="true" disabled="disabled || !options.levels[r.cat1][r.cat2]._list.length"></demand-dropdown>
+            </div>
+        </div>
+    </div>
+
+    <div class="col-sm-6"></div>
+
+    <div class="col-sm-12 no-padding-right" ng-if="!collapsed[$index]">
+        <div class="col-sm-2 no-padding-right">
+            <div class="form-group">
+                <label class="col-sm-12 control-label"><span class="not-collapsable">Quantity</span></label>
+                <div class="col-sm-12 not-collapsable" ng-if="!editprice">
+                    <input type="number" class="form-control" ng-model="r.quantity" name="materials_{{$index}}_quantity" ng-change="calcSumm($index)" ng-required="!disabled" ng-disabled="disabled">
+                    <span class="has-error" ng-if="form['materials_'+$index+'_quantity'].$error.required && ( form['materials_'+$index+'_quantity'].$touched || view.submitted)">Required field</span>
+                </div>
+                <div class="col-sm-12 not-collapsable" ng-if="editprice">
+                    <div class="disabled-element">{{r.quantity}}<span ng-if="r.measure">, {{r.measure}}</span></div>
+                </div>
+            </div>
+        </div>
+        <div class="col-sm-2 no-padding-right" ng-if="!editprice">
+            <div class="form-group">
+                <label class="col-sm-12 control-label"><span class="not-collapsable">Measure</span></label>
+                <div class="col-sm-12 not-collapsable">
+                    <select class="form-control" ng-model="r.measure" name="materials_{{$index}}_measure" ng-required="!disabled" ng-disabled="disabled">
+                        <option value="Piece">Piece</option>
+                        <option value="Bundle">Bundle</option>
+                        <option value="Kit">Kit</option>
+                        <option value="Package">Package</option>
+                        <option value="Meter">Meter</option>
+                        <option value="Liter">Liter</option>
+                        <option value="Kilogram">Kilogram</option>
+                    </select>
+                    <span class="has-error" ng-if="form['materials_'+$index+'_measure'].$error.required && ( form['materials_'+$index+'_measure'].$touched || view.submitted)">Required field</span>
+                </div>
+            </div>
+        </div>
+        <div class="col-sm-2 no-padding-right" ng-if="editprice">
+            <div class="form-group">
+                <label class="col-sm-12 control-label"><span class="not-collapsable">Currency</span></label>
+                <div class="col-sm-12 not-collapsable">
+                    <select class="form-control" ng-model="r.currency" name="materials_{{$index}}_currency" required>
+                        <option value="KZT">KZT</option>
+                        <option value="USD">USD</option>
+                        <option value="EUR">EUR</option>
+                        <option value="GBP">GBP</option>
+                        <option value="RUB">RUR</option>
+                    </select>
+                    <span class="has-error" ng-if="form['materials_'+$index+'_currency'].$error.required && ( form['materials_'+$index+'_currency'].$touched || view.submitted)">Required field</span>
+                </div>
+            </div>
+        </div>
+        <div class="col-sm-2 no-padding-right">
+            <div class="form-group">
+                <label class="col-sm-12 control-label"><span class="not-collapsable">Price, Without VAT</span></label>
+                <div class="col-sm-12 not-collapsable" ng-if="editprice">
+                    <input type="text" class="form-control" ng-model="r.pprice" name="materials_{{$index}}_pprice" ng-change="setPurchaser($index)" demand-number-format required>
+                    <span class="has-error" ng-if="form['materials_'+$index+'_pprice'].$error.required && ( form['materials_'+$index+'_pprice'].$touched || view.submitted)">Required field</span>
+                </div>
+                <div class="col-sm-12 not-collapsable" ng-if="!editprice">
+                    <div class="disabled-element">{{r.pprice}}<span ng-if="r.currency">, {{r.currency}}</span></div>
+                </div>
+            </div>
+        </div>
+        <div class="col-sm-2 no-padding-right">
+            <div class="form-group">
+                <label class="col-sm-12 control-label"><span class="not-collapsable">Amount, Without VAT</span></label>
+                <div class="col-sm-12 not-collapsable">
+                    <div class="disabled-element">{{r.summ | number}}<span ng-if="r.summ != null && r.currency">, {{r.currency}}</span></div>
+                </div>
+            </div>
+        </div>
+        <div class="col-sm-2 no-padding-right">
+            <div ng-class="{'ex-field-border': editexisting}" style="padding-bottom: 6px;">
+                <div class="form-group">
+                    <label class="col-sm-12 control-label" style="text-align: center !important;"><span class="not-collapsable">Exists on Warehouse?</span> <span title='Для актуализации данного поля необходимо запросить Supportive input - "Warehouse and Logistics section" в активности "Enrich Business case"' style="color: #682d86" class="glyphicon glyphicon-question-sign"></span></label>
+                    <div class="col-sm-12 not-collapsable text-center">
+                        <input type="checkbox" ng-model="r.existing" ng-disabled="!editexisting">
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div class="col-sm-2 no-padding-right">
+            <div class="form-group">
+                <label class="col-sm-12 control-label"><span class="not-collapsable">Purchaser</span> <span title='Ответственный сотрудник CPD' style="color: #682d86" class="glyphicon glyphicon-question-sign"></span></label>
+                <div class="col-sm-12 not-collapsable">
+                    <div class="disabled-element">{{r.purchaser.fio}}</div>
+                </div>
+            </div>
+        </div>
+    </div>
+    <div class="col-sm-12 no-padding-right" ng-if="!collapsed[$index]">
+        <div class="col-sm-12 no-padding-right">
+            <div class="form-group">
+                <label class="col-sm-12 control-label"><span class="not-collapsable">Specification</span></label>
+                <div class="col-sm-12 not-collapsable">
+                    <textarea rows="1" elastic-textarea class="form-control" ng-model="r.specification" name="materials_{{$index}}_specification" ng-required="!disabled" ng-disabled="disabled"></textarea>
+                    <span class="has-error" ng-if="form['materials_'+$index+'_specification'].$error.required && ( form['materials_'+$index+'_specification'].$touched || view.submitted)">Required field</span>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+<div class="col-sm-12" ng-if="!disabled">
+    <button type="button" class="btn btn-default pull-right" ng-click="addItem()">Add new Material</button>
 </div>
