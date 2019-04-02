@@ -502,13 +502,22 @@
             });
 
 
-            console.log('$scope.previouslyBought', $scope.previouslyBought);
-
             $scope.disableProviderModification = false;
             $scope.disableIdentifierModification = false;
+            $scope.restrictAddingOperator = false;
             $scope.disableConnectionTypeModification = false;
             $scope.disableIpNumberModification = false;
-
+            $scope.$watch("identifiers", function (newVal) {
+                var active_ops = 0;
+                if (newVal[0]) {
+                    _.forEach(newVal, function(identifier){
+                        _.forEach(identifier.operators, function(operator){
+                            if (operator.isAvailable===true) active_ops +=1;
+                        });
+                    });
+                 }
+                if (active_ops==4) $scope.restrictAddingOperator = true;
+            });
             $scope.$watchGroup(['disconnectOperator', 'connectOperator', 'changeIdentifier', 'changeProvider', 'changeConnectionType', 'changeIpNumber'], function(newValues, oldValues, scope) {
                 if(newValues[0] || newValues[1] || newValues[2]){
                     $scope.disableProviderModification = true;
@@ -571,7 +580,7 @@
 
             camForm.on('submit', function (evt) {
                 var date = new Date();
-                var businessKey = 'AFTERSALES_' + $scope.relatedProcessDefinitionKey === 'freephone' ? 'IVR_' : 'SMS_' + $scope.identifiers[0].title + '_' + ("0" + date.getDate().toString()).slice(-2) + ("0" + (date.getMonth() + 1)).toString().slice(-2) + date.getFullYear().toString();
+                var businessKey = 'AFTERSALES_' + ($scope.relatedProcessDefinitionKey === 'freephone' ? 'IVR_' : 'SMS_') + $scope.identifiers[0].title + '_' + ("0" + date.getDate().toString()).slice(-2) + ("0" + (date.getMonth() + 1)).toString().slice(-2) + date.getFullYear().toString();
                 camForm.businessKey = businessKey;
 
                 camForm.variableManager.variableValue('relatedProcessInstance', $scope.relatedProcessInstance);
@@ -697,63 +706,84 @@
             });
         }]);
 
+
     </script>
-        <div ng-show="isDisconnectProcess" class="form-group">
-            <div class="col-md-12">
-                <h3>Start Disconnection Process</h3><br/>
-            </div>
+    <div ng-show="isDisconnectProcess" class="form-group">
+        <div class="col-md-12">
+            <h3>Start Disconnection Process</h3><br/>
         </div>
-        <div ng-show="!isDisconnectProcess" class="form-group">
-            <div class="col-md-12">
-                <h3>Выберите доступные изменения:</h3><br/>
-            </div>
-            <div class="col-md-7">
-                <div class="form-check">
-                    <div class="col-sm-12">
-                        <input type="checkbox" class="form-check-input" id="officialClientCompanyName" name="officialClientCompanyName" ng-model="changeOfficialClientCompanyName">
-                        <label class="form-check-label" for="officialClientCompanyName">Изменение Юридического наименования компании</label>
-                    </div>
-                    <div class="col-sm-12">
-                        <input type="checkbox" class="form-check-input" id="contractNumber" name="contractNumber" ng-model="changeContractNumber">
-                        <label class="form-check-label" for="contractNumber">Изменение номера договора</label>
-                    </div>
-                    <div class="col-sm-12">
-                        <input type="checkbox" class="form-check-input" id="disconnectOperator" name="disconnectOperator" ng-model="disconnectOperator" ng-disabled="operatorType === 'onnet' || disableIdentifierModification">
-                        <label class="form-check-label" for="disconnectOperator">Отключение оператора</label>
-                    </div>
-                    <div class="col-sm-12">
-                        <input type="checkbox" class="form-check-input" id="connectOperator" name="connectOperator" ng-model="connectOperator" ng-disabled="operatorType === 'onnet' || disableIdentifierModification || restrictAddingOperator">
-                        <label class="form-check-label" for="connectOperator">Добавление оператора</label>
-                    </div>
-                    <div class="col-sm-12" ng-show="relatedProcessInstance.processDefinitionKey === 'freephone' || (relatedProcessInstance.processDefinitionKey === 'bulksmsConnectionKAE' && (connectionType === 'rest' || connectionType === 'smpp'))">
-                        <input type="checkbox" class="form-check-input" id="connectionType" name="connectionType" ng-model="changeConnectionType" ng-disabled="disableConnectionTypeModification">
-                        <label class="form-check-label" for="connectionType">Изменение типа подключения</label>
-                    </div>
-                    <div class="col-sm-12" ng-show="relatedProcessInstance.processDefinitionKey === 'freephone' && connectionType === 'SIP_SBC'">
-                        <input type="checkbox" class="form-check-input" id="ipNumber" name="ipNumber" ng-model="changeIpNumber" ng-disabled="disableIpNumberModification">
-                        <label class="form-check-label" for="ipNumber">Изменение IP адреса</label>
-                    </div>
+    </div>
+    <div ng-show="!isDisconnectProcess" class="form-group">
+        <div class="col-md-12">
+            <h3>Выберите доступные изменения:</h3><br/>
+        </div>
+        <div class="col-md-7">
+            <div class="form-check">
+                <div class="col-sm-12">
+                    <input type="checkbox" class="form-check-input" id="officialClientCompanyName"
+                           name="officialClientCompanyName" ng-model="changeOfficialClientCompanyName">
+                    <label class="form-check-label" for="officialClientCompanyName">Изменение Юридического наименования
+                        компании</label>
                 </div>
-            </div>
-            <div class="col-md-5">
-                <div class="form-check">
-                    <div class="col-sm-12" ng-show="relatedProcessInstance.processDefinitionKey === 'bulksmsConnectionKAE' && identifierType === 'alfanumeric'">
-                        <input type="checkbox" class="form-check-input" id="identifier" name="identifier" ng-model="changeIdentifier" ng-disabled="operatorType === 'onnet' || disableIdentifierModification">
-                        <label class="form-check-label" for="identifier">Изменение заголовка</label>
-                    </div>
-                    <div class="col-sm-12" ng-show="relatedProcessInstance.processDefinitionKey === 'bulksmsConnectionKAE' && connectionType !== 'web'">
-                        <input type="checkbox" class="form-check-input" id="smsServiceType" name="smsServiceType" ng-model="changeSmsServiceType">
-                        <label class="form-check-label" for="smsServiceType">Подключение МО</label>
-                    </div>
-                    <div class="col-sm-12" ng-show="operatorType === 'offnet' && ((relatedProcessInstance.processDefinitionKey === 'bulksmsConnectionKAE' && !previouslyBought) || relatedProcessInstance.processDefinitionKey === 'freephone')">
-                        <input type="checkbox" class="form-check-input" id="provider" name="provider" ng-model="changeProvider" ng-disabled="operatorType === 'onnet' || disableProviderModification">
-                        <label class="form-check-label" for="provider">Смена провайдера</label>
-                    </div>
-                    <div class="col-sm-12" ng-show="relatedProcessInstance.processDefinitionKey === 'freephone'">
-                        <input type="checkbox" class="form-check-input" id="transmitNumber" name="transmitNumber" ng-model="changeTransmitNumber">
-                        <label class="form-check-label" for="transmitNumber">Смена номера переадресации</label>
-                    </div>
+                <div class="col-sm-12">
+                    <input type="checkbox" class="form-check-input" id="contractNumber" name="contractNumber"
+                           ng-model="changeContractNumber">
+                    <label class="form-check-label" for="contractNumber">Изменение номера договора</label>
+                </div>
+                <div class="col-sm-12">
+                    <input type="checkbox" class="form-check-input" id="disconnectOperator" name="disconnectOperator"
+                           ng-model="disconnectOperator"
+                           ng-disabled="operatorType === 'onnet' || disableIdentifierModification">
+                    <label class="form-check-label" for="disconnectOperator">Отключение оператора</label>
+                </div>
+                <div class="col-sm-12">
+                    <input type="checkbox" class="form-check-input" id="connectOperator" name="connectOperator"
+                           ng-model="connectOperator"
+                           ng-disabled="operatorType === 'onnet' || disableIdentifierModification || restrictAddingOperator">
+                    <label class="form-check-label" for="connectOperator">Добавление оператора</label>
+                </div>
+                <div class="col-sm-12"
+                     ng-show="relatedProcessInstance.processDefinitionKey === 'freephone' || (relatedProcessInstance.processDefinitionKey === 'bulksmsConnectionKAE' && (connectionType === 'rest' || connectionType === 'smpp'))">
+                    <input type="checkbox" class="form-check-input" id="connectionType" name="connectionType"
+                           ng-model="changeConnectionType" ng-disabled="disableConnectionTypeModification">
+                    <label class="form-check-label" for="connectionType">Изменение типа подключения</label>
+                </div>
+                <div class="col-sm-12"
+                     ng-show="relatedProcessInstance.processDefinitionKey === 'freephone' && connectionType === 'SIP_SBC'">
+                    <input type="checkbox" class="form-check-input" id="ipNumber" name="ipNumber"
+                           ng-model="changeIpNumber" ng-disabled="disableIpNumberModification">
+                    <label class="form-check-label" for="ipNumber">Изменение IP адреса</label>
                 </div>
             </div>
         </div>
+        <div class="col-md-5">
+            <div class="form-check">
+                <div class="col-sm-12"
+                     ng-show="relatedProcessInstance.processDefinitionKey === 'bulksmsConnectionKAE' && identifierType === 'alfanumeric'">
+                    <input type="checkbox" class="form-check-input" id="identifier" name="identifier"
+                           ng-model="changeIdentifier"
+                           ng-disabled="operatorType === 'onnet' || disableIdentifierModification">
+                    <label class="form-check-label" for="identifier">Изменение заголовка</label>
+                </div>
+                <div class="col-sm-12"
+                     ng-show="relatedProcessInstance.processDefinitionKey === 'bulksmsConnectionKAE' && connectionType !== 'web'">
+                    <input type="checkbox" class="form-check-input" id="smsServiceType" name="smsServiceType"
+                           ng-model="changeSmsServiceType">
+                    <label class="form-check-label" for="smsServiceType">Подключение МО</label>
+                </div>
+                <div class="col-sm-12"
+                     ng-show="operatorType === 'offnet' && ((relatedProcessInstance.processDefinitionKey === 'bulksmsConnectionKAE' && !previouslyBought) || relatedProcessInstance.processDefinitionKey === 'freephone')">
+                    <input type="checkbox" class="form-check-input" id="provider" name="provider"
+                           ng-model="changeProvider"
+                           ng-disabled="operatorType === 'onnet' || disableProviderModification">
+                    <label class="form-check-label" for="provider">Смена провайдера</label>
+                </div>
+                <div class="col-sm-12" ng-show="relatedProcessInstance.processDefinitionKey === 'freephone'">
+                    <input type="checkbox" class="form-check-input" id="transmitNumber" name="transmitNumber"
+                           ng-model="changeTransmitNumber">
+                    <label class="form-check-label" for="transmitNumber">Смена номера переадресации</label>
+                </div>
+            </div>
+        </div>
+    </div>
 </form>
