@@ -114,7 +114,7 @@ public class KcellIdentityProviderSession extends DbIdentityServiceProvider {
 
         if(processEngine.getIdentityService().getCurrentAuthentication()==null){
 
-            InputStream config = this.getClass().getResourceAsStream("/customMybatisConfiguration.xml");
+            InputStream config = this.getClass().getResourceAsStream("/customAuthentication/customMybatisConfiguration.xml");
             SqlSessionFactory sqlSessionFactory = createMyBatisSqlSessionFactory(config);
             SqlSession session = sqlSessionFactory.openSession();
 
