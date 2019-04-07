@@ -1,6 +1,6 @@
 <form role="form" class="form-horizontal" name="kcell_form" novalidate>
     <script cam-script type="text/form-script">
-        inject(['$scope', '$http', 'Uri', '$rootScope', '$q', '$timeout', function ($scope, $http, Uri, $rootScope, $q, $timeout) {
+        inject(['$scope', '$http', 'Uri', '$rootScope', '$q', '$timeout', 'toasty', function ($scope, $http, Uri, $rootScope, $q, $timeout, toasty) {
             var variables = [
                 'resolutions',
                 'ncpID',
@@ -221,6 +221,7 @@
                     $scope.editableForm = false;
                 } else {
                     $scope.newFe.submitted = true;
+                    toasty.error({title: "Could not save Far End Information", msg: "Please fill required fields"});
                 }
             };
             $scope.cancelFE = function () {
@@ -521,7 +522,12 @@
                 if($scope.farEndInformation.length < 3){
                     deferred.reject('At least 3 Far End Information should be added!!!');
                     return deferred.promise;
+                }
+                else if(!_.some($scope.farEndInformation, function(farEnd){ return farEnd.priority === true; })){
+                        deferred.reject('One Far End should be marked with high priority!');
+                        return deferred.promise;
                 } else {
+
                     return $http.post('/camunda/leasing/rrfile/create',prepareRRCreatedata()).then(function (result) {
                         console.log(result.data);
                     },
