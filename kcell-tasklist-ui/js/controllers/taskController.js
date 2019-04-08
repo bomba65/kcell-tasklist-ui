@@ -79,6 +79,7 @@ define(['./module','camundaSDK', 'lodash', 'big-js'], function(module, CamSDK, _
 						});
 					}
 				} else {
+					console.log($scope.kcell_form);
 					toasty.error({title: "Could not complete task", msg: "Please fill required fields"});
 				}
 			});
