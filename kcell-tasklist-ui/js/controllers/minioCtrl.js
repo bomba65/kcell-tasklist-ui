@@ -195,6 +195,19 @@ define(['./module','camundaSDK', 'lodash', 'big-js'], function(module, CamSDK, _
 			 	$scope.loadProcessDefinitionActivities();
 			 },true);
 
+			$http.get(baseUrl+'/process-definition?latest=true&active=true&startableInTasklist=true').then(
+				function(results){
+					$scope.activityProcessDefinitions = [];
+//					if(e.name != 'null'){
+						results.data.forEach(function(e){
+							$scope.activityProcessDefinitions.push(e);
+						});
+	//				}
+				},
+				function(error){
+					console.log(error.data);
+				}
+			);
 
 			$scope.loadProcessDefinitionActivities = function (){
 				if($scope.activityProcess){
