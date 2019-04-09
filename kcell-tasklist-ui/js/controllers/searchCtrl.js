@@ -1912,333 +1912,358 @@ define(['./module','jquery', 'moment', 'camundaSDK'], function(app, $, moment, C
 // -- Demand Management
 
 let initDemandUAT = () => {
-if ($rootScope.selectedProcess.key === 'Demand') {
-$scope.demandTasks = [];
-$http.get(baseUrl + '/process-definition/key/' + $rootScope.selectedProcess.key + '/xml').then(
-function(response) {
-if (response) {
-  var domParser = new DOMParser();
-  var xml = domParser.parseFromString(response.data.bpmn20Xml, 'application/xml');
-  $scope.demandTasks = getUserTasks(xml);
-                $scope.demandTasks = $scope.demandTasks.map(e => {
-                    if (e.id === 'supportiveInputBI') e.name = 'Supportive input BI';
-                    else if (e.id === 'supportiveInputBI') e.name = 'Supportive input BI';
-                    else if (e.id === 'supportiveInputCPD') e.name = 'Supportive input CPD';
-                    else if (e.id === 'supportiveInputHR') e.name = 'Supportive input HR';
-                    else if (e.id === 'supportiveInputLD') e.name = 'Supportive input LD';
-                    else if (e.id === 'supportiveInputTD') e.name = 'Supportive input TD';
-                    else if (e.id === 'supportiveInputWH') e.name = 'Supportive input WH';
-                    else if (e.id === 'supportiveInputOther') e.name = 'Supportive input Other';
-                    else if (e.id === 'requestInfoCPD') e.name = 'Request info Centralized Procurement Department';
-                    else if (e.id === 'requestInfoHR') e.name = 'Request info Human Resources Department';
-                    else if (e.id === 'requestInfoOther') e.name = 'Request info Technology Department';
-                    return e;
-                });
-}
-}
-).catch(e => console.log("error: ", e));
+	if ($rootScope.selectedProcess.key === 'Demand') {
+		$scope.demandTasks = [];
+		$http.get(baseUrl + '/process-definition/key/' + $rootScope.selectedProcess.key + '/xml').then(
+			function(response) {
+				if (response) {
+					var domParser = new DOMParser();
+					var xml = domParser.parseFromString(response.data.bpmn20Xml, 'application/xml');
+					$scope.demandTasks = getUserTasks(xml);
+					$scope.demandTasks = $scope.demandTasks.map(e => {
+						if (e.id === 'supportiveInputBI') e.name = 'Supportive input BI';
+						else if (e.id === 'supportiveInputBI') e.name = 'Supportive input BI';
+						else if (e.id === 'supportiveInputCPD') e.name = 'Supportive input CPD';
+						else if (e.id === 'supportiveInputHR') e.name = 'Supportive input HR';
+						else if (e.id === 'supportiveInputLD') e.name = 'Supportive input LD';
+						else if (e.id === 'supportiveInputTD') e.name = 'Supportive input TD';
+						else if (e.id === 'supportiveInputWH') e.name = 'Supportive input WH';
+						else if (e.id === 'supportiveInputOther') e.name = 'Supportive input Other';
+						else if (e.id === 'requestInfoCPD') e.name = 'Request info Centralized Procurement Department';
+						else if (e.id === 'requestInfoHR') e.name = 'Request info Human Resources Department';
+						else if (e.id === 'requestInfoOther') e.name = 'Request info Technology Department';
+						return e;
+					});
+				}
+			}
+		).catch(e => console.log("error: ", e));
 
-$scope.filter = {
-technicalAnalysis: false,
-        page: 1,
-maxResults: 20
+		$scope.filter = {
+			technicalAnalysis: false,
+			page: 1,
+			maxResults: 20
     };
 
-$scope.statusList = [
-'New order',
-        'Order modified',
-        'CVP approved',
-        'Canceled on CVP review',
-        'Modifying of General info',
-        'Canceled on Requirement check',
-        'Business case approved',
-        'Canceled on Financial review',
-        'IPM approved',
-        'IPM approved conditionally',
-        'Order planned',
-        'Canceled on IPM Committee',
-        'Finished on Follow-up',
-        'Canceled on Follow-up'
+		$scope.statusList = [
+			'New order',
+			'Order modified',
+			'CVP approved',
+			'Canceled on CVP review',
+			'Modifying of General info',
+			'Canceled on Requirement check',
+			'Business case approved',
+			'Canceled on Financial review',
+			'IPM approved',
+			'IPM approved conditionally',
+			'Order planned',
+			'Canceled on IPM Committee',
+			'Finished on Follow-up',
+			'Canceled on Follow-up'
     ];
 
-$scope.getDemandOwnerUsers = (val) => {
-$scope.filter.demandOwnerId = null;
-return $scope.getUsers(val);
-};
-$scope.demandOwnerSelected = (user) => {
-$scope.filter.demandOwner = user.name;
-$scope.filter.demandOwnerId = user.id;
-};
+		$scope.getDemandOwnerUsers = (val) => {
+			$scope.filter.demandOwnerId = null;
+			return $scope.getUsers(val);
+		};
+		$scope.demandOwnerSelected = (user) => {
+			$scope.filter.demandOwner = user.name;
+			$scope.filter.demandOwnerId = user.id;
+		};
 
-$scope.getDemandAssigneeUsers = (val) => {
-$scope.filter.assigneeId = null;
-return $scope.getUsers(val);
-};
-$scope.demandAssigneeSelected = (user) => {
-$scope.filter.assignee = user.name;
-$scope.filter.assigneeId = user.id;
-};
+		$scope.getDemandAssigneeUsers = (val) => {
+			$scope.filter.assigneeId = null;
+			return $scope.getUsers(val);
+		};
+		$scope.demandAssigneeSelected = (user) => {
+			$scope.filter.assignee = user.name;
+			$scope.filter.assigneeId = user.id;
+		};
 
-$scope.clear = () => {
-$scope.filter.businessKey = undefined;
-$scope.filter.demandOwner = undefined;
-$scope.filter.demandOwnerId = undefined;
-$scope.filter.assignee = undefined;
-$scope.filter.assigneeId = undefined;
-$scope.filter.demandName = undefined;
-$scope.filter.activityId = undefined;
-$scope.filter.technicalAnalysis = false;
-$scope.filter.demandDescription = undefined;
-$scope.filter.status = undefined;
-$scope.filter.createdOperator = undefined;
-$scope.filter.createdStart = undefined;
-$scope.filter.createdEnd = undefined;
-$scope.filter.closedOperator = undefined;
-$scope.filter.closedStart = undefined;
-$scope.filter.closedEnd = undefined;
-$scope.filter.plannedLaunchOperator = undefined;
-$scope.filter.plannedLaunchStart = undefined;
-$scope.filter.plannedLaunchEnd = undefined;
-$scope.filter.actualLaunchOperator = undefined;
-$scope.filter.actualLaunchStart = undefined;
-$scope.filter.actualLaunchEnd = undefined;
-$scope.processInstancesTotal = 0;
-$scope.processInstancesPages = 0;
-$scope.processInstances = undefined;
-$scope.lastSearchParams = undefined;
-    };
+		$scope.clear = () => {
+			$scope.filter.businessKey = undefined;
+			$scope.filter.demandOwner = undefined;
+			$scope.filter.demandOwnerId = undefined;
+			$scope.filter.assignee = undefined;
+			$scope.filter.assigneeId = undefined;
+			$scope.filter.demandName = undefined;
+			$scope.filter.activityId = undefined;
+			$scope.filter.technicalAnalysis = false;
+			$scope.filter.demandDescription = undefined;
+			$scope.filter.status = undefined;
+			$scope.filter.createdOperator = undefined;
+			$scope.filter.createdStart = undefined;
+			$scope.filter.createdEnd = undefined;
+			$scope.filter.closedOperator = undefined;
+			$scope.filter.closedStart = undefined;
+			$scope.filter.closedEnd = undefined;
+			$scope.filter.plannedLaunchOperator = undefined;
+			$scope.filter.plannedLaunchStart = undefined;
+			$scope.filter.plannedLaunchEnd = undefined;
+			$scope.filter.actualLaunchOperator = undefined;
+			$scope.filter.actualLaunchStart = undefined;
+			$scope.filter.actualLaunchEnd = undefined;
+			$scope.processInstancesTotal = 0;
+			$scope.processInstancesPages = 0;
+			$scope.processInstances = undefined;
+			$scope.lastSearchParams = undefined;
+		};
 
-$scope.search = (refresh) => {
-if (refresh) {
-$scope.filter.page = 1;
-$scope.processIndex = undefined;
-$scope.xlsxPrepared = false;
-}
+		$scope.search = (refresh) => {
+			if (refresh) {
+				$scope.filter.page = 1;
+				$scope.processIndex = undefined;
+				$scope.xlsxPrepared = false;
+			}
 
-var filter = {
-processDefinitionKey: 'Demand',
-sorting:[{sortBy: "startTime", sortOrder: "desc"}],
-variables:[
-                {
-                    name: "searchTechnicalAnalysis",
-                    operator: "eq",
-                    value: $scope.filter.technicalAnalysis
-                }
-            ],
-};
+			var filter = {
+				processDefinitionKey: 'Demand',
+				sorting:[{sortBy: "startTime", sortOrder: "desc"}],
+				variables:[
+					{
+						name: "searchTechnicalAnalysis",
+						operator: "eq",
+						value: $scope.filter.technicalAnalysis
+					}
+				],
+			};
 
-if ($scope.filter.businessKey) {
-filter.processInstanceBusinessKeyLike = '%' + $scope.filterDP.businessKey + '%';
-}
+			if ($scope.filter.businessKey) {
+				filter.processInstanceBusinessKeyLike = '%' + $scope.filterDP.businessKey + '%';
+			}
 
-if ($scope.filter.demandOwnerId) {
-filter.startedBy = $scope.filter.demandOwnerId;
-}
+			if ($scope.filter.demandOwnerId) {
+				filter.startedBy = $scope.filter.demandOwnerId;
+			}
 
-if ($scope.filter.activityId) {
-filter.activeActivityIdIn = [$scope.filter.activityId];
-}
+			if ($scope.filter.activityId) {
+				filter.activeActivityIdIn = [$scope.filter.activityId];
+			}
 
-if ($scope.filter.demandOwnerId) {
-filter.startedBy = $scope.filter.demandOwnerId;
-}
+			if ($scope.filter.demandOwnerId) {
+				filter.startedBy = $scope.filter.demandOwnerId;
+			}
 
-if ($scope.filter.demandName) {
-filter.variables.push({
-                name: "demandName",
-                operator: "like",
-                value: '%' + $scope.filter.demandName + '%'
-});
-        }
+			if ($scope.filter.demandName) {
+				filter.variables.push({
+					name: "demandName",
+					operator: "like",
+					value: '%' + $scope.filter.demandName + '%'
+				});
+			}
 
-if ($scope.filter.status) {
-filter.variables.push({
-                name: "status",
-                operator: "eq",
-                value: $scope.filter.status
-});
-        }
+			if ($scope.filter.status) {
+				filter.variables.push({
+					name: "status",
+					operator: "eq",
+					value: $scope.filter.status
+				});
+			}
 
-        if ($scope.filter.demandDescription) {
-filter.variables.push({
-  name: "searchDemandDescription",
-  operator: "like",
-  value: '%' + $scope.filter.demandDescription + '%'
-});
-        }
+			if ($scope.filter.demandDescription) {
+				filter.variables.push({
+					name: "searchDemandDescription",
+					operator: "like",
+					value: '%' + $scope.filter.demandDescription + '%'
+				});
+			}
 
-        if ($scope.createdOperator === 'btw') {
-            filter.startedAfter = $scope.createdStart;
-            filter.startedBefore = $scope.createdEnd;
-        }
-        else if ($scope.createdOperator === 'gteq') filter.startedAfter = $scope.createdStart;
-        else if ($scope.createdOperator === 'lteq') filter.startedBefore = $scope.createdStart;
-
-        if ($scope.closedOperator === 'btw') {
-            filter.finishedAfter = $scope.closedStart;
-            filter.finishedBefore = $scope.closedEnd;
-        }
-        else if ($scope.closedOperator === 'gteq') filter.finishedAfter = $scope.closedStart;
-        else if ($scope.closedOperator === 'lteq') filter.finishedBefore = $scope.closedStart;
-
-        if ($scope.plannedLaunchOperator && $scope.plannedLaunchOperator.length) {
-            if ($scope.plannedLaunchOperator === 'btw') {
-  filter.variables.push({
-    name: "searchPlannedLaunch",
-    operator: 'gteq',
-    value: $scope.filter.plannedLaunchStart
-  });
-  filter.variables.push({
-    name: "searchPlannedLaunch",
-    operator: 'lteq',
-    value: $scope.filter.plannedLaunchEnd
-  });
-            } else {
-  filter.variables.push({
-    name: "searchPlannedLaunch",
-    operator: $scope.plannedLaunchOperator,
-    value: $scope.filter.plannedLaunchStart
-  });
-}
-        }
-
-        if ($scope.actualLaunchOperator && $scope.actualLaunchOperator.length) {
-            if ($scope.actualLaunchOperator === 'btw') {
-  filter.variables.push({
-    name: "searchActualLaunch",
-    operator: 'gteq',
-    value: $scope.filter.actualLaunchStart
-  });
-  filter.variables.push({
-    name: "searchActualLaunch",
-    operator: 'lteq',
-    value: $scope.filter.actualLaunchEnd
-  });
-            } else {
-  filter.variables.push({
-    name: "searchActualLaunch",
-    operator: $scope.actualLaunchOperator,
-    value: $scope.filter.actualLaunchStart
-  });
-}
-        }
-
-if ($scope.filter.assigneeId) {
-$http.post(baseUrl + '/history/task',{taskAssignee: $scope.filter.assigneeId, unfinished: true}).then(
-  function(result) {
-    filter.processInstanceIds = _.map(result.data, 'processInstanceId');
-    $scope.lastSearchParams = filter;
-    getDemandProcessInstances(filter);
-  }
-).catch(e => console.log("error: ", e));
-        } else {
-$scope.lastSearchParams = filter;
-  getDemandProcessInstances(filter);
-}
-};
-
-
-var getDemandProcessInstances = (filter, full) => {
-$http({
-method: 'POST',
-headers: {'Accept': 'application/hal+json, application/json; q=0.5'},
-data: filter,
-url: baseUrl + '/history/process-instance/count'
-}).then(
-function (result) {
-  $scope.processInstancesTotal = result.data.count;
-  $scope.processInstancesPages = Math.floor(result.data.count / $scope.filter.maxResults) + ((result.data.count % $scope.filter.maxResults) > 0 ? 1 : 0);
-}
-);
-$http({
-method: 'POST',
-headers: {'Accept': 'application/hal+json, application/json; q=0.5'},
-data: filter,
-url: baseUrl + '/history/process-instance' + (full ? '' : '?firstResult=' + ($scope.filter.page - 1) * $scope.filter.maxResults + '&maxResults=' + $scope.filter.maxResults)
-}).then(
-function(result) {
-    $scope.processInstances = result.data;
-  if ($scope.processInstances.length) {
-    $scope.processInstances.forEach((e) => {
-      if(!$scope.profiles[e.startUserId]){
-        $http.get(baseUrl+'/user/' + e.startUserId + '/profile').then(
-          function (result) {
-            $scope.profiles[e.startUserId] = result.data;
-          }
-        ).catch(e => console.log("error: ", e));
+			if ($scope.filter.createdOperator === 'btw') {
+				filter.startedAfter = new Date($scope.filter.createdStart);
+				filter.startedBefore = new Date($scope.filter.createdEnd);
+			}
+			else if ($scope.filter.createdOperator === 'gteq') filter.startedAfter = new Date($scope.filter.createdStart);
+			else if ($scope.filter.createdOperator === 'lteq') filter.startedBefore = new Date($scope.filter.createdStart);
+      else if ($scope.filter.createdOperator === 'eq') {
+        filter.startedAfter = new Date($scope.filter.createdStart);
+        let temp = new Date($scope.filter.createdStart);
+        temp.setHours(temp.getHours()+24);
+        filter.startedBefore = temp;
       }
-    });
-    let fetchVars = ['generalData', 'demandName', 'status'];
-    fetchVars.forEach((v) => {
-      $http({
-        method: 'POST',
-        headers:{'Accept':'application/hal+json, application/json; q=0.5'},
-        data: {
-          processInstanceIdIn: _.map($scope.processInstances, 'id'),
-          variableName: v
-        },
-        url: baseUrl+'/history/variable-instance?deserializeValues=false'
-      }).then(
-        function(result) {
-          let variables = _.groupBy(result.data, 'processInstanceId');
-          $scope.processInstances.forEach((e) => {
-            if (variables[e.id]) {
-              variables[e.id].forEach((v) => {
-                if (v.type === 'Json') e[v.name] = JSON.parse(v.value);
-                else e[v.name] = v.value;
-              });
-            }
-          });
-        }
-      ).catch(e => console.log("error: ", e));
-                    });
-    var activeProcessInstances = $scope.processInstances.filter((e) => { return e.state === 'ACTIVE'; });
-    var taskSearchParams = {processInstanceBusinessKeyIn: _.map(activeProcessInstances, 'businessKey'), active: true};
-    $http({
-      method: 'POST',
-      headers:{'Accept':'application/hal+json, application/json; q=0.5'},
-      data: taskSearchParams,
-      url: baseUrl+'/task'
-    }).then(
-      function(result) {
-          let tasks = _.groupBy(result.data, 'processInstanceId');
-        $scope.processInstances.forEach((e) => {
-
-            if (tasks[e.id]) {
-                e.tasks = tasks[e.id];
-            e.tasks.forEach((t) => {
-              if(t.assignee && !$scope.profiles[t.assignee]){
-                $http.get(baseUrl+'/user/' + t.assignee + '/profile').then(
-                  function (result) {
-                    $scope.profiles[t.assignee] = result.data;
-                  }
-                ).catch(e => console.log("error: ", e));
-              }
-            });
-                                }
-        });
+      else if ($scope.filter.createdOperator === 'neq') {
+        let temp = new Date($scope.filter.createdStart);
+        temp.setHours(temp.getHours()+24);
+        filter.startedAfter = temp;
+        console.log(filter.startedAfter);
+        temp = new Date($scope.filter.createdStart);
+        temp.setHours(temp.getHours()-24);
+        filter.startedBefore = temp;
+        console.log(filter.startedBefore);
       }
-    ).catch(e => console.log("error: ", e));
-  }
-}
-).catch(e => console.log("error: ", e));
-};
 
-$scope.getDemandXlsx = () => {
-        if($scope.xlsxPrepared) {
-            var tbl = document.getElementById('xlsxDemandTable');
-            var ws = XLSX.utils.table_to_sheet(tbl, {dateNF:'DD.MM.YYYY'});
 
-            var wb = XLSX.utils.book_new();
-            XLSX.utils.book_append_sheet(wb, ws, 'New Sheet Name 1');
+      if ($scope.filter.closedOperator === 'btw') {
+				filter.finishedAfter = new Date($scope.filter.closedStart);
+				filter.finishedBefore = new Date($scope.filter.closedEnd);
+			}
+			else if ($scope.filter.closedOperator === 'gteq') filter.finishedAfter = new Date($scope.filter.closedStart);
+			else if ($scope.filter.closedOperator === 'lteq') filter.finishedBefore = new Date($scope.filter.closedStart);
+      else if ($scope.filter.closedOperator === 'eq') {
+        filter.finishedAfter = new Date($scope.filter.closedStart);
+        let temp = new Date($scope.filter.closedStart);
+        temp.setHours(temp.getHours()+24);
+        filter.finishedBefore = temp;
+      }
+      else if ($scope.filter.closedOperator === 'neq') {
+        let temp = new Date($scope.filter.closedStart);
+        temp.setHours(temp.getHours()+24);
+        filter.finishedAfter = temp;
+        temp = new Date($scope.filter.closedStart);
+        temp.setHours(temp.getHours()-24);
+        filter.finishedBefore = temp;
 
-            return XLSX.writeFile(wb, 'demand-search-result.xlsx');
-        } else {
-getDemandProcessInstances($scope.lastSearchParams, true);
-            $scope.xlsxPrepared = true;
-        }
-    };
-}
+      }
+
+      if ($scope.filter.plannedLaunchOperator && $scope.filter.plannedLaunchOperator.length) {
+				if ($scope.filter.plannedLaunchOperator === 'btw') {
+					filter.variables.push({
+						name: "searchPlannedLaunch",
+						operator: 'gteq',
+						value: (new Date($scope.filter.plannedLaunchStart)).getTime()
+					});
+					filter.variables.push({
+						name: "searchPlannedLaunch",
+						operator: 'lteq',
+						value: (new Date($scope.filter.plannedLaunchEnd)).getTime()
+					});
+				} else {
+					filter.variables.push({
+						name: "searchPlannedLaunch",
+						operator: $scope.filter.plannedLaunchOperator,
+						value: (new Date($scope.filter.plannedLaunchStart)).getTime()
+					});
+				}
+			}
+
+			if ($scope.filter.actualLaunchOperator && $scope.filter.actualLaunchOperator.length) {
+				if ($scope.filter.actualLaunchOperator === 'btw') {
+					filter.variables.push({
+						name: "searchActualLaunch",
+						operator: 'gteq',
+						value: (new Date($scope.filter.actualLaunchStart)).getTime()
+					});
+					filter.variables.push({
+						name: "searchActualLaunch",
+						operator: 'lteq',
+						value: (new Date($scope.filter.actualLaunchEnd)).getTime()
+					});
+				} else {
+					filter.variables.push({
+						name: "searchActualLaunch",
+						operator: $scope.filter.actualLaunchOperator,
+						value: (new Date($scope.filter.actualLaunchStart)).getTime()
+					});
+				}
+			}
+
+			if ($scope.filter.assigneeId) {
+				$http.post(baseUrl + '/history/task',{taskAssignee: $scope.filter.assigneeId, unfinished: true}).then(
+					function(result) {
+						filter.processInstanceIds = _.map(result.data, 'processInstanceId');
+						$scope.lastSearchParams = filter;
+						getDemandProcessInstances(filter);
+					}
+				).catch(e => console.log("error: ", e));
+			} else {
+				$scope.lastSearchParams = filter;
+				getDemandProcessInstances(filter);
+			}
+		};
+
+
+		var getDemandProcessInstances = (filter, full) => {
+			$http({
+				method: 'POST',
+				headers: {'Accept': 'application/hal+json, application/json; q=0.5'},
+				data: filter,
+				url: baseUrl + '/history/process-instance/count'
+			}).then(function (result) {
+				$scope.processInstancesTotal = result.data.count;
+				$scope.processInstancesPages = Math.floor(result.data.count / $scope.filter.maxResults) + ((result.data.count % $scope.filter.maxResults) > 0 ? 1 : 0);
+			});
+			$http({
+				method: 'POST',
+				headers: {'Accept': 'application/hal+json, application/json; q=0.5'},
+				data: filter,
+				url: baseUrl + '/history/process-instance' + (full ? '' : '?firstResult=' + ($scope.filter.page - 1) * $scope.filter.maxResults + '&maxResults=' + $scope.filter.maxResults)
+			}).then(function(result) {
+				$scope.processInstances = result.data;
+				if ($scope.processInstances.length) {
+					$scope.processInstances.forEach((e) => {
+						if(!$scope.profiles[e.startUserId]){
+							$http.get(baseUrl+'/user/' + e.startUserId + '/profile').then(
+								function (result) {
+									$scope.profiles[e.startUserId] = result.data;
+								}
+							).catch(e => console.log("error: ", e));
+						}
+					});
+					let fetchVars = ['generalData', 'demandName', 'status'];
+					fetchVars.forEach((v) => {
+						$http({
+							method: 'POST',
+							headers:{'Accept':'application/hal+json, application/json; q=0.5'},
+							data: {
+								processInstanceIdIn: _.map($scope.processInstances, 'id'),
+								variableName: v
+							},
+							url: baseUrl+'/history/variable-instance?deserializeValues=false'
+						}).then(
+							function(result) {
+								let variables = _.groupBy(result.data, 'processInstanceId');
+								$scope.processInstances.forEach((e) => {
+									if (variables[e.id]) {
+										variables[e.id].forEach((v) => {
+											if (v.type === 'Json') e[v.name] = JSON.parse(v.value);
+											else e[v.name] = v.value;
+										});
+									}
+								});
+							}
+						).catch(e => console.log("error: ", e));
+					});
+					var activeProcessInstances = $scope.processInstances.filter((e) => { return e.state === 'ACTIVE'; });
+					var taskSearchParams = {processInstanceBusinessKeyIn: _.map(activeProcessInstances, 'businessKey'), active: true};
+					$http({
+						method: 'POST',
+						headers:{'Accept':'application/hal+json, application/json; q=0.5'},
+						data: taskSearchParams,
+						url: baseUrl+'/task'
+					}).then(function(result) {
+						let tasks = _.groupBy(result.data, 'processInstanceId');
+						$scope.processInstances.forEach((e) => {
+							if (tasks[e.id]) {
+								e.tasks = tasks[e.id];
+								e.tasks.forEach((t) => {
+									if(t.assignee && !$scope.profiles[t.assignee]){
+										$http.get(baseUrl+'/user/' + t.assignee + '/profile').then(
+											function (result) {
+												$scope.profiles[t.assignee] = result.data;
+											}
+										).catch(e => console.log("error: ", e));
+									}
+								});
+							}
+						});
+					}).catch(e => console.log("error: ", e));
+				}
+			}).catch(e => console.log("error: ", e));
+		};
+
+		$scope.getDemandXlsx = () => {
+			if($scope.xlsxPrepared) {
+				var tbl = document.getElementById('xlsxDemandTable');
+				var ws = XLSX.utils.table_to_sheet(tbl, {dateNF:'DD.MM.YYYY'});
+
+				var wb = XLSX.utils.book_new();
+				XLSX.utils.book_append_sheet(wb, ws, 'New Sheet Name 1');
+
+				return XLSX.writeFile(wb, 'demand-search-result.xlsx');
+			} else {
+				getDemandProcessInstances($scope.lastSearchParams, true);
+				$scope.xlsxPrepared = true;
+			}
+		};
+	}
 };
 
 
