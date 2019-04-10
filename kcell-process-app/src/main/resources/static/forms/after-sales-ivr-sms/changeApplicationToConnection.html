@@ -115,7 +115,6 @@
                         $scope[el] = camForm.variableManager.variables[el].value;
                         //$scope.aftersalesInfo.files.push(camForm.variableManager.variables[el].value);
                     } else if(el === 'startDate') {
-                        console.log('wat');
                         $scope[el] = camForm.variableManager.variables[el].type === 'Date' ? $filter('date')(camForm.variableManager.variables[el].value, 'yyyy-MM-ddTHH:mm:ss') : camForm.variableManager.variables[el].value;
                     } else {
                         $scope[el] = camForm.variableManager.variables[el].value;
@@ -337,6 +336,7 @@
                     $scope.resolutions = [];
                 }
                 var providerTitles = [];
+
                 angular.forEach($scope.identifiers, function(value, key){
                     var titles = value.operators.filter(function(operator) {
                         return operator.id !== 'kcell' && operator.hasOwnProperty("title") && ['MESSAGE','KiT_Notify'].indexOf(operator.title) === -1
@@ -345,6 +345,7 @@
                         providerTitles.push(...titles);
                     }
                 });
+
                 camForm.variableManager.createVariable({
                     name: 'isRecipientProvider',
                     value: $scope.identifierType === 'digital' ? true : providerTitles.length>0?true:false,
@@ -354,11 +355,16 @@
                     camForm.variableManager.variableValue('clientCompanyLatName', $scope.clientCompanyLatName);
                     camForm.variableManager.variableValue('officialClientCompanyName', $scope.officialClientCompanyName);
                 };
+
+
+
+
                 //----------итоговые идентификаторы после создания заявки-----------
                 $scope.operatorWasChanged = false;
                 $scope.operatorWasConnected = false;
                 $scope.operatorWasDisconnected = false;
-
+                $scope.selectedIdentifier = false;
+                $scope.changeIdentifierType = false;
                 _.forEach($scope.identifiers, function(id) {
                     _.forEach(id.operators, function(o) {
                         delete o.tmpPriceAP;
@@ -392,6 +398,7 @@
                                 $scope.operatorWasConnected = true;
                                 o.connected = true;
                             }
+
                             if(o.wasAvailable && o.isAvailable){
                                 if(o.oldTitle !== o.title || o.oldPriceAP !== o.priceAP){
                                     o.changed = true;
@@ -403,6 +410,27 @@
                                     delete o.oldTitle;
                                 }
                             }
+                        }
+                        if ((o.connected || o.disconnected) && (((o.title && ['MESSAGE','KiT_Notify'].indexOf(o.title) === -1)) || ((o.oldTitle && ['MESSAGE','KiT_Notify'].indexOf(o.oldTitle) === -1)))) {
+                                $scope.selectedIdentifier = true;
+                                console.log('inside statement ' + $scope.selectedIdentifier);
+                                o.selectedIdentifier = true;
+                            }
+                         else {
+                                o.selectedIdentifier = false;
+                         }
+                        if (o.oldTitle && o.title && o.oldTitle !== o.title) {
+                           var a = ['MESSAGE','KiT_Notify'].indexOf(o.oldTitle)
+                           var b = ['MESSAGE','KiT_Notify'].indexOf(o.title)
+                           if ((a!==-1 && b===-1) || (a===-1 && b!==-1)) {
+                                console.log(o);
+                                o.changeIdentifierType = true;
+                                $scope.changeIdentifierType = true;
+                           }
+                           else {
+                            o.changeIdentifierType = false;
+                           }
+
                         }
                     });
                 });
@@ -457,7 +485,17 @@
                     });
                 }
                 camForm.variableManager.variableValue('provider', $scope.provider);
-
+                camForm.variableManager.createVariable({
+                    name: 'selectedIdentifier',
+                    value: $scope.selectedIdentifier,
+                    type: 'Boolean'
+                });
+                  camForm.variableManager.createVariable({
+                    name: 'changeIdentifierType',
+                    value: $scope.changeIdentifierType,
+                    type: 'Boolean'
+                });
+                console.log($scope.identifiers);
                 if(($scope.changeConnectionType || $scope.changeSmsServiceType) && $scope.relatedProcessDefinitionKey === 'bulksmsConnectionKAE' && $scope.connectionType !== 'web'){
                     if($scope.changeConnectionType){
                         camForm.variableManager.createVariable({
