@@ -345,7 +345,6 @@ define(['./module','camundaSDK', 'lodash', 'big-js'], function(module, CamSDK, _
 							).then(
 								function(result){
 									$scope.activityComment = undefined;
-								 	$scope.userTasksMap = [];
 								 	$scope.processInstanceId = undefined;
 								 	$scope.cancelActivities = {};
 								 	$scope.activityBusinessKey = undefined;
