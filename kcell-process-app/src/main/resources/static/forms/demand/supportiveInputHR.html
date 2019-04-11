@@ -219,6 +219,55 @@
                     );
                 });
             };
+
+            $scope.exportCosts = function () {
+                var resources = [];
+                for (var i of $scope.supportiveInputs) {
+                    if (i.unit == $scope.supportiveInputItem.unit) resources = i.value;
+                }
+                var resData = [
+                    [],
+                    ['Resources'],
+                    [],
+                    ['Employee type', 'Department', 'Role', 'Employee Quantity', 'Man\Hours in Month', 'Period, Month', 'Existing?', 'Rate per Hour, KZT Gross', 'Amount, KZT Gross', 'Responsible', 'Description']
+                ];
+                var totalSumm = 0;
+                for (var r of resources) {
+                    totalSumm += r.summ;
+                    resData.push([r.emplType, r.department, r.role.v, r.quantity, r.hours, r.period, r.existing ? 'yes' : 'no', (r.pprice ? 'Conf.' : 'Empt.'), (r.summ ? 'Conf.' : 'Empt.'), r.responsible.fio, r.description]);
+                }
+                resData.push([]);
+                resData.push([null, null, null, null, null, null, null, null, 'Total amount, KZT Gross', totalSumm]);
+
+                var matData = [];
+
+                var wb = XLSX.utils.book_new();
+                var data = resData.concat(matData);
+                var ws = XLSX.utils.aoa_to_sheet(data);
+                var width = [];
+                for (var row of data) {
+                    for (var i = 0; i < row.length; i++) {
+                        if (i >= width.length) width.push({wch: 0});
+                        if (('' + row[i]).length > width[i].wch) width[i].wch = ('' + row[i]).length;
+                    }
+                }
+                ws['!cols'] = [
+                    {wch: 'Employee type'.length},
+                    {wch: 'Category L2'.length},
+                    {wch: 'Category L3'.length},
+                    {wch: 'Purchase Group'.length},
+                    {wch: 'Employee Quantity'.length},
+                    {wch: 'Man\Hours in Month'.length},
+                    {wch: 'Exists on Warehouse?'.length},
+                    {wch: 'Existing?'.length},
+                    {wch: 'Rate per Hour, KZT Gross'.length},
+                    {wch: 'Amount, Without VAT'.length},
+                    {wch: 'Responsible'.length},
+                    {wch: 'Specification'.length}
+                ];
+                XLSX.utils.book_append_sheet(wb, ws, 'Sheet1');
+                XLSX.writeFile(wb, 'costs.xlsx');
+            };
         }]);
     </script>
     <div class="form-group">
@@ -395,7 +444,7 @@
         </tab>
         <tab active="true">
             <tab-heading> Costs </tab-heading>
-            <div style="margin-bottom: 20px;">
+            <div style="margin-top: 20px;">
                 <accordion ng-repeat="i in supportiveInputs" ng-if="i.unit == supportiveInputItem.unit">
                     <accordion-group is-open="true">
                         <accordion-heading>
@@ -409,10 +458,16 @@
         <tab>
             <tab-heading> Business Case </tab-heading>
             <div style="margin-bottom: 20px;">
-                <div class="col-sm-12">
-                    <label style="margin-left: 20px;">Business Case</label>
-                    <div class="col-sm-12" style="border: 1px solid #ccc; border-radius: 10px; padding-top: 10px;">
-                        <demand-business-case data="BCData.data" form="kcell_form" view="view" disabled="true"></demand-business-case>
+                <div class="col-sm-12" style="padding: 0;">
+                    <div class="panel-group custom-panel">
+                        <div class="panel panel-default">
+                            <div class="panel-heading">
+                                <h4 class="panel-title">Business Case</h4>
+                            </div>
+                            <div class="panel-body">
+                                <demand-business-case data="BCData.data" form="kcell_form" view="view" disabled="true"></demand-business-case>
+                            </div>
+                        </div>
                     </div>
                 </div>
             </div>
@@ -424,50 +479,69 @@
 
     <div class="col-sm-12" style="margin-top: 20px;"><hr style="border-top: 2px solid #aaa;" /></div>
 
-    <div class="col-sm-12" style="border: 1px solid #ccc; border-radius: 10px; padding-top: 10px; margin: 20px 0;">
-        <div class="col-sm-12">
-            <demand-supportive-inputs data="currentSupportiveInput" form="kcell_form" view="view" disabled="true"></demand-supportive-inputs>
-        </div>
-    </div>
-
-    <div class="col-sm-12" style="border: 1px solid #ccc; border-radius: 10px; padding-top: 10px; margin: 20px 0;">
-        <div class="form-group">
-            <label class="col-sm-12">Order draft <span title='Заполняется текст приказа' style="color: #682d86" class="glyphicon glyphicon-question-sign"></span></label>
-            <div class="col-sm-12">
-                <demand-rich-text data="BCData.orderDraft" min-height="100" disabled="true"></demand-rich-text>
+    <div class="col-sm-12" style="padding: 0;">
+        <div class="panel-group custom-panel">
+            <div class="panel panel-default">
+                <div class="panel-heading">
+                    <h4 class="panel-title">Supportive Inputs</h4>
+                </div>
+                <div class="panel-body">
+                    <demand-supportive-inputs data="currentSupportiveInput" form="kcell_form" view="view" disabled="true"></demand-supportive-inputs>
+                </div>
             </div>
         </div>
     </div>
 
-    <div class="col-sm-12" style="border: 1px solid #ccc; border-radius: 10px; padding-top: 10px; margin: 20px 0;">
-        <iframe id="fileDownloadIframe" style="display:none;"></iframe>
-        <div class="form-group">
-            <div class="col-sm-12">
-                <div class="col-sm-12" style="margin-bottom: 10px;">
-                    <label class="col-sm-12">Attachments</label>
+    <div class="col-sm-12" style="padding: 0;">
+        <div class="panel-group custom-panel">
+            <div class="panel panel-default">
+                <div class="panel-heading">
+                    <h4 class="panel-title">Order draft <span title='Заполняется текст приказа' style="color: #682d86" class="glyphicon glyphicon-question-sign"></span></h4>
                 </div>
-                <div class="col-sm-12" style="margin-bottom: 10px;">
-                    <input type="file" class="form-control" id="attachments" name="attachments" onchange="angular.element(this).scope().fileSelected(this)"/>
+                <div class="panel-body">
+                    <div class="col-sm-12">
+                        <demand-rich-text data="BCData.orderDraft" min-height="100" disabled="true"></demand-rich-text>
+                    </div>
                 </div>
-                <div class="col-sm-12">
-                    <table class="table table-bordered">
-                        <thead>
-                        <tr>
-                            <th>File Name</th>
-                            <th>Created</th>
-                            <th>Created By</th>
-                            <th>Delete</th>
-                        </tr>
-                        </thead>
-                        <tbody>
-                        <tr ng-repeat="file in attachments track by $index">
-                            <td><a ng-click="downloadFile(file)">{{file.name}}</a></td>
-                            <td>{{file.created | date: 'dd.MM.yyyy HH:mm'}}</td>
-                            <td>{{file.createdBy}}</td>
-                            <td><a ng-click="clearFile($index)" ng-if="file.createdBy == assigneeName"><i class="glyphicon glyphicon-trash"></i></a></td>
-                        </tr>
-                        </tbody>
-                    </table>
+            </div>
+        </div>
+    </div>
+
+    <div class="col-sm-12" style="padding: 0;">
+        <div class="panel-group custom-panel">
+            <div class="panel panel-default">
+                <div class="panel-heading">
+                    <h4 class="panel-title">Attachments</h4>
+                </div>
+                <div class="panel-body">
+                    <iframe id="fileDownloadIframe" style="display:none;"></iframe>
+                    <div class="form-group">
+                        <div class="col-sm-12">
+                            <div class="col-sm-12" style="margin-bottom: 10px;">
+                                <input type="file" class="form-control" id="attachments" name="attachments" onchange="angular.element(this).scope().fileSelected(this)"/>
+                            </div>
+                            <div class="col-sm-12">
+                                <table class="table table-bordered">
+                                    <thead>
+                                    <tr>
+                                        <th>File Name</th>
+                                        <th>Created</th>
+                                        <th>Created By</th>
+                                        <th>Delete</th>
+                                    </tr>
+                                    </thead>
+                                    <tbody>
+                                    <tr ng-repeat="file in attachments track by $index">
+                                        <td><a ng-click="downloadFile(file)">{{file.name}}</a></td>
+                                        <td>{{file.created | date: 'dd.MM.yyyy HH:mm'}}</td>
+                                        <td>{{file.createdBy}}</td>
+                                        <td><a ng-click="clearFile($index)" ng-if="file.createdBy == assigneeName"><i class="glyphicon glyphicon-trash"></i></a></td>
+                                    </tr>
+                                    </tbody>
+                                </table>
+                            </div>
+                        </div>
+                    </div>
                 </div>
             </div>
         </div>
@@ -475,6 +549,7 @@
 
     <div class="col-sm-12" style="margin-bottom: 20px;">
         <button type="button" ng-click="saveFillForm()" class="btn btn-success" style="padding: 6px 28px">Save</button>
+        <button type="button" ng-click="exportCosts()" class="btn btn-info">Export Costs to Excel (Resources)</button>
     </div>
 
     <div class="form-group">

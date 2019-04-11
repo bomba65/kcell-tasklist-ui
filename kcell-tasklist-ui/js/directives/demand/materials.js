@@ -49,7 +49,7 @@ define(['./../module'], function(module){
                         cat3: null,
                         specification: null,
                         expert: null,
-                        purchaseGroup: null,
+                        purchaser: null,
                         quantity: null,
                         measure: null,
                         existing: null,
@@ -72,10 +72,6 @@ define(['./../module'], function(module){
                     for (var d of scope.data) {
                         scope.totalSumm += d.summ;
                     }
-                };
-
-                scope.onPurchaseGroupChange = function(index, option) {
-                    scope.data[index].purchaseGroup = option;
                 };
 
                 scope.onCat1Change = function(index, option) {

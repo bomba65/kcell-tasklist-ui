@@ -100,7 +100,7 @@
                 if (!$scope.attachments) $scope.attachments = [];
                 if (!$scope.supportiveInputs) {
                     $scope.supportiveInputs = [
-                        {unit: 'Human Resources Department', form: 'HR', value: [], checked: false, groupId: 'Demand_Supportive_Human_Resources_Department'},
+                        {unit: 'Human Resources Department', form: 'HR', value: [], checked: false, groupId: 'Demand_Supportive_Human_Resources_Department', groupName: 'Demand Supportive - HR'},
                         {unit: 'Centralized Procurement Department', form: 'CPD', value: [], checked: false},
                         {unit: 'Technology Department', form: 'TD', value: {}, checked: false}
                     ];
@@ -263,6 +263,90 @@
                 if (!$scope.pricesFilled && $scope.resolution == 'Approve') $scope.resolution = null;
 
             }, true);
+
+            $scope.saveFillForm = function () {
+                var success = 0;
+                var json = JSON.stringify($scope.supportiveInputs, function( key, value ) {
+                    if( key === "$$hashKey" ) return undefined;
+                    return value;
+                });
+                $http.put('/camunda/api/engine/engine/default/process-instance/'+processInstanceId+'/variables/supportiveInputs',{"type":"Json","value": json}).then(
+                    function() {
+                        success++;
+                        if (success == 2) toasty.success( "Данные успешно сохранены!");
+                    },
+                    function(error) {toasty.error(error.data.message);}
+                );
+                json = JSON.stringify($scope.attachments, function( key, value ) {
+                    if( key === "$$hashKey" ) return undefined;
+                    return value;
+                });
+                $http.put('/camunda/api/engine/engine/default/process-instance/'+processInstanceId+'/variables/attachments',{"type":"Json","value": json}).then(
+                    function() {
+                        success++;
+                        if (success == 2) toasty.success( "Данные успешно сохранены!");
+                    },
+                    function(error) {toasty.error(error.data.message);}
+                );
+            };
+
+            $scope.exportCosts = function () {
+                var resources = [], materials = [];
+                for (var i of $scope.supportiveInputs) {
+                    if (i.unit == 'Human Resources Department') resources = i.value;
+                    if (i.unit == 'Centralized Procurement Department') materials = i.value;
+                }
+                var resData = [
+                    [],
+                    ['Resources'],
+                    [],
+                    ['Employee type', 'Department', 'Role', 'Employee Quantity', 'Man\Hours in Month', 'Period, Month', 'Existing?', 'Rate per Hour, KZT Gross', 'Amount, KZT Gross', 'Responsible', 'Description']
+                ];
+                var totalSumm = 0;
+                for (var r of resources) {
+                    totalSumm += r.summ;
+                    resData.push([r.emplType, r.department, r.role.v, r.quantity, r.hours, r.period, r.existing ? 'yes' : 'no', (r.pprice ? 'Conf.' : 'Empt.'), (r.summ ? 'Conf.' : 'Empt.'), r.responsible.fio, r.description]);
+                }
+                resData.push([]);
+                resData.push([null, null, null, null, null, null, null, null, 'Total amount, KZT Gross', totalSumm]);
+
+                var matData = [
+                    [], [], [],
+                    ['Materials'],
+                    [],
+                    ['Category L1', 'Category L2', 'Category L3', 'Purchase Group', 'Quantity', 'Measure', 'Exists on Warehouse?', 'Currency', 'Price, Without VAT', 'Amount, Without VAT', 'Purchaser', 'Specification']
+                ];
+                for (var m of materials) {
+                    matData.push([m.cat1, m.cat2, m.cat3, m.purchaser.groupName, m.quantity, m.measure, m.existing ? 'yes' : 'no', m.currency, m.pprice, m.summ, m.purchaser.fio, m.specification]);
+                }
+
+                var wb = XLSX.utils.book_new();
+                var data = resData.concat(matData);
+                var ws = XLSX.utils.aoa_to_sheet(data);
+                var width = [];
+                for (var row of data) {
+                    for (var i = 0; i < row.length; i++) {
+                        if (i >= width.length) width.push({wch: 0});
+                        if (('' + row[i]).length > width[i].wch) width[i].wch = ('' + row[i]).length;
+                    }
+                }
+                ws['!cols'] = [
+                    {wch: 'Employee type'.length},
+                    {wch: 'Category L2'.length},
+                    {wch: 'Category L3'.length},
+                    {wch: 'Purchase Group'.length},
+                    {wch: 'Employee Quantity'.length},
+                    {wch: 'Man\Hours in Month'.length},
+                    {wch: 'Exists on Warehouse?'.length},
+                    {wch: 'Existing?'.length},
+                    {wch: 'Rate per Hour, KZT Gross'.length},
+                    {wch: 'Amount, Without VAT'.length},
+                    {wch: 'Responsible'.length},
+                    {wch: 'Specification'.length}
+                ];
+                XLSX.utils.book_append_sheet(wb, ws, 'Sheet1');
+                XLSX.writeFile(wb, 'costs.xlsx');
+            };
         }]);
     </script>
     <div class="form-group">
@@ -439,7 +523,7 @@
         </tab>
         <tab active="true">
             <tab-heading> Costs </tab-heading>
-            <div style="margin-bottom: 20px;">
+            <div style="margin-top: 20px;">
                 <accordion ng-repeat="i in supportiveInputs" ng-if="i.unit == 'Human Resources Department'" class="content-visible-accordion">
                     <accordion-group is-open="true">
                         <accordion-heading>
@@ -495,6 +579,10 @@
                                 <span class="has-error" ng-if="kcell_form['reqinfo_'+$index+'_description'].$error.required && ( kcell_form['reqinfo_'+$index+'_description'].$touched || view.submitted)">Required field</span>
                             </td>
                             <td class="text-center">
+                                <span ng-if="r.unit === 'Human Resources Department' && r.checked">{{r.groupName}}</span>
+                                <span ng-if="r.unit === 'Centralized Procurement Department' && r.checked">
+                                    <p ng-repeat="v in r.value">{{v.purchaser.groupName}}</p>
+                                </span>
                                 <input type="text" ng-model="r.responsibleName" name="reqinfo_{{$index}}_responsible" typeahead="name as users.name for users in getUser($viewValue, $index)" typeahead-on-select="userSelected($item, $index)" class="form-control" autocomplete="off" required ng-if="r.unit === 'Technology Department' && r.checked">
                                 <span class="has-error" ng-if="kcell_form['reqinfo_'+$index+'_responsible'].$error.required && (kcell_form['reqinfo_'+$index+'_responsible'].$touched || view.submitted)">Required field</span>
                                 <span class="has-error" ng-if="!kcell_form['reqinfo_'+$index+'_responsible'].$error.required && kcell_form['reqinfo_'+$index+'_responsible'].$error.not_selected && (kcell_form['reqinfo_'+$index+'_responsible'].$touched || view.submitted)">User must be selected from the list</span>
@@ -534,6 +622,11 @@
                 </div>
             </div>
         </div>
+    </div>
+
+    <div class="col-sm-12" style="margin-bottom: 20px;">
+        <button type="button" ng-click="saveFillForm()" class="btn btn-success" style="padding: 6px 28px">Save</button>
+        <button type="button" ng-click="exportCosts()" class="btn btn-info">Export Costs to Excel (Resources and Materials)</button>
     </div>
 
     <div class="form-group">
