@@ -11,15 +11,20 @@ import com.amazonaws.services.s3.AmazonS3ClientBuilder;
 import kz.kcell.camunda.authentication.plugin.ExternalIdentityProviderPlugin;
 import kz.kcell.camunda.authentication.plugin.KcellIdentityProviderPlugin;
 import kz.kcell.flow.mail.CamundaMailerDelegate;
+import kz.kcell.flow.mail.ProcessNotificationListener;
 import kz.kcell.flow.mail.TaskNotificationListener;
 import kz.kcell.flow.repository.custom.ReportRepository;
 import org.camunda.bpm.application.ProcessApplication;
 import org.camunda.bpm.application.impl.event.ProcessApplicationEventListenerPlugin;
 import org.camunda.bpm.engine.authorization.Permissions;
+import org.camunda.bpm.engine.delegate.ExecutionListener;
 import org.camunda.bpm.engine.delegate.TaskListener;
+import org.camunda.bpm.engine.history.HistoricActivityInstance;
 import org.camunda.bpm.engine.impl.cfg.ProcessEnginePlugin;
 import org.camunda.bpm.engine.rest.mapper.JacksonConfigurator;
+import org.camunda.bpm.engine.runtime.ProcessInstance;
 import org.camunda.bpm.engine.spring.SpringProcessEngineConfiguration;
+import org.camunda.bpm.model.bpmn.instance.StartEvent;
 import org.camunda.bpm.spring.boot.starter.SpringBootProcessApplication;
 import org.camunda.bpm.spring.boot.starter.util.SpringBootProcessEnginePlugin;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -35,9 +40,13 @@ import org.springframework.integration.config.EnableIntegration;
 
 import javax.script.ScriptEngineManager;
 
+import java.util.List;
+
 import static org.camunda.bpm.engine.delegate.TaskListener.EVENTNAME_ASSIGNMENT;
 import static org.camunda.bpm.engine.delegate.TaskListener.EVENTNAME_COMPLETE;
 import static org.camunda.bpm.engine.delegate.TaskListener.EVENTNAME_CREATE;
+
+import static org.camunda.bpm.engine.delegate.ExecutionListener.EVENTNAME_END;
 
 @SpringBootApplication
 @ProcessApplication
@@ -48,6 +57,9 @@ public class CamundaApplication extends SpringBootProcessApplication {
 
     @Autowired
     TaskNotificationListener taskNotificationListener;
+
+    @Autowired
+    ProcessNotificationListener processNotificationListener;
 
     @Autowired
     TaskHistoryListener taskHistoryListener;
@@ -72,6 +84,17 @@ public class CamundaApplication extends SpringBootProcessApplication {
 
             if(EVENTNAME_COMPLETE.equals(eventName)) {
                 taskHistoryListener.notify(delegateTask);
+            }
+        };
+    }
+
+    @Override
+    public ExecutionListener getExecutionListener (){
+        return delegateExecution -> {
+
+            String eventName = delegateExecution.getEventName();
+            if(EVENTNAME_END.equals(eventName) && (delegateExecution.getBpmnModelElementInstance() instanceof StartEvent) && delegateExecution.getParentId() == null){
+                processNotificationListener.notify(delegateExecution);
             }
         };
     }
