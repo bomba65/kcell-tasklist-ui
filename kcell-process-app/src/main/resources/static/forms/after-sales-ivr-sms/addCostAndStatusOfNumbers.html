@@ -52,8 +52,11 @@
                         }
                 );
                 $scope.aftersalesInfo = {
-                    hideOperatorType: true
+                    hideOperatorType: true,
+                    providerPage: true,
+                    freePhoneProvider: false
                 };
+
                 $scope.aftersalesInfo.files = [];
             });
 
@@ -141,6 +144,7 @@
                 } else if ($scope.relatedProcessDefinitionKey === 'freephone') {
                     $scope.freephoneInfo = angular.copy($scope.relatedProcessInstanceVariables);
                     $scope.freephoneInfo.showTarif = true;
+
                     //$scope.freephoneInfo.newIdentifiers = $scope.identifiers;
                 }
 
@@ -164,16 +168,18 @@
                 });
 
                 //$scope.addCostAndStatusOfNumbersTaskResult = '';
-
+                if ($scope.relatedProcessDefinitionKey === 'freephone') {
+                    $scope.aftersalesInfo.freePhoneProvider = true;
+                }
             });
 
             camForm.on('submit', function (evt) {
-                // evt.submitPrevented = true;
+                //evt.submitPrevented = true;
                 $scope.addCostAndStatusOfNumbersTaskResult = 'Completed';
                 if(!$scope.resolutions){
                     $scope.resolutions = [];
                 }
-
+                console.log($scope.relatedProcessDefinitionKey);
                 camForm.variableManager.variableValue('addCostAndStatusOfNumbersTaskResult', $scope.addCostAndStatusOfNumbersTaskResult);
                 camForm.variableManager.variableValue('addCostAndStatusOfNumbersTaskComment', $scope.addCostAndStatusOfNumbersTaskComment);
                 $scope.resolutions.push({processInstanceId: $scope.processInstanceId, assignee: $rootScope.authentication.name, assigneeName: $rootScope.authentication.assigneeName, resolution: $scope.addCostAndStatusOfNumbersTaskResult, comment: $scope.addCostAndStatusOfNumbersTaskComment, taskId: camForm.taskId});
@@ -213,7 +219,7 @@
                     </div>
                 </div>
                 <div class="col-sm-10">
-                    <div class="col-sm-3" ng-repeat="operator in id.operators" ng-if="operator.id!='kcell' && operator.selectedIdentifier && operator.connected">
+                    <div class="col-sm-3" ng-repeat="operator in id.operators" ng-if="operator.id!='kcell' && (operator.selectedIdentifier || relatedProcessDefinitionKey=='freephone')  && operator.connected">
                         <label for="operator.id"><input type="checkbox" ng-model="operator.isAvailable" ng-change="clearPrices(operator)" ng-disabled="!operator.connected"> {{operator.name}}</label>
                         <div class="input" id="operator.id" >
                             <input ng-model="operator.priceAP" name="{{operator.id + 'AP'}}" class="form-control"  placeholder="{{operator.isAvailable?'Цена':'Не доступен'}}" ng-disabled="!(operator.connected && operator.isAvailable)" ng-required="operator.isAvailable"/>
