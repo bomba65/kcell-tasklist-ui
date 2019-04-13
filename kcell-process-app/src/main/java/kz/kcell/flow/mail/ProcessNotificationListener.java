@@ -92,7 +92,7 @@ public class ProcessNotificationListener implements ExecutionListener {
                         .filter(e -> e.getCamundaName().equals("processCreateNotificationTemplate"))
                         .map(CamundaProperty::getCamundaValue)
                         .findAny()
-                        .orElse("/processCreateNotificationTemplate.tpl");
+                        .orElse("/ProcessCreateNotificationTemplate.tpl");
 
                     Bindings bindings = groovyEngine.createBindings();
                     bindings.put("delegateExecution", delegateExecution);
