@@ -1830,6 +1830,8 @@ define(['./module','jquery', 'moment', 'camundaSDK'], function(app, $, moment, C
 			} else {
 				$scope.toggleIndexAftersales = index;
 				$scope.toggleInfoAftersales = $scope.processInstancesAftersales[index];
+				$scope.toggleInfoAftersales.changeIdentifierType = false;
+				console.log($scope.toggleInfoAftersales);
 
     $http({
         method: 'GET',
@@ -1888,7 +1890,7 @@ define(['./module','jquery', 'moment', 'camundaSDK'], function(app, $, moment, C
                         });
                     }
                     //angular.extend($scope.toggleInfoAftersales, catalogs);
-                    //$scope.toggleInfoAftersales.showTarif = true;
+
                     //$scope.toggleInfoAftersales.tasks = processInstanceTasks;
                 },
                 function(error){
