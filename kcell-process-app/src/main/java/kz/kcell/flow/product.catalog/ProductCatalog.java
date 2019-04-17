@@ -34,6 +34,8 @@ public class ProductCatalog {
 
     private final String productCatalogUrl;
     private final String productCatalogAuth;
+    private final String b2bCRMurl;
+    private final String b2bCRMauth;
 
     @Autowired
     private IdentityService identityService;
@@ -41,10 +43,13 @@ public class ProductCatalog {
     @Autowired
     private Environment environment;
 
+
     @Autowired
-    public ProductCatalog(@Value("${product.catalog.url:http://ldb-al-preprod.kcell.kz}") String productCatalogUrl, @Value("${product.catalog.auth:app.camunda.user:Asd123Qwerty!}") String productCatalogAuth) {
+    public ProductCatalog(@Value("${b2b.crm.url:http://ldb-al.kcell.kz/corp_client_profile/bin/}") String b2bCRMurl,  @Value("${b2b.crm.auth:app.camunda.user:Asd123Qwerty!}") String b2bCRMauth, @Value("${product.catalog.url:http://ldb-al-preprod.kcell.kz}") String productCatalogUrl, @Value("${product.catalog.auth:app.camunda.user:Asd123Qwerty!}") String productCatalogAuth) {
         this.productCatalogUrl = productCatalogUrl;
         this.productCatalogAuth = productCatalogAuth;
+        this.b2bCRMurl = b2bCRMurl;
+        this.b2bCRMauth = b2bCRMauth;
     }
 
     @RequestMapping(value = "/vas_short_numbers", method = RequestMethod.POST, produces={"application/json"}, consumes="application/json")
@@ -182,6 +187,7 @@ public class ProductCatalog {
                 //if ("7800".equals(shortNumber)){
                     responseBodyString = "{\n" +
                         "                \"id\" : 5133,\n" +
+                        "                \"bin\": \"111222333444\",\n" +
                         "                \"shortNumber\" : \"" + shortNumber + "\",\n" +
                         "                \"brand\" : \"B\",\n" +
                         "                \"businessNameRu\" : \"ivr портал \\\"Настроние\\\"\",\n" +
@@ -391,6 +397,7 @@ public class ProductCatalog {
         }
         return null;
     }
+
     @RequestMapping(value = "/vas_content_providers/{clientId}", method = RequestMethod.PUT, produces={"application/json"}, consumes="application/json")
     @ResponseBody
     public ResponseEntity<String> updateClient(@PathVariable("clientId") String clientId, @RequestBody String contentProvider) throws Exception {
@@ -434,4 +441,94 @@ public class ProductCatalog {
         }
         return null;
     }
+
+    @RequestMapping(value = "/corp_client_profile/bin/{clientBIN}", method = RequestMethod.GET)
+    @ResponseBody
+    public ResponseEntity<String> getCorpClient(@PathVariable("clientBIN") String clientBIN, HttpServletRequest request) throws Exception {
+
+        Boolean isSftp = Arrays.stream(environment.getActiveProfiles()).anyMatch(env -> (env.equalsIgnoreCase("sftp")));
+
+        if (clientBIN == null || clientBIN.length() != 12 ) {
+            log.warning("No bin or incorrect bin specified");
+            return ResponseEntity.status(HttpStatus.BAD_REQUEST).body("No bin or incorrect bin specified");
+        }
+
+        if (identityService.getCurrentAuthentication() == null || identityService.getCurrentAuthentication().getUserId() == null) {
+            log.warning("No user logged in");
+            return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body("No user logged in");
+        }
+
+        if (isSftp) {
+            try {
+                String encoding = Base64.getEncoder().encodeToString((b2bCRMauth).getBytes("UTF-8"));
+
+                CloseableHttpClient httpclient = HttpClients.custom().build();
+
+                HttpGet httpGet = new HttpGet(b2bCRMurl + clientBIN);
+                httpGet.setHeader("Authorization", "Basic " + encoding);
+
+                HttpResponse httpResponse = httpclient.execute(httpGet);
+
+                HttpEntity entity = httpResponse.getEntity();
+                String content = EntityUtils.toString(entity);
+
+                //JSONObject obj = new JSONObject(content);
+
+                EntityUtils.consume(httpResponse.getEntity());
+                httpclient.close();
+
+                return ResponseEntity.ok(content);
+
+            } catch (Exception e) {
+                e.printStackTrace();
+                // or return ResponseEntity.ok(content); with some error
+            }
+
+        }
+        else {
+            if ("090940007540".equals(clientBIN)) {
+            String responseBodyString = "{\n" +
+                "  \"id\" : 33777,\n" +
+                "  \"bin\" : \"090940007540\",\n" +
+                "  \"contentProviderState\" : \"A\"\n" +
+                "}";
+            return ResponseEntity.ok(responseBodyString);
+        } else if ("120140013485".equals(clientBIN)) {
+            String responseBodyString = "{\n" +
+                "  \"id\" : 33778,\n" +
+                "  \"bin\" : \"120140013485\",\n" +
+                "  \"contentProviderState\" : \"A\"\n" +
+                "}";
+            return ResponseEntity.ok(responseBodyString);
+        } else if ("080240011284".equals(clientBIN)) {
+            String responseBodyString = "{\n" +
+                "  \"id\" : 33779,\n" +
+                "  \"bin\" : \"080240011284\",\n" +
+                "  \"contentProviderState\" : \"A\"\n" +
+                "}";
+            return ResponseEntity.ok(responseBodyString);
+        }
+        if ("111222333444".equals(clientBIN)) {
+            String responseBodyString = "{\n" +
+                "  \"id\" : 8888,\n" +
+                "  \"name\" : \"Товарищество с ограниченной ответственностью \\\"Top Security KZ\\\"\",\n" +
+                "  \"accountName\": \"Тестовый Клиент\",\n" +
+                "  \"rnn\" : null,\n" +
+                "  \"phone\" : null,\n" +
+                "  \"email\" : null,\n" +
+                "  \"mobile\" : null,\n" +
+                "  \"bin\" : \"111222333444\",\n" +
+                "  \"contactPerson\" : null,\n" +
+                "  \"agreementData\" : null,\n" +
+                "  \"contentProviderState\" : \"A\",\n" +
+                "  \"lastDt\" : \"2018-10-18T16:15:09\"\n" +
+                "}";
+            return ResponseEntity.ok(responseBodyString);
+        } else {
+            return ResponseEntity.ok("{\"timestamp\":\"2018-12-01T16:12:23.188\",\"status\":404,\"code\":\"ERR0007\",\"subCode\":\"INTERNAL_ERROR\",\"message\":\"Provider with BIN " + clientBIN + " doesn't exist\",\"path\":\"/vas_content_providers/bin/" + clientBIN + "\",\"requestId\":\"20181201_161223_036_jWv\"}");
+        }
+        }
+        return null;
+    }
+
 }

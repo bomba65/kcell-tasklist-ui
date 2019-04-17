@@ -6,10 +6,12 @@ import org.apache.http.HttpResponse;
 import org.apache.http.NameValuePair;
 import org.apache.http.client.HttpClient;
 import org.apache.http.client.entity.UrlEncodedFormEntity;
+import org.apache.http.client.methods.CloseableHttpResponse;
 import org.apache.http.client.methods.HttpPost;
 import org.apache.http.client.methods.HttpPut;
 import org.apache.http.entity.ContentType;
 import org.apache.http.entity.StringEntity;
+import org.apache.http.impl.client.CloseableHttpClient;
 import org.apache.http.impl.client.HttpClients;
 import org.apache.http.message.BasicNameValuePair;
 import org.apache.http.util.EntityUtils;
@@ -66,16 +68,31 @@ public class SaoController {
 
                 JSONObject saoRequestBodyJSON = new JSONObject(saoRequestBody);
                 String fkClient = String.valueOf(saoRequestBodyJSON.get("fk_client"));
-                StringEntity freephoneClientData = new StringEntity(saoRequestBody, "UTF-8");
-                /*
-                ArrayList<NameValuePair> postParameters;
-                postParameters = new ArrayList<NameValuePair>();
-                postParameters.add(new BasicNameValuePair("fk_client", fkClient));
-                */
-                HttpPost freephoneClientPost = new HttpPost(new URI(saoApiUrl+"/FreephoneClientCreateUpdate"));
-                List<NameValuePair> params = new ArrayList<NameValuePair>(1);
+                String clientName = String.valueOf(saoRequestBodyJSON.get("client_name"));
+                List<NameValuePair> params = new ArrayList<NameValuePair>();
                 params.add(new BasicNameValuePair("fk_client", fkClient));
-                freephoneClientPost.setEntity(new UrlEncodedFormEntity(params, "UTF-8"));
+                params.add(new BasicNameValuePair("client_name", clientName));
+
+                CloseableHttpClient client = HttpClients.createDefault();
+                HttpPost httpPost = new HttpPost(new URI(saoApiUrl+"/FreephoneClientCreateUpdate"));
+
+                httpPost.setEntity(new UrlEncodedFormEntity(params,"UTF-8"));
+                CloseableHttpResponse response = client.execute(httpPost);
+                HttpEntity entity = response.getEntity();
+                String responseString = EntityUtils.toString(entity, "UTF-8");
+
+                /*
+                //String fkClient = String.valueOf(saoRequestBodyJSON.get("fk_client"));
+                StringEntity freephoneClientData = new StringEntity(saoRequestBody, ContentType.APPLICATION_JSON);
+
+                ///ArrayList<NameValuePair> postParameters;
+                ///postParameters = new ArrayList<NameValuePair>();
+                ///postParameters.add(new BasicNameValuePair("fk_client", fkClient));
+
+                HttpPost freephoneClientPost = new HttpPost(new URI(saoApiUrl+"/FreephoneClientCreateUpdate"));
+                //List<NameValuePair> params = new ArrayList<NameValuePair>(1);
+                //params.add(new BasicNameValuePair("fk_client", fkClient));
+                //freephoneClientPost.setEntity(new UrlEncodedFormEntity(params, "UTF-8"));
 
 
                 //HttpPost freephoneClientPost = new HttpPost(new URI(saoApiUrl+"/FreephoneClientCreateUpdate?fk_client="+fkClient));
@@ -93,8 +110,9 @@ public class SaoController {
 
                 HttpEntity entity = freephoneClientResponse.getEntity();
                 String content = EntityUtils.toString(entity);
-
-                return ResponseEntity.ok(content);
+                */
+                client.close();
+                return ResponseEntity.ok(responseString);
 
             } catch (Exception e) {
                 e.printStackTrace();
@@ -102,9 +120,8 @@ public class SaoController {
 
         } else {
             JSONObject saoTestResponseJSON = new JSONObject(saoRequestBody);
-            if(saoTestResponseJSON.getInt("fk_client") == 0) {
-                saoTestResponseJSON.put("fk_client", 12345);
-            }
+            saoTestResponseJSON.put("fk_client", 12345);
+            saoTestResponseJSON.put("success", 1);
             return ResponseEntity.ok(saoTestResponseJSON.toString());
             //return ResponseEntity.ok(saoRequestBody);
         }
