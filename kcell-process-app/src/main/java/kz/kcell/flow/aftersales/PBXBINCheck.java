@@ -3,7 +3,6 @@ package kz.kcell.flow.aftersales;
 import lombok.extern.java.Log;
 import org.camunda.bpm.engine.HistoryService;
 import org.camunda.bpm.engine.IdentityService;
-import org.camunda.bpm.engine.delegate.DelegateExecution;
 import org.camunda.bpm.engine.history.HistoricProcessInstance;
 import org.camunda.bpm.engine.history.HistoricVariableInstance;
 import org.camunda.bpm.engine.impl.util.json.JSONObject;
@@ -18,8 +17,6 @@ import org.springframework.web.bind.annotation.RequestMethod;
 import org.springframework.web.bind.annotation.ResponseBody;
 
 import javax.servlet.http.HttpServletRequest;
-import java.util.ArrayList;
-import java.util.LinkedList;
 import java.util.List;
 
 @Service("PBXBINCheck")
@@ -72,7 +69,7 @@ public class PBXBINCheck {
 
                 return ResponseEntity.ok(response.toString());
         } else {
-            processes = historyService.createHistoricProcessInstanceQuery().processDefinitionKey("PBX").variableValueEquals("clientBIN", pbxBIN).orderByProcessInstanceStartTime().desc().list();
+            processes = historyService.createHistoricProcessInstanceQuery().processDefinitionKey("PBX").variableValueEquals("clientBIN", pbxBIN).finished().orderByProcessInstanceEndTime().desc().list();
             process = null;
             if (!processes.isEmpty()) process = processes.get(0);
 
