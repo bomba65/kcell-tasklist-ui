@@ -2,7 +2,7 @@ package kz.kcell.flow.aftersales;
 
 import org.apache.http.NameValuePair;
 import org.apache.http.client.entity.UrlEncodedFormEntity;
-import org.apache.http.client.methods.HttpPost;
+import org.apache.http.client.methods.HttpPut;
 import org.apache.http.impl.client.CloseableHttpClient;
 import org.apache.http.impl.client.HttpClients;
 import org.apache.http.message.BasicNameValuePair;
@@ -54,7 +54,7 @@ public class UpdateClientData implements JavaDelegate {
             String connectionPoint = techSpecs.getString("connectionPointNew");
             params.add(new BasicNameValuePair("voice_platform", connectionPoint));
         }
-        HttpPost request = new HttpPost("http://sao.kcell.kz/apis/PBXClientDetail?fk_client=" + fkClient);
+        HttpPut request = new HttpPut("http://sao.kcell.kz/apis/PbxClientUpdate?fk_client=" + fkClient);
         request.setEntity(new UrlEncodedFormEntity(params,"UTF-8"));
         CloseableHttpClient client = HttpClients.createDefault();
         client.execute(request);
