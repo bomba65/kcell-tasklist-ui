@@ -9,11 +9,7 @@ def processName = delegateTask.getProcessEngineServices().getRepositoryService()
 def procInst = delegateTask.getProcessEngineServices().getHistoryService().createHistoricProcessInstanceQuery().processInstanceId(delegateTask.getProcessInstanceId()).singleResult()
 def startTime = new Date()
 if (procInst != null) startTime = procInst.getStartTime()
-def status = ""
-statusObj = delegateTask.getVariable('status')
 if (processName=="Revision") {
-    statusObj = new JsonSlurper().parseText(statusObj.toString())
-    status = statusObj.statusName
     customVariables."Cайт"=delegateTask.getVariable('site_name')
 }
 // subject can contain ampersands ~ problematic
@@ -26,8 +22,7 @@ def binding = ["processName": processName,
                 "delegateTask": delegateTask,
                 "subject": subject,
                 "startTime": startTime,
-                "customVariables": customVariables,
-                "status": status]
+                "customVariables": customVariables]
 
 def template = this.getClass().getResource(templateName).text
 

@@ -7,13 +7,7 @@ def customVariables  = [:]
 def taskUrl = baseUrl + '/kcell-tasklist-ui/#/tasks/' + delegateExecution.id
 def processName = delegateExecution.getProcessEngineServices().getRepositoryService().getProcessDefinition(delegateExecution.getProcessDefinitionId()).getName()
 def startTime = new Date()
-def status = ""
-statusObj = delegateExecution.getVariable('status')
 if (processName=="Revision") {
-    if(statusObj!=null){
-        statusObj = new JsonSlurper().parseText(statusObj.toString())
-        status = statusObj.statusName
-    }
     customVariables."Cайт"=delegateExecution.getVariable('site_name')
 }
 // subject can contain ampersands ~ problematic
@@ -26,8 +20,7 @@ def binding = ["processName": processName,
                 "delegateExecution": delegateExecution,
                 "subject": subject,
                 "startTime": startTime,
-                "customVariables": customVariables,
-                "status": status]
+                "customVariables": customVariables]
 
 def template = this.getClass().getResource(templateName).text
 

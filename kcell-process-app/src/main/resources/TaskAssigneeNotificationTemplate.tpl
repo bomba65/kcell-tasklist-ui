@@ -38,16 +38,6 @@ html(lang:'en') {
              }
             }
             tr {
-
-               td {
-                   yield 'Cтатус: '
-               }
-
-               td {
-                   b(status)
-               }
-            }
-            tr {
                td {
                    yield 'Инициатор: '
                }
@@ -82,14 +72,6 @@ for ( e in customVariables ) {
          b {
              a(href: 'https://flow.kcell.kz', 'https://flow.kcell.kz')
          }
-        }
-        p {
-            yield 'Для входа в систему используйте свой корпоративный логин (Name.Surname@kcell.kz)* и пароль.'
-            br()
-            yield '* имя и фамилия в логине начинается с заглавной буквы. Например: '
-            b {
-                a(href: 'mailto:Petr.Petrov@kcell.kz', 'Petr.Petrov@kcell.kz')
-            }
         }
         p {
             yield 'При возникновении каких-либо проблем при работе с системой, а также, пожеланий и предложений, отправьте пожалуйста письмо в '
