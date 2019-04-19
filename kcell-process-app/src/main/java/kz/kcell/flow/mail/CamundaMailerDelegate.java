@@ -17,6 +17,8 @@ import javax.mail.util.ByteArrayDataSource;
 import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
 import java.io.InputStream;
+import java.util.Arrays;
+import java.util.List;
 
 public class CamundaMailerDelegate implements JavaDelegate {
 
@@ -26,8 +28,23 @@ public class CamundaMailerDelegate implements JavaDelegate {
     @Autowired
     private JavaMailSender mailSender;
 
+    private final List<String> disabledProcesses = Arrays.asList("AftersalesPBX");
+
     @Override
     public void execute(DelegateExecution delegateExecution) throws Exception {
+        boolean isProcessDisabled =
+            delegateExecution
+                .getProcessEngineServices()
+                .getRepositoryService()
+                .createProcessDefinitionQuery()
+                .processDefinitionId(delegateExecution.getProcessDefinitionId())
+                .list()
+                .stream()
+                .filter(e-> disabledProcesses.contains(e.getKey()))
+                .findAny()
+                .isPresent();
+
+        if (isProcessDisabled) return;
 
         String subject = String.valueOf(delegateExecution.getVariableLocal("subject"));
         String sendInstruction = String.valueOf(delegateExecution.getVariableLocal("sendInstruction"));
