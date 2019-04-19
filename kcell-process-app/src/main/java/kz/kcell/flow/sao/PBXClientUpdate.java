@@ -52,8 +52,8 @@ public class PBXClientUpdate implements JavaDelegate {
     @Override
     public void execute(DelegateExecution delegateExecution) throws Exception {
 
-//        Boolean isSftp = Arrays.stream(environment.getActiveProfiles()).anyMatch(env -> (env.equalsIgnoreCase("sftp")));
-        Boolean isSftp = false;
+        Boolean isSftp = Arrays.stream(environment.getActiveProfiles()).anyMatch(env -> (env.equalsIgnoreCase("sftp")));
+//        Boolean isSftp = false;
 
         JSONObject customerInformationJSON = new JSONObject(String.valueOf(delegateExecution.getVariable("customerInformation")));
         JSONObject technicalSpecificationsJSON = new JSONObject(String.valueOf(delegateExecution.getVariable("technicalSpecifications")));
