@@ -95,7 +95,7 @@ define(['./../module'], function(module){
                 }
 
                 if (clientCRM.city && clientCRM.city.nameEn) {
-                  scope.data.companyCity = clientCRM.city.nameEn;
+                  scope.data.companyCity = 'г.' + clientCRM.city.nameEn;
                 }
               }
             });
