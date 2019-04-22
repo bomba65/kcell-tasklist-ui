@@ -94,15 +94,29 @@
             camForm.on('variables-fetched', function () {
                 variables.forEach(function (el) {
                     if(el === 'resolutions'){
-                        $scope.jobModel.resolutions = angular.copy(camForm.variableManager.variables[el].value);
-                        $q.all($scope.jobModel.resolutions.map(function (resolution) {
+                        $scope.resolutions = angular.copy(camForm.variableManager.variables[el].value);
+                        $q.all($scope.resolutions.map(function (resolution) {
                             return $http.get("/camunda/api/engine/engine/default/history/task?processInstanceId="+resolution.processInstanceId+"&taskId=" + resolution.taskId);
                         })).then(function (tasks) {
                             tasks.forEach(function (e, index) {
                                 if(e.data.length > 0){
-                                    $scope.jobModel.resolutions[index].taskName = e.data[0].name;
+                                    $scope.resolutions[index].taskName = e.data[0].name;
                                     try {
-                                        $scope.jobModel.resolutions[index].taskEndDate = new Date(e.data[0].endTime);
+                                        $scope.resolutions[index].taskEndDate = new Date(e.data[0].endTime);
+                                        $scope.resolutions[index].assignDate = new Date(e.data[0].startTime);
+                                    } catch(e){
+                                        console.log(e);
+                                    }
+                                }
+                            });
+                        });
+                        $q.all($scope.resolutions.map(function (resolution) {
+                            return $http.get("/camunda/api/engine/engine/default/history/identity-link-log?type=assignee&taskId=" + resolution.taskId + "&operationType=add&sortBy=time&sortOrder=desc");
+                        })).then(function (logs) {
+                            logs.forEach(function (e, index) {
+                                if(e.data.length > 0){
+                                    try {
+                                        $scope.resolutions[index].claimDate = new Date(e.data[0].time);
                                     } catch(e){
                                         console.log(e);
                                     }
@@ -150,7 +164,9 @@
                     $scope.maintananceFiles.value = [];
                 }
                 $scope.jobModel.showDelayHint = true;
-                camForm.variableManager.variableValue('acceptAndSignByMaintenanceGroupComment', '');
+                if(camForm.variableManager.variables['acceptAndSignByMaintenanceGroupComment']){
+                    camForm.variableManager.variableValue('acceptAndSignByMaintenanceGroupComment', '');
+                }
             });
 
             camForm.on('submit', function () {
@@ -174,8 +190,8 @@
                 if($scope.acceptAndSignByMaintenanceGroupComment && $scope.acceptAndSignByMaintenanceGroupCommentVisibility){
                     visibility = $scope.acceptAndSignByMaintenanceGroupCommentVisibility;
                 }
-                $scope.jobModel.resolutions.push({processInstanceId: $scope.processInstanceId, assignee: $rootScope.authentication.name, assigneeName: $rootScope.authentication.assigneeName, resolution: $scope.acceptAndSignByMaintenanceGroupTaskResult, comment: $scope.acceptAndSignByMaintenanceGroupComment, taskId: camForm.taskId, visibility: visibility, files:newFiles});
-                camForm.variableManager.variableValue('resolutions', $scope.jobModel.resolutions);
+                $scope.resolutions.push({processInstanceId: $scope.processInstanceId, assignee: $rootScope.authentication.name, assigneeName: $rootScope.authentication.assigneeName, resolution: $scope.acceptAndSignByMaintenanceGroupTaskResult, comment: $scope.acceptAndSignByMaintenanceGroupComment, taskId: camForm.taskId, visibility: visibility, files:newFiles});
+                camForm.variableManager.variableValue('resolutions', $scope.resolutions);
             });
 
             camForm.on('store', function() {
@@ -333,33 +349,4 @@
             <label class="error" ng-show="kcell_form.acceptAndSignByMaintenanceGroupCommentVisibility.$error.required && ( kcell_form.acceptAndSignByMaintenanceGroupCommentVisibility.$touched || view.submitted)">Required field</label>
         </div>
     </div>
-    <accordion>
-        <accordion-group is-open="isHistoryOpen">
-            <accordion-heading>
-                History <i class="pull-right glyphicon" ng-class="{'glyphicon-chevron-up': status.isCustomHeaderOpen, 'glyphicon-chevron-down': !status.isCustomHeaderOpen}"></i>
-            </accordion-heading>
-            <table class="table">
-                <thead>
-                <tr>
-                    <th>Activity</th>
-                    <th>Assignee</th>
-                    <th>Resolution</th>
-                    <th>Date</th>
-                    <th>Comment</th>
-                    <th ng-if="hasGroup('kcellUsers')">Attached files</th>
-                </tr>
-                </thead>
-                <tbody>
-                <tr ng-repeat="resolution in jobModel.resolutions">
-                    <td>{{resolution.taskName}}</td>
-                    <td>{{resolution.assigneeName || resolution.assignee}}</td>
-                    <td>{{'task.resolution.'+resolution.resolution | translate}}</td>
-                    <td>{{resolution.taskEndDate | date: 'dd.MM.yyyy HH:mm'}}</td>
-                    <td>{{isVisible(resolution)? resolution.comment : ''}}</td>
-                    <td ng-if="hasGroup('kcellUsers')">{{resolution.files.join(', ')}}</td>
-                </tr>
-                </tbody>
-            </table>
-        </accordion-group>
-    </accordion>
 </form>
