@@ -38,7 +38,7 @@ public class TaskNotificationListener implements TaskListener {
 
     private final List<String> claimAssignDateEnabledProcesses = Arrays.asList("AftersalesPBX");
 
-    private final List<String> disabledProcesses = Arrays.asList("AftersalesPBX");
+    private final List<String> disabledProcesses = Arrays.asList("AftersalesPBX", "PBX");
 
     @Autowired
     public TaskNotificationListener(

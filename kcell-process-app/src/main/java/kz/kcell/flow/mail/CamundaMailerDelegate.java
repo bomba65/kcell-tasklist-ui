@@ -28,7 +28,7 @@ public class CamundaMailerDelegate implements JavaDelegate {
     @Autowired
     private JavaMailSender mailSender;
 
-    private final List<String> disabledProcesses = Arrays.asList("AftersalesPBX");
+    private final List<String> disabledProcesses = Arrays.asList("AftersalesPBX", "PBX");
 
     @Override
     public void execute(DelegateExecution delegateExecution) throws Exception {
