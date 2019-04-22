@@ -325,5 +325,17 @@ define(['./module','camundaSDK', 'lodash', 'big-js'], function(module, CamSDK, _
         return $scope.hasGroup('demand_uat_users');
 			}
 		};
+
+        $scope.showHistory = function(resolutions){
+			exModal.open({
+				scope: {
+					resolutions: resolutions,
+					isKcellStaff: $rootScope.hasGroup('kcellUsers')
+				},
+				templateUrl: './js/partials/resolutions.html',
+				size: 'lg'
+			}).then(function(results){
+			});
+        };
 	}]);
 });

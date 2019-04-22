@@ -65,12 +65,6 @@ public class TaskHistoryListener implements TaskListener {
                 .findAny()
                 .isPresent();
 
-        boolean isExtraFields =
-                definitions.stream()
-                .filter(e-> extraFieldsProcesses.contains(e.getKey()))
-                .findAny()
-                .isPresent();
-
         if(isEnabledBackendResolution){
             SpinList<SpinJsonNode> resolutions = delegateTask.<JsonValue>getVariableTyped("resolutions").getValue().elements();
 
@@ -88,30 +82,29 @@ public class TaskHistoryListener implements TaskListener {
             resolution.put("taskId", delegateTask.getId());
             resolution.put("taskName", delegateTask.getName());
             resolution.put("taskEndDate", new SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss.SSSXX").format(new Date()));
+           // resolution.put("taskStartDate", new SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss.SSSXX").format(delegateTask.getCreateTime()));
 
             if(checkVariable(delegateTask,delegateTask.getTaskDefinitionKey() + "Files")) {
                 JSONArray filesJSONArray = new JSONArray(String.valueOf(delegateTask.getVariable(delegateTask.getTaskDefinitionKey() + "Files")));
                 resolution.putPOJO("files", filesJSONArray);
             }
 
-            if (isExtraFields) {
-                Date assignDate = new Date();
-                Date claimDate = new Date();
-                if (checkVariable(delegateTask,delegateTask.getTaskDefinitionKey() + "TaskAssignDate")) {
-                    assignDate = (Date) delegateTask.getVariable(delegateTask.getTaskDefinitionKey() + "TaskAssignDate");
-                    delegateTask.removeVariable(delegateTask.getTaskDefinitionKey() + "TaskAssignDate");
-                }
-                if (checkVariable(delegateTask,delegateTask.getTaskDefinitionKey() + "TaskClaimDate")) {
-                    claimDate = (Date) delegateTask.getVariable(delegateTask.getTaskDefinitionKey() + "TaskClaimDate");
-                    delegateTask.removeVariable(delegateTask.getTaskDefinitionKey() + "TaskClaimDate");
-                }
-                resolution.put("assignDate", new SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss.SSSXX").format(assignDate));
-                resolution.put("claimDate", new SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss.SSSXX").format(claimDate));
+            Date assignDate = new Date();
+            Date claimDate = new Date();
+            if (checkVariable(delegateTask,delegateTask.getTaskDefinitionKey() + "TaskAssignDate")) {
+                assignDate = (Date) delegateTask.getVariable(delegateTask.getTaskDefinitionKey() + "TaskAssignDate");
+                delegateTask.removeVariable(delegateTask.getTaskDefinitionKey() + "TaskAssignDate");
+            }
+            if (checkVariable(delegateTask,delegateTask.getTaskDefinitionKey() + "TaskClaimDate")) {
+                claimDate = (Date) delegateTask.getVariable(delegateTask.getTaskDefinitionKey() + "TaskClaimDate");
+                delegateTask.removeVariable(delegateTask.getTaskDefinitionKey() + "TaskClaimDate");
+            }
+            resolution.put("assignDate", new SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss.SSSXX").format(assignDate));
+            resolution.put("claimDate", new SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss.SSSXX").format(claimDate));
 
-                if (checkVariable(delegateTask,delegateTask.getTaskDefinitionKey() + "TaskAttachments")) {
-                    resolution.putPOJO("attachments", delegateTask.getVariable(delegateTask.getTaskDefinitionKey() + "TaskAttachments"));
-                    delegateTask.removeVariable(delegateTask.getTaskDefinitionKey() + "TaskAttachments");
-                }
+            if (checkVariable(delegateTask,delegateTask.getTaskDefinitionKey() + "TaskAttachments")) {
+                resolution.putPOJO("attachments", delegateTask.getVariable(delegateTask.getTaskDefinitionKey() + "TaskAttachments"));
+                delegateTask.removeVariable(delegateTask.getTaskDefinitionKey() + "TaskAttachments");
             }
 
             JsonValue jsonValue = SpinValues.jsonValue(resolution.toString()).create();
