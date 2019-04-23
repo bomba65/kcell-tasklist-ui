@@ -90,15 +90,29 @@
                 variables.forEach(function (el) {
                     if(el === 'resolutions'){
                         if(camForm.variableManager.variables[el] && camForm.variableManager.variables[el].value){
-                            $scope.invoice.resolutions = angular.copy(camForm.variableManager.variables[el].value);
-                            $q.all($scope.invoice.resolutions.map(function (resolution) {
+                            $scope.resolutions = angular.copy(camForm.variableManager.variables[el].value);
+                            $q.all($scope.resolutions.map(function (resolution) {
                                 return $http.get("/camunda/api/engine/engine/default/history/task?processInstanceId="+resolution.processInstanceId+"&taskId=" + resolution.taskId);
                             })).then(function (tasks) {
                                 tasks.forEach(function (e, index) {
                                     if(e.data.length > 0){
-                                        $scope.invoice.resolutions[index].taskName = e.data[0].name;
+                                        $scope.resolutions[index].taskName = e.data[0].name;
                                         try {
-                                            $scope.invoice.resolutions[index].taskEndDate = new Date(e.data[0].endTime);
+                                            $scope.resolutions[index].taskEndDate = new Date(e.data[0].endTime);
+                                            $scope.resolutions[index].assignDate = new Date(e.data[0].startTime);
+                                        } catch(e){
+                                            console.log(e);
+                                        }
+                                    }
+                                });
+                            });
+                            $q.all($scope.resolutions.map(function (resolution) {
+                                return $http.get("/camunda/api/engine/engine/default/history/identity-link-log?type=assignee&taskId=" + resolution.taskId + "&operationType=add&sortBy=time&sortOrder=desc");
+                            })).then(function (logs) {
+                                logs.forEach(function (e, index) {
+                                    if(e.data.length > 0){
+                                        try {
+                                            $scope.resolutions[index].claimDate = new Date(e.data[0].time);
                                         } catch(e){
                                             console.log(e);
                                         }
@@ -110,8 +124,8 @@
                         $scope.invoice[el] = camForm.variableManager.variables[el];
                     }
                     $scope[el] = camForm.variableManager.variables[el];
-                    if ($scope.invoice.resolutions) {
-                        $scope.resolutionsForPrint($scope.invoice.resolutions);
+                    if ($scope.resolutions) {
+                        $scope.resolutionsForPrint($scope.resolutions);
                     }
 
                 });
@@ -134,8 +148,8 @@
                     visibility = $scope.acceptAndSignByInitiatorCommentVisibility;
                 }
 
-                if(!$scope.invoice.resolutions){
-                    $scope.invoice.resolutions = [];
+                if(!$scope.resolutions){
+                    $scope.resolutions = [];
                 }
 
                 var attachedFiles = [];
@@ -144,8 +158,8 @@
                     camForm.variableManager.variableValue('signedScanCopyFileName', $scope.signedScanCopyFileName);
                 }
 
-                $scope.invoice.resolutions.push({processInstanceId: $scope.processInstanceId, assignee: $rootScope.authentication.name, assigneeName: $rootScope.authentication.assigneeName, resolution: $scope.createDocsPrintVersionTaskResult, comment: $scope.createDocsPrintVersionTaskComment, taskId: camForm.taskId, visibility: visibility, files: attachedFiles});
-                camForm.variableManager.variableValue('resolutions', $scope.invoice.resolutions);
+                $scope.resolutions.push({processInstanceId: $scope.processInstanceId, assignee: $rootScope.authentication.name, assigneeName: $rootScope.authentication.assigneeName, resolution: $scope.createDocsPrintVersionTaskResult, comment: $scope.createDocsPrintVersionTaskComment, taskId: camForm.taskId, visibility: visibility, files: attachedFiles});
+                camForm.variableManager.variableValue('resolutions', $scope.resolutions);
 
 
             });
@@ -371,33 +385,6 @@
             <label class="error" ng-show="kcell_form.createDocsPrintVersionTaskCommentVisibility.$error.required && ( kcell_form.createDocsPrintVersionTaskCommentVisibility.$touched || view.submitted)">Required field</label>
         </div>
     </div>
-    <accordion>
-        <accordion-group is-open="isHistoryOpen">
-            <accordion-heading>
-                History <i class="pull-right glyphicon" ng-class="{'glyphicon-chevron-up': status.isCustomHeaderOpen, 'glyphicon-chevron-down': !status.isCustomHeaderOpen}"></i>
-            </accordion-heading>
-            <table class="table">
-                <thead>
-                <tr>
-                    <th>Activity</th>
-                    <th>Assignee</th>
-                    <th>Resolution</th>
-                    <th>Date</th>
-                    <th>Comment</th>
-                </tr>
-                </thead>
-                <tbody>
-                <tr ng-repeat="resolution in invoice.resolutions">
-                    <td>{{resolution.taskName}}</td>
-                    <td>{{resolution.assigneeName || resolution.assignee}}</td>
-                    <td>{{'task.resolution.'+resolution.resolution | translate}}</td>
-                    <td>{{resolution.taskEndDate | date: 'dd.MM.yyyy HH:mm'}}</td>
-                    <td>{{isVisible(resolution)? resolution.comment : ''}}</td>
-                </tr>
-                </tbody>
-            </table>
-        </accordion-group>
-    </accordion>
     <div id="forPrint" class="hidden">
         <style>
 
