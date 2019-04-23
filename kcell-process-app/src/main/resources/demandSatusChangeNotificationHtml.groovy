@@ -11,8 +11,9 @@ def taskName = lastResolution.get('taskName').asText()
 def general = generalData.unwrap().get('general')
 
 
-def subject = "Demand - " + businessKey + " - Order status changed to " + status + " on " + taskName
-if (status == "New order") subject = "Demand - " + businessKey + " - Order created"
+//def subject = "Demand - " + businessKey + " - Order status changed to " + status + " on " + taskName
+//if (status == "New order") subject = "Demand - " + businessKey + " - Order created"
+subject = processName + " - " + businessKey
 
 def binding = [
         "processName": processName,
@@ -45,33 +46,33 @@ else template += '''p('В рамках процесса рассмотрения
 
 template += '''\
         newLine()
-        table {
+        table(style: 'text-align:left;') {
             tr {
-                td('<b>Процесс:</b> ')
+                th(scope: 'row', style:'white-space: nowrap;')('<b>Процесс:</b> ')
                 td(processName)
             }
             tr {
-                td('<b>Номер заявки:</b> ')
+                th(scope: 'row', style:'white-space: nowrap;')('<b>Номер заявки:</b> ')
                 td(businessKey)
             }
             tr {
-                td('<b>Статус:</b> ')
+                th(scope: 'row', style:'white-space: nowrap;')('<b>Статус:</b> ')
                 td(status)
             }
             tr {
-                td('<b>Инициатор:</b> ')
+                th(scope: 'row', style:'white-space: nowrap;')('<b>Инициатор:</b> ')
                 td(demandOwner)
             }
             tr {
-                td('<b>Дата создания:</b> ')
+                th(scope: 'row', style:'white-space: nowrap;')('<b>Дата создания:</b> ')
                 td(createDate)
             }
             tr {
-                td('<b>Имя заявки:</b> ')
+                th(scope: 'row', style: 'vertical-align:top; white-space: nowrap;')('<b>Имя заявки:</b> ')
                 td(demandName)
             }
             tr {
-                td('<b>Описание:</b> ')
+                th(scope: 'row', style: 'vertical-align:top;white-space: nowrap;')('<b>Описание:</b> ')
                 td(description)
             }
         }
@@ -83,14 +84,6 @@ template += '''\
             yield 'Открыть Kcell Workflow Вы можете пройдя по следующей ссылке: '
             b {
                 a(href: taskUrl, 'https://preprod.test-flow.kcell.kz')
-            }
-        }
-        p {
-            yield 'Для входа в систему используйте свой корпоративный логин (Name.Surname@kcell.kz)* и пароль.'
-            br()
-            yield '* имя и фамилия в логине начинается с заглавной буквы. Например: '
-            b {
-                a(href: 'mailto:Petr.Petrov@kcell.kz', 'Petr.Petrov@kcell.kz')
             }
         }
         p {

@@ -19,33 +19,33 @@ html(lang:'en') {
             yield '.'
         }
         newLine()
-        table {
+        table(style: 'text-align:justify;') {
             tr {
-                td('<b>Процесс:</b> ')
+                th(scope: 'row', style:'white-space: nowrap;')('<b>Процесс:</b> ')
                 td(processName)
             }
             tr {
-                td('<b>Номер заявки:</b> ')
+                th(scope: 'row', style:'white-space: nowrap;')('<b>Номер заявки:</b> ')
                 td(businessKey)
             }
             tr {
-                td('<b>Статус:</b> ')
+                th(scope: 'row', style:'white-space: nowrap;')('<b>Статус:</b> ')
                 td(delegateTask.getVariable('status'))
             }
             tr {
-                td('<b>Инициатор:</b> ')
+                th(scope: 'row', style:'white-space: nowrap;')('<b>Инициатор:</b> ')
                 td(general.get('demandOwner').asText())
             }
             tr {
-                td('<b>Дата создания:</b> ')
+                th(scope: 'row', style:'white-space: nowrap;')('<b>Дата создания:</b> ')
                 td(startTime.format('dd.MM.yyyy HH:mm'))
             }
             tr {
-                td('<b>Имя заявки:</b> ')
+                th(scope: 'row', style: 'vertical-align:top; white-space: nowrap;')('<b>Имя заявки:</b> ')
                 td(delegateTask.getVariable('demandName'))
             }
             tr {
-                td('<b>Описание:</b> ')
+                th(scope: 'row', style: 'vertical-align:top; white-space: nowrap;')('<b>Описание:</b> ')
                 td(general.get('description').asText())
             }
         }
@@ -57,14 +57,6 @@ html(lang:'en') {
             yield 'Открыть Kcell Workflow Вы можете пройдя по следующей ссылке: '
             b {
                 a(href: taskUrl, 'https://preprod.test-flow.kcell.kz')
-            }
-        }
-        p {
-            yield 'Для входа в систему используйте свой корпоративный логин (Name.Surname@kcell.kz)* и пароль.'
-            br()
-            yield '* имя и фамилия в логине начинается с заглавной буквы. Например: '
-            b {
-                a(href: 'mailto:Petr.Petrov@kcell.kz', 'Petr.Petrov@kcell.kz')
             }
         }
         p {

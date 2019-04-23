@@ -7,9 +7,10 @@ def getSubject(DelegateExecution execution) {
     def status = (String) execution.getVariable("status")
     def resolutions = ((JacksonJsonNode) execution.getVariable("resolutions")).unwrap()
     def lastResolution = resolutions[0]
-    def subject = processName + " - " + businessKey + " - Order status changed to " + status + " on " + lastResolution.get("taskName").asText()
-    if (status == "New order") subject = processName + " - " + businessKey + " - Order created"
+    def subject = processName + " - " + businessKey
+    //if (status == "New order") subject = processName + " - " + businessKey + " - Order created"
     subject
+
 }
 
 getSubject(execution)
