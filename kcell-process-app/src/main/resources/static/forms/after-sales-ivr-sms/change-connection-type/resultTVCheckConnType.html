@@ -100,7 +100,21 @@
                                         $scope.resolutions[index].taskName = e.data[0].name;
                                         try {
                                             $scope.resolutions[index].taskEndDate = new Date(e.data[0].endTime);
+                                            $scope.resolutions[index].assignDate = new Date(e.data[0].startTime);
                                         } catch (e) {
+                                            console.log(e);
+                                        }
+                                    }
+                                });
+                            });
+                            $q.all($scope.resolutions.map(function (resolution) {
+                                return $http.get("/camunda/api/engine/engine/default/history/identity-link-log?type=assignee&taskId=" + resolution.taskId + "&operationType=add&sortBy=time&sortOrder=desc");
+                            })).then(function (logs) {
+                                logs.forEach(function (e, index) {
+                                    if(e.data.length > 0){
+                                        try {
+                                            $scope.resolutions[index].claimDate = new Date(e.data[0].time);
+                                        } catch(e){
                                             console.log(e);
                                         }
                                     }
@@ -178,31 +192,4 @@
             <textarea class="form-control" ng-model="resultTVCheckConnTypeTaskComment" name="resultTVCheckConnTypeTaskComment" placeholder="Comments..." maxlength="500" rows="4" style="resize:none"></textarea>
         </div>
     </div>
-    <accordion>
-        <accordion-group is-open="isHistoryOpen">
-            <accordion-heading>
-                History <i class="pull-right glyphicon" ng-class="{'glyphicon-chevron-up': status.isCustomHeaderOpen, 'glyphicon-chevron-down': !status.isCustomHeaderOpen}"></i>
-            </accordion-heading>
-            <table class="table">
-                <thead>
-                <tr>
-                    <th>Activity</th>
-                    <th>Assignee</th>
-                    <th>Resolution</th>
-                    <th>Date</th>
-                    <th>Comment</th>
-                </tr>
-                </thead>
-                <tbody>
-                <tr ng-repeat="resolution in resolutions">
-                    <td>{{resolution.taskName}}</td>
-                    <td>{{resolution.assigneeName}}</td>
-                    <td>{{'task.resolution.'+resolution.resolution | translate}}</td>
-                    <td>{{resolution.taskEndDate | date: 'dd.MM.yyyy HH:mm'}}</td>
-                    <td>{{resolution.comment}}</td>
-                </tr>
-                </tbody>
-            </table>
-        </accordion-group>
-    </accordion>
 </form>
