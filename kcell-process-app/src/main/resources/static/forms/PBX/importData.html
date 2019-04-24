@@ -132,12 +132,26 @@
               $scope.resolutions[index].taskName = t.data[0].name;
               try {
                 $scope.resolutions[index].taskEndDate = new Date(t.data[0].endTime);
+                $scope.resolutions[index].assignDate = new Date(e.data[0].startTime);
               } catch(e){
                 console.log(e);
               }
             }
           });
         });
+          $q.all($scope.resolutions.map(function (resolution) {
+              return $http.get("/camunda/api/engine/engine/default/history/identity-link-log?type=assignee&taskId=" + resolution.taskId + "&operationType=add&sortBy=time&sortOrder=desc");
+          })).then(function (logs) {
+              logs.forEach(function (e, index) {
+                  if(e.data.length > 0){
+                      try {
+                          $scope.resolutions[index].claimDate = new Date(e.data[0].time);
+                      } catch(e){
+                          console.log(e);
+                      }
+                  }
+              });
+          });
       } else {
         $scope.resolutions = [];
       }
@@ -383,32 +397,4 @@
       <span class="has-error" ng-if="kcell_form.comment.$error.required && (kcell_form.comment.$touched || view.submitted)">Required field</span>
     </div>
   </div>
-
-  <accordion>
-    <accordion-group is-open="isHistoryOpen">
-      <accordion-heading>
-        History <i class="pull-right glyphicon" ng-class="{'glyphicon-chevron-up': status.isCustomHeaderOpen, 'glyphicon-chevron-down': !status.isCustomHeaderOpen}"></i>
-      </accordion-heading>
-      <table class="table">
-        <thead>
-          <tr>
-            <th>Activity</th>
-            <th>Assignee</th>
-            <th>Resolution</th>
-            <th>Date</th>
-            <th>Comment</th>
-          </tr>
-        </thead>
-        <tbody>
-          <tr ng-repeat="resolution in resolutions; track by $index">
-            <td>{{resolution.taskName}}</td>
-            <td>{{resolution.assigneeName}}</td>
-            <td>{{resolution.resolution}}</td>
-            <td>{{resolution.taskEndDate | date: 'dd.MM.yyyy HH:mm'}}</td>
-            <td>{{resolution.comment}}</td>
-          </tr>
-        </tbody>
-      </table>
-    </accordion-group>
-  </accordion>
 </form>
