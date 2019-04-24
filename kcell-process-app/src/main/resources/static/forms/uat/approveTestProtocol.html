@@ -57,7 +57,21 @@
                             $scope.resolutions[index].taskName = e.data[0].name;
                             try {
                                 $scope.resolutions[index].taskEndDate = new Date(e.data[0].endTime);
+                                $scope.resolutions[index].assignDate = new Date(e.data[0].startTime);
                             } catch (e) { console.log(e); }
+                        }
+                    });
+                });
+                $q.all($scope.resolutions.map(function (resolution) {
+                    return $http.get("/camunda/api/engine/engine/default/history/identity-link-log?type=assignee&taskId=" + resolution.taskId + "&operationType=add&sortBy=time&sortOrder=desc");
+                })).then(function (logs) {
+                    logs.forEach(function (e, index) {
+                        if(e.data.length > 0){
+                            try {
+                                $scope.resolutions[index].claimDate = new Date(e.data[0].time);
+                            } catch(e){
+                                console.log(e);
+                            }
                         }
                     });
                 });
@@ -253,38 +267,6 @@
         <div class="col-sm-12" style="margin-top: 5px">
             <textarea elastic-textarea style="resize:vertical;" class="form-control" rows="4" maxlength="2500" ng-model="comment" name="comment" ng-required="resolution == 'Rejected'"></textarea>
             <label class="error" ng-show="kcell_form.comment.$error.required && ( kcell_form.comment.$touched || view.submitted)">Required field</label>
-        </div>
-    </div>
-
-    <div class="form-group">
-        <div class="col-sm-12">
-            <accordion>
-                <accordion-group is-open="isHistoryOpen">
-                    <accordion-heading>
-                        History <i class="pull-right glyphicon" ng-class="{'glyphicon-chevron-up': status.isCustomHeaderOpen, 'glyphicon-chevron-down': !status.isCustomHeaderOpen}"></i>
-                    </accordion-heading>
-                    <table class="table table-bordered">
-                        <thead>
-                        <tr>
-                            <th class="col-sm-3 text-center">Activity</th>
-                            <th class="col-sm-2 text-center">Assignee</th>
-                            <th class="col-sm-2 text-center">Resolution</th>
-                            <th class="col-sm-2 text-center">Date</th>
-                            <th class="col-sm-3">Comment</th>
-                        </tr>
-                        </thead>
-                        <tbody>
-                        <tr ng-repeat="resolution in resolutions">
-                            <td class="col-sm-3 text-center">{{resolution.taskName}}</td>
-                            <td class="col-sm-2 text-center">{{resolution.assigneeName}}</td>
-                            <td class="col-sm-2 text-center">{{resolution.resolution}}</td>
-                            <td class="col-sm-2 text-center">{{resolution.taskEndDate | date: 'dd.MM.yyyy HH:mm'}}</td>
-                            <td class="col-sm-3">{{resolution.comment}}</td>
-                        </tr>
-                        </tbody>
-                    </table>
-                </accordion-group>
-            </accordion>
         </div>
     </div>
 </form>

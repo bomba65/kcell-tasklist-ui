@@ -28,6 +28,7 @@
             $scope.assigneeName = $rootScope.authentication.name;
             $scope.materials = [];
             var createdDate = new Date();
+            var claimDate = new Date();
 
             $http.get("/camunda/api/engine/engine/default/user/" + $rootScope.authentication.name+ "/profile").then(function(result){
                 $scope.assigneeName = (result.data.firstName ? result.data.firstName : "") + " " + (result.data.lastName ? result.data.lastName : "");
@@ -36,6 +37,18 @@
                 function(result){
                     processInstanceId = result.data.processInstanceId;
                     if (result.data.created) createdDate = new Date(result.data.created);
+                },
+                function (error) {
+                    console.log(error.data);
+                }
+            );
+            $http.get("/camunda/api/engine/engine/default/history/identity-link-log?type=assignee&taskId=" + camForm.taskId + "&operationType=add&sortBy=time&sortOrder=desc").then(
+                function (logs) {
+                    try {
+                        claimDate = new Date(logs.data[0].time);
+                    } catch(e){
+                        console.log(e);
+                    }
                 },
                 function (error) {
                     console.log(error.data);
@@ -118,7 +131,7 @@
                 });
 
                 var submitDate = new Date ();
-                $scope.resolutions.unshift({processInstanceId: processInstanceId, assignee: $scope.assigneeName, resolution: 'Completed', comment: $scope.comment, taskId: camForm.taskId, taskEndDate: submitDate, taskName: $scope.supportiveInputItem.unit, dateOfAssign: createdDate});
+                $scope.resolutions.unshift({processInstanceId: processInstanceId, assignee: $scope.assigneeName, resolution: 'Completed', comment: $scope.comment, taskId: camForm.taskId, taskEndDate: submitDate, taskName: $scope.supportiveInputItem.unit, dateOfAssign: createdDate, claimDate: claimDate});
                 camForm.variableManager.destroyVariable('resolutions');
                 camForm.variableManager.createVariable({
                     name: 'resolutions',
@@ -473,34 +486,4 @@
             <label class="error" ng-show="kcell_form.comment.$error.required && ( kcell_form.comment.$touched || view.submitted)">Required field</label>
         </div>
     </div>
-
-    <accordion>
-        <accordion-group is-open="isHistoryOpen">
-            <accordion-heading>
-                History <i class="pull-right glyphicon" ng-class="{'glyphicon-chevron-up': status.isCustomHeaderOpen, 'glyphicon-chevron-down': !status.isCustomHeaderOpen}"></i>
-            </accordion-heading>
-            <table class="table">
-                <thead>
-                <tr>
-                    <th>Activity</th>
-                    <th>Assignee</th>
-                    <th>Resolution</th>
-                    <th>Date of assign</th>
-                    <th>Date</th>
-                    <th>Comment</th>
-                </tr>
-                </thead>
-                <tbody>
-                <tr ng-repeat="resolution in resolutions track by $index">
-                    <td>{{resolution.taskName}}</td>
-                    <td>{{resolution.assignee}}</td>
-                    <td>{{resolution.resolution}}</td>
-                    <td>{{resolution.dateOfAssign | date: 'dd.MM.yyyy HH:mm'}}</td>
-                    <td>{{resolution.taskEndDate | date: 'dd.MM.yyyy HH:mm'}}</td>
-                    <td>{{resolution.comment}}</td>
-                </tr>
-                </tbody>
-            </table>
-        </accordion-group>
-    </accordion>
 </form>

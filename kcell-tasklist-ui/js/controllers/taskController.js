@@ -331,7 +331,8 @@ define(['./module','camundaSDK', 'lodash', 'big-js'], function(module, CamSDK, _
 			exModal.open({
 				scope: {
 					resolutions: resolutions,
-					isKcellStaff: $rootScope.hasGroup('kcellUsers')
+					isKcellStaff: $rootScope.hasGroup('kcellUsers'),
+					procDef: $scope.processDefinitionKey
 				},
 				templateUrl: './js/partials/resolutions.html',
 				size: 'lg'
