@@ -102,7 +102,7 @@
                     $scope.supportiveInputs = [
                         {unit: 'Human Resources Department', form: 'HR', value: [], checked: false, groupId: 'Demand_Supportive_Human_Resources_Department', groupName: 'Demand Supportive - HR'},
                         {unit: 'Centralized Procurement Department', form: 'CPD', value: [], checked: false},
-                        {unit: 'Technology Department', form: 'TD', value: {}, checked: false}
+                        {unit: 'Technology Department', form: 'TD', value: {}, checked: false, responsibles:[{id: null, name: null}]}
                     ];
                 } else {
                     for (var s of $scope.supportiveInputs) {
@@ -111,7 +111,7 @@
                         else if (s.form == 'CPD') $scope.cpdInput = s;
                     }
                     if ($scope.supportiveInputs.findIndex(function(e) { return e.unit === 'Technology Department'}) === -1) {
-                        $scope.supportiveInputs.push({unit: 'Technology Department', form: 'TD', value: {}, checked: false});
+                        $scope.supportiveInputs.push({unit: 'Technology Department', form: 'TD', value: {}, checked: false, responsibles:[{id: null, name: null}]});
                     }
                 }
             });
@@ -153,9 +153,16 @@
                         } else if (v.unit === 'Technology Department') {
                             supportiveInputList[v.form] = true;
                             if (!supportiveInputList[v.form+'s']) supportiveInputList[v.form+'s'] = [];
-                            supportiveInputList[v.form+'s'].push({unit: v.unit, responsible: v.responsible});
+                            var responsibles = '';
+                            for (var r of v.responsibles) {
+                                if (r && r.id) responsibles += r.id + ',';
+                            }
+                            if (responsibles.length) responsibles = responsibles.slice(0, -1);
+                            supportiveInputList[v.form+'s'].push({unit: v.unit, responsibles: responsibles});
                         }
                     }
+
+                    console.log("========> ", supportiveInputList);
                 }
 
                 if ($scope.resolution == 'Approve') {
@@ -195,10 +202,18 @@
                 if (!$scope.supportiveInputsCount && scope.resolution == 'Request Info') $scope.resolution = 'Send to modify';
             };
 
+            $scope.addRemoveResponsible = function(index, parent) {
+                if (index === 0) {
+                    $scope.supportiveInputs[parent].responsibles.push({id: null, name: null});
+                } else {
+                    $scope.supportiveInputs[parent].responsibles.splice(index, 1);
+                }
 
-            $scope.getUser = function(val, index) {
-                $scope.supportiveInputs[index].responsible = null;
-                $scope.kcell_form['reqinfo_'+index+'_responsible'].$setValidity('not_selected', false);
+            };
+
+            $scope.getUser = function(val, index, parent) {
+                $scope.supportiveInputs[parent].responsibles[index].id = null;
+                $scope.kcell_form['reqinfo_'+parent+'_'+index+'_responsible'].$setValidity('not_selected', false);
                 var users = $http.get('/camunda/api/engine/engine/default/user?memberOfGroup=demand_uat_users&firstNameLike='+encodeURIComponent('%'+val+'%')).then(
                     function(response){
                       var usersByFirstName = _.flatMap(response.data, function(s){
@@ -242,10 +257,10 @@
                 return users;
             };
 
-            $scope.userSelected = function($item, index){
-                $scope.supportiveInputs[index].responsible = $item.id;
-                $scope.supportiveInputs[index].responsibleName = $item.name;
-                $scope.kcell_form['reqinfo_'+index+'_responsible'].$setValidity('not_selected', true);
+            $scope.userSelected = function($item, index, parent){
+                $scope.supportiveInputs[parent].responsibles[index].id = $item.id;
+                $scope.supportiveInputs[parent].responsibles[index].name = $item.name;
+                $scope.kcell_form['reqinfo_'+parent+'_'+index+'_responsible'].$setValidity('not_selected', true);
             };
 
             $scope.$watch('supportiveInputs', function (value) {
@@ -589,9 +604,20 @@
                                 <span ng-if="r.unit === 'Centralized Procurement Department' && r.checked">
                                     <p ng-repeat="v in r.value">{{v.purchaser.groupName}}</p>
                                 </span>
-                                <input ng-if="r.unit === 'Technology Department' && r.checked" type="text" ng-model="r.responsibleName" name="reqinfo_{{$index}}_responsible" typeahead="name as users.name for users in getUser($viewValue, $index)" typeahead-on-select="userSelected($item, $index)" class="form-control" autocomplete="off" required>
-                                <span class="has-error" ng-if="kcell_form['reqinfo_'+$index+'_responsible'].$error.required && (kcell_form['reqinfo_'+$index+'_responsible'].$touched || view.submitted)">Required field</span>
-                                <span class="has-error" ng-if="!kcell_form['reqinfo_'+$index+'_responsible'].$error.required && kcell_form['reqinfo_'+$index+'_responsible'].$error.not_selected && (kcell_form['reqinfo_'+$index+'_responsible'].$touched || view.submitted)">User must be selected from the list</span>
+                                <span ng-if="r.unit === 'Technology Department' && r.checked">
+                                    <div ng-repeat="u in r.responsibles track by $index" class="col-sm-12" ng-style="{'margin-top': $index === 0?'0':'2px'}">
+                                        <div class="col-sm-10">
+                                            <input type="text" ng-model="u.name" name="reqinfo_{{$parent.$index}}_{{$index}}_responsible" typeahead="name as users.name for users in getUser($viewValue, $index, $parent.$index)" typeahead-on-select="userSelected($item, $index, $parent.$index)" class="form-control" autocomplete="off" required>
+                                            <span class="has-error" ng-if="kcell_form['reqinfo_'+$parent.$index+'_'+$index+'_responsible'].$error.required && (kcell_form['reqinfo_'+$parent.$index+'_'+$index+'_responsible'].$touched || view.submitted)">Required field</span>
+                                            <span class="has-error" ng-if="!kcell_form['reqinfo_'+$parent.$index+'_'+$index+'_responsible'].$error.required && kcell_form['reqinfo_'+$parent.$index+'_'+$index+'_responsible'].$error.not_selected && (kcell_form['reqinfo_'+$parent.$index+'_'+$index+'_responsible'].$touched || view.submitted)">User must be selected from the list</span>
+                                        </div>
+                                        <div class="col-sm-2">
+                                            <a style="font-size: 20px" ng-click="addRemoveResponsible($index, $parent.$index)">
+                                                <span class="glyphicon glyphicon-{{$index === 0?'plus':'minus'}}-sign"></span>
+                                            </a>
+                                        </div>
+                                    </div>
+                                </span>
                             </td>
                         </tr>
                         </tbody>
