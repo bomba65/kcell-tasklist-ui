@@ -46,33 +46,33 @@ else template += '''p('В рамках процесса рассмотрения
 
 template += '''\
         newLine()
-        table(style: 'text-align:left;') {
+        table {
             tr {
-                th(scope: 'row', style:'white-space: nowrap;')('<b>Процесс:</b> ')
+                td(scope: 'row', style:'white-space: nowrap;')('<b>Процесс:</b> ')
                 td(processName)
             }
             tr {
-                th(scope: 'row', style:'white-space: nowrap;')('<b>Номер заявки:</b> ')
+                td(scope: 'row', style:'white-space: nowrap;')('<b>Номер заявки:</b> ')
                 td(businessKey)
             }
             tr {
-                th(scope: 'row', style:'white-space: nowrap;')('<b>Статус:</b> ')
+                td(scope: 'row', style:'white-space: nowrap;')('<b>Статус:</b> ')
                 td(status)
             }
             tr {
-                th(scope: 'row', style:'white-space: nowrap;')('<b>Инициатор:</b> ')
+                td(scope: 'row', style:'white-space: nowrap;')('<b>Инициатор:</b> ')
                 td(demandOwner)
             }
             tr {
-                th(scope: 'row', style:'white-space: nowrap;')('<b>Дата создания:</b> ')
+                td(scope: 'row', style:'white-space: nowrap;')('<b>Дата создания:</b> ')
                 td(createDate)
             }
             tr {
-                th(scope: 'row', style: 'vertical-align:top; white-space: nowrap;')('<b>Имя заявки:</b> ')
+                td(scope: 'row', style: 'vertical-align:top; white-space: nowrap;')('<b>Имя заявки:</b> ')
                 td(demandName)
             }
             tr {
-                th(scope: 'row', style: 'vertical-align:top;white-space: nowrap;')('<b>Описание:</b> ')
+                td(scope: 'row', style: 'vertical-align:top;white-space: nowrap;')('<b>Описание:</b> ')
                 td(description)
             }
         }

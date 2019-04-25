@@ -19,33 +19,33 @@ html(lang:'en') {
             yield '.'
         }
         newLine()
-        table(style: 'text-align:justify;') {
+        table {
             tr {
-                th(scope: 'row', style:'white-space: nowrap;')('<b>Процесс:</b> ')
+                td(scope: 'row', style:'white-space: nowrap;')('<b>Процесс:</b> ')
                 td(processName)
             }
             tr {
-                th(scope: 'row', style:'white-space: nowrap;')('<b>Номер заявки:</b> ')
+                td(scope: 'row', style:'white-space: nowrap;')('<b>Номер заявки:</b> ')
                 td(businessKey)
             }
             tr {
-                th(scope: 'row', style:'white-space: nowrap;')('<b>Статус:</b> ')
+                td(scope: 'row', style:'white-space: nowrap;')('<b>Статус:</b> ')
                 td(delegateTask.getVariable('status'))
             }
             tr {
-                th(scope: 'row', style:'white-space: nowrap;')('<b>Инициатор:</b> ')
+                td(scope: 'row', style:'white-space: nowrap;')('<b>Инициатор:</b> ')
                 td(general.get('demandOwner').asText())
             }
             tr {
-                th(scope: 'row', style:'white-space: nowrap;')('<b>Дата создания:</b> ')
+                td(scope: 'row', style:'white-space: nowrap;')('<b>Дата создания:</b> ')
                 td(startTime.format('dd.MM.yyyy HH:mm'))
             }
             tr {
-                th(scope: 'row', style: 'vertical-align:top; white-space: nowrap;')('<b>Имя заявки:</b> ')
+                td(scope: 'row', style: 'vertical-align:top; white-space: nowrap;')('<b>Имя заявки:</b> ')
                 td(delegateTask.getVariable('demandName'))
             }
             tr {
-                th(scope: 'row', style: 'vertical-align:top; white-space: nowrap;')('<b>Описание:</b> ')
+                td(scope: 'row', style: 'vertical-align:top; white-space: nowrap;')('<b>Описание:</b> ')
                 td(general.get('description').asText())
             }
         }
