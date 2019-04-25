@@ -31,8 +31,7 @@ public class ProcessNotificationListener implements ExecutionListener {
     private JavaMailSender mailSender;
     private final CompiledScript template;
     private ScriptEngine groovyEngine;
-    private final List<String> enabledProcesses = Arrays.asList();
-
+    private final List<String> enabledProcesses = Arrays.asList("Revision", "Invoice");
 
     @Autowired
     public ProcessNotificationListener(
