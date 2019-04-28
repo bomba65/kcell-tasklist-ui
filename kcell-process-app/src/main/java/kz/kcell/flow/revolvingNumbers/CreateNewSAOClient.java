@@ -116,10 +116,12 @@ public class CreateNewSAOClient implements JavaDelegate {
                     } else if("East Region".equals(region.get("name").toString())){
                         params.add(new BasicNameValuePair("fk_region", "7"));
                     }
+                    
+                    params.add(new BasicNameValuePair("conn_type", "2"));
 
                     if (techSpecs.get("connectionType").toString().equals("SIP over internet")) {
 
-                        params.add(new BasicNameValuePair("conn_type", "1"));
+                        params.add(new BasicNameValuePair("channel_type", "1"));
 
                         JSONObject sip = techSpecs.getJSONObject("sip");
                         params.add(new BasicNameValuePair("voice_platform", sip.get("connectionPoint").toString()));
@@ -131,7 +133,7 @@ public class CreateNewSAOClient implements JavaDelegate {
                             params.add(new BasicNameValuePair("ips", voiceIP + ", " + signalingIP));
                         }
                     } else {
-                        params.add(new BasicNameValuePair("conn_type", "2"));
+                        params.add(new BasicNameValuePair("channel_type", "2"));
                     }
 
                     params.add(new BasicNameValuePair("status", "21"));
