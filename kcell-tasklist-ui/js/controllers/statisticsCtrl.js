@@ -790,7 +790,7 @@ define(['./module','jquery'], function(app,$){
         }
 
         $scope.downloadTechnicalReport = function(){
-            if($rootScope.authentication.name === 'demo' || $rootScope.authentication.name === 'Yernaz.Kalingarayev@kcell.kz' || $rootScope.authentication.name === 'Evgeniy.Semenov@kcell.kz'){
+            if(['demo','Yernaz.Kalingarayev@kcell.kz','Evgeniy.Semenov@kcell.kz','Stanislav.Li@kcell.kz'].indexOf($rootScope.authentication.name) !== -1){
                 $http.get('/camunda/reports/report').then(function(response) {
                     var data = response.data;
 
@@ -819,7 +819,7 @@ define(['./module','jquery'], function(app,$){
         }
 
         $scope.downloadTechnicalByJobsReport = function(){
-            if($rootScope.authentication.name === 'demo' || $rootScope.authentication.name === 'Yernaz.Kalingarayev@kcell.kz' || $rootScope.authentication.name === 'Evgeniy.Semenov@kcell.kz'){
+            if(['demo','Yernaz.Kalingarayev@kcell.kz','Evgeniy.Semenov@kcell.kz','Stanislav.Li@kcell.kz'].indexOf($rootScope.authentication.name) !== -1){
                 $http.get('/camunda/reports/technical-report-by-jobs').then(function(response) {
                     var data = response.data;
 
@@ -848,7 +848,7 @@ define(['./module','jquery'], function(app,$){
         }
 
         $scope.downloadFinancialReport = function(){
-            if($rootScope.authentication.name === 'demo' || $rootScope.authentication.name === 'Yernaz.Kalingarayev@kcell.kz' || $rootScope.authentication.name === 'Gulzhan.Imandosova@kcell.kz'){
+            if(['demo','Yernaz.Kalingarayev@kcell.kz','Evgeniy.Semenov@kcell.kz','Stanislav.Li@kcell.kz'].indexOf($rootScope.authentication.name) !== -1){
                 $http.get('/camunda/reports/financialreport').then(function(response) {
                     var data = response.data;
 
@@ -889,7 +889,7 @@ define(['./module','jquery'], function(app,$){
             }
         }
         $scope.downloadExtendedByJobsReport = function(){
-            if($rootScope.authentication.name === 'demo' || $rootScope.authentication.name === 'Yernaz.Kalingarayev@kcell.kz' || $rootScope.authentication.name === 'Gulzhan.Imandosova@kcell.kz'){
+            if(['demo','Yernaz.Kalingarayev@kcell.kz','Evgeniy.Semenov@kcell.kz','Stanislav.Li@kcell.kz'].indexOf($rootScope.authentication.name) !== -1){
                 $http.get('/camunda/reports/extended-report-by-jobs').then(function(response) {
                     var data = response.data;
 
