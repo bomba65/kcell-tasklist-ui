@@ -16,11 +16,11 @@ define(['./module'], function(module){
 
 						if (offset > scope.sticky) {
 							element.addClass(scope.scrollClass);
-							angular.element(document.querySelector("#sticky-buttons")).addClass('sticky-buttons');
+							angular.element(document.querySelector("#sticky-header")).addClass('sticky-header');
 							angular.element(document.querySelector("#taskElement")).addClass('taskElement');
 						} else {
 							element.removeClass(scope.scrollClass);
-							angular.element(document.querySelector("#sticky-buttons")).removeClass('sticky-buttons');
+							angular.element(document.querySelector("#sticky-header")).removeClass('sticky-header');
 							angular.element(document.querySelector("#taskElement")).removeClass('taskElement');
 						}
 					});
