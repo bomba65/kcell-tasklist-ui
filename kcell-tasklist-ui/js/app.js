@@ -19,7 +19,8 @@ define('app',[
 	'angularjs-dropdown-multiselect',
 	'moment',
 	'daterangepicker',
-	'bootstrap'
+	'bootstrap',
+	'bootstrap-select'
 ], function(ng){
 	'use strict';
 	var app =  ng.module('app', [
@@ -36,6 +37,7 @@ define('app',[
 		'ngFileUpload',
 		'LocalStorageModule',
 		'angularjs-dropdown-multiselect',
+		//'bootstrap-select'
 	]);
 	var preLoginUrl;
 	var resolve = {

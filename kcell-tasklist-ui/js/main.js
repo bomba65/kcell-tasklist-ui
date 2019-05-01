@@ -37,9 +37,10 @@ require.config({
          'summernote': './summernote/summernote.min',
          'summernote-ext-template': './summernote/summernote-ext-template',
          'moment': './node_modules/moment/min/moment.min',
-         'daterangepicker': './node_modules/daterangepicker/daterangepicker'
+         'daterangepicker': './node_modules/daterangepicker/daterangepicker',
+         'bootstrap-select': './node_modules/bootstrap-select/dist/js/bootstrap-select.min'
      },
- 
+
      // angular не поддерживает AMD из коробки, поэтому экспортируем перменную angular в глобальную область
      shim: {
          'angular': {
@@ -60,7 +61,14 @@ require.config({
          'angularjs-dropdown-multiselect': ['angular'],
          'angular-translate-storage-local': ['translate'],
          'angular-translate-storage-cookie': ['translate'],
-         'bootstrap':['jquery']
+         'bootstrap':['jquery'],
+         'bootstrap-select': {
+             exports: 'bootstrap-select',
+             deps:['jquery', 'bootstrap'],
+             init: function() {
+                 $('select').selectpicker();
+             }
+         }
      },
  
      // запустить приложение
