@@ -332,7 +332,15 @@ define(['./module','camundaSDK', 'lodash', 'big-js'], function(module, CamSDK, _
 				scope: {
 					resolutions: resolutions,
 					isKcellStaff: $rootScope.hasGroup('kcellUsers'),
-					procDef: $scope.processDefinitionKey
+					procDef: $scope.processDefinitionKey,
+					download: function(path) {
+		                $http({method: 'GET', url: '/camunda/uploads/get/' + path, transformResponse: [] }).
+		                then(function(response) {
+		                    document.getElementById('fileDownloadIframe').src = response.data;
+		                }, function(error){
+		                    console.log(error);
+		                });
+	               	}
 				},
 				templateUrl: './js/partials/resolutions.html',
 				size: 'lg'

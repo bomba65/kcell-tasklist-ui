@@ -791,7 +791,16 @@ define(['./module','jquery', 'camundaSDK'], function(app, $, CamSDK){
 			exModal.open({
 				scope: {
 					resolutions: resolutions.value,
-					isKcellStaff: $rootScope.hasGroup('kcellUsers')
+					isKcellStaff: $rootScope.hasGroup('kcellUsers'),
+					procDef:processDefinitionKey,
+					download: function(path) {
+		              $http({method: 'GET', url: '/camunda/uploads/get/' + path, transformResponse: [] }).
+		              then(function(response) {
+		                  document.getElementById('fileDownloadIframe').src = response.data;
+		              }, function(error){
+		                  console.log(error);
+		              });
+		            }
 				},
 				templateUrl: './js/partials/resolutions.html',
 				size: 'lg'

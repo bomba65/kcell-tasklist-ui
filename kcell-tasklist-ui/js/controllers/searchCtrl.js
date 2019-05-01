@@ -807,16 +807,24 @@ define(['./module', 'jquery', 'moment', 'camundaSDK'], function (app, $, moment,
                 }));
             };
 
-            $scope.showHistory = function (resolutions, procDef) {
+            $scope.showHistory = function(resolutions, procDef){
                 exModal.open({
-                    scope: {
-                        resolutions: resolutions, //resolutions.value,
-                        isKcellStaff: $rootScope.hasGroup('kcellUsers'),
-                        procDef: procDef
-                    },
-                    templateUrl: './js/partials/resolutions.html',
-                    size: 'lg'
-                }).then(function (results) {
+                  scope: {
+                    resolutions: resolutions, //resolutions.value,
+                    isKcellStaff: $rootScope.hasGroup('kcellUsers'),
+                    procDef: procDef,
+                    download: function(path) {
+                      $http({method: 'GET', url: '/camunda/uploads/get/' + path, transformResponse: [] }).
+                      then(function(response) {
+                          document.getElementById('fileDownloadIframe').src = response.data;
+                      }, function(error){
+                          console.log(error);
+                      });
+                    }
+                  },
+                  templateUrl: './js/partials/resolutions.html',
+                  size: 'lg'
+                }).then(function(results){
                 });
             };
 
