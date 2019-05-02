@@ -102,7 +102,7 @@
                     $scope.supportiveInputs = [
                         {unit: 'Human Resources Department', form: 'HR', value: [], checked: false, groupId: 'Demand_Supportive_Human_Resources_Department', groupName: 'Demand Supportive - HR'},
                         {unit: 'Centralized Procurement Department', form: 'CPD', value: [], checked: false},
-                        {unit: 'Technology Department', form: 'TD', value: {}, checked: false, responsibles:[{id: null, name: null}]}
+                        {unit: 'Technology Department', form: 'TD', value: {}, checked: false, responsibles:[{id: null, name: null, description: null}]}
                     ];
                 } else {
                     for (var s of $scope.supportiveInputs) {
@@ -114,6 +114,7 @@
                         $scope.supportiveInputs.push({unit: 'Technology Department', form: 'TD', value: {}, checked: false, responsibles:[{id: null, name: null}]});
                     }
                 }
+
             });
 
             camForm.on('submit', function (event) {
@@ -153,16 +154,11 @@
                         } else if (v.unit === 'Technology Department') {
                             supportiveInputList[v.form] = true;
                             if (!supportiveInputList[v.form+'s']) supportiveInputList[v.form+'s'] = [];
-                            var responsibles = '';
                             for (var r of v.responsibles) {
-                                if (r && r.id) responsibles += r.id + ',';
+                                supportiveInputList[v.form+'s'].push({unit: v.unit, assignee: r.id, description: r.description});
                             }
-                            if (responsibles.length) responsibles = responsibles.slice(0, -1);
-                            supportiveInputList[v.form+'s'].push({unit: v.unit, responsibles: responsibles});
                         }
                     }
-
-                    console.log("========> ", supportiveInputList);
                 }
 
                 if ($scope.resolution == 'Approve') {
@@ -204,7 +200,7 @@
 
             $scope.addRemoveResponsible = function(index, parent) {
                 if (index === 0) {
-                    $scope.supportiveInputs[parent].responsibles.push({id: null, name: null});
+                    $scope.supportiveInputs[parent].responsibles.push({id: null, name: null, description: null});
                 } else {
                     $scope.supportiveInputs[parent].responsibles.splice(index, 1);
                 }
@@ -584,19 +580,19 @@
                         <thead>
                         <tr>
                             <th class="text-center col-sm-1">Need input</th>
-                            <th class="col-sm-3">Supportive unit</th>
+                            <th class="col-sm-3 text-left">Supportive unit</th>
                             <th class="text-center col-sm-5">Request description</th>
                             <th class="text-center col-sm-3">Responsible <span title='Ответственный заполняется только для Technology Department' style="color: #682d86" class="glyphicon glyphicon-question-sign"></span></th>
                         </tr>
                         </thead>
                         <tbody>
-                        <tr ng-repeat="r in supportiveInputs" ng-if="r.unit == 'Human Resources Department' || r.unit == 'Centralized Procurement Department' || r.unit == 'Technology Department'">
+                        <tr ng-repeat="r in supportiveInputs" ng-if="r.unit == 'Human Resources Department' || r.unit == 'Centralized Procurement Department'">
                             <td class="text-center">
                                 <input type="checkbox" ng-model="r.checked" ng-click="needInputClicked(r.checked)">
                             </td>
-                            <td>{{r.unit}}</td>
+                            <td class="text-left">{{r.unit}}</td>
                             <td class="text-center">
-                                <textarea rows="1" elastic-textarea class="form-control" ng-model="r.description" name="reqinfo_{{$index}}_description" ng-required="r.checked"></textarea>
+                                <textarea ng-if="r.checked" rows="1" elastic-textarea class="form-control" ng-model="r.description" name="reqinfo_{{$index}}_description" ng-required="r.checked"></textarea>
                                 <span class="has-error" ng-if="kcell_form['reqinfo_'+$index+'_description'].$error.required && ( kcell_form['reqinfo_'+$index+'_description'].$touched || view.submitted)">Required field</span>
                             </td>
                             <td class="text-center">
@@ -604,7 +600,23 @@
                                 <span ng-if="r.unit === 'Centralized Procurement Department' && r.checked">
                                     <p ng-repeat="v in r.value">{{v.purchaser.groupName}}</p>
                                 </span>
-                                <span ng-if="r.unit === 'Technology Department' && r.checked">
+                            </td>
+                        </tr>
+                        <tr ng-repeat="r in supportiveInputs" ng-if="r.unit == 'Technology Department'">
+                            <td class="text-center">
+                                <input type="checkbox" ng-model="r.checked" ng-click="needInputClicked(r.checked)">
+                            </td>
+                            <td class="text-left">{{r.unit}}</td>
+                            <td class="text-center">
+                                <span ng-if="r.checked">
+                                    <div ng-repeat="u in r.responsibles track by $index" class="col-sm-12" style="padding: 0;" ng-style="{'margin-top': $index === 0?'0':'2px'}">
+                                        <textarea rows="1" elastic-textarea class="form-control" ng-model="u.description" name="reqinfo_{{$parent.$index}}_{{$index}}_description" required></textarea>
+                                        <span class="has-error" ng-if="kcell_form['reqinfo_'+$parent.$index+'_'+$index+'_description'].$error.required && (kcell_form['reqinfo_'+$parent.$index+'_'+$index+'_description'].$touched || view.submitted)">Required field</span>
+                                    </div>
+                                </span>
+                            </td>
+                            <td class="text-center">
+                                <span ng-if="r.checked">
                                     <div ng-repeat="u in r.responsibles track by $index" class="col-sm-12" ng-style="{'margin-top': $index === 0?'0':'2px'}">
                                         <div class="col-sm-10">
                                             <input type="text" ng-model="u.name" name="reqinfo_{{$parent.$index}}_{{$index}}_responsible" typeahead="name as users.name for users in getUser($viewValue, $index, $parent.$index)" typeahead-on-select="userSelected($item, $index, $parent.$index)" class="form-control" autocomplete="off" required>
@@ -683,4 +695,34 @@
             <label class="error" ng-show="kcell_form.comment.$error.required && ( kcell_form.comment.$touched || view.submitted)">Required field</label>
         </div>
     </div>
+
+    <accordion>
+        <accordion-group is-open="isHistoryOpen">
+            <accordion-heading>
+                History <i class="pull-right glyphicon" ng-class="{'glyphicon-chevron-up': status.isCustomHeaderOpen, 'glyphicon-chevron-down': !status.isCustomHeaderOpen}"></i>
+            </accordion-heading>
+            <table class="table" style="margin-bottom: 0;">
+                <thead>
+                <tr>
+                    <th>Activity</th>
+                    <th>Assignee</th>
+                    <th>Resolution</th>
+                    <th>Date of assign</th>
+                    <th>Date</th>
+                    <th>Comment</th>
+                </tr>
+                </thead>
+                <tbody>
+                <tr ng-repeat="resolution in resolutions track by $index">
+                    <td class="text-left">{{resolution.taskName}}</td>
+                    <td class="text-left">{{resolution.assignee}}</td>
+                    <td class="text-left">{{resolution.resolution}}</td>
+                    <td class="text-left">{{resolution.dateOfAssign | date: 'dd.MM.yyyy HH:mm'}}</td>
+                    <td class="text-left">{{resolution.taskEndDate | date: 'dd.MM.yyyy HH:mm'}}</td>
+                    <td class="text-left">{{resolution.comment}}</td>
+                </tr>
+                </tbody>
+            </table>
+        </accordion-group>
+    </accordion>
 </form>

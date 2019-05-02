@@ -118,12 +118,14 @@
                 ]).then(function (results) {
                     if (results[0] && results[0].data) {
                         var lastSupportiveInputs = JSON.parse(results[0].data.value);
+                        if (!lastSupportiveInputs || !lastSupportiveInputs.length) riskData = [];
                         var ind = lastSupportiveInputs.findIndex(function(e) {return e .unit == $scope.supportiveInputItem.unit;});
                         lastSupportiveInputs[ind].value = $scope.supportiveInputs[ind].value;
                         $scope.supportiveInputs = lastSupportiveInputs;
                     }
                     if (results[1] && results[1].data) {
                         riskData = JSON.parse(results[1].data.value);
+                        if (!riskData || !riskData.length) riskData = [];
                         var ind = riskData.findIndex(function(e) {return e.unit == $scope.risk.unit});
                         if (ind != -1) riskData.splice(ind, 1);
                         riskData.push($scope.risk);
@@ -564,9 +566,9 @@
                         </thead>
                         <tbody>
                         <tr>
-                            <td>{{risk.unit}}</td>
-                            <td>{{risk.responsible}}</td>
-                            <td>
+                            <td class="text-left">{{risk.unit}}</td>
+                            <td class="text-left">{{risk.responsible}}</td>
+                            <td class="text-left">
                                 <select class="form-control" name="riskLevel" ng-model="risk.level" ng-change="riskLevelChange()" required>
                                     <option value="High risk">High risk</option>
                                     <option value="Medium risk">Medium risk</option>
@@ -650,4 +652,34 @@
             <label class="error" ng-show="kcell_form.comment.$error.required && ( kcell_form.comment.$touched || view.submitted)">Required field</label>
         </div>
     </div>
+
+    <accordion>
+        <accordion-group is-open="isHistoryOpen">
+            <accordion-heading>
+                History <i class="pull-right glyphicon" ng-class="{'glyphicon-chevron-up': status.isCustomHeaderOpen, 'glyphicon-chevron-down': !status.isCustomHeaderOpen}"></i>
+            </accordion-heading>
+            <table class="table" style="margin-bottom: 0;">
+                <thead>
+                <tr>
+                    <th>Activity</th>
+                    <th>Assignee</th>
+                    <th>Resolution</th>
+                    <th>Date of assign</th>
+                    <th>Date</th>
+                    <th>Comment</th>
+                </tr>
+                </thead>
+                <tbody>
+                <tr ng-repeat="resolution in resolutions track by $index">
+                    <td class="text-left">{{resolution.taskName}}</td>
+                    <td class="text-left">{{resolution.assignee}}</td>
+                    <td class="text-left">{{resolution.resolution}}</td>
+                    <td class="text-left">{{resolution.dateOfAssign | date: 'dd.MM.yyyy HH:mm'}}</td>
+                    <td class="text-left">{{resolution.taskEndDate | date: 'dd.MM.yyyy HH:mm'}}</td>
+                    <td class="text-left">{{resolution.comment}}</td>
+                </tr>
+                </tbody>
+            </table>
+        </accordion-group>
+    </accordion>
 </form>
