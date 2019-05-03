@@ -64,10 +64,7 @@ require.config({
          'bootstrap':['jquery'],
          'bootstrap-select': {
              exports: 'bootstrap-select',
-             deps:['jquery', 'bootstrap'],
-             init: function() {
-                 $('select').selectpicker();
-             }
+             deps:['jquery', 'bootstrap']
          }
      },
  

@@ -27,5 +27,6 @@ define([
   './aftersalesPBX/index',
 	'./demandProcess',
 	'./bulksmsRichText',
-	'./changeClassOnScroll'
+	'./changeClassOnScroll',
+	'./selectPicker'
 	], function(){});

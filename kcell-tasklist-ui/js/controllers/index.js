@@ -7,6 +7,5 @@ define([
 	'./searchCtrl',
 	'./minioCtrl',
 	'./testCtrl',
-	'./massApproveCtrl',
-	'./selectController'
+	'./massApproveCtrl'
 	], function(){});
