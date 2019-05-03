@@ -1,6 +1,6 @@
 define(['./../module'], function(module){
     'use strict';
-    module.directive('demandFuncRequirements', function ($rootScope, $http) {
+    module.directive('demandFuncRequirements', function ($rootScope, $http, exModal) {
         return {
             restrict: 'E',
             scope: {
@@ -27,8 +27,13 @@ define(['./../module'], function(module){
                 };
 
                 scope.useCaseDelete = function(index) {
+                  exModal.open({
+                    templateUrl: './js/partials/confirmModal.html',
+                    size: 'sm'
+                  }).then(function() {
                     scope.data.useCases.splice(index, 1);
                     scope.useCaseCollapsed.splice(index, 1);
+                  });
                 };
 
                 scope.toggleUseCaseCollapse = function(el, index) {

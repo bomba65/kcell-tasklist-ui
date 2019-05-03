@@ -1,6 +1,6 @@
 define(['./../module', 'xlsx'], function(module){
     'use strict';
-    module.directive('demandBusinessCase', function ($rootScope, $http, $timeout) {
+    module.directive('demandBusinessCase', function ($rootScope, $http, $timeout, exModal) {
         return {
             restrict: 'E',
             scope: {
@@ -314,9 +314,14 @@ define(['./../module', 'xlsx'], function(module){
                     }
                 };
                 scope.deleteItem = function(index, name) {
+                  exModal.open({
+                    templateUrl: './js/partials/confirmModal.html',
+                    size: 'sm'
+                  }).then(function() {
                     scope.data.cashFlow[name].splice(index, 1);
                     scope.data.accurals[name].splice(index, 1);
                     scope.onChange();
+                  });
                 };
 
                 scope.onChange = function() {

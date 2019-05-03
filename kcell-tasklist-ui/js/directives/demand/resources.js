@@ -1,6 +1,6 @@
 define(['./../module'], function(module){
     'use strict';
-    module.directive('demandResources', function ($rootScope, $http, $timeout) {
+    module.directive('demandResources', function ($rootScope, $http, $timeout, exModal) {
         return {
             restrict: 'E',
             scope: {
@@ -37,9 +37,14 @@ define(['./../module'], function(module){
                 };
 
                 scope.deleteItem = function (index) {
+                  exModal.open({
+                    templateUrl: './js/partials/confirmModal.html',
+                    size: 'sm'
+                  }).then(function() {
                     scope.data.splice(index, 1);
                     scope.collapsed.splice(index, 1);
                     scope.countTotalSum();
+                  });
                 };
 
                 scope.addItem = function () {

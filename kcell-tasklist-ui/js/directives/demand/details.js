@@ -1,6 +1,6 @@
 define(['./../module'], function(module){
     'use strict';
-    module.directive('demandDetails', function ($rootScope, $http) {
+    module.directive('demandDetails', function ($rootScope, $http, $sce, exModal) {
         return {
             restrict: 'E',
             scope: {
@@ -66,10 +66,17 @@ define(['./../module'], function(module){
                     });
                     scope.pdCollapsed.push(false);
                 };
+
                 scope.productOfferDelete = function(index) {
-                    scope.data.productOffers.splice(index, 1);
-                    scope.pdCollapsed.splice(index, 1);
+                    exModal.open({
+                      templateUrl: './js/partials/confirmModal.html',
+                      size: 'sm'
+                    }).then(function() {
+                      scope.data.productOffers.splice(index, 1);
+                      scope.pdCollapsed.splice(index, 1);
+                    });
                 };
+
                 scope.productOfferChange = function(index) {
                     var version = '1';
                     if (scope.data.productVersion) version = scope.data.productVersion + '.' + version;

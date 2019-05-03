@@ -10,7 +10,7 @@
         }
     </style>
     <script cam-script type="text/form-script">
-        inject(['$scope', '$http', 'Uri', '$rootScope', '$q', 'toasty', '$timeout', function ($scope, $http, Uri, $rootScope, $q, toasty, $timeout) {
+        inject(['$scope', '$http', 'Uri', '$rootScope', '$q', 'toasty', '$timeout', 'exModal', function ($scope, $http, Uri, $rootScope, $q, toasty, $timeout, exModal) {
             $scope.isStartForm = false;
             $scope.generalData = {
                 general: {},
@@ -91,6 +91,7 @@
 
             camForm.on('form-loaded', function () {
                 camForm.variableManager.fetchVariable('generalData');
+                camForm.variableManager.fetchVariable('attachments');
                 camForm.variableManager.fetchVariable('resolutions');
                 camForm.variableManager.fetchVariable('detailsCatalogs');
                 //camForm.variableManager.fetchVariable('productOfferNames');
@@ -115,10 +116,12 @@
 
             camForm.on('variables-fetched', function () {
                 $scope.generalData = camForm.variableManager.variableValue('generalData');
+                $scope.attachments = camForm.variableManager.variableValue('attachments');
                 $scope.resolutions = camForm.variableManager.variableValue('resolutions');
                 $scope.businessKey = camForm.variableManager.variableValue('businessKey');
                 $scope.status = camForm.variableManager.variableValue('status');
                 $scope.state = camForm.variableManager.variableValue('state');
+                if (!$scope.attachments) $scope.attachments = [];
                 if (!$scope.generalData) {
                     $scope.generalData = {
                         general: {},
@@ -157,6 +160,13 @@
                     name: 'generalData',
                     type: 'Json',
                     value: $scope.generalData
+                });
+                camForm.variableManager.destroyVariable('attachments');
+                camForm.variableManager.createVariable({
+                  name: 'attachments',
+                  type: 'json',
+                  value: $scope.attachments,
+                  store: true
                 });
 
                 var submitDate = new Date ();
@@ -345,6 +355,54 @@
                 });
             });
 
+            $scope.downloadFile = function (file) {
+                $http({method: 'GET', url: '/camunda/uploads/get/' + file.path, transformResponse: [] }).
+                then(function(response) {
+                  document.getElementById('fileDownloadIframe').src = response.data;
+                }, function(error){
+                  console.log(error.data);
+                });
+            }
+
+            $scope.clearFile = function(fileIndex) {
+              exModal.open({
+                templateUrl: './js/partials/confirmModal.html',
+                size: 'sm'
+              }).then(function() {
+                $scope.attachments.splice(fileIndex, 1);
+              });
+            }
+
+            $scope.fileSelected = function(el ){
+                $timeout(function () {
+                    $scope.$apply(function () {
+                        uploadFileToMinio(el.files[0]);
+                    });
+                })
+            };
+
+            function uploadFileToMinio(file) {
+                var fileToUpload = {
+                    name: file.name,
+                    path: processInstanceId + '/' + camForm.taskId + '/' + file.name,
+                    created: new Date(),
+                    createdBy: assigneeName
+                };
+                $http({method: 'GET', url: '/camunda/uploads/put/' + fileToUpload.path, transformResponse: [] }).then(function(response) {
+                    $http.put(response.data, file, {headers: {'Content-Type': undefined}}).then(
+                        function () {
+                            $scope.attachments.push(fileToUpload);
+                            angular.element(document.querySelector('#attachments')).val(null);
+                        },
+                        function (error) {
+                            console.log(error.data);
+                        }
+                    );
+                }, function(error){
+                    console.log(error.data);
+                });
+            }
+
             $scope.saveFillForm = function () {
                 var success = 0;
                 var json = JSON.stringify($scope.generalData, function( key, value ) {
@@ -354,16 +412,27 @@
                 $http.put('/camunda/api/engine/engine/default/process-instance/'+processInstanceId+'/variables/generalData',{"type":"Json","value": json}).then(
                         function() {
                             success++;
-                            if (success == 2) toasty.success( "Данные успешно сохранены!");
+                            if (success == 3) toasty.success( "Данные успешно сохранены!");
                         },
                         function(error) {toasty.error(error.data.message);}
                 );
                 $http.put('/camunda/api/engine/engine/default/process-instance/'+processInstanceId+'/variables/demandName',{"type":"String","value": $scope.demandName}).then(
                         function() {
                             success++;
-                            if (success == 2) toasty.success( "Данные успешно сохранены!");
+                            if (success == 3) toasty.success( "Данные успешно сохранены!");
                         },
                         function(error) {toasty.error(error.data.message);}
+                );
+                json = JSON.stringify($scope.attachments, function( key, value ) {
+                    if( key === "$$hashKey" ) return undefined;
+                    return value;
+                });
+                $http.put('/camunda/api/engine/engine/default/process-instance/'+processInstanceId+'/variables/attachments',{"type":"Json","value": json}).then(
+                    function() {
+                        success++;
+                        if (success == 3) toasty.success( "Данные успешно сохранены!");
+                    },
+                    function(error) {toasty.error(error.data.message);}
                 );
             };
         }]);
@@ -491,6 +560,46 @@
     </tabset>
 
     <div class="col-sm-12" style="margin-top: 20px;"><hr style="border-top: 2px solid #aaa;" /></div>
+
+    <div class="col-sm-12" style="padding: 0;" ng-if="!isStartForm">
+        <div class="panel-group custom-panel">
+            <div class="panel panel-default">
+                <div class="panel-heading">
+                    <h4 class="panel-title">Attachments</h4>
+                </div>
+                <div class="panel-body">
+                    <iframe id="fileDownloadIframe" style="display:none;"></iframe>
+                    <div class="form-group">
+                        <div class="col-sm-12">
+                            <div class="col-sm-12" style="margin-bottom: 10px;">
+                                <input type="file" class="form-control" id="attachments" name="attachments" onchange="angular.element(this).scope().fileSelected(this)"/>
+                            </div>
+                            <div class="col-sm-12">
+                                <table class="table table-bordered">
+                                    <thead>
+                                    <tr>
+                                        <th>File Name</th>
+                                        <th>Created</th>
+                                        <th>Created By</th>
+                                        <th>Delete</th>
+                                    </tr>
+                                    </thead>
+                                    <tbody>
+                                    <tr ng-repeat="file in attachments track by $index">
+                                        <td><a ng-click="downloadFile(file)">{{file.name}}</a></td>
+                                        <td>{{file.created | date: 'dd.MM.yyyy HH:mm'}}</td>
+                                        <td>{{file.createdBy}}</td>
+                                        <td><a ng-click="clearFile($index)"><i class="glyphicon glyphicon-trash"></i></a></td>
+                                    </tr>
+                                    </tbody>
+                                </table>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
 
     <div class="col-sm-12" style="margin-bottom: 20px;" ng-if="!isStartForm">
         <button type="button" ng-click="saveFillForm()" class="btn btn-success" style="padding: 6px 28px">Save</button>
