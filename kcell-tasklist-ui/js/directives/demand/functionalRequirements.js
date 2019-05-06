@@ -40,6 +40,10 @@ define(['./../module'], function(module){
                     if (el.target.classList.contains('not-collapsable') || $(el.target).parents('.not-collapsable').length) return;
                     scope.useCaseCollapsed[index] = !scope.useCaseCollapsed[index];
                 };
+
+                scope.checkEnter = function(event) {
+                    if (event.keyCode === 13) event.preventDefault();
+                };
             },
             templateUrl: './js/directives/demand/functionalRequirements.html'
         };

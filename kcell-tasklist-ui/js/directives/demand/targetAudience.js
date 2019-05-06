@@ -12,6 +12,8 @@ define(['./../module'], function(module){
 			link: function(scope, element, attrs) {
         scope.audienceHidden = null;
         scope.roumingHidden = null;
+        scope.audienceAll = false;
+        scope.roumingAll = false;
 				scope.multiselectSettings = {
 					enableSearch: true,
 					showCheckAll: false,
@@ -20,6 +22,27 @@ define(['./../module'], function(module){
 					idProp: 'v',
 					externalIdProp: 'v'
 				};
+
+				scope.audienceMultiselectEvents = {
+          onItemSelect: function (item) {
+            if (item.v === 'All') this.audienceAll = true;
+            if (this.audienceAll) scope.data.audience = scope.data.audience.filter(function(e) { return e.v === 'All'; });
+          },
+          onItemDeselect: function(item) {
+          	if (item.v === 'All') this.audienceAll = false;
+					}
+				};
+
+				scope.roumingMultiselectEvents = {
+          onItemSelect: function (item) {
+            if (item.v === 'All') this.roumingAll = true;
+            if (this.roumingAll) scope.data.rouming = scope.data.rouming.filter(function(e) { return e.v === 'All'; });
+          },
+          onItemDeselect: function(item) {
+          	if (item.v === 'All') this.roumingAll = false;
+					}
+				};
+
 				scope.audienceOptions = [
 					{v: "All"},
 					{v: "B2B"},
