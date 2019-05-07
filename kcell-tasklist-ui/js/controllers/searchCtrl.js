@@ -2105,6 +2105,19 @@ define(['./module', 'jquery', 'moment', 'camundaSDK'], function (app, $, moment,
                         'Canceled on Follow-up'
                     ];
 
+                    $scope.initiativeDepList = [
+                        "B2B",
+                        "B2C",
+                        "CCD",
+                        "CEO",
+                        "CPD",
+                        "FD",
+                        "HR",
+                        "LD",
+                        "TD",
+                        "NB"
+                    ];
+
                     $scope.getDemandOwnerUsers = (val) => {
                         $scope.filter.demandOwnerId = null;
                         return $scope.getUsers(val);
@@ -2138,6 +2151,9 @@ define(['./module', 'jquery', 'moment', 'camundaSDK'], function (app, $, moment,
                         $scope.filter.createPlannedDateShowPeriod = false;
                         $scope.filter.createActualDateShowPeriod = false;
                         $scope.filter.demandDescription = undefined;
+                        $scope.filter.productName = undefined;
+                        $scope.filter.productOffer = undefined;
+                        $scope.filter.initiativeDep = undefined;
                         $scope.filter.status = undefined;
                         $scope.filter.createdOperator = undefined;
                         $scope.filter.createdStart = undefined;
@@ -2216,6 +2232,31 @@ define(['./module', 'jquery', 'moment', 'camundaSDK'], function (app, $, moment,
                                 value: $scope.filter.status
                             });
                         }
+
+                        if ($scope.filter.initiativeDep) {
+                          filter.variables.push({
+                            name: "searchInitialDep",
+                            operator: "eq",
+                            value: $scope.filter.initiativeDep
+                          });
+                        }
+
+                        if ($scope.filter.productName) {
+                          filter.variables.push({
+                            name: "searchProductName",
+                            operator: "like",
+                            value: '%' + $scope.filter.productName.toLowerCase() + '%'
+                          });
+                        }
+
+                        if ($scope.filter.productOffer) {
+                          filter.variables.push({
+                            name: "productOfferNames",
+                            operator: "like",
+                            value: '%' + $scope.filter.productOffer.toLowerCase() + '%'
+                          });
+                        }
+
 
                         if ($scope.filter.demandDescription) {
                             filter.variables.push({
