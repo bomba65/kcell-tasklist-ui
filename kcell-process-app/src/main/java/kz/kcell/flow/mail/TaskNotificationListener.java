@@ -74,6 +74,18 @@ public class TaskNotificationListener implements TaskListener {
 
         if (isProcessDisabled) return;
 
+        boolean isRevisionProcess =
+            delegateTask
+                .getProcessEngineServices()
+                .getRepositoryService()
+                .createProcessDefinitionQuery()
+                .processDefinitionId(delegateTask.getProcessDefinitionId())
+                .list()
+                .stream()
+                .filter(e-> "Revision".equals(e.getKey()))
+                .findAny()
+                .isPresent();
+
         final Set<String> recipientEmails = new HashSet<>();
         if (TaskListener.EVENTNAME_CREATE.equals(delegateTask.getEventName())) {
             delegateTask.setVariable(delegateTask.getTaskDefinitionKey() + "TaskAssignDate", new Date());
@@ -127,7 +139,12 @@ public class TaskNotificationListener implements TaskListener {
                         .getRepositoryService()
                         .getProcessDefinition(delegateTask.getProcessDefinitionId())
                         .getName();
-                    subject = businessKey!=null?String.format("%s - %s", processName, businessKey):processName;
+
+                    if(isRevisionProcess){
+                        subject = businessKey!=null?String.format("%s - %s - %s", processName, businessKey, delegateTask.getName()):processName;
+                    } else {
+                        subject = businessKey!=null?String.format("%s - %s", processName, businessKey):processName;
+                    }
                 } else {
                     InputStreamReader reader = new InputStreamReader(TaskListener.class.getResourceAsStream(subjectScript));
                     subject = String.valueOf(((Compilable)groovyEngine).compile(reader).eval(bindings));
