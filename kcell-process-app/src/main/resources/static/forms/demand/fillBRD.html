@@ -67,6 +67,7 @@
                     camForm.variableManager.fetchVariable('attachments');
                     camForm.variableManager.fetchVariable('resolutions');
                     camForm.variableManager.fetchVariable('status');
+                    camForm.variableManager.fetchVariable('oldStatus');
                     camForm.variableManager.fetchVariable('state');
                     camForm.variableManager.fetchVariable('resolution');
                 });
@@ -125,6 +126,29 @@
                       type: 'String',
                       value: $scope.resolution
                   });
+
+                  if ($scope.resolution === 'Cancel') {
+                      camForm.variableManager.destroyVariable('status');
+                      camForm.variableManager.createVariable({
+                          name: 'status',
+                          type: 'String',
+                          value: 'Canceled on Fill BRD'
+                      });
+
+                      camForm.variableManager.destroyVariable('state');
+                      camForm.variableManager.createVariable({
+                          name: 'state',
+                          type: 'String',
+                          value: 'Closed'
+                      });
+
+                      camForm.variableManager.destroyVariable('oldStatus');
+                      camForm.variableManager.createVariable({
+                          name: 'oldStatus',
+                          type: 'String',
+                          value: $scope.status
+                      });
+                  }
                 });
 
                 $scope.downloadFile = function (file) {
@@ -217,6 +241,11 @@
                     $scope.kcell_form['comment'].$setValidity('is_empty', false);
                     if ($scope.BRDData.acceptanceCriteria.length) $scope.kcell_form['comment'].$setValidity('is_empty', true);
                   });
+                };
+
+                $scope.resolutionChange = function() {
+                  $scope.kcell_form['comment'].$setValidity('is_empty', false);
+                  if ($scope.resolution === 'Cancel' || $scope.BRDData.acceptanceCriteria.length) $scope.kcell_form['comment'].$setValidity('is_empty', true);
                 };
             }]);
         </script>
@@ -472,10 +501,10 @@
       <label class="col-sm-2 control-label">Resolution</label>
       <div class="col-sm-8">
         <label class="radio-inline">
-          <input type="radio" ng-model="resolution" name="resolution" value="Submit" required> Submit
+          <input type="radio" ng-model="resolution" name="resolution" value="Submit" ng-change="resolutionChange()" required> Submit
         </label>
         <label class="radio-inline">
-          <input type="radio" ng-model="resolution" name="resolution" value="Cancel" required> Cancel the order
+          <input type="radio" ng-model="resolution" name="resolution" value="Cancel" ng-change="resolutionChange()" required> Cancel the order
         </label>
         <label class="error" ng-show="kcell_form.resolution.$error.required && ( kcell_form.resolution.$touched || view.submitted)">Required field</label>
       </div>
