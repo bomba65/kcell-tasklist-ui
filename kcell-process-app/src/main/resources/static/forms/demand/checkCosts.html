@@ -31,9 +31,13 @@
             $scope.attachments = [];
             $scope.supportiveInputs = [];
             var supportiveInputList = {
-                CPD: false, CPDs: [],
                 HR: false, HRs: [],
-                TD: false, TDs: []
+                LD: false, LDs: [],
+                CPD: false, CPDs: [],
+                BI: false, BIs: [],
+                Other: false, Others: [],
+                TD: false, TDs: [],
+                WH: false, WHs: []
             };
             $scope.supportiveInputsCount = 0;
             var processInstanceId = null;
@@ -86,6 +90,8 @@
                 camForm.variableManager.fetchVariable('supportiveInputList');
                 camForm.variableManager.fetchVariable('status');
                 camForm.variableManager.fetchVariable('state');
+                camForm.variableManager.fetchVariable('siRequestedFromBC');
+                camForm.variableManager.fetchVariable('riskData');
             });
 
             camForm.on('variables-fetched', function () {
@@ -97,6 +103,8 @@
                 $scope.supportiveInputList = camForm.variableManager.variableValue('supportiveInputList');
                 $scope.status = camForm.variableManager.variableValue('status');
                 $scope.state = camForm.variableManager.variableValue('state');
+                $scope.riskData = camForm.variableManager.variableValue('riskData');
+                if (!$scope.riskData) $scope.riskData = [];
                 if (!$scope.attachments) $scope.attachments = [];
                 if (!$scope.supportiveInputs) {
                     $scope.supportiveInputs = [
@@ -155,7 +163,7 @@
                             supportiveInputList[v.form] = true;
                             if (!supportiveInputList[v.form+'s']) supportiveInputList[v.form+'s'] = [];
                             for (var r of v.responsibles) {
-                                supportiveInputList[v.form+'s'].push({unit: v.unit, assignee: r.id, description: r.description});
+                                supportiveInputList[v.form+'s'].push({unit: v.unit, assignee: r.id, description: r.description, groupId: ''});
                             }
                         }
                     }
@@ -181,6 +189,20 @@
                     name: 'supportiveInputList',
                     type: 'Json',
                     value: supportiveInputList
+                });
+
+                camForm.variableManager.destroyVariable("siRequestedFromBC");
+                camForm.variableManager.createVariable({
+                    name: 'siRequestedFromBC',
+                    type: 'Boolean',
+                    value: false
+                });
+
+                camForm.variableManager.destroyVariable('riskData');
+                camForm.variableManager.createVariable({
+                    name: 'riskData',
+                    type: 'Json',
+                    value: $scope.riskData
                 });
             });
 
