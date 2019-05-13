@@ -103,6 +103,7 @@ public class SendGeneratedJRBlank implements JavaDelegate {
             String siteRegion = delegateExecution.getVariable("siteRegion").toString();
             String reason = delegateExecution.getVariable("reason").toString();
             Date requestDate = (Date) delegateExecution.getVariable("requestedDate");
+            Date contractorJobAssignedDate = (Date) delegateExecution.getVariable("contractorJobAssignedDate");
             SimpleDateFormat sdf = new SimpleDateFormat("dd.MM.yyyy");
             ObjectMapper mapper = new ObjectMapper();
             ArrayNode jobWorks = (ArrayNode) mapper.readTree(delegateExecution.getVariableTyped("jobWorks").getValue().toString());
@@ -201,10 +202,21 @@ public class SendGeneratedJRBlank implements JavaDelegate {
 
             row = sheet.createRow(11);
             cell = row.createCell(0);
-            cell.setCellValue("Request Date :");
-            cell.setCellStyle(alignRight);
 
-            row.createCell(2).setCellValue(sdf.format(requestDate));
+            SimpleDateFormat datFormatter = new SimpleDateFormat("yyyy-MM-dd'T'H:m:s.S");
+            String compareDateString = "2019-02-05T06:00:00.000";
+            Date compareDate = datFormatter.parse(compareDateString);
+
+            if(requestDate.after(compareDate)){
+                cell.setCellValue("Job Request date :");
+                cell.setCellStyle(alignRight);
+                row.createCell(2).setCellValue(contractorJobAssignedDate!=null?sdf.format(contractorJobAssignedDate):"");
+            } else {
+                cell.setCellValue("Request Date :");
+                cell.setCellStyle(alignRight);
+                row.createCell(2).setCellValue(sdf.format(requestDate));
+            }
+
 
             row = sheet.createRow(12);
             cell = row.createCell(0);
