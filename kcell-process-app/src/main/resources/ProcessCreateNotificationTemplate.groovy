@@ -9,6 +9,11 @@ def processName = delegateExecution.getProcessEngineServices().getRepositoryServ
 def startTime = new Date()
 if (processName=="Revision") {
     customVariables."Cайт"=delegateExecution.getVariable('site_name')
+    def statusObj = delegateExecution.getVariable('status')
+    if(statusObj!=null){
+        statusObj = new JsonSlurper().parseText(statusObj.toString())
+        customVariables."Статус" = statusObj.statusName
+    }
 }
 // subject can contain ampersands ~ problematic
 subject = java.net.URLEncoder.encode(subject, "UTF-8")

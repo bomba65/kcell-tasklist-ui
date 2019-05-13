@@ -11,6 +11,11 @@ def startTime = new Date()
 if (procInst != null) startTime = procInst.getStartTime()
 if (processName=="Revision") {
     customVariables."Cайт"=delegateTask.getVariable('site_name')
+    def statusObj = delegateTask.getVariable('status')
+    if(statusObj!=null){
+        statusObj = new JsonSlurper().parseText(statusObj.toString())
+        customVariables."Статус" = statusObj.statusName
+    }
 }
 // subject can contain ampersands ~ problematic
 subject = java.net.URLEncoder.encode(subject, "UTF-8")
