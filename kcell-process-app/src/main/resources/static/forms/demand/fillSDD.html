@@ -75,9 +75,9 @@
                 camForm.variableManager.fetchVariable('resolution');
                 camForm.variableManager.fetchVariable('attachments');
                 camForm.variableManager.fetchVariable('requirementManager');
+                camForm.variableManager.fetchVariable('solutionOwner');
                 camForm.variableManager.fetchVariable('status');
                 camForm.variableManager.fetchVariable('state');
-                camForm.variableManager.fetchVariable('oldStatus');
             });
 
             camForm.on('variables-fetched', function () {
@@ -89,6 +89,7 @@
                 $scope.resolutions = camForm.variableManager.variableValue('resolutions');
                 $scope.attachments = camForm.variableManager.variableValue('attachments');
                 $scope.requirementManager = camForm.variableManager.variableValue('requirementManager');
+                $scope.solutionOwner = camForm.variableManager.variableValue('solutionOwner');
                 $scope.status = camForm.variableManager.variableValue('status');
                 $scope.state = camForm.variableManager.variableValue('state');
                 if (!$scope.attachments) $scope.attachments = [];
@@ -106,6 +107,10 @@
 
                 $http.get("/camunda/api/engine/engine/default/user/" + $scope.requirementManager + "/profile").then(function(result){
                     $scope.requirementManager = (result.data.firstName ? result.data.firstName : "") + " " + (result.data.lastName ? result.data.lastName : "");
+                });
+
+                $http.get("/camunda/api/engine/engine/default/user/" + $scope.solutionOwner + "/profile").then(function(result){
+                    $scope.solutionOwner = (result.data.firstName ? result.data.firstName : "") + " " + (result.data.lastName ? result.data.lastName : "");
                 });
 
             });
@@ -128,42 +133,6 @@
                     name: 'resolution',
                     type: 'String',
                     value: $scope.resolution
-                });
-
-                var oldStatus = $scope.status;
-                var status = $scope.status;
-                var state = 'Active';
-                if ($scope.resolution == 'Cancel') status = 'Canceled on Follow-up';
-                else if ($scope.resolution == 'Send to Fill form') status = 'Modifying of General info';
-                else if ($scope.resolution == 'Send to Planning') {
-                    status = 'IPM approved conditionally';
-                    for (var r of $scope.resolutions) {
-                        if (r.taskName == 'IPM Committee') {
-                          if (r.resolution == 'Approve') status = 'IPM approved';
-                          break;
-                        }
-                    }
-                }
-
-                camForm.variableManager.destroyVariable('status');
-                camForm.variableManager.createVariable({
-                    name: 'status',
-                    type: 'String',
-                    value: status
-                });
-
-                camForm.variableManager.destroyVariable('state');
-                camForm.variableManager.createVariable({
-                    name: 'state',
-                    type: 'String',
-                    value: state
-                });
-
-                camForm.variableManager.destroyVariable('oldStatus');
-                camForm.variableManager.createVariable({
-                    name: 'oldStatus',
-                    type: 'String',
-                    value: oldStatus
                 });
             });
 
@@ -245,7 +214,7 @@
     </div>
     <label style="width: 6%; float: left; padding: 7px 0px 0 5px; font-weight: 500;"> Activity:</label>
     <div style="width: 29%; float: left; padding: 0 5px;">
-      <div class="disabled-element"> Requirement review </div>
+      <div class="disabled-element"> Fill SDD </div>
     </div>
   </div>
   <div class="form-group">
@@ -332,7 +301,7 @@
         </div>
       </div>
     </tab>
-    <tab>
+    <tab active="true">
       <tab-heading> BRD </tab-heading>
       <div style="margin-bottom: 20px; margin-top: 20px;">
         <accordion>
@@ -476,42 +445,19 @@
     <div class="panel-group custom-panel">
       <div class="panel panel-default">
         <div class="panel-heading">
-          <h4 class="panel-title">Risks</h4>
-        </div>
-        <div class="panel-body">
-          <table class="table ">
-            <thead>
-            <tr>
-              <th>Supportive Unit name</th>
-              <th>Responsible</th>
-              <th>Risk</th>
-            </tr>
-            </thead>
-            <tbody>
-            <tr ng-repeat="risk in riskData">
-              <td class="text-left">{{risk.unit}}</td>
-              <td class="text-left">{{risk.responsible}}</td>
-              <td class="text-left">{{risk.level}}</td>
-            </tr>
-            </tbody>
-          </table>
-        </div>
-      </div>
-    </div>
-  </div>
-
-
-  <div class="col-sm-12" style="padding: 0;">
-    <div class="panel-group custom-panel">
-      <div class="panel panel-default">
-        <div class="panel-heading">
           <h4 class="panel-title">Project team</h4>
         </div>
         <div class="panel-body">
           <div class="form-group">
-            <label class="col-sm-3 control-label">Requirement manager</label>
-            <div class="col-sm-9">
+            <label class="col-sm-5 control-label">Requirement manager</label>
+            <div class="col-sm-7">
               <div class="disabled-element">{{requirementManager}}</div>
+            </div>
+          </div>
+          <div class="form-group">
+            <label class="col-sm-5 control-label">Solution owner</label>
+            <div class="col-sm-7">
+              <div class="disabled-element">{{solutionOwner}}</div>
             </div>
           </div>
         </div>
@@ -550,28 +496,25 @@
   <hr>
 
   <!--<div class="col-sm-12" style="margin-bottom: 20px;">-->
-    <!--<button type="button" ng-click="exportCosts()" class="btn btn-info">Export Costs to Excel (Resources and Materials)</button>-->
+  <!--<button type="button" ng-click="exportCosts()" class="btn btn-info">Export Costs to Excel (Resources and Materials)</button>-->
   <!--</div>-->
 
   <div class="form-group">
     <label class="col-sm-2 control-label">Resolution</label>
     <div class="col-sm-8">
       <label class="radio-inline" title="Review and Assess solution design">
-        <input type="radio" ng-model="resolution" name="resolution" value="Submit" required> Submit
+        <input type="radio" ng-model="resolution" name="resolution" value="Submit" required> Approve
       </label>
-      <!--<label class="radio-inline" title="Вернуть запрос на доработку на Fill form \ Sent request to edit to Fill form">
-        <input type="radio" ng-model="resolution" name="resolution" value="Send to Fill form" required> Send to Fill form
-      </label>-->
       <label class="radio-inline" title="Send to Planning">
-        <input type="radio" ng-model="resolution" name="resolution" value="Send to Planning" required> Send to Planning
+        <input type="radio" ng-model="resolution" name="resolution" value="Send to Requirement review" required> Send to Requirement review
       </label>
       <label class="error" ng-show="kcell_form.resolution.$error.required && ( kcell_form.resolution.$touched || view.submitted)">Required field</label>
     </div>
   </div>
   <div class="form-group">
-    <label class="col-sm-2 control-label">Comment<span class="text-danger glyphicon-asterisk"></span></label>
+    <label class="col-sm-2 control-label">Comment<span ng-if="resolution === 'Send to Requirement review'" class="text-danger glyphicon-asterisk"></span></label>
     <div class="col-sm-10">
-      <textarea class="form-control" rows="4" maxlength="500" ng-model="comment" name="comment" required></textarea>
+      <textarea class="form-control" rows="4" maxlength="500" ng-model="comment" name="comment" ng-required="resolution === 'Send to Requirement review'"></textarea>
       <label class="error" ng-show="kcell_form.comment.$error.required && ( kcell_form.comment.$touched || view.submitted)">Required field</label>
     </div>
   </div>

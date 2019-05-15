@@ -75,9 +75,9 @@
                 camForm.variableManager.fetchVariable('resolution');
                 camForm.variableManager.fetchVariable('attachments');
                 camForm.variableManager.fetchVariable('requirementManager');
+                camForm.variableManager.fetchVariable('solutionOwner');
                 camForm.variableManager.fetchVariable('status');
                 camForm.variableManager.fetchVariable('state');
-                camForm.variableManager.fetchVariable('oldStatus');
             });
 
             camForm.on('variables-fetched', function () {
@@ -130,40 +130,11 @@
                     value: $scope.resolution
                 });
 
-                var oldStatus = $scope.status;
-                var status = $scope.status;
-                var state = 'Active';
-                if ($scope.resolution == 'Cancel') status = 'Canceled on Follow-up';
-                else if ($scope.resolution == 'Send to Fill form') status = 'Modifying of General info';
-                else if ($scope.resolution == 'Send to Planning') {
-                    status = 'IPM approved conditionally';
-                    for (var r of $scope.resolutions) {
-                        if (r.taskName == 'IPM Committee') {
-                          if (r.resolution == 'Approve') status = 'IPM approved';
-                          break;
-                        }
-                    }
-                }
-
-                camForm.variableManager.destroyVariable('status');
+                camForm.variableManager.destroyVariable('solutionOwner');
                 camForm.variableManager.createVariable({
-                    name: 'status',
+                    name: 'solutionOwner',
                     type: 'String',
-                    value: status
-                });
-
-                camForm.variableManager.destroyVariable('state');
-                camForm.variableManager.createVariable({
-                    name: 'state',
-                    type: 'String',
-                    value: state
-                });
-
-                camForm.variableManager.destroyVariable('oldStatus');
-                camForm.variableManager.createVariable({
-                    name: 'oldStatus',
-                    type: 'String',
-                    value: oldStatus
+                    value: $scope.solutionOwnerId
                 });
             });
 
@@ -174,6 +145,58 @@
                 }, function(error){
                     console.log(error.data);
                 });
+            };
+
+            $scope.getUser = function(val) {
+                $scope.solutionOwnerId = null;
+                $scope.kcell_form.solutionOwner.$setValidity('not_selected', false);
+                var users = $http.get('/camunda/api/engine/engine/default/user?memberOfGroup=demand_uat_users&firstNameLike='+encodeURIComponent('%'+val+'%')).then(
+                    function(response){
+                        var usersByFirstName = _.flatMap(response.data, function(s){
+                            if(s.id){
+                                return s.id.split(',').map(function(user){
+                                    return {
+                                        id: s.id,
+                                        email: (s.email?s.email.substring(s.email.lastIndexOf('/')+1):s.email),
+                                        firstName: s.firstName,
+                                        lastName: s.lastName,
+                                        name: s.firstName + ' ' + s.lastName
+                                    };
+                                })
+                            } else {
+                                return [];
+                            }
+                        });
+
+                        return $http.get('/camunda/api/engine/engine/default/user?memberOfGroup=demand_uat_users&lastNameLike='+encodeURIComponent('%'+val+'%')).then(
+                            function(response){
+                                var usersByLastName = _.flatMap(response.data, function(s){
+                                    if(s.id){
+                                        return s.id.split(',').map(function(user){
+                                            return {
+                                                id: s.id,
+                                                email: s.email.substring(s.email.lastIndexOf('/')+1),
+                                                firstName: s.firstName,
+                                                lastName: s.lastName,
+                                                name: s.firstName + ' ' + s.lastName
+                                            };
+                                        })
+                                    } else {
+                                        return [];
+                                    }
+                                });
+                                return _.unionWith(usersByFirstName, usersByLastName, _.isEqual);
+                            }
+                        );
+                    }
+                );
+                return users;
+            };
+
+            $scope.userSelected = function(item){
+                $scope.solutionOwnerId = item.id;
+                $scope.solutionOwnerName = item.name;
+                $scope.kcell_form.solutionOwner.$setValidity('not_selected', true);
             };
 
             /*$scope.exportCosts = function () {
@@ -245,7 +268,7 @@
     </div>
     <label style="width: 6%; float: left; padding: 7px 0px 0 5px; font-weight: 500;"> Activity:</label>
     <div style="width: 29%; float: left; padding: 0 5px;">
-      <div class="disabled-element"> Requirement review </div>
+      <div class="disabled-element"> Assign Solution owner </div>
     </div>
   </div>
   <div class="form-group">
@@ -332,7 +355,7 @@
         </div>
       </div>
     </tab>
-    <tab>
+    <tab active="true">
       <tab-heading> BRD </tab-heading>
       <div style="margin-bottom: 20px; margin-top: 20px;">
         <accordion>
@@ -455,7 +478,7 @@
     </tab>
   </tabset>
 
-  <div class="col-sm-12" style="margin-top: 20px;"><hr style="border-top: 2px solid #aaa;" /></div>
+  <div class="col-sm-12"><hr style="border-top: 2px solid #aaa;" /></div>
 
   <div class="col-sm-12" style="padding: 0;">
     <div class="panel-group custom-panel">
@@ -476,35 +499,6 @@
     <div class="panel-group custom-panel">
       <div class="panel panel-default">
         <div class="panel-heading">
-          <h4 class="panel-title">Risks</h4>
-        </div>
-        <div class="panel-body">
-          <table class="table ">
-            <thead>
-            <tr>
-              <th>Supportive Unit name</th>
-              <th>Responsible</th>
-              <th>Risk</th>
-            </tr>
-            </thead>
-            <tbody>
-            <tr ng-repeat="risk in riskData">
-              <td class="text-left">{{risk.unit}}</td>
-              <td class="text-left">{{risk.responsible}}</td>
-              <td class="text-left">{{risk.level}}</td>
-            </tr>
-            </tbody>
-          </table>
-        </div>
-      </div>
-    </div>
-  </div>
-
-
-  <div class="col-sm-12" style="padding: 0;">
-    <div class="panel-group custom-panel">
-      <div class="panel panel-default">
-        <div class="panel-heading">
           <h4 class="panel-title">Project team</h4>
         </div>
         <div class="panel-body">
@@ -512,6 +506,14 @@
             <label class="col-sm-3 control-label">Requirement manager</label>
             <div class="col-sm-9">
               <div class="disabled-element">{{requirementManager}}</div>
+            </div>
+          </div>
+          <div class="form-group">
+            <label class="col-sm-3 control-label">Solution owner</label>
+            <div class="col-sm-9">
+              <input type="text" class="form-control" name="solutionOwner" ng-model="solutionOwnerName" typeahead="name as users.name for users in getUser($viewValue)" typeahead-on-select="userSelected($item)" autocomplete="off" ng-required="resolution === 'Approve'">
+              <span class="has-error" ng-if="kcell_form.solutionOwner.$error.required && (kcell_form.solutionOwner.$touched || view.submitted)">Required field</span>
+              <span class="has-error" ng-if="!kcell_form.solutionOwner.$error.required && kcell_form.solutionOwner.$error.not_selected && (kcell_form.solutionOwner.$touched || view.submitted)">User must be selected from the list</span>
             </div>
           </div>
         </div>
@@ -550,28 +552,25 @@
   <hr>
 
   <!--<div class="col-sm-12" style="margin-bottom: 20px;">-->
-    <!--<button type="button" ng-click="exportCosts()" class="btn btn-info">Export Costs to Excel (Resources and Materials)</button>-->
+  <!--<button type="button" ng-click="exportCosts()" class="btn btn-info">Export Costs to Excel (Resources and Materials)</button>-->
   <!--</div>-->
 
   <div class="form-group">
     <label class="col-sm-2 control-label">Resolution</label>
     <div class="col-sm-8">
       <label class="radio-inline" title="Review and Assess solution design">
-        <input type="radio" ng-model="resolution" name="resolution" value="Submit" required> Submit
+        <input type="radio" ng-model="resolution" name="resolution" value="Approve" required> Approve
       </label>
-      <!--<label class="radio-inline" title="Вернуть запрос на доработку на Fill form \ Sent request to edit to Fill form">
-        <input type="radio" ng-model="resolution" name="resolution" value="Send to Fill form" required> Send to Fill form
-      </label>-->
       <label class="radio-inline" title="Send to Planning">
-        <input type="radio" ng-model="resolution" name="resolution" value="Send to Planning" required> Send to Planning
+        <input type="radio" ng-model="resolution" name="resolution" value="Send to Requirement review" required> Send to Requirement review
       </label>
       <label class="error" ng-show="kcell_form.resolution.$error.required && ( kcell_form.resolution.$touched || view.submitted)">Required field</label>
     </div>
   </div>
   <div class="form-group">
-    <label class="col-sm-2 control-label">Comment<span class="text-danger glyphicon-asterisk"></span></label>
+    <label class="col-sm-2 control-label">Comment<span ng-if="resolution === 'Send to Requirement review'" class="text-danger glyphicon-asterisk"></span></label>
     <div class="col-sm-10">
-      <textarea class="form-control" rows="4" maxlength="500" ng-model="comment" name="comment" required></textarea>
+      <textarea class="form-control" rows="4" maxlength="500" ng-model="comment" name="comment" ng-required="resolution === 'Send to Requirement review'"></textarea>
       <label class="error" ng-show="kcell_form.comment.$error.required && ( kcell_form.comment.$touched || view.submitted)">Required field</label>
     </div>
   </div>
