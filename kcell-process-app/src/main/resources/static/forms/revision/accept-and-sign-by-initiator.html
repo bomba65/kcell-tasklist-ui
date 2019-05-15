@@ -121,7 +121,7 @@
                         $q.all($scope.resolutions.map(function (resolution) {
                             return $http.get("/camunda/api/engine/engine/default/history/identity-link-log?type=assignee&taskId=" + resolution.taskId + "&operationType=add&sortBy=time&sortOrder=desc");
                         })).then(function (logs) {
-                            logs.forEach(function (e, index) {
+                            angular.forEach(logs, function (e, index) {
                                 if(e.data.length > 0){
                                     try {
                                         $scope.resolutions[index].claimDate = new Date(e.data[0].time);
@@ -139,7 +139,10 @@
                         $scope.jobModel[el] = camForm.variableManager.variables[el];
                     }
 
-                    $scope[el] = camForm.variableManager.variables[el];
+                    if(el !== 'resolutions'){
+                        $scope[el] = camForm.variableManager.variables[el];
+                    }
+
                     if($scope[el].type === 'Date' && $scope[el].value){
                         $scope[el].value = new Date($scope[el].value);
                     }
@@ -186,7 +189,9 @@
                 camForm.variableManager.variableValue('acceptAndSignByInitiatorTaskResult', $scope.acceptAndSignByInitiatorTaskResult);
                 if ($scope.acceptAndSignByInitiatorTaskResult === 'rejected') {
                     camForm.variableManager.variableValue('acceptPerformedJob', 'rejected');
-                    camForm.variableManager.destroyVariable('performDate');
+                    if(camForm.variableManager.variables['performDate']){
+                        camForm.variableManager.destroyVariable('performDate');
+                    }
                 } else {
                     camForm.variableManager.variableValue('acceptPerformedJob', 'accepted');
                 }
