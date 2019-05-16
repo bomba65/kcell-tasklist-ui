@@ -357,7 +357,7 @@ define(['./module', 'jquery', 'moment', 'camundaSDK'], function (app, $, moment,
                 }
 
                 if ($scope.filter.activityId) {
-                    filter.activeActivityIdIn = $scope.filter.activityId;
+                    filter.activeActivityIdIn = [$scope.filter.activityId];
                 }
                 $scope.lastSearchParams = filter;
                 getProcessInstances(filter, 'processInstances');
