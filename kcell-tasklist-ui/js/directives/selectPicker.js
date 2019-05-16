@@ -12,6 +12,33 @@ define(['./module', 'jquery'], function (app) {
                         $('.selectpicker').selectpicker('refresh');
                     });
                 }
+
+
+                $(function() {
+                    $('.selectpicker').on('show.bs.select', function () {
+
+                        var dropdownList = $('.dropdown-menu'),
+                            dropdownOffset = $(this).offset(),
+                            offsetLeft = dropdownOffset.left,
+                            dropdownWidth = dropdownList.width(),
+                            docWidth = $(window).width(),
+
+                            subDropdown = dropdownList.eq(1),
+                            subDropdownWidth = subDropdown.width(),
+
+                            isDropdownVisible = (offsetLeft + dropdownWidth <= docWidth),
+                            isSubDropdownVisible = (offsetLeft + dropdownWidth + subDropdownWidth <= docWidth);
+
+                        if (!isDropdownVisible || !isSubDropdownVisible) {
+                            dropdownList.addClass('pull-right');
+                        } else {
+                            dropdownList.removeClass('pull-right');
+                        }
+                    });
+                });
+
+
+
                 $timeout(function () {
                     $('.selectpicker').selectpicker("");
                 });
