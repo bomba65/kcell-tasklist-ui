@@ -100,12 +100,15 @@ define(['./module','camundaSDK'], function(module, CamSDK){
 												camForm.submit(function (err,results) {
 													if (err) {
 														$submitBtn.removeAttr('disabled');
-														toasty.error({title: "Could not complete task", msg: err});
+														toasty.error({title: "Coguld not complete task", msg: err});
 														e.preventDefault();
 														throw err;
 													} else {
+														console.log('SEND 107');
+														toasty.success({title: "Info", msg: " Your form has been successfully processed"});
 														$('#start-form-modal-body').html('');
 														scope.$close(results);
+
 													}
 												});
 												/*
@@ -148,6 +151,8 @@ define(['./module','camundaSDK'], function(module, CamSDK){
 												e.preventDefault();
 												throw err;
 											} else {
+												console.log('SEND 154');
+												toasty.success({title: "Info", msg: " Your form has been successfully processed"});
 												$('#start-form-modal-body').html('');
 												scope.$close(results);
 											}

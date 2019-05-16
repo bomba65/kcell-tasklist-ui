@@ -45,8 +45,10 @@ define(['./module','camundaSDK', 'lodash', 'big-js'], function(module, CamSDK, _
 										e.preventDefault();
 										throw err;
 									} else {
+										toasty.success({title: "Info", msg: " Your form has been successfully processed"});
 										$scope.preSubmit = undefined;
 										$('#taskElement').html('');
+
 										$scope.currentTask = undefined;
 										$scope.$parent.getTaskList();
 										$location.search({});
@@ -69,6 +71,7 @@ define(['./module','camundaSDK', 'lodash', 'big-js'], function(module, CamSDK, _
 								e.preventDefault();
 								throw err;
 							} else {
+								toasty.success({title: "Info", msg: " Your form has been successfully processed"});
 								$('#taskElement').html('');
 								$scope.currentTask = undefined;
 								$scope.$parent.getTaskList();
