@@ -58,6 +58,15 @@ public class FileMoveListener implements ExecutionListener {
                     });
 
                     delegateExecution.setVariable(fileVarName, SpinValues.jsonValue(filesList.toString()));
+
+                    SpinJsonNode resolutionContainer = delegateExecution.<JsonValue>getVariableTyped("resolutions").getValue();
+                    if(resolutionContainer.isArray() && resolutionContainer.elements().size() > 0){
+                        SpinList<SpinJsonNode> resolutions = delegateExecution.<JsonValue>getVariableTyped("resolutions").getValue().elements();
+                        resolutions.forEach(resolution -> {
+                            resolution.prop("files", SpinJsonNode.JSON(filesList.toString()));
+                        });
+                        delegateExecution.setVariable("resolutions", SpinValues.jsonValue(resolutions.toString()));
+                    }
                 }
             }
         });
