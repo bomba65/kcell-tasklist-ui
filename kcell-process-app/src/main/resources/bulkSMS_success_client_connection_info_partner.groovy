@@ -15,7 +15,7 @@ html(lang:'en') {
     body {
         p('Добрый день!')
         newLine()
-        p('Идентификаторы: ' + finalIDs + ' успешно подключены для клиента ' + officialClientCompanyName)
+        p('Идентификатор: ' + finalIDs + ' успешно подключен для клиента ' + officialClientCompanyName)
         p('С Уважением,')
         newLine()
         p('Kcell Flow')
