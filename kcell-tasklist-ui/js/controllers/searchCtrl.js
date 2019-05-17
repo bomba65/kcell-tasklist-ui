@@ -199,7 +199,7 @@ define(['./module', 'jquery', 'moment', 'camundaSDK'], function (app, $, moment,
                 businessKeyFilterType: 'eq',
                 unfinished: false,
                 page: 1,
-                maxResults: 10
+                maxResults: 20
             };
 
             $scope.currentDate = new Date();
@@ -939,7 +939,7 @@ define(['./module', 'jquery', 'moment', 'camundaSDK'], function (app, $, moment,
                 initiatorId: '',
                 unfinished: false,
                 page: 1,
-                maxResults: 10
+                maxResults: 20
             };
 
             $scope.userTasksDP = {};
@@ -2085,7 +2085,7 @@ define(['./module', 'jquery', 'moment', 'camundaSDK'], function (app, $, moment,
                     $scope.filter = {
                         technicalAnalysisValue: 'ignore',
                         page: 1,
-                        maxResults: 10
+                        maxResults: 20
                     };
 
                     $scope.statusList = [
