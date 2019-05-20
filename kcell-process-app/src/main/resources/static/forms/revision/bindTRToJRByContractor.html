@@ -184,11 +184,11 @@
                 $scope.trMatch = camForm.variableManager.variableValue('trMatch');
             });
 
-            $scope.fileSelected = function(el){
+            $scope.fileSelected = function(el, bindedInput){
                 if(el.files[0]){
                     $timeout(function () {
                         $scope.$apply(function () {
-                            uploadFileToMinio(el.files[0], el.value);
+                            uploadFileToMinio(el.files[0], el.value, bindedInput);
                         });
                     })
                 } else {
@@ -196,7 +196,7 @@
                 }
             };
 
-            function uploadFileToMinio(file, value) {
+            function uploadFileToMinio(file, value, bindedInput) {
                 var index = $scope.trFilesName.value.length;
 
                 var fileToUpload = {
@@ -213,6 +213,7 @@
                             $scope.trFilesName.value.push(fileToUpload);
                             angular.element(document.querySelector('#trNewFile')).val(null);
                             $scope.trNewFile = {};
+                            $(bindedInput).val('');
                         },
                         function (error) {
                             console.log(error.data);
@@ -278,7 +279,15 @@
         <label class="col-sm-4 control-label">SAP Transport Request File # {{trFilesName.value.length+1}}:</label>
         <div class="col-sm-8">
             <ng-form name="trfilesform">
-                <input type="file" class="form-control" id="trNewFile" name="trNewFile" ng-model="trNewFile" required-file="bindTRToJRByContractorTaskResult === 'attached' && !trFilesName.value[0].name" onchange="angular.element(this).scope().fileSelected(this)"/>
+                <!--<input type="file" class="form-control" id="trNewFile" name="trNewFile" ng-model="trNewFile" required-file="bindTRToJRByContractorTaskResult === 'attached' && !trFilesName.value[0].name" onchange="angular.element(this).scope().fileSelected(this)"/>-->
+                <div class="input-group">
+                    <label class="input-group-btn">
+                    <span class="btn btn-default">
+                        Choose File <input type="file" id="trNewFile" name="trNewFile" ng-model="trNewFile" style="display: none;" required-file="bindTRToJRByContractorTaskResult === 'attached' && !trFilesName.value[0].name" onchange="angular.element(this).scope().fileSelected(this, '#supplementaryFilesName');$('#supplementaryFilesName').val(this.files[0].name)" >
+                    </span>
+                    </label>
+                    <input type="text" class="form-control upload-filename" id="supplementaryFilesName" placeholder="No File Chosen" readonly>
+                </div>
                 <label class="has-error" ng-show="trfilesform.trNewFile.$error.validFile">File is required</label>
             </ng-form>
         </div>

@@ -522,15 +522,17 @@
                 getJobs();
             }
 
-            function fileSelected(el){
+            function fileSelected(el, bindedInput){
                 $timeout(function () {
                     $scope.$apply(function () {
-                        uploadFileToMinio(el.files[0]);
+                        uploadFileToMinio(el.files[0], bindedInput);
+
                     });
+
                 })
             }
 
-            function uploadFileToMinio(file) {
+            function uploadFileToMinio(file, bindedInput) {
                 var fileValue = {
                     name: file.name.replace(/[/\\?%*:|"<>]/g, '-'),
                     path: uuid + '/' + file.name.replace(/[/\\?%*:|"<>;]/g, '-')
@@ -544,6 +546,7 @@
                             }
                             $scope.supplementaryFiles.push(fileValue);
                             angular.element(document.querySelector('#supplementaryFiles')).val(null);
+                            $(bindedInput).val('');
                         },
                         function (error) {
                             console.log(error.data);
@@ -557,7 +560,16 @@
             $scope.clearFile = function(index){
                 $scope.supplementaryFiles.splice(index, 1);
             }
+            $scope.copyaddress=function(){
 
+                if($scope.sameaddress_data){
+                        console.log('heeey');
+                      $scope.copysend = $scope.sameaddress_data;
+                }else{
+                    console.log('heeey');
+                      $scope.copysend = ""
+                }
+            }
             function download(file) {
                 $http({method: 'GET', url: '/camunda/uploads/tmp/get/' + file.path, transformResponse: [] }).
                 then(function(response) {
@@ -922,7 +934,7 @@
         <label class="col-sm-3 control-label">Supplementary files:</label>
         <div class="col-sm-6">
             <div class="input-group" ng-repeat="file in supplementaryFiles track by $index">
-                <a ng-click="download(file)">{{file.name}}</a> | <a ng-click="clearFile($index)"><i class="glyphicon glyphicon-trash"></i></a>
+                <a ng-click="download(file)">{{file.name}}</a> | <a ng-click="clearFile($index);"><i class="glyphicon glyphicon-trash"></i></a>
                 <div class="input-group-addon" ng-show="file.name && hasGroup('kcellUsers')">
                     <label class="radio-inline">
                         <input type="radio" name="supplementaryFileVisibility_{{$index}}"
@@ -935,7 +947,15 @@
                     <label class="error" ng-show="kcell_form['supplementaryFileVisibility_'+$index].$error.required && ( kcell_form['supplementaryFileVisibility_'+$index].$index.$touched || view.submitted)">Required field</label>
                 </div>
             </div>
-            <input type="file" class="form-control" name="supplementaryFiles" id="supplementaryFiles" onchange="angular.element(this).scope().fileSelected(this)" />
+            <!--<input type="file" class="form-control" name="supplementaryFiles" id="supplementaryFiles" onchange="angular.element(this).scope().fileSelected(this)" />-->
+            <div class="input-group">
+                <label class="input-group-btn">
+                    <span class="btn btn-default">
+                        Choose File <input type="file" id="supplementaryFiles" name="supplementaryFiles" style="display: none;" onchange="angular.element(this).scope().fileSelected(this, '#supplementaryFilesName');$('#supplementaryFilesName').val(this.files[0].name)" >
+                    </span>
+                </label>
+                <input type="text" class="form-control upload-filename" id="supplementaryFilesName" placeholder="No File Chosen" readonly>
+            </div>
         </div>
     </div>
     <div class="form-group">

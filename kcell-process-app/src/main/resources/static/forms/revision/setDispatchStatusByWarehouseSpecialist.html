@@ -225,9 +225,9 @@
                 $scope.setDispatchStatusByWarehouseSpecialistTaskResult = camForm.variableManager.variableValue('setDispatchStatusByWarehouseSpecialistTaskResult');
             });
 
-            $scope.fileSelected = function(el){
+            $scope.fileSelected = function(el, bindedInput){
                 if(el.files[0]){
-                    uploadFileToMinio(el.files[0])
+                    uploadFileToMinio(el.files[0], bindedInput)
                 } else {
                     $scope.$apply(function(){
                         $scope[fileName] = undefined;
@@ -235,7 +235,7 @@
                 }
             };
 
-            function uploadFileToMinio(file) {
+            function uploadFileToMinio(file, bindedInput) {
                 var fileIndex = $scope.actOfMaterialsDispatchingFiles.value.length;
 
                 var fileToUpload = {
@@ -250,6 +250,7 @@
                         function () {
                             $scope.actOfMaterialsDispatchingFiles.value.push(fileToUpload);
                             angular.element(document.querySelector('#act_of_dispatching_new_file')).val(null);
+                            $(bindedInput).val('');
                         },
                         function (error) {
                             console.log(error.data);
@@ -327,7 +328,15 @@
         <label class="col-sm-4 control-label">New Act of Materials Dispatching file</label>
         <div class="col-sm-8">
             <ng-form name="act_of_dispatching_file_form">
-                <input type="file" class="form-control" id="act_of_dispatching_new_file" name="act_of_dispatching_new_file" ng-model="newFile"  required-file="setDispatchStatusByWarehouseSpecialistTaskResult === 'dispatched' && notUploadedFile()" onchange="angular.element(this).scope().fileSelected(this)"/>
+                <!--<input type="file" class="form-control" id="act_of_dispatching_new_file" name="act_of_dispatching_new_file" ng-model="newFile"  required-file="setDispatchStatusByWarehouseSpecialistTaskResult === 'dispatched' && notUploadedFile()" onchange="angular.element(this).scope().fileSelected(this)"/>-->
+                <div class="input-group">
+                    <label class="input-group-btn">
+                    <span class="btn btn-default">
+                        Choose File <input type="file" id="act_of_dispatching_new_file" name="act_of_dispatching_new_file" ng-model="newFile" required-file="setDispatchStatusByWarehouseSpecialistTaskResult === 'dispatched' && notUploadedFile()" style="display: none;" onchange="angular.element(this).scope().fileSelected(this, '#supplementaryFilesName');$('#supplementaryFilesName').val(this.files[0].name)" >
+                    </span>
+                    </label>
+                    <input type="text" class="form-control upload-filename" id="supplementaryFilesName" placeholder="No File Chosen" readonly>
+                </div>
                 <label class="has-error" ng-show="act_of_dispatching_file_form.act_of_dispatching_new_file.$error.validFile">File is required</label>
             </ng-form>
         </div>

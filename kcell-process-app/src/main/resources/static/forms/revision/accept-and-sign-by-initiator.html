@@ -252,15 +252,15 @@
                 return false;
             }
 
-            $scope.fileSelected = function(el){
+            $scope.fileSelected = function(el, bindedInput){
                 $timeout(function () {
                     $scope.$apply(function () {
-                        uploadFileToMinio(el.files[0]);
+                        uploadFileToMinio(el.files[0], bindedInput);
                     });
                 })
             };
 
-            function uploadFileToMinio(file) {
+            function uploadFileToMinio(file, bindedInput) {
                 var fileIndex = $scope.initiatorFiles.value.length;
 
                 var fileToUpload = {
@@ -278,6 +278,7 @@
                         function () {
                             $scope.initiatorFiles.value.push(fileToUpload);
                             angular.element(document.querySelector('#initiator_file_' + fileIndex)).val(null);
+                            $(bindedInput).val('');
                         },
                         function (error) {
                             console.log(error.data);
@@ -332,7 +333,15 @@
                 </div>
             </div>
         </div>
-        <input type="file" class="form-control" id="initiator_file_{{initiatorFiles.value.length}}" name="initiator_file_{{initiatorFiles.value.length}}" ng-model="file.file" onchange="angular.element(this).scope().fileSelected(this)"/>
+        <!--<input type="file" class="form-control" id="initiator_file_{{initiatorFiles.value.length}}" name="initiator_file_{{initiatorFiles.value.length}}" ng-model="file.file" onchange="angular.element(this).scope().fileSelected(this)"/>-->
+        <div class="input-group">
+            <label class="input-group-btn">
+                    <span class="btn btn-default">
+                        Choose File <input type="file" id="initiator_file_{{initiatorFiles.value.length}}" name="initiator_file_{{initiatorFiles.value.length}}" ng-model="file.file"  style="display: none;" onchange="angular.element(this).scope().fileSelected(this, '#supplementaryFilesName');$('#supplementaryFilesName').val(this.files[0].name)" >
+                    </span>
+            </label>
+            <input type="text" class="form-control upload-filename" id="supplementaryFilesName" placeholder="No File Chosen" readonly>
+        </div>
     </div>
 
     <div class="form-group">

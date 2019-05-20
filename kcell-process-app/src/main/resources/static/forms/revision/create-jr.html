@@ -570,17 +570,17 @@
                 getJobs();
             }
 
-            $scope.fileSelected = function(el){
+            $scope.fileSelected = function(el, bindedInput){
                 if(el.files[0]){
                     $timeout(function () {
                         $scope.$apply(function () {
-                            uploadFileToMinio(el.files[0]);
+                            uploadFileToMinio(el.files[0], bindedInput);
                         });
                     })
                 }
             };
 
-            function uploadFileToMinio(file) {
+            function uploadFileToMinio(file, bindedInput) {
 
                 var fileValue = {
                     name: file.name.replace(/[/\\?%*:|"<>]/g, '-'),
@@ -596,6 +596,7 @@
                                 }
                                 $scope.supplementaryFiles.value.push(fileValue);
                                 angular.element(document.querySelector('#supplementaryFiles')).val(null);
+                                $(bindedInput).val('');
                             },
                             function (error) {
                                 console.log(error.data);
@@ -908,7 +909,15 @@
                     <label class="error" ng-show="kcell_form['supplementaryFile_'+$index].$error.required && ( kcell_form['supplementaryFile_'+$index].$touched || view.submitted)">Required field</label>
                 </div>
             </div>
-            <input type="file" class="form-control" name="supplementaryFiles" id="supplementaryFiles" onchange="angular.element(this).scope().fileSelected(this)" />
+            <!--<input type="file" class="form-control" name="supplementaryFiles" id="supplementaryFiles" onchange="angular.element(this).scope().fileSelected(this)" />-->
+            <div class="input-group">
+                <label class="input-group-btn">
+                    <span class="btn btn-default">
+                        Choose File <input type="file" id="supplementaryFiles" name="supplementaryFiles" style="display: none;" onchange="angular.element(this).scope().fileSelected(this, '#supplementaryFilesName');$('#supplementaryFilesName').val(this.files[0].name)" >
+                    </span>
+                </label>
+                <input type="text" class="form-control upload-filename" id="supplementaryFilesName" placeholder="No File Chosen" readonly>
+            </div>
         </div>
     </div>
     <div class="form-group">

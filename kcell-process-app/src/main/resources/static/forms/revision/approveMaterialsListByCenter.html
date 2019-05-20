@@ -214,11 +214,11 @@
                 camForm.variableManager.variableValue('resolutions', $scope.resolutions);
             });
 
-            $scope.fileSelected = function(el, fileName){
+            $scope.fileSelected = function(el, fileName, bindedInput){
                 if(el.files[0]){
                     $timeout(function () {
                         $scope.$apply(function () {
-                            uploadFileToMinio(el.files[0], fileName);
+                            uploadFileToMinio(el.files[0], fileName, bindedInput);
                         });
                     })
                 } else {
@@ -228,7 +228,7 @@
                 }
             };
 
-            function uploadFileToMinio(file, fileName) {
+            function uploadFileToMinio(file, fileName, bindedInput) {
                 var fileToUpload = {
                     name: fileName,
                     type: 'Json',
@@ -244,6 +244,7 @@
                             function () {
                                 $scope[fileName] = fileToUpload;
                                 angular.element(document.querySelector('#'+fileName)).val(null);
+                                $(bindedInput).val('');
                             },
                             function (error) {
                                 console.log(error.data);
@@ -308,8 +309,16 @@
             <div ng-show="mlApprovalAdditionalInfoFile.value.name">
                 <a ng-click="download(mlApprovalAdditionalInfoFile)">{{mlApprovalAdditionalInfoFile.value.name}}</a> | <a ng-click="clearFile('mlApprovalAdditionalInfoFile')"><i class="glyphicon glyphicon-trash"></i></a>
             </div>
-            <input ng-hide="mlApprovalAdditionalInfoFile.value.name" type="file" class="form-control" id="mlApprovalAdditionalInfoFile"
-                   name="mlApprovalAdditionalInfoFile" ng-model="mlApprovalAdditionalInfoFile" onchange="angular.element(this).scope().fileSelected(this, 'mlApprovalAdditionalInfoFile')"/>
+            <!--<input ng-hide="mlApprovalAdditionalInfoFile.value.name" type="file" class="form-control" id="mlApprovalAdditionalInfoFile"
+                   name="mlApprovalAdditionalInfoFile" ng-model="mlApprovalAdditionalInfoFile" onchange="angular.element(this).scope().fileSelected(this, 'mlApprovalAdditionalInfoFile')"/>-->
+            <div class="input-group" ng-hide="mlApprovalAdditionalInfoFile.value.name">
+                <label class="input-group-btn">
+                    <span class="btn btn-default">
+                        Choose File <input type="file" id="mlApprovalAdditionalInfoFile" name="mlApprovalAdditionalInfoFile" ng-model="mlApprovalAdditionalInfoFile"  style="display: none;" onchange="angular.element(this).scope().fileSelected(this, 'mlApprovalAdditionalInfoFile', '#supplementaryFilesName');$('#supplementaryFilesName').val(this.files[0].name)" >
+                    </span>
+                </label>
+                <input type="text" class="form-control upload-filename" id="supplementaryFilesName" placeholder="No File Chosen" readonly>
+            </div>
         </div>
     </div>
     <div class="form-group" ng-show="mlApprovalAdditionalInfoFile.value.name && hasGroup('kcellUsers')">
