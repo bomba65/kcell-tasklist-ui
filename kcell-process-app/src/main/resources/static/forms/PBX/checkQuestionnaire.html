@@ -70,18 +70,6 @@
       camForm.variableManager.fetchVariable('poiMessage');
       camForm.variableManager.fetchVariable('flow1NextTaskAssignee');
       camForm.variableManager.fetchVariable('tariff');
-    
-      $http.get('/camunda/api/engine/engine/default/task/' + camForm.taskId).then(
-        function (result) {
-          processInstanceId = result.data.processInstanceId;
-          taskKey = result.data.taskDefinitionKey;
-          camForm.variableManager.fetchVariable(taskKey + 'Resolution');
-          configureViews();
-        },
-        function (error) {
-          console.log(error.data);
-        }
-      );
     });
 
     camForm.on('variables-fetched', function () {
@@ -92,16 +80,40 @@
       $scope.e1 = camForm.variableManager.variableValue('e1Protocol');
       $scope.dir = camForm.variableManager.variableValue('sipDirectProtocol');
       $scope.attachments = camForm.variableManager.variableValue('attachments');
-      $scope.resolution = camForm.variableManager.variableValue(taskKey + 'Resolution');
       $scope.resolutions = camForm.variableManager.variableValue('resolutions');
       $scope.poiMessage = camForm.variableManager.variableValue('poiMessage');
       $scope.tariff = camForm.variableManager.variableValue('tariff');
+
+      $http.get('/camunda/api/engine/engine/default/task/' + camForm.taskId).then(
+        function (result) {
+          processInstanceId = result.data.processInstanceId;
+          taskKey = result.data.taskDefinitionKey;
+
+          $http.get('/camunda/api/engine/engine/default/process-instance/' + processInstanceId + '/variables/'+taskKey+'Resolution?deserializeValue=false').then(
+              function(result) {
+                  $scope.resolution = result.data.value;
+              },
+              function(error) {
+                  $scope.resolution = 'Accepted';
+              }
+          );
+
+          camForm.variableManager.createVariable({
+            name: taskKey + 'Resolution',
+            type: 'String',
+            value: $scope.resolution,
+            store: true
+          });
+
+          configureViews();
+        },
+        function (error) {
+          console.log(error.data);
+        }
+      );
+
       if (!$scope.attachments) {
         $scope.attachments = [];
-      }
-      if (!$scope.resolution) {
-        $scope.resolution = 'Accepted';
-        //if ($scope.showView.resolution) $scope.resolution = 'Rejected';
       }
       if ($scope.resolutions) {
         $q.all($scope.resolutions.map(function (resolution) {
@@ -149,13 +161,7 @@
         });
       }
       if ($scope.showView.resolution) {
-        camForm.variableManager.destroyVariable(taskKey + 'Resolution');
-        camForm.variableManager.createVariable({
-          name: taskKey + 'Resolution',
-          type: 'String',
-          value: $scope.resolution,
-          store: true
-        });
+        camForm.variableManager.variableValue(taskKey + 'Resolution', $scope.resolution);
       } else {
         $scope.resolution = null;
       }
