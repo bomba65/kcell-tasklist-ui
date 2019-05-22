@@ -134,6 +134,7 @@ public class CreateNewSAOClient implements JavaDelegate {
                         }
                     } else {
                         params.add(new BasicNameValuePair("channel_type", "2"));
+                        params.add(new BasicNameValuePair("voice_platform", "SBC"));
                     }
 
                     params.add(new BasicNameValuePair("status", "21"));
