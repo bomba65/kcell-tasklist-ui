@@ -1,6 +1,6 @@
 define(['./../module'], function(module){
 	'use strict';
-	module.directive('customerInformation', function ($rootScope, $http) {
+	module.directive('customerInformation', function ($rootScope, $http, $timeout) {
 		return {
 			restrict: 'E',
 			scope: {
@@ -17,12 +17,16 @@ define(['./../module'], function(module){
 						if (!scope.ci.companyRegistrationDate) scope.ci.companyRegistrationDate = new Date();
 						else scope.ci.companyRegistrationDate = new Date(scope.ci.companyRegistrationDate);
 
-						if (scope.legal) {
-							if (!scope.ci.termContract) scope.ci.termContract = new Date();
-							else scope.ci.termContract = new Date(scope.ci.termContract);
-						}
+            if (!scope.ci.termContract) scope.ci.termContract = new Date();
+            else scope.ci.termContract = new Date(scope.ci.termContract);
 					}
-				})
+				});
+
+				scope.$watch('readonly', function (value) {
+				  $timeout(function() {
+            scope.$apply();
+          });
+        });
 
 
         scope.getUser = function(val) {
@@ -40,7 +44,7 @@ define(['./../module'], function(module){
                       lastName: s.lastName,
                       name: s.firstName + ' ' + s.lastName
                     };
-                  })
+                  });
                 } else {
                   return [];
                 }
