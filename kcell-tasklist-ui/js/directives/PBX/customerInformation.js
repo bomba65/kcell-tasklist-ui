@@ -12,6 +12,10 @@ define(['./../module'], function(module){
 				start: "="
 			},
 			link: function(scope, element, attrs) {
+			  scope.today = new Date();
+
+			  console.log("===> ", scope.today);
+
 				scope.$watch('ci', function (value) {
 					if (value) {
 						if (!scope.ci.companyRegistrationDate) scope.ci.companyRegistrationDate = new Date();
@@ -19,6 +23,8 @@ define(['./../module'], function(module){
 
             if (!scope.ci.termContract) scope.ci.termContract = new Date();
             else scope.ci.termContract = new Date(scope.ci.termContract);
+
+            if (scope.ci.termContractEnd === undefined) scope.ci.termContractEnd = true;
 					}
 				});
 
