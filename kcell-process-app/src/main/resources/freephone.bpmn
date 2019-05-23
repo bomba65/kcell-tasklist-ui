@@ -169,15 +169,10 @@
     </bpmn:exclusiveGateway>
     <bpmn:sequenceFlow id="SequenceFlow_1ykf56f" sourceRef="confirmSuccessOfTests" targetRef="ExclusiveGateway_12lk8wu" />
     <bpmn:sequenceFlow id="SequenceFlow_0aal8n7" sourceRef="ExclusiveGateway_12lk8wu" targetRef="Task_1m0rm6r" />
-    <bpmn:userTask id="sendSIPtrankPreferences" name="Отправка настроек SIP-транка клиенту" camunda:formKey="embedded:app:forms/freephone/sendSIPtrankPreferences.html" camunda:candidateGroups="delivery_it_delivery">
-      <bpmn:documentation>Отправьте настройки SIP транка клиенту. Подтвердите выполнение</bpmn:documentation>
-      <bpmn:incoming>SequenceFlow_1v7m40h</bpmn:incoming>
-      <bpmn:outgoing>SequenceFlow_14fkmh5</bpmn:outgoing>
-    </bpmn:userTask>
     <bpmn:sequenceFlow id="SequenceFlow_0ktsfej" sourceRef="ExclusiveGateway_1ygydvc" targetRef="confirmTheSettingsAreCorrect" />
     <bpmn:userTask id="confirmSuccessOfTestsWithVPN" name="Подтвердите успешность тестов " camunda:formKey="embedded:app:forms/freephone/confirmSuccessOfTestsWithVPN.html" camunda:candidateGroups="delivery_ivr_b2b_delivery">
       <bpmn:documentation>Подтвердите успешность тестов</bpmn:documentation>
-      <bpmn:incoming>SequenceFlow_14fkmh5</bpmn:incoming>
+      <bpmn:incoming>SequenceFlow_06185sy</bpmn:incoming>
       <bpmn:outgoing>SequenceFlow_1mht6ms</bpmn:outgoing>
     </bpmn:userTask>
     <bpmn:sequenceFlow id="SequenceFlow_1mht6ms" sourceRef="confirmSuccessOfTestsWithVPN" targetRef="ExclusiveGateway_0u1l82r" />
@@ -315,13 +310,12 @@
     <bpmn:sequenceFlow id="SequenceFlow_11j644y" name="нет" sourceRef="ExclusiveGateway_0u1l82r" targetRef="EndEvent_1uvrxxb">
       <bpmn:conditionExpression xsi:type="bpmn:tFormalExpression">${confirmSuccessOfTestsWithVPNTaskResult == 'rejected'}</bpmn:conditionExpression>
     </bpmn:sequenceFlow>
-    <bpmn:sequenceFlow id="SequenceFlow_14fkmh5" sourceRef="sendSIPtrankPreferences" targetRef="confirmSuccessOfTestsWithVPN" />
     <bpmn:exclusiveGateway id="ExclusiveGateway_0ctxn3r" default="SequenceFlow_1v7m40h">
       <bpmn:incoming>SequenceFlow_0wri1kf</bpmn:incoming>
       <bpmn:outgoing>SequenceFlow_1v7m40h</bpmn:outgoing>
       <bpmn:outgoing>SequenceFlow_0modh9f</bpmn:outgoing>
     </bpmn:exclusiveGateway>
-    <bpmn:sequenceFlow id="SequenceFlow_1v7m40h" sourceRef="ExclusiveGateway_0ctxn3r" targetRef="sendSIPtrankPreferences" />
+    <bpmn:sequenceFlow id="SequenceFlow_1v7m40h" sourceRef="ExclusiveGateway_0ctxn3r" targetRef="SendTask_0t8xjuw" />
     <bpmn:exclusiveGateway id="ExclusiveGateway_1r2swdn">
       <bpmn:incoming>SequenceFlow_0a14794</bpmn:incoming>
       <bpmn:incoming>SequenceFlow_0modh9f</bpmn:incoming>
@@ -817,6 +811,28 @@
     <bpmn:sequenceFlow id="SequenceFlow_1mo9k5z" sourceRef="InclusiveGateway_0ln6pxs" targetRef="ExclusiveGateway_0guhjc9">
       <bpmn:conditionExpression xsi:type="bpmn:tFormalExpression">${true}</bpmn:conditionExpression>
     </bpmn:sequenceFlow>
+    <bpmn:sendTask id="SendTask_0t8xjuw" name="Отправка настроек SIP-транка клиенту" camunda:delegateExpression="${camundaMailer}">
+      <bpmn:extensionElements>
+        <camunda:inputOutput>
+          <camunda:inputParameter name="to">
+            <camunda:script scriptFormat="groovy" resource="freephoneSipTrankConfigToClientEmail.groovy" />
+          </camunda:inputParameter>
+          <camunda:inputParameter name="subject">
+            <camunda:script scriptFormat="groovy" resource="freephoneSipTrankSubject.groovy" />
+          </camunda:inputParameter>
+          <camunda:inputParameter name="isSipTrank">true</camunda:inputParameter>
+          <camunda:inputParameter name="cc">
+            <camunda:script scriptFormat="groovy" resource="freephoneSipTrankConfigGetCC.groovy" />
+          </camunda:inputParameter>
+          <camunda:inputParameter name="html">
+            <camunda:script scriptFormat="groovy" resource="freephoneSipTrankConfigHtml.groovy" />
+          </camunda:inputParameter>
+        </camunda:inputOutput>
+      </bpmn:extensionElements>
+      <bpmn:incoming>SequenceFlow_1v7m40h</bpmn:incoming>
+      <bpmn:outgoing>SequenceFlow_06185sy</bpmn:outgoing>
+    </bpmn:sendTask>
+    <bpmn:sequenceFlow id="SequenceFlow_06185sy" sourceRef="SendTask_0t8xjuw" targetRef="confirmSuccessOfTestsWithVPN" />
     <bpmn:textAnnotation id="TextAnnotation_0nn3ybo">
       <bpmn:text>Начните процесс подключения</bpmn:text>
     </bpmn:textAnnotation>
@@ -900,10 +916,6 @@
       <bpmn:text>Transmission Network Operations</bpmn:text>
     </bpmn:textAnnotation>
     <bpmn:association id="Association_0o9y7dz" sourceRef="startTVCheck" targetRef="TextAnnotation_13cquzo" />
-    <bpmn:textAnnotation id="TextAnnotation_1efv1nq">
-      <bpmn:text>IT delivery</bpmn:text>
-    </bpmn:textAnnotation>
-    <bpmn:association id="Association_0ocup9a" sourceRef="sendSIPtrankPreferences" targetRef="TextAnnotation_1efv1nq" />
     <bpmn:textAnnotation id="TextAnnotation_19g91om">
       <bpmn:text>kz.kcell.bpm.assignments.DeliveryFreephoneBulkSMSProviderAssignmentHandler</bpmn:text>
     </bpmn:textAnnotation>
@@ -1413,9 +1425,6 @@
           <dc:Bounds x="2502" y="-66.5" width="90" height="13" />
         </bpmndi:BPMNLabel>
       </bpmndi:BPMNEdge>
-      <bpmndi:BPMNShape id="UserTask_1g4737r_di" bpmnElement="sendSIPtrankPreferences">
-        <dc:Bounds x="3467" y="1675" width="100" height="80" />
-      </bpmndi:BPMNShape>
       <bpmndi:BPMNEdge id="SequenceFlow_0ktsfej_di" bpmnElement="SequenceFlow_0ktsfej">
         <di:waypoint x="3123" y="1715" />
         <di:waypoint x="3184" y="1715" />
@@ -1537,13 +1546,6 @@
       <bpmndi:BPMNEdge id="Association_0o9y7dz_di" bpmnElement="Association_0o9y7dz">
         <di:waypoint x="2528" y="1993" />
         <di:waypoint x="2528" y="1971" />
-      </bpmndi:BPMNEdge>
-      <bpmndi:BPMNShape id="TextAnnotation_1efv1nq_di" bpmnElement="TextAnnotation_1efv1nq">
-        <dc:Bounds x="3467" y="1604" width="100" height="30" />
-      </bpmndi:BPMNShape>
-      <bpmndi:BPMNEdge id="Association_0ocup9a_di" bpmnElement="Association_0ocup9a">
-        <di:waypoint x="3517" y="1675" />
-        <di:waypoint x="3517" y="1634" />
       </bpmndi:BPMNEdge>
       <bpmndi:BPMNShape id="TextAnnotation_19g91om_di" bpmnElement="TextAnnotation_19g91om">
         <dc:Bounds x="2627" y="2505" width="211" height="61" />
@@ -1703,13 +1705,6 @@
           <dc:Bounds x="3856" y="1631" width="18" height="14" />
         </bpmndi:BPMNLabel>
       </bpmndi:BPMNEdge>
-      <bpmndi:BPMNEdge id="SequenceFlow_14fkmh5_di" bpmnElement="SequenceFlow_14fkmh5">
-        <di:waypoint x="3567" y="1715" />
-        <di:waypoint x="3668" y="1715" />
-        <bpmndi:BPMNLabel>
-          <dc:Bounds x="2131.5" y="-66.5" width="0" height="13" />
-        </bpmndi:BPMNLabel>
-      </bpmndi:BPMNEdge>
       <bpmndi:BPMNShape id="ExclusiveGateway_0ctxn3r_di" bpmnElement="ExclusiveGateway_0ctxn3r" isMarkerVisible="true">
         <dc:Bounds x="3343" y="1690" width="50" height="50" />
         <bpmndi:BPMNLabel>
@@ -1718,7 +1713,7 @@
       </bpmndi:BPMNShape>
       <bpmndi:BPMNEdge id="SequenceFlow_1v7m40h_di" bpmnElement="SequenceFlow_1v7m40h">
         <di:waypoint x="3393" y="1715" />
-        <di:waypoint x="3467" y="1715" />
+        <di:waypoint x="3471" y="1715" />
         <bpmndi:BPMNLabel>
           <dc:Bounds x="1944" y="-67" width="0" height="13" />
         </bpmndi:BPMNLabel>
@@ -2400,6 +2395,13 @@
       <bpmndi:BPMNEdge id="SequenceFlow_1mo9k5z_di" bpmnElement="SequenceFlow_1mo9k5z">
         <di:waypoint x="1437" y="1715" />
         <di:waypoint x="1533" y="1715" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNShape id="SendTask_0t8xjuw_di" bpmnElement="SendTask_0t8xjuw">
+        <dc:Bounds x="3471" y="1675" width="100" height="80" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNEdge id="SequenceFlow_06185sy_di" bpmnElement="SequenceFlow_06185sy">
+        <di:waypoint x="3571" y="1715" />
+        <di:waypoint x="3668" y="1715" />
       </bpmndi:BPMNEdge>
     </bpmndi:BPMNPlane>
   </bpmndi:BPMNDiagram>

@@ -49,12 +49,14 @@ public class CamundaMailerDelegate implements JavaDelegate {
         String subject = String.valueOf(delegateExecution.getVariableLocal("subject"));
         String sendInstruction = String.valueOf(delegateExecution.getVariableLocal("sendInstruction"));
         String businessKey = delegateExecution.getProcessInstance().getBusinessKey();
-        if(subject!=null && businessKey!=null && !businessKey.equals("null") && !subject.contains(businessKey)){
+        String isSipTrank =  String.valueOf(delegateExecution.getVariableLocal("isSipTrank"));
+        if(isSipTrank==null && subject!=null && businessKey!=null && !businessKey.equals("null") && !subject.contains(businessKey)){
             subject = businessKey + ", " + subject;
         }
+        System.out.println(isSipTrank);
 
         String addresses = String.valueOf(delegateExecution.getVariableLocal("to"));
-
+        String ccAddresses = String.valueOf(delegateExecution.getVariableLocal("cc"));
         long isRevisionMonthlyActCount =
             delegateExecution
                 .getProcessEngineServices()
@@ -83,6 +85,15 @@ public class CamundaMailerDelegate implements JavaDelegate {
         }
 
         String[] emails = separateEmails(addresses);
+        if (isSipTrank!=null) {
+            sender = "freephone@kcell.kz";
+            if (ccAddresses!=null) {
+                String[] ccEmails = separateEmails(ccAddresses);
+                for(String cc : ccEmails) {
+                    helper.addCc(cc);
+                }
+            }
+        }
         if (emails.length > 0) {
             helper.setTo(emails);
             helper.setSubject(subject);
