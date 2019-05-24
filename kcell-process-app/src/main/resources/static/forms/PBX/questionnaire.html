@@ -49,17 +49,17 @@
       $scope.attachments.splice(fileIndex, 1);
     }
     
-    $scope.fileSelected = function(el ){
+    $scope.fileSelected = function(el, bindedInput){
       $timeout(function () {
         $scope.$apply(function () {
-          uploadFileToMinio(el.files[0]);
+          uploadFileToMinio(el.files[0], bindedInput);
         });
       })
     };
 
     var uuid = new Date().getTime();
 
-    function uploadFileToMinio(file) {
+    function uploadFileToMinio(file, bindedInput) {
       var fileToUpload = {
         name: file.name.replace(/[/\\?%*:|"<>]/g, '-'),
         path: uuid + '/' + file.name.replace(/[/\\?%*:|"<>]/g, '-'),
@@ -72,6 +72,7 @@
             function () {
               $scope.attachments.push(fileToUpload);
               angular.element(document.querySelector('#attachments')).val(null);
+              $(bindedInput).val('');
             },
             function (error) {
               console.log(error.data);
@@ -352,7 +353,15 @@
   <div class="form-group">
     <label class="col-sm-4 control-label">Attachments</label>
     <div class="col-sm-8">
-      <input type="file" class="form-control" id="attachments" name="attachments" onchange="angular.element(this).scope().fileSelected(this)"/>
+      <!--<input type="file" class="form-control" id="attachments" name="attachments" onchange="angular.element(this).scope().fileSelected(this)"/>-->
+      <div class="input-group">
+        <label class="input-group-btn">
+                    <span class="btn btn-default">
+                        Choose File <input type="file" id="attachments" name="attachments" style="display: none;" onchange="angular.element(this).scope().fileSelected(this, '#supplementaryFilesName');$('#supplementaryFilesName').val(this.files[0].name)" >
+                    </span>
+        </label>
+        <input type="text" class="form-control upload-filename" id="supplementaryFilesName" placeholder="No File Chosen" readonly>
+      </div>
       <div class="col-sm-12">
         <table class="table ">
             <thead>
