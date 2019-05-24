@@ -49,12 +49,30 @@ public class CamundaMailerDelegate implements JavaDelegate {
         String subject = String.valueOf(delegateExecution.getVariableLocal("subject"));
         String sendInstruction = String.valueOf(delegateExecution.getVariableLocal("sendInstruction"));
         String businessKey = delegateExecution.getProcessInstance().getBusinessKey();
-        String isSipTrank =  String.valueOf(delegateExecution.getVariableLocal("isSipTrank"));
-        if(isSipTrank==null && subject!=null && businessKey!=null && !businessKey.equals("null") && !subject.contains(businessKey)){
+        boolean isFreephone = delegateExecution
+            .getProcessEngineServices()
+            .getRepositoryService()
+            .createProcessDefinitionQuery()
+            .processDefinitionId(delegateExecution.getProcessDefinitionId())
+            .list()
+            .stream()
+            .filter(e-> e.getKey().equals("freephone"))
+            .findAny()
+            .isPresent();
+        boolean isBulkSms = delegateExecution
+            .getProcessEngineServices()
+            .getRepositoryService()
+            .createProcessDefinitionQuery()
+            .processDefinitionId(delegateExecution.getProcessDefinitionId())
+            .list()
+            .stream()
+            .filter(e-> e.getKey().equals("bulksmsConnectionKAE"))
+            .findAny()
+            .isPresent();
+
+        if(!(isFreephone &&  "SendTask_0t8xjuw".equals(delegateExecution.getCurrentActivityId()))  && !(isBulkSms &&  "SendTask_1wvfpnd".equals(delegateExecution.getCurrentActivityId()))  && subject!=null && businessKey!=null && !businessKey.equals("null") && !subject.contains(businessKey)){
             subject = businessKey + ", " + subject;
         }
-        System.out.println(isSipTrank);
-
         String addresses = String.valueOf(delegateExecution.getVariableLocal("to"));
         String ccAddresses = String.valueOf(delegateExecution.getVariableLocal("cc"));
         long isRevisionMonthlyActCount =
@@ -83,9 +101,8 @@ public class CamundaMailerDelegate implements JavaDelegate {
             DataSource source = new ByteArrayDataSource(is, "application/pdf");
             helper.addAttachment("instruction.pdf", source);
         }
-
         String[] emails = separateEmails(addresses);
-        if (isSipTrank!=null) {
+        if (isFreephone &&  "SendTask_0t8xjuw".equals(delegateExecution.getCurrentActivityId())) {
             sender = "freephone@kcell.kz";
             if (ccAddresses!=null) {
                 String[] ccEmails = separateEmails(ccAddresses);
@@ -93,6 +110,34 @@ public class CamundaMailerDelegate implements JavaDelegate {
                     helper.addCc(cc);
                 }
             }
+        }
+        else if (isBulkSms &&  "SendTask_1wvfpnd".equals(delegateExecution.getCurrentActivityId())) {
+            sender = "bulksms@kcell.kz";
+            if (ccAddresses!=null) {
+                String[] ccEmails = separateEmails(ccAddresses);
+                for(String cc : ccEmails) {
+                    helper.addCc(cc);
+                }
+            }
+            String connectionType =  String.valueOf(delegateExecution.getVariable("connectionType"));
+            if (connectionType!=null) {
+                String fileName="";
+                switch(connectionType) {
+                    case "rest":
+                        fileName = "REST_API.pdf";
+                        break;
+                    case "smpp":
+                        fileName = "SMPP-v3.4.rus.pdf";
+                        break;
+                }
+                InputStream fis = CamundaMailerDelegate.class.getResourceAsStream("/instruction/"+fileName);
+                byte[] bytes = IOUtils.toByteArray(fis);
+                ByteArrayInputStream is = new ByteArrayInputStream(bytes);
+                DataSource source = new ByteArrayDataSource(is, "application/pdf");
+                helper.addAttachment("instruction.pdf", source);
+            }
+
+
         }
         if (emails.length > 0) {
             helper.setTo(emails);
