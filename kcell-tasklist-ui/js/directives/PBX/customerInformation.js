@@ -13,16 +13,16 @@ define(['./../module'], function(module){
 			},
 			link: function(scope, element, attrs) {
 			  scope.today = new Date();
-
-			  console.log("===> ", scope.today);
+			  scope.today.setHours(0, 0, 0, 0);
+			  scope.tomorrow = new Date(scope.today);
+			  scope.tomorrow.setTime(scope.today.getTime() + 86400000);
 
 				scope.$watch('ci', function (value) {
 					if (value) {
 						if (!scope.ci.companyRegistrationDate) scope.ci.companyRegistrationDate = new Date();
 						else scope.ci.companyRegistrationDate = new Date(scope.ci.companyRegistrationDate);
 
-            if (!scope.ci.termContract) scope.ci.termContract = new Date();
-            else scope.ci.termContract = new Date(scope.ci.termContract);
+            if (scope.ci.termContract) scope.ci.termContract = new Date(scope.ci.termContract);
 
             if (scope.ci.termContractEnd === undefined) scope.ci.termContractEnd = true;
 					}
@@ -34,6 +34,17 @@ define(['./../module'], function(module){
           });
         });
 
+				scope.onContractDurationChange = function() {
+          scope.form.termContract.$setValidity('invalid_date', true);
+				  if (scope.ci.termContractEnd) return;
+				  if (scope.ci.termContract) {
+				    console.log("===> here ", scope.ci.termContract, scope.today);
+				    scope.ci.termContract = new Date(scope.ci.termContract);
+				    if (scope.ci.termContract.getTime() - scope.today.getTime() < 86400000) {
+              scope.form.termContract.$setValidity('invalid_date', false);
+            }
+          } else scope.form.termContract.$setValidity('invalid_date', false);
+        };
 
         scope.getUser = function(val) {
           scope.ci.salesRepresentativeId = null;
