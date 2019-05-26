@@ -137,6 +137,7 @@ public class CreateNewSAOClient implements JavaDelegate {
                         params.add(new BasicNameValuePair("voice_platform", "SBC"));
 
                         JSONObject direct = techSpecs.getJSONObject("direct");
+                        String staticIP = direct.get("staticIP").toString();
                         params.add(new BasicNameValuePair("ips", staticIP));
                     }
 
