@@ -21,6 +21,8 @@ public class RegionWarehouseAssignmentHandler implements TaskListener {
                 delegateTask.addCandidateGroup("warehouse_atyrau");
             } else if (warehouse.equals("\"aktau\"")) {
                 delegateTask.addCandidateGroup("warehouse_aktau");
+            } else if (warehouse.equals("\"aktobe\"")) {
+                delegateTask.addCandidateGroup("warehouse_aktobe");
             }
         }
     }
