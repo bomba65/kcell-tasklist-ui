@@ -284,14 +284,20 @@ define(['./module','camundaSDK', 'lodash', 'big-js'], function(module, CamSDK, _
 					            	_.forEach(activityResult.data.childActivityInstances, function(firstLevel) {
 					            		if(firstLevel.activityType === 'subProcess'){
 					            			_.forEach(firstLevel.childActivityInstances, function(secondLevel) {
-												if(secondLevel.activityType !== 'multiInstanceBody') {
+												if(secondLevel.activityType == 'multiInstanceBody') {
+													secondLevel.activityName = secondLevel.childActivityInstances[0].activityName;
 													$scope.activityProcessActivities.push(secondLevel);
-							            		}
+												} else {
+													$scope.activityProcessActivities.push(secondLevel);
+												}
 					            			});
-					            		} else if(firstLevel.activityType !== 'multiInstanceBody') {
+										} else if(firstLevel.activityType == 'multiInstanceBody') {
+											firstLevel.activityName = firstLevel.childActivityInstances[0].activityName;
 											$scope.activityProcessActivities.push(firstLevel);
-					            		}
-					            	});
+										} else {
+											$scope.activityProcessActivities.push(firstLevel);
+										}
+									});
 								},
 								function(error){
 									console.log(error.data)
