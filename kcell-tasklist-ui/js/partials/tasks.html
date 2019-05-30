@@ -11,11 +11,16 @@ th.sortable:hover {
 		<div class="left-wrapper">
 			<a ng-click="collapseLevels('firstLevel')"><i class="glyphicon glyphicon-triangle-left" style="padding-top: 6px; float: right;"></i></a>
 			<ul id="projects">
-				<li ng-repeat="project in projects" style="margin-bottom: 10px;">
-					<a ng-click="collapseProject(project)">{{selectProject.key == project.key?'-':'+'}} {{project.name}} ({{project.itemCount}})</a>
-					<ul id="processes_{{selectProject.key}}" ng-if="selectProject.key == project.key" style="margin-top: 10px;">
-						<li ng-repeat="process in selectProject.processes" ng-if="process.key !== 'All'" class="active" style="padding-top: 3px; padding-bottom: 3px;">
-							<a ng-click="collapseProcess(process)">{{selectProcess.key == process.key?'-':'+'}} {{process.name}}({{process.itemCount}})</a>
+				<li ng-repeat="project in $root.projects" style="margin-bottom: 10px;">
+					<a ng-click="collapseProject(project)">{{$root.selectedProject.key == project.key?'-':'+'}} {{project.name}} ({{project.itemCount}})</a>
+					<ul id="processes_{{$root.selectedProject.key}}" ng-if="$root.selectedProject.key == project.key" style="margin-top: 10px;">
+						<li ng-repeat="process in $root.selectedProject.processes" class="active" style="padding-top: 3px; padding-bottom: 3px;">
+							<a ng-click="collapseProcess(process)">{{$root.selectedProcess.key == process.key?'-':'+'}} {{process.name}}({{process.itemCount}})</a>
+							<ul id="process_menus" ng-show="$root.selectedProcess.key == process.key">
+								<li><a href="#/processes"> > Processes</a></li>
+								<li ng-if="hasGroup('kcellUsers') && ($root.selectedProcess.key == 'Revision' || $root.selectedProject.key == 'DeliveryPortal' || $root.selectedProject.key == 'DemandUAT')"><a href="#/search"> > Search</a></li>
+								<li ng-if="hasGroup('kcellUsers') && $root.selectedProject.key == 'NetworkInfrastructure'"><a href="#/statistics"> > Statistics</a></li>
+							</ul>
 						</li>
 					</ul>
 				</li>
@@ -31,16 +36,16 @@ th.sortable:hover {
 	<div class="col-md-2 no-float left" ng-show="secondLevel == 'open'" style="padding-right: 0px;">
 		<div class="left-wrapper">
 			<a ng-click="collapseLevels('secondLevel')"><i class="glyphicon glyphicon-triangle-left text-right" style="padding-top: 6px; float: right;"></i></a>
-			<u>{{selectProject.name}}</u><u ng-if="selectProcess"> > {{selectProcess.name}}</u>
-			<span ng-if="processDefinitions && processDefinitions.length > 0" ng-show="!selectProcess" style="margin-top: 10px;">
+			<u>{{$root.selectedProject.name}}</u><u ng-if="$root.selectedProcess"> > {{$root.selectedProcess.name}}</u>
+			<span ng-if="processDefinitions && processDefinitions.length > 0" ng-show="!$root.selectedProcess" style="margin-top: 10px;">
 				<ul id="definitions">
-					<li ng-repeat="pd in getProcessDefinitions(selectProject)" style="padding-top: 3px; padding-bottom: 3px;">
+					<li ng-repeat="pd in getProcessDefinitions($root.selectedProject)" style="padding-top: 3px; padding-bottom: 3px;">
 						<a ng-click="startProcess(pd.id)">Start process - <b>{{pd.name}}</b> </a>
 					</li>
 				</ul>
 			</span>
-			<ul id="filters" ng-show="selectProcess" style="margin-top: 10px;">
-				<li ng-repeat="filter in selectProcess.filters" ng-class="{active: filter.id == currentFilter.id}" style="padding-top: 3px; padding-bottom: 3px;">
+			<ul id="filters" ng-show="$root.selectedProcess" style="margin-top: 10px;">
+				<li ng-repeat="filter in $root.selectedProcess.filters" ng-class="{active: filter.id == currentFilter.id}" style="padding-top: 3px; padding-bottom: 3px;">
 					<a ng-click="selectFilter(filter)">{{filter.name}} ({{filter.itemCount}})</a>
 				</li>
 				<li ng-if="hasGroup('contractor_users')" ng-class = "{active: 'search' == currentFilter}">
@@ -60,16 +65,16 @@ th.sortable:hover {
 			</div>
 		</div>
 	</div>
-	<div class="no-float left" ng-show="secondLevel == 'closed'" ng-style="selectProject? '': {'background-color' : 'gainsboro'}">
+	<div class="no-float left" ng-show="secondLevel == 'closed'" ng-style="$root.selectedProject? '': {'background-color' : 'gainsboro'}">
 		<div class="left-wrapper">
-			<span ng-hide="selectProject"><i class="glyphicon glyphicon-triangle-right" style="padding-top: 6px; float: right;"></i></span>
-			<a ng-show="selectProject" ng-click="collapseLevels('secondLevel')"><i class="glyphicon glyphicon-triangle-right" style="padding-top: 6px; float: right;"></i></a>
+			<span ng-hide="$root.selectedProject"><i class="glyphicon glyphicon-triangle-right" style="padding-top: 6px; float: right;"></i></span>
+			<a ng-show="$root.selectedProject" ng-click="collapseLevels('secondLevel')"><i class="glyphicon glyphicon-triangle-right" style="padding-top: 6px; float: right;"></i></a>
 		</div>
 	</div>
 	<div class="col-md-10 no-float right" ng-class = "(firstLevel === 'closed' && secondLevel === 'closed') ? 'col-md-12' : 'col-md-10'" id="rightPanel">
 		<div class="currentTask" style="padding-top: 31px;">
 			<div ui-view ng-if="selectedView == 'task'" style="height: 100%"></div>
-			<div class="scrollcontainer" ng-show="selectedView == 'search' || selectedView == 'massapprove' || (selectedView == 'tasks' && selectProcess.key && currentTaskGroup)">
+			<div class="scrollcontainer" ng-show="selectedView == 'search' || selectedView == 'massapprove' || (selectedView == 'tasks' && $root.selectedProcess.key && currentTaskGroup)">
 				<div class="scrollable">
 					<div ui-view ng-if="selectedView == 'massapprove'"></div>
 					<div ng-show="selectedView == 'search'">
@@ -141,36 +146,36 @@ th.sortable:hover {
 					        </div>
 					    </div>
 					</div>
-					<div ng-show="selectedView == 'tasks' && selectProcess.key && currentTaskGroup">
-						<h4>Project: {{selectProject.name}}</h4>
-						<h4>Process: {{selectProcess.name}}</h4>
+					<div ng-show="selectedView == 'tasks' && $root.selectedProcess.key && currentTaskGroup">
+						<h4>Project: {{$root.selectedProject.name}}</h4>
+						<h4>Process: {{$root.selectedProcess.name}}</h4>
 						<h4>Task: {{currentTaskGroup.name}}</h4>
 			            <table class="table ">
 			                <thead>
 			                	<tr>
 			                    	<th>#</th>
-									<th ng-if="selectProcess.key !== 'leasing'" class="sortable">Business key
+									<th ng-if="$root.selectedProcess.key !== 'leasing'" class="sortable">Business key
 										<i ng-click="orderByFieldName('processBusinessKey')" class="glyphicon" ng-class="fieldName != 'processBusinessKey' ? 'glyphicon-sort' : reverseOrder?'glyphicon-chevron-down':'glyphicon-chevron-up'"></i>
 										<span class="pull-right">
 											<input type="text" ng-model="fieldFilter['processBusinessKey']" ng-show="visibilityFilter['processBusinessKey']">
 											<i ng-click="setVisibilityFilter('processBusinessKey')" class="glyphicon" ng-class="visibilityFilter['processBusinessKey']?'glyphicon-remove':'glyphicon-filter'"></i>
 										</span>
 									</th>
-									<th ng-if="selectProcess.key === 'leasing'" class="sortable">NCP ID
+									<th ng-if="$root.selectedProcess.key === 'leasing'" class="sortable">NCP ID
 										<i ng-click="orderByFieldName('ncpID')" class="glyphicon" ng-class="fieldName != 'ncpID' ? 'glyphicon-sort' : reverseOrder?'glyphicon-chevron-down':'glyphicon-chevron-up'"></i>
 										<span class="pull-right">
 											<input type="text" ng-model="fieldFilter['ncpID']" ng-show="visibilityFilter['ncpID']">
 											<i ng-click="setVisibilityFilter('ncpID')" class="glyphicon" ng-class="visibilityFilter['ncpID']?'glyphicon-remove':'glyphicon-filter'"></i>
 										</span>
 									</th>
-									<th ng-if="selectProcess.key === 'leasing'" class="sortable">Sitename
+									<th ng-if="$root.selectedProcess.key === 'leasing'" class="sortable">Sitename
 										<i ng-click="orderByFieldName('siteName')" class="glyphicon" ng-class="fieldName != 'siteName' ? 'glyphicon-sort' : reverseOrder?'glyphicon-chevron-down':'glyphicon-chevron-up'"></i>
 										<span class="pull-right">
 											<input type="text" ng-model="fieldFilter['siteName']" ng-show="visibilityFilter['siteName']">
 											<i ng-click="setVisibilityFilter('siteName')" class="glyphicon" ng-class="visibilityFilter['siteName']?'glyphicon-remove':'glyphicon-filter'"></i>
 										</span>
 									</th>
-									<th ng-if="selectProcess.key === 'Revision'" class="sortable">Site name
+									<th ng-if="$root.selectedProcess.key === 'Revision'" class="sortable">Site name
 										<i ng-click="orderByFieldName('site_name')" class="glyphicon" ng-class="fieldName != 'site_name' ? 'glyphicon-sort' : reverseOrder?'glyphicon-chevron-down':'glyphicon-chevron-up'"></i>
 										<span class="pull-right">
 											<input type="text" ng-model="fieldFilter['site_name']" ng-show="visibilityFilter['site_name']">
@@ -194,10 +199,10 @@ th.sortable:hover {
 			             	<tbody>
 								<tr ng-repeat="task in currentTaskGroup.tasks | filter : filterByFields() | orderBy : fieldName : reverseOrder">
 			             			<td><a ng-click="openTask(task.id)">{{$index+1}}</a></td>
-			             			<td ng-if="selectProcess.key !== 'leasing'"><a ng-click="openTask(task.id)">{{task.processBusinessKey}}</a></td>
-			             			<td ng-if="selectProcess.key === 'leasing'"><a ng-click="openTask(task.id)">{{task.ncpID}}</a></td>
-			             			<td ng-if="selectProcess.key === 'leasing'"><a ng-click="openTask(task.id)">{{task.siteName}}</a></td>
-			             			<td ng-if="selectProcess.key === 'Revision'"><a ng-click="openTask(task.id)">{{task.site_name}}</a></td>
+			             			<td ng-if="$root.selectedProcess.key !== 'leasing'"><a ng-click="openTask(task.id)">{{task.processBusinessKey}}</a></td>
+			             			<td ng-if="$root.selectedProcess.key === 'leasing'"><a ng-click="openTask(task.id)">{{task.ncpID}}</a></td>
+			             			<td ng-if="$root.selectedProcess.key === 'leasing'"><a ng-click="openTask(task.id)">{{task.siteName}}</a></td>
+			             			<td ng-if="$root.selectedProcess.key === 'Revision'"><a ng-click="openTask(task.id)">{{task.site_name}}</a></td>
 			             			<td><a ng-click="openTask(task.id)">{{task.processStartUserId}}</a></td>
 			             			<td><a ng-click="openTask(task.id)">{{task.processStartTime | date: 'dd.MM.yyyy HH:mm'}}</a></td>
 									<td><a ng-click="openTask(task.id)">{{task.priority == 100 ? 'Emergency' : 'Regular'}}</a></td>

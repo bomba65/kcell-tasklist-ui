@@ -321,10 +321,10 @@ define(['./module','camundaSDK', 'lodash', 'big-js'], function(module, CamSDK, _
 	                        console.log(error.data);
 	                    }
 	            );
-	            if($scope.selectProcess.key === 'Revision'){
+	            if($rootScope.selectedProcess.key === 'Revision'){
 	            	$scope.getAdditionalVariablesToTasks(['site_name']);
 	            }
-	            if($scope.selectProcess.keys === 'leasing'){
+	            if($rootScope.selectedProcess.key === 'leasing'){
 	            	$scope.getAdditionalVariablesToTasks(['ncpID', 'siteName']);
 	            }
 			}
@@ -460,12 +460,8 @@ define(['./module','camundaSDK', 'lodash', 'big-js'], function(module, CamSDK, _
 		}
 
 /* ------------------------------------- Tasks new logic ------------------------------*/
-		$scope.projects = [];
-		$scope.processes = [];
 		$scope.firstLevel = "open";
 		$scope.secondLevel = "closed";
-		$scope.selectProject = undefined;
-		$scope.selectProcess = undefined;
 
         $scope.collapseLevels = function(levelName) {
         	if(levelName === "firstLevel"){
@@ -476,15 +472,15 @@ define(['./module','camundaSDK', 'lodash', 'big-js'], function(module, CamSDK, _
         }
 
         $scope.collapseProject = function(project) {
-			$scope.selectProject = project;
+			$rootScope.updateSelectedProject(project);
+			$rootScope.updateSelectedProcess(undefined);
 			loadProcessDefinitions();
-			$scope.selectProcess = undefined;
 			$scope.currentFilter = undefined;
 			$scope.taskGroups = {};
         }
 
         $scope.collapseProcess = function(process) {
-			$scope.selectProcess = process;
+			$rootScope.updateSelectedProcess(process);
 			$scope.currentFilter = undefined;
 			$scope.taskGroups = {};
         }
@@ -513,20 +509,13 @@ define(['./module','camundaSDK', 'lodash', 'big-js'], function(module, CamSDK, _
 		}
 
 		function getTaskList(){
-			$scope.projects = [];
-			angular.forEach($rootScope.projects, function(project){
-				if (project.key !== 'All') {
-					$scope.projects.push(project);
-				}
-			});
-
 			$http.get(baseUrl+'/filter?resoureType=Task').then(
 				function(result){
 					$scope.filters = result.data;
 
 					try {
 	 					angular.forEach($scope.filters, function(filter){
-							angular.forEach($scope.projects, function(project){
+							angular.forEach($rootScope.projects, function(project){
 								angular.forEach(project.processes, function(process){
 									if(process.key !== 'All'){
 										var processDefinitionKeyMap = [process.key];
@@ -569,9 +558,9 @@ define(['./module','camundaSDK', 'lodash', 'big-js'], function(module, CamSDK, _
 
 		function loadTasks() {
 			if($scope.currentFilter){
-				var processDefinitionKeyMap = [$scope.selectProcess.key];
-				if($scope.selectProcess.subprocesses && $scope.selectProcess.subprocesses.length > 0){
-					var subprocessDefinitionKeyMap = _.map($scope.selectProcess.subprocesses, 'key');
+				var processDefinitionKeyMap = [$rootScope.selectedProcess.key];
+				if($rootScope.selectedProcess.subprocesses && $rootScope.selectedProcess.subprocesses.length > 0){
+					var subprocessDefinitionKeyMap = _.map($rootScope.selectedProcess.subprocesses, 'key');
 					processDefinitionKeyMap = _.concat(processDefinitionKeyMap, subprocessDefinitionKeyMap);
 				}
 

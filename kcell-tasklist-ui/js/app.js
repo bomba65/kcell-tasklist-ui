@@ -117,11 +117,6 @@ define('app',[
 			}
 
         	var aviableProjects = [
-				{
-					"key":"All", name:"All", "processes" : [
-						{"key":"All", name:"All"}
-					]
-				}
 			];
 
 			angular.forEach(projects, function(project){
@@ -131,9 +126,8 @@ define('app',[
 					if(hasGroup(process.group)){
 						p.processes.push(process);
 					}
-				});	
+				});
 				if(p.processes.length>0){
-					p.processes.splice(0,0,{"key":"All", name:"All"});
 					aviableProjects.push(p);
 				}
 			});
@@ -144,15 +138,8 @@ define('app',[
 				$rootScope.selectedProject = _.find($rootScope.projects, function(project){ return  project.key === localStorageService.get('selectedProjectKey')})
 				if(localStorageService.get('selectedProcessKey') && _.some($rootScope.selectedProject.processes, function(process){ return process.key === localStorageService.get('selectedProcessKey')})){
 					$rootScope.selectedProcess = _.find($rootScope.selectedProject.processes, function(process){ return process.key === localStorageService.get('selectedProcessKey')});
-				} else {
-					$rootScope.selectedProcess = $rootScope.selectedProject.processes[0];
 				}
-			} else {
-				$rootScope.selectedProject = $rootScope.projects[0];
-				$rootScope.selectedProcess = $rootScope.selectedProject.processes[0];
 			}
-			localStorageService.set('selectedProjectKey', $rootScope.selectedProject.key);
-			localStorageService.set('selectedProcessKey', $rootScope.selectedProcess.key);
 
 			return [];
 		}
@@ -249,9 +236,7 @@ define('app',[
 		}];
 	}).run(['AuthenticationService', '$rootScope', '$http', 'localStorageService', function(AuthenticationService, $rootScope, $http, localStorageService){
 		$rootScope.isProjectVisible = function(projectKey){
-			if ($rootScope.selectedProject.key === 'All'){
-				return true;
-			} else if($rootScope.selectedProject.key === projectKey){
+			if($rootScope.selectedProject.key === projectKey){
 				return true;
 			} else {
 				return false;
@@ -265,11 +250,9 @@ define('app',[
 		}
 
 		$rootScope.isProcessVisible = function(processKey){
-			if ($rootScope.selectedProject.key === 'All'){
+			if($rootScope.selectedProcess && $rootScope.selectedProcess.key === processKey){
 				return true;
-			} else if($rootScope.selectedProcess.key === processKey){
-				return true;
-			} else if($rootScope.selectedProcess.key === 'All' && _.find($rootScope.selectedProject.processes, { 'key': processKey})){
+			} else if($rootScope.selectedProject && _.find($rootScope.selectedProject.processes, { 'key': processKey})){
 				return true;				
 			} else {
 				return false;
@@ -286,21 +269,7 @@ define('app',[
 
 		$rootScope.getCurrentProcesses = function(){
 			var result = [];
-			if ($rootScope.selectedProject.key === 'All'){
-				angular.forEach($rootScope.projects, function(project){
-					angular.forEach(project.processes, function(process){
-						if(process.key !== 'All'){
-							result.push(process);
-						}
-					});
-				});
-			} else if($rootScope.selectedProcess.key === 'All'){
-				angular.forEach($rootScope.selectedProject.processes, function(process){
-					if(process.key !== 'All'){
-						result.push(process);
-					}
-				});
-			} else {
+			if($rootScope.selectedProcess){
 				result.push($rootScope.selectedProcess);
 			}
 			return result;
@@ -316,12 +285,15 @@ define('app',[
 		}
 		$rootScope.updateSelectedProject = function(project){
 			$rootScope.selectedProject = project;
-			localStorageService.set('selectedProjectKey',project.key);
-			$rootScope.updateSelectedProcess(project.processes[0]);
+			if(project){
+				localStorageService.set('selectedProjectKey',project.key);
+			}
 		}
 		$rootScope.updateSelectedProcess = function(process){
 			$rootScope.selectedProcess = process;
-			localStorageService.set('selectedProcessKey',process.key);
+			if(process){
+				localStorageService.set('selectedProcessKey',process.key);
+			}
 		}
 	}]).run([ '$rootScope', '$location', 'AuthenticationService', '$q', '$state', function($rootScope, $location, AuthenticationService, $q, $state) {
 		$rootScope.$on('authentication.login.required', function(event) {
