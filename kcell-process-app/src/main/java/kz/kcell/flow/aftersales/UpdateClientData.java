@@ -70,7 +70,7 @@ public class UpdateClientData implements JavaDelegate {
             return null;
         }
 
-        List<HistoricProcessInstance> processes = historyService.createHistoricProcessInstanceQuery().processDefinitionKey("PBX").variableValueEquals("clientBIN", pbxBIN).finished().orderByProcessInstanceEndTime().desc().desc().list();
+        List<HistoricProcessInstance> processes = historyService.createHistoricProcessInstanceQuery().processDefinitionKey("PBX").variableValueEquals("clientBIN", pbxBIN).finished().orderByProcessInstanceEndTime().desc().list();
         HistoricProcessInstance process = null;
         if (!processes.isEmpty()) process = processes.get(0);
 
