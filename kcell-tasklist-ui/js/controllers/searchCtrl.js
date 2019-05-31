@@ -53,6 +53,25 @@ define(['./module', 'jquery', 'moment', 'camundaSDK'], function (app, $, moment,
                 'west_kcell_users': 'west'
             }
 
+
+            function convertStringToDate (date_string) {
+                var result = date_string.split(" - ");
+                console.log(result)
+                if (result.length===2) {
+                    var dateParts_from = result[0].split(".");
+                    if (dateParts_from[2].length==2) {
+                        dateParts_from[2]  = "20" + dateParts_from[2];
+                    }
+                    var dateObject_from = new Date(+dateParts_from[2], dateParts_from[1] - 1, +dateParts_from[0]);
+                    var dateParts_to = result[1].split(".");
+                    if (dateParts_to[2].length==2) {
+                        dateParts_to[2]  = "20" + dateParts_to[2];
+                    }
+                    var dateObject_to= new Date(+dateParts_to[2], dateParts_to[1] - 1, +dateParts_to[0]);
+                    return [dateObject_from, dateObject_to];
+                }
+            }
+
             $scope.$watchGroup(['selectedProject', 'selectedProcess'], function (newValues, oldValues, scope) {
                 $scope.clearFiltersDP();
                 $scope.processInstancesDP = [];
@@ -314,33 +333,36 @@ define(['./module', 'jquery', 'moment', 'camundaSDK'], function (app, $, moment,
                 if ($scope.filter.endYear) {
                     filter.startedBefore = (Number($scope.filter.endYear) + 1) + '-01-01T00:00:00.000+0600';
                 }
-                if ($scope.filter.requestedFromDate) {
+                if ($scope.filter.requestedDateRange) {
+                    var results = convertStringToDate($scope.filter.requestedDateRange);
+                    if (results.length===2) {
                     filter.variables.push({
                         "name": "requestedDate",
                         "operator": "gteq",
-                        "value": $scope.filter.requestedFromDate
+                        "value":results[0]
                     });
-                }
-                if ($scope.filter.requestedToDate) {
                     filter.variables.push({
                         "name": "requestedDate",
                         "operator": "lteq",
-                        "value": $scope.filter.requestedToDate
+                        "value": results[1]
                     });
+                    }
                 }
-                if ($scope.filter.validityFromDate) {
-                    filter.variables.push({
-                        "name": "validityDate",
-                        "operator": "gteq",
-                        "value": $scope.filter.validityFromDate
-                    });
-                }
-                if ($scope.filter.validityToDate) {
-                    filter.variables.push({
-                        "name": "validityDate",
-                        "operator": "lteq",
-                        "value": $scope.filter.validityToDate
-                    });
+                if ($scope.filter.validityDateRange) {
+                    var results = convertStringToDate($scope.filter.validityDateRange);
+                    if (results.length===2) {
+                        filter.variables.push({
+                            "name": "validityDate",
+                            "operator": "gteq",
+                            "value": results[0]
+                        });
+
+                        filter.variables.push({
+                            "name": "validityDate",
+                            "operator": "lteq",
+                            "value": results[1]
+                        });
+                    }
                 }
                 if ($scope.filter.priority) {
                     filter.variables.push({"name": "priority", "operator": "eq", "value": $scope.filter.priority});
@@ -371,10 +393,11 @@ define(['./module', 'jquery', 'moment', 'camundaSDK'], function (app, $, moment,
                 $scope.filter.workType = undefined;
                 $scope.filter.beginYear = $scope.currentDate.getFullYear();
                 $scope.filter.endYear = $scope.currentDate.getFullYear();
-                $scope.filter.requestedFromDate = undefined;
-                $scope.filter.requestedToDate = undefined;
-                $scope.filter.validityFromDate = undefined;
-                $scope.filter.validityToDate = undefined;
+                $scope.filter.requestedDateRange = undefined;
+                $scope.filter.validityDateRange = undefined;
+                var element_name = "calendar-range-readonly";
+                $('.'+element_name).data('daterangepicker').setStartDate(moment());
+                $('.'+element_name).data('daterangepicker').setEndDate(moment());
                 $scope.filter.requestor = undefined;
                 $scope.filter.sitename = undefined;
                 $scope.filter.priority = undefined;
@@ -399,7 +422,7 @@ define(['./module', 'jquery', 'moment', 'camundaSDK'], function (app, $, moment,
             }
 
             $scope.getpreparedXlsxProcessInstances = function () {
-                var tbl = document.getElementById('revisionsTable');
+                var tbl = document.getElementById( 'revisionsTable');
                 var ws = XLSX.utils.table_to_sheet(tbl, {dateNF: 'DD.MM.YYYY'});
 
                 var wb = XLSX.utils.book_new();
