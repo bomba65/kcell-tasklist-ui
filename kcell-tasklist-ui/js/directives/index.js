@@ -24,10 +24,12 @@ define([
 	'./limitTo',
 	'./numbersOnly',
 	'./infoAftersales',
-  './aftersalesPBX/index',
+  	'./aftersalesPBX/index',
 	'./revolvingNumbers/index',
 	'./demandProcess',
 	'./bulksmsRichText',
 	'./changeClassOnScroll',
-	'./selectPicker'
+	'./selectPicker',
+	'./customCalendar/calendarCustom',
+	'./customCalendar/calendarRange'
 	], function(){});

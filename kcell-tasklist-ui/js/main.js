@@ -37,7 +37,7 @@ require.config({
          'summernote': './summernote/summernote.min',
          'summernote-ext-template': './summernote/summernote-ext-template',
          'moment': './node_modules/moment/min/moment.min',
-         'daterangepicker': './node_modules/daterangepicker/daterangepicker',
+         'daterangepicker': './daterangepicker/daterangepicker',
          'bootstrap-select': './node_modules/bootstrap-select/dist/js/bootstrap-select.min'
      },
 
