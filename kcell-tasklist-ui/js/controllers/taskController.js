@@ -41,7 +41,7 @@ define(['./module','camundaSDK', 'lodash', 'big-js'], function(module, CamSDK, _
 								camForm.submit(function (err) {
 									if (err) {
 										$submitBtn.removeAttr('disabled');
-										toasty.error({title: "Could not complete task", msg: err});
+										toasty.error({title: "Error", msg: err});
 										e.preventDefault();
 										throw err;
 									} else {
@@ -58,7 +58,7 @@ define(['./module','camundaSDK', 'lodash', 'big-js'], function(module, CamSDK, _
 							},
 							function(err){
 								$submitBtn.removeAttr('disabled');
-								toasty.error({title: "Could not complete task", msg: err});
+								toasty.error({title: "Error", msg: err});
 								e.preventDefault();
 								throw err;
 							}
@@ -67,7 +67,7 @@ define(['./module','camundaSDK', 'lodash', 'big-js'], function(module, CamSDK, _
 						camForm.submit(function (err) {
 							if (err) {
 								$submitBtn.removeAttr('disabled');
-								toasty.error({title: "Could not complete task", msg: err});
+								toasty.error({title: "Error", msg: err});
 								e.preventDefault();
 								throw err;
 							} else {
@@ -83,7 +83,7 @@ define(['./module','camundaSDK', 'lodash', 'big-js'], function(module, CamSDK, _
 					}
 				} else {
 					console.log($scope.kcell_form);
-					toasty.error({title: "Could not complete task", msg: "Please fill required fields"});
+					toasty.error({title: "Error", msg: "Please fill required fields"});
 				}
 			});
 			camForm.formElement.append($submitBtn);

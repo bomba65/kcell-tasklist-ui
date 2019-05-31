@@ -100,7 +100,7 @@ define(['./module','camundaSDK'], function(module, CamSDK){
 												camForm.submit(function (err,results) {
 													if (err) {
 														$submitBtn.removeAttr('disabled');
-														toasty.error({title: "Coguld not complete task", msg: err});
+														toasty.error({title: "Error", msg: err});
 														e.preventDefault();
 														throw err;
 													} else {
@@ -138,7 +138,7 @@ define(['./module','camundaSDK'], function(module, CamSDK){
 											},
 											function(err){
 												$submitBtn.removeAttr('disabled');
-												toasty.error({title: "Could not complete task", msg: err});
+												toasty.error({title: "Error", msg: err});
 												e.preventDefault();
 												throw err;
 											}
@@ -147,7 +147,7 @@ define(['./module','camundaSDK'], function(module, CamSDK){
 										camForm.submit(function (err,results) {
 											if (err) {
 												$submitBtn.removeAttr('disabled');
-												toasty.error({title: "Could not complete task", msg: err});
+												toasty.error({title: "Error", msg: err});
 												e.preventDefault();
 												throw err;
 											} else {
@@ -159,7 +159,7 @@ define(['./module','camundaSDK'], function(module, CamSDK){
 										});
 									}
 								} else {
-									toasty.error({title: "Could not complete task", msg: "Please fill required fields"});
+									toasty.error({title: "Error", msg: "Please fill required fields"});
 								}
 							})
 						});
