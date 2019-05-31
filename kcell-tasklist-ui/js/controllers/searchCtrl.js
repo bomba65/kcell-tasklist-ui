@@ -53,7 +53,6 @@ define(['./module', 'jquery', 'moment', 'camundaSDK'], function (app, $, moment,
                 'west_kcell_users': 'west'
             }
 
-
             function convertStringToDate (date_string) {
                 var result = date_string.split(" - ");
                 console.log(result)
@@ -658,6 +657,159 @@ define(['./module', 'jquery', 'moment', 'camundaSDK'], function (app, $, moment,
                   }
                 );
             }
+            $scope.toggleProcessViewRevision = function (index, processDefinitionKey, processDefinitionId, businessKey) {
+                $scope.showDiagramView = false;
+                $scope.diagram = {};
+                if ($scope.piIndex === index) {
+                    $scope.piIndex = undefined;
+                } else {
+                    $scope.piIndex = index;
+                    $scope.jobModel = {
+                        state: $scope.processInstances[index].state,
+                        processDefinitionKey: processDefinitionKey,
+                        startTime: {value: $scope.processInstances[index].startTime}
+                    };
+                    $http({
+                        method: 'GET',
+                        headers: {'Accept': 'application/hal+json, application/json; q=0.5'},
+                        url: baseUrl + '/task?processInstanceId=' + $scope.processInstances[index].id,
+                    }).then(
+                        function (tasks) {
+                            var processInstanceTasks = tasks.data._embedded.task;
+                            if (processInstanceTasks && processInstanceTasks.length > 0) {
+                                processInstanceTasks.forEach(function (e) {
+                                    if (e.assignee && tasks.data._embedded.assignee) {
+                                        for (var i = 0; i < tasks.data._embedded.assignee.length; i++) {
+                                            if (tasks.data._embedded.assignee[i].id === e.assignee) {
+                                                e.assigneeObject = tasks.data._embedded.assignee[i];
+                                            }
+                                        }
+                                    }
+                                    $http({
+                                        method: 'GET',
+                                        headers: {'Accept': 'application/hal+json, application/json; q=0.5'},
+                                        url: baseUrl + '/task/' + e.id
+                                    }).then(
+                                        function (taskResult) {
+                                            if (taskResult.data._embedded && taskResult.data._embedded.group) {
+                                                e.group = taskResult.data._embedded.group[0].id;
+                                            }
+                                        },
+                                        function (error) {
+                                            console.log(error.data);
+                                        }
+                                    );
+                                });
+                            }
+                            $http.get(baseUrl + '/history/variable-instance?deserializeValues=false&processInstanceId=' + $scope.processInstances[index].id).then(
+                                function (result) {
+                                    var workFiles = [];
+                                    result.data.forEach(function (el) {
+                                        $scope.jobModel[el.name] = el;
+                                        if (el.type === 'File' || el.type === 'Bytes') {
+                                            $scope.jobModel[el.name].contentUrl = baseUrl + '/history/variable-instance/' + el.id + '/data';
+                                        }
+                                        if (el.type === 'Json') {
+                                            $scope.jobModel[el.name].value = JSON.parse(el.value);
+                                        }
+                                        if (el.name.startsWith('works_') && el.name.includes('_file_')) {
+                                            workFiles.push(el);
+                                        }
+                                    });
+                                    if ($scope.jobModel['siteWorksFiles']) {
+                                        _.forEach($scope.jobModel['siteWorksFiles'].value, function (file) {
+                                            var workIndex = file.name.split('_')[1];
+                                            if (!$scope.jobModel.jobWorks.value[workIndex].files) {
+                                                $scope.jobModel.jobWorks.value[workIndex].files = [];
+                                            }
+                                            if (_.findIndex($scope.jobModel.jobWorks.value[workIndex].files, function (f) {
+                                                return f.name == file.name;
+                                            }) < 0) {
+                                                $scope.jobModel.jobWorks.value[workIndex].files.push(file);
+                                            }
+                                        });
+                                    }
+                                    _.forEach(workFiles, function (file) {
+                                        var workIndex = file.name.split('_')[1];
+                                        if (!$scope.jobModel.jobWorks.value[workIndex].files) {
+                                            $scope.jobModel.jobWorks.value[workIndex].files = [];
+                                        }
+                                        if (_.findIndex($scope.jobModel.jobWorks.value[workIndex].files, function (f) {
+                                            return f.name == file.name;
+                                        }) < 0) {
+                                            $scope.jobModel.jobWorks.value[workIndex].files.push(file);
+                                        }
+                                    });
+                                    if ($scope.jobModel.resolutions && $scope.jobModel.resolutions.value) {
+                                        $q.all($scope.jobModel.resolutions.value.map(function (resolution) {
+                                            return $http.get("/camunda/api/engine/engine/default/history/task?processInstanceId=" + resolution.processInstanceId + "&taskId=" + resolution.taskId);
+                                        })).then(function (tasks) {
+                                            tasks.forEach(function (e, index) {
+                                                if (e.data.length > 0) {
+                                                    $scope.jobModel.resolutions.value[index].taskName = e.data[0].name;
+                                                    try {
+                                                        $scope.jobModel.resolutions.value[index].taskEndDate = new Date(e.data[0].endTime);
+                                                    } catch (e) {
+                                                        console.log(e);
+                                                    }
+                                                }
+                                            });
+                                        });
+                                    }
+
+                                    //$scope.jobModel.tasks = processInstanceTasks;
+                                    angular.extend($scope.jobModel, catalogs);
+                                    $scope.jobModel.tasks = processInstanceTasks;
+
+                                    exModal.open({
+                                        scope: {
+                                            jobModel: $scope.jobModel,
+                                            getStatus:$scope.getStatus,
+                                            showDiagram:$scope.showDiagram,
+                                            showHistory: $scope.showHistory,
+                                            hasGroup: $scope.hasGroup,
+                                            showGroupDetails:$scope.showGroupDetails,
+                                            processDefinitionId: processDefinitionId,
+                                            piIndex: $scope.piIndex,
+                                            $index: index,
+                                            businessKey: businessKey,
+                                            download: function(file) {
+                                                $http({method: 'GET', url: '/camunda/uploads/get/' + file.path, transformResponse: [] }).
+                                                then(function(response) {
+                                                    document.getElementById('fileDownloadIframe').src = response.data;
+                                                }, function(error){
+                                                    console.log(error);
+                                                });
+                                            },
+                                            isFileVisible: function(file) {
+                                                return !file.visibility || file.visibility == 'all' || (file.visibility == 'kcell' && $rootScope.hasGroup('kcellUsers'));
+                                            },
+                                            getDictNameById: function(dictionary, id) {
+                                                return _.find(dictionary, function(dict){
+                                                    return dict.id === id;
+                                                });
+                                            },
+                                            compareDate: new Date('2019-02-05T06:00:00.000'),
+
+
+                                        },
+                                        templateUrl: './js/partials/processCardModal.html',
+                                        size: 'lg'
+                                    }).then(function(results){
+                                    });
+                                },
+                                function (error) {
+                                    console.log(error.data);
+                                }
+                            );
+
+                        },
+                        function (error) {
+                            console.log(error.data);
+                        }
+                    );
+                }
+            };
 
             $scope.toggleProcessView = function (index, processDefinitionKey) {
                 $scope.showDiagramView = false;
