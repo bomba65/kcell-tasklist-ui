@@ -11,5 +11,7 @@ define([
     './businessCase',
     './businessIntelligence',
     './demandRichText',
-    './demandDropdown'
+    './demandDropdown',
+    './sddFieldConstructor',
+    './sddFunctionalRequirements'
 ], function(){});

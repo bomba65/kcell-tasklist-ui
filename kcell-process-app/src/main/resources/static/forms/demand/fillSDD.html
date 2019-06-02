@@ -3,6 +3,10 @@
     .well {
       color: #333;
     }
+
+    .content-visible-accordion .panel {
+      overflow: visible;
+    }
   </style>
   <script cam-script type="text/form-script">
         inject(['$scope', '$http', 'Uri', '$rootScope', '$q', 'toasty', '$timeout', function ($scope, $http, Uri, $rootScope, $q, toasty, $timeout) {
@@ -21,6 +25,12 @@
             $scope.BCData = {
                 data: {}
             };
+            $scope.SDDData = {
+                funcRequirements: {},
+                nonFuncRequirements: {},
+                solutionDesign: {},
+                components: {}
+            };
             $scope.riskData = [];
             $scope.resolutions = [];
             $scope.attachments = [];
@@ -28,7 +38,8 @@
             $scope.resources = [];
             $scope.materials = [];
 
-            var processInstanceId = null;
+            $scope.processInstanceId = null;
+            $scope.taskId = camForm.taskId;
             var taskName = null;
             var assigneeName = $rootScope.authentication.name;
             var createdDate = new Date();
@@ -40,7 +51,7 @@
 
             $http.get('/camunda/api/engine/engine/default/task/' + camForm.taskId).then(
                 function(result){
-                    processInstanceId = result.data.processInstanceId;
+                    $scope.processInstanceId = result.data.processInstanceId;
                     taskName = result.data.name;
                     if (result.data.created) createdDate = new Date(result.data.created);
                 },
@@ -69,6 +80,7 @@
                 camForm.variableManager.fetchVariable('generalData');
                 camForm.variableManager.fetchVariable('BRDData');
                 camForm.variableManager.fetchVariable('BCData');
+                camForm.variableManager.fetchVariable('SDDData');
                 camForm.variableManager.fetchVariable('riskData');
                 camForm.variableManager.fetchVariable('supportiveInputs');
                 camForm.variableManager.fetchVariable('resolutions');
@@ -84,6 +96,7 @@
                 $scope.generalData = camForm.variableManager.variableValue('generalData');
                 $scope.BRDData = camForm.variableManager.variableValue('BRDData');
                 $scope.BCData = camForm.variableManager.variableValue('BCData');
+                $scope.SDDData = camForm.variableManager.variableValue('SDDData');
                 $scope.riskData = camForm.variableManager.variableValue('riskData');
                 $scope.supportiveInputs = camForm.variableManager.variableValue('supportiveInputs');
                 $scope.resolutions = camForm.variableManager.variableValue('resolutions');
@@ -94,10 +107,13 @@
                 $scope.state = camForm.variableManager.variableValue('state');
                 if (!$scope.attachments) $scope.attachments = [];
                 if (!$scope.supportiveInputs) $scope.supportiveInputs = [];
-                if (!$scope.BCData) {
-                    $scope.BCData = {
-                        data: {}
-                    };
+                if (!$scope.SDDData) {
+                  $scope.SDDData = {
+                      funcRequirements: {},
+                      nonFuncRequirements: {},
+                      solutionDesign: {},
+                      components: {}
+                  };
                 }
                 if (!$scope.riskData) $scope.riskData = [];
                 for (var i of $scope.supportiveInputs) {
@@ -120,7 +136,7 @@
                 if(!$scope.resolutions){
                     $scope.resolutions = [];
                 }
-                $scope.resolutions.unshift({processInstanceId: processInstanceId, assignee: assigneeName, resolution: $scope.resolution, comment: $scope.comment, taskId: camForm.taskId, taskEndDate: submitDate, taskName: taskName, dateOfAssign: createdDate, claimDate: claimDate});
+                $scope.resolutions.unshift({processInstanceId: $scope.processInstanceId, assignee: assigneeName, resolution: $scope.resolution, comment: $scope.comment, taskId: camForm.taskId, taskEndDate: submitDate, taskName: taskName, dateOfAssign: createdDate, claimDate: claimDate});
                 camForm.variableManager.destroyVariable('resolutions');
                 camForm.variableManager.createVariable({
                     name: 'resolutions',
@@ -301,7 +317,7 @@
         </div>
       </div>
     </tab>
-    <tab active="true">
+    <tab>
       <tab-heading> BRD </tab-heading>
       <div style="margin-bottom: 20px; margin-top: 20px;">
         <accordion>
@@ -419,8 +435,36 @@
         </div>
       </div>
     </tab>
-    <tab disabled="true">
+    <tab active="true">
       <tab-heading> SDD </tab-heading>
+      <div style="margin-bottom: 20px; margin-top: 20px;">
+        <div class="form-group">
+          <label class="control-label col-sm-12">Glossary</label>
+          <div class="col-sm-12">
+            <demand-rich-text data="SDDData.glossary" min-height="100" process-id="processInstanceId" task-id="taskId"></demand-rich-text>
+          </div>
+        </div>
+        <div class="form-group">
+          <label class="control-label col-sm-12">General description</label>
+          <div class="col-sm-12">
+            <demand-rich-text data="SDDData.generalDescription" min-height="100" process-id="processInstanceId" task-id="taskId"></demand-rich-text>
+          </div>
+        </div>
+        <accordion class="content-visible-accordion">
+          <accordion-group is-open="true">
+            <accordion-heading>
+              Functional Requirements <i class="pull-right glyphicon" ng-class="{'glyphicon-chevron-up': status.isCustomHeaderOpen, 'glyphicon-chevron-down': !status.isCustomHeaderOpen}"></i>
+            </accordion-heading>
+            <demand-sdd-func-requirements data="SDDData.funcRequirements" form="kcell_form" view="view" process-id="processInstanceId" task-id="taskId"></demand-sdd-func-requirements>
+          </accordion-group>
+        </accordion>
+        <div class="form-group">
+          <label class="control-label col-sm-12">Order of Components implementation and integration</label>
+          <div class="col-sm-12">
+            <demand-rich-text data="SDDData.componentsOrder" min-height="100" process-id="processInstanceId" task-id="taskId"></demand-rich-text>
+          </div>
+        </div>
+      </div>
     </tab>
   </tabset>
 
