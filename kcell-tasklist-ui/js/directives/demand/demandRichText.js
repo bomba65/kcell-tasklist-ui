@@ -8,7 +8,8 @@ define(['./../module', 'summernote', 'summernote-ext-template'], function(module
                 disabled: '=',
                 minHeight: '=',
                 processId: '=',
-                taskId: '='
+                taskId: '=',
+                templates: '='
             },
             link: function(scope, element, attrs) {
                 var uuid = new Date().getTime();
@@ -39,11 +40,12 @@ define(['./../module', 'summernote', 'summernote-ext-template'], function(module
                   ['color', ['color']],
                   ['para', ['ul', 'ol', 'paragraph', 'height']],
                   ['table', ['table']],
-                  ['insert', ['link', 'unlink', 'picture', 'video', 'template']],
+                  ['insert', ['link', 'unlink', 'picture', 'video']],
                   ['view', ['fullscreen', 'codeview', 'help']],
                 ];
 
                 if (scope.disabled) toolbarList = [];
+                if (scope.templates && Object.keys(scope.templates).length) toolbarList[6][1].push('template');
 
                 element.summernote({
                     focus: false,
@@ -72,15 +74,7 @@ define(['./../module', 'summernote', 'summernote-ext-template'], function(module
                     toolbar: toolbarList,
                     template: {
                         path: '/summernote-templates',
-                        list: {
-                            'general_product_definition':'General Product Definition',
-                            'resume': 'Resume',
-                            'resume_cover_letter': 'Resume cover letter',
-                            'business_letter': 'Business letter',
-                            'flow': 'Flow',
-                            'personal_letterhead': 'Personal letterhead',
-                            'retrospect': 'Retrospect'
-                        }
+                        list: scope.templates
                     },
                     popover: {
                         link: []
