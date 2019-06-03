@@ -474,6 +474,9 @@ define(['./module','camundaSDK', 'lodash', 'big-js'], function(module, CamSDK, _
         $scope.collapseProject = function(project) {
 			$rootScope.updateSelectedProject(project);
 			$rootScope.updateSelectedProcess(undefined);
+			if($scope.secondLevel === 'closed'){
+				$scope.collapseLevels('secondLevel');
+			}
 			loadProcessDefinitions();
 			$scope.currentFilter = undefined;
 			$scope.taskGroups = {};
@@ -512,34 +515,30 @@ define(['./module','camundaSDK', 'lodash', 'big-js'], function(module, CamSDK, _
 			$http.get(baseUrl+'/filter?resoureType=Task').then(
 				function(result){
 					$scope.filters = result.data;
-
 					try {
-	 					angular.forEach($scope.filters, function(filter){
-							angular.forEach($rootScope.projects, function(project){
-								angular.forEach(project.processes, function(process){
-									if(process.key !== 'All'){
-										var processDefinitionKeyMap = [process.key];
-										if(process.subprocesses && process.subprocesses.length > 0){
-											var subprocessDefinitionKeyMap = _.map(process.subprocesses, 'key');
-											processDefinitionKeyMap = _.concat(processDefinitionKeyMap, subprocessDefinitionKeyMap);
+						angular.forEach($rootScope.projects, function(project){
+							angular.forEach(project.processes, function(process){
+								var processDefinitionKeyMap = [process.key];
+								if(process.subprocesses && process.subprocesses.length > 0){
+									var subprocessDefinitionKeyMap = _.map(process.subprocesses, 'key');
+									processDefinitionKeyMap = _.concat(processDefinitionKeyMap, subprocessDefinitionKeyMap);
+								}
+								var query = {'processDefinitionKeyIn':processDefinitionKeyMap};
+
+			 					angular.forEach($scope.filters, function(filter){
+			 						process.filters = [];
+									$http.post(baseUrl+'/filter/'+filter.id+'/count',query,{headers:{'Content-Type':'application/json'}}).then(
+										function(results){
+											var tmpfilter = angular.copy(filter);
+											tmpfilter.itemCount = results.data.count;
+											process.itemCount = process.itemCount ? process.itemCount + results.data.count : results.data.count;
+											process.filters.push(tmpfilter);
+											project.itemCount = project.itemCount ? project.itemCount + results.data.count : results.data.count;
+										},
+										function(error){
+											console.log(error.data);
 										}
-										var query = {'processDefinitionKeyIn':processDefinitionKeyMap};
-										$http.post(baseUrl+'/filter/'+filter.id+'/count',query,{headers:{'Content-Type':'application/json'}}).then(
-											function(results){
-												var tmpfilter = angular.copy(filter);
-												tmpfilter.itemCount = results.data.count;
-												process.itemCount = process.itemCount ? process.itemCount + results.data.count : results.data.count;
-												if(!process.filters){
-													process.filters = [];
-												}
-												process.filters.push(tmpfilter);
-												project.itemCount = project.itemCount ? project.itemCount + results.data.count : results.data.count;
-											},
-											function(error){
-												console.log(error.data);
-											}
-										);
-									}
+									);
 								});
 							});
 						});
