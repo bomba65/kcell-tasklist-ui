@@ -44,8 +44,8 @@ define(['./../module', 'summernote', 'summernote-ext-template'], function(module
                   ['view', ['fullscreen', 'codeview', 'help']],
                 ];
 
-                if (scope.disabled) toolbarList = [];
                 if (scope.templates && Object.keys(scope.templates).length) toolbarList[6][1].push('template');
+                if (scope.disabled) toolbarList = [];
 
                 element.summernote({
                     focus: false,
@@ -53,6 +53,7 @@ define(['./../module', 'summernote', 'summernote-ext-template'], function(module
                     minHeight: (scope.minHeight?scope.minHeight:300),
                     callbacks: {
                         onChange: function(content) {
+                            if (content === '<p><br></p>') content = '';
                             scope.data = content;
                             if (!scope.$$phase && !$rootScope.$$phase) {
                                 scope.$apply();

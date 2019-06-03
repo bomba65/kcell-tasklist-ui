@@ -1,6 +1,6 @@
 define(['./../module'], function(module){
   'use strict';
-  module.directive('demandSddFieldConstructor', function ($rootScope, $http, exModal) {
+  module.directive('demandSddFieldConstructor', function ($rootScope, $http, $timeout, exModal) {
     return {
       restrict: 'E',
       scope: {
@@ -10,10 +10,10 @@ define(['./../module'], function(module){
       link: function(scope, element, attrs) {
         scope.selected = null;
         scope.sections = [
-          {id: 0, name: 'Functional requirements'},
-          {id: 1, name: 'Non-Functional requirements'},
-          {id: 2, name: 'Solution design'},
-          {id: 3, name: 'Components'}
+          'Functional requirements',
+          'Non-Functional requirements',
+          'Solution design',
+          'Components'
         ];
 
         scope.leftIndex = null;
