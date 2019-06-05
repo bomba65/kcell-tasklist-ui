@@ -41,8 +41,7 @@
             $scope.resources = [];
             $scope.materials = [];
 
-            $scope.processInstanceId = null;
-            $scope.taskId = camForm.taskId;
+            var processInstanceId = null;
             var taskName = null;
             var assigneeName = $rootScope.authentication.name;
             var createdDate = new Date();
@@ -54,7 +53,7 @@
 
             $http.get('/camunda/api/engine/engine/default/task/' + camForm.taskId).then(
                 function(result){
-                    $scope.processInstanceId = result.data.processInstanceId;
+                    processInstanceId = result.data.processInstanceId;
                     taskName = result.data.name;
                     if (result.data.created) createdDate = new Date(result.data.created);
                 },
@@ -90,6 +89,8 @@
                 camForm.variableManager.fetchVariable('attachments');
                 camForm.variableManager.fetchVariable('requirementManager');
                 camForm.variableManager.fetchVariable('solutionOwner');
+                camForm.variableManager.fetchVariable('sddApprovalList');
+                camForm.variableManager.fetchVariable('approvalItem');
                 camForm.variableManager.fetchVariable('status');
                 camForm.variableManager.fetchVariable('state');
             });
@@ -104,18 +105,17 @@
                 $scope.attachments = camForm.variableManager.variableValue('attachments');
                 $scope.requirementManager = camForm.variableManager.variableValue('requirementManager');
                 $scope.solutionOwner = camForm.variableManager.variableValue('solutionOwner');
+                $scope.sddApprovalList = camForm.variableManager.variableValue('sddApprovalList');
+                $scope.approvalItem = camForm.variableManager.variableValue('approvalItem');
                 $scope.status = camForm.variableManager.variableValue('status');
                 $scope.state = camForm.variableManager.variableValue('state');
                 if (!$scope.attachments) $scope.attachments = [];
                 if (!$scope.supportiveInputs) $scope.supportiveInputs = [];
-                if (!$scope.SDDData) {
-                  $scope.SDDData = {
-                      funcRequirements: {},
-                      nonFuncRequirements: {},
-                      solutionDesign: {},
-                      components: {}
-                  };
-                }
+
+                if (!$scope.generalData) $scope.generalData = {};
+                if (!$scope.generalData.general) $scope.generalData.general = {};
+                if ($scope.generalData.general.actualLaunch) $scope.generalData.general.actualLaunch = new Date($scope.generalData.general.actualLaunch);
+
                 for (var i of $scope.supportiveInputs) {
                     if (i.form == 'HR') $scope.resources = $scope.resources.concat(i.value);
                     else if (i.form == 'CPD') $scope.materials = $scope.materials.concat(i.value);
@@ -128,7 +128,6 @@
                 $http.get("/camunda/api/engine/engine/default/user/" + $scope.solutionOwner + "/profile").then(function(result){
                     $scope.solutionOwner = (result.data.firstName ? result.data.firstName : "") + " " + (result.data.lastName ? result.data.lastName : "");
                 });
-
             });
 
             camForm.on('submit', function (event) {
@@ -136,7 +135,7 @@
                 if(!$scope.resolutions){
                     $scope.resolutions = [];
                 }
-                $scope.resolutions.unshift({processInstanceId: $scope.processInstanceId, assignee: assigneeName, resolution: $scope.resolution, comment: $scope.comment, taskId: camForm.taskId, taskEndDate: submitDate, taskName: taskName, dateOfAssign: createdDate, claimDate: claimDate});
+                $scope.resolutions.unshift({processInstanceId: processInstanceId, assignee: assigneeName, resolution: $scope.resolution, comment: $scope.comment, taskId: camForm.taskId, taskEndDate: submitDate, taskName: taskName, dateOfAssign: createdDate, claimDate: claimDate});
                 camForm.variableManager.destroyVariable('resolutions');
                 camForm.variableManager.createVariable({
                     name: 'resolutions',
@@ -151,11 +150,18 @@
                     value: $scope.resolution
                 });
 
-                camForm.variableManager.destroyVariable('SDDData');
+                for (var app of $scope.sddApprovalList) {
+                  if (app.id === $scope.approvalItem.id) {
+                    app.approved = new Date();
+                    app.resolution = ($scope.resolution === 'Approve'?'Approved':'Rejected');
+                  }
+                }
+
+                camForm.variableManager.destroyVariable('sddApprovalList');
                 camForm.variableManager.createVariable({
-                    name: 'SDDData',
+                    name: 'sddApprovalList',
                     type: 'Json',
-                    value: $scope.SDDData
+                    value: $scope.sddApprovalList
                 });
             });
 
@@ -184,7 +190,7 @@
     </div>
     <label style="width: 6%; float: left; padding: 7px 0px 0 5px; font-weight: 500;"> Activity:</label>
     <div style="width: 29%; float: left; padding: 0 5px;">
-      <div class="disabled-element"> Fill SDD </div>
+      <div class="disabled-element"> Approve SDD </div>
     </div>
   </div>
   <div class="form-group">
@@ -273,7 +279,7 @@
     </tab>
     <tab>
       <tab-heading> BRD </tab-heading>
-      <div style="margin-bottom: 20px; margin-top: 20px;">
+      <div style="margin-top: 20px;">
         <accordion>
           <accordion-group is-open="true">
             <accordion-heading>
@@ -374,7 +380,7 @@
     </tab>
     <tab>
       <tab-heading> Business Case </tab-heading>
-      <div style="margin-bottom: 20px;">
+      <div style="margin-top: 20px;">
         <div class="col-sm-12" style="padding: 0;">
           <div class="panel-group custom-panel">
             <div class="panel panel-default">
@@ -391,21 +397,17 @@
     </tab>
     <tab active="true">
       <tab-heading> SDD </tab-heading>
-      <div style="margin-bottom: 20px; margin-top: 20px;">
+      <div style="margin-top: 20px;">
         <div class="form-group">
           <label class="control-label col-sm-12">Glossary</label>
           <div class="col-sm-12 no-margin-panel">
-            <demand-rich-text data="SDDData.glossary" min-height="100" process-id="processInstanceId" task-id="taskId"></demand-rich-text>
-            <input type="hidden" ng-model="SDDData.glossary" name="sdd_glossary" required>
-            <span class="has-error" ng-if="kcell_form.sdd_glossary.$error.required && (kcell_form.sdd_glossary.$touched || view.submitted)">Required field</span>
+            <demand-rich-text data="SDDData.glossary" min-height="100" disabled="true"></demand-rich-text>
           </div>
         </div>
         <div class="form-group">
           <label class="control-label col-sm-12">General description</label>
           <div class="col-sm-12 no-margin-panel">
-            <demand-rich-text data="SDDData.generalDescription" min-height="100" process-id="processInstanceId" task-id="taskId"></demand-rich-text>
-            <input type="hidden" ng-model="SDDData.generalDescription" name="sdd_generalDescription" required>
-            <span class="has-error" ng-if="kcell_form.sdd_generalDescription.$error.required && (kcell_form.sdd_generalDescription.$touched || view.submitted)">Required field</span>
+            <demand-rich-text data="SDDData.generalDescription" min-height="100" disabled="true"></demand-rich-text>
           </div>
         </div>
         <accordion class="content-visible-accordion">
@@ -413,7 +415,7 @@
             <accordion-heading>
               Functional Requirements <i class="pull-right glyphicon" ng-class="{'glyphicon-chevron-up': status.isCustomHeaderOpen, 'glyphicon-chevron-down': !status.isCustomHeaderOpen}"></i>
             </accordion-heading>
-            <demand-sdd-sections data="SDDData.funcRequirements" section="0" form="kcell_form" view="view" process-id="processInstanceId" task-id="taskId"></demand-sdd-sections>
+            <demand-sdd-sections data="SDDData.funcRequirements" section="0" form="kcell_form" view="view" disabled="true"></demand-sdd-sections>
           </accordion-group>
         </accordion>
         <accordion class="content-visible-accordion">
@@ -421,7 +423,7 @@
             <accordion-heading>
               Non-Functional requirements <i class="pull-right glyphicon" ng-class="{'glyphicon-chevron-up': status.isCustomHeaderOpen, 'glyphicon-chevron-down': !status.isCustomHeaderOpen}"></i>
             </accordion-heading>
-            <demand-sdd-sections data="SDDData.nonFuncRequirements" section="1" form="kcell_form" view="view" process-id="processInstanceId" task-id="taskId"></demand-sdd-sections>
+            <demand-sdd-sections data="SDDData.nonFuncRequirements" section="1" form="kcell_form" view="view" disabled="true"></demand-sdd-sections>
           </accordion-group>
         </accordion>
         <accordion class="content-visible-accordion">
@@ -429,7 +431,7 @@
             <accordion-heading>
               Solution design <i class="pull-right glyphicon" ng-class="{'glyphicon-chevron-up': status.isCustomHeaderOpen, 'glyphicon-chevron-down': !status.isCustomHeaderOpen}"></i>
             </accordion-heading>
-            <demand-sdd-sections data="SDDData.solutionDesign" section="2" form="kcell_form" view="view" process-id="processInstanceId" task-id="taskId"></demand-sdd-sections>
+            <demand-sdd-sections data="SDDData.solutionDesign" section="2" form="kcell_form" view="view" disabled="true"></demand-sdd-sections>
           </accordion-group>
         </accordion>
         <accordion class="content-visible-accordion">
@@ -437,15 +439,13 @@
             <accordion-heading>
               Components <i class="pull-right glyphicon" ng-class="{'glyphicon-chevron-up': status.isCustomHeaderOpen, 'glyphicon-chevron-down': !status.isCustomHeaderOpen}"></i>
             </accordion-heading>
-            <demand-sdd-sections data="SDDData.components" section="3" form="kcell_form" view="view" process-id="processInstanceId" task-id="taskId"></demand-sdd-sections>
+            <demand-sdd-sections data="SDDData.components" section="3" form="kcell_form" view="view" disabled="true"></demand-sdd-sections>
           </accordion-group>
         </accordion>
         <div class="form-group">
           <label class="control-label col-sm-12">Order of Components implementation and integration</label>
           <div class="col-sm-12 no-margin-panel">
-            <demand-rich-text data="SDDData.componentsOrder" min-height="100" process-id="processInstanceId" task-id="taskId"></demand-rich-text>
-            <input type="hidden" ng-model="SDDData.componentsOrder" name="sdd_componentsOrder" required>
-            <span class="has-error" ng-if="kcell_form.sdd_componentsOrder.$error.required && (kcell_form.sdd_componentsOrder.$touched || view.submitted)">Required field</span>
+            <demand-rich-text data="SDDData.componentsOrder" min-height="100" disabled="true"></demand-rich-text>
           </div>
         </div>
       </div>
@@ -527,18 +527,18 @@
     <label class="col-sm-2 control-label">Resolution</label>
     <div class="col-sm-8">
       <label class="radio-inline">
-        <input type="radio" ng-model="resolution" name="resolution" value="Submit" required> Submit
+        <input type="radio" ng-model="resolution" name="resolution" value="Approve" required> Approve
       </label>
       <label class="radio-inline">
-        <input type="radio" ng-model="resolution" name="resolution" value="Send to Assign Solution designer" required> Send to Assign Solution designer
+        <input type="radio" ng-model="resolution" name="resolution" value="Reject" required> Reject
       </label>
       <label class="error" ng-show="kcell_form.resolution.$error.required && ( kcell_form.resolution.$touched || view.submitted)">Required field</label>
     </div>
   </div>
   <div class="form-group">
-    <label class="col-sm-2 control-label">Comment<span class="text-danger glyphicon-asterisk"></span></label>
+    <label class="col-sm-2 control-label">Comment<span ng-if="resolution === 'Reject'" class="text-danger glyphicon-asterisk"></span></label>
     <div class="col-sm-10">
-      <textarea class="form-control" rows="4" maxlength="500" ng-model="comment" name="comment" required></textarea>
+      <textarea class="form-control" rows="4" maxlength="500" ng-model="comment" name="comment" ng-required="resolution === 'Reject'"></textarea>
       <label class="error" ng-show="kcell_form.comment.$error.required && ( kcell_form.comment.$touched || view.submitted)">Required field</label>
     </div>
   </div>
