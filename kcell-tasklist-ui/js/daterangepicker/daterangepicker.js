@@ -739,7 +739,7 @@
                     currentYear + '</button>';
 
                 var yearHtml = initYearHTML + '<ul class="yearselect dropdown-menu">';
-                for (var y = minYear; y <= maxYear; y++) {
+                for (var y = 2010; y <= 2040; y++) {
                     yearHtml += '<li value="' + y + '"' +
                         (y === currentYear ? ' class="selected"' : '') +
                         '>' + y + '</li>';
