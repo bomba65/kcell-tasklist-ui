@@ -556,6 +556,10 @@ define(['./module','camundaSDK', 'lodash', 'big-js'], function(module, CamSDK, _
 
 
 		function loadTasks() {
+			if($rootScope.selectedProcess && $scope.secondLevel === "closed"){
+				$scope.collapseLevels('secondLevel');
+			}
+
 			if($scope.currentFilter){
 				var processDefinitionKeyMap = [$rootScope.selectedProcess.key];
 				if($rootScope.selectedProcess.subprocesses && $rootScope.selectedProcess.subprocesses.length > 0){
