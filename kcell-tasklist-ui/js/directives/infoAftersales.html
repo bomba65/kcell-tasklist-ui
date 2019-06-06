@@ -59,7 +59,7 @@
                       ng-repeat="i in aftersalesInfo.identifiers[0].operators track by $index"
                       ng-show="{{aftersalesInfo.operatorType === 'offnet'? '(!i.connected) && i.isAvailable || i.wasAvailable': 'i.isAvailable'}}">{{i.name + ' - ' + (i.oldTitle ? i.oldTitle : i.title? i.title : aftersalesInfo.identifiers[0].title)}}</span>
             </div>
-            <div class="col-sm-12" ng-if="!aftersalesInfo.disconnectProcess && (aftersalesInfo.operatorWasConnected || aftersalesInfo.operatorWasDisconnected || aftersalesInfo.operatorWasChanged || aftersalesInfo.changeConnectionType || aftersalesInfo.changeProvider || aftersalesInfo.changeOfficialClientCompanyName || aftersalesInfo.changeContractNumber)">
+            <div class="col-sm-12" ng-if="!aftersalesInfo.disconnectProcess && (aftersalesInfo.operatorWasConnected || aftersalesInfo.operatorWasDisconnected || aftersalesInfo.operatorWasChanged || aftersalesInfo.changeConnectionType || aftersalesInfo.changeProvider || aftersalesInfo.changeOfficialClientCompanyName || aftersalesInfo.changeContractNumber || (aftersalesInfo.ipNumber && aftersalesInfo.changeIpNumber))">
                 <b>Изменения:</b><br>
             </div>
             <span ng-style="{'color':'black', 'margin-bottom':'5px', 'font-weight':'bold'}" class="col-sm-12"
@@ -77,18 +77,21 @@
                     {{(i.connected || i.disconnected) ?(i.connected?'Дата подключения ':'Дата отключения ') +
                     (i.newOperatorDate | date: 'dd.MM.yyyy'): ''}}</span>
                 </span>
-            <span class="col-sm-12 pull-left" ng-if="(aftersalesInfo.provider || aftersalesInfo.newProviderDate) && aftersalesInfo.changeProvider" ng-style="{'color':'black', 'margin-bottom':'5px', 'font-weight':'bold'}">
+            <span class="col-sm-12 pull-left" ng-if="((aftersalesInfo.provider && aftersalesInfo.oldProvider &&  (aftersalesInfo.provider!=aftersalesInfo.oldProvider)) || aftersalesInfo.newProviderDate) && aftersalesInfo.changeProvider" ng-style="{'color':'black', 'margin-bottom':'5px', 'font-weight':'bold'}">
                   <span ng-style="{'background-color':'#AEDD94'}">
                       {{aftersalesInfo.provider ? "Новый провайдер: " : ''}} {{(aftersalesInfo.provider==='MMS'?'MMS':aftersalesInfo.provider==='KIT'?'KIT' :aftersalesInfo.provider==='SMS Consult'?'SMS Consult' : '') }} <br ng-if="aftersalesInfo.provider"> {{ 'Дата переключения ' + (aftersalesInfo.newProviderDate | date: 'dd.MM.yyyy')}}</span>
                 </span>
             <span class="col-sm-12 pull-left" ng-style="{'color':'black', 'margin-bottom':'5px', 'font-weight':'bold'}" ng-show="aftersalesInfo.relatedProcessDefinitionKey === 'freephone' && aftersalesInfo.connectionType && aftersalesInfo.changeConnectionType">
                     <span ng-style="{'background-color':'#AEDD94'}"><b>Новый тип подключения</b>: {{aftersalesInfo.connectionType==='SIP'?'SIP':aftersalesInfo.connectionType==='E1'?'E1':aftersalesInfo.connectionType==='SIP_SBC'?'SIP_SBC':'ПЕРЕАДРЕСАЦИЯ'}}</span>
                 </span>
+            <span class="col-sm-12 pull-left" ng-style="{'color':'black', 'margin-bottom':'5px', 'font-weight':'bold'}" ng-show="(aftersalesInfo.relatedProcessDefinitionKey === 'bulksmsConnectionKAE' && (aftersalesInfo.connectionType === 'rest' || aftersalesInfo.connectionType === 'smpp')) && aftersalesInfo.oldConnectionType && aftersalesInfo.connectionType && aftersalesInfo.oldConnectionType && aftersalesInfo.oldConnectionType!=aftersalesInfo.connectionType">
+                    <span ng-style="{'background-color':'#AEDD94'}"><b>Новый тип подключения</b>: {{aftersalesInfo.connectionType==='smpp'?'SMPP':aftersalesInfo.connectionType==='rest'?'REST':''}}</span>
+                </span>
             <span class="col-sm-12 pull-left" ng-style="{'color':'black', 'margin-bottom':'5px', 'font-weight':'bold'}" ng-show="aftersalesInfo.changeOfficialClientCompanyName">
                 <span ng-style="{'background-color':'#AEDD94'}"><b>Новое юридическое наименование компании:</b> {{aftersalesInfo.officialClientCompanyName}}</span>
                 </span>
-            <span class="col-sm-12 pull-left" ng-style="{'color':'black', 'margin-bottom':'5px', 'font-weight':'bold'}" ng-show="aftersalesInfo.changeContractNumber">
-                    <span ng-style="{'background-color':'#AEDD94'}"><b>Новый номер договора:</b> {{aftersalesInfo.contractNumber}}</span>
+            <span class="col-sm-12 pull-left" ng-style="{'color':'black', 'margin-bottom':'5px', 'font-weight':'bold'}" ng-if="aftersalesInfo.ipNumber && aftersalesInfo.changeIpNumber">
+                    <span ng-style="{'background-color':'#AEDD94'}"><b>Новый IP:</b> {{aftersalesInfo.ipNumber}}</span>
                 </span>
             <!--<div class="col-sm-12" ng-if="!aftersalesInfo.disconnectProcess">
                                 <b>Новый заголовок:</b><br><span class="col-lg-9 pull-left" ng-style="(i.disconnected) ? {'color':'red'} : (i.connected || i.changed ? {'color':'green'} : {})" ng-style="{'padding-left': 0}" ng-repeat="i in aftersalesInfo.identifiers[0].operators track by $index" ng-show="{{aftersalesInfo.operatorType === 'offnet'? 'i.isAvailable || i.wasAvailable': 'i.isAvailable' }}">{{i.changed ? i.name + ' - ' + i.title : i.disconnected ? 'отключен' : i.connected ? 'подключен' : ''}} <br></span>
@@ -96,7 +99,7 @@
         </div>
         <div class="col-md-6 form-group">
             <div class="col-sm-12" ng-show="aftersalesInfo.operatorType && !aftersalesInfo.hideOperatorType"><b>Тип
-                трафика</b>: {{aftersalesInfo.operatorType === 'offnet'?'Off-Net/On-Net':'On-Net'}}
+                трафика</b>: {{aftersadlesInfo.operatorType === 'offnet'?'Off-Net/On-Net':'On-Net'}}
             </div>
             <div class="col-sm-12" ng-if="aftersalesInfo.connectionType">
                 <div class="col-sm-6"
@@ -133,9 +136,6 @@
             </div>
             <div class="col-sm-12" ng-if="aftersalesInfo.ipNumber"><b>IP</b>: {{aftersalesInfo.oldIpNumber ?
                 aftersalesInfo.oldIpNumber : aftersalesInfo.ipNumber}}
-            </div>
-            <div class="col-sm-12" ng-if="aftersalesInfo.ipNumber && aftersalesInfo.changeIpNumber"
-                 ng-style="{'color':'green'}"><b>Новый IP</b>: {{aftersalesInfo.ipNumber}}
             </div>
             <div class="col-sm-12" ng-if="aftersalesInfo.transmitNumber"><b>Номер переадресации</b>:
                 {{aftersalesInfo.oldTransmitNumber ? aftersalesInfo.oldTransmitNumber : aftersalesInfo.transmitNumber}}

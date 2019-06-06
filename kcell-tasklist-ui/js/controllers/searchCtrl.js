@@ -1333,6 +1333,7 @@ define(['./module', 'jquery', 'moment', 'camundaSDK'], function (app, $, moment,
             };
 
             $scope.searchDP = function (refreshPages) {
+                $scope.toggleIndexAftersales = undefined;
                 if (refreshPages) {
                     $scope.filterDP.page = 1;
                     $scope.piIndex = undefined;
@@ -1945,6 +1946,7 @@ define(['./module', 'jquery', 'moment', 'camundaSDK'], function (app, $, moment,
             }
 
             $scope.toggleProcessViewDP = function (rowIndex, processDefinitionKey) {
+                $scope.toggleIndexAftersales = undefined;
                 $scope.showDiagramView = false;
                 $scope.diagram = {};
                 var index = ($scope.filterDP.page - 1) * $scope.filterDP.maxResults + rowIndex;
