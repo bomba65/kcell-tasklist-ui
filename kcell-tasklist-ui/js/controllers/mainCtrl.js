@@ -512,11 +512,12 @@ define(['./module','camundaSDK', 'lodash', 'big-js'], function(module, CamSDK, _
 		}
 
 		function getTaskList(){
+			$scope.projects = angular.copy($rootScope.projects);
 			$http.get(baseUrl+'/filter?resoureType=Task').then(
 				function(result){
 					$scope.filters = result.data;
 					try {
-						angular.forEach($rootScope.projects, function(project){
+						angular.forEach($scope.projects, function(project){
 							angular.forEach(project.processes, function(process){
 								var processDefinitionKeyMap = [process.key];
 								if(process.subprocesses && process.subprocesses.length > 0){
@@ -527,12 +528,20 @@ define(['./module','camundaSDK', 'lodash', 'big-js'], function(module, CamSDK, _
 
 			 					angular.forEach($scope.filters, function(filter){
 			 						process.filters = [];
+			 						if($rootScope.selectedProcess && process.key === $rootScope.selectedProcess.key){
+				 						$rootScope.selectedProcess.filters = process.filters;
+			 						}
+
 									$http.post(baseUrl+'/filter/'+filter.id+'/count',query,{headers:{'Content-Type':'application/json'}}).then(
 										function(results){
 											var tmpfilter = angular.copy(filter);
 											tmpfilter.itemCount = results.data.count;
 											process.itemCount = process.itemCount ? process.itemCount + results.data.count : results.data.count;
 											process.filters.push(tmpfilter);
+					 						if($rootScope.selectedProcess && process.key === $rootScope.selectedProcess.key){
+						 						$rootScope.selectedProcess.itemCount = process.itemCount;
+						 						$rootScope.selectedProcess.filters = process.filters;
+					 						}
 											project.itemCount = project.itemCount ? project.itemCount + results.data.count : results.data.count;
 										},
 										function(error){

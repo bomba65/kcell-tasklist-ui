@@ -135,11 +135,11 @@ define('app',[
 
 			$rootScope.projects = aviableProjects;
 
-			if(localStorageService.get('selectedProjectKey') && _.some($rootScope.projects, function(project){ return project.key === localStorageService.get('selectedProjectKey')})){
+			if(!$rootScope.selectedProject && localStorageService.get('selectedProjectKey') && _.some($rootScope.projects, function(project){ return project.key === localStorageService.get('selectedProjectKey')})){
 				$rootScope.selectedProject = _.find($rootScope.projects, function(project){ return  project.key === localStorageService.get('selectedProjectKey')})
-				if(localStorageService.get('selectedProcessKey') && _.some($rootScope.selectedProject.processes, function(process){ return process.key === localStorageService.get('selectedProcessKey')})){
-					$rootScope.selectedProcess = _.find($rootScope.selectedProject.processes, function(process){ return process.key === localStorageService.get('selectedProcessKey')});
-				}
+			}
+			if($rootScope.selectedProject && !$rootScope.selectedProcess && localStorageService.get('selectedProcessKey') && _.some($rootScope.selectedProject.processes, function(process){ return process.key === localStorageService.get('selectedProcessKey')})){
+				$rootScope.selectedProcess = _.find($rootScope.selectedProject.processes, function(process){ return process.key === localStorageService.get('selectedProcessKey')});
 			}
 
 			return [];
