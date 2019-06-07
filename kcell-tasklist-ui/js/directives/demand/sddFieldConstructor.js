@@ -85,6 +85,9 @@ define(['./../module'], function(module){
 
         scope.changeSection = function(index) {
           scope.section = index;
+          scope.leftIndex = {size: 0};
+          scope.rightIndex = {size: 0};
+          scope.customIndex = {size: 0};
         };
       },
       templateUrl: './js/directives/demand/sddFieldConstructor.html'
