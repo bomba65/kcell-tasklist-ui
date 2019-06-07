@@ -9,6 +9,7 @@ define(['./../module'], function(module){
         form: '=',
         view: '=',
         disabled: '=',
+        required: '=',
         processId: '=',
         taskId: '='
       },
@@ -95,13 +96,6 @@ define(['./../module'], function(module){
                 }
               }
             }
-
-            /*scope.showScenarios = false;
-            for (var i = 2; i < 6; i++)
-              if (!scope.data.fields[i].hidden) {
-                scope.showScenarios = true;
-                break;
-              }*/
           }
         }, true);
       },

@@ -50,7 +50,7 @@ define(['./../module', 'summernote', 'summernote-ext-template'], function(module
                 element.summernote({
                     focus: false,
                     disableResizeEditor: true,
-                    minHeight: (scope.minHeight?scope.minHeight:300),
+                    minHeight: scope.disabled?30:(scope.minHeight?scope.minHeight:300),
                     callbacks: {
                         onChange: function(content) {
                             if (content === '<p><br></p>') content = '';
@@ -87,7 +87,8 @@ define(['./../module', 'summernote', 'summernote-ext-template'], function(module
 
                 if (scope.disabled) {
                     element.summernote('disable');
-                    $('.note-editing-area').css('background', '#eee');
+                    $('.note-editor > .note-editing-area').css('background', '#eee');
+                    $('.note-editor > .note-editing-area > .note-editable').css('padding', '4px 10px 0 10px');
                 }
 
                 scope.$watch('data', function (value) {

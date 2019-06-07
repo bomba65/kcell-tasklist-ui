@@ -10,46 +10,81 @@ define(['./../module'], function(module){
       link: function(scope, element, attrs) {
         scope.selected = null;
         scope.sections = [
-          'Functional requirements',
-          'Non-Functional requirements',
-          'Solution design',
-          'Components'
+          {id: 'funcRequirements', name: 'Functional requirements'},
+          {id: 'nonFuncRequirements', name: 'Non-Functional requirements'},
+          {id: 'solutionDesign', name: 'Solution design'},
+          {id: 'components', name: 'Components'}
         ];
 
-        scope.leftIndex = null;
-        scope.rightIndex = null;
-        scope.isCustom = false;
+        scope.leftIndex = {size: 0};
+        scope.rightIndex = {size: 0};
+        scope.customIndex = {size: 0};
         scope.onLeftSelect = function(index) {
-          scope.rightIndex = null;
-          scope.leftIndex = index;
+          // scope.rightIndex = {size: 0};
+          if (scope.leftIndex[index]) {
+            scope.leftIndex.size--;
+            scope.leftIndex[index] = false;
+          } else {
+            scope.leftIndex.size++;
+            scope.leftIndex[index] = true;
+          }
         };
 
         scope.onRightSelect = function(index, customField) {
-          scope.leftIndex = null;
-          scope.rightIndex = index;
-          scope.isCustom = customField;
+          // scope.leftIndex = {size: 0};
+          if (customField) {
+            if (scope.customIndex[index]) {
+              scope.customIndex.size--;
+              scope.customIndex[index] = false;
+            } else {
+              scope.customIndex.size++;
+              scope.customIndex[index] = true;
+            }
+          } else {
+            if (scope.rightIndex[index]) {
+              scope.rightIndex.size--;
+              scope.rightIndex[index] = false;
+            } else {
+              scope.rightIndex.size++;
+              scope.rightIndex[index] = true;
+            }
+          }
         };
 
         scope.moveRight = function() {
-          if (scope.leftIndex === -1) scope.data.customs.push({name: ''});
-          else scope.data.fields[scope.leftIndex].hidden = false;
-          scope.leftIndex = null;
+          for (var i in scope.leftIndex) {
+            if (i === 'size') continue;
+            else if (i === '-1') scope.data[scope.sections[scope.section].id].customs.push({name: ''});
+            else scope.data[scope.sections[scope.section].id].fields[parseInt(i)].hidden = false;
+          }
+          scope.leftIndex = {size: 0};
         };
 
         scope.moveLeft = function() {
           exModal.open({
             scope: {
-              message: 'Are you sure you want to delete the field?',
+              message: 'Are you sure you want to delete the field' + ((scope.rightIndex.size + scope.customIndex.size > 1)?'s':'') + '?',
               cancel: 'No',
               ok: 'Yes'
             },
             templateUrl: './js/partials/confirmModal.html',
             size: 'sm'
           }).then(function() {
-            if (scope.isCustom) scope.data.customs.splice(scope.rightIndex, 1);
-            else scope.data.fields[scope.rightIndex].hidden = true;
-            scope.rightIndex = null;
+            for (var i in scope.rightIndex) {
+              if (i === 'size') continue;
+              else scope.data[scope.sections[scope.section].id].fields[parseInt(i)].hidden = true;
+            }
+            for (var i in scope.customIndex) {
+              if (i === 'size') continue;
+              else scope.data[scope.sections[scope.section].id].customs.splice(parseInt(i), 1);
+            }
+            scope.leftIndex = {size: 0};
+            scope.customIndex = {size: 0};
           });
+        };
+
+        scope.changeSection = function(index) {
+          scope.section = index;
         };
       },
       templateUrl: './js/directives/demand/sddFieldConstructor.html'
