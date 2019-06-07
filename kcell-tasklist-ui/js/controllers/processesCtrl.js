@@ -792,7 +792,7 @@ define(['./module','jquery', 'camundaSDK'], function(app, $, CamSDK){
 				scope: {
 					resolutions: resolutions.value,
 					isKcellStaff: $rootScope.hasGroup('kcellUsers'),
-					procDef:processDefinitionKey,
+					procDef: $scope.currentPD,
 					download: function(path) {
 		              $http({method: 'GET', url: '/camunda/uploads/get/' + path, transformResponse: [] }).
 		              then(function(response) {
