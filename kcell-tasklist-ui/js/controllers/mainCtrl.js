@@ -480,6 +480,8 @@ define(['./module','camundaSDK', 'lodash', 'big-js'], function(module, CamSDK, _
 			loadProcessDefinitions();
 			$scope.currentFilter = undefined;
 			$scope.taskGroups = {};
+
+			getTaskList();
         }
 
         $scope.collapseProcess = function(process) {
@@ -515,46 +517,62 @@ define(['./module','camundaSDK', 'lodash', 'big-js'], function(module, CamSDK, _
 			$scope.projects = angular.copy($rootScope.projects);
 			$http.get(baseUrl+'/filter?resoureType=Task').then(
 				function(result){
-					$scope.filters = result.data;
-					try {
-						angular.forEach($scope.projects, function(project){
+					var filters = result.data;
+					angular.forEach($scope.projects, function(project){
+						if($rootScope.selectedProject.key && $rootScope.selectedProject.key === project.key){
 							angular.forEach(project.processes, function(process){
-								var processDefinitionKeyMap = [process.key];
+		 						process.filters = [];
+								var selectedProcessDefinitionKeyMap = [process.key];
+								if(process.subprocesses && process.subprocesses.length > 0){
+									selectedProcessDefinitionKeyMap = _.concat(selectedProcessDefinitionKeyMap, _.map(process.subprocesses, 'key'));
+								}
+								var selectedQuery = {'processDefinitionKeyIn':selectedProcessDefinitionKeyMap};
+
+			 					angular.forEach(filters, function(filter){
+			 						if(!filter.properties.processDefinitionKey || filter.properties.processDefinitionKey === process.key){
+										$http.post(baseUrl+'/filter/'+filter.id+'/count',selectedQuery,{headers:{'Content-Type':'application/json'}}).then(
+											function(results){
+												var tmpfilter = angular.copy(filter);
+												tmpfilter.itemCount = results.data.count;
+												process.itemCount = process.itemCount ? process.itemCount + results.data.count : results.data.count;
+												process.filters.push(tmpfilter);
+						 						if($rootScope.selectedProcess && process.key === $rootScope.selectedProcess.key){
+							 						$rootScope.selectedProcess.itemCount = process.itemCount;
+							 						$rootScope.selectedProcess.filters = process.filters;
+						 						}
+												project.itemCount = project.itemCount ? project.itemCount + results.data.count : results.data.count;
+											},
+											function(error){
+												console.log(error.data);
+											}
+										);
+									}
+								});
+							});
+						} else {
+							var processDefinitionKeyMap = _.map(project.processes, 'key');
+							angular.forEach(project.processes, function(process){
 								if(process.subprocesses && process.subprocesses.length > 0){
 									var subprocessDefinitionKeyMap = _.map(process.subprocesses, 'key');
 									processDefinitionKeyMap = _.concat(processDefinitionKeyMap, subprocessDefinitionKeyMap);
 								}
-								var query = {'processDefinitionKeyIn':processDefinitionKeyMap};
-
-			 					angular.forEach($scope.filters, function(filter){
-			 						process.filters = [];
-			 						if($rootScope.selectedProcess && process.key === $rootScope.selectedProcess.key){
-				 						$rootScope.selectedProcess.filters = process.filters;
-			 						}
-
+							});
+							var query = {'processDefinitionKeyIn':processDefinitionKeyMap};
+		 					angular.forEach(filters, function(filter){
+		 						if(!filter.properties.processDefinitionKey || processDefinitionKeyMap.indexOf(filter.properties.processDefinitionKey)!==-1){
 									$http.post(baseUrl+'/filter/'+filter.id+'/count',query,{headers:{'Content-Type':'application/json'}}).then(
 										function(results){
-											var tmpfilter = angular.copy(filter);
-											tmpfilter.itemCount = results.data.count;
-											process.itemCount = process.itemCount ? process.itemCount + results.data.count : results.data.count;
-											process.filters.push(tmpfilter);
-					 						if($rootScope.selectedProcess && process.key === $rootScope.selectedProcess.key){
-						 						$rootScope.selectedProcess.itemCount = process.itemCount;
-						 						$rootScope.selectedProcess.filters = process.filters;
-					 						}
 											project.itemCount = project.itemCount ? project.itemCount + results.data.count : results.data.count;
 										},
 										function(error){
 											console.log(error.data);
 										}
 									);
-								});
+								}
 							});
-						});
-					} catch(e){
-						console.log(e);
-					}
-	
+						}
+					});
+
 					loadTasks();
 				},
 				function(error){
