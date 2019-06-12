@@ -35,19 +35,12 @@
                 solutionDesign: {},
                 components: {}
             };
-            $scope.sddApprovalList = [
-              {role: 'Demand owner'},
-              {role: 'Requirement supervisor'},
-              {role: 'Solution supervisor'},
-              {role: 'Development supervisor'}
-            ];
+            $scope.developerList = [{name: ''}];
             $scope.resolutions = [];
             $scope.attachments = [];
             $scope.supportiveInputs = [];
             $scope.resources = [];
             $scope.materials = [];
-            $scope.datePickerMinDate = new Date();
-            $scope.allApproved = false;
 
             var processInstanceId = null;
             var taskName = null;
@@ -97,7 +90,7 @@
                 camForm.variableManager.fetchVariable('attachments');
                 camForm.variableManager.fetchVariable('requirementManager');
                 camForm.variableManager.fetchVariable('solutionOwner');
-                camForm.variableManager.fetchVariable('sddApprovalList');
+                camForm.variableManager.fetchVariable('developerList');
                 camForm.variableManager.fetchVariable('status');
                 camForm.variableManager.fetchVariable('state');
                 camForm.variableManager.fetchVariable('oldStatus');
@@ -113,32 +106,12 @@
                 $scope.attachments = camForm.variableManager.variableValue('attachments');
                 $scope.requirementManager = camForm.variableManager.variableValue('requirementManager');
                 $scope.solutionOwner = camForm.variableManager.variableValue('solutionOwner');
-                $scope.sddApprovalList = camForm.variableManager.variableValue('sddApprovalList');
+                $scope.developerList = camForm.variableManager.variableValue('developerList');
                 $scope.status = camForm.variableManager.variableValue('status');
                 $scope.state = camForm.variableManager.variableValue('state');
                 if (!$scope.attachments) $scope.attachments = [];
                 if (!$scope.supportiveInputs) $scope.supportiveInputs = [];
-
-                if (!$scope.sddApprovalList) {
-                  $scope.sddApprovalList = [
-                    {role: 'Demand owner'},
-                    {role: 'Requirement supervisor'},
-                    {role: 'Solution supervisor'},
-                    {role: 'Development supervisor'}
-                  ];
-                  $scope.lastSddApprovalList = [];
-                } else $scope.lastSddApprovalList = JSON.parse(JSON.stringify($scope.sddApprovalList));
-
-                $scope.allApproved = true;
-                for (var app of $scope.sddApprovalList) {
-                  if (!app.approved) $scope.allApproved = false;
-                  else app.approved = new Date(app.approved);
-                }
-                if (!$scope.allApproved && $scope.resolution === 'Approve') $scope.resolution = null;
-
-                if (!$scope.generalData) $scope.generalData = {};
-                if (!$scope.generalData.general) $scope.generalData.general = {};
-                if ($scope.generalData.general.actualLaunch) $scope.generalData.general.actualLaunch = new Date($scope.generalData.general.actualLaunch);
+                if (!$scope.developerList) $scope.developerList = [{name: ''}];
 
                 for (var i of $scope.supportiveInputs) {
                     if (i.form == 'HR') $scope.resources = $scope.resources.concat(i.value);
@@ -174,32 +147,29 @@
                     value: $scope.resolution
                 });
 
-                if ($scope.resolution === 'Approve') {
-                  camForm.variableManager.destroyVariable('status');
-                  camForm.variableManager.createVariable({
-                      name: 'status',
-                      type: 'String',
-                      value: 'Solution design approved'
-                  });
+                camForm.variableManager.destroyVariable('developerList');
+                camForm.variableManager.createVariable({
+                    name: 'developerList',
+                    type: 'Json',
+                    value: $scope.developerList
+                });
 
-                  camForm.variableManager.destroyVariable('oldStatus');
-                  camForm.variableManager.createVariable({
-                      name: 'oldStatus',
-                      type: 'String',
-                      value: $scope.status
-                  });
-                } else {
-                  for (var i = 0; i < $scope.sddApprovalList.length; i++) {
-                    $scope.sddApprovalList[i].id = i;
-                  }
+                var oldStatus = $scope.status;
+                $scope.status = 'Solution Design in progress';
+                if ($scope.resolution === 'Approve') $scope.status = 'Development complete';
+                camForm.variableManager.destroyVariable('status');
+                camForm.variableManager.createVariable({
+                    name: 'status',
+                    type: 'String',
+                    value: $scope.status
+                });
 
-                  camForm.variableManager.destroyVariable('sddApprovalList');
-                  camForm.variableManager.createVariable({
-                      name: 'sddApprovalList',
-                      type: 'Json',
-                      value: $scope.sddApprovalList
-                  });
-                }
+                camForm.variableManager.destroyVariable('oldStatus');
+                camForm.variableManager.createVariable({
+                    name: 'oldStatus',
+                    type: 'String',
+                    value: oldStatus
+                });
             });
 
             $scope.downloadFile = function (file) {
@@ -211,28 +181,18 @@
                 });
             };
 
-            $scope.addApproval = function() {
-              $scope.sddApprovalList.push({role: 'Development supervisor'});
-              $scope.allApproved = false;
-              if ($scope.resolution === 'Approve') $scope.resolution = null;
+            $scope.addDeveloper = function() {
+              $scope.developerList.push({name: ''});
             };
 
-            $scope.removeApproval = function(index) {
-              $scope.sddApprovalList.splice(index, 1);
-              $scope.allApproved = true;
-              for (var app of $scope.sddApprovalList) {
-                if (!app.approved) {
-                  $scope.allApproved = false;
-                  break;
-                }
-              }
-              if (!$scope.allApproved && $scope.resolution === 'Approve') $scope.resolution = null;
+            $scope.removeDeveloper = function(index) {
+              $scope.developerList.splice(index, 1);
             };
 
 
             $scope.getUser = function(val, index) {
-                $scope.sddApprovalList[index].responsibleId = null;
-                $scope.kcell_form['approval_'+index+'_responsible'].$setValidity('not_selected', false);
+                $scope.developerList[index].id = null;
+                $scope.kcell_form['developer_'+index+'_name'].$setValidity('not_selected', false);
                 var users = $http.get('/camunda/api/engine/engine/default/user?memberOfGroup=demand_uat_users&firstNameLike='+encodeURIComponent('%'+val+'%')).then(
                     function(response){
                       var usersByFirstName = _.flatMap(response.data, function(s){
@@ -277,14 +237,14 @@
             };
 
             $scope.userSelected = function($item, index){
-                $scope.sddApprovalList[index].responsibleId = $item.id;
-                $scope.sddApprovalList[index].responsible = $item.name;
-                $scope.kcell_form['approval_'+index+'_responsible'].$setValidity('not_selected', true);
+                $scope.developerList[index].id = $item.id;
+                $scope.developerList[index].name = $item.name;
+                $scope.kcell_form['developer_'+index+'_name'].$setValidity('not_selected', true);
             };
 
-            $scope.onResponsibleChange = function(index) {
-              if (!$scope.sddApprovalList[index].responsible || !$scope.sddApprovalList[index].responsible.length) {
-                $scope.kcell_form['approval_'+index+'_responsible'].$setValidity('not_selected', true);
+            $scope.onDeveloperChange = function(index) {
+              if (!$scope.developerList[index].name || !$scope.developerList[index].name.length) {
+                $scope.kcell_form['developer_'+index+'_name'].$setValidity('not_selected', true);
               }
             }
         }]);
@@ -304,7 +264,7 @@
     </div>
     <label style="width: 6%; float: left; padding: 7px 0px 0 5px; font-weight: 500;"> Activity:</label>
     <div style="width: 29%; float: left; padding: 0 5px;">
-      <div class="disabled-element"> Check SDD </div>
+      <div class="disabled-element"> Development </div>
     </div>
   </div>
   <div class="form-group">
@@ -586,110 +546,46 @@
   <div class="col-sm-7" style="padding: 0;">
     <div class="panel-group custom-panel">
       <div class="panel panel-default">
-        <div class="panel-body">
-          <div class="form-group">
-            <label class="col-sm-6 control-label">Planned launch by Requirement manager</label>
-            <div class="col-sm-6">
-              <div class="input-group">
-                <input type="text" class="form-control" name="actualLaunch" ng-model="generalData.general.actualLaunch" datepicker-popup="dd.MM.yyyy" is-open="actualLaunchDateFieldOpened" min-date="datePickerMinDate" required/>
-                <span class="input-group-btn">
-                  <button type="button" class="btn btn-default" ng-click="actualLaunchDateFieldOpened = true">
-                      <i class="glyphicon glyphicon-calendar"></i>
-                  </button>
-                </span>
-              </div>
-              <span class="has-error" ng-if="kcell_form.actualLaunch.$error.required && (kcell_form.actualLaunch.$touched || view.submitted)">Required field</span>
-            </div>
-          </div>
-        </div>
-      </div>
-    </div>
-  </div>
-
-  <div class="col-sm-7" style="padding: 0;">
-    <div class="panel-group custom-panel">
-      <div class="panel panel-default">
-        <div class="panel-heading">
-          <h4 class="panel-title">Request Solution Design Document Approval</h4>
-        </div>
-        <div class="panel-body">
-          <div class="form-group" style="margin-bottom: 0;">
-            <label class="col-sm-5" style="font-weight: bold">Role</label>
-            <label class="col-sm-5" style="font-weight: bold">Responsible</label>
-          </div>
-          <div class="form-group" ng-repeat="app in sddApprovalList track by $index">
-            <label class="control-label col-sm-5">{{app.role}}</label>
-            <div class="col-sm-5">
-              <input type="text" ng-model="app.responsible" name="approval_{{$index}}_responsible" typeahead="name as users.name for users in getUser($viewValue, $index)" typeahead-on-select="userSelected($item, $index)" class="form-control" autocomplete="off" ng-required="resolution === 'Request approval'" ng-change="onResponsibleChange($index)">
-              <span class="has-error" ng-if="kcell_form['approval_'+$index+'_responsible'].$error.required && (kcell_form['approval_'+$index+'_responsible'].$touched || view.submitted)">Required field</span>
-              <span class="has-error" ng-if="!kcell_form['approval_'+$index+'_responsible'].$error.required && kcell_form['approval_'+$index+'_responsible'].$error.not_selected && (kcell_form['approval_'+$index+'_responsible'].$touched || view.submitted)">User must be selected from the list</span>
-            </div>
-            <div ng-if="$index > 3" class="col-sm-2">
-              <a style="font-size: 23px" ng-click="removeApproval($index)">
-                <i class="glyphicon glyphicon-trash glyphicon-clickable"></i>
-              </a>
-            </div>
-          </div>
-          <div class="form-group" style="margin-bottom: 0;">
-            <label class="col-sm-5"></label>
-            <div class="col-sm-5">
-              <button type="button" class="btn btn-primary pull-right" ng-click="addApproval()">Add more</button>
-            </div>
-          </div>
-        </div>
-      </div>
-    </div>
-  </div>
-
-  <div class="col-sm-7" style="padding: 0;">
-    <div class="panel-group custom-panel">
-      <div class="panel panel-default">
         <div class="panel-heading">
           <h4 class="panel-title">Project team</h4>
         </div>
         <div class="panel-body">
           <div class="form-group">
-            <label class="col-sm-6 control-label">Requirement manager</label>
-            <div class="col-sm-6">
+            <label class="col-sm-5 control-label">Requirement manager</label>
+            <div class="col-sm-5">
               <div class="disabled-element">{{requirementManager}}</div>
             </div>
           </div>
           <div class="form-group">
-            <label class="col-sm-6 control-label">Solution owner</label>
-            <div class="col-sm-6">
+            <label class="col-sm-5 control-label">Solution owner</label>
+            <div class="col-sm-5">
               <div class="disabled-element">{{solutionOwner}}</div>
             </div>
           </div>
-        </div>
-      </div>
-    </div>
-  </div>
-
-  <div class="col-sm-12" style="padding: 0;">
-    <div class="panel-group custom-panel">
-      <div class="panel panel-default">
-        <div class="panel-heading">
-          <h4 class="panel-title">Solution Design Document last approval</h4>
-        </div>
-        <div class="panel-body">
-          <table class="table ">
-            <thead>
-            <tr>
-              <th>Role</th>
-              <th>Responsible</th>
-              <th>Resolution</th>
-              <th>Date</th>
-            </tr>
-            </thead>
-            <tbody>
-            <tr ng-repeat="app in lastSddApprovalList track by $index">
-              <td>{{app.role}}</td>
-              <td>{{app.responsible}}</td>
-              <td>{{app.resolution}}</td>
-              <td>{{app.approved | date: 'dd.MM.yyyy HH:mm'}}</td>
-            </tr>
-            </tbody>
-          </table>
+          <div class="form-group">
+            <label class="col-sm-5 control-label">Developer</label>
+            <div class="col-sm-5">
+              <input type="text" ng-model="developerList[0].name" name="developer_0_name" typeahead="name as users.name for users in getUser($viewValue, 0)" typeahead-on-select="userSelected($item, 0)" class="form-control" autocomplete="off" ng-required="resolution === 'Approve'" ng-change="onDeveloperChange(0)">
+              <span class="has-error" ng-if="kcell_form['developer_0_name'].$error.required && (kcell_form['developer_0_name'].$touched || view.submitted)">Required field</span>
+              <span class="has-error" ng-if="!kcell_form['developer_0_name'].$error.required && kcell_form['developer_0_name'].$error.not_selected && (kcell_form['developer_0_name'].$touched || view.submitted)">User must be selected from the list</span>
+            </div>
+            <div class="col-sm-2">
+              <button type="button" class="btn btn-primary" ng-click="addDeveloper()">Add</button>
+            </div>
+          </div>
+          <div class="form-group" ng-repeat="d in developerList track by $index" ng-if="$index > 0">
+            <label class="control-label col-sm-5">Developer</label>
+            <div class="col-sm-5">
+              <input type="text" ng-model="d.name" name="developer_{{$index}}_name" typeahead="name as users.name for users in getUser($viewValue, $index)" typeahead-on-select="userSelected($item, $index)" class="form-control" autocomplete="off" ng-required="resolution === 'Approve'" ng-change="onDeveloperChange($index)">
+              <span class="has-error" ng-if="kcell_form['developer_'+$index+'_name'].$error.required && (kcell_form['developer_'+$index+'_name'].$touched || view.submitted)">Required field</span>
+              <span class="has-error" ng-if="!kcell_form['developer_'+$index+'_name'].$error.required && kcell_form['developer_'+$index+'_name'].$error.not_selected && (kcell_form['developer_'+$index+'_name'].$touched || view.submitted)">User must be selected from the list</span>
+            </div>
+            <div class="col-sm-2">
+              <a style="font-size: 23px" ng-click="removeDeveloper($index)">
+                <i class="glyphicon glyphicon-trash glyphicon-clickable"></i>
+              </a>
+            </div>
+          </div>
         </div>
       </div>
     </div>
@@ -729,21 +625,18 @@
     <label class="col-sm-2 control-label">Resolution</label>
     <div class="col-sm-8">
       <label class="radio-inline">
-        <input type="radio" ng-model="resolution" name="resolution" value="Approve" required ng-disabled="!allApproved"> Approve
+        <input type="radio" ng-model="resolution" name="resolution" value="Approve" required> Approve
       </label>
       <label class="radio-inline">
-        <input type="radio" ng-model="resolution" name="resolution" value="Send to modify" required> Send to modify
-      </label>
-      <label class="radio-inline">
-        <input type="radio" ng-model="resolution" name="resolution" value="Request approval" required> Request approval
+        <input type="radio" ng-model="resolution" name="resolution" value="Send to Fill SDD" required> Send to Fill SDD
       </label>
       <label class="error" ng-show="kcell_form.resolution.$error.required && ( kcell_form.resolution.$touched || view.submitted)">Required field</label>
     </div>
   </div>
   <div class="form-group">
-    <label class="col-sm-2 control-label">Comment<span ng-if="resolution !== 'Approve'" class="text-danger glyphicon-asterisk"></span></label>
+    <label class="col-sm-2 control-label">Comment<span class="text-danger glyphicon-asterisk"></span></label>
     <div class="col-sm-10">
-      <textarea class="form-control" rows="4" maxlength="500" ng-model="comment" name="comment" ng-required="resolution !== 'Approve'"></textarea>
+      <textarea class="form-control" rows="4" maxlength="500" ng-model="comment" name="comment" required></textarea>
       <label class="error" ng-show="kcell_form.comment.$error.required && ( kcell_form.comment.$touched || view.submitted)">Required field</label>
     </div>
   </div>
