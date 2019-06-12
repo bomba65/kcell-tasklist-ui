@@ -20,6 +20,9 @@ define(['./module'], function(module){
 	            scope.isFileVisible = function(file) {
 	            	return !file.visibility || file.visibility == 'all' || (file.visibility == 'kcell' && $rootScope.hasGroup('kcellUsers'));
 	            }
+	            scope.hasGroup = function(group) {
+					return $rootScope.hasGroup(group);
+	            }
 				scope.getDictNameById = function(dictionary, id) {
 					return _.find(dictionary, function(dict){
 						return dict.id === id;
