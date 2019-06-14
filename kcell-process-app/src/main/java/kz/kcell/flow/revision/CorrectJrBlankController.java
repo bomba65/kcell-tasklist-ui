@@ -1,4 +1,4 @@
-package kz.kcell.flow.mail;
+package kz.kcell.flow.revision;
 
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
@@ -16,23 +16,26 @@ import org.apache.poi.xssf.usermodel.XSSFFont;
 import org.apache.poi.xssf.usermodel.XSSFSheet;
 import org.apache.poi.xssf.usermodel.XSSFWorkbook;
 import org.camunda.bpm.engine.IdentityService;
+import org.camunda.bpm.engine.RuntimeService;
 import org.camunda.bpm.engine.delegate.DelegateExecution;
-import org.camunda.bpm.engine.delegate.JavaDelegate;
 import org.camunda.bpm.engine.identity.User;
 import org.camunda.bpm.engine.impl.context.Context;
-import org.camunda.bpm.engine.variable.Variables;
-import org.camunda.bpm.engine.variable.value.FileValue;
+import org.camunda.bpm.engine.runtime.ProcessInstance;
 import org.camunda.spin.plugin.variable.SpinValues;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.http.HttpStatus;
+import org.springframework.http.ResponseEntity;
 import org.springframework.mail.javamail.JavaMailSender;
 import org.springframework.mail.javamail.MimeMessageHelper;
-import org.springframework.stereotype.Service;
+import org.springframework.web.bind.annotation.*;
 
 import javax.activation.DataSource;
 import javax.mail.internet.InternetAddress;
 import javax.mail.internet.MimeMessage;
 import javax.mail.util.ByteArrayDataSource;
+import javax.servlet.http.HttpServletRequest;
+import javax.ws.rs.PathParam;
 import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
 import java.io.InputStream;
@@ -43,9 +46,16 @@ import java.util.function.Supplier;
 import java.util.logging.Level;
 import java.util.stream.Collectors;
 
-@Service("sendJobRequestBlank")
+@RestController
 @Log
-public class SendGeneratedJRBlank implements JavaDelegate {
+@RequestMapping("/jrblank")
+public class CorrectJrBlankController {
+
+    @Autowired
+    private IdentityService identityService;
+
+    @Autowired
+    private RuntimeService runtimeService;
 
     @Autowired
     JavaMailSender mailSender;
@@ -53,35 +63,33 @@ public class SendGeneratedJRBlank implements JavaDelegate {
     @Autowired
     private Minio minioClient;
 
-    @Value("${mail.sender:flow@kcell.kz}")
-    private String sender;
-
+    private String sender = "flow@kcell.kz";
 
     private static final Map<String, String> worksTitle = new HashMap<>();
 
     private static final Map<String, String> contractorsTitle =
-            ((Supplier<Map<String, String>>) (() -> {
-                Map<String, String> map = new HashMap<>();
-                map.put("1", "ТОО Аврора Сервис");
-                map.put("2", "ТОО AICOM");
-                map.put("3", "ТОО Spectr energy group");
-                map.put("4", "TOO Line System Engineering");
-                map.put("5", "JSC Kcell");
-                return Collections.unmodifiableMap(map);
-            })).get();
+        ((Supplier<Map<String, String>>) (() -> {
+            Map<String, String> map = new HashMap<>();
+            map.put("1", "ТОО Аврора Сервис");
+            map.put("2", "ТОО AICOM");
+            map.put("3", "ТОО Spectr energy group");
+            map.put("4", "TOO Line System Engineering");
+            map.put("5", "JSC Kcell");
+            return Collections.unmodifiableMap(map);
+        })).get();
 
     private static final Map<String, String> contractorsCode =
-            ((Supplier<Map<String, String>>) (() -> {
-                Map<String, String> map = new HashMap<>();
-                map.put("1", "avrora");
-                map.put("2", "aicom");
-                map.put("3", "spectr");
-                map.put("4", "lse");
-                map.put("5", "kcell");
-                return Collections.unmodifiableMap(map);
-            })).get();
+        ((Supplier<Map<String, String>>) (() -> {
+            Map<String, String> map = new HashMap<>();
+            map.put("1", "avrora");
+            map.put("2", "aicom");
+            map.put("3", "spectr");
+            map.put("4", "lse");
+            map.put("5", "kcell");
+            return Collections.unmodifiableMap(map);
+        })).get();
 
-    protected void sendMail(DelegateExecution delegateExecution, String assignee, String recipient) {
+    protected void sendMail(ProcessInstance processInstance, String assignee, String recipient) {
         try {
             if (worksTitle.size() == 0) {
                 ObjectMapper mapper = new ObjectMapper();
@@ -92,22 +100,21 @@ public class SendGeneratedJRBlank implements JavaDelegate {
                     worksTitle.put(workPrice.get("id").textValue(), workPrice.get("title").textValue());
                 }
             }
-            String siteName = (String) delegateExecution.getVariable("siteName");
-            String site_name = (String) delegateExecution.getVariable("site_name");
-            String jrNumber = (String) delegateExecution.getVariable("jrNumber");
-            String jobDescription = (String) delegateExecution.getVariable("jobDescription");
-            String explanation = (String) delegateExecution.getVariable("explanation");
-            String contractor = delegateExecution.getVariable("contractor").toString();
-            String regionApproval = (String) delegateExecution.getVariable("regionApproval");
-            String centralApproval = (String) delegateExecution.getVariable("centralApproval");
-            String siteRegion = delegateExecution.getVariable("siteRegion").toString();
-            String reason = delegateExecution.getVariable("reason").toString();
-            Date requestDate = (Date) delegateExecution.getVariable("requestedDate");
-            Date contractorJobAssignedDate = (Date) delegateExecution.getVariable("contractorJobAssignedDate");
+            String siteName = (String) runtimeService.getVariable(processInstance.getId(), "siteName");
+            String site_name = (String) runtimeService.getVariable(processInstance.getId(),"site_name");
+            String jrNumber = (String) runtimeService.getVariable(processInstance.getId(),"jrNumber");
+            String jobDescription = (String) runtimeService.getVariable(processInstance.getId(),"jobDescription");
+            String explanation = (String) runtimeService.getVariable(processInstance.getId(),"explanation");
+            String contractor = runtimeService.getVariable(processInstance.getId(),"contractor").toString();
+            String regionApproval = (String) runtimeService.getVariable(processInstance.getId(),"regionApproval");
+            String centralApproval = (String) runtimeService.getVariable(processInstance.getId(),"centralApproval");
+            String siteRegion = runtimeService.getVariable(processInstance.getId(),"siteRegion").toString();
+            String reason = runtimeService.getVariable(processInstance.getId(),"reason").toString();
+            Date requestDate = (Date) runtimeService.getVariable(processInstance.getId(),"requestedDate");
             SimpleDateFormat sdf = new SimpleDateFormat("dd.MM.yyyy");
             ObjectMapper mapper = new ObjectMapper();
-            ArrayNode jobWorks = (ArrayNode) mapper.readTree(delegateExecution.getVariableTyped("jobWorks").getValue().toString());
-            JsonNode initiatorFull = mapper.readTree(delegateExecution.getVariableTyped("initiatorFull").getValue().toString());
+            ArrayNode jobWorks = (ArrayNode) mapper.readTree(runtimeService.getVariableTyped(processInstance.getId(),"jobWorks").getValue().toString());
+            JsonNode initiatorFull = mapper.readTree(runtimeService.getVariableTyped(processInstance.getId(),"initiatorFull").getValue().toString());
             XSSFWorkbook workbook = new XSSFWorkbook();
             XSSFSheet sheet = workbook.createSheet();
 
@@ -202,21 +209,10 @@ public class SendGeneratedJRBlank implements JavaDelegate {
 
             row = sheet.createRow(11);
             cell = row.createCell(0);
+            cell.setCellValue("Request Date :");
+            cell.setCellStyle(alignRight);
 
-            SimpleDateFormat datFormatter = new SimpleDateFormat("yyyy-MM-dd'T'H:m:s.S");
-            String compareDateString = "2019-02-05T06:00:00.000";
-            Date compareDate = datFormatter.parse(compareDateString);
-
-            if(requestDate.after(compareDate)){
-                cell.setCellValue("Job Request date :");
-                cell.setCellStyle(alignRight);
-                row.createCell(2).setCellValue(contractorJobAssignedDate!=null?sdf.format(contractorJobAssignedDate):"");
-            } else {
-                cell.setCellValue("Request Date :");
-                cell.setCellStyle(alignRight);
-                row.createCell(2).setCellValue(sdf.format(requestDate));
-            }
-
+            row.createCell(2).setCellValue(sdf.format(requestDate));
 
             row = sheet.createRow(12);
             cell = row.createCell(0);
@@ -247,6 +243,7 @@ public class SendGeneratedJRBlank implements JavaDelegate {
             for (int i = 0; i < jobWorks.size(); i++) {
                 row = sheet.createRow(16 + i);
                 cell = row.createCell(0);
+                cell.setCellStyle(autoWrap);
                 String title = (worksTitle.get(jobWorks.get(i).get("sapServiceNumber").textValue()) != null ? worksTitle.get(jobWorks.get(i).get("sapServiceNumber").textValue()) : jobWorks.get(i).get("sapServiceNumber").textValue()) + " - " + jobWorks.get(i).get("quantity").numberValue().intValue();
                 if (jobWorks.get(i).get("relatedSites") != null && jobWorks.get(i).get("relatedSites").isArray()) {
                     String relatedSites = "";
@@ -261,7 +258,6 @@ public class SendGeneratedJRBlank implements JavaDelegate {
                         title += ", on sites: " + relatedSites.substring(0, relatedSites.length() - 2);
                     }
                 }
-                cell.setCellStyle(autoWrap);
                 cell.setCellValue(title);
                 if(title.length() > 100){
                     row.setHeight((short)(row.getHeight() * (title.length() / 100 + 1)));
@@ -475,90 +471,60 @@ public class SendGeneratedJRBlank implements JavaDelegate {
 
             DataSource source = new ByteArrayDataSource(is, "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet");
 
-            MimeMessage message = mailSender.createMimeMessage();
-            MimeMessageHelper messageHelper = new MimeMessageHelper(message, true);
-
-            messageHelper.setFrom(sender);
-            messageHelper.setSubject("JR " + jrNumber + " Blank");
-
-            messageHelper.setText("Your JR Approved. JR Blank attached\n" +
-                "\n" +
-                "\n" +
-                "Пройдя по следующей ссылке на страницу в HUB.Kcell.kz, вы можете оставить в поле комментариев свои замечания и/или пожелания относительно функционала и интерфейса системы: https://hub.kcell.kz/x/kYNoAg");
-
-            IdentityService identityService = Context.getProcessEngineConfiguration().getIdentityService();
-
-            Set<String> ccList = identityService.createUserQuery().userId(delegateExecution.getVariable("starter").toString()).list().stream().map(user -> user.getId()).collect(Collectors.toSet());
-            ccList.addAll(Arrays.asList("Yernaz.Kalingarayev@kcell.kz"));
-            if (reason != null && reason.equals("3")) {
-                ccList.add("Tatyana.Solovyova@kcell.kz");
-            }
-            if (delegateExecution.getVariableLocal("sendToContractor") != null && delegateExecution.getVariableLocal("sendToContractor").toString().equals("yes")) {
-                String contractorGroup = siteRegion + "_contractor_" + contractorsCode.get(contractor);
-
-                String recipientsSet = identityService.createUserQuery().memberOfGroup(contractorGroup).list().stream()
-                        .map(User::getEmail)
-                        .filter(userEmail -> userEmail != null && !userEmail.isEmpty())
-                        .collect(Collectors.joining(","));
-
-                messageHelper.setTo(InternetAddress.parse(recipientsSet));
-                messageHelper.setCc(InternetAddress.parse(ccList.stream().collect(Collectors.joining(","))));
-            } else {
-                messageHelper.setTo(InternetAddress.parse(ccList.stream().collect(Collectors.joining(","))));
-            }
-            messageHelper.addAttachment("jr-blank.xlsx", source);
-
-            mailSender.send(message);
-
-            log.info("Task Assignment Email successfully sent to user '" + assignee + "' with address '" + recipient + "'.");
-
-//            FileValue jrBlank = Variables.fileValue("jrBlank.xlsx").file(out.toByteArray()).mimeType("application/vnd.openxmlformats-officedocument.spreadsheetml.sheet").create();
-//            delegateExecution.setVariable("jrBlank", jrBlank);
-
-            String path = delegateExecution.getProcessInstanceId() + "/" + jrNumber + ".xlsx";
+            String path = processInstance.getId() + "/" + jrNumber + ".xlsx";
 
             ByteArrayInputStream bis = new ByteArrayInputStream(out.toByteArray());
             minioClient.saveFile(path, bis, "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet");
             bis.close();
 
             String json = "{\"name\" : \"" + jrNumber + ".xlsx\",\"path\" : \"" + path + "\"}";
-            delegateExecution.setVariable("jrBlank", SpinValues.jsonValue(json));
-
-            delegateExecution.setVariable("isNewProcessCreated", "false");
+            runtimeService.setVariable(processInstance.getId(),"jrBlank", SpinValues.jsonValue(json));
 
         } catch (Exception e) {
             e.printStackTrace();
-            log.log(Level.WARNING, "Could not send email to assignee", e);
+            log.log(Level.WARNING, "Could not save jrBlank to " + processInstance.getBusinessKey(), e);
         }
     }
 
-    @Override
-    public void execute(DelegateExecution delegateExecution) throws Exception {
-        String recipient = (String) delegateExecution.getVariable("starter");
+    @RequestMapping(value = "/files/fix/{processId}", method = RequestMethod.GET)
+    @ResponseBody
+    public ResponseEntity<String> migrateFiles(@PathVariable("processId") String processId){
 
-        if (recipient == null) {
-            log.warning("Recipient is null for activity instance " + delegateExecution.getActivityInstanceId() + ", aborting mail notification");
-            return;
+        if (identityService.getCurrentAuthentication() == null || identityService.getCurrentAuthentication().getUserId() == null || !"demo".equals(identityService.getCurrentAuthentication().getUserId())) {
+            log.warning("No user logged in");
+            return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body("No user logged in");
         }
 
-        IdentityService identityService = Context.getProcessEngineConfiguration().getIdentityService();
-        User user = identityService.createUserQuery().userId(recipient).singleResult();
+        List<ProcessInstance> processInstances = runtimeService.createProcessInstanceQuery().processInstanceId(processId).active().list();
+        if(processInstances.size() > 0){
 
-        if (user != null) {
+            ProcessInstance processInstance = processInstances.get(0);
 
-            // Get Email Address from User Profile
-            String recipientEmail = user.getEmail();
 
-            if (recipient != null && !recipient.isEmpty()) {
+            String recipient = (String) runtimeService.getVariable(processInstance.getId(), "starter");
+            User user = identityService.createUserQuery().userId(recipient).singleResult();
 
-                sendMail(delegateExecution, recipient, recipientEmail);
+            if (user != null) {
+
+                // Get Email Address from User Profile
+                String recipientEmail = user.getEmail();
+
+                if (recipient != null && !recipient.isEmpty()) {
+
+                    sendMail(processInstance, recipient, recipientEmail);
+
+                } else {
+                    log.warning("Not sending email to user " + recipient + "', user has no email address.");
+                }
 
             } else {
-                log.warning("Not sending email to user " + recipient + "', user has no email address.");
+                log.warning("Not sending email to user " + recipient + "', user is not enrolled with identity service.");
             }
 
         } else {
-            log.warning("Not sending email to user " + recipient + "', user is not enrolled with identity service.");
+            log.info("processId: " + processId);
         }
+
+        return ResponseEntity.ok("Succes");
     }
 }
