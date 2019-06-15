@@ -957,22 +957,47 @@ define(['./module', 'jquery', 'moment', 'camundaSDK'], function (app, $, moment,
                 $scope.showDiagramView = true;
                 getDiagram(processDefinitionId);
             }
+            $scope.showDiagramAftersales = function (processDefinitionId) {
+                $scope.showDiagramView = true;
+                getDiagramAfterSales(processDefinitionId);
+            };
+
+            function getDiagramAfterSales(processDefinitionId) {
+                $http.get(baseUrl + '/process-definition/' + processDefinitionId + '/xml').then(
+                    function (result) {
+                        $timeout(function () {
+                            $scope.$apply(function () {
+                                $scope.diagram = {
+                                    xml: result.data.bpmn20Xml,
+                                    tasks: ($scope.toggleInfoAftersales.tasks && $scope.toggleInfoAftersales.tasks.length > 0) ? $scope.toggleInfoAftersales.tasks : undefined,
+                                    callActivityTasks: ($scope.toggleInfoAftersales.callActivityTasks && $scope.toggleInfoAftersales.callActivityTasks.length > 0) ? $scope.toggleInfoAftersales.callActivityTasks : undefined,
+
+                                };
+                            });
+                        });
+                    },
+                    function (error) {
+                        console.log(error.data);
+                    }
+                );
+            }
+
 
             function getDiagram(processDefinitionId) {
                 $http.get(baseUrl + '/process-definition/' + processDefinitionId + '/xml').then(
-                  function (result) {
-                      $timeout(function () {
-                          $scope.$apply(function () {
-                              $scope.diagram = {
-                                  xml: result.data.bpmn20Xml,
-                                  tasks: ($scope.jobModel.tasks && $scope.jobModel.tasks.length > 0) ? $scope.jobModel.tasks : undefined
-                              };
-                          });
-                      });
-                  },
-                  function (error) {
-                      console.log(error.data);
-                  }
+                    function (result) {
+                        $timeout(function () {
+                            $scope.$apply(function () {
+                                $scope.diagram = {
+                                    xml: result.data.bpmn20Xml,
+                                    tasks: ($scope.jobModel.tasks && $scope.jobModel.tasks.length > 0) ? $scope.jobModel.tasks : undefined
+                                };
+                            });
+                        });
+                    },
+                    function (error) {
+                        console.log(error.data);
+                    }
                 );
             }
 
@@ -980,6 +1005,12 @@ define(['./module', 'jquery', 'moment', 'camundaSDK'], function (app, $, moment,
                 if ($scope.diagram.tasks && $scope.diagram.tasks.length) {
                     $scope.diagram.tasks.forEach((task => {
                         $scope.control.highlight(task.taskDefinitionKey);
+                    }));
+                }
+                /*for AS bulk and freephone - if subprocess*/
+                if ($scope.diagram.callActivityTasks && $scope.diagram.callActivityTasks.length) {
+                    $scope.diagram.callActivityTasks.forEach((task => {
+                        $scope.control.highlight(task.activityId);
                     }));
                 }
             };
@@ -2156,18 +2187,35 @@ define(['./module', 'jquery', 'moment', 'camundaSDK'], function (app, $, moment,
             };
             $scope.toggleIndexAftersales = undefined;
             $scope.toggleProcessViewAftersales = function (index) {
+                $scope.showDiagramView = false;
+                $scope.diagram = {};
                 if ($scope.toggleIndexAftersales === index) {
                     $scope.toggleIndexAftersales = undefined;
                 } else {
                     $scope.toggleIndexAftersales = index;
                     $scope.toggleInfoAftersales = $scope.processInstancesAftersales[index];
                     $scope.toggleInfoAftersales.changeIdentifierType = false;
-                    console.log($scope.toggleInfoAftersales);
+                    if ($scope.processInstancesAftersales[index].state==="ACTIVE") {
+                        $http({
+                            method: 'GET',
+                            headers: {'Accept': 'application/hal+json, application/json; q=0.5'},
+                            url: baseUrl + '/process-instance/' + $scope.processInstancesAftersales[index].id + '/activity-instances',
+                        }).then(
+                            function (tasks) {
+                                var callActivityTasks = tasks.data.childActivityInstances;
+                                $scope.toggleInfoAftersales.callActivityTasks = callActivityTasks;
 
+                            },
+                            function (error) {
+                                console.log(error.data);
+                                $scope.toggleInfoAftersales.callActivityTasks = undefined;
+                            }
+                        );
+                    }
                     $http({
                         method: 'GET',
                         headers: {'Accept': 'application/hal+json, application/json; q=0.5'},
-                        url: baseUrl + '/task?processInstanceId=' + $scope.processInstancesAftersales[index].id,
+                        url: baseUrl + '/task?processInstanceBusinessKey=' + $scope.processInstancesAftersales[index].businessKey,
                     }).then(
                       function (tasks) {
                           var processInstanceTasks = tasks.data._embedded.task;
@@ -2221,8 +2269,7 @@ define(['./module', 'jquery', 'moment', 'camundaSDK'], function (app, $, moment,
                                     });
                                 }
                                 //angular.extend($scope.toggleInfoAftersales, catalogs);
-
-                                //$scope.toggleInfoAftersales.tasks = processInstanceTasks;
+                                $scope.toggleInfoAftersales.tasks_decr = processInstanceTasks;
                             },
                             function (error) {
                                 console.log(error.data);
