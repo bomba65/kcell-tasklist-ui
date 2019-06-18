@@ -161,7 +161,24 @@
                 if($scope.changeIpNumber && $scope.relatedProcessDefinitionKey === 'freephone' && $scope.connectionType === 'SIP_SBC'){
                     $scope.oldIpNumber = $scope.ipNumber;
                 }
-
+                if ($scope.connectOperator && $scope.operatorType === 'onnet') {
+                    var ids = ["beeline", "tele2", "altel"];
+                    var names = ["Beeline", "Tele2", "Altel"];
+                    for (var i = 0; i < 3; i++) {
+                        var obj = {};
+                        obj.id = ids[i];
+                        obj.name= names[i];
+                        $scope.identifiers[0].operators.push(obj);
+                    }
+                    $scope.operatorType = "offnet";
+                    camForm.variableManager.variableValue('operatorType', $scope.operatorType);
+                    $scope.onnetToOffnet = true;
+                    camForm.variableManager.createVariable({
+                        name: 'onnetToOffnet',
+                        type: 'Boolean',
+                        value: $scope.onnetToOffnet
+                    });
+                }
                 if($scope.changeConnectionType && $scope.relatedProcessDefinitionKey === 'freephone'){
                     $scope.oldConnectionType = $scope.connectionType;
                 }
@@ -442,7 +459,6 @@
                 $scope.operatorWasDisconnected = false;
                 $scope.selectedIdentifier = false;
                //$scope.newProviderDate = false;
-                $scope.selectedConnected = false;
                 $scope.changeIdentifierType = false;
                 _.forEach($scope.identifiers, function(id) {
                     _.forEach(id.operators, function(o) {
@@ -501,9 +517,6 @@
                             }
                          else {
                                 o.selectedIdentifier = false;
-                         }
-                         if (o.connected && o.title && ['MESSAGE','KiT_Notify'].indexOf(o.title) === -1) {
-                            $scope.selectedConnected = true;
                          }
                         if (o.oldTitle && o.title && o.oldTitle !== o.title) {
                            var a = ['MESSAGE','KiT_Notify'].indexOf(o.oldTitle)
@@ -571,12 +584,6 @@
                 camForm.variableManager.createVariable({
                     name: 'selectedIdentifier',
                     value: $scope.selectedIdentifier,
-                    type: 'Boolean'
-                });
-
-                camForm.variableManager.createVariable({
-                    name: 'selectedConnected',
-                    value: $scope.selectedConnected,
                     type: 'Boolean'
                 });
                   camForm.variableManager.createVariable({
@@ -1144,7 +1151,7 @@
     <input type="text" ng-model="fakeMessageSMS" class="form-control" id="smsIdentifiers" name="smsIdentifiers"
            ng-show="false">
     <label class="error"
-           ng-show="relatedProcessDefinitionKey === 'bulksmsConnectionKAE' && operatorType === 'offnet' && (disconnectOperator || connectOperator || changeIdentifier) && kcell_form.smsIdentifiers.$invalid && view.submitted">{{errorMessageSMS}}</label>
+           ng-show="relatedProcessDefinitionKey === 'bulksmsConnectionKAE' && operatorType === 'offnet' && (disconnectOperator || connectOperator || changeIdentifier)  && view.submitted">{{errorMessageSMS}}</label>
     <div class="form-group" ng-repeat="id in identifiers"
          ng-if="relatedProcessDefinitionKey === 'bulksmsConnectionKAE'">
         <label class="control-label pull-left"/>Идентификатор - {{id.title}}
@@ -1662,16 +1669,16 @@
          ng-show="operatorType === 'offnet' && ((relatedProcessDefinitionKey === 'bulksmsConnectionKAE' && !previouslyBought) || relatedProcessDefinitionKey === 'freephone' )">
         <label class="col-sm-4 control-label">Провайдер:</label>
         <div class="col-sm-4">
-            <select class="form-control" id="provider" name="provider" ng-model="provider" ng-required="changeProvider"
-                    ng-disabled="!changeProvider">
+            <select class="form-control" id="provider" name="provider" ng-model="provider" ng-required="changeProvider || onnetToOffnet"
+                    ng-disabled="!changeProvider && !onnetToOffnet">
                 <option value="SMS Consult">SMS Consult</option>
                 <option value="MMS">MMS</option>
-                <option value="KIT">KIT</option>
+                <option value="KIT" ng-show="relatedProcessDefinitionKey === 'bulksmsConnectionKAE'">KIT</option>
             </select>
             <label class="error"
                    ng-show="kcell_form.provider.$error.required && ( kcell_form.provider.$touched || view.submitted)">Required
                 field</label>
-            <label class="error" ng-show="kcell_form.provider.$invalid && view.submitted">New provider is the same as
+            <label class="error" ng-show="changeProvider && kcell_form.provider.$invalid && view.submitted">New provider is the same as
                 the old provider</label>
         </div>
     </div>
