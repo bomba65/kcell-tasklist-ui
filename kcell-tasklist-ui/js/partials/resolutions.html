@@ -1,58 +1,42 @@
-<div class="modal-header">
-    <button type="button" class="close" ng-click="$dismiss()" aria-hidden="true">&times;</button>
-    <h4 class="modal-title">History</h4>
-</div>
-<div class="modal-body">
-    <div class="row">
-    	<div class="col-md-12">
-    		<div class="row">
-	            <table class="table">
-	                <thead>
-	                <tr>
-	                    <th>Activity</th>
-	                    <th>Assignee</th>
-											<th>Assigned date</th>
-											<th>Claimed date</th>
-											<th>Resolution date</th>
-	                    <th>Resolution</th>
-	                    <th>Comment</th>
-	                    <th>Attachments</th>
-	                </tr>
-	                </thead>
-	                <tbody>
-	                <tr ng-repeat="resolution in resolutions">
-	                    <td>{{resolution.taskName}}</td>
-	                    <td>{{resolution.assigneeName || resolution.assignee}}</td>
-											<td style="white-space: nowrap;">{{(procDef !== 'Demand'?resolution.assignDate:resolution.dateOfAssign) | date: 'dd.MM.yyyy [HH.mm]'}}</td>
-											<td style="white-space: nowrap;">{{resolution.claimDate | date: 'dd.MM.yyyy [HH.mm]'}}</td>
-											<td style="white-space: nowrap;">{{resolution.taskEndDate | date: 'dd.MM.yyyy [HH.mm]'}}</td>
-											<td ng-if="['AftersalesPBX','UAT','Demand','AftersalesPBX','PBX', 'revolvingNumbers'].indexOf(procDef) !== -1">{{resolution.resolution}}</td>
-											<td ng-if="['AftersalesPBX','UAT','Demand','AftersalesPBX','PBX', 'revolvingNumbers'].indexOf(procDef) === -1">{{'task.resolution.'+resolution.resolution | translate}}</td>
-											<td>{{(!resolution.visibility || resolution.visibility === 'all' || (resolution.visibility === 'kcell' && isKcellStaff))? resolution.comment : ''}}</td>
-											<td ng-if="procDef !== 'AftersalesPBX' && procDef !== 'revolvingNumbers'">
-												<span ng-show="resolution.files" ng-repeat="file in resolution.files">
-													<a ng-show="file.name" ng-click="download(file.path)">{{file.name}}<br /></a>
-													<span ng-hide="file.name">{{file}}<br /></span>
-												</span>
-											</td>
-											<td ng-if="procDef === 'AftersalesPBX' || procDef === 'revolvingNumbers'">
-												<p ng-repeat="file in resolution.attachments.added">
-													<span ng-hide="file.name">{{file}}<br /></span>
-																		<a ng-show="file.name" ng-click="download(file.path)">{{file.name}}<br /></a>
-												</p>
-												<p ng-repeat="file in resolution.attachments.removed" class="text-danger">
-													<span ng-hide="file.name">{{file}}<br /></span>
-													<a ng-show="file.name" ng-click="download(file.path)">{{file.name}}<br /></a>
-												</p>
-											</td>
-	                </tr>
-	                </tbody>
-	            </table>
-                <iframe id="fileDownloadIframe" style="display:none;"></iframe>
-    		</div>
-    	</div>
-    </div>
-</div>
-<div class="modal-footer" id="modal-footer">
-	<button type="button" class="btn btn-default" ng-click="$dismiss()">Close</button>
-</div>
+<table class="table">
+    <thead>
+    <tr>
+        <th>Activity</th>
+        <th>Assignee</th>
+		<th>Assigned date</th>
+		<th>Claimed date</th>
+		<th>Resolution date</th>
+        <th>Resolution</th>
+        <th>Comment</th>
+        <th>Attachments</th>
+    </tr>
+    </thead>
+    <tbody>
+    <tr ng-repeat="resolution in resolutions">
+        <td>{{resolution.taskName}}</td>
+        <td>{{resolution.assigneeName || resolution.assignee}}</td>
+		<td style="white-space: nowrap;">{{(procDef !== 'Demand'?resolution.assignDate:resolution.dateOfAssign) | date: 'dd.MM.yyyy [HH.mm]'}}</td>
+		<td style="white-space: nowrap;">{{resolution.claimDate | date: 'dd.MM.yyyy [HH.mm]'}}</td>
+		<td style="white-space: nowrap;">{{resolution.taskEndDate | date: 'dd.MM.yyyy [HH.mm]'}}</td>
+		<td ng-if="['AftersalesPBX','UAT','Demand','AftersalesPBX','PBX', 'revolvingNumbers'].indexOf(procDef) !== -1">{{resolution.resolution}}</td>
+		<td ng-if="['AftersalesPBX','UAT','Demand','AftersalesPBX','PBX', 'revolvingNumbers'].indexOf(procDef) === -1">{{'task.resolution.'+resolution.resolution | translate}}</td>
+		<td>{{(!resolution.visibility || resolution.visibility === 'all' || (resolution.visibility === 'kcell' && isKcellStaff))? resolution.comment : ''}}</td>
+		<td ng-if="procDef !== 'AftersalesPBX' && procDef !== 'revolvingNumbers'">
+			<span ng-show="resolution.files" ng-repeat="file in resolution.files" ng-if="isFileVisible(file)">
+				<a ng-show="file.name" ng-click="download(file.path)">{{file.name}}<br /></a>
+				<span ng-hide="file.name">{{file}}<br /></span>
+			</span>
+		</td>
+		<td ng-if="procDef === 'AftersalesPBX' || procDef === 'revolvingNumbers'">
+			<p ng-repeat="file in resolution.attachments.added" ng-if="isFileVisible(file)">
+				<span ng-hide="file.name">{{file}}<br /></span>
+				<a ng-show="file.name" ng-click="download(file.path)">{{file.name}}<br /></a>
+			</p>
+			<p ng-repeat="file in resolution.attachments.removed" class="text-danger" ng-if="isFileVisible(file)">
+				<span ng-hide="file.name">{{file}}<br /></span>
+				<a ng-show="file.name" ng-click="download(file.path)">{{file.name}}<br /></a>
+			</p>
+		</td>
+    </tr>
+    </tbody>
+</table>

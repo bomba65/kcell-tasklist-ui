@@ -1,4 +1,4 @@
-define(['./module'], function(module){
+define(['./../module'], function(module){
 	'use strict';
 	module.directive('jobRequest', function ($rootScope, $http) {
 		return {
@@ -33,7 +33,7 @@ define(['./module'], function(module){
 					scope.requestedDate = new Date(value);
 				});
 	        },
-			templateUrl: './js/directives/jobRequest.html'
+			templateUrl: './js/directives/revision/jobRequest.html'
 		};
 	});
 });

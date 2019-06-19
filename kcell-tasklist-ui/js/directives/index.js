@@ -1,5 +1,6 @@
 define([
-	'./jobRequest',
+	'./revision/jobRequest',
+	'./revision/resolutionHistory',
 	'./invoiceDetail',
 	'./infoBulksms',
 	'./cam-widget-bpmn-viewer',

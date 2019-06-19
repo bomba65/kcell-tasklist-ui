@@ -800,9 +800,12 @@ define(['./module','jquery', 'camundaSDK'], function(app, $, CamSDK){
 		              }, function(error){
 		                  console.log(error);
 		              });
-		            }
+		            },
+	                isFileVisible: function(file) {
+	                  return !file.visibility || file.visibility == 'all' || (file.visibility == 'kcell' && $rootScope.hasGroup('kcellUsers'));
+	                }
 				},
-				templateUrl: './js/partials/resolutions.html',
+				templateUrl: './js/partials/resolutionsModal.html',
 				size: 'lg'
 			}).then(function(results){
 			});
