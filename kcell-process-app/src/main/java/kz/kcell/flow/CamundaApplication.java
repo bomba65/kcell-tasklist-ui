@@ -22,6 +22,7 @@ import org.camunda.bpm.engine.delegate.TaskListener;
 import org.camunda.bpm.engine.history.HistoricActivityInstance;
 import org.camunda.bpm.engine.impl.cfg.ProcessEnginePlugin;
 import org.camunda.bpm.engine.rest.mapper.JacksonConfigurator;
+import org.camunda.bpm.engine.rest.security.auth.ProcessEngineAuthenticationFilter;
 import org.camunda.bpm.engine.runtime.ProcessInstance;
 import org.camunda.bpm.engine.spring.SpringProcessEngineConfiguration;
 import org.camunda.bpm.model.bpmn.instance.StartEvent;
@@ -33,6 +34,7 @@ import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.boot.context.properties.ConfigurationProperties;
+import org.springframework.boot.web.servlet.FilterRegistrationBean;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Primary;
 import org.springframework.integration.annotation.IntegrationComponentScan;
@@ -209,5 +211,17 @@ public class CamundaApplication extends SpringBootProcessApplication {
             .withClientConfiguration(clientConfig)
             .withPathStyleAccessEnabled(true)
             .withEndpointConfiguration(endpointConfiguration).build();
+    }
+
+    @Bean
+    public FilterRegistrationBean myFilterRegistration() {
+
+        FilterRegistrationBean registration = new FilterRegistrationBean();
+        registration.setFilter(new ProcessEngineAuthenticationFilter());
+        registration.addUrlPatterns("/rest/*");
+        registration.addInitParameter("authentication-provider", "org.camunda.bpm.engine.rest.security.auth.impl.HttpBasicAuthenticationProvider");
+        registration.setName("camunda-auth");
+        registration.setOrder(1);
+        return registration;
     }
 }
