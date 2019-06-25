@@ -11,9 +11,55 @@
     .no-margin-panel .panel {
       margin-bottom: 0;
     }
+
+    .show-in-print {
+      display: none !important;
+    }
+
+    @media print {
+      @page {
+        size: 210mm 297mm;
+        margin: 20mm 15mm;
+        font-family: 'Open Sans', 'Helvetica Neue', sans-serif;
+      }
+
+      .currentTask {
+        width: 100% !important;
+      }
+
+      .currentTask .container-fluid {
+        display: none !important;
+      }
+
+      .my-tab-head > .nav-tabs {
+        display: none !important;
+      }
+
+      .note-editor > .note-toolbar-wrapper {
+        display: none !important;
+      }
+
+      .hide-in-print {
+        display: none !important;
+      }
+
+      .show-in-print {
+        display: block !important;
+      }
+
+      .panel-heading > .panel-title .glyphicon {
+        display: none !important;
+      }
+      a {
+        text-decoration: none !important;
+      }
+      a[href=""]:after {
+        content: "" !important;
+      }
+    }
   </style>
   <script cam-script type="text/form-script">
-        inject(['$scope', '$http', 'Uri', '$rootScope', '$q', 'toasty', '$timeout', function ($scope, $http, Uri, $rootScope, $q, toasty, $timeout) {
+        inject(['$scope', '$http', 'Uri', '$rootScope', '$q', 'toasty', '$timeout', 'exModal', function ($scope, $http, Uri, $rootScope, $q, toasty, $timeout, exModal) {
             $scope.generalData = {
                 general: {},
                 targetAudience: {},
@@ -45,12 +91,12 @@
             $scope.processInstanceId = null;
             $scope.taskId = camForm.taskId;
             var taskName = null;
-            var assigneeName = $rootScope.authentication.name;
+            $scope.assigneeName = $rootScope.authentication.name;
             var createdDate = new Date();
             var claimDate = new Date();
 
             $http.get("/camunda/api/engine/engine/default/user/" + $rootScope.authentication.name+ "/profile").then(function(result){
-                assigneeName = (result.data.firstName ? result.data.firstName : "") + " " + (result.data.lastName ? result.data.lastName : "");
+                $scope.assigneeName = (result.data.firstName ? result.data.firstName : "") + " " + (result.data.lastName ? result.data.lastName : "");
             });
 
             $http.get('/camunda/api/engine/engine/default/task/' + camForm.taskId).then(
@@ -137,7 +183,7 @@
                 if(!$scope.resolutions){
                     $scope.resolutions = [];
                 }
-                $scope.resolutions.unshift({processInstanceId: $scope.processInstanceId, assignee: assigneeName, resolution: $scope.resolution, comment: $scope.comment, taskId: camForm.taskId, taskEndDate: submitDate, taskName: taskName, dateOfAssign: createdDate, claimDate: claimDate});
+                $scope.resolutions.unshift({processInstanceId: $scope.processInstanceId, assignee: $scope.assigneeName, resolution: $scope.resolution, comment: $scope.comment, taskId: camForm.taskId, taskEndDate: submitDate, taskName: taskName, dateOfAssign: createdDate, claimDate: claimDate});
                 camForm.variableManager.destroyVariable('resolutions');
                 camForm.variableManager.createVariable({
                     name: 'resolutions',
@@ -196,9 +242,9 @@
             function uploadFileToMinio(file) {
                 var fileToUpload = {
                     name: file.name,
-                    path: processInstanceId + '/' + camForm.taskId + '/' + file.name,
+                    path: $scope.processInstanceId + '/' + camForm.taskId + '/' + file.name,
                     created: new Date(),
-                    createdBy: assigneeName
+                    createdBy: $scope.assigneeName
                 };
                 $http({method: 'GET', url: '/camunda/uploads/put/' + fileToUpload.path, transformResponse: [] }).then(function(response) {
                     $http.put(response.data, file, {headers: {'Content-Type': undefined}}).then(
@@ -246,41 +292,78 @@
                     }
                 );
 
-                if (clicked) clearTimeout(lastTimeout.cancel);
+                if (clicked) clearTimeout(lastTimeout);
                 lastTimeout = $timeout($scope.saveFillForm, 30000);
             };
 
+            $(window).on('beforeunload', async function() {
+                var json = JSON.stringify($scope.SDDData, function( key, value ) {
+                    if( key === "$$hashKey" ) return undefined;
+                    return value;
+                });
+                var json1 = JSON.stringify($scope.attachments, function( key, value ) {
+                    if( key === "$$hashKey" ) return undefined;
+                    return value;
+                });
 
-            window.addEventListener("beforeunload", function() {
-                return $scope.saveFillForm(true);
+                await $q.all([
+                  $http.put('/camunda/api/engine/engine/default/process-instance/'+$scope.processInstanceId+'/variables/SDDData',{"type":"Json","value": json}),
+                  $http.put('/camunda/api/engine/engine/default/process-instance/'+$scope.processInstanceId+'/variables/attachments',{"type":"Json","value": json1})
+                ]);
+                return 'Saving...';
             });
+
+            $scope.sddDisabled = false;
+            $scope.showSDD = true;
+
+            $scope.sddToPdf = function() {
+              $scope.sddDisabled = true;
+              $scope.showSDD = false;
+              $timeout(function() {
+                $scope.showSDD = true;
+                $timeout(function() {
+                  window.print();
+                }, 1000);
+              });
+            };
+
+            window.onafterprint = function(){
+              $scope.sddDisabled = false;
+              $scope.showSDD = false;
+              $timeout(function() {
+                $scope.showSDD = true;
+              });
+            }
         }]);
     </script>
-  <div class="form-group">
-    <label style="width: 11%; float: left; padding: 7px 5px 0 15px; font-weight: 500;"> Business Key:</label>
-    <div style="width: 10%; float: left; padding: 0 5px;">
-      <input class="form-control" cam-variable-name="businessKey" cam-variable-type="String" disabled>
+  <div class="hide-in-print">
+    <div class="form-group">
+      <label style="width: 11%; float: left; padding: 7px 5px 0 15px; font-weight: 500;"> Business Key:</label>
+      <div style="width: 10%; float: left; padding: 0 5px;">
+        <input class="form-control" cam-variable-name="businessKey" cam-variable-type="String" disabled>
+      </div>
+      <label style="width: 6%; float: left; padding: 7px 0px 0 10px; font-weight: 500;"> Status:</label>
+      <div style="width: 22%; float: left; padding: 0 5px;">
+        <div class="disabled-element">{{status}} </div>
+      </div>
+      <label style="width: 6%; float: left; padding: 7px 0px 0 10px; font-weight: 500;"> State:</label>
+      <div style="width: 10%; float: left; padding: 0 5px;">
+        <div class="disabled-element">{{state}} </div>
+      </div>
+      <label style="width: 6%; float: left; padding: 7px 0px 0 5px; font-weight: 500;"> Activity:</label>
+      <div style="width: 29%; float: left; padding: 0 5px;">
+        <div class="disabled-element"> Fill SDD </div>
+      </div>
     </div>
-    <label style="width: 6%; float: left; padding: 7px 0px 0 10px; font-weight: 500;"> Status:</label>
-    <div style="width: 22%; float: left; padding: 0 5px;">
-      <div class="disabled-element">{{status}} </div>
+    <div class="form-group">
+      <label style="width: 11%; float: left; padding: 7px 5px 0 15px; font-weight: 500;"> Demand Name:</label>
+      <div style="width: 89%; float: left; padding: 0 5px;">
+        <input class="form-control" cam-variable-name="demandName" cam-variable-type="String" disabled/>
+      </div>
     </div>
-    <label style="width: 6%; float: left; padding: 7px 0px 0 10px; font-weight: 500;"> State:</label>
-    <div style="width: 10%; float: left; padding: 0 5px;">
-      <div class="disabled-element">{{state}} </div>
-    </div>
-    <label style="width: 6%; float: left; padding: 7px 0px 0 5px; font-weight: 500;"> Activity:</label>
-    <div style="width: 29%; float: left; padding: 0 5px;">
-      <div class="disabled-element"> Fill SDD </div>
-    </div>
+    <hr>
   </div>
-  <div class="form-group">
-    <label style="width: 11%; float: left; padding: 7px 5px 0 15px; font-weight: 500;"> Demand Name:</label>
-    <div style="width: 89%; float: left; padding: 0 5px;">
-      <input class="form-control" cam-variable-name="demandName" cam-variable-type="String" disabled/>
-    </div>
-  </div>
-  <hr>
+
   <tabset class="my-tab-head my-tab" justified="true" id="jobRequestId">
     <tab>
       <tab-heading> General </tab-heading>
@@ -461,7 +544,7 @@
     </tab>
     <tab>
       <tab-heading> Business Case </tab-heading>
-      <div style="margin-bottom: 20px;">
+      <div style="margin-top: 20px;">
         <div class="col-sm-12" style="padding: 0;">
           <div class="panel-group custom-panel">
             <div class="panel panel-default">
@@ -478,11 +561,12 @@
     </tab>
     <tab active="true">
       <tab-heading> SDD </tab-heading>
-      <div style="margin-bottom: 20px; margin-top: 20px;">
+      <div style="margin-top: 20px;" ng-if="showSDD">
+        <div class="col-sm-12 show-in-print text-center"><h2>SDD</h2></div>
         <div class="form-group">
           <label class="control-label col-sm-12">Glossary</label>
           <div class="col-sm-12 no-margin-panel">
-            <demand-rich-text data="SDDData.glossary" min-height="100" process-id="processInstanceId" task-id="taskId"></demand-rich-text>
+            <demand-rich-text data="SDDData.glossary" min-height="100" process-id="processInstanceId" task-id="taskId" disabled="sddDisabled"></demand-rich-text>
             <input type="hidden" ng-model="SDDData.glossary" name="sdd_glossary" ng-required="resolution === 'Submit'">
             <span class="has-error" ng-if="kcell_form.sdd_glossary.$error.required && (kcell_form.sdd_glossary.$touched || view.submitted)">Required field</span>
           </div>
@@ -490,7 +574,7 @@
         <div class="form-group">
           <label class="control-label col-sm-12">General description</label>
           <div class="col-sm-12 no-margin-panel">
-            <demand-rich-text data="SDDData.generalDescription" min-height="100" process-id="processInstanceId" task-id="taskId"></demand-rich-text>
+            <demand-rich-text data="SDDData.generalDescription" min-height="100" process-id="processInstanceId" task-id="taskId" disabled="sddDisabled"></demand-rich-text>
             <input type="hidden" ng-model="SDDData.generalDescription" name="sdd_generalDescription" ng-required="resolution === 'Submit'">
             <span class="has-error" ng-if="kcell_form.sdd_generalDescription.$error.required && (kcell_form.sdd_generalDescription.$touched || view.submitted)">Required field</span>
           </div>
@@ -503,7 +587,7 @@
             <div class="col-sm-12" style="margin-bottom: 10px;">
               <button type="button" class="btn btn-primary pull-right" data-toggle="modal" data-target="#fieldConstructor" ng-click="SDDData.section = 0">Add\Remove fields</button>
             </div>
-            <demand-sdd-sections data="SDDData.funcRequirements" section="0" form="kcell_form" view="view" process-id="processInstanceId" task-id="taskId" required="resolution === 'Submit'"></demand-sdd-sections>
+            <demand-sdd-sections data="SDDData.funcRequirements" section="0" form="kcell_form" view="view" process-id="processInstanceId" task-id="taskId" required="resolution === 'Submit'" disabled="sddDisabled"></demand-sdd-sections>
           </accordion-group>
         </accordion>
         <accordion class="content-visible-accordion">
@@ -514,7 +598,7 @@
             <div class="col-sm-12" style="margin-bottom: 10px;">
               <button type="button" class="btn btn-primary pull-right" data-toggle="modal" data-target="#fieldConstructor" ng-click="SDDData.section = 1">Add\Remove fields</button>
             </div>
-            <demand-sdd-sections data="SDDData.nonFuncRequirements" section="1" form="kcell_form" view="view" process-id="processInstanceId" task-id="taskId" required="resolution === 'Submit'"></demand-sdd-sections>
+            <demand-sdd-sections data="SDDData.nonFuncRequirements" section="1" form="kcell_form" view="view" process-id="processInstanceId" task-id="taskId" required="resolution === 'Submit'" disabled="sddDisabled"></demand-sdd-sections>
           </accordion-group>
         </accordion>
         <accordion class="content-visible-accordion">
@@ -525,7 +609,7 @@
             <div class="col-sm-12" style="margin-bottom: 10px;">
               <button type="button" class="btn btn-primary pull-right" data-toggle="modal" data-target="#fieldConstructor" ng-click="SDDData.section = 2">Add\Remove fields</button>
             </div>
-            <demand-sdd-sections data="SDDData.solutionDesign" section="2" form="kcell_form" view="view" process-id="processInstanceId" task-id="taskId" required="resolution === 'Submit'"></demand-sdd-sections>
+            <demand-sdd-sections data="SDDData.solutionDesign" section="2" form="kcell_form" view="view" process-id="processInstanceId" task-id="taskId" required="resolution === 'Submit'" disabled="sddDisabled"></demand-sdd-sections>
           </accordion-group>
         </accordion>
         <accordion class="content-visible-accordion">
@@ -536,13 +620,13 @@
             <div class="col-sm-12" style="margin-bottom: 10px;">
               <button type="button" class="btn btn-primary pull-right" data-toggle="modal" data-target="#fieldConstructor" ng-click="SDDData.section = 3">Add\Remove fields</button>
             </div>
-            <demand-sdd-sections data="SDDData.components" section="3" form="kcell_form" view="view" process-id="processInstanceId" task-id="taskId" required="resolution === 'Submit'"></demand-sdd-sections>
+            <demand-sdd-sections data="SDDData.components" section="3" form="kcell_form" view="view" process-id="processInstanceId" task-id="taskId" required="resolution === 'Submit'" disabled="sddDisabled"></demand-sdd-sections>
           </accordion-group>
         </accordion>
         <div class="form-group">
           <label class="control-label col-sm-12">Order of Components implementation and integration</label>
           <div class="col-sm-12 no-margin-panel">
-            <demand-rich-text data="SDDData.componentsOrder" min-height="100" process-id="processInstanceId" task-id="taskId"></demand-rich-text>
+            <demand-rich-text data="SDDData.componentsOrder" min-height="100" process-id="processInstanceId" task-id="taskId" disabled="sddDisabled"></demand-rich-text>
             <input type="hidden" ng-model="SDDData.componentsOrder" name="sdd_componentsOrder" ng-required="resolution === 'Submit'">
             <span class="has-error" ng-if="kcell_form.sdd_componentsOrder.$error.required && (kcell_form.sdd_componentsOrder.$touched || view.submitted)">Required field</span>
           </div>
@@ -567,109 +651,111 @@
     </tab>
   </tabset>
 
-  <div class="col-sm-12" style="margin-top: 20px;"><hr style="border-top: 2px solid #aaa;" /></div>
+  <div class="hide-in-print">
+    <div class="col-sm-12" style="margin-top: 20px;"><hr style="border-top: 2px solid #aaa;" /></div>
 
-  <div class="col-sm-12" style="padding: 0;">
-    <div class="panel-group custom-panel">
-      <div class="panel panel-default">
-        <div class="panel-heading">
-          <h4 class="panel-title">Order draft <span title='Заполняется текст приказа' style="color: #682d86" class="glyphicon glyphicon-question-sign"></span></h4>
-        </div>
-        <div class="panel-body">
-          <div class="col-sm-12">
-            <demand-rich-text data="BCData.orderDraft" min-height="100" disabled="true"></demand-rich-text>
+    <div class="col-sm-12" style="padding: 0;">
+      <div class="panel-group custom-panel">
+        <div class="panel panel-default">
+          <div class="panel-heading">
+            <h4 class="panel-title">Order draft <span title='Заполняется текст приказа' style="color: #682d86" class="glyphicon glyphicon-question-sign"></span></h4>
           </div>
-        </div>
-      </div>
-    </div>
-  </div>
-
-  <div class="col-sm-7" style="padding: 0;">
-    <div class="panel-group custom-panel">
-      <div class="panel panel-default">
-        <div class="panel-heading">
-          <h4 class="panel-title">Project team</h4>
-        </div>
-        <div class="panel-body">
-          <div class="form-group">
-            <label class="col-sm-6 control-label">Requirement manager</label>
-            <div class="col-sm-6">
-              <div class="disabled-element">{{requirementManager}}</div>
-            </div>
-          </div>
-          <div class="form-group">
-            <label class="col-sm-6 control-label">Solution owner</label>
-            <div class="col-sm-6">
-              <div class="disabled-element">{{solutionOwner}}</div>
-            </div>
-          </div>
-        </div>
-      </div>
-    </div>
-  </div>
-
-  <div class="col-sm-12" style="padding: 0;">
-    <div class="panel-group custom-panel">
-      <div class="panel panel-default">
-        <div class="panel-heading">
-          <h4 class="panel-title">Attachments</h4>
-        </div>
-        <div class="panel-body">
-          <iframe id="fileDownloadIframe" style="display:none;"></iframe>
-          <div class="form-group">
+          <div class="panel-body">
             <div class="col-sm-12">
-              <div class="col-sm-12" style="margin-bottom: 10px;">
-                <input type="file" class="form-control" id="attachments" name="attachments" onchange="angular.element(this).scope().fileSelected(this)"/>
+              <demand-rich-text data="BCData.orderDraft" min-height="100" disabled="true"></demand-rich-text>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="col-sm-7" style="padding: 0;">
+      <div class="panel-group custom-panel">
+        <div class="panel panel-default">
+          <div class="panel-heading">
+            <h4 class="panel-title">Project team</h4>
+          </div>
+          <div class="panel-body">
+            <div class="form-group">
+              <label class="col-sm-6 control-label">Requirement manager</label>
+              <div class="col-sm-6">
+                <div class="disabled-element">{{requirementManager}}</div>
               </div>
-              <div class="col-sm-12">
-                <table class="table ">
-                  <thead>
-                  <tr>
-                    <th>File Name</th>
-                    <th>Created</th>
-                    <th>Created By</th>
-                    <th>Delete</th>
-                  </tr>
-                  </thead>
-                  <tbody>
-                  <tr ng-repeat="file in attachments track by $index">
-                    <td><a ng-click="downloadFile(file)">{{file.name}}</a></td>
-                    <td>{{file.created | date: 'dd.MM.yyyy HH:mm'}}</td>
-                    <td>{{file.createdBy}}</td>
-                    <td><a ng-click="clearFile($index)"><i class="glyphicon glyphicon-trash"></i></a></td>
-                  </tr>
-                  </tbody>
-                </table>
+            </div>
+            <div class="form-group">
+              <label class="col-sm-6 control-label">Solution owner</label>
+              <div class="col-sm-6">
+                <div class="disabled-element">{{solutionOwner}}</div>
               </div>
             </div>
           </div>
         </div>
       </div>
     </div>
-  </div>
 
-  <div class="col-sm-12" style="margin-bottom: 20px;">
-    <button type="button" ng-click="saveFillForm(true)" class="btn btn-success" style="padding: 6px 28px">Save</button>
-<!--    <button type="button" ng-click="exportCosts()" class="btn btn-info">Export Costs to Excel (Resources and Materials)</button>-->
-  </div>
-
-  <div class="form-group">
-    <label class="col-sm-2 control-label">Resolution</label>
-    <div class="col-sm-8">
-      <label class="radio-inline">
-        <input type="radio" ng-model="resolution" name="resolution" value="Submit" required> Submit
-      </label>
-      <label class="radio-inline">
-        <input type="radio" ng-model="resolution" name="resolution" value="Send to Assign Solution owner" required> Send to Assign Solution owner
-      </label>
-      <label class="error" ng-show="kcell_form.resolution.$error.required && ( kcell_form.resolution.$touched || view.submitted)">Required field</label>
+    <div class="col-sm-12" style="padding: 0;">
+      <div class="panel-group custom-panel">
+        <div class="panel panel-default">
+          <div class="panel-heading">
+            <h4 class="panel-title">Attachments</h4>
+          </div>
+          <div class="panel-body">
+            <iframe id="fileDownloadIframe" style="display:none;"></iframe>
+            <div class="form-group">
+              <div class="col-sm-12">
+                <div class="col-sm-12" style="margin-bottom: 10px;">
+                  <input type="file" class="form-control" id="attachments" name="attachments" onchange="angular.element(this).scope().fileSelected(this)"/>
+                </div>
+                <div class="col-sm-12">
+                  <table class="table ">
+                    <thead>
+                    <tr>
+                      <th>File Name</th>
+                      <th>Created</th>
+                      <th>Created By</th>
+                      <th>Delete</th>
+                    </tr>
+                    </thead>
+                    <tbody>
+                    <tr ng-repeat="file in attachments track by $index">
+                      <td><a ng-click="downloadFile(file)">{{file.name}}</a></td>
+                      <td>{{file.created | date: 'dd.MM.yyyy HH:mm'}}</td>
+                      <td>{{file.createdBy}}</td>
+                      <td><a ng-click="clearFile($index)" ng-if="file.createdBy == assigneeName"><i class="glyphicon glyphicon-trash"></i></a></td>
+                    </tr>
+                    </tbody>
+                  </table>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
     </div>
-  </div>
-  <div class="form-group">
-    <label class="col-sm-2 control-label">Comment<span class="text-danger glyphicon-asterisk"></span></label>
-    <div class="col-sm-10">
-      <textarea class="form-control" rows="4" maxlength="500" ng-model="comment" name="comment" required></textarea>
-      <label class="error" ng-show="kcell_form.comment.$error.required && ( kcell_form.comment.$touched || view.submitted)">Required field</label>
+
+    <div class="col-sm-12" style="margin-bottom: 20px;">
+      <button type="button" ng-click="saveFillForm(true)" class="btn btn-success" style="padding: 6px 28px">Save</button>
+      <button type="button" ng-click="sddToPdf()" class="btn btn-info">Export SDD to PDF</button>
+    </div>
+
+    <div class="form-group">
+      <label class="col-sm-2 control-label">Resolution</label>
+      <div class="col-sm-10">
+        <label class="radio-inline">
+          <input type="radio" ng-model="resolution" name="resolution" value="Submit" required> Submit
+        </label>
+        <label class="radio-inline">
+          <input type="radio" ng-model="resolution" name="resolution" value="Send to Assign Solution owner" required> Send to Assign Solution owner
+        </label>
+        <label class="error" ng-show="kcell_form.resolution.$error.required && ( kcell_form.resolution.$touched || view.submitted)">Required field</label>
+      </div>
+    </div>
+    <div class="form-group">
+      <label class="col-sm-2 control-label">Comment<span class="text-danger glyphicon-asterisk"></span></label>
+      <div class="col-sm-10">
+        <textarea class="form-control" rows="4" maxlength="500" ng-model="comment" name="comment" required></textarea>
+        <label class="error" ng-show="kcell_form.comment.$error.required && ( kcell_form.comment.$touched || view.submitted)">Required field</label>
+      </div>
     </div>
   </div>
 </form>

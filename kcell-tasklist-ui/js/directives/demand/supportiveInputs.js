@@ -75,7 +75,6 @@ define(['./../module'], function(module){
                 };
                 scope.multiselectSettings = {
                     enableSearch: true,
-                    smartButtonMaxItems: 1,
                     showCheckAll: false,
                     showUncheckAll: true,
                     displayProp: 'unit',
