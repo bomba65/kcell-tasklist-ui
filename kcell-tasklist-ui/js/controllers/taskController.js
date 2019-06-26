@@ -31,7 +31,7 @@ define(['./module','camundaSDK', 'lodash', 'big-js'], function(module, CamSDK, _
 			if (err) {
 				throw err;
 			}
-			var $submitBtn = $('<button type="submit" class="btn btn-primary">Complete</button>').click(function (e) {
+			var $submitBtn = $('<button type="submit" class="btn btn-primary" id="taskCompleteButton">Complete</button>').click(function (e) {
 				$scope.view.submitted = true;
 				if($scope.kcell_form.$valid){
 					$(this).attr('disabled', true);
@@ -326,7 +326,7 @@ define(['./module','camundaSDK', 'lodash', 'big-js'], function(module, CamSDK, _
 			} else if(processDefinitionKey === 'Invoice') {
 				return $scope.hasGroup('monthly_act_managers');
 			} else if(processDefinitionKey === 'Demand') {
-        return $scope.hasGroup('demand_uat_users');
+	        return $scope.hasGroup('demand_uat_users');
 			}
 		};
 
