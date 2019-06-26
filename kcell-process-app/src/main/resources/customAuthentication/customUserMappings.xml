@@ -31,16 +31,57 @@
         ${limitBetween}
         <include refid="selectUserByQueryCriteriaSql" />
         ${orderBy}
-        limit 1
+        ${limitAfter}
     </select>
 
     <sql id="selectUserByQueryCriteriaSql">
 
         from public.ACT_ID_USER RES
+        <if test="groupId != null">
+            inner join public.ACT_ID_MEMBERSHIP M on RES.ID_ = M.USER_ID_
+            inner join public.ACT_ID_GROUP G on M.GROUP_ID_ = G.ID_
+        </if>
+        <if test="tenantId != null">
+            inner join public.ACT_ID_TENANT_MEMBER TM on RES.ID_ = TM.USER_ID_
+        </if>
 
         <where>
             <if test="id != null">
                 upper(RES.ID_) = upper(#{id})
+            </if>
+            <if test="ids != null &amp;&amp; ids.length > 0">
+                and RES.ID_ in
+                <foreach item="item" index="index" collection="ids"
+                         open="(" separator="," close=")">
+                    #{item}
+                </foreach>
+            </if>
+            <if test="firstName != null">
+                and RES.FIRST_ = #{firstName}
+            </if>
+            <if test="firstNameLike != null">
+                and RES.FIRST_ like #{firstNameLike} ESCAPE ${escapeChar}
+            </if>
+            <if test="lastName != null">
+                and RES.LAST_ = #{lastName}
+            </if>
+            <if test="lastNameLike != null">
+                and RES.LAST_ like #{lastNameLike} ESCAPE ${escapeChar}
+            </if>
+            <if test="email != null">
+                and RES.EMAIL_ = #{email}
+            </if>
+            <if test="emailLike != null">
+                and RES.EMAIL_ like #{emailLike} ESCAPE ${escapeChar}
+            </if>
+            <if test="groupId != null">
+                and G.ID_ = #{groupId}
+            </if>
+            <if test="procDefId != null">
+                and exists (select ID_ from public.ACT_RU_IDENTITYLINK where PROC_DEF_ID_ = #{procDefId} and USER_ID_=RES.ID_ )
+            </if>
+            <if test="tenantId != null">
+                and TM.TENANT_ID_ = #{tenantId}
             </if>
         </where>
     </sql>
