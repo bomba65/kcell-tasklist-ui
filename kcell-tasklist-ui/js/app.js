@@ -198,12 +198,6 @@ define('app',[
 	    	controller: "minioCtrl",
 	    	authenticate: true,
 	    	resolve: resolve
-	    }).state("test", {
-	    	url: "/test",
-	    	templateUrl: "js/partials/test.html",
-	    	controller: "testCtrl",
-	    	authenticate: true,
-	    	resolve: resolve
 	    });
 	}]).config(['localStorageServiceProvider', function (localStorageServiceProvider) {
 		localStorageServiceProvider.setPrefix('flow');

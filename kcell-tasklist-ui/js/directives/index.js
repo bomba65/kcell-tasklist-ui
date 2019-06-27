@@ -29,7 +29,6 @@ define([
 	'./revolvingNumbers/index',
 	'./demandProcess',
 	'./bulksmsRichText',
-	'./changeClassOnScroll',
 	'./selectPicker',
 	'./customCalendar/calendarCustom',
 	'./customCalendar/calendarRange'
