@@ -12,6 +12,7 @@ define(['../module', 'jquery'], function (app) {
                 var endDate;
                 var holidays = ['1/1', '2/1', '7/1', '8/3', '21/3',
                     '22/3', '23/3', '1/5', '7/5', '9/5', '10/5', '6/7', '30/8', '1/12', '16/12', '17/12'];
+                var weekend_working = ['4/5/2019'];
                 var substitues = [];
                 var substitude_done = [];
                 for (var i=0; i<holidays.length; i++) {
@@ -29,8 +30,14 @@ define(['../module', 'jquery'], function (app) {
                             isCustomDate: function (date) {
                                 var day_type = date.toDate().getDay();
                                 var format_date = date.format('D/M');
+                                var format_date_year = date.format('D/M/YYYY');
                                 var next_day = "";
                                 var with_year = "";
+                                var return_class = "";
+                                if ((day_type === 6 || day_type === 0) &&
+                                    weekend_working.indexOf(format_date_year) === -1) {
+                                    return_class = 'calendar-weekday ';
+                                }
 
                                 if (holidays.indexOf(format_date) > -1) {
                                     var days_to_jump = 1;
@@ -51,18 +58,18 @@ define(['../module', 'jquery'], function (app) {
                                         if (substitues.indexOf(with_year) === -1) {
                                             substitues.push(with_year);
                                         }
-
                                     }
-                                    return 'calendar-holiday';
+                                    return_class += 'calendar-holiday';
                                 } else if (substitues.indexOf(date.format('D/M/YYYY')) > -1) {
-                                    return 'calendar-holiday';
+                                    return_class += 'calendar-holiday';
                                 }
-
+                                return return_class;
 
                             },
                             locale: {
                                 format: 'DD.MM.YYYY',
-                                cancelLabel: 'Clear'
+                                cancelLabel: 'Clear',
+                                firstDay: 1
                             }
                         }
                     );

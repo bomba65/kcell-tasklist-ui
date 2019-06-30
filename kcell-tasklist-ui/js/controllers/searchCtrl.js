@@ -67,6 +67,7 @@ define(['./module', 'jquery', 'moment', 'camundaSDK'], function (app, $, moment,
                         dateParts_to[2]  = "20" + dateParts_to[2];
                     }
                     var dateObject_to= new Date(+dateParts_to[2], dateParts_to[1] - 1, +dateParts_to[0]);
+                    dateObject_to.setDate(dateObject_to.getDate() + 1);
                     return [dateObject_from, dateObject_to];
                 }
             }
@@ -86,9 +87,6 @@ define(['./module', 'jquery', 'moment', 'camundaSDK'], function (app, $, moment,
                       && !($rootScope.isProjectAvailable('DemandUAT') && $rootScope.isProjectVisible('DemandUAT'))) {
                         $state.go('tasks');
                     }
-
-                    $timeout(setMultipleDatePicker);
-
                 }
             }, true);
 
@@ -394,9 +392,10 @@ define(['./module', 'jquery', 'moment', 'camundaSDK'], function (app, $, moment,
                 $scope.filter.endYear = $scope.currentDate.getFullYear();
                 $scope.filter.requestedDateRange = undefined;
                 $scope.filter.validityDateRange = undefined;
-                var element_name = "calendar-range-readonly";
-                $('.'+element_name).data('daterangepicker').setStartDate(moment());
-                $('.'+element_name).data('daterangepicker').setEndDate(moment());
+                $(".calendar-range-readonly").each(function() {
+                    $(this).data('daterangepicker').setStartDate(moment());
+                    $(this).data('daterangepicker').setEndDate(moment());
+                });
                 $scope.filter.requestor = undefined;
                 $scope.filter.sitename = undefined;
                 $scope.filter.priority = undefined;
@@ -1088,56 +1087,7 @@ define(['./module', 'jquery', 'moment', 'camundaSDK'], function (app, $, moment,
                 'AftersalesPBX': [],
                 'revolvingNumbers': []
             };
-
-            var startDate;
-            var endDate;
-
-            let setMultipleDatePicker = () => {
-                $('input[name="multipleDate"]').daterangepicker({
-                      startDate: startDate,
-                      endDate: endDate,
-                      autoUpdateInput: false,
-                      locale: {
-                          format: 'DD/MM/YYYY',
-                          cancelLabel: 'Clear'
-                      }
-                  }
-                  /*, function(start, end, label) {
-          //$(this).val(picker.startDate.format('MM/DD/YYYY') + ' - ' + picker.endDate.format('MM/DD/YYYY'));
-          console.log("Apply :: A new date selection was made: " + start.format('YYYY-MM-DD') + ' to ' + end.format('YYYY-MM-DD'));
-          $scope.$apply(function() {
-            $scope.startDate = start.toDate();
-            $scope.endDate = end.toDate();
-          });
-        }*/
-                );
-
-                $('input[name="multipleDate"]').on('apply.daterangepicker', function (ev, picker) {
-                    $(this).val(picker.startDate.format('DD/MM/YYYY') + ' - ' + picker.endDate.format('DD/MM/YYYY'));
-                    //console.log("Apply :: A new date selection was made: " + picker.startDate.format('DD/MM/YYYY') + ' to ' + picker.endDate.format('DD/MM/YYYY'));
-                    $scope.$apply(function () {
-                        $scope.filterDP.startDate = picker.startDate.toDate();
-                        $scope.filterDP.endDate = picker.endDate.toDate();
-                        //console.log("Apply :: A new date selection was made: " + $scope.filterDP.startDate + ' to ' + $scope.filterDP.endDate);
-                    });
-                });
-
-                $('input[name="multipleDate"]').on('cancel.daterangepicker', function (ev, picker) {
-                    $(this).val('');
-                    //console.log("Cancel :: A new date selection was made: " + picker.startDate.format('DD/MM/YYYY') + ' to ' + picker.endDate.format('DD/MM/YYYY'));
-                    $scope.$apply(function () {
-                        $scope.filterDP.startDate = undefined;	//picker.start.toDate();
-                        $scope.filterDP.endDate = undefined;		//picker.end.toDate();
-                    });
-                });
-
-                $('#daterangepickerButton').on('click', function () {
-                    //console.log('button click', $('input[name="multipleDate"]'));
-                    $('input[name="multipleDate"]').click();
-                });
-            };
-            $timeout(setMultipleDatePicker);
-
+            
             $scope.filterDP = {
                 processDefinitionKey: '',
                 processDefinitions: [{name: 'PBX', value: 'PBX'}, {
@@ -1424,16 +1374,12 @@ define(['./module', 'jquery', 'moment', 'camundaSDK'], function (app, $, moment,
                 if ($scope.filterDP.unfinished) {
                     filter.unfinished = true;
                 }
-
-                if ($scope.filterDP.startDate) {
-                    filter.startedAfter = new Date($scope.filterDP.startDate);
-                    //console.log('startDate', $scope.filterDP.startDate);
-                }
-                if ($scope.filterDP.endDate) {
-                    var beforeDate = new Date($scope.filterDP.endDate);
-                    //beforeDate.setDate(beforeDate.getDate()+1); //In daterangepicker for endDate time is 23:59:59, so no need adding a day
-                    filter.startedBefore = beforeDate;
-                    //console.log('endDate', $scope.filterDP.endDate);
+                if ($scope.filterDP.createdDateRange) {
+                    var results = convertStringToDate($scope.filterDP.createdDateRange);
+                    if (results.length===2) {
+                        filter.startedAfter = results[0];
+                        filter.startedBefore = results[1];
+                    }
                 }
                 if ($scope.filterDP.activityId) {
                     filter.activeActivityIdIn.push($scope.filterDP.activityId);
@@ -1516,7 +1462,12 @@ define(['./module', 'jquery', 'moment', 'camundaSDK'], function (app, $, moment,
                 $scope.filterDP.ip = undefined;
                 $scope.filterDP.connectionPoint = undefined;
                 $scope.filterDP.pbxNumbers = undefined;
+                $scope.filterDP.createdDateRange = undefined;
                 $('input[name="multipleDate"]').val('');
+                $timeout(function () {
+                    $('input[name="multipleDate"]').data('daterangepicker').setStartDate(moment());
+                    $('input[name="multipleDate"]').data('daterangepicker').setEndDate(moment());
+                });
                 $('#bin').val('');
                 if ($rootScope.selectedProcess.key === 'revolvingNumbers') {
                     $scope.filter.callerID = undefined;
