@@ -59,6 +59,7 @@
                     providerPage: true
                 };
                 $scope.aftersalesInfo.files = [];
+                $scope.noIdentifiersChecked = 0;
             });
 
             camForm.on('variables-fetched', function () {
@@ -148,9 +149,41 @@
                     $scope.aftersalesInfo.freePhoneProvider = true;
                 }
                 console.log($scope);
+                $timeout(function(){
+                    $scope.$apply(function () {
+                        if ($scope.operatorWasConnected) {
+                            $("button[type=submit]").text('Подключить идентификатор');
+                            $('#taskCompleteButton').text('Подключить идентификатор');
+                        } else if ($scope.operatorWasDisconnected) {
+                            $("button[type=submit]").text('Отключить идентификатор');
+                            $('#taskCompleteButton').text('Отключить идентификатор');
+                        }
+                     });
+                });
             });
 
-            camForm.on('submit', function () {
+            camForm.on('submit', function (evt) {
+                //evt.submitPrevented = true;
+                $scope.identifiers[0].operators.forEach(function (o) {
+                    if (o.id !== 'kcell' && !o.addedToNetwork && (o.selectedIdentifier || $scope.identifierType === 'digital') && ((o.connected && o.isAvailable) || (o.disconnected && o.wasAvailable && o.isAvailable===false))) {
+                    if(o.disconnected){
+                        delete o.disconnected;
+                        o.isAvailable = true;
+                        o.checked = true;
+                        if (o.oldPriceAP) o.priceAP = o.oldPriceAP;
+                        if (o.oldPriceEP) o.priceEP = o.oldPriceEP;
+                        if (o.oldTitle) o.title = o.oldTitle;
+                    } else if (o.connected) {
+                        o.connected = false;
+                        o.isAvailable = false;
+                        delete o.checked;
+                        if (o.priceAP) delete o.priceAP;
+                        if (o.title) delete o.title;
+                        if (o.priceEP) delete o.priceEP;
+                        if (o.selectedIdentifier) delete o.selectedIdentifier;
+                    }
+                    }
+                });
                 $scope.confirmOtherOperatorsCreationDeletionShortNumberTaskResult = 'Completed';
                 if(!$scope.resolutions){
                     $scope.resolutions = [];
@@ -177,6 +210,18 @@
                 }
 
             };
+
+            $scope.checkIdentifiers = function(identifier, operator) {
+                if(!operator.addedToNetwork){
+                    $scope.noIdentifiersChecked -= 1;
+                } else {
+                    $scope.noIdentifiersChecked += 1;
+                }
+                console.log($scope.noIdentifiersChecked);
+
+            };
+
+
         }]);
 
     </script>
@@ -205,11 +250,11 @@
                                 </button>
                             </span>
                         </div>
-                        <label class="error" ng-show="(kcell_form['addedToNetworkDate' + id.title + o.id].$error.required || !o.addedToNetwork) && view.submitted">Required field</label>
+                        <label class="error" ng-show="(kcell_form['addedToNetworkDate' + id.title + o.id].$error.required) && view.submitted">Required field</label>
                     </td>
                     <td>
-                        <input type="checkbox" ng-model="o.addedToNetwork" name="{{'addedToNetwork' + id.title + o.id}}" ng-change="addToNetwork(id, o)" ng-required="true">
-                        <label class="error" ng-show="(kcell_form['addedToNetwork' + id.title + o.id].$error.required || !o.addedToNetwork) && view.submitted">Required field</label>
+                        <input type="checkbox" ng-model="o.addedToNetwork" name="{{'addedToNetwork' + id.title + o.id}}" ng-change="addToNetwork(id, o)" ng-click="checkIdentifiers(id, o)" ng-required="noIdentifiersChecked < 1">
+                        <label class="error" ng-show="(kcell_form['addedToNetwork' + id.title + o.id].$error.required) && view.submitted">Required field</label>
                     </td>
                 </tr>
 
