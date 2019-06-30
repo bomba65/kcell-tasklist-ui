@@ -678,7 +678,7 @@
               <tr class="pi-{{pi.state == 'EXTERNALLY_TERMINATED'?'COMPLETED':pi.state}}">
                 <td>{{(filterDP.page-1)*filterDP.maxResults + $index + 1}}</td>
                 <td>
-                  <a ng-click="toggleProcessViewDP($index, pi.processDefinitionKey)">{{pi.businessKey}}</a>
+                  <a ng-click="toggleProcessViewModalDP($index, pi.processDefinitionKey, pi.processDefinitionId, pi.businessKey)">{{pi.businessKey}}</a>
                 </td>
                 <td>{{pi.bin}}</td>
                 <!--td>{{pi.finalIDs}}</td-->
@@ -691,139 +691,6 @@
 										<span ng-repeat="task in pi.tasks">
 											{{$index+1}}. {{task.name}}<br/>
 										</span>
-                </td>
-              </tr>
-              <tr style="padding: 0;" ng-if="piIndex === ((filterDP.page-1)*filterDP.maxResults + $index) && jobModel">
-                <td colspan="9">
-                  <table class="table table-condensed table-hover table-bordered" style="margin: 0;">
-                    <tr>
-                      <td style="width: 70%">
-                        <info-freephone freephone-info="jobModel" ng-if="jobModel.processDefinitionKey === 'freephone'"></info-freephone>
-                        <info-bulksms bulksms-info="jobModel" ng-if="jobModel.processDefinitionKey === 'bulksmsConnectionKAE'"></info-bulksms>
-                        <info-pbx pbx-info="jobModel" ng-if="jobModel.processDefinitionKey === 'PBX'"></info-pbx>
-                        <info-aftersales-pbx aftersales-info="jobModel" ng-if="jobModel.processDefinitionKey === 'AftersalesPBX'"></info-aftersales-pbx>
-                      </td>
-                      <td style="height: 1px; width: 30%" rowspan="2">
-                        <div class="left-wrapper" style="padding: 0">
-                          <div class="scrollcontainer">
-                            <div class="scrollable left" style="padding: 10px 0px; background: transparent;">
-                              <div>
-                                <div class="row" ng-if="jobModel.state">
-                                  <div class="col-xs-8 col-md-8"><b>{{getStatus(jobModel.state, jobModel.acceptPerformedJob.value)}}</b>
-                                  </div>
-                                </div>
-                              </div>
-                              <div>
-                                <a href="" class="btn btn-default" ng-click="showDiagram(pi.processDefinitionId)" class="ng-binding"><span class="glyphicon glyphicon-indent-left" aria-hidden="true"></span> Diagram</a>
-                              </div>
-                              <div style="margin-top: 10px;">
-                                <a href="" class="btn btn-default" ng-click="showHistory(jobModel.resolutions.value, pi.processDefinitionKey)" class="ng-binding"><span class="glyphicon glyphicon-list-alt" aria-hidden="true"></span> History  </a>
-                              </div>
-                              <div style="margin-top: 10px;" ng-if="pi.processDefinitionKey === 'freephone' || pi.processDefinitionKey === 'bulksmsConnectionKAE'">
-                                <!--a href="" class="btn btn-default" ng-click="startProcess(pi.processDefinitionId)" class="ng-binding"><span class="glyphicon glyphicon-cog" aria-hidden="true"></span> Edit </a-->
-                                <a href="" ng-disabled="pi.state !== 'COMPLETED' || disableAftersalesStart" class="btn btn-default" ng-click="startProcess(afterSalesIvrSmsDefinitionId)" class="ng-binding"><span class="glyphicon glyphicon-cog" aria-hidden="true"></span> Change </a>
-                              </div>
-                              <div style="margin-top: 10px;" ng-if="pi.processDefinitionKey === 'freephone' || pi.processDefinitionKey === 'bulksmsConnectionKAE'">
-                                <a href="" ng-disabled="pi.state !== 'COMPLETED' || disableAftersalesStart" class="btn btn-default" ng-click="startDisconnectProcess(afterSalesIvrSmsDefinitionId)" class="ng-binding"><span class="glyphicon glyphicon-off" style="color:red" aria-hidden="true"></span> Disconnect </a>
-                              </div>
-                              <ul id="tasks">
-                                <li ng-repeat="task in jobModel.tasks">
-                                  <div class="task">
-                                    <h5>
-                                      <!--a ng-if="hasGroup('revision_managers') || hasGroup('revision_audit')" ui-sref="tasks.task({id:task.id})" target="_blank">{{ (task.name || task.id) }}</a></h5>
-                                      <span ng-if="!(hasGroup('revision_managers') || hasGroup('revision_audit'))" ui-sref="tasks.task({id:task.id})" target="_blank">{{ (task.name || task.id) }}</span></h5>
-                                      <div ng-if="task.description"> {{ task.description }} </div>
-                                      <small ng-if="hasGroup('kcellUsers')" class="text-muted" ng-if="task.group">
-                                        Group: <a ng-click="showGroupDetails(task.group)">{{task.group}}</a>
-                                      </small>
-                                      <br/>
-                                      <small class="text-muted" ng-if="task.assignee">{{ task.assigneeObject.firstName }} {{ task.assigneeObject.lastName }}</small>
-                                      <small class="text-muted" ng-if="!task.assignee">Unassigned</small-->
-                                      <a ui-sref="tasks.task({id:task.id})" target="_blank">{{ (task.name || task.id) }}</a></h5>
-                                    <!--span ui-sref="tasks.task({id:task.id})" target="_blank">{{ (task.name || task.id) }}</span></h5-->
-                                    <div ng-if="task.description"> {{ task.description }} </div>
-                                    <small class="text-muted" ng-if="task.group">
-                                      Group: <a ng-click="showGroupDetails(task.group)">{{task.group}}</a>
-                                    </small>
-                                    <br/>
-                                    <small class="text-muted" ng-if="task.assignee">{{ task.assigneeObject.firstName }} {{ task.assigneeObject.lastName }}</small>
-                                    <small class="text-muted" ng-if="!task.assignee">Unassigned</small>
-                                  </div>
-                                </li>
-                              </ul>
-                            </div>
-                          </div>
-                        </div>
-                      </td>
-                    </tr>
-                    <!-- start aftersales -->
-                    <tr ng-if="processInstancesAftersales.length > 0">
-                      <td style="width: 70%">
-                        <table class="table table-condensed table-hover" ng-if="(jobModel.processDefinitionKey === 'freephone' || jobModel.processDefinitionKey === 'bulksmsConnectionKAE') && processInstancesAftersales" id="aftersalesTable" name="aftersalesTable">
-                          <!--table class="table table-condensed table-hover table-bordered" id="aftersalesTable" name="aftersalesTable"-->
-                          <thead>
-                          <tr>
-                            <th>#</th>
-                            <th>Business Key</th>
-                            <th>Start date</th>
-                            <th>End date</th>
-                            <th>Change type</th>
-                          </tr>
-                          </thead>
-                          <tbody ng-repeat="af in processInstancesAftersales track by $index">
-                          <tr class="pi-{{af.state == 'EXTERNALLY_TERMINATED' || af.state == 'INTERNALLY_TERMINATED' ? 'COMPLETED':af.state}}">
-                            <td>{{$index + 1}}</td>
-                            <td><a ng-click="toggleProcessViewAftersales($index)">{{af.businessKey}}</a></td>
-                            <td>{{af.startTime | date:'dd MMM yyyy'}}</td>
-                            <td>{{af.endTime | date:'dd MMM yyyy'}}</td>
-                            <td>
-																	<span ng-repeat="changeType in af.changeTypes">
-																		{{$index+1}}. {{changeType}}<br/>
-																	</span>
-                            </td>
-                          </tr>
-                          <tr ng-if="$index === toggleIndexAftersales && toggleInfoAftersales">
-                            <td colspan="4">
-                              <info-aftersales aftersales-info="toggleInfoAftersales" ng-if="toggleInfoAftersales"></info-aftersales>
-                            </td>
-                            <td style="width: 30%;height: 1px;" rowspan="2">
-                              <div class="left-wrapper" style="padding: 0">
-                                <div class="scrollcontainer">
-                                  <div class="scrollable left" style="padding: 10px 0; background: transparent;">
-                                    <div>
-                                  <a href="" class="btn btn-default" ng-click="showDiagramAftersales(toggleInfoAftersales.processDefinitionId)" class="ng-binding"><span class="glyphicon glyphicon-indent-left" aria-hidden="true"></span> Diagram</a>
-                                </div>
-                                <div style="margin-top:5px;">
-                                  <a href="" class="btn btn-default" ng-click="showHistory(toggleInfoAftersales.resolutions.value)" class="ng-binding"><span class="glyphicon glyphicon-list-alt" aria-hidden="true"></span> History  </a>
-                                </div>
-                                    <ul id="tasks">
-                                      <li ng-repeat="task in toggleInfoAftersales.tasks_decr">
-                                        <div class="task">
-                                          <h5>
-                                            <a ui-sref="tasks.task({id:task.id})" target="_blank">{{ (task.name || task.id) }}</a></h5>
-                                          <div ng-if="task.description"> {{ task.description }} </div>
-                                          <small class="text-muted" ng-if="task.group">
-                                            Group: <a ng-click="showGroupDetails(task.group)">{{task.group}}</a>
-                                          </small>
-                                          <br/>
-                                          <small class="text-muted" ng-if="task.assignee">{{ task.assigneeObject.firstName }} {{ task.assigneeObject.lastName }}</small>
-                                          <small class="text-muted" ng-if="!task.assignee">Unassigned</small>
-                                        </div>
-                                      </li>
-                                    </ul>
-
-
-
-
-
-                                  </div></div></div> </td>
-                          </tr>
-                          </tbody>
-                        </table>
-                      </td>
-                    </tr>
-                    <!-- end aftersales -->
-                  </table>
                 </td>
               </tr>
               </tbody>
@@ -862,7 +729,7 @@
               <tr class="pi-{{pi.state == 'EXTERNALLY_TERMINATED'?'COMPLETED':pi.state}}">
                 <td>{{(filterDP.page-1)*filterDP.maxResults + $index + 1}}</td>
                 <td>
-                  <a ng-click="toggleProcessViewDP($index, pi.processDefinitionKey)">{{pi.businessKey}}</a>
+                  <a ng-click="toggleProcessViewModalDP($index, pi.processDefinitionKey)">{{pi.businessKey}}</a>
                 </td>
                 <td>{{pi.bin}}</td>
                 <!--td>{{pi.finalIDs}}</td-->
@@ -894,51 +761,6 @@
 										<span ng-repeat="task in pi.tasks">
 											{{$index+1}}. {{task.name}}<br/>
 										</span>
-                </td>
-              </tr>
-              <tr style="padding: 0;" ng-if="piIndex === ((filterDP.page-1)*filterDP.maxResults + $index) && jobModel">
-                <td colspan="13">
-                  <table class="table table-condensed table-hover table-bordered" style="margin: 0;">
-                    <tr>
-                      <td style="width: 70%">
-                        <info-aftersales-pbx aftersales-info="jobModel" ng-if="jobModel.processDefinitionKey === 'AftersalesPBX'"></info-aftersales-pbx>
-                      </td>
-                      <td style="height: 1px; width: 30%" rowspan="2">
-                        <div class="left-wrapper" style="padding: 0">
-                          <div class="scrollcontainer">
-                            <div class="scrollable left" style="padding: 10px 0px; background: transparent;">
-                              <div>
-                                <div class="row" ng-if="jobModel.state">
-                                  <div class="col-xs-8 col-md-8"><b>{{getStatus(jobModel.state, jobModel.acceptPerformedJob.value)}}</b>
-                                  </div>
-                                </div>
-                              </div>
-                              <div>
-                                <a href="" class="btn btn-default" ng-click="showDiagram(pi.processDefinitionId)" class="ng-binding"><span class="glyphicon glyphicon-indent-left" aria-hidden="true"></span> Diagram</a>
-                              </div>
-                              <div style="margin-top: 10px;">
-                                <a href="" class="btn btn-default" ng-click="showHistory(jobModel.resolutions.value, pi.processDefinitionKey)" class="ng-binding"><span class="glyphicon glyphicon-list-alt" aria-hidden="true"></span> History  </a>
-                              </div>
-                              <ul id="tasks">
-                                <li ng-repeat="task in jobModel.tasks">
-                                  <div class="task">
-                                    <h5><a ui-sref="tasks.task({id:task.id})" target="_blank">{{ (task.name || task.id) }}</a></h5>
-                                    <div ng-if="task.description"> {{ task.description }} </div>
-                                    <small class="text-muted" ng-if="task.group">
-                                      Group: <a ng-click="showGroupDetails(task.group)">{{task.group}}</a>
-                                    </small>
-                                    <br/>
-                                    <small class="text-muted" ng-if="task.assignee">{{ task.assigneeObject.firstName }} {{ task.assigneeObject.lastName }}</small>
-                                    <small class="text-muted" ng-if="!task.assignee">Unassigned</small>
-                                  </div>
-                                </li>
-                              </ul>
-                            </div>
-                          </div>
-                        </div>
-                      </td>
-                    </tr>
-                  </table>
                 </td>
               </tr>
               </tbody>
@@ -976,7 +798,7 @@
               <tr class="pi-{{pi.state == 'EXTERNALLY_TERMINATED'?'COMPLETED':pi.state}}">
                 <td>{{(filterDP.page-1)*filterDP.maxResults + $index + 1}}</td>
                 <td>
-                  <a ng-click="toggleProcessViewDP($index, pi.processDefinitionKey)">{{pi.businessKey}}</a>
+                  <a ng-click="toggleProcessViewModalDP($index, pi.processDefinitionKey, pi.processDefinitionId, pi.businessKey)">{{pi.businessKey}}</a>
                 </td>
                 <td>{{pi.bin}}</td>
                 <!--td>{{pi.finalIDs}}</td-->
@@ -1483,10 +1305,10 @@
               </tr>
               </thead>
               <tbody>
-              <tr ng-repeat-start="pi in processInstances track by $index" class="pi-{{pi.state == 'EXTERNALLY_TERMINATED'?'COMPLETED':pi.state}}">
+              <tr ng-repeat="pi in processInstances track by $index" class="pi-{{pi.state == 'EXTERNALLY_TERMINATED'?'COMPLETED':pi.state}}">
                 <td>{{(filter.page-1)*filter.maxResults + $index + 1}}</td>
                 <td>
-                  <a ng-click="toggleProcessView($index, pi.processDefinitionKey)">
+                  <a ng-click="toggleProcessView($index, pi.processDefinitionKey, pi.processDefinitionId)">
                     {{pi.businessKey}}
                   </a>
                 </td>
@@ -1509,53 +1331,6 @@
 										<span ng-repeat="task in pi.tasks">
 											{{task.name}}<br/>
 										</span>
-                </td>
-              </tr>
-              <tr ng-repeat-end ng-if="piIndex === $index && jobModel">
-                <td colspan="11">
-                  <table class="table table-condensed table-hover " style="margin: 0;">
-                    <tr>
-                      <td style="width: 70%">
-                        <demand-process data="jobModel"></demand-process>
-                      </td>
-                      <td style="width: 30%; height: 1px;" rowspan="2">
-                        <div class="left-wrapper" style="padding: 0">
-                          <div class="scrollcontainer">
-                            <div class="scrollable left" style="padding: 10px 0px; background: transparent;">
-                              <div>
-                                <div class="row" ng-if="jobModel.state">
-                                  <div class="col-xs-8 col-md-8"><b>{{getStatus(jobModel.state, jobModel.acceptPerformedJob.value)}}</b>
-                                  </div>
-                                </div>
-                              </div>
-                              <div>
-                                <a href="" class="btn btn-default" ng-click="showDiagram(pi.processDefinitionId)" class="ng-binding"><span class="glyphicon glyphicon-indent-left" aria-hidden="true"></span> Diagram</a>
-                              </div>
-                              <div style="margin-top: 10px;">
-                                <a href="" class="btn btn-default" ng-click="showHistory(jobModel.resolutions.value, pi.processDefinitionKey)" class="ng-binding"><span class="glyphicon glyphicon-list-alt" aria-hidden="true"></span> History  </a>
-                              </div>
-                              <ul id="tasks">
-                                <li ng-repeat="task in jobModel.tasks">
-                                  <div class="task">
-                                    <h5>
-                                      <a ui-sref="tasks.task({id:task.id})" target="_blank">{{ (task.name || task.id) }}</a>
-                                    </h5>
-                                    <div ng-if="task.description"> {{ task.description }} </div>
-                                    <small class="text-muted" ng-if="task.group">
-                                      Group: <a ng-click="showGroupDetails(task.group)">{{task.group}}</a>
-                                    </small>
-                                    <br/>
-                                    <small class="text-muted" ng-if="task.assignee">{{ task.assigneeObject.firstName }} {{ task.assigneeObject.lastName }}</small>
-                                    <small class="text-muted" ng-if="!task.assignee">Unassigned</small>
-                                  </div>
-                                </li>
-                              </ul>
-                            </div>
-                          </div>
-                        </div>
-                      </td>
-                    </tr>
-                  </table>
                 </td>
               </tr>
               </tbody>

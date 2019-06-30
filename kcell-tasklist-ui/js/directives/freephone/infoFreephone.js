@@ -1,10 +1,10 @@
-define(['./module'], function(module){
+define(['../module'], function(module){
 	'use strict';
-	module.directive('infoAftersales', ['$http', '$timeout', function ($http, $timeout) {
+	module.directive('infoFreephone', ['$http', '$timeout', function ($http, $timeout) {
 		return {
 			restrict: 'E',
 			scope: {
-				aftersalesInfo: '='
+				freephoneInfo: '='
 			},
 			link: function(scope, el, attrs){
 				scope.download = function(path) {
@@ -16,7 +16,7 @@ define(['./module'], function(module){
 	                });
                	};
 			},
-			templateUrl: './js/directives/infoAftersales.html'
+			templateUrl: './js/directives/freephone/infoFreephone.html'
 		};
 	}]);
 });

@@ -814,7 +814,7 @@ define(['./module', 'jquery', 'moment', 'camundaSDK'], function (app, $, moment,
                 }
             };
 
-            $scope.toggleProcessView = function (index, processDefinitionKey) {
+            $scope.toggleProcessView = function (index, processDefinitionKey, processDefinitionId) {
                 $scope.showDiagramView = false;
                 $scope.diagram = {};
                 if ($scope.piIndex === index) {
@@ -824,6 +824,7 @@ define(['./module', 'jquery', 'moment', 'camundaSDK'], function (app, $, moment,
                     $scope.jobModel = {
                         state: $scope.processInstances[index].state,
                         processDefinitionKey: processDefinitionKey,
+                        processDefinitionId : processDefinitionId,
                         startTime: {value: $scope.processInstances[index].startTime}
                     };
                     $http({
@@ -832,6 +833,9 @@ define(['./module', 'jquery', 'moment', 'camundaSDK'], function (app, $, moment,
                         url: baseUrl + '/task?processInstanceId=' + $scope.processInstances[index].id,
                     }).then(
                       function (tasks) {
+                          var asynCall1 = false;
+                          var asynCall2 = false;
+                          var asynCall3 = false;
                           var processInstanceTasks = tasks.data._embedded.task;
                           if (processInstanceTasks && processInstanceTasks.length > 0) {
                               processInstanceTasks.forEach(function (e) {
@@ -851,12 +855,23 @@ define(['./module', 'jquery', 'moment', 'camundaSDK'], function (app, $, moment,
                                         if (taskResult.data._embedded && taskResult.data._embedded.group) {
                                             e.group = taskResult.data._embedded.group[0].id;
                                         }
+                                        asynCall1 = true;
+                                        if (asynCall1 && asynCall2 && asynCall3) {
+                                            openProcessCardModalDemand();
+                                            asynCall1 = false;
+                                        } else console.log(asynCall1, asynCall2,asynCall3);
                                     },
                                     function (error) {
                                         console.log(error.data);
                                     }
                                   );
                               });
+                          } else {
+                              asynCall1 = true;
+                              if (asynCall1 && asynCall2 && asynCall3) {
+                                  openProcessCardModalDemand();
+                                  asynCall1 = false;
+                              } else console.log(asynCall1, asynCall2,asynCall3);
                           }
                           $http.get(baseUrl + '/history/variable-instance?deserializeValues=false&processInstanceId=' + $scope.processInstances[index].id).then(
                             function (result) {
@@ -911,12 +926,26 @@ define(['./module', 'jquery', 'moment', 'camundaSDK'], function (app, $, moment,
                                                 }
                                             }
                                         });
+                                        asynCall2 = true;
+                                        if (asynCall1 && asynCall2 && asynCall3) {
+                                            openProcessCardModalDemand();
+                                            asynCall1 = false;
+                                            asynCall2 = false;
+                                            asynCall3 = false;
+                                        } else console.log(asynCall1, asynCall2,asynCall3);
                                     });
                                 }
 
                                 //$scope.jobModel.tasks = processInstanceTasks;
                                 angular.extend($scope.jobModel, catalogs);
                                 $scope.jobModel.tasks = processInstanceTasks;
+                                asynCall3 = true;
+                                if (asynCall1 && asynCall2 && asynCall3) {
+                                    openProcessCardModalDemand();
+                                    asynCall1 = false;
+                                    asynCall2 = false;
+                                    asynCall3 = false;
+                                } else console.log(asynCall1, asynCall2,asynCall3);
                             },
                             function (error) {
                                 console.log(error.data);
@@ -932,6 +961,7 @@ define(['./module', 'jquery', 'moment', 'camundaSDK'], function (app, $, moment,
             };
 
             $scope.showGroupDetails = function (group) {
+                console.log('show');
                 $http({
                     method: 'GET',
                     headers: {'Accept': 'application/hal+json, application/json; q=0.5'},
@@ -960,32 +990,6 @@ define(['./module', 'jquery', 'moment', 'camundaSDK'], function (app, $, moment,
                 $scope.showDiagramView = true;
                 getDiagram(processDefinitionId);
             }
-            $scope.showDiagramAftersales = function (processDefinitionId) {
-                $scope.showDiagramView = true;
-                getDiagramAfterSales(processDefinitionId);
-            };
-
-            function getDiagramAfterSales(processDefinitionId) {
-                $http.get(baseUrl + '/process-definition/' + processDefinitionId + '/xml').then(
-                    function (result) {
-                        $timeout(function () {
-                            $scope.$apply(function () {
-                                $scope.diagram = {
-                                    xml: result.data.bpmn20Xml,
-                                    tasks: ($scope.toggleInfoAftersales.tasks && $scope.toggleInfoAftersales.tasks.length > 0) ? $scope.toggleInfoAftersales.tasks : undefined,
-                                    callActivityTasks: ($scope.toggleInfoAftersales.callActivityTasks && $scope.toggleInfoAftersales.callActivityTasks.length > 0) ? $scope.toggleInfoAftersales.callActivityTasks : undefined,
-
-                                };
-                            });
-                        });
-                    },
-                    function (error) {
-                        console.log(error.data);
-                    }
-                );
-            }
-
-
             function getDiagram(processDefinitionId) {
                 $http.get(baseUrl + '/process-definition/' + processDefinitionId + '/xml').then(
                     function (result) {
@@ -1932,7 +1936,6 @@ define(['./module', 'jquery', 'moment', 'camundaSDK'], function (app, $, moment,
             }
 
             $scope.toggleProcessViewDP = function (rowIndex, processDefinitionKey) {
-                $scope.toggleIndexAftersales = undefined;
                 $scope.showDiagramView = false;
                 $scope.diagram = {};
                 var index = ($scope.filterDP.page - 1) * $scope.filterDP.maxResults + rowIndex;
@@ -2016,7 +2019,6 @@ define(['./module', 'jquery', 'moment', 'camundaSDK'], function (app, $, moment,
                                             );
                                         }
                                     });
-                                    //console.log('jobModel', $scope.jobModel);
                                     if ($scope.jobModel.resolutions && $scope.jobModel.resolutions.value) {
                                         $q.all($scope.jobModel.resolutions.value.map(function (resolution) {
                                             return $http.get("/camunda/api/engine/engine/default/history/task?processInstanceId=" + resolution.processInstanceId + "&taskId=" + resolution.taskId);
@@ -2129,9 +2131,477 @@ define(['./module', 'jquery', 'moment', 'camundaSDK'], function (app, $, moment,
                     }
                 }
             };
-            /*$scope.getStartStatus = function(processInstances){
-        return processInstances.filter(function(pi){return ['EXTERNALLY_TERMINATED','COMPLETED'].indexOf(pi.state)>-1}).length > 0;
-      }*/
+
+            $scope.toggleProcessViewModalDP = function (rowIndex, processDefinitionKey, processDefinitionId, businessKey) {
+                $scope.toggleIndexAftersales = undefined;
+                $scope.showDiagramView = false;
+                $scope.diagram = {};
+                var index = ($scope.filterDP.page - 1) * $scope.filterDP.maxResults + rowIndex;
+                if ($scope.piIndex === index) {
+                        $scope.piIndex = undefined;
+                } else {
+                        $scope.piIndex = index;
+                        $scope.jobModel = {
+                            state: $scope.processInstancesDP[index].state,
+                            processDefinitionKey: processDefinitionKey,
+                            processDefinitionId: processDefinitionId,
+                            businessKey: businessKey
+                        };
+                        var asProcess = processDefinitionKey==='freephone' || processDefinitionKey==='bulksmsConnectionKAE';
+                        $scope.currentProcessInstance = SearchCurrentSelectedProcessService($scope.processInstancesDP[index]);
+                        $http({
+                            method: 'GET',
+                            headers: {'Accept': 'application/hal+json, application/json; q=0.5'},
+                            url: baseUrl + '/task?processInstanceId=' + $scope.processInstancesDP[index].id,
+                        }).then(
+                          function (tasks) {
+                              var asynCall1 = false;
+                              var asynCall2 = false;
+                              var asynCall3 = false;
+                              var asynCall4 = false;
+                              var asynCall5 = false;
+                              var processInstanceTasks = tasks.data._embedded.task;
+                              if (processInstanceTasks && processInstanceTasks.length > 0) {
+                                  processInstanceTasks.forEach(function (e) {
+                                      if (e.assignee && tasks.data._embedded.assignee) {
+                                          for (var i = 0; i < tasks.data._embedded.assignee.length; i++) {
+                                              if (tasks.data._embedded.assignee[i].id === e.assignee) {
+                                                  e.assigneeObject = tasks.data._embedded.assignee[i];
+                                              }
+                                          }
+                                      }
+                                      $http({
+                                          method: 'GET',
+                                          headers: {'Accept': 'application/hal+json, application/json; q=0.5'},
+                                          url: baseUrl + '/task/' + e.id
+                                      }).then(
+                                        function (taskResult) {
+                                            if (taskResult.data._embedded && taskResult.data._embedded.group) {
+                                                e.group = taskResult.data._embedded.group[0].id;
+                                                console.log(e.group);
+                                            }
+                                            asynCall4 = true;
+                                            if (asynCall1 && asynCall4 && ((asynCall2 && asynCall3) || !asProcess) && asynCall5) {
+                                                openProcessCardModal();
+                                                asynCall1 = false;
+                                                asynCall2 = false;
+                                                asynCall3 = false;
+                                                asynCall4 = false;
+                                                asynCall5 = false;
+
+                                            }
+                                            },
+                                        function (error) {
+                                            console.log(error.data);
+                                        }
+                                      );
+                                  });
+                              } else {
+                                  asynCall4 = true;
+                              }
+                              $http.get(baseUrl + '/history/variable-instance?deserializeValues=false&processInstanceId=' + $scope.processInstancesDP[index].id).then(
+                                function (result) {
+                                    result.data.forEach(function (el) {
+                                        $scope.jobModel[el.name] = el;
+                                        //console.log(el.name, el.value);
+                                        if (el.type !== 'Json' && (el.value || el.value === "" || el.type === 'Boolean')) {
+                                            $scope.jobModel[el.name] = el.value;
+                                        }
+                                        if (el.type === 'File' || el.type === 'Bytes') {
+                                            $scope.jobModel[el.name].contentUrl = baseUrl + '/history/variable-instance/' + el.id + '/data';
+                                        }
+                                        if (el.name === 'techSpecs' && el.type === 'String') {
+                                            $scope.jobModel[el.name] = JSON.parse(el.value);
+                                        }
+                                        if (el.type === 'Json') {
+                                            if (el.name === 'resolutions') {
+                                                $scope.jobModel[el.name].value = JSON.parse(el.value);
+                                            } else if (['contractScanCopyFileName', 'applicationScanCopyFileName', 'vpnQuestionnaireFileName'].indexOf(el.name) > -1) {
+                                                if (!$scope.jobModel.files) {
+                                                    $scope.jobModel.files = [];
+                                                }
+                                                $scope.jobModel.files.push(JSON.parse(el.value));
+                                            } else {
+                                                $scope.jobModel[el.name] = JSON.parse(el.value);
+                                            }
+                                        }
+                                        if (el.name === 'starter') {
+                                            $scope.jobModel.starterName = el.value;
+                                            $http.get('/camunda/api/engine/engine/default/user/' + el.value + '/profile').then(
+                                              function (result) {
+                                                  $scope.jobModel.starterName = result.data.firstName + ' ' + result.data.lastName;
+                                              },
+                                              function (error) {
+                                                  console.log(error.data);
+                                              }
+                                            );
+                                        }
+                                    });
+                                    if ($scope.jobModel.resolutions && $scope.jobModel.resolutions.value) {
+                                        $q.all($scope.jobModel.resolutions.value.map(function (resolution) {
+                                            return $http.get("/camunda/api/engine/engine/default/history/task?processInstanceId=" + resolution.processInstanceId + "&taskId=" + resolution.taskId);
+                                        })).then(function (tasks) {
+                                            tasks.forEach(function (e, index) {
+                                                if (e.data.length > 0) {
+                                                    $scope.jobModel.resolutions.value[index].taskName = e.data[0].name;
+                                                    try {
+                                                        $scope.jobModel.resolutions.value[index].taskEndDate = new Date(e.data[0].endTime);
+                                                    } catch (e) {
+                                                        console.log(e);
+                                                    }
+                                                }
+                                            });
+                                            asynCall5 = true;
+                                            if (asynCall1 && asynCall4 && ((asynCall2 && asynCall3) || !asProcess) && asynCall5) {
+                                                openProcessCardModal();
+                                                asynCall1 = false;
+                                                asynCall2 = false;
+                                                asynCall3 = false;
+                                                asynCall4 = false;
+                                                asynCall5 = false;
+                                            }
+                                        });
+                                    }
+                                    angular.extend($scope.jobModel, catalogs);
+                                    $scope.jobModel.showTarif = true;
+                                    $scope.jobModel.tasks = processInstanceTasks;
+                                    asynCall1 = true;
+                                    if (asynCall1 && asynCall4 && ((asynCall2 && asynCall3) || !asProcess) && asynCall5) {
+                                        openProcessCardModal();
+                                        asynCall1 = false;
+                                        asynCall2 = false;
+                                        asynCall3 = false;
+                                        asynCall4 = false;
+                                        asynCall5 = false;
+                                    }
+                                },
+                                function (error) {
+                                    console.log(error.data);
+                                }
+                              );
+                              if (asProcess) {
+                              /// aftersales start
+                                  $http({
+                                      method: 'POST',
+                                      headers: {'Accept': 'application/hal+json, application/json; q=0.5'},
+                                      data: {
+                                          sorting: [{sortBy: "startTime", sortOrder: "desc"}],
+                                          variables: [{
+                                              "name": "relatedProcessInstanceId",
+                                              "operator": "eq",
+                                              "value": $scope.processInstancesDP[index].id
+                                          }],
+                                          processDefinitionKey: 'after-sales-ivr-sms'
+                                      },
+                                      url: baseUrl + '/history/process-instance'
+                                  }).then(function (response) {
+                                        if (response && response.data) {
+                                            $scope.processInstancesAftersales = angular.copy(response.data);
+                                            if ($scope.processInstancesAftersales.length > 0) {
+                                                $scope.disableAftersalesStart = $scope.processInstancesAftersales.filter(function (pi) {
+                                                    return ['EXTERNALLY_TERMINATED', 'INTERNALLY_TERMINATED', 'COMPLETED'].indexOf(pi.state) === -1
+                                                }).length > 0;
+                                                var lengthAS = $scope.processInstancesAftersales.length;
+                                                var counterAS = 0;
+                                                $scope.processInstancesAftersales.forEach(function (instance) {
+                                                    $http.get(baseUrl + '/history/variable-instance?deserializeValues=false&processInstanceId=' + instance.id).then(
+                                                      function (result) {
+                                                          instance.changeTypes = [];
+                                                          result.data.forEach(function (el) {
+                                                              if (el.name === 'relatedProcessInstanceVariables') {
+                                                                  var relPiVars = JSON.parse(el.value);
+                                                                  Object.keys(relPiVars).forEach(function (name) {
+                                                                      if (name !== "identifiers") {
+                                                                          instance[name] = relPiVars[name];
+                                                                      }
+                                                                  });
+                                                              } else {
+                                                                  //if(el.name == "identifiers"){
+                                                                  if (el.type == "Json") {
+                                                                      if (['contractScanCopyFileName', 'applicationScanCopyFileName'].indexOf(el.name) > -1) {
+                                                                          if (!instance.files) {
+                                                                              instance.files = [];
+                                                                          }
+                                                                          instance.files.push(JSON.parse(el.value));
+                                                                      } else {
+                                                                          instance[el.name] = JSON.parse(el.value);
+                                                                      }
+                                                                  } else {
+                                                                      instance[el.name] = el.value;
+                                                                  }
+                                                              }
+                                                              ;
+                                                              instance.showTarif = true;
+                                                              if (["disconnectProcess", "changeOfficialClientCompanyName", "changeContractNumber", "disconnectOperator", "connectOperator", "changeConnectionType", "changeIpNumber", "changeIdentifier", "changeSmsServiceType", "changeProvider", "changeTransmitNumber"].indexOf(el.name) > -1) {
+                                                                  if (el.value) {
+                                                                      instance.changeTypes.push($scope.mapChangeType[el.name]);
+                                                                      if (el.name === "disconnectProcess") {
+                                                                          if (instance.state === "COMPLETED") {
+                                                                              $scope.disableAftersalesStart = true;
+                                                                          }
+                                                                      }
+                                                                  }
+                                                              }
+                                                          });
+                                                          if (lengthAS-1===counterAS) asynCall3 = true;
+                                                          if (asynCall1 && asynCall4 && asynCall2 && asynCall3 && asynCall5) {
+                                                              openProcessCardModal();
+                                                              asynCall1 = false;
+                                                              asynCall2 = false;
+                                                              asynCall3 = false;
+                                                              asynCall4 = false;
+                                                              asynCall5 = false;
+                                                          }
+                                                          counterAS+=1;
+                                                      },
+                                                      function (error) {
+                                                          console.log(error.data);
+                                                      }
+                                                    )
+                                                });
+                                            } else {
+                                                asynCall3 = true;
+                                                if (asynCall1 && asynCall4 && asynCall2 && asynCall3 && asynCall5) {
+                                                    openProcessCardModal();
+                                                    asynCall1 = false;
+                                                    asynCall2 = false;
+                                                    asynCall3 = false;
+                                                    asynCall4 = false;
+                                                    asynCall5 = false;
+                                                }
+
+                                                $scope.disableAftersalesStart = false;
+                                            }
+                                            asynCall2 = true;
+                                            if (asynCall1 && asynCall4 && asynCall2 && asynCall3 && asynCall5) {
+                                                openProcessCardModal();
+                                                asynCall1 = false;
+                                                asynCall2 = false;
+                                                asynCall3 = false;
+                                                asynCall4 = false;
+                                                asynCall5 = false;
+                                            }
+                                        }
+
+                                    },
+                                    function (error) {
+                                        console.log(error.data);
+                                    }
+                                  );
+                              /// aftersales end
+                          }
+                          },
+                          function (error) {
+                              console.log(error.data);
+                          }
+                        );
+                    }
+            };
+
+            function openProcessCardModal() {
+                var template = './js/partials/';
+                if ($scope.jobModel.processDefinitionKey === 'freephone') {
+                    template += 'infoFreephoneSearch.html';
+                }else if ($scope.jobModel.processDefinitionKey === 'bulksmsConnectionKAE') {
+                    template += 'infoBulksmsSearch.html';
+                } else if ($scope.jobModel.processDefinitionKey === 'PBX') {
+                    template += 'infoPBXSearch.html';
+                } else if ($scope.jobModel.processDefinitionKey === 'AftersalesPBX') {
+                    template += 'infoAftersalesPBXSearch.html';
+                } else if ($scope.jobModel.processDefinitionKey === 'revolvingNumbers') {
+                    template += 'infoRevolvingNumbersSearch.html';
+                }
+                exModal.open({
+                        scope: {
+                            jobModel: $scope.jobModel,
+                            diagram: [],
+                            processInstancesAftersales: $scope.processInstancesAftersales,
+                            showGroupDetails:$scope.showGroupDetails,
+                            getStatus: $scope.getStatus,
+                            showDiagram: $scope.showDiagram,
+                            showHistory: $scope.showHistory,
+                            startProcess: $scope.startProcess,
+                            afterSalesIvrSmsDefinitionId: $scope.afterSalesIvrSmsDefinitionId,
+                            disableAftersalesStart : $scope.disableAftersalesStart,
+                            startDisconnectProcess: $scope.startDisconnectProcess,
+                            toggleIndexAftersales: $scope.toggleIndexAftersales,
+                            toggleInfoAftersales: $scope.toggleInfoAftersales,
+                            download: function (file) {
+                                $http({
+                                    method: 'GET',
+                                    url: '/camunda/uploads/get/' + file.path,
+                                    transformResponse: []
+                                }).then(function (response) {
+                                    document.getElementById('fileDownloadIframe').src = response.data;
+                                }, function (error) {
+                                    console.log(error);
+                                });
+                            },
+                        },
+                        controller: DPModalController,
+                        templateUrl: template,
+                        size: 'lg'
+                    }).then(function(results){
+                    });
+
+            }
+            DPModalController.$inject = ['scope', '$http', '$timeout'];
+            function DPModalController(scope, $http) {
+                scope.showDiagramAftersales = function (processDefinitionId) {
+                    $scope.showDiagramView = true;
+                    getDiagramAfterSales(processDefinitionId);
+                };
+                function getDiagramAfterSales(processDefinitionId) {
+                    $http.get(baseUrl + '/process-definition/' + processDefinitionId + '/xml').then(
+                        function (result) {
+                            $timeout(function () {
+                                scope.$apply(function () {
+                                    $scope.diagram = {
+                                        xml: result.data.bpmn20Xml,
+                                        tasks: (scope.toggleInfoAftersales.tasks && scope.toggleInfoAftersales.tasks.length > 0) ? scope.toggleInfoAftersales.tasks : undefined,
+                                        callActivityTasks: (scope.toggleInfoAftersales.callActivityTasks && scope.toggleInfoAftersales.callActivityTasks.length > 0) ? scope.toggleInfoAftersales.callActivityTasks : undefined,
+
+                                    };
+                                });
+                            });
+                        },
+                        function (error) {
+                            console.log(error.data);
+                        }
+                    );
+                }
+                scope.toggleProcessViewAftersales = function(index) {
+                    $scope.showDiagramView = false;
+                    $scope.diagram = {};
+                    if (scope.toggleIndexAftersales === index) {
+                        scope.toggleIndexAftersales = undefined;
+                    }
+                    else {
+                        scope.toggleIndexAftersales = index;
+                        scope.toggleInfoAftersales = scope.processInstancesAftersales[index];
+                        scope.toggleInfoAftersales.changeIdentifierType = false;
+                        if (scope.processInstancesAftersales[index].state==="ACTIVE") {
+                            $http({
+                                method: 'GET',
+                                headers: {'Accept': 'application/hal+json, application/json; q=0.5'},
+                                url: baseUrl + '/process-instance/' + scope.processInstancesAftersales[index].id + '/activity-instances',
+                            }).then(
+                                function (tasks) {
+                                    var callActivityTasks = tasks.data.childActivityInstances;
+                                    scope.toggleInfoAftersales.callActivityTasks = callActivityTasks;
+
+                                },
+                                function (error) {
+                                    console.log(error.data);
+                                    scope.toggleInfoAftersales.callActivityTasks = undefined;
+                                }
+                            );
+                        }
+                        $http({
+                            method: 'GET',
+                            headers: {'Accept': 'application/hal+json, application/json; q=0.5'},
+                            url: baseUrl + '/task?processInstanceBusinessKey=' + scope.processInstancesAftersales[index].businessKey,
+                        }).then(
+                            function (tasks) {
+                                var processInstanceTasks = tasks.data._embedded.task;
+                                if (processInstanceTasks && processInstanceTasks.length > 0 && scope.processInstancesAftersales[index].state==="ACTIVE") {
+                                    processInstanceTasks.forEach(function (e) {
+                                        if (e.assignee && tasks.data._embedded.assignee) {
+                                            for (var i = 0; i < tasks.data._embedded.assignee.length; i++) {
+                                                if (tasks.data._embedded.assignee[i].id === e.assignee) {
+                                                    e.assigneeObject = tasks.data._embedded.assignee[i];
+                                                }
+                                            }
+                                        }
+                                        $http({
+                                            method: 'GET',
+                                            headers: {'Accept': 'application/hal+json, application/json; q=0.5'},
+                                            url: baseUrl + '/task/' + e.id
+                                        }).then(
+                                            function (taskResult) {
+                                                if (taskResult.data._embedded && taskResult.data._embedded.group) {
+                                                    e.group = taskResult.data._embedded.group[0].id;
+                                                }
+                                            },
+                                            function (error) {
+                                                console.log(error.data);
+                                            }
+                                        );
+                                    });
+                                    scope.toggleInfoAftersales.tasks_decr = processInstanceTasks;
+                                } else {
+                                    scope.toggleInfoAftersales.tasks_decr = {};
+                                }
+                                $http.get(baseUrl + '/history/variable-instance?deserializeValues=false&processInstanceId=' + $scope.processInstancesAftersales[index].id).then(
+                                    function (result) {
+                                        result.data.forEach(function (el) {
+                                            if (el.type === 'Json' && el.name === 'resolutions') {
+                                                scope.toggleInfoAftersales[el.name] = el;
+                                                scope.toggleInfoAftersales[el.name].value = JSON.parse(el.value);
+                                            }
+                                        });
+                                        if (scope.toggleInfoAftersales.resolutions && scope.toggleInfoAftersales.resolutions.value) {
+                                            $q.all(scope.toggleInfoAftersales.resolutions.value.map(function (resolution) {
+                                                return $http.get("/camunda/api/engine/engine/default/history/task?processInstanceId=" + resolution.processInstanceId + "&taskId=" + resolution.taskId);
+                                            })).then(function (tasks) {
+                                                tasks.forEach(function (e, index) {
+                                                    if (e.data.length > 0) {
+                                                        scope.toggleInfoAftersales.resolutions.value[index].taskName = e.data[0].name;
+                                                        try {
+                                                            scope.toggleInfoAftersales.resolutions.value[index].taskEndDate = new Date(e.data[0].endTime);
+                                                        } catch (e) {
+                                                            console.log(e);
+                                                        }
+                                                    }
+                                                });
+                                            });
+                                        }
+                                        //angular.extend($scope.toggleInfoAftersales, catalogs);
+                                    },
+                                    function (error) {
+                                        console.log(error.data);
+                                    }
+                                );
+
+                            },
+                            function (error) {
+                                console.log(error.data);
+                            }
+                        );
+
+
+                    }
+                }
+            }
+
+            function openProcessCardModalDemand() {
+                var template = './js/partials/infoDemandSearch.html';
+                console.log($scope.jobModel);
+                exModal.open({
+                    scope: {
+                        jobModel: $scope.jobModel,
+                        diagram: [],
+                        getStatus: $scope.getStatus,
+                        showDiagram: $scope.showDiagram,
+                        showHistory: $scope.showHistory,
+                        download: function (file) {
+                            $http({
+                                method: 'GET',
+                                url: '/camunda/uploads/get/' + file.path,
+                                transformResponse: []
+                            }).then(function (response) {
+                                document.getElementById('fileDownloadIframe').src = response.data;
+                            }, function (error) {
+                                console.log(error);
+                            });
+                        },
+                    },
+                    templateUrl: template,
+                    size: 'lg'
+                }).then(function(results){
+                });
+            }
+
             $scope.startProcess = function (id) {
                 disconnectSelectedProcessService(false);
                 StartProcessService(id);
@@ -2140,108 +2610,6 @@ define(['./module', 'jquery', 'moment', 'camundaSDK'], function (app, $, moment,
                 disconnectSelectedProcessService(true);
                 StartProcessService(id);
             };
-            $scope.toggleIndexAftersales = undefined;
-            $scope.toggleProcessViewAftersales = function (index) {
-                $scope.showDiagramView = false;
-                $scope.diagram = {};
-                if ($scope.toggleIndexAftersales === index) {
-                    $scope.toggleIndexAftersales = undefined;
-                } else {
-                    $scope.toggleIndexAftersales = index;
-                    $scope.toggleInfoAftersales = $scope.processInstancesAftersales[index];
-                    $scope.toggleInfoAftersales.changeIdentifierType = false;
-                    if ($scope.processInstancesAftersales[index].state==="ACTIVE") {
-                        $http({
-                            method: 'GET',
-                            headers: {'Accept': 'application/hal+json, application/json; q=0.5'},
-                            url: baseUrl + '/process-instance/' + $scope.processInstancesAftersales[index].id + '/activity-instances',
-                        }).then(
-                            function (tasks) {
-                                var callActivityTasks = tasks.data.childActivityInstances;
-                                $scope.toggleInfoAftersales.callActivityTasks = callActivityTasks;
-
-                            },
-                            function (error) {
-                                console.log(error.data);
-                                $scope.toggleInfoAftersales.callActivityTasks = undefined;
-                            }
-                        );
-                    }
-                    $http({
-                        method: 'GET',
-                        headers: {'Accept': 'application/hal+json, application/json; q=0.5'},
-                        url: baseUrl + '/task?processInstanceBusinessKey=' + $scope.processInstancesAftersales[index].businessKey,
-                    }).then(
-                      function (tasks) {
-                          var processInstanceTasks = tasks.data._embedded.task;
-                          if (processInstanceTasks && processInstanceTasks.length > 0) {
-                              processInstanceTasks.forEach(function (e) {
-                                  if (e.assignee && tasks.data._embedded.assignee) {
-                                      for (var i = 0; i < tasks.data._embedded.assignee.length; i++) {
-                                          if (tasks.data._embedded.assignee[i].id === e.assignee) {
-                                              e.assigneeObject = tasks.data._embedded.assignee[i];
-                                          }
-                                      }
-                                  }
-                                  $http({
-                                      method: 'GET',
-                                      headers: {'Accept': 'application/hal+json, application/json; q=0.5'},
-                                      url: baseUrl + '/task/' + e.id
-                                  }).then(
-                                    function (taskResult) {
-                                        if (taskResult.data._embedded && taskResult.data._embedded.group) {
-                                            e.group = taskResult.data._embedded.group[0].id;
-                                        }
-                                    },
-                                    function (error) {
-                                        console.log(error.data);
-                                    }
-                                  );
-                              });
-                          }
-                          $http.get(baseUrl + '/history/variable-instance?deserializeValues=false&processInstanceId=' + $scope.processInstancesAftersales[index].id).then(
-                            function (result) {
-                                result.data.forEach(function (el) {
-                                    if (el.type === 'Json' && el.name === 'resolutions') {
-                                        $scope.toggleInfoAftersales[el.name] = el;
-                                        $scope.toggleInfoAftersales[el.name].value = JSON.parse(el.value);
-                                    }
-                                });
-                                if ($scope.toggleInfoAftersales.resolutions && $scope.toggleInfoAftersales.resolutions.value) {
-                                    $q.all($scope.toggleInfoAftersales.resolutions.value.map(function (resolution) {
-                                        return $http.get("/camunda/api/engine/engine/default/history/task?processInstanceId=" + resolution.processInstanceId + "&taskId=" + resolution.taskId);
-                                    })).then(function (tasks) {
-                                        tasks.forEach(function (e, index) {
-                                            if (e.data.length > 0) {
-                                                $scope.toggleInfoAftersales.resolutions.value[index].taskName = e.data[0].name;
-                                                try {
-                                                    $scope.toggleInfoAftersales.resolutions.value[index].taskEndDate = new Date(e.data[0].endTime);
-                                                } catch (e) {
-                                                    console.log(e);
-                                                }
-                                            }
-                                        });
-                                    });
-                                }
-                                //angular.extend($scope.toggleInfoAftersales, catalogs);
-                                $scope.toggleInfoAftersales.tasks_decr = processInstanceTasks;
-                            },
-                            function (error) {
-                                console.log(error.data);
-                            }
-                          );
-
-                      },
-                      function (error) {
-                          console.log(error.data);
-                      }
-                    );
-
-
-                }
-            };
-
-
             // -- Demand Management
 
             let initDemandUAT = () => {
