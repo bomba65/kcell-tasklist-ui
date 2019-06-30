@@ -38,7 +38,8 @@ require.config({
          'summernote-ext-template': './summernote/summernote-ext-template',
          'moment': './node_modules/moment/min/moment.min',
          'daterangepicker': './daterangepicker/daterangepicker',
-         'bootstrap-select': './node_modules/bootstrap-select/dist/js/bootstrap-select.min'
+         'bootstrap-select': './node_modules/bootstrap-select/dist/js/bootstrap-select.min',
+         'angular-toarrayfilter': './node_modules/angular-toarrayfilter/toArrayFilter'
      },
 
      // angular не поддерживает AMD из коробки, поэтому экспортируем перменную angular в глобальную область
@@ -65,7 +66,8 @@ require.config({
          'bootstrap-select': {
              exports: 'bootstrap-select',
              deps:['jquery', 'bootstrap']
-         }
+         },
+         'angular-toarrayfilter':['angular']
      },
  
      // запустить приложение
