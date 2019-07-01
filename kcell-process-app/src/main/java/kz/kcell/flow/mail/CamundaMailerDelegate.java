@@ -136,9 +136,11 @@ public class CamundaMailerDelegate implements JavaDelegate {
                 DataSource source = new ByteArrayDataSource(is, "application/pdf");
                 helper.addAttachment("instruction.pdf", source);
             }
-
-
+        } else {
+            sender = "flow@kcell.kz";
         }
+
+
         if (emails.length > 0) {
             helper.setTo(emails);
             helper.setSubject(subject);
