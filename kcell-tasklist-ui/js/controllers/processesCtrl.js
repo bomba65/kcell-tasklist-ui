@@ -50,7 +50,7 @@ define(['./module','jquery', 'camundaSDK'], function(app, $, CamSDK){
 
 		var catalogs = {};
 
-        $http.get('/api/catalogs?force=7').then(
+        $http.get($rootScope.getCatalogsHttpByName('catalogs')).then(
             function (result) {
                 angular.extend(catalogs, result.data);
             },

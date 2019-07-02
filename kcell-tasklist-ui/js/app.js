@@ -291,6 +291,9 @@ define('app',[
 				localStorageService.set('selectedProcessKey',process.key);
 			}
 		}
+		$rootScope.getCatalogsHttpByName = function(name){
+			return '/api/' + name + '?v=1';
+		}
 	}]).run([ '$rootScope', '$location', 'AuthenticationService', '$q', '$state', function($rootScope, $location, AuthenticationService, $q, $state) {
 		$rootScope.$on('authentication.login.required', function(event) {
 			$rootScope.$evalAsync(function() {

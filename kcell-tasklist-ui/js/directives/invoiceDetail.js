@@ -53,7 +53,7 @@ define(['./module'], function(module){
                 }                
 
 				scope.getCatalogs = function(){
-	                $http.get('/api/catalogs?force=7').then(
+	                $http.get($rootScope.getCatalogsHttpByName('catalogs')).then(
 	                    function (result) {
 	                    	angular.extend(scope.catalogs, result.data);
 	                    },
