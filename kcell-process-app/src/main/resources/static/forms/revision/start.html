@@ -479,6 +479,10 @@
                                 "name": "site",
                                 "operator": "eq",
                                 "value" : $scope.site
+                            },{
+                                "name": "mainContract",
+                                "operator": "eq",
+                                "value" : $scope.mainContract
                             }]
                 };
                 var path  = '/camunda/api/engine/engine/default/process-instance';
@@ -526,6 +530,10 @@
                                 "name": "site",
                                 "operator": "eq",
                                 "value" : $scope.site
+                            },{
+                                "name": "mainContract",
+                                "operator": "eq",
+                                "value" : $scope.mainContract
                             }]
                 };
                 var path  = '/camunda/api/engine/engine/default/history/process-instance?firstResult='+($scope.page*5);
@@ -600,6 +608,10 @@
                                 "name": "site",
                                 "operator": "eq",
                                 "value" : $scope.site
+                            },{
+                                "name": "mainContract",
+                                "operator": "eq",
+                                "value" : $scope.mainContract
                             }]
                 };
                 var path  = '/camunda/api/engine/engine/default/history/process-instance?firstResult='+($scope.page*5)+'&maxResults=5';
@@ -1004,6 +1016,12 @@
                 $scope.jobWorks[$index].sites.id = undefined;
             };
 
+            $scope.filterByContractor = function(element) {
+                if(!$scope.mainContract) return false;
+                if($scope.mainContract === 'Rollout') return element.id > 1000 ? true : false;
+                if($scope.mainContract === 'Revision') return element.id < 1000 ? true : false;
+            };
+
             $scope.preSubmit = function(){
                 var deferred = $q.defer();
                 var contains = _.some(_.flatMap($scope.jobWorks, 'relatedSites'), function(value){
@@ -1017,7 +1035,7 @@
                     deferred.reject('At least one job should contains Main Site');
                     return deferred.promise;
                 } else {
-                    var jrCounter = $scope.regionShortName+'-'+$scope.contractorShortName[$scope.custom.contractor]+'-'+$scope.reasonShortName[$scope.reason]+'-'+$scope.requestedDate.getFullYear().toString().substr(-2);
+                    var jrCounter = $scope.regionShortName+'-'+$scope.contractorShortName[$scope.custom.contractor]+'-'+$scope.reasonShortName[$scope.reason]+'-'+$scope.requestedDate.getFullYear().toString().substr(-2)+($scope.mainContract==='Rollout'?'-Ro':'');
                     return $http.post('/asset-management/jobrequestcounter/' + jrCounter).then(
                         function(result){
                             $scope.jrNumber = result.data;
@@ -1027,10 +1045,11 @@
                 }
             }
         }]);
-
     </script>
     <iframe id="fileDownloadIframe" style="display:none;"></iframe>
+
     <h4>Create job request</h4>
+
     <div class="form-group" ng-if="jrNumber">
         <label class="col-sm-3 control-label">JR Number:</label>
         <div class="col-sm-3">
@@ -1041,12 +1060,24 @@
         <label class="col-sm-3 control-label">JR Number:</label>
         <div class="col-sm-3">
             <div class="form-control">
-                <span>{{regionShortName?regionShortName:'###'}}-{{contractorShortName[custom.contractor]?contractorShortName[custom.contractor]:'###'}}-{{reasonShortName[reason]?reasonShortName[reason]:'###'}}-{{requestedDate.getFullYear().toString().substr(-2)}}-{{siteCounter?siteCounter:'####'}}</span>
+                <span>{{regionShortName?regionShortName:'###'}}-{{contractorShortName[custom.contractor]?contractorShortName[custom.contractor]:'###'}}-{{reasonShortName[reason]?reasonShortName[reason]:'###'}}-{{requestedDate.getFullYear().toString().substr(-2)}}-{{siteCounter?siteCounter:'####'}}{{mainContract == 'Rollout'?'-Ro':''}}</span>
             </div>
         </div>
     </div>
+
     <div class="form-group">
-        <label class="col-sm-3 control-label">Creation date</label>
+        <label class="col-sm-3 control-label">Contract:</label>
+        <div class="col-sm-3">
+            <select class="form-control selectpicker" select-picker title="" cam-variable-name="mainContract" name="mainContract" required cam-variable-type="String" ng-change="refreshJobRequests()">
+                <option value="">Select contract</option>
+                <option value="Revision">Revision</option>
+                <option value="Rollout">Rollout</option>
+            </select>
+            <label class="error" ng-if="kcell_form.mainContract.$error.required && ( kcell_form.mainContract.$touched || view.submitted)">Required field</label>
+        </div>
+    </div>
+    <div class="form-group">
+        <label class="col-sm-3 control-label">JR Creation date</label>
         <div class="col-sm-3">
             <div class="form-control">{{requestedDate | date: 'dd.MM.yyyy HH:mm'}}</div>
         </div>
@@ -1651,67 +1682,6 @@
 
                 </tbody>
             </table>
-
-
-            <!--<div ng-repeat="(k,job) in jobRequests">
-                <a ng-click="toggleJr($index)">JR No. {{job.jrNumber}}, Reason: {{reasonsTitle[job.reason]}}, Created at: {{job.requestedDate | date: 'dd.MM.yyyy'}}</a>
-                <div ng-if="jrIndex === $index" class="animate-if" ng-animate-children>
-                    <div class="row">
-                        <div class="col-md-4"><b>Initiator</b>: {{job.initiatorFull.firstName}} {{job.initiatorFull.lastName}}</div>
-                        <div class="col-md-8"><b>JR Number</b>: {{job.jrNumber}}</div>
-                    </div>
-                    <div class="row">
-                        <div class="col-md-4"><b>Creation date</b>: {{job.requestedDate | date: 'dd.MM.yyyy HH:mm'}}</div>
-                        <div class="col-md-4"><b>Reason</b>: {{reasonsTitle[job.reason]}}</div>
-                        <div class="col-md-4"><b>Materials required</b>: {{job.materialsRequired}}</div>
-                    </div>
-                    <div class="row">
-                        <div class="col-md-4"><b>Validity date</b>: {{job.validityDate.value | date: 'dd.MM.yyyy'}}</div>
-                        <div class="col-md-4"><b>Contract</b>: {{servicesTitle[job.contract]}}</div>
-                        <div class="col-md-4"><b>Leasing required</b>: {{job.leasingRequired}}</div>
-                    </div>
-                    <div class="row">
-                        <div class="col-md-4"><b>SA&O Complaint Id</b>: {{job.soaComplaintId}}</div>
-                        <div class="col-md-4"><b>Contractor</b>: {{contractorsTitle[job.contractor]}}</div>
-                        <div class="col-md-4"><b>Site (near end)</b>: {{job.siteName}}</div>
-                    </div>
-                    <div class="row">
-                        <div class="col-md-4"><b>Power engineering required</b>: {{job.powerRequired}}</div>
-                        <div class="col-md-4"><b>Project</b>: {{job.project}}</div>
-                    </div>
-
-                    <div class="row">
-                        <div class="col-md-4">Creation date: {{job.requestedDate | date: 'dd.MM.yyyy HH:mm'}}</div>
-                        <div class="col-md-4">Reason: {{reasonsTitle[job.reason]}}</div>
-                        <div class="col-md-4">Materials required: {{job.materialsRequired}}</div>
-                    </div>
-                    <div class="row">
-                        <div class="col-md-4">Validity date: {{job.validityDate | date: 'dd.MM.yyyy'}}</div>
-                        <div class="col-md-4">Contract: {{servicesTitle[job.contract]}}</div>
-                        <div class="col-md-4">Leasing required: {{job.leasingRequired}}</div>
-                    </div>
-                    <div class="row">
-                        <div class="col-md-4">SA&O Complaint Id: {{job.soaComplaintId}}</div>
-                        <div class="col-md-4">Contractor: {{contractorsTitle[job.contractor]}}</div>
-                        <div class="col-md-4">Site (near end): {{job.siteName}}</div>
-                    </div>
-                    <div class="row">
-                        <div class="col-md-12">Supplementary files:</div>
-                        <div class="col-md-12" ng-repeat="file in job.supplementaryFiles">
-                            <a ng-if="file.name" ng-click="download(file)">{{file.name}}</a>
-                        </div>
-                    </div>
-                    <div class="row">
-                        <div class="col-md-12">Works:</div>
-                        <div class="col-md-12" ng-repeat="work in job.jobWorks">
-                            <a href="javascript:void(0)">{{$index+1}}. {{worksTitle[work.sapServiceNumber]}}, works qty: {{work.quantity}}, <span ng-if="work.materialQuantity">materials qty: {{work.materialQuantity}} {{unitsTitle[work.unit]}},</span> on sites: {{work.sites}} (Near end)</a>
-                        </div>
-                    </div>
-                    <div class="row">
-                        <div class="col-md-12">{{work.explanation}}</div>
-                    </div>
-                </div>
-            </div> -->
             <div class="col-md-12" style="padding-left:0;">
                 <button type="button" ng-click="showMoreJobRequests()" class="btn btn-sm btn-default" ng-disabled="!showMore || !showAll"><i class="glyphicon glyphicon-th-large"></i> <span ng-if="showMore && showAll">Show more</span><span ng-if="!showAll || !showMore">No more similar job requests</span></span></button>
                 <button type="button" ng-click="showAllJobRequests()" class="btn btn-sm btn-default" ng-disabled="!showMore || !showAll"><i class="glyphicon glyphicon-th"></i> <span ng-if="showMore && showAll">Show all</span><span ng-if="!showAll || !showMore">No more similar job requests</span></span></button>
@@ -1736,7 +1706,7 @@
                         <td>
                             <select ng-model="jobWork.sapServiceNumber" name="sapServiceNumber{{$index}}" required class="form-control selectpicker" select-picker select-model="works" title="" ng-change="getUnits($index)" >
                                 <option style="display:none" value=""></option>
-                                <option ng-repeat="work in works" ng-selected="{{work.sapServiceNumber == jobWork.sapServiceNumber}}" value="{{work.sapServiceNumber}}">{{work.displayServiceName}}</option>
+                                <option ng-repeat="work in works | filter: filterByContractor" ng-selected="{{work.sapServiceNumber == jobWork.sapServiceNumber}}" value="{{work.sapServiceNumber}}">{{work.displayServiceName}}</option>
                             </select>
                             <label class="error" ng-if="kcell_form['sapServiceNumber'+$index].$error.required && ( kcell_form['sapServiceNumber'+$index].$touched || view.submitted)">Required field</label>
                         </td>
