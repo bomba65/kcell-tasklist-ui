@@ -13,9 +13,8 @@ def getCcEmails(DelegateExecution execution) {
 }
 
 def getStarterEmails(DelegateExecution execution) {
-    def assignee = execution.processEngineServices
-            .getTaskService().createTaskQuery()
-            .processInstanceId(execution.getProcessInstanceId()).singleResult().getAssignee()
+    def assignee = execution.getProcessEngineServices().getTaskService().createTaskQuery().processInstanceId(execution.getProcessInstanceId())
+            .taskDefinitionKeyIn("sendPreferencesToClient","confirmTheSettingsAreCorrect").singleResult().getAssignee();
     def identityService = execution.processEngineServices.identityService
     def user = identityService.createUserQuery().userId(assignee).singleResult()
     user.getEmail()
