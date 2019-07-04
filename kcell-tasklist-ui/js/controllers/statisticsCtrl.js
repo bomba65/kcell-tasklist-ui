@@ -49,6 +49,9 @@ define(['./module','jquery'], function(app,$){
         if($stateParams.reason){
              $scope.filter.reason = $stateParams.reason;
         }
+        if($stateParams.mainContract){
+             $scope.filter.mainContract = $stateParams.mainContract;
+        }
         $scope.region = $stateParams.region;
 
         $http.get($rootScope.getCatalogsHttpByName('catalogs')).then(
@@ -532,6 +535,13 @@ define(['./module','jquery'], function(app,$){
                         query.processVariables = [{name:'workType', operator:'eq', value:$scope.filter.reason}];
                     }
                 }
+                if($scope.filter.mainContract && $scope.filter.mainContract !== 'All'){
+                    if(query.processVariables){
+                        query.processVariables.push({name:'mainContract', operator:'eq', value:$scope.filter.mainContract});
+                    } else {
+                        query.processVariables = [{name:'mainContract', operator:'eq', value:$scope.filter.mainContract}];
+                    }
+                }
 
                 $http.post($scope.baseUrl + '/history/task', query).then(function(response) {
                     var tasks = response.data;
@@ -622,6 +632,9 @@ define(['./module','jquery'], function(app,$){
                     if($scope.filter.reason) {
                         processQuery.variables = [{name:'reason', operator:'eq', value:$scope.filter.reason}];
                     }
+                    if($scope.filter.mainContract && $scope.filter.mainContract !== 'All') {
+                        processQuery.variables.push({name:'mainContract', operator:'eq', value:$scope.filter.mainContract});
+                    }
                     var processInstancesPromise = $http.post($scope.baseUrl + '/history/process-instance', processQuery).then(function(response) {
                         var processInstances = _.keyBy(response.data, 'id');
                         return $http.post($scope.baseUrl + '/history/variable-instance', {
@@ -641,6 +654,9 @@ define(['./module','jquery'], function(app,$){
                     };
                     if($scope.filter.reason) {
                         taskQuery.processVariables = [{name:'reason', operator:'eq', value:$scope.filter.reason}];
+                    }
+                    if($scope.filter.mainContract && $scope.filter.mainContract !== 'All') {
+                        taskQuery.processVariables.push({name:'mainContract', operator:'eq', value:$scope.filter.mainContract});
                     }
                     var taskInstancesPromise = $http.post($scope.baseUrl + '/history/task', taskQuery).then(function(response) {
                         return response.data;
@@ -782,10 +798,24 @@ define(['./module','jquery'], function(app,$){
         }
 
         $scope.selectReason = function(reason){
+            var path = $location.path() + "?report=" + $scope.currentReport;
+            if($scope.filter.mainContract && $scope.filter.mainContract !== 'All'){
+                path = path + '&mainContract=' + $scope.filter.mainContract;
+            }
             if(reason == 'all'){
-                $location.url($location.path() + "?report=" + $scope.currentReport);
+                $location.url(path);
             } else {
-                $location.url($location.path() + "?report=" + $scope.currentReport + "&reason=" + reason);
+                $location.url(path + "&reason=" + reason);
+            }
+        }
+
+        $scope.selectMainStatus = function(){
+            var path = $location.path() + "?report=" + $scope.currentReport;
+            if($scope.filter.reason && $scope.filter.reason !== 'all'){
+                path = path + "&reason=" + $scope.filter.reason;
+            }
+            if($scope.filter.mainContract && $scope.filter.mainContract !== 'all'){
+                $location.url(path + "&mainContract=" + $scope.filter.mainContract);
             }
         }
 
