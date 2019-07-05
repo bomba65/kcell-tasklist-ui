@@ -1,4 +1,5 @@
 select
+  mainContract.text_ as mainContract,
   substring(pi.business_key_ from '^[^-]+') as region,
   case
     when relatedSites.site_names is not null then
@@ -101,12 +102,12 @@ select
       select works.proc_inst_id_,
              string_agg( (case rownum when 1 then works.title end), ', ' order by works.sapServiceNumber)  as title,         --"Job Description",
              --string_agg( (case rownum when 1 then cast(works.totalQuantityPerWorkType as char) end), ', ' order by works.sapServiceNumber)  as quantity
-             string_agg( (case rownum when 1 then works.totalQuantityPerWorkType\:\:text end), ', ' order by works.sapServiceNumber)  as quantity
+             string_agg( (case rownum when 1 then cast(works.totalQuantityPerWorkType as text) end), ', ' order by works.sapServiceNumber)  as quantity
       from (
               select jobWorks.proc_inst_id_ as proc_inst_id_,
                      worksPriceListJson.value->>'title' as title, --"Job Description",
                      row_number() OVER (PARTITION BY worksPriceListJson.value->>'title' order by worksPriceListBytes.id_) as rownum,
-                     cast(worksJson.value->>'sapServiceNumber' as int) as sapServiceNumber,
+                     cast(replace(worksJson.value->>'sapServiceNumber','RO','100') as int) as sapServiceNumber,
                      sum(cast(worksJson.value ->>'quantity' as int)) OVER (PARTITION BY worksJson.value->>'sapServiceNumber') as totalQuantityPerWorkType
                 from act_hi_varinst jobWorks
                 left join act_ge_bytearray jobWorksBytes
@@ -168,6 +169,9 @@ select
     on pi.id_ = status.proc_inst_id_ and status.name_ = 'status'
   left join act_ge_bytearray statusBytes
     on status.bytearray_id_ = statusBytes.id_
+
+  left join act_hi_varinst mainContract
+    on pi.id_ = mainContract.proc_inst_id_ and mainContract.name_ = 'mainContract'
 
 where pi.proc_def_key_ = 'Revision' and pi.state_ <> 'EXTERNALLY_TERMINATED'
 order by "Requested Date", "Job Description"

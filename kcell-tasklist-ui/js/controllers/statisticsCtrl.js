@@ -827,16 +827,16 @@ define(['./module','jquery'], function(app,$){
                     var data = response.data;
 
                     angular.forEach(data, function(d){
-                        d[5] =  $filter('date')(d[5], "yyyy-MM-dd");
-                        d[7] =  $filter('date')(d[7], "yyyy-MM-dd");
+                        d[6] =  $filter('date')(d[6], "yyyy-MM-dd");
                         d[8] =  $filter('date')(d[8], "yyyy-MM-dd");
                         d[9] =  $filter('date')(d[9], "yyyy-MM-dd");
                         d[10] =  $filter('date')(d[10], "yyyy-MM-dd");
                         d[11] =  $filter('date')(d[11], "yyyy-MM-dd");
                         d[12] =  $filter('date')(d[12], "yyyy-MM-dd");
+                        d[13] =  $filter('date')(d[13], "yyyy-MM-dd");
                     });
 
-                    data.splice(0, 0, ["Region", "Sitename", "JR No", "JR To", "JR Reason", "Requested Date", "Requested By", "Validity Date", "Material List Signing Date", "Accept by Initiator"
+                    data.splice(0, 0, ["Contract", "Region", "Sitename", "JR No", "JR To", "JR Reason", "Requested Date", "Requested By", "Validity Date", "Material List Signing Date", "Accept by Initiator"
                         , "Accept by Work Maintenance", "Accept by Work Planning", "Acceptance Date", "Job Description", "Quantity", "Comments", "Customer Material"
                         , "Process State", "JR Status", "Detailed status", "Reason"]);
 
@@ -856,16 +856,16 @@ define(['./module','jquery'], function(app,$){
                     var data = response.data;
 
                     angular.forEach(data, function(d){
-                        d[5] =  $filter('date')(d[5], "yyyy-MM-dd");
-                        d[7] =  $filter('date')(d[7], "yyyy-MM-dd");
+                        d[6] =  $filter('date')(d[6], "yyyy-MM-dd");
                         d[8] =  $filter('date')(d[8], "yyyy-MM-dd");
                         d[9] =  $filter('date')(d[9], "yyyy-MM-dd");
                         d[10] =  $filter('date')(d[10], "yyyy-MM-dd");
                         d[11] =  $filter('date')(d[11], "yyyy-MM-dd");
                         d[12] =  $filter('date')(d[12], "yyyy-MM-dd");
+                        d[13] =  $filter('date')(d[13], "yyyy-MM-dd");
                     });
 
-                    data.splice(0, 0, ["Region", "Sitename", "JR No", "JR To", "JR Reason", "Requested Date", "Requested By", "Validity Date", "Material List Signing Date", "Accept by Initiator"
+                    data.splice(0, 0, ["Contract", "Region", "Sitename", "JR No", "JR To", "JR Reason", "Requested Date", "Requested By", "Validity Date", "Material List Signing Date", "Accept by Initiator"
                         , "Accept by Work Maintenance", "Accept by Work Planning", "Acceptance Date", "Job Description", "Quantity", "Comments", "Customer Material"
                         , "Process State", "JR Status", "Detailed status", "Reason"]);
 
@@ -885,30 +885,22 @@ define(['./module','jquery'], function(app,$){
                     var data = response.data;
 
                     angular.forEach(data, function(d){
-                        d[7] =  $filter('date')(d[7], "yyyy-MM-dd");
-                        d[9] =  $filter('date')(d[9], "yyyy-MM-dd");
-                        d[12] =  $filter('date')(d[12], "yyyy-MM-dd");
+                        d[8] =  $filter('date')(d[8], "yyyy-MM-dd");
+                        d[10] =  $filter('date')(d[10], "yyyy-MM-dd");
                         d[13] =  $filter('date')(d[13], "yyyy-MM-dd");
                         d[14] =  $filter('date')(d[14], "yyyy-MM-dd");
                         d[15] =  $filter('date')(d[15], "yyyy-MM-dd");
                         d[16] =  $filter('date')(d[16], "yyyy-MM-dd");
-                        d[34] =  $filter('date')(d[34], "yyyy-MM-dd");
-                        //d[34] =  $filter('date')(d[34], "yyyy-MM-dd");
-                        d[37] =  $filter('date')(d[37], "yyyy-MM-dd");
+                        d[17] =  $filter('date')(d[17], "yyyy-MM-dd");
+                        d[35] =  $filter('date')(d[35], "yyyy-MM-dd");
+                        d[38] =  $filter('date')(d[38], "yyyy-MM-dd");
                     });
 
-                    data.splice(0, 0, ["Year", "Month", "Region", "Sitename", "JR No", "JR To", "JR Reason", "Requested Date", "Requested By", "Validity Date", "Related to the", "Project"
+                    data.splice(0, 0, ["Contract", "Year", "Month", "Region", "Sitename", "JR No", "JR To", "JR Reason", "Requested Date", "Requested By", "Validity Date", "Related to the", "Project"
                         , "Material List Signing Date", "Accept by Initiator", "Accept by Work Maintenance", "Accept by Work Planning", "Acceptance Date", "Job Description", "Quantity"
                         , "Job reason", "Type of expenses", "Comments", "Customer Material", "Process State", "JR Status", "Detailed status", "Reason", "Price (without transportation)"
                         , "Price (with transportation)", "Monthly act #", "JO#", "PR#", "PR Total Value", "PR Status", "PR Approval date", "PO#", "Invoice No", "Invoice date"
-                        /*, "Rejected by region head", "Qty of rejects", "Rejected by power engineer", "Qty of rejects", "Rejected by center", "Qty of rejects", "Rejected by leasing group"
-                        , "Qty of rejects", "Material list rejected by region", "Qty of rejects", "Material list rejected by center", "Qty of rejects", "Material list rejected by region TNU"
-                        , "Qty of rejects", "Material list rejected by Center group P&O", "Qty of rejects", "Material list rejected by Center group SAO", "Qty of rejects"
-                        , "Material list rejected by Center group TNU", "Qty of rejects", "Material list rejected by Center group S&FM", "Qty of rejects", "TR rejected by region"
-                        , "Qty of rejects", "TR rejected by Center group P&O", "Qty of rejects", "TR rejected by Center group SAO", "Qty of rejects", "TR rejected by Center group TNU"
-                        , "Qty of rejects", "TR rejected by Center group S&FM", "Qty of rejects", "Acceptance rejected by Permit team", "Qty of rejects", "Acceptance rejected by Initiator"
-                        , "Qty of rejects", "Acceptance rejected by maintenance group", "Qty of rejects", "Acceptance rejected by planning group", "Qty of rejects"
-                        , "Acceptance rejected by region Head", "Qty of rejects"*/]);
+                        ]);
 
 
                     var ws = XLSX.utils.json_to_sheet(response.data, {skipHeader:true});
@@ -926,30 +918,23 @@ define(['./module','jquery'], function(app,$){
                     var data = response.data;
 
                     angular.forEach(data, function(d){
-                        d[7] =  $filter('date')(d[7], "yyyy-MM-dd");
-                        d[9] =  $filter('date')(d[9], "yyyy-MM-dd");
-                        d[12] =  $filter('date')(d[12], "yyyy-MM-dd");
+                        d[8] =  $filter('date')(d[8], "yyyy-MM-dd");
+                        d[10] =  $filter('date')(d[10], "yyyy-MM-dd");
                         d[13] =  $filter('date')(d[13], "yyyy-MM-dd");
                         d[14] =  $filter('date')(d[14], "yyyy-MM-dd");
                         d[15] =  $filter('date')(d[15], "yyyy-MM-dd");
                         d[16] =  $filter('date')(d[16], "yyyy-MM-dd");
-                        d[34] =  $filter('date')(d[34], "yyyy-MM-dd");
+                        d[17] =  $filter('date')(d[17], "yyyy-MM-dd");
+                        d[35] =  $filter('date')(d[35], "yyyy-MM-dd");
                         //d[34] =  $filter('date')(d[34], "yyyy-MM-dd");
-                        d[37] =  $filter('date')(d[37], "yyyy-MM-dd");
+                        d[38] =  $filter('date')(d[38], "yyyy-MM-dd");
                     });
 
-                    data.splice(0, 0, ["Year", "Month", "Region", "Sitename", "JR No", "JR To", "JR Reason", "Requested Date", "Requested By", "Validity Date", "Related to the", "Project"
+                    data.splice(0, 0, ["Contract", "Year", "Month", "Region", "Sitename", "JR No", "JR To", "JR Reason", "Requested Date", "Requested By", "Validity Date", "Related to the", "Project"
                         , "Material List Signing Date", "Accept by Initiator", "Accept by Work Maintenance", "Accept by Work Planning", "Acceptance Date", "Job Description", "Quantity"
                         , "Job reason", "Type of expenses", "Comments", "Customer Material", "Process State", "JR Status", "Detailed status", "Reason", "Price (without transportation)"
                         , "Price (with transportation)", "Monthly act #", "JO#", "PR#", "PR Total Value", "PR Status", "PR Approval date", "PO#", "Invoice No", "Invoice date"
-                        /*, "Rejected by region head", "Qty of rejects", "Rejected by power engineer", "Qty of rejects", "Rejected by center", "Qty of rejects", "Rejected by leasing group"
-                        , "Qty of rejects", "Material list rejected by region", "Qty of rejects", "Material list rejected by center", "Qty of rejects", "Material list rejected by region TNU"
-                        , "Qty of rejects", "Material list rejected by Center group P&O", "Qty of rejects", "Material list rejected by Center group SAO", "Qty of rejects"
-                        , "Material list rejected by Center group TNU", "Qty of rejects", "Material list rejected by Center group S&FM", "Qty of rejects", "TR rejected by region"
-                        , "Qty of rejects", "TR rejected by Center group P&O", "Qty of rejects", "TR rejected by Center group SAO", "Qty of rejects", "TR rejected by Center group TNU"
-                        , "Qty of rejects", "TR rejected by Center group S&FM", "Qty of rejects", "Acceptance rejected by Permit team", "Qty of rejects", "Acceptance rejected by Initiator"
-                        , "Qty of rejects", "Acceptance rejected by maintenance group", "Qty of rejects", "Acceptance rejected by planning group", "Qty of rejects"
-                        , "Acceptance rejected by region Head", "Qty of rejects"*/]);
+                        ]);
 
                     var ws = XLSX.utils.json_to_sheet(response.data, {skipHeader:true});
                     var wb = XLSX.utils.book_new();
