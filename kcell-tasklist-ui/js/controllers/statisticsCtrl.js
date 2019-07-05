@@ -627,10 +627,11 @@ define(['./module','jquery'], function(app,$){
 
                     var processQuery = {
                         "processDefinitionKey": "Revision",
-                        "unfinished": true
+                        "unfinished": true,
+                        "variables": []
                     };
                     if($scope.filter.reason) {
-                        processQuery.variables = [{name:'reason', operator:'eq', value:$scope.filter.reason}];
+                        processQuery.variables.push({name:'reason', operator:'eq', value:$scope.filter.reason});
                     }
                     if($scope.filter.mainContract && $scope.filter.mainContract !== 'All') {
                         processQuery.variables.push({name:'mainContract', operator:'eq', value:$scope.filter.mainContract});
@@ -650,10 +651,11 @@ define(['./module','jquery'], function(app,$){
 
                     var taskQuery = {
                         "processDefinitionKey": 'Revision',
-                        "unfinished": true
+                        "unfinished": true,
+                        "processVariables" : []
                     };
                     if($scope.filter.reason) {
-                        taskQuery.processVariables = [{name:'reason', operator:'eq', value:$scope.filter.reason}];
+                        taskQuery.processVariables.push({name:'reason', operator:'eq', value:$scope.filter.reason});
                     }
                     if($scope.filter.mainContract && $scope.filter.mainContract !== 'All') {
                         taskQuery.processVariables.push({name:'mainContract', operator:'eq', value:$scope.filter.mainContract});

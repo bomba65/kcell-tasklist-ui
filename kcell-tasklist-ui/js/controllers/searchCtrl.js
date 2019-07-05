@@ -378,6 +378,9 @@ define(['./module', 'jquery', 'moment', 'camundaSDK'], function (app, $, moment,
                 if ($scope.filter.activityId) {
                     filter.activeActivityIdIn = [$scope.filter.activityId];
                 }
+                if ($scope.filter.mainContract && $scope.filter.mainContract!=='All') {
+                    filter.variables.push({"name": "mainContract","operator": "eq","value": $scope.filter.mainContract});
+                }
                 $scope.lastSearchParams = filter;
                 getProcessInstances(filter, 'processInstances');
             };
@@ -402,6 +405,7 @@ define(['./module', 'jquery', 'moment', 'camundaSDK'], function (app, $, moment,
                 $scope.filter.activityId = undefined;
                 $scope.filter.workName = undefined;
                 $scope.filter.businessKeyFilterType = 'eq';
+                $scope.filter.mainContract = 'All';
             }
 
             $scope.getXlsxProcessInstances = function () {
