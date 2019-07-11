@@ -5,18 +5,9 @@
             $scope.resolutions = [];
             $scope.attachments = [];
 
-            var attachmentsChanges = {added: [], removed: []};
-
-            var processInstanceId = null;
-            var assigneeName = $rootScope.authentication.name;
-
-            $http.get("/camunda/api/engine/engine/default/user/" + $rootScope.authentication.name+ "/profile").then(function(result){
-                assigneeName = (result.data.firstName ? result.data.firstName : "") + " " + (result.data.lastName ? result.data.lastName : "");
-            });
-
             $http.get('/camunda/api/engine/engine/default/task/' + camForm.taskId).then(
                 function(result){
-                    processInstanceId = result.data.processInstanceId;
+                    var processInstanceId = result.data.processInstanceId;
                     $http.get('/camunda/api/engine/engine/default/process-instance/' + processInstanceId).then(
                         function(result){
                             $scope.businessKey = result.data.businessKey;
@@ -31,70 +22,38 @@
                 camForm.variableManager.fetchVariable('legalInfo');
                 camForm.variableManager.fetchVariable('resolutions');
                 camForm.variableManager.fetchVariable('attachments');
-                camForm.variableManager.fetchVariable('amdocsName');
                 camForm.variableManager.fetchVariable('numbersAmount');
+                camForm.variableManager.fetchVariable('existingChannel');
             });
 
             camForm.on('variables-fetched', function () {
                 $scope.legalInfo = camForm.variableManager.variableValue('legalInfo');
                 $scope.resolutions = camForm.variableManager.variableValue('resolutions');
                 $scope.attachments = camForm.variableManager.variableValue('attachments');
-                $scope.amdocsName = camForm.variableManager.variableValue('amdocsName');
                 $scope.numbersAmount = camForm.variableManager.variableValue('numbersAmount');
+                var existingChannel = camForm.variableManager.variableValue('existingChannel');
 
                 if (!$scope.legalInfo) $scope.legalInfo = {};
 
-                if (!$scope.amdocsName) $scope.tssName = 'amdocs';
+                $scope.prefix = 'notExistingChannel';
+                if (existingChannel) $scope.prefix = 'existingChannel';
 
                 camForm.variableManager.createVariable({
-                    name: $scope.amdocsName+'ProvideTaskResult',
+                    name: $scope.prefix+'AmdocsSettingTaskResult',
                     type: 'String',
                     value: ''
                 });
 
                 camForm.variableManager.createVariable({
-                    name: $scope.amdocsName+'ProvideTaskComment',
+                    name: $scope.prefix+'AmdocsSettingTaskComment',
                     type: 'String',
                     value: ''
-                });
-
-                camForm.variableManager.createVariable({
-                    name: $scope.amdocsName+'ProvideTaskAttachments',
-                    type: 'Json',
-                    value: {}
                 });
             });
 
-            $scope.preSubmit = function() {
-                return $http.get('/camunda/api/engine/engine/default/process-instance/'+processInstanceId+'/variables/attachments?deserializeValue=false').then(function (result) {
-                    if (result && result.data) {
-                        var lastAttachments = JSON.parse(result.data.value);
-                        for (var attachment of $scope.attachments) {
-                            if (!lastAttachments.find(function(e) {return e.path == attachment.path;})) {
-                                lastAttachments.push(attachment);
-                                attachmentsChanges.added.push(attachment.name);
-                            }
-                        }
-                        for (var i = 0; i < lastAttachments.length; i++) {
-                            if (!$scope.attachments.find(function(e) {return e.path == lastAttachments[i].path;})) {
-                                attachmentsChanges.removed.push(lastAttachments[i].name);
-                                lastAttachments.splice(i, 1);
-                                i--;
-                            }
-                        }
-                        $scope.attachments = lastAttachments;
-                    }
-                },
-                function(error){
-                    toasty.error(error.data.message);
-                });
-            };
-
             camForm.on('submit', function (event) {
-                camForm.variableManager.variableValue('attachments', $scope.attachments);
-                camForm.variableManager.variableValue($scope.amdocsName+'ProvideTaskResult', 'Complete');
-                camForm.variableManager.variableValue($scope.amdocsName+'ProvideTaskComment', $scope.comment);
-                camForm.variableManager.variableValue($scope.amdocsName+'ProvideTaskAttachments', attachmentsChanges);
+                camForm.variableManager.variableValue($scope.prefix+'AmdocsSettingTaskResult', 'Complete');
+                camForm.variableManager.variableValue($scope.prefix+'AmdocsSettingTaskComment', $scope.comment);
             });
 
             $scope.downloadFile = function (file) {
@@ -103,40 +62,6 @@
                         document.getElementById('fileDownloadIframe').src = response.data;
                     },
                     function(response) {console.log(response.data);}
-                );
-            }
-
-            $scope.clearFile = function(fileIndex) {
-                $scope.attachments.splice(fileIndex, 1);
-            }
-
-            $scope.fileSelected = function(el) {
-                $timeout(function () {
-                    $scope.$apply(function () {
-                        uploadFileToMinio(el.files[0]);
-                    });
-                });
-            };
-            function uploadFileToMinio(file) {
-                var fileToUpload = {
-                    name: file.name.replace(/[/\\?%*:|"<>]/g, '-'),
-                    path: processInstanceId + '/' + camForm.taskId + '/' + file.name.replace(/[/\\?%*:|"<>]/g, '-'),
-                    created: new Date(),
-                    createdBy: assigneeName
-                };
-                $http({method: 'GET', url: '/camunda/uploads/put/' + fileToUpload.path, transformResponse: [] }).then(
-                    function(response) {
-                        $http.put(response.data, file, {headers: {'Content-Type': undefined}}).then(
-                            function () {
-                                $scope.attachments.push(fileToUpload);
-                                angular.element(document.querySelector('#attachments')).val(null);
-                            },
-                            function (error) {
-                                console.log(error.data);
-                            }
-                        );
-                    },
-                    function(response) { console.log(response.data); }
                 );
             }
         }]);
@@ -178,7 +103,6 @@
   <div class="form-group">
     <label class="col-sm-2 control-label">Attachments</label>
     <div class="col-sm-10">
-      <input type="file" class="form-control" id="attachments" name="attachments" onchange="angular.element(this).scope().fileSelected(this)"/>
       <div class="col-sm-12" style="padding: 0;">
         <table class="table table-bordered">
           <thead>
@@ -186,7 +110,6 @@
             <th>File Name</th>
             <th>Created</th>
             <th>Created By</th>
-            <th>Delete</th>
           </tr>
           </thead>
           <tbody>
@@ -194,7 +117,6 @@
             <td><a ng-click="downloadFile(file)">{{file.name}}</a></td>
             <td>{{file.created | date: 'dd.MM.yyyy HH:mm'}}</td>
             <td>{{file.createdBy}}</td>
-            <td><a ng-click="clearFile($index)"><i class="glyphicon glyphicon-trash"></i></a></td>
           </tr>
           </tbody>
         </table>
