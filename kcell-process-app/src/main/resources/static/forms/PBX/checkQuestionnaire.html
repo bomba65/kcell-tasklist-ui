@@ -232,7 +232,8 @@
       fileModify: false,
       dangerResolution: false,
       rootForCMMBGW: false,
-      tariff: false
+      tariff: false,
+      firewallRules: false
     };
     $scope.legalInfo = false;
     $scope.readonlyMode = true;
@@ -253,6 +254,8 @@
           $scope.showView = {ts: true, attachments: true, fileModify: true, tariff: true, pbxNumbers: true};
           break;
         case 'confirmAdditionIP':
+          $scope.showView = {firewallRules: true};
+          break;
         case 'confirmCommercialService':
         case 'e1confirmTestingBilling':
         case 'e1createRequestTCF':
@@ -342,7 +345,7 @@
     <div class="col-sm-12">&#8203;</div>
   </div>
 
-  <div class="col-sm-12 well">
+  <div class="col-sm-12 well"  ng-show="showView.ci || showView.ts">
     <div ng-show="showView.ci">
       <customer-information ci="ci" form="kcell_form" view="view" readonly="readonlyMode" legal="legalInfo"></customer-information>
       <div class="col-sm-12"><hr /></div>
@@ -454,6 +457,43 @@
     <label class="col-sm-12 control-label">Installation work:</label>
     <div class="col-sm-12">
       <textarea class="form-control" name="instWork" cam-variable-name="instWork" cam-variable-type="String"></textarea>
+    </div>
+  </div>
+
+  <div class="form-group" ng-show="showView.firewallRules">
+    <div class="col-sm-12 control-label">Requested Firewall access rules:</div>
+    <div class="col-sm-12">
+      <table class="table " style="background: #ffffcc; color: #333; border: 1px solid #b3b3b3">
+        <thead>
+        <tr>
+          <th>Source (IP address or Network)</th>
+          <th>Destination (IP address or Network)</th>
+          <th>Service and ports</th>
+        </tr>
+        </thead>
+        <tbody>
+        <tr>
+          <td>{{sip.ipVoiceTraffic}}</td>
+          <td>
+            <span ng-if="ts.connectionPoint == 'SIP Proxy' && sip.authorizationType == 'SIP-транк(доступ по стат. IP)'">2.78.58.154</span>
+            <span ng-if="ts.connectionPoint == 'SIP Proxy' && sip.authorizationType == 'SIP-авторизация(доступ по стат. IP c лог/пар)'">2.78.58.167</span>
+            <span ng-if="ts.connectionPoint == 'Asterisk'">195.47.255.212</span>
+            <span ng-if="ts.connectionPoint == 'SBC' && ts.virtualNumbersCount < 100">195.47.255.119</span>
+            <span ng-if="ts.connectionPoint == 'SBC' && ts.virtualNumbersCount > 99 && ts.virtualNumbersCount < 1000">195.47.255.84</span>
+            <span ng-if="ts.connectionPoint == 'SBC' && ts.virtualNumbersCount > 999">195.47.255.97, 195.47.255.119</span>
+          </td>
+          <td>
+            {{sip.transportLayerProtocol}} ({{sip.signalingPort}}) <br />
+            RTP ({{sip.voiceTrafficPortStart}} - {{sip.voiceTrafficPortEnd}})
+          </td>
+        </tr>
+        <tr>
+          <td>{{sip.ipSignaling}}</td>
+          <td></td>
+          <td></td>
+        </tr>
+        </tbody>
+      </table>
     </div>
   </div>
   <div class="form-group">
