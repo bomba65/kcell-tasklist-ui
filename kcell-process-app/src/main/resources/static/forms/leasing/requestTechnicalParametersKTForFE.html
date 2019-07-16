@@ -32,7 +32,15 @@
                 'requestTechnicalParametersKTForFEFiles',
                 'approvedFEWithHighPriority'
             ];
-
+            $http.get('/api/leasingCatalogs?version=1').then(
+                    function(result){
+                        console.log('catalog', result);
+                        $scope.branchesKT = result.data.branchesKT;
+                    },
+                    function(error){
+                        console.log(error);
+                    }
+            );
             camForm.on('form-loaded', function () {
                 variables.forEach(function (el) {
                     camForm.variableManager.fetchVariable(el);
@@ -69,14 +77,25 @@
                     type: 'String',
                     value: ''
                 });
-
+                camForm.variableManager.createVariable({
+                    name: 'requestTechnicalParametersKTForFETechConditionStatus',
+                    type: 'String',
+                    value: ''
+                });
+                camForm.variableManager.createVariable({
+                    name: 'branchKTForFE',
+                    type: 'String',
+                    value: ''
+                });
                 $scope.requestTechnicalParametersKTForFETaskResult = '';
+                $scope.branchKTForFE = '';
             });
 
             camForm.on('submit', function () {
                 camForm.variableManager.variableValue('requestTechnicalParametersKTForFETaskResult', $scope.requestTechnicalParametersKTForFETaskResult);
                 camForm.variableManager.variableValue('requestTechnicalParametersKTForFETaskComment', $scope.requestTechnicalParametersKTForFETaskComment);
-
+                camForm.variableManager.variableValue('requestTechnicalParametersKTForFETechConditionStatus', $scope.requestTechnicalParametersKTForFETechConditionStatus);
+                camForm.variableManager.variableValue('branchKTForFE', $scope.branchKTForFE);
                 if(!camForm.variableManager.variables['requestTechnicalParametersKTForFEFiles'].type){
                     camForm.variableManager.destroyVariable('requestTechnicalParametersKTForFEFiles');
                     camForm.variableManager.createVariable({
@@ -162,27 +181,45 @@
         </div>
     </div>
 
+    <leasing-files leasing-files="leasingCandidate"></leasing-files>
+
     <div class="form-group">
-        <label class="col-md-4 control-label">Download files:</label>
+        <label class="col-md-4 control-label">Technical conditions status:</label>
         <div class="col-sm-8">
-            <div ng-show="receivingTSForCandiateSiteFiles.length > 0" class="input-group" ng-repeat="file in receivingTSForCandiateSiteFiles">
-                <a ng-click="fileDownload(file)">{{file.name}}</a>
-            </div>
-            <div ng-show="receivingContractPSDFiles.length > 0" class="input-group" ng-repeat="file in receivingContractPSDFiles">
-                <a ng-click="fileDownload(file)">{{file.name}}</a>
-            </div>
-            <div ng-show="receivingApprovalFromTheLandlordFiles.length > 0" class="input-group" ng-repeat="file in receivingApprovalFromTheLandlordFiles">
-                <a ng-click="fileDownload(file)">{{file.name}}</a>
-            </div>
-            <div ng-show="modifyCandidateRRFiles.length > 0" class="input-group" ng-repeat="file in modifyCandidateRRFiles">
-                <a ng-click="fileDownload(file)">{{file.name}}</a>
-            </div>
-            <div ng-show="estimateTechnicalCapabilityResFiles.length > 0" class="input-group" ng-repeat="file in estimateTechnicalCapabilityResFiles">
-                <a ng-click="fileDownload(file)">{{file.name}}</a>
-            </div>
+            <label class="radio-inline">
+                <input type="radio" name="requestTechnicalParametersKTForFETechConditionStatus"
+                       ng-model="requestTechnicalParametersKTForFETechConditionStatus" value="TCInProgress" required>TC in
+                progress
+            </label>
+            <label class="radio-inline">
+                <input type="radio" name="requestTechnicalParametersKTForFETechConditionStatus"
+                       ng-model="requestTechnicalParametersKTForFETechConditionStatus" value="TCReceived" required>TC
+                Received
+            </label>
+            <label class="radio-inline">
+                <input type="radio" name="requestTechnicalParametersKTForFETechConditionStatus"
+                       ng-model="requestTechnicalParametersKTForFETechConditionStatus" value="TCRejected" required>TC
+                Rejected
+            </label>
+            <label class="error"
+                   ng-show="kcell_form.requestTechnicalParametersKTForFETechConditionStatus.$error.required && ( kcell_form.requestTechnicalParametersKTForFETechConditionStatus.$touched || view.submitted)">Required
+                field</label>
         </div>
     </div>
-
+    <div class="form-group">
+        <label class="col-md-4 control-label">Branches of Kazakhtelecom:</label>
+        <div class="col-sm-8">
+            <select class="form-control" id="branchKT" name="branchKTForFE" ng-model="branchKTForFE" required>
+                <option value="" disabled selected hidden>Branches of Kazakhtelecom</option>
+                <option value="{{branch.id}}" ng-repeat="branch in branchesKT">
+                    {{branch.name}}
+                </option>
+            </select>
+            <label class="error"
+                   ng-show="kcell_form.branchKTForFE.$error.required && ( kcell_form.branchKTForFE.$touched || view.submitted)">Required
+                field</label>
+        </div>
+    </div>
     <div class="form-group">
         <label class="col-md-4 control-label">Upload files:</label>
         <div class="col-sm-8">

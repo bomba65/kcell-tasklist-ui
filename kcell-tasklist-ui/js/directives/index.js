@@ -38,5 +38,6 @@ define([
 	'./search/deliveryPortalSearch',
 	'./search/demandSearch',
 	'./dismantleReplace/dismantleInfo',
-	'./dismantleReplace/replacementInfo'
+	'./dismantleReplace/replacementInfo',
+	'./leasing/leasingFiles'
 	], function(){});

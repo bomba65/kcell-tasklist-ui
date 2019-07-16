@@ -31,7 +31,15 @@
                 'estimateTechnicalCapabilityResFiles',
                 'requestTechnicalParametersKTFiles'
             ];
-
+            $http.get('/api/leasingCatalogs?version=1').then(
+                    function(result){
+                        console.log('catalog', result);
+                        $scope.branchesKT = result.data.branchesKT;
+                    },
+                    function(error){
+                        console.log(error);
+                    }
+            );
             camForm.on('form-loaded', function () {
                 variables.forEach(function (el) {
                     camForm.variableManager.fetchVariable(el);
@@ -46,7 +54,6 @@
                 );
                 $scope.leasingCandidate = {};
             });
-
             camForm.on('variables-fetched', function () {
                 $scope.requestTechnicalParametersKTFiles = [];
                 variables.forEach(function (el) {
@@ -65,14 +72,25 @@
                     type: 'String',
                     value: ''
                 });
-
+                camForm.variableManager.createVariable({
+                    name: 'requestTechnicalParametersKTTechConditionStatus',
+                    type: 'String',
+                    value: ''
+                });
+                camForm.variableManager.createVariable({
+                    name: 'branchKT',
+                    type: 'String',
+                    value: ''
+                });
                 $scope.requestTechnicalParametersKTTaskResult = '';
+                $scope.branchKT = '';
             });
 
             camForm.on('submit', function () {
                 camForm.variableManager.variableValue('requestTechnicalParametersKTTaskResult', $scope.requestTechnicalParametersKTTaskResult);
                 camForm.variableManager.variableValue('requestTechnicalParametersKTTaskComment', $scope.requestTechnicalParametersKTTaskComment);
-
+                camForm.variableManager.variableValue('requestTechnicalParametersKTTechConditionStatus', $scope.requestTechnicalParametersKTTechConditionStatus);
+                camForm.variableManager.variableValue('branchKT', $scope.branchKT);
                 if(!camForm.variableManager.variables['requestTechnicalParametersKTFiles'].type){
                     camForm.variableManager.destroyVariable('requestTechnicalParametersKTFiles');
                     camForm.variableManager.createVariable({
@@ -137,6 +155,7 @@
             }
         }]);
 
+
     </script>
     <leasing-candidate leasing-candidate="leasingCandidate"></leasing-candidate>
 
@@ -158,36 +177,59 @@
         </div>
     </div>
 
+    <leasing-files leasing-files="leasingCandidate"></leasing-files>
+
     <div class="form-group">
-        <label class="col-md-4 control-label">Download files:</label>
+        <label class="col-md-4 control-label">Technical conditions status:</label>
         <div class="col-sm-8">
-            <div ng-show="receivingTSForCandiateSiteFiles.length > 0" class="input-group" ng-repeat="file in receivingTSForCandiateSiteFiles">
-                <a ng-click="fileDownload(file)">{{file.name}}</a>
-            </div>
-            <div ng-show="receivingContractPSDFiles.length > 0" class="input-group" ng-repeat="file in receivingContractPSDFiles">
-                <a ng-click="fileDownload(file)">{{file.name}}</a>
-            </div>
-            <div ng-show="receivingApprovalFromTheLandlordFiles.length > 0" class="input-group" ng-repeat="file in receivingApprovalFromTheLandlordFiles">
-                <a ng-click="fileDownload(file)">{{file.name}}</a>
-            </div>
-            <div ng-show="modifyCandidateRRFiles.length > 0" class="input-group" ng-repeat="file in modifyCandidateRRFiles">
-                <a ng-click="fileDownload(file)">{{file.name}}</a>
-            </div>
-            <div ng-show="estimateTechnicalCapabilityResFiles.length > 0" class="input-group" ng-repeat="file in estimateTechnicalCapabilityResFiles">
-                <a ng-click="fileDownload(file)">{{file.name}}</a>
-            </div>
+            <label class="radio-inline">
+                <input type="radio" name="requestTechnicalParametersKTTechConditionStatus"
+                       ng-model="requestTechnicalParametersKTTechConditionStatus" value="TCInProgress" required>TC in
+                progress
+            </label>
+            <label class="radio-inline">
+                <input type="radio" name="requestTechnicalParametersKTTechConditionStatus"
+                       ng-model="requestTechnicalParametersKTTechConditionStatus" value="TCReceived" required>TC
+                Received
+            </label>
+            <label class="radio-inline">
+                <input type="radio" name="requestTechnicalParametersKTTechConditionStatus"
+                       ng-model="requestTechnicalParametersKTTechConditionStatus" value="TCRejected" required>TC
+                Rejected
+            </label>
+            <label class="error"
+                   ng-show="kcell_form.requestTechnicalParametersKTTechConditionStatus.$error.required && ( kcell_form.requestTechnicalParametersKTTechConditionStatus.$touched || view.submitted)">Required
+                field</label>
         </div>
     </div>
-
+    <div class="form-group">
+        <label class="col-md-4 control-label">Branches of Kazakhtelecom:</label>
+        <div class="col-sm-8">
+            <select class="form-control" id="branchKT" name="branchKT" ng-model="branchKT" required>
+                <option value="" disabled selected hidden>Branches of Kazakhtelecom</option>
+                <option value="{{branch.id}}" ng-repeat="branch in branchesKT">
+                    {{branch.name}}
+                </option>
+            </select>
+            <label class="error"
+                   ng-show="kcell_form.branchKT.$error.required && ( kcell_form.branchKT.$touched || view.submitted)">Required
+                field</label>
+        </div>
+    </div>
     <div class="form-group">
         <label class="col-md-4 control-label">Upload files:</label>
         <div class="col-sm-8">
-            <div ng-show="requestTechnicalParametersKTFiles.length > 0" class="input-group" ng-repeat="file in requestTechnicalParametersKTFiles">
+            <div ng-show="requestTechnicalParametersKTFiles.length > 0" class="input-group"
+                 ng-repeat="file in requestTechnicalParametersKTFiles">
                 {{$index + 1}}.
-                <a ng-click="fileDownload(file)">{{file.name}}</a> | <a ng-click="clearFile('requestTechnicalParametersKTFiles', $index)"><i class="glyphicon glyphicon-trash"></i></a>
+                <a ng-click="fileDownload(file)">{{file.name}}</a> | <a
+                    ng-click="clearFile('requestTechnicalParametersKTFiles', $index)"><i
+                    class="glyphicon glyphicon-trash"></i></a>
             </div>
             <ng-form name="kcell_material_file_form">
-                <input type="file" class="form-control" id="requestTechnicalParametersKTFiles" name="requestTechnicalParametersKTFiles" ng-model="file.file" onchange="angular.element(this).scope().fileSelected(this, 'requestTechnicalParametersKTFiles')"/>
+                <input type="file" class="form-control" id="requestTechnicalParametersKTFiles"
+                       name="requestTechnicalParametersKTFiles" ng-model="file.file"
+                       onchange="angular.element(this).scope().fileSelected(this, 'requestTechnicalParametersKTFiles')"/>
             </ng-form>
         </div>
     </div>
@@ -195,7 +237,9 @@
     <div class="form-group">
         <label class="col-sm-4 control-label">Comments</label>
         <div class="col-sm-8">
-            <textarea class="form-control" ng-model="requestTechnicalParametersKTTaskComment" name="requestTechnicalParametersKTTaskComment" placeholder="Comments..." maxlength="500" rows="4" style="resize:none"></textarea>
+            <textarea class="form-control" ng-model="requestTechnicalParametersKTTaskComment"
+                      name="requestTechnicalParametersKTTaskComment" placeholder="Comments..." maxlength="500" rows="4"
+                      style="resize:none"></textarea>
         </div>
     </div>
 </form>
