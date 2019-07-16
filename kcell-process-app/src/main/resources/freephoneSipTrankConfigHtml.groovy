@@ -3,14 +3,12 @@ import groovy.text.markup.MarkupTemplateEngine
 import groovy.text.markup.TemplateConfiguration
 
 def processName = execution.getProcessEngineServices().getRepositoryService().getProcessDefinition(execution.getProcessDefinitionId()).getName()
-def mailOne = execution.getVariable("mailOne")
-def mailTwo = execution.getVariable("mailTwo")
+def ccMails = execution.getVariable("ccMails")
 
 def binding = [
         "processName": processName,
-        "finalIDs": finalIDs,
-        "mailOne" :mailOne,
-        "mailTwo" :mailTwo,
+        "finalIDs": "+"+finalIDs,
+        "ccMails" :ccMails,
 ]
 def template = '''\
 yieldUnescaped '<!DOCTYPE html>'
@@ -53,7 +51,7 @@ html(lang:'en') {
         p('На стороне АО “Kcell” используется NAT, просьба учесть это при Ваших настройках.')
         p('Регистрация на стороне АО “Kcell” не поддерживается, соединение будет транком.')
         hr()
-        p('Данное сообщение было  сгенерировано автоматически. По всем вопросам обращаться к ' + mailOne + ', '  + mailTwo )
+        p('Данное сообщение было  сгенерировано автоматически. По всем вопросам обращаться к ' + ccMails)
        
         newLine()
         newLine()

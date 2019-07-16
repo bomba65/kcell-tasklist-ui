@@ -3,8 +3,7 @@ import groovy.text.markup.MarkupTemplateEngine
 import groovy.text.markup.TemplateConfiguration
 
 def processName = execution.getProcessEngineServices().getRepositoryService().getProcessDefinition(execution.getProcessDefinitionId()).getName()
-def mailOne = execution.getVariable("mailOne")
-def mailTwo = execution.getVariable("mailTwo")
+def ccMails = execution.getVariable("ccMails")
 def timeBounds = ""
 if (connectionType == "rest") {
     connectionType = "REST"
@@ -16,8 +15,7 @@ if (connectionType == "rest") {
 def binding = [
         "processName"   : processName,
         "finalIDs"      : finalIDs,
-        "mailOne"       : mailOne,
-        "mailTwo"       : mailTwo,
+        "ccMails"       : ccMails,
         "connectionType": connectionType,
         "clientLogin"   : clientLogin,
         "clientPassword": clientPassword,
@@ -102,7 +100,7 @@ def common = '''\
             '''
 template += common + restAdd + '''\
         hr()
-        p('Данное сообщение было сгенерировано автоматически. По всем вопросам обращаться к ' + mailOne + ', '  + mailTwo )
+        p('Данное сообщение было сгенерировано автоматически. По всем вопросам обращаться к ' + ccMails )
         newLine()
         p('С Уважением,')
         newLine()

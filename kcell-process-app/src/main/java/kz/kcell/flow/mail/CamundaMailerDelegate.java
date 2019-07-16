@@ -153,7 +153,7 @@ public class CamundaMailerDelegate implements JavaDelegate {
 
     private String[] separateEmails(String addresses){
         if(addresses!=null && !"".equals(addresses)){
-            return addresses.split(",");
+            return addresses.split(", ");
         }
         return new String[0];
     }

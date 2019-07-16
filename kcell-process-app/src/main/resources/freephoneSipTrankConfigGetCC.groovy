@@ -5,18 +5,40 @@ import java.util.stream.Collectors
 def getCcEmails(DelegateExecution execution) {
     def responsibleB2BDelivery = execution.getVariable("responsibleB2BDelivery").toString()
     def responsibleB2BDeliveryParse = new JsonSlurper().parseText(responsibleB2BDelivery)
-    def engineerEmail = getStarterEmails(execution)
-    def result = engineerEmail + ', ' + responsibleB2BDeliveryParse.email
-    execution.setVariable("mailOne", (engineerEmail.toString()))
-    execution.setVariable("mailTwo", (responsibleB2BDeliveryParse.email.toString()))
+    def isBulkSms =  execution
+            .getProcessEngineServices()
+            .getRepositoryService()
+            .createProcessDefinitionQuery()
+            .processDefinitionId(execution.getProcessDefinitionId())
+            .list()
+            .stream()
+            .filter({ e -> e.getKey().equals("bulksmsConnectionKAE") })
+            .findAny()
+            .isPresent();
+    def group = ""
+    if (isBulkSms) {
+        println 'bulk'
+        group = "delivery_SMSGW_admin"
+    } else  {
+        println 'freephone'
+        group = "delivery_transmission_network_operations"
+    }
+    emails = getEmails(execution, group)
+    result = ""
+    if (!emails.equals("")) {
+        result = emails + ", "
+    }
+    result += responsibleB2BDeliveryParse.email
+    execution.setVariable("ccMails", result)
     result
 }
 
-def getStarterEmails(DelegateExecution execution) {
-    def assignee = execution.getProcessEngineServices().getTaskService().createTaskQuery().processInstanceId(execution.getProcessInstanceId())
-            .taskDefinitionKeyIn("sendPreferencesToClient","confirmTheSettingsAreCorrect").singleResult().getAssignee();
+def getEmails(DelegateExecution execution, String targetGroup) {
     def identityService = execution.processEngineServices.identityService
-    def user = identityService.createUserQuery().userId(assignee).singleResult()
-    user.getEmail()
+    def emails = identityService.createUserQuery().memberOfGroup(targetGroup).list().stream()
+            .map{it.email}
+            .filter{it != null && !it.empty}
+            .collect(Collectors.toSet())
+    emails.stream().collect(Collectors.joining(", "))
 }
 getCcEmails(execution)
