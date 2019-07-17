@@ -27,5 +27,10 @@ public class SetContractorJobAssignedDate implements TaskListener {
         } else {
             delegateTask.setVariable("contractorJobAssignedDate", new Date());
         }
+
+        String mainContract = String.valueOf(delegateTask.getVariable("mainContract"));
+        if("Roll-out".equals(mainContract)){
+            delegateTask.setVariable("rolloutActToPass", "RO-1");
+        }
     }
 }
