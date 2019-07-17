@@ -145,6 +145,12 @@
                     type: 'String',
                     submit: true,
                     store: true
+                },
+                {
+                    name: 'rolloutActType',
+                    type: 'String',
+                    submit: true,
+                    store: true
                 }
             ];
 
@@ -332,10 +338,13 @@
                 camForm.variableManager.variableValue('regularDelay', $scope.regularDelay);
                 camForm.variableManager.variableValue('emergencyDelay', $scope.emergencyDelay);
                 camForm.variableManager.variableValue('mainContract', $scope.mainContract);
+                camForm.variableManager.variableValue('rolloutActType', $scope.rolloutActType);
             });
 
             $scope.open = open;
             $scope.refreshJobRequests = refreshJobRequests;
+            $scope.mainContractChanged = mainContractChanged;
+            $scope.rolloutActTypeChanged = rolloutActTypeChanged;
             $scope.regionChanged = regionChanged;
             $scope.workTypeChanged = workTypeChanged;
             $scope.periodDateSelected = periodDateSelected;
@@ -351,6 +360,18 @@
                 $event.stopPropagation();
                 $scope.dateFieldOpened = true;
             };
+
+            function mainContractChanged() {
+                $scope.selectedRevisions = {};
+                refreshJobRequests();
+                checkMonthlyActs();
+            }
+
+            function rolloutActTypeChanged(){
+                $scope.selectedRevisions = {};
+                refreshJobRequests();
+                checkMonthlyActs();
+            }
 
             function regionChanged(){
                 $scope.regionLabel = $scope.regions.find(function (r) {
@@ -387,25 +408,17 @@
                 $scope.jobRequests = [];
                 reDrawTable();
 
-                if ($scope.mainContract && $scope.region && $scope.workType && $scope.periodDate
-                        && ($scope.mainContract == 'Revision' || ($scope.mainContract == 'Rollout' && $scope.rolloutActType))){
+                if ($scope.mainContract === 'Revision' && $scope.region && $scope.workType && $scope.periodDate){
                     var processParams = {
                         processDefinitionKey: 'Revision',
                         "variables":
                                 [{"name": "siteRegion", "operator": "eq", "value": $scope.region},
                                     {"name": "contractor", "operator": "eq", "value": 4},
-                                    {"name": "reason", "operator": "eq", "value": $scope.workType}
+                                    {"name": "reason", "operator": "eq", "value": $scope.workType},
+                                    {"name": "acceptPerformedJob", "operator": "eq", "value": 'scan attached'},
+                                    {"name": "mainContract", "operator": "eq", "value": 'Revision'}
                                 ]
                     };
-                    if($scope.mainContract === 'Revision'){
-                        processParams.variables.push({"name": "acceptPerformedJob", "operator": "eq", "value": 'scan attached'});
-                        processParams.variables.push({"name": "mainContract", "operator": "eq", "value": 'Revision'});
-                    } else if($scope.mainContract === 'Rollout') {
-                        processParams.variables.push({"name": "mainContract", "operator": "eq", "value": 'Rollout'});
-                        //$scope.rolloutActType === 'RO-1'
-                        //$scope.rolloutActType === 'RO-2'
-                        //$scope.rolloutActType === 'RO-3'
-                    }
 
                     $http({
                         method: 'POST',
@@ -564,7 +577,8 @@
                             "variables":
                                     [{"name": "region", "operator": "eq", "value": $scope.region},
                                         {"name": "contractor", "operator": "eq", "value": $scope.contractor},
-                                        {"name": "workType", "operator": "eq", "value": $scope.workType}
+                                        {"name": "workType", "operator": "eq", "value": $scope.workType},
+                                        {"name": "mainContract", "operator": "eq", "value": "Revision"}
                                     ]
                         },
                         url: '/camunda/api/engine/engine/default/process-instance'
@@ -586,6 +600,192 @@
                                         delete $scope.selectedRevisions[propt];
                                     }
                                 });
+                            }
+                        });
+                    });
+                }
+                if ($scope.mainContract === 'Roll-out' && $scope.rolloutActType && $scope.region && $scope.workType && $scope.periodDate){
+                    var processParams = {
+                        processDefinitionKey: 'Revision',
+                        unfinished: true,
+                        startedBefore: new Date($scope.periodDate),
+                        variables:
+                                [{"name": "siteRegion", "operator": "eq", "value": $scope.region},
+                                    {"name": "contractor", "operator": "eq", "value": 4},
+                                    {"name": "reason", "operator": "eq", "value": $scope.workType},
+                                    {"name": "mainContract", "operator": "eq", "value": 'Roll-out'},
+                                    {"name": "rolloutActToPass", "operator": "like", "value": 'RO%'}
+                                ],
+                        executedActivityBefore: new Date($scope.periodDate)
+                    };
+                    if($scope.rolloutActType === 'RO-1'){
+                        processParams.executedActivityIdIn = ['exclgw_materials_required'];
+                        processParams.variables.push({"name": "rolloutActToPass", "operator": "eq", "value": 'RO-1'});
+                    } else if($scope.rolloutActType === 'RO-2') {
+                        processParams.executedActivityIdIn = ['IntermediateThrowEvent_performed_not_accepted'];
+                        processParams.variables.push({"name": "rolloutActToPass", "operator": "neq", "value": 'RO-3'});
+                    } else if($scope.rolloutActType === 'RO-3') {
+                        processParams.executedActivityIdIn = ['IntermediateThrowEvent_wait_tech_acceptance'];
+                    }
+
+                    $http({
+                        method: 'POST',
+                        headers: {'Accept': 'application/hal+json, application/json; q=0.5'},
+                        data: {
+                            processDefinitionKey: 'Invoice',
+                            "variables":
+                                    [{"name": "region", "operator": "eq", "value": $scope.region},
+                                        {"name": "contractor", "operator": "eq", "value": $scope.contractor},
+                                        {"name": "workType", "operator": "eq", "value": $scope.workType},
+                                        {"name": "mainContract", "operator": "eq", "value": "Roll-out"}
+                                    ]
+                        },
+                        url: '/camunda/api/engine/engine/default/process-instance'
+                    }).then(function (results) {
+                        var invoices = _.map(results.data, _.property('id'));
+                        $http({
+                            method: 'POST',
+                            headers: {'Accept': 'application/hal+json, application/json; q=0.5'},
+                            data: {
+                                processInstanceIdIn: invoices,
+                                "variableName":"selectedRevisions"
+                            },
+                            url: '/camunda/api/engine/engine/default/variable-instance?deserializeValues=false'
+                        }).then(function (result) {
+                            if(result.data){
+                                angular.forEach(result.data, function(revisions){
+                                    for(var propt in JSON.parse(revisions.value)){
+                                        $scope.alreadyInInvoiceRevisions[propt] = {};
+                                        delete $scope.selectedRevisions[propt];
+                                    }
+                                });
+                            }
+                        });
+                    });
+
+                    $http({
+                        method: 'POST',
+                        headers: {'Accept': 'application/hal+json, application/json; q=0.5'},
+                        data: processParams,
+                        url: '/camunda/api/engine/engine/default/history/process-instance'
+                    }).then(function (results) {
+                        results.data.forEach(function(x){
+                            if(x.hasOwnProperty('startTime') && notInSelected(x.id) && !$scope.alreadyInInvoiceRevisions[x.id]){
+                                var jobRequest = {
+                                    selected: false,
+                                    businessKey: x.businessKey,
+                                    site_name: x.site_name,
+                                    startTime: x.startTime,
+                                    processInstanceId: x.id
+                                }
+                                $scope.jobRequests.push(jobRequest);
+                            }
+
+                            if($scope.jobRequests.length > 0){
+                                var counter = 0;
+                                var variables = ['site_name', 'performDate', 'delayInfo', 'contractorJobAssignedDate', 'acceptanceDate', 'rolloutActToPass', 'invoiceRO1Number', 'invoiceRO2Number'];
+                                _.forEach(variables, function(variable) {
+                                    var varSearchParams = {processInstanceIdIn: _.map($scope.jobRequests, 'processInstanceId'), variableName: variable};
+                                    $http({
+                                        method: 'POST',
+                                        headers:{'Accept':'application/hal+json, application/json; q=0.5'},
+                                        data: varSearchParams,
+                                        url: '/camunda/api/engine/engine/default/variable-instance'
+                                    }).then(
+                                            function(vars){
+                                                angular.forEach($scope.jobRequests, function(el){
+                                                    var f = _.filter(vars.data, function(v) {
+                                                        return v.processInstanceId === el.processInstanceId;
+                                                    });
+                                                    if(f && f[0]){
+                                                        el[variable] = f[0].value;
+                                                    }
+                                                });
+                                                counter++;
+
+                                                //ждем пока отработают все запросы с variables
+                                                if(variables.length === counter){
+                                                    angular.forEach($scope.jobRequests, function (request) {
+                                                        var taskParams = {
+                                                            taskDefinitionKeyIn: ['attach_material_list_contractor', 'UserTask_1wkrl5k','fill_applied_changes_info','set_materials_dispatch_status','accept_work_initiator','UserTask_0rj3nbv','UserTask_1g0uit4','UserTask_1i7na4a', 'modify_jr'],
+                                                            processInstanceBusinessKey: request.businessKey
+                                                        };
+
+                                                        $http({
+                                                            method: 'POST',
+                                                            headers: {'Accept': 'application/hal+json, application/json; q=0.5'},
+                                                            data: taskParams,
+                                                            url: '/camunda/api/engine/engine/default/history/task'
+                                                        }).then(function (res) {
+                                                            var modifyJR = _.maxBy(_.filter(res.data, function(task){
+                                                                return task.taskDefinitionKey === 'modify_jr';
+                                                            }), function(o) { return o.endTime; });
+
+                                                            if(request.contractorJobAssignedDate){
+                                                                request.attachMaterialList = request.contractorJobAssignedDate;
+                                                            } else {
+                                                                var attachMaterialList = _.minBy(_.filter(res.data, function(task){
+                                                                    return (task.taskDefinitionKey === 'attach_material_list_contractor' || task.taskDefinitionKey === 'UserTask_1wkrl5k') && (!modifyJR || (modifyJR && modifyJR.endTime < task.startTime));
+                                                                }), function(o) { return o.startTime; });
+
+                                                                if(attachMaterialList){
+                                                                    request.attachMaterialList = attachMaterialList.startTime;
+                                                                }
+
+                                                                var fillAppliedChanges = _.minBy(_.filter(res.data, function(task){
+                                                                    return (task.taskDefinitionKey === 'fill_applied_changes_info' || task.taskDefinitionKey === 'UserTask_0rj3nbv') && (!modifyJR || (modifyJR && modifyJR.endTime < task.startTime));
+                                                                }), function(o) { return o.startTime; });
+
+                                                                if(fillAppliedChanges){
+                                                                    request.fillAppliedChanges = fillAppliedChanges.startTime;
+                                                                }
+                                                            }
+
+                                                            var validateTr = _.maxBy(_.filter(res.data, function(task){
+                                                                return task.taskDefinitionKey === 'set_materials_dispatch_status' || task.taskDefinitionKey === 'UserTask_1g0uit4';
+                                                            }), function(o) { return o.startTime; });
+
+                                                            if(validateTr){
+                                                                request.validateTr = validateTr.startTime;
+                                                            }
+
+                                                            if(request.performDate){
+                                                                request.acceptWorkStartTime = request.performDate;
+                                                            } else {
+                                                                var acceptWorkInitiator = _.maxBy(_.filter(res.data, function(task){
+                                                                    return task.taskDefinitionKey === 'accept_work_initiator' || task.taskDefinitionKey === 'UserTask_1i7na4a';
+                                                                }), function(o) { return o.startTime; });
+
+                                                                if(acceptWorkInitiator){
+                                                                    request.acceptWorkStartTime = acceptWorkInitiator.startTime;
+                                                                }
+                                                            }
+
+                                                            if(request.acceptanceDate){
+                                                                request.acceptWorkEndTime = request.acceptanceDate;
+                                                            } else {
+                                                                var acceptWorkInitiator = _.maxBy(_.filter(res.data, function(task){
+                                                                    return task.taskDefinitionKey === 'accept_work_initiator' || task.taskDefinitionKey === 'UserTask_1i7na4a';
+                                                                }), function(o) { return o.endTime; });
+
+                                                                if(acceptWorkInitiator){
+                                                                    request.acceptWorkEndTime = acceptWorkInitiator.endTime;
+                                                                }
+                                                            }
+                                                        });
+                                                    });
+                                                }
+                                            },
+                                            function(error){
+                                                console.log(error.data);
+                                            }
+                                    );
+                                });
+
+                                // attach_material_list_contractor, fill_applied_changes_info - task, first date
+                                // modify_jr - last date
+                                // validate_tr - task, approved last date
+                                // accept_work_initiator - task, approved last date
                             }
                         });
                     });
@@ -744,7 +944,9 @@
             var selected = false;
             function selectAll(){
                 angular.forEach($scope.jobRequests, function(x){
-                    x.selected = !selected;
+                    if(!x.rolloutActToPass || x.rolloutActToPass === $scope.rolloutActType){
+                        x.selected = !selected;
+                    }
                 });
                 if(selected === true){
                     selected = false;
@@ -754,7 +956,7 @@
             }
 
             $scope.orderWorks = function(work){
-                return Number(work.key);
+                return Number(work.key.replace("RO","100"));
             }
 
             $scope.orderYear = function(w){
@@ -773,7 +975,6 @@
                     var formalPeriod = $scope.monthOfFormalPeriod + ' ' + $scope.yearOfFormalPeriod;
                     query = {
                         "processDefinitionKey" : "Invoice",
-                        "active" : true,
                         "variables" :
                                 [{
                                     "name": "region",
@@ -797,7 +998,7 @@
                                     "value" : $scope.mainContract
                                 }]
                     };
-                    $http.post('/camunda/api/engine/engine/default/process-instance/count',query).then(
+                    $http.post('/camunda/api/engine/engine/default/history/process-instance/count',query).then(
                         function(result){
                             $scope.previousInvoiceCount = result.data.count;
                         },
@@ -805,13 +1006,12 @@
                             console.log(error);
                         }
                     );
-                } else if($scope.mainContract === 'Rollout' && $scope.region && $scope.workType && $scope.monthOfFormalPeriod && $scope.yearOfFormalPeriod && $scope.rolloutActType){
+                } else if($scope.mainContract === 'Roll-out' && $scope.region && $scope.workType && $scope.monthOfFormalPeriod && $scope.yearOfFormalPeriod && $scope.rolloutActType){
                     query = {
                         "processDefinitionKey" : "Invoice",
-                        "active" : true,
-                        "businessKey" : $scope.rolloutBussinessKey
+                        "processInstanceBusinessKey" : ($scope.contractor.toUpperCase() + '-' + $scope.yearOfFormalPeriod + '-' + $scope.monthsTitle[$scope.monthOfFormalPeriod] + '-KWMS-' + $scope.reasonShortName[$scope.workType] + '-' + $scope.regionsTitle[$scope.region] + '-' + $scope.rolloutActType)
                     };
-                    $http.post('/camunda/api/engine/engine/default/process-instance/count',query).then(
+                    $http.post('/camunda/api/engine/engine/default/history/process-instance/count',query).then(
                         function(result){
                             $scope.previousInvoiceCount = result.data.count;
                         },
@@ -836,8 +1036,13 @@
                     return r.id === $scope.region;
                 });
 
-                $scope.invoiceNumber = contractor + '-' + $scope.yearOfFormalPeriod + '-' + selectedMonth[0].order + '-KWMS-' + $scope.reasonShortName[$scope.workType] + '-' + selectedRegion[0].code;
-                camForm.businessKey = $scope.invoiceNumber;
+                if($scope.mainContract === 'Roll-out'){
+                    $scope.invoiceNumber = $scope.contractor.toUpperCase() + '-' + $scope.yearOfFormalPeriod + '-' + $scope.monthsTitle[$scope.monthOfFormalPeriod] + '-KWMS-' + $scope.reasonShortName[$scope.workType] + '-' + $scope.regionsTitle[$scope.region] + '-' + $scope.rolloutActType;
+                    camForm.businessKey = $scope.invoiceNumber;
+                } else {
+                    $scope.invoiceNumber = contractor + '-' + $scope.yearOfFormalPeriod + '-' + selectedMonth[0].order + '-KWMS-' + $scope.reasonShortName[$scope.workType] + '-' + selectedRegion[0].code;
+                    camForm.businessKey = $scope.invoiceNumber;
+                }
 
                 if($scope.previousInvoiceCount > 0){
                     deferred.reject('Identical monthly acts are found, please change region, type of work or period');
@@ -863,15 +1068,15 @@
         <label class="col-sm-3 control-label">Please chose what type of Act you want to create:</label>
         <div class="col-sm-6">
             <label class="radio-inline">
-                <input type="radio" name="mainContract" ng-model="mainContract" value="Revision"> Revision Montly Technical Act
+                <input type="radio" name="mainContract" ng-model="mainContract" value="Revision" ng-change="mainContractChanged()"> Revision Montly Technical Act
             </label>
             <label class="radio-inline">
-                <input type="radio" name="mainContract" ng-model="mainContract" value="Rollout"> Roll-Out Act
+                <input type="radio" name="mainContract" ng-model="mainContract" value="Roll-out" ng-change="mainContractChanged()"> Roll-Out Act
             </label>
         </div>
     </div>
 
-    <div ng-show="mainContract === 'Rollout'">
+    <div ng-show="mainContract === 'Roll-out'">
         <h4>Generate Roll-Out Act</h4>
 
         <div class="form-group">
@@ -887,7 +1092,7 @@
         <div class="form-group">
             <div class="col-sm-1">
                 <label class="radio-inline">
-                    <input type="radio" name="rolloutActType" ng-model="rolloutActType" value="RO-1"> RO-1
+                    <input type="radio" name="rolloutActType" ng-model="rolloutActType" value="RO-1" ng-change="rolloutActTypeChanged()"> RO-1
                 </label>
             </div>
             <label class="col-sm-8 control-label">List of new sites installation works ordered to contractor</label>
@@ -895,7 +1100,7 @@
         <div class="form-group">
             <div class="col-sm-1">
                 <label class="radio-inline">
-                    <input type="radio" name="rolloutActType" ng-model="rolloutActType" value="RO-2"> RO-2
+                    <input type="radio" name="rolloutActType" ng-model="rolloutActType" value="RO-2" ng-change="rolloutActTypeChanged()"> RO-2
                 </label>
             </div>
             <label class="col-sm-8 control-label">Monthly Act of on-aired sites (for 2nd advance payment) according to «Contract Agreement for Implementation Works Performing» between АО «Кселл»/ Kcell JSC and «"Line System Engineering" LLP/ ТОО "Line System Engineering"»</label>
@@ -903,7 +1108,7 @@
         <div class="form-group">
             <div class="col-sm-1">
                 <label class="radio-inline">
-                    <input type="radio" name="rolloutActType" ng-model="rolloutActType" value="RO-3"> RO-3
+                    <input type="radio" name="rolloutActType" ng-model="rolloutActType" value="RO-3" ng-change="rolloutActTypeChanged()"> RO-3
                 </label>
             </div>
             <label class="col-sm-8 control-label">Monthly Act of Accepted works (for final payment)</label>
@@ -1075,7 +1280,7 @@
         </div>
 
         <div class="form-group" ng-if="previousInvoiceCount > 0">
-            <label class="col-sm-6 control-label error">Identical monthly acts are found, please change region, type of work or period</label>
+            <label class="col-sm-6 control-label error">Identical monthly acts are found, please change {{mainContract=='Roll-out'?'act type, ':''}}region, type of work or period</label>
         </div>
 
         <tabset class="my-tab-head my-tab" justified="true" id="jobRequestId">
@@ -1096,15 +1301,24 @@
                                 <th><input type="checkbox" ng-model="selected" ng-click="selectAll()"></th>
                                 <th>Job Request Number</th>
                                 <th>Sitename</th>
-                                <th>Acceptance date</th>
+                                <th ng-if="mainContract == 'Revision'">Acceptance date</th>
+                                <th ng-if="mainContract == 'Roll-out' && rolloutActType == 'RO-1'">JR Ordered date</th>
+                                <th ng-if="mainContract == 'Roll-out' && rolloutActType == 'RO-2'">JR perform date</th>
+                                <th ng-if="mainContract == 'Roll-out' && rolloutActType == 'RO-3'">JR Acceptance date</th>
                             </tr>
                             </thead>
                             <tbody ng-repeat="jobRequest in jobRequests" ng-show="jobRequests && jobRequests.length">
                             <tr>
-                                <td><input type="checkbox" name="{{jobRequest.processInstanceId}}" ng-model="jobRequest.selected" /></td>
+                                <td>
+                                    <input type="checkbox" name="{{c.processInstanceId}}" ng-model="jobRequest.selected" ng-disabled="jobRequest.rolloutActToPass && jobRequest.rolloutActToPass !== rolloutActType" />
+                                    <i ng-show="jobRequest.rolloutActToPass && jobRequest.rolloutActToPass !== rolloutActType" class="glyphicon glyphicon-question-sign" title="В первую очередь нужно добавить в акт по {{jobRequest.rolloutActToPass}}"></i>
+                                </td>
                                 <td><a ng-click="toggleProcessView(jobRequest.processInstanceId, 'list', undefined)">{{jobRequest.businessKey}}</a></td>
                                 <td>{{jobRequest.site_name}}</td>
-                                <td>{{jobRequest.startTime | date:'dd.MM.yyyy hh:mm'}}</td>
+                                <td ng-if="mainContract == 'Revision'">{{jobRequest.startTime | date:'dd.MM.yyyy hh:mm'}}</td>
+                                <td ng-if="mainContract == 'Roll-out' && rolloutActType == 'RO-1'">{{jobRequest.fillAppliedChanges | date:'dd.MM.yyyy hh:mm'}}</td>
+                                <td ng-if="mainContract == 'Roll-out' && rolloutActType == 'RO-2'">{{jobRequest.acceptWorkStartTime | date:'dd.MM.yyyy hh:mm'}}</td>
+                                <td ng-if="mainContract == 'Roll-out' && rolloutActType == 'RO-3'">{{jobRequest.acceptWorkEndTime | date:'dd.MM.yyyy hh:mm'}}</td>
                             </tr>
                             <tr ng-if="processInstanceId === jobRequest.processInstanceId && jobModel && selectedView === 'list'">
                                 <td colspan="4">
@@ -1128,12 +1342,12 @@
                 <div class="col-sm-12">
                     <div class="row">
                         <div style="margin-bottom: 20px;"></div>
-                        <h4>Monthly Act #{{monthActNumber}} of accepted {{workTypeLabel}} according to "Contract Agreement for Revision Works Performing" between АО "Кселл"/Kcell JSC and "Line System Engineering" LLP/ТОО "Line System Engineering" for {{monthOfFormalPeriod}} {{yearOfFormalPeriod}}. </h4>
+                        <h4 ng-show="mainContract == 'Revision'">Monthly Act #{{monthActNumber}} of accepted {{workTypeLabel}} according to "Contract Agreement for Revision Works Performing" between АО "Кселл"/Kcell JSC and "Line System Engineering" LLP/ТОО "Line System Engineering" for {{monthOfFormalPeriod}} {{yearOfFormalPeriod}}. </h4>
                         <div style="margin-bottom: 20px;"></div>
 
-                        <a style="float: right" ng-if="selectedWorks.length > 0" id="xlsxClick" ng-click="exportToExcel()">Export to Excel</a>
+                        <a ng-if="mainContract=='Revision'" style="float: right" ng-if="selectedWorks.length > 0" id="xlsxClick" ng-click="exportToExcel()">Export to Excel</a>
 
-                        <table class="table table-condensed" class="form-group" name="works" id="works">
+                        <table class="table table-condensed" class="form-group" name="works" id="works" ng-if="mainContract == 'Revision'">
                             <thead>
                             <tr>
                                 <th colspan="2">Requested Job Info</th>
@@ -1199,6 +1413,56 @@
                                     <job-request job-model="jobModel"></job-request>
                                 </td>
                             </tr>
+                            </tbody>
+                        </table>
+
+                        <table class="table table-condensed" class="form-group" name="works" id="works" ng-if="mainContract == 'Roll-out'">
+                            <thead>
+                            <tr>
+                                <th colspan="2">Ordered work</th>
+                                <th>Position</th>
+                                <th>Site info</th>
+                                <th colspan="{{rolloutActType == 'RO-1' ? '2' : '4'}}">JR info</th>
+                                <th ng-if="rolloutActType == 'RO-2' || rolloutActType == 'RO-3'">Site info</th>
+                                <th ng-if="rolloutActType == 'RO-2' || rolloutActType == 'RO-3'" colspan="{{rolloutActType == 'RO-2' ? '1' : '2'}}">Act info</th>
+                            </tr>
+                            <tr>
+                                <th>Work</th>
+                                <th>Work type</th>
+                                <th></th>
+                                <th>Sitename</th>
+                                <th>JR number</th>
+                                <th>Job Request Ordered date</th>
+                                <th ng-if="rolloutActType == 'RO-2'"> Material List signing Date</th>
+                                <th ng-if="rolloutActType == 'RO-2' || rolloutActType == 'RO-3'">Job Request Perform Date</th>
+                                <th ng-if="rolloutActType == 'RO-3'">Job Request Acceptance Date</th>
+                                <th ng-if="rolloutActType == 'RO-2' || rolloutActType == 'RO-3'">Delay (day)</th>
+                                <th ng-if="rolloutActType == 'RO-2' || rolloutActType == 'RO-3'">№ act of works ordered</th>
+                                <th ng-if="rolloutActType == 'RO-3'">№ act of on-air</th>
+                            </tr>
+                            </thead>
+                            <tbody ng-repeat="work in selectedWorks | orderBy: orderWorks">
+                                <tr ng-repeat="w in work.value | orderBy: [orderYear,orderBusinessKey]">
+                                    <td ng-if="$first" rowspan="{{work.value.length}}">{{$parent.$index+1}}</td>
+                                    <td ng-if="$first" rowspan="{{work.value.length}}">{{worksTitle[work.key]}}</td>
+                                    <td>{{$index+1}}</td>
+                                    <td>
+                                        {{(w.relatedSites && w.relatedSites.length>0)? w.relatedSitesNames : w.site_name}}
+                                    </td>
+                                    <td><a ng-click="toggleProcessView(w.processInstanceId, 'table', work.key)">{{w.businessKey}}</a> <a class="glyphicon glyphicon-trash" aria-hidden="true" ng-click="removeJobRequest(w.processInstanceId)"></a></td>
+                                    <td>{{(w.attachMaterialList!=null ? w.attachMaterialList : w.fillAppliedChanges) | date:'dd MMM yyyy'}}</td>
+                                    <td ng-if="rolloutActType == 'RO-2'">{{w.validateTr | date:'dd MMM yyyy'}}</td>
+                                    <td ng-if="rolloutActType == 'RO-2' || rolloutActType == 'RO-3'">{{w.acceptWorkStartTime | date:'dd MMM yyyy'}}</td>
+                                    <td ng-if="rolloutActType == 'RO-3'">{{w.acceptWorkEndTime | date:'dd MMM yyyy'}}</td>
+                                    <td ng-if="rolloutActType == 'RO-2' || rolloutActType == 'RO-3'">{{w.delayInfo}}</td>
+                                    <td ng-if="rolloutActType == 'RO-2' || rolloutActType == 'RO-3'">{{w.invoiceRO1Number}}</td>
+                                    <td ng-if="rolloutActType == 'RO-3'">{{w.invoiceRO2Number}}</td>
+                                </tr>
+                                <tr ng-if="pkey === work.key && jobModel && selectedView === 'table'">
+                                    <td colspan="{{rolloutActType == 'RO-3' ? '11' : (rolloutActType == 'RO-2' ? '10' : '6')}}">
+                                        <job-request job-model="jobModel"></job-request>
+                                    </td>
+                                </tr>
                             </tbody>
                         </table>
                     </div>
