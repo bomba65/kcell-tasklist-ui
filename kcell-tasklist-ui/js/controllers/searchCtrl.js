@@ -825,7 +825,8 @@ define(['./module', 'jquery', 'moment', 'camundaSDK'], function (app, $, moment,
                         state: $scope.processInstances[index].state,
                         processDefinitionKey: processDefinitionKey,
                         processDefinitionId : processDefinitionId,
-                        startTime: {value: $scope.processInstances[index].startTime}
+                        startTime: {value: $scope.processInstances[index].startTime,},
+                        endTime: {value: $scope.processInstances[index].endTime,}
                     };
                     $http({
                         method: 'GET',
