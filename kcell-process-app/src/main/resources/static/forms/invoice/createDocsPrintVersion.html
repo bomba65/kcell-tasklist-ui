@@ -19,8 +19,7 @@
                 'monthOfFormalPeriod',
                 'yearOfFormalPeriod',
                 'mainContract',
-                'rolloutActType',
-                'invoiceNumber'
+                'rolloutActType'
             ];
 
             $scope.printDiv = function(forPrint) {
@@ -138,7 +137,22 @@
                     value: undefined,
                     type: 'Json'
                 });
+
                 $scope.revisionCount = Object.keys($scope.selectedRevisions.value).length;
+                var sites = {};
+                $scope.totalDelay = 0;
+                for(var propt in $scope.selectedRevisions.value){
+                    _.forEach($scope.selectedRevisions.value[propt].works, function (work, key) {
+                        angular.forEach(work.relatedSites, function (rs) {
+                            sites[rs.site_name] = {};
+                        });
+                    });
+                    sites[$scope.selectedRevisions.value[propt].site_name] = {};
+                    if($scope.selectedRevisions.value[propt]){
+                        $scope.totalDelay = $scope.totalDelay + $scope.selectedRevisions.value[propt].delayInfo;
+                    }
+                }
+                $scope.sitesCount = Object.keys(sites).length;
             });
 
             camForm.on('submit', function () {
@@ -537,7 +551,13 @@
                     </tr>
                     <tr>
                         <th>
-                            <div style="width: 100%; text-align: center; padding-bottom: 20px">List of new sites installation works ordered to contractor in {{monthOfFormalPeriod.value}} {{yearOfFormalPeriod.value}}</div>
+                            <div style="width: 100%; text-align: center; padding-bottom: 20px" ng-if="rolloutActType.value == 'RO-1'">
+                                List of new sites installation works ordered to contractor in {{monthOfFormalPeriod.value}} {{yearOfFormalPeriod.value}}
+                            </div>
+                            <div style="width: 100%; text-align: center; padding-bottom: 20px" ng-if="rolloutActType.value == 'RO-2'">
+                                Monthly Act of on-aired sites (for 2nd advance payment) according to «Contract Agreement for Implementation Works Performing» <br />
+                                between АО «Кселл»/ Kcell JSC and «"Line System Engineering" LLP/ ТОО "Line System Engineering"» for {{monthOfFormalPeriod.value}} {{yearOfFormalPeriod.value}}
+                            </div>
                         </th>
                     </tr>
                 </thead>
@@ -548,10 +568,14 @@
                     </td>
                 </tr>
                 <tr>
-                    <td>
+                    <td ng-if="rolloutActType.value == 'RO-1'">
                         <p><i>Copies of the signed Job Requests are applied</i></p>
                         <p>JR quantity: {{revisionCount}}</p>
                         <p>(подпись выставлять из ревизионных актов согласно группе)</p>
+                    </td>
+                    <td ng-if="rolloutActType.value == 'RO-2'">
+                        <p><i>Total site on-air – {{sitesCount}}</i></p>
+                        <p><i>Total Delay day (New site installation) – {{totalDelay}} day</i></p>
                     </td>
                 </tr>
                 <tr>

@@ -25,6 +25,9 @@ define(['./module'], function(module){
                             var processDetailCopy = angular.copy(scope.invoice.selectedRevisions.value[propt]);
                             processDetailCopy.quantity = work.quantity;
                             processDetailCopy.relatedSites = work.relatedSites;
+                            angular.forEach(work.relatedSites, function (rs) {
+                                processDetailCopy.relatedSitesNames = processDetailCopy.relatedSitesNames?(processDetailCopy.relatedSitesNames + ', ' + rs.site_name):rs.site_name;
+                            });
                             delete processDetailCopy.works;
 
                             if(key > 0){
