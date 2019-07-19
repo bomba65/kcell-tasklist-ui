@@ -26,10 +26,10 @@ def getCcEmails(DelegateExecution execution) {
     emails = getEmails(execution, group)
     result = ""
     if (!emails.equals("")) {
-        result = emails + ", "
+        result = emails + ","
     }
     result += responsibleB2BDeliveryParse.email
-    execution.setVariable("ccMails", result)
+    execution.setVariable("ccMails", result.replace(",", ", "))
     result
 }
 
@@ -39,6 +39,6 @@ def getEmails(DelegateExecution execution, String targetGroup) {
             .map{it.email}
             .filter{it != null && !it.empty}
             .collect(Collectors.toSet())
-    emails.stream().collect(Collectors.joining(", "))
+    emails.stream().collect(Collectors.joining(","))
 }
 getCcEmails(execution)
