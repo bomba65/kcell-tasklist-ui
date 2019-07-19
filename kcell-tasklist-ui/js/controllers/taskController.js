@@ -348,7 +348,7 @@ define(['./module','camundaSDK', 'lodash', 'big-js'], function(module, CamSDK, _
 		            }
 				},
 				templateUrl: './js/partials/resolutionsModal.html',
-				size: 'lg'
+				size: 'hg'
 			}).then(function(results){
 			});
         };
