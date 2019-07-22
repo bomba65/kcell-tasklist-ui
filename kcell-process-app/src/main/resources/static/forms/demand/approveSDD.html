@@ -11,52 +11,6 @@
     .no-margin-panel .panel {
       margin-bottom: 0;
     }
-
-    .show-in-print {
-      display: none !important;
-    }
-
-    @media print {
-      @page {
-        size: 210mm 297mm;
-        margin: 20mm 15mm;
-        font-family: 'Open Sans', 'Helvetica Neue', sans-serif;
-      }
-
-      .currentTask {
-        width: 100% !important;
-      }
-
-      .currentTask .container-fluid {
-        display: none !important;
-      }
-
-      .my-tab-head > .nav-tabs {
-        display: none !important;
-      }
-
-      .note-editor > .note-toolbar-wrapper {
-        display: none !important;
-      }
-
-      .hide-in-print {
-        display: none !important;
-      }
-
-      .show-in-print {
-        display: block !important;
-      }
-
-      .panel-heading > .panel-title .glyphicon {
-        display: none !important;
-      }
-      a {
-        text-decoration: none !important;
-      }
-      a[href=""]:after {
-        content: "" !important;
-      }
-    }
   </style>
   <script cam-script type="text/form-script">
         inject(['$scope', '$http', 'Uri', '$rootScope', '$q', 'toasty', '$timeout', 'htmlToPdf', function ($scope, $http, Uri, $rootScope, $q, toasty, $timeout, htmlToPdf) {
@@ -224,23 +178,21 @@
                 });
             };
 
-            $scope.htmlToPdf = {};
-
+            $scope.showSDDPDF = false;
             $scope.printPDF = function() {
-                /*html2canvas(document.getElementById('exportthis')).then(function (canvas) {
-                    var data = canvas.toDataURL();
-                    var docDefinition = {
-                        content: [{
-                            image: data,
-                            width: 500,
-                        }]
-                    };
-                    pdfMake.createPdf(docDefinition).download("test.pdf");
-                });*/
-
-                var element = $('#pdfDiv')[0];
-                console.log("hehehe", element);
-                htmlToPdf(element, 'Demand-' + $scope.businessKey + '-SDD');
+                $scope.sddPDFDate = new Date();
+                $scope.showSDDPDF = true;
+                $(".scrollable").scrollTop(0);
+                $('#loaderDiv').show();
+                $timeout(function() {
+                  var element = $('#pdfDiv')[0];
+                  htmlToPdf(element, 'Demand-' + $scope.businessKey + '-SDD').then(function() {
+                    $timeout(function() {
+                      $scope.showSDDPDF = false;
+                      $('#loaderDiv').hide();
+                    });
+                  });
+                });
             };
         }]);
     </script>
@@ -469,7 +421,7 @@
     <tab active="true">
       <tab-heading> SDD </tab-heading>
       <div style="margin-top: 20px;">
-        <div class="col-sm-12 show-in-print text-center"><h2>SDD</h2></div>
+        <div class="col-sm-12 text-center"><h2>SDD</h2></div>
         <div class="form-group">
           <label class="control-label col-sm-12">Glossary</label>
           <div class="col-sm-12 no-margin-panel">
@@ -600,8 +552,8 @@
       <button type="button" ng-click="printPDF()" class="btn btn-success" style="padding: 6px 28px">Export SDD to PDF</button>
     </div>
 
-    <div style="min-height: 100px;">
-      <demand-sdd-pdf data="SDDData" element-id="'pdfDiv'" b-key="businessKey" d-name="demandName" d-description="generalData.general.description"></demand-sdd-pdf>
+    <div ng-show="showSDDPDF">
+      <demand-sdd-pdf date="sddPDFDate" data="SDDData" element-id="'pdfDiv'" b-key="businessKey" d-name="demandName" d-description="generalData.general.description"></demand-sdd-pdf>
     </div>
 
     <div class="form-group">

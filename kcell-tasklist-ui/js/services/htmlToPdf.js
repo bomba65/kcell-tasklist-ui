@@ -2,71 +2,55 @@ define(['./module', 'html2canvas', 'pdfMake'], function(module, html2canvas, pdf
   'use strict';
   return module.service('htmlToPdf', ['$translate', '$q', function($translate, $q) {
     return function(domElement, pdfName) {
-      if (!domElement) return;
+      return new Promise(function(resolve, reject) {
 
-      const PAGE_HEIGHT = 700;
-      const PAGE_WIDTH = 500;
-
-      const content = [];
-
-      function getPngDimensions (base64) {
-        const header = atob(base64.slice(22, 70)).slice(16, 24);
-        const uint8 = Uint8Array.from(header, c => c.charCodeAt(0));
-        const dataView = new DataView(uint8.buffer);
-
-        return {
-          width: dataView.getInt32(0),
-          height: dataView.getInt32(4)
-        };
-      }
-
-      const splitImage = (img, content, callback) => () => {
-
-        const canvas = document.createElement('canvas');
-        const ctx    = canvas.getContext('2d');
-        const printHeight = img.height * PAGE_WIDTH / img.width;
-
-        canvas.width = PAGE_WIDTH;
-
-        for (let pages = 0; printHeight > pages * PAGE_HEIGHT; pages++) {
-          /* Don't use full height for the last image */
-          canvas.height = Math.min(PAGE_HEIGHT, printHeight - pages * PAGE_HEIGHT);
-          ctx.drawImage(img, 0, -pages * PAGE_HEIGHT, canvas.width, printHeight);
-          content.push({ image: canvas.toDataURL(), margin: [0, 5], width: PAGE_WIDTH });
-        }
-
-        callback();
-      };
-
-      function next () {
-        /* add other content here, can call addImage() again for example */
-        pdfMake.createPdf({ content }).download();
-      };
-
-      html2canvas(domElement).then(function(canvas) {
-        const image = canvas.toDataURL();
-        // const { width, height } = getPngDimensions(image);
-        // const printHeight = height * PAGE_WIDTH / width;
-
-        /*if (printHeight > PAGE_HEIGHT) {
-          const img = new Image();
-          img.onload = splitImage(img, content, next);
-          img.src = image;
+        if (!domElement) {
+          reject("No dom element provided");
           return;
         }
 
-        content.push({ image, margin: [0, 5], width: PAGE_WIDTH });
-        next();*/
+        var PAGE_HEIGHT = 815;
+        var PAGE_WIDTH = 580;
 
-        var docDefinition = {
-          pageSize: 'A4',
-          content: [{
-            image: image,
-            width: 500
-          }]
-        };
-        if (!pdfName) pdfName = 'generated_pdf';
-        pdfMake.createPdf(docDefinition).download(pdfName + '.pdf');
+        html2canvas(domElement).then(function(canvas) {
+          var content = [];
+          var fullHeight = canvas.height;
+
+          var canvass = document.createElement('canvas');
+          canvass.width = canvas.width;
+          canvass.height = canvas.height;
+          var context = canvass.getContext('2d');
+
+          if (canvas.width > PAGE_WIDTH) {
+            var ratio = canvas.height / canvas.width;
+            fullHeight = canvas.height - ((canvas.width - PAGE_WIDTH) * ratio);
+          }
+
+          var totalPages = Math.ceil(fullHeight / PAGE_HEIGHT);
+          var height = canvas.height;
+          if (fullHeight > PAGE_HEIGHT) {
+            height = height / (fullHeight / PAGE_HEIGHT);
+          }
+
+          for (var page = 0; page < totalPages; page++) {
+            context.clearRect(0, 0, canvass.width, canvass.height);
+            context.drawImage(canvas, 0, page * height, canvas.width, height, 0, 0, canvas.width, height);
+
+            content.push({
+              image: canvass.toDataURL(),
+              width: PAGE_WIDTH
+            });
+          }
+          var docDefinition = {
+            pageSize: 'A4',
+            pageMargins: [10, 10],
+            content: content
+          };
+          if (!pdfName) pdfName = 'generated_pdf';
+          pdfMake.createPdf(docDefinition).download(pdfName + '.pdf');
+
+          resolve();
+        });
       });
     };
   }]);

@@ -11,55 +11,9 @@
     .no-margin-panel .panel {
       margin-bottom: 0;
     }
-
-    .show-in-print {
-      display: none !important;
-    }
-
-    @media print {
-      @page {
-        size: 210mm 297mm;
-        margin: 20mm 15mm;
-        font-family: 'Open Sans', 'Helvetica Neue', sans-serif;
-      }
-
-      .currentTask {
-        width: 100% !important;
-      }
-
-      .currentTask .container-fluid {
-        display: none !important;
-      }
-
-      .my-tab-head > .nav-tabs {
-        display: none !important;
-      }
-
-      .note-editor > .note-toolbar-wrapper {
-        display: none !important;
-      }
-
-      .hide-in-print {
-        display: none !important;
-      }
-
-      .show-in-print {
-        display: block !important;
-      }
-
-      .panel-heading > .panel-title .glyphicon {
-        display: none !important;
-      }
-      a {
-        text-decoration: none !important;
-      }
-      a[href=""]:after {
-        content: "" !important;
-      }
-    }
   </style>
   <script cam-script type="text/form-script">
-        inject(['$scope', '$http', 'Uri', '$rootScope', '$q', 'toasty', '$timeout', function ($scope, $http, Uri, $rootScope, $q, toasty, $timeout) {
+        inject(['$scope', '$http', 'Uri', '$rootScope', '$q', 'toasty', '$timeout', 'htmlToPdf', function ($scope, $http, Uri, $rootScope, $q, toasty, $timeout, htmlToPdf) {
             $scope.generalData = {
                 general: {},
                 targetAudience: {},
@@ -140,6 +94,8 @@
                 camForm.variableManager.fetchVariable('status');
                 camForm.variableManager.fetchVariable('state');
                 camForm.variableManager.fetchVariable('oldStatus');
+                camForm.variableManager.fetchVariable('businessKey');
+                camForm.variableManager.fetchVariable('demandName');
             });
 
             camForm.on('variables-fetched', function () {
@@ -155,6 +111,8 @@
                 $scope.developerList = camForm.variableManager.variableValue('developerList');
                 $scope.status = camForm.variableManager.variableValue('status');
                 $scope.state = camForm.variableManager.variableValue('state');
+                $scope.businessKey = camForm.variableManager.variableValue('businessKey');
+                $scope.businessKey = camForm.variableManager.variableValue('demandName');
                 if (!$scope.attachments) $scope.attachments = [];
                 if (!$scope.supportiveInputs) $scope.supportiveInputs = [];
                 if (!$scope.developerList) $scope.developerList = [{name: ''}];
@@ -293,13 +251,30 @@
                 $scope.kcell_form['developer_'+index+'_name'].$setValidity('not_selected', true);
               }
             }
+
+            $scope.showSDDPDF = false;
+            $scope.printPDF = function() {
+                $scope.sddPDFDate = new Date();
+                $scope.showSDDPDF = true;
+                $(".scrollable").scrollTop(0);
+                $('#loaderDiv').show();
+                $timeout(function() {
+                  var element = $('#pdfDiv')[0];
+                  htmlToPdf(element, 'Demand-' + $scope.businessKey + '-SDD').then(function() {
+                    $timeout(function() {
+                      $scope.showSDDPDF = false;
+                      $('#loaderDiv').hide();
+                    });
+                  });
+                });
+            };
         }]);
     </script>
   <div class="hide-in-print">
     <div class="form-group">
       <label style="width: 11%; float: left; padding: 7px 5px 0 15px; font-weight: 500;"> Business Key:</label>
       <div style="width: 10%; float: left; padding: 0 5px;">
-        <input class="form-control" cam-variable-name="businessKey" cam-variable-type="String" disabled>
+        <input class="form-control" ng-model="businessKey" disabled>
       </div>
       <label style="width: 6%; float: left; padding: 7px 0px 0 10px; font-weight: 500;"> Status:</label>
       <div style="width: 22%; float: left; padding: 0 5px;">
@@ -317,7 +292,7 @@
     <div class="form-group">
       <label style="width: 11%; float: left; padding: 7px 5px 0 15px; font-weight: 500;"> Demand Name:</label>
       <div style="width: 89%; float: left; padding: 0 5px;">
-        <input class="form-control" cam-variable-name="demandName" cam-variable-type="String" disabled/>
+        <input class="form-control" ng-model="demandName" disabled/>
       </div>
     </div>
     <hr>
@@ -520,7 +495,7 @@
     <tab active="true">
       <tab-heading> SDD </tab-heading>
       <div style="margin-top: 20px;">
-        <div class="col-sm-12 show-in-print text-center"><h2>SDD</h2></div>
+        <div class="col-sm-12 text-center"><h2>SDD</h2></div>
         <div class="form-group">
           <label class="control-label col-sm-12">Glossary</label>
           <div class="col-sm-12 no-margin-panel">
@@ -676,7 +651,11 @@
     <hr>
 
     <div class="col-sm-12" style="margin-bottom: 20px;">
-      <button type="button" onclick="window.print()" class="btn btn-success" style="padding: 6px 28px">Export SDD to PDF</button>
+      <button type="button" ng-click="printPDF()" class="btn btn-success" style="padding: 6px 28px">Export SDD to PDF</button>
+    </div>
+
+    <div ng-show="showSDDPDF">
+      <demand-sdd-pdf date="sddPDFDate" data="SDDData" element-id="'pdfDiv'" b-key="businessKey" d-name="demandName" d-description="generalData.general.description"></demand-sdd-pdf>
     </div>
 
     <div class="form-group">

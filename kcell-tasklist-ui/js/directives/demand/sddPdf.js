@@ -8,10 +8,10 @@ define(['./../module'], function(module){
         elementId: '=',
         bKey: '=',
         dName: '=',
-        dDescription: '='
+        dDescription: '=',
+        date: '='
       },
       link: function(scope, element, attrs) {
-        scope.today = new Date();
         scope.sections = [
           {id: 'funcRequirements', name: 'Functional requirements'},
           {id: 'nonFuncRequirements', name: 'Non-Functional requirements'},
@@ -22,6 +22,7 @@ define(['./../module'], function(module){
           return $sce.trustAsHtml(html);
         };
         scope.hasFields = function(section) {
+          if (!section) return false;
           if (section.customs && section.customs.length) return true;
           if (!section.fields || !section.fields.length) return false;
           for (var f of section.fields) {
