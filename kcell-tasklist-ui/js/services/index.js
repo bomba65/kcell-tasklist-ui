@@ -4,5 +4,6 @@ define([
 	'./debounce',
 	'./startProcessService',
 	'./searchCurrentSelectedProcessService',
-	'./disconnectSelectedProcessService'
+	'./disconnectSelectedProcessService',
+	'./htmlToPdf'
 	], function(){});

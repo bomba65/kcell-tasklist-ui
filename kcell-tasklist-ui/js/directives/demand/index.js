@@ -13,5 +13,6 @@ define([
     './demandRichText',
     './demandDropdown',
     './sddFieldConstructor',
-    './sddSections'
+    './sddSections',
+    './sddPdf'
 ], function(){});

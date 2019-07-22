@@ -38,7 +38,9 @@ require.config({
          'moment': './node_modules/moment/min/moment.min',
          'daterangepicker': './daterangepicker/daterangepicker',
          'bootstrap-select': './node_modules/bootstrap-select/dist/js/bootstrap-select.min',
-         'angular-toarrayfilter': './node_modules/angular-toarrayfilter/toArrayFilter'
+         'angular-toarrayfilter': './node_modules/angular-toarrayfilter/toArrayFilter',
+         'html2canvas': './node_modules/html2canvas/dist/html2canvas.min',
+         'pdfMake': './node_modules/pdfmake/build/pdfmake.min'
      },
 
      // angular не поддерживает AMD из коробки, поэтому экспортируем перменную angular в глобальную область
