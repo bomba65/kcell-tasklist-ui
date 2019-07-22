@@ -38,6 +38,11 @@ public class UpdateClientData implements JavaDelegate {
         JSONObject techSpecs = new JSONObject(String.valueOf(delegateExecution.getVariable("techSpecs")));
         String clientBIN = delegateExecution.getVariable("clientBIN").toString();
         String fkClient = getPBXFKClientByBIN(clientBIN);
+
+        if (fkClient == null) {
+            throw new Exception("No fk_client found for BIN '" + clientBIN + "'.");
+        }
+
         List<NameValuePair> params = new ArrayList<>();
         params.add(new BasicNameValuePair("fk_client", fkClient));
 
