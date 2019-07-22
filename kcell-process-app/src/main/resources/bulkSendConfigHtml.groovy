@@ -70,7 +70,7 @@ p('Время рассылки ad99 (все дни с 9:00 до 21:00)')
             }
             tr {
                 th(scope: 'row', style:'white-space: nowrap;')('<b>Port:</b> ')
-                td('1600')
+                td('16000')
             }            
             tr {
                 th(scope: 'row', style:'white-space: nowrap;')('<b>Заголовок рассылки:</b> ')
