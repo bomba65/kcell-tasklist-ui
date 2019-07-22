@@ -1037,7 +1037,7 @@ define(['./module', 'jquery', 'moment', 'camundaSDK'], function (app, $, moment,
                         }
                     },
                     templateUrl: './js/partials/resolutionsModal.html',
-                    size: 'lg'
+                    size: 'hg'
                 }).then(function(results){
                 });
             };

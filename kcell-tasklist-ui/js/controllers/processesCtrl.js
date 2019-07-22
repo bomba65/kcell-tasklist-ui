@@ -806,7 +806,7 @@ define(['./module','jquery', 'camundaSDK'], function(app, $, CamSDK){
 	                }
 				},
 				templateUrl: './js/partials/resolutionsModal.html',
-				size: 'lg'
+				size: 'hg'
 			}).then(function(results){
 			});
         };
