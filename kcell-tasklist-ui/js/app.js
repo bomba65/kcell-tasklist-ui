@@ -292,7 +292,7 @@ define('app',[
 			}
 		}
 		$rootScope.getCatalogsHttpByName = function(name){
-			return '/api/' + name + '?v=2';
+			return '/api/' + name + '?v=3';
 		}
 	}]).run([ '$rootScope', '$location', 'AuthenticationService', '$q', '$state', function($rootScope, $location, AuthenticationService, $q, $state) {
 		$rootScope.$on('authentication.login.required', function(event) {
