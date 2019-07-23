@@ -16,6 +16,7 @@ define([
 	'./PBX/e1Protocol',
 	'./PBX/sipDirectProtocol',
 	'./PBX/vpnTunnel',
+	'./PBX/pbxRichText',
 	'./uatProcess',
 	'./demand/index',
 	'./richText',

@@ -3,7 +3,8 @@
     inject(['$scope', '$http', 'Uri', '$rootScope', '$q', 'Upload', '$timeout', function ($scope, $http, Uri, $rootScope, $q, Upload, $timeout) {
     
     $scope.deliveryTestData = {};
-    var processInstanceId = null;
+    $scope.processInstanceId = null;
+    $scope.taskId = camForm.taskId;
     var assigneeName = $rootScope.authentication.name;
     var taskKey = camForm.taskId;
     
@@ -35,7 +36,7 @@
     function uploadFileToMinio(file) {
       var fileToUpload = {
         name: file.name.replace(/[/\\?%*:|"<>]/g, '-'),
-        path: processInstanceId + '/' + camForm.taskId + '/' + file.name.replace(/[/\\?%*:|"<>]/g, '-'),
+        path: $scope.processInstanceId + '/' + camForm.taskId + '/' + file.name.replace(/[/\\?%*:|"<>]/g, '-'),
         created: new Date(),
         createdBy: assigneeName
       };
@@ -65,13 +66,14 @@
       camForm.variableManager.fetchVariable('customerInformation');
       camForm.variableManager.fetchVariable('technicalSpecifications');
       camForm.variableManager.fetchVariable('deliveryTestData');
-      camForm.variableManager.fetchVariable('billingTestData');
+      camForm.variableManager.fetchVariable('testResult');
       camForm.variableManager.fetchVariable('importDataResolution');
       camForm.variableManager.fetchVariable('importDataAttachment');
       camForm.variableManager.fetchVariable('resolutions');
+      camForm.variableManager.fetchVariable('numberRequest');
       $http.get('/camunda/api/engine/engine/default/task/' + camForm.taskId).then(
         function (result) {
-          processInstanceId = result.data.processInstanceId;
+          $scope.processInstanceId = result.data.processInstanceId;
           taskKey = result.data.taskDefinitionKey;
           configureViews();
         },
@@ -87,9 +89,10 @@
       $scope.ci = camForm.variableManager.variableValue('customerInformation');
       $scope.ts = camForm.variableManager.variableValue('technicalSpecifications');
       $scope.deliveryTestData = camForm.variableManager.variableValue('deliveryTestData');
-      $scope.billingTestData = camForm.variableManager.variableValue('billingTestData');
+      $scope.testResult = camForm.variableManager.variableValue('testResult');
       $scope.attachments = camForm.variableManager.variableValue('importDataAttachment');
       $scope.resolutions = camForm.variableManager.variableValue('resolutions');
+      $scope.numberRequest = camForm.variableManager.variableValue('numberRequest');
       $scope.resolution = 'Accepted';
       if ($scope.deliveryTestData && $scope.deliveryTestData.date) {
           $scope.deliveryTestData.date = new Date($scope.deliveryTestData.date);
@@ -107,25 +110,10 @@
       } else {
         $scope.attachments = [$scope.attachments];
       }
-      if (!$scope.billingTestData) {
-          $scope.billingTestData = [];
-          for (var i = 0; i < 9; i++) {
-              $scope.billingTestData.push({
-                  ANSWER_TM: '',
-                  SEQUENCE_NO: '',
-                  RECORD_CODE: '',
-                  ROUND: '',
-                  CALLING_NUM: '',
-                  CALLED_NUM: '',
-                  IN_TRK_GRP: '',
-                  OUT_TRK_GRP: '',
-                  SWITCH_CD: ''
-              });
-          }
-      }
+      if (!$scope.testResult) $scope.testResult = {html: ''};
       if ($scope.resolutions) {
         $q.all($scope.resolutions.map(function (resolution) {
-          return $http.get("/camunda/api/engine/engine/default/history/task?processInstanceId="+resolution.processInstanceId+"&taskId=" + resolution.taskId);
+          return $http.get("/camunda/api/engine/engine/default/history/task?$scope.processInstanceId="+resolution.processInstanceId+"&taskId=" + resolution.taskId);
         })).then(function (tasks) {
           tasks.forEach(function (t, index) {
             if (t.data.length > 0) {
@@ -170,7 +158,7 @@
         $scope.resolution = null;
       }
       $scope.resolutions.push({
-          processInstanceId: processInstanceId,
+          processInstanceId: $scope.processInstanceId,
           taskId: camForm.taskId,
           assigneeName: assigneeName,
           resolution: $scope.resolution,
@@ -192,12 +180,12 @@
               store: true
           });
       }
-      if (!$scope.billingReadOnly) {
-          camForm.variableManager.destroyVariable('billingTestData');
+      if (!$scope.testResultReadOnly) {
+          camForm.variableManager.destroyVariable('testResult');
           camForm.variableManager.createVariable({
-              name: 'billingTestData',
+              name: 'testResult',
               type: 'json',
-              value: $scope.billingTestData,
+              value: $scope.testResult,
               store: true
           });
       }
@@ -212,28 +200,28 @@
 
     $scope.showView = {
       deliveryTestData: false,
-      billingTestData: false,
+      testResult: false,
       cmmBgw: false,
       resolution: false,
       attachments: false
     };
 
     $scope.deliveryReadOnly = false;
-    $scope.billingReadOnly = false;
+    $scope.testResultReadOnly = false;
     $scope.pbxNumbersReadOnly = false;
 
     function configureViews() {
       switch(taskKey) {
         case 'importClientTestCallData':
-          $scope.showView = {deliveryTestData: true};
+          $scope.showView = {deliveryTestData: true, };
           break;
         case 'importBillingTestCallData':
-          $scope.showView = {deliveryTestData: true, billingTestData: true, cmmBgw: true, attachments: true};
+          $scope.showView = {deliveryTestData: true, testResult: true, cmmBgw: true};
           $scope.deliveryReadOnly = true;
           break;
         case 'confirmTestingBilling':
-          $scope.showView = {deliveryTestData: true, billingTestData: true, cmmBgw: true, resolution: true, attachments: true};
-          $scope.deliveryReadOnly = $scope.billingReadOnly = $scope.pbxNumbersReadOnly = true;
+          $scope.showView = {deliveryTestData: true, testResult: true, cmmBgw: true, resolution: true};
+          $scope.deliveryReadOnly = $scope.testResultReadOnly = $scope.pbxNumbersReadOnly = true;
           break;
       }
     }
@@ -245,7 +233,7 @@
   <div class="col-sm-12">
     <div class="form-group">
       <label class="col-sm-4">Number request:</label>
-      <div class="col-sm-8"><span class="text-primary">TODO</span></div>
+      <div class="col-sm-8"><span class="text-primary">{{numberRequest}}</span></div>
     </div>
     <div class="form-group">
       <label class="col-sm-4">Client:</label>
@@ -266,98 +254,63 @@
     <div class="col-sm-12">&#8203;</div>
   </div>
 
+  <div class="col-sm-12" ng-if="showView.deliveryTestData">
+    <div class="form-group">
+      <label class="col-sm-12">Test call data:</label>
+      <div class="col-sm-12">
+        <table class="table ">
+          <thead>
+          <tr>
+            <th>Дата</th>
+            <th>Время</th>
+            <th>Номер А</th>
+            <th>Номер B</th>
+            <th>Длительность звонка</th>
+          </tr>
+          </thead>
+          <tbody>
+          <tr>
+            <td ng-if="deliveryReadOnly">{{deliveryTestData.date | date: 'dd.MM.yyyy'}}</td>
+            <td ng-if="!deliveryReadOnly">
+              <div class="input-group">
+                <input type="text" name="deliveryTestDataDate" ng-model="deliveryTestData.date" class="form-control" datepicker-popup="dd.MM.yyyy" is-open="dateFieldOpened"/>
+                <span class="input-group-btn">
+                  <button type="button" class="btn btn-default" ng-click="openCalendar()">
+                    <i class="glyphicon glyphicon-calendar"></i>
+                  </button>
+                </span>
+              </div>
+            </td>
+            <td ng-if="deliveryReadOnly">{{deliveryTestData.time}}</td>
+            <td ng-if="!deliveryReadOnly"><input type="text" class="form-control" ng-model="deliveryTestData.time"></td>
+            <td ng-if="deliveryReadOnly">{{deliveryTestData.numberA}}</td>
+            <td ng-if="!deliveryReadOnly"><input type="text" class="form-control" ng-model="deliveryTestData.numberA"></td>
+            <td ng-if="deliveryReadOnly">{{deliveryTestData.numberB}}</td>
+            <td ng-if="!deliveryReadOnly"><input type="text" class="form-control" ng-model="deliveryTestData.numberB"></td>
+            <td ng-if="deliveryReadOnly">{{deliveryTestData.duration}}</td>
+            <td ng-if="!deliveryReadOnly"><input type="text" class="form-control" ng-model="deliveryTestData.duration"></td>
+          </tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+  </div>
+
   <div class="col-sm-12" ng-show="showView.cmmBgw">
     <div class="form-group">
       <label class="col-sm-4">Root for CMM/BGW:</label>
       <div class="col-sm-8">
-        <input type="text" class="form-control" cam-variable-name="rootForCMMBGW" cam-variable-type="String">
+        <input type="text" class="form-control" cam-variable-name="rootForCMMBGW" cam-variable-type="String" disabled>
       </div>
     </div>
   </div>
 
-  <div class="col-sm-12" ng-if="showView.deliveryTestData">
+  <div class="col-sm-12" ng-show="showView.testResult">
     <div class="form-group">
-      <label class="col-sm-12">Test data from Delivery:</label>
+      <label class="col-sm-12">Result of test: <span class="has-error" ng-if="kcell_form.testResultHtml.$error.required && (kcell_form.testResultHtml.$touched || view.submitted)">(Required field)</span></label>
       <div class="col-sm-12">
-          <table class="table ">
-              <thead>
-                  <tr>
-                      <th>Дата</th>
-                      <th>Время</th>
-                      <th>Номер А</th>
-                      <th>Номер B</th>
-                      <th>Длительность звонка</th>
-                  </tr>
-              </thead>
-              <tbody>
-                  <tr>
-                      <td ng-if="deliveryReadOnly">{{deliveryTestData.date | date: 'dd.MM.yyyy'}}</td>
-                      <td ng-if="!deliveryReadOnly">
-                          <div class="input-group">
-                            <input type="text" name="deliveryTestDataDate" ng-model="deliveryTestData.date" class="form-control" datepicker-popup="dd.MM.yyyy" is-open="dateFieldOpened"/>
-                            <span class="input-group-btn">
-                                <button type="button" class="btn btn-default" ng-click="openCalendar()">
-                                    <i class="glyphicon glyphicon-calendar"></i>
-                                </button>
-                            </span>
-                          </div>
-                      </td>
-                      <td ng-if="deliveryReadOnly">{{deliveryTestData.time}}</td>
-                      <td ng-if="!deliveryReadOnly"><input type="text" class="form-control" ng-model="deliveryTestData.time"></td>
-                      <td ng-if="deliveryReadOnly">{{deliveryTestData.numberA}}</td>
-                      <td ng-if="!deliveryReadOnly"><input type="text" class="form-control" ng-model="deliveryTestData.numberA"></td>
-                      <td ng-if="deliveryReadOnly">{{deliveryTestData.numberB}}</td>
-                      <td ng-if="!deliveryReadOnly"><input type="text" class="form-control" ng-model="deliveryTestData.numberB"></td>
-                      <td ng-if="deliveryReadOnly">{{deliveryTestData.duration}}</td>
-                      <td ng-if="!deliveryReadOnly"><input type="text" class="form-control" ng-model="deliveryTestData.duration"></td>
-                  </tr>
-              </tbody>
-          </table>
-      </div>
-    </div>
-  </div>
-
-  <div class="col-sm-12" ng-if="showView.billingTestData">
-    <div class="form-group">
-      <label class="col-sm-12">Test data from Billing:</label>
-      <div class="col-sm-12">
-          <table class="table ">
-              <thead>
-                  <tr>
-                      <th>ANSWER_TM</th>
-                      <th>SEQUENCE_NO</th>
-                      <th>RECORD_CODE</th>
-                      <th>ROUND(DURATION,0)</th>
-                      <th>CALLING_NUM</th>
-                      <th>CALLED_NUM</th>
-                      <th>IN_TRK_GRP</th>
-                      <th>OUT_TRK_GRP</th>
-                      <th>SWITCH_CD</th>
-                  </tr>
-              </thead>
-              <tbody>
-                  <tr ng-repeat="btd in billingTestData">
-                      <td ng-if="billingReadOnly">{{btd.ANSWER_TM}}</td>
-                      <td ng-if="!billingReadOnly"><input type="text" class="form-control" ng-model="btd.ANSWER_TM"></td>
-                      <td ng-if="billingReadOnly">{{btd.SEQUENCE_NO}}</td>
-                      <td ng-if="!billingReadOnly"><input type="text" class="form-control" ng-model="btd.SEQUENCE_NO"></td>
-                      <td ng-if="billingReadOnly">{{btd.RECORD_CODE}}</td>
-                      <td ng-if="!billingReadOnly"><input type="text" class="form-control" ng-model="btd.RECORD_CODE"></td>
-                      <td ng-if="billingReadOnly">{{btd.ROUND}}</td>
-                      <td ng-if="!billingReadOnly"><input type="text" class="form-control" ng-model="btd.ROUND"></td>
-                      <td ng-if="billingReadOnly">{{btd.CALLING_NUM}}</td>
-                      <td ng-if="!billingReadOnly"><input type="text" class="form-control" ng-model="btd.CALLING_NUM"></td>
-                      <td ng-if="billingReadOnly">{{btd.CALLED_NUM}}</td>
-                      <td ng-if="!billingReadOnly"><input type="text" class="form-control" ng-model="btd.CALLED_NUM"></td>
-                      <td ng-if="billingReadOnly">{{btd.IN_TRK_GRP}}</td>
-                      <td ng-if="!billingReadOnly"><input type="text" class="form-control" ng-model="btd.IN_TRK_GRP"></td>
-                      <td ng-if="billingReadOnly">{{btd.OUT_TRK_GRP}}</td>
-                      <td ng-if="!billingReadOnly"><input type="text" class="form-control" ng-model="btd.OUT_TRK_GRP"></td>
-                      <td ng-if="billingReadOnly">{{btd.SWITCH_CD}}</td>
-                      <td ng-if="!billingReadOnly"><input type="text" class="form-control" ng-model="btd.SWITCH_CD"></td>
-                  </tr>
-              </tbody>
-          </table>
+        <pbx-rich-text data="testResult.html" min-height="100" process-id="processInstanceId" task-id="taskId" disabled="testResultReadOnly"></pbx-rich-text>
+        <input type="hidden" ng-model="testResult.html" name="testResultHtml" ng-required="!testResultReadOnly">
       </div>
     </div>
   </div>
@@ -378,7 +331,7 @@
     <div class="form-group">
       <label class="col-sm-12">Numbers PBX:</label>
       <div class="col-sm-12">
-        <textarea class="form-control" ng-model="ts.pbxNumbers"></textarea>
+        <textarea class="form-control" ng-model="ts.pbxNumbers" disabled></textarea>
       </div>
     </div>
   </div>
