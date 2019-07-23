@@ -48,6 +48,7 @@
             $scope.assigneeName = $rootScope.authentication.name;
             var createdDate = new Date();
             var claimDate = new Date();
+            var dataLoaded = false;
 
             $http.get("/camunda/api/engine/engine/default/user/" + $rootScope.authentication.name+ "/profile").then(function(result){
                 $scope.assigneeName = (result.data.firstName ? result.data.firstName : "") + " " + (result.data.lastName ? result.data.lastName : "");
@@ -134,6 +135,8 @@
                 $http.get("/camunda/api/engine/engine/default/user/" + $scope.solutionOwner + "/profile").then(function(result){
                     $scope.solutionOwner = (result.data.firstName ? result.data.firstName : "") + " " + (result.data.lastName ? result.data.lastName : "");
                 });
+
+                dataLoaded = true;
 
             });
 
@@ -236,8 +239,6 @@
                 });
             }
 
-            var lastTimeout = $timeout($scope.saveFillForm, 30000);
-
             $scope.saveFillForm = function (clicked) {
                 var success = 0;
                 var json = JSON.stringify($scope.SDDData, function( key, value ) {
@@ -267,9 +268,17 @@
                     }
                 );
 
-                if (clicked) clearTimeout(lastTimeout);
-                lastTimeout = $timeout($scope.saveFillForm, 30000);
+                if (lastTimeout !== -1) clearTimeout(lastTimeout);
             };
+
+            var lastTimeout = -1;
+
+            scope.$watch('SDDData', function(value) {
+              if (dataLoaded) {
+                if (lastTimeout !== -1) clearTimeout(lastTimeout.$$timeoutId);
+                lastTimeout = $timeout($scope.saveFillForm, 3000);
+              }
+            }, true);
 
             $(window).on('beforeunload', async function() {
                 var json = JSON.stringify($scope.SDDData, function( key, value ) {
