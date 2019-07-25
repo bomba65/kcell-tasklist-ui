@@ -38,25 +38,47 @@ public class SetInvoicingStatus implements JavaDelegate {
                 }
             }
         } else if("Roll-out".equals(mainContract)) {
-            String rolloutActType = (String)delegateExecution.getVariable("rolloutActType");
+            String rolloutActType = (String) delegateExecution.getVariable("rolloutActType");
             if("RO-1".equals(rolloutActType)) {
-                variables.put("rolloutActToPass", "RO-2");
                 variables.put("invoiceRO1Number", delegateExecution.getVariable("invoiceNumber"));
                 variables.put("invoiceRO1Date", delegateExecution.getVariable("invoiceDate"));
+                variables.put("rolloutRO1", "true");
             } else if("RO-2".equals(rolloutActType)) {
-                variables.put("rolloutActToPass", "RO-3");
                 variables.put("invoiceRO2Number", delegateExecution.getVariable("invoiceNumber"));
                 variables.put("invoiceRO2Date", delegateExecution.getVariable("invoiceDate"));
+                variables.put("rolloutRO2", "true");
             } else if("RO-3".equals(rolloutActType)) {
-                variables.put("rolloutActToPass", "passed");
-                variables.put("invoiceRO2Number", delegateExecution.getVariable("invoiceNumber"));
-                variables.put("invoiceRO2Date", delegateExecution.getVariable("invoiceDate"));
+                variables.put("invoiceRO3Number", delegateExecution.getVariable("invoiceNumber"));
+                variables.put("invoiceRO3Date", delegateExecution.getVariable("invoiceDate"));
+                variables.put("rolloutRO3", "true");
             }
 
             if(pushInvoice == null || "enable".equals(pushInvoice)){
                 SpinJsonNode selectedRevisions = delegateExecution.<JsonValue>getVariableTyped("selectedRevisions").getValue();
                 for(String revisionId: selectedRevisions.fieldNames()){
                     runtimeService.setVariables(revisionId, variables);
+
+                    if("RO-1".equals(rolloutActType)){
+                        String rolloutRO2 = (String) delegateExecution.getVariable("rolloutRO2");
+                        String rolloutRO3 = (String) delegateExecution.getVariable("rolloutRO3");
+                        if("true".equals(rolloutRO2) && "true".equals(rolloutRO3)){
+                            runtimeService.setVariable(revisionId, "rolloutActToPass", "passed");
+                        }
+                    }
+                    if("RO-2".equals(rolloutActType)){
+                        String rolloutRO1 = (String) delegateExecution.getVariable("rolloutRO1");
+                        String rolloutRO3 = (String) delegateExecution.getVariable("rolloutRO3");
+                        if("true".equals(rolloutRO1) && "true".equals(rolloutRO3)){
+                            runtimeService.setVariable(revisionId, "rolloutActToPass", "passed");
+                        }
+                    }
+                    if("RO-3".equals(rolloutActType)){
+                        String rolloutRO1 = (String) delegateExecution.getVariable("rolloutRO1");
+                        String rolloutRO2 = (String) delegateExecution.getVariable("rolloutRO2");
+                        if("true".equals(rolloutRO1) && "true".equals(rolloutRO2)){
+                            runtimeService.setVariable(revisionId, "rolloutActToPass", "passed");
+                        }
+                    }
                 }
             }
         }

@@ -150,6 +150,9 @@ define(['./module'], function(module){
 	                    console.log(error.data);
 	                });
                	};
+                scope.orderWorks = function(work){
+                    return Number(work.key.replace("RO","100"));
+                }
                 scope.orderYear = function(w){
                     var substring = w.businessKey.substr(0, w.businessKey.lastIndexOf("-"));
                     return Number(substring.substr(substring.lastIndexOf("-")+1, substring.length));

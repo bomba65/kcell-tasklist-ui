@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<bpmn:definitions xmlns:bpmn="http://www.omg.org/spec/BPMN/20100524/MODEL" xmlns:bpmndi="http://www.omg.org/spec/BPMN/20100524/DI" xmlns:di="http://www.omg.org/spec/DD/20100524/DI" xmlns:dc="http://www.omg.org/spec/DD/20100524/DC" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:camunda="http://camunda.org/schema/1.0/bpmn" id="Definitions_1" targetNamespace="http://bpmn.io/schema/bpmn" exporter="Camunda Modeler" exporterVersion="1.13.1">
+<bpmn:definitions xmlns:bpmn="http://www.omg.org/spec/BPMN/20100524/MODEL" xmlns:bpmndi="http://www.omg.org/spec/BPMN/20100524/DI" xmlns:di="http://www.omg.org/spec/DD/20100524/DI" xmlns:dc="http://www.omg.org/spec/DD/20100524/DC" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:camunda="http://camunda.org/schema/1.0/bpmn" id="Definitions_1" targetNamespace="http://bpmn.io/schema/bpmn" exporter="Camunda Modeler" exporterVersion="2.2.3">
   <bpmn:process id="Invoice" name="Generate Monthly Act" isExecutable="true">
     <bpmn:userTask id="ma_sign_region_manager" name="Check and sign Monthly act by region Manager" camunda:formKey="embedded:app:forms/invoice/checkByRegionManager.html">
       <bpmn:documentation>Approve and sign Monthly Act by region Manager</bpmn:documentation>
@@ -132,6 +132,11 @@
     <bpmn:startEvent id="ma_startevt" camunda:formKey="embedded:app:forms/invoice/start.html" camunda:initiator="starter">
       <bpmn:extensionElements>
         <camunda:executionListener delegateExpression="${invoiceContractorPermListener}" event="end" />
+        <camunda:executionListener class="kz.kcell.bpm.invoice.SetRolloutActStatus" event="end">
+          <camunda:field name="status">
+            <camunda:string>true</camunda:string>
+          </camunda:field>
+        </camunda:executionListener>
       </bpmn:extensionElements>
       <bpmn:outgoing>SequenceFlow_1e2ycnv</bpmn:outgoing>
     </bpmn:startEvent>
@@ -209,6 +214,13 @@
       <bpmn:outgoing>SequenceFlow_1q176ib</bpmn:outgoing>
     </bpmn:userTask>
     <bpmn:endEvent id="ma_cancelled_endevt">
+      <bpmn:extensionElements>
+        <camunda:executionListener class="kz.kcell.bpm.invoice.SetRolloutActStatus" event="start">
+          <camunda:field name="status">
+            <camunda:string>false</camunda:string>
+          </camunda:field>
+        </camunda:executionListener>
+      </bpmn:extensionElements>
       <bpmn:incoming>SequenceFlow_072ew06</bpmn:incoming>
     </bpmn:endEvent>
     <bpmn:sequenceFlow id="SequenceFlow_072ew06" name="cancelled" sourceRef="ma_exclgw_modify" targetRef="ma_cancelled_endevt">
