@@ -21,8 +21,8 @@
         <bpmn:outgoing>SequenceFlow_04gqk5f</bpmn:outgoing>
       </bpmn:userTask>
       <bpmn:parallelGateway id="ParallelGateway_0vlu6nt">
-        <bpmn:incoming>SequenceFlow_0657q46</bpmn:incoming>
         <bpmn:incoming>SequenceFlow_0lvikm6</bpmn:incoming>
+        <bpmn:incoming>SequenceFlow_1x7548x</bpmn:incoming>
         <bpmn:outgoing>SequenceFlow_01eekvc</bpmn:outgoing>
       </bpmn:parallelGateway>
       <bpmn:endEvent id="EndEvent_0tivlqe">
@@ -64,7 +64,7 @@
       </bpmn:exclusiveGateway>
       <bpmn:parallelGateway id="ParallelGateway_0emk03f">
         <bpmn:incoming>SequenceFlow_00lmd6b</bpmn:incoming>
-        <bpmn:incoming>SequenceFlow_0w3kl9d</bpmn:incoming>
+        <bpmn:incoming>SequenceFlow_1s9raqj</bpmn:incoming>
         <bpmn:outgoing>SequenceFlow_1es0hyd</bpmn:outgoing>
       </bpmn:parallelGateway>
       <bpmn:exclusiveGateway id="ExclusiveGateway_02ih4om" name="Confirmed" default="SequenceFlow_0pgjf7v">
@@ -80,20 +80,24 @@
         <bpmn:incoming>SequenceFlow_0h5qicq</bpmn:incoming>
         <bpmn:outgoing>SequenceFlow_08viyol</bpmn:outgoing>
       </bpmn:userTask>
-      <bpmn:sendTask id="SendTask_0fl9e8x" name="Send mail to KAE" camunda:expression="${true}">
+      <bpmn:sendTask id="SendTask_0fl9e8x" name="Send mail to KAE" camunda:delegateExpression="${camundaMailer}">
         <bpmn:documentation>Send mail to KAE (initiator)</bpmn:documentation>
+        <bpmn:extensionElements>
+          <camunda:inputOutput>
+            <camunda:inputParameter name="html">
+              <camunda:script scriptFormat="groovy" resource="PBX/test_data_to_client_sent_nofiication.groovy" />
+            </camunda:inputParameter>
+            <camunda:inputParameter name="subject">Notification</camunda:inputParameter>
+            <camunda:inputParameter name="to">
+              <camunda:script scriptFormat="groovy" resource="PBX/sales_repr_addresses.groovy" />
+            </camunda:inputParameter>
+            <camunda:inputParameter name="cc">
+              <camunda:script scriptFormat="groovy" resource="PBX/delivery_pbx_b2b_addresses.groovy" />
+            </camunda:inputParameter>
+          </camunda:inputOutput>
+        </bpmn:extensionElements>
         <bpmn:incoming>SequenceFlow_08viyol</bpmn:incoming>
         <bpmn:outgoing>SequenceFlow_0oove0k</bpmn:outgoing>
-      </bpmn:sendTask>
-      <bpmn:sendTask id="SendTask_1au0oi4" name="Send mail to KAE (initiator)" camunda:expression="${true}">
-        <bpmn:documentation>Send mail to KAE (initiator)</bpmn:documentation>
-        <bpmn:incoming>SequenceFlow_00phdtm</bpmn:incoming>
-        <bpmn:outgoing>SequenceFlow_0w3kl9d</bpmn:outgoing>
-      </bpmn:sendTask>
-      <bpmn:sendTask id="SendTask_1jqhcip" name="Send mail to KAE" camunda:expression="${true}">
-        <bpmn:documentation>Send mail to KAE (initiator)</bpmn:documentation>
-        <bpmn:incoming>SequenceFlow_0elxft7</bpmn:incoming>
-        <bpmn:outgoing>SequenceFlow_0gnjzts</bpmn:outgoing>
       </bpmn:sendTask>
       <bpmn:parallelGateway id="ParallelGateway_1ua8j6n">
         <bpmn:incoming>SequenceFlow_1r7vg69</bpmn:incoming>
@@ -105,11 +109,6 @@
         <bpmn:incoming>SequenceFlow_0h5drzj</bpmn:incoming>
         <bpmn:outgoing>SequenceFlow_1kckzax</bpmn:outgoing>
       </bpmn:parallelGateway>
-      <bpmn:sendTask id="SendTask_1tluoy1" name="Send email to KAE, KCELL EnterpD-DelOperSec-BusSoImpUnit" camunda:expression="${true}">
-        <bpmn:documentation>Send email to KAE, KCELL EnterpD-DelOperSec-BusSoImpUnit</bpmn:documentation>
-        <bpmn:incoming>SequenceFlow_03qcpca</bpmn:incoming>
-        <bpmn:outgoing>SequenceFlow_0657q46</bpmn:outgoing>
-      </bpmn:sendTask>
       <bpmn:userTask id="confirmCheckingTSScheme" name="Confirm checking TS and Schem" camunda:formKey="embedded:app:forms/PBX/checkQuestionnaire.html" camunda:candidateGroups="${technicalSpecifications.prop(&#34;connectionPoint&#34;).stringValue()==&#39;SIP Proxy&#39;?&#39;delivery_pbx_sip_proxy_technical_dept&#39;:&#39;delivery_pbx_sbc_technical_dept&#39;}">
         <bpmn:documentation>Confirm checking TS and Schem</bpmn:documentation>
         <bpmn:incoming>SequenceFlow_1wnci7b</bpmn:incoming>
@@ -160,13 +159,12 @@
       </bpmn:userTask>
       <bpmn:sequenceFlow id="SequenceFlow_1wnci7b" sourceRef="StartEvent_0acxw1n" targetRef="confirmCheckingTSScheme" />
       <bpmn:sequenceFlow id="SequenceFlow_0oove0k" sourceRef="SendTask_0fl9e8x" targetRef="confirmTestingSuccess" />
-      <bpmn:sequenceFlow id="SequenceFlow_00phdtm" sourceRef="confirmTestingSuccess" targetRef="SendTask_1au0oi4" />
+      <bpmn:sequenceFlow id="SequenceFlow_00phdtm" sourceRef="confirmTestingSuccess" targetRef="SendTask_0ew7lun" />
       <bpmn:sequenceFlow id="SequenceFlow_19ccygt" sourceRef="ParallelGateway_0qkio32" targetRef="fillLegalInformation" />
       <bpmn:sequenceFlow id="SequenceFlow_0pqaxzv" sourceRef="ParallelGateway_0qkio32" targetRef="confirmAdditionIP" />
       <bpmn:sequenceFlow id="SequenceFlow_0ukn4vr" sourceRef="confirmAgreementTSScheme" targetRef="ExclusiveGateway_1i0kx9m" />
       <bpmn:sequenceFlow id="SequenceFlow_00wbj6v" name="no" sourceRef="ExclusiveGateway_1i0kx9m" targetRef="modifyQuestionnaire" />
       <bpmn:sequenceFlow id="SequenceFlow_00lmd6b" sourceRef="confirmNumbersInTIC" targetRef="ParallelGateway_0emk03f" />
-      <bpmn:sequenceFlow id="SequenceFlow_0w3kl9d" sourceRef="SendTask_1au0oi4" targetRef="ParallelGateway_0emk03f" />
       <bpmn:sequenceFlow id="SequenceFlow_1es0hyd" sourceRef="ParallelGateway_0emk03f" targetRef="modifyConnectionSettings" />
       <bpmn:sequenceFlow id="SequenceFlow_1iqzaww" sourceRef="confirmCheckingTSScheme" targetRef="ExclusiveGateway_02ih4om" />
       <bpmn:sequenceFlow id="SequenceFlow_0b2fdxo" name="yes" sourceRef="ExclusiveGateway_02ih4om" targetRef="confirmAgreementTSScheme">
@@ -202,7 +200,7 @@
         <bpmn:outgoing>SequenceFlow_0alhdyz</bpmn:outgoing>
       </bpmn:exclusiveGateway>
       <bpmn:sequenceFlow id="SequenceFlow_1w3acx1" sourceRef="modifyConnectionSettings" targetRef="ExclusiveGateway_1m1npx6" />
-      <bpmn:sequenceFlow id="SequenceFlow_0elxft7" sourceRef="ExclusiveGateway_1m1npx6" targetRef="SendTask_1jqhcip">
+      <bpmn:sequenceFlow id="SequenceFlow_0elxft7" sourceRef="ExclusiveGateway_1m1npx6" targetRef="SendTask_17e50lc">
         <bpmn:conditionExpression xsi:type="bpmn:tFormalExpression">${modifyConnectionSettingsResolution == 'Accepted'}</bpmn:conditionExpression>
       </bpmn:sequenceFlow>
       <bpmn:exclusiveGateway id="ExclusiveGateway_1qo490s" default="SequenceFlow_1xcgpym">
@@ -215,17 +213,16 @@
         <bpmn:conditionExpression xsi:type="bpmn:tFormalExpression">${modifyConnectionSettingsResolution == 'Rejected'}</bpmn:conditionExpression>
       </bpmn:sequenceFlow>
       <bpmn:endEvent id="EndEvent_0gin399">
-        <bpmn:incoming>SequenceFlow_0bpa0vf</bpmn:incoming>
+        <bpmn:incoming>SequenceFlow_1qvyaey</bpmn:incoming>
       </bpmn:endEvent>
-      <bpmn:sequenceFlow id="SequenceFlow_1xcgpym" sourceRef="ExclusiveGateway_1qo490s" targetRef="SendTask_16u425r" />
-      <bpmn:sequenceFlow id="SequenceFlow_0gnjzts" sourceRef="SendTask_1jqhcip" targetRef="importClientTestCallData" />
+      <bpmn:sequenceFlow id="SequenceFlow_1xcgpym" sourceRef="ExclusiveGateway_1qo490s" targetRef="SendTask_1eg26z1" />
       <bpmn:userTask id="importClientTestCallData" name="Import data of test call from the client" camunda:formKey="embedded:app:forms/PBX/importData.html" camunda:candidateGroups="delivery_pbx_b2b_delivery">
         <bpmn:documentation>Import data of test call from the client</bpmn:documentation>
         <bpmn:extensionElements>
           <camunda:taskListener class="kz.kcell.bpm.assignments.PBXTechnicalDeptAssignmentHandler" event="create" />
         </bpmn:extensionElements>
-        <bpmn:incoming>SequenceFlow_0gnjzts</bpmn:incoming>
-        <bpmn:incoming>SequenceFlow_022s5oq</bpmn:incoming>
+        <bpmn:incoming>SequenceFlow_1xzw74t</bpmn:incoming>
+        <bpmn:incoming>SequenceFlow_089w1ym</bpmn:incoming>
         <bpmn:outgoing>SequenceFlow_03wjvdc</bpmn:outgoing>
       </bpmn:userTask>
       <bpmn:sequenceFlow id="SequenceFlow_03wjvdc" sourceRef="importClientTestCallData" targetRef="importBillingTestCallData" />
@@ -236,8 +233,7 @@
       </bpmn:userTask>
       <bpmn:sequenceFlow id="SequenceFlow_0c32lnw" sourceRef="confirmStartService" targetRef="Task_0e0k8zf" />
       <bpmn:sequenceFlow id="SequenceFlow_17d6xkk" sourceRef="confirmCommercialService" targetRef="ParallelGateway_0kmklgu" />
-      <bpmn:sequenceFlow id="SequenceFlow_03qcpca" sourceRef="ParallelGateway_0kmklgu" targetRef="SendTask_1tluoy1" />
-      <bpmn:sequenceFlow id="SequenceFlow_0657q46" sourceRef="SendTask_1tluoy1" targetRef="ParallelGateway_0vlu6nt" />
+      <bpmn:sequenceFlow id="SequenceFlow_03qcpca" sourceRef="ParallelGateway_0kmklgu" targetRef="SendTask_1bv4rlq" />
       <bpmn:sequenceFlow id="SequenceFlow_04gqk5f" sourceRef="createRequestTCF" targetRef="confirmTCFRequest" />
       <bpmn:userTask id="confirmTCFRequest" name="Confirm the processing of PBX TCF request" camunda:formKey="embedded:app:forms/PBX/tcfRequest.html" camunda:candidateGroups="delivery_pbx_bsst">
         <bpmn:documentation>Confirm the processing of PBX TCF request</bpmn:documentation>
@@ -259,7 +255,7 @@
       <bpmn:userTask id="confirmContractReceiption" name="Confirm receiption of the contract and attach the scan " camunda:formKey="embedded:app:forms/PBX/checkQuestionnaire.html" camunda:candidateGroups="delivery_pbx_contract_sales_support_team">
         <bpmn:documentation>Confirm receiption of the contract and attach the scan</bpmn:documentation>
         <bpmn:incoming>SequenceFlow_01eekvc</bpmn:incoming>
-        <bpmn:incoming>SequenceFlow_1uk43pr</bpmn:incoming>
+        <bpmn:incoming>SequenceFlow_0dtnhzk</bpmn:incoming>
         <bpmn:outgoing>SequenceFlow_0wrirru</bpmn:outgoing>
       </bpmn:userTask>
       <bpmn:exclusiveGateway id="ExclusiveGateway_1va3cyv" default="SequenceFlow_1tzuuzb">
@@ -267,35 +263,18 @@
         <bpmn:outgoing>SequenceFlow_1tzuuzb</bpmn:outgoing>
         <bpmn:outgoing>SequenceFlow_12nw2g6</bpmn:outgoing>
       </bpmn:exclusiveGateway>
-      <bpmn:sendTask id="SendTask_0nnvoi9" name="Send mail to KAE" camunda:expression="${true}">
-        <bpmn:documentation>Send mail to KAE (initiator)</bpmn:documentation>
-        <bpmn:incoming>SequenceFlow_1tzuuzb</bpmn:incoming>
-        <bpmn:outgoing>SequenceFlow_1uk43pr</bpmn:outgoing>
-      </bpmn:sendTask>
-      <bpmn:sequenceFlow id="SequenceFlow_1tzuuzb" name="No" sourceRef="ExclusiveGateway_1va3cyv" targetRef="SendTask_0nnvoi9" />
+      <bpmn:sequenceFlow id="SequenceFlow_1tzuuzb" name="No" sourceRef="ExclusiveGateway_1va3cyv" targetRef="SendTask_0vm80uj" />
       <bpmn:sequenceFlow id="SequenceFlow_12nw2g6" name="Yes" sourceRef="ExclusiveGateway_1va3cyv" targetRef="EndEvent_0tivlqe">
         <bpmn:conditionExpression xsi:type="bpmn:tFormalExpression">${confirmContractReceiptionResolution == 'Accepted'}</bpmn:conditionExpression>
       </bpmn:sequenceFlow>
       <bpmn:sequenceFlow id="SequenceFlow_0wrirru" sourceRef="confirmContractReceiption" targetRef="ExclusiveGateway_1va3cyv" />
-      <bpmn:sequenceFlow id="SequenceFlow_1uk43pr" sourceRef="SendTask_0nnvoi9" targetRef="confirmContractReceiption" />
-      <bpmn:sendTask id="SendTask_0h92v1l" name="Send mail to KAE" camunda:expression="${true}">
-        <bpmn:incoming>SequenceFlow_1h33z1j</bpmn:incoming>
-        <bpmn:outgoing>SequenceFlow_022s5oq</bpmn:outgoing>
-      </bpmn:sendTask>
-      <bpmn:sequenceFlow id="SequenceFlow_022s5oq" sourceRef="SendTask_0h92v1l" targetRef="importClientTestCallData" />
-      <bpmn:sendTask id="SendTask_16u425r" name="Send mail to KAE" camunda:expression="${true}">
-        <bpmn:documentation>Send mail to KAE (initiator)</bpmn:documentation>
-        <bpmn:incoming>SequenceFlow_1xcgpym</bpmn:incoming>
-        <bpmn:outgoing>SequenceFlow_0bpa0vf</bpmn:outgoing>
-      </bpmn:sendTask>
-      <bpmn:sequenceFlow id="SequenceFlow_0bpa0vf" sourceRef="SendTask_16u425r" targetRef="EndEvent_0gin399" />
       <bpmn:sequenceFlow id="SequenceFlow_0wt8cyi" sourceRef="importBillingTestCallData" targetRef="confirmTestingBilling" />
       <bpmn:exclusiveGateway id="ExclusiveGateway_0p92x37" name="OK?" default="SequenceFlow_1h33z1j">
         <bpmn:incoming>SequenceFlow_1u38tp6</bpmn:incoming>
         <bpmn:outgoing>SequenceFlow_1h33z1j</bpmn:outgoing>
         <bpmn:outgoing>SequenceFlow_0qnoc1s</bpmn:outgoing>
       </bpmn:exclusiveGateway>
-      <bpmn:sequenceFlow id="SequenceFlow_1h33z1j" name="NO" sourceRef="ExclusiveGateway_0p92x37" targetRef="SendTask_0h92v1l" />
+      <bpmn:sequenceFlow id="SequenceFlow_1h33z1j" name="NO" sourceRef="ExclusiveGateway_0p92x37" targetRef="SendTask_03gbdcr" />
       <bpmn:sequenceFlow id="SequenceFlow_0qnoc1s" name="" sourceRef="ExclusiveGateway_0p92x37" targetRef="confirmStartService">
         <bpmn:conditionExpression xsi:type="bpmn:tFormalExpression">${importDataResolution == 'Accepted'}</bpmn:conditionExpression>
       </bpmn:sequenceFlow>
@@ -305,6 +284,126 @@
         <bpmn:incoming>SequenceFlow_0c32lnw</bpmn:incoming>
         <bpmn:outgoing>SequenceFlow_05l9sdd</bpmn:outgoing>
       </bpmn:serviceTask>
+      <bpmn:sendTask id="SendTask_0ew7lun" name="Send mail to KAE (initiator)" camunda:delegateExpression="${camundaMailer}">
+        <bpmn:documentation>Send mail to KAE (initiator)</bpmn:documentation>
+        <bpmn:extensionElements>
+          <camunda:inputOutput>
+            <camunda:inputParameter name="html">
+              <camunda:script scriptFormat="groovy" resource="PBX/testing_success_nofiication.groovy" />
+            </camunda:inputParameter>
+            <camunda:inputParameter name="subject">Notification</camunda:inputParameter>
+            <camunda:inputParameter name="to">
+              <camunda:script scriptFormat="groovy" resource="PBX/sales_repr_addresses.groovy" />
+            </camunda:inputParameter>
+            <camunda:inputParameter name="cc">
+              <camunda:script scriptFormat="groovy" resource="PBX/delivery_pbx_b2b_addresses.groovy" />
+            </camunda:inputParameter>
+          </camunda:inputOutput>
+        </bpmn:extensionElements>
+        <bpmn:incoming>SequenceFlow_00phdtm</bpmn:incoming>
+        <bpmn:outgoing>SequenceFlow_1s9raqj</bpmn:outgoing>
+      </bpmn:sendTask>
+      <bpmn:sequenceFlow id="SequenceFlow_1s9raqj" sourceRef="SendTask_0ew7lun" targetRef="ParallelGateway_0emk03f" />
+      <bpmn:sendTask id="SendTask_17e50lc" name="Send mail to KAE" camunda:delegateExpression="${camundaMailer}">
+        <bpmn:documentation>Send mail to KAE (initiator)</bpmn:documentation>
+        <bpmn:extensionElements>
+          <camunda:inputOutput>
+            <camunda:inputParameter name="html">
+              <camunda:script scriptFormat="groovy" resource="PBX/billing_check_call_nofiication.groovy" />
+            </camunda:inputParameter>
+            <camunda:inputParameter name="subject">Notification</camunda:inputParameter>
+            <camunda:inputParameter name="to">
+              <camunda:script scriptFormat="groovy" resource="PBX/sales_repr_addresses.groovy" />
+            </camunda:inputParameter>
+            <camunda:inputParameter name="cc">
+              <camunda:script scriptFormat="groovy" resource="PBX/delivery_pbx_b2b_addresses.groovy" />
+            </camunda:inputParameter>
+          </camunda:inputOutput>
+        </bpmn:extensionElements>
+        <bpmn:incoming>SequenceFlow_0elxft7</bpmn:incoming>
+        <bpmn:outgoing>SequenceFlow_1xzw74t</bpmn:outgoing>
+      </bpmn:sendTask>
+      <bpmn:sequenceFlow id="SequenceFlow_1xzw74t" sourceRef="SendTask_17e50lc" targetRef="importClientTestCallData" />
+      <bpmn:sendTask id="SendTask_1eg26z1" name="Send mail to KAE" camunda:delegateExpression="${camundaMailer}">
+        <bpmn:documentation>Send mail to KAE (initiator)</bpmn:documentation>
+        <bpmn:extensionElements>
+          <camunda:inputOutput>
+            <camunda:inputParameter name="html">
+              <camunda:script scriptFormat="groovy" resource="PBX/process_cancel_nofiication.groovy" />
+            </camunda:inputParameter>
+            <camunda:inputParameter name="subject">Notification</camunda:inputParameter>
+            <camunda:inputParameter name="to">
+              <camunda:script scriptFormat="groovy" resource="PBX/sales_repr_addresses.groovy" />
+            </camunda:inputParameter>
+            <camunda:inputParameter name="cc">
+              <camunda:script scriptFormat="groovy" resource="PBX/delivery_pbx_b2b_addresses.groovy" />
+            </camunda:inputParameter>
+          </camunda:inputOutput>
+        </bpmn:extensionElements>
+        <bpmn:incoming>SequenceFlow_1xcgpym</bpmn:incoming>
+        <bpmn:outgoing>SequenceFlow_1qvyaey</bpmn:outgoing>
+      </bpmn:sendTask>
+      <bpmn:sequenceFlow id="SequenceFlow_1qvyaey" sourceRef="SendTask_1eg26z1" targetRef="EndEvent_0gin399" />
+      <bpmn:sendTask id="SendTask_03gbdcr" name="Send mail to KAE" camunda:delegateExpression="${camundaMailer}">
+        <bpmn:documentation>Send mail to KAE (initiator)</bpmn:documentation>
+        <bpmn:extensionElements>
+          <camunda:inputOutput>
+            <camunda:inputParameter name="html">
+              <camunda:script scriptFormat="groovy" resource="PBX/settings_sent_nofiication.groovy" />
+            </camunda:inputParameter>
+            <camunda:inputParameter name="subject">Notification</camunda:inputParameter>
+            <camunda:inputParameter name="to">
+              <camunda:script scriptFormat="groovy" resource="PBX/sales_repr_addresses.groovy" />
+            </camunda:inputParameter>
+            <camunda:inputParameter name="cc">
+              <camunda:script scriptFormat="groovy" resource="PBX/delivery_pbx_b2b_addresses.groovy" />
+            </camunda:inputParameter>
+          </camunda:inputOutput>
+        </bpmn:extensionElements>
+        <bpmn:incoming>SequenceFlow_1h33z1j</bpmn:incoming>
+        <bpmn:outgoing>SequenceFlow_089w1ym</bpmn:outgoing>
+      </bpmn:sendTask>
+      <bpmn:sequenceFlow id="SequenceFlow_089w1ym" sourceRef="SendTask_03gbdcr" targetRef="importClientTestCallData" />
+      <bpmn:sendTask id="SendTask_0vm80uj" name="Send mail to KAE" camunda:delegateExpression="${camundaMailer}">
+        <bpmn:documentation>Send mail to KAE (initiator)</bpmn:documentation>
+        <bpmn:extensionElements>
+          <camunda:inputOutput>
+            <camunda:inputParameter name="html">
+              <camunda:script scriptFormat="groovy" resource="PBX/billing_check_repeat_call_nofiication.groovy" />
+            </camunda:inputParameter>
+            <camunda:inputParameter name="subject">Notification</camunda:inputParameter>
+            <camunda:inputParameter name="to">
+              <camunda:script scriptFormat="groovy" resource="PBX/sales_repr_addresses.groovy" />
+            </camunda:inputParameter>
+            <camunda:inputParameter name="cc">
+              <camunda:script scriptFormat="groovy" resource="PBX/delivery_pbx_b2b_addresses.groovy" />
+            </camunda:inputParameter>
+          </camunda:inputOutput>
+        </bpmn:extensionElements>
+        <bpmn:incoming>SequenceFlow_1tzuuzb</bpmn:incoming>
+        <bpmn:outgoing>SequenceFlow_0dtnhzk</bpmn:outgoing>
+      </bpmn:sendTask>
+      <bpmn:sequenceFlow id="SequenceFlow_0dtnhzk" sourceRef="SendTask_0vm80uj" targetRef="confirmContractReceiption" />
+      <bpmn:sendTask id="SendTask_1bv4rlq" name="Send email to KAE, KCELL EnterpD-DelOperSec-BusSoImpUnit" camunda:delegateExpression="${camundaMailer}">
+        <bpmn:documentation>Send email to KAE, KCELL EnterpD-DelOperSec-BusSoImpUnit</bpmn:documentation>
+        <bpmn:extensionElements>
+          <camunda:inputOutput>
+            <camunda:inputParameter name="html">
+              <camunda:script scriptFormat="groovy" resource="PBX/commercial_access_nofiication.groovy" />
+            </camunda:inputParameter>
+            <camunda:inputParameter name="subject">Notification</camunda:inputParameter>
+            <camunda:inputParameter name="to">
+              <camunda:script scriptFormat="groovy" resource="PBX/sales_repr_addresses.groovy" />
+            </camunda:inputParameter>
+            <camunda:inputParameter name="cc">
+              <camunda:script scriptFormat="groovy" resource="PBX/delivery_pbx_b2b_addresses.groovy" />
+            </camunda:inputParameter>
+          </camunda:inputOutput>
+        </bpmn:extensionElements>
+        <bpmn:incoming>SequenceFlow_03qcpca</bpmn:incoming>
+        <bpmn:outgoing>SequenceFlow_1x7548x</bpmn:outgoing>
+      </bpmn:sendTask>
+      <bpmn:sequenceFlow id="SequenceFlow_1x7548x" sourceRef="SendTask_1bv4rlq" targetRef="ParallelGateway_0vlu6nt" />
       <bpmn:textAnnotation id="TextAnnotation_01ap1ef">
         <bpmn:text>KAE</bpmn:text>
       </bpmn:textAnnotation>
@@ -670,10 +769,10 @@
       <bpmn:text>Fill questionnaire</bpmn:text>
     </bpmn:textAnnotation>
     <bpmn:association id="Association_0amakdd" sourceRef="StartEvent_10il65m" targetRef="TextAnnotation_1n2z5eu" />
-    <bpmn:textAnnotation id="TextAnnotation_11h7hhi">
+    <bpmn:textAnnotation id="TextAnnotation_04y0cwz">
       <bpmn:text>KCELL EnterpD-DelOperSec-BusSoImpUnit</bpmn:text>
     </bpmn:textAnnotation>
-    <bpmn:association id="Association_1l2s2zv" sourceRef="checkQuestionnaire" targetRef="TextAnnotation_11h7hhi" />
+    <bpmn:association id="Association_0ckflv3" sourceRef="checkQuestionnaire" targetRef="TextAnnotation_04y0cwz" />
   </bpmn:process>
   <bpmndi:BPMNDiagram id="BPMNDiagram_1">
     <bpmndi:BPMNPlane id="BPMNPlane_1" bpmnElement="PBX">
@@ -696,19 +795,19 @@
         </bpmndi:BPMNLabel>
       </bpmndi:BPMNShape>
       <bpmndi:BPMNShape id="StartEvent_10il65m_di" bpmnElement="StartEvent_10il65m">
-        <dc:Bounds x="-2600" y="77" width="36" height="36" />
+        <dc:Bounds x="-2469" y="77" width="36" height="36" />
         <bpmndi:BPMNLabel>
           <dc:Bounds x="-2762" y="117" width="0" height="15" />
         </bpmndi:BPMNLabel>
       </bpmndi:BPMNShape>
       <bpmndi:BPMNShape id="UserTask_15x5i28_di" bpmnElement="checkQuestionnaire">
-        <dc:Bounds x="-2321" y="55" width="100" height="80" />
+        <dc:Bounds x="-2264" y="-26" width="100" height="80" />
       </bpmndi:BPMNShape>
       <bpmndi:BPMNShape id="TextAnnotation_10olro6_di" bpmnElement="TextAnnotation_10olro6">
         <dc:Bounds x="-1000" y="997" width="100" height="30" />
       </bpmndi:BPMNShape>
       <bpmndi:BPMNShape id="TextAnnotation_1n2z5eu_di" bpmnElement="TextAnnotation_1n2z5eu">
-        <dc:Bounds x="-2628" y="-48" width="100" height="41" />
+        <dc:Bounds x="-2487" y="-37" width="100" height="41" />
       </bpmndi:BPMNShape>
       <bpmndi:BPMNEdge id="SequenceFlow_0xttbj3_di" bpmnElement="SequenceFlow_0xttbj3">
         <di:waypoint x="-2001" y="70" />
@@ -728,19 +827,15 @@
         </bpmndi:BPMNLabel>
       </bpmndi:BPMNEdge>
       <bpmndi:BPMNEdge id="SequenceFlow_11evnhs_di" bpmnElement="SequenceFlow_11evnhs">
-        <di:waypoint x="-2564" y="95" />
-        <di:waypoint x="-2382" y="95" />
-        <di:waypoint x="-2382" y="224" />
-        <di:waypoint x="-2158" y="224" />
-        <di:waypoint x="-2158" y="95" />
+        <di:waypoint x="-2433" y="95" />
         <di:waypoint x="-2026" y="95" />
         <bpmndi:BPMNLabel>
           <dc:Bounds x="-2315" y="186.5" width="90" height="45" />
         </bpmndi:BPMNLabel>
       </bpmndi:BPMNEdge>
       <bpmndi:BPMNEdge id="Association_0amakdd_di" bpmnElement="Association_0amakdd">
-        <di:waypoint x="-2580" y="78" />
-        <di:waypoint x="-2580" y="-3" />
+        <di:waypoint x="-2449" y="77" />
+        <di:waypoint x="-2440" y="4" />
       </bpmndi:BPMNEdge>
       <bpmndi:BPMNShape id="ParallelGateway_0kmklgu_di" bpmnElement="ParallelGateway_0kmklgu">
         <dc:Bounds x="2048" y="-568" width="50" height="50" />
@@ -758,7 +853,7 @@
         </bpmndi:BPMNLabel>
       </bpmndi:BPMNShape>
       <bpmndi:BPMNShape id="EndEvent_0tivlqe_di" bpmnElement="EndEvent_0tivlqe">
-        <dc:Bounds x="2818" y="-561" width="36" height="36" />
+        <dc:Bounds x="2884" y="-561" width="36" height="36" />
         <bpmndi:BPMNLabel>
           <dc:Bounds x="1481" y="-518" width="90" height="15" />
         </bpmndi:BPMNLabel>
@@ -808,12 +903,6 @@
       <bpmndi:BPMNShape id="SendTask_0fl9e8x_di" bpmnElement="SendTask_0fl9e8x">
         <dc:Bounds x="-639" y="-583" width="100" height="80" />
       </bpmndi:BPMNShape>
-      <bpmndi:BPMNShape id="SendTask_1au0oi4_di" bpmnElement="SendTask_1au0oi4">
-        <dc:Bounds x="-175" y="-583" width="100" height="80" />
-      </bpmndi:BPMNShape>
-      <bpmndi:BPMNShape id="SendTask_1jqhcip_di" bpmnElement="SendTask_1jqhcip">
-        <dc:Bounds x="740" y="-582" width="100" height="80" />
-      </bpmndi:BPMNShape>
       <bpmndi:BPMNShape id="ParallelGateway_1ua8j6n_di" bpmnElement="ParallelGateway_1ua8j6n">
         <dc:Bounds x="-554" y="-1027" width="50" height="50" />
         <bpmndi:BPMNLabel>
@@ -825,9 +914,6 @@
         <bpmndi:BPMNLabel>
           <dc:Bounds x="-202" y="-973" width="90" height="15" />
         </bpmndi:BPMNLabel>
-      </bpmndi:BPMNShape>
-      <bpmndi:BPMNShape id="SendTask_1tluoy1_di" bpmnElement="SendTask_1tluoy1">
-        <dc:Bounds x="2149" y="-583" width="100" height="80" />
       </bpmndi:BPMNShape>
       <bpmndi:BPMNShape id="UserTask_0pvb0e8_di" bpmnElement="confirmCheckingTSScheme">
         <dc:Bounds x="-1642" y="-583" width="100" height="80" />
@@ -1050,7 +1136,7 @@
       </bpmndi:BPMNEdge>
       <bpmndi:BPMNEdge id="SequenceFlow_00phdtm_di" bpmnElement="SequenceFlow_00phdtm">
         <di:waypoint x="-349" y="-543" />
-        <di:waypoint x="-175" y="-543" />
+        <di:waypoint x="-9" y="-543" />
         <bpmndi:BPMNLabel>
           <dc:Bounds x="-442" y="-564" width="90" height="15" />
         </bpmndi:BPMNLabel>
@@ -1091,13 +1177,6 @@
         <di:waypoint x="351" y="-566" />
         <bpmndi:BPMNLabel>
           <dc:Bounds x="169" y="-1024" width="90" height="15" />
-        </bpmndi:BPMNLabel>
-      </bpmndi:BPMNEdge>
-      <bpmndi:BPMNEdge id="SequenceFlow_0w3kl9d_di" bpmnElement="SequenceFlow_0w3kl9d">
-        <di:waypoint x="-75" y="-543" />
-        <di:waypoint x="326" y="-541" />
-        <bpmndi:BPMNLabel>
-          <dc:Bounds x="-51" y="-563" width="90" height="15" />
         </bpmndi:BPMNLabel>
       </bpmndi:BPMNEdge>
       <bpmndi:BPMNEdge id="SequenceFlow_1es0hyd_di" bpmnElement="SequenceFlow_1es0hyd">
@@ -1562,14 +1641,6 @@
           <dc:Bounds x="2676.5" y="32" width="0" height="15" />
         </bpmndi:BPMNLabel>
       </bpmndi:BPMNEdge>
-      <bpmndi:BPMNShape id="TextAnnotation_11h7hhi_di" bpmnElement="TextAnnotation_11h7hhi">
-        <dc:Bounds x="-2321" y="-73" width="100" height="69" />
-      </bpmndi:BPMNShape>
-      <bpmndi:BPMNEdge id="Association_1l2s2zv_di" bpmnElement="Association_1l2s2zv">
-        <di:waypoint x="-2283" y="55" />
-        <di:waypoint x="-2271" y="21" />
-        <di:waypoint x="-2271" y="-4" />
-      </bpmndi:BPMNEdge>
       <bpmndi:BPMNShape id="TextAnnotation_01frztk_di" bpmnElement="TextAnnotation_01frztk">
         <dc:Bounds x="-1642" y="-715" width="100" height="67" />
       </bpmndi:BPMNShape>
@@ -1669,7 +1740,8 @@
       </bpmndi:BPMNEdge>
       <bpmndi:BPMNEdge id="SequenceFlow_0elxft7_di" bpmnElement="SequenceFlow_0elxft7">
         <di:waypoint x="674" y="-543" />
-        <di:waypoint x="740" y="-542" />
+        <di:waypoint x="720" y="-542" />
+        <di:waypoint x="731" y="-542" />
         <bpmndi:BPMNLabel>
           <dc:Bounds x="662" y="-567" width="90" height="20" />
         </bpmndi:BPMNLabel>
@@ -1704,16 +1776,9 @@
       </bpmndi:BPMNShape>
       <bpmndi:BPMNEdge id="SequenceFlow_1xcgpym_di" bpmnElement="SequenceFlow_1xcgpym">
         <di:waypoint x="-465" y="-241" />
-        <di:waypoint x="-465" y="-198" />
+        <di:waypoint x="-465" y="-187" />
         <bpmndi:BPMNLabel>
           <dc:Bounds x="-495" y="-229" width="90" height="20" />
-        </bpmndi:BPMNLabel>
-      </bpmndi:BPMNEdge>
-      <bpmndi:BPMNEdge id="SequenceFlow_0gnjzts_di" bpmnElement="SequenceFlow_0gnjzts">
-        <di:waypoint x="840" y="-542" />
-        <di:waypoint x="906" y="-542" />
-        <bpmndi:BPMNLabel>
-          <dc:Bounds x="828" y="-567" width="90" height="20" />
         </bpmndi:BPMNLabel>
       </bpmndi:BPMNEdge>
       <bpmndi:BPMNShape id="UserTask_123af39_di" bpmnElement="importClientTestCallData">
@@ -1762,16 +1827,9 @@
       </bpmndi:BPMNEdge>
       <bpmndi:BPMNEdge id="SequenceFlow_03qcpca_di" bpmnElement="SequenceFlow_03qcpca">
         <di:waypoint x="2098" y="-543" />
-        <di:waypoint x="2149" y="-543" />
+        <di:waypoint x="2151" y="-542" />
         <bpmndi:BPMNLabel>
           <dc:Bounds x="1965" y="-568" width="90" height="20" />
-        </bpmndi:BPMNLabel>
-      </bpmndi:BPMNEdge>
-      <bpmndi:BPMNEdge id="SequenceFlow_0657q46_di" bpmnElement="SequenceFlow_0657q46">
-        <di:waypoint x="2249" y="-543" />
-        <di:waypoint x="2308" y="-543" />
-        <bpmndi:BPMNLabel>
-          <dc:Bounds x="2120" y="-568" width="90" height="20" />
         </bpmndi:BPMNLabel>
       </bpmndi:BPMNEdge>
       <bpmndi:BPMNEdge id="SequenceFlow_04gqk5f_di" bpmnElement="SequenceFlow_04gqk5f">
@@ -1861,63 +1919,31 @@
         <dc:Bounds x="2417" y="-701" width="100" height="68" />
       </bpmndi:BPMNShape>
       <bpmndi:BPMNShape id="ExclusiveGateway_1va3cyv_di" bpmnElement="ExclusiveGateway_1va3cyv" isMarkerVisible="true">
-        <dc:Bounds x="2709" y="-568" width="50" height="50" />
+        <dc:Bounds x="2734" y="-568" width="50" height="50" />
         <bpmndi:BPMNLabel>
           <dc:Bounds x="2575" y="-518" width="90" height="20" />
         </bpmndi:BPMNLabel>
       </bpmndi:BPMNShape>
-      <bpmndi:BPMNShape id="SendTask_0nnvoi9_di" bpmnElement="SendTask_0nnvoi9">
-        <dc:Bounds x="2589" y="-434" width="100" height="80" />
-      </bpmndi:BPMNShape>
       <bpmndi:BPMNEdge id="SequenceFlow_1tzuuzb_di" bpmnElement="SequenceFlow_1tzuuzb">
-        <di:waypoint x="2734" y="-518" />
-        <di:waypoint x="2734" y="-394" />
-        <di:waypoint x="2689" y="-394" />
+        <di:waypoint x="2759" y="-518" />
+        <di:waypoint x="2759" y="-394" />
+        <di:waypoint x="2704" y="-394" />
         <bpmndi:BPMNLabel>
-          <dc:Bounds x="2744" y="-459" width="14" height="14" />
+          <dc:Bounds x="2762" y="-488" width="15" height="14" />
         </bpmndi:BPMNLabel>
       </bpmndi:BPMNEdge>
       <bpmndi:BPMNEdge id="SequenceFlow_12nw2g6_di" bpmnElement="SequenceFlow_12nw2g6">
-        <di:waypoint x="2759" y="-543" />
-        <di:waypoint x="2818" y="-543" />
+        <di:waypoint x="2784" y="-543" />
+        <di:waypoint x="2884" y="-543" />
         <bpmndi:BPMNLabel>
-          <dc:Bounds x="2780" y="-561" width="19" height="14" />
+          <dc:Bounds x="2829" y="-561" width="18" height="14" />
         </bpmndi:BPMNLabel>
       </bpmndi:BPMNEdge>
       <bpmndi:BPMNEdge id="SequenceFlow_0wrirru_di" bpmnElement="SequenceFlow_0wrirru">
         <di:waypoint x="2603" y="-543" />
-        <di:waypoint x="2709" y="-543" />
+        <di:waypoint x="2734" y="-543" />
         <bpmndi:BPMNLabel>
           <dc:Bounds x="2497" y="-568" width="90" height="20" />
-        </bpmndi:BPMNLabel>
-      </bpmndi:BPMNEdge>
-      <bpmndi:BPMNEdge id="SequenceFlow_1uk43pr_di" bpmnElement="SequenceFlow_1uk43pr">
-        <di:waypoint x="2589" y="-394" />
-        <di:waypoint x="2553" y="-394" />
-        <di:waypoint x="2553" y="-503" />
-        <bpmndi:BPMNLabel>
-          <dc:Bounds x="2412" y="-419" width="90" height="20" />
-        </bpmndi:BPMNLabel>
-      </bpmndi:BPMNEdge>
-      <bpmndi:BPMNShape id="SendTask_0h92v1l_di" bpmnElement="SendTask_0h92v1l">
-        <dc:Bounds x="1154" y="-420" width="100" height="80" />
-      </bpmndi:BPMNShape>
-      <bpmndi:BPMNEdge id="SequenceFlow_022s5oq_di" bpmnElement="SequenceFlow_022s5oq">
-        <di:waypoint x="1154" y="-380" />
-        <di:waypoint x="956" y="-380" />
-        <di:waypoint x="956" y="-502" />
-        <bpmndi:BPMNLabel>
-          <dc:Bounds x="1010" y="-405" width="90" height="20" />
-        </bpmndi:BPMNLabel>
-      </bpmndi:BPMNEdge>
-      <bpmndi:BPMNShape id="SendTask_16u425r_di" bpmnElement="SendTask_16u425r">
-        <dc:Bounds x="-515" y="-198" width="100" height="80" />
-      </bpmndi:BPMNShape>
-      <bpmndi:BPMNEdge id="SequenceFlow_0bpa0vf_di" bpmnElement="SequenceFlow_0bpa0vf">
-        <di:waypoint x="-465" y="-118" />
-        <di:waypoint x="-465" y="-68" />
-        <bpmndi:BPMNLabel>
-          <dc:Bounds x="-495" y="-103" width="90" height="20" />
         </bpmndi:BPMNLabel>
       </bpmndi:BPMNEdge>
       <bpmndi:BPMNEdge id="SequenceFlow_0wt8cyi_di" bpmnElement="SequenceFlow_0wt8cyi">
@@ -1936,9 +1962,9 @@
       <bpmndi:BPMNEdge id="SequenceFlow_1h33z1j_di" bpmnElement="SequenceFlow_1h33z1j">
         <di:waypoint x="1447" y="-518" />
         <di:waypoint x="1447" y="-380" />
-        <di:waypoint x="1254" y="-380" />
+        <di:waypoint x="1235" y="-380" />
         <bpmndi:BPMNLabel>
-          <dc:Bounds x="1454" y="-452" width="17" height="13" />
+          <dc:Bounds x="1424" y="-488" width="17" height="14" />
         </bpmndi:BPMNLabel>
       </bpmndi:BPMNEdge>
       <bpmndi:BPMNEdge id="SequenceFlow_0qnoc1s_di" bpmnElement="SequenceFlow_0qnoc1s">
@@ -1962,6 +1988,57 @@
       <bpmndi:BPMNShape id="ServiceTask_1vu3yof_di" bpmnElement="Task_0e0k8zf">
         <dc:Bounds x="1711" y="-583" width="100" height="80" />
       </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="TextAnnotation_04y0cwz_di" bpmnElement="TextAnnotation_04y0cwz">
+        <dc:Bounds x="-2211" y="-136" width="100" height="53" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNEdge id="Association_0ckflv3_di" bpmnElement="Association_0ckflv3">
+        <di:waypoint x="-2197" y="-26" />
+        <di:waypoint x="-2172" y="-83" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNShape id="SendTask_0ew7lun_di" bpmnElement="SendTask_0ew7lun">
+        <dc:Bounds x="-9" y="-583" width="100" height="80" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNEdge id="SequenceFlow_1s9raqj_di" bpmnElement="SequenceFlow_1s9raqj">
+        <di:waypoint x="91" y="-543" />
+        <di:waypoint x="326" y="-541" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNShape id="SendTask_17e50lc_di" bpmnElement="SendTask_17e50lc">
+        <dc:Bounds x="731" y="-582" width="100" height="80" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNEdge id="SequenceFlow_1xzw74t_di" bpmnElement="SequenceFlow_1xzw74t">
+        <di:waypoint x="831" y="-542" />
+        <di:waypoint x="906" y="-542" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNShape id="SendTask_1eg26z1_di" bpmnElement="SendTask_1eg26z1">
+        <dc:Bounds x="-515" y="-187" width="100" height="80" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNEdge id="SequenceFlow_1qvyaey_di" bpmnElement="SequenceFlow_1qvyaey">
+        <di:waypoint x="-465" y="-107" />
+        <di:waypoint x="-465" y="-68" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNShape id="SendTask_03gbdcr_di" bpmnElement="SendTask_03gbdcr">
+        <dc:Bounds x="1135" y="-420" width="100" height="80" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNEdge id="SequenceFlow_089w1ym_di" bpmnElement="SequenceFlow_089w1ym">
+        <di:waypoint x="1135" y="-380" />
+        <di:waypoint x="956" y="-380" />
+        <di:waypoint x="956" y="-502" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNShape id="SendTask_0vm80uj_di" bpmnElement="SendTask_0vm80uj">
+        <dc:Bounds x="2604" y="-434" width="100" height="80" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNEdge id="SequenceFlow_0dtnhzk_di" bpmnElement="SequenceFlow_0dtnhzk">
+        <di:waypoint x="2604" y="-394" />
+        <di:waypoint x="2553" y="-394" />
+        <di:waypoint x="2553" y="-503" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNShape id="SendTask_1bv4rlq_di" bpmnElement="SendTask_1bv4rlq">
+        <dc:Bounds x="2151" y="-582" width="100" height="80" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNEdge id="SequenceFlow_1x7548x_di" bpmnElement="SequenceFlow_1x7548x">
+        <di:waypoint x="2251" y="-542" />
+        <di:waypoint x="2308" y="-543" />
+      </bpmndi:BPMNEdge>
     </bpmndi:BPMNPlane>
   </bpmndi:BPMNDiagram>
 </bpmn:definitions>

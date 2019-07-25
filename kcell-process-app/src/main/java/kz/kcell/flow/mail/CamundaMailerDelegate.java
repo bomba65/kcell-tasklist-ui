@@ -28,7 +28,7 @@ public class CamundaMailerDelegate implements JavaDelegate {
     @Autowired
     private JavaMailSender mailSender;
 
-    private final List<String> disabledProcesses = Arrays.asList("AftersalesPBX", "PBX");
+    private final List<String> disabledProcesses = Arrays.asList("AftersalesPBX");
 
     @Override
     public void execute(DelegateExecution delegateExecution) throws Exception {
@@ -138,6 +138,12 @@ public class CamundaMailerDelegate implements JavaDelegate {
             }
         } else {
             sender = "flow@kcell.kz";
+            if (ccAddresses!=null) {
+                String[] ccEmails = separateEmails(ccAddresses);
+                for(String cc : ccEmails) {
+                    helper.addCc(cc);
+                }
+            }
         }
 
 

@@ -135,8 +135,12 @@ public class PBXClientUpdate implements JavaDelegate {
                     }
 
                     params.add(new BasicNameValuePair("channel_type", "1"));
-                    params.add(new BasicNameValuePair("voice_platform", technicalSpecificationsJSON.get("connectionPoint").toString()));
-                    params.add(new BasicNameValuePair("clt_number", technicalSpecificationsJSON.get("pbxNumbers").toString()));
+                    if (technicalSpecificationsJSON.has("connectionPoint")) {
+                        params.add(new BasicNameValuePair("voice_platform", technicalSpecificationsJSON.get("connectionPoint").toString()));
+                    }
+                    if (technicalSpecificationsJSON.has("pbxNumbers")) {
+                        params.add(new BasicNameValuePair("clt_number", technicalSpecificationsJSON.get("pbxNumbers").toString()));
+                    }
 
                     saoRequest.put("params", params.toString());
 
