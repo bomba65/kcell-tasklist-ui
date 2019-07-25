@@ -86,6 +86,15 @@ define(['./module','jquery'], function(app,$){
         };
 
         $scope.getInvoiceRegion = function (invoiceNumber) {
+            if(invoiceNumber.endsWith('-RO-1')){
+                invoiceNumber = invoiceNumber.replace('-RO-1','');
+            }
+            if(invoiceNumber.endsWith('-RO-2')){
+                invoiceNumber = invoiceNumber.replace('-RO-2','');
+            }
+            if(invoiceNumber.endsWith('-RO-3')){
+                invoiceNumber = invoiceNumber.replace('-RO-3','');
+            }
             if (invoiceNumber) {
                 if (invoiceNumber.endsWith("Alm")) {
                     return 'almaty';
@@ -598,7 +607,7 @@ define(['./module','jquery'], function(app,$){
                         'validate_additional_tr_bycenter',
                         'set_additional_materials_dispatch_status'
                     ],
-                        'invoice-open-tasks': [
+                    'invoice-open-tasks': [
                         'ma_sign_region_head',
                         'ma_sign_region_manager',
                         'ma_sign_central_group_specialist',
@@ -702,10 +711,14 @@ define(['./module','jquery'], function(app,$){
 
                     var processQuery = {
                         "processDefinitionKey": "Invoice",
-                        "unfinished": true
+                        "unfinished": true,
+                        "variables": []
                     };
                     if($scope.filter.reason) {
-                        processQuery.variables = [{name:'workType', operator:'eq', value:$scope.filter.reason}];
+                        processQuery.variables.push({name:'workType', operator:'eq', value:$scope.filter.reason});
+                    }
+                    if($scope.filter.mainContract && $scope.filter.mainContract !== 'All') {
+                        processQuery.variables.push({name:'mainContract', operator:'eq', value:$scope.filter.mainContract});
                     }
 
                     var processInstancesPromise = $http.post($scope.baseUrl + '/history/process-instance', processQuery).then(function(response) {
@@ -723,11 +736,15 @@ define(['./module','jquery'], function(app,$){
 
                     var taskQuery = {
                         "processDefinitionKey": 'Invoice',
-                        "unfinished": true
+                        "unfinished": true,
+                        "processVariables": []
                     };
                     if($scope.filter.reason) {
-                        taskQuery.processVariables = [{name:'workType', operator:'eq', value:$scope.filter.reason}];
+                        taskQuery.processVariables.push({name:'workType', operator:'eq', value:$scope.filter.reason});
                     }
+                    if($scope.filter.mainContract && $scope.filter.mainContract !== 'All') {
+                        taskQuery.processVariables.push({name:'mainContract', operator:'eq', value:$scope.filter.mainContract});
+                    }                    
 
                     var taskInstancesPromise = $http.post($scope.baseUrl + '/history/task', taskQuery).then(function(response) {
                         return response.data;
