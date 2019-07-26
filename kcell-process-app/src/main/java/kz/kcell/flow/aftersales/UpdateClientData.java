@@ -2,10 +2,13 @@ package kz.kcell.flow.aftersales;
 
 import org.apache.http.NameValuePair;
 import org.apache.http.client.entity.UrlEncodedFormEntity;
-import org.apache.http.client.methods.HttpPut;
+import org.apache.http.client.methods.CloseableHttpResponse;
+import org.apache.http.client.methods.HttpGet;
+import org.apache.http.client.methods.HttpPost;
 import org.apache.http.impl.client.CloseableHttpClient;
 import org.apache.http.impl.client.HttpClients;
 import org.apache.http.message.BasicNameValuePair;
+import org.apache.http.util.EntityUtils;
 import org.camunda.bpm.engine.HistoryService;
 import org.camunda.bpm.engine.delegate.DelegateExecution;
 import org.camunda.bpm.engine.delegate.JavaDelegate;
@@ -16,12 +19,23 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.Iterator;
 import java.util.List;
 
 @Service("AftersalesUpdateClientData")
 @lombok.extern.java.Log
 
 public class UpdateClientData implements JavaDelegate {
+
+    private static List<String> skippedFields = Arrays.asList(
+        "ID",
+        "IS_ACTIVE",
+        "STATUS",
+        "CREATED_BY",
+        "DATE_CREATED",
+        "IS_DELETED"
+    );
 
     @Autowired
     HistoryService historyService;
@@ -43,8 +57,24 @@ public class UpdateClientData implements JavaDelegate {
             throw new Exception("No fk_client found for BIN '" + clientBIN + "'.");
         }
 
+        CloseableHttpClient client = HttpClients.createDefault();
+        HttpGet getRequest = new HttpGet("http://sao.kcell.kz/apis/PbxClientDetail?fk_client=" + fkClient);
+        CloseableHttpResponse response = client.execute(getRequest);
+        if (response.getStatusLine().getStatusCode() != 200) {
+            throw new Exception("Something went wrong while getting data from SAO... msg: '" + response.getStatusLine().getReasonPhrase() + "'.");
+        }
+        JSONObject clientDetails = new JSONObject(EntityUtils.toString(response.getEntity()));
+        JSONObject clientData = clientDetails.getJSONObject("data");
+
         List<NameValuePair> params = new ArrayList<>();
         params.add(new BasicNameValuePair("fk_client", fkClient));
+
+        Iterator<String> keys = clientData.keys();
+        while (keys.hasNext()) {
+            String key = keys.next();
+            if (skippedFields.contains(key.toUpperCase())) continue;
+            params.add(new BasicNameValuePair(key, clientData.getString(key)));
+        }
 
         if (action.getBoolean("changeNumbers")) {
             String pbxNumbers = techSpecs.getString("pbxNumbers");
@@ -59,13 +89,14 @@ public class UpdateClientData implements JavaDelegate {
             String connectionPoint = techSpecs.getString("connectionPointNew");
             params.add(new BasicNameValuePair("voice_platform", connectionPoint));
         }
-        HttpPut request = new HttpPut("http://sao.kcell.kz/apis/PbxClientUpdate?fk_client=" + fkClient);
-        request.setEntity(new UrlEncodedFormEntity(params,"UTF-8"));
-        CloseableHttpClient client = HttpClients.createDefault();
-        client.execute(request);
+        HttpPost postRequest = new HttpPost("http://sao.kcell.kz/apis/PbxClientUpdate");
+        postRequest.setEntity(new UrlEncodedFormEntity(params,"UTF-8"));
+        client = HttpClients.createDefault();
 
-        //CloseableHttpResponse response = client.execute(request);
-        //response.getStatusLine().getStatusCode() == 200?
+        response = client.execute(postRequest);
+        if (response.getStatusLine().getStatusCode() != 200) {
+            throw new Exception("Something went wrong while posting data to SAO... msg: '" + response.getStatusLine().getReasonPhrase() + "'.");
+        }
     }
 
 
