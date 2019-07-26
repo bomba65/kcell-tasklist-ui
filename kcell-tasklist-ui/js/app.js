@@ -108,6 +108,10 @@ define('app',[
         	);
         },        
         defaults: function ($rootScope, projects, groups, localStorageService){
+			$rootScope.holidays = ['1/1', '2/1', '7/1', '8/3', '21/3',
+                '22/3', '23/3', '1/5', '7/5', '9/5', '10/5', '6/7', '30/8', '1/12', '16/12', '17/12'];
+            $rootScope.weekendWorking = ['4/5/2019'];
+
 			function hasGroup(group){
 				if(groups){
 					return _.some($rootScope.authUser.groups, function(value){

@@ -6,11 +6,10 @@ define(['../module', 'angular', 'angular-ui-bootstrap'], function (app, angular)
         datepickerPopupConfig.showButtonBar = false;
         datepickerConfig.showCustomRangeLabel = true;
         datepickerConfig.startingDay = 1;
-        $provide.decorator('daypickerDirective', function ($delegate) {
+        $provide.decorator('daypickerDirective', function ($delegate, $rootScope) {
             var directive = $delegate[0];
-            var holidays = ['1/1', '2/1', '7/1', '8/3', '21/3',
-                '22/3', '23/3', '1/5', '7/5', '9/5', '10/5', '6/7', '30/8', '1/12', '16/12', '17/12'];
-            var weekendWorking = ['4/5/2019'];
+            var holidays = $rootScope.holidays;
+            var weekendWorking = $rootScope.weekendWorking;
             directive.templateUrl = './js/directives/customCalendar/dayPicker.html';
             var link = directive.link;
             directive.compile = function() {

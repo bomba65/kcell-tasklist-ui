@@ -1,6 +1,6 @@
 define(['../module', 'jquery'], function (app) {
     "use strict";
-    app.directive('calendarRange', function ($timeout, $parse) {
+    app.directive('calendarRange', function ($timeout, $parse, $rootScope) {
         return {
             restrict: 'A',
             //scope: false,
@@ -10,9 +10,8 @@ define(['../module', 'jquery'], function (app) {
                 var element_name = element[0].name;
                 var startDate;
                 var endDate;
-                var holidays = ['1/1', '2/1', '7/1', '8/3', '21/3',
-                    '22/3', '23/3', '1/5', '7/5', '9/5', '10/5', '6/7', '30/8', '1/12', '16/12', '17/12'];
-                var weekend_working = ['4/5/2019'];
+                var holidays = $rootScope.holidays;
+                var weekend_working = $rootScope.weekend_working;
                 var substitues = [];
                 var substitude_done = [];
                 for (var i=0; i<holidays.length; i++) {
