@@ -213,7 +213,7 @@ define(['./module','camundaSDK', 'lodash', 'big-js'], function(module, CamSDK, _
 			$scope.assignmentInProgress = true;
 		}
 
-    $scope.getUser = function(val) {
+    $scope.getTaskAssigneeUserList = function(val) {
       $scope.newAssigneeId = null;
       var users = $http.get('/camunda/api/engine/engine/default/user?firstNameLike='+encodeURIComponent('%'+val+'%')).then(
         function(response){
