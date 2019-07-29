@@ -34,7 +34,10 @@ public class UpdateClientData implements JavaDelegate {
         "STATUS",
         "CREATED_BY",
         "DATE_CREATED",
-        "IS_DELETED"
+        "IS_DELETED",
+        "CLT_NUMBER",
+        "IPS",
+        "VOICE_PLATFORM"
     );
 
     @Autowired
@@ -72,22 +75,37 @@ public class UpdateClientData implements JavaDelegate {
         Iterator<String> keys = clientData.keys();
         while (keys.hasNext()) {
             String key = keys.next();
-            if (skippedFields.contains(key.toUpperCase())) continue;
-            params.add(new BasicNameValuePair(key, clientData.getString(key)));
+            if (!skippedFields.contains(key.toUpperCase())) {
+                params.add(new BasicNameValuePair(key.toLowerCase(), clientData.getString(key)));
+            }
         }
+
+        String ips = null, cltNumber = null, voicePlatform = null;
+        if (clientData.has("IPS")) ips = clientData.getString("IPS");
+        if (clientData.has("CLT_NUMBER")) cltNumber = clientData.getString("CLT_NUMBER");
+        if (clientData.has("VOICE_PLATFORM")) voicePlatform = clientData.getString("VOICE_PLATFORM");
 
         if (action.getBoolean("changeNumbers")) {
             String pbxNumbers = techSpecs.getString("pbxNumbers");
             params.add(new BasicNameValuePair("clt_number", pbxNumbers));
+
+            if (ips != null) params.add(new BasicNameValuePair("ips", ips));
+            if (voicePlatform != null) params.add(new BasicNameValuePair("voice_platform", voicePlatform));
         } else if (action.getBoolean("changeIP")) {
             JSONObject sip = new JSONObject(String.valueOf(techSpecs.get("sip")));
             String voiceIP = sip.getString("newPublicVoiceIP");
             String signalingIP = sip.getString("newSignalingIP");
             if (!voiceIP.equals(signalingIP)) voiceIP += "; " + signalingIP;
             params.add(new BasicNameValuePair("ips", voiceIP));
+
+            if (cltNumber != null) params.add(new BasicNameValuePair("clt_number", cltNumber));
+            if (voicePlatform != null) params.add(new BasicNameValuePair("voice_platform", voicePlatform));
         } else {
             String connectionPoint = techSpecs.getString("connectionPointNew");
             params.add(new BasicNameValuePair("voice_platform", connectionPoint));
+
+            if (ips != null) params.add(new BasicNameValuePair("ips", ips));
+            if (cltNumber != null ) params.add(new BasicNameValuePair("clt_number", cltNumber));
         }
         HttpPost postRequest = new HttpPost("http://sao.kcell.kz/apis/PbxClientUpdate");
         postRequest.setEntity(new UrlEncodedFormEntity(params,"UTF-8"));
