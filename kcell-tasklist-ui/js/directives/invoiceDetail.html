@@ -238,7 +238,7 @@
                             <td>{{w.acceptWorkEndTime | date:'dd.MM.yyyy'}}</td>
                             <td>{{w.priority == 'emergency'?'Emergency':'Regular'}}</td>
                             <td>{{w.materialsRequired}}</td>
-                            <td >
+                            <td>
                                 <div ng-if="w.delayInfo===undefined">
                                     <div ng-show="!emergencyDelayEditable">
                                         {{invoice.emergencyDelay.value[w.processInstanceId + ':' + work.key]}}
@@ -250,7 +250,19 @@
                                     <label class="error" ng-if="kcell_form['emergencyDelay' + $index].$error.required && ( kcell_form['emergencyDelay' + $index].$touched || view.submitted) && emergencyDelayEditable">Required field</label>
                                 </div>
                                 <div ng-if="w.delayInfo!==undefined && w.priority === 'emergency' && !w.alreadyDelayInfoShown">
-                                    {{w.delayInfo}}
+                                    <div ng-if="!print">
+                                        <span class="label label-default">Original: {{w.delayInfo}}</span>
+                                        <span class="label label-primary" ng-if="invoice.delayChanges.value[w.processInstanceId].length > 0">Changed: {{invoice.delayChanges.value[w.processInstanceId][invoice.delayChanges.value[w.processInstanceId].length-1].delay}}</span>
+                                        <div ng-if="invoice.showComments">
+                                            <a ng-click="commentDelayChanges(w.processInstanceId, w.businessKey)">
+                                                <i class="glyphicon glyphicon-comment"></i>
+                                                {{invoice.delayChanges.value[w.processInstanceId][invoice.delayChanges.value[w.processInstanceId].length-1].comment ? 'Edit' : (!invoice.delayChanges.value[w.processInstanceId] && invoice.defaultDelayComments.value[w.processInstanceId] ? 'Edit' : 'Comment')}}
+                                            </a>
+                                        </div>
+                                    </div>
+                                    <div ng-if="print">
+                                        {{invoice.delayChanges.value[w.processInstanceId] && invoice.delayChanges.value[w.processInstanceId][invoice.delayChanges.value[w.processInstanceId].length-1].delay ? invoice.delayChanges.value[w.processInstanceId][invoice.delayChanges.value[w.processInstanceId].length-1].delay : w.delayInfo}}
+                                    </div>
                                 </div>
                             </td>
                             <td>
@@ -265,7 +277,19 @@
                                     <label class="error" ng-if="kcell_form['regularDelay' + $index].$error.required && ( kcell_form['regularDelay' + $index].$touched || view.submitted) && regularDelayEditable">Required field</label>
                                 </div>
                                 <div ng-if="w.delayInfo!==undefined && w.priority !== 'emergency' && !w.alreadyDelayInfoShown">
-                                    {{w.delayInfo}}
+                                    <div ng-if="!print">
+                                        <span class="label label-default">Original: {{w.delayInfo}}</span>
+                                        <span class="label label-primary" ng-if="invoice.delayChanges.value[w.processInstanceId].length > 0">Changed: {{invoice.delayChanges.value[w.processInstanceId][invoice.delayChanges.value[w.processInstanceId].length-1].delay}}</span>
+                                        <div ng-if="invoice.showComments">
+                                            <a ng-click="commentDelayChanges(w.processInstanceId, w.businessKey)">
+                                                <i class="glyphicon glyphicon-comment"></i>
+                                                {{invoice.delayChanges.value[w.processInstanceId][invoice.delayChanges.value[w.processInstanceId].length-1].comment ? 'Edit' : (!invoice.delayChanges.value[w.processInstanceId] && invoice.defaultDelayComments.value[w.processInstanceId] ? 'Edit' : 'Comment')}}
+                                            </a>
+                                        </div>
+                                    </div>
+                                    <div ng-if="print">
+                                        {{invoice.delayChanges.value[w.processInstanceId] && invoice.delayChanges.value[w.processInstanceId][invoice.delayChanges.value[w.processInstanceId].length-1].delay ? invoice.delayChanges.value[w.processInstanceId][invoice.delayChanges.value[w.processInstanceId].length-1].delay : w.delayInfo}}
+                                    </div>
                                 </div>
                             </td>
                             <td ng-if="invoice.showComments">
@@ -325,7 +349,36 @@
                             <td ng-if="invoice.rolloutActType.value == 'RO-2'">{{w.validateTr | date:'dd MMM yyyy'}}</td>
                             <td ng-if="invoice.rolloutActType.value == 'RO-2' || invoice.rolloutActType.value == 'RO-3'">{{w.acceptWorkStartTime | date:'dd MMM yyyy'}}</td>
                             <td ng-if="invoice.rolloutActType.value == 'RO-3'">{{w.acceptWorkEndTime | date:'dd MMM yyyy'}}</td>
-                            <td ng-if="invoice.rolloutActType.value == 'RO-2' || invoice.rolloutActType.value == 'RO-3'">{{w.delayInfo}}</td>
+                            <td ng-if="invoice.rolloutActType.value == 'RO-2'">
+                                <div ng-if="!print">
+                                    <span class="label label-default">Original: {{w.rolloutRO2Delay}}</span>
+                                    <span class="label label-primary" ng-if="invoice.delayChanges.value[w.processInstanceId].length > 0">Changed: {{invoice.delayChanges.value[w.processInstanceId][invoice.delayChanges.value[w.processInstanceId].length-1].delay}}</span>
+                                    <div ng-if="invoice.showComments">
+                                        <a ng-click="commentDelayChanges(w.processInstanceId, w.businessKey)">
+                                            <i class="glyphicon glyphicon-comment"></i>
+                                            {{invoice.delayChanges.value[w.processInstanceId][invoice.delayChanges.value[w.processInstanceId].length-1].comment ? 'Edit' : (!invoice.delayChanges.value[w.processInstanceId] && invoice.defaultDelayComments.value[w.processInstanceId] ? 'Edit' : 'Comment')}}
+                                        </a>
+                                    </div>
+                                </div>
+                                <div ng-if="print">
+                                    {{invoice.delayChanges.value[w.processInstanceId] && invoice.delayChanges.value[w.processInstanceId][invoice.delayChanges.value[w.processInstanceId].length-1].delay ? invoice.delayChanges.value[w.processInstanceId][invoice.delayChanges.value[w.processInstanceId].length-1].delay : w.rolloutRO2Delay}}
+                                </div>
+                            </td>
+                            <td ng-if="invoice.rolloutActType.value == 'RO-3'">
+                                <div ng-if="!print">
+                                    <span class="label label-default">Original: {{w.rolloutRO3Delay}}</span>
+                                    <span class="label label-primary" ng-if="invoice.delayChanges.value[w.processInstanceId].length > 0">Changed: {{invoice.delayChanges.value[w.processInstanceId][invoice.delayChanges.value[w.processInstanceId].length-1].delay}}</span>
+                                    <div ng-if="invoice.showComments">
+                                        <a ng-click="commentDelayChanges(w.processInstanceId, w.businessKey)">
+                                            <i class="glyphicon glyphicon-comment"></i>
+                                            {{invoice.delayChanges.value[w.processInstanceId][invoice.delayChanges.value[w.processInstanceId].length-1].comment ? 'Edit' : (!invoice.delayChanges.value[w.processInstanceId] && invoice.defaultDelayComments.value[w.processInstanceId] ? 'Edit' : 'Comment')}}
+                                        </a>
+                                    </div>
+                                </div>
+                                <div ng-if="print">
+                                    {{invoice.delayChanges.value[w.processInstanceId] && invoice.delayChanges.value[w.processInstanceId][invoice.delayChanges.value[w.processInstanceId].length-1].delay ? invoice.delayChanges.value[w.processInstanceId][invoice.delayChanges.value[w.processInstanceId].length-1].delay : w.rolloutRO3Delay}}
+                                </div>
+                            </td>
                             <td ng-if="invoice.rolloutActType.value == 'RO-2' || invoice.rolloutActType.value == 'RO-3'">{{w.invoiceRO1Number}}</td>
                             <td ng-if="invoice.rolloutActType.value == 'RO-3'">{{w.invoiceRO2Number}}</td>
                         </tr>

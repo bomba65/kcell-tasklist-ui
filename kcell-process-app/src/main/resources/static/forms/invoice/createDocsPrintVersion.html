@@ -19,7 +19,8 @@
                 'monthOfFormalPeriod',
                 'yearOfFormalPeriod',
                 'mainContract',
-                'rolloutActType'
+                'rolloutActType',
+                'delayChanges'
             ];
 
             $scope.printDiv = function(forPrint) {
@@ -148,8 +149,23 @@
                         });
                     });
                     sites[$scope.selectedRevisions.value[propt].site_name] = {};
-                    if($scope.selectedRevisions.value[propt]){
-                        $scope.totalDelay = $scope.totalDelay + $scope.selectedRevisions.value[propt].delayInfo;
+
+                    var delay = 0;
+                    if($scope.mainContract === 'Revision' && $scope.selectedRevisions.value[propt].delayInfo){
+                        delay = $scope.selectedRevisions.value[propt].delayInfo;
+                    } else if($scope.mainContract === 'Roll-out'){
+                        if($scope.rolloutActType === 'RO-2' && $scope.selectedRevisions.value[propt].rolloutRO2Delay){
+                            delay = $scope.selectedRevisions.value[propt].rolloutRO2Delay;
+                        } else if($scope.rolloutActType === 'RO-3' && $scope.selectedRevisions.value[propt].rolloutRO3Delay){
+                            delay = $scope.selectedRevisions.value[propt].rolloutRO3Delay;
+                        }
+                    }
+
+
+                    if($scope.delayChanges.value[propt] && $scope.delayChanges.value[propt].length > 0 && $scope.delayChanges.value[propt][$scope.delayChanges.value[propt].length-1].delay){
+                        $scope.totalDelay = $scope.totalDelay + $scope.delayChanges.value[propt][$scope.delayChanges.value[propt].length-1].delay;
+                    } else{
+                        $scope.totalDelay = $scope.totalDelay + delay;
                     }
                 }
                 $scope.sitesCount = Object.keys(sites).length;

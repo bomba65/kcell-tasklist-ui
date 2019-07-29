@@ -21,7 +21,9 @@
                 'contractor',
                 'mainContract',
                 'rolloutActType',
-                'invoiceNumber'
+                'invoiceNumber',
+                'delayChanges',
+                'defaultDelayComments'
             ];
 
             $scope.regions = [
@@ -205,6 +207,8 @@
                 }
                 $scope.resolutions.push({processInstanceId: $scope.processInstanceId, assignee: $rootScope.authentication.name, assigneeName: $rootScope.authentication.assigneeName, resolution: '', comment: $scope.modifyComment, taskId: camForm.taskId, visibility: visibility});
                 camForm.variableManager.variableValue('resolutions', $scope.resolutions);
+
+                camForm.variableManager.variableValue('delayChanges', $scope.delayChanges);
             });
 
             $scope.isVisible = function (resolution) {
@@ -213,11 +217,7 @@
 
             $scope.open = open;
             $scope.refreshJobRequests = refreshJobRequests;
-            $scope.regionChanged = regionChanged;
-            $scope.workTypeChanged = workTypeChanged;
             $scope.periodDateSelected = periodDateSelected;
-            $scope.formalPeriodMonthSelected = formalPeriodMonthSelected;
-            $scope.formalPeriodYearSelected = formalPeriodYearSelected;
             $scope.addSelected = addSelected;
             $scope.removeJobRequest = removeJobRequest;
             $scope.countSelected = countSelected;
@@ -229,38 +229,13 @@
                 $scope.dateFieldOpened = true;
             };
 
-            function regionChanged(){
-                $scope.regionLabel = $scope.regions.find(function (r) {
-                    return r.id == $scope.region;
-                }).label;
-                $scope.selectedRevisions = {};
-                refreshJobRequests();
-                checkMonthlyActs();
-            }
-
-            function workTypeChanged(){
-                $scope.workTypeLabel = $scope.reasons.find(function (r) {
-                    return r.id == $scope.workType;
-                }).name;
-                $scope.selectedRevisions = {};
-                refreshJobRequests();
-                checkMonthlyActs();
-            }
-
             function periodDateSelected(){
                 $scope.selectedRevisions = {};
                 refreshJobRequests();
             }
 
-            function formalPeriodMonthSelected(){
-                checkMonthlyActs();
-            }
-
-            function formalPeriodYearSelected(){
-                checkMonthlyActs();
-            }
-
             function refreshJobRequests() {
+                $scope.alreadyInInvoiceRevisions = {};
                 $scope.jobRequests = [];
                 reDrawTable();
 
@@ -431,25 +406,31 @@
                         },
                         url: '/camunda/api/engine/engine/default/process-instance'
                     }).then(function (results) {
-                        var invoices = _.map(results.data, _.property('id'));
-                        $http({
-                            method: 'POST',
-                            headers: {'Accept': 'application/hal+json, application/json; q=0.5'},
-                            data: {
-                                processInstanceIdIn: invoices,
-                                "variableName":"selectedRevisions"
-                            },
-                            url: '/camunda/api/engine/engine/default/variable-instance?deserializeValues=false'
-                        }).then(function (result) {
-                            if(result.data){
-                                angular.forEach(result.data, function(revisions){
-                                    for(var propt in JSON.parse(revisions.value)){
-                                        $scope.alreadyInInvoiceRevisions[propt] = {};
-                                        delete $scope.selectedRevisions[propt];
-                                    }
-                                });
-                            }
+                        var checkedList = _.filter(results.data, function(invoice){
+                            return invoice.id !== $scope.processInstanceId;
                         });
+                        var invoices = _.map(checkedList, _.property('id'));
+                        if(invoices.length > 0){
+                            $http({
+                                method: 'POST',
+                                headers: {'Accept': 'application/hal+json, application/json; q=0.5'},
+                                data: {
+                                    processInstanceIdIn: invoices,
+                                    "variableName":"selectedRevisions"
+                                },
+                                url: '/camunda/api/engine/engine/default/variable-instance?deserializeValues=false'
+                            }).then(function (result) {
+                                if(result.data){
+                                    angular.forEach(result.data, function(revisions){
+                                        for(var propt in JSON.parse(revisions.value)){
+                                            $scope.alreadyInInvoiceRevisions[propt] = {};
+                                            delete $scope.selectedRevisions[propt];
+                                            _.remove($scope.jobRequests, function(x) { return x.processInstanceId === propt; });
+                                        }
+                                    });
+                                }
+                            });
+                        }
                     });
                 }
                 if ($scope.mainContract === 'Roll-out' && $scope.rolloutActType && $scope.region && $scope.workType && $scope.periodDate){
@@ -514,6 +495,7 @@
                         processParams.executedActivityIdIn = ['IntermediateThrowEvent_performed_not_accepted'];
                         processParams.variables.push({"name": "rolloutRO2", "operator": "eq", "value": 'false'});
                     } else if($scope.rolloutActType === 'RO-3') {
+                        processParams.executedActivityIdIn = ['IntermediateThrowEvent_wait_tech_acceptance'];
                         processParams.variables.push({"name": "rolloutRO3", "operator": "eq", "value": 'false'});
                     }
 
@@ -581,12 +563,14 @@
                             }
 
                             var counter = 0;
-                            var variables = ['site_name', 'performDate', 'delayInfo', 'contractorJobAssignedDate', 'acceptanceDate'];
+                            var variables = ['site_name', 'performDate', 'contractorJobAssignedDate', 'acceptanceDate'];
                             if($scope.rolloutActType === 'RO-2' || $scope.rolloutActType === 'RO-3'){
+                                variables.push('rolloutRO2Delay');
                                 variables.push('rolloutRO1');
                                 variables.push('invoiceRO1Number');
                             }
                             if($scope.rolloutActType === 'RO-3'){
+                                variables.push('rolloutRO3Delay');
                                 variables.push('rolloutRO2');
                                 variables.push('invoiceRO2Number');
                             }
@@ -863,6 +847,52 @@
                 }
             };
 
+
+            $scope.commentProcessInstanceId = undefined;
+            $scope.commentPkey = undefined;
+            $scope.delayComment = undefined;
+
+            $scope.showComment = function(processInstanceId, key){
+                if($scope.commentProcessInstanceId === processInstanceId && $scope.commentPkey === key){
+                    $scope.commentProcessInstanceId = undefined;
+                    $scope.commentPkey = undefined;
+                    $scope.delayComment = undefined;
+                } else {
+                    $scope.commentProcessInstanceId = processInstanceId;
+                    $scope.commentPkey = key;
+
+                    if($scope.delayChanges[processInstanceId] && $scope.delayChanges[processInstanceId].length > 0){
+                        $scope.delayComment = $scope.delayChanges[processInstanceId][$scope.delayChanges[processInstanceId].length-1].comment;
+                    } else if($scope.defaultDelayComments[processInstanceId]){
+                        $scope.delayComment = $scope.defaultDelayComments[processInstanceId];
+                    }
+                }
+            }
+
+            $scope.showEditDelay = function(processInstanceId){
+                if($scope.delayChanges[processInstanceId] && $scope.delayChanges[processInstanceId].length > 0){
+                    $scope.editDelay = $scope.delayChanges[processInstanceId][$scope.delayChanges[processInstanceId].length-1].delay;
+                } else {
+                    $scope.editDelay = undefined;
+                }
+            }
+
+            $scope.saveEditDelay = function(processInstanceId, editDelay){
+                if(editDelay){
+                    if($scope.delayChanges[processInstanceId] && $scope.delayChanges[processInstanceId].length > 0){
+                        var lastLine = $scope.delayChanges[processInstanceId][$scope.delayChanges[processInstanceId].length-1];
+                        if(lastLine.taskId === camForm.taskId){
+                            lastLine.delay = editDelay;
+                            $scope.delayChanges[processInstanceId][$scope.delayChanges[processInstanceId].length-1] = lastLine;
+                        } else {
+                            $scope.delayChanges[processInstanceId] = [{'delay': editDelay, 'author': $scope.initiatorFull, 'authorName': $rootScope.authentication.name, taskId: camForm.taskId}];
+                        }
+                    } else {
+                        $scope.delayChanges[processInstanceId] = [{'delay': editDelay, 'author': $scope.initiatorFull, 'authorName': $rootScope.authentication.name, taskId: camForm.taskId}];
+                    }
+                }
+            }
+
             function addSelected(){
                 var list = [];
                 $scope.jobRequests.forEach(function (el) {
@@ -1065,35 +1095,32 @@
     <div class="form-group">
         <label class="col-sm-4 control-label">Region:</label>
         <div class="col-sm-3">
-            <select class="form-control" ng-model="region" ng-required="modifyMaTaskResult=='modified'" ng-change="regionChanged()" ng-disabled="mainContract == 'Roll-out'">
+            <select class="form-control" ng-model="region" disabled>
                 <option value="">select region</option>
                 <option value="{{r.id}}" ng-repeat="r in regions" ng-selected="{{r.id == region}}">{{r.label}}</option>
             </select>
-            <label class="error" ng-if="kcell_form.region.$error.required && ( kcell_form.region.$touched || view.submitted)">Required field</label>
         </div>
     </div>
     <div class="form-group">
         <label class="col-sm-4 control-label">Type of works:</label>
         <div class="col-sm-3">
-            <select class="form-control" ng-model="workType" ng-required="modifyMaTaskResult=='modified'" ng-change="workTypeChanged()" ng-disabled="mainContract == 'Roll-out'">
+            <select class="form-control" ng-model="workType" disabled>
                 <option value="">select reason</option>
                 <option value="{{r.id}}" ng-repeat="r in reasons" ng-selected="{{r.id == workType}}">{{r.name}}</option>
             </select>
-            <label class="error" ng-if="kcell_form.workType.$error.required && ( kcell_form.workType.$touched || view.submitted)">Required field</label>
         </div>
     </div>
     <div class="form-group">
         <label class="col-sm-4 control-label">Period:</label>
         <div class="col-sm-3">
-            <select class="select" name="monthOfFormalPeriod" ng-model="monthOfFormalPeriod" ng-required="modifyMaTaskResult=='modified'" ng-change="formalPeriodMonthSelected()" ng-disabled="mainContract == 'Roll-out'">
+            <select class="select" name="monthOfFormalPeriod" ng-model="monthOfFormalPeriod" disabled>
                 <option value="">select month</option>
                 <option ng-repeat="m in months" value="{{m.label}}" ng-selected="{{m.label == monthOfFormalPeriod}}">{{m.label}}</option>
             </select>
-            <select class="custom-select" name="yearOfFormalPeriod" ng-model="yearOfFormalPeriod" ng-required="modifyMaTaskResult=='modified'" ng-change="formalPeriodYearSelected()" ng-disabled="mainContract == 'Roll-out'">
+            <select class="custom-select" name="yearOfFormalPeriod" ng-model="yearOfFormalPeriod" disabled>
                 <option value="">select year</option>
                 <option value="{{y}}" ng-repeat="y in years" ng-selected="{{y == yearOfFormalPeriod}}">{{y}}</option>
             </select>
-            <label class="error" ng-if="(kcell_form.monthOfFormalPeriod.$error.required || kcell_form.yearOfFormalPeriod.$error.required) && (kcell_form.monthOfFormalPeriod.$touched || kcell_form.yearOfFormalPeriod.$touched  || view.submitted)">Required fields</label>
         </div>
     </div>
     <div class="form-group">
@@ -1331,7 +1358,31 @@
                                     <label class="error" ng-if="kcell_form['emergencyDelay' + $index + '-' + $parent.$index].$error.required && ( kcell_form['emergencyDelay' + $index + '-' + $parent.$index].$touched || view.submitted)">Required field</label>
                                 </div>
                                 <div class="input-group" ng-if="w.delayInfo!==undefined && w.priority === 'emergency' && !w.alreadyDelayInfoShown">
-                                    {{w.delayInfo}}
+                                    <div ng-if="!w.delayEdit">
+                                        <span class="label label-default">Original: {{w.delayInfo}}</span>
+                                        <span class="label label-primary" ng-if="delayChanges[w.processInstanceId].length > 0">
+                                        Changed: {{delayChanges[w.processInstanceId][delayChanges[w.processInstanceId].length-1].delay}}
+                                            <a ng-click="showEditDelay(w.processInstanceId); w.delayEdit = true"><i class="glyphicon glyphicon-pencil"></i></a>
+                                        </span>
+                                    </div>
+                                    <div class="input-group" ng-if="w.delayEdit">
+                                        <input type="number" class="form-control" ng-model="editDelay" min="0" name="regularDelay{{$index}}-{{$parent.$parent.$index}}" style="width: 60px;">
+                                        <span class="input-group-btn">
+                                        <button type="button" class="btn btn-default" ng-click="saveEditDelay(w.processInstanceId, editDelay); w.delayEdit = false">
+                                            <i class="glyphicon glyphicon-ok"></i>
+                                        </button>
+                                    </span>
+                                    </div>
+                                    <a ng-if="delayChanges[w.processInstanceId][delayChanges[w.processInstanceId].length-1].comment"
+                                       ng-click="showComment(w.processInstanceId, work.key)"
+                                       style="display:inline-block; width:52px; white-space: nowrap; overflow:hidden !important; text-overflow: ellipsis;">
+                                        <i class="glyphicon glyphicon-comment"></i>{{delayChanges[w.processInstanceId][delayChanges[w.processInstanceId].length-1].comment}}
+                                    </a>
+                                    <a ng-if="!delayChanges[w.processInstanceId][delayChanges[w.processInstanceId].length-1].comment && defaultDelayComments[w.processInstanceId]"
+                                       ng-click="showComment(w.processInstanceId, work.key)"
+                                       style="display:inline-block; width:52px; white-space: nowrap; overflow:hidden !important; text-overflow: ellipsis;">
+                                        <i class="glyphicon glyphicon-comment"></i>{{defaultDelayComments[w.processInstanceId]}}
+                                    </a>
                                 </div>
                             </td>
                             <td>
@@ -1340,7 +1391,31 @@
                                     <label class="error" ng-if="kcell_form['regularDelay' + $index + '-' + $parent.$index].$error.required && ( kcell_form['regularDelay' + $index + '-' + $parent.$index].$touched || view.submitted)">Required field</label>
                                 </div>
                                 <div class="input-group" ng-if="w.delayInfo!==undefined && w.priority !== 'emergency' && !w.alreadyDelayInfoShown">
-                                    {{w.delayInfo}}
+                                    <div ng-if="!w.delayEdit">
+                                        <span class="label label-default">Original: {{w.delayInfo}}</span>
+                                        <span class="label label-primary" ng-if="delayChanges[w.processInstanceId].length > 0">
+                                        Changed: {{delayChanges[w.processInstanceId][delayChanges[w.processInstanceId].length-1].delay}}
+                                            <a ng-click="showEditDelay(w.processInstanceId); w.delayEdit = true"><i class="glyphicon glyphicon-pencil"></i></a>
+                                        </span>
+                                    </div>
+                                    <div class="input-group" ng-if="w.delayEdit">
+                                        <input type="number" class="form-control" ng-model="editDelay" min="0" name="regularDelay{{$index}}-{{$parent.$parent.$index}}" style="width: 60px;">
+                                        <span class="input-group-btn">
+                                        <button type="button" class="btn btn-default" ng-click="saveEditDelay(w.processInstanceId, editDelay); w.delayEdit = false">
+                                            <i class="glyphicon glyphicon-ok"></i>
+                                        </button>
+                                    </span>
+                                    </div>
+                                    <a ng-if="delayChanges[w.processInstanceId][delayChanges[w.processInstanceId].length-1].comment"
+                                       ng-click="showComment(w.processInstanceId, work.key)"
+                                       style="display:inline-block; width:52px; white-space: nowrap; overflow:hidden !important; text-overflow: ellipsis;">
+                                        <i class="glyphicon glyphicon-comment"></i>{{delayChanges[w.processInstanceId][delayChanges[w.processInstanceId].length-1].comment}}
+                                    </a>
+                                    <a ng-if="!delayChanges[w.processInstanceId][delayChanges[w.processInstanceId].length-1].comment && defaultDelayComments[w.processInstanceId]"
+                                       ng-click="showComment(w.processInstanceId, work.key)"
+                                       style="display:inline-block; width:52px; white-space: nowrap; overflow:hidden !important; text-overflow: ellipsis;">
+                                        <i class="glyphicon glyphicon-comment"></i>{{defaultDelayComments[w.processInstanceId]}}
+                                    </a>
                                 </div>
                             </td>
                             <td>
@@ -1355,8 +1430,13 @@
                                 </div>
                             </td>
                         </tr>
+                        <tr ng-if="commentPkey === work.key">
+                            <td colspan="13">
+                                <div class="alert alert-warning" role="alert">{{delayComment}}</div>
+                            </td>
+                        </tr>
                         <tr ng-if="pkey === work.key && jobModel && selectedView === 'table'">
-                            <td colspan="11">
+                            <td colspan="13">
                                 <job-request job-model="jobModel"></job-request>
                             </td>
                         </tr>
@@ -1370,7 +1450,7 @@
                             <th>Position</th>
                             <th>Site info</th>
                             <th colspan="{{rolloutActType == 'RO-1' ? '2' : '4'}}">JR info</th>
-                            <th ng-if="rolloutActType == 'RO-2' || rolloutActType == 'RO-3'">Site info</th>
+                            <th ng-if="rolloutActType == 'RO-2' || rolloutActType == 'RO-3'" colspan="2">Site info</th>
                             <th ng-if="rolloutActType == 'RO-2' || rolloutActType == 'RO-3'" colspan="{{rolloutActType == 'RO-2' ? '1' : '2'}}">Act info</th>
                         </tr>
                         <tr>
@@ -1384,6 +1464,7 @@
                             <th ng-if="rolloutActType == 'RO-2' || rolloutActType == 'RO-3'">Job Request Perform Date</th>
                             <th ng-if="rolloutActType == 'RO-3'">Job Request Acceptance Date</th>
                             <th ng-if="rolloutActType == 'RO-2' || rolloutActType == 'RO-3'">Delay (day)</th>
+                            <th ng-if="rolloutActType == 'RO-2' || rolloutActType == 'RO-3'"></th>
                             <th ng-if="rolloutActType == 'RO-2' || rolloutActType == 'RO-3'">№ act of works ordered</th>
                             <th ng-if="rolloutActType == 'RO-3'">№ act of on-air</th>
                         </tr>
@@ -1401,12 +1482,71 @@
                             <td ng-if="rolloutActType == 'RO-2'">{{w.validateTr | date:'dd MMM yyyy'}}</td>
                             <td ng-if="rolloutActType == 'RO-2' || rolloutActType == 'RO-3'">{{w.acceptWorkStartTime | date:'dd MMM yyyy'}}</td>
                             <td ng-if="rolloutActType == 'RO-3'">{{w.acceptWorkEndTime | date:'dd MMM yyyy'}}</td>
-                            <td ng-if="rolloutActType == 'RO-2' || rolloutActType == 'RO-3'">{{w.delayInfo}}</td>
+                            <td ng-if="rolloutActType == 'RO-2'" colspan="{{w.delayEdit ? '2' : '1'}}">
+                                <div ng-if="!w.delayEdit">
+                                    <span class="label label-default">Original: {{w.rolloutRO2Delay}}</span>
+                                    <span class="label label-primary" ng-if="delayChanges[w.processInstanceId].length > 0">
+                                        Changed: {{delayChanges[w.processInstanceId][delayChanges[w.processInstanceId].length-1].delay}}
+                                    </span>
+                                </div>
+                                <div class="input-group" ng-if="w.delayEdit">
+                                    <input type="number" class="form-control" ng-model="editDelay" min="0" name="regularDelay{{$index}}-{{$parent.$parent.$index}}" style="width: 60px;">
+                                    <span class="input-group-btn">
+                                        <button type="button" class="btn btn-default" ng-click="saveEditDelay(w.processInstanceId, editDelay); w.delayEdit = false">
+                                            <i class="glyphicon glyphicon-ok"></i>
+                                        </button>
+                                    </span>
+                                </div>
+                                <a ng-if="delayChanges[w.processInstanceId][delayChanges[w.processInstanceId].length-1].comment"
+                                   ng-click="showComment(w.processInstanceId, work.key)"
+                                     style="display:inline-block; width:52px; white-space: nowrap; overflow:hidden !important; text-overflow: ellipsis;">
+                                    <i class="glyphicon glyphicon-comment"></i>{{delayChanges[w.processInstanceId][delayChanges[w.processInstanceId].length-1].comment}}
+                                </a>
+                                <a ng-if="!delayChanges[w.processInstanceId][delayChanges[w.processInstanceId].length-1].comment && defaultDelayComments[w.processInstanceId]"
+                                   ng-click="showComment(w.processInstanceId, work.key)"
+                                   style="display:inline-block; width:52px; white-space: nowrap; overflow:hidden !important; text-overflow: ellipsis;">
+                                    <i class="glyphicon glyphicon-comment"></i>{{defaultDelayComments[w.processInstanceId]}}
+                                </a>
+                            </td>
+                            <td ng-if="rolloutActType == 'RO-3'" colspan="{{w.delayEdit ? '2' : '1'}}">
+                                <div ng-if="!w.delayEdit">
+                                    <span class="label label-default">Original: {{w.rolloutRO3Delay}}</span>
+                                    <span class="label label-primary" ng-if="delayChanges[w.processInstanceId].length > 0">
+                                        Changed: {{delayChanges[w.processInstanceId][delayChanges[w.processInstanceId].length-1].delay}}
+                                    </span>
+                                </div>
+                                <div class="input-group" ng-if="w.delayEdit">
+                                    <input type="number" class="form-control" ng-model="editDelay" min="0" name="regularDelay{{$index}}-{{$parent.$parent.$index}}" style="width: 60px;">
+                                    <span class="input-group-btn">
+                                        <button type="button" class="btn btn-default" ng-click="saveEditDelay(w.processInstanceId, editDelay); w.delayEdit = false">
+                                            <i class="glyphicon glyphicon-ok"></i>
+                                        </button>
+                                    </span>
+                                </div>
+                                <a ng-if="delayChanges[w.processInstanceId][delayChanges[w.processInstanceId].length-1].comment"
+                                   ng-click="showComment(w.processInstanceId, work.key)"
+                                   style="display:inline-block; width:52px; white-space: nowrap; overflow:hidden !important; text-overflow: ellipsis;">
+                                    <i class="glyphicon glyphicon-comment"></i>{{delayChanges[w.processInstanceId][delayChanges[w.processInstanceId].length-1].comment}}
+                                </a>
+                                <a ng-if="!delayChanges[w.processInstanceId][delayChanges[w.processInstanceId].length-1].comment && defaultDelayComments[w.processInstanceId]"
+                                   ng-click="showComment(w.processInstanceId, work.key)"
+                                   style="display:inline-block; width:52px; white-space: nowrap; overflow:hidden !important; text-overflow: ellipsis;">
+                                    <i class="glyphicon glyphicon-comment"></i>{{defaultDelayComments[w.processInstanceId]}}
+                                </a>
+                            </td>
+                            <td ng-if="!w.delayEdit">
+                                <a ng-click="showEditDelay(w.processInstanceId); w.delayEdit = true"><i class="glyphicon glyphicon-pencil"></i></a>
+                            </td>
                             <td ng-if="rolloutActType == 'RO-2' || rolloutActType == 'RO-3'">{{w.invoiceRO1Number}}</td>
                             <td ng-if="rolloutActType == 'RO-3'">{{w.invoiceRO2Number}}</td>
                         </tr>
+                        <tr ng-if="commentPkey === work.key">
+                            <td colspan="{{rolloutActType == 'RO-3' ? '12' : (rolloutActType == 'RO-2' ? '11' : '6')}}">
+                                <div class="alert alert-warning" role="alert">{{delayComment}}</div>
+                            </td>
+                        </tr>
                         <tr ng-if="pkey === work.key && jobModel && selectedView === 'table'">
-                            <td colspan="{{rolloutActType == 'RO-3' ? '11' : (rolloutActType == 'RO-2' ? '10' : '6')}}">
+                            <td colspan="{{rolloutActType == 'RO-3' ? '12' : (rolloutActType == 'RO-2' ? '11' : '6')}}">
                                 <job-request job-model="jobModel"></job-request>
                             </td>
                         </tr>

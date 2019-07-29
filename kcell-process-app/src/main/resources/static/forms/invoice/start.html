@@ -151,7 +151,20 @@
                     type: 'String',
                     submit: true,
                     store: true
+                },
+                {
+                    name: 'delayChanges',
+                    type: 'Json',
+                    submit: true,
+                    store: true
+                },
+                {
+                    name: 'defaultDelayComments',
+                    type: 'Json',
+                    submit: true,
+                    store: true
                 }
+
             ];
 
             $scope.regions = [
@@ -217,6 +230,8 @@
             $scope.alreadyInInvoiceRevisions = {};
             $scope.emergencyDelay = {};
             $scope.regularDelay = {};
+            $scope.delayChanges = {};
+            $scope.defaultDelayComments = {};
             $scope.jobRequests = [];
             $scope.previousInvoiceCount = 0;
 
@@ -339,6 +354,25 @@
                 camForm.variableManager.variableValue('emergencyDelay', $scope.emergencyDelay);
                 camForm.variableManager.variableValue('mainContract', $scope.mainContract);
                 camForm.variableManager.variableValue('rolloutActType', $scope.rolloutActType);
+
+                var editedDelayChanges = {};
+                for(var propt in $scope.delayChanges){
+
+                    var originalDelay = undefined;
+                    if($scope.mainContract === 'Revision'){
+                        originalDelay = $scope.selectedRevisions.delayInfo;
+                    } else if($scope.mainContract === 'Roll-out' && $scope.rolloutActType === 'RO-2'){
+                        originalDelay = $scope.selectedRevisions.rolloutRO2Delay;
+                    } else if($scope.mainContract === 'Roll-out' && $scope.rolloutActType === 'RO-3'){
+                        originalDelay = $scope.selectedRevisions.rolloutRO3Delay;
+                    }
+
+                    if($scope.delayChanges[propt] >= 0 && $scope.delayChanges[propt] !== originalDelay){
+                        editedDelayChanges[propt] = [{'delay': $scope.delayChanges[propt], 'author': $scope.initiatorFull, 'authorName': $rootScope.authentication.name}];
+                    }
+                }
+                camForm.variableManager.variableValue('delayChanges', editedDelayChanges);
+                camForm.variableManager.variableValue('defaultDelayComments', $scope.defaultDelayComments);
             });
 
             $scope.open = open;
@@ -405,6 +439,7 @@
             }
 
             function refreshJobRequests() {
+                $scope.alreadyInInvoiceRevisions = {};
                 $scope.jobRequests = [];
                 reDrawTable();
 
@@ -688,12 +723,14 @@
 
                         if($scope.jobRequests.length > 0){
                             var counter = 0;
-                            var variables = ['site_name', 'performDate', 'delayInfo', 'contractorJobAssignedDate', 'acceptanceDate'];
+                            var variables = ['site_name', 'performDate', 'contractorJobAssignedDate', 'acceptanceDate'];
                             if($scope.rolloutActType === 'RO-2' || $scope.rolloutActType === 'RO-3'){
+                                variables.push('rolloutRO2Delay');
                                 variables.push('rolloutRO1');
                                 variables.push('invoiceRO1Number');
                             }
                             if($scope.rolloutActType === 'RO-3'){
+                                variables.push('rolloutRO3Delay');
                                 variables.push('rolloutRO2');
                                 variables.push('invoiceRO2Number');
                             }
@@ -1499,7 +1536,20 @@
                                         <label class="error" ng-if="kcell_form['emergencyDelay' + $index + '-' + $parent.$index].$error.required && ( kcell_form['emergencyDelay' + $index + '-' + $parent.$index].$touched || view.submitted)">Required field</label>
                                     </div>
                                     <div class="input-group" ng-if="w.delayInfo!==undefined && w.priority === 'emergency' && !w.alreadyDelayInfoShown">
-                                        {{w.delayInfo}}
+                                        <div ng-show="!w.delayEdit">
+                                            {{delayChanges[w.processInstanceId] ? delayChanges[w.processInstanceId] : w.delayInfo}} {{}}
+                                            <a ng-click="w.delayEdit = true"><i class="glyphicon glyphicon-pencil"></i></a>
+                                        </div>
+                                        <div ng-show="w.delayEdit">
+                                            <div class="input-group">
+                                                <input type="number" class="form-control" ng-model="delayChanges[w.processInstanceId]" min="0" name="regularDelay{{$index}}-{{$parent.$parent.$index}}" style="width: 60px;">
+                                                <span class="input-group-btn">
+                                                    <button type="button" class="btn btn-default" ng-click="w.delayEdit = false">
+                                                        <i class="glyphicon glyphicon-ok"></i>
+                                                    </button>
+                                                </span>
+                                            </div>
+                                        </div>
                                     </div>
                                 </td>
                                 <td>
@@ -1508,7 +1558,20 @@
                                         <label class="error" ng-if="kcell_form['regularDelay' + $index + '-' + $parent.$index].$error.required && ( kcell_form['regularDelay' + $index + '-' + $parent.$index].$touched || view.submitted)">Required field</label>
                                     </div>
                                     <div class="input-group" ng-if="w.delayInfo!==undefined && w.priority !== 'emergency' && !w.alreadyDelayInfoShown">
-                                        {{w.delayInfo}}
+                                        <div ng-show="!w.delayEdit">
+                                            {{delayChanges[w.processInstanceId] ? delayChanges[w.processInstanceId] : w.delayInfo}} {{}}
+                                            <a ng-click="w.delayEdit = true"><i class="glyphicon glyphicon-pencil"></i></a>
+                                        </div>
+                                        <div ng-show="w.delayEdit">
+                                            <div class="input-group">
+                                                <input type="number" class="form-control" ng-model="delayChanges[w.processInstanceId]" min="0" name="regularDelay{{$index}}-{{$parent.$parent.$index}}" style="width: 60px;">
+                                                <span class="input-group-btn">
+                                                    <button type="button" class="btn btn-default" ng-click="w.delayEdit = false">
+                                                        <i class="glyphicon glyphicon-ok"></i>
+                                                    </button>
+                                                </span>
+                                            </div>
+                                        </div>
                                     </div>
                                 </td>
                             </tr>
@@ -1558,7 +1621,38 @@
                                     <td ng-if="rolloutActType == 'RO-2'">{{w.validateTr | date:'dd MMM yyyy'}}</td>
                                     <td ng-if="rolloutActType == 'RO-2' || rolloutActType == 'RO-3'">{{w.acceptWorkStartTime | date:'dd MMM yyyy'}}</td>
                                     <td ng-if="rolloutActType == 'RO-3'">{{w.acceptWorkEndTime | date:'dd MMM yyyy'}}</td>
-                                    <td ng-if="rolloutActType == 'RO-2' || rolloutActType == 'RO-3'">{{w.delayInfo}}</td>
+                                    <td ng-if="rolloutActType == 'RO-2'">
+                                        <div ng-show="!w.delayEdit">
+                                            {{delayChanges[w.processInstanceId] ? delayChanges[w.processInstanceId] : w.rolloutRO2Delay}} {{}}
+                                            <a ng-click="w.delayEdit = true"><i class="glyphicon glyphicon-pencil"></i></a>
+                                        </div>
+                                        <div ng-show="w.delayEdit">
+                                            <div class="input-group">
+                                                <input type="number" class="form-control" ng-model="delayChanges[w.processInstanceId]" min="0" name="regularDelay{{$index}}-{{$parent.$parent.$index}}" style="width: 60px;">
+                                                <span class="input-group-btn">
+                                                    <button type="button" class="btn btn-default" ng-click="w.delayEdit = false">
+                                                        <i class="glyphicon glyphicon-ok"></i>
+                                                    </button>
+                                                </span>
+                                            </div>
+                                        </div>
+                                    </td>
+                                    <td ng-if="rolloutActType == 'RO-3'">
+                                        <div ng-show="!w.delayEdit">
+                                            {{delayChanges[w.processInstanceId] ? delayChanges[w.processInstanceId] : w.rolloutRO3Delay}} {{}}
+                                            <a ng-click="w.delayEdit = true"><i class="glyphicon glyphicon-pencil"></i></a>
+                                        </div>
+                                        <div ng-show="w.delayEdit">
+                                            <div class="input-group">
+                                                <input type="number" class="form-control" ng-model="delayChanges[w.processInstanceId]" min="0" name="regularDelay{{$index}}-{{$parent.$parent.$index}}" style="width: 60px;">
+                                                <span class="input-group-btn">
+                                                    <button type="button" class="btn btn-default" ng-click="w.delayEdit = false">
+                                                        <i class="glyphicon glyphicon-ok"></i>
+                                                    </button>
+                                                </span>
+                                            </div>
+                                        </div>
+                                    </td>
                                     <td ng-if="rolloutActType == 'RO-2' || rolloutActType == 'RO-3'">{{w.invoiceRO1Number}}</td>
                                     <td ng-if="rolloutActType == 'RO-3'">{{w.invoiceRO2Number}}</td>
                                 </tr>

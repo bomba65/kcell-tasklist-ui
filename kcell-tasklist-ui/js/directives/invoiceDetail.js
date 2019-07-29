@@ -1,6 +1,6 @@
 define(['./module'], function(module){
 	'use strict';
-	module.directive('invoiceDetail', function ($rootScope, $http, $timeout) {
+	module.directive('invoiceDetail', function ($rootScope, $http, $timeout, exModal) {
 		return {
 			restrict: 'E',
 			scope: {
@@ -159,6 +159,36 @@ define(['./module'], function(module){
                 }
                 scope.orderBusinessKey = function(w){
                     return Number(w.businessKey.substr(w.businessKey.lastIndexOf("-")+1, w.businessKey.length));
+                }
+                scope.commentDelayChanges = function(processInstanceId, businessKey){
+                    var comment = '';
+                    var delayedEdited = false;
+                    if(scope.invoice.delayChanges.value[processInstanceId] && scope.invoice.delayChanges.value[processInstanceId].length > 0){
+                        if(scope.invoice.delayChanges.value[processInstanceId][scope.invoice.delayChanges.value[processInstanceId].length-1].comment){
+                            comment = scope.invoice.delayChanges.value[processInstanceId][scope.invoice.delayChanges.value[processInstanceId].length-1].comment;
+                        }
+                        delayedEdited = true;
+                    } else if(scope.invoice.defaultDelayComments.value[processInstanceId]){
+                        comment = scope.invoice.defaultDelayComments.value[processInstanceId];
+                    }
+
+                    exModal.open({
+                    scope: {
+                        comment: comment,
+                        processInstanceId: processInstanceId,
+                        businessKey: businessKey
+                    },
+                    templateUrl: './js/partials/invoice/comment.html',
+                    size: 'md'
+                    }).then(function (comment) {
+                        if(delayedEdited){
+                            var lastline = scope.invoice.delayChanges.value[processInstanceId][scope.invoice.delayChanges.value[processInstanceId].length-1];
+                            lastline.comment = comment;
+                            scope.invoice.delayChanges.value[processInstanceId][scope.invoice.delayChanges.value[processInstanceId].length-1] = lastline;                            
+                        } else {
+                            scope.invoice.defaultDelayComments.value[processInstanceId] = comment;
+                        }
+                    });
                 }
 	        },
 			templateUrl: './js/directives/invoiceDetail.html'
