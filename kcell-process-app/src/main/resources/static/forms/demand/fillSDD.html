@@ -36,6 +36,7 @@
                 components: {},
                 section: 0
             };
+            $scope.testCases = {};
             $scope.resolutions = [];
             $scope.attachments = [];
             $scope.supportiveInputs = [];
@@ -97,6 +98,7 @@
                 camForm.variableManager.fetchVariable('oldStatus');
                 camForm.variableManager.fetchVariable('businessKey');
                 camForm.variableManager.fetchVariable('demandName');
+                camForm.variableManager.fetchVariable('testCases');
             });
 
             camForm.on('variables-fetched', function () {
@@ -112,7 +114,8 @@
                 $scope.status = camForm.variableManager.variableValue('status');
                 $scope.state = camForm.variableManager.variableValue('state');
                 $scope.businessKey = camForm.variableManager.variableValue('businessKey');
-                $scope.businessKey = camForm.variableManager.variableValue('demandName');
+                $scope.demandName = camForm.variableManager.variableValue('demandName');
+                $scope.testCases = camForm.variableManager.variableValue('testCases');
                 if (!$scope.attachments) $scope.attachments = [];
                 if (!$scope.supportiveInputs) $scope.supportiveInputs = [];
                 if (!$scope.SDDData) {
@@ -123,6 +126,7 @@
                       components: {}
                   };
                 }
+                if (!$scope.testCases) $scope.testCases = {};
                 for (var i of $scope.supportiveInputs) {
                     if (i.form == 'HR') $scope.resources = $scope.resources.concat(i.value);
                     else if (i.form == 'CPD') $scope.materials = $scope.materials.concat(i.value);
@@ -135,6 +139,11 @@
                 $http.get("/camunda/api/engine/engine/default/user/" + $scope.solutionOwner + "/profile").then(function(result){
                     $scope.solutionOwner = (result.data.firstName ? result.data.firstName : "") + " " + (result.data.lastName ? result.data.lastName : "");
                 });
+
+                $scope.useCases = null;
+                if ($scope.BRDData && $scope.BRDData.funcRequirements && $scope.BRDData.funcRequirements.useCases) {
+                  $scope.useCases = $scope.BRDData.funcRequirements.useCases;
+                }
 
                 dataLoaded = true;
 
@@ -248,7 +257,7 @@
                 $http.put('/camunda/api/engine/engine/default/process-instance/'+$scope.processInstanceId+'/variables/SDDData',{"type":"Json","value": json}).then(
                     function() {
                         success++;
-                        if (success == 2 && clicked) toasty.success( "Данные успешно сохранены!");
+                        if (success == 3 && clicked) toasty.success( "Данные успешно сохранены!");
                     },
                     function(error) {
                         if (clicked) toasty.error(error.data.message);
@@ -261,7 +270,20 @@
                 $http.put('/camunda/api/engine/engine/default/process-instance/'+$scope.processInstanceId+'/variables/attachments',{"type":"Json","value": json}).then(
                     function() {
                         success++;
-                        if (success == 2 && clicked) toasty.success( "Данные успешно сохранены!");
+                        if (success == 3 && clicked) toasty.success( "Данные успешно сохранены!");
+                    },
+                    function(error) {
+                        if (clicked) toasty.error(error.data.message);
+                    }
+                );
+                json = JSON.stringify($scope.testCases, function( key, value ) {
+                    if( key === "$$hashKey" ) return undefined;
+                    return value;
+                });
+                $http.put('/camunda/api/engine/engine/default/process-instance/'+$scope.processInstanceId+'/variables/testCases',{"type":"Json","value": json}).then(
+                    function() {
+                        success++;
+                        if (success == 3 && clicked) toasty.success( "Данные успешно сохранены!");
                     },
                     function(error) {
                         if (clicked) toasty.error(error.data.message);
@@ -313,6 +335,22 @@
                   });
                 });
             };
+
+            $scope.tabs = { SDD: true, UAT: false };
+
+            $scope.changeToUATTab = function() {
+              $(".scrollable").scrollTop(0);
+              $scope.tabs.SDD = false;
+              $scope.tabs.UAT = true;
+            };
+
+            $scope.testCasesSize = 0;
+            $scope.$watch('testCases', function() {
+              $scope.testCasesSize = 0;
+              if ($scope.testCases)
+                for (var key in $scope.testCases)
+                  $scope.testCasesSize += $scope.testCases[key].length;
+            }, true);
         }]);
     </script>
   <div class="hide-in-print">
@@ -538,10 +576,9 @@
         </div>
       </div>
     </tab>
-    <tab active="true">
+    <tab active="tabs.SDD">
       <tab-heading> SDD </tab-heading>
       <div style="margin-top: 20px;">
-        <div class="col-sm-12 text-center"><h2>SDD</h2></div>
         <div class="form-group">
           <label class="control-label col-sm-12">Glossary</label>
           <div class="col-sm-12 no-margin-panel">
@@ -628,117 +665,132 @@
         </div>
       </div>
     </tab>
+    <tab active="tabs.UAT">
+      <tab-heading> UAT </tab-heading>
+      <div style="margin-top: 20px;">
+        <accordion class="content-visible-accordion" ng-if="tabs.UAT">
+          <accordion-group is-open="true">
+            <accordion-heading>
+              Test cases <i class="pull-right glyphicon" ng-class="{'glyphicon-chevron-up': status.isCustomHeaderOpen, 'glyphicon-chevron-down': !status.isCustomHeaderOpen}"></i>
+            </accordion-heading>
+            <demand-test-cases data="testCases" use-cases="useCases" form="kcell_form" view="view"></demand-test-cases>
+          </accordion-group>
+        </accordion>
+      </div>
+    </tab>
   </tabset>
 
-  <div class="hide-in-print">
-    <div class="col-sm-12" style="margin-top: 20px;"><hr style="border-top: 2px solid #aaa;" /></div>
+  <div class="col-sm-12" style="margin-top: 20px;"><hr style="border-top: 2px solid #aaa;" /></div>
 
-    <div class="col-sm-12" style="padding: 0;">
-      <div class="panel-group custom-panel">
-        <div class="panel panel-default">
-          <div class="panel-heading">
-            <h4 class="panel-title">Order draft <span title='Заполняется текст приказа' style="color: #682d86" class="glyphicon glyphicon-question-sign"></span></h4>
+  <div class="col-sm-12" style="margin-bottom: 20px;">
+    <button type="button" ng-click="changeToUATTab()" class="btn btn-success" style="padding: 6px 28px">Add Test cases</button>
+  </div>
+
+  <div class="col-sm-12" style="padding: 0;">
+    <div class="panel-group custom-panel">
+      <div class="panel panel-default">
+        <div class="panel-heading">
+          <h4 class="panel-title">Order draft <span title='Заполняется текст приказа' style="color: #682d86" class="glyphicon glyphicon-question-sign"></span></h4>
+        </div>
+        <div class="panel-body">
+          <div class="col-sm-12">
+            <demand-rich-text data="BCData.orderDraft" min-height="100" disabled="true"></demand-rich-text>
           </div>
-          <div class="panel-body">
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="col-sm-7" style="padding: 0;">
+    <div class="panel-group custom-panel">
+      <div class="panel panel-default">
+        <div class="panel-heading">
+          <h4 class="panel-title">Project team</h4>
+        </div>
+        <div class="panel-body">
+          <div class="form-group">
+            <label class="col-sm-6 control-label">Requirement manager</label>
+            <div class="col-sm-6">
+              <div class="disabled-element">{{requirementManager}}</div>
+            </div>
+          </div>
+          <div class="form-group">
+            <label class="col-sm-6 control-label">Solution owner</label>
+            <div class="col-sm-6">
+              <div class="disabled-element">{{solutionOwner}}</div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="col-sm-12" style="padding: 0;">
+    <div class="panel-group custom-panel">
+      <div class="panel panel-default">
+        <div class="panel-heading">
+          <h4 class="panel-title">Attachments</h4>
+        </div>
+        <div class="panel-body">
+          <iframe id="fileDownloadIframe" style="display:none;"></iframe>
+          <div class="form-group">
             <div class="col-sm-12">
-              <demand-rich-text data="BCData.orderDraft" min-height="100" disabled="true"></demand-rich-text>
-            </div>
-          </div>
-        </div>
-      </div>
-    </div>
-
-    <div class="col-sm-7" style="padding: 0;">
-      <div class="panel-group custom-panel">
-        <div class="panel panel-default">
-          <div class="panel-heading">
-            <h4 class="panel-title">Project team</h4>
-          </div>
-          <div class="panel-body">
-            <div class="form-group">
-              <label class="col-sm-6 control-label">Requirement manager</label>
-              <div class="col-sm-6">
-                <div class="disabled-element">{{requirementManager}}</div>
+              <div class="col-sm-12" style="margin-bottom: 10px;">
+                <input type="file" class="form-control" id="attachments" name="attachments" onchange="angular.element(this).scope().fileSelected(this)"/>
               </div>
-            </div>
-            <div class="form-group">
-              <label class="col-sm-6 control-label">Solution owner</label>
-              <div class="col-sm-6">
-                <div class="disabled-element">{{solutionOwner}}</div>
-              </div>
-            </div>
-          </div>
-        </div>
-      </div>
-    </div>
-
-    <div class="col-sm-12" style="padding: 0;">
-      <div class="panel-group custom-panel">
-        <div class="panel panel-default">
-          <div class="panel-heading">
-            <h4 class="panel-title">Attachments</h4>
-          </div>
-          <div class="panel-body">
-            <iframe id="fileDownloadIframe" style="display:none;"></iframe>
-            <div class="form-group">
               <div class="col-sm-12">
-                <div class="col-sm-12" style="margin-bottom: 10px;">
-                  <input type="file" class="form-control" id="attachments" name="attachments" onchange="angular.element(this).scope().fileSelected(this)"/>
-                </div>
-                <div class="col-sm-12">
-                  <table class="table ">
-                    <thead>
-                    <tr>
-                      <th>File Name</th>
-                      <th>Created</th>
-                      <th>Created By</th>
-                      <th>Delete</th>
-                    </tr>
-                    </thead>
-                    <tbody>
-                    <tr ng-repeat="file in attachments track by $index">
-                      <td><a ng-click="downloadFile(file)">{{file.name}}</a></td>
-                      <td>{{file.created | date: 'dd.MM.yyyy HH:mm'}}</td>
-                      <td>{{file.createdBy}}</td>
-                      <td><a ng-click="clearFile($index)" ng-if="file.createdBy == assigneeName"><i class="glyphicon glyphicon-trash"></i></a></td>
-                    </tr>
-                    </tbody>
-                  </table>
-                </div>
+                <table class="table ">
+                  <thead>
+                  <tr>
+                    <th>File Name</th>
+                    <th>Created</th>
+                    <th>Created By</th>
+                    <th>Delete</th>
+                  </tr>
+                  </thead>
+                  <tbody>
+                  <tr ng-repeat="file in attachments track by $index">
+                    <td><a ng-click="downloadFile(file)">{{file.name}}</a></td>
+                    <td>{{file.created | date: 'dd.MM.yyyy HH:mm'}}</td>
+                    <td>{{file.createdBy}}</td>
+                    <td><a ng-click="clearFile($index)" ng-if="file.createdBy == assigneeName"><i class="glyphicon glyphicon-trash"></i></a></td>
+                  </tr>
+                  </tbody>
+                </table>
               </div>
             </div>
           </div>
         </div>
       </div>
     </div>
+  </div>
 
-    <div class="col-sm-12" style="margin-bottom: 20px;">
-      <button type="button" ng-click="saveFillForm(true)" class="btn btn-success" style="padding: 6px 28px">Save</button>
-      <button type="button" ng-click="printPDF()" class="btn btn-info">Export SDD to PDF</button>
-    </div>
+  <div class="col-sm-12" style="margin-bottom: 20px;">
+    <button type="button" ng-click="saveFillForm(true)" class="btn btn-success" style="padding: 6px 28px">Save</button>
+    <button type="button" ng-click="printPDF()" class="btn btn-info">Export SDD to PDF</button>
+  </div>
 
-    <div ng-show="showSDDPDF">
-      <demand-sdd-pdf date="sddPDFDate" data="SDDData" element-id="'pdfDiv'" b-key="businessKey" d-name="demandName" d-description="generalData.general.description"></demand-sdd-pdf>
-    </div>
+  <div ng-show="showSDDPDF">
+    <demand-sdd-pdf date="sddPDFDate" data="SDDData" element-id="'pdfDiv'" b-key="businessKey" d-name="demandName" d-description="generalData.general.description"></demand-sdd-pdf>
+  </div>
 
-    <div class="form-group">
-      <label class="col-sm-2 control-label">Resolution</label>
-      <div class="col-sm-10">
-        <label class="radio-inline">
-          <input type="radio" ng-model="resolution" name="resolution" value="Submit" required> Submit
-        </label>
-        <label class="radio-inline">
-          <input type="radio" ng-model="resolution" name="resolution" value="Send to Assign Solution owner" required> Send to Assign Solution owner
-        </label>
-        <label class="error" ng-show="kcell_form.resolution.$error.required && ( kcell_form.resolution.$touched || view.submitted)">Required field</label>
-      </div>
+  <div class="form-group">
+    <label class="col-sm-2 control-label">Resolution</label>
+    <div class="col-sm-10">
+      <label class="radio-inline" ng-show="testCasesSize > 0">
+        <input type="radio" ng-model="resolution" name="resolution" value="Submit" required> Submit
+      </label>
+      <label class="radio-inline">
+        <input type="radio" ng-model="resolution" name="resolution" value="Send to Assign Solution owner" required> Send to Assign Solution owner
+      </label>
+      <label class="error" ng-show="kcell_form.resolution.$error.required && ( kcell_form.resolution.$touched || view.submitted)">Required field</label>
     </div>
-    <div class="form-group">
-      <label class="col-sm-2 control-label">Comment<span class="text-danger glyphicon-asterisk"></span></label>
-      <div class="col-sm-10">
-        <textarea class="form-control" rows="4" maxlength="500" ng-model="comment" name="comment" required></textarea>
-        <label class="error" ng-show="kcell_form.comment.$error.required && ( kcell_form.comment.$touched || view.submitted)">Required field</label>
-      </div>
+  </div>
+  <div class="form-group">
+    <label class="col-sm-2 control-label">Comment<span class="text-danger glyphicon-asterisk"></span></label>
+    <div class="col-sm-10">
+      <textarea class="form-control" rows="4" maxlength="500" ng-model="comment" name="comment" required></textarea>
+      <label class="error" ng-show="kcell_form.comment.$error.required && ( kcell_form.comment.$touched || view.submitted)">Required field</label>
     </div>
   </div>
 </form>

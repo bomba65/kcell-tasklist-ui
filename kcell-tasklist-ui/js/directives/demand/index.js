@@ -14,5 +14,6 @@ define([
     './demandDropdown',
     './sddFieldConstructor',
     './sddSections',
-    './sddPdf'
+    './sddPdf',
+    './testCases'
 ], function(){});
