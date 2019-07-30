@@ -678,8 +678,13 @@ define(['./module', 'jquery', 'moment', 'camundaSDK'], function (app, $, moment,
                         url: baseUrl + '/task?processInstanceId=' + $scope.processInstances[index].id,
                     }).then(
                         function (tasks) {
+                            var asynCall1 = false;
+                            var asynCall2 = false;
+                            var asynCall3 = false;
                             var processInstanceTasks = tasks.data._embedded.task;
                             if (processInstanceTasks && processInstanceTasks.length > 0) {
+                                var groupasynCalls = 0;
+                                var maxGroupAsynCalls = processInstanceTasks.length;
                                 processInstanceTasks.forEach(function (e) {
                                     if (e.assignee && tasks.data._embedded.assignee) {
                                         for (var i = 0; i < tasks.data._embedded.assignee.length; i++) {
@@ -696,13 +701,44 @@ define(['./module', 'jquery', 'moment', 'camundaSDK'], function (app, $, moment,
                                         function (taskResult) {
                                             if (taskResult.data._embedded && taskResult.data._embedded.group) {
                                                 e.group = taskResult.data._embedded.group[0].id;
+                                                groupasynCalls+=1;
+                                                if (groupasynCalls === maxGroupAsynCalls) {
+                                                    asynCall1 = true;
+                                                    if (asynCall1 && asynCall2) {
+                                                        openProcessCardModalRevision(processDefinitionId, businessKey, index);
+                                                        asynCall1 = false;
+                                                    }  else console.log('aynCall 2 problem');
+                                                } else {
+                                                    console.log(groupasynCalls, maxGroupAsynCalls);
+
+                                                }
+                                            } else {
+                                                groupasynCalls+=1;
+                                                if (groupasynCalls === maxGroupAsynCalls) {
+                                                    asynCall1 = true;
+                                                    if (asynCall1 && asynCall2) {
+                                                        openProcessCardModalRevision(processDefinitionId, businessKey, index);
+                                                        asynCall1 = false;
+                                                    }  else console.log('aynCall 2 problem');
+                                                } else {
+                                                    console.log(groupasynCalls, maxGroupAsynCalls);
+
+                                                }
                                             }
                                         },
                                         function (error) {
                                             console.log(error.data);
                                         }
                                     );
+
                                 });
+
+                            } else {
+                                asynCall1 = true;
+                                if (asynCall1 && asynCall2) {
+                                    openProcessCardModalRevision(processDefinitionId, businessKey, index);
+                                    asynCall1 = false;
+                                }
                             }
                             $http.get(baseUrl + '/history/variable-instance?deserializeValues=false&processInstanceId=' + $scope.processInstances[index].id).then(
                                 function (result) {
@@ -757,6 +793,11 @@ define(['./module', 'jquery', 'moment', 'camundaSDK'], function (app, $, moment,
                                                     }
                                                 }
                                             });
+                                            asynCall2 = true;
+                                            if (asynCall1 && asynCall2) {
+                                                openProcessCardModalRevision(processDefinitionId, businessKey, index);
+                                                asynCall2 = false;
+                                            } else console.log('aynCall 1 problem');
                                         });
                                     }
 
@@ -764,42 +805,7 @@ define(['./module', 'jquery', 'moment', 'camundaSDK'], function (app, $, moment,
                                     angular.extend($scope.jobModel, catalogs);
                                     $scope.jobModel.tasks = processInstanceTasks;
 
-                                    exModal.open({
-                                        scope: {
-                                            jobModel: $scope.jobModel,
-                                            getStatus:$scope.getStatus,
-                                            showDiagram:$scope.showDiagram,
-                                            showHistory: $scope.showHistory,
-                                            hasGroup: $scope.hasGroup,
-                                            showGroupDetails:$scope.showGroupDetails,
-                                            processDefinitionId: processDefinitionId,
-                                            piIndex: $scope.piIndex,
-                                            $index: index,
-                                            businessKey: businessKey,
-                                            download: function(file) {
-                                                $http({method: 'GET', url: '/camunda/uploads/get/' + file.path, transformResponse: [] }).
-                                                then(function(response) {
-                                                    document.getElementById('fileDownloadIframe').src = response.data;
-                                                }, function(error){
-                                                    console.log(error);
-                                                });
-                                            },
-                                            isFileVisible: function(file) {
-                                                return !file.visibility || file.visibility == 'all' || (file.visibility == 'kcell' && $rootScope.hasGroup('kcellUsers'));
-                                            },
-                                            getDictNameById: function(dictionary, id) {
-                                                return _.find(dictionary, function(dict){
-                                                    return dict.id === id;
-                                                });
-                                            },
-                                            compareDate: new Date('2019-02-05T06:00:00.000'),
 
-
-                                        },
-                                        templateUrl: './js/partials/processCardModal.html',
-                                        size: 'lg'
-                                    }).then(function(results){
-                                    });
                                 },
                                 function (error) {
                                     console.log(error.data);
@@ -813,7 +819,44 @@ define(['./module', 'jquery', 'moment', 'camundaSDK'], function (app, $, moment,
                     );
                 }
             };
+            function openProcessCardModalRevision(processDefinitionId, businessKey, index) {
+                exModal.open({
+                    scope: {
+                        jobModel: $scope.jobModel,
+                        getStatus:$scope.getStatus,
+                        showDiagram:$scope.showDiagram,
+                        showHistory: $scope.showHistory,
+                        hasGroup: $scope.hasGroup,
+                        showGroupDetails:$scope.showGroupDetails,
+                        processDefinitionId: processDefinitionId,
+                        piIndex: $scope.piIndex,
+                        $index: index,
+                        businessKey: businessKey,
+                        download: function(file) {
+                            $http({method: 'GET', url: '/camunda/uploads/get/' + file.path, transformResponse: [] }).
+                            then(function(response) {
+                                document.getElementById('fileDownloadIframe').src = response.data;
+                            }, function(error){
+                                console.log(error);
+                            });
+                        },
+                        isFileVisible: function(file) {
+                            return !file.visibility || file.visibility == 'all' || (file.visibility == 'kcell' && $rootScope.hasGroup('kcellUsers'));
+                        },
+                        getDictNameById: function(dictionary, id) {
+                            return _.find(dictionary, function(dict){
+                                return dict.id === id;
+                            });
+                        },
+                        compareDate: new Date('2019-02-05T06:00:00.000'),
 
+
+                    },
+                    templateUrl: './js/partials/processCardModal.html',
+                    size: 'lg'
+                }).then(function(results){
+                });
+            }
             $scope.toggleProcessView = function (index, processDefinitionKey, processDefinitionId) {
                 $scope.showDiagramView = false;
                 $scope.diagram = {};
