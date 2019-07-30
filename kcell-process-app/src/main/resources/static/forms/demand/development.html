@@ -35,6 +35,7 @@
                 solutionDesign: {},
                 components: {}
             };
+            $scope.tabs = { SDD: true, UAT: false };
             $scope.developerList = [{name: ''}];
             $scope.resolutions = [];
             $scope.attachments = [];
@@ -96,6 +97,7 @@
                 camForm.variableManager.fetchVariable('oldStatus');
                 camForm.variableManager.fetchVariable('businessKey');
                 camForm.variableManager.fetchVariable('demandName');
+                camForm.variableManager.fetchVariable('testCases');
             });
 
             camForm.on('variables-fetched', function () {
@@ -113,6 +115,7 @@
                 $scope.state = camForm.variableManager.variableValue('state');
                 $scope.businessKey = camForm.variableManager.variableValue('businessKey');
                 $scope.demandName = camForm.variableManager.variableValue('demandName');
+                $scope.testCases = camForm.variableManager.variableValue('testCases');
                 if (!$scope.attachments) $scope.attachments = [];
                 if (!$scope.supportiveInputs) $scope.supportiveInputs = [];
                 if (!$scope.developerList) $scope.developerList = [{name: ''}];
@@ -129,6 +132,11 @@
                 $http.get("/camunda/api/engine/engine/default/user/" + $scope.solutionOwner + "/profile").then(function(result){
                     $scope.solutionOwner = (result.data.firstName ? result.data.firstName : "") + " " + (result.data.lastName ? result.data.lastName : "");
                 });
+
+                $scope.useCases = null;
+                if ($scope.BRDData && $scope.BRDData.funcRequirements && $scope.BRDData.funcRequirements.useCases) {
+                  $scope.useCases = $scope.BRDData.funcRequirements.useCases;
+                }
             });
 
             camForm.on('submit', function (event) {
@@ -492,7 +500,7 @@
         </div>
       </div>
     </tab>
-    <tab active="true">
+    <tab active="tabs.SDD">
       <tab-heading> SDD </tab-heading>
       <div style="margin-top: 20px;">
         <div class="form-group">
@@ -545,6 +553,19 @@
             <demand-rich-text data="SDDData.componentsOrder" min-height="100" disabled="true"></demand-rich-text>
           </div>
         </div>
+      </div>
+    </tab>
+    <tab active="tabs.UAT">
+      <tab-heading> UAT </tab-heading>
+      <div style="margin-top: 20px;">
+        <accordion class="content-visible-accordion" ng-if="tabs.UAT">
+          <accordion-group is-open="true">
+            <accordion-heading>
+              Test cases <i class="pull-right glyphicon" ng-class="{'glyphicon-chevron-up': status.isCustomHeaderOpen, 'glyphicon-chevron-down': !status.isCustomHeaderOpen}"></i>
+            </accordion-heading>
+            <demand-test-cases data="testCases" use-cases="useCases" form="kcell_form" view="view" disabled="true"></demand-test-cases>
+          </accordion-group>
+        </accordion>
       </div>
     </tab>
   </tabset>
