@@ -169,13 +169,12 @@
             camForm.on('variables-fetched', function () {
                 variables.forEach(function (el) {
                     $scope.jobModel[el] = camForm.variableManager.variables[el].value;
-                    console.log(el);
-                    console.log(camForm.variableManager.variables[el]);
                     if(el === 'resolutions'){
                         if(!$scope.jobModel){
                             $scope.jobModel = {};
                         }
                         $scope.jobModel['resolutions'] = camForm.variableManager.variables[el].value;
+                        $scope[el] = camForm.variableManager.variables[el].value;
                         if($scope.resolutions){
                             $q.all($scope.resolutions.map(function (resolution) {
                                 return $http.get("/camunda/api/engine/engine/default/history/task?processInstanceId="+resolution.processInstanceId+"&taskId=" + resolution.taskId);
@@ -498,15 +497,15 @@
                     "processDefinitionKey" : "Revision",
                     "active" : true,
                     "variables" :
-                        [{
-                            "name": "reason",
-                            "operator": "eq",
-                            "value": $scope.reason
-                        },{
-                            "name": "site",
-                            "operator": "eq",
-                            "value" : $scope.site
-                        }]
+                            [{
+                                "name": "reason",
+                                "operator": "eq",
+                                "value": $scope.reason
+                            },{
+                                "name": "site",
+                                "operator": "eq",
+                                "value" : $scope.site
+                            }]
                 };
                 var path  = '/camunda/api/engine/engine/default/process-instance?firstResult='+($scope.page*5)+'&maxResults=5';
                 $http.post(path,query).then(
@@ -526,27 +525,27 @@
                             };
                             if(piIds.length > 0){
                                 $http.post('/camunda/api/engine/engine/default/variable-instance?deserializeValues=false', variableQuery).then(
-                                    function(variables){
-                                        for(var i=0;i<variables.data.length;i++){
-                                            if(!$scope.jobRequests[variables.data[i].processInstanceId]){
-                                                $scope.jobRequestsCount++;
-                                                $scope.jobRequests[variables.data[i].processInstanceId] = {};
-                                            }
-                                            if(variables.data[i].name === 'jobWorks'){
-                                                $scope.jobRequests[variables.data[i].processInstanceId][variables.data[i].name] = JSON.parse(variables.data[i].value);
-                                            } else if(variables.data[i].name === 'supplementaryFiles'){
-                                                $scope.jobRequests[variables.data[i].processInstanceId][variables.data[i].name] = variables.data[i];
-                                            } else if(variables.data[i].name === 'initiatorFull'){
-                                                $scope.jobRequests[variables.data[i].processInstanceId][variables.data[i].name] = JSON.parse(variables.data[i].value);
-                                            } else {
-                                                $scope.jobRequests[variables.data[i].processInstanceId][variables.data[i].name] = variables.data[i].value;
-                                            }
+                                        function(variables){
+                                            for(var i=0;i<variables.data.length;i++){
+                                                if(!$scope.jobRequests[variables.data[i].processInstanceId]){
+                                                    $scope.jobRequestsCount++;
+                                                    $scope.jobRequests[variables.data[i].processInstanceId] = {};
+                                                }
+                                                if(variables.data[i].name === 'jobWorks'){
+                                                    $scope.jobRequests[variables.data[i].processInstanceId][variables.data[i].name] = JSON.parse(variables.data[i].value);
+                                                } else if(variables.data[i].name === 'supplementaryFiles'){
+                                                    $scope.jobRequests[variables.data[i].processInstanceId][variables.data[i].name] = variables.data[i];
+                                                } else if(variables.data[i].name === 'initiatorFull'){
+                                                    $scope.jobRequests[variables.data[i].processInstanceId][variables.data[i].name] = JSON.parse(variables.data[i].value);
+                                                } else {
+                                                    $scope.jobRequests[variables.data[i].processInstanceId][variables.data[i].name] = variables.data[i].value;
+                                                }
 
+                                            }
+                                        },
+                                        function(error){
+                                            console.log(error);
                                         }
-                                    },
-                                    function(error){
-                                        console.log(error);
-                                    }
                                 );
                             }
                         },
@@ -639,22 +638,22 @@
 
             $scope.getSite = function(val) {
                 return $http.get('/asset-management/api/sites/search/findByNameIgnoreCaseContaining?name='+val).then(
-                    function(response){
-                        var sites = _.flatMap(response.data._embedded.sites, function(s){
-                            if(s.params.site_name){
-                                return s.params.site_name.split(',').map(function(sitename){
-                                    return {
-                                        name: s.name,
-                                        id: s._links.self.href.substring(s._links.self.href.lastIndexOf('/')+1),
-                                        site_name: sitename
-                                    };
-                                })
-                            } else {
-                                return [];
-                            }
-                        });
-                        return sites;
-                    }
+                        function(response){
+                            var sites = _.flatMap(response.data._embedded.sites, function(s){
+                                if(s.params.site_name){
+                                    return s.params.site_name.split(',').map(function(sitename){
+                                        return {
+                                            name: s.name,
+                                            id: s._links.self.href.substring(s._links.self.href.lastIndexOf('/')+1),
+                                            site_name: sitename
+                                        };
+                                    })
+                                } else {
+                                    return [];
+                                }
+                            });
+                            return sites;
+                        }
                 );
             };
 
@@ -677,8 +676,8 @@
                     $scope.jobWorks[$index].relatedSites = [];
                 }
                 if(!_.some($scope.jobWorks[$index].relatedSites, function(value){
-                            return value.site_name === $item.site_name;
-                        })){
+                    return value.site_name === $item.site_name;
+                })){
                     $scope.jobWorks[$index].relatedSites.push($item);
                 }
                 $scope.tempSite = {};
@@ -759,7 +758,7 @@
             }
 
             $scope.isVisible = function (resolution) {
-               return !resolution.visibility || resolution.visibility === 'all' || (resolution.visibility === 'kcell' && $rootScope.hasGroup('kcellUsers'));
+                return !resolution.visibility || resolution.visibility === 'all' || (resolution.visibility === 'kcell' && $rootScope.hasGroup('kcellUsers'));
             }
 
             $scope.hasComment = function () {
@@ -1004,84 +1003,84 @@
     <h4>Works</h4>
     <div class="col-sm-12">
         <div class="row">
-                <table class="table table-condensed">
-                    <thead>
-                        <tr>
-                            <th width="40%">Works</th>
-                            <th width="7%">Works Qty</th>
-                            <th width="13%">Materials Qty</th>
-                            <th width="30%">Sites involved</th>
-                            <th width="10%"></th>
-                        </tr>
-                    </thead>
-                    <tbody ng-repeat="jobWork in jobWorks">
-                        <tr>
-                            <ng-form name="workForm">
-                                <td>
-                                    <select ng-model="jobWork.sapServiceNumber" name="sapServiceNumber" ng-required="modifyJrResult == 'modified'" class="form-control" ng-change="getUnits($index)">
-                                        <option ng-repeat="work in works | filter: filterByContractor" ng-selected="{{work.sapServiceNumber == jobWork.sapServiceNumber}}" value="{{work.sapServiceNumber}}">{{work.displayServiceName}}</option>
-                                    </select>
-                                    <label class="error" ng-if="workForm.sapServiceNumber.$error.required && ( workForm.sapServiceNumber.$touched || view.submitted)">Required field</label>
-                                </td>
-                                <td>
-                                    <input type="number" class="form-control" name="quantity" ng-required="modifyJrResult == 'modified'" ng-model="jobWork.quantity" min="1"/>
-                                    <label class="error" ng-if="workForm.quantity.$error.required && ( workForm.quantity.$touched || view.submitted)">Required field</label>
-                                </td>
-                                <td>
-                                    <div class="input-group">
-                                        <input type="number" class="form-control" name="materialQuantity" ng-required="modifyJrResult == 'modified'" ng-model="jobWork.materialQuantity" min="0" style="min-width: 55px;"/>
-                                        <span class="input-group-addon">{{jobWork.materialUnit}}</span>
-                                    </div>
-                                    <label class="error" ng-if="workForm.materialQuantity.$error.required && ( workForm.materialQuantity.$touched || view.submitted)">Required field</label>
-                                </td>
-                                <td>
-                                    <span ng-repeat="rs in jobWork.relatedSites" class="my-tag" ng-class="{'main-site':rs.site_name===site_name}"><span ng-if="rs.site_name===site_name">Main Site: </span>{{rs.site_name}} <a ng-click="removeRelatedSite($parent.$index, $index)">&times;</a></span>
-                                    <input type="text" ng-model="tempSite.name" style="display: inline-block; width:100px;" name="tempSiteName" typeahead="site as sites.site_name for sites in getSite($viewValue)" typeahead-on-select="workSiteSelected($item, $index); tempSite={};" class="form-control" autocomplete="off" placeholder="Add Site">
-                                </td>
-                                <td><div class="col-md-1"><button type="button" class="btn btn-sm btn-warning" ng-if="$index !== 0" ng-click="removeWork($index)"><i class="glyphicon glyphicon-trash"></i> Remove</button></div></td>
-                            </ng-form>
-                        </tr>
-                        <tr>
-                            <td>
-                                <div class="input-group">
+            <table class="table table-condensed">
+                <thead>
+                <tr>
+                    <th width="40%">Works</th>
+                    <th width="7%">Works Qty</th>
+                    <th width="13%">Materials Qty</th>
+                    <th width="30%">Sites involved</th>
+                    <th width="10%"></th>
+                </tr>
+                </thead>
+                <tbody ng-repeat="jobWork in jobWorks">
+                <tr>
+                    <ng-form name="workForm">
+                        <td>
+                            <select ng-model="jobWork.sapServiceNumber" name="sapServiceNumber" ng-required="modifyJrResult == 'modified'" class="form-control" ng-change="getUnits($index)">
+                                <option ng-repeat="work in works | filter: filterByContractor" ng-selected="{{work.sapServiceNumber == jobWork.sapServiceNumber}}" value="{{work.sapServiceNumber}}">{{work.displayServiceName}}</option>
+                            </select>
+                            <label class="error" ng-if="workForm.sapServiceNumber.$error.required && ( workForm.sapServiceNumber.$touched || view.submitted)">Required field</label>
+                        </td>
+                        <td>
+                            <input type="number" class="form-control" name="quantity" ng-required="modifyJrResult == 'modified'" ng-model="jobWork.quantity" min="1"/>
+                            <label class="error" ng-if="workForm.quantity.$error.required && ( workForm.quantity.$touched || view.submitted)">Required field</label>
+                        </td>
+                        <td>
+                            <div class="input-group">
+                                <input type="number" class="form-control" name="materialQuantity" ng-required="modifyJrResult == 'modified'" ng-model="jobWork.materialQuantity" min="0" style="min-width: 55px;"/>
+                                <span class="input-group-addon">{{jobWork.materialUnit}}</span>
+                            </div>
+                            <label class="error" ng-if="workForm.materialQuantity.$error.required && ( workForm.materialQuantity.$touched || view.submitted)">Required field</label>
+                        </td>
+                        <td>
+                            <span ng-repeat="rs in jobWork.relatedSites" class="my-tag" ng-class="{'main-site':rs.site_name===site_name}"><span ng-if="rs.site_name===site_name">Main Site: </span>{{rs.site_name}} <a ng-click="removeRelatedSite($parent.$index, $index)">&times;</a></span>
+                            <input type="text" ng-model="tempSite.name" style="display: inline-block; width:100px;" name="tempSiteName" typeahead="site as sites.site_name for sites in getSite($viewValue)" typeahead-on-select="workSiteSelected($item, $index); tempSite={};" class="form-control" autocomplete="off" placeholder="Add Site">
+                        </td>
+                        <td><div class="col-md-1"><button type="button" class="btn btn-sm btn-warning" ng-if="$index !== 0" ng-click="removeWork($index)"><i class="glyphicon glyphicon-trash"></i> Remove</button></div></td>
+                    </ng-form>
+                </tr>
+                <tr>
+                    <td>
+                        <div class="input-group">
                                 <span class="input-group-addon">
                                     Work Request Reason
                                     <a role="button" data-toggle="collapse" href="#collapseReasonGeneralInfo" aria-expanded="false" aria-controls="collapseReasonGeneralInfo">
                                         <i class="glyphicon glyphicon-question-sign"></i>
                                     </a>
                                 </span>
-                                    <select ng-model="jobWork.reason" name="reason{{$index}}" required class="form-control" ng-change="defineExpenseType($index)">
-                                        <option value="">Select work request reason</option>
-                                        <option ng-repeat="reason in jobWorkReasons" ng-selected="{{reason.id == jobWork.reason}}" value="{{reason.id}}">{{reason.name}}</option>
-                                    </select>
-                                </div>
-                                <label class="error" ng-if="kcell_form['reason'+$index].$error.required && ( kcell_form['reason'+$index].$touched || view.submitted)">Required field</label>
-                            </td>
-                            <td colspan="4">
-                                <i ng-show="jobWork.reasonDetail" class="glyphicon glyphicon-info-sign" data-toggle="tooltip" data-placement="right" title="{{jobWork.reasonDetail}}"></i>
-                            </td>
-                        </tr>
-                        <tr>
-                            <td style="border-width: 0px" colspan="4">
-                                <div class="collapse" id="collapseReasonGeneralInfo">
-                                    <div class="well">
-                                        <b>Installation</b> Монтаж - установка нового оборудования <br />
-                                        <b>Modernization</b> Модернизация - замена оборудования на более производительное <br />
-                                        <b>Change for support</b> Замена - восстановление вышедшего из строя оборудования/OC для поддержания их в рабочем состоянии  с целью их профилактики <br />
-                                        <b>Change for improvement</b> Замена - восстановление вышедшего из строя оборудования/ОС для улучшения состояния объекта, повышающего его первоначально оцененные нормативные показатели: срок службы, производственную мощность и т. д<br />
-                                        <b>Replacement</b> Перемещение - в пределах одного сайта<br />
-                                        <b>Removal</b> Демонтаж - снятие оборудования
-                                    </div>
-                                </div>
-                            </td>
-                        </tr>
-                    </tbody>
-                    <tfoot>
-                        <tr>
-                            <td colspan="5"><button type="button" class="btn btn-sm btn-primary" style="margin-top: 10px;" ng-click="addJobWork()"><i class="glyphicon glyphicon-plus"></i> Add work</button></td>
-                        </tr>
-                    </tfoot>
-                </table>
+                            <select ng-model="jobWork.reason" name="reason{{$index}}" required class="form-control" ng-change="defineExpenseType($index)">
+                                <option value="">Select work request reason</option>
+                                <option ng-repeat="reason in jobWorkReasons" ng-selected="{{reason.id == jobWork.reason}}" value="{{reason.id}}">{{reason.name}}</option>
+                            </select>
+                        </div>
+                        <label class="error" ng-if="kcell_form['reason'+$index].$error.required && ( kcell_form['reason'+$index].$touched || view.submitted)">Required field</label>
+                    </td>
+                    <td colspan="4">
+                        <i ng-show="jobWork.reasonDetail" class="glyphicon glyphicon-info-sign" data-toggle="tooltip" data-placement="right" title="{{jobWork.reasonDetail}}"></i>
+                    </td>
+                </tr>
+                <tr>
+                    <td style="border-width: 0px" colspan="4">
+                        <div class="collapse" id="collapseReasonGeneralInfo">
+                            <div class="well">
+                                <b>Installation</b> Монтаж - установка нового оборудования <br />
+                                <b>Modernization</b> Модернизация - замена оборудования на более производительное <br />
+                                <b>Change for support</b> Замена - восстановление вышедшего из строя оборудования/OC для поддержания их в рабочем состоянии  с целью их профилактики <br />
+                                <b>Change for improvement</b> Замена - восстановление вышедшего из строя оборудования/ОС для улучшения состояния объекта, повышающего его первоначально оцененные нормативные показатели: срок службы, производственную мощность и т. д<br />
+                                <b>Replacement</b> Перемещение - в пределах одного сайта<br />
+                                <b>Removal</b> Демонтаж - снятие оборудования
+                            </div>
+                        </div>
+                    </td>
+                </tr>
+                </tbody>
+                <tfoot>
+                <tr>
+                    <td colspan="5"><button type="button" class="btn btn-sm btn-primary" style="margin-top: 10px;" ng-click="addJobWork()"><i class="glyphicon glyphicon-plus"></i> Add work</button></td>
+                </tr>
+                </tfoot>
+            </table>
         </div>
         <div class="row">
 
