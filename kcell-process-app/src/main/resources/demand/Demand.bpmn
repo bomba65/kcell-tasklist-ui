@@ -3,8 +3,8 @@
   <bpmn:process id="Demand" name="Demand and AOP" isExecutable="true">
     <bpmn:extensionElements>
       <camunda:properties>
-        <camunda:property name="taskNotificationSubjectScript" value="/DemandTaskAssigneeSubject.groovy" />
-        <camunda:property name="taskNotificationTemplate" value="/DemandTaskAssigneeNotification.tpl" />
+        <camunda:property name="taskNotificationSubjectScript" value="/demand/taskAssigneeSubject.groovy" />
+        <camunda:property name="taskNotificationTemplate" value="/demand/taskAssigneeNotification.tpl" />
       </camunda:properties>
     </bpmn:extensionElements>
     <bpmn:subProcess id="SubProcess_1jfzq6i" name="Business Requirements &#38; Business Case">
@@ -16,20 +16,20 @@
         <bpmn:incoming>SequenceFlow_0k980ta</bpmn:incoming>
         <bpmn:outgoing>SequenceFlow_1krkpic</bpmn:outgoing>
       </bpmn:userTask>
-      <bpmn:sequenceFlow id="SequenceFlow_1krkpic" sourceRef="requirementCheck" targetRef="SendTask_1t72jg3" />
+      <bpmn:sequenceFlow id="SequenceFlow_1krkpic" sourceRef="requirementCheck" targetRef="SendTask_0r3fmex" />
       <bpmn:userTask id="financialReview" name="Financial review" camunda:formKey="embedded:app:forms/demand/financialReview.html" camunda:candidateGroups="demand_financial_council">
         <bpmn:documentation>Financial review</bpmn:documentation>
         <bpmn:incoming>SequenceFlow_0vimzjo</bpmn:incoming>
         <bpmn:outgoing>SequenceFlow_0gy5f2f</bpmn:outgoing>
       </bpmn:userTask>
       <bpmn:exclusiveGateway id="ExclusiveGateway_0vojsge" default="SequenceFlow_07ews5a">
-        <bpmn:incoming>SequenceFlow_1t90q6d</bpmn:incoming>
+        <bpmn:incoming>SequenceFlow_0duppyx</bpmn:incoming>
         <bpmn:outgoing>SequenceFlow_07ews5a</bpmn:outgoing>
         <bpmn:outgoing>SequenceFlow_1bvmkfs</bpmn:outgoing>
         <bpmn:outgoing>SequenceFlow_0b87w3q</bpmn:outgoing>
         <bpmn:outgoing>SequenceFlow_043e5iq</bpmn:outgoing>
       </bpmn:exclusiveGateway>
-      <bpmn:sequenceFlow id="SequenceFlow_0gy5f2f" sourceRef="financialReview" targetRef="SendTask_0vabwe3" />
+      <bpmn:sequenceFlow id="SequenceFlow_0gy5f2f" sourceRef="financialReview" targetRef="SendTask_18ueir0" />
       <bpmn:userTask id="IPMCommittee" name="IPM Committee" camunda:formKey="embedded:app:forms/demand/IPMCommittee.html" camunda:candidateGroups="demand_ipm_council">
         <bpmn:documentation>IPM Committee</bpmn:documentation>
         <bpmn:incoming>SequenceFlow_07ews5a</bpmn:incoming>
@@ -37,11 +37,11 @@
       </bpmn:userTask>
       <bpmn:sequenceFlow id="SequenceFlow_07ews5a" name="Approve" sourceRef="ExclusiveGateway_0vojsge" targetRef="IPMCommittee" />
       <bpmn:exclusiveGateway id="ExclusiveGateway_19gn7qa" default="SequenceFlow_0ws74ni">
-        <bpmn:incoming>SequenceFlow_0b00f8d</bpmn:incoming>
+        <bpmn:incoming>SequenceFlow_1hcx56o</bpmn:incoming>
         <bpmn:outgoing>SequenceFlow_0ws74ni</bpmn:outgoing>
         <bpmn:outgoing>SequenceFlow_1mlgg24</bpmn:outgoing>
       </bpmn:exclusiveGateway>
-      <bpmn:sequenceFlow id="SequenceFlow_0046vn0" sourceRef="IPMCommittee" targetRef="SendTask_00fuarq" />
+      <bpmn:sequenceFlow id="SequenceFlow_0046vn0" sourceRef="IPMCommittee" targetRef="SendTask_1yc6qxb" />
       <bpmn:endEvent id="EndEvent_10236hn">
         <bpmn:incoming>SequenceFlow_0ws74ni</bpmn:incoming>
       </bpmn:endEvent>
@@ -140,7 +140,7 @@
         <bpmn:conditionExpression xsi:type="bpmn:tFormalExpression">${resolution == 'Send to modify'}</bpmn:conditionExpression>
       </bpmn:sequenceFlow>
       <bpmn:exclusiveGateway id="ExclusiveGateway_0shlm6r" default="SequenceFlow_1f1vvmh">
-        <bpmn:incoming>SequenceFlow_0eb2tsg</bpmn:incoming>
+        <bpmn:incoming>SequenceFlow_1w1aa4p</bpmn:incoming>
         <bpmn:outgoing>SequenceFlow_16qmxhr</bpmn:outgoing>
         <bpmn:outgoing>SequenceFlow_1f1vvmh</bpmn:outgoing>
       </bpmn:exclusiveGateway>
@@ -249,60 +249,6 @@
         <bpmn:conditionExpression xsi:type="bpmn:tFormalExpression">${supportiveInputList.prop("WH").boolValue()}</bpmn:conditionExpression>
       </bpmn:sequenceFlow>
       <bpmn:sequenceFlow id="SequenceFlow_0dgio3q" sourceRef="supportiveInputWH" targetRef="ParallelGateway_1pyvbpn" />
-      <bpmn:sendTask id="SendTask_1t72jg3" name="Status change notification" camunda:delegateExpression="${camundaMailer}">
-        <bpmn:extensionElements>
-          <camunda:inputOutput>
-            <camunda:inputParameter name="subject">
-              <camunda:script scriptFormat="groovy" resource="demandSatusChangeNotificationSubject.groovy" />
-            </camunda:inputParameter>
-            <camunda:inputParameter name="html">
-              <camunda:script scriptFormat="groovy" resource="demandSatusChangeNotificationHtml.groovy" />
-            </camunda:inputParameter>
-            <camunda:inputParameter name="to">
-              <camunda:script scriptFormat="groovy" resource="demandSatusChangeNotificationAddressee.groovy" />
-            </camunda:inputParameter>
-          </camunda:inputOutput>
-        </bpmn:extensionElements>
-        <bpmn:incoming>SequenceFlow_1krkpic</bpmn:incoming>
-        <bpmn:outgoing>SequenceFlow_0eb2tsg</bpmn:outgoing>
-      </bpmn:sendTask>
-      <bpmn:sequenceFlow id="SequenceFlow_0eb2tsg" sourceRef="SendTask_1t72jg3" targetRef="ExclusiveGateway_0shlm6r" />
-      <bpmn:sendTask id="SendTask_0vabwe3" name="Status change notification" camunda:delegateExpression="${camundaMailer}">
-        <bpmn:extensionElements>
-          <camunda:inputOutput>
-            <camunda:inputParameter name="subject">
-              <camunda:script scriptFormat="groovy" resource="demandSatusChangeNotificationSubject.groovy" />
-            </camunda:inputParameter>
-            <camunda:inputParameter name="html">
-              <camunda:script scriptFormat="groovy" resource="demandSatusChangeNotificationHtml.groovy" />
-            </camunda:inputParameter>
-            <camunda:inputParameter name="to">
-              <camunda:script scriptFormat="groovy" resource="demandSatusChangeNotificationAddressee.groovy" />
-            </camunda:inputParameter>
-          </camunda:inputOutput>
-        </bpmn:extensionElements>
-        <bpmn:incoming>SequenceFlow_0gy5f2f</bpmn:incoming>
-        <bpmn:outgoing>SequenceFlow_1t90q6d</bpmn:outgoing>
-      </bpmn:sendTask>
-      <bpmn:sequenceFlow id="SequenceFlow_1t90q6d" sourceRef="SendTask_0vabwe3" targetRef="ExclusiveGateway_0vojsge" />
-      <bpmn:sendTask id="SendTask_00fuarq" name="Status change notification" camunda:delegateExpression="${camundaMailer}">
-        <bpmn:extensionElements>
-          <camunda:inputOutput>
-            <camunda:inputParameter name="subject">
-              <camunda:script scriptFormat="groovy" resource="demandSatusChangeNotificationSubject.groovy" />
-            </camunda:inputParameter>
-            <camunda:inputParameter name="html">
-              <camunda:script scriptFormat="groovy" resource="demandSatusChangeNotificationHtml.groovy" />
-            </camunda:inputParameter>
-            <camunda:inputParameter name="to">
-              <camunda:script scriptFormat="groovy" resource="demandSatusChangeNotificationAddressee.groovy" />
-            </camunda:inputParameter>
-          </camunda:inputOutput>
-        </bpmn:extensionElements>
-        <bpmn:incoming>SequenceFlow_0046vn0</bpmn:incoming>
-        <bpmn:outgoing>SequenceFlow_0b00f8d</bpmn:outgoing>
-      </bpmn:sendTask>
-      <bpmn:sequenceFlow id="SequenceFlow_0b00f8d" sourceRef="SendTask_00fuarq" targetRef="ExclusiveGateway_19gn7qa" />
       <bpmn:exclusiveGateway id="ExclusiveGateway_0zkxwh1" default="SequenceFlow_0gl74nt">
         <bpmn:incoming>SequenceFlow_0p83uz0</bpmn:incoming>
         <bpmn:outgoing>SequenceFlow_0gl74nt</bpmn:outgoing>
@@ -310,53 +256,17 @@
       </bpmn:exclusiveGateway>
       <bpmn:sequenceFlow id="SequenceFlow_0gl74nt" name="Submit" sourceRef="ExclusiveGateway_0zkxwh1" targetRef="checkBRD" />
       <bpmn:endEvent id="EndEvent_0j4wvi5">
-        <bpmn:incoming>SequenceFlow_0ekb9p8</bpmn:incoming>
+        <bpmn:incoming>SequenceFlow_1a0524u</bpmn:incoming>
       </bpmn:endEvent>
-      <bpmn:sequenceFlow id="SequenceFlow_01f4z8m" name="Cancel" sourceRef="ExclusiveGateway_0zkxwh1" targetRef="SendTask_0v1b328">
+      <bpmn:sequenceFlow id="SequenceFlow_01f4z8m" name="Cancel" sourceRef="ExclusiveGateway_0zkxwh1" targetRef="SendTask_1mj4acn">
         <bpmn:conditionExpression xsi:type="bpmn:tFormalExpression">${resolution == 'Cancel'}</bpmn:conditionExpression>
       </bpmn:sequenceFlow>
       <bpmn:endEvent id="EndEvent_02dfebm">
-        <bpmn:incoming>SequenceFlow_1iw43aw</bpmn:incoming>
+        <bpmn:incoming>SequenceFlow_1hddmo4</bpmn:incoming>
       </bpmn:endEvent>
-      <bpmn:sequenceFlow id="SequenceFlow_1vq2fa4" name="Cancel" sourceRef="ExclusiveGateway_05dwofj" targetRef="SendTask_1b0yjl4">
+      <bpmn:sequenceFlow id="SequenceFlow_1vq2fa4" name="Cancel" sourceRef="ExclusiveGateway_05dwofj" targetRef="SendTask_0rkr4jf">
         <bpmn:conditionExpression xsi:type="bpmn:tFormalExpression">${resolution == 'Cancel'}</bpmn:conditionExpression>
       </bpmn:sequenceFlow>
-      <bpmn:sendTask id="SendTask_0v1b328" name="Status change notification" camunda:delegateExpression="${camundaMailer}">
-        <bpmn:extensionElements>
-          <camunda:inputOutput>
-            <camunda:inputParameter name="subject">
-              <camunda:script scriptFormat="groovy" resource="demandSatusChangeNotificationSubject.groovy" />
-            </camunda:inputParameter>
-            <camunda:inputParameter name="html">
-              <camunda:script scriptFormat="groovy" resource="demandSatusChangeNotificationHtml.groovy" />
-            </camunda:inputParameter>
-            <camunda:inputParameter name="to">
-              <camunda:script scriptFormat="groovy" resource="demandSatusChangeNotificationAddressee.groovy" />
-            </camunda:inputParameter>
-          </camunda:inputOutput>
-        </bpmn:extensionElements>
-        <bpmn:incoming>SequenceFlow_01f4z8m</bpmn:incoming>
-        <bpmn:outgoing>SequenceFlow_0ekb9p8</bpmn:outgoing>
-      </bpmn:sendTask>
-      <bpmn:sequenceFlow id="SequenceFlow_0ekb9p8" sourceRef="SendTask_0v1b328" targetRef="EndEvent_0j4wvi5" />
-      <bpmn:sendTask id="SendTask_1b0yjl4" name="Status change notification" camunda:delegateExpression="${camundaMailer}">
-        <bpmn:extensionElements>
-          <camunda:inputOutput>
-            <camunda:inputParameter name="subject">
-              <camunda:script scriptFormat="groovy" resource="demandSatusChangeNotificationSubject.groovy" />
-            </camunda:inputParameter>
-            <camunda:inputParameter name="html">
-              <camunda:script scriptFormat="groovy" resource="demandSatusChangeNotificationHtml.groovy" />
-            </camunda:inputParameter>
-            <camunda:inputParameter name="to">
-              <camunda:script scriptFormat="groovy" resource="demandSatusChangeNotificationAddressee.groovy" />
-            </camunda:inputParameter>
-          </camunda:inputOutput>
-        </bpmn:extensionElements>
-        <bpmn:incoming>SequenceFlow_1vq2fa4</bpmn:incoming>
-        <bpmn:outgoing>SequenceFlow_1iw43aw</bpmn:outgoing>
-      </bpmn:sendTask>
-      <bpmn:sequenceFlow id="SequenceFlow_1iw43aw" sourceRef="SendTask_1b0yjl4" targetRef="EndEvent_02dfebm" />
       <bpmn:sequenceFlow id="SequenceFlow_1pyh1ry" name="Request info" sourceRef="ExclusiveGateway_0pszme5" targetRef="ParallelGateway_0o0ofs2" />
       <bpmn:exclusiveGateway id="ExclusiveGateway_1as2q2g" default="SequenceFlow_0zmjpfc">
         <bpmn:incoming>SequenceFlow_0a6su6l</bpmn:incoming>
@@ -367,6 +277,96 @@
         <bpmn:conditionExpression xsi:type="bpmn:tFormalExpression">${siRequestedFromBC}</bpmn:conditionExpression>
       </bpmn:sequenceFlow>
       <bpmn:sequenceFlow id="SequenceFlow_0zmjpfc" sourceRef="ExclusiveGateway_1as2q2g" targetRef="checkCosts" />
+      <bpmn:sendTask id="SendTask_0r3fmex" name="Status change notification" camunda:delegateExpression="${camundaMailer}">
+        <bpmn:extensionElements>
+          <camunda:inputOutput>
+            <camunda:inputParameter name="subject">
+              <camunda:script scriptFormat="groovy" resource="demand/statusChangeNotificationSubject.groovy" />
+            </camunda:inputParameter>
+            <camunda:inputParameter name="html">
+              <camunda:script scriptFormat="groovy" resource="demand/statusChangeNotificationHtml.groovy" />
+            </camunda:inputParameter>
+            <camunda:inputParameter name="to">
+              <camunda:script scriptFormat="groovy" resource="demand/statusChangeNotificationAddressee.groovy" />
+            </camunda:inputParameter>
+          </camunda:inputOutput>
+        </bpmn:extensionElements>
+        <bpmn:incoming>SequenceFlow_1krkpic</bpmn:incoming>
+        <bpmn:outgoing>SequenceFlow_1w1aa4p</bpmn:outgoing>
+      </bpmn:sendTask>
+      <bpmn:sequenceFlow id="SequenceFlow_1w1aa4p" sourceRef="SendTask_0r3fmex" targetRef="ExclusiveGateway_0shlm6r" />
+      <bpmn:sendTask id="SendTask_1mj4acn" name="Status change notification" camunda:delegateExpression="${camundaMailer}">
+        <bpmn:extensionElements>
+          <camunda:inputOutput>
+            <camunda:inputParameter name="subject">
+              <camunda:script scriptFormat="groovy" resource="demand/statusChangeNotificationSubject.groovy" />
+            </camunda:inputParameter>
+            <camunda:inputParameter name="html">
+              <camunda:script scriptFormat="groovy" resource="demand/statusChangeNotificationHtml.groovy" />
+            </camunda:inputParameter>
+            <camunda:inputParameter name="to">
+              <camunda:script scriptFormat="groovy" resource="demand/statusChangeNotificationAddressee.groovy" />
+            </camunda:inputParameter>
+          </camunda:inputOutput>
+        </bpmn:extensionElements>
+        <bpmn:incoming>SequenceFlow_01f4z8m</bpmn:incoming>
+        <bpmn:outgoing>SequenceFlow_1a0524u</bpmn:outgoing>
+      </bpmn:sendTask>
+      <bpmn:sequenceFlow id="SequenceFlow_1a0524u" sourceRef="SendTask_1mj4acn" targetRef="EndEvent_0j4wvi5" />
+      <bpmn:sendTask id="SendTask_0rkr4jf" name="Status change notification" camunda:delegateExpression="${camundaMailer}">
+        <bpmn:extensionElements>
+          <camunda:inputOutput>
+            <camunda:inputParameter name="subject">
+              <camunda:script scriptFormat="groovy" resource="demand/statusChangeNotificationSubject.groovy" />
+            </camunda:inputParameter>
+            <camunda:inputParameter name="html">
+              <camunda:script scriptFormat="groovy" resource="demand/statusChangeNotificationHtml.groovy" />
+            </camunda:inputParameter>
+            <camunda:inputParameter name="to">
+              <camunda:script scriptFormat="groovy" resource="demand/statusChangeNotificationAddressee.groovy" />
+            </camunda:inputParameter>
+          </camunda:inputOutput>
+        </bpmn:extensionElements>
+        <bpmn:incoming>SequenceFlow_1vq2fa4</bpmn:incoming>
+        <bpmn:outgoing>SequenceFlow_1hddmo4</bpmn:outgoing>
+      </bpmn:sendTask>
+      <bpmn:sequenceFlow id="SequenceFlow_1hddmo4" sourceRef="SendTask_0rkr4jf" targetRef="EndEvent_02dfebm" />
+      <bpmn:sendTask id="SendTask_18ueir0" name="Status change notification" camunda:delegateExpression="${camundaMailer}">
+        <bpmn:extensionElements>
+          <camunda:inputOutput>
+            <camunda:inputParameter name="subject">
+              <camunda:script scriptFormat="groovy" resource="demand/statusChangeNotificationSubject.groovy" />
+            </camunda:inputParameter>
+            <camunda:inputParameter name="html">
+              <camunda:script scriptFormat="groovy" resource="demand/statusChangeNotificationHtml.groovy" />
+            </camunda:inputParameter>
+            <camunda:inputParameter name="to">
+              <camunda:script scriptFormat="groovy" resource="demand/statusChangeNotificationAddressee.groovy" />
+            </camunda:inputParameter>
+          </camunda:inputOutput>
+        </bpmn:extensionElements>
+        <bpmn:incoming>SequenceFlow_0gy5f2f</bpmn:incoming>
+        <bpmn:outgoing>SequenceFlow_0duppyx</bpmn:outgoing>
+      </bpmn:sendTask>
+      <bpmn:sequenceFlow id="SequenceFlow_0duppyx" sourceRef="SendTask_18ueir0" targetRef="ExclusiveGateway_0vojsge" />
+      <bpmn:sendTask id="SendTask_1yc6qxb" name="Status change notification" camunda:delegateExpression="${camundaMailer}">
+        <bpmn:extensionElements>
+          <camunda:inputOutput>
+            <camunda:inputParameter name="subject">
+              <camunda:script scriptFormat="groovy" resource="demand/statusChangeNotificationSubject.groovy" />
+            </camunda:inputParameter>
+            <camunda:inputParameter name="html">
+              <camunda:script scriptFormat="groovy" resource="demand/statusChangeNotificationHtml.groovy" />
+            </camunda:inputParameter>
+            <camunda:inputParameter name="to">
+              <camunda:script scriptFormat="groovy" resource="demand/statusChangeNotificationAddressee.groovy" />
+            </camunda:inputParameter>
+          </camunda:inputOutput>
+        </bpmn:extensionElements>
+        <bpmn:incoming>SequenceFlow_0046vn0</bpmn:incoming>
+        <bpmn:outgoing>SequenceFlow_1hcx56o</bpmn:outgoing>
+      </bpmn:sendTask>
+      <bpmn:sequenceFlow id="SequenceFlow_1hcx56o" sourceRef="SendTask_1yc6qxb" targetRef="ExclusiveGateway_19gn7qa" />
       <bpmn:textAnnotation id="TextAnnotation_1mxbjiw">
         <bpmn:text>Requirement council</bpmn:text>
       </bpmn:textAnnotation>
@@ -484,25 +484,25 @@
         <bpmn:outgoing>SequenceFlow_0qxxx4q</bpmn:outgoing>
       </bpmn:exclusiveGateway>
       <bpmn:exclusiveGateway id="ExclusiveGateway_0gdx7gd" default="SequenceFlow_1htr942">
-        <bpmn:incoming>SequenceFlow_11hdnc4</bpmn:incoming>
+        <bpmn:incoming>SequenceFlow_1pxk3i2</bpmn:incoming>
         <bpmn:outgoing>SequenceFlow_1htr942</bpmn:outgoing>
         <bpmn:outgoing>SequenceFlow_0jegljk</bpmn:outgoing>
         <bpmn:outgoing>SequenceFlow_1d2b4z7</bpmn:outgoing>
       </bpmn:exclusiveGateway>
       <bpmn:exclusiveGateway id="ExclusiveGateway_0ybjpsc" default="SequenceFlow_074xdod">
-        <bpmn:incoming>SequenceFlow_13azg0j</bpmn:incoming>
+        <bpmn:incoming>SequenceFlow_1m5c8bs</bpmn:incoming>
         <bpmn:outgoing>SequenceFlow_074xdod</bpmn:outgoing>
         <bpmn:outgoing>SequenceFlow_0k0o981</bpmn:outgoing>
       </bpmn:exclusiveGateway>
       <bpmn:endEvent id="EndEvent_0zl5vl0" name="Close subprocess">
         <bpmn:incoming>SequenceFlow_1htr942</bpmn:incoming>
         <bpmn:incoming>SequenceFlow_074xdod</bpmn:incoming>
-        <bpmn:incoming>SequenceFlow_123hhgx</bpmn:incoming>
+        <bpmn:incoming>SequenceFlow_1um3bqm</bpmn:incoming>
       </bpmn:endEvent>
-      <bpmn:sequenceFlow id="SequenceFlow_0ch7j3u" sourceRef="Task_1972tin" targetRef="SendTask_0gk6rz8" />
+      <bpmn:sequenceFlow id="SequenceFlow_0ch7j3u" sourceRef="Task_1972tin" targetRef="SendTask_0tbd552" />
       <bpmn:sequenceFlow id="SequenceFlow_1htr942" name="Send to Fill form / Send to modify BC / Cancel" sourceRef="ExclusiveGateway_0gdx7gd" targetRef="EndEvent_0zl5vl0" />
       <bpmn:sequenceFlow id="SequenceFlow_074xdod" name="Send to Fill form / Send to Enrich Business case / Send to Solution design" sourceRef="ExclusiveGateway_0ybjpsc" targetRef="EndEvent_0zl5vl0" />
-      <bpmn:sequenceFlow id="SequenceFlow_03i2mla" sourceRef="Task_0rozho7" targetRef="SendTask_1apgbne" />
+      <bpmn:sequenceFlow id="SequenceFlow_03i2mla" sourceRef="Task_0rozho7" targetRef="SendTask_094uzj8" />
       <bpmn:sequenceFlow id="SequenceFlow_0jegljk" name="Approve" sourceRef="ExclusiveGateway_0gdx7gd" targetRef="Task_0rozho7">
         <bpmn:conditionExpression xsi:type="bpmn:tFormalExpression">${resolution == 'Approve'}</bpmn:conditionExpression>
       </bpmn:sequenceFlow>
@@ -511,7 +511,7 @@
       </bpmn:sequenceFlow>
       <bpmn:sequenceFlow id="SequenceFlow_1iibt2p" sourceRef="ExclusiveGateway_0y67lum" targetRef="Task_1972tin" />
       <bpmn:sequenceFlow id="SequenceFlow_0hu5j4z" name="Submit" sourceRef="Task_0klxkhf" targetRef="Task_02bibw0" />
-      <bpmn:sequenceFlow id="SequenceFlow_1x27ecr" sourceRef="Task_02bibw0" targetRef="SendTask_0w9xq80" />
+      <bpmn:sequenceFlow id="SequenceFlow_1x27ecr" sourceRef="Task_02bibw0" targetRef="SendTask_1l91mfe" />
       <bpmn:sequenceFlow id="SequenceFlow_1l47q7o" name="Need Technology Delivery" sourceRef="ExclusiveGateway_0y67lum" targetRef="Task_02bibw0">
         <bpmn:conditionExpression xsi:type="bpmn:tFormalExpression">${generalData.prop("general").prop("technicalAnalysis").boolValue()}</bpmn:conditionExpression>
       </bpmn:sequenceFlow>
@@ -542,63 +542,63 @@
         <bpmn:incoming>SequenceFlow_0qxxx4q</bpmn:incoming>
         <bpmn:outgoing>SequenceFlow_03i2mla</bpmn:outgoing>
       </bpmn:userTask>
-      <bpmn:sendTask id="SendTask_0w9xq80" name="Status change notification" camunda:delegateExpression="${camundaMailer}">
+      <bpmn:sequenceFlow id="SequenceFlow_0qxxx4q" name="to Requirement review" sourceRef="ExclusiveGateway_0y67lum" targetRef="Task_0rozho7">
+        <bpmn:conditionExpression xsi:type="bpmn:tFormalExpression">${resolution == 'Send to Requirement review'}</bpmn:conditionExpression>
+      </bpmn:sequenceFlow>
+      <bpmn:sendTask id="SendTask_0tbd552" name="Status change notification" camunda:delegateExpression="${camundaMailer}">
         <bpmn:extensionElements>
           <camunda:inputOutput>
             <camunda:inputParameter name="subject">
-              <camunda:script scriptFormat="groovy" resource="demandSatusChangeNotificationSubject.groovy" />
+              <camunda:script scriptFormat="groovy" resource="demand/statusChangeNotificationSubject.groovy" />
             </camunda:inputParameter>
             <camunda:inputParameter name="html">
-              <camunda:script scriptFormat="groovy" resource="demandSatusChangeNotificationHtml.groovy" />
+              <camunda:script scriptFormat="groovy" resource="demand/statusChangeNotificationHtml.groovy" />
             </camunda:inputParameter>
             <camunda:inputParameter name="to">
-              <camunda:script scriptFormat="groovy" resource="demandSatusChangeNotificationAddressee.groovy" />
-            </camunda:inputParameter>
-          </camunda:inputOutput>
-        </bpmn:extensionElements>
-        <bpmn:incoming>SequenceFlow_1x27ecr</bpmn:incoming>
-        <bpmn:outgoing>SequenceFlow_11hdnc4</bpmn:outgoing>
-      </bpmn:sendTask>
-      <bpmn:sequenceFlow id="SequenceFlow_11hdnc4" sourceRef="SendTask_0w9xq80" targetRef="ExclusiveGateway_0gdx7gd" />
-      <bpmn:sendTask id="SendTask_0gk6rz8" name="Status change notification" camunda:delegateExpression="${camundaMailer}">
-        <bpmn:extensionElements>
-          <camunda:inputOutput>
-            <camunda:inputParameter name="subject">
-              <camunda:script scriptFormat="groovy" resource="demandSatusChangeNotificationSubject.groovy" />
-            </camunda:inputParameter>
-            <camunda:inputParameter name="html">
-              <camunda:script scriptFormat="groovy" resource="demandSatusChangeNotificationHtml.groovy" />
-            </camunda:inputParameter>
-            <camunda:inputParameter name="to">
-              <camunda:script scriptFormat="groovy" resource="demandSatusChangeNotificationAddressee.groovy" />
+              <camunda:script scriptFormat="groovy" resource="demand/statusChangeNotificationAddressee.groovy" />
             </camunda:inputParameter>
           </camunda:inputOutput>
         </bpmn:extensionElements>
         <bpmn:incoming>SequenceFlow_0ch7j3u</bpmn:incoming>
-        <bpmn:outgoing>SequenceFlow_123hhgx</bpmn:outgoing>
+        <bpmn:outgoing>SequenceFlow_1um3bqm</bpmn:outgoing>
       </bpmn:sendTask>
-      <bpmn:sequenceFlow id="SequenceFlow_123hhgx" name="Send to Enrich Business case / Send to Fill form / Finish / Cancel" sourceRef="SendTask_0gk6rz8" targetRef="EndEvent_0zl5vl0" />
-      <bpmn:sendTask id="SendTask_1apgbne" name="Status change notification" camunda:delegateExpression="${camundaMailer}">
+      <bpmn:sequenceFlow id="SequenceFlow_1um3bqm" name="Send to Enrich Business case / Send to Fill form / Finish / Cancel" sourceRef="SendTask_0tbd552" targetRef="EndEvent_0zl5vl0" />
+      <bpmn:sendTask id="SendTask_094uzj8" name="Status change notification" camunda:delegateExpression="${camundaMailer}">
         <bpmn:extensionElements>
           <camunda:inputOutput>
             <camunda:inputParameter name="subject">
-              <camunda:script scriptFormat="groovy" resource="demandSatusChangeNotificationSubject.groovy" />
+              <camunda:script scriptFormat="groovy" resource="demand/statusChangeNotificationSubject.groovy" />
             </camunda:inputParameter>
             <camunda:inputParameter name="html">
-              <camunda:script scriptFormat="groovy" resource="demandSatusChangeNotificationHtml.groovy" />
+              <camunda:script scriptFormat="groovy" resource="demand/statusChangeNotificationHtml.groovy" />
             </camunda:inputParameter>
             <camunda:inputParameter name="to">
-              <camunda:script scriptFormat="groovy" resource="demandSatusChangeNotificationAddressee.groovy" />
+              <camunda:script scriptFormat="groovy" resource="demand/statusChangeNotificationAddressee.groovy" />
             </camunda:inputParameter>
           </camunda:inputOutput>
         </bpmn:extensionElements>
         <bpmn:incoming>SequenceFlow_03i2mla</bpmn:incoming>
-        <bpmn:outgoing>SequenceFlow_13azg0j</bpmn:outgoing>
+        <bpmn:outgoing>SequenceFlow_1m5c8bs</bpmn:outgoing>
       </bpmn:sendTask>
-      <bpmn:sequenceFlow id="SequenceFlow_13azg0j" sourceRef="SendTask_1apgbne" targetRef="ExclusiveGateway_0ybjpsc" />
-      <bpmn:sequenceFlow id="SequenceFlow_0qxxx4q" name="to Requirement review" sourceRef="ExclusiveGateway_0y67lum" targetRef="Task_0rozho7">
-        <bpmn:conditionExpression xsi:type="bpmn:tFormalExpression">${resolution == 'Send to Requirement review'}</bpmn:conditionExpression>
-      </bpmn:sequenceFlow>
+      <bpmn:sequenceFlow id="SequenceFlow_1m5c8bs" sourceRef="SendTask_094uzj8" targetRef="ExclusiveGateway_0ybjpsc" />
+      <bpmn:sendTask id="SendTask_1l91mfe" name="Status change notification" camunda:delegateExpression="${camundaMailer}">
+        <bpmn:extensionElements>
+          <camunda:inputOutput>
+            <camunda:inputParameter name="subject">
+              <camunda:script scriptFormat="groovy" resource="demand/statusChangeNotificationSubject.groovy" />
+            </camunda:inputParameter>
+            <camunda:inputParameter name="html">
+              <camunda:script scriptFormat="groovy" resource="demand/statusChangeNotificationHtml.groovy" />
+            </camunda:inputParameter>
+            <camunda:inputParameter name="to">
+              <camunda:script scriptFormat="groovy" resource="demand/statusChangeNotificationAddressee.groovy" />
+            </camunda:inputParameter>
+          </camunda:inputOutput>
+        </bpmn:extensionElements>
+        <bpmn:incoming>SequenceFlow_1x27ecr</bpmn:incoming>
+        <bpmn:outgoing>SequenceFlow_1pxk3i2</bpmn:outgoing>
+      </bpmn:sendTask>
+      <bpmn:sequenceFlow id="SequenceFlow_1pxk3i2" sourceRef="SendTask_1l91mfe" targetRef="ExclusiveGateway_0gdx7gd" />
       <bpmn:textAnnotation id="TextAnnotation_1480677">
         <bpmn:text>CVP council</bpmn:text>
       </bpmn:textAnnotation>
@@ -645,13 +645,13 @@
       <bpmn:extensionElements>
         <camunda:inputOutput>
           <camunda:inputParameter name="subject">
-            <camunda:script scriptFormat="groovy" resource="demandSatusChangeNotificationSubject.groovy" />
+            <camunda:script scriptFormat="groovy" resource="demand/statusChangeNotificationSubject.groovy" />
           </camunda:inputParameter>
           <camunda:inputParameter name="html">
-            <camunda:script scriptFormat="groovy" resource="demandSatusChangeNotificationHtml.groovy" />
+            <camunda:script scriptFormat="groovy" resource="demand/statusChangeNotificationHtml.groovy" />
           </camunda:inputParameter>
           <camunda:inputParameter name="to">
-            <camunda:script scriptFormat="groovy" resource="demandSatusChangeNotificationAddressee.groovy" />
+            <camunda:script scriptFormat="groovy" resource="demand/statusChangeNotificationAddressee.groovy" />
           </camunda:inputParameter>
         </camunda:inputOutput>
       </bpmn:extensionElements>
@@ -662,41 +662,23 @@
       <bpmn:extensionElements>
         <camunda:inputOutput>
           <camunda:inputParameter name="subject">
-            <camunda:script scriptFormat="groovy" resource="demandSatusChangeNotificationSubject.groovy" />
+            <camunda:script scriptFormat="groovy" resource="demand/statusChangeNotificationSubject.groovy" />
           </camunda:inputParameter>
           <camunda:inputParameter name="html">
-            <camunda:script scriptFormat="groovy" resource="demandSatusChangeNotificationHtml.groovy" />
+            <camunda:script scriptFormat="groovy" resource="demand/statusChangeNotificationHtml.groovy" />
           </camunda:inputParameter>
           <camunda:inputParameter name="to">
-            <camunda:script scriptFormat="groovy" resource="demandSatusChangeNotificationAddressee.groovy" />
+            <camunda:script scriptFormat="groovy" resource="demand/statusChangeNotificationAddressee.groovy" />
           </camunda:inputParameter>
         </camunda:inputOutput>
       </bpmn:extensionElements>
       <bpmn:incoming>SequenceFlow_0b2rebf</bpmn:incoming>
       <bpmn:outgoing>SequenceFlow_0scvrzt</bpmn:outgoing>
     </bpmn:sendTask>
-    <bpmn:sequenceFlow id="SequenceFlow_0emat9p" sourceRef="fillForm" targetRef="SendTask_05850o0" />
+    <bpmn:sequenceFlow id="SequenceFlow_0emat9p" sourceRef="fillForm" targetRef="SendTask_15g0gng" />
     <bpmn:sequenceFlow id="SequenceFlow_0scvrzt" sourceRef="Task_05ddpwa" targetRef="ExclusiveGateway_1rfgmnd" />
-    <bpmn:sendTask id="SendTask_05850o0" name="Status change notification" camunda:delegateExpression="${camundaMailer}">
-      <bpmn:extensionElements>
-        <camunda:inputOutput>
-          <camunda:inputParameter name="subject">
-            <camunda:script scriptFormat="groovy" resource="demandSatusChangeNotificationSubject.groovy" />
-          </camunda:inputParameter>
-          <camunda:inputParameter name="html">
-            <camunda:script scriptFormat="groovy" resource="demandSatusChangeNotificationHtml.groovy" />
-          </camunda:inputParameter>
-          <camunda:inputParameter name="to">
-            <camunda:script scriptFormat="groovy" resource="demandSatusChangeNotificationAddressee.groovy" />
-          </camunda:inputParameter>
-        </camunda:inputOutput>
-      </bpmn:extensionElements>
-      <bpmn:incoming>SequenceFlow_0emat9p</bpmn:incoming>
-      <bpmn:outgoing>SequenceFlow_1v377z2</bpmn:outgoing>
-    </bpmn:sendTask>
-    <bpmn:sequenceFlow id="SequenceFlow_1v377z2" sourceRef="SendTask_05850o0" targetRef="ExclusiveGateway_0xc2ixb" />
     <bpmn:exclusiveGateway id="ExclusiveGateway_0xc2ixb" default="SequenceFlow_1ovopwc">
-      <bpmn:incoming>SequenceFlow_1v377z2</bpmn:incoming>
+      <bpmn:incoming>SequenceFlow_0unxg99</bpmn:incoming>
       <bpmn:outgoing>SequenceFlow_1ovopwc</bpmn:outgoing>
       <bpmn:outgoing>SequenceFlow_1s2pcoc</bpmn:outgoing>
     </bpmn:exclusiveGateway>
@@ -730,9 +712,9 @@
       </bpmn:exclusiveGateway>
       <bpmn:userTask id="UserTask_1mcr26e" name="Fill SDD" camunda:formKey="embedded:app:forms/demand/fillSDD.html" camunda:assignee="${solutionOwner}">
         <bpmn:documentation>Fill SDD</bpmn:documentation>
-        <bpmn:incoming>SequenceFlow_0y5170g</bpmn:incoming>
         <bpmn:incoming>SequenceFlow_0ku6pcr</bpmn:incoming>
         <bpmn:incoming>SequenceFlow_1d4erl9</bpmn:incoming>
+        <bpmn:incoming>SequenceFlow_1k9f19b</bpmn:incoming>
         <bpmn:outgoing>SequenceFlow_0rvvsi0</bpmn:outgoing>
       </bpmn:userTask>
       <bpmn:endEvent id="EndEvent_1tss67f" name="to Requirement review">
@@ -762,71 +744,18 @@
         <bpmn:multiInstanceLoopCharacteristics camunda:collection="${sddApprovalList.elements()}" camunda:elementVariable="approvalItem" />
       </bpmn:userTask>
       <bpmn:endEvent id="EndEvent_1jbhknp" name="to Development">
-        <bpmn:incoming>SequenceFlow_0glrhdt</bpmn:incoming>
+        <bpmn:incoming>SequenceFlow_1dcrm0l</bpmn:incoming>
       </bpmn:endEvent>
-      <bpmn:sendTask id="SendTask_11147tj" name="Status change notification" camunda:delegateExpression="${camundaMailer}">
-        <bpmn:extensionElements>
-          <camunda:inputOutput>
-            <camunda:inputParameter name="subject">
-              <camunda:script scriptFormat="groovy" resource="demandSatusChangeNotificationSubject.groovy" />
-            </camunda:inputParameter>
-            <camunda:inputParameter name="html">
-              <camunda:script scriptFormat="groovy" resource="demandSatusChangeNotificationHtml.groovy" />
-            </camunda:inputParameter>
-            <camunda:inputParameter name="to">
-              <camunda:script scriptFormat="groovy" resource="demandSatusChangeNotificationAddressee.groovy" />
-            </camunda:inputParameter>
-          </camunda:inputOutput>
-        </bpmn:extensionElements>
-        <bpmn:incoming>SequenceFlow_06ycjhm</bpmn:incoming>
-        <bpmn:outgoing>SequenceFlow_0glrhdt</bpmn:outgoing>
-      </bpmn:sendTask>
       <bpmn:exclusiveGateway id="ExclusiveGateway_0hcvybx" default="SequenceFlow_08o5zpv">
         <bpmn:incoming>SequenceFlow_0p4rte9</bpmn:incoming>
         <bpmn:outgoing>SequenceFlow_0ku6pcr</bpmn:outgoing>
         <bpmn:outgoing>SequenceFlow_08o5zpv</bpmn:outgoing>
       </bpmn:exclusiveGateway>
-      <bpmn:sendTask id="SendTask_0zbsa9j" name="Status change notification" camunda:delegateExpression="${camundaMailer}">
-        <bpmn:extensionElements>
-          <camunda:inputOutput>
-            <camunda:inputParameter name="subject">
-              <camunda:script scriptFormat="groovy" resource="demandSatusChangeNotificationSubject.groovy" />
-            </camunda:inputParameter>
-            <camunda:inputParameter name="html">
-              <camunda:script scriptFormat="groovy" resource="demandSatusChangeNotificationHtml.groovy" />
-            </camunda:inputParameter>
-            <camunda:inputParameter name="to">
-              <camunda:script scriptFormat="groovy" resource="demandSatusChangeNotificationAddressee.groovy" />
-            </camunda:inputParameter>
-          </camunda:inputOutput>
-        </bpmn:extensionElements>
-        <bpmn:incoming>SequenceFlow_08yb7vh</bpmn:incoming>
-        <bpmn:outgoing>SequenceFlow_0y5170g</bpmn:outgoing>
-      </bpmn:sendTask>
-      <bpmn:sendTask id="SendTask_1i6tjai" name="Status change notification" camunda:delegateExpression="${camundaMailer}">
-        <bpmn:extensionElements>
-          <camunda:inputOutput>
-            <camunda:inputParameter name="subject">
-              <camunda:script scriptFormat="groovy" resource="demandSatusChangeNotificationSubject.groovy" />
-            </camunda:inputParameter>
-            <camunda:inputParameter name="html">
-              <camunda:script scriptFormat="groovy" resource="demandSatusChangeNotificationHtml.groovy" />
-            </camunda:inputParameter>
-            <camunda:inputParameter name="to">
-              <camunda:script scriptFormat="groovy" resource="demandSatusChangeNotificationAddressee.groovy" />
-            </camunda:inputParameter>
-          </camunda:inputOutput>
-        </bpmn:extensionElements>
-        <bpmn:incoming>SequenceFlow_1qxjev9</bpmn:incoming>
-        <bpmn:outgoing>SequenceFlow_0swl59l</bpmn:outgoing>
-      </bpmn:sendTask>
-      <bpmn:sequenceFlow id="SequenceFlow_0y5170g" sourceRef="SendTask_0zbsa9j" targetRef="UserTask_1mcr26e" />
       <bpmn:sequenceFlow id="SequenceFlow_0ku6pcr" name="to Fill SDD" sourceRef="ExclusiveGateway_0hcvybx" targetRef="UserTask_1mcr26e">
         <bpmn:conditionExpression xsi:type="bpmn:tFormalExpression">${resolution == 'Send to Fill SDD'}</bpmn:conditionExpression>
       </bpmn:sequenceFlow>
       <bpmn:sequenceFlow id="SequenceFlow_08o5zpv" sourceRef="ExclusiveGateway_0hcvybx" targetRef="UserTask_1mno8gd" />
-      <bpmn:sequenceFlow id="SequenceFlow_0glrhdt" sourceRef="SendTask_11147tj" targetRef="EndEvent_1jbhknp" />
-      <bpmn:sequenceFlow id="SequenceFlow_06ycjhm" name="Approve" sourceRef="ExclusiveGateway_1q5j4rg" targetRef="SendTask_11147tj" />
+      <bpmn:sequenceFlow id="SequenceFlow_06ycjhm" name="Approve" sourceRef="ExclusiveGateway_1q5j4rg" targetRef="SendTask_0oay7ww" />
       <bpmn:sequenceFlow id="SequenceFlow_0fg7ezf" name="Approve / Reject" sourceRef="UserTask_1wyogw2" targetRef="UserTask_02cmulu" />
       <bpmn:sequenceFlow id="SequenceFlow_1d4erl9" name="Send to modify" sourceRef="ExclusiveGateway_1q5j4rg" targetRef="UserTask_1mcr26e">
         <bpmn:conditionExpression xsi:type="bpmn:tFormalExpression">${resolution == 'Send to modify'}</bpmn:conditionExpression>
@@ -841,12 +770,65 @@
       <bpmn:sequenceFlow id="SequenceFlow_1qxjev9" name="Send to Assign Solution owner" sourceRef="ExclusiveGateway_1jp6koh" targetRef="SendTask_1i6tjai" />
       <bpmn:sequenceFlow id="SequenceFlow_0rvvsi0" sourceRef="UserTask_1mcr26e" targetRef="ExclusiveGateway_1jp6koh" />
       <bpmn:sequenceFlow id="SequenceFlow_17tst19" name="Send to Requirement review" sourceRef="ExclusiveGateway_1j6w0or" targetRef="EndEvent_1tss67f" />
-      <bpmn:sequenceFlow id="SequenceFlow_08yb7vh" name="Approve" sourceRef="ExclusiveGateway_1j6w0or" targetRef="SendTask_0zbsa9j">
+      <bpmn:sequenceFlow id="SequenceFlow_08yb7vh" name="Approve" sourceRef="ExclusiveGateway_1j6w0or" targetRef="SendTask_07fl1e6">
         <bpmn:conditionExpression xsi:type="bpmn:tFormalExpression">${resolution == 'Approve'}</bpmn:conditionExpression>
       </bpmn:sequenceFlow>
       <bpmn:sequenceFlow id="SequenceFlow_0gmqa24" sourceRef="UserTask_1mno8gd" targetRef="ExclusiveGateway_1j6w0or" />
       <bpmn:sequenceFlow id="SequenceFlow_0p4rte9" sourceRef="StartEvent_1fh4vpl" targetRef="ExclusiveGateway_0hcvybx" />
+      <bpmn:sendTask id="SendTask_07fl1e6" name="Status change notification" camunda:delegateExpression="${camundaMailer}">
+        <bpmn:extensionElements>
+          <camunda:inputOutput>
+            <camunda:inputParameter name="subject">
+              <camunda:script scriptFormat="groovy" resource="demand/statusChangeNotificationSubject.groovy" />
+            </camunda:inputParameter>
+            <camunda:inputParameter name="html">
+              <camunda:script scriptFormat="groovy" resource="demand/statusChangeNotificationHtml.groovy" />
+            </camunda:inputParameter>
+            <camunda:inputParameter name="to">
+              <camunda:script scriptFormat="groovy" resource="demand/statusChangeNotificationAddressee.groovy" />
+            </camunda:inputParameter>
+          </camunda:inputOutput>
+        </bpmn:extensionElements>
+        <bpmn:incoming>SequenceFlow_08yb7vh</bpmn:incoming>
+        <bpmn:outgoing>SequenceFlow_1k9f19b</bpmn:outgoing>
+      </bpmn:sendTask>
+      <bpmn:sequenceFlow id="SequenceFlow_1k9f19b" sourceRef="SendTask_07fl1e6" targetRef="UserTask_1mcr26e" />
+      <bpmn:sendTask id="SendTask_1i6tjai" name="Status change notification" camunda:delegateExpression="${camundaMailer}">
+        <bpmn:extensionElements>
+          <camunda:inputOutput>
+            <camunda:inputParameter name="subject">
+              <camunda:script scriptFormat="groovy" resource="demand/statusChangeNotificationSubject.groovy" />
+            </camunda:inputParameter>
+            <camunda:inputParameter name="html">
+              <camunda:script scriptFormat="groovy" resource="demand/statusChangeNotificationHtml.groovy" />
+            </camunda:inputParameter>
+            <camunda:inputParameter name="to">
+              <camunda:script scriptFormat="groovy" resource="demand/statusChangeNotificationAddressee.groovy" />
+            </camunda:inputParameter>
+          </camunda:inputOutput>
+        </bpmn:extensionElements>
+        <bpmn:incoming>SequenceFlow_1qxjev9</bpmn:incoming>
+        <bpmn:outgoing>SequenceFlow_0swl59l</bpmn:outgoing>
+      </bpmn:sendTask>
       <bpmn:sequenceFlow id="SequenceFlow_0swl59l" sourceRef="SendTask_1i6tjai" targetRef="UserTask_1mno8gd" />
+      <bpmn:sendTask id="SendTask_0oay7ww" name="Status change notification" camunda:delegateExpression="${camundaMailer}">
+        <bpmn:extensionElements>
+          <camunda:inputOutput>
+            <camunda:inputParameter name="subject">
+              <camunda:script scriptFormat="groovy" resource="demand/statusChangeNotificationSubject.groovy" />
+            </camunda:inputParameter>
+            <camunda:inputParameter name="html">
+              <camunda:script scriptFormat="groovy" resource="demand/statusChangeNotificationHtml.groovy" />
+            </camunda:inputParameter>
+            <camunda:inputParameter name="to">
+              <camunda:script scriptFormat="groovy" resource="demand/statusChangeNotificationAddressee.groovy" />
+            </camunda:inputParameter>
+          </camunda:inputOutput>
+        </bpmn:extensionElements>
+        <bpmn:incoming>SequenceFlow_06ycjhm</bpmn:incoming>
+        <bpmn:outgoing>SequenceFlow_1dcrm0l</bpmn:outgoing>
+      </bpmn:sendTask>
+      <bpmn:sequenceFlow id="SequenceFlow_1dcrm0l" sourceRef="SendTask_0oay7ww" targetRef="EndEvent_1jbhknp" />
       <bpmn:textAnnotation id="TextAnnotation_1qbbb7h">
         <bpmn:text>Solution supervisor</bpmn:text>
       </bpmn:textAnnotation>
@@ -872,29 +854,29 @@
         <bpmn:incoming>SequenceFlow_1gj3j8b</bpmn:incoming>
         <bpmn:outgoing>SequenceFlow_0xafklx</bpmn:outgoing>
       </bpmn:userTask>
-      <bpmn:sendTask id="SendTask_10k1s7l" name="Status change notification" camunda:delegateExpression="${camundaMailer}">
+      <bpmn:endEvent id="EndEvent_00l4ck4" name="to Fill SDD / to TQC and UAT">
+        <bpmn:incoming>SequenceFlow_04tnnge</bpmn:incoming>
+      </bpmn:endEvent>
+      <bpmn:sequenceFlow id="SequenceFlow_0xafklx" sourceRef="UserTask_02rg009" targetRef="SendTask_15azxq8" />
+      <bpmn:sequenceFlow id="SequenceFlow_1gj3j8b" sourceRef="StartEvent_0cs00hx" targetRef="UserTask_02rg009" />
+      <bpmn:sendTask id="SendTask_15azxq8" name="Status change notification" camunda:delegateExpression="${camundaMailer}">
         <bpmn:extensionElements>
           <camunda:inputOutput>
             <camunda:inputParameter name="subject">
-              <camunda:script scriptFormat="groovy" resource="demandSatusChangeNotificationSubject.groovy" />
+              <camunda:script scriptFormat="groovy" resource="demand/statusChangeNotificationSubject.groovy" />
             </camunda:inputParameter>
             <camunda:inputParameter name="html">
-              <camunda:script scriptFormat="groovy" resource="demandSatusChangeNotificationHtml.groovy" />
+              <camunda:script scriptFormat="groovy" resource="demand/statusChangeNotificationHtml.groovy" />
             </camunda:inputParameter>
             <camunda:inputParameter name="to">
-              <camunda:script scriptFormat="groovy" resource="demandSatusChangeNotificationAddressee.groovy" />
+              <camunda:script scriptFormat="groovy" resource="demand/statusChangeNotificationAddressee.groovy" />
             </camunda:inputParameter>
           </camunda:inputOutput>
         </bpmn:extensionElements>
         <bpmn:incoming>SequenceFlow_0xafklx</bpmn:incoming>
-        <bpmn:outgoing>SequenceFlow_0oo60eu</bpmn:outgoing>
+        <bpmn:outgoing>SequenceFlow_04tnnge</bpmn:outgoing>
       </bpmn:sendTask>
-      <bpmn:endEvent id="EndEvent_00l4ck4" name="to Fill SDD / to TQC and UAT">
-        <bpmn:incoming>SequenceFlow_0oo60eu</bpmn:incoming>
-      </bpmn:endEvent>
-      <bpmn:sequenceFlow id="SequenceFlow_0oo60eu" sourceRef="SendTask_10k1s7l" targetRef="EndEvent_00l4ck4" />
-      <bpmn:sequenceFlow id="SequenceFlow_0xafklx" sourceRef="UserTask_02rg009" targetRef="SendTask_10k1s7l" />
-      <bpmn:sequenceFlow id="SequenceFlow_1gj3j8b" sourceRef="StartEvent_0cs00hx" targetRef="UserTask_02rg009" />
+      <bpmn:sequenceFlow id="SequenceFlow_04tnnge" sourceRef="SendTask_15azxq8" targetRef="EndEvent_00l4ck4" />
       <bpmn:textAnnotation id="TextAnnotation_14j4ewv">
         <bpmn:text>Requirement manager</bpmn:text>
       </bpmn:textAnnotation>
@@ -933,7 +915,7 @@
         <bpmn:outgoing>SequenceFlow_1am8ufp</bpmn:outgoing>
       </bpmn:startEvent>
       <bpmn:exclusiveGateway id="ExclusiveGateway_0zqycfs" default="SequenceFlow_1jn6htw">
-        <bpmn:incoming>SequenceFlow_1fuaoh2</bpmn:incoming>
+        <bpmn:incoming>SequenceFlow_1k2ra40</bpmn:incoming>
         <bpmn:outgoing>SequenceFlow_1jn6htw</bpmn:outgoing>
         <bpmn:outgoing>SequenceFlow_0sz0ei4</bpmn:outgoing>
       </bpmn:exclusiveGateway>
@@ -952,7 +934,7 @@
         <bpmn:outgoing>SequenceFlow_14z9acr</bpmn:outgoing>
       </bpmn:userTask>
       <bpmn:exclusiveGateway id="ExclusiveGateway_0531qv4" default="SequenceFlow_1wz3hnw">
-        <bpmn:incoming>SequenceFlow_1p2r3ax</bpmn:incoming>
+        <bpmn:incoming>SequenceFlow_0ys093b</bpmn:incoming>
         <bpmn:outgoing>SequenceFlow_0c45abx</bpmn:outgoing>
         <bpmn:outgoing>SequenceFlow_1wz3hnw</bpmn:outgoing>
         <bpmn:outgoing>SequenceFlow_0tmqqwi</bpmn:outgoing>
@@ -978,8 +960,8 @@
         <bpmn:outgoing>SequenceFlow_0kof56t</bpmn:outgoing>
       </bpmn:serviceTask>
       <bpmn:sequenceFlow id="SequenceFlow_0kof56t" sourceRef="ServiceTask_1yi3b57" targetRef="EndEvent_125qxsa" />
-      <bpmn:sequenceFlow id="SequenceFlow_19ehksq" sourceRef="UserTask_1wcad57" targetRef="SendTask_16t4bfb" />
-      <bpmn:sequenceFlow id="SequenceFlow_0jot1gi" sourceRef="UserTask_19pwybp" targetRef="SendTask_1y87awv" />
+      <bpmn:sequenceFlow id="SequenceFlow_19ehksq" sourceRef="UserTask_1wcad57" targetRef="SendTask_1ny6t1r" />
+      <bpmn:sequenceFlow id="SequenceFlow_0jot1gi" sourceRef="UserTask_19pwybp" targetRef="SendTask_18t9i3c" />
       <bpmn:sequenceFlow id="SequenceFlow_0c45abx" name="Send to TQC" sourceRef="ExclusiveGateway_0531qv4" targetRef="UserTask_1wcad57">
         <bpmn:conditionExpression xsi:type="bpmn:tFormalExpression">${false}</bpmn:conditionExpression>
       </bpmn:sequenceFlow>
@@ -996,42 +978,42 @@
         <bpmn:conditionExpression xsi:type="bpmn:tFormalExpression">${resolution == 'Send to Development'}</bpmn:conditionExpression>
       </bpmn:sequenceFlow>
       <bpmn:sequenceFlow id="SequenceFlow_1am8ufp" sourceRef="StartEvent_1qhhtyd" targetRef="UserTask_1wcad57" />
-      <bpmn:sendTask id="SendTask_16t4bfb" name="Status change notification" camunda:delegateExpression="${camundaMailer}">
+      <bpmn:sendTask id="SendTask_1ny6t1r" name="Status change notification" camunda:delegateExpression="${camundaMailer}">
         <bpmn:extensionElements>
           <camunda:inputOutput>
             <camunda:inputParameter name="subject">
-              <camunda:script scriptFormat="groovy" resource="demandSatusChangeNotificationSubject.groovy" />
+              <camunda:script scriptFormat="groovy" resource="demand/statusChangeNotificationSubject.groovy" />
             </camunda:inputParameter>
             <camunda:inputParameter name="html">
-              <camunda:script scriptFormat="groovy" resource="demandSatusChangeNotificationHtml.groovy" />
+              <camunda:script scriptFormat="groovy" resource="demand/statusChangeNotificationHtml.groovy" />
             </camunda:inputParameter>
             <camunda:inputParameter name="to">
-              <camunda:script scriptFormat="groovy" resource="demandSatusChangeNotificationAddressee.groovy" />
+              <camunda:script scriptFormat="groovy" resource="demand/statusChangeNotificationAddressee.groovy" />
             </camunda:inputParameter>
           </camunda:inputOutput>
         </bpmn:extensionElements>
         <bpmn:incoming>SequenceFlow_19ehksq</bpmn:incoming>
-        <bpmn:outgoing>SequenceFlow_1fuaoh2</bpmn:outgoing>
+        <bpmn:outgoing>SequenceFlow_1k2ra40</bpmn:outgoing>
       </bpmn:sendTask>
-      <bpmn:sequenceFlow id="SequenceFlow_1fuaoh2" sourceRef="SendTask_16t4bfb" targetRef="ExclusiveGateway_0zqycfs" />
-      <bpmn:sendTask id="SendTask_1y87awv" name="Status change notification" camunda:delegateExpression="${camundaMailer}">
+      <bpmn:sequenceFlow id="SequenceFlow_1k2ra40" sourceRef="SendTask_1ny6t1r" targetRef="ExclusiveGateway_0zqycfs" />
+      <bpmn:sendTask id="SendTask_18t9i3c" name="Status change notification" camunda:delegateExpression="${camundaMailer}">
         <bpmn:extensionElements>
           <camunda:inputOutput>
             <camunda:inputParameter name="subject">
-              <camunda:script scriptFormat="groovy" resource="demandSatusChangeNotificationSubject.groovy" />
+              <camunda:script scriptFormat="groovy" resource="demand/statusChangeNotificationSubject.groovy" />
             </camunda:inputParameter>
             <camunda:inputParameter name="html">
-              <camunda:script scriptFormat="groovy" resource="demandSatusChangeNotificationHtml.groovy" />
+              <camunda:script scriptFormat="groovy" resource="demand/statusChangeNotificationHtml.groovy" />
             </camunda:inputParameter>
             <camunda:inputParameter name="to">
-              <camunda:script scriptFormat="groovy" resource="demandSatusChangeNotificationAddressee.groovy" />
+              <camunda:script scriptFormat="groovy" resource="demand/statusChangeNotificationAddressee.groovy" />
             </camunda:inputParameter>
           </camunda:inputOutput>
         </bpmn:extensionElements>
         <bpmn:incoming>SequenceFlow_0jot1gi</bpmn:incoming>
-        <bpmn:outgoing>SequenceFlow_1p2r3ax</bpmn:outgoing>
+        <bpmn:outgoing>SequenceFlow_0ys093b</bpmn:outgoing>
       </bpmn:sendTask>
-      <bpmn:sequenceFlow id="SequenceFlow_1p2r3ax" sourceRef="SendTask_1y87awv" targetRef="ExclusiveGateway_0531qv4" />
+      <bpmn:sequenceFlow id="SequenceFlow_0ys093b" sourceRef="SendTask_18t9i3c" targetRef="ExclusiveGateway_0531qv4" />
       <bpmn:textAnnotation id="TextAnnotation_1anhdjs">
         <bpmn:text>Solution owner</bpmn:text>
       </bpmn:textAnnotation>
@@ -1055,6 +1037,24 @@
     <bpmn:sequenceFlow id="SequenceFlow_1rpacb7" name="To Development" sourceRef="ExclusiveGateway_1m276t2" targetRef="SubProcess_0j5898z">
       <bpmn:conditionExpression xsi:type="bpmn:tFormalExpression">${resolution == 'Send to Development'}</bpmn:conditionExpression>
     </bpmn:sequenceFlow>
+    <bpmn:sendTask id="SendTask_15g0gng" name="Status change notification" camunda:delegateExpression="${camundaMailer}">
+      <bpmn:extensionElements>
+        <camunda:inputOutput>
+          <camunda:inputParameter name="subject">
+            <camunda:script scriptFormat="groovy" resource="demand/statusChangeNotificationSubject.groovy" />
+          </camunda:inputParameter>
+          <camunda:inputParameter name="html">
+            <camunda:script scriptFormat="groovy" resource="demand/statusChangeNotificationHtml.groovy" />
+          </camunda:inputParameter>
+          <camunda:inputParameter name="to">
+            <camunda:script scriptFormat="groovy" resource="demand/statusChangeNotificationAddressee.groovy" />
+          </camunda:inputParameter>
+        </camunda:inputOutput>
+      </bpmn:extensionElements>
+      <bpmn:incoming>SequenceFlow_0emat9p</bpmn:incoming>
+      <bpmn:outgoing>SequenceFlow_0unxg99</bpmn:outgoing>
+    </bpmn:sendTask>
+    <bpmn:sequenceFlow id="SequenceFlow_0unxg99" sourceRef="SendTask_15g0gng" targetRef="ExclusiveGateway_0xc2ixb" />
     <bpmn:textAnnotation id="TextAnnotation_1ctdjib">
       <bpmn:text>Demand Owner</bpmn:text>
     </bpmn:textAnnotation>
@@ -1140,7 +1140,7 @@
       </bpmndi:BPMNEdge>
       <bpmndi:BPMNEdge id="SequenceFlow_1krkpic_di" bpmnElement="SequenceFlow_1krkpic">
         <di:waypoint x="-85" y="-381" />
-        <di:waypoint x="-22" y="-381" />
+        <di:waypoint x="-34" y="-381" />
         <bpmndi:BPMNLabel>
           <dc:Bounds x="267" y="129" width="90" height="12" />
         </bpmndi:BPMNLabel>
@@ -1291,7 +1291,7 @@
       </bpmndi:BPMNShape>
       <bpmndi:BPMNEdge id="SequenceFlow_0gy5f2f_di" bpmnElement="SequenceFlow_0gy5f2f">
         <di:waypoint x="1287" y="150" />
-        <di:waypoint x="1376" y="150" />
+        <di:waypoint x="1375" y="150" />
         <bpmndi:BPMNLabel>
           <dc:Bounds x="1442" y="129" width="90" height="12" />
         </bpmndi:BPMNLabel>
@@ -1321,7 +1321,7 @@
       </bpmndi:BPMNShape>
       <bpmndi:BPMNEdge id="SequenceFlow_0046vn0_di" bpmnElement="SequenceFlow_0046vn0">
         <di:waypoint x="1828" y="150" />
-        <di:waypoint x="1905" y="150" />
+        <di:waypoint x="1900" y="150" />
         <bpmndi:BPMNLabel>
           <dc:Bounds x="1992" y="129" width="90" height="12" />
         </bpmndi:BPMNLabel>
@@ -1698,7 +1698,7 @@
       </bpmndi:BPMNShape>
       <bpmndi:BPMNEdge id="SequenceFlow_0ch7j3u_di" bpmnElement="SequenceFlow_0ch7j3u">
         <di:waypoint x="3002" y="118" />
-        <di:waypoint x="3138" y="118" />
+        <di:waypoint x="3179" y="118" />
       </bpmndi:BPMNEdge>
       <bpmndi:BPMNEdge id="SequenceFlow_1htr942_di" bpmnElement="SequenceFlow_1htr942">
         <di:waypoint x="3280" y="-275" />
@@ -1716,7 +1716,7 @@
       </bpmndi:BPMNEdge>
       <bpmndi:BPMNEdge id="SequenceFlow_03i2mla_di" bpmnElement="SequenceFlow_03i2mla">
         <di:waypoint x="3305" y="-469" />
-        <di:waypoint x="3414" y="-469" />
+        <di:waypoint x="3407" y="-469" />
       </bpmndi:BPMNEdge>
       <bpmndi:BPMNEdge id="SequenceFlow_0jegljk_di" bpmnElement="SequenceFlow_0jegljk">
         <di:waypoint x="3255" y="-300" />
@@ -1865,7 +1865,7 @@
       </bpmndi:BPMNShape>
       <bpmndi:BPMNEdge id="SequenceFlow_0emat9p_di" bpmnElement="SequenceFlow_0emat9p">
         <di:waypoint x="-1075" y="-37" />
-        <di:waypoint x="-1075" y="-91" />
+        <di:waypoint x="-1075" y="-78" />
         <bpmndi:BPMNLabel>
           <dc:Bounds x="-1116" y="-160" width="35" height="14" />
         </bpmndi:BPMNLabel>
@@ -1873,59 +1873,6 @@
       <bpmndi:BPMNEdge id="SequenceFlow_0scvrzt_di" bpmnElement="SequenceFlow_0scvrzt">
         <di:waypoint x="-822" y="-378" />
         <di:waypoint x="-704" y="-378" />
-      </bpmndi:BPMNEdge>
-      <bpmndi:BPMNShape id="SendTask_05850o0_di" bpmnElement="SendTask_05850o0">
-        <dc:Bounds x="-1125" y="-171" width="100" height="80" />
-      </bpmndi:BPMNShape>
-      <bpmndi:BPMNEdge id="SequenceFlow_1v377z2_di" bpmnElement="SequenceFlow_1v377z2">
-        <di:waypoint x="-1075" y="-171" />
-        <di:waypoint x="-1075" y="-222" />
-      </bpmndi:BPMNEdge>
-      <bpmndi:BPMNShape id="SendTask_1t72jg3_di" bpmnElement="SendTask_1t72jg3">
-        <dc:Bounds x="-22" y="-421" width="100" height="80" />
-      </bpmndi:BPMNShape>
-      <bpmndi:BPMNEdge id="SequenceFlow_0eb2tsg_di" bpmnElement="SequenceFlow_0eb2tsg">
-        <di:waypoint x="78" y="-381" />
-        <di:waypoint x="118" y="-381" />
-      </bpmndi:BPMNEdge>
-      <bpmndi:BPMNShape id="SendTask_0vabwe3_di" bpmnElement="SendTask_0vabwe3">
-        <dc:Bounds x="1376" y="110" width="100" height="80" />
-      </bpmndi:BPMNShape>
-      <bpmndi:BPMNEdge id="SequenceFlow_1t90q6d_di" bpmnElement="SequenceFlow_1t90q6d">
-        <di:waypoint x="1476" y="150" />
-        <di:waypoint x="1566" y="150" />
-      </bpmndi:BPMNEdge>
-      <bpmndi:BPMNShape id="SendTask_00fuarq_di" bpmnElement="SendTask_00fuarq">
-        <dc:Bounds x="1905" y="110" width="100" height="80" />
-      </bpmndi:BPMNShape>
-      <bpmndi:BPMNEdge id="SequenceFlow_0b00f8d_di" bpmnElement="SequenceFlow_0b00f8d">
-        <di:waypoint x="2005" y="150" />
-        <di:waypoint x="2071" y="150" />
-      </bpmndi:BPMNEdge>
-      <bpmndi:BPMNShape id="SendTask_0w9xq80_di" bpmnElement="SendTask_0w9xq80">
-        <dc:Bounds x="3077" y="-315" width="100" height="80" />
-      </bpmndi:BPMNShape>
-      <bpmndi:BPMNEdge id="SequenceFlow_11hdnc4_di" bpmnElement="SequenceFlow_11hdnc4">
-        <di:waypoint x="3177" y="-275" />
-        <di:waypoint x="3230" y="-275" />
-      </bpmndi:BPMNEdge>
-      <bpmndi:BPMNShape id="SendTask_0gk6rz8_di" bpmnElement="SendTask_0gk6rz8">
-        <dc:Bounds x="3138" y="78" width="100" height="80" />
-      </bpmndi:BPMNShape>
-      <bpmndi:BPMNEdge id="SequenceFlow_123hhgx_di" bpmnElement="SequenceFlow_123hhgx">
-        <di:waypoint x="3238" y="118" />
-        <di:waypoint x="3633" y="118" />
-        <di:waypoint x="3633" y="-257" />
-        <bpmndi:BPMNLabel>
-          <dc:Bounds x="3402" y="51" width="87" height="53" />
-        </bpmndi:BPMNLabel>
-      </bpmndi:BPMNEdge>
-      <bpmndi:BPMNShape id="SendTask_1apgbne_di" bpmnElement="SendTask_1apgbne">
-        <dc:Bounds x="3414" y="-509" width="100" height="80" />
-      </bpmndi:BPMNShape>
-      <bpmndi:BPMNEdge id="SequenceFlow_13azg0j_di" bpmnElement="SequenceFlow_13azg0j">
-        <di:waypoint x="3514" y="-469" />
-        <di:waypoint x="3608" y="-469" />
       </bpmndi:BPMNEdge>
       <bpmndi:BPMNShape id="ExclusiveGateway_0zkxwh1_di" bpmnElement="ExclusiveGateway_0zkxwh1" isMarkerVisible="true">
         <dc:Bounds x="118" y="-92" width="50" height="50" />
@@ -1942,7 +1889,7 @@
       </bpmndi:BPMNShape>
       <bpmndi:BPMNEdge id="SequenceFlow_01f4z8m_di" bpmnElement="SequenceFlow_01f4z8m">
         <di:waypoint x="118" y="-67" />
-        <di:waypoint x="30" y="-67" />
+        <di:waypoint x="29" y="-67" />
         <bpmndi:BPMNLabel>
           <dc:Bounds x="155" y="-130" width="35" height="14" />
         </bpmndi:BPMNLabel>
@@ -1952,24 +1899,10 @@
       </bpmndi:BPMNShape>
       <bpmndi:BPMNEdge id="SequenceFlow_1vq2fa4_di" bpmnElement="SequenceFlow_1vq2fa4">
         <di:waypoint x="1064" y="175" />
-        <di:waypoint x="1064" y="200" />
+        <di:waypoint x="1064" y="209" />
         <bpmndi:BPMNLabel>
-          <dc:Bounds x="1080" y="171" width="35" height="14" />
+          <dc:Bounds x="1080" y="170" width="35" height="14" />
         </bpmndi:BPMNLabel>
-      </bpmndi:BPMNEdge>
-      <bpmndi:BPMNShape id="SendTask_0v1b328_di" bpmnElement="SendTask_0v1b328">
-        <dc:Bounds x="-70" y="-107" width="100" height="80" />
-      </bpmndi:BPMNShape>
-      <bpmndi:BPMNEdge id="SequenceFlow_0ekb9p8_di" bpmnElement="SequenceFlow_0ekb9p8">
-        <di:waypoint x="-70" y="-67" />
-        <di:waypoint x="-161" y="-67" />
-      </bpmndi:BPMNEdge>
-      <bpmndi:BPMNShape id="SendTask_1b0yjl4_di" bpmnElement="SendTask_1b0yjl4">
-        <dc:Bounds x="1014" y="200" width="100" height="80" />
-      </bpmndi:BPMNShape>
-      <bpmndi:BPMNEdge id="SequenceFlow_1iw43aw_di" bpmnElement="SequenceFlow_1iw43aw">
-        <di:waypoint x="1064" y="280" />
-        <di:waypoint x="1064" y="313" />
       </bpmndi:BPMNEdge>
       <bpmndi:BPMNShape id="ExclusiveGateway_0xc2ixb_di" bpmnElement="ExclusiveGateway_0xc2ixb" isMarkerVisible="true">
         <dc:Bounds x="-1100" y="-272" width="50" height="50" />
@@ -2066,14 +1999,8 @@
           <dc:Bounds x="5807" y="-162" width="78" height="14" />
         </bpmndi:BPMNLabel>
       </bpmndi:BPMNShape>
-      <bpmndi:BPMNShape id="SendTask_11147tj_di" bpmnElement="SendTask_11147tj">
-        <dc:Bounds x="5663" y="-227" width="100" height="80" />
-      </bpmndi:BPMNShape>
       <bpmndi:BPMNShape id="ExclusiveGateway_0hcvybx_di" bpmnElement="ExclusiveGateway_0hcvybx" isMarkerVisible="true">
         <dc:Bounds x="4350" y="-212" width="50" height="50" />
-      </bpmndi:BPMNShape>
-      <bpmndi:BPMNShape id="SendTask_0zbsa9j_di" bpmnElement="SendTask_0zbsa9j">
-        <dc:Bounds x="4783" y="-227" width="100" height="80" />
       </bpmndi:BPMNShape>
       <bpmndi:BPMNShape id="TextAnnotation_1qbbb7h_di" bpmnElement="TextAnnotation_1qbbb7h">
         <dc:Bounds x="4468" y="-104" width="100" height="38" />
@@ -2084,13 +2011,6 @@
       <bpmndi:BPMNShape id="TextAnnotation_0hislhv_di" bpmnElement="TextAnnotation_0hislhv">
         <dc:Bounds x="4994" y="-307" width="100" height="30" />
       </bpmndi:BPMNShape>
-      <bpmndi:BPMNShape id="SendTask_1i6tjai_di" bpmnElement="SendTask_1i6tjai">
-        <dc:Bounds x="5164" y="-342" width="100" height="80" />
-      </bpmndi:BPMNShape>
-      <bpmndi:BPMNEdge id="SequenceFlow_0y5170g_di" bpmnElement="SequenceFlow_0y5170g">
-        <di:waypoint x="4883" y="-187" />
-        <di:waypoint x="4983" y="-187" />
-      </bpmndi:BPMNEdge>
       <bpmndi:BPMNEdge id="SequenceFlow_0ku6pcr_di" bpmnElement="SequenceFlow_0ku6pcr">
         <di:waypoint x="4375" y="-162" />
         <di:waypoint x="4375" y="-26" />
@@ -2104,15 +2024,11 @@
         <di:waypoint x="4400" y="-187" />
         <di:waypoint x="4456" y="-187" />
       </bpmndi:BPMNEdge>
-      <bpmndi:BPMNEdge id="SequenceFlow_0glrhdt_di" bpmnElement="SequenceFlow_0glrhdt">
-        <di:waypoint x="5763" y="-187" />
-        <di:waypoint x="5828" y="-187" />
-      </bpmndi:BPMNEdge>
       <bpmndi:BPMNEdge id="SequenceFlow_06ycjhm_di" bpmnElement="SequenceFlow_06ycjhm">
         <di:waypoint x="5556" y="-187" />
-        <di:waypoint x="5663" y="-187" />
+        <di:waypoint x="5656" y="-187" />
         <bpmndi:BPMNLabel>
-          <dc:Bounds x="5593" y="-210" width="41" height="14" />
+          <dc:Bounds x="5581" y="-209" width="41" height="14" />
         </bpmndi:BPMNLabel>
       </bpmndi:BPMNEdge>
       <bpmndi:BPMNEdge id="SequenceFlow_0fg7ezf_di" bpmnElement="SequenceFlow_0fg7ezf">
@@ -2172,7 +2088,7 @@
         <di:waypoint x="4677" y="-187" />
         <di:waypoint x="4783" y="-187" />
         <bpmndi:BPMNLabel>
-          <dc:Bounds x="4706" y="-205" width="41" height="14" />
+          <dc:Bounds x="4700" y="-204" width="41" height="14" />
         </bpmndi:BPMNLabel>
       </bpmndi:BPMNEdge>
       <bpmndi:BPMNEdge id="SequenceFlow_0gmqa24_di" bpmnElement="SequenceFlow_0gmqa24">
@@ -2182,12 +2098,6 @@
       <bpmndi:BPMNEdge id="SequenceFlow_0p4rte9_di" bpmnElement="SequenceFlow_0p4rte9">
         <di:waypoint x="4275" y="-187" />
         <di:waypoint x="4350" y="-187" />
-      </bpmndi:BPMNEdge>
-      <bpmndi:BPMNEdge id="SequenceFlow_0swl59l_di" bpmnElement="SequenceFlow_0swl59l">
-        <di:waypoint x="5214" y="-342" />
-        <di:waypoint x="5214" y="-380" />
-        <di:waypoint x="4506" y="-380" />
-        <di:waypoint x="4506" y="-227" />
       </bpmndi:BPMNEdge>
       <bpmndi:BPMNEdge id="Association_152fin6_di" bpmnElement="Association_152fin6">
         <di:waypoint x="4511" y="-147" />
@@ -2213,9 +2123,6 @@
       <bpmndi:BPMNShape id="UserTask_02rg009_di" bpmnElement="UserTask_02rg009">
         <dc:Bounds x="6414" y="-250" width="100" height="80" />
       </bpmndi:BPMNShape>
-      <bpmndi:BPMNShape id="SendTask_10k1s7l_di" bpmnElement="SendTask_10k1s7l">
-        <dc:Bounds x="6600" y="-250" width="100" height="80" />
-      </bpmndi:BPMNShape>
       <bpmndi:BPMNShape id="EndEvent_00l4ck4_di" bpmnElement="EndEvent_00l4ck4">
         <dc:Bounds x="6791" y="-228" width="36" height="36" />
         <bpmndi:BPMNLabel>
@@ -2225,13 +2132,9 @@
       <bpmndi:BPMNShape id="TextAnnotation_14j4ewv_di" bpmnElement="TextAnnotation_14j4ewv">
         <dc:Bounds x="6414" y="-337" width="100" height="41" />
       </bpmndi:BPMNShape>
-      <bpmndi:BPMNEdge id="SequenceFlow_0oo60eu_di" bpmnElement="SequenceFlow_0oo60eu">
-        <di:waypoint x="6700" y="-210" />
-        <di:waypoint x="6791" y="-210" />
-      </bpmndi:BPMNEdge>
       <bpmndi:BPMNEdge id="SequenceFlow_0xafklx_di" bpmnElement="SequenceFlow_0xafklx">
         <di:waypoint x="6514" y="-210" />
-        <di:waypoint x="6600" y="-210" />
+        <di:waypoint x="6603" y="-210" />
       </bpmndi:BPMNEdge>
       <bpmndi:BPMNEdge id="SequenceFlow_1gj3j8b_di" bpmnElement="SequenceFlow_1gj3j8b">
         <di:waypoint x="6312" y="-210" />
@@ -2352,7 +2255,7 @@
       </bpmndi:BPMNEdge>
       <bpmndi:BPMNEdge id="SequenceFlow_19ehksq_di" bpmnElement="SequenceFlow_19ehksq">
         <di:waypoint x="7541" y="-185" />
-        <di:waypoint x="7621" y="-185" />
+        <di:waypoint x="7623" y="-185" />
       </bpmndi:BPMNEdge>
       <bpmndi:BPMNEdge id="SequenceFlow_0jot1gi_di" bpmnElement="SequenceFlow_0jot1gi">
         <di:waypoint x="8091" y="-185" />
@@ -2429,20 +2332,6 @@
         <di:waypoint x="8835" y="-206" />
         <di:waypoint x="8957" y="-206" />
       </bpmndi:BPMNEdge>
-      <bpmndi:BPMNShape id="SendTask_16t4bfb_di" bpmnElement="SendTask_16t4bfb">
-        <dc:Bounds x="7621" y="-225" width="100" height="80" />
-      </bpmndi:BPMNShape>
-      <bpmndi:BPMNEdge id="SequenceFlow_1fuaoh2_di" bpmnElement="SequenceFlow_1fuaoh2">
-        <di:waypoint x="7721" y="-185" />
-        <di:waypoint x="7828" y="-185" />
-      </bpmndi:BPMNEdge>
-      <bpmndi:BPMNShape id="SendTask_1y87awv_di" bpmnElement="SendTask_1y87awv">
-        <dc:Bounds x="8174" y="-225" width="100" height="80" />
-      </bpmndi:BPMNShape>
-      <bpmndi:BPMNEdge id="SequenceFlow_1p2r3ax_di" bpmnElement="SequenceFlow_1p2r3ax">
-        <di:waypoint x="8274" y="-185" />
-        <di:waypoint x="8355" y="-185" />
-      </bpmndi:BPMNEdge>
       <bpmndi:BPMNShape id="ExclusiveGateway_1m276t2_di" bpmnElement="ExclusiveGateway_1m276t2" isMarkerVisible="true">
         <dc:Bounds x="8957" y="-231" width="50" height="50" />
       </bpmndi:BPMNShape>
@@ -2458,6 +2347,117 @@
         <bpmndi:BPMNLabel>
           <dc:Bounds x="7729" y="79" width="80" height="14" />
         </bpmndi:BPMNLabel>
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNShape id="SendTask_15g0gng_di" bpmnElement="SendTask_15g0gng">
+        <dc:Bounds x="-1125" y="-158" width="100" height="80" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNEdge id="SequenceFlow_0unxg99_di" bpmnElement="SequenceFlow_0unxg99">
+        <di:waypoint x="-1075" y="-158" />
+        <di:waypoint x="-1075" y="-222" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNShape id="SendTask_0r3fmex_di" bpmnElement="SendTask_0r3fmex">
+        <dc:Bounds x="-34" y="-421" width="100" height="80" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNEdge id="SequenceFlow_1w1aa4p_di" bpmnElement="SequenceFlow_1w1aa4p">
+        <di:waypoint x="66" y="-381" />
+        <di:waypoint x="118" y="-381" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNShape id="SendTask_1mj4acn_di" bpmnElement="SendTask_1mj4acn">
+        <dc:Bounds x="-71" y="-107" width="100" height="80" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNEdge id="SequenceFlow_1a0524u_di" bpmnElement="SequenceFlow_1a0524u">
+        <di:waypoint x="-71" y="-67" />
+        <di:waypoint x="-161" y="-67" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNShape id="SendTask_0rkr4jf_di" bpmnElement="SendTask_0rkr4jf">
+        <dc:Bounds x="1014" y="209" width="100" height="80" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNEdge id="SequenceFlow_1hddmo4_di" bpmnElement="SequenceFlow_1hddmo4">
+        <di:waypoint x="1064" y="289" />
+        <di:waypoint x="1064" y="313" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNShape id="SendTask_18ueir0_di" bpmnElement="SendTask_18ueir0">
+        <dc:Bounds x="1375" y="110" width="100" height="80" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNEdge id="SequenceFlow_0duppyx_di" bpmnElement="SequenceFlow_0duppyx">
+        <di:waypoint x="1475" y="150" />
+        <di:waypoint x="1566" y="150" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNShape id="SendTask_1yc6qxb_di" bpmnElement="SendTask_1yc6qxb">
+        <dc:Bounds x="1900" y="110" width="100" height="80" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNEdge id="SequenceFlow_1hcx56o_di" bpmnElement="SequenceFlow_1hcx56o">
+        <di:waypoint x="2000" y="150" />
+        <di:waypoint x="2071" y="150" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNShape id="SendTask_0tbd552_di" bpmnElement="SendTask_0tbd552">
+        <dc:Bounds x="3179" y="78" width="100" height="80" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNEdge id="SequenceFlow_1um3bqm_di" bpmnElement="SequenceFlow_1um3bqm">
+        <di:waypoint x="3279" y="118" />
+        <di:waypoint x="3633" y="118" />
+        <di:waypoint x="3633" y="-257" />
+        <bpmndi:BPMNLabel>
+          <dc:Bounds x="3408" y="56" width="87" height="53" />
+        </bpmndi:BPMNLabel>
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNShape id="SendTask_094uzj8_di" bpmnElement="SendTask_094uzj8">
+        <dc:Bounds x="3407" y="-509" width="100" height="80" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNEdge id="SequenceFlow_1m5c8bs_di" bpmnElement="SequenceFlow_1m5c8bs">
+        <di:waypoint x="3507" y="-469" />
+        <di:waypoint x="3608" y="-469" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNShape id="SendTask_1l91mfe_di" bpmnElement="SendTask_1l91mfe">
+        <dc:Bounds x="3077" y="-315" width="100" height="80" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNEdge id="SequenceFlow_1pxk3i2_di" bpmnElement="SequenceFlow_1pxk3i2">
+        <di:waypoint x="3177" y="-275" />
+        <di:waypoint x="3230" y="-275" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNShape id="SendTask_07fl1e6_di" bpmnElement="SendTask_07fl1e6">
+        <dc:Bounds x="4783" y="-227" width="100" height="80" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNEdge id="SequenceFlow_1k9f19b_di" bpmnElement="SequenceFlow_1k9f19b">
+        <di:waypoint x="4883" y="-187" />
+        <di:waypoint x="4983" y="-187" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNShape id="SendTask_1i6tjai_di" bpmnElement="SendTask_1i6tjai">
+        <dc:Bounds x="5164" y="-342" width="100" height="80" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNEdge id="SequenceFlow_0swl59l_di" bpmnElement="SequenceFlow_0swl59l">
+        <di:waypoint x="5214" y="-342" />
+        <di:waypoint x="5214" y="-380" />
+        <di:waypoint x="4506" y="-380" />
+        <di:waypoint x="4506" y="-227" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNShape id="SendTask_0oay7ww_di" bpmnElement="SendTask_0oay7ww">
+        <dc:Bounds x="5656" y="-227" width="100" height="80" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNEdge id="SequenceFlow_1dcrm0l_di" bpmnElement="SequenceFlow_1dcrm0l">
+        <di:waypoint x="5756" y="-187" />
+        <di:waypoint x="5828" y="-187" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNShape id="SendTask_15azxq8_di" bpmnElement="SendTask_15azxq8">
+        <dc:Bounds x="6603" y="-250" width="100" height="80" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNEdge id="SequenceFlow_04tnnge_di" bpmnElement="SequenceFlow_04tnnge">
+        <di:waypoint x="6703" y="-210" />
+        <di:waypoint x="6791" y="-210" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNShape id="SendTask_1ny6t1r_di" bpmnElement="SendTask_1ny6t1r">
+        <dc:Bounds x="7623" y="-225" width="100" height="80" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNEdge id="SequenceFlow_1k2ra40_di" bpmnElement="SequenceFlow_1k2ra40">
+        <di:waypoint x="7723" y="-185" />
+        <di:waypoint x="7828" y="-185" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNShape id="SendTask_18t9i3c_di" bpmnElement="SendTask_18t9i3c">
+        <dc:Bounds x="8174" y="-225" width="100" height="80" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNEdge id="SequenceFlow_0ys093b_di" bpmnElement="SequenceFlow_0ys093b">
+        <di:waypoint x="8274" y="-185" />
+        <di:waypoint x="8355" y="-185" />
       </bpmndi:BPMNEdge>
     </bpmndi:BPMNPlane>
   </bpmndi:BPMNDiagram>
