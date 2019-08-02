@@ -23,7 +23,9 @@
                 'renterCompany',
                 'transmissionAntenna',
                 'powerSource',
-                'farEndInformation'
+                'farEndInformation',
+                'threeFarEndNotNecessary',
+                'checkAndApproveFeFiles'
             ];
 
             $scope.selectedIndex = undefined;
@@ -42,16 +44,31 @@
                 );
                 $scope.leasingCandidate = {};
             });
-
+            $http.get('/camunda/api/engine/engine/default/task/' + camForm.taskId).then(
+                    function(result){
+                        $scope.taskAssignee = result.data.assignee;
+                        console.log(result.data.assignee);
+                    },
+                    function (error) {
+                        console.log(error.data);
+                    }
+            );
             camForm.on('variables-fetched', function () {
+                $scope.checkAndApproveFeFiles = [];
                 variables.forEach(function (el) {
                     if(camForm.variableManager.variables[el].value){
                         $scope[el] = camForm.variableManager.variables[el].value;
                         $scope.leasingCandidate[el] = camForm.variableManager.variables[el].value;
                     }
                 });
+                $scope.leasingCandidate['checkAndApproveFETask'] = true;
                 camForm.variableManager.createVariable({
                     name: 'checkAndApproveFETaskResult',
+                    type: 'String',
+                    value: ''
+                });
+                camForm.variableManager.createVariable({
+                    name: 'checkAndApproveFETaskResolutionComment',
                     type: 'String',
                     value: ''
                 });
@@ -81,43 +98,47 @@
                     value: ''
                 });
 
-                $scope.checkAndApproveFETaskResult = '';
+                $scope.leasingCandidate.checkAndApproveFETaskResult = '';
+                $scope.leasingCandidate.checkAndApproveFETaskResolutionComment = '';
             });
 
-            camForm.on('submit', function () {
+            camForm.on('submit', function (evt) {
+                //evt.submitPrevented = true;
                 camForm.variableManager.variableValue('checkAndApproveFETaskComment', $scope.checkAndApproveFETaskComment);
-
-                if ($scope.allValuesDoesNotFit()){
+                camForm.variableManager.variableValue('checkAndApproveFETaskResolutionComment', $scope.leasingCandidate.checkAndApproveFETaskResolutionComment);
+                if(!camForm.variableManager.variables['checkAndApproveFeFiles'].type){
+                    camForm.variableManager.destroyVariable('checkAndApproveFeFiles');
+                    camForm.variableManager.createVariable({
+                        name: 'checkAndApproveFeFiles',
+                        type: 'Json',
+                        value: $scope.checkAndApproveFeFiles
+                    });
+                } else {
+                    camForm.variableManager.variableValue('checkAndApproveFeFiles', $scope.checkAndApproveFeFiles);
+                }
+                if ($scope.leasingCandidate.checkAndApproveFETaskResult==='rejected'){
                     camForm.variableManager.variableValue('checkAndApproveFETaskResult', 'rejected');
                     camForm.variableManager.variableValue('feApproved', 'no');
                 } else {
                     camForm.variableManager.variableValue('checkAndApproveFETaskResult', 'approved');
                     camForm.variableManager.variableValue('feApproved', 'yes');
-
-                    var approvedFEList = [];
-                    angular.forEach($scope.farEndInformation, function (fe) {
-                        if(fe.transmissionStatus === 'approved'){
-                            approvedFEList.push(fe);
-                        }
-                    });
                     var approvedFEWithHighPriority = undefined;
-                    angular.forEach(approvedFEList, function (approvedFE) {
+                    angular.forEach($scope.farEndInformation, function (approvedFE) {
                         if(approvedFE.priority === true){
                             approvedFEWithHighPriority = approvedFE;
                         }
                     });
-                    if(!approvedFEWithHighPriority){
-                        approvedFEWithHighPriority = approvedFEList[0];
-                    }
+
                     camForm.variableManager.variableValue('approvedFEWithHighPriority', approvedFEWithHighPriority);
+                    if (approvedFEWithHighPriority) {
                     camForm.variableManager.variableValue('feLegalType', approvedFEWithHighPriority.legalType);
+                    }
                     if(approvedFEWithHighPriority && (approvedFEWithHighPriority.legalType === 'national_kazakhtelecom' || approvedFEWithHighPriority.legalType === 'national_kazteleradio' || approvedFEWithHighPriority.legalType === 'national_kazpost')){
                         camForm.variableManager.variableValue('feObjectType', 'national');
                     } else {
                         camForm.variableManager.variableValue('feObjectType', 'other');
                     }
                 }
-
                 camForm.variableManager.variableValue('farEndInformation', $scope.farEndInformation);
                 camForm.variableManager.destroyVariable('resolutions');
             });
@@ -133,7 +154,44 @@
                     console.log(error.data);
                 });
             }
+            $scope.clearFile = function (list, fileIndex) {
+                $scope[list].splice(fileIndex, 1);
+            };
+            $scope.fileSelected = function (el, fileName) {
+                $timeout(function () {
+                    $scope.$apply(function () {
+                        uploadFileToMinio(el.files[0], fileName);
+                    });
+                })
+            };
 
+            function uploadFileToMinio(file, fileName) {
+                var fileIndex = $scope[fileName].length;
+
+                var fileToUpload = {
+                    date: new Date(),
+                    author:  $scope.taskAssignee,
+                    name: file.name.replace(/[/\\?%*:|"<>]/g, '-'),
+                    path: $scope.processInstanceId + '/' + camForm.taskId + '/' + file.name.replace(/[/\\?%*:|"<>]/g, '-')
+                };
+                $http({
+                    method: 'GET',
+                    url: '/camunda/uploads/put/' + fileToUpload.path,
+                    transformResponse: []
+                }).then(function (response) {
+                    $http.put(response.data, file, {headers: {'Content-Type': undefined}}).then(
+                            function () {
+                                $scope[fileName].push(fileToUpload);
+                                angular.element(document.querySelector('#' + fileName)).val(null);
+                            },
+                            function (error) {
+                                console.log(error.data);
+                            }
+                    );
+                }, function(error){
+                    console.log(error.data);
+                });
+            };
             $scope.allValuesDoesNotFit = function () {
                 return !_.some($scope.farEndInformation, function(fe){
                     return !fe.transmissionStatus || fe.transmissionStatus === 'approved';
@@ -163,7 +221,9 @@
                 });
 
                 if(!oneChecked){
-                    deferred.reject('At least 1 Far End Information should be checked at Priority field!');
+                    /*deferred.reject('At least 1 Far End Information should be checked at Priority field!');
+                    return deferred.promise;*/
+                     deferred.resolve();
                     return deferred.promise;
                 } else {
                     deferred.resolve();
@@ -176,98 +236,34 @@
     <leasing-candidate leasing-candidate="leasingCandidate"></leasing-candidate>
 
     <iframe id="fileDownloadIframe" style="display:none;"></iframe>
-
     <div class="form-group">
-        <div class="col-md-12">
-            <table class="table ">
-                <thead>
-                    <td width="10%">#</td>
-                    <td width="50%">Far End Name</td>
-                    <td width="30%">Transmission status</td>
-                    <td width="10%">Priority</td>
-                </thead>
-                <tbody ng-repeat="fe in farEndInformation">
-                    <tr>
-                        <td>{{ $index + 1 }}</td>
-                        <td><a ng-click="selectIndex($index)">{{ fe.farEndName}}</a></td>
-                        <td>
-                            <label class="radio-inline">
-                                <input type="radio" name="{{'transmissionStatus'+$index}}" ng-model="fe.transmissionStatus" value="approved" required> Approved
-                            </label>
-                            <label class="radio-inline">
-                                <input type="radio" name="{{'transmissionStatus'+$index}}" ng-model="fe.transmissionStatus" value="doesNotFit" required> FE does not fit
-                            </label>
-                            <label class="error" ng-if="kcell_form['transmissionStatus'+$index].$error.required && ( kcell_form['transmissionStatus'+$index].$touched || view.submitted)">Required field</label>
-                        </td>
-                        <td>
-                            <input type="checkbox" name="{{'priority'+$index}}" ng-model="fe.priority" ng-change="uncheckOthers($index)">
-                        </td>
-                    </tr>
-                    <tr ng-show = "selectedIndex == $index">
-                        <td colspan="4">
-                            <div class="well">
-                                <div class="row">
-                                    <div class="col-md-6">
-                                        <div class="col-sm-12"><b>Far End Name</b>: {{fe.farEndName}}</div>
-                                        <div class="col-sm-12"><b>Far End Address</b>: {{fe.farEndAddress}}</div>
-                                        <div class="col-sm-12"><b>Contract Information</b>: {{fe.contractInformation}}</div>
-                                        <div class="col-sm-12"><b>Square</b>: {{fe.square}}</div>
-                                        <div class="col-sm-12"><b>Equipment type</b>: {{fe.equipmentType}}</div>
-                                        <div class="col-sm-12"><b>Antennas quantity</b>: {{fe.antennasQuantity}}</div>
-                                        <div class="col-sm-12"><b>Antenna diameter</b>: {{fe.antennaDiameter}}</div>
-                                        <div class="col-sm-12"><b>Weight</b>: {{fe.weight}}</div>
-                                        <div class="col-sm-12"><b>TX Frequency</b>: {{fe.TXFrequency}}</div>
-                                        <div class="col-sm-12"><b>RX Frequency</b>: {{fe.RXFrequency}}</div>
-                                        <div class="col-sm-12"><b>Suspension height of antennas</b>: {{fe.suspensionHeight}}</div>
-                                        <div class="col-sm-12"><b>Azimuth</b>: {{fe.azimuth}}</div>
-                                        <div class="col-sm-12"><b>Сonstruction type</b>: {{fe.constructionType}}</div>
-                                        <div class="col-sm-12"><b>Results of visit of objects</b>: {{fe.resultsOfVisit}}</div>
-                                        <div class="col-sm-12"><b>Survey Date</b>: {{fe.surveyDate | date:'dd.MM.yyyy'}}</div>
-                                        <div class="col-sm-12"><b>Comments</b>: {{fe.comments}}</div>
-                                    </div>
-                                    <div class="col-md-6">
-                                        <h4><b>Far End Renter Company</b></h4>
-
-                                        <div class="col-sm-12"><b>Legal name</b>: {{fe.renterCompany.legalName}}</div>
-                                        <div class="col-sm-12"><b>Legal address</b>: {{fe.renterCompany.legalAddress}}</div>
-                                        <div class="col-sm-12"><b>Tel./Fax</b>: {{fe.renterCompany.telFax}}</div>
-                                        <div class="col-sm-12"><b>Name of the 1st Leader</b>: {{fe.renterCompany.firstLeaderName}}</div>
-                                        <div class="col-sm-12"><b>Position of the 1st Leader</b>: {{fe.renterCompany.firstLeaderPosition}}</div>
-                                        <div class="col-sm-12"><b>Email</b>: {{fe.renterCompany.email}}</div>
-                                        <div class="col-sm-12"><b>Contact Person Name</b>: {{fe.renterCompany.name}}</div>
-                                        <div class="col-sm-12"><b>Contact Person Position</b>: {{fe.renterCompany.position}}</div>
-                                        <div class="col-sm-12"><b>Contact Information</b>: {{fe.renterCompany.contactInformation}}</div>
-                                    </div>
-                                </div>
-                            </div>
-                        </td>
-                    </tr>
-                </tbody>
+        <label class="col-md-4 control-label">Attachments:</label>
+        <div class="col-sm-8">
+            <ng-form name="kcell_material_file_form">
+                <input type="file" class="form-control" id="checkAndApproveFeFiles"
+                       name="checkAndApproveFeFiles" ng-model="file.file"
+                       onchange="angular.element(this).scope().fileSelected(this, 'checkAndApproveFeFiles')"/>
+            </ng-form>
+            <table ng-show="checkAndApproveFeFiles.length > 0" class="col-sm-12 table-hover uploads-table">
+                <tr>
+                    <th col-sm-6>File Name</th>
+                    <th col-sm-3>Created Date</th>
+                    <th col-sm-3>Created by</th>
+                </tr>
+                <tr ng-repeat="file in checkAndApproveFeFiles">
+                    <td> <a ng-click="fileDownload(file)">{{file.name}}</a> | <a
+                            ng-click="clearFile('checkAndApproveFeFiles', $index)"><i
+                            class="glyphicon glyphicon-trash"></i></a></td>
+                    <td>{{file.date | date:'dd.MM.yyyy'}}</td>
+                    <td>{{file.author}}</td>
+                </tr>
             </table>
         </div>
     </div>
-
-    <div class="form-group">
-        <label class="col-md-4 control-label">Download RR:</label>
-        <div class="col-sm-8">
-            <a ng-click="fileDownload(rrFile)">{{rrFile.name}}</a>
-        </div>
-    </div>
-    <div class="form-group">
-        <label class="col-md-4 control-label">RR files:</label>
-        <div class="col-sm-8">
-            <div ng-show="newCandidateRRFiles.length > 0" class="input-group" ng-repeat="file in newCandidateRRFiles">
-                {{$index + 1}}.
-                <a ng-click="fileDownload(file)">{{file.name}}</a>
-            </div>
-        </div>
-    </div>
-
     <div class="form-group">
         <label class="col-sm-4 control-label">Comments</label>
         <div class="col-sm-8">
-            <textarea class="form-control" ng-model="checkAndApproveFETaskComment" name="checkAndApproveFETaskComment" placeholder="Comments..." maxlength="500" rows="4" style="resize:none"
-                ng-required="allValuesDoesNotFit()"></textarea>
+            <textarea class="form-control" ng-model="checkAndApproveFETaskComment" name="checkAndApproveFETaskComment" placeholder="Comments..." maxlength="500" rows="4" style="resize:none"></textarea>
             <label class="error" ng-show="kcell_form.checkAndApproveFETaskComment.$error.required && ( kcell_form.checkAndApproveFETaskComment.$touched || view.submitted)">Required field</label>
         </div>
     </div>

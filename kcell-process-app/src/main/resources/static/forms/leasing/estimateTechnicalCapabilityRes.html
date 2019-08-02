@@ -24,9 +24,17 @@
                 'transmissionAntenna',
                 'powerSource',
                 'farEndInformation',
+                'threeFarEndNotNecessary',
                 'estimateTechnicalCapabilityResFiles'
             ];
-
+            $http.get('/camunda/api/engine/engine/default/task/' + camForm.taskId).then(
+                    function(result){
+                        $scope.taskAssignee = result.data.assignee;
+                    },
+                    function (error) {
+                        console.log(error.data);
+                    }
+            );
             camForm.on('form-loaded', function () {
                 variables.forEach(function (el) {
                     camForm.variableManager.fetchVariable(el);
@@ -48,6 +56,14 @@
                     if(camForm.variableManager.variables[el].value){
                         $scope[el] = camForm.variableManager.variables[el].value;
                         $scope.leasingCandidate[el] = camForm.variableManager.variables[el].value;
+                    }
+                });
+                $scope.leasingCandidate.estimateTechnicalCapabilityResTask = true;
+                $scope.leasingCandidate.checkCableLayingTypeTouched = false;
+                $scope.leasingCandidate.cableLayingTypeChecks = 0;
+                angular.forEach($scope.leasingCandidate.powerSource.cableLayingType, function (l) {
+                    if(l.value){
+                      $scope.leasingCandidate.cableLayingTypeChecks += 1;
                     }
                 });
                 camForm.variableManager.createVariable({
@@ -117,6 +133,8 @@
                 var fileIndex = $scope[fileName].length;
 
                 var fileToUpload = {
+                    date: new Date(),
+                    author:  $scope.taskAssignee,
                     name: file.name.replace(/[/\\?%*:|"<>]/g, '-'),
                     path: $scope.processInstanceId + '/' + camForm.taskId + '/' + file.name.replace(/[/\\?%*:|"<>]/g, '-')
                 };
@@ -162,30 +180,27 @@
     <iframe id="fileDownloadIframe" style="display:none;"></iframe>
 
     <div class="form-group">
-        <label class="col-md-4 control-label">Download RR:</label>
+        <label class="col-md-4 control-label">Attachments:</label>
         <div class="col-sm-8">
-            <a ng-click="fileDownload(rrFile)">{{rrFile.name}}</a>
-        </div>
-    </div>
-    <div class="form-group">
-        <label class="col-md-4 control-label">RR files:</label>
-        <div class="col-sm-8">
-            <div ng-show="newCandidateRRFiles.length > 0" class="input-group" ng-repeat="file in newCandidateRRFiles">
-                {{$index + 1}}.
-                <a ng-click="fileDownload(file)">{{file.name}}</a>
-            </div>
-        </div>
-    </div>
-
-    <div class="form-group">
-        <label class="col-md-4 control-label">Upload files:</label>
-        <div class="col-sm-8">
-            <div ng-show="estimateTechnicalCapabilityResFiles.length > 0" class="input-group" ng-repeat="file in estimateTechnicalCapabilityResFiles">
-                {{$index + 1}}.
-                <a ng-click="fileDownload(file)">{{file.name}}</a> | <a ng-click="clearFile('estimateTechnicalCapabilityResFiles', $index)"><i class="glyphicon glyphicon-trash"></i></a>
-            </div>
-            <input type="file" class="form-control" id="estimateTechnicalCapabilityResFiles" name="estimateTechnicalCapabilityResFiles" ng-model="file.file" onchange="angular.element(this).scope().fileSelected(this, 'estimateTechnicalCapabilityResFiles')"/>
-        </div>
+            <ng-form name="kcell_material_file_form">
+                <input type="file" class="form-control" id="estimateTechnicalCapabilityResFiles"
+                       name="estimateTechnicalCapabilityResFiles" ng-model="file.file"
+                       onchange="angular.element(this).scope().fileSelected(this, 'estimateTechnicalCapabilityResFiles')"/>
+            </ng-form>
+            <table ng-show="estimateTechnicalCapabilityResFiles.length > 0" class="col-sm-12 table-hover uploads-table">
+                <tr>
+                    <th col-sm-6>File Name</th>
+                    <th col-sm-3>Created Date</th>
+                    <th col-sm-3>Created by</th>
+                </tr>
+                <tr ng-repeat="file in estimateTechnicalCapabilityResFiles">
+                    <td> <a ng-click="fileDownload(file)">{{file.name}}</a> | <a
+                            ng-click="clearFile('estimateTechnicalCapabilityResFiles', $index)"><i
+                            class="glyphicon glyphicon-trash"></i></a></td>
+                    <td>{{file.date | date:'dd.MM.yyyy'}}</td>
+                    <td>{{file.author}}</td>
+                </tr>
+            </table></div>
     </div>
 
     <div class="form-group">

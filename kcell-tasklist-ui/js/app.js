@@ -22,7 +22,8 @@ define('app',[
 	'bootstrap',
 	'bootstrap-select',
 	'angular-toarrayfilter',
-	'ui.mask'
+	'ui.mask',
+	'angular-ui-sortable'
 ], function(ng){
 	'use strict';
 	var app =  ng.module('app', [
@@ -41,7 +42,9 @@ define('app',[
 		'LocalStorageModule',
 		'angularjs-dropdown-multiselect',
 		'angular-toArrayFilter',
-		'ui.mask'
+		'ui.mask',
+		'ui.sortable'
+		//'bootstrap-select'
 	]);
 	var preLoginUrl;
 	var resolve = {

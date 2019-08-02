@@ -38,7 +38,9 @@ require.config({
          'angular-toarrayfilter': './node_modules/angular-toarrayfilter/toArrayFilter',
          'html2canvas': './node_modules/html2canvas/dist/html2canvas.min',
          'pdfMake': './node_modules/pdfmake/build/pdfmake.min',
-         'ui.mask': './node_modules/angular-ui-mask/dist/mask.min'
+         'ui.mask': './node_modules/angular-ui-mask/dist/mask.min',
+         'jquery-ui': './node_modules/jquery-ui-dist/jquery-ui',
+         'angular-ui-sortable': './node_modules/angular-ui-sortable/dist/sortable'
      },
 
      // angular не поддерживает AMD из коробки, поэтому экспортируем перменную angular в глобальную область
@@ -68,7 +70,12 @@ require.config({
              deps:['jquery', 'bootstrap']
          },
          'angular-toarrayfilter':['angular'],
-         'ui.mask':['angular']
+         'ui.mask':['angular'],
+         'jquery-ui':['jquery'],
+         'angular-ui-sortable': {
+             exports: 'angular-ui-sortable',
+             deps:['jquery', 'jquery-ui', 'angular']
+         }
      },
  
      // запустить приложение

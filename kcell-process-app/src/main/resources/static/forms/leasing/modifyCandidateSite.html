@@ -24,9 +24,16 @@
                 'transmissionAntenna',
                 'powerSource',
                 'farEndInformation',
-                'modifyCandidateRRFiles'
+                'modifyCandidateSiteFiles'
             ];
-
+            $http.get('/camunda/api/engine/engine/default/task/' + camForm.taskId).then(
+                    function(result){
+                        $scope.taskAssignee = result.data.assignee;
+                    },
+                    function (error) {
+                        console.log(error.data);
+                    }
+            );
             camForm.on('form-loaded', function () {
                 variables.forEach(function (el) {
                     camForm.variableManager.fetchVariable(el);
@@ -43,7 +50,7 @@
             });
 
             camForm.on('variables-fetched', function () {
-                $scope.modifyCandidateRRFiles = [];
+                $scope.modifyCandidateSiteFiles = [];
                 variables.forEach(function (el) {
                     if(camForm.variableManager.variables[el].value){
                         $scope[el] = camForm.variableManager.variables[el].value;
@@ -67,16 +74,15 @@
             camForm.on('submit', function () {
                 camForm.variableManager.variableValue('modifyCandidateSiteTaskResult', $scope.modifyCandidateSiteTaskResult);
                 camForm.variableManager.variableValue('modifyCandidateSiteTaskComment', $scope.modifyCandidateSiteTaskComment);
-
-                if(!camForm.variableManager.variables['modifyCandidateRRFiles'].type){
-                    camForm.variableManager.destroyVariable('modifyCandidateRRFiles');
+                if(!camForm.variableManager.variables['modifyCandidateSiteFiles'].type){
+                    camForm.variableManager.destroyVariable('modifyCandidateSiteFiles');
                     camForm.variableManager.createVariable({
-                        name: 'modifyCandidateRRFiles',
+                        name: 'modifyCandidateSiteFiles',
                         type: 'Json',
-                        value: $scope.modifyCandidateRRFiles
+                        value: $scope.modifyCandidateSiteFiles
                     });
                 } else {
-                    camForm.variableManager.variableValue('modifyCandidateRRFiles', $scope.modifyCandidateRRFiles);
+                    camForm.variableManager.variableValue('modifyCandidateSiteFiles', $scope.modifyCandidateSiteFiles);
                 }
                 camForm.variableManager.destroyVariable('resolutions');
             });
@@ -102,6 +108,8 @@
                 var fileIndex = $scope[fileName].length;
 
                 var fileToUpload = {
+                    date: new Date(),
+                    author:  $scope.taskAssignee,
                     name: file.name.replace(/[/\\?%*:|"<>]/g, '-'),
                     path: $scope.processInstanceId + '/' + camForm.taskId + '/' + file.name.replace(/[/\\?%*:|"<>]/g, '-')
                 };
@@ -130,44 +138,43 @@
         }]);
 
     </script>
+    <leasing-detail leasing-info="leasingCandidate"></leasing-detail>
     <leasing-candidate leasing-candidate="leasingCandidate"></leasing-candidate>
 
     <iframe id="fileDownloadIframe" style="display:none;"></iframe>
 
     <div class="form-group">
-        <label class="col-md-4 control-label">Download RR:</label>
+        <label class="col-md-4 control-label">Attachments:</label>
         <div class="col-sm-8">
-            <a ng-click="download(rrFile)">{{rrFile.name}}</a>
-        </div>
-    </div>
-    <div class="form-group">
-        <label class="col-md-4 control-label">RR files:</label>
-        <div class="col-sm-8">
-            <div ng-show="newCandidateRRFiles.length > 0" class="input-group" ng-repeat="file in newCandidateRRFiles">
-                {{$index + 1}}.
-                <a ng-click="download(file)">{{file.name}}</a>
-            </div>
-        </div>
-    </div>
-    <div class="form-group">
-        <label class="col-md-4 control-label">Upload RR:</label>
-        <div class="col-sm-8">
-            <div ng-show="modifyCandidateRRFiles.length > 0" class="input-group" ng-repeat="file in modifyCandidateRRFiles">
-                {{$index + 1}}.
-                <a ng-click="fileDownload(file)">{{file.name}}</a> | <a ng-click="clearFile('modifyCandidateRRFiles', $index)"><i class="glyphicon glyphicon-trash"></i></a>
-            </div>
-            <input type="file" class="form-control" id="modifyCandidateRRFiles" name="modifyCandidateRRFiles" ng-model="file.file" onchange="angular.element(this).scope().fileSelected(this, 'modifyCandidateRRFiles')"/>
-        </div>
+            <ng-form name="kcell_material_file_form">
+                <input type="file" class="form-control" id="modifyCandidateSiteFiles"
+                       name="modifyCandidateSiteFiles" ng-model="file.file"
+                       onchange="angular.element(this).scope().fileSelected(this, 'modifyCandidateSiteFiles')"/>
+            </ng-form>
+            <table ng-show="modifyCandidateSiteFiles.length > 0" class="col-sm-12 table-hover uploads-table">
+                <tr>
+                    <th col-sm-6>File Name</th>
+                    <th col-sm-3>Created Date</th>
+                    <th col-sm-3>Created by</th>
+                </tr>
+                <tr ng-repeat="file in modifyCandidateSiteFiles">
+                    <td> <a ng-click="fileDownload(file)">{{file.name}}</a> | <a
+                            ng-click="clearFile('modifyCandidateSiteFiles', $index)"><i
+                            class="glyphicon glyphicon-trash"></i></a></td>
+                    <td>{{file.date | date:'dd.MM.yyyy'}}</td>
+                    <td>{{file.author}}</td>
+                </tr>
+            </table></div>
     </div>
 
     <div class="form-group">
         <label class="col-sm-4 control-label">Select an action</label>
         <div class="col-sm-8">
             <label class="radio-inline">
-                <input type="radio" name="modifyCandidateSiteTaskResult" ng-model="modifyCandidateSiteTaskResult" value="rejectCandidate" required> Reject Candidate
+                <input type="radio" name="modifyCandidateSiteTaskResult" ng-model="modifyCandidateSiteTaskResult" value="rejectCandidate" required>  Request to modify candidate
             </label>
             <label class="radio-inline">
-                <input type="radio" name="modifyCandidateSiteTaskResult" ng-model="modifyCandidateSiteTaskResult" value="rejectFarEnd" required> Reject Far End
+                <input type="radio" name="modifyCandidateSiteTaskResult" ng-model="modifyCandidateSiteTaskResult" value="rejectFarEnd" required> Request to modify FE
             </label>
             <label class="radio-inline">
                 <input type="radio" name="modifyCandidateSiteTaskResult" ng-model="modifyCandidateSiteTaskResult" value="requestCancelNCP" required> Request to cancel NCP
@@ -179,8 +186,7 @@
     <div class="form-group">
         <label class="col-sm-4 control-label">Comments</label>
         <div class="col-sm-8">
-            <textarea class="form-control" ng-model="modifyCandidateSiteTaskComment" name="modifyCandidateSiteTaskComment" placeholder="Comments..." maxlength="500" rows="4" style="resize:none"
-                      ng-required="modifyCandidateSiteTaskResult == 'notAgree'"></textarea>
+            <textarea class="form-control" ng-model="modifyCandidateSiteTaskComment" name="modifyCandidateSiteTaskComment" placeholder="Comments..." maxlength="500" rows="4" style="resize:none" required></textarea>
             <label class="error" ng-show="kcell_form.modifyCandidateSiteTaskComment.$error.required && ( kcell_form.modifyCandidateSiteTaskComment.$touched || view.submitted)">Required field</label>
         </div>
     </div>
