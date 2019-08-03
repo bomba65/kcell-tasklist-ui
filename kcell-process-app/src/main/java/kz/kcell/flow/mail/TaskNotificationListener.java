@@ -30,14 +30,11 @@ import static java.util.stream.Collectors.toList;
 @Log
 public class TaskNotificationListener implements TaskListener {
     private static final String[] RevisionInvoiceBCC = {"Yernaz.Kalingarayev@kcell.kz"};
-    private static final String[] PBX_BCC = {"Sanzhar.Kairolla@kcell.kz"};
     private String sender;
     private String baseUrl;
     private JavaMailSender mailSender;
     private final CompiledScript template;
     private ScriptEngine groovyEngine;
-
-    private final List<String> claimAssignDateEnabledProcesses = Arrays.asList("AftersalesPBX", "revolvingNumbers");
 
     private final List<String> disabledProcesses = Arrays.asList("AftersalesPBX");
 
@@ -175,22 +172,6 @@ public class TaskNotificationListener implements TaskListener {
 
                     if(isRevisionMonthlyActCount > 0){
                         helper.setBcc(RevisionInvoiceBCC);
-                    }
-
-                    boolean isPBXProcess =
-                        delegateTask
-                            .getProcessEngineServices()
-                            .getRepositoryService()
-                            .createProcessDefinitionQuery()
-                            .processDefinitionId(delegateTask.getProcessDefinitionId())
-                            .list()
-                            .stream()
-                            .filter(e-> e.getKey().equals("PBX"))
-                            .findAny()
-                            .isPresent();
-
-                    if(isPBXProcess){
-                        helper.setBcc(PBX_BCC);
                     }
                 });
             } catch (ScriptException e) {
