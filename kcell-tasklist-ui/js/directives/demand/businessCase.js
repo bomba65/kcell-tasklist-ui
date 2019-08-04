@@ -14,41 +14,6 @@ define(['./../module', 'xlsx'], function(module){
             },
             link: function(scope, element, attrs) {
 
-                var lastCorrectingHeights = null;
-                var correctHeights = function() {
-                    // if (lastCorrectingHeights && (new Date()).getTime() - lastCorrectingHeights.getTime() < 1000) return;
-                    // lastCorrectingHeights = new Date();
-                    var maxHead = 0;
-                    var maxHeight = [];
-                    for (var table of ['generalInfoTable', 'cashFlowTable', 'accuralsTable', 'actionsTable']) {
-                        var h = $($($($('#' + table)[0]).find('thead')[0]).find('tr')[0]).height();
-                        if (h > maxHead) maxHead = h;
-                        $($($('#' + table)[0]).find('tbody')[0]).find('tr').each(function (i, row) {
-                            var height = $(row).height();
-                            if (i >= maxHeight.length) maxHeight.push(height);
-                            else if (height > maxHeight[i]) maxHeight[i] = height;
-                        });
-                    }
-                    for (var table of ['generalInfoTable', 'cashFlowTable', 'accuralsTable', 'actionsTable']) {
-                        $($($($('#' + table)[0]).find('thead')[0]).find('tr')[0]).height(maxHead);
-                        $($($('#' + table)[0]).find('tbody')[0]).find('tr').each(function (i, row) {
-                            $(row).height(maxHeight[i]);
-                        });
-                    }
-                };
-
-                $timeout(function() {
-                    scope.$watch(function () {
-                        return $($('#generalInfoTable')[0]).height();
-                    }, correctHeights);
-                    scope.$watch(function () {
-                        return $($('#cashFlowTable')[0]).height();
-                    }, correctHeights);
-                    scope.$watch(function () {
-                        return $($('#accuralsTable')[0]).height();
-                    }, correctHeights);
-                });
-
                 scope.selects = {
                     ipmDecision: {
                         visible: false,
@@ -298,7 +263,7 @@ define(['./../module', 'xlsx'], function(module){
                             };
                             for (var c = 71; c < 83; c++) {
                                 var cellVal = sheet[r]['A' + String.fromCharCode(c)];
-                                cashFlowRow.month[1][scope.months[c - 71]] = parseFloat(cellVal)?parseFloat(cellVal):0;
+                                cashFlowRow.month[1][scope.months[c - 71]] = parseFloat(cellVal)?parseFloat(cellVal):0.0;
                             }
                             // ACCURALS
                             var accuralsRow = {
@@ -313,11 +278,11 @@ define(['./../module', 'xlsx'], function(module){
                             };
                             for (var c = 84; c < 91; c++) {
                                 var cellVal = sheet[r]['B' + String.fromCharCode(c)];
-                                accuralsRow.month[1][scope.months[c - 84]] = parseFloat(cellVal)?parseFloat(cellVal):0;
+                                accuralsRow.month[1][scope.months[c - 84]] = parseFloat(cellVal)?parseFloat(cellVal):0.0;
                             }
                             for (var c = 65; c < 70; c++) {
                                 var cellVal = sheet[r]['C' + String.fromCharCode(c)];
-                                accuralsRow.month[1][scope.months[c - 58]] = parseFloat(cellVal)?parseFloat(cellVal):0;
+                                accuralsRow.month[1][scope.months[c - 58]] = parseFloat(cellVal)?parseFloat(cellVal):0.0;
                             }
                             if (generalInfo.rocType.toLowerCase().startsWith('revenue')) {
                                 scope.data.general.revenues.push(generalInfo);
