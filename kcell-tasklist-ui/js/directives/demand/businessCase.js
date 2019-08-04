@@ -13,6 +13,42 @@ define(['./../module', 'xlsx'], function(module){
                 editableQualitative: '=',
             },
             link: function(scope, element, attrs) {
+
+                var lastCorrectingHeights = null;
+                var correctHeights = function() {
+                    // if (lastCorrectingHeights && (new Date()).getTime() - lastCorrectingHeights.getTime() < 1000) return;
+                    // lastCorrectingHeights = new Date();
+                    var maxHead = 0;
+                    var maxHeight = [];
+                    for (var table of ['generalInfoTable', 'cashFlowTable', 'accuralsTable', 'actionsTable']) {
+                        var h = $($($($('#' + table)[0]).find('thead')[0]).find('tr')[0]).height();
+                        if (h > maxHead) maxHead = h;
+                        $($($('#' + table)[0]).find('tbody')[0]).find('tr').each(function (i, row) {
+                            var height = $(row).height();
+                            if (i >= maxHeight.length) maxHeight.push(height);
+                            else if (height > maxHeight[i]) maxHeight[i] = height;
+                        });
+                    }
+                    for (var table of ['generalInfoTable', 'cashFlowTable', 'accuralsTable', 'actionsTable']) {
+                        $($($($('#' + table)[0]).find('thead')[0]).find('tr')[0]).height(maxHead);
+                        $($($('#' + table)[0]).find('tbody')[0]).find('tr').each(function (i, row) {
+                            $(row).height(maxHeight[i]);
+                        });
+                    }
+                };
+
+                $timeout(function() {
+                    scope.$watch(function () {
+                        return $($('#generalInfoTable')[0]).height();
+                    }, correctHeights);
+                    scope.$watch(function () {
+                        return $($('#cashFlowTable')[0]).height();
+                    }, correctHeights);
+                    scope.$watch(function () {
+                        return $($('#accuralsTable')[0]).height();
+                    }, correctHeights);
+                });
+
                 scope.selects = {
                     ipmDecision: {
                         visible: false,
@@ -58,22 +94,36 @@ define(['./../module', 'xlsx'], function(module){
                 scope.$watch('data', function(value) {
                     if (value) {
                         if (!scope.data) scope.data = {};
+                        if (!scope.data.general) {
+                            scope.data.general = {
+                                revenues: [],
+                                capexes: [],
+                                others: [],
+                                income: []
+                            };
+                        }
                         if (!scope.data.cashFlow) {
                             scope.data.cashFlow = {
                                 revenues: [],
-                                opexes: [],
                                 capexes: [],
-                                cogs: [],
-                                income: []
+                                others: [],
+                                income: [],
+                                revenuesTotal: {},
+                                capexesTotal: {},
+                                othersTotal: {},
+                                incomeTotal: {}
                             };
                         }
                         if (!scope.data.accurals) {
                             scope.data.accurals = {
                                 revenues: [],
-                                opexes: [],
                                 capexes: [],
-                                cogs: [],
-                                income: []
+                                others: [],
+                                income: [],
+                                revenuesTotal: {},
+                                capexesTotal: {},
+                                othersTotal: {},
+                                incomeTotal: {}
                             };
                         }
                         if (!scope.data.firstYear) scope.data.firstYear = (new Date()).getFullYear() + 1;
@@ -128,7 +178,9 @@ define(['./../module', 'xlsx'], function(module){
                     var reader = new FileReader();
                     reader.onload = function(e) {
                         var wb = XLSX.read(e.target.result, {type: "binary"});
-                        var sheet = XLSX.utils.sheet_to_json(wb.Sheets[wb.SheetNames[1]], {blankrows: true, header: "A"});
+                        var ind = wb.SheetNames.indexOf('General summary');
+                        if (ind === -1) ind = 1;
+                        var sheet = XLSX.utils.sheet_to_json(wb.Sheets[wb.SheetNames[ind]], {blankrows: true, header: "A"});
                         if (sheet) sheet.unshift({});
                         processSheet(sheet);
                         $('#loaderDiv').hide();
@@ -181,110 +233,104 @@ define(['./../module', 'xlsx'], function(module){
 
                     // TABLE
                     if (sheet.length > 39) {
-                        scope.data.firstYear = Math.floor(sheet[37]['AK']);
+                        scope.data.firstYear = Math.floor(sheet[37]['AF']);
+                        scope.data.irr = sheet[24]['A'];
 
-                        scope.data.cashFlow = { revenues: [], opexes: [], capexes: [], cogs: [], income: [] };
-                        scope.data.accurals = { revenues: [], opexes: [], capexes: [], cogs: [], income: [] };
+                        scope.data.general = {
+                            revenues: [],
+                            capexes: [],
+                            others: [],
+                            income: []
+                        };
+                        scope.data.cashFlow = {
+                            revenues: [],
+                            capexes: [],
+                            others: [],
+                            income: [],
+                            revenuesTotal: {},
+                            capexesTotal: {},
+                            othersTotal: {},
+                            incomeTotal: {}
+                        };
+                        scope.data.accurals = {
+                            revenues: [],
+                            capexes: [],
+                            others: [],
+                            income: [],
+                            revenuesTotal: {},
+                            capexesTotal: {},
+                            othersTotal: {},
+                            incomeTotal: {}
+                        };
                         for (var r = 39; r < sheet.length; r++) {
+
+                            if (!sheet[r]['E'] || !sheet[r]['E'].length || sheet[r]['E'] === 'n/a') continue;
+
                             // CASH FLOW
-                            var cashFlowRow = {
-                                rocName: (!sheet[r]['AH'] || sheet[r]['AH'] == 'n/a') ? null : sheet[r]['AH'],
-                                wbs: (!sheet[r]['AJ'] || sheet[r]['AJ'] == 'n/a') ? null : sheet[r]['AJ'],
-                                cost: (!sheet[r]['N'] || sheet[r]['N'] == 'n/a') ? null : sheet[r]['N'],
-                                hyperion: (!sheet[r]['R'] || sheet[r]['R'] == 'n/a') ? null : sheet[r]['R'],
-                                investment1: (!sheet[r]['S'] || sheet[r]['S'] == 'n/a') ? null : sheet[r]['S'],
-                                investment2: (!sheet[r]['T'] || sheet[r]['T'] == 'n/a') ? null : sheet[r]['T'],
-                                purchasing: (!sheet[r]['V'] || sheet[r]['V'] == 'n/a') ? null : sheet[r]['V'],
-                                vendorName: (!sheet[r]['W'] || sheet[r]['W'] == 'n/a') ? null : sheet[r]['W'],
-                                vendorCode: (!sheet[r]['X'] || sheet[r]['X'] == 'n/a') ? null : sheet[r]['X'],
-                                contract: (!sheet[r]['Y'] || sheet[r]['Y'] == 'n/a') ? null : sheet[r]['Y'],
-                                contractAdd: (!sheet[r]['Z'] || sheet[r]['Z'] == 'n/a') ? null : sheet[r]['Z'],
-                                startDate: (!sheet[r]['AA'] || sheet[r]['AA'] == 'n/a') ? null : sheet[r]['AA'],
-                                endDate: (!sheet[r]['AB'] || sheet[r]['AB'] == 'n/a') ? null : sheet[r]['AB'],
-                                amount: (!sheet[r]['AD'] || sheet[r]['AD'] == 'n/a') ? null : sheet[r]['AD'],
-                                contractAmount: (!sheet[r]['AE'] || sheet[r]['AE'] == 'n/a') ? null : sheet[r]['AE'],
-                                currency: (!sheet[r]['AF'] || sheet[r]['AF'] == 'n/a') ? null : sheet[r]['AF'],
-                                depCode: (!sheet[r]['AI'] || sheet[r]['AI'] == 'n/a') ? null : sheet[r]['AI'],
-                                year: {
-                                    1: parseFloat(sheet[r]['AK'])?parseFloat(sheet[r]['AK']):0.0,
-                                    2: parseFloat(sheet[r]['AX'])?parseFloat(sheet[r]['AX']):0.0,
-                                    3: parseFloat(sheet[r]['BK'])?parseFloat(sheet[r]['BK']):0.0,
-                                    4: parseFloat(sheet[r]['BL'])?parseFloat(sheet[r]['BL']):0.0,
-                                    5: parseFloat(sheet[r]['BM'])?parseFloat(sheet[r]['BM']):0.0
-                                },
-                                month: {1: {}, 2: {
-                                        'Jan': parseFloat(sheet[r]['AY'])?parseFloat(sheet[r]['AY']):0.0,
-                                        'Feb': parseFloat(sheet[r]['AZ'])?parseFloat(sheet[r]['AZ']):0.0
-                                    }, 3: {}, 4: {}, 5: {}}
+                            var generalInfo = {
+                                rocType: (!sheet[r]['E'] || sheet[r]['E'] === 'n/a') ? null : sheet[r]['E'],
+                                rocName: (!sheet[r]['F'] || sheet[r]['F'] === 'n/a') ? null : sheet[r]['F'],
+                                wbs: (!sheet[r]['AE'] || sheet[r]['AE'] === 'n/a') ? null : sheet[r]['AE'],
+                                cost: (!sheet[r]['O'] || sheet[r]['O'] === 'n/a') ? null : sheet[r]['O'],
+                                ktLineNum1: (!sheet[r]['P'] || sheet[r]['P'] === 'n/a') ? null : sheet[r]['P'],
+                                ktLineNum2: (!sheet[r]['Q'] || sheet[r]['Q'] === 'n/a') ? null : sheet[r]['Q'],
+                                ktLineName: (!sheet[r]['R'] || sheet[r]['R'] === 'n/a') ? null : sheet[r]['R'],
+                                incremental: (!sheet[r]['S'] || sheet[r]['S'] === 'n/a') ? null : sheet[r]['S'],
+                                purchasing: (!sheet[r]['U'] || sheet[r]['U'] === 'n/a') ? null : sheet[r]['U'],
+                                vendorName: (!sheet[r]['V'] || sheet[r]['V'] === 'n/a') ? null : sheet[r]['V'],
+                                vendorCode: (!sheet[r]['W'] || sheet[r]['W'] === 'n/a') ? null : sheet[r]['W'],
+                                contract: (!sheet[r]['X'] || sheet[r]['X'] === 'n/a') ? null : sheet[r]['X'],
+                                truCode: (!sheet[r]['Y'] || sheet[r]['Y'] === 'n/a') ? null : sheet[r]['Y'],
+                                neededDate: (!sheet[r]['Z'] || sheet[r]['Z'] === 'n/a') ? null : sheet[r]['Z'],
+                                requestDate: (!sheet[r]['AA'] || sheet[r]['AA'] === 'n/a') ? null : sheet[r]['AA'],
+                                currency: (!sheet[r]['AB'] || sheet[r]['AB'] === 'n/a') ? null : sheet[r]['AB'],
+                                depCode: (!sheet[r]['AC'] || sheet[r]['AC'] === 'n/a') ? null : sheet[r]['AC']
                             };
-                            for (var c = 76; c < 88; c++) {
+                            var cashFlowRow = {
+                                year: {
+                                    1: parseFloat(sheet[r]['AF'])?parseFloat(sheet[r]['AF']):0.0,
+                                    2: parseFloat(sheet[r]['AS'])?parseFloat(sheet[r]['AS']):0.0,
+                                    3: parseFloat(sheet[r]['AT'])?parseFloat(sheet[r]['AT']):0.0,
+                                    4: parseFloat(sheet[r]['AU'])?parseFloat(sheet[r]['AU']):0.0,
+                                    5: parseFloat(sheet[r]['AV'])?parseFloat(sheet[r]['AV']):0.0
+                                },
+                                month: {1: {}, 2: {}, 3: {}, 4: {}, 5: {}}
+                            };
+                            for (var c = 71; c < 83; c++) {
                                 var cellVal = sheet[r]['A' + String.fromCharCode(c)];
-                                cashFlowRow.month[1][scope.months[c - 76]] = parseFloat(cellVal)?parseFloat(cellVal):0;
-                            }
-                            for (var c = 65; c < 75; c++) {
-                                var cellVal = sheet[r]['B' + String.fromCharCode(c)];
-                                cashFlowRow.month[2][scope.months[c - 63]] = parseFloat(cellVal)?parseFloat(cellVal):0;
+                                cashFlowRow.month[1][scope.months[c - 71]] = parseFloat(cellVal)?parseFloat(cellVal):0;
                             }
                             // ACCURALS
                             var accuralsRow = {
-                                lineName: sheet[r]['AH'],
                                 year: {
-                                    1: parseFloat(sheet[r]['CW'])?parseFloat(sheet[r]['CW']):(parseFloat(sheet[r]['BO'])?parseFloat(sheet[r]['BO']):0.0),
-                                    2: parseFloat(sheet[r]['DJ'])?parseFloat(sheet[r]['DJ']):(parseFloat(sheet[r]['BP'])?parseFloat(sheet[r]['BP']):0.0),
-                                    3: parseFloat(sheet[r]['DW'])?parseFloat(sheet[r]['DW']):(parseFloat(sheet[r]['BQ'])?parseFloat(sheet[r]['BQ']):0.0),
-                                    4: parseFloat(sheet[r]['DX'])?parseFloat(sheet[r]['DX']):(parseFloat(sheet[r]['BR'])?parseFloat(sheet[r]['BR']):0.0),
-                                    5: parseFloat(sheet[r]['DY'])?parseFloat(sheet[r]['DY']):(parseFloat(sheet[r]['BS'])?parseFloat(sheet[r]['BS']):0.0)
+                                    1: parseFloat(sheet[r]['BS'])?parseFloat(sheet[r]['BS']):0.0,
+                                    2: parseFloat(sheet[r]['CF'])?parseFloat(sheet[r]['CF']):0.0,
+                                    3: parseFloat(sheet[r]['CG'])?parseFloat(sheet[r]['CG']):0.0,
+                                    4: parseFloat(sheet[r]['CH'])?parseFloat(sheet[r]['CH']):0.0,
+                                    5: parseFloat(sheet[r]['CI'])?parseFloat(sheet[r]['CI']):0.0
                                 },
-                                month: {1: {
-                                        'Jan': parseFloat(sheet[r]['CX'])?parseFloat(sheet[r]['CX']):(parseFloat(sheet[r]['BW'])?parseFloat(sheet[r]['BW']):0.0),
-                                        'Feb': parseFloat(sheet[r]['CY'])?parseFloat(sheet[r]['CY']):(parseFloat(sheet[r]['BX'])?parseFloat(sheet[r]['BX']):0.0),
-                                        'Mar': parseFloat(sheet[r]['CZ'])?parseFloat(sheet[r]['CZ']):(parseFloat(sheet[r]['BY'])?parseFloat(sheet[r]['BY']):0.0),
-                                        'Apr': parseFloat(sheet[r]['DA'])?parseFloat(sheet[r]['DA']):(parseFloat(sheet[r]['BZ'])?parseFloat(sheet[r]['BZ']):0.0)
-                                    }, 2: {}, 3: {}, 4: {}, 5: {}},
-                                incremental: sheet[r]['EJ']
+                                month: {1: {}, 2: {}, 3: {}, 4: {}, 5: {}}
                             };
-                            for (var c = 66; c < 74; c++) {
-                                var val = sheet[r]['D' + String.fromCharCode(c)];
-                                var val1 = sheet[r]['C' + String.fromCharCode(c - 1)];
-                                accuralsRow.month[1][scope.months[c - 62]] = parseFloat(val)?parseFloat(val):(parseFloat(val1)?parseFloat(val1):0.0);
+                            for (var c = 84; c < 91; c++) {
+                                var cellVal = sheet[r]['B' + String.fromCharCode(c)];
+                                accuralsRow.month[1][scope.months[c - 84]] = parseFloat(cellVal)?parseFloat(cellVal):0;
                             }
-                            for (var c = 75; c < 87; c++) {
-                                var val = sheet[r]['D' + String.fromCharCode(c)];
-                                var val1 = sheet[r]['C' + String.fromCharCode(c - 1)];
-                                accuralsRow.month[2][scope.months[c - 75]] = parseFloat(val)?parseFloat(val):(parseFloat(val1)?parseFloat(val1):0.0);
+                            for (var c = 65; c < 70; c++) {
+                                var cellVal = sheet[r]['C' + String.fromCharCode(c)];
+                                accuralsRow.month[1][scope.months[c - 58]] = parseFloat(cellVal)?parseFloat(cellVal):0;
                             }
-                            if (sheet[r]['AG']) {
-                                var yearsTotal = 0;
-                                for (var i = 1; i < 6; i++) yearsTotal += cashFlowRow.year[i] + accuralsRow.year[i];
-                                if (yearsTotal == 0) {
-                                    for (var m = 1; m < 3; m++)
-                                        for (var i = 0; i < 12; i++)
-                                            yearsTotal += cashFlowRow.month[m][scope.months[i]] + accuralsRow.month[m][scope.months[i]];
-                                    if (yearsTotal == 0) continue;
-                                }
-                                if (sheet[r]['AG'].toLowerCase().startsWith('revenue')) {
-                                    scope.data.cashFlow.revenues.push(cashFlowRow);
-                                    scope.data.accurals.revenues.push(accuralsRow);
-                                } else if (sheet[r]['AG'].toLowerCase().startsWith('opex')) {
-                                    scope.data.cashFlow.opexes.push(cashFlowRow);
-                                    scope.data.accurals.opexes.push(accuralsRow);
-                                } else if (sheet[r]['AG'].toLowerCase().startsWith('capex')) {
-                                    scope.data.cashFlow.capexes.push(cashFlowRow);
-                                    scope.data.accurals.capexes.push(accuralsRow);
-                                } else if (sheet[r]['AG'].toLowerCase().startsWith('cogs')) {
-                                    scope.data.cashFlow.cogs.push(cashFlowRow);
-                                    scope.data.accurals.cogs.push(accuralsRow);
-                                }
-                            } else if (sheet[r]['AH'] && sheet[r]['AH'].toLowerCase().startsWith('income')) {
-                                scope.data.cashFlow.income.push({
-                                    year: cashFlowRow.year,
-                                    month: cashFlowRow.month
-                                });
-                                scope.data.accurals.income.push({
-                                    year: accuralsRow.year,
-                                    month: accuralsRow.month
-                                });
-                                break;
+                            if (generalInfo.rocType.toLowerCase().startsWith('revenue')) {
+                                scope.data.general.revenues.push(generalInfo);
+                                scope.data.cashFlow.revenues.push(cashFlowRow);
+                                scope.data.accurals.revenues.push(accuralsRow);
+                            } else if (generalInfo.rocType.toLowerCase().startsWith('capex')) {
+                                scope.data.general.capexes.push(generalInfo);
+                                scope.data.cashFlow.capexes.push(cashFlowRow);
+                                scope.data.accurals.capexes.push(accuralsRow);
+                            } else if (generalInfo.rocType.toLowerCase().startsWith('other')) {
+                                scope.data.general.others.push(generalInfo);
+                                scope.data.cashFlow.others.push(cashFlowRow);
+                                scope.data.accurals.others.push(accuralsRow);
                             }
                         }
                         scope.onChange();
@@ -295,10 +341,8 @@ define(['./../module', 'xlsx'], function(module){
                 scope.months = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
 
                 scope.collapse = {
-                    cashFlow1: false,
-                    cashFlow2: false,
-                    accurals1: false,
-                    accurals2: false
+                    cashFlow: false,
+                    accurals: false
                 };
 
                 scope.toggleCollapse = function(name) {
@@ -306,9 +350,11 @@ define(['./../module', 'xlsx'], function(module){
                 };
 
                 scope.addItem = function(name) {
+                    scope.data.general[name].push({});
                     scope.data.cashFlow[name].push({month: {1: {}, 2: {}, 3: {}, 4: {}, 5: {}}, year: {}});
                     scope.data.accurals[name].push({month: {1: {}, 2: {}, 3: {}, 4: {}, 5: {}}, year: {}});
-                    if (!scope.data.cashFlow.income.length) {
+                    if (!scope.data.general.income.length) {
+                        scope.data.general.income.push({});
                         scope.data.cashFlow.income.push({month: {1: {}, 2: {}, 3: {}, 4: {}, 5: {}}, year: {}});
                         scope.data.accurals.income.push({month: {1: {}, 2: {}, 3: {}, 4: {}, 5: {}}, year: {}});
                     }
@@ -318,6 +364,7 @@ define(['./../module', 'xlsx'], function(module){
                     templateUrl: './js/partials/confirmModal.html',
                     size: 'sm'
                   }).then(function() {
+                    scope.data.general[name].splice(index, 1);
                     scope.data.cashFlow[name].splice(index, 1);
                     scope.data.accurals[name].splice(index, 1);
                     scope.onChange();
@@ -327,13 +374,13 @@ define(['./../module', 'xlsx'], function(module){
                 scope.onChange = function() {
                     $('#loaderDiv').show();
                     for (var table of ['cashFlow', 'accurals']) {
-                        for (var name of ['revenues', 'capexes', 'opexes', 'cogs', 'income']) {
-                            scope.data[table][name+'Total'] = {year:{1: 0, 2: 0, 3: 0, 4: 0, 5: 0}, month: {1: {}, 2: {}, 3: {}, 4: {}, 5: {}}};
+                        for (var name of ['revenues', 'capexes', 'others', 'income']) {
+                            if (!scope.data[table][name]) continue;
                             scope.data[table][name+'Total'] = {year:{}, month: {}};
                             for (var i = 1; i < 6; i++) {
                                 scope.data[table][name+'Total'].year[i] = 0;
                                 scope.data[table][name+'Total'].month[i] = {};
-                                if (i < 3) {
+                                if (i === 1) {
                                     for (var m of scope.months)
                                         scope.data[table][name+'Total'].month[i][m] = 0;
                                 }
@@ -342,7 +389,7 @@ define(['./../module', 'xlsx'], function(module){
                                 for (var y = 1; y < 6; y++) {
                                     var monthsTotal = null;
                                     for (var m in scope.data[table][name][i]['month'][y]) {
-                                        if (monthsTotal == null) monthsTotal = 0;
+                                        if (monthsTotal === null) monthsTotal = 0;
                                         monthsTotal += scope.data[table][name][i]['month'][y][m];
                                         scope.data[table][name+'Total'].month[y][m] += scope.data[table][name][i]['month'][y][m];
                                     }
@@ -351,9 +398,6 @@ define(['./../module', 'xlsx'], function(module){
                                         scope.data[table][name+'Total'].year[y] += scope.data[table][name][i]['year'][y];
                                 }
                             }
-                            /*for (var y = 1; y < 6; y++)
-                                if (!scope.data[table][name+'Year'][y])
-                                    scope.data[table][name+'Year'][y] = null;*/
                         }
                     }
                     calcQuantitative();
@@ -372,8 +416,7 @@ define(['./../module', 'xlsx'], function(module){
                     for (var i = 1; i < 6; i++) {
                         scope.data.npv += (scope.data.cashFlow.revenuesTotal.year[i]
                             + scope.data.cashFlow.capexesTotal.year[i]
-                            + scope.data.cashFlow.opexesTotal.year[i]
-                            + scope.data.cashFlow.cogsTotal.year[i]
+                            + scope.data.cashFlow.othersTotal.year[i]
                             + scope.data.cashFlow.incomeTotal.year[i]) * discount[i];
                     }
 
@@ -383,8 +426,7 @@ define(['./../module', 'xlsx'], function(module){
                         var caps = 0;
                         for (var i = 1; i < 6; i++) {
                             caps += (scope.data.cashFlow.capexesTotal.year[i]
-                                + scope.data.cashFlow.opexesTotal.year[i]
-                                + scope.data.cashFlow.cogsTotal.year[i]
+                                + scope.data.cashFlow.othersTotal.year[i]
                                 + scope.data.cashFlow.incomeTotal.year[i]) * discount[i];
                         }
                         scope.data.roi = scope.data.npv / Math.abs(caps) * 100.0;
@@ -395,8 +437,7 @@ define(['./../module', 'xlsx'], function(module){
                     var ppsum = 0.0;
                     for (var i = 1; i < 6; i++) {
                         ppsum += (scope.data.cashFlow.revenuesTotal.year[i]
-                            + scope.data.cashFlow.cogsTotal.year[i]
-                            + scope.data.cashFlow.opexesTotal.year[i]
+                            + scope.data.cashFlow.othersTotal.year[i]
                             + scope.data.cashFlow.incomeTotal.year[i]
                             + scope.data.cashFlow.capexesTotal.year[i]) * discount[i];
                         if (ppsum > 0) {
@@ -408,16 +449,14 @@ define(['./../module', 'xlsx'], function(module){
                     // P&L effect first year
                     scope.data.plEffect = (scope.data.accurals.revenuesTotal.year[1]
                         + scope.data.accurals.capexesTotal.year[1]
-                        + scope.data.accurals.opexesTotal.year[1]
-                        + scope.data.accurals.cogsTotal.year[1]
+                        + scope.data.accurals.othersTotal.year[1]
                         + scope.data.accurals.incomeTotal.year[1]);
 
                     // CF effect first year
                     scope.data.cfEffect = (scope.data.cashFlow.revenuesTotal.year[1]
                         + scope.data.cashFlow.capexesTotal.year[1]
-                        + scope.data.cashFlow.opexesTotal.year[1])
-                        + scope.data.cashFlow.cogsTotal.year[1]
-                        + scope.data.cashFlow.incomeTotal.year[1];
+                        + scope.data.cashFlow.othersTotal.year[1]
+                        + scope.data.cashFlow.incomeTotal.year[1]);
 
                     scope.calcScoring();
                 };
@@ -530,9 +569,9 @@ define(['./../module', 'xlsx'], function(module){
                 ctrl.$formatters.unshift(function () {
                     var fractionSize = -1, view = ctrl.$modelValue;
                     if (!isNaN(scope.demandNumberFormat)) fractionSize = scope.demandNumberFormat;
-                    if (fractionSize != -1) view = $filter('number')(ctrl.$modelValue, fractionSize);
+                    if (fractionSize !== -1) view = $filter('number')(ctrl.$modelValue, fractionSize);
                     else  view = $filter('number')(ctrl.$modelValue);
-                    if (ctrl.$modelValue == 0.0) view = '0';
+                    if (ctrl.$modelValue === 0.0) view = '0';
                     if (view && scope.formatAddon && scope.formatAddon.length) view += scope.formatAddon;
                     return view;
                 });
@@ -545,9 +584,9 @@ define(['./../module', 'xlsx'], function(module){
 
                     plainNumber = parseFloat(plainNumber);
                     var view = plainNumber;
-                    if (fractionSize != -1) view = $filter('number')(plainNumber, fractionSize);
+                    if (fractionSize !== -1) view = $filter('number')(plainNumber, fractionSize);
                     else view = $filter('number')(plainNumber);
-                    if (plainNumber == 0.0) view = '0';
+                    if (plainNumber === 0.0) view = '0';
                     if (scope.formatAddon && scope.formatAddon.length) view += scope.formatAddon;
                     elem.val(view);
 
