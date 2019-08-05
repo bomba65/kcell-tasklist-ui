@@ -142,6 +142,7 @@
                 $scope.deletedFarEnd = false;
 
 
+
                 $http.get('/api/leasingCatalogs?version=1').then(
                     function(result){
                         angular.extend($scope.dictionary, result.data);
@@ -193,6 +194,7 @@
                             }
                         });
                     }
+                if ($scope.candidate) $scope.candidate.transmissionType = "Microwave";
                 if(!$scope.newCandidateRRFiles){
                     $scope.newCandidateRRFiles = [];
                 }
@@ -221,9 +223,7 @@
                 }
                 if ($scope.farEndInformation) {
                      angular.forEach($scope.farEndInformation, function (fe) {
-                     console.log(fe);
                             if (fe.surveyDate) {
-                            console.log(fe.surveyDate);
                                 fe.surveyDate = new Date(fe.surveyDate);
                             }
                      });
@@ -240,7 +240,6 @@
 
             camForm.on('submit', function (evt) {
                 //evt.submitPrevented = true;
-                //console.log('$scope', $scope.farEndInformation);
                 /*angular.forEach($scope.farEndInformation, function (fe, i) {
                         if (i==0) fe.priority=true;
                         else fe.priority=false;
@@ -306,7 +305,6 @@
                 var temp = String(val);
                 angular.forEach($scope.frequencyBand, function (freq, i) {
                         if (freq.substring(0, temp.length) === temp) {
-                         console.log('valid');
                          yes = true;
                          $scope.frequencyBandValid = true;
                         }
@@ -326,7 +324,6 @@
                         //farEndInformation : $scope.farEndInformation,
                         //index: index,
                         validate: function(index) {
-                            console.log('udalyaem');
                             $scope.currentFarEnd = undefined;
                             $scope.farEndInformation.splice(index, 1);
                         },
@@ -698,6 +695,7 @@
                     deferred.reject('At least 3 Far End Information should be added!!!');
                     return deferred.promise;
                 }
+                /*
                 else {
                     return $http.post('/camunda/leasing/rrfile/create',prepareRRCreatedata()).then(function (result) {
                         console.log(result.data);
@@ -705,6 +703,54 @@
                     function(error){
                         toasty.error(error.data.message);
                     });
+                }*/
+                var tempLat;
+                var tempLong;
+                var validLat = false;
+                var validLong = false;
+                if(!isNaN($scope.candidate.latitude)){
+                    tempLat = $scope.candidate.latitude;
+                    if (Number.isInteger(tempLat)) {
+                        tempLat = parseInt(tempLat);
+                        if (!(tempLat>40 && tempLat <=55)) {
+                            deferred.reject('Latitude must be in [40.568, 55.440] range');
+                            return deferred.promise;
+                        } else validLat = true;
+                    } else {
+                        tempLat = parseFloat(tempLat);
+                        if (!(tempLat>=40.568 && tempLat <=55.440)) {
+                            deferred.reject('Latitude must be in [40.568, 55.440] range');
+                            return deferred.promise;
+                        } else validLat = true;
+                    }
+                } else {
+                    deferred.reject('Latitude must be in [40.568, 55.440] range');
+                    return deferred.promise;
+                }
+
+                // longitude check
+                if(!isNaN($scope.candidate.longitude)){
+                    tempLong = $scope.candidate.longitude;
+                    if (Number.isInteger(tempLong)) {
+                        tempLong = parseInt(tempLong);
+                        if (!(tempLong>46 && tempLong <=87)) {
+                            deferred.reject('Longitude must be in [46.493, 87.315] range');
+                            return deferred.promise;
+                        } else validLong = true;
+                    } else {
+                        tempLong = parseFloat(tempLong);
+                        if (!(tempLong>=46.493 && tempLong <=87.315)) {
+                            deferred.reject('Longitude must be in [46.493, 87.315] range');
+                            return deferred.promise;
+                        } else validLong = true;
+                    }
+                } else {
+                    deferred.reject('Longitude must be in [46.493, 87.315] range');
+                    return deferred.promise;
+                }
+                if (validLat && validLong) {
+                  deferred.resolve();
+                  return deferred.promise;
                 }
             };
         }]);
@@ -748,7 +794,7 @@
                     <label class="col-sm-3 control-label">Latitude:</label>
                     <div class="col-sm-5">
                         <input class="form-control" id="latitude" name="latitude" required
-                               ng-model="candidate.latitude">
+                               ng-model="candidate.latitude" maxlength="7">
                         <label class="error"
                                ng-show="kcell_form.latitude.$error.required && ( kcell_form.latitude.$touched || view.submitted)">Required
                             field</label>
@@ -758,7 +804,7 @@
                     <label class="col-sm-3 control-label">Longitude:</label>
                     <div class="col-sm-5">
                         <input class="form-control" id="longitude" name="longitude" required
-                               ng-model="candidate.longitude">
+                               ng-model="candidate.longitude" maxlength="7">
                         <label class="error"
                                ng-show="kcell_form.longitude.$error.required && ( kcell_form.longitude.$touched || view.submitted)">Required
                             field</label>
@@ -776,6 +822,13 @@
                         <label class="error"
                                ng-show="kcell_form.constructionType.$error.required && ( kcell_form.constructionType.$touched || view.submitted)">Required
                             field</label>
+                    </div>
+                </div>
+                <div class="form-group">
+                    <label class="col-sm-3 control-label">Transmission type:</label>
+                    <div class="col-sm-5">
+                        <input class="form-control" id="transmissionType" name="transmissionType"
+                               ng-model="candidate.transmissionType" readonly>
                     </div>
                 </div>
                 <div class="form-group">
@@ -1099,7 +1152,7 @@
                 <accordion class="content-visible-accordion">
                     <accordion-group is-open="false">
                         <accordion-heading>
-                            Transmission Antenna <i class="pull-right glyphicon"
+                            Near End Information <i class="pull-right glyphicon"
                                                     ng-class="{'glyphicon-chevron-up': status.isCustomHeaderOpen, 'glyphicon-chevron-down': !status.isCustomHeaderOpen}"></i>
                         </accordion-heading>
                         <div class="form-group">
@@ -1448,10 +1501,8 @@
                                         <div class="col-sm-2">
                                             <select class="form-control" id="FeFrequencyBand" name="FeFrequencyBand"
                                                     ng-disabled="!frequenciesFeByAntennaType"
-                                                    ng-model="currentFarEnd.frequencyBand">
-                                                <option ng-repeat="freq in frequenciesFeByAntennaType.frequencies">
-                                                    {{freq}}
-                                                </option>
+                                                    ng-model="currentFarEnd.frequencyBand"
+                                                    ng-options="freq for freq in frequenciesFeByAntennaType.frequencies">
                                             </select>
                                             <label class="error"
                                                    ng-show="kcell_form.FeFrequencyBand.$error.required && ( kcell_form.FeFrequencyBand.$touched || view.submitted)">Required

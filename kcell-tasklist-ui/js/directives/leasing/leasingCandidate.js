@@ -26,6 +26,7 @@ define(['./../module'], function(module){
                         console.log(error);
                     }
                 );
+
 				scope.$watch('leasingCandidate.farEndInformation', function(farEndInformation) {
 					if (farEndInformation && farEndInformation.length>0 && scope.loadCurrentFarEnd) {
 						angular.forEach(farEndInformation, function (fe, i) {
@@ -66,7 +67,6 @@ define(['./../module'], function(module){
 						scope.sortableOptions.disabled = true;
 					} else if (resolution=='priorityChange') scope.sortableOptions.disabled = false;
 				});
-
 				scope.$watch('leasingCandidate.transmissionAntenna.antennaType', function (antennaType) {
 					scope.leasingCandidate.frequenciesByAntennaType = {};
 					scope.leasingCandidate.frequenciesByAntennaType = _.find(scope.dictionary.antennaType, function (p) {
