@@ -56,9 +56,57 @@ define(['./../module', 'xlsx'], function(module){
                     scope.onChange();
                 };
 
+                function initData() {
+                    scope.data = {
+                        general: {
+                            revenues: [],
+                            capexes: [],
+                            others: [],
+                            income: []
+                        },
+                        cashFlow: {
+                            revenues: [],
+                            capexes: [],
+                            others: [],
+                            income: [],
+                            revenuesTotal: {},
+                            capexesTotal: {},
+                            othersTotal: {},
+                            incomeTotal: {}
+                        },
+                        accurals: {
+                            revenues: [],
+                            capexes: [],
+                            others: [],
+                            income: [],
+                            revenuesTotal: {},
+                            capexesTotal: {},
+                            othersTotal: {},
+                            incomeTotal: {}
+                        },
+                        firstYear: (new Date()).getFullYear() + 1,
+                        benchmark: {
+                            minPP: 0.8,
+                            maxROI: 94,
+                            maxNPV: 8205418520.33,
+                            maxPL: 2420366789.82,
+                            maxCF: 2420366789.82,
+                            wacc: 13.6
+                        },
+                        irr: 0.0,
+                        strategicGoal: 'strategicGoal growth',
+                        ipmDecision: scope.selects.ipmDecision.options[0],
+                        strategyFit: scope.selects.strategyFit.options[0],
+                        businessPriority: scope.selects.businessPriority.options[0],
+                        opActivitiesImpact: scope.selects.opActivitiesImpact.options[0]
+                    };
+
+                    scope.onChange();
+                }
+
                 scope.$watch('data', function(value) {
                     if (value) {
-                        if (!scope.data) scope.data = {};
+                        if (!scope.data) initData();
                         if (!scope.data.general) {
                             scope.data.general = {
                                 revenues: [],
@@ -102,6 +150,7 @@ define(['./../module', 'xlsx'], function(module){
                                 wacc: 13.6
                             };
                         }
+                        if (!scope.data.irr) scope.data.irr = 0.0;
                         if (!scope.data.strategicGoal) scope.data.strategicGoal = 'strategicGoal growth';
                         for (var field of ['ipmDecision', 'strategyFit', 'businessPriority', 'opActivitiesImpact'])
                             if (!scope.data[field])
@@ -148,6 +197,7 @@ define(['./../module', 'xlsx'], function(module){
                         var sheet = XLSX.utils.sheet_to_json(wb.Sheets[wb.SheetNames[ind]], {blankrows: true, header: "A"});
                         if (sheet) sheet.unshift({});
                         processSheet(sheet);
+                        $(el).val('');
                         $('#loaderDiv').hide();
                     };
                     reader.onerror = function(e) {
@@ -155,12 +205,18 @@ define(['./../module', 'xlsx'], function(module){
                         console.log("reading file error:", e);
                     };
                     if (el && el.files[0]) reader.readAsBinaryString(el.files[0]);
-                    else $('#loaderDiv').hide();
+                    else {
+                        $(el).val('');
+                        $('#loaderDiv').hide();
+                    }
                 };
 
                 var processSheet = function(sheet) {
+
+                    initData();
+
                     // Strategy Goal
-                    if (sheet.length > 10 && sheet[10]['G'] && sheet[10]['G'] != 'n/a') {
+                    if (sheet.length > 10 && sheet[10]['G'] && sheet[10]['G'] !== 'n/a') {
                         if (sheet[10]['G'].startsWith('Revenue')) scope.data.strategicGoal = 'Revenue growth';
                         else if (sheet[10]['G'].startsWith('Cost')) scope.data.strategicGoal = 'Cost optimisation';
                         else if (sheet[10]['G'].startsWith('Business')) scope.data.strategicGoal = 'Business continuity';
@@ -169,7 +225,7 @@ define(['./../module', 'xlsx'], function(module){
                     }
 
                     // Strategy Fit
-                    if (sheet.length > 23 && sheet[23]['G'] && sheet[23]['G'] != 'n/a') {
+                    if (sheet.length > 23 && sheet[23]['G'] && sheet[23]['G'] !== 'n/a') {
                         if (sheet[23]['G'].startsWith('A'))
                             scope.data.strategyFit = 'Values through superior network connectivity';
                         else if (sheet[23]['G'].startsWith('B'))
@@ -182,51 +238,27 @@ define(['./../module', 'xlsx'], function(module){
                             scope.data.strategyFit = 'Regular expenses';
                     }
 
+                    if (sheet.length > 24 && sheet[24]['C'] && parseFloat(sheet[24]['C'])) {
+                        scope.data.irr = parseFloat(sheet[24]['C']) * 100.0;
+                    }
+
                     // Define impact on operational activities
-                    if (sheet.length > 27 && sheet[27]['G'] && sheet[27]['G'] != 'n/a') {
-                        if (sheet[27]['G'][0] == 'A') scope.data.opActivitiesImpact = scope.selects.opActivitiesImpact.options[0];
-                        else if (sheet[27]['G'][0] == 'B') scope.data.opActivitiesImpact = scope.selects.opActivitiesImpact.options[1];
+                    if (sheet.length > 27 && sheet[27]['G'] && sheet[27]['G'] !== 'n/a') {
+                        if (sheet[27]['G'][0] === 'A') scope.data.opActivitiesImpact = scope.selects.opActivitiesImpact.options[0];
+                        else if (sheet[27]['G'][0] === 'B') scope.data.opActivitiesImpact = scope.selects.opActivitiesImpact.options[1];
                         else scope.data.opActivitiesImpact = scope.selects.opActivitiesImpact.options[2];
                     }
 
                     // Define business priority
-                    if (sheet.length > 29 && sheet[29]['G'] && sheet[29]['G'] != 'n/a') {
-                        if (sheet[29]['G'][0] == 'A') scope.data.businessPriority = scope.selects.businessPriority.options[0];
-                        else if (sheet[29]['G'][0] == 'B') scope.data.businessPriority = scope.selects.businessPriority.options[1];
+                    if (sheet.length > 29 && sheet[29]['G'] && sheet[29]['G'] !== 'n/a') {
+                        if (sheet[29]['G'][0] === 'A') scope.data.businessPriority = scope.selects.businessPriority.options[0];
+                        else if (sheet[29]['G'][0] === 'B') scope.data.businessPriority = scope.selects.businessPriority.options[1];
                         else scope.data.businessPriority = scope.selects.businessPriority.options[2];
                     }
 
                     // TABLE
                     if (sheet.length > 39) {
                         scope.data.firstYear = Math.floor(sheet[37]['AF']);
-                        scope.data.irr = sheet[24]['A'];
-
-                        scope.data.general = {
-                            revenues: [],
-                            capexes: [],
-                            others: [],
-                            income: []
-                        };
-                        scope.data.cashFlow = {
-                            revenues: [],
-                            capexes: [],
-                            others: [],
-                            income: [],
-                            revenuesTotal: {},
-                            capexesTotal: {},
-                            othersTotal: {},
-                            incomeTotal: {}
-                        };
-                        scope.data.accurals = {
-                            revenues: [],
-                            capexes: [],
-                            others: [],
-                            income: [],
-                            revenuesTotal: {},
-                            capexesTotal: {},
-                            othersTotal: {},
-                            incomeTotal: {}
-                        };
                         for (var r = 39; r < sheet.length; r++) {
 
                             if (!sheet[r]['E'] || !sheet[r]['E'].length || sheet[r]['E'] === 'n/a') continue;
