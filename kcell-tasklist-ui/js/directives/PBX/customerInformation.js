@@ -25,6 +25,8 @@ define(['./../module'], function(module){
             if (scope.ci.termContract) scope.ci.termContract = new Date(scope.ci.termContract);
 
             if (scope.ci.termContractEnd === undefined) scope.ci.termContractEnd = true;
+
+            if (!scope.ci.salesRepresentativeId) scope.form.salesRepresentative.$setValidity('not_selected', false);
 					}
 				});
 
@@ -38,7 +40,6 @@ define(['./../module'], function(module){
           scope.form.termContract.$setValidity('invalid_date', true);
 				  if (scope.ci.termContractEnd) return;
 				  if (scope.ci.termContract) {
-				    console.log("===> here ", scope.ci.termContract, scope.today);
 				    scope.ci.termContract = new Date(scope.ci.termContract);
 				    if (scope.ci.termContract.getTime() - scope.today.getTime() < 86400000) {
               scope.form.termContract.$setValidity('invalid_date', false);
