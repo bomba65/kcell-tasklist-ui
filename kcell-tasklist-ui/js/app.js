@@ -59,7 +59,8 @@ define('app',[
 						{key:'leasing', name:'Leasing Rollout Site', group:'infrastructure_leasing_users'},
 						{key:'SiteSharingTopProcess', name:'4G Site Sharing', group:'infrastructure_sharing_users', 
 							subprocesses:[{key:'BeelineHostBeelineSite'},{key:'BeelineHostKcellSite'},{key:'KcellHostBeelineSite'},{key:'ReplanSiteAP'},{key:'KcellHostKcellSite'}]
-						}
+						},
+						{key:'Dismantle', name:'Dismantle', group:'infrastructure_dismantle_users', subprocesses:[{key:'sdr_srr_request'}]}
 					]
 				},
 				{

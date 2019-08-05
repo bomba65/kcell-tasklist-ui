@@ -1,10 +1,578 @@
-<!DOCTYPE html>
-<html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <title>Title</title>
-</head>
-<body>
+<style>
+    .my-group .form-control{
+        width:50%;
+    }
+    .modal-lg.modal-dialog{
+        width: 90%;
+    }
+</style>
+<form role="form" class="form-horizontal" name="kcell_form" novalidate>
+    <script cam-script type="text/form-script">
+        inject(['$scope', '$http', '$rootScope', '$q', '$timeout', function ($scope, $http, $rootScope, $q, $timeout) {
+            var variablesToCreate = [
+                {
+                    name: 'siteInformation',
+                    type: 'Json',
+                    submit: true,
+                    store: true
+                },
+                {
+                    name: 'alternativePlaces',
+                    type: 'Json',
+                    submit: true,
+                    store: true
+                },
+                {
+                    name: 'siteRegion',
+                    type: 'String',
+                    submit: true,
+                    store: true
+                },
+                {
+                    name: 'sdrCreationDate',
+                    type: 'Date',
+                    submit: true,
+                    store: true
+                },
+                {
+                    name: 'validityDate',
+                    type: 'Date',
+                    submit: true,
+                    store: true
+                },
+                {
+                    name: 'siteName',
+                    type: 'String',
+                    submit: true,
+                    store: true
+                },
+                {
+                    name: 'site',
+                    type: 'String',
+                    submit: true,
+                    store: true
+                },
+                {
+                    name: 'site_name',
+                    type: 'String',
+                    submit: true,
+                    store: true
+                },
+                {
+                    name: 'gsmAntennaTypes',
+                    type: 'Json',
+                    submit: true,
+                    store: true
+                },
+                {
+                    name: 'coverageAreaFile',
+                    type: 'Json',
+                    submit: true,
+                    store: true
+                },
+                {
+                    name: 'transmissionAntennaType',
+                    type: 'String',
+                    submit: true,
+                    store: true
+                },
+                {
+                    name: 'project',
+                    type: 'String',
+                    submit: true,
+                    store: true
+                },
+                {
+                    name: 'band',
+                    type: 'String',
+                    submit: true,
+                    store: true
+                },
+                {
+                    name: 'rbsLocation',
+                    type: 'String',
+                    submit: true,
+                    store: true
+                },
+                {
+                    name: 'contractType',
+                    type: 'String',
+                    submit: true,
+                    store: true
+                },
+                {
+                    name: 'rbsType',
+                    type: 'String',
+                    submit: true,
+                    store: true
+                }
+            ];
+            var uuid = new Date().getTime();
 
-</body>
-</html>
+            $scope.catalogs = {};
+            $scope.siteInformation = [
+                { name: 'cell A:', gsmLabel: 'GSM-', gsmValue: undefined, umtsLabel: 'UMTS-', umtsValue: undefined, lteLabel: 'LTE-', lteValue: undefined},
+                { name: 'cell B:', gsmLabel: 'GSM-', gsmValue: undefined, umtsLabel: 'UMTS-', umtsValue: undefined, lteLabel: 'LTE-', lteValue: undefined},
+                { name: 'cell C:', gsmLabel: 'GSM-', gsmValue: undefined, umtsLabel: 'UMTS-', umtsValue: undefined, lteLabel: 'LTE-', lteValue: undefined}
+            ];
+            $scope.alternativePlaces = [];
+            $scope.alternativePlaces.push("");
+
+            $scope.gsmAntennaTypes = [];
+
+            $scope.regions = [
+                {id: 'alm', name: 'Almaty', value: 'Alm'},
+                {id: 'astana', name: 'Astana', value: 'Astana'},
+                {id: 'nc', name: 'North and Center', value: 'N\&C'},
+                {id: 'east', name: 'East', value: 'East'},
+                {id: 'south', name: 'South', value: 'South'},
+                {id: 'west', name: 'West', value: 'West'}
+            ]
+            $scope.regionsMap = {
+                '0': 'Alm',
+                '11':'Astana',
+                '1': 'N&C',
+                '2': 'N&C',
+                '3': 'East',
+                '4': 'South',
+                '5': 'West',
+                '6': 'West',
+                '7': 'West',
+                '8': 'West'
+            };
+            $scope.regionsMapLC = {
+                '0': 'alm',
+                '11':'astana',
+                '1': 'nc',
+                '2': 'nc',
+                '3': 'east',
+                '4': 'south',
+                '5': 'west',
+                '6': 'west',
+                '7': 'west',
+                '8': 'west'
+            };
+
+            camForm.on('form-loaded', function () {
+                variablesToCreate.forEach(function (el) {
+                    camForm.variableManager.fetchVariable(el.name);
+                });
+
+                $http.get($rootScope.getCatalogsHttpByName('dismantleCatalogs')).then(
+                    function(result){
+                        angular.extend($scope.catalogs, result.data);
+                    },
+                    function(error){
+                        console.log(error.data);
+                    }
+                );
+            });
+
+            camForm.on('variables-fetched', function () {
+                variablesToCreate.forEach(function (el) {
+                    if (camForm.variableManager.variables[el.name].type === undefined) {
+                        camForm.variableManager.variables[el.name].type = el.type;
+                        if(el.value){
+                            camForm.variableManager.variables[el.name].value = el.value;
+                        }
+                    }
+                });
+                $http.get('/camunda/api/engine/engine/default/user/'+$rootScope.authentication.name+'/profile').then(
+                        function(result){
+                            $scope.initiatorFull = result.data;
+                        },
+                        function(error){}
+                );
+                $http.get("/camunda/api/engine/engine/default/user/" + $rootScope.authentication.name+ "/profile").then(function(result){
+                    $rootScope.authentication.assigneeName = (result.data.firstName ? result.data.firstName : "") + " " + (result.data.lastName ? result.data.lastName : "");
+                });
+            });
+
+            camForm.on('submit', function (e) {
+                variablesToCreate.forEach(function (el) {
+                    if (el.submit && $scope[el.name]) {
+                        if(el.name === 'alternativePlaces'){
+                            var alternativePlaces = [];
+                            angular.forEach($scope.alternativePlaces, function(ap){
+                                if(ap && ap!==''){
+                                    alternativePlaces.push(ap);
+                                }
+                            });
+                            $scope.alternativePlaces = alternativePlaces;
+                        }
+                        camForm.variableManager.variableValue(el.name, $scope[el.name]);
+                    }
+                });
+
+            });
+
+            $scope.getSite = function(val) {
+                return $http.get('/asset-management/api/sites/search/findByNameIgnoreCaseContaining?name='+val).then(
+                        function(response){
+                            var sites = _.flatMap(response.data._embedded.sites, function(s){
+                                if(s.params.site_name){
+                                    return s.params.site_name.split(',').map(function(sitename){
+                                        return {
+                                            name: s.name,
+                                            id: s._links.self.href.substring(s._links.self.href.lastIndexOf('/')+1),
+                                            site_name: sitename
+                                        };
+                                    })
+                                } else {
+                                    return [];
+                                }
+                            });
+                            return sites;
+                        }
+                );
+            };
+
+            $scope.siteSelected = function ($item) {
+                $scope.siteName = $item.name;
+                $scope.site = $item.id;
+                $scope.site_name = $item.site_name;
+                if ($scope.siteName.startsWith('11')) {
+                    $scope.regionShortName = $scope.regionsMap['11'];
+                    $scope.siteRegion = $scope.regionsMapLC['11'];
+                    refreshJobRequests();
+                } else if ($scope.siteName.startsWith('9')) {
+                    $scope.regionShortName = undefined;
+                    $scope.siteRegion = undefined;
+                } else {
+                    $scope.regionShortName = $scope.regionsMap[$scope.siteName.substring(0, 1)];
+                    $scope.siteRegion = $scope.regionsMapLC[$scope.siteName.substring(0, 1)];
+                }
+            };
+
+            $scope.regionSelected = function(siteRegion){
+                $scope.regionShortName = _.find($scope.regions, function (r) {
+                    return r.id === siteRegion;
+                }).value;
+            }
+
+            $scope.addAlternativePlace = function() {
+                $scope.alternativePlaces.push("");
+                console.log($scope.alternativePlaces.length);
+            };
+
+            $scope.fileSelected = function(el, fileName){
+                if(el.files[0]){
+                    $timeout(function () {
+                        $scope.$apply(function () {
+                            uploadFileToMinio(el.files[0], fileName);
+                        });
+                    })
+                } else {
+                    $scope.$apply(function(){
+                        $scope[fileName] = undefined;
+                    });
+                }
+            };
+
+            function uploadFileToMinio(file, fileName) {
+                var fileToUpload = {
+                    name: file.name.replace(/[/\\?%*:|"<>]/g, '-'),
+                    isNew : true,
+                    path: uuid + '/' + file.name.replace(/[/\\?%*:|"<>]/g, '-')
+                };
+                $http({method: 'GET', url: '/camunda/uploads/tmp/put/' + fileToUpload.path, transformResponse: [] }).
+                then(function(response) {
+                    $http.put(response.data, file, {headers: {'Content-Type': undefined}}).then(
+                            function () {
+                                $scope[fileName] = fileToUpload;
+                                angular.element(document.querySelector('#'+fileName)).val(null);
+                            },
+                            function (error) {
+                                console.log(error.data);
+                            }
+                    );
+                }, function(error){
+                    console.log(error.data);
+                });
+            }
+
+            $scope.clearFile = function(filename){
+                delete $scope[filename];
+            };
+
+            $scope.getGsmAntennaType = function(val) {
+                var result = [];
+                angular.forEach($scope.catalogs.gsmAntennaTypes, function (gat) {
+                   if(gat.indexOf(val) >= 0 && $scope.gsmAntennaTypes.indexOf(gat)===-1){
+                       result.push(gat);
+                   }
+                });
+                return result;
+            };
+
+            $scope.gsmAntennaSelected = function($item){
+                $scope.gsmAntennaTypes.push($item);
+            }
+
+            $scope.removeGsmAntennaType = function(index){
+                $scope.gsmAntennaTypes.splice(index,1);
+            }
+
+            $scope.download = function(file) {
+                $http({method: 'GET', url: '/camunda/uploads/tmp/get/' + file.path, transformResponse: [] }).
+                then(function(response) {
+                    document.getElementById('fileDownloadIframe').src = response.data;
+                }, function(error){
+                    console.log(error.data);
+                });
+            };
+
+            $scope.preSubmit = function(){
+                var deferred = $q.defer();
+                var sdrCounter = 'SDR-' + $scope.regionShortName+'-'+$scope.sdrCreationDate.getFullYear().toString().substr(-2);
+                return $http.post('/asset-management/sdrrequestcounter/' + sdrCounter).then(
+                        function(result){
+                            $scope.sdrNumber = result.data;
+                            camForm.businessKey = result.data;
+                        }
+                );
+            }
+        }]);
+    </script>
+    <iframe id="fileDownloadIframe" style="display:none;"></iframe>
+
+    <div class="form-group">
+        <div class="col-sm-6">
+            <h4>Create SITE DISMANTLING REQUEST</h4>
+        </div>
+        <div class="col-sm-3">
+            <label>Site Dismantling Request number:</label>
+        </div>
+        <div class="col-sm-3">
+            <span>SDR-{{regionShortName?regionShortName:'###'}}-{{sdrCreationDate.getFullYear().toString().substr(-2)}}-{{siteCounter?siteCounter:'####'}}</span>
+        </div>
+    </div>
+
+    <div class="form-group">
+        <label class="col-sm-2 control-label">SDR Creation date:</label>
+        <div class="col-sm-3">
+            <div class="input-group">
+                <input type="text" ng-model="sdrCreationDate" name="sdrCreationDate" class="form-control" datepicker-popup="dd.MM.yyyy" is-open="sdrCreationDateFiledOpened" id="sdrCreationDate" min-date="datepickerOptions.minDate" />
+                <span class="input-group-btn">
+                    <button type="button" class="btn btn-default" ng-click="sdrCreationDateFiledOpened = true">
+                        <i class="glyphicon glyphicon-calendar"></i>
+                    </button>
+                </span>
+            </div>
+        </div>
+
+        <label class="col-sm-2 control-label">SA&O Complaint Id:</label>
+        <div class="col-sm-3">
+            <input type="text" cam-variable-name="soaComplaintId" cam-variable-type="String" class="form-control" ng-blur="checkSOAComplaintId()" maxlength="20"/>
+        </div>
+    </div>
+    <div class="form-group">
+        <label class="col-sm-2 control-label">Validity date:</label>
+        <div class="col-sm-3">
+            <div class="input-group">
+                <input type="text" ng-model="validityDate" name="validityDate" class="form-control" datepicker-popup="dd.MM.yyyy" is-open="validityDateFiledOpened" id="validityDate" min-date="datepickerOptions.minDate" />
+                <span class="input-group-btn">
+                    <button type="button" class="btn btn-default" ng-click="validityDateFiledOpened = true">
+                        <i class="glyphicon glyphicon-calendar"></i>
+                    </button>
+                </span>
+            </div>
+        </div>
+
+        <label class="col-sm-2 control-label">Initiator of dismantling:</label>
+        <div class="col-sm-3">
+            <select cam-variable-name="dismantlingInitiator" name="dismantlingInitiator" cam-variable-type="String" class="form-control selectpicker" select-picker title="">
+                <option value="">select initiator</option>
+                <option value="planningUnit">Planning unit</option>
+                <option value="siteAcquisionUnit">Site Acquisition unit</option>
+                <option value="implementationUnit">Implementation Unit</option>
+                <option value="other">Other</option>
+            </select>
+            <label class="error" ng-if="kcell_form.priority.$error.required && ( kcell_form.priority.$touched || view.submitted)">Required field</label>
+        </div>
+        <div class="col-sm-2">
+            <input type="text" cam-variable-name="otherInitiator" cam-variable-type="String" class="form-control" ng-if="dismantlingInitiator == 'other'" placeholder = 'Other'/>
+        </div>
+    </div>
+    <div class="form-group">
+        <label class="col-sm-2 control-label">Site:</label>
+        <div class="col-sm-3">
+            <input type="text" ng-model="site_name" name="site_name" typeahead="site as sites.site_name for sites in getSite($viewValue)" typeahead-on-select="siteSelected($item,$model,$label)" class="form-control" required autocomplete="off" placeholder="Site Name">
+            <input type="hidden" ng-model="site" name="siteId" required/>
+            <label class="error" ng-if="kcell_form.site_name.$error.required && ( kcell_form.site_name.$touched || view.submitted)">Required field</label>
+            <label class="error" ng-if="kcell_form.siteId.$error.required && ( kcell_form.siteName.$touched || view.submitted)">Please choose site from list</label>
+        </div>
+
+        <label class="col-sm-2 control-label">Type of Project:</label>
+        <div class="col-sm-3">
+            <select class="form-control" id="project" name="project" ng-model="project" ng-options="pr as pr for pr in catalogs.projects">
+            </select>
+        </div>
+    </div>
+    <div class="form-group">
+        <label class="col-sm-2 control-label">Priority:</label>
+        <div class="col-sm-3">
+            <select cam-variable-name="priority" name="priority" cam-variable-type="String" class="form-control selectpicker" select-picker title="">
+                <option value="">select priority</option>
+                <option value="regular">Regular</option>
+                <option value="critical">Critical</option>
+            </select>
+            <label class="error" ng-if="kcell_form.priority.$error.required && ( kcell_form.priority.$touched || view.submitted)">Required field</label>
+        </div>
+        <div class="form-group" ng-if="siteName.startsWith('9')">
+            <label class="col-sm-2 control-label">Site region:</label>
+            <div class="col-sm-3">
+                <select class="form-control selectpicker" select-picker title="" select-model="regions" ng-model="siteRegion" name="siteRegion" ng-change="regionSelected(siteRegion)" required="true">
+                    <option value="">select region for mobile site</option>
+                    <option value="{{r.id}}" ng-repeat="r in regions" ng-selected="{{r.id == siteRegion}}">{{r.name}}</option>
+                </select>
+                <label class="error" ng-if="siteName.startsWith('9') && kcell_form.siteRegion.$error.required && ( kcell_form.siteRegion.$touched || view.submitted)">Required field</label>
+            </div>
+        </div>
+    </div>
+
+    <H4 style="margin-top: 30px;">Alternative places for setting of site</H4>
+    <div class="form-group">
+        <label class="col-sm-2 control-label">Alternative 1: </label>
+        <div class="col-sm-10">
+            <div ng-repeat="i in alternativePlaces track by $index" style="float: left; margin-right: 20px;">
+                <input type="text" ng-model="alternativePlaces[$index]" class="form-control" style="width: 200px;" />
+            </div>
+            <a ng-click="addAlternativePlace()" style="float: left;"><i class="glyphicon glyphicon-plus-sign"></i></a>
+        </div>
+    </div>
+
+    <H4 style="margin-top: 30px;">Site Information</H4>
+
+    <div class="form-group">
+        <label class="col-sm-2 control-label">
+            Traffic: <br />
+            (average monthly)
+        </label>
+        <div class="col-sm-10">
+            <table class="table table-bordered">
+                <tbody>
+                    <tr ng-repeat="siteInfo in siteInformation">
+                        <td>{{siteInfo.name}}</td>
+                        <td>{{siteInfo.gsmLabel}}</td>
+                        <td>
+                            <input type="number" ng-model="siteInfo.gsmValue" min="0" name="gsmValue{{$index}}" style="width: 50px;">
+                        </td>
+                        <td>{{siteInfo.umtsLabel}}</td>
+                        <td>
+                            <input type="number" ng-model="siteInfo.umtsValue" min="0" name="gsmValue{{$index}}" style="width: 50px;">
+                        </td>
+                        <td>{{siteInfo.lteLabel}}</td>
+                        <td>
+                            <input type="number" ng-model="siteInfo.lteValue" min="0" name="gsmValue{{$index}}" style="width: 50px;">
+                        </td>
+                    </tr>
+                </tbody>
+            </table>
+        </div>
+    </div>
+
+    <div class="form-group">
+        <label class="col-sm-2 control-label">GSM Antenna type:</label>
+        <div class="col-sm-2">
+            <span ng-repeat="gt in gsmAntennaTypes" class="my-tag">{{gt}} <a ng-click="removeGsmAntennaType($index)">&times;</a></span>
+            <input type="text" ng-model="tempAntennaType" name="tempAntennaType" typeahead="result as result for result in getGsmAntennaType($viewValue)" typeahead-on-select="gsmAntennaSelected($item); tempAntennaType = undefined" class="form-control" autocomplete="off" placeholder="Add Gsm Antenna">
+        </div>
+
+        <label class="col-sm-2 control-label">Band:</label>
+        <div class="col-sm-2">
+            <select class="form-control" id="band" name="band" ng-model="band" ng-options="b as b for b in catalogs.bands"></select>
+        </div>
+
+        <label class="col-sm-2 control-label">Contract ID:</label>
+        <div class="col-sm-2">
+            <input type="text" cam-variable-name="contractId" cam-variable-type="String" class="form-control"/>
+        </div>
+    </div>
+    <div class="form-group">
+        <label class="col-sm-2 control-label">Transmission Antenna type:</label>
+        <div class="col-sm-2">
+            <select class="form-control" id="transmissionAntennaType" name="transmissionAntennaType" ng-model="transmissionAntennaType" ng-options="ta as ta for ta in catalogs.transmissionAntennaTypes">
+            </select>
+        </div>
+
+        <label class="col-sm-2 control-label">RBS location:</label>
+        <div class="col-sm-2">
+            <select class="form-control" id="rbsLocation" name="rbsLocation" ng-model="rbsLocation" ng-options="r as r for r in catalogs.rbsLocations">
+            </select>
+        </div>
+
+        <label class="col-sm-2 control-label">Contract type:</label>
+        <div class="col-sm-2">
+            <select class="form-control" id="contractType" name="contractType" ng-model="contractType" ng-options="c as c for c in catalogs.contractTypes">
+            </select>
+        </div>
+    </div>
+    <div class="form-group">
+        <label class="col-sm-2 control-label">RBS Quantity:</label>
+        <div class="col-sm-2">
+            <input type="number" cam-variable-name="rbsQuantity" cam-variable-type="Integer" class="form-control"/>
+        </div>
+
+        <label class="col-sm-2 control-label"></label>
+        <div class="col-sm-2">
+            <input type="text" cam-variable-name="otherRbsLocation" cam-variable-type="String" class="form-control" placeholder="if Other..." ng-disabled="rbsLocation !== 'Other'" />
+        </div>
+
+        <label class="col-sm-2 control-label">Legally name:</label>
+        <div class="col-sm-2">
+            <input type="text" cam-variable-name="legallyName" cam-variable-type="String" class="form-control"/>
+        </div>
+    </div>
+    <div class="form-group">
+        <label class="col-sm-2 control-label">RBS type:</label>
+        <div class="col-sm-2">
+            <select class="form-control" id="rbsType" name="rbsType" ng-model="rbsType" ng-options="r as r for r in catalogs.rbsTypes">
+            </select>
+        </div>
+
+        <label class="col-sm-2 control-label">Square, m2:</label>
+        <div class="col-sm-2">
+            <input type="number" cam-variable-name="squareMeter" cam-variable-type="Integer" class="form-control"/>
+        </div>
+
+        <label class="col-sm-2 control-label">Contact information:</label>
+        <div class="col-sm-2">
+            <input type="text" cam-variable-name="contactInformation" cam-variable-type="String" class="form-control"/>
+        </div>
+    </div>
+
+    <div class="form-group">
+        <label class="col-sm-2 control-label">Address:</label>
+        <div class="col-sm-10">
+            <textarea class="form-control" name="address" cam-variable-name="address" cam-variable-type="String" maxlength="1500" rows="4"></textarea>
+        </div>
+    </div>
+
+    <div class="form-group">
+        <label class="col-sm-2 control-label">*Coverage area:</label>
+        <div class="col-sm-10">
+            <div ng-show="coverageAreaFile.name">
+                <a ng-click="download(coverageAreaFile)">{{coverageAreaFile.name}}</a> | <a ng-click="clearFile('coverageAreaFile')"><i class="glyphicon glyphicon-trash"></i></a>
+            </div>
+            <input ng-hide="coverageAreaFile.name" type="file" class="form-control" id="coverageAreaFile" name="coverageAreaFile" ng-model="coverageAreaFile" required-file="true" onchange="angular.element(this).scope().fileSelected(this, 'coverageAreaFile')"/>
+        </div>
+    </div>
+    <div class="form-group">
+        <label class="col-sm-12 control-label">*Please attach print copy of coverage area from Google Earth program:</label>
+    </div>
+
+    <div class="form-group">
+        <label class="col-sm-2 control-label">Reason of dismantling:</label>
+        <div class="col-sm-10">
+            <textarea class="form-control" name="dismantlingReason" cam-variable-name="dismantlingReason" cam-variable-type="String" maxlength="1500" rows="4" placeholder="Reason of dismantling"></textarea>
+        </div>
+    </div>
+
+    <div class="form-group">
+        <label class="col-sm-2 control-label">Comments:</label>
+        <div class="col-sm-10">
+            <textarea class="form-control" name="comments" cam-variable-name="comments" cam-variable-type="String" maxlength="1500" rows="4" placeholder="Comments"></textarea>
+        </div>
+    </div>
+</form>
