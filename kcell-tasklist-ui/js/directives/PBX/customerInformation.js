@@ -26,6 +26,7 @@ define(['./../module'], function(module){
 
             if (scope.ci.termContractEnd === undefined) scope.ci.termContractEnd = true;
 
+            scope.form.salesRepresentative.$setValidity('not_selected', true);
             if (!scope.ci.salesRepresentativeId) scope.form.salesRepresentative.$setValidity('not_selected', false);
 					}
 				});
