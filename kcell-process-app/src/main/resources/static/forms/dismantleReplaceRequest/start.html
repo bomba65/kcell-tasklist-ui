@@ -95,20 +95,28 @@
                     store: true
                 },
                 {
-                    name: 'contractType',
+                    name: 'rbsType',
                     type: 'String',
                     submit: true,
                     store: true
                 },
                 {
-                    name: 'rbsType',
+                    name: 'requestType',
                     type: 'String',
+                    submit: true,
+                    store: true,
+                },
+                {
+                    name: 'resolutions',
+                    type: 'Json',
                     submit: true,
                     store: true
                 }
             ];
             var uuid = new Date().getTime();
+            $scope.sdrCreationDate = new Date();
 
+            $scope.requestType = 'dismantle';
             $scope.catalogs = {};
             $scope.siteInformation = [
                 { name: 'cell A:', gsmLabel: 'GSM-', gsmValue: undefined, umtsLabel: 'UMTS-', umtsValue: undefined, lteLabel: 'LTE-', lteValue: undefined},
@@ -199,6 +207,9 @@
                                 }
                             });
                             $scope.alternativePlaces = alternativePlaces;
+                        } else if(el.name === 'resolutions'){
+                            $scope.resolutions = [];
+                            $scope.resolutions.push({processInstanceId: 'noProcessInstanceId', assignee: $rootScope.authentication.name, assigneeName: $rootScope.authentication.assigneeName, resolution: 'created', comment: $scope.startComment, taskId: 'noTaskId', taskName:'SDR Start', taskEndDate:new Date(),  visibility: 'all'});
                         }
                         camForm.variableManager.variableValue(el.name, $scope[el.name]);
                     }
@@ -252,7 +263,6 @@
 
             $scope.addAlternativePlace = function() {
                 $scope.alternativePlaces.push("");
-                console.log($scope.alternativePlaces.length);
             };
 
             $scope.fileSelected = function(el, fileName){
@@ -298,7 +308,7 @@
             $scope.getGsmAntennaType = function(val) {
                 var result = [];
                 angular.forEach($scope.catalogs.gsmAntennaTypes, function (gat) {
-                   if(gat.indexOf(val) >= 0 && $scope.gsmAntennaTypes.indexOf(gat)===-1){
+                   if(gat.toUpperCase().indexOf(val.toUpperCase()) >= 0 && $scope.gsmAntennaTypes.indexOf(gat)===-1){
                        result.push(gat);
                    }
                 });
@@ -352,7 +362,7 @@
         <label class="col-sm-2 control-label">SDR Creation date:</label>
         <div class="col-sm-3">
             <div class="input-group">
-                <input type="text" ng-model="sdrCreationDate" name="sdrCreationDate" class="form-control" datepicker-popup="dd.MM.yyyy" is-open="sdrCreationDateFiledOpened" id="sdrCreationDate" min-date="datepickerOptions.minDate" />
+                <input type="text" ng-model="sdrCreationDate" name="sdrCreationDate" class="form-control" datepicker-popup="dd.MM.yyyy" is-open="sdrCreationDateFiledOpened" id="sdrCreationDate" disabled="disabled" />
                 <span class="input-group-btn">
                     <button type="button" class="btn btn-default" ng-click="sdrCreationDateFiledOpened = true">
                         <i class="glyphicon glyphicon-calendar"></i>
@@ -370,28 +380,30 @@
         <label class="col-sm-2 control-label">Validity date:</label>
         <div class="col-sm-3">
             <div class="input-group">
-                <input type="text" ng-model="validityDate" name="validityDate" class="form-control" datepicker-popup="dd.MM.yyyy" is-open="validityDateFiledOpened" id="validityDate" min-date="datepickerOptions.minDate" />
+                <input type="text" ng-model="validityDate" name="validityDate" class="form-control" datepicker-popup="dd.MM.yyyy" is-open="validityDateFiledOpened" id="validityDate" min-date="datepickerOptions.minDate" required />
                 <span class="input-group-btn">
                     <button type="button" class="btn btn-default" ng-click="validityDateFiledOpened = true">
                         <i class="glyphicon glyphicon-calendar"></i>
                     </button>
                 </span>
             </div>
+            <label class="error" ng-if="kcell_form.validityDate.$error.required && ( kcell_form.validityDate.$touched || view.submitted)">Required field</label>
         </div>
 
         <label class="col-sm-2 control-label">Initiator of dismantling:</label>
         <div class="col-sm-3">
-            <select cam-variable-name="dismantlingInitiator" name="dismantlingInitiator" cam-variable-type="String" class="form-control selectpicker" select-picker title="">
+            <select cam-variable-name="dismantlingInitiator" name="dismantlingInitiator" cam-variable-type="String" class="form-control selectpicker" select-picker title="" required>
                 <option value="">select initiator</option>
                 <option value="planningUnit">Planning unit</option>
                 <option value="siteAcquisionUnit">Site Acquisition unit</option>
                 <option value="implementationUnit">Implementation Unit</option>
                 <option value="other">Other</option>
             </select>
-            <label class="error" ng-if="kcell_form.priority.$error.required && ( kcell_form.priority.$touched || view.submitted)">Required field</label>
+            <label class="error" ng-if="kcell_form.dismantlingInitiator.$error.required && ( kcell_form.dismantlingInitiator.$touched || view.submitted)">Required field</label>
         </div>
         <div class="col-sm-2">
-            <input type="text" cam-variable-name="otherInitiator" cam-variable-type="String" class="form-control" ng-if="dismantlingInitiator == 'other'" placeholder = 'Other'/>
+            <input type="text" name="otherInitiator" cam-variable-name="otherInitiator" cam-variable-type="String" class="form-control" ng-if="dismantlingInitiator == 'other'" placeholder = 'Other' required/>
+            <label class="error" ng-if="kcell_form.otherInitiator.$error.required && ( kcell_form.otherInitiator.$touched || view.submitted)">Required field</label>
         </div>
     </div>
     <div class="form-group">
@@ -412,7 +424,7 @@
     <div class="form-group">
         <label class="col-sm-2 control-label">Priority:</label>
         <div class="col-sm-3">
-            <select cam-variable-name="priority" name="priority" cam-variable-type="String" class="form-control selectpicker" select-picker title="">
+            <select cam-variable-name="priority" name="priority" cam-variable-type="String" class="form-control selectpicker" select-picker title="" required>
                 <option value="">select priority</option>
                 <option value="regular">Regular</option>
                 <option value="critical">Critical</option>
@@ -433,12 +445,13 @@
 
     <H4 style="margin-top: 30px;">Alternative places for setting of site</H4>
     <div class="form-group">
-        <label class="col-sm-2 control-label">Alternative 1: </label>
+        <label class="col-sm-2 control-label">Alternative {{alternativePlaces.length}}: </label>
         <div class="col-sm-10">
             <div ng-repeat="i in alternativePlaces track by $index" style="float: left; margin-right: 20px;">
-                <input type="text" ng-model="alternativePlaces[$index]" class="form-control" style="width: 200px;" />
+                <input type="text" name="alternativePlaces{{$index}}" ng-model="alternativePlaces[$index]" class="form-control" style="width: 200px;" ng-required="alternativePlaces[0].length == 0" />
             </div>
             <a ng-click="addAlternativePlace()" style="float: left;"><i class="glyphicon glyphicon-plus-sign"></i></a>
+            <label class="error" ng-if="alternativePlaces[0].length == 0 && kcell_form.alternativePlaces0.$error.required && ( kcell_form.alternativePlaces0.$touched || view.submitted)">Required field</label>
         </div>
     </div>
 
@@ -476,76 +489,94 @@
         <label class="col-sm-2 control-label">GSM Antenna type:</label>
         <div class="col-sm-2">
             <span ng-repeat="gt in gsmAntennaTypes" class="my-tag">{{gt}} <a ng-click="removeGsmAntennaType($index)">&times;</a></span>
-            <input type="text" ng-model="tempAntennaType" name="tempAntennaType" typeahead="result as result for result in getGsmAntennaType($viewValue)" typeahead-on-select="gsmAntennaSelected($item); tempAntennaType = undefined" class="form-control" autocomplete="off" placeholder="Add Gsm Antenna">
+            <input type="text" ng-model="tempAntennaType" name="tempAntennaType" typeahead="result as result for result in getGsmAntennaType($viewValue)" typeahead-on-select="gsmAntennaSelected($item); tempAntennaType = undefined" class="form-control" autocomplete="off" placeholder="Add Gsm Antenna" ng-required="gsmAntennaTypes.length == 0">
+            <label class="error" ng-if="kcell_form.tempAntennaType.$error.required && ( kcell_form.tempAntennaType.$touched || view.submitted)">Required field</label>
         </div>
 
         <label class="col-sm-2 control-label">Band:</label>
         <div class="col-sm-2">
-            <select class="form-control" id="band" name="band" ng-model="band" ng-options="b as b for b in catalogs.bands"></select>
+            <select class="form-control" id="band" name="band" ng-model="band" ng-options="b as b for b in catalogs.bands" required></select>
+            <label class="error" ng-if="kcell_form.band.$error.required && ( kcell_form.band.$touched || view.submitted)">Required field</label>
         </div>
 
         <label class="col-sm-2 control-label">Contract ID:</label>
         <div class="col-sm-2">
-            <input type="text" cam-variable-name="contractId" cam-variable-type="String" class="form-control"/>
+            <input type="text" name="contractId" cam-variable-name="contractId" cam-variable-type="String" class="form-control" required/>
+            <label class="error" ng-if="kcell_form.contractId.$error.required && ( kcell_form.contractId.$touched || view.submitted)">Required field</label>
         </div>
     </div>
     <div class="form-group">
         <label class="col-sm-2 control-label">Transmission Antenna type:</label>
         <div class="col-sm-2">
-            <select class="form-control" id="transmissionAntennaType" name="transmissionAntennaType" ng-model="transmissionAntennaType" ng-options="ta as ta for ta in catalogs.transmissionAntennaTypes">
+            <select class="form-control" id="transmissionAntennaType" name="transmissionAntennaType" ng-model="transmissionAntennaType" ng-options="ta as ta for ta in catalogs.transmissionAntennaTypes" required>
             </select>
+            <label class="error" ng-if="kcell_form.transmissionAntennaType.$error.required && ( kcell_form.transmissionAntennaType.$touched || view.submitted)">Required field</label>
         </div>
 
         <label class="col-sm-2 control-label">RBS location:</label>
         <div class="col-sm-2">
-            <select class="form-control" id="rbsLocation" name="rbsLocation" ng-model="rbsLocation" ng-options="r as r for r in catalogs.rbsLocations">
+            <select class="form-control" id="rbsLocation" name="rbsLocation" ng-model="rbsLocation" ng-options="r as r for r in catalogs.rbsLocations" required>
             </select>
+            <label class="error" ng-if="kcell_form.rbsLocation.$error.required && ( kcell_form.rbsLocation.$touched || view.submitted)">Required field</label>
         </div>
 
         <label class="col-sm-2 control-label">Contract type:</label>
         <div class="col-sm-2">
-            <select class="form-control" id="contractType" name="contractType" ng-model="contractType" ng-options="c as c for c in catalogs.contractTypes">
+            <select cam-variable-name="contractType" name="contractType" cam-variable-type="String" class="form-control selectpicker" select-picker title="" required>
+                <option value="">select contract type</option>
+                <option value="rent">Rent</option>
+                <option value="power">Power</option>
+                <option value="rentAndPower">Rent and Power counter (АП и электропитание по счетчику отдельными статьями)</option>
+                <option value="rentWithPower">Rent with Power (в АП включено электропитание)</option>
             </select>
+            <label class="error" ng-if="kcell_form.contractType.$error.required && ( kcell_form.contractType.$touched || view.submitted)">Required field</label>
         </div>
     </div>
     <div class="form-group">
         <label class="col-sm-2 control-label">RBS Quantity:</label>
         <div class="col-sm-2">
-            <input type="number" cam-variable-name="rbsQuantity" cam-variable-type="Integer" class="form-control"/>
+            <input type="number" name="rbsQuantity" cam-variable-name="rbsQuantity" cam-variable-type="Integer" class="form-control" required />
+            <label class="error" ng-if="kcell_form.rbsQuantity.$error.required && ( kcell_form.rbsQuantity.$touched || view.submitted)">Required field</label>
         </div>
 
         <label class="col-sm-2 control-label"></label>
         <div class="col-sm-2">
-            <input type="text" cam-variable-name="otherRbsLocation" cam-variable-type="String" class="form-control" placeholder="if Other..." ng-disabled="rbsLocation !== 'Other'" />
+            <input type="text" name="otherRbsLocation" cam-variable-name="otherRbsLocation" cam-variable-type="String" class="form-control" placeholder="if Other..." ng-disabled="rbsLocation !== 'Other'" ng-required="rbsLocation == 'Other'" />
+            <label class="error" ng-if="kcell_form.otherRbsLocation.$error.required && ( kcell_form.otherRbsLocation.$touched || view.submitted)">Required field</label>
         </div>
 
         <label class="col-sm-2 control-label">Legally name:</label>
         <div class="col-sm-2">
-            <input type="text" cam-variable-name="legallyName" cam-variable-type="String" class="form-control"/>
+            <input type="text" name="legallyName" cam-variable-name="legallyName" cam-variable-type="String" class="form-control" required />
+            <label class="error" ng-if="kcell_form.legallyName.$error.required && ( kcell_form.legallyName.$touched || view.submitted)">Required field</label>
         </div>
     </div>
     <div class="form-group">
         <label class="col-sm-2 control-label">RBS type:</label>
         <div class="col-sm-2">
-            <select class="form-control" id="rbsType" name="rbsType" ng-model="rbsType" ng-options="r as r for r in catalogs.rbsTypes">
+            <select class="form-control" id="rbsType" name="rbsType" ng-model="rbsType" ng-options="r as r for r in catalogs.rbsTypes" required>
             </select>
+            <label class="error" ng-if="kcell_form.rbsType.$error.required && ( kcell_form.rbsType.$touched || view.submitted)">Required field</label>
         </div>
 
         <label class="col-sm-2 control-label">Square, m2:</label>
         <div class="col-sm-2">
-            <input type="number" cam-variable-name="squareMeter" cam-variable-type="Integer" class="form-control"/>
+            <input type="number" name="squareMeter" cam-variable-name="squareMeter" cam-variable-type="Integer" class="form-control" required />
+            <label class="error" ng-if="kcell_form.squareMeter.$error.required && ( kcell_form.squareMeter.$touched || view.submitted)">Required field</label>
         </div>
 
         <label class="col-sm-2 control-label">Contact information:</label>
         <div class="col-sm-2">
-            <input type="text" cam-variable-name="contactInformation" cam-variable-type="String" class="form-control"/>
+            <input type="text" name="contactInformation" cam-variable-name="contactInformation" cam-variable-type="String" class="form-control" required />
+            <label class="error" ng-if="kcell_form.contactInformation.$error.required && ( kcell_form.contactInformation.$touched || view.submitted)">Required field</label>
         </div>
     </div>
 
     <div class="form-group">
         <label class="col-sm-2 control-label">Address:</label>
         <div class="col-sm-10">
-            <textarea class="form-control" name="address" cam-variable-name="address" cam-variable-type="String" maxlength="1500" rows="4"></textarea>
+            <textarea class="form-control" name="address" cam-variable-name="address" cam-variable-type="String" maxlength="1500" rows="4" required></textarea>
+            <label class="error" ng-if="kcell_form.address.$error.required && ( kcell_form.address.$touched || view.submitted)">Required field</label>
         </div>
     </div>
 
@@ -556,6 +587,7 @@
                 <a ng-click="download(coverageAreaFile)">{{coverageAreaFile.name}}</a> | <a ng-click="clearFile('coverageAreaFile')"><i class="glyphicon glyphicon-trash"></i></a>
             </div>
             <input ng-hide="coverageAreaFile.name" type="file" class="form-control" id="coverageAreaFile" name="coverageAreaFile" ng-model="coverageAreaFile" required-file="true" onchange="angular.element(this).scope().fileSelected(this, 'coverageAreaFile')"/>
+            <label class="has-error" ng-if="kcell_form.coverageAreaFile.$error.validFile && ( kcell_form.coverageAreaFile.$touched || view.submitted)">File is required</label>
         </div>
     </div>
     <div class="form-group">
@@ -565,14 +597,15 @@
     <div class="form-group">
         <label class="col-sm-2 control-label">Reason of dismantling:</label>
         <div class="col-sm-10">
-            <textarea class="form-control" name="dismantlingReason" cam-variable-name="dismantlingReason" cam-variable-type="String" maxlength="1500" rows="4" placeholder="Reason of dismantling"></textarea>
+            <textarea class="form-control" name="dismantlingReason" cam-variable-name="dismantlingReason" cam-variable-type="String" maxlength="1500" rows="4" placeholder="Reason of dismantling" required></textarea>
+            <label class="error" ng-if="kcell_form.dismantlingReason.$error.required && ( kcell_form.dismantlingReason.$touched || view.submitted)">Required field</label>
         </div>
     </div>
 
     <div class="form-group">
         <label class="col-sm-2 control-label">Comments:</label>
         <div class="col-sm-10">
-            <textarea class="form-control" name="comments" cam-variable-name="comments" cam-variable-type="String" maxlength="1500" rows="4" placeholder="Comments"></textarea>
+            <textarea class="form-control" name="startComment" cam-variable-name="startComment" cam-variable-type="String" maxlength="1500" rows="4" placeholder="Comments"></textarea>
         </div>
     </div>
 </form>
