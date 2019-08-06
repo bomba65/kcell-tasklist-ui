@@ -934,15 +934,15 @@
         <bpmn:incoming>SequenceFlow_0tmqqwi</bpmn:incoming>
         <bpmn:outgoing>SequenceFlow_14z9acr</bpmn:outgoing>
       </bpmn:userTask>
-      <bpmn:exclusiveGateway id="ExclusiveGateway_0531qv4" default="SequenceFlow_1wz3hnw">
+      <bpmn:exclusiveGateway id="ExclusiveGateway_0531qv4" default="SequenceFlow_066o8vj">
         <bpmn:incoming>SequenceFlow_0ys093b</bpmn:incoming>
         <bpmn:outgoing>SequenceFlow_0c45abx</bpmn:outgoing>
-        <bpmn:outgoing>SequenceFlow_1wz3hnw</bpmn:outgoing>
         <bpmn:outgoing>SequenceFlow_0tmqqwi</bpmn:outgoing>
         <bpmn:outgoing>SequenceFlow_0gkmf1w</bpmn:outgoing>
+        <bpmn:outgoing>SequenceFlow_066o8vj</bpmn:outgoing>
       </bpmn:exclusiveGateway>
       <bpmn:endEvent id="EndEvent_125qxsa" name="to Post Production Validation">
-        <bpmn:incoming>SequenceFlow_0kof56t</bpmn:incoming>
+        <bpmn:incoming>SequenceFlow_1wg0oss</bpmn:incoming>
       </bpmn:endEvent>
       <bpmn:userTask id="UserTask_19pwybp" name="User Acceptance Testing">
         <bpmn:documentation>User Acceptance Testing</bpmn:documentation>
@@ -956,17 +956,11 @@
         <bpmn:incoming>SequenceFlow_1am8ufp</bpmn:incoming>
         <bpmn:outgoing>SequenceFlow_19ehksq</bpmn:outgoing>
       </bpmn:userTask>
-      <bpmn:serviceTask id="ServiceTask_1yi3b57" name="Send approved UAT protocol as PDF" camunda:expression="${false}">
-        <bpmn:incoming>SequenceFlow_1wz3hnw</bpmn:incoming>
-        <bpmn:outgoing>SequenceFlow_0kof56t</bpmn:outgoing>
-      </bpmn:serviceTask>
-      <bpmn:sequenceFlow id="SequenceFlow_0kof56t" sourceRef="ServiceTask_1yi3b57" targetRef="EndEvent_125qxsa" />
       <bpmn:sequenceFlow id="SequenceFlow_19ehksq" sourceRef="UserTask_1wcad57" targetRef="SendTask_1ny6t1r" />
       <bpmn:sequenceFlow id="SequenceFlow_0jot1gi" sourceRef="UserTask_19pwybp" targetRef="SendTask_18t9i3c" />
       <bpmn:sequenceFlow id="SequenceFlow_0c45abx" name="Send to TQC" sourceRef="ExclusiveGateway_0531qv4" targetRef="UserTask_1wcad57">
         <bpmn:conditionExpression xsi:type="bpmn:tFormalExpression">${false}</bpmn:conditionExpression>
       </bpmn:sequenceFlow>
-      <bpmn:sequenceFlow id="SequenceFlow_1wz3hnw" name="Approve" sourceRef="ExclusiveGateway_0531qv4" targetRef="ServiceTask_1yi3b57" />
       <bpmn:sequenceFlow id="SequenceFlow_0tmqqwi" name="Request approval" sourceRef="ExclusiveGateway_0531qv4" targetRef="UserTask_0uyn4ez">
         <bpmn:conditionExpression xsi:type="bpmn:tFormalExpression">${false}</bpmn:conditionExpression>
       </bpmn:sequenceFlow>
@@ -1048,22 +1042,41 @@
       <bpmn:sequenceFlow id="SequenceFlow_0grn04y" name="Send to Development" sourceRef="ExclusiveGateway_11kr4ko" targetRef="EndEvent_0jnvtj9">
         <bpmn:conditionExpression xsi:type="bpmn:tFormalExpression">${resolution == 'Send to Development'}</bpmn:conditionExpression>
       </bpmn:sequenceFlow>
+      <bpmn:serviceTask id="ServiceTask_0juyclu" name="Send approved UAT protocol as PDF" camunda:class="kz.kcell.flow.demand.SendApprovedUATPDF">
+        <bpmn:extensionElements>
+          <camunda:inputOutput>
+            <camunda:inputParameter name="subject">
+              <camunda:script scriptFormat="groovy" resource="demand/approvedUATNotificationSubject.groovy" />
+            </camunda:inputParameter>
+            <camunda:inputParameter name="html">
+              <camunda:script scriptFormat="groovy" resource="demand/approvedUATNotificationHtml.groovy" />
+            </camunda:inputParameter>
+            <camunda:inputParameter name="to">
+              <camunda:script scriptFormat="groovy" resource="demand/approvedUATNotificationAddressee.groovy" />
+            </camunda:inputParameter>
+          </camunda:inputOutput>
+        </bpmn:extensionElements>
+        <bpmn:incoming>SequenceFlow_066o8vj</bpmn:incoming>
+        <bpmn:outgoing>SequenceFlow_1wg0oss</bpmn:outgoing>
+      </bpmn:serviceTask>
+      <bpmn:sequenceFlow id="SequenceFlow_1wg0oss" sourceRef="ServiceTask_0juyclu" targetRef="EndEvent_125qxsa" />
+      <bpmn:sequenceFlow id="SequenceFlow_066o8vj" name="Approve" sourceRef="ExclusiveGateway_0531qv4" targetRef="ServiceTask_0juyclu" />
       <bpmn:textAnnotation id="TextAnnotation_1anhdjs">
         <bpmn:text>Solution owner</bpmn:text>
       </bpmn:textAnnotation>
       <bpmn:textAnnotation id="TextAnnotation_0nnm7gr">
         <bpmn:text>Multi user task</bpmn:text>
       </bpmn:textAnnotation>
-      <bpmn:textAnnotation id="TextAnnotation_1wpx9bi">
-        <bpmn:text>Sending UAT protocol after Approve UAT to Requirement manager</bpmn:text>
-      </bpmn:textAnnotation>
       <bpmn:association id="Association_01kpx3b" sourceRef="UserTask_0uyn4ez" targetRef="TextAnnotation_0nnm7gr" />
       <bpmn:association id="Association_0s4ib34" sourceRef="UserTask_1wcad57" targetRef="TextAnnotation_1anhdjs" />
-      <bpmn:association id="Association_0nh1rws" sourceRef="ServiceTask_1yi3b57" targetRef="TextAnnotation_1wpx9bi" />
       <bpmn:textAnnotation id="TextAnnotation_0tvs9r7">
         <bpmn:text>Requirement manager</bpmn:text>
       </bpmn:textAnnotation>
       <bpmn:association id="Association_1ns6bpw" sourceRef="UserTask_0tdko2x" targetRef="TextAnnotation_0tvs9r7" />
+      <bpmn:textAnnotation id="TextAnnotation_1h71zek">
+        <bpmn:text>Sending UAT protocol after Approve UAT to Requirement manager</bpmn:text>
+      </bpmn:textAnnotation>
+      <bpmn:association id="Association_1mceycx" sourceRef="ServiceTask_0juyclu" targetRef="TextAnnotation_1h71zek" />
     </bpmn:subProcess>
     <bpmn:sequenceFlow id="SequenceFlow_19od2sy" sourceRef="SubProcess_1bb29d4" targetRef="ExclusiveGateway_1m276t2" />
     <bpmn:exclusiveGateway id="ExclusiveGateway_1m276t2" default="SequenceFlow_1v9jxi2">
@@ -2275,22 +2288,12 @@
       <bpmndi:BPMNShape id="UserTask_1wcad57_di" bpmnElement="UserTask_1wcad57">
         <dc:Bounds x="7441" y="-225" width="100" height="80" />
       </bpmndi:BPMNShape>
-      <bpmndi:BPMNShape id="ServiceTask_1yi3b57_di" bpmnElement="ServiceTask_1yi3b57">
-        <dc:Bounds x="9051" y="-225" width="100" height="80" />
-      </bpmndi:BPMNShape>
       <bpmndi:BPMNShape id="TextAnnotation_1anhdjs_di" bpmnElement="TextAnnotation_1anhdjs">
         <dc:Bounds x="7458" y="-311" width="100" height="30" />
       </bpmndi:BPMNShape>
       <bpmndi:BPMNShape id="TextAnnotation_0nnm7gr_di" bpmnElement="TextAnnotation_0nnm7gr">
         <dc:Bounds x="8644" y="-428" width="100" height="30" />
       </bpmndi:BPMNShape>
-      <bpmndi:BPMNShape id="TextAnnotation_1wpx9bi_di" bpmnElement="TextAnnotation_1wpx9bi">
-        <dc:Bounds x="9034" y="-364" width="133" height="54" />
-      </bpmndi:BPMNShape>
-      <bpmndi:BPMNEdge id="SequenceFlow_0kof56t_di" bpmnElement="SequenceFlow_0kof56t">
-        <di:waypoint x="9151" y="-185" />
-        <di:waypoint x="9294" y="-185" />
-      </bpmndi:BPMNEdge>
       <bpmndi:BPMNEdge id="SequenceFlow_19ehksq_di" bpmnElement="SequenceFlow_19ehksq">
         <di:waypoint x="7541" y="-185" />
         <di:waypoint x="7636" y="-185" />
@@ -2306,13 +2309,6 @@
         <di:waypoint x="7491" y="-145" />
         <bpmndi:BPMNLabel>
           <dc:Bounds x="8070" y="-11" width="65" height="14" />
-        </bpmndi:BPMNLabel>
-      </bpmndi:BPMNEdge>
-      <bpmndi:BPMNEdge id="SequenceFlow_1wz3hnw_di" bpmnElement="SequenceFlow_1wz3hnw">
-        <di:waypoint x="8922" y="-185" />
-        <di:waypoint x="9051" y="-185" />
-        <bpmndi:BPMNLabel>
-          <dc:Bounds x="8946" y="-203" width="41" height="14" />
         </bpmndi:BPMNLabel>
       </bpmndi:BPMNEdge>
       <bpmndi:BPMNEdge id="SequenceFlow_0tmqqwi_di" bpmnElement="SequenceFlow_0tmqqwi">
@@ -2362,10 +2358,6 @@
       <bpmndi:BPMNEdge id="Association_0s4ib34_di" bpmnElement="Association_0s4ib34">
         <di:waypoint x="7492" y="-225" />
         <di:waypoint x="7492" y="-281" />
-      </bpmndi:BPMNEdge>
-      <bpmndi:BPMNEdge id="Association_0nh1rws_di" bpmnElement="Association_0nh1rws">
-        <di:waypoint x="9101" y="-225" />
-        <di:waypoint x="9102" y="-310" />
       </bpmndi:BPMNEdge>
       <bpmndi:BPMNEdge id="SequenceFlow_19od2sy_di" bpmnElement="SequenceFlow_19od2sy">
         <di:waypoint x="9386" y="-206" />
@@ -2535,6 +2527,27 @@
       <bpmndi:BPMNEdge id="Association_1ns6bpw_di" bpmnElement="Association_1ns6bpw">
         <di:waypoint x="8012" y="-225" />
         <di:waypoint x="8012" y="-278" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNShape id="ServiceTask_0juyclu_di" bpmnElement="ServiceTask_0juyclu">
+        <dc:Bounds x="9051" y="-225" width="100" height="80" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNEdge id="SequenceFlow_1wg0oss_di" bpmnElement="SequenceFlow_1wg0oss">
+        <di:waypoint x="9151" y="-185" />
+        <di:waypoint x="9294" y="-185" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="SequenceFlow_066o8vj_di" bpmnElement="SequenceFlow_066o8vj">
+        <di:waypoint x="8922" y="-185" />
+        <di:waypoint x="9051" y="-185" />
+        <bpmndi:BPMNLabel>
+          <dc:Bounds x="8966" y="-203" width="41" height="14" />
+        </bpmndi:BPMNLabel>
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNShape id="TextAnnotation_1h71zek_di" bpmnElement="TextAnnotation_1h71zek">
+        <dc:Bounds x="9010" y="-366" width="182" height="50" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNEdge id="Association_1mceycx_di" bpmnElement="Association_1mceycx">
+        <di:waypoint x="9101" y="-225" />
+        <di:waypoint x="9101" y="-316" />
       </bpmndi:BPMNEdge>
     </bpmndi:BPMNPlane>
   </bpmndi:BPMNDiagram>
