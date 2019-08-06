@@ -13,271 +13,284 @@
     }
   </style>
   <script cam-script type="text/form-script">
-        inject(['$scope', '$http', 'Uri', '$rootScope', '$q', 'toasty', '$timeout', 'htmlToPdf', function ($scope, $http, Uri, $rootScope, $q, toasty, $timeout, htmlToPdf) {
-            $scope.generalData = {
-                general: {},
-                targetAudience: {},
-                demandDetails: {}
-            };
-            $scope.BRDData = {
-                funcRequirements: {},
-                nonFuncRequirements: {},
-                interfaces: {},
-                reportsStatistics: '',
-                acceptanceCriteria: []
-            };
-            $scope.BCData = {
-                data: {}
-            };
-            $scope.SDDData = {
-                funcRequirements: {},
-                nonFuncRequirements: {},
-                solutionDesign: {},
-                components: {}
-            };
-            $scope.tabs = { SDD: true, UAT: false };
-            $scope.developerList = [{name: ''}];
-            $scope.resolutions = [];
-            $scope.attachments = [];
-            $scope.supportiveInputs = [];
-            $scope.resources = [];
-            $scope.materials = [];
+    inject(['$scope', '$http', 'Uri', '$rootScope', '$q', 'toasty', '$timeout', 'htmlToPdf', function ($scope, $http, Uri, $rootScope, $q, toasty, $timeout, htmlToPdf) {
+      $scope.generalData = {
+        general: {},
+        targetAudience: {},
+        demandDetails: {}
+      };
+      $scope.BRDData = {
+        funcRequirements: {},
+        nonFuncRequirements: {},
+        interfaces: {},
+        reportsStatistics: '',
+        acceptanceCriteria: []
+      };
+      $scope.BCData = {
+        data: {}
+      };
+      $scope.SDDData = {
+        funcRequirements: {},
+        nonFuncRequirements: {},
+        solutionDesign: {},
+        components: {}
+      };
+      $scope.tabs = {SDD: true, UAT: false};
+      $scope.developerList = [{name: ''}];
+      $scope.resolutions = [];
+      $scope.attachments = [];
+      $scope.supportiveInputs = [];
+      $scope.resources = [];
+      $scope.materials = [];
 
-            var processInstanceId = null;
-            var taskName = null;
-            var assigneeName = $rootScope.authentication.name;
-            var createdDate = new Date();
-            var claimDate = new Date();
+      var processInstanceId = null;
+      var taskName = null;
+      var assigneeName = $rootScope.authentication.name;
+      var createdDate = new Date();
+      var claimDate = new Date();
 
-            $http.get("/camunda/api/engine/engine/default/user/" + $rootScope.authentication.name+ "/profile").then(function(result){
-                assigneeName = (result.data.firstName ? result.data.firstName : "") + " " + (result.data.lastName ? result.data.lastName : "");
-            });
+      $http.get("/camunda/api/engine/engine/default/user/" + $rootScope.authentication.name + "/profile").then(function (result) {
+        assigneeName = (result.data.firstName ? result.data.firstName : "") + " " + (result.data.lastName ? result.data.lastName : "");
+      });
 
-            $http.get('/camunda/api/engine/engine/default/task/' + camForm.taskId).then(
-                function(result){
-                    processInstanceId = result.data.processInstanceId;
-                    taskName = result.data.name;
-                    if (result.data.created) createdDate = new Date(result.data.created);
-                },
-                function (error) {
-                    console.log(error.data);
-                }
-            );
-            $http.get("/camunda/api/engine/engine/default/history/identity-link-log?type=assignee&taskId=" + camForm.taskId + "&operationType=add&sortBy=time&sortOrder=desc").then(
-                function (logs) {
-                  try {
-                    if(logs.data && logs.data.length > 0){
-                                claimDate = new Date(logs.data[0].time);
-                            } else {
-                                claimDate = undefined;
-                            }
-                  } catch(e){
-                    console.log(e);
-                  }
-                },
-                function (error) {
-                  console.log(error.data);
-                }
-            );
-
-            camForm.on('form-loaded', function () {
-                camForm.variableManager.fetchVariable('generalData');
-                camForm.variableManager.fetchVariable('BRDData');
-                camForm.variableManager.fetchVariable('BCData');
-                camForm.variableManager.fetchVariable('SDDData');
-                camForm.variableManager.fetchVariable('supportiveInputs');
-                camForm.variableManager.fetchVariable('resolutions');
-                camForm.variableManager.fetchVariable('resolution');
-                camForm.variableManager.fetchVariable('attachments');
-                camForm.variableManager.fetchVariable('requirementManager');
-                camForm.variableManager.fetchVariable('solutionOwner');
-                camForm.variableManager.fetchVariable('developerList');
-                camForm.variableManager.fetchVariable('status');
-                camForm.variableManager.fetchVariable('state');
-                camForm.variableManager.fetchVariable('oldStatus');
-                camForm.variableManager.fetchVariable('businessKey');
-                camForm.variableManager.fetchVariable('demandName');
-                camForm.variableManager.fetchVariable('testCases');
-            });
-
-            camForm.on('variables-fetched', function () {
-                $scope.generalData = camForm.variableManager.variableValue('generalData');
-                $scope.BRDData = camForm.variableManager.variableValue('BRDData');
-                $scope.BCData = camForm.variableManager.variableValue('BCData');
-                $scope.SDDData = camForm.variableManager.variableValue('SDDData');
-                $scope.supportiveInputs = camForm.variableManager.variableValue('supportiveInputs');
-                $scope.resolutions = camForm.variableManager.variableValue('resolutions');
-                $scope.attachments = camForm.variableManager.variableValue('attachments');
-                $scope.requirementManager = camForm.variableManager.variableValue('requirementManager');
-                $scope.solutionOwner = camForm.variableManager.variableValue('solutionOwner');
-                $scope.developerList = camForm.variableManager.variableValue('developerList');
-                $scope.status = camForm.variableManager.variableValue('status');
-                $scope.state = camForm.variableManager.variableValue('state');
-                $scope.businessKey = camForm.variableManager.variableValue('businessKey');
-                $scope.demandName = camForm.variableManager.variableValue('demandName');
-                $scope.testCases = camForm.variableManager.variableValue('testCases');
-                if (!$scope.attachments) $scope.attachments = [];
-                if (!$scope.supportiveInputs) $scope.supportiveInputs = [];
-                if (!$scope.developerList) $scope.developerList = [{name: ''}];
-
-                for (var i of $scope.supportiveInputs) {
-                    if (i.form == 'HR') $scope.resources = $scope.resources.concat(i.value);
-                    else if (i.form == 'CPD') $scope.materials = $scope.materials.concat(i.value);
-                }
-
-                $http.get("/camunda/api/engine/engine/default/user/" + $scope.requirementManager + "/profile").then(function(result){
-                    $scope.requirementManager = (result.data.firstName ? result.data.firstName : "") + " " + (result.data.lastName ? result.data.lastName : "");
-                });
-
-                $http.get("/camunda/api/engine/engine/default/user/" + $scope.solutionOwner + "/profile").then(function(result){
-                    $scope.solutionOwner = (result.data.firstName ? result.data.firstName : "") + " " + (result.data.lastName ? result.data.lastName : "");
-                });
-
-                $scope.useCases = null;
-                if ($scope.BRDData && $scope.BRDData.funcRequirements && $scope.BRDData.funcRequirements.useCases) {
-                  $scope.useCases = $scope.BRDData.funcRequirements.useCases;
-                }
-            });
-
-            camForm.on('submit', function (event) {
-                var submitDate = new Date ();
-                if(!$scope.resolutions){
-                    $scope.resolutions = [];
-                }
-                $scope.resolutions.unshift({processInstanceId: processInstanceId, assignee: assigneeName, resolution: $scope.resolution, comment: $scope.comment, taskId: camForm.taskId, taskEndDate: submitDate, taskName: taskName, dateOfAssign: createdDate, claimDate: claimDate});
-                camForm.variableManager.destroyVariable('resolutions');
-                camForm.variableManager.createVariable({
-                    name: 'resolutions',
-                    type: 'Json',
-                    value: $scope.resolutions
-                });
-
-                camForm.variableManager.destroyVariable('resolution');
-                camForm.variableManager.createVariable({
-                    name: 'resolution',
-                    type: 'String',
-                    value: $scope.resolution
-                });
-
-                camForm.variableManager.destroyVariable('developerList');
-                camForm.variableManager.createVariable({
-                    name: 'developerList',
-                    type: 'Json',
-                    value: $scope.developerList
-                });
-
-                var oldStatus = $scope.status;
-                $scope.status = 'Solution Design in progress';
-                if ($scope.resolution === 'Approve') $scope.status = 'Development complete';
-                camForm.variableManager.destroyVariable('status');
-                camForm.variableManager.createVariable({
-                    name: 'status',
-                    type: 'String',
-                    value: $scope.status
-                });
-
-                camForm.variableManager.destroyVariable('oldStatus');
-                camForm.variableManager.createVariable({
-                    name: 'oldStatus',
-                    type: 'String',
-                    value: oldStatus
-                });
-            });
-
-            $scope.downloadFile = function (file) {
-                $http({method: 'GET', url: '/camunda/uploads/get/' + file.path, transformResponse: [] }).
-                then(function(response) {
-                    document.getElementById('fileDownloadIframe').src = response.data;
-                }, function(error){
-                    console.log(error.data);
-                });
-            };
-
-            $scope.addDeveloper = function() {
-              $scope.developerList.push({name: ''});
-            };
-
-            $scope.removeDeveloper = function(index) {
-              $scope.developerList.splice(index, 1);
-            };
-
-
-            $scope.getUser = function(val, index) {
-                $scope.developerList[index].id = null;
-                $scope.kcell_form['developer_'+index+'_name'].$setValidity('not_selected', false);
-                var users = $http.get('/camunda/api/engine/engine/default/user?memberOfGroup=demand_uat_users&firstNameLike='+encodeURIComponent('%'+val+'%')).then(
-                    function(response){
-                      var usersByFirstName = _.flatMap(response.data, function(s){
-                        if(s.id){
-                          return s.id.split(',').map(function(user){
-                            return {
-                              id: s.id,
-                              email: (s.email?s.email.substring(s.email.lastIndexOf('/')+1):s.email),
-                              firstName: s.firstName,
-                              lastName: s.lastName,
-                              name: s.firstName + ' ' + s.lastName
-                            };
-                          })
-                        } else {
-                          return [];
-                        }
-                      });
-
-                      return $http.get('/camunda/api/engine/engine/default/user?memberOfGroup=demand_uat_users&lastNameLike='+encodeURIComponent('%'+val+'%')).then(
-                          function(response){
-                            var usersByLastName = _.flatMap(response.data, function(s){
-                              if(s.id){
-                                return s.id.split(',').map(function(user){
-                                  return {
-                                    id: s.id,
-                                    email: s.email.substring(s.email.lastIndexOf('/')+1),
-                                    firstName: s.firstName,
-                                    lastName: s.lastName,
-                                    name: s.firstName + ' ' + s.lastName
-                                  };
-                                })
-                              } else {
-                                return [];
-                              }
-                            });
-                            return _.unionWith(usersByFirstName, usersByLastName, _.isEqual);
-                          }
-                      );
-                    }
-                );
-                return users;
-            };
-
-            $scope.userSelected = function($item, index){
-                $scope.developerList[index].id = $item.id;
-                $scope.developerList[index].name = $item.name;
-                $scope.kcell_form['developer_'+index+'_name'].$setValidity('not_selected', true);
-            };
-
-            $scope.onDeveloperChange = function(index) {
-              if (!$scope.developerList[index].name || !$scope.developerList[index].name.length) {
-                $scope.kcell_form['developer_'+index+'_name'].$setValidity('not_selected', true);
-              }
+      $http.get('/camunda/api/engine/engine/default/task/' + camForm.taskId).then(
+        function (result) {
+          processInstanceId = result.data.processInstanceId;
+          taskName = result.data.name;
+          if (result.data.created) createdDate = new Date(result.data.created);
+        },
+        function (error) {
+          console.log(error.data);
+        }
+      );
+      $http.get("/camunda/api/engine/engine/default/history/identity-link-log?type=assignee&taskId=" + camForm.taskId + "&operationType=add&sortBy=time&sortOrder=desc").then(
+        function (logs) {
+          try {
+            if (logs.data && logs.data.length > 0) {
+              claimDate = new Date(logs.data[0].time);
+            } else {
+              claimDate = undefined;
             }
+          } catch (e) {
+            console.log(e);
+          }
+        },
+        function (error) {
+          console.log(error.data);
+        }
+      );
 
-            $scope.showSDDPDF = false;
-            $scope.printPDF = function() {
-                $scope.sddPDFDate = new Date();
-                $scope.showSDDPDF = true;
-                $(".scrollable").scrollTop(0);
-                $('#loaderDiv').show();
-                $timeout(function() {
-                  var element = $('#pdfDiv')[0];
-                  htmlToPdf(element, 'Demand-' + $scope.businessKey + '-SDD').then(function() {
-                    $timeout(function() {
-                      $scope.showSDDPDF = false;
-                      $('#loaderDiv').hide();
-                    });
-                  });
+      camForm.on('form-loaded', function () {
+        camForm.variableManager.fetchVariable('generalData');
+        camForm.variableManager.fetchVariable('BRDData');
+        camForm.variableManager.fetchVariable('BCData');
+        camForm.variableManager.fetchVariable('SDDData');
+        camForm.variableManager.fetchVariable('supportiveInputs');
+        camForm.variableManager.fetchVariable('resolutions');
+        camForm.variableManager.fetchVariable('resolution');
+        camForm.variableManager.fetchVariable('attachments');
+        camForm.variableManager.fetchVariable('requirementManager');
+        camForm.variableManager.fetchVariable('solutionOwner');
+        camForm.variableManager.fetchVariable('developerList');
+        camForm.variableManager.fetchVariable('status');
+        camForm.variableManager.fetchVariable('state');
+        camForm.variableManager.fetchVariable('oldStatus');
+        camForm.variableManager.fetchVariable('businessKey');
+        camForm.variableManager.fetchVariable('demandName');
+        camForm.variableManager.fetchVariable('testCases');
+      });
+
+      camForm.on('variables-fetched', function () {
+        $scope.generalData = camForm.variableManager.variableValue('generalData');
+        $scope.BRDData = camForm.variableManager.variableValue('BRDData');
+        $scope.BCData = camForm.variableManager.variableValue('BCData');
+        $scope.SDDData = camForm.variableManager.variableValue('SDDData');
+        $scope.supportiveInputs = camForm.variableManager.variableValue('supportiveInputs');
+        $scope.resolutions = camForm.variableManager.variableValue('resolutions');
+        $scope.attachments = camForm.variableManager.variableValue('attachments');
+        $scope.requirementManager = camForm.variableManager.variableValue('requirementManager');
+        $scope.solutionOwner = camForm.variableManager.variableValue('solutionOwner');
+        $scope.developerList = camForm.variableManager.variableValue('developerList');
+        $scope.status = camForm.variableManager.variableValue('status');
+        $scope.state = camForm.variableManager.variableValue('state');
+        $scope.businessKey = camForm.variableManager.variableValue('businessKey');
+        $scope.demandName = camForm.variableManager.variableValue('demandName');
+        $scope.testCases = camForm.variableManager.variableValue('testCases');
+        if (!$scope.attachments) $scope.attachments = [];
+        if (!$scope.supportiveInputs) $scope.supportiveInputs = [];
+        if (!$scope.developerList) $scope.developerList = [{name: ''}];
+
+        for (var i of $scope.supportiveInputs) {
+          if (i.form == 'HR') $scope.resources = $scope.resources.concat(i.value);
+          else if (i.form == 'CPD') $scope.materials = $scope.materials.concat(i.value);
+        }
+
+        $http.get("/camunda/api/engine/engine/default/user/" + $scope.requirementManager + "/profile").then(function (result) {
+          $scope.requirementManager = (result.data.firstName ? result.data.firstName : "") + " " + (result.data.lastName ? result.data.lastName : "");
+        });
+
+        $http.get("/camunda/api/engine/engine/default/user/" + $scope.solutionOwner + "/profile").then(function (result) {
+          $scope.solutionOwner = (result.data.firstName ? result.data.firstName : "") + " " + (result.data.lastName ? result.data.lastName : "");
+        });
+
+        $scope.useCases = null;
+        if ($scope.BRDData && $scope.BRDData.funcRequirements && $scope.BRDData.funcRequirements.useCases) {
+          $scope.useCases = $scope.BRDData.funcRequirements.useCases;
+        }
+      });
+
+      camForm.on('submit', function (event) {
+        var submitDate = new Date();
+        if (!$scope.resolutions) {
+          $scope.resolutions = [];
+        }
+        $scope.resolutions.unshift({
+          processInstanceId: processInstanceId,
+          assignee: assigneeName,
+          resolution: $scope.resolution,
+          comment: $scope.comment,
+          taskId: camForm.taskId,
+          taskEndDate: submitDate,
+          taskName: taskName,
+          dateOfAssign: createdDate,
+          claimDate: claimDate
+        });
+        camForm.variableManager.destroyVariable('resolutions');
+        camForm.variableManager.createVariable({
+          name: 'resolutions',
+          type: 'Json',
+          value: $scope.resolutions
+        });
+
+        camForm.variableManager.destroyVariable('resolution');
+        camForm.variableManager.createVariable({
+          name: 'resolution',
+          type: 'String',
+          value: $scope.resolution
+        });
+
+        camForm.variableManager.destroyVariable('developerList');
+        camForm.variableManager.createVariable({
+          name: 'developerList',
+          type: 'Json',
+          value: $scope.developerList
+        });
+
+        var oldStatus = $scope.status;
+        $scope.status = 'Solution Design in progress';
+        if ($scope.resolution === 'Approve') $scope.status = 'Development complete';
+        camForm.variableManager.destroyVariable('status');
+        camForm.variableManager.createVariable({
+          name: 'status',
+          type: 'String',
+          value: $scope.status
+        });
+
+        camForm.variableManager.destroyVariable('oldStatus');
+        camForm.variableManager.createVariable({
+          name: 'oldStatus',
+          type: 'String',
+          value: oldStatus
+        });
+      });
+
+      $scope.downloadFile = function (file) {
+        $http({
+          method: 'GET',
+          url: '/camunda/uploads/get/' + file.path,
+          transformResponse: []
+        }).then(function (response) {
+          document.getElementById('fileDownloadIframe').src = response.data;
+        }, function (error) {
+          console.log(error.data);
+        });
+      };
+
+      $scope.addDeveloper = function () {
+        $scope.developerList.push({name: ''});
+      };
+
+      $scope.removeDeveloper = function (index) {
+        $scope.developerList.splice(index, 1);
+      };
+
+
+      $scope.getUser = function (val, index) {
+        $scope.developerList[index].id = null;
+        $scope.kcell_form['developer_' + index + '_name'].$setValidity('not_selected', false);
+        var users = $http.get('/camunda/api/engine/engine/default/user?memberOfGroup=demand_uat_users&firstNameLike=' + encodeURIComponent('%' + val + '%')).then(
+          function (response) {
+            var usersByFirstName = _.flatMap(response.data, function (s) {
+              if (s.id) {
+                return s.id.split(',').map(function (user) {
+                  return {
+                    id: s.id,
+                    email: (s.email ? s.email.substring(s.email.lastIndexOf('/') + 1) : s.email),
+                    firstName: s.firstName,
+                    lastName: s.lastName,
+                    name: s.firstName + ' ' + s.lastName
+                  };
+                })
+              } else {
+                return [];
+              }
+            });
+
+            return $http.get('/camunda/api/engine/engine/default/user?memberOfGroup=demand_uat_users&lastNameLike=' + encodeURIComponent('%' + val + '%')).then(
+              function (response) {
+                var usersByLastName = _.flatMap(response.data, function (s) {
+                  if (s.id) {
+                    return s.id.split(',').map(function (user) {
+                      return {
+                        id: s.id,
+                        email: s.email.substring(s.email.lastIndexOf('/') + 1),
+                        firstName: s.firstName,
+                        lastName: s.lastName,
+                        name: s.firstName + ' ' + s.lastName
+                      };
+                    })
+                  } else {
+                    return [];
+                  }
                 });
-            };
-        }]);
-    </script>
+                return _.unionWith(usersByFirstName, usersByLastName, _.isEqual);
+              }
+            );
+          }
+        );
+        return users;
+      };
+
+      $scope.userSelected = function ($item, index) {
+        $scope.developerList[index].id = $item.id;
+        $scope.developerList[index].name = $item.name;
+        $scope.kcell_form['developer_' + index + '_name'].$setValidity('not_selected', true);
+      };
+
+      $scope.onDeveloperChange = function (index) {
+        if (!$scope.developerList[index].name || !$scope.developerList[index].name.length) {
+          $scope.kcell_form['developer_' + index + '_name'].$setValidity('not_selected', true);
+        }
+      }
+
+      $scope.showSDDPDF = false;
+      $scope.printPDF = function () {
+        $scope.sddPDFDate = new Date();
+        $scope.showSDDPDF = true;
+        $(".scrollable").scrollTop(0);
+        $('#loaderDiv').show();
+        $timeout(function () {
+          var element = $('#pdfDiv')[0];
+          htmlToPdf(element, {fileName: 'Demand-' + $scope.businessKey + '-SDD', download: true}).then(function () {
+            $timeout(function () {
+              $scope.showSDDPDF = false;
+              $('#loaderDiv').hide();
+            });
+          });
+        });
+      };
+    }]);
+  </script>
   <div class="hide-in-print">
     <div class="form-group">
       <label style="width: 11%; float: left; padding: 7px 5px 0 15px; font-weight: 500;"> Business Key:</label>

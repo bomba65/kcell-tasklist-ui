@@ -13,197 +13,210 @@
     }
   </style>
   <script cam-script type="text/form-script">
-        inject(['$scope', '$http', 'Uri', '$rootScope', '$q', 'toasty', '$timeout', 'htmlToPdf', function ($scope, $http, Uri, $rootScope, $q, toasty, $timeout, htmlToPdf) {
-            $scope.generalData = {
-                general: {},
-                targetAudience: {},
-                demandDetails: {}
-            };
-            $scope.BRDData = {
-                funcRequirements: {},
-                nonFuncRequirements: {},
-                interfaces: {},
-                reportsStatistics: '',
-                acceptanceCriteria: []
-            };
-            $scope.BCData = {
-                data: {}
-            };
-            $scope.SDDData = {
-                funcRequirements: {},
-                nonFuncRequirements: {},
-                solutionDesign: {},
-                components: {}
-            };
-            $scope.tabs = { SDD: true, UAT: false };
-            $scope.resolutions = [];
-            $scope.attachments = [];
-            $scope.supportiveInputs = [];
-            $scope.resources = [];
-            $scope.materials = [];
+    inject(['$scope', '$http', 'Uri', '$rootScope', '$q', 'toasty', '$timeout', 'htmlToPdf', function ($scope, $http, Uri, $rootScope, $q, toasty, $timeout, htmlToPdf) {
+      $scope.generalData = {
+        general: {},
+        targetAudience: {},
+        demandDetails: {}
+      };
+      $scope.BRDData = {
+        funcRequirements: {},
+        nonFuncRequirements: {},
+        interfaces: {},
+        reportsStatistics: '',
+        acceptanceCriteria: []
+      };
+      $scope.BCData = {
+        data: {}
+      };
+      $scope.SDDData = {
+        funcRequirements: {},
+        nonFuncRequirements: {},
+        solutionDesign: {},
+        components: {}
+      };
+      $scope.tabs = {SDD: true, UAT: false};
+      $scope.resolutions = [];
+      $scope.attachments = [];
+      $scope.supportiveInputs = [];
+      $scope.resources = [];
+      $scope.materials = [];
 
-            var processInstanceId = null;
-            var taskName = null;
-            var assigneeName = $rootScope.authentication.name;
-            var createdDate = new Date();
-            var claimDate = new Date();
+      var processInstanceId = null;
+      var taskName = null;
+      var assigneeName = $rootScope.authentication.name;
+      var createdDate = new Date();
+      var claimDate = new Date();
 
-            $http.get("/camunda/api/engine/engine/default/user/" + $rootScope.authentication.name+ "/profile").then(function(result){
-                assigneeName = (result.data.firstName ? result.data.firstName : "") + " " + (result.data.lastName ? result.data.lastName : "");
+      $http.get("/camunda/api/engine/engine/default/user/" + $rootScope.authentication.name + "/profile").then(function (result) {
+        assigneeName = (result.data.firstName ? result.data.firstName : "") + " " + (result.data.lastName ? result.data.lastName : "");
+      });
+
+      $http.get('/camunda/api/engine/engine/default/task/' + camForm.taskId).then(
+        function (result) {
+          processInstanceId = result.data.processInstanceId;
+          taskName = result.data.name;
+          if (result.data.created) createdDate = new Date(result.data.created);
+        },
+        function (error) {
+          console.log(error.data);
+        }
+      );
+      $http.get("/camunda/api/engine/engine/default/history/identity-link-log?type=assignee&taskId=" + camForm.taskId + "&operationType=add&sortBy=time&sortOrder=desc").then(
+        function (logs) {
+          try {
+            if (logs.data && logs.data.length > 0) {
+              claimDate = new Date(logs.data[0].time);
+            } else {
+              claimDate = undefined;
+            }
+          } catch (e) {
+            console.log(e);
+          }
+        },
+        function (error) {
+          console.log(error.data);
+        }
+      );
+
+      camForm.on('form-loaded', function () {
+        camForm.variableManager.fetchVariable('generalData');
+        camForm.variableManager.fetchVariable('BRDData');
+        camForm.variableManager.fetchVariable('BCData');
+        camForm.variableManager.fetchVariable('SDDData');
+        camForm.variableManager.fetchVariable('supportiveInputs');
+        camForm.variableManager.fetchVariable('resolutions');
+        camForm.variableManager.fetchVariable('resolution');
+        camForm.variableManager.fetchVariable('attachments');
+        camForm.variableManager.fetchVariable('requirementManager');
+        camForm.variableManager.fetchVariable('solutionOwner');
+        camForm.variableManager.fetchVariable('sddApprovalList');
+        camForm.variableManager.fetchVariable('approvalItem');
+        camForm.variableManager.fetchVariable('status');
+        camForm.variableManager.fetchVariable('state');
+        camForm.variableManager.fetchVariable('businessKey');
+        camForm.variableManager.fetchVariable('demandName');
+        camForm.variableManager.fetchVariable('testCases');
+      });
+
+      camForm.on('variables-fetched', function () {
+        $scope.generalData = camForm.variableManager.variableValue('generalData');
+        $scope.BRDData = camForm.variableManager.variableValue('BRDData');
+        $scope.BCData = camForm.variableManager.variableValue('BCData');
+        $scope.SDDData = camForm.variableManager.variableValue('SDDData');
+        $scope.supportiveInputs = camForm.variableManager.variableValue('supportiveInputs');
+        $scope.resolutions = camForm.variableManager.variableValue('resolutions');
+        $scope.attachments = camForm.variableManager.variableValue('attachments');
+        $scope.requirementManager = camForm.variableManager.variableValue('requirementManager');
+        $scope.solutionOwner = camForm.variableManager.variableValue('solutionOwner');
+        $scope.sddApprovalList = camForm.variableManager.variableValue('sddApprovalList');
+        $scope.approvalItem = camForm.variableManager.variableValue('approvalItem');
+        $scope.status = camForm.variableManager.variableValue('status');
+        $scope.state = camForm.variableManager.variableValue('state');
+        $scope.businessKey = camForm.variableManager.variableValue('businessKey');
+        $scope.demandName = camForm.variableManager.variableValue('demandName');
+        $scope.testCases = camForm.variableManager.variableValue('testCases');
+        if (!$scope.attachments) $scope.attachments = [];
+        if (!$scope.supportiveInputs) $scope.supportiveInputs = [];
+
+        if (!$scope.generalData) $scope.generalData = {};
+        if (!$scope.generalData.general) $scope.generalData.general = {};
+        if ($scope.generalData.general.actualLaunch) $scope.generalData.general.actualLaunch = new Date($scope.generalData.general.actualLaunch);
+
+        for (var i of $scope.supportiveInputs) {
+          if (i.form == 'HR') $scope.resources = $scope.resources.concat(i.value);
+          else if (i.form == 'CPD') $scope.materials = $scope.materials.concat(i.value);
+        }
+
+        $http.get("/camunda/api/engine/engine/default/user/" + $scope.requirementManager + "/profile").then(function (result) {
+          $scope.requirementManager = (result.data.firstName ? result.data.firstName : "") + " " + (result.data.lastName ? result.data.lastName : "");
+        });
+
+        $http.get("/camunda/api/engine/engine/default/user/" + $scope.solutionOwner + "/profile").then(function (result) {
+          $scope.solutionOwner = (result.data.firstName ? result.data.firstName : "") + " " + (result.data.lastName ? result.data.lastName : "");
+        });
+
+        $scope.useCases = null;
+        if ($scope.BRDData && $scope.BRDData.funcRequirements && $scope.BRDData.funcRequirements.useCases) {
+          $scope.useCases = $scope.BRDData.funcRequirements.useCases;
+        }
+      });
+
+      camForm.on('submit', function (event) {
+        var submitDate = new Date();
+        if (!$scope.resolutions) {
+          $scope.resolutions = [];
+        }
+        $scope.resolutions.unshift({
+          processInstanceId: processInstanceId,
+          assignee: assigneeName,
+          resolution: $scope.resolution,
+          comment: $scope.comment,
+          taskId: camForm.taskId,
+          taskEndDate: submitDate,
+          taskName: taskName,
+          dateOfAssign: createdDate,
+          claimDate: claimDate
+        });
+        camForm.variableManager.destroyVariable('resolutions');
+        camForm.variableManager.createVariable({
+          name: 'resolutions',
+          type: 'Json',
+          value: $scope.resolutions
+        });
+
+        camForm.variableManager.destroyVariable('resolution');
+        camForm.variableManager.createVariable({
+          name: 'resolution',
+          type: 'String',
+          value: $scope.resolution
+        });
+
+        for (var app of $scope.sddApprovalList) {
+          if (app.id === $scope.approvalItem.id) {
+            app.approved = new Date();
+            app.resolution = ($scope.resolution === 'Approve' ? 'Approved' : 'Rejected');
+          }
+        }
+
+        camForm.variableManager.destroyVariable('sddApprovalList');
+        camForm.variableManager.createVariable({
+          name: 'sddApprovalList',
+          type: 'Json',
+          value: $scope.sddApprovalList
+        });
+      });
+
+      $scope.downloadFile = function (file) {
+        $http({
+          method: 'GET',
+          url: '/camunda/uploads/get/' + file.path,
+          transformResponse: []
+        }).then(function (response) {
+          document.getElementById('fileDownloadIframe').src = response.data;
+        }, function (error) {
+          console.log(error.data);
+        });
+      };
+
+      $scope.showSDDPDF = false;
+      $scope.printPDF = function () {
+        $scope.sddPDFDate = new Date();
+        $scope.showSDDPDF = true;
+        $(".scrollable").scrollTop(0);
+        $('#loaderDiv').show();
+        $timeout(function () {
+          var element = $('#pdfDiv')[0];
+          htmlToPdf(element, {fileName: 'Demand-' + $scope.businessKey + '-SDD', download: true}).then(function () {
+            $timeout(function () {
+              $scope.showSDDPDF = false;
+              $('#loaderDiv').hide();
             });
-
-            $http.get('/camunda/api/engine/engine/default/task/' + camForm.taskId).then(
-                function(result){
-                    processInstanceId = result.data.processInstanceId;
-                    taskName = result.data.name;
-                    if (result.data.created) createdDate = new Date(result.data.created);
-                },
-                function (error) {
-                    console.log(error.data);
-                }
-            );
-            $http.get("/camunda/api/engine/engine/default/history/identity-link-log?type=assignee&taskId=" + camForm.taskId + "&operationType=add&sortBy=time&sortOrder=desc").then(
-                function (logs) {
-                  try {
-                    if(logs.data && logs.data.length > 0){
-                                claimDate = new Date(logs.data[0].time);
-                            } else {
-                                claimDate = undefined;
-                            }
-                  } catch(e){
-                    console.log(e);
-                  }
-                },
-                function (error) {
-                  console.log(error.data);
-                }
-            );
-
-            camForm.on('form-loaded', function () {
-                camForm.variableManager.fetchVariable('generalData');
-                camForm.variableManager.fetchVariable('BRDData');
-                camForm.variableManager.fetchVariable('BCData');
-                camForm.variableManager.fetchVariable('SDDData');
-                camForm.variableManager.fetchVariable('supportiveInputs');
-                camForm.variableManager.fetchVariable('resolutions');
-                camForm.variableManager.fetchVariable('resolution');
-                camForm.variableManager.fetchVariable('attachments');
-                camForm.variableManager.fetchVariable('requirementManager');
-                camForm.variableManager.fetchVariable('solutionOwner');
-                camForm.variableManager.fetchVariable('sddApprovalList');
-                camForm.variableManager.fetchVariable('approvalItem');
-                camForm.variableManager.fetchVariable('status');
-                camForm.variableManager.fetchVariable('state');
-                camForm.variableManager.fetchVariable('businessKey');
-                camForm.variableManager.fetchVariable('demandName');
-                camForm.variableManager.fetchVariable('testCases');
-            });
-
-            camForm.on('variables-fetched', function () {
-                $scope.generalData = camForm.variableManager.variableValue('generalData');
-                $scope.BRDData = camForm.variableManager.variableValue('BRDData');
-                $scope.BCData = camForm.variableManager.variableValue('BCData');
-                $scope.SDDData = camForm.variableManager.variableValue('SDDData');
-                $scope.supportiveInputs = camForm.variableManager.variableValue('supportiveInputs');
-                $scope.resolutions = camForm.variableManager.variableValue('resolutions');
-                $scope.attachments = camForm.variableManager.variableValue('attachments');
-                $scope.requirementManager = camForm.variableManager.variableValue('requirementManager');
-                $scope.solutionOwner = camForm.variableManager.variableValue('solutionOwner');
-                $scope.sddApprovalList = camForm.variableManager.variableValue('sddApprovalList');
-                $scope.approvalItem = camForm.variableManager.variableValue('approvalItem');
-                $scope.status = camForm.variableManager.variableValue('status');
-                $scope.state = camForm.variableManager.variableValue('state');
-                $scope.businessKey = camForm.variableManager.variableValue('businessKey');
-                $scope.demandName = camForm.variableManager.variableValue('demandName');
-                $scope.testCases = camForm.variableManager.variableValue('testCases');
-                if (!$scope.attachments) $scope.attachments = [];
-                if (!$scope.supportiveInputs) $scope.supportiveInputs = [];
-
-                if (!$scope.generalData) $scope.generalData = {};
-                if (!$scope.generalData.general) $scope.generalData.general = {};
-                if ($scope.generalData.general.actualLaunch) $scope.generalData.general.actualLaunch = new Date($scope.generalData.general.actualLaunch);
-
-                for (var i of $scope.supportiveInputs) {
-                    if (i.form == 'HR') $scope.resources = $scope.resources.concat(i.value);
-                    else if (i.form == 'CPD') $scope.materials = $scope.materials.concat(i.value);
-                }
-
-                $http.get("/camunda/api/engine/engine/default/user/" + $scope.requirementManager + "/profile").then(function(result){
-                    $scope.requirementManager = (result.data.firstName ? result.data.firstName : "") + " " + (result.data.lastName ? result.data.lastName : "");
-                });
-
-                $http.get("/camunda/api/engine/engine/default/user/" + $scope.solutionOwner + "/profile").then(function(result){
-                    $scope.solutionOwner = (result.data.firstName ? result.data.firstName : "") + " " + (result.data.lastName ? result.data.lastName : "");
-                });
-
-                $scope.useCases = null;
-                if ($scope.BRDData && $scope.BRDData.funcRequirements && $scope.BRDData.funcRequirements.useCases) {
-                  $scope.useCases = $scope.BRDData.funcRequirements.useCases;
-                }
-            });
-
-            camForm.on('submit', function (event) {
-                var submitDate = new Date ();
-                if(!$scope.resolutions){
-                    $scope.resolutions = [];
-                }
-                $scope.resolutions.unshift({processInstanceId: processInstanceId, assignee: assigneeName, resolution: $scope.resolution, comment: $scope.comment, taskId: camForm.taskId, taskEndDate: submitDate, taskName: taskName, dateOfAssign: createdDate, claimDate: claimDate});
-                camForm.variableManager.destroyVariable('resolutions');
-                camForm.variableManager.createVariable({
-                    name: 'resolutions',
-                    type: 'Json',
-                    value: $scope.resolutions
-                });
-
-                camForm.variableManager.destroyVariable('resolution');
-                camForm.variableManager.createVariable({
-                    name: 'resolution',
-                    type: 'String',
-                    value: $scope.resolution
-                });
-
-                for (var app of $scope.sddApprovalList) {
-                  if (app.id === $scope.approvalItem.id) {
-                    app.approved = new Date();
-                    app.resolution = ($scope.resolution === 'Approve'?'Approved':'Rejected');
-                  }
-                }
-
-                camForm.variableManager.destroyVariable('sddApprovalList');
-                camForm.variableManager.createVariable({
-                    name: 'sddApprovalList',
-                    type: 'Json',
-                    value: $scope.sddApprovalList
-                });
-            });
-
-            $scope.downloadFile = function (file) {
-                $http({method: 'GET', url: '/camunda/uploads/get/' + file.path, transformResponse: [] }).
-                then(function(response) {
-                    document.getElementById('fileDownloadIframe').src = response.data;
-                }, function(error){
-                    console.log(error.data);
-                });
-            };
-
-            $scope.showSDDPDF = false;
-            $scope.printPDF = function() {
-                $scope.sddPDFDate = new Date();
-                $scope.showSDDPDF = true;
-                $(".scrollable").scrollTop(0);
-                $('#loaderDiv').show();
-                $timeout(function() {
-                  var element = $('#pdfDiv')[0];
-                  htmlToPdf(element, 'Demand-' + $scope.businessKey + '-SDD').then(function() {
-                    $timeout(function() {
-                      $scope.showSDDPDF = false;
-                      $('#loaderDiv').hide();
-                    });
-                  });
-                });
-            };
-        }]);
-    </script>
+          });
+        });
+      };
+    }]);
+  </script>
   <div class="hide-in-print">
     <div class="form-group">
       <label style="width: 11%; float: left; padding: 7px 5px 0 15px; font-weight: 500;"> Business Key:</label>

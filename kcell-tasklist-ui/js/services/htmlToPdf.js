@@ -1,13 +1,15 @@
 define(['./module', 'html2canvas', 'pdfMake'], function(module, html2canvas, pdfMake){
   'use strict';
-  return module.service('htmlToPdf', ['$translate', '$q', function($translate, $q) {
-    return function(domElement, pdfName) {
+  return module.service('htmlToPdf', ['$http', function($http) {
+    return function(domElement, options) {
       return new Promise(function(resolve, reject) {
 
         if (!domElement) {
           reject("No dom element provided");
           return;
         }
+
+        options = options || {};
 
         var PAGE_HEIGHT = 815;
         var PAGE_WIDTH = 580;
@@ -46,10 +48,42 @@ define(['./module', 'html2canvas', 'pdfMake'], function(module, html2canvas, pdf
             pageMargins: [10, 10],
             content: content
           };
-          if (!pdfName) pdfName = 'generated_pdf';
-          pdfMake.createPdf(docDefinition).download(pdfName + '.pdf');
+          var fileName = 'generated_file';
+          if (options.fileName) fileName = options.fileName;
+          fileName += '.pdf';
 
-          resolve();
+          if (options.download) {
+            pdfMake.createPdf(docDefinition).download(fileName);
+          }
+
+          if (options.upload) {
+            pdfMake.createPdf(docDefinition).getBlob(function(blob) {
+
+              var uploadPath = 'generatedPDFs/' + fileName;
+              if (options.uploadPath) uploadPath = options.uploadPath;
+
+              var userName = 'htmlToPdfService';
+              if (options.userName) userName = options.userName;
+
+              var fileToUpload = {
+                name: fileName,
+                path: uploadPath,
+                created: new Date(),
+                createdBy: userName,
+              };
+              $http({method: 'GET', url: '/camunda/uploads/put/' + fileToUpload.path, transformResponse: [] }).then(function(response) {
+                $http.put(response.data, blob, {headers: {'Content-Type': undefined}}).then(function () {
+                  resolve();
+                }).catch(function (error) {
+                  reject(error);
+                });
+              }).catch(function(error) {
+                reject(error);
+              });
+
+              resolve();
+            });
+          } else resolve();
         });
       });
     };
