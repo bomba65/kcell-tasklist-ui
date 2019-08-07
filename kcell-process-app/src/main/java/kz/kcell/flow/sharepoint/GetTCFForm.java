@@ -6,14 +6,10 @@ import org.apache.http.HttpResponse;
 import org.apache.http.client.HttpClient;
 import org.apache.http.client.methods.HttpGet;
 import org.apache.http.client.methods.HttpPost;
-import org.apache.http.client.methods.HttpPut;
-import org.apache.http.conn.ssl.SSLConnectionSocketFactory;
-import org.apache.http.conn.ssl.TrustSelfSignedStrategy;
 import org.apache.http.entity.ContentType;
 import org.apache.http.entity.StringEntity;
 import org.apache.http.impl.client.CloseableHttpClient;
 import org.apache.http.impl.client.HttpClients;
-import org.apache.http.ssl.SSLContextBuilder;
 import org.apache.http.util.EntityUtils;
 import org.camunda.bpm.engine.delegate.DelegateExecution;
 import org.camunda.bpm.engine.delegate.JavaDelegate;
@@ -25,12 +21,9 @@ import org.jsoup.nodes.Element;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.core.env.Environment;
-import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
-import org.camunda.bpm.engine.delegate.Expression;
 
 import java.io.BufferedReader;
-import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.net.*;
@@ -49,7 +42,6 @@ public class GetTCFForm implements JavaDelegate {
     private final String pwd;
     private final String productCatalogUrl;
     private final String productCatalogAuth;
-    Expression billingTCF;
 
     @Autowired
     public GetTCFForm(@Value("${sharepoint.forms.url:https://sp.kcell.kz/forms/_api}") String baseUri, @Value("${sharepoint.forms.username}") String username, @Value("${sharepoint.forms.password}") String pwd,
@@ -61,80 +53,49 @@ public class GetTCFForm implements JavaDelegate {
         this.productCatalogAuth = productCatalogAuth;
     }
 
-    private String getShortNumberId(
-        String shortNumber,
-        String serviceTypeId) throws IOException {
-
+    private String getShortNumberId(String shortNumber, String serviceTypeId) {
         try {
             String encoding = Base64.getEncoder().encodeToString((this.productCatalogAuth).getBytes("UTF-8"));
-
             CloseableHttpClient httpclient = HttpClients.custom().build();
-
             HttpGet httpGet = new HttpGet(this.productCatalogUrl + "/vas_short_numbers/short_number/" + URLEncoder.encode(shortNumber, "UTF-8") + "/service_type_id/" + serviceTypeId);
             httpGet.setHeader("Authorization", "Basic " + encoding);
-
             HttpResponse httpResponse = httpclient.execute(httpGet);
-
             HttpEntity entity = httpResponse.getEntity();
             String content = EntityUtils.toString(entity);
-
-            //JSONObject obj = new JSONObject(content);
-
             EntityUtils.consume(httpResponse.getEntity());
             httpclient.close();
-
-            //return ResponseEntity.ok(content);
             return content;
-
         } catch (Exception e) {
             e.printStackTrace();
         }
-
         return null;
-
     }
 
-    private String postVasUrls(
-        String requestBody) throws IOException {
-
+    private String postVasUrls(String requestBody) {
         try {
             String encoding = Base64.getEncoder().encodeToString((this.productCatalogAuth).getBytes("UTF-8"));
-
             StringEntity shortNumberData = new StringEntity(requestBody, ContentType.APPLICATION_JSON);
-            HttpPost shortNumberPost = new HttpPost(new URI(this.productCatalogUrl+"/vas_urls"));
+            HttpPost shortNumberPost = new HttpPost(new URI(this.productCatalogUrl + "/vas_urls"));
             shortNumberPost.setHeader("Authorization", "Basic " + encoding);
             shortNumberPost.addHeader("Content-Type", "application/json;charset=UTF-8");
-
             shortNumberPost.setEntity(shortNumberData);
-
             HttpClient shortNumberHttpClient = HttpClients.createDefault();
-
             HttpResponse shortNumberResponse = shortNumberHttpClient.execute(shortNumberPost);
-
             HttpEntity entity = shortNumberResponse.getEntity();
             String content = EntityUtils.toString(entity);
-
-            /////EntityUtils.consume(content);
-            //shortNumberHttpClient.close();
-
             return content;
-
         } catch (Exception e) {
             e.printStackTrace();
         }
-
         return null;
-
     }
 
     @Override
     public void execute(DelegateExecution delegateExecution) throws Exception {
-
         Boolean isSftp = Arrays.stream(environment.getActiveProfiles()).anyMatch(env -> (env.equalsIgnoreCase("sftp")));
         String billingTCF = String.valueOf(delegateExecution.getVariableLocal("billingTCF"));
         JSONArray identifierJSONArray = new JSONArray(String.valueOf(delegateExecution.getVariable("identifiers")));
         JSONObject identifierJSON = identifierJSONArray.getJSONObject(0);
-        JSONArray operatorJSONArray = identifierJSON.getJSONArray("operators");
         String title = String.valueOf(identifierJSON.get("title"));
         String serviceTypeId = "";
         String tcfFormId = "";
@@ -142,47 +103,39 @@ public class GetTCFForm implements JavaDelegate {
         String identifierServiceName_amdocs_outgoing = "";
         String identifierServiceName_orga_incoming = "";
         String identifierServiceName_orga_outgoing = "";
-        String[] rejectStatusByTCF = { "Canceled", "Rejected by ICTD-SNS-BCOU-BCST Supervisor", "Rejected by ICTD Specialists" };
+        String[] rejectStatusByTCF = {"Canceled", "Rejected by ICTD-SNS-BCOU-BCST Supervisor", "Rejected by ICTD Specialists"};
         String processDefinitionKey = delegateExecution.getProcessEngineServices().getRepositoryService().getProcessDefinition(delegateExecution.getProcessDefinitionId()).getKey();
-
         System.out.println("ProcessDefinitionKey=" + processDefinitionKey);
-
         if (isSftp) {
-
-            if("bulksmsConnectionKAE".equals(processDefinitionKey)){
-                if("amdocs".equals(billingTCF)){
+            if ("bulksmsConnectionKAE".equals(processDefinitionKey)) {
+                if ("amdocs".equals(billingTCF)) {
                     tcfFormId = delegateExecution.getVariable("amdocsTcfFormId").toString();
                     identifierServiceName_amdocs_incoming = delegateExecution.getVariable("identifierServiceName_amdocs_incoming").toString();
                     identifierServiceName_amdocs_outgoing = delegateExecution.getVariable("identifierServiceName_amdocs_outgoing").toString();
                 }
-                if("orga".equals(billingTCF)){
+                if ("orga".equals(billingTCF)) {
                     tcfFormId = delegateExecution.getVariable("orgaTcfFormId").toString();
                     identifierServiceName_orga_incoming = delegateExecution.getVariable("identifierServiceName_orga_incoming").toString();
                     identifierServiceName_orga_outgoing = delegateExecution.getVariable("identifierServiceName_orga_outgoing").toString();
                 }
                 serviceTypeId = "13";
             }
-
-            if("freephone".equals(processDefinitionKey)){
-                if("amdocs".equals(billingTCF)){
+            if ("freephone".equals(processDefinitionKey)) {
+                if ("amdocs".equals(billingTCF)) {
                     tcfFormId = delegateExecution.getVariable("amdocsTcfFormId").toString();
                     identifierServiceName_amdocs_outgoing = delegateExecution.getVariable("identifierServiceName_amdocs_outgoing").toString();
                 }
-                if("orga".equals(billingTCF)){
+                if ("orga".equals(billingTCF)) {
                     tcfFormId = delegateExecution.getVariable("orgaTcfFormId").toString();
                     identifierServiceName_orga_outgoing = delegateExecution.getVariable("identifierServiceName_orga_outgoing").toString();
                 }
                 serviceTypeId = "177";
             }
-
             StringBuilder response = new StringBuilder();
-
             Authenticator.setDefault(new Authenticator() {
-
                 @Override
                 public PasswordAuthentication getPasswordAuthentication() {
-                    return new PasswordAuthentication(
-                        "kcell.kz\\" + username, pwd.toCharArray());
+                    return new PasswordAuthentication("kcell.kz\\" + username, pwd.toCharArray());
                 }
             });
 
@@ -207,8 +160,7 @@ public class GetTCFForm implements JavaDelegate {
             JSONObject tcf = responseSharepointJSON.getJSONObject("d");
             //String Id = tcf.get("Id").toString();
             String Status = tcf.get("Status").toString();
-
-            if("Completed".equals(Status)) {
+            if ("Completed".equals(Status)) {
                 JSONObject tcfFormJSON = new JSONObject();
 
                 String htmlTable = tcf.get("Requirments").toString();
@@ -217,7 +169,6 @@ public class GetTCFForm implements JavaDelegate {
 
                 long trCount = table.select("tr").size();
                 for (int i = 2; i < trCount; i++) {
-                    System.out.println("i = " + i);
                     String identifierTCFID = "";
                     Element row = table.select("tr").get(i);
                     Element tdServiceElem = row.select("td").get(0);
@@ -235,14 +186,12 @@ public class GetTCFForm implements JavaDelegate {
                                     delegateExecution.setVariable("identifierAmdocsID_incoming", identifierTCFID);
                                 }
                             }
-
                             if (identifierServiceName_amdocs_outgoing != null && identifierServiceName_amdocs_outgoing.equals(tdServiceName)) {
                                 Element tdTCFId = row.select("td").get(4);
                                 identifierTCFID = tdTCFId.text();
                                 tcfFormJSON.put("identifierAmdocsID_outgoing", identifierTCFID);
                                 delegateExecution.setVariable("identifierAmdocsID_outgoing", identifierTCFID);
                             }
-
                             if (("freephone".equals(processDefinitionKey) && tcfFormJSON.has("identifierAmdocsID_outgoing"))) {
                                 String getShortNumberResponse = getShortNumberId(title, serviceTypeId);
                                 JSONObject getShortNumberResponseJSON = new JSONObject(getShortNumberResponse);
@@ -255,6 +204,7 @@ public class GetTCFForm implements JavaDelegate {
 
                                     vasShortNumber.put("id", shortNumberId);
                                     postShortNumberRequestJSON.put("vasShortNumber", vasShortNumber);
+                                    postShortNumberRequestJSON.put("cost", 0);
 
                                     String postVasUrlsResponse = postVasUrls(postShortNumberRequestJSON.toString());
                                     JSONObject postVasUrlsJSON = new JSONObject(postVasUrlsResponse);
@@ -267,16 +217,11 @@ public class GetTCFForm implements JavaDelegate {
                                 } else {
                                     delegateExecution.setVariable("amdocsTcfIdReceived", false);
                                 }
-                            } else {
-                                delegateExecution.setVariable("amdocsTcfIdReceived", false);
-                            }
-
-                            if ("bulksmsConnectionKAE".equals(processDefinitionKey) && tcfFormJSON.has("identifierAmdocsID_incoming") && tcfFormJSON.has("identifierAmdocsID_outgoing")) {
+                            } else if ("bulksmsConnectionKAE".equals(processDefinitionKey) && tcfFormJSON.has("identifierAmdocsID_incoming") && tcfFormJSON.has("identifierAmdocsID_outgoing")) {
                                 String getShortNumberIncomingResponse = getShortNumberId(title, serviceTypeId);
                                 JSONObject shortNumberInJSON = new JSONObject(getShortNumberIncomingResponse);
                                 JSONObject postVasUrlsInJSON = new JSONObject();
                                 JSONObject postVasUrlsOutJSON = new JSONObject();
-
                                 if (shortNumberInJSON.has("id")) {
                                     String shortNumberIdIn = shortNumberInJSON.get("id").toString();
                                     JSONObject postShortNumberRequestInJSON = new JSONObject();
@@ -289,10 +234,8 @@ public class GetTCFForm implements JavaDelegate {
                                     String postVasUrlsInResponse = postVasUrls(postShortNumberRequestInJSON.toString());
                                     postVasUrlsInJSON = new JSONObject(postVasUrlsInResponse);
                                 }
-
                                 String getShortNumberOutgoingResponse = getShortNumberId(title, serviceTypeId);
                                 JSONObject shortNumberOutJSON = new JSONObject(getShortNumberOutgoingResponse);
-
                                 if (shortNumberOutJSON.has("id")) {
                                     String shortNumberIdOut = shortNumberOutJSON.get("id").toString();
                                     JSONObject postShortNumberRequestOutJSON = new JSONObject();
@@ -305,21 +248,16 @@ public class GetTCFForm implements JavaDelegate {
                                     String postVasUrlsOutResponse = postVasUrls(postShortNumberRequestOutJSON.toString());
                                     postVasUrlsOutJSON = new JSONObject(postVasUrlsOutResponse);
                                 }
-
                                 if (postVasUrlsInJSON.has("id") && postVasUrlsInJSON.has("amdocsIdOut") && postVasUrlsOutJSON.has("id") && postVasUrlsOutJSON.has("amdocsIdOut")) {
                                     delegateExecution.setVariable("amdocsTcfIdReceived", true);
                                 } else {
                                     delegateExecution.setVariable("amdocsTcfIdReceived", false);
                                 }
-
                             } else {
                                 delegateExecution.setVariable("amdocsTcfIdReceived", false);
                             }
-
                             delegateExecution.setVariable("amdocsRejectedFromTCF", false);
-                        }
-
-                        if ("orga".equals(billingTCF)) {
+                        } else if ("orga".equals(billingTCF)) {
                             if ("bulksmsConnectionKAE".equals(processDefinitionKey)) {
                                 if (identifierServiceName_orga_incoming != null && identifierServiceName_orga_incoming.equals(tdServiceName)) {
                                     Element tdTCFId = row.select("td").get(4);
@@ -334,21 +272,21 @@ public class GetTCFForm implements JavaDelegate {
                                 tcfFormJSON.put("identifierOrgaID_outgoing", identifierTCFID);
                                 delegateExecution.setVariable("identifierOrgaID_outgoing", identifierTCFID);
                             }
-
                             if ("freephone".equals(processDefinitionKey) && tcfFormJSON.has("identifierOrgaID_outgoing")) {
                                 String getShortNumberResponse = getShortNumberId(title, serviceTypeId);
                                 JSONObject getShortNumberResponseJSON = new JSONObject(getShortNumberResponse);
 
-                                if(getShortNumberResponseJSON.has("id")) {
+                                if (getShortNumberResponseJSON.has("id")) {
                                     String shortNumberId = getShortNumberResponseJSON.get("id").toString();
                                     JSONObject postShortNumberRequestJSON = new JSONObject();
                                     JSONObject vasShortNumber = new JSONObject();
 
-                                    postShortNumberRequestJSON.put("orgaIdOut", identifierTCFID);
+                                    postShortNumberRequestJSON.put("orgaIdOut   ", identifierTCFID);
                                     postShortNumberRequestJSON.put("cbossIdOut", identifierTCFID.substring(identifierTCFID.lastIndexOf("_") + 1));
 
                                     vasShortNumber.put("id", shortNumberId);
                                     postShortNumberRequestJSON.put("vasShortNumber", vasShortNumber);
+                                    postShortNumberRequestJSON.put("cost", 0);
 
                                     String postVasUrlsResponse = postVasUrls(postShortNumberRequestJSON.toString());
                                     JSONObject postVasUrlsJSON = new JSONObject(postVasUrlsResponse);
@@ -364,14 +302,12 @@ public class GetTCFForm implements JavaDelegate {
                             } else {
                                 delegateExecution.setVariable("orgaTcfIdReceived", false);
                             }
-
-                            if ("bulksmsConnectionKAE".equals(processDefinitionKey) && tcfFormJSON.has("identifierOrgaID_incoming") && tcfFormJSON.has("identifierOrgaID_outgoing")){
+                            if ("bulksmsConnectionKAE".equals(processDefinitionKey) && tcfFormJSON.has("identifierOrgaID_incoming") && tcfFormJSON.has("identifierOrgaID_outgoing")) {
                                 String getShortNumberInResponse = getShortNumberId(title, serviceTypeId);
                                 JSONObject getShortNumberResponseInJSON = new JSONObject(getShortNumberInResponse);
                                 JSONObject postVasUrlsInJSON = new JSONObject();
                                 JSONObject postVasUrlsOutJSON = new JSONObject();
-
-                                if(getShortNumberResponseInJSON.has("id")) {
+                                if (getShortNumberResponseInJSON.has("id")) {
                                     String shortNumberIdIn = getShortNumberResponseInJSON.get("id").toString();
                                     JSONObject postShortNumberRequestInJSON = new JSONObject();
                                     JSONObject vasShortNumberIn = new JSONObject();
@@ -387,11 +323,9 @@ public class GetTCFForm implements JavaDelegate {
                                     String postVasUrlsInResponse = postVasUrls(postShortNumberRequestInJSON.toString());
                                     postVasUrlsInJSON = new JSONObject(postVasUrlsInResponse);
                                 }
-
                                 String getShortNumberOutResponse = getShortNumberId(title, serviceTypeId);
                                 JSONObject getShortNumberResponseOutJSON = new JSONObject(getShortNumberOutResponse);
-
-                                if(getShortNumberResponseOutJSON.has("id")) {
+                                if (getShortNumberResponseOutJSON.has("id")) {
                                     String shortNumberIdOut = getShortNumberResponseOutJSON.get("id").toString();
                                     JSONObject postShortNumberRequestOutJSON = new JSONObject();
                                     JSONObject vasShortNumberOut = new JSONObject();
@@ -407,41 +341,36 @@ public class GetTCFForm implements JavaDelegate {
                                     String postVasUrlsOutResponse = postVasUrls(postShortNumberRequestOutJSON.toString());
                                     postVasUrlsOutJSON = new JSONObject(postVasUrlsOutResponse);
                                 }
-
                                 if (postVasUrlsInJSON.has("id") && postVasUrlsInJSON.has("amdocsIdOut") && postVasUrlsOutJSON.has("id") && postVasUrlsOutJSON.has("amdocsIdOut")) {
                                     delegateExecution.setVariable("amdocsTcfIdReceived", true);
                                 } else {
                                     delegateExecution.setVariable("amdocsTcfIdReceived", false);
                                 }
                             }
-
                             delegateExecution.setVariable("orgaRejectedFromTCF", false);
                         }
                     }
                 }
-            } else if(Arrays.asList(rejectStatusByTCF).contains(Status)){
-                if("amdocs".equals(billingTCF)){
+            } else if (Arrays.asList(rejectStatusByTCF).contains(Status)) {
+                if ("amdocs".equals(billingTCF)) {
                     delegateExecution.setVariable("amdocsTcfIdReceived", false);
                     delegateExecution.setVariable("amdocsRejectedFromTCF", true);
                 }
-                if("orga".equals(billingTCF)){
+                if ("orga".equals(billingTCF)) {
                     delegateExecution.setVariable("orgaTcfIdReceived", false);
                     delegateExecution.setVariable("orgaRejectedFromTCF", true);
                 }
             } else {
-                if("amdocs".equals(billingTCF)){
+                if ("amdocs".equals(billingTCF)) {
                     delegateExecution.setVariable("amdocsTcfIdReceived", false);
                     delegateExecution.setVariable("amdocsRejectedFromTCF", false);
                 }
-                if("orga".equals(billingTCF)){
+                if ("orga".equals(billingTCF)) {
                     delegateExecution.setVariable("orgaTcfIdReceived", false);
                     delegateExecution.setVariable("orgaRejectedFromTCF", false);
                 }
             }
-
-
         } else {
-
             String responseString = "{\n" +
                 "    \"d\": {\n" +
                 "        \"__metadata\": {\n" +
@@ -623,8 +552,7 @@ public class GetTCFForm implements JavaDelegate {
             String identifierTCFID = nestedTableRowTd.text();
             ///////////////////////////////////////////////////////////
 
-            if("amdocs".equals(billingTCF)){
-                System.out.println("billingTCF: " + billingTCF);
+            if ("amdocs".equals(billingTCF)) {
                 delegateExecution.setVariable("identifierAmdocsID", identifierTCFID);
                 delegateExecution.setVariable("amdocsTcfIdReceived", true);
                 delegateExecution.setVariable("amdocsRejectedFromTCF", false);
@@ -633,8 +561,7 @@ public class GetTCFForm implements JavaDelegate {
                 delegateExecution.setVariable("amdocsRejectedFromTCF", false);
             }
 
-            if("orga".equals(billingTCF)){
-                System.out.println("billingTCF: " + billingTCF);
+            if ("orga".equals(billingTCF)) {
                 delegateExecution.setVariable("identifierOrgaID", identifierTCFID);
                 delegateExecution.setVariable("orgaTcfIdReceived", true);
                 delegateExecution.setVariable("orgaRejectedFromTCF", false);

@@ -170,7 +170,8 @@ public class PostTCFForm implements ExecutionListener {
 
         DateFormat df = new SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss.SSSZ");
 
-        System.out.println("processKey: " + processKey);
+        System.err.println("processKey: " + processKey);
+        System.err.println("billingTCF: " + billingTCF);
 
         if ("bulksmsConnectionKAE".equals(processKey)) {
 
@@ -208,8 +209,7 @@ public class PostTCFForm implements ExecutionListener {
                 taskResolutionResult = delegateExecution.getVariable("massApprove_checkFormAmdocsTCFTaskResult").toString();
                 commentValue = delegateExecution.getVariable("massApprove_checkFormAmdocsTCFTaskComment").toString();
 
-                Date closeDate = delegateExecution.<DateValue>getVariableTyped("massApprove_confirmAmdocsTCFTaskCloseDate").getValue();
-                tcfDateValue = df.format(closeDate);
+                tcfDateValue = delegateExecution.getVariable("massApprove_confirmAmdocsTCFTaskCloseDate").toString();
                 //tcfDateValue = String.valueOf(delegateExecution.getVariable("massApprove_confirmAmdocsTCFTaskCloseDate"));
                 //tcfDateValue = String.valueOf(delegateExecution.getVariable("massApprove_checkFormAmdocsTCFTaskCloseDate"));
             }
@@ -217,8 +217,7 @@ public class PostTCFForm implements ExecutionListener {
                 taskResolutionResult = delegateExecution.getVariable("massApprove_checkFormOrgaTCFTaskResult").toString();
                 commentValue = delegateExecution.getVariable("massApprove_checkFormOrgaTCFTaskComment").toString();
 
-                Date closeDate = delegateExecution.<DateValue>getVariableTyped("massApprove_confirmOrgaTCFTaskCloseDate").getValue();
-                tcfDateValue = df.format(closeDate);
+                tcfDateValue = delegateExecution.getVariable("massApprove_confirmOrgaTCFTaskCloseDate").toString();
                 //tcfDateValue = String.valueOf(delegateExecution.getVariable("massApprove_confirmOrgaTCFTaskCloseDate"));
                 //tcfDateValue = String.valueOf(delegateExecution.getVariable("massApprove_checkFormOrgaTCFTaskCloseDate"));
             }
@@ -320,6 +319,8 @@ public class PostTCFForm implements ExecutionListener {
                 "</div>";
 
             requestBodyJSON.put("Requirments", htmlTemplateTCF);
+            System.err.println("requestBodyJSON.toString()");
+            System.err.println(requestBodyJSON.toString());
             delegateExecution.setVariable(billingTCF + "PostRequestBodyTCF", requestBodyJSON.toString());
 
             if (isSftp) {
@@ -327,7 +328,7 @@ public class PostTCFForm implements ExecutionListener {
                 String resultContexninfo = "error";
                 String resultItems = "error";
                 try {
-                    String responseText = postAuthenticatedResponse("https://sp.kcell.kz/forms/_api/contextinfo", "kcell.kz", "camunda_sharepoint", "Bn12#Qaz");
+                    String responseText = postAuthenticatedResponse(baseUri+"/contextinfo", "kcell.kz", username, pwd);
                     resultContexninfo = responseText;
                 }catch(Exception e){
                     e.printStackTrace();
@@ -337,7 +338,7 @@ public class PostTCFForm implements ExecutionListener {
                     JSONObject contextinfoJSON = new JSONObject(resultContexninfo);
                     if(contextinfoJSON.has("FormDigestValue")){
                         try {
-                            String responseText = postItemsResponse("https://sp.kcell.kz/forms/_api/Lists/getbytitle('TCF_test')/items", "kcell.kz", "camunda_sharepoint", "Bn12#Qaz", contextinfoJSON.get("FormDigestValue").toString(), requestBodyJSON.toString());
+                            String responseText = postItemsResponse(baseUri+"/Lists/getbytitle('TCF_test')/items", "kcell.kz", username, pwd, contextinfoJSON.get("FormDigestValue").toString(), requestBodyJSON.toString());
                             resultItems = responseText;
                         }catch(Exception e){
                             e.printStackTrace();
