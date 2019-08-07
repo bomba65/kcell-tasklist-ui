@@ -36,5 +36,6 @@ define([
 	'./summernoteRichText',
 	'./search/networkArchitectureSearch',
 	'./search/deliveryPortalSearch',
-	'./search/demandSearch'
+	'./search/demandSearch',
+	'./dismantleReplace/dismantleInfo'
 	], function(){});

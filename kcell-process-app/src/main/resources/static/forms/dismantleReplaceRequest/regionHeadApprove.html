@@ -1,10 +1,114 @@
-<!DOCTYPE html>
-<html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <title>Title</title>
-</head>
-<body>
+<form role="form" class="form-horizontal" name="kcell_form" novalidate>
+    <script cam-script type="text/form-script">
+        inject(['$scope', '$http', 'Uri', '$rootScope', '$q', 'Upload', '$timeout', function ($scope, $http, Uri, $rootScope, $q, Upload, $timeout) {
+            var variables = [
+                'siteInformation',
+                'alternativePlaces',
+                'siteRegion',
+                'sdrCreationDate',
+                'validityDate',
+                'siteName',
+                'site',
+                'site_name',
+                'gsmAntennaTypes',
+                'coverageAreaFile',
+                'transmissionAntennaType',
+                'project',
+                'band',
+                'rbsLocation',
+                'otherRbsLocation',
+                'contractType',
+                'rbsType',
+                'requestType',
+                'soaComplaintId',
+                'dismantlingInitiator',
+                'otherInitiator',
+                'priority',
+                'contractId',
+                'rbsQuantity',
+                'legallyName',
+                'squareMeter',
+                'contactInformation',
+                'address',
+                'dismantlingReason',
+                'startComment',
+                'resolutions'
+            ];
 
-</body>
-</html>
+            camForm.on('form-loaded', function () {
+                variables.forEach(function (el) {
+                    camForm.variableManager.fetchVariable(el);
+                });
+                $http.get('/camunda/api/engine/engine/default/task/' + camForm.taskId).then(
+                        function(result){
+                            $scope.processInstanceId = result.data.processInstanceId;
+                        },
+                        function (error) {
+                            console.log(error.data);
+                        }
+                );
+                $scope.dismantleInfo = [];
+            });
+
+            camForm.on('variables-fetched', function () {
+                variables.forEach(function (el) {
+                    if(camForm.variableManager.variables[el].value){
+                        if(camForm.variableManager.variables[el].type === 'Date'){
+                            $scope[el] = new Date(camForm.variableManager.variables[el].value);
+                            $scope.dismantleInfo[el] = new Date(camForm.variableManager.variables[el].value);
+                        } else {
+                            $scope[el] = camForm.variableManager.variables[el].value;
+                            $scope.dismantleInfo[el] = camForm.variableManager.variables[el].value;
+                        }
+                    }
+                });
+                camForm.variableManager.createVariable({
+                    name: 'region_approveTaskResult',
+                    type: 'String',
+                    value: ''
+                });
+
+                camForm.variableManager.createVariable({
+                    name: 'region_approveTaskComment',
+                    type: 'String',
+                    value: ''
+                });
+
+                $scope.region_approveTaskResult = '';
+                $scope.region_approveTaskComment = '';
+            });
+
+            camForm.on('submit', function () {
+                camForm.variableManager.variableValue('region_approveTaskResult', $scope.region_approveTaskResult);
+                camForm.variableManager.variableValue('region_approveTaskComment', $scope.region_approveTaskComment);
+                camForm.variableManager.variableValue('soaComplaintId', $scope.dismantleInfo.soaComplaintId);
+                camForm.variableManager.variableValue('validityDate', $scope.dismantleInfo.validityDate);
+                camForm.variableManager.destroyVariable('resolutions');
+            });
+        }]);
+    </script>
+    <dismantle-info dismantle-info="dismantleInfo"></dismantle-info>
+    <div class="form-group">
+        <label class="col-sm-4 control-label"></label>
+        <div class="col-sm-8">
+            <label class="radio-inline">
+                <input type="radio" name="region_approveTaskResult" ng-model="region_approveTaskResult" value="approve" required> Approve
+            </label>
+            <label class="radio-inline">
+                <input type="radio" name="region_approveTaskResult" ng-model="region_approveTaskResult" value="reject" required> Reject
+            </label>
+            <label class="radio-inline">
+                <input type="radio" name="region_approveTaskResult" ng-model="region_approveTaskResult" value="returnForCorrection" required> Return for correction
+            </label>
+            <label class="error" ng-show="kcell_form.region_approveTaskResult.$error.required && ( kcell_form.region_approveTaskResult.$touched || view.submitted)">Required field</label>
+        </div>
+    </div>
+
+    <div class="form-group">
+        <label class="col-sm-4 control-label">Comments</label>
+        <div class="col-sm-8">
+            <textarea class="form-control" ng-model="region_approveTaskComment" name="region_approveTaskComment" placeholder="Comments..." maxlength="500" rows="4" style="resize:none" ng-required="region_approveTaskResult == 'reject' || region_approveTaskResult == 'returnForCorrection'"></textarea>
+            <label class="error" ng-show="kcell_form.region_approveTaskComment.$error.required && ( kcell_form.region_approveTaskComment.$touched || view.submitted)">Required field</label>
+        </div>
+    </div>
+</form>

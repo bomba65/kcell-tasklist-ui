@@ -13,7 +13,7 @@
       <bpmn:outgoing>SequenceFlow_1vk90as</bpmn:outgoing>
     </bpmn:exclusiveGateway>
     <bpmn:sequenceFlow id="SequenceFlow_094te9p" name="approve" sourceRef="exclgw_resolution_region" targetRef="central_groups">
-      <bpmn:conditionExpression xsi:type="bpmn:tFormalExpression">${regionHeadApproveResult == 'approve'}</bpmn:conditionExpression>
+      <bpmn:conditionExpression xsi:type="bpmn:tFormalExpression">${region_approveTaskResult == 'approve'}</bpmn:conditionExpression>
     </bpmn:sequenceFlow>
     <bpmn:exclusiveGateway id="exclgw_resolution_center">
       <bpmn:incoming>SequenceFlow_1cf5hf6</bpmn:incoming>
@@ -27,7 +27,7 @@
       <bpmn:outgoing>SequenceFlow_0z9n3d6</bpmn:outgoing>
     </bpmn:serviceTask>
     <bpmn:sequenceFlow id="SequenceFlow_0q6km18" name="reject" sourceRef="exclgw_resolution_region" targetRef="generate_doc1">
-      <bpmn:conditionExpression xsi:type="bpmn:tFormalExpression">${regionHeadApproveResult == 'reject'}</bpmn:conditionExpression>
+      <bpmn:conditionExpression xsi:type="bpmn:tFormalExpression">${region_approveTaskResult == 'reject'}</bpmn:conditionExpression>
     </bpmn:sequenceFlow>
     <bpmn:endEvent id="cancel1" name="Cancel">
       <bpmn:incoming>SequenceFlow_1q958cx</bpmn:incoming>
@@ -41,7 +41,7 @@
     </bpmn:endEvent>
     <bpmn:sequenceFlow id="SequenceFlow_040yh78" sourceRef="send_reject_by_center" targetRef="update_site_status2" />
     <bpmn:sequenceFlow id="SequenceFlow_0m5cbpz" sourceRef="startevt_sdr_srr_initial" targetRef="initial_site_status" />
-    <bpmn:userTask id="region_approve" name="region head approve" camunda:formKey="embedded:app:forms/dismantleReplaceRequest/regionHeadApprove.html">
+    <bpmn:userTask id="region_approve" name="region head approve" camunda:formKey="embedded:app:forms/dismantleReplaceRequest/regionHeadApprove.html" camunda:priority="#{priority == &#39;critical&#39;? 100: 50}">
       <bpmn:extensionElements>
         <camunda:taskListener class="kz.kcell.bpm.assignments.dismantleReplace.RegionHeadAssignmentHandler" event="create" />
       </bpmn:extensionElements>
@@ -49,9 +49,11 @@
       <bpmn:incoming>SequenceFlow_1f0svoe</bpmn:incoming>
       <bpmn:outgoing>SequenceFlow_1v2k93d</bpmn:outgoing>
     </bpmn:userTask>
-    <bpmn:userTask id="central_groups" name="central groups" camunda:formKey="embedded:app:forms/dismantleReplaceRequest/centralGroups.html">
+    <bpmn:userTask id="central_groups" name="central group ${group}" camunda:formKey="embedded:app:forms/dismantleReplaceRequest/centralGroups.html" camunda:priority="#{priority == &#39;critical&#39;? 100: 50}">
+      <bpmn:documentation>SITE DISMANTLING REQUEST</bpmn:documentation>
       <bpmn:extensionElements>
         <camunda:taskListener class="kz.kcell.bpm.assignments.dismantleReplace.CentralGroupsAssignmentHandler" event="create" />
+        <camunda:taskListener class="kz.kcell.bpm.dismantleReplace.SetCentralGroupsTaskResult" event="complete" />
       </bpmn:extensionElements>
       <bpmn:incoming>SequenceFlow_094te9p</bpmn:incoming>
       <bpmn:outgoing>SequenceFlow_1cf5hf6</bpmn:outgoing>
@@ -73,7 +75,7 @@
       <bpmn:incoming>SequenceFlow_1m6vg8v</bpmn:incoming>
       <bpmn:outgoing>SequenceFlow_1q958cx</bpmn:outgoing>
     </bpmn:serviceTask>
-    <bpmn:serviceTask id="update_site_status2" name="update site status" camunda:class="kz.kcell.bpm.dismantleReplace.setSiteStatus">
+    <bpmn:serviceTask id="update_site_status2" name="update site status" camunda:class="kz.kcell.bpm.dismantleReplace.SetSiteStatus">
       <bpmn:incoming>SequenceFlow_040yh78</bpmn:incoming>
       <bpmn:outgoing>SequenceFlow_1eo6tfw</bpmn:outgoing>
     </bpmn:serviceTask>
@@ -93,14 +95,17 @@
       <bpmn:outgoing>SequenceFlow_050uvcr</bpmn:outgoing>
     </bpmn:serviceTask>
     <bpmn:sequenceFlow id="SequenceFlow_050uvcr" sourceRef="generate_doc3" targetRef="update_site_status3" />
-    <bpmn:sequenceFlow id="SequenceFlow_1vk90as" name="modify" sourceRef="exclgw_resolution_region" targetRef="region_modify">
-      <bpmn:conditionExpression xsi:type="bpmn:tFormalExpression">${regionHeadApproveResult == 'modify'}</bpmn:conditionExpression>
+    <bpmn:sequenceFlow id="SequenceFlow_1vk90as" name="return for correction" sourceRef="exclgw_resolution_region" targetRef="region_modify">
+      <bpmn:conditionExpression xsi:type="bpmn:tFormalExpression">${region_approveTaskResult == 'returnForCorrection'}</bpmn:conditionExpression>
     </bpmn:sequenceFlow>
     <bpmn:sequenceFlow id="SequenceFlow_1f0svoe" sourceRef="region_modify" targetRef="region_approve" />
     <bpmn:sequenceFlow id="SequenceFlow_00k4ast" name="return for correction" sourceRef="exclgw_resolution_center" targetRef="region_modify">
       <bpmn:conditionExpression xsi:type="bpmn:tFormalExpression">${centralGroupsResult == 'returnForCorrection'}</bpmn:conditionExpression>
     </bpmn:sequenceFlow>
-    <bpmn:userTask id="region_modify" name="Modify request" camunda:formKey="embedded:app:forms/dismantleReplaceRequest/modify.html" camunda:assignee="${ starter }">
+    <bpmn:userTask id="region_modify" name="Modify request" camunda:formKey="embedded:app:forms/dismantleReplaceRequest/modify.html" camunda:assignee="${ starter }" camunda:priority="#{priority == &#39;critical&#39;? 100: 50}">
+      <bpmn:extensionElements>
+        <camunda:taskListener class="kz.kcell.bpm.assignments.dismantleReplace.DefineInitiatorGroupHandler" event="create" />
+      </bpmn:extensionElements>
       <bpmn:incoming>SequenceFlow_1vk90as</bpmn:incoming>
       <bpmn:incoming>SequenceFlow_00k4ast</bpmn:incoming>
       <bpmn:outgoing>SequenceFlow_1f0svoe</bpmn:outgoing>
@@ -430,7 +435,7 @@
         <di:waypoint x="859" y="270" />
         <di:waypoint x="859" y="161" />
         <bpmndi:BPMNLabel>
-          <dc:Bounds x="867" y="214" width="33" height="14" />
+          <dc:Bounds x="864" y="207" width="49" height="27" />
         </bpmndi:BPMNLabel>
       </bpmndi:BPMNEdge>
       <bpmndi:BPMNEdge id="SequenceFlow_1f0svoe_di" bpmnElement="SequenceFlow_1f0svoe">
