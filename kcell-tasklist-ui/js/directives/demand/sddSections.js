@@ -18,7 +18,7 @@ define(['./../module'], function(module){
           [
             {from: 0, to: 1},
             {from: 2, to: 5, name: 'Functional requirements', hidden: true},
-            {from: 5, to: 7}
+            {from: 6, to: 7}
           ],
           [
             {from: 0, to: 8}

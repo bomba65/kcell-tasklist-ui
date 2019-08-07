@@ -41,15 +41,15 @@
       $scope.supportiveInputs = [];
       $scope.resources = [];
       $scope.materials = [];
+      $scope.assigneeName = $rootScope.authentication.name;
 
       var processInstanceId = null;
       var taskName = null;
-      var assigneeName = $rootScope.authentication.name;
       var createdDate = new Date();
       var claimDate = new Date();
 
       $http.get("/camunda/api/engine/engine/default/user/" + $rootScope.authentication.name+ "/profile").then(function(result){
-        assigneeName = (result.data.firstName ? result.data.firstName : "") + " " + (result.data.lastName ? result.data.lastName : "");
+        $scope.assigneeName = (result.data.firstName ? result.data.firstName : "") + " " + (result.data.lastName ? result.data.lastName : "");
       });
 
       $http.get('/camunda/api/engine/engine/default/task/' + camForm.taskId).then(
@@ -149,7 +149,7 @@
         if(!$scope.resolutions){
           $scope.resolutions = [];
         }
-        $scope.resolutions.unshift({processInstanceId: processInstanceId, assignee: assigneeName, resolution: $scope.resolution, comment: $scope.comment, taskId: camForm.taskId, taskEndDate: submitDate, taskName: taskName, dateOfAssign: createdDate, claimDate: claimDate});
+        $scope.resolutions.unshift({processInstanceId: processInstanceId, assignee: $scope.assigneeName, resolution: $scope.resolution, comment: $scope.comment, taskId: camForm.taskId, taskEndDate: submitDate, taskName: taskName, dateOfAssign: createdDate, claimDate: claimDate});
         camForm.variableManager.destroyVariable('resolutions');
         camForm.variableManager.createVariable({
           name: 'resolutions',
@@ -566,7 +566,7 @@
   </div>
 
   <div ng-show="showSDDPDF">
-    <demand-sdd-pdf date="sddPDFDate" data="SDDData" element-id="'pdfDiv'" b-key="businessKey" d-name="demandName" d-description="generalData.general.description"></demand-sdd-pdf>
+    <demand-sdd-pdf date="sddPDFDate" data="SDDData" element-id="'pdfDiv'" b-key="businessKey" d-name="demandName" d-description="generalData.general.description" author="assigneeName"></demand-sdd-pdf>
   </div>
 
   <div class="form-group">

@@ -316,6 +316,27 @@ define(['./../module', 'xlsx'], function(module){
                                 var cellVal = sheet[r]['C' + String.fromCharCode(c)];
                                 accuralsRow.month[1][scope.months[c - 58]] = parseFloat(cellVal)?parseFloat(cellVal):0.0;
                             }
+
+                            var isFilled = false;
+
+                            for (var i = 1; i < 6; i++) {
+                                if (cashFlowRow.year[i] || accuralsRow.year[i]) {
+                                    isFilled = true;
+                                    break;
+                                }
+                            }
+
+                            if (!isFilled) {
+                                for (var i = 0; i < 12; i++) {
+                                    if (cashFlowRow.month[1][scope.months[i]] || accuralsRow.month[1][scope.months[i]]) {
+                                        isFilled = true;
+                                        break;
+                                    }
+                                }
+                            }
+
+                            if (!isFilled) continue;
+
                             if (generalInfo.rocType.toLowerCase().startsWith('revenue')) {
                                 scope.data.general.revenues.push(generalInfo);
                                 scope.data.cashFlow.revenues.push(cashFlowRow);

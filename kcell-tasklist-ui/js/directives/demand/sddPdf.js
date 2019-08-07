@@ -9,7 +9,8 @@ define(['./../module'], function(module){
         bKey: '=',
         dName: '=',
         dDescription: '=',
-        date: '='
+        date: '=',
+        author: '='
       },
       link: function(scope, element, attrs) {
         scope.sections = [
