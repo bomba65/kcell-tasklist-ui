@@ -5,19 +5,41 @@ th.sortable {
 th.sortable:hover {
 	background: #EEE;
 }
+.three-cols-layout-cell.top {
+	border: none;
+	background-color: #fafafa;
+	box-shadow: 0 2px 6px -4px #555;
+	padding-bottom: 10px;
+	margin-bottom: 10px;
+	padding-right: 3px;
+}
+.side-blocks {
+	padding-left:0 !important;
+
+	overflow: hidden;
+	border: none;
+	box-shadow: 0 2px 10px -4px #555;
+}
+.left li:hover,  .left.side-blocks li.active{
+	border-left-color: transparent !important;
+}
+
 </style>
 <div class="row layout-row">
-	<div class="col-md-2 no-float left" ng-show="firstLevel == 'open'" style="padding-right: 0px; background-color: #fff" ng-mouseleave="closeDiv('firstLevel')">
+	<div class="col-md-2 no-float left side-blocks" ng-show="firstLevel == 'open'" style="padding-right: 0px; background-color: #fff" ng-mouseleave="closeDiv('firstLevel')">
 		<div class="left-wrapper">
+			<header class="three-cols-layout-cell top">
 			<a ng-click="collapseLevels('firstLevel')"><i class="glyphicon glyphicon-triangle-left" style="padding-top: 6px; float: right;"></i></a>
-			<ul id="projects">
+			</header>
+				<ul id="projects" style="margin-top:3px;">
 				<li ng-repeat="project in projects" style="margin-bottom: 10px;">
-					<a ng-click="collapseProject(project)">{{$root.selectedProject.key == project.key?'-':'+'}} {{project.name}} ({{project.itemCount}})</a>
+					<a ng-click="collapseProject(project)" ng-style="($root.selectedProject.key == project.key && !$root.selectedProcess && !$root.selectedTask)? {'font-weight' : 'bold'}: {'font-weight' : 'normal'}">{{$root.selectedProject.key == project.key?'-':'+'}} {{project.name}}</a>
 					<ul id="processes_{{$root.selectedProject.key}}" ng-if="$root.selectedProject.key == project.key" style="margin-top: 10px;">
 						<li ng-repeat="process in project.processes" class="active" style="padding-top: 3px; padding-bottom: 3px;">
-							<a ng-click="collapseProcess(process)">{{$root.selectedProcess.key == process.key?'-':'+'}} {{process.name}}({{process.itemCount}})</a>
+							<a ng-click="collapseProcess(process)" ng-style="($root.selectedProcess.key == process.key && (!$root.selectedTask || $root.selectedTask.key!==process.key))? {'font-weight' : 'bold'}: {'font-weight' : 'normal'}">{{$root.selectedProcess.key == process.key?'-':'+'}} {{process.name}}</a>
 							<ul id="process_menus" ng-show="$root.selectedProcess.key == process.key">
 								<li><a href="#/processes"><i class="glyphicon glyphicon-menu-right"></i> Processes</a></li>
+								<li><a ng-click="collapseTask(process)" ng-style="$root.selectedTask.key == process.key? {'font-weight' : 'bold'}: {'font-weight' : 'normal'}"><i class="glyphicon glyphicon-menu-right"></i> Tasks ({{process.itemCount}})</a></li>
 								<li ng-if="hasGroup('kcellUsers') && ($root.selectedProcess.key == 'Revision' || $root.selectedProject.key == 'DeliveryPortal' || $root.selectedProject.key == 'DemandUAT')"><a href="#/search"><i class="glyphicon glyphicon-menu-right"></i> Search</a></li>
 								<li ng-if="hasGroup('kcellUsers') && $root.selectedProject.key == 'NetworkInfrastructure'"><a href="#/statistics"><i class="glyphicon glyphicon-menu-right"></i> Statistics</a></li>
 							</ul>
@@ -27,24 +49,18 @@ th.sortable:hover {
 			</ul>
 		</div>
 	</div>
-	<div class="no-float left" ng-show="firstLevel == 'closed'" ng-mouseover="openDiv('firstLevel')">
+	<div class="no-float left side-blocks" style="padding-left: 4px !important; padding-right: 2px;" ng-show="firstLevel == 'closed'" ng-mouseover="openDiv('firstLevel')">
 		<div class="left-wrapper">
 			<a  ng-click="collapseLevels('firstLevel')"><i class="glyphicon glyphicon-triangle-right" style="padding-top: 6px; float: right;"></i></a>
 		</div>
 	</div>
 
-	<div class="col-md-2 no-float left" ng-show="secondLevel == 'open'" style="padding-right: 0px; background-color: #fff">
+	<div class="col-md-2 no-float left side-blocks" ng-show="secondLevel == 'open'" style="padding-right: 0px; background-color: #fff">
 		<div class="left-wrapper">
+			<header class="three-cols-layout-cell top">
 			<a ng-click="collapseLevels('secondLevel')"><i class="glyphicon glyphicon-triangle-left text-right" style="padding-top: 6px; float: right;"></i></a>
-			<u>{{$root.selectedProject.name}}</u><u ng-if="$root.selectedProcess"><i class="glyphicon glyphicon-menu-right"></i> {{$root.selectedProcess.name}}</u>
-			<span ng-if="processDefinitions && processDefinitions.length > 0" ng-show="!$root.selectedProcess" style="margin-top: 10px;">
-				<ul id="definitions">
-					<li ng-repeat="pd in getProcessDefinitions($root.selectedProject)" style="padding-top: 3px; padding-bottom: 3px;">
-						<a ng-click="startProcess(pd.id)">Start process - <b>{{pd.name}}</b> </a>
-					</li>
-				</ul>
-			</span>
-			<ul id="filters" ng-show="$root.selectedProcess" style="margin-top: 10px;">
+			</header>
+				<ul id="filters" ng-show="$root.selectedProcess" >
 				<li ng-repeat="filter in $root.selectedProcess.filters" ng-class="{active: filter.id == currentFilter.id}" style="padding-top: 3px; padding-bottom: 3px;">
 					<a ng-click="selectFilter(filter)">{{filter.name}} ({{filter.itemCount}})</a>
 				</li>
@@ -65,7 +81,7 @@ th.sortable:hover {
 			</div>
 		</div>
 	</div>
-	<div class="no-float left" ng-show="secondLevel == 'closed'" ng-style="$root.selectedProject? '': {'background-color' : 'gainsboro'}">
+	<div class="no-float left side-blocks" style="padding-left: 5px !important;" ng-show="secondLevel == 'closed'" ng-style="$root.selectedProject? '': {'background-color' : 'gainsboro'}">
 		<div class="left-wrapper">
 			<span ng-hide="$root.selectedProject"><i class="glyphicon glyphicon-triangle-right" style="padding-top: 6px; float: right;"></i></span>
 			<a ng-show="$root.selectedProject" ng-click="collapseLevels('secondLevel')"><i class="glyphicon glyphicon-triangle-right" style="padding-top: 6px; float: right;"></i></a>

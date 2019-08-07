@@ -142,7 +142,9 @@ define('app',[
 			if($rootScope.selectedProject && !$rootScope.selectedProcess && localStorageService.get('selectedProcessKey') && _.some($rootScope.selectedProject.processes, function(process){ return process.key === localStorageService.get('selectedProcessKey')})){
 				$rootScope.selectedProcess = _.find($rootScope.selectedProject.processes, function(process){ return process.key === localStorageService.get('selectedProcessKey')});
 			}
-
+			if($rootScope.selectedProject && $rootScope.selectedProcess && !$rootScope.selectedTask && localStorageService.get('selectedTaskKey') && _.some($rootScope.selectedProject.processes, function(process){ return process.key === localStorageService.get('selectedTaskKey')})){
+				$rootScope.selectedTask = _.find($rootScope.selectedProject.processes, function(process){ return process.key === localStorageService.get('selectedTaskKey')});
+			}
 			return [];
 		}
     }
@@ -283,12 +285,25 @@ define('app',[
 			$rootScope.selectedProject = project;
 			if(project){
 				localStorageService.set('selectedProjectKey',project.key);
+			} else {
+				localStorageService.set('selectedProjectKey', undefined);
 			}
+
 		}
 		$rootScope.updateSelectedProcess = function(process){
 			$rootScope.selectedProcess = process;
 			if(process){
 				localStorageService.set('selectedProcessKey',process.key);
+			}else {
+				localStorageService.set('selectedProcessKey', undefined);
+			}
+		}
+		$rootScope.updateSelectedTask = function(process){
+			$rootScope.selectedTask = process;
+			if(process){
+				localStorageService.set('selectedTaskKey', process.key);
+			} else {
+				localStorageService.set('selectedTaskKey', undefined);
 			}
 		}
 		$rootScope.getCatalogsHttpByName = function(name){

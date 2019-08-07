@@ -4,6 +4,7 @@ define(['./module','camundaSDK', 'lodash', 'big-js'], function(module, CamSDK, _
 		$rootScope.currentPage = {
 			name: 'tasks'
 		};
+
 		var camClient = new CamSDK.Client({
 		  mock: false,
 		  apiUri: '/camunda/api/engine/'
@@ -45,6 +46,7 @@ define(['./module','camundaSDK', 'lodash', 'big-js'], function(module, CamSDK, _
 		$scope.fieldName = 'businessKey';
 		$scope.fieldFilter = {};
 		$scope.visibilityFilter = {};
+
 
 		$scope.setVisibilityFilter = function(fieldName) {
 			//$scope.fieldName = fieldName;
@@ -132,6 +134,40 @@ define(['./module','camundaSDK', 'lodash', 'big-js'], function(module, CamSDK, _
 		$scope.startProcess = function(id){
 			StartProcessService(id);
 		}
+		function showProcessStartButtonVisible () {
+			var showModal = false;
+			$http.get(baseUrl+'/process-definition?latest=true&active=true&firstResult=0&maxResults=30&startablePermissionCheck=true').then(
+				function(results){
+					$scope.processDefinitions = [];
+					angular.forEach(results.data, function(e){
+						if($rootScope.isProcessAvailable(e.key)){
+							$scope.processDefinitions.push(e);
+						}
+					});
+					if ($scope.processDefinitions.length>0) {
+						showModal= true;
+					}
+					$rootScope.isProcessStartButtonVisible = showModal;
+				},
+				function(error){
+					console.log(error.data);
+					$rootScope.isProcessStartButtonVisible = showModal;
+				}
+			);
+		}
+		$rootScope.isProcessStartButtonVisible = showProcessStartButtonVisible();
+		$rootScope.modalStartProcess = function() {
+			exModal.open({
+				scope: {
+					projects : $scope.projects,
+					getAllProcessDefinitions: $scope.getAllProcessDefinitions,
+					startProcess: $scope.startProcess
+				},
+				templateUrl: './js/partials/startProcess.html',
+				size: 'md'
+			}).then(function (results) {
+			});
+		};
 		/*
 		$scope.startProcess = function(id){
 			$http.get(baseUrl+'/process-definition/'+id+'/startForm').then(
@@ -474,22 +510,27 @@ define(['./module','camundaSDK', 'lodash', 'big-js'], function(module, CamSDK, _
         $scope.collapseProject = function(project) {
 			$rootScope.updateSelectedProject(project);
 			$rootScope.updateSelectedProcess(undefined);
-			if($scope.secondLevel === 'closed'){
-				$scope.collapseLevels('secondLevel');
-			}
+			$rootScope.updateSelectedTask(undefined);
 			loadProcessDefinitions();
 			$scope.currentFilter = undefined;
 			$scope.taskGroups = {};
-
 			getTaskList();
+			$scope.secondLevel = "closed";
         }
 
         $scope.collapseProcess = function(process) {
 			$rootScope.updateSelectedProcess(process);
+			if ($rootScope.selectedTask && process!==$rootScope.selectedTask.key) {
+				$rootScope.updateSelectedTask(undefined);
+			}
 			$scope.currentFilter = undefined;
 			$scope.taskGroups = {};
+			$scope.secondLevel = "closed";
         }
-
+		$scope.collapseTask = function(task) {
+			$rootScope.updateSelectedTask(task);
+			$scope.collapseLevels('secondLevel');
+		}
 		function loadProcessDefinitions(){
 			$http.get(baseUrl+'/process-definition?latest=true&active=true&firstResult=0&maxResults=100&startablePermissionCheck=true').then(
 				function(results){
@@ -512,7 +553,15 @@ define(['./module','camundaSDK', 'lodash', 'big-js'], function(module, CamSDK, _
 				return processList.indexOf(pd.key) !== -1 && pd.key !== 'after-sales-ivr-sms';
 			});
 		}
-
+		$scope.getAllProcessDefinitions = function(projects){
+			var processList = [];
+			angular.forEach(projects, function(project) {
+				processList += _.map(project.processes, 'key');
+			});
+			return _.filter($scope.processDefinitions, function(pd){
+				return processList.indexOf(pd.key) !== -1 && pd.key !== 'after-sales-ivr-sms';
+			});
+		}
 		function getTaskList(){
 			$scope.projects = angular.copy($rootScope.projects);
 			$http.get(baseUrl+'/filter?resoureType=Task').then(
@@ -583,7 +632,7 @@ define(['./module','camundaSDK', 'lodash', 'big-js'], function(module, CamSDK, _
 
 
 		function loadTasks() {
-			if($rootScope.selectedProcess && $scope.secondLevel === "closed"){
+			if($rootScope.selectedTask && $rootScope.selectedProcess && $rootScope.selectedTask===$rootScope.selectedProcess && $scope.secondLevel === "closed"){
 				$scope.collapseLevels('secondLevel');
 			}
 
@@ -630,7 +679,6 @@ define(['./module','camundaSDK', 'lodash', 'big-js'], function(module, CamSDK, _
 							if(selectedTask){
 								$state.go('tasks.task', {id:selectedTask.id});
 							} else if($scope.tryToOpen){
-								console.log($scope.tryToOpen);
 								$http.get(baseUrl+'/task/'+$scope.tryToOpen.id).then(
 									function(taskResult){
 										$scope.tryToOpen = undefined;
