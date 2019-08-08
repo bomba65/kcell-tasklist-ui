@@ -20,7 +20,7 @@ INSERT INTO public.act_ru_authorization (id_, rev_, type_, group_id_, user_id_, 
 
 
 INSERT INTO public.act_id_group (id_, rev_, name_, type_) VALUES ('infrastructure_dismantle_users', 1, 'infrastructure_dismantle_users', 'WORKFLOW') ON CONFLICT(id_) DO NOTHING;
-INSERT INTO public.act_ru_authorization (id_, rev_, type_, group_id_, user_id_, resource_type_, resource_id_, perms_) VALUES (uuid_generate_v4(), 1, 1, 'infrastructure_dismantle_users', null, 2, 'infrastructure_dismantle_users', 2) ON CONFLICT(id_) DO NOTHING;
+INSERT INTO public.act_ru_authorization (id_, rev_, type_, group_id_, user_id_, resource_type_, resource_id_, perms_) VALUES (uuid_generate_v4(), 1, 1, 'infrastructure_dismantle_users', null, 2, 'infrastructure_dismantle_users', 2) ON CONFLICT(type_, group_id_, resource_type_, resource_id_) DO NOTHING;
 
 INSERT INTO public.act_id_group (id_, rev_, name_, type_) VALUES ('dismantle_replacement_central_planning', 1, 'dismantle_replacement_central_planning', 'WORKFLOW') ON CONFLICT(id_) DO NOTHING;
 INSERT INTO public.act_ru_authorization (id_, rev_, type_, group_id_, user_id_, resource_type_, resource_id_, perms_) VALUES (uuid_generate_v4(), 1, 1, 'dismantle_replacement_central_planning', null, 2, 'dismantle_replacement_central_planning', 2) ON CONFLICT(id_) DO NOTHING;
