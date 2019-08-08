@@ -24,37 +24,68 @@
 <div class="col-sm-12">
   <div ng-if="useCases && useCases.length">
     <div ng-repeat="u in useCases track by $index" ng-init="uIndex = $index" class="col-sm-12 use-case" ng-click="toggleUseCaseCollapse($event, $index)">
-      <div class="pull-left" style="margin-left: 10px;">
-        <div class="form-group">
-          <label class="control-label not-collapsable">{{uIndex + 1}}</label>
+      <div class="pull-right not-collapsable" style="margin-right: 10px;" ng-if="!disabled" ng-click="useCaseDelete($index)">
+        <div class="form-group not-collapsable">
+          <i class="pull-right glyphicon glyphicon-trash control-label glyphicon-clickable not-collapsable"></i>
         </div>
       </div>
-      <div class="form-group col-sm-12 no-padding-right">
+      <div class="pull-left" style="margin-left: 10px;">
+        <div class="form-group">
+          <label class="control-label not-collapsable">{{$index + 1}}</label>
+        </div>
+      </div>
+      <div class="form-group col-sm-12" ng-class="{'no-padding-right': disabled}">
         <label class="col-sm-2 control-label"><span class="not-collapsable">Use case name</span></label>
-        <div class="col-sm-10 no-padding-right">
+        <div class="col-sm-10 not-collapsable" ng-if="!disabled">
+          <textarea elastic-textarea rows="1" class="form-control" ng-model="u.name" name="uc_{{$index}}_name" required ng-keydown="checkEnter($event)"></textarea>
+          <span class="has-error" ng-if="form['uc_' + $index + '_name'].$error.required && (form['uc_' + $index + '_name'].$touched || view.submitted)">Required field</span>
+        </div>
+        <div class="col-sm-10 no-padding-right" ng-if="disabled">
           <div class="disabled-element not-collapsable">{{u.name}}</div>
         </div>
       </div>
-      <div class="col-sm-12" style="margin-left: 10px;" ng-if="!useCaseCollapsed[uIndex]">
+      <div class="col-sm-12" style="margin-left: 10px;" ng-if="!useCaseCollapsed[$index]">
         <div class="form-group">
           <label class="col-sm-12 control-label"><span class="not-collapsable">Description</span></label>
           <div class="col-sm-12 not-collapsable">
-            <demand-rich-text data="u.description" disabled="true" min-height="100"></demand-rich-text>
+            <demand-rich-text data="u.description" disabled="disabled" min-height="100" process-id="processId" task-id="taskId" templates="{'brd_use_case': 'BRD Use case'}"></demand-rich-text>
+            <input type="hidden" ng-model="u.description" name="uc_{{$index}}_description" ng-required="!disabled">
+            <span class="has-error" ng-if="form['uc_' + $index + '_description'].$error.required && (form['uc_' + $index + '_description'].$touched || view.submitted)">Required field</span>
           </div>
         </div>
       </div>
       <div ng-repeat="tc in data[uIndex] track by $index" ng-init="tIndex = $index" ng-if="!useCaseCollapsed[uIndex]" class="form-group col-sm-12 no-padding-right" style="margin-left: 10px;">
-        <label class="col-sm-2 col-md-1 control-label" style="padding-left: 0; padding-right: 0;"><span class="not-collapsable">Test case {{ tIndex + 1 }} </span></label>
-        <div class="col-sm-9 col-md-10 not-collapsable" ng-if="!disabled" style="padding-left: 0; padding-right: 0;">
-          <textarea rows="1" elastic-textarea class="form-control" ng-model="tc.value" name="test_case_{{uIndex}}_{{tIndex}}" required></textarea>
-          <span class="has-error" ng-if="form['test_case_'+uIndex+'_'+tIndex].$error.required && (form['test_case_'+uIndex+'_'+tIndex].$touched || view.submitted)">Required field</span>
-        </div>
-        <div class="col-sm-10 col-md-11" ng-if="disabled" style="padding-left: 0;">
-          <div class="disabled-element not-collapsable">{{tc.value}}</div>
-        </div>
-        <div class="col-sm-1 col-md-1 not-collapsable" ng-if="!disabled" ng-click="testCaseDelete(uIndex, tIndex)">
+        <!--<div class="pull-right not-collapsable" ng-if="!disabled" ng-click="testCaseDelete(uIndex, tIndex)">
           <i class="pull-left glyphicon glyphicon-trash control-label glyphicon-clickable not-collapsable"></i>
+        </div>-->
+
+
+        <div class="pull-right not-collapsable" style="margin-right: 20px;" ng-if="!disabled" ng-click="testCaseDelete(uIndex, tIndex)">
+          <div class="form-group not-collapsable">
+            <i class="pull-right glyphicon glyphicon-trash control-label glyphicon-clickable not-collapsable"></i>
+          </div>
         </div>
+        <div class="form-group col-sm-12" ng-class="{'no-padding-right': disabled}">
+          <label class="col-sm-2 col-md-1 control-label" style="padding-left: 0; padding-right: 0;"><span class="not-collapsable">Test case {{ tIndex + 1 }}</span></label>
+          <div class="col-sm-10 col-md-11 not-collapsable" style="padding-left: 0; padding-right: 0;" ng-if="!disabled">
+            <textarea rows="1" elastic-textarea class="form-control" ng-model="tc.value" name="test_case_{{uIndex}}_{{tIndex}}" required></textarea>
+            <span class="has-error" ng-if="form['test_case_'+uIndex+'_'+tIndex].$error.required && (form['test_case_'+uIndex+'_'+tIndex].$touched || view.submitted)">Required field</span>
+          </div>
+          <div class="col-sm-10 col-md-11 no-padding-right" ng-if="disabled" style="padding-left: 0;">
+            <div class="disabled-element not-collapsable">{{tc.value}}</div>
+          </div>
+        </div>
+
+        <!--<div class="form-group no-padding-right">
+          <label class="col-sm-2 col-md-1 control-label" style="padding-left: 0; padding-right: 0;"><span class="not-collapsable">Test case {{ tIndex + 1 }} </span></label>
+          <div class="col-sm-10 col-md-11 not-collapsable" ng-if="!disabled" style="padding-left: 0; padding-right: 0;">
+            <textarea rows="1" elastic-textarea class="form-control" ng-model="tc.value" name="test_case_{{uIndex}}_{{tIndex}}" required></textarea>
+            <span class="has-error" ng-if="form['test_case_'+uIndex+'_'+tIndex].$error.required && (form['test_case_'+uIndex+'_'+tIndex].$touched || view.submitted)">Required field</span>
+          </div>
+          <div class="col-sm-10 col-md-11" ng-if="disabled" style="padding-left: 0;">
+            <div class="disabled-element not-collapsable">{{tc.value}}</div>
+          </div>
+        </div>-->
       </div>
       <div class="col-sm-12" ng-if="!disabled" style="margin-bottom: 10px;">
         <button type="button" class="btn btn-primary pull-right not-collapsable" ng-click="testCaseAdd(uIndex)">Add new Test case</button>
@@ -63,16 +94,16 @@
   </div>
   <div ng-if="!useCases || !useCases.length || (data.list && data.list.length)" class="col-sm-12">
     <div ng-repeat="tc in data.list track by $index" class="form-group">
+      <div class="pull-right" ng-if="!disabled" ng-click="testCaseDelete('list', $index)">
+        <i class="pull-left glyphicon glyphicon-trash control-label glyphicon-clickable"></i>
+      </div>
       <label class="col-sm-2 col-md-1 control-label" style="padding-left: 0; padding-right: 0;">Test case {{ $index + 1 }} </label>
-      <div class="col-sm-9 col-md-10" ng-if="!disabled">
+      <div class="col-sm-10 col-md-11" ng-if="!disabled">
         <textarea rows="1" elastic-textarea class="form-control" ng-model="tc.value" name="test_case_list_{{$index}}" required></textarea>
         <span class="has-error" ng-if="form['test_case_list_'+$index].$error.required && (form['test_case_list_'+$index].$touched || view.submitted)">Required field</span>
       </div>
-      <div class="col-sm-10 col-md-11" ng-if="disabled">
+      <div class="col-sm-11 col-md-12" ng-if="disabled">
         <div class="disabled-element">{{tc.value}}</div>
-      </div>
-      <div class="col-sm-1 col-md-1" ng-if="!disabled" ng-click="testCaseDelete('list', $index)">
-        <i class="pull-left glyphicon glyphicon-trash control-label glyphicon-clickable"></i>
       </div>
     </div>
     <div class="col-sm-12" ng-if="!disabled" style="margin-bottom: 10px;">
