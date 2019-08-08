@@ -15,40 +15,30 @@ define(['./../module', 'xlsx'], function(module){
             link: function(scope, element, attrs) {
 
                 scope.selects = {
-                    ipmDecision: {
-                        visible: false,
-                        options: [
-                            'Идея оценена - не реализуется',
-                            'Проект утвержден и реализуется',
-                            'Проект реализован есть результаты'
-                        ]
-                    },
-                    strategyFit: {
-                        visible: false,
-                        options: [
-                            'Values through superior network connectivity',
-                            'Customer loyalty through convergence',
-                            'Competitive operations',
-                            'Growth in adjacencies',
-                            'Regular expenses'
-                        ]
-                    },
-                    businessPriority: {
-                        visible: false,
-                        options: [
-                            'A - Delayed project realization would have no impact on the business processes.',
-                            'B - The delayed project realization would affect the business processes.',
-                            'C - The delayed project realization would stop the business processes.'
-                        ]
-                    },
-                    opActivitiesImpact: {
-                        visible: false,
-                        options: [
-                            'A - The delayed project realization would not affect the daily operational activities.',
-                            'B - The delayed project realization would affect the daily operational activities.',
-                            'C - The delayed project realization would significantly hinder important daily operational activities.'
-                        ]
-                    }
+                    strategicGoal: [
+                        'Revenue growth',
+                        'Cost optimisation',
+                        'Business continuity',
+                        'Regulatory',
+                        'Regular expenses'
+                    ],
+                    strategyFit: [
+                        'Values through superior network connectivity',
+                        'Customer loyalty through convergence',
+                        'Competitive operations',
+                        'Growth in adjacencies',
+                        'Regular expenses'
+                    ],
+                    businessPriority: [
+                        'A - Delayed project realization would have no impact on the business processes.',
+                        'B - The delayed project realization would affect the business processes.',
+                        'C - The delayed project realization would stop the business processes.'
+                    ],
+                    opActivitiesImpact: [
+                        'A - The delayed project realization would not affect the daily operational activities.',
+                        'B - The delayed project realization would affect the daily operational activities.',
+                        'C - The delayed project realization would significantly hinder important daily operational activities.'
+                    ]
                 };
 
                 scope.onItemSelect = function(index, option) {
@@ -93,12 +83,7 @@ define(['./../module', 'xlsx'], function(module){
                             maxCF: 2420366789.82,
                             wacc: 13.6
                         },
-                        irr: 0.0,
-                        strategicGoal: 'strategicGoal growth',
-                        ipmDecision: scope.selects.ipmDecision.options[0],
-                        strategyFit: scope.selects.strategyFit.options[0],
-                        businessPriority: scope.selects.businessPriority.options[0],
-                        opActivitiesImpact: scope.selects.opActivitiesImpact.options[0]
+                        irr: 0.0
                     };
 
                     scope.onChange();
@@ -151,10 +136,6 @@ define(['./../module', 'xlsx'], function(module){
                             };
                         }
                         if (!scope.data.irr) scope.data.irr = 0.0;
-                        if (!scope.data.strategicGoal) scope.data.strategicGoal = 'strategicGoal growth';
-                        for (var field of ['ipmDecision', 'strategyFit', 'businessPriority', 'opActivitiesImpact'])
-                            if (!scope.data[field])
-                                scope.data[field] = scope.selects[field].options[0];
 
                         scope.onChange();
                     }
