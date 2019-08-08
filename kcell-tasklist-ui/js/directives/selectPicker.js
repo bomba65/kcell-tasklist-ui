@@ -48,6 +48,12 @@ define(['./module', 'jquery'], function (app) {
                 if (attrs.selectModel) {
                     scope.$watch(attrs.selectModel, refresh, true);
                 }
+                if (attrs.ngDisabled) {
+                    scope.$watch(attrs.ngDisabled, refresh, true);
+                }
+                if (attrs.ngRequired) {
+                    scope.$watch(attrs.ngRequired, refresh, true);
+                }
 
 
             }
