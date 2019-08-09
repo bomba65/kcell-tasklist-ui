@@ -5,6 +5,7 @@ import org.camunda.bpm.engine.delegate.DelegateExecution;
 import org.camunda.bpm.engine.delegate.ExecutionListener;
 import org.camunda.bpm.engine.delegate.Expression;
 import org.camunda.spin.SpinList;
+import org.camunda.spin.impl.SpinListImpl;
 import org.camunda.spin.json.SpinJsonNode;
 import org.camunda.spin.plugin.variable.SpinValues;
 import org.camunda.spin.plugin.variable.value.JsonValue;
@@ -58,6 +59,33 @@ public class FileMoveListener implements ExecutionListener {
                     });
 
                     delegateExecution.setVariable(fileVarName, SpinValues.jsonValue(filesList.toString()));
+
+                    SpinJsonNode resolutionContainer = delegateExecution.<JsonValue>getVariableTyped("resolutions").getValue();
+                    if(resolutionContainer.isArray() && resolutionContainer.elements().size() > 0){
+                        SpinList<SpinJsonNode> resolutions = delegateExecution.<JsonValue>getVariableTyped("resolutions").getValue().elements();
+                        resolutions.forEach(resolution -> {
+                            resolution.prop("files", SpinJsonNode.JSON(filesList.toString()));
+                        });
+                        delegateExecution.setVariable("resolutions", SpinValues.jsonValue(resolutions.toString()));
+                    }
+                } else {
+                    String piId = delegateExecution.getProcessInstanceId();
+
+                    String tempPath = files.prop("path").stringValue();
+                    String name = files.prop("name").stringValue();
+                    String permPath = piId + "/" + name;
+                    try {
+                        minioClient.moveToPermanentStorage(tempPath, permPath);
+                    } catch (Exception e) {
+                        throw new RuntimeException("Failed to move object to permanent storage", e);
+                    }
+
+                    files.prop("path", permPath);
+
+                    SpinList<SpinJsonNode> filesList = new SpinListImpl<>();
+                    filesList.add(files);
+
+                    delegateExecution.setVariable(fileVarName, SpinValues.jsonValue(files.toString()));
 
                     SpinJsonNode resolutionContainer = delegateExecution.<JsonValue>getVariableTyped("resolutions").getValue();
                     if(resolutionContainer.isArray() && resolutionContainer.elements().size() > 0){
