@@ -225,16 +225,16 @@ define(['./../module', 'xlsx'], function(module){
 
                     // Define impact on operational activities
                     if (sheet.length > 27 && sheet[27]['G'] && sheet[27]['G'] !== 'n/a') {
-                        if (sheet[27]['G'][0] === 'A') scope.data.opActivitiesImpact = scope.selects.opActivitiesImpact.options[0];
-                        else if (sheet[27]['G'][0] === 'B') scope.data.opActivitiesImpact = scope.selects.opActivitiesImpact.options[1];
-                        else scope.data.opActivitiesImpact = scope.selects.opActivitiesImpact.options[2];
+                        if (sheet[27]['G'][0] === 'A') scope.data.opActivitiesImpact = scope.selects.opActivitiesImpact[0];
+                        else if (sheet[27]['G'][0] === 'B') scope.data.opActivitiesImpact = scope.selects.opActivitiesImpact[1];
+                        else scope.data.opActivitiesImpact = scope.selects.opActivitiesImpact[2];
                     }
 
                     // Define business priority
                     if (sheet.length > 29 && sheet[29]['G'] && sheet[29]['G'] !== 'n/a') {
-                        if (sheet[29]['G'][0] === 'A') scope.data.businessPriority = scope.selects.businessPriority.options[0];
-                        else if (sheet[29]['G'][0] === 'B') scope.data.businessPriority = scope.selects.businessPriority.options[1];
-                        else scope.data.businessPriority = scope.selects.businessPriority.options[2];
+                        if (sheet[29]['G'][0] === 'A') scope.data.businessPriority = scope.selects.businessPriority[0];
+                        else if (sheet[29]['G'][0] === 'B') scope.data.businessPriority = scope.selects.businessPriority[1];
+                        else scope.data.businessPriority = scope.selects.businessPriority[2];
                     }
 
                     // TABLE
