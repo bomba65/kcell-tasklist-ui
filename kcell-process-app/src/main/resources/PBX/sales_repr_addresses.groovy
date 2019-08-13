@@ -4,7 +4,9 @@ import java.util.stream.Collectors
 def getSalesRepresentativeEmails(DelegateExecution execution) {
     def ci = execution.getVariable("customerInformation").unwrap()
     def result = null
-    if (ci.get('salesRepresentativeId') != null) {
+    if (ci.get('salesRepresentativeEmail') != null) {
+      result = ci.get('salesRepresentativeEmail').asText()
+    } else if (ci.get('salesRepresentativeId') != null) {
         repr = ci.get('salesRepresentativeId').asText()
         def identityService = execution.processEngineServices.identityService
 

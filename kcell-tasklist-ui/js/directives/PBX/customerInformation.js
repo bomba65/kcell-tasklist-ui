@@ -26,10 +26,15 @@ define(['./../module'], function(module){
 
             if (scope.ci.termContractEnd === undefined) scope.ci.termContractEnd = true;
 
-            scope.form.salesRepresentative.$setValidity('not_selected', true);
-            if (!scope.ci.salesRepresentativeId) scope.form.salesRepresentative.$setValidity('not_selected', false);
+            if (scope.form) {
+              scope.form.salesRepresentative.$setValidity('not_selected', true);
+              if (!scope.ci.salesRepresentativeEmail) {
+                if (scope.ci.salesRepresentativeId) scope.ci.salesRepresentativeEmail = scope.ci.salesRepresentativeId;
+                else scope.form.salesRepresentative.$setValidity('not_selected', false);
+              }
+            }
 					}
-				});
+				}, true);
 
 				scope.$watch('readonly', function (value) {
 				  $timeout(function() {
@@ -49,7 +54,7 @@ define(['./../module'], function(module){
         };
 
         scope.getUser = function(val) {
-          scope.ci.salesRepresentativeId = null;
+          scope.ci.salesRepresentativeEmail = null;
           scope.form.salesRepresentative.$setValidity('not_selected', false);
           var users = $http.get('/camunda/api/engine/engine/default/user?firstNameLike='+encodeURIComponent('%'+val+'%')).then(
             function(response){
@@ -95,7 +100,8 @@ define(['./../module'], function(module){
         };
 
         scope.userSelected = function($item){
-          scope.ci.salesRepresentativeId = $item.id;
+          console.log(">>> ", $item.email);
+          scope.ci.salesRepresentativeEmail = $item.email;
           scope.ci.salesRepresentative = $item.name;
           scope.form.salesRepresentative.$setValidity('not_selected', true);
         };
