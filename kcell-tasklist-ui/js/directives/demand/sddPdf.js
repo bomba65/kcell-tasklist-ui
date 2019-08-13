@@ -5,7 +5,6 @@ define(['./../module'], function(module){
       restrict: 'E',
       scope: {
         data: '=',
-        elementId: '=',
         bKey: '=',
         dName: '=',
         dDescription: '=',
