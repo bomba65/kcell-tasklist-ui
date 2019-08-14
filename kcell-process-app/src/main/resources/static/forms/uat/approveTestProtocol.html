@@ -9,17 +9,21 @@
 
             camForm.on('form-loaded', function () {
                 $http.get('/camunda/api/engine/engine/default/task/' + camForm.taskId).then(
-                    function(result) {
-                        $scope.processInstanceId = result.data.processInstanceId;
-                        $scope.taskName = result.data.name;
-                        $http.get('/camunda/api/engine/engine/default/process-instance/' + $scope.processInstanceId).then(
-                                function(result){
-                                    $scope.businessKeyUAT = result.data.businessKey;
-                                },
-                                function (error) {console.log(error.data);}
-                        );
-                    },
-                    function (error) {console.log(error.data);}
+                  function (result) {
+                      $scope.processInstanceId = result.data.processInstanceId;
+                      $scope.taskName = result.data.name;
+                      $http.get('/camunda/api/engine/engine/default/process-instance/' + $scope.processInstanceId).then(
+                        function (result) {
+                            $scope.businessKeyUAT = result.data.businessKey;
+                        },
+                        function (error) {
+                            console.log(error.data);
+                        }
+                      );
+                  },
+                  function (error) {
+                      console.log(error.data);
+                  }
                 );
 
                 camForm.variableManager.fetchVariable('generalProductDesc');
@@ -58,7 +62,9 @@
                             try {
                                 $scope.resolutions[index].taskEndDate = new Date(e.data[0].endTime);
                                 $scope.resolutions[index].assignDate = new Date(e.data[0].startTime);
-                            } catch (e) { console.log(e); }
+                            } catch (e) {
+                                console.log(e);
+                            }
                         }
                     });
                 });
@@ -66,10 +72,10 @@
                     return $http.get("/camunda/api/engine/engine/default/history/identity-link-log?type=assignee&taskId=" + resolution.taskId + "&operationType=add&sortBy=time&sortOrder=desc");
                 })).then(function (logs) {
                     logs.forEach(function (e, index) {
-                        if(e.data.length > 0){
+                        if (e.data.length > 0) {
                             try {
                                 $scope.resolutions[index].claimDate = new Date(e.data[0].time);
-                            } catch(e){
+                            } catch (e) {
                                 console.log(e);
                             }
                         }
@@ -80,30 +86,38 @@
                 if (!$scope.data) $scope.data = [];
             });
 
-            $scope.preSubmit = function() {
-                return $http.get('/camunda/api/engine/engine/default/process-instance/'+$scope.processInstanceId+'/variables/resolutions?deserializeValue=false').then(
-                    function(result) {
-                        $scope.resolutions = JSON.parse(result.data.value);
-                        return $http.get('/camunda/api/engine/engine/default/process-instance/'+$scope.processInstanceId+'/variables/approvalList?deserializeValue=false').then(
-                            function(resp) {
-                                $scope.approvalList = JSON.parse(resp.data.value);
-                            },
-                            function (error) {
-                                toasty.error(error.data.message);
-                            }
-                        );
-                    },
-                    function(error){
-                        toasty.error(error.data.message);
-                    }
+            $scope.preSubmit = function () {
+                return $http.get('/camunda/api/engine/engine/default/process-instance/' + $scope.processInstanceId + '/variables/resolutions?deserializeValue=false').then(
+                  function (result) {
+                      $scope.resolutions = JSON.parse(result.data.value);
+                      return $http.get('/camunda/api/engine/engine/default/process-instance/' + $scope.processInstanceId + '/variables/approvalList?deserializeValue=false').then(
+                        function (resp) {
+                            $scope.approvalList = JSON.parse(resp.data.value);
+                        },
+                        function (error) {
+                            toasty.error(error.data.message);
+                        }
+                      );
+                  },
+                  function (error) {
+                      toasty.error(error.data.message);
+                  }
                 );
-            }
+            };
 
 
             camForm.on('submit', function (event) {
-                var submitDate = new Date ();
-                if(!$scope.resolutions) $scope.resolutions = [];
-                $scope.resolutions.push({processInstanceId: $scope.processInstanceId, assignee: $rootScope.authentication.name, resolution: $scope.resolution, comment: $scope.comment, taskId: camForm.taskId, taskEndDate: submitDate, taskName: $scope.taskName});
+                var submitDate = new Date();
+                if (!$scope.resolutions) $scope.resolutions = [];
+                $scope.resolutions.push({
+                    processInstanceId: $scope.processInstanceId,
+                    assignee: $rootScope.authentication.name,
+                    resolution: $scope.resolution,
+                    comment: $scope.comment,
+                    taskId: camForm.taskId,
+                    taskEndDate: submitDate,
+                    taskName: $scope.taskName
+                });
                 camForm.variableManager.variableValue('resolutions', $scope.resolutions);
                 camForm.variableManager.variableValue('attachments', $scope.attachments);
 
@@ -115,16 +129,19 @@
 
 
             var assigneeName = $rootScope.authentication.name;
-            $http.get("/camunda/api/engine/engine/default/user/" + $rootScope.authentication.name+ "/profile").then(function(result){
+            $http.get("/camunda/api/engine/engine/default/user/" + $rootScope.authentication.name + "/profile").then(function (result) {
                 assigneeName = (result.data.firstName ? result.data.firstName : "") + " " + (result.data.lastName ? result.data.lastName : "");
             });
 
             $scope.downloadFile = function (file) {
-                $http({method: 'GET', url: '/camunda/uploads/tmp/get/' + file.path, transformResponse: [] }).
-                then(function(response) {
-                  document.getElementById('fileDownloadIframe').src = response.data;
-                }, function(error){
-                  console.log(error.data);
+                $http({
+                    method: 'GET',
+                    url: '/camunda/uploads/tmp/get/' + file.path,
+                    transformResponse: []
+                }).then(function (response) {
+                    document.getElementById('fileDownloadIframe').src = response.data;
+                }, function (error) {
+                    console.log(error.data);
                 });
             }
 
@@ -150,7 +167,7 @@
     <div class="form-group">
         <label class="col-sm-12 control-label" > General Product/Service description</label>
         <div class="col-sm-12" style="margin-top: 5px">
-            <rich-text editorid="'approveTestRichText'" htmlcode="generalProductDesc" disabled="true"></rich-text>
+            <summernote-rich-text data="generalProductDesc" disabled="true" min-height="100"></summernote-rich-text>
         </div>
     </div>
 

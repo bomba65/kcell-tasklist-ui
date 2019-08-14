@@ -19,7 +19,6 @@ define([
 	'./PBX/pbxRichText',
 	'./uatProcess',
 	'./demand/index',
-	'./richText',
 	'./leasing/leasingDetail',
 	'./leasing/leasingCandidate',
 	'./leasing/farEndInfo',

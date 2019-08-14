@@ -4,10 +4,10 @@
         color: #333;
     }
 </style>
-<script cam-script type="text/form-script">
+    <script cam-script type="text/form-script">
         inject(['$scope', '$http', 'Uri', '$rootScope', '$q', 'toasty', '$timeout', function ($scope, $http, Uri, $rootScope, $q, toasty, $timeout) {
             var uuid = new Date().getTime();
-            
+
             $scope.approvalList = [
                 {role: 'Solution Owner'},
                 {role: 'Demand Owner'},
@@ -25,56 +25,63 @@
             $scope.data = [];
             $scope.generalProductDesc = null;
 
-            $scope.preSubmit = function() {
+            $scope.preSubmit = function () {
                 return $http.get('/camunda/api/engine/engine/default/history/process-instance/count?processDefinitionKey=UAT').then(
-                    function(result) {
-                        var countPID = result.data.count + 1;
-                        $scope.businessKey = 'Demand-UAT-' + countPID;
-                        camForm.businessKey = $scope.businessKey;
-                    },
-                    function(error) {}
+                  function (result) {
+                      var countPID = result.data.count + 1;
+                      $scope.businessKey = 'Demand-UAT-' + countPID;
+                      camForm.businessKey = $scope.businessKey;
+                  },
+                  function (error) {
+                  }
                 );
-            }
+            };
 
             camForm.on('submit', function (event) {
                 camForm.variableManager.createVariable({
-                  name: 'generalProductDesc',
-                  type: 'String',
-                  value: $scope.generalProductDesc,
-                  store: true
+                    name: 'generalProductDesc',
+                    type: 'String',
+                    value: $scope.generalProductDesc,
+                    store: true
                 });
                 camForm.variableManager.createVariable({
-                  name: 'attachments',
-                  type: 'json',
-                  value: $scope.attachments,
-                  store: true
+                    name: 'attachments',
+                    type: 'json',
+                    value: $scope.attachments,
+                    store: true
                 });
                 camForm.variableManager.createVariable({
-                  name: 'data',
-                  type: 'json',
-                  value: $scope.data,
-                  store: true
+                    name: 'data',
+                    type: 'json',
+                    value: $scope.data,
+                    store: true
                 });
                 camForm.variableManager.createVariable({
-                  name: 'approvalList',
-                  type: 'json',
-                  value: $scope.approvalList,
-                  store: true
+                    name: 'approvalList',
+                    type: 'json',
+                    value: $scope.approvalList,
+                    store: true
                 });
                 camForm.variableManager.createVariable({
-                  name: 'launchTaskResult',
-                  type: 'String',
-                  value: $scope.launchTaskResult,
-                  store: true
+                    name: 'launchTaskResult',
+                    type: 'String',
+                    value: $scope.launchTaskResult,
+                    store: true
                 });
 
-                var submitDate = new Date ();
-                $scope.resolutions.push({assignee: $rootScope.authentication.name, resolution: 'Completed', comment: $scope.comment, taskEndDate: new Date(), taskName: 'Start Process'});
+                var submitDate = new Date();
+                $scope.resolutions.push({
+                    assignee: $rootScope.authentication.name,
+                    resolution: 'Completed',
+                    comment: $scope.comment,
+                    taskEndDate: new Date(),
+                    taskName: 'Start Process'
+                });
                 camForm.variableManager.createVariable({
-                  name: 'resolutions',
-                  type: 'json',
-                  value: $scope.resolutions,
-                  store: true
+                    name: 'resolutions',
+                    type: 'json',
+                    value: $scope.resolutions,
+                    store: true
                 });
 
                 var requestApproval = {};
@@ -82,89 +89,92 @@
                     requestApproval['user' + i] = false;
                     if ($scope.approvalList[i].responsible) requestApproval['user' + i] = true;
                     camForm.variableManager.createVariable({
-                      name: 'assignee' + i,
-                      type: 'String',
-                      value: ($scope.approvalList[i].responsible ? $scope.approvalList[i].responsible : ''),
-                      store: true
+                        name: 'assignee' + i,
+                        type: 'String',
+                        value: ($scope.approvalList[i].responsible ? $scope.approvalList[i].responsible : ''),
+                        store: true
                     });
                 }
                 camForm.variableManager.createVariable({
-                  name: 'requestApproval',
-                  type: 'json',
-                  value: requestApproval,
-                  store: true
+                    name: 'requestApproval',
+                    type: 'json',
+                    value: requestApproval,
+                    store: true
                 });
             });
 
-            $scope.getUser = function(val, user) {
+            $scope.getUser = function (val, user) {
                 user.responsible = null;
-                var users = $http.get('/camunda/api/engine/engine/default/user?firstNameLike='+encodeURIComponent('%'+val+'%')).then(
-                    function(response){
-                      var usersByFirstName = _.flatMap(response.data, function(s){
-                        if(s.id){
-                          return s.id.split(',').map(function(user){
-                            return {
-                              id: s.id,
-                              email: (s.email?s.email.substring(s.email.lastIndexOf('/')+1):s.email),
-                              firstName: s.firstName,
-                              lastName: s.lastName,
-                              name: s.firstName + ' ' + s.lastName
-                            };
-                          })
-                        } else {
-                          return [];
-                        }
+                var users = $http.get('/camunda/api/engine/engine/default/user?firstNameLike=' + encodeURIComponent('%' + val + '%')).then(
+                  function (response) {
+                      var usersByFirstName = _.flatMap(response.data, function (s) {
+                          if (s.id) {
+                              return s.id.split(',').map(function (user) {
+                                  return {
+                                      id: s.id,
+                                      email: (s.email ? s.email.substring(s.email.lastIndexOf('/') + 1) : s.email),
+                                      firstName: s.firstName,
+                                      lastName: s.lastName,
+                                      name: s.firstName + ' ' + s.lastName
+                                  };
+                              })
+                          } else {
+                              return [];
+                          }
                       });
                       //return usersByFirstName;
-                      return $http.get('/camunda/api/engine/engine/default/user?lastNameLike='+encodeURIComponent('%'+val+'%')).then(
-                          function(response){
-                            var usersByLastName = _.flatMap(response.data, function(s){
-                              if(s.id){
-                                return s.id.split(',').map(function(user){
-                                  return {
-                                    id: s.id,
-                                    email: s.email.substring(s.email.lastIndexOf('/')+1),
-                                    firstName: s.firstName,
-                                    lastName: s.lastName,
-                                    name: s.firstName + ' ' + s.lastName
-                                  };
-                                })
-                              } else {
-                                return [];
-                              }
+                      return $http.get('/camunda/api/engine/engine/default/user?lastNameLike=' + encodeURIComponent('%' + val + '%')).then(
+                        function (response) {
+                            var usersByLastName = _.flatMap(response.data, function (s) {
+                                if (s.id) {
+                                    return s.id.split(',').map(function (user) {
+                                        return {
+                                            id: s.id,
+                                            email: s.email.substring(s.email.lastIndexOf('/') + 1),
+                                            firstName: s.firstName,
+                                            lastName: s.lastName,
+                                            name: s.firstName + ' ' + s.lastName
+                                        };
+                                    })
+                                } else {
+                                    return [];
+                                }
                             });
                             return _.unionWith(usersByFirstName, usersByLastName, _.isEqual);
-                          }
+                        }
                       );
-                    }
+                  }
                 );
                 return users;
             };
 
-            $scope.userSelected = function($item, user){
+            $scope.userSelected = function ($item, user) {
                 user.responsible = $item.id;
                 user.responsibleName = $item.name;
             };
 
             var assigneeName = $rootScope.authentication.name;
-            $http.get("/camunda/api/engine/engine/default/user/" + $rootScope.authentication.name+ "/profile").then(function(result){
+            $http.get("/camunda/api/engine/engine/default/user/" + $rootScope.authentication.name + "/profile").then(function (result) {
                 assigneeName = (result.data.firstName ? result.data.firstName : "") + " " + (result.data.lastName ? result.data.lastName : "");
             });
 
             $scope.downloadFile = function (file) {
-                $http({method: 'GET', url: '/camunda/uploads/get/' + file.path, transformResponse: [] }).
-                then(function(response) {
-                  document.getElementById('fileDownloadIframe').src = response.data;
-                }, function(error){
-                  console.log(error.data);
+                $http({
+                    method: 'GET',
+                    url: '/camunda/uploads/get/' + file.path,
+                    transformResponse: []
+                }).then(function (response) {
+                    document.getElementById('fileDownloadIframe').src = response.data;
+                }, function (error) {
+                    console.log(error.data);
                 });
-            }
+            };
 
-            $scope.clearFile = function(fileIndex) {
+            $scope.clearFile = function (fileIndex) {
                 $scope.attachments.splice(fileIndex, 1);
-            }
+            };
 
-            $scope.fileSelected = function(el ){
+            $scope.fileSelected = function (el) {
                 $timeout(function () {
                     $scope.$apply(function () {
                         uploadFileToMinio(el.files[0]);
@@ -179,24 +189,27 @@
                     created: new Date(),
                     createdBy: assigneeName
                 };
-                $http({method: 'GET', url: '/camunda/uploads/tmp/put/' + fileToUpload.path, transformResponse: [] }).then(function(response) {
+                $http({
+                    method: 'GET',
+                    url: '/camunda/uploads/tmp/put/' + fileToUpload.path,
+                    transformResponse: []
+                }).then(function (response) {
                     $http.put(response.data, file, {headers: {'Content-Type': undefined}}).then(
-                        function () {
-                            $scope.attachments.push(fileToUpload);
-                            angular.element(document.querySelector('#attachments')).val(null);
-                        },
-                        function (error) {
-                            console.log(error.data);
-                        }
+                      function () {
+                          $scope.attachments.push(fileToUpload);
+                          angular.element(document.querySelector('#attachments')).val(null);
+                      },
+                      function (error) {
+                          console.log(error.data);
+                      }
                     );
-                }, function(error){
+                }, function (error) {
                     console.log(error.data);
                 });
             }
 
             $scope.kcell_form.demandName.$setValidity('length', false);
             $scope.kcell_form.demandName.$setValidity('attachments', false);
-            $scope.kcell_form.demandName.$setValidity('simditor', false);
 
             $scope.$watch('data', function (data) {
                 if (data && data.length) {
@@ -214,15 +227,6 @@
                 }
             }, true);
 
-            $scope.onGeneralProductDescChange = function(value) {
-                $scope.generalProductDesc = value;
-                if (value && value.length) {
-                    $scope.kcell_form.demandName.$setValidity('simditor', true);
-                } else {
-                    $scope.kcell_form.demandName.$setValidity('simditor', false);
-                }
-            };
-
         }]);
     </script>
     <div class="form-group">
@@ -234,10 +238,11 @@
     </div>
 
     <div class="form-group">
-        <label class="control-label col-sm-12" for="generalProductDesc"> General Product/Service description</label>
+        <label class="control-label col-sm-12"> General Product/Service description</label>
         <div class="col-sm-12" style="margin-top: 5px">
-            <rich-text editorid="'fillTestRichText'" onvalchange="onGeneralProductDescChange" disabled="false"></rich-text>
-            <label class="error" ng-show="kcell_form.demandName.$error.simditor && view.submitted">Required field</label>
+            <summernote-rich-text data="generalProductDesc" disabled="false" min-height="100"></summernote-rich-text>
+            <input type="hidden" ng-model="generalProductDesc" name="generalProductDesc" required>
+            <label class="error" ng-if="kcell_form.generalProductDesc.$error.required && (kcell_form.generalProductDesc.$touched || view.submitted)">Required field</label>
         </div>
     </div>
 
