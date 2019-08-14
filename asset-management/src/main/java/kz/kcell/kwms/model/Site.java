@@ -27,6 +27,9 @@ class Site implements Comparable<Site> {
     @Size(min = 5)
     String name;
 
+    @Size(min = 3)
+    String status;
+
     @NotBlank
     @JsonRawValue
     @JsonDeserialize(using = JsonAsStringDeserializer.class)
