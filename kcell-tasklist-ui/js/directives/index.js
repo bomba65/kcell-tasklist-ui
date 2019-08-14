@@ -33,5 +33,6 @@ define([
 	'./selectPicker',
 	'./customCalendar/calendarCustom',
 	'./customCalendar/calendarRange',
-	'./aftersales/infoAftersalesSearch'
+	'./aftersales/infoAftersalesSearch',
+	'./summernoteRichText',
 	], function(){});

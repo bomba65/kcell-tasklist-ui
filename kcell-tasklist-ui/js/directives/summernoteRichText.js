@@ -1,6 +1,6 @@
-define(['./../module', 'summernote', 'summernote-ext-template'], function(module){
+define(['./module', 'summernote', 'summernote-ext-template'], function(module){
     'use strict';
-    module.directive('demandRichText', function ($rootScope, $http, $timeout) {
+    module.directive('summernoteRichText', function ($rootScope, $http, $timeout) {
         return {
             restrict: 'E',
             scope: {

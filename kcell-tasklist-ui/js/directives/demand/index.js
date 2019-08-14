@@ -10,7 +10,6 @@ define([
     './supportiveInputs',
     './businessCase',
     './businessIntelligence',
-    './demandRichText',
     './demandDropdown',
     './sddFieldConstructor',
     './sddSections',
