@@ -9,7 +9,7 @@ require.config({
          'domReady': './node_modules/requirejs-domready/domReady',
          'angular': './node_modules/angular/angular.min',
          'jquery': './node_modules/jquery/dist/jquery.min',
-         'bootstrap': './bootstrap/dist/js/bootstrap.min',
+         'bootstrap': './node_modules/bootstrap/dist/js/bootstrap.min',
          'ngRoute': './node_modules/angular-route/angular-route.min',
          'ngCookies': './node_modules/angular-cookies/angular-cookies.min',
          'simpleApp': './simpleApp',
