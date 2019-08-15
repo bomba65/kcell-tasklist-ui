@@ -91,7 +91,8 @@
                 'mlApprovalAdditionalInfoFile',
                 'contractorJobAssignedDate',
                 'acceptanceDate',
-                'mainContract'
+                'mainContract',
+                'siteStatus'
             ];
             $scope.jobModel = {};
 
@@ -763,6 +764,27 @@
                 if($scope.mainContract === 'Roll-out') return element.id > 1000 ? true : false;
                 if($scope.mainContract === 'Revision') return element.id < 1000 ? true : false;
             };
+
+            $scope.filterByStatus = function(element) {
+                if($scope.mainContract === 'Roll-out') return true;
+                if($scope.mainContract === 'Revision') {
+                    if(element.id === 9){
+                        if($scope.siteStatus && $scope.siteStatus == 'will be dismantle'){
+                            return true;
+                        } else {
+                            return false;
+                        }
+                    } else if(element.id === 8){
+                        if($scope.siteStatus && $scope.siteStatus == 'will be replacement'){
+                            return true;
+                        } else {
+                            return false;
+                        }
+                    } else {
+                        return true;
+                    }
+                }
+            };
         }]);
     </script>
     <h4>Create job request</h4>
@@ -806,7 +828,7 @@
     <div class="form-group">
         <label class="col-sm-4 control-label">Site: </label>
         <div class="col-sm-3">
-            <div class="form-control disabled">{{siteName}}</div>
+            <div class="form-control disabled">{{siteName}} | status: {{siteStatus}}</div>
         </div>
     </div>
     <div class="form-group">
@@ -1014,7 +1036,7 @@
                     <ng-form name="workForm">
                         <td>
                             <select ng-model="jobWork.sapServiceNumber" name="sapServiceNumber" ng-required="modifyJrResult == 'modified'" class="form-control" ng-change="getUnits($index)">
-                                <option ng-repeat="work in works | filter: filterByContractor" ng-selected="{{work.sapServiceNumber == jobWork.sapServiceNumber}}" value="{{work.sapServiceNumber}}">{{work.displayServiceName}}</option>
+                                <option ng-repeat="work in works | filter: filterByContractor | filter: filterByStatus" ng-selected="{{work.sapServiceNumber == jobWork.sapServiceNumber}}" value="{{work.sapServiceNumber}}">{{work.displayServiceName}}</option>
                             </select>
                             <label class="error" ng-if="workForm.sapServiceNumber.$error.required && ( workForm.sapServiceNumber.$touched || view.submitted)">Required field</label>
                         </td>

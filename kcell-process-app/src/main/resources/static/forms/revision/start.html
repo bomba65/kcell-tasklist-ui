@@ -188,6 +188,12 @@
                     type: 'Json',
                     submit: true,
                     store: true
+                },
+                {
+                    name: 'siteStatus',
+                    type: 'String',
+                    submit: true,
+                    store: true
                 }
             ];
             var catalogs = {};
@@ -203,6 +209,7 @@
             );*/
 
             $scope.showJump = false;
+            $scope.siteStatus = undefined;
 
             if($rootScope.authentication.name === 'demo' || $rootScope.authentication.name === 'Yernaz.Kalingarayev@kcell.kz' || $rootScope.authentication.name === 'Askar.Slambekov@kcell.kz' || $rootScope.authentication.name === 'Anzor.Israilov@kcell.kz'){
                 $scope.showJump = true;
@@ -326,6 +333,7 @@
 
                 camForm.variableManager.variableValue('jrNumber', $scope.jrNumber);
                 camForm.variableManager.variableValue('site_name', $scope.site_name);
+                camForm.variableManager.variableValue('siteStatus', $scope.siteStatus);
                 camForm.variableManager.variableValue('site', $scope.site);
                 camForm.variableManager.variableValue('siteName', $scope.siteName);
                 camForm.variableManager.variableValue('siteRegion', $scope.siteRegion);
@@ -945,7 +953,8 @@
                                         return {
                                             name: s.name,
                                             id: s._links.self.href.substring(s._links.self.href.lastIndexOf('/')+1),
-                                            site_name: sitename
+                                            site_name: sitename,
+                                            status: s.status
                                         };
                                     })
                                 } else {
@@ -960,6 +969,7 @@
                 $scope.siteName = $item.name;
                 $scope.site = $item.id;
                 $scope.site_name = $item.site_name;
+                $scope.siteStatus = $item.status;
                 if($scope.siteName.startsWith('11')){
                     $scope.regionShortName = $scope.regionsMap['11'];
                     $scope.siteRegion  = $scope.regionsMapLC['11'];
@@ -972,6 +982,10 @@
                     $scope.siteRegion = $scope.regionsMapLC[$scope.siteName.substring(0,1)];
                     refreshJobRequests();
                 }
+
+                $(function () {
+                    $('[data-toggle="tooltip"]').tooltip('fixTitle');
+                });
             };
 
             $scope.regionSelected = function(siteRegion){
@@ -1020,6 +1034,27 @@
                 if(!$scope.mainContract) return false;
                 if($scope.mainContract === 'Roll-out') return element.id > 1000 ? true : false;
                 if($scope.mainContract === 'Revision') return element.id < 1000 ? true : false;
+            };
+
+            $scope.filterByStatus = function(element) {
+                if($scope.mainContract === 'Roll-out') return true;
+                if($scope.mainContract === 'Revision') {
+                    if(element.id === 9){
+                        if($scope.siteStatus && $scope.siteStatus == 'will be dismantle'){
+                            return true;
+                        } else {
+                            return false;
+                        }
+                    } else if(element.id === 8){
+                        if($scope.siteStatus && $scope.siteStatus == 'will be replacement'){
+                            return true;
+                        } else {
+                            return false;
+                        }
+                    } else {
+                        return true;
+                    }
+                }
             };
 
             $scope.preSubmit = function(){
@@ -1101,8 +1136,15 @@
     <div class="form-group">
         <label class="col-sm-3 control-label">Site:</label>
         <div class="col-sm-3">
-            <input type="text" ng-model="site_name" name="site_name" typeahead="site as sites.site_name for sites in getSite($viewValue)" typeahead-on-select="siteSelected($item,$model,$label)" class="form-control" required autocomplete="off" placeholder="Site Name">
-            <input type="hidden" ng-model="site" name="siteId" required/>
+            <div class="input-group">
+                <input type="text" ng-model="site_name" name="site_name" typeahead="site as sites.site_name for sites in getSite($viewValue)" typeahead-on-select="siteSelected($item,$model,$label)" class="form-control" required autocomplete="off" placeholder="Site Name">
+                <input type="hidden" ng-model="site" name="siteId" required/>
+                <span class="input-group-btn" ng-if="siteName" data-toggle="tooltip" data-placement="right" title="Site status">
+                    <button type="button" class="btn btn-default">
+                        {{siteStatus ? siteStatus : 'working site'}}
+                    </button>
+                </span>
+            </div>
             <label class="error" ng-if="kcell_form.site_name.$error.required && ( kcell_form.site_name.$touched || view.submitted)">Required field</label>
             <label class="error" ng-if="kcell_form.siteId.$error.required && ( kcell_form.siteName.$touched || view.submitted)">Необходимо выбрать сайт из списка</label>
         </div>
@@ -1230,7 +1272,6 @@
                     <label class="error" ng-show="kcell_form['supplementaryFileVisibility_'+$index].$error.required && ( kcell_form['supplementaryFileVisibility_'+$index].$index.$touched || view.submitted)">Required field</label>
                 </div>
             </div>
-            <!--<input type="file" class="form-control" name="supplementaryFiles" id="supplementaryFiles" onchange="angular.element(this).scope().fileSelected(this)" />-->
             <div class="input-group">
                 <label class="input-group-btn">
                     <span class="btn btn-default">
@@ -1705,9 +1746,9 @@
                 <tbody ng-repeat="jobWork in jobWorks">
                     <tr>
                         <td>
-                            <select ng-model="jobWork.sapServiceNumber" name="sapServiceNumber{{$index}}" required class="form-control selectpicker" select-picker select-model="works" title="" ng-change="getUnits($index)" >
+                            <select ng-model="jobWork.sapServiceNumber" name="sapServiceNumber{{$index}}" required class="form-control selectpicker" select-picker select-model="works" title="" ng-change="getUnits($index)" ng-disabled="!mainContract || !siteName">
                                 <option style="display:none" value=""></option>
-                                <option ng-repeat="work in works | filter: filterByContractor" ng-selected="{{work.sapServiceNumber == jobWork.sapServiceNumber}}" value="{{work.sapServiceNumber}}">{{work.displayServiceName}}</option>
+                                <option ng-repeat="work in works | filter: filterByContractor | filter: filterByStatus" ng-selected="{{work.sapServiceNumber == jobWork.sapServiceNumber}}" value="{{work.sapServiceNumber}}">{{work.displayServiceName}}</option>
                             </select>
                             <label class="error" ng-if="kcell_form['sapServiceNumber'+$index].$error.required && ( kcell_form['sapServiceNumber'+$index].$touched || view.submitted)">Required field</label>
                         </td>
