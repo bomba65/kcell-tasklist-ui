@@ -1037,8 +1037,15 @@
             };
 
             $scope.filterByStatus = function(element) {
-                if($scope.mainContract === 'Roll-out') return true;
-                if($scope.mainContract === 'Revision') {
+                if($scope.mainContract === 'Roll-out') {
+                    if(element.id !== 1013 && _.some($scope.jobWorks, function(w){ return w.sapServiceNumber === 'RO13' })){
+                        return false;
+                    } else if(element.id === 1013 && _.some($scope.jobWorks, function(w){ return w.sapServiceNumber && w.sapServiceNumber !== 'RO13' })) {
+                        return false;
+                    } else {
+                        return true;
+                    }
+                } else if($scope.mainContract === 'Revision') {
                     if(element.id === 9){
                         if($scope.siteStatus && $scope.siteStatus == 'will be dismantle'){
                             return true;
@@ -1747,7 +1754,7 @@
                     <tr>
                         <td>
                             <select ng-model="jobWork.sapServiceNumber" name="sapServiceNumber{{$index}}" required class="form-control selectpicker" select-picker select-model="works" title="" ng-change="getUnits($index)" ng-disabled="!mainContract || !siteName">
-                                <option style="display:none" value=""></option>
+                                <option value="">Select work</option>
                                 <option ng-repeat="work in works | filter: filterByContractor | filter: filterByStatus" ng-selected="{{work.sapServiceNumber == jobWork.sapServiceNumber}}" value="{{work.sapServiceNumber}}">{{work.displayServiceName}}</option>
                             </select>
                             <label class="error" ng-if="kcell_form['sapServiceNumber'+$index].$error.required && ( kcell_form['sapServiceNumber'+$index].$touched || view.submitted)">Required field</label>
@@ -1767,7 +1774,9 @@
                             <span ng-repeat="rs in jobWork.relatedSites" class="my-tag" ng-class="{'main-site':rs.site_name===site_name}"><span ng-if="rs.site_name===site_name">Main Site: </span>{{rs.site_name}} <a ng-click="removeRelatedSite($parent.$index, $index)">&times;</a></span>
                             <input type="text" ng-model="tempSite.name" style="display: inline-block; width:100px;" name="tempSiteName" typeahead="site as sites.site_name for sites in getSite($viewValue)" typeahead-on-select="workSiteSelected($item, $index); tempSite={};" class="form-control" autocomplete="off" placeholder="Add Site">
                         </td>
-                        <td><div class="col-md-1"><button type="button" class="btn btn-sm btn-default" ng-if="$index !== 0" ng-click="removeWork($index)"><i class="glyphicon glyphicon-trash"></i> Remove</button></div></td>
+                        <td>
+                            <div class="col-md-1"><button type="button" class="btn btn-sm btn-default" ng-if="$index !== 0" ng-click="removeWork($index)"><i class="glyphicon glyphicon-trash"></i> Remove</button></div>
+                        </td>
                     </tr>
                     <tr>
                         <td>

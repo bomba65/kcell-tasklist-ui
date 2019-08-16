@@ -766,8 +766,15 @@
             };
 
             $scope.filterByStatus = function(element) {
-                if($scope.mainContract === 'Roll-out') return true;
-                if($scope.mainContract === 'Revision') {
+                if($scope.mainContract === 'Roll-out') {
+                    if(element.id !== 1013 && _.some($scope.jobWorks, function(w){ return w.sapServiceNumber === 'RO13' })){
+                        return false;
+                    } else if(element.id === 1013 && _.some($scope.jobWorks, function(w){ return w.sapServiceNumber && w.sapServiceNumber !== 'RO13' })) {
+                        return false;
+                    } else {
+                        return true;
+                    }
+                } else if($scope.mainContract === 'Revision') {
                     if(element.id === 9){
                         if($scope.siteStatus && $scope.siteStatus == 'will be dismantle'){
                             return true;
@@ -1036,6 +1043,7 @@
                     <ng-form name="workForm">
                         <td>
                             <select ng-model="jobWork.sapServiceNumber" name="sapServiceNumber" ng-required="modifyJrResult == 'modified'" class="form-control" ng-change="getUnits($index)">
+                                <option value="">Select work</option>
                                 <option ng-repeat="work in works | filter: filterByContractor | filter: filterByStatus" ng-selected="{{work.sapServiceNumber == jobWork.sapServiceNumber}}" value="{{work.sapServiceNumber}}">{{work.displayServiceName}}</option>
                             </select>
                             <label class="error" ng-if="workForm.sapServiceNumber.$error.required && ( workForm.sapServiceNumber.$touched || view.submitted)">Required field</label>
