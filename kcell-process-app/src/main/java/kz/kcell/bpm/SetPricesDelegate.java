@@ -21,6 +21,8 @@ public class SetPricesDelegate implements TaskListener {
     @Override
     public void notify(DelegateTask delegateTask) {
         try {
+            String mainContract = delegateTask.getVariable("mainContract").toString();
+
             ObjectMapper mapper = new ObjectMapper();
 
             ArrayNode worksPriceList = mapper.createArrayNode();
@@ -72,7 +74,11 @@ public class SetPricesDelegate implements TaskListener {
                 }
 
                 BigDecimal basePriceByQuantity = unitWorkPrice.multiply(new BigDecimal(workPrice.get("quantity").asText()));
+
                 BigDecimal total = unitWorkPricePlusTx.multiply(new BigDecimal(workPrice.get("quantity").asText()));
+                if("Roll-out".equals(mainContract)){
+                    total = unitWorkPrice.multiply(new BigDecimal(workPrice.get("quantity").asText()));
+                }
                 workPrice.put("unitWorkPrice", unitWorkPrice.setScale(2, RoundingMode.DOWN).toString());
                 workPrice.put("unitWorkPricePlusTx", unitWorkPricePlusTx.setScale(2, RoundingMode.DOWN).toString());
                 workPrice.put("basePriceByQuantity", basePriceByQuantity.setScale(2, RoundingMode.DOWN).toString());
@@ -90,7 +96,8 @@ public class SetPricesDelegate implements TaskListener {
             delegateTask.setVariable("jobWorksTotal", jobWorksTotal.setScale(2, RoundingMode.DOWN).toString());
 
         } catch (Exception e) {
-            e.printStackTrace();
+            e.printStackTrace();;
+            throw new RuntimeException("Price calculate error on businessKey: " + delegateTask.getExecution().getBusinessKey());
         }
     }
 }
