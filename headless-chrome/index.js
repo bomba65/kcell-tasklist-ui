@@ -6,6 +6,7 @@ const PORT = 8800;
 async function main() {
   const browser = await puppeteer.launch({
     headless: true,
+    ignoreHTTPSErrors: true,
     args: ['--no-sandbox', '--disable-setuid-sandbox']
   });
   const page = await browser.newPage();
