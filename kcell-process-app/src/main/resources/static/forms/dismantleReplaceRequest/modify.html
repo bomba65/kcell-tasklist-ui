@@ -18,7 +18,7 @@
                 'rbsLocation',
                 'otherRbsLocation',
                 'contractType',
-                'rbsType',
+                'rbsTypes',
                 'requestType',
                 'soaComplaintId',
                 'dismantlingInitiator',
@@ -143,7 +143,7 @@
                 camForm.variableManager.variableValue('rbsQuantity', $scope.rbsQuantity);
                 camForm.variableManager.variableValue('otherRbsLocation', $scope.otherRbsLocation);
                 camForm.variableManager.variableValue('legallyName', $scope.legallyName);
-                camForm.variableManager.variableValue('rbsType', $scope.rbsType);
+                camForm.variableManager.variableValue('rbsTypes', $scope.rbsTypes);
                 camForm.variableManager.variableValue('squareMeter', $scope.squareMeter);
                 camForm.variableManager.variableValue('contactInformation', $scope.contactInformation);
                 camForm.variableManager.variableValue('address', $scope.address);
@@ -188,6 +188,10 @@
             $scope.addAlternativePlace = function() {
                 $scope.alternativePlaces.push("");
             };
+
+            $scope.removeAlternativePlace = function(index){
+                $scope.alternativePlaces.splice(index, 1);
+            }
 
             $scope.fileSelected = function(el, fileName){
                 if(el.files[0]){
@@ -245,6 +249,24 @@
 
             $scope.removeGsmAntennaType = function(index){
                 $scope.gsmAntennaTypes.splice(index,1);
+            }
+
+            $scope.getRbsType = function(val) {
+                var result = [];
+                angular.forEach($scope.catalogs.rbsTypes, function (rt) {
+                    if(rt.toUpperCase().indexOf(val.toUpperCase()) >= 0 && $scope.rbsTypes.indexOf(rt)===-1){
+                        result.push(rt);
+                    }
+                });
+                return result;
+            };
+
+            $scope.rbsTypeSelected = function($item){
+                $scope.rbsTypes.push($item);
+            }
+
+            $scope.removeRbsType = function(index){
+                $scope.rbsTypes.splice(index,1);
             }
 
             $scope.download = function(file) {
@@ -338,15 +360,21 @@
 
     <H4 style="margin-top: 30px;">Alternative places for setting of site</H4>
     <div class="form-group">
-        <label class="col-sm-2 control-label">Alternative {{alternativePlaces.length}}: </label>
-        <div class="col-sm-10">
+        <div class="col-sm-12">
             <div ng-repeat="i in alternativePlaces track by $index" style="float: left; margin-right: 20px;">
-                <input type="text" name="alternativePlaces{{$index}}" ng-model="alternativePlaces[$index]" class="form-control" style="width: 200px;" ng-required="alternativePlaces[0].length == 0" />
+                <table>
+                    <tr>
+                        <td>Alternative {{$index+1}}: </td>
+                        <td><input type="text" name="alternativePlaces{{$index}}" ng-model="alternativePlaces[$index]" class="form-control" style="width: 200px;" ng-required="alternativePlaces[0] == undefined || alternativePlaces[0].length == 0" /></td>
+                        <td ng-if="$index > 0"><a ng-click="removeAlternativePlace($index)" style="float: left;"><i class="glyphicon glyphicon-remove"></i></a></td>
+                    </tr>
+                </table>
             </div>
+            <label class="error" ng-if="kcell_form.alternativePlaces0.$error.required && ( kcell_form.alternativePlaces0.$touched || view.submitted)">Required field</label>
             <a ng-click="addAlternativePlace()" style="float: left;"><i class="glyphicon glyphicon-plus-sign"></i></a>
-            <label class="error" ng-if="alternativePlaces[0].length == 0 && kcell_form.alternativePlaces0.$error.required && ( kcell_form.alternativePlaces0.$touched || view.submitted)">Required field</label>
         </div>
     </div>
+
 
     <H4 style="margin-top: 30px;">Site Information</H4>
 
@@ -447,8 +475,8 @@
     <div class="form-group">
         <label class="col-sm-2 control-label">RBS type:</label>
         <div class="col-sm-2">
-            <select class="form-control" id="rbsType" name="rbsType" ng-model="rbsType" ng-options="r as r for r in catalogs.rbsTypes" required>
-            </select>
+            <span ng-repeat="rt in rbsTypes" class="my-tag">{{rt}} <a ng-click="removeRbsType($index)">&times;</a></span>
+            <input type="text" ng-model="tempRbsType" name="tempRbsType" typeahead="result as result for result in getRbsType($viewValue)" typeahead-on-select="rbsTypeSelected($item); tempRbsType = undefined" class="form-control" autocomplete="off" placeholder="Add Rbs Type" ng-required="rbsTypes.length == 0">
             <label class="error" ng-if="kcell_form.rbsType.$error.required && ( kcell_form.rbsType.$touched || view.submitted)">Required field</label>
         </div>
 

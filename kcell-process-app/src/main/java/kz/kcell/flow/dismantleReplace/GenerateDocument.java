@@ -29,10 +29,10 @@ public class GenerateDocument implements JavaDelegate {
     private static final Map<String, String> initiatorsTitle =
         ((Supplier<Map<String, String>>) (() -> {
             Map<String, String> map = new HashMap<>();
-            map.put("planningUnit", "Planning unit");
-            map.put("siteAcquisionUnit", "Site Acquisition unit");
-            map.put("implementationUnit", "Implementation Unit");
-            map.put("other", "Other");
+            map.put("optimization", "Optimization Unit");
+            map.put("transmission", "Transmission Unit");
+            map.put("infrastructure", "Infrastructure Unit");
+            map.put("operation", "Operation Unit");
             return Collections.unmodifiableMap(map);
         })).get();
 
@@ -71,11 +71,7 @@ public class GenerateDocument implements JavaDelegate {
         varsMap.put("$creator", initiatorFull.prop("firstName").toString().replaceAll("\"","") + " " + initiatorFull.prop("lastName").toString().replaceAll("\"",""));
 
         String dismantlingInitiator = delegateExecution.getVariable("dismantlingInitiator").toString();
-        if("other".equals(dismantlingInitiator)){
-            varsMap.put("$dismantlingInitiator", delegateExecution.getVariable("otherInitiator").toString());
-        } else {
-            varsMap.put("$dismantlingInitiator", initiatorsTitle.get(dismantlingInitiator));
-        }
+        varsMap.put("$dismantlingInitiator", initiatorsTitle.get(dismantlingInitiator));
 
         varsMap.put("$dismantlingReason", delegateExecution.getVariable("dismantlingReason").toString());
 
@@ -162,7 +158,17 @@ public class GenerateDocument implements JavaDelegate {
         }
 
         varsMap.put("$rbsQuantity", String.valueOf(delegateExecution.getVariable("rbsQuantity")));
-        varsMap.put("$rbsType", delegateExecution.getVariable("rbsType").toString());
+        SpinJsonNode rbsTypes = delegateExecution.<JsonValue>getVariableTyped("rbsTypes").getValue();
+        if (rbsTypes.isArray()) {
+            SpinList<SpinJsonNode> rbsList = rbsTypes.elements();
+            int size = rbsList.size();
+            String rbs = "";
+            for(int i=0; i<size; i++){
+                rbs = rbs + rbsList.get(i).toString().replaceAll("\"","") + ((i < size-1) ? ", " : "");
+            }
+            varsMap.put("$rbsType", rbs);
+        }
+
         varsMap.put("$band", delegateExecution.getVariable("band").toString());
         varsMap.put("$squareMeter", String.valueOf(delegateExecution.getVariable("squareMeter")));
 
@@ -201,14 +207,14 @@ public class GenerateDocument implements JavaDelegate {
         if (resolutions.isArray()) {
             SpinList<SpinJsonNode> resolution = resolutions.elements();
             resolution.forEach(r -> {
-                if(r.hasProp("taskDefinitionKey")){
+                if (r.hasProp("taskDefinitionKey")) {
                     String taskKey = r.prop("taskDefinitionKey").stringValue();
                     String taskName = r.prop("taskName").stringValue();
                     String result = r.prop("resolution").stringValue();
-                    String taskEndDate = r.prop("taskEndDate").stringValue().substring(0,10);
+                    String taskEndDate = r.prop("taskEndDate").stringValue().substring(0, 10);
 
-                    if("region_approve".equals(taskKey)){
-                        if("approve".equals(result)){
+                    if ("region_approve".equals(taskKey)) {
+                        if ("approve".equals(result)) {
                             varsMap.put("$head_y", "v");
                             varsMap.put("$head_n", "");
                         } else {
@@ -217,8 +223,8 @@ public class GenerateDocument implements JavaDelegate {
                         }
                         varsMap.put("$head_date", taskEndDate);
                     } else {
-                        if("central group \"Central Planning Unit\"".equals(taskName)){
-                            if("approve".equals(result)){
+                        if ("central group \"Central Planning Unit\"".equals(taskName)) {
+                            if ("approve".equals(result)) {
                                 varsMap.put("$2y", "v");
                                 varsMap.put("$2n", "");
                             } else {
@@ -226,8 +232,8 @@ public class GenerateDocument implements JavaDelegate {
                                 varsMap.put("$2n", "x");
                             }
                             varsMap.put("$2d", taskEndDate);
-                        } else if("central group \"Central Transmission Unit\"".equals(taskName)){
-                            if("approve".equals(result)){
+                        } else if ("central group \"Central Transmission Unit\"".equals(taskName)) {
+                            if ("approve".equals(result)) {
                                 varsMap.put("$ctu_y", "v");
                                 varsMap.put("$ctu_n", "");
                             } else {
@@ -235,8 +241,8 @@ public class GenerateDocument implements JavaDelegate {
                                 varsMap.put("$ctu_n", "x");
                             }
                             varsMap.put("$ctu_date", taskEndDate);
-                        } else if("central group \"Central S&FM Unit\"".equals(taskName)){
-                            if("approve".equals(result)){
+                        } else if ("central group \"Central S&FM Unit\"".equals(taskName)) {
+                            if ("approve".equals(result)) {
                                 varsMap.put("$csfu_y", "v");
                                 varsMap.put("$csfu_n", "");
                             } else {
@@ -244,8 +250,8 @@ public class GenerateDocument implements JavaDelegate {
                                 varsMap.put("$csfu_n", "x");
                             }
                             varsMap.put("$csfu_date", taskEndDate);
-                        } else if("central group \"Central SAO Unit\"".equals(taskName)){
-                            if("approve".equals(result)){
+                        } else if ("central group \"Central SAO Unit\"".equals(taskName)) {
+                            if ("approve".equals(result)) {
                                 varsMap.put("$1y", "v");
                                 varsMap.put("$1n", "");
                             } else {
@@ -257,6 +263,21 @@ public class GenerateDocument implements JavaDelegate {
                     }
                 }
             });
+
+            if ("region_approve".equals(resolution.get(resolution.size() - 1).prop("taskDefinitionKey").stringValue())) {
+                varsMap.put("$2y", "");
+                varsMap.put("$2n", "");
+                varsMap.put("$2d", "");
+                varsMap.put("$ctu_y", "");
+                varsMap.put("$ctu_n", "");
+                varsMap.put("$ctu_date", "");
+                varsMap.put("$csfu_y", "");
+                varsMap.put("$csfu_n", "");
+                varsMap.put("$csfu_date", "");
+                varsMap.put("$1y", "");
+                varsMap.put("$1n", "");
+                varsMap.put("$1d", "");
+            }
         }
 
         for (Map.Entry<String, String> entry : varsMap.entrySet()) {
@@ -278,7 +299,6 @@ public class GenerateDocument implements JavaDelegate {
 
     private static HWPFDocument replaceText(HWPFDocument doc, String findText, String replaceText){
         Range r1 = doc.getRange();
-
         for (int i = 0; i < r1.numSections(); ++i ) {
             Section s = r1.getSection(i);
             for (int x = 0; x < s.numParagraphs(); x++) {

@@ -95,8 +95,8 @@
                     store: true
                 },
                 {
-                    name: 'rbsType',
-                    type: 'String',
+                    name: 'rbsTypes',
+                    type: 'Json',
                     submit: true,
                     store: true
                 },
@@ -153,6 +153,7 @@
             ];
 
             $scope.gsmAntennaTypes = [];
+            $scope.rbsTypes = [];
 
             $scope.regions = [
                 {id: 'alm', name: 'Almaty', value: 'Alm'},
@@ -291,6 +292,10 @@
                 $scope.alternativePlaces.push("");
             };
 
+            $scope.removeAlternativePlace = function(index){
+                $scope.alternativePlaces.splice(index, 1);
+            }
+
             $scope.fileSelected = function(el, fileName){
                 if(el.files[0]){
                     $timeout(function () {
@@ -347,6 +352,24 @@
 
             $scope.removeGsmAntennaType = function(index){
                 $scope.gsmAntennaTypes.splice(index,1);
+            }
+
+            $scope.getRbsType = function(val) {
+                var result = [];
+                angular.forEach($scope.catalogs.rbsTypes, function (rt) {
+                    if(rt.toUpperCase().indexOf(val.toUpperCase()) >= 0 && $scope.rbsTypes.indexOf(rt)===-1){
+                        result.push(rt);
+                    }
+                });
+                return result;
+            };
+
+            $scope.rbsTypeSelected = function($item){
+                $scope.rbsTypes.push($item);
+            }
+
+            $scope.removeRbsType = function(index){
+                $scope.rbsTypes.splice(index,1);
             }
 
             $scope.download = function(file) {
@@ -420,16 +443,12 @@
         <div class="col-sm-3">
             <select cam-variable-name="dismantlingInitiator" name="dismantlingInitiator" cam-variable-type="String" class="form-control selectpicker" select-picker title="" required>
                 <option value="">select initiator</option>
-                <option value="planningUnit">Planning unit</option>
-                <option value="siteAcquisionUnit">Site Acquisition unit</option>
-                <option value="implementationUnit">Implementation Unit</option>
-                <option value="other">Other</option>
+                <option value="optimization">Optimization Unit</option>
+                <option value="transmission">Transmission Unit</option>
+                <option value="infrastructure">Infrastructure Unit</option>
+                <option value="operation">Operation Unit</option>
             </select>
             <label class="error" ng-if="kcell_form.dismantlingInitiator.$error.required && ( kcell_form.dismantlingInitiator.$touched || view.submitted)">Required field</label>
-        </div>
-        <div class="col-sm-2">
-            <input type="text" name="otherInitiator" cam-variable-name="otherInitiator" cam-variable-type="String" class="form-control" ng-if="dismantlingInitiator == 'other'" placeholder = 'Other' required/>
-            <label class="error" ng-if="kcell_form.otherInitiator.$error.required && ( kcell_form.otherInitiator.$touched || view.submitted)">Required field</label>
         </div>
     </div>
     <div class="form-group">
@@ -471,13 +490,18 @@
 
     <H4 style="margin-top: 30px;">Alternative places for setting of site</H4>
     <div class="form-group">
-        <label class="col-sm-2 control-label">Alternative {{alternativePlaces.length}}: </label>
-        <div class="col-sm-10">
+        <div class="col-sm-12">
             <div ng-repeat="i in alternativePlaces track by $index" style="float: left; margin-right: 20px;">
-                <input type="text" name="alternativePlaces{{$index}}" ng-model="alternativePlaces[$index]" class="form-control" style="width: 200px;" ng-required="alternativePlaces[0].length == 0" />
+                <table>
+                    <tr>
+                        <td>Alternative {{$index+1}}: </td>
+                        <td><input type="text" name="alternativePlaces{{$index}}" ng-model="alternativePlaces[$index]" class="form-control" style="width: 200px;" ng-required="alternativePlaces[0] == undefined || alternativePlaces[0].length == 0" /></td>
+                        <td ng-if="$index > 0"><a ng-click="removeAlternativePlace($index)" style="float: left;"><i class="glyphicon glyphicon-remove"></i></a></td>
+                    </tr>
+                </table>
             </div>
+            <label class="error" ng-if="kcell_form.alternativePlaces0.$error.required && ( kcell_form.alternativePlaces0.$touched || view.submitted)">Required field</label>
             <a ng-click="addAlternativePlace()" style="float: left;"><i class="glyphicon glyphicon-plus-sign"></i></a>
-            <label class="error" ng-if="alternativePlaces[0].length == 0 && kcell_form.alternativePlaces0.$error.required && ( kcell_form.alternativePlaces0.$touched || view.submitted)">Required field</label>
         </div>
     </div>
 
@@ -580,9 +604,9 @@
     <div class="form-group">
         <label class="col-sm-2 control-label">RBS type:</label>
         <div class="col-sm-2">
-            <select class="form-control" id="rbsType" name="rbsType" ng-model="rbsType" ng-options="r as r for r in catalogs.rbsTypes" required>
-            </select>
-            <label class="error" ng-if="kcell_form.rbsType.$error.required && ( kcell_form.rbsType.$touched || view.submitted)">Required field</label>
+            <span ng-repeat="rt in rbsTypes" class="my-tag">{{rt}} <a ng-click="removeRbsType($index)">&times;</a></span>
+            <input type="text" ng-model="tempRbsType" name="tempRbsType" typeahead="result as result for result in getRbsType($viewValue)" typeahead-on-select="rbsTypeSelected($item); tempRbsType = undefined" class="form-control" autocomplete="off" placeholder="Add Rbs Type" ng-required="rbsTypes.length == 0">
+            <label class="error" ng-if="kcell_form.tempRbsType.$error.required && ( kcell_form.tempRbsType.$touched || view.submitted)">Required field</label>
         </div>
 
         <label class="col-sm-2 control-label">Square, m2:</label>
