@@ -13,7 +13,7 @@
     }
   </style>
   <script cam-script type="text/form-script">
-    inject(['$scope', '$http', 'Uri', '$rootScope', '$q', 'toasty', '$timeout', function ($scope, $http, Uri, $rootScope, $q, toasty, $timeout) {
+    inject(['$scope', '$http', 'Uri', '$rootScope', '$q', 'toasty', '$timeout', '$location', 'exModal', function ($scope, $http, Uri, $rootScope, $q, toasty, $timeout, $location, exModal) {
       $scope.generalData = {
         general: {},
         targetAudience: {},
@@ -35,25 +35,40 @@
         solutionDesign: {},
         components: {}
       };
-      $scope.tabs = {SDD: true, UAT: false};
+      $scope.UATData = {};
       $scope.resolutions = [];
       $scope.attachments = [];
       $scope.supportiveInputs = [];
       $scope.resources = [];
       $scope.materials = [];
+      $scope.assigneeName = $rootScope.authentication.name;
+      $scope.approvalList = [
+        {role: 'Solution owner'},
+        {role: 'Demand owner'},
+        {role: 'Requirement manager'},
+        {role: 'Solution supervisor'},
+        {role: 'Demand supervisor'},
+        {role: 'Requirement supervisor'},
+        {role: ''},
+        {role: ''},
+        {role: ''},
+        {role: ''}
+      ];
+      $scope.allApproved = false;
 
       var processInstanceId = null;
       var taskName = null;
-      $scope.assigneeName = $rootScope.authentication.name;
       var createdDate = new Date();
       var claimDate = new Date();
+      var dataLoaded = false;
+      var pdfFileName = 'uatProtocol.pdf';
 
-      $http.get("/camunda/api/engine/engine/default/user/" + $rootScope.authentication.name + "/profile").then(function (result) {
+      $http.get("/camunda/api/engine/engine/default/user/" + $rootScope.authentication.name+ "/profile").then(function(result){
         $scope.assigneeName = (result.data.firstName ? result.data.firstName : "") + " " + (result.data.lastName ? result.data.lastName : "");
       });
 
       $http.get('/camunda/api/engine/engine/default/task/' + camForm.taskId).then(
-        function (result) {
+        function(result){
           processInstanceId = result.data.processInstanceId;
           taskName = result.data.name;
           if (result.data.created) createdDate = new Date(result.data.created);
@@ -65,12 +80,12 @@
       $http.get("/camunda/api/engine/engine/default/history/identity-link-log?type=assignee&taskId=" + camForm.taskId + "&operationType=add&sortBy=time&sortOrder=desc").then(
         function (logs) {
           try {
-            if (logs.data && logs.data.length > 0) {
+            if(logs.data && logs.data.length > 0){
               claimDate = new Date(logs.data[0].time);
             } else {
               claimDate = undefined;
             }
-          } catch (e) {
+          } catch(e){
             console.log(e);
           }
         },
@@ -94,9 +109,13 @@
         camForm.variableManager.fetchVariable('approvalItem');
         camForm.variableManager.fetchVariable('status');
         camForm.variableManager.fetchVariable('state');
+        camForm.variableManager.fetchVariable('oldStatus');
         camForm.variableManager.fetchVariable('businessKey');
         camForm.variableManager.fetchVariable('demandName');
         camForm.variableManager.fetchVariable('testCases');
+        camForm.variableManager.fetchVariable('developerList');
+        camForm.variableManager.fetchVariable('UATData');
+        camForm.variableManager.fetchVariable('uatApprovalList');
       });
 
       camForm.on('variables-fetched', function () {
@@ -116,11 +135,19 @@
         $scope.businessKey = camForm.variableManager.variableValue('businessKey');
         $scope.demandName = camForm.variableManager.variableValue('demandName');
         $scope.testCases = camForm.variableManager.variableValue('testCases');
+        $scope.developerList = camForm.variableManager.variableValue('developerList');
+        $scope.UATData = camForm.variableManager.variableValue('UATData');
+        $scope.uatApprovalList = camForm.variableManager.variableValue('uatApprovalList');
+
+        pdfFileName = 'Demand-DMAOP-' + $scope.businessKey + '-UAT-protocol.pdf';
+
         if (!$scope.attachments) $scope.attachments = [];
         if (!$scope.supportiveInputs) $scope.supportiveInputs = [];
 
         if (!$scope.generalData) $scope.generalData = {};
         if (!$scope.generalData.general) $scope.generalData.general = {};
+        if (!$scope.UATData) $scope.UATData = {};
+        if (!$scope.uatApprovalList) $scope.uatApprovalList = [];
         if ($scope.generalData.general.actualLaunch) $scope.generalData.general.actualLaunch = new Date($scope.generalData.general.actualLaunch);
 
         for (var i of $scope.supportiveInputs) {
@@ -128,11 +155,11 @@
           else if (i.form == 'CPD') $scope.materials = $scope.materials.concat(i.value);
         }
 
-        $http.get("/camunda/api/engine/engine/default/user/" + $scope.requirementManager + "/profile").then(function (result) {
+        $http.get("/camunda/api/engine/engine/default/user/" + $scope.requirementManager + "/profile").then(function(result){
           $scope.requirementManager = (result.data.firstName ? result.data.firstName : "") + " " + (result.data.lastName ? result.data.lastName : "");
         });
 
-        $http.get("/camunda/api/engine/engine/default/user/" + $scope.solutionOwner + "/profile").then(function (result) {
+        $http.get("/camunda/api/engine/engine/default/user/" + $scope.solutionOwner + "/profile").then(function(result){
           $scope.solutionOwner = (result.data.firstName ? result.data.firstName : "") + " " + (result.data.lastName ? result.data.lastName : "");
         });
 
@@ -140,43 +167,45 @@
         if ($scope.BRDData && $scope.BRDData.funcRequirements && $scope.BRDData.funcRequirements.useCases) {
           $scope.useCases = $scope.BRDData.funcRequirements.useCases;
         }
+
+        $scope.allApproved = true;
+        for (var app of $scope.uatApprovalList) {
+          if (!app.approved) $scope.allApproved = false;
+          else {
+            app.approved = new Date(app.approved);
+            if (app.resolution === 'Rejected') $scope.allApproved = false;
+          }
+        }
+        if (!$scope.uatApprovalList || !$scope.uatApprovalList.length) $scope.allApproved = false;
+        if (!$scope.allApproved && $scope.resolution === 'Approve') $scope.resolution = null;
+
+        dataLoaded = true;
       });
 
-      $scope.preSubmit = function () {
-        return $http.get('/camunda/api/engine/engine/default/process-instance/' + processInstanceId + '/variables/resolutions?deserializeValue=false').then(
-          function (result) {
-            $scope.resolutions = JSON.parse(result.data.value);
-            return $http.get('/camunda/api/engine/engine/default/process-instance/' + processInstanceId + '/variables/sddApprovalList?deserializeValue=false').then(
-              function (resp) {
-                $scope.sddApprovalList = JSON.parse(resp.data.value);
-              },
-              function (error) {
-                toasty.error(error.data.message);
-              }
-            );
-          },
-          function (error) {
-            toasty.error(error.data.message);
-          }
-        );
+      $scope.preSubmit = function() {
+        if ($scope.resolution === 'Approve') return $scope.printPDF(true);
+        else return new Promise(function(resolve, reject) {resolve();});
       };
 
       camForm.on('submit', function (event) {
-        var submitDate = new Date();
-        if (!$scope.resolutions) {
+        camForm.variableManager.destroyVariable('UATData');
+        camForm.variableManager.createVariable({
+          name: 'UATData',
+          type: 'Json',
+          value: $scope.UATData
+        });
+        camForm.variableManager.destroyVariable('testCases');
+        camForm.variableManager.createVariable({
+          name: 'testCases',
+          type: 'Json',
+          value: $scope.testCases
+        });
+
+        var submitDate = new Date ();
+        if(!$scope.resolutions){
           $scope.resolutions = [];
         }
-        $scope.resolutions.unshift({
-          processInstanceId: processInstanceId,
-          assignee: $scope.assigneeName,
-          resolution: $scope.resolution,
-          comment: $scope.comment,
-          taskId: camForm.taskId,
-          taskEndDate: submitDate,
-          taskName: taskName,
-          dateOfAssign: createdDate,
-          claimDate: claimDate
-        });
+        $scope.resolutions.unshift({processInstanceId: processInstanceId, assignee: $scope.assigneeName, resolution: $scope.resolution, comment: $scope.comment, taskId: camForm.taskId, taskEndDate: submitDate, taskName: taskName, dateOfAssign: createdDate, claimDate: claimDate});
         camForm.variableManager.destroyVariable('resolutions');
         camForm.variableManager.createVariable({
           name: 'resolutions',
@@ -191,19 +220,49 @@
           value: $scope.resolution
         });
 
-        for (var app of $scope.sddApprovalList) {
-          if (app.id === $scope.approvalItem.id) {
-            app.approved = new Date();
-            app.resolution = ($scope.resolution === 'Approve' ? 'Approved' : 'Rejected');
+        if ($scope.resolution === 'Request approval') {
+          for (var i = 0; i < $scope.approvalList.length; i++) {
+            if (!$scope.approvalList[i].role || !$scope.approvalList[i].responsibleId) {
+              $scope.approvalList.splice(i, 1);
+              i--;
+            } else $scope.approvalList[i].id = i;
+          }
+          camForm.variableManager.destroyVariable('uatApprovalList');
+          camForm.variableManager.createVariable({
+            name: 'uatApprovalList',
+            type: 'Json',
+            value: $scope.approvalList
+          });
+        } else {
+          var status = 'UAT approved';
+          if ($scope.resolution === 'Send to TQC') status = 'Development completed';
+          else if ($scope.resolution === 'Send to Development') status = 'Solution design approved';
+          camForm.variableManager.destroyVariable('oldStatus');
+          camForm.variableManager.createVariable({
+            name: 'oldStatus',
+            type: 'String',
+            value: $scope.status
+          });
+          camForm.variableManager.destroyVariable('status');
+          camForm.variableManager.createVariable({
+            name: 'status',
+            type: 'String',
+            value: status
+          });
+
+          if ($scope.resolution === 'Approve') {
+            camForm.variableManager.createVariable({
+              name: 'approvedUATPDFFileName',
+              type: 'String',
+              value: pdfFileName
+            });
+            camForm.variableManager.createVariable({
+              name: 'approvedUATPDFFilePath',
+              type: 'String',
+              value: processInstanceId + '/' + camForm.taskId + '/' + pdfFileName
+            });
           }
         }
-
-        camForm.variableManager.destroyVariable('sddApprovalList');
-        camForm.variableManager.createVariable({
-          name: 'sddApprovalList',
-          type: 'Json',
-          value: $scope.sddApprovalList
-        });
       });
 
       $scope.downloadFile = function (file) {
@@ -218,6 +277,182 @@
         });
       };
 
+      $scope.clearFile = function (fileIndex) {
+        exModal.open({
+          templateUrl: './js/partials/confirmModal.html',
+          size: 'sm'
+        }).then(function () {
+          $scope.attachments.splice(fileIndex, 1);
+        });
+      };
+
+      $scope.fileSelected = function (el) {
+        $timeout(function () {
+          $scope.$apply(function () {
+            uploadFileToMinio(el.files[0]);
+          });
+        })
+      };
+
+      function uploadFileToMinio(file) {
+        var fileToUpload = {
+          name: file.name,
+          path: processInstanceId + '/' + camForm.taskId + '/' + file.name,
+          created: new Date(),
+          createdBy: $scope.assigneeName
+        };
+        $http({
+          method: 'GET',
+          url: '/camunda/uploads/put/' + fileToUpload.path,
+          transformResponse: []
+        }).then(function (response) {
+          $http.put(response.data, file, {headers: {'Content-Type': undefined}}).then(
+            function () {
+              $scope.attachments.push(fileToUpload);
+              angular.element(document.querySelector('#attachments')).val(null);
+            },
+            function (error) {
+              console.log(error.data);
+            }
+          );
+        }, function (error) {
+          console.log(error.data);
+        });
+      }
+
+      $scope.saveFillForm = function (clicked) {
+        var success = 0;
+        var json = JSON.stringify($scope.UATData, function (key, value) {
+          if (key === "$$hashKey") return undefined;
+          return value;
+        });
+        $http.put('/camunda/api/engine/engine/default/process-instance/' + processInstanceId + '/variables/UATData', {
+          "type": "Json",
+          "value": json
+        }).then(
+          function () {
+            success++;
+            if (success == 3 && clicked) toasty.success("Данные успешно сохранены!");
+          },
+          function (error) {
+            if (clicked) toasty.error(error.data.message);
+          }
+        );
+        json = JSON.stringify($scope.attachments, function (key, value) {
+          if (key === "$$hashKey") return undefined;
+          return value;
+        });
+        $http.put('/camunda/api/engine/engine/default/process-instance/' + processInstanceId + '/variables/attachments', {
+          "type": "Json",
+          "value": json
+        }).then(
+          function () {
+            success++;
+            if (success == 3 && clicked) toasty.success("Данные успешно сохранены!");
+          },
+          function (error) {
+            if (clicked) toasty.error(error.data.message);
+          }
+        );
+        json = JSON.stringify($scope.testCases, function (key, value) {
+          if (key === "$$hashKey") return undefined;
+          return value;
+        });
+        $http.put('/camunda/api/engine/engine/default/process-instance/' + processInstanceId + '/variables/testCases', {
+          "type": "Json",
+          "value": json
+        }).then(
+          function () {
+            success++;
+            if (success == 3 && clicked) toasty.success("Данные успешно сохранены!");
+          },
+          function (error) {
+            if (clicked) toasty.error(error.data.message);
+          }
+        );
+      };
+
+      var lastTimeout = -1;
+
+      function setAutosaveTimer() {
+        if (lastTimeout !== -1) clearTimeout(lastTimeout.$$timeoutId);
+        lastTimeout = $timeout($scope.saveFillForm, 3000);
+      }
+
+      $scope.$watch('UATData', function () {
+        if (dataLoaded) setAutosaveTimer();
+      }, true);
+
+      $scope.$watch('testCases', function () {
+        if (dataLoaded) setAutosaveTimer();
+      }, true);
+
+      $scope.$watch('attachments', function () {
+        if (dataLoaded) setAutosaveTimer();
+      }, true);
+
+      $(window).on('beforeunload', async function () {
+        var testCasesJson = JSON.stringify($scope.testCases, function (key, value) {
+          if (key === "$$hashKey") return undefined;
+          return value;
+        });
+        var UATDataJson = JSON.stringify($scope.UATData, function (key, value) {
+          if (key === "$$hashKey") return undefined;
+          return value;
+        });
+        var attachmentsJson = JSON.stringify($scope.attachments, function (key, value) {
+          if (key === "$$hashKey") return undefined;
+          return value;
+        });
+
+        await $q.all([
+          $http.put('/camunda/api/engine/engine/default/process-instance/' + processInstanceId + '/variables/testCases', {
+            "type": "Json",
+            "value": testCasesJson
+          }),
+          $http.put('/camunda/api/engine/engine/default/process-instance/' + processInstanceId + '/variables/UATData', {
+            "type": "Json",
+            "value": UATDataJson
+          }),
+          $http.put('/camunda/api/engine/engine/default/process-instance/' + processInstanceId + '/variables/attachments', {
+            "type": "Json",
+            "value": attachmentsJson
+          })
+        ]);
+        return 'Saving...';
+      });
+
+      $scope.testCasesToExcel = function() {
+        $(".scrollable").scrollTop(0);
+        $('#loaderDiv').show();
+        var data = [];
+        for (var k in $scope.testCases) {
+          if (k !== 'list') {
+            var ind = parseInt(k);
+            data.push(['Use case ' + (ind + 1), $scope.useCases[ind].name]);
+          }
+          for (var i = 0; i < $scope.testCases[k].length; i++) {
+            data.push(['Test case ' + (i + 1), $scope.testCases[ind][i].value]);
+          }
+          data.push([]);
+        }
+
+        var ws = XLSX.utils.aoa_to_sheet(data);
+        var width = [];
+        for (var row of data) {
+          for (var i = 0; i < row.length; i++) {
+            if (i >= width.length) width.push({wch: 0});
+            if (('' + row[i]).length > width[i].wch) width[i].wch = ('' + row[i]).length;
+            if (width[i].wch > 100) width[i].wch = 100;
+          }
+        }
+        ws['!cols'] = width;
+        var wb = XLSX.utils.book_new();
+        XLSX.utils.book_append_sheet(wb, ws, 'Sheet1');
+        XLSX.writeFile(wb, 'test_cases.xlsx');
+        $('#loaderDiv').hide();
+      };
+
       var pdfHeader = `<!doctype html>
       <head>
         <link href="https://flow.kcell.kz/kcell-tasklist-ui/css/bootstrap.min.css" rel="stylesheet">
@@ -230,29 +465,102 @@
       downloader.style = "display: none";
 
       $scope.showSDDPDF = false;
-      $scope.printPDF = function() {
+      $scope.printPDF = function(beforeSubmit) {
         $scope.sddPDFDate = new Date();
         $scope.showSDDPDF = true;
         $(".scrollable").scrollTop(0);
-        $('#loaderDiv').show();
-        $timeout(function() {
-          var element = $('#pdfDiv')[0];
-          $http({
-            method: 'POST',
-            url: '/chrome/topdf',
-            data: pdfHeader + element.outerHTML + pdfFooter,
-            responseType: 'arraybuffer'
-          }, ).then(function(result) {
-            var blob = new Blob([result.data], {type: 'application/pdf'});
+        if (!beforeSubmit) $('#loaderDiv').show();
+        var element = $('#pdfDiv')[0];
+        return $http({
+          method: 'POST',
+          url: '/chrome/topdf',
+          data: pdfHeader + element.outerHTML + pdfFooter,
+          responseType: 'arraybuffer'
+        }, ).then(function(result) {
+          var blob = new Blob([result.data], {type: 'application/pdf'});
+          if (!beforeSubmit) {
             var url = window.URL.createObjectURL(blob);
-            downloader.download = 'Demand-' + $scope.businessKey + '-SDD';
+            downloader.download = pdfFileName;
             downloader.href = url;
             downloader.click();
             window.URL.revokeObjectURL(url);
             $scope.showSDDPDF = false;
             $('#loaderDiv').hide();
-          });
+          } else {
+            return $http({
+              method: 'GET',
+              url: '/camunda/uploads/put/' + processInstanceId + '/' + camForm.taskId + '/'  + pdfFileName,
+              transformResponse: []
+            }).then(function (response) {
+              return $http.put(response.data, blob, {headers: {'Content-Type': 'application/pdf'}}).then(
+                function () {},
+                function (error) {
+                  console.log(error.data);
+                }
+              );
+            }, function (error) {
+              console.log(error.data);
+            });
+          }
         });
+      };
+
+      $scope.getUser = function (val, index) {
+        $scope.approvalList[index].responsibleId = null;
+        $scope.kcell_form['uat_approval_' + index + '_responsible'].$setValidity('not_selected', false);
+        var users = $http.get('/camunda/api/engine/engine/default/user?memberOfGroup=demand_uat_users&firstNameLike=' + encodeURIComponent('%' + val + '%')).then(
+          function (response) {
+            var usersByFirstName = _.flatMap(response.data, function (s) {
+              if (s.id) {
+                return s.id.split(',').map(function (user) {
+                  return {
+                    id: s.id,
+                    email: (s.email ? s.email.substring(s.email.lastIndexOf('/') + 1) : s.email),
+                    firstName: s.firstName,
+                    lastName: s.lastName,
+                    name: s.firstName + ' ' + s.lastName
+                  };
+                })
+              } else {
+                return [];
+              }
+            });
+
+            return $http.get('/camunda/api/engine/engine/default/user?memberOfGroup=demand_uat_users&lastNameLike=' + encodeURIComponent('%' + val + '%')).then(
+              function (response) {
+                var usersByLastName = _.flatMap(response.data, function (s) {
+                  if (s.id) {
+                    return s.id.split(',').map(function (user) {
+                      return {
+                        id: s.id,
+                        email: s.email.substring(s.email.lastIndexOf('/') + 1),
+                        firstName: s.firstName,
+                        lastName: s.lastName,
+                        name: s.firstName + ' ' + s.lastName
+                      };
+                    })
+                  } else {
+                    return [];
+                  }
+                });
+                return _.unionWith(usersByFirstName, usersByLastName, _.isEqual);
+              }
+            );
+          }
+        );
+        return users;
+      };
+
+      $scope.userSelected = function ($item, index) {
+        $scope.approvalList[index].responsibleId = $item.id;
+        $scope.approvalList[index].responsible = $item.name;
+        $scope.kcell_form['uat_approval_' + index + '_responsible'].$setValidity('not_selected', true);
+      };
+
+      $scope.onResponsibleChange = function (index) {
+        if (!$scope.approvalList[index].responsible || !$scope.approvalList[index].responsible.length) {
+          $scope.kcell_form['uat_approval_' + index + '_responsible'].$setValidity('not_selected', true);
+        }
       };
     }]);
   </script>
@@ -272,7 +580,7 @@
       </div>
       <label style="width: 6%; float: left; padding: 7px 0px 0 5px; font-weight: 500;"> Activity:</label>
       <div style="width: 29%; float: left; padding: 0 5px;">
-        <div class="disabled-element"> Approve SDD </div>
+        <div class="disabled-element"> User Acceptance Testing </div>
       </div>
     </div>
     <div class="form-group">
@@ -478,7 +786,7 @@
         </div>
       </div>
     </tab>
-    <tab active="tabs.SDD">
+    <tab>
       <tab-heading> SDD </tab-heading>
       <div style="margin-top: 20px;">
         <div class="form-group">
@@ -533,17 +841,99 @@
         </div>
       </div>
     </tab>
-    <tab active="tabs.UAT">
+    <tab active="true">
       <tab-heading> UAT </tab-heading>
       <div style="margin-top: 20px;">
-        <accordion class="content-visible-accordion" ng-if="tabs.UAT">
+        <accordion class="content-visible-accordion">
           <accordion-group is-open="true">
             <accordion-heading>
               Test cases <i class="pull-right glyphicon" ng-class="{'glyphicon-chevron-up': status.isCustomHeaderOpen, 'glyphicon-chevron-down': !status.isCustomHeaderOpen}"></i>
             </accordion-heading>
-            <demand-test-cases data="testCases" use-cases="useCases" form="kcell_form" view="view" disabled="true"></demand-test-cases>
+            <demand-test-cases data="testCases" use-cases="useCases" form="kcell_form" view="view" disabled="true" status="2"></demand-test-cases>
           </accordion-group>
         </accordion>
+      </div>
+      <div class="form-group">
+        <label class="col-sm-2 control-label">Conclusion<span ng-if="resolution === 'Approve' || resolution === 'Request approval'" class="text-danger glyphicon-asterisk"></span></label>
+        <div class="col-sm-10">
+          <label class="radio-inline">
+            <input type="radio" ng-model="UATData.conclusion" name="conclusion" value="Ready for launch" ng-required="resolution === 'Approve' || resolution === 'Request approval'"> Ready for launch
+          </label>
+          <label class="radio-inline">
+            <input type="radio" ng-model="UATData.conclusion" name="conclusion" value="Ready for launch with risks" ng-required="resolution === 'Approve' || resolution === 'Request approval'"> Ready for launch with risks
+          </label>
+          <label class="radio-inline">
+            <input type="radio" ng-model="UATData.conclusion" name="conclusion" value="NOT Ready for launch" ng-required="resolution === 'Approve' || resolution === 'Request approval'"> NOT Ready for launch
+          </label>
+          <label class="error" ng-show="kcell_form.conclusion.$error.required && ( kcell_form.conclusion.$touched || view.submitted)">Required field</label>
+        </div>
+      </div>
+      <div class="form-group">
+        <label class="col-sm-12 control-label">Risks \ Limitations<span ng-if="UATData.conclusion !== 'Ready for launch'" class="text-danger glyphicon-asterisk"></span></label>
+        <div class="col-sm-12">
+          <textarea elastic-textarea style="resize:none" class="form-control" name="UATRisksLimitations" ng-model="UATData.risks" ng-required="UATData.conclusion !== 'Ready for launch'"></textarea>
+          <span class="has-error" ng-if="kcell_form.UATRisksLimitations.$error.required && (kcell_form.UATRisksLimitations.$touched || view.submitted)">Required field</span>
+        </div>
+      </div>
+
+      <div class="col-sm-7" style="padding: 0;">
+        <div class="panel-group custom-panel">
+          <div class="panel panel-default">
+            <div class="panel-heading">
+              <h4 class="panel-title">Request UAT Appoval</h4>
+            </div>
+            <div class="panel-body">
+              <div class="form-group" style="margin-bottom: 0;">
+                <label class="col-sm-6" style="font-weight: bold">Role</label>
+                <label class="col-sm-6" style="font-weight: bold">Responsible</label>
+              </div>
+              <div class="form-group" ng-repeat="app in approvalList track by $index">
+                <label class="control-label col-sm-6" ng-if="$index < 6">{{app.role}}</label>
+                <div class="col-sm-6" ng-if="$index > 5">
+                  <input type="text" class="form-control" ng-model="app.role" name="uat_approval_{{$index}}_role" ng-required="app.responsible && app.responsible.length">
+                  <span class="has-error" ng-if="kcell_form['uat_approval_'+$index+'_role'].$error.required && (kcell_form['uat_approval_'+$index+'_role'].$touched || view.submitted)">Required field</span>
+                </div>
+                <div class="col-sm-6">
+                  <input type="text" ng-model="app.responsible" name="uat_approval_{{$index}}_responsible" typeahead="name as users.name for users in getUser($viewValue, $index)" typeahead-on-select="userSelected($item, $index)" class="form-control" autocomplete="off" ng-required="resolution === 'Request approval' && ($index < 6 || (app.role && app.role.length))" ng-change="onResponsibleChange($index)">
+                  <span class="has-error" ng-if="kcell_form['uat_approval_'+$index+'_responsible'].$error.required && (kcell_form['uat_approval_'+$index+'_responsible'].$touched || view.submitted)">Required field</span>
+                  <span class="has-error" ng-if="!kcell_form['uat_approval_'+$index+'_responsible'].$error.required && kcell_form['uat_approval_'+$index+'_responsible'].$error.not_selected && (kcell_form['uat_approval_'+$index+'_responsible'].$touched || view.submitted)">User must be selected from the list</span>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div class="col-sm-12" style="padding: 0;">
+        <div class="panel-group custom-panel">
+          <div class="panel panel-default">
+            <div class="panel-heading">
+              <h4 class="panel-title">UAT last approval</h4>
+            </div>
+            <div class="panel-body">
+              <table class="table ">
+                <thead>
+                <tr>
+                  <th>Role</th>
+                  <th>Responsible</th>
+                  <th>Date</th>
+                  <th>Resolution</th>
+                  <th>Comment</th>
+                </tr>
+                </thead>
+                <tbody>
+                <tr ng-repeat="app in uatApprovalList track by $index">
+                  <td>{{app.role}}</td>
+                  <td>{{app.responsible}}</td>
+                  <td>{{app.approved | date: 'dd.MM.yyyy HH:mm'}}</td>
+                  <td>{{app.resolution}}</td>
+                  <td>{{app.comment}}</td>
+                </tr>
+                </tbody>
+              </table>
+            </div>
+          </div>
+        </div>
       </div>
     </tab>
   </tabset>
@@ -584,6 +974,12 @@
               <div class="disabled-element">{{solutionOwner}}</div>
             </div>
           </div>
+          <div class="form-group" ng-repeat="d in developerList track by $index">
+            <label class="col-sm-6 control-label">{{ $index === 0 ? 'Developer' : '' }}</label>
+            <div class="col-sm-6">
+              <div class="disabled-element">{{ d.name }}</div>
+            </div>
+          </div>
         </div>
       </div>
     </div>
@@ -597,22 +993,33 @@
         </div>
         <div class="panel-body">
           <iframe id="fileDownloadIframe" style="display:none;"></iframe>
-          <table class="table ">
-            <thead>
-            <tr>
-              <th>File Name</th>
-              <th>Created</th>
-              <th>Created By</th>
-            </tr>
-            </thead>
-            <tbody>
-            <tr ng-repeat="file in attachments track by $index">
-              <td><a ng-click="downloadFile(file)">{{file.name}}</a></td>
-              <td>{{file.created | date: 'dd.MM.yyyy HH:mm'}}</td>
-              <td>{{file.createdBy}}</td>
-            </tr>
-            </tbody>
-          </table>
+          <div class="form-group">
+            <div class="col-sm-12">
+              <div class="col-sm-12" style="margin-bottom: 10px;">
+                <input type="file" class="form-control" id="attachments" name="attachments" onchange="angular.element(this).scope().fileSelected(this)"/>
+              </div>
+              <div class="col-sm-12">
+                <table class="table ">
+                  <thead>
+                  <tr>
+                    <th>File Name</th>
+                    <th>Created</th>
+                    <th>Created By</th>
+                    <th>Delete</th>
+                  </tr>
+                  </thead>
+                  <tbody>
+                  <tr ng-repeat="file in attachments track by $index">
+                    <td><a ng-click="downloadFile(file)">{{file.name}}</a></td>
+                    <td>{{file.created | date: 'dd.MM.yyyy HH:mm'}}</td>
+                    <td>{{file.createdBy}}</td>
+                    <td><a ng-click="clearFile($index)" ng-if="file.createdBy == assigneeName"><i class="glyphicon glyphicon-trash"></i></a></td>
+                  </tr>
+                  </tbody>
+                </table>
+              </div>
+            </div>
+          </div>
         </div>
       </div>
     </div>
@@ -620,7 +1027,9 @@
   <hr>
 
   <div class="col-sm-12" style="margin-bottom: 20px;">
-    <button type="button" ng-click="printPDF()" class="btn btn-success" style="padding: 6px 28px">Export SDD to PDF</button>
+    <button type="button" ng-click="saveFillForm(true)" class="btn btn-success" style="padding: 6px 28px">Save</button>
+    <button type="button" ng-click="testCasesToExcel()" class="btn btn-info">Export Test cases to Excel</button>
+    <!--<button type="button" ng-click="printPDF()" class="btn btn-info">Export SDD to PDF</button>-->
   </div>
 
   <div ng-show="showSDDPDF" id="pdfDiv">
@@ -628,21 +1037,27 @@
   </div>
 
   <div class="form-group">
-    <label class="col-sm-2 control-label">Resolution</label>
+    <label class="col-sm-2 control-label">Resolution<span class="text-danger glyphicon-asterisk"></span></label>
     <div class="col-sm-10">
       <label class="radio-inline">
         <input type="radio" ng-model="resolution" name="resolution" value="Approve" required> Approve
       </label>
       <label class="radio-inline">
-        <input type="radio" ng-model="resolution" name="resolution" value="Reject" required> Reject
+        <input type="radio" ng-model="resolution" name="resolution" value="Request approval" required> Request approval
+      </label>
+      <label class="radio-inline">
+        <input type="radio" ng-model="resolution" name="resolution" value="Send to TQC" required> Send to TQC
+      </label>
+      <label class="radio-inline">
+        <input type="radio" ng-model="resolution" name="resolution" value="Send to Development" required> Send to Development
       </label>
       <label class="error" ng-show="kcell_form.resolution.$error.required && ( kcell_form.resolution.$touched || view.submitted)">Required field</label>
     </div>
   </div>
   <div class="form-group">
-    <label class="col-sm-2 control-label">Comment<span ng-if="resolution === 'Reject'" class="text-danger glyphicon-asterisk"></span></label>
+    <label class="col-sm-2 control-label">Comment<span class="text-danger glyphicon-asterisk"></span></label>
     <div class="col-sm-10">
-      <textarea class="form-control" rows="4" maxlength="500" ng-model="comment" name="comment" ng-required="resolution === 'Reject'"></textarea>
+      <textarea class="form-control" rows="4" maxlength="500" ng-model="comment" name="comment" ng-required="resolution !== 'Approve'"></textarea>
       <label class="error" ng-show="kcell_form.comment.$error.required && ( kcell_form.comment.$touched || view.submitted)">Required field</label>
     </div>
   </div>
