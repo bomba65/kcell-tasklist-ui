@@ -190,7 +190,7 @@ define('app',[
 	    	resolve: resolve
 	    }).state("search", {
 	    	url: "/search",
-	    	templateUrl: "js/partials/search.html",
+	    	templateUrl: "js/partials/search_new.html",
 	    	controller: "searchCtrl",
 	    	authenticate: true,
 	    	resolve: resolve

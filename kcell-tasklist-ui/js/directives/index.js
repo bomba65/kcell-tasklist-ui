@@ -34,4 +34,7 @@ define([
 	'./customCalendar/calendarRange',
 	'./aftersales/infoAftersalesSearch',
 	'./summernoteRichText',
+	'./search/revisionSearch',
+	'./search/deliveryPortalSearch',
+	'./search/demandSearch'
 	], function(){});

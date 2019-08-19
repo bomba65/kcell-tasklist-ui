@@ -3,7 +3,7 @@ define(['../module'], function(module){
     module.directive('infoAftersalesSearch', ['$http', '$timeout', function ($http, $timeout) {
         return {
             restrict: 'E',
-            scope: true,
+            scope: false,
             link: function(scope, el, attrs){
                 scope.download = function(path) {
                     $http({method: 'GET', url: '/camunda/uploads/get/' + path, transformResponse: [] }).
