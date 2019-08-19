@@ -44,7 +44,7 @@ public class TaskHistoryListener implements TaskListener {
     @Autowired
     IdentityService identityService;
 
-    private final List<String> enabledProcesses = Arrays.asList("leasing", "freephone", "bulksmsConnectionKAE", "AftersalesPBX", "revolvingNumbers");
+    private final List<String> enabledProcesses = Arrays.asList("leasing", "freephone", "bulksmsConnectionKAE", "AftersalesPBX", "revolvingNumbers", "after-sales-ivr-sms", "BulkSMS_disconnection", "changeConnectionType", "ivr_disconnection");
 
     @Override
     public void notify(DelegateTask delegateTask) {
