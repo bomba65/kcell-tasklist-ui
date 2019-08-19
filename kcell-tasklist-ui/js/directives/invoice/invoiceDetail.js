@@ -1,4 +1,4 @@
-define(['./module'], function(module){
+define(['./../module'], function(module){
 	'use strict';
 	module.directive('invoiceDetail', function ($rootScope, $http, $timeout, exModal) {
 		return {
@@ -56,6 +56,7 @@ define(['./module'], function(module){
                 }                
 
 				scope.getCatalogs = function(){
+                    scope.selectedWorks = [];
 	                $http.get($rootScope.getCatalogsHttpByName('catalogs')).then(
 	                    function (result) {
 	                    	angular.extend(scope.catalogs, result.data);
@@ -191,7 +192,7 @@ define(['./module'], function(module){
                     });
                 }
 	        },
-			templateUrl: './js/directives/invoiceDetail.html'
+			templateUrl: './js/directives/invoice/invoiceDetail.html'
 		};
 	});
 });

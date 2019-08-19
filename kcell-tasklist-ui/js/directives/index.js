@@ -1,7 +1,7 @@
 define([
 	'./revision/jobRequest',
 	'./revision/resolutionHistory',
-	'./invoiceDetail',
+	'./invoice/invoiceDetail',
 	'./bulksms/infoBulksms',
 	'./cam-widget-bpmn-viewer',
 	'./trackChange',
