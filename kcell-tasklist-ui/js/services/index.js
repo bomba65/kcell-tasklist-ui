@@ -5,5 +5,6 @@ define([
 	'./startProcessService',
 	'./searchCurrentSelectedProcessService',
 	'./disconnectSelectedProcessService',
-	'./htmlToPdf'
+	'./htmlToPdf',
+	'./historyVariablesManager'
 	], function(){});
