@@ -24,6 +24,7 @@
             $scope.attachments = [];
             $scope.data = [];
             $scope.generalProductDesc = null;
+            var createdDate = new Date();
 
             $scope.preSubmit = function () {
                 return $http.get('/camunda/api/engine/engine/default/history/process-instance/count?processDefinitionKey=UAT').then(
@@ -70,12 +71,17 @@
                 });
 
                 var submitDate = new Date();
-                $scope.resolutions.push({
-                    assignee: $rootScope.authentication.name,
+                var attachmentsChanges = {added: [], removed: []};
+                for (var attachment of $scope.attachments) attachmentsChanges.added.push(attachment.name);
+                $scope.resolutions.unshift({
+                    assignee: assigneeName,
                     resolution: 'Completed',
                     comment: $scope.comment,
                     taskEndDate: new Date(),
-                    taskName: 'Start Process'
+                    taskName: 'Start Process',
+                    assignDate: createdDate,
+                    claimDate: createdDate,
+                    attachments: attachmentsChanges
                 });
                 camForm.variableManager.createVariable({
                     name: 'resolutions',
