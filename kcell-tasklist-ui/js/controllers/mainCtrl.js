@@ -136,7 +136,7 @@ define(['./module','camundaSDK', 'lodash', 'big-js'], function(module, CamSDK, _
 		}
 		function showProcessStartButtonVisible () {
 			var showModal = false;
-			$http.get(baseUrl+'/process-definition?latest=true&active=true&firstResult=0&maxResults=30&startablePermissionCheck=true').then(
+			$http.get(baseUrl+'/process-definition?latest=true&active=true&firstResult=0&maxResults=100&startablePermissionCheck=true').then(
 				function(results){
 					$scope.processDefinitions = [];
 					angular.forEach(results.data, function(e){
