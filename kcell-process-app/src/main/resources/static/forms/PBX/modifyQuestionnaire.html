@@ -1,6 +1,6 @@
 <form role="form" class="form-horizontal" name="kcell_form" novalidate>
   <script cam-script type="text/form-script">
-    inject(['$scope', '$http', 'Uri', '$rootScope', '$q', 'Upload', '$timeout', function ($scope, $http, Uri, $rootScope, $q, Upload, $timeout) {
+    inject(['$scope', '$http', 'Uri', '$rootScope', '$q', 'Upload', '$timeout', 'historyVariablesManager', function ($scope, $http, Uri, $rootScope, $q, Upload, $timeout, historyVariablesManager) {
     
     $scope.ci = {};
     $scope.ts = {};
@@ -11,6 +11,7 @@
     var processInstanceId = null;
     var assigneeName = $rootScope.authentication.name;
     var taskKey = camForm.taskId;
+    var history = null;
     
     $http.get("/camunda/api/engine/engine/default/user/" + $rootScope.authentication.name+ "/profile").then(function(result){
         assigneeName = (result.data.firstName ? result.data.firstName : "") + " " + (result.data.lastName ? result.data.lastName : "");
@@ -23,11 +24,11 @@
         },
         function(response) { console.log(response.data); }
       );
-    }
+    };
 
     $scope.clearFile = function(fileIndex) {
       $scope.attachments.splice(fileIndex, 1);
-    }
+    };
     
     $scope.fileSelected = function(el ){
       $timeout(function () {
@@ -60,7 +61,21 @@
       );
     }
 
+    $http.get('/camunda/api/engine/engine/default/task/' + camForm.taskId).then(
+      function (result) {
+        processInstanceId = result.data.processInstanceId;
+        taskKey = result.data.taskDefinitionKey;
+        history = historyVariablesManager(camForm, taskKey);
+        history.createVariables(true);
+        configureViews();
+      },
+      function (error) {
+        console.log(error.data);
+      }
+    );
+
     camForm.on('form-loaded', function () {
+      camForm.variableManager.fetchVariable('resolutions');
       camForm.variableManager.fetchVariable('clientPriority');
       camForm.variableManager.fetchVariable('customerInformation');
       camForm.variableManager.fetchVariable('technicalSpecifications');
@@ -69,23 +84,13 @@
       camForm.variableManager.fetchVariable('sipDirectProtocol');
       camForm.variableManager.fetchVariable('attachments');
       camForm.variableManager.fetchVariable('poiMessage');
-      camForm.variableManager.fetchVariable('resolutions');
       camForm.variableManager.fetchVariable('tariff');
       camForm.variableManager.fetchVariable('numberRequest');
-
-      $http.get('/camunda/api/engine/engine/default/task/' + camForm.taskId).then(
-        function (result) {
-          processInstanceId = result.data.processInstanceId;
-          taskKey = result.data.taskDefinitionKey;
-          configureViews();
-        },
-        function (error) {
-          console.log(error.data);
-        }
-      );
     });
 
     camForm.on('variables-fetched', function () {
+      $scope.resolutions = camForm.variableManager.variableValue('resolutions');
+      camForm.variableManager.destroyVariable('resolutions');
       $scope.clientPriority = camForm.variableManager.variableValue('clientPriority');
       $scope.ci = camForm.variableManager.variableValue('customerInformation');
       $scope.ts = camForm.variableManager.variableValue('technicalSpecifications');
@@ -94,41 +99,11 @@
       $scope.dir = camForm.variableManager.variableValue('sipDirectProtocol');
       $scope.attachments = camForm.variableManager.variableValue('attachments');
       $scope.poiMessage = camForm.variableManager.variableValue('poiMessage');
-      $scope.resolutions = camForm.variableManager.variableValue('resolutions');
       $scope.tariff = camForm.variableManager.variableValue('tariff');
       $scope.numberRequest = camForm.variableManager.variableValue('numberRequest');
-      if ($scope.resolutions) {
-        $q.all($scope.resolutions.map(function (resolution) {
-          return $http.get("/camunda/api/engine/engine/default/history/task?processInstanceId="+resolution.processInstanceId+"&taskId=" + resolution.taskId);
-        })).then(function (tasks) {
-          tasks.forEach(function (t, index) {
-            if (t.data.length > 0) {
-              $scope.resolutions[index].taskName = t.data[0].name;
-              try {
-                $scope.resolutions[index].taskEndDate = new Date(t.data[0].endTime);
-                $scope.resolutions[index].assignDate = new Date(t.data[0].startTime);
-              } catch(e){
-                console.log(e);
-              }
-            }
-          });
-        });
-        $q.all($scope.resolutions.map(function (resolution) {
-          return $http.get("/camunda/api/engine/engine/default/history/identity-link-log?type=assignee&taskId=" + resolution.taskId + "&operationType=add&sortBy=time&sortOrder=desc");
-        })).then(function (logs) {
-          logs.forEach(function (e, index) {
-            if(e.data.length > 0){
-              try {
-                $scope.resolutions[index].claimDate = new Date(e.data[0].time);
-              } catch(e){
-                console.log(e);
-              }
-            }
-          });
-        });
-      } else {
-        $scope.resolutions = [];
-      }
+
+      if (!$scope.attachments) $scope.attachments = [];
+      $scope.lastAttachments = JSON.parse(JSON.stringify($scope.attachments));
     });
 
     camForm.on('submit', function(event) {
@@ -137,20 +112,9 @@
       camForm.variableManager.variableValue('sipProtocol', $scope.sip);
       camForm.variableManager.variableValue('e1Protocol', $scope.e1);
       camForm.variableManager.variableValue('sipDirectProtocol', $scope.dir);
-      $scope.resolutions.push({
-        processInstanceId: processInstanceId,
-        taskId: camForm.taskId,
-        assigneeName: assigneeName,
-        comment: $scope.comment
-      });
-      camForm.variableManager.destroyVariable('resolutions');
-      camForm.variableManager.createVariable({
-        name: 'resolutions',
-        type: 'json',
-        value: $scope.resolutions,
-        store: true
-      });
       camForm.variableManager.variableValue('tariff', $scope.tariff);
+
+      history.setVariables('Completed', $scope.comment, $scope.lastAttachments, $scope.attachments);
     });
 
     $scope.showView = {

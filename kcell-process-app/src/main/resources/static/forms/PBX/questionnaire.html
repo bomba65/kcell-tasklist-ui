@@ -23,6 +23,7 @@
     var processInstanceId = null;
     var fk_client = 0;
     var numberRequest = '';
+    var createdDate = new Date();
     
     $http.get("/camunda/api/engine/engine/default/user/" + $rootScope.authentication.name+ "/profile").then(function(result){
         assigneeName = (result.data.firstName ? result.data.firstName : "") + " " + (result.data.lastName ? result.data.lastName : "");
@@ -44,11 +45,11 @@
         },
         function(response) { console.log(response.data); }
       );
-    }
+    };
 
     $scope.clearFile = function(fileIndex) {
       $scope.attachments.splice(fileIndex, 1);
-    }
+    };
     
     $scope.fileSelected = function(el, bindedInput){
       $timeout(function () {
@@ -131,27 +132,22 @@
       camForm.variableManager.createVariable({
         name: 'clientBIN',
         value: $scope.ci.bin,
-        type: 'String'
+        type: 'String',
+        store: true
       });
 
+      var attachmentsChanges = {added: [], removed: []};
+      for (var attachment of $scope.attachments) attachmentsChanges.added.push(attachment.name);
       var resolutions = [{
-        processInstanceId: processInstanceId,
-        taskName: "Start Form",
-        taskId: camForm.taskId,
-        assigneeName: assigneeName,
+        assignee: assigneeName,
+        resolution: 'Started',
         comment: $scope.comment,
         taskEndDate: new Date(),
-        resolution: "started"
-
+        taskName: 'Start Form',
+        assignDate: createdDate,
+        claimDate: createdDate,
+        attachments: attachmentsChanges
       }];
-      // event.submitPrevented = true;
-
-      //-----------------------------------------------------
-
-      //-----------------------------------------------------
-
-
-
       camForm.variableManager.createVariable({
         name: 'resolutions',
         type: 'json',
@@ -192,7 +188,7 @@
             return deferred.promise;
           }
         );
-      }
+      };
 
       var PBXClientData = {
         id: 0,
