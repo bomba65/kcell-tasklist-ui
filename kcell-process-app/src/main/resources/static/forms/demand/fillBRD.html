@@ -1,509 +1,539 @@
 <form role="form" class="form-horizontal" name="kcell_form" novalidate>
-    <style>
-        .well {
-            color: #333;
+  <style>
+    .well {
+      color: #333;
+    }
+
+    .content-visible-accordion .panel {
+      overflow: visible;
+    }
+  </style>
+  <script cam-script type="text/form-script">
+    inject(['$scope', '$http', 'Uri', '$rootScope', '$q', 'toasty', '$timeout', 'exModal', 'historyVariablesManager', function ($scope, $http, Uri, $rootScope, $q, toasty, $timeout, exModal, historyVariablesManager) {
+      $scope.generalData = {
+        general: {},
+        targetAudience: {},
+        demandDetails: {}
+      };
+      $scope.BRDData = {
+        funcRequirements: {},
+        nonFuncRequirements: {},
+        interfaces: {},
+        reportsStatistics: '',
+        acceptanceCriteria: []
+      };
+
+      $scope.processInstanceId = null;
+      $scope.taskId = camForm.taskId;
+      var taskName = null;
+      var assigneeName = $rootScope.authentication.name;
+      var history = historyVariablesManager(camForm, 'fillBRD');
+
+      $http.get("/camunda/api/engine/engine/default/user/" + $rootScope.authentication.name + "/profile").then(function (result) {
+        assigneeName = (result.data.firstName ? result.data.firstName : "") + " " + (result.data.lastName ? result.data.lastName : "");
+      });
+
+      $http.get('/camunda/api/engine/engine/default/task/' + camForm.taskId).then(
+        function (result) {
+          $scope.processInstanceId = result.data.processInstanceId;
+          taskName = result.data.name;
+        },
+        function (error) {
+          console.log(error.data);
+        }
+      );
+
+      camForm.on('form-loaded', function () {
+        camForm.variableManager.fetchVariable('resolutions');
+        camForm.variableManager.fetchVariable('generalData');
+        camForm.variableManager.fetchVariable('BRDData');
+        camForm.variableManager.fetchVariable('attachments');
+        camForm.variableManager.fetchVariable('status');
+        camForm.variableManager.fetchVariable('oldStatus');
+        camForm.variableManager.fetchVariable('state');
+        camForm.variableManager.fetchVariable('bcResolution');
+      });
+
+      camForm.on('variables-fetched', function () {
+        $scope.resolutions = camForm.variableManager.variableValue('resolutions');
+        camForm.variableManager.destroyVariable('resolutions');
+        $scope.generalData = camForm.variableManager.variableValue('generalData');
+        $scope.BRDData = camForm.variableManager.variableValue('BRDData');
+        $scope.attachments = camForm.variableManager.variableValue('attachments');
+        $scope.status = camForm.variableManager.variableValue('status');
+        $scope.state = camForm.variableManager.variableValue('state');
+        if (!$scope.attachments) $scope.attachments = [];
+        if (!$scope.BRDData) {
+          $scope.BRDData = {
+            funcRequirements: {},
+            nonFuncRequirements: {},
+            interfaces: {},
+            reportsStatistics: '',
+            acceptanceCriteria: []
+          };
         }
 
-        .content-visible-accordion .panel {
-            overflow: visible;
+        $scope.lastAttachments = JSON.parse(JSON.stringify($scope.attachments));
+        history.createVariables(true);
+      });
+
+      camForm.on('submit', function (event) {
+        history.setVariables($scope.resolution, $scope.comment, $scope.lastAttachments, $scope.attachments);
+
+        camForm.variableManager.destroyVariable('bcResolution');
+        camForm.variableManager.createVariable({
+          name: 'bcResolution',
+          type: 'String',
+          value: $scope.resolution,
+          store: true
+        });
+        camForm.variableManager.destroyVariable('BRDData');
+        camForm.variableManager.createVariable({
+          name: 'BRDData',
+          type: 'Json',
+          value: $scope.BRDData,
+          store: true
+        });
+        camForm.variableManager.destroyVariable('attachments');
+        camForm.variableManager.createVariable({
+          name: 'attachments',
+          type: 'json',
+          value: $scope.attachments,
+          store: true
+        });
+
+        if ($scope.resolution === 'Cancel') {
+          camForm.variableManager.destroyVariable('status');
+          camForm.variableManager.createVariable({
+            name: 'status',
+            type: 'String',
+            value: 'Canceled on Fill BRD',
+            store: true
+          });
+
+          camForm.variableManager.destroyVariable('state');
+          camForm.variableManager.createVariable({
+            name: 'state',
+            type: 'String',
+            value: 'Closed',
+            store: true
+          });
+
+          camForm.variableManager.destroyVariable('oldStatus');
+          camForm.variableManager.createVariable({
+            name: 'oldStatus',
+            type: 'String',
+            value: $scope.status,
+            store: true
+          });
         }
-    </style>
-    <script cam-script type="text/form-script">
-            inject(['$scope', '$http', 'Uri', '$rootScope', '$q', 'toasty', '$timeout', 'exModal', function ($scope, $http, Uri, $rootScope, $q, toasty, $timeout, exModal) {
-                $scope.generalData = {
-                    general: {},
-                    targetAudience: {},
-                    demandDetails: {}
-                };
-                $scope.BRDData = {
-                    funcRequirements: {},
-                    nonFuncRequirements: {},
-                    interfaces: {},
-                    reportsStatistics: '',
-                    acceptanceCriteria: []
-                };
-                $scope.resolutions = [];
-                $scope.processInstanceId = null;
-                $scope.taskId = camForm.taskId;
-                var taskName = null;
-                var assigneeName = $rootScope.authentication.name;
-                var createdDate = new Date();
-                var claimDate = new Date();
+      });
 
-                $http.get("/camunda/api/engine/engine/default/user/" + $rootScope.authentication.name+ "/profile").then(function(result){
-                    assigneeName = (result.data.firstName ? result.data.firstName : "") + " " + (result.data.lastName ? result.data.lastName : "");
-                });
+      $scope.downloadFile = function (file) {
+        $http({
+          method: 'GET',
+          url: '/camunda/uploads/get/' + file.path,
+          transformResponse: []
+        }).then(function (response) {
+          document.getElementById('fileDownloadIframe').src = response.data;
+        }, function (error) {
+          console.log(error.data);
+        });
+      };
 
-                $http.get('/camunda/api/engine/engine/default/task/' + camForm.taskId).then(
-                    function(result){
-                        $scope.processInstanceId = result.data.processInstanceId;
-                        taskName = result.data.name;
-                        if (result.data.created) createdDate = new Date(result.data.created);
-                    },
-                    function (error) {
-                        console.log(error.data);
-                    }
-                );
-                $http.get("/camunda/api/engine/engine/default/history/identity-link-log?type=assignee&taskId=" + camForm.taskId + "&operationType=add&sortBy=time&sortOrder=desc").then(
-                    function (logs) {
-                        try {
-                            if(logs.data && logs.data.length > 0){
-                                claimDate = new Date(logs.data[0].time);
-                            } else {
-                                claimDate = undefined;
-                            }
-                        } catch(e){
-                            console.log(e);
-                        }
-                    },
-                    function (error) {
-                        console.log(error.data);
-                    }
-                );
+      $scope.clearFile = function (fileIndex) {
+        exModal.open({
+          templateUrl: './js/partials/confirmModal.html',
+          size: 'sm'
+        }).then(function () {
+          $scope.attachments.splice(fileIndex, 1);
+        });
+      };
 
-                camForm.on('form-loaded', function () {
-                    camForm.variableManager.fetchVariable('generalData');
-                    camForm.variableManager.fetchVariable('BRDData');
-                    camForm.variableManager.fetchVariable('attachments');
-                    camForm.variableManager.fetchVariable('resolutions');
-                    camForm.variableManager.fetchVariable('status');
-                    camForm.variableManager.fetchVariable('oldStatus');
-                    camForm.variableManager.fetchVariable('state');
-                    camForm.variableManager.fetchVariable('resolution');
-                });
+      $scope.fileSelected = function (el) {
+        $timeout(function () {
+          $scope.$apply(function () {
+            uploadFileToMinio(el.files[0]);
+          });
+        })
+      };
 
-                camForm.on('variables-fetched', function () {
-                    $scope.generalData = camForm.variableManager.variableValue('generalData');
-                    $scope.BRDData = camForm.variableManager.variableValue('BRDData');
-                    $scope.attachments = camForm.variableManager.variableValue('attachments');
-                    $scope.resolutions = camForm.variableManager.variableValue('resolutions');
-                    $scope.status = camForm.variableManager.variableValue('status');
-                    $scope.state = camForm.variableManager.variableValue('state');
-                    if (!$scope.attachments) $scope.attachments = [];
-                    if (!$scope.BRDData) {
-                        $scope.BRDData = {
-                            funcRequirements: {},
-                            nonFuncRequirements: {},
-                            interfaces: {},
-                            reportsStatistics: '',
-                            acceptanceCriteria: []
-                        };
-                    }
-                });
+      function uploadFileToMinio(file) {
+        var fileToUpload = {
+          name: file.name,
+          path: processInstanceId + '/' + camForm.taskId + '/' + file.name,
+          created: new Date(),
+          createdBy: assigneeName
+        };
+        $http({
+          method: 'GET',
+          url: '/camunda/uploads/put/' + fileToUpload.path,
+          transformResponse: []
+        }).then(function (response) {
+          $http.put(response.data, file, {headers: {'Content-Type': undefined}}).then(
+            function () {
+              $scope.attachments.push(fileToUpload);
+              angular.element(document.querySelector('#attachments')).val(null);
+            },
+            function (error) {
+              console.log(error.data);
+            }
+          );
+        }, function (error) {
+          console.log(error.data);
+        });
+      }
 
-                camForm.on('submit', function (event) {
-                    camForm.variableManager.destroyVariable('BRDData');
-                    camForm.variableManager.createVariable({
-                        name: 'BRDData',
-                        type: 'Json',
-                        value: $scope.BRDData
-                    });
-                    camForm.variableManager.destroyVariable('attachments');
-                    camForm.variableManager.createVariable({
-                      name: 'attachments',
-                      type: 'json',
-                      value: $scope.attachments,
-                      store: true
-                    });
+      $scope.saveFillForm = function () {
+        var success = 0;
+        var json = JSON.stringify($scope.BRDData, function (key, value) {
+          if (key === "$$hashKey") return undefined;
+          return value;
+        });
+        $http.put('/camunda/api/engine/engine/default/process-instance/' + $scope.processInstanceId + '/variables/BRDData', {
+          "type": "Json",
+          "value": json
+        }).then(
+          function () {
+            success++;
+            if (success == 2) toasty.success("Данные успешно сохранены!");
+          },
+          function (error) {
+            toasty.error(error.data.message);
+          }
+        );
+        json = JSON.stringify($scope.attachments, function (key, value) {
+          if (key === "$$hashKey") return undefined;
+          return value;
+        });
+        $http.put('/camunda/api/engine/engine/default/process-instance/' + $scope.processInstanceId + '/variables/attachments', {
+          "type": "Json",
+          "value": json
+        }).then(
+          function () {
+            success++;
+            if (success == 2) toasty.success("Данные успешно сохранены!");
+          },
+          function (error) {
+            toasty.error(error.data.message);
+          }
+        );
+      };
 
-                    var submitDate = new Date ();
-                    if(!$scope.resolutions){
-                        $scope.resolutions = [];
-                    }
-                    $scope.resolutions.unshift({processInstanceId: $scope.processInstanceId, assignee: assigneeName, resolution: $scope.resolution, comment: $scope.comment, taskId: camForm.taskId, taskEndDate: submitDate, taskName: taskName, dateOfAssign: createdDate});
-                    camForm.variableManager.destroyVariable('resolutions');
-                    camForm.variableManager.createVariable({
-                        name: 'resolutions',
-                        type: 'Json',
-                        value: $scope.resolutions
-                    });
+      $scope.acceptanceCriteriaAdd = function () {
+        if (!$scope.BRDData.acceptanceCriteria) $scope.BRDData.acceptanceCriteria = [];
+        $scope.BRDData.acceptanceCriteria.push({descirption: ''});
+      };
 
-                  camForm.variableManager.destroyVariable('resolution');
-                  camForm.variableManager.createVariable({
-                      name: 'resolution',
-                      type: 'String',
-                      value: $scope.resolution
-                  });
-
-                  if ($scope.resolution === 'Cancel') {
-                      camForm.variableManager.destroyVariable('status');
-                      camForm.variableManager.createVariable({
-                          name: 'status',
-                          type: 'String',
-                          value: 'Canceled on Fill BRD'
-                      });
-
-                      camForm.variableManager.destroyVariable('state');
-                      camForm.variableManager.createVariable({
-                          name: 'state',
-                          type: 'String',
-                          value: 'Closed'
-                      });
-
-                      camForm.variableManager.destroyVariable('oldStatus');
-                      camForm.variableManager.createVariable({
-                          name: 'oldStatus',
-                          type: 'String',
-                          value: $scope.status
-                      });
-                  }
-                });
-
-                $scope.downloadFile = function (file) {
-                    $http({method: 'GET', url: '/camunda/uploads/get/' + file.path, transformResponse: [] }).
-                    then(function(response) {
-                      document.getElementById('fileDownloadIframe').src = response.data;
-                    }, function(error){
-                      console.log(error.data);
-                    });
-                }
-
-                $scope.clearFile = function(fileIndex) {
-                  exModal.open({
-                    templateUrl: './js/partials/confirmModal.html',
-                    size: 'sm'
-                  }).then(function() {
-                    $scope.attachments.splice(fileIndex, 1);
-                  });
-                }
-
-                $scope.fileSelected = function(el ){
-                    $timeout(function () {
-                        $scope.$apply(function () {
-                            uploadFileToMinio(el.files[0]);
-                        });
-                    })
-                };
-
-                function uploadFileToMinio(file) {
-                    var fileToUpload = {
-                        name: file.name,
-                        path: processInstanceId + '/' + camForm.taskId + '/' + file.name,
-                        created: new Date(),
-                        createdBy: assigneeName
-                    };
-                    $http({method: 'GET', url: '/camunda/uploads/put/' + fileToUpload.path, transformResponse: [] }).then(function(response) {
-                        $http.put(response.data, file, {headers: {'Content-Type': undefined}}).then(
-                            function () {
-                                $scope.attachments.push(fileToUpload);
-                                angular.element(document.querySelector('#attachments')).val(null);
-                            },
-                            function (error) {
-                                console.log(error.data);
-                            }
-                        );
-                    }, function(error){
-                        console.log(error.data);
-                    });
-                }
-
-                $scope.saveFillForm = function () {
-                  var success = 0;
-                    var json = JSON.stringify($scope.BRDData, function( key, value ) {
-                        if( key === "$$hashKey" ) return undefined;
-                        return value;
-                    });
-                    $http.put('/camunda/api/engine/engine/default/process-instance/'+$scope.processInstanceId+'/variables/BRDData',{"type":"Json","value": json}).then(
-                        function() {
-                            success++;
-                            if (success == 2) toasty.success( "Данные успешно сохранены!");
-                        },
-                        function(error) {toasty.error(error.data.message);}
-                    );
-                    json = JSON.stringify($scope.attachments, function( key, value ) {
-                        if( key === "$$hashKey" ) return undefined;
-                        return value;
-                    });
-                    $http.put('/camunda/api/engine/engine/default/process-instance/'+$scope.processInstanceId+'/variables/attachments',{"type":"Json","value": json}).then(
-                        function() {
-                            success++;
-                            if (success == 2) toasty.success( "Данные успешно сохранены!");
-                        },
-                        function(error) {toasty.error(error.data.message);}
-                    );
-                };
-
-                $scope.acceptanceCriteriaAdd = function() {
-                    if (!$scope.BRDData.acceptanceCriteria) $scope.BRDData.acceptanceCriteria = [];
-                    $scope.BRDData.acceptanceCriteria.push({descirption: ''});
-                };
-
-                $scope.acceptanceCriteriaDelete = function(index) {
-                  exModal.open({
-                    templateUrl: './js/partials/confirmModal.html',
-                    size: 'sm'
-                  }).then(function() {
-                    $scope.BRDData.acceptanceCriteria.splice(index, 1);
-                  });
-                };
-            }]);
-        </script>
-    <div class="form-group">
-        <label style="width: 11%; float: left; padding: 7px 5px 0 15px; font-weight: 500;"> Business Key:</label>
-        <div style="width: 10%; float: left; padding: 0 5px;">
-            <input class="form-control" cam-variable-name="businessKey" cam-variable-type="String" disabled>
-        </div>
-        <label style="width: 6%; float: left; padding: 7px 0px 0 10px; font-weight: 500;"> Status:</label>
-        <div style="width: 22%; float: left; padding: 0 5px;">
-            <div class="disabled-element">{{status}} </div>
-        </div>
-        <label style="width: 6%; float: left; padding: 7px 0px 0 10px; font-weight: 500;"> State:</label>
-        <div style="width: 10%; float: left; padding: 0 5px;">
-            <div class="disabled-element">{{state}} </div>
-        </div>
-        <label style="width: 6%; float: left; padding: 7px 0px 0 5px; font-weight: 500;"> Activity:</label>
-        <div style="width: 29%; float: left; padding: 0 5px;">
-            <div class="disabled-element"> Fill BRD </div>
-        </div>
+      $scope.acceptanceCriteriaDelete = function (index) {
+        exModal.open({
+          templateUrl: './js/partials/confirmModal.html',
+          size: 'sm'
+        }).then(function () {
+          $scope.BRDData.acceptanceCriteria.splice(index, 1);
+        });
+      };
+    }]);
+  </script>
+  <div class="form-group">
+    <label style="width: 11%; float: left; padding: 7px 5px 0 15px; font-weight: 500;"> Business Key:</label>
+    <div style="width: 10%; float: left; padding: 0 5px;">
+      <input class="form-control" cam-variable-name="businessKey" cam-variable-type="String" disabled>
     </div>
-    <div class="form-group">
-        <label style="width: 11%; float: left; padding: 7px 5px 0 15px; font-weight: 500;"> Demand Name:</label>
-        <div style="width: 89%; float: left; padding: 0 5px;">
-            <input class="form-control" cam-variable-name="demandName" cam-variable-type="String" disabled/>
-        </div>
+    <label style="width: 6%; float: left; padding: 7px 0px 0 10px; font-weight: 500;"> Status:</label>
+    <div style="width: 22%; float: left; padding: 0 5px;">
+      <div class="disabled-element">{{status}}</div>
     </div>
-    <hr>
-    <tabset class="my-tab-head my-tab" justified="true" id="jobRequestId">
-        <tab>
-          <tab-heading> General </tab-heading>
-          <div style="margin-bottom: 20px;">
-            <div class="col-sm-{{generalData.general.technicalAnalysis?'6':'12'}}" style="padding: 0;">
-              <div class="panel-group custom-panel">
-                <div class="panel panel-default">
-                  <div class="panel-heading">
-                    <h4 class="panel-title">General</h4>
-                  </div>
-                  <div class="panel-body">
-                    <demand-general data="generalData.general" form="kcell_form" view="view" disabled="true" technical="generalData.general.technicalAnalysis"></demand-general>
-                  </div>
-                </div>
+    <label style="width: 6%; float: left; padding: 7px 0px 0 10px; font-weight: 500;"> State:</label>
+    <div style="width: 10%; float: left; padding: 0 5px;">
+      <div class="disabled-element">{{state}}</div>
+    </div>
+    <label style="width: 6%; float: left; padding: 7px 0px 0 5px; font-weight: 500;"> Activity:</label>
+    <div style="width: 29%; float: left; padding: 0 5px;">
+      <div class="disabled-element"> Fill BRD</div>
+    </div>
+  </div>
+  <div class="form-group">
+    <label style="width: 11%; float: left; padding: 7px 5px 0 15px; font-weight: 500;"> Demand Name:</label>
+    <div style="width: 89%; float: left; padding: 0 5px;">
+      <input class="form-control" cam-variable-name="demandName" cam-variable-type="String" disabled/>
+    </div>
+  </div>
+  <hr>
+  <tabset class="my-tab-head my-tab" justified="true" id="jobRequestId">
+    <tab>
+      <tab-heading> General</tab-heading>
+      <div style="margin-bottom: 20px;">
+        <div class="col-sm-{{generalData.general.technicalAnalysis?'6':'12'}}" style="padding: 0;">
+          <div class="panel-group custom-panel">
+            <div class="panel panel-default">
+              <div class="panel-heading">
+                <h4 class="panel-title">General</h4>
+              </div>
+              <div class="panel-body">
+                <demand-general data="generalData.general" form="kcell_form" view="view" disabled="true"
+                                technical="generalData.general.technicalAnalysis"></demand-general>
               </div>
             </div>
-            <div class="col-sm-6" ng-if="generalData.general.technicalAnalysis" style="padding: 0; padding-left: 10px;">
-              <div class="panel-group custom-panel">
-                <div class="panel panel-default">
-                  <div class="panel-heading">
-                    <h4 class="panel-title">Target Audience</h4>
-                  </div>
-                  <div class="panel-body">
-                    <demand-target-audience data="generalData.targetAudience" form="kcell_form" view="view" disabled="true"></demand-target-audience>
-                  </div>
-                </div>
+          </div>
+        </div>
+        <div class="col-sm-6" ng-if="generalData.general.technicalAnalysis" style="padding: 0; padding-left: 10px;">
+          <div class="panel-group custom-panel">
+            <div class="panel panel-default">
+              <div class="panel-heading">
+                <h4 class="panel-title">Target Audience</h4>
+              </div>
+              <div class="panel-body">
+                <demand-target-audience data="generalData.targetAudience" form="kcell_form" view="view"
+                                        disabled="true"></demand-target-audience>
               </div>
             </div>
-            <div class="col-sm-12" ng-if="generalData.general.technicalAnalysis" style="padding: 0;">
-              <div class="panel-group custom-panel">
-                <div class="panel panel-default">
-                  <div class="panel-heading">
-                    <h4 class="panel-title">Demand details</h4>
-                  </div>
-                  <div class="panel-body">
-                    <div class="form-group">
-                      <label class="col-sm-12 control-label">Demand description</label>
-                      <div class="col-sm-12">
-                        <div class="col-sm-12 disabled-element">{{generalData.general.description}}</div>
-                      </div>
-                    </div>
-                    <div class="form-group">
-                      <label class="col-sm-12 control-label">Customer benefits:</label>
-                      <div class="col-sm-12">
-                        <div class="col-sm-12 disabled-element">{{generalData.general.customerBenefits}}</div>
-                      </div>
-                    </div>
-                    <div class="form-group">
-                      <label class="col-sm-12 control-label">Financial benefits:</label>
-                      <div class="col-sm-12">
-                        <div class="col-sm-12 disabled-element">{{generalData.general.financialBenefits}}</div>
-                      </div>
-                    </div>
+          </div>
+        </div>
+        <div class="col-sm-12" ng-if="generalData.general.technicalAnalysis" style="padding: 0;">
+          <div class="panel-group custom-panel">
+            <div class="panel panel-default">
+              <div class="panel-heading">
+                <h4 class="panel-title">Demand details</h4>
+              </div>
+              <div class="panel-body">
+                <div class="form-group">
+                  <label class="col-sm-12 control-label">Demand description</label>
+                  <div class="col-sm-12">
+                    <div class="col-sm-12 disabled-element">{{generalData.general.description}}</div>
                   </div>
                 </div>
-              </div>
-            </div>
-            <div class="col-sm-12" ng-if="generalData.general.technicalAnalysis" style="padding: 0;">
-              <div class="panel-group custom-panel">
-                <div class="panel panel-default">
-                  <div class="panel-heading">
-                    <h4 class="panel-title">Product Details</h4>
+                <div class="form-group">
+                  <label class="col-sm-12 control-label">Customer benefits:</label>
+                  <div class="col-sm-12">
+                    <div class="col-sm-12 disabled-element">{{generalData.general.customerBenefits}}</div>
                   </div>
-                  <div class="panel-body">
-                    <demand-details data="generalData.demandDetails" catalog="detailsCatalogs" form="kcell_form" view="view" disabled="true"></demand-details>
+                </div>
+                <div class="form-group">
+                  <label class="col-sm-12 control-label">Financial benefits:</label>
+                  <div class="col-sm-12">
+                    <div class="col-sm-12 disabled-element">{{generalData.general.financialBenefits}}</div>
                   </div>
                 </div>
               </div>
             </div>
           </div>
-        </tab>
-        <tab active="true">
-            <tab-heading> BRD </tab-heading>
-            <div style="margin-bottom: 20px; margin-top: 20px;">
-                <accordion class="content-visible-accordion">
-                    <accordion-group is-open="true">
-                        <accordion-heading>
-                            Functional Requirements <i class="pull-right glyphicon" ng-class="{'glyphicon-chevron-up': status.isCustomHeaderOpen, 'glyphicon-chevron-down': !status.isCustomHeaderOpen}"></i>
-                        </accordion-heading>
-                        <demand-func-requirements data="BRDData.funcRequirements" form="kcell_form" view="view" disabled="resolution === 'Cancel'" process-id="processInstanceId" task-id="taskId"></demand-func-requirements>
-                    </accordion-group>
-                </accordion>
-                <accordion class="content-visible-accordion">
-                    <accordion-group is-open="true">
-                        <accordion-heading>
-                            Non-Functional Requirements <i class="pull-right glyphicon" ng-class="{'glyphicon-chevron-up': status.isCustomHeaderOpen, 'glyphicon-chevron-down': !status.isCustomHeaderOpen}"></i>
-                        </accordion-heading>
-                        <demand-non-func-requirements data="BRDData.nonFuncRequirements" form="kcell_form" view="view" disabled="resolution === 'Cancel'"></demand-non-func-requirements>
-                    </accordion-group>
-                </accordion>
-                <accordion class="content-visible-accordion">
-                    <accordion-group is-open="true">
-                        <accordion-heading>
-                            Interfaces <i class="pull-right glyphicon" ng-class="{'glyphicon-chevron-up': status.isCustomHeaderOpen, 'glyphicon-chevron-down': !status.isCustomHeaderOpen}"></i>
-                        </accordion-heading>
-                        <demand-interfaces data="BRDData.interfaces" form="kcell_form" view="view" disabled="resolution === 'Cancel'" process-id="processInstanceId" task-id="taskId"></demand-interfaces>
-                    </accordion-group>
-                </accordion>
-                <accordion class="content-visible-accordion">
-                    <accordion-group is-open="true">
-                        <accordion-heading>
-                            Reports and Statistics <i class="pull-right glyphicon" ng-class="{'glyphicon-chevron-up': status.isCustomHeaderOpen, 'glyphicon-chevron-down': !status.isCustomHeaderOpen}"></i>
-                        </accordion-heading>
-                        <div class="col-sm-12">
-                            <summernote-rich-text data="BRDData.reportsStatistics" min-height="100" process-id="processInstanceId" task-id="taskId"></summernote-rich-text>
-                            <input type="hidden" ng-model="BRDData.reportsStatistics" name="brdReportsStatistics" ng-required="resolution !== 'Cancel'">
-                            <span class="has-error" ng-if="kcell_form.brdReportsStatistics.$error.required && (kcell_form.brdReportsStatistics.$touched || view.submitted)">Required field</span>
-                        </div>
-                    </accordion-group>
-                </accordion>
-                <accordion class="content-visible-accordion">
-                    <accordion-group is-open="true">
-                        <accordion-heading>
-                            Dependencies and Assumptions <i class="pull-right glyphicon" ng-class="{'glyphicon-chevron-up': status.isCustomHeaderOpen, 'glyphicon-chevron-down': !status.isCustomHeaderOpen}"></i>
-                        </accordion-heading>
-                        <div class="col-sm-12">
-                            <summernote-rich-text data="BRDData.dependencies" min-height="100" process-id="processInstanceId" task-id="taskId"></summernote-rich-text>
-                            <input type="hidden" ng-model="BRDData.dependencies" name="brdDependencies" ng-required="resolution !== 'Cancel'">
-                            <span class="has-error" ng-if="kcell_form.brdDependencies.$error.required && (kcell_form.brdDependencies.$touched || view.submitted)">Required field</span>
-                        </div>
-                    </accordion-group>
-                </accordion>
-                <accordion class="content-visible-accordion">
-                    <accordion-group is-open="true">
-                        <accordion-heading>
-                            Acceptance criteria <i class="pull-right glyphicon" ng-class="{'glyphicon-chevron-up': status.isCustomHeaderOpen, 'glyphicon-chevron-down': !status.isCustomHeaderOpen}"></i>
-                        </accordion-heading>
-                        <div class="col-sm-12">
-                            <table class="table table-borderless" style="margin-bottom: 0;">
-                                <thead>
-                                    <tr>
-                                        <th style="border:none; width: 1%;">#</th>
-                                        <th style="border:none; width: 98%;">Description</th>
-                                        <th style="border:none; width: 1%;">
-                                        </th>
-                                    </tr>
-                                </thead>
-                                <tbody>
-                                    <tr ng-repeat="ac in BRDData.acceptanceCriteria track by $index">
-                                        <td>
-                                            <div class="col-sm-12 control-label" style="padding-left: 0;">{{$index + 1}}</div>
-                                        </td>
-                                        <td>
-                                            <summernote-rich-text data="ac.description" min-height="100" process-id="processInstanceId" task-id="taskId"></summernote-rich-text>
-                                            <input type="hidden" ng-model="ac.description" name="ac_{{$index}}_description" ng-required="resolution !== 'Cancel'">
-                                            <span class="has-error" ng-if="kcell_form['ac_' + $index + '_description'].$error.required && (kcell_form['ac_' + $index + '_description'].$touched || view.submitted)">Required field</span>
-                                        </td>
-                                        <td>
-                                            <i class="pull-right glyphicon glyphicon-trash glyphicon-clickable" ng-click="acceptanceCriteriaDelete()"></i>
-                                        </td>
-                                    </tr>
-                                    <tr>
-                                        <td colspan="3">
-                                            <button type="button" class="btn btn-default pull-right" ng-click="acceptanceCriteriaAdd()">Add new Criteria</button>
-                                        </td>
-                                    </tr>
-                                </tbody>
-                            </table>
-                        </div>
-                    </accordion-group>
-                </accordion>
+        </div>
+        <div class="col-sm-12" ng-if="generalData.general.technicalAnalysis" style="padding: 0;">
+          <div class="panel-group custom-panel">
+            <div class="panel panel-default">
+              <div class="panel-heading">
+                <h4 class="panel-title">Product Details</h4>
+              </div>
+              <div class="panel-body">
+                <demand-details data="generalData.demandDetails" catalog="detailsCatalogs" form="kcell_form" view="view"
+                                disabled="true"></demand-details>
+              </div>
             </div>
-        </tab>
-        <tab disabled="true">
-            <tab-heading> Costs </tab-heading>
-        </tab>
-        <tab disabled="true">
-            <tab-heading> Business Case </tab-heading>
-        </tab>
-        <tab disabled="true">
-            <tab-heading> SDD </tab-heading>
-        </tab>
-    </tabset>
-
-    <div class="col-sm-12" style="margin-top: 20px;"><hr style="border-top: 2px solid #aaa;" /></div>
-
-    <div class="col-sm-12" style="padding: 0;">
-      <div class="panel-group custom-panel">
-        <div class="panel panel-default">
-          <div class="panel-heading">
-            <h4 class="panel-title">Attachments</h4>
           </div>
-          <div class="panel-body">
-            <iframe id="fileDownloadIframe" style="display:none;"></iframe>
-            <div class="form-group">
+        </div>
+      </div>
+    </tab>
+    <tab active="true">
+      <tab-heading> BRD</tab-heading>
+      <div style="margin-bottom: 20px; margin-top: 20px;">
+        <accordion class="content-visible-accordion">
+          <accordion-group is-open="true">
+            <accordion-heading>
+              Functional Requirements <i class="pull-right glyphicon"
+                                         ng-class="{'glyphicon-chevron-up': status.isCustomHeaderOpen, 'glyphicon-chevron-down': !status.isCustomHeaderOpen}"></i>
+            </accordion-heading>
+            <demand-func-requirements data="BRDData.funcRequirements" form="kcell_form" view="view"
+                                      disabled="resolution === 'Cancel'" process-id="processInstanceId"
+                                      task-id="taskId"></demand-func-requirements>
+          </accordion-group>
+        </accordion>
+        <accordion class="content-visible-accordion">
+          <accordion-group is-open="true">
+            <accordion-heading>
+              Non-Functional Requirements <i class="pull-right glyphicon"
+                                             ng-class="{'glyphicon-chevron-up': status.isCustomHeaderOpen, 'glyphicon-chevron-down': !status.isCustomHeaderOpen}"></i>
+            </accordion-heading>
+            <demand-non-func-requirements data="BRDData.nonFuncRequirements" form="kcell_form" view="view"
+                                          disabled="resolution === 'Cancel'"></demand-non-func-requirements>
+          </accordion-group>
+        </accordion>
+        <accordion class="content-visible-accordion">
+          <accordion-group is-open="true">
+            <accordion-heading>
+              Interfaces <i class="pull-right glyphicon"
+                            ng-class="{'glyphicon-chevron-up': status.isCustomHeaderOpen, 'glyphicon-chevron-down': !status.isCustomHeaderOpen}"></i>
+            </accordion-heading>
+            <demand-interfaces data="BRDData.interfaces" form="kcell_form" view="view"
+                               disabled="resolution === 'Cancel'" process-id="processInstanceId"
+                               task-id="taskId"></demand-interfaces>
+          </accordion-group>
+        </accordion>
+        <accordion class="content-visible-accordion">
+          <accordion-group is-open="true">
+            <accordion-heading>
+              Reports and Statistics <i class="pull-right glyphicon"
+                                        ng-class="{'glyphicon-chevron-up': status.isCustomHeaderOpen, 'glyphicon-chevron-down': !status.isCustomHeaderOpen}"></i>
+            </accordion-heading>
+            <div class="col-sm-12">
+              <summernote-rich-text data="BRDData.reportsStatistics" min-height="100" process-id="processInstanceId"
+                                    task-id="taskId"></summernote-rich-text>
+              <input type="hidden" ng-model="BRDData.reportsStatistics" name="brdReportsStatistics"
+                     ng-required="resolution !== 'Cancel'">
+              <span class="has-error"
+                    ng-if="kcell_form.brdReportsStatistics.$error.required && (kcell_form.brdReportsStatistics.$touched || view.submitted)">Required field</span>
+            </div>
+          </accordion-group>
+        </accordion>
+        <accordion class="content-visible-accordion">
+          <accordion-group is-open="true">
+            <accordion-heading>
+              Dependencies and Assumptions <i class="pull-right glyphicon"
+                                              ng-class="{'glyphicon-chevron-up': status.isCustomHeaderOpen, 'glyphicon-chevron-down': !status.isCustomHeaderOpen}"></i>
+            </accordion-heading>
+            <div class="col-sm-12">
+              <summernote-rich-text data="BRDData.dependencies" min-height="100" process-id="processInstanceId"
+                                    task-id="taskId"></summernote-rich-text>
+              <input type="hidden" ng-model="BRDData.dependencies" name="brdDependencies"
+                     ng-required="resolution !== 'Cancel'">
+              <span class="has-error"
+                    ng-if="kcell_form.brdDependencies.$error.required && (kcell_form.brdDependencies.$touched || view.submitted)">Required field</span>
+            </div>
+          </accordion-group>
+        </accordion>
+        <accordion class="content-visible-accordion">
+          <accordion-group is-open="true">
+            <accordion-heading>
+              Acceptance criteria <i class="pull-right glyphicon"
+                                     ng-class="{'glyphicon-chevron-up': status.isCustomHeaderOpen, 'glyphicon-chevron-down': !status.isCustomHeaderOpen}"></i>
+            </accordion-heading>
+            <div class="col-sm-12">
+              <table class="table table-borderless" style="margin-bottom: 0;">
+                <thead>
+                <tr>
+                  <th style="border:none; width: 1%;">#</th>
+                  <th style="border:none; width: 98%;">Description</th>
+                  <th style="border:none; width: 1%;">
+                  </th>
+                </tr>
+                </thead>
+                <tbody>
+                <tr ng-repeat="ac in BRDData.acceptanceCriteria track by $index">
+                  <td>
+                    <div class="col-sm-12 control-label" style="padding-left: 0;">{{$index + 1}}</div>
+                  </td>
+                  <td>
+                    <summernote-rich-text data="ac.description" min-height="100" process-id="processInstanceId"
+                                          task-id="taskId"></summernote-rich-text>
+                    <input type="hidden" ng-model="ac.description" name="ac_{{$index}}_description"
+                           ng-required="resolution !== 'Cancel'">
+                    <span class="has-error"
+                          ng-if="kcell_form['ac_' + $index + '_description'].$error.required && (kcell_form['ac_' + $index + '_description'].$touched || view.submitted)">Required field</span>
+                  </td>
+                  <td>
+                    <i class="pull-right glyphicon glyphicon-trash glyphicon-clickable"
+                       ng-click="acceptanceCriteriaDelete()"></i>
+                  </td>
+                </tr>
+                <tr>
+                  <td colspan="3">
+                    <button type="button" class="btn btn-default pull-right" ng-click="acceptanceCriteriaAdd()">Add new
+                      Criteria
+                    </button>
+                  </td>
+                </tr>
+                </tbody>
+              </table>
+            </div>
+          </accordion-group>
+        </accordion>
+      </div>
+    </tab>
+    <tab disabled="true">
+      <tab-heading> Costs</tab-heading>
+    </tab>
+    <tab disabled="true">
+      <tab-heading> Business Case</tab-heading>
+    </tab>
+    <tab disabled="true">
+      <tab-heading> SDD</tab-heading>
+    </tab>
+  </tabset>
+
+  <div class="col-sm-12" style="margin-top: 20px;">
+    <hr style="border-top: 2px solid #aaa;"/>
+  </div>
+
+  <div class="col-sm-12" style="padding: 0;">
+    <div class="panel-group custom-panel">
+      <div class="panel panel-default">
+        <div class="panel-heading">
+          <h4 class="panel-title">Attachments</h4>
+        </div>
+        <div class="panel-body">
+          <iframe id="fileDownloadIframe" style="display:none;"></iframe>
+          <div class="form-group">
+            <div class="col-sm-12">
+              <div class="col-sm-12" style="margin-bottom: 10px;">
+                <input type="file" class="form-control" id="attachments" name="attachments"
+                       onchange="angular.element(this).scope().fileSelected(this)"/>
+              </div>
               <div class="col-sm-12">
-                <div class="col-sm-12" style="margin-bottom: 10px;">
-                  <input type="file" class="form-control" id="attachments" name="attachments" onchange="angular.element(this).scope().fileSelected(this)"/>
-                </div>
-                <div class="col-sm-12">
-                  <table class="table table-bordered">
-                    <thead>
-                    <tr>
-                      <th>File Name</th>
-                      <th>Created</th>
-                      <th>Created By</th>
-                      <th>Delete</th>
-                    </tr>
-                    </thead>
-                    <tbody>
-                    <tr ng-repeat="file in attachments track by $index">
-                      <td><a ng-click="downloadFile(file)">{{file.name}}</a></td>
-                      <td>{{file.created | date: 'dd.MM.yyyy HH:mm'}}</td>
-                      <td>{{file.createdBy}}</td>
-                      <td><a ng-click="clearFile($index)"><i class="glyphicon glyphicon-trash"></i></a></td>
-                    </tr>
-                    </tbody>
-                  </table>
-                </div>
+                <table class="table table-bordered">
+                  <thead>
+                  <tr>
+                    <th>File Name</th>
+                    <th>Created</th>
+                    <th>Created By</th>
+                    <th>Delete</th>
+                  </tr>
+                  </thead>
+                  <tbody>
+                  <tr ng-repeat="file in attachments track by $index">
+                    <td><a ng-click="downloadFile(file)">{{file.name}}</a></td>
+                    <td>{{file.created | date: 'dd.MM.yyyy HH:mm'}}</td>
+                    <td>{{file.createdBy}}</td>
+                    <td><a ng-click="clearFile($index)"><i class="glyphicon glyphicon-trash"></i></a></td>
+                  </tr>
+                  </tbody>
+                </table>
               </div>
             </div>
           </div>
         </div>
       </div>
     </div>
+  </div>
 
-    <div class="row">
-        <div class="col-md-2" style="margin-top: 20px;">
-            <button type="button" ng-click="saveFillForm()" class="btn btn-success" style="padding: 6px 28px">Save</button>
-        </div>
+  <div class="row">
+    <div class="col-md-2" style="margin-top: 20px;">
+      <button type="button" ng-click="saveFillForm()" class="btn btn-success" style="padding: 6px 28px">Save</button>
     </div>
-    <hr>
+  </div>
+  <hr>
 
-    <div class="form-group">
-      <label class="col-sm-2 control-label">Resolution</label>
-      <div class="col-sm-10">
-        <label class="radio-inline">
-          <input type="radio" ng-model="resolution" name="resolution" value="Submit" required> Submit
-        </label>
-        <label class="radio-inline">
-          <input type="radio" ng-model="resolution" name="resolution" value="Cancel" required> Cancel the order
-        </label>
-        <label class="error" ng-show="kcell_form.resolution.$error.required && ( kcell_form.resolution.$touched || view.submitted)">Required field</label>
-      </div>
+  <div class="form-group">
+    <label class="col-sm-2 control-label">Resolution</label>
+    <div class="col-sm-10">
+      <label class="radio-inline">
+        <input type="radio" ng-model="resolution" name="resolution" value="Submit" required> Submit
+      </label>
+      <label class="radio-inline">
+        <input type="radio" ng-model="resolution" name="resolution" value="Cancel" required> Cancel the order
+      </label>
+      <label class="error"
+             ng-show="kcell_form.resolution.$error.required && ( kcell_form.resolution.$touched || view.submitted)">Required
+        field</label>
     </div>
+  </div>
 
-    <div class="form-group">
-        <label class="col-sm-2 control-label">Comment<span class="text-danger glyphicon-asterisk"></span></label>
-        <div class="col-sm-10">
-            <textarea class="form-control" rows="4" maxlength="500" ng-model="comment" name="comment" required></textarea>
-            <label class="error" ng-show="kcell_form.comment.$error.required && ( kcell_form.comment.$touched || view.submitted)">Required field</label>
-        </div>
+  <div class="form-group">
+    <label class="col-sm-2 control-label">Comment<span class="text-danger glyphicon-asterisk"></span></label>
+    <div class="col-sm-10">
+      <textarea class="form-control" rows="4" maxlength="500" ng-model="comment" name="comment" required></textarea>
+      <label class="error"
+             ng-show="kcell_form.comment.$error.required && ( kcell_form.comment.$touched || view.submitted)">Required
+        field</label>
     </div>
+  </div>
 </form>

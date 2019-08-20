@@ -13,7 +13,7 @@
     }
   </style>
   <script cam-script type="text/form-script">
-    inject(['$scope', '$http', 'Uri', '$rootScope', '$q', 'toasty', '$timeout', '$location', 'exModal', function ($scope, $http, Uri, $rootScope, $q, toasty, $timeout, $location, exModal) {
+    inject(['$scope', '$http', 'Uri', '$rootScope', '$q', 'toasty', '$timeout', '$location', 'exModal', 'historyVariablesManager', function ($scope, $http, Uri, $rootScope, $q, toasty, $timeout, $location, exModal, historyVariablesManager) {
       $scope.generalData = {
         general: {},
         targetAudience: {},
@@ -36,7 +36,7 @@
         components: {}
       };
       $scope.UATData = {};
-      $scope.resolutions = [];
+
       $scope.attachments = [];
       $scope.supportiveInputs = [];
       $scope.resources = [];
@@ -58,8 +58,7 @@
 
       var processInstanceId = null;
       var taskName = null;
-      var createdDate = new Date();
-      var claimDate = new Date();
+      var history = historyVariablesManager(camForm, 'userAcceptance');
       var dataLoaded = false;
       var pdfFileName = 'uatProtocol.pdf';
 
@@ -71,23 +70,6 @@
         function(result){
           processInstanceId = result.data.processInstanceId;
           taskName = result.data.name;
-          if (result.data.created) createdDate = new Date(result.data.created);
-        },
-        function (error) {
-          console.log(error.data);
-        }
-      );
-      $http.get("/camunda/api/engine/engine/default/history/identity-link-log?type=assignee&taskId=" + camForm.taskId + "&operationType=add&sortBy=time&sortOrder=desc").then(
-        function (logs) {
-          try {
-            if(logs.data && logs.data.length > 0){
-              claimDate = new Date(logs.data[0].time);
-            } else {
-              claimDate = undefined;
-            }
-          } catch(e){
-            console.log(e);
-          }
         },
         function (error) {
           console.log(error.data);
@@ -95,13 +77,13 @@
       );
 
       camForm.on('form-loaded', function () {
+        camForm.variableManager.fetchVariable('resolutions');
         camForm.variableManager.fetchVariable('generalData');
         camForm.variableManager.fetchVariable('BRDData');
         camForm.variableManager.fetchVariable('BCData');
         camForm.variableManager.fetchVariable('SDDData');
         camForm.variableManager.fetchVariable('supportiveInputs');
-        camForm.variableManager.fetchVariable('resolutions');
-        camForm.variableManager.fetchVariable('resolution');
+        camForm.variableManager.fetchVariable('tqcResolution');
         camForm.variableManager.fetchVariable('attachments');
         camForm.variableManager.fetchVariable('requirementManager');
         camForm.variableManager.fetchVariable('solutionOwner');
@@ -119,12 +101,13 @@
       });
 
       camForm.on('variables-fetched', function () {
+        $scope.resolutions = camForm.variableManager.variableValue('resolutions');
+        camForm.variableManager.destroyVariable('resolutions');
         $scope.generalData = camForm.variableManager.variableValue('generalData');
         $scope.BRDData = camForm.variableManager.variableValue('BRDData');
         $scope.BCData = camForm.variableManager.variableValue('BCData');
         $scope.SDDData = camForm.variableManager.variableValue('SDDData');
         $scope.supportiveInputs = camForm.variableManager.variableValue('supportiveInputs');
-        $scope.resolutions = camForm.variableManager.variableValue('resolutions');
         $scope.attachments = camForm.variableManager.variableValue('attachments');
         $scope.requirementManager = camForm.variableManager.variableValue('requirementManager');
         $scope.solutionOwner = camForm.variableManager.variableValue('solutionOwner');
@@ -180,6 +163,8 @@
         if (!$scope.allApproved && $scope.resolution === 'Approve') $scope.resolution = null;
 
         dataLoaded = true;
+
+        history.createVariables();
       });
 
       $scope.preSubmit = function() {
@@ -188,36 +173,29 @@
       };
 
       camForm.on('submit', function (event) {
+        history.setVariables($scope.resolution, $scope.comment);
+
         camForm.variableManager.destroyVariable('UATData');
         camForm.variableManager.createVariable({
           name: 'UATData',
           type: 'Json',
-          value: $scope.UATData
+          value: $scope.UATData,
+          store: true
         });
         camForm.variableManager.destroyVariable('testCases');
         camForm.variableManager.createVariable({
           name: 'testCases',
           type: 'Json',
-          value: $scope.testCases
+          value: $scope.testCases,
+          store: true
         });
 
-        var submitDate = new Date ();
-        if(!$scope.resolutions){
-          $scope.resolutions = [];
-        }
-        $scope.resolutions.unshift({processInstanceId: processInstanceId, assignee: $scope.assigneeName, resolution: $scope.resolution, comment: $scope.comment, taskId: camForm.taskId, taskEndDate: submitDate, taskName: taskName, dateOfAssign: createdDate, claimDate: claimDate});
-        camForm.variableManager.destroyVariable('resolutions');
+        camForm.variableManager.destroyVariable('tqcResolution');
         camForm.variableManager.createVariable({
-          name: 'resolutions',
-          type: 'Json',
-          value: $scope.resolutions
-        });
-
-        camForm.variableManager.destroyVariable('resolution');
-        camForm.variableManager.createVariable({
-          name: 'resolution',
+          name: 'tqcResolution',
           type: 'String',
-          value: $scope.resolution
+          value: $scope.resolution,
+          store: true
         });
 
         if ($scope.resolution === 'Request approval') {
@@ -231,7 +209,8 @@
           camForm.variableManager.createVariable({
             name: 'uatApprovalList',
             type: 'Json',
-            value: $scope.approvalList
+            value: $scope.approvalList,
+            store: true
           });
         } else {
           var status = 'UAT approved';
@@ -241,25 +220,29 @@
           camForm.variableManager.createVariable({
             name: 'oldStatus',
             type: 'String',
-            value: $scope.status
+            value: $scope.status,
+            store: true
           });
           camForm.variableManager.destroyVariable('status');
           camForm.variableManager.createVariable({
             name: 'status',
             type: 'String',
-            value: status
+            value: status,
+            store: true
           });
 
           if ($scope.resolution === 'Approve') {
             camForm.variableManager.createVariable({
               name: 'approvedUATPDFFileName',
               type: 'String',
-              value: pdfFileName
+              value: pdfFileName,
+              store: true
             });
             camForm.variableManager.createVariable({
               name: 'approvedUATPDFFilePath',
               type: 'String',
-              value: processInstanceId + '/' + camForm.taskId + '/' + pdfFileName
+              value: processInstanceId + '/' + camForm.taskId + '/' + pdfFileName,
+              store: true
             });
           }
         }
@@ -1039,7 +1022,7 @@
   <div class="form-group">
     <label class="col-sm-2 control-label">Resolution<span class="text-danger glyphicon-asterisk"></span></label>
     <div class="col-sm-10">
-      <label class="radio-inline">
+      <label class="radio-inline" ng-show="allApproved">
         <input type="radio" ng-model="resolution" name="resolution" value="Approve" required> Approve
       </label>
       <label class="radio-inline">

@@ -13,7 +13,7 @@
     }
   </style>
   <script cam-script type="text/form-script">
-    inject(['$scope', '$http', 'Uri', '$rootScope', '$q', 'toasty', '$timeout', function ($scope, $http, Uri, $rootScope, $q, toasty, $timeout) {
+    inject(['$scope', '$http', 'Uri', '$rootScope', '$q', 'toasty', '$timeout', 'historyVariablesManager', function ($scope, $http, Uri, $rootScope, $q, toasty, $timeout, historyVariablesManager) {
       $scope.generalData = {
         general: {},
         targetAudience: {},
@@ -37,7 +37,7 @@
       };
       $scope.tabs = {SDD: true, UAT: false};
       $scope.developerList = [{name: ''}];
-      $scope.resolutions = [];
+
       $scope.attachments = [];
       $scope.supportiveInputs = [];
       $scope.resources = [];
@@ -46,8 +46,7 @@
       var processInstanceId = null;
       var taskName = null;
       $scope.assigneeName = $rootScope.authentication.name;
-      var createdDate = new Date();
-      var claimDate = new Date();
+      var history = historyVariablesManager(camForm, 'development');
 
       $http.get("/camunda/api/engine/engine/default/user/" + $rootScope.authentication.name + "/profile").then(function (result) {
         $scope.assigneeName = (result.data.firstName ? result.data.firstName : "") + " " + (result.data.lastName ? result.data.lastName : "");
@@ -57,23 +56,6 @@
         function (result) {
           processInstanceId = result.data.processInstanceId;
           taskName = result.data.name;
-          if (result.data.created) createdDate = new Date(result.data.created);
-        },
-        function (error) {
-          console.log(error.data);
-        }
-      );
-      $http.get("/camunda/api/engine/engine/default/history/identity-link-log?type=assignee&taskId=" + camForm.taskId + "&operationType=add&sortBy=time&sortOrder=desc").then(
-        function (logs) {
-          try {
-            if (logs.data && logs.data.length > 0) {
-              claimDate = new Date(logs.data[0].time);
-            } else {
-              claimDate = undefined;
-            }
-          } catch (e) {
-            console.log(e);
-          }
         },
         function (error) {
           console.log(error.data);
@@ -81,13 +63,12 @@
       );
 
       camForm.on('form-loaded', function () {
+        camForm.variableManager.fetchVariable('resolutions');
         camForm.variableManager.fetchVariable('generalData');
         camForm.variableManager.fetchVariable('BRDData');
         camForm.variableManager.fetchVariable('BCData');
         camForm.variableManager.fetchVariable('SDDData');
         camForm.variableManager.fetchVariable('supportiveInputs');
-        camForm.variableManager.fetchVariable('resolutions');
-        camForm.variableManager.fetchVariable('resolution');
         camForm.variableManager.fetchVariable('attachments');
         camForm.variableManager.fetchVariable('requirementManager');
         camForm.variableManager.fetchVariable('solutionOwner');
@@ -101,12 +82,13 @@
       });
 
       camForm.on('variables-fetched', function () {
+        $scope.resolutions = camForm.variableManager.variableValue('resolutions');
+        camForm.variableManager.destroyVariable('resolutions');
         $scope.generalData = camForm.variableManager.variableValue('generalData');
         $scope.BRDData = camForm.variableManager.variableValue('BRDData');
         $scope.BCData = camForm.variableManager.variableValue('BCData');
         $scope.SDDData = camForm.variableManager.variableValue('SDDData');
         $scope.supportiveInputs = camForm.variableManager.variableValue('supportiveInputs');
-        $scope.resolutions = camForm.variableManager.variableValue('resolutions');
         $scope.attachments = camForm.variableManager.variableValue('attachments');
         $scope.requirementManager = camForm.variableManager.variableValue('requirementManager');
         $scope.solutionOwner = camForm.variableManager.variableValue('solutionOwner');
@@ -137,43 +119,19 @@
         if ($scope.BRDData && $scope.BRDData.funcRequirements && $scope.BRDData.funcRequirements.useCases) {
           $scope.useCases = $scope.BRDData.funcRequirements.useCases;
         }
+
+        history.createVariables();
       });
 
       camForm.on('submit', function (event) {
-        var submitDate = new Date();
-        if (!$scope.resolutions) {
-          $scope.resolutions = [];
-        }
-        $scope.resolutions.unshift({
-          processInstanceId: processInstanceId,
-          assignee: $scope.assigneeName,
-          resolution: $scope.resolution,
-          comment: $scope.comment,
-          taskId: camForm.taskId,
-          taskEndDate: submitDate,
-          taskName: taskName,
-          dateOfAssign: createdDate,
-          claimDate: claimDate
-        });
-        camForm.variableManager.destroyVariable('resolutions');
-        camForm.variableManager.createVariable({
-          name: 'resolutions',
-          type: 'Json',
-          value: $scope.resolutions
-        });
-
-        camForm.variableManager.destroyVariable('resolution');
-        camForm.variableManager.createVariable({
-          name: 'resolution',
-          type: 'String',
-          value: $scope.resolution
-        });
+        history.setVariables($scope.resolution, $scope.comment);
 
         camForm.variableManager.destroyVariable('developerList');
         camForm.variableManager.createVariable({
           name: 'developerList',
           type: 'Json',
-          value: $scope.developerList
+          value: $scope.developerList,
+          store: true
         });
 
         var oldStatus = $scope.status;
@@ -183,14 +141,16 @@
         camForm.variableManager.createVariable({
           name: 'status',
           type: 'String',
-          value: $scope.status
+          value: $scope.status,
+          store: true
         });
 
         camForm.variableManager.destroyVariable('oldStatus');
         camForm.variableManager.createVariable({
           name: 'oldStatus',
           type: 'String',
-          value: oldStatus
+          value: oldStatus,
+          store: true
         });
       });
 
@@ -629,19 +589,19 @@
         <div class="panel-body">
           <div class="form-group">
             <label class="col-sm-6 control-label">Requirement manager</label>
-            <div class="col-sm-6">
+            <div class="col-sm-5" style="padding-right: 0;">
               <div class="disabled-element">{{requirementManager}}</div>
             </div>
           </div>
           <div class="form-group">
             <label class="col-sm-6 control-label">Solution owner</label>
-            <div class="col-sm-6">
+            <div class="col-sm-5" style="padding-right: 0;">
               <div class="disabled-element">{{solutionOwner}}</div>
             </div>
           </div>
           <div class="form-group">
             <label class="col-sm-6 control-label">Developer</label>
-            <div class="col-sm-6">
+            <div class="col-sm-5" style="padding-right: 0;">
               <input type="text" ng-model="developerList[0].name" name="developer_0_name" typeahead="name as users.name for users in getUser($viewValue, 0)" typeahead-on-select="userSelected($item, 0)" class="form-control" autocomplete="off" ng-required="resolution === 'Approve'" ng-change="onDeveloperChange(0)">
               <span class="has-error" ng-if="kcell_form['developer_0_name'].$error.required && (kcell_form['developer_0_name'].$touched || view.submitted)">Required field</span>
               <span class="has-error" ng-if="!kcell_form['developer_0_name'].$error.required && kcell_form['developer_0_name'].$error.not_selected && (kcell_form['developer_0_name'].$touched || view.submitted)">User must be selected from the list</span>
@@ -662,7 +622,7 @@
           </div>
           <div class="form-group" style="margin-bottom: 0;">
             <label class="col-sm-6"></label>
-            <div class="col-sm-5">
+            <div class="col-sm-5" style="padding-right: 0;">
               <button type="button" class="btn btn-primary pull-right" ng-click="addDeveloper()">Add</button>
             </div>
           </div>

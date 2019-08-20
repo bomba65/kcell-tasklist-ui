@@ -8,6 +8,11 @@
       </camunda:properties>
     </bpmn:extensionElements>
     <bpmn:subProcess id="SubProcess_1jfzq6i" name="Business Requirements &#38; Business Case">
+      <bpmn:extensionElements>
+        <camunda:inputOutput>
+          <camunda:outputParameter name="sddResolution" />
+        </camunda:inputOutput>
+      </bpmn:extensionElements>
       <bpmn:incoming>SequenceFlow_1gf311y</bpmn:incoming>
       <bpmn:incoming>SequenceFlow_1y3awlm</bpmn:incoming>
       <bpmn:outgoing>SequenceFlow_1l656uf</bpmn:outgoing>
@@ -113,7 +118,7 @@
         <bpmn:outgoing>SequenceFlow_10qmzfk</bpmn:outgoing>
       </bpmn:exclusiveGateway>
       <bpmn:sequenceFlow id="SequenceFlow_06cwdep" name="Send to modify" sourceRef="ExclusiveGateway_0ub6pp4" targetRef="fillBRD">
-        <bpmn:conditionExpression xsi:type="bpmn:tFormalExpression">${resolution == 'Send to modify'}</bpmn:conditionExpression>
+        <bpmn:conditionExpression xsi:type="bpmn:tFormalExpression">${checkBRDTaskResult == 'Send to modify'}</bpmn:conditionExpression>
       </bpmn:sequenceFlow>
       <bpmn:userTask id="assessCosts" name="Assess costs" camunda:formKey="embedded:app:forms/demand/assessCosts.html" camunda:candidateGroups="${assessCostsGroup}">
         <bpmn:documentation>Assess costs</bpmn:documentation>
@@ -137,7 +142,7 @@
       </bpmn:exclusiveGateway>
       <bpmn:sequenceFlow id="SequenceFlow_0nz16d5" sourceRef="checkCosts" targetRef="ExclusiveGateway_0pszme5" />
       <bpmn:sequenceFlow id="SequenceFlow_1sji0st" name="Send to modify" sourceRef="ExclusiveGateway_0pszme5" targetRef="assessCosts">
-        <bpmn:conditionExpression xsi:type="bpmn:tFormalExpression">${resolution == 'Send to modify'}</bpmn:conditionExpression>
+        <bpmn:conditionExpression xsi:type="bpmn:tFormalExpression">${checkCostsTaskResult == 'Send to modify'}</bpmn:conditionExpression>
       </bpmn:sequenceFlow>
       <bpmn:exclusiveGateway id="ExclusiveGateway_0shlm6r" default="SequenceFlow_1f1vvmh">
         <bpmn:incoming>SequenceFlow_1w1aa4p</bpmn:incoming>
@@ -145,7 +150,7 @@
         <bpmn:outgoing>SequenceFlow_1f1vvmh</bpmn:outgoing>
       </bpmn:exclusiveGateway>
       <bpmn:sequenceFlow id="SequenceFlow_16qmxhr" name="Approve" sourceRef="ExclusiveGateway_0shlm6r" targetRef="fillBRD">
-        <bpmn:conditionExpression xsi:type="bpmn:tFormalExpression">${resolution == 'Approve'}</bpmn:conditionExpression>
+        <bpmn:conditionExpression xsi:type="bpmn:tFormalExpression">${requirementCheckTaskResult == 'Approve'}</bpmn:conditionExpression>
       </bpmn:sequenceFlow>
       <bpmn:endEvent id="EndEvent_1jq8c6n">
         <bpmn:incoming>SequenceFlow_1f1vvmh</bpmn:incoming>
@@ -186,13 +191,13 @@
       <bpmn:sequenceFlow id="SequenceFlow_019lvwh" name="Request info" sourceRef="ExclusiveGateway_05dwofj" targetRef="ParallelGateway_0o0ofs2" />
       <bpmn:sequenceFlow id="SequenceFlow_0a6su6l" name="Supportive inputs" sourceRef="ParallelGateway_1pyvbpn" targetRef="ExclusiveGateway_1as2q2g" />
       <bpmn:sequenceFlow id="SequenceFlow_1bvmkfs" name="Cancel" sourceRef="ExclusiveGateway_0vojsge" targetRef="EndEvent_1q8qrt1">
-        <bpmn:conditionExpression xsi:type="bpmn:tFormalExpression">${resolution == 'Cancel'}</bpmn:conditionExpression>
+        <bpmn:conditionExpression xsi:type="bpmn:tFormalExpression">${financialReviewTaskResult == 'Cancel'}</bpmn:conditionExpression>
       </bpmn:sequenceFlow>
       <bpmn:endEvent id="EndEvent_1q8qrt1">
         <bpmn:incoming>SequenceFlow_1bvmkfs</bpmn:incoming>
       </bpmn:endEvent>
       <bpmn:sequenceFlow id="SequenceFlow_1aord75" name="Approved" sourceRef="ExclusiveGateway_0pszme5" targetRef="enrichBusinessCase">
-        <bpmn:conditionExpression xsi:type="bpmn:tFormalExpression">${resolution == 'Approve'}</bpmn:conditionExpression>
+        <bpmn:conditionExpression xsi:type="bpmn:tFormalExpression">${checkCostsTaskResult == 'Approve'}</bpmn:conditionExpression>
       </bpmn:sequenceFlow>
       <bpmn:sequenceFlow id="SequenceFlow_018et88" name="" sourceRef="enrichBusinessCase" targetRef="ExclusiveGateway_05dwofj" />
       <bpmn:exclusiveGateway id="ExclusiveGateway_05dwofj" default="SequenceFlow_019lvwh">
@@ -202,32 +207,32 @@
         <bpmn:outgoing>SequenceFlow_1vq2fa4</bpmn:outgoing>
       </bpmn:exclusiveGateway>
       <bpmn:sequenceFlow id="SequenceFlow_0vimzjo" name="Submit" sourceRef="ExclusiveGateway_05dwofj" targetRef="financialReview">
-        <bpmn:conditionExpression xsi:type="bpmn:tFormalExpression">${resolution == 'Submit'}</bpmn:conditionExpression>
+        <bpmn:conditionExpression xsi:type="bpmn:tFormalExpression">${enrichBusinessCaseTaskResult == 'Submit'}</bpmn:conditionExpression>
       </bpmn:sequenceFlow>
       <bpmn:sequenceFlow id="SequenceFlow_0b87w3q" name="Send  to edit" sourceRef="ExclusiveGateway_0vojsge" targetRef="enrichBusinessCase">
-        <bpmn:conditionExpression xsi:type="bpmn:tFormalExpression">${resolution == 'Send to modify BC'}</bpmn:conditionExpression>
+        <bpmn:conditionExpression xsi:type="bpmn:tFormalExpression">${financialReviewTaskResult == 'Send to modify BC'}</bpmn:conditionExpression>
       </bpmn:sequenceFlow>
       <bpmn:sequenceFlow id="SequenceFlow_1mlgg24" name="Send to edit" sourceRef="ExclusiveGateway_19gn7qa" targetRef="enrichBusinessCase">
-        <bpmn:conditionExpression xsi:type="bpmn:tFormalExpression">${resolution == 'Send to modify BC'}</bpmn:conditionExpression>
+        <bpmn:conditionExpression xsi:type="bpmn:tFormalExpression">${IPMCommitteeTaskResult == 'Send to modify BC'}</bpmn:conditionExpression>
       </bpmn:sequenceFlow>
-      <bpmn:exclusiveGateway id="ExclusiveGateway_1jana6m" default="SequenceFlow_1x8vyho">
+      <bpmn:exclusiveGateway id="ExclusiveGateway_1jana6m" default="SequenceFlow_0k980ta">
         <bpmn:incoming>SequenceFlow_0s0f1zc</bpmn:incoming>
         <bpmn:outgoing>SequenceFlow_0k980ta</bpmn:outgoing>
         <bpmn:outgoing>SequenceFlow_1x8vyho</bpmn:outgoing>
       </bpmn:exclusiveGateway>
-      <bpmn:sequenceFlow id="SequenceFlow_0k980ta" name="Technical" sourceRef="ExclusiveGateway_1jana6m" targetRef="requirementCheck">
-        <bpmn:conditionExpression xsi:type="bpmn:tFormalExpression">${resolution == 'Approve' &amp;&amp; generalData.prop("general").prop("technicalAnalysis").boolValue()}</bpmn:conditionExpression>
-      </bpmn:sequenceFlow>
+      <bpmn:sequenceFlow id="SequenceFlow_0k980ta" name="Technical" sourceRef="ExclusiveGateway_1jana6m" targetRef="requirementCheck" />
       <bpmn:sequenceFlow id="SequenceFlow_0s0f1zc" sourceRef="startInternal" targetRef="ExclusiveGateway_1jana6m" />
       <bpmn:startEvent id="startInternal">
         <bpmn:outgoing>SequenceFlow_0s0f1zc</bpmn:outgoing>
       </bpmn:startEvent>
-      <bpmn:sequenceFlow id="SequenceFlow_1x8vyho" name="Non-technical" sourceRef="ExclusiveGateway_1jana6m" targetRef="enrichBusinessCase" />
+      <bpmn:sequenceFlow id="SequenceFlow_1x8vyho" name="Non-technical" sourceRef="ExclusiveGateway_1jana6m" targetRef="enrichBusinessCase">
+        <bpmn:conditionExpression xsi:type="bpmn:tFormalExpression">${planningResolution == 'Send to modify BC' || !generalData.prop("general").prop("technicalAnalysis").boolValue()}</bpmn:conditionExpression>
+      </bpmn:sequenceFlow>
       <bpmn:endEvent id="EndEvent_06pw0z4">
         <bpmn:incoming>SequenceFlow_043e5iq</bpmn:incoming>
       </bpmn:endEvent>
       <bpmn:sequenceFlow id="SequenceFlow_043e5iq" name="Send to Fill form" sourceRef="ExclusiveGateway_0vojsge" targetRef="EndEvent_06pw0z4">
-        <bpmn:conditionExpression xsi:type="bpmn:tFormalExpression">${resolution == 'Send to Fill form' }</bpmn:conditionExpression>
+        <bpmn:conditionExpression xsi:type="bpmn:tFormalExpression">${financialReviewTaskResult == 'Send to Fill form' }</bpmn:conditionExpression>
       </bpmn:sequenceFlow>
       <bpmn:userTask id="supportiveInputTD" name="${supportiveInputItem.prop(&#34;unit&#34;).stringValue()}" camunda:formKey="embedded:app:forms/demand/supportiveInputTD.html" camunda:assignee="${supportiveInputItem.prop(&#34;assignee&#34;).stringValue()==&#39;&#39;?null:supportiveInputItem.prop(&#34;assignee&#34;).stringValue()}" camunda:candidateGroups="${supportiveInputItem.prop(&#34;groupId&#34;).stringValue()}">
         <bpmn:documentation>${supportiveInputItem.prop("unit").stringValue()}</bpmn:documentation>
@@ -259,13 +264,13 @@
         <bpmn:incoming>SequenceFlow_1a0524u</bpmn:incoming>
       </bpmn:endEvent>
       <bpmn:sequenceFlow id="SequenceFlow_01f4z8m" name="Cancel" sourceRef="ExclusiveGateway_0zkxwh1" targetRef="SendTask_1mj4acn">
-        <bpmn:conditionExpression xsi:type="bpmn:tFormalExpression">${resolution == 'Cancel'}</bpmn:conditionExpression>
+        <bpmn:conditionExpression xsi:type="bpmn:tFormalExpression">${fillBRDTaskResult == 'Cancel'}</bpmn:conditionExpression>
       </bpmn:sequenceFlow>
       <bpmn:endEvent id="EndEvent_02dfebm">
         <bpmn:incoming>SequenceFlow_1hddmo4</bpmn:incoming>
       </bpmn:endEvent>
       <bpmn:sequenceFlow id="SequenceFlow_1vq2fa4" name="Cancel" sourceRef="ExclusiveGateway_05dwofj" targetRef="SendTask_0rkr4jf">
-        <bpmn:conditionExpression xsi:type="bpmn:tFormalExpression">${resolution == 'Cancel'}</bpmn:conditionExpression>
+        <bpmn:conditionExpression xsi:type="bpmn:tFormalExpression">${enrichBusinessCaseTaskResult == 'Cancel'}</bpmn:conditionExpression>
       </bpmn:sequenceFlow>
       <bpmn:sequenceFlow id="SequenceFlow_1pyh1ry" name="Request info" sourceRef="ExclusiveGateway_0pszme5" targetRef="ParallelGateway_0o0ofs2" />
       <bpmn:exclusiveGateway id="ExclusiveGateway_1as2q2g" default="SequenceFlow_0zmjpfc">
@@ -441,6 +446,11 @@
     <bpmn:sequenceFlow id="SequenceFlow_0b2rebf" sourceRef="CVPReview" targetRef="Task_05ddpwa" />
     <bpmn:userTask id="CVPReview" name="CVP Review" camunda:formKey="embedded:app:forms/demand/CVPReview.html" camunda:candidateGroups="${cvpReviewGroup}">
       <bpmn:documentation>CVP Review</bpmn:documentation>
+      <bpmn:extensionElements>
+        <camunda:inputOutput>
+          <camunda:outputParameter name="planningResolution" />
+        </camunda:inputOutput>
+      </bpmn:extensionElements>
       <bpmn:incoming>SequenceFlow_1ovopwc</bpmn:incoming>
       <bpmn:incoming>SequenceFlow_033lyfg</bpmn:incoming>
       <bpmn:outgoing>SequenceFlow_0b2rebf</bpmn:outgoing>
@@ -456,10 +466,10 @@
       <bpmn:incoming>SequenceFlow_19hgnoq</bpmn:incoming>
     </bpmn:endEvent>
     <bpmn:sequenceFlow id="SequenceFlow_19hgnoq" name="Cancel" sourceRef="ExclusiveGateway_1rfgmnd" targetRef="EndEvent_0rswr1r">
-      <bpmn:conditionExpression xsi:type="bpmn:tFormalExpression">${resolution == 'Cancel'}</bpmn:conditionExpression>
+      <bpmn:conditionExpression xsi:type="bpmn:tFormalExpression">${CVPReviewTaskResult == 'Cancel'}</bpmn:conditionExpression>
     </bpmn:sequenceFlow>
     <bpmn:sequenceFlow id="SequenceFlow_1gf311y" name="Approve" sourceRef="ExclusiveGateway_1rfgmnd" targetRef="SubProcess_1jfzq6i">
-      <bpmn:conditionExpression xsi:type="bpmn:tFormalExpression">${resolution == 'Approve'}</bpmn:conditionExpression>
+      <bpmn:conditionExpression xsi:type="bpmn:tFormalExpression">${CVPReviewTaskResult == 'Approve'}</bpmn:conditionExpression>
     </bpmn:sequenceFlow>
     <bpmn:exclusiveGateway id="ExclusiveGateway_1vrmfl2" default="SequenceFlow_1kfs1z3">
       <bpmn:incoming>SequenceFlow_1l656uf</bpmn:incoming>
@@ -468,9 +478,14 @@
       <bpmn:outgoing>SequenceFlow_07a49xz</bpmn:outgoing>
     </bpmn:exclusiveGateway>
     <bpmn:sequenceFlow id="SequenceFlow_1uww9z6" name="Send to Fill form" sourceRef="ExclusiveGateway_1vrmfl2" targetRef="fillForm">
-      <bpmn:conditionExpression xsi:type="bpmn:tFormalExpression">${resolution == 'Send to Fill form' }</bpmn:conditionExpression>
+      <bpmn:conditionExpression xsi:type="bpmn:tFormalExpression">${bcResolution == 'Send to Fill form' }</bpmn:conditionExpression>
     </bpmn:sequenceFlow>
     <bpmn:subProcess id="SubProcess_1vbvt86" name="Planning">
+      <bpmn:extensionElements>
+        <camunda:inputOutput>
+          <camunda:outputParameter name="developmentTaskResult" />
+        </camunda:inputOutput>
+      </bpmn:extensionElements>
       <bpmn:incoming>SequenceFlow_1kfs1z3</bpmn:incoming>
       <bpmn:incoming>SequenceFlow_1b1clwb</bpmn:incoming>
       <bpmn:outgoing>SequenceFlow_0ym54cf</bpmn:outgoing>
@@ -499,51 +514,51 @@
         <bpmn:incoming>SequenceFlow_074xdod</bpmn:incoming>
         <bpmn:incoming>SequenceFlow_1um3bqm</bpmn:incoming>
       </bpmn:endEvent>
-      <bpmn:sequenceFlow id="SequenceFlow_0ch7j3u" sourceRef="Task_1972tin" targetRef="SendTask_0tbd552" />
+      <bpmn:sequenceFlow id="SequenceFlow_0ch7j3u" sourceRef="followUp" targetRef="SendTask_0tbd552" />
       <bpmn:sequenceFlow id="SequenceFlow_1htr942" name="Send to Fill form / Send to modify BC / Cancel" sourceRef="ExclusiveGateway_0gdx7gd" targetRef="EndEvent_0zl5vl0" />
       <bpmn:sequenceFlow id="SequenceFlow_074xdod" name="Send to Fill form / Send to Enrich Business case / Send to Solution design" sourceRef="ExclusiveGateway_0ybjpsc" targetRef="EndEvent_0zl5vl0" />
-      <bpmn:sequenceFlow id="SequenceFlow_03i2mla" sourceRef="Task_0rozho7" targetRef="SendTask_094uzj8" />
-      <bpmn:sequenceFlow id="SequenceFlow_0jegljk" name="Approve" sourceRef="ExclusiveGateway_0gdx7gd" targetRef="Task_0rozho7">
-        <bpmn:conditionExpression xsi:type="bpmn:tFormalExpression">${resolution == 'Approve'}</bpmn:conditionExpression>
+      <bpmn:sequenceFlow id="SequenceFlow_03i2mla" sourceRef="requirementReview" targetRef="SendTask_094uzj8" />
+      <bpmn:sequenceFlow id="SequenceFlow_0jegljk" name="Approve" sourceRef="ExclusiveGateway_0gdx7gd" targetRef="requirementReview">
+        <bpmn:conditionExpression xsi:type="bpmn:tFormalExpression">${planningTaskResult == 'Approve'}</bpmn:conditionExpression>
       </bpmn:sequenceFlow>
-      <bpmn:sequenceFlow id="SequenceFlow_1d2b4z7" name="Request to CVP confirmation" sourceRef="ExclusiveGateway_0gdx7gd" targetRef="Task_0klxkhf">
-        <bpmn:conditionExpression xsi:type="bpmn:tFormalExpression">${resolution == 'Request CVP confirmation'}</bpmn:conditionExpression>
+      <bpmn:sequenceFlow id="SequenceFlow_1d2b4z7" name="Request to CVP confirmation" sourceRef="ExclusiveGateway_0gdx7gd" targetRef="cvpConfirmation">
+        <bpmn:conditionExpression xsi:type="bpmn:tFormalExpression">${planningTaskResult == 'Request CVP confirmation'}</bpmn:conditionExpression>
       </bpmn:sequenceFlow>
-      <bpmn:sequenceFlow id="SequenceFlow_1iibt2p" sourceRef="ExclusiveGateway_0y67lum" targetRef="Task_1972tin" />
-      <bpmn:sequenceFlow id="SequenceFlow_0hu5j4z" name="Submit" sourceRef="Task_0klxkhf" targetRef="Task_02bibw0" />
-      <bpmn:sequenceFlow id="SequenceFlow_1x27ecr" sourceRef="Task_02bibw0" targetRef="SendTask_1l91mfe" />
-      <bpmn:sequenceFlow id="SequenceFlow_1l47q7o" name="Need Technology Delivery" sourceRef="ExclusiveGateway_0y67lum" targetRef="Task_02bibw0">
-        <bpmn:conditionExpression xsi:type="bpmn:tFormalExpression">${generalData.prop("general").prop("technicalAnalysis").boolValue()}</bpmn:conditionExpression>
+      <bpmn:sequenceFlow id="SequenceFlow_1iibt2p" sourceRef="ExclusiveGateway_0y67lum" targetRef="followUp" />
+      <bpmn:sequenceFlow id="SequenceFlow_0hu5j4z" name="Submit" sourceRef="cvpConfirmation" targetRef="planning" />
+      <bpmn:sequenceFlow id="SequenceFlow_1x27ecr" sourceRef="planning" targetRef="SendTask_1l91mfe" />
+      <bpmn:sequenceFlow id="SequenceFlow_1l47q7o" name="Need Technology Delivery" sourceRef="ExclusiveGateway_0y67lum" targetRef="planning">
+        <bpmn:conditionExpression xsi:type="bpmn:tFormalExpression">${sddResolution != 'Send to Requirement review' &amp;&amp; generalData.prop("general").prop("technicalAnalysis").boolValue()}</bpmn:conditionExpression>
       </bpmn:sequenceFlow>
       <bpmn:sequenceFlow id="SequenceFlow_1w02xpb" sourceRef="StartEvent_1tf3kki" targetRef="ExclusiveGateway_0y67lum" />
-      <bpmn:sequenceFlow id="SequenceFlow_0k0o981" name="Send to Planning" sourceRef="ExclusiveGateway_0ybjpsc" targetRef="Task_02bibw0">
-        <bpmn:conditionExpression xsi:type="bpmn:tFormalExpression">${resolution == 'Send to Planning' }</bpmn:conditionExpression>
+      <bpmn:sequenceFlow id="SequenceFlow_0k0o981" name="Send to Planning" sourceRef="ExclusiveGateway_0ybjpsc" targetRef="planning">
+        <bpmn:conditionExpression xsi:type="bpmn:tFormalExpression">${requirementReviewTaskResult == 'Send to Planning' }</bpmn:conditionExpression>
       </bpmn:sequenceFlow>
-      <bpmn:userTask id="Task_02bibw0" name="Planning" camunda:formKey="embedded:app:forms/demand/planning.html" camunda:candidateGroups="${requirementCheckGroup}">
+      <bpmn:userTask id="planning" name="Planning" camunda:formKey="embedded:app:forms/demand/planning.html" camunda:candidateGroups="${requirementCheckGroup}">
         <bpmn:documentation>Planning</bpmn:documentation>
         <bpmn:incoming>SequenceFlow_0hu5j4z</bpmn:incoming>
         <bpmn:incoming>SequenceFlow_1l47q7o</bpmn:incoming>
         <bpmn:incoming>SequenceFlow_0k0o981</bpmn:incoming>
         <bpmn:outgoing>SequenceFlow_1x27ecr</bpmn:outgoing>
       </bpmn:userTask>
-      <bpmn:userTask id="Task_0klxkhf" name="CVP confirmation" camunda:formKey="embedded:app:forms/demand/cvpConfirmation.html" camunda:candidateGroups="${cvpReviewGroup}">
+      <bpmn:userTask id="cvpConfirmation" name="CVP confirmation" camunda:formKey="embedded:app:forms/demand/cvpConfirmation.html" camunda:candidateGroups="${cvpReviewGroup}">
         <bpmn:documentation>CVP confirmation</bpmn:documentation>
         <bpmn:incoming>SequenceFlow_1d2b4z7</bpmn:incoming>
         <bpmn:outgoing>SequenceFlow_0hu5j4z</bpmn:outgoing>
       </bpmn:userTask>
-      <bpmn:userTask id="Task_1972tin" name="Follow-up" camunda:formKey="embedded:app:forms/demand/followUp.html" camunda:candidateGroups="demand_financial_council">
+      <bpmn:userTask id="followUp" name="Follow-up" camunda:formKey="embedded:app:forms/demand/followUp.html" camunda:candidateGroups="demand_financial_council">
         <bpmn:documentation>Follow-up</bpmn:documentation>
         <bpmn:incoming>SequenceFlow_1iibt2p</bpmn:incoming>
         <bpmn:outgoing>SequenceFlow_0ch7j3u</bpmn:outgoing>
       </bpmn:userTask>
-      <bpmn:userTask id="Task_0rozho7" name="Requirement review" camunda:formKey="embedded:app:forms/demand/requirementReview.html" camunda:assignee="${requirementManager}">
+      <bpmn:userTask id="requirementReview" name="Requirement review" camunda:formKey="embedded:app:forms/demand/requirementReview.html" camunda:assignee="${requirementManager}">
         <bpmn:documentation>Requirement review</bpmn:documentation>
         <bpmn:incoming>SequenceFlow_0jegljk</bpmn:incoming>
         <bpmn:incoming>SequenceFlow_0qxxx4q</bpmn:incoming>
         <bpmn:outgoing>SequenceFlow_03i2mla</bpmn:outgoing>
       </bpmn:userTask>
-      <bpmn:sequenceFlow id="SequenceFlow_0qxxx4q" name="to Requirement review" sourceRef="ExclusiveGateway_0y67lum" targetRef="Task_0rozho7">
-        <bpmn:conditionExpression xsi:type="bpmn:tFormalExpression">${resolution == 'Send to Requirement review'}</bpmn:conditionExpression>
+      <bpmn:sequenceFlow id="SequenceFlow_0qxxx4q" name="to Requirement review" sourceRef="ExclusiveGateway_0y67lum" targetRef="requirementReview">
+        <bpmn:conditionExpression xsi:type="bpmn:tFormalExpression">${sddResolution == 'Send to Requirement review'}</bpmn:conditionExpression>
       </bpmn:sequenceFlow>
       <bpmn:sendTask id="SendTask_0tbd552" name="Status change notification" camunda:delegateExpression="${camundaMailer}">
         <bpmn:extensionElements>
@@ -602,19 +617,19 @@
       <bpmn:textAnnotation id="TextAnnotation_1480677">
         <bpmn:text>CVP council</bpmn:text>
       </bpmn:textAnnotation>
-      <bpmn:association id="Association_19j6srv" sourceRef="Task_0klxkhf" targetRef="TextAnnotation_1480677" />
+      <bpmn:association id="Association_19j6srv" sourceRef="cvpConfirmation" targetRef="TextAnnotation_1480677" />
       <bpmn:textAnnotation id="TextAnnotation_1s2bdsc">
         <bpmn:text>Requirement council</bpmn:text>
       </bpmn:textAnnotation>
-      <bpmn:association id="Association_02vih22" sourceRef="Task_02bibw0" targetRef="TextAnnotation_1s2bdsc" />
+      <bpmn:association id="Association_02vih22" sourceRef="planning" targetRef="TextAnnotation_1s2bdsc" />
       <bpmn:textAnnotation id="TextAnnotation_1ixoq5b">
         <bpmn:text>Financial council</bpmn:text>
       </bpmn:textAnnotation>
-      <bpmn:association id="Association_1sy0hd2" sourceRef="Task_1972tin" targetRef="TextAnnotation_1ixoq5b" />
+      <bpmn:association id="Association_1sy0hd2" sourceRef="followUp" targetRef="TextAnnotation_1ixoq5b" />
       <bpmn:textAnnotation id="TextAnnotation_12vqdu7">
         <bpmn:text>Requirement manager</bpmn:text>
       </bpmn:textAnnotation>
-      <bpmn:association id="Association_1y4okeg" sourceRef="Task_0rozho7" targetRef="TextAnnotation_12vqdu7" />
+      <bpmn:association id="Association_1y4okeg" sourceRef="requirementReview" targetRef="TextAnnotation_12vqdu7" />
     </bpmn:subProcess>
     <bpmn:sequenceFlow id="SequenceFlow_1kfs1z3" sourceRef="ExclusiveGateway_1vrmfl2" targetRef="SubProcess_1vbvt86" />
     <bpmn:exclusiveGateway id="ExclusiveGateway_1ezv2uy" default="SequenceFlow_0wyfsqi">
@@ -630,16 +645,16 @@
     </bpmn:endEvent>
     <bpmn:sequenceFlow id="SequenceFlow_0wyfsqi" name="Finish" sourceRef="ExclusiveGateway_1ezv2uy" targetRef="EndEvent_0zb7jo4" />
     <bpmn:sequenceFlow id="SequenceFlow_0lohews" name="Send to Fill form" sourceRef="ExclusiveGateway_1ezv2uy" targetRef="fillForm">
-      <bpmn:conditionExpression xsi:type="bpmn:tFormalExpression">${resolution == 'Send to Fill form' }</bpmn:conditionExpression>
+      <bpmn:conditionExpression xsi:type="bpmn:tFormalExpression">${planningResolution == 'Send to Fill form' }</bpmn:conditionExpression>
     </bpmn:sequenceFlow>
     <bpmn:sequenceFlow id="SequenceFlow_1y3awlm" name="Send to modfiy BC" sourceRef="ExclusiveGateway_1ezv2uy" targetRef="SubProcess_1jfzq6i">
-      <bpmn:conditionExpression xsi:type="bpmn:tFormalExpression">${resolution == 'Send to modify BC'}</bpmn:conditionExpression>
+      <bpmn:conditionExpression xsi:type="bpmn:tFormalExpression">${planningResolution == 'Send to modify BC'}</bpmn:conditionExpression>
     </bpmn:sequenceFlow>
     <bpmn:endEvent id="EndEvent_0t5j8zg">
       <bpmn:incoming>SequenceFlow_07a49xz</bpmn:incoming>
     </bpmn:endEvent>
     <bpmn:sequenceFlow id="SequenceFlow_07a49xz" name="Cancel" sourceRef="ExclusiveGateway_1vrmfl2" targetRef="EndEvent_0t5j8zg">
-      <bpmn:conditionExpression xsi:type="bpmn:tFormalExpression">${resolution == 'Cancel'}</bpmn:conditionExpression>
+      <bpmn:conditionExpression xsi:type="bpmn:tFormalExpression">${bcResolution == 'Cancel'}</bpmn:conditionExpression>
     </bpmn:sequenceFlow>
     <bpmn:sendTask id="Task_0n2lpcc" name="New order notification" camunda:delegateExpression="${camundaMailer}">
       <bpmn:extensionElements>
@@ -687,7 +702,7 @@
       <bpmn:incoming>SequenceFlow_1s2pcoc</bpmn:incoming>
     </bpmn:endEvent>
     <bpmn:sequenceFlow id="SequenceFlow_1s2pcoc" name="Cancel" sourceRef="ExclusiveGateway_0xc2ixb" targetRef="EndEvent_1t94acj">
-      <bpmn:conditionExpression xsi:type="bpmn:tFormalExpression">${resolution == 'Cancel'}</bpmn:conditionExpression>
+      <bpmn:conditionExpression xsi:type="bpmn:tFormalExpression">${fillFormTaskResult == 'Cancel'}</bpmn:conditionExpression>
     </bpmn:sequenceFlow>
     <bpmn:sequenceFlow id="SequenceFlow_033lyfg" sourceRef="Task_0n2lpcc" targetRef="CVPReview" />
     <bpmn:sequenceFlow id="SequenceFlow_1l656uf" sourceRef="SubProcess_1jfzq6i" targetRef="ExclusiveGateway_1vrmfl2" />
@@ -699,7 +714,7 @@
       <bpmn:startEvent id="StartEvent_1fh4vpl" name="from Requirement review">
         <bpmn:outgoing>SequenceFlow_0p4rte9</bpmn:outgoing>
       </bpmn:startEvent>
-      <bpmn:userTask id="UserTask_1mno8gd" name="Assign Solution owner" camunda:formKey="embedded:app:forms/demand/assignSolution.html" camunda:candidateGroups="${assessCostsGroup}">
+      <bpmn:userTask id="assignSolution" name="Assign Solution owner" camunda:formKey="embedded:app:forms/demand/assignSolution.html" camunda:candidateGroups="${assessCostsGroup}">
         <bpmn:documentation>Assign Solution owner</bpmn:documentation>
         <bpmn:incoming>SequenceFlow_08o5zpv</bpmn:incoming>
         <bpmn:incoming>SequenceFlow_0swl59l</bpmn:incoming>
@@ -710,7 +725,7 @@
         <bpmn:outgoing>SequenceFlow_17tst19</bpmn:outgoing>
         <bpmn:outgoing>SequenceFlow_08yb7vh</bpmn:outgoing>
       </bpmn:exclusiveGateway>
-      <bpmn:userTask id="UserTask_1mcr26e" name="Fill SDD" camunda:formKey="embedded:app:forms/demand/fillSDD.html" camunda:assignee="${solutionOwner}">
+      <bpmn:userTask id="fillSDD" name="Fill SDD" camunda:formKey="embedded:app:forms/demand/fillSDD.html" camunda:assignee="${solutionOwner}">
         <bpmn:documentation>Fill SDD</bpmn:documentation>
         <bpmn:incoming>SequenceFlow_0ku6pcr</bpmn:incoming>
         <bpmn:incoming>SequenceFlow_1d4erl9</bpmn:incoming>
@@ -725,7 +740,7 @@
         <bpmn:outgoing>SequenceFlow_0wx8239</bpmn:outgoing>
         <bpmn:outgoing>SequenceFlow_1qxjev9</bpmn:outgoing>
       </bpmn:exclusiveGateway>
-      <bpmn:userTask id="UserTask_02cmulu" name="Сheck SDD" camunda:formKey="embedded:app:forms/demand/checkSDD.html" camunda:assignee="${requirementManager}">
+      <bpmn:userTask id="checkSDD" name="Сheck SDD" camunda:formKey="embedded:app:forms/demand/checkSDD.html" camunda:assignee="${requirementManager}">
         <bpmn:documentation>Сheck SDD</bpmn:documentation>
         <bpmn:incoming>SequenceFlow_0fg7ezf</bpmn:incoming>
         <bpmn:incoming>SequenceFlow_0wx8239</bpmn:incoming>
@@ -737,7 +752,7 @@
         <bpmn:outgoing>SequenceFlow_1d4erl9</bpmn:outgoing>
         <bpmn:outgoing>SequenceFlow_0i761a3</bpmn:outgoing>
       </bpmn:exclusiveGateway>
-      <bpmn:userTask id="UserTask_1wyogw2" name="Approve SDD" camunda:formKey="embedded:app:forms/demand/approveSDD.html" camunda:assignee="${approvalItem.prop(&#34;responsibleId&#34;).stringValue()}">
+      <bpmn:userTask id="approveSDD" name="Approve SDD" camunda:formKey="embedded:app:forms/demand/approveSDD.html" camunda:assignee="${approvalItem.prop(&#34;responsibleId&#34;).stringValue()}">
         <bpmn:documentation>Approve SDD</bpmn:documentation>
         <bpmn:incoming>SequenceFlow_0i761a3</bpmn:incoming>
         <bpmn:outgoing>SequenceFlow_0fg7ezf</bpmn:outgoing>
@@ -751,29 +766,29 @@
         <bpmn:outgoing>SequenceFlow_0ku6pcr</bpmn:outgoing>
         <bpmn:outgoing>SequenceFlow_08o5zpv</bpmn:outgoing>
       </bpmn:exclusiveGateway>
-      <bpmn:sequenceFlow id="SequenceFlow_0ku6pcr" name="to Fill SDD" sourceRef="ExclusiveGateway_0hcvybx" targetRef="UserTask_1mcr26e">
-        <bpmn:conditionExpression xsi:type="bpmn:tFormalExpression">${resolution == 'Send to Fill SDD'}</bpmn:conditionExpression>
+      <bpmn:sequenceFlow id="SequenceFlow_0ku6pcr" name="to Fill SDD" sourceRef="ExclusiveGateway_0hcvybx" targetRef="fillSDD">
+        <bpmn:conditionExpression xsi:type="bpmn:tFormalExpression">${developmentTaskResult == 'Send to Fill SDD'}</bpmn:conditionExpression>
       </bpmn:sequenceFlow>
-      <bpmn:sequenceFlow id="SequenceFlow_08o5zpv" sourceRef="ExclusiveGateway_0hcvybx" targetRef="UserTask_1mno8gd" />
+      <bpmn:sequenceFlow id="SequenceFlow_08o5zpv" sourceRef="ExclusiveGateway_0hcvybx" targetRef="assignSolution" />
       <bpmn:sequenceFlow id="SequenceFlow_06ycjhm" name="Approve" sourceRef="ExclusiveGateway_1q5j4rg" targetRef="SendTask_0oay7ww" />
-      <bpmn:sequenceFlow id="SequenceFlow_0fg7ezf" name="Approve / Reject" sourceRef="UserTask_1wyogw2" targetRef="UserTask_02cmulu" />
-      <bpmn:sequenceFlow id="SequenceFlow_1d4erl9" name="Send to modify" sourceRef="ExclusiveGateway_1q5j4rg" targetRef="UserTask_1mcr26e">
-        <bpmn:conditionExpression xsi:type="bpmn:tFormalExpression">${resolution == 'Send to modify'}</bpmn:conditionExpression>
+      <bpmn:sequenceFlow id="SequenceFlow_0fg7ezf" name="Approve / Reject" sourceRef="approveSDD" targetRef="checkSDD" />
+      <bpmn:sequenceFlow id="SequenceFlow_1d4erl9" name="Send to modify" sourceRef="ExclusiveGateway_1q5j4rg" targetRef="fillSDD">
+        <bpmn:conditionExpression xsi:type="bpmn:tFormalExpression">${checkSDDTaskResult == 'Send to modify'}</bpmn:conditionExpression>
       </bpmn:sequenceFlow>
-      <bpmn:sequenceFlow id="SequenceFlow_0i761a3" name="Request approval" sourceRef="ExclusiveGateway_1q5j4rg" targetRef="UserTask_1wyogw2">
-        <bpmn:conditionExpression xsi:type="bpmn:tFormalExpression">${resolution == 'Request approval'}</bpmn:conditionExpression>
+      <bpmn:sequenceFlow id="SequenceFlow_0i761a3" name="Request approval" sourceRef="ExclusiveGateway_1q5j4rg" targetRef="approveSDD">
+        <bpmn:conditionExpression xsi:type="bpmn:tFormalExpression">${checkSDDTaskResult == 'Request approval'}</bpmn:conditionExpression>
       </bpmn:sequenceFlow>
-      <bpmn:sequenceFlow id="SequenceFlow_1dx69u0" sourceRef="UserTask_02cmulu" targetRef="ExclusiveGateway_1q5j4rg" />
-      <bpmn:sequenceFlow id="SequenceFlow_0wx8239" name="Submit&#10;&#10;" sourceRef="ExclusiveGateway_1jp6koh" targetRef="UserTask_02cmulu">
-        <bpmn:conditionExpression xsi:type="bpmn:tFormalExpression">${resolution == 'Submit'}</bpmn:conditionExpression>
+      <bpmn:sequenceFlow id="SequenceFlow_1dx69u0" sourceRef="checkSDD" targetRef="ExclusiveGateway_1q5j4rg" />
+      <bpmn:sequenceFlow id="SequenceFlow_0wx8239" name="Submit&#10;&#10;" sourceRef="ExclusiveGateway_1jp6koh" targetRef="checkSDD">
+        <bpmn:conditionExpression xsi:type="bpmn:tFormalExpression">${fillSDDTaskResult == 'Submit'}</bpmn:conditionExpression>
       </bpmn:sequenceFlow>
       <bpmn:sequenceFlow id="SequenceFlow_1qxjev9" name="Send to Assign Solution owner" sourceRef="ExclusiveGateway_1jp6koh" targetRef="SendTask_1i6tjai" />
-      <bpmn:sequenceFlow id="SequenceFlow_0rvvsi0" sourceRef="UserTask_1mcr26e" targetRef="ExclusiveGateway_1jp6koh" />
+      <bpmn:sequenceFlow id="SequenceFlow_0rvvsi0" sourceRef="fillSDD" targetRef="ExclusiveGateway_1jp6koh" />
       <bpmn:sequenceFlow id="SequenceFlow_17tst19" name="Send to Requirement review" sourceRef="ExclusiveGateway_1j6w0or" targetRef="EndEvent_1tss67f" />
       <bpmn:sequenceFlow id="SequenceFlow_08yb7vh" name="Approve" sourceRef="ExclusiveGateway_1j6w0or" targetRef="SendTask_07fl1e6">
-        <bpmn:conditionExpression xsi:type="bpmn:tFormalExpression">${resolution == 'Approve'}</bpmn:conditionExpression>
+        <bpmn:conditionExpression xsi:type="bpmn:tFormalExpression">${assignSolutionTaskResult == 'Approve'}</bpmn:conditionExpression>
       </bpmn:sequenceFlow>
-      <bpmn:sequenceFlow id="SequenceFlow_0gmqa24" sourceRef="UserTask_1mno8gd" targetRef="ExclusiveGateway_1j6w0or" />
+      <bpmn:sequenceFlow id="SequenceFlow_0gmqa24" sourceRef="assignSolution" targetRef="ExclusiveGateway_1j6w0or" />
       <bpmn:sequenceFlow id="SequenceFlow_0p4rte9" sourceRef="StartEvent_1fh4vpl" targetRef="ExclusiveGateway_0hcvybx" />
       <bpmn:sendTask id="SendTask_07fl1e6" name="Status change notification" camunda:delegateExpression="${camundaMailer}">
         <bpmn:extensionElements>
@@ -792,7 +807,7 @@
         <bpmn:incoming>SequenceFlow_08yb7vh</bpmn:incoming>
         <bpmn:outgoing>SequenceFlow_1k9f19b</bpmn:outgoing>
       </bpmn:sendTask>
-      <bpmn:sequenceFlow id="SequenceFlow_1k9f19b" sourceRef="SendTask_07fl1e6" targetRef="UserTask_1mcr26e" />
+      <bpmn:sequenceFlow id="SequenceFlow_1k9f19b" sourceRef="SendTask_07fl1e6" targetRef="fillSDD" />
       <bpmn:sendTask id="SendTask_1i6tjai" name="Status change notification" camunda:delegateExpression="${camundaMailer}">
         <bpmn:extensionElements>
           <camunda:inputOutput>
@@ -810,7 +825,7 @@
         <bpmn:incoming>SequenceFlow_1qxjev9</bpmn:incoming>
         <bpmn:outgoing>SequenceFlow_0swl59l</bpmn:outgoing>
       </bpmn:sendTask>
-      <bpmn:sequenceFlow id="SequenceFlow_0swl59l" sourceRef="SendTask_1i6tjai" targetRef="UserTask_1mno8gd" />
+      <bpmn:sequenceFlow id="SequenceFlow_0swl59l" sourceRef="SendTask_1i6tjai" targetRef="assignSolution" />
       <bpmn:sendTask id="SendTask_0oay7ww" name="Status change notification" camunda:delegateExpression="${camundaMailer}">
         <bpmn:extensionElements>
           <camunda:inputOutput>
@@ -838,9 +853,9 @@
       <bpmn:textAnnotation id="TextAnnotation_0hislhv">
         <bpmn:text>Solution owner</bpmn:text>
       </bpmn:textAnnotation>
-      <bpmn:association id="Association_152fin6" sourceRef="UserTask_1mno8gd" targetRef="TextAnnotation_1qbbb7h" />
-      <bpmn:association id="Association_1pyhde5" sourceRef="UserTask_1mcr26e" targetRef="TextAnnotation_0hislhv" />
-      <bpmn:association id="Association_1jp2vln" sourceRef="UserTask_02cmulu" targetRef="TextAnnotation_008izl5" />
+      <bpmn:association id="Association_152fin6" sourceRef="assignSolution" targetRef="TextAnnotation_1qbbb7h" />
+      <bpmn:association id="Association_1pyhde5" sourceRef="fillSDD" targetRef="TextAnnotation_0hislhv" />
+      <bpmn:association id="Association_1jp2vln" sourceRef="checkSDD" targetRef="TextAnnotation_008izl5" />
     </bpmn:subProcess>
     <bpmn:subProcess id="SubProcess_0j5898z" name="Development">
       <bpmn:incoming>SequenceFlow_0jya6ui</bpmn:incoming>
@@ -849,7 +864,7 @@
       <bpmn:startEvent id="StartEvent_0cs00hx" name="From Solution Design">
         <bpmn:outgoing>SequenceFlow_1gj3j8b</bpmn:outgoing>
       </bpmn:startEvent>
-      <bpmn:userTask id="UserTask_02rg009" name="Development" camunda:formKey="embedded:app:forms/demand/development.html" camunda:assignee="${requirementManager}">
+      <bpmn:userTask id="development" name="Development" camunda:formKey="embedded:app:forms/demand/development.html" camunda:assignee="${requirementManager}">
         <bpmn:documentation>Development</bpmn:documentation>
         <bpmn:incoming>SequenceFlow_1gj3j8b</bpmn:incoming>
         <bpmn:outgoing>SequenceFlow_0xafklx</bpmn:outgoing>
@@ -857,8 +872,8 @@
       <bpmn:endEvent id="EndEvent_00l4ck4" name="to Fill SDD / to TQC and UAT">
         <bpmn:incoming>SequenceFlow_04tnnge</bpmn:incoming>
       </bpmn:endEvent>
-      <bpmn:sequenceFlow id="SequenceFlow_0xafklx" sourceRef="UserTask_02rg009" targetRef="SendTask_15azxq8" />
-      <bpmn:sequenceFlow id="SequenceFlow_1gj3j8b" sourceRef="StartEvent_0cs00hx" targetRef="UserTask_02rg009" />
+      <bpmn:sequenceFlow id="SequenceFlow_0xafklx" sourceRef="development" targetRef="SendTask_15azxq8" />
+      <bpmn:sequenceFlow id="SequenceFlow_1gj3j8b" sourceRef="StartEvent_0cs00hx" targetRef="development" />
       <bpmn:sendTask id="SendTask_15azxq8" name="Status change notification" camunda:delegateExpression="${camundaMailer}">
         <bpmn:extensionElements>
           <camunda:inputOutput>
@@ -880,7 +895,7 @@
       <bpmn:textAnnotation id="TextAnnotation_14j4ewv">
         <bpmn:text>Requirement manager</bpmn:text>
       </bpmn:textAnnotation>
-      <bpmn:association id="Association_0yy06jv" sourceRef="UserTask_02rg009" targetRef="TextAnnotation_14j4ewv" />
+      <bpmn:association id="Association_0yy06jv" sourceRef="development" targetRef="TextAnnotation_14j4ewv" />
     </bpmn:subProcess>
     <bpmn:exclusiveGateway id="ExclusiveGateway_1cf9qm3" default="SequenceFlow_0nacr5l">
       <bpmn:incoming>SequenceFlow_005secu</bpmn:incoming>
@@ -889,7 +904,7 @@
     </bpmn:exclusiveGateway>
     <bpmn:sequenceFlow id="SequenceFlow_005secu" sourceRef="SubProcess_0j5898z" targetRef="ExclusiveGateway_1cf9qm3" />
     <bpmn:sequenceFlow id="SequenceFlow_13wd024" name="to Fill SDD" sourceRef="ExclusiveGateway_1cf9qm3" targetRef="SubProcess_1dumdyu">
-      <bpmn:conditionExpression xsi:type="bpmn:tFormalExpression">${resolution == 'Send to Fill SDD'}</bpmn:conditionExpression>
+      <bpmn:conditionExpression xsi:type="bpmn:tFormalExpression">${developmentTaskResult == 'Send to Fill SDD'}</bpmn:conditionExpression>
     </bpmn:sequenceFlow>
     <bpmn:endEvent id="EndEvent_1co9ql0">
       <bpmn:incoming>SequenceFlow_1v9jxi2</bpmn:incoming>
@@ -902,11 +917,11 @@
     </bpmn:exclusiveGateway>
     <bpmn:sequenceFlow id="SequenceFlow_0fshtlh" sourceRef="SubProcess_1dumdyu" targetRef="ExclusiveGateway_1xh0ihl" />
     <bpmn:sequenceFlow id="SequenceFlow_0jya6ui" sourceRef="ExclusiveGateway_1xh0ihl" targetRef="SubProcess_0j5898z">
-      <bpmn:conditionExpression xsi:type="bpmn:tFormalExpression">${resolution == 'Approve'}</bpmn:conditionExpression>
+      <bpmn:conditionExpression xsi:type="bpmn:tFormalExpression">${sddResolution == 'Approve'}</bpmn:conditionExpression>
     </bpmn:sequenceFlow>
     <bpmn:sequenceFlow id="SequenceFlow_1b1clwb" name="to Requirement review" sourceRef="ExclusiveGateway_1xh0ihl" targetRef="SubProcess_1vbvt86" />
     <bpmn:sequenceFlow id="SequenceFlow_0j7s0c7" sourceRef="ExclusiveGateway_1ezv2uy" targetRef="SubProcess_1dumdyu">
-      <bpmn:conditionExpression xsi:type="bpmn:tFormalExpression">${resolution == 'Send to SDD'}</bpmn:conditionExpression>
+      <bpmn:conditionExpression xsi:type="bpmn:tFormalExpression">${planningResolution == 'Send to SDD'}</bpmn:conditionExpression>
     </bpmn:sequenceFlow>
     <bpmn:subProcess id="SubProcess_1bb29d4" name="TQC and UAT">
       <bpmn:incoming>SequenceFlow_0nacr5l</bpmn:incoming>
@@ -924,7 +939,7 @@
         <bpmn:incoming>SequenceFlow_0sz0ei4</bpmn:incoming>
         <bpmn:incoming>SequenceFlow_0grn04y</bpmn:incoming>
       </bpmn:endEvent>
-      <bpmn:userTask id="UserTask_0uyn4ez" name="Approve UAT protocol" camunda:formKey="embedded:app:forms/demand/approveUAT.html" camunda:assignee="${uatApprovalItem.prop(&#39;responsibleId&#39;).stringValue()}">
+      <bpmn:userTask id="approveUAT" name="Approve UAT protocol" camunda:formKey="embedded:app:forms/demand/approveUAT.html" camunda:assignee="${uatApprovalItem.prop(&#39;responsibleId&#39;).stringValue()}">
         <bpmn:documentation>Approve test protocol</bpmn:documentation>
         <bpmn:extensionElements>
           <camunda:inputOutput>
@@ -945,35 +960,35 @@
       <bpmn:endEvent id="EndEvent_125qxsa" name="to Post Production Validation">
         <bpmn:incoming>SequenceFlow_1wg0oss</bpmn:incoming>
       </bpmn:endEvent>
-      <bpmn:userTask id="UserTask_19pwybp" name="User Acceptance Testing" camunda:formKey="embedded:app:forms/demand/userAcceptance.html" camunda:assignee="${requirementManager}">
+      <bpmn:userTask id="userAcceptance" name="User Acceptance Testing" camunda:formKey="embedded:app:forms/demand/userAcceptance.html" camunda:assignee="${requirementManager}">
         <bpmn:documentation>User Acceptance Testing</bpmn:documentation>
         <bpmn:incoming>SequenceFlow_14z9acr</bpmn:incoming>
         <bpmn:incoming>SequenceFlow_1ovoosa</bpmn:incoming>
         <bpmn:outgoing>SequenceFlow_0jot1gi</bpmn:outgoing>
       </bpmn:userTask>
-      <bpmn:userTask id="UserTask_1wcad57" name="Technical Quality Control" camunda:formKey="embedded:app:forms/demand/tqc.html" camunda:assignee="${solutionOwner}">
+      <bpmn:userTask id="tqc" name="Technical Quality Control" camunda:formKey="embedded:app:forms/demand/tqc.html" camunda:assignee="${solutionOwner}">
         <bpmn:documentation>Technical Quality Control</bpmn:documentation>
         <bpmn:incoming>SequenceFlow_0c45abx</bpmn:incoming>
         <bpmn:incoming>SequenceFlow_1am8ufp</bpmn:incoming>
         <bpmn:outgoing>SequenceFlow_19ehksq</bpmn:outgoing>
       </bpmn:userTask>
-      <bpmn:sequenceFlow id="SequenceFlow_19ehksq" sourceRef="UserTask_1wcad57" targetRef="SendTask_1ny6t1r" />
-      <bpmn:sequenceFlow id="SequenceFlow_0jot1gi" sourceRef="UserTask_19pwybp" targetRef="SendTask_18t9i3c" />
-      <bpmn:sequenceFlow id="SequenceFlow_0c45abx" name="Send to TQC" sourceRef="ExclusiveGateway_0531qv4" targetRef="UserTask_1wcad57">
-        <bpmn:conditionExpression xsi:type="bpmn:tFormalExpression">${resolution == 'Send to TQC'}</bpmn:conditionExpression>
+      <bpmn:sequenceFlow id="SequenceFlow_19ehksq" sourceRef="tqc" targetRef="SendTask_1ny6t1r" />
+      <bpmn:sequenceFlow id="SequenceFlow_0jot1gi" sourceRef="userAcceptance" targetRef="SendTask_18t9i3c" />
+      <bpmn:sequenceFlow id="SequenceFlow_0c45abx" name="Send to TQC" sourceRef="ExclusiveGateway_0531qv4" targetRef="tqc">
+        <bpmn:conditionExpression xsi:type="bpmn:tFormalExpression">${userAcceptanceTaskResult == 'Send to TQC'}</bpmn:conditionExpression>
       </bpmn:sequenceFlow>
-      <bpmn:sequenceFlow id="SequenceFlow_0tmqqwi" name="Request approval" sourceRef="ExclusiveGateway_0531qv4" targetRef="UserTask_0uyn4ez">
-        <bpmn:conditionExpression xsi:type="bpmn:tFormalExpression">${resolution == 'Request approval'}</bpmn:conditionExpression>
+      <bpmn:sequenceFlow id="SequenceFlow_0tmqqwi" name="Request approval" sourceRef="ExclusiveGateway_0531qv4" targetRef="approveUAT">
+        <bpmn:conditionExpression xsi:type="bpmn:tFormalExpression">${userAcceptanceTaskResult == 'Request approval'}</bpmn:conditionExpression>
       </bpmn:sequenceFlow>
-      <bpmn:sequenceFlow id="SequenceFlow_14z9acr" sourceRef="UserTask_0uyn4ez" targetRef="UserTask_19pwybp" />
+      <bpmn:sequenceFlow id="SequenceFlow_14z9acr" sourceRef="approveUAT" targetRef="userAcceptance" />
       <bpmn:sequenceFlow id="SequenceFlow_0gkmf1w" name="Send to Development" sourceRef="ExclusiveGateway_0531qv4" targetRef="EndEvent_0jnvtj9">
-        <bpmn:conditionExpression xsi:type="bpmn:tFormalExpression">${resolution == 'Send to Development'}</bpmn:conditionExpression>
+        <bpmn:conditionExpression xsi:type="bpmn:tFormalExpression">${userAcceptanceTaskResult == 'Send to Development'}</bpmn:conditionExpression>
       </bpmn:sequenceFlow>
-      <bpmn:sequenceFlow id="SequenceFlow_1jn6htw" name="Approve" sourceRef="ExclusiveGateway_0zqycfs" targetRef="UserTask_0tdko2x" />
+      <bpmn:sequenceFlow id="SequenceFlow_1jn6htw" name="Approve" sourceRef="ExclusiveGateway_0zqycfs" targetRef="productionDeploy" />
       <bpmn:sequenceFlow id="SequenceFlow_0sz0ei4" name="Send to Development" sourceRef="ExclusiveGateway_0zqycfs" targetRef="EndEvent_0jnvtj9">
-        <bpmn:conditionExpression xsi:type="bpmn:tFormalExpression">${resolution == 'Send to Development'}</bpmn:conditionExpression>
+        <bpmn:conditionExpression xsi:type="bpmn:tFormalExpression">${tqcTaskResult == 'Send to Development'}</bpmn:conditionExpression>
       </bpmn:sequenceFlow>
-      <bpmn:sequenceFlow id="SequenceFlow_1am8ufp" sourceRef="StartEvent_1qhhtyd" targetRef="UserTask_1wcad57" />
+      <bpmn:sequenceFlow id="SequenceFlow_1am8ufp" sourceRef="StartEvent_1qhhtyd" targetRef="tqc" />
       <bpmn:sendTask id="SendTask_1ny6t1r" name="Status change notification" camunda:delegateExpression="${camundaMailer}">
         <bpmn:extensionElements>
           <camunda:inputOutput>
@@ -1028,20 +1043,20 @@
         <bpmn:outgoing>SequenceFlow_045vrya</bpmn:outgoing>
       </bpmn:sendTask>
       <bpmn:sequenceFlow id="SequenceFlow_045vrya" sourceRef="SendTask_1sdvmp6" targetRef="ExclusiveGateway_11kr4ko" />
-      <bpmn:userTask id="UserTask_0tdko2x" name="Production deploy" camunda:formKey="embedded:app:forms/demand/productionDeploy.html" camunda:assignee="${requirementManager}">
+      <bpmn:userTask id="productionDeploy" name="Production deploy" camunda:formKey="embedded:app:forms/demand/productionDeploy.html" camunda:assignee="${requirementManager}">
         <bpmn:documentation>Production deploy</bpmn:documentation>
         <bpmn:incoming>SequenceFlow_1jn6htw</bpmn:incoming>
         <bpmn:outgoing>SequenceFlow_0rha68c</bpmn:outgoing>
       </bpmn:userTask>
-      <bpmn:sequenceFlow id="SequenceFlow_0rha68c" sourceRef="UserTask_0tdko2x" targetRef="SendTask_1sdvmp6" />
+      <bpmn:sequenceFlow id="SequenceFlow_0rha68c" sourceRef="productionDeploy" targetRef="SendTask_1sdvmp6" />
       <bpmn:exclusiveGateway id="ExclusiveGateway_11kr4ko" default="SequenceFlow_1ovoosa">
         <bpmn:incoming>SequenceFlow_045vrya</bpmn:incoming>
         <bpmn:outgoing>SequenceFlow_1ovoosa</bpmn:outgoing>
         <bpmn:outgoing>SequenceFlow_0grn04y</bpmn:outgoing>
       </bpmn:exclusiveGateway>
-      <bpmn:sequenceFlow id="SequenceFlow_1ovoosa" name="Approve" sourceRef="ExclusiveGateway_11kr4ko" targetRef="UserTask_19pwybp" />
+      <bpmn:sequenceFlow id="SequenceFlow_1ovoosa" name="Approve" sourceRef="ExclusiveGateway_11kr4ko" targetRef="userAcceptance" />
       <bpmn:sequenceFlow id="SequenceFlow_0grn04y" name="Send to Development" sourceRef="ExclusiveGateway_11kr4ko" targetRef="EndEvent_0jnvtj9">
-        <bpmn:conditionExpression xsi:type="bpmn:tFormalExpression">${resolution == 'Send to Development'}</bpmn:conditionExpression>
+        <bpmn:conditionExpression xsi:type="bpmn:tFormalExpression">${productionDeployTaskResult == 'Send to Development'}</bpmn:conditionExpression>
       </bpmn:sequenceFlow>
       <bpmn:serviceTask id="ServiceTask_0juyclu" name="Send approved UAT protocol as PDF" camunda:class="kz.kcell.flow.demand.SendApprovedUATPDF">
         <bpmn:extensionElements>
@@ -1068,12 +1083,12 @@
       <bpmn:textAnnotation id="TextAnnotation_0nnm7gr">
         <bpmn:text>Multi user task</bpmn:text>
       </bpmn:textAnnotation>
-      <bpmn:association id="Association_01kpx3b" sourceRef="UserTask_0uyn4ez" targetRef="TextAnnotation_0nnm7gr" />
-      <bpmn:association id="Association_0s4ib34" sourceRef="UserTask_1wcad57" targetRef="TextAnnotation_1anhdjs" />
+      <bpmn:association id="Association_01kpx3b" sourceRef="approveUAT" targetRef="TextAnnotation_0nnm7gr" />
+      <bpmn:association id="Association_0s4ib34" sourceRef="tqc" targetRef="TextAnnotation_1anhdjs" />
       <bpmn:textAnnotation id="TextAnnotation_0tvs9r7">
         <bpmn:text>Requirement manager</bpmn:text>
       </bpmn:textAnnotation>
-      <bpmn:association id="Association_1ns6bpw" sourceRef="UserTask_0tdko2x" targetRef="TextAnnotation_0tvs9r7" />
+      <bpmn:association id="Association_1ns6bpw" sourceRef="productionDeploy" targetRef="TextAnnotation_0tvs9r7" />
       <bpmn:textAnnotation id="TextAnnotation_1h71zek">
         <bpmn:text>Sending UAT protocol after Approve UAT to Requirement manager</bpmn:text>
       </bpmn:textAnnotation>
@@ -1087,7 +1102,7 @@
     </bpmn:exclusiveGateway>
     <bpmn:sequenceFlow id="SequenceFlow_1v9jxi2" sourceRef="ExclusiveGateway_1m276t2" targetRef="EndEvent_1co9ql0" />
     <bpmn:sequenceFlow id="SequenceFlow_1rpacb7" name="To Development" sourceRef="ExclusiveGateway_1m276t2" targetRef="SubProcess_0j5898z">
-      <bpmn:conditionExpression xsi:type="bpmn:tFormalExpression">${resolution == 'Send to Development'}</bpmn:conditionExpression>
+      <bpmn:conditionExpression xsi:type="bpmn:tFormalExpression">${tqcResolution == 'Send to Development'}</bpmn:conditionExpression>
     </bpmn:sequenceFlow>
     <bpmn:sendTask id="SendTask_15g0gng" name="Status change notification" camunda:delegateExpression="${camundaMailer}">
       <bpmn:extensionElements>
@@ -1887,16 +1902,16 @@
         <di:waypoint x="3205" y="-496" />
         <di:waypoint x="3155" y="-523" />
       </bpmndi:BPMNEdge>
-      <bpmndi:BPMNShape id="UserTask_1vm4ilk_di" bpmnElement="Task_02bibw0">
+      <bpmndi:BPMNShape id="UserTask_1vm4ilk_di" bpmnElement="planning">
         <dc:Bounds x="2915" y="-315" width="100" height="80" />
       </bpmndi:BPMNShape>
-      <bpmndi:BPMNShape id="UserTask_0ene3mp_di" bpmnElement="Task_0klxkhf">
+      <bpmndi:BPMNShape id="UserTask_0ene3mp_di" bpmnElement="cvpConfirmation">
         <dc:Bounds x="2915" y="-120" width="100" height="80" />
       </bpmndi:BPMNShape>
-      <bpmndi:BPMNShape id="UserTask_12gv228_di" bpmnElement="Task_1972tin">
+      <bpmndi:BPMNShape id="UserTask_12gv228_di" bpmnElement="followUp">
         <dc:Bounds x="2902" y="78" width="100" height="80" />
       </bpmndi:BPMNShape>
-      <bpmndi:BPMNShape id="UserTask_0o3xxnz_di" bpmnElement="Task_0rozho7">
+      <bpmndi:BPMNShape id="UserTask_0o3xxnz_di" bpmnElement="requirementReview">
         <dc:Bounds x="3205" y="-509" width="100" height="80" />
       </bpmndi:BPMNShape>
       <bpmndi:BPMNShape id="EndEvent_0t5j8zg_di" bpmnElement="EndEvent_0t5j8zg">
@@ -2018,13 +2033,13 @@
           <dc:Bounds x="4213" y="-162" width="89" height="27" />
         </bpmndi:BPMNLabel>
       </bpmndi:BPMNShape>
-      <bpmndi:BPMNShape id="UserTask_1mno8gd_di" bpmnElement="UserTask_1mno8gd">
+      <bpmndi:BPMNShape id="UserTask_1mno8gd_di" bpmnElement="assignSolution">
         <dc:Bounds x="4456" y="-227" width="100" height="80" />
       </bpmndi:BPMNShape>
       <bpmndi:BPMNShape id="ExclusiveGateway_1j6w0or_di" bpmnElement="ExclusiveGateway_1j6w0or" isMarkerVisible="true">
         <dc:Bounds x="4627" y="-212" width="50" height="50" />
       </bpmndi:BPMNShape>
-      <bpmndi:BPMNShape id="UserTask_1mcr26e_di" bpmnElement="UserTask_1mcr26e">
+      <bpmndi:BPMNShape id="UserTask_1mcr26e_di" bpmnElement="fillSDD">
         <dc:Bounds x="4983" y="-227" width="100" height="80" />
       </bpmndi:BPMNShape>
       <bpmndi:BPMNShape id="EndEvent_1tss67f_di" bpmnElement="EndEvent_1tss67f">
@@ -2036,13 +2051,13 @@
       <bpmndi:BPMNShape id="ExclusiveGateway_1jp6koh_di" bpmnElement="ExclusiveGateway_1jp6koh" isMarkerVisible="true">
         <dc:Bounds x="5189" y="-212" width="50" height="50" />
       </bpmndi:BPMNShape>
-      <bpmndi:BPMNShape id="UserTask_02cmulu_di" bpmnElement="UserTask_02cmulu">
+      <bpmndi:BPMNShape id="UserTask_02cmulu_di" bpmnElement="checkSDD">
         <dc:Bounds x="5338" y="-227" width="100" height="80" />
       </bpmndi:BPMNShape>
       <bpmndi:BPMNShape id="ExclusiveGateway_1q5j4rg_di" bpmnElement="ExclusiveGateway_1q5j4rg" isMarkerVisible="true">
         <dc:Bounds x="5506" y="-212" width="50" height="50" />
       </bpmndi:BPMNShape>
-      <bpmndi:BPMNShape id="UserTask_1wyogw2_di" bpmnElement="UserTask_1wyogw2">
+      <bpmndi:BPMNShape id="UserTask_1wyogw2_di" bpmnElement="approveSDD">
         <dc:Bounds x="5481" y="-378" width="100" height="80" />
       </bpmndi:BPMNShape>
       <bpmndi:BPMNShape id="EndEvent_1jbhknp_di" bpmnElement="EndEvent_1jbhknp">
@@ -2172,7 +2187,7 @@
           <dc:Bounds x="6260" y="-185" width="69" height="27" />
         </bpmndi:BPMNLabel>
       </bpmndi:BPMNShape>
-      <bpmndi:BPMNShape id="UserTask_02rg009_di" bpmnElement="UserTask_02rg009">
+      <bpmndi:BPMNShape id="UserTask_02rg009_di" bpmnElement="development">
         <dc:Bounds x="6414" y="-250" width="100" height="80" />
       </bpmndi:BPMNShape>
       <bpmndi:BPMNShape id="EndEvent_00l4ck4_di" bpmnElement="EndEvent_00l4ck4">
@@ -2271,7 +2286,7 @@
           <dc:Bounds x="8286" y="-40" width="80" height="14" />
         </bpmndi:BPMNLabel>
       </bpmndi:BPMNShape>
-      <bpmndi:BPMNShape id="UserTask_0uyn4ez_di" bpmnElement="UserTask_0uyn4ez">
+      <bpmndi:BPMNShape id="UserTask_0uyn4ez_di" bpmnElement="approveUAT">
         <dc:Bounds x="8644" y="-354" width="100" height="80" />
       </bpmndi:BPMNShape>
       <bpmndi:BPMNShape id="ExclusiveGateway_0531qv4_di" bpmnElement="ExclusiveGateway_0531qv4" isMarkerVisible="true">
@@ -2283,10 +2298,10 @@
           <dc:Bounds x="9268" y="-160" width="90" height="27" />
         </bpmndi:BPMNLabel>
       </bpmndi:BPMNShape>
-      <bpmndi:BPMNShape id="UserTask_19pwybp_di" bpmnElement="UserTask_19pwybp">
+      <bpmndi:BPMNShape id="UserTask_19pwybp_di" bpmnElement="userAcceptance">
         <dc:Bounds x="8453" y="-225" width="100" height="80" />
       </bpmndi:BPMNShape>
-      <bpmndi:BPMNShape id="UserTask_1wcad57_di" bpmnElement="UserTask_1wcad57">
+      <bpmndi:BPMNShape id="UserTask_1wcad57_di" bpmnElement="tqc">
         <dc:Bounds x="7441" y="-225" width="100" height="80" />
       </bpmndi:BPMNShape>
       <bpmndi:BPMNShape id="TextAnnotation_1anhdjs_di" bpmnElement="TextAnnotation_1anhdjs">
@@ -2498,7 +2513,7 @@
         <di:waypoint x="8238" y="-185" />
         <di:waypoint x="8301" y="-185" />
       </bpmndi:BPMNEdge>
-      <bpmndi:BPMNShape id="UserTask_0tdko2x_di" bpmnElement="UserTask_0tdko2x">
+      <bpmndi:BPMNShape id="UserTask_0tdko2x_di" bpmnElement="productionDeploy">
         <dc:Bounds x="7962" y="-225" width="100" height="80" />
       </bpmndi:BPMNShape>
       <bpmndi:BPMNEdge id="SequenceFlow_0rha68c_di" bpmnElement="SequenceFlow_0rha68c">

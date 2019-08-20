@@ -13,7 +13,7 @@
     }
   </style>
   <script cam-script type="text/form-script">
-    inject(['$scope', '$http', 'Uri', '$rootScope', '$q', 'toasty', '$timeout', '$location', function ($scope, $http, Uri, $rootScope, $q, toasty, $timeout, $location) {
+    inject(['$scope', '$http', 'Uri', '$rootScope', '$q', 'toasty', '$timeout', '$location', 'historyVariablesManager', function ($scope, $http, Uri, $rootScope, $q, toasty, $timeout, $location, historyVariablesManager) {
       $scope.generalData = {
         general: {},
         targetAudience: {},
@@ -36,7 +36,7 @@
         components: {}
       };
       $scope.UATData = {};
-      $scope.resolutions = [];
+
       $scope.attachments = [];
       $scope.supportiveInputs = [];
       $scope.resources = [];
@@ -45,8 +45,7 @@
 
       var processInstanceId = null;
       var taskName = null;
-      var createdDate = new Date();
-      var claimDate = new Date();
+      var history = historyVariablesManager(camForm, 'approveUAT');
 
       $http.get("/camunda/api/engine/engine/default/user/" + $rootScope.authentication.name+ "/profile").then(function(result){
         $scope.assigneeName = (result.data.firstName ? result.data.firstName : "") + " " + (result.data.lastName ? result.data.lastName : "");
@@ -56,23 +55,6 @@
         function(result){
           processInstanceId = result.data.processInstanceId;
           taskName = result.data.name;
-          if (result.data.created) createdDate = new Date(result.data.created);
-        },
-        function (error) {
-          console.log(error.data);
-        }
-      );
-      $http.get("/camunda/api/engine/engine/default/history/identity-link-log?type=assignee&taskId=" + camForm.taskId + "&operationType=add&sortBy=time&sortOrder=desc").then(
-        function (logs) {
-          try {
-            if(logs.data && logs.data.length > 0){
-              claimDate = new Date(logs.data[0].time);
-            } else {
-              claimDate = undefined;
-            }
-          } catch(e){
-            console.log(e);
-          }
         },
         function (error) {
           console.log(error.data);
@@ -80,13 +62,12 @@
       );
 
       camForm.on('form-loaded', function () {
+        camForm.variableManager.fetchVariable('resolutions');
         camForm.variableManager.fetchVariable('generalData');
         camForm.variableManager.fetchVariable('BRDData');
         camForm.variableManager.fetchVariable('BCData');
         camForm.variableManager.fetchVariable('SDDData');
         camForm.variableManager.fetchVariable('supportiveInputs');
-        camForm.variableManager.fetchVariable('resolutions');
-        camForm.variableManager.fetchVariable('resolution');
         camForm.variableManager.fetchVariable('attachments');
         camForm.variableManager.fetchVariable('requirementManager');
         camForm.variableManager.fetchVariable('solutionOwner');
@@ -105,12 +86,13 @@
       });
 
       camForm.on('variables-fetched', function () {
+        $scope.resolutions = camForm.variableManager.variableValue('resolutions');
+        camForm.variableManager.destroyVariable('resolutions');
         $scope.generalData = camForm.variableManager.variableValue('generalData');
         $scope.BRDData = camForm.variableManager.variableValue('BRDData');
         $scope.BCData = camForm.variableManager.variableValue('BCData');
         $scope.SDDData = camForm.variableManager.variableValue('SDDData');
         $scope.supportiveInputs = camForm.variableManager.variableValue('supportiveInputs');
-        $scope.resolutions = camForm.variableManager.variableValue('resolutions');
         $scope.attachments = camForm.variableManager.variableValue('attachments');
         $scope.requirementManager = camForm.variableManager.variableValue('requirementManager');
         $scope.solutionOwner = camForm.variableManager.variableValue('solutionOwner');
@@ -151,20 +133,14 @@
         if ($scope.BRDData && $scope.BRDData.funcRequirements && $scope.BRDData.funcRequirements.useCases) {
           $scope.useCases = $scope.BRDData.funcRequirements.useCases;
         }
+
+        history.createVariables();
       });
 
       $scope.preSubmit = function () {
-        return $http.get('/camunda/api/engine/engine/default/process-instance/' + processInstanceId + '/variables/resolutions?deserializeValue=false').then(
-          function (result) {
-            $scope.resolutions = JSON.parse(result.data.value);
-            return $http.get('/camunda/api/engine/engine/default/process-instance/' + processInstanceId + '/variables/uatApprovalList?deserializeValue=false').then(
-              function (resp) {
-                $scope.uatApprovalList = JSON.parse(resp.data.value);
-              },
-              function (error) {
-                toasty.error(error.data.message);
-              }
-            );
+        return $http.get('/camunda/api/engine/engine/default/process-instance/' + processInstanceId + '/variables/uatApprovalList?deserializeValue=false').then(
+          function (resp) {
+            $scope.uatApprovalList = JSON.parse(resp.data.value);
           },
           function (error) {
             toasty.error(error.data.message);
@@ -173,24 +149,7 @@
       };
 
       camForm.on('submit', function (event) {
-        var submitDate = new Date ();
-        if(!$scope.resolutions){
-          $scope.resolutions = [];
-        }
-        $scope.resolutions.unshift({processInstanceId: processInstanceId, assignee: $scope.assigneeName, resolution: $scope.resolution, comment: $scope.comment, taskId: camForm.taskId, taskEndDate: submitDate, taskName: taskName, dateOfAssign: createdDate, claimDate: claimDate});
-        camForm.variableManager.destroyVariable('resolutions');
-        camForm.variableManager.createVariable({
-          name: 'resolutions',
-          type: 'Json',
-          value: $scope.resolutions
-        });
-
-        camForm.variableManager.destroyVariable('resolution');
-        camForm.variableManager.createVariable({
-          name: 'resolution',
-          type: 'String',
-          value: $scope.resolution
-        });
+        history.setVariables($scope.resolution, $scope.comment);
 
         for (var app of $scope.uatApprovalList) {
           if (app.id === $scope.uatApprovalItem.id) {
@@ -204,7 +163,8 @@
         camForm.variableManager.createVariable({
           name: 'uatApprovalList',
           type: 'Json',
-          value: $scope.uatApprovalList
+          value: $scope.uatApprovalList,
+          store: true
         });
       });
 

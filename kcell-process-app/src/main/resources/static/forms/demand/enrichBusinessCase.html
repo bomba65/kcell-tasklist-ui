@@ -5,7 +5,7 @@
         }
     </style>
     <script cam-script type="text/form-script">
-        inject(['$scope', '$http', 'Uri', '$rootScope', '$q', 'toasty', '$timeout', 'exModal', function ($scope, $http, Uri, $rootScope, $q, toasty, $timeout, exModal) {
+        inject(['$scope', '$http', 'Uri', '$rootScope', '$q', 'toasty', '$timeout', 'exModal', 'historyVariablesManager', function ($scope, $http, Uri, $rootScope, $q, toasty, $timeout, exModal, historyVariablesManager) {
             $scope.generalData = {
                 general: {},
                 targetAudience: {},
@@ -22,7 +22,7 @@
                 data: {}
             };
             $scope.riskData = [];
-            $scope.resolutions = [];
+
             $scope.attachments = [];
             $scope.supportiveRequests = [];
             $scope.supportiveInputs = [];
@@ -42,8 +42,7 @@
             $scope.taskId = camForm.taskId;
             var taskName = null;
             var assigneeName = $rootScope.authentication.name;
-            var createdDate = new Date();
-            var claimDate = new Date();
+            var history = historyVariablesManager(camForm, 'enrichBusinessCase');
             $scope.pricesFilled = true;
             $scope.hrInput = {checked: false, value: []};
             $scope.cpdInput = {checked: false, value: []};
@@ -56,23 +55,6 @@
                     function (result) {
                         $scope.processInstanceId = result.data.processInstanceId;
                         taskName = result.data.name;
-                        if (result.data.created) createdDate = new Date(result.data.created);
-                    },
-                    function (error) {
-                        console.log(error.data);
-                    }
-            );
-            $http.get("/camunda/api/engine/engine/default/history/identity-link-log?type=assignee&taskId=" + camForm.taskId + "&operationType=add&sortBy=time&sortOrder=desc").then(
-                    function (logs) {
-                        try {
-                            if(logs.data && logs.data.length > 0){
-                                claimDate = new Date(logs.data[0].time);
-                            } else {
-                                claimDate = undefined;
-                            }
-                        } catch(e){
-                            console.log(e);
-                        }
                     },
                     function (error) {
                         console.log(error.data);
@@ -80,13 +62,13 @@
             );
 
             camForm.on('form-loaded', function () {
+                camForm.variableManager.fetchVariable('resolutions');
                 camForm.variableManager.fetchVariable('generalData');
                 camForm.variableManager.fetchVariable('BRDData');
                 camForm.variableManager.fetchVariable('BCData');
                 camForm.variableManager.fetchVariable('riskData');
                 camForm.variableManager.fetchVariable('supportiveInputs');
-                camForm.variableManager.fetchVariable('resolutions');
-                camForm.variableManager.fetchVariable('resolution');
+                camForm.variableManager.fetchVariable('bcResolution');
                 camForm.variableManager.fetchVariable('attachments');
                 camForm.variableManager.fetchVariable('supportiveInputList');
                 camForm.variableManager.fetchVariable('status');
@@ -96,12 +78,13 @@
             });
 
             camForm.on('variables-fetched', function () {
+                $scope.resolutions = camForm.variableManager.variableValue('resolutions');
+                camForm.variableManager.destroyVariable('resolutions');
                 $scope.generalData = camForm.variableManager.variableValue('generalData');
                 $scope.BRDData = camForm.variableManager.variableValue('BRDData');
                 $scope.BCData = camForm.variableManager.variableValue('BCData');
                 $scope.riskData = camForm.variableManager.variableValue('riskData');
                 $scope.supportiveInputs = camForm.variableManager.variableValue('supportiveInputs');
-                $scope.resolutions = camForm.variableManager.variableValue('resolutions');
                 $scope.attachments = camForm.variableManager.variableValue('attachments');
                 $scope.status = camForm.variableManager.variableValue('status');
                 $scope.state = camForm.variableManager.variableValue('state');
@@ -124,14 +107,19 @@
                     i.checked = false;
                 }
 
+                $scope.lastAttachments = JSON.parse(JSON.stringify($scope.attachments));
+                history.createVariables(true);
             });
 
             camForm.on('submit', function (event) {
+                history.setVariables($scope.resolution, $scope.comment, $scope.lastAttachments, $scope.attachments);
+
                 camForm.variableManager.destroyVariable('BCData');
                 camForm.variableManager.createVariable({
                     name: 'BCData',
                     type: 'Json',
-                    value: $scope.BCData
+                    value: $scope.BCData,
+                    store: true
                 });
                 camForm.variableManager.destroyVariable('attachments');
                 camForm.variableManager.createVariable({
@@ -141,33 +129,12 @@
                     store: true
                 });
 
-                var submitDate = new Date();
-                if (!$scope.resolutions) {
-                    $scope.resolutions = [];
-                }
-                $scope.resolutions.unshift({
-                    processInstanceId: $scope.processInstanceId,
-                    assignee: assigneeName,
-                    resolution: $scope.resolution,
-                    comment: $scope.comment,
-                    taskId: camForm.taskId,
-                    taskEndDate: submitDate,
-                    taskName: taskName,
-                    dateOfAssign: createdDate,
-                    claimDate: claimDate
-                });
-                camForm.variableManager.destroyVariable('resolutions');
+                camForm.variableManager.destroyVariable('bcResolution');
                 camForm.variableManager.createVariable({
-                    name: 'resolutions',
-                    type: 'Json',
-                    value: $scope.resolutions
-                });
-
-                camForm.variableManager.destroyVariable('resolution');
-                camForm.variableManager.createVariable({
-                    name: 'resolution',
+                    name: 'bcResolution',
                     type: 'String',
-                    value: $scope.resolution
+                    value: $scope.resolution,
+                    store: true
                 });
 
                 if ($scope.resolution === 'Cancel') {
@@ -175,21 +142,24 @@
                     camForm.variableManager.createVariable({
                         name: 'status',
                         type: 'String',
-                        value: 'Canceled on Enrich Business case'
+                        value: 'Canceled on Enrich Business case',
+                        store: true
                     });
 
                     camForm.variableManager.destroyVariable('state');
                     camForm.variableManager.createVariable({
                         name: 'state',
                         type: 'String',
-                        value: 'Closed'
+                        value: 'Closed',
+                        store: true
                     });
 
                     camForm.variableManager.destroyVariable('oldStatus');
                     camForm.variableManager.createVariable({
                         name: 'oldStatus',
                         type: 'String',
-                        value: $scope.status
+                        value: $scope.status,
+                        store: true
                     });
                 }
 
@@ -197,7 +167,8 @@
                 camForm.variableManager.createVariable({
                     name: 'riskData',
                     type: 'Json',
-                    value: $scope.riskData
+                    value: $scope.riskData,
+                    store: true
                 });
 
                 if ($scope.supportiveInputs && $scope.supportiveInputs.length) {
@@ -228,21 +199,24 @@
                 camForm.variableManager.createVariable({
                     name: 'supportiveInputList',
                     type: 'Json',
-                    value: supportiveInputList
+                    value: supportiveInputList,
+                    store: true
                 });
 
                 camForm.variableManager.destroyVariable("siRequestedFromBC");
                 camForm.variableManager.createVariable({
                     name: 'siRequestedFromBC',
                     type: 'Boolean',
-                    value: true
+                    value: true,
+                    store: true
                 });
 
                 camForm.variableManager.destroyVariable('supportiveInputs');
                 camForm.variableManager.createVariable({
                     name: 'supportiveInputs',
                     type: 'Json',
-                    value: $scope.supportiveInputs
+                    value: $scope.supportiveInputs,
+                    store: true
                 });
             });
 
@@ -256,7 +230,7 @@
                 }, function(error){
                     console.log(error.data);
                 });
-            }
+            };
 
             $scope.clearFile = function(fileIndex) {
               exModal.open({
@@ -265,7 +239,7 @@
               }).then(function() {
                 $scope.attachments.splice(fileIndex, 1);
               });
-            }
+            };
 
             $scope.fileSelected = function (el) {
                 $timeout(function () {
