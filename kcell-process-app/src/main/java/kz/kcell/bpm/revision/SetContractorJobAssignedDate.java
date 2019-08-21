@@ -33,6 +33,7 @@ public class SetContractorJobAssignedDate implements TaskListener {
             delegateTask.setVariable("rolloutRO1", "false");
             delegateTask.setVariable("rolloutRO2", "false");
             delegateTask.setVariable("rolloutRO3", "false");
+            delegateTask.setVariable("rolloutRO4", "false");
         }
     }
 }

@@ -46,6 +46,14 @@ public class SetRolloutActStatus implements JavaDelegate {
                         runtimeService.setVariable(revisionId, "invoiceRO3Number", "");
                     }
                 }
+            } else if("RO-4".equals(rolloutActType)){
+                for(String revisionId: selectedRevisions.fieldNames()){
+                    if("true".equals(status)){
+                        runtimeService.setVariable(revisionId, "invoiceRO4Number", delegateExecution.getVariable("invoiceNumber"));
+                    } else {
+                        runtimeService.setVariable(revisionId, "invoiceRO4Number", "");
+                    }
+                }
             }
         }
 

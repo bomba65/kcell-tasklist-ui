@@ -491,12 +491,19 @@
                     if($scope.rolloutActType === 'RO-1'){
                         processParams.executedActivityIdIn = ['exclgw_materials_required'];
                         processParams.variables.push({"name": "rolloutRO1", "operator": "eq", "value": 'false'});
+                        processParams.variables.push({"name": "contains13Work", "operator": "eq", "value": false});
                     } else if($scope.rolloutActType === 'RO-2') {
                         processParams.executedActivityIdIn = ['IntermediateThrowEvent_performed_not_accepted'];
                         processParams.variables.push({"name": "rolloutRO2", "operator": "eq", "value": 'false'});
+                        processParams.variables.push({"name": "contains13Work", "operator": "eq", "value": false});
                     } else if($scope.rolloutActType === 'RO-3') {
                         processParams.executedActivityIdIn = ['accept_work_initiator'];
                         processParams.variables.push({"name": "rolloutRO3", "operator": "eq", "value": 'false'});
+                        processParams.variables.push({"name": "contains13Work", "operator": "eq", "value": false});
+                    } else if($scope.rolloutActType === 'RO-4') {
+                        processParams.executedActivityIdIn = ['accept_work_initiator'];
+                        processParams.variables.push({"name": "rolloutRO4", "operator": "eq", "value": 'false'});
+                        processParams.variables.push({"name": "contains13Work", "operator": "eq", "value": true});
                     }
 
                     $http({
@@ -513,7 +520,7 @@
                                     site_name: x.site_name,
                                     startTime: x.startTime,
                                     processInstanceId: x.id
-                                }
+                                };
                                 $scope.jobRequests.push(jobRequest);
                             }
                         });
@@ -885,10 +892,10 @@
                             lastLine.delay = editDelay;
                             $scope.delayChanges[processInstanceId][$scope.delayChanges[processInstanceId].length-1] = lastLine;
                         } else {
-                            $scope.delayChanges[processInstanceId] = [{'delay': editDelay, 'author': $scope.initiatorFull, 'authorName': $rootScope.authentication.name, taskId: camForm.taskId}];
+                            $scope.delayChanges[processInstanceId] = [{'delay': editDelay, 'author': $rootScope.authentication.assigneeName, 'authorName': $rootScope.authentication.name, taskId: camForm.taskId}];
                         }
                     } else {
-                        $scope.delayChanges[processInstanceId] = [{'delay': editDelay, 'author': $scope.initiatorFull, 'authorName': $rootScope.authentication.name, taskId: camForm.taskId}];
+                        $scope.delayChanges[processInstanceId] = [{'delay': editDelay, 'author': $rootScope.authentication.assigneeName, 'authorName': $rootScope.authentication.name, taskId: camForm.taskId}];
                     }
                 }
             }
@@ -1265,14 +1272,14 @@
                             <th ng-if="mainContract == 'Revision'">Acceptance date</th>
                             <th ng-if="mainContract == 'Roll-out' && rolloutActType == 'RO-1'">JR Ordered date</th>
                             <th ng-if="mainContract == 'Roll-out' && rolloutActType == 'RO-2'">JR perform date</th>
-                            <th ng-if="mainContract == 'Roll-out' && rolloutActType == 'RO-3'">JR Acceptance date</th>
+                            <th ng-if="mainContract == 'Roll-out' && (rolloutActType == 'RO-3' || rolloutActType == 'RO-4')">JR Acceptance date</th>
                         </tr>
                         </thead>
                         <tbody ng-repeat="jobRequest in jobRequests | orderBy:orderBusinessKey" ng-show="jobRequests && jobRequests.length">
                         <tr>
                             <td>
                                 <input type="checkbox" name="{{c.processInstanceId}}" ng-model="jobRequest.selected" ng-disabled="(['RO-2','RO-3'].indexOf(rolloutActType) !== -1  && jobRequest.rolloutRO1 == 'false') || (rolloutActType == 'RO-3' && jobRequest.rolloutRO2 == 'false')" />
-                                <span class="label label-warning" ng-if="['RO-2','RO-3'].indexOf(rolloutActType) !== -1  && jobRequest.rolloutRO1 == 'false'">Не добавлена в акт по RO-1</span>
+                                <span class="label label-warning" ng-if="['RO-2','RO-3'].indexOf(rolloutActType) !== -1 && jobRequest.rolloutRO1 == 'false'">Не добавлена в акт по RO-1</span>
                                 <span class="label label-warning" ng-if="rolloutActType == 'RO-3' && jobRequest.rolloutRO2 == 'false'">Не добавлена в акт по RO-2</span>
                             </td>
                             <td><a ng-click="toggleProcessView(jobRequest.processInstanceId, 'list', undefined)">{{jobRequest.businessKey}}</a></td>
@@ -1280,7 +1287,7 @@
                             <td ng-if="mainContract == 'Revision'">{{jobRequest.startTime | date:'dd.MM.yyyy'}}</td>
                             <td ng-if="mainContract == 'Roll-out' && rolloutActType == 'RO-1'">{{jobRequest.contractorJobAssignedDate | date:'dd.MM.yyyy'}}</td>
                             <td ng-if="mainContract == 'Roll-out' && rolloutActType == 'RO-2'">{{jobRequest.acceptWorkStartTime | date:'dd.MM.yyyy'}}</td>
-                            <td ng-if="mainContract == 'Roll-out' && rolloutActType == 'RO-3'">{{jobRequest.acceptWorkEndTime | date:'dd.MM.yyyy'}}</td>
+                            <td ng-if="mainContract == 'Roll-out' && ['RO-3','RO-4'].indexOf(rolloutActType) !== -1">{{jobRequest.acceptWorkEndTime | date:'dd.MM.yyyy'}}</td>
                         </tr>
                         <tr ng-if="processInstanceId === jobRequest.processInstanceId && jobModel && selectedView === 'list'">
                             <td colspan="4">
@@ -1449,8 +1456,9 @@
                             <th colspan="2">Ordered work</th>
                             <th>Position</th>
                             <th>Site info</th>
-                            <th colspan="{{rolloutActType == 'RO-1' ? '2' : '4'}}">JR info</th>
+                            <th colspan="{{rolloutActType == 'RO-1' ? '2' : (rolloutActType == 'RO-4' ? '3' : '4')}}">JR info</th>
                             <th ng-if="rolloutActType == 'RO-2' || rolloutActType == 'RO-3'" colspan="2">Site info</th>
+                            <th ng-if="rolloutActType == 'RO-4'">Delay info</th>
                             <th ng-if="rolloutActType == 'RO-2' || rolloutActType == 'RO-3'" colspan="{{rolloutActType == 'RO-2' ? '1' : '2'}}">Act info</th>
                         </tr>
                         <tr>
@@ -1459,11 +1467,11 @@
                             <th></th>
                             <th>Sitename</th>
                             <th>JR number</th>
-                            <th>Job Request Ordered date</th>
+                            <th>{{rolloutActType == 'RO-4' ? 'Job Request date' : 'Job Request Ordered date'}}</th>
                             <th ng-if="rolloutActType == 'RO-2'"> Material List signing Date</th>
-                            <th ng-if="rolloutActType == 'RO-2' || rolloutActType == 'RO-3'">Job Request Perform Date</th>
+                            <th ng-if="rolloutActType == 'RO-2' || rolloutActType == 'RO-3' || rolloutActType == 'RO-4'">Job Request Perform Date</th>
                             <th ng-if="rolloutActType == 'RO-3'">Job Request Acceptance Date</th>
-                            <th ng-if="rolloutActType == 'RO-2' || rolloutActType == 'RO-3'">Delay (day)</th>
+                            <th ng-if="rolloutActType == 'RO-2' || rolloutActType == 'RO-3' || rolloutActType == 'RO-4'">Delay (day)</th>
                             <th ng-if="rolloutActType == 'RO-2' || rolloutActType == 'RO-3'"></th>
                             <th ng-if="rolloutActType == 'RO-2' || rolloutActType == 'RO-3'">№ act of works ordered</th>
                             <th ng-if="rolloutActType == 'RO-3'">№ act of on-air</th>
@@ -1478,9 +1486,10 @@
                                 {{(w.relatedSites && w.relatedSites.length>0)? w.relatedSitesNames : w.site_name}}
                             </td>
                             <td><a ng-click="toggleProcessView(w.processInstanceId, 'table', work.key)">{{w.businessKey}}</a> <a class="glyphicon glyphicon-trash" aria-hidden="true" ng-click="removeJobRequest(w.processInstanceId)"></a></td>
-                            <td>{{(w.attachMaterialList!=null ? w.attachMaterialList : w.fillAppliedChanges) | date:'dd MMM yyyy'}}</td>
+                            <td ng-if="rolloutActType != 'RO-4'">{{(w.attachMaterialList!=null ? w.attachMaterialList : w.fillAppliedChanges) | date:'dd MMM yyyy'}}</td>
+                            <td ng-if="rolloutActType == 'RO-4'">{{w.contractorJobAssignedDate | date:'dd MMM yyyy'}}</td>
                             <td ng-if="rolloutActType == 'RO-2'">{{w.validateTr | date:'dd MMM yyyy'}}</td>
-                            <td ng-if="rolloutActType == 'RO-2' || rolloutActType == 'RO-3'">{{w.acceptWorkStartTime | date:'dd MMM yyyy'}}</td>
+                            <td ng-if="rolloutActType == 'RO-2' || rolloutActType == 'RO-3' || rolloutActType == 'RO-4'">{{w.acceptWorkStartTime | date:'dd MMM yyyy'}}</td>
                             <td ng-if="rolloutActType == 'RO-3'">{{w.acceptWorkEndTime | date:'dd MMM yyyy'}}</td>
                             <td ng-if="rolloutActType == 'RO-2'" colspan="{{w.delayEdit ? '2' : '1'}}">
                                 <div ng-if="!w.delayEdit">
@@ -1534,6 +1543,32 @@
                                     <i class="glyphicon glyphicon-comment"></i>{{defaultDelayComments[w.processInstanceId]}}
                                 </a>
                             </td>
+                            <td ng-if="rolloutActType == 'RO-4'" colspan="{{w.delayEdit ? '2' : '1'}}">
+                                <div ng-if="!w.delayEdit">
+                                    <span class="label label-default">Original: {{w.rolloutRO4Delay}}</span>
+                                    <span class="label label-primary" ng-if="delayChanges[w.processInstanceId].length > 0">
+                                        Changed: {{delayChanges[w.processInstanceId][delayChanges[w.processInstanceId].length-1].delay}}
+                                    </span>
+                                </div>
+                                <div class="input-group" ng-if="w.delayEdit">
+                                    <input type="number" class="form-control" ng-model="editDelay" min="0" name="regularDelay{{$index}}-{{$parent.$parent.$index}}" style="width: 60px;">
+                                    <span class="input-group-btn">
+                                        <button type="button" class="btn btn-default" ng-click="saveEditDelay(w.processInstanceId, editDelay); w.delayEdit = false">
+                                            <i class="glyphicon glyphicon-ok"></i>
+                                        </button>
+                                    </span>
+                                </div>
+                                <a ng-if="delayChanges[w.processInstanceId][delayChanges[w.processInstanceId].length-1].comment"
+                                   ng-click="showComment(w.processInstanceId, work.key)"
+                                   style="display:inline-block; width:52px; white-space: nowrap; overflow:hidden !important; text-overflow: ellipsis;">
+                                    <i class="glyphicon glyphicon-comment"></i>{{delayChanges[w.processInstanceId][delayChanges[w.processInstanceId].length-1].comment}}
+                                </a>
+                                <a ng-if="!delayChanges[w.processInstanceId][delayChanges[w.processInstanceId].length-1].comment && defaultDelayComments[w.processInstanceId]"
+                                   ng-click="showComment(w.processInstanceId, work.key)"
+                                   style="display:inline-block; width:52px; white-space: nowrap; overflow:hidden !important; text-overflow: ellipsis;">
+                                    <i class="glyphicon glyphicon-comment"></i>{{defaultDelayComments[w.processInstanceId]}}
+                                </a>
+                            </td>
                             <td ng-if="!w.delayEdit">
                                 <a ng-click="showEditDelay(w.processInstanceId); w.delayEdit = true"><i class="glyphicon glyphicon-pencil"></i></a>
                             </td>
@@ -1546,7 +1581,7 @@
                             </td>
                         </tr>
                         <tr ng-if="pkey === work.key && jobModel && selectedView === 'table'">
-                            <td colspan="{{rolloutActType == 'RO-3' ? '12' : (rolloutActType == 'RO-2' ? '11' : '6')}}">
+                            <td colspan="{{rolloutActType == 'RO-3' ? '12' : (rolloutActType == 'RO-2' ? '11' : (rolloutActType == 'RO-4' ? '10' : '6'))}}">
                                 <job-request job-model="jobModel"></job-request>
                             </td>
                         </tr>

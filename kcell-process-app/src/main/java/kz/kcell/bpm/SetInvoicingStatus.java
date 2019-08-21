@@ -51,6 +51,10 @@ public class SetInvoicingStatus implements JavaDelegate {
                 variables.put("invoiceRO3Number", delegateExecution.getVariable("invoiceNumber"));
                 variables.put("invoiceRO3Date", delegateExecution.getVariable("invoiceDate"));
                 variables.put("rolloutRO3", "true");
+            } else if("RO-4".equals(rolloutActType)) {
+                variables.put("invoiceRO4Number", delegateExecution.getVariable("invoiceNumber"));
+                variables.put("invoiceRO4Date", delegateExecution.getVariable("invoiceDate"));
+                variables.put("rolloutRO4", "true");
             }
 
             if(pushInvoice == null || "enable".equals(pushInvoice)){
@@ -78,6 +82,9 @@ public class SetInvoicingStatus implements JavaDelegate {
                         if("true".equals(rolloutRO1) && "true".equals(rolloutRO2)){
                             runtimeService.setVariable(revisionId, "rolloutActToPass", "passed");
                         }
+                    }
+                    if("RO-4".equals(rolloutActType)){
+                        runtimeService.setVariable(revisionId, "rolloutActToPass", "passed");
                     }
                 }
             }

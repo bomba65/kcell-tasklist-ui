@@ -56,11 +56,14 @@
                 'mainContract',
                 'siteRegion',
                 'rolloutRO2Delay',
-                'rolloutRO3Delay'
+                'rolloutRO3Delay',
+                'rolloutRO4Delay'
             ];
             $scope.jobModel = {};
+            $scope.contains13Work = false;
             var workFiles = [];
             var newFiles = [];
+
             $http.get('/camunda/api/engine/engine/default/task/' + camForm.taskId).then(
                     function(result){
                         $scope.processInstanceId = result.data.processInstanceId;
@@ -124,7 +127,11 @@
                     type: 'String',
                     value: ''
                 });
-
+                camForm.variableManager.createVariable({
+                    name: 'contains13Work',
+                    type: 'Boolean',
+                    value: false
+                });
                 $http.get("/camunda/api/engine/engine/default/user/" + $rootScope.authentication.name+ "/profile").then(function(result){
                     $rootScope.authentication.assigneeName = (result.data.firstName ? result.data.firstName : "") + " " + (result.data.lastName ? result.data.lastName : "");
                 });
@@ -172,7 +179,6 @@
                     if(el !== 'resolutions'){
                         $scope[el] = camForm.variableManager.variables[el];
                     }
-
                     if($scope[el].type === 'Date' && $scope[el].value){
                         $scope[el].value = new Date($scope[el].value);
                     }
@@ -185,9 +191,11 @@
                         }
                     });
                 });
-
                 $scope.jobModel.jobWorks.value.forEach(function (work, index) {
                     $scope.jobModel.jobWorks.value[index].files = [];
+                    if(work.sapServiceNumber === 'RO13'){
+                        $scope.contains13Work = true;
+                    }
                 });
 
                 workFiles.forEach(function(file,i){
@@ -211,6 +219,9 @@
                 }
                 if(!$scope.rolloutRO3Delay.type){
                     $scope.rolloutRO3Delay.type = 'Integer';
+                }
+                if(!$scope.rolloutRO4Delay.type){
+                    $scope.rolloutRO4Delay.type = 'Integer';
                 }
                 if(!$scope.acceptanceDate.type){
                     $scope.acceptanceDate.type = 'Date';
@@ -259,6 +270,8 @@
                 camForm.variableManager.variableValue('delayInfo', $scope.revisionDelay);
                 camForm.variableManager.variableValue('rolloutRO2Delay', $scope.rollRO2Delay);
                 camForm.variableManager.variableValue('rolloutRO3Delay', $scope.rollRO3Delay);
+                camForm.variableManager.variableValue('rolloutRO4Delay', $scope.rollRO4Delay);
+                camForm.variableManager.variableValue('contains13Work', $scope.contains13Work);
             });
 
             camForm.on('store', function() {
@@ -464,6 +477,16 @@
                 }
                 return $scope.rollRO3Delay;
             }
+
+            $scope.calcRolloutRO4Delay = function(start, end, constant){
+                $scope.rolloutRO4Holidays = calculateHolidays(start, end);
+                $scope.rolloutRO4TotalDays = calculateTotalDays(start, end)
+                $scope.rollRO4Delay = 0;
+                if(($scope.rolloutRO4TotalDays - (constant + $scope.rolloutRO4Holidays)) > 0){
+                    $scope.rollRO4Delay = $scope.rolloutRO4TotalDays - (constant + $scope.rolloutRO4Holidays);
+                }
+                return $scope.rollRO4Delay;
+            }
         }]);
     </script>
     <job-request job-model="jobModel"></job-request>
@@ -600,56 +623,57 @@
         </div>
     </div>
     <div ng-if="mainContract.value == 'Roll-out'">
-        <div ng-if="siteRegion.value == 'alm'">
-            <div class="form-group">
-                <label class="col-sm-12 control-label">
-                    <b>On-air Delay</b> = Job Request Performed Date - Material List signed Date - (10 business days + holidays)
-                </label>
+        <div ng-if="!contains13Work">
+            <div ng-if="siteRegion.value == 'alm'">
+                <div class="form-group">
+                    <label class="col-sm-12 control-label">
+                        <b>On-air Delay</b> = Job Request Performed Date - Material List signed Date - (10 business days + holidays)
+                    </label>
+                </div>
+                <div class="form-group">
+                    <label class="col-sm-12 control-label">
+                        <b>On-air Delay</b> = {{ (performDate.value || acceptWorkStartTime) | date: 'dd.MM.yyyy'}} - {{materialListSignedDate ? (materialListSignedDate | date: 'dd.MM.yyyy') : 'N/A'}} - (7 business day + {{rolloutRO2Holidays}}) = {{calcRolloutRO2Delay(materialListSignedDate, (performDate.value ? performDate.value : acceptWorkStartTime), 7)}}
+                    </label>
+                </div>
             </div>
-            <div class="form-group">
-                <label class="col-sm-12 control-label">
-                    <b>On-air Delay</b> = {{ (performDate.value || acceptWorkStartTime) | date: 'dd.MM.yyyy'}} - {{materialListSignedDate ? (materialListSignedDate | date: 'dd.MM.yyyy') : 'N/A'}} - (7 business day + {{rolloutRO2Holidays}}) = {{calcRolloutRO2Delay(materialListSignedDate, (performDate.value ? performDate.value : acceptWorkStartTime), 7)}}
-                </label>
+            <div ng-if="siteRegion.value == 'south' || siteRegion.value == 'north' || siteRegion.value == 'astana'">
+                <div class="form-group">
+                    <label class="col-sm-12 control-label">
+                        <b>On-air Delay</b> = Job Request Performed Date - Material List signed Date - (15 business days + holidays)
+                    </label>
+                </div>
+                <div class="form-group">
+                    <label class="col-sm-12 control-label">
+                        <b>On-air Delay</b> = {{ (performDate.value || acceptWorkStartTime) | date: 'dd.MM.yyyy'}} - {{materialListSignedDate ? (materialListSignedDate | date: 'dd.MM.yyyy') : 'N/A'}} - (15 business day + {{rolloutRO2Holidays}}) = {{calcRolloutRO2Delay(materialListSignedDate, (performDate.value ? performDate.value : acceptWorkStartTime), 15)}}
+                    </label>
+                </div>
             </div>
-        </div>
-        <div ng-if="siteRegion.value == 'south' || siteRegion.value == 'north' || siteRegion.value == 'astana'">
-            <div class="form-group">
-                <label class="col-sm-12 control-label">
-                    <b>On-air Delay</b> = Job Request Performed Date - Material List signed Date - (15 business days + holidays)
-                </label>
+            <div ng-if="siteRegion.value == 'east'">
+                <div class="form-group">
+                    <label class="col-sm-12 control-label">
+                        <b>On-air Delay</b> = Job Request Performed Date - Material List signed Date - (18 business days + holidays)
+                    </label>
+                </div>
+                <div class="form-group">
+                    <label class="col-sm-12 control-label">
+                        <b>On-air Delay</b> = {{ (performDate.value || acceptWorkStartTime) | date: 'dd.MM.yyyy'}} - {{materialListSignedDate ? (materialListSignedDate | date: 'dd.MM.yyyy') : 'N/A'}} - (18 business day + {{rolloutRO2Holidays}}) = {{calcRolloutRO2Delay(materialListSignedDate, (performDate.value ? performDate.value : acceptWorkStartTime), 18)}}
+                    </label>
+                </div>
             </div>
-            <div class="form-group">
-                <label class="col-sm-12 control-label">
-                    <b>On-air Delay</b> = {{ (performDate.value || acceptWorkStartTime) | date: 'dd.MM.yyyy'}} - {{materialListSignedDate ? (materialListSignedDate | date: 'dd.MM.yyyy') : 'N/A'}} - (15 business day + {{rolloutRO2Holidays}}) = {{calcRolloutRO2Delay(materialListSignedDate, (performDate.value ? performDate.value : acceptWorkStartTime), 15)}}
-                </label>
+            <div ng-if="siteRegion.value == 'west'">
+                <div class="form-group">
+                    <label class="col-sm-12 control-label">
+                        <b>On-air Delay</b> = Job Request Performed Date - Material List signed Date - (20 business days + holidays)
+                    </label>
+                </div>
+                <div class="form-group">
+                    <label class="col-sm-12 control-label">
+                        <b>On-air Delay</b> = {{ (performDate.value || acceptWorkStartTime) | date: 'dd.MM.yyyy'}} - {{materialListSignedDate ? (materialListSignedDate | date: 'dd.MM.yyyy') : 'N/A'}} - (20 business day + {{rolloutRO2Holidays}}) = {{calcRolloutRO2Delay(materialListSignedDate, (performDate.value ? performDate.value : acceptWorkStartTime), 20)}}
+                    </label>
+                </div>
             </div>
-        </div>
-        <div ng-if="siteRegion.value == 'east'">
-            <div class="form-group">
-                <label class="col-sm-12 control-label">
-                    <b>On-air Delay</b> = Job Request Performed Date - Material List signed Date - (18 business days + holidays)
-                </label>
-            </div>
-            <div class="form-group">
-                <label class="col-sm-12 control-label">
-                    <b>On-air Delay</b> = {{ (performDate.value || acceptWorkStartTime) | date: 'dd.MM.yyyy'}} - {{materialListSignedDate ? (materialListSignedDate | date: 'dd.MM.yyyy') : 'N/A'}} - (18 business day + {{rolloutRO2Holidays}}) = {{calcRolloutRO2Delay(materialListSignedDate, (performDate.value ? performDate.value : acceptWorkStartTime), 18)}}
-                </label>
-            </div>
-        </div>
-        <div ng-if="siteRegion.value == 'west'">
-            <div class="form-group">
-                <label class="col-sm-12 control-label">
-                    <b>On-air Delay</b> = Job Request Performed Date - Material List signed Date - (20 business days + holidays)
-                </label>
-            </div>
-            <div class="form-group">
-                <label class="col-sm-12 control-label">
-                    <b>On-air Delay</b> = {{ (performDate.value || acceptWorkStartTime) | date: 'dd.MM.yyyy'}} - {{materialListSignedDate ? (materialListSignedDate | date: 'dd.MM.yyyy') : 'N/A'}} - (20 business day + {{rolloutRO2Holidays}}) = {{calcRolloutRO2Delay(materialListSignedDate, (performDate.value ? performDate.value : acceptWorkStartTime), 20)}}
-                </label>
-            </div>
-        </div>
 
-        <div>
+
             <div class="form-group">
                 <label class="col-sm-12 control-label">
                     <b>Acceptance Delay</b> = Delay = Job Request Acceptance Date - JR Performed Date - (30 business days + holidays)
@@ -662,6 +686,18 @@
             </div>
         </div>
 
+        <div ng-if="contains13Work">
+            <div class="form-group">
+                <label class="col-sm-12 control-label">
+                    <b>Project preparation works Delay</b> = Delay = JR Performed Date - JR Request Date - (10 business days + holidays)
+                </label>
+            </div>
+            <div class="form-group">
+                <label class="col-sm-12 control-label">
+                    <b>Project preparation works Delay</b> = {{performDate.value | date: 'dd.MM.yyyy'}} - {{contractorJobAssignedDate.value ? (contractorJobAssignedDate.value | date: 'dd.MM.yyyy') : 'N/A'}} - (10 business day + {{rolloutRO4Holidays}}) = {{calcRolloutRO4Delay(performDate.value, contractorJobAssignedDate.value, 10)}}
+                </label>
+            </div>
+        </div>
     </div>
 
     <div style="border: black 1px solid; padding: 4px;">

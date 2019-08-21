@@ -122,8 +122,9 @@
         <th colspan="2">Ordered work</th>
         <th>Position</th>
         <th>Site info</th>
-        <th colspan="{{invoice.rolloutActType.value == 'RO-1' ? '2' : '4'}}">JR info</th>
+        <th colspan="{{invoice.rolloutActType.value == 'RO-1' ? '2' : (invoice.rolloutActType.value == 'RO-4' ? '3' : '4')}}">JR info</th>
         <th ng-if="invoice.rolloutActType.value == 'RO-2' || invoice.rolloutActType.value == 'RO-3'">Site info</th>
+        <th ng-if="invoice.rolloutActType.value == 'RO-4'">Delay info</th>
         <th ng-if="invoice.rolloutActType.value == 'RO-2' || invoice.rolloutActType.value == 'RO-3'" colspan="{{invoice.rolloutActType.value == 'RO-2' ? '1' : '2'}}">Act info</th>
     </tr>
     <tr>
@@ -132,11 +133,11 @@
         <th></th>
         <th>Sitename</th>
         <th>JR number</th>
-        <th>Job Request Ordered date</th>
+        <th>{{invoice.rolloutActType.value == 'RO-4' ? 'Job Request date' : 'Job Request Ordered date'}}</th>
         <th ng-if="invoice.rolloutActType.value == 'RO-2'"> Material List signing Date</th>
-        <th ng-if="invoice.rolloutActType.value == 'RO-2' || invoice.rolloutActType.value == 'RO-3'">Job Request Perform Date</th>
+        <th ng-if="invoice.rolloutActType.value == 'RO-2' || invoice.rolloutActType.value == 'RO-3' || invoice.rolloutActType.value == 'RO-4'">Job Request Perform Date</th>
         <th ng-if="invoice.rolloutActType.value == 'RO-3'">Job Request Acceptance Date</th>
-        <th ng-if="invoice.rolloutActType.value == 'RO-2' || invoice.rolloutActType.value == 'RO-3'">Delay (day)</th>
+        <th ng-if="invoice.rolloutActType.value == 'RO-2' || invoice.rolloutActType.value == 'RO-3' || invoice.rolloutActType.value == 'RO-4'">Delay (day)</th>
         <th ng-if="invoice.rolloutActType.value == 'RO-2' || invoice.rolloutActType.value == 'RO-3'">№ act of works ordered</th>
         <th ng-if="invoice.rolloutActType.value == 'RO-3'">№ act of on-air</th>
     </tr>
@@ -150,9 +151,10 @@
                 {{(w.relatedSites && w.relatedSites.length>0)? w.relatedSitesNames : w.site_name}}
             </td>
             <td><a ng-click="toggleProcessView(w.processInstanceId, work.key, 'technical')">{{w.businessKey}}</a></td>
-            <td>{{(w.attachMaterialList!=null ? w.attachMaterialList : w.fillAppliedChanges) | date:'dd MMM yyyy'}}</td>
+            <td ng-if="invoice.rolloutActType.value != 'RO-4'">{{(w.attachMaterialList!=null ? w.attachMaterialList : w.fillAppliedChanges) | date:'dd MMM yyyy'}}</td>
+            <td ng-if="invoice.rolloutActType.value == 'RO-4'">{{w.contractorJobAssignedDate | date:'dd MMM yyyy'}}</td>
             <td ng-if="invoice.rolloutActType.value == 'RO-2'">{{w.validateTr | date:'dd MMM yyyy'}}</td>
-            <td ng-if="invoice.rolloutActType.value == 'RO-2' || invoice.rolloutActType.value == 'RO-3'">{{w.acceptWorkStartTime | date:'dd MMM yyyy'}}</td>
+            <td ng-if="invoice.rolloutActType.value == 'RO-2' || invoice.rolloutActType.value == 'RO-3' || invoice.rolloutActType.value == 'RO-4'">{{w.acceptWorkStartTime | date:'dd MMM yyyy'}}</td>
             <td ng-if="invoice.rolloutActType.value == 'RO-3'">{{w.acceptWorkEndTime | date:'dd MMM yyyy'}}</td>
             <td ng-if="invoice.rolloutActType.value == 'RO-2'">
                 <div ng-if="!print">
@@ -184,11 +186,26 @@
                     {{invoice.delayChanges.value[w.processInstanceId] && invoice.delayChanges.value[w.processInstanceId][invoice.delayChanges.value[w.processInstanceId].length-1].delay ? invoice.delayChanges.value[w.processInstanceId][invoice.delayChanges.value[w.processInstanceId].length-1].delay : w.rolloutRO3Delay}}
                 </div>
             </td>
+            <td ng-if="invoice.rolloutActType.value == 'RO-4'">
+                <div ng-if="!print">
+                    <span class="label label-default">Original: {{w.rolloutRO4Delay}}</span>
+                    <span class="label label-primary" ng-if="invoice.delayChanges.value[w.processInstanceId].length > 0">Changed: {{invoice.delayChanges.value[w.processInstanceId][invoice.delayChanges.value[w.processInstanceId].length-1].delay}}</span>
+                    <div ng-if="invoice.showDelayComments">
+                        <a ng-click="commentDelayChanges(w.processInstanceId, w.businessKey)">
+                            <i class="glyphicon glyphicon-comment"></i>
+                            {{invoice.delayChanges.value[w.processInstanceId][invoice.delayChanges.value[w.processInstanceId].length-1].comment ? 'Edit' : (!invoice.delayChanges.value[w.processInstanceId] && invoice.defaultDelayComments.value[w.processInstanceId] ? 'Edit' : 'Comment')}}
+                        </a>
+                    </div>
+                </div>
+                <div ng-if="print">
+                    {{invoice.delayChanges.value[w.processInstanceId] && invoice.delayChanges.value[w.processInstanceId][invoice.delayChanges.value[w.processInstanceId].length-1].delay ? invoice.delayChanges.value[w.processInstanceId][invoice.delayChanges.value[w.processInstanceId].length-1].delay : w.rolloutRO4Delay}}
+                </div>
+            </td>
             <td ng-if="invoice.rolloutActType.value == 'RO-2' || invoice.rolloutActType.value == 'RO-3'">{{w.invoiceRO1Number}}</td>
             <td ng-if="invoice.rolloutActType.value == 'RO-3'">{{w.invoiceRO2Number}}</td>
         </tr>
         <tr ng-if="pkey === work.key && jobModel && table==='technical'">
-            <td colspan="{{invoice.rolloutActType.value == 'RO-3' ? '11' : (invoice.rolloutActType.value == 'RO-2' ? '10' : '6')}}">
+            <td colspan="{{invoice.rolloutActType.value == 'RO-3' ? '11' : (invoice.rolloutActType.value == 'RO-2' ? '10' : (invoice.rolloutActType.value == 'RO-4' ? '9' : '6'))}}">
                 <job-request job-model="jobModel"></job-request>
             </td>
         </tr>
