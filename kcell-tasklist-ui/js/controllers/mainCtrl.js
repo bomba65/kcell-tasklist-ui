@@ -570,6 +570,8 @@ define(['./module','camundaSDK', 'lodash', 'big-js'], function(module, CamSDK, _
 					angular.forEach($scope.projects, function(project){
 						if($rootScope.selectedProject.key && $rootScope.selectedProject.key === project.key){
 							angular.forEach(project.processes, function(process){
+								var allTasks = 0;
+								var claimed = 0;
 		 						process.filters = [];
 								var selectedProcessDefinitionKeyMap = [process.key];
 								if(process.subprocesses && process.subprocesses.length > 0){
@@ -583,7 +585,12 @@ define(['./module','camundaSDK', 'lodash', 'big-js'], function(module, CamSDK, _
 											function(results){
 												var tmpfilter = angular.copy(filter);
 												tmpfilter.itemCount = results.data.count;
-												process.itemCount = process.itemCount ? process.itemCount + results.data.count : results.data.count;
+												if (filter.name==='All Tasks') {
+													allTasks = results.data.count;
+												} else if (filter.name==='My Claimed Tasks' || filter.name=== 'My Unclaimed Tasks') {
+													claimed+= results.data.count;
+													}
+												process.itemCount = allTasks>claimed ? allTasks : claimed;
 												process.filters.push(tmpfilter);
 						 						if($rootScope.selectedProcess && process.key === $rootScope.selectedProcess.key){
 							 						$rootScope.selectedProcess.itemCount = process.itemCount;
