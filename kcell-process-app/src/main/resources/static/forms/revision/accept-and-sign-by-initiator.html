@@ -57,10 +57,10 @@
                 'siteRegion',
                 'rolloutRO2Delay',
                 'rolloutRO3Delay',
-                'rolloutRO4Delay'
+                'rolloutRO4Delay',
+                'contains13Work'
             ];
             $scope.jobModel = {};
-            $scope.contains13Work = false;
             var workFiles = [];
             var newFiles = [];
 
@@ -127,11 +127,6 @@
                     type: 'String',
                     value: ''
                 });
-                camForm.variableManager.createVariable({
-                    name: 'contains13Work',
-                    type: 'Boolean',
-                    value: false
-                });
                 $http.get("/camunda/api/engine/engine/default/user/" + $rootScope.authentication.name+ "/profile").then(function(result){
                     $rootScope.authentication.assigneeName = (result.data.firstName ? result.data.firstName : "") + " " + (result.data.lastName ? result.data.lastName : "");
                 });
@@ -190,12 +185,6 @@
                             $scope.jobModel[key] = value;
                         }
                     });
-                });
-                $scope.jobModel.jobWorks.value.forEach(function (work, index) {
-                    $scope.jobModel.jobWorks.value[index].files = [];
-                    if(work.sapServiceNumber === 'RO13'){
-                        $scope.contains13Work = true;
-                    }
                 });
 
                 workFiles.forEach(function(file,i){
@@ -271,7 +260,6 @@
                 camForm.variableManager.variableValue('rolloutRO2Delay', $scope.rollRO2Delay);
                 camForm.variableManager.variableValue('rolloutRO3Delay', $scope.rollRO3Delay);
                 camForm.variableManager.variableValue('rolloutRO4Delay', $scope.rollRO4Delay);
-                camForm.variableManager.variableValue('contains13Work', $scope.contains13Work);
             });
 
             camForm.on('store', function() {
@@ -623,7 +611,7 @@
         </div>
     </div>
     <div ng-if="mainContract.value == 'Roll-out'">
-        <div ng-if="!contains13Work">
+        <div ng-if="!contains13Work.value">
             <div ng-if="siteRegion.value == 'alm'">
                 <div class="form-group">
                     <label class="col-sm-12 control-label">
@@ -686,7 +674,7 @@
             </div>
         </div>
 
-        <div ng-if="contains13Work">
+        <div ng-if="contains13Work.value">
             <div class="form-group">
                 <label class="col-sm-12 control-label">
                     <b>Project preparation works Delay</b> = Delay = JR Performed Date - JR Request Date - (10 business days + holidays)
