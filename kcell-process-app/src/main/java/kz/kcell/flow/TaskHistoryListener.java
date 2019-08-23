@@ -44,7 +44,6 @@ public class TaskHistoryListener implements TaskListener {
     @Autowired
     IdentityService identityService;
 
-<<<<<<< HEAD
     private final List<String> enabledProcesses = Arrays.asList(
       "leasing",
       "freephone",
