@@ -219,7 +219,7 @@ public class GenerateDocument implements JavaDelegate {
                             varsMap.put("$head_n", "");
                         } else {
                             varsMap.put("$head_y", "");
-                            varsMap.put("$head_n", "x");
+                            varsMap.put("$head_n", "v");
                         }
                         varsMap.put("$head_date", taskEndDate);
                     } else {
@@ -229,7 +229,7 @@ public class GenerateDocument implements JavaDelegate {
                                 varsMap.put("$2n", "");
                             } else {
                                 varsMap.put("$2y", "");
-                                varsMap.put("$2n", "x");
+                                varsMap.put("$2n", "v");
                             }
                             varsMap.put("$2d", taskEndDate);
                         } else if ("central group \"Central Transmission Unit\"".equals(taskName)) {
@@ -238,7 +238,7 @@ public class GenerateDocument implements JavaDelegate {
                                 varsMap.put("$ctu_n", "");
                             } else {
                                 varsMap.put("$ctu_y", "");
-                                varsMap.put("$ctu_n", "x");
+                                varsMap.put("$ctu_n", "v");
                             }
                             varsMap.put("$ctu_date", taskEndDate);
                         } else if ("central group \"Central S&FM Unit\"".equals(taskName)) {
@@ -247,7 +247,7 @@ public class GenerateDocument implements JavaDelegate {
                                 varsMap.put("$csfu_n", "");
                             } else {
                                 varsMap.put("$csfu_y", "");
-                                varsMap.put("$csfu_n", "x");
+                                varsMap.put("$csfu_n", "v");
                             }
                             varsMap.put("$csfu_date", taskEndDate);
                         } else if ("central group \"Central SAO Unit\"".equals(taskName)) {
@@ -256,7 +256,7 @@ public class GenerateDocument implements JavaDelegate {
                                 varsMap.put("$1n", "");
                             } else {
                                 varsMap.put("$1y", "");
-                                varsMap.put("$1n", "x");
+                                varsMap.put("$1n", "v");
                             }
                             varsMap.put("$1d", taskEndDate);
                         }
