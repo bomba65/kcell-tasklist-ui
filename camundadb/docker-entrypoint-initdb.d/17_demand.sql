@@ -1747,6 +1747,7 @@ INSERT INTO act_id_group (id_, rev_, name_, type_) VALUES ('demand_supportive_b2
 INSERT INTO act_id_group (id_, rev_, name_, type_) VALUES ('demand_supportive_ceo_internal_audit_section', 1, 'Demand Supportive - CEO - Internal Audit Section', 'WORKFLOW') ON CONFLICT(id_) DO NOTHING;
 INSERT INTO act_id_group (id_, rev_, name_, type_) VALUES ('demand_financial_council', 1, 'Demand Financial council', 'WORKFLOW') ON CONFLICT(id_) DO NOTHING;
 INSERT INTO act_id_group (id_, rev_, name_, type_) VALUES ('demand_ipm_council', 1, 'Demand IPM council', 'WORKFLOW') ON CONFLICT(id_) DO NOTHING;
+INSERT INTO act_id_group (id_, rev_, name_, type_) VALUES ('demand_sao_council', 1, 'Demand SAO council', 'WORKFLOW') ON CONFLICT(id_) DO NOTHING;
 
 ----- CAT L2 GROUPS
 INSERT INTO act_id_group (id_, rev_, name_, type_) VALUES ('demand_supportive_cpd_l2_accessories', 1, 'Demand Supportive CPD L2 ACCESSORIES', 'WORKFLOW') ON CONFLICT(id_) DO NOTHING;

@@ -3,17 +3,9 @@
     .well {
       color: #333;
     }
-
-    .content-visible-accordion .panel {
-      overflow: visible;
-    }
-
-    .no-margin-panel .panel {
-      margin-bottom: 0;
-    }
   </style>
   <script cam-script type="text/form-script">
-    inject(['$scope', '$http', 'Uri', '$rootScope', '$q', 'toasty', '$timeout', '$location', 'historyVariablesManager', function ($scope, $http, Uri, $rootScope, $q, toasty, $timeout, $location, historyVariablesManager) {
+    inject(['$scope', '$http', 'Uri', '$rootScope', '$q', 'toasty', '$timeout', 'historyVariablesManager', function ($scope, $http, Uri, $rootScope, $q, toasty, $timeout, historyVariablesManager) {
       $scope.generalData = {
         general: {},
         targetAudience: {},
@@ -29,30 +21,23 @@
       $scope.BCData = {
         data: {}
       };
-      $scope.SDDData = {
-        funcRequirements: {},
-        nonFuncRequirements: {},
-        solutionDesign: {},
-        components: {}
-      };
-      $scope.tabs = { SDD: true, UAT: false };
 
       $scope.attachments = [];
       $scope.supportiveInputs = [];
       $scope.resources = [];
       $scope.materials = [];
-      $scope.assigneeName = $rootScope.authentication.name;
 
       var processInstanceId = null;
       var taskName = null;
-      var history = historyVariablesManager(camForm, 'productionDeploy');
+      var assigneeName = $rootScope.authentication.name;
+      var history = historyVariablesManager(camForm, 'assignService');
 
-      $http.get("/camunda/api/engine/engine/default/user/" + $rootScope.authentication.name+ "/profile").then(function(result){
-        $scope.assigneeName = (result.data.firstName ? result.data.firstName : "") + " " + (result.data.lastName ? result.data.lastName : "");
+      $http.get("/camunda/api/engine/engine/default/user/" + $rootScope.authentication.name + "/profile").then(function (result) {
+        assigneeName = (result.data.firstName ? result.data.firstName : "") + " " + (result.data.lastName ? result.data.lastName : "");
       });
 
       $http.get('/camunda/api/engine/engine/default/task/' + camForm.taskId).then(
-        function(result){
+        function (result) {
           processInstanceId = result.data.processInstanceId;
           taskName = result.data.name;
         },
@@ -66,22 +51,16 @@
         camForm.variableManager.fetchVariable('generalData');
         camForm.variableManager.fetchVariable('BRDData');
         camForm.variableManager.fetchVariable('BCData');
-        camForm.variableManager.fetchVariable('SDDData');
         camForm.variableManager.fetchVariable('supportiveInputs');
-        camForm.variableManager.fetchVariable('tqcResolution');
+        camForm.variableManager.fetchVariable('sddResolution');
         camForm.variableManager.fetchVariable('attachments');
         camForm.variableManager.fetchVariable('requirementManager');
         camForm.variableManager.fetchVariable('solutionOwner');
         camForm.variableManager.fetchVariable('serviceAdmin');
-        camForm.variableManager.fetchVariable('sddApprovalList');
-        camForm.variableManager.fetchVariable('approvalItem');
+        camForm.variableManager.fetchVariable('riskData');
         camForm.variableManager.fetchVariable('status');
         camForm.variableManager.fetchVariable('state');
         camForm.variableManager.fetchVariable('oldStatus');
-        camForm.variableManager.fetchVariable('businessKey');
-        camForm.variableManager.fetchVariable('demandName');
-        camForm.variableManager.fetchVariable('testCases');
-        camForm.variableManager.fetchVariable('developerList');
       });
 
       camForm.on('variables-fetched', function () {
@@ -90,159 +69,153 @@
         $scope.generalData = camForm.variableManager.variableValue('generalData');
         $scope.BRDData = camForm.variableManager.variableValue('BRDData');
         $scope.BCData = camForm.variableManager.variableValue('BCData');
-        $scope.SDDData = camForm.variableManager.variableValue('SDDData');
         $scope.supportiveInputs = camForm.variableManager.variableValue('supportiveInputs');
         $scope.attachments = camForm.variableManager.variableValue('attachments');
         $scope.requirementManager = camForm.variableManager.variableValue('requirementManager');
         $scope.solutionOwner = camForm.variableManager.variableValue('solutionOwner');
-        $scope.serviceAdmin = camForm.variableManager.variableValue('serviceAdmin');
-        $scope.sddApprovalList = camForm.variableManager.variableValue('sddApprovalList');
-        $scope.approvalItem = camForm.variableManager.variableValue('approvalItem');
+        $scope.serviceAdminId = camForm.variableManager.variableValue('serviceAdmin');
+        $scope.riskData = camForm.variableManager.variableValue('riskData');
         $scope.status = camForm.variableManager.variableValue('status');
         $scope.state = camForm.variableManager.variableValue('state');
-        $scope.businessKey = camForm.variableManager.variableValue('businessKey');
-        $scope.demandName = camForm.variableManager.variableValue('demandName');
-        $scope.testCases = camForm.variableManager.variableValue('testCases');
-        $scope.developerList = camForm.variableManager.variableValue('developerList');
         if (!$scope.attachments) $scope.attachments = [];
         if (!$scope.supportiveInputs) $scope.supportiveInputs = [];
-
-        if (!$scope.generalData) $scope.generalData = {};
-        if (!$scope.generalData.general) $scope.generalData.general = {};
-        if ($scope.generalData.general.actualLaunch) $scope.generalData.general.actualLaunch = new Date($scope.generalData.general.actualLaunch);
-
+        if (!$scope.BCData) {
+          $scope.BCData = {
+            data: {}
+          };
+        }
+        if (!$scope.riskData) $scope.riskData = [];
         for (var i of $scope.supportiveInputs) {
           if (i.form == 'HR') $scope.resources = $scope.resources.concat(i.value);
           else if (i.form == 'CPD') $scope.materials = $scope.materials.concat(i.value);
         }
 
-        $http.get("/camunda/api/engine/engine/default/user/" + $scope.requirementManager + "/profile").then(function(result){
+        $http.get("/camunda/api/engine/engine/default/user/" + $scope.requirementManager + "/profile").then(function (result) {
           $scope.requirementManager = (result.data.firstName ? result.data.firstName : "") + " " + (result.data.lastName ? result.data.lastName : "");
         });
 
-        $http.get("/camunda/api/engine/engine/default/user/" + $scope.solutionOwner + "/profile").then(function(result){
-          $scope.solutionOwner = (result.data.firstName ? result.data.firstName : "") + " " + (result.data.lastName ? result.data.lastName : "");
-        });
+        if ($scope.solutionOwner && $scope.solutionOwner.length) {
+          $http.get("/camunda/api/engine/engine/default/user/" + $scope.solutionOwner + "/profile").then(function (result) {
+            $scope.solutionOwner = (result.data.firstName ? result.data.firstName : "") + " " + (result.data.lastName ? result.data.lastName : "");
+          });
+        }
 
-        $http.get("/camunda/api/engine/engine/default/user/" + $scope.serviceAdmin + "/profile").then(function(result){
-          $scope.serviceAdmin = (result.data.firstName ? result.data.firstName : "") + " " + (result.data.lastName ? result.data.lastName : "");
-        });
-
-        $scope.useCases = null;
-        if ($scope.BRDData && $scope.BRDData.funcRequirements && $scope.BRDData.funcRequirements.useCases) {
-          $scope.useCases = $scope.BRDData.funcRequirements.useCases;
+        if ($scope.serviceAdminId && $scope.serviceAdminId.length) {
+          $http.get("/camunda/api/engine/engine/default/user/" + $scope.serviceAdminId + "/profile").then(function (result) {
+            $scope.serviceAdminName = (result.data.firstName ? result.data.firstName : "") + " " + (result.data.lastName ? result.data.lastName : "");
+            $scope.kcell_form.serviceAdmin.$setValidity('not_selected', true);
+          });
         }
 
         history.createVariables();
       });
 
       camForm.on('submit', function (event) {
-        history.setVariables($scope.resolution, $scope.comment);
+        history.setVariables('Completed', $scope.comment);
 
-        camForm.variableManager.destroyVariable('tqcResolution');
+        camForm.variableManager.destroyVariable('serviceAdmin');
         camForm.variableManager.createVariable({
-          name: 'tqcResolution',
+          name: 'serviceAdmin',
           type: 'String',
-          value: $scope.resolution,
+          value: $scope.serviceAdminId,
           store: true
         });
-
-        if ($scope.resolution === 'Send to Development') {
-          camForm.variableManager.destroyVariable('oldStatus');
-          camForm.variableManager.createVariable({
-            name: 'oldStatus',
-            type: 'String',
-            value: $scope.status,
-            store: true
-          });
-          camForm.variableManager.destroyVariable('status');
-          camForm.variableManager.createVariable({
-            name: 'status',
-            type: 'String',
-            value: 'Solution design approved',
-            store: true
-          });
-        }
       });
 
       $scope.downloadFile = function (file) {
-        $http({method: 'GET', url: '/camunda/uploads/get/' + file.path, transformResponse: [] }).
-        then(function(response) {
+        $http({
+          method: 'GET',
+          url: '/camunda/uploads/get/' + file.path,
+          transformResponse: []
+        }).then(function (response) {
           document.getElementById('fileDownloadIframe').src = response.data;
-        }, function(error){
+        }, function (error) {
           console.log(error.data);
         });
       };
 
-      var pdfHeader = `<!doctype html>
-      <head>
-        <link href="https://flow.kcell.kz/kcell-tasklist-ui/css/bootstrap.min.css" rel="stylesheet">
-        <link href="https://flow.kcell.kz/kcell-tasklist-ui/css/summernote/summernote.css" rel="stylesheet" type="text/css">
-      </head>
-      <body>`;
-      var pdfFooter = '</body></html>';
-      var downloader = document.createElement("a");
-      document.body.appendChild(downloader);
-      downloader.style = "display: none";
+      $scope.getUser = function (val) {
+        $scope.serviceAdminId = null;
+        $scope.kcell_form.serviceAdmin.$setValidity('not_selected', false);
+        var users = $http.get('/camunda/api/engine/engine/default/user?memberOfGroup=demand_uat_users&firstNameLike=' + encodeURIComponent('%' + val + '%')).then(
+          function (response) {
+            var usersByFirstName = _.flatMap(response.data, function (s) {
+              if (s.id) {
+                return s.id.split(',').map(function (user) {
+                  return {
+                    id: s.id,
+                    email: (s.email ? s.email.substring(s.email.lastIndexOf('/') + 1) : s.email),
+                    firstName: s.firstName,
+                    lastName: s.lastName,
+                    name: s.firstName + ' ' + s.lastName
+                  };
+                })
+              } else {
+                return [];
+              }
+            });
 
-      $scope.showSDDPDF = false;
-      $scope.printPDF = function() {
-        $scope.sddPDFDate = new Date();
-        $scope.showSDDPDF = true;
-        $(".scrollable").scrollTop(0);
-        $('#loaderDiv').show();
-        $timeout(function() {
-          var element = $('#pdfDiv')[0];
-          $http({
-            method: 'POST',
-            url: '/chrome/topdf',
-            data: pdfHeader + element.outerHTML + pdfFooter,
-            responseType: 'arraybuffer'
-          }, ).then(function(result) {
-            var blob = new Blob([result.data], {type: 'application/pdf'});
-            var url = window.URL.createObjectURL(blob);
-            downloader.download = 'Demand-' + $scope.businessKey + '-SDD';
-            downloader.href = url;
-            downloader.click();
-            window.URL.revokeObjectURL(url);
-            $scope.showSDDPDF = false;
-            $('#loaderDiv').hide();
-          });
-        });
+            return $http.get('/camunda/api/engine/engine/default/user?memberOfGroup=demand_uat_users&lastNameLike=' + encodeURIComponent('%' + val + '%')).then(
+              function (response) {
+                var usersByLastName = _.flatMap(response.data, function (s) {
+                  if (s.id) {
+                    return s.id.split(',').map(function (user) {
+                      return {
+                        id: s.id,
+                        email: s.email.substring(s.email.lastIndexOf('/') + 1),
+                        firstName: s.firstName,
+                        lastName: s.lastName,
+                        name: s.firstName + ' ' + s.lastName
+                      };
+                    })
+                  } else {
+                    return [];
+                  }
+                });
+                return _.unionWith(usersByFirstName, usersByLastName, _.isEqual);
+              }
+            );
+          }
+        );
+        return users;
+      };
+
+      $scope.userSelected = function (item) {
+        $scope.serviceAdminId = item.id;
+        $scope.serviceAdminName = item.name;
+        $scope.kcell_form.serviceAdmin.$setValidity('not_selected', true);
       };
     }]);
   </script>
-  <div class="hide-in-print">
-    <div class="form-group">
-      <label style="width: 11%; float: left; padding: 7px 5px 0 15px; font-weight: 500;"> Business Key:</label>
-      <div style="width: 10%; float: left; padding: 0 5px;">
-        <input class="form-control" ng-model="businessKey" disabled>
-      </div>
-      <label style="width: 6%; float: left; padding: 7px 0px 0 10px; font-weight: 500;"> Status:</label>
-      <div style="width: 22%; float: left; padding: 0 5px;">
-        <div class="disabled-element">{{status}} </div>
-      </div>
-      <label style="width: 6%; float: left; padding: 7px 0px 0 10px; font-weight: 500;"> State:</label>
-      <div style="width: 10%; float: left; padding: 0 5px;">
-        <div class="disabled-element">{{state}} </div>
-      </div>
-      <label style="width: 6%; float: left; padding: 7px 0px 0 5px; font-weight: 500;"> Activity:</label>
-      <div style="width: 29%; float: left; padding: 0 5px;">
-        <div class="disabled-element"> Production deploy </div>
-      </div>
+  <div class="form-group">
+    <label style="width: 11%; float: left; padding: 7px 5px 0 15px; font-weight: 500;"> Business Key:</label>
+    <div style="width: 10%; float: left; padding: 0 5px;">
+      <input class="form-control" cam-variable-name="businessKey" cam-variable-type="String" disabled>
     </div>
-    <div class="form-group">
-      <label style="width: 11%; float: left; padding: 7px 5px 0 15px; font-weight: 500;"> Demand Name:</label>
-      <div style="width: 89%; float: left; padding: 0 5px;">
-        <input class="form-control" ng-model="demandName" disabled/>
-      </div>
+    <label style="width: 6%; float: left; padding: 7px 0px 0 10px; font-weight: 500;"> Status:</label>
+    <div style="width: 22%; float: left; padding: 0 5px;">
+      <div class="disabled-element">{{status}} </div>
     </div>
-    <hr>
+    <label style="width: 6%; float: left; padding: 7px 0px 0 10px; font-weight: 500;"> State:</label>
+    <div style="width: 10%; float: left; padding: 0 5px;">
+      <div class="disabled-element">{{state}} </div>
+    </div>
+    <label style="width: 6%; float: left; padding: 7px 0px 0 5px; font-weight: 500;"> Activity:</label>
+    <div style="width: 29%; float: left; padding: 0 5px;">
+      <div class="disabled-element"> Assign Service administrator </div>
+    </div>
   </div>
+  <div class="form-group">
+    <label style="width: 11%; float: left; padding: 7px 5px 0 15px; font-weight: 500;"> Demand Name:</label>
+    <div style="width: 89%; float: left; padding: 0 5px;">
+      <input class="form-control" cam-variable-name="demandName" cam-variable-type="String" disabled/>
+    </div>
+  </div>
+  <hr>
   <tabset class="my-tab-head my-tab" justified="true" id="jobRequestId">
-    <tab>
+    <tab active="true">
       <tab-heading> General </tab-heading>
-      <div style="margin-top: 20px;">
+      <div style="margin-bottom: 20px;">
         <div class="col-sm-{{generalData.general.technicalAnalysis?'6':'12'}}" style="padding: 0;">
           <div class="panel-group custom-panel">
             <div class="panel panel-default">
@@ -318,7 +291,7 @@
     </tab>
     <tab>
       <tab-heading> BRD </tab-heading>
-      <div style="margin-top: 20px;">
+      <div style="margin-bottom: 20px; margin-top: 20px;">
         <accordion>
           <accordion-group is-open="true">
             <accordion-heading>
@@ -419,7 +392,7 @@
     </tab>
     <tab>
       <tab-heading> Business Case </tab-heading>
-      <div style="margin-top: 20px;">
+      <div style="margin-bottom: 20px;">
         <div class="col-sm-12" style="padding: 0;">
           <div class="panel-group custom-panel">
             <div class="panel panel-default">
@@ -434,77 +407,9 @@
         </div>
       </div>
     </tab>
-    <tab active="tabs.SDD">
-      <tab-heading> SDD </tab-heading>
-      <div style="margin-top: 20px;">
-        <div class="form-group">
-          <label class="control-label col-sm-12">Glossary</label>
-          <div class="col-sm-12 no-margin-panel">
-            <summernote-rich-text data="SDDData.glossary" min-height="100" disabled="true"></summernote-rich-text>
-          </div>
-        </div>
-        <div class="form-group">
-          <label class="control-label col-sm-12">General description</label>
-          <div class="col-sm-12 no-margin-panel">
-            <summernote-rich-text data="SDDData.generalDescription" min-height="100" disabled="true"></summernote-rich-text>
-          </div>
-        </div>
-        <accordion class="content-visible-accordion">
-          <accordion-group is-open="true">
-            <accordion-heading>
-              Functional Requirements <i class="pull-right glyphicon" ng-class="{'glyphicon-chevron-up': status.isCustomHeaderOpen, 'glyphicon-chevron-down': !status.isCustomHeaderOpen}"></i>
-            </accordion-heading>
-            <demand-sdd-sections data="SDDData.funcRequirements" section="0" form="kcell_form" view="view" disabled="true"></demand-sdd-sections>
-          </accordion-group>
-        </accordion>
-        <accordion class="content-visible-accordion">
-          <accordion-group is-open="true">
-            <accordion-heading>
-              Non-Functional requirements <i class="pull-right glyphicon" ng-class="{'glyphicon-chevron-up': status.isCustomHeaderOpen, 'glyphicon-chevron-down': !status.isCustomHeaderOpen}"></i>
-            </accordion-heading>
-            <demand-sdd-sections data="SDDData.nonFuncRequirements" section="1" form="kcell_form" view="view" disabled="true"></demand-sdd-sections>
-          </accordion-group>
-        </accordion>
-        <accordion class="content-visible-accordion">
-          <accordion-group is-open="true">
-            <accordion-heading>
-              Solution design <i class="pull-right glyphicon" ng-class="{'glyphicon-chevron-up': status.isCustomHeaderOpen, 'glyphicon-chevron-down': !status.isCustomHeaderOpen}"></i>
-            </accordion-heading>
-            <demand-sdd-sections data="SDDData.solutionDesign" section="2" form="kcell_form" view="view" disabled="true"></demand-sdd-sections>
-          </accordion-group>
-        </accordion>
-        <accordion class="content-visible-accordion">
-          <accordion-group is-open="true">
-            <accordion-heading>
-              Components <i class="pull-right glyphicon" ng-class="{'glyphicon-chevron-up': status.isCustomHeaderOpen, 'glyphicon-chevron-down': !status.isCustomHeaderOpen}"></i>
-            </accordion-heading>
-            <demand-sdd-sections data="SDDData.components" section="3" form="kcell_form" view="view" disabled="true"></demand-sdd-sections>
-          </accordion-group>
-        </accordion>
-        <div class="form-group">
-          <label class="control-label col-sm-12">Order of Components implementation and integration</label>
-          <div class="col-sm-12 no-margin-panel">
-            <summernote-rich-text data="SDDData.componentsOrder" min-height="100" disabled="true"></summernote-rich-text>
-          </div>
-        </div>
-      </div>
-    </tab>
-    <tab active="tabs.UAT">
-      <tab-heading> UAT </tab-heading>
-      <div style="margin-top: 20px;">
-        <accordion class="content-visible-accordion" ng-if="tabs.UAT">
-          <accordion-group is-open="true">
-            <accordion-heading>
-              Test cases <i class="pull-right glyphicon" ng-class="{'glyphicon-chevron-up': status.isCustomHeaderOpen, 'glyphicon-chevron-down': !status.isCustomHeaderOpen}"></i>
-            </accordion-heading>
-            <demand-test-cases data="testCases" use-cases="useCases" form="kcell_form" view="view" disabled="true"></demand-test-cases>
-          </accordion-group>
-        </accordion>
-      </div>
-    </tab>
   </tabset>
 
-  <div class="col-sm-12" style="margin-top: 20px;"><hr style="border-top: 2px solid #aaa;" /></div>
+  <div class="col-sm-12"><hr style="border-top: 2px solid #aaa;" /></div>
 
   <div class="col-sm-12" style="padding: 0;">
     <div class="panel-group custom-panel">
@@ -516,6 +421,34 @@
           <div class="col-sm-12">
             <summernote-rich-text data="BCData.orderDraft" min-height="100" disabled="true"></summernote-rich-text>
           </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="col-sm-12" style="padding: 0;">
+    <div class="panel-group custom-panel">
+      <div class="panel panel-default">
+        <div class="panel-heading">
+          <h4 class="panel-title">Risks</h4>
+        </div>
+        <div class="panel-body">
+          <table class="table " style="margin-bottom: 0;">
+            <thead>
+            <tr>
+              <th>Supportive Unit name</th>
+              <th>Responsible</th>
+              <th>Risk</th>
+            </tr>
+            </thead>
+            <tbody>
+            <tr ng-repeat="risk in riskData">
+              <td class="text-left">{{risk.unit}}</td>
+              <td class="text-left">{{risk.responsible}}</td>
+              <td class="text-left">{{risk.level}}</td>
+            </tr>
+            </tbody>
+          </table>
         </div>
       </div>
     </div>
@@ -543,13 +476,9 @@
           <div class="form-group">
             <label class="col-sm-6 control-label">Service administrator</label>
             <div class="col-sm-6">
-              <div class="disabled-element">{{serviceAdmin}}</div>
-            </div>
-          </div>
-          <div class="form-group" ng-repeat="d in developerList track by $index">
-            <label class="col-sm-6 control-label">{{ $index === 0 ? 'Developer' : '' }}</label>
-            <div class="col-sm-6">
-              <div class="disabled-element">{{ d.name }}</div>
+              <input type="text" class="form-control" name="serviceAdmin" ng-model="serviceAdminName" typeahead="name as users.name for users in getUser($viewValue)" typeahead-on-select="userSelected($item)" autocomplete="off" required>
+              <span class="has-error" ng-if="kcell_form.serviceAdmin.$error.required && (kcell_form.serviceAdmin.$touched || view.submitted)">Required field</span>
+              <span class="has-error" ng-if="!kcell_form.serviceAdmin.$error.required && kcell_form.serviceAdmin.$error.not_selected && (kcell_form.serviceAdmin.$touched || view.submitted)">User must be selected from the list</span>
             </div>
           </div>
         </div>
@@ -587,31 +516,10 @@
   </div>
   <hr>
 
-  <div class="col-sm-12" style="margin-bottom: 20px;">
-    <button type="button" ng-click="printPDF()" class="btn btn-success" style="padding: 6px 28px">Export SDD to PDF</button>
-  </div>
-
-  <div ng-show="showSDDPDF" id="pdfDiv">
-    <demand-sdd-pdf date="sddPDFDate" data="SDDData" b-key="businessKey" d-name="demandName" d-description="generalData.general.description" author="solutionOwner"></demand-sdd-pdf>
-  </div>
-
-  <div class="form-group">
-    <label class="col-sm-2 control-label">Resolution</label>
-    <div class="col-sm-10">
-      <label class="radio-inline">
-        <input type="radio" ng-model="resolution" name="resolution" value="Approve" required> Approve
-      </label>
-      <label class="radio-inline">
-        <input type="radio" ng-model="resolution" name="resolution" value="Send to Development" required> Send to Development
-      </label>
-      <label class="error" ng-show="kcell_form.resolution.$error.required && ( kcell_form.resolution.$touched || view.submitted)">Required field</label>
-    </div>
-  </div>
   <div class="form-group">
     <label class="col-sm-2 control-label">Comment<span class="text-danger glyphicon-asterisk"></span></label>
     <div class="col-sm-10">
-      <textarea class="form-control" rows="4" maxlength="500" ng-model="comment" name="comment"></textarea>
-      <label class="error" ng-show="kcell_form.comment.$error.required && ( kcell_form.comment.$touched || view.submitted)">Required field</label>
+      <textarea class="form-control" rows="4" maxlength="500" ng-model="comment"></textarea>
     </div>
   </div>
 </form>

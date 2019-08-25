@@ -14,5 +14,6 @@ define([
     './sddFieldConstructor',
     './sddSections',
     './sddPdf',
-    './testCases'
+    './testCases',
+    './uatPdf'
 ], function(){});
