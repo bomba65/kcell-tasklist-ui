@@ -11,7 +11,10 @@ define(['./../module'], function(module){
         dDescription: '=',
         useCases: '=',
         testCases: '=',
-        appList: '='
+        appList: '=',
+        responsible: '=',
+        comment: '=',
+        attachments: '='
       },
       link: function(scope, element, attrs) {
         scope.date = new Date();

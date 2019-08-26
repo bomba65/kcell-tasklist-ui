@@ -30,7 +30,7 @@ html(lang:'en') {
     }
     newLine()
     body {
-        p('В рамках процесса рассмотрения заявок по <b>' + processName + '</b>, в системе <b>Kcell Workflow</b> был утвержден <b>UAT protocol</b> в активности User Acceptance Testing по заявке # <b>' + businessKey + '</b>.')
+        p('В рамках процесса рассмотрения заявок по <b>' + processName + '</b>, в системе <b>Kcell Workflow</b> был утвержден <b>UAT protocol</b> в активности <b>User Acceptance Testing</b> по заявке # <b>' + businessKey + '</b>.')
         newLine()
         p('Утвержденный <b>UAT protocol</b> прикреплен к письму.')
         newLine()

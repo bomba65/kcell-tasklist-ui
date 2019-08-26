@@ -5,7 +5,8 @@ def processName = execution.getProcessEngineServices().getRepositoryService().ge
 def procInst = execution.getProcessEngineServices().getHistoryService().createHistoricProcessInstanceQuery().processInstanceId(execution.getProcessInstanceId()).singleResult()
 def startTime = new Date()
 if (procInst != null) startTime = procInst.getStartTime()
-def lastResolution = resolutions.unwrap()[0]
+def history = resolutions.unwrap()
+def lastResolution = history[history.size() - 1]
 def assignee = lastResolution.get('assignee').asText()
 def taskName = lastResolution.get('taskName').asText()
 def general = generalData.unwrap().get('general')

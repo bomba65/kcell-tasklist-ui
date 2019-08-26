@@ -56,7 +56,8 @@
       ];
       $scope.allApproved = false;
 
-      var processInstanceId = null;
+      $scope.processInstanceId = null;
+      $scope.taskId = camForm.taskId;
       var taskName = null;
       var history = historyVariablesManager(camForm, 'userAcceptance');
       var dataLoaded = false;
@@ -68,7 +69,7 @@
 
       $http.get('/camunda/api/engine/engine/default/task/' + camForm.taskId).then(
         function(result){
-          processInstanceId = result.data.processInstanceId;
+          $scope.processInstanceId = result.data.processInstanceId;
           taskName = result.data.name;
         },
         function (error) {
@@ -247,7 +248,7 @@
             camForm.variableManager.createVariable({
               name: 'approvedUATPDFFilePath',
               type: 'String',
-              value: processInstanceId + '/' + camForm.taskId + '/' + pdfFileName,
+              value: $scope.processInstanceId + '/' + camForm.taskId + '/' + pdfFileName,
               store: true
             });
           }
@@ -286,7 +287,7 @@
       function uploadFileToMinio(file) {
         var fileToUpload = {
           name: file.name,
-          path: processInstanceId + '/' + camForm.taskId + '/' + file.name,
+          path: $scope.processInstanceId + '/' + camForm.taskId + '/' + file.name,
           created: new Date(),
           createdBy: $scope.assigneeName
         };
@@ -315,7 +316,7 @@
           if (key === "$$hashKey") return undefined;
           return value;
         });
-        $http.put('/camunda/api/engine/engine/default/process-instance/' + processInstanceId + '/variables/UATData', {
+        $http.put('/camunda/api/engine/engine/default/process-instance/' + $scope.processInstanceId + '/variables/UATData', {
           "type": "Json",
           "value": json
         }).then(
@@ -331,7 +332,7 @@
           if (key === "$$hashKey") return undefined;
           return value;
         });
-        $http.put('/camunda/api/engine/engine/default/process-instance/' + processInstanceId + '/variables/attachments', {
+        $http.put('/camunda/api/engine/engine/default/process-instance/' + $scope.processInstanceId + '/variables/attachments', {
           "type": "Json",
           "value": json
         }).then(
@@ -347,7 +348,7 @@
           if (key === "$$hashKey") return undefined;
           return value;
         });
-        $http.put('/camunda/api/engine/engine/default/process-instance/' + processInstanceId + '/variables/testCases', {
+        $http.put('/camunda/api/engine/engine/default/process-instance/' + $scope.processInstanceId + '/variables/testCases', {
           "type": "Json",
           "value": json
         }).then(
@@ -395,15 +396,15 @@
         });
 
         await $q.all([
-          $http.put('/camunda/api/engine/engine/default/process-instance/' + processInstanceId + '/variables/testCases', {
+          $http.put('/camunda/api/engine/engine/default/process-instance/' + $scope.processInstanceId + '/variables/testCases', {
             "type": "Json",
             "value": testCasesJson
           }),
-          $http.put('/camunda/api/engine/engine/default/process-instance/' + processInstanceId + '/variables/UATData', {
+          $http.put('/camunda/api/engine/engine/default/process-instance/' + $scope.processInstanceId + '/variables/UATData', {
             "type": "Json",
             "value": UATDataJson
           }),
-          $http.put('/camunda/api/engine/engine/default/process-instance/' + processInstanceId + '/variables/attachments', {
+          $http.put('/camunda/api/engine/engine/default/process-instance/' + $scope.processInstanceId + '/variables/attachments', {
             "type": "Json",
             "value": attachmentsJson
           })
@@ -455,41 +456,48 @@
 
       $scope.showUATPDF = false;
       $scope.printPDF = function(beforeSubmit) {
+        if (beforeSubmit) $scope.uatResponsible = $scope.assigneeName;
         $scope.showUATPDF = true;
         $(".scrollable").scrollTop(0);
-        if (!beforeSubmit) $('#loaderDiv').show();
-        var element = $('#pdfDiv')[0];
-        return $http({
-          method: 'POST',
-          url: '/chrome/topdf',
-          data: pdfHeader + element.outerHTML + pdfFooter,
-          responseType: 'arraybuffer'
-        }, ).then(function(result) {
-          var blob = new Blob([result.data], {type: 'application/pdf'});
-          if (!beforeSubmit) {
-            var url = window.URL.createObjectURL(blob);
-            downloader.download = pdfFileName;
-            downloader.href = url;
-            downloader.click();
-            window.URL.revokeObjectURL(url);
+        $('#loaderDiv').show();
+
+        return new Promise(function(resolve) {
+          $timeout(function() {resolve();});
+        }).then(function() {
+          var element = $('#pdfDiv')[0];
+          return $http({
+            method: 'POST',
+            url: '/chrome/topdf',
+            data: pdfHeader + element.outerHTML + pdfFooter,
+            responseType: 'arraybuffer'
+          }, ).then(function(result) {
+            var blob = new Blob([result.data], {type: 'application/pdf'});
             $scope.showUATPDF = false;
-            $('#loaderDiv').hide();
-          } else {
-            return $http({
-              method: 'GET',
-              url: '/camunda/uploads/put/' + processInstanceId + '/' + camForm.taskId + '/'  + pdfFileName,
-              transformResponse: []
-            }).then(function (response) {
-              return $http.put(response.data, blob, {headers: {'Content-Type': 'application/pdf'}}).then(
-                function () {},
-                function (error) {
-                  console.log(error.data);
-                }
-              );
-            }, function (error) {
-              console.log(error.data);
-            });
-          }
+            if (!beforeSubmit) {
+              var url = window.URL.createObjectURL(blob);
+              downloader.download = pdfFileName;
+              downloader.href = url;
+              downloader.click();
+              window.URL.revokeObjectURL(url);
+              $('#loaderDiv').hide();
+            } else {
+              return $http({
+                method: 'GET',
+                url: '/camunda/uploads/put/' + $scope.processInstanceId + '/' + camForm.taskId + '/'  + pdfFileName,
+                transformResponse: []
+              }).then(function (response) {
+                return $http.put(response.data, blob, {headers: {'Content-Type': 'application/pdf'}}).then(
+                  function () {$('#loaderDiv').hide();},
+                  function (error) {
+                    console.log(error.data);
+                  }
+                );
+              }, function (error) {
+                $('#loaderDiv').hide();
+                console.log(error.data);
+              });
+            }
+          });
         });
       };
 
@@ -842,6 +850,14 @@
         </accordion>
       </div>
       <div class="form-group">
+        <label class="col-sm-12 control-label">General Product/Service description</label>
+        <div class="col-sm-12">
+          <summernote-rich-text data="UATData.description" disabled="false" min-height="100" process-id="$scope.processInstanceId" task-id="taskId"></summernote-rich-text>
+          <input type="hidden" ng-model="UATData.description" name="uat_description" required>
+          <span class="has-error" ng-if="kcell_form.uat_description.$error.required && (kcell_form.uat_description.$touched || view.submitted)">Required field</span>
+        </div>
+      </div>
+      <div class="form-group">
         <label class="col-sm-2 control-label">Conclusion<span ng-if="resolution === 'Approve' || resolution === 'Request approval'" class="text-danger glyphicon-asterisk"></span></label>
         <div class="col-sm-10">
           <label class="radio-inline">
@@ -1035,7 +1051,10 @@
       d-description="generalData.general.description"
       use-cases="useCases"
       test-cases="testCases"
-      app-list="uatApprovalList">
+      app-list="uatApprovalList"
+      responsible="uatResponsible"
+      comment="comment"
+      attachments="attachments">
     </demand-uat-pdf>
   </div>
 

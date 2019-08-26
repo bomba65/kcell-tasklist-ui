@@ -49,7 +49,7 @@ public class SendApprovedUATPDF implements JavaDelegate {
 
         ByteArrayInputStream is = new ByteArrayInputStream(bytes);
         DataSource source = new ByteArrayDataSource(is, "application/pdf");
-        helper.addAttachment(fileName + ".pdf", source);
+        helper.addAttachment(fileName, source);
 
         String subject = String.valueOf(delegateExecution.getVariableLocal("subject"));
         String addresses = String.valueOf(delegateExecution.getVariableLocal("to"));
