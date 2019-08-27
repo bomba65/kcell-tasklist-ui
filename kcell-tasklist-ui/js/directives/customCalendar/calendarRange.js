@@ -11,7 +11,7 @@ define(['../module', 'jquery'], function (app) {
                 var startDate;
                 var endDate;
                 var holidays = $rootScope.holidays;
-                var weekend_working = $rootScope.weekend_working;
+                var weekend_working = $rootScope.weekendWorking;
                 var substitues = [];
                 var substitude_done = [];
                 for (var i=0; i<holidays.length; i++) {
