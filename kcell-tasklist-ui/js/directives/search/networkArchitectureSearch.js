@@ -1121,8 +1121,8 @@ define(['../module', 'moment'], function (module, moment) {
                                 piIndex: scope.piIndex,
                                 $index: index,
                                 businessKey: businessKey,
-                                download: function(file) {
-                                    $http({method: 'GET', url: '/camunda/uploads/get/' + file.path, transformResponse: [] }).
+                                download: function(path) {
+                                    $http({method: 'GET', url: '/camunda/uploads/get/' + path, transformResponse: [] }).
                                     then(function(response) {
                                         document.getElementById('fileDownloadIframe').src = response.data;
                                     }, function(error){
@@ -1131,7 +1131,7 @@ define(['../module', 'moment'], function (module, moment) {
                                 }
                             },
                             templateUrl: './js/partials/dismantleCardModal.html',
-                            size: 'hg'
+                            size: 'lg'
                         }).then(function(results){
                         }); 
                     }

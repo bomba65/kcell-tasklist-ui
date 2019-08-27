@@ -1,5 +1,8 @@
 begin;
 
+INSERT INTO public.act_ru_authorization (id_, rev_, type_, group_id_, user_id_, resource_type_, resource_id_, perms_) VALUES (uuid_generate_v4(), 2, 1, 'infrastructure_dismantle_users', null, 6, 'Dismantle', 4674);
+INSERT INTO public.act_ru_authorization (id_, rev_, type_, group_id_, user_id_, resource_type_, resource_id_, perms_) VALUES (uuid_generate_v4(), 2, 1, 'infrastructure_dismantle_users', null, 6, 'sdr_srr_request', 4674);
+
 INSERT INTO public.act_ru_authorization (id_, rev_, type_, group_id_, user_id_, resource_type_, resource_id_, perms_) VALUES (uuid_generate_v4(), 1, 1, 'alm_engineer', null, 6, 'Dismantle', 4930);
 INSERT INTO public.act_ru_authorization (id_, rev_, type_, group_id_, user_id_, resource_type_, resource_id_, perms_) VALUES (uuid_generate_v4(), 1, 1, 'alm_engineer', null, 6, 'sdr_srr_request', 4930);
 

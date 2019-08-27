@@ -215,48 +215,48 @@ public class GenerateDocument implements JavaDelegate {
 
                     if ("region_approve".equals(taskKey)) {
                         if ("approve".equals(result)) {
-                            varsMap.put("$head_y", "v");
+                            varsMap.put("$head_y", "√");
                             varsMap.put("$head_n", "");
                         } else {
                             varsMap.put("$head_y", "");
-                            varsMap.put("$head_n", "v");
+                            varsMap.put("$head_n", "√");
                         }
                         varsMap.put("$head_date", taskEndDate);
                     } else {
                         if ("central group \"Central Planning Unit\"".equals(taskName)) {
                             if ("approve".equals(result)) {
-                                varsMap.put("$2y", "v");
+                                varsMap.put("$2y", "√");
                                 varsMap.put("$2n", "");
                             } else {
                                 varsMap.put("$2y", "");
-                                varsMap.put("$2n", "v");
+                                varsMap.put("$2n", "√");
                             }
                             varsMap.put("$2d", taskEndDate);
                         } else if ("central group \"Central Transmission Unit\"".equals(taskName)) {
                             if ("approve".equals(result)) {
-                                varsMap.put("$ctu_y", "v");
+                                varsMap.put("$ctu_y", "√");
                                 varsMap.put("$ctu_n", "");
                             } else {
                                 varsMap.put("$ctu_y", "");
-                                varsMap.put("$ctu_n", "v");
+                                varsMap.put("$ctu_n", "√");
                             }
                             varsMap.put("$ctu_date", taskEndDate);
                         } else if ("central group \"Central S&FM Unit\"".equals(taskName)) {
                             if ("approve".equals(result)) {
-                                varsMap.put("$csfu_y", "v");
+                                varsMap.put("$csfu_y", "√");
                                 varsMap.put("$csfu_n", "");
                             } else {
                                 varsMap.put("$csfu_y", "");
-                                varsMap.put("$csfu_n", "v");
+                                varsMap.put("$csfu_n", "√");
                             }
                             varsMap.put("$csfu_date", taskEndDate);
                         } else if ("central group \"Central SAO Unit\"".equals(taskName)) {
                             if ("approve".equals(result)) {
-                                varsMap.put("$1y", "v");
+                                varsMap.put("$1y", "√");
                                 varsMap.put("$1n", "");
                             } else {
                                 varsMap.put("$1y", "");
-                                varsMap.put("$1n", "v");
+                                varsMap.put("$1n", "√");
                             }
                             varsMap.put("$1d", taskEndDate);
                         }
