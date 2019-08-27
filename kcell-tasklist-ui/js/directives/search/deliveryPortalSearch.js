@@ -55,24 +55,6 @@ define(['../module', 'moment'], function (module, moment) {
                         'revolvingNumbers': []
                     };
 
-                    function convertStringToDate(date_string) {
-                        var result = date_string.split(" - ");
-                        if (result.length === 2) {
-                            var dateParts_from = result[0].split(".");
-                            if (dateParts_from[2].length == 2) {
-                                dateParts_from[2] = "20" + dateParts_from[2];
-                            }
-                            var dateObject_from = new Date(+dateParts_from[2], dateParts_from[1] - 1, +dateParts_from[0]);
-                            var dateParts_to = result[1].split(".");
-                            if (dateParts_to[2].length == 2) {
-                                dateParts_to[2] = "20" + dateParts_to[2];
-                            }
-                            var dateObject_to = new Date(+dateParts_to[2], dateParts_to[1] - 1, +dateParts_to[0]);
-                            dateObject_to.setDate(dateObject_to.getDate() + 1);
-                            return [dateObject_from, dateObject_to];
-                        }
-                    }
-
                     function getUserTasks(xml) {
                         var namespaces = {
                             bpmn: 'http://www.omg.org/spec/BPMN/20100524/MODEL'
@@ -142,84 +124,6 @@ define(['../module', 'moment'], function (module, moment) {
                         unfinished: false,
                         page: 1,
                         maxResults: 20
-                    };
-                    scope.getUsers = function (val) {
-                        scope.filterDP.salesReprId = undefined;
-                        var res = val.split(' ');
-                        var firstName = val;
-                        var lastName = val;
-                        if (res.length > 1) {
-                            //space is there
-                            firstName = res[0];
-                            lastName = res[1];
-                            var users = $http.get('/camunda/api/engine/engine/default/user?firstNameLike=' + encodeURIComponent('%' + firstName + '%') + '&lastNameLike=' + encodeURIComponent('%' + lastName + '%')).then(
-                                function (response) {
-                                    //console.log(response.data);
-                                    var usersByFirstName = _.flatMap(response.data, function (s) {
-                                        if (s.id) {
-                                            return s.id.split(',').map(function (user) {
-                                                return {
-                                                    id: s.id,
-                                                    email: s.email.substring(s.email.lastIndexOf('/') + 1),
-                                                    firstName: s.firstName,
-                                                    lastName: s.lastName,
-                                                    name: s.firstName + ' ' + s.lastName
-                                                };
-                                            })
-                                        } else {
-                                            return [];
-                                        }
-                                    });
-                                    return usersByFirstName;
-                                }
-                            );
-                            return users;
-                        } else {
-                            var users = $http.get('/camunda/api/engine/engine/default/user?firstNameLike=' + encodeURIComponent('%' + firstName + '%')).then(
-                                function (response) {
-                                    var usersByFirstName = _.flatMap(response.data, function (s) {
-                                        if (s.id) {
-                                            return s.id.split(',').map(function (user) {
-                                                return {
-                                                    id: s.id,
-                                                    email: s.email.substring(s.email.lastIndexOf('/') + 1),
-                                                    firstName: s.firstName,
-                                                    lastName: s.lastName,
-                                                    name: s.firstName + ' ' + s.lastName
-                                                };
-                                            })
-                                        } else {
-                                            return [];
-                                        }
-                                    });
-                                    //return usersByFirstName;
-                                    return $http.get('/camunda/api/engine/engine/default/user?lastNameLike=' + encodeURIComponent('%' + lastName + '%')).then(
-                                        function (response) {
-                                            var usersByLastName = _.flatMap(response.data, function (s) {
-                                                if (s.id) {
-                                                    return s.id.split(',').map(function (user) {
-                                                        return {
-                                                            id: s.id,
-                                                            email: s.email.substring(s.email.lastIndexOf('/') + 1),
-                                                            firstName: s.firstName,
-                                                            lastName: s.lastName,
-                                                            name: s.firstName + ' ' + s.lastName
-                                                        };
-                                                    })
-                                                } else {
-                                                    return [];
-                                                }
-                                            });
-                                            return _.unionWith(usersByFirstName, usersByLastName, _.isEqual);
-                                        }
-                                    );
-                                }
-                            );
-                            return users;
-
-                        }
-
-
                     };
                     scope.salesReprSelected = function ($item) {
                         scope.filterDP.salesRepr = $item.name;
@@ -341,7 +245,9 @@ define(['../module', 'moment'], function (module, moment) {
                         scope.filterDP.initiatorId = undefined;
                         scope.filterDP.activityId = undefined;
                         //scope.filterDP.businessKeyFilterType = 'eq';
-                        scope.filterDP.processDefinitionKey = undefined;
+                        if (scope.onlyOneProcessActiveName===''){
+                            scope.filterDP.processDefinitionKey = undefined;
+                        }
                         scope.filterDP.processDefinitionActivities = {};
                         scope.filterDP.unfinished = false;
                         scope.filterDP.finished = false;
@@ -356,8 +262,10 @@ define(['../module', 'moment'], function (module, moment) {
                         scope.filterDP.callbackNumber = undefined;
                         $('input[name="multipleDate"]').val('');
                         $timeout(function () {
-                            $('input[name="multipleDate"]').data('daterangepicker').setStartDate(moment());
-                            $('input[name="multipleDate"]').data('daterangepicker').setEndDate(moment());
+                            if ( $('input[name="multipleDate"]').data('daterangepicker')){
+                                $('input[name="multipleDate"]').data('daterangepicker').setStartDate(moment());
+                                $('input[name="multipleDate"]').data('daterangepicker').setEndDate(moment());
+                            }
                         });
                         $('#bin').val('');
                     };
@@ -870,7 +778,7 @@ define(['../module', 'moment'], function (module, moment) {
                         }
 
                         if (scope.filterDP.createdDateRange) {
-                            var results = convertStringToDate(scope.filterDP.createdDateRange);
+                            var results = scope.convertStringToDate(scope.filterDP.createdDateRange);
                             if (results.length === 2) {
                                 filter.startedAfter = results[0];
                                 filter.startedBefore = results[1];

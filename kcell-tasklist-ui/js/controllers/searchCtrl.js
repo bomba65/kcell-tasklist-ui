@@ -54,16 +54,16 @@ define(['./module', 'jquery', 'moment', 'camundaSDK'], function (app, $, moment,
                 'west_kcell_users': 'west'
             }
 
-            function convertStringToDate (date_string) {
+            $scope.convertStringToDate = function(date_string) {
                 var result = date_string.split(" - ");
                 if (result.length===2) {
                     var dateParts_from = result[0].split(".");
-                    if (dateParts_from[2].length==2) {
+                    if (dateParts_from[2].length===2) {
                         dateParts_from[2]  = "20" + dateParts_from[2];
                     }
                     var dateObject_from = new Date(+dateParts_from[2], dateParts_from[1] - 1, +dateParts_from[0]);
                     var dateParts_to = result[1].split(".");
-                    if (dateParts_to[2].length==2) {
+                    if (dateParts_to[2].length===2) {
                         dateParts_to[2]  = "20" + dateParts_to[2];
                     }
                     var dateObject_to= new Date(+dateParts_to[2], dateParts_to[1] - 1, +dateParts_to[0]);
@@ -139,7 +139,82 @@ define(['./module', 'jquery', 'moment', 'camundaSDK'], function (app, $, moment,
             }
 
 
+            $scope.getUsers = function (val) {
+                if ($scope.filterDP) $scope.filterDP.salesReprId = undefined;
+                var res = val.split(' ');
+                var firstName = val;
+                var lastName = val;
+                if (res.length > 1) {
+                    //space is there
+                    firstName = res[0];
+                    lastName = res[1];
+                    var users = $http.get('/camunda/api/engine/engine/default/user?firstNameLike=' + encodeURIComponent('%' + firstName + '%') + '&lastNameLike=' + encodeURIComponent('%' + lastName + '%')).then(
+                        function (response) {
+                            //console.log(response.data);
+                            var usersByFirstName = _.flatMap(response.data, function (s) {
+                                if (s.id) {
+                                    return s.id.split(',').map(function (user) {
+                                        return {
+                                            id: s.id,
+                                            email: s.email ? s.email.substring(s.email.lastIndexOf('/') + 1) : s.email,
+                                            firstName: s.firstName,
+                                            lastName: s.lastName,
+                                            name: s.firstName + ' ' + s.lastName
+                                        };
+                                    })
+                                } else {
+                                    return [];
+                                }
+                            });
+                            return usersByFirstName;
+                        }
+                    );
+                    return users;
+                } else {
+                    var users = $http.get('/camunda/api/engine/engine/default/user?firstNameLike=' + encodeURIComponent('%' + firstName + '%')).then(
+                        function (response) {
+                            var usersByFirstName = _.flatMap(response.data, function (s) {
+                                if (s.id) {
+                                    return s.id.split(',').map(function (user) {
+                                        return {
+                                            id: s.id,
+                                            email: s.email ? s.email.substring(s.email.lastIndexOf('/') + 1) : s.email,
+                                            firstName: s.firstName,
+                                            lastName: s.lastName,
+                                            name: s.firstName + ' ' + s.lastName
+                                        };
+                                    })
+                                } else {
+                                    return [];
+                                }
+                            });
+                            //return usersByFirstName;
+                            return $http.get('/camunda/api/engine/engine/default/user?lastNameLike=' + encodeURIComponent('%' + lastName + '%')).then(
+                                function (response) {
+                                    var usersByLastName = _.flatMap(response.data, function (s) {
+                                        if (s.id) {
+                                            return s.id.split(',').map(function (user) {
+                                                return {
+                                                    id: s.id,
+                                                    email: s.email ? s.email.substring(s.email.lastIndexOf('/') + 1) : s.email,
+                                                    firstName: s.firstName,
+                                                    lastName: s.lastName,
+                                                    name: s.firstName + ' ' + s.lastName
+                                                };
+                                            })
+                                        } else {
+                                            return [];
+                                        }
+                                    });
+                                    return _.unionWith(usersByFirstName, usersByLastName, _.isEqual);
+                                }
+                            );
+                        }
+                    );
+                    return users;
 
+                }
+            };
 
             $scope.showTaskDetail = function (task) {
                 exModal.open({
@@ -651,22 +726,21 @@ define(['./module', 'jquery', 'moment', 'camundaSDK'], function (app, $, moment,
                         smartButtonMaxItems: 1,
                         closeOnSelect: true
                     };
-                    $scope.multiselectEvents = {
-                        onItemSelect: function (item) {
-                            $scope.filter.activityId = [item.id];
-                            if (item.id === '-100') $scope.filter.activityId = undefined;
-                        },
-                        onItemDeselect: function (item) {
-
-                            $scope.filter.activityId = undefined;
-                        },
-                    };
-                    $scope.model_dummy = {};
                     $scope.filterDemand = {
                         technicalAnalysisValue: 'ignore',
                         page: 1,
                         maxResults: 20
                     };
+                    $scope.multiselectEvents = {
+                        onItemSelect: function (item) {
+                            $scope.filterDemand.activityId = [item.id];
+                            if (item.id === '-100') $scope.filterDemand.activityId = undefined;
+                        },
+                        onItemDeselect: function (item) {
+                            $scope.filterDemand.activityId = undefined;
+                        },
+                    };
+                    $scope.model_dummy = {};
 
                     $scope.statusList = [
                         'New order',
@@ -697,7 +771,6 @@ define(['./module', 'jquery', 'moment', 'camundaSDK'], function (app, $, moment,
                         "TD",
                         "NB"
                     ];
-
                     $scope.getDemandOwnerUsers = (val) => {
                         $scope.filterDemand.demandOwnerId = null;
                         return $scope.getUsers(val);
@@ -717,7 +790,6 @@ define(['./module', 'jquery', 'moment', 'camundaSDK'], function (app, $, moment,
                     };
 
                     $scope.demandSearch = function(refresh) {
-                    console.log('demandSearch');
                     if (refresh) {
                         $scope.filterDemand.page = 1;
                         $scope.processIndex = undefined;
@@ -899,7 +971,6 @@ define(['./module', 'jquery', 'moment', 'camundaSDK'], function (app, $, moment,
                     }).then(
                         function (result) {
                             $scope.processInstancesDemandTotal = result.data.count;
-                            console.log($scope.processInstancesDemandTotal);
                             $scope.processInstancesDemandPages = Math.floor(result.data.count / $scope.filterDemand.maxResults) + ((result.data.count % $scope.filterDemand.maxResults) > 0 ? 1 : 0);
                         }
                     );

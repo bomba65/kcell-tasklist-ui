@@ -65,81 +65,9 @@ define(['../module', 'moment'], function (module, moment) {
                 //scope.daWtf = 'dfdsfds';
                 scope.onlyProcessActive = '';
 
-
-                scope.getUsers = function (val) {
-                    var res = val.split(' ');
-                    var firstName = val;
-                    var lastName = val;
-                    if (res.length > 1) {
-                        //space is there
-                        firstName = res[0];
-                        lastName = res[1];
-                        var users = $http.get('/camunda/api/engine/engine/default/user?firstNameLike=' + encodeURIComponent('%' + firstName + '%') + '&lastNameLike=' + encodeURIComponent('%' + lastName + '%')).then(
-                            function (response) {
-                                //console.log(response.data);
-                                var usersByFirstName = _.flatMap(response.data, function (s) {
-                                    if (s.id) {
-                                        return s.id.split(',').map(function (user) {
-                                            return {
-                                                id: s.id,
-                                                email: s.email.substring(s.email.lastIndexOf('/') + 1),
-                                                firstName: s.firstName,
-                                                lastName: s.lastName,
-                                                name: s.firstName + ' ' + s.lastName
-                                            };
-                                        })
-                                    } else {
-                                        return [];
-                                    }
-                                });
-                                return usersByFirstName;
-                            }
-                        );
-                        return users;
-                    } else {
-                        var users = $http.get('/camunda/api/engine/engine/default/user?firstNameLike=' + encodeURIComponent('%' + firstName + '%')).then(
-                            function (response) {
-                                var usersByFirstName = _.flatMap(response.data, function (s) {
-                                    if (s.id) {
-                                        return s.id.split(',').map(function (user) {
-                                            return {
-                                                id: s.id,
-                                                email: s.email.substring(s.email.lastIndexOf('/') + 1),
-                                                firstName: s.firstName,
-                                                lastName: s.lastName,
-                                                name: s.firstName + ' ' + s.lastName
-                                            };
-                                        })
-                                    } else {
-                                        return [];
-                                    }
-                                });
-                                //return usersByFirstName;
-                                return $http.get('/camunda/api/engine/engine/default/user?lastNameLike=' + encodeURIComponent('%' + lastName + '%')).then(
-                                    function (response) {
-                                        var usersByLastName = _.flatMap(response.data, function (s) {
-                                            if (s.id) {
-                                                return s.id.split(',').map(function (user) {
-                                                    return {
-                                                        id: s.id,
-                                                        email: s.email.substring(s.email.lastIndexOf('/') + 1),
-                                                        firstName: s.firstName,
-                                                        lastName: s.lastName,
-                                                        name: s.firstName + ' ' + s.lastName
-                                                    };
-                                                })
-                                            } else {
-                                                return [];
-                                            }
-                                        });
-                                        return _.unionWith(usersByFirstName, usersByLastName, _.isEqual);
-                                    }
-                                );
-                            }
-                        );
-                        return users;
-
-                    }
+                scope.taskUserSelected = function ($item, $model, $label) {
+                    //scope.initiator = $item;
+                    //scope.initiatorId = $item.id;
                 };
                 var KWMSproject = _.find($rootScope.projects, {'key': 'NetworkInfrastructure'});
                 angular.forEach(allKWMSProcesses, function (value, processKey) {
@@ -159,7 +87,7 @@ define(['../module', 'moment'], function (module, moment) {
                 }
                 function noProcessSelection(newVal) {
                     var filtered = Object.fromEntries(Object.entries(newVal).filter(([k, v]) => v.value === false));
-                    if ((filtered.Revision || filtered.Invoice) && !filtered.Dismantle && !filtered.Replacement) {
+                    if ((filtered.Revision || filtered.Invoice) && !filtered.leasing && !filtered.Dismantle && !filtered.Replacement) {
                         scope.RevisionOrMonthlyAct = true;
                     }
                     if (Object.keys(filtered).length === 1) {
@@ -179,7 +107,6 @@ define(['../module', 'moment'], function (module, moment) {
                     } else {
                         if (Object.keys(filtered).length === 1) {
                             // only one process active;
-                            console.log('???', Object.keys(filtered)[0]);
                             scope.onlyProcessActive = Object.keys(filtered)[0];
                         }
                         if ((filtered.Revision || filtered.Invoice) && !filtered.Dismantle && !filtered.Replacement) {
@@ -399,13 +326,15 @@ define(['../module', 'moment'], function (module, moment) {
 
                 }
                 scope.search = function (refreshPages) {
+                    var asynCall1 = false;
+                    var asynCall2 = false;
+                    var asynCall3 = false;
+                    var asynCall4 = false;
                     if (refreshPages) {
                         scope.filter.page = 1;
                         scope.piIndex = undefined;
                         scope.xlsxPreparedRevision = false;
                     }
-                    console.log('processList', processList);
-                    console.log('selectedProcessInstances', scope.selectedProcessInstances);
                     var excludeProcesses = processList.filter(function (item) {
                         return scope.selectedProcessInstances.indexOf(item) === -1;
                     });
@@ -413,6 +342,7 @@ define(['../module', 'moment'], function (module, moment) {
                     var filter = {
                         sorting: [{sortBy: "startTime", sortOrder: "desc"}],
                         variables: [],
+                        activeActivityIdIn : [],
                         processInstanceBusinessKeyLike: '%-%',
                         processDefinitionKeyNotIn: excludeProcesses
 
@@ -436,15 +366,22 @@ define(['../module', 'moment'], function (module, moment) {
                         if (scope.filter.businessKeyFilterType === 'eq') {
                             filter.processInstanceBusinessKey = scope.filter.businessKey;
                         } else {
-                            filter.variables.push({
-                                "name": "jrNumber",
-                                "operator": "like",
-                                "value": scope.filter.businessKey + '%'
-                            });
+                            if (scope.onlyProcessActive==='Invoice') {
+                                filter.processInstanceBusinessKeyLike = '%'+scope.filter.businessKey+'%';
+                            } else {
+                                filter.variables.push({
+                                    "name": "jrNumber",
+                                    "operator": "like",
+                                    "value": scope.filter.businessKey + '%'
+                                });
+                            }
                         }
                     }
                     if (scope.filter.workType) {
-                        filter.variables.push({"name": "reason", "operator": "eq", "value": scope.filter.workType});
+                        if (scope.onlyProcessActive==='Invoice')
+                            filter.variables.push({"name": "workType", "operator": "eq", "value": scope.filter.workType});
+                        else if (scope.onlyProcessActive==='Revision')
+                            filter.variables.push({"name": "reason", "operator": "eq", "value": scope.filter.workType});
                     }
                     if (scope.filter.unfinished) {
                         filter.unfinished = true;
@@ -458,10 +395,37 @@ define(['../module', 'moment'], function (module, moment) {
                         filter.startedBefore = (Number(scope.filter.endYear) + 1) + '-01-01T00:00:00.000+0600';
                     }
                     if (scope.filter.currentAssignee) {
-                        //???
+                        var activityParams = {
+                            activityType: 'userTask',
+                            taskAssignee: scope.filter.currentAssignee.id,
+                            unfinished: true,
+                        };
+                        $http({
+                            method: 'POST',
+                            headers: {'Accept': 'application/hal+json, application/json; q=0.5'},
+                            data: activityParams,
+                            url: baseUrl + '/history/activity-instance'
+                        }).then(
+                            function(tasks){
+                                if (!filter.processInstanceIds) filter.processInstanceIds = _.map(tasks.data, 'processInstanceId');
+                                else filter.processInstanceIds = filter.processInstanceIds.filter(value => -1 !== _.map(tasks.data, 'processInstanceId').indexOf(value));
+
+                                asynCall1 = true;
+                                if (asynCall1 && asynCall2 && asynCall3 && asynCall4) {
+                                    scope.lastSearchParamsRevision = filter;
+                                    getProcessInstances(filter, 'processInstances');
+                                    asynCall1 = false;
+                                }
+                            },
+                            function(error){
+                                console.log(error.data);
+                            }
+                        );
+
+                    } else {
+                        asynCall1 = true;
                     }
                     if (scope.filter.monthOfFormalPeriod && scope.filter.yearOfFormalPeriod) {
-                        console.log('periood');
                         filter.variables.push({
                             "name": "monthOfFormalPeriod",
                             "operator": "eq",
@@ -473,8 +437,9 @@ define(['../module', 'moment'], function (module, moment) {
                             "value": scope.filter.yearOfFormalPeriod
                         });
                     }
+
                     if (scope.filter.requestedDateRange) {
-                        var results = convertStringToDate(scope.filter.requestedDateRange);
+                        var results = scope.convertStringToDate(scope.filter.requestedDateRange);
                         if (results.length === 2) {
                             filter.variables.push({
                                 "name": "requestedDate",
@@ -489,7 +454,7 @@ define(['../module', 'moment'], function (module, moment) {
                         }
                     }
                     if (scope.filter.validityDateRange) {
-                        var results = convertStringToDate(scope.filter.validityDateRange);
+                        var results = scope.convertStringToDate(scope.filter.validityDateRange);
                         if (results.length === 2) {
                             filter.variables.push({
                                 "name": "validityDate",
@@ -515,20 +480,17 @@ define(['../module', 'moment'], function (module, moment) {
                         });
                     }
                     if (scope.filter.requestor) {
-                        filter.startedBy = scope.filter.requestor;
-                    }
-                    /* not working because requestor field is incorrect */
-                    if (scope.filter.requestor) {
-                        if (scope.filter.participation === 'initiator') {
-                            filter.startedBy = scope.filter.requestor;
-                            scope.lastSearchParamsRevision = filter;
-                            getProcessInstances(filter, 'processInstances');
-                        } else if (scope.filter.participation === 'participant') {
+                        if (scope.filter.participation === 'participant') {
                             $http.post(baseUrl + '/history/task', {taskAssignee: scope.filter.requestor}).then(
                                 function (result) {
-                                    filter.processInstanceIds = _.map(result.data, 'processInstanceId');
-                                    scope.lastSearchParamsRevision = filter;
-                                    getProcessInstances(filter, 'processInstances');
+                                    if (!filter.processInstanceIds) filter.processInstanceIds = _.map(result.data, 'processInstanceId');
+                                    else filter.processInstanceIds = filter.processInstanceIds.filter(value => -1 !== _.map(result.data, 'processInstanceId').indexOf(value));
+                                    asynCall4 = true;
+                                    if (asynCall1 && asynCall2 && asynCall3 && asynCall4) {
+                                        scope.lastSearchParamsRevision = filter;
+                                        getProcessInstances(filter, 'processInstances');
+                                        asynCall4 = false;
+                                    }
                                 },
                                 function (error) {
                                     console.log(error.data)
@@ -536,33 +498,35 @@ define(['../module', 'moment'], function (module, moment) {
                             );
                         } else {
                             filter.startedBy = scope.filter.requestor;
+                            asynCall4 = true;
                         }
                     } else {
-                        scope.lastSearchParamsRevision = filter;
-                        getProcessInstances(filter, 'processInstances');
+                        asynCall4 = true;
                     }
 
                     if (scope.filter.initiator) {
                         $http.post(baseUrl + '/history/task', {taskAssignee: scope.filter.initiator.id}).then(
                             function (result) {
-                                //filter.processInstanceIds = _.map(result.data, 'processInstanceId');
                                 filter.startedBy = scope.filter.initiator.id;
                                 scope.lastSearchParamsRevision = filter;
-                                getProcessInstances(filter, 'processInstances');
+                                asynCall2 = true;
+                                if (asynCall1 && asynCall2 && asynCall3 && asynCall4) {
+                                    scope.lastSearchParamsRevision = filter;
+                                    getProcessInstances(filter, 'processInstances');
+                                    asynCall2 = false;
+                                }
                             },
                             function (error) {
                                 console.log(error.data)
                             }
                         );
                     } else {
-                        scope.lastSearchParamsRevision = filter;
-                        getProcessInstances(filter, 'processInstances');
+                        asynCall2 = true;
                     }
 
 
-
                     if (scope.filter.activityId) {
-                        filter.activeActivityIdIn = [scope.filter.activityId];
+                        filter.activeActivityIdIn.push(scope.filter.activityId);
                     }
                     if (scope.filter.mainContract && scope.filter.mainContract !== 'All') {
                         filter.variables.push({
@@ -571,8 +535,12 @@ define(['../module', 'moment'], function (module, moment) {
                             "value": scope.filter.mainContract
                         });
                     }
-                    scope.lastSearchParamsRevision = filter;
-                    getProcessInstances(filter, 'processInstances');
+                    asynCall3 = true;
+                    if (asynCall1 && asynCall2 && asynCall3 && asynCall4) {
+                        scope.lastSearchParamsRevision = filter;
+                        getProcessInstances(filter, 'processInstances');
+                        asynCall3 = false;
+                    }
                 };
 
                 scope.clearFilters = function () {
@@ -607,6 +575,7 @@ define(['../module', 'moment'], function (module, moment) {
                 }
 
                 function getProcessInstances(filter, processInstances) {
+                    console.log('filter params', filter);
                     $http({
                         method: 'POST',
                         headers: {'Accept': 'application/hal+json, application/json; q=0.5'},
@@ -616,8 +585,12 @@ define(['../module', 'moment'], function (module, moment) {
                         function (result) {
                             scope[processInstances + 'Total'] = result.data.count;
                             scope[processInstances + 'Pages'] = Math.floor(result.data.count / scope.filter.maxResults) + ((result.data.count % scope.filter.maxResults) > 0 ? 1 : 0);
-                        }
-                    );
+                        },
+                        function (error) {
+                            console.log(error.data);
+                            scope[processInstances + 'Total'] = 0;
+                            scope[processInstances + 'Pages'] = 0;
+                        });
                     $http({
                         method: 'POST',
                         headers: {'Accept': 'application/hal+json, application/json; q=0.5'},
@@ -626,7 +599,7 @@ define(['../module', 'moment'], function (module, moment) {
                     }).then(
                         function (result) {
                             scope[processInstances] = result.data;
-                            var variables = ['siteRegion', 'site_name', 'contractor', 'reason', 'requestedDate', 'validityDate', 'jobWorks', 'explanation'];
+                            var variables = ['siteRegion', 'site_name', 'contractor', 'reason', 'requestedDate', 'validityDate', 'jobWorks', 'explanation', 'workType'];
 
                             if (scope[processInstances].length > 0) {
                                 angular.forEach(scope[processInstances], function (el) {
@@ -742,6 +715,7 @@ define(['../module', 'moment'], function (module, moment) {
                         },
                         function (error) {
                             console.log(error.data);
+                            scope[processInstances] = [];
                         });
                 }
 
@@ -1046,7 +1020,7 @@ define(['../module', 'moment'], function (module, moment) {
                                                     if (asynCall1 && asynCall2) {
                                                         openProcessCardModalDismantle(processDefinitionId, businessKey, index);
                                                         asynCall1 = false;
-                                                    }  else console.log('aynCall 2 problem');
+                                                    }  else console.log('asynCall 2 problem');
                                                 } else {
                                                     console.log(groupasynCalls, maxGroupAsynCalls);
 
@@ -1058,7 +1032,7 @@ define(['../module', 'moment'], function (module, moment) {
                                                     if (asynCall1 && asynCall2) {
                                                         openProcessCardModalDismantle(processDefinitionId, businessKey, index);
                                                         asynCall1 = false;
-                                                    }  else console.log('aynCall 2 problem');
+                                                    }  else console.log('asynCall 2 problem');
                                                 } else {
                                                     console.log(groupasynCalls, maxGroupAsynCalls);
 
@@ -1109,7 +1083,7 @@ define(['../module', 'moment'], function (module, moment) {
                                             if (asynCall1 && asynCall2) {
                                                 openProcessCardModalDismantle(processDefinitionId, businessKey, index);
                                                 asynCall2 = false;
-                                            } else console.log('aynCall 1 problem');
+                                            } else console.log('asynCall 1 problem');
                                         });
                                     }
                                     scope.dismantleInfo.tasks = processInstanceTasks;
