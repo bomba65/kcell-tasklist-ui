@@ -60,7 +60,8 @@ define('app',[
 						{key:'SiteSharingTopProcess', name:'4G Site Sharing', group:'infrastructure_sharing_users', 
 							subprocesses:[{key:'BeelineHostBeelineSite'},{key:'BeelineHostKcellSite'},{key:'KcellHostBeelineSite'},{key:'ReplanSiteAP'},{key:'KcellHostKcellSite'}]
 						},
-						{key:'Dismantle', name:'Dismantle', group:'infrastructure_dismantle_users', subprocesses:[{key:'sdr_srr_request'}]}
+						{key:'Dismantle', name:'Dismantle', group:'infrastructure_dismantle_users', subprocesses:[{key:'sdr_srr_request'}], businessKeyLike: 'SDR-%'},
+						{key:'Replacement', name:'Replacement', group:'infrastructure_replacement_users', subprocesses:[{key:'sdr_srr_request'}], businessKeyLike: 'SRR-%'}
 					]
 				},
 				{

@@ -578,6 +578,9 @@ define(['./module','camundaSDK', 'lodash', 'big-js'], function(module, CamSDK, _
 									selectedProcessDefinitionKeyMap = _.concat(selectedProcessDefinitionKeyMap, _.map(process.subprocesses, 'key'));
 								}
 								var selectedQuery = {'processDefinitionKeyIn':selectedProcessDefinitionKeyMap};
+								if(process.businessKeyLike){
+									selectedQuery.processInstanceBusinessKeyLike = process.businessKeyLike;
+								}
 
 			 					angular.forEach(filters, function(filter){
 			 						if(!filter.properties.processDefinitionKey || filter.properties.processDefinitionKey === process.key){
@@ -614,6 +617,10 @@ define(['./module','camundaSDK', 'lodash', 'big-js'], function(module, CamSDK, _
 								}
 							});
 							var query = {'processDefinitionKeyIn':processDefinitionKeyMap};
+							if(process.businessKeyLike){
+								query.processInstanceBusinessKeyLike = process.businessKeyLike;
+							}
+
 		 					angular.forEach(filters, function(filter){
 		 						if(!filter.properties.processDefinitionKey || processDefinitionKeyMap.indexOf(filter.properties.processDefinitionKey)!==-1){
 									$http.post(baseUrl+'/filter/'+filter.id+'/count',query,{headers:{'Content-Type':'application/json'}}).then(
@@ -637,7 +644,6 @@ define(['./module','camundaSDK', 'lodash', 'big-js'], function(module, CamSDK, _
 			);
 		}
 
-
 		function loadTasks() {
 			if($rootScope.selectedTask && $rootScope.selectedProcess && $rootScope.selectedTask===$rootScope.selectedProcess && $scope.secondLevel === "closed"){
 				$scope.collapseLevels('secondLevel');
@@ -651,6 +657,9 @@ define(['./module','camundaSDK', 'lodash', 'big-js'], function(module, CamSDK, _
 				}
 
 				var queryData = {sorting:[{"sortBy":"created","sortOrder":"desc"}],'processDefinitionKeyIn':processDefinitionKeyMap};
+				if($rootScope.selectedProcess.businessKeyLike){
+					queryData.processInstanceBusinessKeyLike = $rootScope.selectedProcess.businessKeyLike;
+				}
 				$scope.taskGroups = {};
 
 				$http({
