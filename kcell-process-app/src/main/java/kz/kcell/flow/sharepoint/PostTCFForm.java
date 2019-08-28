@@ -129,6 +129,9 @@ public class PostTCFForm implements ExecutionListener {
             }
         });
 
+        log.info("postItemsResponse URL: " + urlStr);
+        log.info("postItemsResponse BODY: " + requestBodyStr);
+
         URL urlRequest = new URL(urlStr);
         HttpURLConnection conn = (HttpURLConnection) urlRequest.openConnection();
         conn.setConnectTimeout(5000);
@@ -146,6 +149,7 @@ public class PostTCFForm implements ExecutionListener {
         // read the response
         InputStream in = new BufferedInputStream(conn.getInputStream());
         String result = org.apache.commons.io.IOUtils.toString(in, "UTF-8");
+        log.info("postItemsResponse RESPONSE: " + result);
         JSONObject jsonObject = new JSONObject(result);
 
         in.close();
@@ -179,7 +183,7 @@ public class PostTCFForm implements ExecutionListener {
             ServiceNameENG = "Bulk sms";
             ServiceNameKAZ = "Bulk sms";
 
-            if("amdocs".equals(billingTCF)){
+            if ("amdocs".equals(billingTCF)) {
                 taskResolutionResult = delegateExecution.getVariable("massApprove_bulkSMS_checkFormAmdocsTCFTaskResult").toString();
                 commentValue = delegateExecution.getVariable("massApprove_bulkSMS_checkFormAmdocsTCFTaskComment").toString();
 
@@ -188,7 +192,7 @@ public class PostTCFForm implements ExecutionListener {
                 //tcfDateValue = String.valueOf(delegateExecution.getVariable("massApprove_bulkSMS_confirmAmdocsTCFTaskCloseDate"));
                 //tcfDateValue = String.valueOf(delegateExecution.getVariable("massApprove_bulkSMS_checkFormOrgaTCFTaskCloseDate"));
             }
-            if("orga".equals(billingTCF)){
+            if ("orga".equals(billingTCF)) {
                 taskResolutionResult = delegateExecution.getVariable("massApprove_bulkSMS_checkFormOrgaTCFTaskResult").toString();
                 commentValue = delegateExecution.getVariable("massApprove_bulkSMS_checkFormOrgaTCFTaskComment").toString();
 
@@ -205,7 +209,7 @@ public class PostTCFForm implements ExecutionListener {
             ServiceNameENG = "Free Phone";
             ServiceNameKAZ = "Free Phone";
 
-            if("amdocs".equals(billingTCF)){
+            if ("amdocs".equals(billingTCF)) {
                 taskResolutionResult = delegateExecution.getVariable("massApprove_checkFormAmdocsTCFTaskResult").toString();
                 commentValue = delegateExecution.getVariable("massApprove_checkFormAmdocsTCFTaskComment").toString();
 
@@ -213,7 +217,7 @@ public class PostTCFForm implements ExecutionListener {
                 //tcfDateValue = String.valueOf(delegateExecution.getVariable("massApprove_confirmAmdocsTCFTaskCloseDate"));
                 //tcfDateValue = String.valueOf(delegateExecution.getVariable("massApprove_checkFormAmdocsTCFTaskCloseDate"));
             }
-            if("orga".equals(billingTCF)){
+            if ("orga".equals(billingTCF)) {
                 taskResolutionResult = delegateExecution.getVariable("massApprove_checkFormOrgaTCFTaskResult").toString();
                 commentValue = delegateExecution.getVariable("massApprove_checkFormOrgaTCFTaskComment").toString();
 
@@ -241,7 +245,7 @@ public class PostTCFForm implements ExecutionListener {
             String headerBillingId = "";
 
             JSONObject requestBodyJSON = new JSONObject();
-            JSONObject metadataBodyJSON = new JSONObject("{\"type\": \"SP.Data.TCF_x005f_testListItem\"}");
+            JSONObject metadataBodyJSON = new JSONObject("{\"type\": \"SP.Data.ICTD_x0020_TCFListItem\"}");
             JSONObject operatorBodyJSON = new JSONObject();
             JSONObject billingTypeBodyJSON = new JSONObject();
             JSONArray operatorResultsJSONArray = new JSONArray();
@@ -249,12 +253,12 @@ public class PostTCFForm implements ExecutionListener {
 
             requestBodyJSON.put("__metadata", metadataBodyJSON);
 
-            if("amdocs".equals(billingTCF)){
+            if ("amdocs".equals(billingTCF)) {
                 headerBillingName = "Amdocs";
                 headerBillingId = "Amdocs ID";
 
                 operatorResultsJSONArray.put("Kcell");
-                billingTypeResultsJSONArray.put("CBOSS");
+                billingTypeResultsJSONArray.put("Amdocs");
                 operatorBodyJSON.put("results", operatorResultsJSONArray);
                 billingTypeBodyJSON.put("results", billingTypeResultsJSONArray);
 
@@ -262,7 +266,7 @@ public class PostTCFForm implements ExecutionListener {
                 requestBodyJSON.put("BillingType", billingTypeBodyJSON);
             }
 
-            if("orga".equals(billingTCF)){
+            if ("orga".equals(billingTCF)) {
                 headerBillingName = "Orga";
                 headerBillingId = "Orga ID";
 
@@ -274,14 +278,20 @@ public class PostTCFForm implements ExecutionListener {
                 requestBodyJSON.put("Operator", operatorBodyJSON);
                 requestBodyJSON.put("BillingType", billingTypeBodyJSON);
             }
+            requestBodyJSON.put("DepartmentManagerId", "{\"results\":[263]}");
 
+            if (delegateExecution.getVariable("starter").toString().equals("Nazym.Muralimova@kcell.kz")) {
+                requestBodyJSON.put("InitiatorId", "3034");
+            } else if (Arrays.asList("Sagida.Adiyeva@kcell.kz", "demo").contains(delegateExecution.getVariable("starter").toString())) {
+                requestBodyJSON.put("InitiatorId", "987");
+            }
             requestBodyJSON.put("InitiatorDepartment", "B2B");
-            requestBodyJSON.put("Subject", "B2B short numbers");
+            requestBodyJSON.put("Subject", "B2B Short Numbers");
             requestBodyJSON.put("DateDeadline", tcfDateValue);
 
             requestBodyJSON.put("Service", "Products / Tariffs");
             requestBodyJSON.put("RelationWithThirdParty", false);
-            requestBodyJSON.put("TypeForm", "Изменение тарифа на существующий сервис (New service TCF)");
+            requestBodyJSON.put("TypeForm", "Добавление тарифа на новый сервис (New service TCF)");
             requestBodyJSON.put("Comments", commentValue);
             requestBodyJSON.put("ServiceNameRUS", ServiceNameRUS);
             requestBodyJSON.put("ServiceNameENG", ServiceNameENG);
@@ -328,19 +338,19 @@ public class PostTCFForm implements ExecutionListener {
                 String resultContexninfo = "error";
                 String resultItems = "error";
                 try {
-                    String responseText = postAuthenticatedResponse(baseUri+"/contextinfo", "kcell.kz", username, pwd);
+                    String responseText = postAuthenticatedResponse(baseUri + "/contextinfo", "kcell.kz", username, pwd);
                     resultContexninfo = responseText;
-                }catch(Exception e){
+                } catch (Exception e) {
                     e.printStackTrace();
                 }
 
-                if(!"error".equals(resultContexninfo)){
+                if (!"error".equals(resultContexninfo)) {
                     JSONObject contextinfoJSON = new JSONObject(resultContexninfo);
-                    if(contextinfoJSON.has("FormDigestValue")){
+                    if (contextinfoJSON.has("FormDigestValue")) {
                         try {
-                            String responseText = postItemsResponse(baseUri+"/Lists/getbytitle('TCF_test')/items", "kcell.kz", username, pwd, contextinfoJSON.get("FormDigestValue").toString(), requestBodyJSON.toString());
+                            String responseText = postItemsResponse(baseUri + "/Lists/getbytitle('ICTD%20TCF')/items", "kcell.kz", username, pwd, contextinfoJSON.get("FormDigestValue").toString(), requestBodyJSON.toString());
                             resultItems = responseText;
-                        }catch(Exception e){
+                        } catch (Exception e) {
                             e.printStackTrace();
                         }
                     }
@@ -349,22 +359,22 @@ public class PostTCFForm implements ExecutionListener {
                 JSONObject responseSharepointJSON = new JSONObject(resultItems);
                 String Status = responseSharepointJSON.get("Status").toString();
 
-                if("amdocs".equals(billingTCF)){
+                if ("amdocs".equals(billingTCF)) {
 
                     delegateExecution.setVariable("amdocsTcfFormStatus", Status);
                     //if("Completed".equals(Status)){
-                    if(Status.indexOf("Approved") > -1){
+                    if (Status.indexOf("Approved") > -1) {
                         delegateExecution.setVariable("amdocsTcfFormId", responseSharepointJSON.get("Id").toString());
                         delegateExecution.setVariable("amdocsTcfFormIdReceived", true);
                     } else {
                         delegateExecution.setVariable("amdocsTcfFormIdReceived", false);
                     }
                 }
-                if("orga".equals(billingTCF)){
+                if ("orga".equals(billingTCF)) {
 
                     delegateExecution.setVariable("orgaTcfFormStatus", Status);
                     //if("Completed".equals(Status)){
-                    if(Status.indexOf("Approved") > -1){
+                    if (Status.indexOf("Approved") > -1) {
                         delegateExecution.setVariable("orgaTcfFormId", responseSharepointJSON.get("Id").toString());
                         delegateExecution.setVariable("orgaTcfFormIdReceived", true);
                     } else {
@@ -374,7 +384,7 @@ public class PostTCFForm implements ExecutionListener {
 
                 /*StringEntity TCFData = new StringEntity(requestBodyJSON.toString(), ContentType.APPLICATION_JSON);
 
-                HttpPost httpPostTCF = new HttpPost(new URI(baseUri+"/Lists/getbytitle('TCF_test')/items"));
+                HttpPost httpPostTCF = new HttpPost(new URI(baseUri+"/Lists/getbytitle('ICTD%20TCF')/items"));
                 httpPostTCF.addHeader("Content-Type", "application/json;charset=UTF-8");
                 httpPostTCF.setEntity(TCFData);
 
@@ -423,20 +433,20 @@ public class PostTCFForm implements ExecutionListener {
                 */
 
             } else {
-                if("amdocs".equals(billingTCF)) {
+                if ("amdocs".equals(billingTCF)) {
                     delegateExecution.setVariable("amdocsTcfFormId", 1111);
                     delegateExecution.setVariable("amdocsTcfFormIdReceived", true);
                 }
-                if("orga".equals(billingTCF)) {
+                if ("orga".equals(billingTCF)) {
                     delegateExecution.setVariable("orgaTcfFormId", 2222);
                     delegateExecution.setVariable("orgaTcfFormIdReceived", true);
                 }
             }
         } else {
-            if("amdocs".equals(billingTCF)) {
+            if ("amdocs".equals(billingTCF)) {
                 delegateExecution.setVariable("amdocsTcfFormIdReceived", false);
             }
-            if("orga".equals(billingTCF)) {
+            if ("orga".equals(billingTCF)) {
                 delegateExecution.setVariable("orgaTcfFormIdReceived", false);
             }
         }

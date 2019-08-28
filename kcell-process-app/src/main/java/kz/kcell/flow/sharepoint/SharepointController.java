@@ -72,13 +72,13 @@ public class SharepointController {
 
     @RequestMapping(value = "/getbytitle/items/{itemId}", method = RequestMethod.GET)
     @ResponseBody
-    public ResponseEntity<String> getTCF(@PathVariable("itemId") String itemId, HttpServletRequest request) throws NoSuchAlgorithmException, IOException,KeyStoreException, KeyManagementException, ParseException {
+    public ResponseEntity<String> getTCF(@PathVariable("itemId") String itemId, HttpServletRequest request) throws NoSuchAlgorithmException, IOException, KeyStoreException, KeyManagementException, ParseException {
 
         Boolean isSftp = Arrays.stream(environment.getActiveProfiles()).anyMatch(env -> (env.equalsIgnoreCase("sftp")));
         String result = "error";
         if (isSftp) {
             try {
-                String responseText = getAuthenticatedResponse(baseUri + "/Lists/getbytitle('TCF_test')/items("+ itemId +")", "kcell.kz", this.username, this.pwd);
+                String responseText = getAuthenticatedResponse(baseUri + "/Lists/getbytitle('ICTD%20TCF')/items("+ itemId +")", "kcell.kz", this.username, this.pwd);
                 //result = responseText;
 
                 ////////////////////
@@ -392,9 +392,9 @@ public class SharepointController {
         String result = "error";
         if (isSftp) {
             try {
-                String responseText = postItemsResponse(baseUri + "/Lists/getbytitle('TCF_test')/items", "kcell.kz", this.username, this.pwd, requestBody);
+                String responseText = postItemsResponse(baseUri + "/Lists/getbytitle('ICTD%20TCF')/items", "kcell.kz", this.username, this.pwd, requestBody);
                 result = responseText;
-            }catch(Exception e){
+            } catch (Exception e) {
                 e.printStackTrace();
             }
             return ResponseEntity.ok(result);
@@ -627,6 +627,10 @@ public class SharepointController {
             }
         });
 
+        log.info("postItemsResponse URL:");
+        log.info(urlStr);
+        log.info("postItemsResponse BODY:");
+        log.info(jsonRequestBody);
         URL urlRequest = new URL(urlStr);
         HttpURLConnection conn = (HttpURLConnection) urlRequest.openConnection();
         conn.setConnectTimeout(5000);
@@ -644,6 +648,8 @@ public class SharepointController {
         // read the response
         InputStream in = new BufferedInputStream(conn.getInputStream());
         String result = org.apache.commons.io.IOUtils.toString(in, "UTF-8");
+        log.info("postItemsResponse RESPONSE: ");
+        log.info(requestBodyStr);
         JSONObject jsonObject = new JSONObject(result);
 
         in.close();
@@ -652,7 +658,7 @@ public class SharepointController {
         return jsonObject.toString();
     }
 
-    @RequestMapping(value = "/forms/tcf", method = RequestMethod.POST, produces={"application/json"}, consumes="application/json")
+    @RequestMapping(value = "/forms/tcf", method = RequestMethod.POST, produces = {"application/json"}, consumes = "application/json")
     @ResponseBody
     public ResponseEntity<String> PostTCF(@RequestBody String RequestBody) throws Exception {
 
@@ -668,7 +674,7 @@ public class SharepointController {
 
                 StringEntity TCFData = new StringEntity(RequestBody, ContentType.APPLICATION_JSON);
 
-                HttpPost httpPostTCF = new HttpPost(new URI(baseUri+"/getbytitle('ICTD%20TCF')"));
+                HttpPost httpPostTCF = new HttpPost(new URI(baseUri + "/getbytitle('ICTD%20TCF')"));
                 httpPostTCF.addHeader("Content-Type", "application/json;charset=UTF-8");
                 httpPostTCF.setEntity(TCFData);
 

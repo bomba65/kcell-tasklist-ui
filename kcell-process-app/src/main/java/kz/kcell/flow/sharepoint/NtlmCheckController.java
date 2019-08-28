@@ -28,7 +28,7 @@ public class NtlmCheckController {
 
         String result = "error";
         try {
-            String responseText = getAuthenticatedResponse("https://sp.kcell.kz/forms/_api/Lists/getbytitle('TCF_test')/items(1)", "kcell.kz", "camunda_sharepoint", "Bn12#Qaz");
+            String responseText = getAuthenticatedResponse("https://sp.kcell.kz/forms/_api/Lists/getbytitle('ICTD%20TCF')/items(1)", "kcell.kz", "camunda_sharepoint", "Bn12#Qaz");
             result = responseText;
         }catch(Exception e){
             e.printStackTrace();
@@ -75,7 +75,7 @@ public class NtlmCheckController {
 
         String result = "error";
         try {
-            String responseText = postItemsResponse("https://sp.kcell.kz/forms/_api/Lists/getbytitle('TCF_test')/items", "kcell.kz", "camunda_sharepoint", "Bn12#Qaz", reqObj.get("FormDigestValue").toString());
+            String responseText = postItemsResponse("https://sp.kcell.kz/forms/_api/Lists/getbytitle('ICTD%20TCF')/items", "kcell.kz", "camunda_sharepoint", "Bn12#Qaz", reqObj.get("FormDigestValue").toString());
             result = responseText;
         }catch(Exception e){
             e.printStackTrace();

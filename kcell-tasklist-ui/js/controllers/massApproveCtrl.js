@@ -348,7 +348,7 @@ define(['./module', 'lodash', 'big-js'], function(module, _, Big){
                                 return $http.post("/camunda/sharepoint/items", reqBodyTCF);
                             }
                         }
-                    )
+                    );
                 }
             }
         };
@@ -378,7 +378,7 @@ define(['./module', 'lodash', 'big-js'], function(module, _, Big){
                     var htmlTemplateFooter = '</tbody></table><p><br></p></div>';
 
                     var requestBodyJSON = {};
-                    var metadataBodyJSON = {type: "SP.Data.TCF_x005f_testListItem"};
+                    var metadataBodyJSON = {type: "SP.Data.ICTD_x0020_TCFListItem"};
                     var operatorBodyJSON = {};
                     var billingTypeBodyJSON = {};
                     var operatorResultsJSONArray = [];
@@ -409,7 +409,7 @@ define(['./module', 'lodash', 'big-js'], function(module, _, Big){
                         headerBillingName = "Amdocs";
                         headerBillingId = "Amdocs ID";
                         operatorResultsJSONArray.push("Kcell");
-                        billingTypeResultsJSONArray.push("CBOSS");
+                        billingTypeResultsJSONArray.push("Amdocs");
                         operatorBodyJSON["results"] = operatorResultsJSONArray;
                         billingTypeBodyJSON["results"] = billingTypeResultsJSONArray;
                         requestBodyJSON["Operator"] = operatorBodyJSON;
@@ -445,15 +445,16 @@ define(['./module', 'lodash', 'big-js'], function(module, _, Big){
                         '</tr>';
 
                     requestBodyJSON["InitiatorDepartment"] = "B2B";
-                    requestBodyJSON["Subject"] = "B2B short numbers";
+                    requestBodyJSON["Subject"] = "B2B Short Numbers";
                     //requestBodyJSON["DateDeadline"] = tcfDateValue;
                     requestBodyJSON["Service"] = "Products / Tariffs";
                     requestBodyJSON["RelationWithThirdParty"] = false;
-                    requestBodyJSON["TypeForm"] = "Изменение тарифа на существующий сервис (New service TCF)";
+                    requestBodyJSON["TypeForm"] = "Добавление тарифа на новый сервис (New service TCF)";
                     //requestBodyJSON["Comments"] = commentsTCF;
                     requestBodyJSON["ServiceNameRUS"] = ServiceNameRUS;
                     requestBodyJSON["ServiceNameENG"] = ServiceNameENG;
                     requestBodyJSON["ServiceNameKAZ"] = ServiceNameKAZ;
+                    requestBodyJSON["DepartmentManagerId"] = {"results" : [263]};
                     requestBodyJSON["Status"] = "Approved by Department Manager";
                     requestBodyJSON["Created"] = $filter('date')(new Date(), 'yyyy-MM-ddTHH:mm:ss');
                 }
@@ -461,6 +462,15 @@ define(['./module', 'lodash', 'big-js'], function(module, _, Big){
                 for (var j = 0; j < definition.tasks.length; j++) {
                     const instance = $scope.definitions[i].tasks[j];
                     if (!instance.resolution) continue;
+                    if(preSubmitTasks['TCFPost'].tasks.indexOf(defKey) > -1) {
+                        if (instance.starter) {
+                            if (instance.starter === "Nazym.Muralimova@kcell.kz") {
+                                requestBodyJSON["InitiatorId"] = "3034";
+                            } else if (instance.starter === "Sagida.Adiyeva@kcell.kz" || instance.starter === "demo") {
+                                requestBodyJSON["InitiatorId"] = "987";
+                            }
+                        }
+                    }
 
                     var emptyFields = mandatoryFields.filter(function(field) {
                         return instance[field.name] ? false : $scope.taskData[instance.taskId][field.name] ?  false : true;
