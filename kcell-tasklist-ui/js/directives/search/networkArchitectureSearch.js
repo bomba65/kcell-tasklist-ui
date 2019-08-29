@@ -118,7 +118,6 @@ define(['../module', 'moment'], function (module, moment) {
                     }
                     if (scope.onlyProcessActive!=='Revision') {
                         //clear Revision-only filters
-                        scope.filter.requestedDateRange = undefined;
                         scope.filter.validityDateRange = undefined;
                         $(".calendar-range-readonly").each(function () {
                             if ($(this).data('daterangepicker')) {
@@ -128,7 +127,6 @@ define(['../module', 'moment'], function (module, moment) {
                         });
                         scope.filter.businessKeyFilterType = 'all';
                         scope.filter.businessKey = undefined;
-                        scope.filter.requestor = undefined;
                         scope.filter.priority = undefined;
                         scope.filter.activityId = undefined;
                         scope.filter.workType = undefined;
@@ -136,6 +134,15 @@ define(['../module', 'moment'], function (module, moment) {
                         scope.filter.mainContract = 'All';
                         scope.filter.participation = undefined;
                         scope.filter.currentAssignee = undefined;
+                    }
+                    if (scope.onlyProcessActive!=='Dismantle') {
+                        scope.filter.dismantlingInitiator = undefined;
+                        scope.filter.businessKeyFilterType = 'all';
+                        scope.filter.businessKey = undefined;
+                    }
+                    if (scope.onlyProcessActive!=='Revision' && scope.onlyProcessActive!=='Dismantle') {
+                        scope.filter.requestedDateRange = undefined;
+                        scope.filter.requestor = undefined;
                     }
                     if (scope.onlyProcessActive!=='Invoice') {
                         scope.filter.initiator = undefined;
@@ -161,7 +168,8 @@ define(['../module', 'moment'], function (module, moment) {
                     'south_kcell_users': 'south',
                     'west_kcell_users': 'west'
                 }
-                $http.get(baseUrl + '/process-definition/key/Revision/xml')
+                function downloadXML(process){
+                    $http.get(baseUrl + '/process-definition/key/' + process + '/xml')
                     .then(function (response) {
                         var domParser = new DOMParser();
 
@@ -173,7 +181,7 @@ define(['../module', 'moment'], function (module, moment) {
                             };
 
                             var userTaskNodes = [
-                                ...getElementsByXPath(xml, '//bpmn:userTask', prefix => namespaces[prefix]),
+                                ...getElementsByXPath(xml, '//bpmn:userTask', prefix => namespaces[prefix]) ,
                                 ...getElementsByXPath(xml, '//bpmn:intermediateCatchEvent', prefix => namespaces[prefix])
                             ];
 
@@ -209,33 +217,40 @@ define(['../module', 'moment'], function (module, moment) {
                             });
                         }
 
-                        var excludeTasks = [
-                            'signpr_by_center',
-                            'signpr_by_manager',
-                            'signpr_by_budgetowner',
-                            'signpr_by_cto',
-                            'signpr_by_cfo',
-                            'signpr_by_ceo',
-                            'Task_1ix12n7',
-                            'Task_1uvnb7n',
-                            'Task_12eq7hi',
-                            'Task_1wf6n5j',
-                            'Task_1puv0a9',
-                            'Task_1m2xspc',
-                            'Task_1mb15j2',
-                            'Task_1mocj2s',
-                            'Task_1gjdn28',
-                            'IntermediateThrowEvent_wait_po_pr_creation'
-                        ];
+                        if(process === 'Revision'){
+                            var excludeTasks = [
+                                'signpr_by_center',
+                                'signpr_by_manager',
+                                'signpr_by_budgetowner',
+                                'signpr_by_cto',
+                                'signpr_by_cfo',
+                                'signpr_by_ceo',
+                                'Task_1ix12n7',
+                                'Task_1uvnb7n',
+                                'Task_12eq7hi',
+                                'Task_1wf6n5j',
+                                'Task_1puv0a9',
+                                'Task_1m2xspc',
+                                'Task_1mb15j2',
+                                'Task_1mocj2s',
+                                'Task_1gjdn28',
+                                'IntermediateThrowEvent_wait_po_pr_creation'
+                            ];
 
-                        var userTasks = getUserTasks(xml);
-                        var includedUserTasks = _.filter(userTasks, function (task) {
-                            return excludeTasks.indexOf(task.id) === -1;
-                        });
-                        scope.includedUserTasks = includedUserTasks;
-                        var userTasksMap = _.keyBy(includedUserTasks, 'id');
-                        scope.userTasksMap = userTasksMap;
+                            var userTasks = getUserTasks(xml);
+                            var includedUserTasks = _.filter(userTasks, function (task) {
+                                return excludeTasks.indexOf(task.id) === -1;
+                            });
+                            scope.includedUserTasks = includedUserTasks;
+                            var userTasksMap = _.keyBy(includedUserTasks, 'id');
+                            scope.userTasksMap = userTasksMap;                            
+                        } else if(process === 'sdr_srr_request') {
+                            scope.dismantleUserTasks = getUserTasks(xml);
+                            console.log(scope.dismantleUserTasks);
+                        }
                     });
+                }                
+
                 scope.filter = {
                     businessKeyFilterType: 'eq',
                     unfinished: false,
@@ -335,8 +350,19 @@ define(['../module', 'moment'], function (module, moment) {
                         scope.piIndex = undefined;
                         scope.xlsxPreparedRevision = false;
                     }
+                    var selectedProcessInstances = [];
+                    angular.forEach(scope.selectedProcessInstances, function(item){
+                        if (item === 'Dismantle' || item === 'Replacement') {
+                            if(selectedProcessInstances.indexOf('sdr_srr_request')===-1){
+                                selectedProcessInstances.push('sdr_srr_request')
+                            }
+                        } else {
+                            selectedProcessInstances.push(item);
+                        }
+                    });
+
                     var excludeProcesses = processList.filter(function (item) {
-                        return scope.selectedProcessInstances.indexOf(item) === -1;
+                        return selectedProcessInstances.indexOf(item) === -1;
                     });
 
                     var filter = {
@@ -346,6 +372,12 @@ define(['../module', 'moment'], function (module, moment) {
                         processInstanceBusinessKeyLike: '%-%',
                         processDefinitionKeyNotIn: excludeProcesses
 
+                    }
+                    if(scope.selectedProcessInstances.indexOf('Dismantle')!==-1 && scope.selectedProcessInstances.indexOf('Replacement')===-1){
+                        filter.variables.push({"name": "requestType", "operator": "eq", "value": "dismantle"});
+                    }
+                    if(scope.selectedProcessInstances.indexOf('Replacement')!==-1 && scope.selectedProcessInstances.indexOf('Dismantle')===-1){
+                        filter.variables.push({"name": "requestType", "operator": "eq", "value": "replacement"});
                     }
                     if (scope.filter.unfinished) {
                         filter.unfinished = true;
@@ -440,17 +472,32 @@ define(['../module', 'moment'], function (module, moment) {
 
                     if (scope.filter.requestedDateRange) {
                         var results = scope.convertStringToDate(scope.filter.requestedDateRange);
-                        if (results.length === 2) {
-                            filter.variables.push({
-                                "name": "requestedDate",
-                                "operator": "gteq",
-                                "value": results[0]
-                            });
-                            filter.variables.push({
-                                "name": "requestedDate",
-                                "operator": "lteq",
-                                "value": results[1]
-                            });
+                        if(scope.onlyProcessActive==='Revision'){
+                            if (results.length === 2) {
+                                filter.variables.push({
+                                    "name": "requestedDate",
+                                    "operator": "gteq",
+                                    "value": results[0]
+                                });
+                                filter.variables.push({
+                                    "name": "requestedDate",
+                                    "operator": "lteq",
+                                    "value": results[1]
+                                });
+                            }                            
+                        } else if(scope.onlyProcessActive==='Dismantle'){
+                            if (results.length === 2) {
+                                filter.variables.push({
+                                    "name": "sdrCreationDate",
+                                    "operator": "gteq",
+                                    "value": results[0]
+                                });
+                                filter.variables.push({
+                                    "name": "sdrCreationDate",
+                                    "operator": "lteq",
+                                    "value": results[1]
+                                });
+                            }
                         }
                     }
                     if (scope.filter.validityDateRange) {
@@ -479,6 +526,13 @@ define(['../module', 'moment'], function (module, moment) {
                             "value": "%" + scope.filter.workName + "%"
                         });
                     }
+                    if (scope.filter.dismantlingInitiator) {
+                        filter.variables.push({
+                            "name": "dismantlingInitiator",
+                            "operator": "eq",
+                            "value": scope.filter.dismantlingInitiator
+                        });
+                    }                    
                     if (scope.filter.requestor) {
                         if (scope.filter.participation === 'participant') {
                             $http.post(baseUrl + '/history/task', {taskAssignee: scope.filter.requestor}).then(
@@ -525,8 +579,11 @@ define(['../module', 'moment'], function (module, moment) {
                     }
 
 
-                    if (scope.filter.activityId) {
+                    if (scope.filter.activityId && scope.onlyProcessActive==='Revision') {
                         filter.activeActivityIdIn.push(scope.filter.activityId);
+                    }
+                    if (scope.filter.dismantleActivityId && scope.onlyProcessActive==='Dismantle') {
+                        filter.activeActivityIdIn.push(scope.filter.dismantleActivityId);
                     }
                     if (scope.filter.mainContract && scope.filter.mainContract !== 'All') {
                         filter.variables.push({
@@ -601,6 +658,10 @@ define(['../module', 'moment'], function (module, moment) {
                             scope[processInstances] = result.data;
                             var variables = ['siteRegion', 'site_name', 'contractor', 'reason', 'requestedDate', 'validityDate', 'jobWorks', 'explanation', 'workType'];
 
+                            if(scope.selectedProcessInstances.indexOf('Dismantle')!==-1 || scope.selectedProcessInstances.indexOf('Replacement')!==-1){
+                                variables.push('requestType');
+                            }
+
                             if (scope[processInstances].length > 0) {
                                 angular.forEach(scope[processInstances], function (el) {
                                     if (el.durationInMillis) {
@@ -668,7 +729,7 @@ define(['../module', 'moment'], function (module, moment) {
                                         angular.forEach(scope[processInstances], function (el) {
                                             var f = _.filter(tasks.data, function (t) {
                                                 return t.processInstanceId === el.id;
-                                            });
+                                            });                                            
                                             if (f && f.length > 0) {
                                                 el['tasks'] = f;
                                                 _.forEach(el.tasks, function (task) {
@@ -768,8 +829,18 @@ define(['../module', 'moment'], function (module, moment) {
                     return array;
                 }
                 scope.toggleProcess = function (process) {
-                    if (scope.KWMSProcesses[process].value) scope.KWMSProcesses[process].value = false;
-                    else scope.KWMSProcesses[process].value = true;
+                    if (scope.KWMSProcesses[process].value) {
+                        scope.KWMSProcesses[process].value = false;
+                    } else {
+                        scope.KWMSProcesses[process].value = true;
+                        if(process === 'Revision' && !scope.KWMSProcesses[process].downloaded){
+                            downloadXML('Revision');
+                            scope.KWMSProcesses[process].downloaded = true;
+                        } else if(process === 'Dismantle' && !scope.KWMSProcesses[process].downloaded){
+                            downloadXML('sdr_srr_request');
+                            scope.KWMSProcesses[process].downloaded = true;
+                        }
+                    }
                 };
                 scope.toggleProcessViewRevision = function (index, processDefinitionKey, processDefinitionId, businessKey) {
                     scope.showDiagramView = false;
@@ -1057,6 +1128,8 @@ define(['../module', 'moment'], function (module, moment) {
                                 function (result) {
                                     var workFiles = [];
                                     result.data.forEach(function (el) {
+                                        console.log('!!!!!');
+
                                         scope.dismantleInfo[el.name] = el;
                                         if (el.type === 'File' || el.type === 'Bytes') {
                                             scope.dismantleInfo[el.name].contentUrl = baseUrl + '/history/variable-instance/' + el.id + '/data';
@@ -1066,6 +1139,7 @@ define(['../module', 'moment'], function (module, moment) {
                                         }
                                     });
                                     if (scope.dismantleInfo.resolutions && scope.dismantleInfo.resolutions.value) {
+
                                         $q.all(scope.dismantleInfo.resolutions.value.map(function (resolution) {
                                             return $http.get("/camunda/api/engine/engine/default/history/task?processInstanceId=" + resolution.processInstanceId + "&taskId=" + resolution.taskId);
                                         })).then(function (tasks) {
@@ -1101,41 +1175,30 @@ define(['../module', 'moment'], function (module, moment) {
                 }
             };
             function openProcessCardModalDismantle(processDefinitionId, businessKey, index) {
-                $http({
-                    method: 'POST',
-                    headers: {'Accept': 'application/hal+json, application/json; q=0.5'},
-                    data: {'processInstanceBusinessKey': businessKey, 'processDefinitionKeyNotIn':['Dismantle']},
-                    url: baseUrl + '/history/process-instance'
-                }).then(
-                    function (result) {
-                        scope.childProcessDefinitionId = result.data[0].processDefinitionId;
-                        exModal.open({
-                            scope: {
-                                dismantleInfo: scope.dismantleInfo,
-                                showDiagram:scope.showDiagram,
-                                showHistory: scope.showHistory,
-                                hasGroup: scope.hasGroup,
-                                showGroupDetails:scope.showGroupDetails,
-                                processDefinitionId: processDefinitionId,
-                                childProcessDefinitionId: scope.childProcessDefinitionId,
-                                piIndex: scope.piIndex,
-                                $index: index,
-                                businessKey: businessKey,
-                                download: function(path) {
-                                    $http({method: 'GET', url: '/camunda/uploads/get/' + path, transformResponse: [] }).
-                                    then(function(response) {
-                                        document.getElementById('fileDownloadIframe').src = response.data;
-                                    }, function(error){
-                                        console.log(error);
-                                    });
-                                }
-                            },
-                            templateUrl: './js/partials/dismantleCardModal.html',
-                            size: 'lg'
-                        }).then(function(results){
-                        }); 
-                    }
-                );
+                exModal.open({
+                    scope: {
+                        dismantleInfo: scope.dismantleInfo,
+                        showDiagram:scope.showDiagram,
+                        showHistory: scope.showHistory,
+                        hasGroup: scope.hasGroup,
+                        showGroupDetails:scope.showGroupDetails,
+                        processDefinitionId: processDefinitionId,
+                        piIndex: scope.piIndex,
+                        $index: index,
+                        businessKey: businessKey,
+                        download: function(path) {
+                            $http({method: 'GET', url: '/camunda/uploads/get/' + path, transformResponse: [] }).
+                            then(function(response) {
+                                document.getElementById('fileDownloadIframe').src = response.data;
+                            }, function(error){
+                                console.log(error);
+                            });
+                        }
+                    },
+                    templateUrl: './js/partials/dismantleCardModal.html',
+                    size: 'lg'
+                }).then(function(results){
+                }); 
             }
 
 

@@ -38,7 +38,7 @@ from (
 
 --  для месячного акта
 INSERT INTO public.act_hi_varinst (id_, proc_def_key_, proc_def_id_, proc_inst_id_, execution_id_, act_inst_id_, name_, var_type_, rev_, text_, state_)
-select s.vuuid, 'Invoice', s.proc_def_id_, s.proc_ins_id_, s.execution_id_, s.act_inst_id_, 'mainContract', 'string', 0, 'Invoice', 'CREATED'
+select s.vuuid, 'Invoice', s.proc_def_id_, s.proc_ins_id_, s.execution_id_, s.act_inst_id_, 'mainContract', 'string', 0, 'Revision', 'CREATED'
 from (
     select uuid_generate_v4() AS vuuid,
           p.id_ as proc_ins_id_,
@@ -49,14 +49,14 @@ from (
         inner join act_hi_varinst v on v.proc_inst_id_ = p.proc_inst_id_ and v.name_ = 'workType'
     where p.proc_def_key_ = 'Invoice'
     and p.proc_inst_id_ not in (
-      select v.proc_inst_id_
+      select proc_inst_id_
       from act_hi_varinst
       where name_ = 'mainContract'
     )
 ) as s;
 
 INSERT INTO public.act_ru_variable (id_, rev_, type_, name_, execution_id_, proc_inst_id_, text_, var_scope_, sequence_counter_, is_concurrent_local_)
-select s.id_, 1, 'string', 'mainContract', s.execution_id_, s.proc_inst_id_, 'Invoice', s.proc_inst_id_, 1, false
+select s.id_, 1, 'string', 'mainContract', s.execution_id_, s.proc_inst_id_, 'Revision', s.proc_inst_id_, 1, false
 from (
     select
         v.id_ as id_,

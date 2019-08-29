@@ -12,7 +12,7 @@ public class CentralGroupsAssignmentHandler implements TaskListener {
         if("dismantle".equals(requestType)){
             delegateTask.setDescription("SITE DISMANTLING REQUEST");
         } else if("replace".equals(requestType)){
-            delegateTask.setDescription("SITE REPLACE REQUEST");
+            delegateTask.setDescription("SITE REPLACEMENT REQUEST");
         }
 
         String group = String.valueOf(delegateTask.getVariable("group"));
