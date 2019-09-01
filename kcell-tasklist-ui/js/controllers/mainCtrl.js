@@ -608,7 +608,7 @@ define(['./module','camundaSDK', 'lodash', 'big-js'], function(module, CamSDK, _
 									}
 								});
 							});
-						} else {
+						} /*else {
 							var processDefinitionKeyMap = _.map(project.processes, 'key');
 							angular.forEach(project.processes, function(process){
 								if(process.subprocesses && process.subprocesses.length > 0){
@@ -617,9 +617,6 @@ define(['./module','camundaSDK', 'lodash', 'big-js'], function(module, CamSDK, _
 								}
 							});
 							var query = {'processDefinitionKeyIn':processDefinitionKeyMap};
-							if(process.businessKeyLike){
-								query.processInstanceBusinessKeyLike = process.businessKeyLike;
-							}
 
 		 					angular.forEach(filters, function(filter){
 		 						if(!filter.properties.processDefinitionKey || processDefinitionKeyMap.indexOf(filter.properties.processDefinitionKey)!==-1){
@@ -633,7 +630,7 @@ define(['./module','camundaSDK', 'lodash', 'big-js'], function(module, CamSDK, _
 									);
 								}
 							});
-						}
+						}*/
 					});
 
 					loadTasks();
