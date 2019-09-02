@@ -12,6 +12,7 @@ define(['../module', 'jquery'], function (app) {
                 var endDate;
                 var holidays = $rootScope.holidays;
                 var weekend_working = $rootScope.weekendWorking;
+                var holidaysForYear = $rootScope.holidaysForYear;
                 var substitues = [];
                 var substitude_done = [];
                 for (var i=0; i<holidays.length; i++) {
@@ -60,6 +61,9 @@ define(['../module', 'jquery'], function (app) {
                                     }
                                     return_class += 'calendar-holiday';
                                 } else if (substitues.indexOf(date.format('D/M/YYYY')) > -1) {
+                                    return_class += 'calendar-holiday';
+                                }
+                                if(holidaysForYear.indexOf(format_date_year) > -1){
                                     return_class += 'calendar-holiday';
                                 }
                                 return return_class;

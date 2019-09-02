@@ -10,6 +10,7 @@ define(['../module', 'angular', 'angular-ui-bootstrap'], function (app, angular)
             var directive = $delegate[0];
             var holidays = $rootScope.holidays;
             var weekendWorking = $rootScope.weekendWorking;
+            var holidaysForYear = $rootScope.holidaysForYear;
             directive.templateUrl = './js/directives/customCalendar/dayPicker.html';
             var link = directive.link;
             directive.compile = function() {
@@ -26,14 +27,14 @@ define(['../module', 'angular', 'angular-ui-bootstrap'], function (app, angular)
                                 var thisDay = day.date.getDate();
                                 var day_type = day.date.getDay();
 
-                                if (holidays.includes(thisDay+'/'+month)) {
+                                if (holidays.includes(thisDay+'/'+month) || holidaysForYear.includes(thisDay+'/'+month+'/'+year)) {
                                     day.holiday = true;
                                 }
-                                if (mark_next>0 && !day.holiday &&!(day_type===0 || day_type===6) ) {
+                                if (mark_next>0 && !day.holiday && !(day_type===0 || day_type===6) ) {
                                     day.holiday = true;
                                     mark_next-=1;
                                 }
-                                if (day.holiday && (day_type===6 || day_type===0)) {
+                                if (day.holiday && (day_type===6 || day_type===0) && !holidaysForYear.includes(thisDay+'/'+month+'/'+year)) {
                                     mark_next+=1;
                                 }
                                 if (!day.holiday && (day_type===6 || day_type===0) &&
