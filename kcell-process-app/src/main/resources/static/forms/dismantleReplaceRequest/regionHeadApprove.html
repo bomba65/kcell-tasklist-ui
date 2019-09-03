@@ -33,7 +33,41 @@
                 'dismantlingReason',
                 'startComment',
                 'resolutions',
-                'sdrNumber'
+                'sdrNumber',
+                'srrCreationDate',
+                'replacementInitiator',
+                'siteToName',
+                'siteTo',
+                'site_to_name',
+                'siteFromRbsQuantity',
+                'siteToRbsQuantity',
+                'siteFromLatitude',
+                'siteToLatitude',
+                'siteFromLongitude',
+                'siteToLongitude',
+                'siteFromRbsTypes',
+                'siteToRbsTypes',
+                'siteFromBand',
+                'siteToBand',
+                'siteFromRbsLocation',
+                'siteToRbsLocation',
+                'siteFromSquareMeter',
+                'siteToSquareMeter',
+                'siteFromGsmAntennaTypes',
+                'siteToGsmAntennaTypes',
+                'siteFromTransmissionAntennaType',
+                'siteToTransmissionAntennaType',
+                'siteFromContractId',
+                'siteToContractId',
+                'siteFromContractType',
+                'siteToContractType',
+                'siteFromLegallyName',
+                'siteToLegallyName',
+                'siteFromAddress',
+                'siteToAddress',
+                'siteFromContactInformation',
+                'siteToContactInformation',
+                'replacementReason'
             ];
 
             camForm.on('form-loaded', function () {
@@ -48,7 +82,8 @@
                             console.log(error.data);
                         }
                 );
-                $scope.dismantleInfo = [];
+                $scope.dismantleInfo = {};
+                $scope.replacementInfo = {};
             });
 
             camForm.on('variables-fetched', function () {
@@ -57,9 +92,11 @@
                         if(camForm.variableManager.variables[el].type === 'Date'){
                             $scope[el] = new Date(camForm.variableManager.variables[el].value);
                             $scope.dismantleInfo[el] = new Date(camForm.variableManager.variables[el].value);
+                            $scope.replacementInfo[el] = new Date(camForm.variableManager.variables[el].value);
                         } else {
                             $scope[el] = camForm.variableManager.variables[el].value;
                             $scope.dismantleInfo[el] = camForm.variableManager.variables[el].value;
+                            $scope.replacementInfo[el] = camForm.variableManager.variables[el].value;
                         }
                     }
                 });
@@ -82,16 +119,34 @@
             camForm.on('submit', function () {
                 camForm.variableManager.variableValue('region_approveTaskResult', $scope.region_approveTaskResult);
                 camForm.variableManager.variableValue('region_approveTaskComment', $scope.region_approveTaskComment);
-                camForm.variableManager.variableValue('soaComplaintId', $scope.dismantleInfo.soaComplaintId);
-                camForm.variableManager.variableValue('validityDate', $scope.dismantleInfo.validityDate);
+                if($scope.requestType === 'dismantle'){
+                    camForm.variableManager.variableValue('soaComplaintId', $scope.dismantleInfo.soaComplaintId);
+                    camForm.variableManager.variableValue('validityDate', $scope.dismantleInfo.validityDate);
+                } else {
+                    camForm.variableManager.variableValue('soaComplaintId', $scope.replacementInfo.soaComplaintId);
+                    camForm.variableManager.variableValue('validityDate', $scope.replacementInfo.validityDate);
+
+                    camForm.variableManager.variableValue('siteFromContractId', $scope.replacementInfo.siteFromContractId);
+                    camForm.variableManager.variableValue('siteToContractId', $scope.replacementInfo.siteToContractId);
+                    camForm.variableManager.variableValue('siteFromContractType', $scope.replacementInfo.siteFromContractType);
+                    camForm.variableManager.variableValue('siteToContractType', $scope.replacementInfo.siteToContractType);
+                    camForm.variableManager.variableValue('siteFromLegallyName', $scope.replacementInfo.siteFromLegallyName);
+                    camForm.variableManager.variableValue('siteToLegallyName', $scope.replacementInfo.siteToLegallyName);
+                    camForm.variableManager.variableValue('siteFromAddress', $scope.replacementInfo.siteFromAddress);
+                    camForm.variableManager.variableValue('siteToAddress', $scope.replacementInfo.siteToAddress);
+                    camForm.variableManager.variableValue('siteFromContactInformation', $scope.replacementInfo.siteFromContactInformation);
+                    camForm.variableManager.variableValue('siteToContactInformation', $scope.replacementInfo.siteToContactInformation);
+                    camForm.variableManager.variableValue('replacementReason', $scope.replacementInfo.replacementReason);
+                }
                 camForm.variableManager.destroyVariable('resolutions');
             });
         }]);
     </script>
-    <dismantle-info dismantle-info="dismantleInfo"></dismantle-info>
+    <dismantle-info dismantle-info="dismantleInfo" ng-if="requestType == 'dismantle'"></dismantle-info>
+    <replacement-info replacement-info="replacementInfo" ng-if="requestType == 'replacement'"></replacement-info>
     <div class="form-group">
-        <label class="col-sm-4 control-label"></label>
-        <div class="col-sm-8">
+        <label class="col-sm-{{requestType == 'dismantle' ? '4' : '3'}} control-label">Resolution</label>
+        <div class="col-sm-{{requestType == 'dismantle' ? '8' : '9'}}">
             <label class="radio-inline">
                 <input type="radio" name="region_approveTaskResult" ng-model="region_approveTaskResult" value="approve" required> Approve
             </label>
@@ -106,8 +161,8 @@
     </div>
 
     <div class="form-group">
-        <label class="col-sm-4 control-label">Comments</label>
-        <div class="col-sm-8">
+        <label class="col-sm-{{requestType == 'dismantle' ? '4' : '3'}} control-label">Comments</label>
+        <div class="col-sm-{{requestType == 'dismantle' ? '8' : '9'}}">
             <textarea class="form-control" ng-model="region_approveTaskComment" name="region_approveTaskComment" placeholder="Comments..." maxlength="500" rows="4" style="resize:none" ng-required="region_approveTaskResult == 'reject' || region_approveTaskResult == 'returnForCorrection'"></textarea>
             <label class="error" ng-show="kcell_form.region_approveTaskComment.$error.required && ( kcell_form.region_approveTaskComment.$touched || view.submitted)">Required field</label>
         </div>

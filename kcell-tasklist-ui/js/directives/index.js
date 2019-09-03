@@ -37,5 +37,6 @@ define([
 	'./search/networkArchitectureSearch',
 	'./search/deliveryPortalSearch',
 	'./search/demandSearch',
-	'./dismantleReplace/dismantleInfo'
+	'./dismantleReplace/dismantleInfo',
+	'./dismantleReplace/replacementInfo'
 	], function(){});
