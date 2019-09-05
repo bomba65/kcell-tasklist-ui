@@ -53,7 +53,7 @@
                 </select>
             </div>
     </div>
-    <div class="form-group col-sm-4"  ng-if="onlyProcessActive==='Revision' || onlyProcessActive==='Dismantle'">
+    <div class="form-group col-sm-4"  ng-if="onlyProcessActive==='Revision' || onlyProcessActive==='Dismantle' || onlyProcessActive==='Replacement'">
         <label class="col-sm-4 control-label">Requested Date:</label>
         <div class="col-sm-8">
             <div class="input-group">
@@ -118,10 +118,22 @@
             </select>
         </div>
     </div>
+    <div class="form-group col-sm-4" ng-show="onlyProcessActive==='Replacement'">
+        <label class="col-sm-4 control-label">Initiator of Replacement:</label>
+        <div class="col-sm-8">
+            <select ng-model="filter.replacementInitiator" class="form-control selectpicker" select-picker title="">
+                <option value="">select initiator</option>
+                <option value="optimization">Optimization Unit</option>
+                <option value="transmission">Transmission Unit</option>
+                <option value="infrastructure">Infrastructure Unit</option>
+                <option value="operation">Operation Unit</option>
+            </select>
+        </div>
+    </div>
 </div>
 <div class="row">
-    <div class="form-group col-sm-4"  ng-show="onlyProcessActive==='Revision' || onlyProcessActive==='Dismantle'">
-        <label class="col-sm-4 control-label">{{onlyProcessActive==='Revision' ? 'JR' : 'SDR'}} Number:</label>
+    <div class="form-group col-sm-4"  ng-show="onlyProcessActive==='Revision' || onlyProcessActive==='Dismantle' || onlyProcessActive==='Replacement'">
+        <label class="col-sm-4 control-label">{{onlyProcessActive==='Revision' ? 'JR' : (onlyProcessActive==='Dismantle' ? 'SDR' : 'SRR')}} Number:</label>
         <div class="col-sm-3">
             <select ng-model="filter.businessKeyFilterType" class="form-control selectpicker" select-picker title="" ng-init="filter.businessKeyFilterType = 'eq'">
                 <option value="eq">=</option>
@@ -129,10 +141,10 @@
             </select>
         </div>
         <div class="col-sm-5">
-            <input type="text" ng-model="filter.businessKey" class="form-control" placeholder="{{onlyProcessActive==='Revision' ? 'Alm-LSE-P&O-17-4025' : 'SDR-ALM-2019-0023'}}" />
+            <input type="text" ng-model="filter.businessKey" class="form-control" placeholder="{{onlyProcessActive==='Revision' ? 'Alm-LSE-P&O-17-4025' : (onlyProcessActive==='Dismantle' ? 'SDR-ALM-2019-0023' : 'SRR-ALM-2019-0023')}}" />
         </div>
     </div>
-    <div class="form-group col-sm-4"  ng-show="onlyProcessActive==='Revision' || onlyProcessActive==='Dismantle'">
+    <div class="form-group col-sm-4"  ng-show="onlyProcessActive==='Revision' || onlyProcessActive==='Dismantle' || onlyProcessActive==='Replacement'">
         <label class="col-sm-4 control-label">Requestor:</label>
         <div class="col-sm-8">
             <input type="text" ng-model="filter.requestor" class="form-control" placeholder="Name.Surname@kcell.kz" />
@@ -148,7 +160,7 @@
             </select>
         </div>
     </div>
-    <div class="form-group col-sm-4"  ng-show="onlyProcessActive==='Dismantle'">
+    <div class="form-group col-sm-4"  ng-show="onlyProcessActive==='Dismantle' || onlyProcessActive==='Replacement'">
         <label class="col-sm-4 control-label">Current activity:</label>
         <div class="col-sm-8">
             <select ng-model="filter.dismantleActivityId" class="form-control selectpicker" select-picker title="" select-model="dismantleUserTasks">
@@ -251,16 +263,16 @@
     <thead class="fixed-header">
     <tr>
         <th>#</th>
-        <th ng-if="RevisionOrMonthlyAct || onlyProcessActive==='Dismantle'">Region</th>
-        <th ng-if="onlyProcessActive==='Revision' || onlyProcessActive==='Dismantle'">Sitename</th>
+        <th ng-if="RevisionOrMonthlyAct || onlyProcessActive==='Dismantle' || onlyProcessActive==='Replacement'">Region</th>
+        <th ng-if="onlyProcessActive==='Revision' || onlyProcessActive==='Dismantle' || onlyProcessActive==='Replacement'">Sitename</th>
         <th>{{onlyProcessActive==='Revision'?'JR Number' : onlyProcessActive==='Invoice'? 'MA Number' : 'Business Key' }}</th>
         <th ng-if="onlyProcessActive===''">Process Name</th>
-        <th ng-if="RevisionOrMonthlyAct || onlyProcessActive==='Dismantle'">Execution Time</th>
+        <th ng-if="RevisionOrMonthlyAct || onlyProcessActive==='Dismantle' || onlyProcessActive==='Replacement'">Execution Time</th>
         <th>Current Activity</th>
         <th ng-if="onlyProcessActive==='Revision'">Contractor</th>
         <th ng-if="RevisionOrMonthlyAct">Reason</th>
         <th>Requested By</th>
-        <th ng-if="onlyProcessActive==='Revision' || onlyProcessActive==='Dismantle'">Current Assignee</th>
+        <th ng-if="onlyProcessActive==='Revision' || onlyProcessActive==='Dismantle' || onlyProcessActive==='Replacement'">Current Assignee</th>
         <th>Requested Date</th>
         <th ng-if="onlyProcessActive==='Revision'">Validity Date</th>
         <th ng-if="onlyProcessActive==='Revision'">Jobs List</th>
@@ -269,8 +281,8 @@
     <tbody>
     <tr ng-repeat="pi in processInstances" class="pi-{{pi.state == 'EXTERNALLY_TERMINATED'?'COMPLETED':pi.state}}">
         <td>{{(filter.page-1)*20 + $index + 1}}</td>
-        <td ng-if="RevisionOrMonthlyAct || onlyProcessActive==='Dismantle'">{{regionsMap[pi.siteRegion]}}</td>
-        <td ng-if="onlyProcessActive==='Revision' || onlyProcessActive==='Dismantle'">{{pi.site_name}}</td>
+        <td ng-if="RevisionOrMonthlyAct || onlyProcessActive==='Dismantle' || onlyProcessActive==='Replacement'">{{regionsMap[pi.siteRegion]}}</td>
+        <td ng-if="onlyProcessActive==='Revision' || onlyProcessActive==='Dismantle' || onlyProcessActive==='Replacement'">{{pi.site_name}}</td>
         <td>
             <a ng-if="pi.processDefinitionKey!=='sdr_srr_request'" ng-click="toggleProcessViewRevision($index, pi.processDefinitionKey, pi.processDefinitionId, pi.businessKey)">
                 {{pi.businessKey}}
@@ -278,9 +290,12 @@
             <a ng-if="pi.processDefinitionKey==='sdr_srr_request' && pi.requestType === 'dismantle'" ng-click="toggleProcessViewDismantle($index, pi.processDefinitionKey, pi.processDefinitionId, pi.businessKey)">
                 {{pi.businessKey}}
             </a>
+            <a ng-if="pi.processDefinitionKey==='sdr_srr_request' && pi.requestType === 'replacement'" ng-click="toggleProcessViewReplacement($index, pi.processDefinitionKey, pi.processDefinitionId, pi.businessKey)">
+                {{pi.businessKey}}
+            </a>
         </td>
         <td ng-if="onlyProcessActive===''">{{pi.processDefinitionKey == 'sdr_srr_request'? (pi.requestType === 'dismantle' ? 'Dismantle' : 'Replacement') : pi.processDefinitionName}}</td>
-        <td ng-if="RevisionOrMonthlyAct || onlyProcessActive==='Dismantle'">{{pi.executionTime}} days</td>
+        <td ng-if="RevisionOrMonthlyAct || onlyProcessActive==='Dismantle' || onlyProcessActive==='Replacement'">{{pi.executionTime}} days</td>
         <td style="max-width: 100px;">
             <span ng-if="!(hasGroup('revision_managers') || hasGroup('revision_audit'))" ng-repeat="task in pi.tasks">{{$index+1}}. {{task.name}}<br/></span>
             <a ng-if="hasGroup('revision_managers') || hasGroup('revision_audit')" ng-repeat="task in pi.tasks" ui-sref="tasks.task({id:task.id})" target="_blank">{{$index+1}}. {{task.name}}<br/></a>
@@ -291,7 +306,7 @@
             {{pi.processDefinitionKey==='Invoice' ? reasonShortName[pi.workType]
             : reasonShortName[pi.reason] }}</td>
         <td>{{profiles[pi.startUserId].firstName}} {{profiles[pi.startUserId].lastName}}</td>
-        <td ng-if="onlyProcessActive==='Revision' || onlyProcessActive==='Dismantle'">
+        <td ng-if="onlyProcessActive==='Revision' || onlyProcessActive==='Dismantle' || onlyProcessActive==='Replacement'">
             <a ng-click="showTaskDetail(task)" ng-repeat="task in pi.tasks">{{$index+1}}. {{profiles[task.assignee] ? (profiles[task.assignee].firstName + ' ' + profiles[task.assignee].lastName) : 'Not claimed'}}<br/></a>
         </td>
         <td>{{pi.processDefinitionKey==='Revision'? (pi.requestedDate | date:'dd MMM yyyy') : pi.startTime | date:'dd MMM yyyy' }}</td>

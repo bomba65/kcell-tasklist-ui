@@ -140,7 +140,12 @@ define(['../module', 'moment'], function (module, moment) {
                         scope.filter.businessKeyFilterType = 'all';
                         scope.filter.businessKey = undefined;
                     }
-                    if (scope.onlyProcessActive!=='Revision' && scope.onlyProcessActive!=='Dismantle') {
+                    if (scope.onlyProcessActive!=='Replacement') {
+                        scope.filter.replacementInitiator = undefined;
+                        scope.filter.businessKeyFilterType = 'all';
+                        scope.filter.businessKey = undefined;
+                    }
+                    if (scope.onlyProcessActive!=='Revision' && scope.onlyProcessActive!=='Dismantle' && scope.onlyProcessActive!=='Replacement') {
                         scope.filter.requestedDateRange = undefined;
                         scope.filter.requestor = undefined;
                     }
@@ -246,7 +251,6 @@ define(['../module', 'moment'], function (module, moment) {
                             scope.userTasksMap = userTasksMap;                            
                         } else if(process === 'sdr_srr_request') {
                             scope.dismantleUserTasks = getUserTasks(xml);
-                            console.log(scope.dismantleUserTasks);
                         }
                     });
                 }                
@@ -398,15 +402,7 @@ define(['../module', 'moment'], function (module, moment) {
                         if (scope.filter.businessKeyFilterType === 'eq') {
                             filter.processInstanceBusinessKey = scope.filter.businessKey;
                         } else {
-                            if (scope.onlyProcessActive==='Invoice') {
-                                filter.processInstanceBusinessKeyLike = '%'+scope.filter.businessKey+'%';
-                            } else {
-                                filter.variables.push({
-                                    "name": "jrNumber",
-                                    "operator": "like",
-                                    "value": scope.filter.businessKey + '%'
-                                });
-                            }
+                            filter.processInstanceBusinessKeyLike = '%'+scope.filter.businessKey+'%';
                         }
                     }
                     if (scope.filter.workType) {
@@ -498,6 +494,19 @@ define(['../module', 'moment'], function (module, moment) {
                                     "value": results[1]
                                 });
                             }
+                        } else if(scope.onlyProcessActive==='Replacement'){
+                            if (results.length === 2) {
+                                filter.variables.push({
+                                    "name": "srrCreationDate",
+                                    "operator": "gteq",
+                                    "value": results[0]
+                                });
+                                filter.variables.push({
+                                    "name": "srrCreationDate",
+                                    "operator": "lteq",
+                                    "value": results[1]
+                                });
+                            }
                         }
                     }
                     if (scope.filter.validityDateRange) {
@@ -532,7 +541,14 @@ define(['../module', 'moment'], function (module, moment) {
                             "operator": "eq",
                             "value": scope.filter.dismantlingInitiator
                         });
-                    }                    
+                    }
+                    if (scope.filter.replacementInitiator) {
+                        filter.variables.push({
+                            "name": "replacementInitiator",
+                            "operator": "eq",
+                            "value": scope.filter.replacementInitiator
+                        });
+                    }
                     if (scope.filter.requestor) {
                         if (scope.filter.participation === 'participant') {
                             $http.post(baseUrl + '/history/task', {taskAssignee: scope.filter.requestor}).then(
@@ -582,7 +598,7 @@ define(['../module', 'moment'], function (module, moment) {
                     if (scope.filter.activityId && scope.onlyProcessActive==='Revision') {
                         filter.activeActivityIdIn.push(scope.filter.activityId);
                     }
-                    if (scope.filter.dismantleActivityId && scope.onlyProcessActive==='Dismantle') {
+                    if (scope.filter.dismantleActivityId && (scope.onlyProcessActive==='Dismantle' || scope.onlyProcessActive==='Replacement')) {
                         filter.activeActivityIdIn.push(scope.filter.dismantleActivityId);
                     }
                     if (scope.filter.mainContract && scope.filter.mainContract !== 'All') {
@@ -836,7 +852,7 @@ define(['../module', 'moment'], function (module, moment) {
                         if(process === 'Revision' && !scope.KWMSProcesses[process].downloaded){
                             downloadXML('Revision');
                             scope.KWMSProcesses[process].downloaded = true;
-                        } else if(process === 'Dismantle' && !scope.KWMSProcesses[process].downloaded){
+                        } else if((process === 'Dismantle' || process === 'Replacement') && !scope.KWMSProcesses[process].downloaded){
                             downloadXML('sdr_srr_request');
                             scope.KWMSProcesses[process].downloaded = true;
                         }
