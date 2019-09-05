@@ -33,7 +33,42 @@
                 'dismantlingReason',
                 'startComment',
                 'resolutions',
-                'sdrNumber'
+                'sdrNumber',
+                'srrCreationDate',
+                'replacementInitiator',
+                'siteToName',
+                'siteTo',
+                'site_to_name',
+                'siteToRegion',
+                'siteFromRbsQuantity',
+                'siteToRbsQuantity',
+                'siteFromLatitude',
+                'siteToLatitude',
+                'siteFromLongitude',
+                'siteToLongitude',
+                'siteFromRbsTypes',
+                'siteToRbsTypes',
+                'siteFromBand',
+                'siteToBand',
+                'siteFromRbsLocation',
+                'siteToRbsLocation',
+                'siteFromSquareMeter',
+                'siteToSquareMeter',
+                'siteFromGsmAntennaTypes',
+                'siteToGsmAntennaTypes',
+                'siteFromTransmissionAntennaType',
+                'siteToTransmissionAntennaType',
+                'siteFromContractId',
+                'siteToContractId',
+                'siteFromContractType',
+                'siteToContractType',
+                'siteFromLegallyName',
+                'siteToLegallyName',
+                'siteFromAddress',
+                'siteToAddress',
+                'siteFromContactInformation',
+                'siteToContactInformation',
+                'replacementReason'
             ];
 
             $scope.catalogs = {};
@@ -90,7 +125,8 @@
                             console.log(error.data);
                         }
                 );
-                $scope.dismantleInfo = [];
+                $scope.dismantleInfo = {};
+                $scope.replacementInfo = {};
             });
 
             camForm.on('variables-fetched', function () {
@@ -99,9 +135,11 @@
                         if(camForm.variableManager.variables[el].type === 'Date'){
                             $scope[el] = new Date(camForm.variableManager.variables[el].value);
                             $scope.dismantleInfo[el] = new Date(camForm.variableManager.variables[el].value);
+                            $scope.replacementInfo[el] = new Date(camForm.variableManager.variables[el].value);
                         } else {
                             $scope[el] = camForm.variableManager.variables[el].value;
                             $scope.dismantleInfo[el] = camForm.variableManager.variables[el].value;
+                            $scope.replacementInfo[el] = camForm.variableManager.variables[el].value;
                         }
                     }
                 });
@@ -130,57 +168,97 @@
 
             camForm.on('submit', function () {
                 camForm.variableManager.variableValue('region_modifyTaskComment', $scope.region_modifyTaskComment);
-                camForm.variableManager.variableValue('validityDate', $scope.validityDate);
-                camForm.variableManager.variableValue('dismantlingInitiator', $scope.dismantlingInitiator);
-                camForm.variableManager.variableValue('priority', $scope.priority);
-                camForm.variableManager.variableValue('siteInformation', $scope.siteInformation);
-                camForm.variableManager.variableValue('gsmAntennaTypes', $scope.gsmAntennaTypes);
-                camForm.variableManager.variableValue('band', $scope.band);
-                camForm.variableManager.variableValue('contractId', $scope.contractId);
-                camForm.variableManager.variableValue('transmissionAntennaType', $scope.transmissionAntennaType);
-                camForm.variableManager.variableValue('rbsLocation', $scope.rbsLocation);
-                camForm.variableManager.variableValue('contractType', $scope.contractType);
-                camForm.variableManager.variableValue('rbsQuantity', $scope.rbsQuantity);
-                camForm.variableManager.variableValue('otherRbsLocation', $scope.otherRbsLocation);
-                camForm.variableManager.variableValue('legallyName', $scope.legallyName);
-                camForm.variableManager.variableValue('rbsTypes', $scope.rbsTypes);
-                camForm.variableManager.variableValue('squareMeter', $scope.squareMeter);
-                camForm.variableManager.variableValue('contactInformation', $scope.contactInformation);
-                camForm.variableManager.variableValue('address', $scope.address);
-                camForm.variableManager.variableValue('dismantlingReason', $scope.dismantlingReason);
-
-                if(!camForm.variableManager.variables['project'].type){
-                    camForm.variableManager.variables['project'].type = 'String';
-                }
-                camForm.variableManager.variableValue('project', $scope.project);
 
                 if(!camForm.variableManager.variables['soaComplaintId'].type){
                     camForm.variableManager.variables['soaComplaintId'].type = 'String';
                 }
                 camForm.variableManager.variableValue('soaComplaintId', $scope.soaComplaintId);
+                camForm.variableManager.variableValue('validityDate', $scope.validityDate);
+                camForm.variableManager.variableValue('siteInformation', $scope.siteInformation);
 
-                if($scope.dismantlingInitiator === 'other'){
-                    if(!camForm.variableManager.variables['otherInitiator'].type){
-                        camForm.variableManager.variables['otherInitiator'].type = 'String';
-                    }
-                    camForm.variableManager.variableValue('otherInitiator', $scope.otherInitiator);
-                }
-                var alternativePlaces = [];
-                angular.forEach($scope.alternativePlaces, function(ap){
-                    if(ap && ap!==''){
-                        alternativePlaces.push(ap);
-                    }
-                });
-                $scope.alternativePlaces = alternativePlaces;
-                camForm.variableManager.variableValue('alternativePlaces', $scope.alternativePlaces);
+                if($scope.requestType === 'dismantle'){
+                    camForm.variableManager.variableValue('dismantlingInitiator', $scope.dismantlingInitiator);
+                    camForm.variableManager.variableValue('priority', $scope.priority);
+                    camForm.variableManager.variableValue('dismantlingReason', $scope.dismantlingReason);
 
-                $scope.region_modifyFiles = [];
-                if($scope.coverageAreaFile.isNew){
-                    delete $scope.coverageAreaFile.isNew;
-                    $scope.region_modifyFiles.push($scope.coverageAreaFile);
+                    if($scope.dismantlingInitiator === 'other'){
+                        if(!camForm.variableManager.variables['otherInitiator'].type){
+                            camForm.variableManager.variables['otherInitiator'].type = 'String';
+                        }
+                        camForm.variableManager.variableValue('otherInitiator', $scope.otherInitiator);
+                    }
+                    var alternativePlaces = [];
+
+                    angular.forEach($scope.alternativePlaces, function(ap){
+                        if(ap && ap!==''){
+                            alternativePlaces.push(ap);
+                        }
+                    });
+                    $scope.alternativePlaces = alternativePlaces;
+                    camForm.variableManager.variableValue('alternativePlaces', $scope.alternativePlaces);
+
+                    if(!camForm.variableManager.variables['project'].type){
+                        camForm.variableManager.variables['project'].type = 'String';
+                    }
+                    camForm.variableManager.variableValue('project', $scope.project);
+
+                    $scope.region_modifyFiles = [];
+                    if($scope.coverageAreaFile.isNew){
+                        delete $scope.coverageAreaFile.isNew;
+                        $scope.region_modifyFiles.push($scope.coverageAreaFile);
+                    }
+                    camForm.variableManager.variableValue('region_modifyFiles', $scope.region_modifyFiles);
+                    camForm.variableManager.variableValue('coverageAreaFile', $scope.coverageAreaFile);
+
+                    camForm.variableManager.variableValue('gsmAntennaTypes', $scope.gsmAntennaTypes);
+                    camForm.variableManager.variableValue('band', $scope.band);
+                    camForm.variableManager.variableValue('contractId', $scope.contractId);
+                    camForm.variableManager.variableValue('transmissionAntennaType', $scope.transmissionAntennaType);
+                    camForm.variableManager.variableValue('rbsLocation', $scope.rbsLocation);
+                    camForm.variableManager.variableValue('contractType', $scope.contractType);
+                    camForm.variableManager.variableValue('rbsQuantity', $scope.rbsQuantity);
+                    camForm.variableManager.variableValue('otherRbsLocation', $scope.otherRbsLocation);
+                    camForm.variableManager.variableValue('legallyName', $scope.legallyName);
+                    camForm.variableManager.variableValue('rbsTypes', $scope.rbsTypes);
+                    camForm.variableManager.variableValue('squareMeter', $scope.squareMeter);
+                    camForm.variableManager.variableValue('contactInformation', $scope.contactInformation);
+                    camForm.variableManager.variableValue('address', $scope.address);
+                } else {
+                    camForm.variableManager.variableValue('replacementInitiator', $scope.replacementInitiator);
+                    camForm.variableManager.variableValue('site_to_name', $scope.site_to_name);
+                    camForm.variableManager.variableValue('siteToName', $scope.siteToName);
+                    camForm.variableManager.variableValue('siteTo', $scope.siteTo);
+                    camForm.variableManager.variableValue('siteToRegion', $scope.siteToRegion);
+                    camForm.variableManager.variableValue('siteFromRbsQuantity', $scope.siteFromRbsQuantity);
+                    camForm.variableManager.variableValue('siteToRbsQuantity', $scope.siteToRbsQuantity);
+                    camForm.variableManager.variableValue('siteFromLatitude', $scope.siteFromLatitude);
+                    camForm.variableManager.variableValue('siteToLatitude', $scope.siteToLatitude);
+                    camForm.variableManager.variableValue('siteFromLongitude', $scope.siteFromLongitude);
+                    camForm.variableManager.variableValue('siteToLongitude', $scope.siteToLongitude);
+                    camForm.variableManager.variableValue('siteFromRbsTypes', $scope.siteFromRbsTypes);
+                    camForm.variableManager.variableValue('siteToRbsTypes', $scope.siteToRbsTypes);
+                    camForm.variableManager.variableValue('siteFromBand', $scope.siteFromBand);
+                    camForm.variableManager.variableValue('siteToBand', $scope.siteToBand);
+                    camForm.variableManager.variableValue('siteFromRbsLocation', $scope.siteFromRbsLocation);
+                    camForm.variableManager.variableValue('siteToRbsLocation', $scope.siteToRbsLocation);
+                    camForm.variableManager.variableValue('siteFromSquareMeter', $scope.siteFromSquareMeter);
+                    camForm.variableManager.variableValue('siteToSquareMeter', $scope.siteToSquareMeter);
+                    camForm.variableManager.variableValue('siteFromGsmAntennaTypes', $scope.siteFromGsmAntennaTypes);
+                    camForm.variableManager.variableValue('siteToGsmAntennaTypes', $scope.siteToGsmAntennaTypes);
+                    camForm.variableManager.variableValue('siteFromTransmissionAntennaType', $scope.siteFromTransmissionAntennaType);
+                    camForm.variableManager.variableValue('siteToTransmissionAntennaType', $scope.siteToTransmissionAntennaType);
+                    camForm.variableManager.variableValue('siteFromContractId', $scope.siteFromContractId);
+                    camForm.variableManager.variableValue('siteToContractId', $scope.siteToContractId);
+                    camForm.variableManager.variableValue('siteFromContractType', $scope.siteFromContractType);
+                    camForm.variableManager.variableValue('siteToContractType', $scope.siteToContractType);
+                    camForm.variableManager.variableValue('siteFromLegallyName', $scope.siteFromLegallyName);
+                    camForm.variableManager.variableValue('siteToLegallyName', $scope.siteToLegallyName);
+                    camForm.variableManager.variableValue('siteFromAddress', $scope.siteFromAddress);
+                    camForm.variableManager.variableValue('siteToAddress', $scope.siteToAddress);
+                    camForm.variableManager.variableValue('siteFromContactInformation', $scope.siteFromContactInformation);
+                    camForm.variableManager.variableValue('siteToContactInformation', $scope.siteToContactInformation);
+                    camForm.variableManager.variableValue('replacementReason', $scope.replacementReason);
                 }
-                camForm.variableManager.variableValue('region_modifyFiles', $scope.region_modifyFiles);
-                camForm.variableManager.variableValue('coverageAreaFile', $scope.coverageAreaFile);
 
                 camForm.variableManager.destroyVariable('resolutions');
             });
@@ -235,38 +313,106 @@
 
             $scope.getGsmAntennaType = function(val) {
                 var result = [];
+                if($scope.requestType === 'dismantle'){
+                    angular.forEach($scope.catalogs.gsmAntennaTypes, function (gat) {
+                        if(gat.toUpperCase().indexOf(val.toUpperCase()) >= 0 && $scope.gsmAntennaTypes.indexOf(gat)===-1){
+                            result.push(gat);
+                        }
+                    });
+                } else {
+                    angular.forEach($scope.catalogs.gsmAntennaTypes, function (gat) {
+                        if(gat.toUpperCase().indexOf(val.toUpperCase()) >= 0 && $scope.siteFromGsmAntennaTypes.indexOf(gat)===-1){
+                            result.push(gat);
+                        }
+                    });
+                }
+                return result;
+            };
+
+            $scope.gsmAntennaSelected = function($item){
+                if($scope.requestType === 'dismantle'){
+                    $scope.gsmAntennaTypes.push($item);
+                } else {
+                    $scope.siteFromGsmAntennaTypes.push($item);
+                }
+            }
+
+            $scope.removeGsmAntennaType = function(index){
+                if($scope.requestType === 'dismantle'){
+                    $scope.gsmAntennaTypes.splice(index,1);
+                } else {
+                    $scope.siteFromGsmAntennaTypes.splice(index,1);
+                }
+            }
+
+            $scope.getSiteToGsmAntennaType = function(val) {
+                var result = [];
                 angular.forEach($scope.catalogs.gsmAntennaTypes, function (gat) {
-                    if(gat.toUpperCase().indexOf(val.toUpperCase()) >= 0 && $scope.gsmAntennaTypes.indexOf(gat)===-1){
+                    if(gat.toUpperCase().indexOf(val.toUpperCase()) >= 0 && $scope.siteToGsmAntennaTypes.indexOf(gat)===-1){
                         result.push(gat);
                     }
                 });
                 return result;
             };
 
-            $scope.gsmAntennaSelected = function($item){
-                $scope.gsmAntennaTypes.push($item);
+            $scope.siteToGsmAntennaSelected = function($item){
+                $scope.siteToGsmAntennaTypes.push($item);
             }
 
-            $scope.removeGsmAntennaType = function(index){
-                $scope.gsmAntennaTypes.splice(index,1);
+            $scope.removeSiteToGsmAntennaType = function(index){
+                $scope.siteToGsmAntennaTypes.splice(index,1);
             }
 
             $scope.getRbsType = function(val) {
                 var result = [];
+                if($scope.requestType === 'dismantle'){
+                    angular.forEach($scope.catalogs.rbsTypes, function (rt) {
+                        if(rt.toUpperCase().indexOf(val.toUpperCase()) >= 0 && $scope.rbsTypes.indexOf(rt)===-1){
+                            result.push(rt);
+                        }
+                    });
+                } else {
+                    angular.forEach($scope.catalogs.rbsTypes, function (rt) {
+                        if(rt.toUpperCase().indexOf(val.toUpperCase()) >= 0 && $scope.siteFromRbsTypes.indexOf(rt)===-1){
+                            result.push(rt);
+                        }
+                    });
+                }
+                return result;
+            };
+
+            $scope.rbsTypeSelected = function($item){
+                if($scope.requestType === 'dismantle'){
+                    $scope.rbsTypes.push($item);
+                } else {
+                    scope.siteFromRbsTypes.push($item);
+                }
+            }
+
+            $scope.removeRbsType = function(index){
+                if($scope.requestType === 'dismantle'){
+                    $scope.rbsTypes.splice(index,1);
+                } else {
+                    $scope.siteFromRbsTypes.splice(index,1);
+                }
+            }
+
+            $scope.getSiteToRbsType = function(val) {
+                var result = [];
                 angular.forEach($scope.catalogs.rbsTypes, function (rt) {
-                    if(rt.toUpperCase().indexOf(val.toUpperCase()) >= 0 && $scope.rbsTypes.indexOf(rt)===-1){
+                    if(rt.toUpperCase().indexOf(val.toUpperCase()) >= 0 && $scope.siteToRbsTypes.indexOf(rt)===-1){
                         result.push(rt);
                     }
                 });
                 return result;
             };
 
-            $scope.rbsTypeSelected = function($item){
-                $scope.rbsTypes.push($item);
+            $scope.siteToRbsTypeSelected = function($item){
+                $scope.siteToRbsTypes.push($item);
             }
 
-            $scope.removeRbsType = function(index){
-                $scope.rbsTypes.splice(index,1);
+            $scope.removeSiteToRbsType = function(index){
+                $scope.siteToRbsTypes.splice(index,1);
             }
 
             $scope.download = function(file) {
@@ -277,255 +423,641 @@
                     console.log(error.data);
                 });
             };
+
+            $scope.siteToSelected = function ($item) {
+                $scope.siteToName = $item.name;
+                $scope.siteTo = $item.id;
+                $scope.site_to_name = $item.site_name;
+                if ($scope.siteToName.startsWith('11')) {
+                    $scope.siteToRegionShortName = $scope.regionsMap['11'];
+                    $scope.siteToRegion = $scope.regionsMapLC['11'];
+                } else if ($scope.siteToName.startsWith('9')) {
+                    $scope.siteToRegionShortName = undefined;
+                    $scope.siteToRegion = undefined;
+                } else {
+                    $scope.siteToRegionShortName = $scope.regionsMap[$scope.siteToName.substring(0, 1)];
+                    $scope.siteToRegion = $scope.regionsMapLC[$scope.siteToName.substring(0, 1)];
+                }
+            };
+
+            $scope.siteToRegionSelected = function(siteRegion){
+                $scope.siteToRegionShortName = _.find($scope.regions, function (r) {
+                    return r.id === siteRegion;
+                }).value;
+            }
         }]);
     </script>
 
     <iframe id="fileDownloadIframe" style="display:none;"></iframe>
 
-    <div class="form-group">
-        <div class="col-sm-3">
-            <label>Site Dismantling Request number:</label>
-        </div>
-        <div class="col-sm-3">
-            <span>{{sdrNumber}}</span>
-        </div>
-    </div>
-
-    <div class="form-group">
-        <label class="col-sm-2 control-label">SDR Creation date:</label>
-        <div class="col-sm-3">
-            <input type="text" ng-model="sdrCreationDate" name="sdrCreationDate" class="form-control" datepicker-popup="dd.MM.yyyy" is-open="sdrCreationDateFiledOpened" id="sdrCreationDate" disabled="disabled" />
+    <div ng-if="requestType === 'dismantle'">
+        <div class="form-group">
+            <div class="col-sm-3">
+                <label>Site Dismantling Request number:</label>
+            </div>
+            <div class="col-sm-3">
+                <span>{{sdrNumber}}</span>
+            </div>
         </div>
 
-        <label class="col-sm-2 control-label">SA&O Complaint Id:</label>
-        <div class="col-sm-3">
-            <input type="text" name="soaComplaintId" ng-model="soaComplaintId" class="form-control" ng-blur="checkSOAComplaintId()" maxlength="20"/>
+        <div class="form-group">
+            <label class="col-sm-2 control-label">SDR Creation date:</label>
+            <div class="col-sm-3">
+                <input type="text" ng-model="sdrCreationDate" name="sdrCreationDate" class="form-control" datepicker-popup="dd.MM.yyyy" is-open="sdrCreationDateFiledOpened" id="sdrCreationDate" disabled="disabled" />
+            </div>
+
+            <label class="col-sm-2 control-label">SA&O Complaint Id:</label>
+            <div class="col-sm-3">
+                <input type="text" name="soaComplaintId" ng-model="soaComplaintId" class="form-control" ng-blur="checkSOAComplaintId()" maxlength="20"/>
+            </div>
+        </div>
+        <div class="form-group">
+            <label class="col-sm-2 control-label">Validity date:</label>
+            <div class="col-sm-3">
+                <div class="input-group">
+                    <input type="text" ng-model="validityDate" name="validityDate" class="form-control" datepicker-popup="dd.MM.yyyy" is-open="validityDateFiledOpened" id="validityDate" min-date="datepickerOptions.minDate" required />
+                    <span class="input-group-btn">
+                        <button type="button" class="btn btn-default" ng-click="validityDateFiledOpened = true">
+                            <i class="glyphicon glyphicon-calendar"></i>
+                        </button>
+                    </span>
+                </div>
+                <label class="error" ng-if="kcell_form.validityDate.$error.required && ( kcell_form.validityDate.$touched || view.submitted)">Required field</label>
+            </div>
+
+            <label class="col-sm-2 control-label">Initiator of dismantling:</label>
+            <div class="col-sm-3">
+                <select ng-model="dismantlingInitiator" name="dismantlingInitiator" class="form-control selectpicker" select-picker title="" required>
+                    <option value="">select initiator</option>
+                    <option value="planningUnit">Planning unit</option>
+                    <option value="siteAcquisionUnit">Site Acquisition unit</option>
+                    <option value="implementationUnit">Implementation Unit</option>
+                    <option value="other">Other</option>
+                </select>
+                <label class="error" ng-if="kcell_form.dismantlingInitiator.$error.required && ( kcell_form.dismantlingInitiator.$touched || view.submitted)">Required field</label>
+            </div>
+            <div class="col-sm-2">
+                <input type="text" name="otherInitiator" ng-model="otherInitiator" class="form-control" ng-if="dismantlingInitiator == 'other'" placeholder = 'Other' required/>
+                <label class="error" ng-if="kcell_form.otherInitiator.$error.required && ( kcell_form.otherInitiator.$touched || view.submitted)">Required field</label>
+            </div>
+        </div>
+        <div class="form-group">
+            <label class="col-sm-2 control-label">Site:</label>
+            <label class="col-sm-3 control-label">{{site_name}}</label>
+
+            <label class="col-sm-2 control-label">Type of Project:</label>
+            <div class="col-sm-3">
+                <select class="form-control" id="project" name="project" ng-model="project" ng-options="pr as pr for pr in catalogs.projects">
+                </select>
+            </div>
+        </div>
+        <div class="form-group">
+            <label class="col-sm-2 control-label">Priority:</label>
+            <div class="col-sm-3">
+                <select ng-model="priority" name="priority" class="form-control selectpicker" select-picker title="" required>
+                    <option value="">select priority</option>
+                    <option value="regular">Regular</option>
+                    <option value="critical">Critical</option>
+                </select>
+                <label class="error" ng-if="kcell_form.priority.$error.required && ( kcell_form.priority.$touched || view.submitted)">Required field</label>
+            </div>
+            <div class="form-group" ng-if="siteName.startsWith('9')">
+                <label class="col-sm-2 control-label">Site region:</label>
+                <label class="col-sm-3 control-label">{{siteRegion}}</label>
+            </div>
+        </div>
+
+        <H4 style="margin-top: 30px;">Alternative places for setting of site</H4>
+        <div class="form-group">
+            <div class="col-sm-12">
+                <div ng-repeat="i in alternativePlaces track by $index" style="float: left; margin-right: 20px;">
+                    <table>
+                        <tr>
+                            <td>Alternative {{$index+1}}: </td>
+                            <td><input type="text" name="alternativePlaces{{$index}}" ng-model="alternativePlaces[$index]" class="form-control" style="width: 200px;" ng-required="alternativePlaces[0] == undefined || alternativePlaces[0].length == 0" /></td>
+                            <td ng-if="$index > 0"><a ng-click="removeAlternativePlace($index)" style="float: left;"><i class="glyphicon glyphicon-remove"></i></a></td>
+                        </tr>
+                    </table>
+                </div>
+                <label class="error" ng-if="kcell_form.alternativePlaces0.$error.required && ( kcell_form.alternativePlaces0.$touched || view.submitted)">Required field</label>
+                <a ng-click="addAlternativePlace()" style="float: left;"><i class="glyphicon glyphicon-plus-sign"></i></a>
+            </div>
+        </div>
+
+
+        <H4 style="margin-top: 30px;">Site Information</H4>
+
+        <div class="form-group">
+            <label class="col-sm-2 control-label">
+                Traffic: <br />
+                (average monthly)
+            </label>
+            <div class="col-sm-10">
+                <table class="table table-bordered">
+                    <tbody>
+                    <tr ng-repeat="siteInfo in siteInformation">
+                        <td>{{siteInfo.name}}</td>
+                        <td>{{siteInfo.gsmLabel}}</td>
+                        <td>
+                            <input type="number" ng-model="siteInfo.gsmValue" min="0" name="gsmValue{{$index}}" style="width: 50px;">
+                        </td>
+                        <td>{{siteInfo.umtsLabel}}</td>
+                        <td>
+                            <input type="number" ng-model="siteInfo.umtsValue" min="0" name="gsmValue{{$index}}" style="width: 50px;">
+                        </td>
+                        <td>{{siteInfo.lteLabel}}</td>
+                        <td>
+                            <input type="number" ng-model="siteInfo.lteValue" min="0" name="gsmValue{{$index}}" style="width: 50px;">
+                        </td>
+                    </tr>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+
+        <div class="form-group">
+            <label class="col-sm-2 control-label">GSM Antenna type:</label>
+            <div class="col-sm-2">
+                <span ng-repeat="gt in gsmAntennaTypes" class="my-tag">{{gt}} <a ng-click="removeGsmAntennaType($index)">&times;</a></span>
+                <input type="text" ng-model="tempAntennaType" name="tempAntennaType" typeahead="result as result for result in getGsmAntennaType($viewValue)" typeahead-on-select="gsmAntennaSelected($item); tempAntennaType = undefined" class="form-control" autocomplete="off" placeholder="Add Gsm Antenna" ng-required="gsmAntennaTypes.length == 0">
+                <label class="error" ng-if="kcell_form.tempAntennaType.$error.required && ( kcell_form.tempAntennaType.$touched || view.submitted)">Required field</label>
+            </div>
+
+            <label class="col-sm-2 control-label">Band:</label>
+            <div class="col-sm-2">
+                <select class="form-control" id="band" name="band" ng-model="band" ng-options="b as b for b in catalogs.bands" required></select>
+                <label class="error" ng-if="kcell_form.band.$error.required && ( kcell_form.band.$touched || view.submitted)">Required field</label>
+            </div>
+
+            <label class="col-sm-2 control-label">Contract ID:</label>
+            <div class="col-sm-2">
+                <input type="text" name="contractId" ng-model="contractId" class="form-control" required/>
+                <label class="error" ng-if="kcell_form.contractId.$error.required && ( kcell_form.contractId.$touched || view.submitted)">Required field</label>
+            </div>
+        </div>
+        <div class="form-group">
+            <label class="col-sm-2 control-label">Transmission Antenna type:</label>
+            <div class="col-sm-2">
+                <select class="form-control" id="transmissionAntennaType" name="transmissionAntennaType" ng-model="transmissionAntennaType" ng-options="ta as ta for ta in catalogs.transmissionAntennaTypes" required>
+                </select>
+                <label class="error" ng-if="kcell_form.transmissionAntennaType.$error.required && ( kcell_form.transmissionAntennaType.$touched || view.submitted)">Required field</label>
+            </div>
+
+            <label class="col-sm-2 control-label">RBS location:</label>
+            <div class="col-sm-2">
+                <select class="form-control" id="rbsLocation" name="rbsLocation" ng-model="rbsLocation" ng-options="r as r for r in catalogs.rbsLocations" required>
+                </select>
+                <label class="error" ng-if="kcell_form.rbsLocation.$error.required && ( kcell_form.rbsLocation.$touched || view.submitted)">Required field</label>
+            </div>
+
+            <label class="col-sm-2 control-label">Contract type:</label>
+            <div class="col-sm-2">
+                <select ng-model="contractType" name="contractType" class="form-control selectpicker" select-picker title="" required>
+                    <option value="">select contract type</option>
+                    <option value="rent">Rent</option>
+                    <option value="power">Power</option>
+                    <option value="rentAndPower">Rent and Power counter (АП и электропитание по счетчику отдельными статьями)</option>
+                    <option value="rentWithPower">Rent with Power (в АП включено электропитание)</option>
+                </select>
+                <label class="error" ng-if="kcell_form.contractType.$error.required && ( kcell_form.contractType.$touched || view.submitted)">Required field</label>
+            </div>
+        </div>
+        <div class="form-group">
+            <label class="col-sm-2 control-label">RBS Quantity:</label>
+            <div class="col-sm-2">
+                <input type="number" name="rbsQuantity" ng-model="rbsQuantity" class="form-control" required />
+                <label class="error" ng-if="kcell_form.rbsQuantity.$error.required && ( kcell_form.rbsQuantity.$touched || view.submitted)">Required field</label>
+            </div>
+
+            <label class="col-sm-2 control-label"></label>
+            <div class="col-sm-2">
+                <input type="text" name="otherRbsLocation" ng-model="otherRbsLocation" class="form-control" placeholder="if Other..." ng-disabled="rbsLocation !== 'Other'" ng-required="rbsLocation == 'Other'" />
+                <label class="error" ng-if="kcell_form.otherRbsLocation.$error.required && ( kcell_form.otherRbsLocation.$touched || view.submitted)">Required field</label>
+            </div>
+
+            <label class="col-sm-2 control-label">Legally name:</label>
+            <div class="col-sm-2">
+                <input type="text" name="legallyName" ng-model="legallyName" class="form-control" required />
+                <label class="error" ng-if="kcell_form.legallyName.$error.required && ( kcell_form.legallyName.$touched || view.submitted)">Required field</label>
+            </div>
+        </div>
+        <div class="form-group">
+            <label class="col-sm-2 control-label">RBS type:</label>
+            <div class="col-sm-2">
+                <span ng-repeat="rt in rbsTypes" class="my-tag">{{rt}} <a ng-click="removeRbsType($index)">&times;</a></span>
+                <input type="text" ng-model="tempRbsType" name="tempRbsType" typeahead="result as result for result in getRbsType($viewValue)" typeahead-on-select="rbsTypeSelected($item); tempRbsType = undefined" class="form-control" autocomplete="off" placeholder="Add Rbs Type" ng-required="rbsTypes.length == 0">
+                <label class="error" ng-if="kcell_form.rbsType.$error.required && ( kcell_form.rbsType.$touched || view.submitted)">Required field</label>
+            </div>
+
+            <label class="col-sm-2 control-label">Square, m2:</label>
+            <div class="col-sm-2">
+                <input type="number" name="squareMeter" ng-model="squareMeter" class="form-control" required />
+                <label class="error" ng-if="kcell_form.squareMeter.$error.required && ( kcell_form.squareMeter.$touched || view.submitted)">Required field</label>
+            </div>
+
+            <label class="col-sm-2 control-label">Contact information:</label>
+            <div class="col-sm-2">
+                <input type="text" name="contactInformation" ng-model="contactInformation" class="form-control" required />
+                <label class="error" ng-if="kcell_form.contactInformation.$error.required && ( kcell_form.contactInformation.$touched || view.submitted)">Required field</label>
+            </div>
+        </div>
+
+        <div class="form-group">
+            <label class="col-sm-2 control-label">Address:</label>
+            <div class="col-sm-10">
+                <textarea class="form-control" name="address" ng-model="address" maxlength="1500" rows="4" required></textarea>
+                <label class="error" ng-if="kcell_form.address.$error.required && ( kcell_form.address.$touched || view.submitted)">Required field</label>
+            </div>
+        </div>
+
+        <div class="form-group">
+            <label class="col-sm-2 control-label">*Coverage area:</label>
+            <div class="col-sm-10">
+                <div ng-show="coverageAreaFile.name">
+                    <a ng-click="download(coverageAreaFile)">{{coverageAreaFile.name}}</a> | <a ng-click="clearFile('coverageAreaFile')"><i class="glyphicon glyphicon-trash"></i></a>
+                </div>
+                <input ng-hide="coverageAreaFile.name" type="file" class="form-control" id="coverageAreaFile" name="coverageAreaFile" ng-model="coverageAreaFile.name" required-file="!coverageAreaFile.name" onchange="angular.element(this).scope().fileSelected(this, 'coverageAreaFile')"/>
+                <label class="has-error" ng-if="kcell_form.coverageAreaFile.$error.validFile && ( kcell_form.coverageAreaFile.$touched || view.submitted)">File is required</label>
+            </div>
+        </div>
+        <div class="form-group">
+            <label class="col-sm-12 control-label">*Please attach print copy of coverage area from Google Earth program: {{coverageAreaFile}}</label>
+        </div>
+
+        <div class="form-group">
+            <label class="col-sm-2 control-label">Reason of dismantling:</label>
+            <div class="col-sm-10">
+                <textarea class="form-control" name="dismantlingReason" ng-model="dismantlingReason" maxlength="1500" rows="4" placeholder="Reason of dismantling" required></textarea>
+                <label class="error" ng-if="kcell_form.dismantlingReason.$error.required && ( kcell_form.dismantlingReason.$touched || view.submitted)">Required field</label>
+            </div>
         </div>
     </div>
-    <div class="form-group">
-        <label class="col-sm-2 control-label">Validity date:</label>
-        <div class="col-sm-3">
-            <div class="input-group">
-                <input type="text" ng-model="validityDate" name="validityDate" class="form-control" datepicker-popup="dd.MM.yyyy" is-open="validityDateFiledOpened" id="validityDate" min-date="datepickerOptions.minDate" required />
-                <span class="input-group-btn">
+    <div ng-if="requestType === 'replacement'">
+        <div class="form-group">
+            <div class="col-sm-6">
+                <h4>Create SITE REPLACEMENT REQUEST</h4>
+            </div>
+            <div class="col-sm-3">
+                <label>Site Replacement Request number:</label>
+            </div>
+            <div class="col-sm-3">
+                <span>{{srrNumber}}</span>
+            </div>
+        </div>
+
+        <div class="form-group">
+            <label class="col-sm-2 control-label">SRR Creation date:</label>
+            <div class="col-sm-3">
+                <div class="input-group">
+                    <input type="text" ng-model="srrCreationDate" name="srrCreationDate" class="form-control" datepicker-popup="dd.MM.yyyy" is-open="srrCreationDateFiledOpened" id="srrCreationDate" disabled="disabled" />
+                    <span class="input-group-btn">
+                    <button type="button" class="btn btn-default" ng-click="srrCreationDateFiledOpened = true">
+                        <i class="glyphicon glyphicon-calendar"></i>
+                    </button>
+                </span>
+                </div>
+            </div>
+
+            <label class="col-sm-2 control-label">SA&O Complaint Id:</label>
+            <div class="col-sm-3">
+                <input type="text" ng-model="soaComplaintId" class="form-control" ng-blur="checkSOAComplaintId()" maxlength="20"/>
+            </div>
+        </div>
+        <div class="form-group">
+            <label class="col-sm-2 control-label">Validity date:</label>
+            <div class="col-sm-3">
+                <div class="input-group">
+                    <input type="text" ng-model="validityDate" name="validityDate" class="form-control" datepicker-popup="dd.MM.yyyy" is-open="validityDateFiledOpened" id="validityDate" min-date="datepickerOptions.minDate" required />
+                    <span class="input-group-btn">
                     <button type="button" class="btn btn-default" ng-click="validityDateFiledOpened = true">
                         <i class="glyphicon glyphicon-calendar"></i>
                     </button>
                 </span>
+                </div>
+                <label class="error" ng-if="kcell_form.validityDate.$error.required && ( kcell_form.validityDate.$touched || view.submitted)">Required field</label>
             </div>
-            <label class="error" ng-if="kcell_form.validityDate.$error.required && ( kcell_form.validityDate.$touched || view.submitted)">Required field</label>
+
+            <label class="col-sm-2 control-label">Initiator of replacement:</label>
+            <div class="col-sm-3">
+                <select cam-variable-name="replacementInitiator" name="replacementInitiator" cam-variable-type="String" class="form-control selectpicker" select-picker title="" required>
+                    <option value="">select initiator</option>
+                    <option value="optimization">Optimization Unit</option>
+                    <option value="transmission">Transmission Unit</option>
+                    <option value="infrastructure">Infrastructure Unit</option>
+                    <option value="operation">Operation Unit</option>
+                </select>
+                <label class="error" ng-if="kcell_form.replacementInitiator.$error.required && ( kcell_form.replacementInitiator.$touched || view.submitted)">Required field</label>
+            </div>
+        </div>
+        <div class="form-group">
+            <label class="col-sm-2 control-label">Site (from):</label>
+            <div class="col-sm-3">
+                <input type="text" ng-model="site_name" name="site_name" typeahead="site as sites.site_name for sites in getSite($viewValue)" typeahead-on-select="siteSelected($item,$model,$label)" class="form-control" required autocomplete="off" placeholder="Site Name" disabled>
+                <input type="hidden" ng-model="site" name="siteId" required/>
+                <label class="error" ng-if="kcell_form.site_name.$error.required && ( kcell_form.site_name.$touched || view.submitted)">Required field</label>
+                <label class="error" ng-if="kcell_form.siteId.$error.required && ( kcell_form.siteName.$touched || view.submitted)">Please choose site from list</label>
+            </div>
+
+            <div ng-if="siteName.startsWith('9')">
+                <label class="col-sm-2 control-label">Site (from) region:</label>
+                <div class="col-sm-3">
+                    <select class="form-control selectpicker" select-picker title="" select-model="regions" ng-model="siteRegion" name="siteRegion" ng-change="regionSelected(siteRegion)" required="true">
+                        <option value="">select region for mobile site</option>
+                        <option value="{{r.id}}" ng-repeat="r in regions" ng-selected="{{r.id == siteRegion}}">{{r.name}}</option>
+                    </select>
+                    <label class="error" ng-if="siteName.startsWith('9') && kcell_form.siteRegion.$error.required && ( kcell_form.siteRegion.$touched || view.submitted)">Required field</label>
+                </div>
+            </div>
+        </div>
+        <div class="form-group">
+            <label class="col-sm-2 control-label">Site (to):</label>
+            <div class="col-sm-3">
+                <input type="text" ng-model="site_to_name" name="site_to_name" typeahead="site as sites.site_name for sites in getSite($viewValue)" typeahead-on-select="siteToSelected($item,$model,$label)" class="form-control" required autocomplete="off" placeholder="Site Name">
+                <input type="hidden" ng-model="siteTo" name="siteToId" required/>
+                <label class="error" ng-if="kcell_form.site_to_name.$error.required && ( kcell_form.site_to_name.$touched || view.submitted)">Required field</label>
+                <label class="error" ng-if="kcell_form.siteToId.$error.required && ( kcell_form.siteToName.$touched || view.submitted)">Please choose site from list</label>
+            </div>
+
+            <div ng-if="siteToName.startsWith('9')">
+                <label class="col-sm-2 control-label">Site (to) region:</label>
+                <div class="col-sm-3">
+                    <select class="form-control selectpicker" select-picker title="" select-model="regions" ng-model="siteToRegion" name="siteToRegion" ng-change="siteToRegionSelected(siteToRegion)" required="true">
+                        <option value="">select region for mobile site</option>
+                        <option value="{{r.id}}" ng-repeat="r in regions" ng-selected="{{r.id == siteToRegion}}">{{r.name}}</option>
+                    </select>
+                    <label class="error" ng-if="siteName.startsWith('9') && kcell_form.siteToRegion.$error.required && ( kcell_form.siteToRegion.$touched || view.submitted)">Required field</label>
+                </div>
+            </div>
         </div>
 
-        <label class="col-sm-2 control-label">Initiator of dismantling:</label>
-        <div class="col-sm-3">
-            <select ng-model="dismantlingInitiator" name="dismantlingInitiator" class="form-control selectpicker" select-picker title="" required>
-                <option value="">select initiator</option>
-                <option value="planningUnit">Planning unit</option>
-                <option value="siteAcquisionUnit">Site Acquisition unit</option>
-                <option value="implementationUnit">Implementation Unit</option>
-                <option value="other">Other</option>
-            </select>
-            <label class="error" ng-if="kcell_form.dismantlingInitiator.$error.required && ( kcell_form.dismantlingInitiator.$touched || view.submitted)">Required field</label>
-        </div>
-        <div class="col-sm-2">
-            <input type="text" name="otherInitiator" ng-model="otherInitiator" class="form-control" ng-if="dismantlingInitiator == 'other'" placeholder = 'Other' required/>
-            <label class="error" ng-if="kcell_form.otherInitiator.$error.required && ( kcell_form.otherInitiator.$touched || view.submitted)">Required field</label>
-        </div>
-    </div>
-    <div class="form-group">
-        <label class="col-sm-2 control-label">Site:</label>
-        <label class="col-sm-3 control-label">{{site_name}}</label>
-
-        <label class="col-sm-2 control-label">Type of Project:</label>
-        <div class="col-sm-3">
-            <select class="form-control" id="project" name="project" ng-model="project" ng-options="pr as pr for pr in catalogs.projects">
-            </select>
-        </div>
-    </div>
-    <div class="form-group">
-        <label class="col-sm-2 control-label">Priority:</label>
-        <div class="col-sm-3">
-            <select ng-model="priority" name="priority" class="form-control selectpicker" select-picker title="" required>
-                <option value="">select priority</option>
-                <option value="regular">Regular</option>
-                <option value="critical">Critical</option>
-            </select>
-            <label class="error" ng-if="kcell_form.priority.$error.required && ( kcell_form.priority.$touched || view.submitted)">Required field</label>
-        </div>
-        <div class="form-group" ng-if="siteName.startsWith('9')">
-            <label class="col-sm-2 control-label">Site region:</label>
-            <label class="col-sm-3 control-label">{{siteRegion}}</label>
-        </div>
-    </div>
-
-    <H4 style="margin-top: 30px;">Alternative places for setting of site</H4>
-    <div class="form-group">
-        <div class="col-sm-12">
-            <div ng-repeat="i in alternativePlaces track by $index" style="float: left; margin-right: 20px;">
-                <table>
-                    <tr>
-                        <td>Alternative {{$index+1}}: </td>
-                        <td><input type="text" name="alternativePlaces{{$index}}" ng-model="alternativePlaces[$index]" class="form-control" style="width: 200px;" ng-required="alternativePlaces[0] == undefined || alternativePlaces[0].length == 0" /></td>
-                        <td ng-if="$index > 0"><a ng-click="removeAlternativePlace($index)" style="float: left;"><i class="glyphicon glyphicon-remove"></i></a></td>
+        <div class="form-group">
+            <label class="col-sm-2 control-label">
+                Traffic: <br />
+                (average monthly)
+            </label>
+            <div class="col-sm-10">
+                <table class="table table-bordered">
+                    <tbody>
+                    <tr ng-repeat="siteInfo in siteInformation">
+                        <td>{{siteInfo.name}}</td>
+                        <td>{{siteInfo.gsmLabel}}</td>
+                        <td>
+                            <input type="number" ng-model="siteInfo.gsmValue" min="0" name="gsmValue{{$index}}" style="width: 50px;">
+                        </td>
+                        <td>{{siteInfo.umtsLabel}}</td>
+                        <td>
+                            <input type="number" ng-model="siteInfo.umtsValue" min="0" name="gsmValue{{$index}}" style="width: 50px;">
+                        </td>
+                        <td>{{siteInfo.lteLabel}}</td>
+                        <td>
+                            <input type="number" ng-model="siteInfo.lteValue" min="0" name="gsmValue{{$index}}" style="width: 50px;">
+                        </td>
                     </tr>
+                    </tbody>
                 </table>
             </div>
-            <label class="error" ng-if="kcell_form.alternativePlaces0.$error.required && ( kcell_form.alternativePlaces0.$touched || view.submitted)">Required field</label>
-            <a ng-click="addAlternativePlace()" style="float: left;"><i class="glyphicon glyphicon-plus-sign"></i></a>
-        </div>
-    </div>
-
-
-    <H4 style="margin-top: 30px;">Site Information</H4>
-
-    <div class="form-group">
-        <label class="col-sm-2 control-label">
-            Traffic: <br />
-            (average monthly)
-        </label>
-        <div class="col-sm-10">
-            <table class="table table-bordered">
-                <tbody>
-                <tr ng-repeat="siteInfo in siteInformation">
-                    <td>{{siteInfo.name}}</td>
-                    <td>{{siteInfo.gsmLabel}}</td>
-                    <td>
-                        <input type="number" ng-model="siteInfo.gsmValue" min="0" name="gsmValue{{$index}}" style="width: 50px;">
-                    </td>
-                    <td>{{siteInfo.umtsLabel}}</td>
-                    <td>
-                        <input type="number" ng-model="siteInfo.umtsValue" min="0" name="gsmValue{{$index}}" style="width: 50px;">
-                    </td>
-                    <td>{{siteInfo.lteLabel}}</td>
-                    <td>
-                        <input type="number" ng-model="siteInfo.lteValue" min="0" name="gsmValue{{$index}}" style="width: 50px;">
-                    </td>
-                </tr>
-                </tbody>
-            </table>
-        </div>
-    </div>
-
-    <div class="form-group">
-        <label class="col-sm-2 control-label">GSM Antenna type:</label>
-        <div class="col-sm-2">
-            <span ng-repeat="gt in gsmAntennaTypes" class="my-tag">{{gt}} <a ng-click="removeGsmAntennaType($index)">&times;</a></span>
-            <input type="text" ng-model="tempAntennaType" name="tempAntennaType" typeahead="result as result for result in getGsmAntennaType($viewValue)" typeahead-on-select="gsmAntennaSelected($item); tempAntennaType = undefined" class="form-control" autocomplete="off" placeholder="Add Gsm Antenna" ng-required="gsmAntennaTypes.length == 0">
-            <label class="error" ng-if="kcell_form.tempAntennaType.$error.required && ( kcell_form.tempAntennaType.$touched || view.submitted)">Required field</label>
         </div>
 
-        <label class="col-sm-2 control-label">Band:</label>
-        <div class="col-sm-2">
-            <select class="form-control" id="band" name="band" ng-model="band" ng-options="b as b for b in catalogs.bands" required></select>
-            <label class="error" ng-if="kcell_form.band.$error.required && ( kcell_form.band.$touched || view.submitted)">Required field</label>
+        <H4 style="margin-top: 30px;">Site Information</H4>
+
+        <div class="form-group">
+            <label class="col-sm-3 control-label"><h4>Site (from)</h4></label>
+            <label class="col-sm-3 control-label"> {{siteName}}</label>
+
+            <label class="col-sm-3 control-label"><h4>Site (to)</h4></label>
+            <label class="col-sm-3 control-label"> {{siteToName}}</label>
         </div>
 
-        <label class="col-sm-2 control-label">Contract ID:</label>
-        <div class="col-sm-2">
-            <input type="text" name="contractId" ng-model="contractId" class="form-control" required/>
-            <label class="error" ng-if="kcell_form.contractId.$error.required && ( kcell_form.contractId.$touched || view.submitted)">Required field</label>
-        </div>
-    </div>
-    <div class="form-group">
-        <label class="col-sm-2 control-label">Transmission Antenna type:</label>
-        <div class="col-sm-2">
-            <select class="form-control" id="transmissionAntennaType" name="transmissionAntennaType" ng-model="transmissionAntennaType" ng-options="ta as ta for ta in catalogs.transmissionAntennaTypes" required>
-            </select>
-            <label class="error" ng-if="kcell_form.transmissionAntennaType.$error.required && ( kcell_form.transmissionAntennaType.$touched || view.submitted)">Required field</label>
-        </div>
 
-        <label class="col-sm-2 control-label">RBS location:</label>
-        <div class="col-sm-2">
-            <select class="form-control" id="rbsLocation" name="rbsLocation" ng-model="rbsLocation" ng-options="r as r for r in catalogs.rbsLocations" required>
-            </select>
-            <label class="error" ng-if="kcell_form.rbsLocation.$error.required && ( kcell_form.rbsLocation.$touched || view.submitted)">Required field</label>
-        </div>
-
-        <label class="col-sm-2 control-label">Contract type:</label>
-        <div class="col-sm-2">
-            <select ng-model="contractType" name="contractType" class="form-control selectpicker" select-picker title="" required>
-                <option value="">select contract type</option>
-                <option value="rent">Rent</option>
-                <option value="power">Power</option>
-                <option value="rentAndPower">Rent and Power counter (АП и электропитание по счетчику отдельными статьями)</option>
-                <option value="rentWithPower">Rent with Power (в АП включено электропитание)</option>
-            </select>
-            <label class="error" ng-if="kcell_form.contractType.$error.required && ( kcell_form.contractType.$touched || view.submitted)">Required field</label>
-        </div>
-    </div>
-    <div class="form-group">
-        <label class="col-sm-2 control-label">RBS Quantity:</label>
-        <div class="col-sm-2">
-            <input type="number" name="rbsQuantity" ng-model="rbsQuantity" class="form-control" required />
-            <label class="error" ng-if="kcell_form.rbsQuantity.$error.required && ( kcell_form.rbsQuantity.$touched || view.submitted)">Required field</label>
-        </div>
-
-        <label class="col-sm-2 control-label"></label>
-        <div class="col-sm-2">
-            <input type="text" name="otherRbsLocation" ng-model="otherRbsLocation" class="form-control" placeholder="if Other..." ng-disabled="rbsLocation !== 'Other'" ng-required="rbsLocation == 'Other'" />
-            <label class="error" ng-if="kcell_form.otherRbsLocation.$error.required && ( kcell_form.otherRbsLocation.$touched || view.submitted)">Required field</label>
-        </div>
-
-        <label class="col-sm-2 control-label">Legally name:</label>
-        <div class="col-sm-2">
-            <input type="text" name="legallyName" ng-model="legallyName" class="form-control" required />
-            <label class="error" ng-if="kcell_form.legallyName.$error.required && ( kcell_form.legallyName.$touched || view.submitted)">Required field</label>
-        </div>
-    </div>
-    <div class="form-group">
-        <label class="col-sm-2 control-label">RBS type:</label>
-        <div class="col-sm-2">
-            <span ng-repeat="rt in rbsTypes" class="my-tag">{{rt}} <a ng-click="removeRbsType($index)">&times;</a></span>
-            <input type="text" ng-model="tempRbsType" name="tempRbsType" typeahead="result as result for result in getRbsType($viewValue)" typeahead-on-select="rbsTypeSelected($item); tempRbsType = undefined" class="form-control" autocomplete="off" placeholder="Add Rbs Type" ng-required="rbsTypes.length == 0">
-            <label class="error" ng-if="kcell_form.rbsType.$error.required && ( kcell_form.rbsType.$touched || view.submitted)">Required field</label>
-        </div>
-
-        <label class="col-sm-2 control-label">Square, m2:</label>
-        <div class="col-sm-2">
-            <input type="number" name="squareMeter" ng-model="squareMeter" class="form-control" required />
-            <label class="error" ng-if="kcell_form.squareMeter.$error.required && ( kcell_form.squareMeter.$touched || view.submitted)">Required field</label>
-        </div>
-
-        <label class="col-sm-2 control-label">Contact information:</label>
-        <div class="col-sm-2">
-            <input type="text" name="contactInformation" ng-model="contactInformation" class="form-control" required />
-            <label class="error" ng-if="kcell_form.contactInformation.$error.required && ( kcell_form.contactInformation.$touched || view.submitted)">Required field</label>
-        </div>
-    </div>
-
-    <div class="form-group">
-        <label class="col-sm-2 control-label">Address:</label>
-        <div class="col-sm-10">
-            <textarea class="form-control" name="address" ng-model="address" maxlength="1500" rows="4" required></textarea>
-            <label class="error" ng-if="kcell_form.address.$error.required && ( kcell_form.address.$touched || view.submitted)">Required field</label>
-        </div>
-    </div>
-
-    <div class="form-group">
-        <label class="col-sm-2 control-label">*Coverage area:</label>
-        <div class="col-sm-10">
-            <div ng-show="coverageAreaFile.name">
-                <a ng-click="download(coverageAreaFile)">{{coverageAreaFile.name}}</a> | <a ng-click="clearFile('coverageAreaFile')"><i class="glyphicon glyphicon-trash"></i></a>
+        <div class="form-group">
+            <label class="col-sm-3 control-label">RBS Quantity:</label>
+            <div class="col-sm-3">
+                <input type="number" name="siteFromRbsQuantity" ng-model="siteFromRbsQuantity" class="form-control" required />
+                <label class="error" ng-if="kcell_form.siteFromRbsQuantity.$error.required && ( kcell_form.siteFromRbsQuantity.$touched || view.submitted)">Required field</label>
             </div>
-            <input ng-hide="coverageAreaFile.name" type="file" class="form-control" id="coverageAreaFile" name="coverageAreaFile" ng-model="coverageAreaFile.name" required-file="!coverageAreaFile.name" onchange="angular.element(this).scope().fileSelected(this, 'coverageAreaFile')"/>
-            <label class="has-error" ng-if="kcell_form.coverageAreaFile.$error.validFile && ( kcell_form.coverageAreaFile.$touched || view.submitted)">File is required</label>
+
+            <label class="col-sm-3 control-label">RBS Quantity:</label>
+            <div class="col-sm-3">
+                <input type="number" name="siteToRbsQuantity" ng-model="siteToRbsQuantity" class="form-control" required />
+                <label class="error" ng-if="kcell_form.siteToRbsQuantity.$error.required && ( kcell_form.siteToRbsQuantity.$touched || view.submitted)">Required field</label>
+            </div>
         </div>
-    </div>
-    <div class="form-group">
-        <label class="col-sm-12 control-label">*Please attach print copy of coverage area from Google Earth program: {{coverageAreaFile}}</label>
+        <div class="form-group">
+            <label class="col-sm-3 control-label">Latitude:</label>
+            <div class="col-sm-3">
+                <input type="text" name="siteFromLatitude" ng-model="siteFromLatitude" class="form-control" required />
+                <label class="error" ng-if="kcell_form.siteFromLatitude.$error.required && ( kcell_form.siteFromLatitude.$touched || view.submitted)">Required field</label>
+            </div>
+
+            <label class="col-sm-3 control-label">Latitude:</label>
+            <div class="col-sm-3">
+                <input type="text" name="siteToLatitude" ng-model="siteToLatitude" class="form-control" required />
+                <label class="error" ng-if="kcell_form.siteToLatitude.$error.required && ( kcell_form.siteToLatitude.$touched || view.submitted)">Required field</label>
+            </div>
+        </div>
+
+        <div class="form-group">
+            <label class="col-sm-3 control-label">Longitude:</label>
+            <div class="col-sm-3">
+                <input type="text" name="siteFromLongitude" ng-model="siteFromLongitude" class="form-control" required />
+                <label class="error" ng-if="kcell_form.siteFromLongitude.$error.required && ( kcell_form.siteFromLongitude.$touched || view.submitted)">Required field</label>
+            </div>
+
+            <label class="col-sm-3 control-label">Longitude:</label>
+            <div class="col-sm-3">
+                <input type="text" name="siteToLongitude" ng-model="siteToLongitude" class="form-control" required />
+                <label class="error" ng-if="kcell_form.siteToLongitude.$error.required && ( kcell_form.siteToLongitude.$touched || view.submitted)">Required field</label>
+            </div>
+        </div>
+
+        <div class="form-group">
+            <label class="col-sm-3 control-label">RBS type:</label>
+            <div class="col-sm-3">
+                <span ng-repeat="rt in siteFromRbsTypes" class="my-tag">{{rt}} <a ng-click="removeRbsType($index)">&times;</a></span>
+                <input type="text" ng-model="tempRbsType" name="tempRbsType" typeahead="result as result for result in getRbsType($viewValue)" typeahead-on-select="rbsTypeSelected($item); tempRbsType = undefined" class="form-control" autocomplete="off" placeholder="Add Rbs Type" ng-required="siteFromRbsTypes.length == 0">
+                <label class="error" ng-if="kcell_form.tempRbsType.$error.required && ( kcell_form.tempRbsType.$touched || view.submitted)">Required field</label>
+            </div>
+
+            <label class="col-sm-3 control-label">RBS type:</label>
+            <div class="col-sm-3">
+                <span ng-repeat="rt in siteToRbsTypes" class="my-tag">{{rt}} <a ng-click="removeSiteToRbsType($index)">&times;</a></span>
+                <input type="text" ng-model="siteToTempRbsType" name="tempRbsType" typeahead="result as result for result in getSiteToRbsType($viewValue)" typeahead-on-select="siteToRbsTypeSelected($item); siteToTempRbsType = undefined" class="form-control" autocomplete="off" placeholder="Add Rbs Type" ng-required="siteToRbsTypes.length == 0">
+                <label class="error" ng-if="kcell_form.siteToTempRbsType.$error.required && ( kcell_form.siteToTempRbsType.$touched || view.submitted)">Required field</label>
+            </div>
+        </div>
+
+        <div class="form-group">
+            <label class="col-sm-3 control-label">Band:</label>
+            <div class="col-sm-3">
+                <select class="form-control" id="siteFromBand" name="siteFromBand" ng-model="siteFromBand" ng-options="b as b for b in catalogs.bands" required></select>
+                <label class="error" ng-if="kcell_form.siteFromBand.$error.required && ( kcell_form.siteFromBand.$touched || view.submitted)">Required field</label>
+            </div>
+
+            <label class="col-sm-3 control-label">Band:</label>
+            <div class="col-sm-3">
+                <select class="form-control" id="siteToBand" name="siteToBand" ng-model="siteToBand" ng-options="b as b for b in catalogs.bands" required></select>
+                <label class="error" ng-if="kcell_form.siteToBand.$error.required && ( kcell_form.siteToBand.$touched || view.submitted)">Required field</label>
+            </div>
+        </div>
+
+        <div class="form-group">
+            <label class="col-sm-3 control-label">RBS location:</label>
+            <div class="col-sm-3">
+                <select class="form-control" id="siteFromRbsLocation" name="siteFromRbsLocation" ng-model="siteFromRbsLocation" ng-options="r as r for r in catalogs.rbsLocations" required>
+                </select>
+                <label class="error" ng-if="kcell_form.siteFromRbsLocation.$error.required && ( kcell_form.siteFromRbsLocation.$touched || view.submitted)">Required field</label>
+            </div>
+
+            <label class="col-sm-3 control-label">RBS location:</label>
+            <div class="col-sm-3">
+                <select class="form-control" id="siteToRbsLocation" name="siteToRbsLocation" ng-model="siteToRbsLocation" ng-options="r as r for r in catalogs.rbsLocations" required>
+                </select>
+                <label class="error" ng-if="kcell_form.siteToRbsLocation.$error.required && ( kcell_form.siteToRbsLocation.$touched || view.submitted)">Required field</label>
+            </div>
+        </div>
+
+        <div class="form-group">
+            <label class="col-sm-3 control-label">Square, m2:</label>
+            <div class="col-sm-3">
+                <input type="number" name="siteFromSquareMeter" ng-model="siteFromSquareMeter" class="form-control" required />
+                <label class="error" ng-if="kcell_form.siteFromSquareMeter.$error.required && ( kcell_form.siteFromSquareMeter.$touched || view.submitted)">Required field</label>
+            </div>
+
+            <label class="col-sm-3 control-label">Square, m2:</label>
+            <div class="col-sm-3">
+                <input type="number" name="siteToSquareMeter" ng-model="siteToSquareMeter" class="form-control" required />
+                <label class="error" ng-if="kcell_form.siteToSquareMeter.$error.required && ( kcell_form.siteToSquareMeter.$touched || view.submitted)">Required field</label>
+            </div>
+        </div>
+
+        <div class="form-group">
+            <label class="col-sm-3 control-label">GSM Antenna type:</label>
+            <div class="col-sm-3">
+                <span ng-repeat="gt in siteFromGsmAntennaTypes" class="my-tag">{{gt}} <a ng-click="removeGsmAntennaType($index)">&times;</a></span>
+                <input type="text" ng-model="tempAntennaType" name="tempAntennaType" typeahead="result as result for result in getGsmAntennaType($viewValue)" typeahead-on-select="gsmAntennaSelected($item); tempAntennaType = undefined" class="form-control" autocomplete="off" placeholder="Add Gsm Antenna" ng-required="siteFromGsmAntennaTypes.length == 0">
+                <label class="error" ng-if="kcell_form.tempAntennaType.$error.required && ( kcell_form.tempAntennaType.$touched || view.submitted)">Required field</label>
+            </div>
+
+            <label class="col-sm-3 control-label">GSM Antenna type:</label>
+            <div class="col-sm-3">
+                <span ng-repeat="gt in siteToGsmAntennaTypes" class="my-tag">{{gt}} <a ng-click="removeSiteToGsmAntennaType($index)">&times;</a></span>
+                <input type="text" ng-model="tempSiteToAntennaType" name="tempSiteToAntennaType" typeahead="result as result for result in getSiteToGsmAntennaType($viewValue)" typeahead-on-select="siteToGsmAntennaSelected($item); tempSiteToAntennaType = undefined" class="form-control" autocomplete="off" placeholder="Add Gsm Antenna" ng-required="siteToGsmAntennaTypes.length == 0">
+                <label class="error" ng-if="kcell_form.tempSiteToAntennaType.$error.required && ( kcell_form.tempSiteToAntennaType.$touched || view.submitted)">Required field</label>
+            </div>
+        </div>
+
+        <div class="form-group">
+            <label class="col-sm-3 control-label">Transmission Antenna type:</label>
+            <div class="col-sm-3">
+                <select class="form-control" id="siteFromTransmissionAntennaType" name="siteFromTransmissionAntennaType" ng-model="siteFromTransmissionAntennaType" ng-options="ta as ta for ta in catalogs.transmissionAntennaTypes" required>
+                </select>
+                <label class="error" ng-if="kcell_form.siteFromTransmissionAntennaType.$error.required && ( kcell_form.siteFromTransmissionAntennaType.$touched || view.submitted)">Required field</label>
+            </div>
+
+            <label class="col-sm-3 control-label">Transmission Antenna type:</label>
+            <div class="col-sm-3">
+                <select class="form-control" id="siteToTransmissionAntennaType" name="siteToTransmissionAntennaType" ng-model="siteToTransmissionAntennaType" ng-options="ta as ta for ta in catalogs.transmissionAntennaTypes" required>
+                </select>
+                <label class="error" ng-if="kcell_form.siteToTransmissionAntennaType.$error.required && ( kcell_form.siteToTransmissionAntennaType.$touched || view.submitted)">Required field</label>
+            </div>
+        </div>
+
+        <H4 style="margin-top: 30px;">Contract Information</H4>
+
+        <div class="form-group">
+            <label class="col-sm-3 control-label">Contract ID:</label>
+            <div class="col-sm-3">
+                <input type="text" name="siteFromContractId" ng-model="siteFromContractId" class="form-control" required/>
+                <label class="error" ng-if="kcell_form.siteFromContractId.$error.required && ( kcell_form.siteFromContractId.$touched || view.submitted)">Required field</label>
+            </div>
+
+            <label class="col-sm-3 control-label">Contract ID:</label>
+            <div class="col-sm-3">
+                <input type="text" name="siteToContractId" ng-model="siteToContractId" class="form-control" required/>
+                <label class="error" ng-if="kcell_form.siteToContractId.$error.required && ( kcell_form.siteToContractId.$touched || view.submitted)">Required field</label>
+            </div>
+        </div>
+
+        <div class="form-group">
+            <label class="col-sm-3 control-label">Contract type:</label>
+            <div class="col-sm-3">
+                <select ng-model="siteFromContractType" name="siteFromContractType" class="form-control selectpicker" select-picker title="" required>
+                    <option value="">select contract type</option>
+                    <option value="rent">Rent</option>
+                    <option value="power">Power</option>
+                    <option value="rentAndPower">Rent and Power counter (АП и электропитание по счетчику отдельными статьями)</option>
+                    <option value="rentWithPower">Rent with Power (в АП включено электропитание)</option>
+                </select>
+                <label class="error" ng-if="kcell_form.siteFromContractType.$error.required && ( kcell_form.siteFromContractType.$touched || view.submitted)">Required field</label>
+            </div>
+
+            <label class="col-sm-3 control-label">Contract type:</label>
+            <div class="col-sm-3">
+                <select ng-model="siteToContractType" name="siteToContractType" class="form-control selectpicker" select-picker title="" required>
+                    <option value="">select contract type</option>
+                    <option value="rent">Rent</option>
+                    <option value="power">Power</option>
+                    <option value="rentAndPower">Rent and Power counter (АП и электропитание по счетчику отдельными статьями)</option>
+                    <option value="rentWithPower">Rent with Power (в АП включено электропитание)</option>
+                </select>
+                <label class="error" ng-if="kcell_form.siteToContractType.$error.required && ( kcell_form.siteToContractType.$touched || view.submitted)">Required field</label>
+            </div>
+        </div>
+
+        <div class="form-group">
+            <label class="col-sm-3 control-label">Legally name:</label>
+            <div class="col-sm-3">
+                <input type="text" name="siteFromLegallyName" ng-model="siteFromLegallyName" class="form-control" required />
+                <label class="error" ng-if="kcell_form.siteFromLegallyName.$error.required && ( kcell_form.siteFromLegallyName.$touched || view.submitted)">Required field</label>
+            </div>
+
+            <label class="col-sm-3 control-label">Legally name:</label>
+            <div class="col-sm-3">
+                <input type="text" name="siteToLegallyName" ng-model="siteToLegallyName" class="form-control" required />
+                <label class="error" ng-if="kcell_form.siteToLegallyName.$error.required && ( kcell_form.siteToLegallyName.$touched || view.submitted)">Required field</label>
+            </div>
+        </div>
+
+        <div class="form-group">
+            <label class="col-sm-3 control-label">Address:</label>
+            <div class="col-sm-3">
+                <textarea class="form-control" name="siteFromAddress" ng-model="siteFromAddress" maxlength="1500" rows="4" required></textarea>
+                <label class="error" ng-if="kcell_form.siteFromAddress.$error.required && ( kcell_form.siteFromAddress.$touched || view.submitted)">Required field</label>
+            </div>
+
+            <label class="col-sm-3 control-label">Address:</label>
+            <div class="col-sm-3">
+                <textarea class="form-control" name="siteToAddress" ng-model="siteToAddress" maxlength="1500" rows="4" required></textarea>
+                <label class="error" ng-if="kcell_form.siteToAddress.$error.required && ( kcell_form.siteToAddress.$touched || view.submitted)">Required field</label>
+            </div>
+        </div>
+
+        <div class="form-group">
+            <label class="col-sm-3 control-label">Contact information:</label>
+            <div class="col-sm-3">
+                <input type="text" name="siteFromContactInformation" ng-model="siteFromContactInformation" class="form-control" required />
+                <label class="error" ng-if="kcell_form.siteFromContactInformation.$error.required && ( kcell_form.siteFromContactInformation.$touched || view.submitted)">Required field</label>
+            </div>
+
+            <label class="col-sm-3 control-label">Contact information:</label>
+            <div class="col-sm-3">
+                <input type="text" name="siteToContactInformation" ng-model="siteToContactInformation" class="form-control" required />
+                <label class="error" ng-if="kcell_form.siteToContactInformation.$error.required && ( kcell_form.siteToContactInformation.$touched || view.submitted)">Required field</label>
+            </div>
+        </div>
+
+        <div class="form-group">
+            <label class="col-sm-3 control-label">Reason of replacemant:</label>
+            <div class="col-sm-9">
+                <textarea class="form-control" name="replacementReason" ng-model="replacementReason" maxlength="1500" rows="4" placeholder="Reason of replacement" required></textarea>
+                <label class="error" ng-if="kcell_form.replacementReason.$error.required && ( kcell_form.replacementReason.$touched || view.submitted)">Required field</label>
+            </div>
+        </div>
     </div>
 
     <div class="form-group">
-        <label class="col-sm-2 control-label">Reason of dismantling:</label>
-        <div class="col-sm-10">
-            <textarea class="form-control" name="dismantlingReason" ng-model="dismantlingReason" maxlength="1500" rows="4" placeholder="Reason of dismantling" required></textarea>
-            <label class="error" ng-if="kcell_form.dismantlingReason.$error.required && ( kcell_form.dismantlingReason.$touched || view.submitted)">Required field</label>
-        </div>
-    </div>
-
-    <div class="form-group">
-        <label class="col-sm-2 control-label">Comments</label>
-        <div class="col-sm-10">
+        <label class="col-sm-{{requestType == 'dismantle' ?  '2' : '3'}} control-label">Comments</label>
+        <div class="col-sm-{{requestType == 'dismantle' ?  '10' : '9'}}">
             <textarea class="form-control" ng-model="region_modifyTaskComment" name="region_modifyTaskComment" placeholder="Comments..." maxlength="500" rows="4" style="resize:none" ng-required="region_modifyTaskResult == 'reject' || region_modifyTaskResult == 'returnForCorrection'"></textarea>
             <label class="error" ng-show="kcell_form.region_modifyTaskComment.$error.required && ( kcell_form.region_modifyTaskComment.$touched || view.submitted)">Required field</label>
         </div>
