@@ -295,6 +295,11 @@ public class GenerateDocument implements JavaDelegate {
 
         String json = "{\"name\" : \"" + name + "\",\"path\" : \"" + path + "\"}";
         delegateExecution.setVariable("siteDismantlingDocument", SpinValues.jsonValue(json));
+
+        fs.close();
+        doc.close();
+        b.close();
+        inputStream.close();
     }
 
     private static HWPFDocument replaceText(HWPFDocument doc, String findText, String replaceText){
