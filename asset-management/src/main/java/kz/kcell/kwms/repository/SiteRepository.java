@@ -8,6 +8,7 @@ import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.PagingAndSortingRepository;
 import org.springframework.data.repository.query.Param;
 import org.springframework.transaction.annotation.Transactional;
+import org.springframework.web.bind.annotation.RequestMapping;
 
 import java.util.List;
 
@@ -16,8 +17,4 @@ public interface SiteRepository extends PagingAndSortingRepository<Site, Long> {
 
     List<Site> findByName(@Param("name") String name);
     Page<Site> findByNameIgnoreCaseContaining(@Param("name") String name, Pageable p);
-
-    @Modifying
-    @Query("update Site s set s.status = ?1 where s.id = ?2")
-    void changeSiteStatus(@Param("status") String status, @Param("siteId") Long siteId);
 }
