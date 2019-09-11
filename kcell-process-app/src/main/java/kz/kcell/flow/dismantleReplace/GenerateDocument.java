@@ -212,6 +212,7 @@ public class GenerateDocument implements JavaDelegate {
                     String taskName = r.prop("taskName").stringValue();
                     String result = r.prop("resolution").stringValue();
                     String taskEndDate = r.prop("taskEndDate").stringValue().substring(0, 10);
+                    String assigneeName = r.prop("assigneeName").stringValue();
 
                     if ("region_approve".equals(taskKey)) {
                         if ("approve".equals(result)) {
@@ -221,6 +222,7 @@ public class GenerateDocument implements JavaDelegate {
                             varsMap.put("$head_y", "");
                             varsMap.put("$head_n", "√");
                         }
+                        varsMap.put("$head_f", assigneeName);
                         varsMap.put("$head_date", taskEndDate);
                     } else {
                         if ("central group \"Central Planning Unit\"".equals(taskName)) {
@@ -232,6 +234,7 @@ public class GenerateDocument implements JavaDelegate {
                                 varsMap.put("$2n", "√");
                             }
                             varsMap.put("$2d", taskEndDate);
+                            varsMap.put("$2f", assigneeName);
                         } else if ("central group \"Central Transmission Unit\"".equals(taskName)) {
                             if ("approve".equals(result)) {
                                 varsMap.put("$ctu_y", "√");
@@ -241,6 +244,7 @@ public class GenerateDocument implements JavaDelegate {
                                 varsMap.put("$ctu_n", "√");
                             }
                             varsMap.put("$ctu_date", taskEndDate);
+                            varsMap.put("$4f", assigneeName);
                         } else if ("central group \"Central S&FM Unit\"".equals(taskName)) {
                             if ("approve".equals(result)) {
                                 varsMap.put("$csfu_y", "√");
@@ -250,7 +254,8 @@ public class GenerateDocument implements JavaDelegate {
                                 varsMap.put("$csfu_n", "√");
                             }
                             varsMap.put("$csfu_date", taskEndDate);
-                        } else if ("central group \"Central SAO Unit\"".equals(taskName)) {
+                            varsMap.put("$5f", assigneeName);
+                        } else if ("central group \"Central Leasing Unit\"".equals(taskName)) {
                             if ("approve".equals(result)) {
                                 varsMap.put("$1y", "√");
                                 varsMap.put("$1n", "");
@@ -259,6 +264,17 @@ public class GenerateDocument implements JavaDelegate {
                                 varsMap.put("$1n", "√");
                             }
                             varsMap.put("$1d", taskEndDate);
+                            varsMap.put("$1f", assigneeName);
+                        } else if ("central group \"Central SAO Unit\"".equals(taskName)) {
+                            if ("approve".equals(result)) {
+                                varsMap.put("$3y", "√");
+                                varsMap.put("$3n", "");
+                            } else {
+                                varsMap.put("$3y", "");
+                                varsMap.put("$3n", "√");
+                            }
+                            varsMap.put("$3d", taskEndDate);
+                            varsMap.put("$3f", assigneeName);
                         }
                     }
                 }
@@ -268,15 +284,19 @@ public class GenerateDocument implements JavaDelegate {
                 varsMap.put("$2y", "");
                 varsMap.put("$2n", "");
                 varsMap.put("$2d", "");
+                varsMap.put("$2f", "");
                 varsMap.put("$ctu_y", "");
                 varsMap.put("$ctu_n", "");
                 varsMap.put("$ctu_date", "");
+                varsMap.put("$4f", "");
                 varsMap.put("$csfu_y", "");
                 varsMap.put("$csfu_n", "");
                 varsMap.put("$csfu_date", "");
+                varsMap.put("$5f", "");
                 varsMap.put("$1y", "");
                 varsMap.put("$1n", "");
                 varsMap.put("$1d", "");
+                varsMap.put("$1f", "");
             }
         }
 
