@@ -171,6 +171,18 @@
                     type: 'String',
                     submit: true,
                     store: true,
+                },
+                {
+                    name: 'coverageAreaFile',
+                    type: 'Json',
+                    submit: true,
+                    store: true
+                },
+                {
+                    name: 'siteToCoverageAreaFile',
+                    type: 'Json',
+                    submit: true,
+                    store: true
                 }
             ];
             var uuid = new Date().getTime();
@@ -425,6 +437,45 @@
                         }
                 );
             }
+
+            $scope.fileSelected = function(el, fileName){
+                if(el.files[0]){
+                    $timeout(function () {
+                        $scope.$apply(function () {
+                            uploadFileToMinio(el.files[0], fileName);
+                        });
+                    })
+                } else {
+                    $scope.$apply(function(){
+                        $scope[fileName] = undefined;
+                    });
+                }
+            };
+
+            function uploadFileToMinio(file, fileName) {
+                var fileToUpload = {
+                    name: file.name.replace(/[/\\?%*:|"<>]/g, '-'),
+                    path: uuid + '/' + file.name.replace(/[/\\?%*:|"<>]/g, '-')
+                };
+                $http({method: 'GET', url: '/camunda/uploads/tmp/put/' + fileToUpload.path, transformResponse: [] }).
+                then(function(response) {
+                    $http.put(response.data, file, {headers: {'Content-Type': undefined}}).then(
+                            function () {
+                                $scope[fileName] = fileToUpload;
+                                angular.element(document.querySelector('#'+fileName)).val(null);
+                            },
+                            function (error) {
+                                console.log(error.data);
+                            }
+                    );
+                }, function(error){
+                    console.log(error.data);
+                });
+            }
+
+            $scope.clearFile = function(filename){
+                delete $scope[filename];
+            };
         }]);
     </script>
     <iframe id="fileDownloadIframe" style="display:none;"></iframe>
@@ -695,7 +746,7 @@
             <select class="form-control" id="siteToTransmissionAntennaType" name="siteToTransmissionAntennaType" ng-model="siteToTransmissionAntennaType" ng-options="ta as ta for ta in catalogs.transmissionAntennaTypes" required>
             </select>
             <label class="error" ng-if="kcell_form.siteToTransmissionAntennaType.$error.required && ( kcell_form.siteToTransmissionAntennaType.$touched || view.submitted)">Required field</label>
-        </div>        
+        </div>
     </div>
 
     <H4 style="margin-top: 30px;">Contract Information</H4>
@@ -766,6 +817,26 @@
             <textarea class="form-control" name="siteToAddress" cam-variable-name="siteToAddress" cam-variable-type="String" maxlength="1500" rows="4" required></textarea>
             <label class="error" ng-if="kcell_form.siteToAddress.$error.required && ( kcell_form.siteToAddress.$touched || view.submitted)">Required field</label>
         </div>        
+    </div>
+
+    <div class="form-group">
+        <label class="col-sm-3 control-label">*Coverage area:</label>
+        <div class="col-sm-3">
+            <div ng-show="coverageAreaFile.name">
+                <a ng-click="download(coverageAreaFile)">{{coverageAreaFile.name}}</a> | <a ng-click="clearFile('coverageAreaFile')"><i class="glyphicon glyphicon-trash"></i></a>
+            </div>
+            <input ng-hide="coverageAreaFile.name" type="file" class="form-control" id="coverageAreaFile" name="coverageAreaFile" ng-model="coverageAreaFile" required-file="true" onchange="angular.element(this).scope().fileSelected(this, 'coverageAreaFile')"/>
+            <label class="has-error" ng-if="kcell_form.coverageAreaFile.$error.validFile && ( kcell_form.coverageAreaFile.$touched || view.submitted)">File is required</label>
+        </div>
+
+        <label class="col-sm-3 control-label">*Coverage area:</label>
+        <div class="col-sm-3">
+            <div ng-show="siteToCoverageAreaFile.name">
+                <a ng-click="download(siteToCoverageAreaFile)">{{siteToCoverageAreaFile.name}}</a> | <a ng-click="clearFile('siteToCoverageAreaFile')"><i class="glyphicon glyphicon-trash"></i></a>
+            </div>
+            <input ng-hide="siteToCoverageAreaFile.name" type="file" class="form-control" id="siteToCoverageAreaFile" name="siteToCoverageAreaFile" ng-model="siteToCoverageAreaFile" required-file="true" onchange="angular.element(this).scope().fileSelected(this, 'siteToCoverageAreaFile')"/>
+            <label class="has-error" ng-if="kcell_form.siteToCoverageAreaFile.$error.validFile && ( kcell_form.siteToCoverageAreaFile.$touched || view.submitted)">File is required</label>
+        </div>
     </div>
 
     <div class="form-group">

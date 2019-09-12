@@ -38,6 +38,8 @@ public class FileMoveListener implements ExecutionListener {
 
         Stream<String> fileVars = Stream.of(this.fileVars.getValue(delegateExecution).toString().split(",")).map(String::trim).filter(s -> !s.isEmpty());
 
+        SpinList<SpinJsonNode> filesListToHistory = new SpinListImpl<>();
+
         fileVars.forEach(fileVarName -> {
             if(delegateExecution.hasVariable(fileVarName)){
                 SpinJsonNode files = delegateExecution.<JsonValue>getVariableTyped(fileVarName).getValue();
@@ -54,20 +56,12 @@ public class FileMoveListener implements ExecutionListener {
                         } catch (Exception e) {
                             throw new RuntimeException("Failed to move object to permanent storage", e);
                         }
-
                         file.prop("path", permPath);
+
+                        filesListToHistory.add(file);
                     });
 
                     delegateExecution.setVariable(fileVarName, SpinValues.jsonValue(filesList.toString()));
-
-                    SpinJsonNode resolutionContainer = delegateExecution.<JsonValue>getVariableTyped("resolutions").getValue();
-                    if(resolutionContainer.isArray() && resolutionContainer.elements().size() > 0){
-                        SpinList<SpinJsonNode> resolutions = delegateExecution.<JsonValue>getVariableTyped("resolutions").getValue().elements();
-                        resolutions.forEach(resolution -> {
-                            resolution.prop("files", SpinJsonNode.JSON(filesList.toString()));
-                        });
-                        delegateExecution.setVariable("resolutions", SpinValues.jsonValue(resolutions.toString()));
-                    }
                 } else {
                     String piId = delegateExecution.getProcessInstanceId();
 
@@ -79,22 +73,20 @@ public class FileMoveListener implements ExecutionListener {
                     } catch (Exception e) {
                         throw new RuntimeException("Failed to move object to permanent storage", e);
                     }
-
                     files.prop("path", permPath);
 
-                    SpinList<SpinJsonNode> filesList = new SpinListImpl<>();
-                    filesList.add(files);
+                    filesListToHistory.add(files);
 
                     delegateExecution.setVariable(fileVarName, SpinValues.jsonValue(files.toString()));
+                }
 
-                    SpinJsonNode resolutionContainer = delegateExecution.<JsonValue>getVariableTyped("resolutions").getValue();
-                    if(resolutionContainer.isArray() && resolutionContainer.elements().size() > 0){
-                        SpinList<SpinJsonNode> resolutions = delegateExecution.<JsonValue>getVariableTyped("resolutions").getValue().elements();
-                        resolutions.forEach(resolution -> {
-                            resolution.prop("files", SpinJsonNode.JSON(filesList.toString()));
-                        });
-                        delegateExecution.setVariable("resolutions", SpinValues.jsonValue(resolutions.toString()));
-                    }
+                SpinJsonNode resolutionContainer = delegateExecution.<JsonValue>getVariableTyped("resolutions").getValue();
+                if(resolutionContainer.isArray() && resolutionContainer.elements().size() > 0){
+                    SpinList<SpinJsonNode> resolutions = delegateExecution.<JsonValue>getVariableTyped("resolutions").getValue().elements();
+                    resolutions.forEach(resolution -> {
+                        resolution.prop("files", SpinJsonNode.JSON(filesListToHistory.toString()));
+                    });
+                    delegateExecution.setVariable("resolutions", SpinValues.jsonValue(resolutions.toString()));
                 }
             }
         });
