@@ -40,7 +40,7 @@ public class GenerateDocument implements JavaDelegate {
         ((Supplier<Map<String, String>>) (() -> {
             Map<String, String> map = new HashMap<>();
             map.put("rent", "Rent");
-            map.put("power", "Powerit");
+            map.put("power", "Power");
             map.put("rentAndPower", "Rent and Power counter (АП и электропитание по счетчику отдельными статьями)");
             map.put("rentWithPower", "Rent with Power (в АП включено электропитание)");
             return Collections.unmodifiableMap(map);
@@ -53,15 +53,17 @@ public class GenerateDocument implements JavaDelegate {
         this.minioClient = minioClient;
     }
 
-
     @Override
     public void execute(DelegateExecution delegateExecution) throws Exception {
 
-        POIFSFileSystem fs = new POIFSFileSystem(GenerateDocument.class.getResourceAsStream("/dismantleReplaceRequest/site_dismantling_request.doc"));
+        String requestType = delegateExecution.getVariable("requestType").toString();
+
+        POIFSFileSystem fs = new POIFSFileSystem(GenerateDocument.class.getResourceAsStream("/dismantleReplaceRequest/site_" + (requestType.equals("dismantle")?"dismantling":"replacement") + "_request.doc"));
         HWPFDocument doc = new HWPFDocument(fs);
 
         SimpleDateFormat dformat = new SimpleDateFormat("dd.MM.yyyy");
         Map<String, String> varsMap = new HashMap<>();
+
 
         varsMap.put("$sitename", delegateExecution.getVariable("site_name").toString());
         varsMap.put("$requestNumber", delegateExecution.getBusinessKey());
@@ -69,11 +71,6 @@ public class GenerateDocument implements JavaDelegate {
 
         SpinJsonNode initiatorFull = delegateExecution.<JsonValue>getVariableTyped("initiatorFull").getValue();
         varsMap.put("$creator", initiatorFull.prop("firstName").toString().replaceAll("\"","") + " " + initiatorFull.prop("lastName").toString().replaceAll("\"",""));
-
-        String dismantlingInitiator = delegateExecution.getVariable("dismantlingInitiator").toString();
-        varsMap.put("$dismantlingInitiator", initiatorsTitle.get(dismantlingInitiator));
-
-        varsMap.put("$dismantlingReason", delegateExecution.getVariable("dismantlingReason").toString());
 
         SpinJsonNode siteInformation = delegateExecution.<JsonValue>getVariableTyped("siteInformation").getValue();
         if (siteInformation.isArray()) {
@@ -132,70 +129,179 @@ public class GenerateDocument implements JavaDelegate {
             });
         }
 
-        if(delegateExecution.hasVariable("project")){
-            varsMap.put("$project", delegateExecution.getVariable("project").toString());
-        } else {
-            varsMap.put("$project", "");
-        }
+        if(requestType.equals("dismantle")){
+            String dismantlingInitiator = delegateExecution.getVariable("dismantlingInitiator").toString();
+            varsMap.put("$dismantlingInitiator", initiatorsTitle.get(dismantlingInitiator));
+            varsMap.put("$dismantlingReason", delegateExecution.getVariable("dismantlingReason").toString());
+            if(delegateExecution.hasVariable("project")){
+                varsMap.put("$project", delegateExecution.getVariable("project").toString());
+            } else {
+                varsMap.put("$project", "");
+            }
+            SpinJsonNode alternativePlaces = delegateExecution.<JsonValue>getVariableTyped("alternativePlaces").getValue();
+            if (alternativePlaces.isArray()) {
+                SpinList<SpinJsonNode> alternatives = alternativePlaces.elements();
+                int size = alternatives.size();
+                int half = (size + 1) / 2;
 
-        SpinJsonNode alternativePlaces = delegateExecution.<JsonValue>getVariableTyped("alternativePlaces").getValue();
-        if (alternativePlaces.isArray()) {
-            SpinList<SpinJsonNode> alternatives = alternativePlaces.elements();
-            int size = alternatives.size();
-            int half = (size + 1) / 2;
-
-            String firstHalf = "";
-            String secondHalf = "";
-            for(int i=0; i<size; i++){
-                if(i < half){
-                    firstHalf = firstHalf + "Alternative " + (i + 1) + " " + alternatives.get(i).toString().replaceAll("\"","") + ((i < half-1) ? ", " : "");
-                } else if(i >= half){
-                    secondHalf = secondHalf + "Alternative " + (i + 1) + " " + alternatives.get(i).toString().replaceAll("\"","") + ((i < size-1) ? ", " : "");
+                String firstHalf = "";
+                String secondHalf = "";
+                for(int i=0; i<size; i++){
+                    if(i < half){
+                        firstHalf = firstHalf + "Alternative " + (i + 1) + " " + alternatives.get(i).toString().replaceAll("\"","") + ((i < half-1) ? ", " : "");
+                    } else if(i >= half){
+                        secondHalf = secondHalf + "Alternative " + (i + 1) + " " + alternatives.get(i).toString().replaceAll("\"","") + ((i < size-1) ? ", " : "");
+                    }
                 }
+                varsMap.put("$alternatives_firstPart", firstHalf);
+                varsMap.put("$alternatives_secondPart", secondHalf);
             }
-            varsMap.put("$alternatives_firstPart", firstHalf);
-            varsMap.put("$alternatives_secondPart", secondHalf);
-        }
 
-        varsMap.put("$rbsQuantity", String.valueOf(delegateExecution.getVariable("rbsQuantity")));
-        SpinJsonNode rbsTypes = delegateExecution.<JsonValue>getVariableTyped("rbsTypes").getValue();
-        if (rbsTypes.isArray()) {
-            SpinList<SpinJsonNode> rbsList = rbsTypes.elements();
-            int size = rbsList.size();
-            String rbs = "";
-            for(int i=0; i<size; i++){
-                rbs = rbs + rbsList.get(i).toString().replaceAll("\"","") + ((i < size-1) ? ", " : "");
+            varsMap.put("$rbsQuantity", String.valueOf(delegateExecution.getVariable("rbsQuantity")));
+            SpinJsonNode rbsTypes = delegateExecution.<JsonValue>getVariableTyped("rbsTypes").getValue();
+            if (rbsTypes.isArray()) {
+                SpinList<SpinJsonNode> rbsList = rbsTypes.elements();
+                int size = rbsList.size();
+                String rbs = "";
+                for(int i=0; i<size; i++){
+                    rbs = rbs + rbsList.get(i).toString().replaceAll("\"","") + ((i < size-1) ? ", " : "");
+                }
+                varsMap.put("$rbsType", rbs);
             }
-            varsMap.put("$rbsType", rbs);
-        }
 
-        varsMap.put("$band", delegateExecution.getVariable("band").toString());
-        varsMap.put("$squareMeter", String.valueOf(delegateExecution.getVariable("squareMeter")));
+            varsMap.put("$band", delegateExecution.getVariable("band").toString());
+            varsMap.put("$squareMeter", String.valueOf(delegateExecution.getVariable("squareMeter")));
 
-        String rbsLocation = delegateExecution.getVariable("rbsLocation").toString();
-        if("Other".equals(rbsLocation)){
-            varsMap.put("$rbsLocation", "other " + delegateExecution.getVariable("otherRbsLocation").toString());
+            String rbsLocation = delegateExecution.getVariable("rbsLocation").toString();
+            if("Other".equals(rbsLocation)){
+                varsMap.put("$rbsLocation", "other " + delegateExecution.getVariable("otherRbsLocation").toString());
+            } else {
+                varsMap.put("$rbsLocation", rbsLocation);
+            }
+
+            SpinJsonNode gsmAntennaTypes = delegateExecution.<JsonValue>getVariableTyped("gsmAntennaTypes").getValue();
+            if (gsmAntennaTypes.isArray()) {
+                SpinList<SpinJsonNode> gsmAntennas = gsmAntennaTypes.elements();
+                int size = gsmAntennas.size();
+                String gsmAntenna = "";
+                for(int i=0; i<size; i++){
+                    gsmAntenna = gsmAntenna + gsmAntennas.get(i).toString().replaceAll("\"","") + ((i < size-1) ? ", " : "");
+                }
+                varsMap.put("$gAT", gsmAntenna);
+            }
+
+            varsMap.put("$transAntennaType", delegateExecution.getVariable("transmissionAntennaType").toString());
+            varsMap.put("$contractId", delegateExecution.getVariable("contractId").toString());
+            varsMap.put("$contractType", contractTypeTitle.get(delegateExecution.getVariable("contractType").toString()));
+            varsMap.put("$legallyName", delegateExecution.getVariable("legallyName").toString());
+            varsMap.put("$address", delegateExecution.getVariable("address").toString());
+            varsMap.put("$contactInformation", delegateExecution.getVariable("contactInformation").toString());
         } else {
-            varsMap.put("$rbsLocation", rbsLocation);
-        }
+            String replacementInitiator = delegateExecution.getVariable("replacementInitiator").toString();
+            varsMap.put("$replacementInitiator", initiatorsTitle.get(replacementInitiator));
+            varsMap.put("$replacementReason", delegateExecution.getVariable("replacementReason").toString());
+            varsMap.put("$siteToName", delegateExecution.getVariable("site_to_name").toString());
+            varsMap.put("$rbsFromQuantity", String.valueOf(delegateExecution.getVariable("siteFromRbsQuantity")));
+            varsMap.put("$rbsToQuantity", String.valueOf(delegateExecution.getVariable("siteToRbsQuantity")));
+            varsMap.put("$siteFromLatitude", String.valueOf(delegateExecution.getVariable("siteFromLatitude")));
+            varsMap.put("$siteToLatitude", String.valueOf(delegateExecution.getVariable("siteToLatitude")));
+            varsMap.put("$siteFromLongitude", String.valueOf(delegateExecution.getVariable("siteFromLongitude")));
+            varsMap.put("$siteToLongitude", String.valueOf(delegateExecution.getVariable("siteToLongitude")));
 
-        SpinJsonNode gsmAntennaTypes = delegateExecution.<JsonValue>getVariableTyped("gsmAntennaTypes").getValue();
-        if (gsmAntennaTypes.isArray()) {
-            SpinList<SpinJsonNode> gsmAntennas = gsmAntennaTypes.elements();
-            int size = gsmAntennas.size();
-            String gsmAntenna = "";
-            for(int i=0; i<size; i++){
-                gsmAntenna = gsmAntenna + gsmAntennas.get(i).toString().replaceAll("\"","") + ((i < size-1) ? ", " : "");
+            SpinJsonNode siteFromRbsTypes = delegateExecution.<JsonValue>getVariableTyped("siteFromRbsTypes").getValue();
+            if (siteFromRbsTypes.isArray()) {
+                SpinList<SpinJsonNode> rbsList = siteFromRbsTypes.elements();
+                int size = rbsList.size();
+                String rbs = "";
+                for(int i=0; i<size; i++){
+                    rbs = rbs + rbsList.get(i).toString().replaceAll("\"","") + ((i < size-1) ? ", " : "");
+                }
+                varsMap.put("$siteFromRbsType", rbs);
             }
-            varsMap.put("$gAT", gsmAntenna);
-        }
 
-        varsMap.put("$transAntennaType", delegateExecution.getVariable("transmissionAntennaType").toString());
-        varsMap.put("$contractId", delegateExecution.getVariable("contractId").toString());
-        varsMap.put("$contractType", contractTypeTitle.get(delegateExecution.getVariable("contractType").toString()));
-        varsMap.put("$legallyName", delegateExecution.getVariable("legallyName").toString());
-        varsMap.put("$address", delegateExecution.getVariable("address").toString());
-        varsMap.put("$contactInformation", delegateExecution.getVariable("contactInformation").toString());
+            SpinJsonNode siteToRbsTypes = delegateExecution.<JsonValue>getVariableTyped("siteToRbsTypes").getValue();
+            if (siteToRbsTypes.isArray()) {
+                SpinList<SpinJsonNode> rbsList = siteToRbsTypes.elements();
+                int size = rbsList.size();
+                String rbs = "";
+                for(int i=0; i<size; i++){
+                    rbs = rbs + rbsList.get(i).toString().replaceAll("\"","") + ((i < size-1) ? ", " : "");
+                }
+                varsMap.put("$siteToRbsType", rbs);
+            }
+            varsMap.put("$siteFromBand", String.valueOf(delegateExecution.getVariable("siteFromBand")));
+            varsMap.put("$siteToBand", String.valueOf(delegateExecution.getVariable("siteToBand")));
+            varsMap.put("$siteFromRbsLoc", String.valueOf(delegateExecution.getVariable("siteFromRbsLocation")));
+            varsMap.put("$siteToRbsLoc", String.valueOf(delegateExecution.getVariable("siteToRbsLocation")));
+
+            if(delegateExecution.hasVariable("siteFromSquareMeter")){
+                varsMap.put("$siteFromSquareM", delegateExecution.getVariable("siteFromSquareMeter").toString());
+            } else {
+                varsMap.put("$siteFromSquareM", "");
+            }
+            if(delegateExecution.hasVariable("siteToSquareMeter")){
+                varsMap.put("$siteToSquareM", delegateExecution.getVariable("siteToSquareMeter").toString());
+            } else {
+                varsMap.put("$siteToSquareM", "");
+            }
+
+            SpinJsonNode siteFromGsmAntennaTypes = delegateExecution.<JsonValue>getVariableTyped("siteFromGsmAntennaTypes").getValue();
+            if (siteFromGsmAntennaTypes.isArray()) {
+                SpinList<SpinJsonNode> gsmAntennas = siteFromGsmAntennaTypes.elements();
+                int size = gsmAntennas.size();
+                String gsmAntenna = "";
+                for(int i=0; i<size; i++){
+                    gsmAntenna = gsmAntenna + gsmAntennas.get(i).toString().replaceAll("\"","") + ((i < size-1) ? ", " : "");
+                }
+                varsMap.put("$siteFromGsmAnt", gsmAntenna);
+            }
+            SpinJsonNode siteToGsmAntennaTypes = delegateExecution.<JsonValue>getVariableTyped("siteToGsmAntennaTypes").getValue();
+            if (siteToGsmAntennaTypes.isArray()) {
+                SpinList<SpinJsonNode> gsmAntennas = siteToGsmAntennaTypes.elements();
+                int size = gsmAntennas.size();
+                String gsmAntenna = "";
+                for(int i=0; i<size; i++){
+                    gsmAntenna = gsmAntenna + gsmAntennas.get(i).toString().replaceAll("\"","") + ((i < size-1) ? ", " : "");
+                }
+                varsMap.put("$siteToGsmAnt", gsmAntenna);
+            }
+
+            varsMap.put("$siteFromTransAnt", String.valueOf(delegateExecution.getVariable("siteFromTransmissionAntennaType")));
+            varsMap.put("$siteToTransAnt", String.valueOf(delegateExecution.getVariable("siteToTransmissionAntennaType")));
+            varsMap.put("$siteFromContractId", String.valueOf(delegateExecution.getVariable("siteFromContractId")));
+            if(delegateExecution.hasVariable("siteToSquareMeter")){
+                varsMap.put("$siteToContractId", delegateExecution.getVariable("siteToContractId").toString());
+            } else {
+                varsMap.put("$siteToContractId", "");
+            }
+
+            if(delegateExecution.hasVariable("siteFromContractType")){
+                varsMap.put("$siteFromContractType", contractTypeTitle.get(delegateExecution.getVariable("siteFromContractType").toString()));
+            } else {
+                varsMap.put("$siteFromContractType", "");
+            }
+            if(delegateExecution.hasVariable("siteToContractType")){
+                varsMap.put("$siteToContractType", contractTypeTitle.get(delegateExecution.getVariable("siteToContractType").toString()));
+            } else {
+                varsMap.put("$siteToContractType", "");
+            }
+
+            if(delegateExecution.hasVariable("siteFromLegallyName")){
+                varsMap.put("$siteFromLegallyName", delegateExecution.getVariable("siteFromLegallyName").toString());
+            } else {
+                varsMap.put("$siteFromLegallyName", "");
+            }
+            if(delegateExecution.hasVariable("siteToLegallyName")){
+                varsMap.put("$siteToLegallyName", delegateExecution.getVariable("siteToLegallyName").toString());
+            } else {
+                varsMap.put("$siteToLegallyName", "");
+            }
+
+            varsMap.put("$siteFromAddress", String.valueOf(delegateExecution.getVariable("siteFromAddress")));
+            varsMap.put("$siteToAddress", String.valueOf(delegateExecution.getVariable("siteToAddress")));
+            varsMap.put("$siteFromContactInfo", String.valueOf(delegateExecution.getVariable("siteFromContactInformation")));
+            varsMap.put("$siteToContactInfo", String.valueOf(delegateExecution.getVariable("siteToContactInformation")));
+        }
 
         if(delegateExecution.hasVariable("startComment")){
             varsMap.put("$comments", delegateExecution.getVariable("startComment").toString());
@@ -216,65 +322,65 @@ public class GenerateDocument implements JavaDelegate {
 
                     if ("region_approve".equals(taskKey)) {
                         if ("approve".equals(result)) {
-                            varsMap.put("$head_y", "√");
-                            varsMap.put("$head_n", "");
+                            varsMap.put(requestType.equals("dismantle")?"$head_y":"$1y", "√");
+                            varsMap.put(requestType.equals("dismantle")?"$head_n":"$1n", "");
                         } else {
-                            varsMap.put("$head_y", "");
-                            varsMap.put("$head_n", "√");
+                            varsMap.put(requestType.equals("dismantle")?"$head_y":"$1y", "");
+                            varsMap.put(requestType.equals("dismantle")?"$head_n":"$1n", "√");
                         }
-                        varsMap.put("$head_f", assigneeName);
-                        varsMap.put("$head_date", taskEndDate);
+                        varsMap.put(requestType.equals("dismantle")?"$head_f":"$1f", assigneeName);
+                        varsMap.put(requestType.equals("dismantle")?"$head_date":"$1d", taskEndDate);
                     } else {
                         if ("central group \"Central Planning Unit\"".equals(taskName)) {
                             if ("approve".equals(result)) {
-                                varsMap.put("$2y", "√");
-                                varsMap.put("$2n", "");
+                                varsMap.put(requestType.equals("dismantle")?"$2y":"$3y", "√");
+                                varsMap.put(requestType.equals("dismantle")?"$2n":"$3n", "");
                             } else {
-                                varsMap.put("$2y", "");
-                                varsMap.put("$2n", "√");
+                                varsMap.put(requestType.equals("dismantle")?"$2y":"$3y", "");
+                                varsMap.put(requestType.equals("dismantle")?"$2n":"$3n", "√");
                             }
-                            varsMap.put("$2d", taskEndDate);
-                            varsMap.put("$2f", assigneeName);
+                            varsMap.put(requestType.equals("dismantle")?"$2d":"$3d", taskEndDate);
+                            varsMap.put(requestType.equals("dismantle")?"$2f":"$3f", assigneeName);
                         } else if ("central group \"Central Transmission Unit\"".equals(taskName)) {
                             if ("approve".equals(result)) {
-                                varsMap.put("$ctu_y", "√");
-                                varsMap.put("$ctu_n", "");
+                                varsMap.put(requestType.equals("dismantle")?"$ctu_y":"$4y", "√");
+                                varsMap.put(requestType.equals("dismantle")?"$ctu_n":"$4n", "");
                             } else {
-                                varsMap.put("$ctu_y", "");
-                                varsMap.put("$ctu_n", "√");
+                                varsMap.put(requestType.equals("dismantle")?"$ctu_y":"$4y", "");
+                                varsMap.put(requestType.equals("dismantle")?"$ctu_n":"$4n", "√");
                             }
-                            varsMap.put("$ctu_date", taskEndDate);
+                            varsMap.put(requestType.equals("dismantle")?"$ctu_date":"$4d", taskEndDate);
                             varsMap.put("$4f", assigneeName);
                         } else if ("central group \"Central S&FM Unit\"".equals(taskName)) {
                             if ("approve".equals(result)) {
-                                varsMap.put("$csfu_y", "√");
-                                varsMap.put("$csfu_n", "");
+                                varsMap.put(requestType.equals("dismantle")?"$csfu_y":"$5y", "√");
+                                varsMap.put(requestType.equals("dismantle")?"$csfu_n":"$5n", "");
                             } else {
-                                varsMap.put("$csfu_y", "");
-                                varsMap.put("$csfu_n", "√");
+                                varsMap.put(requestType.equals("dismantle")?"$csfu_y":"$5y", "");
+                                varsMap.put(requestType.equals("dismantle")?"$csfu_n":"$5n", "√");
                             }
-                            varsMap.put("$csfu_date", taskEndDate);
+                            varsMap.put(requestType.equals("dismantle")?"$csfu_date":"$5d", taskEndDate);
                             varsMap.put("$5f", assigneeName);
                         } else if ("central group \"Central Leasing Unit\"".equals(taskName)) {
                             if ("approve".equals(result)) {
-                                varsMap.put("$1y", "√");
-                                varsMap.put("$1n", "");
+                                varsMap.put(requestType.equals("dismantle")?"$1y":"$2y", "√");
+                                varsMap.put(requestType.equals("dismantle")?"$1n":"$2n", "");
                             } else {
-                                varsMap.put("$1y", "");
-                                varsMap.put("$1n", "√");
+                                varsMap.put(requestType.equals("dismantle")?"$1y":"$2y", "");
+                                varsMap.put(requestType.equals("dismantle")?"$1n":"$2n", "√");
                             }
-                            varsMap.put("$1d", taskEndDate);
-                            varsMap.put("$1f", assigneeName);
+                            varsMap.put(requestType.equals("dismantle")?"$1d":"$2d", taskEndDate);
+                            varsMap.put(requestType.equals("dismantle")?"$1f":"$2f", assigneeName);
                         } else if ("central group \"Central SAO Unit\"".equals(taskName)) {
                             if ("approve".equals(result)) {
-                                varsMap.put("$3y", "√");
-                                varsMap.put("$3n", "");
+                                varsMap.put(requestType.equals("dismantle")?"$3y":"$6y", "√");
+                                varsMap.put(requestType.equals("dismantle")?"$3n":"$6n", "");
                             } else {
-                                varsMap.put("$3y", "");
-                                varsMap.put("$3n", "√");
+                                varsMap.put(requestType.equals("dismantle")?"$3y":"$6y", "");
+                                varsMap.put(requestType.equals("dismantle")?"$3n":"$6n", "√");
                             }
-                            varsMap.put("$3d", taskEndDate);
-                            varsMap.put("$3f", assigneeName);
+                            varsMap.put(requestType.equals("dismantle")?"$3d":"$6d", taskEndDate);
+                            varsMap.put(requestType.equals("dismantle")?"$3f":"$6f", assigneeName);
                         }
                     }
                 }
@@ -285,18 +391,37 @@ public class GenerateDocument implements JavaDelegate {
                 varsMap.put("$2n", "");
                 varsMap.put("$2d", "");
                 varsMap.put("$2f", "");
-                varsMap.put("$ctu_y", "");
-                varsMap.put("$ctu_n", "");
-                varsMap.put("$ctu_date", "");
-                varsMap.put("$4f", "");
-                varsMap.put("$csfu_y", "");
-                varsMap.put("$csfu_n", "");
-                varsMap.put("$csfu_date", "");
-                varsMap.put("$5f", "");
-                varsMap.put("$1y", "");
-                varsMap.put("$1n", "");
-                varsMap.put("$1d", "");
-                varsMap.put("$1f", "");
+                varsMap.put("$3y", "");
+                varsMap.put("$3n", "");
+                varsMap.put("$3d", "");
+                varsMap.put("$3f", "");
+                if(requestType.equals("dismantle")){
+                    varsMap.put("$1y", "");
+                    varsMap.put("$1n", "");
+                    varsMap.put("$1d", "");
+                    varsMap.put("$1f", "");
+                    varsMap.put("$ctu_y", "");
+                    varsMap.put("$ctu_n", "");
+                    varsMap.put("$ctu_date", "");
+                    varsMap.put("$4f", "");
+                    varsMap.put("$csfu_y", "");
+                    varsMap.put("$csfu_n", "");
+                    varsMap.put("$csfu_date", "");
+                    varsMap.put("$5f", "");
+                } else {
+                    varsMap.put("$4y", "");
+                    varsMap.put("$4n", "");
+                    varsMap.put("$4d", "");
+                    varsMap.put("$4f", "");
+                    varsMap.put("$5y", "");
+                    varsMap.put("$5n", "");
+                    varsMap.put("$5d", "");
+                    varsMap.put("$5f", "");
+                    varsMap.put("$6y", "");
+                    varsMap.put("$6n", "");
+                    varsMap.put("$6d", "");
+                    varsMap.put("$6f", "");
+                }
             }
         }
 
@@ -308,13 +433,13 @@ public class GenerateDocument implements JavaDelegate {
         doc.write(b); // doc should be a XWPFDocument
         InputStream inputStream = new ByteArrayInputStream(b.toByteArray());
 
-        String name = "Site Dismantling Request.doc";
+        String name = requestType.equals("dismantle") ? "Site Dismantling Request.doc" : "Site replacement Request.doc";
         String path = delegateExecution.getProcessInstanceId() + "/" + name;
 
         minioClient.saveFile(path, inputStream, "application/msword");
 
         String json = "{\"name\" : \"" + name + "\",\"path\" : \"" + path + "\"}";
-        delegateExecution.setVariable("siteDismantlingDocument", SpinValues.jsonValue(json));
+        delegateExecution.setVariable(requestType.equals("dismantle") ? "siteDismantlingDocument" : "siteReplacementDocument", SpinValues.jsonValue(json));
 
         fs.close();
         doc.close();
