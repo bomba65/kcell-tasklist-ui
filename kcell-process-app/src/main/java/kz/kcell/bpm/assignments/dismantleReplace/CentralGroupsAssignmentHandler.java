@@ -30,5 +30,7 @@ public class CentralGroupsAssignmentHandler implements TaskListener {
                 delegateTask.addCandidateGroup("dismantle_replacement_central_sao");
             }
         }
+
+        delegateTask.setVariable("centralGroupsResult","");
     }
 }

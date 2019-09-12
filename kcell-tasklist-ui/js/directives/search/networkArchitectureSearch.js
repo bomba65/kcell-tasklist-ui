@@ -636,7 +636,7 @@ define(['../module', 'moment'], function (module, moment) {
                     scope.filter.workType = undefined;
                     scope.filter.participation = undefined;
                     scope.filter.currentAssignee = undefined;
-                    scope.filter.beginYear = scope.currentDate.getFullYear();
+                    scope.filter.beginYear = scope.currentDate.getFullYear()-1;
                     scope.filter.endYear = scope.currentDate.getFullYear();
                     scope.filter.requestedDateRange = undefined;
                     scope.filter.validityDateRange = undefined;
@@ -655,6 +655,9 @@ define(['../module', 'moment'], function (module, moment) {
                     scope.filter.mainContract = 'All';
                     scope.filter.monthOfFormalPeriod = undefined;
                     scope.filter.yearOfFormalPeriod = undefined;
+                    scope.filter.dismantlingInitiator = undefined;
+                    scope.filter.replacementInitiator = undefined;
+                    scope.filter.dismantleActivityId = undefined;
                 }
 
                 function getProcessInstances(filter, processInstances) {
