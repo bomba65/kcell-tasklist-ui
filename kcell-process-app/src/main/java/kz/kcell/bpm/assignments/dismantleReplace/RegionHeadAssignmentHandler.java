@@ -15,7 +15,7 @@ public class RegionHeadAssignmentHandler implements TaskListener {
             String dismantlingInitiator = (String) delegateTask.getVariable("dismantlingInitiator");
             delegateTask.addCandidateGroup(siteRegion + "_" + dismantlingInitiator + "_head");
             delegateTask.setDescription("SITE DISMANTLING REQUEST");
-        } else if("replace".equals(requestType)){
+        } else if("replacement".equals(requestType)){
             String replacementInitiator = (String) delegateTask.getVariable("replacementInitiator");
             delegateTask.addCandidateGroup(siteRegion + "_" + replacementInitiator + "_head");
             delegateTask.setDescription("SITE REPLACEMENT REQUEST");

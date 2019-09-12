@@ -11,7 +11,7 @@ public class CentralGroupsAssignmentHandler implements TaskListener {
 
         if("dismantle".equals(requestType)){
             delegateTask.setDescription("SITE DISMANTLING REQUEST");
-        } else if("replace".equals(requestType)){
+        } else if("replacement".equals(requestType)){
             delegateTask.setDescription("SITE REPLACEMENT REQUEST");
         }
 

@@ -1,0 +1,288 @@
+<iframe id="fileDownloadIframe" style="display:none;"></iframe>
+<style>
+    .card-modal-header {
+        background:transparent; color:black; padding:0 15px 0 15px;
+    }
+
+</style>
+<div class="card-modal-header">
+    <button type="button" class="close" ng-click="$dismiss()" aria-hidden="true">&times;</button>
+    <h4 style="margin-top:14px;">{{businessKey}}</h4>
+</div>
+<div class="modal-body new-card-search" style="padding-top:5px">
+    <div class="row">
+        <div class="col-md-4">
+            <div class="row">
+                <div class="col-md-8">
+                    <span class="block-headers">&nbsp;</span>
+                </div>
+                <div class="col-md-4">
+                    <div class="dropdown" style="position:absolute; right:15px; top:-6px;">
+                        <button class="btn btn-default dropdown-toggle" type="button" data-toggle="dropdown">More
+                            <span class="caret"></span></button>
+                        <ul class="dropdown-menu">
+                            <li><a href="" ng-click="showDiagram(processDefinitionId, replacementInfo.tasks)" class="ng-binding"><span
+                                    class="glyphicon glyphicon-indent-left" aria-hidden="true"></span>
+                                Diagram</a></li>
+                            <li><a href="" ng-click="showHistory(replacementInfo.resolutions.value)"
+                                   class="ng-binding"><span class="glyphicon glyphicon-list-alt"
+                                                            aria-hidden="true"></span> History </a></li>
+                        </ul>
+                    </div>
+                </div>
+            </div>
+            <div class="row">
+                <div class="col-md-12">
+                    <div class="panel panel-default" style="margin:18px 0 0 0">
+                        <div class="panel-heading block-headers">Details</div>
+                        <div class="panel-body" style="padding:10px 0 10px 0;word-break:break-word;">
+                            <div class="form-group">
+                                <div class="col-sm-12"><b>Initiator</b>: {{replacementInfo.initiatorFull.value.firstName}}
+                                    {{replacementInfo.initiatorFull.value.lastName}}
+                                </div>
+                                <div class="col-sm-12"><b>Site Name</b>: {{replacementInfo.site_name.value}}</div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="row">
+                <div class="col-md-12">
+                    <ul class="nav nav-stacked" id="accordion1">
+                        <li class="panel panel-default" style="margin:0">
+                            <a data-toggle="collapse" data-parent="#accordion1" href="#firstLink"
+                               style="background-color: #f5f5f5;" class="block-headers">User Tasks</a>
+
+                            <ul id="firstLink" class="collapse in ul-padding">
+                                <div ng-repeat="task in replacementInfo.tasks" >
+                                    <div class="task">
+                                        <h5>
+                                            <a ng-if="hasGroup('revision_managers') || hasGroup('revision_audit')"
+                                               ui-sref="tasks.task({id:task.id})" target="_blank">{{
+                                                (task.name || task.id) }}</a></h5>
+                                        <h5><span
+                                                ng-if="!(hasGroup('revision_managers') || hasGroup('revision_audit'))"
+                                                ui-sref="tasks.task({id:task.id})" target="_blank">{{ (task.name || task.id) }}</span>
+                                        </h5>
+                                        <div class="card-task-descr" ng-if="task.description"> {{ task.description }}</div>
+                                        <small ng-if="hasGroup('kcellUsers')" class="text-muted"
+                                               ng-if="task.group">
+                                            Group: <a
+                                                ng-click="showGroupDetails(task.group)">{{task.group}}</a>
+                                        </small>
+                                        <br/>
+                                        <small class="text-muted" ng-if="task.assignee">{{
+                                            task.assigneeObject.firstName }} {{ task.assigneeObject.lastName
+                                            }}
+                                        </small>
+                                        <small class="text-muted" ng-if="!task.assignee">Unassigned</small>
+                                    </div>
+                                </div>
+                            </ul>
+                        </li>
+
+                    </ul>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-8">
+            <div class="row">
+                <div class="col-xs-12 col-md-12">
+                    <h4>SRR Information</h4>
+                </div>
+            </div>
+            <div class="row">
+                <div class="col-xs-6 col-md-6"><b>SRR Creation date</b>:
+                    {{replacementInfo.srrCreationDate.value | date: 'dd.MM.yyyy'}}
+                </div>
+                <div class="col-xs-6 col-md-6"><b>SA&O Complaint Id</b>:
+                    {{replacementInfo.soaComplaintId.value}}
+                </div>
+            </div>
+            <div class="row">
+                <div class="col-xs-6 col-md-6"><b>Validity date</b>:
+                    {{replacementInfo.validityDate.value | date: 'dd.MM.yyyy'}}
+                </div>
+                <div class="col-xs-6 col-md-6"><b>Initiator of replacement</b>:
+                    {{catalogs.initiatorsLabel[replacementInfo.replacementInitiator.value]}}
+                </div>
+            </div>
+            <div class="row">
+                <div class="col-xs-6 col-md-6"><b>Site (from)</b>:
+                    {{replacementInfo.site_name.value}}
+                </div>
+            </div>
+            <div class="row">
+                <div class="col-xs-6 col-md-6"><b>Site (to)</b>:
+                    {{replacementInfo.site_to_name.value}}
+                </div>
+            </div>
+            <div class="row" style="margin-top: 20px;">
+                <label class="col-sm-2 control-label">
+                    Traffic: <br />
+                    (average monthly)
+                </label>
+                <div class="col-sm-10">
+                    <table class="table table-bordered">
+                        <tbody>
+                            <tr ng-repeat="siteInfo in replacementInfo.siteInformation.value">
+                                <td>{{siteInfo.name}}</td>
+                                <td>{{siteInfo.gsmLabel}}</td>
+                                <td>{{siteInfo.gsmValue}}</td>
+                                <td>{{siteInfo.umtsLabel}}</td>
+                                <td>{{siteInfo.umtsValue}}</td>
+                                <td>{{siteInfo.lteLabel}}</td>
+                                <td>{{siteInfo.lteValue}}</td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+            <div class="row" style="margin-top: 30px;">
+                <div class="col-xs-12 col-md-12">
+                    <h4>Site Information</h4>
+                </div>
+            </div>
+            <div class="row">
+                <div class="col-xs-6 col-md-6"><b>Site (from)</b>:
+                    {{replacementInfo.site_name.value}}
+                </div>
+                <div class="col-xs-6 col-md-6"><b>Site (to)</b>:
+                    {{replacementInfo.site_to_name.value}}
+                </div>
+            </div>
+            <div class="row">
+                <div class="col-xs-6 col-md-6"><b>RBS Quantity</b>:
+                    {{replacementInfo.siteFromRbsQuantity.value}}
+                </div>
+                <div class="col-xs-6 col-md-6"><b>RBS Quantity</b>:
+                    {{replacementInfo.siteToRbsQuantity.value}}
+                </div>
+            </div>
+            <div class="row">
+                <div class="col-xs-6 col-md-6"><b>Latitude</b>:
+                    {{replacementInfo.siteFromLatitude.value}}
+                </div>
+                <div class="col-xs-6 col-md-6"><b>Latitude</b>:
+                    {{replacementInfo.siteToLatitude.value}}
+                </div>
+            </div>
+            <div class="row">
+                <div class="col-xs-6 col-md-6"><b>Longitude</b>:
+                    {{replacementInfo.siteFromLongitude.value}}
+                </div>
+                <div class="col-xs-6 col-md-6"><b>Longitude</b>:
+                    {{replacementInfo.siteToLongitude.value}}
+                </div>
+            </div>
+            <div class="row">
+                <div class="col-xs-6 col-md-6"><b>RBS type</b>:
+                    <span ng-repeat="rt in replacementInfo.siteFromRbsTypes.value" class="my-tag">{{rt}}</span>
+                </div>
+                <div class="col-xs-6 col-md-6"><b>RBS type</b>:
+                    <span ng-repeat="rt in replacementInfo.siteToRbsTypes.value" class="my-tag">{{rt}}</span>
+                </div>
+            </div>
+            <div class="row">
+                <div class="col-xs-6 col-md-6"><b>Band</b>:
+                    {{replacementInfo.siteFromBand.value}}
+                </div>
+                <div class="col-xs-6 col-md-6"><b>Band</b>:
+                    {{replacementInfo.siteToBand.value}}
+                </div>
+            </div>
+            <div class="row">
+                <div class="col-xs-6 col-md-6"><b>RBS location</b>:
+                    {{replacementInfo.siteFromRbsLocation.value}}
+                </div>
+                <div class="col-xs-6 col-md-6"><b>RBS location</b>:
+                    {{replacementInfo.siteToRbsLocation.value}}
+                </div>
+            </div>
+            <div class="row">
+                <div class="col-xs-6 col-md-6"><b>Square, m2</b>:
+                    {{replacementInfo.siteFromSquareMeter.value}}
+                </div>
+                <div class="col-xs-6 col-md-6"><b>Square, m2</b>:
+                    {{replacementInfo.siteToSquareMeter.value}}
+                </div>
+            </div>
+            <div class="row">
+                <div class="col-xs-6 col-md-6"><b>GSM Antenna type</b>:
+                    <span ng-repeat="gt in replacementInfo.siteFromGsmAntennaTypes.value" class="my-tag">{{gt}}</span>
+                </div>
+                <div class="col-xs-6 col-md-6"><b>GSM Antenna type</b>:
+                    <span ng-repeat="gt in replacementInfo.siteToGsmAntennaTypes.value" class="my-tag">{{gt}}</span>
+                </div>
+            </div>
+            <div class="row">
+                <div class="col-xs-6 col-md-6"><b>Transmission Antenna type</b>:
+                    {{replacementInfo.siteFromTransmissionAntennaType.value}}
+                </div>
+                <div class="col-xs-6 col-md-6"><b>Transmission Antenna type</b>:
+                    {{replacementInfo.siteToTransmissionAntennaType.value}}
+                </div>
+            </div>
+
+            <div class="row" style="margin-top: 30px;">
+                <div class="col-xs-12 col-md-12">
+                    <h4>Contract Information</h4>
+                </div>
+            </div>
+            <div class="row">
+                <div class="col-xs-6 col-md-6"><b>Contract ID</b>:
+                    {{replacementInfo.siteFromContractId.value}}
+                </div>
+                <div class="col-xs-6 col-md-6"><b>Contract ID</b>:
+                    {{replacementInfo.siteToContractId.value}}
+                </div>
+            </div>
+            <div class="row">
+                <div class="col-xs-6 col-md-6"><b>Contract type</b>:
+                    {{catalogs.contractTypeLabel[replacementInfo.siteFromContractType.value]}}
+                </div>
+                <div class="col-xs-6 col-md-6"><b>Contract type</b>:
+                    {{catalogs.contractTypeLabel[replacementInfo.siteToContractType.value]}}
+                </div>
+            </div>
+            <div class="row">
+                <div class="col-xs-6 col-md-6"><b>Legally name</b>:
+                    {{replacementInfo.siteFromLegallyName.value}}
+                </div>
+                <div class="col-xs-6 col-md-6"><b>Legally name</b>:
+                    {{replacementInfo.siteToLegallyName.value}}
+                </div>
+            </div>
+            <div class="row">
+                <div class="col-xs-6 col-md-6"><b>Address</b>:
+                    {{replacementInfo.siteFromAddress.value}}
+                </div>
+                <div class="col-xs-6 col-md-6"><b>Address</b>:
+                    {{replacementInfo.siteToAddress.value}}
+                </div>
+            </div>
+            <div class="row">
+                <div class="col-xs-6 col-md-6"><b>Contact information</b>:
+                    {{replacementInfo.siteFromContactInformation.value}}
+                </div>
+                <div class="col-xs-6 col-md-6"><b>Contact information</b>:
+                    {{replacementInfo.siteToContactInformation.value}}
+                </div>
+            </div>
+            <div class="row">
+                <div class="col-xs-12 col-md-12"><b>Reason of replacement</b>:
+                    {{replacementInfo.replacementReason.value}}
+                </div>
+            </div>
+            <div class="row">
+                <div class="col-xs-12 col-md-12" ng-if="replacementInfo.siteReplacementDocument.value"><b>Site Replacement Request</b>:
+                    <a ng-click="download(replacementInfo.siteReplacementDocument.value.path)">{{replacementInfo.siteReplacementDocument.value.name}}</a>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="modal-footer" id="modal-footer">
+    <button type="button" class="btn btn-default" style="float:right;" ng-click="$dismiss()">Close</button>
+</div>
