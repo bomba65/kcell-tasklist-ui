@@ -183,6 +183,18 @@
                     type: 'Json',
                     submit: true,
                     store: true
+                },
+                {
+                    name: 'siteStatus',
+                    type: 'String',
+                    submit: true,
+                    store: true
+                },
+                {
+                    name: 'siteToStatus',
+                    type: 'String',
+                    submit: true,
+                    store: true
                 }
             ];
             var uuid = new Date().getTime();
@@ -190,6 +202,9 @@
             $scope.requestType = 'replacement';
             $scope.priority = 'regular';
             $scope.catalogs = {};
+            $scope.siteStatus = undefined;
+            $scope.siteToStatus = undefined;
+
             $scope.siteInformation = [
                 { name: 'cell A:', gsmLabel: 'GSM-', gsmValue: undefined, umtsLabel: 'UMTS-', umtsValue: undefined, lteLabel: 'LTE-', lteValue: undefined},
                 { name: 'cell B:', gsmLabel: 'GSM-', gsmValue: undefined, umtsLabel: 'UMTS-', umtsValue: undefined, lteLabel: 'LTE-', lteValue: undefined},
@@ -299,7 +314,8 @@
                                         return {
                                             name: s.name,
                                             id: s._links.self.href.substring(s._links.self.href.lastIndexOf('/')+1),
-                                            site_name: sitename
+                                            site_name: sitename,
+                                            params: s.params
                                         };
                                     })
                                 } else {
@@ -315,6 +331,11 @@
                 $scope.siteName = $item.name;
                 $scope.site = $item.id;
                 $scope.site_name = $item.site_name;
+                if($item.params.status){
+                    $scope.siteStatus = $item.params.status[$item.site_name];
+                } else {
+                    $scope.siteStatus = "working site";
+                }
                 if ($scope.siteName.startsWith('11')) {
                     $scope.regionShortName = $scope.regionsMap['11'];
                     $scope.siteRegion = $scope.regionsMapLC['11'];
@@ -325,12 +346,20 @@
                     $scope.regionShortName = $scope.regionsMap[$scope.siteName.substring(0, 1)];
                     $scope.siteRegion = $scope.regionsMapLC[$scope.siteName.substring(0, 1)];
                 }
+                $(function () {
+                    $('[data-toggle="tooltip"]').tooltip('fixTitle');
+                });
             };
 
             $scope.siteToSelected = function ($item) {
                 $scope.siteToName = $item.name;
                 $scope.siteTo = $item.id;
                 $scope.site_to_name = $item.site_name;
+                if($item.params.status){
+                    $scope.siteToStatus = $item.params.status[$scope.site_to_name];
+                } else {
+                    $scope.siteToStatus = "working site";
+                }
                 if ($scope.siteToName.startsWith('11')) {
                     $scope.siteToRegionShortName = $scope.regionsMap['11'];
                     $scope.siteToRegion = $scope.regionsMapLC['11'];
@@ -341,6 +370,9 @@
                     $scope.siteToRegionShortName = $scope.regionsMap[$scope.siteToName.substring(0, 1)];
                     $scope.siteToRegion = $scope.regionsMapLC[$scope.siteToName.substring(0, 1)];
                 }
+                $(function () {
+                    $('[data-toggle="tooltip"]').tooltip('fixTitle');
+                });
             };
 
             $scope.regionSelected = function(siteRegion){
@@ -539,10 +571,17 @@
     <div class="form-group">
         <label class="col-sm-2 control-label">Site (from):</label>
         <div class="col-sm-3">
-            <input type="text" ng-model="site_name" name="site_name" typeahead="site as sites.site_name for sites in getSite($viewValue)" typeahead-on-select="siteSelected($item,$model,$label)" class="form-control" required autocomplete="off" placeholder="Site Name">
-            <input type="hidden" ng-model="site" name="siteId" required/>
-            <label class="error" ng-if="kcell_form.site_name.$error.required && ( kcell_form.site_name.$touched || view.submitted)">Required field</label>
-            <label class="error" ng-if="kcell_form.siteId.$error.required && ( kcell_form.siteName.$touched || view.submitted)">Please choose site from list</label>
+            <div class="input-group">
+                <input type="text" ng-model="site_name" name="site_name" typeahead="site as sites.site_name for sites in getSite($viewValue)" typeahead-on-select="siteSelected($item,$model,$label)" class="form-control" required autocomplete="off" placeholder="Site Name">
+                <input type="hidden" ng-model="site" name="siteId" required/>
+                <span class="input-group-btn" ng-if="siteName" data-toggle="tooltip" data-placement="right" title="Site (from) status">
+                    <button type="button" class="btn btn-default">
+                        {{siteStatus ? siteStatus : 'working site'}}
+                    </button>
+                </span>
+                <label class="error" ng-if="kcell_form.site_name.$error.required && ( kcell_form.site_name.$touched || view.submitted)">Required field</label>
+                <label class="error" ng-if="kcell_form.siteId.$error.required && ( kcell_form.siteName.$touched || view.submitted)">Please choose site from list</label>
+            </div>
         </div>
 
         <div ng-if="siteName.startsWith('9')">
@@ -559,10 +598,17 @@
     <div class="form-group">
         <label class="col-sm-2 control-label">Site (to):</label>
         <div class="col-sm-3">
-            <input type="text" ng-model="site_to_name" name="site_to_name" typeahead="site as sites.site_name for sites in getSite($viewValue)" typeahead-on-select="siteToSelected($item,$model,$label)" class="form-control" required autocomplete="off" placeholder="Site Name">
-            <input type="hidden" ng-model="siteTo" name="siteToId" required/>
-            <label class="error" ng-if="kcell_form.site_to_name.$error.required && ( kcell_form.site_to_name.$touched || view.submitted)">Required field</label>
-            <label class="error" ng-if="kcell_form.siteToId.$error.required && ( kcell_form.siteToName.$touched || view.submitted)">Please choose site from list</label>
+            <div class="input-group">
+                <input type="text" ng-model="site_to_name" name="site_to_name" typeahead="site as sites.site_name for sites in getSite($viewValue)" typeahead-on-select="siteToSelected($item,$model,$label)" class="form-control" required autocomplete="off" placeholder="Site Name">
+                <input type="hidden" ng-model="siteTo" name="siteToId" required/>
+                <span class="input-group-btn" ng-if="siteToName" data-toggle="tooltip" data-placement="right" title="Site (to) status">
+                    <button type="button" class="btn btn-default">
+                        {{siteToStatus ? siteToStatus : 'working site'}}
+                    </button>
+                </span>
+                <label class="error" ng-if="kcell_form.site_to_name.$error.required && ( kcell_form.site_to_name.$touched || view.submitted)">Required field</label>
+                <label class="error" ng-if="kcell_form.siteToId.$error.required && ( kcell_form.siteToName.$touched || view.submitted)">Please choose site from list</label>
+            </div>
         </div>
 
         <div ng-if="siteToName.startsWith('9')">
