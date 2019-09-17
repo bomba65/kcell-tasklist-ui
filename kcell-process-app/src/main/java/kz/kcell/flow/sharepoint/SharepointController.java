@@ -78,7 +78,7 @@ public class SharepointController {
         String result = "error";
         if (isSftp) {
             try {
-                String responseText = getAuthenticatedResponse(baseUri + "/Lists/getbytitle('ICTD%20TCF')/items("+ itemId +")", "kcell.kz", this.username, this.pwd);
+                String responseText = getAuthenticatedResponse(baseUri + "/Lists/getbytitle('TCF_test')/items("+ itemId +")", "kcell.kz", this.username, this.pwd);
                 //result = responseText;
 
                 ////////////////////
@@ -143,7 +143,7 @@ public class SharepointController {
                 "            \"id\": \"Web/Lists(guid'd79e9f26-54d0-4db3-9488-d551236b0005')/Items(2914)\",\n" +
                 "            \"uri\": \"https://sp.kcell.kz/forms/_api/Web/Lists(guid'd79e9f26-54d0-4db3-9488-d551236b0005')/Items(2914)\",\n" +
                 "            \"etag\": \"\\\"21\\\"\",\n" +
-                "            \"type\": \"SP.Data.ICTD_x0020_TCFListItem\"\n" +
+                "            \"type\": \"SP.Data.TCF_x005f_testListItem \"\n" +
                 "        },\n" +
                 "        \"FirstUniqueAncestorSecurableObject\": {\n" +
                 "            \"__deferred\": {\n" +
@@ -392,7 +392,7 @@ public class SharepointController {
         String result = "error";
         if (isSftp) {
             try {
-                String responseText = postItemsResponse(baseUri + "/Lists/getbytitle('ICTD%20TCF')/items", "kcell.kz", this.username, this.pwd, requestBody);
+                String responseText = postItemsResponse(baseUri + "/Lists/getbytitle('TCF_test')/items", "kcell.kz", this.username, this.pwd, requestBody);
                 result = responseText;
             } catch (Exception e) {
                 e.printStackTrace();
@@ -674,7 +674,7 @@ public class SharepointController {
 
                 StringEntity TCFData = new StringEntity(RequestBody, ContentType.APPLICATION_JSON);
 
-                HttpPost httpPostTCF = new HttpPost(new URI(baseUri + "/getbytitle('ICTD%20TCF')"));
+                HttpPost httpPostTCF = new HttpPost(new URI(baseUri + "/getbytitle('TCF_test')"));
                 httpPostTCF.addHeader("Content-Type", "application/json;charset=UTF-8");
                 httpPostTCF.setEntity(TCFData);
 

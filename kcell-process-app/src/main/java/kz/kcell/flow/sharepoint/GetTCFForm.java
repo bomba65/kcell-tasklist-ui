@@ -197,7 +197,7 @@ public class GetTCFForm implements JavaDelegate {
                 }
             });
 
-            URL urlRequest = new URL(baseUri + "/Lists/getbytitle('ICTD%20TCF')/items(" + tcfFormId + ")");
+            URL urlRequest = new URL(baseUri + "/Lists/getbytitle('TCF_test')/items(" + tcfFormId + ")");
             HttpURLConnection conn = (HttpURLConnection) urlRequest.openConnection();
             conn.setDoOutput(true);
             conn.setDoInput(true);
@@ -493,7 +493,7 @@ public class GetTCFForm implements JavaDelegate {
                 "            \"id\": \"Web/Lists(guid'd79e9f26-54d0-4db3-9488-d551236b0005')/Items(2914)\",\n" +
                 "            \"uri\": \"https://sp.kcell.kz/forms/_api/Web/Lists(guid'd79e9f26-54d0-4db3-9488-d551236b0005')/Items(2914)\",\n" +
                 "            \"etag\": \"\\\"21\\\"\",\n" +
-                "            \"type\": \"SP.Data.ICTD_x0020_TCFListItem\"\n" +
+                "            \"type\": \"SP.Data.TCF_x005f_testListItem \"\n" +
                 "        },\n" +
                 "        \"FirstUniqueAncestorSecurableObject\": {\n" +
                 "            \"__deferred\": {\n" +
