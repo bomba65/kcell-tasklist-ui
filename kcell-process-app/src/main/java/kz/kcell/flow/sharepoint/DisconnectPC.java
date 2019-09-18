@@ -79,7 +79,7 @@ public class DisconnectPC implements JavaDelegate {
         try {
             String encoding = Base64.getEncoder().encodeToString((this.productCatalogAuth).getBytes("UTF-8"));
             StringEntity shortNumberData = new StringEntity(requestBody, ContentType.APPLICATION_JSON);
-            log.info("putVasUrls REQUEST [" + Thread.currentThread().getName() + "]: " + this.productCatalogUrl + "/vas_urls/" + vasId);
+            log.info("putVasUrls REQUEST [" + Thread.currentThread().getName() + "]: " + this.productCatalogUrl + "/vas_short_numbers/" + vasId);
             log.info("putVasUrls BODY [" + Thread.currentThread().getName() + "]:" + requestBody);
             HttpPut shortNumberPut = new HttpPut(new URI(this.productCatalogUrl + "/vas_short_numbers/" + vasId));
             shortNumberPut.setHeader("Authorization", "Basic " + encoding);
@@ -159,7 +159,7 @@ public class DisconnectPC implements JavaDelegate {
                 for (int j = 0; j < jsonArray.length(); j++) {
                     JSONObject jsonObject = jsonArray.getJSONObject(j);
                     jsonObject.put("shortNumberState", "D");
-                    String putVasUrlsResult = putVasUrls(jsonObject.getJSONObject("vasShortNumber").getLong("id") + "", jsonObject.toString());
+                    String putVasUrlsResult = putVasUrls(jsonObject.getJSONObject("vasShortNumber").getLong("id") + "", jsonObject.getJSONObject("vasShortNumber").toString());
                     delegateExecution.setVariable("disconnectionPCObject", putVasUrlsResult);
                 }
             } catch (Exception e) {
