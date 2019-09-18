@@ -16,7 +16,7 @@ public class ReplanTest {
     @Test
     public void testNotNeededAfter_task_update_shared_site_address_plan(){
         ProcessInstanceWithVariables processInstanceWithVariables = processEngineRule.getRuntimeService()
-                .createProcessInstanceByKey("ReplanSharedSiteAddressPlan")
+                .createProcessInstanceByKey("ReplanSiteAP")
                 .startAfterActivity("task_update_shared_site_address_plan")
                 .setVariable("updateSiteSharingAddressPlanResult", "false")
                 .executeWithVariablesInReturn();
@@ -32,7 +32,7 @@ public class ReplanTest {
     @Test
     public void testUpdatedAfter_task_update_shared_site_address_plan(){
         ProcessInstanceWithVariables processInstanceWithVariables = processEngineRule.getRuntimeService()
-                .createProcessInstanceByKey("ReplanSharedSiteAddressPlan")
+                .createProcessInstanceByKey("ReplanSiteAP")
                 .startAfterActivity("task_update_shared_site_address_plan")
                 .setVariable("updateSiteSharingAddressPlanResult", "true")
                 .executeWithVariablesInReturn();
@@ -48,7 +48,7 @@ public class ReplanTest {
     @Test
     public void testRejectAfter_task_accept_or_reject_address_plan_modification(){
         ProcessInstanceWithVariables processInstanceWithVariables = processEngineRule.getRuntimeService()
-                .createProcessInstanceByKey("ReplanSharedSiteAddressPlan")
+                .createProcessInstanceByKey("ReplanSiteAP")
                 .startAfterActivity("task_accept_or_reject_address_plan_modification")
                 .setVariable("addressPlanUpdateAcceptedResult", "false")
                 .executeWithVariablesInReturn();
@@ -64,7 +64,7 @@ public class ReplanTest {
     @Test
     public void testAcceptAfter_task_accept_or_reject_address_plan_modification(){
         ProcessInstanceWithVariables processInstanceWithVariables = processEngineRule.getRuntimeService()
-                .createProcessInstanceByKey("ReplanSharedSiteAddressPlan")
+                .createProcessInstanceByKey("ReplanSiteAP")
                 .startAfterActivity("task_accept_or_reject_address_plan_modification")
                 .setVariable("addressPlanUpdateAcceptedResult", "true")
                 .executeWithVariablesInReturn();
