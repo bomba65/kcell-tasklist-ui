@@ -395,16 +395,20 @@
                     console.log(error.data);
                 });
             };
-
             $scope.preSubmit = function(){
                 var deferred = $q.defer();
-                var sdrCounter = 'SDR-' + $scope.regionShortName+'-'+$scope.sdrCreationDate.getFullYear().toString().substr(-2);
-                return $http.post('/asset-management/sdrrequestcounter/' + sdrCounter).then(
-                        function(result){
-                            $scope.sdrNumber = result.data;
-                            camForm.businessKey = result.data;
-                        }
-                );
+                if($scope.siteStatus !== 'working site'){
+                    deferred.reject('Only working site allowed to be dismantled');
+                    return deferred.promise;
+                } else {
+                    var sdrCounter = 'SDR-' + $scope.regionShortName+'-'+$scope.sdrCreationDate.getFullYear().toString().substr(-2);
+                    return $http.post('/asset-management/sdrrequestcounter/' + sdrCounter).then(
+                            function(result){
+                                $scope.sdrNumber = result.data;
+                                camForm.businessKey = result.data;
+                            }
+                    );
+                }
             }
         }]);
     </script>
@@ -480,6 +484,7 @@
             </div>
             <label class="error" ng-if="kcell_form.site_name.$error.required && ( kcell_form.site_name.$touched || view.submitted)">Required field</label>
             <label class="error" ng-if="kcell_form.siteId.$error.required && ( kcell_form.siteName.$touched || view.submitted)">Please choose site from list</label>
+            <label class="error" ng-if="site_name && siteStatus !== 'working site'">Only working site allowed to be dismantled</label>
         </div>
 
         <label class="col-sm-2 control-label">Type of Project:</label>
