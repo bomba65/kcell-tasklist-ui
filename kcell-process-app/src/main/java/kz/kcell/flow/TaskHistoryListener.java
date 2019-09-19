@@ -62,7 +62,9 @@ public class TaskHistoryListener implements TaskListener {
       "Demand",
       "UAT",
       "PBX",
-      "sdr_srr_request"
+      "sdr_srr_request",
+      "Revision",
+      "PreparePermitDocs"
     );
 
     @Override
