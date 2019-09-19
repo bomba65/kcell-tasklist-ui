@@ -97,6 +97,16 @@
                     name: 'threeFarEndNotNecessary',
                     type: 'Json',
                     value: []
+                },
+                {
+                    name: 'cellAntennaInformation',
+                    type: 'Json',
+                    value: {}
+                },
+                {
+                    name: 'address',
+                    type: 'Json',
+                    value: []
                 }
             ];
 
@@ -132,6 +142,9 @@
                 $scope.cellAntenna = {
                     selectedAntennas: []
                 };
+                $scope.cellAntennaInformation = {
+                    ca_diff_address:false
+                };
                 $scope.renterCompany = {};
                 $scope.threeFarEndNotNecessary= {};
                 $scope.powerSource = {};
@@ -140,6 +153,11 @@
                 if (!$scope.rbsLocationChecked) $scope.rbsLocationChecked = 0;
                 $scope.checkRbsLocationTouched = false;
                 $scope.deletedFarEnd = false;
+                $scope.oblastList=[];
+                $scope.cityList=[];
+                $scope.addressesList = [];
+                $scope.address = {};
+                $scope.cai_addr_oblast = '';
 
 
 
@@ -152,6 +170,9 @@
                         $scope.availableBands = $scope.dictionary.bands;
                         $scope.BSC = $scope.dictionary.BSC;
                         $scope.frequencyBand = $scope.dictionary.frequencyBand;
+                        $scope.addressesList = $scope.dictionary.addresses;
+                        $scope.oblastList = _.uniqBy($scope.dictionary.addresses, 'oblast').map( (e, index) => { return {"name" : e.oblast, "id" : index} });
+                        $scope.cityList = _.uniqBy($scope.dictionary.addresses, 'city').map( (e, index) => { return {"name" : e.city, "id" : index} });
 
                     },
                     function(error){
@@ -378,6 +399,33 @@
                 $scope.secondMultiselect = [];
             };
 
+            $scope.getCity = function (val) {
+                if (val.length < 2) {
+                    return []
+                }
+                return _.filter($scope.cityList, function(o) { return o.name.toLowerCase().includes(val.toLowerCase()); })
+            };
+
+            $scope.filterDistrictAfterSelectObl = function (cn_addr_oblast) {
+                console.log(cn_addr_oblast)
+                $scope.address.cn_addr_oblast = cn_addr_oblast
+                $scope.address.cn_addr_district = ''             
+                if($scope.address.cn_addr_oblast && $scope.address.cn_addr_oblast !== ''){
+                    $scope.filteredByOblast = $scope.dictionary.addresses.filter(a => {return a.oblast === $scope.address.cn_addr_oblast});
+                    $scope.filteredDistricts = _.uniqBy($scope.filteredByOblast, 'district').map( (e, index) => { return {"name" : e.district, "id" : index} });
+                    $scope.cityList = _.uniqBy($scope.filteredByOblast, 'city').map( (e, index) => { return {"name" : e.city, "id" : index} });
+                }
+            }
+
+            $scope.filterDistrictAfterSelectOblInCAI = function (cai_addr_oblast) {
+                $scope.cellAntennaInformation.cai_addr_oblast = cai_addr_oblast
+                $scope.cellAntennaInformation.cai_addr_district = ''           
+                if($scope.cellAntennaInformation.cai_addr_oblast && $scope.cellAntennaInformation.cai_addr_oblast !== ''){
+                    $scope.filteredByOblast = $scope.dictionary.addresses.filter(a => {return a.oblast === $scope.cellAntennaInformation.cai_addr_oblast});
+                    $scope.filteredDistrictsInCAI = _.uniqBy($scope.filteredByOblast, 'district').map( (e, index) => { return {"name" : e.district, "id" : index} });
+                    $scope.cityList = _.uniqBy($scope.filteredByOblast, 'city').map( (e, index) => { return {"name" : e.city, "id" : index} });
+                }
+            }
 
             $scope.getSite = function (val) {
                 return $http.get('/asset-management/api/sites/search/findByNameIgnoreCaseContaining?name=' + val).then(
@@ -889,12 +937,164 @@
                                   rows="4" style="resize:none"></textarea>
                     </div>
                 </div>
-
+                <accordion class="content-visible-accordion background-yellow-accordion">
+                    <accordion-group is-open="false">
+                        <accordion-heading>
+                            Address <i class="pull-right glyphicon"
+                                                        ng-class="{'glyphicon-chevron-up': status.isCustomHeaderOpen, 'glyphicon-chevron-down': !status.isCustomHeaderOpen}"></i>
+                        </accordion-heading>
+                        <div class="form-group">
+                            <label class="col-sm-3 control-label">Oblast:</label>
+                            <div class="col-sm-8" class="form-check">
+                                <select class="form-control" id="cn_addr_oblast" name="cn_addr_oblast" ng-model="address.cn_addr_oblast"
+                                     ng-change="filterDistrictAfterSelectObl(address.cn_addr_oblast)" required>
+                                    <option ng-repeat="oblast in oblastList" ng-value="oblast.name">{{oblast.name}}</option>
+                                </select>
+                                <label class="error" ng-show="kcell_form.cn_addr_oblast.$error.required && ( kcell_form.cn_addr_oblast.$touched || view.submitted)">Required field</label>
+                            </div>
+                        </div>
+                        <div class="form-group">
+                            <label class="col-sm-3 control-label">District:</label>
+                            <div class="col-sm-8" class="form-check">
+                                <select class="form-control" id="cn_addr_district" name="cn_addr_district" ng-model="address.cn_addr_district" required>
+                                    <option ng-repeat="district in filteredDistricts" ng-value="district.name">{{district.name}}</option>
+                                </select>
+                                <label class="error" ng-show="kcell_form.cn_addr_district.$error.required && ( kcell_form.cn_addr_district.$touched || view.submitted)">Required field</label>
+                            </div>
+                        </div>
+        
+                        <div class="form-group">
+                            <label class="col-sm-3 control-label">City / Village:</label>
+                            <div class="col-sm-8">
+                                <input type="text" ng-model="address.cn_addr_city" name="cn_addr_city" typeahead="city.name for city in getCity($viewValue)" class="form-control" required placeholder="Start typing...">
+                                <label class="error" ng-show="kcell_form.cn_addr_city.$error.required && ( kcell_form.cn_addr_city.$touched || view.submitted)">Required field</label>
+                            </div>
+                        </div>
+                        <div class="form-group">
+                            <div class="col-sm-12">
+                                <div class="form-check">
+                                    <input type="checkbox" ng-model="address.ca_not_full_addres" class="form-check-input" id="ca_not_full_addres">
+                                    <label class="form-check-label" for="ca_not_full_addres">Not full address</label>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="form-group">
+                            <label class="col-sm-3 control-label">{{!address.ca_not_full_addres ? '*' : ''}}Street:</label>
+                            <div class="col-sm-8">
+                                <input class="form-control" id="cn_addr_street" name="cn_addr_street" ng-model="address.cn_addr_street" ng-required="!address.ca_not_full_addres">
+                                <label class="error" ng-show="kcell_form.cn_addr_street.$error.required && ( kcell_form.cn_addr_street.$touched || view.submitted)">Required field</label>
+                            </div>
+                        </div>
+                        <div class="form-group">
+                            <label class="col-sm-3 control-label">{{!address.ca_not_full_addres ? '*' : ''}}Building:</label>
+                            <div class="col-sm-8">
+                                <input class="form-control" id="cn_addr_building" name="cn_addr_building" ng-model="address.cn_addr_building" ng-required="!address.ca_not_full_addres">
+                                <label class="error" ng-show="kcell_form.cn_addr_building.$error.required && ( kcell_form.cn_addr_building.$touched || view.submitted)">Required field</label>
+                            </div>
+                        </div>
+                        <div class="form-group">
+                            <label class="col-sm-3 control-label">{{address.ca_not_full_addres ? '*' : ''}}Cadastral number:</label>
+                            <div class="col-sm-8">
+                                <input class="form-control" id="cn_addr_cadastral_number" name="cn_addr_cadastral_number" ng-model="address.cn_addr_cadastral_number" ng-required="address.ca_not_full_addres">
+                                <label class="error" ng-show="kcell_form.cn_addr_cadastral_number.$error.required && ( kcell_form.cn_addr_cadastral_number.$touched || view.submitted)">Required field</label>
+                            </div>
+                        </div>
+                        <div class="form-group">
+                            <label class="col-sm-3 control-label">{{address.ca_not_full_addres ? '*' : ''}}Note to the address:</label>
+                            <div class="col-sm-8">
+                                <input class="form-control" id="cn_addr_note" name="cn_addr_note" ng-model="cn_addr_note" ng-required="address.ca_not_full_addres">
+                                <label class="error" ng-show="kcell_form.cn_addr_note.$error.required && ( kcell_form.cn_addr_note.$touched || view.submitted)">Required field</label>
+                            </div>
+                        </div>        
+                    </accordion-group>
+                </accordion>
 
                 <accordion class="content-visible-accordion background-yellow-accordion">
                     <accordion-group is-open="false">
                         <accordion-heading>
                             Cell antenna information <i class="pull-right glyphicon"
+                                                        ng-class="{'glyphicon-chevron-up': status.isCustomHeaderOpen, 'glyphicon-chevron-down': !status.isCustomHeaderOpen}"></i>
+                        </accordion-heading>
+
+                        <div class="form-group">
+                            <div class="col-sm-12">
+                                <div class="form-check">
+                                    <input type="checkbox" ng-model="cellAntennaInformation.ca_diff_address" class="form-check-input" id="check1">
+                                    <label class="form-check-label" for="check1">Different address</label>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="form-group">
+                            <label class="col-sm-3 control-label">Oblast:</label>
+                            <div class="col-sm-8" class="form-check">
+                                <select class="form-control" id="cai_addr_oblast" ng-disabled="!cellAntennaInformation.ca_diff_address" name="cai_addr_oblast" ng-model="cellAntennaInformation.cai_addr_oblast"
+                                        ng-change="filterDistrictAfterSelectOblInCAI(cellAntennaInformation.cai_addr_oblast)">
+                                    <option ng-repeat="oblast in oblastList" ng-value="oblast.name">{{oblast.name}}</option>
+                                </select>
+                                <label class="error" ng-show="kcell_form.cai_addr_oblast.$error.required && ( kcell_form.cai_addr_oblast.$touched || view.submitted)">Required field</label>
+                            </div>
+                        </div>
+                        <div class="form-group">
+                            <label class="col-sm-3 control-label">District:</label>
+                            <div class="col-sm-8" class="form-check">
+                                <select class="form-control" id="cai_addr_district" ng-disabled="!cellAntennaInformation.ca_diff_address" name="cai_addr_district" ng-model="cellAntennaInformation.cai_addr_district">
+                                    <option ng-repeat="district in filteredDistrictsInCAI" ng-value="district.name">{{district.name}}</option>
+                                </select>
+                                <label class="error" ng-show="kcell_form.cai_addr_district.$error.required && ( kcell_form.cai_addr_district.$touched || view.submitted)">Required field</label>
+                            </div>
+                        </div>
+        
+                        <div class="form-group">
+                            <label class="col-sm-3 control-label">City / Village:</label>
+                            <div class="col-sm-8">
+                                <input type="text" ng-model="cellAntennaInformation.cai_addr_city" name="cai_addr_city" ng-disabled="!cellAntennaInformation.ca_diff_address" typeahead="city.name for city in getCity($viewValue)" class="form-control" placeholder="Start typing...">
+                                <label class="error" ng-show="kcell_form.cai_addr_city.$error.required && ( kcell_form.cai_addr_city.$touched || view.submitted)">Required field</label>
+                            </div>
+                        </div>
+                        <div class="form-group">
+                            <div class="col-sm-12">
+                                <div class="form-check">
+                                    <input type="checkbox" ng-model="cellAntennaInformation.cai_not_full_addres" class="form-check-input" ng-disabled="!cellAntennaInformation.ca_diff_address" id="ca_not_full_addres">
+                                    <label class="form-check-label" for="ca_not_full_addres">Not full address</label>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="form-group">
+                            <label class="col-sm-3 control-label">Street:</label>
+                            <div class="col-sm-8">
+                                <input class="form-control" id="cai_addr_street" name="cai_addr_street" ng-model="cellAntennaInformation.cai_addr_street" ng-disabled="!cellAntennaInformation.ca_diff_address" >
+                                <label class="error" ng-show="kcell_form.cai_addr_street.$error.required && ( kcell_form.cai_addr_street.$touched || view.submitted)">Required field</label>
+                            </div>
+                        </div>
+                        <div class="form-group">
+                            <label class="col-sm-3 control-label">Building:</label>
+                            <div class="col-sm-8">
+                                <input class="form-control" id="cai_addr_building" name="cai_addr_building" ng-model="cellAntennaInformation.cai_addr_building" ng-disabled="!cellAntennaInformation.ca_diff_address">
+                                <label class="error" ng-show="kcell_form.cai_addr_building.$error.required && ( kcell_form.cai_addr_building.$touched || view.submitted)">Required field</label>
+                            </div>
+                        </div>
+                        <div class="form-group">
+                            <label class="col-sm-3 control-label">Cadastral number:</label>
+                            <div class="col-sm-8">
+                                <input class="form-control" id="cai_addr_cadastral_number" name="cai_addr_cadastral_number" ng-model="cellAntennaInformation.cai_addr_cadastral_number" ng-disabled="!cellAntennaInformation.ca_diff_address">
+                                <label class="error" ng-show="kcell_form.cai_addr_cadastral_number.$error.required && ( kcell_form.cn_addr_cadastral_number.$touched || view.submitted)">Required field</label>
+                            </div>
+                        </div>
+                        <div class="form-group">
+                            <label class="col-sm-3 control-label">Note to the address:</label>
+                            <div class="col-sm-8">
+                                <input class="form-control" id="cn_addr_note" name="cai_addr_note" ng-model="cellAntennaInformation.cai_addr_note" ng-disabled="!cellAntennaInformation.ca_diff_address" >
+                                <label class="error" ng-show="kcell_form.cai_addr_note.$error.required && ( kcell_form.cai_addr_note.$touched || view.submitted)">Required field</label>
+                            </div>
+                        </div>        
+                    </accordion-group>
+                </accordion>
+
+
+                <accordion class="content-visible-accordion background-yellow-accordion">
+                    <accordion-group is-open="false">
+                        <accordion-heading>
+                            Cell antenna <i class="pull-right glyphicon"
                                                         ng-class="{'glyphicon-chevron-up': status.isCustomHeaderOpen, 'glyphicon-chevron-down': !status.isCustomHeaderOpen}"></i>
                         </accordion-heading>
 
