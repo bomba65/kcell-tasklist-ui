@@ -142,11 +142,11 @@ public class DisconnectPC implements JavaDelegate {
         String processDefinitionKey = delegateExecution.getProcessEngineServices().getRepositoryService().getProcessDefinition(delegateExecution.getProcessDefinitionId()).getKey();
         log.info("ProcessDefinitionKey=" + processDefinitionKey);
         if (isSftp) {
-            if ("BulkSMS_disconnection".equals(processDefinitionKey)) {
+            if ("after-sales-ivr-sms".equals(String.valueOf(delegateExecution.getVariable("relatedProcessDefinitionKey")))) {
                 serviceTypeId = "13";
                 log.info("DISCONNECT BulkSMS_disconnection");
             }
-            if ("ivr_disconnection".equals(processDefinitionKey)) {
+            if ("freephone".equals(String.valueOf(delegateExecution.getVariable("relatedProcessDefinitionKey")))) {
                 serviceTypeId = "177";
                 log.info("DISCONNECT ivr_disconnection");
             }
