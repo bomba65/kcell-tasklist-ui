@@ -133,16 +133,10 @@ public class DisconnectPC implements JavaDelegate {
         JSONObject identifierJSON = identifierJSONArray.getJSONObject(0);
         String title = String.valueOf(identifierJSON.get("title"));
         String serviceTypeId = "";
-        String tcfFormId = "";
-        String identifierServiceName_amdocs_incoming = "";
-        String identifierServiceName_amdocs_outgoing = "";
-        String identifierServiceName_orga_incoming = "";
-        String identifierServiceName_orga_outgoing = "";
-        String[] rejectStatusByTCF = {"Canceled", "Rejected by ICTD-SNS-BCOU-BCST Supervisor", "Rejected by ICTD Specialists"};
         String processDefinitionKey = delegateExecution.getProcessEngineServices().getRepositoryService().getProcessDefinition(delegateExecution.getProcessDefinitionId()).getKey();
         log.info("ProcessDefinitionKey=" + processDefinitionKey);
         if (isSftp) {
-            if ("after-sales-ivr-sms".equals(String.valueOf(delegateExecution.getVariable("relatedProcessDefinitionKey")))) {
+            if ("bulksmsConnectionKAE".equals(String.valueOf(delegateExecution.getVariable("relatedProcessDefinitionKey")))) {
                 serviceTypeId = "13";
                 log.info("DISCONNECT BulkSMS_disconnection");
             }
