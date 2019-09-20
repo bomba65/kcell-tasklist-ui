@@ -147,18 +147,9 @@ public class DisconnectPC implements JavaDelegate {
             String getShortNumberResponse = getShortNumberId(title, serviceTypeId);
             JSONObject getShortNumberResponseJSON = new JSONObject(getShortNumberResponse);
             String shortNumberId = getShortNumberResponseJSON.get("id").toString();
-            try {
-                String billing = getBilling(shortNumberId);
-                JSONArray jsonArray = new JSONArray(billing);
-                for (int j = 0; j < jsonArray.length(); j++) {
-                    JSONObject jsonObject = jsonArray.getJSONObject(j);
-                    jsonObject.put("shortNumberState", "D");
-                    String putVasUrlsResult = putVasUrls(jsonObject.getJSONObject("vasShortNumber").getLong("id") + "", jsonObject.getJSONObject("vasShortNumber").toString());
-                    delegateExecution.setVariable("disconnectionPCObject", putVasUrlsResult);
-                }
-            } catch (Exception e) {
-                e.printStackTrace();
-            }
+            getShortNumberResponseJSON.put("shortNumberState", "D");
+            String putVasUrlsResult = putVasUrls(shortNumberId + "", getShortNumberResponseJSON.toString());
+            delegateExecution.setVariable("disconnectionPCObject", putVasUrlsResult);
         } else {
             String responseString = "{\n" +
                 "    \"d\": {\n" +
@@ -166,7 +157,7 @@ public class DisconnectPC implements JavaDelegate {
                 "            \"id\": \"Web/Lists(guid'd79e9f26-54d0-4db3-9488-d551236b0005')/Items(2914)\",\n" +
                 "            \"uri\": \"https://sp.kcell.kz/forms/_api/Web/Lists(guid'd79e9f26-54d0-4db3-9488-d551236b0005')/Items(2914)\",\n" +
                 "            \"etag\": \"\\\"21\\\"\",\n" +
-                "            \"type\": \"SP.Data.TCF_x005f_testListItem \"\n" +
+                "            \"type\": \"SP.Data.ICTD_x0020_TCFListItem \"\n" +
                 "        },\n" +
                 "        \"FirstUniqueAncestorSecurableObject\": {\n" +
                 "            \"__deferred\": {\n" +
