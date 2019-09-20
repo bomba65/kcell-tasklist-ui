@@ -4,10 +4,12 @@ import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.node.ObjectNode;
 import lombok.extern.java.Log;
+import org.camunda.bpm.engine.HistoryService;
 import org.camunda.bpm.engine.IdentityService;
 import org.camunda.bpm.engine.delegate.DelegateTask;
 import org.camunda.bpm.engine.delegate.Expression;
 import org.camunda.bpm.engine.delegate.TaskListener;
+import org.camunda.bpm.engine.history.HistoricIdentityLinkLog;
 import org.camunda.bpm.engine.identity.User;
 import org.camunda.bpm.engine.impl.identity.Authentication;
 import org.camunda.bpm.engine.impl.util.json.JSONArray;
@@ -44,6 +46,9 @@ public class TaskHistoryListener implements TaskListener {
     @Autowired
     IdentityService identityService;
 
+    @Autowired
+    HistoryService historyService;
+
     private final List<String> enabledProcesses = Arrays.asList(
       "leasing",
       "freephone",
@@ -64,7 +69,8 @@ public class TaskHistoryListener implements TaskListener {
       "PBX",
       "sdr_srr_request",
       "Revision",
-      "PreparePermitDocs"
+      "PreparePermitDocs",
+      "Invoice"
     );
 
     @Override
@@ -98,29 +104,25 @@ public class TaskHistoryListener implements TaskListener {
             }
             resolution.put("resolution", checkVariable(delegateTask,delegateTask.getTaskDefinitionKey() + "TaskResult") ? String.valueOf(delegateTask.getVariable(delegateTask.getTaskDefinitionKey() + "TaskResult")) : "");
             resolution.put("comment", checkVariable(delegateTask,delegateTask.getTaskDefinitionKey() + "TaskComment") ? String.valueOf(delegateTask.getVariable(delegateTask.getTaskDefinitionKey() + "TaskComment")) : "");
+            if (checkVariable(delegateTask,delegateTask.getTaskDefinitionKey() + "TaskCommentVisibility")) {
+                resolution.put("visibility", delegateTask.getVariable(delegateTask.getTaskDefinitionKey() + "TaskCommentVisibility").toString());
+            }
+
             resolution.put("taskId", delegateTask.getId());
             resolution.put("taskDefinitionKey", delegateTask.getTaskDefinitionKey());
             resolution.put("taskName", delegateTask.getName());
             resolution.put("taskEndDate", new SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss.SSSXX").format(new Date()));
-           // resolution.put("taskStartDate", new SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss.SSSXX").format(delegateTask.getCreateTime()));
 
             if(checkVariable(delegateTask,delegateTask.getTaskDefinitionKey() + "Files")) {
                 JSONArray filesJSONArray = new JSONArray(String.valueOf(delegateTask.getVariable(delegateTask.getTaskDefinitionKey() + "Files")));
                 resolution.putPOJO("files", filesJSONArray);
             }
 
-            Date assignDate = new Date();
-            Date claimDate = new Date();
-            if (checkVariable(delegateTask,delegateTask.getTaskDefinitionKey() + "TaskAssignDate")) {
-                assignDate = (Date) delegateTask.getVariable(delegateTask.getTaskDefinitionKey() + "TaskAssignDate");
-                delegateTask.removeVariable(delegateTask.getTaskDefinitionKey() + "TaskAssignDate");
+            resolution.put("assignDate", new SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss.SSSXX").format(delegateTask.getCreateTime()));
+            List<HistoricIdentityLinkLog> logs = historyService.createHistoricIdentityLinkLogQuery().taskId(delegateTask.getId()).type("assignee").operationType("add").userId(delegateTask.getAssignee()).orderByTime().desc().list();
+            if(logs.size() > 0){
+                resolution.put("claimDate", new SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss.SSSXX").format(logs.get(0).getTime()));
             }
-            if (checkVariable(delegateTask,delegateTask.getTaskDefinitionKey() + "TaskClaimDate")) {
-                claimDate = (Date) delegateTask.getVariable(delegateTask.getTaskDefinitionKey() + "TaskClaimDate");
-                delegateTask.removeVariable(delegateTask.getTaskDefinitionKey() + "TaskClaimDate");
-            }
-            resolution.put("assignDate", new SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss.SSSXX").format(assignDate));
-            resolution.put("claimDate", new SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss.SSSXX").format(claimDate));
 
             if (checkVariable(delegateTask,delegateTask.getTaskDefinitionKey() + "TaskAttachments")) {
                 resolution.putPOJO("attachments", delegateTask.getVariable(delegateTask.getTaskDefinitionKey() + "TaskAttachments"));

@@ -86,11 +86,9 @@ public class TaskNotificationListener implements TaskListener {
 
         final Set<String> recipientEmails = new HashSet<>();
         if (TaskListener.EVENTNAME_CREATE.equals(delegateTask.getEventName())) {
-            delegateTask.setVariable(delegateTask.getTaskDefinitionKey() + "TaskAssignDate", new Date());
             if (delegateTask.getAssignee() != null) recipientEmails.addAll(getAssigneeAddresses(delegateTask, true));
             else recipientEmails.addAll(getCandidateAddresses(delegateTask));
         } else if (delegateTask.getAssignee() != null && TaskListener.EVENTNAME_ASSIGNMENT.equals(delegateTask.getEventName())) {
-            delegateTask.setVariable(delegateTask.getTaskDefinitionKey() + "TaskClaimDate", new Date());
             recipientEmails.addAll(getAssigneeAddresses(delegateTask, false));
         }
 

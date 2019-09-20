@@ -53,37 +53,7 @@
             camForm.on('variables-fetched', function () {
                 variables.forEach(function (el) {
                     if (el === 'resolutions') {
-                        if (camForm.variableManager.variables[el] && camForm.variableManager.variables[el].value) {
-                            $scope.resolutions = angular.copy(camForm.variableManager.variables[el].value);
-                            $q.all($scope.resolutions.map(function (resolution) {
-                                return $http.get("/camunda/api/engine/engine/default/history/task?processInstanceId=" + resolution.processInstanceId + "&taskId=" + resolution.taskId);
-                            })).then(function (tasks) {
-                                tasks.forEach(function (e, index) {
-                                    if (e.data.length > 0) {
-                                        $scope.resolutions[index].taskName = e.data[0].name;
-                                        try {
-                                            $scope.resolutions[index].taskEndDate = new Date(e.data[0].endTime);
-                                            $scope.resolutions[index].assignDate = new Date(e.data[0].startTime);
-                                        } catch (e) {
-                                            console.log(e);
-                                        }
-                                    }
-                                });
-                            });
-                            $q.all($scope.resolutions.map(function (resolution) {
-                                return $http.get("/camunda/api/engine/engine/default/history/identity-link-log?type=assignee&taskId=" + resolution.taskId + "&operationType=add&sortBy=time&sortOrder=desc");
-                            })).then(function (logs) {
-                                logs.forEach(function (e, index) {
-                                    if(e.data.length > 0){
-                                        try {
-                                            $scope.resolutions[index].claimDate = new Date(e.data[0].time);
-                                        } catch(e){
-                                            console.log(e);
-                                        }
-                                    }
-                                });
-                            });
-                        }
+                        $scope.resolutions = angular.copy(camForm.variableManager.variables[el].value);
                     } else {
                         $scope.invoice[el] = camForm.variableManager.variables[el];
                     }
@@ -120,29 +90,28 @@
 
             camForm.on('submit', function (event) {
                 camForm.variableManager.variableValue('regionManagerTaskResult', $scope.regionManagerTaskResult);
+                camForm.variableManager.createVariable({
+                    name: 'ma_sign_region_managerTaskResult',
+                    type: 'String',
+                    value: $scope.regionManagerTaskResult
+                });
                 if ($scope.regionManagerComment) {
                     camForm.variableManager.variableValue('regionManagerComment', $scope.regionManagerComment);
+                    camForm.variableManager.createVariable({
+                        name: 'ma_sign_region_managerTaskComment',
+                        type: 'String',
+                        value: $scope.regionManagerComment
+                    });
                 }
-                var visibility = 'all';
                 if ($scope.regionManagerCommentVisibility) {
                     camForm.variableManager.variableValue('regionManagerCommentVisibility', $scope.regionManagerCommentVisibility);
-                    visibility = $scope.acceptAndSignByInitiatorCommentVisibility;
+                    camForm.variableManager.createVariable({
+                        name: 'ma_sign_region_managerTaskCommentVisibility',
+                        type: 'String',
+                        value: $scope.regionManagerCommentVisibility
+                    });
                 }
-
-                if (!$scope.resolutions) {
-                    $scope.resolutions = [];
-                }
-                $scope.resolutions.push({
-                    processInstanceId: $scope.processInstanceId,
-                    assignee: $rootScope.authentication.name,
-                    assigneeName: $rootScope.authentication.assigneeName,
-                    position: 'Region Manager',
-                    resolution: $scope.regionManagerTaskResult,
-                    comment: $scope.regionManagerComment,
-                    taskId: camForm.taskId,
-                    visibility: visibility
-                });
-                camForm.variableManager.variableValue('resolutions', $scope.resolutions);
+                camForm.variableManager.destroyVariable('resolutions');
 
                 camForm.variableManager.variableValue('selectedRevisions', angular.copy($scope.selectedRevisions));
             });
