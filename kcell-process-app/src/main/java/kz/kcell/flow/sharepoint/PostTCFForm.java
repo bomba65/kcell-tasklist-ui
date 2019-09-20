@@ -245,7 +245,7 @@ public class PostTCFForm implements ExecutionListener {
             String headerBillingId = "";
 
             JSONObject requestBodyJSON = new JSONObject();
-            JSONObject metadataBodyJSON = new JSONObject("{\"type\": \"SP.Data.TCF_x005f_testListItem \"}");
+            JSONObject metadataBodyJSON = new JSONObject("{\"type\": \"SP.Data.ICTD_x0020_TCFListItem \"}");
             JSONObject operatorBodyJSON = new JSONObject();
             JSONObject billingTypeBodyJSON = new JSONObject();
             JSONArray operatorResultsJSONArray = new JSONArray();
@@ -348,7 +348,7 @@ public class PostTCFForm implements ExecutionListener {
                     JSONObject contextinfoJSON = new JSONObject(resultContexninfo);
                     if (contextinfoJSON.has("FormDigestValue")) {
                         try {
-                            String responseText = postItemsResponse(baseUri + "/Lists/getbytitle('TCF_test')/items", "kcell.kz", username, pwd, contextinfoJSON.get("FormDigestValue").toString(), requestBodyJSON.toString());
+                            String responseText = postItemsResponse(baseUri + "/Lists/getbytitle('ICTD%20TCF')/items", "kcell.kz", username, pwd, contextinfoJSON.get("FormDigestValue").toString(), requestBodyJSON.toString());
                             resultItems = responseText;
                         } catch (Exception e) {
                             e.printStackTrace();
@@ -371,7 +371,6 @@ public class PostTCFForm implements ExecutionListener {
                     }
                 }
                 if ("orga".equals(billingTCF)) {
-
                     delegateExecution.setVariable("orgaTcfFormStatus", Status);
                     //if("Completed".equals(Status)){
                     if (Status.indexOf("Approved") > -1) {

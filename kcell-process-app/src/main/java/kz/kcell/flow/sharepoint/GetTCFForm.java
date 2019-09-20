@@ -14,7 +14,6 @@ import org.apache.http.impl.client.HttpClients;
 import org.apache.http.util.EntityUtils;
 import org.camunda.bpm.engine.delegate.DelegateExecution;
 import org.camunda.bpm.engine.delegate.JavaDelegate;
-import org.camunda.bpm.engine.impl.json.JsonObjectConverter;
 import org.camunda.bpm.engine.impl.util.json.JSONArray;
 import org.camunda.bpm.engine.impl.util.json.JSONObject;
 import org.jsoup.Jsoup;
@@ -53,6 +52,78 @@ public class GetTCFForm implements JavaDelegate {
         this.pwd = pwd;
         this.productCatalogUrl = productCatalogUrl;
         this.productCatalogAuth = productCatalogAuth;
+    }
+
+    private String getVasChargingMtsBilling(String shortNumber) {
+        try {
+            String encoding = Base64.getEncoder().encodeToString((this.productCatalogAuth).getBytes("UTF-8"));
+            HttpClient httpclient = HttpClients.custom().build();
+            log.info("getVasChargingMtsBilling REQUEST [" + Thread.currentThread().getName() + "]:");
+            log.info(this.productCatalogUrl + "/vas_charging_mts/short_number/" + URLEncoder.encode(shortNumber, "UTF-8"));
+            HttpGet httpGet = new HttpGet(this.productCatalogUrl + "/vas_charging_mts/short_number/" + URLEncoder.encode(shortNumber, "UTF-8"));
+            httpGet.setHeader("Authorization", "Basic " + encoding);
+            HttpResponse httpResponse = httpclient.execute(httpGet);
+            HttpEntity entity = httpResponse.getEntity();
+            String content = EntityUtils.toString(entity);
+            log.info("getVasChargingMtsBilling RESULT [" + Thread.currentThread().getName() + "]: " + content);
+            if (httpResponse.getStatusLine().getStatusCode() == 200) {
+                EntityUtils.consume(httpResponse.getEntity());
+                return content;
+            } else {
+                return "[]";
+            }
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+        return null;
+    }
+
+    private String postVasChargingMts(String requestBody) {
+        try {
+            String encoding = Base64.getEncoder().encodeToString((this.productCatalogAuth).getBytes("UTF-8"));
+            StringEntity shortNumberData = new StringEntity(requestBody, ContentType.APPLICATION_JSON);
+            log.info("postVasChargingMts REQUEST [" + Thread.currentThread().getName() + "]: " + this.productCatalogUrl + "/vas_charging_mts");
+            log.info("postVasChargingMts BODY [" + Thread.currentThread().getName() + "]:" + requestBody);
+            HttpPost shortNumberPost = new HttpPost(new URI(this.productCatalogUrl + "/vas_charging_mts"));
+            shortNumberPost.setHeader("Authorization", "Basic " + encoding);
+            shortNumberPost.addHeader("Content-Type", "application/json;charset=UTF-8");
+            shortNumberPost.setEntity(shortNumberData);
+            HttpClient shortNumberHttpClient = HttpClients.createDefault();
+            HttpResponse shortNumberResponse = shortNumberHttpClient.execute(shortNumberPost);
+            HttpEntity entity = shortNumberResponse.getEntity();
+            String content = EntityUtils.toString(entity);
+            log.info("postVasChargingMts RESPONSE [" + Thread.currentThread().getName() + "]:" + content);
+            return content;
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+        return null;
+    }
+
+    private String putVasChargingMts(String vasId, String requestBody) {
+        try {
+            String encoding = Base64.getEncoder().encodeToString((this.productCatalogAuth).getBytes("UTF-8"));
+            StringEntity shortNumberData = new StringEntity(requestBody, ContentType.APPLICATION_JSON);
+            log.info("putVasChargingMts REQUEST [" + Thread.currentThread().getName() + "]: " + this.productCatalogUrl + "/vas_charging_mts/" + vasId);
+            log.info("putVasChargingMts BODY [" + Thread.currentThread().getName() + "]:" + requestBody);
+            HttpPut shortNumberPut = new HttpPut(new URI(this.productCatalogUrl + "/vas_charging_mts/" + vasId));
+            shortNumberPut.setHeader("Authorization", "Basic " + encoding);
+            shortNumberPut.addHeader("Content-Type", "application/json;charset=UTF-8");
+            shortNumberPut.setEntity(shortNumberData);
+            HttpClient shortNumberHttpClient = HttpClients.createDefault();
+            HttpResponse shortNumberResponse = shortNumberHttpClient.execute(shortNumberPut);
+            HttpEntity entity = shortNumberResponse.getEntity();
+            String content = EntityUtils.toString(entity);
+            log.info("putVasChargingMts RESPONSE [" + Thread.currentThread().getName() + "]:" + content);
+            if (shortNumberResponse.getStatusLine().getStatusCode() == 200) {
+                return content;
+            } else {
+                return null;
+            }
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+        return null;
     }
 
     private String getShortNumberId(String shortNumber, String serviceTypeId) {
@@ -197,7 +268,7 @@ public class GetTCFForm implements JavaDelegate {
                 }
             });
 
-            URL urlRequest = new URL(baseUri + "/Lists/getbytitle('TCF_test')/items(" + tcfFormId + ")");
+            URL urlRequest = new URL(baseUri + "/Lists/getbytitle('ICTD%20TCF')/items(" + tcfFormId + ")");
             HttpURLConnection conn = (HttpURLConnection) urlRequest.openConnection();
             conn.setDoOutput(true);
             conn.setDoInput(true);
@@ -218,6 +289,7 @@ public class GetTCFForm implements JavaDelegate {
             JSONObject tcf = responseSharepointJSON.getJSONObject("d");
             //String Id = tcf.get("Id").toString();
             String Status = tcf.get("Status").toString();
+            System.out.println("Status: " + Status);
             if ("Completed".equals(Status)) {
                 JSONObject tcfFormJSON = new JSONObject();
 
@@ -259,8 +331,6 @@ public class GetTCFForm implements JavaDelegate {
                                     boolean exist = false;
                                     try {
                                         String billing = getBilling(shortNumberId);
-                                        log.info("billing");
-                                        log.info(billing);
                                         JSONArray jsonArray = new JSONArray(billing);
                                         exist = jsonArray.length() > 0;
                                         if (exist) {
@@ -302,38 +372,90 @@ public class GetTCFForm implements JavaDelegate {
                             } else if ("bulksmsConnectionKAE".equals(processDefinitionKey) && tcfFormJSON.has("identifierAmdocsID_incoming") && tcfFormJSON.has("identifierAmdocsID_outgoing")) {
                                 String getShortNumberIncomingResponse = getShortNumberId(title, serviceTypeId);
                                 JSONObject shortNumberInJSON = new JSONObject(getShortNumberIncomingResponse);
-                                JSONObject postVasUrlsInJSON = new JSONObject();
-                                JSONObject postVasUrlsOutJSON = new JSONObject();
                                 if (shortNumberInJSON.has("id")) {
-                                    String shortNumberIdIn = shortNumberInJSON.get("id").toString();
-                                    JSONObject postShortNumberRequestInJSON = new JSONObject();
-                                    JSONObject vasShortNumberIn = new JSONObject();
-                                    postShortNumberRequestInJSON.put("amdocsIdOut", tcfFormJSON.get("identifierAmdocsID_incoming").toString());
+                                    String shortNumberId = shortNumberInJSON.get("id").toString();
+                                    boolean exist = false;
+                                    try {
+                                        String billing = getVasChargingMtsBilling(shortNumberId);
+                                        JSONArray jsonArray = new JSONArray(billing);
+                                        exist = jsonArray.length() > 0;
+                                        if (exist) {
+                                            for (int j = 0; j < jsonArray.length(); j++) {
+                                                JSONObject jsonObject = jsonArray.getJSONObject(j);
+                                                String amdocsIdIn = tcfFormJSON.get("identifierAmdocsID_incoming").toString();
+                                                jsonObject.put("amdocsIdIn", amdocsIdIn);
+                                                String putVasUrlsResult = putVasChargingMts(jsonObject.getLong("vasChargingMtId") + "", jsonObject.toString());
+                                                if (putVasUrlsResult != null) {
+                                                    delegateExecution.setVariable("amdocsTcfIdReceived", true);
+                                                } else {
+                                                    delegateExecution.setVariable("amdocsTcfIdReceived", false);
+                                                }
+                                            }
+                                        }
+                                    } catch (Exception e) {
+                                        e.printStackTrace();
+                                    }
+                                    if (!exist) {
+                                        JSONObject postShortNumberRequestJSON = new JSONObject();
+                                        String amcodsIdIn = tcfFormJSON.get("identifierAmdocsID_incoming").toString();
+                                        postShortNumberRequestJSON.put("amdocsIdIn", amcodsIdIn);
+                                        postShortNumberRequestJSON.put("vasShorNumberId", Long.parseLong(shortNumberId));
+                                        postShortNumberRequestJSON.put("cost", 0);
+                                        postShortNumberRequestJSON.put("operatorCost", 100);
+                                        postShortNumberRequestJSON.put("part", "L");
+                                        postShortNumberRequestJSON.put("id", 0);
+                                        String postVasUrlsResponse = postVasChargingMts(postShortNumberRequestJSON.toString());
+                                        JSONObject postVasUrlsJSON = new JSONObject(postVasUrlsResponse);
 
-                                    vasShortNumberIn.put("id", shortNumberIdIn);
-                                    postShortNumberRequestInJSON.put("vasShortNumber", vasShortNumberIn);
-
-                                    String postVasUrlsInResponse = postVasUrls(postShortNumberRequestInJSON.toString());
-                                    postVasUrlsInJSON = new JSONObject(postVasUrlsInResponse);
+                                        if (postVasUrlsJSON.has("id") && postVasUrlsJSON.has("amdocsIdIn")) {
+                                            delegateExecution.setVariable("amdocsTcfIdReceived", true);
+                                        } else {
+                                            delegateExecution.setVariable("amdocsTcfIdReceived", false);
+                                        }
+                                    }
                                 }
+
                                 String getShortNumberOutgoingResponse = getShortNumberId(title, serviceTypeId);
                                 JSONObject shortNumberOutJSON = new JSONObject(getShortNumberOutgoingResponse);
                                 if (shortNumberOutJSON.has("id")) {
-                                    String shortNumberIdOut = shortNumberOutJSON.get("id").toString();
-                                    JSONObject postShortNumberRequestOutJSON = new JSONObject();
-                                    JSONObject vasShortNumberOut = new JSONObject();
-                                    postShortNumberRequestOutJSON.put("amdocsIdOut", tcfFormJSON.get("identifierAmdocsID_outgoing").toString());
-
-                                    vasShortNumberOut.put("id", shortNumberIdOut);
-                                    postShortNumberRequestOutJSON.put("vasShortNumber", vasShortNumberOut);
-
-                                    String postVasUrlsOutResponse = postVasUrls(postShortNumberRequestOutJSON.toString());
-                                    postVasUrlsOutJSON = new JSONObject(postVasUrlsOutResponse);
-                                }
-                                if (postVasUrlsInJSON.has("id") && postVasUrlsInJSON.has("amdocsIdOut") && postVasUrlsOutJSON.has("id") && postVasUrlsOutJSON.has("amdocsIdOut")) {
-                                    delegateExecution.setVariable("amdocsTcfIdReceived", true);
-                                } else {
-                                    delegateExecution.setVariable("amdocsTcfIdReceived", false);
+                                    String shortNumberId = shortNumberInJSON.get("id").toString();
+                                    boolean exist = false;
+                                    try {
+                                        String billing = getBilling(shortNumberId);
+                                        JSONArray jsonArray = new JSONArray(billing);
+                                        exist = jsonArray.length() > 0;
+                                        if (exist) {
+                                            for (int j = 0; j < jsonArray.length(); j++) {
+                                                JSONObject jsonObject = jsonArray.getJSONObject(j);
+                                                String amdocsIdOut = tcfFormJSON.get("identifierAmdocsID_outgoing").toString();
+                                                jsonObject.put("amdocsIdOut", amdocsIdOut);
+                                                String putVasUrlsResult = putVasUrls(jsonObject.getLong("id") + "", jsonObject.toString());
+                                                if (putVasUrlsResult != null) {
+                                                    delegateExecution.setVariable("amdocsTcfIdReceived", true);
+                                                } else {
+                                                    delegateExecution.setVariable("amdocsTcfIdReceived", false);
+                                                }
+                                            }
+                                        }
+                                    } catch (Exception e) {
+                                        e.printStackTrace();
+                                    }
+                                    if (!exist) {
+                                        JSONObject postShortNumberRequestJSON = new JSONObject();
+                                        JSONObject vasShortNumber = new JSONObject();
+                                        vasShortNumber.put("id", shortNumberId);
+                                        String amdocsIdOut = tcfFormJSON.get("identifierAmdocsID_outgoing").toString();
+                                        postShortNumberRequestJSON.put("amdocsIdOut", amdocsIdOut);
+                                        postShortNumberRequestJSON.put("vasShortNumber", vasShortNumber);
+                                        postShortNumberRequestJSON.put("cost", 0);
+                                        String postVasUrlsResponse = postVasUrls(postShortNumberRequestJSON.toString());
+                                        JSONObject postVasUrlsJSON = new JSONObject(postVasUrlsResponse);
+                                        if (postVasUrlsJSON.has("id") && postVasUrlsJSON.has("amdocsIdOut")) {
+                                            delegateExecution.setVariable("amdocsTcfIdReceived", true);
+                                        } else {
+                                            delegateExecution.setVariable("amdocsTcfIdReceived", false);
+                                        }
+                                    }
                                 }
                             } else {
                                 delegateExecution.setVariable("amdocsTcfIdReceived", false);
@@ -357,30 +479,18 @@ public class GetTCFForm implements JavaDelegate {
                             if ("freephone".equals(processDefinitionKey) && tcfFormJSON.has("identifierOrgaID_outgoing")) {
                                 String getShortNumberResponse = getShortNumberId(title, serviceTypeId);
                                 JSONObject getShortNumberResponseJSON = new JSONObject(getShortNumberResponse);
-
                                 if (getShortNumberResponseJSON.has("id")) {
                                     String shortNumberId = getShortNumberResponseJSON.get("id").toString();
-
-                                    log.info("identifierTCFID");
-                                    log.info(identifierTCFID);
-                                    log.info("SHORT_NUMBER");
-                                    log.info(shortNumberId);
                                     boolean exist = false;
                                     try {
                                         String billing = getBilling(shortNumberId);
-                                        log.info("billing");
-                                        log.info(billing);
                                         JSONArray jsonArray = new JSONArray(billing);
                                         exist = jsonArray.length() > 0;
                                         if (exist) {
                                             for (int j = 0; j < jsonArray.length(); j++) {
                                                 JSONObject jsonObject = jsonArray.getJSONObject(j);
-                                                log.info("jsonObject before:");
-                                                log.info(jsonObject.toString());
                                                 jsonObject.put("orgaIdOut", identifierTCFID);
                                                 jsonObject.put("cbossIdOut", identifierTCFID.substring(identifierTCFID.lastIndexOf("_") + 1));
-                                                log.info("jsonObject after:");
-                                                log.info(jsonObject.toString());
                                                 String putVasUrlsResult = putVasUrls(jsonObject.getLong("id") + "", jsonObject.toString());
                                                 if (putVasUrlsResult != null) {
                                                     delegateExecution.setVariable("orgaTcfIdReceived", true);
@@ -419,48 +529,92 @@ public class GetTCFForm implements JavaDelegate {
                                 delegateExecution.setVariable("orgaTcfIdReceived", false);
                             }
                             if ("bulksmsConnectionKAE".equals(processDefinitionKey) && tcfFormJSON.has("identifierOrgaID_incoming") && tcfFormJSON.has("identifierOrgaID_outgoing")) {
-                                String getShortNumberInResponse = getShortNumberId(title, serviceTypeId);
-                                JSONObject getShortNumberResponseInJSON = new JSONObject(getShortNumberInResponse);
-                                JSONObject postVasUrlsInJSON = new JSONObject();
-                                JSONObject postVasUrlsOutJSON = new JSONObject();
-                                if (getShortNumberResponseInJSON.has("id")) {
-                                    String shortNumberIdIn = getShortNumberResponseInJSON.get("id").toString();
-                                    JSONObject postShortNumberRequestInJSON = new JSONObject();
-                                    JSONObject vasShortNumberIn = new JSONObject();
+                                String getShortNumberIncomingResponse = getShortNumberId(title, serviceTypeId);
+                                JSONObject shortNumberInJSON = new JSONObject(getShortNumberIncomingResponse);
+                                if (shortNumberInJSON.has("id")) {
+                                    String shortNumberId = shortNumberInJSON.get("id").toString();
+                                    boolean exist = false;
+                                    try {
+                                        String billing = getVasChargingMtsBilling(shortNumberId);
+                                        JSONArray jsonArray = new JSONArray(billing);
+                                        exist = jsonArray.length() > 0;
+                                        if (exist) {
+                                            for (int j = 0; j < jsonArray.length(); j++) {
+                                                JSONObject jsonObject = jsonArray.getJSONObject(j);
+                                                String orgaIdIn = tcfFormJSON.get("identifierOrgaID_incoming").toString();
+                                                jsonObject.put("orgaIdIn", orgaIdIn);
+                                                String putVasUrlsResult = putVasChargingMts(jsonObject.getLong("vasChargingMtId") + "", jsonObject.toString());
+                                                if (putVasUrlsResult != null) {
+                                                    delegateExecution.setVariable("orgaTcfIdReceived", true);
+                                                } else {
+                                                    delegateExecution.setVariable("orgaTcfIdReceived", false);
+                                                }
+                                            }
+                                        }
+                                    } catch (Exception e) {
+                                        e.printStackTrace();
+                                    }
+                                    if (!exist) {
+                                        JSONObject postShortNumberRequestJSON = new JSONObject();
+                                        String amcodsIdIn = tcfFormJSON.get("identifierOrgaID_incoming").toString();
+                                        postShortNumberRequestJSON.put("orgaIdIn", amcodsIdIn);
+                                        postShortNumberRequestJSON.put("vasShorNumberId", Long.parseLong(shortNumberId));
+                                        postShortNumberRequestJSON.put("cost", 0);
+                                        postShortNumberRequestJSON.put("part", "L");
+                                        postShortNumberRequestJSON.put("operatorCost", 100);
+                                        postShortNumberRequestJSON.put("id", 0);
+                                        String postVasUrlsResponse = postVasChargingMts(postShortNumberRequestJSON.toString());
+                                        JSONObject postVasUrlsJSON = new JSONObject(postVasUrlsResponse);
 
-                                    String orgaIdIn = tcfFormJSON.get("identifierOrgaID_incoming").toString();
-
-                                    postShortNumberRequestInJSON.put("orgaIdOut", orgaIdIn);
-                                    postShortNumberRequestInJSON.put("cbossIdOut", orgaIdIn.substring(orgaIdIn.lastIndexOf("_") + 1));
-
-                                    vasShortNumberIn.put("id", shortNumberIdIn);
-                                    postShortNumberRequestInJSON.put("vasShortNumber", vasShortNumberIn);
-
-                                    String postVasUrlsInResponse = postVasUrls(postShortNumberRequestInJSON.toString());
-                                    postVasUrlsInJSON = new JSONObject(postVasUrlsInResponse);
+                                        if (postVasUrlsJSON.has("id") && postVasUrlsJSON.has("orgaIdIn")) {
+                                            delegateExecution.setVariable("orgaTcfIdReceived", true);
+                                        } else {
+                                            delegateExecution.setVariable("orgaTcfIdReceived", false);
+                                        }
+                                    }
                                 }
-                                String getShortNumberOutResponse = getShortNumberId(title, serviceTypeId);
-                                JSONObject getShortNumberResponseOutJSON = new JSONObject(getShortNumberOutResponse);
-                                if (getShortNumberResponseOutJSON.has("id")) {
-                                    String shortNumberIdOut = getShortNumberResponseOutJSON.get("id").toString();
-                                    JSONObject postShortNumberRequestOutJSON = new JSONObject();
-                                    JSONObject vasShortNumberOut = new JSONObject();
 
-                                    String orgaIdOut = tcfFormJSON.get("identifierOrgaID_outgoing").toString();
-
-                                    postShortNumberRequestOutJSON.put("orgaIdOut", orgaIdOut);
-                                    postShortNumberRequestOutJSON.put("cbossIdOut", orgaIdOut.substring(orgaIdOut.lastIndexOf("_") + 1));
-
-                                    vasShortNumberOut.put("id", shortNumberIdOut);
-                                    postShortNumberRequestOutJSON.put("vasShortNumber", vasShortNumberOut);
-
-                                    String postVasUrlsOutResponse = postVasUrls(postShortNumberRequestOutJSON.toString());
-                                    postVasUrlsOutJSON = new JSONObject(postVasUrlsOutResponse);
-                                }
-                                if (postVasUrlsInJSON.has("id") && postVasUrlsInJSON.has("amdocsIdOut") && postVasUrlsOutJSON.has("id") && postVasUrlsOutJSON.has("amdocsIdOut")) {
-                                    delegateExecution.setVariable("amdocsTcfIdReceived", true);
-                                } else {
-                                    delegateExecution.setVariable("amdocsTcfIdReceived", false);
+                                String getShortNumberOutgoingResponse = getShortNumberId(title, serviceTypeId);
+                                JSONObject shortNumberOutJSON = new JSONObject(getShortNumberOutgoingResponse);
+                                if (shortNumberOutJSON.has("id")) {
+                                    String shortNumberId = shortNumberInJSON.get("id").toString();
+                                    boolean exist = false;
+                                    try {
+                                        String billing = getBilling(shortNumberId);
+                                        JSONArray jsonArray = new JSONArray(billing);
+                                        exist = jsonArray.length() > 0;
+                                        if (exist) {
+                                            for (int j = 0; j < jsonArray.length(); j++) {
+                                                JSONObject jsonObject = jsonArray.getJSONObject(j);
+                                                String orgaIdOut = tcfFormJSON.get("identifierOrgaID_outgoing").toString();
+                                                jsonObject.put("orgaIdOut", orgaIdOut);
+                                                String putVasUrlsResult = putVasUrls(jsonObject.getLong("id") + "", jsonObject.toString());
+                                                if (putVasUrlsResult != null) {
+                                                    delegateExecution.setVariable("orgaTcfIdReceived", true);
+                                                } else {
+                                                    delegateExecution.setVariable("orgaTcfIdReceived", false);
+                                                }
+                                            }
+                                        }
+                                    } catch (Exception e) {
+                                        e.printStackTrace();
+                                    }
+                                    if (!exist) {
+                                        JSONObject postShortNumberRequestJSON = new JSONObject();
+                                        JSONObject vasShortNumber = new JSONObject();
+                                        vasShortNumber.put("id", shortNumberId);
+                                        String orgaIdOut = tcfFormJSON.get("identifierOrgaID_outgoing").toString();
+                                        postShortNumberRequestJSON.put("orgaIdOut", orgaIdOut);
+                                        postShortNumberRequestJSON.put("vasShortNumber", vasShortNumber);
+                                        postShortNumberRequestJSON.put("cost", 0);
+                                        String postVasUrlsResponse = postVasUrls(postShortNumberRequestJSON.toString());
+                                        JSONObject postVasUrlsJSON = new JSONObject(postVasUrlsResponse);
+                                        if (postVasUrlsJSON.has("id") && postVasUrlsJSON.has("orgaIdOut")) {
+                                            delegateExecution.setVariable("orgaTcfIdReceived", true);
+                                        } else {
+                                            delegateExecution.setVariable("orgaTcfIdReceived", false);
+                                        }
+                                    }
                                 }
                             }
                             delegateExecution.setVariable("orgaRejectedFromTCF", false);

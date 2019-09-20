@@ -20,7 +20,7 @@ define(['./module', 'lodash', 'big-js'], function(module, _, Big){
                 $state.go("tasks", {}, {reload: true});
             }
         }, true);
-        
+
 
         $scope.override = function(fields, fieldToOverRide) {
             return fields.filter(f=>f.name === fieldToOverRide && f.override).length > 0;
@@ -80,21 +80,21 @@ define(['./module', 'lodash', 'big-js'], function(module, _, Big){
             // DO NOT USE THIS FOR RESOLUTIONS THAT HAVE MORE THAN 2 POSSIBLE VARIABLES! 
             // Something like "APPROVE" or "REJECT" is the right way
             // FOR CASES when resolutions have > 2 possible values USE: radio button or select option, but not for checkboxes
-            
+
             definition.allTasksSelected = !definition.allTasksSelected ? true : false;
             if(definition.configs.resolutions && definition.configs.resolutions.length>0) {
                 if(typeof definition.radioSelectedIndex === 'undefined') {
                     definition.radioSelectedIndex = 0;
                     definition.radioSelectedValue = definition.configs.resolutions[definition.radioSelectedIndex].variable;
                     definition.radioSelectedText = definition.configs.resolutions[definition.radioSelectedIndex].text;
-                    angular.forEach(definition.tasks, function(instance){ 
+                    angular.forEach(definition.tasks, function(instance){
                         instance.resolution = definition.radioSelectedValue;
                     });
                 } else {
                     definition.radioSelectedIndex = undefined;
                     definition.radioSelectedValue = undefined;
                     definition.radioSelectedText = undefined;
-                    angular.forEach(definition.tasks, function(instance){ 
+                    angular.forEach(definition.tasks, function(instance){
                         instance.resolution = null;
                     });
                     /*
@@ -239,7 +239,7 @@ define(['./module', 'lodash', 'big-js'], function(module, _, Big){
                         for (var i = 0; i < $scope.definitions.length; i++) {
                             var found = false;
                             for(var j = 0; j < $scope.definitions[i].tasks.length; j++) {
-                                
+
                                 if ($scope.definitions[i].tasks[j].taskId === tid) {
                                     $scope.definitions[i].configs = fields.massApproveConfigs;
                                     delete(fields.massApproveConfigs);
@@ -378,7 +378,7 @@ define(['./module', 'lodash', 'big-js'], function(module, _, Big){
                     var htmlTemplateFooter = '</tbody></table><p><br></p></div>';
 
                     var requestBodyJSON = {};
-                    var metadataBodyJSON = {type: "SP.Data.TCF_x005f_testListItem"};
+                    var metadataBodyJSON = {type: "SP.Data.ICTD_x0020_TCFListItem"};
                     var operatorBodyJSON = {};
                     var billingTypeBodyJSON = {};
                     var operatorResultsJSONArray = [];
@@ -390,12 +390,12 @@ define(['./module', 'lodash', 'big-js'], function(module, _, Big){
                         billingTCF = "amdocs";
                     } else if(["massApprove_checkFormOrgaTCF","massApprove_bulkSMS_checkFormOrgaTCF"].indexOf(defKey) > -1){
                         billingTCF = "orga";
-                    };
+                    }
 
                     if (processKey === "bulksmsConnectionKAE") {
-                        ServiceNameRUS = "Bulk sms";
-                        ServiceNameENG = "Bulk sms";
-                        ServiceNameKAZ = "Bulk sms";
+                        ServiceNameRUS = "Bulk SMS";
+                        ServiceNameENG = "Bulk SMS";
+                        ServiceNameKAZ = "Bulk SMS";
                     }
 
                     if (processKey === "freephone") {
@@ -454,7 +454,7 @@ define(['./module', 'lodash', 'big-js'], function(module, _, Big){
                     requestBodyJSON["ServiceNameRUS"] = ServiceNameRUS;
                     requestBodyJSON["ServiceNameENG"] = ServiceNameENG;
                     requestBodyJSON["ServiceNameKAZ"] = ServiceNameKAZ;
-                    requestBodyJSON["DepartmentManagerId"] = {"results" : [263]};
+                    requestBodyJSON["DepartmentManagerId"] = {results : [263]};
                     requestBodyJSON["Status"] = "Approved by Department Manager";
                     requestBodyJSON["Created"] = $filter('date')(new Date(), 'yyyy-MM-ddTHH:mm:ss');
                 }
@@ -571,6 +571,12 @@ define(['./module', 'lodash', 'big-js'], function(module, _, Big){
                                 serviceNameIncomingValue = instance["identifierServiceName_amdocs_incoming"];
                                 pricePerCounterOutgoingValue = instance["abonentTarif_amdocs_outgoing"];
                                 pricePerCounterIncomingValue = instance["abonentTarif_amdocs_incoming"];
+                                if(!pricePerCounterOutgoingValue || pricePerCounterOutgoingValue === null || pricePerCounterOutgoingValue === ""){
+                                    pricePerCounterOutgoingValue  = 0;
+                                }
+                                if(!pricePerCounterIncomingValue || pricePerCounterIncomingValue === null || pricePerCounterIncomingValue === ""){
+                                    pricePerCounterIncomingValue  = 0;
+                                }
                             }
                             if(billingTCF === "orga"){
                                 taskResolutionResult = variables["massApprove_bulkSMS_checkFormOrgaTCFTaskResult"].value;
@@ -583,6 +589,12 @@ define(['./module', 'lodash', 'big-js'], function(module, _, Big){
                                 serviceNameIncomingValue = instance["identifierServiceName_orga_incoming"];
                                 pricePerCounterOutgoingValue = instance["abonentTarif_orga_outgoing"];
                                 pricePerCounterIncomingValue = instance["abonentTarif_orga_incoming"];
+                                if(!pricePerCounterOutgoingValue || pricePerCounterOutgoingValue === null || pricePerCounterOutgoingValue === ""){
+                                    pricePerCounterOutgoingValue  = 0;
+                                }
+                                if(!pricePerCounterIncomingValue || pricePerCounterIncomingValue === null || pricePerCounterIncomingValue === ""){
+                                    pricePerCounterIncomingValue  = 0;
+                                }
                             }
                         }
                         if (processKey === "freephone") {
@@ -638,7 +650,7 @@ define(['./module', 'lodash', 'big-js'], function(module, _, Big){
                                     '<td style="border: 1px dotted #d3d3d3;">' + pricePerCounterOutgoingValue + '</td>' +
                                     '<td style="border: 1px dotted #d3d3d3;"></td>' +
                                     '<td style="border: 1px dotted #d3d3d3;">' + commentValue + '</td>' +
-                                    '</tr><tr>' + 
+                                    '</tr><tr>' +
                                     '<td style="border: 1px dotted #d3d3d3;">' + serviceNameIncomingValue + '</td>' +
                                     '<td style="border: 1px dotted #d3d3d3;">' + shortNumberValue + '</td>' +
                                     '<td style="border: 1px dotted #d3d3d3;">' + counterValue + '</td>' +
@@ -779,7 +791,7 @@ define(['./module', 'lodash', 'big-js'], function(module, _, Big){
                     var property = f.substring(0,f.indexOf(':'));
                     f = f.substring(f.indexOf(':')+1,f.length);
                     if (instance.hasOwnProperty(property)) result = instance[property];
-                } 
+                }
                 if (result && result.hasOwnProperty(f)) {
                     return result[f];
                 }
