@@ -28,20 +28,33 @@
                 'sapPRFileXLS',
                 'sapPRNo',
                 'kcellWarehouseMaterialsList',
-                'resolutions',
-                'contractorZIPWarehouseMaterialsList',
                 'kcellWarehouseMaterialsListName',
                 'kcellWarehouseMaterialsAdditionalList',
+                'eLicenseResolutionFile',
+                'eLicenseResolutionFileName',
+                'resolutions',
+                'contractorZIPWarehouseMaterialsList',
                 'contractorZIPWarehouseMaterialsListName',
                 'jrBlank',
                 'tssrssidFile',
                 'tssrssidFileName',
                 'priority',
+                'fillApplied',
+                'sapTransferRequestFile',
+                'actOfMaterialsDispatchingFile',
+                'actOfMaterialsDispatchingFileName',
+                'actOfMaterialsDispatchingFiles',
+                'trFilesName',
+                'trAdditionalFilesName',
+                'trFiles',
+                'siteWorksFiles',
                 'mlApprovalAdditionalInfoFile',
                 'contractorJobAssignedDate',
                 'mainContract'
             ];
-            $scope.jobModel = {};
+            $scope.jobModel = {
+                hideSAPPRNO: true
+            };
             $http.get('/camunda/api/engine/engine/default/task/' + camForm.taskId).then(
                     function(result){
                         $scope.processInstanceId = result.data.processInstanceId;
@@ -65,7 +78,7 @@
                         }
                 );
                 camForm.variableManager.createVariable({
-                    name: 'approveMaterialsListByContractorGroupsHeadTaskResult',
+                    name: 'approveMaterialsListByTnuRegionTaskResult',
                     type: 'String',
                     value: ''
                 });
@@ -85,80 +98,95 @@
                 $http.get("/camunda/api/engine/engine/default/user/" + $rootScope.authentication.name+ "/profile").then(function(result){
                     $rootScope.authentication.assigneeName = (result.data.firstName ? result.data.firstName : "") + " " + (result.data.lastName ? result.data.lastName : "");
                 });
+                if(camForm.variableManager.variables['approveMaterialsListByTnuRegionComment']){
+                    camForm.variableManager.variableValue('approveMaterialsListByTnuRegionComment', '');
+                }
             });
 
             camForm.on('submit', function () {
-                camForm.variableManager.variableValue('approveMaterialsListByContractorGroupsHeadTaskResult', $scope.approveMaterialsListByContractorGroupsHeadTaskResult);
-                if ($scope.approveMaterialsListByContractorGroupsHeadTaskResult === 'approved') {
+                camForm.variableManager.variableValue('approveMaterialsListByTnuRegionTaskResult', $scope.approveMaterialsListByTnuRegionTaskResult);
+                camForm.variableManager.createVariable({
+                    name: 'approve_additional_material_list_tnu_regionTaskResult',
+                    type: 'String',
+                    value: $scope.approveMaterialsListByTnuRegionTaskResult
+                });
+                if ($scope.approveMaterialsListByTnuRegionTaskResult === 'approved') {
                     camForm.variableManager.variableValue('modifyWorks', false);
                 }
                 else{
                     camForm.variableManager.variableValue('modifyWorks', true);
                 }
+
                 var visibility = 'all';
-                if($scope.approveMaterialsListByContractorGroupsHeadComment && $scope.approveMaterialsListByContractorGroupsHeadCommentVisibility){
-                    visibility = $scope.approveMaterialsListByContractorGroupsHeadCommentVisibility;
+                if($scope.approveMaterialsListByTnuRegionComment && $scope.approveMaterialsListByTnuRegionCommentVisibility){
+                    visibility = $scope.approveMaterialsListByTnuRegionCommentVisibility;
+                    camForm.variableManager.createVariable({
+                        name: 'approve_additional_material_list_tnu_regionTaskCommentVisibility',
+                        type: 'String',
+                        value: visibility
+                    });
                 }
+                camForm.variableManager.createVariable({
+                    name: 'approve_additional_material_list_tnu_regionTaskComment',
+                    type: 'String',
+                    value: $scope.approveMaterialsListByTnuRegionComment
+                });
                 camForm.variableManager.destroyVariable('resolutions');
             });
 
             camForm.on('store', function() {
-                camForm.variableManager.variableValue('approveMaterialsListByContractorGroupsHeadTaskResult', $scope.approveMaterialsListByContractorGroupsHeadTaskResult);
+                camForm.variableManager.variableValue('approveMaterialsListByTnuRegionTaskResult', $scope.approveMaterialsListByTnuRegionTaskResult);
             });
 
             camForm.on('variables-restored', function() {
-                $scope.approveMaterialsListByContractorGroupsHeadTaskResult = camForm.variableManager.variableValue('approveMaterialsListByContractorGroupsHeadTaskResult');
+                $scope.approveMaterialsListByTnuRegionTaskResult = camForm.variableManager.variableValue('approveMaterialsListByTnuRegionTaskResult');
             });
 
-            $scope.fileSelected = fileSelected;
-            function fileSelected(el) {
-                $scope['sapPRFile'] = (el.value !== '');
-            }
-
             $scope.isVisible = function (resolution) {
-               return !resolution.visibility || resolution.visibility === 'all' || (resolution.visibility === 'kcell' && $rootScope.hasGroup('kcellUsers'));
+                return !resolution.visibility || resolution.visibility === 'all' || (resolution.visibility === 'kcell' && $rootScope.hasGroup('kcellUsers'));
             }
 
             $scope.hasComment = function () {
-                return $scope.approveMaterialsListByContractorGroupsHeadComment && $rootScope.hasGroup('kcellUsers');
+                return $scope.approveMaterialsListByTnuRegionComment && $rootScope.hasGroup('kcellUsers');
             }
         }]);
     </script>
     <job-request job-model="jobModel"></job-request>
+
     <div class="form-group">
         <label class="col-sm-4 control-label">Resolution</label>
         <div class="col-sm-8">
             <label class="radio-inline">
-                <input type="radio" name="approveMaterialsListByContractorGroupsHeadTaskResult" ng-model="approveMaterialsListByContractorGroupsHeadTaskResult" value="approved" required> Approved
+                <input type="radio" ng-model="approveMaterialsListByTnuRegionTaskResult" name="approveMaterialsListByTnuRegionTaskResult" value="approved" required> Approved
+            </label>
+            <label class="radio-inline" ng-show="jobModel.fillApplied.value !== 'notEnough'">
+                <input type="radio" ng-model="approveMaterialsListByTnuRegionTaskResult" name="approveMaterialsListByTnuRegionTaskResult" value="modify" required> Modify works
             </label>
             <label class="radio-inline">
-                <input type="radio" name="approveMaterialsListByContractorGroupsHeadTaskResult" ng-model="approveMaterialsListByContractorGroupsHeadTaskResult" value="modify" required> Modify works
+                <input type="radio" ng-model="approveMaterialsListByTnuRegionTaskResult" name="approveMaterialsListByTnuRegionTaskResult" value="rejected" required> Reject
             </label>
-            <label class="radio-inline">
-                <input type="radio" name="approveMaterialsListByContractorGroupsHeadTaskResult" ng-model="approveMaterialsListByContractorGroupsHeadTaskResult" value="rejected" required> Reject
-            </label>
-            <label class="error" ng-show="kcell_form.approveMaterialsListByContractorGroupsHeadTaskResult.$error.required && ( kcell_form.approveMaterialsListByContractorGroupsHeadTaskResult.$touched || view.submitted)">Required field</label>
+            <label class="error" ng-show="kcell_form.approveMaterialsListByTnuRegionTaskResult.$error.required && ( kcell_form.approveMaterialsListByTnuRegionTaskResult.$touched || view.submitted)">Required field</label>
         </div>
     </div>
     <div class="form-group">
         <label class="col-sm-4 control-label">Comments</label>
         <div class="col-sm-8">
-            <textarea class="form-control" rows="4" maxlength="500" cam-variable-name="approveMaterialsListByContractorGroupsHeadComment" name="approveMaterialsListByContractorGroupsHeadComment" ng-required="approveMaterialsListByContractorGroupsHeadTaskResult == 'modify' || approveMaterialsListByContractorGroupsHeadTaskResult == 'rejected'" cam-variable-type="String"></textarea>
-            <label class="error" ng-show="kcell_form.approveMaterialsListByContractorGroupsHeadComment.$error.required && ( kcell_form.approveMaterialsListByContractorGroupsHeadComment.$touched || view.submitted)">Required field</label>
+            <textarea class="form-control" rows="4" maxlength="500" cam-variable-name="approveMaterialsListByTnuRegionComment" name="approveMaterialsListByTnuRegionComment" ng-required="approveMaterialsListByTnuRegionTaskResult == 'modify' || approveMaterialsListByTnuRegionTaskResult == 'rejected'" cam-variable-type="String"></textarea>
+            <label class="error" ng-show="kcell_form.approveMaterialsListByTnuRegionComment.$error.required && ( kcell_form.approveMaterialsListByTnuRegionComment.$touched || view.submitted)">Required field</label>
         </div>
     </div>
     <div class="form-group" ng-show="hasComment()">
         <label class="col-sm-4 control-label">Comments visibility</label>
         <div class="col-sm-8">
             <label class="radio-inline">
-                <input type="radio" name="approveMaterialsListByContractorGroupsHeadCommentVisibility"
-                       ng-model="approveMaterialsListByContractorGroupsHeadCommentVisibility" value="all" ng-required="hasComment()"> Visible for all
+                <input type="radio" name="approveMaterialsListByTnuRegionCommentVisibility"
+                       ng-model="approveMaterialsListByTnuRegionCommentVisibility" value="all" ng-required="hasComment()"> Visible for all
             </label>
             <label class="radio-inline">
-                <input type="radio" name="approveMaterialsListByContractorGroupsHeadCommentVisibility"
-                       ng-model="approveMaterialsListByContractorGroupsHeadCommentVisibility" value="kcell" ng-required="hasComment()"> Kcell staff only
+                <input type="radio" name="approveMaterialsListByTnuRegionCommentVisibility"
+                       ng-model="approveMaterialsListByTnuRegionCommentVisibility" value="kcell" ng-required="hasComment()"> Kcell staff only
             </label>
-            <label class="error" ng-show="kcell_form.approveMaterialsListByContractorGroupsHeadCommentVisibility.$error.required && ( kcell_form.approveMaterialsListByContractorGroupsHeadCommentVisibility.$touched || view.submitted)">Required field</label>
+            <label class="error" ng-show="kcell_form.approveMaterialsListByTnuRegionCommentVisibility.$error.required && ( kcell_form.approveMaterialsListByTnuRegionCommentVisibility.$touched || view.submitted)">Required field</label>
         </div>
     </div>
     <accordion>

@@ -1494,15 +1494,15 @@
         <bpmn:outgoing>SequenceFlow_02x6bpo</bpmn:outgoing>
       </bpmn:serviceTask>
       <bpmn:sequenceFlow id="SequenceFlow_02x6bpo" sourceRef="Task_0v4b5sl" targetRef="ExclusiveGateway_0a5ehdl" />
-      <bpmn:sequenceFlow id="SequenceFlow_1ejnm77" sourceRef="ExclusiveGateway_0a5ehdl" targetRef="Task_1uvnb7n" />
-      <bpmn:sequenceFlow id="SequenceFlow_0m7yyb0" sourceRef="Task_1uvnb7n" targetRef="Task_1ix12n7" />
-      <bpmn:sequenceFlow id="SequenceFlow_1tlrcap" sourceRef="Task_1ix12n7" targetRef="Task_0v4b5sl" />
-      <bpmn:userTask id="Task_1ix12n7" name="Create Sloc in SAP and enter into the DB" camunda:formKey="embedded:app:forms/revision/createAndEnterSloc.html" camunda:priority="#{priority == &#39;emergency&#39;? 100: 50}">
+      <bpmn:sequenceFlow id="SequenceFlow_1ejnm77" sourceRef="ExclusiveGateway_0a5ehdl" targetRef="provide_info_sloc_creation" />
+      <bpmn:sequenceFlow id="SequenceFlow_0m7yyb0" sourceRef="provide_info_sloc_creation" targetRef="create_sloc_sap_enter_db" />
+      <bpmn:sequenceFlow id="SequenceFlow_1tlrcap" sourceRef="create_sloc_sap_enter_db" targetRef="Task_0v4b5sl" />
+      <bpmn:userTask id="create_sloc_sap_enter_db" name="Create Sloc in SAP and enter into the DB" camunda:formKey="embedded:app:forms/revision/createAndEnterSloc.html" camunda:priority="#{priority == &#39;emergency&#39;? 100: 50}">
         <bpmn:documentation>Create JO in Sap</bpmn:documentation>
         <bpmn:incoming>SequenceFlow_0m7yyb0</bpmn:incoming>
         <bpmn:outgoing>SequenceFlow_1tlrcap</bpmn:outgoing>
       </bpmn:userTask>
-      <bpmn:userTask id="Task_1uvnb7n" name="Provide information for Sloc creation" camunda:formKey="embedded:app:forms/revision/provideInfoForSlocCreate.html" camunda:priority="#{priority == &#39;emergency&#39;? 100: 50}">
+      <bpmn:userTask id="provide_info_sloc_creation" name="Provide information for Sloc creation" camunda:formKey="embedded:app:forms/revision/provideInfoForSlocCreate.html" camunda:priority="#{priority == &#39;emergency&#39;? 100: 50}">
         <bpmn:documentation>Create JO in Sap</bpmn:documentation>
         <bpmn:incoming>SequenceFlow_1ejnm77</bpmn:incoming>
         <bpmn:outgoing>SequenceFlow_0m7yyb0</bpmn:outgoing>
@@ -1536,16 +1536,16 @@
       <bpmn:sequenceFlow id="SequenceFlow_0fpch05" name="success" sourceRef="ExclusiveGateway_1opmgse" targetRef="EndEvent_0pajjtw">
         <bpmn:conditionExpression xsi:type="bpmn:tFormalExpression">${joFileCheckResult == 'success'}</bpmn:conditionExpression>
       </bpmn:sequenceFlow>
-      <bpmn:sequenceFlow id="SequenceFlow_0iybzur" name="error" sourceRef="ExclusiveGateway_1opmgse" targetRef="Task_1wf6n5j">
+      <bpmn:sequenceFlow id="SequenceFlow_0iybzur" name="error" sourceRef="ExclusiveGateway_1opmgse" targetRef="correct_jo_file">
         <bpmn:conditionExpression xsi:type="bpmn:tFormalExpression">${joFileCheckResult == 'error'}</bpmn:conditionExpression>
       </bpmn:sequenceFlow>
-      <bpmn:sequenceFlow id="SequenceFlow_15x2rpz" sourceRef="Task_1wf6n5j" targetRef="Task_0meslky" />
+      <bpmn:sequenceFlow id="SequenceFlow_15x2rpz" sourceRef="correct_jo_file" targetRef="Task_0meslky" />
       <bpmn:serviceTask id="Task_1trhbbe" name="Check JO file result" camunda:delegateExpression="${checkJOFile}">
         <bpmn:incoming>SequenceFlow_11jnlb8</bpmn:incoming>
         <bpmn:incoming>SequenceFlow_1jh0fk4</bpmn:incoming>
         <bpmn:outgoing>SequenceFlow_146xuul</bpmn:outgoing>
       </bpmn:serviceTask>
-      <bpmn:userTask id="Task_1wf6n5j" name="Correct JO file" camunda:formKey="embedded:app:forms/revision/correctJOFile.html" camunda:priority="#{priority == &#39;emergency&#39;? 100: 50}">
+      <bpmn:userTask id="correct_jo_file" name="Correct JO file" camunda:formKey="embedded:app:forms/revision/correctJOFile.html" camunda:priority="#{priority == &#39;emergency&#39;? 100: 50}">
         <bpmn:documentation>Please correct and upload files to register Job Order</bpmn:documentation>
         <bpmn:incoming>SequenceFlow_0iybzur</bpmn:incoming>
         <bpmn:outgoing>SequenceFlow_15x2rpz</bpmn:outgoing>
@@ -1567,7 +1567,7 @@
           <bpmn:timeDuration xsi:type="bpmn:tFormalExpression">PT10M</bpmn:timeDuration>
         </bpmn:timerEventDefinition>
       </bpmn:intermediateCatchEvent>
-      <bpmn:association id="Association_1kcyypk" sourceRef="Task_1ix12n7" targetRef="TextAnnotation_076luq1" />
+      <bpmn:association id="Association_1kcyypk" sourceRef="create_sloc_sap_enter_db" targetRef="TextAnnotation_076luq1" />
     </bpmn:subProcess>
     <bpmn:sequenceFlow id="SequenceFlow_1x13wss" sourceRef="SubProcess_1asnndj" targetRef="SubProcess_04r1dz3" />
     <bpmn:inclusiveGateway id="ExclusiveGateway_1exrv6l">
@@ -1591,12 +1591,12 @@
       <bpmn:endEvent id="EndEvent_0m0y8g7">
         <bpmn:incoming>SequenceFlow_09ytjb6</bpmn:incoming>
       </bpmn:endEvent>
-      <bpmn:userTask id="Task_1puv0a9" name="Get SAP code for&#10;materials from&#10;accountant and enter into the form" camunda:formKey="embedded:app:forms/revision/enterSapCode.html" camunda:priority="#{priority == &#39;emergency&#39;? 100: 50}">
+      <bpmn:userTask id="get_sap_code_accountant_and_enter_form" name="Get SAP code for&#10;materials from&#10;accountant and enter into the form" camunda:formKey="embedded:app:forms/revision/enterSapCode.html" camunda:priority="#{priority == &#39;emergency&#39;? 100: 50}">
         <bpmn:incoming>SequenceFlow_1f267pj</bpmn:incoming>
         <bpmn:outgoing>SequenceFlow_09ytjb6</bpmn:outgoing>
       </bpmn:userTask>
-      <bpmn:sequenceFlow id="SequenceFlow_1f267pj" sourceRef="StartEvent_0agk3bi" targetRef="Task_1puv0a9" />
-      <bpmn:sequenceFlow id="SequenceFlow_09ytjb6" sourceRef="Task_1puv0a9" targetRef="EndEvent_0m0y8g7" />
+      <bpmn:sequenceFlow id="SequenceFlow_1f267pj" sourceRef="StartEvent_0agk3bi" targetRef="get_sap_code_accountant_and_enter_form" />
+      <bpmn:sequenceFlow id="SequenceFlow_09ytjb6" sourceRef="get_sap_code_accountant_and_enter_form" targetRef="EndEvent_0m0y8g7" />
     </bpmn:subProcess>
     <bpmn:sequenceFlow id="SequenceFlow_10puaa4" sourceRef="SubProcess_04r1dz3" targetRef="SubProcess_1f6dred" />
     <bpmn:sequenceFlow id="SequenceFlow_01k5ixb" name="yes" sourceRef="ExclusiveGateway_09qyhfe" targetRef="SubProcess_16s1bm4">
@@ -1652,12 +1652,12 @@
       <bpmn:sequenceFlow id="SequenceFlow_07vl379" name="success" sourceRef="ExclusiveGateway_0mxaovi" targetRef="ExclusiveGateway_1n3jfpg">
         <bpmn:conditionExpression xsi:type="bpmn:tFormalExpression">${faFileCheckResult == 'success'}</bpmn:conditionExpression>
       </bpmn:sequenceFlow>
-      <bpmn:userTask id="UserTask_16rotj0" name="Please, provide FA" camunda:formKey="embedded:app:forms/revision/enterSapFA.html">
+      <bpmn:userTask id="please_provide_fa" name="Please, provide FA" camunda:formKey="embedded:app:forms/revision/enterSapFA.html">
         <bpmn:documentation>Please, provide FA</bpmn:documentation>
         <bpmn:incoming>SequenceFlow_1qpoff4</bpmn:incoming>
         <bpmn:outgoing>SequenceFlow_081bbsf</bpmn:outgoing>
       </bpmn:userTask>
-      <bpmn:sequenceFlow id="SequenceFlow_1qpoff4" name="error" sourceRef="ExclusiveGateway_0mxaovi" targetRef="UserTask_16rotj0">
+      <bpmn:sequenceFlow id="SequenceFlow_1qpoff4" name="error" sourceRef="ExclusiveGateway_0mxaovi" targetRef="please_provide_fa">
         <bpmn:conditionExpression xsi:type="bpmn:tFormalExpression">${faFileCheckResult == 'error'}</bpmn:conditionExpression>
       </bpmn:sequenceFlow>
       <bpmn:sequenceFlow id="SequenceFlow_1ojbt6z" name="not found" sourceRef="ExclusiveGateway_0mxaovi" targetRef="IntermediateThrowEvent_0z0y5hg">
@@ -1676,7 +1676,7 @@
         <bpmn:outgoing>SequenceFlow_107jtml</bpmn:outgoing>
       </bpmn:exclusiveGateway>
       <bpmn:sequenceFlow id="SequenceFlow_107jtml" sourceRef="ExclusiveGateway_1n3jfpg" targetRef="EndEvent_0k01m0m" />
-      <bpmn:sequenceFlow id="SequenceFlow_081bbsf" sourceRef="UserTask_16rotj0" targetRef="ExclusiveGateway_1n3jfpg" />
+      <bpmn:sequenceFlow id="SequenceFlow_081bbsf" sourceRef="please_provide_fa" targetRef="ExclusiveGateway_1n3jfpg" />
       <bpmn:sequenceFlow id="SequenceFlow_0g91me3" sourceRef="IntermediateThrowEvent_0z0y5hg" targetRef="Task_03wz04b" />
     </bpmn:subProcess>
     <bpmn:subProcess id="SubProcess_0uj0q0p" name="create PR">
@@ -1725,10 +1725,10 @@
       <bpmn:sequenceFlow id="SequenceFlow_1bcv19x" name="success" sourceRef="ExclusiveGateway_1ktd1gu" targetRef="Task_11x1ofc">
         <bpmn:conditionExpression xsi:type="bpmn:tFormalExpression">${prFileCheckResult == 'success'}</bpmn:conditionExpression>
       </bpmn:sequenceFlow>
-      <bpmn:sequenceFlow id="SequenceFlow_1s5g5zh" name="error" sourceRef="ExclusiveGateway_1ktd1gu" targetRef="Task_1gjdn28">
+      <bpmn:sequenceFlow id="SequenceFlow_1s5g5zh" name="error" sourceRef="ExclusiveGateway_1ktd1gu" targetRef="correct_pr_file">
         <bpmn:conditionExpression xsi:type="bpmn:tFormalExpression">${prFileCheckResult == 'error'}</bpmn:conditionExpression>
       </bpmn:sequenceFlow>
-      <bpmn:sequenceFlow id="SequenceFlow_1mv8eb8" sourceRef="Task_1gjdn28" targetRef="Task_1o0sjro" />
+      <bpmn:sequenceFlow id="SequenceFlow_1mv8eb8" sourceRef="correct_pr_file" targetRef="Task_1o0sjro" />
       <bpmn:serviceTask id="Task_1vafb8e" name="Create PR file" camunda:delegateExpression="${createPRFile}">
         <bpmn:extensionElements>
           <camunda:inputOutput>
@@ -1750,7 +1750,7 @@
         <bpmn:incoming>SequenceFlow_129gogu</bpmn:incoming>
         <bpmn:outgoing>SequenceFlow_0yzoq0g</bpmn:outgoing>
       </bpmn:serviceTask>
-      <bpmn:userTask id="Task_1gjdn28" name="Correct PR file" camunda:formKey="embedded:app:forms/revision/correctPRFile.html" camunda:priority="#{priority == &#39;emergency&#39;? 100: 50}">
+      <bpmn:userTask id="correct_pr_file" name="Correct PR file" camunda:formKey="embedded:app:forms/revision/correctPRFile.html" camunda:priority="#{priority == &#39;emergency&#39;? 100: 50}">
         <bpmn:documentation>Please correct and upload files to register PR</bpmn:documentation>
         <bpmn:incoming>SequenceFlow_1s5g5zh</bpmn:incoming>
         <bpmn:outgoing>SequenceFlow_1mv8eb8</bpmn:outgoing>
@@ -2114,7 +2114,7 @@
     <bpmn:subProcess id="SubProcess_0qz2pxm" name="Additional mat list request">
       <bpmn:incoming>SequenceFlow_1jm2qc2</bpmn:incoming>
       <bpmn:outgoing>SequenceFlow_056ibcx</bpmn:outgoing>
-      <bpmn:userTask id="attach_additional_material_list_contractor" name="Attach Additional Material List" camunda:formKey="embedded:app:forms/revision/contractorAttachesMaterialList.html" camunda:priority="#{priority == &#39;emergency&#39;? 100: 50}">
+      <bpmn:userTask id="attach_additional_material_list_contractor" name="Attach Additional Material List" camunda:formKey="embedded:app:forms/revision/contractorAttachesAdditionalMaterialList.html" camunda:priority="#{priority == &#39;emergency&#39;? 100: 50}">
         <bpmn:documentation>Contractor Attaches Additional Material List</bpmn:documentation>
         <bpmn:extensionElements>
           <camunda:taskListener class="kz.kcell.bpm.assignments.ContractorAssignmentHandler" event="create" />
@@ -2125,7 +2125,7 @@
         <bpmn:incoming>SequenceFlow_0c5kg4p</bpmn:incoming>
         <bpmn:outgoing>SequenceFlow_0krhstl</bpmn:outgoing>
       </bpmn:userTask>
-      <bpmn:userTask id="approve_additional_material_list_region" name="Approve Additional Material List" camunda:formKey="embedded:app:forms/revision/approveMaterialsListByRegionGroupsHead.html" camunda:priority="#{priority == &#39;emergency&#39;? 100: 50}">
+      <bpmn:userTask id="approve_additional_material_list_region" name="Approve Additional Material List" camunda:formKey="embedded:app:forms/revision/approveAddMaterialsListByRegionGroupsHead.html" camunda:priority="#{priority == &#39;emergency&#39;? 100: 50}">
         <bpmn:documentation>Approve Additional Material List</bpmn:documentation>
         <bpmn:extensionElements>
           <camunda:taskListener class="kz.kcell.bpm.assignments.ApproveMaterialsListByMlApproversAssignmentHandler" event="create" />
@@ -2139,7 +2139,7 @@
         <bpmn:outgoing>SequenceFlow_18u99jn</bpmn:outgoing>
         <bpmn:outgoing>SequenceFlow_1uyxfet</bpmn:outgoing>
       </bpmn:exclusiveGateway>
-      <bpmn:userTask id="approve_additional_material_list_center" name="Approve Additional Material List by ${group}" camunda:formKey="embedded:app:forms/revision/approveMaterialsListByCentralGroupsHead.html" camunda:priority="#{priority == &#39;emergency&#39;? 100: 50}">
+      <bpmn:userTask id="approve_additional_material_list_center" name="Approve Additional Material List by ${group}" camunda:formKey="embedded:app:forms/revision/approveAddMaterialsListByCentralGroupsHead.html" camunda:priority="#{priority == &#39;emergency&#39;? 100: 50}">
         <bpmn:documentation>Approve Additional Material List by ${group} Group</bpmn:documentation>
         <bpmn:extensionElements>
           <camunda:taskListener class="kz.kcell.bpm.assignments.ApproveMaterialsListByCentralGroupsHeadAssignmentHandler" event="create" />
@@ -2229,7 +2229,7 @@
       <bpmn:endEvent id="EndEvent_0mluccm">
         <bpmn:incoming>SequenceFlow_13x425y</bpmn:incoming>
       </bpmn:endEvent>
-      <bpmn:userTask id="approve_additional_material_list_center1" name="Approve Additional Material List by Center" camunda:formKey="embedded:app:forms/revision/approveMaterialsListByCenter.html">
+      <bpmn:userTask id="approve_additional_material_list_center1" name="Approve Additional Material List by Center" camunda:formKey="embedded:app:forms/revision/approveAddMaterialsListByCenter.html">
         <bpmn:documentation>Approve Additional Material List by Center</bpmn:documentation>
         <bpmn:extensionElements>
           <camunda:taskListener class="kz.kcell.bpm.assignments.ApproveMaterialsListByCenterAssignmentHandler" event="create" />
@@ -2257,7 +2257,7 @@
         <bpmn:incoming>SequenceFlow_11q9j0n</bpmn:incoming>
         <bpmn:outgoing>SequenceFlow_03mw6qq</bpmn:outgoing>
       </bpmn:exclusiveGateway>
-      <bpmn:userTask id="approve_additional_material_list_tnu_region" name="Approve additional material list by TNU (Region)" camunda:formKey="embedded:app:forms/revision/approveMaterialsListByTnuRegion.html">
+      <bpmn:userTask id="approve_additional_material_list_tnu_region" name="Approve additional material list by TNU (Region)" camunda:formKey="embedded:app:forms/revision/approveAddMaterialsListByTnuRegion.html">
         <bpmn:documentation>Approve additional material list by TNU (Region)</bpmn:documentation>
         <bpmn:extensionElements>
           <camunda:taskListener class="kz.kcell.bpm.assignments.ApproveMaterialsListByTnuRegionAssignmentHandler" event="create" />
@@ -2265,7 +2265,7 @@
         <bpmn:incoming>SequenceFlow_0lrs2x8</bpmn:incoming>
         <bpmn:outgoing>SequenceFlow_1s9drh8</bpmn:outgoing>
       </bpmn:userTask>
-      <bpmn:userTask id="set_additional_materials_dispatch_status" name="Set Additional Materials Dispatch Status" camunda:formKey="embedded:app:forms/revision/setDispatchStatusByWarehouseSpecialist.html" camunda:priority="#{priority == &#39;emergency&#39;? 100: 50}">
+      <bpmn:userTask id="set_additional_materials_dispatch_status" name="Set Additional Materials Dispatch Status" camunda:formKey="embedded:app:forms/revision/setAddDispatchStatusByWarehouseSpecialist.html" camunda:priority="#{priority == &#39;emergency&#39;? 100: 50}">
         <bpmn:documentation>Set Additional Dispatch Status by Warehouse Specialist</bpmn:documentation>
         <bpmn:extensionElements>
           <camunda:taskListener class="kz.kcell.bpm.assignments.RegionWarehouseAssignmentHandler" event="create" />
@@ -4221,10 +4221,10 @@
           <dc:Bounds x="916" y="808" width="90" height="13" />
         </bpmndi:BPMNLabel>
       </bpmndi:BPMNEdge>
-      <bpmndi:BPMNShape id="UserTask_1bpe2yy_di" bpmnElement="Task_1ix12n7">
+      <bpmndi:BPMNShape id="UserTask_1bpe2yy_di" bpmnElement="create_sloc_sap_enter_db">
         <dc:Bounds x="896" y="849" width="100" height="80" />
       </bpmndi:BPMNShape>
-      <bpmndi:BPMNShape id="UserTask_05xrdb1_di" bpmnElement="Task_1uvnb7n">
+      <bpmndi:BPMNShape id="UserTask_05xrdb1_di" bpmnElement="provide_info_sloc_creation">
         <dc:Bounds x="1090" y="848" width="100" height="80" />
       </bpmndi:BPMNShape>
       <bpmndi:BPMNEdge id="SequenceFlow_17dquxg_di" bpmnElement="SequenceFlow_17dquxg">
@@ -4352,7 +4352,7 @@
           <dc:Bounds x="3059" y="839" width="90" height="13" />
         </bpmndi:BPMNLabel>
       </bpmndi:BPMNShape>
-      <bpmndi:BPMNShape id="UserTask_1ud9zmg_di" bpmnElement="Task_1puv0a9">
+      <bpmndi:BPMNShape id="UserTask_1ud9zmg_di" bpmnElement="get_sap_code_accountant_and_enter_form">
         <dc:Bounds x="2851" y="778" width="100" height="80" />
       </bpmndi:BPMNShape>
       <bpmndi:BPMNEdge id="SequenceFlow_1f267pj_di" bpmnElement="SequenceFlow_1f267pj">
@@ -4533,7 +4533,7 @@
       <bpmndi:BPMNShape id="ServiceTask_0wawbjt_di" bpmnElement="Task_1trhbbe">
         <dc:Bounds x="1659" y="700" width="100" height="80" />
       </bpmndi:BPMNShape>
-      <bpmndi:BPMNShape id="UserTask_0o6h0b5_di" bpmnElement="Task_1wf6n5j">
+      <bpmndi:BPMNShape id="UserTask_0o6h0b5_di" bpmnElement="correct_jo_file">
         <dc:Bounds x="1659" y="849" width="100" height="80" />
       </bpmndi:BPMNShape>
       <bpmndi:BPMNEdge id="SequenceFlow_11jnlb8_di" bpmnElement="SequenceFlow_11jnlb8">
@@ -4622,7 +4622,7 @@
       <bpmndi:BPMNShape id="ServiceTask_07ulh7b_di" bpmnElement="Task_0lbjdwa">
         <dc:Bounds x="5246" y="789" width="100" height="80" />
       </bpmndi:BPMNShape>
-      <bpmndi:BPMNShape id="UserTask_16k4lu8_di" bpmnElement="Task_1gjdn28">
+      <bpmndi:BPMNShape id="UserTask_16k4lu8_di" bpmnElement="correct_pr_file">
         <dc:Bounds x="5246" y="940" width="100" height="80" />
       </bpmndi:BPMNShape>
       <bpmndi:BPMNShape id="BoundaryEvent_1yz32wy_di" bpmnElement="BoundaryEvent_1sj6l8k">
@@ -5492,7 +5492,7 @@
           <dc:Bounds x="4167" y="746" width="40" height="13" />
         </bpmndi:BPMNLabel>
       </bpmndi:BPMNEdge>
-      <bpmndi:BPMNShape id="UserTask_16rotj0_di" bpmnElement="UserTask_16rotj0">
+      <bpmndi:BPMNShape id="UserTask_16rotj0_di" bpmnElement="please_provide_fa">
         <dc:Bounds x="4137" y="844" width="100" height="80" />
       </bpmndi:BPMNShape>
       <bpmndi:BPMNEdge id="SequenceFlow_1qpoff4_di" bpmnElement="SequenceFlow_1qpoff4">
