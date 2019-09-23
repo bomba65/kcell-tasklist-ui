@@ -21,6 +21,10 @@ define(['./../module'], function(module){
                         scope.dictionary.legalTypeTitle = _.keyBy(scope.dictionary.legalType, 'id');
 						scope.dictionary.antennasList = scope.dictionary.antennas;
 						scope.dictionary.antennaType = scope.dictionary.antennaType;
+						scope.leasingCandidate.addressString = ''
+						Object.values(scope.leasingCandidate.address).forEach((s,index) => {
+							scope.leasingCandidate.addressString += index > 0 ? ', ' + s : s
+						})
                     },
                     function(error){
                         console.log(error);
