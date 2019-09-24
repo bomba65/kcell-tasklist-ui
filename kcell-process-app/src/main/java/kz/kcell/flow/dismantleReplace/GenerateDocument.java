@@ -133,7 +133,7 @@ public class GenerateDocument implements JavaDelegate {
             String dismantlingInitiator = delegateExecution.getVariable("dismantlingInitiator").toString();
             varsMap.put("$dismantlingInitiator", initiatorsTitle.get(dismantlingInitiator));
             varsMap.put("$dismantlingReason", delegateExecution.getVariable("dismantlingReason").toString());
-            if(delegateExecution.hasVariable("project")){
+            if(delegateExecution.hasVariable("project") && delegateExecution.getVariable("project")!=null){
                 varsMap.put("$project", delegateExecution.getVariable("project").toString());
             } else {
                 varsMap.put("$project", "");
@@ -234,12 +234,12 @@ public class GenerateDocument implements JavaDelegate {
             varsMap.put("$siteFromRbsLoc", String.valueOf(delegateExecution.getVariable("siteFromRbsLocation")));
             varsMap.put("$siteToRbsLoc", String.valueOf(delegateExecution.getVariable("siteToRbsLocation")));
 
-            if(delegateExecution.hasVariable("siteFromSquareMeter")){
+            if(delegateExecution.hasVariable("siteFromSquareMeter") && delegateExecution.getVariable("siteFromSquareMeter")!=null){
                 varsMap.put("$siteFromSquareM", delegateExecution.getVariable("siteFromSquareMeter").toString());
             } else {
                 varsMap.put("$siteFromSquareM", "");
             }
-            if(delegateExecution.hasVariable("siteToSquareMeter")){
+            if(delegateExecution.hasVariable("siteToSquareMeter") && delegateExecution.getVariable("siteToSquareMeter")!=null){
                 varsMap.put("$siteToSquareM", delegateExecution.getVariable("siteToSquareMeter").toString());
             } else {
                 varsMap.put("$siteToSquareM", "");
@@ -269,41 +269,50 @@ public class GenerateDocument implements JavaDelegate {
             varsMap.put("$siteFromTransAnt", String.valueOf(delegateExecution.getVariable("siteFromTransmissionAntennaType")));
             varsMap.put("$siteToTransAnt", String.valueOf(delegateExecution.getVariable("siteToTransmissionAntennaType")));
             varsMap.put("$siteFromContractId", String.valueOf(delegateExecution.getVariable("siteFromContractId")));
-            if(delegateExecution.hasVariable("siteToSquareMeter")){
+            if(delegateExecution.hasVariable("siteToContractId") && delegateExecution.getVariable("siteToContractId")!=null){
                 varsMap.put("$siteToContractId", delegateExecution.getVariable("siteToContractId").toString());
             } else {
                 varsMap.put("$siteToContractId", "");
             }
 
-            if(delegateExecution.hasVariable("siteFromContractType")){
+            if(delegateExecution.hasVariable("siteFromContractType") && delegateExecution.getVariable("siteFromContractType")!=null && !delegateExecution.getVariable("siteFromContractType").toString().equals("")){
                 varsMap.put("$siteFromContractType", contractTypeTitle.get(delegateExecution.getVariable("siteFromContractType").toString()));
             } else {
                 varsMap.put("$siteFromContractType", "");
             }
-            if(delegateExecution.hasVariable("siteToContractType")){
+            if(delegateExecution.hasVariable("siteToContractType") && delegateExecution.getVariable("siteToContractType")!=null && !delegateExecution.getVariable("siteToContractType").toString().equals("")){
                 varsMap.put("$siteToContractType", contractTypeTitle.get(delegateExecution.getVariable("siteToContractType").toString()));
             } else {
                 varsMap.put("$siteToContractType", "");
             }
 
-            if(delegateExecution.hasVariable("siteFromLegallyName")){
+            if(delegateExecution.hasVariable("siteFromLegallyName") && delegateExecution.getVariable("siteFromLegallyName")!=null){
                 varsMap.put("$siteFromLegallyName", delegateExecution.getVariable("siteFromLegallyName").toString());
             } else {
                 varsMap.put("$siteFromLegallyName", "");
             }
-            if(delegateExecution.hasVariable("siteToLegallyName")){
+            if(delegateExecution.hasVariable("siteToLegallyName") && delegateExecution.getVariable("siteToLegallyName")!=null){
                 varsMap.put("$siteToLegallyName", delegateExecution.getVariable("siteToLegallyName").toString());
             } else {
                 varsMap.put("$siteToLegallyName", "");
             }
 
-            varsMap.put("$siteFromAddress", String.valueOf(delegateExecution.getVariable("siteFromAddress")));
-            varsMap.put("$siteToAddress", String.valueOf(delegateExecution.getVariable("siteToAddress")));
+            if(delegateExecution.hasVariable("siteFromAddress") && delegateExecution.getVariable("siteFromAddress")!=null){
+                varsMap.put("$siteFromAddress", String.valueOf(delegateExecution.getVariable("siteFromAddress")));
+            } else {
+                varsMap.put("$siteFromAddress", "");
+            }
+            if(delegateExecution.hasVariable("siteToAddress") && delegateExecution.getVariable("siteToAddress")!=null){
+                varsMap.put("$siteToAddress", String.valueOf(delegateExecution.getVariable("siteToAddress")));
+            } else {
+                varsMap.put("$siteToAddress", "");
+            }
+
             varsMap.put("$siteFromContactInfo", String.valueOf(delegateExecution.getVariable("siteFromContactInformation")));
             varsMap.put("$siteToContactInfo", String.valueOf(delegateExecution.getVariable("siteToContactInformation")));
         }
 
-        if(delegateExecution.hasVariable("startComment")){
+        if(delegateExecution.hasVariable("startComment") && delegateExecution.getVariable("startComment")!=null){
             varsMap.put("$comments", delegateExecution.getVariable("startComment").toString());
         } else {
             varsMap.put("$comments", "");

@@ -255,10 +255,10 @@
                     camForm.variableManager.variableValue('siteFromContactInformation', $scope.siteFromContactInformation);
                     camForm.variableManager.variableValue('siteToContactInformation', $scope.siteToContactInformation);
                     camForm.variableManager.variableValue('replacementReason', $scope.replacementReason);
-                }
-                if($scope.siteToCoverageAreaFile.isNew){
-                    delete $scope.siteToCoverageAreaFile.isNew;
-                    $scope.region_modifyFiles.push($scope.siteToCoverageAreaFile);
+                    if($scope.siteToCoverageAreaFile.isNew){
+                        delete $scope.siteToCoverageAreaFile.isNew;
+                        $scope.region_modifyFiles.push($scope.siteToCoverageAreaFile);
+                    }
                 }
                 camForm.variableManager.variableValue('region_modifyFiles', $scope.region_modifyFiles);
                 camForm.variableManager.variableValue('coverageAreaFile', $scope.coverageAreaFile);
@@ -449,6 +449,33 @@
                     return r.id === siteRegion;
                 }).value;
             }
+
+            $scope.preSubmit = function(){
+                var deferred = $q.defer();
+
+                if($scope.requestType === 'dismantle'){
+                    if($scope.gsmAntennaTypes.length === 0){
+                        deferred.reject('Site GSM Antenna type is not selected');
+                    } else if($scope.rbsTypes.length === 0){
+                        deferred.reject('Site Rbs type is not selected');
+                    } else {
+                        deferred.resolve();
+                    }
+                } else {
+                    if($scope.siteToRbsTypes.length === 0){
+                        deferred.reject('Site (to) Rbs type is not selected');
+                    } else if($scope.siteFromGsmAntennaTypes.length === 0){
+                        deferred.reject('Site (from) GSM Antenna type is not selected');
+                    } else if($scope.siteToGsmAntennaTypes.length === 0){
+                        deferred.reject('Site (to) GSM Antenna type is not selected');
+                    } else if($scope.siteFromRbsTypes.length === 0){
+                        deferred.reject('Site (from) Rbs type is not selected');
+                    } else {
+                        deferred.resolve();
+                    }
+                }
+                return deferred.promise;
+            }
         }]);
     </script>
 
@@ -538,12 +565,11 @@
                     <table>
                         <tr>
                             <td>Alternative {{$index+1}}: </td>
-                            <td><input type="text" name="alternativePlaces{{$index}}" ng-model="$parent.alternativePlaces[$index]" class="form-control" style="width: 200px;" ng-required="$parent.alternativePlaces[0] == undefined || alternativePlaces[0].length == 0" /></td>
+                            <td><input type="text" name="alternativePlaces{{$index}}" ng-model="$parent.alternativePlaces[$index]" class="form-control" style="width: 200px;" /></td>
                             <td ng-if="$index > 0"><a ng-click="removeAlternativePlace($index)" style="float: left;"><i class="glyphicon glyphicon-remove"></i></a></td>
                         </tr>
                     </table>
                 </div>
-                <label class="error" ng-if="kcell_form.alternativePlaces0.$error.required && ( kcell_form.alternativePlaces0.$touched || view.submitted)">Required field</label>
                 <a ng-click="addAlternativePlace()" style="float: left;"><i class="glyphicon glyphicon-plus-sign"></i></a>
             </div>
         </div>
@@ -585,6 +611,7 @@
                 <span ng-repeat="gt in $parent.gsmAntennaTypes" class="my-tag">{{gt}} <a ng-click="removeGsmAntennaType($index)">&times;</a></span>
                 <input type="text" ng-model="tempAntennaType" name="tempAntennaType" typeahead="result as result for result in getGsmAntennaType($viewValue)" typeahead-on-select="gsmAntennaSelected($item); tempAntennaType = undefined" class="form-control" autocomplete="off" placeholder="Add Gsm Antenna" ng-required="$parent.gsmAntennaTypes.length == 0">
                 <label class="error" ng-if="kcell_form.tempAntennaType.$error.required && ( kcell_form.tempAntennaType.$touched || view.submitted)">Required field</label>
+                <label class="error" ng-if="$parent.gsmAntennaTypes.length == 0 && ( kcell_form.tempAntennaType.$touched || view.submitted)">Select at least one from list</label>
             </div>
 
             <label class="col-sm-2 control-label">Band:</label>
@@ -651,6 +678,7 @@
                 <span ng-repeat="rt in $parent.rbsTypes" class="my-tag">{{rt}} <a ng-click="removeRbsType($index)">&times;</a></span>
                 <input type="text" ng-model="tempRbsType" name="tempRbsType" typeahead="result as result for result in getRbsType($viewValue)" typeahead-on-select="rbsTypeSelected($item); tempRbsType = undefined" class="form-control" autocomplete="off" placeholder="Add Rbs Type" ng-required="$parent.rbsTypes.length == 0">
                 <label class="error" ng-if="kcell_form.rbsType.$error.required && ( kcell_form.rbsType.$touched || view.submitted)">Required field</label>
+                <label class="error" ng-if="$parent.rbsTypes.length == 0 && ( kcell_form.rbsType.$touched || view.submitted)">Select at least one from list</label>
             </div>
 
             <label class="col-sm-2 control-label">Square, m2:</label>
@@ -685,7 +713,7 @@
             </div>
         </div>
         <div class="form-group">
-            <label class="col-sm-12 control-label">*Please attach print copy of coverage area from Google Earth program: {{coverageAreaFile}}</label>
+            <label class="col-sm-12 control-label">*Please attach print copy of coverage area from Google Earth program:</label>
         </div>
 
         <div class="form-group">
@@ -880,13 +908,15 @@
                 <span ng-repeat="rt in $parent.siteFromRbsTypes" class="my-tag">{{rt}} <a ng-click="removeRbsType($index)">&times;</a></span>
                 <input type="text" ng-model="tempRbsType" name="tempRbsType" typeahead="result as result for result in getRbsType($viewValue)" typeahead-on-select="rbsTypeSelected($item); tempRbsType = undefined" class="form-control" autocomplete="off" placeholder="Add Rbs Type" ng-required="$parent.siteFromRbsTypes.length == 0">
                 <label class="error" ng-if="kcell_form.tempRbsType.$error.required && ( kcell_form.tempRbsType.$touched || view.submitted)">Required field</label>
+                <label class="error" ng-if="$parent.siteFromRbsTypes.length == 0 && ( kcell_form.siteToTempRbsType.$touched || view.submitted)">Select at least one from list</label>
             </div>
 
             <label class="col-sm-3 control-label">RBS type:</label>
             <div class="col-sm-3">
                 <span ng-repeat="rt in $parent.siteToRbsTypes" class="my-tag">{{rt}} <a ng-click="removeSiteToRbsType($index)">&times;</a></span>
-                <input type="text" ng-model="siteToTempRbsType" name="tempRbsType" typeahead="result as result for result in getSiteToRbsType($viewValue)" typeahead-on-select="siteToRbsTypeSelected($item); siteToTempRbsType = undefined" class="form-control" autocomplete="off" placeholder="Add Rbs Type" ng-required="$parent.siteToRbsTypes.length == 0">
+                <input type="text" ng-model="siteToTempRbsType" name="siteToTempRbsType" typeahead="result as result for result in getSiteToRbsType($viewValue)" typeahead-on-select="siteToRbsTypeSelected($item); siteToTempRbsType = undefined" class="form-control" autocomplete="off" placeholder="Add Rbs Type" ng-required="$parent.siteToRbsTypes.length == 0">
                 <label class="error" ng-if="kcell_form.siteToTempRbsType.$error.required && ( kcell_form.siteToTempRbsType.$touched || view.submitted)">Required field</label>
+                <label class="error" ng-if="$parent.siteToRbsTypes.length == 0 && ( kcell_form.siteToTempRbsType.$touched || view.submitted)">Select at least one from list</label>
             </div>
         </div>
 
@@ -940,6 +970,7 @@
                 <span ng-repeat="gt in $parent.siteFromGsmAntennaTypes" class="my-tag">{{gt}} <a ng-click="removeGsmAntennaType($index)">&times;</a></span>
                 <input type="text" ng-model="tempAntennaType" name="tempAntennaType" typeahead="result as result for result in getGsmAntennaType($viewValue)" typeahead-on-select="gsmAntennaSelected($item); tempAntennaType = undefined" class="form-control" autocomplete="off" placeholder="Add Gsm Antenna" ng-required="$parent.siteFromGsmAntennaTypes.length == 0">
                 <label class="error" ng-if="kcell_form.tempAntennaType.$error.required && ( kcell_form.tempAntennaType.$touched || view.submitted)">Required field</label>
+                <label class="error" ng-if="$parent.siteFromGsmAntennaTypes.length == 0 && ( kcell_form.tempAntennaType.$touched || view.submitted)">Select at least one from list</label>
             </div>
 
             <label class="col-sm-3 control-label">GSM Antenna type:</label>
@@ -947,6 +978,7 @@
                 <span ng-repeat="gt in $parent.siteToGsmAntennaTypes" class="my-tag">{{gt}} <a ng-click="removeSiteToGsmAntennaType($index)">&times;</a></span>
                 <input type="text" ng-model="tempSiteToAntennaType" name="tempSiteToAntennaType" typeahead="result as result for result in getSiteToGsmAntennaType($viewValue)" typeahead-on-select="siteToGsmAntennaSelected($item); tempSiteToAntennaType = undefined" class="form-control" autocomplete="off" placeholder="Add Gsm Antenna" ng-required="$parent.siteToGsmAntennaTypes.length == 0">
                 <label class="error" ng-if="kcell_form.tempSiteToAntennaType.$error.required && ( kcell_form.tempSiteToAntennaType.$touched || view.submitted)">Required field</label>
+                <label class="error" ng-if="$parent.siteToGsmAntennaTypes.length == 0 && ( kcell_form.tempSiteToAntennaType.$touched || view.submitted)">Select at least one from list</label>
             </div>
         </div>
 
