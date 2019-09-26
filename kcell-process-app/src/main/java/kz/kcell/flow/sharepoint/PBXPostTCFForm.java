@@ -3,15 +3,12 @@ package kz.kcell.flow.sharepoint;
 
 import lombok.extern.java.Log;
 import org.camunda.bpm.engine.RepositoryService;
+import org.camunda.bpm.engine.TaskService;
 import org.camunda.bpm.engine.delegate.DelegateExecution;
-import org.camunda.bpm.engine.delegate.Expression;
 import org.camunda.bpm.engine.delegate.JavaDelegate;
 import org.camunda.bpm.engine.impl.util.json.JSONArray;
 import org.camunda.bpm.engine.impl.util.json.JSONObject;
-import org.camunda.spin.SpinList;
-import org.camunda.spin.json.SpinJsonNode;
-import org.camunda.spin.plugin.variable.SpinValues;
-import org.camunda.spin.plugin.variable.value.JsonValue;
+import org.camunda.bpm.engine.task.Task;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.core.env.Environment;
@@ -31,6 +28,7 @@ import java.text.SimpleDateFormat;
 import java.util.Arrays;
 import java.util.Calendar;
 import java.util.Date;
+import java.util.List;
 
 @Service("pbxPostTCFForm")
 @Log
@@ -43,10 +41,11 @@ public class PBXPostTCFForm implements JavaDelegate {
     private final String pwd;
     private final String productCatalogUrl;
     private final String productCatalogAuth;
-    Expression billingTCF;
 
     @Autowired
     RepositoryService repositoryService;
+    @Autowired
+    private TaskService taskService;
 
     @Autowired
     public PBXPostTCFForm(@Value("${sharepoint.forms.url:https://sp.kcell.kz/forms/_api}") String baseUri, @Value("${sharepoint.forms.username}") String username, @Value("${sharepoint.forms.password}") String pwd,
@@ -111,8 +110,8 @@ public class PBXPostTCFForm implements JavaDelegate {
             }
         });
 
-        log.info("postItemsResponse URL: " + urlStr);
-        log.info("postItemsResponse BODY: " + requestBodyStr);
+        System.out.println("postItemsResponse URL: " + urlStr);
+        System.out.println("postItemsResponse BODY: " + requestBodyStr);
 
         URL urlRequest = new URL(urlStr);
         HttpURLConnection conn = (HttpURLConnection) urlRequest.openConnection();
@@ -131,7 +130,7 @@ public class PBXPostTCFForm implements JavaDelegate {
         // read the response
         InputStream in = new BufferedInputStream(conn.getInputStream());
         String result = org.apache.commons.io.IOUtils.toString(in, "UTF-8");
-        log.info("postItemsResponse RESPONSE: " + result);
+        System.out.println("postItemsResponse RESPONSE: " + result);
         JSONObject jsonObject = new JSONObject(result);
 
         in.close();
@@ -144,23 +143,25 @@ public class PBXPostTCFForm implements JavaDelegate {
     public void execute(DelegateExecution delegateExecution) throws Exception {
         try {
             Boolean isSftp = Arrays.stream(environment.getActiveProfiles()).anyMatch(env -> (env.equalsIgnoreCase("sftp")));
-
+            System.out.println("isSftp:");
+            System.out.println(isSftp);
+            //isSftp = true;
             if (isSftp) {
                 String processKey = repositoryService.createProcessDefinitionQuery().processDefinitionId(delegateExecution.getProcessDefinitionId()).list().get(0).getKey();
-                String billingTCF = this.billingTCF.getValue(delegateExecution).toString();
                 JSONObject customerInformationJSON = new JSONObject(String.valueOf(delegateExecution.getVariable("customerInformation")));
 
-                DateFormat df = new SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss.SSSZ");
+                DateFormat df = new SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss.SSS'Z'");
                 DateFormat sdf = new SimpleDateFormat("dd.MM.yyyy");
 
                 System.err.println("processKey: " + processKey);
-                System.err.println("billingTCF: " + billingTCF);
                 JSONObject requestBodyJSON = new JSONObject();
                 JSONObject metadataBodyJSON = new JSONObject("{\"type\": \"SP.Data.TCF_x005f_testListItem\"}");
                 JSONObject operatorBodyJSON = new JSONObject();
+                JSONObject departmentManagerIdJSON = new JSONObject();
                 JSONObject billingTypeBodyJSON = new JSONObject();
                 JSONArray operatorResultsJSONArray = new JSONArray();
                 JSONArray billingTypeResultsJSONArray = new JSONArray();
+                JSONArray departmentManagerIdJSONArray = new JSONArray();
 
                 requestBodyJSON.put("__metadata", metadataBodyJSON);
                 if (delegateExecution.getVariable("starter").toString().equals("Yerlan.Mustafin@kcell.kz")) {
@@ -172,17 +173,18 @@ public class PBXPostTCFForm implements JavaDelegate {
                 requestBodyJSON.put("Subject", "PBX " + customerInformationJSON.get("ticName").toString());
                 operatorResultsJSONArray.put("Telesens");
                 billingTypeResultsJSONArray.put("TIC");
+                departmentManagerIdJSONArray.put(263);
                 operatorBodyJSON.put("results", operatorResultsJSONArray);
                 billingTypeBodyJSON.put("results", billingTypeResultsJSONArray);
+                departmentManagerIdJSON.put("results", departmentManagerIdJSONArray);
                 requestBodyJSON.put("Operator", operatorBodyJSON);
                 requestBodyJSON.put("BillingType", billingTypeBodyJSON);
                 requestBodyJSON.put("Service", "PBX");
                 requestBodyJSON.put("RelationWithThirdParty", false);
-                requestBodyJSON.put("DepartmentManagerId", "{\"results\":[263]}");
+                requestBodyJSON.put("DepartmentManagerId", departmentManagerIdJSON);
                 requestBodyJSON.put("Status", "Approved by Department Manager");
                 requestBodyJSON.put("TypeForm", "Изменение тарифа на существующий сервис (Old service TCF)");
                 requestBodyJSON.put("DateDeadline", df.format(((Date) delegateExecution.getVariable("tcfRequestDeadline"))));
-                requestBodyJSON.put("Requirements", "");
 
                 Calendar calendar = Calendar.getInstance();
                 int lastDate = calendar.getActualMaximum(Calendar.DATE);
@@ -196,23 +198,37 @@ public class PBXPostTCFForm implements JavaDelegate {
                 firstDate.set(Calendar.DAY_OF_MONTH, 1);
 
                 Boolean firstDayConnection = (Boolean) delegateExecution.getVariable("firstDayConnection");
+                if (firstDayConnection == null) {
+                    firstDayConnection = false;
+                }
 
                 Date commercialDate = new Date();
-                SpinJsonNode resolutionContainer = delegateExecution.<JsonValue>getVariableTyped("resolutions").getValue();
-                if (resolutionContainer.isArray() && resolutionContainer.elements().size() > 0) {
-                    SpinList<SpinJsonNode> resolutions = delegateExecution.<JsonValue>getVariableTyped("resolutions").getValue().elements();
-                    for (SpinJsonNode resolution : resolutions) {
-                        if (resolution.prop("taskName").equals("Confirm commercial starting service")) {
+
+                JSONArray jsonArray = new JSONArray(delegateExecution.getVariable("resolutions").toString());
+                if (jsonArray.length() > 0) {
+                    for (int i = 0; i < jsonArray.length(); i++) {
+                        JSONObject jsonObject = jsonArray.getJSONObject(i);
+                        String taskName = "";
+                        if (jsonObject.has("taskName")) {
+                            taskName = jsonObject.getString("taskName");
+                        } else if (jsonObject.has("taskId")) {
+                            List<Task> taskz = delegateExecution.getProcessEngine().getTaskService().createTaskQuery().taskId(jsonObject.getString("taskId")).list();
+                            if (taskz.size() > 0) {
+                                taskName = taskz.get(0).getName();
+                            }
+                        }
+                        if (taskName.equals("Confirm commercial starting service")) {
                             try {
-                                commercialDate = df.parse(resolution.prop("taskName").stringValue());
+                                commercialDate = df.parse(jsonObject.getString("taskEndDate"));
+                                System.out.println("commercialDate: " + commercialDate);
                             } catch (ParseException e) {
                                 e.printStackTrace();
                             }
-                        } else if (resolution.prop("taskName").equals("Create / Modify request in TCF")) {
+                        } else if (taskName.equals("Create / Modify request in TCF")) {
                             try {
-                                if (resolution.prop("assigneeName").equals("Yerlan Mustafin") || resolution.prop("assigneeName").equals("Demo Demo")) {
+                                if (jsonObject.has("assigneeName") && (jsonObject.getString("assigneeName").equals("Yerlan Mustafin") || jsonObject.getString("assigneeName").equals("Demo Demo"))) {
                                     requestBodyJSON.put("InitiatorId", "5016");
-                                } else if (resolution.prop("assigneeName").equals("Sanzhar Kairolla")) {
+                                } else if (jsonObject.getString("assigneeName").equals("Sanzhar Kairolla")) {
                                     requestBodyJSON.put("InitiatorId", "4579");
                                 }
                             } catch (Exception e) {
@@ -220,7 +236,6 @@ public class PBXPostTCFForm implements JavaDelegate {
                             }
                         }
                     }
-                    delegateExecution.setVariable("resolutions", SpinValues.jsonValue(resolutions.toString()));
                 }
                 String a = "";
                 String b = "";
@@ -230,6 +245,8 @@ public class PBXPostTCFForm implements JavaDelegate {
                 String offnet = "";
                 String pstn = "";
                 String international = "";
+                System.out.println("TARIFF:");
+                System.out.println("'" + delegateExecution.getVariable("tariff").toString() + "'");
                 if (delegateExecution.getVariable("tariff").toString().equals("Бизнес стандарт")) {
                     a = "-";
                     b = "-";
@@ -239,7 +256,7 @@ public class PBXPostTCFForm implements JavaDelegate {
                     offnet = "11";
                     pstn = "15";
                 }
-                if (delegateExecution.getVariable("tariff").toString().equals("Бизнес пакет 30")) {
+                if (delegateExecution.getVariable("tariff").toString().equals("Бизнес пакет 30")) {
                     a = "30,000";
                     b = "10.00";
                     c = "3,000";
@@ -248,7 +265,7 @@ public class PBXPostTCFForm implements JavaDelegate {
                     offnet = "11";
                     pstn = "15";
                 }
-                if (delegateExecution.getVariable("tariff").toString().equals("Бизнес пакет 50")) {
+                if (delegateExecution.getVariable("tariff").toString().equals("Бизнес пакет 50")) {
                     a = "50,000";
                     b = "9.00";
                     c = "5,556";
@@ -257,7 +274,7 @@ public class PBXPostTCFForm implements JavaDelegate {
                     offnet = "11";
                     pstn = "15";
                 }
-                if (delegateExecution.getVariable("tariff").toString().equals("Бизнес пакет 100")) {
+                if (delegateExecution.getVariable("tariff").toString().equals("Бизнес пакет 100")) {
                     a = "100,000";
                     b = "8.00";
                     c = "12,500";
@@ -266,7 +283,7 @@ public class PBXPostTCFForm implements JavaDelegate {
                     offnet = "11";
                     pstn = "15";
                 }
-                if (delegateExecution.getVariable("tariff").toString().equals("Бизнес пакет 150")) {
+                if (delegateExecution.getVariable("tariff").toString().equals("Бизнес пакет 150")) {
                     a = "150,000";
                     b = "7.50";
                     c = "20,000";
@@ -275,7 +292,7 @@ public class PBXPostTCFForm implements JavaDelegate {
                     offnet = "11";
                     pstn = "15";
                 }
-                if (delegateExecution.getVariable("tariff").toString().equals("Бизнес пакет 200")) {
+                if (delegateExecution.getVariable("tariff").toString().equals("Бизнес пакет 200")) {
                     a = "200,000";
                     b = "7.00";
                     c = "28,571";
@@ -283,8 +300,8 @@ public class PBXPostTCFForm implements JavaDelegate {
                     onnet = "11";
                     offnet = "11";
                     pstn = "15";
-                }
-                if (delegateExecution.getVariable("tariff").toString().equals("Бизнес пакет 300")) {
+                }//Бизнес пакет 300
+                if (delegateExecution.getVariable("tariff").toString().equals("Бизнес пакет 300")) {
                     a = "300,000";
                     b = "7.00";
                     c = "42,857";
@@ -293,7 +310,7 @@ public class PBXPostTCFForm implements JavaDelegate {
                     offnet = "10";
                     pstn = "15";
                 }
-                if (delegateExecution.getVariable("tariff").toString().equals("Бизнес пакет 400")) {
+                if (delegateExecution.getVariable("tariff").toString().equals("Бизнес пакет 400")) {
                     a = "400,000";
                     b = "7.00";
                     c = "57,143";
@@ -302,7 +319,7 @@ public class PBXPostTCFForm implements JavaDelegate {
                     offnet = "10";
                     pstn = "15";
                 }
-                if (delegateExecution.getVariable("tariff").toString().equals("Бизнес пакет 600")) {
+                if (delegateExecution.getVariable("tariff").toString().equals("Бизнес пакет 600")) {
                     a = "600,000";
                     b = "7.00";
                     c = "85,714";
@@ -311,7 +328,7 @@ public class PBXPostTCFForm implements JavaDelegate {
                     offnet = "10";
                     pstn = "15";
                 }
-                if (delegateExecution.getVariable("tariff").toString().equals("Бизнес пакет 700")) {
+                if (delegateExecution.getVariable("tariff").toString().equals("Бизнес пакет 700")) {
                     a = "700,000";
                     b = "7.00";
                     c = "100,000";
@@ -320,7 +337,7 @@ public class PBXPostTCFForm implements JavaDelegate {
                     offnet = "9";
                     pstn = "15";
                 }
-                if (delegateExecution.getVariable("tariff").toString().equals("Бизнес пакет 1MLN")) {
+                if (delegateExecution.getVariable("tariff").toString().equals("Бизнес пакет 1MLN")) {
                     a = "1,000,000";
                     b = "7.00";
                     c = "142,857";
@@ -329,7 +346,7 @@ public class PBXPostTCFForm implements JavaDelegate {
                     offnet = "9";
                     pstn = "15";
                 }
-                if (delegateExecution.getVariable("tariff").toString().equals("Бизнес пакет 1.5MLN")) {
+                if (delegateExecution.getVariable("tariff").toString().equals("Бизнес пакет 1.5MLN")) {
                     a = "1,500,000";
                     b = "6.00";
                     c = "250,000";
@@ -338,7 +355,7 @@ public class PBXPostTCFForm implements JavaDelegate {
                     offnet = "8";
                     pstn = "15";
                 }
-                if (delegateExecution.getVariable("tariff").toString().equals("Бизнес пакет 2.5MLN")) {
+                if (delegateExecution.getVariable("tariff").toString().equals("Бизнес пакет 2.5MLN")) {
                     a = "2,500,000";
                     b = "6.00";
                     c = "416,667";
@@ -347,7 +364,7 @@ public class PBXPostTCFForm implements JavaDelegate {
                     offnet = "8";
                     pstn = "15";
                 }
-                if (delegateExecution.getVariable("tariff").toString().equals("Бизнес пакет 3MLN")) {
+                if (delegateExecution.getVariable("tariff").toString().equals("Бизнес пакет 3MLN")) {
                     a = "3,000,000";
                     b = "6.00";
                     c = "500,000";
@@ -378,7 +395,7 @@ public class PBXPostTCFForm implements JavaDelegate {
                     "  </tr>\n" +
                     "  <tr>\n" +
                     "    <td>Kcell, Activ</td>\n" +
-                    "    <td>11<td>\n" +
+                    "    <td>11</td>\n" +
                     "    <td>1 sec</td>\n" +
                     "  </tr>\n" +
                     "  <tr>\n" +
@@ -464,22 +481,33 @@ public class PBXPostTCFForm implements JavaDelegate {
                     "  </tr>\n" +
                     "</table>";
                 requestBodyJSON.put("Requirments", htmlTemplateTCF);
+                System.out.println("Requirments: " + htmlTemplateTCF);
+                System.out.println("requestBodyJSON: " + requestBodyJSON);
 
-                String resultContexninfo = "error";
+                String resultContextInfo = "error";
                 String resultItems = "error";
 
                 try {
                     String responseText = postAuthenticatedResponse(baseUri + "/contextinfo", "kcell.kz", username, pwd);
-                    resultContexninfo = responseText;
+                    resultContextInfo = responseText;
                 } catch (Exception e) {
                     e.printStackTrace();
                 }
 
-                if (!"error".equals(resultContexninfo)) {
-                    JSONObject contextinfoJSON = new JSONObject(resultContexninfo);
-                    if (contextinfoJSON.has("FormDigestValue")) {
+                System.out.println("resultContextInfo: " + resultContextInfo);
+
+                if (!"error".equals(resultContextInfo)) {
+                    JSONObject contextInfoJSON = new JSONObject(resultContextInfo);
+                    System.out.println("contextInfoJSON.has(\"FormDigestValue\")");
+                    System.out.println(contextInfoJSON.has("FormDigestValue"));
+                    try {
+                        contextInfoJSON = contextInfoJSON.getJSONObject("d").getJSONObject("GetContextWebInformation");
+                    } catch (Exception e) {
+                        e.printStackTrace();
+                    }
+                    if (contextInfoJSON.has("FormDigestValue")) {
                         try {
-                            String responseText = postItemsResponse(baseUri + "/Lists/getbytitle('ICTD%20TCF')/items", "kcell.kz", username, pwd, contextinfoJSON.get("FormDigestValue").toString(), requestBodyJSON.toString());
+                            String responseText = postItemsResponse(baseUri + "/Lists/getbytitle('TCF_test')/items", "kcell.kz", username, pwd, contextInfoJSON.get("FormDigestValue").toString(), requestBodyJSON.toString());
                             resultItems = responseText;
                         } catch (Exception e) {
                             e.printStackTrace();
@@ -487,11 +515,13 @@ public class PBXPostTCFForm implements JavaDelegate {
                     }
                 }
 
+                System.out.println("resultItems: " + resultItems);
+
                 JSONObject responseSharepointJSON = new JSONObject(resultItems);
-                String Status = responseSharepointJSON.get("Status").toString();
+                String Status = responseSharepointJSON.getJSONObject("d").get("Status").toString();
                 delegateExecution.setVariable("tcfFormStatus", Status);
                 if (Status.indexOf("Approved") > -1) {
-                    delegateExecution.setVariable("tcfFormId", responseSharepointJSON.get("Id").toString());
+                    delegateExecution.setVariable("tcfFormId", responseSharepointJSON.getJSONObject("d").get("Id").toString());
                     delegateExecution.setVariable("tcfFormIdReceived", true);
                 } else {
                     delegateExecution.setVariable("tcfFormIdReceived", false);
