@@ -1,136 +1,231 @@
 <form role="form" class="form-horizontal" name="kcell_form" novalidate>
   <script cam-script type="text/form-script">
-    inject(['$scope', '$http', 'Uri', '$rootScope', '$q', 'Upload', '$timeout', 'historyVariablesManager', function ($scope, $http, Uri, $rootScope, $q, Upload, $timeout, historyVariablesManager) {
-    
-    $scope.showResolution = false;
-    $scope.deliveryTestData = {};
-    var processInstanceId = null;
-    var assigneeName = $rootScope.authentication.name;
-    var taskKey = camForm.taskId;
-    var history = null;
-    
-    $http.get("/camunda/api/engine/engine/default/user/" + $rootScope.authentication.name+ "/profile").then(function(result){
-        assigneeName = (result.data.firstName ? result.data.firstName : "") + " " + (result.data.lastName ? result.data.lastName : "");
-    });
+    inject(['$scope', '$http', 'Uri', '$rootScope', '$q', 'Upload', '$timeout', function ($scope, $http, Uri, $rootScope, $q, Upload, $timeout) {
 
-    $http.get('/camunda/api/engine/engine/default/task/' + camForm.taskId).then(
-      function (result) {
-        processInstanceId = result.data.processInstanceId;
-        taskKey = result.data.taskDefinitionKey;
-        if (taskKey === 'confirmTCFRequest') $scope.showResolution = true;
-        history = historyVariablesManager(camForm, taskKey);
-        history.createVariables(true);
-      },
-      function (error) {
-        console.log(error.data);
-      }
-    );
-
-    $scope.downloadFile = function (file) {
-      $http({method: 'GET', url: '/camunda/uploads/' + (file.path.split('/').length === 2 ? 'tmp/' : '') + 'get/' + file.path, transformResponse: [] }).then(
-        function(response) {
-          document.getElementById('fileDownloadIframe').src = response.data;
-        },
-        function(response) { console.log(response.data); }
-      );
-    };
-
-    $scope.clearFile = function(fileIndex) {
-      $scope.attachments.splice(fileIndex, 1);
-    };
-    
-    $scope.fileSelected = function(el ){
-      $timeout(function () {
-        $scope.$apply(function () {
-          uploadFileToMinio(el.files[0]);
-        });
-      })
-    };
-
-    function uploadFileToMinio(file) {
-      var fileToUpload = {
-        name: file.name.replace(/[/\\?%*:|"<>]/g, '-'),
-        path: processInstanceId + '/' + camForm.taskId + '/' + file.name.replace(/[/\\?%*:|"<>]/g, '-'),
-        created: new Date(),
-        createdBy: assigneeName
+      $scope.showResolution = false;
+      $scope.deliveryTestData = {};
+      var processInstanceId = null;
+      var assigneeName = $rootScope.authentication.name;
+      var taskKey = camForm.taskId;
+      $scope.tcf = {
+        "firstDayConnection": false
       };
-      $http({method: 'GET', url: '/camunda/uploads/put/' + fileToUpload.path, transformResponse: [] }).then(
-        function(response) {
-          $http.put(response.data, file, {headers: {'Content-Type': undefined}}).then(
-            function () {
-              $scope.attachments.push(fileToUpload);
-              angular.element(document.querySelector('#attachments')).val(null);
-            },
-            function (error) {
-              console.log(error.data);
-            }
-          );
-        },
-        function(response) { console.log(response.data); }
+
+      $http.get("/camunda/api/engine/engine/default/user/" + $rootScope.authentication.name+ "/profile").then(function(result){
+        assigneeName = (result.data.firstName ? result.data.firstName : "") + " " + (result.data.lastName ? result.data.lastName : "");
+      });
+
+      $http.get('/camunda/api/engine/engine/default/task/' + camForm.taskId).then(
+              function (result) {
+                processInstanceId = result.data.processInstanceId;
+                taskKey = result.data.taskDefinitionKey;
+                if (taskKey == 'confirmTCFRequest'){
+                  $scope.showResolution = true;
+                }
+              },
+              function (error) {
+                console.log(error.data);
+              }
       );
-    }
 
-    scope.openCalendar = function() {
+      $scope.downloadFile = function (file) {
+        $http({method: 'GET', url: '/camunda/uploads/' + (file.path.split('/').length === 2 ? 'tmp/' : '') + 'get/' + file.path, transformResponse: [] }).then(
+                function(response) {
+                  document.getElementById('fileDownloadIframe').src = response.data;
+                },
+                function(response) { console.log(response.data); }
+        );
+      };
+
+      $scope.clearFile = function(fileIndex) {
+        $scope.attachments.splice(fileIndex, 1);
+      };
+
+      $scope.fileSelected = function(el ){
+        $timeout(function () {
+          $scope.$apply(function () {
+            uploadFileToMinio(el.files[0]);
+          });
+        })
+      };
+
+      function uploadFileToMinio(file) {
+        var fileToUpload = {
+          name: file.name.replace(/[/\\?%*:|"<>]/g, '-'),
+          path: processInstanceId + '/' + camForm.taskId + '/' + file.name.replace(/[/\\?%*:|"<>]/g, '-'),
+          created: new Date(),
+          createdBy: assigneeName
+        };
+        $http({method: 'GET', url: '/camunda/uploads/put/' + fileToUpload.path, transformResponse: [] }).then(
+                function(response) {
+                  $http.put(response.data, file, {headers: {'Content-Type': undefined}}).then(
+                          function () {
+                            $scope.attachments.push(fileToUpload);
+                            angular.element(document.querySelector('#attachments')).val(null);
+                          },
+                          function (error) {
+                            console.log(error.data);
+                          }
+                  );
+                },
+                function(response) { console.log(response.data); }
+        );
+      }
+
+      scope.openCalendar = function() {
         scope.dateFieldOpened = true;
-    };
+      };
 
-    camForm.on('form-loaded', function () {
-      camForm.variableManager.fetchVariable('resolutions');
-      camForm.variableManager.fetchVariable('clientPriority');
-      camForm.variableManager.fetchVariable('customerInformation');
-      camForm.variableManager.fetchVariable('technicalSpecifications');
-      camForm.variableManager.fetchVariable('tcfRequestDeadline');
-      camForm.variableManager.fetchVariable('tcfRequestComment');
-      camForm.variableManager.fetchVariable('tcfRequestAttachment');
-      camForm.variableManager.fetchVariable('numberRequest');
-    });
+      camForm.on('form-loaded', function () {
+        camForm.variableManager.fetchVariable('clientPriority');
+        camForm.variableManager.fetchVariable('customerInformation');
+        camForm.variableManager.fetchVariable('technicalSpecifications');
+        camForm.variableManager.fetchVariable('tcfRequestDeadline');
+        camForm.variableManager.fetchVariable('tcfRequestComment');
+        camForm.variableManager.fetchVariable('tcfRequestResolution');
+        camForm.variableManager.fetchVariable('tcfRequestAttachment');
+        camForm.variableManager.fetchVariable('resolutions');
+        camForm.variableManager.fetchVariable('numberRequest');
+        camForm.variableManager.fetchVariable('tariff');
+      });
 
-    camForm.on('variables-fetched', function () {
-      $scope.resolutions = camForm.variableManager.variableValue('resolutions');
-      camForm.variableManager.destroyVariable('resolutions');
-      $scope.clientPriority = camForm.variableManager.variableValue('clientPriority');
-      $scope.ci = camForm.variableManager.variableValue('customerInformation');
-      $scope.ts = camForm.variableManager.variableValue('technicalSpecifications');
-      $scope.deadline = camForm.variableManager.variableValue('tcfRequestDeadline');
-      $scope.comment = camForm.variableManager.variableValue('tcfRequestComment');
-      $scope.attachments = camForm.variableManager.variableValue('tcfRequestAttachment');
-      $scope.numberRequest = camForm.variableManager.variableValue('numberRequest');
-      $scope.resolution = 'Accepted';
-      if ($scope.deadline) {
+      camForm.on('variables-fetched', function () {
+        $scope.clientPriority = camForm.variableManager.variableValue('clientPriority');
+        $scope.ci = camForm.variableManager.variableValue('customerInformation');
+        $scope.ts = camForm.variableManager.variableValue('technicalSpecifications');
+        $scope.deadline = camForm.variableManager.variableValue('tcfRequestDeadline');
+        $scope.comment = camForm.variableManager.variableValue('tcfRequestComment');
+        $scope.attachments = camForm.variableManager.variableValue('tcfRequestAttachment');
+        $scope.resolutions = camForm.variableManager.variableValue('resolutions');
+        $scope.numberRequest = camForm.variableManager.variableValue('numberRequest');
+        $scope.tariff = camForm.variableManager.variableValue('tariff');
+        $scope.resolution = 'Accepted';
+        if ($scope.deadline) {
           $scope.deadline = new Date($scope.deadline);
-      } else {
+        } else {
           $scope.deadline = new Date();
-      }
-      if (!$scope.attachments) {
-        $scope.attachments = [];
-      } else {
-        $scope.attachments = [$scope.attachments];
-      }
+        }
+        if (!$scope.attachments) {
+          $scope.attachments = [];
+        } else {
+          $scope.attachments = [$scope.attachments];
+        }
+        if ($scope.resolutions) {
+          $q.all($scope.resolutions.map(function (resolution) {
+            return $http.get("/camunda/api/engine/engine/default/history/task?processInstanceId="+resolution.processInstanceId+"&taskId=" + resolution.taskId);
+          })).then(function (tasks) {
+            tasks.forEach(function (t, index) {
+              if (t.data.length > 0) {
+                $scope.resolutions[index].taskName = t.data[0].name;
+                try {
+                  $scope.resolutions[index].taskEndDate = new Date(t.data[0].endTime);
+                  $scope.resolutions[index].assignDate = new Date(t.data[0].startTime);
+                  if($scope.resolutions[index].taskName === 'Confirm commercial starting service'){
+                    $scope.commercialDate = $scope.resolutions[index].taskEndDate;
+                  }
+                } catch(e){
+                  console.log(e);
+                }
+              }
+            });
+          });
+          $q.all($scope.resolutions.map(function (resolution) {
+            return $http.get("/camunda/api/engine/engine/default/history/identity-link-log?type=assignee&taskId=" + resolution.taskId + "&operationType=add&sortBy=time&sortOrder=desc");
+          })).then(function (logs) {
+            logs.forEach(function (e, index) {
+              if(e.data.length > 0){
+                try {
+                  $scope.resolutions[index].claimDate = new Date(e.data[0].time);
+                } catch(e){
+                  console.log(e);
+                }
+              }
+            });
+          });
+        } else {
+          $scope.resolutions = [];
+        }
+      });
 
-      $scope.lastAttachments = JSON.parse(JSON.stringify($scope.attachments));
-    });
-
-    camForm.on('submit', function(event) {
-      if ($scope.showResolution) {
-        history.setVariables($scope.resolution, $scope.comment, $scope.lastAttachments, $scope.attachments);
-      } else {
-        history.setVariables('Completed', $scope.comment, $scope.lastAttachments, $scope.attachments);
-      }
-      camForm.variableManager.destroyVariable('tcfRequestDeadline');
-      camForm.variableManager.createVariable({
+      camForm.on('submit', function(event) {
+        if ($scope.showResolution) {
+          camForm.variableManager.destroyVariable('tcfRequestResolution');
+          camForm.variableManager.createVariable({
+            name: 'tcfRequestResolution',
+            type: 'String',
+            value: $scope.resolution,
+            store: true
+          });
+        } else {
+          $scope.resolution = null;
+        }
+        $scope.resolutions.push({
+          processInstanceId: processInstanceId,
+          taskId: camForm.taskId,
+          assigneeName: assigneeName,
+          resolution: $scope.resolution,
+          comment: $scope.comment
+        });
+        camForm.variableManager.destroyVariable('resolutions');
+        camForm.variableManager.createVariable({
+          name: 'resolutions',
+          type: 'json',
+          value: $scope.resolutions,
+          store: true
+        });
+        camForm.variableManager.destroyVariable('tcfRequestDeadline');
+        camForm.variableManager.createVariable({
           name: 'tcfRequestDeadline',
           type: 'Date',
           value: $scope.deadline,
           store: true
-      });
-      camForm.variableManager.destroyVariable('tcfRequestAttachment');
-      camForm.variableManager.createVariable({
+        });
+        camForm.variableManager.destroyVariable('tcfRequestAttachment');
+        camForm.variableManager.createVariable({
           name: 'tcfRequestAttachment',
           type: 'json',
           value: $scope.attachments[0],
           store: true
+        });
+        camForm.variableManager.createVariable({
+          name: 'firstDayConnection',
+          type: 'String',
+          value: $scope.firstDayConnection,
+          store: true
+        });
+        camForm.variableManager.createVariable({
+          name: 'tariffOnnet',
+          type: 'Integer',
+          value: $scope.tariffOnnet,
+          store: true
+        });
+        camForm.variableManager.createVariable({
+          name: 'tariffCug',
+          type: 'Integer',
+          value: $scope.tariffCug,
+          store: true
+        });
+        camForm.variableManager.createVariable({
+          name: 'tariffOffnet',
+          type: 'Integer',
+          value: $scope.tariffOffnet,
+          store: true
+        });
+        camForm.variableManager.createVariable({
+          name: 'tariffPstn',
+          type: 'Integer',
+          value: $scope.tariffPstn,
+          store: true
+        });
+        camForm.variableManager.createVariable({
+          name: 'tariffInternational',
+          type: 'String',
+          value: $scope.tariffInternational,
+          store: true
+        });
       });
-    });
+      var date = new Date();
+      $scope.lastDay = new Date(date.getFullYear(), date.getMonth() + 1, 0);
     }]);
 
   </script>
@@ -172,18 +267,72 @@
       <label class="col-sm-4">Deadline:</label>
       <div ng-if="showResolution">{{deadline | date: 'dd.MM.yyyy'}}</div>
       <div class="col-sm-8" ng-if="!showResolution">
-          <div class="input-group">
-              <input type="text" ng-model="deadline" class="form-control" datepicker-popup="dd.MM.yyyy" is-open="dateFieldOpened"/>
-              <span class="input-group-btn">
+        <div class="input-group">
+          <input type="text" ng-model="deadline" class="form-control" datepicker-popup="dd.MM.yyyy" is-open="dateFieldOpened"/>
+          <span class="input-group-btn">
                   <button type="button" class="btn btn-default" ng-click="openCalendar()">
                       <i class="glyphicon glyphicon-calendar"></i>
                   </button>
               </span>
-          </div>
+        </div>
       </div>
     </div>
   </div>
 
+  <div class="col-sm-12">
+    <hr/>
+    <h4>To set the following tariffs for {{ci.ticName}} contract from {{commercialDate | date:'dd.MM.yyyy'}} to {{lastDay | date:'dd.MM.yyyy'}}</h4>
+  </div>
+
+  <div class="col-sm-12">
+    <div class="form-group">
+      <div class="col-sm-12">
+        <input type="checkbox" id="firstDayConnection" ng-model="firstDayConnection"/> <label for="firstDayConnection"> Connect from the first day</label>
+      </div>
+    </div>
+  </div>
+  <div ng-if="tariff == 'Нестандартный пакет'">
+    <div class="col-md-12">
+      <div class="form-group">
+        <label class="col-sm-4 coltrol-label">Onnet:</label>
+        <div class="col-sm-8">
+          <input type="number" class="form-control" ng-model="tariffOnnet" />
+        </div>
+      </div>
+    </div>
+    <div class="col-md-12">
+      <div class="form-group">
+        <label class="col-sm-4 coltrol-label">CUG:</label>
+        <div class="col-sm-8">
+          <input type="number" class="form-control" ng-model="tariffCug" />
+        </div>
+      </div>
+    </div>
+    <div class="col-md-12">
+      <div class="form-group">
+        <label class="col-sm-4 coltrol-label">Offnet:</label>
+        <div class="col-sm-8">
+          <input type="number" class="form-control" ng-model="tariffOffnet" />
+        </div>
+      </div>
+    </div>
+    <div class="col-md-12">
+      <div class="form-group">
+        <label class="col-sm-4 coltrol-label">PSTN:</label>
+        <div class="col-sm-8">
+          <input type="number" class="form-control" ng-model="tariffPstn" />
+        </div>
+      </div>
+    </div>
+    <div class="col-md-12" ng-if="ts.intenationalCallAccess === 'Yes'">
+      <div class="form-group">
+        <label class="col-sm-4 coltrol-label">Access to international calls:</label>
+        <div class="col-sm-8">
+          <input type="text" class="form-control" ng-model="tariffInternational" />
+        </div>
+      </div>
+    </div>
+  </div>
   <div class="col-sm-12">
     <iframe id="fileDownloadIframe" style="display:none;"></iframe>
     <div class="form-group">
