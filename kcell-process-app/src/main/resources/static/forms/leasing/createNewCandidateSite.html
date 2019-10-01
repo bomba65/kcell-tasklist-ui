@@ -409,6 +409,13 @@
                 return _.filter($scope.cityList, function(o) { return o.name.toLowerCase().includes(val.toLowerCase()); })
             };
 
+            $scope.getFarEndCity = function (val) {
+                if (val.length < 2) {
+                    return []
+                }
+                return _.filter($scope.currentFarEnd.dictionary.cityList, function(o) { return o.name.toLowerCase().includes(val.toLowerCase()); })
+            };
+
             $scope.filterDistrictAfterSelectObl = function (cn_addr_oblast) {
                 console.log(cn_addr_oblast)
                 $scope.address.cn_addr_oblast = cn_addr_oblast
@@ -433,6 +440,20 @@
                     $scope.cityList = _.uniqBy($scope.filteredByOblast, 'city').map( (e, index) => { return {"name" : e.city, "id" : index} });
                 } else {
                     $scope.filteredDistrictsInCAI = $scope.districtList;
+                }
+            }
+
+            $scope.filterDistrictAfterSelectFarEndObl = function (cn_addr_oblast) {
+                $scope.currentFarEnd.address.cn_addr_oblast = cn_addr_oblast
+                $scope.currentFarEnd.address.cn_addr_district = ''
+                $scope.currentFarEnd.address.cn_addr_city = ''
+                $scope.currentFarEnd.dictionary = {};
+                if($scope.currentFarEnd.address.cn_addr_oblast && $scope.currentFarEnd.address.cn_addr_oblast !== ''){
+                    $scope.currentFarEnd.dictionary.filteredByOblast = $scope.dictionary.addresses.filter(a => {return a.oblast === $scope.currentFarEnd.address.cn_addr_oblast});
+                    $scope.currentFarEnd.dictionary.filteredDistricts = _.uniqBy($scope.currentFarEnd.dictionary.filteredByOblast, 'district').map( (e, index) => { return {"name" : e.district, "id" : index} });
+                    $scope.currentFarEnd.dictionary.cityList = _.uniqBy($scope.currentFarEnd.dictionary.filteredByOblast, 'city').map( (e, index) => { return {"name" : e.city, "id" : index} });
+                } else {
+                    $scope.currentFarEnd.dictionary.filteredDistricts = $scope.districtList;
                 }
             }
 
@@ -483,6 +504,10 @@
             
             $scope.cellInfoAddressCitySelected = function ($item) {
                 $scope.cellAntennaInformation.cn_addr_district = _.find($scope.dictionary.addresses, {'city': $item.name, 'oblast': $scope.cellAntennaInformation.cn_addr_oblast}).district;
+            };
+
+            $scope.farEndAddressCitySelected = function ($item) {
+                $scope.currentFarEnd.address.cn_addr_district = _.find($scope.dictionary.addresses, {'city': $item.name, 'oblast': $scope.currentFarEnd.address.cn_addr_oblast}).district;
             };
 
             $scope.checkRbsLocation  = function($index, val) {
@@ -704,7 +729,11 @@
                     });
 
                     data.farEndSitename = $scope.farEndInformation[index].farEndName?$scope.farEndInformation[index].farEndName:'';
-                    data.farEndAdress = $scope.farEndInformation[index].farEndAddress?$scope.farEndInformation[index].farEndAddress:'';
+                    data.farEndAdress = '';
+                    Object.values(scope.leasingCandidate.address).forEach((s, index) => {
+                        data.farEndAdress += index > 0 ? ', ' + s : s
+                    })
+                    $scope.farEndInformation[index].farEndAddress?$scope.farEndInformation[index].farEndAddress:'';
                     data.farEndContact = $scope.farEndInformation[index].contractInformation?$scope.farEndInformation[index].contractInformation:'';
                     data.farEndSquare = $scope.farEndInformation[index].square?$scope.farEndInformation[index].square:'';
                     data.farEndEquipment = $scope.farEndInformation[index].equipmentType?$scope.farEndInformation[index].equipmentType:'';
@@ -1027,7 +1056,7 @@
                         <div class="form-group">
                             <label class="col-sm-3 control-label">{{address.ca_not_full_addres ? '*' : ''}}Note to the address:</label>
                             <div class="col-sm-8">
-                                <input class="form-control" id="cn_addr_note" name="cn_addr_note" ng-model="cn_addr_note" ng-required="address.ca_not_full_addres">
+                                <input class="form-control" id="cn_addr_note" name="cn_addr_note" ng-model="address.cn_addr_note" ng-required="address.ca_not_full_addres">
                                 <label class="error" ng-show="kcell_form.cn_addr_note.$error.required && ( kcell_form.cn_addr_note.$touched || view.submitted)">Required field</label>
                             </div>
                         </div>        
@@ -1233,7 +1262,7 @@
                                 </table>
                             </div>
                         </div>
-                        <div class="form-group">
+                        <!-- <div class="form-group">
                             <label class="col-sm-3 control-label">Address:</label>
                             <div class="col-sm-8" style="padding-left:30px">
                                 <textarea class="form-control" ng-model="cellAntenna.address" name="address"
@@ -1242,7 +1271,7 @@
                                        ng-show="kcell_form.address.$error.required && ( kcell_form.address.$touched || view.submitted)">Required
                                     field</label>
                             </div>
-                        </div>
+                        </div> -->
                     </accordion-group>
                 </accordion>
 
@@ -1580,7 +1609,6 @@
             </tab-heading>
             <div style="margin-top: 20px;">
                 <div class="col-sm-12">
-
                     <h4>Far Ends priority:</h4>
                     <div class="row col-sm-8">
                         <table class="table table-bordered col-sm-12">
@@ -1656,13 +1684,84 @@
                                         <label class="col-sm-3 control-label">Far End name:</label>
                                         <label class="col-sm-8 control-label">{{currentFarEnd.farEndName}}</label>
                                     </div>
-                                    <div class="form-group">
+                                    <accordion class="content-visible-accordion background-yellow-accordion">
+                                        <accordion-group is-open="false">
+                                            <accordion-heading>
+                                                Far End Address <i class="pull-right glyphicon"
+                                                                            ng-class="{'glyphicon-chevron-up': status.isCustomHeaderOpen, 'glyphicon-chevron-down': !status.isCustomHeaderOpen}"></i>
+                                            </accordion-heading>
+                                            <div class="form-group">
+                                                <label class="col-sm-3 control-label">Oblast:</label>
+                                                <div class="col-sm-8" class="form-check">
+                                                    <select class="form-control" id="FarEnd_cn_addr_oblast" name="FarEnd_cn_addr_oblast" ng-model="currentFarEnd.address.cn_addr_oblast"
+                                                            ng-change="filterDistrictAfterSelectFarEndObl(currentFarEnd.address.cn_addr_oblast)" required>
+                                                        <option ng-repeat="oblast in oblastList" ng-value="oblast.name">{{oblast.name}}</option>
+                                                    </select>
+                                                    <label class="error" ng-show="kcell_form.FarEnd_cn_addr_oblast.$error.required && ( kcell_form.FarEnd_cn_addr_oblast.$touched || view.submitted)">Required field</label>
+                                                </div>
+                                            </div>
+                                            <div class="form-group">
+                                                <label class="col-sm-3 control-label">District:</label>
+                                                <div class="col-sm-8" class="form-check">
+                                                    <select class="form-control" id="FarEnd_cn_addr_district" name="FarEnd_cn_addr_district" ng-model="currentFarEnd.address.cn_addr_district" ng-disabled="!currentFarEnd.address.cn_addr_oblast">
+                                                        <option ng-repeat="district in currentFarEnd.dictionary.filteredDistricts" ng-value="district.name">{{district.name}}</option>
+                                                    </select>
+                                                    <label class="error" ng-show="kcell_form.FarEnd_cn_addr_district.$error.required && ( kcell_form.FarEnd_cn_addr_district.$touched || view.submitted)">Required field</label>
+                                                </div>
+                                            </div>
+                            
+                                            <div class="form-group">
+                                                <label class="col-sm-3 control-label">City / Village:</label>
+                                                <div class="col-sm-8">
+                                                    <input type="text" ng-model="currentFarEnd.address.cn_addr_city" ng-value='city.name' name="FarEnd_n_addr_city" typeahead="city.name for city in getFarEndCity($viewValue)" typeahead-on-select="farEndAddressCitySelected($item,$model,$label)" class="form-control" required ng-disabled="!currentFarEnd.address.cn_addr_oblast" placeholder="Start typing...">
+                                                    <label class="error" ng-show="kcell_form.FarEnd_cn_addr_city.$error.required && ( kcell_form.FarEnd_cn_addr_city.$touched || view.submitted)">Required field</label>
+                                                </div>
+                                            </div>
+                                            <div class="form-group">
+                                                <div class="col-sm-12">
+                                                    <div class="form-check">
+                                                        <input type="checkbox" ng-model="address.ca_not_full_addres" class="form-check-input" id="ca_not_full_addres">
+                                                        <label class="form-check-label" for="ca_not_full_addres">Not full address</label>
+                                                    </div>
+                                                </div>
+                                            </div>
+                                            <div class="form-group">
+                                                <label class="col-sm-3 control-label">{{!address.ca_not_full_addres ? '*' : ''}}Street:</label>
+                                                <div class="col-sm-8">
+                                                    <input class="form-control" id="FarEnd_cn_addr_street" name="FarEnd_cn_addr_street" ng-model="currentFarEnd.address.cn_addr_street" ng-required="!currentFarEnd.address.ca_not_full_addres">
+                                                    <label class="error" ng-show="kcell_form.FarEnd_cn_addr_street.$error.required && ( kcell_form.FarEnd_cn_addr_street.$touched || view.submitted)">Required field</label>
+                                                </div>
+                                            </div>
+                                            <div class="form-group">
+                                                <label class="col-sm-3 control-label">{{!address.ca_not_full_addres ? '*' : ''}}Building:</label>
+                                                <div class="col-sm-8">
+                                                    <input class="form-control" id="FarEnd_cn_addr_building" name="FarEnd_cn_addr_building" ng-model="currentFarEnd.address.cn_addr_building" ng-required="!currentFarEnd.address.ca_not_full_addres">
+                                                    <label class="error" ng-show="kcell_form.FarEnd_cn_addr_building.$error.required && ( kcell_form.FarEnd_cn_addr_building.$touched || view.submitted)">Required field</label>
+                                                </div>
+                                            </div>
+                                            <div class="form-group">
+                                                <label class="col-sm-3 control-label">{{address.ca_not_full_addres ? '*' : ''}}Cadastral number:</label>
+                                                <div class="col-sm-8">
+                                                    <input class="form-control" id="FarEnd_cn_addr_cadastral_number" name="FarEnd_cn_addr_cadastral_number" ng-model="currentFarEnd.address.cn_addr_cadastral_number" ng-required="currentFarEnd.address.ca_not_full_addres">
+                                                    <label class="error" ng-show="kcell_form.FarEnd_cn_addr_cadastral_number.$error.required && ( kcell_form.FarEnd_cn_addr_cadastral_number.$touched || view.submitted)">Required field</label>
+                                                </div>
+                                            </div>
+                                            <div class="form-group">
+                                                <label class="col-sm-3 control-label">{{address.ca_not_full_addres ? '*' : ''}}Note to the address:</label>
+                                                <div class="col-sm-8">
+                                                    <input class="form-control" id="FarEnd_cn_addr_note" name="FarEnd_cn_addr_note" ng-model="currentFarEnd.address.cn_addr_note" ng-required="currentFarEnd.address.ca_not_full_addres">
+                                                    <label class="error" ng-show="kcell_form.FarEnd_cn_addr_note.$error.required && ( kcell_form.FarEnd_cn_addr_note.$touched || view.submitted)">Required field</label>
+                                                </div>
+                                            </div>        
+                                        </accordion-group>
+                                    </accordion>
+                                    <!-- <div class="form-group">
                                         <label class="col-sm-3 control-label">Far End address:</label>
                                         <div class="col-sm-8">
                                             <input class="form-control" id="farEndAddress" name="farEndAddress"
                                                    ng-model="currentFarEnd.farEndAddress">
                                         </div>
-                                    </div>
+                                    </div> -->
                                     <div class="form-group">
                                         <label class="col-sm-3 control-label">Contract Information:</label>
                                         <div class="col-sm-8">
