@@ -33,6 +33,16 @@
                 'approvedFEWithHighPriority',
                 'address'
             ];
+
+            $http.get('/camunda/api/engine/engine/default/task/' + camForm.taskId).then(
+                function(result){
+                    $scope.taskAssignee = result.data.assignee;
+                },
+                function (error) {
+                    console.log(error.data);
+                }
+            );
+
             $http.get('/api/leasingCatalogs?version=1').then(
                     function(result){
                         console.log('catalog', result);
@@ -56,6 +66,7 @@
                 );
                 $scope.farEnd = {};
                 $scope.leasingCandidate = {};
+                $scope.leasingFiles = [];
             });
 
             camForm.on('variables-fetched', function () {
@@ -64,6 +75,9 @@
                     if(camForm.variableManager.variables[el].value){
                         $scope[el] = camForm.variableManager.variables[el].value;
                         $scope.leasingCandidate[el] = camForm.variableManager.variables[el].value;
+                        if ( el.toLowerCase().includes('file') ) {
+                            $scope.leasingFiles = $scope.leasingFiles.concat(camForm.variableManager.variables[el].value)
+                        }
                     }
                 });
                 $scope.farEnd = $scope.approvedFEWithHighPriority;
@@ -123,7 +137,9 @@
 
                 var fileToUpload = {
                     name: file.name.replace(/[/\\?%*:|"<>]/g, '-'),
-                    path: $scope.processInstanceId + '/' + camForm.taskId + '/' + file.name.replace(/[/\\?%*:|"<>]/g, '-')
+                    path: $scope.processInstanceId + '/' + camForm.taskId + '/' + file.name.replace(/[/\\?%*:|"<>]/g, '-'),
+                    date: new Date(),
+                    author: $scope.taskAssignee
                 };
                 $http({
                     method: 'GET',
@@ -165,8 +181,8 @@
     <leasing-candidate leasing-candidate="leasingCandidate" far-end="farEnd"></leasing-candidate>
 
     <iframe id="fileDownloadIframe" style="display:none;"></iframe>
-
-    <div class="form-group">
+    <leasing-attachments leasing-files="leasingFiles"></leasing-attachments>
+    <!-- <div class="form-group">
         <label class="col-md-4 control-label">Download RR:</label>
         <div class="col-sm-8">
             <a ng-click="fileDownload(rrFile)">{{rrFile.name}}</a>
@@ -182,9 +198,9 @@
         </div>
     </div>
 
-    <leasing-files leasing-files="leasingCandidate"></leasing-files>
+    <leasing-files leasing-files="leasingCandidate"></leasing-files> -->
 
-    <div class="form-group">
+    <!-- <div class="form-group">
         <label class="col-md-4 control-label">Technical conditions status:</label>
         <div class="col-sm-8">
             <label class="radio-inline">
@@ -206,6 +222,18 @@
                    ng-show="kcell_form.requestTechnicalParametersKTForFETechConditionStatus.$error.required && ( kcell_form.requestTechnicalParametersKTForFETechConditionStatus.$touched || view.submitted)">Required
                 field</label>
         </div>
+    </div> -->
+    <div class="form-group">
+        <label class="col-md-4 control-label">Upload files:</label>
+        <div class="col-sm-8">
+            <div ng-show="requestTechnicalParametersKTForFEFiles.length > 0" class="input-group" ng-repeat="file in requestTechnicalParametersKTForFEFiles">
+                {{$index + 1}}.
+                <a ng-click="fileDownload(file)">{{file.name}}</a> | <a ng-click="clearFile('requestTechnicalParametersKTForFEFiles', $index)"><i class="glyphicon glyphicon-trash"></i></a>
+            </div>
+            <ng-form name="kcell_material_file_form">
+                <input type="file" class="form-control" id="requestTechnicalParametersKTForFEFiles" name="requestTechnicalParametersKTForFEFiles" ng-model="file.file" onchange="angular.element(this).scope().fileSelected(this, 'requestTechnicalParametersKTForFEFiles')"/>
+            </ng-form>
+        </div>
     </div>
     <div class="form-group">
         <label class="col-md-4 control-label">Branches of Kazakhtelecom:</label>
@@ -219,18 +247,6 @@
             <label class="error"
                    ng-show="kcell_form.branchKTForFE.$error.required && ( kcell_form.branchKTForFE.$touched || view.submitted)">Required
                 field</label>
-        </div>
-    </div>
-    <div class="form-group">
-        <label class="col-md-4 control-label">Upload files:</label>
-        <div class="col-sm-8">
-            <div ng-show="requestTechnicalParametersKTForFEFiles.length > 0" class="input-group" ng-repeat="file in requestTechnicalParametersKTForFEFiles">
-                {{$index + 1}}.
-                <a ng-click="fileDownload(file)">{{file.name}}</a> | <a ng-click="clearFile('requestTechnicalParametersKTForFEFiles', $index)"><i class="glyphicon glyphicon-trash"></i></a>
-            </div>
-            <ng-form name="kcell_material_file_form">
-                <input type="file" class="form-control" id="requestTechnicalParametersKTForFEFiles" name="requestTechnicalParametersKTForFEFiles" ng-model="file.file" onchange="angular.element(this).scope().fileSelected(this, 'requestTechnicalParametersKTForFEFiles')"/>
-            </ng-form>
         </div>
     </div>
 

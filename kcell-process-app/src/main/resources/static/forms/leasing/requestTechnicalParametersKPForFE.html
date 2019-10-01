@@ -34,6 +34,15 @@
                 'address'
             ];
 
+            $http.get('/camunda/api/engine/engine/default/task/' + camForm.taskId).then(
+                function(result){
+                    $scope.taskAssignee = result.data.assignee;
+                },
+                function (error) {
+                    console.log(error.data);
+                }
+            );
+
             camForm.on('form-loaded', function () {
                 variables.forEach(function (el) {
                     camForm.variableManager.fetchVariable(el);
@@ -47,6 +56,7 @@
                         }
                 );
                 $scope.leasingCandidate = {};
+                $scope.leasingFiles= [];
             });
 
             camForm.on('variables-fetched', function () {
@@ -55,8 +65,12 @@
                     if(camForm.variableManager.variables[el].value){
                         $scope[el] = camForm.variableManager.variables[el].value;
                         $scope.leasingCandidate[el] = camForm.variableManager.variables[el].value;
+                        if ( el.toLowerCase().includes('file') ) {
+                            $scope.leasingFiles = $scope.leasingFiles.concat(camForm.variableManager.variables[el].value)
+                        }
                     }
                 });
+                console.log('$scope.leasingFiles:', $scope.leasingFiles)
                 camForm.variableManager.createVariable({
                     name: 'requestTechnicalParametersKPForFETaskResult',
                     type: 'String',
@@ -101,7 +115,9 @@
 
                 var fileToUpload = {
                     name: file.name.replace(/[/\\?%*:|"<>]/g, '-'),
-                    path: $scope.processInstanceId + '/' + camForm.taskId + '/' + file.name.replace(/[/\\?%*:|"<>]/g, '-')
+                    path: $scope.processInstanceId + '/' + camForm.taskId + '/' + file.name.replace(/[/\\?%*:|"<>]/g, '-'),
+                    date: new Date(),
+                    author:  $scope.taskAssignee
                 };
                 $http({
                     method: 'GET',
@@ -141,10 +157,9 @@
 
     </script>
     <leasing-candidate leasing-candidate="leasingCandidate"></leasing-candidate>
-
     <iframe id="fileDownloadIframe" style="display:none;"></iframe>
 
-    <div class="form-group">
+    <!-- <div class="form-group">
         <label class="col-md-4 control-label">Download RR:</label>
         <div class="col-sm-8">
             <a ng-click="fileDownload(rrFile)">{{rrFile.name}}</a>
@@ -158,11 +173,11 @@
                 <a ng-click="fileDownload(file)">{{file.name}}</a>
             </div>
         </div>
-    </div>
+    </div> -->
 
-    <leasing-files leasing-files="leasingCandidate"></leasing-files>
-
-    <div class="form-group">
+    <!-- <leasing-files leasing-files="leasingCandidate"></leasing-files> -->
+    <leasing-attachments leasing-files="leasingFiles"></leasing-attachments>
+    <div class="form-group" ng-hide="true">
         <label class="col-sm-4 control-label">Letter Status</label>
         <div class="col-sm-8">
             <label class="radio-inline">

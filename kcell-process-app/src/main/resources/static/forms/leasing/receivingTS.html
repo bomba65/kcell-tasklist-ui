@@ -36,6 +36,15 @@
 
             ];
 
+            http.get('/camunda/api/engine/engine/default/task/' + camForm.taskId).then(
+                function(result){
+                    $scope.taskAssignee = result.data.assignee;
+                },
+                function (error) {
+                    console.log(error.data);
+                }
+            );
+
             camForm.on('form-loaded', function () {
                 variables.forEach(function (el) {
                     camForm.variableManager.fetchVariable(el);
@@ -49,6 +58,7 @@
                         }
                 );
                 $scope.leasingCandidate = {};
+                $scope.leasingFiles = [];
             });
 
             camForm.on('variables-fetched', function () {
@@ -57,6 +67,9 @@
                     if(camForm.variableManager.variables[el].value){
                         $scope[el] = camForm.variableManager.variables[el].value;
                         $scope.leasingCandidate[el] = camForm.variableManager.variables[el].value;
+                        if ( el.toLowerCase().includes('file') ) {
+                            $scope.leasingFiles = $scope.leasingFiles.concat(camForm.variableManager.variables[el].value)
+                        }
                     }
                 });
                 camForm.variableManager.createVariable({
@@ -113,7 +126,9 @@
 
                 var fileToUpload = {
                     name: file.name.replace(/[/\\?%*:|"<>]/g, '-'),
-                    path: $scope.processInstanceId + '/' + camForm.taskId + '/' + file.name.replace(/[/\\?%*:|"<>]/g, '-')
+                    path: $scope.processInstanceId + '/' + camForm.taskId + '/' + file.name.replace(/[/\\?%*:|"<>]/g, '-'),
+                    date: new Date(),
+                    author: $scope.taskAssignee
                 };
                 $http({
                     method: 'GET',
@@ -156,7 +171,9 @@
 
     <iframe id="fileDownloadIframe" style="display:none;"></iframe>
 
-    <div class="form-group">
+    <leasing-attachments leasing-files="leasingFiles"></leasing-attachments>
+
+    <!-- <div class="form-group">
         <label class="col-md-4 control-label">Download RR:</label>
         <div class="col-sm-8">
             <a ng-click="fileDownload(rrFile)">{{rrFile.name}}</a>
@@ -172,7 +189,7 @@
         </div>
     </div>
 
-    <leasing-files leasing-files="leasingCandidate"></leasing-files>
+    <leasing-files leasing-files="leasingCandidate"></leasing-files> -->
 
     <div class="form-group">
         <label class="col-md-4 control-label">Upload files:</label>
@@ -188,13 +205,13 @@
     </div>
 
     <div class="form-group">
-        <label class="col-sm-4 control-label">Approval Status</label>
+        <label class="col-sm-4 control-label">Resolution</label>
         <div class="col-sm-8">
             <label class="radio-inline col-sm-12">
-                <input type="radio" name="receivingTSTaskResult" ng-model="receivingTSTaskResult" value="additionalAgreementBeforeInstallation" required>Signing of an additional agreement before the start of installation
+                <input type="radio" name="receivingTSTaskResult" ng-model="receivingTSTaskResult" value="additionalAgreementBeforeInstallation" required>Signing an additional agreement before installation works
             </label>
             <label class="radio-inline col-sm-12" style="margin-left:0">
-                <input type="radio" name="receivingTSTaskResult" ng-model="receivingTSTaskResult" value="additionalAgreementAfterInstallation" required>Signing of an additional agreement after installation
+                <input type="radio" name="receivingTSTaskResult" ng-model="receivingTSTaskResult" value="additionalAgreementAfterInstallation" required>Signing an additional agreement after installation works
             </label>
             <label class="radio-inline col-sm-12" style="margin-left:0">
                 <input type="radio" name="receivingTSTaskResult" ng-model="receivingTSTaskResult" value="reject" required>Reject

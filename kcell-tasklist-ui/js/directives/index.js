@@ -39,5 +39,6 @@ define([
 	'./search/demandSearch',
 	'./dismantleReplace/dismantleInfo',
 	'./dismantleReplace/replacementInfo',
-	'./leasing/leasingFiles'
+	'./leasing/leasingFiles',
+	'./leasing/leasingAttachments'
 	], function(){});

@@ -34,6 +34,15 @@
                 'address'
             ];
 
+            $http.get('/camunda/api/engine/engine/default/task/' + camForm.taskId).then(
+                function(result){
+                    $scope.taskAssignee = result.data.assignee;
+                },
+                function (error) {
+                    console.log(error.data);
+                }
+            );
+
             camForm.on('form-loaded', function () {
                 variables.forEach(function (el) {
                     camForm.variableManager.fetchVariable(el);
@@ -47,6 +56,7 @@
                         }
                 );
                 $scope.leasingCandidate = {};
+                $scope.leasingFiles = [];
             });
 
             camForm.on('variables-fetched', function () {
@@ -55,6 +65,9 @@
                     if(camForm.variableManager.variables[el].value){
                         $scope[el] = camForm.variableManager.variables[el].value;
                         $scope.leasingCandidate[el] = camForm.variableManager.variables[el].value;
+                        if ( el.toLowerCase().includes('file') ) {
+                            $scope.leasingFiles = $scope.leasingFiles.concat(camForm.variableManager.variables[el].value)
+                        }
                     }
                 });
                 camForm.variableManager.createVariable({
@@ -73,7 +86,7 @@
                     value: ''
                 });
 
-                $scope.confirmReceiptResponseKPForFETaskResult = '';
+                $scope.confirmReceiptResponseKPForFETaskResult = 'additionalAgreementBeforeInstallation';
                 camForm.variableManager.createVariable({
                     name: 'leasingProceduresStatusFE',
                     type: 'String',
@@ -116,7 +129,9 @@
 
                 var fileToUpload = {
                     name: file.name.replace(/[/\\?%*:|"<>]/g, '-'),
-                    path: $scope.processInstanceId + '/' + camForm.taskId + '/' + file.name.replace(/[/\\?%*:|"<>]/g, '-')
+                    path: $scope.processInstanceId + '/' + camForm.taskId + '/' + file.name.replace(/[/\\?%*:|"<>]/g, '-'),
+                    date: new Date(),
+                    author:  $scope.taskAssignee
                 };
                 $http({
                     method: 'GET',
@@ -159,7 +174,7 @@
 
     <iframe id="fileDownloadIframe" style="display:none;"></iframe>
 
-    <div class="form-group">
+    <!-- <div class="form-group">
         <label class="col-md-4 control-label">Download RR:</label>
         <div class="col-sm-8">
             <a ng-click="fileDownload(rrFile)">{{rrFile.name}}</a>
@@ -175,7 +190,8 @@
         </div>
     </div>
 
-    <leasing-files leasing-files="leasingCandidate"></leasing-files>
+    <leasing-files leasing-files="leasingCandidate"></leasing-files> -->
+    <leasing-attachments leasing-files="leasingFiles"></leasing-attachments>
 
     <div class="form-group">
         <label class="col-md-4 control-label">Upload files:</label>
@@ -194,26 +210,26 @@
         <label class="col-sm-4 control-label">Response Status</label>
         <div class="col-sm-8">
             <label class="radio-inline">
-                <input type="radio" name="confirmReceiptResponseKPForFEResponseStatus" ng-model="confirmReceiptResponseKPForFEResponseStatus" value="positiveResponse" required>Positive Response
+                <input type="radio" name="confirmReceiptResponseKPForFEResponseStatus" ng-model="confirmReceiptResponseKPForFEResponseStatus" value="approved" ng-click="confirmReceiptResponseKPForFETaskResult = 'additionalAgreementBeforeInstallation'" required>Approved
             </label>
             <label class="radio-inline">
-                <input type="radio" name="confirmReceiptResponseKPForFEResponseStatus" ng-model="confirmReceiptResponseKPForFEResponseStatus" value="negativeResponse" required>Negative Response
+                <input type="radio" name="confirmReceiptResponseKPForFEResponseStatus" ng-model="confirmReceiptResponseKPForFEResponseStatus" value="rejected" required>Rejected
             </label>
             <label class="error" ng-show="kcell_form.confirmReceiptResponseKPForFEResponseStatus.$error.required && ( kcell_form.confirmReceiptResponseKPForFEResponseStatus.$touched || view.submitted)">Required field</label>
         </div>
     </div>
 
     <div class="form-group">
-        <label class="col-sm-4 control-label">Approval Status</label>
+        <label class="col-sm-4 control-label">Resolution</label>
         <div class="col-sm-8">
             <label class="radio-inline col-sm-12">
-                <input type="radio" name="confirmReceiptResponseKPForFETaskResult" ng-model="confirmReceiptResponseKPForFETaskResult" value="additionalAgreementBeforeInstallation" required>Signing of an additional agreement before the start of installation
+                <input type="radio" name="confirmReceiptResponseKPForFETaskResult" ng-disabled="confirmReceiptResponseKPForFEResponseStatus !== 'rejected'" ng-model="confirmReceiptResponseKPForFETaskResult" value="additionalAgreementBeforeInstallation" required>Signing of an additional agreement before the start of installation
             </label>
             <label class="radio-inline col-sm-12" style="margin-left:0">
-                <input type="radio" name="confirmReceiptResponseKPForFETaskResult" ng-model="confirmReceiptResponseKPForFETaskResult" value="additionalAgreementAfterInstallation" required>Signing of an additional agreement after installation
+                <input type="radio" name="confirmReceiptResponseKPForFETaskResult" ng-disabled="confirmReceiptResponseKPForFEResponseStatus !== 'rejected'" ng-model="confirmReceiptResponseKPForFETaskResult" value="additionalAgreementAfterInstallation" required>Signing of an additional agreement after installation
             </label>
             <label class="radio-inline col-sm-12" style="margin-left:0">
-                <input type="radio" name="confirmReceiptResponseKPForFETaskResult" ng-model="confirmReceiptResponseKPForFETaskResult" value="reject" required>Reject
+                <input type="radio" name="confirmReceiptResponseKPForFETaskResult" ng-disabled="confirmReceiptResponseKPForFEResponseStatus !== 'rejected'" ng-model="confirmReceiptResponseKPForFETaskResult" value="reject" required>Reject
             </label>
             <label class="error" ng-show="kcell_form.confirmReceiptResponseKPForFETaskResult.$error.required && ( kcell_form.confirmReceiptResponseKPForFETaskResult.$touched || view.submitted)">Required field</label>
         </div>
@@ -225,7 +241,7 @@
             <textarea class="form-control" ng-model="confirmReceiptResponseKPForFETaskComment" name="confirmReceiptResponseKPForFETaskComment" placeholder="Comments..." maxlength="500" rows="4" style="resize:none"></textarea>
         </div>
     </div>
-    <accordion>
+    <!-- <accordion>
         <accordion-group is-open="isHistoryOpen">
             <accordion-heading>
                 History <i class="pull-right glyphicon" ng-class="{'glyphicon-chevron-up': status.isCustomHeaderOpen, 'glyphicon-chevron-down': !status.isCustomHeaderOpen}"></i>
@@ -251,5 +267,5 @@
                 </tbody>
             </table>
         </accordion-group>
-    </accordion>
+    </accordion> -->
 </form>

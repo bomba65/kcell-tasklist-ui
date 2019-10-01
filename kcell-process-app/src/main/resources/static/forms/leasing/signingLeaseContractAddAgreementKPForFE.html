@@ -36,6 +36,15 @@
                 'address'
             ];
 
+            $http.get('/camunda/api/engine/engine/default/task/' + camForm.taskId).then(
+                function(result){
+                    $scope.taskAssignee = result.data.assignee;
+                },
+                function (error) {
+                    console.log(error.data);
+                }
+            );
+
             camForm.on('form-loaded', function () {
                 variables.forEach(function (el) {
                     camForm.variableManager.fetchVariable(el);
@@ -49,6 +58,7 @@
                         }
                 );
                 $scope.leasingCandidate = {};
+                $scope.leasingFiles = [];
             });
 
             camForm.on('variables-fetched', function () {
@@ -57,6 +67,9 @@
                     if(camForm.variableManager.variables[el].value){
                         $scope[el] = camForm.variableManager.variables[el].value;
                         $scope.leasingCandidate[el] = camForm.variableManager.variables[el].value;
+                        if ( el.toLowerCase().includes('file') ) {
+                            $scope.leasingFiles = $scope.leasingFiles.concat(camForm.variableManager.variables[el].value)
+                        }
                     }
                 });
                 camForm.variableManager.createVariable({
@@ -91,6 +104,9 @@
                 } else {
                     camForm.variableManager.variableValue('signingLeaseContractAddAgreementKPForFEFiles', $scope.signingLeaseContractAddAgreementKPForFEFiles);
                 }
+                if($scope.signingLeaseContractAddAgreementKPForFEApprovalStatus === 'reject') {
+                    camForm.variableManager.variableValue('leasingProceduresStatusFE', 'reject');
+                }
                 camForm.variableManager.destroyVariable('resolutions');
             });
 
@@ -107,7 +123,9 @@
 
                 var fileToUpload = {
                     name: file.name.replace(/[/\\?%*:|"<>]/g, '-'),
-                    path: $scope.processInstanceId + '/' + camForm.taskId + '/' + file.name.replace(/[/\\?%*:|"<>]/g, '-')
+                    path: $scope.processInstanceId + '/' + camForm.taskId + '/' + file.name.replace(/[/\\?%*:|"<>]/g, '-'),
+                    date: new Date(),
+                    author:  $scope.taskAssignee
                 };
                 $http({
                     method: 'GET',
@@ -186,7 +204,7 @@
 
     <iframe id="fileDownloadIframe" style="display:none;"></iframe>
 
-    <div class="form-group">
+    <!-- <div class="form-group">
         <label class="col-md-4 control-label">Download RR:</label>
         <div class="col-sm-8">
             <a ng-click="fileDownload(rrFile)">{{rrFile.name}}</a>
@@ -202,13 +220,14 @@
         </div>
     </div>
 
-    <leasing-files leasing-files="leasingCandidate"></leasing-files>
+    <leasing-files leasing-files="leasingCandidate"></leasing-files> -->
+    <leasing-attachments leasing-files="leasingFiles"></leasing-attachments>
 
     <div class="form-group">
         <label class="col-sm-4 control-label">Approval Status</label>
         <div class="col-sm-8">
             <label class="radio-inline">
-                <input type="radio" name="signingLeaseContractAddAgreementKPForFEApprovalStatus" ng-model="signingLeaseContractAddAgreementKPForFEApprovalStatus" value="approve" required>Approve
+                <input type="radio" name="signingLeaseContractAddAgreementKPForFEApprovalStatus" ng-model="signingLeaseContractAddAgreementKPForFEApprovalStatus" value="approved" required>Approve
             </label>
             <label class="radio-inline">
                 <input type="radio" name="signingLeaseContractAddAgreementKPForFEApprovalStatus" ng-model="signingLeaseContractAddAgreementKPForFEApprovalStatus" value="reject" required>Reject
@@ -238,7 +257,6 @@
         <div class="col-sm-8">
             <textarea class="form-control" ng-model="signingLeaseContractAddAgreementKPForFETaskComment" name="signingLeaseContractAddAgreementKPForFETaskComment" placeholder="Comments..." maxlength="500" rows="4" style="resize:none" required></textarea>
             <label class="error" ng-show="kcell_form.signingLeaseContractAddAgreementKPForFETaskComment.$error.required && ( kcell_form.signingLeaseContractAddAgreementKPForFETaskComment.$touched || view.submitted)">Required field</label>
-
         </div>
     </div>
 </form>
