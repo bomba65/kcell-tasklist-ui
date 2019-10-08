@@ -78,7 +78,7 @@ public class SharepointController {
         String result = "error";
         if (isSftp) {
             try {
-                String responseText = getAuthenticatedResponse(baseUri + "/Lists/getbytitle('TCF_test')/items("+ itemId +")", "kcell.kz", this.username, this.pwd);
+                String responseText = getAuthenticatedResponse(baseUri + "/Lists/getbytitle('ICTD%20TCF')/items("+ itemId +")", "kcell.kz", this.username, this.pwd);
                 //result = responseText;
 
                 ////////////////////
@@ -392,7 +392,7 @@ public class SharepointController {
         String result = "error";
         if (isSftp) {
             try {
-                String responseText = postItemsResponse(baseUri + "/Lists/getbytitle('TCF_test')/items", "kcell.kz", this.username, this.pwd, requestBody);
+                String responseText = postItemsResponse(baseUri + "/Lists/getbytitle('ICTD%20TCF')/items", "kcell.kz", this.username, this.pwd, requestBody);
                 result = responseText;
             } catch (Exception e) {
                 e.printStackTrace();
@@ -674,7 +674,7 @@ public class SharepointController {
 
                 StringEntity TCFData = new StringEntity(RequestBody, ContentType.APPLICATION_JSON);
 
-                HttpPost httpPostTCF = new HttpPost(new URI(baseUri + "/getbytitle('TCF_test')"));
+                HttpPost httpPostTCF = new HttpPost(new URI(baseUri + "/getbytitle('ICTD%20TCF')"));
                 httpPostTCF.addHeader("Content-Type", "application/json;charset=UTF-8");
                 httpPostTCF.setEntity(TCFData);
 
