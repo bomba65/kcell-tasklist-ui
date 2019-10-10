@@ -23,12 +23,14 @@
       <bpmn:outgoing>SequenceFlow_0vohxqv</bpmn:outgoing>
       <bpmn:outgoing>SequenceFlow_1ulwpwh</bpmn:outgoing>
       <bpmn:outgoing>SequenceFlow_11z2bma</bpmn:outgoing>
+      <bpmn:outgoing>SequenceFlow_1j8m7s5</bpmn:outgoing>
     </bpmn:inclusiveGateway>
     <bpmn:inclusiveGateway id="InclusiveGateway_078ibmg">
       <bpmn:incoming>SequenceFlow_131gc4t</bpmn:incoming>
       <bpmn:incoming>SequenceFlow_07ec5re</bpmn:incoming>
       <bpmn:incoming>SequenceFlow_0k2dbkb</bpmn:incoming>
       <bpmn:incoming>SequenceFlow_18vekkf</bpmn:incoming>
+      <bpmn:incoming>SequenceFlow_162yvkc</bpmn:incoming>
       <bpmn:outgoing>SequenceFlow_196a1ck</bpmn:outgoing>
     </bpmn:inclusiveGateway>
     <bpmn:sendTask id="SendTask_0l0ut7r" name="Email to KAE  об  отключении клиента" camunda:delegateExpression="${camundaMailer}">
@@ -61,12 +63,12 @@
     </bpmn:userTask>
     <bpmn:userTask id="closeSIPtrankOnSBC" name="Закрытие SIP транка на SBC" camunda:formKey="embedded:app:forms/after-sales-ivr-sms/freephone-disconnect/closeSIPtrankOnSBC.html" camunda:candidateGroups="delivery_transmission_network_operations">
       <bpmn:documentation>Закрытие SIP транка на SBC</bpmn:documentation>
-      <bpmn:incoming>SequenceFlow_1qwhbia</bpmn:incoming>
-      <bpmn:outgoing>SequenceFlow_16x3lk3</bpmn:outgoing>
+      <bpmn:incoming>SequenceFlow_1j8m7s5</bpmn:incoming>
+      <bpmn:outgoing>SequenceFlow_162yvkc</bpmn:outgoing>
     </bpmn:userTask>
     <bpmn:userTask id="blockFirewallAccess" name="Закрытие доступа на Firewall" camunda:formKey="embedded:app:forms/after-sales-ivr-sms/freephone-disconnect/blockFirewallAccess.html" camunda:candidateGroups="delivery_it_delivery">
       <bpmn:documentation>Закрытие доступа на Firewall</bpmn:documentation>
-      <bpmn:incoming>SequenceFlow_16x3lk3</bpmn:incoming>
+      <bpmn:incoming>SequenceFlow_1qwhbia</bpmn:incoming>
       <bpmn:outgoing>SequenceFlow_0k2dbkb</bpmn:outgoing>
     </bpmn:userTask>
     <bpmn:sequenceFlow id="SequenceFlow_0s6364l" name="SIP" sourceRef="InclusiveGateway_0vzm7nk" targetRef="ExclusiveGateway_0zunj5b">
@@ -79,7 +81,7 @@
       <bpmn:conditionExpression xsi:type="bpmn:tFormalExpression">${disconnectVPN==false}</bpmn:conditionExpression>
     </bpmn:sequenceFlow>
     <bpmn:sequenceFlow id="SequenceFlow_0b3qeaa" sourceRef="disconnectVPN" targetRef="ExclusiveGateway_1qa9hsg" />
-    <bpmn:sequenceFlow id="SequenceFlow_1qwhbia" sourceRef="ExclusiveGateway_1qa9hsg" targetRef="closeSIPtrankOnSBC" />
+    <bpmn:sequenceFlow id="SequenceFlow_1qwhbia" sourceRef="ExclusiveGateway_1qa9hsg" targetRef="blockFirewallAccess" />
     <bpmn:sequenceFlow id="SequenceFlow_196a1ck" sourceRef="InclusiveGateway_078ibmg" targetRef="EndEvent_10a4jpr" />
     <bpmn:sequenceFlow id="SequenceFlow_0vohxqv" sourceRef="InclusiveGateway_0vzm7nk" targetRef="deactivateShortNumberInPC" />
     <bpmn:sequenceFlow id="SequenceFlow_131gc4t" sourceRef="deactivateShortNumberInPC" targetRef="InclusiveGateway_078ibmg" />
@@ -90,13 +92,16 @@
     <bpmn:sequenceFlow id="SequenceFlow_07ec5re" sourceRef="disconnectIVROnMSS" targetRef="InclusiveGateway_078ibmg" />
     <bpmn:sequenceFlow id="SequenceFlow_0k2dbkb" sourceRef="blockFirewallAccess" targetRef="InclusiveGateway_078ibmg" />
     <bpmn:sequenceFlow id="SequenceFlow_18vekkf" sourceRef="confirmOtherOperatorsDisconnectionShortNumber" targetRef="InclusiveGateway_078ibmg" />
-    <bpmn:sequenceFlow id="SequenceFlow_16x3lk3" sourceRef="closeSIPtrankOnSBC" targetRef="blockFirewallAccess" />
     <bpmn:sequenceFlow id="SequenceFlow_0svge5i" sourceRef="StartEvent_0pte3f9" targetRef="InclusiveGateway_0vzm7nk" />
     <bpmn:serviceTask id="deactivateShortNumberInPC" name="Деактивируйте номер в PC" camunda:delegateExpression="${disconnectPC}">
       <bpmn:documentation>Деактивируйте номер в PC</bpmn:documentation>
       <bpmn:incoming>SequenceFlow_0vohxqv</bpmn:incoming>
       <bpmn:outgoing>SequenceFlow_131gc4t</bpmn:outgoing>
     </bpmn:serviceTask>
+    <bpmn:sequenceFlow id="SequenceFlow_1j8m7s5" name="v" sourceRef="InclusiveGateway_0vzm7nk" targetRef="closeSIPtrankOnSBC">
+      <bpmn:conditionExpression xsi:type="bpmn:tFormalExpression">${operatorType=='offnet' || connectionType=='SIP_SBC'}</bpmn:conditionExpression>
+    </bpmn:sequenceFlow>
+    <bpmn:sequenceFlow id="SequenceFlow_162yvkc" sourceRef="closeSIPtrankOnSBC" targetRef="InclusiveGateway_078ibmg" />
     <bpmn:textAnnotation id="TextAnnotation_0dja1lk">
       <bpmn:text>IT-delivery</bpmn:text>
     </bpmn:textAnnotation>
@@ -170,7 +175,7 @@
         <dc:Bounds x="1155" y="162" width="100" height="80" />
       </bpmndi:BPMNShape>
       <bpmndi:BPMNShape id="UserTask_1os8lyr_di" bpmnElement="closeSIPtrankOnSBC">
-        <dc:Bounds x="1236" y="309" width="100" height="80" />
+        <dc:Bounds x="788" y="1079" width="100" height="80" />
       </bpmndi:BPMNShape>
       <bpmndi:BPMNShape id="UserTask_0k9m4mf_di" bpmnElement="blockFirewallAccess">
         <dc:Bounds x="1525" y="309" width="100" height="80" />
@@ -179,7 +184,7 @@
         <dc:Bounds x="850" y="561" width="100" height="30" />
       </bpmndi:BPMNShape>
       <bpmndi:BPMNShape id="TextAnnotation_0so7yxi_di" bpmnElement="TextAnnotation_0so7yxi">
-        <dc:Bounds x="1258" y="422" width="100" height="30" />
+        <dc:Bounds x="810" y="1024" width="100" height="30" />
       </bpmndi:BPMNShape>
       <bpmndi:BPMNShape id="TextAnnotation_0kt5ww1_di" bpmnElement="TextAnnotation_0kt5ww1">
         <dc:Bounds x="1525" y="422" width="100" height="30" />
@@ -234,7 +239,7 @@
       </bpmndi:BPMNEdge>
       <bpmndi:BPMNEdge id="SequenceFlow_1qwhbia_di" bpmnElement="SequenceFlow_1qwhbia">
         <di:waypoint x="1063" y="349" />
-        <di:waypoint x="1236" y="349" />
+        <di:waypoint x="1525" y="349" />
       </bpmndi:BPMNEdge>
       <bpmndi:BPMNEdge id="SequenceFlow_196a1ck_di" bpmnElement="SequenceFlow_196a1ck">
         <di:waypoint x="1884" y="349" />
@@ -301,13 +306,9 @@
         <di:waypoint x="1205" y="162" />
         <di:waypoint x="1205" y="111" />
       </bpmndi:BPMNEdge>
-      <bpmndi:BPMNEdge id="SequenceFlow_16x3lk3_di" bpmnElement="SequenceFlow_16x3lk3">
-        <di:waypoint x="1336" y="349" />
-        <di:waypoint x="1525" y="349" />
-      </bpmndi:BPMNEdge>
       <bpmndi:BPMNEdge id="Association_02w26e9_di" bpmnElement="Association_02w26e9">
-        <di:waypoint x="1286" y="389" />
-        <di:waypoint x="1286" y="422" />
+        <di:waypoint x="838" y="1079" />
+        <di:waypoint x="838" y="1054" />
       </bpmndi:BPMNEdge>
       <bpmndi:BPMNEdge id="Association_0kvurlj_di" bpmnElement="Association_0kvurlj">
         <di:waypoint x="1575" y="389" />
@@ -320,6 +321,19 @@
       <bpmndi:BPMNShape id="ServiceTask_1g5q19f_di" bpmnElement="deactivateShortNumberInPC">
         <dc:Bounds x="936" y="649" width="100" height="80" />
       </bpmndi:BPMNShape>
+      <bpmndi:BPMNEdge id="SequenceFlow_1j8m7s5_di" bpmnElement="SequenceFlow_1j8m7s5">
+        <di:waypoint x="605" y="374" />
+        <di:waypoint x="605" y="1119" />
+        <di:waypoint x="788" y="1119" />
+        <bpmndi:BPMNLabel>
+          <dc:Bounds x="617" y="744" width="6" height="14" />
+        </bpmndi:BPMNLabel>
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="SequenceFlow_162yvkc_di" bpmnElement="SequenceFlow_162yvkc">
+        <di:waypoint x="888" y="1119" />
+        <di:waypoint x="1859" y="1119" />
+        <di:waypoint x="1859" y="374" />
+      </bpmndi:BPMNEdge>
     </bpmndi:BPMNPlane>
   </bpmndi:BPMNDiagram>
 </bpmn:definitions>
