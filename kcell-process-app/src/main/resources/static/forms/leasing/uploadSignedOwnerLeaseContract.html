@@ -23,7 +23,7 @@
                 'renterCompany',
                 'transmissionAntenna',
                 'powerSource',
-                'farEndInformation',
+                'ContractInfoInformation',
                 'receivingTSForCandiateSiteFiles',
                 'receivingContractPSDFiles',
                 'receivingApprovalFromTheLandlordFiles',
@@ -66,6 +66,15 @@
                 'address'
             ];
 
+            $http.get('/camunda/api/engine/engine/default/task/' + camForm.taskId).then(
+                function(result){
+                    $scope.taskAssignee = result.data.assignee;
+                },
+                function (error) {
+                    console.log(error.data);
+                }
+            );
+
             camForm.on('form-loaded', function () {
                 variables.forEach(function (el) {
                     camForm.variableManager.fetchVariable(el);
@@ -79,6 +88,30 @@
                         }
                 );
                 $scope.leasingCandidate = {};
+                $scope.leasingFiles = [];
+                $scope.contractInformations = [];
+                $scope.currentContractInfo = {};
+                $scope.contractInformations.push($scope.currentContractInfo)
+                $scope.dictionary = {};
+                $http.get('/api/leasingCatalogs?version=1').then(
+                    function(result){
+                        angular.extend($scope.dictionary, result.data);
+                        if (!$scope.candidate.rbsLocation) $scope.candidate.rbsLocation = $scope.dictionary.rbsLocation;
+                        $scope.antennasList = $scope.dictionary.antennas;
+                        if (!$scope.powerSource.cableLayingType) $scope.powerSource.cableLayingType = $scope.dictionary.cableLayingType;
+                        $scope.availableBands = $scope.dictionary.bands;
+                        $scope.BSC = $scope.dictionary.BSC;
+                        $scope.frequencyBand = $scope.dictionary.frequencyBand;
+                        $scope.addressesList = $scope.dictionary.addresses;
+                        $scope.oblastList = _.uniqBy($scope.dictionary.addresses, 'oblast').map( (e, index) => { return {"name" : e.oblast, "id" : index} });
+                        $scope.cityList = _.uniqBy($scope.dictionary.addresses, 'city').map( (e, index) => { return {"name" : e.city, "id" : index} });
+                        $scope.districtList = _.uniqBy($scope.dictionary.addresses, 'district').map( (e, index) => { return {"name" : e.district, "id" : index} });
+                        $scope.filteredDistricts = $scope.districtList;
+                    },
+                    function(error){
+                        console.log(error);
+                    }
+                );
             });
 
             camForm.on('variables-fetched', function () {
@@ -87,6 +120,9 @@
                     if(camForm.variableManager.variables[el].value){
                         $scope[el] = camForm.variableManager.variables[el].value;
                         $scope.leasingCandidate[el] = camForm.variableManager.variables[el].value;
+                        if ( el.toLowerCase().includes('file') ) {
+                            $scope.leasingFiles = $scope.leasingFiles.concat(camForm.variableManager.variables[el].value)
+                        }
                     }
                 });
                 camForm.variableManager.createVariable({
@@ -133,7 +169,9 @@
 
                 var fileToUpload = {
                     name: file.name.replace(/[/\\?%*:|"<>]/g, '-'),
-                    path: $scope.processInstanceId + '/' + camForm.taskId + '/' + file.name.replace(/[/\\?%*:|"<>]/g, '-')
+                    path: $scope.processInstanceId + '/' + camForm.taskId + '/' + file.name.replace(/[/\\?%*:|"<>]/g, '-'),
+                    date: new Date(),
+                    author: $scope.taskAssignee
                 };
                 $http({
                     method: 'GET',
@@ -153,6 +191,31 @@
                     console.log(error.data);
                 });
             }
+
+            $scope.filterDistrictAfterSelectContractInfoObl = function (addr_oblast) {
+                $scope.currentContractInfo.address.addr_oblast = addr_oblast
+                $scope.currentContractInfo.address.cn_addr_district = ''
+                $scope.currentContractInfo.address.cn_addr_city = ''
+                $scope.currentContractInfo.dictionary = {};
+                if($scope.currentContractInfo.address.addr_oblast && $scope.currentContractInfo.address.addr_oblast !== ''){
+                    $scope.currentContractInfo.dictionary.filteredByOblast = $scope.dictionary.addresses.filter(a => {return a.oblast === $scope.currentContractInfo.address.addr_oblast});
+                    $scope.currentContractInfo.dictionary.filteredDistricts = _.uniqBy($scope.currentContractInfo.dictionary.filteredByOblast, 'district').map( (e, index) => { return {"name" : e.district, "id" : index} });
+                    $scope.currentContractInfo.dictionary.cityList = _.uniqBy($scope.currentContractInfo.dictionary.filteredByOblast, 'city').map( (e, index) => { return {"name" : e.city, "id" : index} });
+                } else {
+                    $scope.currentContractInfo.dictionary.filteredDistricts = $scope.districtList;
+                }
+            }
+
+            $scope.ContractInfoAddressCitySelected = function ($item) {
+                $scope.currentContractInfo.address.cn_addr_district = _.find($scope.dictionary.addresses, {'city': $item.name, 'oblast': $scope.currentContractInfo.address.cn_addr_oblast}).district;
+            };
+
+            $scope.getContractInfoCity = function (val) {
+                if (val.length < 2) {
+                    return []
+                }
+                return _.filter($scope.currentContractInfo.dictionary.cityList, function(o) { return o.name.toLowerCase().includes(val.toLowerCase()); })
+            };
 
             $scope.clearFile = function (list, fileIndex) {
                 $scope[list].splice(fileIndex, 1);
@@ -174,25 +237,437 @@
     </script>
     <leasing-candidate leasing-candidate="leasingCandidate"></leasing-candidate>
 
+    <accordion class="content-visible-accordion background-yellow-accordion" ng-repeat="currentContractInfo in contractInformations">
+            <accordion-group is-open="true" style="background-color: #ffffcc; !important;" >
+                <accordion-heading>
+                    Contract Information <i class="pull-right glyphicon"
+                                                ng-class="{'glyphicon-chevron-up': status.isCustomHeaderOpen, 'glyphicon-chevron-down': !status.isCustomHeaderOpen}"></i>
+                </accordion-heading>
+                <div class="form-group">
+                    <label class="col-sm-3 control-label">*Contract ID:</label>
+                    <div class="col-sm-8">
+                        <input class="form-control" id="currentContractInfo.ct_contractid" name="currentContractInfo.ct_contractid" ng-model="currentContractInfo.ct_contractid" ng-required="true">
+                        <label class="error" ng-show="kcell_form.currentContractInfo.ct_contractid.$error.required && ( kcell_form.currentContractInfo.ct_contractid.$touched || view.submitted)">Required field</label>
+                    </div>
+                </div>
+                <div class="form-group">
+                    <div class="col-sm-12">
+                        <div class="form-check">
+                            <input type="checkbox" ng-model="currentContractInfo.ct_existing_contract" class="form-check-input" id="currentContractInfo.ct_existing_contract">
+                            <label class="form-check-label" for="currentContractInfo.ct_existing_contract">Existing contract</label>
+                        </div>
+                    </div>
+                </div>
+                <div class="form-group">
+                    <label class="col-sm-3 control-label">Contract ID old:</label>
+                    <div class="col-sm-8">
+                        <input class="form-control" ng-disabled="!currentContractInfo.ct_existing_contract"  id="currentContractInfo.ct_contractid_old" name="currentContractInfo.ct_contractid_old" ng-model="currentContractInfo.ct_contractid_old" ng-required="currentContractInfo.ct_contractid_old">
+                        <label class="error" ng-show="kcell_form.currentContractInfo.ct_contractid_old.$error.required && ( kcell_form.currentContractInfo.ct_contractid_old.$touched || view.submitted)">Required field</label>
+                    </div>
+                </div>
+
+                <div class="form-group">
+                    <label class="col-sm-3 control-label">Additional Agreement Type:</label>
+                    <div class="col-sm-8" class="form-check">
+                        <select class="form-control" placeholder="справочник Additional Agreement type" ng-disabled="!currentContractInfo.ct_existing_contract" id="currentContractInfo.ct_agreement_type" name="currentContractInfo.ct_agreement_type" ng-model="currentContractInfo.ct_agreement_type" required>
+                            <option ng-repeat="oblast in oblastList" ng-value="oblast.name">{{oblast.name}}</option>
+                        </select>
+                        <label class="error" ng-show="kcell_form.currentContractInfo.ct_agreement_type.$error.required && ( kcell_form.currentContractInfo.ct_agreement_type.$touched || view.submitted)">Required field</label>
+                    </div>
+                </div>
+
+                <br>
+
+                <div class="form-group">
+                    <label class="col-sm-3 control-label">Sitename:</label>
+                    <div class="col-sm-8">
+                        <input class="form-control" id="currentContractInfo.ct_sitename" name="currentContractInfo.ct_sitename" ng-model="currentContractInfo.ct_sitename" required>
+                        <label class="error" ng-show="kcell_form.currentContractInfo.ct_sitename.$error.required && ( kcell_form.currentContractInfo.ct_sitename.$touched || view.submitted)">Required field</label>
+                    </div>
+                </div>
+                <div class="form-group">
+                    <label class="col-sm-3 control-label">Project type:</label>
+                    <div class="col-sm-8" class="form-check">
+                        <select class="form-control" id="currentContractInfo.ct_project_type" placeholder="Select Project type" name="currentContractInfo.ct_project_type" ng-model="currentContractInfo.ct_project_type" required>
+                            <option ng-repeat="oblast in oblastList" ng-value="oblast.name">{{oblast.name}}</option>
+                        </select>
+                        <label class="error" ng-show="kcell_form.currentContractInfo.ct_project_type.$error.required && ( kcell_form.currentContractInfo.ct_project_type.$touched || view.submitted)">Required field</label>
+                    </div>
+                </div>
+                <div class="form-group">
+                    <label class="col-sm-3 control-label">Contract Date:</label>
+                    <div class="col-sm-8">
+                        <div class="input-group">
+                            <input type="text" ng-model="currentContractInfo.ct_contract_date" name="ct_contract_date"
+                                    class="form-control" datepicker-popup="dd.MM.yyyy"
+                                    is-open="contractDateFieldOpened" id="ct_contract_date"/>
+                            <span class="input-group-btn">
+                                <button type="button" class="btn btn-default" ng-click="contractDateFieldOpened = true">
+                                    <i class="glyphicon glyphicon-calendar"></i>
+                                </button>
+                            </span>
+                        </div>
+                        <label class="error"
+                                ng-show="form.kcell_form.ct_contract_date.$error.required && ( form.kcell_form.ct_contract_date.$touched || view.submitted)">Required
+                            field</label>
+                    </div>
+                </div>
+                <div class="form-group">
+                    <label class="col-sm-3 control-label">Contract Executor:</label>
+                    <div class="col-sm-8" class="form-check">
+                        <select class="form-control"
+                            id="currentContractInfo.ct_executor"
+                            name="currentContractInfo.ct_executor"
+                            placeholder="Select Executor"
+                            ng-model="currentContractInfo.ct_executor"
+                            required>
+                            <!-- <option ng-repeat="oblast in oblastList" ng-value="oblast.name">{{oblast.name}}</option> -->
+                        </select>
+                        <label class="error" ng-show="kcell_form.currentContractInfo.ct_executor.$error.required && ( kcell_form.currentContractInfo.ct_executor.$touched || view.submitted)">Required field</label>
+                    </div>
+                </div>
+
+                <br>
+
+                <div class="form-group">
+                    <label class="col-sm-3 control-label">Legal name:</label>
+                    <div class="col-sm-8">
+                        <input class="form-control" id="ct_legal_name" name="ct_legal_name" ng-model="currentContractInfo.ct_legal_name" required>
+                        <label class="error" ng-show="kcell_form.ct_legal_name.$error.required && ( kcell_form.ct_legal_name.$touched || view.submitted)">Required field</label>
+                    </div>
+                </div>
+                <div class="form-group">
+                        <label class="col-sm-3 control-label">Legal type:</label>
+                        <div class="col-sm-8">
+                            <select class="form-control" id="legalType" name="legalType"
+                                    ng-model="currentContractInfo.legalType"
+                                    ng-options="type.id as type.desc for type in dictionary.legalType"
+                                    ng-selected="defineSiteObjectType()" required>
+                            </select>
+                            <label class="error"
+                                   ng-show="kcell_form.legalType.$error.required && ( kcell_form.legalType.$touched || view.submitted)">Required
+                                field</label>
+                        </div>
+                    </div>
+                <div class="form-group">
+                    <label class="col-sm-3 control-label">Legal address:</label>
+                    <div class="col-sm-8">
+                        <accordion class="content-visible-accordion background-yellow-accordion">
+                            <accordion-group is-open="false">
+                                <accordion-heading>
+                                    Legal Address<i class="pull-right glyphicon"
+                                                                ng-class="{'glyphicon-chevron-up': status.isCustomHeaderOpen, 'glyphicon-chevron-down': !status.isCustomHeaderOpen}"></i>
+                                </accordion-heading>
+                                <div class="form-group">
+                                    <label class="col-sm-3 control-label">Oblast:</label>
+                                    <div class="col-sm-8" class="form-check">
+                                        <select class="form-control" id="ContractInfo_cn_addr_oblast" name="ContractInfo_cn_addr_oblast" ng-model="currentContractInfo.address.cn_addr_oblast"
+                                                ng-change="filterDistrictAfterSelectContractInfoObl(currentContractInfo.address.cn_addr_oblast)" required>
+                                            <option ng-repeat="oblast in oblastList" ng-value="oblast.name">{{oblast.name}}</option>
+                                        </select>
+                                        <label class="error" ng-show="kcell_form.ContractInfo_cn_addr_oblast.$error.required && ( kcell_form.ContractInfo_cn_addr_oblast.$touched || view.submitted)">Required field</label>
+                                    </div>
+                                </div>
+                                <div class="form-group">
+                                    <label class="col-sm-3 control-label">District:</label>
+                                    <div class="col-sm-8" class="form-check">
+                                        <select class="form-control" id="ContractInfo_cn_addr_district" name="ContractInfo_cn_addr_district" ng-model="currentContractInfo.address.cn_addr_district" ng-disabled="!currentContractInfo.address.cn_addr_oblast">
+                                            <option ng-repeat="district in currentContractInfo.dictionary.filteredDistricts" ng-value="district.name">{{district.name}}</option>
+                                        </select>
+                                        <label class="error" ng-show="kcell_form.ContractInfo_cn_addr_district.$error.required && ( kcell_form.ContractInfo_cn_addr_district.$touched || view.submitted)">Required field</label>
+                                    </div>
+                                </div>
+                
+                                <div class="form-group">
+                                    <label class="col-sm-3 control-label">City / Village:</label>
+                                    <div class="col-sm-8">
+                                        <input type="text" ng-model="currentContractInfo.address.cn_addr_city" ng-value='city.name' name="ContractInfo_n_addr_city" typeahead="city.name for city in getContractInfoCity($viewValue)" typeahead-on-select="ContractInfoAddressCitySelected($item,$model,$label)" class="form-control" required ng-disabled="!currentContractInfo.address.cn_addr_oblast" placeholder="Start typing...">
+                                        <label class="error" ng-show="kcell_form.ContractInfo_cn_addr_city.$error.required && ( kcell_form.ContractInfo_cn_addr_city.$touched || view.submitted)">Required field</label>
+                                    </div>
+                                </div>
+                                <div class="form-group">
+                                    <div class="col-sm-12">
+                                        <div class="form-check">
+                                            <input type="checkbox" ng-model="address.ca_not_full_addres" class="form-check-input" id="ca_not_full_addres">
+                                            <label class="form-check-label" for="ca_not_full_addres">Not full address</label>
+                                        </div>
+                                    </div>
+                                </div>
+                                <div class="form-group">
+                                    <label class="col-sm-3 control-label">{{!address.ca_not_full_addres ? '*' : ''}}Street:</label>
+                                    <div class="col-sm-8">
+                                        <input class="form-control" id="ContractInfo_cn_addr_street" name="ContractInfo_cn_addr_street" ng-model="currentContractInfo.address.cn_addr_street" ng-required="!currentContractInfo.address.ca_not_full_addres">
+                                        <label class="error" ng-show="kcell_form.ContractInfo_cn_addr_street.$error.required && ( kcell_form.ContractInfo_cn_addr_street.$touched || view.submitted)">Required field</label>
+                                    </div>
+                                </div>
+                                <div class="form-group">
+                                    <label class="col-sm-3 control-label">{{!address.ca_not_full_addres ? '*' : ''}}Building:</label>
+                                    <div class="col-sm-8">
+                                        <input class="form-control" id="ContractInfo_cn_addr_building" name="ContractInfo_cn_addr_building" ng-model="currentContractInfo.address.cn_addr_building" ng-required="!currentContractInfo.address.ca_not_full_addres">
+                                        <label class="error" ng-show="kcell_form.ContractInfo_cn_addr_building.$error.required && ( kcell_form.ContractInfo_cn_addr_building.$touched || view.submitted)">Required field</label>
+                                    </div>
+                                </div>
+                                <div class="form-group">
+                                    <label class="col-sm-3 control-label">{{address.ca_not_full_addres ? '*' : ''}}Cadastral number:</label>
+                                    <div class="col-sm-8">
+                                        <input class="form-control" id="ContractInfo_cn_addr_cadastral_number" name="ContractInfo_cn_addr_cadastral_number" ng-model="currentContractInfo.address.cn_addr_cadastral_number" ng-required="currentContractInfo.address.ca_not_full_addres">
+                                        <label class="error" ng-show="kcell_form.ContractInfo_cn_addr_cadastral_number.$error.required && ( kcell_form.ContractInfo_cn_addr_cadastral_number.$touched || view.submitted)">Required field</label>
+                                    </div>
+                                </div>
+                                <div class="form-group">
+                                    <label class="col-sm-3 control-label">{{address.ca_not_full_addres ? '*' : ''}}Note to the address:</label>
+                                    <div class="col-sm-8">
+                                        <input class="form-control" id="ContractInfo_cn_addr_note" name="ContractInfo_cn_addr_note" ng-model="currentContractInfo.address.cn_addr_note" ng-required="currentContractInfo.address.ca_not_full_addres">
+                                        <label class="error" ng-show="kcell_form.ContractInfo_cn_addr_note.$error.required && ( kcell_form.ContractInfo_cn_addr_note.$touched || view.submitted)">Required field</label>
+                                    </div>
+                                </div>        
+                            </accordion-group>
+                        </accordion>
+                    </div>
+                </div>
+                
+                <br>
+                <div class="form-group">
+                    <label class="col-sm-3 control-label">Head of organization:</label>
+                    <div class="col-sm-8">
+                        <input class="form-control" id="ct_head" name="ct_head" ng-model="currentContractInfo.ct_head">
+                        <label class="error" ng-show="kcell_form.ct_head.$error.required && ( kcell_form.ct_head.$touched || view.submitted)">Required field</label>
+                    </div>
+                </div>
+                <div class="form-group">
+                    <label class="col-sm-3 control-label">Contact Person:</label>
+                    <div class="col-sm-8">
+                        <input class="form-control" id="ct_contact_person" name="ct_contact_person" ng-model="currentContractInfo.ct_contact_person">
+                        <label class="error" ng-show="kcell_form.ct_contact_person.$error.required && ( kcell_form.ct_contact_person.$touched || view.submitted)">Required field</label>
+                    </div>
+                </div>
+                <div class="form-group">
+                    <label class="col-sm-3 control-label">Contact Person phone:</label>
+                    <div class="col-sm-8">
+                        <input class="form-control" id="ct_contact_phone" name="ct_contact_phone" ng-model="currentContractInfo.ct_contact_phone" required>
+                        <label class="error" ng-show="kcell_form.ct_contact_phone.$error.required && ( kcell_form.ct_contact_phone.$touched || view.submitted)">Required field</label>
+                    </div>
+                </div>
+                <div class="form-group">
+                    <label class="col-sm-3 control-label">BIN:</label>
+                    <div class="col-sm-8">
+                        <input class="form-control" type="number" id="ct_bin" name="ct_bin" ng-model="currentContractInfo.ct_bin" required>
+                        <label class="error" ng-show="kcell_form.ct_bin.$error.required && ( kcell_form.ct_bin.$touched || view.submitted)">Required field</label>
+                    </div>
+                </div>
+                <div class="form-group">
+                    <label class="col-sm-3 control-label">IBAN:</label>
+                    <div class="col-sm-8">
+                        <input class="form-control" id="ct_iban" name="ct_iban" ng-model="currentContractInfo.ct_iban" required>
+                        <label class="error" ng-show="kcell_form.ct_iban.$error.required && ( kcell_form.ct_iban.$touched || view.submitted)">Required field</label>
+                    </div>
+                </div>
+                <div class="form-group">
+                    <label class="col-sm-3 control-label">BIC:</label>
+                    <div class="col-sm-8">
+                        <input class="form-control" id="ct_bic" name="ct_bic" ng-model="currentContractInfo.ct_bic" ng-required="!address.ca_not_full_addres">
+                        <label class="error" ng-show="kcell_form.ct_bic.$error.required && ( kcell_form.ct_bic.$touched || view.submitted)">Required field</label>
+                    </div>
+                </div>
+                <div class="form-group">
+                    <label class="col-sm-3 control-label">Bank Name:</label>
+                    <div class="col-sm-8">
+                        <input class="form-control" id="ct_bankname" name="ct_bankname" ng-model="currentContractInfo.ct_bankname" required>
+                        <label class="error" ng-show="kcell_form.ct_bankname.$error.required && ( kcell_form.ct_bankname.$touched || view.submitted)">Required field</label>
+                    </div>
+                </div>
+                <div class="form-group">
+                    <label class="col-sm-3 control-label">Contract type:</label>
+                    <div class="col-sm-8" class="form-check">
+                        <select class="form-control" id="ct_contract_type" name="ct_contract_type" ng-model="currentContractInfo.ct_contract_type"
+                            required>
+                            <!-- <option ng-repeat="oblast in oblastList" ng-value="oblast.name">{{oblast.name}}</option> -->
+                        </select>
+                        <label class="error" ng-show="kcell_form.ct_contract_type.$error.required && ( kcell_form.ct_contract_type.$touched || view.submitted)">Required field</label>
+                    </div>
+                </div>
+                <div class="form-group">
+                    <label class="col-sm-3 control-label">Rent Sum:</label>
+                    <div class="col-sm-8">
+                        <input class="form-control" type="number" id="ct_rent" name="ct_rent" ng-model="currentContractInfo.ct_rent" required>
+                        <label class="error" ng-show="kcell_form.ct_rent.$error.required && ( kcell_form.ct_rent.$touched || view.submitted)">Required field</label>
+                    </div>
+                </div>
+                <div class="form-group">
+                    <label class="col-sm-3 control-label">Power in Rent Sum:</label>
+                    <div class="col-sm-8">
+                        <input class="form-control" type="number id="ct_rent_power" name="ct_rent_power" ng-model="currentContractInfo.ct_rent_power" required>
+                        <label class="error" ng-show="kcell_form.ct_rent_power.$error.required && ( kcell_form.ct_rent_power.$touched || view.submitted)">Required field</label>
+                    </div>
+                </div>
+                <div class="form-group">
+                    <label class="col-sm-3 control-label">Need VAT</label>
+                    <div class="col-sm-8">
+                        <label class="radio-inline">
+                            <input type="radio" name="ct_checkvat" ng-model="currentContractInfo.ct_checkvat"
+                                    value="Yes"> Yes
+                        </label>
+                        <label class="radio-inline">
+                            <input type="radio" name="ct_checkvat" ng-model="currentContractInfo.ct_checkvat"
+                                    value="No"> No
+                        </label>
+                        <label class="error"
+                                ng-show="kcell_form.ct_checkvat.$error.required && ( kcell_form.ct_checkvat.$touched || view.submitted)">Required
+                            field</label>
+                    </div>
+                </div>
+                <div class="form-group">
+                    <label class="col-sm-3 control-label">VAT:</label>
+                    <div class="col-sm-8">
+                        <input class="form-control" ng-disabled="currentContractInfo.ct_checkvat !== 'Yes'" type="number id="ct_vat" name="ct_vat" ng-model="currentContractInfo.ct_vat" ng-required="currentContractInfo.ct_checkvat === 'Yes'">
+                        <label class="error" ng-show="kcell_form.ct_vat.$error.required && ( kcell_form.ct_vat.$touched || view.submitted)">Required field</label>
+                    </div>
+                </div>
+
+                <br>
+
+                <div class="form-group">
+                    <label class="col-sm-3 control-label">Contract SAP №:</label>
+                    <div class="col-sm-8">
+                        <input class="form-control" id="ct_contract_sap" name="ct_contract_sap" ng-model="currentContractInfo.ct_contract_sap" ng-required="!address.ca_not_full_addres">
+                        <label class="error" ng-show="kcell_form.ct_contract_sap.$error.required && ( kcell_form.ct_contract_sap.$touched || view.submitted)">Required field</label>
+                    </div>
+                </div>
+                <div class="form-group">
+                    <label class="col-sm-3 control-label">Vendor SAP №:</label>
+                    <div class="col-sm-8">
+                        <input class="form-control" id="ct_vendor_sap" name="ct_vendor_sap" ng-model="currentContractInfo.ct_vendor_sap" ng-required="!address.ca_not_full_addres">
+                        <label class="error" ng-show="kcell_form.ct_vendor_sap.$error.required && ( kcell_form.ct_vendor_sap.$touched || view.submitted)">Required field</label>
+                    </div>
+                </div>
+                <div class="form-group">
+                    <label class="col-sm-3 control-label">Access Status:</label>
+                    <div class="col-sm-8" class="form-check">
+                        <select class="form-control" id="ct_contract_type" name="ct_contract_type" ng-model="currentContractInfo.ct_contract_type"
+                            required>
+                            <!-- <option ng-repeat="oblast in oblastList" ng-value="oblast.name">{{oblast.name}}</option> -->
+                        </select>
+                        <label class="error" ng-show="kcell_form.ct_contract_type.$error.required && ( kcell_form.ct_contract_type.$touched || view.submitted)">Required field</label>
+                    </div>
+                </div>
+                <div class="form-group">
+                    <label class="col-sm-3 control-label">Payment Period:</label>
+                    <div class="col-sm-8" class="form-check">
+                        <select class="form-control" id="ct_contract_type" name="ct_contract_type" ng-model="currentContractInfo.ct_contract_type"
+                            required>
+                            <!-- <option ng-repeat="oblast in oblastList" ng-value="oblast.name">{{oblast.name}}</option> -->
+                        </select>
+                        <label class="error" ng-show="kcell_form.ct_contract_type.$error.required && ( kcell_form.ct_contract_type.$touched || view.submitted)">Required field</label>
+                    </div>
+                </div>
+                <div class="form-group">
+                    <label class="col-sm-3 control-label">Currency:</label>
+                    <div class="col-sm-8" class="form-check">
+                        <select class="form-control" id="ct_contract_type" name="ct_contract_type" ng-model="currentContractInfo.ct_contract_type"
+                            required>
+                            <!-- <option ng-repeat="oblast in oblastList" ng-value="oblast.name">{{oblast.name}}</option> -->
+                        </select>
+                        <label class="error" ng-show="kcell_form.ct_contract_type.$error.required && ( kcell_form.ct_contract_type.$touched || view.submitted)">Required field</label>
+                    </div>
+                </div>
+                <div class="form-group">
+                    <label class="col-sm-3 control-label">Contract Start date:</label>
+                    <div class="col-sm-8">
+                        <div class="input-group">
+                            <input type="text" ng-model="currentContractInfo.ct_contract_start_date" name="ct_contract_start_date"
+                                    class="form-control" datepicker-popup="dd.MM.yyyy"
+                                    is-open="ct_contract_start_dateFieldOpened" id="ct_contract_start_date"/>
+                            <span class="input-group-btn">
+                                <button type="button" class="btn btn-default" ng-click="ct_contract_start_dateFieldOpened = true">
+                                    <i class="glyphicon glyphicon-calendar"></i>
+                                </button>
+                            </span>
+                        </div>
+                        <label class="error"
+                                ng-show="form.kcell_form.ct_contract_date.$error.required && ( form.kcell_form.ct_contract_date.$touched || view.submitted)">Required
+                            field</label>
+                    </div>
+                </div>
+                <div class="form-group">
+                    <label class="col-sm-3 control-label">Contract End date:</label>
+                    <div class="col-sm-8">
+                        <div class="input-group">
+                            <input type="text" ng-model="currentContractInfo.ct_contract_end_date" name="ct_contract_end_date"
+                                    class="form-control" datepicker-popup="dd.MM.yyyy"
+                                    is-open="ct_contract_end_dateFieldOpened" id="ct_contract_end_date"/>
+                            <span class="input-group-btn">
+                                <button type="button" class="btn btn-default" ng-click="ct_contract_end_dateFieldOpened = true">
+                                    <i class="glyphicon glyphicon-calendar"></i>
+                                </button>
+                            </span>
+                        </div>
+                        <label class="error"
+                                ng-show="form.kcell_form.ct_contract_date.$error.required && ( form.kcell_form.ct_contract_date.$touched || view.submitted)">Required
+                            field</label>
+                    </div>
+                </div>
+                <div class="form-group">
+                    <label class="col-sm-3 control-label">Area Act of Acceptance date:</label>
+                    <div class="col-sm-8">
+                        <div class="input-group">
+                            <input type="text" ng-model="currentContractInfo.ct_acceptance_act_date" name="ct_acceptance_act_date"
+                                    class="form-control" datepicker-popup="dd.MM.yyyy"
+                                    is-open="ct_acceptance_act_dateFieldOpened" id="ct_acceptance_act_date"/>
+                            <span class="input-group-btn">
+                                <button type="button" class="btn btn-default" ng-click="ct_acceptance_act_dateFieldOpened = true">
+                                    <i class="glyphicon glyphicon-calendar"></i>
+                                </button>
+                            </span>
+                        </div>
+                        <label class="error"
+                                ng-show="form.kcell_form.ct_contract_date.$error.required && ( form.kcell_form.ct_contract_date.$touched || view.submitted)">Required
+                            field</label>
+                    </div>
+                </div>
+                <div class="form-group">
+                    <label class="col-sm-3 control-label">Autoprolongation</label>
+                    <div class="col-sm-8">
+                        <label class="radio-inline">
+                            <input type="radio" name="Autoprolongation" ng-model="currentContractInfo.ct_autoprolongation"
+                                    value="Yes"> Yes
+                        </label>
+                        <label class="radio-inline">
+                            <input type="radio" name="Autoprolongation" ng-model="currentContractInfo.ct_autoprolongation"
+                                    value="No"> No
+                        </label>
+                        <label class="error"
+                                ng-show="kcell_form.Autoprolongation.$error.required && ( kcell_form.Autoprolongation.$touched || view.submitted)">Required
+                            field</label>
+                    </div>
+                </div>
+                <div class="form-group">
+                    <label class="col-sm-3 control-label">IFRS 16</label>
+                    <div class="col-sm-8">
+                        <label class="radio-inline">
+                            <input type="radio" name="ct_ifrs16" ng-model="currentContractInfo.ct_ifrs16"
+                                    value="Yes"> Yes
+                        </label>
+                        <label class="radio-inline">
+                            <input type="radio" name="ct_ifrs16" ng-model="currentContractInfo.ct_ifrs16"
+                                    value="No"> No
+                        </label>
+                        <label class="error"
+                                ng-show="kcell_form.ct_ifrs16.$error.required && ( kcell_form.ct_ifrs16.$touched || view.submitted)">Required
+                            field</label>
+                    </div>
+                </div>
+            </accordion-group>
+        </accordion>
+
+        <span class="input-group-btn">
+            <button type="button" class="btn btn-default" ng-click="contractInformations.push({})">
+                <i class="glyphicon glyphicon-plus">&nbsp;Add New Contract</i>
+            </button>
+        </span>
+
     <iframe id="fileDownloadIframe" style="display:none;"></iframe>
 
-    <div class="form-group">
-        <label class="col-md-4 control-label">Download RR:</label>
-        <div class="col-sm-8">
-            <a ng-click="fileDownload(rrFile)">{{rrFile.name}}</a>
-        </div>
-    </div>
-    <div class="form-group">
-        <label class="col-md-4 control-label">RR files:</label>
-        <div class="col-sm-8">
-            <div ng-show="newCandidateRRFiles.length > 0" class="input-group" ng-repeat="file in newCandidateRRFiles">
-                {{$index + 1}}.
-                <a ng-click="fileDownload(file)">{{file.name}}</a>
-            </div>
-        </div>
-    </div>
-
-    <leasing-files leasing-files="leasingCandidate"></leasing-files>
+    <leasing-attachments leasing-files="leasingFiles"></leasing-attachments>
 
     <div class="form-group">
         <label class="col-md-4 control-label">Upload signed a lease contract:</label>

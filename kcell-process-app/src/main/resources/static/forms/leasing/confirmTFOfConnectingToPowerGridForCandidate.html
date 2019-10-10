@@ -63,9 +63,18 @@
                 'powerContractLoadingInSAPFiles',
                 'approvalPowerContractInSAPFiles',
                 'uploadSignedOwnerLeaseContractFiles',
-                'receivingTSFromRESFiles',
+                'confirmTFOfConnectingToPowerGridForCandidateFiles',
                 'address'
             ];
+
+            $http.get('/camunda/api/engine/engine/default/task/' + camForm.taskId).then(
+                function(result){
+                    $scope.taskAssignee = result.data.assignee;
+                },
+                function (error) {
+                    console.log(error.data);
+                }
+            );
 
             camForm.on('form-loaded', function () {
                 variables.forEach(function (el) {
@@ -80,23 +89,27 @@
                         }
                 );
                 $scope.leasingCandidate = {};
+                $scope.leasingFiles = [];
             });
 
             camForm.on('variables-fetched', function () {
-                $scope.receivingTSFromRESFiles = [];
+                $scope.confirmTFOfConnectingToPowerGridForCandidateFiles = [];
                 variables.forEach(function (el) {
                     if(camForm.variableManager.variables[el].value){
                         $scope[el] = camForm.variableManager.variables[el].value;
                         $scope.leasingCandidate[el] = camForm.variableManager.variables[el].value;
+                        if ( el.toLowerCase().includes('file') ) {
+                            $scope.leasingFiles = $scope.leasingFiles.concat(camForm.variableManager.variables[el].value)
+                        }
                     }
                 });
                 camForm.variableManager.createVariable({
-                    name: 'receivingTSFromRESTaskResult',
+                    name: 'confirmTFOfConnectingToPowerGridForCandidateTaskResult',
                     type: 'String',
                     value: ''
                 });
                 camForm.variableManager.createVariable({
-                    name: 'receivingTSFromRESTaskComment',
+                    name: 'confirmTFOfConnectingToPowerGridForCandidateTaskComment',
                     type: 'String',
                     value: ''
                 });
@@ -106,23 +119,23 @@
                     value: ''
                 });
 
-                $scope.receivingTSFromRESTaskResult = '';
+                $scope.confirmTFOfConnectingToPowerGridForCandidateTaskResult = '';
             });
 
             camForm.on('submit', function () {
-                camForm.variableManager.variableValue('receivingTSFromRESTaskResult', $scope.receivingTSFromRESTaskResult);
-                camForm.variableManager.variableValue('leasingProblem', $scope.receivingTSFromRESTaskResult);
-                camForm.variableManager.variableValue('receivingTSFromRESTaskComment', $scope.receivingTSFromRESTaskComment);
+                camForm.variableManager.variableValue('confirmTFOfConnectingToPowerGridForCandidateTaskResult', $scope.confirmTFOfConnectingToPowerGridForCandidateTaskResult);
+                camForm.variableManager.variableValue('leasingProblem', $scope.confirmTFOfConnectingToPowerGridForCandidateTaskResult === 'Approve' ? 'No' : 'Yes');
+                camForm.variableManager.variableValue('confirmTFOfConnectingToPowerGridForCandidateTaskComment', $scope.confirmTFOfConnectingToPowerGridForCandidateTaskComment);
 
-                if(!camForm.variableManager.variables['receivingTSFromRESFiles'].type){
-                    camForm.variableManager.destroyVariable('receivingTSFromRESFiles');
+                if(!camForm.variableManager.variables['confirmTFOfConnectingToPowerGridForCandidateFiles'].type){
+                    camForm.variableManager.destroyVariable('confirmTFOfConnectingToPowerGridForCandidateFiles');
                     camForm.variableManager.createVariable({
-                        name: 'receivingTSFromRESFiles',
+                        name: 'confirmTFOfConnectingToPowerGridForCandidateFiles',
                         type: 'Json',
-                        value: $scope.receivingTSFromRESFiles
+                        value: $scope.confirmTFOfConnectingToPowerGridForCandidateFiles
                     });
                 } else {
-                    camForm.variableManager.variableValue('receivingTSFromRESFiles', $scope.receivingTSFromRESFiles);
+                    camForm.variableManager.variableValue('confirmTFOfConnectingToPowerGridForCandidateFiles', $scope.confirmTFOfConnectingToPowerGridForCandidateFiles);
                 }
                 camForm.variableManager.destroyVariable('resolutions');
             });
@@ -140,7 +153,9 @@
 
                 var fileToUpload = {
                     name: file.name.replace(/[/\\?%*:|"<>]/g, '-'),
-                    path: $scope.processInstanceId + '/' + camForm.taskId + '/' + file.name.replace(/[/\\?%*:|"<>]/g, '-')
+                    path: $scope.processInstanceId + '/' + camForm.taskId + '/' + file.name.replace(/[/\\?%*:|"<>]/g, '-'),
+                    date: new Date(),
+                    author: $scope.taskAssignee
                 };
                 $http({
                     method: 'GET',
@@ -172,7 +187,9 @@
             function uploadSingleFileToMinio(file, fileName) {
                 var fileToUpload = {
                     name: file.name.replace(/[/\\?%*:|"<>]/g, '-'),
-                    path: $scope.processInstanceId + '/' + camForm.taskId + '/' + file.name.replace(/[/\\?%*:|"<>]/g, '-')
+                    path: $scope.processInstanceId + '/' + camForm.taskId + '/' + file.name.replace(/[/\\?%*:|"<>]/g, '-'),
+                    date: new Date(),
+                    author: $scope.taskAssignee
                 };
                 $http({
                     method: 'GET',
@@ -217,65 +234,71 @@
     </script>
     <leasing-candidate leasing-candidate="leasingCandidate"></leasing-candidate>
 
+    <accordion class="content-visible-accordion background-yellow-accordion">
+        <accordion-group is-open="false" style="background-color: #ffffcc; !important;">
+            <accordion-heading>
+                    Instruction for Power engineer <i class="pull-right glyphicon"
+                                            ng-class="{'glyphicon-chevron-up': status.isCustomHeaderOpen, 'glyphicon-chevron-down': !status.isCustomHeaderOpen}"></i>
+            </accordion-heading>
+            <div>
+                <p><b>1) «Подключение в точке присоединения к сетям РЭС на границе раздела ответственности»:</b></p>
+                <ul>
+                    <li>Оформить заявку письмом в адрес Арендодателя (основного Потребителя э/энергии) на выдачу ТУ по подключению к сетям Арендодателя;</li>
+                    <li>Согласовать полученные ТУ с региональным РЭС;</li>
+                    <li>Прикрепить к форме скан.копию заявления на ТУ с отметкой Арендодателя, скан.копию выданных ТУ с отметкой РЭС о согласовании;</li>
+                    <li>Одобрить форму в системе (выбрать <b>Approve</b> в Resolution).</li>
+                </ul>
+                <p><b>2) «Подключение к внутренним сетям Арендодателя»:</b></p>
+                <ul>
+                    <li>Оформить заявку письмом в адрес Арендодателя об определении точки подключения к сетям электроснабжения;</li>
+                    <li>Прикрепить к форме скан.копию заявления с отметкой Арендодателя, ответ Арендодателя об определении точки подключения;</li>
+                    <li>Одобрить форму в системе (выбрать <b>Approve</b> в Resolution).</li>
+                </ul>
+                <p><b>3) В случае отказа Арендодателя в подключении к сетям электроснабжения:</b></p>
+                <ul>
+                    <li>Прикрепить скан.копию мотивированного отказа</li>
+                    <li>Отклонить форму в системе с комментарием об отсутствии ТВ (выбрать <b>Leasing Problem</b> в Resolution)</li>
+                </ul>
+                <p><b>4) В случае отказа РЭС в выдаче ТУ, прикрепить скан. копию отказа к форме в системе и поставить отметкуоб отсутствии возможности - Leasing Problem.</b></p>
+            </div>
+        </accordion-group>
+    </accordion>
+
+        
     <iframe id="fileDownloadIframe" style="display:none;"></iframe>
-
-    <div class="form-group">
-        <label class="col-md-4 control-label">Download RR:</label>
-        <div class="col-sm-8">
-            <a ng-click="fileDownload(rrFile)">{{rrFile.name}}</a>
-        </div>
-    </div>
-    <div class="form-group">
-        <label class="col-md-4 control-label">RR files:</label>
-        <div class="col-sm-8">
-            <div ng-show="newCandidateRRFiles.length > 0" class="input-group" ng-repeat="file in newCandidateRRFiles">
-                {{$index + 1}}.
-                <a ng-click="fileDownload(file)">{{file.name}}</a>
-            </div>
-        </div>
-    </div>
-
-    <leasing-files leasing-files="leasingCandidate"></leasing-files>
-
-    <div class="form-group">
-        <label class="col-md-4 control-label">Signed contract:</label>
-        <div class="col-sm-8">
-            <div ng-show="uploadSignedOwnerLeaseContractFiles.length > 0" class="input-group" ng-repeat="file in uploadSignedOwnerLeaseContractFiles">
-                <a ng-click="fileDownload(file)">{{file.name}}</a>
-            </div>
-        </div>
-    </div>
-
+    
+    <leasing-attachments leasing-files="leasingFiles"></leasing-attachments>
+    
     <div class="form-group">
         <label class="col-md-4 control-label">Upload files:</label>
         <div class="col-sm-8">
-            <div ng-show="receivingTSFromRESFiles.length > 0" class="input-group" ng-repeat="file in receivingTSFromRESFiles">
+            <div ng-show="confirmTFOfConnectingToPowerGridForCandidateFiles.length > 0" class="input-group" ng-repeat="file in confirmTFOfConnectingToPowerGridForCandidateFiles">
                 {{$index + 1}}.
-                <a ng-click="fileDownload(file)">{{file.name}}</a> | <a ng-click="clearFile('receivingTSFromRESFiles', $index)"><i class="glyphicon glyphicon-trash"></i></a>
+                <a ng-click="fileDownload(file)">{{file.name}}</a> | <a ng-click="clearFile('confirmTFOfConnectingToPowerGridForCandidateFiles', $index)"><i class="glyphicon glyphicon-trash"></i></a>
             </div>
             <ng-form name="kcell_material_file_form">
-                <input type="file" class="form-control" id="receivingTSFromRESFiles" name="receivingTSFromRESFiles" ng-model="file.file" onchange="angular.element(this).scope().fileSelected(this, 'receivingTSFromRESFiles')"/>
+                <input type="file" class="form-control" id="confirmTFOfConnectingToPowerGridForCandidateFiles" name="confirmTFOfConnectingToPowerGridForCandidateFiles"  required-file="confirmTFOfConnectingToPowerGridForCandidateFiles.length == 0" ng-model="file.file" onchange="angular.element(this).scope().fileSelected(this, 'confirmTFOfConnectingToPowerGridForCandidateFiles')"/>
             </ng-form>
         </div>
     </div>
 
     <div class="form-group">
-        <label class="col-sm-4 control-label">Leasing problem</label>
+        <label class="col-sm-4 control-label">Resolution</label>
         <div class="col-sm-8">
             <label class="radio-inline">
-                <input type="radio" name="receivingTSFromRESTaskResult" ng-model="receivingTSFromRESTaskResult" value="Yes" required> Yes
+                <input type="radio" name="confirmTFOfConnectingToPowerGridForCandidateTaskResult" ng-model="confirmTFOfConnectingToPowerGridForCandidateTaskResult" value="Approve" required> Approve
             </label>
             <label class="radio-inline">
-                <input type="radio" name="receivingTSFromRESTaskResult" ng-model="receivingTSFromRESTaskResult" value="No" required> No
+                <input type="radio" name="confirmTFOfConnectingToPowerGridForCandidateTaskResult" ng-model="confirmTFOfConnectingToPowerGridForCandidateTaskResult" value="Leasing problem" required> Leasing problem
             </label>
-            <label class="error" ng-show="kcell_form.receivingTSFromRESTaskResult.$error.required && ( kcell_form.receivingTSFromRESTaskResult.$touched || view.submitted)">Required field</label>
+            <label class="error" ng-show="kcell_form.confirmTFOfConnectingToPowerGridForCandidateTaskResult.$error.required && ( kcell_form.confirmTFOfConnectingToPowerGridForCandidateTaskResult.$touched || view.submitted)">Required field</label>
         </div>
     </div>
 
     <div class="form-group">
         <label class="col-sm-4 control-label">Comments</label>
         <div class="col-sm-8">
-            <textarea class="form-control" ng-model="receivingTSFromRESTaskComment" name="receivingTSFromRESTaskComment" placeholder="Comments..." maxlength="500" rows="4" style="resize:none"></textarea>
+            <textarea class="form-control" ng-model="confirmTFOfConnectingToPowerGridForCandidateTaskComment" name="confirmTFOfConnectingToPowerGridForCandidateTaskComment" placeholder="Comments..." maxlength="500" rows="4" style="resize:none"></textarea>
         </div>
     </div>
 </form>

@@ -63,11 +63,18 @@
                 'powerContractLoadingInSAPFiles',
                 'approvalPowerContractInSAPFiles',
                 'uploadSignedOwnerLeaseContractFiles',
-                'confirmReceiptOfTSfromRESforCandidateFiles',
-                'connectionFromOwnerNetworksFiles',
-                'preperationSSIDorTSSRProjectFiles',
+                'confirmReceiptOfTSfromRESforFEFiles',
                 'address'
             ];
+
+            $http.get('/camunda/api/engine/engine/default/task/' + camForm.taskId).then(
+                function(result){
+                    $scope.taskAssignee = result.data.assignee;
+                },
+                function (error) {
+                    console.log(error.data);
+                }
+            );
 
             camForm.on('form-loaded', function () {
                 variables.forEach(function (el) {
@@ -82,43 +89,53 @@
                         }
                 );
                 $scope.leasingCandidate = {};
+                $scope.leasingFiles = [];
             });
 
             camForm.on('variables-fetched', function () {
-                $scope.preperationSSIDorTSSRProjectFiles = [];
+                $scope.confirmReceiptOfTSfromRESforFEFiles = [];
                 variables.forEach(function (el) {
                     if(camForm.variableManager.variables[el].value){
                         $scope[el] = camForm.variableManager.variables[el].value;
                         $scope.leasingCandidate[el] = camForm.variableManager.variables[el].value;
+                        if ( el.toLowerCase().includes('file') ) {
+                            $scope.leasingFiles = $scope.leasingFiles.concat(camForm.variableManager.variables[el].value)
+                        }
                     }
                 });
                 camForm.variableManager.createVariable({
-                    name: 'preperationSSIDorTSSRProjectTaskResult',
+                    name: 'confirmReceiptOfTSfromRESforFETaskResult',
                     type: 'String',
                     value: ''
                 });
                 camForm.variableManager.createVariable({
-                    name: 'preperationSSIDorTSSRProjectTaskComment',
+                    name: 'confirmReceiptOfTSfromRESforFETaskComment',
+                    type: 'String',
+                    value: ''
+                });
+                camForm.variableManager.createVariable({
+                    name: 'leasingProblem',
                     type: 'String',
                     value: ''
                 });
 
-                $scope.preperationSSIDorTSSRProjectTaskResult = '';
+                $scope.confirmReceiptOfTSfromRESforFETaskResult = '';
             });
 
             camForm.on('submit', function () {
-                camForm.variableManager.variableValue('preperationSSIDorTSSRProjectTaskResult', $scope.preperationSSIDorTSSRProjectTaskResult);
-                camForm.variableManager.variableValue('preperationSSIDorTSSRProjectTaskComment', $scope.preperationSSIDorTSSRProjectTaskComment);
+                camForm.variableManager.variableValue('confirmReceiptOfTSfromRESforFETaskResult', $scope.confirmReceiptOfTSfromRESforFETaskResult);
+                camForm.variableManager.variableValue('leasingProblem', $scope.confirmReceiptOfTSfromRESforFETaskResult === 'Approve' ? 'No' : 'Yes');
+                camForm.variableManager.variableValue('confirmReceiptOfTSfromRESforFETaskComment', $scope.confirmReceiptOfTSfromRESforFETaskComment);
 
-                if(!camForm.variableManager.variables['preperationSSIDorTSSRProjectFiles'].type){
-                    camForm.variableManager.destroyVariable('preperationSSIDorTSSRProjectFiles');
+                if(!camForm.variableManager.variables['confirmReceiptOfTSfromRESforFEFiles'].type){
+                    camForm.variableManager.destroyVariable('confirmReceiptOfTSfromRESforFEFiles');
                     camForm.variableManager.createVariable({
-                        name: 'preperationSSIDorTSSRProjectFiles',
+                        name: 'confirmReceiptOfTSfromRESforFEFiles',
                         type: 'Json',
-                        value: $scope.preperationSSIDorTSSRProjectFiles
+                        value: $scope.confirmReceiptOfTSfromRESforFEFiles
                     });
                 } else {
-                    camForm.variableManager.variableValue('preperationSSIDorTSSRProjectFiles', $scope.preperationSSIDorTSSRProjectFiles);
+                    camForm.variableManager.variableValue('confirmReceiptOfTSfromRESforFEFiles', $scope.confirmReceiptOfTSfromRESforFEFiles);
                 }
                 camForm.variableManager.destroyVariable('resolutions');
             });
@@ -136,7 +153,9 @@
 
                 var fileToUpload = {
                     name: file.name.replace(/[/\\?%*:|"<>]/g, '-'),
-                    path: $scope.processInstanceId + '/' + camForm.taskId + '/' + file.name.replace(/[/\\?%*:|"<>]/g, '-')
+                    path: $scope.processInstanceId + '/' + camForm.taskId + '/' + file.name.replace(/[/\\?%*:|"<>]/g, '-'),
+                    date: new Date(),
+                    author: $scope.taskAssignee
                 };
                 $http({
                     method: 'GET',
@@ -168,7 +187,9 @@
             function uploadSingleFileToMinio(file, fileName) {
                 var fileToUpload = {
                     name: file.name.replace(/[/\\?%*:|"<>]/g, '-'),
-                    path: $scope.processInstanceId + '/' + camForm.taskId + '/' + file.name.replace(/[/\\?%*:|"<>]/g, '-')
+                    path: $scope.processInstanceId + '/' + camForm.taskId + '/' + file.name.replace(/[/\\?%*:|"<>]/g, '-'),
+                    date: new Date(),
+                    author: $scope.taskAssignee
                 };
                 $http({
                     method: 'GET',
@@ -213,54 +234,71 @@
     </script>
     <leasing-candidate leasing-candidate="leasingCandidate"></leasing-candidate>
 
+    <accordion class="content-visible-accordion background-yellow-accordion">
+        <accordion-group is-open="false" style="background-color: #ffffcc; !important;" >
+            <accordion-heading>
+                    Instruction for Power engineer <i class="pull-right glyphicon"
+                                            ng-class="{'glyphicon-chevron-up': status.isCustomHeaderOpen, 'glyphicon-chevron-down': !status.isCustomHeaderOpen}"></i>
+            </accordion-heading>
+            <div>
+                <p><b>1) «Подключение в точке присоединения к сетям РЭС на границе раздела ответственности»:</b></p>
+                <ul>
+                    <li>Оформить заявку письмом в адрес Арендодателя (основного Потребителя э/энергии) на выдачу ТУ по подключению к сетям Арендодателя;</li>
+                    <li>Согласовать полученные ТУ с региональным РЭС;</li>
+                    <li>Прикрепить к форме скан.копию заявления на ТУ с отметкой Арендодателя, скан.копию выданных ТУ с отметкой РЭС о согласовании;</li>
+                    <li>Одобрить форму в системе (выбрать <b>Approve</b> в Resolution).</li>
+                </ul>
+                <p><b>2) «Подключение к внутренним сетям Арендодателя»:</b></p>
+                <ul>
+                    <li>Оформить заявку письмом в адрес Арендодателя об определении точки подключения к сетям электроснабжения;</li>
+                    <li>Прикрепить к форме скан.копию заявления с отметкой Арендодателя, ответ Арендодателя об определении точки подключения;</li>
+                    <li>Одобрить форму в системе (выбрать <b>Approve</b> в Resolution).</li>
+                </ul>
+                <p><b>3) В случае отказа Арендодателя в подключении к сетям электроснабжения:</b></p>
+                <ul>
+                    <li>Прикрепить скан.копию мотивированного отказа</li>
+                    <li>Отклонить форму в системе с комментарием об отсутствии ТВ (выбрать <b>Leasing Problem</b> в Resolution)</li>
+                </ul>
+                <p><b>4) В случае отказа РЭС в выдаче ТУ, прикрепить скан. копию отказа к форме в системе и поставить отметкуоб отсутствии возможности - Leasing Problem.</b></p>
+            </div>
+        </accordion-group>
+    </accordion>
+
+
     <iframe id="fileDownloadIframe" style="display:none;"></iframe>
-
-    <div class="form-group">
-        <label class="col-md-4 control-label">Download RR:</label>
-        <div class="col-sm-8">
-            <a ng-click="fileDownload(rrFile)">{{rrFile.name}}</a>
-        </div>
-    </div>
-    <div class="form-group">
-        <label class="col-md-4 control-label">RR files:</label>
-        <div class="col-sm-8">
-            <div ng-show="newCandidateRRFiles.length > 0" class="input-group" ng-repeat="file in newCandidateRRFiles">
-                {{$index + 1}}.
-                <a ng-click="fileDownload(file)">{{file.name}}</a>
-            </div>
-        </div>
-    </div>
-
-    <leasing-files leasing-files="leasingCandidate"></leasing-files>
-
-    <div class="form-group">
-        <label class="col-md-4 control-label">Signed contract:</label>
-        <div class="col-sm-8">
-            <div class="col-sm-8">
-                <div ng-show="uploadSignedOwnerLeaseContractFiles.length > 0" class="input-group" ng-repeat="file in uploadSignedOwnerLeaseContractFiles">
-                    <a ng-click="fileDownload(file)">{{file.name}}</a>
-                </div>
-            </div>
-        </div>
-    </div>
-
+    
+    <leasing-attachments leasing-files="leasingFiles"></leasing-attachments>
+    
     <div class="form-group">
         <label class="col-md-4 control-label">Upload files:</label>
         <div class="col-sm-8">
-            <div ng-show="preperationSSIDorTSSRProjectFiles.length > 0" class="input-group" ng-repeat="file in preperationSSIDorTSSRProjectFiles">
+            <div ng-show="confirmReceiptOfTSfromRESforFEFiles.length > 0" class="input-group" ng-repeat="file in confirmReceiptOfTSfromRESforFEFiles">
                 {{$index + 1}}.
-                <a ng-click="fileDownload(file)">{{file.name}}</a> | <a ng-click="clearFile('preperationSSIDorTSSRProjectFiles', $index)"><i class="glyphicon glyphicon-trash"></i></a>
+                <a ng-click="fileDownload(file)">{{file.name}}</a> | <a ng-click="clearFile('confirmReceiptOfTSfromRESforFEFiles', $index)"><i class="glyphicon glyphicon-trash"></i></a>
             </div>
             <ng-form name="kcell_material_file_form">
-                <input type="file" class="form-control" id="preperationSSIDorTSSRProjectFiles" name="preperationSSIDorTSSRProjectFiles" ng-model="file.file" onchange="angular.element(this).scope().fileSelected(this, 'preperationSSIDorTSSRProjectFiles')"/>
+                <input type="file" class="form-control" id="confirmReceiptOfTSfromRESforFEFiles" name="confirmReceiptOfTSfromRESforFEFiles"  required-file="confirmReceiptOfTSfromRESforFEFiles.length == 0" ng-model="file.file" onchange="angular.element(this).scope().fileSelected(this, 'confirmReceiptOfTSfromRESforFEFiles')"/>
             </ng-form>
+        </div>
+    </div>
+
+    <div class="form-group">
+        <label class="col-sm-4 control-label">Resolution</label>
+        <div class="col-sm-8">
+            <label class="radio-inline">
+                <input type="radio" name="confirmReceiptOfTSfromRESforFETaskResult" ng-model="confirmReceiptOfTSfromRESforFETaskResult" value="Approve" required> Approve
+            </label>
+            <label class="radio-inline">
+                <input type="radio" name="confirmReceiptOfTSfromRESforFETaskResult" ng-model="confirmReceiptOfTSfromRESforFETaskResult" value="Leasing problem" required> Leasing problem
+            </label>
+            <label class="error" ng-show="kcell_form.confirmReceiptOfTSfromRESforFETaskResult.$error.required && ( kcell_form.confirmReceiptOfTSfromRESforFETaskResult.$touched || view.submitted)">Required field</label>
         </div>
     </div>
 
     <div class="form-group">
         <label class="col-sm-4 control-label">Comments</label>
         <div class="col-sm-8">
-            <textarea class="form-control" ng-model="preperationSSIDorTSSRProjectTaskComment" name="preperationSSIDorTSSRProjectTaskComment" placeholder="Comments..." maxlength="500" rows="4" style="resize:none"></textarea>
+            <textarea class="form-control" ng-model="confirmReceiptOfTSfromRESforFETaskComment" name="confirmReceiptOfTSfromRESforFETaskComment" placeholder="Comments..." maxlength="500" rows="4" style="resize:none"></textarea>
         </div>
     </div>
 </form>

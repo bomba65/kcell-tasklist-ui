@@ -21,16 +21,18 @@ define(['./../module'], function(module){
                         scope.dictionary.legalTypeTitle = _.keyBy(scope.dictionary.legalType, 'id');
 						scope.dictionary.antennasList = scope.dictionary.antennas;
 						scope.dictionary.antennaType = scope.dictionary.antennaType;
+
 						scope.leasingCandidate.addressString = ''
 						Object.values(scope.leasingCandidate.address).forEach((s,index) => {
 							scope.leasingCandidate.addressString += index > 0 ? ', ' + s : s
 						})
+						
                     },
                     function(error){
                         console.log(error);
                     }
                 );
-
+				
 				scope.$watch('leasingCandidate.farEndInformation', function(farEndInformation) {
 					if (farEndInformation && farEndInformation.length>0 && scope.loadCurrentFarEnd) {
 						angular.forEach(farEndInformation, function (fe, i) {
@@ -44,6 +46,18 @@ define(['./../module'], function(module){
 						scope.defaultFarEndCard = true;
 					}
 				});
+				
+				scope.addressToString = function(address) {
+					let string  = '';
+					if (address) {
+						Object.values(address).forEach((a,index) => {
+							string += index > 0 ? ', ' + a : a
+						})
+						console.log(`string: ${string}`)
+					}
+					return string;
+				};
+
 				scope.openFarEndInformation = function(index) {
 					scope.currentFarEnd = scope.leasingCandidate.farEndInformation[index];
 					if (scope.currentFarEnd.surveyDate){

@@ -64,10 +64,17 @@
                 'approvalPowerContractInSAPFiles',
                 'uploadSignedOwnerLeaseContractFiles',
                 'confirmReceiptOfTSfromRESforCandidateFiles',
-                'connectionFromOwnerNetworksFiles',
-                'preperationSSIDorTSSRProjectFiles',
                 'address'
             ];
+
+            $http.get('/camunda/api/engine/engine/default/task/' + camForm.taskId).then(
+                function(result){
+                    $scope.taskAssignee = result.data.assignee;
+                },
+                function (error) {
+                    console.log(error.data);
+                }
+            );
 
             camForm.on('form-loaded', function () {
                 variables.forEach(function (el) {
@@ -82,43 +89,53 @@
                         }
                 );
                 $scope.leasingCandidate = {};
+                $scope.leasingFiles = [];
             });
 
             camForm.on('variables-fetched', function () {
-                $scope.preperationSSIDorTSSRProjectFiles = [];
+                $scope.confirmReceiptOfTSfromRESforCandidateFiles = [];
                 variables.forEach(function (el) {
                     if(camForm.variableManager.variables[el].value){
                         $scope[el] = camForm.variableManager.variables[el].value;
                         $scope.leasingCandidate[el] = camForm.variableManager.variables[el].value;
+                        if ( el.toLowerCase().includes('file') ) {
+                            $scope.leasingFiles = $scope.leasingFiles.concat(camForm.variableManager.variables[el].value)
+                        }
                     }
                 });
                 camForm.variableManager.createVariable({
-                    name: 'preperationSSIDorTSSRProjectTaskResult',
+                    name: 'confirmReceiptOfTSfromRESforCandidateTaskResult',
                     type: 'String',
                     value: ''
                 });
                 camForm.variableManager.createVariable({
-                    name: 'preperationSSIDorTSSRProjectTaskComment',
+                    name: 'confirmReceiptOfTSfromRESforCandidateTaskComment',
+                    type: 'String',
+                    value: ''
+                });
+                camForm.variableManager.createVariable({
+                    name: 'leasingProblem',
                     type: 'String',
                     value: ''
                 });
 
-                $scope.preperationSSIDorTSSRProjectTaskResult = '';
+                $scope.confirmReceiptOfTSfromRESforCandidateTaskResult = '';
             });
 
             camForm.on('submit', function () {
-                camForm.variableManager.variableValue('preperationSSIDorTSSRProjectTaskResult', $scope.preperationSSIDorTSSRProjectTaskResult);
-                camForm.variableManager.variableValue('preperationSSIDorTSSRProjectTaskComment', $scope.preperationSSIDorTSSRProjectTaskComment);
+                camForm.variableManager.variableValue('confirmReceiptOfTSfromRESforCandidateTaskResult', $scope.confirmReceiptOfTSfromRESforCandidateTaskResult);
+                camForm.variableManager.variableValue('leasingProblem', $scope.confirmReceiptOfTSfromRESforCandidateTaskResult === 'Approve' ? 'No' : 'Yes');
+                camForm.variableManager.variableValue('confirmReceiptOfTSfromRESforCandidateTaskComment', $scope.confirmReceiptOfTSfromRESforCandidateTaskComment);
 
-                if(!camForm.variableManager.variables['preperationSSIDorTSSRProjectFiles'].type){
-                    camForm.variableManager.destroyVariable('preperationSSIDorTSSRProjectFiles');
+                if(!camForm.variableManager.variables['confirmReceiptOfTSfromRESforCandidateFiles'].type){
+                    camForm.variableManager.destroyVariable('confirmReceiptOfTSfromRESforCandidateFiles');
                     camForm.variableManager.createVariable({
-                        name: 'preperationSSIDorTSSRProjectFiles',
+                        name: 'confirmReceiptOfTSfromRESforCandidateFiles',
                         type: 'Json',
-                        value: $scope.preperationSSIDorTSSRProjectFiles
+                        value: $scope.confirmReceiptOfTSfromRESforCandidateFiles
                     });
                 } else {
-                    camForm.variableManager.variableValue('preperationSSIDorTSSRProjectFiles', $scope.preperationSSIDorTSSRProjectFiles);
+                    camForm.variableManager.variableValue('confirmReceiptOfTSfromRESforCandidateFiles', $scope.confirmReceiptOfTSfromRESforCandidateFiles);
                 }
                 camForm.variableManager.destroyVariable('resolutions');
             });
@@ -136,7 +153,9 @@
 
                 var fileToUpload = {
                     name: file.name.replace(/[/\\?%*:|"<>]/g, '-'),
-                    path: $scope.processInstanceId + '/' + camForm.taskId + '/' + file.name.replace(/[/\\?%*:|"<>]/g, '-')
+                    path: $scope.processInstanceId + '/' + camForm.taskId + '/' + file.name.replace(/[/\\?%*:|"<>]/g, '-'),
+                    date: new Date(),
+                    author: $scope.taskAssignee
                 };
                 $http({
                     method: 'GET',
@@ -168,7 +187,9 @@
             function uploadSingleFileToMinio(file, fileName) {
                 var fileToUpload = {
                     name: file.name.replace(/[/\\?%*:|"<>]/g, '-'),
-                    path: $scope.processInstanceId + '/' + camForm.taskId + '/' + file.name.replace(/[/\\?%*:|"<>]/g, '-')
+                    path: $scope.processInstanceId + '/' + camForm.taskId + '/' + file.name.replace(/[/\\?%*:|"<>]/g, '-'),
+                    date: new Date(),
+                    author: $scope.taskAssignee
                 };
                 $http({
                     method: 'GET',
@@ -213,54 +234,65 @@
     </script>
     <leasing-candidate leasing-candidate="leasingCandidate"></leasing-candidate>
 
+    <accordion class="content-visible-accordion background-yellow-accordion">
+        <accordion-group is-open="false" style="background-color: #ffffcc; !important;" >
+            <accordion-heading>
+                    Instruction for Power engineer <i class="pull-right glyphicon"
+                                            ng-class="{'glyphicon-chevron-up': status.isCustomHeaderOpen, 'glyphicon-chevron-down': !status.isCustomHeaderOpen}"></i>
+            </accordion-heading>
+            <div>
+                <p><b>1) Оформить письменную заявку на получение ТУ в региональный РЭС.(Форму заявки и перечень необходимых документов для получения ТУ необходимо получить в региональном РЭС).</b></p>
+                <p><b>2) Прикрепить скан. копию заявки с отметкой РЭС о приеме заявления к форме в системе.Нормативный срок рассмотрения заявки и выдачи ТУ составляет:</b></p>
+                <ul>
+                    <li>мощностью до 200 килоВатт (далее - кВт) - в течение 5 рабочих дней</li>
+                    <li>мощностью от 200 до 1000 кВт - в течение 10 рабочих дней</li>
+                </ul>
+                <p><b>3) После получения положительных ТУ, провести техническую и финансовую оценку на предмет возможности их реализации.</b></p>
+                <p><b>По результатам оценки:</b></p>
+                <ul>
+                    <li>при положительном ответе, прикрепить скан. копию ТУ к форме в системе и поставить отметку о наличии ТВ (Approve).</li>
+                    <li>при отрицательном ответе, поставить отметку (Leasing Problem) и дать соответствующий комментарий об отсутствии ТВ.</li>
+                </ul>
+                <p><b>4) В случае отказа РЭС в выдаче ТУ, прикрепить скан. копию отказа к форме в системе и поставить отметкуоб отсутствии возможности - Leasing Problem.</b></p>
+            </div>
+        </accordion-group>
+    </accordion>
+
+
     <iframe id="fileDownloadIframe" style="display:none;"></iframe>
-
-    <div class="form-group">
-        <label class="col-md-4 control-label">Download RR:</label>
-        <div class="col-sm-8">
-            <a ng-click="fileDownload(rrFile)">{{rrFile.name}}</a>
-        </div>
-    </div>
-    <div class="form-group">
-        <label class="col-md-4 control-label">RR files:</label>
-        <div class="col-sm-8">
-            <div ng-show="newCandidateRRFiles.length > 0" class="input-group" ng-repeat="file in newCandidateRRFiles">
-                {{$index + 1}}.
-                <a ng-click="fileDownload(file)">{{file.name}}</a>
-            </div>
-        </div>
-    </div>
-
-    <leasing-files leasing-files="leasingCandidate"></leasing-files>
-
-    <div class="form-group">
-        <label class="col-md-4 control-label">Signed contract:</label>
-        <div class="col-sm-8">
-            <div class="col-sm-8">
-                <div ng-show="uploadSignedOwnerLeaseContractFiles.length > 0" class="input-group" ng-repeat="file in uploadSignedOwnerLeaseContractFiles">
-                    <a ng-click="fileDownload(file)">{{file.name}}</a>
-                </div>
-            </div>
-        </div>
-    </div>
-
+    
+    <leasing-attachments leasing-files="leasingFiles"></leasing-attachments>
+    
     <div class="form-group">
         <label class="col-md-4 control-label">Upload files:</label>
         <div class="col-sm-8">
-            <div ng-show="preperationSSIDorTSSRProjectFiles.length > 0" class="input-group" ng-repeat="file in preperationSSIDorTSSRProjectFiles">
+            <div ng-show="confirmReceiptOfTSfromRESforCandidateFiles.length > 0" class="input-group" ng-repeat="file in confirmReceiptOfTSfromRESforCandidateFiles">
                 {{$index + 1}}.
-                <a ng-click="fileDownload(file)">{{file.name}}</a> | <a ng-click="clearFile('preperationSSIDorTSSRProjectFiles', $index)"><i class="glyphicon glyphicon-trash"></i></a>
+                <a ng-click="fileDownload(file)">{{file.name}}</a> | <a ng-click="clearFile('confirmReceiptOfTSfromRESforCandidateFiles', $index)"><i class="glyphicon glyphicon-trash"></i></a>
             </div>
             <ng-form name="kcell_material_file_form">
-                <input type="file" class="form-control" id="preperationSSIDorTSSRProjectFiles" name="preperationSSIDorTSSRProjectFiles" ng-model="file.file" onchange="angular.element(this).scope().fileSelected(this, 'preperationSSIDorTSSRProjectFiles')"/>
+                <input type="file" class="form-control" id="confirmReceiptOfTSfromRESforCandidateFiles" name="confirmReceiptOfTSfromRESforCandidateFiles"  required-file="confirmReceiptOfTSfromRESforCandidateFiles.length == 0" ng-model="file.file" onchange="angular.element(this).scope().fileSelected(this, 'confirmReceiptOfTSfromRESforCandidateFiles')"/>
             </ng-form>
+        </div>
+    </div>
+
+    <div class="form-group">
+        <label class="col-sm-4 control-label">Resolution</label>
+        <div class="col-sm-8">
+            <label class="radio-inline">
+                <input type="radio" name="confirmReceiptOfTSfromRESforCandidateTaskResult" ng-model="confirmReceiptOfTSfromRESforCandidateTaskResult" value="Approve" required> Approve
+            </label>
+            <label class="radio-inline">
+                <input type="radio" name="confirmReceiptOfTSfromRESforCandidateTaskResult" ng-model="confirmReceiptOfTSfromRESforCandidateTaskResult" value="Leasing problem" required> Leasing problem
+            </label>
+            <label class="error" ng-show="kcell_form.confirmReceiptOfTSfromRESforCandidateTaskResult.$error.required && ( kcell_form.confirmReceiptOfTSfromRESforCandidateTaskResult.$touched || view.submitted)">Required field</label>
         </div>
     </div>
 
     <div class="form-group">
         <label class="col-sm-4 control-label">Comments</label>
         <div class="col-sm-8">
-            <textarea class="form-control" ng-model="preperationSSIDorTSSRProjectTaskComment" name="preperationSSIDorTSSRProjectTaskComment" placeholder="Comments..." maxlength="500" rows="4" style="resize:none"></textarea>
+            <textarea class="form-control" ng-model="confirmReceiptOfTSfromRESforCandidateTaskComment" name="confirmReceiptOfTSfromRESforCandidateTaskComment" placeholder="Comments..." maxlength="500" rows="4" style="resize:none"></textarea>
         </div>
     </div>
 </form>
