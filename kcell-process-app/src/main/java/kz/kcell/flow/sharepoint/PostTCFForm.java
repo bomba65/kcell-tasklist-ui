@@ -282,7 +282,7 @@ public class PostTCFForm implements ExecutionListener {
 
             if (delegateExecution.getVariable("starter").toString().equals("Nazym.Muralimova@kcell.kz")) {
                 requestBodyJSON.put("InitiatorId", "3034");
-            } else if (Arrays.asList("Sagida.Adiyeva@kcell.kz", "demo").contains(delegateExecution.getVariable("starter").toString())) {
+            } else {
                 requestBodyJSON.put("InitiatorId", "987");
             }
             requestBodyJSON.put("InitiatorDepartment", "B2B");
