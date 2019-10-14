@@ -268,7 +268,7 @@ public class GetTCFForm implements JavaDelegate {
                 }
             });
 
-            URL urlRequest = new URL(baseUri + "/Lists/getbytitle('ICTD%20TCF')/items(" + tcfFormId + ")");
+            URL urlRequest = new URL(baseUri + "/Lists/getbytitle('TCF_test')/items(" + tcfFormId + ")");
             HttpURLConnection conn = (HttpURLConnection) urlRequest.openConnection();
             conn.setDoOutput(true);
             conn.setDoInput(true);
