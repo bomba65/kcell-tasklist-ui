@@ -378,7 +378,7 @@ define(['./module', 'lodash', 'big-js'], function(module, _, Big){
                     var htmlTemplateFooter = '</tbody></table><p><br></p></div>';
 
                     var requestBodyJSON = {};
-                    var metadataBodyJSON = {type: "SP.Data.TCF_x005f_testListItem"};
+                    var metadataBodyJSON = {type: "SP.Data.ICTD_x0020_TCFListItem"};
                     var operatorBodyJSON = {};
                     var billingTypeBodyJSON = {};
                     var operatorResultsJSONArray = [];

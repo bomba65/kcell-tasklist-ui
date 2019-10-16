@@ -28,7 +28,7 @@ public class NtlmCheckController {
 
         String result = "error";
         try {
-            String responseText = getAuthenticatedResponse("https://sp.kcell.kz/forms/_api/Lists/getbytitle('TCF_test')/items(1)", "kcell.kz", "camunda_sharepoint", "Bn12#Qaz");
+            String responseText = getAuthenticatedResponse("https://sp.kcell.kz/forms/_api/Lists/getbytitle('ICTD%20TCF')/items(1)", "kcell.kz", "camunda_sharepoint", "Bn12#Qaz");
             result = responseText;
         }catch(Exception e){
             e.printStackTrace();
@@ -75,7 +75,7 @@ public class NtlmCheckController {
 
         String result = "error";
         try {
-            String responseText = postItemsResponse("https://sp.kcell.kz/forms/_api/Lists/getbytitle('TCF_test')/items", "kcell.kz", "camunda_sharepoint", "Bn12#Qaz", reqObj.get("FormDigestValue").toString());
+            String responseText = postItemsResponse("https://sp.kcell.kz/forms/_api/Lists/getbytitle('ICTD%20TCF')/items", "kcell.kz", "camunda_sharepoint", "Bn12#Qaz", reqObj.get("FormDigestValue").toString());
             result = responseText;
         }catch(Exception e){
             e.printStackTrace();
@@ -173,7 +173,7 @@ public class NtlmCheckController {
 
         String jsonRequestBody = "{\n" +
             "    \"__metadata\": {\n" +
-            "        \"type\": \"SP.Data.TCF_x005f_testListItem\"\n" +
+            "        \"type\": \"SP.Data.ICTD_x0020_TCFListItem\"\n" +
             "    },\n" +
             "    \"Subject\": \"B2B Short Numbers\",\n" +
             "    \"DateDeadline\": \"2019-02-21T00:00:00\",\n" +
