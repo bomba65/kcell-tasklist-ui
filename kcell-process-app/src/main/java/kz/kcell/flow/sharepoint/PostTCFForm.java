@@ -245,7 +245,7 @@ public class PostTCFForm implements ExecutionListener {
             String headerBillingId = "";
 
             JSONObject requestBodyJSON = new JSONObject();
-            JSONObject metadataBodyJSON = new JSONObject("{\"type\": \"SP.Data.ICTD_x0020_TCFListItem \"}");
+            JSONObject metadataBodyJSON = new JSONObject("{\"type\": \"SP.Data.ICTD_x0020_TCFListItem\"}");
             JSONObject operatorBodyJSON = new JSONObject();
             JSONObject billingTypeBodyJSON = new JSONObject();
             JSONArray operatorResultsJSONArray = new JSONArray();
@@ -383,7 +383,19 @@ public class PostTCFForm implements ExecutionListener {
 
                 /*StringEntity TCFData = new StringEntity(requestBodyJSON.toString(), ContentType.APPLICATION_JSON);
 
+<<<<<<< HEAD
+<<<<<<< HEAD
+<<<<<<< HEAD
                 HttpPost httpPostTCF = new HttpPost(new URI(baseUri+"/Lists/getbytitle('ICTD%20TCF')/items"));
+=======
+                HttpPost httpPostTCF = new HttpPost(new URI(baseUri+"/Lists/getbytitle(''ICTD%20TCF'')/items"));
+>>>>>>> TCF prod config
+=======
+                HttpPost httpPostTCF = new HttpPost(new URI(baseUri+"/Lists/getbytitle('ICTD%20TCF')/items"));
+>>>>>>> fix prod config
+=======
+                HttpPost httpPostTCF = new HttpPost(new URI(baseUri+"/Lists/getbytitle('ICTD%20TCF')/items"));
+>>>>>>> DP-325: Вернул BPMN с prod сервера
                 httpPostTCF.addHeader("Content-Type", "application/json;charset=UTF-8");
                 httpPostTCF.setEntity(TCFData);
 

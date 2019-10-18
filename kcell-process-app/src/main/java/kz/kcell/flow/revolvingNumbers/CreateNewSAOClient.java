@@ -40,8 +40,8 @@ public class CreateNewSAOClient implements JavaDelegate {
 
     @Autowired
     public CreateNewSAOClient(@Value("${sao.api.url:http://sao.kcell.kz/apis}") String saoUrl,
-                           @Value("${b2b.crm.url:http://ldb-al.kcell.kz/corp_client_profile/bin/}") String b2bCRMurl,
-                           @Value("${b2b.crm.auth:app.camunda.user:Asd123Qwerty!}") String b2bCRMauth) {
+                              @Value("${b2b.crm.url:http://ldb-al.kcell.kz/corp_client_profile/bin/}") String b2bCRMurl,
+                              @Value("${b2b.crm.auth:app.camunda.user:Asd123Qwerty!}") String b2bCRMauth) {
         this.saoUrl = saoUrl;
         this.b2bCRMurl = b2bCRMurl;
         this.b2bCRMauth = b2bCRMauth;
@@ -78,16 +78,18 @@ public class CreateNewSAOClient implements JavaDelegate {
             JsonValue productCatalogClientJsonValue = SpinValues.jsonValue(productCatalogContent).create();
             delegateExecution.setVariable("productCatalogClientResponse", productCatalogClientJsonValue);
 
-            if(productCatalogClientJSON.has("id")) {
+            if (productCatalogClientJSON.has("id")) {
                 Integer corpClientId = (Integer) productCatalogClientJSON.get("id");
-                if(corpClientId > 0) {
+                if (corpClientId > 0) {
                     List<NameValuePair> params = new ArrayList<>();
 
                     params.add(new BasicNameValuePair("fk_client", "0"));
                     params.add(new BasicNameValuePair("bin_client", legalInfo.get("BIN").toString()));
                     params.add(new BasicNameValuePair("comp_name", legalInfo.get("legalName").toString()));
                     params.add(new BasicNameValuePair("corp_city", legalInfo.get("companyCity").toString().replace("г.", "")));
-                    params.add(new BasicNameValuePair("kase", legalInfo.get("salesRepr").toString()));
+                    if (legalInfo.has("salesRepr") && legalInfo.get("salesRepr") != null && !legalInfo.get("salesRepr").toString().isEmpty()) {
+                        params.add(new BasicNameValuePair("kase", legalInfo.get("salesRepr").toString()));
+                    }
 
                     JSONObject regionalHeadUserJSON = productCatalogClientJSON.getJSONObject("regionalHeadUser");
                     params.add(new BasicNameValuePair("region_head", regionalHeadUserJSON.get("username").toString()));
@@ -98,25 +100,25 @@ public class CreateNewSAOClient implements JavaDelegate {
                     JSONObject supervisorUserJSON = productCatalogClientJSON.getJSONObject("supervisorUser");
                     params.add(new BasicNameValuePair("reten_super", supervisorUserJSON.get("username").toString()));
 
-                    params.add(new BasicNameValuePair("channel", techSpecs.get("connectionType").toString().equals("SIP direct")?"2":"1"));
+                    params.add(new BasicNameValuePair("channel", techSpecs.get("connectionType").toString().equals("SIP direct") ? "2" : "1"));
                     params.add(new BasicNameValuePair("tic_name", legalInfo.get("ticName").toString()));
                     params.add(new BasicNameValuePair("clt_number", legalInfo.get("callerID").toString()));
 
                     JSONObject region = productCatalogClientJSON.getJSONObject("kcellRegion");
-                    if("Almaty Region".equals(region.get("name").toString())){
+                    if ("Almaty Region".equals(region.get("name").toString())) {
                         params.add(new BasicNameValuePair("fk_region", "1"));
-                    } else if("Astana Region".equals(region.get("name").toString())){
+                    } else if ("Astana Region".equals(region.get("name").toString())) {
                         params.add(new BasicNameValuePair("fk_region", "8"));
-                    } else if("North Region".equals(region.get("name").toString())){
+                    } else if ("North Region".equals(region.get("name").toString())) {
                         params.add(new BasicNameValuePair("fk_region", "3"));
-                    } else if("South Region".equals(region.get("name").toString())){
+                    } else if ("South Region".equals(region.get("name").toString())) {
                         params.add(new BasicNameValuePair("fk_region", "2"));
-                    } else if("West Region".equals(region.get("name").toString())){
+                    } else if ("West Region".equals(region.get("name").toString())) {
                         params.add(new BasicNameValuePair("fk_region", "4"));
-                    } else if("East Region".equals(region.get("name").toString())){
+                    } else if ("East Region".equals(region.get("name").toString())) {
                         params.add(new BasicNameValuePair("fk_region", "7"));
                     }
-                    
+
                     params.add(new BasicNameValuePair("conn_type", "2"));
 
                     if (techSpecs.get("connectionType").toString().equals("SIP over internet")) {
@@ -146,8 +148,8 @@ public class CreateNewSAOClient implements JavaDelegate {
                     saoRequest.put("params", params.toString());
 
                     CloseableHttpClient client = HttpClients.createDefault();
-                    HttpPost httpPost = new HttpPost(new URI(saoUrl+"/PbxClientUpdate"));
-                    httpPost.setEntity(new UrlEncodedFormEntity(params,"UTF-8"));
+                    HttpPost httpPost = new HttpPost(new URI(saoUrl + "/PbxClientUpdate"));
+                    httpPost.setEntity(new UrlEncodedFormEntity(params, "UTF-8"));
                     client.execute(httpPost);
 
                     /*CloseableHttpResponse response = client.execute(httpPost);

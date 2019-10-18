@@ -14,6 +14,7 @@ import org.springframework.beans.factory.annotation.Value;
 import org.springframework.core.env.Environment;
 import org.springframework.stereotype.Service;
 
+import javax.net.ssl.*;
 import java.io.BufferedInputStream;
 import java.io.IOException;
 import java.io.InputStream;
@@ -22,6 +23,9 @@ import java.net.Authenticator;
 import java.net.HttpURLConnection;
 import java.net.PasswordAuthentication;
 import java.net.URL;
+import java.security.KeyManagementException;
+import java.security.NoSuchAlgorithmException;
+import java.security.cert.X509Certificate;
 import java.text.DateFormat;
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
@@ -60,6 +64,46 @@ public class RevolvingPostTCFForm implements JavaDelegate {
     private static String postAuthenticatedResponse(
         final String urlStr, final String domain,
         final String userName, final String password) throws IOException {
+
+
+
+
+        try
+        {
+            // Create a trust manager that does not validate certificate chains
+            TrustManager[] trustAllCerts = new TrustManager[] {new X509TrustManager() {
+                public java.security.cert.X509Certificate[] getAcceptedIssuers() {
+                    return null;
+                }
+                public void checkClientTrusted(X509Certificate[] certs, String authType) {
+                }
+                public void checkServerTrusted(X509Certificate[] certs, String authType) {
+                }
+            }
+            };
+
+            // Install the all-trusting trust manager
+            SSLContext sc = SSLContext.getInstance("SSL");
+            sc.init(null, trustAllCerts, new java.security.SecureRandom());
+            HttpsURLConnection.setDefaultSSLSocketFactory(sc.getSocketFactory());
+
+            // Create all-trusting host name verifier
+            HostnameVerifier allHostsValid = new HostnameVerifier() {
+                public boolean verify(String hostname, SSLSession session) {
+                    return true;
+                }
+            };
+
+            // Install the all-trusting host verifier
+            HttpsURLConnection.setDefaultHostnameVerifier(allHostsValid);
+        } catch (NoSuchAlgorithmException e) {
+            e.printStackTrace();
+        } catch (KeyManagementException e) {
+            e.printStackTrace();
+        }
+
+
+
 
         Authenticator.setDefault(new Authenticator() {
 
@@ -114,6 +158,52 @@ public class RevolvingPostTCFForm implements JavaDelegate {
         System.out.println("postItemsResponse BODY: " + requestBodyStr);
 
         URL urlRequest = new URL(urlStr);
+
+
+
+
+
+        try
+        {
+            // Create a trust manager that does not validate certificate chains
+            TrustManager[] trustAllCerts = new TrustManager[] {new X509TrustManager() {
+                public java.security.cert.X509Certificate[] getAcceptedIssuers() {
+                    return null;
+                }
+                public void checkClientTrusted(X509Certificate[] certs, String authType) {
+                }
+                public void checkServerTrusted(X509Certificate[] certs, String authType) {
+                }
+            }
+            };
+
+            // Install the all-trusting trust manager
+            SSLContext sc = SSLContext.getInstance("SSL");
+            sc.init(null, trustAllCerts, new java.security.SecureRandom());
+            HttpsURLConnection.setDefaultSSLSocketFactory(sc.getSocketFactory());
+
+            // Create all-trusting host name verifier
+            HostnameVerifier allHostsValid = new HostnameVerifier() {
+                public boolean verify(String hostname, SSLSession session) {
+                    return true;
+                }
+            };
+
+            // Install the all-trusting host verifier
+            HttpsURLConnection.setDefaultHostnameVerifier(allHostsValid);
+        } catch (NoSuchAlgorithmException e) {
+            e.printStackTrace();
+        } catch (KeyManagementException e) {
+            e.printStackTrace();
+        }
+
+
+
+
+
+
+
+
         HttpURLConnection conn = (HttpURLConnection) urlRequest.openConnection();
         conn.setConnectTimeout(5000);
         conn.setRequestProperty("X-requestDigest", formDigestValueStr);
@@ -146,9 +236,12 @@ public class RevolvingPostTCFForm implements JavaDelegate {
             System.out.println("isSftp:");
             System.out.println(isSftp);
             //isSftp = true;
+            delegateExecution.removeVariable("tcfIdReceived");
+            delegateExecution.removeVariable("rejectedFromTCF");
             if (isSftp) {
                 String processKey = repositoryService.createProcessDefinitionQuery().processDefinitionId(delegateExecution.getProcessDefinitionId()).list().get(0).getKey();
-                JSONObject customerInformationJSON = new JSONObject(String.valueOf(delegateExecution.getVariable("customerInformation")));
+                JSONObject legalInformationJSON = new JSONObject(String.valueOf(delegateExecution.getVariable("legalInfo")));
+                JSONObject commLaunchTCFJSON = new JSONObject(String.valueOf(delegateExecution.getVariable("commLaunchTCF")));
 
                 DateFormat df = new SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss.SSS'Z'");
                 DateFormat sdf = new SimpleDateFormat("dd.MM.yyyy");
@@ -170,7 +263,7 @@ public class RevolvingPostTCFForm implements JavaDelegate {
 
                 }
                 requestBodyJSON.put("InitiatorDepartment", "B2B");
-                requestBodyJSON.put("Subject", customerInformationJSON.get("ticName").toString());
+                requestBodyJSON.put("Subject", legalInformationJSON.get("ticName").toString());
                 operatorResultsJSONArray.put("Telesens");
                 billingTypeResultsJSONArray.put("TIC");
                 departmentManagerIdJSONArray.put(263);
@@ -184,7 +277,7 @@ public class RevolvingPostTCFForm implements JavaDelegate {
                 requestBodyJSON.put("DepartmentManagerId", departmentManagerIdJSON);
                 requestBodyJSON.put("Status", "Approved by Department Manager");
                 requestBodyJSON.put("TypeForm", "Добавление тарифа на новый сервис (Old service TCF)");
-                requestBodyJSON.put("DateDeadline", df.format(((Date) delegateExecution.getVariable("tcfRequestDeadline"))));
+                requestBodyJSON.put("DateDeadline", commLaunchTCFJSON.get("deadline").toString());
 
                 Calendar calendar = Calendar.getInstance();
                 int lastDate = calendar.getActualMaximum(Calendar.DATE);
@@ -196,11 +289,6 @@ public class RevolvingPostTCFForm implements JavaDelegate {
 
                 Calendar firstDate = Calendar.getInstance();
                 firstDate.set(Calendar.DAY_OF_MONTH, 1);
-
-                Boolean firstDayConnection = (Boolean) delegateExecution.getVariable("firstDayConnection");
-                if (firstDayConnection == null) {
-                    firstDayConnection = false;
-                }
 
                 Date commercialDate = new Date();
 
@@ -295,7 +383,7 @@ public class RevolvingPostTCFForm implements JavaDelegate {
                 }
                 String htmlTemplateTCF = "<table style=\"border: 1px dotted #d3d3d3;color:#333333;background-color:#ffffff;\">\n" +
                     "  <tr>\n" +
-                    "    <td colspan=\"3\">To set the following tariffs for " + customerInformationJSON.get("ticName").toString() + " contract from " + sdf.format(commercialDate) +
+                    "    <td colspan=\"3\">To set the following tariffs for " + legalInformationJSON.get("ticName").toString() + " contract from " + sdf.format(commercialDate) +
                     " commercial_starting_service to " + sdf.format(calendar.getTime()) + ":</td>\n" +
                     "  </tr>\n" +
                     "  <tr>\n" +
@@ -305,22 +393,22 @@ public class RevolvingPostTCFForm implements JavaDelegate {
                     "  </tr>\n" +
                     "  <tr>\n" +
                     "    <td style=\"border: 1px dotted #d3d3d3;color:#333333;background-color:#ffffff;\">Kcell, Activ</td>\n" +
-                    "    <td style=\"border: 1px dotted #d3d3d3;color:#333333;background-color:#ffffff;\">11</td>\n" +
+                    "    <td style=\"border: 1px dotted #d3d3d3;color:#333333;background-color:#ffffff;\">" + onnet + "</td>\n" +
                     "    <td style=\"border: 1px dotted #d3d3d3;color:#333333;background-color:#ffffff;\">1 sec</td>\n" +
                     "  </tr>\n" +
                     "  <tr>\n" +
                     "    <td style=\"border: 1px dotted #d3d3d3;color:#333333;background-color:#ffffff;\">CUG</td>\n" +
-                    "    <td style=\"border: 1px dotted #d3d3d3;color:#333333;background-color:#ffffff;\">11</td>\n" +
+                    "    <td style=\"border: 1px dotted #d3d3d3;color:#333333;background-color:#ffffff;\">" + cug + "</td>\n" +
                     "    <td style=\"border: 1px dotted #d3d3d3;color:#333333;background-color:#ffffff;\">1 sec</td>\n" +
                     "  </tr>\n" +
                     "  <tr>\n" +
                     "    <td style=\"border: 1px dotted #d3d3d3;color:#333333;background-color:#ffffff;\">Other mobile operators</td>\n" +
-                    "    <td style=\"border: 1px dotted #d3d3d3;color:#333333;background-color:#ffffff;\">11</td>\n" +
+                    "    <td style=\"border: 1px dotted #d3d3d3;color:#333333;background-color:#ffffff;\">" + offnet + "</td>\n" +
                     "    <td style=\"border: 1px dotted #d3d3d3;color:#333333;background-color:#ffffff;\">1 sec</td>\n" +
                     "  </tr>\n" +
                     "  <tr>\n" +
                     "    <td style=\"border: 1px dotted #d3d3d3;color:#333333;background-color:#ffffff;\">Fixed network</td>\n" +
-                    "    <td style=\"border: 1px dotted #d3d3d3;color:#333333;background-color:#ffffff;\">11</td>\n" +
+                    "    <td style=\"border: 1px dotted #d3d3d3;color:#333333;background-color:#ffffff;\">" + pstn + "</td>\n" +
                     "    <td style=\"border: 1px dotted #d3d3d3;color:#333333;background-color:#ffffff;\">1 sec</td>\n" +
                     "  </tr>\n" +
                     "  <tr>\n" +
@@ -329,7 +417,7 @@ public class RevolvingPostTCFForm implements JavaDelegate {
                     "    <td style=\"border: 1px dotted #d3d3d3;color:#333333;background-color:#ffffff;\">1 sec</td>\n" +
                     "  </tr>\n" +
                     "  <tr>\n" +
-                    "    <td colspan=\"3\" style=\"border: 1px dotted #d3d3d3;color:#333333;background-color:#ffffff;\">To set one time payment for " + customerInformationJSON.get("ticName").toString() + " from " + sdf.format(calendarNext.getTime()) + ":</td>\n" +
+                    "    <td colspan=\"3\" style=\"border: 1px dotted #d3d3d3;color:#333333;background-color:#ffffff;\">To set one time payment for " + legalInformationJSON.get("ticName").toString() + " from " + sdf.format(calendarNext.getTime()) + " - " + a + " tg</td>\n" +
                     "  </tr>\n" +
 //                    "  <tr>\n" +
 //                    "    <td style=\"border: 1px dotted #d3d3d3;color:#333333;background-color:#ffffff;\">Direction</td>\n" +
