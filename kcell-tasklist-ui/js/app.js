@@ -13,6 +13,7 @@ define('app',[
 	'big-js',
 	'xlsx',
 	'angular-ui-router',
+	'ngAnimate',
 	'ng-file-upload',
 	'angular-local-storage',
 	'angularjs-dropdown-multiselect',
@@ -33,12 +34,12 @@ define('app',[
 		'angular-toasty',
 		'ngRoute',
 		'ngCookies',
+		'ngAnimate',
 		'ui.router',
 		'ngFileUpload',
 		'LocalStorageModule',
 		'angularjs-dropdown-multiselect',
-		'angular-toArrayFilter',
-		//'bootstrap-select'
+		'angular-toArrayFilter'
 	]);
 	var preLoginUrl;
 	var resolve = {
