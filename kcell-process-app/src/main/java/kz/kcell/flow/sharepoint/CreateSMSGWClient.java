@@ -2,13 +2,14 @@ package kz.kcell.flow.sharepoint;
 
 import lombok.extern.java.Log;
 import org.apache.http.HttpEntity;
-import org.apache.http.NameValuePair;
-import org.apache.http.client.entity.UrlEncodedFormEntity;
-import org.apache.http.client.methods.CloseableHttpResponse;
+import org.apache.http.HttpResponse;
+import org.apache.http.client.HttpClient;
+import org.apache.http.client.methods.HttpGet;
 import org.apache.http.client.methods.HttpPut;
+import org.apache.http.entity.ContentType;
+import org.apache.http.entity.StringEntity;
 import org.apache.http.impl.client.CloseableHttpClient;
 import org.apache.http.impl.client.HttpClients;
-import org.apache.http.message.BasicNameValuePair;
 import org.apache.http.util.EntityUtils;
 import org.camunda.bpm.engine.delegate.DelegateExecution;
 import org.camunda.bpm.engine.delegate.JavaDelegate;
@@ -18,14 +19,8 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.core.env.Environment;
 import org.springframework.stereotype.Service;
+import java.util.Base64;
 
-import java.io.BufferedReader;
-import java.io.InputStream;
-import java.io.InputStreamReader;
-import java.net.*;
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.List;
 
 
 @Service("createSMSGWClient")
@@ -35,106 +30,191 @@ public class CreateSMSGWClient implements JavaDelegate {
     private Environment environment;
 
     private final String baseUri;
-    private final String username;
-    private final String pwd;
+    private final String authStr64;
 
 
     @Autowired
     public CreateSMSGWClient(@Value("https://admin-api-hermes-stage.kcell.kz") String baseUri, @Value("${sharepoint.forms.username}") String username, @Value("${sharepoint.forms.password}") String pwd) {
         this.baseUri = baseUri;
-        this.username = username;
-        this.pwd = pwd;
+        this.authStr64 = username + ":" + pwd;
     }
 
     @Override
     public void execute(DelegateExecution delegateExecution) throws Exception {
-
-        Boolean isSftp = Arrays.stream(environment.getActiveProfiles()).anyMatch(env -> (env.equalsIgnoreCase("sftp")));
-
-        System.out.println("isSftp: " + isSftp);
-
-        log.info("basUri: " + baseUri);
         String connectionType = String.valueOf(delegateExecution.getVariable("connectionType"));
         String identifierType = String.valueOf(delegateExecution.getVariable("identifierType"));
-        log.info("connectionType: "  + connectionType + " , identifierType: " + identifierType );
+        String clientCompanyLatName = String.valueOf(delegateExecution.getVariable("clientCompanyLatName"));
+        String smsGwUsername = clientCompanyLatName + "_REST";
+        String smsGwUserId = null;
+        String smsGwSenderId = null;
+        String smsGwBwListId = null;
+        JSONArray identifierJSONArray = new JSONArray(String.valueOf(delegateExecution.getVariable("identifiers")));
+        JSONObject identifierJSON = identifierJSONArray.getJSONObject(0);
+        String identifier = String.valueOf(identifierJSON.get("title"));
 
         if ("rest".equals(connectionType) && "alfanumeric".equals(identifierType)) {
-            log.info("alfanumeric $ rest");
+            CloseableHttpClient closeableHttpClient = HttpClients.createDefault();
+            String responseGetUsers = executeGet(baseUri + "/users/", closeableHttpClient);
+            String smsGwPasswd = "123456789";
 
-            StringBuilder responseUsersRequest = new StringBuilder();
-//            Authenticator.setDefault(new Authenticator() {
-//                @Override
-//                public PasswordAuthentication getPasswordAuthentication() {
-//                    return new PasswordAuthentication("kcell.kz\\" + username, pwd.toCharArray());
-//                }
-//            });
+            log.info("responseGetUsersRequest :  " + responseGetUsers);
 
-            URL getUsersRequest = new URL(baseUri + "/users/");
-            HttpURLConnection conn = (HttpURLConnection) getUsersRequest.openConnection();
-
-            log.info("connection");
-            conn.setDoOutput(true);
-            conn.setDoInput(true);
-            conn.setRequestMethod("GET");
-            conn.setRequestProperty("Accept", "application/json;odata=verbose");
-
-            log.info("connection");
-
-            InputStream stream = conn.getInputStream();
-            BufferedReader in = new BufferedReader(new InputStreamReader(stream));
-            String str = "";
-            while ((str = in.readLine()) != null) {
-                responseUsersRequest.append(str);
-            }
-            in.close();
-
-            log.info("responseGetUsersRequest :  " + responseUsersRequest);
-            JSONArray responseSharepointJSON = new JSONArray(responseUsersRequest);
-            delegateExecution.setVariable("responseGetUsers", responseUsersRequest.toString());
+            JSONArray responseGetUsersJson = new JSONArray(responseGetUsers);
+            delegateExecution.setVariable("responseGetUsers", responseGetUsers);
 
             String clientBIN = String.valueOf(delegateExecution.getVariable("clientBIN"));
 
+            log.info("clientBIN " + clientBIN);
+
             boolean userAlreadyExists = false;
 
-            for (int i = 0; i < responseSharepointJSON.length(); i++) {
-                if (((JSONObject) responseSharepointJSON.get(i)).get("bin").equals(clientBIN)) {
+            for (int i = 0; i < responseGetUsersJson.length(); i++) {
+                if (((JSONObject) responseGetUsersJson.get(i)).get("bin").equals(clientBIN)) {
                     userAlreadyExists = true;
+                    smsGwUserId = ((JSONObject) responseGetUsersJson.get(i)).getString("userId");
+                    break;
+                }
+            }
+            log.info("userAlreadyExists " + userAlreadyExists);
+            if (!userAlreadyExists) {
+                String comments = String.valueOf(delegateExecution.getVariable("comments"));
+
+                JSONObject jsonObject = new JSONObject();
+                jsonObject.put("bin", clientBIN);
+                jsonObject.put("comments", comments);
+                jsonObject.put("isActive", true);
+                jsonObject.put("isReadOnly", false);
+                jsonObject.put("password", smsGwPasswd);
+                jsonObject.put("userId", 0);
+                jsonObject.put("username", clientCompanyLatName);
+
+                String responsePut = executePut(baseUri + "/users/", closeableHttpClient, jsonObject);
+                JSONObject responsePutUserJson = new JSONObject(responsePut);
+                smsGwUserId = responsePutUserJson.getString("userId");
+                log.info("responsePut " + responsePut);
+                delegateExecution.setVariable("smsGwUserId", smsGwUserId);
+                delegateExecution.setVariable("putUserResponse", responsePut);
+            }
+
+            String responseGetSenders = executeGet(baseUri + "/senders/", closeableHttpClient);
+
+            JSONArray responseGetSendersJson = new JSONArray(responseGetSenders);
+            delegateExecution.setVariable("responseGetSenders", responseGetSenders);
+            delegateExecution.setVariable("clientLogin", smsGwUsername);
+            delegateExecution.setVariable("clientPassword", smsGwPasswd);
+            delegateExecution.setVariable("sendPreferencesToClientTaskResult", "approve");
+
+            log.info("responseGetSenders " + responseGetSenders);
+
+            boolean senderAlreadyExists = false;
+
+            for (int i = 0; i < responseGetSendersJson.length(); i++) {
+                if (((JSONObject) responseGetSendersJson.get(i)).get("senderName").equals(identifier)) {
+                    senderAlreadyExists = true;
+                    smsGwSenderId = ((JSONObject) responseGetSendersJson.get(i)).getString("senderId");
+                    delegateExecution.setVariable("smsGwSenderId", smsGwSenderId);
+                    break;
+                }
+            }
+            log.info("senderAlreadyExists " + senderAlreadyExists);
+            if (!senderAlreadyExists) {
+                String smsServiceType = String.valueOf(delegateExecution.getVariable("smsServiceType"));
+                String queueName = identifier + "_" + (smsServiceType.equals("MO") ? "mo_" : "") + "queue";
+
+                JSONObject jsonObject = new JSONObject();
+                jsonObject.put("accountConfigId", smsServiceType.equals("MO") ? 3 : 2);
+                jsonObject.put("billingId", null);
+                jsonObject.put("drBatchSize", 0);
+                jsonObject.put("drLink", null);
+                jsonObject.put("drPassword", null);
+                jsonObject.put("drPeriod", 0);
+                jsonObject.put("drUsername", null);
+                jsonObject.put("isActive", true);
+                jsonObject.put("isSendDr", false);
+                jsonObject.put("isSendMo", smsServiceType.equals("MO"));
+                jsonObject.put("moBatchSize", 0);
+                jsonObject.put("moLink", null);
+                jsonObject.put("moPassword", null);
+                jsonObject.put("moPeriod", 0);
+                jsonObject.put("moUsername", null);
+                jsonObject.put("queueName", queueName);
+                jsonObject.put("senderId", 0);
+                jsonObject.put("senderName", identifier);
+                jsonObject.put("throttlingOffnet", 3);
+                jsonObject.put("throttlingOnnet", 3);
+                jsonObject.put("userId", smsGwUserId);
+
+                String responsePut = executePut(baseUri + "/senders/", closeableHttpClient, jsonObject);
+                JSONObject responsePutSenderJson = new JSONObject(responsePut);
+                smsGwSenderId = responsePutSenderJson.getString("senderId");
+
+                delegateExecution.setVariable("smsGwSenderId", smsGwSenderId);
+                delegateExecution.setVariable("putSenderResponse", responsePut);
+            }
+
+            String responseGetBWLists = executeGet(baseUri + "/black_white_lists/", closeableHttpClient);
+
+            JSONArray responseGetBWListsJson = new JSONArray(responseGetBWLists);
+            delegateExecution.setVariable("responseGetBWLists", responseGetBWLists);
+            log.info("responseGetBWLists " + responseGetBWLists);
+
+            boolean bwListAlreadyExists = false;
+
+            for (int i = 0; i < responseGetBWListsJson.length(); i++) {
+                if (((JSONObject) responseGetBWListsJson.get(i)).get("sender_id").equals(smsGwSenderId)) {
+                    bwListAlreadyExists = true;
+                    smsGwBwListId = ((JSONObject) responseGetBWListsJson.get(i)).getString("bw_list_id");
+                    delegateExecution.setVariable("smsGwBwListId", smsGwBwListId);
                     break;
                 }
             }
 
-            if (!userAlreadyExists) {
-                String comments = String.valueOf(delegateExecution.getVariable(""));
-                String clientCompanyLatName = String.valueOf(delegateExecution.getVariable("clientCompanyLatName"));
-                String smsGwUsername = "REST_" + clientCompanyLatName;
-                String smsGwPasswd = "123456789";
+            log.info("bwListAlreadyExists " + bwListAlreadyExists);
 
-                List<NameValuePair> params = new ArrayList<>();
-                params.add(new BasicNameValuePair("bin", clientBIN));
-                params.add(new BasicNameValuePair("comments", comments));
-                params.add(new BasicNameValuePair("isActive", "true"));
-                params.add(new BasicNameValuePair("isReadOnly", "false"));
-                params.add(new BasicNameValuePair("password", smsGwPasswd));
-                params.add(new BasicNameValuePair("userId", "0"));
-                params.add(new BasicNameValuePair("username", smsGwUsername));
+            if (!bwListAlreadyExists) {
+                String testNumber = String.valueOf(delegateExecution.getVariable("testNumber"));
+                JSONObject jsonObject = new JSONObject();
+                jsonObject.put("bw_list_id", 0);
+                jsonObject.put("sender_id", smsGwSenderId);
+                jsonObject.put("recipient_regex", testNumber);
+                jsonObject.put("type_of_bw", "W");
+                jsonObject.put("comments", "test");
 
-                CloseableHttpClient client = HttpClients.createDefault();
-                HttpPut httpPost = new HttpPut(new URI(baseUri+"/users/"));
-                httpPost.setEntity(new UrlEncodedFormEntity(params,"UTF-8"));
-                CloseableHttpResponse response = client.execute(httpPost);
-                HttpEntity entity = response.getEntity();
-                String responseString = EntityUtils.toString(entity, "UTF-8");
+                String responsePut = executePut(baseUri + "/black_white_lists/", closeableHttpClient, jsonObject);
+                JSONObject responsePutBwListJson = new JSONObject(responsePut);
+                smsGwBwListId = responsePutBwListJson.getString("bw_list_id");
 
-                delegateExecution.setVariable("putUserResponse", responseString);
-                delegateExecution.setVariable("smsGwUsername", smsGwUsername);
-                delegateExecution.setVariable("smsGwPasswd", smsGwPasswd);
-
+                log.info("responsePut " + responsePut);
+                delegateExecution.setVariable("smsGwBwListId", smsGwBwListId);
             }
-
-
-
         }
+    }
 
+    private String executeGet(String url, HttpClient httpClient) throws Exception {
+        String encoding = Base64.getEncoder().encodeToString((authStr64).getBytes("UTF-8"));
+        HttpGet httpGet = new HttpGet(url);
+        httpGet.setHeader("Authorization", "Basic " + encoding);
+        HttpResponse httpResponse = httpClient.execute(httpGet);
+        HttpEntity productCatalogEntity = httpResponse.getEntity();
+        log.info("GET uri: " + url + " statusCode " + httpResponse.getStatusLine().getStatusCode());
+        return EntityUtils.toString(productCatalogEntity);
+    }
+
+    private String executePut(String url, HttpClient httpClient, JSONObject requestBody) throws Exception {
+        String encoding = Base64.getEncoder().encodeToString((authStr64).getBytes("UTF-8"));
+        StringEntity entity = new StringEntity(requestBody.toString(), ContentType.APPLICATION_JSON);
+
+        HttpPut httpPut = new HttpPut(url);
+        httpPut.setHeader("Authorization", "Basic " + encoding);
+        httpPut.addHeader("Content-Type", "application/json;charset=UTF-8");
+        httpPut.setEntity(entity);
+        HttpResponse httpResponse = httpClient.execute(httpPut);
+        HttpEntity responseEntity = httpResponse.getEntity();
+        String strEntity = EntityUtils.toString(responseEntity);
+        log.info("method " + httpPut.getMethod());
+        log.info("PUT uri: " + url + " statusCode " + httpResponse.getStatusLine().getStatusCode());
+        log.info("PUT uri: " + url + " strEntity " + strEntity);
+        return strEntity;
     }
 
 
