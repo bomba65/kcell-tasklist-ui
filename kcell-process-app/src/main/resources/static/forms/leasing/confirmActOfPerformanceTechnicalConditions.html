@@ -1,0 +1,298 @@
+<form role="form" class="form-horizontal" name="kcell_form" novalidate>
+    <script cam-script type="text/form-script">
+        inject(['$scope', '$http', 'Uri', '$rootScope', '$q', '$timeout', function ($scope, $http, Uri, $rootScope, $q, $timeout) {
+            var variables = [
+                'resolutions',
+                'ncpID',
+                'siteType',
+                'regionName',
+                'latitude',
+                'longitude',
+                'initiator',
+                'project',
+                'reason',
+                'part',
+                'plannedCabinetType',
+                'targetCoverage',
+                'rbsType',
+                'bands',
+                'rrFile',
+                'newCandidateRRFiles',
+                'candidate',
+                'cellAntenna',
+                'renterCompany',
+                'transmissionAntenna',
+                'powerSource',
+                'farEndInformation',
+                'receivingTSForCandiateSiteFiles',
+                'receivingContractPSDFiles',
+                'receivingApprovalFromTheLandlordFiles',
+                'modifyCandidateRRFiles',
+                'estimateTechnicalCapabilityResFiles',
+                'registrationCommercialOfferFiles',
+                'preparationSSIDandTSSRFiles',
+                'requestTechnicalParametersKTFiles',
+                'confirmPaymentDevelopmentOfTCKTFiles',
+                'receivingTSFiles',
+                'signingLeaseContractAddAgreementKTFiles',
+                'sendMessageToStartPaymentKTFiles',
+                'reqKZTRwithTechEquipmentParamsFiles',
+                'receivingContractDevDesignEstimateFiles',
+                'confirmReceiptEstimateFiles',
+                'receivingContractInstallationWorksFiles',
+                'requestTechnicalParametersKPFiles',
+                'confirmReceiptResponseKPFiles',
+                'signingLeaseContractAddAgreementKPFiles',
+                'sendMessageToStartPaymentKPFiles',
+                'requestTechnicalParametersKTForFEFiles',
+                'confirmPaymentDevelopmentOfTCKTForFEFiles',
+                'receivingTSForFEFiles',
+                'signingLeaseContractAddAgreementForFEFiles',
+                'sendMessageToStartPaymentKTForFEFiles',
+                'reqKZTRwithTechEquipmentParamsForFEFiles',
+                'receivingContractDevDesignEstimateForFEFiles',
+                'registrationCommercialOfferForFEFiles',
+                'confirmReceiptEstimateForFEFiles',
+                'receivingContractInstallationWorksForFEFiles',
+                'requestTechnicalParametersKPForFEFiles',
+                'confirmReceiptResponseKPForFEFiles',
+                'signingLeaseContractAddAgreementKPForFEFiles',
+                'sendMessageToStartPaymentKPForFEFiles',
+                'contractRentLoadingSAPFiles',
+                'approvalContractRentInSAPFiles',
+                'powerContractLoadingInSAPFiles',
+                'approvalPowerContractInSAPFiles',
+                'uploadSignedOwnerLeaseContractFiles',
+                'confirmActOfPerformanceTechnicalConditionsFiles',
+                'confirmReceiptResponseKPForFETaskResult',
+                'confirmReceiptResponseKPTaskResult',
+                'address'
+            ];
+
+            $http.get('/camunda/api/engine/engine/default/task/' + camForm.taskId).then(
+                function(result){
+                    $scope.taskAssignee = result.data.assignee;
+                },
+                function (error) {
+                    console.log(error.data);
+                }
+            );
+
+            camForm.on('form-loaded', function () {
+                variables.forEach(function (el) {
+                    camForm.variableManager.fetchVariable(el);
+                });
+                $http.get('/camunda/api/engine/engine/default/task/' + camForm.taskId).then(
+                        function(result){
+                            $scope.processInstanceId = result.data.processInstanceId;
+                        },
+                        function (error) {
+                            console.log(error.data);
+                        }
+                );
+                $scope.leasingCandidate = {};
+                $scope.leasingFiles = [];
+            });
+
+            camForm.on('variables-fetched', function () {
+                $scope.confirmActOfPerformanceTechnicalConditionsFiles = [];
+                variables.forEach(function (el) {
+                    if(camForm.variableManager.variables[el].value){
+                        $scope[el] = camForm.variableManager.variables[el].value;
+                        $scope.leasingCandidate[el] = camForm.variableManager.variables[el].value;
+                        if ( el.toLowerCase().includes('file') ) {
+                            $scope.leasingFiles = $scope.leasingFiles.concat(camForm.variableManager.variables[el].value)
+                        }
+                    }
+                });
+                camForm.variableManager.createVariable({
+                    name: 'confirmActOfPerformanceTechnicalConditionsTaskResult',
+                    type: 'String',
+                    value: ''
+                });
+                camForm.variableManager.createVariable({
+                    name: 'confirmActOfPerformanceTechnicalConditionsTaskComment',
+                    type: 'String',
+                    value: ''
+                });
+                camForm.variableManager.createVariable({
+                    name: 'leasingProblem',
+                    type: 'String',
+                    value: ''
+                });
+
+                //костыль для дальней проверки в конце процесса
+                if (!$scope.confirmReceiptResponseKPForFETaskResult) {
+                    camForm.variableManager.createVariable({
+                        name: 'confirmReceiptResponseKPForFETaskResult',
+                        type: 'String',
+                        value: 'Not used'
+                    });
+                }
+                
+                if (!$scope.confirmReceiptResponseKPTaskResult) {
+                    camForm.variableManager.createVariable({
+                        name: 'confirmReceiptResponseKPTaskResult',
+                        type: 'String',
+                        value: 'Not used'
+                    });
+                }
+                // костыль end
+
+                $scope.confirmActOfPerformanceTechnicalConditionsTaskResult = 'Completed';
+            });
+
+            camForm.on('submit', function () {
+                camForm.variableManager.variableValue('confirmActOfPerformanceTechnicalConditionsTaskResult', $scope.confirmActOfPerformanceTechnicalConditionsTaskResult);
+                camForm.variableManager.variableValue('leasingProblem', $scope.confirmActOfPerformanceTechnicalConditionsTaskResult === 'Approve' ? 'No' : 'Yes');
+                camForm.variableManager.variableValue('confirmActOfPerformanceTechnicalConditionsTaskComment', $scope.confirmActOfPerformanceTechnicalConditionsTaskComment);
+
+                if(!camForm.variableManager.variables['confirmActOfPerformanceTechnicalConditionsFiles'].type){
+                    camForm.variableManager.destroyVariable('confirmActOfPerformanceTechnicalConditionsFiles');
+                    camForm.variableManager.createVariable({
+                        name: 'confirmActOfPerformanceTechnicalConditionsFiles',
+                        type: 'Json',
+                        value: $scope.confirmActOfPerformanceTechnicalConditionsFiles
+                    });
+                } else {
+                    camForm.variableManager.variableValue('confirmActOfPerformanceTechnicalConditionsFiles', $scope.confirmActOfPerformanceTechnicalConditionsFiles);
+                }
+
+                camForm.variableManager.createVariable({
+                    name: 'powerProblemSolutionTaskResult',
+                    type: 'String',
+                    value: 'None'
+                });
+
+                camForm.variableManager.destroyVariable('resolutions');
+            });
+
+            $scope.fileSelected = function (el, fileName) {
+                $timeout(function () {
+                    $scope.$apply(function () {
+                        uploadFileToMinio(el.files[0], fileName);
+                    });
+                })
+            };
+
+            function uploadFileToMinio(file, fileName) {
+                var fileIndex = $scope[fileName].length;
+
+                var fileToUpload = {
+                    name: file.name.replace(/[/\\?%*:|"<>]/g, '-'),
+                    path: $scope.processInstanceId + '/' + camForm.taskId + '/' + file.name.replace(/[/\\?%*:|"<>]/g, '-'),
+                    date: new Date(),
+                    author: $scope.taskAssignee
+                };
+                $http({
+                    method: 'GET',
+                    url: '/camunda/uploads/put/' + fileToUpload.path,
+                    transformResponse: []
+                }).then(function (response) {
+                    $http.put(response.data, file, {headers: {'Content-Type': undefined}}).then(
+                            function () {
+                                $scope[fileName].push(fileToUpload);
+                                angular.element(document.querySelector('#' + fileName)).val(null);
+                            },
+                            function (error) {
+                                console.log(error.data);
+                            }
+                    );
+                }, function(error){
+                    console.log(error.data);
+                });
+            }
+
+            $scope.singleFileSelected = function (el, fileName) {
+                $timeout(function () {
+                    $scope.$apply(function () {
+                        uploadSingleFileToMinio(el.files[0], fileName);
+                    });
+                })
+            };
+
+            function uploadSingleFileToMinio(file, fileName) {
+                var fileToUpload = {
+                    name: file.name.replace(/[/\\?%*:|"<>]/g, '-'),
+                    path: $scope.processInstanceId + '/' + camForm.taskId + '/' + file.name.replace(/[/\\?%*:|"<>]/g, '-'),
+                    date: new Date(),
+                    author: $scope.taskAssignee
+                };
+                $http({
+                    method: 'GET',
+                    url: '/camunda/uploads/put/' + fileToUpload.path,
+                    transformResponse: []
+                }).then(function (response) {
+                    $http.put(response.data, file, {headers: {'Content-Type': undefined}}).then(
+                            function () {
+                                $scope[fileName] = fileToUpload;
+                                angular.element(document.querySelector('#' + fileName)).val(null);
+                            },
+                            function (error) {
+                                console.log(error.data);
+                            }
+                    );
+                }, function(error){
+                    console.log(error.data);
+                });
+            }
+
+            $scope.clearFile = function (list, fileIndex) {
+                $scope[list].splice(fileIndex, 1);
+            }
+
+            $scope.clearSingleFile = function (list) {
+                $scope[list] = undefined;
+            }
+
+            $scope.fileDownload = function (file) {
+                $http({
+                    method: 'GET',
+                    url: '/camunda/uploads/get/' + file.path,
+                    transformResponse: []
+                }).then(function (response) {
+                    document.getElementById('fileDownloadIframe').src = response.data;
+                }, function(error){
+                    console.log(error.data);
+                });
+            }
+        }]);
+
+    </script>
+    <leasing-candidate leasing-candidate="leasingCandidate"></leasing-candidate>
+
+    <iframe id="fileDownloadIframe" style="display:none;"></iframe>
+    
+    <leasing-attachments leasing-files="leasingFiles"></leasing-attachments>
+    
+    <div class="form-group">
+        <label class="col-md-4 control-label">Upload files:</label>
+        <div class="col-sm-8">
+            <div ng-show="confirmActOfPerformanceTechnicalConditionsFiles.length > 0" class="input-group" ng-repeat="file in confirmActOfPerformanceTechnicalConditionsFiles">
+                {{$index + 1}}.
+                <a ng-click="fileDownload(file)">{{file.name}}</a> | <a ng-click="clearFile('confirmActOfPerformanceTechnicalConditionsFiles', $index)"><i class="glyphicon glyphicon-trash"></i></a>
+            </div>
+            <ng-form name="kcell_material_file_form">
+                <input type="file" class="form-control" id="confirmActOfPerformanceTechnicalConditionsFiles" name="confirmActOfPerformanceTechnicalConditionsFiles"  required-file="confirmActOfPerformanceTechnicalConditionsFiles.length == 0" ng-model="file.file" onchange="angular.element(this).scope().fileSelected(this, 'confirmActOfPerformanceTechnicalConditionsFiles')"/>
+            </ng-form>
+        </div>
+    </div>
+
+    <!-- <div class="form-group">
+        <label class="col-sm-4 control-label">Resolution</label>
+        <div class="col-sm-8">
+            <label class="radio-inline">
+                <input type="radio" name="confirmActOfPerformanceTechnicalConditionsTaskResult" ng-model="confirmActOfPerformanceTechnicalConditionsTaskResult" value="Transmission problem is solved" required> Transmission problem is solved
+            </label>
+            <label class="radio-inline">
+                <input type="radio" name="confirmActOfPerformanceTechnicalConditionsTaskResult" ng-model="confirmActOfPerformanceTechnicalConditionsTaskResult" value="Leasing problem (Candidate)" required> Candidate modify required
+            </label>
+    </div> -->
+
+    <div class="form-group">
+        <label class="col-sm-4 control-label">Comments</label>
+        <div class="col-sm-8">
+            <textarea class="form-control" ng-model="confirmActOfPerformanceTechnicalConditionsTaskComment" name="confirmActOfPerformanceTechnicalConditionsTaskComment" placeholder="Comments..." maxlength="500" rows="4" style="resize:none"></textarea>
+        </div>
+    </div>
+</form>
