@@ -345,7 +345,8 @@ define(['./module','camundaSDK', 'lodash', 'big-js'], function(module, CamSDK, _
 	               	},
 					isFileVisible: function(file) {
 		            	return !file.visibility || file.visibility == 'all' || (file.visibility == 'kcell' && $rootScope.hasGroup('kcellUsers'));
-		            }
+		            },
+		            isKcellStaff: $rootScope.hasGroup('kcellUsers')
 				},
 				templateUrl: './js/partials/resolutionsModal.html',
 				size: 'hg'

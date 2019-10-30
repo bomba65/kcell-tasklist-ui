@@ -1,6 +1,6 @@
 define(['./../module'], function(module){
 	'use strict';
-	module.directive('resolutionHistory', function ($http) {
+	module.directive('resolutionHistory', function ($httpб $rootScope) {
 		return {
 			restrict: 'E',
 			scope: {
@@ -19,6 +19,7 @@ define(['./../module'], function(module){
                	scope.isFileVisible = function(file) {
 	            	return !file.visibility || file.visibility == 'all' || (file.visibility == 'kcell' && $rootScope.hasGroup('kcellUsers'));
 	            }
+	            scope.isKcellStaff = $rootScope.hasGroup('kcellUsers');
 	        },
 			templateUrl: './js/partials/resolutions.html'
 		};
