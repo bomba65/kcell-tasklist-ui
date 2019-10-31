@@ -1,6 +1,6 @@
 define(['./../module'], function(module){
 	'use strict';
-	module.directive('resolutionHistory', function ($httpб $rootScope) {
+	module.directive('resolutionHistory', function ($http, $rootScope) {
 		return {
 			restrict: 'E',
 			scope: {
