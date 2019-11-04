@@ -78,49 +78,49 @@ public class GenerateDocument implements JavaDelegate {
             sites.forEach(s -> {
                 String name = s.prop("name").stringValue();
                 if("cell A:".equals(name)){
-                    if(s.hasProp("gsmValue") && s.prop("gsmValue")!=null && !"undefined".equals(s.prop("gsmValue"))) {
+                    if(s.hasProp("gsmValue") && s.prop("gsmValue")!=null && !"null".equalsIgnoreCase(String.valueOf(s.prop("gsmValue"))) && !"undefined".equalsIgnoreCase(String.valueOf(s.prop("gsmValue")))) {
                         varsMap.put("$gsmA", String.valueOf(s.prop("gsmValue").numberValue()));
                     } else {
                         varsMap.put("$gsmA", "");
                     }
-                    if(s.hasProp("umtsValue") && s.prop("umtsValue")!=null && !"undefined".equals(s.prop("umtsValue"))) {
+                    if(s.hasProp("umtsValue") && s.prop("umtsValue")!=null && !"null".equalsIgnoreCase(String.valueOf(s.prop("umtsValue"))) && !"undefined".equalsIgnoreCase(String.valueOf(s.prop("umtsValue")))) {
                         varsMap.put("$umtsA", String.valueOf(s.prop("umtsValue").numberValue()));
                     } else {
                         varsMap.put("$umtsA", "");
                     }
-                    if(s.hasProp("lteValue") && s.prop("lteValue")!=null && !"undefined".equals(s.prop("lteValue"))) {
+                    if(s.hasProp("lteValue") && s.prop("lteValue")!=null && !"null".equalsIgnoreCase(String.valueOf(s.prop("lteValue"))) && !"undefined".equalsIgnoreCase(String.valueOf(s.prop("lteValue")))) {
                         varsMap.put("$lteA", String.valueOf(s.prop("lteValue").numberValue()));
                     } else {
                         varsMap.put("$lteA", "");
                     }
                 } else if("cell B:".equals(name)){
-                    if(s.hasProp("gsmValue") && s.prop("gsmValue")!=null && !"undefined".equals(s.prop("gsmValue"))) {
+                    if(s.hasProp("gsmValue") && s.prop("gsmValue")!=null && !"null".equalsIgnoreCase(String.valueOf(s.prop("gsmValue"))) && !"undefined".equalsIgnoreCase(String.valueOf(s.prop("gsmValue")))) {
                         varsMap.put("$gsmB", String.valueOf(s.prop("gsmValue").numberValue()));
                     } else {
                         varsMap.put("$gsmB", "");
                     }
-                    if(s.hasProp("umtsValue") && s.prop("umtsValue")!=null && !"undefined".equals(s.prop("umtsValue"))) {
+                    if(s.hasProp("umtsValue") && s.prop("umtsValue")!=null && !"null".equalsIgnoreCase(String.valueOf(s.prop("umtsValue"))) && !"undefined".equalsIgnoreCase(String.valueOf(s.prop("umtsValue")))) {
                         varsMap.put("$umtsB", String.valueOf(s.prop("umtsValue").numberValue()));
                     } else {
                         varsMap.put("$umtsB", "");
                     }
-                    if(s.hasProp("lteValue") && s.prop("lteValue")!=null && !"undefined".equals(s.prop("lteValue"))) {
+                    if(s.hasProp("lteValue") && s.prop("lteValue")!=null && !"null".equalsIgnoreCase(String.valueOf(s.prop("lteValue"))) && !"undefined".equalsIgnoreCase(String.valueOf(s.prop("lteValue")))) {
                         varsMap.put("$lteB", String.valueOf(s.prop("lteValue").numberValue()));
                     } else {
                         varsMap.put("$lteB", "");
                     }
                 } else if("cell C:".equals(name)){
-                    if(s.hasProp("gsmValue") && s.prop("gsmValue")!=null && !"undefined".equals(s.prop("gsmValue"))) {
+                    if(s.hasProp("gsmValue") && s.prop("gsmValue")!=null && !"null".equalsIgnoreCase(String.valueOf(s.prop("gsmValue"))) && !"undefined".equalsIgnoreCase(String.valueOf(s.prop("gsmValue")))) {
                         varsMap.put("$gsmC", String.valueOf(s.prop("gsmValue").numberValue()));
                     } else {
                         varsMap.put("$gsmC", "");
                     }
-                    if(s.hasProp("umtsValue") && s.prop("umtsValue")!=null && !"undefined".equals(s.prop("umtsValue"))) {
+                    if(s.hasProp("umtsValue") && s.prop("umtsValue")!=null && !"null".equalsIgnoreCase(String.valueOf(s.prop("umtsValue"))) && !"undefined".equalsIgnoreCase(String.valueOf(s.prop("umtsValue")))) {
                         varsMap.put("$umtsC", String.valueOf(s.prop("umtsValue").numberValue()));
                     } else {
                         varsMap.put("$umtsC", "");
                     }
-                    if(s.hasProp("lteValue") && s.prop("lteValue")!=null && !"undefined".equals(s.prop("lteValue"))) {
+                    if(s.hasProp("lteValue") && s.prop("lteValue")!=null && !"null".equalsIgnoreCase(String.valueOf(s.prop("lteValue"))) && !"undefined".equalsIgnoreCase(String.valueOf(s.prop("lteValue")))) {
                         varsMap.put("$lteC", String.valueOf(s.prop("lteValue").numberValue()));
                     } else {
                         varsMap.put("$lteC", "");
