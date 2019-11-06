@@ -21,17 +21,37 @@ define(['./../module'], function(module){
                         scope.dictionary.legalTypeTitle = _.keyBy(scope.dictionary.legalType, 'id');
 						scope.dictionary.antennasList = scope.dictionary.antennas;
 						scope.dictionary.antennaType = scope.dictionary.antennaType;
+						scope.addressesList = scope.dictionary.addresses;
+                        scope.oblastList = _.uniqBy(scope.dictionary.addresses, 'oblast').map( (e, index) => { return {"name" : e.oblast, "id" : index} });
+                        scope.cityList = _.uniqBy(scope.dictionary.addresses, 'city').map( (e, index) => { return {"name" : e.city, "id" : index} });
+                        scope.districtList = _.uniqBy(scope.dictionary.addresses, 'district').map( (e, index) => { return {"name" : e.district, "id" : index} });
+                        scope.filteredDistricts = scope.districtList;
+                        scope.filteredDistrictsInCAI = scope.districtList;
+						
+						scope.leasingCandidate.addressString = '';
+						scope.leasingCandidate.cellAntenna.addressString = '';
+						//tabs
+						scope.minTab = 0;
+						scope.maxTab = 3;
+						scope.leasingCandidate.cellAntenna.sectors[0].active = 'active';
+						scope.selectedSectorTab = 0;
 
-						scope.leasingCandidate.addressString = ''
 						Object.values(scope.leasingCandidate.address).forEach((s,index) => {
 							scope.leasingCandidate.addressString += index > 0 ? ', ' + s : s
-						})
-						
+						});
+
+						console.log(`scope.leasingCandidate.cellAntenna.address:`);
+						console.log(scope.leasingCandidate.cellAntenna.address);
+						console.log('----------------------------------------');
+						Object.values(scope.leasingCandidate.cellAntenna.address).forEach((s,index) => {
+							scope.leasingCandidate.cellAntenna.addressString += index > 0 ? ', ' + s : s
+						});
+						console.log(`asdasdsa: ${scope.leasingCandidate.cellAntenna.addressString} 12`);	
                     },
                     function(error){
                         console.log(error);
                     }
-                );
+				);
 				
 				scope.$watch('leasingCandidate.farEndInformation', function(farEndInformation) {
 					if (farEndInformation && farEndInformation.length>0 && scope.loadCurrentFarEnd) {
@@ -53,10 +73,45 @@ define(['./../module'], function(module){
 						Object.values(address).forEach((a,index) => {
 							string += index > 0 ? ', ' + a : a
 						})
-						console.log(`string: ${string}`)
+						// console.log(`string: ${string}`)
 					}
 					return string;
 				};
+
+
+				scope.tabStepRight = function () {
+					if (scope.selectedSectorTab+1 < scope.leasingCandidate.cellAntenna.sectors.length) {
+						scope.selectedSectorTab = scope.selectedSectorTab + 1;
+						scope.leasingCandidate.cellAntenna.sectors[scope.selectedSectorTab].active = 'active';
+	
+						if (scope.selectedSectorTab === scope.maxTab) {
+							scope.minTab= scope.minTab + 1; 
+							scope.maxTab= scope.maxTab + 1;
+						}
+					} else {
+						scope.leasingCandidate.cellAntenna.sectors[scope.selectedSectorTab].active = 'active'; 
+					}
+				}
+	
+				scope.tabStepLeft = function () {
+					if (scope.selectedSectorTab-1 >= 0) {
+						scope.selectedSectorTab = scope.selectedSectorTab - 1;
+						scope.leasingCandidate.cellAntenna.sectors[scope.selectedSectorTab].active = 'active';
+	
+						if (scope.selectedSectorTab+1 === scope.minTab) {
+							scope.minTab= scope.minTab - 1; 
+							scope.maxTab= scope.maxTab - 1;
+						}
+					} else if (scope.selectedSectorTab-1 < 0){
+						scope.leasingCandidate.cellAntenna.sectors[0].active = 'active'; 
+					} else {
+						scope.leasingCandidate.cellAntenna.sectors[scope.selectedSectorTab].active = 'active'; 
+					}
+				}
+
+				scope.selectAntennaSector = function (index) {
+					scope.selectedSectorTab = index;
+				}
 
 				scope.openFarEndInformation = function(index) {
 					scope.currentFarEnd = scope.leasingCandidate.farEndInformation[index];
@@ -147,6 +202,26 @@ define(['./../module'], function(module){
 					} else {
 						if (!(val>=0 && val <=360)) scope.currentFarEnd.azimuth = '';
 					}
+				};
+
+				scope.filterDistrictAfterSelectObl = function (cn_addr_oblast) {
+					scope.currentFarEnd.address.cn_addr_oblast = cn_addr_oblast
+					scope.currentFarEnd.address.cn_addr_district = ''
+					scope.currentFarEnd.address.cn_addr_city = ''
+					if(scope.currentFarEnd.address.cn_addr_oblast && scope.currentFarEnd.address.cn_addr_oblast !== ''){
+						scope.currentFarEnd.filteredByOblast = scope.dictionary.addresses.filter(a => {return a.oblast === scope.currentFarEnd.address.cn_addr_oblast});
+						scope.currentFarEnd.filteredDistricts = _.uniqBy(scope.currentFarEnd.filteredByOblast, 'district').map( (e, index) => { return {"name" : e.district, "id" : index} });
+						scope.currentFarEnd.cityList = _.uniqBy(scope.currentFarEnd.filteredByOblast, 'city').map( (e, index) => { return {"name" : e.city, "id" : index} });
+					} else {
+						scope.filteredDistricts = scope.districtList;
+					}
+				};
+
+				scope.getCity = function (val) {
+					if (val.length < 2) {
+						return []
+					}
+					return _.filter(scope.currentFarEnd.cityList, function(o) { return o.name.toLowerCase().includes(val.toLowerCase()); })
 				};
 			},
 			templateUrl: './js/directives/leasing/leasingCandidate.html'

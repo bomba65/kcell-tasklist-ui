@@ -15,6 +15,19 @@ define(['./../module'], function(module){
                         console.log(error.data);
                     });
                 };
+                
+                scope.fileDownload = function(file) {
+                    $http({method: 'GET', url: '/camunda/uploads/get/' + file.path, transformResponse: [] }).
+                    then(function(response) {
+                        document.getElementById('fileDownloadIframe').src = response.data;
+                    }, function(error){
+                        console.log(error.data);
+                    });
+                };
+
+                scope.clearFile = function (list, fileIndex) {
+                    scope[list].splice(fileIndex, 1);
+                };
             },
             templateUrl: './js/directives/leasing/leasingAttachments.html'
         };
