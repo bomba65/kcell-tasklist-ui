@@ -439,7 +439,7 @@ public class PBXPostTCFForm implements JavaDelegate {
                         "  <tr>\n") : "") +
 
                     (firstDayConnection ?
-                        ("    <td colspan=\"3\" style=\"border: 1px dotted #d3d3d3;color:#333333;background-color:#ffffff;\">To set the following tariffs for " + customerInformationJSON.get("ticName").toString() + " from " + df.format(firstDate.getTime()) + ":</td>\n") :
+                        ("    <td colspan=\"3\" style=\"border: 1px dotted #d3d3d3;color:#333333;background-color:#ffffff;\">To set the following tariffs for " + customerInformationJSON.get("ticName").toString() + " from " + sdf.format(firstDate.getTime()) + ":</td>\n") :
                         ("    <td colspan=\"3\" style=\"border: 1px dotted #d3d3d3;color:#333333;background-color:#ffffff;\">Please set a new tariff for " + customerInformationJSON.get("ticName").toString() + " from " + sdf.format(calendarNext.getTime()) + ":</td>\n")
                     ) +
 
