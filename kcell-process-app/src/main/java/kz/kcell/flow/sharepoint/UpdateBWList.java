@@ -46,13 +46,13 @@ public class UpdateBWList implements JavaDelegate {
             JSONObject jsonObject = new JSONObject();
             jsonObject.put("bw_list_id", smsGwBwListId);
             jsonObject.put("sender_id", smsGwSenderId);
-            jsonObject.put("recipient_regex", "^77[0-9]{9}$");
+            jsonObject.put("recipient_regex", "^77(01|77)\\d{7}");
             jsonObject.put("type_of_bw", "W");
             jsonObject.put("comments", "test");
 
             String responsePost = executePost(baseUri + "/black_white_lists/", closeableHttpClient, jsonObject);
             log.info("responsePost " + responsePost);
-            executePost(baseUri + "/cache/refresh/", closeableHttpClient, null);
+//            executePost(baseUri + "/cache/refresh/", closeableHttpClient, null);
         }
     }
 

@@ -19,8 +19,8 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.core.env.Environment;
 import org.springframework.stereotype.Service;
-import java.util.Base64;
 
+import java.util.Base64;
 
 
 @Service("createSMSGWClient")
@@ -43,6 +43,7 @@ public class CreateSMSGWClient implements JavaDelegate {
     public void execute(DelegateExecution delegateExecution) throws Exception {
         String connectionType = String.valueOf(delegateExecution.getVariable("connectionType"));
         String identifierType = String.valueOf(delegateExecution.getVariable("identifierType"));
+        String operatorType = String.valueOf(delegateExecution.getVariable("operatorType"));
         String clientCompanyLatName = String.valueOf(delegateExecution.getVariable("clientCompanyLatName"));
         String smsGwUsername = clientCompanyLatName + "_REST";
         String smsGwUserId = null;
@@ -96,6 +97,14 @@ public class CreateSMSGWClient implements JavaDelegate {
                 delegateExecution.setVariable("putUserResponse", responsePut);
             }
 
+            if (operatorType.equals("Onnet")) {
+                JSONObject jsonObject = new JSONObject();
+                jsonObject.put("channelName", "SMS");
+                jsonObject.put("userId", Integer.parseInt(smsGwUserId));
+                String responsePutChannel = executePut(baseUri + "/channels/", closeableHttpClient, jsonObject);
+                delegateExecution.setVariable("responsePutChannel", responsePutChannel);
+            }
+
             String responseGetSenders = executeGet(baseUri + "/senders/", closeableHttpClient);
 
             JSONArray responseGetSendersJson = new JSONArray(responseGetSenders);
@@ -117,32 +126,35 @@ public class CreateSMSGWClient implements JavaDelegate {
                 }
             }
             log.info("senderAlreadyExists " + senderAlreadyExists);
+            log.info("smsGwUserId "+ smsGwUserId);
             if (!senderAlreadyExists) {
                 String smsServiceType = String.valueOf(delegateExecution.getVariable("smsServiceType"));
                 String queueName = identifier + "_" + (smsServiceType.equals("MO") ? "mo_" : "") + "queue";
 
                 JSONObject jsonObject = new JSONObject();
                 jsonObject.put("accountConfigId", smsServiceType.equals("MO") ? 3 : 2);
-                jsonObject.put("billingId", null);
+                jsonObject.put("billingId", "");
                 jsonObject.put("drBatchSize", 0);
-                jsonObject.put("drLink", null);
-                jsonObject.put("drPassword", null);
+                jsonObject.put("drLink", "");
+                jsonObject.put("drPassword", "");
                 jsonObject.put("drPeriod", 0);
-                jsonObject.put("drUsername", null);
+                jsonObject.put("drUsername", "");
                 jsonObject.put("isActive", true);
                 jsonObject.put("isSendDr", false);
                 jsonObject.put("isSendMo", smsServiceType.equals("MO"));
                 jsonObject.put("moBatchSize", 0);
-                jsonObject.put("moLink", null);
-                jsonObject.put("moPassword", null);
+                jsonObject.put("moLink", "");
+                jsonObject.put("moPassword", "");
                 jsonObject.put("moPeriod", 0);
-                jsonObject.put("moUsername", null);
+                jsonObject.put("moUsername", "");
                 jsonObject.put("queueName", queueName);
                 jsonObject.put("senderId", 0);
                 jsonObject.put("senderName", identifier);
                 jsonObject.put("throttlingOffnet", 3);
                 jsonObject.put("throttlingOnnet", 3);
-                jsonObject.put("userId", smsGwUserId);
+                jsonObject.put("userId", Integer.parseInt(smsGwUserId));
+
+                log.info("jsonputsender " + jsonObject);
 
                 String responsePut = executePut(baseUri + "/senders/", closeableHttpClient, jsonObject);
                 JSONObject responsePutSenderJson = new JSONObject(responsePut);
@@ -161,7 +173,7 @@ public class CreateSMSGWClient implements JavaDelegate {
             boolean bwListAlreadyExists = false;
 
             for (int i = 0; i < responseGetBWListsJson.length(); i++) {
-                if (((JSONObject) responseGetBWListsJson.get(i)).get("sender_id").equals(smsGwSenderId)) {
+                if (((JSONObject) responseGetBWListsJson.get(i)).get("sender_id").toString().equals(smsGwSenderId)) {
                     bwListAlreadyExists = true;
                     smsGwBwListId = ((JSONObject) responseGetBWListsJson.get(i)).getString("bw_list_id");
                     delegateExecution.setVariable("smsGwBwListId", smsGwBwListId);
@@ -170,16 +182,17 @@ public class CreateSMSGWClient implements JavaDelegate {
             }
 
             log.info("bwListAlreadyExists " + bwListAlreadyExists);
+            log.info("smsGwSenderId " + smsGwSenderId);
 
             if (!bwListAlreadyExists) {
                 String testNumber = String.valueOf(delegateExecution.getVariable("testNumber"));
                 JSONObject jsonObject = new JSONObject();
-                jsonObject.put("bw_list_id", 0);
-                jsonObject.put("sender_id", smsGwSenderId);
+                jsonObject.put("sender_id", Integer.parseInt(smsGwSenderId));
                 jsonObject.put("recipient_regex", testNumber);
                 jsonObject.put("type_of_bw", "W");
                 jsonObject.put("comments", "test");
 
+                log.info("jsonputbwlist  " + jsonObject);
                 String responsePut = executePut(baseUri + "/black_white_lists/", closeableHttpClient, jsonObject);
                 JSONObject responsePutBwListJson = new JSONObject(responsePut);
                 smsGwBwListId = responsePutBwListJson.getString("bw_list_id");
