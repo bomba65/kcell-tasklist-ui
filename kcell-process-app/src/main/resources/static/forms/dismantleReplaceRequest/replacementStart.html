@@ -8,6 +8,7 @@
 </style>
 <form role="form" class="form-horizontal" name="kcell_form" novalidate>
     <script cam-script type="text/form-script">
+        <!-- <script> -->
         inject(['$scope', '$http', '$rootScope', '$q', '$timeout', function ($scope, $http, $rootScope, $q, $timeout) {
             var variablesToCreate = [
                 {
@@ -205,6 +206,7 @@
             $scope.siteStatus = undefined;
             $scope.siteToStatus = undefined;
 
+
             $scope.siteInformation = [
                 { name: 'cell A:', gsmLabel: 'GSM-', gsmValue: undefined, umtsLabel: 'UMTS-', umtsValue: undefined, lteLabel: 'LTE-', lteValue: undefined},
                 { name: 'cell B:', gsmLabel: 'GSM-', gsmValue: undefined, umtsLabel: 'UMTS-', umtsValue: undefined, lteLabel: 'LTE-', lteValue: undefined},
@@ -256,6 +258,7 @@
                 '7': 'west',
                 '8': 'west'
             };
+            $scope.supplementaryFiles = [];
 
             camForm.on('form-loaded', function () {
                 variablesToCreate.forEach(function (el) {
@@ -293,16 +296,42 @@
             });
 
             camForm.on('submit', function (e) {
-                variablesToCreate.forEach(function (el) {
-                    if(el.name === 'resolutions'){
-                        $scope.resolutions = [];
-                        $scope.resolutions.push({processInstanceId: 'noProcessInstanceId', assignee: $rootScope.authentication.name, assigneeName: $rootScope.authentication.assigneeName, resolution: 'created', comment: $scope.startComment, taskId: 'noTaskId', taskName:'SRR Start', taskEndDate:new Date(),  visibility: 'all'});
-                    }
-                    if (el.submit && $scope[el.name]) {
-                        camForm.variableManager.variableValue(el.name, $scope[el.name]);
-                    }
-                });
+                try{
+                    //e.submitPrevented = true;    
+                    var attachments = [];
+                    var attachmentsChanges = {"added": [], "removed":[]};
+                    attachments.push($scope.coverageAreaFile);
+                    attachments.push($scope.siteToCoverageAreaFile)
+                    attachments.push($scope.supplementaryFiles)
+                    attachments = _.flattenDeep(attachments)
+                    
+                    attachmentsChanges.added = attachments
 
+                    camForm.variableManager.createVariable({
+                        name: 'attachments',
+                        type: 'json',
+                        value: attachments
+                    });      
+                    camForm.variableManager.createVariable({
+                        name: 'supplementaryFiles',
+                        type: 'json',
+                        value: $scope.supplementaryFiles
+                    });                         
+
+                    variablesToCreate.forEach(function (el) {
+                        if(el.name === 'resolutions'){
+                            $scope.resolutions = [];
+                            $scope.resolutions.push({processInstanceId: 'noProcessInstanceId', assignee: $rootScope.authentication.name, assigneeName: $rootScope.authentication.assigneeName, resolution: 'created', comment: $scope.startComment, taskId: 'noTaskId', taskName:'SRR Start', taskEndDate:new Date(),  visibility: 'all', attachments: attachmentsChanges});
+                        }
+                        if (el.submit && $scope[el.name]) {
+                            camForm.variableManager.variableValue(el.name, $scope[el.name]);
+                        }
+                    });
+                    console.log($scope)
+                } catch(error){
+                    console.log(error)
+                }
+                
             });
 
             $scope.getSite = function(val) {
@@ -328,10 +357,11 @@
             };
 
             $scope.siteSelected = function ($item) {
+                console.log($item)
                 $scope.siteName = $item.name;
                 $scope.site = $item.id;
                 $scope.site_name = $item.site_name;
-                if($item.params.status){
+                if($item.params.status && $item.params.status[$item.site_name]){
                     $scope.siteStatus = $item.params.status[$item.site_name];
                 } else {
                     $scope.siteStatus = "working site";
@@ -502,6 +532,8 @@
             };
 
             function uploadFileToMinio(file, fileName) {
+                console.log(file)
+                console.log(fileName)
                 var fileToUpload = {
                     name: file.name.replace(/[/\\?%*:|"<>]/g, '-'),
                     path: uuid + '/' + file.name.replace(/[/\\?%*:|"<>]/g, '-')
@@ -510,7 +542,11 @@
                 then(function(response) {
                     $http.put(response.data, file, {headers: {'Content-Type': undefined}}).then(
                             function () {
-                                $scope[fileName] = fileToUpload;
+                                if(fileName == 'supplementaryFile'){
+                                    $scope.supplementaryFiles.push(fileToUpload)
+                                } else {
+                                    $scope[fileName] = fileToUpload;
+                                }
                                 angular.element(document.querySelector('#'+fileName)).val(null);
                             },
                             function (error) {
@@ -524,6 +560,19 @@
 
             $scope.clearFile = function(filename){
                 delete $scope[filename];
+            };
+
+            $scope.clearFileSupp = function(index){
+                delete $scope.supplementaryFiles[index];
+            };
+            
+            $scope.download = function(file) {
+                $http({method: 'GET', url: '/camunda/uploads/get/' + file.path, transformResponse: [] }).
+                then(function(response) {
+                    document.getElementById('fileDownloadIframe').src = response.data;
+                }, function(error){
+                    console.log(error.data);
+                });
             };
         }]);
     </script>
@@ -583,6 +632,11 @@
                 <option value="operation">Operation Unit</option>
             </select>
             <label class="error" ng-if="kcell_form.replacementInitiator.$error.required && ( kcell_form.replacementInitiator.$touched || view.submitted)">Required field</label>
+        </div>
+        <div class="col-sm-2" ng-show="replacementInitiator=='optimization'">
+            <input type="checkbox" cam-variable-name="planningUnit" cam-variable-type="Boolean" >
+            <label>Only for Planning</label>
+            <label class="error" ng-if="kcell_form.planningUnit.$error.required && ( kcell_form.planningUnit.$touched || view.submitted)">Required field</label>
         </div>
     </div>
     <div class="form-group">
@@ -644,10 +698,21 @@
     <div class="form-group">
         <label class="col-sm-2 control-label">
             Traffic: <br />
-            (average monthly)
+            (sum monthly)
         </label>
         <div class="col-sm-10">
             <table class="table table-bordered">
+                <thead>
+                    <tr>
+                        <td> </td>
+                        <td> </td>
+                        <td>Voice Traffic_Erlang</td>
+                        <td> </td>
+                        <td>Data Traffic_GB</td>
+                        <td></td>
+                        <td>Data Traffic_GB</td>
+                    </tr>
+                </thead>
                 <tbody>
                     <tr ng-repeat="siteInfo in siteInformation">
                         <td>{{siteInfo.name}}</td>
@@ -918,6 +983,16 @@
         <div class="col-sm-3">
             <input type="text" name="siteToContactInformation" cam-variable-name="siteToContactInformation" cam-variable-type="String" class="form-control" required />
             <label class="error" ng-if="kcell_form.siteToContactInformation.$error.required && ( kcell_form.siteToContactInformation.$touched || view.submitted)">Required field</label>
+        </div>
+    </div>
+
+    <div class="form-group">
+        <label class="col-sm-3 control-label">Supplementary files:</label>
+        <div class="col-sm-9">
+            <div  ng-show="supplementaryF.name" ng-repeat="supplementaryF in supplementaryFiles track by $index">
+                <a ng-click="download(supplementaryFiles[$index])">{{supplementaryF.name}}</a> | <a ng-click="clearFileSupp($index)"><i class="glyphicon glyphicon-trash"></i></a>
+            </div>
+            <input  type="file" class="form-control" id="supplementaryFile" name="supplementaryFile" ng-model="$parent.supplementaryFile" onchange="angular.element(this).scope().fileSelected(this, 'supplementaryFile')"/>
         </div>
     </div>
 

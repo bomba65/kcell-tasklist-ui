@@ -1,5 +1,7 @@
 package kz.kcell.flow.dismantleReplace;
 
+import com.fasterxml.jackson.databind.ObjectMapper;
+import com.fasterxml.jackson.databind.node.ArrayNode;
 import kz.kcell.flow.files.Minio;
 import org.apache.poi.hwpf.HWPFDocument;
 import org.apache.poi.hwpf.usermodel.CharacterRun;
@@ -9,6 +11,8 @@ import org.apache.poi.hwpf.usermodel.Section;
 import org.apache.poi.poifs.filesystem.POIFSFileSystem;
 import org.camunda.bpm.engine.delegate.DelegateExecution;
 import org.camunda.bpm.engine.delegate.JavaDelegate;
+import org.camunda.bpm.engine.impl.util.json.JSONArray;
+import org.camunda.bpm.engine.impl.util.json.JSONObject;
 import org.camunda.spin.SpinList;
 import org.camunda.spin.json.SpinJsonNode;
 import org.camunda.spin.plugin.variable.SpinValues;
@@ -64,6 +68,10 @@ public class GenerateDocument implements JavaDelegate {
         SimpleDateFormat dformat = new SimpleDateFormat("dd.MM.yyyy");
         Map<String, String> varsMap = new HashMap<>();
 
+        boolean planningUnit = false;
+        if(delegateExecution.hasVariable("planningUnit")){
+            planningUnit = (boolean) delegateExecution.getVariable("planningUnit");
+        }
 
         varsMap.put("$sitename", delegateExecution.getVariable("site_name").toString());
         varsMap.put("$requestNumber", delegateExecution.getBusinessKey());
@@ -339,6 +347,32 @@ public class GenerateDocument implements JavaDelegate {
                         }
                         varsMap.put(requestType.equals("dismantle")?"$head_f":"$1f", assigneeName);
                         varsMap.put(requestType.equals("dismantle")?"$head_date":"$1d", taskEndDate);
+                    } else if("planning_group".equals(taskKey)){
+                        if ("approve".equals(result)) {
+                            varsMap.put(requestType.equals("dismantle")?"$2y":"$3y", "√");
+                            varsMap.put(requestType.equals("dismantle")?"$2n":"$3n", "");
+                        } else {
+                            varsMap.put(requestType.equals("dismantle")?"$2y":"$3y", "");
+                            varsMap.put(requestType.equals("dismantle")?"$2n":"$3n", "√");
+                        }
+                        varsMap.put(requestType.equals("dismantle")?"$2d":"$3d", taskEndDate);
+                        varsMap.put(requestType.equals("dismantle")?"$2f":"$3f", assigneeName);
+                        varsMap.put("$2y", "");
+                        varsMap.put("$2n", "");
+                        varsMap.put("$2d", "");
+                        varsMap.put("$2f", "");
+                        varsMap.put("$4y", "");
+                        varsMap.put("$4n", "");
+                        varsMap.put("$4d", "");
+                        varsMap.put("$4f", "");
+                        varsMap.put("$5y", "");
+                        varsMap.put("$5n", "");
+                        varsMap.put("$5d", "");
+                        varsMap.put("$5f", "");
+                        varsMap.put("$6y", "");
+                        varsMap.put("$6n", "");
+                        varsMap.put("$6d", "");
+                        varsMap.put("$6f", "");
                     } else {
                         if ("central group \"Central Planning Unit\"".equals(taskName)) {
                             if ("approve".equals(result)) {

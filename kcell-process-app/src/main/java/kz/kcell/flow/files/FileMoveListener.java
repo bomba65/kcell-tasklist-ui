@@ -1,9 +1,9 @@
 package kz.kcell.flow.files;
 
-import io.minio.errors.*;
 import org.camunda.bpm.engine.delegate.DelegateExecution;
 import org.camunda.bpm.engine.delegate.ExecutionListener;
 import org.camunda.bpm.engine.delegate.Expression;
+import org.camunda.bpm.engine.impl.util.json.JSONArray;
 import org.camunda.spin.SpinList;
 import org.camunda.spin.impl.SpinListImpl;
 import org.camunda.spin.json.SpinJsonNode;
@@ -13,11 +13,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.config.ConfigurableBeanFactory;
 import org.springframework.context.annotation.Scope;
 import org.springframework.stereotype.Service;
-import org.xmlpull.v1.XmlPullParserException;
 
-import java.io.IOException;
-import java.security.InvalidKeyException;
-import java.security.NoSuchAlgorithmException;
 import java.util.stream.Stream;
 
 @Service
@@ -35,6 +31,8 @@ public class FileMoveListener implements ExecutionListener {
 
     @Override
     public void notify(DelegateExecution delegateExecution) {
+
+        String processDefKey = (delegateExecution.getProcessEngineServices().getRepositoryService().getProcessDefinition(delegateExecution.getProcessDefinitionId()).getKey());
 
         Stream<String> fileVars = Stream.of(this.fileVars.getValue(delegateExecution).toString().split(",")).map(String::trim).filter(s -> !s.isEmpty());
 
@@ -79,7 +77,6 @@ public class FileMoveListener implements ExecutionListener {
 
                     delegateExecution.setVariable(fileVarName, SpinValues.jsonValue(files.toString()));
                 }
-
                 SpinJsonNode resolutionContainer = delegateExecution.<JsonValue>getVariableTyped("resolutions").getValue();
                 if(resolutionContainer.isArray() && resolutionContainer.elements().size() > 0){
                     SpinList<SpinJsonNode> resolutions = delegateExecution.<JsonValue>getVariableTyped("resolutions").getValue().elements();
@@ -88,8 +85,21 @@ public class FileMoveListener implements ExecutionListener {
                     });
                     delegateExecution.setVariable("resolutions", SpinValues.jsonValue(resolutions.toString()));
                 }
+
             }
         });
-
+        if(processDefKey.equals("Replacement")){
+            JSONArray jsonArray = new JSONArray(delegateExecution.getVariable("resolutions").toString());
+            if(jsonArray.length()==1){
+                jsonArray.getJSONObject(0).getJSONObject("attachments").remove("added");
+                JSONArray files = new JSONArray(filesListToHistory.toString());
+                jsonArray.getJSONObject(0).getJSONObject("attachments").put("added",files);
+                JsonValue jsonValue = SpinValues.jsonValue(jsonArray.toString()).create();
+                delegateExecution.setVariable("resolutions",jsonValue);
+                JsonValue jsonValueAttach = SpinValues.jsonValue(files.toString()).create();
+                delegateExecution.setVariable("attachments",jsonValueAttach);
+            }
+        }
     }
+
 }

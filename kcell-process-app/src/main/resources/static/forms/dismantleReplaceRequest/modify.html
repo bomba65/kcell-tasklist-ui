@@ -1,5 +1,6 @@
 <form role="form" class="form-horizontal" name="kcell_form" novalidate>
-    <script cam-script type="text/form-script">
+   <script cam-script type="text/form-script">
+         <!-- <script> -->
         inject(['$scope', '$http', 'Uri', '$rootScope', '$q', 'Upload', '$timeout', function ($scope, $http, Uri, $rootScope, $q, Upload, $timeout) {
             var variables = [
                 'siteInformation',
@@ -70,9 +71,26 @@
                 'siteToContactInformation',
                 'replacementReason',
                 'siteToCoverageAreaFile',
-                'srrNumber'
+                'srrNumber',
+                'planningUnit',
+                'supplementaryFiles',
+                'centralGroupsResult',
+                'planning_groupTaskResult'
             ];
 
+            var processInstanceId = null;
+            $http.get('/camunda/api/engine/engine/default/task/' + camForm.taskId).then(
+                function(result){
+                    processInstanceId = result.data.processInstanceId;
+                    $http.get('/camunda/api/engine/engine/default/process-instance/' + processInstanceId).then(
+                        function(result){
+                            $scope.businessKey = result.data.businessKey;
+                        },
+                        function (error) {console.log(error.data);}
+                    );
+                },
+                function (error) { console.log(error.data);}
+            );
             $scope.catalogs = {};
             $scope.regions = [
                 {id: 'alm', name: 'Almaty', value: 'Alm'},
@@ -82,6 +100,7 @@
                 {id: 'south', name: 'South', value: 'South'},
                 {id: 'west', name: 'West', value: 'West'}
             ]
+            $scope.attachments = []
             $scope.regionsMap = {
                 '0': 'Alm',
                 '11':'Astana',
@@ -106,7 +125,7 @@
                 '7': 'west',
                 '8': 'west'
             };
-
+            $scope.attachmentsChanges = {};
             camForm.on('form-loaded', function () {
                 variables.forEach(function (el) {
                     camForm.variableManager.fetchVariable(el);
@@ -145,7 +164,7 @@
                         }
                     }
                 });
-                camForm.variableManager.createVariable({
+                camForm.variableManager.createVariable({    
                     name: 'region_modifyTaskResult',
                     type: 'String',
                     value: ''
@@ -157,7 +176,7 @@
                     value: ''
                 });
                 camForm.variableManager.createVariable({
-                    name: 'region_modifyFiles',
+                    name: 'region_modifyTaskAttachments',
                     type: 'Json',
                     value: []
                 });
@@ -166,8 +185,15 @@
                 $scope.region_modifyTaskComment = '';
             });
 
-            camForm.on('submit', function () {
+            camForm.on('submit', function (evt) {
+                //evt.submitPrevented = true;    
                 camForm.variableManager.variableValue('region_modifyTaskComment', $scope.region_modifyTaskComment);
+                if($scope.centralGroupsResult){
+                    camForm.variableManager.variableValue('centralGroupsResult', '');
+                }
+                if($scope.planning_groupTaskResult){
+                    camForm.variableManager.variableValue('planning_groupTaskResult', '');
+                }
 
                 if(!camForm.variableManager.variables['soaComplaintId'].type){
                     camForm.variableManager.variables['soaComplaintId'].type = 'String';
@@ -175,11 +201,6 @@
                 camForm.variableManager.variableValue('soaComplaintId', $scope.soaComplaintId);
                 camForm.variableManager.variableValue('validityDate', $scope.validityDate);
                 camForm.variableManager.variableValue('siteInformation', $scope.siteInformation);
-                $scope.region_modifyFiles = [];
-                if($scope.coverageAreaFile.isNew){
-                    delete $scope.coverageAreaFile.isNew;
-                    $scope.region_modifyFiles.push($scope.coverageAreaFile);
-                }
 
                 if($scope.requestType === 'dismantle'){
                     camForm.variableManager.variableValue('dismantlingInitiator', $scope.dismantlingInitiator);
@@ -201,7 +222,6 @@
                     });
                     $scope.alternativePlaces = alternativePlaces;
                     camForm.variableManager.variableValue('alternativePlaces', $scope.alternativePlaces);
-
                     if(!camForm.variableManager.variables['project'].type){
                         camForm.variableManager.variables['project'].type = 'String';
                     }
@@ -255,16 +275,20 @@
                     camForm.variableManager.variableValue('siteFromContactInformation', $scope.siteFromContactInformation);
                     camForm.variableManager.variableValue('siteToContactInformation', $scope.siteToContactInformation);
                     camForm.variableManager.variableValue('replacementReason', $scope.replacementReason);
-                    if($scope.siteToCoverageAreaFile.isNew){
-                        delete $scope.siteToCoverageAreaFile.isNew;
-                        $scope.region_modifyFiles.push($scope.siteToCoverageAreaFile);
-                    }
-                }
-                camForm.variableManager.variableValue('region_modifyFiles', $scope.region_modifyFiles);
-                camForm.variableManager.variableValue('coverageAreaFile', $scope.coverageAreaFile);
-                camForm.variableManager.variableValue('siteToCoverageAreaFile', $scope.siteToCoverageAreaFile);
+                    camForm.variableManager.variableValue('region_modifyTaskAttachments', $scope.attachmentsChanges);
+                    camForm.variableManager.variableValue('coverageAreaFile', $scope.coverageAreaFile);
+                    camForm.variableManager.variableValue('siteToCoverageAreaFile', $scope.siteToCoverageAreaFile);
+                    camForm.variableManager.variableValue('supplementaryFiles', $scope.supplementaryFiles);
+                    camForm.variableManager.variableValue('planningUnit', $scope.planningUnit);
 
+                    camForm.variableManager.createVariable({    
+                        name: 'attachments',
+                        type: 'Json',
+                        value: $scope.attachments
+                    });
+                }                
                 camForm.variableManager.destroyVariable('resolutions');
+                //camForm.variableManager.variableValue('resolutions', $scope.resolutions);
             });
 
             $scope.addAlternativePlace = function() {
@@ -299,7 +323,12 @@
                 then(function(response) {
                     $http.put(response.data, file, {headers: {'Content-Type': undefined}}).then(
                             function () {
-                                $scope[fileName] = fileToUpload;
+                                if(fileName === 'supplementaryFile'){
+                                    $scope.supplementaryFiles.push(fileToUpload)
+                                } else {
+                                    $scope[fileName] = fileToUpload;
+                                }
+                                console.log('SUPP', $scope.supplementaryFiles)
                                 angular.element(document.querySelector('#'+fileName)).val(null);
                             },
                             function (error) {
@@ -311,8 +340,12 @@
                 });
             }
 
-            $scope.clearFile = function(filename){
-                delete $scope[filename];
+            $scope.clearFile = function(fileName){
+                delete $scope[fileName];
+            };
+
+            $scope.clearFileSupp = function(index){
+                delete $scope.supplementaryFiles.splice(index,1);
             };
 
             $scope.getGsmAntennaType = function(val) {
@@ -419,6 +452,15 @@
                 $scope.siteToRbsTypes.splice(index,1);
             }
 
+            $scope.$watch('replacementInitiator', function (replacementInitiator) {
+                if($scope.replacementInitiator !== 'optimization'){
+                    $scope.planningUnit = false;
+                }
+                /*if($scope.$parent.replacementInitiator !== 'optimization'){
+                    $scope.$parent.planningUnit = false;
+                }*/
+            }, true);
+
             $scope.download = function(file) {
                 $http({method: 'GET', url: '/camunda/uploads/get/' + file.path, transformResponse: [] }).
                 then(function(response) {
@@ -451,6 +493,49 @@
             }
 
             $scope.preSubmit = function(){
+                console.log($scope)
+                var attachments = [];
+                var lastAttachments = [];
+                attachments.push($scope.coverageAreaFile);
+                attachments.push($scope.siteToCoverageAreaFile)
+                attachments.push($scope.supplementaryFiles)
+                attachments = _.flattenDeep(attachments)
+
+                var attachmentsChanges = {"added":[],"removed":[]}
+                return $http.get('/camunda/api/engine/engine/default/process-instance/'+processInstanceId+'/variables/attachments?deserializeValue=false').then(function (result) {
+                    if (result && result.data) {
+                        var lastAttachments = JSON.parse(result.data.value);
+
+                        for(let i =0;i<attachments.length;i++){
+                            if(typeof attachments[i] == 'undefined'){
+                                attachments.splice(i,1)
+                            } 
+                            if(attachments[i] == null){
+                                attachments.splice(i,1)
+                            }  
+                        }
+
+                        for (let i=0;i<attachments.length;i++) {
+                            if (!lastAttachments.find(function(e) {return e.path == attachments[i].path;})) {
+                                lastAttachments.push(attachments[i]);
+                                attachmentsChanges.added.push(attachments[i]);
+                            }
+                        }
+                        for (var i = 0; i < lastAttachments.length; i++) {
+                            if (!attachments.find(function(e) {return e.path == lastAttachments[i].path;})) {
+                                attachmentsChanges.removed.push(lastAttachments[i]);
+                                lastAttachments.splice(i, 1);
+                                i--;
+                            }
+                        }
+                        $scope.attachments = lastAttachments;
+                        $scope.attachmentsChanges = attachmentsChanges;
+                    }
+                },
+                function(error){
+                    console.log(error);
+                });
+
                 var deferred = $q.defer();
 
                 if($scope.requestType === 'dismantle'){
@@ -771,7 +856,7 @@
 
             <label class="col-sm-2 control-label">Initiator of replacement:</label>
             <div class="col-sm-3">
-                <select name="replacementInitiator" id="replacementInitiator" ng-model="$parent.replacementInitiator" class="form-control selectpicker" select-picker title="" required>
+                <select ng-model="$parent.replacementInitiator" id="replacementInitiator" name="replacementInitiator" class="form-control selectpicker" select-picker title="" required>
                     <option value="">select initiator</option>
                     <option value="optimization">Optimization Unit</option>
                     <option value="transmission">Transmission Unit</option>
@@ -779,6 +864,11 @@
                     <option value="operation">Operation Unit</option>
                 </select>
                 <label class="error" ng-if="kcell_form.replacementInitiator.$error.required && ( kcell_form.replacementInitiator.$touched || view.submitted)">Required field</label>
+            </div>
+            <div class="col-sm-2" ng-show="replacementInitiator=='optimization'">
+                <input type="checkbox" ng-model="$parent.planningUnit" >
+                <label>Only for Planning</label>
+                <label class="error" ng-if="kcell_form.planningUnit.$error.required && ( kcell_form.planningUnit.$touched || view.submitted)">Required field</label>
             </div>
         </div>
         <div class="form-group">
@@ -825,10 +915,21 @@
         <div class="form-group">
             <label class="col-sm-2 control-label">
                 Traffic: <br />
-                (average monthly)
+                (sum monthly)
             </label>
             <div class="col-sm-10">
                 <table class="table table-bordered">
+                    <thead>
+                        <tr>
+                            <td> </td>
+                            <td> </td>
+                            <td>Voice Traffic_Erlang</td>
+                            <td> </td>
+                            <td>Data Traffic_GB</td>
+                            <td></td>
+                            <td>Data Traffic_GB</td>
+                    </tr>
+                    </thead>
                     <tbody>
                     <tr ng-repeat="siteInfo in $parent.siteInformation">
                         <td>{{siteInfo.name}}</td>
@@ -1088,17 +1189,28 @@
             </div>
         </div>
 
+        
         <div class="form-group">
             <label class="col-sm-3 control-label">Contact information:</label>
             <div class="col-sm-3">
                 <input type="text" name="siteFromContactInformation" ng-model="$parent.siteFromContactInformation" class="form-control" required />
                 <label class="error" ng-if="kcell_form.siteFromContactInformation.$error.required && ( kcell_form.siteFromContactInformation.$touched || view.submitted)">Required field</label>
             </div>
-
+            
             <label class="col-sm-3 control-label">Contact information:</label>
             <div class="col-sm-3">
                 <input type="text" name="siteToContactInformation" ng-model="$parent.siteToContactInformation" class="form-control" required />
                 <label class="error" ng-if="kcell_form.siteToContactInformation.$error.required && ( kcell_form.siteToContactInformation.$touched || view.submitted)">Required field</label>
+            </div>
+        </div>
+        
+        <div class="form-group">
+            <label class="col-sm-3 control-label">Supplementary files:</label>
+            <div class="col-sm-9">
+                <div ng-show="supplementaryF.name" ng-repeat="supplementaryF in $parent.supplementaryFiles track by $index">
+                    <a ng-click="download(supplementaryFiles[$index])">{{supplementaryF.name}}</a> | <a ng-click="clearFileSupp($index)"><i class="glyphicon glyphicon-trash"></i></a>
+                </div>
+                <input  type="file" class="form-control" id="supplementaryFile" name="supplementaryFile" ng-model="$parent.supplementaryFile" onchange="angular.element(this).scope().fileSelected(this, 'supplementaryFile')"/>
             </div>
         </div>
 

@@ -70,7 +70,9 @@
                 'siteToContactInformation',
                 'replacementReason',
                 'siteToCoverageAreaFile',
-                'srrNumber'
+                'srrNumber',
+                'planningUnit',
+                'supplementaryFiles'
             ];
 
             camForm.on('form-loaded', function () {
@@ -89,6 +91,15 @@
                 $scope.replacementInfo = {};
             });
 
+            $scope.download = function(file) {
+                $http({method: 'GET', url: '/camunda/uploads/get/' + file.path, transformResponse: [] }).
+                then(function(response) {
+                    document.getElementById('fileDownloadIframe').src = response.data;
+                }, function(error){
+                    console.log(error.data);
+                });
+            };
+            
             camForm.on('variables-fetched', function () {
                 variables.forEach(function (el) {
                     if(camForm.variableManager.variables[el].value){
@@ -143,7 +154,14 @@
             <label class="error" ng-show="kcell_form.central_groupsTaskResult.$error.required && ( kcell_form.central_groupsTaskResult.$touched || view.submitted)">Required field</label>
         </div>
     </div>
-
+    <div class="form-group">
+        <label class="col-sm-3 control-label">Supplementary files:</label>
+        <div class="col-sm-9">
+            <div ng-show="supplementaryF.name" ng-repeat="supplementaryF in supplementaryFiles track by $index">
+                <a ng-click="download(supplementaryFiles[$index])">{{supplementaryF.name}}</a>
+            </div>
+        </div>
+    </div>
     <div class="form-group">
         <label class="col-sm-{{requestType == 'dismantle' ? '4' : '3'}} control-label">Comments</label>
         <div class="col-sm-{{requestType == 'dismantle' ? '8' : '9'}}">

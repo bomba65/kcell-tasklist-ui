@@ -8,6 +8,7 @@ define(['./../module'], function(module){
 			},
 			link: function(scope, element, attrs) {
 				scope.catalogs = {};
+				console.log(scope)
                 $http.get($rootScope.getCatalogsHttpByName('dismantleCatalogs')).then(
                     function (result) {
                     	angular.extend(scope.catalogs, result.data);
