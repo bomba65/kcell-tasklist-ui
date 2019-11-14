@@ -13,12 +13,13 @@
 </div>
 
 <div class="row">
-    <div class="form-group col-sm-4">
+    <div class="form-group col-sm-8">
         <div class="col-sm-12 checkbox-inline custom-checkbox" >
             <input type="checkbox"  value="true" ng-model="filter.unfinished" ng-disabled="filter.finished" name="show_active">show only Active
-            <div style="    display: inline-block;
-    width: 25px;"></div>
+            <div style="display: inline-block;width: 25px;"></div>
             <input type="checkbox" value="true"  ng-model="filter.finished" ng-disabled="filter.unfinished" name="show_closed">show only Closed
+            <div style="display: inline-block;width: 25px;" ng-if="hasGroup('contractor_users')" ng-show="onlyProcessActive==='Revision'"></div>
+            <input type="checkbox" value="true" ng-model="filter.accepted" name="show_accepted" ng-if="hasGroup('contractor_users')" ng-show="onlyProcessActive==='Revision'"><span ng-if="hasGroup('contractor_users')"  ng-show="onlyProcessActive==='Revision'">show only Accepted</span>
         </div>
 
     </div></div>
@@ -77,7 +78,14 @@
             </select>
         </div>
     </div>
-    <div>
+    <div class="form-group col-sm-4" ng-if="hasGroup('nc_contractor_lse') && hasGroup('astana_contractor_lse')">
+        <label class="col-sm-4 control-label">Region:</label>
+        <div class="col-sm-8">
+            <select ng-model="filter.region" class="form-control selectpicker" select-picker title="">
+                <option value="astana">Astana</option>
+                <option value="nc">North & Center</option>
+            </select>
+        </div>        
     </div>
     <div class="form-group col-sm-4" ng-show="onlyProcessActive==='Invoice'">
         <label class="col-sm-4 control-label">Initiator:</label>
@@ -225,14 +233,16 @@
     <div class="form-group col-sm-4" ng-show="onlyProcessActive==='Revision'">
         <label class="col-sm-4 control-label">Participation:</label>
         <div class="col-sm-8">
-            <select ng-model="filter.participation" class="form-control selectpicker" select-picker title="">
+            <select ng-model="filter.participation" class="form-control selectpicker" select-picker title="" ng-change="putCurrentUserAsRequestor()">
                 <option value="">Select participation</option>
                 <option value="initiator">Initiator</option>
                 <option value="participant">Participant</option>
+                <option value="iaminitiator">I am Initiator</option>
+                <option value="iamparticipant">I am Participant</option>
             </select>
         </div>
     </div>
-    <div class="form-group col-sm-4"  ng-show="onlyProcessActive==='Revision'">
+    <div class="form-group col-sm-4" ng-if="hasGroup('kcellUsers')" ng-show="onlyProcessActive==='Revision'">
         <label class="col-sm-4 control-label">Current Assignee:</label>
         <div class="col-sm-8">
             <input type="text" ng-model="filter.currentAssignee" name="currentAssignee"
@@ -272,7 +282,7 @@
         <th ng-if="onlyProcessActive==='Revision'">Contractor</th>
         <th ng-if="RevisionOrMonthlyAct">Reason</th>
         <th>Requested By</th>
-        <th ng-if="onlyProcessActive==='Revision' || onlyProcessActive==='Dismantle' || onlyProcessActive==='Replacement'">Current Assignee</th>
+        <th ng-if="(onlyProcessActive==='Revision' || onlyProcessActive==='Dismantle' || onlyProcessActive==='Replacement') && hasGroup('kcellUsers')">Current Assignee</th>
         <th>Requested Date</th>
         <th ng-if="onlyProcessActive==='Revision'">Validity Date</th>
         <th ng-if="onlyProcessActive==='Revision'">Jobs List</th>
@@ -306,7 +316,7 @@
             {{pi.processDefinitionKey==='Invoice' ? reasonShortName[pi.workType]
             : reasonShortName[pi.reason] }}</td>
         <td>{{profiles[pi.startUserId].firstName}} {{profiles[pi.startUserId].lastName}}</td>
-        <td ng-if="onlyProcessActive==='Revision' || onlyProcessActive==='Dismantle' || onlyProcessActive==='Replacement'">
+        <td ng-if="(onlyProcessActive==='Revision' || onlyProcessActive==='Dismantle' || onlyProcessActive==='Replacement') && hasGroup('kcellUsers')">
             <a ng-click="showTaskDetail(task)" ng-repeat="task in pi.tasks">{{$index+1}}. {{profiles[task.assignee] ? (profiles[task.assignee].firstName + ' ' + profiles[task.assignee].lastName) : 'Not claimed'}}<br/></a>
         </td>
         <td>{{pi.processDefinitionKey==='Revision'? (pi.requestedDate | date:'dd MMM yyyy') : pi.startTime | date:'dd MMM yyyy' }}</td>

@@ -183,13 +183,22 @@ define(['../module', 'moment'], function (module, moment) {
                     'south_kcell_users': 'south',
                     'west_kcell_users': 'west'
                 }
+
+                var contractorRegionGroupsMap = {
+                    'hq_contractor_lse': 'all',
+                    'alm_contractor_lse':'alm',
+                    'astana_contractor_lse': 'astana',
+                    'nc_contractor_lse': 'nc',
+                    'east_contractor_lse': 'east',
+                    'south_contractor_lse': 'south',
+                    'west_contractor_lse': 'west'
+                }
+
                 function downloadXML(process){
                     $http.get(baseUrl + '/process-definition/key/' + process + '/xml')
                     .then(function (response) {
                         var domParser = new DOMParser();
-
-                        var xml = domParser.parseFromString(response.data.bpmn20Xml, 'application/xml');
-
+ 
                         function getUserTasks(xml) {
                             var namespaces = {
                                 bpmn: 'http://www.omg.org/spec/BPMN/20100524/MODEL'
@@ -240,16 +249,17 @@ define(['../module', 'moment'], function (module, moment) {
                                 'signpr_by_cto',
                                 'signpr_by_cfo',
                                 'signpr_by_ceo',
-                                'Task_1ix12n7',
-                                'Task_1uvnb7n',
-                                'Task_12eq7hi',
-                                'Task_1wf6n5j',
-                                'Task_1puv0a9',
-                                'Task_1m2xspc',
-                                'Task_1mb15j2',
-                                'Task_1mocj2s',
-                                'Task_1gjdn28',
-                                'IntermediateThrowEvent_wait_po_pr_creation'
+                                'please_provide_fa',
+                                'create_sloc_sap_enter_db',
+                                'provide_info_sloc_creation',
+                                'correct_jo_file',
+                                'get_sap_code_accountant_and_enter_form',
+                                'please_provide_fa',
+                                'correct_pr_file',
+                                'IntermediateThrowEvent_wait_po_pr_creation',
+                                'IntermediateThrowEvent_wait_pr_result',
+                                'IntermediateThrowEvent_wait_result_jo_file',
+                                'IntermediateThrowEvent_wait_fa_result'
                             ];
 
                             var userTasks = getUserTasks(xml);
@@ -399,8 +409,36 @@ define(['../module', 'moment'], function (module, moment) {
                     if (scope.filter.finished) {
                         filter.finished = true;
                     }
-                    if (scope.filter.region && scope.filter.region !== 'all') {
-                        filter.variables.push({"name": "siteRegion", "operator": "eq", "value": scope.filter.region});
+                    if($rootScope.hasGroup('kcellUsers')){
+                        if (scope.filter.region && scope.filter.region !== 'all') {
+                            filter.variables.push({"name": "siteRegion", "operator": "eq", "value": scope.filter.region});
+                        }
+                    } else if($rootScope.hasGroup('contractor_users')) {
+                        if($rootScope.hasGroup('hq_contractor_lse')){
+                            // all values
+                        } else if($rootScope.hasGroup('astana_contractor_lse') && $rootScope.hasGroup('nc_contractor_lse')){
+                            if(!scope.filter.region || ['astana','nc'].indexOf(scope.filter.region)===-1){
+                                filter.variables.push({"name": "siteRegion", "operator": "eq", "value": 'astana'});                                
+                                scope.filter.region = 'astana';
+                            } else {
+                                filter.variables.push({"name": "siteRegion", "operator": "eq", "value": scope.filter.region});
+                            }
+                        } else if($rootScope.hasGroup('astana_contractor_lse')){
+                            filter.variables.push({"name": "siteRegion", "operator": "eq", "value": 'astana'});
+                        } else if($rootScope.hasGroup('nc_contractor_lse')){
+                            filter.variables.push({"name": "siteRegion", "operator": "eq", "value": 'nc'});
+                        } else if($rootScope.hasGroup('alm_contractor_lse')){
+                            filter.variables.push({"name": "siteRegion", "operator": "eq", "value": 'alm'});
+                        } else if($rootScope.hasGroup('east_contractor_lse')){
+                            filter.variables.push({"name": "siteRegion", "operator": "eq", "value": 'east'});
+                        } else if($rootScope.hasGroup('south_contractor_lse')){
+                            filter.variables.push({"name": "siteRegion", "operator": "eq", "value": 'south'});
+                        } else if($rootScope.hasGroup('west_contractor_lse')){
+                            filter.variables.push({"name": "siteRegion", "operator": "eq", "value": 'west'});
+                        }
+                    }
+                    if (scope.filter.accepted && scope.onlyProcessActive==='Revision') {
+                        filter.executedActivityIdIn = ['endevt_accept_work'];
                     }
                     if (scope.filter.siteId) {
                         filter.variables.push({"name": "siteName", "operator": "eq", "value": scope.filter.siteId});
@@ -560,7 +598,8 @@ define(['../module', 'moment'], function (module, moment) {
                         });
                     }
                     if (scope.filter.requestor) {
-                        if (scope.filter.participation === 'participant') {
+                        if (['participant','iamparticipant'].indexOf(scope.filter.participation) !== -1) {
+                            console.log('!!!!!!!!!');
                             $http.post(baseUrl + '/history/task', {taskAssignee: scope.filter.requestor}).then(
                                 function (result) {
                                     if (!filter.processInstanceIds) filter.processInstanceIds = _.map(result.data, 'processInstanceId');
@@ -1380,6 +1419,11 @@ define(['../module', 'moment'], function (module, moment) {
                         size: 'lg'
                     }).then(function(results){
                     });
+                }
+                scope.putCurrentUserAsRequestor = function(){
+                    if(scope.filter.participation === 'iaminitiator' || scope.filter.participation === 'iamparticipant'){
+                        scope.filter.requestor = $rootScope.authentication.name;
+                    }
                 }
             },
             templateUrl: './js/directives/search/networkArchitectureSearch.html'
