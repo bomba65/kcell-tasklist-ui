@@ -4,18 +4,10 @@ define(['./../module'], function(module){
         return {
             restrict: 'E',
             scope: {
-                leasingFiles: '='
+                leasingFiles: '=',
+                taskKey: '='
             },
             link: function(scope, el, attrs){
-                scope.fileDownload = function(file) {
-                    $http({method: 'GET', url: '/camunda/uploads/get/' + file.path, transformResponse: [] }).
-                    then(function(response) {
-                        document.getElementById('fileDownloadIframe').src = response.data;
-                    }, function(error){
-                        console.log(error.data);
-                    });
-                };
-                
                 scope.fileDownload = function(file) {
                     $http({method: 'GET', url: '/camunda/uploads/get/' + file.path, transformResponse: [] }).
                     then(function(response) {
