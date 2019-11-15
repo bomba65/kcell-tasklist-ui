@@ -20,19 +20,7 @@ define(['./module','camundaSDK', 'lodash', 'big-js'], function(module, CamSDK, _
 		}
 
 		var baseUrl = '/camunda/api/engine/engine/default';
-/*
-		var regions = {
-			alm : 'Almaty',
-			astana : 'Astana',
-			east : 'East',
-			nc : 'North & Center',
-			south : 'South',
-			west : 'West',
-		};
 
-		$scope.regionFilters = [];
-		$scope.currentRegionFilter = undefined;
-*/
 		$scope.selectedView = 'task';
 		$scope.camForm = null;
 
@@ -75,24 +63,6 @@ define(['./module','camundaSDK', 'lodash', 'big-js'], function(module, CamSDK, _
 			}
 			return undefined;
 		};
-/*
-		function loadRegionCount(){
-			$scope.regionFilters = [];
-			angular.forEach(regions,function(value,key){
-				var query = {'processVariables':[{'name': 'siteRegion', "operator": "eq","value": key}]};
-				$http.post(baseUrl+'/filter/'+$scope.currentFilter.id+'/count',query,{headers:{'Content-Type':'application/json'}}).then(
-					function(results){
-						if(results.data.count > 0){
-							$scope.regionFilters.push({id: key,name: value, itemCount: results.data.count});
-						}
-					},
-					function(error){
-						console.log(error.data);
-					}
-				);
-			});
-		}
-*/
 		$scope.isRegionFiltersVisible = function(){
 			return (($rootScope.isProcessAvailable('Revision') && $rootScope.isProcessVisible('Revision')) || ($rootScope.isProcessAvailable('Invoice') && $rootScope.isProcessVisible('Invoice'))) && $rootScope.hasGroup('head_kcell_users');
 		}
@@ -107,22 +77,10 @@ define(['./module','camundaSDK', 'lodash', 'big-js'], function(module, CamSDK, _
 			} else {
 				$scope.selectedView = 'task';
 				$scope.view.page = 1;
-//				if($rootScope.hasGroup('head_kcell_users')){
-//					loadRegionCount();
-//				}
 				loadTasks();
 			}
 		}
 
-/*		$scope.selectRegionFilter = function(filter, region){
-			$scope.currentTask = undefined;
-			$location.search({task:undefined});
-			$scope.selectedView = 'task';
-			$scope.view.page = 1;
-			$scope.currentRegionFilter = region;
-			loadTasks();
-		}
-*/
 		$scope.openTask = function(taskId){
 			$scope.selectedView = 'task';
 			$state.go('tasks.task', {id:taskId});
@@ -168,139 +126,6 @@ define(['./module','camundaSDK', 'lodash', 'big-js'], function(module, CamSDK, _
 			}).then(function (results) {
 			});
 		};
-		/*
-		$scope.startProcess = function(id){
-			$http.get(baseUrl+'/process-definition/'+id+'/startForm').then(
-				function(startFormInfo){
-					if(startFormInfo.data.key){
-						var url = startFormInfo.data.key.replace('embedded:app:', startFormInfo.data.contextPath + '/');
-						exModal.open({
-							scope: {
-								processDefinitionId: id,
-								url: url,
-								view: {
-									submitted: false
-								}
-							},
-							templateUrl: './js/partials/start-form.html',
-							controller: StartFormController,
-							size: 'lg'
-						}).then(function(results){
-							$http.get(baseUrl+'/task?processInstanceId='+results.id).then(
-								function(tasks){
-									var task = null;
-									if(tasks.data.length > 0){
-										task = tasks.data[0];
-									} else {
-										task = results.data
-									}
-
-									if (task.assignee === $rootScope.authUser.id) {
-										$scope.tryToOpen = task;
-									}
-									getTaskList();
-								},
-								function(error){
-									console.log(error.data);
-								}
-							);
-						});
-					} else {
-						$http.post(baseUrl+'/process-definition/'+id+'/start',{},{headers:{'Content-Type':'application/json'}}).then(
-							function(results){
-								$http.get(baseUrl+'/task?processInstanceId='+results.id).then(
-									function(tasks){
-										if(tasks.data.length > 0){
-											$scope.tryToOpen = tasks.data[0];
-										} else {
-											$scope.tryToOpen = results.data
-										}
-										getTaskList();
-									},
-									function(error){
-										console.log(error.data);
-									}
-								);
-							},
-							function(error){
-								console.log(error.data);
-							}
-						);
-					}
-				},
-				function(error){
-					console.log(error.data);
-				}
-			);
-
-			StartFormController.$inject = ['scope'];
-			function StartFormController(scope){
-				$timeout(function(){
-					new CamSDK.Form({
-						client: camClient,
-						formUrl: scope.url,
-						processDefinitionId: scope.processDefinitionId,
-						containerElement: $('#start-form-modal-body'),
-						done: scope.addStartFormButtion
-					});
-				})
-				scope.addStartFormButtion = function(err, camForm, evt) {
-					if (err) {
-						throw err;
-					}
-					var $submitBtn = $('<button type="submit" class="btn btn-primary">Start</button>').click(function (e) {
-						scope.view = {
-							submitted : true
-						};
-						$timeout(function(){
-							scope.$apply(function(){
-								if(scope.kcell_form.$valid){
-									$submitBtn.attr('disabled', true);
-									if(scope.preSubmit){
-										scope.preSubmit().then(
-											function(result){
-												camForm.submit(function (err,results) {
-													if (err) {
-														$submitBtn.removeAttr('disabled');
-														toasty.error({title: "Could not complete task", msg: err});
-														e.preventDefault();
-														throw err;
-													} else {
-														$('#start-form-modal-body').html('');
-														scope.$close(results);
-													}
-												});
-											},
-											function(err){
-												$submitBtn.removeAttr('disabled');
-												toasty.error({title: "Could not complete task", msg: err});
-												e.preventDefault();
-												throw err;
-											}
-										);
-									} else {
-										camForm.submit(function (err,results) {
-											if (err) {
-												$submitBtn.removeAttr('disabled');
-												toasty.error({title: "Could not complete task", msg: err});
-												e.preventDefault();
-												throw err;
-											} else {
-												$('#start-form-modal-body').html('');
-												scope.$close(results);
-											}
-										});
-									}
-								} else {
-									toasty.error({title: "Could not complete task", msg: "Please fill required fields"});
-								}
-							})
-						});
-					});
-					$("#modal-footer").append($submitBtn);
-				}
-			}
-		}*/
 		$rootScope.logout = function(){
 			AuthenticationService.logout().then(function(){
 				$scope.authentication = null;
@@ -422,7 +247,16 @@ define(['./module','camundaSDK', 'lodash', 'big-js'], function(module, CamSDK, _
 
         $scope.taskIds = [{id:'all', label:'All'},{id:'attach_material_list_contractor', label:'Attach Material List'},{id:'upload_tr_contractor', label:'Upload TR'},{id:'fill_applied_changes_info', label:'Fill Applied Changes Info'},
         					{id:'attach_additional_material_list_contractor', label:'Attach Additional Material List'},{id:'upload_additional_tr_contractor', label:'Upload Additional TR'}];
-        $scope.searchTasks =  function(){
+
+		$scope.searchForContractors = function(){
+			if($scope.accepted){
+				$scope.searchProcessesForContractors();
+			} else {
+				$scope.searchTasksForContractors();
+			}
+		}
+
+        $scope.searchTasksForContractors = function(){
         	var queryParams = {};
 			if($scope.site && $scope.site_name){
         		queryParams.processVariables = [{name:"site", value:$scope.site, operator: "eq"}];
@@ -444,6 +278,7 @@ define(['./module','camundaSDK', 'lodash', 'big-js'], function(module, CamSDK, _
         		}
         		queryParams.processVariables.push({name:"jrNumber", value:$scope.bussinessKey, operator: "eq"});
         	}
+
         	queryParams.candidateUser = $rootScope.authUser.id;
         	queryParams.includeAssignedTasks = true;
 
@@ -491,11 +326,222 @@ define(['./module','camundaSDK', 'lodash', 'big-js'], function(module, CamSDK, _
 			);
         };
 
+        $scope.searchProcessesForContractors = function(){
+        	var queryParams = {processDefinitionKey: 'Revision', variables: [], activityIdIn: ['attach-scan-copy-of-acceptance-form','intermediate_wait_acts_passed','intermediate_wait_invoiced']};
+			if($scope.site && $scope.site_name){
+        		queryParams.variables.push({name:"site", value:$scope.site, operator: "eq"});
+        	}
+        	if($scope.priority === 'emergency'){
+        		queryParams.variables.push({name:"priority", value:"emergency", operator: "eq"});
+        	}
+        	if($scope.bussinessKey){
+        		queryParams.businessKey = $scope.bussinessKey;
+        	}
+
+ 			if($rootScope.hasGroup('hq_contractor_lse')){
+                // all values
+            } else if($rootScope.hasGroup('astana_contractor_lse') && $rootScope.hasGroup('nc_contractor_lse')){
+                if(!$scope.region || ['astana','nc'].indexOf($scope.region)===-1){
+                    queryParams.variables.push({"name": "siteRegion", "operator": "eq", "value": 'astana'});
+                    $scope.region = 'astana';
+                } else {
+                    queryParams.variables.push({"name": "siteRegion", "operator": "eq", "value": $scope.region});
+                }
+            } else if($rootScope.hasGroup('astana_contractor_lse')){
+                queryParams.variables.push({"name": "siteRegion", "operator": "eq", "value": 'astana'});
+            } else if($rootScope.hasGroup('nc_contractor_lse')){
+                queryParams.variables.push({"name": "siteRegion", "operator": "eq", "value": 'nc'});
+            } else if($rootScope.hasGroup('alm_contractor_lse')){
+                queryParams.variables.push({"name": "siteRegion", "operator": "eq", "value": 'alm'});
+            } else if($rootScope.hasGroup('east_contractor_lse')){
+                queryParams.variables.push({"name": "siteRegion", "operator": "eq", "value": 'east'});
+            } else if($rootScope.hasGroup('south_contractor_lse')){
+                queryParams.variables.push({"name": "siteRegion", "operator": "eq", "value": 'south'});
+            } else if($rootScope.hasGroup('west_contractor_lse')){
+                queryParams.variables.push({"name": "siteRegion", "operator": "eq", "value": 'west'});
+            }
+
+        	$scope.processSearchResults = [];
+			$http({
+				method: 'POST',
+				headers:{'Accept':'application/hal+json, application/json; q=0.5'},
+				data: queryParams,
+				url: baseUrl+'/process-instance'
+			}).then(function(results){
+				$scope.processSearchResults = results.data;
+				if($scope.processSearchResults.length > 0){
+					_.forEach(['site_name', 'priority', 'validityDate', 'requestedDate'], function(variable) {
+						var varSearchParams = {processInstanceIdIn: _.map($scope.processSearchResults, 'id'), variableName: variable};
+						$http({
+							method: 'POST',
+							headers:{'Accept':'application/hal+json, application/json; q=0.5'},
+							data: varSearchParams,
+							url: baseUrl+'/variable-instance'
+						}).then(
+							function(vars){
+								$scope.processSearchResults.forEach(function(el) {
+									var f =  _.filter(vars.data, function(v) {
+										return v.processInstanceId === el.id;
+									});
+									if(f){
+										el[variable] = f[0].value;
+									}
+								});
+							},
+							function(error){
+								console.log(error.data);
+							}
+						);
+					});
+					$scope.processSearchResults.forEach(function(el) {
+						$http({
+							method: 'GET',
+							headers:{'Accept':'application/hal+json, application/json; q=0.5'},
+							url: baseUrl+'/process-instance/' + el.id + '/activity-instances'
+						}).then(function(activities){
+							activities.data.childActivityInstances.forEach(function(act) {
+								if(['attach-scan-copy-of-acceptance-form','intermediate_wait_acts_passed','intermediate_wait_invoiced'].indexOf(act.activityId)!==-1){
+									el.activityName = act.activityName;
+								}
+							});
+						});
+					});
+				}
+			});
+        }
+
+        $scope.toggleProcessViewRevision = function(p) {
+            $scope.jobModel = {
+                state: 'Active',
+                processDefinitionKey: 'Revision',
+                startTime: p.requestedDate
+            };
+            $http({
+                method: 'GET',
+                headers: {'Accept': 'application/hal+json, application/json; q=0.5'},
+                url: baseUrl + '/task?processInstanceId=' + p.id,
+            }).then(
+                function (tasks) {
+                    var processInstanceTasks = tasks.data._embedded.task;
+                    $http.get(baseUrl + '/history/variable-instance?deserializeValues=false&processInstanceId=' + p.id).then(
+                        function (result) {
+                            var workFiles = [];
+                            result.data.forEach(function (el) {
+                                $scope.jobModel[el.name] = el;
+                                if (el.type === 'File' || el.type === 'Bytes') {
+                                    $scope.jobModel[el.name].contentUrl = baseUrl + '/history/variable-instance/' + el.id + '/data';
+                                }
+                                if (el.type === 'Json') {
+                                    $scope.jobModel[el.name].value = JSON.parse(el.value);
+                                }
+                                if (el.name.startsWith('works_') && el.name.includes('_file_')) {
+                                    workFiles.push(el);
+                                }
+                            });
+                            if ($scope.jobModel['siteWorksFiles']) {
+                                _.forEach($scope.jobModel['siteWorksFiles'].value, function (file) {
+                                    var workIndex = file.name.split('_')[1];
+                                    if (!$scope.jobModel.jobWorks.value[workIndex].files) {
+                                        $scope.jobModel.jobWorks.value[workIndex].files = [];
+                                    }
+                                    if (_.findIndex($scope.jobModel.jobWorks.value[workIndex].files, function (f) {
+                                        return f.name == file.name;
+                                    }) < 0) {
+                                        $scope.jobModel.jobWorks.value[workIndex].files.push(file);
+                                    }
+                                });
+                            }
+                            _.forEach(workFiles, function (file) {
+                                var workIndex = file.name.split('_')[1];
+                                if (!$scope.jobModel.jobWorks.value[workIndex].files) {
+                                    $scope.jobModel.jobWorks.value[workIndex].files = [];
+                                }
+                                if (_.findIndex($scope.jobModel.jobWorks.value[workIndex].files, function (f) {
+                                    return f.name == file.name;
+                                }) < 0) {
+                                    $scope.jobModel.jobWorks.value[workIndex].files.push(file);
+                                }
+                            });
+                            angular.extend($scope.jobModel, catalogs);
+                            $scope.jobModel.tasks = processInstanceTasks;
+                            openProcessCardModalRevision(p);
+                        },
+                        function (error) {
+                            console.log(error.data);
+                        }
+                    );
+                },
+                function (error) {
+                    console.log(error.data);
+                }
+            );
+	    };
+
+	    function openProcessCardModalRevision(p) {
+	        exModal.open({
+	            scope: {
+	                jobModel: $scope.jobModel,
+	                getStatus: $scope.getStatus,
+	                showHistory: $scope.showHistory,
+	                hasGroup: $scope.hasGroup,
+	                showGroupDetails: $scope.showGroupDetails,
+	                processDefinitionId: p.definitionId,
+	                businessKey: p.businessKey,
+	                download: function (file) {
+	                    $http({
+	                        method: 'GET',
+	                        url: '/camunda/uploads/get/' + file.path,
+	                        transformResponse: []
+	                    }).then(function (response) {
+	                        document.getElementById('fileDownloadIframe').src = response.data;
+	                    }, function (error) {
+	                        console.log(error);
+	                    });
+	                },
+	                isFileVisible: function (file) {
+	                    return !file.visibility || file.visibility == 'all' || (file.visibility == 'kcell' && $rootScope.hasGroup('kcellUsers'));
+	                },
+	                getDictNameById: function (dictionary, id) {
+	                    return _.find(dictionary, function (dict) {
+	                        return dict.id === id;
+	                    });
+	                },
+	                compareDate: new Date('2019-02-05T06:00:00.000')
+	            },
+	            templateUrl: 'js/partials/processCardModal.html',
+	            size: 'lg'
+	        }).then(function (results) {
+	        });
+	    }
+
+        $scope.showHistory = function(resolutions, procDef){
+            exModal.open({
+                scope: {
+                    resolutions: resolutions,
+                    isKcellStaff: $rootScope.hasGroup('kcellUsers'),
+                    procDef: procDef,
+                    download: function(path) {
+                        $http({method: 'GET', url: '/camunda/uploads/get/' + path, transformResponse: [] }).
+                        then(function(response) {
+                            document.getElementById('fileDownloadIframe').src = response.data;
+                        }, function(error){
+                            console.log(error);
+                        });
+                    },
+                    isFileVisible: function(file) {
+                      return !file.visibility || file.visibility == 'all' || (file.visibility == 'kcell' && $rootScope.hasGroup('kcellUsers'));
+                    }
+                },
+                templateUrl: 'js/partials/resolutionsModal.html',
+                size: 'hg'
+            }).then(function(results){
+            });
+        };
+
 		$scope.getVariableLabel = function(key){
 			return _.keyBy($scope.currentFilter.properties.variables, 'name')[key].label;
 		}
 
-/* ------------------------------------- Tasks new logic ------------------------------*/
 		$scope.firstLevel = "open";
 		$scope.secondLevel = "closed";
 
@@ -608,29 +654,7 @@ define(['./module','camundaSDK', 'lodash', 'big-js'], function(module, CamSDK, _
 									}
 								});
 							});
-						} /*else {
-							var processDefinitionKeyMap = _.map(project.processes, 'key');
-							angular.forEach(project.processes, function(process){
-								if(process.subprocesses && process.subprocesses.length > 0){
-									var subprocessDefinitionKeyMap = _.map(process.subprocesses, 'key');
-									processDefinitionKeyMap = _.concat(processDefinitionKeyMap, subprocessDefinitionKeyMap);
-								}
-							});
-							var query = {'processDefinitionKeyIn':processDefinitionKeyMap};
-
-		 					angular.forEach(filters, function(filter){
-		 						if(!filter.properties.processDefinitionKey || processDefinitionKeyMap.indexOf(filter.properties.processDefinitionKey)!==-1){
-									$http.post(baseUrl+'/filter/'+filter.id+'/count',query,{headers:{'Content-Type':'application/json'}}).then(
-										function(results){
-											project.itemCount = project.itemCount ? project.itemCount + results.data.count : results.data.count;
-										},
-										function(error){
-											console.log(error.data);
-										}
-									);
-								}
-							});
-						}*/
+						}
 					});
 
 					loadTasks();
@@ -758,7 +782,15 @@ define(['./module','camundaSDK', 'lodash', 'big-js'], function(module, CamSDK, _
 		getTaskList();
 
 		$scope.getTaskList = getTaskList;
-/* ------------------------------------- Tasks new logic ------------------------------*/
 
+        var catalogs = {};
+        $http.get($rootScope.getCatalogsHttpByName('catalogs')).then(
+            function (result) {
+                angular.extend(catalogs, result.data);
+            },
+            function (error) {
+                console.log(error.data);
+            }
+        );
 	}]);
 });

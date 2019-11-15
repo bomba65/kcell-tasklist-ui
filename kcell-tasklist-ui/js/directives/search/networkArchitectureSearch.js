@@ -184,20 +184,12 @@ define(['../module', 'moment'], function (module, moment) {
                     'west_kcell_users': 'west'
                 }
 
-                var contractorRegionGroupsMap = {
-                    'hq_contractor_lse': 'all',
-                    'alm_contractor_lse':'alm',
-                    'astana_contractor_lse': 'astana',
-                    'nc_contractor_lse': 'nc',
-                    'east_contractor_lse': 'east',
-                    'south_contractor_lse': 'south',
-                    'west_contractor_lse': 'west'
-                }
-
                 function downloadXML(process){
                     $http.get(baseUrl + '/process-definition/key/' + process + '/xml')
                     .then(function (response) {
                         var domParser = new DOMParser();
+
+                        var xml = domParser.parseFromString(response.data.bpmn20Xml, 'application/xml');
  
                         function getUserTasks(xml) {
                             var namespaces = {
@@ -409,36 +401,8 @@ define(['../module', 'moment'], function (module, moment) {
                     if (scope.filter.finished) {
                         filter.finished = true;
                     }
-                    if($rootScope.hasGroup('kcellUsers')){
-                        if (scope.filter.region && scope.filter.region !== 'all') {
-                            filter.variables.push({"name": "siteRegion", "operator": "eq", "value": scope.filter.region});
-                        }
-                    } else if($rootScope.hasGroup('contractor_users')) {
-                        if($rootScope.hasGroup('hq_contractor_lse')){
-                            // all values
-                        } else if($rootScope.hasGroup('astana_contractor_lse') && $rootScope.hasGroup('nc_contractor_lse')){
-                            if(!scope.filter.region || ['astana','nc'].indexOf(scope.filter.region)===-1){
-                                filter.variables.push({"name": "siteRegion", "operator": "eq", "value": 'astana'});                                
-                                scope.filter.region = 'astana';
-                            } else {
-                                filter.variables.push({"name": "siteRegion", "operator": "eq", "value": scope.filter.region});
-                            }
-                        } else if($rootScope.hasGroup('astana_contractor_lse')){
-                            filter.variables.push({"name": "siteRegion", "operator": "eq", "value": 'astana'});
-                        } else if($rootScope.hasGroup('nc_contractor_lse')){
-                            filter.variables.push({"name": "siteRegion", "operator": "eq", "value": 'nc'});
-                        } else if($rootScope.hasGroup('alm_contractor_lse')){
-                            filter.variables.push({"name": "siteRegion", "operator": "eq", "value": 'alm'});
-                        } else if($rootScope.hasGroup('east_contractor_lse')){
-                            filter.variables.push({"name": "siteRegion", "operator": "eq", "value": 'east'});
-                        } else if($rootScope.hasGroup('south_contractor_lse')){
-                            filter.variables.push({"name": "siteRegion", "operator": "eq", "value": 'south'});
-                        } else if($rootScope.hasGroup('west_contractor_lse')){
-                            filter.variables.push({"name": "siteRegion", "operator": "eq", "value": 'west'});
-                        }
-                    }
-                    if (scope.filter.accepted && scope.onlyProcessActive==='Revision') {
-                        filter.executedActivityIdIn = ['endevt_accept_work'];
+                    if (scope.filter.region && scope.filter.region !== 'all') {
+                        filter.variables.push({"name": "siteRegion", "operator": "eq", "value": scope.filter.region});
                     }
                     if (scope.filter.siteId) {
                         filter.variables.push({"name": "siteName", "operator": "eq", "value": scope.filter.siteId});
@@ -597,9 +561,12 @@ define(['../module', 'moment'], function (module, moment) {
                             "value": scope.filter.replacementInitiator
                         });
                     }
-                    if (scope.filter.requestor) {
+                    if (scope.filter.participation) {
+                        if(!scope.filter.requestor){
+                            toasty.error({title: "Error", msg: 'Please fill field Requestor!'});
+                        }
+
                         if (['participant','iamparticipant'].indexOf(scope.filter.participation) !== -1) {
-                            console.log('!!!!!!!!!');
                             $http.post(baseUrl + '/history/task', {taskAssignee: scope.filter.requestor}).then(
                                 function (result) {
                                     if (!filter.processInstanceIds) filter.processInstanceIds = _.map(result.data, 'processInstanceId');

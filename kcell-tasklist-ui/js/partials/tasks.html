@@ -126,9 +126,11 @@ left li:hover,  .left.side-blocks li.active{
 					                <thead>
 					                <tr>
 					                    <th width="20%">Site Name</th>
-					                    <th width="25%">Task Type</th>
-					                    <th width="20%">Priority</th>
-					                    <th width="25%">Business Key</th>
+					                    <th width="25%" ng-if="!hasGroup('astana_contractor_lse') || !hasGroup('nc_contractor_lse')">Task Type</th>
+					                    <th width="25%" ng-if="hasGroup('astana_contractor_lse') && hasGroup('nc_contractor_lse')">Region</th>
+					                    <th width="15%">Priority</th>
+					                    <th width="20%">Business Key</th>
+					                    <th width="10%">Accepted</th>
 					                    <th width="10%"></th>
 					                </tr>
 					                </thead>
@@ -139,8 +141,14 @@ left li:hover,  .left.side-blocks li.active{
 									            <input type="text" ng-model="site_name" name="site_name" typeahead="site as sites.site_name for sites in getSite($viewValue)" typeahead-on-select="siteSelected($item,$model,$label)" class="form-control" autocomplete="off" placeholder="Site Name">
 									            <input type="hidden" ng-model="site" name="siteId"/>
 					                        </td>
-					                        <td ng-init="taskId = taskId || 'all'">
-									            <select class="form-control" name="taskId" ng-model="taskId" ng-options="task.id as task.label for task in taskIds" />
+					                        <td ng-init="taskId = taskId || 'all'" ng-if="!hasGroup('astana_contractor_lse') || !hasGroup('nc_contractor_lse')">
+									            <select class="form-control" name="taskId" ng-model="taskId" ng-options="task.id as task.label for task in taskIds" ng-disabled="accepted" />
+					                        </td>
+					                        <td ng-if="hasGroup('astana_contractor_lse') && hasGroup('nc_contractor_lse')">
+									            <select class="form-control" name="region" ng-model="$parent.region">
+									                <option value="astana">Astana</option>
+									                <option value="nc">North & Center</option>
+									            </select>
 					                        </td>
 					                        <td>
 									            <select class="form-control" name="priority" ng-model="priority" ng-init="priority = priority || 'all'">
@@ -151,14 +159,17 @@ left li:hover,  .left.side-blocks li.active{
 					                        <td>
 				                                <input type="text" class="form-control" name="bussinessKey" ng-model="bussinessKey" />
 					                        </td>
-						                    <td><button type="button" class="btn btn-sm btn-primary" ng-click="searchTasks()"><i class="glyphicon glyphicon-search"></i> Search</button></td>
+					                        <td>
+				                                <input type="checkbox" value="true" class="form-control" name="accepted" ng-model="accepted" />
+					                        </td>
+						                    <td><button type="button" class="btn btn-sm btn-primary" ng-click="searchForContractors()"><i class="glyphicon glyphicon-search"></i> Search</button></td>
 					                    </ng-form>
 					                </tr>
 					                </tbody>
 					            </table>
 					        </div>
 					        <div class="row">
-					            <table class="table" ng-if="searchResults.length>0">
+					            <table class="table" ng-if="!accepted && searchResults.length>0">
 					                <thead>
 					                <tr>
 					                    <th></th>
@@ -181,6 +192,32 @@ left li:hover,  .left.side-blocks li.active{
 					                        <td><a ui-sref="tasks.task({id:task.id})" target="_blank">{{task.description}}</a></td>
 					                        <td>{{task.created | date:'dd.MM.yyyy HH:mm'}}</td>
 					                        <td>{{task.validityDate | date:'dd.MM.yyyy HH:mm'}}</td>
+						                </tr>
+					                </tbody>
+					            </table>
+					            <table class="table" ng-if="accepted && processSearchResults.length>0">
+					                <thead>
+					                <tr>
+					                    <th></th>
+					                    <th>Priority</th>
+					                    <th>JR Number</th>
+					                    <th>Site name</th>
+					                    <th>Name</th>
+					                    <th>Create Date</th>
+					                    <th>Validity Date</th>
+					                </tr>
+					                </thead>
+					                <tbody>
+						                <tr ng-repeat="p in processSearchResults">
+					                        <td>{{$index+1}}.</td>
+					                        <td>{{p.priority == 'emergency' ? 'Emergency' : 'Regular'}}</td>
+					                        <td>
+						                    	<a ng-click="toggleProcessViewRevision(p)">{{p.businessKey}}</a>
+        									</td>
+					                        <td>{{p.site_name}}</td>
+					                        <td>{{p.activityName}}</td>
+					                        <td>{{p.requestedDate | date:'dd.MM.yyyy HH:mm'}}</td>
+					                        <td>{{p.validityDate | date:'dd.MM.yyyy HH:mm'}}</td>
 						                </tr>
 					                </tbody>
 					            </table>
