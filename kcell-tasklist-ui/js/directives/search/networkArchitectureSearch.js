@@ -1,6 +1,6 @@
 define(['../module', 'moment'], function (module, moment) {
     'use strict';
-    module.directive('networkArchitectureSearch', ['$http', '$timeout', '$q', '$rootScope', 'exModal', function ($http, $timeout, $q, $rootScope, exModal) {
+    module.directive('networkArchitectureSearch', ['$http', '$timeout', '$q', '$rootScope', 'exModal', 'toasty', function ($http, $timeout, $q, $rootScope, exModal, toasty) {
         return {
             restrict: 'E',
             scope: false,
@@ -561,9 +561,10 @@ define(['../module', 'moment'], function (module, moment) {
                             "value": scope.filter.replacementInitiator
                         });
                     }
-                    if (scope.filter.participation) {
+                    if (scope.filter.participation && scope.onlyProcessActive==='Revision') {
                         if(!scope.filter.requestor){
                             toasty.error({title: "Error", msg: 'Please fill field Requestor!'});
+                            return;
                         }
 
                         if (['participant','iamparticipant'].indexOf(scope.filter.participation) !== -1) {
