@@ -445,7 +445,6 @@
             };
 
             $scope.filterDistrictAfterSelectObl = function (cn_addr_oblast) {
-                console.log(cn_addr_oblast)
                 $scope.address.cn_addr_oblast = cn_addr_oblast
                 $scope.address.cn_addr_district = ''
                 $scope.address.cn_addr_city = ''
@@ -455,19 +454,22 @@
                     $scope.cityList = _.uniqBy($scope.filteredByOblast, 'city').map( (e, index) => { return {"name" : e.city, "id" : index} });
                 } else {
                     $scope.filteredDistricts = $scope.districtList;
+                    $scope.cityList = _.uniqBy($scope.dictionary.addresses, 'city').map( (e, index) => { return {"name" : e.city, "id" : index} });
                 }
             }
 
             $scope.filterDistrictAfterSelectOblInCAI = function (cn_addr_oblast) {
+                console.log(cn_addr_oblast)
                 $scope.cellAntenna.address.cn_addr_oblast = cn_addr_oblast
                 $scope.cellAntenna.address.cn_addr_district = ''
-                $scope.address.address.cn_addr_city = ''
+                $scope.cellAntenna.address.cn_addr_city = ''
                 if($scope.cellAntenna.address.cn_addr_oblast && $scope.cellAntenna.address.cn_addr_oblast !== ''){
                     $scope.filteredByOblast = $scope.dictionary.addresses.filter(a => {return a.oblast === $scope.cellAntenna.address.cn_addr_oblast});
                     $scope.filteredDistrictsInCAI = _.uniqBy($scope.filteredByOblast, 'district').map( (e, index) => { return {"name" : e.district, "id" : index} });
                     $scope.cityList = _.uniqBy($scope.filteredByOblast, 'city').map( (e, index) => { return {"name" : e.city, "id" : index} });
                 } else {
                     $scope.filteredDistrictsInCAI = $scope.districtList;
+                    $scope.cityList = _.uniqBy($scope.dictionary.addresses, 'city').map( (e, index) => { return {"name" : e.city, "id" : index} });
                 }
             }
 
@@ -482,6 +484,7 @@
                     $scope.currentFarEnd.dictionary.cityList = _.uniqBy($scope.currentFarEnd.dictionary.filteredByOblast, 'city').map( (e, index) => { return {"name" : e.city, "id" : index} });
                 } else {
                     $scope.currentFarEnd.dictionary.filteredDistricts = $scope.districtList;
+                    $scope.currentFarEnd.dictionary.cityList = _.uniqBy($scope.dictionary.addresses, 'city').map( (e, index) => { return {"name" : e.city, "id" : index} });
                 }
             }
 
@@ -519,23 +522,37 @@
 
             };
 
+            $scope.$watch('address', function (project) {
+                if (!$scope.cellAntenna.address.ca_diff_address){
+                    $scope.cellAntenna.address = JSON.parse(JSON.stringify($scope.address)) 
+                }
+            }, true);
+
             $scope.cellAntennaDiffAddressChecked = function (checkedStatus) {
                 if(!checkedStatus) {
-                    $scope.cellAntenna.address = $scope.address
+                    $scope.cellAntenna.address = JSON.parse(JSON.stringify($scope.address)) 
                 }
-                $scope.address.cn_addr_district = _.find($scope.dictionary.addresses, {'city': $item.name, 'oblast': $scope.address.cn_addr_oblast}).district;
             };
 
             $scope.addressCitySelected = function ($item) {
-                $scope.address.cn_addr_district = _.find($scope.dictionary.addresses, {'city': $item.name, 'oblast': $scope.address.cn_addr_oblast}).district;
+                $scope.address.cn_addr_district = _.find($scope.dictionary.addresses, {'city': $item.name}).district;
+                if (!$scope.address.cn_addr_oblast) {
+                    $scope.address.cn_addr_oblast = _.find($scope.dictionary.addresses, {'city': $item.name}).oblast;
+                }
             };
             
             $scope.cellInfoAddressCitySelected = function ($item) {
-                $scope.cellAntenna.address.cn_addr_district = _.find($scope.dictionary.addresses, {'city': $item.name, 'oblast': $scope.cellAntenna.address.cn_addr_oblast}).district;
+                $scope.cellAntenna.address.cn_addr_district = _.find($scope.dictionary.addresses, {'city': $item.name}).district;
+                if (!$scope.cellAntenna.address.cn_addr_oblast) {
+                    $scope.cellAntenna.address.cn_addr_oblast = _.find($scope.dictionary.addresses, {'city': $item.name}).oblast;
+                }
             };
 
             $scope.farEndAddressCitySelected = function ($item) {
-                $scope.currentFarEnd.address.cn_addr_district = _.find($scope.dictionary.addresses, {'city': $item.name, 'oblast': $scope.currentFarEnd.address.cn_addr_oblast}).district;
+                $scope.currentFarEnd.address.cn_addr_district = _.find($scope.dictionary.addresses, {'city': $item.name}).district;
+                if (!$scope.currentFarEnd.address.cn_addr_oblast) {
+                    $scope.currentFarEnd.address.cn_addr_oblast = _.find($scope.dictionary.addresses, {'city': $item.name}).oblast;
+                }
             };
 
             $scope.checkRbsLocation  = function($index, val) {
@@ -1073,7 +1090,7 @@
                             <label class="col-sm-3 control-label">Oblast:</label>
                             <div class="col-sm-8" class="form-check">
                                 <select class="form-control" id="cn_addr_oblast" name="cn_addr_oblast" ng-model="address.cn_addr_oblast"
-                                     ng-change="filterDistrictAfterSelectObl(address.cn_addr_oblast)" required>
+                                     ng-change="filterDistrictAfterSelectObl(address.cn_addr_oblast)">
                                     <option ng-repeat="oblast in oblastList" ng-value="oblast.name">{{oblast.name}}</option>
                                 </select>
                                 <label class="error" ng-show="kcell_form.cn_addr_oblast.$error.required && ( kcell_form.cn_addr_oblast.$touched || view.submitted)">Required field</label>
@@ -1092,7 +1109,7 @@
                         <div class="form-group">
                             <label class="col-sm-3 control-label">City / Village:</label>
                             <div class="col-sm-8">
-                                <input type="text" ng-model="address.cn_addr_city" ng-value='city.name' name="cn_addr_city" typeahead="city.name for city in getCity($viewValue)" typeahead-on-select="addressCitySelected($item,$model,$label)" class="form-control" required ng-disabled="!address.cn_addr_oblast" placeholder="Start typing...">
+                                <input type="text" ng-model="address.cn_addr_city" ng-value='city.name' name="cn_addr_city" typeahead="city.name for city in getCity($viewValue)" typeahead-on-select="addressCitySelected($item,$model,$label)" class="form-control" required placeholder="Start typing...">
                                 <label class="error" ng-show="kcell_form.cn_addr_city.$error.required && ( kcell_form.cn_addr_city.$touched || view.submitted)">Required field</label>
                             </div>
                         </div>
@@ -1180,7 +1197,7 @@
                                     <div class="form-group">
                                         <label class="col-sm-3 control-label">City / Village:</label>
                                         <div class="col-sm-8">
-                                            <input type="text" ng-model="cellAntenna.address.cn_addr_city" name="cn_addr_city" ng-disabled="!cellAntenna.address.ca_diff_address || !cellAntenna.address.cn_addr_oblast" typeahead="city.name for city in getCity($viewValue)" typeahead-on-select="cellInfoAddressCitySelected($item,$model,$label)" class="form-control" placeholder="Start typing...">
+                                            <input type="text" ng-model="cellAntenna.address.cn_addr_city" name="cn_addr_city" ng-disabled="!cellAntenna.address.ca_diff_address" typeahead="city.name for city in getCity($viewValue)" typeahead-on-select="cellInfoAddressCitySelected($item,$model,$label)" class="form-control" placeholder="Start typing...">
                                             <label class="error" ng-show="kcell_form.cn_addr_city.$error.required && ( kcell_form.cn_addr_city.$touched || view.submitted)">Required field</label>
                                         </div>
                                     </div>
@@ -2099,7 +2116,7 @@
                                                 <label class="col-sm-3 control-label">Oblast:</label>
                                                 <div class="col-sm-8" class="form-check">
                                                     <select class="form-control" id="FarEnd_cn_addr_oblast" name="FarEnd_cn_addr_oblast" ng-model="currentFarEnd.address.cn_addr_oblast"
-                                                            ng-change="filterDistrictAfterSelectFarEndObl(currentFarEnd.address.cn_addr_oblast)" required>
+                                                            ng-change="filterDistrictAfterSelectFarEndObl(currentFarEnd.address.cn_addr_oblast)">
                                                         <option ng-repeat="oblast in oblastList" ng-value="oblast.name">{{oblast.name}}</option>
                                                     </select>
                                                     <label class="error" ng-show="fe_form.FarEnd_cn_addr_oblast.$error.required && ( fe_form.FarEnd_cn_addr_oblast.$touched || view.submitted)">Required field</label>
@@ -2118,7 +2135,7 @@
                                             <div class="form-group">
                                                 <label class="col-sm-3 control-label">City / Village:</label>
                                                 <div class="col-sm-8">
-                                                    <input type="text" ng-model="currentFarEnd.address.cn_addr_city" ng-value='city.name' name="FarEnd_n_addr_city" typeahead="city.name for city in getFarEndCity($viewValue)" typeahead-on-select="farEndAddressCitySelected($item,$model,$label)" class="form-control" required ng-disabled="!currentFarEnd.address.cn_addr_oblast" placeholder="Start typing...">
+                                                    <input type="text" ng-model="currentFarEnd.address.cn_addr_city" ng-value='city.name' name="FarEnd_n_addr_city" typeahead="city.name for city in getFarEndCity($viewValue)" typeahead-on-select="farEndAddressCitySelected($item,$model,$label)" class="form-control" required placeholder="Start typing...">
                                                     <label class="error" ng-show="fe_form.FarEnd_cn_addr_city.$error.required && ( fe_form.FarEnd_cn_addr_city.$touched || view.submitted)">Required field</label>
                                                 </div>
                                             </div>
