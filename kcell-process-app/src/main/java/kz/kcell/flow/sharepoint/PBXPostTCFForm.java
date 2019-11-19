@@ -155,7 +155,7 @@ public class PBXPostTCFForm implements JavaDelegate {
 
                 System.err.println("processKey: " + processKey);
                 JSONObject requestBodyJSON = new JSONObject();
-                JSONObject metadataBodyJSON = new JSONObject("{\"type\": \"SP.Data.ICTD_x0020_TCFListItem\"}");
+                JSONObject metadataBodyJSON = new JSONObject("{\"type\": \"SP.Data.TCF_x005f_testListItem\"}");
                 JSONObject operatorBodyJSON = new JSONObject();
                 JSONObject departmentManagerIdJSON = new JSONObject();
                 JSONObject billingTypeBodyJSON = new JSONObject();
@@ -525,7 +525,7 @@ public class PBXPostTCFForm implements JavaDelegate {
                     }
                     if (contextInfoJSON.has("FormDigestValue")) {
                         try {
-                            String responseText = postItemsResponse(baseUri + "/Lists/getbytitle('ICTD%20TCF')/items", "kcell.kz", username, pwd, contextInfoJSON.get("FormDigestValue").toString(), requestBodyJSON.toString());
+                            String responseText = postItemsResponse(baseUri + "/Lists/getbytitle('TCF_test')/items", "kcell.kz", username, pwd, contextInfoJSON.get("FormDigestValue").toString(), requestBodyJSON.toString());
                             resultItems = responseText;
                         } catch (Exception e) {
                             e.printStackTrace();
