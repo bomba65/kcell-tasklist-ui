@@ -279,7 +279,7 @@ public class PBXGetTCFForm implements JavaDelegate {
             }
         } catch (Exception e) {
             e.printStackTrace();
-            delegateExecution.setVariable("tcfFormIdReceived", false);
+            delegateExecution.setVariable("tcfIdReceived", false);
             delegateExecution.setVariable("rejectedFromTCF", true);
         }
     }
