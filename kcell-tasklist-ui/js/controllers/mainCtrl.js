@@ -29,12 +29,30 @@ define(['./module','camundaSDK', 'lodash', 'big-js'], function(module, CamSDK, _
 				id: $routeParams.task
 			}
 		}
+		$scope.catalogs = {};
 
 		$scope.reverseOrder = false;
 		$scope.fieldName = 'businessKey';
 		$scope.fieldFilter = {};
 		$scope.visibilityFilter = {};
 
+		$scope.invoiceContractorFilter = {};
+        $scope.currentDate = new Date();
+		$scope.invoiceContractorFilter.beginYear = $scope.currentDate.getFullYear() - 1;		
+        $scope.invoiceContractorFilter.endYear = $scope.currentDate.getFullYear();
+        $scope.years = [];
+        for (var year = 2017; year <= $scope.invoiceContractorFilter.endYear; year++) {
+            $scope.years.push(year);
+        }
+        $scope.regionsMap = {
+            'alm': 'Almaty',
+            'astana': 'Astana',
+            'nc': 'North & Center',
+            'east': 'East',
+            'south': 'South',
+            'west': 'West'
+        };
+        $scope.contractorsSearchResults = [];
 
 		$scope.setVisibilityFilter = function(fieldName) {
 			//$scope.fieldName = fieldName;
@@ -257,7 +275,7 @@ define(['./module','camundaSDK', 'lodash', 'big-js'], function(module, CamSDK, _
 		}
 
         $scope.searchTasksForContractors = function(){
-        	var queryParams = {};
+        	var queryParams = {processDefinitionKey:'Revision'};
 			if($scope.site && $scope.site_name){
         		queryParams.processVariables = [{name:"site", value:$scope.site, operator: "eq"}];
         	}
@@ -462,7 +480,7 @@ define(['./module','camundaSDK', 'lodash', 'big-js'], function(module, CamSDK, _
                                     $scope.jobModel.jobWorks.value[workIndex].files.push(file);
                                 }
                             });
-                            angular.extend($scope.jobModel, catalogs);
+                            angular.extend($scope.jobModel, $scope.catalogs);
                             $scope.jobModel.tasks = processInstanceTasks;
                             openProcessCardModalRevision(p);
                         },
@@ -592,6 +610,201 @@ define(['./module','camundaSDK', 'lodash', 'big-js'], function(module, CamSDK, _
 				}
 			);
 		}
+
+		$scope.clearContractorFilters = function(){
+			$scope.invoiceContractorFilter = {
+				beginYear: $scope.currentDate.getFullYear() - 1,
+        		endYear: $scope.currentDate.getFullYear(),
+        		region: 'all',
+        		businessKeyFilterType: 'eq',
+        		businessKey: undefined,
+        		workType: undefined,
+        		unfinished: undefined
+			}
+		}
+
+		$scope.searchContractorInvoices = function(){
+        	var queryParams = {processDefinitionKey:'Invoice', variables: []};
+			if($scope.invoiceContractorFilter.beginYear){
+	            queryParams.startedAfter = $scope.invoiceContractorFilter.beginYear + '-01-01T00:00:00.000+0600';
+        	}
+			if($scope.invoiceContractorFilter.endYear){
+                queryParams.startedBefore = (Number($scope.invoiceContractorFilter.endYear) + 1) + '-01-01T00:00:00.000+0600';
+        	}
+            if ($scope.invoiceContractorFilter.businessKey) {
+                if ($scope.invoiceContractorFilter.businessKeyFilterType === 'eq') {
+                    queryParams.processInstanceBusinessKey = $scope.invoiceContractorFilter.businessKey;
+                } else {
+                    queryParams.processInstanceBusinessKeyLike = '%'+$scope.invoiceContractorFilter.businessKey+'%';
+                }
+            }
+            if($scope.invoiceContractorFilter.workType){
+				queryParams.variables.push({name:"workType", value:$scope.invoiceContractorFilter.workType+'', operator: "eq"});
+            }
+            if($scope.invoiceContractorFilter.unfinished){
+				queryParams.unfinished = $scope.invoiceContractorFilter.unfinished;
+            }
+			if($rootScope.hasGroup('hq_contractor_lse') && $scope.invoiceContractorFilter.region!=='all'){
+				queryParams.variables.push({"name": "siteRegion", "operator": "eq", "value": $scope.invoiceContractorFilter.region});
+            } else {
+	 			if($rootScope.hasGroup('astana_contractor_lse') && $rootScope.hasGroup('nc_contractor_lse')){
+	                if(!$scope.invoiceContractorFilter.region || ['astana','nc'].indexOf($scope.invoiceContractorFilter.region)===-1){
+	                    queryParams.variables.push({"name": "siteRegion", "operator": "eq", "value": 'astana'});
+	                    $scope.invoiceContractorFilter.region = 'astana';
+	                } else {
+	                    queryParams.variables.push({"name": "siteRegion", "operator": "eq", "value": $scope.invoiceContractorFilter.region});
+	                }
+	            } else if($rootScope.hasGroup('astana_contractor_lse')){
+	                queryParams.variables.push({"name": "siteRegion", "operator": "eq", "value": 'astana'});
+	            } else if($rootScope.hasGroup('nc_contractor_lse')){
+	                queryParams.variables.push({"name": "siteRegion", "operator": "eq", "value": 'nc'});
+	            } else if($rootScope.hasGroup('alm_contractor_lse')){
+	                queryParams.variables.push({"name": "siteRegion", "operator": "eq", "value": 'alm'});
+	            } else if($rootScope.hasGroup('east_contractor_lse')){
+	                queryParams.variables.push({"name": "siteRegion", "operator": "eq", "value": 'east'});
+	            } else if($rootScope.hasGroup('south_contractor_lse')){
+	                queryParams.variables.push({"name": "siteRegion", "operator": "eq", "value": 'south'});
+	            } else if($rootScope.hasGroup('west_contractor_lse')){
+	                queryParams.variables.push({"name": "siteRegion", "operator": "eq", "value": 'west'});
+	            }
+            }
+	        $scope.piIndex = undefined;
+			$http({
+				method: 'POST',
+				headers:{'Accept':'application/hal+json, application/json; q=0.5'},
+				data: queryParams,
+				url: baseUrl+'/history/process-instance'
+			}).then(function(results){
+				$scope.contractorsSearchResults = results.data;
+				if($scope.contractorsSearchResults.length > 0){
+					_.forEach(['yearOfFormalPeriod', 'workType', 'monthActNumber'], function(variable) {
+						var varSearchParams = {processInstanceIdIn: _.map($scope.contractorsSearchResults, 'id'), variableName: variable};
+						$http({
+							method: 'POST',
+							headers:{'Accept':'application/hal+json, application/json; q=0.5'},
+							data: varSearchParams,
+							url: baseUrl+'/history/variable-instance'
+						}).then(
+							function(vars){
+								$scope.contractorsSearchResults.forEach(function(el) {
+									var f =  _.filter(vars.data, function(v) {
+										return v.processInstanceId === el.id;
+									});
+									if(f){
+										el[variable] = f[0].value;
+									}
+								});
+							},
+							function(error){
+								console.log(error.data);
+							}
+						);
+					});
+				}
+			});
+		}
+
+		$scope.toggleProcessView = function(index, processDefinitionKey){
+			if($scope.piIndex === index){
+                $scope.piIndex = undefined;
+            } else {
+                $scope.piIndex = index;
+	            $scope.jobModel = {state: $scope.contractorsSearchResults[index].state, processDefinitionKey: processDefinitionKey};
+	            $http({
+					method: 'GET',
+					headers:{'Accept':'application/hal+json, application/json; q=0.5'},
+					url: baseUrl+'/task?processInstanceId='+$scope.contractorsSearchResults[index].id,
+				}).then(
+	            	function(tasks){
+		            	var processInstanceTasks = tasks.data._embedded.task;
+		            	if(processInstanceTasks && processInstanceTasks.length > 0){
+							processInstanceTasks.forEach(function(e){
+								if(e.assignee && tasks.data._embedded.assignee){
+									for(var i=0;i<tasks.data._embedded.assignee.length;i++){
+										if(tasks.data._embedded.assignee[i].id === e.assignee){
+											e.assigneeObject = tasks.data._embedded.assignee[i];
+										}
+										$http({
+											method: 'GET',
+											headers:{'Accept':'application/hal+json, application/json; q=0.5'},
+											url: baseUrl+'/task/'+e.id
+										}).then(
+											function(taskResult){
+												if(taskResult.data._embedded && taskResult.data._embedded.group){
+													e.group = taskResult.data._embedded.group[0].id;
+												}
+											},
+											function(error){
+												console.log(error.data);
+											}
+										);
+									}
+								}
+								$http({
+									method: 'GET',
+									headers:{'Accept':'application/hal+json, application/json; q=0.5'},
+									url: baseUrl+'/task/'+e.id
+								}).then(
+									function(taskResult){
+										if(taskResult.data._embedded && taskResult.data._embedded.group){
+											e.group = taskResult.data._embedded.group[0].id;
+										}
+									},
+									function(error){
+										console.log(error.data);
+									}
+								);
+							});
+		            		$scope.jobModel.tasks = processInstanceTasks;
+						}
+			            $http.get(baseUrl+'/history/variable-instance?deserializeValues=false&processInstanceId='+$scope.contractorsSearchResults[index].id).then(
+			            	function(result){
+			            		$scope.jobModel.files = [];
+			            		result.data.forEach(function(el){
+			            			$scope.jobModel[el.name] = el;
+			            			if(el.type === 'File' || el.type === 'Bytes'){
+			            				$scope.jobModel[el.name].contentUrl = baseUrl+'/history/variable-instance/'+el.id+'/data';
+			            			}
+			            			if(el.type === 'Json'){
+										if(el.name === 'attachInvoiceFileName') {
+											$scope.jobModel.files.push(JSON.parse(el.value));
+										}
+										if(el.name === 'signedScanCopyFileName') {
+											$scope.jobModel.files.push(JSON.parse(el.value));
+										} else {
+											$scope.jobModel[el.name].value = JSON.parse(el.value);
+										}
+									}
+			            		});
+			                    if($scope.jobModel.resolutions && $scope.jobModel.resolutions.value){
+			                        $q.all($scope.jobModel.resolutions.value.map(function (resolution) {
+			                            return $http.get("/camunda/api/engine/engine/default/history/task?processInstanceId="+resolution.processInstanceId+"&taskId=" + resolution.taskId);
+			                        })).then(function (tasks) {
+			                            tasks.forEach(function (e, index) {
+			                                if(e.data.length > 0){
+			                                    $scope.jobModel.resolutions.value[index].taskName = e.data[0].name;
+			                                    try {
+			                                        $scope.jobModel.resolutions.value[index].taskEndDate = new Date(e.data[0].endTime);
+			                                    } catch(e){
+			                                        console.log(e);
+			                                    }
+			                                }
+			                            });
+			                        });
+								}
+			            		angular.extend($scope.jobModel, $scope.catalogs);
+					        },
+					        function(error){
+					        	console.log(error.data);
+					        }
+				        );
+					},
+					function(error){
+						console.log(error.data);
+					}
+				);
+            }
+        }
 
 		$scope.getProcessDefinitions = function(project){
 			var processList = _.map(project.processes, 'key');
@@ -782,11 +995,9 @@ define(['./module','camundaSDK', 'lodash', 'big-js'], function(module, CamSDK, _
 		getTaskList();
 
 		$scope.getTaskList = getTaskList;
-
-        var catalogs = {};
         $http.get($rootScope.getCatalogsHttpByName('catalogs')).then(
             function (result) {
-                angular.extend(catalogs, result.data);
+                angular.extend($scope.catalogs, result.data);
             },
             function (error) {
                 console.log(error.data);
