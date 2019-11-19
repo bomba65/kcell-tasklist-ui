@@ -34,7 +34,7 @@ public class CreateSMSGWClient implements JavaDelegate {
 
 
     @Autowired
-    public CreateSMSGWClient(@Value("https://admin-api-hermes-stage.kcell.kz") String baseUri, @Value("${sharepoint.forms.username}") String username, @Value("${sharepoint.forms.password}") String pwd) {
+    public CreateSMSGWClient(@Value("https://admin-api-hermes.kcell.kz") String baseUri, @Value("${sharepoint.forms.username}") String username, @Value("${sharepoint.forms.password}") String pwd) {
         this.baseUri = baseUri;
         this.authStr64 = username + ":" + pwd;
     }
@@ -44,6 +44,7 @@ public class CreateSMSGWClient implements JavaDelegate {
         String connectionType = String.valueOf(delegateExecution.getVariable("connectionType"));
         String identifierType = String.valueOf(delegateExecution.getVariable("identifierType"));
         String operatorType = String.valueOf(delegateExecution.getVariable("operatorType"));
+        String provider = String.valueOf(delegateExecution.getVariable("provider "));
         String clientCompanyLatName = String.valueOf(delegateExecution.getVariable("clientCompanyLatName"));
         String smsGwUsername = clientCompanyLatName + "_REST";
         String smsGwUserId = null;
@@ -51,9 +52,10 @@ public class CreateSMSGWClient implements JavaDelegate {
         String smsGwBwListId = null;
         JSONArray identifierJSONArray = new JSONArray(String.valueOf(delegateExecution.getVariable("identifiers")));
         JSONObject identifierJSON = identifierJSONArray.getJSONObject(0);
+        JSONArray operators  =identifierJSON.getJSONArray("operators");
         String identifier = String.valueOf(identifierJSON.get("title"));
 
-        if ("rest".equals(connectionType) && "alfanumeric".equals(identifierType)) {
+        if ("rest".equals(connectionType) && ("alfanumeric".equals(identifierType) || "digital".equals(identifierType)) ) {
             CloseableHttpClient closeableHttpClient = HttpClients.createDefault();
             String responseGetUsers = executeGet(baseUri + "/users/", closeableHttpClient);
             String smsGwPasswd = "123456789";
@@ -70,7 +72,7 @@ public class CreateSMSGWClient implements JavaDelegate {
             boolean userAlreadyExists = false;
 
             for (int i = 0; i < responseGetUsersJson.length(); i++) {
-                if (((JSONObject) responseGetUsersJson.get(i)).get("bin").equals(clientBIN)) {
+                if (((JSONObject) responseGetUsersJson.get(i)).get("username").equals(clientCompanyLatName)) {
                     userAlreadyExists = true;
                     smsGwUserId = ((JSONObject) responseGetUsersJson.get(i)).getString("userId");
                     break;
@@ -87,7 +89,7 @@ public class CreateSMSGWClient implements JavaDelegate {
                 jsonObject.put("isReadOnly", false);
                 jsonObject.put("password", smsGwPasswd);
                 jsonObject.put("userId", 0);
-                jsonObject.put("username", clientCompanyLatName);
+                jsonObject.put("username", smsGwUserId);
 
                 String responsePut = executePut(baseUri + "/users/", closeableHttpClient, jsonObject);
                 JSONObject responsePutUserJson = new JSONObject(responsePut);
@@ -95,14 +97,16 @@ public class CreateSMSGWClient implements JavaDelegate {
                 log.info("responsePut " + responsePut);
                 delegateExecution.setVariable("smsGwUserId", smsGwUserId);
                 delegateExecution.setVariable("putUserResponse", responsePut);
-            }
 
-            if (operatorType.equals("Onnet")) {
-                JSONObject jsonObject = new JSONObject();
-                jsonObject.put("channelName", "SMS");
-                jsonObject.put("userId", Integer.parseInt(smsGwUserId));
-                String responsePutChannel = executePut(baseUri + "/channels/", closeableHttpClient, jsonObject);
-                delegateExecution.setVariable("responsePutChannel", responsePutChannel);
+                if (operatorType.equals("onnet")) {
+                    String channelName = "SMS";
+                    JSONObject jsonPutChannel = new JSONObject();
+                    jsonPutChannel.put("channelName", channelName);
+                    jsonPutChannel.put("userId", Integer.parseInt(smsGwUserId));
+                    log.info("jsonputchannel" + jsonPutChannel);
+                    String responsePutChannel = executePut(baseUri + "/users/channels/", closeableHttpClient, jsonPutChannel);
+                    delegateExecution.setVariable("responsePutChannel", responsePutChannel);
+                }
             }
 
             String responseGetSenders = executeGet(baseUri + "/senders/", closeableHttpClient);
@@ -126,13 +130,31 @@ public class CreateSMSGWClient implements JavaDelegate {
                 }
             }
             log.info("senderAlreadyExists " + senderAlreadyExists);
-            log.info("smsGwUserId "+ smsGwUserId);
+            log.info("smsGwUserId " + smsGwUserId);
             if (!senderAlreadyExists) {
                 String smsServiceType = String.valueOf(delegateExecution.getVariable("smsServiceType"));
                 String queueName = identifier + "_" + (smsServiceType.equals("MO") ? "mo_" : "") + "queue";
+                Integer accountConfigId = null;
+
+                if (operatorType.equals("onnet") && smsServiceType.equals("MT")) {
+                    accountConfigId = -46;
+                } else {
+                    switch (provider) {
+                        case "SMS Consult":
+                            accountConfigId = 2;
+                            break;
+                        case "MMS":
+                            accountConfigId = -42;
+                            break;
+                    }
+                }
+
+                if (accountConfigId == null) {
+                    return;
+                }
 
                 JSONObject jsonObject = new JSONObject();
-                jsonObject.put("accountConfigId", smsServiceType.equals("MO") ? 3 : 2);
+                jsonObject.put("accountConfigId", accountConfigId);
                 jsonObject.put("billingId", "");
                 jsonObject.put("drBatchSize", 0);
                 jsonObject.put("drLink", "");
@@ -148,10 +170,9 @@ public class CreateSMSGWClient implements JavaDelegate {
                 jsonObject.put("moPeriod", 0);
                 jsonObject.put("moUsername", "");
                 jsonObject.put("queueName", queueName);
-                jsonObject.put("senderId", 0);
                 jsonObject.put("senderName", identifier);
-                jsonObject.put("throttlingOffnet", 3);
-                jsonObject.put("throttlingOnnet", 3);
+                jsonObject.put("throttlingOffnet", 100);
+                jsonObject.put("throttlingOnnet", 2000);
                 jsonObject.put("userId", Integer.parseInt(smsGwUserId));
 
                 log.info("jsonputsender " + jsonObject);
@@ -162,6 +183,18 @@ public class CreateSMSGWClient implements JavaDelegate {
 
                 delegateExecution.setVariable("smsGwSenderId", smsGwSenderId);
                 delegateExecution.setVariable("putSenderResponse", responsePut);
+            }
+
+            if (operatorType.equals("offnet")) {
+                for (int i = 0; i < operators.length(); i++){
+                    JSONObject jsonMapping = new JSONObject();
+                    jsonMapping.put("mappingId", 0);
+                    jsonMapping.put("operator", ((JSONObject) operators.get(i)).get("id").toString().toUpperCase());
+                    jsonMapping.put("originalSender", identifier);
+                    jsonMapping.put("outputSender", ((JSONObject) operators.get(i)).get("title").toString());
+                    String responsePut = executePut(baseUri + "/mappings/", closeableHttpClient, jsonMapping);
+                    delegateExecution.setVariable("putMapping", responsePut);
+                }
             }
 
             String responseGetBWLists = executeGet(baseUri + "/black_white_lists/", closeableHttpClient);
