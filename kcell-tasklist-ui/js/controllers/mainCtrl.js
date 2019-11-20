@@ -704,7 +704,8 @@ define(['./module','camundaSDK', 'lodash', 'big-js'], function(module, CamSDK, _
 			});
 		}
 
-		$scope.toggleProcessView = function(index, processDefinitionKey){
+		$scope.toggleProcessView = function(index, id, processDefinitionKey){
+			console.log(id);
 			if($scope.piIndex === index){
                 $scope.piIndex = undefined;
             } else {
@@ -713,7 +714,7 @@ define(['./module','camundaSDK', 'lodash', 'big-js'], function(module, CamSDK, _
 	            $http({
 					method: 'GET',
 					headers:{'Accept':'application/hal+json, application/json; q=0.5'},
-					url: baseUrl+'/task?processInstanceId='+$scope.contractorsSearchResults[index].id,
+					url: baseUrl+'/task?processInstanceId='+id,
 				}).then(
 	            	function(tasks){
 		            	var processInstanceTasks = tasks.data._embedded.task;
@@ -757,7 +758,7 @@ define(['./module','camundaSDK', 'lodash', 'big-js'], function(module, CamSDK, _
 							});
 		            		$scope.jobModel.tasks = processInstanceTasks;
 						}
-			            $http.get(baseUrl+'/history/variable-instance?deserializeValues=false&processInstanceId='+$scope.contractorsSearchResults[index].id).then(
+			            $http.get(baseUrl+'/history/variable-instance?deserializeValues=false&processInstanceId='+id).then(
 			            	function(result){
 			            		$scope.jobModel.files = [];
 			            		result.data.forEach(function(el){
