@@ -234,8 +234,8 @@ public class PBXGetTCFForm implements JavaDelegate {
                     }
                 });
 
-                URL urlRequest = new URL(baseUri + "/Lists/getbytitle('TCF_test')/items(" + tcfFormId + ")");
-                System.out.println("URL:" + baseUri + "/Lists/getbytitle('TCF_test')/items(" + tcfFormId + ")");
+                URL urlRequest = new URL(baseUri + "/Lists/getbytitle('ICTD%20TCF')/items(" + tcfFormId + ")");
+                System.out.println("URL:" + baseUri + "/Lists/getbytitle('ICTD%20TCF')/items(" + tcfFormId + ")");
                 HttpURLConnection conn = (HttpURLConnection) urlRequest.openConnection();
                 conn.setDoOutput(true);
                 conn.setDoInput(true);
