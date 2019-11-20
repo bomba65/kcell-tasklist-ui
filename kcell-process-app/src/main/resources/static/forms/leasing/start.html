@@ -48,6 +48,7 @@
             });
 
             camForm.on('submit', function (evt) {
+                // evt.submitPrevented = true;
                 camForm.variableManager.variableValue('bands', $scope.selectedBands);
                 camForm.variableManager.variableValue('regionName', $scope.regionName);
                 camForm.variableManager.createVariable({
@@ -133,9 +134,21 @@
                     return deferred.promise;
                 }
                 if (validLat && validLong) {
-                  deferred.resolve();
-                  return deferred.promise;
+                    var currentDate = new Date();
+                    var rolloutCounter = 'ROLLOUT-'+currentDate.getFullYear().toString();
+                    return $http.post('/asset-management/rolloutcounter/' + rolloutCounter).then(
+                            function(result){
+                                var businessKey = 'ROLLOUT-'+$scope.ncpID+'-'+currentDate.getFullYear().toString()+'-'+result.data;
+                                camForm.businessKey = businessKey;
+                            }
+                    );
+                    deferred.resolve();
+                    return deferred.promise;
                 }
+
+
+
+
              }
 
             $scope.$watch('initiator', function (initiator) {

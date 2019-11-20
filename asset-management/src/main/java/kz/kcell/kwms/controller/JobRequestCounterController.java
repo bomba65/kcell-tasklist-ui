@@ -40,4 +40,16 @@ public class JobRequestCounterController {
 
         return "\"" + counterId + "-" + String.format("%04d", jobRequestCounter.getValue()) + "\"";
     }
+
+    @PostMapping(path = "/rolloutcounter/{counterId}", produces = "application/json")
+    @Transactional
+    @ResponseBody
+    public String getNextRollourCounter(@PathVariable("counterId") String counterId) {
+        JobRequestCounter jobRequestCounter = (JobRequestCounter) em.createNativeQuery(
+                "insert into jobrequest_counter as d (id,value) values(?1,0001) on conflict(id) do update set value = d.value + 1 returning *\n",
+                JobRequestCounter.class)
+                .setParameter(1, counterId).getSingleResult();
+
+        return "\"" + String.format("%04d", jobRequestCounter.getValue()) + "\"";
+    }
 }
