@@ -89,8 +89,9 @@ public class CreateSMSGWClient implements JavaDelegate {
                 jsonObject.put("isReadOnly", false);
                 jsonObject.put("password", smsGwPasswd);
                 jsonObject.put("userId", 0);
-                jsonObject.put("username", smsGwUserId);
+                jsonObject.put("username", smsGwUsername);
 
+                log.info("userPUTjson  " + jsonObject);
                 String responsePut = executePut(baseUri + "/users/", closeableHttpClient, jsonObject);
                 JSONObject responsePutUserJson = new JSONObject(responsePut);
                 smsGwUserId = responsePutUserJson.getString("userId");
