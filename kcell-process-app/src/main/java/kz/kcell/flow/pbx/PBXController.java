@@ -57,6 +57,8 @@ public class PBXController {
         } else if (sipProtocol.getString("authorizationType").startsWith("SIP-транк")) {
             replaceText(doc, "connectionLevel", "Внутрисетевой, SBC");
             replaceText(doc, "sipLevel1", "SBC");
+        } else {
+            replaceText(doc, "sipLevel1", "");
         }
 
         String numbers = technicalSpecifications.getString("pbxNumbers");
@@ -75,7 +77,7 @@ public class PBXController {
             replaceText(doc, "pbxQuantity", technicalSpecifications.getString("virtualNumbersCount") + " номеров");
         }
         replaceText(doc, "connectedTypeEquipment", technicalSpecifications.getString("pbxType"));
-        replaceText(doc, "ipAddress", sipProtocol.getString("ipVoiceTraffic") + ", " + sipProtocol.getString("ipSignaling"));
+        replaceText(doc, "ipAddress", Arrays.asList(sipProtocol.getString("ipVoiceTraffic") + ", " + sipProtocol.getString("ipSignaling").replaceAll(" ", "").split(",")).stream().collect(Collectors.toSet()).stream().collect(Collectors.joining(", ")));
         replaceText(doc, "codec", sipProtocol.getString("preferredCoding"));
         replaceText(doc, "udpPort", sipProtocol.getString("signalingPort"));
         replaceText(doc, "rtpPort", sipProtocol.getString("voiceTrafficPortStart") + " - " + sipProtocol.getString("voiceTrafficPortEnd"));
