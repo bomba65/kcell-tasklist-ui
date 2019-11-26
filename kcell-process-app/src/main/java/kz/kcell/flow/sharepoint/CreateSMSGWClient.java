@@ -139,16 +139,15 @@ public class CreateSMSGWClient implements JavaDelegate {
 
                 if (operatorType.equals("onnet") && smsServiceType.equals("MT")) {
                     accountConfigId = -46;
-                } else {
-                    switch (provider) {
-                        case "SMS Consult":
-                            accountConfigId = 2;
-                            break;
-                        case "MMS":
-                            accountConfigId = -42;
-                            break;
+                } else if (operatorType.equals("offnet")) {
+                    if (provider.equals("SMS Consult")) {
+                        accountConfigId = 2;
+                    }
+                    if (provider.equals("MMS")) {
+                        accountConfigId = -42;
                     }
                 }
+
 
                 if (accountConfigId == null) {
                     return;
