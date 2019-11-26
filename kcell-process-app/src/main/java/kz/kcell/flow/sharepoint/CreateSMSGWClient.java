@@ -166,7 +166,6 @@ public class CreateSMSGWClient implements JavaDelegate {
                     }
                 }
 
-
                 if (accountConfigId == null) {
                     return;
                 }
@@ -206,12 +205,14 @@ public class CreateSMSGWClient implements JavaDelegate {
             if (operatorType.equals("offnet")) {
                 for (int i = 0; i < operators.length(); i++) {
                     JSONObject jsonMapping = new JSONObject();
-                    jsonMapping.put("mappingId", 0);
-                    jsonMapping.put("operator", ((JSONObject) operators.get(i)).get("id").toString().toUpperCase());
-                    jsonMapping.put("originalSender", identifier);
-                    jsonMapping.put("outputSender", ((JSONObject) operators.get(i)).get("title").toString());
-                    String responsePut = executePut(baseUri + "/mappings/", closeableHttpClient, jsonMapping);
-                    delegateExecution.setVariable("putMapping", responsePut);
+                    if (((JSONObject) operators.get(i)).has("isAvailable") && ((JSONObject) operators.get(i)).getBoolean("isAvailable")) {
+                        jsonMapping.put("mappingId", 0);
+                        jsonMapping.put("operator", ((JSONObject) operators.get(i)).get("id").toString().toUpperCase());
+                        jsonMapping.put("originalSender", identifier);
+                        jsonMapping.put("outputSender", "digital".equals(identifierType) ? identifier : ((JSONObject) operators.get(i)).get("title").toString());
+                        String responsePut = executePut(baseUri + "/sender-mappings/", closeableHttpClient, jsonMapping);
+                        delegateExecution.setVariable("putMapping", responsePut);
+                    }
                 }
             }
 

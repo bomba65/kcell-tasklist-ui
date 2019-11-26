@@ -42,7 +42,7 @@ public class UpdateBWList implements JavaDelegate {
 
         CloseableHttpClient closeableHttpClient = HttpClients.createDefault();
 
-        if ("rest".equals(connectionType) && "alfanumeric".equals(identifierType)) {
+        if ("rest".equals(connectionType) && ("alfanumeric".equals(identifierType) || "digital".equals(identifierType))) {
             JSONObject jsonObject = new JSONObject();
             jsonObject.put("bw_list_id", smsGwBwListId);
             jsonObject.put("sender_id", smsGwSenderId);

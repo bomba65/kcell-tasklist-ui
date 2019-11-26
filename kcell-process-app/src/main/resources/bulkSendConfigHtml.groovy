@@ -32,8 +32,6 @@ html(lang:'en') {
     }
     newLine()
     body {
-        p('Здравствуйте,')
-        newLine()
         p('Ваш тестовый доступ готов.')
         hr()
         p('<b>Параметры доступа:</b>')
@@ -49,7 +47,7 @@ switch (connectionType) {
         template += '''\
             tr {
                 th(scope: 'row', style:'white-space: nowrap;')('<b>API:</b>')
-                td('<a href="https://api.kcell.kz/app/smsgw/rest/v2">https://api.kcell.kz/app/smsgw/rest/v2</a>')
+                td('<a href="https://msg.kcell.kz/api/v3">https://msg.kcell.kz/api/v3</a>')
             }
             tr {
                 th(scope: 'row', style:'white-space: nowrap;')('<b>Заголовок:</b> ')
@@ -91,10 +89,6 @@ def common = '''\
             tr {
                 th(scope: 'row', style:'white-space: nowrap;')('<b>Тестовые номера:</b> ')
                 td(testNumber)
-            }
-            tr {
-                th(scope: 'row', style:'white-space: nowrap;')('<b>Timebounds:</b> ')
-                td(timeBounds)
             }
             }     
             '''

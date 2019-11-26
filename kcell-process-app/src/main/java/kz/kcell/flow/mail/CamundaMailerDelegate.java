@@ -124,7 +124,7 @@ public class CamundaMailerDelegate implements JavaDelegate {
                 String fileName="";
                 switch(connectionType) {
                     case "rest":
-                        fileName = "REST_API.pdf";
+                        fileName = "hermes_api.pdf";
                         break;
                     case "smpp":
                         fileName = "SMPP-v3.4.rus.pdf";
