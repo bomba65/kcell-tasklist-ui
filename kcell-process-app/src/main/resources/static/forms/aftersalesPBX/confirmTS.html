@@ -64,6 +64,11 @@
                 $scope.workType = camForm.variableManager.variableValue('workType');
                 if (!$scope.legalInfo) $scope.legalInfo = {};
                 if (!$scope.techSpecs) $scope.techSpecs = {connectionType:'SIP over internet', sip: {}};
+                if ($scope.techSpecs.sip){
+                    $scope.techSpecs.sip.taskId = camForm.taskId;
+                }
+                $scope.techSpecs.taskId = camForm.taskId;
+                $scope.legalInfo.taskId = camForm.taskId;
 
                 camForm.variableManager.createVariable({
                     name: 'confirmTSTaskResult',
@@ -110,11 +115,18 @@
             };
 
             camForm.on('submit', function (event) {
+                var ts = angular.copy($scope.techSpecs);
+                var li = angular.copy($scope.legalInfo);
+                if (ts.sip){
+                    delete ts.sip.taskId;
+                }
+                delete ts.taskId;
+                delete li.taskId;
                 camForm.variableManager.destroyVariable('legalInfo');
                 camForm.variableManager.createVariable({
                     name: 'legalInfo',
                     type: 'Json',
-                    value: $scope.legalInfo
+                    value: li
                 });
                 camForm.variableManager.destroyVariable('action');
                 camForm.variableManager.createVariable({
@@ -126,7 +138,7 @@
                 camForm.variableManager.createVariable({
                     name: 'techSpecs',
                     type: 'Json',
-                    value: $scope.techSpecs
+                    value: ts
                 });
                 camForm.variableManager.destroyVariable('attachments');
                 camForm.variableManager.createVariable({

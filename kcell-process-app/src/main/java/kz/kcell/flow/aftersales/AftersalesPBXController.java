@@ -1,5 +1,8 @@
-package kz.kcell.flow.pbx;
+package kz.kcell.flow.aftersales;
 
+import kz.kcell.flow.pbx.TextAlignment;
+import kz.kcell.flow.pbx.TextFormat;
+import kz.kcell.flow.pbx.TextRenderer;
 import lombok.extern.java.Log;
 import org.apache.commons.compress.utils.IOUtils;
 import org.apache.poi.openxml4j.exceptions.InvalidFormatException;
@@ -30,8 +33,8 @@ import java.util.stream.Collectors;
 
 @Log
 @RestController
-@RequestMapping("/pbx")
-public class PBXController {
+@RequestMapping("/aftersales-pbx")
+public class AftersalesPBXController {
 
     @Autowired
     private TaskService taskService;
@@ -41,27 +44,28 @@ public class PBXController {
     public void technicalCondition(@PathVariable("taskId") String taskId, HttpServletResponse response) throws Exception {
 
         Map<String, Object> variables = taskService.getVariables(taskId);
+        variables.entrySet().forEach(p -> System.out.println(p.getKey() + ":" + p.getValue()));
 
-        XWPFDocument doc = new XWPFDocument(PBXController.class.getResourceAsStream("/PBX/technical_conditions_template.docx"));
+        XWPFDocument doc = new XWPFDocument(AftersalesPBXController.class.getResourceAsStream("/PBX/technical_conditions_template.docx"));
 
-        JSONObject customerInformation = new JSONObject(variables.get("customerInformation").toString());
-        JSONObject technicalSpecifications = new JSONObject(variables.get("technicalSpecifications").toString());
-        JSONObject sipProtocol = new JSONObject(variables.get("sipProtocol").toString());
+        JSONObject legalInfo = new JSONObject(variables.get("legalInfo").toString());
+        JSONObject techSpecs = new JSONObject(variables.get("techSpecs").toString());
+        JSONObject sip = techSpecs.getJSONObject("sip");
 
-        replaceText(doc, "legalName", customerInformation.getString("legalName"));
-        replaceText(doc, "cityCompany", customerInformation.getString("companyRegistrationCity"));
+        replaceText(doc, "legalName", legalInfo.getString("legalName"));
+        replaceText(doc, "cityCompany", legalInfo.getString("companyCity"));
 
-        if (sipProtocol.getString("authorizationType").startsWith("SIP-авторизация")) {
+        if (sip.getString("authorizationType").startsWith("SIP-авторизация")) {
             replaceText(doc, "connectionLevel", "Внутрисетевой, SIP Proxy");
             replaceText(doc, "sipLevel1", "SIP Proxy");
-        } else if (sipProtocol.getString("authorizationType").startsWith("SIP-транк")) {
+        } else if (sip.getString("authorizationType").startsWith("SIP-транк")) {
             replaceText(doc, "connectionLevel", "Внутрисетевой, SBC");
             replaceText(doc, "sipLevel1", "SBC");
         } else {
             replaceText(doc, "sipLevel1", "");
         }
 
-        String numbers = technicalSpecifications.getString("pbxNumbers");
+        String numbers = techSpecs.getString("pbxNumbers");
         numbers = numbers.replaceAll("\n", ",").replaceAll("\r", ",").replaceAll(";", ",").replaceAll(",,", ",");
         String[] split = numbers.split(",");
         String pbxNumbers[] = new String[split.length];
@@ -69,28 +73,31 @@ public class PBXController {
             pbxNumbers[i] = "+" + split[i].charAt(0) + "-" + split[i].charAt(1) + split[i].charAt(2) + split[i].charAt(3) + "-" + split[i].charAt(4) + split[i].charAt(5) + split[i].charAt(6) + "-" + split[i].charAt(7) + split[i].charAt(8) + "-" + split[i].charAt(9) + split[i].charAt(10);
         }
         replaceText(doc, "virtualNumbers", Arrays.asList(pbxNumbers).stream().collect(Collectors.joining(", ")));
-        if (technicalSpecifications.getInt("virtualNumbersCount") == 1) {
-            replaceText(doc, "pbxQuantity", technicalSpecifications.getString("virtualNumbersCount") + " номер");
-        } else if (technicalSpecifications.getInt("virtualNumbersCount") <= 4) {
-            replaceText(doc, "pbxQuantity", technicalSpecifications.getString("virtualNumbersCount") + " номер");
+        if (techSpecs.getInt("pbxQuantity") == 1) {
+            replaceText(doc, "pbxQuantity", techSpecs.getString("pbxQuantity") + " номер");
+        } else if (techSpecs.getInt("pbxQuantity") <= 4) {
+            replaceText(doc, "pbxQuantity", techSpecs.getString("pbxQuantity") + " номер");
         } else {
-            replaceText(doc, "pbxQuantity", technicalSpecifications.getString("virtualNumbersCount") + " номеров");
+            replaceText(doc, "pbxQuantity", techSpecs.getString("pbxQuantity") + " номеров");
         }
-        replaceText(doc, "connectedTypeEquipment", technicalSpecifications.getString("pbxType"));
-        replaceText(doc, "ipAddress", Arrays.asList((sipProtocol.getString("ipVoiceTraffic") + ", " + sipProtocol.getString("ipSignaling")).replaceAll(" ", "").split(",")).stream().collect(Collectors.toSet()).stream().collect(Collectors.joining(", ")));
-        replaceText(doc, "codec", sipProtocol.getString("preferredCoding"));
-        replaceText(doc, "udpPort", sipProtocol.getString("signalingPort"));
-        replaceText(doc, "rtpPort", sipProtocol.getString("voiceTrafficPortStart") + " - " + sipProtocol.getString("voiceTrafficPortEnd"));
-        replaceText(doc, "sessionNumber", sipProtocol.getString("sessionCount"));
-        replaceText(doc, "internationalCall", technicalSpecifications.getString("intenationalCallAccess").equals("Yes") ? "открыт" : "закрыт");
+        replaceText(doc, "connectedTypeEquipment", techSpecs.getString("equipmentType"));
+        replaceText(doc, "ipAddress", Arrays.asList((sip.getString("curPublicVoiceIP") + ", " + sip.getString("curSignalingIP")).replaceAll(" ", "").split(",")).stream().collect(Collectors.toSet()).stream().collect(Collectors.joining(", ")));
+        replaceText(doc, "codec", sip.getString("coding"));
+        replaceText(doc, "udpPort", sip.getString("signalingPort"));
+        replaceText(doc, "rtpPort", sip.getString("voicePortStart") + " - " + sip.getString("voicePortEnd"));
+        replaceText(doc, "sessionNumber", sip.getString("sessionsCount"));
+        replaceText(doc, "internationalCall", techSpecs.getString("iCallAccess").equals("Yes") ? "открыт" : "закрыт");
 
-        BufferedImage image = ImageIO.read(PBXController.class.getResourceAsStream("/PBX/tcSchema.png"));
+        BufferedImage image = ImageIO.read(AftersalesPBXController.class.getResourceAsStream("/PBX/tcSchema.png"));
 
         Graphics g = image.getGraphics();
         g.setFont(g.getFont().deriveFont(22f));
         Rectangle bounds = new Rectangle(460, 0, 320, 230);
         TextRenderer.drawString(g,
-            technicalSpecifications.getString("connectionPoint") + "\n" +
+
+            (techSpecs.has("connectionPointNew") && techSpecs.getString("connectionPointNew") != null && !techSpecs.getString("connectionPointNew").equals("null") ? techSpecs.getString("connectionPointNew") : techSpecs.getString("connectionPoint"))
+
+                + "\n" +
                 "Kcell\n" +
                 "г. Алматы",
             g.getFont(), Color.BLACK, bounds, TextAlignment.MIDDLE, TextFormat.FIRST_LINE_VISIBLE
@@ -98,9 +105,9 @@ public class PBXController {
         bounds = new Rectangle(950, 0, 320, 230);
         TextRenderer.drawString(g,
             "PBX\n" +
-                technicalSpecifications.getString("pbxType") + "\n" +
-                customerInformation.getString("legalName") + "\n" +
-                technicalSpecifications.getString("pbxCity"),
+                techSpecs.getString("equipmentType") + "\n" +
+                legalInfo.getString("legalName") + "\n" +
+                techSpecs.getString("equipmentCity"),
             g.getFont(), Color.BLACK, bounds, TextAlignment.MIDDLE, TextFormat.FIRST_LINE_VISIBLE
         );
 
@@ -115,7 +122,7 @@ public class PBXController {
         doc.write(downloadFile);
         doc.close();
         response.setContentType(MediaType.APPLICATION_OCTET_STREAM_VALUE);
-        response.addHeader(HttpHeaders.CONTENT_DISPOSITION, "attachment; filename=\"" + variables.get("numberRequest").toString() + ".docx\"");
+        response.addHeader(HttpHeaders.CONTENT_DISPOSITION, "attachment; filename=\"tu_" + variables.get("clientBIN").toString() + ".docx\"");
         IOUtils.copy(new ByteArrayInputStream(downloadFile.toByteArray()), response.getOutputStream());
     }
 
