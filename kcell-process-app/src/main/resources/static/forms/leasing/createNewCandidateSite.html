@@ -140,6 +140,10 @@
                 $scope.cellAntenna.address = {
                     ca_diff_address:false
                 };
+                $scope.nearEnd = {};
+                $scope.transmissionAntenna.address = {
+                    ca_diff_address:false
+                };
                 $scope.renterCompany = {};
                 $scope.threeFarEndNotNecessary= {};
                 $scope.powerSource = {};
@@ -459,7 +463,6 @@
             }
 
             $scope.filterDistrictAfterSelectOblInCAI = function (cn_addr_oblast) {
-                console.log(cn_addr_oblast)
                 $scope.cellAntenna.address.cn_addr_oblast = cn_addr_oblast
                 $scope.cellAntenna.address.cn_addr_district = ''
                 $scope.cellAntenna.address.cn_addr_city = ''
@@ -469,6 +472,20 @@
                     $scope.cityList = _.uniqBy($scope.filteredByOblast, 'city').map( (e, index) => { return {"name" : e.city, "id" : index} });
                 } else {
                     $scope.filteredDistrictsInCAI = $scope.districtList;
+                    $scope.cityList = _.uniqBy($scope.dictionary.addresses, 'city').map( (e, index) => { return {"name" : e.city, "id" : index} });
+                }
+            }
+
+            $scope.filterDistrictAfterSelectOblInNEI = function (cn_addr_oblast) {
+                $scope.transmissionAntenna.address.cn_addr_oblast = cn_addr_oblast
+                $scope.transmissionAntenna.address.cn_addr_district = ''
+                $scope.transmissionAntenna.address.cn_addr_city = ''
+                if($scope.transmissionAntenna.address.cn_addr_oblast && $scope.transmissionAntenna.address.cn_addr_oblast !== ''){
+                    $scope.filteredByOblast = $scope.dictionary.addresses.filter(a => {return a.oblast === $scope.cellAntenna.address.cn_addr_oblast});
+                    $scope.filteredDistrictsInNEI = _.uniqBy($scope.filteredByOblast, 'district').map( (e, index) => { return {"name" : e.district, "id" : index} });
+                    $scope.cityList = _.uniqBy($scope.filteredByOblast, 'city').map( (e, index) => { return {"name" : e.city, "id" : index} });
+                } else {
+                    $scope.filteredDistrictsInNEI = $scope.districtList;
                     $scope.cityList = _.uniqBy($scope.dictionary.addresses, 'city').map( (e, index) => { return {"name" : e.city, "id" : index} });
                 }
             }
@@ -526,11 +543,19 @@
                 if (!$scope.cellAntenna.address.ca_diff_address){
                     $scope.cellAntenna.address = JSON.parse(JSON.stringify($scope.address)) 
                 }
+                if (!$scope.transmissionAntenna.address.ca_diff_address){
+                    $scope.transmissionAntenna.address = JSON.parse(JSON.stringify($scope.address))
+                }
             }, true);
 
             $scope.cellAntennaDiffAddressChecked = function (checkedStatus) {
                 if(!checkedStatus) {
-                    $scope.cellAntenna.address = JSON.parse(JSON.stringify($scope.address)) 
+                    $scope.cellAntenna.address = JSON.parse(JSON.stringify($scope.address))
+                }
+            };
+            $scope.nearEndDiffAddressChecked = function (checkedStatus) {
+                if(!checkedStatus) {
+                    $scope.cellAntenna.address = JSON.parse(JSON.stringify($scope.address))
                 }
             };
 
@@ -545,6 +570,13 @@
                 $scope.cellAntenna.address.cn_addr_district = _.find($scope.dictionary.addresses, {'city': $item.name}).district;
                 if (!$scope.cellAntenna.address.cn_addr_oblast) {
                     $scope.cellAntenna.address.cn_addr_oblast = _.find($scope.dictionary.addresses, {'city': $item.name}).oblast;
+                }
+            };
+
+           $scope.nearEndInfoAddressCitySelected = function ($item) {
+                $scope.transmissionAntenna.address.cn_addr_district = _.find($scope.dictionary.addresses, {'city': $item.name}).district;
+                if (!$scope.transmissionAntenna.address.cn_addr_oblast) {
+                    $scope.transmissionAntenna.address.cn_addr_oblast = _.find($scope.dictionary.addresses, {'city': $item.name}).oblast;
                 }
             };
 
@@ -1931,6 +1963,88 @@
                             </div>
                         </div>
 
+                        <div class="form-group col-sm-3">
+                            <div class="col-sm-12">
+                                <div class="form-check">
+                                    <input type="checkbox" ng-model="transmissionAntenna.address.ca_diff_address" ng-change="nearEndDiffAddressChecked(transmissionAntenna.address.ca_diff_address)" class="form-check-input" id="checkNE">
+                                    <label class="form-check-label" for="checkNE">Different address</label>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="col-sm-9">
+                            <accordion class="content-visible-accordion">
+                                <accordion-group is-open="false" >
+                                    <accordion-heading>
+                                        Near End Address <i class="pull-right glyphicon"
+                                                                ng-class="{'glyphicon-chevron-up': status.isCustomHeaderOpen, 'glyphicon-chevron-down': !status.isCustomHeaderOpen}"></i>
+                                    </accordion-heading>
+                                    <div class="form-group">
+                                        <label class="col-sm-3 control-label">Oblast:</label>
+                                        <div class="col-sm-8" class="form-check">
+                                            <select class="form-control" id="nei_addr_oblast" ng-disabled="!transmissionAntenna.address.ca_diff_address" name="nei_addr_oblast" ng-model="transmissionAntenna.address.cn_addr_oblast"
+                                                    ng-change="filterDistrictAfterSelectOblInNEI(transmissionAntenna.address.cn_addr_oblast)">
+                                                <option ng-repeat="oblast in oblastList" ng-value="oblast.name">{{oblast.name}}</option>
+                                            </select>
+                                            <label class="error" ng-show="kcell_form.nei_addr_oblast.$error.required && ( kcell_form.nei_addr_oblast.$touched || view.submitted)">Required field</label>
+                                        </div>
+                                    </div>
+                                    <div class="form-group">
+                                        <label class="col-sm-3 control-label">District:</label>
+                                        <div class="col-sm-8" class="form-check">
+                                            <select class="form-control" id="nei_addr_district" ng-disabled="!transmissionAntenna.address.ca_diff_address || !transmissionAntenna.address.cn_addr_oblast" name="nei_addr_district" ng-model="transmissionAntenna.address.cn_addr_district">
+                                                <option ng-repeat="district in filteredDistrictsInNEI" ng-value="district.name">{{district.name}}</option>
+                                            </select>
+                                            <label class="error" ng-show="kcell_form.nei_addr_district.$error.required && ( kcell_form.nei_addr_district.$touched || view.submitted)">Required field</label>
+                                        </div>
+                                    </div>
+
+                                    <div class="form-group">
+                                        <label class="col-sm-3 control-label">City / Village:</label>
+                                        <div class="col-sm-8">
+                                            <input type="text" ng-model="transmissionAntenna.address.cn_addr_city" name="cn_addr_city" ng-disabled="!transmissionAntenna.address.ca_diff_address" typeahead="city.name for city in getCity($viewValue)" typeahead-on-select="nearEndInfoAddressCitySelected($item,$model,$label)" class="form-control" placeholder="Start typing...">
+                                            <label class="error" ng-show="kcell_form.cn_addr_city.$error.required && ( kcell_form.cn_addr_city.$touched || view.submitted)">Required field</label>
+                                        </div>
+                                    </div>
+                                    <div class="form-group">
+                                        <div class="col-sm-12">
+                                            <div class="form-check">
+                                                <input type="checkbox" ng-model="transmissionAntenna.address.cn_not_full_addres" class="form-check-input" ng-disabled="!transmissionAntenna.address.ca_diff_address" id="ca_not_full_addres">
+                                                <label class="form-check-label" for="ca_not_full_addres">Not full address</label>
+                                            </div>
+                                        </div>
+                                    </div>
+                                    <div class="form-group">
+                                        <label class="col-sm-3 control-label">Street:</label>
+                                        <div class="col-sm-8">
+                                            <input class="form-control" id="nei_addr_street" name="nei_addr_street" ng-model="transmissionAntenna.address.cn_addr_street" ng-disabled="!transmissionAntenna.address.ca_diff_address || transmissionAntenna.address.cn_not_full_addres" >
+                                            <label class="error" ng-show="kcell_form.nei_addr_street.$error.required && ( kcell_form.nei_addr_street.$touched || view.submitted)">Required field</label>
+                                        </div>
+                                    </div>
+                                    <div class="form-group">
+                                        <label class="col-sm-3 control-label">Building:</label>
+                                        <div class="col-sm-8">
+                                            <input class="form-control" id="nei_addr_building" name="nei_addr_building" ng-model="transmissionAntenna.address.cn_addr_building" ng-disabled="!transmissionAntenna.address.ca_diff_address || transmissionAntenna.address.cn_not_full_addres">
+                                            <label class="error" ng-show="kcell_form.nei_addr_building.$error.required && ( kcell_form.nei_addr_building.$touched || view.submitted)">Required field</label>
+                                        </div>
+                                    </div>
+                                    <div class="form-group">
+                                        <label class="col-sm-3 control-label">Cadastral number:</label>
+                                        <div class="col-sm-8">
+                                            <input class="form-control" id="nei_addr_cadastral_number" name="nei_addr_cadastral_number" ng-model="transmissionAntenna.address.cn_addr_cadastral_number" ng-disabled="!transmissionAntenna.address.ca_diff_address">
+                                            <label class="error" ng-show="kcell_form.nei_addr_cadastral_number.$error.required && ( kcell_form.cn_addr_cadastral_number.$touched || view.submitted)">Required field</label>
+                                        </div>
+                                    </div>
+                                    <div class="form-group">
+                                        <label class="col-sm-3 control-label">Note to the address:</label>
+                                        <div class="col-sm-8">
+                                            <input class="form-control" id="cn_addr_note" name="nei_addr_note" ng-model="transmissionAntenna.address.cn_addr_note" ng-disabled="!transmissionAntenna.address.ca_diff_address" >
+                                            <label class="error" ng-show="kcell_form.nei_addr_note.$error.required && ( kcell_form.nei_addr_note.$touched || view.submitted)">Required field</label>
+                                        </div>
+                                    </div>
+                                </accordion-group>
+                            </accordion>
+                        </div>
+
                     </accordion-group>
                 </accordion>
 
@@ -1980,9 +2094,9 @@
                             </div>
                         </div>
                         <div class="form-group">
-                            <label class="col-sm-4 control-label">Does renter agree to receive monthly paymentfor
-                                consumed electrical energy according to ourpower counters displays buy the bank
-                                transactionsand give us invoices?</label>
+                            <label class="col-sm-4 control-label">Does renter agree to receive monthly payment for
+                                consumed electrical energy according to our power counters displays buy the bank
+                                transactions and give us invoices?</label>
                             <div class="col-sm-6">
                                 <label class="radio-inline">
                                     <input type="radio" name="agreeToReceiveMonthlyPayment"
@@ -2043,7 +2157,7 @@
                             <tr ng-repeat="fe in farEndInformation">
                                 <td>{{ $index + 1 }}</td>
                                 <td>
-                                    <div ng-click="openFarEndInformation($index)" class="far-end-info">{{fe.farEndName}}
+                                    <div ng-click="openFarEndInformation($index)" class="far-end-info" ng-style="{'background-color': currentFarEnd===farEndInformation[$index] ? '#652d86' : '#f7f7f7', 'color': currentFarEnd===farEndInformation[$index] ? 'white' : 'black'}">{{fe.farEndName}}
                                         <div class="far-end-delete" ng-click="deleteFE($index)">x</div>
                                     </div>
                                 </td>
@@ -2424,7 +2538,7 @@
                                                 field</label>
                                         </div>
                                     </div>
-                                    <!-- <div class="form-group">
+                                    <div class="form-group">
                                         <label class="col-sm-3 control-label">Contact Information:</label>
                                         <div class="col-sm-8">
                                             <input class="form-control" id="FERC_ContactInformation"
@@ -2434,8 +2548,7 @@
                                                    ng-show="form.fe_form.FERC_ContractInformation.$error.required && ( form.fe_form.FERC_ContractInformation.$touched || currentFarEnd.submitted )">Required
                                                 field</label>
                                         </div>
-                                    </div> -->
-
+                                    </div>
                                     <br>
                                 </div>
                             </ng-form>
