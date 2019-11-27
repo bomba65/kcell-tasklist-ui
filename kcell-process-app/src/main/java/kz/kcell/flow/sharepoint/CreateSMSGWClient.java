@@ -134,6 +134,15 @@ public class CreateSMSGWClient implements JavaDelegate {
             log.info("smsGwUserId " + smsGwUserId);
             if (!senderAlreadyExists) {
                 String smsServiceType = String.valueOf(delegateExecution.getVariable("smsServiceType"));
+                String moUrl = delegateExecution.getVariable("moUrl") != null ? String.valueOf(delegateExecution.getVariable("moUrl")) : null;
+                String moLogin = delegateExecution.getVariable("moLogin") != null ? String.valueOf(delegateExecution.getVariable("moLogin")) : null;
+                String moPassword = delegateExecution.getVariable("moPassword") != null ? String.valueOf(delegateExecution.getVariable("moPassword")) : null;
+                String deliveryReport = delegateExecution.getVariable("deliveryReport") != null ? String.valueOf(delegateExecution.getVariable("deliveryReport")) : null;
+                Boolean drBool = deliveryReport != null && deliveryReport.equals("true");
+                String receivingServerAddress = delegateExecution.getVariable("receivingServerAddress") != null ? String.valueOf(delegateExecution.getVariable("receivingServerAddress")) : null;
+                String receivingServerLogin = delegateExecution.getVariable("receivingServerLogin") != null ? String.valueOf(delegateExecution.getVariable("receivingServerLogin")) : null;
+                String receivingServerPass = delegateExecution.getVariable("receivingServerPass") != null ? String.valueOf(delegateExecution.getVariable("receivingServerPass")) : null;
+
                 String queueName = identifier + "_" + (smsServiceType.equals("MO") ? "mo_" : "") + "queue";
                 Integer accountConfigId = null;
 
@@ -169,19 +178,19 @@ public class CreateSMSGWClient implements JavaDelegate {
                 JSONObject jsonObject = new JSONObject();
                 jsonObject.put("accountConfigId", accountConfigId);
                 jsonObject.put("billingId", "");
-                jsonObject.put("drBatchSize", 0);
-                jsonObject.put("drLink", "");
-                jsonObject.put("drPassword", "");
-                jsonObject.put("drPeriod", 0);
-                jsonObject.put("drUsername", "");
+                jsonObject.put("drBatchSize", 500);
+                jsonObject.put("drLink", receivingServerAddress != null ? receivingServerAddress : "");
+                jsonObject.put("drPassword", receivingServerPass != null ? receivingServerPass : "");
+                jsonObject.put("drPeriod", 30);
+                jsonObject.put("drUsername", receivingServerLogin != null ? receivingServerLogin : "");
                 jsonObject.put("isActive", true);
-                jsonObject.put("isSendDr", false);
+                jsonObject.put("isSendDr", drBool);
                 jsonObject.put("isSendMo", smsServiceType.equals("MO"));
-                jsonObject.put("moBatchSize", 0);
-                jsonObject.put("moLink", "");
-                jsonObject.put("moPassword", "");
-                jsonObject.put("moPeriod", 0);
-                jsonObject.put("moUsername", "");
+                jsonObject.put("moBatchSize", 500);
+                jsonObject.put("moLink", moUrl != null ? moUrl : "");
+                jsonObject.put("moPassword", moPassword != null ? moPassword : "");
+                jsonObject.put("moPeriod", 30);
+                jsonObject.put("moUsername", moLogin != null ? moLogin : "");
                 jsonObject.put("queueName", queueName);
                 jsonObject.put("senderName", identifier);
                 jsonObject.put("throttlingOffnet", 100);

@@ -28,7 +28,7 @@ public class UpdateBWList implements JavaDelegate {
     private final String authStr64;
 
     @Autowired
-    public UpdateBWList(@Value("https://admin-api-hermes-stage.kcell.kz") String baseUri, @Value("${sharepoint.forms.username}") String username, @Value("${sharepoint.forms.password}") String pwd) {
+    public UpdateBWList(@Value("https://admin-api-hermes.kcell.kz") String baseUri, @Value("${sharepoint.forms.username}") String username, @Value("${sharepoint.forms.password}") String pwd) {
         this.baseUri = baseUri;
         this.authStr64 = username + ":" + pwd;
     }
@@ -46,7 +46,7 @@ public class UpdateBWList implements JavaDelegate {
             JSONObject jsonObject = new JSONObject();
             jsonObject.put("bw_list_id", smsGwBwListId);
             jsonObject.put("sender_id", smsGwSenderId);
-            jsonObject.put("recipient_regex", "^77(01|77)\\d{7}");
+            jsonObject.put("recipient_regex", "^7\\d{10}");
             jsonObject.put("type_of_bw", "W");
             jsonObject.put("comments", "test");
 
