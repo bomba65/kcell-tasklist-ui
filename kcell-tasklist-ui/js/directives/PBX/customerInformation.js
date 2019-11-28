@@ -16,11 +16,10 @@ define(['./../module'], function(module){
 			  scope.today.setHours(0, 0, 0, 0);
 			  scope.tomorrow = new Date(scope.today);
 			  scope.tomorrow.setTime(scope.today.getTime() + 86400000);
+                scope.ci.companyRegistrationDate = new Date();
 
 				scope.$watch('ci', function (value) {
 					if (value) {
-						if (!scope.ci.companyRegistrationDate) scope.ci.companyRegistrationDate = new Date();
-						else scope.ci.companyRegistrationDate = new Date(scope.ci.companyRegistrationDate);
 
             if (scope.ci.termContract) scope.ci.termContract = new Date(scope.ci.termContract);
 
