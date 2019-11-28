@@ -95,6 +95,9 @@ define(['./module','jquery'], function(app,$){
             if(invoiceNumber.endsWith('-RO-3')){
                 invoiceNumber = invoiceNumber.replace('-RO-3','');
             }
+            if(invoiceNumber.endsWith('-RO-4')){
+                invoiceNumber = invoiceNumber.replace('-RO-4','');
+            }
             if (invoiceNumber) {
                 if (invoiceNumber.endsWith("Alm")) {
                     return 'almaty';
