@@ -166,8 +166,6 @@ public class CreateSMSGWClient implements JavaDelegate {
                     if (provider.equals("MMS") && smsServiceType.equals("MO")) {
                         accountConfigId = 5;
                     }
-
-
                 }
 
 
@@ -178,8 +176,8 @@ public class CreateSMSGWClient implements JavaDelegate {
                 JSONObject jsonObject = new JSONObject();
                 jsonObject.put("accountConfigId", accountConfigId);
                 jsonObject.put("billingId", "");
-                jsonObject.put("drBatchSize", 500);
-                jsonObject.put("drLink", receivingServerAddress != null ? receivingServerAddress : "");
+                jsonObject.put("drBatchSize", 100);
+                jsonObject.put("drLink", drBool ? receivingServerAddress : "http://192.168.217.46:8666/delivery");
                 jsonObject.put("drPassword", receivingServerPass != null ? receivingServerPass : "");
                 jsonObject.put("drPeriod", 30);
                 jsonObject.put("drUsername", receivingServerLogin != null ? receivingServerLogin : "");
