@@ -70,9 +70,17 @@ define(['./../module'], function(module){
 				scope.addressToString = function(address) {
 					let string  = '';
 					if (address) {
-						Object.values(address).forEach((a,index) => {
-							string += index > 0 ? ', ' + a : a
-						})
+						string += `${address.cn_addr_oblast ? address.cn_addr_oblast + ', ': ''}`;
+						string += `${address.cn_addr_district ? address.cn_addr_district + ', ': ''}`;
+						string += `${address.cn_addr_city ? address.cn_addr_city + ', ': ''}`;
+						string += `${address.cn_addr_street ? address.cn_addr_street + ', ': ''}`;
+						string += `${address.cn_addr_building ? address.cn_addr_building + ', ': ''}`;
+						string += `${address.cn_addr_cadastral_number ? address.cn_addr_cadastral_number + ', ': ''}`;
+						string += `${address.cn_addr_note ? address.cn_addr_note + ', ': ''}`;
+						//cn_addr_cadastral_number cn_addr_note
+						// Object.values(address).forEach((a,index) => {
+						// 	string += index > 0 ? ', ' + a : a
+						// })
 						// console.log(`string: ${string}`)
 					}
 					return string;
