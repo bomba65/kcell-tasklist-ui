@@ -52,10 +52,10 @@ public class CreateSMSGWClient implements JavaDelegate {
         String smsGwBwListId = null;
         JSONArray identifierJSONArray = new JSONArray(String.valueOf(delegateExecution.getVariable("identifiers")));
         JSONObject identifierJSON = identifierJSONArray.getJSONObject(0);
-        JSONArray operators  =identifierJSON.getJSONArray("operators");
+        JSONArray operators = identifierJSON.getJSONArray("operators");
         String identifier = String.valueOf(identifierJSON.get("title"));
 
-        if ("rest".equals(connectionType) && ("alfanumeric".equals(identifierType) || "digital".equals(identifierType)) ) {
+        if ("rest".equals(connectionType) && ("alfanumeric".equals(identifierType) || "digital".equals(identifierType))) {
             CloseableHttpClient closeableHttpClient = HttpClients.createDefault();
             String responseGetUsers = executeGet(baseUri + "/users/", closeableHttpClient);
             String smsGwPasswd = "123456789";
@@ -99,15 +99,13 @@ public class CreateSMSGWClient implements JavaDelegate {
                 delegateExecution.setVariable("smsGwUserId", smsGwUserId);
                 delegateExecution.setVariable("putUserResponse", responsePut);
 
-                if (operatorType.equals("onnet")) {
-                    String channelName = "SMS";
-                    JSONObject jsonPutChannel = new JSONObject();
-                    jsonPutChannel.put("channelName", channelName);
-                    jsonPutChannel.put("userId", Integer.parseInt(smsGwUserId));
-                    log.info("jsonputchannel" + jsonPutChannel);
-                    String responsePutChannel = executePut(baseUri + "/users/channels/", closeableHttpClient, jsonPutChannel);
-                    delegateExecution.setVariable("responsePutChannel", responsePutChannel);
-                }
+                String channelName = "SMS";
+                JSONObject jsonPutChannel = new JSONObject();
+                jsonPutChannel.put("channelName", channelName);
+                jsonPutChannel.put("userId", Integer.parseInt(smsGwUserId));
+                log.info("jsonputchannel" + jsonPutChannel);
+                String responsePutChannel = executePut(baseUri + "/users/channels/", closeableHttpClient, jsonPutChannel);
+                delegateExecution.setVariable("responsePutChannel", responsePutChannel);
             }
 
             String responseGetSenders = executeGet(baseUri + "/senders/", closeableHttpClient);
@@ -206,7 +204,7 @@ public class CreateSMSGWClient implements JavaDelegate {
             }
 
             if (operatorType.equals("offnet")) {
-                for (int i = 0; i < operators.length(); i++){
+                for (int i = 0; i < operators.length(); i++) {
                     JSONObject jsonMapping = new JSONObject();
                     jsonMapping.put("mappingId", 0);
                     jsonMapping.put("operator", ((JSONObject) operators.get(i)).get("id").toString().toUpperCase());
