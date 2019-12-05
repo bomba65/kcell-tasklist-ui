@@ -1,6 +1,7 @@
 package kz.kcell.flow.sharepoint;
 
 import lombok.extern.java.Log;
+import org.apache.commons.lang.RandomStringUtils;
 import org.apache.http.HttpEntity;
 import org.apache.http.HttpResponse;
 import org.apache.http.client.HttpClient;
@@ -21,6 +22,9 @@ import org.springframework.core.env.Environment;
 import org.springframework.stereotype.Service;
 
 import java.util.Base64;
+import java.util.Collections;
+import java.util.List;
+import java.util.stream.Collectors;
 
 
 @Service("createSMSGWClient")
@@ -44,9 +48,10 @@ public class CreateSMSGWClient implements JavaDelegate {
         String connectionType = String.valueOf(delegateExecution.getVariable("connectionType"));
         String identifierType = String.valueOf(delegateExecution.getVariable("identifierType"));
         String operatorType = String.valueOf(delegateExecution.getVariable("operatorType"));
-        String provider = String.valueOf(delegateExecution.getVariable("provider "));
+        String provider = String.valueOf(delegateExecution.getVariable("provider"));
         String clientCompanyLatName = String.valueOf(delegateExecution.getVariable("clientCompanyLatName"));
-        String smsGwUsername = clientCompanyLatName + "_REST";
+        String officialClientCompanyName = String.valueOf(delegateExecution.getVariable("officialClientCompanyName"));
+        String smsGwUsername = clientCompanyLatName + "_smsgw3_user";
         String smsGwUserId = null;
         String smsGwSenderId = null;
         String smsGwBwListId = null;
@@ -58,7 +63,7 @@ public class CreateSMSGWClient implements JavaDelegate {
         if ("rest".equals(connectionType) && ("alfanumeric".equals(identifierType) || "digital".equals(identifierType))) {
             CloseableHttpClient closeableHttpClient = HttpClients.createDefault();
             String responseGetUsers = executeGet(baseUri + "/users/", closeableHttpClient);
-            String smsGwPasswd = "123456789";
+            String smsGwPasswd = generateCommonLangPassword();
 
             log.info("responseGetUsersRequest :  " + responseGetUsers);
 
@@ -84,7 +89,7 @@ public class CreateSMSGWClient implements JavaDelegate {
 
                 JSONObject jsonObject = new JSONObject();
                 jsonObject.put("bin", clientBIN);
-                jsonObject.put("comments", comments);
+                jsonObject.put("comments", officialClientCompanyName);
                 jsonObject.put("isActive", true);
                 jsonObject.put("isReadOnly", false);
                 jsonObject.put("password", smsGwPasswd);
@@ -280,6 +285,24 @@ public class CreateSMSGWClient implements JavaDelegate {
         log.info("PUT uri: " + url + " statusCode " + httpResponse.getStatusLine().getStatusCode());
         log.info("PUT uri: " + url + " strEntity " + strEntity);
         return strEntity;
+    }
+
+    private String generateCommonLangPassword() {
+        String upperCaseLetters = RandomStringUtils.random(2, 65, 90, true, true);
+        String lowerCaseLetters = RandomStringUtils.random(2, 97, 122, true, true);
+        String numbers = RandomStringUtils.randomNumeric(2);
+        String totalChars = RandomStringUtils.randomAlphanumeric(2);
+        String combinedChars = upperCaseLetters.concat(lowerCaseLetters)
+            .concat(numbers)
+            .concat(totalChars);
+        List<Character> pwdChars = combinedChars.chars()
+            .mapToObj(c -> (char) c)
+            .collect(Collectors.toList());
+        Collections.shuffle(pwdChars);
+        String password = pwdChars.stream()
+            .collect(StringBuilder::new, StringBuilder::append, StringBuilder::append)
+            .toString();
+        return password;
     }
 
 
