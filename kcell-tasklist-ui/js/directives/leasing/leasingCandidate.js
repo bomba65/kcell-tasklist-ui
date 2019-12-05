@@ -221,7 +221,15 @@ define(['./../module'], function(module){
 						scope.currentFarEnd.filteredDistricts = _.uniqBy(scope.currentFarEnd.filteredByOblast, 'district').map( (e, index) => { return {"name" : e.district, "id" : index} });
 						scope.currentFarEnd.cityList = _.uniqBy(scope.currentFarEnd.filteredByOblast, 'city').map( (e, index) => { return {"name" : e.city, "id" : index} });
 					} else {
-						scope.filteredDistricts = scope.districtList;
+						scope.currentFarEnd.filteredDistricts = scope.districtList;
+						scope.currentFarEnd.cityList = _.uniqBy(scope.dictionary.addresses, 'city').map( (e, index) => { return {"name" : e.city, "id" : index} });
+					}
+				};
+
+				scope.addressCitySelected = function ($item) {
+					scope.currentFarEnd.address.cn_addr_district = _.find(scope.dictionary.addresses, {'city': $item.name}).district;
+					if (!scope.currentFarEnd.address.cn_addr_oblast) {
+						scope.currentFarEnd.address.cn_addr_oblast = _.find(scope.dictionary.addresses, {'city': $item.name}).oblast;
 					}
 				};
 
