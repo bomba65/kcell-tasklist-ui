@@ -89,9 +89,16 @@
                 );
                 $scope.leasingCandidate = {};
                 $scope.leasingFiles = [];
-                $scope.contractInformations = [];
-                $scope.currentContractInfo = {};
-                $scope.contractInformations.push($scope.currentContractInfo)
+                $scope.contractInformationsFE = [];
+                $scope.newContractInfo = {
+                    address: {
+                        addr_oblast: '',
+                        cn_addr_district: '',
+                        cn_addr_city: '',
+                    }
+                };
+                console.log($scope.newContractInfo)
+                $scope.contractInformationsFE.push($scope.newContractInfo)
                 $scope.dictionary = {};
                 $http.get('/api/leasingCatalogs?version=1').then(
                     function(result){
@@ -135,6 +142,11 @@
                     type: 'String',
                     value: ''
                 });
+                camForm.variableManager.createVariable({
+                    name: 'contractInformationsFE',
+                    type: 'Json',
+                    value: ''
+                });
 
                 $scope.uploadCopyOfOwnerSignedLeaseContractTaskResult = '';
             });
@@ -142,6 +154,7 @@
             camForm.on('submit', function () {
                 camForm.variableManager.variableValue('uploadCopyOfOwnerSignedLeaseContractTaskResult', $scope.uploadCopyOfOwnerSignedLeaseContractTaskResult);
                 camForm.variableManager.variableValue('uploadCopyOfOwnerSignedLeaseContractTaskComment', $scope.uploadCopyOfOwnerSignedLeaseContractTaskComment);
+                camForm.variableManager.variableValue('contractInformationsFE', $scope.contractInformationsFE);
 
                 if(!camForm.variableManager.variables['uploadCopyOfOwnerSignedLeaseContractFiles'].type){
                     camForm.variableManager.destroyVariable('uploadCopyOfOwnerSignedLeaseContractFiles');
@@ -192,29 +205,44 @@
                 });
             }
 
-            $scope.filterDistrictAfterSelectContractInfoObl = function (addr_oblast) {
-                $scope.currentContractInfo.address.addr_oblast = addr_oblast
-                $scope.currentContractInfo.address.cn_addr_district = ''
-                $scope.currentContractInfo.address.cn_addr_city = ''
-                $scope.currentContractInfo.dictionary = {};
-                if($scope.currentContractInfo.address.addr_oblast && $scope.currentContractInfo.address.addr_oblast !== ''){
-                    $scope.currentContractInfo.dictionary.filteredByOblast = $scope.dictionary.addresses.filter(a => {return a.oblast === $scope.currentContractInfo.address.addr_oblast});
-                    $scope.currentContractInfo.dictionary.filteredDistricts = _.uniqBy($scope.currentContractInfo.dictionary.filteredByOblast, 'district').map( (e, index) => { return {"name" : e.district, "id" : index} });
-                    $scope.currentContractInfo.dictionary.cityList = _.uniqBy($scope.currentContractInfo.dictionary.filteredByOblast, 'city').map( (e, index) => { return {"name" : e.city, "id" : index} });
+            $scope.filterDistrictAfterSelectContractInfoObl = function (addr_oblast, $index) {
+                console.log($scope.contractInformationsFE[$index]);
+                $scope.contractInformationsFE[$index].address.addr_oblast = addr_oblast
+                $scope.contractInformationsFE[$index].address.cn_addr_district = ''
+                $scope.contractInformationsFE[$index].address.cn_addr_city = ''
+                $scope.contractInformationsFE[$index].dictionary = {};
+                if($scope.contractInformationsFE[$index].address.addr_oblast && $scope.contractInformationsFE[$index].address.addr_oblast !== ''){
+                    $scope.contractInformationsFE[$index].dictionary.filteredByOblast = $scope.dictionary.addresses.filter(a => {return a.oblast === $scope.contractInformationsFE[$index].address.addr_oblast});
+                    $scope.contractInformationsFE[$index].dictionary.filteredDistricts = _.uniqBy($scope.contractInformationsFE[$index].dictionary.filteredByOblast, 'district').map( (e, index) => { return {"name" : e.district, "id" : index} });
+                    $scope.contractInformationsFE[$index].dictionary.cityList = _.uniqBy($scope.contractInformationsFE[$index].dictionary.filteredByOblast, 'city').map( (e, index) => { return {"name" : e.city, "id" : index} });
                 } else {
-                    $scope.currentContractInfo.dictionary.filteredDistricts = $scope.districtList;
+                    $scope.contractInformationsFE[$index].dictionary.filteredDistricts = $scope.districtList;
+                    $scope.contractInformationsFE[$index].dictionary.cityList = _.uniqBy($scope.dictionary.addresses, 'city').map( (e, index) => { return {"name" : e.city, "id" : index} });
                 }
             }
 
-            $scope.ContractInfoAddressCitySelected = function ($item) {
-                $scope.currentContractInfo.address.cn_addr_district = _.find($scope.dictionary.addresses, {'city': $item.name, 'oblast': $scope.currentContractInfo.address.cn_addr_oblast}).district;
+            $scope.ContractInfoAddressCitySelected = function ($item, $index) {
+                // console.log('before update $scope.contractInformationsFE[$index]')
+                // console.log($scope.contractInformationsFE[$index])
+                const filtered = _.find($scope.dictionary.addresses, {'city': $item.name});
+                // console.log(filtered)
+                $scope.contractInformationsFE[$index].address.cn_addr_district = filtered.district;
+                $scope.contractInformationsFE[$index].address.addr_oblast = filtered.oblast;
+                // console.log('after update $scope.contractInformationsFE[$index]')
+                // console.log($scope.contractInformationsFE[$index])
             };
 
-            $scope.getContractInfoCity = function (val) {
+            $scope.getContractInfoCity = function (val, $index) {
+                console.log($scope.contractInformationsFE[$index])
                 if (val.length < 2) {
                     return []
                 }
-                return _.filter($scope.currentContractInfo.dictionary.cityList, function(o) { return o.name.toLowerCase().includes(val.toLowerCase()); })
+                if ($scope.contractInformationsFE[$index] && $scope.contractInformationsFE[$index].dictionary) {
+                    return _.filter($scope.contractInformationsFE[$index].dictionary.cityList, function(o) { return o.name.toLowerCase().includes(val.toLowerCase()); })
+                } else {
+                    return _.filter($scope.cityList, function(o) { return o.name.toLowerCase().includes(val.toLowerCase()); })
+                }
+
             };
 
             $scope.clearFile = function (list, fileIndex) {
@@ -236,10 +264,10 @@
 
     </script>
     <leasing-candidate leasing-candidate="leasingCandidate"></leasing-candidate>
-    <accordion class="content-visible-accordion background-yellow-accordion" ng-repeat="currentContractInfo in contractInformations">
+    <accordion class="content-visible-accordion background-yellow-accordion" ng-repeat="currentContractInfo in contractInformationsFE">
             <accordion-group is-open="true" style="background-color: #ffffcc; !important;" >
                 <accordion-heading>
-                    Contract Information <i class="pull-right glyphicon"
+                    {{contractInformationsFE.length > 1 ? $index+1 + '.' : ''}} Contract Information<i class="pull-right glyphicon"
                                                 ng-class="{'glyphicon-chevron-up': status.isCustomHeaderOpen, 'glyphicon-chevron-down': !status.isCustomHeaderOpen}"></i>
                 </accordion-heading>
                 <div class="form-group">
@@ -375,7 +403,7 @@
                                     <label class="col-sm-3 control-label">Oblast:</label>
                                     <div class="col-sm-8" class="form-check">
                                         <select class="form-control" id="ContractInfo_cn_addr_oblast" name="ContractInfo_cn_addr_oblast" ng-model="currentContractInfo.address.cn_addr_oblast"
-                                                ng-change="filterDistrictAfterSelectContractInfoObl(currentContractInfo.address.cn_addr_oblast)" required>
+                                                ng-change="filterDistrictAfterSelectContractInfoObl(currentContractInfo.address.cn_addr_oblast, $index)">
                                             <option ng-repeat="oblast in oblastList" ng-value="oblast.name">{{oblast.name}}</option>
                                         </select>
                                         <label class="error" ng-show="kcell_form.ContractInfo_cn_addr_oblast.$error.required && ( kcell_form.ContractInfo_cn_addr_oblast.$touched || view.submitted)">Required field</label>
@@ -394,7 +422,7 @@
                                 <div class="form-group">
                                     <label class="col-sm-3 control-label">City / Village:</label>
                                     <div class="col-sm-8">
-                                        <input type="text" ng-model="currentContractInfo.address.cn_addr_city" ng-value='city.name' name="ContractInfo_n_addr_city" typeahead="city.name for city in getContractInfoCity($viewValue)" typeahead-on-select="ContractInfoAddressCitySelected($item,$model,$label)" class="form-control" required ng-disabled="!currentContractInfo.address.cn_addr_oblast" placeholder="Start typing...">
+                                        <input type="text" ng-model="currentContractInfo.address.cn_addr_city" ng-value='city.name' name="ContractInfo_n_addr_city" typeahead="city.name for city in getContractInfoCity($viewValue, $index)" ng-disabled="!currentContractInfo.address.cn_addr_oblast" typeahead-on-select="ContractInfoAddressCitySelected($item, $index)" class="form-control" required placeholder="Start typing...">
                                         <label class="error" ng-show="kcell_form.ContractInfo_cn_addr_city.$error.required && ( kcell_form.ContractInfo_cn_addr_city.$touched || view.submitted)">Required field</label>
                                     </div>
                                 </div>
@@ -684,12 +712,14 @@
             </accordion-group>
         </accordion>
 
-        <span class="input-group-btn">
-            <button type="button" class="btn btn-default" ng-click="contractInformations.push({})">
-                <i class="glyphicon glyphicon-plus">&nbsp;Add New Contract</i>
-            </button>
-        </span>
-
+<!--        <span class="input-group-btn">-->
+<!--            <button type="button" class="btn btn-default" >-->
+<!--                <i class="glyphicon glyphicon-plus">&nbsp;Add New Contract</i>-->
+<!--            </button>-->
+<!--        </span>-->
+        <div class="col-sm-12">
+            <input type="button" ng-click="contractInformationsFE.push(newContractInfo)" value="Add New Contract" class="btn btn-primary pull-right">
+        </div>
     <iframe id="fileDownloadIframe" style="display:none;"></iframe>
 
     <leasing-attachments leasing-files="leasingFiles"></leasing-attachments>
