@@ -149,6 +149,7 @@ public class PBXPostTCFForm implements JavaDelegate {
             if (isSftp) {
                 String processKey = repositoryService.createProcessDefinitionQuery().processDefinitionId(delegateExecution.getProcessDefinitionId()).list().get(0).getKey();
                 JSONObject customerInformationJSON = new JSONObject(String.valueOf(delegateExecution.getVariable("customerInformation")));
+                JSONObject technicalSpecificationsJSON = new JSONObject(String.valueOf(delegateExecution.getVariable("technicalSpecifications")));
 
                 DateFormat df = new SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss.SSS'Z'");
                 DateFormat sdf = new SimpleDateFormat("dd.MM.yyyy");
@@ -244,9 +245,10 @@ public class PBXPostTCFForm implements JavaDelegate {
                 String onnet = "";
                 String offnet = "";
                 String pstn = "";
-                String international = "";
+                String international = "CLOSED";
                 System.out.println("TARIFF:");
                 System.out.println("'" + delegateExecution.getVariable("tariff").toString() + "'");
+                String internationalVariable = !technicalSpecificationsJSON.has("intenationalCallAccess") ? "No" : technicalSpecificationsJSON.get("intenationalCallAccess").toString();
                 if (delegateExecution.getVariable("tariff").toString().equals("Бизнес стандарт")) {
                     a = "-";
                     b = "-";
@@ -255,6 +257,7 @@ public class PBXPostTCFForm implements JavaDelegate {
                     onnet = "11";
                     offnet = "11";
                     pstn = "15";
+                    international = internationalVariable.equals("No") ? "CLOSED" : "PBX-ZVONKI-BEZ-GRANIC";
                 }
                 if (delegateExecution.getVariable("tariff").toString().equals("Стартовый 5")) {
                     a = "5,000";
@@ -264,6 +267,7 @@ public class PBXPostTCFForm implements JavaDelegate {
                     onnet = "11";
                     offnet = "11";
                     pstn = "15";
+                    international = internationalVariable.equals("No") ? "CLOSED" : "PBX-ZVONKI-BEZ-GRANIC";
                 }
                 if (delegateExecution.getVariable("tariff").toString().equals("Стартовый 10")) {
                     a = "10,000";
@@ -273,6 +277,7 @@ public class PBXPostTCFForm implements JavaDelegate {
                     onnet = "11";
                     offnet = "11";
                     pstn = "15";
+                    international = internationalVariable.equals("No") ? "CLOSED" : "PBX-ZVONKI-BEZ-GRANIC";
                 }
                 if (delegateExecution.getVariable("tariff").toString().equals("Бизнес пакет 30")) {
                     a = "30,000";
@@ -282,6 +287,7 @@ public class PBXPostTCFForm implements JavaDelegate {
                     onnet = "11";
                     offnet = "11";
                     pstn = "15";
+                    international = internationalVariable.equals("No") ? "CLOSED" : "PBX-ZVONKI-BEZ-GRANIC";
                 }
                 if (delegateExecution.getVariable("tariff").toString().equals("Бизнес пакет 50")) {
                     a = "50,000";
@@ -291,6 +297,7 @@ public class PBXPostTCFForm implements JavaDelegate {
                     onnet = "11";
                     offnet = "11";
                     pstn = "15";
+                    international = internationalVariable.equals("No") ? "CLOSED" : "PBX-ZVONKI-BEZ-GRANIC";
                 }
                 if (delegateExecution.getVariable("tariff").toString().equals("Бизнес пакет 100")) {
                     a = "100,000";
@@ -300,6 +307,7 @@ public class PBXPostTCFForm implements JavaDelegate {
                     onnet = "11";
                     offnet = "11";
                     pstn = "15";
+                    international = internationalVariable.equals("No") ? "CLOSED" : "PBX-ZVONKI-BEZ-GRANIC";
                 }
                 if (delegateExecution.getVariable("tariff").toString().equals("Бизнес пакет 150")) {
                     a = "150,000";
@@ -309,6 +317,7 @@ public class PBXPostTCFForm implements JavaDelegate {
                     onnet = "11";
                     offnet = "11";
                     pstn = "15";
+                    international = internationalVariable.equals("No") ? "CLOSED" : "PBX-ZVONKI-BEZ-GRANIC";
                 }
                 if (delegateExecution.getVariable("tariff").toString().equals("Бизнес пакет 200")) {
                     a = "200,000";
@@ -318,6 +327,7 @@ public class PBXPostTCFForm implements JavaDelegate {
                     onnet = "11";
                     offnet = "11";
                     pstn = "15";
+                    international = internationalVariable.equals("No") ? "CLOSED" : "PBX-ZVONKI-BEZ-GRANIC";
                 }//Бизнес пакет 300
                 if (delegateExecution.getVariable("tariff").toString().equals("Бизнес пакет 300")) {
                     a = "300,000";
@@ -336,6 +346,7 @@ public class PBXPostTCFForm implements JavaDelegate {
                     onnet = "10";
                     offnet = "10";
                     pstn = "15";
+                    international = internationalVariable.equals("No") ? "CLOSED" : "PBX-ZVONKI-BEZ-GRANIC";
                 }
                 if (delegateExecution.getVariable("tariff").toString().equals("Бизнес пакет 600")) {
                     a = "600,000";
@@ -345,6 +356,7 @@ public class PBXPostTCFForm implements JavaDelegate {
                     onnet = "10";
                     offnet = "10";
                     pstn = "15";
+                    international = internationalVariable.equals("No") ? "CLOSED" : "PBX-ZVONKI-BEZ-GRANIC";
                 }
                 if (delegateExecution.getVariable("tariff").toString().equals("Бизнес пакет 700")) {
                     a = "700,000";
@@ -363,6 +375,7 @@ public class PBXPostTCFForm implements JavaDelegate {
                     onnet = "9";
                     offnet = "9";
                     pstn = "15";
+                    international = internationalVariable.equals("No") ? "CLOSED" : "PBX-ZVONKI-BEZ-GRANIC";
                 }
                 if (delegateExecution.getVariable("tariff").toString().equals("Бизнес пакет 1.5MLN")) {
                     a = "1,500,000";
@@ -372,6 +385,7 @@ public class PBXPostTCFForm implements JavaDelegate {
                     onnet = "8";
                     offnet = "8";
                     pstn = "15";
+                    international = internationalVariable.equals("No") ? "CLOSED" : "PBX-ZVONKI-BEZ-GRANIC";
                 }
                 if (delegateExecution.getVariable("tariff").toString().equals("Бизнес пакет 2.5MLN")) {
                     a = "2,500,000";
@@ -390,9 +404,10 @@ public class PBXPostTCFForm implements JavaDelegate {
                     onnet = "7";
                     offnet = "7";
                     pstn = "15";
+                    international = internationalVariable.equals("No") ? "CLOSED" : "PBX-ZVONKI-BEZ-GRANIC";
                 }
                 if (delegateExecution.getVariable("tariff").toString().equals("Нестандартный пакет")) {
-                    a = "3,000,000";
+                    a = delegateExecution.getVariable("tariffMonthly").toString();
                     b = "6.00";
                     c = "500,000";
                     cug = delegateExecution.getVariable("tariffCug").toString();
@@ -433,7 +448,7 @@ public class PBXPostTCFForm implements JavaDelegate {
                         "  </tr>\n" +
                         "  <tr>\n" +
                         "    <td style=\"border: 1px dotted #d3d3d3;color:#333333;background-color:#ffffff;\">International</td>\n" +
-                        "    <td style=\"border: 1px dotted #d3d3d3;color:#333333;background-color:#ffffff;\">CLOSED</td>\n" +
+                        "    <td style=\"border: 1px dotted #d3d3d3;color:#333333;background-color:#ffffff;\">"+international+"</td>\n" +
                         "    <td style=\"border: 1px dotted #d3d3d3;color:#333333;background-color:#ffffff;\">1 sec</td>\n" +
                         "  </tr>\n" +
                         "  <tr>\n") : "") +
