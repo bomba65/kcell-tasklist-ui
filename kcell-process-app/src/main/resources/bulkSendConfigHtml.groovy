@@ -55,9 +55,6 @@ switch (connectionType) {
             }
             '''
         restAdd = '''\
-
-hr()
-p('Время рассылки ad99 (все дни с 9:00 до 21:00)')
 '''
         break
     case "SMPP":

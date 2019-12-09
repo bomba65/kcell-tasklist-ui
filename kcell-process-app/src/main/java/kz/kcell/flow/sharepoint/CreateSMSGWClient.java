@@ -184,7 +184,7 @@ public class CreateSMSGWClient implements JavaDelegate {
                 jsonObject.put("drPeriod", 30);
                 jsonObject.put("drUsername", receivingServerLogin != null ? receivingServerLogin : "");
                 jsonObject.put("isActive", true);
-                jsonObject.put("isSendDr", drBool);
+                jsonObject.put("isSendDr", true);
                 jsonObject.put("isSendMo", smsServiceType.equals("MO"));
                 jsonObject.put("moBatchSize", 500);
                 jsonObject.put("moLink", moUrl != null ? moUrl : "");
@@ -257,6 +257,11 @@ public class CreateSMSGWClient implements JavaDelegate {
                 log.info("responsePut " + responsePut);
                 delegateExecution.setVariable("smsGwBwListId", smsGwBwListId);
             }
+        } else if (connectionType.equals("smpp")){
+            String userName = clientCompanyLatName + "_smpp";
+            String password = generateCommonLangPassword();
+            delegateExecution.setVariable("clientLogin", userName);
+            delegateExecution.setVariable("clientPassword", password);
         }
     }
 
