@@ -409,7 +409,7 @@ public class PBXPostTCFForm implements JavaDelegate {
                 if (delegateExecution.getVariable("tariff").toString().equals("Нестандартный пакет")) {
                     a = delegateExecution.getVariable("tariffMonthly").toString();
                     b = "6.00";
-                    c = "500,000";
+                    c = delegateExecution.getVariable("tariffInternational") != null ? delegateExecution.getVariable("tariffInternational").toString() : "0";
                     cug = delegateExecution.getVariable("tariffCug").toString();
                     onnet = delegateExecution.getVariable("tariffOnnet").toString();
                     offnet = delegateExecution.getVariable("tariffOffnet").toString();
@@ -448,7 +448,7 @@ public class PBXPostTCFForm implements JavaDelegate {
                         "  </tr>\n" +
                         "  <tr>\n" +
                         "    <td style=\"border: 1px dotted #d3d3d3;color:#333333;background-color:#ffffff;\">International</td>\n" +
-                        "    <td style=\"border: 1px dotted #d3d3d3;color:#333333;background-color:#ffffff;\">"+international+"</td>\n" +
+                        "    <td style=\"border: 1px dotted #d3d3d3;color:#333333;background-color:#ffffff;\">" + international + "</td>\n" +
                         "    <td style=\"border: 1px dotted #d3d3d3;color:#333333;background-color:#ffffff;\">1 sec</td>\n" +
                         "  </tr>\n" +
                         "  <tr>\n") : "") +
