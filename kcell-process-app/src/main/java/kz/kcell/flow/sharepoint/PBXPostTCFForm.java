@@ -409,7 +409,7 @@ public class PBXPostTCFForm implements JavaDelegate {
                 if (delegateExecution.getVariable("tariff").toString().equals("Нестандартный пакет")) {
                     a = delegateExecution.getVariable("tariffMonthly").toString();
                     b = "6.00";
-                    c = delegateExecution.getVariable("tariffInternational") != null ? delegateExecution.getVariable("tariffInternational").toString() : "0";
+                    c = delegateExecution.getVariable("tariffBonusMinutes") != null ? delegateExecution.getVariable("tariffBonusMinutes").toString() : "0";
                     cug = delegateExecution.getVariable("tariffCug").toString();
                     onnet = delegateExecution.getVariable("tariffOnnet").toString();
                     offnet = delegateExecution.getVariable("tariffOffnet").toString();
