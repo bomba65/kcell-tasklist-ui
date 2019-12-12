@@ -13,6 +13,7 @@ define(['../module', 'jquery'], function (app) {
                 var holidays = $rootScope.holidays;
                 var weekend_working = $rootScope.weekendWorking;
                 var holidaysForYear = $rootScope.holidaysForYear;
+                var doNotMarkNextHoliday = $rootScope.doNotMarkNextHoliday;
                 var substitues = [];
                 var substitude_done = [];
                 for (var i=0; i<holidays.length; i++) {
@@ -41,7 +42,7 @@ define(['../module', 'jquery'], function (app) {
 
                                 if (holidays.indexOf(format_date) > -1) {
                                     var days_to_jump = 1;
-                                    if (day_type === 6 || day_type === 0) {
+                                    if ((day_type === 6 || day_type === 0) && doNotMarkNextHoliday.indexOf(format_date_year) === -1) {
                                         if (day_type === 6) {
                                             days_to_jump += 1;
                                         }
