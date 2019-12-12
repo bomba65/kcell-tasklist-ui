@@ -97,7 +97,127 @@
             camForm.on('variables-fetched', function () {
                 $scope.confirmActOfPerformanceTechnicalConditionsFiles = [];
                 variables.forEach(function (el) {
+                    if(caellAntenna',
+                'renterCompany',
+                'transmissionAntenna',
+                'powerSource',
+                'farEndInformation',
+                'receivingTSForCandiateSiteFiles',
+                'receivingContractPSDFiles',
+                'receivingApprovalFromTheLandlordFiles',
+                'modifyCandidateRRFiles',
+                'estimateTechnicalCapabilityResFiles',
+                'registrationCommercialOfferFiles',
+                'preparationSSIDandTSSRFiles',
+                'requestTechnicalParametersKTFiles',
+                'confirmPaymentDevelopmentOfTCKTFiles',
+                'receivingTSFiles',
+                'signingLeaseContractAddAgreementKTFiles',
+                'sendMessageToStartPaymentKTFiles',
+                'reqKZTRwithTechEquipmentParamsFiles',
+                'receivingContractDevDesignEstimateFiles',
+                'confirmReceiptEstimateFiles',
+                'receivingContractInstallationWorksFiles',
+                'requestTechnicalParametersKPFiles',
+                'confirmReceiptResponseKPFiles',
+                'signingLeaseContractAddAgreementKPFiles',
+                'sendMessageToStartPaymentKPFiles',
+                'requestTechnicalParametersKTForFEFiles',
+                'confirmPaymentDevelopmentOfTCKTForFEFiles',
+                'receivingTSForFEFiles',
+                'signingLeaseContractAddAgreementForFEFiles',
+                'sendMessageToStartPaymentKTForFEFiles',
+                'reqKZTRwithTechEquipmentParamsForFEFiles',
+                'receivingContractDevDesignEstimateForFEFiles',
+                'registrationCommercialOfferForFEFiles',
+                'confirmReceiptEstimateForFEFiles',
+                'receivingContractInstallationWorksForFEFiles',
+                'requestTechnicalParametersKPForFEFiles',
+                'confirmReceiptResponseKPForFEFiles',
+                'signingLeaseContractAddAgreementKPForFEFiles',
+                'sendMessageToStartPaymentKPForFEFiles',
+                'contractRentLoadingSAPFiles',
+                'approvalContractRentInSAPFiles',
+                'powerContractLoadingInSAPFiles',
+                'approvalPowerContractInSAPFiles',
+                'uploadSignedOwnerLeaseContractFiles',
+                'confirmActOfPerformanceTechnicalConditionsFiles',
+                'confirmReceiptResponseKPForFETaskResult',
+                'confirmReceiptResponseKPTaskResult',
+                'address'
+            ];
+
+            $http.get('/camunda/api/engine/engine/default/task/' + camForm.taskId).then(
+                function(result){
+                    $scope.taskAssignee = result.data.assignee;
+                },
+                function (error) {
+                    console.log(error.data);
+                }
+            );
+
+            camForm.on('form-loaded', function () {
+                variables.forEach(function (el) {
+                    camForm.variableManager.fetchVariable(el);
+                });
+                $http.get('/camunda/api/engine/engine/default/task/' + camForm.taskId).then(
+                        function(result){
+                            $scope.processInstanceId = result.data.processInstanceId;
+                        },
+                        function (error) {
+                            console.log(error.data);
+                        }
+                );
+                $scope.leasingCandidate = {};
+                $scope.leasingFiles = [];
+            });
+
+            camForm.on('variables-fetched', function () {
+                $scope.confirmActOfPerformanceTechnicalConditionsFiles = [];
+                variables.forEach(function (el) {
                     if(camForm.variableManager.variables[el].value){
+                        $scope[el] = camForm.variableManager.variables[el].value;
+                        $scope.leasingCandidate[el] = camForm.variableManager.variables[el].value;
+                        if ( el.toLowerCase().includes('file') ) {
+                            $scope.leasingFiles = $scope.leasingFiles.concat(camForm.variableManager.variables[el].value)
+                        }
+                    }
+                });
+                camForm.variableManager.createVariable({
+                    name: 'confirmActOfPerformanceTechnicalConditionsTaskResult',
+                    type: 'String',
+                    value: ''
+                });
+                camForm.variableManager.createVariable({
+                    name: 'confirmActOfPerformanceTechnicalConditionsTaskComment',
+                    type: 'String',
+                    value: ''
+                });
+                camForm.variableManager.createVariable({
+                    name: 'leasingProblem',
+                    type: 'String',
+                    value: ''
+                });
+
+                //костыль для дальней проверки в конце процесса - ${confirmReceiptResponseKPForFETaskResult == 'additionalAgreementAfterInstallation' || confirmReceiptResponseKPTaskResult == 'additionalAgreementAfterInstallation'}
+                // if (!$scope.confirmReceiptResponseKPForFETaskResult) {
+                //     console.log('$scope.confirmReceiptResponseKPForFETaskResult' + $scope.confirmReceiptResponseKPForFETaskResult)
+                //     camForm.variableManager.createVariable({
+                //         name: 'confirmReceiptResponseKPForFETaskResult',
+                //         type: 'String',
+                //         value: 'Not used'
+                //     });
+                // }
+                // console.log('$scope.confirmReceiptResponseKPTaskResult bewfore' + $scope.confirmReceiptResponseKPTaskResult)
+                // if (!$scope.confirmReceiptResponseKPTaskResult) {
+                //     console.log('$scope.confirmReceiptResponseKPTaskResult' + $scope.confirmReceiptResponseKPTaskResult)
+                //     // camForm.variableManager.createVariable({
+                //     //     name: 'confirmReceiptResponseKPTaskResult',
+                //     //     type: 'String',
+                //     //     value: 'Not used'
+                //     // });
+                // }
+                // костыль endmForm.variableManager.variables[el].value){
                         $scope[el] = camForm.variableManager.variables[el].value;
                         $scope.leasingCandidate[el] = camForm.variableManager.variables[el].value;
                         if ( el.toLowerCase().includes('file') ) {
