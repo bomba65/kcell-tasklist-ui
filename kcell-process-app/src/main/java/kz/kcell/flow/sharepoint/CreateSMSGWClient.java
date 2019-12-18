@@ -242,10 +242,22 @@ public class CreateSMSGWClient implements JavaDelegate {
             log.info("smsGwSenderId " + smsGwSenderId);
 
             if (!bwListAlreadyExists) {
+                String[] testNumbers = String.valueOf(delegateExecution.getVariable("testNumber")).split(",");
+                StringBuilder regex = new StringBuilder("^7(");
+
+                for (String number: testNumbers) {
+                    number = number.substring(1);
+                    regex.append(number).append("|");
+                }
+
+                regex.append(")");
+
+                log.info(" regex " +  regex);
+
                 String testNumber = String.valueOf(delegateExecution.getVariable("testNumber"));
                 JSONObject jsonObject = new JSONObject();
                 jsonObject.put("sender_id", Integer.parseInt(smsGwSenderId));
-                jsonObject.put("recipient_regex", testNumber);
+                jsonObject.put("recipient_regex", regex.toString());
                 jsonObject.put("type_of_bw", "W");
                 jsonObject.put("comments", "test");
 
