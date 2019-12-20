@@ -1095,7 +1095,7 @@ define(['../module', 'moment'], function (module, moment) {
                     $http({
                         method: 'GET',
                         headers: {'Accept': 'application/hal+json, application/json; q=0.5'},
-                        url: baseUrl + '/task?processInstanceBusinessKey=' + businessKey,
+                        url: baseUrl + '/task?processInstanceBusinessKey=' + encodeURIComponent(businessKey),
                     }).then(
                         function (tasks) {
                             var asynCall1 = false;
@@ -1250,7 +1250,7 @@ define(['../module', 'moment'], function (module, moment) {
                     $http({
                         method: 'GET',
                         headers: {'Accept': 'application/hal+json, application/json; q=0.5'},
-                        url: baseUrl + '/task?processInstanceBusinessKey=' + businessKey,
+                        url: baseUrl + '/task?processInstanceBusinessKey=' + encodeURIComponent(businessKey),
                     }).then(
                         function (tasks) {
                             var asynCall1 = false;
