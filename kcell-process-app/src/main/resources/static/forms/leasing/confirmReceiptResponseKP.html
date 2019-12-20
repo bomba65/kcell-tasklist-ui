@@ -52,8 +52,6 @@
                             $scope.processInstanceId = result.data.processInstanceId;
                             $http.get('/camunda/api/engine/engine/default/process-instance/' + $scope.processInstanceId).then(
                                 function(result){
-                                    console.log('process-instance/')
-                                    console.log(result.data)
                                     $scope.businessKey = result.data.businessKey;
                                 },
                                 function (error) {console.log(error.data);}
@@ -64,6 +62,7 @@
                         }
                 );
                 $scope.leasingCandidate = {};
+                $scope.leasingFiles = [];
             });
 
             camForm.on('variables-fetched', function () {
@@ -72,6 +71,9 @@
                     if(camForm.variableManager.variables[el].value){
                         $scope[el] = camForm.variableManager.variables[el].value;
                         $scope.leasingCandidate[el] = camForm.variableManager.variables[el].value;
+                        if ( el.toLowerCase().includes('file') ) {
+                            $scope.leasingFiles = $scope.leasingFiles.concat(camForm.variableManager.variables[el].value)
+                        }
                     }
                 });
                 camForm.variableManager.createVariable({
@@ -102,7 +104,7 @@
                 camForm.variableManager.variableValue('confirmReceiptResponseKPResponseStatus', $scope.confirmReceiptResponseKPResponseStatus);
                 camForm.variableManager.variableValue('confirmReceiptResponseKPTaskComment', $scope.confirmReceiptResponseKPTaskComment);
 
-                if($scope.confirmReceiptResponseKPTaskResult === 'additionalAgreementAfterInstallation'){
+                if($scope.confirmReceiptResponseKPTaskResult === 'additionalAgreementAfterInstallation' || $scope.confirmReceiptResponseKPTaskResult === 'additionalAgreementBeforeInstallation'){
                     camForm.variableManager.variableValue('leasingProceduresStatus', 'waitContract');
                 } else if($scope.confirmReceiptResponseKPTaskResult === 'reject') {
                     camForm.variableManager.variableValue('leasingProceduresStatus', 'refusal');
@@ -134,7 +136,9 @@
 
                 var fileToUpload = {
                     name: file.name.replace(/[/\\?%*:|"<>]/g, '-'),
-                    path: $scope.processInstanceId + '/' + camForm.taskId + '/' + file.name.replace(/[/\\?%*:|"<>]/g, '-')
+                    path: $scope.processInstanceId + '/' + camForm.taskId + '/' + file.name.replace(/[/\\?%*:|"<>]/g, '-'),
+                    date: new Date(),
+                    author: $scope.taskAssignee
                 };
                 $http({
                     method: 'GET',
@@ -181,25 +185,7 @@
     <leasing-candidate leasing-candidate="leasingCandidate"></leasing-candidate>
 
     <iframe id="fileDownloadIframe" style="display:none;"></iframe>
-
-    <div class="form-group">
-        <label class="col-md-4 control-label">Download RR:</label>
-        <div class="col-sm-8">
-            <a ng-click="fileDownload(rrFile)">{{rrFile.name}}</a>
-        </div>
-    </div>
-    <div class="form-group">
-        <label class="col-md-4 control-label">RR files:</label>
-        <div class="col-sm-8">
-            <div ng-show="newCandidateRRFiles.length > 0" class="input-group" ng-repeat="file in newCandidateRRFiles">
-                {{$index + 1}}.
-                <a ng-click="fileDownload(file)">{{file.name}}</a>
-            </div>
-        </div>
-    </div>
-
-    <leasing-files leasing-files="leasingCandidate"></leasing-files>
-
+    <leasing-attachments leasing-files="leasingFiles"></leasing-attachments>
     <div class="form-group">
         <label class="col-md-4 control-label">Upload files:</label>
         <div class="col-sm-8">
@@ -212,19 +198,6 @@
             </ng-form>
         </div>
     </div>
-
-    <!-- <div class="form-group">
-        <label class="col-sm-4 control-label">Response Status</label>
-        <div class="col-sm-8">
-            <label class="radio-inline">
-                <input type="radio" name="confirmReceiptResponseKPResponseStatus" ng-model="confirmReceiptResponseKPResponseStatus" value="positiveResponse" required>Positive Response
-            </label>
-            <label class="radio-inline">
-                <input type="radio" name="confirmReceiptResponseKPResponseStatus" ng-model="confirmReceiptResponseKPResponseStatus" value="negativeResponse" required>Negative Response
-            </label>
-            <label class="error" ng-show="kcell_form.confirmReceiptResponseKPResponseStatus.$error.required && ( kcell_form.confirmReceiptResponseKPResponseStatus.$touched || view.submitted)">Required field</label>
-        </div>
-    </div> -->
 
     <div class="form-group">
         <label class="col-sm-4 control-label">Approval Status</label>
