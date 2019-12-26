@@ -1,9 +1,6 @@
 package kz.kcell.flow.mail;
 
-import kz.kcell.flow.repository.ReportController;
-import org.apache.commons.codec.CharEncoding;
 import org.apache.commons.io.IOUtils;
-import org.apache.poi.xssf.usermodel.XSSFWorkbook;
 import org.camunda.bpm.engine.delegate.DelegateExecution;
 import org.camunda.bpm.engine.delegate.JavaDelegate;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -15,7 +12,6 @@ import javax.activation.DataSource;
 import javax.mail.internet.MimeMessage;
 import javax.mail.util.ByteArrayDataSource;
 import java.io.ByteArrayInputStream;
-import java.io.ByteArrayOutputStream;
 import java.io.InputStream;
 import java.util.Arrays;
 import java.util.List;
@@ -100,6 +96,8 @@ public class CamundaMailerDelegate implements JavaDelegate {
             ByteArrayInputStream is = new ByteArrayInputStream(bytes);
             DataSource source = new ByteArrayDataSource(is, "application/pdf");
             helper.addAttachment("instruction.pdf", source);
+            fis.close();
+            is.close();
         }
         String[] emails = separateEmails(addresses);
         if (isFreephone &&  "SendTask_0t8xjuw".equals(delegateExecution.getCurrentActivityId())) {
@@ -135,6 +133,8 @@ public class CamundaMailerDelegate implements JavaDelegate {
                 ByteArrayInputStream is = new ByteArrayInputStream(bytes);
                 DataSource source = new ByteArrayDataSource(is, "application/pdf");
                 helper.addAttachment("instruction.pdf", source);
+                fis.close();
+                is.close();
             }
         } else {
             sender = "flow@kcell.kz";
