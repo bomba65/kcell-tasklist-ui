@@ -30,10 +30,18 @@ public class SetContractorJobAssignedDate implements TaskListener {
 
         String mainContract = String.valueOf(delegateTask.getVariable("mainContract"));
         if("Roll-out".equals(mainContract)){
-            delegateTask.setVariable("rolloutRO1", "false");
-            delegateTask.setVariable("rolloutRO2", "false");
-            delegateTask.setVariable("rolloutRO3", "false");
-            delegateTask.setVariable("rolloutRO4", "false");
+            if(!delegateTask.hasVariable("rolloutRO1")){
+                delegateTask.setVariable("rolloutRO1", "false");
+            }
+            if(!delegateTask.hasVariable("rolloutRO2")){
+                delegateTask.setVariable("rolloutRO2", "false");
+            }
+            if(!delegateTask.hasVariable("rolloutRO3")){
+                delegateTask.setVariable("rolloutRO3", "false");
+            }
+            if(!delegateTask.hasVariable("rolloutRO4")){
+                delegateTask.setVariable("rolloutRO4", "false");
+            }
             String workTitlesForSearch = delegateTask.getVariable("workTitlesForSearch").toString();
             if(workTitlesForSearch.contains("13.")){
                 delegateTask.setVariable("contains13Work", true);
