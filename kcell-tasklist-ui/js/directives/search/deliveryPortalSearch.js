@@ -1204,7 +1204,7 @@ define(['../module', 'moment'], function (module, moment) {
                                 downloadTemp: function (file) {
                                     $http({
                                         method: 'GET',
-                                        url: '/camunda/tempuploads/get/' + file.path,
+                                        url: '/camunda/uploads/tmp/get/' + file.path,
                                         transformResponse: []
                                     }).then(function (response) {
                                         document.getElementById('fileDownloadIframe').src = response.data;
