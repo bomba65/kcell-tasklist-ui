@@ -1201,6 +1201,17 @@ define(['../module', 'moment'], function (module, moment) {
                                         console.log(error);
                                     });
                                 },
+                                downloadTemp: function (file) {
+                                    $http({
+                                        method: 'GET',
+                                        url: '/camunda/tempuploads/get/' + file.path,
+                                        transformResponse: []
+                                    }).then(function (response) {
+                                        document.getElementById('fileDownloadIframe').src = response.data;
+                                    }, function (error) {
+                                        console.log(error);
+                                    });
+                                },
                             },
                             controller: DPModalController,
                             templateUrl: template,
