@@ -1,8 +1,12 @@
 package kz.kcell.bpm.leasing;
 
 import java.sql.*;
+import java.util.Date;
 
 public class testConnect {
+    public testConnect() {
+    }
+
     public static void main(String[] args) {
         System.out.println("testConnect!");
         try {
@@ -19,7 +23,7 @@ public class testConnect {
                     String returnCols[] = { "ARTEFACTID" };
 //                    String insertNCP = "INSERT INTO APP_APEXUDB_CAMUNDA.NCP_CREATION ( ARTEFACTID, NCPID, REGION, LONGITUDE, LATITUDE, REASON, PROJECT, PLANNEDBY, BAND_OLD, CREATOR, DATEOFINSERT, OBLAST_VILLAGE_ID, LASTEDITOR,  COMMENTS, OBLAST_OBJECT_ID, CABINETID, TARGET_CELL, TARGET_COVERAGE, TYPE, GEN_STATUS, NCP_STATUS, NCP_STATUS_DATE, CANDIDATE_ID, BAND, INITIATOR, VIP_INITIATOR, PART, CBR_ID, TR_STATUS) VALUES ( NCP_CREATION_SEQ.nextval, ?, 1, 'E 76,890775', 'N 43,210375', 150, 343, 3, null, 'SERGEI.ZAITSEV', TO_DATE('2013-08-09 09:25:55', 'YYYY-MM-DD HH24:MI:SS'), 750000000, 'VLADIMIR.GRACHYOV', 'TEST TEST TEST TEST', null, 25, null, 'г.Алматы, альтернатива (ул. Тажибаева 184 (угол ул. Березовского)) для демонтируемого сайта 01830XTAZHIPIPE по адресу: ул. Тажибаева 155a, pipe.  M', 6, 3, 2, TO_DATE('2013-08-09 09:25:55', 'YYYY-MM-DD HH24:MI:SS'), 60623, '1', 3, null, 61, null, null)";
 //                    String insertNCP = "INSERT INTO APP_APEXUDB_CAMUNDA.NCP_CREATION (ARTEFACTID, NCPID, REGION, LONGITUDE, LATITUDE, REASON, PROJECT, CREATOR, DATEOFINSERT, COMMENTS, CABINETID, TARGET_COVERAGE, TYPE, GEN_STATUS, NCP_STATUS, NCP_STATUS_DATE, BAND, INITIATOR, PART) VALUES (NCP_CREATION_SEQ.nextval, '99999', 1, 'E 76,890775', 'N 43,210375', 150, 343, 'SERGEI.ZAITSEV', TO_DATE('2013-08-09 09:25:55', 'YYYY-MM-DD HH24:MI:SS'), 'TEST TEST TEST TEST', 25, 'г.Алматы, альтернатива (ул. Тажибаева 184 (угол ул. Березовского)) для демонтируемого сайта 01830XTAZHIPIPE по адресу: ул. Тажибаева 155a, pipe.  M', 6, 3, 2, TO_DATE('2013-08-09 09:25:55', 'YYYY-MM-DD HH24:MI:SS'), '1', 3, 61)";
-                    String insertNCP = "INSERT INTO APP_APEXUDB_CAMUNDA.NCP_CREATION ( ARTEFACTID, NCPID, REGION, LONGITUDE, LATITUDE, REASON, PROJECT, CREATOR, DATEOFINSERT, COMMENTS, CABINETID, TARGET_COVERAGE, TYPE, GEN_STATUS, NCP_STATUS, NCP_STATUS_DATE, BAND, INITIATOR, PART) VALUES (NCP_CREATION_SEQ.nextval, ?, 1, 'E 76,890775', 'N 43,210375', 150, 343, 'SERGEI.ZAITSEV', TO_DATE('2013-08-09 09:25:55', 'YYYY-MM-DD HH24:MI:SS'), 'TEST TEST TEST TEST', 25, 'г.Алматы, альтернатива (ул. Тажибаева 184 (угол ул. Березовского)) для демонтируемого сайта 01830XTAZHIPIPE по адресу: ул. Тажибаева 155a, pipe.  M', 6, 3, 2, TO_DATE('2013-08-09 09:25:55', 'YYYY-MM-DD HH24:MI:SS'), '1', 3, 61)";
+                    String insertNCP = "INSERT INTO APP_APEXUDB_CAMUNDA.NCP_CREATION ( ARTEFACTID, NCPID, REGION, LONGITUDE, LATITUDE, REASON, PROJECT, CREATOR, DATEOFINSERT, COMMENTS, CABINETID, TARGET_COVERAGE, TYPE, GEN_STATUS, NCP_STATUS, NCP_STATUS_DATE, BAND, INITIATOR, PART) VALUES (NCP_CREATION_SEQ.nextval, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, 7, 1, ?, ?, ?, ?)";
                     PreparedStatement preparedStatement = udbConnect.prepareStatement(insertNCP, returnCols);
 //                    PreparedStatement preparedStatement = udbConnect.prepareStatement(insertNCP);
 
@@ -27,22 +31,22 @@ public class testConnect {
                     System.out.println("preparedStatement.setValues");
     //
     //                // set values to insert
-                    preparedStatement.setString(i, "99996"); // NCPID
-    //                preparedStatement.setLong(i++, 1); // REGION
-    //                preparedStatement.setString(i++, "E 76,890775"); // LONGITUDE ex. E 76,890775
-    //                preparedStatement.setString(i++, "N 43,210375"); // LATITUDE
-    //                preparedStatement.setLong(i++, 150); // REASON
-    //                preparedStatement.setLong(i++, 343); // PROJECT
-    //                preparedStatement.setString(i++, "Test Testovich"); // CREATOR 'SERGEI.ZAITSEV'
-    //                preparedStatement.setDate(i++, new java.sql.Date(new Date().getTime())); // DATEOFINSERT
-    //                preparedStatement.setString(i++, "TEST TEST TEST TEST"); // COMMENTS
-    //                preparedStatement.setLong(i++, 25); // CABINETID
-    //                preparedStatement.setString(i++, "г.Алматы, альтернатива (ул. Тажибаева 184 (угол ул. Березовского)) для демонтируемого сайта 01830XTAZHIPIPE по адресу: ул. Тажибаева 155a, pipe.  M"); // TARGET_COVERAGE
-    //                preparedStatement.setLong(i++, 6); // TYPE ncp_type (Подставлять ID согласно справочнику Site Type) ex: 6
-    //                preparedStatement.setDate(i++, new java.sql.Date(new Date().getTime())); // NCP_STATUS_DATE
-    //                preparedStatement.setString(i++, "1"); // BAND ex:'1'   ncp_band	(Подставлять ID согласно справочнику Bands)
-    //                preparedStatement.setString(i++, "Test Testovich"); // INITIATOR (Подставлять ID согласно справочнику Part)
-    //                preparedStatement.setLong(i++, 61); // PART
+                    preparedStatement.setString(i++, "99991"); // NCPID
+                    preparedStatement.setLong(i++, 1); // REGION
+                    preparedStatement.setString(i++, "E 76,890775"); // LONGITUDE ex. E 76,890775
+                    preparedStatement.setString(i++, "N 43,210375"); // LATITUDE
+                    preparedStatement.setLong(i++, 150); // REASON
+                    preparedStatement.setLong(i++, 343); // PROJECT
+                    preparedStatement.setString(i++, "Test Testovich"); // CREATOR 'SERGEI.ZAITSEV'
+                    preparedStatement.setDate(i++, new java.sql.Date(new Date().getTime())); // DATEOFINSERT
+                    preparedStatement.setString(i++, "TEST TEST TEST TEST"); // COMMENTS
+                    preparedStatement.setLong(i++, 25); // CABINETID
+                    preparedStatement.setString(i++, "г.Алматы, альтернатива (ул. Тажибаева 184 (угол ул. Березовского)) для демонтируемого сайта 01830XTAZHIPIPE по адресу: ул. Тажибаева 155a, pipe.  M"); // TARGET_COVERAGE
+                    preparedStatement.setLong(i++, 6); // TYPE ncp_type (Подставлять ID согласно справочнику Site Type) ex: 6
+                    preparedStatement.setDate(i++, new java.sql.Date(new Date().getTime())); // NCP_STATUS_DATE
+                    preparedStatement.setString(i++, "1"); // BAND ex:'1'   ncp_band	(Подставлять ID согласно справочнику Bands)
+                    preparedStatement.setLong(i++, 3); // INITIATOR (Подставлять ID согласно справочнику Part)
+                    preparedStatement.setLong(i++, 61); // PART
 
                     System.out.println("preparedStatement.executeUpdate()");
                     preparedStatement.executeUpdate();
