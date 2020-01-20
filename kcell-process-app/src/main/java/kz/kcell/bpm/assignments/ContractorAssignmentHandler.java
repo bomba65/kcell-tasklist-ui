@@ -25,6 +25,10 @@ public class ContractorAssignmentHandler implements TaskListener {
     public void notify(DelegateTask delegateTask) {
         String contractor = delegateTask.getVariable("contractor").toString();
         String siteRegion = delegateTask.getVariable("siteRegion").toString();
-        delegateTask.addCandidateGroup(("nc".equals(siteRegion)?"astana":siteRegion) + "_contractor_" + contractorsTitle.get(contractor));
+        if(contractor.equals("5")){
+            delegateTask.addCandidateGroup(siteRegion + "_engineer");
+        } else {
+            delegateTask.addCandidateGroup(("nc".equals(siteRegion)?"astana":siteRegion) + "_contractor_" + contractorsTitle.get(contractor));
+        }
     }
 }
