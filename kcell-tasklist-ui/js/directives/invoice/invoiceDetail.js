@@ -191,6 +191,15 @@ define(['./../module'], function(module){
                         }
                     });
                 }
+                scope.exportToExcel = function(table){
+                    var tbl = document.getElementById(table);
+                    var ws = XLSX.utils.table_to_sheet(tbl, {dateNF:'DD.MM.YYYY'});
+
+                    var wb = XLSX.utils.book_new();
+                    XLSX.utils.book_append_sheet(wb, ws, 'New Sheet Name 1');
+
+                    return XLSX.writeFile(wb, (scope.invoice.invoiceNumber.value ? scope.invoice.invoiceNumber.value : scope.invoice.monthActNumber.value ) + '-' + table + '.xlsx');
+                }
 	        },
 			templateUrl: './js/directives/invoice/invoiceDetail.html'
 		};
