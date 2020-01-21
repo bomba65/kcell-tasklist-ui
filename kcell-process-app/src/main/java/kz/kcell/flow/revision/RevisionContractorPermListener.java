@@ -49,7 +49,9 @@ public class RevisionContractorPermListener implements ExecutionListener {
 
             authorizationService.saveAuthorization(authorization);
         } else {
-            log.warning("No value found for contractor: " + contractor + " in contractors map in process id " + delegateExecution.getProcessInstanceId());
+            if(!"5".equals(contractor)){
+                log.warning("No value found for contractor: " + contractor + " in contractors map in process id " + delegateExecution.getProcessInstanceId());
+            }
         }
     }
 }

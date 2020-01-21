@@ -221,6 +221,11 @@
                 'west': 'West'
             };
 
+            $scope.contractorCode = {
+                'lse': 4,
+                'Kcell_region': 5
+            };
+
             var currentDate = new Date;
             var catalogs = {};
             $scope.years = [currentDate.getFullYear(), currentDate.getFullYear()-1, currentDate.getFullYear()-2];
@@ -295,6 +300,8 @@
                             angular.forEach(result.data, function(group){
                                 if(group.id.indexOf('contractor_users_') == 0){
                                     $scope.contractor = group.id.replace('contractor_users_', '');
+                                } else if(group.id.indexOf('_engineer') !== -1 && "!alm!astana!nc!east!south!west".indexOf('!' + group.id.replace('_engineer','')) > 0){
+                                    $scope.contractor = 'Kcell_region';
                                 }
                             });
                             if(!$scope.contractor){
@@ -446,9 +453,10 @@
                 if ($scope.mainContract === 'Revision' && $scope.region && $scope.workType && $scope.periodDate){
                     var processParams = {
                         processDefinitionKey: 'Revision',
+                        activityIdIn: ['intermediate_wait_invoiced'],
                         "variables":
                                 [{"name": "siteRegion", "operator": "eq", "value": $scope.region},
-                                    {"name": "contractor", "operator": "eq", "value": 4},
+                                    {"name": "contractor", "operator": "eq", "value": $scope.contractorCode[$scope.contractor]},
                                     {"name": "reason", "operator": "eq", "value": $scope.workType},
                                     {"name": "acceptPerformedJob", "operator": "eq", "value": 'scan attached'},
                                     {"name": "mainContract", "operator": "eq", "value": 'Revision'}
@@ -688,7 +696,7 @@
                         startedBefore: new Date($scope.periodDate),
                         variables:
                                 [{"name": "siteRegion", "operator": "eq", "value": $scope.region},
-                                    {"name": "contractor", "operator": "eq", "value": 4},
+                                    {"name": "contractor", "operator": "eq", "value": $scope.contractorCode[$scope.contractor]},
                                     {"name": "reason", "operator": "eq", "value": $scope.workType},
                                     {"name": "mainContract", "operator": "eq", "value": 'Roll-out'}
                                 ],
@@ -1178,10 +1186,8 @@
             $scope.preSubmit = function(){
                 var deferred = $q.defer();
 
-                var contractor = 'LSE';
-                if($rootScope.hasGroup('hq_contractor_lse')){
-                    contractor = 'LSE'
-                }
+                var contractor = $scope.contractor.toUpperCase();
+
                 var selectedMonth = _.filter($scope.months, function(m){
                     return m.label === $scope.monthOfFormalPeriod;
                 });

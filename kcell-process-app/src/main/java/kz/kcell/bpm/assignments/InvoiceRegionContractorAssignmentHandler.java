@@ -7,14 +7,19 @@ public class InvoiceRegionContractorAssignmentHandler implements TaskListener {
 
     @Override
     public void notify(DelegateTask delegateTask) {
-        StringBuilder group = new StringBuilder("_contractor_");
-
-        String region = delegateTask.getVariable("region").toString();
         String contractor = delegateTask.getVariable("contractor").toString();
-        if (region != null) {
-            group.insert(0, ("nc".equals(region)?"astana":region));
-            group.append(contractor);
-            delegateTask.addCandidateGroup(group.toString());
+        String region = delegateTask.getVariable("region").toString();
+
+        if("Kcell_region".equals(contractor)){
+            delegateTask.addCandidateGroup(region + "_engineer");
+        } else {
+            StringBuilder group = new StringBuilder("_contractor_");
+
+            if (region != null) {
+                group.insert(0, ("nc".equals(region)?"astana":region));
+                group.append(contractor);
+                delegateTask.addCandidateGroup(group.toString());
+            }
         }
     }
 }

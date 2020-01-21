@@ -13,7 +13,8 @@ import org.springframework.beans.factory.config.ConfigurableBeanFactory;
 import org.springframework.context.annotation.Scope;
 import org.springframework.stereotype.Service;
 
-import java.util.List;
+import java.util.*;
+import java.util.function.Supplier;
 
 @Log
 @Service("invoiceContractorPermListener")
@@ -43,7 +44,19 @@ public class InvoiceContractorPermListener implements ExecutionListener {
 
             authorizationService.saveAuthorization(authorization);
         } else {
-            log.warning("No contractor group found for user: " + starter + " in invoice process id " + delegateExecution.getProcessInstanceId());
+            String siteRegion = delegateExecution.getVariable("siteRegion").toString();
+            List<Group> kcellGroups = identityService.createGroupQuery().groupId(siteRegion + "_engineer").groupMember(starter).list();
+            if(kcellGroups.size() > 0){
+                for(Group kcellGroup: kcellGroups){
+                    Authorization authorization = authorizationService.createNewAuthorization(Authorization.AUTH_TYPE_GRANT);
+                    authorization.setResourceType(8); //ProcessInstance
+                    authorization.setResourceId(delegateExecution.getProcessInstanceId());
+                    authorization.addPermission(Permissions.READ);
+                    authorization.setGroupId(kcellGroup.getId());
+                }
+            } else {
+                log.warning("No contractor group found for user: " + starter + " in invoice process id " + delegateExecution.getProcessInstanceId());
+            }
         }
     }
 }

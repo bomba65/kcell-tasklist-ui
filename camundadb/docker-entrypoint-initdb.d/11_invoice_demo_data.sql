@@ -80,5 +80,11 @@ INSERT INTO act_id_membership (user_id_, group_id_) VALUES ('LSE_Revision_HQ', '
 
 --INVOICE PROCESS AUTOHIRZATION
 
+INSERT INTO public.act_ru_authorization (id_, rev_, type_, group_id_, user_id_, resource_type_, resource_id_, perms_) VALUES ('64636c10-3c57-11ea-964a-322bdcb6ee99', 2, 1, 'east_engineer', null, 6, 'Invoice', 258);
+INSERT INTO public.act_ru_authorization (id_, rev_, type_, group_id_, user_id_, resource_type_, resource_id_, perms_) VALUES ('64636c10-3c57-11ea-964a-322bdcb6ee98', 2, 1, 'west_engineer', null, 6, 'Invoice', 258);
+INSERT INTO public.act_ru_authorization (id_, rev_, type_, group_id_, user_id_, resource_type_, resource_id_, perms_) VALUES ('64636c10-3c57-11ea-964a-322bdcb6ee97', 2, 1, 'south_engineer', null, 6, 'Invoice', 258);
+INSERT INTO public.act_ru_authorization (id_, rev_, type_, group_id_, user_id_, resource_type_, resource_id_, perms_) VALUES ('64636c10-3c57-11ea-964a-322bdcb6ee96', 2, 1, 'nc_engineer', null, 6, 'Invoice', 258);
+INSERT INTO public.act_ru_authorization (id_, rev_, type_, group_id_, user_id_, resource_type_, resource_id_, perms_) VALUES ('64636c10-3c57-11ea-964a-322bdcb6ee95', 2, 1, 'astana_engineer', null, 6, 'Invoice', 258);
+INSERT INTO public.act_ru_authorization (id_, rev_, type_, group_id_, user_id_, resource_type_, resource_id_, perms_) VALUES ('64636c10-3c57-11ea-964a-322bdcb6ee94', 2, 1, 'alm_engineer', null, 6, 'Invoice', 258);
 
 commit;
