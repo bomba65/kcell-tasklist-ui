@@ -13,15 +13,13 @@ def getUserEmail(DelegateExecution execution) {
 
     def contractorsTitle = ["1": "avrora","2": "aicom", "3": "spectr", "4": "lse", "5": "kcell"]
 
-    def groupName = ("nc".equals(siteRegion)?"astana":siteRegion) + "_contractor_" + contractorsTitle.get(contractor)
+    def groupName = "5".equals(contractor) ? siteRegion + "_engineer" : ("nc".equals(siteRegion)?"astana":siteRegion) + "_contractor_" + contractorsTitle.get(contractor)
 
     def userList = identityService.createUserQuery().memberOfGroup(groupName).list().stream()
             .map{it.getEmail()}
             .filter{it != null && !it.isEmpty()}
             .collect(Collectors.toSet())
     def result = userList.stream().collect(Collectors.joining(","))
-    println 'get users:'
-    println result
     result
 }
 
