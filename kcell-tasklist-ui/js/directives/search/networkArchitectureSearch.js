@@ -59,7 +59,8 @@ define(['../module', 'moment'], function (module, moment) {
                     'west': 'West'
                 };
                 scope.contractorShortName = {
-                    '4': 'LSE'
+                    '4': 'LSE',
+                    '5': 'JSC Kcell'
                 };
                 scope.reasonShortName = {
                     '1': 'P&O',
