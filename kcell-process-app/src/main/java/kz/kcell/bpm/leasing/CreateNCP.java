@@ -13,7 +13,7 @@ import java.util.Date;
 
 import static org.camunda.spin.Spin.JSON;
 
-@Service("createNCP")
+@Service("CreateNCP")
 public class CreateNCP implements JavaDelegate {
 
     @Autowired
@@ -25,107 +25,323 @@ public class CreateNCP implements JavaDelegate {
             Class.forName ("oracle.jdbc.OracleDriver");
             Connection udbConnect = DriverManager.getConnection(
                 "jdbc:oracle:thin:@//sc2-appcl010406:1521/apexudb", "app_apexudb_camunda", "p28zt#7C");
-            if (udbConnect != null) {
-                udbConnect.setAutoCommit(false);
+            try {
+                if (udbConnect != null) {
+                    udbConnect.setAutoCommit(false);
+                    System.out.println("Connected to the database!");
 
-                // proc vars
-                String ncpId = delegateExecution.getVariable("ncpId").toString();
-                String region = delegateExecution.getVariable("region").toString(); // not number
-                String longitude = delegateExecution.getVariable("longitude").toString();
-                String latitude = delegateExecution.getVariable("latitude").toString();
-                String reason = delegateExecution.getVariable("reason").toString(); // it's string value, not dictionaries id
-                String starter = delegateExecution.getVariable("starter").toString();
-                String initiator = delegateExecution.getVariable("initiator").toString();
+                    //insert NCP
+                    Long ncpCreatedId = null;
+                    String returnCols[] = { "ARTEFACTID" };
+                    String insertNCP = "INSERT INTO APP_APEXUDB_CAMUNDA.NCP_CREATION ( ARTEFACTID, NCPID, REGION, LONGITUDE, LATITUDE, REASON, PROJECT, CREATOR, DATEOFINSERT, COMMENTS, CABINETID, TARGET_COVERAGE, TYPE, GEN_STATUS, NCP_STATUS, NCP_STATUS_DATE, BAND, INITIATOR, PART) VALUES (NCP_CREATION_SEQ.nextval, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, 7, 1, ?, ?, ?, ?)";
+                    PreparedStatement preparedStatement = udbConnect.prepareStatement(insertNCP, returnCols);
 
+                    int i = 1;
+                    System.out.println("preparedStatement.setValues");
 
-                System.out.println("companiesPreparedStatement");
-//                PreparedStatement preparedStatement = udbConnect.prepareStatement(companiesInsert, Statement.RETURN_GENERATED_KEYS);
-//                PreparedStatement preparedStatement = udbConnect.prepareStatement(companiesInsert, generatedColumns);
+//                    String ncpId = "99962";
+                    // proc vars
+                    String ncpId = delegateExecution.getVariable("ncpID").toString();
+//                    String region = delegateExecution.getVariable("region").toString(); // not number
+                    String longitude = delegateExecution.getVariable("longitude").toString();
+                    String latitude = delegateExecution.getVariable("latitude").toString();
+//                    String reason = delegateExecution.getVariable("reason").toString(); // it's string value, not dictionaries id
+                    String starter = delegateExecution.getVariable("starter").toString();
+                    String targetCoverage = delegateExecution.getVariable("targetCoverage").toString();
+                    String regionCode = delegateExecution.getVariable("regionCode").toString();
+                    String rbsType = delegateExecution.getVariable("rbsType").toString();
+                    String createNCPTaskComment = delegateExecution.getVariable("createNCPTaskComment").toString();
+                    String bandsIdForUDB = delegateExecution.getVariable("bandsIdForUDB").toString();
+                    String plannedCabinetTypeIdForUDB = delegateExecution.getVariable("plannedCabinetTypeIdForUDB").toString();
 
-                //insert NCP
-                Long ncpCreatedId = null;
-                String returnCols[] = { "ARTEFACTID" };
-                String insertNCP = "INSERT INTO APP_APEXUDB_CAMUNDA.NCP_CREATION ( ARTEFACTID, NCPID, REGION, LONGITUDE, LATITUDE, REASON, PROJECT, CREATOR, DATEOFINSERT, COMMENTS, CABINETID, TARGET_COVERAGE, TYPE, GEN_STATUS, NCP_STATUS, NCP_STATUS_DATE, BAND, INITIATOR, PART) VALUES ( NCP_CREATION_SEQ.nextval, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, 7, 1, ?, ?, ?, ?)";
-                PreparedStatement preparedStatement = udbConnect.prepareStatement(insertNCP, returnCols);
+                    SpinJsonNode reasonJson = JSON(delegateExecution.getVariable("reason"));
+                    SpinJsonNode reason = reasonJson.prop("id");
+                    String reasonString = reason.stringValue();
+                    int reasonInt = Integer.parseInt(reasonString);
 
-                int i = 1;
-                System.out.println("companiesPreparedStatement.setString");
-                // set values to insert
-                preparedStatement.setString(i++, ncpId); // NCPID
-                preparedStatement.setInt(i++, 1); // REGION
-                preparedStatement.setString(i++, longitude); // LONGITUDE ex. E 76,890775
-                preparedStatement.setString(i++, latitude); // LATITUDE
-                preparedStatement.setInt(i++, 150); // REASON
-                preparedStatement.setInt(i++, 343); // PROJECT
-                preparedStatement.setString(i++, initiator); // CREATOR 'SERGEI.ZAITSEV'
-                preparedStatement.setDate(i++, java.sql.Date.valueOf(java.time.LocalDate.now())); // DATEOFINSERT
-                preparedStatement.setString(i++, "TEST TEST TEST TEST"); // COMMENTS
-                preparedStatement.setInt(i++, 25); // CABINETID
-                preparedStatement.setString(i++, "г.Алматы, альтернатива (ул. Тажибаева 184 (угол ул. Березовского)) для демонтируемого сайта 01830XTAZHIPIPE по адресу: ул. Тажибаева 155a, pipe.  M"); // TARGET_COVERAGE
-                preparedStatement.setInt(i++, 6); // TYPE ncp_type (Подставлять ID согласно справочнику Site Type) ex: 6
-                preparedStatement.setDate(i++, java.sql.Date.valueOf(java.time.LocalDate.now())); // NCP_STATUS_DATE
-                preparedStatement.setString(i++, "1"); // BAND ex:'1'   ncp_band	(Подставлять ID согласно справочнику Bands)
-                preparedStatement.setString(i++, starter); // INITIATOR (Подставлять ID согласно справочнику Part)
-                preparedStatement.setInt(i++, 61); // PART
+                    SpinJsonNode siteTypeJson = JSON(delegateExecution.getVariable("siteType"));
+                    SpinJsonNode siteType = siteTypeJson.prop("id");
+                    String siteTypeString = siteType.stringValue();
+                    int siteTypeInt = Integer.parseInt(siteTypeString);
 
-                System.out.println("companiesPreparedStatement.executeUpdate()");
-                int status = preparedStatement.executeUpdate();
-                System.out.println("insert status:");
-                System.out.println(status); //1
-                System.out.println("successfull insert to database!");
+                    SpinJsonNode projectJson = JSON(delegateExecution.getVariable("project"));
+                    SpinJsonNode project = projectJson.prop("id");
+                    String projectString = project.stringValue();
+                    int projectInt = Integer.parseInt(projectString);
 
-                ResultSet headGeneratedIdResultSet = preparedStatement.getGeneratedKeys();
-                headGeneratedIdResultSet.next();
-                ncpCreatedId = headGeneratedIdResultSet.getLong(1);
-                System.out.println("artefactGeneratedId:");
-                System.out.println(ncpCreatedId);
+                    SpinJsonNode initiatorJson = JSON(delegateExecution.getVariable("initiator"));
+                    SpinJsonNode initiator = initiatorJson.prop("id");
+                    String initiatorString = initiator.stringValue();
+                    int initiatorInt = Integer.parseInt(initiatorString);
 
+                    SpinJsonNode partJson = JSON(delegateExecution.getVariable("part"));
+                    SpinJsonNode part = partJson.prop("id");
+                    String partString = part.stringValue();
+                    int partInt = Integer.parseInt(partString);
 
-                //insert new status
-                Long createdNcpStatusId = null;
-                String returnStatus[] = { "STATUS_ACTION_ID" };
-                String insertNewStatus = "insert into NCP_CREATION_STATUS_ACTION values ( NCP_CREATION_STATUS_ACTIO_SEQ.nextval, ?, 2, 'demo', TO_DATE('2013-08-09 09:25:55', 'YYYY-MM-DD HH24:MI:SS'), null)";
-                preparedStatement = udbConnect.prepareStatement(insertNewStatus, returnStatus);
+                    SpinJsonNode candidate = JSON(delegateExecution.getVariable("candidate"));
+                    String cn_longitude = candidate.prop("longitude").stringValue();
+                    String cn_latitude = candidate.prop("latitude").stringValue();
+                    String cn_siteName = candidate.prop("siteName").stringValue();
+                    String cn_comments = candidate.hasProp("comments")?candidate.prop("comments").stringValue():null;
+                    String cn_constructionType = candidate.prop("constructionType").prop("id").stringValue();
 
-                i = 1;
-                System.out.println("companiesPreparedStatement.setString");
-                preparedStatement.setString(i, ncpCreatedId.toString());
-                System.out.println("companiesPreparedStatement.executeUpdate()");
-                status = preparedStatement.executeUpdate();
-                System.out.println("insert status:");
-                System.out.println(status); //1
-                System.out.println("successfull insert to database!");
+                    SpinJsonNode renterCompany = JSON(delegateExecution.getVariable("renterCompany"));
+                    String contact_person = "" + (!renterCompany.prop("contactName").equals(null) ? renterCompany.prop("contactName").stringValue() : "") +
+                        " " + (!renterCompany.prop("contactPosition").equals(null) ? renterCompany.prop("contactPosition").stringValue() : "") +
+                        " ( tel:" + (!renterCompany.prop("telFax").equals(null) ? renterCompany.prop("telFax").stringValue() : "") + ")";
 
-                ResultSet statusGeneratedIdResultSet = preparedStatement.getGeneratedKeys();
-                statusGeneratedIdResultSet.next();
-                createdNcpStatusId = statusGeneratedIdResultSet.getLong(1);
-                System.out.println("createdNcpStatusId:");
-                System.out.println(createdNcpStatusId);
+                    //{"cn_addr_oblast":"область Акмолинская","cn_addr_district":"","cn_addr_city":"г. Кокшетау","cn_addr_street":"фывфв","ca_not_full_addres":false,"cn_addr_building":"фывыфв"}
+                    SpinJsonNode address = JSON(delegateExecution.getVariable("address"));
+                    String cn_address = "" + (address.hasProp("cn_addr_oblast") ? address.prop("cn_addr_oblast").stringValue() : "") +
+                        (address.hasProp("cn_addr_district") ? ", " + address.prop("cn_addr_district").stringValue() : "") +
+                        (address.hasProp("cn_addr_city") ? ", " + address.prop("cn_addr_city").stringValue() : "") +
+                        (address.hasProp("cn_addr_street") ? ", " + address.prop("cn_addr_street").stringValue() : "") +
+                        (address.hasProp("cn_addr_building") ? ", " + address.prop("cn_addr_building").stringValue() : "") +
+                        (address.hasProp("cn_addr_cadastral_number") ? ", " + address.prop("cn_addr_cadastral_number").stringValue() : "") +
+                        (address.hasProp("cn_addr_note") ? ", " + address.prop("cn_addr_note").stringValue() : "");
 
-                udbConnect.commit();
+                    String cn_bsc = candidate.prop("bsc").prop("id").stringValue();
+                    int cn_bscInt = Integer.parseInt(cn_bsc);
 
-//                try (ResultSet generatedKeys = preparedStatement.getGeneratedKeys()) {
-//                    if (generatedKeys.next()) {
-//                        System.out.println(generatedKeys.getLong(1));
-//                        System.out.println(generatedKeys.getLong(2));
-//                    }
-//                    else {
-//                        throw new SQLException("Creating user failed, no ID obtained.");
-//                    }
-//                }
+                    // set values to insert
+                    preparedStatement.setString(i++, ncpId); // NCPID
+                    preparedStatement.setLong(i++, Integer.parseInt(regionCode)); // REGION
+                    preparedStatement.setString(i++, longitude); // LONGITUDE ex. E 76,890775
+                    preparedStatement.setString(i++, latitude); // LATITUDE
+                    preparedStatement.setLong(i++, reasonInt); // REASON
+                    preparedStatement.setLong(i++, projectInt); // PROJECT
+                    preparedStatement.setString(i++, starter); // CREATOR 'SERGEI.ZAITSEV'
+                    preparedStatement.setDate(i++, new java.sql.Date(new Date().getTime())); // DATEOFINSERT
+                    preparedStatement.setString(i++, createNCPTaskComment); // COMMENTS
+                    preparedStatement.setLong(i++, Integer.parseInt(plannedCabinetTypeIdForUDB)); // CABINETID
+                    preparedStatement.setString(i++, targetCoverage); // TARGET_COVERAGE
+                    preparedStatement.setLong(i++, siteTypeInt); // TYPE ncp_type (Подставлять ID согласно справочнику Site Type) ex: 6
+                    preparedStatement.setDate(i++, new java.sql.Date(new Date().getTime())); // NCP_STATUS_DATE
+                    preparedStatement.setString(i++, bandsIdForUDB); // BAND ex:'1'   ncp_band	(Подставлять ID согласно справочнику Bands)
+                    preparedStatement.setLong(i++, initiatorInt); // INITIATOR
+                    preparedStatement.setLong(i++, partInt); // PART (Подставлять ID согласно справочнику Part)
 
-                ResultSet rs = preparedStatement.getGeneratedKeys();
+                    System.out.println("preparedStatement.executeUpdate()");
+                    preparedStatement.executeUpdate();
+                    System.out.println("successfull insert to database!");
+//
+                    ResultSet headGeneratedIdResultSet = preparedStatement.getGeneratedKeys();
+                    headGeneratedIdResultSet.next();
+                    ncpCreatedId = headGeneratedIdResultSet.getLong(1);
+                    System.out.println("artefactGeneratedId:");
+                    System.out.println(ncpCreatedId);
 
-                if (rs.next()) {
-                    System.out.println("rs.next()");
-                    long id = rs.getLong(1);
-                    System.out.println("Inserted ID -" + id); // display inserted record
+                    //insert new status
+                    Long createdNcpStatusId = null;
+                    String returnStatus[] = { "STATUS_ACTION_ID" };
+                    String insertNewStatus = "insert into NCP_CREATION_STATUS_ACTION values ( NCP_CREATION_STATUS_ACTIO_SEQ.nextval, ?, 2, ?, ?, null)";
+                    PreparedStatement newNcpStatusPreparedStatement = udbConnect.prepareStatement(insertNewStatus, returnStatus);
+
+                    i = 1;
+                    System.out.println("newNcpStatusPreparedStatement.setString");
+                    newNcpStatusPreparedStatement.setString(i++, ncpCreatedId.toString());
+                    newNcpStatusPreparedStatement.setString(i++, starter); // CREATOR 'SERGEI.ZAITSEV'
+                    newNcpStatusPreparedStatement.setDate(i++, new java.sql.Date(new Date().getTime())); // DATEOFINSERT
+                    System.out.println("newNcpStatusPreparedStatement.executeUpdate()");
+                    newNcpStatusPreparedStatement.executeUpdate();
+                    System.out.println("successfull insert to database!");
+
+                    ResultSet statusGeneratedIdResultSet = newNcpStatusPreparedStatement.getGeneratedKeys();
+                    statusGeneratedIdResultSet.next();
+                    createdNcpStatusId = statusGeneratedIdResultSet.getLong(1);
+                    System.out.println("createdNcpStatusId:");
+                    System.out.println(createdNcpStatusId);
+
+                    //insert new Candidate (in Artefact table)
+                    Long createdArtefactId = null;
+                    String returnArtefactId[] = { "ARTEFACTID" };
+                    String insertNewArtefact = "insert into ARTEFACT values (ARTEFACT_SEQ.nextval, ?, ?)";
+                    PreparedStatement newArtefactPreparedStatement = udbConnect.prepareStatement(insertNewArtefact, returnArtefactId);
+
+                    i = 1;
+                    System.out.println("newArtefactPreparedStatement.setString");
+                    newArtefactPreparedStatement.setString(i++, cn_siteName); // sitename	cn_sitename
+                    newArtefactPreparedStatement.setLong(i++, Integer.parseInt(ncpId)); //ncp_id
+                    System.out.println("newArtefactPreparedStatement.executeUpdate()");
+                    newArtefactPreparedStatement.executeUpdate();
+                    System.out.println("successfull insert to database!");
+
+                    ResultSet createdArtefactIdResultSet = newArtefactPreparedStatement.getGeneratedKeys();
+                    createdArtefactIdResultSet.next();
+                    createdArtefactId = createdArtefactIdResultSet.getLong(1);
+                    System.out.println("createdArtefactId:");
+                    System.out.println(createdArtefactId);
+
+                    //insert new Candidate (in ARTEFACT_CURRENT_STATE table)
+                    String insertNewArtefactCurrentState = "INSERT INTO APP_APEXUDB_CAMUNDA.ARTEFACT_CURRENT_STATE (ARTEFACTID,\n" +
+                        "                                                        NCPID,\n" +
+                        "                                                        CAND_STATUS,\n" +
+                        "                                                        CAND_STATUS_PERSON,\n" +
+                        "                                                        CAND_STATUS_DATE,\n" +
+                        "                                                        RR_STATUS,\n" +
+                        "                                                        RR_STATUS_PERSON,\n" +
+                        "                                                        RR_STATUS_DATE,\n" +
+                        "                                                        LONGITUDE,\n" +
+                        "                                                        LATITUDE,\n" +
+                        "                                                        RBS_TYPE,\n" +
+                        "                                                        BSC,\n" +
+                        "                                                        BAND,\n" +
+                        "                                                        RBS_LOCATION,\n" +
+                        "                                                        ALTITUDE,\n" +
+                        "                                                        CONSTRUCTION_HEIGHT,\n" +
+                        "                                                        CONSTRUCTION_TYPE,\n" +
+                        "                                                        ADDRESS,\n" +
+                        "                                                        CONTACT_PERSON,\n" +
+                        "                                                        COMMENTS,\n" +
+                        "                                                        INSERT_DATE,\n" +
+                        "                                                        INSERT_PERSON,\n" +
+                        "                                                        GS_STATUS,\n" +
+                        "                                                        PL_COMMENTS) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)";
+                    PreparedStatement newArtefactCurrentStatePreparedStatement = udbConnect.prepareStatement(insertNewArtefactCurrentState);
+
+                    i = 1;
+                    System.out.println("newArtefactCurrentStatePreparedStatement.setString");
+                    newArtefactCurrentStatePreparedStatement.setLong(i++, createdArtefactId); //ARTEFACTID
+                    newArtefactCurrentStatePreparedStatement.setLong(i++, Integer.parseInt(ncpId)); //ncp_id
+                    newArtefactCurrentStatePreparedStatement.setLong(i++, 1); // CAND_STATUS first insert value mast be = 1
+                    newArtefactCurrentStatePreparedStatement.setString(i++, starter); // CAND_STATUS_PERSON (current user) // current or start ?????? (who complete create candidate task?)
+                    newArtefactCurrentStatePreparedStatement.setDate(i++, new java.sql.Date(new Date().getTime())); // CAND_STATUS_DATE
+                    newArtefactCurrentStatePreparedStatement.setLong(i++, 1); // RR_STATUS first insert value mast be = 1
+                    newArtefactCurrentStatePreparedStatement.setString(i++, starter); // RR_STATUS_PERSON (current user)
+                    newArtefactCurrentStatePreparedStatement.setDate(i++, new java.sql.Date(new Date().getTime())); // RR_STATUS_DATE
+                    newArtefactCurrentStatePreparedStatement.setString(i++, cn_longitude); // LONGITUDE ex: E 80 50 42,4
+                    newArtefactCurrentStatePreparedStatement.setString(i++, cn_latitude); // LATITUDE ex: N 48 48 05,6
+                    newArtefactCurrentStatePreparedStatement.setLong(i++, Integer.parseInt(rbsType)); // RBS_TYPE (cn_rbs_type)
+                    newArtefactCurrentStatePreparedStatement.setLong(i++, cn_bscInt); // BSC (cn_bsc)
+                    newArtefactCurrentStatePreparedStatement.setLong(i++, Integer.parseInt(bandsIdForUDB)); // BAND (cn_band)
+                    newArtefactCurrentStatePreparedStatement.setLong(i++, 2); // RBS_LOCATION (cn_rbs_location)
+                    newArtefactCurrentStatePreparedStatement.setLong(i++, 689); // ALTITUDE (cn_altitude) еще не реализовано в данной версии
+                    newArtefactCurrentStatePreparedStatement.setLong(i++, 3); // CONSTRUCTION_HEIGHT (cn_height_constr) еще не реализовано в данной версии
+                    newArtefactCurrentStatePreparedStatement.setLong(i++, Integer.parseInt(cn_constructionType)); // CONSTRUCTION_TYPE (cn_construction_type) еще не реализовано в данной версии
+                    newArtefactCurrentStatePreparedStatement.setString(i++, cn_address); // ADDRESS "Восточно-Казахстанская область, Зайсанский район, село Карабулак, водонапорная башня"
+                    newArtefactCurrentStatePreparedStatement.setString(i++, contact_person); // CONTACT_PERSON "Мария Николаевна Специалист акимата 8 701 479 19 86"
+                    newArtefactCurrentStatePreparedStatement.setString(i++, (!renterCompany.prop("contactInfo").equals(null) ? renterCompany.prop("contactInfo").stringValue() : "")); // COMMENTS (cn_contact_information)
+                    newArtefactCurrentStatePreparedStatement.setDate(i++, new java.sql.Date(new Date().getTime())); // INSERT_DATE
+                    newArtefactCurrentStatePreparedStatement.setString(i++, starter); // INSERT_PERSON
+                    newArtefactCurrentStatePreparedStatement.setLong(i++, 7); // GS_STATUS
+                    newArtefactCurrentStatePreparedStatement.setString(i++, cn_comments); // PL_COMMENTS (cn_comments)
+                    System.out.println("newArtefactCurrentStatePreparedStatement.executeUpdate()");
+                    newArtefactCurrentStatePreparedStatement.executeUpdate();
+                    System.out.println("successfull insert to database!");
+
+                    udbConnect.commit();
+                    delegateExecution.setVariable("ncpCreatedId", ncpCreatedId);
+                    delegateExecution.setVariable("createdNcpStatusId", createdNcpStatusId);
+                    delegateExecution.setVariable("createdArtefactId", createdArtefactId);
+                    udbConnect.close();
+                    System.out.println("udbConnection closed!");
+                } else {
+                    udbConnect.close();
+                    System.out.println("Failed to make connection!");
                 }
+            } catch (Exception e) {
+                udbConnect.rollback();
                 udbConnect.close();
-                System.out.println("udbConnection closed!");
-            } else {
-                System.out.println("Failed to make connection!");
+                System.out.println("connection Exception!");
+                System.out.println(e);
+                throw e;
             }
+            // version 1
+//            Class.forName ("oracle.jdbc.OracleDriver");
+//            Connection udbConnect = DriverManager.getConnection(
+//                "jdbc:oracle:thin:@//sc2-appcl010406:1521/apexudb", "app_apexudb_camunda", "p28zt#7C");
+//            if (udbConnect != null) {
+//                udbConnect.setAutoCommit(false);
+//
+//                // proc vars
+//                String ncpId = delegateExecution.getVariable("ncpId").toString();
+//                String region = delegateExecution.getVariable("region").toString(); // not number
+//                String longitude = delegateExecution.getVariable("longitude").toString();
+//                String latitude = delegateExecution.getVariable("latitude").toString();
+//                String reason = delegateExecution.getVariable("reason").toString(); // it's string value, not dictionaries id
+//                String starter = delegateExecution.getVariable("starter").toString();
+//                String initiator = delegateExecution.getVariable("initiator").toString();
+//
+//
+//                System.out.println("companiesPreparedStatement");
+////                PreparedStatement preparedStatement = udbConnect.prepareStatement(companiesInsert, Statement.RETURN_GENERATED_KEYS);
+////                PreparedStatement preparedStatement = udbConnect.prepareStatement(companiesInsert, generatedColumns);
+//
+//                //insert NCP
+//                Long ncpCreatedId = null;
+//                String returnCols[] = { "ARTEFACTID" };
+//                String insertNCP = "INSERT INTO APP_APEXUDB_CAMUNDA.NCP_CREATION ( ARTEFACTID, NCPID, REGION, LONGITUDE, LATITUDE, REASON, PROJECT, CREATOR, DATEOFINSERT, COMMENTS, CABINETID, TARGET_COVERAGE, TYPE, GEN_STATUS, NCP_STATUS, NCP_STATUS_DATE, BAND, INITIATOR, PART) VALUES ( NCP_CREATION_SEQ.nextval, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, 7, 1, ?, ?, ?, ?)";
+//                PreparedStatement preparedStatement = udbConnect.prepareStatement(insertNCP, returnCols);
+//
+//                int i = 1;
+//                System.out.println("companiesPreparedStatement.setString");
+//                // set values to insert
+//                preparedStatement.setString(i++, ncpId); // NCPID
+//                preparedStatement.setInt(i++, 1); // REGION
+//                preparedStatement.setString(i++, longitude); // LONGITUDE ex. E 76,890775
+//                preparedStatement.setString(i++, latitude); // LATITUDE
+//                preparedStatement.setInt(i++, 150); // REASON
+//                preparedStatement.setInt(i++, 343); // PROJECT
+//                preparedStatement.setString(i++, initiator); // CREATOR 'SERGEI.ZAITSEV'
+//                preparedStatement.setDate(i++, java.sql.Date.valueOf(java.time.LocalDate.now())); // DATEOFINSERT
+//                preparedStatement.setString(i++, "TEST TEST TEST TEST"); // COMMENTS
+//                preparedStatement.setInt(i++, 25); // CABINETID
+//                preparedStatement.setString(i++, "г.Алматы, альтернатива (ул. Тажибаева 184 (угол ул. Березовского)) для демонтируемого сайта 01830XTAZHIPIPE по адресу: ул. Тажибаева 155a, pipe.  M"); // TARGET_COVERAGE
+//                preparedStatement.setInt(i++, 6); // TYPE ncp_type (Подставлять ID согласно справочнику Site Type) ex: 6
+//                preparedStatement.setDate(i++, java.sql.Date.valueOf(java.time.LocalDate.now())); // NCP_STATUS_DATE
+//                preparedStatement.setString(i++, "1"); // BAND ex:'1'   ncp_band	(Подставлять ID согласно справочнику Bands)
+//                preparedStatement.setString(i++, starter); // INITIATOR (Подставлять ID согласно справочнику Part)
+//                preparedStatement.setInt(i++, 61); // PART
+//
+//                System.out.println("companiesPreparedStatement.executeUpdate()");
+//                int status = preparedStatement.executeUpdate();
+//                System.out.println("insert status:");
+//                System.out.println(status); //1
+//                System.out.println("successfull insert to database!");
+//
+//                ResultSet headGeneratedIdResultSet = preparedStatement.getGeneratedKeys();
+//                headGeneratedIdResultSet.next();
+//                ncpCreatedId = headGeneratedIdResultSet.getLong(1);
+//                System.out.println("artefactGeneratedId:");
+//                System.out.println(ncpCreatedId);
+//
+//
+//                //insert new status
+//                Long createdNcpStatusId = null;
+//                String returnStatus[] = { "STATUS_ACTION_ID" };
+//                String insertNewStatus = "insert into NCP_CREATION_STATUS_ACTION values ( NCP_CREATION_STATUS_ACTIO_SEQ.nextval, ?, 2, 'demo', TO_DATE('2013-08-09 09:25:55', 'YYYY-MM-DD HH24:MI:SS'), null)";
+//                preparedStatement = udbConnect.prepareStatement(insertNewStatus, returnStatus);
+//
+//                i = 1;
+//                System.out.println("companiesPreparedStatement.setString");
+//                preparedStatement.setString(i, ncpCreatedId.toString());
+//                System.out.println("companiesPreparedStatement.executeUpdate()");
+//                status = preparedStatement.executeUpdate();
+//                System.out.println("insert status:");
+//                System.out.println(status); //1
+//                System.out.println("successfull insert to database!");
+//
+//                ResultSet statusGeneratedIdResultSet = preparedStatement.getGeneratedKeys();
+//                statusGeneratedIdResultSet.next();
+//                createdNcpStatusId = statusGeneratedIdResultSet.getLong(1);
+//                System.out.println("createdNcpStatusId:");
+//                System.out.println(createdNcpStatusId);
+//
+//                udbConnect.commit();
+//
+//                ResultSet rs = preparedStatement.getGeneratedKeys();
+//
+//                if (rs.next()) {
+//                    System.out.println("rs.next()");
+//                    long id = rs.getLong(1);
+//                    System.out.println("Inserted ID -" + id); // display inserted record
+//                }
+//                udbConnect.close();
+//                System.out.println("udbConnection closed!");
+//            } else {
+//                System.out.println("Failed to make connection!");
+//            }
         } catch (SQLException e) {
             System.out.println("testConnect SQLException!");
             System.out.println(e.toString());
@@ -134,6 +350,8 @@ public class CreateNCP implements JavaDelegate {
             System.out.println("testConnect Exception!");
             e.printStackTrace();
         }
+
+
             // ================= OLD ===============
 //            Class.forName ("oracle.jdbc.OracleDriver");
 //            Connection c = DriverManager.getConnection(
@@ -150,104 +368,5 @@ public class CreateNCP implements JavaDelegate {
             // String binString = bin.toString();
             // binString = binString.substring(1, binString.length() - 1);
 
-            // String elicense = "null";
-            // SpinJsonNode hasElicense = responseJson.prop("result").prop("elicense").prop("has_elicense");
-            // String hasElicenseString = hasElicense.toString();
-            // boolean hasElicenseBoolean = Boolean.parseBoolean(hasElicenseString);
-            // if (hasElicenseBoolean) {
-            //     SpinJsonNode elicenseJson = responseJson.prop("result").prop("elicense");
-            //     elicense = elicenseJson.toString();
-            //     elicense = "'" + elicense + "'";
-            // }
-
-            // String enforcementDebt = "null";
-            // SpinJsonNode hasDebts = responseJson.prop("result").prop("enforcement_debt").prop("has_debts");
-            // String hasDebtsString = hasDebts.toString();
-            // boolean hasDebtsBoolean = Boolean.parseBoolean(hasDebtsString);
-            // if (hasDebtsBoolean) {
-            //     SpinJsonNode enforcementDebtJson = responseJson.prop("result").prop("enforcement_debt");
-            //     enforcementDebt = enforcementDebtJson.toString();
-            //     enforcementDebt = "'" + enforcementDebt + "'";
-            // }
-
-            // String taxDebt = "null";
-            // SpinJsonNode totalArrear = responseJson.prop("result").prop("tax_debt").prop("total_arrear");
-            // String totalArrearString = totalArrear.toString();
-            // int totalArrearInt = Integer.parseInt(totalArrearString.toString());
-            // if (totalArrearInt > 0) {
-            //     SpinJsonNode taxDebtJson = responseJson.prop("result").prop("tax_debt");
-            //     taxDebt = taxDebtJson.toString();
-            //     taxDebt = "'" + taxDebt + "'";
-            // }
-
-            // String gzContract = "null";
-            // SpinJsonNode count = responseJson.prop("result").prop("gz_contract").prop("count");
-            // String countString = count.toString();
-            // int countInt = Integer.parseInt(countString.toString());
-            // if (countInt > 0) {
-            //     SpinJsonNode gzContractJson = responseJson.prop("result").prop("gz_contract");
-            //     gzContract = gzContractJson.toString();
-            //     gzContract = "'" + gzContract + "'";
-            // }
-
-            // String gzRNU = "null";
-            // SpinJsonNode isInRNU = responseJson.prop("result").prop("gz_rnu").prop("is_in_rnu");
-            // String isInRNUString = isInRNU.toString();
-            // boolean isInRNUBoolean = Boolean.parseBoolean(isInRNUString);
-            // if (isInRNUBoolean) {
-            //     SpinJsonNode gzRNUJson = responseJson.prop("result").prop("gz_rnu");
-            //     gzRNU = gzRNUJson.toString();
-            //     gzRNU = "'" + gzRNU + "'";
-            // }
-
-            // SpinJsonNode result = responseJson.prop("result");
-            // String companiesInsert = "insert into b2b_companies.companies(id, bin, main_info, elicense_info, enforcement_debt_info, tax_dept_info, gz_contract_info, gz_rnu, current_date, rnn, name_ru, name_kz, registered_at, is_unregistered, date_of_unregestration, reason_of_unregistration, in_the_market, kato, full_address, size_code, okpo, oked_code, has_parent, parent_bin, parent_rnn, parent_name, is_bankrupt, bankrupt_date, bankrupt_document_number, is_inactive, inactive_date, inactive_document_number, is_wrong_address, wrong_address_date, wrong_address_document_date, is_pseudo_company, pseudo_company_date, pseudo_company_document_number, is_invalid_registration, invalid_registration_date, invalid_registration_document_number, is_vat_payer, vat_registration_date, vat_unregistration_date, vat_unregistration_reason, is_gz_rnu, gz_rnu_count, gz_contract_total_sum, gz_contract_count, has_elicense, tax_dept_id, has_enforcement_dept, enforcement_dept_total_sum, enforcement_dept_count, gz_supplier_id, head_id, tax_id) values(nextval('companies_id_seq')?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)";
-//            String companiesInsert = " INSERT INTO APP_APEXUDB_CAMUNDA.NCP_CREATION ( ARTEFACTID, NCPID, REGION, LONGITUDE, LATITUDE, REASON, PROJECT, PLANNEDBY, BAND_OLD, CREATOR, DATEOFINSERT, OBLAST_VILLAGE_ID, LASTEDITOR,  COMMENTS, OBLAST_OBJECT_ID, CABINETID, TARGET_CELL, TARGET_COVERAGE, TYPE, GEN_STATUS, NCP_STATUS, NCP_STATUS_DATE, CANDIDATE_ID, BAND, INITIATOR, VIP_INITIATOR, PART, CBR_ID, TR_STATUS) VALUES ( NCP_CREATION_SEQ.nextval, ?, 1, 'E 76,890775', 'N 43,210375', 150, 343, 3, null, 'SERGEI.ZAITSEV', TO_DATE('2013-08-09 09:25:55', 'YYYY-MM-DD HH24:MI:SS'), 750000000, 'VLADIMIR.GRACHYOV', 'TEST TEST TEST TEST', null, 25, null, 'г.Алматы, альтернатива (ул. Тажибаева 184 (угол ул. Березовского)) для демонтируемого сайта 01830XTAZHIPIPE по адресу: ул. Тажибаева 155a, pipe.  M',                   --TARGET_COVERAGE 6, 3, 2, TO_DATE('2013-08-09 09:25:55', 'YYYY-MM-DD HH24:MI:SS'), 60623, '1', 3, null, 61, null, null);";
-//            PreparedStatement companiesPreparedStatement = c.prepareStatement(companiesInsert);
-
-//            Long gzSupplierGeneratedId = null;
-//            int i = 1;
-//
-//            companiesPreparedStatement.setString(i++, okedCode);
-//            companiesPreparedStatement.setBoolean(i++, (result.hasProp("parent") && result.prop("parent").hasProp("has_parent") && result.prop("parent").prop("has_parent") != null ? result.prop("parent").prop("has_parent").boolValue() : null));
-//            companiesPreparedStatement.setString(i++, (result.hasProp("parent") && result.prop("parent").hasProp("parent_bin") && result.prop("parent").prop("parent_bin") != null ? result.prop("parent").prop("parent_bin").stringValue() : null));
-//            companiesPreparedStatement.setString(i++, (result.hasProp("parent") && result.prop("parent").hasProp("parent_rnn") && result.prop("parent").prop("parent_rnn") != null ? result.prop("parent").prop("parent_rnn").stringValue() : null));
-//            companiesPreparedStatement.setString(i++, (result.hasProp("parent") && result.prop("parent").hasProp("parent_name") && result.prop("parent").prop("parent_name") != null ? result.prop("parent").prop("parent_name").stringValue() : null));
-//            companiesPreparedStatement.setBoolean(i++, (result.hasProp("bankrupt") && result.prop("bankrupt").hasProp("is_unreliable") && result.prop("bankrupt").prop("is_unreliable") != null ? result.prop("bankrupt").prop("is_unreliable").boolValue() : null));
-//            companiesPreparedStatement.setString(i++, (result.hasProp("bankrupt") && result.prop("bankrupt").hasProp("document_date") && result.prop("bankrupt").prop("document_date") != null ? result.prop("bankrupt").prop("document_date").stringValue() : null));
-//            companiesPreparedStatement.setString(i++, (result.hasProp("bankrupt") && result.prop("bankrupt").hasProp("document_number") && result.prop("bankrupt").prop("document_number") != null ? result.prop("bankrupt").prop("document_number").stringValue() : null));
-//            companiesPreparedStatement.setBoolean(i++, (result.hasProp("inactive") && result.prop("inactive").hasProp("is_unreliable") && result.prop("inactive").prop("is_unreliable") != null ? result.prop("inactive").prop("is_unreliable").boolValue() : null));
-//            companiesPreparedStatement.setString(i++, (result.hasProp("inactive") && result.prop("inactive").hasProp("document_date") && result.prop("inactive").prop("document_date") != null ? result.prop("inactive").prop("document_date").stringValue() : null));
-//            companiesPreparedStatement.setString(i++, (result.hasProp("inactive") && result.prop("inactive").hasProp("document_number") && result.prop("inactive").prop("document_number") != null ? result.prop("inactive").prop("document_number").stringValue() : null));
-//            companiesPreparedStatement.setBoolean(i++, (result.hasProp("wrong_address") && result.prop("wrong_address").hasProp("is_unreliable") && result.prop("wrong_address").prop("is_unreliable") != null ? result.prop("wrong_address").prop("is_unreliable").boolValue() : null));
-//            companiesPreparedStatement.setString(i++, (result.hasProp("wrong_address") && result.prop("wrong_address").hasProp("document_date") && result.prop("wrong_address").prop("document_date") != null ? result.prop("wrong_address").prop("document_date").stringValue() : null));
-//            companiesPreparedStatement.setString(i++, (result.hasProp("wrong_address") && result.prop("wrong_address").hasProp("document_number") && result.prop("wrong_address").prop("document_number") != null ? result.prop("wrong_address").prop("document_number").stringValue() : null));
-//            companiesPreparedStatement.setBoolean(i++, (result.hasProp("pseudo_company") && result.prop("pseudo_company").hasProp("is_unreliable") && result.prop("pseudo_company").prop("is_unreliable") != null ? result.prop("pseudo_company").prop("is_unreliable").boolValue() : null));
-//            companiesPreparedStatement.setString(i++, (result.hasProp("pseudo_company") && result.prop("pseudo_company").hasProp("document_date") && result.prop("pseudo_company").prop("document_date") != null ? result.prop("pseudo_company").prop("document_date").stringValue() : null));
-//            companiesPreparedStatement.setString(i++, (result.hasProp("pseudo_company") && result.prop("pseudo_company").hasProp("document_number") && result.prop("pseudo_company").prop("document_number") != null ? result.prop("pseudo_company").prop("document_number").stringValue() : null));
-//            companiesPreparedStatement.setBoolean(i++, (result.hasProp("invalid_registration") && result.prop("invalid_registration").hasProp("is_unreliable") && result.prop("invalid_registration").prop("is_unreliable") != null ? result.prop("invalid_registration").prop("is_unreliable").boolValue() : null));
-//            companiesPreparedStatement.setString(i++, (result.hasProp("invalid_registration") && result.prop("invalid_registration").hasProp("document_date") && result.prop("invalid_registration").prop("document_date") != null ? result.prop("invalid_registration").prop("document_date").stringValue() : null));
-//            companiesPreparedStatement.setString(i++, (result.hasProp("invalid_registration") && result.prop("invalid_registration").hasProp("document_number") && result.prop("invalid_registration").prop("document_number") != null ? result.prop("invalid_registration").prop("document_number").stringValue() : null));
-//            companiesPreparedStatement.setBoolean(i++, (result.hasProp("vat") && result.prop("vat").hasProp("is_vat_payer") && result.prop("vat").prop("is_vat_payer") != null ? result.prop("vat").prop("is_vat_payer").boolValue() : null));
-//            companiesPreparedStatement.setString(i++, (result.hasProp("vat") && result.prop("vat").hasProp("registration_date") && result.prop("vat").prop("registration_date") != null ? result.prop("vat").prop("registration_date").stringValue() : null));
-//            companiesPreparedStatement.setString(i++, (result.hasProp("vat") && result.prop("vat").hasProp("unregistration_date") && result.prop("vat").prop("unregistration_date") != null ? result.prop("vat").prop("unregistration_date").stringValue() : null));
-//            companiesPreparedStatement.setString(i++, (result.hasProp("vat") && result.prop("vat").hasProp("unregistration_reason") && result.prop("vat").prop("unregistration_reason") != null ? result.prop("vat").prop("unregistration_reason").stringValue() : null));
-//            companiesPreparedStatement.setBoolean(i++, (result.hasProp("gz_rnu") && result.prop("gz_rnu").hasProp("is_in_rnu") && result.prop("gz_rnu").prop("is_in_rnu") != null ? result.prop("gz_rnu").prop("is_in_rnu").boolValue() : null));
-//            companiesPreparedStatement.setString(i++, (result.hasProp("gz_rnu") && result.prop("gz_rnu").hasProp("count") && result.prop("gz_rnu").prop("count") != null ? result.prop("gz_rnu").prop("count").stringValue() : null));
-//            companiesPreparedStatement.setString(i++, (result.hasProp("gz_contract") && result.prop("gz_contract").hasProp("total_sum") && result.prop("gz_contract").prop("total_sum") != null ? result.prop("gz_contract").prop("total_sum").stringValue() : null));
-//            companiesPreparedStatement.setString(i++, (result.hasProp("gz_contract") && result.prop("gz_contract").hasProp("count") && result.prop("gz_contract").prop("count") != null ? result.prop("gz_contract").prop("count").stringValue() : null));
-//            companiesPreparedStatement.setBoolean(i++, (result.hasProp("elicense") && result.prop("elicense").hasProp("has_elicense") && result.prop("elicense").prop("has_elicense") != null ? result.prop("elicense").prop("has_elicense").boolValue() : null));
-//            companiesPreparedStatement.setString(i++, (result.hasProp("tax_debt") && result.prop("tax_debt").hasProp("total_arrear") && result.prop("tax_debt").prop("total_arrear") != null ? result.prop("tax_debt").prop("total_arrear").stringValue() : null));
-//            companiesPreparedStatement.setBoolean(i++, (result.hasProp("enforcement_debt") && result.prop("enforcement_debt").hasProp("has_debts") && result.prop("enforcement_debt").prop("has_debts") != null ? result.prop("enforcement_debt").prop("has_debts").boolValue() : null));
-//            companiesPreparedStatement.setString(i++, (result.hasProp("enforcement_debt") && result.prop("enforcement_debt").hasProp("total_sum") && result.prop("enforcement_debt").prop("total_sum") != null ? result.prop("enforcement_debt").prop("total_sum").stringValue() : null));
-//            companiesPreparedStatement.setString(i++, (result.hasProp("enforcement_debt") && result.prop("enforcement_debt").hasProp("count") && result.prop("enforcement_debt").prop("count") != null ? result.prop("enforcement_debt").prop("count").stringValue() : null));
-//            companiesPreparedStatement.setLong(i++, gzSupplierGeneratedId);
-//            companiesPreparedStatement.setLong(i++, headGeneratedId);
-//            companiesPreparedStatement.setLong(i++, taxGeneratedId);
-
-//            companiesPreparedStatement.executeUpdate();
-//        } catch (SQLException e) {
-//            e.printStackTrace();
-//        }
     }
 }

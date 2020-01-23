@@ -15,8 +15,24 @@
                 $scope.finalBands = {};
                 $scope.bands = [];
                 $scope.dictionary = {};
-                $scope.project = '';
-                $scope.years = [currentDate.getFullYear(), currentDate.getFullYear()-1, currentDate.getFullYear()-2, currentDate.getFullYear()-3, currentDate.getFullYear()-4];
+                $scope.project = {};
+
+                $scope.bandsForUDB = {"G900" : "1",
+                    "G1800" : "2",
+                    "U900" : "386",
+                    "U2100" : "201",
+                    "L800" : "325",
+                    "L1800" : "347",
+                    "L2100" : "201",
+                    "L2600" : "385",
+                    "G900+G1800" : "301",
+                    "G900+G2100" : "302",
+                    "G1800+U2100" : "301",
+                    "G900+G1800+U2100" : "304",
+                    "G1800+U2100-L800-L1800" : "346",
+                    "L800+L1800+L2100" : "365",
+                    "G900+G1800+U2100+L800" : "345"};
+                // $scope.years = [currentDate.getFullYear(), currentDate.getFullYear()-1, currentDate.getFullYear()-2, currentDate.getFullYear()-3, currentDate.getFullYear()-4];
 
                 $http.get('/api/leasingCatalogs?version=1').then(
                     function(result){
@@ -28,6 +44,7 @@
                             }
                         })
                         $scope.bands = $scope.dictionary.bands;
+                        $scope.years = $scope.dictionary.part;
                     },
                     function(error){
                         console.log(error);
@@ -45,34 +62,65 @@
                     value: '',
                     type: 'String'
                 });
+                camForm.variableManager.createVariable({
+                    name: 'regionCode',
+                    value: '',
+                    type: 'String'
+                });
             });
 
             camForm.on('submit', function (evt) {
                 // evt.submitPrevented = true;
                 camForm.variableManager.variableValue('bands', $scope.selectedBands);
                 camForm.variableManager.variableValue('regionName', $scope.regionName);
+                camForm.variableManager.variableValue('regionCode', $scope.regionCode);
                 camForm.variableManager.createVariable({
                     name: 'resolutions',
                     type: 'Json',
                     value: []
                 });
                 camForm.variableManager.createVariable({
+                    name: 'part',
+                    type: 'Json',
+                    value: $scope.part
+                });
+                camForm.variableManager.createVariable({
+                    name: 'plannedCabinetTypeIdForUDB',
+                    type: 'String',
+                    value: $scope.plannedCabinetType === 'Indoor' ? '182' : '24'
+                });
+                camForm.variableManager.createVariable({
+                    name: 'initiator',
+                    type: 'Json',
+                    value: $scope.initiator
+                });
+                camForm.variableManager.createVariable({
+                    name: 'siteType',
+                    type: 'Json',
+                    value: $scope.siteType
+                });
+                camForm.variableManager.createVariable({
                     name: 'planingInput',
                     type: 'String',
                     value: 'fromStart'
+                });
+                camForm.variableManager.createVariable({
+                    name: 'bandsIdForUDB',
+                    type: 'String',
+                    value: $scope.bandsIdForUDB
                 });
                 if($scope.project){
                     camForm.variableManager.createVariable({
                         name: 'project',
                         value: $scope.project,
-                        type: 'String'
+                        type: 'Json'
                     });
                 }
                 if($scope.reason){
                     camForm.variableManager.createVariable({
                         name: 'reason',
                         value: $scope.reason,
-                        type: 'String'
+                        type: 'Json'
                     });
                 }
             });
@@ -84,6 +132,13 @@
                         $scope.selectedBands.push(b)
                     }
                 })
+                $scope.selectedBandsString = ''
+                if ($scope.selectedBands.length > 0) {
+                    $scope.selectedBands.forEach((b, i) => {
+                        $scope.selectedBandsString = $scope.selectedBandsString + (i > 0 ? '+' : '') + b.title
+                    })
+                    $scope.bandsIdForUDB = $scope.bandsForUDB[$scope.selectedBandsString] ? $scope.bandsForUDB[$scope.selectedBandsString] : null
+                }
             }, true);
             $scope.preSubmit = function() {
                 var deferred = $q.defer();
@@ -146,28 +201,26 @@
                     return deferred.promise;
                 }
 
-
-
-
              }
 
             $scope.$watch('initiator', function (initiator) {
                 $scope.projectsByInitiator = {};
                 $scope.reasonsByProject = [];
                 $scope.projectsByInitiator = _.find($scope.dictionary.projects, function (p) {
-                    return p.initiator === initiator;
+                    return p.initiator === initiator.name;
                 })
             }, true);
 
             $scope.$watch('project', function (project) {
                 $scope.reasonsByProject = [];
                 $scope.reasonsByProject = _.filter($scope.dictionary.reasons, function (r) {
-                    if (_.find(r.project, function (p) {return p === project; }) ) { return true} else return false;
+                    if (_.find(r.project, function (p) {return p === project.name; }) ) { return true} else return false;
                 })
             }, true);
 
             $scope.$watch('ncpID', function (ncpID) {
                 if(ncpID && ncpID.length === 5){
+
                     var firstElement = ncpID.charAt(0);
                     var secondElement = ncpID.charAt(0);
                     if(firstElement === '0'){
@@ -196,6 +249,9 @@
                 $scope.regionName = _.find($scope.dictionary.regions, function (r) {
                     return r.id === region;
                 }).name;
+                $scope.regionCode = _.find($scope.dictionary.regions, function (r) {
+                    return r.id === region;
+                }).code;
             }
 
             $scope.types = function(rbsType){
@@ -219,11 +275,10 @@
             <label class="col-sm-4 control-label">Type:</label>
             <div class="col-sm-4">
                 <select class="form-control" id="siteType" name="siteType"
-                        cam-variable-name="siteType" cam-variable-type="String"
                         ng-model="siteType"
                         required>
                     <option value="" disabled selected hidden>Select Site type</option>
-                    <option ng-repeat="type in dictionary.siteType">{{type}}</option>
+                    <option ng-repeat="type in dictionary.siteType" ng-value="type">{{type.name}}</option>
                 </select>
                 <label class="error" ng-show="kcell_form.siteType.$error.required && ( kcell_form.siteType.$touched || view.submitted)">Required field</label>
             </div>
@@ -261,11 +316,10 @@
             <label class="col-sm-4 control-label">Initiator:</label>
             <div class="col-sm-4">
                 <select class="form-control" id="initiator" name="initiator"
-                        cam-variable-name="initiator" cam-variable-type="String"
                         ng-model="initiator"
                         required>
                     <option value="" disabled selected hidden>Select Initiator</option>
-                    <option ng-repeat="i in dictionary.initiators">{{i}}</option>
+                    <option ng-repeat="i in dictionary.initiators" ng-value="i">{{i.name}}</option>
                 </select>
                 <label class="error" ng-show="kcell_form.initiator.$error.required && ( kcell_form.initiator.$touched || view.submitted)">Required field</label>
             </div>
@@ -278,7 +332,7 @@
                         ng-disabled="!projectsByInitiator"
                         ng-model="project"
                         ng-required="projectsByInitiator">
-                    <option ng-repeat="pr in projectsByInitiator.project">{{pr}}</option>
+                    <option ng-repeat="pr in projectsByInitiator.project" ng-value="pr">{{pr.name}}</option>
                 </select>
                 <label class="error" ng-show="kcell_form.project.$error.required && ( kcell_form.project.$touched || view.submitted)">Required field</label>
             </div>
@@ -292,7 +346,7 @@
                         ng-required="reasonsByProject && reasonsByProject.length !== 0"
                         ng-model="reason"
                         required>
-                    <option ng-repeat="r in reasonsByProject">{{r.reason}}</option>
+                    <option ng-repeat="r in reasonsByProject" ng-value="r">{{r.reason}}</option>
                 </select>
                 <label class="error" ng-show="kcell_form.reason.$error.required && ( kcell_form.reason.$touched || view.submitted)">Required field</label>
             </div>
@@ -302,11 +356,10 @@
             <label class="col-sm-4 control-label">Part:</label>
             <div class="col-sm-4">
                 <select class="form-control" id="part" name="part"
-                        cam-variable-name="part" cam-variable-type="String"
                         ng-model="part"
                         required>
                     <option value="" disabled selected hidden></option>
-                    <option ng-repeat="y in years">{{y}}</option>
+                    <option ng-repeat="y in years" ng-value="y">{{y.name}}</option>
                 </select>
                 <label class="error" ng-show="kcell_form.part.$error.required && ( kcell_form.part.$touched || view.submitted)">Required field</label>
             </div>
@@ -323,8 +376,8 @@
             <label class="col-sm-4 control-label">Planned cabinet type:</label>
             <div class="col-sm-4">
                 <select class="form-control" id="plannedCabinetType" name="plannedCabinetType"
-                        ng-model="plannedCabinetType"
                         cam-variable-name="plannedCabinetType" cam-variable-type="String"
+                        ng-model="plannedCabinetType"
                         required>
                     <option value="" disabled selected hidden>Select Cabinet type</option>
                     <option value="Indoor">Indoor</option>
