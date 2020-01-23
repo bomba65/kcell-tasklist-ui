@@ -53,6 +53,7 @@ public class InvoiceContractorPermListener implements ExecutionListener {
                     authorization.setResourceId(delegateExecution.getProcessInstanceId());
                     authorization.addPermission(Permissions.READ);
                     authorization.setGroupId(kcellGroup.getId());
+                    authorizationService.saveAuthorization(authorization);
                 }
             } else {
                 log.warning("No contractor group found for user: " + starter + " in invoice process id " + delegateExecution.getProcessInstanceId());

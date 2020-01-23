@@ -668,6 +668,8 @@ define(['./module','camundaSDK', 'lodash', 'big-js'], function(module, CamSDK, _
 	                queryParams.variables.push({"name": "siteRegion", "operator": "eq", "value": 'west'});
 	            }
             }
+            queryParams.variables.push({"name": "contractor", "operator": "eq", "value": 'lse'});
+
 	        $scope.piIndex = undefined;
 			$http({
 				method: 'POST',

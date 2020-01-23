@@ -238,10 +238,6 @@
                                     }
                                 }
                             }
-                            $scope.conts.push({
-                                "id": 5,
-                                "name": "Kcell_region"
-                            });
                         },
                         function(error){
                             console.log(error.data);
@@ -1041,9 +1037,19 @@
             };
 
             $scope.filterByContractor = function(element) {
-                if(!$scope.mainContract) return false;
-                if($scope.mainContract === 'Roll-out') return element.id > 1000 ? true : false;
-                if($scope.mainContract === 'Revision') return element.id < 1000 ? true : false;
+                if(!$scope.mainContract || !$scope.custom.contractor) return false;
+                if($scope.contractorShortName[$scope.custom.contractor] === 'Kcell_region'){
+                    if($scope.mainContract === 'Roll-out') return element.id > 1000;
+                    if($scope.mainContract === 'Revision') return (element.id < 1000 || element.id > 2000);
+                } else {
+                    if($scope.mainContract === 'Roll-out'){
+                        console.log(element.id);
+                        console.log(element.id > 1000 && element.id < 2000);
+
+                        return (element.id > 1000 && element.id < 2000);
+                    }
+                    if($scope.mainContract === 'Revision') return element.id < 1000;
+                }
             };
 
             $scope.filterByStatus = function(element) {
@@ -1123,6 +1129,9 @@
             <div ng-if="conts.length == 0 || conts == undefined">Please select Contract</div>
             <label class="radio-inline" ng-repeat="c in conts">
                 <input type="radio" name="contractor" ng-model="custom.contractor" id="contractor{{$index}}" value="{{c.id}}" required> {{c.name}}
+            </label>
+            <label class="radio-inline">
+                <input type="radio" name="contractor" ng-model="custom.contractor" id="contractor{{conts.length}}" value="5" required> Kcell_region
             </label>
             <label class="error" ng-if="kcell_form.contractor.$error.required && ( kcell_form.contractor.$touched || view.submitted)">Required field</label>
         </div>
@@ -1756,7 +1765,7 @@
                 <tbody ng-repeat="jobWork in jobWorks">
                     <tr>
                         <td>
-                            <select ng-model="jobWork.sapServiceNumber" name="sapServiceNumber{{$index}}" required class="form-control selectpicker" select-picker select-model="works" title="" ng-change="getUnits($index)" ng-disabled="!mainContract || !siteName">
+                            <select ng-model="jobWork.sapServiceNumber" name="sapServiceNumber{{$index}}" required class="form-control selectpicker" select-picker select-model="works" title="" ng-change="getUnits($index)" ng-disabled="!mainContract || !siteName || !custom.contractor">
                                 <option value="">Select work</option>
                                 <option ng-repeat="work in works | filter: filterByContractor | filter: filterByStatus" ng-selected="{{work.sapServiceNumber == jobWork.sapServiceNumber}}" value="{{work.sapServiceNumber}}">{{work.displayServiceName}}</option>
                             </select>
