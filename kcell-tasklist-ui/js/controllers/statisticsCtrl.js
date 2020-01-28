@@ -842,7 +842,7 @@ define(['./module','jquery'], function(app,$){
         }
 
         $scope.downloadTechnicalReport = function(){
-            if(['demo','Yernaz.Kalingarayev@kcell.kz','Evgeniy.Semenov@kcell.kz','Stanislav.Li@kcell.kz'].indexOf($rootScope.authentication.name) !== -1){
+            if(['demo','Yernaz.Kalingarayev@kcell.kz','Evgeniy.Semenov@kcell.kz','Stanislav.Li@kcell.kz','Begaly.Kokin@kcell.kz'].indexOf($rootScope.authentication.name) !== -1){
                 $http.get('/camunda/reports/report').then(function(response) {
                     var data = response.data;
 
@@ -871,7 +871,7 @@ define(['./module','jquery'], function(app,$){
         }
 
         $scope.downloadTechnicalByJobsReport = function(){
-            if(['demo','Yernaz.Kalingarayev@kcell.kz','Evgeniy.Semenov@kcell.kz','Stanislav.Li@kcell.kz'].indexOf($rootScope.authentication.name) !== -1){
+            if(['demo','Yernaz.Kalingarayev@kcell.kz','Evgeniy.Semenov@kcell.kz','Stanislav.Li@kcell.kz','Begaly.Kokin@kcell.kz'].indexOf($rootScope.authentication.name) !== -1){
                 $http.get('/camunda/reports/technical-report-by-jobs').then(function(response) {
                     var data = response.data;
 
@@ -900,7 +900,7 @@ define(['./module','jquery'], function(app,$){
         }
 
         $scope.downloadFinancialReport = function(){
-            if(['demo','Yernaz.Kalingarayev@kcell.kz','Evgeniy.Semenov@kcell.kz','Stanislav.Li@kcell.kz'].indexOf($rootScope.authentication.name) !== -1){
+            if(['demo','Yernaz.Kalingarayev@kcell.kz','Evgeniy.Semenov@kcell.kz','Stanislav.Li@kcell.kz','Begaly.Kokin@kcell.kz'].indexOf($rootScope.authentication.name) !== -1){
                 $http.get('/camunda/reports/financialreport').then(function(response) {
                     var data = response.data;
 
@@ -922,7 +922,6 @@ define(['./module','jquery'], function(app,$){
                         , "Price (with transportation)", "Monthly act #", "JO#", "PR#", "PR Total Value", "PR Status", "PR Approval date", "PO#", "Invoice No", "Invoice date"
                         ]);
 
-
                     var ws = XLSX.utils.json_to_sheet(response.data, {skipHeader:true});
 
                     var wb = XLSX.utils.book_new();
@@ -933,7 +932,7 @@ define(['./module','jquery'], function(app,$){
             }
         }
         $scope.downloadExtendedByJobsReport = function(){
-            if(['demo','Yernaz.Kalingarayev@kcell.kz','Evgeniy.Semenov@kcell.kz','Stanislav.Li@kcell.kz'].indexOf($rootScope.authentication.name) !== -1){
+            if(['demo','Yernaz.Kalingarayev@kcell.kz','Evgeniy.Semenov@kcell.kz','Stanislav.Li@kcell.kz','Begaly.Kokin@kcell.kz'].indexOf($rootScope.authentication.name) !== -1){
                 $http.get('/camunda/reports/extended-report-by-jobs').then(function(response) {
                     var data = response.data;
 
