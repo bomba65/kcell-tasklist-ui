@@ -74,7 +74,7 @@ public class CorrectJrBlankController {
             map.put("2", "ТОО AICOM");
             map.put("3", "ТОО Spectr energy group");
             map.put("4", "TOO Line System Engineering");
-            map.put("5", "JSC Kcell");
+            map.put("5", "Kcell_region");
             return Collections.unmodifiableMap(map);
         })).get();
 
