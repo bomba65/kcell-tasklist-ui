@@ -10,6 +10,7 @@ import org.springframework.stereotype.Service;
 import javax.sql.DataSource;
 import java.sql.*;
 import java.util.Date;
+import java.util.TimeZone;
 
 import static org.camunda.spin.Spin.JSON;
 
@@ -22,6 +23,8 @@ public class CreateNCP implements JavaDelegate {
     @Override
     public void execute(DelegateExecution delegateExecution) throws Exception {
         try {
+            TimeZone timeZone = TimeZone.getTimeZone("Asia/Almaty");
+            TimeZone.setDefault(timeZone);
             Class.forName ("oracle.jdbc.OracleDriver");
             Connection udbConnect = DriverManager.getConnection(
                 "jdbc:oracle:thin:@//sc2-appcl010406:1521/apexudb", "app_apexudb_camunda", "p28zt#7C");
@@ -230,6 +233,18 @@ public class CreateNCP implements JavaDelegate {
                     newArtefactCurrentStatePreparedStatement.executeUpdate();
                     System.out.println("successfull insert to database!");
 
+                    //insert new installation
+
+                    String insertNewInstallation = "insert into INSTALLATION_CURRENT_STATE(ARTEFACTID) values (?)";
+                    PreparedStatement NewInstallationPreparedStatement = udbConnect.prepareStatement(insertNewInstallation);
+
+                    i = 1;
+                    System.out.println("NewInstallationPreparedStatement.setString");
+                    NewInstallationPreparedStatement.setLong(i++, createdArtefactId);
+                    System.out.println("NewInstallationPreparedStatement.executeUpdate()");
+                    NewInstallationPreparedStatement.executeUpdate();
+                    System.out.println("successfull insert to database!");
+
                     udbConnect.commit();
                     delegateExecution.setVariable("ncpCreatedId", ncpCreatedId);
                     delegateExecution.setVariable("createdNcpStatusId", createdNcpStatusId);
@@ -247,101 +262,7 @@ public class CreateNCP implements JavaDelegate {
                 System.out.println(e);
                 throw e;
             }
-            // version 1
-//            Class.forName ("oracle.jdbc.OracleDriver");
-//            Connection udbConnect = DriverManager.getConnection(
-//                "jdbc:oracle:thin:@//sc2-appcl010406:1521/apexudb", "app_apexudb_camunda", "p28zt#7C");
-//            if (udbConnect != null) {
-//                udbConnect.setAutoCommit(false);
-//
-//                // proc vars
-//                String ncpId = delegateExecution.getVariable("ncpId").toString();
-//                String region = delegateExecution.getVariable("region").toString(); // not number
-//                String longitude = delegateExecution.getVariable("longitude").toString();
-//                String latitude = delegateExecution.getVariable("latitude").toString();
-//                String reason = delegateExecution.getVariable("reason").toString(); // it's string value, not dictionaries id
-//                String starter = delegateExecution.getVariable("starter").toString();
-//                String initiator = delegateExecution.getVariable("initiator").toString();
-//
-//
-//                System.out.println("companiesPreparedStatement");
-////                PreparedStatement preparedStatement = udbConnect.prepareStatement(companiesInsert, Statement.RETURN_GENERATED_KEYS);
-////                PreparedStatement preparedStatement = udbConnect.prepareStatement(companiesInsert, generatedColumns);
-//
-//                //insert NCP
-//                Long ncpCreatedId = null;
-//                String returnCols[] = { "ARTEFACTID" };
-//                String insertNCP = "INSERT INTO APP_APEXUDB_CAMUNDA.NCP_CREATION ( ARTEFACTID, NCPID, REGION, LONGITUDE, LATITUDE, REASON, PROJECT, CREATOR, DATEOFINSERT, COMMENTS, CABINETID, TARGET_COVERAGE, TYPE, GEN_STATUS, NCP_STATUS, NCP_STATUS_DATE, BAND, INITIATOR, PART) VALUES ( NCP_CREATION_SEQ.nextval, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, 7, 1, ?, ?, ?, ?)";
-//                PreparedStatement preparedStatement = udbConnect.prepareStatement(insertNCP, returnCols);
-//
-//                int i = 1;
-//                System.out.println("companiesPreparedStatement.setString");
-//                // set values to insert
-//                preparedStatement.setString(i++, ncpId); // NCPID
-//                preparedStatement.setInt(i++, 1); // REGION
-//                preparedStatement.setString(i++, longitude); // LONGITUDE ex. E 76,890775
-//                preparedStatement.setString(i++, latitude); // LATITUDE
-//                preparedStatement.setInt(i++, 150); // REASON
-//                preparedStatement.setInt(i++, 343); // PROJECT
-//                preparedStatement.setString(i++, initiator); // CREATOR 'SERGEI.ZAITSEV'
-//                preparedStatement.setDate(i++, java.sql.Date.valueOf(java.time.LocalDate.now())); // DATEOFINSERT
-//                preparedStatement.setString(i++, "TEST TEST TEST TEST"); // COMMENTS
-//                preparedStatement.setInt(i++, 25); // CABINETID
-//                preparedStatement.setString(i++, "г.Алматы, альтернатива (ул. Тажибаева 184 (угол ул. Березовского)) для демонтируемого сайта 01830XTAZHIPIPE по адресу: ул. Тажибаева 155a, pipe.  M"); // TARGET_COVERAGE
-//                preparedStatement.setInt(i++, 6); // TYPE ncp_type (Подставлять ID согласно справочнику Site Type) ex: 6
-//                preparedStatement.setDate(i++, java.sql.Date.valueOf(java.time.LocalDate.now())); // NCP_STATUS_DATE
-//                preparedStatement.setString(i++, "1"); // BAND ex:'1'   ncp_band	(Подставлять ID согласно справочнику Bands)
-//                preparedStatement.setString(i++, starter); // INITIATOR (Подставлять ID согласно справочнику Part)
-//                preparedStatement.setInt(i++, 61); // PART
-//
-//                System.out.println("companiesPreparedStatement.executeUpdate()");
-//                int status = preparedStatement.executeUpdate();
-//                System.out.println("insert status:");
-//                System.out.println(status); //1
-//                System.out.println("successfull insert to database!");
-//
-//                ResultSet headGeneratedIdResultSet = preparedStatement.getGeneratedKeys();
-//                headGeneratedIdResultSet.next();
-//                ncpCreatedId = headGeneratedIdResultSet.getLong(1);
-//                System.out.println("artefactGeneratedId:");
-//                System.out.println(ncpCreatedId);
-//
-//
-//                //insert new status
-//                Long createdNcpStatusId = null;
-//                String returnStatus[] = { "STATUS_ACTION_ID" };
-//                String insertNewStatus = "insert into NCP_CREATION_STATUS_ACTION values ( NCP_CREATION_STATUS_ACTIO_SEQ.nextval, ?, 2, 'demo', TO_DATE('2013-08-09 09:25:55', 'YYYY-MM-DD HH24:MI:SS'), null)";
-//                preparedStatement = udbConnect.prepareStatement(insertNewStatus, returnStatus);
-//
-//                i = 1;
-//                System.out.println("companiesPreparedStatement.setString");
-//                preparedStatement.setString(i, ncpCreatedId.toString());
-//                System.out.println("companiesPreparedStatement.executeUpdate()");
-//                status = preparedStatement.executeUpdate();
-//                System.out.println("insert status:");
-//                System.out.println(status); //1
-//                System.out.println("successfull insert to database!");
-//
-//                ResultSet statusGeneratedIdResultSet = preparedStatement.getGeneratedKeys();
-//                statusGeneratedIdResultSet.next();
-//                createdNcpStatusId = statusGeneratedIdResultSet.getLong(1);
-//                System.out.println("createdNcpStatusId:");
-//                System.out.println(createdNcpStatusId);
-//
-//                udbConnect.commit();
-//
-//                ResultSet rs = preparedStatement.getGeneratedKeys();
-//
-//                if (rs.next()) {
-//                    System.out.println("rs.next()");
-//                    long id = rs.getLong(1);
-//                    System.out.println("Inserted ID -" + id); // display inserted record
-//                }
-//                udbConnect.close();
-//                System.out.println("udbConnection closed!");
-//            } else {
-//                System.out.println("Failed to make connection!");
-//            }
+
         } catch (SQLException e) {
             System.out.println("testConnect SQLException!");
             System.out.println(e.toString());
@@ -350,23 +271,6 @@ public class CreateNCP implements JavaDelegate {
             System.out.println("testConnect Exception!");
             e.printStackTrace();
         }
-
-
-            // ================= OLD ===============
-//            Class.forName ("oracle.jdbc.OracleDriver");
-//            Connection c = DriverManager.getConnection(
-//                "jdbc:oracle:thin:@//sc2-appcl010406:1521/apexudb", "app_apexudb_camunda", "p28zt#7C");
-//                //dataSource.getConnection();
-//            Statement s = c.createStatement();
-
-            // SpinJsonNode responseJson = JSON(delegateExecution.getVariable("response"));
-
-            // String responseString = responseJson.toString();
-            // responseString = "'" + responseString + "'";
-
-            // SpinJsonNode bin = responseJson.prop("result").prop("bin");
-            // String binString = bin.toString();
-            // binString = binString.substring(1, binString.length() - 1);
 
     }
 }
