@@ -84,7 +84,7 @@ from act_hi_procinst pi
   left join act_hi_varinst typeOfExpenses
     on pi.id_ = typeOfExpenses.proc_inst_id_ and typeOfExpenses.name_ = 'typeOfExpenses'
   left join act_hi_varinst monthlyAct
-    on pi.id_ = monthlyAct.proc_inst_id_ and monthlyAct.name_ = 'monthlyAct'
+    on pi.id_ = monthlyAct.proc_inst_id_ and monthlyAct.name_ = 'monthActNumber'
   left join act_hi_varinst jrNumber
     on pi.id_ = jrNumber.proc_inst_id_ and jrNumber.name_ = 'jrNumber'
   left join act_hi_varinst sapPRNo
