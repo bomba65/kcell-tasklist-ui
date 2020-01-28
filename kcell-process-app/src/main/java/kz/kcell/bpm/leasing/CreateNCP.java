@@ -11,6 +11,7 @@ import javax.sql.DataSource;
 import java.sql.*;
 import java.util.Date;
 import java.util.TimeZone;
+import java.text.SimpleDateFormat;
 
 import static org.camunda.spin.Spin.JSON;
 
@@ -88,6 +89,10 @@ public class CreateNCP implements JavaDelegate {
                     String cn_siteName = candidate.prop("siteName").stringValue();
                     String cn_comments = candidate.hasProp("comments")?candidate.prop("comments").stringValue():null;
                     String cn_constructionType = candidate.prop("constructionType").prop("id").stringValue();
+
+                    SimpleDateFormat formatter = new SimpleDateFormat("yyyy-dd-MM"); //2020-01-02T18:00:00.000Z
+                    String cn_date_of_visit = candidate.prop("dateOfVisit").stringValue().substring(0,9);
+                    Date date_of_visit = formatter.parse(cn_date_of_visit);
 
                     SpinJsonNode renterCompany = JSON(delegateExecution.getVariable("renterCompany"));
                     String contact_person = "" + (!renterCompany.prop("contactName").equals(null) ? renterCompany.prop("contactName").stringValue() : "") +
@@ -245,10 +250,41 @@ public class CreateNCP implements JavaDelegate {
                     NewInstallationPreparedStatement.executeUpdate();
                     System.out.println("successfull insert to database!");
 
+                    //insert new Candidate (in ARTEFACT_RSD table)
+                    Long createdArtefactRSDId = null;
+                    String rsdReturnStatus[] = { "RSDID" };
+                    String insertNewArtefactRSD = "INSERT INTO APP_APEXUDB_CAMUNDA.ARTEFACT_RSD (RSDID, ARTEFACTID, BSCID, CNSTRTYPEID, HEIGHT, DATEOFINSERT, DATEOFVISIT, CONTACTPERSON, COMMENTS, STATE, RBSID, SITE_TYPE) VALUES ( ARTEFACT_RSD_SEQ.nextval, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)";
+                    PreparedStatement newArtefactRSDPreparedStatement = udbConnect.prepareStatement(insertNewArtefactRSD, rsdReturnStatus);
+
+                    i = 1;
+                    System.out.println("newArtefactRSDPreparedStatement.setString");
+                    newArtefactRSDPreparedStatement.setLong(i++, createdArtefactId); //ARTEFACTID
+                    newArtefactRSDPreparedStatement.setLong(i++, cn_bscInt); //BSCID
+                    newArtefactRSDPreparedStatement.setLong(i++, Integer.parseInt(cn_constructionType)); //CNSTRTYPEID
+                    newArtefactRSDPreparedStatement.setLong(i++, 3); // CONSTRUCTION_HEIGHT (cn_height_constr) еще не реализовано в данной версии
+                    newArtefactRSDPreparedStatement.setDate(i++, new java.sql.Date(new Date().getTime())); // INSERT_DATE
+                    newArtefactRSDPreparedStatement.setDate(i++, new java.sql.Date(date_of_visit.getTime())); // DATE OF VISIT (cn_date_visit)
+                    newArtefactRSDPreparedStatement.setString(i++, contact_person); //CONTACTPERSON
+                    newArtefactRSDPreparedStatement.setString(i++, cn_comments); //COMMENTS
+                    newArtefactRSDPreparedStatement.setLong(i++, 2); //STATE
+                    newArtefactRSDPreparedStatement.setLong(i++, Integer.parseInt(rbsType)); //RBSID
+                    newArtefactRSDPreparedStatement.setLong(i++, siteTypeInt); //SITE_TYPE
+                    System.out.println("newArtefactRSDPreparedStatement.executeUpdate()");
+                    newArtefactRSDPreparedStatement.executeUpdate();
+                    System.out.println("successfull insert to database!");
+
+                    ResultSet artefactRSDGeneratedIdResultSet = newArtefactRSDPreparedStatement.getGeneratedKeys();
+                    artefactRSDGeneratedIdResultSet.next();
+                    createdArtefactRSDId = artefactRSDGeneratedIdResultSet.getLong(1);
+                    System.out.println("createdArtefactRSDId:");
+                    System.out.println(createdArtefactRSDId);
+
+
                     udbConnect.commit();
                     delegateExecution.setVariable("ncpCreatedId", ncpCreatedId);
                     delegateExecution.setVariable("createdNcpStatusId", createdNcpStatusId);
                     delegateExecution.setVariable("createdArtefactId", createdArtefactId);
+                    delegateExecution.setVariable("createdArtefactRSDId", createdArtefactRSDId);
                     udbConnect.close();
                     System.out.println("udbConnection closed!");
                 } else {
@@ -262,7 +298,6 @@ public class CreateNCP implements JavaDelegate {
                 System.out.println(e);
                 throw e;
             }
-
         } catch (SQLException e) {
             System.out.println("testConnect SQLException!");
             System.out.println(e.toString());
