@@ -842,7 +842,7 @@ define(['./module','jquery'], function(app,$){
         }
 
         $scope.downloadTechnicalReport = function(){
-            if(['demo','Yernaz.Kalingarayev@kcell.kz','Evgeniy.Semenov@kcell.kz','Stanislav.Li@kcell.kz','Begaly.Kokin@kcell.kz'].indexOf($rootScope.authentication.name) !== -1){
+            if($rootScope.hasGroup('revision_reports')){
                 $http.get('/camunda/reports/report').then(function(response) {
                     var data = response.data;
 
@@ -871,7 +871,7 @@ define(['./module','jquery'], function(app,$){
         }
 
         $scope.downloadTechnicalByJobsReport = function(){
-            if(['demo','Yernaz.Kalingarayev@kcell.kz','Evgeniy.Semenov@kcell.kz','Stanislav.Li@kcell.kz','Begaly.Kokin@kcell.kz'].indexOf($rootScope.authentication.name) !== -1){
+            if($rootScope.hasGroup('revision_reports')){
                 $http.get('/camunda/reports/technical-report-by-jobs').then(function(response) {
                     var data = response.data;
 
@@ -900,7 +900,7 @@ define(['./module','jquery'], function(app,$){
         }
 
         $scope.downloadFinancialReport = function(){
-            if(['demo','Yernaz.Kalingarayev@kcell.kz','Evgeniy.Semenov@kcell.kz','Stanislav.Li@kcell.kz','Begaly.Kokin@kcell.kz'].indexOf($rootScope.authentication.name) !== -1){
+            if($rootScope.hasGroup('revision_reports')){
                 $http.get('/camunda/reports/financialreport').then(function(response) {
                     var data = response.data;
 
@@ -932,7 +932,7 @@ define(['./module','jquery'], function(app,$){
             }
         }
         $scope.downloadExtendedByJobsReport = function(){
-            if(['demo','Yernaz.Kalingarayev@kcell.kz','Evgeniy.Semenov@kcell.kz','Stanislav.Li@kcell.kz','Begaly.Kokin@kcell.kz'].indexOf($rootScope.authentication.name) !== -1){
+            if($rootScope.hasGroup('revision_reports')){
                 $http.get('/camunda/reports/extended-report-by-jobs').then(function(response) {
                     var data = response.data;
 

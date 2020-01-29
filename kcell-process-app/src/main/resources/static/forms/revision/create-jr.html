@@ -429,10 +429,12 @@
                 '9': 'alm'
             };
             $scope.contractorShortName = {
-                '4': 'LSE'
+                '4': 'LSE',
+                '5': 'Kcell_region'
             };
             $scope.contractorShortNameLC = {
-                '4': 'lse'
+                '4': 'lse',
+                '5': 'Kcell_region'
             };
             $scope.reasonShortName = {
                 '1': 'P&O',
@@ -741,9 +743,16 @@
             }
 
             $scope.filterByContractor = function(element) {
-                if(!$scope.mainContract) return false;
-                if($scope.mainContract === 'Roll-out') return element.id > 1000 ? true : false;
-                if($scope.mainContract === 'Revision') return element.id < 1000 ? true : false;
+                if(!$scope.mainContract || !$scope.custom.contractor) return false;
+                if($scope.mainContract === 'Roll-out'){
+                    return (element.id > 1000 && element.id < 2000);
+                } else if($scope.mainContract === 'Revision'){
+                    if($scope.contractorShortName[$scope.custom.contractor] === 'Kcell_region'){
+                        return (element.id < 1000 || element.id > 2000);
+                    } else {
+                        return element.id < 1000;
+                    }
+                }
             };
 
             $scope.filterByStatus = function(element) {
@@ -786,6 +795,12 @@
         <label class="col-sm-4 control-label">Contract</label>
         <div class="col-sm-3">
             <div class="form-control disabled">{{mainContract}}</div>
+        </div>
+    </div>
+    <div class="form-group">
+        <label class="col-sm-4 control-label">Job to:</label>
+        <div class="col-sm-3">
+            <div class="form-control disabled">{{contractorsTitle[contractor]}}</div>
         </div>
     </div>
     <div class="form-group">
@@ -850,12 +865,6 @@
         </div>
     </div>
     <div class="form-group">
-        <label class="col-sm-4 control-label">Contractor:</label>
-        <div class="col-sm-3">
-            <div class="form-control disabled">{{contractorsTitle[contractor]}}</div>
-        </div>
-    </div>
-    <div class="form-group">
         <label class="col-sm-4 control-label">Type of project:</label>
         <div class="col-sm-3">
             <select ng-model="project" name="project" class="form-control" ng-required="modifyJrResult == 'modified'">
@@ -883,6 +892,11 @@
                 <option ng-if="reason === '1'" value="CEM">CEM</option>
                 <option ng-if="reason === '1'" value="MIMO 4x4">MIMO 4x4</option>
                 <option ng-if="reason === '1'" value="ZTE SWAP">ZTE SWAP</option>
+                <option ng-if="reason === '1'" value="CA_LTE1800">CA_LTE1800</option>
+                <option ng-if="reason === '1'" value="3CCA_LTE2100">3CCA_LTE2100</option>
+                <option ng-if="reason === '1'" value="MIMO 4x4">MIMO 4x4</option>
+                <option ng-if="reason === '1'" value="CEM">CEM</option>
+                <option ng-if="reason === '1'" value="SES">SES</option>
             </select>
             <label class="error" ng-if="kcell_form.project.$error.required && ( kcell_form.project.$touched || view.submitted)">Required field</label>
         </div>
