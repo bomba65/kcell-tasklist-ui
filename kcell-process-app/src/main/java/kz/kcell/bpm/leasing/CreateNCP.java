@@ -43,8 +43,8 @@ public class CreateNCP implements JavaDelegate {
                     int i = 1;
                     System.out.println("preparedStatement.setValues");
 
-//                    String ncpId = "99962";
                     // proc vars
+                    int cn_rbs_location = 2;
                     String ncpId = delegateExecution.getVariable("ncpID").toString();
 //                    String region = delegateExecution.getVariable("region").toString(); // not number
                     String longitude = delegateExecution.getVariable("longitude").toString();
@@ -88,6 +88,7 @@ public class CreateNCP implements JavaDelegate {
                     String cn_latitude = candidate.prop("latitude").stringValue();
                     String cn_siteName = candidate.prop("siteName").stringValue();
                     String cn_comments = candidate.hasProp("comments")?candidate.prop("comments").stringValue():null;
+                    Number cn_square = candidate.prop("square").numberValue();
                     String cn_constructionType = candidate.prop("constructionType").prop("id").stringValue();
 
                     SimpleDateFormat formatter = new SimpleDateFormat("yyyy-dd-MM"); //2020-01-02T18:00:00.000Z
@@ -223,7 +224,7 @@ public class CreateNCP implements JavaDelegate {
                     newArtefactCurrentStatePreparedStatement.setLong(i++, Integer.parseInt(rbsType)); // RBS_TYPE (cn_rbs_type)
                     newArtefactCurrentStatePreparedStatement.setLong(i++, cn_bscInt); // BSC (cn_bsc)
                     newArtefactCurrentStatePreparedStatement.setLong(i++, Integer.parseInt(bandsIdForUDB)); // BAND (cn_band)
-                    newArtefactCurrentStatePreparedStatement.setLong(i++, 2); // RBS_LOCATION (cn_rbs_location)
+                    newArtefactCurrentStatePreparedStatement.setLong(i++, cn_rbs_location); // RBS_LOCATION (cn_rbs_location) //
                     newArtefactCurrentStatePreparedStatement.setLong(i++, 689); // ALTITUDE (cn_altitude) еще не реализовано в данной версии
                     newArtefactCurrentStatePreparedStatement.setLong(i++, 3); // CONSTRUCTION_HEIGHT (cn_height_constr) еще не реализовано в данной версии
                     newArtefactCurrentStatePreparedStatement.setLong(i++, Integer.parseInt(cn_constructionType)); // CONSTRUCTION_TYPE (cn_construction_type) еще не реализовано в данной версии
@@ -279,12 +280,108 @@ public class CreateNCP implements JavaDelegate {
                     System.out.println("createdArtefactRSDId:");
                     System.out.println(createdArtefactRSDId);
 
+                    //insert new Candidate (in ARTEFACT_RR table)
+                    Long createdArtefactRRId = null;
+                    String rrReturnStatus[] = { "RR_ID" };
+                    String insertNewArtefactRR = "INSERT INTO APP_APEXUDB_CAMUNDA.ARTEFACT_RR (RR_ID, ARTEFACTID, DATEOFVISIT, ADDRESS, LATITUDE, LONGITUDE, CONSTR_TYPE, SQUARE, RBS_TYPE, BAND, RBS_LOCATION, COMMENTS, DATEOFCREATION, CREATOR) VALUES (ARTEFACT_RR_SEQ.nextval, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)";
+                    PreparedStatement newArtefactRRPreparedStatement = udbConnect.prepareStatement(insertNewArtefactRR, rrReturnStatus);
+
+                    i = 1;
+                    System.out.println("newArtefactRRPreparedStatement.setString");
+                    newArtefactRRPreparedStatement.setLong(i++, Integer.parseInt(rbsType)); //ARTEFACTID
+                    newArtefactRRPreparedStatement.setDate(i++, new java.sql.Date(date_of_visit.getTime())); // DATEOFVISIT
+                    newArtefactRRPreparedStatement.setString(i++, cn_address); //ADDRESS
+                    newArtefactRRPreparedStatement.setString(i++, latitude); //LATITUDE
+                    newArtefactRRPreparedStatement.setString(i++, longitude); //LONGITUDE
+                    newArtefactRRPreparedStatement.setLong(i++, Integer.parseInt(cn_constructionType)); //CONSTR_TYPE
+                    newArtefactRRPreparedStatement.setLong(i++, cn_square.longValue()); //SQUARE
+                    newArtefactRRPreparedStatement.setLong(i++, Integer.parseInt(rbsType)); //RBS_TYPE
+                    newArtefactRRPreparedStatement.setString(i++, bandsIdForUDB); //BAND
+                    newArtefactRRPreparedStatement.setLong(i++, cn_rbs_location); //RBS_LOCATION
+                    newArtefactRRPreparedStatement.setString(i++, cn_comments); //COMMENTS
+                    newArtefactRRPreparedStatement.setDate(i++, new java.sql.Date(new Date().getTime())); // DATEOFCREATION
+                    newArtefactRRPreparedStatement.setString(i++, cn_comments); //CREATOR
+                    System.out.println("newArtefactRRPreparedStatement.executeUpdate()");
+                    newArtefactRRPreparedStatement.executeUpdate();
+                    System.out.println("successfull insert to database!");
+
+                    ResultSet artefactRRGeneratedIdResultSet = newArtefactRRPreparedStatement.getGeneratedKeys();
+                    artefactRRGeneratedIdResultSet.next();
+                    createdArtefactRRId = artefactRRGeneratedIdResultSet.getLong(1);
+                    System.out.println("createdArtefactRRId:");
+                    System.out.println(createdArtefactRRId);
+
+                    //insert ARTEFACT_VSD
+                    Long createdArtefactVsdId = null;
+                    String vsdReturnStatus[] = { "VSDID" };
+                    String insertNewVsd = "INSERT INTO APP_APEXUDB_CAMUNDA.ARTEFACT_VSD (VSDID, ARTEFACTID, RSDID) VALUES (ARTEFACT_VSD_SEQ.nextval, ?, ?)";
+                    PreparedStatement newArtefactVsdPreparedStatement = udbConnect.prepareStatement(insertNewVsd, vsdReturnStatus);
+
+                    i = 1;
+                    System.out.println("newArtefactVsdPreparedStatement.setString");
+                    newArtefactVsdPreparedStatement.setLong(i++, createdArtefactId);
+                    newArtefactVsdPreparedStatement.setLong(i++, createdArtefactRSDId);
+                    System.out.println("newArtefactVsdPreparedStatement.executeUpdate()");
+                    newArtefactVsdPreparedStatement.executeUpdate();
+                    System.out.println("successfull insert to database!");
+
+                    ResultSet vsdGeneratedIdResultSet = newArtefactVsdPreparedStatement.getGeneratedKeys();
+                    vsdGeneratedIdResultSet.next();
+                    createdArtefactVsdId = vsdGeneratedIdResultSet.getLong(1);
+                    System.out.println("createdArtefactVsdId:");
+                    System.out.println(createdArtefactVsdId);
+
+                    //insert CANDAPPROVAL
+                    Long createdCandApprovalId = null;
+                    String candApprovalReturnStatus[] = { "ID" };
+                    String insertNewCandApproval = "insert into CANDAPPROVAL(ID, ARTEFACTID, RSDID) values (CANDAPPROVAL_SEQ.nextval, ?, ?)";
+                    PreparedStatement newCandApprovalPreparedStatement = udbConnect.prepareStatement(insertNewCandApproval, candApprovalReturnStatus);
+
+                    i = 1;
+                    System.out.println("newCandApprovalPreparedStatement.setString");
+                    newCandApprovalPreparedStatement.setLong(i++, createdArtefactId);
+                    newCandApprovalPreparedStatement.setLong(i++, createdArtefactRSDId);
+                    System.out.println("newCandApprovalPreparedStatement.executeUpdate()");
+                    newCandApprovalPreparedStatement.executeUpdate();
+                    System.out.println("successfull insert to database!");
+
+                    ResultSet candApprovalGeneratedIdResultSet = newCandApprovalPreparedStatement.getGeneratedKeys();
+                    candApprovalGeneratedIdResultSet.next();
+                    createdCandApprovalId = candApprovalGeneratedIdResultSet.getLong(1);
+                    System.out.println("createdCandApprovalId:");
+                    System.out.println(createdCandApprovalId);
+
+                    //insert ARTEFACT_RR_STATUS
+                    Long createdArtefactRRStatusId = null;
+                    String artefactRRStatusReturnStatus[] = { "ID" };
+                    String insertNewArtefactRRStatus = "insert into ARTEFACT_RR_STATUS(ID, ARTEFACTID, RR_ID, DATEOFPERFORM) values (ARTEFACT_RR_STATUS_SEQ.nextval, ?, ?, ?)";
+                    PreparedStatement newArtefactRRStatusPreparedStatement = udbConnect.prepareStatement(insertNewArtefactRRStatus, artefactRRStatusReturnStatus);
+
+                    i = 1;
+                    System.out.println("newArtefactRRStatusPreparedStatement.setString");
+                    newArtefactRRStatusPreparedStatement.setLong(i++, createdArtefactId);
+                    newArtefactRRStatusPreparedStatement.setLong(i++, createdArtefactRSDId);
+                    newArtefactRRStatusPreparedStatement.setDate(i++, new java.sql.Date(new Date().getTime()));
+                    System.out.println("newArtefactRRStatusPreparedStatement.executeUpdate()");
+                    newArtefactRRStatusPreparedStatement.executeUpdate();
+                    System.out.println("successfull insert to database!");
+
+                    ResultSet artefactRRStatusGeneratedIdResultSet = newArtefactRRStatusPreparedStatement.getGeneratedKeys();
+                    artefactRRStatusGeneratedIdResultSet.next();
+                    createdArtefactRRStatusId = artefactRRStatusGeneratedIdResultSet.getLong(1);
+                    System.out.println("createdArtefactRRStatusId:");
+                    System.out.println(createdArtefactRRStatusId);
+
 
                     udbConnect.commit();
                     delegateExecution.setVariable("ncpCreatedId", ncpCreatedId);
                     delegateExecution.setVariable("createdNcpStatusId", createdNcpStatusId);
                     delegateExecution.setVariable("createdArtefactId", createdArtefactId);
                     delegateExecution.setVariable("createdArtefactRSDId", createdArtefactRSDId);
+                    delegateExecution.setVariable("createdArtefactRRId", createdArtefactRRId);
+                    delegateExecution.setVariable("createdArtefactVSDId", createdArtefactVsdId);
+                    delegateExecution.setVariable("createdCandApprovalId", createdCandApprovalId);
+                    delegateExecution.setVariable("createdArtefactRRStatusId", createdArtefactRRStatusId);
                     udbConnect.close();
                     System.out.println("udbConnection closed!");
                 } else {
