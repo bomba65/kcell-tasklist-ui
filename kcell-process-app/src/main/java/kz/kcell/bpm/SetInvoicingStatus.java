@@ -37,19 +37,19 @@ public class SetInvoicingStatus implements JavaDelegate {
         } else if("Roll-out".equals(mainContract)) {
             String rolloutActType = (String) delegateExecution.getVariable("rolloutActType");
             if("RO-1".equals(rolloutActType)) {
-                variables.put("invoiceRO1Number", delegateExecution.getVariable("invoiceNumber"));
+                variables.put("invoiceRO1Number", delegateExecution.getProcessBusinessKey());
                 variables.put("invoiceRO1Date", delegateExecution.getVariable("invoiceDate"));
                 variables.put("rolloutRO1", "true");
             } else if("RO-2".equals(rolloutActType)) {
-                variables.put("invoiceRO2Number", delegateExecution.getVariable("invoiceNumber"));
+                variables.put("invoiceRO2Number", delegateExecution.getProcessBusinessKey());
                 variables.put("invoiceRO2Date", delegateExecution.getVariable("invoiceDate"));
                 variables.put("rolloutRO2", "true");
             } else if("RO-3".equals(rolloutActType)) {
-                variables.put("invoiceRO3Number", delegateExecution.getVariable("invoiceNumber"));
+                variables.put("invoiceRO3Number", delegateExecution.getProcessBusinessKey());
                 variables.put("invoiceRO3Date", delegateExecution.getVariable("invoiceDate"));
                 variables.put("rolloutRO3", "true");
             } else if("RO-4".equals(rolloutActType)) {
-                variables.put("invoiceRO4Number", delegateExecution.getVariable("invoiceNumber"));
+                variables.put("invoiceRO4Number", delegateExecution.getProcessBusinessKey());
                 variables.put("invoiceRO4Date", delegateExecution.getVariable("invoiceDate"));
                 variables.put("rolloutRO4", "true");
             }

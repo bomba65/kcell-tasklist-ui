@@ -842,7 +842,7 @@ define(['./module','jquery'], function(app,$){
         }
 
         $scope.downloadTechnicalReport = function(){
-            if($rootScope.hasGroup('revision_reports')){
+            if($rootScope.hasGroup('revision_reports') || 'Evgeniy.Semenov@kcell.kz' == $rootScope.authentication.name){
                 $http.get('/camunda/reports/report').then(function(response) {
                     var data = response.data;
 
@@ -871,7 +871,7 @@ define(['./module','jquery'], function(app,$){
         }
 
         $scope.downloadTechnicalByJobsReport = function(){
-            if($rootScope.hasGroup('revision_reports')){
+            if($rootScope.hasGroup('revision_reports') || 'Evgeniy.Semenov@kcell.kz' == $rootScope.authentication.name){
                 $http.get('/camunda/reports/technical-report-by-jobs').then(function(response) {
                     var data = response.data;
 
