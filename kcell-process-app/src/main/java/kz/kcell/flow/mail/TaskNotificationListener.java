@@ -2,6 +2,8 @@ package kz.kcell.flow.mail;
 
 import lombok.extern.java.Log;
 import org.camunda.bpm.engine.IdentityService;
+import org.camunda.bpm.engine.authorization.Authorization;
+import org.camunda.bpm.engine.authorization.Permissions;
 import org.camunda.bpm.engine.delegate.DelegateTask;
 import org.camunda.bpm.engine.delegate.TaskListener;
 import org.camunda.bpm.engine.identity.User;
@@ -90,6 +92,7 @@ public class TaskNotificationListener implements TaskListener {
             else recipientEmails.addAll(getCandidateAddresses(delegateTask));
         } else if (delegateTask.getAssignee() != null && TaskListener.EVENTNAME_ASSIGNMENT.equals(delegateTask.getEventName())) {
             recipientEmails.addAll(getAssigneeAddresses(delegateTask, false));
+            checkTaskAssignPermission(delegateTask);
         }
 
         if (recipientEmails.size() > 0) {
@@ -215,6 +218,38 @@ public class TaskNotificationListener implements TaskListener {
             .collect(Collectors.toSet()));
 
         return recipientsSet;
+    }
+
+    // Added to give specific user permission to unclaim
+    private void checkTaskAssignPermission(DelegateTask delegateTask){
+
+        Boolean authorizationGranted = false;
+        Authorization taskWorkAuthorization = null;
+
+        List<Authorization> taskAuthorizations = delegateTask.getProcessEngineServices().getAuthorizationService().createAuthorizationQuery().resourceId(delegateTask.getId()).userIdIn(delegateTask.getAssignee()).resourceType(7).list();
+        if(taskAuthorizations.size()>0){
+            for(Authorization authorization: taskAuthorizations){
+                if(authorization.isPermissionGranted(Permissions.TASK_ASSIGN)){
+                    authorizationGranted = true;
+                }
+                if(authorization.isPermissionGranted(Permissions.TASK_WORK)){
+                    taskWorkAuthorization = authorization;
+                }
+            }
+        }
+        if(!authorizationGranted){
+            if(taskWorkAuthorization != null){
+                taskWorkAuthorization.addPermission(Permissions.TASK_ASSIGN);
+                delegateTask.getProcessEngineServices().getAuthorizationService().saveAuthorization(taskWorkAuthorization);
+            } else {
+                Authorization taskAssignAuth = delegateTask.getProcessEngineServices().getAuthorizationService().createNewAuthorization(Authorization.AUTH_TYPE_GRANT);
+                taskAssignAuth.setResourceType(7); //Task
+                taskAssignAuth.setResourceId(delegateTask.getId());
+                taskAssignAuth.addPermission(Permissions.TASK_ASSIGN);
+                taskAssignAuth.setUserId(delegateTask.getAssignee());
+                delegateTask.getProcessEngineServices().getAuthorizationService().saveAuthorization(taskAssignAuth);
+            }
+        }
     }
 
     private static boolean validEmail(String email) {
