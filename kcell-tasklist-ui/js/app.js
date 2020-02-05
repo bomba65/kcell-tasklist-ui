@@ -21,7 +21,8 @@ define('app',[
 	'daterangepicker',
 	'bootstrap',
 	'bootstrap-select',
-	'angular-toarrayfilter'
+	'angular-toarrayfilter',
+	'ui.mask'
 ], function(ng){
 	'use strict';
 	var app =  ng.module('app', [
@@ -39,7 +40,8 @@ define('app',[
 		'ngFileUpload',
 		'LocalStorageModule',
 		'angularjs-dropdown-multiselect',
-		'angular-toArrayFilter'
+		'angular-toArrayFilter',
+		'ui.mask'
 	]);
 	var preLoginUrl;
 	var resolve = {
@@ -62,7 +64,8 @@ define('app',[
 							subprocesses:[{key:'BeelineHostBeelineSite'},{key:'BeelineHostKcellSite'},{key:'KcellHostBeelineSite'},{key:'ReplanSiteAP'},{key:'KcellHostKcellSite'}]
 						},
 						{key:'Dismantle', name:'Dismantle', group:'infrastructure_dismantle_users', subprocesses:[{key:'sdr_srr_request'}], businessKeyLike: 'SDR-%'},
-						{key:'Replacement', name:'Replacement', group:'infrastructure_replacement_users', subprocesses:[{key:'sdr_srr_request'}], businessKeyLike: 'SRR-%'}
+						{key:'Replacement', name:'Replacement', group:'infrastructure_replacement_users', subprocesses:[{key:'sdr_srr_request'}], businessKeyLike: 'SRR-%'},
+						{key:'tnu_tsd_db', name:'TNU', group:'infrastructure_tnu_users'}
 					]
 				},
 				{
@@ -548,6 +551,10 @@ define('app',[
 	        });
 	        return modalResultDeferred.promise;
 	    }
-	});
+	}).config(['uiMask.ConfigProvider', function(uiMaskConfigProvider) {
+	  uiMaskConfigProvider.maskDefinitions({'A': /[a-z]/, '*': /[a-zA-Z0-9]/, 'N': /[4-5]/, 'E': /[4-8]/});
+  		uiMaskConfigProvider.clearOnBlur(false);
+  		uiMaskConfigProvider.eventsToHandle(['input', 'keyup', 'click']);
+  	}]);
 	return app;
 });
