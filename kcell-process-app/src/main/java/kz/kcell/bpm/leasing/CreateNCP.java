@@ -2,6 +2,7 @@ package kz.kcell.bpm.leasing;
 
 import org.camunda.bpm.engine.delegate.DelegateExecution;
 import org.camunda.bpm.engine.delegate.JavaDelegate;
+import org.camunda.spin.SpinList;
 import org.camunda.spin.json.SpinJsonNode;
 import org.postgresql.util.PGobject;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -94,6 +95,37 @@ public class CreateNCP implements JavaDelegate {
                     SimpleDateFormat formatter = new SimpleDateFormat("yyyy-dd-MM"); //2020-01-02T18:00:00.000Z
                     String cn_date_of_visit = candidate.prop("dateOfVisit").stringValue().substring(0,9);
                     Date date_of_visit = formatter.parse(cn_date_of_visit);
+
+
+                    //{"antennaType":"ML 0.6","diameter":"0.6","weight":"14","antennaQuantity":1,"frequencyBand":"8GHz","suspensionHeight":12,"azimuth":"123"}
+                    SpinJsonNode ne = JSON(delegateExecution.getVariable("transmissionAntenna"));
+                    String ne_azimuth = ne.prop("azimuth").stringValue();
+                    String ne_diameter = ne.prop("diameter").stringValue();
+                    String ne_frequencyBand = "8";//ne.prop("frequencyBand").numberValue();
+                    Number ne_suspensionHeight = ne.prop("suspensionHeight").numberValue();
+
+//                    farEndInformation
+
+                    SpinJsonNode feJson = JSON(delegateExecution.getVariable("farEndInformation"));
+                    SpinList farEnds = feJson.elements();
+                    SpinJsonNode fe = (SpinJsonNode) farEnds.get(0);
+                    String fe_azimuth = fe.prop("azimuth").stringValue();
+                    String fe_diameter = fe.prop("diameter").stringValue();
+                    String fe_frequencyBand = "8"; //fe.prop("frequencyBand").numberValue();
+                    String fe_suspensionHeight = fe.prop("suspensionHeight").stringValue();
+                    String fe_constructionType = fe.prop("constructionType").prop("id").stringValue();
+                    String fe_sitename = fe.prop("farEndName").stringValue();
+                    String fe_comment = fe.prop("comments").stringValue();
+                    String fe_survey_date = fe.prop("surveyDate").stringValue().substring(0,9);
+                    Date fe_formated_survey_date = formatter.parse(fe_survey_date);
+
+                    String fe_address = "" + (fe.prop("address").hasProp("cn_addr_oblast") ? fe.prop("address").prop("cn_addr_oblast").stringValue() : "") +
+                        (fe.prop("address").hasProp("cn_addr_district") ? ", " + fe.prop("address").prop("cn_addr_district").stringValue() : "") +
+                        (fe.prop("address").hasProp("cn_addr_city") ? ", " + fe.prop("address").prop("cn_addr_city").stringValue() : "") +
+                        (fe.prop("address").hasProp("cn_addr_street") ? ", " + fe.prop("address").prop("cn_addr_street").stringValue() : "") +
+                        (fe.prop("address").hasProp("cn_addr_building") ? ", " + fe.prop("address").prop("cn_addr_building").stringValue() : "") +
+                        (fe.prop("address").hasProp("cn_addr_cadastral_number") ? ", " + fe.prop("address").prop("cn_addr_cadastral_number").stringValue() : "") +
+                        (fe.prop("address").hasProp("cn_addr_note") ? ", " + fe.prop("address").prop("cn_addr_note").stringValue() : "");
 
                     SpinJsonNode renterCompany = JSON(delegateExecution.getVariable("renterCompany"));
                     String contact_person = "" + (!renterCompany.prop("contactName").equals(null) ? renterCompany.prop("contactName").stringValue() : "") +
@@ -288,7 +320,7 @@ public class CreateNCP implements JavaDelegate {
 
                     i = 1;
                     System.out.println("newArtefactRRPreparedStatement.setString");
-                    newArtefactRRPreparedStatement.setLong(i++, Integer.parseInt(rbsType)); //ARTEFACTID
+                    newArtefactRRPreparedStatement.setLong(i++, createdArtefactId); //ARTEFACTID
                     newArtefactRRPreparedStatement.setDate(i++, new java.sql.Date(date_of_visit.getTime())); // DATEOFVISIT
                     newArtefactRRPreparedStatement.setString(i++, cn_address); //ADDRESS
                     newArtefactRRPreparedStatement.setString(i++, latitude); //LATITUDE
@@ -372,6 +404,43 @@ public class CreateNCP implements JavaDelegate {
                     System.out.println("createdArtefactRRStatusId:");
                     System.out.println(createdArtefactRRStatusId);
 
+                    udbConnect.commit();
+                    //insert ARTEFACT_TSD_EXT
+                    Long createdArtefactExtTSDId = null;
+                    String artefactExtTSDReturnStatus[] = { "TSDID" };
+                    String insertNewArtefactExtTSD = "INSERT INTO APP_APEXUDB_CAMUNDA.ARTEFACT_TSD_EXT (TSDID, ARTEFACTID, NE_LONGITUDE, NE_LATITUDE, FE_SITENAME, FE_CONSTR_TYPE, FE_ADDRESS, SURVEY_DATE, NE_AZIMUTH, NE_ANTENNADIAMETER, NE_SUSPENSIONHEIGHT, NE_TXRF_FREQUENCY, FE_AZIMUTH, FE_ANTENNADIAMETER, FE_SUSPENSIONHEIGHT, FE_TXRF_FREQUENCY, COMMENTS, INSERT_DATE, INSERT_PERSON) VALUES (ARTEFACT_TSD_SEQ.nextval, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)";
+                    PreparedStatement newArtefactExtTSDPreparedStatement = udbConnect.prepareStatement(insertNewArtefactExtTSD, artefactExtTSDReturnStatus);
+
+                    i = 1;
+                    System.out.println("newArtefactExtTSDPreparedStatement.setString");
+                    newArtefactExtTSDPreparedStatement.setLong(i++, createdArtefactId); // ARTEFACTID
+                    newArtefactExtTSDPreparedStatement.setString(i++, cn_longitude); // NE_LONGITUDE
+                    newArtefactExtTSDPreparedStatement.setString(i++, cn_latitude); // NE_LATITUDE
+                    newArtefactExtTSDPreparedStatement.setString(i++, fe_sitename); // FE_SITENAME
+                    newArtefactExtTSDPreparedStatement.setLong(i++, Integer.parseInt(fe_constructionType)); // FE_CONSTR_TYPE
+                    newArtefactExtTSDPreparedStatement.setString(i++, fe_address); // FE_ADDRESS
+                    newArtefactExtTSDPreparedStatement.setDate(i++, new java.sql.Date(fe_formated_survey_date.getTime())); // SURVEY_DATE (fe_survey_date)
+                    newArtefactExtTSDPreparedStatement.setLong(i++, Integer.parseInt(ne_azimuth)); // NE_AZIMUTH
+                    newArtefactExtTSDPreparedStatement.setFloat(i++, Float.parseFloat(ne_diameter)); // NE_ANTENNADIAMETER
+                    newArtefactExtTSDPreparedStatement.setLong(i++, ne_suspensionHeight.longValue()); // NE_SUSPENSIONHEIGHT
+                    newArtefactExtTSDPreparedStatement.setLong(i++, Integer.parseInt(ne_frequencyBand)); // NE_TXRF_FREQUENCY
+                    newArtefactExtTSDPreparedStatement.setLong(i++, Integer.parseInt(fe_azimuth)); // FE_AZIMUTH
+                    newArtefactExtTSDPreparedStatement.setFloat(i++, Float.parseFloat(fe_diameter)); // FE_ANTENNADIAMETER
+                    newArtefactExtTSDPreparedStatement.setLong(i++, Integer.parseInt(fe_suspensionHeight)); // FE_SUSPENSIONHEIGHT
+                    newArtefactExtTSDPreparedStatement.setLong(i++, Integer.parseInt(fe_frequencyBand)); // FE_TXRF_FREQUENCY
+                    newArtefactExtTSDPreparedStatement.setString(i++, fe_comment); // COMMENTS
+                    newArtefactExtTSDPreparedStatement.setDate(i++, new java.sql.Date(new Date().getTime())); // INSERT_DATE
+                    newArtefactExtTSDPreparedStatement.setString(i++, starter); // INSERT_PERSON
+                    System.out.println("newArtefactExtTSDPreparedStatement.executeUpdate()");
+                    newArtefactExtTSDPreparedStatement.executeUpdate();
+                    System.out.println("successfull insert to database!");
+
+                    ResultSet artefactExtTSDGeneratedIdResultSet = newArtefactExtTSDPreparedStatement.getGeneratedKeys();
+                    artefactExtTSDGeneratedIdResultSet.next();
+                    createdArtefactExtTSDId = artefactExtTSDGeneratedIdResultSet.getLong(1);
+                    System.out.println("createdArtefactExtTSDId:");
+                    System.out.println(createdArtefactExtTSDId);
+
 
                     udbConnect.commit();
                     delegateExecution.setVariable("ncpCreatedId", ncpCreatedId);
@@ -382,6 +451,7 @@ public class CreateNCP implements JavaDelegate {
                     delegateExecution.setVariable("createdArtefactVSDId", createdArtefactVsdId);
                     delegateExecution.setVariable("createdCandApprovalId", createdCandApprovalId);
                     delegateExecution.setVariable("createdArtefactRRStatusId", createdArtefactRRStatusId);
+                    delegateExecution.setVariable("createdArtefactExtTSDId", createdArtefactExtTSDId);
                     udbConnect.close();
                     System.out.println("udbConnection closed!");
                 } else {
