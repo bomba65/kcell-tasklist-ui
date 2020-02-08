@@ -87,7 +87,7 @@
       <bpmn:incoming>SequenceFlow_0vc5e50</bpmn:incoming>
       <bpmn:outgoing>SequenceFlow_0lfmt5u</bpmn:outgoing>
       <bpmn:outgoing>SequenceFlow_1759cjt</bpmn:outgoing>
-      <bpmn:outgoing>SequenceFlow_03bktlm</bpmn:outgoing>
+      <bpmn:outgoing>SequenceFlow_06t5cdq</bpmn:outgoing>
     </bpmn:parallelGateway>
     <bpmn:userTask id="createSIPtrankOnSBC" name="Создайте SIP транк на SBC" camunda:formKey="embedded:app:forms/freephone/createSIPtrankOnSBC.html" camunda:candidateGroups="delivery_transmission_network_operations">
       <bpmn:documentation>Создайте SIP транк на SBC. Подтвердите выполнение.</bpmn:documentation>
@@ -832,6 +832,82 @@
       <bpmn:outgoing>SequenceFlow_06185sy</bpmn:outgoing>
     </bpmn:sendTask>
     <bpmn:sequenceFlow id="SequenceFlow_06185sy" sourceRef="SendTask_0t8xjuw" targetRef="confirmSuccessOfTestsWithVPN" />
+    <bpmn:serviceTask id="ServiceTask_1efeci5" name="Создать новый сетевой объект на Firewall&#10;" camunda:delegateExpression="${FirewallCreate}">
+      <bpmn:documentation>Создать новый сетевой объект на Firewall</bpmn:documentation>
+      <bpmn:incoming>SequenceFlow_0h9szx0</bpmn:incoming>
+      <bpmn:outgoing>SequenceFlow_0bgiqlt</bpmn:outgoing>
+    </bpmn:serviceTask>
+    <bpmn:exclusiveGateway id="ExclusiveGateway_1j8n2pl" name="Была смена IP адреса?" default="SequenceFlow_0h9szx0">
+      <bpmn:incoming>SequenceFlow_06t5cdq</bpmn:incoming>
+      <bpmn:outgoing>SequenceFlow_0h9szx0</bpmn:outgoing>
+      <bpmn:outgoing>SequenceFlow_19gjrxy</bpmn:outgoing>
+    </bpmn:exclusiveGateway>
+    <bpmn:serviceTask id="ServiceTask_1v4frd5" name="Обновить сетевой объект на Firewall" camunda:delegateExpression="${FirewallUpdate}">
+      <bpmn:documentation>Обновить сетевой объект на Firewall</bpmn:documentation>
+      <bpmn:incoming>SequenceFlow_19gjrxy</bpmn:incoming>
+      <bpmn:outgoing>SequenceFlow_0jrsaot</bpmn:outgoing>
+    </bpmn:serviceTask>
+    <bpmn:sendTask id="SendTask_0z9qmi2" name="Send mail to Enterprise Data Network" camunda:delegateExpression="${camundaMailer}">
+      <bpmn:extensionElements>
+        <camunda:inputOutput>
+          <camunda:inputParameter name="to">
+            <camunda:script scriptFormat="groovy" resource="firewall/firewallTo.groovy" />
+          </camunda:inputParameter>
+          <camunda:inputParameter name="subject">Обновление сетевого объекта на firewall</camunda:inputParameter>
+          <camunda:inputParameter name="html">
+            <camunda:script scriptFormat="groovy" resource="firewall/firewallUpdateHtml.groovy" />
+          </camunda:inputParameter>
+        </camunda:inputOutput>
+      </bpmn:extensionElements>
+      <bpmn:incoming>SequenceFlow_0jrsaot</bpmn:incoming>
+      <bpmn:outgoing>SequenceFlow_00rkdgt</bpmn:outgoing>
+    </bpmn:sendTask>
+    <bpmn:exclusiveGateway id="ExclusiveGateway_0xs94zv">
+      <bpmn:incoming>SequenceFlow_00rkdgt</bpmn:incoming>
+      <bpmn:incoming>SequenceFlow_0v4yll7</bpmn:incoming>
+      <bpmn:outgoing>SequenceFlow_04usrzv</bpmn:outgoing>
+    </bpmn:exclusiveGateway>
+    <bpmn:sendTask id="SendTask_1fz8eic" name="Send mail to Enterprise Data Network" camunda:delegateExpression="${camundaMailer}">
+      <bpmn:extensionElements>
+        <camunda:inputOutput>
+          <camunda:inputParameter name="to">
+            <camunda:script scriptFormat="groovy" resource="firewall/firewallTo.groovy" />
+          </camunda:inputParameter>
+          <camunda:inputParameter name="subject">Создание нового сетевого объекта на Firewall</camunda:inputParameter>
+          <camunda:inputParameter name="html">
+            <camunda:script scriptFormat="groovy" resource="firewall/firewallCreateHtml.groovy" />
+          </camunda:inputParameter>
+        </camunda:inputOutput>
+      </bpmn:extensionElements>
+      <bpmn:incoming>SequenceFlow_0bgiqlt</bpmn:incoming>
+      <bpmn:outgoing>SequenceFlow_0v4yll7</bpmn:outgoing>
+    </bpmn:sendTask>
+    <bpmn:sequenceFlow id="SequenceFlow_0h9szx0" name="Нет" sourceRef="ExclusiveGateway_1j8n2pl" targetRef="ServiceTask_1efeci5" />
+    <bpmn:sequenceFlow id="SequenceFlow_0bgiqlt" sourceRef="ServiceTask_1efeci5" targetRef="SendTask_1fz8eic" />
+    <bpmn:sequenceFlow id="SequenceFlow_19gjrxy" name="Да" sourceRef="ExclusiveGateway_1j8n2pl" targetRef="ServiceTask_1v4frd5">
+      <bpmn:conditionExpression xsi:type="bpmn:tFormalExpression">${execution.getVariable('confirmTheSettingsAreCorrectTaskResult') == 'rejected'}</bpmn:conditionExpression>
+    </bpmn:sequenceFlow>
+    <bpmn:sequenceFlow id="SequenceFlow_0jrsaot" sourceRef="ServiceTask_1v4frd5" targetRef="SendTask_0z9qmi2" />
+    <bpmn:sequenceFlow id="SequenceFlow_00rkdgt" sourceRef="SendTask_0z9qmi2" targetRef="ExclusiveGateway_0xs94zv" />
+    <bpmn:sequenceFlow id="SequenceFlow_0v4yll7" sourceRef="SendTask_1fz8eic" targetRef="ExclusiveGateway_0xs94zv" />
+    <bpmn:sequenceFlow id="SequenceFlow_06t5cdq" sourceRef="ExclusiveGateway_1116qq4" targetRef="ExclusiveGateway_1j8n2pl" />
+    <bpmn:sequenceFlow id="SequenceFlow_04usrzv" sourceRef="ExclusiveGateway_0xs94zv" targetRef="ExclusiveGateway_1ygydvc" />
+    <bpmn:exclusiveGateway id="ExclusiveGateway_0mhjwmh" name="Была смена IP адреса?">
+      <bpmn:incoming>SequenceFlow_1759cjt</bpmn:incoming>
+      <bpmn:outgoing>SequenceFlow_111rv6d</bpmn:outgoing>
+      <bpmn:outgoing>SequenceFlow_0okaln2</bpmn:outgoing>
+    </bpmn:exclusiveGateway>
+    <bpmn:exclusiveGateway id="ExclusiveGateway_1go97y6">
+      <bpmn:incoming>SequenceFlow_111rv6d</bpmn:incoming>
+      <bpmn:incoming>SequenceFlow_0ulvbfh</bpmn:incoming>
+      <bpmn:outgoing>SequenceFlow_0q1jntf</bpmn:outgoing>
+    </bpmn:exclusiveGateway>
+    <bpmn:sequenceFlow id="SequenceFlow_111rv6d" name="Да" sourceRef="ExclusiveGateway_0mhjwmh" targetRef="ExclusiveGateway_1go97y6">
+      <bpmn:conditionExpression xsi:type="bpmn:tFormalExpression">${execution.getVariable('confirmTheSettingsAreCorrectTaskResult') == 'rejected'}</bpmn:conditionExpression>
+    </bpmn:sequenceFlow>
+    <bpmn:sequenceFlow id="SequenceFlow_0okaln2" sourceRef="ExclusiveGateway_0mhjwmh" targetRef="setMMSpreferences" />
+    <bpmn:sequenceFlow id="SequenceFlow_0ulvbfh" sourceRef="setMMSpreferences" targetRef="ExclusiveGateway_1go97y6" />
+    <bpmn:sequenceFlow id="SequenceFlow_0q1jntf" sourceRef="ExclusiveGateway_1go97y6" targetRef="ExclusiveGateway_1ygydvc" />
     <bpmn:textAnnotation id="TextAnnotation_0nn3ybo">
       <bpmn:text>Начните процесс подключения</bpmn:text>
     </bpmn:textAnnotation>
@@ -1177,7 +1253,7 @@
         </bpmndi:BPMNLabel>
       </bpmndi:BPMNEdge>
       <bpmndi:BPMNShape id="UserTask_1srxk5z_di" bpmnElement="setMMSpreferences">
-        <dc:Bounds x="2880" y="1675" width="100" height="80" />
+        <dc:Bounds x="2850" y="1675" width="100" height="80" />
       </bpmndi:BPMNShape>
       <bpmndi:BPMNEdge id="SequenceFlow_1759cjt_di" bpmnElement="SequenceFlow_1759cjt">
         <di:waypoint x="2737" y="1715" />
@@ -1527,7 +1603,8 @@
         <dc:Bounds x="2961" y="1621" width="100" height="30" />
       </bpmndi:BPMNShape>
       <bpmndi:BPMNEdge id="Association_0oo01r0_di" bpmnElement="Association_0oo01r0">
-        <di:waypoint x="2930" y="1675" />
+        <di:waypoint x="2915" y="1675" />
+        <di:waypoint x="2930" y="1636" />
         <di:waypoint x="2930" y="1636" />
         <di:waypoint x="2961" y="1636" />
       </bpmndi:BPMNEdge>
@@ -2401,6 +2478,98 @@
       <bpmndi:BPMNEdge id="SequenceFlow_06185sy_di" bpmnElement="SequenceFlow_06185sy">
         <di:waypoint x="3571" y="1715" />
         <di:waypoint x="3668" y="1715" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNShape id="ServiceTask_1efeci5_di" bpmnElement="ServiceTask_1efeci5">
+        <dc:Bounds x="2820" y="1460" width="100" height="80" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="ExclusiveGateway_1j8n2pl_di" bpmnElement="ExclusiveGateway_1j8n2pl" isMarkerVisible="true">
+        <dc:Bounds x="2735" y="1475" width="50" height="50" />
+        <bpmndi:BPMNLabel>
+          <dc:Bounds x="2673" y="1426" width="76" height="27" />
+        </bpmndi:BPMNLabel>
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="ServiceTask_1v4frd5_di" bpmnElement="ServiceTask_1v4frd5">
+        <dc:Bounds x="2820" y="1289" width="100" height="80" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="SendTask_0z9qmi2_di" bpmnElement="SendTask_0z9qmi2">
+        <dc:Bounds x="2992" y="1289" width="100" height="80" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="ExclusiveGateway_0xs94zv_di" bpmnElement="ExclusiveGateway_0xs94zv" isMarkerVisible="true">
+        <dc:Bounds x="3115" y="1475" width="50" height="50" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="SendTask_1fz8eic_di" bpmnElement="SendTask_1fz8eic">
+        <dc:Bounds x="2980" y="1460" width="100" height="80" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNEdge id="SequenceFlow_0h9szx0_di" bpmnElement="SequenceFlow_0h9szx0">
+        <di:waypoint x="2785" y="1500" />
+        <di:waypoint x="2820" y="1500" />
+        <bpmndi:BPMNLabel>
+          <dc:Bounds x="2794" y="1482" width="19" height="14" />
+        </bpmndi:BPMNLabel>
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="SequenceFlow_0bgiqlt_di" bpmnElement="SequenceFlow_0bgiqlt">
+        <di:waypoint x="2920" y="1500" />
+        <di:waypoint x="2980" y="1500" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="SequenceFlow_19gjrxy_di" bpmnElement="SequenceFlow_19gjrxy">
+        <di:waypoint x="2760" y="1475" />
+        <di:waypoint x="2760" y="1329" />
+        <di:waypoint x="2820" y="1329" />
+        <bpmndi:BPMNLabel>
+          <dc:Bounds x="2768" y="1399" width="14" height="14" />
+        </bpmndi:BPMNLabel>
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="SequenceFlow_0jrsaot_di" bpmnElement="SequenceFlow_0jrsaot">
+        <di:waypoint x="2920" y="1329" />
+        <di:waypoint x="2992" y="1329" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="SequenceFlow_00rkdgt_di" bpmnElement="SequenceFlow_00rkdgt">
+        <di:waypoint x="3092" y="1329" />
+        <di:waypoint x="3140" y="1329" />
+        <di:waypoint x="3140" y="1475" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="SequenceFlow_0v4yll7_di" bpmnElement="SequenceFlow_0v4yll7">
+        <di:waypoint x="3080" y="1500" />
+        <di:waypoint x="3115" y="1500" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="SequenceFlow_06t5cdq_di" bpmnElement="SequenceFlow_06t5cdq">
+        <di:waypoint x="2712" y="1690" />
+        <di:waypoint x="2712" y="1500" />
+        <di:waypoint x="2735" y="1500" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="SequenceFlow_04usrzv_di" bpmnElement="SequenceFlow_04usrzv">
+        <di:waypoint x="3140" y="1525" />
+        <di:waypoint x="3140" y="1690" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNShape id="ExclusiveGateway_0mhjwmh_di" bpmnElement="ExclusiveGateway_0mhjwmh" isMarkerVisible="true">
+        <dc:Bounds x="2775" y="1690" width="50" height="50" />
+        <bpmndi:BPMNLabel>
+          <dc:Bounds x="2763" y="1747" width="76" height="27" />
+        </bpmndi:BPMNLabel>
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="ExclusiveGateway_1go97y6_di" bpmnElement="ExclusiveGateway_1go97y6" isMarkerVisible="true">
+        <dc:Bounds x="3005" y="1690" width="50" height="50" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNEdge id="SequenceFlow_111rv6d_di" bpmnElement="SequenceFlow_111rv6d">
+        <di:waypoint x="2800" y="1690" />
+        <di:waypoint x="2800" y="1590" />
+        <di:waypoint x="3030" y="1590" />
+        <di:waypoint x="3030" y="1690" />
+        <bpmndi:BPMNLabel>
+          <dc:Bounds x="2908" y="1571" width="14" height="14" />
+        </bpmndi:BPMNLabel>
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="SequenceFlow_0okaln2_di" bpmnElement="SequenceFlow_0okaln2">
+        <di:waypoint x="2825" y="1715" />
+        <di:waypoint x="2850" y="1715" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="SequenceFlow_0ulvbfh_di" bpmnElement="SequenceFlow_0ulvbfh">
+        <di:waypoint x="2950" y="1715" />
+        <di:waypoint x="3005" y="1715" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="SequenceFlow_0q1jntf_di" bpmnElement="SequenceFlow_0q1jntf">
+        <di:waypoint x="3055" y="1715" />
+        <di:waypoint x="3115" y="1715" />
       </bpmndi:BPMNEdge>
     </bpmndi:BPMNPlane>
   </bpmndi:BPMNDiagram>

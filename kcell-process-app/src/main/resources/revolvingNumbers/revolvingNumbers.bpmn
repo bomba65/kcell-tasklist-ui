@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<bpmn:definitions xmlns:bpmn="http://www.omg.org/spec/BPMN/20100524/MODEL" xmlns:bpmndi="http://www.omg.org/spec/BPMN/20100524/DI" xmlns:di="http://www.omg.org/spec/DD/20100524/DI" xmlns:dc="http://www.omg.org/spec/DD/20100524/DC" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:bioc="http://bpmn.io/schema/bpmn/biocolor/1.0" xmlns:camunda="http://camunda.org/schema/1.0/bpmn" id="Definitions_1" targetNamespace="http://bpmn.io/schema/bpmn" exporter="Camunda Modeler" exporterVersion="3.0.1">
+<bpmn:definitions xmlns:bpmn="http://www.omg.org/spec/BPMN/20100524/MODEL" xmlns:bpmndi="http://www.omg.org/spec/BPMN/20100524/DI" xmlns:di="http://www.omg.org/spec/DD/20100524/DI" xmlns:dc="http://www.omg.org/spec/DD/20100524/DC" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:bioc="http://bpmn.io/schema/bpmn/biocolor/1.0" xmlns:camunda="http://camunda.org/schema/1.0/bpmn" id="Definitions_1" targetNamespace="http://bpmn.io/schema/bpmn" exporter="Camunda Modeler" exporterVersion="3.5.0">
   <bpmn:process id="revolvingNumbers" name="PBX Revolving Numbers" isExecutable="true">
     <bpmn:exclusiveGateway id="ExclusiveGateway_1kwza23" name="Existing channel" default="SequenceFlow_1ulj6gh">
       <bpmn:incoming>SequenceFlow_0z5nnxm</bpmn:incoming>
@@ -391,21 +391,15 @@
         </bpmn:extensionElements>
         <bpmn:incoming>SequenceFlow_163y8fs</bpmn:incoming>
         <bpmn:outgoing>SequenceFlow_1u6479e</bpmn:outgoing>
-        <bpmn:userTask id="pbxNotExistingChannelFirewall" name="Confirm completed settings to Firewall rules" camunda:formKey="embedded:app:forms/revolvingNumbers/pbx/firewall.html" camunda:candidateGroups="delivery_pbx_enterprise_data_network">
-          <bpmn:documentation>Confirm completed settings to Firewall rules</bpmn:documentation>
-          <bpmn:incoming>SequenceFlow_17pox6z</bpmn:incoming>
-          <bpmn:incoming>SequenceFlow_03w69ct</bpmn:incoming>
-          <bpmn:outgoing>SequenceFlow_0edrfv7</bpmn:outgoing>
-        </bpmn:userTask>
-        <bpmn:exclusiveGateway id="ExclusiveGateway_13bs3xi" default="SequenceFlow_17pox6z">
+        <bpmn:exclusiveGateway id="ExclusiveGateway_13bs3xi" default="SequenceFlow_06o8smg">
           <bpmn:incoming>SequenceFlow_0csjkn3</bpmn:incoming>
           <bpmn:outgoing>SequenceFlow_02dsalh</bpmn:outgoing>
-          <bpmn:outgoing>SequenceFlow_17pox6z</bpmn:outgoing>
+          <bpmn:outgoing>SequenceFlow_06o8smg</bpmn:outgoing>
         </bpmn:exclusiveGateway>
         <bpmn:userTask id="pbxNotExistingChannelNumbers" name="Set up revolving numbers and prefix on Asterisk" camunda:formKey="embedded:app:forms/revolvingNumbers/pbx/numbers.html" camunda:candidateGroups="delivery_pbx_asterisk_technical_dept">
           <bpmn:documentation>Set up revolving numbers and prefix on Asterisk</bpmn:documentation>
           <bpmn:incoming>SequenceFlow_02dsalh</bpmn:incoming>
-          <bpmn:outgoing>SequenceFlow_03w69ct</bpmn:outgoing>
+          <bpmn:outgoing>SequenceFlow_0fv1ne7</bpmn:outgoing>
         </bpmn:userTask>
         <bpmn:endEvent id="EndEvent_0y2w4jz">
           <bpmn:incoming>SequenceFlow_1ag28o0</bpmn:incoming>
@@ -416,16 +410,38 @@
         <bpmn:sequenceFlow id="SequenceFlow_02dsalh" name="SBC" sourceRef="ExclusiveGateway_13bs3xi" targetRef="pbxNotExistingChannelNumbers">
           <bpmn:conditionExpression xsi:type="bpmn:tFormalExpression">${connectionPoint == "SBC"}</bpmn:conditionExpression>
         </bpmn:sequenceFlow>
-        <bpmn:sequenceFlow id="SequenceFlow_17pox6z" name="Asterisk / SIP Proxy" sourceRef="ExclusiveGateway_13bs3xi" targetRef="pbxNotExistingChannelFirewall" />
         <bpmn:sequenceFlow id="SequenceFlow_0csjkn3" sourceRef="StartEvent_0wge8u3" targetRef="ExclusiveGateway_13bs3xi" />
-        <bpmn:sequenceFlow id="SequenceFlow_0edrfv7" sourceRef="pbxNotExistingChannelFirewall" targetRef="pbxNotExistingChannelTrunk" />
         <bpmn:sequenceFlow id="SequenceFlow_1ag28o0" sourceRef="pbxNotExistingChannelTrunk" targetRef="EndEvent_0y2w4jz" />
         <bpmn:userTask id="pbxNotExistingChannelTrunk" name="Set up new trunk on ${connectionPoint} &#38; send connection settings to the client" camunda:formKey="embedded:app:forms/revolvingNumbers/pbx/trunk.html" camunda:candidateGroups="${pbxNotExistingChanneltrunkAssigneeGroup}">
           <bpmn:documentation>Set up new trunk on ${connectionPoint} &amp; send connection settings to the client</bpmn:documentation>
-          <bpmn:incoming>SequenceFlow_0edrfv7</bpmn:incoming>
+          <bpmn:incoming>SequenceFlow_0gq6rs2</bpmn:incoming>
           <bpmn:outgoing>SequenceFlow_1ag28o0</bpmn:outgoing>
         </bpmn:userTask>
-        <bpmn:sequenceFlow id="SequenceFlow_03w69ct" sourceRef="pbxNotExistingChannelNumbers" targetRef="pbxNotExistingChannelFirewall" />
+        <bpmn:serviceTask id="ServiceTask_0d4r33p" name="Создать новый сетевой объект на Firewall&#10;" camunda:delegateExpression="${FirewallCreate}">
+          <bpmn:documentation>Создать новый сетевой объект на Firewall</bpmn:documentation>
+          <bpmn:incoming>SequenceFlow_06o8smg</bpmn:incoming>
+          <bpmn:incoming>SequenceFlow_0fv1ne7</bpmn:incoming>
+          <bpmn:outgoing>SequenceFlow_02tb31q</bpmn:outgoing>
+        </bpmn:serviceTask>
+        <bpmn:sendTask id="SendTask_0uzpx1s" name="Send mail to Enterprise Data Network" camunda:delegateExpression="${camundaMailer}">
+          <bpmn:extensionElements>
+            <camunda:inputOutput>
+              <camunda:inputParameter name="to">
+                <camunda:script scriptFormat="groovy" resource="firewall/firewallTo.groovy" />
+              </camunda:inputParameter>
+              <camunda:inputParameter name="subject">Создание нового сетевого объекта на Firewall</camunda:inputParameter>
+              <camunda:inputParameter name="html">
+                <camunda:script scriptFormat="groovy" resource="firewall/firewallCreateHtml.groovy" />
+              </camunda:inputParameter>
+            </camunda:inputOutput>
+          </bpmn:extensionElements>
+          <bpmn:incoming>SequenceFlow_02tb31q</bpmn:incoming>
+          <bpmn:outgoing>SequenceFlow_0gq6rs2</bpmn:outgoing>
+        </bpmn:sendTask>
+        <bpmn:sequenceFlow id="SequenceFlow_02tb31q" sourceRef="ServiceTask_0d4r33p" targetRef="SendTask_0uzpx1s" />
+        <bpmn:sequenceFlow id="SequenceFlow_06o8smg" sourceRef="ExclusiveGateway_13bs3xi" targetRef="ServiceTask_0d4r33p" />
+        <bpmn:sequenceFlow id="SequenceFlow_0gq6rs2" sourceRef="SendTask_0uzpx1s" targetRef="pbxNotExistingChannelTrunk" />
+        <bpmn:sequenceFlow id="SequenceFlow_0fv1ne7" sourceRef="pbxNotExistingChannelNumbers" targetRef="ServiceTask_0d4r33p" />
       </bpmn:subProcess>
       <bpmn:subProcess id="SubProcess_0nwclt9" name="TS+S">
         <bpmn:extensionElements>
@@ -571,10 +587,10 @@
         </bpmn:extensionElements>
         <bpmn:incoming>SequenceFlow_1gin99f</bpmn:incoming>
         <bpmn:outgoing>SequenceFlow_1pc07b2</bpmn:outgoing>
-        <bpmn:exclusiveGateway id="ExclusiveGateway_0ifuvuj" default="SequenceFlow_1135wzs">
+        <bpmn:exclusiveGateway id="ExclusiveGateway_0ifuvuj" default="SequenceFlow_1w1e3yz">
           <bpmn:incoming>SequenceFlow_0k3v8ny</bpmn:incoming>
-          <bpmn:outgoing>SequenceFlow_1135wzs</bpmn:outgoing>
           <bpmn:outgoing>SequenceFlow_05aj0g5</bpmn:outgoing>
+          <bpmn:outgoing>SequenceFlow_1w1e3yz</bpmn:outgoing>
         </bpmn:exclusiveGateway>
         <bpmn:startEvent id="StartEvent_0a8xtuk">
           <bpmn:outgoing>SequenceFlow_0k3v8ny</bpmn:outgoing>
@@ -584,28 +600,44 @@
         </bpmn:endEvent>
         <bpmn:userTask id="pbxCallbackNotExistingChannelTrunk" name="Set up new trunk on ${connectionPoint} &#38; send connection settings to the client" camunda:formKey="embedded:app:forms/revolvingNumbers/pbx/trunk.html">
           <bpmn:documentation>Set up new trunk on ${connectionPoint} &amp; send connection settings to the client</bpmn:documentation>
-          <bpmn:incoming>SequenceFlow_0vq5yau</bpmn:incoming>
+          <bpmn:incoming>SequenceFlow_18tadbe</bpmn:incoming>
           <bpmn:outgoing>SequenceFlow_05bzk00</bpmn:outgoing>
-        </bpmn:userTask>
-        <bpmn:userTask id="pbxCallbackNotExistingChannelFirewall" name="Confirm completed settings to Firewall rules" camunda:formKey="embedded:app:forms/revolvingNumbers/pbx/firewall.html" camunda:candidateGroups="delivery_pbx_enterprise_data_network">
-          <bpmn:documentation>Confirm completed settings to Firewall rules</bpmn:documentation>
-          <bpmn:incoming>SequenceFlow_1135wzs</bpmn:incoming>
-          <bpmn:incoming>SequenceFlow_1uz90io</bpmn:incoming>
-          <bpmn:outgoing>SequenceFlow_0vq5yau</bpmn:outgoing>
         </bpmn:userTask>
         <bpmn:userTask id="pbxCallbackNotExistingChannelNumbers" name="Set up revolving numbers and prefix on Asterisk" camunda:formKey="embedded:app:forms/revolvingNumbers/pbx/numbers.html" camunda:candidateGroups="delivery_pbx_asterisk_technical_dept">
           <bpmn:documentation>Set up revolving numbers and prefix on Asterisk</bpmn:documentation>
           <bpmn:incoming>SequenceFlow_05aj0g5</bpmn:incoming>
-          <bpmn:outgoing>SequenceFlow_1uz90io</bpmn:outgoing>
+          <bpmn:outgoing>SequenceFlow_0ayel0o</bpmn:outgoing>
         </bpmn:userTask>
         <bpmn:sequenceFlow id="SequenceFlow_05bzk00" sourceRef="pbxCallbackNotExistingChannelTrunk" targetRef="EndEvent_1m89z6e" />
-        <bpmn:sequenceFlow id="SequenceFlow_0vq5yau" sourceRef="pbxCallbackNotExistingChannelFirewall" targetRef="pbxCallbackNotExistingChannelTrunk" />
         <bpmn:sequenceFlow id="SequenceFlow_0k3v8ny" sourceRef="StartEvent_0a8xtuk" targetRef="ExclusiveGateway_0ifuvuj" />
-        <bpmn:sequenceFlow id="SequenceFlow_1135wzs" name="Asterisk / SIP Proxy" sourceRef="ExclusiveGateway_0ifuvuj" targetRef="pbxCallbackNotExistingChannelFirewall" />
         <bpmn:sequenceFlow id="SequenceFlow_05aj0g5" name="SBC" sourceRef="ExclusiveGateway_0ifuvuj" targetRef="pbxCallbackNotExistingChannelNumbers">
           <bpmn:conditionExpression xsi:type="bpmn:tFormalExpression">${connectionPoint == "SBC"}</bpmn:conditionExpression>
         </bpmn:sequenceFlow>
-        <bpmn:sequenceFlow id="SequenceFlow_1uz90io" sourceRef="pbxCallbackNotExistingChannelNumbers" targetRef="pbxCallbackNotExistingChannelFirewall" />
+        <bpmn:serviceTask id="ServiceTask_1t2gy0z" name="Создать новый сетевой объект на Firewall&#10;" camunda:delegateExpression="${FirewallCreate}">
+          <bpmn:documentation>Создать новый сетевой объект на Firewall</bpmn:documentation>
+          <bpmn:incoming>SequenceFlow_1w1e3yz</bpmn:incoming>
+          <bpmn:incoming>SequenceFlow_0ayel0o</bpmn:incoming>
+          <bpmn:outgoing>SequenceFlow_11excq7</bpmn:outgoing>
+        </bpmn:serviceTask>
+        <bpmn:sendTask id="SendTask_0t2q8al" name="Send mail to Enterprise Data Network" camunda:delegateExpression="${camundaMailer}">
+          <bpmn:extensionElements>
+            <camunda:inputOutput>
+              <camunda:inputParameter name="to">
+                <camunda:script scriptFormat="groovy" resource="firewall/firewallTo.groovy" />
+              </camunda:inputParameter>
+              <camunda:inputParameter name="subject">Создание нового сетевого объекта на Firewall</camunda:inputParameter>
+              <camunda:inputParameter name="html">
+                <camunda:script scriptFormat="groovy" resource="firewall/firewallCreateHtml.groovy" />
+              </camunda:inputParameter>
+            </camunda:inputOutput>
+          </bpmn:extensionElements>
+          <bpmn:incoming>SequenceFlow_11excq7</bpmn:incoming>
+          <bpmn:outgoing>SequenceFlow_18tadbe</bpmn:outgoing>
+        </bpmn:sendTask>
+        <bpmn:sequenceFlow id="SequenceFlow_11excq7" sourceRef="ServiceTask_1t2gy0z" targetRef="SendTask_0t2q8al" />
+        <bpmn:sequenceFlow id="SequenceFlow_1w1e3yz" sourceRef="ExclusiveGateway_0ifuvuj" targetRef="ServiceTask_1t2gy0z" />
+        <bpmn:sequenceFlow id="SequenceFlow_18tadbe" sourceRef="SendTask_0t2q8al" targetRef="pbxCallbackNotExistingChannelTrunk" />
+        <bpmn:sequenceFlow id="SequenceFlow_0ayel0o" sourceRef="pbxCallbackNotExistingChannelNumbers" targetRef="ServiceTask_1t2gy0z" />
       </bpmn:subProcess>
       <bpmn:sequenceFlow id="SequenceFlow_0jd81dl" sourceRef="ParallelGateway_1qbnft5" targetRef="ExclusiveGateway_009q7go" />
       <bpmn:sequenceFlow id="SequenceFlow_1pc07b2" sourceRef="SubProcess_19tfjnb" targetRef="ExclusiveGateway_1jinqgf" />
@@ -2761,9 +2793,6 @@
       <bpmndi:BPMNShape id="SubProcess_1e4jcb5_di" bpmnElement="SubProcess_1e4jcb5" isExpanded="true" bioc:stroke="#1E88E5" bioc:fill="#BBDEFB">
         <dc:Bounds x="3960" y="589" width="810" height="288" />
       </bpmndi:BPMNShape>
-      <bpmndi:BPMNShape id="UserTask_1wuxca1_di" bpmnElement="pbxNotExistingChannelFirewall">
-        <dc:Bounds x="4259" y="746" width="100" height="80" />
-      </bpmndi:BPMNShape>
       <bpmndi:BPMNShape id="ExclusiveGateway_13bs3xi_di" bpmnElement="ExclusiveGateway_13bs3xi" isMarkerVisible="true">
         <dc:Bounds x="4082" y="761" width="50" height="50" />
       </bpmndi:BPMNShape>
@@ -2784,20 +2813,9 @@
           <dc:Bounds x="4095" y="638" width="23" height="14" />
         </bpmndi:BPMNLabel>
       </bpmndi:BPMNEdge>
-      <bpmndi:BPMNEdge id="SequenceFlow_17pox6z_di" bpmnElement="SequenceFlow_17pox6z">
-        <di:waypoint x="4132" y="786" />
-        <di:waypoint x="4259" y="786" />
-        <bpmndi:BPMNLabel>
-          <dc:Bounds x="4151" y="755" width="66" height="27" />
-        </bpmndi:BPMNLabel>
-      </bpmndi:BPMNEdge>
       <bpmndi:BPMNEdge id="SequenceFlow_0csjkn3_di" bpmnElement="SequenceFlow_0csjkn3">
         <di:waypoint x="4016" y="786" />
         <di:waypoint x="4082" y="786" />
-      </bpmndi:BPMNEdge>
-      <bpmndi:BPMNEdge id="SequenceFlow_0edrfv7_di" bpmnElement="SequenceFlow_0edrfv7">
-        <di:waypoint x="4359" y="786" />
-        <di:waypoint x="4464" y="786" />
       </bpmndi:BPMNEdge>
       <bpmndi:BPMNEdge id="SequenceFlow_02r0fcd_di" bpmnElement="SequenceFlow_02r0fcd">
         <di:waypoint x="3469" y="2209" />
@@ -3164,10 +3182,6 @@
       <bpmndi:BPMNShape id="UserTask_0wn5h3y_di" bpmnElement="pbxNotExistingChannelTrunk">
         <dc:Bounds x="4464" y="746" width="100" height="80" />
       </bpmndi:BPMNShape>
-      <bpmndi:BPMNEdge id="SequenceFlow_03w69ct_di" bpmnElement="SequenceFlow_03w69ct">
-        <di:waypoint x="4309" y="702" />
-        <di:waypoint x="4309" y="746" />
-      </bpmndi:BPMNEdge>
       <bpmndi:BPMNEdge id="SequenceFlow_19p52iu_di" bpmnElement="SequenceFlow_19p52iu">
         <di:waypoint x="3772" y="1598" />
         <di:waypoint x="4119" y="1598" />
@@ -3187,9 +3201,6 @@
       <bpmndi:BPMNShape id="UserTask_17url0g_di" bpmnElement="pbxCallbackNotExistingChannelTrunk">
         <dc:Bounds x="4464" y="1958" width="100" height="80" />
       </bpmndi:BPMNShape>
-      <bpmndi:BPMNShape id="UserTask_1tsytr6_di" bpmnElement="pbxCallbackNotExistingChannelFirewall">
-        <dc:Bounds x="4259" y="1958" width="100" height="80" />
-      </bpmndi:BPMNShape>
       <bpmndi:BPMNShape id="UserTask_0spzhy7_di" bpmnElement="pbxCallbackNotExistingChannelNumbers">
         <dc:Bounds x="4259" y="1834" width="100" height="80" />
       </bpmndi:BPMNShape>
@@ -3197,20 +3208,9 @@
         <di:waypoint x="4564" y="1998" />
         <di:waypoint x="4684" y="1998" />
       </bpmndi:BPMNEdge>
-      <bpmndi:BPMNEdge id="SequenceFlow_0vq5yau_di" bpmnElement="SequenceFlow_0vq5yau">
-        <di:waypoint x="4359" y="1998" />
-        <di:waypoint x="4464" y="1998" />
-      </bpmndi:BPMNEdge>
       <bpmndi:BPMNEdge id="SequenceFlow_0k3v8ny_di" bpmnElement="SequenceFlow_0k3v8ny">
         <di:waypoint x="4016" y="1998" />
         <di:waypoint x="4082" y="1998" />
-      </bpmndi:BPMNEdge>
-      <bpmndi:BPMNEdge id="SequenceFlow_1135wzs_di" bpmnElement="SequenceFlow_1135wzs">
-        <di:waypoint x="4132" y="1998" />
-        <di:waypoint x="4259" y="1998" />
-        <bpmndi:BPMNLabel>
-          <dc:Bounds x="4151" y="1967" width="66" height="27" />
-        </bpmndi:BPMNLabel>
       </bpmndi:BPMNEdge>
       <bpmndi:BPMNEdge id="SequenceFlow_05aj0g5_di" bpmnElement="SequenceFlow_05aj0g5">
         <di:waypoint x="4107" y="1973" />
@@ -3219,10 +3219,6 @@
         <bpmndi:BPMNLabel>
           <dc:Bounds x="4095" y="1851" width="23" height="14" />
         </bpmndi:BPMNLabel>
-      </bpmndi:BPMNEdge>
-      <bpmndi:BPMNEdge id="SequenceFlow_1uz90io_di" bpmnElement="SequenceFlow_1uz90io">
-        <di:waypoint x="4309" y="1914" />
-        <di:waypoint x="4309" y="1958" />
       </bpmndi:BPMNEdge>
       <bpmndi:BPMNEdge id="SequenceFlow_0jd81dl_di" bpmnElement="SequenceFlow_0jd81dl">
         <di:waypoint x="3747" y="1623" />
@@ -3419,6 +3415,54 @@
         <di:waypoint x="6889" y="3013" />
         <di:waypoint x="6268" y="3013" />
         <di:waypoint x="6268" y="2989" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNShape id="ServiceTask_1t2gy0z_di" bpmnElement="ServiceTask_1t2gy0z">
+        <dc:Bounds x="4190" y="1958" width="100" height="80" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="SendTask_0t2q8al_di" bpmnElement="SendTask_0t2q8al">
+        <dc:Bounds x="4331" y="1958" width="100" height="80" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNEdge id="SequenceFlow_11excq7_di" bpmnElement="SequenceFlow_11excq7">
+        <di:waypoint x="4290" y="1998" />
+        <di:waypoint x="4331" y="1998" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="SequenceFlow_1w1e3yz_di" bpmnElement="SequenceFlow_1w1e3yz">
+        <di:waypoint x="4132" y="1998" />
+        <di:waypoint x="4190" y="1998" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="SequenceFlow_18tadbe_di" bpmnElement="SequenceFlow_18tadbe">
+        <di:waypoint x="4431" y="1998" />
+        <di:waypoint x="4464" y="1998" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="SequenceFlow_0ayel0o_di" bpmnElement="SequenceFlow_0ayel0o">
+        <di:waypoint x="4309" y="1914" />
+        <di:waypoint x="4309" y="1936" />
+        <di:waypoint x="4240" y="1936" />
+        <di:waypoint x="4240" y="1958" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNShape id="ServiceTask_0d4r33p_di" bpmnElement="ServiceTask_0d4r33p">
+        <dc:Bounds x="4190" y="746" width="100" height="80" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="SendTask_0uzpx1s_di" bpmnElement="SendTask_0uzpx1s">
+        <dc:Bounds x="4331" y="746" width="100" height="80" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNEdge id="SequenceFlow_02tb31q_di" bpmnElement="SequenceFlow_02tb31q">
+        <di:waypoint x="4290" y="786" />
+        <di:waypoint x="4331" y="786" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="SequenceFlow_06o8smg_di" bpmnElement="SequenceFlow_06o8smg">
+        <di:waypoint x="4132" y="786" />
+        <di:waypoint x="4190" y="786" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="SequenceFlow_0gq6rs2_di" bpmnElement="SequenceFlow_0gq6rs2">
+        <di:waypoint x="4431" y="786" />
+        <di:waypoint x="4464" y="786" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="SequenceFlow_0fv1ne7_di" bpmnElement="SequenceFlow_0fv1ne7">
+        <di:waypoint x="4309" y="702" />
+        <di:waypoint x="4309" y="724" />
+        <di:waypoint x="4240" y="724" />
+        <di:waypoint x="4240" y="746" />
       </bpmndi:BPMNEdge>
     </bpmndi:BPMNPlane>
   </bpmndi:BPMNDiagram>

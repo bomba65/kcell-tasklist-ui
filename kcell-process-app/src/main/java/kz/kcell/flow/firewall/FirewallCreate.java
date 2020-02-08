@@ -1,4 +1,4 @@
-package kz.kcell.flow.revolvingNumbers;
+package kz.kcell.flow.firewall;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.node.ObjectNode;
@@ -7,18 +7,21 @@ import org.camunda.bpm.engine.delegate.DelegateExecution;
 import org.camunda.bpm.engine.delegate.JavaDelegate;
 import org.camunda.bpm.engine.impl.util.json.JSONArray;
 import org.camunda.bpm.engine.impl.util.json.JSONObject;
+import org.msgpack.util.json.JSON;
 import org.springframework.stereotype.Service;
 
-
 import javax.net.ssl.*;
-import java.io.*;
+import java.io.BufferedReader;
+import java.io.IOException;
+import java.io.InputStreamReader;
+import java.io.OutputStream;
 import java.net.HttpURLConnection;
 import java.net.URL;
 import java.nio.charset.StandardCharsets;
 import java.security.KeyManagementException;
 import java.security.NoSuchAlgorithmException;
 import java.security.cert.X509Certificate;
-import java.util.Objects;
+import java.util.concurrent.TimeUnit;
 
 
 @Service("FirewallCreate")
@@ -67,93 +70,164 @@ public class FirewallCreate implements JavaDelegate {
 
     @Override
     public void execute(DelegateExecution delegateExecution) throws Exception {
-        String firewallUrl;
 
-        JSONObject legalInfo = new JSONObject(delegateExecution.getVariable("legalInfo").toString());
-        String companyLatName = (String) legalInfo.get("ticName");
-        companyLatName.replaceAll("\\s","_");
-        System.out.println("Company w/o spaces" + companyLatName);
-        // ---------------------------------------------
+        String firewallUrl = "192.168.202.67";
+        String companyLatName = "";
+        String ipNumber = "";
+        String firewallGroupName;
+        String processDefKey = (delegateExecution.getProcessEngineServices().getRepositoryService().getProcessDefinition(delegateExecution.getProcessDefinitionId()).getKey());
 
-        JSONObject technicalSpecifications = new JSONObject(delegateExecution.getVariable("techSpecs").toString());
-        JSONObject sip = new JSONObject(technicalSpecifications.get("sip").toString());
-        String ipNumber = (String) sip.get("voiceIP");
-        String authorizationType = (String) sip.get("authorizationType");
-        String connectionPoint = (String) sip.get("connectionPoint");
+        System.out.println("PROCESS DEF KEY" + processDefKey);
+//        firewallGroupName = "APItest_group";
 
-        int virtualNumbersCount = (int) technicalSpecifications.get("virtualNumbersCount");
+        if(processDefKey.equals("freephone")){
+            companyLatName = delegateExecution.getVariable("clientCompanyLatName").toString();
+            companyLatName.replaceAll("\\s","_");
+            ipNumber = delegateExecution.getVariable("ipNumber").toString();
+            firewallGroupName = "Acme_Packet_195.47.255.119";
+        } else if (processDefKey.equals("PBX")) {
 
-        if(connectionPoint.equals("SIP Proxy") && authorizationType.equals("SIP-транк (доступ по стат. IP)")) {
-            firewallUrl = "2.78.58.154";
-        } else if (connectionPoint.equals("SIP Proxy") && authorizationType.equals("SIP-авторизация (доступ по стат. IP c лог/пар)")) {
-            firewallUrl = "2.78.58.167";
-        } else if (connectionPoint.equals("Asterisk")) {
-            firewallUrl = "195.47.255.212";
-        } else if (connectionPoint.equals("SBC") && (virtualNumbersCount > 0 && virtualNumbersCount < 100)) {
-            firewallUrl = "195.47.255.119";
-        } else if (connectionPoint.equals("SBC") && (virtualNumbersCount > 99 && virtualNumbersCount < 1000)) {
-            firewallUrl = "195.47.255.84";
-        } else if (connectionPoint.equals("SBC") && virtualNumbersCount > 999){
-            firewallUrl = "195.47.255.97";
+            JSONObject customerInformation = new JSONObject(delegateExecution.getVariable("customerInformation").toString());
+            String companyLatNameWSpace = customerInformation.getString("ticName");
+            companyLatName = companyLatNameWSpace.replaceAll("\\s", "_");
+            companyLatName.replaceAll("\\s","_");
+            System.out.println("Company w/o spaces" + companyLatName);
+
+            JSONObject sipProtocol = new JSONObject(delegateExecution.getVariable("sipProtocol").toString());
+            System.out.println("SIP PROTOCOL -- - -" + sipProtocol);
+            String authorizationType = sipProtocol.getString("authorizationType");
+            ipNumber = sipProtocol.getString("ipVoiceTraffic");
+            JSONObject technicalSpecifications = new JSONObject(delegateExecution.getVariable("technicalSpecifications").toString());
+            String connectionPoint = technicalSpecifications.getString("connectionPoint");
+            int virtualNumbersCount = technicalSpecifications.getInt("virtualNumbersCount");
+
+            if(connectionPoint.equals("SIP Proxy") && authorizationType.equals("SIP-транк (доступ по стат. IP)")) {
+                firewallGroupName = "OPENSIP_CLIENTS_STATIC";
+            } else if (connectionPoint.equals("SIP Proxy") && authorizationType.equals("SIP-авторизация (доступ по стат. IP c лог/пар)")) {
+                firewallGroupName = "OPENSIP_CLIENTS";
+            } else if (connectionPoint.equals("Asterisk")) {
+                firewallGroupName = "SIP_Asterisk_195.47.255.212";
+            } else if (connectionPoint.equals("SBC") && (virtualNumbersCount > 0 && virtualNumbersCount < 100)) {
+                firewallGroupName = "Acme_Packet_195.47.255.119";
+            } else if (connectionPoint.equals("SBC") && (virtualNumbersCount > 99 && virtualNumbersCount < 1000)) {
+                firewallGroupName = "Acme_VoIP_195.47.255.84";
+            } else if (connectionPoint.equals("SBC") && virtualNumbersCount > 999){
+                firewallGroupName = "Acme_VoIP_195.47.255.97";
+            } else {
+                throw new Exception("UNDEFINED GROUP");
+            }
+
+        } else if (processDefKey.equals("bulksmsConnectionKAE")) {
+            companyLatName = delegateExecution.getVariable("clientCompanyLatName").toString();
+            companyLatName.replaceAll("\\s","_");
+            ipNumber = delegateExecution.getVariable("ipNumber").toString();
+            throw new Exception("Is bulksms");
+        } else if (processDefKey.equals("revolvingNumbers")){
+
+            JSONObject legalInfo = new JSONObject(delegateExecution.getVariable("legalInfo").toString());
+            companyLatName = legalInfo.getString("ticName");
+            companyLatName.replaceAll("\\s","_");
+            System.out.println("Company w/o spaces" + companyLatName);
+
+            JSONObject technicalSpecifications = new JSONObject(delegateExecution.getVariable("techSpecs").toString());
+            JSONObject sip = new JSONObject(technicalSpecifications.get("sip").toString());
+            ipNumber = sip.getString("voiceIP");
+            String authorizationType = sip.getString("authorizationType");
+            String connectionPoint = sip.getString("connectionPoint");
+
+
+            if(connectionPoint.equals("SIP Proxy") && authorizationType.equals("SIP-транк (доступ по стат. IP)")) {
+                firewallGroupName = "OPENSIP_CLIENTS_STATIC";
+            } else if (connectionPoint.equals("SIP Proxy") && authorizationType.equals("SIP-авторизация (доступ по стат. IP c лог/пар)")) {
+                firewallGroupName = "OPENSIP_CLIENTS";
+            } else if (connectionPoint.equals("Asterisk")) {
+                firewallGroupName = "SIP_Asterisk_195.47.255.212";
+            } else if (connectionPoint.equals("SBC")) {
+                firewallGroupName = "Acme_Packet_195.47.255.119";
+            } else {
+                throw new Exception("URL is NULL");
+            }
         } else {
-            throw new Exception("URL is NULL");
+            throw new Exception("Undefined process defkey" + processDefKey);
         }
-        System.out.println("URL IS ---" + firewallUrl);
 
-        firewallUrl = "192.168.202.67";
+
+        String lastUsedName = companyLatName+"_"+ipNumber;
+        String lastUsedIp = ipNumber;
 
         String sid = firewallLogin(firewallUrl);
+
+        delegateExecution.setVariable("firewallProvisioningCreateSid",sid);
         System.out.println("SID----------------------- " + sid);
-        JSONObject foundInHosts = (JSONObject) showAllHosts(sid, ipNumber, firewallUrl);
-        System.out.println("findIpInHosts return " + foundInHosts);
+        JSONObject foundInHosts = showAllHosts(sid, ipNumber, firewallUrl);
 
+        delegateExecution.setVariable("ipNumberMail",ipNumber);
+
+
+        String clientCompanyLatNameMail = companyLatName;
+        System.out.println("SHOW HOSTS -  " + foundInHosts);
         if (foundInHosts.getBoolean("foundInFirewall")) {
-            Boolean notNeedUpdateFirewall = showHost(sid,foundInHosts, firewallUrl);
-
-            foundInHosts.put("notNeedUpdateFirewall",notNeedUpdateFirewall);
-            System.out.println("notNeedUpdateFirewall return - " + notNeedUpdateFirewall);
-
+            boolean notNeedUpdateFirewall = showHost(sid,foundInHosts, firewallUrl,firewallGroupName);
+            System.out.println("Host have " + firewallGroupName+" group ? - " + notNeedUpdateFirewall);
+            String tempFirewallName = foundInHosts.getString("name");
+            delegateExecution.setVariable("firewallUid",foundInHosts.getString("uid"));
+            delegateExecution.setVariable("firewallName",tempFirewallName);
+            clientCompanyLatNameMail = tempFirewallName;
             if(!notNeedUpdateFirewall){
                 try{
-                    setHost(companyLatName, ipNumber, sid, firewallUrl);
-                    System.out.println("SETHOST----------------------- ");
+                    lastUsedName = tempFirewallName;
+
+                    setHost(tempFirewallName, ipNumber, sid, firewallUrl,firewallGroupName);
 
                     String setHostTaskId = publishHosts(sid, firewallUrl);
-                    System.out.println("PUBLISH----------------------- ");
 
                     delegateExecution.setVariable("updateFirewallTaskId",setHostTaskId);
-
+                    delegateExecution.setVariable("groupUpdated","true");
+                    System.out.println("set variable groupUpdated = true");
                     logOut(sid, firewallUrl);
-
+                    System.out.println("Host ("+ tempFirewallName+") with IP "+ipNumber + " was successfully added to group - " + firewallGroupName);
                 } catch (Exception error) {
-                    System.out.println("CATCHED EXCEPTION /SETHOST ---- " + error);
-                    publishHosts(sid, firewallUrl);
+
+//                    publishHosts(sid,firewallUrl);
+
                     logOut(sid, firewallUrl);
+                    System.out.println("Host ("+ tempFirewallName+") with IP "+ipNumber + " Catched error on update host to group - " + firewallGroupName);
+                    System.out.println(error.getMessage());
                     throw new Exception(error);
                 }
+            }else {
+                delegateExecution.setVariable("withoutWork","true");
+                logOut(sid, firewallUrl);
+                System.out.println("No need to do anything");
             }
         } else {
             try{
-                System.out.println("--------------------------------------");
-
-                addHost(companyLatName, ipNumber, sid, firewallUrl);
-                System.out.println("ADDHOST--------------------------------------");
-
+                addHost(companyLatName, ipNumber, sid, firewallUrl, firewallGroupName);
+                delegateExecution.setVariable("firewallName",companyLatName);
                 String addHostTaskId = publishHosts(sid, firewallUrl);
-                System.out.println("PUBLISH CREATE--------------------------------------");
 
                 delegateExecution.setVariable("createFirewallTaskId",addHostTaskId);
+                delegateExecution.setVariable("addNewHost","true");
+                System.out.println("set variable addNewHost = true");
                 logOut(sid, firewallUrl);
+                System.out.println("Host was successfully added - " + companyLatName + " IP - " + ipNumber + " with group " + firewallGroupName);
+
             } catch (Exception error){
-                System.out.println("CATCHED EXCEPTION /ADDHOST ---- " + error);
-                publishHosts(sid,firewallUrl);
+                System.out.println("Host was successfully added - " + companyLatName + " IP - " + ipNumber + " with group " + firewallGroupName + " CATCHED ERROR " + error.getMessage());
+
+//                publishHosts(sid,firewallUrl);
+
                 logOut(sid, firewallUrl);
+
                 throw new Exception(error);
             }
         }
+        delegateExecution.setVariable("lastUsedName",lastUsedName);
+        delegateExecution.setVariable("lastUsedIp",lastUsedIp);
+        delegateExecution.setVariable("clientCompanyLatNameMail",clientCompanyLatNameMail);
     }
 
-    private static String firewallLogin(String firewallUrl) throws IOException {
+    static String firewallLogin(String firewallUrl) throws IOException {
 
         ObjectMapper objectMapper = new ObjectMapper();
         ObjectNode objectNode = objectMapper.createObjectNode();
@@ -179,7 +253,6 @@ public class FirewallCreate implements JavaDelegate {
 
         StringBuilder responseStrBuilder = new StringBuilder();
         while ((line = bR.readLine()) != null) {
-
             responseStrBuilder.append(line);
         }
 
@@ -190,7 +263,8 @@ public class FirewallCreate implements JavaDelegate {
         return sid;
     }
 
-    private static String publishHosts(String sid, String firewallUrl) throws IOException {
+    static String publishHosts(String sid, String firewallUrl) throws Exception {
+        TimeUnit.SECONDS.sleep(4);
         URL urlRequest3 = new URL("https://"+firewallUrl+":443/web_api/publish");
         HttpURLConnection conn3 = (HttpURLConnection) urlRequest3.openConnection();
         conn3.setRequestMethod("POST");
@@ -222,14 +296,14 @@ public class FirewallCreate implements JavaDelegate {
         return createFirewallTaskId;
     }
 
-    private static void addHost(String companyLatName, String ipNumber, String sid, String firewallUrl) throws Exception {
+    static void addHost(String companyLatName, String ipNumber, String sid, String firewallUrl, String firewallGroupName) throws Exception {
+        TimeUnit.SECONDS.sleep(4);
 
-//        String jsonAddString = "{\"name\":\"" + companyLatName + "test\",\"ip-address\":\"" + ipNumber + "\",\"groups\":\"APItest_group\"}";
         ObjectMapper objectMapper = new ObjectMapper();
         ObjectNode objectNode = objectMapper.createObjectNode();
-        objectNode.put("name",companyLatName + "_test");
+        objectNode.put("name",companyLatName + "_" + ipNumber);
         objectNode.put("ip-address", ipNumber);
-//        objectNode.put("groups","APItest_group");
+        objectNode.put("groups",firewallGroupName);
 
         String jsonAddString = objectNode.toString();
         System.out.println("JSoN ADD ------------------------- " +jsonAddString);
@@ -259,7 +333,9 @@ public class FirewallCreate implements JavaDelegate {
         conn2.disconnect();
     }
 
-    private static void logOut(String sid, String firewallUrl) throws Exception {
+    static void logOut(String sid, String firewallUrl) throws Exception {
+        TimeUnit.SECONDS.sleep(4);
+
         URL urlRequestForLogout = new URL("https://"+firewallUrl+":443/web_api/logout");
         HttpURLConnection connForLogout = (HttpURLConnection) urlRequestForLogout.openConnection();
         connForLogout.setRequestMethod("POST");
@@ -288,7 +364,9 @@ public class FirewallCreate implements JavaDelegate {
         connForLogout.disconnect();
     }
 
-    private static Object showAllHosts(String sid, String ipNumber, String firewallUrl) throws Exception {
+    static JSONObject showAllHosts(String sid, String ipNumber, String firewallUrl) throws Exception {
+        TimeUnit.SECONDS.sleep(4);
+        System.out.println("show All Hosts IP - " + ipNumber);
         int total = 1000;
         JSONObject returnJson = new JSONObject();
         boolean foundInFirewall = false;
@@ -334,13 +412,16 @@ public class FirewallCreate implements JavaDelegate {
                         if (singleJson.get("ipv4-address").toString().equals(ipNumber)) {
                             returnJson = singleJson;
                             foundInFirewall = true;
+
                         }
                     }
-
-
                 }
             }
             conn.disconnect();
+
+            if(foundInFirewall) {
+                break;
+            }
         }
         returnJson.put("foundInFirewall",foundInFirewall);
         System.out.println("foundInFirewall ------------------ " + returnJson);
@@ -348,7 +429,8 @@ public class FirewallCreate implements JavaDelegate {
 
     }
 
-    private static Boolean showHost(String sid, JSONObject foundInHosts, String firewallUrl) throws IOException {
+    static Boolean showHost(String sid, JSONObject foundInHosts, String firewallUrl, String firewallGroupName) throws Exception {
+        TimeUnit.SECONDS.sleep(4);
 
         URL urlRequest = new URL("https://"+firewallUrl+":443/web_api/show-host");
         HttpURLConnection conn = (HttpURLConnection) urlRequest.openConnection();
@@ -379,21 +461,36 @@ public class FirewallCreate implements JavaDelegate {
             }
             JSONObject jsonResult = new JSONObject(response.toString());
             JSONArray jsonGroups = (JSONArray) jsonResult.get("groups");
-            System.out.println("JSONGROUPS"+jsonGroups);
-            if(jsonGroups.length()>0){
-                conn.disconnect();
-                return true;
-            } else {
-                conn.disconnect();
-                return false;
+            System.out.println("SHOW Host groups "+jsonGroups);
+            boolean result = false;
+
+            for (int j = 0; j < jsonGroups.length(); j++) {
+                JSONObject singleJson = jsonGroups.getJSONObject(j);
+                if (singleJson.get("name").toString().equalsIgnoreCase(firewallGroupName)) {
+                    conn.disconnect();
+                    result = true;
+                    break;
+                }
+            }
+                return result;
             }
         }
 
-    }
 
-    private static void setHost(String companyLatName, String ipNumber, String sid, String firewallUrl) throws Exception {
+    static void setHost(String companyLatName, String ipNumber, String sid, String firewallUrl, String firewallGroupName) throws Exception {
+        TimeUnit.SECONDS.sleep(4);
 
-        String jsonAddString = "{\"name\":\"" + companyLatName + "test\",\"ip-address\":\"" + ipNumber + "\",\"groups\":{\"add\":\"APItest_group\"}}";
+
+        ObjectMapper objectMapper = new ObjectMapper();
+        ObjectNode objectNode = objectMapper.createObjectNode();
+
+        objectNode.put("name",companyLatName);
+        objectNode.put("ip-address", ipNumber);
+
+        ObjectNode groupsJson = objectMapper.createObjectNode();
+        groupsJson.put("add",firewallGroupName);
+
+        objectNode.set("groups",groupsJson);
 
         URL urlRequest2 = new URL("https://"+firewallUrl+":443/web_api/set-host");
         HttpURLConnection conn2 = (HttpURLConnection) urlRequest2.openConnection();
@@ -404,6 +501,8 @@ public class FirewallCreate implements JavaDelegate {
         conn2.setDoOutput(true);
         conn2.setDoInput(true);
 
+        String jsonAddString = objectNode.toString();
+        System.out.println("SET HOST JSON " + jsonAddString);
         try (OutputStream os2 = conn2.getOutputStream()) {
             byte[] input2 = jsonAddString.getBytes(StandardCharsets.UTF_8);
             os2.write(input2, 0, input2.length);
