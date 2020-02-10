@@ -121,7 +121,8 @@ public class FirewallCreate implements JavaDelegate {
             companyLatName = delegateExecution.getVariable("clientCompanyLatName").toString();
             companyLatName.replaceAll("\\s","_");
             ipNumber = delegateExecution.getVariable("ipNumber").toString();
-            throw new Exception("Is bulksms");
+            firewallGroupName = "SMPP_ext_connect_2.78.58.137";
+
         } else if (processDefKey.equals("revolvingNumbers")){
 
             JSONObject legalInfo = new JSONObject(delegateExecution.getVariable("legalInfo").toString());

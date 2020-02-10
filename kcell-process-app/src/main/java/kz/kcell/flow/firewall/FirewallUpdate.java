@@ -117,8 +117,7 @@ public class FirewallUpdate implements JavaDelegate {
             companyLatName = delegateExecution.getVariable("clientCompanyLatName").toString();
             ipNumber = delegateExecution.getVariable("ipNumber").toString();
             newIpNumber = delegateExecution.getVariable("newIpNumber").toString();
-            throw new Exception("is bulksms");
-
+            firewallGroupName = "SMPP_ext_connect_2.78.58.137";
         } else if (processDefKey.equals("revolvingNumbers")) {
 
             ipNumber = delegateExecution.getVariable("ipNumberMail").toString();
