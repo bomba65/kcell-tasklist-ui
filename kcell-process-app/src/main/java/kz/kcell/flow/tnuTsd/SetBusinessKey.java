@@ -10,10 +10,7 @@ import org.springframework.context.annotation.Scope;
 import org.springframework.stereotype.Service;
 
 import java.text.SimpleDateFormat;
-import java.util.Collections;
-import java.util.Date;
-import java.util.HashMap;
-import java.util.Map;
+import java.util.*;
 import java.util.function.Supplier;
 
 @Log
@@ -40,10 +37,32 @@ public class SetBusinessKey implements JavaDelegate {
         String fe_sitename = delegateExecution.getVariable("fe_sitename").toString();
         String region_name = delegateExecution.getVariable("region_name").toString();
 
-        Integer count = delegateExecution.getProcessEngineServices().getHistoryService().createHistoricProcessInstanceQuery().processDefinitionKey("tnu_tsd_db").list().size();
+        Calendar c = Calendar.getInstance();
+        c.set(Calendar.DAY_OF_YEAR, 1);
+        c.set(Calendar.HOUR, 0);
+        c.set(Calendar.MINUTE, 0);
+        c.set(Calendar.SECOND, 0);
+
+        Date firstDate = c.getTime();
+
+        c.add(Calendar.YEAR, 1);
+
+        Date lastDate = c.getTime();
+
+        Integer count = delegateExecution.getProcessEngineServices()
+            .getHistoryService()
+            .createHistoricProcessInstanceQuery()
+            .processDefinitionKey("tnu_tsd_db")
+            .startedAfter(firstDate)
+            .startedBefore(lastDate)
+            .list()
+            .size();
 
         SimpleDateFormat sdf = new SimpleDateFormat("ddMMyy");
 
-        delegateExecution.setProcessBusinessKey(ne_sitename + "-" + fe_sitename + "(" + regionsTitle.get(region_name) + StringUtils.leftPad(String.valueOf(count+1), 4, '0') + "-" + sdf.format(new Date()) + ")");
+        String businessKey = ne_sitename + "-" + fe_sitename + "(" + regionsTitle.get(region_name) + StringUtils.leftPad(String.valueOf(count+1), 4, '0') + "-" + sdf.format(new Date()) + ")";
+        delegateExecution.setProcessBusinessKey(businessKey);
+        delegateExecution.setVariable("tnuTsdNumber", businessKey);
+
     }
 }

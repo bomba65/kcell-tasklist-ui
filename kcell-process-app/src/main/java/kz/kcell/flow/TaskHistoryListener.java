@@ -70,7 +70,8 @@ public class TaskHistoryListener implements TaskListener {
       "sdr_srr_request",
       "Revision",
       "PreparePermitDocs",
-      "Invoice"
+      "Invoice",
+      "tnu_tsd_db"
     );
 
     @Override
