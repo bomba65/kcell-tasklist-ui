@@ -18,41 +18,41 @@ public class testConnect {
                     udbConnect.setAutoCommit(false);
                     System.out.println("Connected to the database!");
 
-                    //insert ARTEFACT_TSD_EXT
-                    Long createdArtefactExtTSDId = null;
-                    String artefactExtTSDReturnStatus[] = { "TSDID" };
-                    String insertNewArtefactExtTSD = "INSERT INTO APP_APEXUDB_CAMUNDA.ARTEFACT_TSD_EXT (TSDID, ARTEFACTID, NE_LONGITUDE, NE_LATITUDE, FE_SITENAME, FE_CONSTR_TYPE, FE_ADDRESS, SURVEY_DATE, NE_AZIMUTH, NE_ANTENNADIAMETER, NE_SUSPENSIONHEIGHT, NE_TXRF_FREQUENCY, FE_AZIMUTH, FE_ANTENNADIAMETER, FE_SUSPENSIONHEIGHT, FE_TXRF_FREQUENCY, COMMENTS, INSERT_DATE, INSERT_PERSON) VALUES (ARTEFACT_TSD_SEQ.nextval, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)";
-                    PreparedStatement newArtefactExtTSDPreparedStatement = udbConnect.prepareStatement(insertNewArtefactExtTSD, artefactExtTSDReturnStatus);
-
-                    int i = 1;
-                    System.out.println("newArtefactExtTSDPreparedStatement.setString");
-                    newArtefactExtTSDPreparedStatement.setLong(i++, 1234); // ARTEFACTID
-                    newArtefactExtTSDPreparedStatement.setString(i++, "N 54"); // NE_LONGITUDE
-                    newArtefactExtTSDPreparedStatement.setString(i++, "E 54"); // NE_LATITUDE
-                    newArtefactExtTSDPreparedStatement.setString(i++, "qweSitte1"); // FE_SITENAME
-                    newArtefactExtTSDPreparedStatement.setLong(i++, Integer.parseInt("1")); // FE_CONSTR_TYPE
-                    newArtefactExtTSDPreparedStatement.setString(i++, "fe_address"); // FE_ADDRESS
-                    newArtefactExtTSDPreparedStatement.setDate(i++,new java.sql.Date(new Date().getTime())); // SURVEY_DATE (fe_survey_date)
-                    newArtefactExtTSDPreparedStatement.setLong(i++, Integer.parseInt("1")); // NE_AZIMUTH
-                    newArtefactExtTSDPreparedStatement.setFloat(i++, Float.parseFloat("1")); // NE_ANTENNADIAMETER
-                    newArtefactExtTSDPreparedStatement.setLong(i++, 1); // NE_SUSPENSIONHEIGHT
-                    newArtefactExtTSDPreparedStatement.setLong(i++, Integer.parseInt("1")); // NE_TXRF_FREQUENCY
-                    newArtefactExtTSDPreparedStatement.setLong(i++, Integer.parseInt("1")); // FE_AZIMUTH
-                    newArtefactExtTSDPreparedStatement.setFloat(i++, Float.parseFloat("1")); // FE_ANTENNADIAMETER
-                    newArtefactExtTSDPreparedStatement.setLong(i++, Integer.parseInt("2")); // FE_SUSPENSIONHEIGHT
-                    newArtefactExtTSDPreparedStatement.setLong(i++, Integer.parseInt("2")); // FE_TXRF_FREQUENCY
-                    newArtefactExtTSDPreparedStatement.setString(i++, "fe_comment"); // COMMENTS
-                    newArtefactExtTSDPreparedStatement.setDate(i++, new java.sql.Date(new Date().getTime())); // INSERT_DATE
-                    newArtefactExtTSDPreparedStatement.setString(i++, "starter"); // INSERT_PERSON
-                    System.out.println("newArtefactExtTSDPreparedStatement.executeUpdate()");
-                    newArtefactExtTSDPreparedStatement.executeUpdate();
-                    System.out.println("successfull insert to database!");
-
-                    ResultSet artefactExtTSDGeneratedIdResultSet = newArtefactExtTSDPreparedStatement.getGeneratedKeys();
-                    artefactExtTSDGeneratedIdResultSet.next();
-                    createdArtefactExtTSDId = artefactExtTSDGeneratedIdResultSet.getLong(1);
-                    System.out.println("createdArtefactExtTSDId:");
-                    System.out.println(createdArtefactExtTSDId);
+//                    //insert ARTEFACT_TSD_EXT
+//                    Long createdArtefactExtTSDId = null;
+//                    String artefactExtTSDReturnStatus[] = { "TSDID" };
+//                    String insertNewArtefactExtTSD = "INSERT INTO APP_APEXUDB_CAMUNDA.ARTEFACT_TSD_EXT (TSDID, ARTEFACTID, NE_LONGITUDE, NE_LATITUDE, FE_SITENAME, FE_CONSTR_TYPE, FE_ADDRESS, SURVEY_DATE, NE_AZIMUTH, NE_ANTENNADIAMETER, NE_SUSPENSIONHEIGHT, NE_TXRF_FREQUENCY, FE_AZIMUTH, FE_ANTENNADIAMETER, FE_SUSPENSIONHEIGHT, FE_TXRF_FREQUENCY, COMMENTS, INSERT_DATE, INSERT_PERSON) VALUES (ARTEFACT_TSD_SEQ.nextval, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)";
+//                    PreparedStatement newArtefactExtTSDPreparedStatement = udbConnect.prepareStatement(insertNewArtefactExtTSD, artefactExtTSDReturnStatus);
+//
+//                    int i = 1;
+//                    System.out.println("newArtefactExtTSDPreparedStatement.setString");
+//                    newArtefactExtTSDPreparedStatement.setLong(i++, 1234); // ARTEFACTID
+//                    newArtefactExtTSDPreparedStatement.setString(i++, "N 54"); // NE_LONGITUDE
+//                    newArtefactExtTSDPreparedStatement.setString(i++, "E 54"); // NE_LATITUDE
+//                    newArtefactExtTSDPreparedStatement.setString(i++, "qweSitte1"); // FE_SITENAME
+//                    newArtefactExtTSDPreparedStatement.setLong(i++, Integer.parseInt("1")); // FE_CONSTR_TYPE
+//                    newArtefactExtTSDPreparedStatement.setString(i++, "fe_address"); // FE_ADDRESS
+//                    newArtefactExtTSDPreparedStatement.setDate(i++,new java.sql.Date(new Date().getTime())); // SURVEY_DATE (fe_survey_date)
+//                    newArtefactExtTSDPreparedStatement.setLong(i++, Integer.parseInt("1")); // NE_AZIMUTH
+//                    newArtefactExtTSDPreparedStatement.setFloat(i++, Float.parseFloat("1")); // NE_ANTENNADIAMETER
+//                    newArtefactExtTSDPreparedStatement.setLong(i++, 1); // NE_SUSPENSIONHEIGHT
+//                    newArtefactExtTSDPreparedStatement.setLong(i++, Integer.parseInt("1")); // NE_TXRF_FREQUENCY
+//                    newArtefactExtTSDPreparedStatement.setLong(i++, Integer.parseInt("1")); // FE_AZIMUTH
+//                    newArtefactExtTSDPreparedStatement.setFloat(i++, Float.parseFloat("1")); // FE_ANTENNADIAMETER
+//                    newArtefactExtTSDPreparedStatement.setLong(i++, Integer.parseInt("2")); // FE_SUSPENSIONHEIGHT
+//                    newArtefactExtTSDPreparedStatement.setLong(i++, Integer.parseInt("2")); // FE_TXRF_FREQUENCY
+//                    newArtefactExtTSDPreparedStatement.setString(i++, "fe_comment"); // COMMENTS
+//                    newArtefactExtTSDPreparedStatement.setDate(i++, new java.sql.Date(new Date().getTime())); // INSERT_DATE
+//                    newArtefactExtTSDPreparedStatement.setString(i++, "starter"); // INSERT_PERSON
+//                    System.out.println("newArtefactExtTSDPreparedStatement.executeUpdate()");
+//                    newArtefactExtTSDPreparedStatement.executeUpdate();
+//                    System.out.println("successfull insert to database!");
+//
+//                    ResultSet artefactExtTSDGeneratedIdResultSet = newArtefactExtTSDPreparedStatement.getGeneratedKeys();
+//                    artefactExtTSDGeneratedIdResultSet.next();
+//                    createdArtefactExtTSDId = artefactExtTSDGeneratedIdResultSet.getLong(1);
+//                    System.out.println("createdArtefactExtTSDId:");
+//                    System.out.println(createdArtefactExtTSDId);
 
 //                    //insert NCP
 //                    Long ncpCreatedId = null;
@@ -242,18 +242,33 @@ public class testConnect {
 //
 //                    System.out.println(_SET_NCP_STATUS);
 //                    //UPDATE NCP
-//                    String UPDATENCPstatus = "update NCP_CREATION set NCP_STATUS = ?, NCP_STATUS_DATE = ? where NCPID = ?";
-//                    PreparedStatement updateNCPstatusPreparedStatement = udbConnect.prepareStatement(UPDATENCPstatus);
-//
-//                    i = 1;
-//                    System.out.println("_SET_NCP_STATUS preparedStatement SQL UPDATE VALUES");
-//                    // set values to update
-//                    updateNCPstatusPreparedStatement.setLong(i++, Integer.parseInt(_SET_NCP_STATUS)); // NCP_status
-//                    updateNCPstatusPreparedStatement.setDate(i++, new java.sql.Date(new Date().getTime())); // NCP_STATUS_DATE
-//                    updateNCPstatusPreparedStatement.setString(i++, ncpId); // NCPID
-//
-//                    updateNCPstatusPreparedStatement.executeUpdate();
-//                    System.out.println("successfull NCP_STATUS updated!");
+                    String UPDATE_TSD_EXT = "UPDATE ARTEFACT_TSD_EXT SET NE_LONGITUDE = ?, NE_LATITUDE = ?, FE_SITENAME = ?, FE_CONSTR_TYPE = ?, FE_ADDRESS = ?, SURVEY_DATE = ?, NE_AZIMUTH = ?, NE_ANTENNADIAMETER = ?, NE_SUSPENSIONHEIGHT = ?, NE_TXRF_FREQUENCY = ?, FE_AZIMUTH = ?, FE_ANTENNADIAMETER = ?, FE_SUSPENSIONHEIGHT = ?, FE_TXRF_FREQUENCY = ?, COMMENTS = ?, UPDATE_DATE = ?, UPDATE_PERSON = ? WHERE TSDID = ?";
+                    PreparedStatement updateTSDextPreparedStatement = udbConnect.prepareStatement(UPDATE_TSD_EXT);
+
+                    int i = 1;
+                    System.out.println("_SET_NCP_STATUS preparedStatement SQL UPDATE VALUES");
+                    // set values to update
+                    updateTSDextPreparedStatement.setString(i++, "cn_longitude"); // NE_LONGITUDE
+                    updateTSDextPreparedStatement.setString(i++, "cn_latitude"); // NE_LATITUDE
+                    updateTSDextPreparedStatement.setString(i++, "fe_sitename"); // FE_SITENAME
+                    updateTSDextPreparedStatement.setLong(i++, Integer.parseInt("1")); // FE_CONSTR_TYPE
+                    updateTSDextPreparedStatement.setString(i++, "fe_address"); // FE_ADDRESS
+                    updateTSDextPreparedStatement.setDate(i++, new java.sql.Date(new Date().getTime())); // SURVEY_DATE (fe_survey_date)
+                    updateTSDextPreparedStatement.setLong(i++, Integer.parseInt("1")); // NE_AZIMUTH
+                    updateTSDextPreparedStatement.setFloat(i++, Float.parseFloat("1")); // NE_ANTENNADIAMETER
+                    updateTSDextPreparedStatement.setLong(i++, 2); // NE_SUSPENSIONHEIGHT
+                    updateTSDextPreparedStatement.setLong(i++, Integer.parseInt("1")); // NE_TXRF_FREQUENCY
+                    updateTSDextPreparedStatement.setLong(i++, Integer.parseInt("2")); // FE_AZIMUTH
+                    updateTSDextPreparedStatement.setFloat(i++, Float.parseFloat("2")); // FE_ANTENNADIAMETER
+                    updateTSDextPreparedStatement.setLong(i++, Integer.parseInt("2")); // FE_SUSPENSIONHEIGHT
+                    updateTSDextPreparedStatement.setLong(i++, Integer.parseInt("1")); // FE_TXRF_FREQUENCY
+                    updateTSDextPreparedStatement.setString(i++, "fe_comment"); // COMMENTS
+                    updateTSDextPreparedStatement.setDate(i++, new java.sql.Date(new Date().getTime())); // INSERT_DATE
+                    updateTSDextPreparedStatement.setString(i++, "starter"); // INSERT_PERSON
+                    updateTSDextPreparedStatement.setLong(i++, 50786); // TSDID
+
+                    updateTSDextPreparedStatement.executeUpdate();
+                    System.out.println("successfull NCP_STATUS updated!");
 
 //                    //UPDATE ARTEFACT
 //                    String UpdateArtefactCurrentState = "update ARTEFACT_CURRENT_STATE set ncpid = ?, cand_status_person = null, longitude = null, latitude = null, rbs_type = null, bsc = null,band = null,rbs_location = null, construction_height = null, construction_type = null, address = null, contact_person = null, comments = null, pl_comments = null where ARTEFACTID = ?";

@@ -27,6 +27,7 @@ define(['./../module'], function(module){
                         scope.districtList = _.uniqBy(scope.dictionary.addresses, 'district').map( (e, index) => { return {"name" : e.district, "id" : index} });
                         scope.filteredDistricts = scope.districtList;
                         scope.filteredDistrictsInCAI = scope.districtList;
+                        scope.alphabet = 'abcdefghijklmnopqrstuvwxyz'.split('');
 						
 						scope.leasingCandidate.addressString = '';
 						scope.leasingCandidate.cellAntenna.addressString = '';
