@@ -101,9 +101,9 @@ public class FirewallCreate implements JavaDelegate {
             String connectionPoint = technicalSpecifications.getString("connectionPoint");
             int virtualNumbersCount = technicalSpecifications.getInt("virtualNumbersCount");
 
-            if(connectionPoint.equals("SIP Proxy") && authorizationType.equals("SIP-транк (доступ по стат. IP)")) {
+            if(connectionPoint.equals("SIP Proxy") && authorizationType.equals("SIP-транк(доступ по стат. IP)")) {
                 firewallGroupName = "OPENSIP_CLIENTS_STATIC";
-            } else if (connectionPoint.equals("SIP Proxy") && authorizationType.equals("SIP-авторизация (доступ по стат. IP c лог/пар)")) {
+            } else if (connectionPoint.equals("SIP Proxy") && authorizationType.equals("SIP-авторизация(доступ по стат. IP c лог/пар)")) {
                 firewallGroupName = "OPENSIP_CLIENTS";
             } else if (connectionPoint.equals("Asterisk")) {
                 firewallGroupName = "SIP_Asterisk_195.47.255.212";
@@ -137,9 +137,9 @@ public class FirewallCreate implements JavaDelegate {
             String connectionPoint = sip.getString("connectionPoint");
 
 
-            if(connectionPoint.equals("SIP Proxy") && authorizationType.equals("SIP-транк (доступ по стат. IP)")) {
+            if(connectionPoint.equals("SIP Proxy") && authorizationType.equals("SIP-транк(доступ по стат. IP)")) {
                 firewallGroupName = "OPENSIP_CLIENTS_STATIC";
-            } else if (connectionPoint.equals("SIP Proxy") && authorizationType.equals("SIP-авторизация (доступ по стат. IP c лог/пар)")) {
+            } else if (connectionPoint.equals("SIP Proxy") && authorizationType.equals("SIP-авторизация(доступ по стат. IP c лог/пар)")) {
                 firewallGroupName = "OPENSIP_CLIENTS";
             } else if (connectionPoint.equals("Asterisk")) {
                 firewallGroupName = "SIP_Asterisk_195.47.255.212";
