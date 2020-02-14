@@ -254,7 +254,7 @@ public class FirewallUpdate implements JavaDelegate {
                 lastUsedName = companyLatName + "_" + ipNumber;
                 delegateExecution.setVariable("addNewHost","true");
                 System.out.println("set variable addNewHost = true");
-                newClientCompanyLatNameMail=companyLatName;
+                newClientCompanyLatNameMail=companyLatName + "_" + newIpNumber;
                 delegateExecution.setVariable("createFirewallTaskId", addHostTaskId);
 
                 logOut(sid, firewallUrl);

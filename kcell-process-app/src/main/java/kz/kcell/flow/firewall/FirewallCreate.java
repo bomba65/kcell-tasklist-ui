@@ -165,7 +165,7 @@ public class FirewallCreate implements JavaDelegate {
         delegateExecution.setVariable("ipNumberMail",ipNumber);
 
 
-        String clientCompanyLatNameMail = companyLatName;
+        String clientCompanyLatNameMail = companyLatName + "_" + ipNumber;
         System.out.println("SHOW HOSTS -  " + foundInHosts);
         if (foundInHosts.getBoolean("foundInFirewall")) {
             boolean notNeedUpdateFirewall = showHost(sid,foundInHosts, firewallUrl,firewallGroupName);
