@@ -10,8 +10,6 @@ def newClientCompanyLatNameMail = execution.getVariable("newClientCompanyLatName
 def binding = [
         "processName": processName,
         "companyLatName": companyLatName,
-        "companyIp" :companyIp,
-        "companyNewIp" : companyNewIp,
         "newClientCompanyLatNameMail":newClientCompanyLatNameMail
 ]
 def template = '''\
@@ -27,7 +25,7 @@ html(lang:'en') {
         p('<b>Здравствуйте</b>')
         p('<b>' + processName + '</b>.')
         newLine()
-        p('Сетевой объект ' + companyLatName +'_' + companyIp + ' был заменен на ' + newClientCompanyLatNameMail + '_' + companyNewIp)
+        p('Сетевой объект ' + companyLatName + ' был заменен на ' + newClientCompanyLatNameMail)
         newLine()
         p('Данное сообщение было сгенерировано автоматически')
         newLine()

@@ -4,12 +4,10 @@ import groovy.text.markup.TemplateConfiguration
 def processName = execution.getProcessEngineServices().getRepositoryService().getProcessDefinition(execution.getProcessDefinitionId()).getName()
 //def ccMails = execution.getVariable("ccMails")
 def companyLatName = execution.getVariable("clientCompanyLatNameMail")
-def companyIp = execution.getVariable("ipNumberMail")
 
 def binding = [
         "processName": processName,
-        "companyLatName": companyLatName,
-        "companyIp" :companyIp,
+        "companyLatName": companyLatName
 ]
 def template = '''\
 yieldUnescaped '<!DOCTYPE html>'
@@ -24,7 +22,7 @@ html(lang:'en') {
         p('<b>Здравствуйте</b>')
         p('<b>' + processName + '</b>.')
         newLine()
-        p('Создан новый сетевой объект <Заявка на подключение ' + companyLatName +'_' + companyIp + '>.')
+        p('Создан новый сетевой объект <Заявка на подключение ' + companyLatName + '>.')
         newLine()
         p('Данное сообщение было сгенерировано автоматически')
         newLine()
