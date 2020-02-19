@@ -107,7 +107,7 @@
                     }
                 };
                 console.log($scope.newContractInfo)
-                $scope.contractInformationsFE.push($scope.newContractInfo)
+                $scope.contractInformationsFE.push(JSON.parse(JSON.stringify($scope.newContractInfo)))
                 $scope.dictionary = {};
                 $http.get('/api/leasingCatalogs?version=1').then(
                     function(result){
@@ -214,6 +214,51 @@
                 });
             }
 
+            $scope.getContract = function(contractId, index){
+                $http({
+                    method: 'GET',
+                    url: '/camunda/leasing/contract/' + contractId,
+                    transformResponse: []
+                }).then(function (response) {
+                    let json = JSON.parse(response.data)
+                    if(json.length < 1) {
+                        console.log('Not Found')
+                    } else {
+                        const fc = json[0]
+                        console.log(fc)
+                        $scope.contractInformationsFE[index].ct_rent = fc.RENTSUM
+                        $scope.contractInformationsFE[index].ct_bin = fc.INN ? parseInt(fc.INN) : fc.RNN ? parseInt(fc.RNN) : ''
+                        $scope.contractInformationsFE[index].ct_iban = fc.IBAN
+                        $scope.contractInformationsFE[index].ct_vat = fc.RENTSUM_VAT
+                        $scope.contractInformationsFE[index].ct_checkvat = fc.VAT && fc.VAT === 'with' ? 'Yes' : 'No'
+                        $scope.contractInformationsFE[index].ct_vendor_sap = fc.VENDOR_SAP_NO
+                        // $scope.contractInformationsFE[index].ct_rent = fc.OBLAST_VILLAGEID
+                        $scope.contractInformationsFE[index].ct_contract_sap = fc.CONTRACT_SAP_NO
+                        // $scope.contractInformationsFE[index].ct_rent = fc.USERNAME
+                        $scope.contractInformationsFE[index].ct_contact_phone = fc.CONTACTPHONE
+                        // $scope.contractInformationsFE[index].ct_contract_type = fc.CONTRACTTYPE
+                        // $scope.contractInformationsFE[index].ct_agreement_type = fc.AA_TYPE
+                        $scope.contractInformationsFE[index].ct_legal_name = fc.LEGALNAME
+                        $scope.contractInformationsFE[index].ct_acceptance_act_date = new Date(fc.AREA_ACT_ACCEPT_DATE)
+                        $scope.contractInformationsFE[index].ct_contract_start_date = new Date(fc.CONTRACTSTARTDATE)
+                        $scope.contractInformationsFE[index].ct_contract_end_date = new Date(fc.CONTRACTENDDATE)
+                        // $scope.contractInformationsFE[index].ct_payment_period = fc.PAYMENTPERIOD
+                        // $scope.contractInformationsFE[index].ct_payment_way = fc.PAYMENTWAY
+
+                        // $scope.contractInformationsFE[index].ct_rent = fc.LEGALADDRESS
+                        $scope.contractInformationsFE[index].ct_autoprolongation = fc.AUTOPROLONGATION && fc.AUTOPROLONGATION === 'yes' ? 'Yes' : 'No'
+                        // $scope.contractInformationsFE[index].ct_rent = fc.INCOMINGDATE
+                        $scope.contractInformationsFE[index].ct_contact_person = fc.CONTACTPERSON
+                        $scope.contractInformationsFE[index].ct_executor = fc.CONTRACT_EXECUTOR
+                        $scope.contractInformationsFE[index].ct_cid = fc.CID
+
+                    }
+                    console.log()
+                }, function(error){
+                    console.log(error.data);
+                });
+            }
+
             $scope.filterDistrictAfterSelectContractInfoObl = function (addr_oblast, $index) {
                 console.log($scope.contractInformationsFE[$index]);
                 $scope.contractInformationsFE[$index].address.addr_oblast = addr_oblast
@@ -282,23 +327,26 @@
                 <div class="form-group">
                     <label class="col-sm-3 control-label">*Contract ID:</label>
                     <div class="col-sm-8">
-                        <input class="form-control" id="cci.ct_contractid" name="cci.ct_contractid" ng-model="cci.ct_contractid" ng-required="true">
+                        <input class="form-control" id="{{'cci.' + $index}}.ct_contractid" name="cci.ct_contractid" ng-model="cci.ct_contractid" ng-required="!cci.ct_existing_contract" ng-disabled="cci.ct_existing_contract">
                         <label class="error" ng-show="kcell_form.cci.ct_contractid.$error.required && ( kcell_form.cci.ct_contractid.$touched || view.submitted)">Required field</label>
                     </div>
                 </div>
                 <div class="form-group">
                     <div class="col-sm-12">
                         <div class="form-check">
-                            <input type="checkbox" ng-model="cci.ct_existing_contract" class="form-check-input" id="cci.ct_existing_contract">
-                            <label class="form-check-label" for="cci.ct_existing_contract">Existing contract</label>
+                            <input type="checkbox" ng-model="cci.ct_existing_contract" class="form-check-input" id="{{'cci.' + $index}}.ct_existing_contract">
+                            <label class="form-check-label" for="{{'cci.' + $index}}.ct_existing_contract">Existing contract</label>
                         </div>
                     </div>
                 </div>
-                <div class="form-group">
-                    <label class="col-sm-3 control-label">Contract ID old:</label>
-                    <div class="col-sm-8">
-                        <input class="form-control" ng-disabled="!cci.ct_existing_contract"  id="cci.ct_contractid_old" name="cci.ct_contractid_old" ng-model="cci.ct_contractid_old" ng-required="cci.ct_existing_contract">
+                <div class="form-group" ng-hide="!cci.ct_existing_contract" >
+                    <label class="col-sm-3 control-label">Existing Contract ID:</label>
+                    <div class="col-sm-6">
+                        <input class="form-control" id="{{'cci.' + $index}}.ct_contractid_old" name="cci.ct_contractid_old" ng-model="cci.ct_contractid_old" ng-required="cci.ct_existing_contract">
                         <label class="error" ng-show="kcell_form.cci.ct_contractid_old.$error.required && ( kcell_form.cci.ct_contractid_old.$touched || view.submitted)">Required field</label>
+                    </div>
+                    <div class="col-sm-2">
+                        <input type="button" ng-click="getContract(cci.ct_contractid_old, $index)" value="Import Contract" class="btn btn-primary pull-right">
                     </div>
                 </div>
 
@@ -309,7 +357,7 @@
                             class="form-control"
                             placeholder="справочник Additional Agreement type"
                             ng-disabled="!cci.ct_existing_contract"
-                            id="cci.ct_agreement_type"
+                            id="{{'cci.' + $index}}.ct_agreement_type"
                             name="cci.ct_agreement_type"
                             ng-model="cci.ct_agreement_type"
                             ng-options="type.id as type.name for type in dictionary.additionalAgreementType"
@@ -325,7 +373,7 @@
                 <div class="form-group">
                     <label class="col-sm-3 control-label">Sitename:</label>
                     <div class="col-sm-8">
-                        <input class="form-control" id="cci.ct_sitename" name="cci.ct_sitename" ng-model="cci.ct_sitename" required>
+                        <input class="form-control" id="{{'cci.' + $index}}.ct_sitename" name="cci.ct_sitename" ng-model="cci.ct_sitename" required>
                         <label class="error" ng-show="kcell_form.cci.ct_sitename.$error.required && ( kcell_form.cci.ct_sitename.$touched || view.submitted)">Required field</label>
                     </div>
                 </div>
@@ -333,7 +381,7 @@
                     <label class="col-sm-3 control-label">Project type:</label>
                     <div class="col-sm-8" class="form-check">
                         <select class="form-control"
-                            id="cci.ct_project_type"
+                            id="{{'cci.' + $index}}.ct_project_type"
                             placeholder="Select Project type"
                             name="cci.ct_project_type"
                             ng-model="cci.ct_project_type"
@@ -365,7 +413,7 @@
                     <label class="col-sm-3 control-label">Contract Executor:</label>
                     <div class="col-sm-8" class="form-check">
                         <select class="form-control"
-                            id="cci.ct_executor"
+                            id="{{'cci.' + $index}}.ct_executor"
                             name="cci.ct_executor"
                             placeholder="Select Executor"
                             ng-model="cci.ct_executor"
@@ -557,11 +605,11 @@
                     <label class="col-sm-3 control-label">Need VAT</label>
                     <div class="col-sm-8">
                         <label class="radio-inline">
-                            <input type="radio" name="ct_checkvat" ng-model="cci.ct_checkvat"
+                            <input type="radio" name="ct_checkvat" id="cci.{{$index}}ct_checkvatTrue" ng-model="cci.ct_checkvat"
                                     value="Yes"> Yes
                         </label>
                         <label class="radio-inline">
-                            <input type="radio" name="ct_checkvat" ng-model="cci.ct_checkvat"
+                            <input type="radio" name="ct_checkvat" id="cci.{{$index}}ct_checkvatFalse" ng-model="cci.ct_checkvat"
                                     value="No"> No
                         </label>
                         <label class="error"
@@ -690,11 +738,11 @@
                     <label class="col-sm-3 control-label">Autoprolongation</label>
                     <div class="col-sm-8">
                         <label class="radio-inline">
-                            <input type="radio" name="Autoprolongation" ng-model="cci.ct_autoprolongation"
+                            <input type="radio" name="Autoprolongation" id="cci.{{$index}}ct_autoprolongationTrue" ng-model="cci.ct_autoprolongation"
                                     value="Yes"> Yes
                         </label>
                         <label class="radio-inline">
-                            <input type="radio" name="Autoprolongation" ng-model="cci.ct_autoprolongation"
+                            <input type="radio" name="Autoprolongation" id="cci.{{$index}}ct_autoprolongationFalse" ng-model="cci.ct_autoprolongation"
                                     value="No"> No
                         </label>
                         <label class="error"
@@ -706,11 +754,11 @@
                     <label class="col-sm-3 control-label">IFRS 16</label>
                     <div class="col-sm-8">
                         <label class="radio-inline">
-                            <input type="radio" name="ct_ifrs16" ng-model="cci.ct_ifrs16"
+                            <input type="radio" name="ct_ifrs16" id="cci.{{$index}}ct_ifrs16True" ng-model="cci.ct_ifrs16"
                                     value="Yes"> Yes
                         </label>
                         <label class="radio-inline">
-                            <input type="radio" name="ct_ifrs16" ng-model="cci.ct_ifrs16"
+                            <input type="radio" name="ct_ifrs16" id="cci.{{$index}}ct_ifrs16False" ng-model="cci.ct_ifrs16"
                                     value="No"> No
                         </label>
                         <label class="error"
@@ -727,7 +775,7 @@
 <!--            </button>-->
 <!--        </span>-->
         <div class="col-sm-12">
-            <input type="button" ng-click="contractInformationsFE.push(newContractInfo)" value="Add New Contract" class="btn btn-primary pull-right">
+            <input type="button" ng-click="contractInformationsFE.push($scope.newContractInfo)" value="Add New Contract" class="btn btn-primary pull-right">
         </div>
     <iframe id="fileDownloadIframe" style="display:none;"></iframe>
 
@@ -755,7 +803,7 @@
             <label class="radio-inline">
                 <input type="radio" name="uploadCopyOfOwnerSignedLeaseContractTaskResult" ng-model="uploadCopyOfOwnerSignedLeaseContractTaskResult" value="refusal" required>REFUSAL
             </label>
-            <label class="error" ng-show="kcell_form.uploadCopyOfOwnerSignedLeaseContractTaskResult.$error.required && ( kcell_form.uploadCopyOfOwnerSignedLeaseContractTaskResult.$touched || view.submitted)">Required field</label>
+            <label class="error" ng-show="kcell_form.uploadCopyOfOwnerSignedLeaseContractTaskResult.$error.requir && ( kcell_form.uploadCopyOfOwnerSignedLeaseContractTaskResult.$touched || view.submitted)">Required field</label>
         </div>
     </div>
 

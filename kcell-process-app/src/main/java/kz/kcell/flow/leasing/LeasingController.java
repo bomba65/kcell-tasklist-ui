@@ -1,19 +1,28 @@
 package kz.kcell.flow.leasing;
 
+import io.minio.errors.*;
 import kz.kcell.flow.files.Minio;
 import lombok.extern.java.Log;
 import org.camunda.bpm.engine.IdentityService;
 import org.camunda.bpm.engine.RuntimeService;
 import org.camunda.bpm.engine.TaskService;
+import org.camunda.bpm.engine.impl.util.json.JSONArray;
+import org.camunda.bpm.engine.impl.util.json.JSONObject;
 import org.camunda.spin.plugin.variable.SpinValues;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
+import org.xmlpull.v1.XmlPullParserException;
 
 import javax.script.*;
+import javax.servlet.http.HttpServletRequest;
 import java.io.*;
+import java.security.InvalidKeyException;
+import java.security.NoSuchAlgorithmException;
+import java.sql.*;
 import java.util.Scanner;
+import java.util.TimeZone;
 
 @RestController
 @RequestMapping("/leasing")
@@ -42,6 +51,99 @@ public class LeasingController {
         this.minioClient = minioClient;
     }
 
+
+    @RequestMapping(value = "/contract/{contactId}", method = RequestMethod.GET)
+    @ResponseBody
+    public ResponseEntity<String> getPresignedGetObjectUrl(@PathVariable("contactId") String contactId, HttpServletRequest request) throws InvalidEndpointException, InvalidPortException, InvalidKeyException, InvalidBucketNameException, NoSuchAlgorithmException, InsufficientDataException, NoResponseException, ErrorResponseException, InternalException, InvalidExpiresRangeException, IOException, XmlPullParserException, ClassNotFoundException, SQLException {
+        TimeZone timeZone = TimeZone.getTimeZone("Asia/Almaty");
+        TimeZone.setDefault(timeZone);
+        Class.forName ("oracle.jdbc.OracleDriver");
+        Connection udbConnect = DriverManager.getConnection(
+            "jdbc:oracle:thin:@//sc2-appcl010406:1521/apexudb", "app_apexudb_camunda", "p28zt#7C");
+        try {
+            if (udbConnect != null) {
+                udbConnect.setAutoCommit(false);
+                int i;
+
+                String SelectContract = "select c.cid,\n" +
+                    "       c.RENTSUM,\n" +
+                    "       c.rentsum_vat,\n" +
+                    "       c.contractid,\n" +
+                    "       c.incomingdate,\n" +
+                    "       c.incomingweek,\n" +
+                    "       c.contracttype,\n" +
+                    "       c.powersupply,\n" +
+                    "       c.legaltype,\n" +
+                    "       c.legalname,\n" +
+                    "       c.legaladdress,\n" +
+                    "       c.contactperson,\n" +
+                    "       c.contactphone,\n" +
+                    "       c.access_status,\n" +
+                    "       c.contract_sap_no,\n" +
+                    "       c.vendor_sap_no,\n" +
+                    "       c.contract_executor,\n" +
+                    "       c.vat,\n" +
+                    "       c.needvat,\n" +
+                    "       c.paymentperiod,\n" +
+                    "       c.paymentway,\n" +
+                    "       c.contractstartdate,\n" +
+                    "       c.contractenddate,\n" +
+                    "       c.autoprolongation,\n" +
+                    "       c.username,\n" +
+                    "       c.oblast_villageid,\n" +
+                    "       c.area_act_accept_date,\n" +
+                    "       c.RNN,\n" +
+                    "       c.INN,\n" +
+                    "       c.IBAN,\n" +
+                    "       ca.aa_type,\n" +
+                    "       ca.autoprolongation\n" +
+                    "       from contracts c\n" +
+                    "  left join contract_aa ca on c.CID = ca.CID\n" +
+                    "  left join CONTRACT_AA_STATUS cas on cas.AAID = ca.AAID and cas.statusid != 40 where c.contractid = ?";
+                PreparedStatement selectContractPreparedStatement = udbConnect.prepareStatement(SelectContract);
+
+                i = 1;
+                System.out.println("get contracts...");
+                selectContractPreparedStatement.setString(i++, contactId); // contactId
+                ResultSet resultSet = selectContractPreparedStatement.executeQuery();
+
+                JSONArray json = new JSONArray();
+                ResultSetMetaData rsmd = resultSet.getMetaData();
+                System.out.println(rsmd.getColumnCount());
+                while(resultSet.next()) {
+                    System.out.println(rsmd.getColumnCount());
+                    int numColumns = rsmd.getColumnCount();
+                    JSONObject obj = new JSONObject();
+                    for (int j=1; j<=numColumns; j++) {
+                        String column_name = rsmd.getColumnName(j);
+                        obj.put(column_name, resultSet.getObject(column_name));
+                    }
+                    json.put(obj);
+                }
+
+                udbConnect.commit();
+                udbConnect.close();
+                System.out.println("udbConnection closed!");
+                String res = "oki-doki:" + json;
+                System.out.println(res);
+                return ResponseEntity.ok(json.toString());
+            } else {
+                udbConnect.close();
+                JSONArray json = new JSONArray();
+                JSONObject obj = new JSONObject();
+                obj.put("result", "not found");
+                json.put(obj);
+                System.out.println("Failed to make connection!");
+                return ResponseEntity.ok("Failed to make connection!");
+            }
+        } catch (Exception e) {
+            udbConnect.rollback();
+            udbConnect.close();
+            System.out.println("connection Exception!");
+            System.out.println(e);
+            throw e;
+        }
+    }
 
     @RequestMapping(value = "/rrfile/create", method = RequestMethod.POST, produces={"plain/text"}, consumes="application/json")
     @ResponseBody
