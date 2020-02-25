@@ -169,6 +169,12 @@ public class CreateSMSGWClient implements JavaDelegate {
                     if (provider.equals("MMS") && smsServiceType.equals("MO")) {
                         accountConfigId = 5;
                     }
+
+                    if (provider.equals("KIT") && smsServiceType.equals("MT")) {
+                        accountConfigId = 7; }
+
+                    if (provider.equals("KIT") && smsServiceType.equals("MO")) {
+                        accountConfigId = 6; }
                 }
 
                 if (accountConfigId == null) {
