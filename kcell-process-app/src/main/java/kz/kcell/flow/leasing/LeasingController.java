@@ -66,6 +66,9 @@ public class LeasingController {
                 int i;
 
                 String SelectContract = "select c.cid,\n" +
+                    "       cas.action_id,\n" +
+                    "       csr.csrelid,\n" +
+                    "       ca.aaid,\n" +
                     "       c.RENTSUM,\n" +
                     "       c.rentsum_vat,\n" +
                     "       c.contractid,\n" +
@@ -96,10 +99,13 @@ public class LeasingController {
                     "       c.INN,\n" +
                     "       c.IBAN,\n" +
                     "       ca.aa_type,\n" +
-                    "       ca.autoprolongation\n" +
+                    "       ca.autoprolongation,\n" +
+                    "       c.BANK_RNN,\n" +
+                    "       c.BANK_ACCOUNT\n" +
                     "       from contracts c\n" +
                     "  left join contract_aa ca on c.CID = ca.CID\n" +
-                    "  left join CONTRACT_AA_STATUS cas on cas.AAID = ca.AAID and cas.statusid != 40 where c.contractid = ?";
+                    "  left join CONTRACT_AA_STATUS cas on cas.AAID = ca.AAID and cas.statusid != 40\n" +
+                    "  left join CONTRACT_STATUS_REL csr on csr.contractid = c.cid where c.contractid = ?";
                 PreparedStatement selectContractPreparedStatement = udbConnect.prepareStatement(SelectContract);
 
                 i = 1;
