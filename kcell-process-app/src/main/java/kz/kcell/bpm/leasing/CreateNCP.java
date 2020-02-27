@@ -114,8 +114,8 @@ public class CreateNCP implements JavaDelegate {
                     String fe_frequencyBand = "8"; //fe.prop("frequencyBand").numberValue();
                     String fe_suspensionHeight = fe.prop("suspensionHeight").stringValue();
                     String fe_constructionType = fe.prop("constructionType").prop("id").stringValue();
-                    String fe_sitename = fe.prop("farEndName").stringValue();
-                    String fe_comment = fe.prop("comments").stringValue();
+                    String fe_sitename = fe.hasProp("farEndName") ? fe.prop("farEndName").stringValue() : "";
+                    String fe_comment = fe.hasProp("comments") ? fe.prop("comments").stringValue() : "";
                     String fe_survey_date = fe.prop("surveyDate").stringValue().substring(0,9);
                     Date fe_formated_survey_date = formatter.parse(fe_survey_date);
 
