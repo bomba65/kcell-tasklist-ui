@@ -75,6 +75,7 @@ public class SftpConfig {
     @ServiceActivator(inputChannel = "toJoJrChannel")
     public MessageHandler toJoJrSftpMessageHandler() {
         SftpMessageHandler handler = new SftpMessageHandler(sftpSessionFactory());
+        handler.setChmod(0777);
         handler.setRemoteDirectoryExpression(new LiteralExpression(sftpRemoteDirectoryJoJr));
         handler.setFileNameGenerator(new FileNameGenerator() {
             @Override
@@ -107,6 +108,7 @@ public class SftpConfig {
     @ServiceActivator(inputChannel = "toPrChannel")
     public MessageHandler toPrSftpMessageHandler() {
         SftpMessageHandler handler = new SftpMessageHandler(sftpSessionFactory());
+        handler.setChmod(0777);
         handler.setRemoteDirectoryExpression(new LiteralExpression(sftpRemoteDirectoryToPr));
         handler.setFileNameGenerator(new FileNameGenerator() {
             @Override
@@ -139,6 +141,7 @@ public class SftpConfig {
     @ServiceActivator(inputChannel = "toFaChannel")
     public MessageHandler toFaSftpMessageHandler() {
         SftpMessageHandler handler = new SftpMessageHandler(sftpSessionFactory());
+        handler.setChmod(0777);
         handler.setRemoteDirectoryExpression(new LiteralExpression(sftpRemoteDirectoryToFa));
         handler.setFileNameGenerator(new FileNameGenerator() {
             @Override
@@ -165,6 +168,7 @@ public class SftpConfig {
     @ServiceActivator(inputChannel = "toPrStatusProcessedChannel")
     public MessageHandler toPrStatusSftpMessageHandler() {
         SftpMessageHandler handler = new SftpMessageHandler(sftpSessionFactory());
+        handler.setChmod(0777);
         handler.setRemoteDirectoryExpression(new LiteralExpression(sftpRemoteDirectoryPrStatusProcessed));
         handler.setFileNameGenerator(new FileNameGenerator() {
             @Override
