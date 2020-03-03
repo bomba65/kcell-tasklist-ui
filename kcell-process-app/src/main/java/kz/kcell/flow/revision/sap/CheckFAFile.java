@@ -77,17 +77,19 @@ public class CheckFAFile implements JavaDelegate {
 
                             log.info("faDataRow length: " + tabTokenLength);
 
-                            ObjectMapper mapper = new ObjectMapper();
-                            ObjectNode sapFa = mapper.createObjectNode();
-                            sapFa.put("faClass", byTab.nextToken());
-                            sapFa.put("sloc", byTab.nextToken());
-                            sapFa.put("faNumber", byTab.nextToken());
-                            if(tabTokenLength>3 && "Absent!".equals(byTab.nextToken())){
-                                sapFa.put("absent", true);
-                                success = false;
+                            if(tabTokenLength > 2){
+                                ObjectMapper mapper = new ObjectMapper();
+                                ObjectNode sapFa = mapper.createObjectNode();
+                                sapFa.put("faClass", byTab.nextToken());
+                                sapFa.put("sloc", byTab.nextToken());
+                                sapFa.put("faNumber", byTab.nextToken());
+                                if(tabTokenLength>3 && "Absent!".equals(byTab.nextToken())){
+                                    sapFa.put("absent", true);
+                                    success = false;
+                                }
+                                JsonValue jsonValue = SpinValues.jsonValue(sapFa.toString()).create();
+                                sapFaList.add(jsonValue.getValue());
                             }
-                            JsonValue jsonValue = SpinValues.jsonValue(sapFa.toString()).create();
-                            sapFaList.add(jsonValue.getValue());
                         }
                         if(success){
                             delegateExecution.setVariable("faFileCheckResult", "success");
