@@ -1077,7 +1077,7 @@ define(['../module', 'moment'], function (module, moment) {
 
                         },
                         templateUrl: './js/partials/processCardModal.html',
-                        size: 'lg'
+                        size: (scope.jobModel.processDefinitionKey === 'Invoice' ? 'hg' : 'lg')
                     }).then(function (results) {
                     });
                 }

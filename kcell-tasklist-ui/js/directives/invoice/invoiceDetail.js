@@ -5,7 +5,8 @@ define(['./../module'], function(module){
 			restrict: 'E',
 			scope: {
                 invoice: '=',
-                print: '='
+                print: '=',
+                search: '='
 			},
 			link: function(scope, element, attrs) {
 				scope.catalogs = {};
