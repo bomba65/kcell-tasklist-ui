@@ -8,6 +8,7 @@ define(['../module', 'moment'], function (module, moment) {
                 var baseUrl = '/camunda/api/engine/engine/default';
                 var catalogs = {};
                 scope.dismantleCatalogs = {};
+                scope.leasingCatalogs = {};
                 $http.get($rootScope.getCatalogsHttpByName('catalogs')).then(
                     function (result) {
                         angular.extend(scope, result.data);
@@ -21,12 +22,28 @@ define(['../module', 'moment'], function (module, moment) {
                 $http.get($rootScope.getCatalogsHttpByName('dismantleCatalogs')).then(
                     function (result) {
                         angular.extend(scope.dismantleCatalogs, result.data);
-
                     },
                     function (error) {
                         console.log(error.data);
                     }
                 );
+                $http.get($rootScope.getCatalogsHttpByName('leasingCatalogs')).then(
+                    function (result) {
+                        angular.extend(scope.leasingCatalogs, result.data);
+                        scope.leasingCatalogs.rbsTypes = [];
+                        angular.forEach(scope.leasingCatalogs.rbsType, function (rbs) {
+                            if(scope.leasingCatalogs.rbsTypes.indexOf(rbs.rbsType) < 0){
+                                scope.leasingCatalogs.rbsTypes.push(rbs.rbsType);
+                            }
+                        });
+                        scope.leasingCatalogs.legalTypeTitle = _.keyBy(scope.leasingCatalogs.legalType, 'id');
+                        scope.leasingCatalogs.initiatorTitle = _.keyBy(scope.leasingCatalogs.initiators, 'id');
+                    },
+                    function (error) {
+                        console.log(error.data);
+                    }
+                );
+
                 var processList = [];
                 $http.get('/camunda/api/engine/engine/default/process-definition?latest=true').then(
                     function (response) {
@@ -47,6 +64,9 @@ define(['../module', 'moment'], function (module, moment) {
                     },
                     Replacement: {
                         title: "Replacement", value: false
+                    },
+                    leasing: {
+                        title: "Roll-out", value: false
                     }
                 };
                 scope.KWMSProcesses = {};
@@ -73,7 +93,6 @@ define(['../module', 'moment'], function (module, moment) {
                 scope.selectedProcessInstances = [];
                 scope.shownPages = 0;
                 scope.xlsxPreparedRevision = false;
-                //scope.daWtf = 'dfdsfds';
                 scope.onlyProcessActive = '';
 
                 scope.taskUserSelected = function ($item, $model, $label) {
@@ -120,7 +139,7 @@ define(['../module', 'moment'], function (module, moment) {
                             // only one process active;
                             scope.onlyProcessActive = Object.keys(filtered)[0];
                         }
-                        if ((filtered.Revision || filtered.Invoice) && !filtered.Dismantle && !filtered.Replacement) {
+                        if ((filtered.Revision || filtered.Invoice) && !filtered.leasing && !filtered.Dismantle && !filtered.Replacement) {
                             scope.RevisionOrMonthlyAct = true;
                         }
                         angular.forEach(filtered, function (process, key) {
@@ -173,6 +192,25 @@ define(['../module', 'moment'], function (module, moment) {
                         // siteId&sitename are common filters except if Invoice selected
                         scope.filter.siteId = undefined;
                         scope.filter.sitename = undefined;
+                    }
+                    if(scope.onlyProcessActive!=='leasing'){
+                        scope.filter.leasingCandidateLegalType = undefined;
+                        scope.filter.leasingRbsType = undefined;
+                        scope.filter.leasingFarEndLegalType = undefined;
+                        scope.filter.ncpId = undefined;
+                        scope.filter.leasingCabinetType = undefined;
+                        scope.filter.leasingKazakhtelecomBranch = undefined;
+                        scope.filter.leasingSiteType = undefined;
+                        scope.filter.leasingBand = undefined;
+                        scope.filter.leasingContractType = undefined;
+                        scope.filter.leasingInitiator = undefined;
+                        scope.filter.leasingContractExecutor = undefined;
+                        scope.filter.leasingProject = undefined;
+                        scope.filter.bin = undefined;
+                        scope.filter.leasingActivityId = undefined;
+                        scope.filter.leasingReason = undefined;
+                        scope.filter.leasingInstallationStatus = undefined;
+                        scope.filter.leasingGeneralStatus = undefined;
                     }
                 }, true);
 
@@ -264,6 +302,8 @@ define(['../module', 'moment'], function (module, moment) {
                             scope.userTasksMap = userTasksMap;                            
                         } else if(process === 'sdr_srr_request') {
                             scope.dismantleUserTasks = getUserTasks(xml);
+                        } else if(process === 'leasing') {
+                            scope.leasingUserTasks = getUserTasks(xml);
                         }
                     });
                 }                
@@ -626,6 +666,59 @@ define(['../module', 'moment'], function (module, moment) {
                             "value": scope.filter.mainContract
                         });
                     }
+                    if(scope.onlyProcessActive==='leasing'){
+                        if(scope.filter.leasingCandidateLegalType){
+                            filter.variables.push({"name": "leasingCandidateLegalType","operator": "eq","value": scope.filter.leasingCandidateLegalType});
+                        }
+                        if(scope.filter.leasingRbsType){
+                            filter.variables.push({"name": "rbsType","operator": "eq","value": scope.filter.leasingRbsType});
+                        }
+                        if(scope.filter.leasingFarEndLegalType){
+                            filter.variables.push({"name": "leasingFarEndLegalType","operator": "like","value": '%,' + scope.filter.leasingFarEndLegalType + ',%'});
+                        }
+                        if(scope.filter.ncpId){
+                            filter.variables.push({"name": "ncpID","operator": "eq","value": scope.filter.ncpId});
+                        }
+                        if(scope.filter.leasingCabinetType){
+                            filter.variables.push({"name": "plannedCabinetType","operator": "eq","value": scope.filter.leasingCabinetType});
+                        }
+                        if(scope.filter.leasingKazakhtelecomBranch && scope.filter.leasingCandidateLegalType==='national_kazakhtelecom'){
+                            filter.variables.push({"name": "branchKT","operator": "eq","value": scope.filter.leasingKazakhtelecomBranch});
+                        }
+                        if(scope.filter.leasingSiteType){
+                            filter.variables.push({"name": "siteTypeForSearch","operator": "eq","value": scope.filter.leasingSiteType});
+                        }
+                        if(scope.filter.leasingBand){
+                            filter.variables.push({"name": "bandsJoinedByComma","operator": "like","value": '%,' + scope.filter.leasingBand + ',%'});
+                        }
+                        if(scope.filter.leasingContractType){
+                            filter.variables.push({"name": "contractTypeJoinedByComma","operator": "like","value": '%,' + scope.filter.leasingContractType + ',%'});
+                        }
+                        if(scope.filter.leasingInitiator){
+                            filter.variables.push({"name": "initiatorForSearch","operator": "eq","value": scope.filter.leasingInitiator});
+                        }
+                        if(scope.filter.leasingGeneralStatus){
+                            // Future release
+                        }
+                        if(scope.filter.leasingContractExecutor){
+                            filter.variables.push({"name": "contractExecutorJoinedByComma","operator": "like","value": '%,' + scope.filter.leasingContractExecutor.name + ',%'});
+                        }
+                        if(scope.filter.leasingProject){
+                            filter.variables.push({"name": "projectForSearch","operator": "eq","value": scope.filter.leasingProject});
+                        }
+                        if(scope.filter.leasingInstallationStatus){
+                            // Future release
+                        }
+                        if(scope.filter.bin){
+                            filter.variables.push({"name": "contractBinsJoinedByComma","operator": "like","value": '%,' + scope.filter.bin + ',%'});
+                        }
+                        if(scope.filter.leasingActivityId){
+                            filter.activeActivityIdIn.push(scope.filter.leasingActivityId);
+                        }
+                        if(scope.filter.leasingReason){
+                            filter.variables.push({"name": "reasonForSearch","operator": "eq","value": scope.filter.leasingReason});                            
+                        }
+                    }
                     asynCall3 = true;
                     if (asynCall1 && asynCall2 && asynCall3 && asynCall4) {
                         scope.lastSearchParamsRevision = filter;
@@ -666,6 +759,24 @@ define(['../module', 'moment'], function (module, moment) {
                     scope.filter.dismantlingInitiator = undefined;
                     scope.filter.replacementInitiator = undefined;
                     scope.filter.dismantleActivityId = undefined;
+
+                    scope.filter.leasingCandidateLegalType = undefined;
+                    scope.filter.leasingRbsType = undefined;
+                    scope.filter.leasingFarEndLegalType = undefined;
+                    scope.filter.ncpId = undefined;
+                    scope.filter.leasingCabinetType = undefined;
+                    scope.filter.leasingKazakhtelecomBranch = undefined;
+                    scope.filter.leasingSiteType = undefined;
+                    scope.filter.leasingBand = undefined;
+                    scope.filter.leasingContractType = undefined;
+                    scope.filter.leasingInitiator = undefined;
+                    scope.filter.leasingContractExecutor = undefined;
+                    scope.filter.leasingProject = undefined;
+                    scope.filter.bin = undefined;
+                    scope.filter.leasingActivityId = undefined;
+                    scope.filter.leasingReason = undefined;
+                    scope.filter.leasingInstallationStatus = undefined;
+                    scope.filter.leasingGeneralStatus = undefined;
                 }
 
                 function getProcessInstances(filter, processInstances) {
@@ -697,6 +808,47 @@ define(['../module', 'moment'], function (module, moment) {
 
                             if(scope.selectedProcessInstances.indexOf('Dismantle')!==-1 || scope.selectedProcessInstances.indexOf('Replacement')!==-1){
                                 variables.push('requestType');
+                            }
+                            if(scope.selectedProcessInstances.indexOf('leasing')!==-1){
+                                if(scope.filter.leasingInitiator){
+                                    variables.push('initiator');
+                                }
+                                if(scope.filter.leasingProject){
+                                    variables.push('project');                                    
+                                }
+                                if(scope.filter.leasingReason){
+                                    variables.push('reason');
+                                }
+                                if(scope.filter.ncpId){
+                                    variables.push('ncpID');
+                                }
+                                if(scope.filter.leasingSiteType){
+                                    variables.push('siteType');
+                                }
+                                if(scope.filter.leasingRbsType){
+                                    variables.push('rbsType');
+                                }
+                                if(scope.filter.leasingCabinetType){
+                                    variables.push('plannedCabinetType');
+                                }
+                                if(scope.filter.leasingBand){
+                                    variables.push('bands');
+                                }
+                                if(scope.filter.leasingInstallationStatus){
+                                    // TODO: add this status when realized
+                                }
+                                if(scope.filter.leasingCandidateLegalType){
+                                    variables.push('leasingCandidateLegalType');
+                                }
+                                if(scope.filter.leasingKazakhtelecomBranch && scope.filter.leasingCandidateLegalType==='national_kazakhtelecom'){
+                                    variables.push('branchKT');
+                                }
+                                if(scope.filter.leasingFarEndLegalType){
+                                    variables.push('farEndInformation');                                    
+                                }
+                                if(scope.filter.leasingContractType || scope.filter.leasingContractExecutor || scope.filter.bin){
+                                    variables.push('contractInformations');
+                                }
                             }
 
                             if (scope[processInstances].length > 0) {
@@ -875,6 +1027,9 @@ define(['../module', 'moment'], function (module, moment) {
                             scope.KWMSProcesses[process].downloaded = true;
                         } else if((process === 'Dismantle' || process === 'Replacement') && !scope.KWMSProcesses[process].downloaded){
                             downloadXML('sdr_srr_request');
+                            scope.KWMSProcesses[process].downloaded = true;
+                        } else if(process === 'leasing' && !scope.KWMSProcesses[process].downloaded){
+                            downloadXML('leasing');
                             scope.KWMSProcesses[process].downloaded = true;
                         }
                     }
@@ -1393,6 +1548,189 @@ define(['../module', 'moment'], function (module, moment) {
                     if(scope.filter.participation === 'iaminitiator' || scope.filter.participation === 'iamparticipant'){
                         scope.filter.requestor = $rootScope.authentication.name;
                     }
+                }
+
+                scope.$watch('filter.leasingInitiator', function (leasingInitiator){
+                    if(leasingInitiator){
+                        scope.projectsByInitiator = {};
+                        scope.reasonsByProject = [];
+                        scope.projectsByInitiator = _.find(scope.leasingCatalogs.projects, function (p) {
+                            return p.initiator === scope.leasingCatalogs.initiatorTitle[leasingInitiator].name;
+                        });
+                        scope.leasingCatalogs.projectTitle =_.keyBy(scope.projectsByInitiator.project, 'id');
+                    }
+                }, true);
+
+                scope.$watch('filter.leasingProject', function (leasingProject) {
+                    if(leasingProject){
+                        scope.reasonsByProject = [];
+                        scope.reasonsByProject = _.filter(scope.leasingCatalogs.reasons, function (r) {
+                            if (_.find(r.project, function (p) {return p === scope.leasingCatalogs.projectTitle[leasingProject].name; }) ) { return true} else return false;
+                        });
+                    }
+                }, true);
+
+                scope.toggleProcessViewLeasing = function (index, processDefinitionKey, processDefinitionId, businessKey) {
+                    scope.showDiagramView = false;
+                    scope.diagram = {};
+                    if (scope.piIndex === index) {
+                        scope.piIndex = undefined;
+                    } else {
+                        scope.piIndex = index;
+                        scope.leasingInfo = {
+                        state: scope.processInstances[index].state,
+                        processDefinitionKey: processDefinitionKey,
+                        startTime: {value: scope.processInstances[index].startTime}
+                    };
+                    $http({
+                        method: 'GET',
+                        headers: {'Accept': 'application/hal+json, application/json; q=0.5'},
+                        url: baseUrl + '/task?processInstanceId=' + scope.processInstances[index].id,
+                    }).then(
+                        function (tasks) {
+                            var asynCall1 = false;
+                            var asynCall2 = false;
+                            var asynCall3 = false;
+                            var processInstanceTasks = tasks.data._embedded.task;
+                            if (processInstanceTasks && processInstanceTasks.length > 0) {
+                                var groupasynCalls = 0;
+                                var maxGroupAsynCalls = processInstanceTasks.length;
+                                processInstanceTasks.forEach(function (e) {
+                                    if (e.assignee && tasks.data._embedded.assignee) {
+                                        for (var i = 0; i < tasks.data._embedded.assignee.length; i++) {
+                                            if (tasks.data._embedded.assignee[i].id === e.assignee) {
+                                                e.assigneeObject = tasks.data._embedded.assignee[i];
+                                            }
+                                        }
+                                    }
+                                    $http({
+                                        method: 'GET',
+                                        headers: {'Accept': 'application/hal+json, application/json; q=0.5'},
+                                        url: baseUrl + '/task/' + e.id
+                                    }).then(
+                                        function (taskResult) {
+                                            if (taskResult.data._embedded && taskResult.data._embedded.group) {
+                                                e.group = taskResult.data._embedded.group[0].id;
+                                                groupasynCalls+=1;
+                                                if (groupasynCalls === maxGroupAsynCalls) {
+                                                    asynCall1 = true;
+                                                    if (asynCall1 && asynCall2) {
+                                                        openProcessCardModalLeasing(processDefinitionId, businessKey, index);
+                                                        asynCall1 = false;
+                                                    }  else console.log('asynCall 2 problem');
+                                                } else {
+                                                    console.log(groupasynCalls, maxGroupAsynCalls);
+
+                                                }
+                                            } else {
+                                                groupasynCalls+=1;
+                                                if (groupasynCalls === maxGroupAsynCalls) {
+                                                    asynCall1 = true;
+                                                    if (asynCall1 && asynCall2) {
+                                                        openProcessCardModalLeasing(processDefinitionId, businessKey, index);
+                                                        asynCall1 = false;
+                                                    }  else console.log('asynCall 2 problem');
+                                                } else {
+                                                    console.log(groupasynCalls, maxGroupAsynCalls);
+
+                                                }
+                                            }
+                                        },
+                                        function (error) {
+                                            console.log(error.data);
+                                        }
+                                    );
+
+                                });
+
+                            } else {
+                                asynCall1 = true;
+                                if (asynCall1 && asynCall2) {
+                                    openProcessCardModalLeasing(processDefinitionId, businessKey, index);
+                                    asynCall1 = false;
+                                }
+                            }
+                            $http.get(baseUrl + '/history/variable-instance?deserializeValues=false&processInstanceId=' + scope.processInstances[index].id).then(
+                                function (result) {
+                                    var files = [];
+                                    result.data.forEach(function (el) {
+                                        scope.leasingInfo[el.name] = el;
+                                        if (el.type === 'File' || el.type === 'Bytes') {
+                                            scope.leasingInfo[el.name].contentUrl = baseUrl + '/history/variable-instance/' + el.id + '/data';
+                                        }
+                                        if (el.type === 'Json') {
+                                            try {
+                                                scope.leasingInfo[el.name].value = JSON.parse(el.value);
+                                                if (el.name.toLowerCase().includes('file')) {
+                                                    files = files.concat(scope.leasingInfo[el.name].value);
+                                                }
+                                            } catch(e) {
+                                                console.log(e);
+                                            }
+                                        }
+                                    });
+                                    scope.leasingInfo.files = files;
+                                    if (scope.leasingInfo.resolutions && scope.leasingInfo.resolutions.value) {
+                                        $q.all(scope.leasingInfo.resolutions.value.map(function (resolution) {
+                                            return $http.get("/camunda/api/engine/engine/default/history/task?processInstanceId=" + resolution.processInstanceId + "&taskId=" + resolution.taskId);
+                                        })).then(function (tasks) {
+                                            tasks.forEach(function (e, index) {
+                                                if (e.data.length > 0) {
+                                                    scope.leasingInfo.resolutions.value[index].taskName = e.data[0].name;
+                                                    try {
+                                                        scope.leasingInfo.resolutions.value[index].taskEndDate = new Date(e.data[0].endTime);
+                                                    } catch (e) {
+                                                        console.log(e);
+                                                    }
+                                                }
+                                            });
+                                            asynCall2 = true;
+                                            if (asynCall1 && asynCall2) {
+                                                openProcessCardModalLeasing(processDefinitionId, businessKey, index);
+                                                asynCall2 = false;
+                                            } else console.log('asynCall 1 problem');
+                                        });
+                                    }
+                                    scope.leasingInfo.tasks = processInstanceTasks;
+                                },
+                                function (error) {
+                                    console.log(error.data);
+                                }
+                            );
+
+                        },
+                        function (error) {
+                            console.log(error.data);
+                        });
+                    }
+                };
+                function openProcessCardModalLeasing(processDefinitionId, businessKey, index) {
+                    console.log(scope.leasingInfo);
+                    exModal.open({
+                        scope: {
+                            leasingInfo: scope.leasingInfo,
+                            showDiagram:scope.showDiagram,
+                            showHistory: scope.showHistory,
+                            hasGroup: scope.hasGroup,
+                            showGroupDetails:scope.showGroupDetails,
+                            processDefinitionId: processDefinitionId,
+                            piIndex: scope.piIndex,
+                            $index: index,
+                            businessKey: businessKey,
+                            catalogs: scope.leasingCatalogs,
+                            download: function(path) {
+                                $http({method: 'GET', url: '/camunda/uploads/get/' + path, transformResponse: [] }).
+                                then(function(response) {
+                                    document.getElementById('fileDownloadIframe').src = response.data;
+                                }, function(error){
+                                    console.log(error);
+                                });
+                            }
+                        },
+                        templateUrl: './js/partials/leasingCardModal.html',
+                        size: 'lg'
+                    }).then(function(results){
+                    });
                 }
             },
             templateUrl: './js/directives/search/networkArchitectureSearch.html'

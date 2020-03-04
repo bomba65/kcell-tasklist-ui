@@ -32,11 +32,11 @@
         </div>
     </div>
     <div class="form-group col-sm-4" ng-hide="onlyProcessActive==='Invoice'">
-        <label class="col-sm-4 control-label">Site Id:</label>
+        <label class="col-sm-4 control-label">Sitename:</label>
         <div class="col-sm-8">
-            <input type="text" ng-model="filter.siteId" name="site_id" typeahead="site as sites.name for sites in getSiteId($viewValue)" typeahead-on-select="siteIdSelected($item,$model,$label)" class="form-control" autocomplete="off" placeholder="Site Id">
+            <input type="text" ng-model="filter.sitename" name="site_name" typeahead="site as sites.site_name for sites in getSite($viewValue)" typeahead-on-select="siteSelected($item,$model,$label)" class="form-control" autocomplete="off" placeholder="Site Name">
         </div>
-    </div>
+    </div>    
     <div class="form-group col-sm-4" ng-show="onlyProcessActive==='Invoice'">
         <label class="col-sm-4 control-label">Period:</label>
             <div class="col-sm-4">
@@ -65,6 +65,15 @@
             </div>
         </div>
     </div>
+    <div class="form-group col-sm-4" ng-if="onlyProcessActive==='leasing'">
+        <label class="col-sm-4 control-label">Candidate Legal Type:</label>
+        <div class="col-sm-8">
+            <select class="form-control" id="leasingCandidateLegalType" name="leasingCandidateLegalType"
+                ng-model="filter.leasingCandidateLegalType"
+                ng-options="type.id as type.desc for type in leasingCatalogs.legalType">
+            </select>
+        </div>
+    </div>
 </div>
 <div class="row">
     <div class="form-group col-sm-4" ng-if="hasGroup('head_kcell_users') || hasGroup('revision_managers') || hasGroup('revision_audit')">
@@ -84,10 +93,10 @@
                    typeahead-on-select="userSelected($item,$model,$label)" typeahead-min-length="2" class="form-control"
                    required autocomplete="off">       </div>
     </div>
-    <div class="form-group col-sm-4"  ng-hide="onlyProcessActive==='Invoice'">
-        <label class="col-sm-4 control-label">Sitename:</label>
+    <div class="form-group col-sm-4" ng-show="onlyProcessActive==='Revision' || onlyProcessActive==='Dismantle' || onlyProcessActive==='Replacement'">
+        <label class="col-sm-4 control-label">Site Id:</label>
         <div class="col-sm-8">
-            <input type="text" ng-model="filter.sitename" name="site_name" typeahead="site as sites.site_name for sites in getSite($viewValue)" typeahead-on-select="siteSelected($item,$model,$label)" class="form-control" autocomplete="off" placeholder="Site Name">
+            <input type="text" ng-model="filter.siteId" name="site_id" typeahead="site as sites.name for sites in getSiteId($viewValue)" typeahead-on-select="siteIdSelected($item,$model,$label)" class="form-control" autocomplete="off" placeholder="Site Id">
         </div>
     </div>
     <div class="form-group col-sm-4" ng-show="onlyProcessActive==='Revision'">
@@ -124,6 +133,24 @@
                 <option value="transmission">Transmission Unit</option>
                 <option value="infrastructure">Infrastructure Unit</option>
                 <option value="operation">Operation Unit</option>
+            </select>
+        </div>
+    </div>
+    <div class="form-group col-sm-4" ng-show="onlyProcessActive==='leasing'">
+        <label class="col-sm-4 control-label">RBS Type:</label>
+        <div class="col-sm-8">
+            <select class="form-control" id="leasingRbsType" name="leasingRbsType" ng-model="filter.leasingRbsType">
+                <option value="" selected>Select RBS type</option>
+                <option ng-repeat="r in leasingCatalogs.rbsTypes | orderBy: types">{{r}}</option>
+            </select>
+        </div>
+    </div>
+    <div class="form-group col-sm-4" ng-if="onlyProcessActive==='leasing'">
+        <label class="col-sm-4 control-label">Far End Legal Type:</label>
+        <div class="col-sm-8">
+            <select class="form-control" id="leasingFarEndLegalType" name="leasingFarEndLegalType"
+                ng-model="filter.leasingFarEndLegalType"
+                ng-options="type.id as type.desc for type in leasingCatalogs.legalType">
             </select>
         </div>
     </div>
@@ -166,9 +193,36 @@
             </select>
         </div>
     </div>
+    <div class="form-group col-sm-4" ng-show="onlyProcessActive==='leasing'">
+        <label class="col-sm-4 control-label">NCP ID:</label>
+        <div class="col-sm-8">
+            <input type="text" ng-model="filter.ncpId" class="form-control" placeholder="12345" />
+        </div>
+    </div>
+    <div class="form-group col-sm-4" ng-show="onlyProcessActive==='leasing'">
+        <label class="col-sm-4 control-label">Cabinet Type:</label>
+        <div class="col-sm-8">
+            <select class="form-control" id="leasingCabinetType" name="leasingCabinetType" ng-model="filter.leasingCabinetType">
+                <option value="" selected>Select Cabinet type</option>
+                <option value="Indoor">Indoor</option>
+                <option value="Outdoor">Outdoor</option>
+            </select>
+        </div>
+    </div>
+    <div class="form-group col-sm-4" ng-if="onlyProcessActive==='leasing' && filter.leasingCandidateLegalType==='national_kazakhtelecom'">
+        <label class="col-sm-4 control-label">Branch of Kazakhtelecom:</label>
+        <div class="col-sm-8">
+            <select class="form-control" id="leasingKazakhtelecomBranch" name="leasingKazakhtelecomBranch"
+                ng-model="filter.leasingKazakhtelecomBranch">
+                <option value="{{branch.id}}" ng-repeat="branch in leasingCatalogs.branchesKT">
+                    {{branch.name}}
+                </option>                
+            </select>
+        </div>
+    </div>    
 </div>
 <div class="row">
-    <div class="form-group col-sm-4"  ng-show="onlyProcessActive==='Revision'">
+    <div class="form-group col-sm-4" ng-show="onlyProcessActive==='Revision'">
         <label class="col-sm-4 control-label">Current activity:</label>
         <div class="col-sm-8">
             <select ng-model="filter.activityId" class="form-control selectpicker" select-picker title="" select-model="includedUserTasks">
@@ -207,6 +261,32 @@
             </select>
         </div>
     </div>
+    <div class="form-group col-sm-4" ng-show="onlyProcessActive==='leasing'">
+        <label class="col-sm-4 control-label">Site Type:</label>
+        <div class="col-sm-8">
+            <select class="form-control" id="leasingSiteType" name="leasingSiteType" ng-model="filter.leasingSiteType">
+                <option value="" disabled selected hidden>Select Site type</option>
+                <option ng-repeat="type in leasingCatalogs.siteType" ng-value="type.id">{{type.name}}</option>
+            </select>
+        </div>
+    </div>
+    <div class="form-group col-sm-4" ng-show="onlyProcessActive==='leasing'">
+        <label class="col-sm-4 control-label">Bands:</label>
+        <div class="col-sm-8">
+            <select class="form-control" id="leasingBand" name="leasingBand" ng-model="filter.leasingBand">
+                <option>Select band</option>
+                <option ng-repeat="band in leasingCatalogs.bands" ng-value="band.title">{{band.title}}</option>                
+            </select>
+        </div>
+    </div>    
+    <div class="form-group col-sm-4" ng-show="onlyProcessActive==='leasing'">
+        <label class="col-sm-4 control-label">Contract type:</label>
+        <div class="col-sm-8">
+            <select class="form-control" id="leasingContractType" name="leasingContractType" ng-model="filter.leasingContractType"
+            ng-options="type.id as type.name for type in leasingCatalogs.contract">
+            </select>
+        </div>
+    </div>
 </div>
 <div class="row">
     <div class="form-group col-sm-4" ng-show="onlyProcessActive==='Revision'">
@@ -240,6 +320,79 @@
                    required autocomplete="off">
         </div>
     </div>
+    <div class="form-group col-sm-4" ng-show="onlyProcessActive==='leasing'">
+        <label class="col-sm-4 control-label">Initiator:</label>
+        <div class="col-sm-8">
+            <select class="form-control" id="leasingInitiator" name="leasingInitiator" ng-model="filter.leasingInitiator">
+                <option value="" disabled selected hidden>Select Initiator</option>
+                <option ng-repeat="i in leasingCatalogs.initiators" ng-value="i.id">{{i.name}}</option>
+            </select>
+        </div>
+    </div>
+    <div class="form-group col-sm-4" ng-show="onlyProcessActive==='leasing'">
+        <label class="col-sm-4 control-label">General status:</label>
+        <div class="col-sm-8">
+            <select class="form-control" id="leasingGeneralStatus" name="leasingGeneralStatus" ng-model="filter.leasingGeneralStatus">
+            </select>
+        </div>
+    </div>
+    <div class="form-group col-sm-4" ng-show="onlyProcessActive==='leasing'">
+        <label class="col-sm-4 control-label">Contract Executor:</label>
+        <div class="col-sm-8">
+            <select class="form-control" id="leasingContractExecutor" name="leasingContractExecutor" ng-model="filter.leasingContractExecutor" ng-options="type.name for type in leasingCatalogs.contractExecuter">
+            </select>
+        </div>
+    </div>
+</div>
+<div class="row">
+    <div class="form-group col-sm-4" ng-show="onlyProcessActive==='leasing'">
+        <label class="col-sm-4 control-label">Project:</label>
+        <div class="col-sm-8">
+            <select class="form-control" id="leasingProject" name="leasingProject" ng-disabled="!filter.leasingInitiator" ng-model="filter.leasingProject">
+                <option ng-repeat="pr in projectsByInitiator.project" ng-value="pr.id">{{pr.name}}</option>
+            </select>
+        </div>
+    </div>   
+    <div class="form-group col-sm-4" ng-show="onlyProcessActive==='leasing'">
+        <label class="col-sm-4 control-label">Installation status:</label>
+        <div class="col-sm-8">
+            <select class="form-control" id="leasingInstallationStatus" name="leasingInstallationStatus" ng-model="filter.leasingInstallationStatus">
+            </select>
+        </div>
+    </div>  
+    <div class="form-group col-sm-4" ng-show="onlyProcessActive==='leasing'">
+        <label class="col-sm-4 control-label">IIN/BIN:</label>
+        <div class="col-sm-8">
+            <input class="form-control" type="number" id="ct_bin" name="ct_bin" ng-model="filter.bin">
+        </div>
+    </div>
+</div>
+<div class="row">
+    <div class="form-group col-sm-4" ng-show="onlyProcessActive==='leasing'">
+        <label class="col-sm-4 control-label">Reason:</label>
+        <div class="col-sm-8">
+            <select class="form-control" id="leasingReason" name="leasingReason" ng-disabled="!reasonsByProject || reasonsByProject.length == 0" ng-model="filter.leasingReason">
+                <option ng-repeat="r in reasonsByProject" ng-value="r.id">{{r.reason}}</option>
+            </select>
+        </div>
+    </div>
+    <div class="form-group col-sm-4" ng-show="onlyProcessActive==='leasing'">
+        <label class="col-sm-4 control-label">Current activity:</label>
+        <div class="col-sm-8">
+            <select ng-model="filter.leasingActivityId" class="form-control selectpicker" select-picker title="" select-model="leasingUserTasks">
+                <option></option>
+                <option value="{{task.id}}" ng-repeat="task in leasingUserTasks | orderBy: 'name'" ng-selected="{{task.id == filter.leasingActivityId}}">{{task.name}}</option>
+            </select>
+        </div>
+    </div>
+    <div class="form-group col-sm-4" ng-show="onlyProcessActive==='leasing'">
+        <label class="col-sm-4 control-label">Assignee:</label>
+        <div class="col-sm-8">
+            <input type="text" ng-model="filter.curreentAssignee" name="currentAssignee"
+                   typeahead="users as users.name for users in getUsers($viewValue)"
+                   typeahead-on-select="taskUserSelected($item,$model,$label)" typeahead-min-length="2" class="form-control"autocomplete="off">
+        </div>
+    </div>
 </div>
 <div class="row">
     <div class="form-group col-sm-4"></div>
@@ -262,28 +415,46 @@
     <thead class="fixed-header">
     <tr>
         <th>#</th>
-        <th ng-if="RevisionOrMonthlyAct || onlyProcessActive==='Dismantle' || onlyProcessActive==='Replacement'">Region</th>
-        <th ng-if="onlyProcessActive==='Revision' || onlyProcessActive==='Dismantle' || onlyProcessActive==='Replacement'">Sitename</th>
+        <th ng-if="RevisionOrMonthlyAct || onlyProcessActive==='Dismantle' || onlyProcessActive==='Replacement' || onlyProcessActive==='leasing'">Region</th>
+        <th ng-if="onlyProcessActive==='Revision' || onlyProcessActive==='Dismantle' || onlyProcessActive==='Replacement' || onlyProcessActive==='leasing'">Sitename</th>
         <th>{{onlyProcessActive==='Revision'?'JR Number' : onlyProcessActive==='Invoice'? 'MA Number' : 'Business Key' }}</th>
         <th ng-if="onlyProcessActive===''">Process Name</th>
         <th ng-if="RevisionOrMonthlyAct || onlyProcessActive==='Dismantle' || onlyProcessActive==='Replacement'">Execution Time</th>
+        <th ng-if="onlyProcessActive==='leasing' && filter.leasingInitiator">Initiator</th>
+        <th ng-if="onlyProcessActive==='leasing' && filter.leasingProject">Project</th>
+        <th ng-if="onlyProcessActive==='leasing' && filter.leasingReason">Reason</th>
+        <th ng-if="onlyProcessActive==='leasing' && filter.ncpId">NCP ID</th>
+        <th ng-if="onlyProcessActive==='leasing' && filter.leasingSiteType">Site type</th>
+        <th ng-if="onlyProcessActive==='leasing' && filter.leasingRbsType">RBS type</th>
+        <th ng-if="onlyProcessActive==='leasing' && filter.leasingCabinetType">Cabinet type</th>
+        <th ng-if="onlyProcessActive==='leasing' && filter.leasingBand">Bands</th>
+        <!--th ng-if="onlyProcessActive==='leasing' && filter.leasingInstallationStatus">Installation status</th-->
+        <th ng-if="onlyProcessActive==='leasing' && filter.leasingKazakhtelecomBranch">Branch of Kazakhtelecom</th>
+        <th ng-if="onlyProcessActive==='leasing' && filter.leasingCandidateLegalType">Candidate Legal type</th>
+        <th ng-if="onlyProcessActive==='leasing' && filter.leasingFarEndLegalType">Far End Legal type</th>
+        <th ng-if="onlyProcessActive==='leasing' && filter.leasingContractType">Contract type</th>
+        <th ng-if="onlyProcessActive==='leasing' && filter.leasingContractExecutor">Contract Executor</th>
+        <th ng-if="onlyProcessActive==='leasing' && filter.bin">BIN/IIN</th>        
+        <th ng-if="onlyProcessActive==='leasing'">Created Date</th>
+        <th ng-if="onlyProcessActive==='leasing'">Closed Date</th>
         <th>Current Activity</th>
         <th ng-if="onlyProcessActive==='Revision'">Contractor</th>
         <th ng-if="RevisionOrMonthlyAct">Reason</th>
-        <th>Requested By</th>
-        <th ng-if="onlyProcessActive==='Revision' || onlyProcessActive==='Dismantle' || onlyProcessActive==='Replacement'">Current Assignee</th>
-        <th>Requested Date</th>
+        <th ng-if="onlyProcessActive!=='leasing'">Requested By</th>
+        <th ng-if="onlyProcessActive==='Revision' || onlyProcessActive==='Dismantle' || onlyProcessActive==='Replacement' || onlyProcessActive==='leasing'">Current Assignee</th>
+        <th ng-if="onlyProcessActive!=='leasing'">Requested Date</th>
         <th ng-if="onlyProcessActive==='Revision'">Validity Date</th>
         <th ng-if="onlyProcessActive==='Revision'">Jobs List</th>
+        <th ng-if="onlyProcessActive==='leasing'">General status</th>
     </tr>
     </thead>
     <tbody>
     <tr ng-repeat="pi in processInstances" class="pi-{{pi.state == 'EXTERNALLY_TERMINATED'?'COMPLETED':pi.state}}">
         <td>{{(filter.page-1)*20 + $index + 1}}</td>
-        <td ng-if="RevisionOrMonthlyAct || onlyProcessActive==='Dismantle' || onlyProcessActive==='Replacement'">{{regionsMap[pi.siteRegion]}}</td>
-        <td ng-if="onlyProcessActive==='Revision' || onlyProcessActive==='Dismantle' || onlyProcessActive==='Replacement'">{{pi.site_name}}</td>
+        <td ng-if="RevisionOrMonthlyAct || onlyProcessActive==='Dismantle' || onlyProcessActive==='Replacement' || onlyProcessActive==='leasing'">{{regionsMap[pi.siteRegion]}}</td>
+        <td ng-if="onlyProcessActive==='Revision' || onlyProcessActive==='Dismantle' || onlyProcessActive==='Replacement' || onlyProcessActive==='leasing'">{{pi.site_name}}</td>
         <td>
-            <a ng-if="pi.processDefinitionKey!=='sdr_srr_request'" ng-click="toggleProcessViewRevision($index, pi.processDefinitionKey, pi.processDefinitionId, pi.businessKey)">
+            <a ng-if="pi.processDefinitionKey=='Revision'" ng-click="toggleProcessViewRevision($index, pi.processDefinitionKey, pi.processDefinitionId, pi.businessKey)">
                 {{pi.businessKey}}
             </a>
             <a ng-if="pi.processDefinitionKey==='sdr_srr_request' && pi.requestType === 'dismantle'" ng-click="toggleProcessViewDismantle($index, pi.processDefinitionKey, pi.processDefinitionId, pi.businessKey)">
@@ -292,9 +463,43 @@
             <a ng-if="pi.processDefinitionKey==='sdr_srr_request' && pi.requestType === 'replacement'" ng-click="toggleProcessViewReplacement($index, pi.processDefinitionKey, pi.processDefinitionId, pi.businessKey)">
                 {{pi.businessKey}}
             </a>
+            <a ng-if="pi.processDefinitionKey=='leasing'" ng-click="toggleProcessViewLeasing($index, pi.processDefinitionKey, pi.processDefinitionId, pi.businessKey)">
+                {{pi.businessKey}}
+            </a>
         </td>
         <td ng-if="onlyProcessActive===''">{{pi.processDefinitionKey == 'sdr_srr_request'? (pi.requestType === 'dismantle' ? 'Dismantle' : 'Replacement') : pi.processDefinitionName}}</td>
         <td ng-if="RevisionOrMonthlyAct || onlyProcessActive==='Dismantle' || onlyProcessActive==='Replacement'">{{pi.executionTime}} days</td>
+        <td ng-if="onlyProcessActive==='leasing' && filter.leasingInitiator">{{pi.initiator.name}}</td>
+        <td ng-if="onlyProcessActive==='leasing' && filter.leasingProject">{{pi.project.name}}</td>
+        <td ng-if="onlyProcessActive==='leasing' && filter.leasingReason">{{pi.reason.reason}}</td>
+        <td ng-if="onlyProcessActive==='leasing' && filter.ncpId">{{pi.ncpID}}</td>
+        <td ng-if="onlyProcessActive==='leasing' && filter.leasingSiteType">{{pi.siteType.name}}</td>
+        <td ng-if="onlyProcessActive==='leasing' && filter.leasingRbsType">{{pi.rbsType}}</td>
+        <td ng-if="onlyProcessActive==='leasing' && filter.leasingCabinetType">{{pi.plannedCabinetType}}</td>
+        <td ng-if="onlyProcessActive==='leasing' && filter.leasingBand">
+            <span ng-repeat="b in pi.bands">{{b.title}}<br/></span>
+        </td>
+        <!--td ng-if="onlyProcessActive==='leasing' && filter.leasingInstallationStatus"></td-->
+        <td ng-if="onlyProcessActive==='leasing' && filter.leasingKazakhtelecomBranch">{{pi.branchKT}}</td>
+        <td ng-if="onlyProcessActive==='leasing' && filter.leasingCandidateLegalType">{{leasingCatalogs.legalTypeTitle[pi.leasingCandidateLegalType]}}</td>
+        <td ng-if="onlyProcessActive==='leasing' && filter.leasingFarEndLegalType">
+            <span ng-repeat="fe in pi.farEndInformation">{{leasingCatalogs.legalTypeTitle[fe.legaltype]}}<br/></span>
+        </td>
+        <td ng-if="onlyProcessActive==='leasing' && filter.leasingContractType">
+            <span ng-repeat="ci in pi.contractInformations">{{ci.ct_contract_type}}<br/></span>            
+        </td>
+        <td ng-if="onlyProcessActive==='leasing' && filter.leasingContractExecutor">
+            <span ng-repeat="ci in pi.contractInformations">{{ci.ct_executor.name}}<br/></span>            
+        </td>
+        <td ng-if="onlyProcessActive==='leasing' && filter.bin">
+            <span ng-repeat="ci in pi.contractInformations">{{ci.bin}}<br/></span>            
+        </td>        
+        <td ng-if="onlyProcessActive==='leasing'">
+            {{pi.startTime | date:'dd.MM.yyyy'}}
+        </td>
+        <td ng-if="onlyProcessActive==='leasing'">
+            {{pi.endTime | date:'dd.MM.yyyy'}}
+        </td>
         <td style="max-width: 100px;">
             <span ng-if="!(hasGroup('revision_managers') || hasGroup('revision_audit'))" ng-repeat="task in pi.tasks">{{$index+1}}. {{task.name}}<br/></span>
             <a ng-if="hasGroup('revision_managers') || hasGroup('revision_audit')" ng-repeat="task in pi.tasks" ui-sref="tasks.task({id:task.id})" target="_blank">{{$index+1}}. {{task.name}}<br/></a>
@@ -304,11 +509,11 @@
         <td ng-if="RevisionOrMonthlyAct">
             {{pi.processDefinitionKey==='Invoice' ? reasonShortName[pi.workType]
             : reasonShortName[pi.reason] }}</td>
-        <td>{{profiles[pi.startUserId].firstName}} {{profiles[pi.startUserId].lastName}}</td>
-        <td ng-if="onlyProcessActive==='Revision' || onlyProcessActive==='Dismantle' || onlyProcessActive==='Replacement'">
+        <td ng-if="onlyProcessActive!=='leasing'">{{profiles[pi.startUserId].firstName}} {{profiles[pi.startUserId].lastName}}</td>
+        <td ng-if="onlyProcessActive==='Revision' || onlyProcessActive==='Dismantle' || onlyProcessActive==='Replacement' || onlyProcessActive==='leasing'">
             <a ng-click="showTaskDetail(task)" ng-repeat="task in pi.tasks">{{$index+1}}. {{profiles[task.assignee] ? (profiles[task.assignee].firstName + ' ' + profiles[task.assignee].lastName) : 'Not claimed'}}<br/></a>
         </td>
-        <td>{{pi.processDefinitionKey==='Revision'? (pi.requestedDate | date:'dd MMM yyyy') : pi.startTime | date:'dd MMM yyyy' }}</td>
+        <td ng-if="onlyProcessActive!=='leasing'">{{pi.processDefinitionKey==='Revision'? (pi.requestedDate | date:'dd MMM yyyy') : pi.startTime | date:'dd MMM yyyy' }}</td>
         <td ng-if="onlyProcessActive==='Revision'">{{pi.validityDate | date:'dd MMM yyyy'}}</td>
         <td ng-if="onlyProcessActive==='Revision'" style="max-width: 190px;">
             <a ng-click="showWorkDetail(pi.jobWorks)">
@@ -318,6 +523,7 @@
 											</span>
             </a>
         </td>
+        <td ng-if="onlyProcessActive==='leasing'"></td>
     </tr>
 
     </tbody>

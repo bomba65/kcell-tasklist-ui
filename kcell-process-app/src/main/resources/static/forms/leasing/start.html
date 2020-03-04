@@ -74,6 +74,7 @@
                 camForm.variableManager.variableValue('bands', $scope.selectedBands);
                 camForm.variableManager.variableValue('regionName', $scope.regionName);
                 camForm.variableManager.variableValue('regionCode', $scope.regionCode);
+
                 camForm.variableManager.createVariable({
                     name: 'resolutions',
                     type: 'Json',
@@ -115,19 +116,59 @@
                         value: $scope.project,
                         type: 'Json'
                     });
+                    //for search
+                    camForm.variableManager.createVariable({
+                        name: 'projectForSearch',
+                        type: 'String',
+                        value: $scope.project.id
+                    });
                 }
-                if($scope.reason){
+                if ($scope.reason) {
                     camForm.variableManager.createVariable({
                         name: 'reason',
                         value: $scope.reason,
                         type: 'Json'
+                    });
+                    //for search
+                    camForm.variableManager.createVariable({
+                        name: 'reasonForSearch',
+                        type: 'String',
+                        value: $scope.reason.id
+                    });
+                }
+
+                //for search
+                camForm.variableManager.createVariable({
+                    name: 'siteTypeForSearch',
+                    type: 'String',
+                    value: $scope.siteType.id
+                });
+                camForm.variableManager.createVariable({
+                    name: 'initiatorForSearch',
+                    type: 'String',
+                    value: $scope.initiator.id
+                });
+                camForm.variableManager.createVariable({
+                    name: 'siteRegion',
+                    value: $scope.region === 'almaty' ? 'alm' : $scope.region,
+                    type: 'String'
+                });
+                if ($scope.selectedBands && $scope.selectedBands.length > 0) {
+                    var bandValues = ',';
+                    angular.forEach($scope.selectedBands, function (sb) {
+                        bandValues = bandValues + sb.title + ',';
+                    });
+                    camForm.variableManager.createVariable({
+                        name: 'bandsJoinedByComma',
+                        type: 'String',
+                        value: bandValues
                     });
                 }
             });
 
             $scope.$watch('bands', function (bands) {
                 $scope.selectedBands = [];
-                bands.forEach(function(b){
+                bands.forEach(function (b) {
                     if (b.value) {
                         $scope.selectedBands.push(b)
                     }
@@ -140,7 +181,7 @@
                     $scope.bandsIdForUDB = $scope.bandsForUDB[$scope.selectedBandsString] ? $scope.bandsForUDB[$scope.selectedBandsString] : null
                 }
             }, true);
-            $scope.preSubmit = function() {
+            $scope.preSubmit = function () {
                 var deferred = $q.defer();
                 var tempLat;
                 var tempLong;
@@ -148,17 +189,17 @@
                 var validLong = false;
 
                 // latitude check
-                if(!isNaN($scope.latitude)){
+                if (!isNaN($scope.latitude)) {
                     tempLat = $scope.latitude;
                     if (Number.isInteger(tempLat)) {
                         tempLat = parseInt(tempLat);
-                        if (!(tempLat>40 && tempLat <=55)) {
+                        if (!(tempLat > 40 && tempLat <= 55)) {
                             deferred.reject('Latitude must be in [40.568, 55.440] range');
                             return deferred.promise;
                         } else validLat = true;
                     } else {
                         tempLat = parseFloat(tempLat);
-                        if (!(tempLat>=40.568 && tempLat <=55.440)) {
+                        if (!(tempLat >= 40.568 && tempLat <= 55.440)) {
                             deferred.reject('Latitude must be in [40.568, 55.440] range');
                             return deferred.promise;
                         } else validLat = true;
@@ -169,17 +210,17 @@
                 }
 
                 // longitude check
-                if(!isNaN($scope.longitude)){
+                if (!isNaN($scope.longitude)) {
                     tempLong = $scope.longitude;
                     if (Number.isInteger(tempLong)) {
                         tempLong = parseInt(tempLong);
-                        if (!(tempLong>46 && tempLong <=87)) {
+                        if (!(tempLong > 46 && tempLong <= 87)) {
                             deferred.reject('Longitude must be in [46.493, 87.315] range');
                             return deferred.promise;
                         } else validLong = true;
                     } else {
                         tempLong = parseFloat(tempLong);
-                        if (!(tempLong>=46.493 && tempLong <=87.315)) {
+                        if (!(tempLong >= 46.493 && tempLong <= 87.315)) {
                             deferred.reject('Longitude must be in [46.493, 87.315] range');
                             return deferred.promise;
                         } else validLong = true;
@@ -190,10 +231,10 @@
                 }
                 if (validLat && validLong) {
                     var currentDate = new Date();
-                    var rolloutCounter = 'ROLLOUT-'+currentDate.getFullYear().toString();
+                    var rolloutCounter = 'ROLLOUT-' + currentDate.getFullYear().toString();
                     return $http.post('/asset-management/rolloutcounter/' + rolloutCounter).then(
-                            function(result){
-                                var businessKey = 'ROLLOUT-'+$scope.ncpID+'-'+currentDate.getFullYear().toString()+'-'+result.data;
+                            function (result) {
+                                var businessKey = 'ROLLOUT-' + $scope.ncpID + '-' + currentDate.getFullYear().toString() + '-' + result.data;
                                 camForm.businessKey = businessKey;
                             }
                     );
@@ -223,29 +264,29 @@
 
                     var firstElement = ncpID.charAt(0);
                     var secondElement = ncpID.charAt(0);
-                    if(firstElement === '0'){
+                    if (firstElement === '0') {
                         $scope.region = 'almaty';
-                    } else if(firstElement === '1' && secondElement === '1'){
+                    } else if (firstElement === '1' && secondElement === '1') {
                         $scope.region = 'astana';
-                    } else if(firstElement === '1' || firstElement === '2'){
+                    } else if (firstElement === '1' || firstElement === '2') {
                         $scope.region = 'nc';
-                    } else if(firstElement === '3'){
+                    } else if (firstElement === '3') {
                         $scope.region = 'east';
-                    } else if(firstElement === '4'){
+                    } else if (firstElement === '4') {
                         $scope.region = 'south';
-                    } else if(firstElement === '5' || firstElement === '6' || firstElement === '7'  || firstElement === '8'){
+                    } else if (firstElement === '5' || firstElement === '6' || firstElement === '7' || firstElement === '8') {
                         $scope.region = 'west';
-                    } else if(firstElement === '9'){
+                    } else if (firstElement === '9') {
                         $scope.region = undefined;
                     }
 
-                    if(firstElement !== '9'){
+                    if (firstElement !== '9') {
                         $scope.regionSelected($scope.region);
                     }
                 }
             }, true);
 
-            $scope.regionSelected = function(region){
+            $scope.regionSelected = function (region) {
                 $scope.regionName = _.find($scope.dictionary.regions, function (r) {
                     return r.id === region;
                 }).name;
@@ -254,7 +295,7 @@
                 }).code;
             }
 
-            $scope.types = function(rbsType){
+            $scope.types = function (rbsType) {
                 return Number(rbsType);
             }
         }]);
