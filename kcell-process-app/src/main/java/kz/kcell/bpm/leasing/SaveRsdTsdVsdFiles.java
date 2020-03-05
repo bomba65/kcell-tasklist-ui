@@ -20,13 +20,11 @@ import java.text.SimpleDateFormat;
 import java.util.Date;
 import java.util.TimeZone;
 
+import static java.sql.DriverManager.println;
 import static org.camunda.spin.Spin.JSON;
 
 @Service("SaveRsdTsdVsdFiles")
 public class SaveRsdTsdVsdFiles implements JavaDelegate {
-
-    @Autowired
-    DataSource dataSource;
 
     private Minio minioClient;
 
@@ -37,6 +35,7 @@ public class SaveRsdTsdVsdFiles implements JavaDelegate {
 
     @Override
     public void execute(DelegateExecution delegateExecution) throws Exception {
+        System.out.println("try to connect....");
         try {
             TimeZone timeZone = TimeZone.getTimeZone("Asia/Almaty");
             TimeZone.setDefault(timeZone);
@@ -53,11 +52,16 @@ public class SaveRsdTsdVsdFiles implements JavaDelegate {
                     Long createdArtefactRSDId = (Long) delegateExecution.getVariable("createdArtefactRSDId");
                     String starter = delegateExecution.getVariable("starter").toString();
 
-                    SpinJsonNode tsdJson = JSON(delegateExecution.getVariable("uploadTSDfileFiles"));
+//                    SpinJsonNode tsdJson = JSON(delegateExecution.getVariable("uploadTSDfileFiles"));
+                    SpinJsonNode tsdJson = JSON(delegateExecution.getVariable("createNewCandidateSiteFiles"));
                     SpinList tsdFiles = tsdJson.elements();
                     SpinJsonNode tsd = (SpinJsonNode) tsdFiles.get(0);
                     String fileName = tsd.prop("name").stringValue();
                     String filePath = tsd.prop("path").stringValue();
+                    System.out.println("file....");
+                    System.out.println(fileName);
+                    System.out.println(filePath);
+                    System.out.println("------");
 
                     InputStream inputStream = minioClient.getObject(filePath);
                     byte[] bytes = IOUtils.toByteArray(inputStream);
