@@ -27,7 +27,7 @@ def template = '''\
 if (reason == '2') {
     jobWorksObj.each { w ->
         w.relatedSites.each { r ->
-            yieldUnescaped '' + workDefinitionMap[w.sapServiceNumber].faClass + '\t' + tnuSiteLocations[r.id].siteLocation
+            yieldUnescaped '' + workDefinitionMap[w.sapServiceNumber].faClass + '\t' + tnuSiteLocations[r.site_name].siteLocation
             newLine()
         }
     }    

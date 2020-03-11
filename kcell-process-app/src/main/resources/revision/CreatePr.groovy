@@ -71,8 +71,8 @@ jobWorksObj.each { work ->
     if(reason == '2'){
         work.relatedSites.each { rs ->
             sapFaListObj.each { fa ->
-                if(fa.faClass == workDefinitionMapObj[work.sapServiceNumber].faClass && fa.sloc == tnuSiteLocationsObj[rs.id].siteLocation){
-                    tnuSiteLocationsObj[rs.id].fixedAssetNumber = fa.faNumber
+                if(fa.faClass == workDefinitionMapObj[work.sapServiceNumber].faClass && fa.sloc == tnuSiteLocationsObj[rs.site_name].siteLocation){
+                    tnuSiteLocationsObj[rs.site_name].fixedAssetNumber = fa.faNumber
                 }
             }
         }
@@ -139,7 +139,7 @@ if (reason == '2') {
         w.relatedSites.each { r ->
             yieldUnescaped '' + documentType + '\t' + w.costType + '\t' + jrNumber + '\tapproved\t' + requestDate + '\t' + workDefinitionMap[w.sapServiceNumber].vendor + '\t' + 
                   '7\tY\tinstallation service ' + r.site_name + '\t' + w.contractorNo + '\t' + workDefinitionMap[w.sapServiceNumber].sapServiceNumber + '\t' + w.price.quantity + '\t' +
-                  yearEndDate + '\t' + w.wbsElement + '\t' + jrNumber + '\t' + tnuSiteLocations[r.id].siteLocation + '\t' + (tnuSiteLocations[r.id].fixedAssetNumber!=null?tnuSiteLocations[r.id].fixedAssetNumber:'DUMMY') + '\t' +
+                  yearEndDate + '\t' + w.wbsElement + '\t' + jrNumber + '\t' + tnuSiteLocations[r.site_name].siteLocation + '\t' + (tnuSiteLocations[r.site_name].fixedAssetNumber!=null?tnuSiteLocations[r.site_name].fixedAssetNumber:'DUMMY') + '\t' +
                   w.costCenter + '\t' + w.controllingArea + '\t' + w.activityServiceNumber + '\t' + w.price.unitWorkPricePerSite + '\t' +
                   subcontructerName + '\t131\t' + requestedBy + '\t' +
                   '1.Purchase description: Revision works for site ' + r.site_name + ' JR# ' + jrNumber + ' dated ' + requestDate + ' ' +
