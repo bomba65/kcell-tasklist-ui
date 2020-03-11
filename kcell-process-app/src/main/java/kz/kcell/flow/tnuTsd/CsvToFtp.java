@@ -1,4 +1,4 @@
-package kz.kcell.bpm.tnuTsd;
+package kz.kcell.flow.tnuTsd;
 
 import kz.kcell.flow.files.Minio;
 import lombok.extern.java.Log;
