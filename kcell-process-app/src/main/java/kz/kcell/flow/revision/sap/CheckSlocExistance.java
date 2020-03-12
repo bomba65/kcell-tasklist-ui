@@ -209,7 +209,7 @@ public class CheckSlocExistance implements JavaDelegate {
         CloseableHttpClient httpclient = HttpClients.custom().setSSLSocketFactory(
             sslsf).build();
 
-        HttpGet httpGet = new HttpGet(baseUri + "/api/catalogs?force=1");
+        HttpGet httpGet = new HttpGet(baseUri + "/api/catalogs?force=2");
         httpGet.addHeader("Content-Type", "application/json;charset=UTF-8");
         HttpResponse httpResponse = httpclient.execute(httpGet);
 
