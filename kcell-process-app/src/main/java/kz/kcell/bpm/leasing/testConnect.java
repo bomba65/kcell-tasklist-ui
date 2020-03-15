@@ -1,5 +1,8 @@
 package kz.kcell.bpm.leasing;
 
+import org.camunda.bpm.engine.impl.util.json.JSONArray;
+import org.camunda.bpm.engine.impl.util.json.JSONObject;
+
 import java.sql.*;
 import java.util.Date;
 
@@ -18,50 +21,47 @@ public class testConnect {
                     udbConnect.setAutoCommit(false);
                     System.out.println("Connected to the database!");
 
-                    //vars
+                    String selectArtefactCurrentState = "select ARTEFACTID, NCPID, ONAIR_DATE, G_ONAIR_DATE, INST_STATUS, INST_STATUS_DATE, POWER_STATUS from ARTEFACT_CURRENT_STATE where NCPID = 29999";
+                    PreparedStatement selectArtefactCurrentStatePS = udbConnect.prepareStatement(selectArtefactCurrentState);
 
-                    
+                    System.out.println("selectArtefactCurrentState preparedStatement SQL UPDATE VALUES");
+                    ResultSet resultSet = selectArtefactCurrentStatePS.executeQuery();
+                    JSONArray json = new JSONArray();
+                    ResultSetMetaData rsmd = resultSet.getMetaData();
+                    System.out.println(rsmd.getColumnCount());
+                    while(resultSet.next()) {
+                        System.out.println(rsmd.getColumnCount());
+                        int numColumns = rsmd.getColumnCount();
+                        JSONObject obj = new JSONObject();
+                        for (int j=1; j<=numColumns; j++) {
+                            String column_name = rsmd.getColumnName(j);
+                            obj.put(column_name, resultSet.getObject(column_name));
+                        }
+                        json.put(obj);
+                    }
+                    System.out.println("done selectArtefactCurrentStatePS");
+                    JSONObject firstJson = json.getJSONObject(0);
+                    System.out.println(firstJson);
+                    System.out.println("done ARTEFACTID");
+                    System.out.println(firstJson.getInt("ARTEFACTID"));
+                    System.out.println("done INST_STATUS");
+                    System.out.println(firstJson.getInt("INST_STATUS"));
+                    System.out.println("done POWER_STATUS");
+                    System.out.println(firstJson.has("POWER_STATUS") ?  firstJson.getInt("POWER_STATUS") : "");
+                    System.out.println("done ONAIR_DATE");
+                    System.out.println(firstJson.has("ONAIR_DATE") ? firstJson.getString("ONAIR_DATE") : "");
+                    System.out.println("done G_ONAIR_DATE");
+                    System.out.println(firstJson.has("G_ONAIR_DATE") ? firstJson.getString("G_ONAIR_DATE") : "");
 
-//                    //UPDATE NCP
-                    String INSERT_CONTRACTS = "INSERT INTO APP_APEXUDB_CAMUNDA.CONTRACTS (CID, RENTSUM, RENTSUM_VAT, CONTRACTID, INCOMINGDATE, INCOMINGWEEK, CONTRACTTYPE, POWERSUPPLY, LEGALTYPE, LEGALNAME, LEGALADDRESS, CONTACTPERSON, CONTACTPHONE, ACCESS_STATUS, CONTRACT_SAP_NO, VENDOR_SAP_NO, CONTRACT_EXECUTOR, VAT, NEEDVAT, PAYMENTPERIOD, PAYMENTWAY, CONTRACTSTARTDATE, CONTRACTENDDATE, AUTOPROLONGATION, USERNAME, OBLAST_VILLAGEID, AREA_ACT_ACCEPT_DATE, RNN, INN, IBAN) VALUES (CONTRACTS_SEQ.nextval, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)";
-                    PreparedStatement INSERT_CONTRACTSPreparedStatement = udbConnect.prepareStatement(INSERT_CONTRACTS);
-
-                    int i = 1;
-                    System.out.println("_SET_NCP_STATUS preparedStatement SQL UPDATE VALUES");
-                    // set values to update
-                    INSERT_CONTRACTSPreparedStatement.setLong(i++, 8);  // RENTSUM
-                    INSERT_CONTRACTSPreparedStatement.setLong(i++, 8);  // RENTSUM_VAT
-                    INSERT_CONTRACTSPreparedStatement.setString(i++, "TESTADNKA111");  // CONTRACTID
-                    INSERT_CONTRACTSPreparedStatement.setDate(i++, new java.sql.Date(new Date().getTime())); // INCOMINGDATE
-                    INSERT_CONTRACTSPreparedStatement.setString(i++, "12");  // INCOMINGWEEK
-                    INSERT_CONTRACTSPreparedStatement.setLong(i++, 8);  // CONTRACTTYPE
-                    INSERT_CONTRACTSPreparedStatement.setLong(i++, 8);  // POWERSUPPLY
-                    INSERT_CONTRACTSPreparedStatement.setLong(i++, 8);  // LEGALTYPE
-                    INSERT_CONTRACTSPreparedStatement.setString(i++, "cn_longitude");  // LEGALNAME
-                    INSERT_CONTRACTSPreparedStatement.setString(i++, "cn_longitude");  // LEGALADDRESS
-                    INSERT_CONTRACTSPreparedStatement.setString(i++, "cn_longitude");  // CONTACTPERSON
-                    INSERT_CONTRACTSPreparedStatement.setString(i++, "cn_longitude");  // CONTACTPHONE
-                    INSERT_CONTRACTSPreparedStatement.setLong(i++, 8);  // ACCESS_STATUS
-                    INSERT_CONTRACTSPreparedStatement.setLong(i++, 8);  // CONTRACT_SAP_NO
-                    INSERT_CONTRACTSPreparedStatement.setLong(i++, 8);  // VENDOR_SAP_NO
-                    INSERT_CONTRACTSPreparedStatement.setLong(i++, 8);  // CONTRACT_EXECUTOR
-                    INSERT_CONTRACTSPreparedStatement.setString(i++, "cn_longitude");  // VAT
-                    INSERT_CONTRACTSPreparedStatement.setString(i++, "cn_longitude");  // NEEDVAT
-                    INSERT_CONTRACTSPreparedStatement.setLong(i++, 8);  // PAYMENTPERIOD
-                    INSERT_CONTRACTSPreparedStatement.setLong(i++, 8);  // PAYMENTWAY ???
-                    INSERT_CONTRACTSPreparedStatement.setDate(i++, new java.sql.Date(new Date().getTime())); // CONTRACTSTARTDATE
-                    INSERT_CONTRACTSPreparedStatement.setDate(i++, new java.sql.Date(new Date().getTime())); // CONTRACTENDDATE
-                    INSERT_CONTRACTSPreparedStatement.setString(i++, "cn_longitude");  // AUTOPROLONGATION
-                    INSERT_CONTRACTSPreparedStatement.setString(i++, "cn_longitude");  // USERNAME
-                    INSERT_CONTRACTSPreparedStatement.setLong(i++, 8);  // OBLAST_VILLAGEID
-                    INSERT_CONTRACTSPreparedStatement.setDate(i++, new java.sql.Date(new Date().getTime()));  // AREA_ACT_ACCEPT_DATE
-                    INSERT_CONTRACTSPreparedStatement.setString(i++, "cn_longitude");  // RNN
-                    INSERT_CONTRACTSPreparedStatement.setString(i++, "cn_longitude");  // INN
-                    INSERT_CONTRACTSPreparedStatement.setString(i++, "cn_longitude");  // IBAN
-
-                    INSERT_CONTRACTSPreparedStatement.executeUpdate();
-                    System.out.println("successfull NCP_STATUS updated!");
-
+                    if((firstJson.has("ONAIR_DATE") && !firstJson.getString("ONAIR_DATE").equals(null)) || (firstJson.has("G_ONAIR_DATE") && !firstJson.getString("G_ONAIR_DATE").equals(null))) {
+                        System.out.println("ONAIR_DATE or G_ONAIR_DATE is not null");
+                    } else if(firstJson.has("INST_STATUS") && !firstJson.getString("INST_STATUS").equals(null)) {
+                        System.out.println("INST_STATUS is not null");
+                    } else if(firstJson.has("POWER_STATUS") && !firstJson.getString("POWER_STATUS").equals(null)) {
+                        System.out.println("G_ONAIR_DATE is not null");
+                    } else {
+                        System.out.println("no changed data");
+                    }
 
                     udbConnect.commit();
                     udbConnect.close();
