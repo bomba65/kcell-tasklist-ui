@@ -36,7 +36,9 @@ public class GetValueFromUDB implements JavaDelegate {
                     udbConnect.setAutoCommit(false);
                     System.out.println("Connected to the database!");
 
-                    Long createdArtefactId = (Long) delegateExecution.getVariable("createdArtefactId");
+                    Long createdArtefactId = delegateExecution.hasVariable("createdArtefactId") ? (Long) delegateExecution.getVariable("createdArtefactId") : 0;
+                    String UDBcheckCronValue = delegateExecution.hasVariable("UDBcheckCronValue") ? delegateExecution.getVariable("UDBcheckCronValue").toString() : "0 58 10 * * ?";
+
 
                     String selectArtefactCurrentState = "select ARTEFACTID, NCPID, ONAIR_DATE, G_ONAIR_DATE, INST_STATUS, INST_STATUS_DATE, POWER_STATUS from ARTEFACT_CURRENT_STATE where ARTEFACTID = ?";
 
@@ -45,6 +47,8 @@ public class GetValueFromUDB implements JavaDelegate {
                     int i=1;
                     selectArtefactCurrentStatePS.setLong(i++, createdArtefactId.longValue());
 
+                    System.out.println("UDBcheckCronValue");
+                    System.out.println(UDBcheckCronValue);
                     System.out.println("selectArtefactCurrentState preparedStatement SQL UPDATE VALUES");
                     ResultSet resultSet = selectArtefactCurrentStatePS.executeQuery();
                     JSONArray json = new JSONArray();
@@ -61,63 +65,74 @@ public class GetValueFromUDB implements JavaDelegate {
                         json.put(obj);
                     }
                     System.out.println("done selectArtefactCurrentStatePS");
-                    JSONObject firstJson = json.getJSONObject(0);
-                    System.out.println(firstJson);
-                    System.out.println("done ARTEFACTID");
-                    System.out.println(firstJson.getInt("ARTEFACTID"));
-                    System.out.println("done INST_STATUS");
-                    System.out.println(firstJson.has("INST_STATUS") ?  firstJson.getInt("INST_STATUS") : "");
-                    System.out.println("done POWER_STATUS");
-                    System.out.println(firstJson.has("POWER_STATUS") ?  firstJson.getInt("POWER_STATUS") : "");
-                    System.out.println("done ONAIR_DATE");
-                    System.out.println(firstJson.has("ONAIR_DATE") ? firstJson.getString("ONAIR_DATE") : "");
-                    System.out.println("done G_ONAIR_DATE");
-                    System.out.println(firstJson.has("G_ONAIR_DATE") ? firstJson.getString("G_ONAIR_DATE") : "");
                     String dataFromUDB = "noData";
-                    if((firstJson.has("ONAIR_DATE") && !firstJson.getString("ONAIR_DATE").equals(null)) || (firstJson.has("G_ONAIR_DATE") && !firstJson.getString("G_ONAIR_DATE").equals(null))) {
-                        System.out.println("ONAIR_DATE or G_ONAIR_DATE is not null");
-                        dataFromUDB = "withFinishDate";
-                        delegateExecution.setVariable("finishDateFromUDB", firstJson.has("ONAIR_DATE") ? firstJson.getString("ONAIR_DATE") : firstJson.has("G_ONAIR_DATE") ? firstJson.getString("G_ONAIR_DATE") : "");
-                    } else if(firstJson.has("INST_STATUS")) {
-                        int uis = firstJson.getInt("INST_STATUS");
-                        if (uis == 8 || uis == 15 || uis == 7 || uis == 4) {
-                            dataFromUDB = "justSetInstStatus";
-                            if (uis == 8) {
-                                delegateExecution.setVariable("setInstStatusFromUDB", "Installation Problem");
-                            } else if (uis == 15) {
-                                delegateExecution.setVariable("setInstStatusFromUDB", "Installation Finish");
-                            } else if (uis == 7) {
-                                delegateExecution.setVariable("setInstStatusFromUDB", "Installation in Progress");
-                            } else if (uis == 4) {
-                                delegateExecution.setVariable("setInstStatusFromUDB", "SSID in Progress");
+                    if (json.length() > 0) {
+                        JSONObject firstJson = json.getJSONObject(0);
+                        System.out.println(firstJson);
+                        System.out.println("done ARTEFACTID");
+                        System.out.println(firstJson.getInt("ARTEFACTID"));
+                        System.out.println("done INST_STATUS");
+                        System.out.println(firstJson.has("INST_STATUS") ?  firstJson.getInt("INST_STATUS") : "");
+                        System.out.println("done POWER_STATUS");
+                        System.out.println(firstJson.has("POWER_STATUS") ?  firstJson.getInt("POWER_STATUS") : "");
+                        System.out.println("done ONAIR_DATE");
+                        System.out.println(firstJson.has("ONAIR_DATE") ? firstJson.getString("ONAIR_DATE") : "");
+                        System.out.println("done G_ONAIR_DATE");
+                        System.out.println(firstJson.has("G_ONAIR_DATE") ? firstJson.getString("G_ONAIR_DATE") : "");
+                        if((firstJson.has("ONAIR_DATE") && !firstJson.getString("ONAIR_DATE").equals(null)) || (firstJson.has("G_ONAIR_DATE") && !firstJson.getString("G_ONAIR_DATE").equals(null))) {
+                            System.out.println("ONAIR_DATE or G_ONAIR_DATE is not null");
+                            dataFromUDB = "withFinishDate";
+                            delegateExecution.setVariable("setInstStatusFromUDB", "FinishDate");
+                            delegateExecution.setVariable("finishDateFromUDB", firstJson.has("ONAIR_DATE") ? firstJson.getString("ONAIR_DATE") : firstJson.has("G_ONAIR_DATE") ? firstJson.getString("G_ONAIR_DATE") : "");
+                        } else if(firstJson.has("INST_STATUS")) {
+                            int uis = firstJson.getInt("INST_STATUS");
+                            if (uis == 8 || uis == 15 || uis == 7 || uis == 4) {
+                                dataFromUDB = "justSetInstStatus";
+                                if (uis == 8) {
+                                    delegateExecution.setVariable("setInstStatusFromUDB", "Installation Problem");
+                                } else if (uis == 15) {
+                                    delegateExecution.setVariable("setInstStatusFromUDB", "Installation Finish");
+                                } else if (uis == 7) {
+                                    delegateExecution.setVariable("setInstStatusFromUDB", "Installation in Progress");
+                                } else if (uis == 4) {
+                                    delegateExecution.setVariable("setInstStatusFromUDB", "SSID in Progress");
+                                }
+                                System.out.println("justSetInstStatus");
+                            } else if (uis == 16) {
+                                dataFromUDB = "finishWithSetInstStatus";
+                                System.out.println("finishWithSetInstStatus 16");
+                                delegateExecution.setVariable("setInstStatusFromUDB", "Transmission problem");
+                            } else if (uis == 13) {
+                                dataFromUDB = "finishWithSetInstStatus";
+                                System.out.println("finishWithSetInstStatus 13");
+                                delegateExecution.setVariable("setInstStatusFromUDB", "Leasing problem");
                             }
-                            System.out.println("justSetInstStatus");
-                        } else if (uis == 16) {
-                            dataFromUDB = "finishWithSetInstStatus";
-                            System.out.println("finishWithSetInstStatus 16");
-                            delegateExecution.setVariable("setInstStatusFromUDB", "Transmission problem");
-                        } else if (uis == 13) {
-                            dataFromUDB = "finishWithSetInstStatus";
-                            System.out.println("finishWithSetInstStatus 13");
-                            delegateExecution.setVariable("setInstStatusFromUDB", "Leasing problem");
+                            System.out.println("INST_STATUS is not null");
+                            delegateExecution.setVariable("instStatusFromUDB", uis);
+                        } else if(firstJson.has("POWER_STATUS") && firstJson.getString("POWER_STATUS").equals(3)) {
+                            dataFromUDB = "withPowerProblem";
+                            delegateExecution.setVariable("powerStatusFromUDB", firstJson.getInt("POWER_STATUS"));
+                            delegateExecution.setVariable("setInstStatusFromUDB", "Power problem");
+                            System.out.println("POWER_STATUS = 3 (withPowerProblem)");
+                        } else {
+                            System.out.println("no changed data");
+                            dataFromUDB = "noData";
                         }
-                        System.out.println("INST_STATUS is not null");
-                        delegateExecution.setVariable("instStatusFromUDB", uis);
-                    } else if(firstJson.has("POWER_STATUS") && firstJson.getString("POWER_STATUS").equals(3)) {
-                        dataFromUDB = "withPowerProblem";
-                        delegateExecution.setVariable("powerStatusFromUDB", firstJson.getInt("POWER_STATUS"));
-                        delegateExecution.setVariable("setInstStatusFromUDB", "Power problem");
-                        System.out.println("POWER_STATUS = 3 (withPowerProblem)");
-                    } else {
-                        System.out.println("no changed data");
-                        dataFromUDB = "noData";
                     }
+                    dataFromUDB = "noData";
 
                     delegateExecution.setVariable("dataFromUDB", dataFromUDB);
+                    if (UDBcheckCronValue.equals("0 58 10 * * ?")) {
+                        delegateExecution.setVariable("UDBcheckCronValue", "0 58 10 * * ?");
+                    } else {
+                        delegateExecution.setVariable("UDBcheckCronValue", "0 10 11 * * ?");
+                    }
+
                     udbConnect.commit();
                     udbConnect.close();
                     System.out.println("udbConnection closed!");
                 } else {
+                    delegateExecution.setVariable("dataFromUDB", "noData");
                     udbConnect.close();
                     System.out.println("Failed to make connection!");
                 }
