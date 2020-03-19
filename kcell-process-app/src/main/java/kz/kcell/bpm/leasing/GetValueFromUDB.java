@@ -119,7 +119,6 @@ public class GetValueFromUDB implements JavaDelegate {
                             dataFromUDB = "noData";
                         }
                     }
-                    dataFromUDB = "noData";
 
                     delegateExecution.setVariable("dataFromUDB", dataFromUDB);
                     if (UDBcheckCronValue.equals("0 58 10 * * ?")) {
