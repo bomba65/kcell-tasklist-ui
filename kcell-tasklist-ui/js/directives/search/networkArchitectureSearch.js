@@ -698,7 +698,7 @@ define(['../module', 'moment'], function (module, moment) {
                             filter.variables.push({"name": "initiatorForSearch","operator": "eq","value": scope.filter.leasingInitiator});
                         }
                         if(scope.filter.leasingGeneralStatus){
-                            // Future release
+                            filter.variables.push({"name": "generalStatus","operator": "eq","value": scope.filter.leasingGeneralStatus});
                         }
                         if(scope.filter.leasingContractExecutor){
                             filter.variables.push({"name": "contractExecutorJoinedByComma","operator": "like","value": '%,' + scope.filter.leasingContractExecutor.name + ',%'});
@@ -707,7 +707,7 @@ define(['../module', 'moment'], function (module, moment) {
                             filter.variables.push({"name": "projectForSearch","operator": "eq","value": scope.filter.leasingProject});
                         }
                         if(scope.filter.leasingInstallationStatus){
-                            // Future release
+                            filter.variables.push({"name": "installationStatus","operator": "eq","value": scope.filter.leasingInstallationStatus});
                         }
                         if(scope.filter.bin){
                             filter.variables.push({"name": "contractBinsJoinedByComma","operator": "like","value": '%,' + scope.filter.bin + ',%'});
