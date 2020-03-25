@@ -655,44 +655,45 @@ class GenerateLeasingRSD implements TaskListener {
         println(renterCompanyJson);
         for (int j =0;j<cycle;j++){
             def antennaItem = sectorsArr[j].antennas[0].antennaType
+            def antennaName = sectorsArr[j].antennas[0].antennaName
             for(String item : antennaNames){
                 if(antennaItem.containsKey("GSM900")){
-                    antennaGSM900 = "GSM900"
+                    antennaGSM900 = antennaName
                 } else {
                     antennaGSM900 = ""
                 }
                 if(antennaItem.containsKey("GSM1800")){
-                    antennaGSM1800 = "GSM1800"
+                    antennaGSM1800 = antennaName
                 } else {
                     antennaGSM1800 = ""
                 }
                 if(antennaItem.containsKey("U900")){
-                    antennaU900 = "U900"
+                    antennaU900 = antennaName
                 } else {
                     antennaU900 = ""
                 }
                 if(antennaItem.containsKey("U2100")){
-                    antennaU2100 = "U2100"
+                    antennaU2100 = antennaName
                 } else {
                     antennaU2100 = ""
                 }
                 if(antennaItem.containsKey("LTE800")){
-                    antennaLTE800 = "LTE800"
+                    antennaLTE800 = antennaName
                 } else {
                     antennaLTE800 = ""
                 }
                 if(antennaItem.containsKey("LTE1800")){
-                    antennaLTE1800 = "LTE1800"
+                    antennaLTE1800 = antennaName
                 } else {
                     antennaLTE1800 = ""
                 }
                 if(antennaItem.containsKey("LTE2100")){
-                    antennaLTE2100 = "LTE2100"
+                    antennaLTE2100 = antennaName
                 } else {
                     antennaLTE2100 = ""
                 }
                 if(antennaItem.containsKey("LTE2600")){
-                    antennaLTE2600 = "LTE2600"
+                    antennaLTE2600 = antennaName
                 } else {
                     antennaLTE2600 = ""
                 }
