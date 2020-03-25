@@ -17,6 +17,9 @@ if (processName=="Revision") {
         customVariables."Статус" = statusObj.statusName
     }
 }
+if (processName=="TNU") {
+    customVariables."Cайт"=delegateTask.getVariable('ne_sitename')
+}
 // subject can contain ampersands ~ problematic
 subject = java.net.URLEncoder.encode(subject, "UTF-8")
 subject = subject.replaceAll('\\+', ' ')

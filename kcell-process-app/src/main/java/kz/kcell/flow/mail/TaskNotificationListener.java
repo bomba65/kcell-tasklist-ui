@@ -23,6 +23,7 @@ import org.springframework.stereotype.Service;
 import javax.script.*;
 import java.io.InputStreamReader;
 import java.util.*;
+import java.util.function.Supplier;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
@@ -86,6 +87,18 @@ public class TaskNotificationListener implements TaskListener {
                 .findAny()
                 .isPresent();
 
+        boolean isTsdTnuProcess =
+            delegateTask
+                .getProcessEngineServices()
+                .getRepositoryService()
+                .createProcessDefinitionQuery()
+                .processDefinitionId(delegateTask.getProcessDefinitionId())
+                .list()
+                .stream()
+                .filter(e-> "tnu_tsd_db".equals(e.getKey()))
+                .findAny()
+                .isPresent();
+
         final Set<String> recipientEmails = new HashSet<>();
         if (TaskListener.EVENTNAME_CREATE.equals(delegateTask.getEventName())) {
             if (delegateTask.getAssignee() != null) recipientEmails.addAll(getAssigneeAddresses(delegateTask, true));
@@ -141,6 +154,21 @@ public class TaskNotificationListener implements TaskListener {
 
                     if(isRevisionProcess){
                         subject = businessKey!=null?String.format("%s - %s - %s", processName, businessKey, delegateTask.getName()):processName;
+                    } else if(isTsdTnuProcess){
+                        String region_name = delegateTask.getVariable("region_name").toString();
+                        Map<String, String> regionsTitle =
+                            ((Supplier<Map<String, String>>) (() -> {
+                                Map<String, String> map = new HashMap<>();
+                                map.put("alm", "Almaty");
+                                map.put("astana", "Astana");
+                                map.put("nc", "N&C");
+                                map.put("east", "East");
+                                map.put("south", "South");
+                                map.put("west", "West");
+                                return Collections.unmodifiableMap(map);
+                            })).get();
+
+                        subject = "New TSD from " + regionsTitle.get(region_name) + " region " + String.format("- %s", businessKey);
                     } else {
                         subject = businessKey!=null?String.format("%s - %s", processName, businessKey):processName;
                     }

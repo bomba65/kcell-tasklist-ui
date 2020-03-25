@@ -53,17 +53,17 @@ html(lang:'en') {
                    b(startTime.format('dd.MM.yyyy HH:mm'))
                }
             }
-for ( e in customVariables ) {
-            tr {
-                td {
-                    yield '' + e.key + ': '
+            for ( e in customVariables ) {
+                tr {
+                    td {
+                        yield '' + e.key + ': '
 
-                }
-                td {
-                    b(e.value)
+                    }
+                    td {
+                        b(e.value)
+                    }
                 }
             }
-}
          }
         newLine()
         hr()
