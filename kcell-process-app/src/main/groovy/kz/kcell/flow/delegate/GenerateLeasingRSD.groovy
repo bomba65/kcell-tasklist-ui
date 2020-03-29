@@ -166,7 +166,7 @@ class GenerateLeasingRSD implements TaskListener {
                         }
                         tr {
                             td (width:"20%", style:"font-weight: bold;border:1px solid", "Altitude, m.:")
-                            td (width:"23%", colspan:"2", style:"border:1px solid",cn_altidude)
+                            td (width:"23%", colspan:"2", style:"border:1px solid", data[0].cn_altidude)
                             td (width:"7%", style:"vertical-align:top;")
                             td (width:"7%", style:"vertical-align:top;" )
                             td (width:"20%", style:"vertical-align:top;" )
@@ -174,7 +174,7 @@ class GenerateLeasingRSD implements TaskListener {
                         }
                         tr {
                             td (width:"20%", style:"font-weight: bold;border:1px solid", "Height Of Construction, m:")
-                            td (width:"23%", colspan:"2", style:"border:1px solid", cn_height_constr)
+                            td (width:"23%", colspan:"2", style:"border:1px solid", data[0].cn_height_constr)
                             td (width:"7%", style:" vertical-align:top;")
                             td (width:"7%", style:"border-top:none; vertical-align:top;")
                             td (width:"20%", style:"border-top:none; vertical-align:top;")
@@ -260,7 +260,7 @@ class GenerateLeasingRSD implements TaskListener {
                                 td (style:"font-weight: bold;",width:"25%",colspan:"2", "Radio Unit type (RU)")
                                 for(int j =1;j<=3;j++){
                                     if(i*j-1<=cycles){
-                                        td (width:"25%", data[i*j-1].ncp_band)
+                                        td (width:"25%", data[i*j-1].cn_radio_unit)
 
                                     } else {
                                         td (width:"25%", "")
@@ -656,43 +656,44 @@ class GenerateLeasingRSD implements TaskListener {
         for (int j =0;j<cycle;j++){
             def antennaItem = sectorsArr[j].antennas[0].antennaType
             def antennaName = sectorsArr[j].antennas[0].antennaName
+            def antennaLocation = sectorsArr[j].antennas[0].cn_antenna_loc
             for(String item : antennaNames){
-                if(antennaItem.containsKey("GSM900")){
+                if(antennaItem == "GSM900"){
                     antennaGSM900 = antennaName
                 } else {
                     antennaGSM900 = ""
                 }
-                if(antennaItem.containsKey("GSM1800")){
+                if(antennaItem == "GSM1800"){
                     antennaGSM1800 = antennaName
                 } else {
                     antennaGSM1800 = ""
                 }
-                if(antennaItem.containsKey("U900")){
+                if(antennaItem == "U900"){
                     antennaU900 = antennaName
                 } else {
                     antennaU900 = ""
                 }
-                if(antennaItem.containsKey("U2100")){
+                if(antennaItem == "U2100"){
                     antennaU2100 = antennaName
                 } else {
                     antennaU2100 = ""
                 }
-                if(antennaItem.containsKey("LTE800")){
+                if(antennaItem == "LTE800"){
                     antennaLTE800 = antennaName
                 } else {
                     antennaLTE800 = ""
                 }
-                if(antennaItem.containsKey("LTE1800")){
+                if(antennaItem == "LTE1800"){
                     antennaLTE1800 = antennaName
                 } else {
                     antennaLTE1800 = ""
                 }
-                if(antennaItem.containsKey("LTE2100")){
+                if(antennaItem == "LTE2100"){
                     antennaLTE2100 = antennaName
                 } else {
                     antennaLTE2100 = ""
                 }
-                if(antennaItem.containsKey("LTE2600")){
+                if(antennaItem == "LTE2600"){
                     antennaLTE2600 = antennaName
                 } else {
                     antennaLTE2600 = ""
@@ -707,18 +708,18 @@ class GenerateLeasingRSD implements TaskListener {
                     "cn_bsc": candidateJson.bsc.name,
                     "cn_latitude": candidateJson.latitude,
                     "cn_longitude": candidateJson.longitude,
-                    "cn_altidude":"",
-                    "cn_height_constr": cellAntennaJson.cn_height_gsm,
+                    "cn_altidude": candidateJson.altitude,
+                    "cn_height_constr": candidateJson.cn_height_constr,
                     "sysdate": new Date(),
                     "cn_date_visit": candidateJson.dateOfVisit,
                     "ncp_band":"ncp_band",
                     "ncp_rbs_type": candidateJson.rbsType,
-                    "cn_radio_unit": "cn_radio_unit",
+                    "cn_radio_unit": cellAntennaJson.cn_radio_unit,
                     "cn_wcdma_carrier": cellAntennaJson.cn_wcdma_carrier,
                     "cn_trx": cellAntennaJson.cn_trx,
-                    "cn_du":"cn_du",
+                    "cn_du": cellAntennaJson.cn_du,
                     "sector_cell_antenna":"sector_cell_antenna",
-                    "cn_antenna_loc": "cn_antenna_loc",
+                    "cn_antenna_loc": antennaLocation,
                     "cn_tilt_mech_gsm": "cn_tilt_mech_gsm",
                     "cn_tilt_electr_gsm": cellAntennaJson.cn_tilt_electr_gsmv,
                     "cn_tilt_mech_lte": cellAntennaJson.cn_tilt_mech_lte,
@@ -754,7 +755,7 @@ class GenerateLeasingRSD implements TaskListener {
                     "antennaLTE800": antennaLTE800,
                     "antennaLTE1800": antennaLTE1800,
                     "antennaLTE2100": antennaLTE2100,
-                    "antennaLTE2600": antennaLTE2600,
+                    "antennaLTE2600": antennaLTE2600
             ]
             data.add(test)
         }
