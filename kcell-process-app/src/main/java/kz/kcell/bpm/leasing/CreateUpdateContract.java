@@ -45,12 +45,15 @@ public class CreateUpdateContract implements JavaDelegate {
                     SpinJsonNode contractInformationsJSON = JSON(delegateExecution.getVariable(contractVariableName));
                     SpinList contractInformations = contractInformationsJSON.elements();
                     String contractid = "";
-                    int ct_vendor_sap;
-                    int ct_agreement_type;
+                    String ct_contractid_old = "";
+                    int ct_vendor_sap = 0;
+                    int ct_agreement_type = 0;
                     for (int j=0; j<contractInformations.size(); j++) {
                         SpinJsonNode ci = (SpinJsonNode) contractInformations.get(j);
                         if (ci != null) {
 
+                            contractid = ci.prop("ct_contractid").stringValue();
+                            String ct_acquisitionType = ci.prop("ct_acquisitionType").stringValue();
                             SimpleDateFormat formatter = new SimpleDateFormat("yyyy-dd-MM"); //2020-01-02T18:00:00.000Z
                             String ct_acceptance_act_date = ci.prop("ct_acceptance_act_date").stringValue().substring(0,9);
                             String ct_contract_start_date = ci.prop("ct_contract_start_date").stringValue().substring(0,9);
@@ -82,151 +85,227 @@ public class CreateUpdateContract implements JavaDelegate {
                             String ct_contact_phone = ci.prop("ct_contact_phone").stringValue();
                             String ct_access_status = ci.prop("ct_access_status").stringValue();
                             String ct_autoprolongation = ci.prop("ct_autoprolongation").stringValue();
+//                            Long ct_rent_area = ci.prop("ct_rent_area").numberValue().longValue();
 //                            String ct_contract_sap = ci.prop("ct_contract_sap").stringValue();
                             Long ct_contract_sap = ci.prop("ct_contract_sap").numberValue().longValue();
 
 //                            String ct_contract_type = ci.prop("ct_contract_type").stringValue();
                             String vat = ci.prop("ct_access_status").stringValue() == "No" ? "Not" : "With";
+                            Long ct_cid = new Long(1);
+                            int i = 1;
 
-                            if (ci.hasProp("ct_cid")) {
+                            if (!ct_acquisitionType.equals("newContract")) {
                                 System.out.println("OLD CONTRACT....");
-                                Long ct_cid = ci.prop("ct_cid").numberValue().longValue();
+                                ct_cid = ci.prop("ct_cid").numberValue().longValue();
 
-                                contractid = ci.prop("ct_contractid_old").stringValue();
+                                ct_contractid_old = ci.prop("ct_contractid_old").stringValue();
                                 ct_vendor_sap = ci.prop("ct_vendor_sap").numberValue().intValue();
 //                                ct_agreement_type = ci.prop("ct_agreement_type").numberValue().intValue();
-                                ct_agreement_type = Integer.parseInt(ci.prop("ct_agreement_type").stringValue());
-                                //UPDATE NCP
-                                if (ci.hasProp("ct_action_id")) {
-                                    Long action_id = ci.prop("ct_action_id").numberValue().longValue();
-                                    String UPDATE_CONTRACT_AA_STATUS_GEN_STATUS = "update CONTRACT_AA_STATUS set STATUSID = ?, STATUSDATE=?, STATUSPERSON=? where ACTION_ID = ?";
 
-                                    PreparedStatement updateCONTRACT_AA_STATUSPreparedStatement = udbConnect.prepareStatement(UPDATE_CONTRACT_AA_STATUS_GEN_STATUS);
-
-                                    System.out.println("CONTRACT_AA_STATUS preparedStatement SQL UPDATE VALUES....");
-                                    // set values to update
-                                    int i = 1;
-                                    updateCONTRACT_AA_STATUSPreparedStatement.setLong(i++, 40); // STATUSID
-                                    updateCONTRACT_AA_STATUSPreparedStatement.setDate(i++, new java.sql.Date(new Date().getTime())); // STATUSDATE
-                                    updateCONTRACT_AA_STATUSPreparedStatement.setString(i++, starter); // STATUSPERSON
-                                    updateCONTRACT_AA_STATUSPreparedStatement.setLong(i++, action_id ); //  //ACTION_ID
-                                    updateCONTRACT_AA_STATUSPreparedStatement.executeUpdate();
-                                    System.out.println("...CONTRACT_AA_STATUS updated");
-
+                                if (ci.hasProp("ct_agreement_type") && !ci.prop("ct_agreement_type").value().equals(null) && ct_acquisitionType.equals("additionalAgreement")) {
+                                   ct_agreement_type = Integer.parseInt(ci.prop("ct_agreement_type").stringValue());
                                 }
 
-                            } else {
+                                //UPDATE NCP
+                                if (ct_acquisitionType.equals("existingContract")) {
+                                    String UPDATE_CONTRACT_STATUS_REL = "update CONTRACT_STATUS_REL set STATUSID = 40, csreldate=? where CONTRACTID = ?";
+                                    PreparedStatement UPDATE_CONTRACT_STATUS_RELPreparedStatement = udbConnect.prepareStatement(UPDATE_CONTRACT_STATUS_REL);
+                                    System.out.println("CONTRACT_STATUS_REL preparedStatement SQL UPDATE VALUES....");
+                                    // set values to update
+                                    i = 1;
+                                    UPDATE_CONTRACT_STATUS_RELPreparedStatement.setDate(i++, new java.sql.Date(new Date().getTime())); // csreldate
+                                    UPDATE_CONTRACT_STATUS_RELPreparedStatement.setLong(i++, ct_cid.longValue() ); //  //ct_cid
+                                    UPDATE_CONTRACT_STATUS_RELPreparedStatement.executeUpdate();
+                                    System.out.println("...CONTRACT_STATUS_REL updated");
+
+                                    String UPDATE_CONTRACTS_STATUSES = "update CONTRACTS_STATUSES set LEASING_STATUS = ? where CID = ?";
+                                    PreparedStatement UPDATE_CONTRACTS_STATUSESPreparedStatement = udbConnect.prepareStatement(UPDATE_CONTRACTS_STATUSES);
+                                    System.out.println("CONTRACTS_STATUSES preparedStatement SQL UPDATE VALUES....");
+                                    // set values to update
+                                    i = 1;
+                                    UPDATE_CONTRACTS_STATUSESPreparedStatement.setLong(i++, 40); // STATUSID
+                                    UPDATE_CONTRACTS_STATUSESPreparedStatement.setLong(i++, ct_cid.longValue() ); //  //ct_cid
+                                    UPDATE_CONTRACTS_STATUSESPreparedStatement.executeUpdate();
+                                    System.out.println("...CONTRACTS_STATUSES updated");
+                                }
+                            } else if (ct_acquisitionType.equals("newContract")) {
                                 System.out.println("NEW CONTRACT....");
-                                contractid = ci.prop("ct_contractid").stringValue();
+//                                contractid = ci.prop("ct_contractid").stringValue();
                                 ct_vendor_sap = ci.prop("ct_vendor_sap").numberValue().intValue();
 //                                ct_vendor_sap = Integer.parseInt(ci.prop("ct_vendor_sap").stringValue());
                                 ct_agreement_type = 0;
                             }
 
-                            Long createdContractCID = null;
-                            String returnStatus[] = { "CID" };
-                            String INSERT_CONTRACTS = "INSERT INTO APP_APEXUDB_CAMUNDA.CONTRACTS (CID, RENTSUM, RENTSUM_VAT, CONTRACTID, INCOMINGDATE, INCOMINGWEEK, CONTRACTTYPE, POWERSUPPLY, LEGALTYPE, LEGALNAME, LEGALADDRESS, CONTACTPERSON, CONTACTPHONE, ACCESS_STATUS, CONTRACT_SAP_NO, VENDOR_SAP_NO, CONTRACT_EXECUTOR, VAT, NEEDVAT, PAYMENTPERIOD, PAYMENTWAY, CONTRACTSTARTDATE, CONTRACTENDDATE, AUTOPROLONGATION, USERNAME, OBLAST_VILLAGEID, AREA_ACT_ACCEPT_DATE, RNN, INN, IBAN) VALUES (CONTRACTS_SEQ.nextval, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)";
-                            PreparedStatement INSERT_CONTRACTSPreparedStatement = udbConnect.prepareStatement(INSERT_CONTRACTS, returnStatus);
-
-                            int i = 1;
-                            System.out.println("_SET_NCP_STATUS preparedStatement SQL UPDATE VALUES");
-                            // set values to update
-                            INSERT_CONTRACTSPreparedStatement.setLong(i++, ct_rent.longValue());  // RENTSUM
-                            INSERT_CONTRACTSPreparedStatement.setLong(i++, 0);  // RENTSUM_VAT .. ct_vat неету
-                            INSERT_CONTRACTSPreparedStatement.setString(i++, contractid);  // CONTRACTID
-                            INSERT_CONTRACTSPreparedStatement.setDate(i++, new java.sql.Date(new Date().getTime())); // INCOMINGDATE
-                            INSERT_CONTRACTSPreparedStatement.setString(i++, "12");  // INCOMINGWEEK
-                            INSERT_CONTRACTSPreparedStatement.setLong(i++, ct_contract_type.longValue());  // CONTRACTTYPE net spravochnika
-                            INSERT_CONTRACTSPreparedStatement.setLong(i++, ct_rent_power.longValue());  // POWERSUPPLY
-                            INSERT_CONTRACTSPreparedStatement.setLong(i++, legalType.longValue());  // LEGALTYPE
-                            INSERT_CONTRACTSPreparedStatement.setString(i++, ct_legal_name);  // LEGALNAME
-                            INSERT_CONTRACTSPreparedStatement.setString(i++, ci_address);  // LEGALADDRESS
-                            INSERT_CONTRACTSPreparedStatement.setString(i++, ct_contact_person);  // CONTACTPERSON
-                            INSERT_CONTRACTSPreparedStatement.setString(i++, ct_contact_phone);  // CONTACTPHONE
-                            INSERT_CONTRACTSPreparedStatement.setLong(i++, Integer.parseInt(ct_access_status));  // ACCESS_STATUS
-                            INSERT_CONTRACTSPreparedStatement.setString(i++, ct_contract_sap.toString());  // CONTRACT_SAP_NO
-                            INSERT_CONTRACTSPreparedStatement.setInt(i++,  ct_vendor_sap);  // VENDOR_SAP_NO
-                            INSERT_CONTRACTSPreparedStatement.setLong(i++, 0);  // CONTRACT_EXECUTOR netu
-                            INSERT_CONTRACTSPreparedStatement.setString(i++, vat);  // VAT ??
-                            INSERT_CONTRACTSPreparedStatement.setString(i++, vat);  // NEEDVAT ??
-                            INSERT_CONTRACTSPreparedStatement.setLong(i++, 3);  // PAYMENTPERIOD ??
-                            INSERT_CONTRACTSPreparedStatement.setLong(i++, 2);  // PAYMENTWAY ???
-                            INSERT_CONTRACTSPreparedStatement.setDate(i++, new java.sql.Date(formated_ct_contract_start_date.getTime())); // CONTRACTSTARTDATE
-                            INSERT_CONTRACTSPreparedStatement.setDate(i++, new java.sql.Date(formated_ct_contract_end_date.getTime())); // CONTRACTENDDATE
-                            INSERT_CONTRACTSPreparedStatement.setString(i++, ct_autoprolongation);  // AUTOPROLONGATION
-                            INSERT_CONTRACTSPreparedStatement.setString(i++, starter);  // USERNAME
-                            INSERT_CONTRACTSPreparedStatement.setLong(i++, 1);  // OBLAST_VILLAGEID // ???
-                            INSERT_CONTRACTSPreparedStatement.setDate(i++, new java.sql.Date(new Date().getTime()));  // AREA_ACT_ACCEPT_DATE
-                            INSERT_CONTRACTSPreparedStatement.setString(i++, ct_bin);  // RNN
-                            INSERT_CONTRACTSPreparedStatement.setString(i++, ct_bin);  // INN
-                            INSERT_CONTRACTSPreparedStatement.setString(i++, ct_iban);  // IBAN
-
-                            INSERT_CONTRACTSPreparedStatement.executeUpdate();
-                            System.out.println("successfull CONTRACTS created!");
-
-                            ResultSet statusGeneratedIdResultSet = INSERT_CONTRACTSPreparedStatement.getGeneratedKeys();
-                            statusGeneratedIdResultSet.next();
-                            createdContractCID = statusGeneratedIdResultSet.getLong(1);
-                            System.out.println("createdContractCID:");
-                            System.out.println(createdContractCID);
-
-
-                            Long createdContractArtefactID = null;
-                            String returnContractArtefactID[] = { "ID" };
-                            String INSERT_CONTRACT_ARTEFACT = "INSERT INTO APP_APEXUDB_CAMUNDA.CONTRACT_ARTEFACT (ID, CID, ARTEFACTID) VALUES (CONTRACT_ARTEFACT_SEQ.nextval, ?, ?)";
-                            PreparedStatement InsertContractArtefactPreparedStatement = udbConnect.prepareStatement(INSERT_CONTRACT_ARTEFACT, returnContractArtefactID);
-
                             i = 1;
-                            System.out.println("_SET_NCP_STATUS preparedStatement SQL UPDATE VALUES");
-                            // set values to update
-                            InsertContractArtefactPreparedStatement.setLong(i++, createdContractCID);  // createdContractCID
-                            InsertContractArtefactPreparedStatement.setLong(i++, createdArtefactId);  // createdArtefactId
+                            String returnStatus[] = { "CID" };
+                            Long createdContractCID = null;
+                            if (!ct_acquisitionType.equals("additionalAgreement")) {
 
-                            InsertContractArtefactPreparedStatement.executeUpdate();
-                            System.out.println("successfull NCP_STATUS updated!");
+                                //INSERT_CONTRACTS
+                                String INSERT_CONTRACTS = "INSERT INTO APP_APEXUDB_CAMUNDA.CONTRACTS (CID, RENTSUM, RENTSUM_VAT, CONTRACTID, INCOMINGDATE, INCOMINGWEEK, CONTRACTTYPE, POWERSUPPLY, LEGALTYPE, LEGALNAME, LEGALADDRESS, CONTACTPERSON, CONTACTPHONE, ACCESS_STATUS, CONTRACT_SAP_NO, VENDOR_SAP_NO, CONTRACT_EXECUTOR, NEEDVAT, PAYMENTPERIOD, PAYMENTWAY, CONTRACTSTARTDATE, CONTRACTENDDATE, AUTOPROLONGATION, USERNAME, AREA_ACT_ACCEPT_DATE, RNN, INN, IBAN) VALUES (CONTRACTS_SEQ.nextval, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)";
+                                PreparedStatement INSERT_CONTRACTSPreparedStatement = udbConnect.prepareStatement(INSERT_CONTRACTS, returnStatus);
 
-                            ResultSet InsertContractArtefactResultSet = InsertContractArtefactPreparedStatement.getGeneratedKeys();
-                            InsertContractArtefactResultSet.next();
-                            createdContractArtefactID = InsertContractArtefactResultSet.getLong(1);
-                            System.out.println("createdContractArtefactID:");
-                            System.out.println(createdContractArtefactID);
+                                System.out.println("INSERT_CONTRACTS preparedStatement SQL UPDATE VALUES");
+                                // set values to update
+                                INSERT_CONTRACTSPreparedStatement.setLong(i++, ct_rent.longValue());  // RENTSUM
+                                INSERT_CONTRACTSPreparedStatement.setLong(i++, 0);  // RENTSUM_VAT .. ct_vat неету
+                                INSERT_CONTRACTSPreparedStatement.setString(i++, contractid);  // CONTRACTID
+                                INSERT_CONTRACTSPreparedStatement.setDate(i++, new java.sql.Date(new Date().getTime())); // INCOMINGDATE
+                                INSERT_CONTRACTSPreparedStatement.setString(i++, "12");  // INCOMINGWEEK
+                                //ct_rentarea
+                                INSERT_CONTRACTSPreparedStatement.setLong(i++, ct_contract_type.longValue());  // CONTRACTTYPE net spravochnika
+                                INSERT_CONTRACTSPreparedStatement.setLong(i++, ct_rent_power.longValue());  // POWERSUPPLY
+                                INSERT_CONTRACTSPreparedStatement.setLong(i++, legalType.longValue());  // LEGALTYPE
+                                INSERT_CONTRACTSPreparedStatement.setString(i++, ct_legal_name);  // LEGALNAME
+                                INSERT_CONTRACTSPreparedStatement.setString(i++, ci_address);  // LEGALADDRESS
+                                INSERT_CONTRACTSPreparedStatement.setString(i++, ct_contact_person);  // CONTACTPERSON
+                                INSERT_CONTRACTSPreparedStatement.setString(i++, ct_contact_phone);  // CONTACTPHONE
+                                INSERT_CONTRACTSPreparedStatement.setLong(i++, Integer.parseInt(ct_access_status));  // ACCESS_STATUS
+                                INSERT_CONTRACTSPreparedStatement.setString(i++, ct_contract_sap.toString());  // CONTRACT_SAP_NO
+                                INSERT_CONTRACTSPreparedStatement.setInt(i++,  ct_vendor_sap);  // VENDOR_SAP_NO
+                                INSERT_CONTRACTSPreparedStatement.setLong(i++, 0);  // CONTRACT_EXECUTOR netu ct_executor
+//                                INSERT_CONTRACTSPreparedStatement.setString(i++, vat);  // VAT ??
+                                INSERT_CONTRACTSPreparedStatement.setString(i++, vat);  // NEEDVAT ??  ct_checkvat (yes/no)
+                                INSERT_CONTRACTSPreparedStatement.setLong(i++, 3);  // PAYMENTPERIOD ??
+                                INSERT_CONTRACTSPreparedStatement.setLong(i++, 2);  // PAYMENTWAY ???
+                                INSERT_CONTRACTSPreparedStatement.setDate(i++, new java.sql.Date(formated_ct_contract_start_date.getTime())); // CONTRACTSTARTDATE
+                                INSERT_CONTRACTSPreparedStatement.setDate(i++, new java.sql.Date(formated_ct_contract_end_date.getTime())); // CONTRACTENDDATE
+                                INSERT_CONTRACTSPreparedStatement.setString(i++, ct_autoprolongation);  // AUTOPROLONGATION
+                                INSERT_CONTRACTSPreparedStatement.setString(i++, starter);  // USERNAME
+//                                INSERT_CONTRACTSPreparedStatement.setLong(i++, 1);  // OBLAST_VILLAGEID // ???
+                                INSERT_CONTRACTSPreparedStatement.setDate(i++, new java.sql.Date(new Date().getTime()));  // AREA_ACT_ACCEPT_DATE
+                                INSERT_CONTRACTSPreparedStatement.setString(i++, ct_bin);  // RNN
+                                INSERT_CONTRACTSPreparedStatement.setString(i++, ct_bin);  // INN ??
+                                INSERT_CONTRACTSPreparedStatement.setString(i++, ct_iban);  // IBAN
+                                // bank_id ct_bankname
 
-                            if (ci.hasProp("ct_action_id")) {
-                                Long createdContractAA = null;
-                                String returnContractAA[] = { "CID" };
-                                String INSERT_CONTRACT_AA = "INSERT INTO APP_APEXUDB_CAMUNDA.CONTRACT_AA (AAID, CID, ARTEFACTID, AA_TYPE, CONTRACT_TYPE, RENTSUM, RENTSUM_VAT, POWERSUPPLY, LEGAL_TYPE, LEGAL_NAME, LEGAL_ADDRESS, CONTACT_PERSON, CONTACT_PHONE, PAYMENT_PERIOD, PAYMENT_WAY, VAT, NEEDVAT, CONTRACT_START_DATE, CONTRACT_END_DATE, AUTOPROLONGATION, OBLAST_VILLAGE_ID, INSERT_DATE, INSERT_PERSON) VALUES (CONTRACT_AA_SEQ.nextval, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)";
-                                PreparedStatement INSERT_CONTRACT_AA_PreparedStatement = udbConnect.prepareStatement(INSERT_CONTRACT_AA, returnStatus);
+                                INSERT_CONTRACTSPreparedStatement.executeUpdate();
+                                System.out.println("successfull CONTRACTS created!");
+
+                                ResultSet statusGeneratedIdResultSet = INSERT_CONTRACTSPreparedStatement.getGeneratedKeys();
+                                statusGeneratedIdResultSet.next();
+                                createdContractCID = statusGeneratedIdResultSet.getLong(1);
+                                System.out.println("createdContractCID:");
+                                System.out.println(createdContractCID);
+
+
+                                //INSERT_CONTRACT_ARTEFACT
+                                Long createdContractArtefactID = null;
+                                String returnContractArtefactID[] = { "ID" };
+                                String INSERT_CONTRACT_ARTEFACT = "INSERT INTO APP_APEXUDB_CAMUNDA.CONTRACT_ARTEFACT (ID, CID, ARTEFACTID) VALUES (CONTRACT_ARTEFACT_SEQ.nextval, ?, ?)";
+                                PreparedStatement InsertContractArtefactPreparedStatement = udbConnect.prepareStatement(INSERT_CONTRACT_ARTEFACT, returnContractArtefactID);
 
                                 i = 1;
-                                System.out.println("_SET_NCP_STATUS preparedStatement SQL UPDATE VALUES");
+                                System.out.println("INSERT_CONTRACT_ARTEFACT preparedStatement SQL Insert VALUES");
+                                // set values to update
+                                InsertContractArtefactPreparedStatement.setLong(i++, createdContractCID);  // createdContractCID
+                                InsertContractArtefactPreparedStatement.setLong(i++, createdArtefactId);  // createdArtefactId
+
+                                InsertContractArtefactPreparedStatement.executeUpdate();
+                                System.out.println("successfull INSERT_CONTRACT_ARTEFACT created!");
+
+                                ResultSet InsertContractArtefactResultSet = InsertContractArtefactPreparedStatement.getGeneratedKeys();
+                                InsertContractArtefactResultSet.next();
+                                createdContractArtefactID = InsertContractArtefactResultSet.getLong(1);
+                                System.out.println("createdContractArtefactID:");
+                                System.out.println(createdContractArtefactID);
+
+
+                                //INSERT_CONTRACT_STATUS_REL
+                                System.out.println("INSERT_CONTRACT_STATUS_REL preparedStatement");
+                                Long createdContractStatusRelID = null;
+                                String returnContractStatusRelID[] = { "CSRELID" };
+                                String INSERT_CONTRACT_STATUS_REL = "INSERT INTO APP_APEXUDB_CAMUNDA.CONTRACT_STATUS_REL (csrelid, contractid, statusid, csreldate) VALUES (CONTRACT_STATUS_REL_SEQ.nextval, ?, 41, ?)";
+                                PreparedStatement InsertContractStatusRelPreparedStatement = udbConnect.prepareStatement(INSERT_CONTRACT_STATUS_REL, returnContractStatusRelID);
+
+                                i = 1;
+                                // set values to update
+                                InsertContractStatusRelPreparedStatement.setLong(i++, createdContractCID);  // createdContractCID
+                                InsertContractStatusRelPreparedStatement.setDate(i++, new java.sql.Date(new Date().getTime())); // csreldate
+
+                                InsertContractStatusRelPreparedStatement.executeUpdate();
+                                System.out.println("successfull INSERT_CONTRACT_STATUS_REL!");
+
+                                ResultSet InsertContractStatusRelResultSet = InsertContractStatusRelPreparedStatement.getGeneratedKeys();
+                                InsertContractStatusRelResultSet.next();
+                                createdContractStatusRelID = InsertContractStatusRelResultSet.getLong(1);
+                                System.out.println("createdContractStatusRelID:");
+                                System.out.println(createdContractStatusRelID);
+
+
+                                //INSERT_CONTRACT_STATUSES
+                                String INSERT_CONTRACT_STATUSES = "INSERT INTO APP_APEXUDB_CAMUNDA.CONTRACTS_STATUSES (cid, leasing_status) VALUES (?, 41)";
+                                PreparedStatement InsertContractStatusesPreparedStatement = udbConnect.prepareStatement(INSERT_CONTRACT_STATUSES);
+
+                                i = 1;
+                                System.out.println("INSERT_CONTRACT_STATUSES preparedStatement SQL UPDATE VALUES");
+                                // set values to update
+                                InsertContractStatusesPreparedStatement.setLong(i++, createdContractCID);  // createdContractCID
+
+                                InsertContractStatusesPreparedStatement.executeUpdate();
+                                System.out.println("successfull INSERT_CONTRACT_STATUSES updated!");
+                            } else {
+                                Long createdContractAA = null;
+                                String createdContractAAID[] = { "AAID" };
+                                String INSERT_CONTRACT_AA = "INSERT INTO APP_APEXUDB_CAMUNDA.CONTRACT_AA (AAID, CID, AA_NUMBER, AA_DATE, AA_EXECUTOR, ARTEFACTID, AA_TYPE, AA_REASON, CONTRACT_TYPE, RENTSUM, RENTSUM_VAT, RENT_AREA, POWERSUPPLY, LEGAL_TYPE, LEGAL_NAME, LEGAL_ADDRESS, CONTACT_PERSON, CONTACT_PHONE, PAYMENT_PERIOD, PAYMENT_WAY, NEEDVAT, CONTRACT_START_DATE, CONTRACT_END_DATE, AUTOPROLONGATION, AA_STATUS, INSERT_DATE, INSERT_PERSON) VALUES (CONTRACT_AA_SEQ.nextval, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)";
+                                PreparedStatement INSERT_CONTRACT_AA_PreparedStatement = udbConnect.prepareStatement(INSERT_CONTRACT_AA, createdContractAAID);
+
+                                i = 1;
+                                System.out.println("INSERT_CONTRACT_AA preparedStatement SQL UPDATE VALUES");
                                 // set values to update
 
+//                                INSERT_CONTRACT_AA_PreparedStatement.setLong(i++, ct_cid); // CID
+//                                INSERT_CONTRACT_AA_PreparedStatement.setLong(i++, createdArtefactId); // ARTEFACTID
+//                                INSERT_CONTRACT_AA_PreparedStatement.setLong(i++, ct_agreement_type); // AA_TYPE
+//                                INSERT_CONTRACT_AA_PreparedStatement.setLong(i++, ct_contract_type.longValue());  // CONTRACTTYPE net spravochnika
+//                                INSERT_CONTRACT_AA_PreparedStatement.setLong(i++, ct_rent.longValue());  // RENTSUM
+//                                INSERT_CONTRACT_AA_PreparedStatement.setLong(i++, 0);  // RENTSUM_VAT .. ct_vat неету
+//                                INSERT_CONTRACT_AA_PreparedStatement.setLong(i++, ct_rent.longValue()); // POWERSUPPLY ?
+//                                INSERT_CONTRACT_AA_PreparedStatement.setLong(i++, legalType.longValue());  // LEGALTYPE
+//                                INSERT_CONTRACT_AA_PreparedStatement.setString(i++, ct_legal_name);  // LEGALNAME
+//                                INSERT_CONTRACT_AA_PreparedStatement.setString(i++, ci_address);  // LEGALADDRESS
+//                                INSERT_CONTRACT_AA_PreparedStatement.setString(i++, ct_contact_person);  // CONTACTPERSON
+//                                INSERT_CONTRACT_AA_PreparedStatement.setString(i++, ct_contact_phone);  // CONTACTPHONE
+//                                INSERT_CONTRACT_AA_PreparedStatement.setLong(i++, 3);  // PAYMENTPERIOD ??
+//    //                            INSERT_CONTRACT_AA_PreparedStatement.setLong(i++, ct_rent.longValue()); // PAYMENT_WAY
+//                                INSERT_CONTRACT_AA_PreparedStatement.setString(i++, vat);  // VAT ??
+//                                INSERT_CONTRACT_AA_PreparedStatement.setString(i++, vat);  // NEEDVAT ??
+//                                INSERT_CONTRACT_AA_PreparedStatement.setDate(i++, new java.sql.Date(formated_ct_contract_start_date.getTime())); // CONTRACTSTARTDATE
+//                                INSERT_CONTRACT_AA_PreparedStatement.setDate(i++, new java.sql.Date(formated_ct_contract_end_date.getTime())); // CONTRACTENDDATE
+//                                INSERT_CONTRACT_AA_PreparedStatement.setString(i++, ct_autoprolongation);  // AUTOPROLONGATION
+//                                INSERT_CONTRACT_AA_PreparedStatement.setLong(i++, 41);  // aa_status
+//                                INSERT_CONTRACT_AA_PreparedStatement.setDate(i++, new java.sql.Date(new Date().getTime())); // INSERT_DATE
+//                                INSERT_CONTRACT_AA_PreparedStatement.setString(i++, starter); // INSERT_PERSON
 
-                                INSERT_CONTRACT_AA_PreparedStatement.setLong(i++, createdContractCID); // CID
+                                INSERT_CONTRACT_AA_PreparedStatement.setLong(i++, ct_cid); // CID
+                                INSERT_CONTRACT_AA_PreparedStatement.setString(i++, "1111"); // AA_NUMBER ???
+                                INSERT_CONTRACT_AA_PreparedStatement.setDate(i++, new java.sql.Date(new Date().getTime())); // AA_DATE ???
+                                INSERT_CONTRACT_AA_PreparedStatement.setLong(i++, 1); // AA_EXECUTOR
                                 INSERT_CONTRACT_AA_PreparedStatement.setLong(i++, createdArtefactId); // ARTEFACTID
                                 INSERT_CONTRACT_AA_PreparedStatement.setLong(i++, ct_agreement_type); // AA_TYPE
-                                INSERT_CONTRACTSPreparedStatement.setLong(i++, ct_contract_type.longValue());  // CONTRACTTYPE net spravochnika
-                                INSERT_CONTRACT_AA_PreparedStatement.setLong(i++, ct_rent.longValue());  // RENTSUM
-                                INSERT_CONTRACT_AA_PreparedStatement.setLong(i++, 0);  // RENTSUM_VAT .. ct_vat неету
-                                INSERT_CONTRACT_AA_PreparedStatement.setLong(i++, ct_rent.longValue()); // POWERSUPPLY ?
-                                INSERT_CONTRACT_AA_PreparedStatement.setLong(i++, legalType.longValue());  // LEGALTYPE
-                                INSERT_CONTRACT_AA_PreparedStatement.setString(i++, ct_legal_name);  // LEGALNAME
-                                INSERT_CONTRACT_AA_PreparedStatement.setString(i++, ci_address);  // LEGALADDRESS
-                                INSERT_CONTRACT_AA_PreparedStatement.setString(i++, ct_contact_person);  // CONTACTPERSON
-                                INSERT_CONTRACT_AA_PreparedStatement.setString(i++, ct_contact_phone);  // CONTACTPHONE
-                                INSERT_CONTRACT_AA_PreparedStatement.setLong(i++, 3);  // PAYMENTPERIOD ??
-    //                            INSERT_CONTRACT_AA_PreparedStatement.setLong(i++, ct_rent.longValue()); // PAYMENT_WAY
-                                INSERT_CONTRACT_AA_PreparedStatement.setString(i++, vat);  // VAT ??
-                                INSERT_CONTRACT_AA_PreparedStatement.setString(i++, vat);  // NEEDVAT ??
-                                INSERT_CONTRACT_AA_PreparedStatement.setDate(i++, new java.sql.Date(formated_ct_contract_start_date.getTime())); // CONTRACTSTARTDATE
-                                INSERT_CONTRACT_AA_PreparedStatement.setDate(i++, new java.sql.Date(formated_ct_contract_end_date.getTime())); // CONTRACTENDDATE
-                                INSERT_CONTRACT_AA_PreparedStatement.setString(i++, ct_autoprolongation);  // AUTOPROLONGATION
-                                INSERT_CONTRACT_AA_PreparedStatement.setLong(i++, 1);  // OBLAST_VILLAGEID // ???
+                                INSERT_CONTRACT_AA_PreparedStatement.setLong(i++, 0); // AA_REASON ???
+                                INSERT_CONTRACT_AA_PreparedStatement.setLong(i++, ct_contract_type.longValue()); // CONTRACT_TYPE
+                                INSERT_CONTRACT_AA_PreparedStatement.setLong(i++, ct_rent.longValue()); // RENTSUM
+                                INSERT_CONTRACT_AA_PreparedStatement.setLong(i++, 0); // RENTSUM_VAT ???
+                                INSERT_CONTRACT_AA_PreparedStatement.setLong(i++, 2); // RENT_AREA ct_rent_area ????
+                                INSERT_CONTRACT_AA_PreparedStatement.setLong(i++, ct_rent.longValue()); // POWERSUPPLY ? ct_rent_power?
+                                INSERT_CONTRACT_AA_PreparedStatement.setLong(i++, legalType.longValue()); // LEGAL_TYPE
+                                INSERT_CONTRACT_AA_PreparedStatement.setString(i++, ct_legal_name); // LEGAL_NAME
+                                INSERT_CONTRACT_AA_PreparedStatement.setString(i++, ci_address); // LEGAL_ADDRESS
+                                INSERT_CONTRACT_AA_PreparedStatement.setString(i++, ct_contact_person); // CONTACT_PERSON
+                                INSERT_CONTRACT_AA_PreparedStatement.setString(i++, ct_contact_phone); // CONTACT_PHONE
+                                INSERT_CONTRACT_AA_PreparedStatement.setLong(i++, 3); // PAYMENT_PERIOD ?? diictionary
+                                INSERT_CONTRACT_AA_PreparedStatement.setLong(i++, 2); // PAYMENT_WAY
+                                INSERT_CONTRACT_AA_PreparedStatement.setString(i++, vat); // NEEDVAT
+                                INSERT_CONTRACT_AA_PreparedStatement.setDate(i++, new java.sql.Date(formated_ct_contract_start_date.getTime())); // CONTRACT_START_DATE
+                                INSERT_CONTRACT_AA_PreparedStatement.setDate(i++, new java.sql.Date(formated_ct_contract_end_date.getTime())); // CONTRACT_END_DATE
+                                INSERT_CONTRACT_AA_PreparedStatement.setString(i++, ct_autoprolongation); // AUTOPROLONGATION
+                                INSERT_CONTRACT_AA_PreparedStatement.setLong(i++, 41); // AA_STATUS
                                 INSERT_CONTRACT_AA_PreparedStatement.setDate(i++, new java.sql.Date(new Date().getTime())); // INSERT_DATE
                                 INSERT_CONTRACT_AA_PreparedStatement.setString(i++, starter); // INSERT_PERSON
 
                                 INSERT_CONTRACT_AA_PreparedStatement.executeUpdate();
-                                System.out.println("successfull CONTRACTS created!");
+                                System.out.println("successfull INSERT_CONTRACT_AA created!");
 
                                 ResultSet createdContracAaIdResultSet = INSERT_CONTRACT_AA_PreparedStatement.getGeneratedKeys();
                                 createdContracAaIdResultSet.next();
@@ -255,9 +334,11 @@ public class CreateUpdateContract implements JavaDelegate {
             System.out.println("testConnect SQLException!");
             System.out.println(e.toString());
             System.err.format("SQL State: %s\n%s", e.getSQLState(), e.getMessage());
+            delegateExecution.createIncident("SQLException", e.getMessage());
         } catch (Exception e) {
             System.out.println("testConnect Exception!");
             e.printStackTrace();
+            delegateExecution.createIncident("Exception", e.getMessage());
         }
 
     }
