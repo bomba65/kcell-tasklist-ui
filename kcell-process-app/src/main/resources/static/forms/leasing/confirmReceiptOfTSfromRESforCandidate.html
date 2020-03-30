@@ -64,7 +64,8 @@
                 'approvalPowerContractInSAPFiles',
                 'uploadSignedOwnerLeaseContractFiles',
                 'confirmReceiptOfTSfromRESforCandidateFiles',
-                'address'
+                'address',
+                'powerProblem'
             ];
 
             $http.get('/camunda/api/engine/engine/default/task/' + camForm.taskId).then(
@@ -132,7 +133,16 @@
 
             camForm.on('submit', function () {
                 camForm.variableManager.variableValue('confirmReceiptOfTSfromRESforCandidateTaskResult', $scope.confirmReceiptOfTSfromRESforCandidateTaskResult);
-                camForm.variableManager.variableValue('powerProblem', $scope.confirmReceiptOfTSfromRESforCandidateTaskResult === 'Approve' ? 'No' : 'Yes');
+                if(camForm.variableManager.variables['powerProblem'].type){
+                    camForm.variableManager.variableValue('powerProblem', $scope.confirmReceiptOfTSfromRESforCandidateTaskResult === 'Approve' ? 'No' : 'Yes');
+                } else {
+                    camForm.variableManager.destroyVariable('powerProblem');
+                    camForm.variableManager.createVariable({
+                        name: 'powerProblem',
+                        type: 'String',
+                        value: $scope.confirmReceiptOfTSfromRESforCandidateTaskResult === 'Approve' ? 'No' : 'Yes'
+                    });
+                }
                 camForm.variableManager.variableValue('confirmReceiptOfTSfromRESforCandidateTaskComment', $scope.confirmReceiptOfTSfromRESforCandidateTaskComment);
 
                 if(!camForm.variableManager.variables['confirmReceiptOfTSfromRESforCandidateFiles'].type){

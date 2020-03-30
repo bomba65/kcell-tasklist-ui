@@ -64,7 +64,8 @@
                 'approvalPowerContractInSAPFiles',
                 'uploadSignedOwnerLeaseContractFiles',
                 'confirmTFOfConnectingToPowerGridForCandidateFiles',
-                'address'
+                'address',
+                'powerProblem'
             ];
 
             $http.get('/camunda/api/engine/engine/default/task/' + camForm.taskId).then(
@@ -132,9 +133,17 @@
 
             camForm.on('submit', function () {
                 camForm.variableManager.variableValue('confirmTFOfConnectingToPowerGridForCandidateTaskResult', $scope.confirmTFOfConnectingToPowerGridForCandidateTaskResult);
-                camForm.variableManager.variableValue('powerProblem', $scope.confirmTFOfConnectingToPowerGridForCandidateTaskResult === 'Approve' ? 'No' : 'Yes');
                 camForm.variableManager.variableValue('confirmTFOfConnectingToPowerGridForCandidateTaskComment', $scope.confirmTFOfConnectingToPowerGridForCandidateTaskComment);
-
+                if(camForm.variableManager.variables['powerProblem'].type){
+                    camForm.variableManager.variableValue('powerProblem', $scope.confirmTFOfConnectingToPowerGridForCandidateTaskResult === 'Approve' ? 'No' : 'Yes');
+                } else {
+                    camForm.variableManager.destroyVariable('powerProblem');
+                    camForm.variableManager.createVariable({
+                        name: 'powerProblem',
+                        type: 'String',
+                        value: $scope.confirmTFOfConnectingToPowerGridForCandidateTaskResult === 'Approve' ? 'No' : 'Yes'
+                    });
+                }
                 if(!camForm.variableManager.variables['confirmTFOfConnectingToPowerGridForCandidateFiles'].type){
                     camForm.variableManager.destroyVariable('confirmTFOfConnectingToPowerGridForCandidateFiles');
                     camForm.variableManager.createVariable({
