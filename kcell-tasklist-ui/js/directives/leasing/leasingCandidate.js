@@ -36,7 +36,8 @@ define(['./../module'], function(module){
 						scope.maxTab = 3;
 						scope.leasingCandidate.cellAntenna.sectors[0].active = 'active';
 						scope.selectedSectorTab = 0;
-
+						scope.leasingCandidate.checkTPSTouched = false;
+						scope.leasingCandidate.checkTPSBTouched = false;
 						Object.values(scope.leasingCandidate.address).forEach((s,index) => {
 							scope.leasingCandidate.addressString += index > 0 ? ', ' + s : s
 						});
@@ -117,6 +118,28 @@ define(['./../module'], function(module){
 						scope.leasingCandidate.cellAntenna.sectors[scope.selectedSectorTab].active = 'active'; 
 					}
 				}
+				scope.checkTPS = function(val) {
+					if (val==='TPS installation required (TPS is missing)') {
+						// scope.leasingCandidate.powerSource.cn_tps_belongs = '';
+						// scope.leasingCandidate.powerSource.cn_tps_belongs_commentary = '';
+						// scope.leasingCandidate.powerSource.cn_tps_distance = '';
+						scope.leasingCandidate.checkTPSTouched = false;
+					}
+					else {
+						scope.leasingCandidate.checkTPSTouched = true;
+					}
+				};
+	
+	
+				scope.checkTPSB = function(val) {
+					if (val==='Other') {
+						scope.leasingCandidate.checkTPSBTouched = true;
+					}
+					else {
+						// scope.leasingCandidate.powerSource.cn_tps_belongs_commentary = '';
+						scope.leasingCandidate.checkTPSBTouched = false;
+					}
+				};
 
 				scope.selectAntennaSector = function (index) {
 					scope.selectedSectorTab = index;
