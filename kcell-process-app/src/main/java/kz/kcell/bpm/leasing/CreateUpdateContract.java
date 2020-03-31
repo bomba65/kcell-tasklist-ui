@@ -67,7 +67,7 @@ public class CreateUpdateContract implements JavaDelegate {
                             String ct_bin = ci.prop("ct_bin").numberValue().toString();
                             String ct_iban = ci.prop("ct_iban").stringValue();
                             String ct_legal_name = ci.prop("ct_legal_name").stringValue();
-                            Number ct_rent_power = ci.prop("ct_rent_power").numberValue();
+                            Number ct_rent_power = ci.hasProp("ct_rent_power") ? ci.prop("ct_rent_power").numberValue() : 0;
     //                        Number legalType = ci.prop("legalType").numberValue();
                             Number legalType = 0;
 
