@@ -79,12 +79,15 @@ public class GetValueFromUDB implements JavaDelegate {
                         System.out.println(firstJson.has("ONAIR_DATE") ? firstJson.getString("ONAIR_DATE") : "");
                         System.out.println("done G_ONAIR_DATE");
                         System.out.println(firstJson.has("G_ONAIR_DATE") ? firstJson.getString("G_ONAIR_DATE") : "");
+
                         if((firstJson.has("ONAIR_DATE") && !firstJson.getString("ONAIR_DATE").equals(null)) || (firstJson.has("G_ONAIR_DATE") && !firstJson.getString("G_ONAIR_DATE").equals(null))) {
                             System.out.println("ONAIR_DATE or G_ONAIR_DATE is not null");
                             dataFromUDB = "withFinishDate";
                             delegateExecution.setVariable("setInstStatusFromUDB", "FinishDate");
                             delegateExecution.setVariable("finishDateFromUDB", firstJson.has("ONAIR_DATE") ? firstJson.getString("ONAIR_DATE") : firstJson.has("G_ONAIR_DATE") ? firstJson.getString("G_ONAIR_DATE") : "");
-                        } else if(firstJson.has("INST_STATUS")) {
+                        }
+
+                        if(firstJson.has("INST_STATUS") && dataFromUDB.equals("noData")) {
                             int uis = firstJson.getInt("INST_STATUS");
                             if (uis == 8 || uis == 15 || uis == 7 || uis == 4) {
                                 dataFromUDB = "justSetInstStatus";
@@ -109,12 +112,15 @@ public class GetValueFromUDB implements JavaDelegate {
                             }
                             System.out.println("INST_STATUS is not null");
                             delegateExecution.setVariable("instStatusFromUDB", uis);
-                        } else if(firstJson.has("POWER_STATUS") && firstJson.getString("POWER_STATUS").equals(3)) {
+                        }
+
+                        if(firstJson.has("POWER_STATUS") && firstJson.getString("POWER_STATUS").equals(3) && dataFromUDB.equals("noData")) {
                             dataFromUDB = "withPowerProblem";
                             delegateExecution.setVariable("powerStatusFromUDB", firstJson.getInt("POWER_STATUS"));
                             delegateExecution.setVariable("setInstStatusFromUDB", "Power problem");
                             System.out.println("POWER_STATUS = 3 (withPowerProblem)");
-                        } else {
+                        }
+                        if (dataFromUDB.equals("noData")) {
                             System.out.println("no changed data");
                             dataFromUDB = "noData";
                         }
