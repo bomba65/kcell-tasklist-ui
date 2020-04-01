@@ -632,14 +632,14 @@ class GenerateLeasingRSD implements TaskListener {
         def cycle = sectorsArr.size()
 //        def String[] antennaNames = ['G900', 'G1800', 'U900', 'U2100', 'L800', 'L1800','L2100', 'L2600']
         ArrayList<String> antennaNames = new ArrayList<String>();
-        antennaNames.add("GSM900");
-        antennaNames.add("GSM1800");
+        antennaNames.add("G900");
+        antennaNames.add("G1800");
         antennaNames.add("U900");
         antennaNames.add("U2100");
-        antennaNames.add("LTE800");
-        antennaNames.add("LTE1800");
-        antennaNames.add("LTE2100");
-        antennaNames.add("LTE2600");
+        antennaNames.add("L800");
+        antennaNames.add("L1800");
+        antennaNames.add("L2100");
+        antennaNames.add("L2600");
 
 
         def antennaGSM900;
@@ -658,12 +658,12 @@ class GenerateLeasingRSD implements TaskListener {
             def antennaName = sectorsArr[j].antennas[0].antennaName
             def antennaLocation = sectorsArr[j].antennas[0].cn_antenna_loc
             for(String item : antennaNames){
-                if(antennaItem == "GSM900"){
+                if(antennaItem == "G900"){
                     antennaGSM900 = antennaName
                 } else {
                     antennaGSM900 = ""
                 }
-                if(antennaItem == "GSM1800"){
+                if(antennaItem == "G1800"){
                     antennaGSM1800 = antennaName
                 } else {
                     antennaGSM1800 = ""
@@ -678,22 +678,22 @@ class GenerateLeasingRSD implements TaskListener {
                 } else {
                     antennaU2100 = ""
                 }
-                if(antennaItem == "LTE800"){
+                if(antennaItem == "L800"){
                     antennaLTE800 = antennaName
                 } else {
                     antennaLTE800 = ""
                 }
-                if(antennaItem == "LTE1800"){
+                if(antennaItem == "L1800"){
                     antennaLTE1800 = antennaName
                 } else {
                     antennaLTE1800 = ""
                 }
-                if(antennaItem == "LTE2100"){
+                if(antennaItem == "L2100"){
                     antennaLTE2100 = antennaName
                 } else {
                     antennaLTE2100 = ""
                 }
-                if(antennaItem == "LTE2600"){
+                if(antennaItem == "L2600"){
                     antennaLTE2600 = antennaName
                 } else {
                     antennaLTE2600 = ""
