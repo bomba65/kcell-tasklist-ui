@@ -37,10 +37,17 @@ public class CreateUpdateContract implements JavaDelegate {
                     // proc vars
 
                     String _CONTRACT_APPROVAL_TYPE = delegateExecution.hasVariableLocal("_CONTRACT_APPROVAL_TYPE") ? delegateExecution.getVariable("_CONTRACT_APPROVAL_TYPE").toString() : null;
-                    
+
                     String starter = delegateExecution.getVariable("starter").toString();
                     Long createdArtefactId = (Long) delegateExecution.getVariable("createdArtefactId");
-                    String contractVariableName =  _CONTRACT_APPROVAL_TYPE == "CN" ? "contractInformations" : "contractInformationsFE";
+//                    String contractVariableName =  _CONTRACT_APPROVAL_TYPE == "CN" ? "contractInformations" : "contractInformationsFE";
+                    String contractVariableName =  _CONTRACT_APPROVAL_TYPE.equals("CN")  ? "contractInformations" : "contractInformationsFE";
+//
+//                    System.out.println("_CONTRACT_APPROVAL_TYPE:");
+//                    System.out.println(delegateExecution.hasVariableLocal("_CONTRACT_APPROVAL_TYPE") ? delegateExecution.getVariable("_CONTRACT_APPROVAL_TYPE").toString() : null);
+//                    System.out.println("END _CONTRACT_APPROVAL_TYPE");
+//                    System.out.println("contractVariableName: " + contractVariableName + " end contractVariableName");
+//                    System.out.println("contractVariableName2: " + contractVariableName2 + " end contractVariableName2");
 
                     SpinJsonNode contractInformationsJSON = JSON(delegateExecution.getVariable(contractVariableName));
                     SpinList contractInformations = contractInformationsJSON.elements();
