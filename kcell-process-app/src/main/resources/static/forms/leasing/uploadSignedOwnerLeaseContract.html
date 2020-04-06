@@ -100,6 +100,7 @@
                 $scope.leasingFiles = [];
                 $scope.contractInformations = [];
                 $scope.newContractInfo = {
+                    ct_acquisitionType: 'newContract',
                     address: {
                         addr_oblast: '',
                         cn_addr_district: '',
@@ -114,6 +115,7 @@
                             angular.extend($scope.dictionary, result.data);
                             if (!$scope.candidate.rbsLocation) $scope.candidate.rbsLocation = $scope.dictionary.rbsLocation;
                             $scope.antennasList = $scope.dictionary.antennas;
+                            $scope.bankList = $scope.dictionary.banks;
                             if (!$scope.powerSource.cableLayingType) $scope.powerSource.cableLayingType = $scope.dictionary.cableLayingType;
                             $scope.availableBands = $scope.dictionary.bands;
                             $scope.BSC = $scope.dictionary.BSC;
@@ -234,7 +236,7 @@
                         $scope.contractInformations[index].ct_rent = fc.RENTSUM
                         $scope.contractInformations[index].ct_bin = fc.INN ? parseInt(fc.INN) : fc.RNN ? parseInt(fc.RNN) : ''
                         $scope.contractInformations[index].ct_iban = fc.IBAN
-                        $scope.contractInformations[index].ct_vat = fc.RENTSUM_VAT
+                        // $scope.contractInformations[index].ct_vat = fc.RENTSUM_VAT
                         $scope.contractInformations[index].ct_checkvat = fc.VAT && fc.VAT === 'with' ? 'Yes' : 'No'
                         $scope.contractInformations[index].ct_vendor_sap = fc.VENDOR_SAP_NO
                         // $scope.contractInformations[index].ct_rent = fc.OBLAST_VILLAGEID
@@ -247,7 +249,7 @@
                         $scope.contractInformations[index].ct_acceptance_act_date = new Date(fc.AREA_ACT_ACCEPT_DATE)
                         $scope.contractInformations[index].ct_contract_start_date = new Date(fc.CONTRACTSTARTDATE)
                         $scope.contractInformations[index].ct_contract_end_date = new Date(fc.CONTRACTENDDATE)
-                        // $scope.contractInformations[index].ct_payment_period = fc.PAYMENTPERIOD
+                        $scope.contractInformations[index].ct_payment_period = fc.PAYMENTPERIOD
                         // $scope.contractInformations[index].ct_payment_way = fc.PAYMENTWAY
 
                         // $scope.contractInformations[index].ct_rent = fc.LEGALADDRESS
@@ -302,8 +304,23 @@
 
             };
 
+            $scope.finallyRentSum = function (index, rentSum) {
+                if ($scope.contractInformations[index].ct_checkvat === 'Yes') {
+                    let rent_all = rentSum/1.12
+                    $scope.contractInformations[index].ct_rent_all = Math.round((rent_all)*100)/100;
+                } else {
+                    $scope.contractInformations[index].ct_rent_all = rentSum;
+                }
+            }
+
             $scope.clearFile = function (list, fileIndex) {
                 $scope[list].splice(fileIndex, 1);
+            }
+
+            $scope.setCtBic = function (bank, index) {
+                console.log(bank)
+                $scope.contractInformations[index].ct_bic = bank.bic;
+                $scope.contractInformations[index].ct_bankname = bank;
             }
 
             $scope.fileDownload = function (file) {
@@ -399,31 +416,49 @@
             <div class="form-group" ng-show="cci.ct_acquisitionType === 'additionalAgreement'">
                 <label class="col-sm-3 control-label">Additional Agreement Number:</label>
                 <div class="col-sm-8">
-                    <input class="form-control" id="{{'cci.' + $index}}.ct_agreementNumber" name="cci.ct_agreementNumber" ng-model="cci.ct_agreementNumber" ng-required="cci.ct_acquisitionType === 'additionalAgreement'">
-                    <label class="error" ng-show="kcell_form.cci.ct_agreementNumber.$error.required && ( kcell_form.cci.ct_agreementNumber.$touched || view.submitted)">Required field</label>
+                    <input class="form-control" id="{{'cci.' + $index}}.ct_agreement_number" name="cci.ct_agreement_number" ng-model="cci.ct_agreement_number" ng-required="cci.ct_acquisitionType === 'additionalAgreement'">
+                    <label class="error" ng-show="kcell_form.cci.ct_agreement_number.$error.required && ( kcell_form.cci.ct_agreement_number.$touched || view.submitted)">Required field</label>
                 </div>
             </div>
 
             <div class="form-group" ng-show="cci.ct_acquisitionType === 'additionalAgreement'">
                 <label class="col-sm-3 control-label">Additional Agreement Reason:</label>
                 <div class="col-sm-8">
-                    <input class="form-control" id="{{'cci.' + $index}}.ct_agreementReason" name="cci.ct_agreementReason" ng-model="cci.ct_agreementReason" ng-required="cci.ct_acquisitionType === 'additionalAgreement'">
-                    <label class="error" ng-show="kcell_form.cci.ct_agreementReason.$error.required && ( kcell_form.cci.ct_agreementReason.$touched || view.submitted)">Required field</label>
+                    <input class="form-control" id="{{'cci.' + $index}}.ct_agreement_reason" name="cci.ct_agreement_reason" ng-model="cci.ct_agreement_reason" ng-required="cci.ct_acquisitionType === 'additionalAgreement'">
+                    <label class="error" ng-show="kcell_form.cci.ct_agreement_reason.$error.required && ( kcell_form.cci.ct_agreement_reason.$touched || view.submitted)">Required field</label>
+                </div>
+            </div>
+            <div class="form-group" ng-show="cci.ct_acquisitionType === 'additionalAgreement'">
+                <label class="col-sm-3 control-label">Additional Agreement Date:</label>
+                <div class="col-sm-8">
+                    <div class="input-group">
+                        <input type="text" ng-model="cci.ct_aa_date" name="{{'cci.' + $index}}.ct_aa_date"
+                               class="form-control" datepicker-popup="dd.MM.yyyy"
+                               is-open="cci.aaDateFieldOpened" id="{{'cci.' + $index}}.ct_aa_date" ng-required="cci.ct_acquisitionType === 'additionalAgreement'" />
+                        <span class="input-group-btn">
+                                <button type="button" class="btn btn-default" ng-click="cci.aaDateFieldOpened = true">
+                                    <i class="glyphicon glyphicon-calendar"></i>
+                                </button>
+                            </span>
+                    </div>
+                    <label class="error"
+                           ng-show="form.kcell_form.ct_contract_date.$error.required && ( form.kcell_form.ct_contract_date.$touched || view.submitted)">Required
+                        field</label>
                 </div>
             </div>
 
-            <!--                <div class="form-group">-->
-            <!--                    <label class="col-sm-3 control-label">Additional Agreement Date:</label>-->
-            <!--                    <div class="col-sm-8">-->
-            <!--                        <input class="form-control" id="{{'cci.' + $index}}.agreementDate" name="cci.ct_sitename" ng-model="cci.ct_sitename" required>-->
-            <!--                        <label class="error" ng-show="kcell_form.cci.ct_sitename.$error.required && ( kcell_form.cci.ct_sitename.$touched || view.submitted)">Required field</label>-->
-            <!--                    </div>-->
-            <!--                </div>-->
-
             <div class="form-group" ng-show="cci.ct_acquisitionType === 'additionalAgreement'">
                 <label class="col-sm-3 control-label">Additional Agreement Executor:</label>
-                <div class="col-sm-8">
-                    <input class="form-control" id="{{'cci.' + $index}}.agreementExecutor" name="cci.agreementExecutor" ng-model="cci.agreementExecutor" ng-required="cci.ct_acquisitionType === 'additionalAgreement'">
+                <div class="col-sm-8" class="form-check">
+                    <select class="form-control"
+                            id="{{'cci.' + $index}}.agreementExecutor"
+                            name="cci.agreementExecutor"
+                            placeholder="Select Executor"
+                            ng-model="cci.ct_agreement_executor"
+                            ng-required="cci.ct_acquisitionType === 'additionalAgreement'"
+                            ng-options="type.id as type.name for type in dictionary.contractExecuter"
+                            ng-required="cci.ct_acquisitionType === 'additionalAgreement'">
+                    </select>
                     <label class="error" ng-show="kcell_form.cci.agreementExecutor.$error.required && ( kcell_form.cci.agreementExecutor.$touched || view.submitted)">Required field</label>
                 </div>
             </div>
@@ -477,7 +512,7 @@
                             name="cci.ct_executor"
                             placeholder="Select Executor"
                             ng-model="cci.ct_executor"
-                            ng-options="type.name for type in dictionary.contractExecuter"
+                            ng-options="type.id as type.name for type in dictionary.contractExecuter"
                             required>
                         <!-- <option ng-repeat="oblast in oblastList" ng-value="oblast.name">{{oblast.name}}</option> -->
                     </select>
@@ -499,12 +534,12 @@
                 <div class="col-sm-8">
                     <select class="form-control" id="legalType" name="legalType"
                             ng-model="cci.legalType"
-                            ng-options="type.id as type.desc for type in dictionary.legalType"
                             required>
+                        <!--                                    ng-options="type.id as type.desc for type in dictionary.legalType"-->
+                        <!--                                    required>-->
+                        <option ng-repeat="type in dictionary.legalType" value="{{type}}">{{type.desc}}</option>
                     </select>
-                    <label class="error"
-                           ng-show="kcell_form.legalType.$error.required && ( kcell_form.legalType.$touched || view.submitted)">Required
-                        field</label>
+                    <label class="error" for="legalType" ng-show="kcell_form.legalType.$error.required && ( kcell_form.legalType.$touched || view.submitted)">Required field</label>
                 </div>
             </div>
             <div class="form-group">
@@ -622,15 +657,29 @@
             </div>
             <div class="form-group">
                 <label class="col-sm-3 control-label">BIC:</label>
-                <div class="col-sm-8">
-                    <input class="form-control" id="ct_bic" name="ct_bic" ng-model="cci.ct_bic" ng-required="!address.ca_not_full_addres">
+                <div class="col-sm-8" class="form-check">
+                    <select class="form-control"
+                            id="ct_bic"
+                            name="ct_bic"
+                            ng-model="cci.temp_bank"
+                            ng-change="setCtBic(cci.temp_bank, $index)"
+                            required>
+                        <option ng-repeat="b in bankList" ng-selected="b" ng-value="b">{{b.bic}}</option>
+                    </select>
                     <label class="error" ng-show="kcell_form.ct_bic.$error.required && ( kcell_form.ct_bic.$touched || view.submitted)">Required field</label>
                 </div>
             </div>
             <div class="form-group">
                 <label class="col-sm-3 control-label">Bank Name:</label>
-                <div class="col-sm-8">
-                    <input class="form-control" id="ct_bankname" name="ct_bankname" ng-model="cci.ct_bankname" required>
+                <div class="col-sm-8" class="form-check">
+                    <select class="form-control"
+                            id="ct_bankname"
+                            name="ct_bankname"
+                            ng-model="cci.temp_bank"
+                            ng-change="setCtBic(cci.temp_bank, $index)"
+                            required>
+                        <option ng-repeat="b in bankList" ng-selected="b" ng-value="b">{{b.bankName}}</option>
+                    </select>
                     <label class="error" ng-show="kcell_form.ct_bankname.$error.required && ( kcell_form.ct_bankname.$touched || view.submitted)">Required field</label>
                 </div>
             </div>
@@ -650,8 +699,31 @@
             <div class="form-group">
                 <label class="col-sm-3 control-label">Rent Sum:</label>
                 <div class="col-sm-8">
-                    <input class="form-control" type="number" id="ct_rent" name="ct_rent" ng-model="cci.ct_rent" required>
+                    <input class="form-control" type="number" id="ct_rent" ng-change="finallyRentSum($index, cci.ct_rent)" name="ct_rent" ng-model="cci.ct_rent" required>
                     <label class="error" ng-show="kcell_form.ct_rent.$error.required && ( kcell_form.ct_rent.$touched || view.submitted)">Required field</label>
+                </div>
+                <!--                    <label class="col-sm-3 control-label">Finally: {{cci.ct_rent_all}}</label>-->
+            </div>
+            <div class="form-group">
+                <label class="col-sm-3 control-label">Rent Sum All:</label>
+                <div class="col-sm-8">
+                    <input class="form-control" type="number" disabled id="ct_rent_all"  name="ct_rent_all" ng-model="cci.ct_rent_all">
+                </div>
+            </div>
+            <div class="form-group">
+                <label class="col-sm-3 control-label">Need VAT</label>
+                <div class="col-sm-8">
+                    <label class="radio-inline">
+                        <input type="radio" name="cci.{{$index}}ct_checkvatTrue" ng-change="finallyRentSum($index, cci.ct_rent)" id="cci.{{$index}}ct_checkvatTrue" ng-model="cci.ct_checkvat"
+                               value="Yes"> Yes
+                    </label>
+                    <label class="radio-inline">
+                        <input type="radio" name="cci.{{$index}}ct_checkvatFalse" ng-change="finallyRentSum($index, cci.ct_rent)" id="cci.{{$index}}ct_checkvatFalse" ng-model="cci.ct_checkvat"
+                               value="No"> No
+                    </label>
+                    <label class="error"
+                           ng-show="kcell_form.ct_checkvat.$error.required && ( kcell_form.ct_checkvat.$touched || view.submitted)">Required
+                        field</label>
                 </div>
             </div>
             <div class="form-group">
@@ -664,33 +736,17 @@
             <div class="form-group">
                 <label class="col-sm-3 control-label">Rent Area:</label>
                 <div class="col-sm-8">
-                    <input class="form-control" id="{{'cci.' + $index}}.ct_rent_area" name="cci.ct_rent_area" ng-model="cci.ct_rent_area" required>
+                    <input class="form-control" type="number" id="{{'cci.' + $index}}.ct_rent_area" name="cci.ct_rent_area" ng-model="cci.ct_rent_area" required>
                     <label class="error" ng-show="kcell_form.cci.ct_rent_area.$error.required && ( kcell_form.cci.ct_rent_area.$touched || view.submitted)">Required field</label>
                 </div>
             </div>
-            <div class="form-group">
-                <label class="col-sm-3 control-label">Need VAT</label>
-                <div class="col-sm-8">
-                    <label class="radio-inline">
-                        <input type="radio" name="cci.{{$index}}ct_checkvatTrue" id="cci.{{$index}}ct_checkvatTrue" ng-model="cci.ct_checkvat"
-                               value="Yes"> Yes
-                    </label>
-                    <label class="radio-inline">
-                        <input type="radio" name="cci.{{$index}}ct_checkvatFalse" id="cci.{{$index}}ct_checkvatFalse" ng-model="cci.ct_checkvat"
-                               value="No"> No
-                    </label>
-                    <label class="error"
-                           ng-show="kcell_form.ct_checkvat.$error.required && ( kcell_form.ct_checkvat.$touched || view.submitted)">Required
-                        field</label>
-                </div>
-            </div>
-            <div class="form-group">
-                <label class="col-sm-3 control-label">VAT:</label>
-                <div class="col-sm-8">
-                    <input class="form-control" ng-disabled="cci.ct_checkvat !== 'Yes'" type="number" id="ct_vat" name="ct_vat" ng-model="cci.ct_vat" ng-required="cci.ct_checkvat === 'Yes'">
-                    <label class="error" ng-show="kcell_form.ct_vat.$error.required && ( kcell_form.ct_vat.$touched || view.submitted)">Required field</label>
-                </div>
-            </div>
+            <!--                <div class="form-group">-->
+            <!--                    <label class="col-sm-3 control-label">VAT:</label>-->
+            <!--                    <div class="col-sm-8">-->
+            <!--                        <input class="form-control" ng-disabled="cci.ct_checkvat !== 'Yes'" type="number" id="ct_vat" name="ct_vat" ng-model="cci.ct_vat" ng-required="cci.ct_checkvat === 'Yes'">-->
+            <!--                        <label class="error" ng-show="kcell_form.ct_vat.$error.required && ( kcell_form.ct_vat.$touched || view.submitted)">Required field</label>-->
+            <!--                    </div>-->
+            <!--                </div>-->
 
             <br>
 
@@ -741,7 +797,7 @@
                             id="ct_currency_type"
                             name="ct_currency_type"
                             ng-model="cci.ct_currency_type"
-                            ng-options="type.name for type in dictionary.currency"
+                            ng-options="type.id as type.name for type in dictionary.currency"
                             required>
                     </select>
                     <label class="error" ng-show="kcell_form.ct_currency_type.$error.required && ( kcell_form.ct_currency_type.$touched || view.submitted)">Required field</label>
@@ -870,7 +926,7 @@
             <label class="radio-inline">
                 <input type="radio" name="uploadSignedOwnerLeaseContractTaskResult" ng-model="uploadSignedOwnerLeaseContractTaskResult" value="refusal" required>REFUSAL
             </label>
-            <label class="error" ng-show="kcell_form.uploadSignedOwnerLeaseContractTaskResult.$error.required && ( kcell_form.uploadSignedOwnerLeaseContractTaskResult.$touched || view.submitted)">Required field</label>
+            <label class="error" ng-show="kcell_form.uploadSignedOwnerLeaseContractTaskResult.$error.requir && ( kcell_form.uploadSignedOwnerLeaseContractTaskResult.$touched || view.submitted)">Required field</label>
         </div>
     </div>
 
