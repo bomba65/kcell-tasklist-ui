@@ -28,6 +28,7 @@ define(['./../module'], function(module){
                         scope.filteredDistricts = scope.districtList;
                         scope.filteredDistrictsInCAI = scope.districtList;
                         scope.alphabet = 'abcdefghijklmnopqrstuvwxyz'.split('');
+						console.log(scope);
 						
 						scope.leasingCandidate.addressString = '';
 						scope.leasingCandidate.cellAntenna.addressString = '';
@@ -41,7 +42,6 @@ define(['./../module'], function(module){
 						Object.values(scope.leasingCandidate.address).forEach((s,index) => {
 							scope.leasingCandidate.addressString += index > 0 ? ', ' + s : s
 						});
-
 						console.log(`scope.leasingCandidate.cellAntenna.address:`);
 						console.log(scope.leasingCandidate.cellAntenna.address);
 						console.log('----------------------------------------');

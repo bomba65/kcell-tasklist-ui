@@ -111,10 +111,13 @@
             <div class="form-group">
                 <label class="col-sm-3 control-label">RBS Location:</label>
                 <div class="col-sm-6">
-                    <div class="form-check no-event" style="display:inline-block; padding:0 !important; margin-right: 10px;" ng-repeat="l in leasingCandidate.candidate.rbsLocation track by $index">
-                        <input type="checkbox" name="rbsLocation" ng-required="rbsLocationChecked < 1" ng-click="checkRbsLocation($index, l.value)" ng-model="l.value" class="form-check-input" id="{{'check' + $index}}">
+                    <!-- <div class="form-check no-event" style="display:inline-block; padding:0 !important; margin-right: 10px;" ng-repeat="l in leasingCandidate.candidate.rbsLocation track by $index">
+                        <input type="radio" name="rbsLocation" ng-required="rbsLocationChecked < 1" ng-click="checkRbsLocation($index, l.value)" ng-model="l.value" class="form-check-input" id="{{'check' + $index}}">
                         <label class="form-check-label" for="{{'check' + $index}}">{{ l.title }}</label>
-                    </div>
+                    </div> -->
+
+                    <label class="form-check no-event" style="display:inline-block; padding:0 !important;"> 
+                        <input type="radio" name="radio" ng-value="leasingCandidate.candidate.rbsLocation.value" ng-model="leasingCandidate.candidate.rbsLocation.value">{{leasingCandidate.candidate.rbsLocation.title}}</label>
                     <label class="error" ng-show="kcell_form.rbsLocation.$error.required && ( checkRbsLocationTouched || parentForm.$submitted)">Required field</label>
 
                 </div>
@@ -147,7 +150,7 @@
 
                     <div class="form-group col-sm-3">
                         <div class="col-sm-12">
-                            <div class="form-check no-event">
+                            <div class="form-check" ng-class="{'no-event': !leasingCandidate.taskKey === 'uploadRSDandVSDfiles'}">
                                 <input type="checkbox" ng-model="leasingCandidate.cellAntenna.address.ca_diff_address" class="form-check-input" id="check1">
                                 <label class="form-check-label" for="check1">Different address</label>
                             </div>
@@ -159,11 +162,76 @@
                                 <accordion-heading>
                                         Address<i class="pull-right glyphicon" ng-class="{'glyphicon-chevron-up': status.isCustomHeaderOpen, 'glyphicon-chevron-down': !status.isCustomHeaderOpen}"></i>
                                 </accordion-heading>
-                                <div class="form-group">
+                                <div class="form-group" ng-if="leasingCandidate.cellAntenna.address.ca_diff_address != true">
                                     <div style="padding-left:30px">
                                         <textarea class="form-control no-event" ng-value="leasingCandidate.cellAntenna.address.ca_diff_address ? addressToString(leasingCandidate.cellAntenna.address) : addressToString(leasingCandidate.address)" ng-model="leasingCandidate.cellAntenna.address" name="leasingCandidate.cellAntenna.addressString" maxlength="500" rows="3" style="resize:none"></textarea>
                                     </div>
                                 </div>
+                                <div ng-if="leasingCandidate.cellAntenna.address.ca_diff_address == true">
+                                    <div class="form-group">
+                                        <label class="col-sm-3 control-label">Oblast:</label>
+                                        <div class="col-sm-8" class="form-check">
+                                            <select class="form-control" id="cn_addr_oblast" name="cn_addr_oblast" ng-required="leasingCandidate.cellAntenna.addOutToRollOutTaskResult.ca_diff_address" ng-model="leasingCandidate.address.cn_addr_oblast"
+                                            ng-change="filterDistrictAfterSelectObl(address.cn_addr_oblast)">
+                                            <option ng-repeat="oblast in oblastList" ng-value="oblast.name">{{oblast.name}}</option>
+                                        </select>
+                                        <label class="error" ng-show="kcell_form.leasingCandidate.address.cn_addr_oblast.$error.required && ( kcell_form.leasingCandidate.addresscn_addr_oblast.$touched || view.submitted)">Required field</label>
+                                    </div>
+                                    </div>
+                                    <div class="form-group">
+                                        <label class="col-sm-3 control-label">District:</label>
+                                        <div class="col-sm-8" class="form-check">
+                                            <select class="form-control" id="cn_addr_district" name="cn_addr_district" ng-model="leasingCandidate.address.cn_addr_district"ng-required="leasingCandidate.cellAntenna.addOutToRollOutTaskResult.ca_diff_address"  ng-disabled="!address.cn_addr_oblast">
+                                                <option ng-repeat="district in filteredDistricts" ng-value="district.name">{{district.name}}</option>
+                                            </select>
+                                            <label class="error" ng-show="kcell_form.leasingCandidate.address.cn_addr_district.$error.required && ( kcell_form.leasingCandidate.address.cn_addr_district.$touched || view.submitted)">Required field</label>
+                                        </div>
+                                    </div>
+                    
+                                    <div class="form-group">
+                                        <label class="col-sm-3 control-label">City / Village:</label>
+                                        <div class="col-sm-8">
+                                            <input type="text" ng-model="leasingCandidatev.address.cn_addr_city" ng-value='city.name' name="cn_addr_city" typeahead="city.name for city in getCity($viewValue)" typeahead-on-select="addressCitySelected($item,$model,$label)" class="form-control" ng-required="leasingCandidate.cellAntenna.addOutToRollOutTaskResult.ca_diff_address" placeholder="Start typing...">
+                                            <label class="error" ng-show="kcell_form.leasingCandidate.address.cn_addr_city.$error.required && ( kcell_form.leasingCandidate.address.cn_addr_city.$touched || view.submitted)">Required field</label>
+                                        </div>
+                                    </div>
+                                    <div class="form-group">
+                                        <div class="col-sm-12">
+                                            <div class="form-check">
+                                                <input type="checkbox" ng-model="leasingCandidate.address.ca_not_full_addres" class="form-check-input" id="ca_not_full_addres">
+                                                <label class="form-check-label" for="ca_not_full_addres">Object without address</label>
+                                            </div>
+                                        </div>
+                                    </div>
+                                    <div class="form-group">
+                                        <label class="col-sm-3 control-label">{{!address.ca_not_full_addres ? '*' : ''}}Street/Microdistrict:</label>
+                                        <div class="col-sm-8">
+                                            <input class="form-control" id="cn_addr_street" name="cn_addr_street" ng-model="leasingCandidate.address.cn_addr_street" ng-required="!leasingCandidate.address.ca_not_full_addres" ng-disabled="leasingCandidate.address.ca_not_full_addres">
+                                            <label class="error" ng-show="kcell_form.leasingCandidate.address.cn_addr_street.$error.required && ( kcell_form.leasingCandidate.address.cn_addr_street.$touched || view.submitted)">Required field</label>
+                                        </div>
+                                    </div>
+                                    <div class="form-group">
+                                        <label class="col-sm-3 control-label">{{!address.ca_not_full_addres ? '*' : ''}}Building:</label>
+                                        <div class="col-sm-8">
+                                            <input class="form-control" id="cn_addr_building" name="cn_addr_building" ng-model="leasingCandidate.address.cn_addr_building" ng-required="!leasingCandidate.address.ca_not_full_addres" ng-disabled="leasingCandidate.address.ca_not_full_addres">
+                                            <label class="error" ng-show="kcell_form.leasingCandidate.address.cn_addr_building.$error.required && ( kcell_form.leasingCandidate.address.cn_addr_building.$touched || view.submitted)">Required field</label>
+                                        </div>
+                                    </div>
+                                    <div class="form-group">
+                                        <label class="col-sm-3 control-label">{{address.ca_not_full_addres ? '*' : ''}}Cadastral number:</label>
+                                        <div class="col-sm-8">
+                                            <input class="form-control" id="cn_addr_cadastral_number" name="cn_addr_cadastral_number" ng-model="leasingCandidate.address.cn_addr_cadastral_number" ng-required="leasingCandidate.address.ca_not_full_addres">
+                                            <label class="error" ng-show="kcell_form.leasingCandidate.address.cn_addr_cadastral_number.$error.required && ( kcell_form.leasingCandidate.address.cn_addr_cadastral_number.$touched || view.submitted)">Required field</label>
+                                        </div>
+                                    </div>
+                                    <div class="form-group">
+                                        <label class="col-sm-3 control-label">{{address.ca_not_full_addres ? '*' : ''}}Note to the address:</label>
+                                        <div class="col-sm-8">
+                                            <input class="form-control" id="cn_addr_note" name="cn_addr_note" ng-model="leasingCandidate.address.cn_addr_note" ng-required="leasingCandidate.address.ca_not_full_addres">
+                                            <label class="error" ng-show="kcell_form.leasingCandidate.address.cn_addr_note.$error.required && ( kcell_form.leasingCandidate.address.cn_addr_note.$touched || view.submitted)">Required field</label>
+                                        </div>
+                                    </div>       
+                            </div>
                             </accordion-group>
                         </accordion>
                     </div>
@@ -275,11 +343,11 @@
                                             <tbody>
                                             <tr>
                                                 <td class="col-sm-3">
-                                                    <input type="text" required class="form-control no-event" id="antennaName{{$parent.$index}}_{{$index}}"
+                                                    <input type="text" required class="form-control" ng-class="{'no-event': !leasingCandidate.taskKey === 'uploadRSDandVSDfiles'}" id="antennaName{{$parent.$index}}_{{$index}}"
                                                     name="antennaName{{$parent.$index}}_{{$index}}" ng-model="ant.antennaName" placeholder="">
                                                 </td>
                                                 <td class="col-sm-1">
-                                                    <input type="number" required class="form-control no-event" id="quantity_{{$parent.$index}}_{{$index}}"
+                                                    <input type="number" required class="form-control" ng-class="{'no-event': !leasingCandidate.taskKey === 'uploadRSDandVSDfiles'}" id="quantity_{{$parent.$index}}_{{$index}}"
                                                             name="quantity_{{$parent.$index}}_{{$index}}" ng-model="ant.quantity" placeholder="">
                                                     <label class="error"
                                                             ng-show="kcell_form.quantity_{{$parent.$index}}_{{$index}}.$error.required && ( kcell_form.quantity_{{$parent.$index}}_{{$index}}.$touched || view.submitted)">Required
@@ -287,7 +355,7 @@
         
                                                 </td>
                                                 <td class="col-sm-2">
-                                                    <input class="form-control no-event" id="dimensions_{{$parent.$index}}_{{$index}}"
+                                                    <input class="form-control" ng-class="{'no-event': !leasingCandidate.taskKey === 'uploadRSDandVSDfiles'}" id="dimensions_{{$parent.$index}}_{{$index}}"
                                                             name="dimensions_{{$parent.$index}}_{{$index}}" ng-model="ant.dimension"
                                                             placeholder="1000x100x100" required>
                                                     <label class="error"
@@ -295,7 +363,7 @@
                                                         field</label>
                                                 </td>
                                                 <td class="col-sm-2">
-                                                    <input class="form-control no-event" type="number" id="frequencyBand_{{$parent.$index}}_{{$index}}"
+                                                    <input class="form-control" ng-class="{'no-event': !leasingCandidate.taskKey === 'uploadRSDandVSDfiles'}" type="number" id="frequencyBand_{{$parent.$index}}_{{$index}}"
                                                             name="frequencyBand_{{$parent.$index}}_{{$index}}" ng-model="ant.frequencyBand"
                                                             ng-change="checkFrequency(ant.frequencyBand, $index)" placeholder=""
                                                             required>
@@ -304,7 +372,7 @@
                                                         field</label>
                                                 </td>
                                                 <td class="col-sm-1">
-                                                    <input class="form-control no-event" id="weight_{{$parent.$index}}_{{$index}}" name="weight_{{$parent.$index}}_{{$index}}"
+                                                    <input class="form-control" ng-class="{'no-event': !leasingCandidate.taskKey === 'uploadRSDandVSDfiles'}" id="weight_{{$parent.$index}}_{{$index}}" name="weight_{{$parent.$index}}_{{$index}}"
                                                             ng-model="ant.weight" placeholder="10" required>
                                                     <label class="error"
                                                             ng-show="kcell_form.weight_{{$parent.$index}}_{{$index}}.$error.required && ( kcell_form.weight_{{$parent.$index}}_{{$index}}.$touched || view.submitted)">Required
@@ -312,7 +380,7 @@
         
                                                 </td>
                                                 <td class="col-sm-2">
-                                                    <input class="form-control no-event" id="azimuth_{{$parent.$index}}_{{$index}}"
+                                                    <input class="form-control" ng-class="{'no-event': !leasingCandidate.taskKey === 'uploadRSDandVSDfiles'}" id="azimuth_{{$parent.$index}}_{{$index}}"
                                                             name="azimuth_{{$parent.$index}}_{{$index}}" type="number"
                                                             ng-change="checkAzimuth(ant.azimuth, $index)" ng-model="ant.azimuth"
                                                             placeholder="(0-360)" required>
@@ -321,7 +389,7 @@
                                                         field</label>
                                                 </td>
                                                 <td class="col-sm-2">
-                                                    <input class="form-control no-event" id="suspensionHeight_{{$parent.$index}}_{{$index}}"
+                                                    <input class="form-control" ng-class="{'no-event': !leasingCandidate.taskKey === 'uploadRSDandVSDfiles'}" id="suspensionHeight_{{$parent.$index}}_{{$index}}"
                                                             name="suspensionHeight_{{$parent.$index}}_{{$index}}" ng-model="ant.suspensionHeight"
                                                             placeholder="" required>
                                                     <label class="error"
@@ -338,11 +406,22 @@
                                         </table>
                                     </div>
                                     <!-- <option ng-repeat="a in dictionary.antennaType" value="{{a.name}}">{{a.name}} -->
-                                    <div style="background-color: white;" class="col-sm-12" >
-                                        <label style="margin-left: 230px; margin-right: -130px;" class="col-sm-3"><b>Antenna type</b></label>
-                                        <select disabled class="col-sm-2" id="{{'check_' + $parent.$index + '_' + $index}}" name="{{'check_' + $parent.$index + '_' + $index}}" ng-model="ant.antennaType" >
+                                    <!-- <div style="background-color: white;" class="col-sm-12" >
+                                        <label style="margin-left: 230px;" class="col-sm-3"><b>Antenna type</b></label>
+                                        <select ng-class="{'no-event': !leasingCandidate.taskKey === 'uploadRSDandVSDfiles'}" class="col-sm-2" id="{{'check_' + $parent.$index + '_' + $index}}" name="{{'check_' + $parent.$index + '_' + $index}}" ng-model="ant.antennaType" >
                                             <option ng-repeat="a in dictionary.antennaTypes" ng-value="a.name">{{a.name}}</option>
                                         </select>
+                                    </div> -->
+                                    <div style="background-color: white;" class="col-sm-12" ng-class="{'no-event': !leasingCandidate.taskKey === 'uploadRSDandVSDfiles'}" >
+                                        <label style="margin-left: 90px;" class="col-sm-3"><b>Antenna type</b></label>
+                                        <select class="col-sm-2" id="{{'check_' + $parent.$index + '_' + $index}}" name="{{'check_' + $parent.$index + '_' + $index}}" ng-model="ant.antennaType" ng-required="leasingCandidate.cellAntenna.addOutToRollOutTaskResult.ca_diff_address" >
+                                            <option ng-repeat="a in dictionary.antennaTypes" ng-value="a.name">{{a.name}}</option>
+                                        </select>
+                                        <label style="" class="col-sm-3"><b>Antenna location</b></label>
+                                        <select class="col-sm-2" id="antennaLocation" name="antennaLocation" ng-model="ant.cn_antenna_loc" ng-required="leasingCandidate.cellAntenna.addOutToRollOutTaskResult.ca_diff_address">
+                                            <option ng-repeat="a in dictionary.antennaLocation" ng-value="a.name">{{a.name}}</option>
+                                        </select>
+                                        <label class="error" ng-show="kcell_form.antennaLocation.$error.required && ( kcell_form.antennaLocation.$touched || view.submitted)">Required field</label>
                                     </div>
                                 </div>
                                 <!-- <div class="col-sm-12">
@@ -364,7 +443,7 @@
                     <!-- <p>from {{minTab}} to {{maxTab}}</p> -->
                     <div class="form-group">
                         <label class="col-sm-4 control-label">GSM 900:</label>
-                        <div class="col-sm-2" ng-class="{'no-event': true}">
+                        <div class="col-sm-2" ng-class="{'no-event': !leasingCandidate.taskKey === 'uploadRSDandVSDfiles'}">
                             <label class="radio-inline">
                                 <input type="radio" name="cn_gsm900" ng-model="leasingCandidate.cellAntenna.cn_gsm900"
                                         value="Yes"> Yes
@@ -378,7 +457,7 @@
                                 field</label>
                         </div>
                         <label class="col-sm-4 control-label">LTE 800:</label>
-                        <div class="col-sm-2" ng-class="{'no-event': true}">
+                        <div class="col-sm-2" ng-class="{'no-event': !leasingCandidate.taskKey === 'uploadRSDandVSDfiles'}">
                             <label class="radio-inline">
                                 <input type="radio" name="cn_lte800" ng-model="leasingCandidate.cellAntenna.cn_lte800"
                                         value="Yes"> Yes
@@ -394,7 +473,7 @@
                     </div>
                     <div class="form-group">
                         <label class="col-sm-4 control-label">DCS 1800:</label>
-                        <div class="col-sm-2" ng-class="{'no-event': true}">
+                        <div class="col-sm-2" ng-class="{'no-event': !leasingCandidate.taskKey === 'uploadRSDandVSDfiles'}">
                             <label class="radio-inline">
                                 <input type="radio" name="cn_dcs1800" ng-model="leasingCandidate.cellAntenna.cn_dcs1800"
                                         value="Yes"> Yes
@@ -408,7 +487,7 @@
                                 field</label>
                         </div>
                         <label class="col-sm-4 control-label">RET LTE 800:</label>
-                        <div class="col-sm-2" ng-class="{'no-event': true}">
+                        <div class="col-sm-2" ng-class="{'no-event': !leasingCandidate.taskKey === 'uploadRSDandVSDfiles'}">
                             <label class="radio-inline">
                                 <input type="radio" name="cn_ret_lte800" ng-model="leasingCandidate.cellAntenna.cn_ret_lte800"
                                         value="Yes"> Yes
@@ -424,7 +503,7 @@
                     </div>
                     <div class="form-group">
                         <label class="col-sm-4 control-label">WCDMA 2100:</label>
-                        <div class="col-sm-2" ng-class="{'no-event': true}">
+                        <div class="col-sm-2" ng-class="{'no-event': !leasingCandidate.taskKey === 'uploadRSDandVSDfiles'}">
                             <label class="radio-inline">
                                 <input type="radio" name="cn_wcdma2100" ng-model="leasingCandidate.cellAntenna.cn_wcdma2100"
                                         value="Yes"> Yes
@@ -438,7 +517,7 @@
                                 field</label>
                         </div>
                         <label class="col-sm-4 control-label">LTE 1800:</label>
-                        <div class="col-sm-2" ng-class="{'no-event': true}">
+                        <div class="col-sm-2" ng-class="{'no-event': !leasingCandidate.taskKey === 'uploadRSDandVSDfiles'}">
                             <label class="radio-inline">
                                 <input type="radio" name="cn_lte1800" ng-model="leasingCandidate.cellAntenna.cn_lte1800"
                                         value="Yes"> Yes
@@ -454,7 +533,7 @@
                     </div>
                     <div class="form-group">
                         <label class="col-sm-4 control-label">UMTS 900:</label>
-                        <div class="col-sm-2" ng-class="{'no-event': true}">
+                        <div class="col-sm-2" ng-class="{'no-event': !leasingCandidate.taskKey === 'uploadRSDandVSDfiles'}">
                             <label class="radio-inline">
                                 <input type="radio" name="cn_umts900" ng-model="leasingCandidate.cellAntenna.cn_umts900"
                                         value="Yes"> Yes
@@ -468,7 +547,7 @@
                                 field</label>
                         </div>
                         <label class="col-sm-4 control-label">RET LTE 1800:</label>
-                        <div class="col-sm-2" ng-class="{'no-event': true}">
+                        <div class="col-sm-2" ng-class="{'no-event': !leasingCandidate.taskKey === 'uploadRSDandVSDfiles'}">
                             <label class="radio-inline">
                                 <input type="radio" name="cn_ret_lte1800" ng-model="leasingCandidate.cellAntenna.cn_ret_lte1800" required
                                         value="Yes"> Yes
@@ -486,13 +565,13 @@
                         <label class="col-sm-4 control-label">TRX 900/1800:</label>
                         <div class="col-sm-2">
                             <input type="number" id="cn_trx" name="cn_trx" required
-                                    class="no-event form-control" ng-model="leasingCandidate.cellAntenna.cn_trx">
+                                    class="form-control" ng-class="{'no-event': !leasingCandidate.taskKey === 'uploadRSDandVSDfiles'}" ng-model="leasingCandidate.cellAntenna.cn_trx">
                             <label class="error"
                                     ng-show="kcell_form.cn_trx.$error.required && ( kcell_form.cn_trx.$touched || view.submitted)">Required
                                 field</label>
                         </div>
                         <label class="col-sm-4 control-label">LTE 2100:</label>
-                        <div class="col-sm-2" ng-class="{'no-event': true}">
+                        <div class="col-sm-2" ng-class="{'no-event': !leasingCandidate.taskKey === 'uploadRSDandVSDfiles'}">
                             <label class="radio-inline">
                                 <input type="radio" name="cn_lte2100" ng-model="leasingCandidate.cellAntenna.cn_lte2100" required ng-change="leasingCandidate.cellAntenna.cn_ret_lte2100 = cellAntenna.cn_lte2100"
                                         value="Yes"> Yes
@@ -509,10 +588,10 @@
                     <div class="form-group">
                         <label class="col-sm-4 control-label">WCDMA Carrier:</label>
                         <div class="col-sm-2">
-                            <input class="no-event form-control" id="cn_wcdma_carrier" name="cn_wcdma_carrier" class="no-event form-control" ng-model="leasingCandidate.cellAntenna.cn_wcdma_carrier">
+                            <input class="form-control" id="cn_wcdma_carrier" name="cn_wcdma_carrier" ng-class="{'no-event': !leasingCandidate.taskKey === 'uploadRSDandVSDfiles'}" ng-model="leasingCandidate.cellAntenna.cn_wcdma_carrier">
                         </div>
                         <label class="col-sm-4 control-label">RET LTE 2100:</label>
-                        <div class="col-sm-2" ng-class="{'no-event': true}">
+                        <div class="col-sm-2" ng-class="{'no-event': !leasingCandidate.taskKey === 'uploadRSDandVSDfiles'}">
                             <label class="radio-inline">
                                 <input type="radio" name="cn_ret_lte2100" ng-model="leasingCandidate.cellAntenna.cn_ret_lte2100" required
                                         value="Yes"> Yes
@@ -530,7 +609,7 @@
                         <label class="col-sm-4 control-label">Antenna Quantity 900/1800/WCDMA:</label>
                         <div class="col-sm-2">
                             <input type="number" id="cn_gsm_antenna_quantity" name="cn_gsm_antenna_quantity"
-                                    class="no-event form-control" ng-model="leasingCandidate.cellAntenna.cn_gsm_antenna_quantity" required>
+                                    class="form-control" ng-class="{'no-event': !leasingCandidate.taskKey === 'uploadRSDandVSDfiles'}" ng-model="leasingCandidate.cellAntenna.cn_gsm_antenna_quantity" required>
                             <label class="error"
                                     ng-show="kcell_form.cn_gsm_antenna_quantity.$error.required && ( kcell_form.cn_gsm_antenna_quantity.$touched || view.submitted)">Required
                                 field</label>
@@ -538,7 +617,7 @@
                         <label class="col-sm-4 control-label">Antenna Quantity LTE 800/1800:</label>
                         <div class="col-sm-2">
                             <input type="number" id="cn_lte_antenna_quantity" name="cn_lte_antenna_quantity"
-                                    class="no-event form-control" ng-model="leasingCandidate.cellAntenna.cn_lte_antenna_quantity" required>
+                                    class="form-control" ng-class="{'no-event': !leasingCandidate.taskKey === 'uploadRSDandVSDfiles'}" ng-model="leasingCandidate.cellAntenna.cn_lte_antenna_quantity" required>
                             <label class="error"
                                     ng-show="kcell_form.cn_lte_antenna_quantity.$error.required && ( kcell_form.cn_lte_antenna_quantity.$touched || view.submitted)">Required
                                 field</label>
@@ -548,7 +627,7 @@
                         <label class="col-sm-4 control-label">Tilt [deg] mechanical 900/1800/WCDMA:</label>
                         <div class="col-sm-2">
                             <input type="number" id="cn_tilt_mech_gsm" name="cn_tilt_mech_gsm"
-                                    class="no-event form-control" ng-model="leasingCandidate.cellAntenna.square" required>
+                                    class="form-control" ng-class="{'no-event': !leasingCandidate.taskKey === 'uploadRSDandVSDfiles'}" ng-model="leasingCandidate.cellAntenna.square" required>
                             <label class="error"
                                     ng-show="kcell_form.cn_tilt_mech_gsm.$error.required && ( kcell_form.cn_tilt_mech_gsm.$touched || view.submitted)">Required
                                 field</label>
@@ -556,7 +635,7 @@
                         <label class="col-sm-4 control-label">Tilt [deg] mechanical LTE 800/1800:</label>
                         <div class="col-sm-2">
                             <input type="number" id="cn_tilt_mech_lte" name="cn_tilt_mech_lte"
-                                    class="no-event form-control" ng-model="leasingCandidate.cellAntenna.cn_tilt_mech_lte" required>
+                                    class="form-control" ng-class="{'no-event': !leasingCandidate.taskKey === 'uploadRSDandVSDfiles'}" ng-model="leasingCandidate.cellAntenna.cn_tilt_mech_lte" required>
                             <label class="error"
                                     ng-show="kcell_form.cn_tilt_mech_lte.$error.required && ( kcell_form.cn_tilt_mech_lte.$touched || view.submitted)">Required
                                 field</label>
@@ -566,7 +645,7 @@
                         <label class="col-sm-4 control-label">Tilt [deg] electrical 900/1800/WCDMA:</label>
                         <div class="col-sm-2">
                             <input type="number" id="cn_tilt_electr_gsm" name="cn_tilt_electr_gsm" required
-                                    class="no-event form-control" ng-model="leasingCandidate.cellAntenna.cn_tilt_electr_gsm">
+                                    class="form-control" ng-class="{'no-event': !leasingCandidate.taskKey === 'uploadRSDandVSDfiles'}" ng-model="leasingCandidate.cellAntenna.cn_tilt_electr_gsm">
                             <label class="error"
                                     ng-show="kcell_form.cn_tilt_electr_gsm.$error.required && ( kcell_form.cn_tilt_electr_gsm.$touched || view.submitted)">Required
                                 field</label>
@@ -574,7 +653,7 @@
                         <label class="col-sm-4 control-label">Tilt [deg] electrical LTE 800/1800:</label>
                         <div class="col-sm-2">
                             <input type="number" id="cn_tilt_electr_lte" name="cn_tilt_electr_lte" required
-                                    class="no-event form-control" ng-model="leasingCandidate.cellAntenna.cn_tilt_electr_lte">
+                                    class="form-control" ng-class="{'no-event': !leasingCandidate.taskKey === 'uploadRSDandVSDfiles'}" ng-model="leasingCandidate.cellAntenna.cn_tilt_electr_lte">
                             <label class="error"
                                     ng-show="kcell_form.cn_tilt_electr_lte.$error.required && ( kcell_form.cn_tilt_electr_lte.$touched || view.submitted)">Required
                                 field</label>
@@ -584,14 +663,14 @@
                         <label class="col-sm-4 control-label">Direction [deg] 900/1800/WCDMA:</label>
                         <div class="col-sm-2">
                             <input type="number" id="cn_direction_gsm" name="cn_direction_gsm" required
-                                class="form-control no-event" ng-model="leasingCandidate.cellAntenna.cn_direction_gsm">
+                                class="form-control" ng-class="{'no-event': !leasingCandidate.taskKey === 'uploadRSDandVSDfiles'}" ng-model="leasingCandidate.cellAntenna.cn_direction_gsm">
                             <label class="error"
                                     ng-show="kcell_form.cn_direction_gsm.$error.required && ( kcell_form.cn_direction_gsm.$touched || view.submitted)">Required
                                 field</label>
                         </div>
                         <label class="col-sm-4 control-label">Direction [deg] LTE 800/1800:</label>
                         <div class="col-sm-2">
-                            <input class="form-control no-event" type="number" id="cn_direction_lte" name="cn_direction_lte" required
+                            <input class="form-control"  ng-class="{'no-event': !leasingCandidate.taskKey === 'uploadRSDandVSDfiles'}" type="number" id="cn_direction_lte" name="cn_direction_lte" required
                                 ng-model="leasingCandidate.cellAntenna.cn_direction_lte">
                             <label class="error"
                                     ng-show="kcell_form.cn_direction_lte.$error.required && ( kcell_form.cn_direction_lte.$touched || view.submitted)">Required
@@ -601,7 +680,7 @@
                     <div class="form-group">
                         <label class="col-sm-4 control-label">Height (top of ant) [m] 900/1800/WCDMA:</label>
                         <div class="col-sm-2">
-                            <input class="form-control no-event" type="number" id="cn_height_gsm" name="cn_height_gsm" required
+                            <input class="form-control" ng-class="{'no-event': !leasingCandidate.taskKey === 'uploadRSDandVSDfiles'}" type="number" id="cn_height_gsm" name="cn_height_gsm" required
                                 ng-model="leasingCandidate.cellAntenna.cn_height_gsm">
                             <label class="error"
                                     ng-show="kcell_form.cn_height_gsm.$error.required && ( kcell_form.cn_height_gsm.$touched || view.submitted)">Required
@@ -609,7 +688,7 @@
                         </div>
                         <label class="col-sm-4 control-label">Height (top of ant) [m] LTE 800/1800:</label>
                         <div class="col-sm-2">
-                            <input class="form-control no-event" type="number" id="cn_height_lte" name="cn_height_lte" required
+                            <input class="form-control" ng-class="{'no-event': !leasingCandidate.taskKey === 'uploadRSDandVSDfiles'}" type="number" id="cn_height_lte" name="cn_height_lte" required
                                     ng-model="leasingCandidate.cellAntenna.cn_height_lte">
                             <label class="error"
                                     ng-show="kcell_form.cn_height_lte.$error.required && ( kcell_form.cn_height_lte.$touched || view.submitted)">Required
@@ -620,7 +699,7 @@
                     <div class="form-group">
                         <label class="col-sm-4 control-label">Duplex Filter 900/1800:</label>
                         <div class="col-sm-2">
-                            <input class="form-control no-event" type="text" id="cn_duplex_gsm" name="cn_duplex_gsm" required
+                            <input class="form-control" ng-class="{'no-event': !leasingCandidate.taskKey === 'uploadRSDandVSDfiles'}" type="text" id="cn_duplex_gsm" name="cn_duplex_gsm" required
                                     ng-model="leasingCandidate.cellAntenna.cn_duplex_gsm">
                             <label class="error"
                                     ng-show="kcell_form.cn_duplex_gsm.$error.required && ( kcell_form.cn_duplex_gsm.$touched || view.submitted)">Required
@@ -631,7 +710,7 @@
                         <label class="col-sm-4 control-label">Diversity 900/1800:</label>
                         <div class="col-sm-2">
                             <input type="text" id="cn_diversity" name="cn_diversity" required
-                                    class="no-event form-control" ng-model="leasingCandidate.cellAntenna.cn_diversity">
+                                    class="form-control" ng-class="{'no-event': !leasingCandidate.taskKey === 'uploadRSDandVSDfiles'}" ng-model="leasingCandidate.cellAntenna.cn_diversity">
                             <label class="error"
                                     ng-show="kcell_form.cn_diversity.$error.required && ( kcell_form.cn_diversity.$touched || view.submitted)">Required
                                 field</label>
@@ -641,7 +720,7 @@
                         <label class="col-sm-4 control-label">Power Splitter 900/1800:</label>
                         <div class="col-sm-2">
                             <input type="text" id="cn_power_splitter" name="cn_power_splitter" required
-                                    class="no-event form-control" ng-model="leasingCandidate.cellAntenna.cn_power_splitter">
+                                    class="form-control" ng-class="{'no-event': !leasingCandidate.taskKey === 'uploadRSDandVSDfiles'}" ng-model="leasingCandidate.cellAntenna.cn_power_splitter">
                             <label class="error"
                                     ng-show="kcell_form.cn_power_splitter.$error.required && ( kcell_form.cn_power_splitter.$touched || view.submitted)">Required
                                 field</label>
@@ -651,7 +730,7 @@
                         <label class="col-sm-4 control-label">Hybrid Combiner Unit (HCU) 900/1800:</label>
                         <div class="col-sm-2">
                             <input type="text" id="cn_hcu" name="cn_hcu" required
-                                    class="no-event form-control" ng-model="leasingCandidate.cellAntenna.cn_hcu">
+                                    class="form-control" ng-class="{'no-event': !leasingCandidate.taskKey === 'uploadRSDandVSDfiles'}" ng-model="leasingCandidate.cellAntenna.cn_hcu">
                             <label class="error"
                                     ng-show="kcell_form.cn_hcu.$error.required && ( kcell_form.cn_hcu.$touched || view.submitted)">Required
                                 field</label>
@@ -659,7 +738,7 @@
                     </div>
                     <div class="form-group">
                         <label class="col-sm-4 control-label">ASC:</label>
-                        <div class="col-sm-2" ng-class="{'no-event': true}">
+                        <div class="col-sm-2" ng-class="{'no-event': !leasingCandidate.taskKey === 'uploadRSDandVSDfiles'}">
                             <label class="radio-inline">
                                 <input type="radio" name="cn_asc" ng-model="leasingCandidate.cellAntenna.cn_asc" required
                                         value="Yes"> Yes
@@ -692,7 +771,7 @@
 
                     <div class="form-group">
                         <label class="col-sm-4 control-label">Remote Electrical Tilt (RET):</label>
-                        <div class="col-sm-2"  ng-class="{'no-event': true}">
+                        <div class="col-sm-2"  ng-class="{'no-event': !leasingCandidate.taskKey === 'uploadRSDandVSDfiles'}">
                             <label class="radio-inline">
                                 <input type="radio"
                                         name="cn_ret" ng-model="leasingCandidate.cellAntenna.cn_ret" value="Yes"> Yes
@@ -709,7 +788,7 @@
                         <label class="col-sm-4 control-label">TMA 900/1800/WCDMA::</label>
                         <div class="col-sm-2">
                             <input type="text" id="cn_tma_gsm" name="cn_tma_gsm" required
-                                    class="no-event form-control" ng-model="leasingCandidate.cellAntenna.cn_tma_gsm">
+                                    class="form-control" ng-class="{'no-event': !leasingCandidate.taskKey === 'uploadRSDandVSDfiles'}" ng-model="leasingCandidate.cellAntenna.cn_tma_gsm">
                             <label class="error"
                                     ng-show="kcell_form.cn_tma_gsm.$error.required && ( kcell_form.cn_tma_gsm.$touched || view.submitted)">Required
                                 field</label>
@@ -719,7 +798,7 @@
                         <label class="col-sm-4 control-label">TCC 900/1800:</label>
                         <div class="col-sm-2">
                             <input type="text" id="cn_tcc" name="cn_tcc" required
-                                    class="no-event form-control" ng-model="leasingCandidate.cellAntenna.cn_tcc">
+                                    class="form-control" ng-class="{'no-event': !leasingCandidate.taskKey === 'uploadRSDandVSDfiles'}" ng-model="leasingCandidate.cellAntenna.cn_tcc">
                             <label class="error"
                                     ng-show="kcell_form.cn_tcc.$error.required && ( kcell_form.cn_tcc.$touched || view.submitted)">Required
                                 field</label>
@@ -729,7 +808,7 @@
                         <label class="col-sm-4 control-label">Extended range 900/1800:</label>
                         <div class="col-sm-2">
                             <input type="text" id="cn_gsm_range" name="cn_gsm_range" required
-                                    class="no-event form-control" ng-model="leasingCandidate.cellAntenna.cn_gsm_range">
+                                    class="form-control" ng-class="{'no-event': !leasingCandidate.taskKey === 'uploadRSDandVSDfiles'}" ng-model="leasingCandidate.cellAntenna.cn_gsm_range">
                             <label class="error"
                                     ng-show="kcell_form.cn_gsm_range.$error.required && ( kcell_form.cn_gsm_range.$touched || view.submitted)">Required
                                 field</label>
@@ -1022,7 +1101,7 @@
                             </label>
                             <label class="radio-inline">
                                 <input type="radio"
-\                                       ng-required="leasingCandidate.estimateTechnicalCapabilityResTask" name="provideUs3Phase" ng-model="leasingCandidate.powerSource.provideUs3Phase" value="No"> No
+                                       ng-required="leasingCandidate.estimateTechnicalCapabilityResTask" name="provideUs3Phase" ng-model="leasingCandidate.powerSource.provideUs3Phase" value="No"> No
                             </label>
                             <label class="error" ng-show="kcell_form.provideUs3Phase.$error.required && ( kcell_form.provideUs3Phase.$touched || parentForm.$submitted)">Required field</label>
                         </div>
@@ -1375,7 +1454,7 @@
                                     </div>
                                     <div class="col-sm-2">
                                         <select class="form-control" id="FeFrequencyBand" name="FeFrequencyBand"
-                                                ng-disabled="!leasingCandidate.frequenciesFeByAntennaType && leasingCandidate.checkAndApproveFETask"
+                                                ng-disabled="!leasingCandidate.frequenciesFeByAntennaType && !leasingCandidate.checkAndApproveFETask"
                                                 ng-model="currentFarEnd.frequencyBand"
                                                 ng-options="freq for freq in leasingCandidate.frequenciesFeByAntennaType.frequencies"
                                                 ng-class="{'no-event': !leasingCandidate.checkAndApproveFETask}"
