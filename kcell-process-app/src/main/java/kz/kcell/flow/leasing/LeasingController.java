@@ -65,46 +65,47 @@ public class LeasingController {
                 udbConnect.setAutoCommit(false);
                 int i;
 
-                String SelectContract = "select c.cid,\n" +
-                    "       cas.action_id,\n" +
-                    "       csr.csrelid,\n" +
-                    "       ca.aaid,\n" +
-                    "       c.RENTSUM,\n" +
-                    "       c.rentsum_vat,\n" +
-                    "       c.contractid,\n" +
-                    "       c.incomingdate,\n" +
-                    "       c.incomingweek,\n" +
-                    "       c.contracttype,\n" +
-                    "       c.powersupply,\n" +
-                    "       c.legaltype,\n" +
-                    "       c.legalname,\n" +
-                    "       c.legaladdress,\n" +
-                    "       c.contactperson,\n" +
-                    "       c.contactphone,\n" +
-                    "       c.access_status,\n" +
-                    "       c.contract_sap_no,\n" +
-                    "       c.vendor_sap_no,\n" +
-                    "       c.contract_executor,\n" +
-                    "       c.vat,\n" +
-                    "       c.needvat,\n" +
-                    "       c.paymentperiod,\n" +
-                    "       c.paymentway,\n" +
-                    "       c.contractstartdate,\n" +
-                    "       c.contractenddate,\n" +
-                    "       c.autoprolongation,\n" +
-                    "       c.username,\n" +
-                    "       c.oblast_villageid,\n" +
-                    "       c.area_act_accept_date,\n" +
-                    "       c.RNN,\n" +
-                    "       c.INN,\n" +
-                    "       c.IBAN,\n" +
-                    "       ca.aa_type,\n" +
-                    "       ca.autoprolongation,\n" +
-                    "       c.BANK_RNN,\n" +
-                    "       c.BANK_ACCOUNT\n" +
+//                String SelectContract = "select c.cid,\n" +
+                String SelectContract = "select c.* \n" +
+////                    "       cas.action_id,\n" +
+////                    "       csr.csrelid,\n" +
+////                    "       ca.aaid,\n" +
+//                    "       c.RENTSUM,\n" +
+//                    "       c.rentsum_vat,\n" +
+//                    "       c.contractid,\n" +
+//                    "       c.incomingdate,\n" +
+//                    "       c.incomingweek,\n" +
+//                    "       c.contracttype,\n" +
+//                    "       c.powersupply,\n" +
+//                    "       c.legaltype,\n" +
+//                    "       c.legalname,\n" +
+//                    "       c.legaladdress,\n" +
+//                    "       c.contactperson,\n" +
+//                    "       c.contactphone,\n" +
+//                    "       c.access_status,\n" +
+//                    "       c.contract_sap_no,\n" +
+//                    "       c.vendor_sap_no,\n" +
+//                    "       c.contract_executor,\n" +
+//                    "       c.vat,\n" +
+//                    "       c.needvat,\n" +
+//                    "       c.paymentperiod,\n" +
+//                    "       c.paymentway,\n" +
+//                    "       c.contractstartdate,\n" +
+//                    "       c.contractenddate,\n" +
+//                    "       c.autoprolongation,\n" +
+//                    "       c.username,\n" +
+//                    "       c.oblast_villageid,\n" +
+//                    "       c.area_act_accept_date,\n" +
+//                    "       c.RNN,\n" +
+//                    "       c.INN,\n" +
+//                    "       c.IBAN,\n" +
+////                    "       ca.aa_type,\n" +
+////                    "       ca.autoprolongation,\n" +
+//                    "       c.BANK_RNN,\n" +
+//                    "       c.BANK_ACCOUNT\n" +
                     "       from contracts c\n" +
-                    "  left join contract_aa ca on c.CID = ca.CID\n" +
-                    "  left join CONTRACT_AA_STATUS cas on cas.AAID = ca.AAID and cas.statusid != 40\n" +
+//                    "  left join contract_aa ca on c.CID = ca.CID\n" +
+//                    "  left join CONTRACT_AA_STATUS cas on cas.AAID = ca.AAID and cas.statusid != 40\n" +
                     "  left join CONTRACT_STATUS_REL csr on csr.contractid = c.cid where c.contractid = ?";
                 PreparedStatement selectContractPreparedStatement = udbConnect.prepareStatement(SelectContract);
 
