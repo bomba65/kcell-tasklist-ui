@@ -84,6 +84,8 @@ public class CreateUpdateContract implements JavaDelegate {
                             Number ct_executor = 0;
                             Number ct_payment_period = 0;
                             Number ct_currency_type = 0;
+                            Number ct_bank_id = 0;
+                            Number ct_legal_type = 0;
 
                             String ci_address = "" + (ci.prop("address").hasProp("cn_addr_oblast") ? ci.prop("address").prop("cn_addr_oblast").stringValue() : "") +
                                 (ci.prop("address").hasProp("cn_addr_district") ? ", " + ci.prop("address").prop("cn_addr_district").stringValue() : "") +
@@ -95,15 +97,32 @@ public class CreateUpdateContract implements JavaDelegate {
 
                             String ct_contact_person = ci.prop("ct_contact_person").stringValue();
                             String ct_contact_phone = ci.prop("ct_contact_phone").stringValue();
-                            String ct_access_status = ci.prop("ct_access_status").stringValue();
+                            String ct_access_status = ci.prop("ct_access_status").value().toString();
                             String ct_autoprolongation = ci.prop("ct_autoprolongation").stringValue();
 //                            String ct_contract_sap = ci.prop("ct_contract_sap").stringValue();
                             Long ct_contract_sap = ci.prop("ct_contract_sap").numberValue().longValue();
 
-                            ct_contract_type = Integer.parseInt(ci.hasProp("ct_contract_type") ? ci.prop("ct_contract_type").stringValue() : "0");
-                            ct_payment_period = Integer.parseInt(ci.hasProp("ct_payment_period") ? ci.prop("ct_payment_period").stringValue() : "0");
-                            ct_currency_type = Integer.parseInt(ci.hasProp("ct_currency_type") ? ci.prop("ct_currency_type").stringValue() : "0");
-                            ct_executor = Integer.parseInt(ci.hasProp("ct_executor") ? ci.prop("ct_executor").stringValue() : "0");
+                            ct_contract_type = Integer.parseInt(ci.hasProp("ct_contract_type") ? ci.prop("ct_contract_type").value().toString() : "0");
+                            ct_payment_period = Integer.parseInt(ci.hasProp("ct_payment_period") ? ci.prop("ct_payment_period").value().toString() : "0");
+                            ct_currency_type = Integer.parseInt(ci.hasProp("ct_currency_type") ? ci.prop("ct_currency_type").value().toString() : "0");
+                            ct_executor = Integer.parseInt(ci.hasProp("ct_executor") ? ci.prop("ct_executor").value().toString() : "0");
+                            if (ci.hasProp("ct_bankname")) {
+                                String bankidString = ci.prop("ct_bankname").hasProp("id") ? ci.prop("ct_bankname").prop("id").stringValue() : "0";
+                                ct_bank_id = Integer.parseInt(bankidString);
+                            }
+
+                            if (ci.hasProp("legalType")) {
+//                                System.out.println("ct_legal_type:");
+//                                System.out.println(ci.prop("legalType").value().toString());
+//                                ct_bank_id = Integer.parseInt(ci.hasProp("ct_bankname") ? ci.prop("ct_bankname").stringValue() : "0");
+                                String legalTypeString = ci.prop("legalType").hasProp("udbid") ? ci.prop("legalType").prop("udbid").value().toString() : "0";
+                                ct_legal_type = Integer.parseInt(legalTypeString);
+//                                System.out.println("----legalTypeString:");
+//                                System.out.println(legalTypeString);
+//                                System.out.println("----ct_legal_type:");
+//                                System.out.println(ct_legal_type);
+//                                System.out.println("END ct_legal_type");
+                            }
 
                             System.out.println("legalType:");
                             
@@ -111,6 +130,13 @@ public class CreateUpdateContract implements JavaDelegate {
                             if (ci.hasProp("legalType")) {
                                 System.out.println("ci has prop legalType");
                                 System.out.println(ci.prop("legalType").stringValue());
+                                SpinJsonNode ltJson = ci.prop("legalType");
+                                String ltId = ltJson.hasProp("udbid") ? ltJson.prop("udbid").value().toString() : " ";
+                                System.out.println("ltJson.hasProp(\"udbid\"):");
+                                System.out.println(ltJson.hasProp("udbid"));
+                                System.out.println("ltId:");
+                                System.out.println(ltId);
+
                                 if (ci.prop("legalType").hasProp("udbid")) {
                                     System.out.println("legalType has prop udbid");
                                     System.out.println(ci.prop("legalType").prop("udbid").stringValue());
@@ -122,7 +148,6 @@ public class CreateUpdateContract implements JavaDelegate {
                             System.out.println(legalType);
                             System.out.println("end legalType:");
 
-                            String vat = ci.prop("ct_access_status").stringValue() == "No" ? "Not" : "With";
                             String ct_checkvat = ci.prop("ct_checkvat").stringValue() == "No" ? "no" : "yes";
                             Long ct_cid = new Long(1);
                             int i = 1;
@@ -180,7 +205,7 @@ public class CreateUpdateContract implements JavaDelegate {
                             Long createdContractCID = null;
                             if (!ct_acquisitionType.equals("additionalAgreement")) {
                                 //INSERT_CONTRACTS
-                                String INSERT_CONTRACTS = "INSERT INTO APP_APEXUDB_CAMUNDA.CONTRACTS (CID, RENTSUM, RENTAREA, CONTRACTID, INCOMINGDATE, INCOMINGWEEK, CONTRACTTYPE, POWERSUPPLY, LEGALTYPE, LEGALNAME, LEGALADDRESS, CONTACTPERSON, CONTACTPHONE, ACCESS_STATUS, CONTRACT_SAP_NO, VENDOR_SAP_NO, CONTRACT_EXECUTOR, NEEDVAT, PAYMENTPERIOD, PAYMENTWAY, CONTRACTSTARTDATE, CONTRACTENDDATE, AUTOPROLONGATION, USERNAME, AREA_ACT_ACCEPT_DATE, RNN, IBAN) VALUES (CONTRACTS_SEQ.nextval, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)";
+                                String INSERT_CONTRACTS = "INSERT INTO APP_APEXUDB_CAMUNDA.CONTRACTS (CID, RENTSUM, RENTAREA, CONTRACTID, INCOMINGDATE, INCOMINGWEEK, CONTRACTTYPE, POWERSUPPLY, LEGALTYPE, LEGALNAME, LEGALADDRESS, CONTACTPERSON, CONTACTPHONE, ACCESS_STATUS, CONTRACT_SAP_NO, VENDOR_SAP_NO, CONTRACT_EXECUTOR, NEEDVAT, PAYMENTPERIOD, PAYMENTWAY, CONTRACTSTARTDATE, CONTRACTENDDATE, AUTOPROLONGATION, USERNAME, AREA_ACT_ACCEPT_DATE, RNN, IBAN, BANK_ID) VALUES (CONTRACTS_SEQ.nextval, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)";
                                 PreparedStatement INSERT_CONTRACTSPreparedStatement = udbConnect.prepareStatement(INSERT_CONTRACTS, returnStatus);
 
                                 System.out.println("INSERT_CONTRACTS preparedStatement SQL UPDATE VALUES");
@@ -192,7 +217,7 @@ public class CreateUpdateContract implements JavaDelegate {
                                 INSERT_CONTRACTSPreparedStatement.setString(i++, "12");  // INCOMINGWEEK
                                 INSERT_CONTRACTSPreparedStatement.setLong(i++, ct_contract_type.longValue());  // CONTRACTTYPE +
                                 INSERT_CONTRACTSPreparedStatement.setLong(i++, ct_rent_power.longValue());  // POWERSUPPLY
-                                INSERT_CONTRACTSPreparedStatement.setLong(i++, legalType.longValue());  // LEGALTYPE
+                                INSERT_CONTRACTSPreparedStatement.setLong(i++, ct_legal_type.longValue());  // LEGALTYPE
                                 INSERT_CONTRACTSPreparedStatement.setString(i++, ct_legal_name);  // LEGALNAME
                                 INSERT_CONTRACTSPreparedStatement.setString(i++, ci_address);  // LEGALADDRESS
                                 INSERT_CONTRACTSPreparedStatement.setString(i++, ct_contact_person);  // CONTACTPERSON
@@ -212,6 +237,7 @@ public class CreateUpdateContract implements JavaDelegate {
                                 INSERT_CONTRACTSPreparedStatement.setString(i++, ct_bin);  // RNN
 //                                INSERT_CONTRACTSPreparedStatement.setString(i++, ct_bin);  // INN ??
                                 INSERT_CONTRACTSPreparedStatement.setString(i++, ct_iban);  // IBAN
+                                INSERT_CONTRACTSPreparedStatement.setLong(i++, ct_bank_id.longValue());  // BANK_ID
                                 // bank_id ct_bankname
 
                                 INSERT_CONTRACTSPreparedStatement.executeUpdate();
@@ -280,15 +306,15 @@ public class CreateUpdateContract implements JavaDelegate {
                                 InsertContractStatusesPreparedStatement.executeUpdate();
                                 System.out.println("successfull INSERT_CONTRACT_STATUSES updated!");
                             } else {
-                                ct_contract_type = Integer.parseInt(ci.hasProp("ct_contract_type") ? ci.prop("ct_contract_type").stringValue() : "0");
+                                ct_contract_type = Integer.parseInt(ci.hasProp("ct_contract_type") ? ci.prop("ct_contract_type").value().toString() : "0");
 
-                                ct_agreement_type = Integer.parseInt(ci.hasProp("ct_agreement_type") && !ci.prop("ct_agreement_type").value().equals(null) ? ci.prop("ct_agreement_type").stringValue() : "0");
+                                ct_agreement_type = Integer.parseInt(ci.hasProp("ct_agreement_type") && !ci.prop("ct_agreement_type").value().equals(null) ? ci.prop("ct_agreement_type").value().toString() : "0");
                                 String ct_agreement_reason= ci.hasProp("ct_agreement_type") && !ci.prop("ct_agreement_type").value().equals(null) ? ci.prop("ct_agreement_type").stringValue() : "";
                                 String ct_agreement_number= ci.hasProp("ct_agreement_number") && !ci.prop("ct_agreement_number").value().equals(null) ? ci.prop("ct_agreement_number").stringValue() : "";
 //                                Number ct_agreement_number = ci.hasProp("ct_agreement_number") && !ci.prop("ct_agreement_number").value().equals(null) ? ci.prop("ct_agreement_number").numberValue() : 0;
                                 String ct_aa_date = ci.prop("ct_aa_date").stringValue().substring(0,9);
                                 Date formated_ct_aa_date = formatter.parse(ct_aa_date);
-                                Number ct_agreement_executor = Integer.parseInt(ci.hasProp("ct_agreement_executor") && !ci.prop("ct_agreement_executor").value().equals(null) ? ci.prop("ct_agreement_executor").stringValue() : "0");
+                                Number ct_agreement_executor = Integer.parseInt(ci.hasProp("ct_agreement_executor") && !ci.prop("ct_agreement_executor").value().equals(null) ? ci.prop("ct_agreement_executor").value().toString() : "0");
 
                                 Long createdContractAA = null;
                                 String createdContractAAID[] = { "AAID" };
@@ -310,7 +336,7 @@ public class CreateUpdateContract implements JavaDelegate {
                                 INSERT_CONTRACT_AA_PreparedStatement.setLong(i++, ct_rent.longValue()); // RENTSUM
                                 INSERT_CONTRACT_AA_PreparedStatement.setFloat(i++, ct_rent_area.floatValue());  // RENTAREA
                                 INSERT_CONTRACT_AA_PreparedStatement.setLong(i++, ct_rent_power.longValue());  // POWERSUPPLY
-                                INSERT_CONTRACT_AA_PreparedStatement.setLong(i++, legalType.longValue());  // LEGALTYPE
+                                INSERT_CONTRACT_AA_PreparedStatement.setLong(i++, ct_legal_type.longValue());  // LEGALTYPE
                                 INSERT_CONTRACT_AA_PreparedStatement.setString(i++, ct_legal_name); // LEGAL_NAME
                                 INSERT_CONTRACT_AA_PreparedStatement.setString(i++, ci_address); // LEGAL_ADDRESS
                                 INSERT_CONTRACT_AA_PreparedStatement.setString(i++, ct_contact_person); // CONTACT_PERSON
@@ -333,6 +359,27 @@ public class CreateUpdateContract implements JavaDelegate {
                                 createdContractAA = createdContracAaIdResultSet.getLong(1);
                                 System.out.println("createdContractAA:");
                                 System.out.println(createdContractAA);
+
+                                //CONTRACT_AA_STATUS
+                                System.out.println("CONTRACT_AA_STATUS preparedStatement");
+                                Long createdContractAAStatusID = null;
+                                String returnContractAAStatusID[] = { "ACTION_ID" };
+                                String INSERT_CONTRACT_AA_STATUS = "INSERT INTO APP_APEXUDB_CAMUNDA.CONTRACT_AA_STATUS (ACTION_ID, AAID, statusid, STATUSDATE ) VALUES (CONTRACT_AA_STATUS_SEQ.nextval, ?, 41, ?)";
+                                PreparedStatement InsertContractAaStatusPreparedStatement = udbConnect.prepareStatement(INSERT_CONTRACT_AA_STATUS, returnContractAAStatusID);
+
+                                i = 1;
+                                // set values to update
+                                InsertContractAaStatusPreparedStatement.setLong(i++, createdContractAA);  // createdContractAA
+                                InsertContractAaStatusPreparedStatement.setDate(i++, new java.sql.Date(new Date().getTime())); // csreldate
+
+                                InsertContractAaStatusPreparedStatement.executeUpdate();
+                                System.out.println("successfull CONTRACT_AA_STATUS!");
+
+                                ResultSet InsertContractStatusRelResultSet = InsertContractAaStatusPreparedStatement.getGeneratedKeys();
+                                InsertContractStatusRelResultSet.next();
+                                createdContractAAStatusID = InsertContractStatusRelResultSet.getLong(1);
+                                System.out.println("createdContractAAStatusID:");
+                                System.out.println(createdContractAAStatusID);
                             }
                         }
                     }

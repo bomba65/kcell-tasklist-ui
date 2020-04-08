@@ -99,8 +99,8 @@ public class CreateNCP implements JavaDelegate {
 
                     //{"antennaType":"ML 0.6","diameter":"0.6","weight":"14","antennaQuantity":1,"frequencyBand":"8GHz","suspensionHeight":12,"azimuth":"123"}
                     SpinJsonNode ne = JSON(delegateExecution.getVariable("transmissionAntenna"));
-                    String ne_azimuth = ne.hasProp("azimuth") ? ne.prop("azimuth").stringValue() : "";
-                    String ne_diameter = ne.hasProp("diameter") ? ne.prop("diameter").stringValue() : "";
+                    String ne_azimuth = ne.hasProp("azimuth") ? ne.prop("azimuth").stringValue() : "0";
+                    String ne_diameter = ne.hasProp("diameter") ? ne.prop("diameter").stringValue() : "0";
                     String ne_frequencyBand = "8";//ne.prop("frequencyBand").numberValue();
                     Number ne_suspensionHeight = ne.prop("suspensionHeight").numberValue();
 

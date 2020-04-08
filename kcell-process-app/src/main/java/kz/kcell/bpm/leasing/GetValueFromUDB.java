@@ -66,6 +66,7 @@ public class GetValueFromUDB implements JavaDelegate {
                     }
                     System.out.println("done selectArtefactCurrentStatePS");
                     String dataFromUDB = "noData";
+                    System.out.println("selectArtefactCurrentStatePS raws: " + json.length());
                     if (json.length() > 0) {
                         JSONObject firstJson = json.getJSONObject(0);
                         System.out.println(firstJson);
