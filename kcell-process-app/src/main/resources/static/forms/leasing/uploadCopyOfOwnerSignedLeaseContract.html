@@ -99,16 +99,7 @@
                 $scope.leasingCandidate = {};
                 $scope.leasingFiles = [];
                 $scope.contractInformationsFE = [];
-                $scope.newContractInfo = {
-                    ct_acquisitionType: 'newContract',
-                    address: {
-                        addr_oblast: '',
-                        cn_addr_district: '',
-                        cn_addr_city: '',
-                    }
-                };
-                console.log($scope.newContractInfo)
-                $scope.contractInformationsFE.push(JSON.parse(JSON.stringify($scope.newContractInfo)))
+
                 $scope.dictionary = {};
                 $http.get('/api/leasingCatalogs?version=1').then(
                     function(result){
@@ -159,6 +150,22 @@
                     value: ''
                 });
 
+                $scope.newContractInfo = {
+                    ct_acquisitionType: 'newContract',
+                    address: {
+                        addr_oblast: '',
+                        cn_addr_district: '',
+                        cn_addr_city: '',
+                    }
+                };
+
+                if ($scope.farEndInformation && $scope.farEndInformation.length >0) {
+                    $scope.newContractInfo.ct_sitename = $scope.farEndInformation[0].farEndName
+                }
+
+                console.log($scope.newContractInfo)
+                $scope.contractInformationsFE.push(JSON.parse(JSON.stringify($scope.newContractInfo)))
+
                 $scope.uploadCopyOfOwnerSignedLeaseContractTaskResult = '';
             });
 
@@ -192,6 +199,16 @@
                 $scope.contractInformationsFE[index].ct_contractid_old = "";
                 $scope.contractInformationsFE[index].ct_agreement_type = "";
             };
+
+            // $scope.contractlegalTypeChange = function (lt, index) {
+            //     // console.log('index', index)
+            //     // console.log('lt', lt)
+            //     // console.log('lt', typeof lt)
+            //     let ltJson = JSON.parse(lt)
+            //     $scope.contractInformations[index].legalTypeIdForUDB = ltJson.udbid;
+            //
+            //     // console.log('$scope.contractInformations[index].legalTypeIdForUDB:', $scope.contractInformations[index].legalTypeIdForUDB)
+            // };
 
             function uploadFileToMinio(file, fileName) {
                 var fileIndex = $scope[fileName].length;
@@ -480,7 +497,7 @@
                 <div class="form-group">
                     <label class="col-sm-3 control-label">Sitename:</label>
                     <div class="col-sm-8">
-                        <input class="form-control" id="{{'cci.' + $index}}.ct_sitename" name="cci.ct_sitename" ng-model="cci.ct_sitename" required>
+                        <input class="form-control" id="{{'cci.' + $index}}.ct_sitename" name="cci.ct_sitename" ng-model="cci.ct_sitename" disabled>
                         <label class="error" ng-show="kcell_form.cci.ct_sitename.$error.required && ( kcell_form.cci.ct_sitename.$touched || view.submitted)">Required field</label>
                     </div>
                 </div>
@@ -546,7 +563,7 @@
                             <select class="form-control" id="legalType" name="legalType"
                                     ng-model="cci.legalType"
                                     required>
-                                <option ng-repeat="type in dictionary.legalType" value="{{type}}">{{type.desc}}</option>
+                                <option ng-repeat="type in dictionary.legalType" ng-value="type">{{type.desc}}</option>
                             </select>
                             <label class="error" for="legalType" ng-show="kcell_form.legalType.$error.required && ( kcell_form.legalType.$touched || view.submitted)">Required field</label>
                         </div>

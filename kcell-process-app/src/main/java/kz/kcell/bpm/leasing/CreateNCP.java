@@ -90,7 +90,7 @@ public class CreateNCP implements JavaDelegate {
                     String cn_siteName = candidate.prop("siteName").stringValue();
                     String cn_comments = candidate.hasProp("comments")?candidate.prop("comments").stringValue():null;
                     Number cn_square = candidate.prop("square").numberValue();
-                    String cn_constructionType = candidate.prop("constructionType").prop("id").stringValue();
+                    String cn_constructionType = candidate.hasProp("constructionType") ? candidate.prop("constructionType").prop("id").stringValue() : "0";
 
                     SimpleDateFormat formatter = new SimpleDateFormat("yyyy-dd-MM"); //2020-01-02T18:00:00.000Z
                     String cn_date_of_visit = candidate.prop("dateOfVisit").stringValue().substring(0,9);
@@ -469,10 +469,11 @@ public class CreateNCP implements JavaDelegate {
             System.out.println("testConnect SQLException!");
             System.out.println(e.toString());
             System.err.format("SQL State: %s\n%s", e.getSQLState(), e.getMessage());
+            throw e;
         } catch (Exception e) {
             System.out.println("testConnect Exception!");
             e.printStackTrace();
+            throw e;
         }
-
     }
 }

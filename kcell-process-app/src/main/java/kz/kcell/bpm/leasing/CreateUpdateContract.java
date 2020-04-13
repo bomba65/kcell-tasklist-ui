@@ -403,10 +403,12 @@ public class CreateUpdateContract implements JavaDelegate {
             System.out.println(e.toString());
             System.err.format("SQL State: %s\n%s", e.getSQLState(), e.getMessage());
             delegateExecution.createIncident("SQLException", e.getMessage());
+            throw e;
         } catch (Exception e) {
             System.out.println("testConnect Exception!");
             e.printStackTrace();
             delegateExecution.createIncident("Exception", e.getMessage());
+            throw e;
         }
 
     }
