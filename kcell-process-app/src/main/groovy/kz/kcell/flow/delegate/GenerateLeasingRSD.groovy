@@ -187,7 +187,6 @@ class GenerateLeasingRSD implements TaskListener {
                             td (width:"23%", style:"border:none vertical-align:top;" )
                         }
                     }
-                    p('&nbsp;')
                 def cycles = cycles;
                 def a = cycles % 3
                 def cycleCount = 1
@@ -197,7 +196,6 @@ class GenerateLeasingRSD implements TaskListener {
                      cycleCount = (int) cycles/3;
                 }
                 for(int i = 1;i <= cycleCount;i++){
-                        p('&nbsp;')
                         table(class:"table", style:"font-size:12px;", border:"1") {
                             tr {
                                 td (width:"25%",style:"background-color:#8b8e94;font-weight: bold",colspan:"2", "Sector №")
@@ -779,15 +777,15 @@ class GenerateLeasingRSD implements TaskListener {
                                     }
                                 }
                             }
-                        }            
+                        }  
+                        newLine()
+          
                     }
-            p('&nbsp;')
-            p('&nbsp;')
-    
+                newLine()
         table(class:"table", style:"font-size:12px;", border:"1") {
             tr {
                 td (width:"20%", style:"font-weight:bold", "Address of Site:")
-                td (width:"80%", data[0].cn_addr_district + ", " + cn_addr_oblast + ", " + cn_addr_city + ", " + cn_addr_street + ", " + cn_addr_building)
+                td (width:"80%", data[0].cn_addr_district + ", " + data[0].cn_addr_oblast + ", " + data[0].cn_addr_city + ", " + data[0].cn_addr_street + ", " + data[0].cn_addr_building)
             }
             tr {
                 td (width:"20%", style:"font-weight:bold", "Contact Person:")
