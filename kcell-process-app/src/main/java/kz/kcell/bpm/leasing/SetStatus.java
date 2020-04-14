@@ -34,7 +34,7 @@ public class SetStatus implements JavaDelegate {
             try {
                 if (udbConnect != null) {
                     udbConnect.setAutoCommit(false);
-                    System.out.println("Connected to the database!");
+                    System.out.println("SET STATUS Connected to the database!");
 
                     // proc vars
                     int cn_rbs_location = 2;
@@ -50,13 +50,14 @@ public class SetStatus implements JavaDelegate {
                     Long createdArtefactRRStatusId = (Long) delegateExecution.getVariable("createdArtefactRRStatusId");
 
                     String ncpId = delegateExecution.getVariable("ncpID").toString();
-                    String _SET_NCP_STATUS = delegateExecution.hasVariableLocal("_SET_NCP_STATUS") ? delegateExecution.getVariable("_SET_NCP_STATUS").toString() : "";
-                    String _SET_GEN_STATUS = delegateExecution.hasVariableLocal("_SET_GEN_STATUS") ? delegateExecution.getVariable("_SET_GEN_STATUS").toString() : "";
-                    String _SET_RR_STATUS = delegateExecution.hasVariableLocal("_SET_RR_STATUS") ? delegateExecution.getVariable("_SET_RR_STATUS").toString() : "";
-                    String _SET_POWER_STATUS = delegateExecution.hasVariableLocal("_SET_POWER_STATUS") ? delegateExecution.getVariable("_SET_POWER_STATUS").toString() : "";
-                    String _SET_INSTALLATION_STATUS = delegateExecution.hasVariableLocal("_SET_INSTALLATION_STATUS") ? delegateExecution.getVariable("_SET_INSTALLATION_STATUS").toString() : "";
-                    String _SET_FE_STATUS = delegateExecution.hasVariableLocal("_SET_FE_STATUS") ? delegateExecution.getVariable("_SET_FE_STATUS").toString() : "";
-                    String _SET_CANDIDATE_STATUS = delegateExecution.hasVariableLocal("_SET_CANDIDATE_STATUS") ? delegateExecution.getVariable("_SET_CANDIDATE_STATUS").toString() : "";
+                    String _SET_NCP_STATUS = delegateExecution.hasVariableLocal("_SET_NCP_STATUS") ? delegateExecution.getVariableLocal("_SET_NCP_STATUS").toString() : "";
+                    String _SET_GEN_STATUS = delegateExecution.hasVariableLocal("_SET_GEN_STATUS") ? delegateExecution.getVariableLocal("_SET_GEN_STATUS").toString() : "";
+                    String _SET_RR_STATUS = delegateExecution.hasVariableLocal("_SET_RR_STATUS") ? delegateExecution.getVariableLocal("_SET_RR_STATUS").toString() : "";
+                    String _SET_POWER_STATUS = delegateExecution.hasVariableLocal("_SET_POWER_STATUS") ? delegateExecution.getVariableLocal("_SET_POWER_STATUS").toString() : "";
+                    String _SET_INSTALLATION_STATUS = delegateExecution.hasVariableLocal("_SET_INSTALLATION_STATUS") ? delegateExecution.getVariableLocal("_SET_INSTALLATION_STATUS").toString() : "";
+                    String _SET_FE_STATUS = delegateExecution.hasVariableLocal("_SET_FE_STATUS") ? delegateExecution.getVariableLocal("_SET_FE_STATUS").toString() : "";
+                    String _SET_FE_STATUS_NCP = delegateExecution.hasVariableLocal("_SET_FE_STATUS_NCP") ? delegateExecution.getVariableLocal("_SET_FE_STATUS_NCP").toString() : _SET_FE_STATUS;
+                    String _SET_CANDIDATE_STATUS = delegateExecution.hasVariableLocal("_SET_CANDIDATE_STATUS") ? delegateExecution.getVariableLocal("_SET_CANDIDATE_STATUS").toString() : "";
 
                     System.out.println("ncpId");
                     System.out.println(ncpId);
@@ -121,7 +122,7 @@ public class SetStatus implements JavaDelegate {
                         updateRRstatusInArtefactPreparedStatement.setDate(i++, new java.sql.Date(new Date().getTime())); // RR_STATUS_DATE
                         updateRRstatusInArtefactPreparedStatement.setLong(i++, createdArtefactId); // ARTEFACTID
                         updateRRstatusInArtefactPreparedStatement.executeUpdate();
-                        System.out.println("successfull RR_STATUS updated!");
+                        System.out.println("ArtefactID: " + createdArtefactId + " successfully RR_STATUS updated to " + _SET_RR_STATUS);
                     }
                     if (_SET_CANDIDATE_STATUS != null && !_SET_CANDIDATE_STATUS.equals("")) {
                         System.out.println("_SET_CANDIDATE_STATUS");
@@ -137,7 +138,7 @@ public class SetStatus implements JavaDelegate {
                         i = 1;
                         updateCand_AprCandStatusPreparedStatement.setLong(i++, Integer.parseInt(_SET_CANDIDATE_STATUS)); // STATUSID
                         updateCand_AprCandStatusPreparedStatement.setDate(i++, new java.sql.Date(new Date().getTime())); // DESDATE
-                        updateCand_AprCandStatusPreparedStatement.setLong(i++, createdCandApprovalId); // createdCandApprovalId
+                        updateCand_AprCandStatusPreparedStatement.setLong(i++, createdArtefactId); // ARTEFACTID
                         updateCand_AprCandStatusPreparedStatement.executeUpdate();
                         i = 1;
                         updateCandStatusInCandAprPreparedStatement.setLong(i++, Integer.parseInt(_SET_CANDIDATE_STATUS)); // CAND_STATUS
@@ -180,11 +181,14 @@ public class SetStatus implements JavaDelegate {
                     if (_SET_FE_STATUS != null && !_SET_FE_STATUS.equals("")) {
                         System.out.println("_SET_FE_STATUS");
                         System.out.println(_SET_FE_STATUS);
+                        System.out.println("_SET_FE_STATUS_NCP");
+                        System.out.println(_SET_FE_STATUS_NCP);
+
                         //UPDATE NCP
                         String UPDATE_ArtCurSt_FE_STATUS = "update ARTEFACT_CURRENT_STATE set TR_STATUS = ?, TR_STATUS_DATE = ? where ARTEFACTID = ?";
                         PreparedStatement updateArtCurStFeStatusPreparedStatement = udbConnect.prepareStatement(UPDATE_ArtCurSt_FE_STATUS);
 
-                        System.out.println("FE_STATUS preparedStatement SQL UPDATE VALUES");
+                        System.out.println("FE_STATUS ARTEFACT_CURRENT_STATE table preparedStatement SQL UPDATE VALUES");
                         // set values to update
                         i = 1;
                         updateArtCurStFeStatusPreparedStatement.setLong(i++, Integer.parseInt(_SET_FE_STATUS)); // POWER_STATUS
@@ -195,13 +199,26 @@ public class SetStatus implements JavaDelegate {
                         String UPDATE_NCP_CREATION_TR_STATUS = "update NCP_CREATION set TR_STATUS = ? where NCPID = ?";
                         PreparedStatement updateNcpCreationFeStatusPreparedStatement = udbConnect.prepareStatement(UPDATE_NCP_CREATION_TR_STATUS);
 
-                        System.out.println("FE_STATUS preparedStatement SQL UPDATE VALUES");
+                        System.out.println("FE_STATUS NCP_CREATION table preparedStatement SQL UPDATE VALUES");
                         // set values to update
                         i = 1;
-                        updateNcpCreationFeStatusPreparedStatement.setLong(i++, Integer.parseInt(_SET_FE_STATUS)); // TR_STATUS
+                        updateNcpCreationFeStatusPreparedStatement.setLong(i++, Integer.parseInt(_SET_FE_STATUS_NCP)); // TR_STATUS
                         updateNcpCreationFeStatusPreparedStatement.setString(i++, ncpId); // NCPID
                         updateNcpCreationFeStatusPreparedStatement.executeUpdate();
+
+                        //UPDATE NCP
+                        String UPDATE_ArtTsdExt_FE_STATUS = "update ARTEFACT_TSD_EXT set TSD_STATUS = ? where ARTEFACTID = ?";
+                        PreparedStatement updateArtTsdStFeStatusPreparedStatement = udbConnect.prepareStatement(UPDATE_ArtTsdExt_FE_STATUS);
+
+                        System.out.println("FE_STATUS ARTEFACT_TSD_EXT preparedStatement SQL UPDATE VALUES");
+                        // set values to update
+                        i = 1;
+                        updateArtTsdStFeStatusPreparedStatement.setLong(i++, Integer.parseInt(_SET_FE_STATUS)); // TSD_STATUS
+                        updateArtTsdStFeStatusPreparedStatement.setLong(i++, createdArtefactId); // ARTEFACTID
+                        updateArtTsdStFeStatusPreparedStatement.executeUpdate();
+
                         System.out.println("successfull FE_STATUS updated!");
+
                     }
 
                     udbConnect.commit();
