@@ -129,7 +129,7 @@ public class CreateUpdateContract implements JavaDelegate {
                             legalType = Integer.parseInt(ci.hasProp("legalType") && ci.prop("legalType").hasProp("udbid") ? ci.prop("legalType").prop("udbid").stringValue() : "0");
                             if (ci.hasProp("legalType")) {
                                 System.out.println("ci has prop legalType");
-                                System.out.println(ci.prop("legalType").stringValue());
+                                System.out.println(ci.prop("legalType").value().toString());
                                 SpinJsonNode ltJson = ci.prop("legalType");
                                 String ltId = ltJson.hasProp("udbid") ? ltJson.prop("udbid").value().toString() : " ";
                                 System.out.println("ltJson.hasProp(\"udbid\"):");
@@ -139,7 +139,7 @@ public class CreateUpdateContract implements JavaDelegate {
 
                                 if (ci.prop("legalType").hasProp("udbid")) {
                                     System.out.println("legalType has prop udbid");
-                                    System.out.println(ci.prop("legalType").prop("udbid").stringValue());
+                                    System.out.println(ci.prop("legalType").prop("udbid").value().toString());
                                     legalType = Integer.parseInt(ci.prop("legalType").prop("udbid").stringValue());
                                 }
                             }

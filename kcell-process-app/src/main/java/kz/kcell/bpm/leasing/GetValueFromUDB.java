@@ -102,20 +102,22 @@ public class GetValueFromUDB implements JavaDelegate {
                                     delegateExecution.setVariable("setInstStatusFromUDB", "SSID in Progress");
                                 }
                                 System.out.println("justSetInstStatus");
+                                delegateExecution.setVariable("instStatusFromUDB", uis);
                             } else if (uis == 16) {
                                 dataFromUDB = "finishWithSetInstStatus";
                                 System.out.println("finishWithSetInstStatus 16");
                                 delegateExecution.setVariable("setInstStatusFromUDB", "Transmission problem");
+                                delegateExecution.setVariable("instStatusFromUDB", uis);
                             } else if (uis == 13) {
                                 dataFromUDB = "finishWithSetInstStatus";
                                 System.out.println("finishWithSetInstStatus 13");
                                 delegateExecution.setVariable("setInstStatusFromUDB", "Leasing problem");
+                                delegateExecution.setVariable("instStatusFromUDB", uis);
                             }
                             System.out.println("INST_STATUS is not null");
-                            delegateExecution.setVariable("instStatusFromUDB", uis);
                         }
 
-                        if(firstJson.has("POWER_STATUS") && firstJson.getString("POWER_STATUS").equals(3) && dataFromUDB.equals("noData")) {
+                        if(firstJson.has("POWER_STATUS") && firstJson.getInt("POWER_STATUS") == 3 && dataFromUDB.equals("noData")) {
                             dataFromUDB = "withPowerProblem";
                             delegateExecution.setVariable("powerStatusFromUDB", firstJson.getInt("POWER_STATUS"));
                             delegateExecution.setVariable("setInstStatusFromUDB", "Power problem");
