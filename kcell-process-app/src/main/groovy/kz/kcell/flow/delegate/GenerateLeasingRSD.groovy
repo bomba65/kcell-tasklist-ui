@@ -79,7 +79,7 @@ class GenerateLeasingRSD implements TaskListener {
 //    }
 
     static String render (Map binding ) {
-        println(binding)
+        // println(binding)
         def template = '''\
             
             yieldUnescaped '<!DOCTYPE html>\'
@@ -128,8 +128,6 @@ class GenerateLeasingRSD implements TaskListener {
                         }
                     }
                     newLine()
-                    p('&nbsp;')
-                    newLine()
                     table(class:"table", style:"font-size:12px;") {
                         tr {
                             td (width:"20%", style:"font-weight: bold; border:1px solid", "City Name:")
@@ -161,8 +159,8 @@ class GenerateLeasingRSD implements TaskListener {
                             td (width:"11.5%", style:"border:1px solid", "E "+data[0].cn_latitude)
                             td (width:"7%",style:"vertical-align:top;")
                             td (width:"7%", style:"vertical-align:top;")
-                            td (width:"20%", style:"font-weight: bold; border:1px solid", "GSM-WCDMA BandGSM-WCDMA Band:")
-                            td (width:"23%", style:"border:1px solid", ncp_band)
+                            td (width:"20%", style:"font-weight: bold; border:1px solid", "GSM-WCDMA Band:")
+                            td (width:"23%", style:"border:1px solid", data[0].ncp_band)
                         }
                         tr {
                             td (width:"20%", style:"font-weight: bold;border:1px solid", "Altitude, m.:")
@@ -190,7 +188,7 @@ class GenerateLeasingRSD implements TaskListener {
                         }
                     }
                     p('&nbsp;')
-                def cycles = 3;
+                def cycles = cycles;
                 def a = cycles % 3
                 def cycleCount = 1
                 if (a > 0) {
@@ -204,21 +202,33 @@ class GenerateLeasingRSD implements TaskListener {
                             tr {
                                 td (width:"25%",style:"background-color:#8b8e94;font-weight: bold",colspan:"2", "Sector №")
                                 for(int j =1;j<=3;j++){
-                                    if(i*j-1<=cycles){
-                                        td (width:"25%",style:"background-color:#8b8e94", i*j)
+                                    int indx = (i-1)*3+(j-1)
+                                    if(indx<=data.size()){
+
+                                    if(indx<cycles){
+                                        td (width:"25%",style:"background-color:#8b8e94", indx + 1)
 
                                     } else {
-                                        td (width:"25%",style:"background-color:#8b8e94", i*j)
+                                        td (width:"25%",style:"background-color:#8b8e94", indx + 1)
+                                    }
+                                    }else {
+                                        td (width:"25%",style:"background-color:#8b8e94", indx + 1)
                                     }
                                 }
                             }
                             tr {
                                 td (style:"font-weight: bold;",width:"25%",colspan:"2", "Site type")
                                 for(int j =1;j<=3;j++){
-                                    if(i*j-1<=cycles){
+                                    int indx = (i-1)*3+(j-1)
+                                    if(indx<=data.size()){
+
+                                    if(indx<cycles){
                                         td (width:"25%", " " )
 
                                     } else {
+                                        td (width:"25%", "")
+                                    }
+                                    }else {
                                         td (width:"25%", "")
                                     }
                                 }
@@ -226,10 +236,16 @@ class GenerateLeasingRSD implements TaskListener {
                             tr {
                                 td (style:"font-weight: bold;",width:"25%",colspan:"2", "RBS №")
                                 for(int j =1;j<=3;j++){
-                                    if(i*j-1<=cycles){
+                                    int indx = (i-1)*3+(j-1)
+                                    if(indx<=data.size()){
+
+                                    if(indx<cycles){
                                         td (width:"25%", " " )
 
                                     } else {
+                                        td (width:"25%", "")
+                                    }
+                                    }else {
                                         td (width:"25%", "")
                                     }
                                 }
@@ -237,10 +253,16 @@ class GenerateLeasingRSD implements TaskListener {
                             tr {
                                 td (style:"font-weight: bold;",width:"25%",colspan:"2", "RBS Type")
                                 for(int j =1;j<=3;j++){
-                                    if(i*j-1<=cycles){
-                                        td (width:"25%", data[i*j-1].ncp_rbs_type)
+                                    int indx = (i-1)*3+(j-1)
+                                    if(indx<=data.size()){
+
+                                    if(indx<cycles){
+                                        td (width:"25%", data[indx].ncp_rbs_type)
 
                                     } else {
+                                        td (width:"25%", "")
+                                    }
+                                    }else {
                                         td (width:"25%", "")
                                     }
                                 }
@@ -248,10 +270,16 @@ class GenerateLeasingRSD implements TaskListener {
                             tr {
                                 td (style:"font-weight: bold;",width:"25%",colspan:"2", "GSM-WCDMA Band")
                                 for(int j =1;j<=3;j++){
-                                    if(i*j-1<=cycles){
-                                        td (width:"25%", data[i*j-1].ncp_band)
+                                    int indx = (i-1)*3+(j-1)
+                                    if(indx<=data.size()){
+
+                                    if(indx<cycles){
+                                        td (width:"25%", data[indx].ncp_band)
 
                                     } else {
+                                        td (width:"25%", "")
+                                    }
+                                    }else {
                                         td (width:"25%", "")
                                     }
                                 }
@@ -259,10 +287,16 @@ class GenerateLeasingRSD implements TaskListener {
                             tr {
                                 td (style:"font-weight: bold;",width:"25%",colspan:"2", "Radio Unit type (RU)")
                                 for(int j =1;j<=3;j++){
-                                    if(i*j-1<=cycles){
-                                        td (width:"25%", data[i*j-1].cn_radio_unit)
+                                    int indx = (i-1)*3+(j-1)
+                                    if(indx<=data.size()){
+
+                                    if(indx<cycles){
+                                        td (width:"25%", data[indx].cn_radio_unit)
 
                                     } else {
+                                        td (width:"25%", "")
+                                    }
+                                    }else {
                                         td (width:"25%", "")
                                     }
                                 }
@@ -270,10 +304,16 @@ class GenerateLeasingRSD implements TaskListener {
                             tr {
                                 td (style:"font-weight: bold;",width:"25%",colspan:"2", "Carrier")
                                 for(int j =1;j<=3;j++){
-                                    if(i*j-1<=cycles){
-                                        td (width:"25%", data[i*j-1].cn_wcdma_carrier)
+                                    int indx = (i-1)*3+(j-1)
+                                    if(indx<=data.size()){
+
+                                    if(indx<cycles){
+                                        td (width:"25%", data[indx].cn_wcdma_carrier)
 
                                     } else {
+                                        td (width:"25%", "")
+                                    }
+                                    }else {
                                         td (width:"25%", "")
                                     }
                                 }
@@ -281,10 +321,16 @@ class GenerateLeasingRSD implements TaskListener {
                             tr {
                                 td (style:"font-weight: bold;",width:"25%",colspan:"2", "Required TRX")
                                 for(int j =1;j<=3;j++){
-                                    if(i*j-1<=cycles){
-                                        td (width:"25%", data[i*j-1].cn_trx)
+                                    int indx = (i-1)*3+(j-1)
+                                    if(indx<=data.size()){
+
+                                    if(indx<cycles){
+                                        td (width:"25%", data[indx].cn_trx)
 
                                     } else {
+                                        td (width:"25%", "")
+                                    }
+                                    }else {
                                         td (width:"25%", "")
                                     }
                                 }
@@ -292,10 +338,16 @@ class GenerateLeasingRSD implements TaskListener {
                             tr {
                                 td (style:"font-weight: bold;",width:"25%",colspan:"2", "DU type")
                                 for(int j =1;j<=3;j++){
-                                    if(i*j-1<=cycles){
-                                        td (width:"25%", data[i*j-1].cn_du)
+                                    int indx = (i-1)*3+(j-1)
+                                    if(indx<=data.size()){
+
+                                    if(indx<cycles){
+                                        td (width:"25%", data[indx].cn_du)
 
                                     } else {
+                                        td (width:"25%", "")
+                                    }
+                                    }else {
                                         td (width:"25%", "")
                                     }
                                 }
@@ -304,10 +356,16 @@ class GenerateLeasingRSD implements TaskListener {
                                 td (style:"font-weight: bold;",width:"15%", rowspan:"8", "Antenna Type")
                                 td (style:"font-weight: bold;",width:"10%", "G900")
                                 for(int j =1;j<=3;j++){
-                                    if(i*j-1<=cycles){
-                                        td (width:"25%", data[i*j-1].antennaGSM900 )
+                                    int indx = (i-1)*3+(j-1)
+                                    if(indx<=data.size()){
+
+                                    if(indx<cycles){
+                                        td (width:"25%", data[indx].antennaGSM900 )
 
                                     } else {
+                                        td (width:"25%", "")
+                                    }
+                                    }else {
                                         td (width:"25%", "")
                                     }
                                 }
@@ -316,10 +374,16 @@ class GenerateLeasingRSD implements TaskListener {
                 
                                 td (style:"font-weight: bold;",width:"10%", "G1800")
                                 for(int j =1;j<=3;j++){
-                                    if(i*j-1<=cycles){
-                                        td (width:"25%", data[i*j-1].antennaGSM1800 )
+                                    int indx = (i-1)*3+(j-1)
+                                    if(indx<=data.size()){
+
+                                    if(indx<cycles){
+                                        td (width:"25%", data[indx].antennaGSM1800 )
 
                                     } else {
+                                        td (width:"25%", "")
+                                    }
+                                    }else {
                                         td (width:"25%", "")
                                     }
                                 }
@@ -327,10 +391,16 @@ class GenerateLeasingRSD implements TaskListener {
                             tr {
                                 td (style:"font-weight: bold;",width:"10%", "U900")
                                 for(int j =1;j<=3;j++){
-                                    if(i*j-1<=cycles){
-                                        td (width:"25%", data[i*j-1].antennaU900 )
+                                    int indx = (i-1)*3+(j-1)
+                                    if(indx<=data.size()){
+
+                                    if(indx<cycles){
+                                        td (width:"25%", data[indx].antennaU900 )
 
                                     } else {
+                                        td (width:"25%", "")
+                                    }
+                                    }else {
                                         td (width:"25%", "")
                                     }
                                 }
@@ -338,10 +408,16 @@ class GenerateLeasingRSD implements TaskListener {
                             tr {
                                 td (style:"font-weight: bold;",width:"10%", "U2100")
                                 for(int j =1;j<=3;j++){
-                                    if(i*j-1<=cycles){
-                                        td (width:"25%", data[i*j-1].antennaU2100 )
+                                    int indx = (i-1)*3+(j-1)
+                                    if(indx<=data.size()){
+
+                                    if(indx<cycles){
+                                        td (width:"25%", data[indx].antennaU2100 )
 
                                     } else {
+                                        td (width:"25%", "")
+                                    }
+                                    }else {
                                         td (width:"25%", "")
                                     }
                                 }
@@ -349,10 +425,16 @@ class GenerateLeasingRSD implements TaskListener {
                             tr {
                                 td (style:"font-weight: bold;",width:"10%", "L800")
                                 for(int j =1;j<=3;j++){
-                                    if(i*j-1<=cycles){
-                                        td (width:"25%", data[i*j-1].antennaLTE800 )
+                                    int indx = (i-1)*3+(j-1)
+                                    if(indx<=data.size()){
+
+                                    if(indx<cycles){
+                                        td (width:"25%", data[indx].antennaLTE800 )
 
                                     } else {
+                                        td (width:"25%", "")
+                                    }
+                                    }else {
                                         td (width:"25%", "")
                                     }
                                 }
@@ -360,10 +442,16 @@ class GenerateLeasingRSD implements TaskListener {
                             tr {
                                 td (style:"font-weight: bold;",width:"10%", "L1800")
                                 for(int j =1;j<=3;j++){
-                                    if(i*j-1<=cycles){
-                                        td (width:"25%", data[i*j-1].antennaLTE1800 )
+                                    int indx = (i-1)*3+(j-1)
+                                    if(indx<=data.size()){
+
+                                    if(indx<cycles){
+                                        td (width:"25%", data[indx].antennaLTE1800 )
 
                                     } else {
+                                        td (width:"25%", "")
+                                    }
+                                    }else {
                                         td (width:"25%", "")
                                     }
                                 }
@@ -371,10 +459,16 @@ class GenerateLeasingRSD implements TaskListener {
                             tr {
                                 td (style:"font-weight: bold;",width:"10%", "L2100")
                                 for(int j =1;j<=3;j++){
-                                    if(i*j-1<=cycles){
-                                        td (width:"25%", data[i*j-1].antennaLTE2100 )
+                                    int indx = (i-1)*3+(j-1)
+                                    if(indx<=data.size()){
+
+                                    if(indx<cycles){
+                                        td (width:"25%", data[indx].antennaLTE2100 )
 
                                     } else {
+                                        td (width:"25%", "")
+                                    }
+                                    }else {
                                         td (width:"25%", "")
                                     }
                                 }
@@ -382,10 +476,16 @@ class GenerateLeasingRSD implements TaskListener {
                             tr {
                                 td (style:"font-weight: bold;",width:"10%", "L2600")
                                 for(int j =1;j<=3;j++){
-                                    if(i*j-1<=cycles){
-                                        td (width:"25%", data[i*j-1].antennaLTE2600 )
+                                    int indx = (i-1)*3+(j-1)
+                                    if(indx<=data.size()){
+
+                                    if(indx<cycles){
+                                        td (width:"25%", data[indx].antennaLTE2600 )
 
                                     } else {
+                                        td (width:"25%", "")
+                                    }
+                                    }else {
                                         td (width:"25%", "")
                                     }
                                 }
@@ -393,10 +493,16 @@ class GenerateLeasingRSD implements TaskListener {
                             tr {
                                 td (style:"font-weight: bold;",width:"25%",colspan:"2", "Antenna Quantity")
                                 for(int j =1;j<=3;j++){
-                                    if(i*j-1<=cycles){
-                                        td (width:"25%", " " )
+                                    int indx = (i-1)*3+(j-1)
+                                    if(indx<=data.size()){
+
+                                    if(indx<cycles){
+                                        td (width:"25%", data[indx].antennaQuantity )
 
                                     } else {
+                                        td (width:"25%", "")
+                                    }
+                                    }else {
                                         td (width:"25%", "")
                                     }
                                 }
@@ -404,10 +510,16 @@ class GenerateLeasingRSD implements TaskListener {
                             tr {
                                 td (style:"font-weight: bold;",width:"25%",colspan:"2", "Antenna Location")
                                 for(int j =1;j<=3;j++){
-                                    if(i*j-1<=cycles){
-                                        td (width:"25%", data[i*j-1].cn_antenna_loc)
+                                    int indx = (i-1)*3+(j-1)
+                                    if(indx<=data.size()){
+
+                                    if(indx<cycles){
+                                        td (width:"25%", data[indx].cn_antenna_loc)
 
                                     } else {
+                                        td (width:"25%", "")
+                                    }
+                                    }else {
                                         td (width:"25%", "")
                                     }
                                 }
@@ -415,10 +527,16 @@ class GenerateLeasingRSD implements TaskListener {
                             tr {
                                 td (style:"font-weight: bold;",width:"25%",colspan:"2", "Tilt [deg] mechanical 900/1800/WCDMA")
                                 for(int j =1;j<=3;j++){
-                                    if(i*j-1<=cycles){
-                                        td (width:"25%", data[i*j-1].cn_tilt_mech_gsm)
+                                    int indx = (i-1)*3+(j-1)
+                                    if(indx<=data.size()){
+
+                                    if(indx<cycles){
+                                        td (width:"25%", data[indx].cn_tilt_mech_gsm)
 
                                     } else {
+                                        td (width:"25%", "")
+                                    }
+                                    }else {
                                         td (width:"25%", "")
                                     }
                                 }
@@ -426,10 +544,16 @@ class GenerateLeasingRSD implements TaskListener {
                             tr {
                                 td (style:"font-weight: bold;",width:"25%",colspan:"2", "Tilt [deg] electrical 900/1800/WCDMA ")
                                 for(int j =1;j<=3;j++){
-                                    if(i*j-1<=cycles){
-                                        td (width:"25%", data[i*j-1].cn_tilt_electr_gsm)
+                                    int indx = (i-1)*3+(j-1)
+                                    if(indx<=data.size()){
+
+                                    if(indx<cycles){
+                                        td (width:"25%", data[indx].cn_tilt_electr_gsm)
 
                                     } else {
+                                        td (width:"25%", "")
+                                    }
+                                    }else {
                                         td (width:"25%", "")
                                     }
                                 }
@@ -437,10 +561,16 @@ class GenerateLeasingRSD implements TaskListener {
                             tr {
                                 td (style:"font-weight: bold;",width:"25%",colspan:"2", "Tilt [deg] mechanical LTE 800/1800/2100")
                                 for(int j =1;j<=3;j++){
-                                    if(i*j-1<=cycles){
-                                        td (width:"25%", data[i*j-1].cn_tilt_mech_lte)
+                                    int indx = (i-1)*3+(j-1)
+                                    if(indx<=data.size()){
+
+                                    if(indx<cycles){
+                                        td (width:"25%", data[indx].cn_tilt_mech_lte)
 
                                     } else {
+                                        td (width:"25%", "")
+                                    }
+                                    }else {
                                         td (width:"25%", "")
                                     }
                                 }
@@ -448,10 +578,16 @@ class GenerateLeasingRSD implements TaskListener {
                             tr {
                                 td (style:"font-weight: bold;",width:"25%",colspan:"2", "Tilt [deg] electrical LTE 800/1800/2100")
                                 for(int j =1;j<=3;j++){
-                                    if(i*j-1<=cycles){
-                                        td (width:"25%", data[i*j-1].cn_tilt_electr_lte)
+                                    int indx = (i-1)*3+(j-1)
+                                    if(indx<=data.size()){
+
+                                    if(indx<cycles){
+                                        td (width:"25%", data[indx].cn_tilt_electr_lte)
 
                                     } else {
+                                        td (width:"25%", "")
+                                    }
+                                    }else {
                                         td (width:"25%", "")
                                     }
                                 }
@@ -459,10 +595,16 @@ class GenerateLeasingRSD implements TaskListener {
                             tr {
                                 td (style:"font-weight: bold;",width:"25%",colspan:"2", "Direction [deg]")
                                 for(int j =1;j<=3;j++){
-                                    if(i*j-1<=cycles){
-                                        td (width:"25%", data[i*j-1].cn_direction_gsm)
+                                    int indx = (i-1)*3+(j-1)
+                                    if(indx<=data.size()){
+
+                                    if(indx<cycles){
+                                        td (width:"25%", data[indx].cn_direction_gsm)
 
                                     } else {
+                                        td (width:"25%", "")
+                                    }
+                                    }else {
                                         td (width:"25%", "")
                                     }
                                 }
@@ -470,10 +612,16 @@ class GenerateLeasingRSD implements TaskListener {
                             tr {
                                 td (style:"font-weight: bold;",width:"25%",colspan:"2", "Height (top of ant) [m]")
                                 for(int j =1;j<=3;j++){
-                                    if(i*j-1<=cycles){
-                                        td (width:"25%", "GSM "+data[i*j-1].cn_height_gsm +"/ LTE "+data[i*j-1].cn_height_lte)
+                                    int indx = (i-1)*3+(j-1)
+                                    if(indx<=data.size()){
+
+                                    if(indx<cycles){
+                                        td (width:"25%", "GSM "+data[indx].cn_height_gsm +"/ LTE "+data[indx].cn_height_lte)
 
                                     } else {
+                                        td (width:"25%", "")
+                                    }
+                                    }else {
                                         td (width:"25%", "")
                                     }
                                 }
@@ -481,10 +629,16 @@ class GenerateLeasingRSD implements TaskListener {
                             tr {
                                 td (style:"font-weight: bold;",width:"25%",colspan:"2", "Duplex Filter")
                                 for(int j =1;j<=3;j++){
-                                    if(i*j-1<=cycles){
-                                        td (width:"25%", data[i*j-1].cn_duplex_gsm)
+                                    int indx = (i-1)*3+(j-1)
+                                    if(indx<=data.size()){
+
+                                    if(indx<cycles){
+                                        td (width:"25%", data[indx].cn_duplex_gsm)
 
                                     } else {
+                                        td (width:"25%", "")
+                                    }
+                                    }else {
                                         td (width:"25%", "")
                                     }
                                 }
@@ -492,10 +646,16 @@ class GenerateLeasingRSD implements TaskListener {
                             tr {
                                 td (style:"font-weight: bold;",width:"25%",colspan:"2", "Diversity")
                                 for(int j =1;j<=3;j++){
-                                    if(i*j-1<=cycles){
-                                        td (width:"25%", data[i*j-1].cn_diversity)
+                                    int indx = (i-1)*3+(j-1)
+                                    if(indx<=data.size()){
+
+                                    if(indx<cycles){
+                                        td (width:"25%", data[indx].cn_diversity)
 
                                     } else {
+                                        td (width:"25%", "")
+                                    }
+                                    }else {
                                         td (width:"25%", "")
                                     }
                                 }
@@ -503,10 +663,16 @@ class GenerateLeasingRSD implements TaskListener {
                             tr {
                                 td (style:"font-weight: bold;",width:"25%",colspan:"2", "Power Splitter")
                                 for(int j =1;j<=3;j++){
-                                    if(i*j-1<=cycles){
-                                        td (width:"25%", data[i*j-1].cn_power_splitter)
+                                    int indx = (i-1)*3+(j-1)
+                                    if(indx<=data.size()){
+
+                                    if(indx<cycles){
+                                        td (width:"25%", data[indx].cn_power_splitter)
 
                                     } else {
+                                        td (width:"25%", "")
+                                    }
+                                    }else {
                                         td (width:"25%", "")
                                     }
                                 }
@@ -514,10 +680,16 @@ class GenerateLeasingRSD implements TaskListener {
                             tr {
                                 td (style:"font-weight: bold;",width:"25%",colspan:"2", "HCU")
                                 for(int j =1;j<=3;j++){
-                                    if(i*j-1<=cycles){
-                                        td (width:"25%", data[i*j-1].cn_hcu)
+                                    int indx = (i-1)*3+(j-1)
+                                    if(indx<=data.size()){
+
+                                    if(indx<cycles){
+                                        td (width:"25%", data[indx].cn_hcu)
 
                                     } else {
+                                        td (width:"25%", "")
+                                    }
+                                    }else {
                                         td (width:"25%", "")
                                     }
                                 }
@@ -525,10 +697,16 @@ class GenerateLeasingRSD implements TaskListener {
                             tr {
                                 td (style:"font-weight: bold;",width:"25%",colspan:"2", "RET")
                                 for(int j =1;j<=3;j++){
-                                    if(i*j-1<=cycles){
-                                        td (width:"25%", data[i*j-1].cn_ret)
+                                    int indx = (i-1)*3+(j-1)
+                                    if(indx<=data.size()){
+
+                                    if(indx<cycles){
+                                        td (width:"25%", data[indx].cn_ret)
 
                                     } else {
+                                        td (width:"25%", "")
+                                    }
+                                    }else {
                                         td (width:"25%", "")
                                     }
                                 }
@@ -536,10 +714,16 @@ class GenerateLeasingRSD implements TaskListener {
                             tr {
                                 td (style:"font-weight: bold;",width:"25%",colspan:"2", "ASC")
                                 for(int j =1;j<=3;j++){
-                                    if(i*j-1<=cycles){
-                                        td (width:"25%", data[i*j-1].cn_asc)
+                                    int indx = (i-1)*3+(j-1)
+                                    if(indx<=data.size()){
+
+                                    if(indx<cycles){
+                                        td (width:"25%", data[indx].cn_asc)
 
                                     } else {
+                                        td (width:"25%", "")
+                                    }
+                                    }else {
                                         td (width:"25%", "")
                                     }
                                 }
@@ -547,10 +731,16 @@ class GenerateLeasingRSD implements TaskListener {
                             tr {
                                 td (style:"font-weight: bold;",width:"25%",colspan:"2", "TMA")
                                 for(int j =1;j<=3;j++){
-                                    if(i*j-1<=cycles){
-                                        td (width:"25%", data[i*j-1].cn_tma_gsm)
+                                    int indx = (i-1)*3+(j-1)
+                                    if(indx<=data.size()){
+
+                                    if(indx<cycles){
+                                        td (width:"25%", data[indx].cn_tma_gsm)
 
                                     } else {
+                                        td (width:"25%", "")
+                                    }
+                                    }else {
                                         td (width:"25%", "")
                                     }
                                 }
@@ -558,10 +748,16 @@ class GenerateLeasingRSD implements TaskListener {
                             tr {
                                 td (style:"font-weight: bold;",width:"25%", colspan:"2", "TCC")
                                 for(int j =1;j<=3;j++){
-                                    if(i*j-1<=cycles){
-                                        td (width:"25%", data[i*j-1].cn_tcc)
+                                    int indx = (i-1)*3+(j-1)
+                                    if(indx<=data.size()){
+
+                                    if(indx<cycles){
+                                        td (width:"25%", data[indx].cn_tcc)
 
                                     } else {
+                                        td (width:"25%", "")
+                                    }
+                                    }else {
                                         td (width:"25%", "")
                                     }
                                 }
@@ -569,10 +765,16 @@ class GenerateLeasingRSD implements TaskListener {
                             tr {
                                 td (style:"font-weight: bold;",width:"25%",colspan:"2", "Extended range")
                                 for(int j =1;j<=3;j++){
-                                    if(i*j-1<=cycles){
-                                        td (width:"25%", data[i*j-1].cn_gsm_range)
+                                    int indx = (i-1)*3+(j-1)
+                                    if(indx<=data.size()){
+
+                                    if(indx<cycles){
+                                        td (width:"25%", data[indx].cn_gsm_range)
 
                                     } else {
+                                        td (width:"25%", "")
+                                    }
+                                    }else {
                                         td (width:"25%", "")
                                     }
                                 }
@@ -585,7 +787,7 @@ class GenerateLeasingRSD implements TaskListener {
         table(class:"table", style:"font-size:12px;", border:"1") {
             tr {
                 td (width:"20%", style:"font-weight:bold", "Address of Site:")
-                td (width:"80%", ca_addr)
+                td (width:"80%", data[0].cn_addr_district + ", " + cn_addr_oblast + ", " + cn_addr_city + ", " + cn_addr_street + ", " + cn_addr_building)
             }
             tr {
                 td (width:"20%", style:"font-weight:bold", "Contact Person:")
@@ -593,7 +795,7 @@ class GenerateLeasingRSD implements TaskListener {
             }
             tr {
                 td (width:"20%", style:"font-weight:bold", "Comments:")
-                td (width:"80%", cn_comments)
+                td (width:"80%", data[0].cn_comments)
             }
             tr {
                 td (width:"20%", style:"font-weight:bold", "Planning Target")
@@ -623,6 +825,15 @@ class GenerateLeasingRSD implements TaskListener {
         def tid = delegateTask.id
         def tAssignee = delegateTask.assignee
 
+        def bandJson = new JsonSlurper().parseText(execution.getVariable('bands').toString());
+
+        def bandList = "";
+        for(int l=0;l<bandJson.size();l++){
+            if(bandJson[l].value == true){
+                bandList += bandJson[l].title + ", "
+            }
+        }
+
         def candidateJson = new JsonSlurper().parseText(execution.getVariable('candidate').toString());
         def cellAntennaJson = new JsonSlurper().parseText(execution.getVariable('cellAntenna').toString());
         def renterCompanyJson = new JsonSlurper().parseText(execution.getVariable('renterCompany').toString());
@@ -641,78 +852,61 @@ class GenerateLeasingRSD implements TaskListener {
         antennaNames.add("L2100");
         antennaNames.add("L2600");
 
-
-        def antennaGSM900;
-        def antennaGSM1800;
-        def antennaU900;
-        def antennaU2100;
-        def antennaLTE800;
-        def antennaLTE1800;
-        def antennaLTE2100;
-        def antennaLTE2600;
-        println(candidateJson);
-        println(cellAntennaJson);
-        println(renterCompanyJson);
         for (int j =0;j<cycle;j++){
-            def antennaItem = sectorsArr[j].antennas[0].antennaType
-            def antennaName = sectorsArr[j].antennas[0].antennaName
             def antennaLocation = sectorsArr[j].antennas[0].cn_antenna_loc
+            def antennaQuantity = 0;
+            def antennaGSM900 = "";
+            def antennaGSM1800 = "";
+            def antennaU900 = "";
+            def antennaU2100 = "";
+            def antennaLTE800 = "";
+            def antennaLTE1800 = "";
+            def antennaLTE2100 = "";
+            def antennaLTE2600 = "";
+            
+            for(int k=0;k<sectorsArr[j].antennas.size();k++){
+            antennaQuantity += sectorsArr[j].antennas[k].quantity
+            def antennaItem = sectorsArr[j].antennas[k].antennaType
+            def antennaName = sectorsArr[j].antennas[k].antennaName
             for(String item : antennaNames){
                 if(antennaItem == "G900"){
                     antennaGSM900 = antennaName
-                } else {
-                    antennaGSM900 = ""
-                }
+                } 
                 if(antennaItem == "G1800"){
                     antennaGSM1800 = antennaName
-                } else {
-                    antennaGSM1800 = ""
-                }
+                } 
                 if(antennaItem == "U900"){
                     antennaU900 = antennaName
-                } else {
-                    antennaU900 = ""
-                }
+                } 
                 if(antennaItem == "U2100"){
                     antennaU2100 = antennaName
-                } else {
-                    antennaU2100 = ""
-                }
+                } 
                 if(antennaItem == "L800"){
                     antennaLTE800 = antennaName
-                } else {
-                    antennaLTE800 = ""
-                }
+                } 
                 if(antennaItem == "L1800"){
                     antennaLTE1800 = antennaName
-                } else {
-                    antennaLTE1800 = ""
-                }
+                } 
                 if(antennaItem == "L2100"){
                     antennaLTE2100 = antennaName
-                } else {
-                    antennaLTE2100 = ""
-                }
+                } 
                 if(antennaItem == "L2600"){
                     antennaLTE2600 = antennaName
-                } else {
-                    antennaLTE2600 = ""
-                }
-
+                } 
             }
-            // }
-//        println(sectorsArr)
+            }
+            
             def test = [
                     "cn_addr_city": cellAntennaJson.address.cn_addr_city,
                     "cn_sitename": candidateJson.siteName,
                     "cn_bsc": candidateJson.bsc.name,
                     "cn_latitude": candidateJson.latitude,
                     "cn_longitude": candidateJson.longitude,
-                    "cn_altidude": candidateJson.altitude,
+                    "cn_altidude": candidateJson.cn_altitude,
                     "cn_height_constr": candidateJson.cn_height_constr,
                     "sysdate": new Date(),
                     "cn_date_visit": candidateJson.dateOfVisit,
-                    "ncp_band":"ncp_band",
+                    "ncp_band":bandList,
                     "ncp_rbs_type": candidateJson.rbsType,
                     "cn_radio_unit": cellAntennaJson.cn_radio_unit,
                     "cn_wcdma_carrier": cellAntennaJson.cn_wcdma_carrier,
@@ -720,8 +914,8 @@ class GenerateLeasingRSD implements TaskListener {
                     "cn_du": cellAntennaJson.cn_du,
                     "sector_cell_antenna":"sector_cell_antenna",
                     "cn_antenna_loc": antennaLocation,
-                    "cn_tilt_mech_gsm": "cn_tilt_mech_gsm",
-                    "cn_tilt_electr_gsm": cellAntennaJson.cn_tilt_electr_gsmv,
+                    "cn_tilt_mech_gsm": cellAntennaJson.square,
+                    "cn_tilt_electr_gsm": cellAntennaJson.cn_tilt_electr_gsm,
                     "cn_tilt_mech_lte": cellAntennaJson.cn_tilt_mech_lte,
                     "cn_tilt_electr_lte": cellAntennaJson.cn_tilt_electr_lte,
                     "cn_direction_gsm": cellAntennaJson.cn_direction_gsm,
@@ -755,7 +949,8 @@ class GenerateLeasingRSD implements TaskListener {
                     "antennaLTE800": antennaLTE800,
                     "antennaLTE1800": antennaLTE1800,
                     "antennaLTE2100": antennaLTE2100,
-                    "antennaLTE2600": antennaLTE2600
+                    "antennaLTE2600": antennaLTE2600,
+                    "antennaQuantity": antennaQuantity
             ]
             data.add(test)
         }
