@@ -112,41 +112,41 @@ public class CreateUpdateContract implements JavaDelegate {
                             }
 
                             if (ci.hasProp("legalType")) {
-//                                System.out.println("ct_legal_type:");
+                                System.out.println("ct_legal_type:");
 //                                System.out.println(ci.prop("legalType").value().toString());
 //                                ct_bank_id = Integer.parseInt(ci.hasProp("ct_bankname") ? ci.prop("ct_bankname").stringValue() : "0");
                                 String legalTypeString = ci.prop("legalType").hasProp("udbid") ? ci.prop("legalType").prop("udbid").value().toString() : "0";
                                 ct_legal_type = Integer.parseInt(legalTypeString);
 //                                System.out.println("----legalTypeString:");
 //                                System.out.println(legalTypeString);
-//                                System.out.println("----ct_legal_type:");
-//                                System.out.println(ct_legal_type);
-//                                System.out.println("END ct_legal_type");
+                                System.out.println("----ct_legal_type:");
+                                System.out.println(ct_legal_type);
+                                System.out.println("END ct_legal_type");
                             }
 
-                            System.out.println("legalType:");
+//                            System.out.println("legalType:");
                             
-                            legalType = Integer.parseInt(ci.hasProp("legalType") && ci.prop("legalType").hasProp("udbid") ? ci.prop("legalType").prop("udbid").stringValue() : "0");
-                            if (ci.hasProp("legalType")) {
-                                System.out.println("ci has prop legalType");
-                                System.out.println(ci.prop("legalType").value().toString());
-                                SpinJsonNode ltJson = ci.prop("legalType");
-                                String ltId = ltJson.hasProp("udbid") ? ltJson.prop("udbid").value().toString() : " ";
-                                System.out.println("ltJson.hasProp(\"udbid\"):");
-                                System.out.println(ltJson.hasProp("udbid"));
-                                System.out.println("ltId:");
-                                System.out.println(ltId);
+//                            legalType = Integer.parseInt(ci.hasProp("legalType") && ci.prop("legalType").hasProp("udbid") ? ci.prop("legalType").prop("udbid").stringValue() : "0");
+//                            if (ci.hasProp("legalType")) {
+//                                System.out.println("ci has prop legalType");
+//                                System.out.println(ci.prop("legalType").value().toString());
+//                                SpinJsonNode ltJson = ci.prop("legalType");
+//                                String ltId = ltJson.hasProp("udbid") ? ltJson.prop("udbid").value().toString() : " ";
+//                                System.out.println("ltJson.hasProp(\"udbid\"):");
+//                                System.out.println(ltJson.hasProp("udbid"));
+//                                System.out.println("ltId:");
+//                                System.out.println(ltId);
+//
+//                                if (ci.prop("legalType").hasProp("udbid")) {
+//                                    System.out.println("legalType has prop udbid");
+//                                    System.out.println(ci.prop("legalType").prop("udbid").value().toString());
+//                                    legalType = Integer.parseInt(ci.prop("legalType").prop("udbid").stringValue());
+//                                }
+//                            }
 
-                                if (ci.prop("legalType").hasProp("udbid")) {
-                                    System.out.println("legalType has prop udbid");
-                                    System.out.println(ci.prop("legalType").prop("udbid").value().toString());
-                                    legalType = Integer.parseInt(ci.prop("legalType").prop("udbid").stringValue());
-                                }
-                            }
-
-                            System.out.println(ci.hasProp("legalType") && ci.prop("legalType").hasProp("udbid") ? ci.prop("legalType").prop("udbid").stringValue() : "0");
-                            System.out.println(legalType);
-                            System.out.println("end legalType:");
+//                            System.out.println(ci.hasProp("legalType") && ci.prop("legalType").hasProp("udbid") ? ci.prop("legalType").prop("udbid").stringValue() : "0");
+//                            System.out.println(legalType);
+//                            System.out.println("end legalType:");
 
                             String ct_checkvat = ci.prop("ct_checkvat").stringValue() == "No" ? "no" : "yes";
                             Long ct_cid = new Long(1);
