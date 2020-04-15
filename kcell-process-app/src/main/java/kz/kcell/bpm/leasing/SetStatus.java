@@ -57,7 +57,7 @@ public class SetStatus implements JavaDelegate {
                     String _SET_INSTALLATION_STATUS = delegateExecution.hasVariableLocal("_SET_INSTALLATION_STATUS") ? delegateExecution.getVariableLocal("_SET_INSTALLATION_STATUS").toString() : "";
                     String _SET_FE_STATUS = delegateExecution.hasVariableLocal("_SET_FE_STATUS") ? delegateExecution.getVariableLocal("_SET_FE_STATUS").toString() : "";
                     String _SET_FE_STATUS_NCP = delegateExecution.hasVariableLocal("_SET_FE_STATUS_NCP") ? delegateExecution.getVariableLocal("_SET_FE_STATUS_NCP").toString() : _SET_FE_STATUS;
-                    String _SET_CANDIDATE_STATUS = delegateExecution.hasVariableLocal("_SET_CANDIDATE_STATUS") ? delegateExecution.getVariableLocal("_SET_CANDIDATE_STATUS").toString() : "";
+                    String _SET_CAND_STATUS = delegateExecution.hasVariableLocal("_SET_CAND_STATUS") ? delegateExecution.getVariableLocal("_SET_CAND_STATUS").toString() : "";
 
                     System.out.println("ncpId");
                     System.out.println(ncpId);
@@ -124,9 +124,9 @@ public class SetStatus implements JavaDelegate {
                         updateRRstatusInArtefactPreparedStatement.executeUpdate();
                         System.out.println("ArtefactID: " + createdArtefactId + " successfully RR_STATUS updated to " + _SET_RR_STATUS);
                     }
-                    if (_SET_CANDIDATE_STATUS != null && !_SET_CANDIDATE_STATUS.equals("")) {
-                        System.out.println("_SET_CANDIDATE_STATUS");
-                        System.out.println(_SET_CANDIDATE_STATUS);
+                    if (_SET_CAND_STATUS != null && !_SET_CAND_STATUS.equals("")) {
+                        System.out.println("_SET_CAND_STATUS");
+                        System.out.println(_SET_CAND_STATUS);
                         //UPDATE NCP
                         String UPDATE_Cand_Apr__CAND_STATUS = "update CANDAPPROVAL set STATUSID = ?, DESDATE = ? where ARTEFACTID = ?";
                         String UPDATE_ArtCurSt__CAND_STATUS = "update ARTEFACT_CURRENT_STATE set CAND_STATUS = ?, CAND_STATUS_DATE = ? where ARTEFACTID = ?";
@@ -136,12 +136,12 @@ public class SetStatus implements JavaDelegate {
                         System.out.println("CAND_STATUS preparedStatement SQL UPDATE VALUES");
                         // set values to update
                         i = 1;
-                        updateCand_AprCandStatusPreparedStatement.setLong(i++, Integer.parseInt(_SET_CANDIDATE_STATUS)); // STATUSID
+                        updateCand_AprCandStatusPreparedStatement.setLong(i++, Integer.parseInt(_SET_CAND_STATUS)); // STATUSID
                         updateCand_AprCandStatusPreparedStatement.setDate(i++, new java.sql.Date(new Date().getTime())); // DESDATE
                         updateCand_AprCandStatusPreparedStatement.setLong(i++, createdArtefactId); // ARTEFACTID
                         updateCand_AprCandStatusPreparedStatement.executeUpdate();
                         i = 1;
-                        updateCandStatusInCandAprPreparedStatement.setLong(i++, Integer.parseInt(_SET_CANDIDATE_STATUS)); // CAND_STATUS
+                        updateCandStatusInCandAprPreparedStatement.setLong(i++, Integer.parseInt(_SET_CAND_STATUS)); // CAND_STATUS
                         updateCandStatusInCandAprPreparedStatement.setDate(i++, new java.sql.Date(new Date().getTime())); // CAND_STATUS_DATE
                         updateCandStatusInCandAprPreparedStatement.setLong(i++, createdArtefactId); // ARTEFACTID
                         updateCandStatusInCandAprPreparedStatement.executeUpdate();
