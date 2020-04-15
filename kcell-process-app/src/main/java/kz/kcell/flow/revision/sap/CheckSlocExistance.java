@@ -31,6 +31,8 @@ import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 
 import java.net.URI;
+import java.util.Arrays;
+import java.util.List;
 
 @Service("checkSlocExistance")
 @Log
@@ -108,9 +110,27 @@ public class CheckSlocExistance implements JavaDelegate {
                 }
             }
 
-            delegateExecution.setVariable("tnuSiteLocations", tnuSiteLocations);
             delegateExecution.setVariable("hasSloc", hasSloc);
 
+            if("yes".equals(hasSloc)){
+                for (JsonNode work : jobWorks) {
+                    if (work.get("relatedSites").size() > 0) {
+                        ArrayNode relatedSites = (ArrayNode) work.get("relatedSites");
+                        for (JsonNode relatedSite : relatedSites) {
+                            SpinJsonNode value = tnuSiteLocations.prop(relatedSite.get("site_name").asText());
+
+                            SpinJsonNode workForFixedAssetNumber = SpinValues.jsonValue("{}").create().getValue();
+                            if(value.hasProp("work")){
+                                workForFixedAssetNumber = value.prop("work");
+                            }
+                            workForFixedAssetNumber.prop(work.get("sapServiceNumber").toString().replace("\"",""), SpinValues.jsonValue("{}").create().getValue());
+                            value.prop("work", workForFixedAssetNumber);
+                            tnuSiteLocations.prop(relatedSite.get("site_name").asText(), value);
+                        }
+                    }
+                }
+            }
+            delegateExecution.setVariable("tnuSiteLocations", tnuSiteLocations);
         } else {
             String siteLocationName = null;
             if(delegateExecution.getVariable("siteLocationName") != null){
@@ -201,7 +221,22 @@ public class CheckSlocExistance implements JavaDelegate {
         httpclient.close();
     }
 
-    private void fetchWorksDefinitions(DelegateExecution delegateExecution) throws Exception{
+    private void fetchWorksDefinitions(DelegateExecution delegateExecution) throws Exception {
+
+        List<String> capexWorks = Arrays.asList("1","2","3","4","5","8","10","11","12","14","15","16","17","19","20","22","23","25","26","28","29","31","32","34",
+            "35","36","38","42","45", "46", "47", "48", "49", "50", "54", "55", "56", "57", "60", "62", "65", "66", "71", "72",
+            "77", "78", "79", "80", "81", "86", "87", "88", "91", "94", "97", "100", "103", "104", "105", "106", "112", "113",
+            "114", "115", "122", "131", "134", "138", "141", "144", "147", "150", "151", "155", "156", "157", "158", "159", "160",
+            "161", "162", "165", "168", "169", "172", "173");
+
+        List<String> undefinedWorks = Arrays.asList("39", "40", "41", "43", "61", "63", "67", "68", "73", "74", "82", "84", "85", "89", "92", "95", "98", "101", "107",
+            "108", "116", "117", "118", "123", "125", "126", "127", "128", "129", "130", "132", "135", "137", "139", "142", "145",
+            "148", "152", "153", "154", "166");
+
+        List<String> opexWorks = Arrays.asList("6", "7", "9", "13", "18", "21", "24", "27", "30", "33", "37", "44", "51", "52", "53", "58", "59", "64", "69", "70", "75",
+            "76", "83", "90", "93", "96", "99", "102", "109", "110", "111", "119", "120", "121", "124", "133", "136", "140", "143",
+            "146", "149", "163", "164", "167", "170", "171");
+
         SSLContextBuilder builder = new SSLContextBuilder();
         builder.loadTrustMaterial(null, new TrustSelfSignedStrategy());
         SSLConnectionSocketFactory sslsf = new SSLConnectionSocketFactory(
@@ -209,7 +244,7 @@ public class CheckSlocExistance implements JavaDelegate {
         CloseableHttpClient httpclient = HttpClients.custom().setSSLSocketFactory(
             sslsf).build();
 
-        HttpGet httpGet = new HttpGet(baseUri + "/api/catalogs?force=2");
+        HttpGet httpGet = new HttpGet(baseUri + "/api/catalogs?v=10");
         httpGet.addHeader("Content-Type", "application/json;charset=UTF-8");
         HttpResponse httpResponse = httpclient.execute(httpGet);
 
@@ -240,9 +275,18 @@ public class CheckSlocExistance implements JavaDelegate {
                 }
             }
         }
+
         JsonValue jsonValue = SpinValues.jsonValue(workDefinitionMap.toString()).create();
         delegateExecution.setVariable("workDefinitionMap", jsonValue);
 
-        log.info(workDefinitionMap.toString());
+        String hasCapexWorks = "false";
+        for (SpinJsonNode work:jobWorks){
+            String sapServiceNumber = work.prop("sapServiceNumber").toString().replace("\"","");
+            String expenseType = work.prop("expenseType").toString();
+            if(capexWorks.contains(sapServiceNumber) || (undefinedWorks.contains(sapServiceNumber) && "CAPEX".equals(expenseType))){
+                hasCapexWorks = "true";
+            }
+        }
+        delegateExecution.setVariable("hasCapexWorks", hasCapexWorks);
     }
 }
