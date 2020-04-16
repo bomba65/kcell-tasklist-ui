@@ -46,8 +46,8 @@ if (reason == '2') {
         }
     }    
 } else {
-    if (capexWorks.contains(w.sapServiceNumber) || (undefinedWorks.contains(w.sapServiceNumber) && w.expenseType == 'CAPEX')) {
-        jobWorksObj.each { w ->
+    jobWorksObj.each { w ->
+        if (capexWorks.contains(w.sapServiceNumber) || (undefinedWorks.contains(w.sapServiceNumber) && w.expenseType == 'CAPEX')) {
             yieldUnescaped '' + workDefinitionMap[w.sapServiceNumber].faClass + '\t' + sloc
             newLine()
         }

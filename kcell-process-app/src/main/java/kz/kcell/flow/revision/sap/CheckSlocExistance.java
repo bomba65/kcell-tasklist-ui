@@ -70,7 +70,7 @@ public class CheckSlocExistance implements JavaDelegate {
                     for (JsonNode relatedSite : relatedSites) {
                         if (tnuSiteLocations.hasProp(relatedSite.get("site_name").asText())){
                             SpinJsonNode value = tnuSiteLocations.prop(relatedSite.get("site_name").asText());
-                            if(StringUtils.isEmpty(value.prop("siteLocation").stringValue()) && StringUtils.isNotEmpty((value.prop("filledSiteLocation").stringValue()))){
+                            if(StringUtils.isEmpty(value.prop("siteLocation").stringValue()) && value.hasProp("filledSiteLocation") && StringUtils.isNotEmpty((value.prop("filledSiteLocation").stringValue()))){
 
                                 String tnuSiteLocation = getSiteLocations(relatedSite.get("site_name").asText());
                                 if (tnuSiteLocation == null){

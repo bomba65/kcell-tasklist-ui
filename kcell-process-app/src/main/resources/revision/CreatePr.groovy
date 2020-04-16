@@ -46,7 +46,10 @@ def formatDate = new SimpleDateFormat("dd.MM.yyyy")
 def jobWorksObj = new JsonSlurper().parseText(jobWorks.toString())
 def workPricesObj = new JsonSlurper().parseText(workPrices.toString())
 def requestDateObj = formatDate.format(requestedDate)
-def sapFaListObj = new JsonSlurper().parseText(sapFaList.toString())
+def sapFaListObj = new JsonSlurper().parseText("[]")
+if(hasCapexWorks == 'true'){
+    sapFaListObj = new JsonSlurper().parseText(sapFaList.toString());
+}
 def contractorsTitle = new JsonSlurper().parseText(this.getClass().getResource("/dictionary/contractor.json").text)
 def subcontractorsTitle = new JsonSlurper().parseText(this.getClass().getResource("/dictionary/subcontractor.json").text)
 def subcontructerName = (subcontractorsTitle[reason] != null ? subcontractorsTitle[reason].responsible : "-")
