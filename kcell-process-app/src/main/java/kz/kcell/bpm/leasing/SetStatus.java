@@ -185,12 +185,14 @@ public class SetStatus implements JavaDelegate {
                         System.out.println(_SET_FE_STATUS_NCP);
 
                         //UPDATE NCP
-                        String UPDATE_ArtCurSt_FE_STATUS = "update ARTEFACT_CURRENT_STATE set TR_STATUS = ?, TR_STATUS_DATE = ? where ARTEFACTID = ?";
+                        String UPDATE_ArtCurSt_FE_STATUS = "update ARTEFACT_CURRENT_STATE set TR_STATUS = ?, TR_STATUS_DATE = ?, fe_status = ?, fe_status_date = ? where ARTEFACTID = ?";
                         PreparedStatement updateArtCurStFeStatusPreparedStatement = udbConnect.prepareStatement(UPDATE_ArtCurSt_FE_STATUS);
 
                         System.out.println("FE_STATUS ARTEFACT_CURRENT_STATE table preparedStatement SQL UPDATE VALUES");
                         // set values to update
                         i = 1;
+                        updateArtCurStFeStatusPreparedStatement.setLong(i++, Integer.parseInt(_SET_FE_STATUS)); // POWER_STATUS
+                        updateArtCurStFeStatusPreparedStatement.setDate(i++, new java.sql.Date(new Date().getTime())); // CAND_STATUS_DATE
                         updateArtCurStFeStatusPreparedStatement.setLong(i++, Integer.parseInt(_SET_FE_STATUS)); // POWER_STATUS
                         updateArtCurStFeStatusPreparedStatement.setDate(i++, new java.sql.Date(new Date().getTime())); // CAND_STATUS_DATE
                         updateArtCurStFeStatusPreparedStatement.setLong(i++, createdArtefactId); // ARTEFACTID
