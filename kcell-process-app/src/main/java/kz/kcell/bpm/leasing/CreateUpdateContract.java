@@ -257,9 +257,31 @@ public class CreateUpdateContract implements JavaDelegate {
                                 createdContractCID = statusGeneratedIdResultSet.getLong(1);
                                 System.out.println("createdContractCID:");
                                 System.out.println(createdContractCID);
-
+                                Number fe_artefact_id = 0;
 
                                 //INSERT_CONTRACT_ARTEFACT
+                                if(_CONTRACT_APPROVAL_TYPE.equals("FE")){
+                                    String ct_fe_sitename = ci.prop("ct_sitename").value().toString();
+                                    //find artefact_id by ct_fe_sitename
+
+                                    String SelectArtefactBySite = "select * from ARTEFACT where SITENAME = ?";
+                                    PreparedStatement selectArtefactBySitePreparedStatement = udbConnect.prepareStatement(SelectArtefactBySite);
+                                    i = 1;
+                                    System.out.println("get artefact_id by ct_fe_sitename...");
+                                    System.out.println(ct_fe_sitename);
+                                    selectArtefactBySitePreparedStatement.setString(i++, ct_fe_sitename); // sitename
+                                    ResultSet resultSet = selectArtefactBySitePreparedStatement.executeQuery();
+
+                                    if (resultSet.next() == false) {
+                                        System.out.println("not Found");
+                                    } else {
+                                        fe_artefact_id = resultSet.getInt("ARTEFACTID");
+                                    }
+                                    System.out.println("fe_artefact_id:");
+                                    System.out.println(fe_artefact_id);
+
+                                }
+
                                 Long createdContractArtefactID = null;
                                 String returnContractArtefactID[] = { "ID" };
                                 String INSERT_CONTRACT_ARTEFACT = "INSERT INTO APP_APEXUDB_CAMUNDA.CONTRACT_ARTEFACT (ID, CID, ARTEFACTID) VALUES (CONTRACT_ARTEFACT_SEQ.nextval, ?, ?)";
@@ -269,7 +291,12 @@ public class CreateUpdateContract implements JavaDelegate {
                                 System.out.println("INSERT_CONTRACT_ARTEFACT preparedStatement SQL Insert VALUES");
                                 // set values to update
                                 InsertContractArtefactPreparedStatement.setLong(i++, createdContractCID);  // createdContractCID
-                                InsertContractArtefactPreparedStatement.setLong(i++, createdArtefactId);  // createdArtefactId
+                                if (_CONTRACT_APPROVAL_TYPE.equals("FE")) {
+                                    InsertContractArtefactPreparedStatement.setLong(i++, fe_artefact_id.longValue());  // fe_artefact_id
+                                } else {
+                                    InsertContractArtefactPreparedStatement.setLong(i++, createdArtefactId);  // createdArtefactId
+                                }
+
 
                                 InsertContractArtefactPreparedStatement.executeUpdate();
                                 System.out.println("successfull INSERT_CONTRACT_ARTEFACT created!");
