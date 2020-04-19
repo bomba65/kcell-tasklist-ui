@@ -5,7 +5,8 @@ define(['./../module'], function(module){
             restrict: 'E',
             scope: {
                 leasingFiles: '=',
-                taskKey: '='
+                taskKey: '=',
+                modify: '='
             },
             link: function(scope, el, attrs){
                 scope.fileDownload = function(file) {

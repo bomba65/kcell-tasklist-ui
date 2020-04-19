@@ -103,6 +103,71 @@
                 }
             ];
 
+            var files = ['actOfPerformanceTechnicalConditionsFiles',
+            'approvalContractRentInSAPFiles',
+            'approvalPowerContractInSAPFiles',
+            'checkAndApproveFeFiles',
+            'commercialOnAirFiles',
+            'confirmActOfPerformanceTechnicalConditionsFiles',
+            'confirmPaymentDevelopmentOfTCKTFiles',
+            'confirmPaymentDevelopmentOfTCKTForFEFiles',
+            'confirmReceiptEstimateFiles',
+            'confirmReceiptEstimateForFEFiles',
+            'confirmReceiptOfTSfromRESforCandidateFiles',
+            'confirmReceiptResponseKPFiles',
+            'confirmReceiptResponseKPForFEFiles',
+            'confirmSigningLeaseContractFiles',
+            'confirmStartLeasingFiles',
+            'confirmStartLeasingNOFiles',
+            'confirmTFOfConnectingToLandlordPowerGridForFEFiles',
+            'confirmTFOfConnectingToPowerGridForCandidateFiles',
+            'connectionFromOwnerNetworksFiles',
+            'contractRentLoadingSAPFiles',
+            'createNewCandidateSiteFiles',
+            'defineInstallationProblemFiles',
+            'estimateTechnicalCapabilityResFiles',
+            'installationWorksDoneFiles',
+            'modifyCandidateSiteFiles',
+            'powerContractLoadingInSAPFiles',
+            'powerProblemSolutionFiles',
+            'preparationSSIDandTSSRFiles',
+            'preperationSSIDorTSSRProjectFiles',
+            'receivingApprovalFromTheLandlordFiles',
+            'receivingContractDevDesignEstimateFiles',
+            'receivingContractDevDesignEstimateForFEFiles',
+            'receivingContractInstallationWorksFiles',
+            'receivingContractInstallationWorksForFEFiles',
+            'receivingContractPSDFiles',
+            'receivingTSFiles',
+            'receivingTSForFEFiles',
+            'registrationCommercialOfferFiles',
+            'registrationCommercialOfferForFEFiles',
+            'reqKZTRwithTechEquipmentParamsFiles',
+            'reqKZTRwithTechEquipmentParamsForFEFiles',
+            'requestForAdmissionForWorkOnTUFiles',
+            'requestTechnicalParametersKPFiles',
+            'requestTechnicalParametersKPForFEFiles',
+            'requestTechnicalParametersKTFiles',
+            'requestTechnicalParametersKTForFEFiles',
+            'sendMessageToStartPaymentKPFiles',
+            'sendMessageToStartPaymentKPForFEFiles',
+            'sendMessageToStartPaymentKTFiles',
+            'sendMessageToStartPaymentKTForFEFiles',
+            'sendMessageToStartPaymentNationalFiles',
+            'sendMessageToStartPaymentSimpleFiles',
+            'signingLeaseContractAddAgreementFiles',
+            'signingLeaseContractAddAgreementForFEFiles',
+            'signingLeaseContractAddAgreementKPFiles',
+            'signingLeaseContractAddAgreementKPForFEFiles',
+            'signingLeaseContractAddAgreementKTFiles',
+            'startingInstallationWorksFiles',
+            'transmissionProblemSolutionFiles',
+            'uploadRSDandVSDfilesFiles',
+            'uploadSignedOwnerLeaseContractFiles',
+            'uploadTSDfileFiles'];
+
+            $scope.leasingFiles = [];
+
             $scope.candidate = {};
             $scope.form = {};
             $scope.editableForm = false;
@@ -124,6 +189,7 @@
                 $http.get('/camunda/api/engine/engine/default/task/' + camForm.taskId).then(
                     function (result) {
                         $scope.processInstanceId = result.data.processInstanceId;
+                        $scope.taskKey = result.data.taskDefinitionKey;
                         $http.get('/camunda/api/engine/engine/default/process-instance/' + $scope.processInstanceId).then(
                             function(result){
                                 console.log('process-instance/')
@@ -240,6 +306,7 @@
 
             camForm.on('variables-fetched', function () {
                 $scope.createNewCandidateSiteFiles = [];
+
                 variables.forEach(function (el) {
                     if(camForm.variableManager.variables[el].value){
                         if (el !== 'address') {
@@ -252,6 +319,15 @@
 
                     }
                 });
+
+                files.forEach(function (f) {
+                    if(camForm.variableManager.variables[f] && camForm.variableManager.variables[f].value){
+                        if ( f.toLowerCase().includes('file') ) {
+                            $scope.leasingFiles = $scope.leasingFiles.concat(camForm.variableManager.variables[f].value)
+                        }
+                    }
+                });
+
                 $scope.candidate.selectedBands = [];
                     if ($scope.bands) {
                         angular.forEach($scope.availableBands, function (b) {
@@ -319,16 +395,23 @@
                 console.log(camForm)
                 camForm.variableManager.variableValue('createNewCandidateSiteTaskResult', $scope.createNewCandidateSiteTaskResult);
                 camForm.variableManager.variableValue('createNewCandidateSiteTaskComment', $scope.createNewCandidateSiteTaskComment);
+
+                var thisTaskFiles = $scope.leasingFiles.filter(f => {return f.varName === 'createNewCandidateSiteFiles'});
+                console.log('--thisTaskFiles--')
+                console.log(thisTaskFiles)
+                console.log('-----------------')
                 if(!camForm.variableManager.variables['createNewCandidateSiteFiles'].type){
                     camForm.variableManager.destroyVariable('createNewCandidateSiteFiles');
                     camForm.variableManager.createVariable({
                         name: 'createNewCandidateSiteFiles',
                         type: 'Json',
-                        value: $scope.createNewCandidateSiteFiles
+                        value: thisTaskFiles
                     });
                 } else {
-                    camForm.variableManager.variableValue('createNewCandidateSiteFiles', $scope.createNewCandidateSiteFiles);
+                    camForm.variableManager.variableValue('createNewCandidateSiteFiles', thisTaskFiles);
                 }
+
+                console.log('++++++++++++++++++')
 
                 camForm.variableManager.destroyVariable('address');
                 camForm.variableManager.createVariable({
@@ -752,18 +835,21 @@
                     transformResponse: []
                 }).then(function (response) {
                     $http.put(response.data, file, {headers: {'Content-Type': undefined}}).then(
-                        function () {
-                            $scope[fileName].push(fileToUpload);
-                            angular.element(document.querySelector('#' + fileName)).val(null);
-                        },
-                        function (error) {
-                            console.log(error.data);
-                        }
+                            function () {
+                                fileToUpload.varName = 'createNewCandidateSiteFiles';
+                                $scope.leasingFiles.push(fileToUpload);
+                                //$scope[fileName].push(fileToUpload);
+                                angular.element(document.querySelector('#' + fileName)).val(null);
+                                console.log($scope.leasingFiles)
+                            },
+                            function (error) {
+                                console.log(error.data);
+                            }
                     );
                 }, function(error){
                     console.log(error.data);
                 });
-            }
+            };
 
             $scope.clearFile = function (list, fileIndex) {
                 $scope[list].splice(fileIndex, 1);
@@ -2773,31 +2859,20 @@
             </div>
         </tab>
     </tabset>
+
+    <leasing-attachments leasing-files="leasingFiles" task-key="taskKey" modify="'true'"></leasing-attachments>
+    <iframe id="fileDownloadIframe" style="display:none;"></iframe>
     <div class="form-group">
-        <label class="col-md-3 control-label">Attachments:</label>
-        <div class="col-sm-9">
+        <label class="col-md-4 control-label"></label>
+        <div class="col-sm-8">
             <ng-form name="kcell_material_file_form">
                 <input type="file" class="form-control" id="createNewCandidateSiteFiles"
                        name="createNewCandidateSiteFiles" ng-model="file.file"
                        onchange="angular.element(this).scope().fileSelected(this, 'createNewCandidateSiteFiles')"/>
             </ng-form>
-            <table ng-show="createNewCandidateSiteFiles.length > 0"
-                   class="col-sm-12 table-hover uploads-table">
-                <tr>
-                    <th col-sm-6>File Name</th>
-                    <th col-sm-3>Created Date</th>
-                    <th col-sm-3>Created by</th>
-                </tr>
-                <tr ng-repeat="file in createNewCandidateSiteFiles">
-                    <td><a ng-click="fileDownload(file)">{{file.name}}</a> | <a
-                            ng-click="clearFile('createNewCandidateSiteFiles', $index)"><i
-                            class="glyphicon glyphicon-trash"></i></a></td>
-                    <td>{{file.date | date:'dd.MM.yyyy'}}</td>
-                    <td>{{file.author}}</td>
-                </tr>
-            </table>
         </div>
     </div>
+
     <div class="form-group">
         <label class="col-sm-3 control-label">Comments:</label>
         <div class="col-sm-9">
