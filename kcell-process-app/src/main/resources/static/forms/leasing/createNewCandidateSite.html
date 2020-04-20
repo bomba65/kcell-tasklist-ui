@@ -282,6 +282,7 @@
                         $scope.filteredDistrictsInCAI = $scope.districtList;
                         console.log(result.data)
 
+
                     },
                     function(error){
                         console.log(error);
@@ -314,7 +315,16 @@
                             $scope.leasingInfo[el] = camForm.variableManager.variables[el] ? camForm.variableManager.variables[el].value : {};
                         } else if (el == 'candidate') {
                             console.log('candidate:', camForm.variableManager.variables[el].value)
-                            $scope[el] = camForm.variableManager.variables[el].value;
+
+                            $scope.candidate = camForm.variableManager.variables[el].value;
+                            if ($scope.candidate.constructionType && $scope.candidate.constructionType.name) {
+                                let findedIndex = $scope.dictionary.constructionType.findIndex(a => { return a.name === $scope.candidate.constructionType.name})
+                                if (findedIndex > -1) {
+                                    $scope.candidate.constructionType = $scope.dictionary.constructionType[findedIndex]
+                                }
+                            }
+
+                            console.log('constructionType name:', $scope.candidate.constructionType.name)
                             $scope.leasingInfo[el] = camForm.variableManager.variables[el].value;
                         } else {
                             $scope[el] = camForm.variableManager.variables[el].value;
@@ -1230,8 +1240,7 @@
                         <select class="form-control" id="constructionType" name="constructionType"
                                 ng-model="candidate.constructionType"
                                 required>
-                            <option value="" disabled selected hidden>Select Construction Type | {{candidate.constructionType.id}}</option>
-                            <option ng-repeat="c in dictionary.constructionType" ng-selected="c.name === candidate.constructionType.name" ng-value="c">{{c.name}}</option>
+                            <option ng-repeat="c in dictionary.constructionType"  ng-value="c">{{c.name}}</option>
                         </select>
                         <label class="error"
                                ng-show="kcell_form.constructionType.$error.required && ( kcell_form.constructionType.$touched || view.submitted)">Required
@@ -2697,7 +2706,7 @@
                                                     ng-model="currentFarEnd.constructionType" >
                                                 <option value="" disabled ng-selected="currentFarEnd.constructionType===''" hidden>Select Construction Type
                                                 </option>
-                                                <option ng-repeat="c in dictionary.FarEndConstructiontype"  ng-value="c">{{c.name}}</option>
+                                                <option ng-repeat="c in dictionary.FarEndConstructiontype" ng-selected="currentFarEnd.constructionType.name === c.name" ng-value="c">{{c.name}}</option>
                                             </select>
                                             <label class="error"
                                                    ng-show="form.fe_form.FeConstructionType.$error.required && ( form.fe_form.FeConstructionType.$touched || currentFarEnd.submitted)">Required
@@ -2705,6 +2714,9 @@
                                         </div>
                                     </div>
                                     <div class="form-group">
+                                        <label class="col-sm-3 control-label">Survey Date:</label>
+                                        <div class="col-sm-8">
+
                                             <div class="input-group">
                                                 <input type="text" ng-model="currentFarEnd.surveyDate" name="surveyDate"
                                                        class="form-control" datepicker-popup="dd.MM.yyyy"
