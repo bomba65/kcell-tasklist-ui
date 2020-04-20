@@ -363,23 +363,31 @@
                 });
             }
 
-            $scope.confirmRefusal = function() {
-                $scope.uploadSignedOwnerLeaseContractTaskResult = undefined;
-                exModal.open({
-                    templateUrl: './js/partials/confirmModal.html',
-                    size: 'sm',
-                    scope : {
-                        message :'Confirm refusal of the leasing contract',
-                        cancel : 'No',
-                        ok: 'Yes'
-                    }
-                }).then(
-                    function () {
-                        $scope.uploadSignedOwnerLeaseContractTaskResult = "refusal";
-                    },function (){
-                        $scope.uploadSignedOwnerLeaseContractTaskResult = undefined;
-                    }
-                );
+            $scope.preSubmit = function() {
+                var deferred = $q.defer();
+                if($scope.uploadSignedOwnerLeaseContractTaskResult === 'refusal'){
+                    exModal.open({
+                        templateUrl: './js/partials/confirmModal.html',
+                        size: 'sm',
+                        scope : {
+                            message :'Confirm refusal of the leasing contract',
+                            cancel : 'No',
+                            ok: 'Yes'
+                        }
+                    }).then(
+                        function () {
+                            deferred.resolve();
+                            return deferred.promise;
+                        },function (){
+                            deferred.reject();
+                            return deferred.promise;
+                        }
+                    );
+                } else {
+                    deferred.resolve();
+                    return deferred.promise;
+                }
+                return deferred.promise;
             }
         }]);
 
@@ -966,7 +974,7 @@
                 <input type="radio" name="uploadSignedOwnerLeaseContractTaskResult" ng-model="uploadSignedOwnerLeaseContractTaskResult" value="performed" required>PERFORMED
             </label>
             <label class="radio-inline">
-                <input type="radio" name="uploadSignedOwnerLeaseContractTaskResult" ng-model="uploadSignedOwnerLeaseContractTaskResult" value="refusal" required ng-click="confirmRefusal()">REFUSAL
+                <input type="radio" name="uploadSignedOwnerLeaseContractTaskResult" ng-model="uploadSignedOwnerLeaseContractTaskResult" value="refusal" required>REFUSAL
             </label>
             <label class="error" ng-show="kcell_form.uploadSignedOwnerLeaseContractTaskResult.$error.requir && ( kcell_form.uploadSignedOwnerLeaseContractTaskResult.$touched || view.submitted)">Required field</label>
         </div>

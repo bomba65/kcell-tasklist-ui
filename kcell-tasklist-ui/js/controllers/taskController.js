@@ -34,7 +34,8 @@ define(['./module','camundaSDK', 'lodash', 'big-js'], function(module, CamSDK, _
 			var $submitBtn = $('<button type="submit" class="btn btn-primary" id="taskCompleteButton">Complete</button>').click(function (e) {
 				$scope.view.submitted = true;
 				if($scope.kcell_form.$valid){
-					$(this).attr('disabled', true);
+					var button = $(this);
+					button.attr('disabled', true);
 					if($scope.preSubmit){
 						$scope.preSubmit().then(
 							function(result){
@@ -57,10 +58,14 @@ define(['./module','camundaSDK', 'lodash', 'big-js'], function(module, CamSDK, _
 								});
 							},
 							function(err){
-								$submitBtn.removeAttr('disabled');
-								toasty.error({title: "Error", msg: err});
 								e.preventDefault();
-								throw err;
+								if(err){
+									$submitBtn.removeAttr('disabled');
+									toasty.error({title: "Error", msg: err});
+									throw err;
+								} else {
+									button.prop('disabled', false);
+								}
 							}
 						);
 					} else {
