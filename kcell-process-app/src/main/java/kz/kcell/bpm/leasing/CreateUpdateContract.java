@@ -59,7 +59,7 @@ public class CreateUpdateContract implements JavaDelegate {
                         SpinJsonNode ci = (SpinJsonNode) contractInformations.get(j);
                         if (ci != null) {
 
-                            contractid = ci.prop("ct_contractid").stringValue();
+                            contractid = ci.hasProp("ct_contractid") ? ci.prop("ct_contractid").value().toString() : "";
                             String ct_acquisitionType = ci.prop("ct_acquisitionType").stringValue();
                             SimpleDateFormat formatter = new SimpleDateFormat("yyyy-dd-MM"); //2020-01-02T18:00:00.000Z
                             String ct_acceptance_act_date = ci.prop("ct_acceptance_act_date").stringValue().substring(0,9);
