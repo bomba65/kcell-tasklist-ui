@@ -120,7 +120,7 @@ public class GetValueFromUDB implements JavaDelegate {
                         }
 
                         if(firstJson.has("POWER_STATUS") && firstJson.getInt("POWER_STATUS") == 3 && dataFromUDB.equals("noData")) {
-                            dataFromUDB = "withPowerProblem";
+                            dataFromUDB = "withPowerStatus";
                             delegateExecution.setVariable("powerStatusFromUDB", firstJson.getInt("POWER_STATUS"));
                             delegateExecution.setVariable("setInstStatusFromUDB", "Power problem");
                             System.out.println("POWER_STATUS = 3 (withPowerProblem)");
