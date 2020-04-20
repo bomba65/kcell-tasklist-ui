@@ -76,7 +76,7 @@ public class CreateUpdateContract implements JavaDelegate {
                             String ct_bin = ci.prop("ct_bin").numberValue().toString();
                             String ct_iban = ci.prop("ct_iban").stringValue();
                             String ct_legal_name = ci.prop("ct_legal_name").stringValue();
-                            Number ct_rent_power = ci.hasProp("ct_rent_power") ? ci.prop("ct_rent_power").numberValue() : 0;
+                            Number ct_rent_power = ci.hasProp("ct_rent_power") && !ci.prop("ct_rent_power").isNull() ? ci.prop("ct_rent_power").numberValue() : 0;
 //                            Number legalType = ci.prop("legalType").numberValue();
                             Number legalType = 0;
 
@@ -348,8 +348,15 @@ public class CreateUpdateContract implements JavaDelegate {
                                 String ct_agreement_reason= ci.hasProp("ct_agreement_type") && !ci.prop("ct_agreement_type").value().equals(null) ? ci.prop("ct_agreement_type").stringValue() : "";
                                 String ct_agreement_number= ci.hasProp("ct_agreement_number") && !ci.prop("ct_agreement_number").value().equals(null) ? ci.prop("ct_agreement_number").stringValue() : "";
 //                                Number ct_agreement_number = ci.hasProp("ct_agreement_number") && !ci.prop("ct_agreement_number").value().equals(null) ? ci.prop("ct_agreement_number").numberValue() : 0;
-                                String ct_aa_date = ci.prop("ct_aa_date").stringValue().substring(0,9);
-                                Date formated_ct_aa_date = formatter.parse(ct_aa_date);
+
+                                Date formated_ct_aa_date = new Date();
+                                String ct_aa_date = "";
+
+                                if (ci.hasProp("ct_aa_date") && !ci.prop("ct_aa_date").isNull()) {
+                                    ct_aa_date = ci.prop("ct_aa_date").stringValue().substring(0,9);
+                                    formated_ct_aa_date = formatter.parse(ct_aa_date);
+                                }
+
                                 Number ct_agreement_executor = Integer.parseInt(ci.hasProp("ct_agreement_executor") && !ci.prop("ct_agreement_executor").value().equals(null) ? ci.prop("ct_agreement_executor").value().toString() : "0");
 
                                 Long createdContractAA = null;
@@ -363,7 +370,11 @@ public class CreateUpdateContract implements JavaDelegate {
 
                                 INSERT_CONTRACT_AA_PreparedStatement.setLong(i++, ct_cid); // CID
                                 INSERT_CONTRACT_AA_PreparedStatement.setString(i++, ct_agreement_number); // AA_NUMBER
-                                INSERT_CONTRACT_AA_PreparedStatement.setDate(i++, new java.sql.Date(formated_ct_aa_date.getTime())); // AA_DATE
+                                if (!ct_aa_date.equals("")) {
+                                    INSERT_CONTRACT_AA_PreparedStatement.setDate(i++, new java.sql.Date(formated_ct_aa_date.getTime())); // AA_DATE
+                                } else {
+                                    INSERT_CONTRACT_AA_PreparedStatement.setNull (i++, Types.TIMESTAMP); // AA_DATE
+                                }
                                 INSERT_CONTRACT_AA_PreparedStatement.setLong(i++, ct_agreement_executor.longValue()); // AA_EXECUTOR
                                 INSERT_CONTRACT_AA_PreparedStatement.setLong(i++, createdArtefactId); // ARTEFACTID
                                 INSERT_CONTRACT_AA_PreparedStatement.setLong(i++, ct_agreement_type); // AA_TYPE
