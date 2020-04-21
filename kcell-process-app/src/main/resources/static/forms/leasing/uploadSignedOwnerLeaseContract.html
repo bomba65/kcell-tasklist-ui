@@ -104,9 +104,11 @@
                 $http.get('/api/leasingCatalogs?version=1').then(
                         function(result){
                             angular.extend($scope.dictionary, result.data);
+                            if (!$scope.candidate) $scope.candidate = {};
                             if (!$scope.candidate.rbsLocation) $scope.candidate.rbsLocation = $scope.dictionary.rbsLocation;
                             $scope.antennasList = $scope.dictionary.antennas;
                             $scope.bankList = $scope.dictionary.banks;
+                            if (!$scope.powerSource) $scope.powerSource = {};
                             if (!$scope.powerSource.cableLayingType) $scope.powerSource.cableLayingType = $scope.dictionary.cableLayingType;
                             $scope.availableBands = $scope.dictionary.bands;
                             $scope.BSC = $scope.dictionary.BSC;
@@ -195,8 +197,10 @@
             };
 
             $scope.changeAcquisitionType = function (index) {
-                $scope.contractInformations[index].ct_contractid_old = "";
-                $scope.contractInformations[index].ct_agreement_type = "";
+                if($scope.contractInformations[index]){
+                    $scope.contractInformations[index].ct_contractid_old = "";
+                    $scope.contractInformations[index].ct_agreement_type = "";
+                }
             };
 
             // $scope.contractlegalTypeChange = function (lt, index) {
@@ -333,11 +337,16 @@
             };
 
             $scope.finallyRentSum = function (index, rentSum) {
-                if ($scope.contractInformations[index].ct_checkvat === 'Yes') {
-                    let rent_all = rentSum/1.12
-                    $scope.contractInformations[index].ct_rent_all = Math.round((rent_all)*100)/100;
-                } else {
-                    $scope.contractInformations[index].ct_rent_all = rentSum;
+                console.log(index);
+                console.log(rentSum);
+                console.log($scope.contractInformations);
+                if($scope.contractInformations[index]){
+                    if ($scope.contractInformations[index].ct_checkvat === 'Yes') {
+                        let rent_all = rentSum/1.12
+                        $scope.contractInformations[index].ct_rent_all = Math.round((rent_all)*100)/100;
+                    } else {
+                        $scope.contractInformations[index].ct_rent_all = rentSum;
+                    }
                 }
             }
 
@@ -378,7 +387,8 @@
                         function () {
                             deferred.resolve();
                             return deferred.promise;
-                        },function (){
+                        },
+                        function () {
                             deferred.reject();
                             return deferred.promise;
                         }
@@ -388,6 +398,30 @@
                     return deferred.promise;
                 }
                 return deferred.promise;
+            }
+
+            $scope.removeContract = function($index) {
+                exModal.open({
+                    templateUrl: './js/partials/confirmModal.html',
+                    size: 'sm',
+                    scope : {
+                        message :'Confirm deletion of contract',
+                        cancel : 'No',
+                        ok: 'Yes'
+                    }
+                }).then(
+                    function () {
+                        $scope.contractInformations.splice($index, 1);
+                    },
+                    function (){
+                    }
+                );
+            }
+
+            $scope.addContract = function() {
+                var temp = {};
+                angular.copy($scope.newContractInfo, temp);
+                $scope.contractInformations.push(temp);
             }
         }]);
 
@@ -401,7 +435,10 @@
     <accordion class="content-visible-accordion background-yellow-accordion" ng-repeat="cci in contractInformations track by $index">
         <accordion-group is-open="true" style="background-color: #ffffcc; !important;" >
             <accordion-heading>
-                {{contractInformations.length > 1 ? $index+1 + '.' : ''}} Contract Information<i class="pull-right glyphicon"  ng-class="{'glyphicon-chevron-up': status.isCustomHeaderOpen, 'glyphicon-chevron-down': !status.isCustomHeaderOpen}"></i>
+                {{contractInformations.length > 1 ? $index+1 + '.' : ''}} Contract Information
+                <a style="padding: 0px" ng-click="$event.stopPropagation(); removeContract($index)" class="pull-right" ng-if="$index > 0"><i class="glyphicon glyphicon-remove"></i></a>
+                <i class="pull-right glyphicon" ng-class="{'glyphicon-chevron-up': status.isCustomHeaderOpen, 'glyphicon-chevron-down': !status.isCustomHeaderOpen}"></i>
+
             </accordion-heading>
             <div class="form-group">
                 <label class="col-sm-3 control-label">Acquisition type</label>
@@ -948,7 +985,7 @@
     <!--            </button>-->
     <!--        </span>-->
     <div class="col-sm-12">
-        <input type="button" ng-click="contractInformations.push($scope.newContractInfo)" value="Add New Contract" class="btn btn-primary pull-right">
+        <input type="button" ng-click="addContract()" value="Add New Contract" class="btn btn-primary pull-right">
     </div>
     <iframe id="fileDownloadIframe" style="display:none;"></iframe>
 
