@@ -4,6 +4,7 @@ import lombok.extern.java.Log;
 import org.camunda.bpm.engine.IdentityService;
 import org.camunda.bpm.engine.delegate.DelegateExecution;
 import org.camunda.bpm.engine.delegate.ExecutionListener;
+import org.camunda.bpm.engine.history.HistoricProcessInstance;
 import org.camunda.bpm.engine.identity.User;
 import org.camunda.bpm.engine.impl.identity.Authentication;
 import org.camunda.bpm.model.bpmn.instance.Process;
@@ -17,6 +18,7 @@ import org.springframework.stereotype.Service;
 
 import javax.script.*;
 import java.io.InputStreamReader;
+import java.text.SimpleDateFormat;
 import java.util.*;
 import java.util.stream.Stream;
 
@@ -108,6 +110,19 @@ public class ProcessNotificationListener implements ExecutionListener {
                     if (!user.isEmpty()) {
                         starter = user.get(0).getFirstName() + " " + user.get(0).getLastName();
                     }
+
+                    SimpleDateFormat format = new SimpleDateFormat("dd.MM.yyyy HH:mm");
+                    HistoricProcessInstance procInst = delegateExecution.getProcessEngineServices().getHistoryService().createHistoricProcessInstanceQuery().processInstanceId(delegateExecution.getProcessInstanceId()).singleResult();
+
+                    //TODO: Fix time in Java
+                    Calendar startTime = Calendar.getInstance();
+                    if(procInst!=null){
+                        startTime.setTime(procInst.getStartTime());
+                    } else {
+                        startTime.setTime(new Date());
+                    }
+                    startTime.add(Calendar.HOUR, 6);
+                    bindings.put("startTime", format.format(startTime.getTime()));
 
                     bindings.put("baseUrl", baseUrl);
                     bindings.put("templateName", templateName);

@@ -1,9 +1,6 @@
 yieldUnescaped '<!DOCTYPE html>'
 
 def processName = delegateTask.getProcessEngineServices().getRepositoryService().getProcessDefinition(delegateTask.getProcessDefinitionId()).getName()
-edf procInst = delegateTask.getProcessEngineServices().getHistoryService().createHistoricProcessInstanceQuery().processInstanceId(delegateTask.getProcessInstanceId()).singleResult()
-def startTime = new Date()
-if (procInst != null) startTime = procInst.getStartTime()
 def general = delegateTask.getVariable('generalData').unwrap().get('general')
 
 html(lang:'en') {

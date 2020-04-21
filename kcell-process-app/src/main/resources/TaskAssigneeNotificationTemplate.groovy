@@ -6,9 +6,6 @@ import groovy.text.markup.TemplateConfiguration
 def customVariables  = [:]
 def taskUrl = baseUrl + '/kcell-tasklist-ui/#/tasks/' + delegateTask.id
 def processName = delegateTask.getProcessEngineServices().getRepositoryService().getProcessDefinition(delegateTask.getProcessDefinitionId()).getName()
-def procInst = delegateTask.getProcessEngineServices().getHistoryService().createHistoricProcessInstanceQuery().processInstanceId(delegateTask.getProcessInstanceId()).singleResult()
-def startTime = new Date()
-if (procInst != null) startTime = procInst.getStartTime()
 if (processName=="Revision") {
     customVariables."Cайт"=delegateTask.getVariable('site_name')
     def statusObj = delegateTask.getVariable('status')

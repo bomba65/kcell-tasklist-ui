@@ -6,6 +6,7 @@ import org.camunda.bpm.engine.authorization.Authorization;
 import org.camunda.bpm.engine.authorization.Permissions;
 import org.camunda.bpm.engine.delegate.DelegateTask;
 import org.camunda.bpm.engine.delegate.TaskListener;
+import org.camunda.bpm.engine.history.HistoricProcessInstance;
 import org.camunda.bpm.engine.identity.User;
 import org.camunda.bpm.engine.impl.identity.Authentication;
 import org.camunda.bpm.engine.runtime.ProcessInstance;
@@ -22,6 +23,7 @@ import org.springframework.stereotype.Service;
 
 import javax.script.*;
 import java.io.InputStreamReader;
+import java.text.SimpleDateFormat;
 import java.util.*;
 import java.util.function.Supplier;
 import java.util.stream.Collectors;
@@ -176,6 +178,20 @@ public class TaskNotificationListener implements TaskListener {
                     InputStreamReader reader = new InputStreamReader(TaskListener.class.getResourceAsStream(subjectScript));
                     subject = String.valueOf(((Compilable)groovyEngine).compile(reader).eval(bindings));
                 }
+
+                SimpleDateFormat format = new SimpleDateFormat("dd.MM.yyyy HH:mm");
+                HistoricProcessInstance procInst = delegateTask.getProcessEngineServices().getHistoryService().createHistoricProcessInstanceQuery().processInstanceId(delegateTask.getProcessInstanceId()).singleResult();
+
+                //TODO: Fix time in Java
+                Calendar startTime = Calendar.getInstance();
+                if(procInst!=null){
+                    startTime.setTime(procInst.getStartTime());
+                } else {
+                    startTime.setTime(new Date());
+                }
+                startTime.add(Calendar.HOUR, 6);
+                bindings.put("startTime", format.format(startTime.getTime()));
+
                 bindings.put("baseUrl", baseUrl);
                 bindings.put("templateName", templateName);
                 bindings.put("subject", subject);

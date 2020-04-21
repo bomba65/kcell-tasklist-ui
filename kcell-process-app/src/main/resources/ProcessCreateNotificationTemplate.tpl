@@ -45,7 +45,7 @@ html(lang:'en') {
                    yield 'Дата создания: '
                }
                td {
-                   b(startTime.format('dd.MM.yyyy HH:mm'))
+                   b(startTime)
                }
             }
         for ( e in customVariables ) {
