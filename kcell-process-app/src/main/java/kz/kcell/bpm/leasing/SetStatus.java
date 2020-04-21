@@ -54,7 +54,7 @@ public class SetStatus implements JavaDelegate {
                     String _SET_GEN_STATUS = delegateExecution.hasVariableLocal("_SET_GEN_STATUS") ? delegateExecution.getVariableLocal("_SET_GEN_STATUS").toString() : "";
                     String _SET_RR_STATUS = delegateExecution.hasVariableLocal("_SET_RR_STATUS") ? delegateExecution.getVariableLocal("_SET_RR_STATUS").toString() : "";
                     String _SET_POWER_STATUS = delegateExecution.hasVariableLocal("_SET_POWER_STATUS") ? delegateExecution.getVariableLocal("_SET_POWER_STATUS").toString() : "";
-                    String SET_INST_STATUS = delegateExecution.hasVariableLocal("SET_INST_STATUS") ? delegateExecution.getVariableLocal("SET_INST_STATUS").toString() : "";
+                    String _SET_INST_STATUS = delegateExecution.hasVariableLocal("_SET_INST_STATUS") ? delegateExecution.getVariableLocal("_SET_INST_STATUS").toString() : "";
                     String _SET_FE_STATUS = delegateExecution.hasVariableLocal("_SET_FE_STATUS") ? delegateExecution.getVariableLocal("_SET_FE_STATUS").toString() : "";
                     String _SET_FE_STATUS_NCP = delegateExecution.hasVariableLocal("_SET_FE_STATUS_NCP") ? delegateExecution.getVariableLocal("_SET_FE_STATUS_NCP").toString() : _SET_FE_STATUS;
                     String _SET_CAND_STATUS = delegateExecution.hasVariableLocal("_SET_CAND_STATUS") ? delegateExecution.getVariableLocal("_SET_CAND_STATUS").toString() : "";
@@ -147,9 +147,9 @@ public class SetStatus implements JavaDelegate {
                         updateCandStatusInCandAprPreparedStatement.executeUpdate();
                         System.out.println("successfull CAND_STATUS updated!");
                     }
-                    if (SET_INST_STATUS != null && !SET_INST_STATUS.equals("")) {
-                        System.out.println("SET_INST_STATUS");
-                        System.out.println(SET_INST_STATUS);
+                    if (_SET_INST_STATUS != null && !_SET_INST_STATUS.equals("")) {
+                        System.out.println("_SET_INST_STATUS");
+                        System.out.println(_SET_INST_STATUS);
                         //UPDATE NCP
                         String UPDATE_ArtCurSt__INSTALLATION_STATUS = "update ARTEFACT_CURRENT_STATE set INST_STATUS = ?, INST_STATUS_DATE = ? where ARTEFACTID = ?";
                         PreparedStatement updateInstStatusInArtCurStPreparedStatement = udbConnect.prepareStatement(UPDATE_ArtCurSt__INSTALLATION_STATUS);
@@ -157,7 +157,7 @@ public class SetStatus implements JavaDelegate {
                         System.out.println("INSTALLATION_STATUS preparedStatement SQL UPDATE VALUES");
                         // set values to update
                         i = 1;
-                        updateInstStatusInArtCurStPreparedStatement.setLong(i++, Integer.parseInt(SET_INST_STATUS)); // INSTALLATION_STATUS
+                        updateInstStatusInArtCurStPreparedStatement.setLong(i++, Integer.parseInt(_SET_INST_STATUS)); // INSTALLATION_STATUS
                         updateInstStatusInArtCurStPreparedStatement.setDate(i++, new java.sql.Date(new Date().getTime())); // CAND_STATUS_DATE
                         updateInstStatusInArtCurStPreparedStatement.setLong(i++, createdArtefactId); // ARTEFACTID
                         updateInstStatusInArtCurStPreparedStatement.executeUpdate();
