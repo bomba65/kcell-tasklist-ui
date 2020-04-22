@@ -76,7 +76,7 @@ public class CreateUpdateContract implements JavaDelegate {
                             String ct_bin = ci.prop("ct_bin").numberValue().toString();
                             String ct_iban = ci.prop("ct_iban").stringValue();
                             String ct_legal_name = ci.prop("ct_legal_name").stringValue();
-                            Number ct_rent_power = ci.hasProp("ct_rent_power") && !ci.prop("ct_rent_power").isNull() ? ci.prop("ct_rent_power").numberValue() : 0;
+                            Number ct_rent_power = ci.hasProp("ct_rent_power") && !ci.prop("ct_rent_power").isNull() ? ci.prop("ct_rent_power").numberValue() : 0; //notReq
 //                            Number legalType = ci.prop("legalType").numberValue();
                             Number legalType = 0;
 
@@ -95,7 +95,7 @@ public class CreateUpdateContract implements JavaDelegate {
                                 (ci.prop("address").hasProp("cn_addr_cadastral_number") ? ", " + ci.prop("address").prop("cn_addr_cadastral_number").stringValue() : "") +
                                 (ci.prop("address").hasProp("cn_addr_note") ? ", " + ci.prop("address").prop("cn_addr_note").stringValue() : "");
 
-                            String ct_contact_person = ci.prop("ct_contact_person").stringValue();
+                            String ct_contact_person = ci.hasProp("ct_contact_person") ? ci.prop("ct_contact_person").stringValue() : ""; // notReq
                             String ct_contact_phone = ci.prop("ct_contact_phone").stringValue();
                             String ct_access_status = ci.prop("ct_access_status").value().toString();
                             String ct_autoprolongation = ci.prop("ct_autoprolongation").stringValue();
