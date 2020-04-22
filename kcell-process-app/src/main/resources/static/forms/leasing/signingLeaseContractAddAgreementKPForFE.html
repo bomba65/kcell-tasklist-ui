@@ -25,16 +25,76 @@
                 'powerSource',
                 'farEndInformation',
                 'receivingTSForCandiateSiteFiles',
-                'receivingContractPSDFiles',
-                'receivingApprovalFromTheLandlordFiles',
                 'modifyCandidateRRFiles',
-                'estimateTechnicalCapabilityResFiles',
-                'requestTechnicalParametersKPForFEFiles',
-                'confirmReceiptResponseKPForFEFiles',
-                'signingLeaseContractAddAgreementKPForFEFiles',
                 'leasingProceduresStatusFE',
                 'address'
             ];
+
+            var files = ['actOfPerformanceTechnicalConditionsFiles',
+            'confirmSendMessageToStartPaymentKPFEFiles',
+            'approvalContractRentInSAPFiles',
+            'approvalPowerContractInSAPFiles',
+            'checkAndApproveFeFiles',
+            'commercialOnAirFiles',
+            'confirmActOfPerformanceTechnicalConditionsFiles',
+            'confirmPaymentDevelopmentOfTCKTFiles',
+            'confirmPaymentDevelopmentOfTCKTForFEFiles',
+            'confirmReceiptEstimateFiles',
+            'confirmReceiptEstimateForFEFiles',
+            'confirmReceiptOfTSfromRESforCandidateFiles',
+            'confirmReceiptResponseKPFiles',
+            'confirmReceiptResponseKPForFEFiles',
+            'confirmSigningLeaseContractFiles',
+            'confirmStartLeasingFiles',
+            'confirmStartLeasingNOFiles',
+            'confirmTFOfConnectingToLandlordPowerGridForFEFiles',
+            'confirmTFOfConnectingToPowerGridForCandidateFiles',
+            'connectionFromOwnerNetworksFiles',
+            'contractRentLoadingSAPFiles',
+            'createNewCandidateSiteFiles',
+            'defineInstallationProblemFiles',
+            'estimateTechnicalCapabilityResFiles',
+            'installationWorksDoneFiles',
+            'modifyCandidateSiteFiles',
+            'powerContractLoadingInSAPFiles',
+            'powerProblemSolutionFiles',
+            'preparationSSIDandTSSRFiles',
+            'preperationSSIDorTSSRProjectFiles',
+            'receivingApprovalFromTheLandlordFiles',
+            'receivingContractDevDesignEstimateFiles',
+            'receivingContractDevDesignEstimateForFEFiles',
+            'receivingContractInstallationWorksFiles',
+            'receivingContractInstallationWorksForFEFiles',
+            'receivingContractPSDFiles',
+            'receivingTSFiles',
+            'receivingTSForFEFiles',
+            'registrationCommercialOfferFiles',
+            'registrationCommercialOfferForFEFiles',
+            'reqKZTRwithTechEquipmentParamsFiles',
+            'reqKZTRwithTechEquipmentParamsForFEFiles',
+            'requestForAdmissionForWorkOnTUFiles',
+            'requestTechnicalParametersKPFiles',
+            'requestTechnicalParametersKPForFEFiles',
+            'requestTechnicalParametersKTFiles',
+            'requestTechnicalParametersKTForFEFiles',
+            'sendMessageToStartPaymentKPFiles',
+            'sendMessageToStartPaymentKPForFEFiles',
+            'sendMessageToStartPaymentKTFiles',
+            'sendMessageToStartPaymentKTForFEFiles',
+            'sendMessageToStartPaymentNationalFiles',
+            'sendMessageToStartPaymentSimpleFiles',
+            'signingLeaseContractAddAgreementFiles',
+            'signingLeaseContractAddAgreementForFEFiles',
+            'signingLeaseContractAddAgreementKPFiles',
+            'signingLeaseContractAddAgreementKPForFEFiles',
+            'signingLeaseContractAddAgreementKTFiles',
+            'startingInstallationWorksFiles',
+            'transmissionProblemSolutionFiles',
+            'uploadRSDandVSDfilesFiles',
+            'uploadSignedOwnerLeaseContractFiles',
+            'uploadTSDfileFiles'];
+
+            $scope.leasingFiles = [];
 
             $http.get('/camunda/api/engine/engine/default/task/' + camForm.taskId).then(
                 function(result){
@@ -49,9 +109,13 @@
                 variables.forEach(function (el) {
                     camForm.variableManager.fetchVariable(el);
                 });
+                files.forEach(function (f) {
+                    camForm.variableManager.fetchVariable(f);
+                });
                 $http.get('/camunda/api/engine/engine/default/task/' + camForm.taskId).then(
                         function(result){
                             $scope.processInstanceId = result.data.processInstanceId;
+                            $scope.taskKey = result.data.taskDefinitionKey;
                             $http.get('/camunda/api/engine/engine/default/process-instance/' + $scope.processInstanceId).then(
                                 function(result){
                                     console.log('process-instance/')
@@ -66,7 +130,6 @@
                         }
                 );
                 $scope.leasingCandidate = {};
-                $scope.leasingFiles = [];
             });
 
             camForm.on('variables-fetched', function () {
@@ -75,8 +138,12 @@
                     if(camForm.variableManager.variables[el].value){
                         $scope[el] = camForm.variableManager.variables[el].value;
                         $scope.leasingCandidate[el] = camForm.variableManager.variables[el].value;
-                        if ( el.toLowerCase().includes('file') ) {
-                            $scope.leasingFiles = $scope.leasingFiles.concat(camForm.variableManager.variables[el].value)
+                    }
+                });
+                files.forEach(function (f) {
+                    if(camForm.variableManager.variables[f] && camForm.variableManager.variables[f].value){
+                        if ( f.toLowerCase().includes('file') ) {
+                            $scope.leasingFiles = $scope.leasingFiles.concat(camForm.variableManager.variables[f].value)
                         }
                     }
                 });
@@ -103,15 +170,20 @@
                 camForm.variableManager.variableValue('signingLeaseContractAddAgreementKPForFETaskResult', $scope.signingLeaseContractAddAgreementKPForFETaskResult);
                 camForm.variableManager.variableValue('signingLeaseContractAddAgreementKPForFETaskComment', $scope.signingLeaseContractAddAgreementKPForFETaskComment);
                 // camForm.variableManager.variableValue('leasingProceduresStatusFE', $scope.signingLeaseContractAddAgreementKPForFETaskResult);
+
+                var thisTaskFiles = $scope.leasingFiles.filter(f => {return f.varName === 'signingLeaseContractAddAgreementKPForFEFiles'});
+                console.log('--thisTaskFiles--')
+                console.log(thisTaskFiles)
+                console.log('-----------------')
                 if(!camForm.variableManager.variables['signingLeaseContractAddAgreementKPForFEFiles'].type){
                     camForm.variableManager.destroyVariable('signingLeaseContractAddAgreementKPForFEFiles');
                     camForm.variableManager.createVariable({
                         name: 'signingLeaseContractAddAgreementKPForFEFiles',
                         type: 'Json',
-                        value: $scope.signingLeaseContractAddAgreementKPForFEFiles
+                        value: thisTaskFiles
                     });
                 } else {
-                    camForm.variableManager.variableValue('signingLeaseContractAddAgreementKPForFEFiles', $scope.signingLeaseContractAddAgreementKPForFEFiles);
+                    camForm.variableManager.variableValue('signingLeaseContractAddAgreementKPForFEFiles', thisTaskFiles);
                 }
                 if($scope.signingLeaseContractAddAgreementKPForFETaskResult === 'reject') {
                     camForm.variableManager.variableValue('leasingProceduresStatusFE', 'reject');
@@ -133,10 +205,10 @@
                 var fileIndex = $scope[fileName].length;
 
                 var fileToUpload = {
-                    name: file.name.replace(/[/\\?%*:|"<>]/g, '-'),
-                    path: $scope.processInstanceId + '/' + camForm.taskId + '/' + file.name.replace(/[/\\?%*:|"<>]/g, '-'),
                     date: new Date(),
-                    author:  $scope.taskAssignee
+                    author:  $scope.taskAssignee,
+                    name: file.name.replace(/[/\\?%*:|"<>]/g, '-'),
+                    path: $scope.processInstanceId + '/' + camForm.taskId + '/' + file.name.replace(/[/\\?%*:|"<>]/g, '-')
                 };
                 $http({
                     method: 'GET',
@@ -145,8 +217,11 @@
                 }).then(function (response) {
                     $http.put(response.data, file, {headers: {'Content-Type': undefined}}).then(
                             function () {
-                                $scope[fileName].push(fileToUpload);
+                                fileToUpload.varName = 'signingLeaseContractAddAgreementKPForFEFiles';
+                                $scope.leasingFiles.push(fileToUpload);
+                                //$scope[fileName].push(fileToUpload);
                                 angular.element(document.querySelector('#' + fileName)).val(null);
+                                console.log($scope.leasingFiles)
                             },
                             function (error) {
                                 console.log(error.data);
@@ -155,7 +230,7 @@
                 }, function(error){
                     console.log(error.data);
                 });
-            }
+            };
 
             $scope.singleFileSelected = function (el, fileName) {
                 $timeout(function () {
@@ -218,8 +293,6 @@
     </div>
      <leasing-candidate ng-if="view.variablesFetched" leasing-candidate="leasingCandidate"></leasing-candidate>
 
-    <iframe id="fileDownloadIframe" style="display:none;"></iframe>
-
     <!-- <div class="form-group">
         <label class="col-md-4 control-label">Download RR:</label>
         <div class="col-sm-8">
@@ -237,11 +310,23 @@
     </div>
 
     <leasing-files leasing-files="leasingCandidate"></leasing-files> -->
-    <leasing-attachments leasing-files="leasingFiles"></leasing-attachments>
+
+    <leasing-attachments leasing-files="leasingFiles" task-key="taskKey" modify="'true'"></leasing-attachments>
+    <iframe id="fileDownloadIframe" style="display:none;"></iframe>
+    <div class="form-group">
+        <label class="col-sm-3 control-label"></label>
+        <div class="col-sm-9">
+            <ng-form name="kcell_material_file_form">
+                <input type="file" class="form-control" id="signingLeaseContractAddAgreementKPForFEFiles"
+                       name="signingLeaseContractAddAgreementKPForFEFiles" ng-model="file.file"
+                       onchange="angular.element(this).scope().fileSelected(this, 'signingLeaseContractAddAgreementKPForFEFiles')"/>
+            </ng-form>
+        </div>
+    </div>
 
     <div class="form-group">
-        <label class="col-sm-4 control-label">Approval Status</label>
-        <div class="col-sm-8">
+        <label class="col-sm-3 control-label">Approval Status</label>
+        <div class="col-sm-9">
             <label class="radio-inline">
                 <input type="radio" name="signingLeaseContractAddAgreementKPForFETaskResult" ng-model="signingLeaseContractAddAgreementKPForFETaskResult" value="approved" required>Approve
             </label>
@@ -252,25 +337,9 @@
         </div>
     </div>
 
-
     <div class="form-group">
-        <label class="col-md-4 control-label">Upload files:</label>
-        <div class="col-sm-8">
-            <div ng-show="signingLeaseContractAddAgreementKPForFEFiles.length > 0" class="input-group" ng-repeat="file in signingLeaseContractAddAgreementKPForFEFiles">
-                {{$index + 1}}.
-                <a ng-click="fileDownload(file)">{{file.name}}</a> | <a ng-click="clearFile('signingLeaseContractAddAgreementKPForFEFiles', $index)"><i class="glyphicon glyphicon-trash"></i></a>
-            </div>
-            <ng-form name="kcell_material_file_form">
-                <input type="file" class="form-control" id="signingLeaseContractAddAgreementKPForFEFiles" name="signingLeaseContractAddAgreementKPForFEFiles" ng-model="file.file" onchange="angular.element(this).scope().fileSelected(this, 'signingLeaseContractAddAgreementKPForFEFiles')"/>
-            </ng-form>
-        </div>
-    </div>
-
-
-
-    <div class="form-group">
-        <label class="col-sm-4 control-label">Comments</label>
-        <div class="col-sm-8">
+        <label class="col-sm-3 control-label">Comments</label>
+        <div class="col-sm-9">
             <textarea class="form-control" ng-model="signingLeaseContractAddAgreementKPForFETaskComment" name="signingLeaseContractAddAgreementKPForFETaskComment" placeholder="Comments..." maxlength="500" rows="4" style="resize:none" ng-required="signingLeaseContractAddAgreementKPForFETaskResult === 'reject'"></textarea>
             <label class="error" ng-show="kcell_form.signingLeaseContractAddAgreementKPForFETaskComment.$error.required && ( kcell_form.signingLeaseContractAddAgreementKPForFETaskComment.$touched || view.submitted)">Required field</label>
         </div>

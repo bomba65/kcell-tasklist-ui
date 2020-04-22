@@ -25,14 +25,76 @@
                 'powerSource',
                 'farEndInformation',
                 'receivingTSForCandiateSiteFiles',
-                'receivingContractPSDFiles',
-                'receivingApprovalFromTheLandlordFiles',
                 'modifyCandidateRRFiles',
-                'estimateTechnicalCapabilityResFiles',
-                'requestTechnicalParametersKTForFEFiles',
                 'approvedFEWithHighPriority',
                 'address'
             ];
+
+            var files = ['actOfPerformanceTechnicalConditionsFiles',
+            'confirmSendMessageToStartPaymentKPFEFiles',
+            'approvalContractRentInSAPFiles',
+            'approvalPowerContractInSAPFiles',
+            'checkAndApproveFeFiles',
+            'commercialOnAirFiles',
+            'confirmActOfPerformanceTechnicalConditionsFiles',
+            'confirmPaymentDevelopmentOfTCKTFiles',
+            'confirmPaymentDevelopmentOfTCKTForFEFiles',
+            'confirmReceiptEstimateFiles',
+            'confirmReceiptEstimateForFEFiles',
+            'confirmReceiptOfTSfromRESforCandidateFiles',
+            'confirmReceiptResponseKPFiles',
+            'confirmReceiptResponseKPForFEFiles',
+            'confirmSigningLeaseContractFiles',
+            'confirmStartLeasingFiles',
+            'confirmStartLeasingNOFiles',
+            'confirmTFOfConnectingToLandlordPowerGridForFEFiles',
+            'confirmTFOfConnectingToPowerGridForCandidateFiles',
+            'connectionFromOwnerNetworksFiles',
+            'contractRentLoadingSAPFiles',
+            'createNewCandidateSiteFiles',
+            'defineInstallationProblemFiles',
+            'estimateTechnicalCapabilityResFiles',
+            'installationWorksDoneFiles',
+            'modifyCandidateSiteFiles',
+            'powerContractLoadingInSAPFiles',
+            'powerProblemSolutionFiles',
+            'preparationSSIDandTSSRFiles',
+            'preperationSSIDorTSSRProjectFiles',
+            'receivingApprovalFromTheLandlordFiles',
+            'receivingContractDevDesignEstimateFiles',
+            'receivingContractDevDesignEstimateForFEFiles',
+            'receivingContractInstallationWorksFiles',
+            'receivingContractInstallationWorksForFEFiles',
+            'receivingContractPSDFiles',
+            'receivingTSFiles',
+            'receivingTSForFEFiles',
+            'registrationCommercialOfferFiles',
+            'registrationCommercialOfferForFEFiles',
+            'reqKZTRwithTechEquipmentParamsFiles',
+            'reqKZTRwithTechEquipmentParamsForFEFiles',
+            'requestForAdmissionForWorkOnTUFiles',
+            'requestTechnicalParametersKPFiles',
+            'requestTechnicalParametersKPForFEFiles',
+            'requestTechnicalParametersKTFiles',
+            'requestTechnicalParametersKTForFEFiles',
+            'sendMessageToStartPaymentKPFiles',
+            'sendMessageToStartPaymentKPForFEFiles',
+            'sendMessageToStartPaymentKTFiles',
+            'sendMessageToStartPaymentKTForFEFiles',
+            'sendMessageToStartPaymentNationalFiles',
+            'sendMessageToStartPaymentSimpleFiles',
+            'signingLeaseContractAddAgreementFiles',
+            'signingLeaseContractAddAgreementForFEFiles',
+            'signingLeaseContractAddAgreementKPFiles',
+            'signingLeaseContractAddAgreementKPForFEFiles',
+            'signingLeaseContractAddAgreementKTFiles',
+            'startingInstallationWorksFiles',
+            'transmissionProblemSolutionFiles',
+            'uploadRSDandVSDfilesFiles',
+            'uploadSignedOwnerLeaseContractFiles',
+            'uploadTSDfileFiles'];
+
+            $scope.leasingFiles = [];
 
             $http.get('/camunda/api/engine/engine/default/task/' + camForm.taskId).then(
                 function(result){
@@ -56,9 +118,13 @@
                 variables.forEach(function (el) {
                     camForm.variableManager.fetchVariable(el);
                 });
+                files.forEach(function (f) {
+                    camForm.variableManager.fetchVariable(f);
+                });
                 $http.get('/camunda/api/engine/engine/default/task/' + camForm.taskId).then(
                         function(result){
                             $scope.processInstanceId = result.data.processInstanceId;
+                            $scope.taskKey = result.data.taskDefinitionKey;
                             $http.get('/camunda/api/engine/engine/default/process-instance/' + $scope.processInstanceId).then(
                                 function(result){
                                     console.log('process-instance/')
@@ -74,7 +140,6 @@
                 );
                 $scope.farEnd = {};
                 $scope.leasingCandidate = {};
-                $scope.leasingFiles = [];
             });
 
             camForm.on('variables-fetched', function () {
@@ -83,8 +148,12 @@
                     if(camForm.variableManager.variables[el].value){
                         $scope[el] = camForm.variableManager.variables[el].value;
                         $scope.leasingCandidate[el] = camForm.variableManager.variables[el].value;
-                        if ( el.toLowerCase().includes('file') ) {
-                            $scope.leasingFiles = $scope.leasingFiles.concat(camForm.variableManager.variables[el].value)
+                    }
+                });
+                files.forEach(function (f) {
+                    if(camForm.variableManager.variables[f] && camForm.variableManager.variables[f].value){
+                        if ( f.toLowerCase().includes('file') ) {
+                            $scope.leasingFiles = $scope.leasingFiles.concat(camForm.variableManager.variables[f].value)
                         }
                     }
                 });
@@ -120,15 +189,20 @@
                 camForm.variableManager.variableValue('requestTechnicalParametersKTForFETaskComment', $scope.requestTechnicalParametersKTForFETaskComment);
                 camForm.variableManager.variableValue('requestTechnicalParametersKTForFETechConditionStatus', $scope.requestTechnicalParametersKTForFETechConditionStatus);
                 camForm.variableManager.variableValue('branchKTForFE', $scope.branchKTForFE);
+
+                var thisTaskFiles = $scope.leasingFiles.filter(f => {return f.varName === 'requestTechnicalParametersKTForFEFiles'});
+                console.log('--thisTaskFiles--')
+                console.log(thisTaskFiles)
+                console.log('-----------------')
                 if(!camForm.variableManager.variables['requestTechnicalParametersKTForFEFiles'].type){
                     camForm.variableManager.destroyVariable('requestTechnicalParametersKTForFEFiles');
                     camForm.variableManager.createVariable({
                         name: 'requestTechnicalParametersKTForFEFiles',
                         type: 'Json',
-                        value: $scope.requestTechnicalParametersKTForFEFiles
+                        value: thisTaskFiles
                     });
                 } else {
-                    camForm.variableManager.variableValue('requestTechnicalParametersKTForFEFiles', $scope.requestTechnicalParametersKTForFEFiles);
+                    camForm.variableManager.variableValue('requestTechnicalParametersKTForFEFiles', thisTaskFiles);
                 }
                 camForm.variableManager.destroyVariable('resolutions');
             });
@@ -145,10 +219,10 @@
                 var fileIndex = $scope[fileName].length;
 
                 var fileToUpload = {
-                    name: file.name.replace(/[/\\?%*:|"<>]/g, '-'),
-                    path: $scope.processInstanceId + '/' + camForm.taskId + '/' + file.name.replace(/[/\\?%*:|"<>]/g, '-'),
                     date: new Date(),
-                    author: $scope.taskAssignee
+                    author:  $scope.taskAssignee,
+                    name: file.name.replace(/[/\\?%*:|"<>]/g, '-'),
+                    path: $scope.processInstanceId + '/' + camForm.taskId + '/' + file.name.replace(/[/\\?%*:|"<>]/g, '-')
                 };
                 $http({
                     method: 'GET',
@@ -157,8 +231,11 @@
                 }).then(function (response) {
                     $http.put(response.data, file, {headers: {'Content-Type': undefined}}).then(
                             function () {
-                                $scope[fileName].push(fileToUpload);
+                                fileToUpload.varName = 'requestTechnicalParametersKTForFEFiles';
+                                $scope.leasingFiles.push(fileToUpload);
+                                //$scope[fileName].push(fileToUpload);
                                 angular.element(document.querySelector('#' + fileName)).val(null);
+                                console.log($scope.leasingFiles)
                             },
                             function (error) {
                                 console.log(error.data);
@@ -167,7 +244,7 @@
                 }, function(error){
                     console.log(error.data);
                 });
-            }
+            };
 
             $scope.clearFile = function (list, fileIndex) {
                 $scope[list].splice(fileIndex, 1);
@@ -194,8 +271,6 @@
     </div>
      <leasing-candidate ng-if="view.variablesFetched" leasing-candidate="leasingCandidate" far-end="farEnd"></leasing-candidate>
 
-    <iframe id="fileDownloadIframe" style="display:none;"></iframe>
-    <leasing-attachments leasing-files="leasingFiles"></leasing-attachments>
     <!-- <div class="form-group">
         <label class="col-md-4 control-label">Download RR:</label>
         <div class="col-sm-8">
@@ -237,21 +312,21 @@
                 field</label>
         </div>
     </div> -->
+    <leasing-attachments leasing-files="leasingFiles" task-key="taskKey" modify="'true'"></leasing-attachments>
+    <iframe id="fileDownloadIframe" style="display:none;"></iframe>
     <div class="form-group">
-        <label class="col-md-4 control-label">Upload files:</label>
-        <div class="col-sm-8">
-            <div ng-show="requestTechnicalParametersKTForFEFiles.length > 0" class="input-group" ng-repeat="file in requestTechnicalParametersKTForFEFiles">
-                {{$index + 1}}.
-                <a ng-click="fileDownload(file)">{{file.name}}</a> | <a ng-click="clearFile('requestTechnicalParametersKTForFEFiles', $index)"><i class="glyphicon glyphicon-trash"></i></a>
-            </div>
+        <label class="col-sm-3 control-label"></label>
+        <div class="col-sm-9">
             <ng-form name="kcell_material_file_form">
-                <input type="file" class="form-control" id="requestTechnicalParametersKTForFEFiles" name="requestTechnicalParametersKTForFEFiles" ng-model="file.file" onchange="angular.element(this).scope().fileSelected(this, 'requestTechnicalParametersKTForFEFiles')"/>
+                <input type="file" class="form-control" id="requestTechnicalParametersKTForFEFiles"
+                       name="requestTechnicalParametersKTForFEFiles" ng-model="file.file"
+                       onchange="angular.element(this).scope().fileSelected(this, 'requestTechnicalParametersKTForFEFiles')"/>
             </ng-form>
         </div>
     </div>
     <div class="form-group">
-        <label class="col-md-4 control-label">Branches of Kazakhtelecom:</label>
-        <div class="col-sm-8">
+        <label class="col-sm-3 control-label">Branches of Kazakhtelecom:</label>
+        <div class="col-sm-9">
             <select class="form-control" id="branchKT" name="branchKTForFE" ng-model="branchKTForFE" required>
                 <option value="" disabled selected hidden>Branches of Kazakhtelecom</option>
                 <option value="{{branch.id}}" ng-repeat="branch in branchesKT">
@@ -265,8 +340,8 @@
     </div>
 
     <div class="form-group">
-        <label class="col-sm-4 control-label">Comments</label>
-        <div class="col-sm-8">
+        <label class="col-sm-3 control-label">Comments</label>
+        <div class="col-sm-9">
             <textarea class="form-control" ng-model="requestTechnicalParametersKTForFETaskComment" name="requestTechnicalParametersKTForFETaskComment" placeholder="Comments..." maxlength="500" rows="4" style="resize:none"></textarea>
         </div>
     </div>

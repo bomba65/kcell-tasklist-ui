@@ -28,13 +28,83 @@
                 'address'
             ];
 
+            var files = ['actOfPerformanceTechnicalConditionsFiles',
+            'confirmSendMessageToStartPaymentKPFEFiles',
+            'approvalContractRentInSAPFiles',
+            'approvalPowerContractInSAPFiles',
+            'checkAndApproveFeFiles',
+            'commercialOnAirFiles',
+            'confirmActOfPerformanceTechnicalConditionsFiles',
+            'confirmPaymentDevelopmentOfTCKTFiles',
+            'confirmPaymentDevelopmentOfTCKTForFEFiles',
+            'confirmReceiptEstimateFiles',
+            'confirmReceiptEstimateForFEFiles',
+            'confirmReceiptOfTSfromRESforCandidateFiles',
+            'confirmReceiptResponseKPFiles',
+            'confirmReceiptResponseKPForFEFiles',
+            'confirmSigningLeaseContractFiles',
+            'confirmStartLeasingFiles',
+            'confirmStartLeasingNOFiles',
+            'confirmTFOfConnectingToLandlordPowerGridForFEFiles',
+            'confirmTFOfConnectingToPowerGridForCandidateFiles',
+            'connectionFromOwnerNetworksFiles',
+            'contractRentLoadingSAPFiles',
+            'createNewCandidateSiteFiles',
+            'defineInstallationProblemFiles',
+            'estimateTechnicalCapabilityResFiles',
+            'installationWorksDoneFiles',
+            'modifyCandidateSiteFiles',
+            'powerContractLoadingInSAPFiles',
+            'powerProblemSolutionFiles',
+            'preparationSSIDandTSSRFiles',
+            'preperationSSIDorTSSRProjectFiles',
+            'receivingApprovalFromTheLandlordFiles',
+            'receivingContractDevDesignEstimateFiles',
+            'receivingContractDevDesignEstimateForFEFiles',
+            'receivingContractInstallationWorksFiles',
+            'receivingContractInstallationWorksForFEFiles',
+            'receivingContractPSDFiles',
+            'receivingTSFiles',
+            'receivingTSForFEFiles',
+            'registrationCommercialOfferFiles',
+            'registrationCommercialOfferForFEFiles',
+            'reqKZTRwithTechEquipmentParamsFiles',
+            'reqKZTRwithTechEquipmentParamsForFEFiles',
+            'requestForAdmissionForWorkOnTUFiles',
+            'requestTechnicalParametersKPFiles',
+            'requestTechnicalParametersKPForFEFiles',
+            'requestTechnicalParametersKTFiles',
+            'requestTechnicalParametersKTForFEFiles',
+            'sendMessageToStartPaymentKPFiles',
+            'sendMessageToStartPaymentKPForFEFiles',
+            'sendMessageToStartPaymentKTFiles',
+            'sendMessageToStartPaymentKTForFEFiles',
+            'sendMessageToStartPaymentNationalFiles',
+            'sendMessageToStartPaymentSimpleFiles',
+            'signingLeaseContractAddAgreementFiles',
+            'signingLeaseContractAddAgreementForFEFiles',
+            'signingLeaseContractAddAgreementKPFiles',
+            'signingLeaseContractAddAgreementKPForFEFiles',
+            'signingLeaseContractAddAgreementKTFiles',
+            'startingInstallationWorksFiles',
+            'transmissionProblemSolutionFiles',
+            'uploadRSDandVSDfilesFiles',
+            'uploadSignedOwnerLeaseContractFiles',
+            'uploadTSDfileFiles'];
+
+            $scope.leasingFiles = [];
+
             camForm.on('form-loaded', function () {
                 variables.forEach(function (el) {
                     camForm.variableManager.fetchVariable(el);
                 });
+                files.forEach(function (f) {
+                    camForm.variableManager.fetchVariable(f);
+                });
                 $http.get('/camunda/api/engine/engine/default/task/' + camForm.taskId).then(
                         function(result){
                             $scope.processInstanceId = result.data.processInstanceId;
+                            $scope.taskKey = result.data.taskDefinitionKey;
                             $http.get('/camunda/api/engine/engine/default/process-instance/' + $scope.processInstanceId).then(
                                 function(result){
                                     console.log('process-instance/')
@@ -50,7 +120,6 @@
                 );
                 $scope.farEnd = {};
                 $scope.leasingCandidate = {};
-                $scope.leasingFiles = [];
             });
 
             camForm.on('variables-fetched', function () {
@@ -58,8 +127,13 @@
                     if(camForm.variableManager.variables[el].value){
                         $scope[el] = camForm.variableManager.variables[el].value;
                         $scope.leasingCandidate[el] = camForm.variableManager.variables[el].value;
-                        if ( el.toLowerCase().includes('file') ) {
-                            $scope.leasingFiles = $scope.leasingFiles.concat(camForm.variableManager.variables[el].value)
+                    }
+                });
+
+                files.forEach(function (f) {
+                    if(camForm.variableManager.variables[f] && camForm.variableManager.variables[f].value){
+                        if ( f.toLowerCase().includes('file') ) {
+                            $scope.leasingFiles = $scope.leasingFiles.concat(camForm.variableManager.variables[f].value)
                         }
                     }
                 });
@@ -92,11 +166,14 @@
                 camForm.variableManager.destroyVariable('resolutions');
             });
 
-            $scope.download = function (file) {
-                $http({method: 'GET', url: '/camunda/uploads/get/' + file.path, transformResponse: [] }).
-                then(function(response) {
+            $scope.fileDownload = function (file) {
+                $http({
+                    method: 'GET',
+                    url: '/camunda/uploads/get/' + file.path,
+                    transformResponse: []
+                }).then(function (response) {
                     document.getElementById('fileDownloadIframe').src = response.data;
-                }, function(error){
+                }, function (error) {
                     console.log(error.data);
                 });
             }
@@ -110,7 +187,6 @@
     </div>
      <leasing-candidate ng-if="view.variablesFetched" leasing-candidate="leasingCandidate" far-end="farEnd"></leasing-candidate>
 
-    <iframe id="fileDownloadIframe" style="display:none;"></iframe>
 <!-- 
     <div class="form-group">
         <label class="col-md-4 control-label">Download RR:</label>
@@ -127,11 +203,12 @@
             </div>
         </div>
     </div> -->
-    <leasing-attachments leasing-files="leasingFiles"></leasing-attachments>
+    <leasing-attachments leasing-files="leasingFiles" task-key="taskKey" modify="'false'"></leasing-attachments>
+    <iframe id="fileDownloadIframe" style="display:none;"></iframe>
 
     <div class="form-group">
-        <label class="col-sm-4 control-label">Resolution</label>
-        <div class="col-sm-8">
+        <label class="col-sm-3 control-label">Resolution</label>
+        <div class="col-sm-9">
             <label class="radio-inline">
                 <input type="radio" name="confirmPermissionToInstallFETaskResult" ng-model="confirmPermissionToInstallFETaskResult" value="waitContract" required> Wait contract
             </label>
@@ -146,8 +223,8 @@
     </div>
 
     <div class="form-group">
-        <label class="col-sm-4 control-label">Comments</label>
-        <div class="col-sm-8">
+        <label class="col-sm-3 control-label">Comments</label>
+        <div class="col-sm-9">
             <textarea class="form-control" ng-model="confirmPermissionToInstallFETaskComment" name="confirmPermissionToInstallFETaskComment" placeholder="Comments..." maxlength="500" rows="4" style="resize:none"
                       ng-required="confirmPermissionToInstallFETaskResult == 'reject'"></textarea>
             <label class="error" ng-show="kcell_form.confirmPermissionToInstallFETaskComment.$error.required && ( kcell_form.confirmPermissionToInstallFETaskComment.$touched || view.submitted)">Required field</label>
