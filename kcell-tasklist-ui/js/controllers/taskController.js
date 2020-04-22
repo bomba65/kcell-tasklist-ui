@@ -123,7 +123,7 @@ define(['./module','camundaSDK', 'lodash', 'big-js'], function(module, CamSDK, _
 						function(error){
 							console.log('Not found in history');
 						}
-					);					
+					);
 				}
 			);
 		}
@@ -132,6 +132,7 @@ define(['./module','camundaSDK', 'lodash', 'big-js'], function(module, CamSDK, _
 			$scope.currentTask = task;
 			$scope.$parent.currentTask = task;
 			$scope.view.submitted = false;
+			$scope.view.variablesFetched = false;
 			var taskId = task.id;
 			$('#taskElement').html('');
 			$scope.isHistoryOpen = false;
@@ -182,7 +183,7 @@ define(['./module','camundaSDK', 'lodash', 'big-js'], function(module, CamSDK, _
 						$scope.historyTask = task;
 					}
 				}
-			);					
+			);
 		}
 
 		$scope.claim = function(task) {
