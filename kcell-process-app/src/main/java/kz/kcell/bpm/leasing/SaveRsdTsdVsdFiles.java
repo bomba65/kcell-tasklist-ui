@@ -1,6 +1,7 @@
 package kz.kcell.bpm.leasing;
 
 import kz.kcell.flow.files.Minio;
+import lombok.extern.java.Log;
 import org.apache.commons.io.IOUtils;
 import org.camunda.bpm.engine.delegate.DelegateExecution;
 import org.camunda.bpm.engine.delegate.JavaDelegate;
@@ -23,6 +24,7 @@ import java.util.TimeZone;
 import static java.sql.DriverManager.println;
 import static org.camunda.spin.Spin.JSON;
 
+@Log
 @Service("SaveRsdTsdVsdFiles")
 public class SaveRsdTsdVsdFiles implements JavaDelegate {
 
@@ -35,7 +37,7 @@ public class SaveRsdTsdVsdFiles implements JavaDelegate {
 
     @Override
     public void execute(DelegateExecution delegateExecution) throws Exception {
-        System.out.println("try to connect....");
+        log.info("try to connect....");
         try {
             TimeZone timeZone = TimeZone.getTimeZone("Asia/Almaty");
             TimeZone.setDefault(timeZone);
@@ -45,7 +47,7 @@ public class SaveRsdTsdVsdFiles implements JavaDelegate {
             try {
                 if (udbConnect != null) {
                     udbConnect.setAutoCommit(false);
-                    System.out.println("Connected to the database!");
+                    log.info("Connected to the database!");
 
                     // proc vars
                     Long createdArtefactId = (Long) delegateExecution.getVariable("createdArtefactId");
@@ -58,10 +60,10 @@ public class SaveRsdTsdVsdFiles implements JavaDelegate {
                     SpinJsonNode tsd = (SpinJsonNode) tsdFiles.get(0);
                     String fileName = tsd.prop("name").stringValue();
                     String filePath = tsd.prop("path").stringValue();
-                    System.out.println("file....");
-                    System.out.println(fileName);
-                    System.out.println(filePath);
-                    System.out.println("------");
+                    log.info("file....");
+                    log.info(fileName);
+                    log.info(filePath);
+                    log.info("------");
 
                     InputStream inputStream = minioClient.getObject(filePath);
                     byte[] bytes = IOUtils.toByteArray(inputStream);
@@ -73,7 +75,7 @@ public class SaveRsdTsdVsdFiles implements JavaDelegate {
                     PreparedStatement updateTSDextPreparedStatement = udbConnect.prepareStatement(UPDATE_TSD_EXT);
 
                     int i = 1;
-                    System.out.println("preparedStatement.setValues");
+                    log.info("preparedStatement.setValues");
                     // set values to insert
                     updateTSDextPreparedStatement.setLong(i++, createdArtefactId); // ARTEFACTID
                     updateTSDextPreparedStatement.setLong(i++, createdArtefactRSDId); // RSDID
@@ -81,30 +83,32 @@ public class SaveRsdTsdVsdFiles implements JavaDelegate {
                     updateTSDextPreparedStatement.setDate(i++, new java.sql.Date(new Date().getTime())); // LASTUPDATE
                     updateTSDextPreparedStatement.setBinaryStream(i++, is);
 
-                    System.out.println("preparedStatement.executeUpdate()");
+                    log.info("preparedStatement.executeUpdate()");
                     updateTSDextPreparedStatement.executeUpdate();
-                    System.out.println("successfull insert to database!");
+                    log.info("successfull insert to database!");
 
                     udbConnect.commit();
                     udbConnect.close();
-                    System.out.println("udbConnection closed!");
+                    log.info("udbConnection closed!");
                 } else {
                     udbConnect.close();
-                    System.out.println("Failed to make connection!");
+                    log.warning("Failed to make connection!");
                 }
             } catch (Exception e) {
                 udbConnect.rollback();
                 udbConnect.close();
-                System.out.println("connection Exception!");
-                System.out.println(e);
+                log.warning("connection Exception!");
+                log.warning(e.toString());
                 throw e;
             }
         } catch (SQLException e) {
-            System.out.println("testConnect SQLException!");
-            System.out.println(e.toString());
-            System.err.format("SQL State: %s\n%s", e.getSQLState(), e.getMessage());
+            log.warning("testConnect SQLException!");
+            log.warning(e.toString());
+            log.warning("SQL State: %s\n%s");
+            log.warning(e.getSQLState());
+            log.warning(e.getMessage());
         } catch (Exception e) {
-            System.out.println("testConnect Exception!");
+            log.warning("testConnect Exception!");
             e.printStackTrace();
         }
 

@@ -110,15 +110,13 @@ public class LeasingController {
                 PreparedStatement selectContractPreparedStatement = udbConnect.prepareStatement(SelectContract);
 
                 i = 1;
-                System.out.println("get contracts...");
+                log.info("try to get contracts...");
                 selectContractPreparedStatement.setString(i++, contactId); // contactId
                 ResultSet resultSet = selectContractPreparedStatement.executeQuery();
 
                 JSONArray json = new JSONArray();
                 ResultSetMetaData rsmd = resultSet.getMetaData();
-                System.out.println(rsmd.getColumnCount());
                 while(resultSet.next()) {
-                    System.out.println(rsmd.getColumnCount());
                     int numColumns = rsmd.getColumnCount();
                     JSONObject obj = new JSONObject();
                     for (int j=1; j<=numColumns; j++) {
@@ -130,9 +128,6 @@ public class LeasingController {
 
                 udbConnect.commit();
                 udbConnect.close();
-                System.out.println("udbConnection closed!");
-                String res = "oki-doki:" + json;
-                System.out.println(res);
                 return ResponseEntity.ok(json.toString());
             } else {
                 udbConnect.close();
@@ -140,14 +135,14 @@ public class LeasingController {
                 JSONObject obj = new JSONObject();
                 obj.put("result", "not found");
                 json.put(obj);
-                System.out.println("Failed to make connection!");
+                log.warning("Failed to make connection!");
                 return ResponseEntity.ok("Failed to make connection!");
             }
         } catch (Exception e) {
             udbConnect.rollback();
             udbConnect.close();
-            System.out.println("connection Exception!");
-            System.out.println(e);
+            log.warning("connection Exception!");
+            log.warning(e.getMessage());
             throw e;
         }
     }

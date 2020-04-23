@@ -1,5 +1,6 @@
 package kz.kcell.bpm.leasing;
 
+import lombok.extern.java.Log;
 import org.camunda.bpm.engine.delegate.DelegateExecution;
 import org.camunda.bpm.engine.delegate.JavaDelegate;
 import org.camunda.spin.SpinList;
@@ -18,6 +19,7 @@ import java.util.TimeZone;
 
 import static org.camunda.spin.Spin.JSON;
 
+@Log
 @Service("UpdateTSD")
 public class UpdateTSD implements JavaDelegate {
 
@@ -35,7 +37,7 @@ public class UpdateTSD implements JavaDelegate {
             try {
                 if (udbConnect != null) {
                     udbConnect.setAutoCommit(false);
-                    System.out.println("Connected to the database!");
+                    log.info("Connected to the database!");
 
                     // proc vars
                     Long createdArtefactExtTSDId = (Long) delegateExecution.getVariable("createdArtefactExtTSDId");
@@ -79,7 +81,7 @@ public class UpdateTSD implements JavaDelegate {
                     PreparedStatement updateTSDextPreparedStatement = udbConnect.prepareStatement(UPDATE_TSD_EXT);
 
                     int i = 1;
-                    System.out.println("preparedStatement.setValues");
+                    log.info("preparedStatement.setValues");
                     // set values to insert
                     updateTSDextPreparedStatement.setString(i++, cn_longitude); // NE_LONGITUDE
                     updateTSDextPreparedStatement.setString(i++, cn_latitude); // NE_LATITUDE
@@ -100,30 +102,32 @@ public class UpdateTSD implements JavaDelegate {
                     updateTSDextPreparedStatement.setString(i++, starter); // INSERT_PERSON
                     updateTSDextPreparedStatement.setLong(i++, createdArtefactExtTSDId); // TSDID
 
-                    System.out.println("preparedStatement.executeUpdate()");
+                    log.info("preparedStatement.executeUpdate()");
                     updateTSDextPreparedStatement.executeUpdate();
-                    System.out.println("successfull insert to database!");
+                    log.info("successfull insert to database!");
 
                     udbConnect.commit();
                     udbConnect.close();
-                    System.out.println("udbConnection closed!");
+                    log.info("udbConnection closed!");
                 } else {
                     udbConnect.close();
-                    System.out.println("Failed to make connection!");
+                    log.info("Failed to make connection!");
                 }
             } catch (Exception e) {
                 udbConnect.rollback();
                 udbConnect.close();
-                System.out.println("connection Exception!");
-                System.out.println(e);
+                log.info("connection Exception!");
+                log.info(e.toString());
                 throw e;
             }
         } catch (SQLException e) {
-            System.out.println("testConnect SQLException!");
-            System.out.println(e.toString());
-            System.err.format("SQL State: %s\n%s", e.getSQLState(), e.getMessage());
+            log.info("testConnect SQLException!");
+            log.info(e.toString());
+            log.warning("SQL State: %s\n%s");
+            log.warning(e.getSQLState());
+            log.warning(e.getMessage());
         } catch (Exception e) {
-            System.out.println("testConnect Exception!");
+            log.info("testConnect Exception!");
             e.printStackTrace();
         }
 

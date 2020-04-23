@@ -14,7 +14,9 @@ import java.util.Date;
 import java.util.TimeZone;
 
 import static org.camunda.spin.Spin.JSON;
+import lombok.extern.java.Log;
 
+@Log
 @Service("CreateUpdateContract")
 public class CreateUpdateContract implements JavaDelegate {
 
@@ -32,7 +34,7 @@ public class CreateUpdateContract implements JavaDelegate {
             try {
                 if (udbConnect != null) {
                     udbConnect.setAutoCommit(false);
-                    System.out.println("Connected to the database!");
+                    log.info("Connected to the database!");
 
                     // proc vars
 
@@ -43,15 +45,15 @@ public class CreateUpdateContract implements JavaDelegate {
 //                    String contractVariableName =  _CONTRACT_APPROVAL_TYPE == "CN" ? "contractInformations" : "contractInformationsFE";
                     String contractVariableName =  _CONTRACT_APPROVAL_TYPE.equals("CN")  ? "contractInformations" : "contractInformationsFE";
 //
-//                    System.out.println("_CONTRACT_APPROVAL_TYPE:");
-//                    System.out.println(delegateExecution.hasVariableLocal("_CONTRACT_APPROVAL_TYPE") ? delegateExecution.getVariable("_CONTRACT_APPROVAL_TYPE").toString() : null);
-//                    System.out.println("END _CONTRACT_APPROVAL_TYPE");
-//                    System.out.println("contractVariableName: " + contractVariableName + " end contractVariableName");
-//                    System.out.println("contractVariableName2: " + contractVariableName2 + " end contractVariableName2");
+//                    log.info("_CONTRACT_APPROVAL_TYPE:");
+//                    log.info(delegateExecution.hasVariableLocal("_CONTRACT_APPROVAL_TYPE") ? delegateExecution.getVariable("_CONTRACT_APPROVAL_TYPE").toString() : null);
+//                    log.info("END _CONTRACT_APPROVAL_TYPE");
+//                    log.info("contractVariableName: " + contractVariableName + " end contractVariableName");
+//                    log.info("contractVariableName2: " + contractVariableName2 + " end contractVariableName2");
 
                     SpinJsonNode contractInformationsJSON = JSON(delegateExecution.getVariable(contractVariableName));
                     SpinList contractInformations = contractInformationsJSON.elements();
-                    String contractid = "";
+                    String contractid;
                     String ct_contractid_old = "";
                     int ct_vendor_sap = 0;
                     int ct_agreement_type = 0;
@@ -112,48 +114,47 @@ public class CreateUpdateContract implements JavaDelegate {
                             }
 
                             if (ci.hasProp("legalType")) {
-                                System.out.println("ct_legal_type:");
-//                                System.out.println(ci.prop("legalType").value().toString());
+                                log.info("ct_legal_type:");
+//                                log.info(ci.prop("legalType").value().toString());
 //                                ct_bank_id = Integer.parseInt(ci.hasProp("ct_bankname") ? ci.prop("ct_bankname").stringValue() : "0");
                                 String legalTypeString = ci.prop("legalType").hasProp("udbid") ? ci.prop("legalType").prop("udbid").value().toString() : "0";
                                 ct_legal_type = Integer.parseInt(legalTypeString);
-//                                System.out.println("----legalTypeString:");
-//                                System.out.println(legalTypeString);
-                                System.out.println("----ct_legal_type:");
-                                System.out.println(ct_legal_type);
-                                System.out.println("END ct_legal_type");
+//                                log.info("----legalTypeString:");
+//                                log.info(legalTypeString);
+                                log.info(ct_legal_type.toString());
+//                                log.info("END ct_legal_type");
                             }
 
-//                            System.out.println("legalType:");
+//                            log.info("legalType:");
                             
 //                            legalType = Integer.parseInt(ci.hasProp("legalType") && ci.prop("legalType").hasProp("udbid") ? ci.prop("legalType").prop("udbid").stringValue() : "0");
 //                            if (ci.hasProp("legalType")) {
-//                                System.out.println("ci has prop legalType");
-//                                System.out.println(ci.prop("legalType").value().toString());
+//                                log.info("ci has prop legalType");
+//                                log.info(ci.prop("legalType").value().toString());
 //                                SpinJsonNode ltJson = ci.prop("legalType");
 //                                String ltId = ltJson.hasProp("udbid") ? ltJson.prop("udbid").value().toString() : " ";
-//                                System.out.println("ltJson.hasProp(\"udbid\"):");
-//                                System.out.println(ltJson.hasProp("udbid"));
-//                                System.out.println("ltId:");
-//                                System.out.println(ltId);
+//                                log.info("ltJson.hasProp(\"udbid\"):");
+//                                log.info(ltJson.hasProp("udbid"));
+//                                log.info("ltId:");
+//                                log.info(ltId);
 //
 //                                if (ci.prop("legalType").hasProp("udbid")) {
-//                                    System.out.println("legalType has prop udbid");
-//                                    System.out.println(ci.prop("legalType").prop("udbid").value().toString());
+//                                    log.info("legalType has prop udbid");
+//                                    log.info(ci.prop("legalType").prop("udbid").value().toString());
 //                                    legalType = Integer.parseInt(ci.prop("legalType").prop("udbid").stringValue());
 //                                }
 //                            }
 
-//                            System.out.println(ci.hasProp("legalType") && ci.prop("legalType").hasProp("udbid") ? ci.prop("legalType").prop("udbid").stringValue() : "0");
-//                            System.out.println(legalType);
-//                            System.out.println("end legalType:");
+//                            log.info(ci.hasProp("legalType") && ci.prop("legalType").hasProp("udbid") ? ci.prop("legalType").prop("udbid").stringValue() : "0");
+//                            log.info(legalType);
+//                            log.info("end legalType:");
 
                             String ct_checkvat = ci.prop("ct_checkvat").stringValue() == "No" ? "no" : "yes";
                             Long ct_cid = new Long(1);
                             int i = 1;
 
                             if (!ct_acquisitionType.equals("newContract")) {
-                                System.out.println("OLD CONTRACT....");
+                                log.info("OLD CONTRACT....");
                                 ct_cid = ci.prop("ct_cid").numberValue().longValue();
 
                                 ct_contractid_old = ci.prop("ct_contractid_old").stringValue();
@@ -174,26 +175,26 @@ public class CreateUpdateContract implements JavaDelegate {
                                 if (ct_acquisitionType.equals("existingContract")) {
                                     String UPDATE_CONTRACT_STATUS_REL = "update CONTRACT_STATUS_REL set STATUSID = 40, csreldate=? where CONTRACTID = ?";
                                     PreparedStatement UPDATE_CONTRACT_STATUS_RELPreparedStatement = udbConnect.prepareStatement(UPDATE_CONTRACT_STATUS_REL);
-                                    System.out.println("CONTRACT_STATUS_REL preparedStatement SQL UPDATE VALUES....");
+                                    log.info("CONTRACT_STATUS_REL preparedStatement SQL UPDATE VALUES....");
                                     // set values to update
                                     i = 1;
                                     UPDATE_CONTRACT_STATUS_RELPreparedStatement.setDate(i++, new java.sql.Date(new Date().getTime())); // csreldate
                                     UPDATE_CONTRACT_STATUS_RELPreparedStatement.setLong(i++, ct_cid.longValue() ); //  //ct_cid
                                     UPDATE_CONTRACT_STATUS_RELPreparedStatement.executeUpdate();
-                                    System.out.println("...CONTRACT_STATUS_REL updated");
+                                    log.info("...CONTRACT_STATUS_REL updated");
 
                                     String UPDATE_CONTRACTS_STATUSES = "update CONTRACTS_STATUSES set LEASING_STATUS = ? where CID = ?";
                                     PreparedStatement UPDATE_CONTRACTS_STATUSESPreparedStatement = udbConnect.prepareStatement(UPDATE_CONTRACTS_STATUSES);
-                                    System.out.println("CONTRACTS_STATUSES preparedStatement SQL UPDATE VALUES....");
+                                    log.info("CONTRACTS_STATUSES preparedStatement SQL UPDATE VALUES....");
                                     // set values to update
                                     i = 1;
                                     UPDATE_CONTRACTS_STATUSESPreparedStatement.setLong(i++, 40); // STATUSID
                                     UPDATE_CONTRACTS_STATUSESPreparedStatement.setLong(i++, ct_cid.longValue() ); //  //ct_cid
                                     UPDATE_CONTRACTS_STATUSESPreparedStatement.executeUpdate();
-                                    System.out.println("...CONTRACTS_STATUSES updated");
+                                    log.info("...CONTRACTS_STATUSES updated");
                                 }
                             } else if (ct_acquisitionType.equals("newContract")) {
-                                System.out.println("NEW CONTRACT....");
+                                log.info("NEW CONTRACT....");
 //                                contractid = ci.prop("ct_contractid").stringValue();
                                 ct_vendor_sap = ci.prop("ct_vendor_sap").numberValue().intValue();
 //                                ct_vendor_sap = Integer.parseInt(ci.prop("ct_vendor_sap").stringValue());
@@ -214,7 +215,7 @@ public class CreateUpdateContract implements JavaDelegate {
 
                                 PreparedStatement INSERT_CONTRACTSPreparedStatement = udbConnect.prepareStatement(INSERT_CONTRACTS, returnStatus);
 
-                                System.out.println("INSERT_CONTRACTS preparedStatement SQL UPDATE VALUES");
+                                log.info("INSERT_CONTRACTS preparedStatement SQL UPDATE VALUES");
                                 // set values to update
                                 if (ct_acquisitionType.equals("existingContract")) {
                                     INSERT_CONTRACTSPreparedStatement.setFloat(i++, ct_cid.longValue());  // OLD_CID
@@ -250,13 +251,13 @@ public class CreateUpdateContract implements JavaDelegate {
                                 // bank_id ct_bankname
 
                                 INSERT_CONTRACTSPreparedStatement.executeUpdate();
-                                System.out.println("successfull CONTRACTS created!");
+                                log.info("successfull CONTRACTS created!");
 
                                 ResultSet statusGeneratedIdResultSet = INSERT_CONTRACTSPreparedStatement.getGeneratedKeys();
                                 statusGeneratedIdResultSet.next();
                                 createdContractCID = statusGeneratedIdResultSet.getLong(1);
-                                System.out.println("createdContractCID:");
-                                System.out.println(createdContractCID);
+                                log.info("createdContractCID:");
+                                log.info(createdContractCID.toString());
                                 Number fe_artefact_id = 0;
 
                                 //INSERT_CONTRACT_ARTEFACT
@@ -267,18 +268,18 @@ public class CreateUpdateContract implements JavaDelegate {
                                     String SelectArtefactBySite = "select * from ARTEFACT where SITENAME = ?";
                                     PreparedStatement selectArtefactBySitePreparedStatement = udbConnect.prepareStatement(SelectArtefactBySite);
                                     i = 1;
-                                    System.out.println("get artefact_id by ct_fe_sitename...");
-                                    System.out.println(ct_fe_sitename);
+                                    log.info("get artefact_id by ct_fe_sitename...");
+                                    log.info(ct_fe_sitename);
                                     selectArtefactBySitePreparedStatement.setString(i++, ct_fe_sitename); // sitename
                                     ResultSet resultSet = selectArtefactBySitePreparedStatement.executeQuery();
 
                                     if (resultSet.next() == false) {
-                                        System.out.println("not Found");
+                                        log.info("not Found");
                                     } else {
                                         fe_artefact_id = resultSet.getInt("ARTEFACTID");
                                     }
-                                    System.out.println("fe_artefact_id:");
-                                    System.out.println(fe_artefact_id);
+                                    log.info("fe_artefact_id:");
+                                    log.info(fe_artefact_id.toString());
 
                                 }
 
@@ -288,7 +289,7 @@ public class CreateUpdateContract implements JavaDelegate {
                                 PreparedStatement InsertContractArtefactPreparedStatement = udbConnect.prepareStatement(INSERT_CONTRACT_ARTEFACT, returnContractArtefactID);
 
                                 i = 1;
-                                System.out.println("INSERT_CONTRACT_ARTEFACT preparedStatement SQL Insert VALUES");
+                                log.info("INSERT_CONTRACT_ARTEFACT preparedStatement SQL Insert VALUES");
                                 // set values to update
                                 InsertContractArtefactPreparedStatement.setLong(i++, createdContractCID);  // createdContractCID
                                 if (_CONTRACT_APPROVAL_TYPE.equals("FE")) {
@@ -299,17 +300,17 @@ public class CreateUpdateContract implements JavaDelegate {
 
 
                                 InsertContractArtefactPreparedStatement.executeUpdate();
-                                System.out.println("successfull INSERT_CONTRACT_ARTEFACT created!");
+                                log.info("successfull INSERT_CONTRACT_ARTEFACT created!");
 
                                 ResultSet InsertContractArtefactResultSet = InsertContractArtefactPreparedStatement.getGeneratedKeys();
                                 InsertContractArtefactResultSet.next();
                                 createdContractArtefactID = InsertContractArtefactResultSet.getLong(1);
-                                System.out.println("createdContractArtefactID:");
-                                System.out.println(createdContractArtefactID);
+                                log.info("createdContractArtefactID:");
+                                log.info(createdContractArtefactID.toString());
 
 
                                 //INSERT_CONTRACT_STATUS_REL
-                                System.out.println("INSERT_CONTRACT_STATUS_REL preparedStatement");
+                                log.info("INSERT_CONTRACT_STATUS_REL preparedStatement");
                                 Long createdContractStatusRelID = null;
                                 String returnContractStatusRelID[] = { "CSRELID" };
                                 String INSERT_CONTRACT_STATUS_REL = "INSERT INTO APP_APEXUDB_CAMUNDA.CONTRACT_STATUS_REL (csrelid, contractid, statusid, csreldate) VALUES (CONTRACT_STATUS_REL_SEQ.nextval, ?, 41, ?)";
@@ -321,13 +322,13 @@ public class CreateUpdateContract implements JavaDelegate {
                                 InsertContractStatusRelPreparedStatement.setDate(i++, new java.sql.Date(new Date().getTime())); // csreldate
 
                                 InsertContractStatusRelPreparedStatement.executeUpdate();
-                                System.out.println("successfull INSERT_CONTRACT_STATUS_REL!");
+                                log.info("successfull INSERT_CONTRACT_STATUS_REL!");
 
                                 ResultSet InsertContractStatusRelResultSet = InsertContractStatusRelPreparedStatement.getGeneratedKeys();
                                 InsertContractStatusRelResultSet.next();
                                 createdContractStatusRelID = InsertContractStatusRelResultSet.getLong(1);
-                                System.out.println("createdContractStatusRelID:");
-                                System.out.println(createdContractStatusRelID);
+                                log.info("createdContractStatusRelID:");
+                                log.info(createdContractStatusRelID.toString());
 
 
                                 //INSERT_CONTRACT_STATUSES
@@ -335,12 +336,12 @@ public class CreateUpdateContract implements JavaDelegate {
                                 PreparedStatement InsertContractStatusesPreparedStatement = udbConnect.prepareStatement(INSERT_CONTRACT_STATUSES);
 
                                 i = 1;
-                                System.out.println("INSERT_CONTRACT_STATUSES preparedStatement SQL UPDATE VALUES");
+                                log.info("INSERT_CONTRACT_STATUSES preparedStatement SQL UPDATE VALUES");
                                 // set values to update
                                 InsertContractStatusesPreparedStatement.setLong(i++, createdContractCID);  // createdContractCID
 
                                 InsertContractStatusesPreparedStatement.executeUpdate();
-                                System.out.println("successfull INSERT_CONTRACT_STATUSES updated!");
+                                log.info("successfull INSERT_CONTRACT_STATUSES updated!");
                             } else {
                                 ct_contract_type = Integer.parseInt(ci.hasProp("ct_contract_type") ? ci.prop("ct_contract_type").value().toString() : "0");
 
@@ -365,7 +366,7 @@ public class CreateUpdateContract implements JavaDelegate {
                                 PreparedStatement INSERT_CONTRACT_AA_PreparedStatement = udbConnect.prepareStatement(INSERT_CONTRACT_AA, createdContractAAID);
 
                                 i = 1;
-                                System.out.println("INSERT_CONTRACT_AA preparedStatement SQL UPDATE VALUES");
+                                log.info("INSERT_CONTRACT_AA preparedStatement SQL UPDATE VALUES");
                                 // set values to update
 
                                 INSERT_CONTRACT_AA_PreparedStatement.setLong(i++, ct_cid); // CID
@@ -399,16 +400,16 @@ public class CreateUpdateContract implements JavaDelegate {
                                 INSERT_CONTRACT_AA_PreparedStatement.setString(i++, starter); // INSERT_PERSON
 
                                 INSERT_CONTRACT_AA_PreparedStatement.executeUpdate();
-                                System.out.println("successfull INSERT_CONTRACT_AA created!");
+                                log.info("successfull INSERT_CONTRACT_AA created!");
 
                                 ResultSet createdContracAaIdResultSet = INSERT_CONTRACT_AA_PreparedStatement.getGeneratedKeys();
                                 createdContracAaIdResultSet.next();
                                 createdContractAA = createdContracAaIdResultSet.getLong(1);
-                                System.out.println("createdContractAA:");
-                                System.out.println(createdContractAA);
+                                log.info("createdContractAA:");
+                                log.info(createdContractAA.toString());
 
                                 //CONTRACT_AA_STATUS
-                                System.out.println("CONTRACT_AA_STATUS preparedStatement");
+                                log.info("CONTRACT_AA_STATUS preparedStatement");
                                 Long createdContractAAStatusID = null;
                                 String returnContractAAStatusID[] = { "ACTION_ID" };
                                 String INSERT_CONTRACT_AA_STATUS = "INSERT INTO APP_APEXUDB_CAMUNDA.CONTRACT_AA_STATUS (ACTION_ID, AAID, statusid, STATUSDATE ) VALUES (CONTRACT_AA_STATUS_SEQ.nextval, ?, 41, ?)";
@@ -420,39 +421,41 @@ public class CreateUpdateContract implements JavaDelegate {
                                 InsertContractAaStatusPreparedStatement.setDate(i++, new java.sql.Date(new Date().getTime())); // csreldate
 
                                 InsertContractAaStatusPreparedStatement.executeUpdate();
-                                System.out.println("successfull CONTRACT_AA_STATUS!");
+                                log.info("successfull CONTRACT_AA_STATUS!");
 
                                 ResultSet InsertContractStatusRelResultSet = InsertContractAaStatusPreparedStatement.getGeneratedKeys();
                                 InsertContractStatusRelResultSet.next();
                                 createdContractAAStatusID = InsertContractStatusRelResultSet.getLong(1);
-                                System.out.println("createdContractAAStatusID:");
-                                System.out.println(createdContractAAStatusID);
+                                log.info("createdContractAAStatusID:");
+                                log.info(createdContractAAStatusID.toString());
                             }
                         }
                     }
 
                     udbConnect.commit();
                     udbConnect.close();
-                    System.out.println("udbConnection closed!");
+                    log.warning("udbConnection closed!");
                 } else {
                     udbConnect.close();
-                    System.out.println("Failed to make connection!");
+                    log.warning("Failed to make connection!");
                 }
             } catch (Exception e) {
                 udbConnect.rollback();
                 udbConnect.close();
-                System.out.println("connection Exception!");
-                System.out.println(e);
+                log.warning("connection Exception!");
+                log.warning(e.toString());
                 throw e;
             }
         } catch (SQLException e) {
-            System.out.println("testConnect SQLException!");
-            System.out.println(e.toString());
-            System.err.format("SQL State: %s\n%s", e.getSQLState(), e.getMessage());
+            log.warning("testConnect SQLException!");
+            log.warning(e.toString());
+            log.warning("SQL State: %s\n%s");
+            log.warning(e.getSQLState());
+            log.warning(e.getMessage());
             delegateExecution.createIncident("SQLException", e.getMessage());
             throw e;
         } catch (Exception e) {
-            System.out.println("testConnect Exception!");
+            log.warning("testConnect Exception!");
             e.printStackTrace();
             delegateExecution.createIncident("Exception", e.getMessage());
             throw e;

@@ -1,5 +1,6 @@
 package kz.kcell.bpm.leasing;
 
+import lombok.extern.java.Log;
 import org.camunda.bpm.engine.delegate.DelegateExecution;
 import org.camunda.bpm.engine.delegate.JavaDelegate;
 import org.camunda.spin.json.SpinJsonNode;
@@ -13,7 +14,7 @@ import java.util.Date;
 import java.util.TimeZone;
 
 import static org.camunda.spin.Spin.JSON;
-
+@Log
 @Service("UpdateNCP")
 public class UpdateNCP implements JavaDelegate {
 
@@ -31,7 +32,7 @@ public class UpdateNCP implements JavaDelegate {
             try {
                 if (udbConnect != null) {
                     udbConnect.setAutoCommit(false);
-                    System.out.println("Connected to the database!");
+                    log.info("Connected to the database!");
 
                     // proc vars
                     int cn_rbs_location = 2;
@@ -119,21 +120,21 @@ public class UpdateNCP implements JavaDelegate {
                     PreparedStatement updatePreparedStatement = udbConnect.prepareStatement(UPDATENCP);
 
                     int i = 1;
-                    System.out.println("SET preparedStatement SQL UPDATE VALUES");
+                    log.info("SET preparedStatement SQL UPDATE VALUES");
                     // set values to update
                     updatePreparedStatement.setLong(i++, Integer.parseInt(ncpId)); // NCPID
                     updatePreparedStatement.setString(i++, cn_siteName); // SITENAME
                     updatePreparedStatement.setLong(i++, createdArtefactId); // ARTEFACTID
 
                     updatePreparedStatement.executeUpdate();
-                    System.out.println("successfull insert to database!");
+                    log.info("successfull insert to database!");
 
                     //UPDATE ARTEFACT
                     String UpdateArtefactCurrentState = "update ARTEFACT_CURRENT_STATE set ncpid = ?, cand_status_person = ?, longitude = ?, latitude = ?, rbs_type = ?, bsc = ?, band = ?, rbs_location = ?, construction_height = ?, construction_type = ?, address = ?, contact_person = ?, comments = ?, pl_comments = ? where ARTEFACTID = ?";
                     PreparedStatement updateArtefactCurrentStatePreparedStatement = udbConnect.prepareStatement(UpdateArtefactCurrentState);
 
                     i = 1;
-                    System.out.println("preparedStatement.setValues");
+                    log.info("preparedStatement.setValues");
                     // set values to insert
                     updateArtefactCurrentStatePreparedStatement.setLong(i++, Integer.parseInt(ncpId)); //ncpid
                     updateArtefactCurrentStatePreparedStatement.setString(i++, starter); //cand_status_person (пока стартер)
@@ -151,16 +152,16 @@ public class UpdateNCP implements JavaDelegate {
                     updateArtefactCurrentStatePreparedStatement.setString(i++, cn_comments); //pl_comments
                     updateArtefactCurrentStatePreparedStatement.setLong(i++, createdArtefactId); //ARTEFACTID
 
-                    System.out.println("preparedStatement.executeUpdate()");
+                    log.info("preparedStatement.executeUpdate()");
                     updateArtefactCurrentStatePreparedStatement.executeUpdate();
-                    System.out.println("successfull insert to database!");
+                    log.info("successfull insert to database!");
 
                     //UPDATE ARTEFACT_RSD
                     String UpdateArtefactRsd = "UPDATE APP_APEXUDB_CAMUNDA.ARTEFACT_RSD SET ARTEFACTID = ?, BSCID = ?, ALTITUDE = ?, CNSTRTYPEID = ?, HEIGHT = ?, DATEOFINSERT = ?, DATEOFVISIT = ?, CONTACTPERSON = ?, COMMENTS = ?, RBSID = ?, SITE_TYPE = ? WHERE RSDID = ?";
                     PreparedStatement updateArtefactRsdPreparedStatement = udbConnect.prepareStatement(UpdateArtefactRsd);
 
                     i = 1;
-                    System.out.println("preparedStatement.setValues");
+                    log.info("preparedStatement.setValues");
                     // set values to update
                     updateArtefactRsdPreparedStatement.setLong(i++, createdArtefactId); //ARTEFACTID
                     updateArtefactRsdPreparedStatement.setLong(i++, cn_bscInt); //BSCID
@@ -175,16 +176,16 @@ public class UpdateNCP implements JavaDelegate {
                     updateArtefactRsdPreparedStatement.setLong(i++, siteTypeInt); //SITE_TYPE
                     updateArtefactRsdPreparedStatement.setLong(i++, createdArtefactRSDId); //RSDID
 
-                    System.out.println("preparedStatement.executeUpdate()");
+                    log.info("preparedStatement.executeUpdate()");
                     updateArtefactRsdPreparedStatement.executeUpdate();
-                    System.out.println("successfull insert to database!");
+                    log.info("successfull insert to database!");
 
                     //UPDATE ARTEFACT_RR
                     String UpdateArtefactRR = "UPDATE APP_APEXUDB_CAMUNDA.ARTEFACT_RR SET ARTEFACTID = ?, DATEOFVISIT = ?, ADDRESS = ?, LATITUDE = ?, LONGITUDE = ?, CONSTR_TYPE = ?, SQUARE = ?, RBS_TYPE = ?, BAND = ?, RBS_LOCATION = ?, COMMENTS = ? WHERE RR_ID = ?";
                     PreparedStatement updateArtefactRRPreparedStatement = udbConnect.prepareStatement(UpdateArtefactRR);
 
                     i = 1;
-                    System.out.println("preparedStatement.setValues");
+                    log.info("preparedStatement.setValues");
                     // set values to update
                     updateArtefactRRPreparedStatement.setLong(i++, createdArtefactId); //ARTEFACTID
                     updateArtefactRRPreparedStatement.setDate(i++, new java.sql.Date(date_of_visit.getTime())); // DATEOFVISIT
@@ -199,31 +200,33 @@ public class UpdateNCP implements JavaDelegate {
                     updateArtefactRRPreparedStatement.setString(i++, cn_comments); //COMMENTS
                     updateArtefactRRPreparedStatement.setLong(i++, createdArtefactRRId); //RR_ID
 
-                    System.out.println("preparedStatement.executeUpdate()");
+                    log.info("preparedStatement.executeUpdate()");
                     updateArtefactRRPreparedStatement.executeUpdate();
-                    System.out.println("successfull insert to database!");
+                    log.info("successfull insert to database!");
 
 
                     udbConnect.commit();
                     udbConnect.close();
-                    System.out.println("udbConnection closed!");
+                    log.info("udbConnection closed!");
                 } else {
                     udbConnect.close();
-                    System.out.println("Failed to make connection!");
+                    log.info("Failed to make connection!");
                 }
             } catch (Exception e) {
                 udbConnect.rollback();
                 udbConnect.close();
-                System.out.println("connection Exception!");
-                System.out.println(e);
+                log.info("connection Exception!");
+                log.info(e.toString());
                 throw e;
             }
         } catch (SQLException e) {
-            System.out.println("testConnect SQLException!");
-            System.out.println(e.toString());
-            System.err.format("SQL State: %s\n%s", e.getSQLState(), e.getMessage());
+            log.info("testConnect SQLException!");
+            log.info(e.toString());
+            log.warning("SQL State: %s\n%s");
+            log.warning(e.getSQLState());
+            log.warning(e.getMessage());
         } catch (Exception e) {
-            System.out.println("testConnect Exception!");
+            log.info("testConnect Exception!");
             e.printStackTrace();
         }
 

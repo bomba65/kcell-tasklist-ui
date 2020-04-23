@@ -5,6 +5,7 @@ import org.camunda.bpm.engine.delegate.JavaDelegate;
 import org.camunda.spin.SpinList;
 import org.camunda.spin.json.SpinJsonNode;
 import org.postgresql.util.PGobject;
+import lombok.extern.java.Log;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
@@ -16,12 +17,14 @@ import java.text.SimpleDateFormat;
 
 import static org.camunda.spin.Spin.JSON;
 
+@Log
 @Service("CreateNCP")
 public class CreateNCP implements JavaDelegate {
-
+    
+    
     @Autowired
     DataSource dataSource;
-
+    
     @Override
     public void execute(DelegateExecution delegateExecution) throws Exception {
         try {
@@ -33,7 +36,7 @@ public class CreateNCP implements JavaDelegate {
             try {
                 if (udbConnect != null) {
                     udbConnect.setAutoCommit(false);
-                    System.out.println("Connected to the database!");
+                    log.info("Connected to the database!");
 
                     //insert NCP
                     Long ncpCreatedId = null;
@@ -42,7 +45,7 @@ public class CreateNCP implements JavaDelegate {
                     PreparedStatement preparedStatement = udbConnect.prepareStatement(insertNCP, returnCols);
 
                     int i = 1;
-                    System.out.println("preparedStatement.setValues");
+                    log.info("preparedStatement.setValues");
 
                     // proc vars
                     int cn_rbs_location = 2;
@@ -163,15 +166,15 @@ public class CreateNCP implements JavaDelegate {
                     preparedStatement.setLong(i++, initiatorInt); // INITIATOR
                     preparedStatement.setLong(i++, partInt); // PART (Подставлять ID согласно справочнику Part)
 
-                    System.out.println("preparedStatement.executeUpdate()");
+                    log.info("preparedStatement.executeUpdate()");
                     preparedStatement.executeUpdate();
-                    System.out.println("successfull insert to database!");
+                    log.info("successfull insert to database!");
 //
                     ResultSet headGeneratedIdResultSet = preparedStatement.getGeneratedKeys();
                     headGeneratedIdResultSet.next();
                     ncpCreatedId = headGeneratedIdResultSet.getLong(1);
-                    System.out.println("artefactGeneratedId:");
-                    System.out.println(ncpCreatedId);
+                    log.info("artefactGeneratedId:");
+                    log.info(ncpCreatedId.toString());
 
                     //insert new status
                     Long createdNcpStatusId = null;
@@ -180,19 +183,19 @@ public class CreateNCP implements JavaDelegate {
                     PreparedStatement newNcpStatusPreparedStatement = udbConnect.prepareStatement(insertNewStatus, returnStatus);
 
                     i = 1;
-                    System.out.println("newNcpStatusPreparedStatement.setString");
+                    log.info("newNcpStatusPreparedStatement.setString");
                     newNcpStatusPreparedStatement.setString(i++, ncpCreatedId.toString());
                     newNcpStatusPreparedStatement.setString(i++, starter); // CREATOR 'SERGEI.ZAITSEV'
                     newNcpStatusPreparedStatement.setDate(i++, new java.sql.Date(new Date().getTime())); // DATEOFINSERT
-                    System.out.println("newNcpStatusPreparedStatement.executeUpdate()");
+                    log.info("newNcpStatusPreparedStatement.executeUpdate()");
                     newNcpStatusPreparedStatement.executeUpdate();
-                    System.out.println("successfull insert to database!");
+                    log.info("successfull insert to database!");
 
                     ResultSet statusGeneratedIdResultSet = newNcpStatusPreparedStatement.getGeneratedKeys();
                     statusGeneratedIdResultSet.next();
                     createdNcpStatusId = statusGeneratedIdResultSet.getLong(1);
-                    System.out.println("createdNcpStatusId:");
-                    System.out.println(createdNcpStatusId);
+                    log.info("createdNcpStatusId:");
+                    log.info(createdNcpStatusId.toString());
 
                     //insert new Candidate (in Artefact table)
                     Long createdArtefactId = null;
@@ -201,18 +204,18 @@ public class CreateNCP implements JavaDelegate {
                     PreparedStatement newArtefactPreparedStatement = udbConnect.prepareStatement(insertNewArtefact, returnArtefactId);
 
                     i = 1;
-                    System.out.println("newArtefactPreparedStatement.setString");
+                    log.info("newArtefactPreparedStatement.setString");
                     newArtefactPreparedStatement.setString(i++, cn_siteName); // sitename	cn_sitename
                     newArtefactPreparedStatement.setLong(i++, Integer.parseInt(ncpId)); //ncp_id
-                    System.out.println("newArtefactPreparedStatement.executeUpdate()");
+                    log.info("newArtefactPreparedStatement.executeUpdate()");
                     newArtefactPreparedStatement.executeUpdate();
-                    System.out.println("successfull insert to database!");
+                    log.info("successfull insert to database!");
 
                     ResultSet createdArtefactIdResultSet = newArtefactPreparedStatement.getGeneratedKeys();
                     createdArtefactIdResultSet.next();
                     createdArtefactId = createdArtefactIdResultSet.getLong(1);
-                    System.out.println("createdArtefactId:");
-                    System.out.println(createdArtefactId);
+                    log.info("createdArtefactId:");
+                    log.info(createdArtefactId.toString());
 
                     //insert new Candidate (in ARTEFACT_CURRENT_STATE table)
                     String insertNewArtefactCurrentState = "INSERT INTO APP_APEXUDB_CAMUNDA.ARTEFACT_CURRENT_STATE (ARTEFACTID,\n" +
@@ -242,7 +245,7 @@ public class CreateNCP implements JavaDelegate {
                     PreparedStatement newArtefactCurrentStatePreparedStatement = udbConnect.prepareStatement(insertNewArtefactCurrentState);
 
                     i = 1;
-                    System.out.println("newArtefactCurrentStatePreparedStatement.setString");
+                    log.info("newArtefactCurrentStatePreparedStatement.setString");
                     newArtefactCurrentStatePreparedStatement.setLong(i++, createdArtefactId); //ARTEFACTID
                     newArtefactCurrentStatePreparedStatement.setLong(i++, Integer.parseInt(ncpId)); //ncp_id
                     newArtefactCurrentStatePreparedStatement.setLong(i++, 1); // CAND_STATUS first insert value mast be = 1
@@ -267,9 +270,9 @@ public class CreateNCP implements JavaDelegate {
                     newArtefactCurrentStatePreparedStatement.setString(i++, starter); // INSERT_PERSON
                     newArtefactCurrentStatePreparedStatement.setLong(i++, 7); // GS_STATUS
                     newArtefactCurrentStatePreparedStatement.setString(i++, cn_comments); // PL_COMMENTS (cn_comments)
-                    System.out.println("newArtefactCurrentStatePreparedStatement.executeUpdate()");
+                    log.info("newArtefactCurrentStatePreparedStatement.executeUpdate()");
                     newArtefactCurrentStatePreparedStatement.executeUpdate();
-                    System.out.println("successfull insert to database!");
+                    log.info("successfull insert to database!");
 
                     //insert new installation
 
@@ -277,11 +280,11 @@ public class CreateNCP implements JavaDelegate {
                     PreparedStatement NewInstallationPreparedStatement = udbConnect.prepareStatement(insertNewInstallation);
 
                     i = 1;
-                    System.out.println("NewInstallationPreparedStatement.setString");
+                    log.info("NewInstallationPreparedStatement.setString");
                     NewInstallationPreparedStatement.setLong(i++, createdArtefactId);
-                    System.out.println("NewInstallationPreparedStatement.executeUpdate()");
+                    log.info("NewInstallationPreparedStatement.executeUpdate()");
                     NewInstallationPreparedStatement.executeUpdate();
-                    System.out.println("successfull insert to database!");
+                    log.info("successfull insert to database!");
 
                     //insert new Candidate (in ARTEFACT_RSD table)
                     Long createdArtefactRSDId = null;
@@ -290,7 +293,7 @@ public class CreateNCP implements JavaDelegate {
                     PreparedStatement newArtefactRSDPreparedStatement = udbConnect.prepareStatement(insertNewArtefactRSD, rsdReturnStatus);
 
                     i = 1;
-                    System.out.println("newArtefactRSDPreparedStatement.setString");
+                    log.info("newArtefactRSDPreparedStatement.setString");
                     newArtefactRSDPreparedStatement.setLong(i++, createdArtefactId); //ARTEFACTID
                     newArtefactRSDPreparedStatement.setLong(i++, cn_bscInt); //BSCID
                     newArtefactRSDPreparedStatement.setLong(i++, Integer.parseInt(cn_constructionType)); //CNSTRTYPEID
@@ -302,15 +305,15 @@ public class CreateNCP implements JavaDelegate {
                     newArtefactRSDPreparedStatement.setLong(i++, 2); //STATE
                     newArtefactRSDPreparedStatement.setLong(i++, Integer.parseInt(rbsType)); //RBSID
                     newArtefactRSDPreparedStatement.setLong(i++, siteTypeInt); //SITE_TYPE
-                    System.out.println("newArtefactRSDPreparedStatement.executeUpdate()");
+                    log.info("newArtefactRSDPreparedStatement.executeUpdate()");
                     newArtefactRSDPreparedStatement.executeUpdate();
-                    System.out.println("successfull insert to database!");
+                    log.info("successfull insert to database!");
 
                     ResultSet artefactRSDGeneratedIdResultSet = newArtefactRSDPreparedStatement.getGeneratedKeys();
                     artefactRSDGeneratedIdResultSet.next();
                     createdArtefactRSDId = artefactRSDGeneratedIdResultSet.getLong(1);
-                    System.out.println("createdArtefactRSDId:");
-                    System.out.println(createdArtefactRSDId);
+                    log.info("createdArtefactRSDId:");
+                    log.info(createdArtefactRSDId.toString());
 
                     //insert new Candidate (in ARTEFACT_RR table)
                     Long createdArtefactRRId = null;
@@ -319,7 +322,7 @@ public class CreateNCP implements JavaDelegate {
                     PreparedStatement newArtefactRRPreparedStatement = udbConnect.prepareStatement(insertNewArtefactRR, rrReturnStatus);
 
                     i = 1;
-                    System.out.println("newArtefactRRPreparedStatement.setString");
+                    log.info("newArtefactRRPreparedStatement.setString");
                     newArtefactRRPreparedStatement.setLong(i++, createdArtefactId); //ARTEFACTID
                     newArtefactRRPreparedStatement.setDate(i++, new java.sql.Date(date_of_visit.getTime())); // DATEOFVISIT
                     newArtefactRRPreparedStatement.setString(i++, cn_address); //ADDRESS
@@ -333,15 +336,15 @@ public class CreateNCP implements JavaDelegate {
                     newArtefactRRPreparedStatement.setString(i++, cn_comments); //COMMENTS
                     newArtefactRRPreparedStatement.setDate(i++, new java.sql.Date(new Date().getTime())); // DATEOFCREATION
                     newArtefactRRPreparedStatement.setString(i++, cn_comments); //CREATOR
-                    System.out.println("newArtefactRRPreparedStatement.executeUpdate()");
+                    log.info("newArtefactRRPreparedStatement.executeUpdate()");
                     newArtefactRRPreparedStatement.executeUpdate();
-                    System.out.println("successfull insert to database!");
+                    log.info("successfull insert to database!");
 
                     ResultSet artefactRRGeneratedIdResultSet = newArtefactRRPreparedStatement.getGeneratedKeys();
                     artefactRRGeneratedIdResultSet.next();
                     createdArtefactRRId = artefactRRGeneratedIdResultSet.getLong(1);
-                    System.out.println("createdArtefactRRId:");
-                    System.out.println(createdArtefactRRId);
+                    log.info("createdArtefactRRId:");
+                    log.info(createdArtefactRRId.toString());
 
                     //insert ARTEFACT_VSD
                     Long createdArtefactVsdId = null;
@@ -350,18 +353,18 @@ public class CreateNCP implements JavaDelegate {
                     PreparedStatement newArtefactVsdPreparedStatement = udbConnect.prepareStatement(insertNewVsd, vsdReturnStatus);
 
                     i = 1;
-                    System.out.println("newArtefactVsdPreparedStatement.setString");
+                    log.info("newArtefactVsdPreparedStatement.setString");
                     newArtefactVsdPreparedStatement.setLong(i++, createdArtefactId);
                     newArtefactVsdPreparedStatement.setLong(i++, createdArtefactRSDId);
-                    System.out.println("newArtefactVsdPreparedStatement.executeUpdate()");
+                    log.info("newArtefactVsdPreparedStatement.executeUpdate()");
                     newArtefactVsdPreparedStatement.executeUpdate();
-                    System.out.println("successfull insert to database!");
+                    log.info("successfull insert to database!");
 
                     ResultSet vsdGeneratedIdResultSet = newArtefactVsdPreparedStatement.getGeneratedKeys();
                     vsdGeneratedIdResultSet.next();
                     createdArtefactVsdId = vsdGeneratedIdResultSet.getLong(1);
-                    System.out.println("createdArtefactVsdId:");
-                    System.out.println(createdArtefactVsdId);
+                    log.info("createdArtefactVsdId:");
+                    log.info(createdArtefactVsdId.toString());
 
                     //insert CANDAPPROVAL
                     Long createdCandApprovalId = null;
@@ -370,18 +373,18 @@ public class CreateNCP implements JavaDelegate {
                     PreparedStatement newCandApprovalPreparedStatement = udbConnect.prepareStatement(insertNewCandApproval, candApprovalReturnStatus);
 
                     i = 1;
-                    System.out.println("newCandApprovalPreparedStatement.setString");
+                    log.info("newCandApprovalPreparedStatement.setString");
                     newCandApprovalPreparedStatement.setLong(i++, createdArtefactId);
                     newCandApprovalPreparedStatement.setLong(i++, createdArtefactRSDId);
-                    System.out.println("newCandApprovalPreparedStatement.executeUpdate()");
+                    log.info("newCandApprovalPreparedStatement.executeUpdate()");
                     newCandApprovalPreparedStatement.executeUpdate();
-                    System.out.println("successfull insert to database!");
+                    log.info("successfull insert to database!");
 
                     ResultSet candApprovalGeneratedIdResultSet = newCandApprovalPreparedStatement.getGeneratedKeys();
                     candApprovalGeneratedIdResultSet.next();
                     createdCandApprovalId = candApprovalGeneratedIdResultSet.getLong(1);
-                    System.out.println("createdCandApprovalId:");
-                    System.out.println(createdCandApprovalId);
+                    log.info("createdCandApprovalId:");
+                    log.info(createdCandApprovalId.toString());
 
                     //insert ARTEFACT_RR_STATUS
                     Long createdArtefactRRStatusId = null;
@@ -390,19 +393,19 @@ public class CreateNCP implements JavaDelegate {
                     PreparedStatement newArtefactRRStatusPreparedStatement = udbConnect.prepareStatement(insertNewArtefactRRStatus, artefactRRStatusReturnStatus);
 
                     i = 1;
-                    System.out.println("newArtefactRRStatusPreparedStatement.setString");
+                    log.info("newArtefactRRStatusPreparedStatement.setString");
                     newArtefactRRStatusPreparedStatement.setLong(i++, createdArtefactId);
                     newArtefactRRStatusPreparedStatement.setLong(i++, createdArtefactRSDId);
                     newArtefactRRStatusPreparedStatement.setDate(i++, new java.sql.Date(new Date().getTime()));
-                    System.out.println("newArtefactRRStatusPreparedStatement.executeUpdate()");
+                    log.info("newArtefactRRStatusPreparedStatement.executeUpdate()");
                     newArtefactRRStatusPreparedStatement.executeUpdate();
-                    System.out.println("successfull insert to database!");
+                    log.info("successfull insert to database!");
 
                     ResultSet artefactRRStatusGeneratedIdResultSet = newArtefactRRStatusPreparedStatement.getGeneratedKeys();
                     artefactRRStatusGeneratedIdResultSet.next();
                     createdArtefactRRStatusId = artefactRRStatusGeneratedIdResultSet.getLong(1);
-                    System.out.println("createdArtefactRRStatusId:");
-                    System.out.println(createdArtefactRRStatusId);
+                    log.info("createdArtefactRRStatusId:");
+                    log.info(createdArtefactRRStatusId.toString());
 
                     udbConnect.commit();
                     //insert ARTEFACT_TSD_EXT
@@ -412,7 +415,7 @@ public class CreateNCP implements JavaDelegate {
                     PreparedStatement newArtefactExtTSDPreparedStatement = udbConnect.prepareStatement(insertNewArtefactExtTSD, artefactExtTSDReturnStatus);
 
                     i = 1;
-                    System.out.println("newArtefactExtTSDPreparedStatement.setString");
+                    log.info("newArtefactExtTSDPreparedStatement.setString");
                     newArtefactExtTSDPreparedStatement.setLong(i++, createdArtefactId); // ARTEFACTID
                     newArtefactExtTSDPreparedStatement.setString(i++, cn_longitude); // NE_LONGITUDE
                     newArtefactExtTSDPreparedStatement.setString(i++, cn_latitude); // NE_LATITUDE
@@ -431,15 +434,15 @@ public class CreateNCP implements JavaDelegate {
                     newArtefactExtTSDPreparedStatement.setString(i++, fe_comment); // COMMENTS
                     newArtefactExtTSDPreparedStatement.setDate(i++, new java.sql.Date(new Date().getTime())); // INSERT_DATE
                     newArtefactExtTSDPreparedStatement.setString(i++, starter); // INSERT_PERSON
-                    System.out.println("newArtefactExtTSDPreparedStatement.executeUpdate()");
+                    log.info("newArtefactExtTSDPreparedStatement.executeUpdate()");
                     newArtefactExtTSDPreparedStatement.executeUpdate();
-                    System.out.println("successfull insert to database!");
+                    log.info("successfull insert to database!");
 
                     ResultSet artefactExtTSDGeneratedIdResultSet = newArtefactExtTSDPreparedStatement.getGeneratedKeys();
                     artefactExtTSDGeneratedIdResultSet.next();
                     createdArtefactExtTSDId = artefactExtTSDGeneratedIdResultSet.getLong(1);
-                    System.out.println("createdArtefactExtTSDId:");
-                    System.out.println(createdArtefactExtTSDId);
+                    log.info("createdArtefactExtTSDId:");
+                    log.info(createdArtefactExtTSDId.toString());
 
 
                     udbConnect.commit();
@@ -453,25 +456,27 @@ public class CreateNCP implements JavaDelegate {
                     delegateExecution.setVariable("createdArtefactRRStatusId", createdArtefactRRStatusId);
                     delegateExecution.setVariable("createdArtefactExtTSDId", createdArtefactExtTSDId);
                     udbConnect.close();
-                    System.out.println("udbConnection closed!");
+                    log.warning("udbConnection closed!");
                 } else {
                     udbConnect.close();
-                    System.out.println("Failed to make connection!");
+                    log.warning("Failed to make connection!");
                 }
             } catch (Exception e) {
                 udbConnect.rollback();
                 udbConnect.close();
-                System.out.println("connection Exception!");
-                System.out.println(e);
+                log.warning("connection Exception!");
+                log.warning(e.getMessage());
                 throw e;
             }
         } catch (SQLException e) {
-            System.out.println("testConnect SQLException!");
-            System.out.println(e.toString());
-            System.err.format("SQL State: %s\n%s", e.getSQLState(), e.getMessage());
+            log.warning("testConnect SQLException!");
+            log.warning(e.toString());
+            log.warning("SQL State: %s\n%s");
+            log.warning(e.getSQLState());
+            log.warning(e.getMessage());
             throw e;
         } catch (Exception e) {
-            System.out.println("testConnect Exception!");
+            log.info("testConnect Exception!");
             e.printStackTrace();
             throw e;
         }

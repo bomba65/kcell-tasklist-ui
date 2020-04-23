@@ -1,6 +1,7 @@
 package kz.kcell.bpm.leasing;
 
 import kz.kcell.flow.files.Minio;
+import lombok.extern.java.Log;
 import org.apache.commons.io.IOUtils;
 import org.camunda.bpm.engine.delegate.DelegateExecution;
 import org.camunda.bpm.engine.delegate.JavaDelegate;
@@ -19,12 +20,13 @@ import java.util.TimeZone;
 
 import static org.camunda.spin.Spin.JSON;
 
+@Log
 @Service("GetValueFromUDB")
 public class GetValueFromUDB implements JavaDelegate {
 
     @Override
     public void execute(DelegateExecution delegateExecution) throws Exception {
-        System.out.println("try to connect....");
+        log.info("try to connect....");
         try {
             TimeZone timeZone = TimeZone.getTimeZone("Asia/Almaty");
             TimeZone.setDefault(timeZone);
@@ -34,13 +36,13 @@ public class GetValueFromUDB implements JavaDelegate {
             try {
                 if (udbConnect != null) {
                     udbConnect.setAutoCommit(false);
-                    System.out.println("IW: UDB CHECK Connected to the database!");
+                    log.info("IW: UDB CHECK Connected to the database!");
 
 
                     Long createdArtefactId = delegateExecution.hasVariable("createdArtefactId") ? (Long) delegateExecution.getVariable("createdArtefactId") : 0;
                     String UDBcheckCronValue = delegateExecution.hasVariable("UDBcheckCronValue") ? delegateExecution.getVariable("UDBcheckCronValue").toString() : "0 58 10 * * ?";
 
-                    System.out.println("createdArtefactId: " + createdArtefactId.toString());
+                    log.info("createdArtefactId: " + createdArtefactId.toString());
 
                     String selectArtefactCurrentState = "select ARTEFACTID, NCPID, ONAIR_DATE, G_ONAIR_DATE, INST_STATUS, INST_STATUS_DATE, POWER_STATUS from ARTEFACT_CURRENT_STATE where ARTEFACTID = ?";
 
@@ -49,15 +51,15 @@ public class GetValueFromUDB implements JavaDelegate {
                     int i=1;
                     selectArtefactCurrentStatePS.setLong(i++, createdArtefactId.longValue());
 
-                    System.out.println("UDBcheckCronValue");
-                    System.out.println(UDBcheckCronValue);
-                    System.out.println("selectArtefactCurrentState preparedStatement SQL UPDATE VALUES");
+                    log.info("UDBcheckCronValue");
+                    log.info(UDBcheckCronValue);
+                    log.info("selectArtefactCurrentState preparedStatement SQL UPDATE VALUES");
                     ResultSet resultSet = selectArtefactCurrentStatePS.executeQuery();
                     JSONArray json = new JSONArray();
                     ResultSetMetaData rsmd = resultSet.getMetaData();
-                    System.out.println(rsmd.getColumnCount());
+//                    log.info(rsmd.getColumnCount());
                     while(resultSet.next()) {
-                        System.out.println(rsmd.getColumnCount());
+//                        log.info(rsmd.getColumnCount());
                         int numColumns = rsmd.getColumnCount();
                         JSONObject obj = new JSONObject();
                         for (int j=1; j<=numColumns; j++) {
@@ -66,25 +68,25 @@ public class GetValueFromUDB implements JavaDelegate {
                         }
                         json.put(obj);
                     }
-                    System.out.println("done selectArtefactCurrentStatePS");
+                    log.info("done selectArtefactCurrentStatePS");
                     String dataFromUDB = "noData";
-                    System.out.println("selectArtefactCurrentStatePS raws: " + json.length());
+                    log.info("selectArtefactCurrentStatePS raws: " + json.length());
                     if (json.length() > 0) {
                         JSONObject firstJson = json.getJSONObject(0);
-                        System.out.println(firstJson);
-                        System.out.println("done ARTEFACTID");
-                        System.out.println(firstJson.getInt("ARTEFACTID"));
-                        System.out.println("done INST_STATUS");
-                        System.out.println(firstJson.has("INST_STATUS") ?  firstJson.getInt("INST_STATUS") : "");
-                        System.out.println("done POWER_STATUS");
-                        System.out.println(firstJson.has("POWER_STATUS") ?  firstJson.getInt("POWER_STATUS") : "");
-                        System.out.println("done ONAIR_DATE");
-                        System.out.println(firstJson.has("ONAIR_DATE") ? firstJson.getString("ONAIR_DATE") : "");
-                        System.out.println("done G_ONAIR_DATE");
-                        System.out.println(firstJson.has("G_ONAIR_DATE") ? firstJson.getString("G_ONAIR_DATE") : "");
+                        log.info(firstJson.toString());
+                        log.info("done ARTEFACTID");
+                        log.info(firstJson.getString("ARTEFACTID"));
+                        log.info("done INST_STATUS");
+                        log.info(firstJson.has("INST_STATUS") ?  firstJson.getString("INST_STATUS") : "");
+                        log.info("done POWER_STATUS");
+                        log.info(firstJson.has("POWER_STATUS") ?  firstJson.getString("POWER_STATUS") : "");
+                        log.info("done ONAIR_DATE");
+                        log.info(firstJson.has("ONAIR_DATE") ? firstJson.getString("ONAIR_DATE") : "");
+                        log.info("done G_ONAIR_DATE");
+                        log.info(firstJson.has("G_ONAIR_DATE") ? firstJson.getString("G_ONAIR_DATE") : "");
 
                         if((firstJson.has("ONAIR_DATE") && !firstJson.getString("ONAIR_DATE").equals(null)) || (firstJson.has("G_ONAIR_DATE") && !firstJson.getString("G_ONAIR_DATE").equals(null))) {
-                            System.out.println("ONAIR_DATE or G_ONAIR_DATE is not null");
+                            log.info("ONAIR_DATE or G_ONAIR_DATE is not null");
                             dataFromUDB = "withFinishDate";
                             delegateExecution.setVariable("setInstStatusFromUDB", "FinishDate");
                             delegateExecution.setVariable("finishDateFromUDB", firstJson.has("ONAIR_DATE") ? firstJson.getString("ONAIR_DATE") : firstJson.has("G_ONAIR_DATE") ? firstJson.getString("G_ONAIR_DATE") : "");
@@ -103,30 +105,30 @@ public class GetValueFromUDB implements JavaDelegate {
                                 } else if (uis == 4) {
                                     delegateExecution.setVariable("setInstStatusFromUDB", "SSID in Progress");
                                 }
-                                System.out.println("justSetInstStatus");
+                                log.info("justSetInstStatus");
                                 delegateExecution.setVariable("instStatusFromUDB", uis);
                             } else if (uis == 16) {
                                 dataFromUDB = "finishWithSetInstStatus";
-                                System.out.println("finishWithSetInstStatus 16");
+                                log.info("finishWithSetInstStatus 16");
                                 delegateExecution.setVariable("setInstStatusFromUDB", "Transmission problem");
                                 delegateExecution.setVariable("instStatusFromUDB", uis);
                             } else if (uis == 13) {
                                 dataFromUDB = "finishWithSetInstStatus";
-                                System.out.println("finishWithSetInstStatus 13");
+                                log.info("finishWithSetInstStatus 13");
                                 delegateExecution.setVariable("setInstStatusFromUDB", "Leasing problem");
                                 delegateExecution.setVariable("instStatusFromUDB", uis);
                             }
-                            System.out.println("INST_STATUS is not null");
+                            log.info("INST_STATUS is not null");
                         }
 
                         if(firstJson.has("POWER_STATUS") && firstJson.getInt("POWER_STATUS") == 3 && dataFromUDB.equals("noData")) {
                             dataFromUDB = "withPowerStatus";
                             delegateExecution.setVariable("powerStatusFromUDB", firstJson.getInt("POWER_STATUS"));
                             delegateExecution.setVariable("setInstStatusFromUDB", "Power problem");
-                            System.out.println("POWER_STATUS = 3 (withPowerProblem)");
+                            log.info("POWER_STATUS = 3 (withPowerProblem)");
                         }
                         if (dataFromUDB.equals("noData")) {
-                            System.out.println("no changed data");
+                            log.info("no changed data");
                             dataFromUDB = "noData";
                         }
                     }
@@ -140,25 +142,27 @@ public class GetValueFromUDB implements JavaDelegate {
 
                     udbConnect.commit();
                     udbConnect.close();
-                    System.out.println("udbConnection closed!");
+                    log.info("udbConnection closed!");
                 } else {
                     delegateExecution.setVariable("dataFromUDB", "noData");
                     udbConnect.close();
-                    System.out.println("Failed to make connection!");
+                    log.info("Failed to make connection!");
                 }
             } catch (Exception e) {
                 udbConnect.rollback();
                 udbConnect.close();
-                System.out.println("connection Exception!");
-                System.out.println(e);
+                log.info("connection Exception!");
+                log.info(e.toString());
                 throw e;
             }
         } catch (SQLException e) {
-            System.out.println("testConnect SQLException!");
-            System.out.println(e.toString());
-            System.err.format("SQL State: %s\n%s", e.getSQLState(), e.getMessage());
+            log.info("testConnect SQLException!");
+            log.info(e.toString());
+            log.warning("SQL State: %s\n%s");
+            log.warning(e.getSQLState());
+            log.warning(e.getMessage());
         } catch (Exception e) {
-            System.out.println("testConnect Exception!");
+            log.info("testConnect Exception!");
             e.printStackTrace();
         }
 
