@@ -26,46 +26,78 @@
                 'powerSource',
                 'ContractInfoInformation',
                 'receivingTSForCandiateSiteFiles',
-                'receivingContractPSDFiles',
-                'receivingApprovalFromTheLandlordFiles',
                 'modifyCandidateRRFiles',
-                'estimateTechnicalCapabilityResFiles',
-                'registrationCommercialOfferFiles',
-                'preparationSSIDandTSSRFiles',
-                'requestTechnicalParametersKTFiles',
-                'confirmPaymentDevelopmentOfTCKTFiles',
-                'receivingTSFiles',
-                'signingLeaseContractAddAgreementKTFiles',
-                'sendMessageToStartPaymentKTFiles',
-                'reqKZTRwithTechEquipmentParamsFiles',
-                'receivingContractDevDesignEstimateFiles',
-                'confirmReceiptEstimateFiles',
-                'receivingContractInstallationWorksFiles',
-                'requestTechnicalParametersKPFiles',
-                'confirmReceiptResponseKPFiles',
-                'signingLeaseContractAddAgreementKPFiles',
-                'sendMessageToStartPaymentKPFiles',
-                'requestTechnicalParametersKTForFEFiles',
-                'confirmPaymentDevelopmentOfTCKTForFEFiles',
-                'receivingTSForFEFiles',
-                'signingLeaseContractAddAgreementForFEFiles',
-                'sendMessageToStartPaymentKTForFEFiles',
-                'reqKZTRwithTechEquipmentParamsForFEFiles',
-                'receivingContractDevDesignEstimateForFEFiles',
-                'registrationCommercialOfferForFEFiles',
-                'confirmReceiptEstimateForFEFiles',
-                'receivingContractInstallationWorksForFEFiles',
-                'requestTechnicalParametersKPForFEFiles',
-                'confirmReceiptResponseKPForFEFiles',
-                'signingLeaseContractAddAgreementKPForFEFiles',
-                'sendMessageToStartPaymentKPForFEFiles',
-                'contractRentLoadingSAPFiles',
-                'approvalContractRentInSAPFiles',
-                'powerContractLoadingInSAPFiles',
-                'approvalPowerContractInSAPFiles',
-                'uploadSignedOwnerLeaseContractFiles',
                 'address'
             ];
+
+            var files = ['actOfPerformanceTechnicalConditionsFiles',
+            'uploadCopyOfOwnerSignedLeaseContractFiles',
+            'confirmApprovalLeaseContractInSAPCMFiles',
+            'confirmLoadingLeaseContractInSAPCMFiles',
+            'confirmSendMessageToStartPaymentKPFEFiles',
+            'approvalContractRentInSAPFiles',
+            'approvalPowerContractInSAPFiles',
+            'checkAndApproveFEFiles',
+            'commercialOnAirFiles',
+            'confirmActOfPerformanceTechnicalConditionsFiles',
+            'confirmPaymentDevelopmentOfTCKTFiles',
+            'confirmPaymentDevelopmentOfTCKTForFEFiles',
+            'confirmReceiptEstimateFiles',
+            'confirmReceiptEstimateForFEFiles',
+            'ConfirmReceiptOfTSfromRESforCandidateFiles',
+            'confirmReceiptResponseKPFiles',
+            'confirmReceiptResponseKPFEFiles',
+            'confirmSigningLeaseContractFiles',
+            'confirmStartLeasingFiles',
+            'confirmStartLeasingNOFiles',
+            'confirmTFOfConnectingToLandlordPowerGridForFEFiles',
+            'confirmTFOfConnectingToPowerGridForCandidateFiles',
+            'connectionFromOwnerNetworksFiles',
+            'contractRentLoadingSAPFiles',
+            'createNewCandidateSiteFiles',
+            'defineInstallationProblemFiles',
+            'estimateTechnicalCapabilityResFiles',
+            'installationWorksDoneFiles',
+            'modifyCandidateSiteFiles',
+            'powerContractLoadingInSAPFiles',
+            'powerProblemSolutionFiles',
+            'preparationSSIDandTSSRFiles',
+            'preperationSSIDorTSSRProjectFiles',
+            'receivingApprovalFromTheLandlordFiles',
+            'receivingContractDevDesignEstimateFiles',
+            'receivingContractDevDesignEstimateForFEFiles',
+            'receivingContractInstallationWorksFiles',
+            'receivingContractInstallationWorksForFEFiles',
+            'receivingContractPSDFiles',
+            'receivingTSFiles',
+            'receivingTSForFEFiles',
+            'registrationCommercialOfferFiles',
+            'registrationCommercialOfferForFEFiles',
+            'reqKZTRwithTechEquipmentParamsFiles',
+            'reqKZTRwithTechEquipmentParamsForFEFiles',
+            'requestForAdmissionForWorkOnTUFiles',
+            'requestTechnicalParametersKPFiles',
+            'requestTechnicalParametersKPFEFiles',
+            'requestTechnicalParametersKTFiles',
+            'requestTechnicalParametersKTForFEFiles',
+            'sendMessageToStartPaymentKPFiles',
+            'sendMessageToStartPaymentKPForFEFiles',
+            'sendMessageToStartPaymentKTFiles',
+            'sendMessageToStartPaymentKTForFEFiles',
+            'sendMessageToStartPaymentNationalFiles',
+            'sendMessageToStartPaymentSimpleFiles',
+            'signingLeaseContractAddAgreementFiles',
+            'signingLeaseContractAddAgreementForFEFiles',
+            'signingLeaseContractAddAgreementKPFiles',
+            'signingLeaseContractAddAgreementKPFEFiles',
+            'signingLeaseContractAddAgreementKTFiles',
+            'startingInstallationWorksFiles',
+            'transmissionProblemSolutionFiles',
+            'uploadRSDandVSDfilesFiles',
+            'uploadSignedOwnerLeaseContractFiles',
+            'uploadTSDfileFiles'];
+
+            $scope.leasingFiles = [];
 
             $http.get('/camunda/api/engine/engine/default/task/' + camForm.taskId).then(
                     function(result){
@@ -80,9 +112,13 @@
                 variables.forEach(function (el) {
                     camForm.variableManager.fetchVariable(el);
                 });
+                files.forEach(function (f) {
+                    camForm.variableManager.fetchVariable(f);
+                });
                 $http.get('/camunda/api/engine/engine/default/task/' + camForm.taskId).then(
                         function(result){
                             $scope.processInstanceId = result.data.processInstanceId;
+                            $scope.taskKey = result.data.taskDefinitionKey;
                             $http.get('/camunda/api/engine/engine/default/process-instance/' + $scope.processInstanceId).then(
                                     function(result){
                                         console.log('process-instance/')
@@ -97,7 +133,6 @@
                         }
                 );
                 $scope.leasingCandidate = {};
-                $scope.leasingFiles = [];
                 $scope.contractInformations = [];
 
                 $scope.dictionary = {};
@@ -109,8 +144,12 @@
                     if(camForm.variableManager.variables[el].value){
                         $scope[el] = camForm.variableManager.variables[el].value;
                         $scope.leasingCandidate[el] = camForm.variableManager.variables[el].value;
-                        if ( el.toLowerCase().includes('file') ) {
-                            $scope.leasingFiles = $scope.leasingFiles.concat(camForm.variableManager.variables[el].value)
+                    }
+                });
+                files.forEach(function (f) {
+                    if(camForm.variableManager.variables[f] && camForm.variableManager.variables[f].value){
+                        if ( f.toLowerCase().includes('file') ) {
+                            $scope.leasingFiles = $scope.leasingFiles.concat(camForm.variableManager.variables[f].value)
                         }
                     }
                 });
@@ -177,15 +216,19 @@
                 camForm.variableManager.variableValue('uploadSignedOwnerLeaseContractTaskComment', $scope.uploadSignedOwnerLeaseContractTaskComment);
                 camForm.variableManager.variableValue('contractInformations', $scope.contractInformations);
 
+                var thisTaskFiles = $scope.leasingFiles.filter(f => {return f.varName === 'uploadSignedOwnerLeaseContractFiles'});
+                console.log('--thisTaskFiles--')
+                console.log(thisTaskFiles)
+                console.log('-----------------')
                 if(!camForm.variableManager.variables['uploadSignedOwnerLeaseContractFiles'].type){
                     camForm.variableManager.destroyVariable('uploadSignedOwnerLeaseContractFiles');
                     camForm.variableManager.createVariable({
                         name: 'uploadSignedOwnerLeaseContractFiles',
                         type: 'Json',
-                        value: $scope.uploadSignedOwnerLeaseContractFiles
+                        value: thisTaskFiles
                     });
                 } else {
-                    camForm.variableManager.variableValue('uploadSignedOwnerLeaseContractFiles', $scope.uploadSignedOwnerLeaseContractFiles);
+                    camForm.variableManager.variableValue('uploadSignedOwnerLeaseContractFiles', thisTaskFiles);
                 }
                 camForm.variableManager.destroyVariable('resolutions');
             });
@@ -219,10 +262,10 @@
                 var fileIndex = $scope[fileName].length;
 
                 var fileToUpload = {
-                    name: file.name.replace(/[/\\?%*:|"<>]/g, '-'),
-                    path: $scope.processInstanceId + '/' + camForm.taskId + '/' + file.name.replace(/[/\\?%*:|"<>]/g, '-'),
                     date: new Date(),
-                    author: $scope.taskAssignee
+                    author:  $scope.taskAssignee,
+                    name: file.name.replace(/[/\\?%*:|"<>]/g, '-'),
+                    path: $scope.processInstanceId + '/' + camForm.taskId + '/' + file.name.replace(/[/\\?%*:|"<>]/g, '-')
                 };
                 $http({
                     method: 'GET',
@@ -231,8 +274,11 @@
                 }).then(function (response) {
                     $http.put(response.data, file, {headers: {'Content-Type': undefined}}).then(
                             function () {
-                                $scope[fileName].push(fileToUpload);
+                                fileToUpload.varName = 'uploadSignedOwnerLeaseContractFiles';
+                                $scope.leasingFiles.push(fileToUpload);
+                                //$scope[fileName].push(fileToUpload);
                                 angular.element(document.querySelector('#' + fileName)).val(null);
+                                console.log($scope.leasingFiles)
                             },
                             function (error) {
                                 console.log(error.data);
@@ -241,7 +287,7 @@
                 }, function(error){
                     console.log(error.data);
                 });
-            }
+            };
 
             $scope.getContract = function(contractId, index){
                 $http({
@@ -444,7 +490,7 @@
             </accordion-heading>
             <div class="form-group">
                 <label class="col-sm-3 control-label">Acquisition type</label>
-                <div class="col-sm-8">
+                <div class="col-sm-9">
                     <label class="radio-inline">
                         <input type="radio" name="{{$index}}ct_acquisitionType1" id="{{$index}}ct_acquisitionType1" ng-change="changeAcquisitionType($index)" ng-model="cci.ct_acquisitionType"
                                value="newContract"> New Contract
@@ -464,7 +510,7 @@
             </div>
             <div class="form-group">
                 <label class="col-sm-3 control-label">*Contract ID:</label>
-                <div class="col-sm-8">
+                <div class="col-sm-9">
                     <input class="form-control" id="{{'cci.' + $index}}.ct_contractid" name="cci.ct_contractid" ng-model="cci.ct_contractid" ng-required="cci.ct_acquisitionType !== 'additionalAgreement' && uploadSignedOwnerLeaseContractTaskResult !== 'refusal'" ng-disabled="cci.ct_acquisitionType === 'additionalAgreement'">
                     <label class="error" ng-show="kcell_form.cci.ct_contractid.$error.required && ( kcell_form.cci.ct_contractid.$touched || view.submitted)">Required field</label>
                 </div>
@@ -479,7 +525,7 @@
             <!--                </div>-->
             <div class="form-group" ng-show="cci.ct_acquisitionType !== 'newContract'" >
                 <label class="col-sm-3 control-label">Existing Contract ID:</label>
-                <div class="col-sm-6">
+                <div class="col-sm-7">
                     <input class="form-control" id="{{'cci.' + $index}}.ct_contractid_old" name="cci.ct_contractid_old" ng-model="cci.ct_contractid_old" ng-required="cci.ct_acquisitionType !== 'newContract' && uploadSignedOwnerLeaseContractTaskResult !== 'refusal'">
                     <label class="error" ng-show="kcell_form.cci.ct_contractid_old.$error.required && ( kcell_form.cci.ct_contractid_old.$touched || view.submitted)">Required field</label>
                 </div>
@@ -490,7 +536,7 @@
 
             <div class="form-group" ng-hide="cci.ct_acquisitionType !== 'additionalAgreement'">
                 <label class="col-sm-3 control-label">Additional Agreement Type:</label>
-                <div class="col-sm-8" class="form-check">
+                <div class="col-sm-9" class="form-check">
                     <select
                             class="form-control"
                             placeholder="справочник Additional Agreement type"
@@ -508,23 +554,22 @@
 
             <div class="form-group" ng-show="cci.ct_acquisitionType === 'additionalAgreement'">
                 <label class="col-sm-3 control-label">Additional Agreement Number:</label>
-                <div class="col-sm-8">
-                    <input class="form-control" id="{{$index}}_ct_agreement_number" name="{{$index}}_ct_agreement_number" ng-model="cci.ct_agreement_number" ng-required="cci.ct_acquisitionType === 'additionalAgreement' && uploadSignedOwnerLeaseContractTaskResult !== 'refusal'
-">
+                <div class="col-sm-9">
+                    <input class="form-control" id="{{$index}}_ct_agreement_number" name="{{$index}}_ct_agreement_number" ng-model="cci.ct_agreement_number" ng-required="cci.ct_acquisitionType === 'additionalAgreement' && uploadSignedOwnerLeaseContractTaskResult !== 'refusal'">
                     <label class="error" ng-show="kcell_form['{{$index}}_ct_agreement_number'].$error.required && ( kcell_form['{{$index}}_ct_agreement_number'].$touched || view.submitted)">Required field</label>
                 </div>
             </div>
 
             <div class="form-group" ng-show="cci.ct_acquisitionType === 'additionalAgreement'">
                 <label class="col-sm-3 control-label">Additional Agreement Reason:</label>
-                <div class="col-sm-8">
+                <div class="col-sm-9">
                     <input class="form-control" id="{{'cci.' + $index}}.ct_agreement_reason" name="cci.ct_agreement_reason" ng-model="cci.ct_agreement_reason">
                     <label class="error" ng-show="kcell_form.cci.ct_agreement_reason.$error.required && ( kcell_form.cci.ct_agreement_reason.$touched || view.submitted)">Required field</label>
                 </div>
             </div>
             <div class="form-group" ng-show="cci.ct_acquisitionType === 'additionalAgreement'">
                 <label class="col-sm-3 control-label">Additional Agreement Date:</label>
-                <div class="col-sm-8">
+                <div class="col-sm-9">
                     <div class="input-group">
                         <input type="text" ng-model="cci.ct_aa_date" name="{{$index}}_ct_aa_date" id="{{$index}}_ct_aa_date"
                                class="form-control" datepicker-popup="dd.MM.yyyy"
@@ -543,7 +588,7 @@
 
             <div class="form-group" ng-show="cci.ct_acquisitionType === 'additionalAgreement'">
                 <label class="col-sm-3 control-label">Additional Agreement Executor:</label>
-                <div class="col-sm-8" class="form-check">
+                <div class="col-sm-9" class="form-check">
                     <select class="form-control"
                             name="{{$index}}_agreementExecutor"
                             id="{{$index}}_agreementExecutor"
@@ -560,14 +605,14 @@
 
             <div class="form-group">
                 <label class="col-sm-3 control-label">Sitename:</label>
-                <div class="col-sm-8">
+                <div class="col-sm-9">
                     <input class="form-control" id="{{'cci.' + $index}}.ct_sitename" name="cci.ct_sitename" ng-model="cci.ct_sitename" disabled>
                     <label class="error" ng-show="kcell_form.cci.ct_sitename.$error.required && ( kcell_form.cci.ct_sitename.$touched || view.submitted)">Required field</label>
                 </div>
             </div>
             <div class="form-group">
                 <label class="col-sm-3 control-label">Project type:</label>
-                <div class="col-sm-8" class="form-check">
+                <div class="col-sm-9" class="form-check">
                     <select class="form-control"
                             id="{{$index}}_ct_project_type"
                             name="{{$index}}_ct_project_type"
@@ -581,7 +626,7 @@
             </div>
             <div class="form-group">
                 <label class="col-sm-3 control-label">Contract Date:</label>
-                <div class="col-sm-8">
+                <div class="col-sm-9">
                     <div class="input-group">
                         <input type="text" ng-model="cci.ct_contract_date" name="{{$index}}_ct_contract_date" id="{{$index}}_ct_contract_date"
                                class="form-control" datepicker-popup="dd.MM.yyyy"
@@ -600,7 +645,7 @@
             </div>
             <div class="form-group">
                 <label class="col-sm-3 control-label">Contract Executor:</label>
-                <div class="col-sm-8" class="form-check">
+                <div class="col-sm-9" class="form-check">
                     <select class="form-control"
                             id="{{$index}}_ct_executor"
                             name="{{$index}}_ct_executor"
@@ -617,14 +662,14 @@
 
             <div class="form-group">
                 <label class="col-sm-3 control-label">Legal name:</label>
-                <div class="col-sm-8">
+                <div class="col-sm-9">
                     <input class="form-control" id="{{$index}}_ct_legal_name" name="{{$index}}_ct_legal_name" ng-model="cci.ct_legal_name" ng-required="uploadSignedOwnerLeaseContractTaskResult !== 'refusal'">
                     <label class="error" ng-show="kcell_form['{{$index}}_ct_legal_name'].$error.required && ( kcell_form['{{$index}}_ct_legal_name'].$touched || view.submitted)">Required field</label>
                 </div>
             </div>
             <div class="form-group">
                 <label class="col-sm-3 control-label">Legal type:</label>
-                <div class="col-sm-8">
+                <div class="col-sm-9">
                     <select class="form-control" id="{{$index}}_legalType" name="{{$index}}_legalType"
                             ng-model="cci.legalType"
                             ng-required="uploadSignedOwnerLeaseContractTaskResult !== 'refusal'">
@@ -635,7 +680,7 @@
             </div>
             <div class="form-group">
                 <label class="col-sm-3 control-label">Legal address:</label>
-                <div class="col-sm-8">
+                <div class="col-sm-9">
                     <accordion class="content-visible-accordion background-yellow-accordion">
                         <accordion-group is-open="false">
                             <accordion-heading>
@@ -644,7 +689,7 @@
                             </accordion-heading>
                             <div class="form-group">
                                 <label class="col-sm-3 control-label">Oblast:</label>
-                                <div class="col-sm-8" class="form-check">
+                                <div class="col-sm-9" class="form-check">
                                     <select class="form-control" id="ContractInfo_cn_addr{{$index}}_oblast" name="ContractInfo_cn_addr_oblast" ng-model="cci.address.cn_addr_oblast"
                                             ng-change="filterDistrictAfterSelectContractInfoObl(cci.address.cn_addr_oblast, $index)">
                                         <option ng-repeat="oblast in oblastList" ng-value="oblast.name">{{oblast.name}}</option>
@@ -654,7 +699,7 @@
                             </div>
                             <div class="form-group">
                                 <label class="col-sm-3 control-label">District:</label>
-                                <div class="col-sm-8" class="form-check">
+                                <div class="col-sm-9" class="form-check">
                                     <select class="form-control" id="ContractInfo_cn_addr{{$index}}_district" name="ContractInfo_cn_addr_district" ng-model="cci.address.cn_addr_district" ng-disabled="!cci.address.cn_addr_oblast">
                                         <option ng-repeat="district in cci.dictionary.filteredDistricts" ng-value="district.name">{{district.name}}</option>
                                     </select>
@@ -664,7 +709,7 @@
 
                             <div class="form-group">
                                 <label class="col-sm-3 control-label">City / Village:</label>
-                                <div class="col-sm-8">
+                                <div class="col-sm-9">
                                     <input type="text" id="ContractInfo_cn_addr{{$index}}_city" ng-model="cci.address.cn_addr_city" ng-value='city.name' name="ContractInfo_n_addr_city" typeahead="city.name for city in getContractInfoCity($viewValue, $index)" typeahead-on-select="ContractInfoAddressCitySelected($item, $index)" class="form-control" ng-required="uploadSignedOwnerLeaseContractTaskResult !== 'refusal'" placeholder="Start typing...">
                                     <label class="error" ng-show="kcell_form.ContractInfo_cn_addr_city.$error.required && ( kcell_form.ContractInfo_cn_addr_city.$touched || view.submitted)">Required field</label>
                                 </div>
@@ -679,28 +724,28 @@
                             </div>
                             <div class="form-group">
                                 <label class="col-sm-3 control-label">{{!address.ca_not_full_addres ? '*' : ''}}Street:</label>
-                                <div class="col-sm-8">
+                                <div class="col-sm-9">
                                     <input class="form-control" id="ContractInfo_cn_addr{{$index}}_street" name="ContractInfo_cn_addr_street" ng-model="cci.address.cn_addr_street" ng-required="!cci.address.ca_not_full_addres && uploadSignedOwnerLeaseContractTaskResult !== 'refusal'">
                                     <label class="error" ng-show="kcell_form.ContractInfo_cn_addr_street.$error.required && ( kcell_form.ContractInfo_cn_addr_street.$touched || view.submitted)">Required field</label>
                                 </div>
                             </div>
                             <div class="form-group">
                                 <label class="col-sm-3 control-label">{{!address.ca_not_full_addres ? '*' : ''}}Building:</label>
-                                <div class="col-sm-8">
+                                <div class="col-sm-9">
                                     <input class="form-control" id="ContractInfo_cn_addr{{$index}}_building" name="ContractInfo_cn_addr_building" ng-model="cci.address.cn_addr_building" ng-required="!cci.address.ca_not_full_addres && uploadSignedOwnerLeaseContractTaskResult !== 'refusal'">
                                     <label class="error" ng-show="kcell_form.ContractInfo_cn_addr_building.$error.required && ( kcell_form.ContractInfo_cn_addr_building.$touched || view.submitted)">Required field</label>
                                 </div>
                             </div>
                             <div class="form-group">
                                 <label class="col-sm-3 control-label">{{address.ca_not_full_addres ? '*' : ''}}Cadastral number:</label>
-                                <div class="col-sm-8">
+                                <div class="col-sm-9">
                                     <input class="form-control" id="ContractInfo_cn_addr{{$index}}_cadastral_number" name="ContractInfo_cn_addr_cadastral_number" ng-model="cci.address.cn_addr_cadastral_number" ng-required="cci.address.ca_not_full_addres && uploadSignedOwnerLeaseContractTaskResult !== 'refusal'">
                                     <label class="error" ng-show="kcell_form.ContractInfo_cn_addr_cadastral_number.$error.required && ( kcell_form.ContractInfo_cn_addr_cadastral_number.$touched || view.submitted)">Required field</label>
                                 </div>
                             </div>
                             <div class="form-group">
                                 <label class="col-sm-3 control-label">{{address.ca_not_full_addres ? '*' : ''}}Note to the address:</label>
-                                <div class="col-sm-8">
+                                <div class="col-sm-9">
                                     <input class="form-control" id="ContractInfo_cn_addr{{$index}}_note" name="ContractInfo_cn_addr_note" ng-model="cci.address.cn_addr_note" ng-required="cci.address.ca_not_full_addres && uploadSignedOwnerLeaseContractTaskResult !== 'refusal'">
                                     <label class="error" ng-show="kcell_form.ContractInfo_cn_addr_note.$error.required && ( kcell_form.ContractInfo_cn_addr_note.$touched || view.submitted)">Required field</label>
                                 </div>
@@ -713,42 +758,42 @@
             <br>
             <div class="form-group">
                 <label class="col-sm-3 control-label">Head of organization:</label>
-                <div class="col-sm-8">
+                <div class="col-sm-9">
                     <input class="form-control" id="ct_head" name="ct_head" ng-model="cci.ct_head">
                     <label class="error" ng-show="kcell_form.ct_head.$error.required && ( kcell_form.ct_head.$touched || view.submitted)">Required field</label>
                 </div>
             </div>
             <div class="form-group">
                 <label class="col-sm-3 control-label">Contact Person:</label>
-                <div class="col-sm-8">
+                <div class="col-sm-9">
                     <input class="form-control" id="ct_contact_person" name="ct_contact_person" ng-model="cci.ct_contact_person">
                     <label class="error" ng-show="kcell_form.ct_contact_person.$error.required && ( kcell_form.ct_contact_person.$touched || view.submitted)">Required field</label>
                 </div>
             </div>
             <div class="form-group">
                 <label class="col-sm-3 control-label">Contact Person phone:</label>
-                <div class="col-sm-8">
+                <div class="col-sm-9">
                     <input class="form-control" id="{{$index}}_ct_contact_phone" name="{{$index}}_ct_contact_phone" ng-model="cci.ct_contact_phone" ng-required="uploadSignedOwnerLeaseContractTaskResult !== 'refusal'">
                     <label class="error" ng-show="kcell_form['{{$index}}_ct_contact_phone'].$error.required && ( kcell_form['{{$index}}_ct_contact_phone'].$touched || view.submitted)">Required field</label>
                 </div>
             </div>
             <div class="form-group">
                 <label class="col-sm-3 control-label">BIN/IIN:</label>
-                <div class="col-sm-8">
+                <div class="col-sm-9">
                     <input class="form-control" type="number" id="{{$index}}_ct_bin" name="{{$index}}_ct_bin" ng-model="cci.ct_bin" ng-required="uploadSignedOwnerLeaseContractTaskResult !== 'refusal'">
                     <label class="error" ng-show="kcell_form['{{$index}}_ct_bin'].$error.required && ( kcell_form['{{$index}}_ct_bin'].$touched || view.submitted)">Required field</label>
                 </div>
             </div>
             <div class="form-group">
                 <label class="col-sm-3 control-label">IBAN:</label>
-                <div class="col-sm-8">
+                <div class="col-sm-9">
                     <input class="form-control" id="{{$index}}_ct_iban" name="{{$index}}_ct_iban" ng-model="cci.ct_iban" ng-required="uploadSignedOwnerLeaseContractTaskResult !== 'refusal'">
                     <label class="error" ng-show="kcell_form['{{$index}}_ct_iban'].$error.required && ( kcell_form['{{$index}}_ct_iban'].$touched || view.submitted)">Required field</label>
                 </div>
             </div>
             <div class="form-group">
                 <label class="col-sm-3 control-label">BIC:</label>
-                <div class="col-sm-8" class="form-check">
+                <div class="col-sm-9" class="form-check">
                     <select class="form-control"
                             id="{{$index}}ct_bic"
                             name="{{$index}}ct_bic"
@@ -762,7 +807,7 @@
             </div>
             <div class="form-group">
                 <label class="col-sm-3 control-label">Bank Name:</label>
-                <div class="col-sm-8" class="form-check">
+                <div class="col-sm-9" class="form-check">
                     <select class="form-control"
                             id="{{$index}}ct_bankname"
                             name="{{$index}}ct_bankname"
@@ -776,7 +821,7 @@
             </div>
             <div class="form-group">
                 <label class="col-sm-3 control-label">Contract type:</label>
-                <div class="col-sm-8" class="form-check">
+                <div class="col-sm-9" class="form-check">
                     <select class="form-control"
                             id="{{$index}}ct_contract_type"
                             name="{{$index}}ct_contract_type"
@@ -789,7 +834,7 @@
             </div>
             <div class="form-group">
                 <label class="col-sm-3 control-label">Rent Sum:</label>
-                <div class="col-sm-8">
+                <div class="col-sm-9">
                     <input class="form-control" type="number" id="{{$index}}ct_rent" ng-change="finallyRentSum($index, cci.ct_rent)" name="{{$index}}ct_rent" ng-model="cci.ct_rent" ng-required="uploadSignedOwnerLeaseContractTaskResult !== 'refusal'">
                     <label class="error" ng-show="kcell_form['{{$index}}ct_rent'].$error.required && ( kcell_form['{{$index}}ct_rent'].$touched || view.submitted)">Required field</label>
                 </div>
@@ -797,13 +842,13 @@
             </div>
             <div class="form-group">
                 <label class="col-sm-3 control-label">Rent Sum All:</label>
-                <div class="col-sm-8">
+                <div class="col-sm-9">
                     <input class="form-control" type="number" disabled id="ct_rent_all"  name="ct_rent_all" ng-model="cci.ct_rent_all">
                 </div>
             </div>
             <div class="form-group">
                 <label class="col-sm-3 control-label">Need VAT</label>
-                <div class="col-sm-8">
+                <div class="col-sm-9">
                     <label class="radio-inline">
                         <input type="radio" name="{{$index}}ct_checkvatTrue" ng-change="finallyRentSum($index, cci.ct_rent)" id="{{$index}}ct_checkvatTrue" ng-model="cci.ct_checkvat"
                                ng-required="uploadSignedOwnerLeaseContractTaskResult !== 'refusal'"
@@ -821,21 +866,21 @@
             </div>
             <div class="form-group">
                 <label class="col-sm-3 control-label">Power in Rent Sum:</label>
-                <div class="col-sm-8">
+                <div class="col-sm-9">
                     <input class="form-control" type="number" id="ct_rent_power" name="ct_rent_power" ng-model="cci.ct_rent_power" ng-required="cci.ct_contract_type.name!=='Rent' && cci.ct_contract_type.name=='One payment' && cci.ct_contract_type.name=='Verbal agreement' && uploadSignedOwnerLeaseContractTaskResult !== 'refusal'">
                     <label class="error" ng-show="kcell_form.ct_rent_power.$error.required && ( kcell_form.ct_rent_power.$touched || view.submitted)">Required field</label>
                 </div>
             </div>
             <div class="form-group">
                 <label class="col-sm-3 control-label">Rent Area:</label>
-                <div class="col-sm-8">
+                <div class="col-sm-9">
                     <input class="form-control" type="number" id="{{$index}}ct_rent_area" name="{{$index}}ct_rent_area" ng-model="cci.ct_rent_area" ng-required="uploadSignedOwnerLeaseContractTaskResult !== 'refusal'">
                     <label class="error" ng-show="kcell_form['{{$index}}ct_rent_area'].$error.required && ( kcell_form['{{$index}}ct_rent_area'].$touched || view.submitted)">Required field</label>
                 </div>
             </div>
             <!--                <div class="form-group">-->
             <!--                    <label class="col-sm-3 control-label">VAT:</label>-->
-            <!--                    <div class="col-sm-8">-->
+            <!--                    <div class="col-sm-9">-->
             <!--                        <input class="form-control" ng-disabled="cci.ct_checkvat !== 'Yes'" type="number" id="ct_vat" name="ct_vat" ng-model="cci.ct_vat" ng-required="cci.ct_checkvat === 'Yes'">-->
             <!--                        <label class="error" ng-show="kcell_form.ct_vat.$error.required && ( kcell_form.ct_vat.$touched || view.submitted)">Required field</label>-->
             <!--                    </div>-->
@@ -845,21 +890,21 @@
 
             <div class="form-group">
                 <label class="col-sm-3 control-label">Contract SAP №:</label>
-                <div class="col-sm-8">
+                <div class="col-sm-9">
                     <input class="form-control" type="number" id="ct_contract_sap" name="ct_contract_sap" ng-model="cci.ct_contract_sap" ng-required="!address.ca_not_full_addres && uploadSignedOwnerLeaseContractTaskResult !== 'refusal'">
                     <label class="error" ng-show="kcell_form.ct_contract_sap.$error.required && ( kcell_form.ct_contract_sap.$touched || view.submitted)">Required field</label>
                 </div>
             </div>
             <div class="form-group">
                 <label class="col-sm-3 control-label">Vendor SAP №:</label>
-                <div class="col-sm-8">
+                <div class="col-sm-9">
                     <input class="form-control" type="number" id="ct_vendor_sap" name="ct_vendor_sap" ng-model="cci.ct_vendor_sap" ng-required="!address.ca_not_full_addres && uploadSignedOwnerLeaseContractTaskResult !== 'refusal'">
                     <label class="error" ng-show="kcell_form.ct_vendor_sap.$error.required && ( kcell_form.ct_vendor_sap.$touched || view.submitted)">Required field</label>
                 </div>
             </div>
             <div class="form-group">
                 <label class="col-sm-3 control-label">Access Status:</label>
-                <div class="col-sm-8" class="form-check">
+                <div class="col-sm-9" class="form-check">
                     <select class="form-control"
                             id="ct_access_status"
                             name="ct_access_status"
@@ -872,7 +917,7 @@
             </div>
             <div class="form-group">
                 <label class="col-sm-3 control-label">Payment Period:</label>
-                <div class="col-sm-8" class="form-check">
+                <div class="col-sm-9" class="form-check">
                     <select class="form-control"
                             id="ct_payment_period"
                             name="ct_payment_period"
@@ -885,7 +930,7 @@
             </div>
             <div class="form-group">
                 <label class="col-sm-3 control-label">Currency:</label>
-                <div class="col-sm-8" class="form-check">
+                <div class="col-sm-9" class="form-check">
                     <select class="form-control"
                             id="{{$index}}ct_currency_type"
                             name="{{$index}}ct_currency_type"
@@ -898,7 +943,7 @@
             </div>
             <div class="form-group">
                 <label class="col-sm-3 control-label">Contract Start date:</label>
-                <div class="col-sm-8">
+                <div class="col-sm-9">
                     <div class="input-group">
                         <input type="text" ng-model="cci.ct_contract_start_date" name="{{$index}}ct_contract_start_date" id="{{$index}}ct_contract_start_date"
                                class="form-control" datepicker-popup="dd.MM.yyyy"
@@ -917,7 +962,7 @@
             </div>
             <div class="form-group">
                 <label class="col-sm-3 control-label">Contract End date:</label>
-                <div class="col-sm-8">
+                <div class="col-sm-9">
                     <div class="input-group">
                         <input type="text" ng-model="cci.ct_contract_end_date" name="{{$index}}ct_contract_end_date" id="{{$index}}ct_contract_end_date"
                                class="form-control" datepicker-popup="dd.MM.yyyy"
@@ -936,7 +981,7 @@
             </div>
             <div class="form-group">
                 <label class="col-sm-3 control-label">Area Act of Acceptance date:</label>
-                <div class="col-sm-8">
+                <div class="col-sm-9">
                     <div class="input-group">
                         <input type="text" ng-model="cci.ct_acceptance_act_date" id="{{$index}}ct_acceptance_act_date" name="{{$index}}ct_acceptance_act_date"
                                class="form-control" datepicker-popup="dd.MM.yyyy"
@@ -955,7 +1000,7 @@
             </div>
             <div class="form-group">
                 <label class="col-sm-3 control-label">Autoprolongation</label>
-                <div class="col-sm-8">
+                <div class="col-sm-9">
                     <label class="radio-inline">
                         <input type="radio" name="{{$index}}ct_autoprolongationTrue" id="{{$index}}ct_autoprolongationTrue" ng-model="cci.ct_autoprolongation"
                                ng-required="uploadSignedOwnerLeaseContractTaskResult !== 'refusal'"
@@ -973,7 +1018,7 @@
             </div>
             <div class="form-group">
                 <label class="col-sm-3 control-label">IFRS 16</label>
-                <div class="col-sm-8">
+                <div class="col-sm-9">
                     <label class="radio-inline">
                         <input type="radio" name="{{$index}}ct_ifrs16True" id="cci.{{$index}}ct_ifrs16True" ng-model="cci.ct_ifrs16"
                                ng-required="uploadSignedOwnerLeaseContractTaskResult !== 'refusal'"
@@ -1000,26 +1045,23 @@
     <div class="col-sm-12">
         <input type="button" ng-click="addContract()" value="Add New Contract" class="btn btn-primary pull-right">
     </div>
+
+    <leasing-attachments leasing-files="leasingFiles" task-key="taskKey" modify="'true'"></leasing-attachments>
     <iframe id="fileDownloadIframe" style="display:none;"></iframe>
-
-    <leasing-attachments leasing-files="leasingFiles"></leasing-attachments>
-
     <div class="form-group">
-        <label class="col-md-4 control-label">Upload signed a lease contract:</label>
-        <div class="col-sm-8">
-            <div ng-show="uploadSignedOwnerLeaseContractFiles.length > 0" class="input-group" ng-repeat="file in uploadSignedOwnerLeaseContractFiles">
-                {{$index + 1}}.
-                <a ng-click="fileDownload(file)">{{file.name}}</a> | <a ng-click="clearFile('uploadSignedOwnerLeaseContractFiles', $index)"><i class="glyphicon glyphicon-trash"></i></a>
-            </div>
+        <label class="col-sm-3 control-label"></label>
+        <div class="col-sm-9">
             <ng-form name="kcell_material_file_form">
-                <input type="file" class="form-control" id="uploadSignedOwnerLeaseContractFiles" name="uploadSignedOwnerLeaseContractFiles" ng-model="file.file" onchange="angular.element(this).scope().fileSelected(this, 'uploadSignedOwnerLeaseContractFiles')" />
-                <label class="has-error" ng-show="kcell_material_file_form.uploadSignedOwnerLeaseContractFiles.$error.validFile && (kcell_material_file_form.uploadSignedOwnerLeaseContractFiles.$touched || view.submitted)">File is required</label>
+                <input type="file" class="form-control" id="uploadSignedOwnerLeaseContractFiles"
+                       name="uploadSignedOwnerLeaseContractFiles" ng-model="file.file"
+                       onchange="angular.element(this).scope().fileSelected(this, 'uploadSignedOwnerLeaseContractFiles')"/>
             </ng-form>
         </div>
     </div>
+
     <div class="form-group">
-        <label class="col-sm-4 control-label">Rent Request Status</label>
-        <div class="col-sm-8">
+        <label class="col-sm-3 control-label">Rent Request Status</label>
+        <div class="col-sm-9">
             <label class="radio-inline">
                 <input type="radio" name="uploadSignedOwnerLeaseContractTaskResult" ng-model="uploadSignedOwnerLeaseContractTaskResult" value="performed" required>PERFORMED
             </label>
@@ -1031,8 +1073,8 @@
     </div>
 
     <div class="form-group">
-        <label class="col-sm-4 control-label">Comments</label>
-        <div class="col-sm-8">
+        <label class="col-sm-3 control-label">Comments</label>
+        <div class="col-sm-9">
             <textarea class="form-control" ng-model="uploadSignedOwnerLeaseContractTaskComment" name="uploadSignedOwnerLeaseContractTaskComment" placeholder="Comments..." maxlength="500" rows="4" style="resize:none"></textarea>
         </div>
     </div>
