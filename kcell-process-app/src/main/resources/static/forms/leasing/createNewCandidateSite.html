@@ -1,4 +1,4 @@
-<form role="form" class="form-horizontal" name="kcell_form" novalidate>
+near<form role="form" class="form-horizontal" name="kcell_form" novalidate>
     <style>
         .background-yellow-accordion .panel-body {
             background-color: #ffffcc;
@@ -626,16 +626,22 @@
             }
 
             $scope.filterDistrictAfterSelectOblInNEI = function (cn_addr_oblast) {
-                $scope.transmissionAntenna.address.cn_addr_oblast = cn_addr_oblast
-                $scope.transmissionAntenna.address.cn_addr_district = ''
-                $scope.transmissionAntenna.address.cn_addr_city = ''
-                if($scope.transmissionAntenna.address.cn_addr_oblast && $scope.transmissionAntenna.address.cn_addr_oblast !== ''){
-                    $scope.filteredByOblast = $scope.dictionary.addresses.filter(a => {return a.oblast === $scope.cellAntenna.address.cn_addr_oblast});
-                    $scope.filteredDistrictsInNEI = _.uniqBy($scope.filteredByOblast, 'district').map( (e, index) => { return {"name" : e.district, "id" : index} });
-                    $scope.cityList = _.uniqBy($scope.filteredByOblast, 'city').map( (e, index) => { return {"name" : e.city, "id" : index} });
-                } else {
-                    $scope.filteredDistrictsInNEI = $scope.districtList;
-                    $scope.cityList = _.uniqBy($scope.dictionary.addresses, 'city').map( (e, index) => { return {"name" : e.city, "id" : index} });
+                console.log(JSON.parse(JSON.stringify(cn_addr_oblast)));
+                console.log(JSON.parse(JSON.stringify($scope.transmissionAntenna.address.cn_addr_oblast)));
+                try{
+                    $scope.transmissionAntenna.address.cn_addr_oblast = cn_addr_oblast;
+                    $scope.transmissionAntenna.address.cn_addr_district = '';
+                    $scope.transmissionAntenna.address.cn_addr_city = '';
+                    if($scope.transmissionAntenna.address.cn_addr_oblast && $scope.transmissionAntenna.address.cn_addr_oblast !== ''){
+                        $scope.filteredByOblast = $scope.dictionary.addresses.filter(a => {return a.oblast === $scope.transmissionAntenna.address.cn_addr_oblast});
+                        $scope.filteredDistrictsInNEI = _.uniqBy($scope.filteredByOblast, 'district').map( (e, index) => { return {"name" : e.district, "id" : index} });
+                        $scope.cityList = _.uniqBy($scope.filteredByOblast, 'city').map( (e, index) => { return {"name" : e.city, "id" : index} });
+                    } else {
+                        $scope.filteredDistrictsInNEI = $scope.districtList;
+                        $scope.cityList = _.uniqBy($scope.dictionary.addresses, 'city').map( (e, index) => { return {"name" : e.city, "id" : index} });
+                    }
+                } catch (e) {
+                    console.log(e);
                 }
             }
 
@@ -705,13 +711,17 @@
             $scope.cellAntennaDiffAddressChecked = function (checkedStatus) {
                 if(!checkedStatus) {
                     $scope.cellAntenna.address = JSON.parse(JSON.stringify($scope.address))
-                    $scope.filterDistrictAfterSelectOblInNEI(transmissionAntenna.address.cn_addr_oblast)
+                    $scope.filterDistrictAfterSelectOblInNEI($scope.transmissionAntenna.address.cn_addr_oblast)
                 }
             };
             $scope.nearEndDiffAddressChecked = function (checkedStatus) {
-                if(!checkedStatus) {
-                    $scope.transmissionAntenna.address = JSON.parse(JSON.stringify($scope.address))
-                    $scope.filterDistrictAfterSelectOblInNEI(transmissionAntenna.address.cn_addr_oblast)
+                try{
+                    if(!checkedStatus) {
+                        $scope.transmissionAntenna.address = JSON.parse(JSON.stringify($scope.address))
+                        $scope.filterDistrictAfterSelectOblInNEI($scope.transmissionAntenna.address.cn_addr_oblast)
+                    }
+                } catch(e) {
+                    console.log(e);
                 }
             };
 
@@ -1195,9 +1205,17 @@
                         keys.forEach(function (key) {
                             if (!key.startsWith('$')) {
                                 fields.forEach(function (field) {
-                                    if (key.startsWith(field)) {
-                                        if ($scope.kcell_form[key].$error) {
-                                            error = error || ($scope.kcell_form[key].$error.required && ($scope.kcell_form[key].$touched || $scope.view.submitted));
+                                    if(block === 'nearEndInformation'){
+                                        if (key === field) {
+                                            if ($scope.kcell_form[key].$error) {
+                                                error = error || ($scope.kcell_form[key].$error.required && ($scope.kcell_form[key].$touched || $scope.view.submitted));
+                                            }
+                                        }
+                                    } else {
+                                        if (key.startsWith(field)) {
+                                            if ($scope.kcell_form[key].$error) {
+                                                error = error || ($scope.kcell_form[key].$error.required && ($scope.kcell_form[key].$touched || $scope.view.submitted));
+                                            }
                                         }
                                     }
                                 });
@@ -1239,7 +1257,7 @@
                     <div class="col-sm-5">
                         <div class="input-group">
                             <input type="text" ng-model="candidate.dateOfVisit" name="dateOfVisit" class="form-control"
-                                   datepicker-popup="dd.MM.yyyy" is-open="dateOfVisitFieldOpened" id="dateOfVisit"/>
+                                   datepicker-popup="dd.MM.yyyy" is-open="dateOfVisitFieldOpened" id="dateOfVisit" required/>
                             <span class="input-group-btn">
                                 <button type="button" class="btn btn-default" ng-click="dateOfVisitFieldOpened = true">
                                     <i class="glyphicon glyphicon-calendar"></i>
@@ -1346,17 +1364,11 @@
                             <!-- <label class="form-check-label" for="{{'check' + $index}}">{{ l.title }}</label> -->
                         <!-- </div> -->
                         
-                         <label class="form-check" style="display:inline-block; padding:0 !important; margin-right: 10px;"> 
-                            <input type="radio" name="rbsLocation" ng-value="{title:'Room', value:true}" ng-model="candidate.rbsLocation" required>Room</label>
-                        <label class="form-check" style="display:inline-block; padding:0 !important; margin-right: 10px;">
-                            <input type="radio" name="rbsLocation" ng-value="{title:'Container', value:true}" ng-model="candidate.rbsLocation" required>Container</label>
-                        <label class="form-check" style="display:inline-block; padding:0 !important; margin-right: 10px;">
-                            <input type="radio" name="rbsLocation" ng-value="{title:'Other', value:true}" ng-model="candidate.rbsLocation" required>Other</label>
-                        <label class="form-check" style="display:inline-block; padding:0 !important; margin-right: 10px;">
-                            <input type="radio" name="rbsLocation" ng-value="{title:'Outdoor', value:true}" ng-model="candidate.rbsLocation" required>Outdoor</label>
-                        <label class="error"
-                               ng-show="kcell_form.rbsLocation.$error.required && ( checkRbsLocationTouched || view.submitted)">Required
-                            field</label>
+                        <label class="form-check" style="display:inline-block; padding:0 !important; margin-right: 10px;"><input type="radio" name="rbsLocation" ng-value="{title:'Room', value:true}" ng-model="candidate.rbsLocation" required>Room</label>
+                        <label class="form-check" style="display:inline-block; padding:0 !important; margin-right: 10px;"><input type="radio" name="rbsLocation" ng-value="{title:'Container', value:true}" ng-model="candidate.rbsLocation" required>Container</label>
+                        <label class="form-check" style="display:inline-block; padding:0 !important; margin-right: 10px;"><input type="radio" name="rbsLocation" ng-value="{title:'Other', value:true}" ng-model="candidate.rbsLocation" required>Other</label>
+                        <label class="form-check" style="display:inline-block; padding:0 !important; margin-right: 10px;"><input type="radio" name="rbsLocation" ng-value="{title:'Outdoor', value:true}" ng-model="candidate.rbsLocation" required>Outdoor</label>
+                        <label class="error" ng-show="kcell_form.rbsLocation.$error.required && ( checkRbsLocationTouched || view.submitted)">Required field</label>
 
                     </div>
                 </div>
@@ -1388,7 +1400,7 @@
                             <label class="col-sm-3 control-label">Oblast:</label>
                             <div class="col-sm-8" class="form-check">
                                 <select class="form-control" id="cn_addr_oblast" name="cn_addr_oblast" ng-model="address.cn_addr_oblast"
-                                     ng-change="filterDistrictAfterSelectObl(address.cn_addr_oblast)">
+                                     ng-change="filterDistrictAfterSelectObl(address.cn_addr_oblast)" required>
                                     <option ng-repeat="oblast in oblastList" ng-value="oblast.name">{{oblast.name}}</option>
                                 </select>
                                 <label class="error" ng-show="kcell_form.cn_addr_oblast.$error.required && ( kcell_form.cn_addr_oblast.$touched || view.submitted)">Required field</label>
@@ -1398,7 +1410,7 @@
                             <label class="col-sm-3 control-label">District:</label>
                             <div class="col-sm-8" class="form-check">
                                 <select class="form-control" id="cn_addr_district" name="cn_addr_district" ng-model="address.cn_addr_district" ng-disabled="!address.cn_addr_oblast">
-                                    <option ng-repeat="district in filteredDistricts" ng-value="district.name">{{district.name}}</option>
+                                    <option ng-repeat="district in filteredDistricts" ng-value="district.name" required>{{district.name}}</option>
                                 </select>
                                 <label class="error" ng-show="kcell_form.cn_addr_district.$error.required && ( kcell_form.cn_addr_district.$touched || view.submitted)">Required field</label>
                             </div>
@@ -1694,9 +1706,6 @@
                                     <input type="radio" name="cn_gsm900" ng-model="cellAntenna.cn_gsm900" ng-checked="true"
                                             value="No"> No
                                 </label>
-                                <label class="error"
-                                        ng-show="kcell_form.provideUs3Phase.$error.required && ( kcell_form.provideUs3Phase.$touched || view.submitted)">Required
-                                    field</label>
                             </div>
                             <label class="col-sm-4 control-label">LTE 800:</label>
                             <div class="col-sm-2">
@@ -1708,9 +1717,6 @@
                                     <input type="radio" name="cn_lte800" ng-model="cellAntenna.cn_lte800" ng-checked="true"
                                             value="No"> No
                                 </label>
-                                <label class="error"
-                                        ng-show="kcell_form.cn_lte800.$error.required && ( kcell_form.cn_lte800.$touched || view.submitted)">Required
-                                    field</label>
                             </div>
                         </div>
                         <div class="form-group">
@@ -1724,9 +1730,6 @@
                                     <input type="radio" name="cn_dcs1800" ng-model="cellAntenna.cn_dcs1800" ng-checked="true"
                                             value="No"> No
                                 </label>
-                                <label class="error"
-                                        ng-show="kcell_form.provideUs3Phase.$error.required && ( kcell_form.provideUs3Phase.$touched || view.submitted)">Required
-                                    field</label>
                             </div>
                             <label class="col-sm-4 control-label">RET LTE 800:</label>
                             <div class="col-sm-2">
@@ -1738,9 +1741,6 @@
                                     <input type="radio" name="cn_ret_lte800" ng-model="cellAntenna.cn_ret_lte800" ng-checked="true"
                                             value="No"> No
                                 </label>
-                                <label class="error"
-                                        ng-show="kcell_form.cn_ret_lte800.$error.required && ( kcell_form.cn_ret_lte800.$touched || view.submitted)">Required
-                                    field</label>
                             </div>
                         </div>
                         <div class="form-group">
@@ -1754,9 +1754,6 @@
                                     <input type="radio" name="cn_wcdma2100" ng-model="cellAntenna.cn_wcdma2100" ng-checked="true"
                                             value="No"> No
                                 </label>
-                                <label class="error"
-                                        ng-show="kcell_form.provideUs3Phase.$error.required && ( kcell_form.provideUs3Phase.$touched || view.submitted)">Required
-                                    field</label>
                             </div>
                             <label class="col-sm-4 control-label">LTE 1800:</label>
                             <div class="col-sm-2">
@@ -1768,9 +1765,6 @@
                                     <input type="radio" name="cn_lte1800" ng-model="cellAntenna.cn_lte1800" ng-checked="true"
                                             value="No"> No
                                 </label>
-                                <label class="error"
-                                        ng-show="kcell_form.cn_lte1800.$error.required && ( kcell_form.cn_lte1800.$touched || view.submitted)">Required
-                                    field</label>
                             </div>
                         </div>
                         <div class="form-group">
@@ -1784,282 +1778,201 @@
                                     <input type="radio" name="cn_umts900" ng-model="cellAntenna.cn_umts900" ng-checked="true"
                                             value="No"> No
                                 </label>
-                                <label class="error"
-                                        ng-show="kcell_form.provideUs3Phase.$error.required && ( kcell_form.provideUs3Phase.$touched || view.submitted)">Required
-                                    field</label>
                             </div>
                             <label class="col-sm-4 control-label">RET LTE 1800:</label>
                             <div class="col-sm-2">
                                 <label class="radio-inline">
-                                    <input type="radio" name="cn_ret_lte1800" ng-model="cellAntenna.cn_ret_lte1800" required
+                                    <input type="radio" name="cn_ret_lte1800" ng-model="cellAntenna.cn_ret_lte1800"
                                             value="Yes"> Yes
                                 </label>
                                 <label class="radio-inline">
-                                    <input type="radio" name="cn_ret_lte1800" ng-model="cellAntenna.cn_ret_lte1800" required ng-checked="true"
+                                    <input type="radio" name="cn_ret_lte1800" ng-model="cellAntenna.cn_ret_lte1800" ng-checked="true"
                                             value="No"> No
                                 </label>
-                                <label class="error"
-                                        ng-show="kcell_form.cn_ret_lte1800.$error.required && ( kcell_form.cn_ret_lte1800.$touched || view.submitted)">Required
-                                    field</label>
                             </div>
                         </div>
                         <div class="form-group">
                             <label class="col-sm-4 control-label">Required TRX 900/1800:</label>
                             <div class="col-sm-2">
-                                <input class="form-control" type="number" id="cn_trx" name="cn_trx" required
+                                <input class="form-control" type="number" id="cn_trx" name="cn_trx"
                                         ng-model="cellAntenna.cn_trx">
-                                <label class="error"
-                                        ng-show="kcell_form.cn_trx.$error.required && ( kcell_form.cn_trx.$touched || view.submitted)">Required
-                                    field</label>
                             </div>
                             <label class="col-sm-4 control-label">LTE 2100:</label>
                             <div class="col-sm-2">
                                 <label class="radio-inline">
-                                    <input type="radio" name="cn_lte2100" ng-model="cellAntenna.cn_lte2100" required ng-change="cellAntenna.cn_ret_lte2100 = cellAntenna.cn_lte2100"
+                                    <input type="radio" name="cn_lte2100" ng-model="cellAntenna.cn_lte2100" ng-change="cellAntenna.cn_ret_lte2100 = cellAntenna.cn_lte2100"
                                             value="Yes"> Yes
                                 </label>
                                 <label class="radio-inline">
-                                    <input type="radio" name="cn_lte2100" ng-model="cellAntenna.cn_lte2100" required ng-checked="true" ng-change="cellAntenna.cn_ret_lte2100 = cellAntenna.cn_lte2100"
+                                    <input type="radio" name="cn_lte2100" ng-model="cellAntenna.cn_lte2100" ng-checked="true" ng-change="cellAntenna.cn_ret_lte2100 = cellAntenna.cn_lte2100"
                                             value="No"> No
                                 </label>
-                                <label class="error"
-                                        ng-show="kcell_form.cn_lte2100.$error.required && ( kcell_form.cn_lte2100.$touched || view.submitted)">Required
-                                    field</label>
                             </div>
                         </div>
                         <div class="form-group">
                             <label class="col-sm-4 control-label">WCDMA Carrier:</label>
                             <div class="col-sm-2">
-                                <input class="form-control" type="number" id="cn_wcdma_carrier" name="cn_wcdma_carrier" required
+                                <input class="form-control" type="number" id="cn_wcdma_carrier" name="cn_wcdma_carrier"
                                         ng-model="cellAntenna.cn_wcdma_carrier">
-                                <label class="error"
-                                        ng-show="kcell_form.cn_wcdma_carrier.$error.required && ( kcell_form.cn_wcdma_carrier.$touched || view.submitted)">Required
-                                    field</label>
                             </div>
                             <label class="col-sm-4 control-label">RET LTE 2100:</label>
                             <div class="col-sm-2">
                                 <label class="radio-inline">
-                                    <input type="radio" name="cn_ret_lte2100" ng-model="cellAntenna.cn_ret_lte2100" required
+                                    <input type="radio" name="cn_ret_lte2100" ng-model="cellAntenna.cn_ret_lte2100"
                                             value="Yes"> Yes
                                 </label>
                                 <label class="radio-inline">
-                                    <input type="radio" name="cn_ret_lte2100" ng-model="cellAntenna.cn_ret_lte2100" required ng-checked="true"
+                                    <input type="radio" name="cn_ret_lte2100" ng-model="cellAntenna.cn_ret_lte2100" ng-checked="true"
                                             value="No"> No
                                 </label>
-                                <label class="error"
-                                        ng-show="kcell_form.cn_ret_lte2100.$error.required && ( kcell_form.cn_ret_lte2100.$touched || view.submitted)">Required
-                                    field</label>
                             </div>
                         </div>
                         <div class="form-group">
                             <label class="col-sm-4 control-label">Antenna Quantity 900/1800/WCDMA:</label>
                             <div class="col-sm-2">
                                 <input class="form-control" type="number" id="cn_gsm_antenna_quantity" name="cn_gsm_antenna_quantity"
-                                        ng-model="cellAntenna.cn_gsm_antenna_quantity" required>
-                                <label class="error"
-                                        ng-show="kcell_form.cn_gsm_antenna_quantity.$error.required && ( kcell_form.cn_gsm_antenna_quantity.$touched || view.submitted)">Required
-                                    field</label>
+                                        ng-model="cellAntenna.cn_gsm_antenna_quantity">
                             </div>
                             <label class="col-sm-4 control-label">Antenna Quantity LTE 800/1800:</label>
                             <div class="col-sm-2">
                                 <input class="form-control" type="number" id="cn_lte_antenna_quantity" name="cn_lte_antenna_quantity"
-                                        ng-model="cellAntenna.cn_lte_antenna_quantity" required>
-                                <label class="error"
-                                        ng-show="kcell_form.cn_lte_antenna_quantity.$error.required && ( kcell_form.cn_lte_antenna_quantity.$touched || view.submitted)">Required
-                                    field</label>
+                                        ng-model="cellAntenna.cn_lte_antenna_quantity">
                             </div>
                         </div>
                         <div class="form-group">
                             <label class="col-sm-4 control-label">Tilt [deg] mechanical 900/1800/WCDMA:</label>
                             <div class="col-sm-2">
                                 <input class="form-control" type="number" id="cn_tilt_mech_gsm" name="cn_tilt_mech_gsm"
-                                        ng-model="cellAntenna.square" required>
-                                <label class="error"
-                                        ng-show="kcell_form.cn_tilt_mech_gsm.$error.required && ( kcell_form.cn_tilt_mech_gsm.$touched || view.submitted)">Required
-                                    field</label>
+                                        ng-model="cellAntenna.square">
                             </div>
                             <label class="col-sm-4 control-label">Tilt [deg] mechanical LTE 800/1800:</label>
                             <div class="col-sm-2">
                                 <input class="form-control" type="number" id="cn_tilt_mech_lte" name="cn_tilt_mech_lte"
-                                        ng-model="cellAntenna.cn_tilt_mech_lte" required>
-                                <label class="error"
-                                        ng-show="kcell_form.cn_tilt_mech_lte.$error.required && ( kcell_form.cn_tilt_mech_lte.$touched || view.submitted)">Required
-                                    field</label>
+                                        ng-model="cellAntenna.cn_tilt_mech_lte">
                             </div>
                         </div>
                         <div class="form-group">
                             <label class="col-sm-4 control-label">Tilt [deg] electrical 900/1800/WCDMA:</label>
                             <div class="col-sm-2">
-                                <input class="form-control" type="number" id="cn_tilt_electr_gsm" name="cn_tilt_electr_gsm" required
+                                <input class="form-control" type="number" id="cn_tilt_electr_gsm" name="cn_tilt_electr_gsm"
                                         ng-model="cellAntenna.cn_tilt_electr_gsm">
-                                <label class="error"
-                                        ng-show="kcell_form.cn_tilt_electr_gsm.$error.required && ( kcell_form.cn_tilt_electr_gsm.$touched || view.submitted)">Required
-                                    field</label>
                             </div>
                             <label class="col-sm-4 control-label">Tilt [deg] electrical LTE 800/1800:</label>
                             <div class="col-sm-2">
-                                <input class="form-control" type="number" id="cn_tilt_electr_lte" name="cn_tilt_electr_lte" required
+                                <input class="form-control" type="number" id="cn_tilt_electr_lte" name="cn_tilt_electr_lte"
                                         ng-model="cellAntenna.cn_tilt_electr_lte">
-                                <label class="error"
-                                        ng-show="kcell_form.cn_tilt_electr_lte.$error.required && ( kcell_form.cn_tilt_electr_lte.$touched || view.submitted)">Required
-                                    field</label>
                             </div>
                         </div>
                         <div class="form-group">
                             <label class="col-sm-4 control-label">Direction [deg] 900/1800/WCDMA:</label>
                             <div class="col-sm-2">
-                                <input class="form-control" type="number" id="cn_direction_gsm" name="cn_direction_gsm" required
+                                <input class="form-control" type="number" id="cn_direction_gsm" name="cn_direction_gsm"
                                         ng-model="cellAntenna.cn_direction_gsm">
-                                <label class="error"
-                                        ng-show="kcell_form.cn_direction_gsm.$error.required && ( kcell_form.cn_direction_gsm.$touched || view.submitted)">Required
-                                    field</label>
                             </div>
                             <label class="col-sm-4 control-label">Direction [deg] LTE 800/1800:</label>
                             <div class="col-sm-2">
-                                <input class="form-control" type="number" id="cn_direction_lte" name="cn_direction_lte" required
+                                <input class="form-control" type="number" id="cn_direction_lte" name="cn_direction_lte"
                                         ng-model="cellAntenna.cn_direction_lte">
-                                <label class="error"
-                                        ng-show="kcell_form.cn_direction_lte.$error.required && ( kcell_form.cn_direction_lte.$touched || view.submitted)">Required
-                                    field</label>
                             </div>
                         </div>
                         <div class="form-group">
                             <label class="col-sm-4 control-label">Height (top of ant) [m] 900/1800/WCDMA:</label>
                             <div class="col-sm-2">
-                                <input class="form-control" type="number" id="cn_height_gsm" name="cn_height_gsm" required
+                                <input class="form-control" type="number" id="cn_height_gsm" name="cn_height_gsm"
                                         ng-model="cellAntenna.cn_height_gsm">
-                                <label class="error"
-                                        ng-show="kcell_form.cn_height_gsm.$error.required && ( kcell_form.cn_height_gsm.$touched || view.submitted)">Required
-                                    field</label>
                             </div>
                             <label class="col-sm-4 control-label">Height (top of ant) [m] LTE 800/1800:</label>
                             <div class="col-sm-2">
-                                <input class="form-control" type="number" id="cn_height_lte" name="cn_height_lte" required
+                                <input class="form-control" type="number" id="cn_height_lte" name="cn_height_lte"
                                         ng-model="cellAntenna.cn_height_lte">
-                                <label class="error"
-                                        ng-show="kcell_form.cn_height_lte.$error.required && ( kcell_form.cn_height_lte.$touched || view.submitted)">Required
-                                    field</label>
                             </div>
                         </div>
                         <br>
                         <div class="form-group">
                             <label class="col-sm-4 control-label">Duplex Filter 900/1800:</label>
                             <div class="col-sm-2">
-                                <input class="form-control" type="text" id="cn_duplex_gsm" name="cn_duplex_gsm" required
+                                <input class="form-control" type="text" id="cn_duplex_gsm" name="cn_duplex_gsm"
                                         ng-model="cellAntenna.cn_duplex_gsm">
-                                <label class="error"
-                                        ng-show="kcell_form.cn_duplex_gsm.$error.required && ( kcell_form.cn_duplex_gsm.$touched || view.submitted)">Required
-                                    field</label>
                             </div>
                             <label class="col-sm-4 control-label">Radio Unit type:</label>
                             <div class="col-sm-2">
                                 <select class="form-control col-sm-2" id="radioUnit" name="radioUnit" ng-model="cellAntenna.cn_radio_unit" >
                                     <option ng-repeat="a in dictionary.radioUnit" ng-value="a.name">{{a.name}}</option>
                                 </select>
-                                <label class="error"
-                                        ng-show="kcell_form.cn_radio_unit.$error.required && ( kcell_form.cn_radio_unit.$touched || view.submitted)">Required
-                                    field</label>
                             </div>
                         </div>
                         <div class="form-group">
                             <label class="col-sm-4 control-label">Diversity 900/1800:</label>
                             <div class="col-sm-2">
-                                <input class="form-control" type="text" id="cn_diversity" name="cn_diversity" required
+                                <input class="form-control" type="text" id="cn_diversity" name="cn_diversity"
                                         ng-model="cellAntenna.cn_diversity">
-                                <label class="error"
-                                        ng-show="kcell_form.cn_diversity.$error.required && ( kcell_form.cn_diversity.$touched || view.submitted)">Required
-                                    field</label>
                             </div>
                             <label class="col-sm-4 control-label">DU type:</label>
                             <div class="col-sm-2">
                                 <select class="form-control col-sm-2" id="dUnit" name="dUnit" ng-model="cellAntenna.cn_du" >
                                     <option ng-repeat="a in dictionary.dUnit" ng-value="a.name">{{a.name}}</option>
                                 </select>
-                                <label class="error"
-                                        ng-show="kcell_form.cn_du.$error.required && ( kcell_form.cn_du.$touched || view.submitted)">Required
-                                    field</label>
                             </div>
                         </div>
                         <div class="form-group">
                             <label class="col-sm-4 control-label">Power Splitter 900/1800:</label>
                             <div class="col-sm-2">
-                                <input class="form-control" type="text" id="cn_power_splitter" name="cn_power_splitter" required
+                                <input class="form-control" type="text" id="cn_power_splitter" name="cn_power_splitter"
                                         ng-model="cellAntenna.cn_power_splitter">
-                                <label class="error"
-                                        ng-show="kcell_form.cn_power_splitter.$error.required && ( kcell_form.cn_power_splitter.$touched || view.submitted)">Required
-                                    field</label>
                             </div>
                         </div>
                         <div class="form-group">
                             <label class="col-sm-4 control-label">Hybrid Combiner Unit (HCU) 900/1800:</label>
                             <div class="col-sm-2">
-                                <input class="form-control" type="text" id="cn_hcu" name="cn_hcu" required
+                                <input class="form-control" type="text" id="cn_hcu" name="cn_hcu"
                                         ng-model="cellAntenna.cn_hcu">
-                                <label class="error"
-                                        ng-show="kcell_form.cn_hcu.$error.required && ( kcell_form.cn_hcu.$touched || view.submitted)">Required
-                                    field</label>
                             </div>
                         </div>
                         <div class="form-group">
                             <label class="col-sm-4 control-label">ASC:</label>
                             <div class="col-sm-2">
                                 <label class="radio-inline">
-                                    <input type="radio" name="cn_asc" ng-model="cellAntenna.cn_asc" required
+                                    <input type="radio" name="cn_asc" ng-model="cellAntenna.cn_asc"
                                             value="Yes"> Yes
                                 </label>
                                 <label class="radio-inline">
-                                    <input type="radio" name="cn_asc" ng-model="cellAntenna.cn_asc" required ng-checked="true"
+                                    <input type="radio" name="cn_asc" ng-model="cellAntenna.cn_asc"  ng-checked="true"
                                             value="No"> No
                                 </label>
-                                <label class="error"
-                                        ng-show="kcell_form.cn_asc.$error.required && ( kcell_form.cn_asc.$touched || view.submitted)">Required
-                                    field</label>
                             </div>
                         </div>
                         <div class="form-group">
                             <label class="col-sm-4 control-label">Remote Electrical Tilt (RET):</label>
                             <div class="col-sm-2">
                                 <label class="radio-inline">
-                                    <input type="radio" name="cn_ret" ng-model="cellAntenna.cn_ret" required ng-checked="true"
+                                    <input type="radio" name="cn_ret" ng-model="cellAntenna.cn_ret" ng-checked="true"
                                             value="Yes"> Yes
                                 </label>
                                 <label class="radio-inline">
-                                    <input type="radio" name="cn_ret" ng-model="cellAntenna.cn_ret" required
+                                    <input type="radio" name="cn_ret" ng-model="cellAntenna.cn_ret"
                                             value="No"> No
                                 </label>
-                                <label class="error"
-                                        ng-show="kcell_form.cn_ret.$error.required && ( kcell_form.cn_ret.$touched || view.submitted)">Required
-                                    field</label>
                             </div>
                         </div>
                         <div class="form-group">
                             <label class="col-sm-4 control-label">TMA 900/1800/WCDMA::</label>
                             <div class="col-sm-2">
-                                <input class="form-control" type="text" id="cn_tma_gsm" name="cn_tma_gsm" required
+                                <input class="form-control" type="text" id="cn_tma_gsm" name="cn_tma_gsm"
                                         ng-model="cellAntenna.cn_tma_gsm">
-                                <label class="error"
-                                        ng-show="kcell_form.cn_tma_gsm.$error.required && ( kcell_form.cn_tma_gsm.$touched || view.submitted)">Required
-                                    field</label>
                             </div>
                         </div>
                         <div class="form-group">
                             <label class="col-sm-4 control-label">TCC 900/1800:</label>
                             <div class="col-sm-2">
-                                <input class="form-control" type="text" id="cn_tcc" name="cn_tcc" required
+                                <input class="form-control" type="text" id="cn_tcc" name="cn_tcc"
                                         ng-model="cellAntenna.cn_tcc">
-                                <label class="error"
-                                        ng-show="kcell_form.cn_tcc.$error.required && ( kcell_form.cn_tcc.$touched || view.submitted)">Required
-                                    field</label>
                             </div>
                         </div>
                         <div class="form-group">
                             <label class="col-sm-4 control-label">Extended range 900/1800:</label>
                             <div class="col-sm-2">
-                                <input class="form-control" type="text" id="cn_gsm_range" name="cn_gsm_range" required
+                                <input class="form-control" type="text" id="cn_gsm_range" name="cn_gsm_range"
                                         ng-model="cellAntenna.cn_gsm_range">
-                                <label class="error"
-                                        ng-show="kcell_form.cn_gsm_range.$error.required && ( kcell_form.cn_gsm_range.$touched || view.submitted)">Required
-                                    field</label>
                             </div>
                         </div>
                     </accordion-group>
@@ -2078,11 +1991,8 @@
                                 <select class="form-control" id="legalType" name="legalType"
                                         ng-model="renterCompany.legalType"
                                         ng-options="type.id as type.desc for type in dictionary.legalType"
-                                        ng-selected="defineSiteObjectType()" required>
+                                        ng-selected="defineSiteObjectType()">
                                 </select>
-                                <label class="error"
-                                       ng-show="kcell_form.legalType.$error.required && ( kcell_form.legalType.$touched || view.submitted)">Required
-                                    field</label>
                             </div>
                         </div>
                         <div class="form-group"
@@ -2135,21 +2045,13 @@
                         <div class="form-group">
                             <label class="col-sm-3 control-label">Position of the 1st Leader:</label>
                             <div class="col-sm-6">
-                                <input class="form-control" id="firstLeaderPos" name="firstLeaderPos"
-                                       ng-model="renterCompany.firstLeaderPos" required>
-                                <label class="error"
-                                       ng-show="kcell_form.firstLeaderPos.$error.required && ( kcell_form.firstLeaderPos.$touched || view.submitted)">Required
-                                    field</label>
+                                <input class="form-control" id="firstLeaderPos" name="firstLeaderPos" ng-model="renterCompany.firstLeaderPos" />
                             </div>
                         </div>
                         <div class="form-group">
                             <label class="col-sm-3 control-label">Email:</label>
                             <div class="col-sm-6">
-                                <input class="form-control email" id="email" name="email" ng-model="renterCompany.email"
-                                       required>
-                                <label class="error"
-                                       ng-show="kcell_form.email.$error.required && ( kcell_form.email.$touched || view.submitted)">Required
-                                    field</label>
+                                <input class="form-control email" id="email" name="email" ng-model="renterCompany.email" />
                             </div>
                         </div>
                         <div class="form-group">
@@ -2167,26 +2069,27 @@
                             </div>
                         </div>
                         <div class="form-group">
+                            <label class="col-sm-3 control-label">Name:</label>
+                            <div class="col-sm-6">
+                                <input class="form-control" id="contactLastName" name="contactLastName"
+                                       ng-model="renterCompany.contactLastName" required>
+                                <label class="error"
+                                       ng-show="kcell_form.contactLastName.$error.required && ( kcell_form.contactLastName.$touched || view.submitted)">Required
+                                    field</label>
+                            </div>
+                        </div>
+                        <div class="form-group">
                             <label class="col-sm-3 control-label">Position:</label>
                             <div class="col-sm-6">
-                                <input class="form-control" id="position" name="position"
-                                       ng-model="renterCompany.contactPosition" required>
-                                <label class="error"
-                                       ng-show="kcell_form.position.$error.required && ( kcell_form.position.$touched || view.submitted)">Required
-                                    field</label>
+                                <input class="form-control" id="position" name="position" ng-model="renterCompany.contactPosition">
                             </div>
                         </div>
                         <div class="form-group">
                             <label class="col-sm-3 control-label">Contact Information:</label>
                             <div class="col-sm-6">
-                                <input class="form-control" id="contractInfo" name="contractInfo"
-                                       ng-model="renterCompany.contactInfo" required>
-                                <label class="error"
-                                       ng-show="kcell_form.contractInfo.$error.required && ( kcell_form.contractInfo.$touched || view.submitted)">Required
-                                    field</label>
+                                <input class="form-control" id="contractInfo" name="contractInfo" ng-model="renterCompany.contactInfo" />
                             </div>
                         </div>
-
                     </accordion-group>
                 </accordion>
 
@@ -2194,8 +2097,7 @@
                 <accordion class="content-visible-accordion">
                     <accordion-group is-open="false">
                         <accordion-heading>
-                            <span ng-class="{'error' : isError('nearEndInformation')}">Near End Information <i class="pull-right glyphicon"
-                                                          ng-class="{'glyphicon-chevron-up': status.isCustomHeaderOpen, 'glyphicon-chevron-down': !status.isCustomHeaderOpen}"></i></span>
+                            <span ng-class="{'error' : isError('nearEndInformation')}">Near End Information <i class="pull-right glyphicon" ng-class="{'glyphicon-chevron-up': status.isCustomHeaderOpen, 'glyphicon-chevron-down': !status.isCustomHeaderOpen}"></i></span>
                         </accordion-heading>
                         <div class="form-group">
                             <label class="col-sm-3 control-label">TR Antenna type:</label>
@@ -2207,9 +2109,6 @@
                                     <option ng-repeat="a in dictionary.antennaType" value="{{a.name}}">{{a.name}}
                                     </option>
                                 </select>
-                                <label class="error"
-                                       ng-show="kcell_form.antennaType.$error.required && ( kcell_form.antennaType.$touched || view.submitted)">Required
-                                    field</label>
                             </div>
                         </div>
                         <div class="form-group">
@@ -2217,9 +2116,6 @@
                             <div class="col-sm-6">
                                 <input type="number" class="form-control" id="antennaQuantity" name="antennaQuantity"
                                        ng-model="transmissionAntenna.antennaQuantity">
-                                <label class="error"
-                                       ng-show="kcell_form.antennaQuantity.$error.required && ( kcell_form.antennaQuantity.$touched || view.submitted)">Required
-                                    field</label>
                             </div>
                         </div>
                         <div class="form-group">
@@ -2230,9 +2126,6 @@
                                         ng-model="transmissionAntenna.frequencyBand">
                                     <option ng-repeat="freq in frequenciesByAntennaType.frequencies">{{freq}}</option>
                                 </select>
-                                <label class="error"
-                                       ng-show="kcell_form.frequencyBand.$error.required && ( kcell_form.frequencyBand.$touched || view.submitted)">Required
-                                    field</label>
                             </div>
                         </div>
 
@@ -2247,11 +2140,7 @@
                         <div class="form-group">
                             <label class="col-sm-3 control-label">Suspension height of antennas (m):</label>
                             <div class="col-sm-6">
-                                <input type="number" class="form-control" id="TRSuspensionHeight"
-                                       name="TRSuspensionHeight" ng-model="transmissionAntenna.suspensionHeight">
-                                <label class="error"
-                                       ng-show="kcell_form.TRSuspensionHeight.$error.required && ( kcell_form.TRSuspensionHeight.$touched || view.submitted)">Required
-                                    field</label>
+                                <input type="number" class="form-control" id="TRSuspensionHeight" name="TRSuspensionHeight" ng-model="transmissionAntenna.suspensionHeight">
                             </div>
                         </div>
                         <div class="form-group">
@@ -2259,9 +2148,6 @@
                             <div class="col-sm-6">
                                 <input class="form-control email" id="TRazimuth" name="TRazimuth"
                                        ng-model="transmissionAntenna.azimuth">
-                                <label class="error"
-                                       ng-show="kcell_form.TRazimuth.$error.required && ( kcell_form.TRazimuth.$touched || view.submitted)">Required
-                                    field</label>
                             </div>
                         </div>
 
@@ -2278,13 +2164,13 @@
                                 <accordion-group is-open="false" >
                                     <accordion-heading>
                                         Near End Address <i class="pull-right glyphicon"
-                                                                ng-class="{'glyphicon-chevron-up': status.isCustomHeaderOpen, 'glyphicon-chevron-down': !status.isCustomHeaderOpen}"></i>
+                                                            ng-class="{'glyphicon-chevron-up': status.isCustomHeaderOpen, 'glyphicon-chevron-down': !status.isCustomHeaderOpen}"></i>
                                     </accordion-heading>
                                     <div class="form-group">
                                         <label class="col-sm-3 control-label">Oblast:</label>
                                         <div class="col-sm-8" class="form-check">
                                             <select class="form-control" id="nei_addr_oblast" ng-disabled="!transmissionAntenna.address.ca_diff_address" name="nei_addr_oblast" ng-model="transmissionAntenna.address.cn_addr_oblast"
-                                                    ng-change="filterDistrictAfterSelectOblInNEI(transmissionAntenna.address.cn_addr_oblast)">
+                                                    ng-change="filterDistrictAfterSelectOblInNEI(transmissionAntenna.address.cn_addr_oblast)" ng-required="transmissionAntenna.address.ca_diff_address">
                                                 <option ng-repeat="oblast in oblastList" ng-value="oblast.name">{{oblast.name}}</option>
                                             </select>
                                             <label class="error" ng-show="kcell_form.nei_addr_oblast.$error.required && ( kcell_form.nei_addr_oblast.$touched || view.submitted)">Required field</label>
@@ -2293,7 +2179,7 @@
                                     <div class="form-group">
                                         <label class="col-sm-3 control-label">District:</label>
                                         <div class="col-sm-8" class="form-check">
-                                            <select class="form-control" id="nei_addr_district" ng-disabled="!transmissionAntenna.address.ca_diff_address || !transmissionAntenna.address.cn_addr_oblast" name="nei_addr_district" ng-model="transmissionAntenna.address.cn_addr_district">
+                                            <select class="form-control" id="nei_addr_district" ng-disabled="!transmissionAntenna.address.ca_diff_address || !transmissionAntenna.address.cn_addr_oblast" name="nei_addr_district" ng-model="transmissionAntenna.address.cn_addr_district"  ng-required="transmissionAntenna.address.ca_diff_address">
                                                 <option ng-repeat="district in filteredDistrictsInNEI" ng-value="district.name">{{district.name}}</option>
                                             </select>
                                             <label class="error" ng-show="kcell_form.nei_addr_district.$error.required && ( kcell_form.nei_addr_district.$touched || view.submitted)">Required field</label>
@@ -2303,43 +2189,43 @@
                                     <div class="form-group">
                                         <label class="col-sm-3 control-label">City / Village:</label>
                                         <div class="col-sm-8">
-                                            <input type="text" ng-model="transmissionAntenna.address.cn_addr_city" name="nei_addr_city" ng-disabled="!transmissionAntenna.address.ca_diff_address" typeahead="city.name for city in getCity($viewValue)" typeahead-on-select="nearEndInfoAddressCitySelected($item,$model,$label)" class="form-control" placeholder="Start typing...">
+                                            <input type="text" ng-model="transmissionAntenna.address.cn_addr_city" name="nei_addr_city" ng-disabled="!transmissionAntenna.address.ca_diff_address" typeahead="city.name for city in getCity($viewValue)" typeahead-on-select="nearEndInfoAddressCitySelected($item,$model,$label)" class="form-control" placeholder="Start typing..." ng-required="transmissionAntenna.address.ca_diff_address">
                                             <label class="error" ng-show="kcell_form.nei_addr_city.$error.required && ( kcell_form.nei_addr_city.$touched || view.submitted)">Required field</label>
                                         </div>
                                     </div>
                                     <div class="form-group">
                                         <div class="col-sm-12">
                                             <div class="form-check">
-                                                <input type="checkbox" ng-model="transmissionAntenna.address.cn_not_full_addres" class="form-check-input" ng-disabled="!transmissionAntenna.address.ca_diff_address" id="ca_not_full_addres">
-                                                <label class="form-check-label" for="ca_not_full_addres">Object without address</label>
+                                                <input type="checkbox" ng-model="transmissionAntenna.address.cn_not_full_addres" class="form-check-input" ng-disabled="!transmissionAntenna.address.ca_diff_address" id="nei_ca_not_full_addres">
+                                                <label class="form-check-label" for="nei_ca_not_full_addres">Object without address</label>
                                             </div>
                                         </div>
                                     </div>
                                     <div class="form-group">
                                         <label class="col-sm-3 control-label">Street/Microdistrict:</label>
                                         <div class="col-sm-8">
-                                            <input class="form-control" id="nei_addr_street" name="nei_addr_street" ng-model="transmissionAntenna.address.cn_addr_street" ng-disabled="!transmissionAntenna.address.ca_diff_address || transmissionAntenna.address.cn_not_full_addres" >
+                                            <input class="form-control" id="nei_addr_street" name="nei_addr_street" ng-model="transmissionAntenna.address.cn_addr_street" ng-disabled="!transmissionAntenna.address.ca_diff_address || transmissionAntenna.address.cn_not_full_addres" ng-required="transmissionAntenna.address.ca_diff_address && !transmissionAntenna.address.cn_not_full_addres">
                                             <label class="error" ng-show="kcell_form.nei_addr_street.$error.required && ( kcell_form.nei_addr_street.$touched || view.submitted)">Required field</label>
                                         </div>
                                     </div>
                                     <div class="form-group">
                                         <label class="col-sm-3 control-label">Building:</label>
                                         <div class="col-sm-8">
-                                            <input class="form-control" id="nei_addr_building" name="nei_addr_building" ng-model="transmissionAntenna.address.cn_addr_building" ng-disabled="!transmissionAntenna.address.ca_diff_address || transmissionAntenna.address.cn_not_full_addres">
+                                            <input class="form-control" id="nei_addr_building" name="nei_addr_building" ng-model="transmissionAntenna.address.cn_addr_building" ng-disabled="!transmissionAntenna.address.ca_diff_address || transmissionAntenna.address.cn_not_full_addres" ng-required="transmissionAntenna.address.ca_diff_address && !transmissionAntenna.address.cn_not_full_addres">
                                             <label class="error" ng-show="kcell_form.nei_addr_building.$error.required && ( kcell_form.nei_addr_building.$touched || view.submitted)">Required field</label>
                                         </div>
                                     </div>
                                     <div class="form-group">
                                         <label class="col-sm-3 control-label">Cadastral number:</label>
                                         <div class="col-sm-8">
-                                            <input class="form-control" id="nei_addr_cadastral_number" name="nei_addr_cadastral_number" ng-model="transmissionAntenna.address.cn_addr_cadastral_number" ng-disabled="!transmissionAntenna.address.ca_diff_address">
+                                            <input class="form-control" id="nei_addr_cadastral_number" name="nei_addr_cadastral_number" ng-model="transmissionAntenna.address.cn_addr_cadastral_number" ng-disabled="!transmissionAntenna.address.ca_diff_address || !transmissionAntenna.address.cn_not_full_addres" ng-required="transmissionAntenna.address.ca_diff_address && transmissionAntenna.address.cn_not_full_addres">
                                             <label class="error" ng-show="kcell_form.nei_addr_cadastral_number.$error.required && ( kcell_form.cn_addr_cadastral_number.$touched || view.submitted)">Required field</label>
                                         </div>
                                     </div>
                                     <div class="form-group">
                                         <label class="col-sm-3 control-label">Note to the address:</label>
                                         <div class="col-sm-8">
-                                            <input class="form-control" id="cn_addr_note" name="nei_addr_note" ng-model="transmissionAntenna.address.cn_addr_note" ng-disabled="!transmissionAntenna.address.ca_diff_address" >
+                                            <input class="form-control" id="nei_addr_note" name="nei_addr_note" ng-model="transmissionAntenna.address.cn_addr_note" ng-disabled="!transmissionAntenna.address.ca_diff_address || !transmissionAntenna.address.cn_not_full_addres" ng-required="transmissionAntenna.address.ca_diff_address && transmissionAntenna.address.cn_not_full_addres">
                                             <label class="error" ng-show="kcell_form.nei_addr_note.$error.required && ( kcell_form.nei_addr_note.$touched || view.submitted)">Required field</label>
                                         </div>
                                     </div>
@@ -2369,9 +2255,6 @@
                                     <input type="radio" name="provideUs3Phase" ng-model="powerSource.provideUs3Phase"
                                            value="No"> No
                                 </label>
-                                <label class="error"
-                                       ng-show="kcell_form.provideUs3Phase.$error.required && ( kcell_form.provideUs3Phase.$touched || view.submitted)">Required
-                                    field</label>
                             </div>
                         </div>
                         <div class="form-group">
@@ -2379,9 +2262,6 @@
                             <div class="col-sm-6">
                                 <input class="form-control" id="cableLength" name="cableLength"
                                        ng-model="powerSource.cableLength">
-                                <label class="error"
-                                       ng-show="kcell_form.cableLength.$error.required && ( kcell_form.cableLength.$touched || view.submitted)">Required
-                                    field</label>
                             </div>
                         </div>
                         <div class="form-group">
@@ -2408,9 +2288,6 @@
                                     <input type="radio" name="agreeToReceiveMonthlyPayment"
                                            ng-model="powerSource.agreeToReceiveMonthlyPayment" value="No"> No
                                 </label>
-                                <label class="error"
-                                       ng-show="kcell_form.agreeToReceiveMonthlyPayment.$error.required && ( kcell_form.agreeToReceiveMonthlyPayment.$touched || view.submitted)">Required
-                                    field</label>
                             </div>
                         </div>
                         <div class="form-group">
@@ -2422,9 +2299,6 @@
                                     <input class="form-control" id="closestPublic04" name="closestPublic04"
                                            ng-model="powerSource.closestPublic04">
                                 </div>
-                                <label class="error"
-                                       ng-show="kcell_form.closestPublic04.$error.required && ( kcell_form.closestPublic04.$touched || view.submitted)">Required
-                                    field</label>
                             </div>
                             <div class="col-sm-4">
                                 <div class="input-group">
@@ -2432,9 +2306,6 @@
                                     <input class="form-control" id="closestPublic10" name="closestPublic10"
                                            ng-model="powerSource.closestPublic10">
                                 </div>
-                                <label class="error"
-                                       ng-show="kcell_form.closestPublic10.$error.required && ( kcell_form.closestPublic10.$touched || view.submitted)">Required
-                                    field</label>
                             </div>
                         </div>
 
@@ -2483,8 +2354,9 @@
                             <div class="col-sm-5">
                                 <label ng-if="checkTPSBTouched" class="form-check-label">
                                     <input type="text" class="form-check-input" id="cn_tps_belongs_commentary" name="cn_tps_belongs_commentary"
-                                        ng-model="powerSource.cn_tps_belongs_commentary">
+                                        ng-model="powerSource.cn_tps_belongs_commentary" required>
                                 </label>
+                                <label class="error" ng-show="kcell_form.cn_tps_belongs_commentary.$error.required && (checkTPSTouched || view.submitted)">Required field</label>
                             </div>
                         </div>
 
@@ -2493,9 +2365,7 @@
                             <div class="col-sm-4">
                                 <input type="number" class="form-control" id="cn_tps_distance" name="cn_tps_distance" required
                                        ng-model="powerSource.cn_tps_distance">
-                                <label class="error"
-                                ng-show="kcell_form.cn_tps_distance.$error.required && (checkTPSTouched || view.submitted)">Required
-                                field
+                                <label class="error" ng-show="kcell_form.cn_tps_distance.$error.required && (checkTPSTouched || view.submitted)">Required field</label>
                             </div>
                         </label>
                         </div>
@@ -2559,7 +2429,7 @@
                             not available</label>
                     </div>
                 </div>
-                <div class="form-group col-sm-12" ng-show="threeFarEndNotNecessary.check" style="margin-bottom:15px;">
+                <div class="form-group col-sm-12" ng-if="threeFarEndNotNecessary.check" style="margin-bottom:15px;">
                     <label class="col-sm-2 control-label">Description:</label>
                     <div class="col-sm-6">
                         <textarea class="form-control" ng-required="threeFarEndNotNecessary.check"
@@ -2594,7 +2464,7 @@
                                             <label class="col-sm-3 control-label">Oblast:</label>
                                             <div class="col-sm-8" class="form-check">
                                                 <select class="form-control" id="FarEnd_cn_addr_oblast" name="fe_form_FarEnd_cn_addr_oblast" ng-model="currentFarEnd.address.cn_addr_oblast"
-                                                        ng-change="filterDistrictAfterSelectFarEndObl(currentFarEnd.address.cn_addr_oblast)">
+                                                        ng-change="filterDistrictAfterSelectFarEndObl(currentFarEnd.address.cn_addr_oblast)" required>
                                                     <option ng-repeat="oblast in oblastList" ng-value="oblast.name">{{oblast.name}}</option>
                                                 </select>
                                                 <label class="error" ng-show="kcell_form.fe_form_FarEnd_cn_addr_oblast.$error.required && ( kcell_form.fe_form_FarEnd_cn_addr_oblast.$touched || view.submitted)">Required field</label>
@@ -2603,7 +2473,7 @@
                                         <div class="form-group">
                                             <label class="col-sm-3 control-label">District:</label>
                                             <div class="col-sm-8" class="form-check">
-                                                <select class="form-control" id="FarEnd_cn_addr_district" name="fe_form_FarEnd_cn_addr_district" ng-model="currentFarEnd.address.cn_addr_district" ng-disabled="!currentFarEnd.address.cn_addr_oblast">
+                                                <select class="form-control" id="FarEnd_cn_addr_district" name="fe_form_FarEnd_cn_addr_district" ng-model="currentFarEnd.address.cn_addr_district" ng-disabled="!currentFarEnd.address.cn_addr_oblast" required>
                                                     <option ng-repeat="district in currentFarEnd.dictionary.filteredDistricts" ng-value="district.name">{{district.name}}</option>
                                                 </select>
                                                 <label class="error" ng-show="kcell_form.fe_form_FarEnd_cn_addr_district.$error.required && ( kcell_form.fe_form_FarEnd_cn_addr_district.$touched || view.submitted)">Required field</label>
