@@ -14,7 +14,20 @@ INSERT INTO act_id_group (id_, rev_, name_, type_) VALUES ('LeasingPowerEngineer
 INSERT INTO act_id_group (id_, rev_, name_, type_) VALUES ('LeasingInstallationGroup', 1, 'LeasingInstallationGroup', 'WORKFLOW') ON CONFLICT(id_) DO NOTHING;
 INSERT INTO act_id_group (id_, rev_, name_, type_) VALUES ('LeasingRegionalPlanner', 1, 'LeasingRegionalPlanner', 'WORKFLOW') ON CONFLICT(id_) DO NOTHING;
 
+INSERT INTO act_id_user (id_, rev_, first_, last_, email_, pwd_, picture_id_) VALUES ('Alexandr.Kim@kcell.kz', 1, 'Alexandr', 'Kim', 'Alexandr.Kim@kcell.kz', '{SHA}fEqNCco3Yq9h5ZUglD3CZJT4lBs=', NULL) ON CONFLICT(id_) DO NOTHING;
 INSERT INTO act_id_user (id_, rev_, first_, last_, email_, pwd_, picture_id_) VALUES ('Anastassiya.Tsoy@kcell.kz', 1, 'Anastassiya', 'Tsoy', 'Anastassiya.Tsoy@kcell.kz', '{SHA}fEqNCco3Yq9h5ZUglD3CZJT4lBs=', NULL) ON CONFLICT(id_) DO NOTHING;
+INSERT INTO act_id_user (id_, rev_, first_, last_, email_, pwd_, picture_id_) VALUES ('Satzhan.Bekbolat@kcell.kz', 1, 'Satzhan', 'Bekbolat', 'Satzhan.Bekbolat@kcell.kz', '{SHA}fEqNCco3Yq9h5ZUglD3CZJT4lBs=', NULL) ON CONFLICT(id_) DO NOTHING;
+INSERT INTO act_id_user (id_, rev_, first_, last_, email_, pwd_, picture_id_) VALUES ('Maxat.Pirnazarov@kcell.kz', 1, 'Maxat', 'Pirnazarov', 'Maxat.Pirnazarov@kcell.kz', '{SHA}fEqNCco3Yq9h5ZUglD3CZJT4lBs=', NULL) ON CONFLICT(id_) DO NOTHING;
+INSERT INTO act_id_user (id_, rev_, first_, last_, email_, pwd_, picture_id_) VALUES ('Timur.Samarkhanov@kcell.kz', 1, 'Timur', 'Samarkhanov', 'Timur.Samarkhanov@kcell.kz', '{SHA}fEqNCco3Yq9h5ZUglD3CZJT4lBs=', NULL) ON CONFLICT(id_) DO NOTHING;
+INSERT INTO act_id_user (id_, rev_, first_, last_, email_, pwd_, picture_id_) VALUES ('Nurbek.Auez@kcell.kz', 1, 'Nurbek', 'Auez', 'Nurbek.Auez@kcell.kz', '{SHA}fEqNCco3Yq9h5ZUglD3CZJT4lBs=', NULL) ON CONFLICT(id_) DO NOTHING;
+INSERT INTO act_id_user (id_, rev_, first_, last_, email_, pwd_, picture_id_) VALUES ('Zhanibek.Abylkassymov@kcell.kz', 1, 'Zhanibek', 'Abylkassymov', 'Zhanibek.Abylkassymov@kcell.kz', '{SHA}fEqNCco3Yq9h5ZUglD3CZJT4lBs=', NULL) ON CONFLICT(id_) DO NOTHING;
+INSERT INTO act_id_user (id_, rev_, first_, last_, email_, pwd_, picture_id_) VALUES ('Aldiyar.Nassenov@kcell.kz', 1, 'Aldiyar', 'Nassenov', 'Aldiyar.Nassenov@kcell.kz', '{SHA}fEqNCco3Yq9h5ZUglD3CZJT4lBs=', NULL) ON CONFLICT(id_) DO NOTHING;
+INSERT INTO act_id_user (id_, rev_, first_, last_, email_, pwd_, picture_id_) VALUES ('Zhaslan.Umarov@kcell.kz', 1, 'Zhaslan', 'Umarov', 'Zhaslan.Umarov@kcell.kz', '{SHA}fEqNCco3Yq9h5ZUglD3CZJT4lBs=', NULL) ON CONFLICT(id_) DO NOTHING;
+INSERT INTO act_id_user (id_, rev_, first_, last_, email_, pwd_, picture_id_) VALUES ('Azamat.Abdikhalikov@kcell.kz', 1, 'Azamat', 'Abdikhalikov', 'Azamat.Abdikhalikov@kcell.kz', '{SHA}fEqNCco3Yq9h5ZUglD3CZJT4lBs=', NULL) ON CONFLICT(id_) DO NOTHING;
+INSERT INTO act_id_user (id_, rev_, first_, last_, email_, pwd_, picture_id_) VALUES ('Adlet.Zhukenov@kcell.kz', 1, 'Adlet', 'Zhukenov', 'Adlet.Zhukenov@kcell.kz', '{SHA}fEqNCco3Yq9h5ZUglD3CZJT4lBs=', NULL) ON CONFLICT(id_) DO NOTHING;
+INSERT INTO act_id_user (id_, rev_, first_, last_, email_, pwd_, picture_id_) VALUES ('Adilet.Yessaliyev@kcell.kz', 1, 'Adilet', 'Yessaliyev', 'Adilet.Yessaliyev@kcell.kz', '{SHA}fEqNCco3Yq9h5ZUglD3CZJT4lBs=', NULL) ON CONFLICT(id_) DO NOTHING;
+INSERT INTO act_id_user (id_, rev_, first_, last_, email_, pwd_, picture_id_) VALUES ('Aidos.Aituganov@kcell.kz', 1, 'Aidos', 'Aituganov', 'Aidos.Aituganov@kcell.kz', '{SHA}fEqNCco3Yq9h5ZUglD3CZJT4lBs=', NULL) ON CONFLICT(id_) DO NOTHING;
+INSERT INTO act_id_user (id_, rev_, first_, last_, email_, pwd_, picture_id_) VALUES ('Stanislav.fodchuk@kcell.kz', 1, 'Stanislav', 'Focdchuk', 'Stanislav.fodchuk@kcell.kz', '{SHA}fEqNCco3Yq9h5ZUglD3CZJT4lBs=', NULL) ON CONFLICT(id_) DO NOTHING;
 
 INSERT INTO act_id_group (id_, rev_, name_, type_) VALUES ('hq_planning', 1, 'hq_planning', 'WORKFLOW') ON CONFLICT(id_) DO NOTHING;
 INSERT INTO act_id_group (id_, rev_, name_, type_) VALUES ('hq_rollout', 1, 'hq_rollout', 'WORKFLOW') ON CONFLICT(id_) DO NOTHING;
