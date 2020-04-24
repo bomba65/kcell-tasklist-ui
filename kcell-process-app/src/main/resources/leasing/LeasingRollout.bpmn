@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<bpmn:definitions xmlns:bpmn="http://www.omg.org/spec/BPMN/20100524/MODEL" xmlns:bpmndi="http://www.omg.org/spec/BPMN/20100524/DI" xmlns:di="http://www.omg.org/spec/DD/20100524/DI" xmlns:dc="http://www.omg.org/spec/DD/20100524/DC" xmlns:camunda="http://camunda.org/schema/1.0/bpmn" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:bioc="http://bpmn.io/schema/bpmn/biocolor/1.0" id="Definitions_1" targetNamespace="http://bpmn.io/schema/bpmn" exporter="Camunda Modeler" exporterVersion="2.0.3">
+<bpmn:definitions xmlns:bpmn="http://www.omg.org/spec/BPMN/20100524/MODEL" xmlns:bpmndi="http://www.omg.org/spec/BPMN/20100524/DI" xmlns:di="http://www.omg.org/spec/DD/20100524/DI" xmlns:dc="http://www.omg.org/spec/DD/20100524/DC" xmlns:camunda="http://camunda.org/schema/1.0/bpmn" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:bioc="http://bpmn.io/schema/bpmn/biocolor/1.0" id="Definitions_1" targetNamespace="http://bpmn.io/schema/bpmn" exporter="Camunda Modeler" exporterVersion="2.2.4">
   <bpmn:process id="leasing" name="Leasing Rollout Site" isExecutable="true">
     <bpmn:documentation>Send a message to start a payment</bpmn:documentation>
     <bpmn:startEvent id="StartEvent_first" camunda:formKey="embedded:app:forms/leasing/start.html" camunda:initiator="starter">
@@ -37,6 +37,16 @@
       <bpmn:outgoing>SequenceFlow_0ixzzp0</bpmn:outgoing>
     </bpmn:userTask>
     <bpmn:subProcess id="SubProcess_0iqjr7a" name="LEASE CONTRACT">
+      <bpmn:extensionElements>
+        <camunda:executionListener class="kz.kcell.bpm.leasing.VariableSetStatus" event="start">
+          <camunda:field name="variable">
+            <camunda:string>generalStatus</camunda:string>
+          </camunda:field>
+          <camunda:field name="value">
+            <camunda:string>Leasing in progress</camunda:string>
+          </camunda:field>
+        </camunda:executionListener>
+      </bpmn:extensionElements>
       <bpmn:incoming>SequenceFlow_1jx5d26</bpmn:incoming>
       <bpmn:incoming>SequenceFlow_1baditu</bpmn:incoming>
       <bpmn:incoming>SequenceFlow_1w0qbic</bpmn:incoming>
@@ -736,6 +746,16 @@
     <bpmn:sequenceFlow id="SequenceFlow_1rieuf2" sourceRef="SubProcess_0zu8jyb" targetRef="ExclusiveGateway_1fmzu87" />
     <bpmn:sequenceFlow id="SequenceFlow_04xttpw" name="PERFORMED" sourceRef="ExclusiveGateway_0h8nbb4" targetRef="ServiceTask_1lcg2ff" />
     <bpmn:parallelGateway id="ParallelGateway_0le7fnu">
+      <bpmn:extensionElements>
+        <camunda:executionListener class="kz.kcell.bpm.leasing.VariableSetStatus" event="start">
+          <camunda:field name="variable">
+            <camunda:string>generalStatus</camunda:string>
+          </camunda:field>
+          <camunda:field name="value">
+            <camunda:string>Provisional approval by Power, Transmission &amp; Leasing</camunda:string>
+          </camunda:field>
+        </camunda:executionListener>
+      </bpmn:extensionElements>
       <bpmn:incoming>SequenceFlow_0dz6q5c</bpmn:incoming>
       <bpmn:outgoing>SequenceFlow_0pjyoj9</bpmn:outgoing>
       <bpmn:outgoing>SequenceFlow_1u8yw9f</bpmn:outgoing>
@@ -755,6 +775,14 @@
         <camunda:inputOutput>
           <camunda:outputParameter name="planingInput">notFromStart</camunda:outputParameter>
         </camunda:inputOutput>
+        <camunda:executionListener class="kz.kcell.bpm.leasing.VariableSetStatus" event="start">
+          <camunda:field name="variable">
+            <camunda:string>generalStatus</camunda:string>
+          </camunda:field>
+          <camunda:field name="value">
+            <camunda:string>Planning in progress</camunda:string>
+          </camunda:field>
+        </camunda:executionListener>
       </bpmn:extensionElements>
       <bpmn:incoming>SequenceFlow_0bjjyic</bpmn:incoming>
       <bpmn:incoming>SequenceFlow_0yqmyu4</bpmn:incoming>
@@ -798,23 +826,22 @@
         <bpmn:conditionExpression xsi:type="bpmn:tFormalExpression">${addOutToRollOutTaskResult == "rejected"}</bpmn:conditionExpression>
       </bpmn:sequenceFlow>
       <bpmn:endEvent id="EndEvent_0lr2rq5">
+        <bpmn:extensionElements>
+          <camunda:executionListener class="kz.kcell.bpm.leasing.VariableSetStatus" event="start">
+            <camunda:field name="variable">
+              <camunda:string>generalStatus</camunda:string>
+            </camunda:field>
+            <camunda:field name="value">
+              <camunda:string>NCP rejected</camunda:string>
+            </camunda:field>
+          </camunda:executionListener>
+        </bpmn:extensionElements>
         <bpmn:incoming>SequenceFlow_1w2osho</bpmn:incoming>
         <bpmn:terminateEventDefinition />
       </bpmn:endEvent>
       <bpmn:userTask id="createNewCandidateSite" name="Create new candidate site" camunda:formKey="embedded:app:forms/leasing/createNewCandidateSite.html" camunda:candidateGroups="LeasingRegionalPlanningGroup">
         <bpmn:documentation>Create new candidate site</bpmn:documentation>
         <bpmn:extensionElements>
-          <camunda:executionListener class="kz.kcell.bpm.leasing.ExecutionSetStatus" event="end">
-            <camunda:field name="variable">
-              <camunda:string>candidateStatus</camunda:string>
-            </camunda:field>
-            <camunda:field name="value">
-              <camunda:string>candidateCreated</camunda:string>
-            </camunda:field>
-            <camunda:field name="label">
-              <camunda:string>Candidate Created</camunda:string>
-            </camunda:field>
-          </camunda:executionListener>
           <camunda:taskListener delegateExpression="${GenerateLeasingRSD}" event="complete" />
         </bpmn:extensionElements>
         <bpmn:incoming>SequenceFlow_0lt4tq3</bpmn:incoming>
@@ -831,19 +858,6 @@
       <bpmn:sequenceFlow id="SequenceFlow_14h800t" sourceRef="createNewCandidateSite" targetRef="ExclusiveGateway_1xcv3s1" />
       <bpmn:userTask id="rejectedNCP" name="Approve NCP rejection" camunda:formKey="embedded:app:forms/leasing/rejectedNCP.html" camunda:candidateGroups="LeasingCentralPlanningGroup">
         <bpmn:documentation>Approve NCP rejection</bpmn:documentation>
-        <bpmn:extensionElements>
-          <camunda:taskListener class="kz.kcell.bpm.leasing.TaskSetStatus" event="complete">
-            <camunda:field name="variable">
-              <camunda:string>ncpStatus</camunda:string>
-            </camunda:field>
-            <camunda:field name="value">
-              <camunda:expression>${rejectedNCPTaskResult== 'reject'?'rejected':'repeated'}</camunda:expression>
-            </camunda:field>
-            <camunda:field name="label">
-              <camunda:expression>${rejectedNCPTaskResult== 'reject'?'Rejected':'Repeated'}</camunda:expression>
-            </camunda:field>
-          </camunda:taskListener>
-        </bpmn:extensionElements>
         <bpmn:incoming>SequenceFlow_1kz9fn6</bpmn:incoming>
         <bpmn:outgoing>SequenceFlow_0nqosi7</bpmn:outgoing>
       </bpmn:userTask>
@@ -898,17 +912,6 @@
             <camunda:inputParameter name="_SET_NCP_STATUS">2</camunda:inputParameter>
             <camunda:inputParameter name="_SET_GEN_STATUS">3</camunda:inputParameter>
           </camunda:inputOutput>
-          <camunda:executionListener class="kz.kcell.bpm.leasing.ExecutionSetStatus" event="end">
-            <camunda:field name="variable">
-              <camunda:string>generalStatus</camunda:string>
-            </camunda:field>
-            <camunda:field name="value">
-              <camunda:string>Candidate Not Planned</camunda:string>
-            </camunda:field>
-            <camunda:field name="label">
-              <camunda:string>Candidate Not Planned</camunda:string>
-            </camunda:field>
-          </camunda:executionListener>
         </bpmn:extensionElements>
         <bpmn:incoming>SequenceFlow_1tg2ew2</bpmn:incoming>
         <bpmn:outgoing>SequenceFlow_0src7tl</bpmn:outgoing>
@@ -919,17 +922,6 @@
           <camunda:inputOutput>
             <camunda:inputParameter name="_SET_GEN_STATUS">3</camunda:inputParameter>
           </camunda:inputOutput>
-          <camunda:executionListener class="kz.kcell.bpm.leasing.ExecutionSetStatus" event="end">
-            <camunda:field name="variable">
-              <camunda:string>generalStatus</camunda:string>
-            </camunda:field>
-            <camunda:field name="value">
-              <camunda:string>candidateNotPlanned</camunda:string>
-            </camunda:field>
-            <camunda:field name="label">
-              <camunda:string>Candidate Not Planned</camunda:string>
-            </camunda:field>
-          </camunda:executionListener>
         </bpmn:extensionElements>
         <bpmn:incoming>SequenceFlow_1mknb0l</bpmn:incoming>
         <bpmn:outgoing>SequenceFlow_1kz9fn6</bpmn:outgoing>
@@ -941,17 +933,6 @@
             <camunda:inputParameter name="_SET_RR_STATUS">5</camunda:inputParameter>
             <camunda:inputParameter name="_SET_GEN_STATUS">3</camunda:inputParameter>
           </camunda:inputOutput>
-          <camunda:executionListener class="kz.kcell.bpm.leasing.ExecutionSetStatus" event="end">
-            <camunda:field name="variable">
-              <camunda:string>generalStatus</camunda:string>
-            </camunda:field>
-            <camunda:field name="value">
-              <camunda:string>candidateNotPlanned</camunda:string>
-            </camunda:field>
-            <camunda:field name="label">
-              <camunda:string>Candidate Not Planned</camunda:string>
-            </camunda:field>
-          </camunda:executionListener>
         </bpmn:extensionElements>
         <bpmn:incoming>SequenceFlow_0gvd3em</bpmn:incoming>
         <bpmn:outgoing>SequenceFlow_0kmmikk</bpmn:outgoing>
@@ -997,11 +978,31 @@
       <bpmn:conditionExpression xsi:type="bpmn:tFormalExpression">${addOutToRollOutTaskResult == "rejected"}</bpmn:conditionExpression>
     </bpmn:sequenceFlow>
     <bpmn:endEvent id="EndEvent_1u7wxvp">
+      <bpmn:extensionElements>
+        <camunda:executionListener class="kz.kcell.bpm.leasing.VariableSetStatus" event="start">
+          <camunda:field name="variable">
+            <camunda:string>generalStatus</camunda:string>
+          </camunda:field>
+          <camunda:field name="value">
+            <camunda:string>NCP rejected</camunda:string>
+          </camunda:field>
+        </camunda:executionListener>
+      </bpmn:extensionElements>
       <bpmn:incoming>SequenceFlow_1lozs7p</bpmn:incoming>
       <bpmn:terminateEventDefinition />
     </bpmn:endEvent>
     <bpmn:sequenceFlow id="SequenceFlow_18yqfom" sourceRef="ExclusiveGateway_0wi0wbj" targetRef="ParallelGateway_1dasjf2" />
     <bpmn:subProcess id="SubProcess_0zu8jyb" name="CONTRACT APPROVAL CN">
+      <bpmn:extensionElements>
+        <camunda:executionListener class="kz.kcell.bpm.leasing.VariableSetStatus" event="start">
+          <camunda:field name="variable">
+            <camunda:string>generalStatus</camunda:string>
+          </camunda:field>
+          <camunda:field name="value">
+            <camunda:string>Contract approval in progress</camunda:string>
+          </camunda:field>
+        </camunda:executionListener>
+      </bpmn:extensionElements>
       <bpmn:incoming>SequenceFlow_1ahq6eo</bpmn:incoming>
       <bpmn:outgoing>SequenceFlow_1rieuf2</bpmn:outgoing>
       <bpmn:userTask id="contractRentLoadingSAP" name="Confirm loading the lease contract in SAP Contract Management" camunda:formKey="embedded:app:forms/leasing/contractRentLoadingSAP.html" camunda:candidateGroups="LeasingCentralGroup">
@@ -1105,6 +1106,16 @@
       <bpmn:association id="Association_0s799dr" sourceRef="approvalPowerContractInSAP" targetRef="TextAnnotation_1ry2r8h" />
     </bpmn:subProcess>
     <bpmn:subProcess id="SubProcess_0jl82xl" name="POWER">
+      <bpmn:extensionElements>
+        <camunda:executionListener class="kz.kcell.bpm.leasing.VariableSetStatus" event="start">
+          <camunda:field name="variable">
+            <camunda:string>generalStatus</camunda:string>
+          </camunda:field>
+          <camunda:field name="value">
+            <camunda:string>Power in progress</camunda:string>
+          </camunda:field>
+        </camunda:executionListener>
+      </bpmn:extensionElements>
       <bpmn:incoming>SequenceFlow_0ze25gj</bpmn:incoming>
       <bpmn:incoming>SequenceFlow_0bx2rua</bpmn:incoming>
       <bpmn:outgoing>SequenceFlow_0dqgqqo</bpmn:outgoing>
@@ -1222,6 +1233,16 @@
       <bpmn:outgoing>SequenceFlow_0vvqm15</bpmn:outgoing>
     </bpmn:userTask>
     <bpmn:exclusiveGateway id="ExclusiveGateway_1pa0vf0" name="Belongs to National Operator" default="SequenceFlow_0d7gjtp">
+      <bpmn:extensionElements>
+        <camunda:executionListener class="kz.kcell.bpm.leasing.VariableSetStatus" event="start">
+          <camunda:field name="variable">
+            <camunda:string>generalStatus</camunda:string>
+          </camunda:field>
+          <camunda:field name="value">
+            <camunda:string>On-Air &amp; Accepted</camunda:string>
+          </camunda:field>
+        </camunda:executionListener>
+      </bpmn:extensionElements>
       <bpmn:incoming>SequenceFlow_1kd89id</bpmn:incoming>
       <bpmn:outgoing>SequenceFlow_1609bmp</bpmn:outgoing>
       <bpmn:outgoing>SequenceFlow_0d7gjtp</bpmn:outgoing>
@@ -1261,6 +1282,16 @@
       <bpmn:outgoing>SequenceFlow_0akl87z</bpmn:outgoing>
     </bpmn:inclusiveGateway>
     <bpmn:subProcess id="SubProcess_12ty4wc" name="CONTRACT APPROVAL FE">
+      <bpmn:extensionElements>
+        <camunda:executionListener class="kz.kcell.bpm.leasing.VariableSetStatus" event="start">
+          <camunda:field name="variable">
+            <camunda:string>generalStatus</camunda:string>
+          </camunda:field>
+          <camunda:field name="value">
+            <camunda:string>Contract approval in progress</camunda:string>
+          </camunda:field>
+        </camunda:executionListener>
+      </bpmn:extensionElements>
       <bpmn:incoming>SequenceFlow_151amc9</bpmn:incoming>
       <bpmn:outgoing>SequenceFlow_03ga5r7</bpmn:outgoing>
       <bpmn:userTask id="confirmLoadingLeaseContractInSAPCM" name="Confirm loading the lease contract for FE in SAP Contract Management" camunda:formKey="embedded:app:forms/leasing/confirmLoadingLeaseContractInSAPCM.html" camunda:candidateGroups="LeasingCentralGroup">
@@ -1406,17 +1437,6 @@ if (!uploadCopyOfOwnerSignedLeaseContractTaskResult) {
         <camunda:inputOutput>
           <camunda:inputParameter name="_SET_RR_STATUS">1</camunda:inputParameter>
         </camunda:inputOutput>
-        <camunda:executionListener class="kz.kcell.bpm.leasing.ExecutionSetStatus" event="end">
-          <camunda:field name="variable">
-            <camunda:string>rrStatus</camunda:string>
-          </camunda:field>
-          <camunda:field name="value">
-            <camunda:string>newRR</camunda:string>
-          </camunda:field>
-          <camunda:field name="label">
-            <camunda:string>NEW RR</camunda:string>
-          </camunda:field>
-        </camunda:executionListener>
       </bpmn:extensionElements>
       <bpmn:incoming>SequenceFlow_0b0a8oh</bpmn:incoming>
       <bpmn:outgoing>SequenceFlow_1ot0mcb</bpmn:outgoing>
@@ -1445,28 +1465,6 @@ if (!uploadCopyOfOwnerSignedLeaseContractTaskResult) {
           <camunda:inputParameter name="_SET_GEN_STATUS">3</camunda:inputParameter>
         </camunda:inputOutput>
         <camunda:executionListener class="kz.kcell.bpm.leasing.UpdateTSD" event="start" />
-        <camunda:executionListener class="kz.kcell.bpm.leasing.ExecutionSetStatus" event="end">
-          <camunda:field name="variable">
-            <camunda:string>rrStatus</camunda:string>
-          </camunda:field>
-          <camunda:field name="value">
-            <camunda:string>inProgress</camunda:string>
-          </camunda:field>
-          <camunda:field name="label">
-            <camunda:string>IN PROGRESS</camunda:string>
-          </camunda:field>
-        </camunda:executionListener>
-        <camunda:executionListener class="kz.kcell.bpm.leasing.ExecutionSetStatus" event="end">
-          <camunda:field name="variable">
-            <camunda:string>generalStatus</camunda:string>
-          </camunda:field>
-          <camunda:field name="value">
-            <camunda:string>candidateNotLeased</camunda:string>
-          </camunda:field>
-          <camunda:field name="label">
-            <camunda:string>Candidate Not Leased</camunda:string>
-          </camunda:field>
-        </camunda:executionListener>
       </bpmn:extensionElements>
       <bpmn:incoming>SequenceFlow_1v9cmiw</bpmn:incoming>
       <bpmn:outgoing>SequenceFlow_1jx5d26</bpmn:outgoing>
@@ -1491,17 +1489,6 @@ if (!uploadCopyOfOwnerSignedLeaseContractTaskResult) {
           <camunda:inputParameter name="_SET_FE_STATUS">4</camunda:inputParameter>
           <camunda:inputParameter name="_SET_GEN_STATUS">3</camunda:inputParameter>
         </camunda:inputOutput>
-        <camunda:executionListener class="kz.kcell.bpm.leasing.ExecutionSetStatus" event="end">
-          <camunda:field name="variable">
-            <camunda:string>generalStatus</camunda:string>
-          </camunda:field>
-          <camunda:field name="value">
-            <camunda:string>powerNotReady</camunda:string>
-          </camunda:field>
-          <camunda:field name="label">
-            <camunda:string>Power Not Ready</camunda:string>
-          </camunda:field>
-        </camunda:executionListener>
       </bpmn:extensionElements>
       <bpmn:incoming>SequenceFlow_0akl87z</bpmn:incoming>
       <bpmn:outgoing>SequenceFlow_151amc9</bpmn:outgoing>
@@ -1526,17 +1513,6 @@ if (!uploadCopyOfOwnerSignedLeaseContractTaskResult) {
           <camunda:inputParameter name="_SET_GEN_STATUS">3</camunda:inputParameter>
           <camunda:inputParameter name="_SET_FE_STATUS_NCP">4</camunda:inputParameter>
         </camunda:inputOutput>
-        <camunda:executionListener class="kz.kcell.bpm.leasing.ExecutionSetStatus" event="end">
-          <camunda:field name="variable">
-            <camunda:string>generalStatus</camunda:string>
-          </camunda:field>
-          <camunda:field name="label">
-            <camunda:string>Power Not Ready</camunda:string>
-          </camunda:field>
-          <camunda:field name="value">
-            <camunda:string>powerNotReady</camunda:string>
-          </camunda:field>
-        </camunda:executionListener>
       </bpmn:extensionElements>
       <bpmn:incoming>SequenceFlow_1woqns0</bpmn:incoming>
       <bpmn:outgoing>SequenceFlow_1ahq6eo</bpmn:outgoing>
@@ -1548,17 +1524,6 @@ if (!uploadCopyOfOwnerSignedLeaseContractTaskResult) {
         <camunda:inputOutput>
           <camunda:inputParameter name="_SET_RR_STATUS">4</camunda:inputParameter>
         </camunda:inputOutput>
-        <camunda:executionListener class="kz.kcell.bpm.leasing.ExecutionSetStatus" event="end">
-          <camunda:field name="variable">
-            <camunda:string>rrStatus</camunda:string>
-          </camunda:field>
-          <camunda:field name="value">
-            <camunda:string>refusal</camunda:string>
-          </camunda:field>
-          <camunda:field name="label">
-            <camunda:string>Refusal</camunda:string>
-          </camunda:field>
-        </camunda:executionListener>
       </bpmn:extensionElements>
       <bpmn:incoming>SequenceFlow_1friduw</bpmn:incoming>
       <bpmn:outgoing>SequenceFlow_08pprj9</bpmn:outgoing>
@@ -1572,17 +1537,6 @@ if (!uploadCopyOfOwnerSignedLeaseContractTaskResult) {
           <camunda:inputParameter name="_SET_RR_STATUS">3</camunda:inputParameter>
           <camunda:inputParameter name="_SET_GEN_STATUS">3</camunda:inputParameter>
         </camunda:inputOutput>
-        <camunda:executionListener class="kz.kcell.bpm.leasing.ExecutionSetStatus" event="end">
-          <camunda:field name="variable">
-            <camunda:string>generalStatus</camunda:string>
-          </camunda:field>
-          <camunda:field name="value">
-            <camunda:string>powerNotReady</camunda:string>
-          </camunda:field>
-          <camunda:field name="label">
-            <camunda:string>Power Not Ready</camunda:string>
-          </camunda:field>
-        </camunda:executionListener>
       </bpmn:extensionElements>
       <bpmn:incoming>SequenceFlow_04xttpw</bpmn:incoming>
       <bpmn:outgoing>SequenceFlow_0ze25gj</bpmn:outgoing>
@@ -1595,17 +1549,6 @@ if (!uploadCopyOfOwnerSignedLeaseContractTaskResult) {
           <camunda:inputParameter name="_SET_POWER_STATUS">3</camunda:inputParameter>
           <camunda:inputParameter name="_SET_GEN_STATUS">3</camunda:inputParameter>
         </camunda:inputOutput>
-        <camunda:executionListener class="kz.kcell.bpm.leasing.ExecutionSetStatus" event="end">
-          <camunda:field name="variable">
-            <camunda:string>generalStatus</camunda:string>
-          </camunda:field>
-          <camunda:field name="value">
-            <camunda:string>candidateNotLeased</camunda:string>
-          </camunda:field>
-          <camunda:field name="label">
-            <camunda:string>Candidate Not Leased</camunda:string>
-          </camunda:field>
-        </camunda:executionListener>
       </bpmn:extensionElements>
       <bpmn:incoming>SequenceFlow_0csajc5</bpmn:incoming>
       <bpmn:outgoing>SequenceFlow_1baditu</bpmn:outgoing>
@@ -1618,28 +1561,6 @@ if (!uploadCopyOfOwnerSignedLeaseContractTaskResult) {
           <camunda:inputParameter name="_SET_INST_STATUS">13</camunda:inputParameter>
           <camunda:inputParameter name="_SET_GEN_STATUS">3</camunda:inputParameter>
         </camunda:inputOutput>
-        <camunda:executionListener class="kz.kcell.bpm.leasing.ExecutionSetStatus" event="end">
-          <camunda:field name="value">
-            <camunda:string>leasingProblem</camunda:string>
-          </camunda:field>
-          <camunda:field name="label">
-            <camunda:string>Leasing problem</camunda:string>
-          </camunda:field>
-          <camunda:field name="variable">
-            <camunda:string>generalStatus</camunda:string>
-          </camunda:field>
-        </camunda:executionListener>
-        <camunda:executionListener class="kz.kcell.bpm.leasing.ExecutionSetStatus" event="end">
-          <camunda:field name="variable">
-            <camunda:string>installationStatus</camunda:string>
-          </camunda:field>
-          <camunda:field name="value">
-            <camunda:string>leasingProblem</camunda:string>
-          </camunda:field>
-          <camunda:field name="label">
-            <camunda:string>Leasing problem</camunda:string>
-          </camunda:field>
-        </camunda:executionListener>
       </bpmn:extensionElements>
       <bpmn:incoming>SequenceFlow_0ptdqo3</bpmn:incoming>
       <bpmn:outgoing>SequenceFlow_1w0qbic</bpmn:outgoing>
@@ -1651,28 +1572,6 @@ if (!uploadCopyOfOwnerSignedLeaseContractTaskResult) {
           <camunda:inputParameter name="_SET_INST_STATUS">8</camunda:inputParameter>
           <camunda:inputParameter name="_SET_GEN_STATUS">3</camunda:inputParameter>
         </camunda:inputOutput>
-        <camunda:executionListener class="kz.kcell.bpm.leasing.ExecutionSetStatus" event="end">
-          <camunda:field name="variable">
-            <camunda:string>generalStatus</camunda:string>
-          </camunda:field>
-          <camunda:field name="label">
-            <camunda:string>Candidate Not Planned</camunda:string>
-          </camunda:field>
-          <camunda:field name="value">
-            <camunda:string>candidateNotPlanned</camunda:string>
-          </camunda:field>
-        </camunda:executionListener>
-        <camunda:executionListener class="kz.kcell.bpm.leasing.ExecutionSetStatus" event="end">
-          <camunda:field name="variable">
-            <camunda:string>installationStatus</camunda:string>
-          </camunda:field>
-          <camunda:field name="value">
-            <camunda:string>installationProblem</camunda:string>
-          </camunda:field>
-          <camunda:field name="label">
-            <camunda:string>Installation problem</camunda:string>
-          </camunda:field>
-        </camunda:executionListener>
       </bpmn:extensionElements>
       <bpmn:incoming>SequenceFlow_0ty1m4n</bpmn:incoming>
       <bpmn:outgoing>SequenceFlow_0nb026q</bpmn:outgoing>
@@ -1685,34 +1584,22 @@ if (!uploadCopyOfOwnerSignedLeaseContractTaskResult) {
           <camunda:inputParameter name="_SET_POWER_STATUS">2</camunda:inputParameter>
           <camunda:inputParameter name="_SET_GEN_STATUS">3</camunda:inputParameter>
         </camunda:inputOutput>
-        <camunda:executionListener class="kz.kcell.bpm.leasing.ExecutionSetStatus" event="end">
-          <camunda:field name="variable">
-            <camunda:string>generalStatus</camunda:string>
-          </camunda:field>
-          <camunda:field name="label">
-            <camunda:string>Job Request Need Send</camunda:string>
-          </camunda:field>
-          <camunda:field name="value">
-            <camunda:string>jobRequestNeedSend</camunda:string>
-          </camunda:field>
-        </camunda:executionListener>
-        <camunda:executionListener class="kz.kcell.bpm.leasing.ExecutionSetStatus" event="start">
-          <camunda:field name="variable">
-            <camunda:string>installationStatus</camunda:string>
-          </camunda:field>
-          <camunda:field name="value">
-            <camunda:string>jobRequestNeedSend</camunda:string>
-          </camunda:field>
-          <camunda:field name="label">
-            <camunda:string>Job Request Need Send</camunda:string>
-          </camunda:field>
-        </camunda:executionListener>
         <camunda:executionListener class="kz.kcell.flow.leasing.SaveRsdTsdVsdFiles" event="start" />
       </bpmn:extensionElements>
       <bpmn:incoming>SequenceFlow_1yruxdo</bpmn:incoming>
       <bpmn:outgoing>SequenceFlow_057c8pi</bpmn:outgoing>
     </bpmn:serviceTask>
     <bpmn:subProcess id="SubProcess_1ecv83k" name="INSTALLATION WORKS">
+      <bpmn:extensionElements>
+        <camunda:executionListener class="kz.kcell.bpm.leasing.VariableSetStatus" event="start">
+          <camunda:field name="variable">
+            <camunda:string>generalStatus</camunda:string>
+          </camunda:field>
+          <camunda:field name="value">
+            <camunda:string>Installation in progress</camunda:string>
+          </camunda:field>
+        </camunda:executionListener>
+      </bpmn:extensionElements>
       <bpmn:incoming>SequenceFlow_057c8pi</bpmn:incoming>
       <bpmn:outgoing>SequenceFlow_0vc39bf</bpmn:outgoing>
       <bpmn:startEvent id="StartEvent_01c7aaw">
@@ -1750,14 +1637,11 @@ if (!uploadCopyOfOwnerSignedLeaseContractTaskResult) {
       <bpmn:sequenceFlow id="SequenceFlow_1lfmd4n" sourceRef="IntermediateThrowEvent_1hih5y1" targetRef="Task_0ydw3cv" />
       <bpmn:serviceTask id="Task_1if6i3c" name="Set Installation status" camunda:expression="${true}">
         <bpmn:extensionElements>
-          <camunda:executionListener class="kz.kcell.bpm.leasing.ExecutionSetStatus" event="end">
+          <camunda:executionListener class="kz.kcell.bpm.leasing.VariableSetStatus" event="start">
             <camunda:field name="variable">
               <camunda:string>installationStatus</camunda:string>
             </camunda:field>
             <camunda:field name="value">
-              <camunda:string>${setInstStatusFromUDB}</camunda:string>
-            </camunda:field>
-            <camunda:field name="label">
               <camunda:string>${setInstStatusFromUDB}</camunda:string>
             </camunda:field>
           </camunda:executionListener>
@@ -1768,14 +1652,11 @@ if (!uploadCopyOfOwnerSignedLeaseContractTaskResult) {
       <bpmn:sequenceFlow id="SequenceFlow_0tkaiag" sourceRef="Task_1if6i3c" targetRef="ExclusiveGateway_10iq25l" />
       <bpmn:serviceTask id="Task_083erpz" name="Set installation status before finish" camunda:expression="${true}">
         <bpmn:extensionElements>
-          <camunda:executionListener class="kz.kcell.bpm.leasing.ExecutionSetStatus" event="end">
+          <camunda:executionListener class="kz.kcell.bpm.leasing.VariableSetStatus" event="start">
             <camunda:field name="variable">
               <camunda:string>installationStatus</camunda:string>
             </camunda:field>
             <camunda:field name="value">
-              <camunda:string>${setInstStatusFromUDB}</camunda:string>
-            </camunda:field>
-            <camunda:field name="label">
               <camunda:string>${setInstStatusFromUDB}</camunda:string>
             </camunda:field>
           </camunda:executionListener>
@@ -1816,28 +1697,6 @@ if (!uploadCopyOfOwnerSignedLeaseContractTaskResult) {
           <camunda:inputParameter name="_SET_POWER_STATUS">3</camunda:inputParameter>
           <camunda:inputParameter name="_SET_GEN_STATUS">3</camunda:inputParameter>
         </camunda:inputOutput>
-        <camunda:executionListener class="kz.kcell.bpm.leasing.ExecutionSetStatus" event="end">
-          <camunda:field name="variable">
-            <camunda:string>generalStatus</camunda:string>
-          </camunda:field>
-          <camunda:field name="label">
-            <camunda:string>Job Request Need Send</camunda:string>
-          </camunda:field>
-          <camunda:field name="value">
-            <camunda:string>jobRequestNeedSend</camunda:string>
-          </camunda:field>
-        </camunda:executionListener>
-        <camunda:executionListener class="kz.kcell.bpm.leasing.ExecutionSetStatus" event="end">
-          <camunda:field name="variable">
-            <camunda:string>installationStatus</camunda:string>
-          </camunda:field>
-          <camunda:field name="label">
-            <camunda:string>Job Request Need Send</camunda:string>
-          </camunda:field>
-          <camunda:field name="value">
-            <camunda:string>jobRequestNeedSend</camunda:string>
-          </camunda:field>
-        </camunda:executionListener>
       </bpmn:extensionElements>
       <bpmn:incoming>SequenceFlow_1iorzkh</bpmn:incoming>
       <bpmn:outgoing>SequenceFlow_0bx2rua</bpmn:outgoing>
