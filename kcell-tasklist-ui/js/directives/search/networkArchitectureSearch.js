@@ -810,6 +810,7 @@ define(['../module', 'moment'], function (module, moment) {
                                 variables.push('requestType');
                             }
                             if(scope.selectedProcessInstances.indexOf('leasing')!==-1){
+                                variables.push('generalStatus');
                                 if(scope.filter.leasingInitiator){
                                     variables.push('initiator');
                                 }
@@ -835,7 +836,7 @@ define(['../module', 'moment'], function (module, moment) {
                                     variables.push('bands');
                                 }
                                 if(scope.filter.leasingInstallationStatus){
-                                    // TODO: add this status when realized
+                                    variables.push('installationStatus');
                                 }
                                 if(scope.filter.leasingCandidateLegalType){
                                     variables.push('leasingCandidateLegalType');
