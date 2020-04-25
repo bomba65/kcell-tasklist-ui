@@ -983,9 +983,8 @@
       <bpmn:association id="Association_0oys91e" sourceRef="createNewCandidateSite" targetRef="TextAnnotation_0z3uf63" />
       <bpmn:association id="Association_13rvcvn" sourceRef="rejectedNCP" targetRef="TextAnnotation_0c9yr06" />
     </bpmn:subProcess>
-    <bpmn:sequenceFlow id="SequenceFlow_0fzpdqm" sourceRef="SubProcess_0oq53qg" targetRef="ExclusiveGateway_0ktht3w" />
+    <bpmn:sequenceFlow id="SequenceFlow_0fzpdqm" sourceRef="SubProcess_0oq53qg" targetRef="SubProcess_12ty4wc" />
     <bpmn:exclusiveGateway id="ExclusiveGateway_0ktht3w" default="SequenceFlow_08r9cvo">
-      <bpmn:incoming>SequenceFlow_0fzpdqm</bpmn:incoming>
       <bpmn:outgoing>SequenceFlow_08r9cvo</bpmn:outgoing>
       <bpmn:outgoing>SequenceFlow_1lozs7p</bpmn:outgoing>
     </bpmn:exclusiveGateway>
@@ -1327,6 +1326,7 @@
         </camunda:executionListener>
       </bpmn:extensionElements>
       <bpmn:incoming>SequenceFlow_151amc9</bpmn:incoming>
+      <bpmn:incoming>SequenceFlow_0fzpdqm</bpmn:incoming>
       <bpmn:outgoing>SequenceFlow_03ga5r7</bpmn:outgoing>
       <bpmn:userTask id="confirmLoadingLeaseContractInSAPCM" name="Confirm loading the lease contract for FE in SAP Contract Management" camunda:formKey="embedded:app:forms/leasing/confirmLoadingLeaseContractInSAPCM.html" camunda:candidateGroups="hq_leasing">
         <bpmn:documentation>Confirm loading the lease contract for FE in SAP Contract Management</bpmn:documentation>
@@ -1341,14 +1341,13 @@
       <bpmn:userTask id="uploadCopyOfOwnerSignedLeaseContract" name="Upload the Lease Contract for FE signed by the owner. Fill the Contract details" camunda:formKey="embedded:app:forms/leasing/uploadCopyOfOwnerSignedLeaseContract.html" camunda:candidateGroups="hq_leasng">
         <bpmn:documentation>Upload the Lease Contract for FE signed by the owner. Fill the Contract details</bpmn:documentation>
         <bpmn:incoming>SequenceFlow_07fdtjr</bpmn:incoming>
+        <bpmn:incoming>SequenceFlow_15zpwo3</bpmn:incoming>
         <bpmn:outgoing>SequenceFlow_0fasdtb</bpmn:outgoing>
       </bpmn:userTask>
       <bpmn:startEvent id="StartEvent_1mbwdbu">
         <bpmn:outgoing>SequenceFlow_060zi8c</bpmn:outgoing>
       </bpmn:startEvent>
-      <bpmn:endEvent id="EndEvent_0atmz2j">
-        <bpmn:incoming>SequenceFlow_1sm8hbz</bpmn:incoming>
-      </bpmn:endEvent>
+      <bpmn:endEvent id="EndEvent_0atmz2j" />
       <bpmn:sequenceFlow id="SequenceFlow_0fasdtb" sourceRef="uploadCopyOfOwnerSignedLeaseContract" targetRef="ExclusiveGateway_0r8y9hn" />
       <bpmn:sequenceFlow id="SequenceFlow_07fdtjr" sourceRef="confirmApprovalLeaseContractInSAPCM" targetRef="uploadCopyOfOwnerSignedLeaseContract" />
       <bpmn:sequenceFlow id="SequenceFlow_1otp2v1" sourceRef="confirmLoadingLeaseContractInSAPCM" targetRef="confirmApprovalLeaseContractInSAPCM" />
@@ -1364,9 +1363,8 @@
       <bpmn:exclusiveGateway id="ExclusiveGateway_04ip0tw">
         <bpmn:incoming>SequenceFlow_0m2htu7</bpmn:incoming>
         <bpmn:incoming>SequenceFlow_1a547b1</bpmn:incoming>
-        <bpmn:outgoing>SequenceFlow_1sm8hbz</bpmn:outgoing>
+        <bpmn:outgoing>SequenceFlow_15zpwo3</bpmn:outgoing>
       </bpmn:exclusiveGateway>
-      <bpmn:sequenceFlow id="SequenceFlow_1sm8hbz" sourceRef="ExclusiveGateway_04ip0tw" targetRef="EndEvent_0atmz2j" />
       <bpmn:serviceTask id="ServiceTask_1omzu7l" name="CREATE / UPDATE CONTRACT" camunda:class="kz.kcell.bpm.leasing.CreateUpdateContract">
         <bpmn:extensionElements>
           <camunda:inputOutput>
@@ -1385,7 +1383,7 @@
       </bpmn:exclusiveGateway>
       <bpmn:sequenceFlow id="SequenceFlow_0qn3uaw" sourceRef="ExclusiveGateway_0h5y3my" targetRef="ExclusiveGateway_1g4jgvy" />
       <bpmn:sequenceFlow id="SequenceFlow_1f0xge6" name="contract_artefact not created" sourceRef="ExclusiveGateway_0h5y3my" targetRef="Task_10sbwm9">
-        <bpmn:conditionExpression xsi:type="bpmn:tFormalExpression">{execution.getVariable("notCreatedContractArtefacts").size() &gt; 0}</bpmn:conditionExpression>
+        <bpmn:conditionExpression xsi:type="bpmn:tFormalExpression">${(execution.hasVariable("notCreatedContractArtefacts") ? execution.getVariable("notCreatedContractArtefacts").elements().size() : 0) &gt; 0}</bpmn:conditionExpression>
       </bpmn:sequenceFlow>
       <bpmn:exclusiveGateway id="ExclusiveGateway_1g4jgvy">
         <bpmn:incoming>SequenceFlow_0qn3uaw</bpmn:incoming>
@@ -1394,10 +1392,12 @@
       </bpmn:exclusiveGateway>
       <bpmn:sequenceFlow id="SequenceFlow_1a547b1" sourceRef="ExclusiveGateway_1g4jgvy" targetRef="ExclusiveGateway_04ip0tw" />
       <bpmn:sequenceFlow id="SequenceFlow_1go25ls" sourceRef="Task_10sbwm9" targetRef="ExclusiveGateway_1g4jgvy" />
-      <bpmn:sendTask id="Task_10sbwm9" camunda:delegateExpression="${camundaMailer}">
+      <bpmn:sendTask id="Task_10sbwm9" name="contract_artefact not created notiify" camunda:delegateExpression="${camundaMailer}">
         <bpmn:extensionElements>
           <camunda:inputOutput>
-            <camunda:inputParameter name="to">${starter}</camunda:inputParameter>
+            <camunda:inputParameter name="to">
+              <camunda:script scriptFormat="groovy" resource="hq_leasing_emails.groovy" />
+            </camunda:inputParameter>
             <camunda:inputParameter name="subject">no FE artefact id to Contract_Artefact</camunda:inputParameter>
             <camunda:inputParameter name="html">
               <camunda:script scriptFormat="groovy" resource="contractArtefactNotCreated.groovy" />
@@ -1406,7 +1406,9 @@
         </bpmn:extensionElements>
         <bpmn:incoming>SequenceFlow_1f0xge6</bpmn:incoming>
         <bpmn:outgoing>SequenceFlow_1go25ls</bpmn:outgoing>
+        <bpmn:multiInstanceLoopCharacteristics camunda:asyncBefore="true" camunda:asyncAfter="true" camunda:collection="${notCreatedContractArtefacts.elements()}" camunda:elementVariable="notCreatedContractArtefact" />
       </bpmn:sendTask>
+      <bpmn:sequenceFlow id="SequenceFlow_15zpwo3" sourceRef="ExclusiveGateway_04ip0tw" targetRef="uploadCopyOfOwnerSignedLeaseContract" />
       <bpmn:textAnnotation id="TextAnnotation_1wwomin">
         <bpmn:text>Central/Regional Site Leasing</bpmn:text>
       </bpmn:textAnnotation>
@@ -2052,8 +2054,8 @@ if (!uploadCopyOfOwnerSignedLeaseContractTaskResult) {
         <di:waypoint x="2597" y="1205" />
       </bpmndi:BPMNEdge>
       <bpmndi:BPMNEdge id="SequenceFlow_0fzpdqm_di" bpmnElement="SequenceFlow_0fzpdqm">
-        <di:waypoint x="2374" y="1205" />
-        <di:waypoint x="2489" y="1205" />
+        <di:waypoint x="2374" y="1112" />
+        <di:waypoint x="7855" y="509" />
       </bpmndi:BPMNEdge>
       <bpmndi:BPMNEdge id="SequenceFlow_116lgvb_di" bpmnElement="SequenceFlow_116lgvb">
         <di:waypoint x="3363" y="1205" />
@@ -3708,10 +3710,6 @@ if (!uploadCopyOfOwnerSignedLeaseContractTaskResult) {
         <di:waypoint x="8593" y="618" />
         <di:waypoint x="8636" y="618" />
       </bpmndi:BPMNEdge>
-      <bpmndi:BPMNEdge id="SequenceFlow_1sm8hbz_di" bpmnElement="SequenceFlow_1sm8hbz">
-        <di:waypoint x="8955" y="701" />
-        <di:waypoint x="9000" y="701" />
-      </bpmndi:BPMNEdge>
       <bpmndi:BPMNEdge id="SequenceFlow_0m2htu7_di" bpmnElement="SequenceFlow_0m2htu7">
         <di:waypoint x="8618" y="701" />
         <di:waypoint x="8905" y="701" />
@@ -4063,6 +4061,12 @@ if (!uploadCopyOfOwnerSignedLeaseContractTaskResult) {
       <bpmndi:BPMNShape id="SendTask_1ec06h5_di" bpmnElement="Task_10sbwm9">
         <dc:Bounds x="8880" y="485" width="100" height="80" />
       </bpmndi:BPMNShape>
+      <bpmndi:BPMNEdge id="SequenceFlow_15zpwo3_di" bpmnElement="SequenceFlow_15zpwo3">
+        <di:waypoint x="8930" y="726" />
+        <di:waypoint x="8930" y="760" />
+        <di:waypoint x="8455" y="760" />
+        <di:waypoint x="8455" y="741" />
+      </bpmndi:BPMNEdge>
     </bpmndi:BPMNPlane>
   </bpmndi:BPMNDiagram>
 </bpmn:definitions>

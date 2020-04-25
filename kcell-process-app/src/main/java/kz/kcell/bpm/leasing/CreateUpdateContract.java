@@ -2,8 +2,11 @@ package kz.kcell.bpm.leasing;
 
 import org.camunda.bpm.engine.delegate.DelegateExecution;
 import org.camunda.bpm.engine.delegate.JavaDelegate;
+import org.camunda.bpm.engine.impl.util.json.JSONArray;
+import org.camunda.bpm.engine.impl.util.json.JSONObject;
 import org.camunda.spin.SpinList;
 import org.camunda.spin.json.SpinJsonNode;
+import org.camunda.spin.plugin.variable.SpinValues;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
@@ -42,14 +45,9 @@ public class CreateUpdateContract implements JavaDelegate {
 
                     String starter = delegateExecution.getVariable("starter").toString();
                     Long createdArtefactId = (Long) delegateExecution.getVariable("createdArtefactId");
-//                    String contractVariableName =  _CONTRACT_APPROVAL_TYPE == "CN" ? "contractInformations" : "contractInformationsFE";
+
+                    // check FE or CN: _CONTRACT_APPROVAL_TYPE.equals("CN")
                     String contractVariableName =  _CONTRACT_APPROVAL_TYPE.equals("CN")  ? "contractInformations" : "contractInformationsFE";
-//
-//                    log.info("_CONTRACT_APPROVAL_TYPE:");
-//                    log.info(delegateExecution.hasVariableLocal("_CONTRACT_APPROVAL_TYPE") ? delegateExecution.getVariable("_CONTRACT_APPROVAL_TYPE").toString() : null);
-//                    log.info("END _CONTRACT_APPROVAL_TYPE");
-//                    log.info("contractVariableName: " + contractVariableName + " end contractVariableName");
-//                    log.info("contractVariableName2: " + contractVariableName2 + " end contractVariableName2");
 
                     SpinJsonNode contractInformationsJSON = JSON(delegateExecution.getVariable(contractVariableName));
                     SpinList contractInformations = contractInformationsJSON.elements();
@@ -57,9 +55,14 @@ public class CreateUpdateContract implements JavaDelegate {
                     String ct_contractid_old = "";
                     int ct_vendor_sap = 0;
                     int ct_agreement_type = 0;
+                    JSONArray notCreatedContractArtefacts = new JSONArray();
+                    JSONObject notCreatedContractArtefact = new JSONObject();
+
                     for (int j=0; j<contractInformations.size(); j++) {
                         SpinJsonNode ci = (SpinJsonNode) contractInformations.get(j);
                         if (ci != null) {
+
+                            Number fe_artefact_id = 0;
 
                             contractid = ci.hasProp("ct_contractid") ? ci.prop("ct_contractid").value().toString() : "";
                             String ct_acquisitionType = ci.prop("ct_acquisitionType").stringValue();
@@ -67,6 +70,36 @@ public class CreateUpdateContract implements JavaDelegate {
                             String ct_acceptance_act_date = ci.prop("ct_acceptance_act_date").stringValue().substring(0,9);
                             String ct_contract_start_date = ci.prop("ct_contract_start_date").stringValue().substring(0,9);
                             String ct_contract_end_date = ci.prop("ct_contract_end_date").stringValue().substring(0,9);
+
+                            if(_CONTRACT_APPROVAL_TYPE.equals("FE")){
+                                String ct_fe_sitename = ci.prop("ct_sitename").value().toString();
+                                //find artefact_id by ct_fe_sitename
+
+                                String SelectArtefactBySite = "select * from ARTEFACT where SITENAME = ?";
+                                PreparedStatement selectArtefactBySitePreparedStatement = udbConnect.prepareStatement(SelectArtefactBySite);
+                                int i = 1;
+                                log.info("get artefact_id by ct_fe_sitename...");
+                                log.info(ct_fe_sitename);
+                                selectArtefactBySitePreparedStatement.setString(i++, ct_fe_sitename); // sitename
+                                ResultSet resultSet = selectArtefactBySitePreparedStatement.executeQuery();
+
+                                if (resultSet.next() == false ) {
+                                    log.info("not Found");
+                                    if (!ct_acquisitionType.equals("additionalAgreement")){
+                                        notCreatedContractArtefact.put("contractid", contractid);
+                                        notCreatedContractArtefact.put("ct_sitename", ct_fe_sitename);
+                                        notCreatedContractArtefact.put("ct_acquisitionType", ct_acquisitionType);
+                                        notCreatedContractArtefacts.put(notCreatedContractArtefact);
+                                    }
+                                } else {
+                                    fe_artefact_id = resultSet.getInt("ARTEFACTID");
+                                }
+                                log.info("fe_artefact_id:");
+                                log.info(fe_artefact_id.toString());
+
+                            }
+
+
 
                             Date formated_ct_acceptance_act_date = formatter.parse(ct_acceptance_act_date);
                             Date formated_ct_contract_start_date = formatter.parse(ct_contract_start_date);
@@ -172,7 +205,9 @@ public class CreateUpdateContract implements JavaDelegate {
 //                                }
 
                                 //UPDATE NCP
-                                if (ct_acquisitionType.equals("existingContract")) {
+                                // && ((fe_artefact_id.longValue() > 0 && _CONTRACT_APPROVAL_TYPE.equals("FE")) || _CONTRACT_APPROVAL_TYPE.equals("CN"))
+
+                                if (ct_acquisitionType.equals("existingContract") && ((fe_artefact_id.longValue() > 0 && _CONTRACT_APPROVAL_TYPE.equals("FE")) || _CONTRACT_APPROVAL_TYPE.equals("CN"))) {
                                     String UPDATE_CONTRACT_STATUS_REL = "update CONTRACT_STATUS_REL set STATUSID = 40, csreldate=? where CONTRACTID = ?";
                                     PreparedStatement UPDATE_CONTRACT_STATUS_RELPreparedStatement = udbConnect.prepareStatement(UPDATE_CONTRACT_STATUS_REL);
                                     log.info("CONTRACT_STATUS_REL preparedStatement SQL UPDATE VALUES....");
@@ -204,7 +239,7 @@ public class CreateUpdateContract implements JavaDelegate {
                             i = 1;
                             String returnStatus[] = { "CID" };
                             Long createdContractCID = null;
-                            if (!ct_acquisitionType.equals("additionalAgreement")) {
+                            if (!ct_acquisitionType.equals("additionalAgreement") && ((fe_artefact_id.longValue() > 0 && _CONTRACT_APPROVAL_TYPE.equals("FE")) || _CONTRACT_APPROVAL_TYPE.equals("CN"))) {
                                 //INSERT_CONTRACTS
                                 String INSERT_CONTRACTS = "";
                                 if (ct_acquisitionType.equals("existingContract")) {
@@ -258,30 +293,8 @@ public class CreateUpdateContract implements JavaDelegate {
                                 createdContractCID = statusGeneratedIdResultSet.getLong(1);
                                 log.info("createdContractCID:");
                                 log.info(createdContractCID.toString());
-                                Number fe_artefact_id = 0;
 
                                 //INSERT_CONTRACT_ARTEFACT
-                                if(_CONTRACT_APPROVAL_TYPE.equals("FE")){
-                                    String ct_fe_sitename = ci.prop("ct_sitename").value().toString();
-                                    //find artefact_id by ct_fe_sitename
-
-                                    String SelectArtefactBySite = "select * from ARTEFACT where SITENAME = ?";
-                                    PreparedStatement selectArtefactBySitePreparedStatement = udbConnect.prepareStatement(SelectArtefactBySite);
-                                    i = 1;
-                                    log.info("get artefact_id by ct_fe_sitename...");
-                                    log.info(ct_fe_sitename);
-                                    selectArtefactBySitePreparedStatement.setString(i++, ct_fe_sitename); // sitename
-                                    ResultSet resultSet = selectArtefactBySitePreparedStatement.executeQuery();
-
-                                    if (resultSet.next() == false) {
-                                        log.info("not Found");
-                                    } else {
-                                        fe_artefact_id = resultSet.getInt("ARTEFACTID");
-                                    }
-                                    log.info("fe_artefact_id:");
-                                    log.info(fe_artefact_id.toString());
-
-                                }
 
                                 Long createdContractArtefactID = null;
                                 String returnContractArtefactID[] = { "ID" };
@@ -342,7 +355,7 @@ public class CreateUpdateContract implements JavaDelegate {
 
                                 InsertContractStatusesPreparedStatement.executeUpdate();
                                 log.info("successfull INSERT_CONTRACT_STATUSES updated!");
-                            } else {
+                            } else if (ct_acquisitionType.equals("additionalAgreement")){
                                 ct_contract_type = Integer.parseInt(ci.hasProp("ct_contract_type") ? ci.prop("ct_contract_type").value().toString() : "0");
 
                                 ct_agreement_type = Integer.parseInt(ci.hasProp("ct_agreement_type") && !ci.prop("ct_agreement_type").value().equals(null) ? ci.prop("ct_agreement_type").value().toString() : "0");
@@ -376,8 +389,14 @@ public class CreateUpdateContract implements JavaDelegate {
                                 } else {
                                     INSERT_CONTRACT_AA_PreparedStatement.setNull (i++, Types.TIMESTAMP); // AA_DATE
                                 }
+                                //&& ((fe_artefact_id.longValue() > 0 && _CONTRACT_APPROVAL_TYPE.equals("FE")) || _CONTRACT_APPROVAL_TYPE.equals("CN"))
                                 INSERT_CONTRACT_AA_PreparedStatement.setLong(i++, ct_agreement_executor.longValue()); // AA_EXECUTOR
-                                INSERT_CONTRACT_AA_PreparedStatement.setLong(i++, createdArtefactId); // ARTEFACTID
+                                if ((fe_artefact_id.longValue() > 0 && _CONTRACT_APPROVAL_TYPE.equals("FE")) || _CONTRACT_APPROVAL_TYPE.equals("CN")){
+                                    INSERT_CONTRACT_AA_PreparedStatement.setLong(i++, _CONTRACT_APPROVAL_TYPE.equals("CN") ? createdArtefactId : fe_artefact_id.longValue()); // ARTEFACTID
+                                } else {
+                                    INSERT_CONTRACT_AA_PreparedStatement.setNull(i++, Types.INTEGER); //setLong(i++, _CONTRACT_APPROVAL_TYPE.equals("CN") ? createdArtefactId : fe_artefact_id.longValue()); // ARTEFACTID
+                                }
+
                                 INSERT_CONTRACT_AA_PreparedStatement.setLong(i++, ct_agreement_type); // AA_TYPE
                                 INSERT_CONTRACT_AA_PreparedStatement.setLong(i++, 0); // AA_REASON // not needed
                                 INSERT_CONTRACT_AA_PreparedStatement.setLong(i++, ct_contract_type.longValue()); // CONTRACT_TYPE
@@ -430,6 +449,13 @@ public class CreateUpdateContract implements JavaDelegate {
                                 log.info(createdContractAAStatusID.toString());
                             }
                         }
+                    }
+
+                    if(_CONTRACT_APPROVAL_TYPE.equals("FE")){
+                        log.info("notCreatedContractArtefacts:");
+                        log.info(notCreatedContractArtefacts.toString());
+                        log.info("notCreatedContractArtefacts length: " + notCreatedContractArtefacts.length());
+                        delegateExecution.setVariable("notCreatedContractArtefacts", SpinValues.jsonValue(notCreatedContractArtefacts.toString()));
                     }
 
                     udbConnect.commit();
