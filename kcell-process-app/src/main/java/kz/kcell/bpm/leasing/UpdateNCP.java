@@ -36,7 +36,7 @@ public class UpdateNCP implements JavaDelegate {
 
                     // proc vars
                     int cn_rbs_location = 2;
-                    int cn_altitude = 689;
+
                     //generated vars
                     Long ncpCreatedId = (Long) delegateExecution.getVariable("ncpCreatedId");
                     Long createdNcpStatusId = (Long) delegateExecution.getVariable("createdNcpStatusId");
@@ -92,6 +92,8 @@ public class UpdateNCP implements JavaDelegate {
                     String cn_comments = candidate.hasProp("comments")?candidate.prop("comments").stringValue():null;
                     Number cn_square = candidate.prop("square").numberValue();
                     String cn_constructionType = candidate.prop("constructionType").prop("id").stringValue();
+
+                    Number cn_altitude = candidate.hasProp("cn_altitude") ? Integer.parseInt(candidate.prop("cn_altitude").value().toString()) : 0;
 
                     SimpleDateFormat formatter = new SimpleDateFormat("yyyy-dd-MM"); //2020-01-02T18:00:00.000Z
                     String cn_date_of_visit = candidate.prop("dateOfVisit").stringValue().substring(0,9);
@@ -165,7 +167,7 @@ public class UpdateNCP implements JavaDelegate {
                     // set values to update
                     updateArtefactRsdPreparedStatement.setLong(i++, createdArtefactId); //ARTEFACTID
                     updateArtefactRsdPreparedStatement.setLong(i++, cn_bscInt); //BSCID
-                    updateArtefactRsdPreparedStatement.setLong(i++, cn_altitude); //ALTITUDE
+                    updateArtefactRsdPreparedStatement.setLong(i++, cn_altitude.longValue()); //ALTITUDE
                     updateArtefactRsdPreparedStatement.setLong(i++, Integer.parseInt(cn_constructionType)); //CNSTRTYPEID
                     updateArtefactRsdPreparedStatement.setLong(i++, 3); // CONSTRUCTION_HEIGHT (cn_height_constr) еще не реализовано в данной версии
                     updateArtefactRsdPreparedStatement.setDate(i++, new java.sql.Date(new Date().getTime())); // INSERT_DATE

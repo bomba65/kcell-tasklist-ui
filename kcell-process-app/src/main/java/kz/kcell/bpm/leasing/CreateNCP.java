@@ -128,6 +128,9 @@ public class CreateNCP implements JavaDelegate {
                     Number cn_square = candidate != null ? (candidate.prop("square").numberValue()) : null;
                     String cn_constructionType = candidate != null ? (candidate.hasProp("constructionType") ? candidate.prop("constructionType").prop("id").stringValue() : "0") : null;
 
+                    Number cn_height_constr = candidate.hasProp("cn_height_constr") ? Integer.parseInt(candidate.prop("cn_height_constr").value().toString()) : 0;
+                    Number cn_altitude = candidate.hasProp("cn_altitude") ? Integer.parseInt(candidate.prop("cn_altitude").value().toString()) : 0;
+
                     SimpleDateFormat formatter = new SimpleDateFormat("yyyy-dd-MM"); //2020-01-02T18:00:00.000Z
                     String cn_date_of_visit = candidate != null && candidate.prop("dateOfVisit") != null ? (candidate.prop("dateOfVisit").stringValue().substring(0, 9)) : null;
                     Date date_of_visit = cn_date_of_visit != null ? formatter.parse(cn_date_of_visit) : null;
@@ -293,9 +296,9 @@ public class CreateNCP implements JavaDelegate {
                     newArtefactCurrentStatePreparedStatement.setLong(i++, cn_bscInt); // BSC (cn_bsc)
                     newArtefactCurrentStatePreparedStatement.setLong(i++, bandsIdForUDB != null ? Integer.parseInt(bandsIdForUDB) : null); // BAND (cn_band)
                     newArtefactCurrentStatePreparedStatement.setLong(i++, cn_rbs_location); // RBS_LOCATION (cn_rbs_location) //
-                    newArtefactCurrentStatePreparedStatement.setLong(i++, 689); // ALTITUDE (cn_altitude) еще не реализовано в данной версии
-                    newArtefactCurrentStatePreparedStatement.setLong(i++, 3); // CONSTRUCTION_HEIGHT (cn_height_constr) еще не реализовано в данной версии
-                    newArtefactCurrentStatePreparedStatement.setLong(i++, cn_constructionType != null ? Integer.parseInt(cn_constructionType) : null); // CONSTRUCTION_TYPE (cn_construction_type) еще не реализовано в данной версии
+                    newArtefactCurrentStatePreparedStatement.setLong(i++, cn_altitude.longValue()); // ALTITUDE (cn_altitude)
+                    newArtefactCurrentStatePreparedStatement.setLong(i++, cn_height_constr.longValue()); // CONSTRUCTION_HEIGHT (cn_height_constr)
+                    newArtefactCurrentStatePreparedStatement.setLong(i++, cn_constructionType != null ? Integer.parseInt(cn_constructionType) : null); // CONSTRUCTION_TYPE (cn_construction_type)
                     newArtefactCurrentStatePreparedStatement.setString(i++, cn_address); // ADDRESS "Восточно-Казахстанская область, Зайсанский район, село Карабулак, водонапорная башня"
                     newArtefactCurrentStatePreparedStatement.setString(i++, contact_person); // CONTACT_PERSON "Мария Николаевна Специалист акимата 8 701 479 19 86"
                     newArtefactCurrentStatePreparedStatement.setString(i++, renterCompany != null ? ((!renterCompany.prop("contactInfo").equals(null) ? renterCompany.prop("contactInfo").stringValue() : "")) : null); // COMMENTS (cn_contact_information)
@@ -330,7 +333,7 @@ public class CreateNCP implements JavaDelegate {
                     newArtefactRSDPreparedStatement.setLong(i++, createdArtefactId); //ARTEFACTID
                     newArtefactRSDPreparedStatement.setLong(i++, cn_bscInt); //BSCID
                     newArtefactRSDPreparedStatement.setLong(i++, cn_constructionType != null ? Integer.parseInt(cn_constructionType) : null); //CNSTRTYPEID
-                    newArtefactRSDPreparedStatement.setLong(i++, 3); // CONSTRUCTION_HEIGHT (cn_height_constr) еще не реализовано в данной версии
+                    newArtefactRSDPreparedStatement.setLong(i++, cn_height_constr.longValue()); // CONSTRUCTION_HEIGHT
                     newArtefactRSDPreparedStatement.setDate(i++, new java.sql.Date(new Date().getTime())); // INSERT_DATE
                     newArtefactRSDPreparedStatement.setDate(i++, date_of_visit != null ? new java.sql.Date(date_of_visit.getTime()) : null); // DATE OF VISIT (cn_date_visit)
                     newArtefactRSDPreparedStatement.setString(i++, contact_person); //CONTACTPERSON
