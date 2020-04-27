@@ -1,22 +1,19 @@
 package kz.kcell.flow.delegate
 
-import com.fasterxml.jackson.databind.JsonSerializable
 import groovy.json.JsonSlurper
 import groovy.text.markup.MarkupTemplateEngine
 import groovy.text.markup.TemplateConfiguration
 import kz.kcell.flow.files.Minio
 import org.camunda.bpm.engine.delegate.DelegateExecution
-import org.camunda.bpm.engine.delegate.DelegateTask
-import org.camunda.bpm.engine.delegate.TaskListener
+import org.camunda.bpm.engine.delegate.ExecutionListener
 import org.camunda.bpm.engine.impl.util.json.JSONArray
 import org.camunda.bpm.engine.impl.util.json.JSONObject
-import org.camunda.bpm.engine.variable.Variables
 import org.camunda.spin.plugin.variable.SpinValues
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.stereotype.Service
 
 @Service("GenerateLeasingRSD")
-class GenerateLeasingRSD implements TaskListener {
+class GenerateLeasingRSD implements ExecutionListener {
     private Minio minioClient;
 
     @Autowired
@@ -815,13 +812,11 @@ class GenerateLeasingRSD implements TaskListener {
         return result
     }
     @Override
-    void notify(DelegateTask delegateTask) {
+    public void notify(DelegateExecution delegateExecution) {
 
 
-        def execution = delegateTask.execution
-        def pid = delegateTask.getProcessInstanceId()
-        def tid = delegateTask.id
-        def tAssignee = delegateTask.assignee
+        def execution = delegateExecution
+        def pid = delegateExecution.getProcessInstanceId()
 
         def bandJson = new JsonSlurper().parseText(execution.getVariable('bands').toString());
 
@@ -965,13 +960,13 @@ class GenerateLeasingRSD implements TaskListener {
         print (result);
 
         InputStream is = new ByteArrayInputStream(result.getBytes());
-        def path = pid + "/" + tid + "/createdRSDFile.doc"
+        def path = pid + "/createdRSDFile.doc"
         minioClient.saveFile(path, is, "application/msword");
 
         JSONArray createdRSDFiles = new JSONArray();
         JSONObject createdRSDFile = new JSONObject();
         createdRSDFile.put("date", new Date().getTime());
-        createdRSDFile.put("author", tAssignee);
+        createdRSDFile.put("author", "");
         createdRSDFile.put("name", "createdRSDFile.doc");
         createdRSDFile.put("path", path);
         createdRSDFiles.put(createdRSDFile);
