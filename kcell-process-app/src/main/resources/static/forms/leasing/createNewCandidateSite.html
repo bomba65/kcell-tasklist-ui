@@ -269,6 +269,18 @@
                 $scope.cellAntenna.cn_tcc = 'No/No';
                 $scope.cellAntenna.cn_gsm_range = 'No/No';
 
+                $scope.variablesFetched = false;
+                $scope.catalogsFetched = false;
+
+                $scope.setConstructionType = function () {
+                    let i = $scope.constructionTypesList.findIndex( a => { return a.name === $scope.candidate.constructionType.name })
+
+                    if (i > -1){
+                        $scope.candidate.constructionType = $scope.dictionary.constructionType[i]
+                        $scope.leasingInfo.candidate.constructionType = $scope.dictionary.constructionType[i]
+                    }
+                }
+
                 //----------------------------------------
 
                 $http.get('/api/leasingCatalogs?version=1').then(
@@ -279,6 +291,7 @@
                         $scope.availableBands = $scope.dictionary.bands;
                         $scope.BSC = $scope.dictionary.BSC;
                         $scope.frequencyBand = $scope.dictionary.frequencyBand;
+                        $scope.constructionTypesList = $scope.dictionary.constructionType;
                         $scope.addressesList = $scope.dictionary.addresses;
                         $scope.oblastList = _.uniqBy($scope.dictionary.addresses, 'oblast').map( (e, index) => { return {"name" : e.oblast, "id" : index} });
                         $scope.cityList = _.uniqBy($scope.dictionary.addresses, 'city').map( (e, index) => { return {"name" : e.city, "id" : index} });
@@ -286,6 +299,12 @@
                         $scope.filteredDistricts = $scope.districtList;
                         $scope.filteredDistrictsInCAI = $scope.districtList;
                         console.log(result.data)
+
+                        $scope.catalogsFetched = true;
+
+                        if ($scope.catalogsFetched && $scope.variablesFetched){
+                            $scope.setConstructionType()
+                        }
 
 
                     },
@@ -319,11 +338,14 @@
                             $scope[el] = camForm.variableManager.variables[el] ? camForm.variableManager.variables[el].value : {};
                             $scope.leasingInfo[el] = camForm.variableManager.variables[el] ? camForm.variableManager.variables[el].value : {};
                         } else if (el == 'candidate') {
-                            console.log('candidate:', camForm.variableManager.variables[el].value)
+                            // console.log('candidate:', camForm.variableManager.variables[el].value)
 
                             $scope.candidate = camForm.variableManager.variables[el].value;
-
                             $scope.leasingInfo[el] = camForm.variableManager.variables[el].value;
+
+                            $scope.candidate.constructionType = JSON.parse(angular.toJson($scope.candidate.constructionType))
+                            delete $scope.candidate.constructionType.$$hashKey
+
                         } else {
                             $scope[el] = camForm.variableManager.variables[el].value;
                             $scope.leasingInfo[el] = camForm.variableManager.variables[el].value;
@@ -331,6 +353,12 @@
 
                     }
                 });
+
+                $scope.variablesFetched = true;
+
+                if ($scope.catalogsFetched && $scope.variablesFetched){
+                    $scope.setConstructionType()
+                }
 
                 files.forEach(function (f) {
                     if(camForm.variableManager.variables[f] && camForm.variableManager.variables[f].value){
@@ -1300,7 +1328,7 @@
                         <select class="form-control" id="constructionType" name="constructionType"
                                 ng-model="candidate.constructionType"
                                 required>
-                            <option ng-repeat="c in dictionary.constructionType"  ng-value="c">{{c.name}}</option>
+                            <option ng-repeat="c in dictionary.constructionType" ng-value="c">{{c.name}}</option>
                         </select>
                         <label class="error"
                                ng-show="kcell_form.constructionType.$error.required && ( kcell_form.constructionType.$touched || view.submitted)">Required
@@ -1362,10 +1390,10 @@
                             <!-- <label class="form-check-label" for="{{'check' + $index}}">{{ l.title }}</label> -->
                         <!-- </div> -->
                         
-                        <label class="form-check" style="display:inline-block; padding:0 !important; margin-right: 10px;"><input type="radio" name="rbsLocation" ng-value="{title:'Room', value:true}" ng-model="candidate.rbsLocation" required>Room</label>
-                        <label class="form-check" style="display:inline-block; padding:0 !important; margin-right: 10px;"><input type="radio" name="rbsLocation" ng-value="{title:'Container', value:true}" ng-model="candidate.rbsLocation" required>Container</label>
-                        <label class="form-check" style="display:inline-block; padding:0 !important; margin-right: 10px;"><input type="radio" name="rbsLocation" ng-value="{title:'Other', value:true}" ng-model="candidate.rbsLocation" required>Other</label>
-                        <label class="form-check" style="display:inline-block; padding:0 !important; margin-right: 10px;"><input type="radio" name="rbsLocation" ng-value="{title:'Outdoor', value:true}" ng-model="candidate.rbsLocation" required>Outdoor</label>
+                        <label class="form-check" style="display:inline-block; padding:0 !important; margin-right: 10px;"><input type="radio" name="rbsLocation" ng-value="{title:'Room', value:true}" ng-checked="candidate.rbsLocation.title == 'Room'" ng-model="candidate.rbsLocation" required>Room</label>
+                        <label class="form-check" style="display:inline-block; padding:0 !important; margin-right: 10px;"><input type="radio" name="rbsLocation" ng-value="{title:'Container', value:true}" ng-checked="candidate.rbsLocation.title == 'Container'" ng-model="candidate.rbsLocation" required>Container</label>
+                        <label class="form-check" style="display:inline-block; padding:0 !important; margin-right: 10px;"><input type="radio" name="rbsLocation" ng-value="{title:'Other', value:true}" ng-checked="candidate.rbsLocation.title == 'Other'" ng-model="candidate.rbsLocation" required>Other</label>
+                        <label class="form-check" style="display:inline-block; padding:0 !important; margin-right: 10px;"><input type="radio" name="rbsLocation" ng-value="{title:'Outdoor', value:true}" ng-checked="candidate.rbsLocation.title == 'Outdoor'" ng-model="candidate.rbsLocation" required>Outdoor</label>
                         <label class="error" ng-show="kcell_form.rbsLocation.$error.required && ( checkRbsLocationTouched || view.submitted)">Required field</label>
 
                     </div>
