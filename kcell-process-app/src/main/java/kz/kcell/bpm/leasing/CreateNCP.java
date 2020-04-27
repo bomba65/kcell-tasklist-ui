@@ -448,29 +448,123 @@ public class CreateNCP implements JavaDelegate {
                     //insert ARTEFACT_TSD_EXT
                     Long createdArtefactExtTSDId = null;
                     String artefactExtTSDReturnStatus[] = {"TSDID"};
-                    String insertNewArtefactExtTSD = "INSERT INTO APP_APEXUDB_CAMUNDA.ARTEFACT_TSD_EXT (TSDID, ARTEFACTID, NE_LONGITUDE, NE_LATITUDE, FE_SITENAME, FE_CONSTR_TYPE, FE_ADDRESS, SURVEY_DATE, NE_AZIMUTH, NE_ANTENNADIAMETER, NE_SUSPENSIONHEIGHT, NE_TXRF_FREQUENCY, FE_AZIMUTH, FE_ANTENNADIAMETER, FE_SUSPENSIONHEIGHT, FE_TXRF_FREQUENCY, COMMENTS, INSERT_DATE, INSERT_PERSON) VALUES (ARTEFACT_TSD_SEQ.nextval, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)";
+                    StringBuilder insertNewArtefactExtTSDbuilder = new StringBuilder("INSERT INTO APP_APEXUDB_CAMUNDA.ARTEFACT_TSD_EXT (TSDID, ARTEFACTID, INSERT_DATE, INSERT_PERSON");
+                    StringBuilder insertNewArtefactExtTSDbuilderValues = new StringBuilder(") VALUES (ARTEFACT_TSD_SEQ.nextval, ?, ?, ?");
+                    if(cn_longitude!=null){
+                        insertNewArtefactExtTSDbuilder.append(", NE_LONGITUDE");
+                        insertNewArtefactExtTSDbuilderValues.append(", ?");
+                    }
+                    if(cn_latitude!=null){
+                        insertNewArtefactExtTSDbuilder.append(", NE_LATITUDE");
+                        insertNewArtefactExtTSDbuilderValues.append(", ?");
+                    }
+                    if(fe_sitename!=null){
+                        insertNewArtefactExtTSDbuilder.append(", FE_SITENAME");
+                        insertNewArtefactExtTSDbuilderValues.append(", ?");
+                    }
+                    if(fe_constructionType!=null){
+                        insertNewArtefactExtTSDbuilder.append(", FE_CONSTR_TYPE");
+                        insertNewArtefactExtTSDbuilderValues.append(", ?");
+                    }
+                    if(fe_address!=null){
+                        insertNewArtefactExtTSDbuilder.append(", FE_ADDRESS");
+                        insertNewArtefactExtTSDbuilderValues.append(", ?");
+                    }
+                    if(fe_formated_survey_date!=null){
+                        insertNewArtefactExtTSDbuilder.append(", SURVEY_DATE");
+                        insertNewArtefactExtTSDbuilderValues.append(", ?");
+                    }
+                    if(ne_azimuth!=null){
+                        insertNewArtefactExtTSDbuilder.append(", NE_AZIMUTH");
+                        insertNewArtefactExtTSDbuilderValues.append(", ?");
+                    }
+                    if(ne_diameter!=null){
+                        insertNewArtefactExtTSDbuilder.append(", NE_ANTENNADIAMETER");
+                        insertNewArtefactExtTSDbuilderValues.append(", ?");
+                    }
+                    if(ne_suspensionHeight!=null){
+                        insertNewArtefactExtTSDbuilder.append(", NE_SUSPENSIONHEIGHT");
+                        insertNewArtefactExtTSDbuilderValues.append(", ?");
+                    }
+                    if(ne_frequencyBand!=null){
+                        insertNewArtefactExtTSDbuilder.append(", NE_TXRF_FREQUENCY");
+                        insertNewArtefactExtTSDbuilderValues.append(", ?");
+                    }
+                    if(fe_azimuth!=null){
+                        insertNewArtefactExtTSDbuilder.append(", FE_AZIMUTH");
+                        insertNewArtefactExtTSDbuilderValues.append(", ?");
+                    }
+                    if(fe_diameter!=null){
+                        insertNewArtefactExtTSDbuilder.append(", FE_ANTENNADIAMETER");
+                        insertNewArtefactExtTSDbuilderValues.append(", ?");
+                    }
+                    if(fe_suspensionHeight!=null){
+                        insertNewArtefactExtTSDbuilder.append(", FE_SUSPENSIONHEIGHT");
+                        insertNewArtefactExtTSDbuilderValues.append(", ?");
+                    }
+                    if(fe_frequencyBand!=null){
+                        insertNewArtefactExtTSDbuilder.append(", FE_TXRF_FREQUENCY");
+                        insertNewArtefactExtTSDbuilderValues.append(", ?");
+                    }
+                    if(fe_comment!=null){
+                        insertNewArtefactExtTSDbuilder.append(", COMMENTS");
+                        insertNewArtefactExtTSDbuilderValues.append(", ?");
+                    }
+                    insertNewArtefactExtTSDbuilder.append(insertNewArtefactExtTSDbuilderValues.toString());
+                    String insertNewArtefactExtTSD = insertNewArtefactExtTSDbuilder.toString() + ")";
                     PreparedStatement newArtefactExtTSDPreparedStatement = udbConnect.prepareStatement(insertNewArtefactExtTSD, artefactExtTSDReturnStatus);
 
                     i = 1;
                     log.info("newArtefactExtTSDPreparedStatement.setString");
                     newArtefactExtTSDPreparedStatement.setLong(i++, createdArtefactId); // ARTEFACTID
-                    newArtefactExtTSDPreparedStatement.setString(i++, cn_longitude); // NE_LONGITUDE
-                    newArtefactExtTSDPreparedStatement.setString(i++, cn_latitude); // NE_LATITUDE
-                    newArtefactExtTSDPreparedStatement.setString(i++, fe_sitename); // FE_SITENAME
-                    newArtefactExtTSDPreparedStatement.setLong(i++, fe_constructionType != null ? Integer.parseInt(fe_constructionType) : null); // FE_CONSTR_TYPE
-                    newArtefactExtTSDPreparedStatement.setString(i++, fe_address); // FE_ADDRESS
-                    newArtefactExtTSDPreparedStatement.setDate(i++, fe_formated_survey_date != null ? new java.sql.Date(fe_formated_survey_date.getTime()) : null); // SURVEY_DATE (fe_survey_date)
-                    newArtefactExtTSDPreparedStatement.setLong(i++, ne_azimuth != null ? Integer.parseInt(ne_azimuth) : null); // NE_AZIMUTH
-                    newArtefactExtTSDPreparedStatement.setFloat(i++, ne_diameter != null ? Float.parseFloat(ne_diameter) : null); // NE_ANTENNADIAMETER
-                    newArtefactExtTSDPreparedStatement.setLong(i++, ne_suspensionHeight.longValue()); // NE_SUSPENSIONHEIGHT
-                    newArtefactExtTSDPreparedStatement.setLong(i++, ne_frequencyBand != null ? Integer.parseInt(ne_frequencyBand) : null); // NE_TXRF_FREQUENCY
-                    newArtefactExtTSDPreparedStatement.setLong(i++, fe_azimuth != null ? Integer.parseInt(fe_azimuth) : null); // FE_AZIMUTH
-                    newArtefactExtTSDPreparedStatement.setFloat(i++, fe_diameter != null ? Float.parseFloat(fe_diameter) : null); // FE_ANTENNADIAMETER
-                    newArtefactExtTSDPreparedStatement.setLong(i++, fe_suspensionHeight != null ? Integer.parseInt(fe_suspensionHeight) : null); // FE_SUSPENSIONHEIGHT
-                    newArtefactExtTSDPreparedStatement.setLong(i++, fe_frequencyBand != null ? Integer.parseInt(fe_frequencyBand) : null); // FE_TXRF_FREQUENCY
-                    newArtefactExtTSDPreparedStatement.setString(i++, fe_comment); // COMMENTS
                     newArtefactExtTSDPreparedStatement.setDate(i++, new java.sql.Date(new Date().getTime())); // INSERT_DATE
                     newArtefactExtTSDPreparedStatement.setString(i++, starter); // INSERT_PERSON
+
+                    if(cn_longitude!=null) {
+                        newArtefactExtTSDPreparedStatement.setString(i++, cn_longitude); // NE_LONGITUDE
+                    }
+                    if(cn_latitude!=null) {
+                        newArtefactExtTSDPreparedStatement.setString(i++, cn_latitude); // NE_LATITUDE
+                    }
+                    if(fe_sitename!=null) {
+                        newArtefactExtTSDPreparedStatement.setString(i++, fe_sitename); // FE_SITENAME
+                    }
+                    if(fe_constructionType!=null) {
+                        newArtefactExtTSDPreparedStatement.setLong(i++, Integer.parseInt(fe_constructionType)); // FE_CONSTR_TYPE
+                    }
+                    if(fe_address!=null) {
+                        newArtefactExtTSDPreparedStatement.setString(i++, fe_address); // FE_ADDRESS
+                    }
+                    if(fe_formated_survey_date!=null) {
+                        newArtefactExtTSDPreparedStatement.setDate(i++, new java.sql.Date(fe_formated_survey_date.getTime())); // SURVEY_DATE (fe_survey_date)
+                    }
+                    if(ne_azimuth!=null) {
+                        newArtefactExtTSDPreparedStatement.setLong(i++, Integer.parseInt(ne_azimuth)); // NE_AZIMUTH
+                    }
+                    if(ne_diameter!=null) {
+                        newArtefactExtTSDPreparedStatement.setFloat(i++, Float.parseFloat(ne_diameter)); // NE_ANTENNADIAMETER
+                    }
+                    if(ne_suspensionHeight!=null) {
+                        newArtefactExtTSDPreparedStatement.setLong(i++, ne_suspensionHeight.longValue()); // NE_SUSPENSIONHEIGHT
+                    }
+                    if(ne_frequencyBand!=null) {
+                        newArtefactExtTSDPreparedStatement.setLong(i++, Integer.parseInt(ne_frequencyBand)); // NE_TXRF_FREQUENCY
+                    }
+                    if(fe_azimuth!=null) {
+                        newArtefactExtTSDPreparedStatement.setLong(i++, Integer.parseInt(fe_azimuth)); // FE_AZIMUTH
+                    }
+                    if(fe_diameter!=null) {
+                        newArtefactExtTSDPreparedStatement.setFloat(i++, Float.parseFloat(fe_diameter)); // FE_ANTENNADIAMETER
+                    }
+                    if(fe_suspensionHeight!=null) {
+                        newArtefactExtTSDPreparedStatement.setLong(i++, Integer.parseInt(fe_suspensionHeight)); // FE_SUSPENSIONHEIGHT
+                    }
+                    if(fe_frequencyBand!=null) {
+                        newArtefactExtTSDPreparedStatement.setLong(i++, Integer.parseInt(fe_frequencyBand)); // FE_TXRF_FREQUENCY
+                    }
+                    if(fe_comment!=null) {
+                        newArtefactExtTSDPreparedStatement.setString(i++, fe_comment); // COMMENTS
+                    }
                     log.info("newArtefactExtTSDPreparedStatement.executeUpdate()");
                     newArtefactExtTSDPreparedStatement.executeUpdate();
                     log.info("successfull insert to database!");
