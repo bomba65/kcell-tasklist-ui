@@ -140,8 +140,8 @@ public class CreateNCP implements JavaDelegate {
                     SpinJsonNode ne = delegateExecution.getVariable("transmissionAntenna") != null ? JSON(delegateExecution.getVariable("transmissionAntenna")) : null;
                     String ne_azimuth = ne != null ? (ne.hasProp("azimuth") ? ne.prop("azimuth").stringValue() : "0") : null;
                     String ne_diameter = ne != null ? (ne.hasProp("diameter") ? ne.prop("diameter").stringValue() : "0") : null;
-                    String ne_frequencyBand = "8";//ne.prop("frequencyBand").numberValue();
-                    Number ne_suspensionHeight = ne != null ? (ne.prop("suspensionHeight").numberValue()) : null;
+                    String ne_frequencyBand = ne != null && ne.hasProp("frequencyBand") ? ne.prop("frequencyBand").stringValue().replaceAll("[^0-9.]", "") : null;
+                    Number ne_suspensionHeight = ne != null && ne.hasProp("suspensionHeight") ? (ne.prop("suspensionHeight").numberValue()) : null;
 
 //                    farEndInformation
 
@@ -150,7 +150,7 @@ public class CreateNCP implements JavaDelegate {
                     SpinJsonNode fe = farEnds != null ? (SpinJsonNode) farEnds.get(0) : null;
                     String fe_azimuth = fe != null && fe.hasProp("azimuth") ? (fe.prop("azimuth").stringValue()) : null;
                     String fe_diameter = fe != null && fe.hasProp("diameter") ? (fe.prop("diameter").stringValue()) : null;
-                    String fe_frequencyBand = "8"; //fe.prop("frequencyBand").numberValue();
+                    String fe_frequencyBand = fe != null && fe.hasProp("frequencyBand") ? fe.prop("frequencyBand").stringValue().replaceAll("[^0-9.]", "") : null;
                     String fe_suspensionHeight = fe != null && fe.hasProp("suspensionHeight") && fe.prop("suspensionHeight") != null ? fe.prop("suspensionHeight").stringValue() : null;
                     String fe_constructionType = fe != null && fe.hasProp("constructionType") && fe.prop("constructionType") != null ? fe.prop("constructionType").prop("id").stringValue() : null;
                     String fe_sitename = fe != null && fe.hasProp("farEndName") && fe.prop("farEndName") != null ? fe.prop("farEndName").stringValue() : null;
