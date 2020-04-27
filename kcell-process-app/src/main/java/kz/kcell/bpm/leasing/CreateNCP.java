@@ -302,7 +302,7 @@ public class CreateNCP implements JavaDelegate {
                     newArtefactCurrentStatePreparedStatement.setLong(i++, cn_constructionType != null ? Integer.parseInt(cn_constructionType) : null); // CONSTRUCTION_TYPE (cn_construction_type)
                     newArtefactCurrentStatePreparedStatement.setString(i++, cn_address); // ADDRESS "Восточно-Казахстанская область, Зайсанский район, село Карабулак, водонапорная башня"
                     newArtefactCurrentStatePreparedStatement.setString(i++, contact_person); // CONTACT_PERSON "Мария Николаевна Специалист акимата 8 701 479 19 86"
-                    newArtefactCurrentStatePreparedStatement.setString(i++, renterCompany != null ? ((!renterCompany.prop("contactInfo").equals(null) ? renterCompany.prop("contactInfo").stringValue() : "")) : null); // COMMENTS (cn_contact_information)
+                    newArtefactCurrentStatePreparedStatement.setString(i++, renterCompany != null ? ((renterCompany.hasProp("contactInfo") && !renterCompany.prop("contactInfo").equals(null) ? renterCompany.prop("contactInfo").stringValue() : "")) : null); // COMMENTS (cn_contact_information)
                     newArtefactCurrentStatePreparedStatement.setDate(i++, new java.sql.Date(new Date().getTime())); // INSERT_DATE
                     newArtefactCurrentStatePreparedStatement.setString(i++, starter); // INSERT_PERSON
                     newArtefactCurrentStatePreparedStatement.setLong(i++, 7); // GS_STATUS
