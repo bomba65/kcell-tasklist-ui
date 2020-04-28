@@ -29,7 +29,7 @@ public class UpdateNCP implements JavaDelegate {
             TimeZone.setDefault(timeZone);
             Class.forName("oracle.jdbc.OracleDriver");
             Connection udbConnect = DriverManager.getConnection(
-                "jdbc:oracle:thin:@//sc2-appcl010406:1521/apexudb", "app_apexudb_camunda", "p28zt#7C");
+                "jdbc:oracle:thin:@//sc2-appcl010406:1521/apexudb", "udbrnd", "udb");
             try {
                 if (udbConnect != null) {
                     udbConnect.setAutoCommit(false);
