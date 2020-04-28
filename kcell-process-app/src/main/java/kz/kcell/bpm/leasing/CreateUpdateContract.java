@@ -243,9 +243,9 @@ public class CreateUpdateContract implements JavaDelegate {
                                 //INSERT_CONTRACTS
                                 String INSERT_CONTRACTS = "";
                                 if (ct_acquisitionType.equals("existingContract")) {
-                                    INSERT_CONTRACTS = "INSERT INTO APP_APEXUDB_CAMUNDA.CONTRACTS (CID, OLD_CID, RENTSUM, RENTAREA, CONTRACTID, INCOMINGDATE, INCOMINGWEEK, CONTRACTTYPE, POWERSUPPLY, LEGALTYPE, LEGALNAME, LEGALADDRESS, CONTACTPERSON, CONTACTPHONE, ACCESS_STATUS, CONTRACT_SAP_NO, VENDOR_SAP_NO, CONTRACT_EXECUTOR, NEEDVAT, PAYMENTPERIOD, PAYMENTWAY, CONTRACTSTARTDATE, CONTRACTENDDATE, AUTOPROLONGATION, USERNAME, AREA_ACT_ACCEPT_DATE, RNN, IBAN, BANK_ID) VALUES (CONTRACTS_SEQ.nextval, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)";
+                                    INSERT_CONTRACTS = "INSERT INTO CONTRACTS (CID, OLD_CID, RENTSUM, RENTAREA, CONTRACTID, INCOMINGDATE, INCOMINGWEEK, CONTRACTTYPE, POWERSUPPLY, LEGALTYPE, LEGALNAME, LEGALADDRESS, CONTACTPERSON, CONTACTPHONE, ACCESS_STATUS, CONTRACT_SAP_NO, VENDOR_SAP_NO, CONTRACT_EXECUTOR, NEEDVAT, PAYMENTPERIOD, PAYMENTWAY, CONTRACTSTARTDATE, CONTRACTENDDATE, AUTOPROLONGATION, USERNAME, AREA_ACT_ACCEPT_DATE, RNN, IBAN, BANK_ID) VALUES (CONTRACTS_SEQ.nextval, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)";
                                 } else {
-                                    INSERT_CONTRACTS = "INSERT INTO APP_APEXUDB_CAMUNDA.CONTRACTS (CID, RENTSUM, RENTAREA, CONTRACTID, INCOMINGDATE, INCOMINGWEEK, CONTRACTTYPE, POWERSUPPLY, LEGALTYPE, LEGALNAME, LEGALADDRESS, CONTACTPERSON, CONTACTPHONE, ACCESS_STATUS, CONTRACT_SAP_NO, VENDOR_SAP_NO, CONTRACT_EXECUTOR, NEEDVAT, PAYMENTPERIOD, PAYMENTWAY, CONTRACTSTARTDATE, CONTRACTENDDATE, AUTOPROLONGATION, USERNAME, AREA_ACT_ACCEPT_DATE, RNN, IBAN, BANK_ID) VALUES (CONTRACTS_SEQ.nextval, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)";
+                                    INSERT_CONTRACTS = "INSERT INTO CONTRACTS (CID, RENTSUM, RENTAREA, CONTRACTID, INCOMINGDATE, INCOMINGWEEK, CONTRACTTYPE, POWERSUPPLY, LEGALTYPE, LEGALNAME, LEGALADDRESS, CONTACTPERSON, CONTACTPHONE, ACCESS_STATUS, CONTRACT_SAP_NO, VENDOR_SAP_NO, CONTRACT_EXECUTOR, NEEDVAT, PAYMENTPERIOD, PAYMENTWAY, CONTRACTSTARTDATE, CONTRACTENDDATE, AUTOPROLONGATION, USERNAME, AREA_ACT_ACCEPT_DATE, RNN, IBAN, BANK_ID) VALUES (CONTRACTS_SEQ.nextval, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)";
                                 }
 
                                 PreparedStatement INSERT_CONTRACTSPreparedStatement = udbConnect.prepareStatement(INSERT_CONTRACTS, returnStatus);
@@ -298,7 +298,7 @@ public class CreateUpdateContract implements JavaDelegate {
 
                                 Long createdContractArtefactID = null;
                                 String returnContractArtefactID[] = { "ID" };
-                                String INSERT_CONTRACT_ARTEFACT = "INSERT INTO APP_APEXUDB_CAMUNDA.CONTRACT_ARTEFACT (ID, CID, ARTEFACTID) VALUES (CONTRACT_ARTEFACT_SEQ.nextval, ?, ?)";
+                                String INSERT_CONTRACT_ARTEFACT = "INSERT INTO CONTRACT_ARTEFACT (ID, CID, ARTEFACTID) VALUES (CONTRACT_ARTEFACT_SEQ.nextval, ?, ?)";
                                 PreparedStatement InsertContractArtefactPreparedStatement = udbConnect.prepareStatement(INSERT_CONTRACT_ARTEFACT, returnContractArtefactID);
 
                                 i = 1;
@@ -326,7 +326,7 @@ public class CreateUpdateContract implements JavaDelegate {
                                 log.info("INSERT_CONTRACT_STATUS_REL preparedStatement");
                                 Long createdContractStatusRelID = null;
                                 String returnContractStatusRelID[] = { "CSRELID" };
-                                String INSERT_CONTRACT_STATUS_REL = "INSERT INTO APP_APEXUDB_CAMUNDA.CONTRACT_STATUS_REL (csrelid, contractid, statusid, csreldate) VALUES (CONTRACT_STATUS_REL_SEQ.nextval, ?, 41, ?)";
+                                String INSERT_CONTRACT_STATUS_REL = "INSERT INTO CONTRACT_STATUS_REL (csrelid, contractid, statusid, csreldate) VALUES (CONTRACT_STATUS_REL_SEQ.nextval, ?, 41, ?)";
                                 PreparedStatement InsertContractStatusRelPreparedStatement = udbConnect.prepareStatement(INSERT_CONTRACT_STATUS_REL, returnContractStatusRelID);
 
                                 i = 1;
@@ -345,7 +345,7 @@ public class CreateUpdateContract implements JavaDelegate {
 
 
                                 //INSERT_CONTRACT_STATUSES
-                                String INSERT_CONTRACT_STATUSES = "INSERT INTO APP_APEXUDB_CAMUNDA.CONTRACTS_STATUSES (cid, leasing_status) VALUES (?, 41)";
+                                String INSERT_CONTRACT_STATUSES = "INSERT INTO CONTRACTS_STATUSES (cid, leasing_status) VALUES (?, 41)";
                                 PreparedStatement InsertContractStatusesPreparedStatement = udbConnect.prepareStatement(INSERT_CONTRACT_STATUSES);
 
                                 i = 1;
@@ -375,7 +375,7 @@ public class CreateUpdateContract implements JavaDelegate {
 
                                 Long createdContractAA = null;
                                 String createdContractAAID[] = { "AAID" };
-                                String INSERT_CONTRACT_AA = "INSERT INTO APP_APEXUDB_CAMUNDA.CONTRACT_AA (AAID, CID, AA_NUMBER, AA_DATE, AA_EXECUTOR, ARTEFACTID, AA_TYPE, AA_REASON, CONTRACT_TYPE, RENTSUM, RENT_AREA, POWERSUPPLY, LEGAL_TYPE, LEGAL_NAME, LEGAL_ADDRESS, CONTACT_PERSON, CONTACT_PHONE, PAYMENT_PERIOD, PAYMENT_WAY, NEEDVAT, CONTRACT_START_DATE, CONTRACT_END_DATE, AUTOPROLONGATION, AA_STATUS, INSERT_DATE, INSERT_PERSON) VALUES (CONTRACT_AA_SEQ.nextval, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)";
+                                String INSERT_CONTRACT_AA = "INSERT INTO CONTRACT_AA (AAID, CID, AA_NUMBER, AA_DATE, AA_EXECUTOR, ARTEFACTID, AA_TYPE, AA_REASON, CONTRACT_TYPE, RENTSUM, RENT_AREA, POWERSUPPLY, LEGAL_TYPE, LEGAL_NAME, LEGAL_ADDRESS, CONTACT_PERSON, CONTACT_PHONE, PAYMENT_PERIOD, PAYMENT_WAY, NEEDVAT, CONTRACT_START_DATE, CONTRACT_END_DATE, AUTOPROLONGATION, AA_STATUS, INSERT_DATE, INSERT_PERSON) VALUES (CONTRACT_AA_SEQ.nextval, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)";
                                 PreparedStatement INSERT_CONTRACT_AA_PreparedStatement = udbConnect.prepareStatement(INSERT_CONTRACT_AA, createdContractAAID);
 
                                 i = 1;
@@ -431,7 +431,7 @@ public class CreateUpdateContract implements JavaDelegate {
                                 log.info("CONTRACT_AA_STATUS preparedStatement");
                                 Long createdContractAAStatusID = null;
                                 String returnContractAAStatusID[] = { "ACTION_ID" };
-                                String INSERT_CONTRACT_AA_STATUS = "INSERT INTO APP_APEXUDB_CAMUNDA.CONTRACT_AA_STATUS (ACTION_ID, AAID, statusid, STATUSDATE ) VALUES (CONTRACT_AA_STATUS_SEQ.nextval, ?, 41, ?)";
+                                String INSERT_CONTRACT_AA_STATUS = "INSERT INTO CONTRACT_AA_STATUS (ACTION_ID, AAID, statusid, STATUSDATE ) VALUES (CONTRACT_AA_STATUS_SEQ.nextval, ?, 41, ?)";
                                 PreparedStatement InsertContractAaStatusPreparedStatement = udbConnect.prepareStatement(INSERT_CONTRACT_AA_STATUS, returnContractAAStatusID);
 
                                 i = 1;

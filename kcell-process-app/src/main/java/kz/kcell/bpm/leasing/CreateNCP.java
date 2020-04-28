@@ -41,7 +41,7 @@ public class CreateNCP implements JavaDelegate {
 
                     //insert NCP
                     String returnCols[] = {"ARTEFACTID"};
-                    String insertNCP = "INSERT INTO APP_APEXUDB_CAMUNDA.NCP_CREATION ( ARTEFACTID, NCPID, REGION, LONGITUDE, LATITUDE, REASON, PROJECT, CREATOR, DATEOFINSERT, COMMENTS, CABINETID, TARGET_COVERAGE, TYPE, GEN_STATUS, NCP_STATUS, NCP_STATUS_DATE, BAND, INITIATOR, PART) VALUES (NCP_CREATION_SEQ.nextval, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, 7, 1, ?, ?, ?, ?)";
+                    String insertNCP = "INSERT INTO NCP_CREATION ( ARTEFACTID, NCPID, REGION, LONGITUDE, LATITUDE, REASON, PROJECT, CREATOR, DATEOFINSERT, COMMENTS, CABINETID, TARGET_COVERAGE, TYPE, GEN_STATUS, NCP_STATUS, NCP_STATUS_DATE, BAND, INITIATOR, PART) VALUES (NCP_CREATION_SEQ.nextval, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, 7, 1, ?, ?, ?, ?)";
                     PreparedStatement preparedStatement = udbConnect.prepareStatement(insertNCP, returnCols);
 
                     Integer i = 1;
@@ -255,7 +255,7 @@ public class CreateNCP implements JavaDelegate {
                     log.info(createdArtefactId.toString());
 
                     //insert new Candidate (in ARTEFACT_CURRENT_STATE table)
-                    String insertNewArtefactCurrentState = "INSERT INTO APP_APEXUDB_CAMUNDA.ARTEFACT_CURRENT_STATE (ARTEFACTID,\n" +
+                    String insertNewArtefactCurrentState = "INSERT INTO ARTEFACT_CURRENT_STATE (ARTEFACTID,\n" +
                         "                                                        NCPID,\n" +
                         "                                                        CAND_STATUS,\n" +
                         "                                                        CAND_STATUS_PERSON,\n" +
@@ -326,7 +326,7 @@ public class CreateNCP implements JavaDelegate {
                     //insert new Candidate (in ARTEFACT_RSD table)
                     Long createdArtefactRSDId = null;
                     String rsdReturnStatus[] = {"RSDID"};
-                    String insertNewArtefactRSD = "INSERT INTO APP_APEXUDB_CAMUNDA.ARTEFACT_RSD (RSDID, ARTEFACTID, BSCID, CNSTRTYPEID, HEIGHT, DATEOFINSERT, DATEOFVISIT, CONTACTPERSON, COMMENTS, STATE, RBSID, SITE_TYPE) VALUES ( ARTEFACT_RSD_SEQ.nextval, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)";
+                    String insertNewArtefactRSD = "INSERT INTO ARTEFACT_RSD (RSDID, ARTEFACTID, BSCID, CNSTRTYPEID, HEIGHT, DATEOFINSERT, DATEOFVISIT, CONTACTPERSON, COMMENTS, STATE, RBSID, SITE_TYPE) VALUES ( ARTEFACT_RSD_SEQ.nextval, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)";
                     PreparedStatement newArtefactRSDPreparedStatement = udbConnect.prepareStatement(insertNewArtefactRSD, rsdReturnStatus);
 
                     i = 1;
@@ -355,7 +355,7 @@ public class CreateNCP implements JavaDelegate {
                     //insert new Candidate (in ARTEFACT_RR table)
                     Long createdArtefactRRId = null;
                     String rrReturnStatus[] = {"RR_ID"};
-                    String insertNewArtefactRR = "INSERT INTO APP_APEXUDB_CAMUNDA.ARTEFACT_RR (RR_ID, ARTEFACTID, DATEOFVISIT, ADDRESS, LATITUDE, LONGITUDE, CONSTR_TYPE, SQUARE, RBS_TYPE, BAND, RBS_LOCATION, COMMENTS, DATEOFCREATION, CREATOR) VALUES (ARTEFACT_RR_SEQ.nextval, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)";
+                    String insertNewArtefactRR = "INSERT INTO ARTEFACT_RR (RR_ID, ARTEFACTID, DATEOFVISIT, ADDRESS, LATITUDE, LONGITUDE, CONSTR_TYPE, SQUARE, RBS_TYPE, BAND, RBS_LOCATION, COMMENTS, DATEOFCREATION, CREATOR) VALUES (ARTEFACT_RR_SEQ.nextval, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)";
                     PreparedStatement newArtefactRRPreparedStatement = udbConnect.prepareStatement(insertNewArtefactRR, rrReturnStatus);
 
                     i = 1;
@@ -386,7 +386,7 @@ public class CreateNCP implements JavaDelegate {
                     //insert ARTEFACT_VSD
                     Long createdArtefactVsdId = null;
                     String vsdReturnStatus[] = {"VSDID"};
-                    String insertNewVsd = "INSERT INTO APP_APEXUDB_CAMUNDA.ARTEFACT_VSD (VSDID, ARTEFACTID, RSDID) VALUES (ARTEFACT_VSD_SEQ.nextval, ?, ?)";
+                    String insertNewVsd = "INSERT INTO ARTEFACT_VSD (VSDID, ARTEFACTID, RSDID) VALUES (ARTEFACT_VSD_SEQ.nextval, ?, ?)";
                     PreparedStatement newArtefactVsdPreparedStatement = udbConnect.prepareStatement(insertNewVsd, vsdReturnStatus);
 
                     i = 1;
@@ -448,7 +448,7 @@ public class CreateNCP implements JavaDelegate {
                     //insert ARTEFACT_TSD_EXT
                     Long createdArtefactExtTSDId = null;
                     String artefactExtTSDReturnStatus[] = {"TSDID"};
-                    StringBuilder insertNewArtefactExtTSDbuilder = new StringBuilder("INSERT INTO APP_APEXUDB_CAMUNDA.ARTEFACT_TSD_EXT (TSDID, ARTEFACTID, INSERT_DATE, INSERT_PERSON");
+                    StringBuilder insertNewArtefactExtTSDbuilder = new StringBuilder("INSERT INTO ARTEFACT_TSD_EXT (TSDID, ARTEFACTID, INSERT_DATE, INSERT_PERSON");
                     StringBuilder insertNewArtefactExtTSDbuilderValues = new StringBuilder(") VALUES (ARTEFACT_TSD_SEQ.nextval, ?, ?, ?");
                     if(cn_longitude!=null){
                         insertNewArtefactExtTSDbuilder.append(", NE_LONGITUDE");

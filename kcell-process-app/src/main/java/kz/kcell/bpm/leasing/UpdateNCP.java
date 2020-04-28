@@ -165,7 +165,7 @@ public class UpdateNCP implements JavaDelegate {
                     log.info("successfull insert to database!");
 
                     //UPDATE ARTEFACT_RSD
-                    String UpdateArtefactRsd = "UPDATE APP_APEXUDB_CAMUNDA.ARTEFACT_RSD SET ARTEFACTID = ?, BSCID = ?, ALTITUDE = ?, CNSTRTYPEID = ?, HEIGHT = ?, DATEOFINSERT = ?, DATEOFVISIT = ?, CONTACTPERSON = ?, COMMENTS = ?, RBSID = ?, SITE_TYPE = ? WHERE RSDID = ?";
+                    String UpdateArtefactRsd = "UPDATE ARTEFACT_RSD SET ARTEFACTID = ?, BSCID = ?, ALTITUDE = ?, CNSTRTYPEID = ?, HEIGHT = ?, DATEOFINSERT = ?, DATEOFVISIT = ?, CONTACTPERSON = ?, COMMENTS = ?, RBSID = ?, SITE_TYPE = ? WHERE RSDID = ?";
                     PreparedStatement updateArtefactRsdPreparedStatement = udbConnect.prepareStatement(UpdateArtefactRsd);
 
                     i = 1;
@@ -190,7 +190,7 @@ public class UpdateNCP implements JavaDelegate {
                     log.info("successfull insert to database!");
 
                     //UPDATE ARTEFACT_RR
-                    String UpdateArtefactRR = "UPDATE APP_APEXUDB_CAMUNDA.ARTEFACT_RR SET ARTEFACTID = ?, DATEOFVISIT = ?, ADDRESS = ?, LATITUDE = ?, LONGITUDE = ?, CONSTR_TYPE = ?, SQUARE = ?, RBS_TYPE = ?, BAND = ?, RBS_LOCATION = ?, COMMENTS = ? WHERE RR_ID = ?";
+                    String UpdateArtefactRR = "UPDATE ARTEFACT_RR SET ARTEFACTID = ?, DATEOFVISIT = ?, ADDRESS = ?, LATITUDE = ?, LONGITUDE = ?, CONSTR_TYPE = ?, SQUARE = ?, RBS_TYPE = ?, BAND = ?, RBS_LOCATION = ?, COMMENTS = ? WHERE RR_ID = ?";
                     PreparedStatement updateArtefactRRPreparedStatement = udbConnect.prepareStatement(UpdateArtefactRR);
 
                     i = 1;
