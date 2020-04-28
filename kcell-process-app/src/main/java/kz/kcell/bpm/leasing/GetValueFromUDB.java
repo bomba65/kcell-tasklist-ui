@@ -97,13 +97,13 @@ public class GetValueFromUDB implements JavaDelegate {
                             if (uis == 8 || uis == 15 || uis == 7 || uis == 4) {
                                 dataFromUDB = "justSetInstStatus";
                                 if (uis == 8) {
-                                    delegateExecution.setVariable("setInstStatusFromUDB", "Installation Problem");
+                                    delegateExecution.setVariable("setInstStatusFromUDB", "Instalation problem");
                                 } else if (uis == 15) {
-                                    delegateExecution.setVariable("setInstStatusFromUDB", "Installation Finish");
+                                    delegateExecution.setVariable("setInstStatusFromUDB", "Installation finish");
                                 } else if (uis == 7) {
-                                    delegateExecution.setVariable("setInstStatusFromUDB", "Installation in Progress");
+                                    delegateExecution.setVariable("setInstStatusFromUDB", "Installation in progress");
                                 } else if (uis == 4) {
-                                    delegateExecution.setVariable("setInstStatusFromUDB", "SSID in Progress");
+                                    delegateExecution.setVariable("setInstStatusFromUDB", "SSID in progress");
                                 }
                                 log.info("justSetInstStatus");
                                 delegateExecution.setVariable("instStatusFromUDB", uis);
