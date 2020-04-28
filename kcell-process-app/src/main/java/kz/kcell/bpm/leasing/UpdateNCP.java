@@ -36,7 +36,7 @@ public class UpdateNCP implements JavaDelegate {
                     log.info("Connected to the database!");
 
                     // proc vars
-                    int cn_rbs_location = 2;
+                    Integer cn_rbs_location = 2;
 
                     //generated vars
 //                    Long ncpCreatedId = delegateExecution.getVariable("ncpCreatedId") != null ? (Long) delegateExecution.getVariable("ncpCreatedId") : null;
@@ -127,9 +127,17 @@ public class UpdateNCP implements JavaDelegate {
                     log.info("SET preparedStatement SQL UPDATE VALUES");
                     // set values to update
                     Integer ncpIdInt = ncpId != null ? Integer.parseInt(ncpId) : null;
-                    updatePreparedStatement.setLong(i++, ncpIdInt); // NCPID
+                    if (ncpIdInt != null) {
+                        updatePreparedStatement.setLong(i++, ncpIdInt); // NCPID
+                    } else {
+                        updatePreparedStatement.setNull(i++, Types.BIGINT);
+                    }
                     updatePreparedStatement.setString(i++, cn_siteName); // SITENAME
-                    updatePreparedStatement.setLong(i++, createdArtefactId); // ARTEFACTID
+                    if (createdArtefactId != null) {
+                        updatePreparedStatement.setLong(i++, createdArtefactId); // ARTEFACTID
+                    } else {
+                        updatePreparedStatement.setNull(i++, Types.BIGINT);
+                    }
 
                     updatePreparedStatement.executeUpdate();
                     log.info("successfull insert to database!");
@@ -144,21 +152,49 @@ public class UpdateNCP implements JavaDelegate {
                     i = 1;
                     log.info("preparedStatement.setValues");
                     // set values to insert
-                    updateArtefactCurrentStatePreparedStatement.setLong(i++, ncpIdInt); //ncpid
+                    if (ncpIdInt != null) {
+                        updateArtefactCurrentStatePreparedStatement.setLong(i++, ncpIdInt); //ncpid
+                    } else {
+                        updateArtefactCurrentStatePreparedStatement.setNull(i++, Types.BIGINT);
+                    }
                     updateArtefactCurrentStatePreparedStatement.setString(i++, starter); //cand_status_person (пока стартер)
                     updateArtefactCurrentStatePreparedStatement.setString(i++, cn_longitude); //longitude
                     updateArtefactCurrentStatePreparedStatement.setString(i++, cn_latitude); //latitude
-                    updateArtefactCurrentStatePreparedStatement.setLong(i++, rbsTypeInt); // RBS_TYPE (cn_rbs_type)
-                    updateArtefactCurrentStatePreparedStatement.setLong(i++, cn_bscInt); // BSC (cn_bsc)
-                    updateArtefactCurrentStatePreparedStatement.setLong(i++, bandsIdForUDBInt); // BAND (cn_band)
-                    updateArtefactCurrentStatePreparedStatement.setLong(i++, cn_rbs_location); // RBS_LOCATION (cn_rbs_location) //
+                    if (rbsTypeInt != null) {
+                        updateArtefactCurrentStatePreparedStatement.setLong(i++, rbsTypeInt); // RBS_TYPE (cn_rbs_type)
+                    } else {
+                        updateArtefactCurrentStatePreparedStatement.setNull(i++, Types.BIGINT);
+                    }
+                    if (cn_bscInt != null) {
+                        updateArtefactCurrentStatePreparedStatement.setLong(i++, cn_bscInt); // BSC (cn_bsc)
+                    } else {
+                        updateArtefactCurrentStatePreparedStatement.setNull(i++, Types.BIGINT);
+                    }
+                    if (bandsIdForUDBInt != null) {
+                        updateArtefactCurrentStatePreparedStatement.setLong(i++, bandsIdForUDBInt); // BAND (cn_band)
+                    } else {
+                        updateArtefactCurrentStatePreparedStatement.setNull(i++, Types.BIGINT);
+                    }
+                    if (cn_rbs_location != null) {
+                        updateArtefactCurrentStatePreparedStatement.setLong(i++, cn_rbs_location); // RBS_LOCATION (cn_rbs_location) //
+                    } else {
+                        updateArtefactCurrentStatePreparedStatement.setNull(i++, Types.BIGINT);
+                    }
                     updateArtefactCurrentStatePreparedStatement.setLong(i++, 3); //construction_height // (cn_height_constr) еще не реализовано в данной версии
-                    updateArtefactCurrentStatePreparedStatement.setLong(i++, cnConstructionTypeInt); //construction_type
+                    if (cnConstructionTypeInt != null) {
+                        updateArtefactCurrentStatePreparedStatement.setLong(i++, cnConstructionTypeInt); //construction_type
+                    } else {
+                        updateArtefactCurrentStatePreparedStatement.setNull(i++, Types.BIGINT);
+                    }
                     updateArtefactCurrentStatePreparedStatement.setString(i++, cn_address); //address
                     updateArtefactCurrentStatePreparedStatement.setString(i++, contact_person); //contact_person
                     updateArtefactCurrentStatePreparedStatement.setString(i++, contractInfoString);
                     updateArtefactCurrentStatePreparedStatement.setString(i++, cn_comments); //pl_comments
-                    updateArtefactCurrentStatePreparedStatement.setLong(i++, createdArtefactId); //ARTEFACTID
+                    if (createdArtefactId != null) {
+                        updateArtefactCurrentStatePreparedStatement.setLong(i++, createdArtefactId); //ARTEFACTID
+                    } else {
+                        updateArtefactCurrentStatePreparedStatement.setNull(i++, Types.BIGINT);
+                    }
 
                     log.info("preparedStatement.executeUpdate()");
                     updateArtefactCurrentStatePreparedStatement.executeUpdate();
@@ -172,18 +208,46 @@ public class UpdateNCP implements JavaDelegate {
                     log.info("preparedStatement.setValues");
                     java.sql.Date dateOfVisitDate = date_of_visit != null ? new java.sql.Date(date_of_visit.getTime()) : null;
                     // set values to update
-                    updateArtefactRsdPreparedStatement.setLong(i++, createdArtefactId); //ARTEFACTID
-                    updateArtefactRsdPreparedStatement.setLong(i++, cn_bscInt); //BSCID
-                    updateArtefactRsdPreparedStatement.setLong(i++, cn_altitude); //ALTITUDE
-                    updateArtefactRsdPreparedStatement.setLong(i++, cnConstructionTypeInt); //CNSTRTYPEID
+                    if (createdArtefactId != null) {
+                        updateArtefactRsdPreparedStatement.setLong(i++, createdArtefactId); //ARTEFACTID
+                    } else {
+                        updateArtefactRsdPreparedStatement.setNull(i++, Types.BIGINT);
+                    }
+                    if (cn_bscInt != null) {
+                        updateArtefactRsdPreparedStatement.setLong(i++, cn_bscInt); //BSCID
+                    } else {
+                        updateArtefactRsdPreparedStatement.setNull(i++, Types.BIGINT);
+                    }
+                    if (cn_altitude != null) {
+                        updateArtefactRsdPreparedStatement.setLong(i++, cn_altitude); //ALTITUDE
+                    } else {
+                        updateArtefactRsdPreparedStatement.setNull(i++, Types.BIGINT);
+                    }
+                    if (cnConstructionTypeInt != null) {
+                        updateArtefactRsdPreparedStatement.setLong(i++, cnConstructionTypeInt); //CNSTRTYPEID
+                    } else {
+                        updateArtefactRsdPreparedStatement.setNull(i++, Types.BIGINT);
+                    }
                     updateArtefactRsdPreparedStatement.setLong(i++, 3); // CONSTRUCTION_HEIGHT (cn_height_constr) еще не реализовано в данной версии
                     updateArtefactRsdPreparedStatement.setDate(i++, new java.sql.Date(new Date().getTime())); // INSERT_DATE
                     updateArtefactRsdPreparedStatement.setDate(i++, dateOfVisitDate); // DATE OF VISIT (cn_date_visit)
                     updateArtefactRsdPreparedStatement.setString(i++, contact_person); //CONTACTPERSON
                     updateArtefactRsdPreparedStatement.setString(i++, cn_comments); //COMMENTS
-                    updateArtefactRsdPreparedStatement.setLong(i++, rbsTypeInt); //RBSID
-                    updateArtefactRsdPreparedStatement.setLong(i++, siteTypeInt); //SITE_TYPE
-                    updateArtefactRsdPreparedStatement.setLong(i++, createdArtefactRSDId); //RSDID
+                    if (rbsTypeInt != null) {
+                        updateArtefactRsdPreparedStatement.setLong(i++, rbsTypeInt); //RBSID
+                    } else {
+                        updateArtefactRsdPreparedStatement.setNull(i++, Types.BIGINT);
+                    }
+                    if (siteTypeInt != null) {
+                        updateArtefactRsdPreparedStatement.setLong(i++, siteTypeInt); //SITE_TYPE
+                    } else {
+                        updateArtefactRsdPreparedStatement.setNull(i++, Types.BIGINT);
+                    }
+                    if (createdArtefactRSDId != null) {
+                        updateArtefactRsdPreparedStatement.setLong(i++, createdArtefactRSDId); //RSDID
+                    } else {
+                        updateArtefactRsdPreparedStatement.setNull(i++, Types.BIGINT);
+                    }
 
                     log.info("preparedStatement.executeUpdate()");
                     updateArtefactRsdPreparedStatement.executeUpdate();
@@ -196,18 +260,42 @@ public class UpdateNCP implements JavaDelegate {
                     i = 1;
                     log.info("preparedStatement.setValues");
                     // set values to update
-                    updateArtefactRRPreparedStatement.setLong(i++, createdArtefactId); //ARTEFACTID
+                    if (createdArtefactId != null) {
+                        updateArtefactRRPreparedStatement.setLong(i++, createdArtefactId); //ARTEFACTID
+                    } else {
+                        updateArtefactRRPreparedStatement.setNull(i++, Types.BIGINT);
+                    }
                     updateArtefactRRPreparedStatement.setDate(i++, dateOfVisitDate); // DATEOFVISIT
                     updateArtefactRRPreparedStatement.setString(i++, cn_address); //ADDRESS
                     updateArtefactRRPreparedStatement.setString(i++, cn_latitude); //LATITUDE
                     updateArtefactRRPreparedStatement.setString(i++, cn_longitude); //LONGITUDE
-                    updateArtefactRRPreparedStatement.setLong(i++, cnConstructionTypeInt); //CONSTR_TYPE
-                    updateArtefactRRPreparedStatement.setLong(i++, cn_square.longValue()); //SQUARE
-                    updateArtefactRRPreparedStatement.setLong(i++, rbsTypeInt); //RBS_TYPE
+                    if (cnConstructionTypeInt != null) {
+                        updateArtefactRRPreparedStatement.setLong(i++, cnConstructionTypeInt); //CONSTR_TYPE
+                    } else {
+                        updateArtefactRRPreparedStatement.setNull(i++, Types.BIGINT);
+                    }
+                    if (cn_square != null) {
+                        updateArtefactRRPreparedStatement.setLong(i++, cn_square.longValue()); //SQUARE
+                    } else {
+                        updateArtefactRRPreparedStatement.setNull(i++, Types.BIGINT);
+                    }
+                    if (rbsTypeInt != null) {
+                        updateArtefactRRPreparedStatement.setLong(i++, rbsTypeInt); //RBS_TYPE
+                    } else {
+                        updateArtefactRRPreparedStatement.setNull(i++, Types.BIGINT);
+                    }
                     updateArtefactRRPreparedStatement.setString(i++, bandsIdForUDB); //BAND
-                    updateArtefactRRPreparedStatement.setLong(i++, cn_rbs_location); //RBS_LOCATION
+                    if (cn_rbs_location != null) {
+                        updateArtefactRRPreparedStatement.setLong(i++, cn_rbs_location); //RBS_LOCATION
+                    } else {
+                        updateArtefactRRPreparedStatement.setNull(i++, Types.BIGINT);
+                    }
                     updateArtefactRRPreparedStatement.setString(i++, cn_comments); //COMMENTS
-                    updateArtefactRRPreparedStatement.setLong(i++, createdArtefactRRId); //RR_ID
+                    if (createdArtefactRRId != null) {
+                        updateArtefactRRPreparedStatement.setLong(i++, createdArtefactRRId); //RR_ID
+                    } else {
+                        updateArtefactRRPreparedStatement.setNull(i++, Types.BIGINT);
+                    }
 
                     log.info("preparedStatement.executeUpdate()");
                     updateArtefactRRPreparedStatement.executeUpdate();

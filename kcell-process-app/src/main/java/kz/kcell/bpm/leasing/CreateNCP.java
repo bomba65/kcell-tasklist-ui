@@ -187,21 +187,52 @@ public class CreateNCP implements JavaDelegate {
 
                     // set values to insert
                     preparedStatement.setString(i++, ncpId); // NCPID
-                    preparedStatement.setLong(i++, Integer.parseInt(regionCode)); // REGION
+                    Integer regionCodeInt = Integer.parseInt(regionCode);
+                    if (regionCodeInt != null) {
+                        preparedStatement.setLong(i++, regionCodeInt); // REGION
+                    } else {
+                        preparedStatement.setNull(i++, Types.BIGINT);
+                    }
                     preparedStatement.setString(i++, longitude); // LONGITUDE ex. E 76,890775
                     preparedStatement.setString(i++, latitude); // LATITUDE
-                    preparedStatement.setLong(i++, reasonInt); // REASON
-                    preparedStatement.setLong(i++, projectInt); // PROJECT
+                    if (reasonInt != null) {
+                        preparedStatement.setLong(i++, reasonInt); // REASON
+                    } else {
+                        preparedStatement.setNull(i++, Types.BIGINT);
+
+                    }
+                    if (projectInt != null) {
+                        preparedStatement.setLong(i++, projectInt); // PROJECT
+                    } else {
+                        preparedStatement.setNull(i++, Types.BIGINT);
+                    }
                     preparedStatement.setString(i++, starter); // CREATOR 'SERGEI.ZAITSEV'
                     preparedStatement.setDate(i++, new java.sql.Date(new Date().getTime())); // DATEOFINSERT
                     preparedStatement.setString(i++, createNCPTaskComment); // COMMENTS
-                    preparedStatement.setLong(i++, plannedCabinetTypeIdForUDB != null ? Integer.parseInt(plannedCabinetTypeIdForUDB) : null); // CABINETID
+                    Integer plannedCabinetTypeIdForUDBInt = Integer.parseInt(plannedCabinetTypeIdForUDB);
+                    if (plannedCabinetTypeIdForUDBInt != null) {
+                        preparedStatement.setLong(i++, plannedCabinetTypeIdForUDBInt); // CABINETID
+                    } else {
+                        preparedStatement.setNull(i++, Types.BIGINT);
+                    }
                     preparedStatement.setString(i++, targetCoverage); // TARGET_COVERAGE
-                    preparedStatement.setLong(i++, siteTypeInt); // TYPE ncp_type (Подставлять ID согласно справочнику Site Type) ex: 6
+                    if (siteTypeInt != null) {
+                        preparedStatement.setLong(i++, siteTypeInt); // TYPE ncp_type (Подставлять ID согласно справочнику Site Type) ex: 6
+                    } else {
+                        preparedStatement.setNull(i++, Types.BIGINT);
+                    }
                     preparedStatement.setDate(i++, new java.sql.Date(new Date().getTime())); // NCP_STATUS_DATE
                     preparedStatement.setString(i++, bandsIdForUDB); // BAND ex:'1'   ncp_band	(Подставлять ID согласно справочнику Bands)
-                    preparedStatement.setLong(i++, initiatorInt); // INITIATOR
-                    preparedStatement.setLong(i++, partInt); // PART (Подставлять ID согласно справочнику Part)
+                    if (initiatorInt != null) {
+                        preparedStatement.setLong(i++, initiatorInt); // INITIATOR
+                    } else {
+                        preparedStatement.setNull(i++, Types.BIGINT);
+                    }
+                    if (partInt != null) {
+                        preparedStatement.setLong(i++, partInt); // PART (Подставлять ID согласно справочнику Part)
+                    } else {
+                        preparedStatement.setNull(i++, Types.BIGINT);
+                    }
 
                     log.info("preparedStatement.executeUpdate()");
                     preparedStatement.executeUpdate();
@@ -243,7 +274,12 @@ public class CreateNCP implements JavaDelegate {
                     i = 1;
                     log.info("newArtefactPreparedStatement.setString");
                     newArtefactPreparedStatement.setString(i++, cn_siteName); // sitename	cn_sitename
-                    newArtefactPreparedStatement.setLong(i++, ncpId != null ? Integer.parseInt(ncpId) : null); //ncp_id
+                    Integer ncpIdInt = Integer.parseInt(ncpId);
+                    if (ncpIdInt != null) {
+                        newArtefactPreparedStatement.setLong(i++, ncpIdInt); //ncp_id
+                    } else {
+                        newArtefactPreparedStatement.setNull(i++, Types.BIGINT);
+                    }
                     log.info("newArtefactPreparedStatement.executeUpdate()");
                     newArtefactPreparedStatement.executeUpdate();
                     log.info("successfull insert to database!");
@@ -283,9 +319,20 @@ public class CreateNCP implements JavaDelegate {
 
                     i = 1;
                     log.info("newArtefactCurrentStatePreparedStatement.setString");
-                    newArtefactCurrentStatePreparedStatement.setLong(i++, createdArtefactId); //ARTEFACTID
-                    newArtefactCurrentStatePreparedStatement.setLong(i++, ncpId != null ? Integer.parseInt(ncpId) : null); //ncp_id
+                    if (createdArtefactId != null) {
+                        newArtefactCurrentStatePreparedStatement.setLong(i++, createdArtefactId); //ARTEFACTID
+                    } else {
+                        newArtefactCurrentStatePreparedStatement.setNull(i++, Types.BIGINT);
+
+                    }
+                    if (ncpIdInt != null) {
+                        newArtefactCurrentStatePreparedStatement.setLong(i++, ncpIdInt); //ncp_id
+                    } else {
+                        newArtefactCurrentStatePreparedStatement.setNull(i++, Types.BIGINT);
+
+                    }
                     newArtefactCurrentStatePreparedStatement.setLong(i++, 1); // CAND_STATUS first insert value mast be = 1
+
                     newArtefactCurrentStatePreparedStatement.setString(i++, starter); // CAND_STATUS_PERSON (current user) // current or start ?????? (who complete create candidate task?)
                     newArtefactCurrentStatePreparedStatement.setDate(i++, new java.sql.Date(new Date().getTime())); // CAND_STATUS_DATE
                     newArtefactCurrentStatePreparedStatement.setLong(i++, 1); // RR_STATUS first insert value mast be = 1
@@ -293,13 +340,44 @@ public class CreateNCP implements JavaDelegate {
                     newArtefactCurrentStatePreparedStatement.setDate(i++, new java.sql.Date(new Date().getTime())); // RR_STATUS_DATE
                     newArtefactCurrentStatePreparedStatement.setString(i++, cn_longitude); // LONGITUDE ex: E 80 50 42,4
                     newArtefactCurrentStatePreparedStatement.setString(i++, cn_latitude); // LATITUDE ex: N 48 48 05,6
-                    newArtefactCurrentStatePreparedStatement.setLong(i++, rbsType != null ? Integer.parseInt(rbsType) : null); // RBS_TYPE (cn_rbs_type)
-                    newArtefactCurrentStatePreparedStatement.setLong(i++, cn_bscInt); // BSC (cn_bsc)
-                    newArtefactCurrentStatePreparedStatement.setLong(i++, bandsIdForUDB != null ? Integer.parseInt(bandsIdForUDB) : null); // BAND (cn_band)
-                    newArtefactCurrentStatePreparedStatement.setLong(i++, cn_rbs_location); // RBS_LOCATION (cn_rbs_location) //
-                    newArtefactCurrentStatePreparedStatement.setLong(i++, cn_altitude.longValue()); // ALTITUDE (cn_altitude)
-                    newArtefactCurrentStatePreparedStatement.setLong(i++, cn_height_constr.longValue()); // CONSTRUCTION_HEIGHT (cn_height_constr)
-                    newArtefactCurrentStatePreparedStatement.setLong(i++, cn_constructionType != null ? Integer.parseInt(cn_constructionType) : null); // CONSTRUCTION_TYPE (cn_construction_type)
+                    Integer rbsTypeInt = Integer.parseInt(rbsType);
+                    if (rbsTypeInt != null) {
+                        newArtefactCurrentStatePreparedStatement.setLong(i++, rbsTypeInt); // RBS_TYPE (cn_rbs_type)
+                    } else {
+                        newArtefactCurrentStatePreparedStatement.setNull(i++, Types.BIGINT);
+                    }
+                    if (cn_bscInt != null) {
+                        newArtefactCurrentStatePreparedStatement.setLong(i++, cn_bscInt); // BSC (cn_bsc)
+                    } else {
+                        newArtefactCurrentStatePreparedStatement.setNull(i++, Types.BIGINT);
+                    }
+                    Integer bandsIdForUDBInt = Integer.parseInt(bandsIdForUDB);
+                    if (bandsIdForUDBInt != null) {
+                        newArtefactCurrentStatePreparedStatement.setLong(i++, bandsIdForUDBInt); // BAND (cn_band)
+                    } else {
+                        newArtefactCurrentStatePreparedStatement.setNull(i++, Types.BIGINT);
+                    }
+                    if (cn_rbs_location != null) {
+                        newArtefactCurrentStatePreparedStatement.setLong(i++, cn_rbs_location); // RBS_LOCATION (cn_rbs_location) //
+                    } else {
+                        newArtefactCurrentStatePreparedStatement.setNull(i++, Types.BIGINT);
+                    }
+                    if (cn_altitude != null) {
+                        newArtefactCurrentStatePreparedStatement.setLong(i++, cn_altitude.longValue()); // ALTITUDE (cn_altitude)
+                    } else {
+                        newArtefactCurrentStatePreparedStatement.setNull(i++, Types.BIGINT);
+                    }
+                    if (cn_height_constr != null) {
+                        newArtefactCurrentStatePreparedStatement.setLong(i++, cn_height_constr.longValue()); // CONSTRUCTION_HEIGHT (cn_height_constr)
+                    } else {
+                        newArtefactCurrentStatePreparedStatement.setNull(i++, Types.BIGINT);
+                    }
+                    Integer cn_constructionTypeInt = Integer.parseInt(cn_constructionType);
+                    if (cn_constructionTypeInt != null) {
+                        newArtefactCurrentStatePreparedStatement.setLong(i++, cn_constructionTypeInt); // CONSTRUCTION_TYPE (cn_construction_type)
+                    } else {
+                        newArtefactCurrentStatePreparedStatement.setNull(i++, Types.BIGINT);
+                    }
                     newArtefactCurrentStatePreparedStatement.setString(i++, cn_address); // ADDRESS "Восточно-Казахстанская область, Зайсанский район, село Карабулак, водонапорная башня"
                     newArtefactCurrentStatePreparedStatement.setString(i++, contact_person); // CONTACT_PERSON "Мария Николаевна Специалист акимата 8 701 479 19 86"
                     newArtefactCurrentStatePreparedStatement.setString(i++, renterCompany != null ? ((renterCompany.hasProp("contactInfo") && !renterCompany.prop("contactInfo").equals(null) ? renterCompany.prop("contactInfo").stringValue() : "")) : null); // COMMENTS (cn_contact_information)
@@ -318,7 +396,11 @@ public class CreateNCP implements JavaDelegate {
 
                     i = 1;
                     log.info("NewInstallationPreparedStatement.setString");
-                    NewInstallationPreparedStatement.setLong(i++, createdArtefactId);
+                    if (createdArtefactId != null) {
+                        NewInstallationPreparedStatement.setLong(i++, createdArtefactId);
+                    } else {
+                        NewInstallationPreparedStatement.setNull(i++, Types.BIGINT);
+                    }
                     log.info("NewInstallationPreparedStatement.executeUpdate()");
                     NewInstallationPreparedStatement.executeUpdate();
                     log.info("successfull insert to database!");
@@ -331,17 +413,42 @@ public class CreateNCP implements JavaDelegate {
 
                     i = 1;
                     log.info("newArtefactRSDPreparedStatement.setString");
-                    newArtefactRSDPreparedStatement.setLong(i++, createdArtefactId); //ARTEFACTID
-                    newArtefactRSDPreparedStatement.setLong(i++, cn_bscInt); //BSCID
-                    newArtefactRSDPreparedStatement.setLong(i++, cn_constructionType != null ? Integer.parseInt(cn_constructionType) : null); //CNSTRTYPEID
-                    newArtefactRSDPreparedStatement.setLong(i++, cn_height_constr.longValue()); // CONSTRUCTION_HEIGHT
+                    if (createdArtefactId != null) {
+                        newArtefactRSDPreparedStatement.setLong(i++, createdArtefactId); //ARTEFACTID
+                    } else {
+                        newArtefactRSDPreparedStatement.setNull(i++, Types.BIGINT);
+
+                    }
+                    if (cn_bscInt != null) {
+                        newArtefactRSDPreparedStatement.setLong(i++, cn_bscInt); //BSCID
+                    } else {
+                        newArtefactRSDPreparedStatement.setNull(i++, Types.BIGINT);
+                    }
+                    if (cn_constructionTypeInt != null) {
+                        newArtefactRSDPreparedStatement.setLong(i++, cn_constructionTypeInt); //CNSTRTYPEID
+                    } else {
+                        newArtefactRSDPreparedStatement.setNull(i++, Types.BIGINT);
+                    }
+                    if (cn_height_constr != null) {
+                        newArtefactRSDPreparedStatement.setLong(i++, cn_height_constr.longValue()); // CONSTRUCTION_HEIGHT
+                    } else {
+                        newArtefactRSDPreparedStatement.setNull(i++, Types.BIGINT);
+                    }
                     newArtefactRSDPreparedStatement.setDate(i++, new java.sql.Date(new Date().getTime())); // INSERT_DATE
                     newArtefactRSDPreparedStatement.setDate(i++, date_of_visit != null ? new java.sql.Date(date_of_visit.getTime()) : null); // DATE OF VISIT (cn_date_visit)
                     newArtefactRSDPreparedStatement.setString(i++, contact_person); //CONTACTPERSON
                     newArtefactRSDPreparedStatement.setString(i++, cn_comments); //COMMENTS
                     newArtefactRSDPreparedStatement.setLong(i++, 2); //STATE
-                    newArtefactRSDPreparedStatement.setLong(i++, rbsType != null ? Integer.parseInt(rbsType) : null); //RBSID
-                    newArtefactRSDPreparedStatement.setLong(i++, siteTypeInt); //SITE_TYPE
+                    if (rbsTypeInt != null) {
+                        newArtefactRSDPreparedStatement.setLong(i++, rbsTypeInt); //RBSID
+                    } else {
+                        newArtefactRSDPreparedStatement.setNull(i++, Types.BIGINT);
+                    }
+                    if (siteTypeInt != null) {
+                        newArtefactRSDPreparedStatement.setLong(i++, siteTypeInt); //SITE_TYPE
+                    } else {
+                        newArtefactRSDPreparedStatement.setNull(i++, Types.BIGINT);
+                    }
                     log.info("newArtefactRSDPreparedStatement.executeUpdate()");
                     newArtefactRSDPreparedStatement.executeUpdate();
                     log.info("successfull insert to database!");
@@ -360,16 +467,37 @@ public class CreateNCP implements JavaDelegate {
 
                     i = 1;
                     log.info("newArtefactRRPreparedStatement.setString");
-                    newArtefactRRPreparedStatement.setLong(i++, createdArtefactId); //ARTEFACTID
+                    if (createdArtefactId != null) {
+                        newArtefactRRPreparedStatement.setLong(i++, createdArtefactId); //ARTEFACTID
+                    } else {
+                        newArtefactRRPreparedStatement.setNull(i++, Types.BIGINT);
+                    }
                     newArtefactRRPreparedStatement.setDate(i++, date_of_visit != null ? new java.sql.Date(date_of_visit.getTime()) : null); // DATEOFVISIT
                     newArtefactRRPreparedStatement.setString(i++, cn_address); //ADDRESS
                     newArtefactRRPreparedStatement.setString(i++, latitude); //LATITUDE
                     newArtefactRRPreparedStatement.setString(i++, longitude); //LONGITUDE
-                    newArtefactRRPreparedStatement.setLong(i++, cn_constructionType != null ? Integer.parseInt(cn_constructionType) : null); //CONSTR_TYPE
-                    newArtefactRRPreparedStatement.setLong(i++, cn_square.longValue()); //SQUARE
-                    newArtefactRRPreparedStatement.setLong(i++, rbsType != null ? Integer.parseInt(rbsType) : null); //RBS_TYPE
+                    if (cn_constructionTypeInt != null) {
+                        newArtefactRRPreparedStatement.setLong(i++, cn_constructionTypeInt); //CONSTR_TYPE
+                    } else {
+                        newArtefactRRPreparedStatement.setNull(i++, Types.BIGINT);
+
+                    }
+                    if (cn_square != null) {
+                        newArtefactRRPreparedStatement.setLong(i++, cn_square.longValue()); //SQUARE
+                    } else {
+                        newArtefactRRPreparedStatement.setNull(i++, Types.BIGINT);
+                    }
+                    if (rbsTypeInt != null) {
+                        newArtefactRRPreparedStatement.setLong(i++, rbsTypeInt); //RBS_TYPE
+                    } else {
+                        newArtefactRRPreparedStatement.setNull(i++, Types.BIGINT);
+                    }
                     newArtefactRRPreparedStatement.setString(i++, bandsIdForUDB); //BAND
-                    newArtefactRRPreparedStatement.setLong(i++, cn_rbs_location); //RBS_LOCATION
+                    if (cn_rbs_location != null) {
+                        newArtefactRRPreparedStatement.setLong(i++, cn_rbs_location); //RBS_LOCATION
+                    } else {
+                        newArtefactRRPreparedStatement.setNull(i++, Types.BIGINT);
+                    }
                     newArtefactRRPreparedStatement.setString(i++, cn_comments); //COMMENTS
                     newArtefactRRPreparedStatement.setDate(i++, new java.sql.Date(new Date().getTime())); // DATEOFCREATION
                     newArtefactRRPreparedStatement.setString(i++, cn_comments); //CREATOR
@@ -391,8 +519,17 @@ public class CreateNCP implements JavaDelegate {
 
                     i = 1;
                     log.info("newArtefactVsdPreparedStatement.setString");
-                    newArtefactVsdPreparedStatement.setLong(i++, createdArtefactId);
-                    newArtefactVsdPreparedStatement.setLong(i++, createdArtefactRSDId);
+                    if (createdArtefactId != null) {
+                        newArtefactVsdPreparedStatement.setLong(i++, createdArtefactId);
+                    } else {
+                        newArtefactVsdPreparedStatement.setNull(i++, Types.BIGINT);
+
+                    }
+                    if (createdArtefactRSDId != null) {
+                        newArtefactVsdPreparedStatement.setLong(i++, createdArtefactRSDId);
+                    } else {
+                        newArtefactVsdPreparedStatement.setNull(i++, Types.BIGINT);
+                    }
                     log.info("newArtefactVsdPreparedStatement.executeUpdate()");
                     newArtefactVsdPreparedStatement.executeUpdate();
                     log.info("successfull insert to database!");
@@ -411,8 +548,16 @@ public class CreateNCP implements JavaDelegate {
 
                     i = 1;
                     log.info("newCandApprovalPreparedStatement.setString");
-                    newCandApprovalPreparedStatement.setLong(i++, createdArtefactId);
-                    newCandApprovalPreparedStatement.setLong(i++, createdArtefactRSDId);
+                    if (createdArtefactId != null) {
+                        newCandApprovalPreparedStatement.setLong(i++, createdArtefactId);
+                    } else {
+                        newCandApprovalPreparedStatement.setNull(i++, Types.BIGINT);
+                    }
+                    if (createdArtefactRSDId != null) {
+                        newCandApprovalPreparedStatement.setLong(i++, createdArtefactRSDId);
+                    } else {
+                        newCandApprovalPreparedStatement.setNull(i++, Types.BIGINT);
+                    }
                     log.info("newCandApprovalPreparedStatement.executeUpdate()");
                     newCandApprovalPreparedStatement.executeUpdate();
                     log.info("successfull insert to database!");
@@ -431,8 +576,16 @@ public class CreateNCP implements JavaDelegate {
 
                     i = 1;
                     log.info("newArtefactRRStatusPreparedStatement.setString");
-                    newArtefactRRStatusPreparedStatement.setLong(i++, createdArtefactId);
-                    newArtefactRRStatusPreparedStatement.setLong(i++, createdArtefactRSDId);
+                    if (createdArtefactId != null) {
+                        newArtefactRRStatusPreparedStatement.setLong(i++, createdArtefactId);
+                    } else {
+                        newArtefactRRStatusPreparedStatement.setNull(i++, Types.BIGINT);
+                    }
+                    if (createdArtefactRSDId != null) {
+                        newArtefactRRStatusPreparedStatement.setLong(i++, createdArtefactRSDId);
+                    } else {
+                        newArtefactRRStatusPreparedStatement.setNull(i++, Types.BIGINT);
+                    }
                     newArtefactRRStatusPreparedStatement.setDate(i++, new java.sql.Date(new Date().getTime()));
                     log.info("newArtefactRRStatusPreparedStatement.executeUpdate()");
                     newArtefactRRStatusPreparedStatement.executeUpdate();
@@ -450,63 +603,63 @@ public class CreateNCP implements JavaDelegate {
                     String artefactExtTSDReturnStatus[] = {"TSDID"};
                     StringBuilder insertNewArtefactExtTSDbuilder = new StringBuilder("INSERT INTO ARTEFACT_TSD_EXT (TSDID, ARTEFACTID, INSERT_DATE, INSERT_PERSON");
                     StringBuilder insertNewArtefactExtTSDbuilderValues = new StringBuilder(") VALUES (ARTEFACT_TSD_SEQ.nextval, ?, ?, ?");
-                    if(cn_longitude!=null){
+                    if (cn_longitude != null) {
                         insertNewArtefactExtTSDbuilder.append(", NE_LONGITUDE");
                         insertNewArtefactExtTSDbuilderValues.append(", ?");
                     }
-                    if(cn_latitude!=null){
+                    if (cn_latitude != null) {
                         insertNewArtefactExtTSDbuilder.append(", NE_LATITUDE");
                         insertNewArtefactExtTSDbuilderValues.append(", ?");
                     }
-                    if(fe_sitename!=null){
+                    if (fe_sitename != null) {
                         insertNewArtefactExtTSDbuilder.append(", FE_SITENAME");
                         insertNewArtefactExtTSDbuilderValues.append(", ?");
                     }
-                    if(fe_constructionType!=null){
+                    if (fe_constructionType != null) {
                         insertNewArtefactExtTSDbuilder.append(", FE_CONSTR_TYPE");
                         insertNewArtefactExtTSDbuilderValues.append(", ?");
                     }
-                    if(fe_address!=null){
+                    if (fe_address != null) {
                         insertNewArtefactExtTSDbuilder.append(", FE_ADDRESS");
                         insertNewArtefactExtTSDbuilderValues.append(", ?");
                     }
-                    if(fe_formated_survey_date!=null){
+                    if (fe_formated_survey_date != null) {
                         insertNewArtefactExtTSDbuilder.append(", SURVEY_DATE");
                         insertNewArtefactExtTSDbuilderValues.append(", ?");
                     }
-                    if(ne_azimuth!=null){
+                    if (ne_azimuth != null) {
                         insertNewArtefactExtTSDbuilder.append(", NE_AZIMUTH");
                         insertNewArtefactExtTSDbuilderValues.append(", ?");
                     }
-                    if(ne_diameter!=null){
+                    if (ne_diameter != null) {
                         insertNewArtefactExtTSDbuilder.append(", NE_ANTENNADIAMETER");
                         insertNewArtefactExtTSDbuilderValues.append(", ?");
                     }
-                    if(ne_suspensionHeight!=null){
+                    if (ne_suspensionHeight != null) {
                         insertNewArtefactExtTSDbuilder.append(", NE_SUSPENSIONHEIGHT");
                         insertNewArtefactExtTSDbuilderValues.append(", ?");
                     }
-                    if(ne_frequencyBand!=null){
+                    if (ne_frequencyBand != null) {
                         insertNewArtefactExtTSDbuilder.append(", NE_TXRF_FREQUENCY");
                         insertNewArtefactExtTSDbuilderValues.append(", ?");
                     }
-                    if(fe_azimuth!=null){
+                    if (fe_azimuth != null) {
                         insertNewArtefactExtTSDbuilder.append(", FE_AZIMUTH");
                         insertNewArtefactExtTSDbuilderValues.append(", ?");
                     }
-                    if(fe_diameter!=null){
+                    if (fe_diameter != null) {
                         insertNewArtefactExtTSDbuilder.append(", FE_ANTENNADIAMETER");
                         insertNewArtefactExtTSDbuilderValues.append(", ?");
                     }
-                    if(fe_suspensionHeight!=null){
+                    if (fe_suspensionHeight != null) {
                         insertNewArtefactExtTSDbuilder.append(", FE_SUSPENSIONHEIGHT");
                         insertNewArtefactExtTSDbuilderValues.append(", ?");
                     }
-                    if(fe_frequencyBand!=null){
+                    if (fe_frequencyBand != null) {
                         insertNewArtefactExtTSDbuilder.append(", FE_TXRF_FREQUENCY");
                         insertNewArtefactExtTSDbuilderValues.append(", ?");
                     }
-                    if(fe_comment!=null){
+                    if (fe_comment != null) {
                         insertNewArtefactExtTSDbuilder.append(", COMMENTS");
                         insertNewArtefactExtTSDbuilderValues.append(", ?");
                     }
@@ -516,53 +669,91 @@ public class CreateNCP implements JavaDelegate {
 
                     i = 1;
                     log.info("newArtefactExtTSDPreparedStatement.setString");
-                    newArtefactExtTSDPreparedStatement.setLong(i++, createdArtefactId); // ARTEFACTID
+                    if (createdArtefactId != null) {
+                        newArtefactExtTSDPreparedStatement.setLong(i++, createdArtefactId); // ARTEFACTID
+                    } else {
+                        newArtefactExtTSDPreparedStatement.setNull(i++, Types.BIGINT);
+                    }
                     newArtefactExtTSDPreparedStatement.setDate(i++, new java.sql.Date(new Date().getTime())); // INSERT_DATE
                     newArtefactExtTSDPreparedStatement.setString(i++, starter); // INSERT_PERSON
 
-                    if(cn_longitude!=null) {
+                    if (cn_longitude != null) {
                         newArtefactExtTSDPreparedStatement.setString(i++, cn_longitude); // NE_LONGITUDE
                     }
-                    if(cn_latitude!=null) {
+                    if (cn_latitude != null) {
                         newArtefactExtTSDPreparedStatement.setString(i++, cn_latitude); // NE_LATITUDE
                     }
-                    if(fe_sitename!=null) {
+                    if (fe_sitename != null) {
                         newArtefactExtTSDPreparedStatement.setString(i++, fe_sitename); // FE_SITENAME
                     }
-                    if(fe_constructionType!=null) {
-                        newArtefactExtTSDPreparedStatement.setLong(i++, Integer.parseInt(fe_constructionType)); // FE_CONSTR_TYPE
+                    if (fe_constructionType != null) {
+                        Integer fe_constructionTypeInt = Integer.parseInt(fe_constructionType);
+                        if (fe_constructionTypeInt != null) {
+                            newArtefactExtTSDPreparedStatement.setLong(i++, fe_constructionTypeInt); // FE_CONSTR_TYPE
+                        } else {
+                            newArtefactExtTSDPreparedStatement.setNull(i++, Types.BIGINT);
+                        }
                     }
-                    if(fe_address!=null) {
+                    if (fe_address != null) {
                         newArtefactExtTSDPreparedStatement.setString(i++, fe_address); // FE_ADDRESS
                     }
-                    if(fe_formated_survey_date!=null) {
+                    if (fe_formated_survey_date != null) {
                         newArtefactExtTSDPreparedStatement.setDate(i++, new java.sql.Date(fe_formated_survey_date.getTime())); // SURVEY_DATE (fe_survey_date)
                     }
-                    if(ne_azimuth!=null) {
-                        newArtefactExtTSDPreparedStatement.setLong(i++, Integer.parseInt(ne_azimuth)); // NE_AZIMUTH
+                    if (ne_azimuth != null) {
+                        Integer ne_azimuthInt = Integer.parseInt(ne_azimuth);
+                        if (ne_azimuthInt != null) {
+                            newArtefactExtTSDPreparedStatement.setLong(i++, ne_azimuthInt); // NE_AZIMUTH
+                        } else {
+                            newArtefactExtTSDPreparedStatement.setNull(i++, Types.BIGINT);
+                        }
                     }
-                    if(ne_diameter!=null) {
+                    if (ne_diameter != null) {
                         newArtefactExtTSDPreparedStatement.setFloat(i++, Float.parseFloat(ne_diameter)); // NE_ANTENNADIAMETER
                     }
-                    if(ne_suspensionHeight!=null) {
-                        newArtefactExtTSDPreparedStatement.setLong(i++, ne_suspensionHeight.longValue()); // NE_SUSPENSIONHEIGHT
+                    if (ne_suspensionHeight != null) {
+                        if (ne_suspensionHeight != null) {
+                            newArtefactExtTSDPreparedStatement.setLong(i++, ne_suspensionHeight.longValue()); // NE_SUSPENSIONHEIGHT
+                        } else {
+                            newArtefactExtTSDPreparedStatement.setNull(i++, Types.BIGINT);
+                        }
                     }
-                    if(ne_frequencyBand!=null) {
-                        newArtefactExtTSDPreparedStatement.setLong(i++, Integer.parseInt(ne_frequencyBand)); // NE_TXRF_FREQUENCY
+                    if (ne_frequencyBand != null) {
+                        Integer ne_frequencyBandInt = Integer.parseInt(ne_frequencyBand);
+                        if (ne_frequencyBandInt != null) {
+                            newArtefactExtTSDPreparedStatement.setLong(i++, ne_frequencyBandInt); // NE_TXRF_FREQUENCY
+                        } else {
+                            newArtefactExtTSDPreparedStatement.setNull(i++, Types.BIGINT);
+                        }
                     }
-                    if(fe_azimuth!=null) {
-                        newArtefactExtTSDPreparedStatement.setLong(i++, Integer.parseInt(fe_azimuth)); // FE_AZIMUTH
+                    if (fe_azimuth != null) {
+                        Integer fe_azimuthInt = Integer.parseInt(fe_azimuth);
+                        if (fe_azimuthInt != null) {
+                            newArtefactExtTSDPreparedStatement.setLong(i++, fe_azimuthInt); // FE_AZIMUTH
+                        } else {
+                            newArtefactExtTSDPreparedStatement.setNull(i++, Types.BIGINT);
+                        }
                     }
-                    if(fe_diameter!=null) {
+                    if (fe_diameter != null) {
                         newArtefactExtTSDPreparedStatement.setFloat(i++, Float.parseFloat(fe_diameter)); // FE_ANTENNADIAMETER
                     }
-                    if(fe_suspensionHeight!=null) {
-                        newArtefactExtTSDPreparedStatement.setLong(i++, Integer.parseInt(fe_suspensionHeight)); // FE_SUSPENSIONHEIGHT
+                    if (fe_suspensionHeight != null) {
+                        Integer fe_suspensionHeightInt = Integer.parseInt(fe_suspensionHeight);
+                        if (fe_suspensionHeightInt != null) {
+                            newArtefactExtTSDPreparedStatement.setLong(i++, fe_suspensionHeightInt); // FE_SUSPENSIONHEIGHT
+                        } else {
+                            newArtefactExtTSDPreparedStatement.setNull(i++, Types.BIGINT);
+                        }
                     }
-                    if(fe_frequencyBand!=null) {
-                        newArtefactExtTSDPreparedStatement.setLong(i++, Integer.parseInt(fe_frequencyBand)); // FE_TXRF_FREQUENCY
+                    if (fe_frequencyBand != null) {
+                        Integer fe_frequencyBandInt = Integer.parseInt(fe_frequencyBand);
+                        if (fe_frequencyBandInt != null) {
+                            newArtefactExtTSDPreparedStatement.setLong(i++, fe_frequencyBandInt); // FE_TXRF_FREQUENCY
+                        } else {
+                            newArtefactExtTSDPreparedStatement.setNull(i++, Types.BIGINT);
+                        }
                     }
-                    if(fe_comment!=null) {
+                    if (fe_comment != null) {
                         newArtefactExtTSDPreparedStatement.setString(i++, fe_comment); // COMMENTS
                     }
                     log.info("newArtefactExtTSDPreparedStatement.executeUpdate()");
