@@ -30,7 +30,10 @@ def binding = ["tnuTsdNumber":tnuTsdNumber,"ne_longitude":ne_longitude.replace("
                "ne_sitename":ne_sitename,"fe_sitename":fe_sitename,"ne_azimuth":ne_azimuth.replace(".",","),"fe_azimuth":fe_azimuth.replace(".",","),
                "ne_construction_height":ne_construction_height.replace(".",","), "fe_construction_height":fe_construction_height.replace(".",",")]
 
-def template = ''' yieldUnescaped '' + tnuTsdNumber + ';' + tnuTsdNumber + ';' + ne_longitude + ';' + fe_longitude + ';' + ne_latitude + ';' + fe_latitude + ';' + ne_altitude + ';' + fe_altitude + ';' + ne_sitename + ';' + fe_sitename + ';' + ne_azimuth + ';' + fe_azimuth + ';' + ne_construction_height + ';' + fe_construction_height + ';' '''
+def template = ''' yieldUnescaped '"Name";"Name2";"Longitude";"Longitude2";"Latitude";"Latitude2";"Elevation";"Elevation2";"Site A";"Site B";"Azimuth1";"Azimuth2";"TowerHeight1";"TowerHeight2";"TXPower";"RadioProfile";"Tilt";"Feeder";"Parity";"Antenna_profile"'
+newLine()
+yieldUnescaped '"' + tnuTsdNumber + '";"' + tnuTsdNumber + '";"' + ne_longitude + '";"' + fe_longitude + '";"' + ne_latitude + '";"' + fe_latitude + '";"' + ne_altitude + '";"' + fe_altitude + '";"' + ne_sitename + '";"' + fe_sitename + '";"' + ne_azimuth + '";"' + fe_azimuth + '";"' + ne_construction_height + '";"' + fe_construction_height + '";"' + '"15";"Default_Radio";"0";"Default_Feeder";"Low";"Default_Antenna"' 
+'''
 
 def config = new TemplateConfiguration()
 config.setAutoNewLine(true)
