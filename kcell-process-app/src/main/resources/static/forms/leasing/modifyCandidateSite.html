@@ -106,6 +106,7 @@
             'uploadTSDfileFiles'];
 
             $scope.leasingFiles = [];
+            $scope.deletedFiles = [];
 
             camForm.on('form-loaded', function () {
                 variables.forEach(function (el) {
@@ -161,20 +162,24 @@
                     type: 'String',
                     value: ''
                 });
+                camForm.variableManager.createVariable({
+                    name: 'modifyCandidateSiteDeletedFiles',
+                    type: 'Json',
+                    value: ''
+                });
 
                 $scope.modifyCandidateSiteTaskResult = '';
                 $scope.view.variablesFetched = true;
             });
 
-            camForm.on('submit', function () {
+            camForm.on('submit', function (evt) {
+                // evt.submitPrevented = true;
                 camForm.variableManager.variableValue('planingInput', 'fromModify');
                 camForm.variableManager.variableValue('modifyCandidateSiteTaskResult', $scope.modifyCandidateSiteTaskResult);
                 camForm.variableManager.variableValue('modifyCandidateSiteTaskComment', $scope.modifyCandidateSiteTaskComment);
 
                 var thisTaskFiles = $scope.leasingFiles.filter(f => {return f.varName === 'modifyCandidateSiteFiles'});
-                console.log('--thisTaskFiles--')
-                console.log(thisTaskFiles)
-                console.log('-----------------')
+
                 if(!camForm.variableManager.variables['modifyCandidateSiteFiles'].type){
                     camForm.variableManager.destroyVariable('modifyCandidateSiteFiles');
                     camForm.variableManager.createVariable({
@@ -186,6 +191,26 @@
                     camForm.variableManager.variableValue('modifyCandidateSiteFiles', thisTaskFiles);
                 }
 
+                // if(camForm.variableManager.variables.hasOwnProperty("modifyCandidateSiteDeletedFiles")){
+                //     camForm.variableManager.destroyVariable('modifyCandidateSiteDeletedFiles');
+                //     camForm.variableManager.createVariable({
+                //         name: 'modifyCandidateSiteDeletedFiles',
+                //         type: 'Json',
+                //         value: $scope.deletedFiles
+                //     });
+                // } else {
+                //     camForm.variableManager.variableValue('modifyCandidateSiteDeletedFiles', $scope.deletedFiles);
+                // }
+                if(camForm.variableManager.variables.hasOwnProperty($scope.taskKey + "DeletedFiles")){
+                    camForm.variableManager.destroyVariable($scope.taskKey + "DeletedFiles");
+                    camForm.variableManager.createVariable({
+                        name: $scope.taskKey + "DeletedFiles",
+                        type: 'Json',
+                        value: $scope.deletedFiles
+                    });
+                } else {
+                    camForm.variableManager.variableValue($scope.taskKey + "DeletedFiles", $scope.deletedFiles);
+                }
                 camForm.variableManager.destroyVariable('resolutions');
             });
 
@@ -278,7 +303,7 @@
         </div>
     </div>
 
-    <leasing-attachments leasing-files="leasingFiles" task-key="taskKey" modify="'true'"></leasing-attachments>
+    <leasing-attachments leasing-files="leasingFiles" deleted-files="deletedFiles" task-key="taskKey" modify="'true'"></leasing-attachments>
     <iframe id="fileDownloadIframe" style="display:none;"></iframe>
     <div class="form-group">
         <label class="col-sm-3 control-label"></label>

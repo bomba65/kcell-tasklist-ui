@@ -98,6 +98,7 @@
             'uploadTSDfileFiles'];
 
             $scope.leasingFiles = [];
+            $scope.deletedFiles = [];
 
             $http.get('/camunda/api/engine/engine/default/task/' + camForm.taskId).then(
                 function(result){
@@ -156,6 +157,11 @@
                 camForm.variableManager.createVariable({
                     name: 'uploadCopyOfOwnerSignedLeaseContractTaskResult',
                     type: 'String',
+                    value: ''
+                });
+                camForm.variableManager.createVariable({
+                    name: 'uploadCopyOfOwnerSignedLeaseContractDeletedFiles',
+                    type: 'Json',
                     value: ''
                 });
                 camForm.variableManager.createVariable({
@@ -234,6 +240,16 @@
                     });
                 } else {
                     camForm.variableManager.variableValue('uploadCopyOfOwnerSignedLeaseContractFiles', thisTaskFiles);
+                }
+                if(camForm.variableManager.variables.hasOwnProperty($scope.taskKey + "DeletedFiles")){
+                    camForm.variableManager.destroyVariable($scope.taskKey + "DeletedFiles");
+                    camForm.variableManager.createVariable({
+                        name: $scope.taskKey + "DeletedFiles",
+                        type: 'Json',
+                        value: $scope.deletedFiles
+                    });
+                } else {
+                    camForm.variableManager.variableValue($scope.taskKey + "DeletedFiles", $scope.deletedFiles);
                 }
                 camForm.variableManager.destroyVariable('resolutions');
             });
@@ -1043,7 +1059,7 @@
         <input type="button" ng-click="addContract()" value="Add New Contract" class="btn btn-primary pull-right">
     </div>
 
-    <leasing-attachments leasing-files="leasingFiles" task-key="taskKey" modify="'true'"></leasing-attachments>
+    <leasing-attachments leasing-files="leasingFiles" deleted-files="deletedFiles" task-key="taskKey" modify="'true'"></leasing-attachments>
     <iframe id="fileDownloadIframe" style="display:none;"></iframe>
     <div class="form-group">
         <label class="col-sm-3 control-label"></label>

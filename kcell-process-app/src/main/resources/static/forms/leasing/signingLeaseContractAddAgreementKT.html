@@ -99,6 +99,7 @@
             'uploadTSDfileFiles'];
 
             $scope.leasingFiles = [];
+            $scope.deletedFiles = [];
 
             $http.get('/camunda/api/engine/engine/default/task/' + camForm.taskId).then(
                 function(result){
@@ -157,6 +158,11 @@
                     value: ''
                 });
                 camForm.variableManager.createVariable({
+                    name: 'signingLeaseContractAddAgreementKTDeletedFiles',
+                    type: 'Json',
+                    value: ''
+                });
+                camForm.variableManager.createVariable({
                     name: 'signingLeaseContractAddAgreementKTTaskComment',
                     type: 'String',
                     value: ''
@@ -190,6 +196,16 @@
                     });
                 } else {
                     camForm.variableManager.variableValue('signingLeaseContractAddAgreementKTFiles', thisTaskFiles);
+                }
+                if(camForm.variableManager.variables.hasOwnProperty($scope.taskKey + "DeletedFiles")){
+                    camForm.variableManager.destroyVariable($scope.taskKey + "DeletedFiles");
+                    camForm.variableManager.createVariable({
+                        name: $scope.taskKey + "DeletedFiles",
+                        type: 'Json',
+                        value: $scope.deletedFiles
+                    });
+                } else {
+                    camForm.variableManager.variableValue($scope.taskKey + "DeletedFiles", $scope.deletedFiles);
                 }
                 camForm.variableManager.destroyVariable('resolutions');
                 if($scope.signingLeaseContractAddAgreementKTTaskResult === 'reject') {
@@ -333,7 +349,7 @@
         </div>
     </div>
 
-    <leasing-attachments leasing-files="leasingFiles" task-key="taskKey" modify="'true'"></leasing-attachments>
+    <leasing-attachments leasing-files="leasingFiles" deleted-files="deletedFiles" task-key="taskKey" modify="'true'"></leasing-attachments>
     <iframe id="fileDownloadIframe" style="display:none;"></iframe>
     <div class="form-group">
         <label class="col-sm-3 control-label"></label>

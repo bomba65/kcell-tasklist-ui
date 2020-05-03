@@ -97,6 +97,8 @@ public class TaskHistoryListener implements TaskListener {
             ObjectMapper mapper = new ObjectMapper();
 
             ObjectNode resolution = mapper.createObjectNode();
+//            delegateTask.getProcessDefinitionId();/**/
+
             resolution.put("processInstanceId", delegateTask.getProcessInstanceId());
             resolution.put("assignee", delegateTask.getAssignee());
             List<User> users = identityService.createUserQuery().userId(delegateTask.getAssignee()).list();
@@ -114,9 +116,19 @@ public class TaskHistoryListener implements TaskListener {
             resolution.put("taskName", delegateTask.getName());
             resolution.put("taskEndDate", new SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss.SSSXX").format(new Date()));
 
-            if(checkVariable(delegateTask,delegateTask.getTaskDefinitionKey() + "Files")) {
+            if(checkVariable(delegateTask,delegateTask.getTaskDefinitionKey() + "Files") && !checkVariable(delegateTask,delegateTask.getTaskDefinitionKey() + "DeletedFiles")) {
                 JSONArray filesJSONArray = new JSONArray(String.valueOf(delegateTask.getVariable(delegateTask.getTaskDefinitionKey() + "Files")));
                 resolution.putPOJO("files", filesJSONArray);
+            }
+
+            if(checkVariable(delegateTask,delegateTask.getTaskDefinitionKey() + "DeletedFiles") && checkVariable(delegateTask,delegateTask.getTaskDefinitionKey() + "Files")) {
+                JSONArray deletedFilesJSONArray = new JSONArray(String.valueOf(delegateTask.getVariable(delegateTask.getTaskDefinitionKey() + "DeletedFiles")));
+                JSONArray filesJSONArray = new JSONArray(String.valueOf(delegateTask.getVariable(delegateTask.getTaskDefinitionKey() + "Files")));
+                ObjectNode attachments = mapper.createObjectNode();
+
+                attachments.putPOJO("deleted", deletedFilesJSONArray);
+                attachments.putPOJO("added", filesJSONArray);
+                resolution.putPOJO("attachments", attachments);
             }
 
             resolution.put("assignDate", new SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss.SSSXX").format(delegateTask.getCreateTime()));
@@ -125,7 +137,7 @@ public class TaskHistoryListener implements TaskListener {
                 resolution.put("claimDate", new SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss.SSSXX").format(logs.get(0).getTime()));
             }
 
-            if (checkVariable(delegateTask,delegateTask.getTaskDefinitionKey() + "TaskAttachments")) {
+            if (checkVariable(delegateTask,delegateTask.getTaskDefinitionKey() + "TaskAttachments") && !checkVariable(delegateTask,delegateTask.getTaskDefinitionKey() + "DeletedFiles")) {
                 resolution.putPOJO("attachments", delegateTask.getVariable(delegateTask.getTaskDefinitionKey() + "TaskAttachments"));
                 delegateTask.removeVariable(delegateTask.getTaskDefinitionKey() + "TaskAttachments");
             }

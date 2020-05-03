@@ -5,10 +5,12 @@ define(['./../module'], function(module){
             restrict: 'E',
             scope: {
                 leasingFiles: '=',
+                deletedFiles: '=',
                 taskKey: '=',
                 modify: '='
             },
             link: function(scope, el, attrs){
+                console.log(scope)
                 scope.fileDownload = function(file) {
                     $http({method: 'GET', url: '/camunda/uploads/get/' + file.path, transformResponse: [] }).
                     then(function(response) {
@@ -19,6 +21,9 @@ define(['./../module'], function(module){
                 };
 
                 scope.clearFile = function (list, fileIndex) {
+                    if (scope.deletedFiles){
+                        scope.deletedFiles.push(scope[list][fileIndex])
+                    }
                     scope[list].splice(fileIndex, 1);
                 };
             },
