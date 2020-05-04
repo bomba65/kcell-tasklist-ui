@@ -597,6 +597,9 @@
                 if ($scope.currentFarEnd.surveyDate) {
                     $scope.currentFarEnd.surveyDate = new Date($scope.currentFarEnd.surveyDate);
                 }
+                if (!($scope.currentFarEnd.renterCompany && $scope.currentFarEnd.renterCompany.legalName)) {
+                    $scope.currentFarEnd.renterCompany = { legalName : ''};
+                }
                 $scope.currentFarEnd.dictionary = {};
                 $scope.currentFarEnd.dictionary.filteredDistricts = $scope.districtList;
                 $scope.currentFarEnd.dictionary.cityList = _.uniqBy($scope.dictionary.addresses, 'city').map( (e, index) => { return {"name" : e.city, "id" : index} });
@@ -1108,6 +1111,31 @@
                     $scope.siteObjectType = 'other';
                 }
                 $scope.legalType = $scope.renterCompany.legalType;
+            }
+
+            $scope.changeLegalType = function () {
+                if ( $scope.renterCompany.legalType === 'national_kazakhtelecom' ) {
+                    $scope.renterCompany.legalName = 'АО "Казахтелеком"'
+                } if ( $scope.renterCompany.legalType === 'national_kazteleradio' ) {
+                    $scope.renterCompany.legalName = 'АО "Казтелерадио"'
+                } else if ( $scope.renterCompany.legalType === 'national_kazpost' ) {
+                    $scope.renterCompany.legalName = 'АО "Казпочта"'
+                } else {
+                    $scope.renterCompany.legalName = ''
+                }
+            }
+
+            $scope.changeFarEndLegalType = function () {
+                if ($scope.currentFarEnd && $scope.currentFarEnd.renterCompany && $scope.currentFarEnd.legalType) {
+                    $scope.currentFarEnd.renterCompany.legalName = ''
+                    if ( $scope.currentFarEnd.legalType === 'national_kazakhtelecom' ) {
+                        $scope.currentFarEnd.renterCompany.legalName = 'АО "Казахтелеком"'
+                    } if ( $scope.currentFarEnd.legalType === 'national_kazteleradio' ) {
+                        $scope.currentFarEnd.renterCompany.legalName = 'АО "Казтелерадио'
+                    } else if ( $scope.currentFarEnd.legalType === 'national_kazpost' ) {
+                        $scope.currentFarEnd.renterCompany.legalName = 'АО "Казпочта"'
+                    }
+                }
             }
 
             $scope.selectAntennaSector = function (index) {
@@ -2029,7 +2057,8 @@
                                 <select class="form-control" id="legalType" name="legalType"
                                         ng-model="renterCompany.legalType"
                                         ng-options="type.id as type.desc for type in dictionary.legalType"
-                                        ng-selected="defineSiteObjectType()">
+                                        ng-selected="defineSiteObjectType()"
+                                        ng-change="changeLegalType()">
                                 </select>
                             </div>
                         </div>
@@ -2715,7 +2744,8 @@
                                     <div class="col-sm-8">
                                         <select class="form-control" id="farEndLegalType" name="fe_form_farEndLegalType"
                                                 ng-model="currentFarEnd.legalType"
-                                                ng-options="type.id as type.desc for type in dictionary.legalType">
+                                                ng-options="type.id as type.desc for type in dictionary.legalType"
+                                                ng-change="changeFarEndLegalType()">
                                         </select>
                                         <label class="error"
                                                ng-show="kcell_form.fe_form_farEndLegalType.$error.required && ( kcell_form.fe_form_farEndLegalType.$touched || view.submitted)">Required
