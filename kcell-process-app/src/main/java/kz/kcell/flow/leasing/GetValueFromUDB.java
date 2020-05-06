@@ -23,7 +23,7 @@ public class GetValueFromUDB implements JavaDelegate {
     @Value("${udb.oracle.username:udbrnd}")
     private String udbOracleUsername;
 
-    @Value("${udb.oracle.password:udb}}")
+    @Value("${udb.oracle.password:udb}")
     private String udbOraclePassword;
 
     @Override
