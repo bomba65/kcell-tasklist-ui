@@ -1,4 +1,4 @@
-package kz.kcell.bpm.leasing;
+package kz.kcell.flow.leasing;
 
 import org.camunda.bpm.engine.delegate.DelegateExecution;
 import org.camunda.bpm.engine.delegate.JavaDelegate;
@@ -7,6 +7,8 @@ import org.camunda.spin.json.SpinJsonNode;
 import org.postgresql.util.PGobject;
 import lombok.extern.java.Log;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
+import org.springframework.core.env.Environment;
 import org.springframework.stereotype.Service;
 
 import javax.sql.DataSource;
@@ -22,9 +24,17 @@ import static org.camunda.spin.Spin.JSON;
 @Service("CreateNCP")
 public class CreateNCP implements JavaDelegate {
 
-
     @Autowired
     DataSource dataSource;
+
+    @Value("${udb.oracle.url:jdbc:oracle:thin:@//sc2-appcl010406:1521/apexudb}")
+    private String udbOracleUrl;
+
+    @Value("${udb.oracle.username:udbrnd}")
+    private String udbOracleUsername;
+
+    @Value("${udb.oracle.password:udb}")
+    private String udbOraclePassword;
 
     @Override
     public void execute(DelegateExecution delegateExecution) throws Exception {
@@ -32,8 +42,13 @@ public class CreateNCP implements JavaDelegate {
             TimeZone timeZone = TimeZone.getTimeZone("Asia/Almaty");
             TimeZone.setDefault(timeZone);
             Class.forName("oracle.jdbc.OracleDriver");
+            log.info(udbOracleUrl);
+            log.info(udbOracleUsername);
+            log.info(udbOraclePassword);
             Connection udbConnect = DriverManager.getConnection(
-                "jdbc:oracle:thin:@//sc2-appcl010406:1521/apexudb", "udbrnd", "udb");
+                udbOracleUrl,
+                udbOracleUsername,
+                udbOraclePassword);
             try {
                 if (udbConnect != null) {
                     udbConnect.setAutoCommit(false);

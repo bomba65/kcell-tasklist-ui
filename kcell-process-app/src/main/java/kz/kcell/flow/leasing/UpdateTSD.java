@@ -1,4 +1,4 @@
-package kz.kcell.bpm.leasing;
+package kz.kcell.flow.leasing;
 
 import lombok.extern.java.Log;
 import org.camunda.bpm.engine.delegate.DelegateExecution;
@@ -6,6 +6,8 @@ import org.camunda.bpm.engine.delegate.JavaDelegate;
 import org.camunda.spin.SpinList;
 import org.camunda.spin.json.SpinJsonNode;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
+import org.springframework.core.env.Environment;
 import org.springframework.stereotype.Service;
 
 import javax.sql.DataSource;
@@ -26,6 +28,15 @@ public class UpdateTSD implements JavaDelegate {
     @Autowired
     DataSource dataSource;
 
+    @Value("${udb.oracle.url:jdbc:oracle:thin:@//sc2-appcl010406:1521/apexudb}")
+    private String udbOracleUrl;
+
+    @Value("${udb.oracle.username:udbrnd}")
+    private String udbOracleUsername;
+
+    @Value("${udb.oracle.password:udb}")
+    private String udbOraclePassword;
+
     @Override
     public void execute(DelegateExecution delegateExecution) throws Exception {
         try {
@@ -33,7 +44,9 @@ public class UpdateTSD implements JavaDelegate {
             TimeZone.setDefault(timeZone);
             Class.forName ("oracle.jdbc.OracleDriver");
             Connection udbConnect = DriverManager.getConnection(
-                "jdbc:oracle:thin:@//sc2-appcl010406:1521/apexudb", "udbrnd", "udb");
+                udbOracleUrl,
+                udbOracleUsername,
+                udbOraclePassword);
             try {
                 if (udbConnect != null) {
                     udbConnect.setAutoCommit(false);

@@ -10,6 +10,8 @@ import org.camunda.bpm.engine.impl.util.json.JSONArray;
 import org.camunda.bpm.engine.impl.util.json.JSONObject;
 import org.camunda.spin.plugin.variable.SpinValues;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
+import org.springframework.core.env.Environment;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
@@ -40,6 +42,15 @@ public class LeasingController {
     @Autowired
     private TaskService taskService;
 
+    @Value("${udb.oracle.url:jdbc:oracle:thin:@//sc2-appcl010406:1521/apexudb}")
+    private String udbOracleUrl;
+
+    @Value("${udb.oracle.username:udbrnd}")
+    private String udbOracleUsername;
+
+    @Value("${udb.oracle.password:udb}")
+    private String udbOraclePassword;
+
     private Minio minioClient;
 
     @Autowired
@@ -59,7 +70,9 @@ public class LeasingController {
         TimeZone.setDefault(timeZone);
         Class.forName ("oracle.jdbc.OracleDriver");
         Connection udbConnect = DriverManager.getConnection(
-            "jdbc:oracle:thin:@//sc2-appcl010406:1521/apexudb", "udbrnd", "udb");
+            udbOracleUrl,
+            udbOracleUsername,
+            udbOraclePassword);
         try {
             if (udbConnect != null) {
                 udbConnect.setAutoCommit(false);

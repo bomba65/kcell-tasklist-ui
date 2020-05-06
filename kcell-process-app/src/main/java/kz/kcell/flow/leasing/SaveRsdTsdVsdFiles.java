@@ -7,6 +7,7 @@ import org.camunda.bpm.engine.delegate.JavaDelegate;
 import org.camunda.spin.SpinList;
 import org.camunda.spin.json.SpinJsonNode;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 
 import java.io.ByteArrayInputStream;
@@ -25,6 +26,15 @@ public class SaveRsdTsdVsdFiles implements JavaDelegate {
 
     private Minio minioClient;
 
+    @Value("${udb.oracle.url:jdbc:oracle:thin:@//sc2-appcl010406:1521/apexudb}")
+    private String udbOracleUrl;
+
+    @Value("${udb.oracle.username:udbrnd}")
+    private String udbOracleUsername;
+
+    @Value("${udb.oracle.password:udb}")
+    private String udbOraclePassword;
+
     @Autowired
     public SaveRsdTsdVsdFiles(Minio minioClient) {
         this.minioClient = minioClient;
@@ -38,7 +48,9 @@ public class SaveRsdTsdVsdFiles implements JavaDelegate {
             TimeZone.setDefault(timeZone);
             Class.forName ("oracle.jdbc.OracleDriver");
             Connection udbConnect = DriverManager.getConnection(
-                "jdbc:oracle:thin:@//sc2-appcl010406:1521/apexudb", "udbrnd", "udb");
+                udbOracleUrl,
+                udbOracleUsername,
+                udbOraclePassword);
             try {
                 if (udbConnect != null) {
                     udbConnect.setAutoCommit(false);

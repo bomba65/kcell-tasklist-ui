@@ -1,4 +1,4 @@
-package kz.kcell.bpm.leasing;
+package kz.kcell.flow.leasing;
 
 import org.camunda.bpm.engine.impl.util.json.JSONArray;
 import org.camunda.bpm.engine.impl.util.json.JSONObject;
@@ -14,8 +14,7 @@ public class testConnect {
         System.out.println("testConnect!");
         try {
             Class.forName ("oracle.jdbc.OracleDriver");
-            Connection udbConnect = DriverManager.getConnection(
-                "jdbc:oracle:thin:@//sc2-appcl010406:1521/apexudb", "udbrnd", "udb");
+            Connection udbConnect = DriverManager.getConnection("jdbc:oracle:thin:@//sc2-appcl010406:1521/apexudb", "udbrnd", "udb");
             try {
                 if (udbConnect != null) {
                     udbConnect.setAutoCommit(false);

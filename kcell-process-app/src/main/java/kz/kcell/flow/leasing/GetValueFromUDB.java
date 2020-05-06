@@ -1,38 +1,45 @@
-package kz.kcell.bpm.leasing;
+package kz.kcell.flow.leasing;
 
-import kz.kcell.flow.files.Minio;
 import lombok.extern.java.Log;
-import org.apache.commons.io.IOUtils;
 import org.camunda.bpm.engine.delegate.DelegateExecution;
 import org.camunda.bpm.engine.delegate.JavaDelegate;
 import org.camunda.bpm.engine.impl.util.json.JSONArray;
 import org.camunda.bpm.engine.impl.util.json.JSONObject;
-import org.camunda.spin.SpinList;
-import org.camunda.spin.json.SpinJsonNode;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
+import org.springframework.core.env.Environment;
 import org.springframework.stereotype.Service;
 
-import java.io.ByteArrayInputStream;
-import java.io.InputStream;
 import java.sql.*;
-import java.util.Date;
 import java.util.TimeZone;
-
-import static org.camunda.spin.Spin.JSON;
 
 @Log
 @Service("GetValueFromUDB")
 public class GetValueFromUDB implements JavaDelegate {
 
+    @Value("${udb.oracle.url:jdbc:oracle:thin:@//sc2-appcl010406:1521/apexudb}")
+    private String udbOracleUrl;
+
+    @Value("${udb.oracle.username:udbrnd}")
+    private String udbOracleUsername;
+
+    @Value("${udb.oracle.password:udb}}")
+    private String udbOraclePassword;
+
     @Override
-    public void execute(DelegateExecution delegateExecution) throws Exception {
+    public void execute(DelegateExecution delegateExecution) {
         log.info("try to connect....");
         try {
             TimeZone timeZone = TimeZone.getTimeZone("Asia/Almaty");
             TimeZone.setDefault(timeZone);
-            Class.forName ("oracle.jdbc.OracleDriver");
+            Class.forName("oracle.jdbc.OracleDriver");
+            log.info(udbOracleUrl);
+            log.info(udbOracleUsername);
+            log.info(udbOraclePassword);
             Connection udbConnect = DriverManager.getConnection(
-                "jdbc:oracle:thin:@//sc2-appcl010406:1521/apexudb", "udbrnd", "udb"); //"app_apexudb_camunda", "p28zt#7C"
+                udbOracleUrl,
+                udbOracleUsername,
+                udbOraclePassword);
             try {
                 if (udbConnect != null) {
                     udbConnect.setAutoCommit(false);
@@ -48,7 +55,7 @@ public class GetValueFromUDB implements JavaDelegate {
 
                     PreparedStatement selectArtefactCurrentStatePS = udbConnect.prepareStatement(selectArtefactCurrentState);
 
-                    int i=1;
+                    int i = 1;
                     selectArtefactCurrentStatePS.setLong(i++, createdArtefactId.longValue());
 
                     log.info("UDBcheckCronValue");
@@ -58,11 +65,11 @@ public class GetValueFromUDB implements JavaDelegate {
                     JSONArray json = new JSONArray();
                     ResultSetMetaData rsmd = resultSet.getMetaData();
 //                    log.info(rsmd.getColumnCount());
-                    while(resultSet.next()) {
+                    while (resultSet.next()) {
 //                        log.info(rsmd.getColumnCount());
                         int numColumns = rsmd.getColumnCount();
                         JSONObject obj = new JSONObject();
-                        for (int j=1; j<=numColumns; j++) {
+                        for (int j = 1; j <= numColumns; j++) {
                             String column_name = rsmd.getColumnName(j);
                             obj.put(column_name, resultSet.getObject(column_name));
                         }
@@ -77,22 +84,22 @@ public class GetValueFromUDB implements JavaDelegate {
                         log.info("done ARTEFACTID");
                         log.info(firstJson.getString("ARTEFACTID"));
                         log.info("done INST_STATUS");
-                        log.info(firstJson.has("INST_STATUS") ?  firstJson.getString("INST_STATUS") : "");
+                        log.info(firstJson.has("INST_STATUS") ? firstJson.getString("INST_STATUS") : "");
                         log.info("done POWER_STATUS");
-                        log.info(firstJson.has("POWER_STATUS") ?  firstJson.getString("POWER_STATUS") : "");
+                        log.info(firstJson.has("POWER_STATUS") ? firstJson.getString("POWER_STATUS") : "");
                         log.info("done ONAIR_DATE");
                         log.info(firstJson.has("ONAIR_DATE") ? firstJson.getString("ONAIR_DATE") : "");
                         log.info("done G_ONAIR_DATE");
                         log.info(firstJson.has("G_ONAIR_DATE") ? firstJson.getString("G_ONAIR_DATE") : "");
 
-                        if((firstJson.has("ONAIR_DATE") && !firstJson.getString("ONAIR_DATE").equals(null)) || (firstJson.has("G_ONAIR_DATE") && !firstJson.getString("G_ONAIR_DATE").equals(null))) {
+                        if ((firstJson.has("ONAIR_DATE") && !firstJson.getString("ONAIR_DATE").equals(null)) || (firstJson.has("G_ONAIR_DATE") && !firstJson.getString("G_ONAIR_DATE").equals(null))) {
                             log.info("ONAIR_DATE or G_ONAIR_DATE is not null");
                             dataFromUDB = "withFinishDate";
                             delegateExecution.setVariable("setInstStatusFromUDB", "FinishDate");
                             delegateExecution.setVariable("finishDateFromUDB", firstJson.has("ONAIR_DATE") ? firstJson.getString("ONAIR_DATE") : firstJson.has("G_ONAIR_DATE") ? firstJson.getString("G_ONAIR_DATE") : "");
                         }
 
-                        if(firstJson.has("INST_STATUS") && dataFromUDB.equals("noData")) {
+                        if (firstJson.has("INST_STATUS") && dataFromUDB.equals("noData")) {
                             int uis = firstJson.getInt("INST_STATUS");
                             if (uis == 8 || uis == 15 || uis == 7 || uis == 4) {
                                 dataFromUDB = "justSetInstStatus";
@@ -121,7 +128,7 @@ public class GetValueFromUDB implements JavaDelegate {
                             log.info("INST_STATUS is not null");
                         }
 
-                        if(firstJson.has("POWER_STATUS") && firstJson.getInt("POWER_STATUS") == 3 && dataFromUDB.equals("noData")) {
+                        if (firstJson.has("POWER_STATUS") && firstJson.getInt("POWER_STATUS") == 3 && dataFromUDB.equals("noData")) {
                             dataFromUDB = "withPowerStatus";
                             delegateExecution.setVariable("powerStatusFromUDB", firstJson.getInt("POWER_STATUS"));
                             delegateExecution.setVariable("setInstStatusFromUDB", "Power problem");
