@@ -56,7 +56,7 @@ public class CreateNCP implements JavaDelegate {
 
                     //insert NCP
                     String returnCols[] = {"ARTEFACTID"};
-                    String insertNCP = "INSERT INTO NCP_CREATION ( ARTEFACTID, NCPID, REGION, LONGITUDE, LATITUDE, REASON, PROJECT, CREATOR, DATEOFINSERT, COMMENTS, CABINETID, TARGET_COVERAGE, TYPE, GEN_STATUS, NCP_STATUS, NCP_STATUS_DATE, BAND, INITIATOR, PART) VALUES (NCP_CREATION_SEQ.nextval, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, 7, 1, ?, ?, ?, ?)";
+                    String insertNCP = "INSERT INTO NCP_CREATION ( ARTEFACTID, NCPID, TARGET_CELL, REGION, LONGITUDE, LATITUDE, REASON, PROJECT, CREATOR, DATEOFINSERT, COMMENTS, CABINETID, TARGET_COVERAGE, TYPE, GEN_STATUS, NCP_STATUS, NCP_STATUS_DATE, BAND, INITIATOR, PART) VALUES (NCP_CREATION_SEQ.nextval, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, 7, 1, ?, ?, ?, ?)";
                     PreparedStatement preparedStatement = udbConnect.prepareStatement(insertNCP, returnCols);
 
                     Integer i = 1;
@@ -70,6 +70,7 @@ public class CreateNCP implements JavaDelegate {
                     String latitude = delegateExecution.getVariable("latitude") != null ? delegateExecution.getVariable("latitude").toString() : null;
 //                    String reason = delegateExecution.getVariable("reason").toString(); // it's string value, not dictionaries id
                     String starter = delegateExecution.getVariable("starter") != null ? delegateExecution.getVariable("starter").toString() : null;
+                    String targetCell = delegateExecution.getVariable("createNCPTaskComment") != null ? delegateExecution.getVariable("createNCPTaskComment").toString() : null;
                     String targetCoverage = delegateExecution.getVariable("targetCoverage") != null ? delegateExecution.getVariable("targetCoverage").toString() : null;
                     String regionCode = delegateExecution.getVariable("regionCode") != null ? delegateExecution.getVariable("regionCode").toString() : null;
                     String rbsType = delegateExecution.getVariable("rbsType") != null ? delegateExecution.getVariable("rbsType").toString() : null;
@@ -145,7 +146,8 @@ public class CreateNCP implements JavaDelegate {
 
                     Number cn_height_constr = candidate.hasProp("cn_height_constr") ? Integer.parseInt(candidate.prop("cn_height_constr").value().toString()) : 0;
                     Number cn_altitude = candidate.hasProp("cn_altitude") ? Integer.parseInt(candidate.prop("cn_altitude").value().toString()) : 0;
-
+                    log.info("cn_altitude:" + cn_altitude);
+                    log.info("cn_height_constr:" + cn_height_constr);
                     SimpleDateFormat formatter = new SimpleDateFormat("yyyy-dd-MM"); //2020-01-02T18:00:00.000Z
                     String cn_date_of_visit = candidate != null && candidate.hasProp("dateOfVisit") && candidate.prop("dateOfVisit") != null ? (candidate.prop("dateOfVisit").stringValue().substring(0, 9)) : null;
                     Date date_of_visit = cn_date_of_visit != null ? formatter.parse(cn_date_of_visit) : null;
@@ -203,6 +205,11 @@ public class CreateNCP implements JavaDelegate {
                     // set values to insert
                     preparedStatement.setString(i++, ncpId); // NCPID
                     Integer regionCodeInt = Integer.parseInt(regionCode);
+                    if (targetCell != null) {
+                        preparedStatement.setString(i++, targetCell); // target_cell
+                    } else {
+                        preparedStatement.setNull(i++, Types.VARCHAR);
+                    }
                     if (regionCodeInt != null) {
                         preparedStatement.setLong(i++, regionCodeInt); // REGION
                     } else {
@@ -267,7 +274,7 @@ public class CreateNCP implements JavaDelegate {
 
                     i = 1;
                     log.info("newNcpStatusPreparedStatement.setString");
-                    newNcpStatusPreparedStatement.setString(i++, ncpCreatedId.toString());
+                    newNcpStatusPreparedStatement.setLong(i++, ncpCreatedId);
                     newNcpStatusPreparedStatement.setString(i++, starter); // CREATOR 'SERGEI.ZAITSEV'
                     newNcpStatusPreparedStatement.setDate(i++, new java.sql.Date(new Date().getTime())); // DATEOFINSERT
                     log.info("newNcpStatusPreparedStatement.executeUpdate()");
@@ -291,7 +298,7 @@ public class CreateNCP implements JavaDelegate {
                     newArtefactPreparedStatement.setString(i++, cn_siteName); // sitename	cn_sitename
                     Integer ncpIdInt = Integer.parseInt(ncpId);
                     if (ncpIdInt != null) {
-                        newArtefactPreparedStatement.setLong(i++, ncpIdInt); //ncp_id
+                        newArtefactPreparedStatement.setLong(i++, ncpCreatedId); //ncp_id (old value: ncpIdInt)
                     } else {
                         newArtefactPreparedStatement.setNull(i++, Types.BIGINT);
                     }
@@ -308,6 +315,7 @@ public class CreateNCP implements JavaDelegate {
                     //insert new Candidate (in ARTEFACT_CURRENT_STATE table)
                     String insertNewArtefactCurrentState = "INSERT INTO ARTEFACT_CURRENT_STATE (ARTEFACTID,\n" +
                         "                                                        NCPID,\n" +
+                        "                                                        RSD_EXIST,\n" +
                         "                                                        CAND_STATUS,\n" +
                         "                                                        CAND_STATUS_PERSON,\n" +
                         "                                                        CAND_STATUS_DATE,\n" +
@@ -329,7 +337,7 @@ public class CreateNCP implements JavaDelegate {
                         "                                                        INSERT_DATE,\n" +
                         "                                                        INSERT_PERSON,\n" +
                         "                                                        GS_STATUS,\n" +
-                        "                                                        PL_COMMENTS) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)";
+                        "                                                        PL_COMMENTS) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)";
                     PreparedStatement newArtefactCurrentStatePreparedStatement = udbConnect.prepareStatement(insertNewArtefactCurrentState);
 
                     i = 1;
@@ -341,11 +349,12 @@ public class CreateNCP implements JavaDelegate {
 
                     }
                     if (ncpIdInt != null) {
-                        newArtefactCurrentStatePreparedStatement.setLong(i++, ncpIdInt); //ncp_id
+                        newArtefactCurrentStatePreparedStatement.setLong(i++, ncpCreatedId); //ncp_id (old value: ncpIdInt)
                     } else {
                         newArtefactCurrentStatePreparedStatement.setNull(i++, Types.BIGINT);
 
                     }
+                    newArtefactCurrentStatePreparedStatement.setLong(i++, 0); // RSD_EXIST first insert value mast be = 1
                     newArtefactCurrentStatePreparedStatement.setLong(i++, 1); // CAND_STATUS first insert value mast be = 1
 
                     newArtefactCurrentStatePreparedStatement.setString(i++, starter); // CAND_STATUS_PERSON (current user) // current or start ?????? (who complete create candidate task?)
@@ -406,7 +415,7 @@ public class CreateNCP implements JavaDelegate {
 
                     //insert new installation
 
-                    String insertNewInstallation = "insert into INSTALLATION_CURRENT_STATE(ARTEFACTID) values (?)";
+                    String insertNewInstallation = "insert into INSTALLATION_CURRENT_STATE(ARTEFACTID, CONTRACTOR_STATUS) values (?, ?)";
                     PreparedStatement NewInstallationPreparedStatement = udbConnect.prepareStatement(insertNewInstallation);
 
                     i = 1;
@@ -416,6 +425,7 @@ public class CreateNCP implements JavaDelegate {
                     } else {
                         NewInstallationPreparedStatement.setNull(i++, Types.BIGINT);
                     }
+                    NewInstallationPreparedStatement.setLong(i++, 0);
                     log.info("NewInstallationPreparedStatement.executeUpdate()");
                     NewInstallationPreparedStatement.executeUpdate();
                     log.info("successfull insert to database!");
@@ -527,33 +537,33 @@ public class CreateNCP implements JavaDelegate {
                     log.info(createdArtefactRRId.toString());
 
                     //insert ARTEFACT_VSD
-                    Long createdArtefactVsdId = null;
-                    String vsdReturnStatus[] = {"VSDID"};
-                    String insertNewVsd = "INSERT INTO ARTEFACT_VSD (VSDID, ARTEFACTID, RSDID) VALUES (ARTEFACT_VSD_SEQ.nextval, ?, ?)";
-                    PreparedStatement newArtefactVsdPreparedStatement = udbConnect.prepareStatement(insertNewVsd, vsdReturnStatus);
-
-                    i = 1;
-                    log.info("newArtefactVsdPreparedStatement.setString");
-                    if (createdArtefactId != null) {
-                        newArtefactVsdPreparedStatement.setLong(i++, createdArtefactId);
-                    } else {
-                        newArtefactVsdPreparedStatement.setNull(i++, Types.BIGINT);
-
-                    }
-                    if (createdArtefactRSDId != null) {
-                        newArtefactVsdPreparedStatement.setLong(i++, createdArtefactRSDId);
-                    } else {
-                        newArtefactVsdPreparedStatement.setNull(i++, Types.BIGINT);
-                    }
-                    log.info("newArtefactVsdPreparedStatement.executeUpdate()");
-                    newArtefactVsdPreparedStatement.executeUpdate();
-                    log.info("successfull insert to database!");
-
-                    ResultSet vsdGeneratedIdResultSet = newArtefactVsdPreparedStatement.getGeneratedKeys();
-                    vsdGeneratedIdResultSet.next();
-                    createdArtefactVsdId = vsdGeneratedIdResultSet.getLong(1);
-                    log.info("createdArtefactVsdId:");
-                    log.info(createdArtefactVsdId.toString());
+//                    Long createdArtefactVsdId = null;
+//                    String vsdReturnStatus[] = {"VSDID"};
+//                    String insertNewVsd = "INSERT INTO ARTEFACT_VSD (VSDID, ARTEFACTID, RSDID) VALUES (ARTEFACT_VSD_SEQ.nextval, ?, ?)";
+//                    PreparedStatement newArtefactVsdPreparedStatement = udbConnect.prepareStatement(insertNewVsd, vsdReturnStatus);
+//
+//                    i = 1;
+//                    log.info("newArtefactVsdPreparedStatement.setString");
+//                    if (createdArtefactId != null) {
+//                        newArtefactVsdPreparedStatement.setLong(i++, createdArtefactId);
+//                    } else {
+//                        newArtefactVsdPreparedStatement.setNull(i++, Types.BIGINT);
+//
+//                    }
+//                    if (createdArtefactRSDId != null) {
+//                        newArtefactVsdPreparedStatement.setLong(i++, createdArtefactRSDId);
+//                    } else {
+//                        newArtefactVsdPreparedStatement.setNull(i++, Types.BIGINT);
+//                    }
+//                    log.info("newArtefactVsdPreparedStatement.executeUpdate()");
+//                    newArtefactVsdPreparedStatement.executeUpdate();
+//                    log.info("successfull insert to database!");
+//
+//                    ResultSet vsdGeneratedIdResultSet = newArtefactVsdPreparedStatement.getGeneratedKeys();
+//                    vsdGeneratedIdResultSet.next();
+//                    createdArtefactVsdId = vsdGeneratedIdResultSet.getLong(1);
+//                    log.info("createdArtefactVsdId:");
+//                    log.info(createdArtefactVsdId.toString());
 
                     //insert CANDAPPROVAL
                     Long createdCandApprovalId = null;
@@ -788,7 +798,7 @@ public class CreateNCP implements JavaDelegate {
                     delegateExecution.setVariable("createdArtefactId", createdArtefactId);
                     delegateExecution.setVariable("createdArtefactRSDId", createdArtefactRSDId);
                     delegateExecution.setVariable("createdArtefactRRId", createdArtefactRRId);
-                    delegateExecution.setVariable("createdArtefactVSDId", createdArtefactVsdId);
+//                    delegateExecution.setVariable("createdArtefactVSDId", createdArtefactVsdId);
                     delegateExecution.setVariable("createdCandApprovalId", createdCandApprovalId);
                     delegateExecution.setVariable("createdArtefactRRStatusId", createdArtefactRRStatusId);
                     delegateExecution.setVariable("createdArtefactExtTSDId", createdArtefactExtTSDId);
